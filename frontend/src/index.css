@@ -499,6 +499,16 @@ body:has(.electron-titlebar) {
   overflow: hidden;
 }
 
+/* Keep the Electron desktop workspace stable when an IME changes the visual viewport. */
+body:has(.electron-titlebar),
+body:has(.electron-titlebar) #root {
+  height: 100vh;
+}
+
+body:has(.electron-titlebar) .app-shell[data-layout="desktop"] {
+  height: 100vh;
+}
+
 body:has(.electron-titlebar) .app-page-header {
   padding-right: 9.25rem;
 }
@@ -689,6 +699,69 @@ body:has(.electron-titlebar) .app-shell[data-sidebar="collapsed"] .desktop-chat-
   width: 38px;
   height: 38px;
   border-radius: 10px;
+}
+
+.app-shell[data-layout="compact"] .chat-composer form .math-input-panel button {
+  width: auto;
+  height: auto;
+}
+
+.app-shell[data-layout="compact"] .chat-composer form .math-input-panel .math-input-close,
+.app-shell[data-layout="compact"] .chat-composer form .math-input-panel .math-input-back,
+.app-shell[data-layout="compact"] .chat-composer form .math-input-panel .matrix-size-button {
+  width: 2rem;
+  height: 2rem;
+}
+
+.app-shell[data-layout="compact"] .chat-composer form .math-input-panel .math-input-template {
+  min-height: 3.5rem;
+}
+
+.math-input-panel [role="tab"] {
+  white-space: nowrap;
+}
+
+.visual-math-field {
+  display: block;
+  width: 100%;
+  min-height: 64px;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+  --caret-color: var(--accent);
+  --selection-background-color: var(--accent-soft);
+  --placeholder-color: var(--text-secondary);
+}
+
+.visual-math-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  outline: none;
+}
+
+.visual-math-field::part(menu-toggle),
+.visual-math-field::part(virtual-keyboard-toggle) {
+  display: none;
+}
+
+.math-quick-key-row {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+  overscroll-behavior-inline: contain;
+}
+
+.app-shell[data-layout="compact"] .chat-composer form .math-input-panel .math-quick-key {
+  width: auto;
+  min-width: 2rem;
+  height: 2rem;
+}
+
+.math-input-panel:focus-within {
+  overscroll-behavior: contain;
 }
 
 .app-shell[data-layout="compact"] .chat-toolbar {

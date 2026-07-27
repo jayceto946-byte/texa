@@ -8,6 +8,10 @@ import ChatMessage from '../components/ChatMessage';
 import ScopeSelector from '../components/ScopeSelector';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useChatContext, type ChatMessage as ContextChatMessage } from '../contexts/ChatContext';
+import { composeMathQuestion } from '../features/math-input/composeMathQuestion';
+import MathExpressionList from '../features/math-input/MathExpressionList';
+import type { MathEditRequest, MathExpression } from '../features/math-input/types';
+import VisualMathInputPopover from '../features/math-input/VisualMathInputPopover';
 import { useChat } from '../hooks/useChat';
 import type { ExerciseRecord } from '../types';
 import { buildTextbookScopeOptions, findDefaultTextbookScope, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
@@ -63,6 +67,8 @@ function recordMatchesTerms(record: ExerciseRecord, terms: string[]) {
 
 const ChatPage: React.FC = () => {
   const [input, setInput] = useState('');
+  const [mathExpressions, setMathExpressions] = useState<MathExpression[]>([]);
+  const [mathEditRequest, setMathEditRequest] = useState<MathEditRequest | null>(null);
   const [books, setBooks] = useState<TextbookRecord[]>([]);
   const [booksLoaded, setBooksLoaded] = useState(false);
   const [highlightDialogOpen, setHighlightDialogOpen] = useState(false);
@@ -71,6 +77,8 @@ const ChatPage: React.FC = () => {
   const { bookName, setBookName, subject, setSubject, conversationId, addMessage } = useChatContext();
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const mathExpressionSequenceRef = useRef(0);
+  const mathEditSequenceRef = useRef(0);
   const subjectSuggestions = Array.from(new Set(books.map((book) => book.subject || '').filter(Boolean)));
   const scopeBooks = useMemo(() => buildTextbookScopeOptions(books), [books]);
 
@@ -145,9 +153,12 @@ const ChatPage: React.FC = () => {
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!input.trim() || isLoading) return;
-    sendMessage(input);
+    const question = composeMathQuestion(input, mathExpressions);
+    if (!question || isLoading) return;
+    sendMessage(question);
     setInput('');
+    setMathExpressions([]);
+    setMathEditRequest(null);
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
   };
 
@@ -162,6 +173,34 @@ const ChatPage: React.FC = () => {
       e.preventDefault();
       handleSubmit();
     }
+  };
+
+  const handleAddMathExpression = (latex: string, displayMode: boolean) => {
+    const expression: MathExpression = {
+      id: `math-${Date.now()}-${++mathExpressionSequenceRef.current}`,
+      latex,
+      displayMode,
+    };
+    setMathExpressions((current) => [...current, expression]);
+  };
+
+  const handleUpdateMathExpression = (id: string, latex: string, displayMode: boolean) => {
+    setMathExpressions((current) => current.map((item) => (
+      item.id === id ? { ...item, latex, displayMode } : item
+    )));
+    setMathEditRequest(null);
+  };
+
+  const handleEditMathExpression = (expression: MathExpression) => {
+    setMathEditRequest({
+      nonce: ++mathEditSequenceRef.current,
+      expression,
+    });
+  };
+
+  const handleRemoveMathExpression = (id: string) => {
+    setMathExpressions((current) => current.filter((item) => item.id !== id));
+    setMathEditRequest((current) => current?.expression.id === id ? null : current);
   };
 
   const showReport = async (mode: ReportMode) => {
@@ -348,21 +387,34 @@ const ChatPage: React.FC = () => {
 
         <div className="chat-composer border-t border-border bg-bg-secondary/86 p-2 backdrop-blur sm:p-4">
           <form onSubmit={handleSubmit} className="mx-auto flex max-w-5xl items-end gap-2">
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={handleInput}
-              onKeyDown={handleKeyDown}
-              placeholder="输入问题..."
+            <VisualMathInputPopover
               disabled={isLoading}
-              className="max-h-[108px] min-h-[40px] flex-1 resize-none overflow-y-auto rounded-xl border border-border bg-bg-card px-4 py-2 type-body text-text-primary outline-none transition-colors placeholder-text-secondary focus:border-accent sm:max-h-[160px] sm:min-h-[48px] sm:rounded-xl sm:px-5 sm:py-3"
+              editRequest={mathEditRequest}
+              onAddExpression={handleAddMathExpression}
+              onUpdateExpression={handleUpdateMathExpression}
             />
+            <div className="chat-question-box min-w-0 flex-1 overflow-hidden rounded-xl border border-border bg-bg-card transition-colors focus-within:border-accent">
+              <MathExpressionList
+                expressions={mathExpressions}
+                onEdit={handleEditMathExpression}
+                onRemove={handleRemoveMathExpression}
+              />
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={handleInput}
+                onKeyDown={handleKeyDown}
+                placeholder={mathExpressions.length ? '继续输入问题，公式将按编号发送…' : '输入问题...'}
+                disabled={isLoading}
+                className="max-h-[108px] min-h-[40px] w-full resize-none overflow-y-auto border-0 bg-transparent px-4 py-2 type-body text-text-primary outline-none placeholder-text-secondary sm:max-h-[160px] sm:min-h-[48px] sm:px-5 sm:py-3"
+              />
+            </div>
             {isLoading ? (
               <button type="button" onClick={stop} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-red-300 bg-red-50 text-red-700 transition-colors hover:bg-red-100">
                 <Square className="h-4 w-4 fill-current" />
               </button>
             ) : (
-              <button type="submit" disabled={!input.trim()} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-accent text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40">
+              <button type="submit" disabled={!input.trim() && mathExpressions.length === 0} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-accent text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40">
                 <Send className="h-4 w-4" />
               </button>
             )}

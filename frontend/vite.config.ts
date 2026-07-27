@@ -22,6 +22,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined
+          if (id.includes('mathlive')) return 'vendor-mathlive'
           if (id.includes('react') || id.includes('scheduler')) return 'vendor-react'
           if (id.includes('react-markdown') || id.includes('remark-') || id.includes('rehype-') || id.includes('unified') || id.includes('katex')) return 'vendor-markdown'
           if (id.includes('lucide-react')) return 'vendor-icons'
