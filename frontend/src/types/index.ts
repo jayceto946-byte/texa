@@ -249,6 +249,16 @@ export interface ChatExerciseCard {
   record: ExerciseRecord;
 }
 
+export interface SubjectRouteSuggestion {
+  target_subject: string;
+  target_book_name: string;
+  current_subject: string;
+  current_book_name: string;
+  confidence: number;
+  reason: string;
+}
+
+
 export interface ChatUtilityCard {
   kind: 'mistake_quick_capture';
 }

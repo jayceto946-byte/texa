@@ -1,8 +1,10 @@
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
-import type { ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate } from '../types';
+import type { ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate, SubjectRouteSuggestion } from '../types';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
+  id?: string;
+  turnId?: string;
   content: string;
   stage?: string;
   sourceChapters?: string[];
@@ -12,6 +14,7 @@ export interface ChatMessage {
   chapterHighlightCard?: ChatChapterHighlightCard;
   utilityCard?: ChatUtilityCard;
   agentCard?: ChatAgentCard;
+  subjectSuggestion?: SubjectRouteSuggestion;
 }
 
 interface ChatContextType {

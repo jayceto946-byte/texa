@@ -31,13 +31,14 @@ export function useChat() {
 
       cancelActiveChat();
       const requestId = ++requestSequenceRef.current;
+      const turnId = `turn_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
       streamContentRef.current = '';
       sourceChaptersRef.current = [];
       linkedConceptsRef.current = [];
 
-      addMessage({ role: 'user', content: question });
+      addMessage({ role: 'user', content: question, turnId });
       setLoading(true);
-      addMessage({ role: 'assistant', content: '', stage: 'thinking' });
+      addMessage({ role: 'assistant', content: '', stage: 'thinking', turnId });
 
       const fail = (message: string) => {
         if (requestId !== requestSequenceRef.current) return;
@@ -54,7 +55,7 @@ export function useChat() {
         });
         (async () => {
           try {
-            const result = await chatAsk(question, bookName, subject, conversationId, ctrl.signal);
+            const result = await chatAsk(question, bookName, subject, conversationId, turnId, ctrl.signal);
             if (requestId !== requestSequenceRef.current) return;
             setActiveChatAbort(null);
             if (result.conversation_id) setConversationId(result.conversation_id);
@@ -62,7 +63,7 @@ export function useChat() {
               if (last.role !== 'assistant') return last;
               const chapters = result.chapters || [];
               const suffix = chapters.length > 0 && chapters[0] ? `\n\n*来源：${chapters.length > 1 ? `${chapters[0]} 等 ${chapters.length} 个章节` : chapters[0]}*` : '';
-              return { ...last, content: `${result.content}${suffix}`, stage: 'done', linkedConcepts: result.linked_concepts || [] };
+              return { ...last, content: `${result.content}${suffix}`, stage: 'done', linkedConcepts: result.linked_concepts || [], turnId: result.turn_id || turnId, subjectSuggestion: result.subject_suggestion };
             });
             setLoading(false);
           } catch (err) {
@@ -78,6 +79,7 @@ export function useChat() {
         bookName,
         subject,
         conversationId,
+        turnId,
         (event) => {
           if (requestId !== requestSequenceRef.current) return;
           if (event.conversation_id) setConversationId(event.conversation_id);
@@ -129,6 +131,7 @@ export function useChat() {
                 next.content = `${base}${suffix}`;
                 next.sourceChapters = chapters;
                 next.linkedConcepts = linkedConcepts;
+                next.subjectSuggestion = event.subject_suggestion;
                 break;
               }
               case 'error':

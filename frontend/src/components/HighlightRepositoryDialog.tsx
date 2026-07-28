@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { BookMarked, CheckCircle2, Circle, ExternalLink, FolderOpen, Loader2, RefreshCw, Trash2, X } from 'lucide-react';
+import { BookMarked, CheckCircle2, Circle, ExternalLink, FolderOpen, Loader2, RefreshCw, Square, Trash2, X } from 'lucide-react';
 import { del, get, post } from '../api/client';
 
 type BookOption = { name: string };
@@ -49,6 +49,7 @@ const statusLabel = (item?: HighlightScopeStatus | null) => {
   if (status === 'stale') return '需要更新';
   if (status === 'running' || status === 'queued' || status === 'cancelling') return '生成中';
   if (status === 'failed') return '失败';
+  if (status === 'cancelled' || status === 'interrupted') return '已终止';
   return '未生成';
 };
 
@@ -113,7 +114,7 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
   const [progress, setProgress] = useState<ProgressState | null>(null);
   const [viewUrl, setViewUrl] = useState('');
   const [staticHtmlUrl, setStaticHtmlUrl] = useState('');
-  const [operation, setOperation] = useState<'start' | 'delete' | ''>('');
+  const [operation, setOperation] = useState<'start' | 'cancel' | 'delete' | ''>('');
   const [activeJobId, setActiveJobId] = useState('');
   const [activeJobTarget, setActiveJobTarget] = useState<ActiveJobTarget | undefined>();
   const [completionNotice, setCompletionNotice] = useState<CompletionNotice | null>(null);
@@ -214,6 +215,8 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
 
         if (terminalJobStatuses.has(job.status)) {
           setActiveJobId('');
+          setActiveJobTarget(undefined);
+          void refreshChapters(target.bookName);
           if (job.status === 'completed') {
             const result = job.result || {};
             const resultBook = result.book_name || job.book_name || target.bookName;
@@ -225,7 +228,7 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
               setViewUrl(appUrl);
               setStaticHtmlUrl(result.html_url || `/api/books/${encodeURIComponent(resultBook)}/chapter-highlights/${encodeURIComponent(resultChapter)}/html${highlightQueryFor(resultSection)}`);
               setCompletionNotice({ title: noticeTitle, url: appUrl, bookName: resultBook, chapterId: resultChapter, sectionId: resultSection });
-              void refreshChapters(resultBook);
+              if (resultBook !== target.bookName) void refreshChapters(resultBook);
             }
           }
           return;
@@ -235,7 +238,9 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
         consecutiveFailures += 1;
         if (consecutiveFailures >= 8) {
           setActiveJobId('');
+          setActiveJobTarget(undefined);
           setProgress((prev) => ({ status: 'interrupted', message: '网络连接持续不可用，已停止轮询。网络恢复后可再次点击生成以继续。', progress: prev?.progress, target: prev?.target || activeJobTarget }));
+          void refreshChapters(activeJobTarget?.bookName || highlightBookName || currentBookName);
           return;
         }
         setProgress((prev) => ({
@@ -279,7 +284,8 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
       const start = await post(`/books/${encodeURIComponent(targetBook)}/chapter-highlights/${encodeURIComponent(chapterId)}/jobs${highlightQueryFor(sectionId || 'all', force)}`, {}, 60000);
       if (!start?.success) throw new Error(start?.message || '启动章节重点生成失败');
       const jobId = start.job_id || start.data?.id;
-      setActiveJobId(jobId || '');
+      if (!jobId) throw new Error('后台未返回任务编号');
+      setActiveJobId(jobId);
       setProgress({
         status: start.data?.status || 'queued',
         message: `${force ? '重新生成' : '生成'}任务已启动；可以关闭窗口、继续对话，完成后会提示你打开结果。${jobId ? ` 任务：${jobId}` : ''}`,
@@ -288,7 +294,35 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
       });
       window.setTimeout(() => refreshChapters(targetBook), 1200);
     } catch (err) {
+      setActiveJobId('');
+      setActiveJobTarget(undefined);
       setProgress({ status: 'failed', message: `启动失败：${err instanceof Error ? err.message : String(err)}`, target });
+      void refreshChapters(targetBook);
+    } finally {
+      setOperation('');
+    }
+  };
+
+  const cancelHighlightJob = async () => {
+    if (!activeJobId || operation) return;
+    const jobId = activeJobId;
+    setOperation('cancel');
+    setProgress((prev) => ({
+      status: 'cancelling',
+      message: '正在终止章节重点生成...',
+      progress: prev?.progress,
+      target: prev?.target || activeJobTarget,
+    }));
+    try {
+      const res = await post(`/jobs/${encodeURIComponent(jobId)}/cancel`, {}, 30000);
+      if (!res?.success) throw new Error(res?.message || '终止生成失败');
+    } catch (err) {
+      setProgress((prev) => ({
+        status: 'running',
+        message: `终止请求失败：${err instanceof Error ? err.message : String(err)}`,
+        progress: prev?.progress,
+        target: prev?.target || activeJobTarget,
+      }));
     } finally {
       setOperation('');
     }
@@ -450,7 +484,7 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
         </div>
 
         {progress && showSelectedProgress && (
-          <div className={`border-t px-3 py-3 text-xs sm:px-4 ${progress.status === 'failed' ? 'border-red-200 bg-red-50 text-red-700' : 'border-border bg-[var(--accent-softer)] text-text-primary'}`}>
+          <div className={`border-t px-3 py-3 text-xs sm:px-4 ${['failed', 'cancelled', 'interrupted'].includes(progress.status) ? 'border-red-200 bg-red-50 text-red-700' : 'border-border bg-[var(--accent-softer)] text-text-primary'}`}>
             <div className="flex items-center justify-between gap-3">
               <span className="min-w-0 truncate">{progress.message}</span>
               {typeof progress.progress === 'number' && <span className="flex-shrink-0 text-text-secondary">{progress.progress}%</span>}
@@ -470,6 +504,12 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
           </div>
           <div className="flex flex-1 flex-wrap justify-end gap-2 sm:flex-none">
             <button type="button" onClick={onClose} className="rounded-lg border border-border bg-bg-card px-3 py-2 text-xs text-text-secondary hover:text-text-primary">关闭</button>
+            {selectedScopeIsRunning && (
+              <button type="button" onClick={cancelHighlightJob} disabled={Boolean(operation)} className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-bg-card px-3 py-2 text-xs font-medium text-[var(--danger)] hover:bg-red-50 disabled:opacity-50">
+                {operation === 'cancel' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Square className="h-3.5 w-3.5" />}
+                {operation === 'cancel' ? '正在终止' : '终止生成'}
+              </button>
+            )}
             {isOpenable(selectedScope) && (
               <button type="button" onClick={deleteSelectedHighlight} disabled={actionBusy || !highlightBookName || !selectedChapterId} className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-bg-card px-3 py-2 text-xs font-medium text-[var(--danger)] hover:bg-red-50 disabled:opacity-50">
                 <Trash2 className="h-3.5 w-3.5" /> 删除旧重点

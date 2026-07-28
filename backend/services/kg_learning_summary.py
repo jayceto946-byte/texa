@@ -46,11 +46,44 @@ def _normalize_question(value: str) -> str:
     return " ".join(str(value or "").split())
 
 
+def _legacy_concept_match(concept_name: str, text: str) -> bool:
+    """Match legacy unstructured records without reintroducing one-char noise."""
+    concept = _normalize_question(concept_name).casefold()
+    haystack = _normalize_question(text).casefold()
+    return len(concept) >= 2 and concept in haystack
+
+
+def _legacy_question_match(question: str, texts: Iterable[str]) -> bool:
+    normalized_question = _normalize_question(question).casefold()
+    if len(normalized_question) < 2:
+        return False
+    for text in texts:
+        normalized_text = _normalize_question(text).casefold()
+        if not normalized_text:
+            continue
+        shorter, longer = sorted(
+            (normalized_question, normalized_text),
+            key=len,
+        )
+        if (
+            shorter in longer
+            and len(shorter) >= 4
+            and len(shorter) / len(longer) >= 0.75
+        ):
+            return True
+    return False
+
+
 def _build_mistake_indexes(
     records: list[Any],
-) -> tuple[dict[str, list[dict]], dict[str, str]]:
+) -> tuple[
+    dict[str, list[dict]],
+    dict[str, str],
+    list[tuple[dict, tuple[str, str, str]]],
+]:
     by_concept: dict[str, list[dict]] = defaultdict(list)
     question_ids: dict[str, str] = {}
+    legacy_records: list[tuple[dict, tuple[str, str, str]]] = []
 
     for record in records:
         summary = mistake_summary(record)
@@ -74,8 +107,16 @@ def _build_mistake_indexes(
             normalized = _normalize_question(text)
             if normalized:
                 question_ids.setdefault(normalized, record.id)
+        legacy_records.append((
+            summary,
+            (
+                str(getattr(record, "question_text", "") or ""),
+                str(getattr(record, "ocr_text", "") or ""),
+                str(getattr(record, "explanation", "") or ""),
+            ),
+        ))
 
-    return dict(by_concept), question_ids
+    return dict(by_concept), question_ids, legacy_records
 
 
 def build_concept_review_plan(
@@ -105,7 +146,11 @@ def build_concept_review_plan(
         | {name for name, count in mistake_counts.items() if count > 0}
     )
 
-    mistakes_by_concept, mistake_ids_by_question = _build_mistake_indexes(records)
+    (
+        mistakes_by_concept,
+        mistake_ids_by_question,
+        legacy_mistake_records,
+    ) = _build_mistake_indexes(records)
     review_items = []
     for name in candidate_names:
         if not name:
@@ -116,7 +161,14 @@ def build_concept_review_plan(
         exposure_count = int(info.get("exposure_count", 0) or concept_counts.get(name, 0) or 0)
         days_since_seen = days_since(info.get("last_exposed_at", ""), now=reference)
         days_since_review = days_since(info.get("last_reviewed_at", ""), now=reference)
-        related_mistakes = mistakes_by_concept.get(name, [])[:50]
+        related_mistakes = mistakes_by_concept.get(name, [])
+        if not related_mistakes:
+            related_mistakes = [
+                summary
+                for summary, texts in legacy_mistake_records
+                if any(_legacy_concept_match(name, text) for text in texts)
+            ]
+        related_mistakes = related_mistakes[:50]
 
         recent_questions = []
         seen_questions = set()
@@ -127,6 +179,17 @@ def build_concept_review_plan(
             if not question or question in seen_questions:
                 continue
             seen_questions.add(question)
+            normalized_question = _normalize_question(question)
+            mistake_id = mistake_ids_by_question.get(normalized_question, "")
+            if not mistake_id:
+                mistake_id = next(
+                    (
+                        summary["id"]
+                        for summary, texts in legacy_mistake_records
+                        if _legacy_question_match(question, texts)
+                    ),
+                    "",
+                )
             recent_questions.append({
                 "question": question,
                 "source": (
@@ -136,9 +199,7 @@ def build_concept_review_plan(
                 ),
                 "timestamp": exposure.get("timestamp", ""),
                 "weak": bool(exposure.get("weak")),
-                "mistake_id": mistake_ids_by_question.get(
-                    _normalize_question(question), ""
-                ),
+                "mistake_id": mistake_id,
             })
             if len(recent_questions) >= 3:
                 break

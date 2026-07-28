@@ -16,6 +16,7 @@ _jobs = HighlightJobStore(_service)
 
 @router.get("/{book_name}/chapter-highlights")
 def list_chapter_highlights(book_name: str):
+    _jobs.reconcile_book(book_name)
     chapters = _service.list_chapters(book_name)
     return {"success": True, "data": {"book_name": book_name, "chapters": chapters}}
 

@@ -47,19 +47,43 @@ def load_history(conversation_id: str) -> list[dict]:
     return data.get("messages", []) if isinstance(data, dict) else []
 
 
-def append_message(conversation_id: str, role: str, content: str, book_name: str = "", subject: str = "") -> None:
+def ensure_turn_id(turn_id: str = "") -> str:
+    if turn_id and re.match(r"^[\w\-.]{1,80}$", turn_id):
+        return turn_id
+    return f"turn_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}"
+
+
+def ensure_message_id(message_id: str = "") -> str:
+    if message_id and re.match(r"^[\w\-.]{1,80}$", message_id):
+        return message_id
+    return f"msg_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}"
+
+
+def append_message(
+    conversation_id: str,
+    role: str,
+    content: str,
+    book_name: str = "",
+    subject: str = "",
+    *,
+    turn_id: str = "",
+    message_id: str = "",
+) -> dict:
     subject = normalize_subject_value(subject)
     now = time.strftime("%Y-%m-%dT%H:%M:%S")
     with _conversation_lock(conversation_id):
         payload = _read_payload(conversation_id)
         history = payload.get("messages", []) if isinstance(payload, dict) else []
-        history.append({
+        item = {
+            "id": ensure_message_id(message_id),
+            "turn_id": ensure_turn_id(turn_id),
             "role": role,
             "content": content,
             "book_name": book_name,
             "subject": subject,
             "created_at": now,
-        })
+        }
+        history.append(item)
         payload = {
             "id": conversation_id,
             "messages": history[-40:],
@@ -69,6 +93,106 @@ def append_message(conversation_id: str, role: str, content: str, book_name: str
             "updated_at": now,
         }
         atomic_write_json(_path(conversation_id), payload)
+        return item
+
+
+def reclassify_conversation(conversation_id: str, subject: str, book_name: str = "") -> dict:
+    """Relabel one conversation without touching learning events or RAG traces."""
+    conversation_id = ensure_conversation_id(conversation_id)
+    subject = normalize_subject_value(subject)
+    now = time.strftime("%Y-%m-%dT%H:%M:%S")
+    with _conversation_lock(conversation_id):
+        payload = _read_payload(conversation_id)
+        messages = payload.get("messages", []) if isinstance(payload, dict) else []
+        if not messages:
+            raise ValueError("conversation not found or empty")
+        previous = {
+            "subject": str(payload.get("subject") or _last_meta(messages, "subject")),
+            "book_name": str(payload.get("book_name") or _last_meta(messages, "book_name")),
+        }
+        relabeled = [
+            {**item, "subject": subject, "book_name": book_name}
+            for item in messages
+            if isinstance(item, dict)
+        ]
+        history = list(payload.get("scope_history") or [])
+        history.append({
+            "mode": "reclassify",
+            "from": previous,
+            "to": {"subject": subject, "book_name": book_name},
+            "created_at": now,
+        })
+        payload.update({
+            "id": conversation_id,
+            "messages": relabeled,
+            "subject": subject,
+            "book_name": book_name,
+            "updated_at": now,
+            "scope_history": history[-20:],
+        })
+        atomic_write_json(_path(conversation_id), payload)
+    return get_conversation(conversation_id)
+
+
+def split_turn_to_conversation(
+    conversation_id: str,
+    turn_id: str,
+    subject: str,
+    book_name: str = "",
+) -> tuple[dict, dict]:
+    """Move one identified turn into a new conversation under a corrected scope."""
+    conversation_id = ensure_conversation_id(conversation_id)
+    turn_id = ensure_turn_id(turn_id)
+    subject = normalize_subject_value(subject)
+    target_id = ensure_conversation_id()
+    now = time.strftime("%Y-%m-%dT%H:%M:%S")
+    locks = sorted({_conversation_lock(conversation_id), _conversation_lock(target_id)}, key=id)
+    for lock in locks:
+        lock.acquire()
+    target_written = False
+    try:
+        source = _read_payload(conversation_id)
+        messages = source.get("messages", []) if isinstance(source, dict) else []
+        moved = [item for item in messages if isinstance(item, dict) and item.get("turn_id") == turn_id]
+        if not moved:
+            raise ValueError("turn not found")
+        remaining = [item for item in messages if item not in moved]
+        moved = [{**item, "subject": subject, "book_name": book_name} for item in moved]
+        target = {
+            "id": target_id,
+            "messages": moved,
+            "subject": subject,
+            "book_name": book_name,
+            "created_at": moved[0].get("created_at") or now,
+            "updated_at": now,
+            "split_from": {"conversation_id": conversation_id, "turn_id": turn_id},
+        }
+        atomic_write_json(_path(target_id), target)
+        target_written = True
+
+        source["messages"] = remaining
+        source["subject"] = _last_meta(remaining, "subject") or source.get("subject", "")
+        source["book_name"] = _last_meta(remaining, "book_name") or source.get("book_name", "")
+        source["updated_at"] = now
+        split_history = list(source.get("scope_history") or [])
+        split_history.append({
+            "mode": "split_turn",
+            "turn_id": turn_id,
+            "target_conversation_id": target_id,
+            "to": {"subject": subject, "book_name": book_name},
+            "created_at": now,
+        })
+        source["scope_history"] = split_history[-20:]
+        atomic_write_json(_path(conversation_id), source)
+    except Exception:
+        if target_written:
+            _path(target_id).unlink(missing_ok=True)
+        raise
+    finally:
+        for lock in reversed(locks):
+            lock.release()
+    return get_conversation(conversation_id), get_conversation(target_id)
+
 
 def get_conversation(conversation_id: str) -> dict:
     payload = _read_payload(ensure_conversation_id(conversation_id))

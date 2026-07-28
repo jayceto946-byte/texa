@@ -49,7 +49,7 @@ def test_chat_stream_done_survives_assistant_persistence_failure(monkeypatch):
     monkeypatch.setattr(chat_api, "load_history", lambda conversation_id: [])
     monkeypatch.setattr(chat_api, "rewrite_followup", lambda question, history, book_name="default", subject="": question)
 
-    def fake_append_message(conversation_id, role, content, book_name="default", subject=""):
+    def fake_append_message(conversation_id, role, content, book_name="default", subject="", **kwargs):
         if role == "assistant":
             raise RuntimeError("conversation write failed")
 
@@ -122,7 +122,7 @@ def test_chat_stream_replace_event_overwrites_persisted_assistant_content(monkey
 
     saved: list[tuple[str, str]] = []
 
-    def fake_append_message(conversation_id, role, content, book_name="default", subject=""):
+    def fake_append_message(conversation_id, role, content, book_name="default", subject="", **kwargs):
         saved.append((role, content))
 
     monkeypatch.setattr(chat_api, "append_message", fake_append_message)

@@ -108,6 +108,54 @@ class ChapterHighlightService(ChapterHighlightSourceMixin, ChapterHighlightGener
             "artifacts": artifacts,
         }
 
+    def mark_generation_terminal(
+        self,
+        book_name: str,
+        chapter_id: str,
+        section_id: str | None,
+        *,
+        status: str,
+        message: str,
+        create_if_missing: bool = True,
+        only_if_transient: bool = False,
+    ) -> dict | None:
+        """Persist a failed/cancelled/interrupted generation beside its artifacts."""
+        if status not in {"failed", "cancelled", "interrupted"}:
+            raise ValueError(f"unsupported highlight terminal status: {status}")
+
+        chapter = self._find_chapter_ref(book_name, chapter_id)
+        resolved_chapter_id = chapter.id if chapter else chapter_id
+        scope_id = self._scope_id(section_id)
+        base = self.scope_dir(book_name, resolved_chapter_id, scope_id)
+        metadata_path = base / "metadata.json"
+        existing = self._read_json(metadata_path) or {}
+        if not existing and not create_if_missing:
+            return None
+        if only_if_transient and existing.get("status") not in {"queued", "running", "cancelling"}:
+            return existing or None
+
+        section = None
+        if chapter and scope_id != "all":
+            section = self._find_section_ref(self._load_section_refs(book_name, chapter), scope_id)
+        now = _now()
+        metadata = {
+            **existing,
+            "status": status,
+            "book_name": book_name,
+            "chapter_id": resolved_chapter_id,
+            "chapter_title": existing.get("chapter_title") or (chapter.title if chapter else ""),
+            "scope_id": scope_id,
+            "scope_type": existing.get("scope_type") or ("section" if scope_id != "all" else "chapter"),
+            "scope_title": existing.get("scope_title") or (section.title if section else (chapter.title if chapter else "")),
+            "section_id": scope_id if scope_id != "all" else "",
+            "message": message,
+            "error": message,
+            "completed_at": now,
+            "updated_at": now,
+        }
+        self._write_json(metadata_path, metadata)
+        return metadata
+
     def find_latest_highlight_for_question(self, book_name: str, question: str, chapters: list[str] | None = None) -> dict | None:
         refs = self._load_chapter_refs(book_name)
         if not refs:

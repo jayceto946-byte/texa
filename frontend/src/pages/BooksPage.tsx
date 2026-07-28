@@ -33,6 +33,8 @@ const stageLabels: Record<string, string> = {
   indexing: '建立索引',
   completed: '完成',
   failed: '失败',
+  cancelled: '已取消',
+  interrupted: '已中断',
 };
 
 const BooksPage: React.FC = () => {
@@ -66,7 +68,7 @@ const BooksPage: React.FC = () => {
         const data = await res.json();
         if (!data.success) throw new Error(data.message || '获取导入进度失败');
         setJob(data.data);
-        if (data.data.status === 'completed' || data.data.status === 'failed') {
+        if (['completed', 'failed', 'cancelled', 'interrupted'].includes(data.data.status)) {
           stopPolling();
           setUploading(false);
           if (data.data.status === 'completed') window.dispatchEvent(new Event('books:changed'));
@@ -143,7 +145,7 @@ const BooksPage: React.FC = () => {
 
   const progress = Math.max(0, Math.min(100, job?.progress ?? 0));
   const isDone = job?.status === 'completed';
-  const isFailed = job?.status === 'failed';
+  const isFailed = ['failed', 'cancelled', 'interrupted'].includes(job?.status || '');
 
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-bg-primary">

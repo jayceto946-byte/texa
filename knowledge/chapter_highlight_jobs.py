@@ -4,7 +4,7 @@ from __future__ import annotations
 import threading
 from typing import TYPE_CHECKING, Any
 
-from backend.job_manager import JobCancelled, get_job_manager
+from backend.job_manager import JobCancelled, JobManager, TERMINAL_STATUSES, get_job_manager
 
 if TYPE_CHECKING:
     from .chapter_highlights import ChapterHighlightService
@@ -19,14 +19,18 @@ class HighlightJobStore:
 
     _worker_lock = threading.Lock()
 
-    def __init__(self, service: "ChapterHighlightService | None" = None) -> None:
+    def __init__(
+        self,
+        service: "ChapterHighlightService | None" = None,
+        job_manager: JobManager | None = None,
+    ) -> None:
         if service is None:
             from .chapter_highlights import ChapterHighlightService
 
             service = ChapterHighlightService()
         self.service = service
         self.job_dir = self.service.progress_path / "highlight_jobs"
-        self.jobs = get_job_manager()
+        self.jobs = job_manager or get_job_manager()
         self.jobs.import_legacy_json_jobs(
             HIGHLIGHT_JOB_TYPE,
             self.job_dir,
@@ -59,6 +63,35 @@ class HighlightJobStore:
     def read_job(self, job_id: str) -> dict | None:
         return self.jobs.get_job(job_id, job_type=HIGHLIGHT_JOB_TYPE)
 
+    def reconcile_book(self, book_name: str) -> None:
+        """Repair stale running metadata from jobs interrupted outside the worker."""
+        seen_scopes: set[tuple[str, str]] = set()
+        for job in self.jobs.list_jobs(job_type=HIGHLIGHT_JOB_TYPE, limit=500):
+            if str(job.get("book_name") or "") != str(book_name or ""):
+                continue
+            chapter_id = str(job.get("chapter_id") or "")
+            scope_id = self.service._scope_id(str(job.get("section_id") or "all"))
+            key = (chapter_id, scope_id)
+            if not chapter_id or key in seen_scopes:
+                continue
+            seen_scopes.add(key)
+            status = str(job.get("status") or "")
+            if status not in TERMINAL_STATUSES or status == "completed":
+                continue
+            try:
+                self.service.mark_generation_terminal(
+                    book_name,
+                    chapter_id,
+                    scope_id,
+                    status=status,
+                    message=str(job.get("message") or job.get("error") or "章节重点生成已终止"),
+                    create_if_missing=False,
+                    only_if_transient=True,
+                )
+            except Exception:
+                # Status repair must never make the chapter list unavailable.
+                continue
+
     def _find_active_job(self, book_name: str, chapter_id: str, scope_id: str) -> dict | None:
         for job in self.jobs.list_jobs(job_type=HIGHLIGHT_JOB_TYPE, limit=200):
             if job.get("status") not in ACTIVE_JOB_STATUSES:
@@ -86,6 +119,7 @@ class HighlightJobStore:
             job = self.read_job(job_id)
             if not job:
                 return
+            self.jobs.raise_if_cancelled(job_id)
             self._update_job(job_id, status="running", stage="started", message="开始生成章节重点", progress=max(1, int(job.get("progress") or 0)))
 
             def progress(stage: str, message: str, percent: int | None = None) -> None:
@@ -103,9 +137,8 @@ class HighlightJobStore:
                 on_progress=progress,
             )
             metadata = result.get("metadata", {})
-            self._update_job(
+            self.jobs.complete_job(
                 job_id,
-                status="completed",
                 stage="completed",
                 progress=100,
                 message="章节重点生成完成",
@@ -121,9 +154,25 @@ class HighlightJobStore:
                 },
             )
         except JobCancelled as exc:
-            self._update_job(job_id, status="cancelled", stage="cancelled", progress=100, message=str(exc) or "章节重点生成已取消", error=str(exc))
+            message = str(exc) or "章节重点生成已取消"
+            try:
+                self.service.mark_generation_terminal(
+                    job["book_name"], job["chapter_id"], job.get("section_id"),
+                    status="cancelled", message=message,
+                )
+            except Exception:
+                pass
+            self._update_job(job_id, status="cancelled", stage="cancelled", progress=100, message=message, error=str(exc))
         except Exception as exc:
-            self._update_job(job_id, status="failed", stage="failed", progress=100, message=f"章节重点生成失败：{exc}", error=str(exc))
+            message = f"章节重点生成失败：{exc}"
+            try:
+                self.service.mark_generation_terminal(
+                    job["book_name"], job["chapter_id"], job.get("section_id"),
+                    status="failed", message=message,
+                )
+            except Exception:
+                pass
+            self._update_job(job_id, status="failed", stage="failed", progress=100, message=message, error=str(exc))
         finally:
             self._worker_lock.release()
 

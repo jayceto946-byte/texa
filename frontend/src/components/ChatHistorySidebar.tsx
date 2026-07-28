@@ -139,6 +139,8 @@ export default function ChatHistorySidebar({
     const res = await get(`/chat/conversations/${encodeURIComponent(id)}`, 20000);
     if (!res?.success || !res.data) return;
     const messages = (res.data.messages || []).map((item: any) => ({
+      id: item.id || undefined,
+      turnId: item.turn_id || undefined,
       role: item.role === 'assistant' ? 'assistant' : 'user',
       content: item.content || '',
       stage: item.role === 'assistant' ? 'done' : undefined,

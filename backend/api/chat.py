@@ -8,11 +8,38 @@ import time
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
-from backend.conversation_memory import append_message, ensure_conversation_id, get_conversation, list_conversations, load_history, rewrite_followup
-from backend.schemas import ChatRequest
+from backend.conversation_memory import (
+    append_message,
+    ensure_conversation_id,
+    ensure_turn_id,
+    get_conversation,
+    list_conversations,
+    load_history,
+    reclassify_conversation,
+    rewrite_followup,
+    split_turn_to_conversation,
+)
+from backend.schemas import ChatRequest, ConversationScopeRequest, ConversationSplitTurnRequest, SubjectRoutingFeedbackRequest
+from backend.services.subject_routing import record_subject_routing_feedback, suggest_subject_scope
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
+
+def _safe_subject_suggestion(question: str, subject: str, book_name: str) -> dict | None:
+    try:
+        return suggest_subject_scope(question, subject, book_name)
+    except Exception:
+        logger.exception("subject routing suggestion failed")
+        return None
+
+
+
+def _safe_record_subject_feedback(source: str, target: str, action: str) -> None:
+    try:
+        record_subject_routing_feedback(source, target, action)
+    except Exception:
+        logger.exception("subject routing feedback persistence failed")
+
 @router.get("/conversations")
 def conversations(subject: str = "", book_name: str = "", limit: int = 80):
     return {"success": True, "data": list_conversations(subject=subject, book_name=book_name, limit=limit)}
@@ -23,11 +50,51 @@ def conversation_detail(conversation_id: str):
     conversation_id = ensure_conversation_id(conversation_id)
     return {"success": True, "data": get_conversation(conversation_id)}
 
+
+@router.patch("/conversations/{conversation_id}/scope")
+def update_conversation_scope(conversation_id: str, req: ConversationScopeRequest):
+    try:
+        data = reclassify_conversation(conversation_id, req.subject, req.book_name)
+        _safe_record_subject_feedback(req.source_subject, req.subject, "accepted")
+        return {"success": True, "data": data}
+    except ValueError as exc:
+        return {"success": False, "message": str(exc)}
+
+
+@router.post("/conversations/{conversation_id}/split-turn")
+def split_conversation_turn(conversation_id: str, req: ConversationSplitTurnRequest):
+    try:
+        source, target = split_turn_to_conversation(
+            conversation_id,
+            req.turn_id,
+            req.subject,
+            req.book_name,
+        )
+        _safe_record_subject_feedback(req.source_subject, req.subject, "accepted")
+        return {"success": True, "data": {"source": source, "target": target}}
+    except ValueError as exc:
+        return {"success": False, "message": str(exc)}
+
+
+@router.post("/subject-routing/feedback")
+def subject_routing_feedback(req: SubjectRoutingFeedbackRequest):
+    try:
+        data = record_subject_routing_feedback(
+            req.source_subject,
+            req.target_subject,
+            req.action,
+        )
+        return {"success": True, "data": data}
+    except ValueError as exc:
+        return {"success": False, "message": str(exc)}
+
+
 @router.post("/log")
 def log_conversation_messages(payload: dict):
     conversation_id = ensure_conversation_id(str(payload.get("conversation_id") or ""))
     book_name = str(payload.get("book_name") or "").strip()
     subject = str(payload.get("subject") or "").strip()
+    turn_id = ensure_turn_id(str(payload.get("turn_id") or ""))
     messages = payload.get("messages") or []
     if not isinstance(messages, list):
         return {"success": False, "message": "messages must be a list", "conversation_id": conversation_id}
@@ -39,7 +106,7 @@ def log_conversation_messages(payload: dict):
         content = str(item.get("content") or "").strip()
         if not content:
             continue
-        append_message(conversation_id, role, content, book_name=book_name, subject=subject)
+        append_message(conversation_id, role, content, book_name=book_name, subject=subject, turn_id=str(item.get("turn_id") or turn_id))
         appended += 1
     return {"success": True, "conversation_id": conversation_id, "appended": appended}
 
@@ -49,6 +116,7 @@ def chat_stream(req: ChatRequest):
     from graph.main_graph import run_graph_stream
 
     conversation_id = ensure_conversation_id(req.conversation_id)
+    turn_id = ensure_turn_id(req.turn_id)
     history = load_history(conversation_id)
     book_name = (req.book_name or "").strip()
     subject = (req.subject or "").strip()
@@ -84,7 +152,7 @@ def chat_stream(req: ChatRequest):
                 return ""
 
             try:
-                append_message(conversation_id, "assistant", content, book_name=book_name, subject=subject)
+                append_message(conversation_id, "assistant", content, book_name=book_name, subject=subject, turn_id=turn_id)
                 assistant_persisted = True
                 assistant_persistence_error = ""
             except Exception as exc:
@@ -123,8 +191,8 @@ def chat_stream(req: ChatRequest):
 
         graph_events = None
         try:
-            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'rewritten_question': rewritten_question if rewritten_question != req.question else ''}, ensure_ascii=False)}\n\n"
-            append_message(conversation_id, "user", req.question, book_name=book_name, subject=subject)
+            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'rewritten_question': rewritten_question if rewritten_question != req.question else ''}, ensure_ascii=False)}\n\n"
+            append_message(conversation_id, "user", req.question, book_name=book_name, subject=subject, turn_id=turn_id)
             context_finished = time.perf_counter()
             timings["context"] = round((context_finished - started) * 1000, 2)
             last_milestone_at = context_finished
@@ -139,6 +207,7 @@ def chat_stream(req: ChatRequest):
             for event in graph_events:
                 observe(event)
                 event["conversation_id"] = conversation_id
+                event["turn_id"] = turn_id
                 if event.get("stage") == "generate":
                     if event.get("replace"):
                         assistant_chunks[:] = [str(event.get("chunk") or "")]
@@ -148,6 +217,7 @@ def chat_stream(req: ChatRequest):
                         persist_assistant()
                 if event.get("stage") == "done":
                     persistence_error = persist_assistant()
+                    event["subject_suggestion"] = _safe_subject_suggestion(req.question, subject, book_name)
                     if persistence_error:
                         event["persistence_error"] = persistence_error
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
@@ -156,7 +226,7 @@ def chat_stream(req: ChatRequest):
             raise
         except Exception as exc:
             logger.exception("chat stream failed", extra={"request_id": request_id})
-            event = {"stage": "error", "message": str(exc), "done": True, "conversation_id": conversation_id}
+            event = {"stage": "error", "message": str(exc), "done": True, "conversation_id": conversation_id, "turn_id": turn_id}
             observe(event)
             yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
         finally:
@@ -188,12 +258,13 @@ def chat_ask(req: ChatRequest):
     from graph.main_graph import run_graph
 
     conversation_id = ensure_conversation_id(req.conversation_id)
+    turn_id = ensure_turn_id(req.turn_id)
     history = load_history(conversation_id)
     book_name = (req.book_name or "").strip()
     subject = (req.subject or "").strip()
     use_textbook_context = bool(book_name)
     rewritten_question = rewrite_followup(req.question, history, book_name=book_name, subject=subject)
-    append_message(conversation_id, "user", req.question, book_name=book_name, subject=subject)
+    append_message(conversation_id, "user", req.question, book_name=book_name, subject=subject, turn_id=turn_id)
 
     result = run_graph(
         user_input=rewritten_question,
@@ -205,7 +276,9 @@ def chat_ask(req: ChatRequest):
     )
     content = result.get("final_output", "")
     if content.strip():
-        append_message(conversation_id, "assistant", content, book_name=book_name, subject=subject)
+        append_message(conversation_id, "assistant", content, book_name=book_name, subject=subject, turn_id=turn_id)
+
+    subject_suggestion = _safe_subject_suggestion(req.question, subject, book_name)
 
     return {
         "content": content,
@@ -213,6 +286,8 @@ def chat_ask(req: ChatRequest):
         "chapters": result.get("target_chapters", []),
         "linked_concepts": result.get("linked_concepts", []),
         "conversation_id": conversation_id,
+        "turn_id": turn_id,
+        "subject_suggestion": subject_suggestion,
         "rewritten_question": rewritten_question if rewritten_question != req.question else "",
         "chapter_contents": {k: [d[:200] for d in v[:3]] for k, v in result.get("chapter_contents", {}).items()},
     }

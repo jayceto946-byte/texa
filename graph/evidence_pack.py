@@ -11,11 +11,15 @@ _PER_CHAPTER_LIMITS = {
     "factual_recall": 6,
     "derivation": 4,
     "application": 4,
+    "comparison": 4,
     "teach": 4,
     "summarize": 4,
     "quiz": 4,
+    "qa": 4,
+    "definition": 3,
     "formula": 3,
     "property": 3,
+    "cross_chapter": 3,
 }
 
 

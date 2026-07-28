@@ -18,6 +18,12 @@ from utils.resource_limits import (
 
 TOKEN_HEADER = "X-Kaoyan-Token"
 UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+READ_ONLY_POST_PATHS = {
+    "/api/exercises/list",
+    "/api/exercises/overview",
+    "/api/mistakes/list",
+    "/api/mistakes/overview",
+}
 CAPTURE_API_PATHS = {
     "/api/mistakes/recognize-image",
     "/api/mistakes/add",
@@ -26,8 +32,10 @@ CAPTURE_API_PATHS = {
 DEFAULT_TRUSTED_ORIGINS = {
     "http://localhost:3000",
     "http://localhost:5173",
+    "http://localhost:8000",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:8000",
 }
 
 
@@ -51,6 +59,19 @@ def is_trusted_origin(origin: str, request_origin: str = "") -> bool:
     # Never trust the request Host as an allow-list entry. Host is
     # attacker-controlled during DNS rebinding and must not authorize writes.
     return origin.rstrip("/") in DEFAULT_TRUSTED_ORIGINS | configured
+
+
+def is_write_request(method: str, path: str) -> bool:
+    normalized_method = method.upper()
+    normalized_path = path.rstrip("/") or "/"
+    return (
+        normalized_method in UNSAFE_METHODS
+        and not (
+            normalized_method == "POST"
+            and normalized_path in READ_ONLY_POST_PATHS
+        )
+    )
+
 
 def upload_body_limit(path: str) -> int | None:
     limits = {
@@ -134,7 +155,10 @@ class LocalApiBoundaryMiddleware(BaseHTTPMiddleware):
             )
         allowed, reason = authorize_api_client(host, supplied, configured, require_token)
         if allowed:
-            if reason == "local" and request.method.upper() in UNSAFE_METHODS:
+            if reason == "local" and is_write_request(
+                request.method,
+                request.url.path,
+            ):
                 origin = request.headers.get("Origin", "").strip()
                 if not is_trusted_origin(origin):
                     return JSONResponse(

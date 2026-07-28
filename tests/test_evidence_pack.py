@@ -1,3 +1,5 @@
+import pytest
+
 from graph.evidence_pack import build_evidence_pack
 from graph.generator import _build_generate_prompt
 
@@ -95,3 +97,47 @@ def test_evidence_pack_falls_back_to_legacy_chapter_contents():
         "second legacy chunk",
         "third legacy chunk",
     ))
+
+
+@pytest.mark.parametrize(
+    ("intent", "expected_count"),
+    [
+        ("definition", 3),
+        ("factual_recall", 6),
+        ("comparison", 4),
+        ("qa", 4),
+        ("derivation", 4),
+        ("application", 4),
+    ],
+)
+
+def test_evidence_pack_quality_contract_by_question_type(intent, expected_count):
+    evidence = [
+        _item(f"chunk-{index}", "chapter-1", f"independent fact {index}")
+        for index in range(1, 7)
+    ]
+
+    pack = build_evidence_pack(evidence, {}, intent=intent)
+
+    assert len(pack["items"]) == expected_count
+    assert all(
+        f"independent fact {index}" in pack["text"]
+        for index in range(1, expected_count + 1)
+    )
+
+
+def test_cross_chapter_questions_preserve_three_items_from_each_chapter():
+    evidence = [
+        _item(f"{chapter}-{index}", chapter, f"{chapter} fact {index}")
+        for chapter in ("chapter-1", "chapter-2", "chapter-3")
+        for index in range(1, 4)
+    ]
+
+    pack = build_evidence_pack(evidence, {}, intent="cross_chapter")
+
+    assert len(pack["items"]) == 9
+    assert {item["chapter"] for item in pack["items"]} == {
+        "chapter-1",
+        "chapter-2",
+        "chapter-3",
+    }

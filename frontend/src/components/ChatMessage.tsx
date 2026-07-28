@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Bot, BookOpen, User } from 'lucide-react';
-import type { ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate } from '../types';
+import type { ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate, SubjectRouteSuggestion } from '../types';
 import { useChatContext } from '../contexts/ChatContext';
 import ConceptPopover from './ConceptPopover';
 import ChapterHighlightCard from './chat/ChapterHighlightCard';
@@ -9,12 +9,15 @@ import { MarkdownMessage } from './chat/MarkdownMessage';
 import MistakeQuickCaptureCard from './chat/MistakeQuickCaptureCard';
 import ReportCard from './chat/ReportCard';
 import AgentResultCard from './chat/AgentResultCard';
+import SubjectRouteSuggestionCard from './chat/SubjectRouteSuggestionCard';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
   content: string;
   stage?: string;
   linkedConcepts?: ConceptCandidate[];
+  turnId?: string;
+  subjectSuggestion?: SubjectRouteSuggestion;
   reportCard?: ChatReportCard;
   exerciseCard?: ChatExerciseCard;
   chapterHighlightCard?: ChatChapterHighlightCard;
@@ -22,7 +25,7 @@ interface ChatMessageProps {
   agentCard?: ChatAgentCard;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, stage, linkedConcepts = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, stage, turnId, subjectSuggestion, linkedConcepts = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard }) => {
   const [showSources, setShowSources] = useState(false);
   const [activeConcept, setActiveConcept] = useState<ConceptCandidate | null>(null);
   const { bookName, subject } = useChatContext();
@@ -68,6 +71,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, stage, linkedC
           </div>
         ) : (
           <MarkdownMessage content={content} linkedConcepts={isUser ? [] : linkedConcepts} onConceptClick={setActiveConcept} />
+        )}
+
+        {!isUser && stage === 'done' && subjectSuggestion && (
+          <SubjectRouteSuggestionCard suggestion={subjectSuggestion} turnId={turnId} />
         )}
 
         {showMessageTools && linkedConcepts.length > 0 && (

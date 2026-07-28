@@ -18,6 +18,23 @@ class ChatRequest(BaseModel):
     target_chapters: list[str] = Field(default_factory=list, description="Target chapters")
     subject: str = Field(default="", description="Selected subject")
     conversation_id: str = Field(default="", description="Conversation id for follow-up context")
+    turn_id: str = Field(default="", description="Stable id shared by the user/assistant turn")
+
+
+class ConversationScopeRequest(BaseModel):
+    subject: str
+    book_name: str = ""
+    source_subject: str = ""
+
+
+class ConversationSplitTurnRequest(ConversationScopeRequest):
+    turn_id: str
+
+
+class SubjectRoutingFeedbackRequest(BaseModel):
+    source_subject: str = ""
+    target_subject: str
+    action: str
 
 
 class ChatEvent(BaseModel):
@@ -33,6 +50,8 @@ class ChatEvent(BaseModel):
     enriched: Optional[bool] = None
     message: Optional[str] = None
     conversation_id: Optional[str] = None
+    turn_id: Optional[str] = None
+    subject_suggestion: Optional[dict] = None
     rewritten_question: Optional[str] = None
     retrieval_status: Optional[str] = None
     retrieval_error: Optional[str] = None

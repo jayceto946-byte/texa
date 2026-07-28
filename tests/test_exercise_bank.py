@@ -102,6 +102,7 @@ def test_exercises_api_add_list_status_practice_and_import_mistake(monkeypatch, 
     assert duplicate_res["success"] is True
     assert duplicate_res["id"] == import_res["id"]
 
+
 def test_exercise_subject_hierarchy_filters_and_stats(tmp_path):
     bank = ExerciseBank(tmp_path / "exercises.db")
     high_math = ExerciseRecord(question_text="q1", subject="\u6570\u5b66/\u9ad8\u6570", status="new")
@@ -329,3 +330,29 @@ def test_practice_session_api_retry_reuses_same_mistake(monkeypatch, tmp_path):
     assert replayed["mistake_id"] == first["mistake_id"]
     assert bank.get(exercise.id).practice_count == 1
     assert len(mistake_book.list_all(limit=10)) == 1
+
+
+def test_practice_answer_without_mistake_does_not_initialize_mistake_book(monkeypatch, tmp_path):
+    bank = ExerciseBank(tmp_path / "lazy_provider.db")
+    exercise = ExerciseRecord(question_text="普通作答不依赖错题库", subject="数学")
+    bank.add(exercise)
+    session = bank.create_practice_session(subject="数学", limit=1)
+    monkeypatch.setattr(exercises, "_bank", lambda book_name="default": bank)
+
+    def fail_provider(*args, **kwargs):
+        raise RuntimeError("mistake database unavailable")
+
+    monkeypatch.setattr(exercises, "get_mistake_book", fail_provider)
+    response = TestClient(app).post(
+        f"/api/exercises/practice-sessions/{session.id}/answer",
+        json={
+            "exercise_id": exercise.id,
+            "user_answer": "已完成",
+            "quality": 4,
+            "add_to_mistake": False,
+        },
+    ).json()
+
+    assert response["success"] is True
+    assert response["data"]["status"] == "completed"
+    assert response["mistake_id"] == ""

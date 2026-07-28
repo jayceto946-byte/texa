@@ -2,6 +2,8 @@ from collections import Counter
 from datetime import datetime, timedelta
 from types import SimpleNamespace
 
+import pytest
+
 from backend.services.kg_learning_summary import (
     build_concept_review_plan,
     days_since,
@@ -108,3 +110,76 @@ def test_review_plan_does_not_use_substring_matches_for_mistakes():
     )
     assert result[0]["related_mistakes"] == []
     assert result[0]["recent_questions"][0]["mistake_id"] == ""
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("question_text", "请使用拉格朗日中值定理证明"),
+        ("ocr_text", "拉格朗日中值定理的扫描题干"),
+        ("explanation", "本题关键是拉格朗日中值定理"),
+        ("tags", ["拉格朗日中值定理"]),
+        ("linked_concepts", [{"name": "拉格朗日中值定理"}]),
+    ],
+)
+
+def test_review_plan_matches_legacy_unstructured_fields(field, value):
+    values = {
+        "question_text": "其他题目",
+        "ocr_text": "",
+        "explanation": "",
+        "tags": [],
+        "linked_concepts": [],
+    }
+    values[field] = value
+    record = _mistake(**values)
+    result = build_concept_review_plan(
+        {"拉格朗日中值定理": {"weak_flag": True, "exposure_count": 1}},
+        [],
+        Counter({"拉格朗日中值定理": 1}),
+        [],
+        [record],
+        now=datetime(2026, 7, 23, 12, 0, 0),
+    )
+    assert [item["id"] for item in result[0]["related_mistakes"]] == ["m-1"]
+
+
+def test_review_plan_prefers_explicit_links_before_legacy_text_fallback():
+    explicit = _mistake(
+        id="explicit",
+        question_text="显式关联题",
+        tags=["拉格朗日中值定理"],
+        linked_concepts=[],
+    )
+    legacy = _mistake(
+        id="legacy",
+        question_text="请使用拉格朗日中值定理证明",
+        tags=[],
+        linked_concepts=[],
+    )
+    result = build_concept_review_plan(
+        {"拉格朗日中值定理": {"weak_flag": True, "exposure_count": 1}},
+        [],
+        Counter({"拉格朗日中值定理": 1}),
+        [],
+        [explicit, legacy],
+        now=datetime(2026, 7, 23, 12, 0, 0),
+    )
+    assert [item["id"] for item in result[0]["related_mistakes"]] == ["explicit"]
+
+
+def test_recent_question_uses_guarded_legacy_contains_match():
+    question = "求函数在区间上的拉格朗日中值定理应用"
+    result = build_concept_review_plan(
+        {"拉格朗日中值定理": {"weak_flag": True, "exposure_count": 1}},
+        [{
+            "concept": "拉格朗日中值定理",
+            "question": f"{question}（复习）",
+            "source": "mistake",
+        }],
+        Counter({"拉格朗日中值定理": 1}),
+        [],
+        [_mistake(question_text=question, tags=[], linked_concepts=[])],
+        now=datetime(2026, 7, 23, 12, 0, 0),
+    )
+    assert result[0]["recent_questions"][0]["mistake_id"] == "m-1"

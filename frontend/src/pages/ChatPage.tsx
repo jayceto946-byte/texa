@@ -378,8 +378,8 @@ const ChatPage: React.FC = () => {
               />
             )}
             {messages.map((msg, i) => (
-              <ErrorBoundary key={i}>
-                <ChatMessage role={msg.role} content={msg.content} stage={msg.stage} linkedConcepts={msg.linkedConcepts} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} agentCard={msg.agentCard} />
+              <ErrorBoundary key={msg.id || `${msg.turnId || 'message'}-${i}`}>
+                <ChatMessage role={msg.role} content={msg.content} stage={msg.stage} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} linkedConcepts={msg.linkedConcepts} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} agentCard={msg.agentCard} />
               </ErrorBoundary>
             ))}
           </div>

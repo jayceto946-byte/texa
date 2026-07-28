@@ -1073,3 +1073,154 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 完整后端测试：201 passed，1 条既有 Starlette/httpx2 弃用警告。
 - 前端 TypeScript 与 Vite 生产构建通过；Electron `main.cjs`、`preload.cjs` Node 语法检查通过。
 - `git diff --check` 通过。`compileall` 因现有 `__pycache__` 目录权限无法写入而未作为验证依据；完整 pytest 已成功导入并执行相关 Python 模块。
+
+## 2026-07-24 - 解耦分支功能契约修复
+
+### Compatibility and fault isolation
+
+- KG 概念复习优先使用 `linked_concepts` 与标签精确关联；某概念没有显式命中时，再从旧错题的题干、OCR 与解析文本做兼容包含匹配。单字符概念不进入全文兜底，最近题目关联还要求最短四字符且长度比例不低于 0.75，避免短片段误命中。
+- `PracticeAnswerService` 改为接收 `MistakeBook` provider；仅在 `add_to_mistake=True` 且尚无稳定错题 ID 时初始化错题库，普通作答不再受错题数据库权限或损坏影响。
+- 习题与错题 overview 保留主体列表，将统计、活动会话和到期复习队列作为隔离的可选部分；辅助模块失败时返回局部数据及 `errors` 字段。
+
+### RAG quality contract
+
+- EvidencePack 继续保留 9000 字符总预算与单条 1800 字符上限，同时为定义、列举、比较、普通原理问答、推导、应用题和跨章节问题设置显式的每章证据覆盖基线。
+- 新增确定性多题型回归测试；它验证证据覆盖边界，不调用付费 LLM，也不把单次模型延迟当作答案质量结论。
+
+### Validation
+
+- 针对性后端测试：41 passed，覆盖五类 KG 关联来源、短概念防误匹配、惰性错题依赖、overview 局部失败和 EvidencePack 多题型矩阵。
+- 完整后端测试：218 passed；仅有 1 条既有 Starlette/httpx2 弃用警告。
+- 前端 Vitest：5 files / 18 tests passed；ESLint、TypeScript 与 Vite 生产构建通过。
+- Electron `main.cjs`、`preload.cjs` Node 语法检查通过；版本一致性检查通过。
+- 当前 CI 已配置 `pull_request` 触发；合并前仍需让当前真实 HEAD 通过远端完整 CI。未调用真实付费 LLM、OCR 或 MinerU。
+
+## 2026-07-24 - 本地 API 卡片请求 Origin 分类修复
+
+### Fix
+
+- 本地 API 安全边界不再只按 HTTP 方法判断写操作；`/exercises/list`、`/exercises/overview`、`/mistakes/list`、`/mistakes/overview` 虽使用 POST 传递筛选条件，但按只读请求处理。
+- “按薄弱点抽题”和“随机抽一道题”不再因只读 `/exercises/list` 被误报 `UNTRUSTED_ORIGIN`；习题库 overview、错题列表和错题 overview 同步恢复。
+- 将后端自身提供的本地 UI Origin `http://localhost:8000` 与 `http://127.0.0.1:8000` 加入明确白名单。Electron 仍优先使用每次启动生成的 API token。
+- 真正写入或产生外部成本的卡片操作仍受保护，包括错题速录保存、练习提交、复习评分、教材重点生成、设置修改和数据恢复；未知 Web Origin 不能借只读豁免调用这些接口。
+
+### Card audit
+
+- 到期错题复习、概念复习是前端本地卡片；学习日报/周报和教材重点读取使用 GET，不受此次误分类影响。
+- 教材重点生成、错题图片识别与保存、题目作答等写入型操作统一通过带桌面 token 的 API client；本地 8000 UI 可正常使用，其他来源仍需显式配置可信 Origin 或有效 token。
+
+### Validation
+
+- 安全边界定向测试：12 passed；覆盖未知 Origin 只读 POST 放行、真实写请求继续拒绝、尾斜杠归一化、本地 5173/3000/8000 Origin 和桌面 token。
+- 相关 API 定向测试：28 passed。
+- 完整后端测试：220 passed；仅有 1 条既有 Starlette/httpx2 弃用警告。
+- 前端 Vitest：5 files / 18 tests passed；ESLint、TypeScript 与 Vite 生产构建通过。
+- Electron `main.cjs`、`preload.cjs` Node 语法检查通过；`git diff --check` 通过。
+## 2026-07-24 - 章节重点任务终态与卡片停止状态修复
+
+### Fix
+
+- 章节重点生成失败或取消时，同时把 SQLite 后台任务和对应 `metadata.json` 写入 `failed` / `cancelled` 终态；即使元数据写入本身失败，任务表也会结束，不再永久保留 `running`。
+- 章节重点列表会按同范围最新任务修复后端重启造成的陈旧 `running` 元数据；只修复已有的临时状态，不复活用户已删除的重点记录，也不覆盖较新的成功产物。
+- 前端轮询收到 `completed`、`failed`、`cancelled` 或 `interrupted` 后统一清理活动任务并刷新章节状态；启动缺少任务 ID、连续网络失败也会解除本地“生成中”。
+- 章节重点卡片新增“终止生成”，复用持久化任务取消接口；任务完成改用原子完成操作，取消与完成并发时由取消状态优先。
+
+### Adjacent card audit
+
+- 教材导入卡片现在把 `cancelled`、`interrupted` 作为终态，停止轮询、解除按钮禁用并显示错误态。
+- 学习页知识关联卡片在 `cancelling` 时保持禁用并显示终止中；`cancelled`、`interrupted` 不再继续显示加载态。
+- 习题标准答案任务原有轮询已完整处理 `failed`、`cancelled`、`interrupted`，无需修改。
+
+### Validation
+
+- 章节重点任务定向回归：10 passed，覆盖失败元数据落盘、重启中断修复、工作线程失败和取消前置检查。
+- 完整后端测试：223 passed；仅有 1 条既有 Starlette/httpx2 弃用警告。
+- 前端 Vitest：5 files / 18 tests passed；ESLint、TypeScript 与 Vite 生产构建通过。
+- `git diff --check` 通过。
+
+## 2026-07-27 - 问答数学符号辅助输入第一版
+
+### Frontend
+
+- 问答输入区新增数学符号面板，按常用、微积分、线性代数和希腊字母分组提供 48 个 LaTeX 符号与公式模板；复用现有 Markdown + KaTeX 消息格式，不修改后端请求协议、数据库或模型调用链。
+- 模板按当前光标位置插入；选中文字后可直接套用分数、根式、函数、向量等结构，插入完成后恢复输入焦点并选中下一处待填写内容。
+- 面板支持当前输入预览、点击外部关闭和 Escape 关闭；2×2、3×3 矩阵使用独占行块级定界符。紧凑布局下对面板内部按钮做局部尺寸隔离，并验证 390px 移动视口无横向溢出。
+
+### Validation
+
+- 前端 Vitest：7 files / 25 tests passed，覆盖光标插入、选区套用、占位定位、矩阵块定界符和模板标记清理。
+- 前端 ESLint 通过；TypeScript 检查与 Vite 生产构建通过。
+- 本地实际界面验证通过：桌面 1280×720 下分数插入、KaTeX 预览和矩阵渲染正常；390×844 紧凑布局下面板边界、分类标签和模板点击区域正常。
+- 未新增第三方依赖，未调用真实 LLM、OCR 或教材索引。
+
+## 2026-07-27 - 问答可视化公式编辑与矩阵输入
+
+### Frontend
+
+- 将第一版的“把 LaTeX 源码直接插入 textarea”调整为“自然语言输入 + 可视化公式卡片”。公式在 MathLive 编辑器中按排版结果填写，保存后以 KaTeX 卡片展示，可再次编辑或删除；发送时再统一组合为 Markdown + LaTeX，后端接口和 LLM 输入约定保持不变。
+- 48 个原有模板不再暴露占位源码，点击后进入带灰色占位框的公式编辑器；占位未填写时禁止保存，并可选择行内公式或独立公式。
+- 新增矩阵构造器：支持 1–5 行、1–5 列，方括号、圆括号、行列式和无括号四种外框；逐格输入并实时预览，所有格子填写后生成标准矩阵 LaTeX。
+- 移除已被替代的旧版原始 LaTeX 弹层与输入预览组件，保留模板数据和纯转换测试。
+
+### Dependency and performance
+
+- 新增 `mathlive@0.110.0`，仅用于前端可视化公式编辑；MathLive 使用动态导入，并在 Vite 中拆分为独立 `vendor-mathlive` 资源，避免混入通用 vendor 首屏包。
+- 不修改数据库、后端 API、RAG、错题或教材索引格式；本次依赖变化只影响前端安装与构建产物。
+
+### Validation
+
+- 前端 Vitest：10 files / 33 tests passed，新增覆盖文字与公式组合、模板占位转换、矩阵缩放、矩阵序列化和空格校验。
+- 前端 ESLint 通过；TypeScript 检查与 Vite 生产构建通过。
+- 本地实际界面验证通过：桌面端完成分数可视化编辑、2×2 矩阵逐格填写、实时预览、公式卡片添加及二次编辑；390×844 紧凑布局下模板面板可用且无页面级横向溢出。
+- 未调用真实 LLM、OCR 或教材索引。
+
+## 2026-07-27 - 公式快捷键与输入法页面位移修复
+
+### Frontend
+
+- 可视化公式编辑器下方新增单行快捷键，包含平方、立方、0–9、x/y/z、加减等号与圆括号；快捷键保持公式框当前选择，不会因为按钮获得焦点而丢失输入位置。
+- 模板载入后显式定位到第一个公式占位框，快捷键通过 MathLive 的键盘输入命令填写，避免第一次点击数字时覆盖整条公式。
+- 禁用 MathLive 在输入、组合输入和光标变更时对宿主节点执行 `scrollIntoView()`；程序化聚焦使用 `preventScroll`，并在焦点事件后恢复页面滚动位置。
+- Electron 桌面布局改用稳定的 `100vh` 工作区高度，不再随输入法造成的动态可视视口变化压缩主页面；紧凑移动布局仍保留动态视口适配。
+
+### Validation
+
+- 前端 Vitest：11 files / 35 tests passed，新增快捷键唯一性以及平方、立方命令测试。
+- 前端 ESLint 通过；TypeScript 检查与 Vite 生产构建通过。
+- 本地界面实测：极限模板载入后，数字快捷键只填写当前占位框且保留 `lim` 结构；变量后添加平方正常；连续聚焦和快捷输入前后 `scrollY=0`、应用顶边为 0、应用高度与视口高度均保持 720px。
+
+## 2026-07-27 - 问答框公式附件
+
+### Frontend
+
+- 可视化编辑完成后的操作统一为“插入问答框”，插入成功即关闭公式面板；公式在问答框内部以“公式 1”“公式 2”等编号附件显示，并保留预览、编辑和删除操作。
+- 自然语言与公式附件共用一个输入容器，避免用户直接修改 LaTeX 源码；发送时按照界面编号组合为 Markdown + LaTeX，LLM 仍收到完整、结构化的数学表达式。
+- 本版未引入富文本 `contenteditable` 或拖拽排序，避免扩大输入法、光标定位和无障碍交互的风险；多公式按插入顺序稳定编号。
+
+### Validation
+
+- 前端 Vitest：11 files / 35 tests passed；ESLint 与 Vite 生产构建通过。
+- 本地界面实测：连续插入无穷符号和希腊字母后，问答框内正确显示“公式 1”“公式 2”，面板自动关闭，编辑、删除与发送入口可用。
+
+## 2026-07-28 - Conservative subject-routing correction for chat
+
+### Backend
+
+- Chat requests and persisted messages now share a stable `turn_id`; persisted messages also receive a stable message `id`. Existing conversation files remain readable without migration.
+- Added a conservative subject router that combines the configured subject catalog, explicit subject/course terms, textbook metadata and local BM25 evidence. A suggestion is emitted only when its score and lead over the runner-up pass feedback-adjusted thresholds.
+- Subject-routing failures are isolated from the main answer path. A failed classifier or local index read does not turn a successful answer into an SSE error.
+- Added conversation scope APIs for relabeling a whole conversation and for moving one identified turn into a new conversation. Both preserve message bodies and record scope history; mistake records, learning events and RAG traces are intentionally not rewritten.
+- Accepted and dismissed suggestions are counted per source/target route. Repeated acceptance can slightly lower the threshold, while repeated dismissal raises it.
+
+### Frontend
+
+- Assistant answers can show an actionable subject suggestion card with confidence and evidence.
+- The card supports moving only the current turn, relabeling the whole conversation, or dismissing the suggestion. Moving one turn opens the newly created conversation under the corrected subject/book scope.
+- Conversation history restores stable message and turn identifiers, and chat rendering uses stable keys when available.
+
+### Validation
+
+- Targeted backend regression: 9 tests passed, covering routing, current-scope suppression, feedback persistence, concurrent conversation writes, whole-conversation relabeling, turn splitting, and SSE persistence failure isolation.
+- Full backend regression: 228 tests passed with one existing Starlette/httpx2 deprecation warning.
+- Frontend validation passed: 11 Vitest files / 35 tests, ESLint, TypeScript, and the Vite production build.
+- No database schema, textbook index format, mistake record, learning-event record, or RAG-trace migration was introduced.

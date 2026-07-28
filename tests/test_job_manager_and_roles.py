@@ -190,3 +190,103 @@ def test_job_completion_and_cancellation_are_atomic(tmp_path):
     completed = manager.create_job("textbook_import", {}, status="running")
     manager.complete_job(completed["id"], result={"ok": True})
     assert manager.request_cancel(completed["id"])["status"] == "completed"
+
+def test_highlight_terminal_status_replaces_running_metadata(tmp_path):
+    from knowledge.chapter_highlights import ChapterHighlightService
+
+    service = ChapterHighlightService(
+        progress_path=tmp_path / "progress",
+        mineru_output_path=tmp_path / "mineru",
+    )
+    metadata_path = service.scope_dir("sensor", "chapter_001", "all") / "metadata.json"
+    service._write_json(metadata_path, {"status": "running", "source_hash": "abc"})
+
+    service.mark_generation_terminal(
+        "sensor",
+        "chapter_001",
+        "all",
+        status="failed",
+        message="model unavailable",
+    )
+
+    metadata = service._read_json(metadata_path)
+    assert metadata["status"] == "failed"
+    assert metadata["message"] == "model unavailable"
+    assert metadata["source_hash"] == "abc"
+    assert metadata["completed_at"]
+
+
+def test_highlight_job_reconciles_restart_interruption(tmp_path):
+    from knowledge.chapter_highlight_jobs import HIGHLIGHT_JOB_TYPE, HighlightJobStore
+    from knowledge.chapter_highlights import ChapterHighlightService
+
+    service = ChapterHighlightService(
+        progress_path=tmp_path / "progress",
+        mineru_output_path=tmp_path / "mineru",
+    )
+    metadata_path = service.scope_dir("sensor", "chapter_001", "all") / "metadata.json"
+    service._write_json(metadata_path, {"status": "running"})
+    manager = JobManager(tmp_path / "jobs.sqlite3")
+    manager.create_job(
+        HIGHLIGHT_JOB_TYPE,
+        {"book_name": "sensor", "chapter_id": "chapter_001", "section_id": "all"},
+        status="running",
+    )
+    manager.mark_running_interrupted("backend restarted")
+
+    store = HighlightJobStore(service, job_manager=manager)
+    store.reconcile_book("sensor")
+
+    metadata = service._read_json(metadata_path)
+    assert metadata["status"] == "interrupted"
+    assert metadata["message"] == "backend restarted"
+
+
+def test_highlight_worker_failure_and_preflight_cancel_are_terminal(tmp_path):
+    from knowledge.chapter_highlight_jobs import HIGHLIGHT_JOB_TYPE, HighlightJobStore
+
+    class FailingService:
+        progress_path = tmp_path / "progress"
+
+        @staticmethod
+        def _scope_id(section_id=None):
+            return section_id if section_id and section_id != "all" else "all"
+
+        def __init__(self):
+            self.generate_calls = 0
+            self.terminals = []
+            self.fail_terminal_write = False
+
+        def generate_highlight(self, *args, **kwargs):
+            self.generate_calls += 1
+            raise RuntimeError("provider failed")
+
+        def mark_generation_terminal(self, *args, **kwargs):
+            self.terminals.append(kwargs["status"])
+            if self.fail_terminal_write:
+                raise OSError("metadata is read-only")
+
+    service = FailingService()
+    manager = JobManager(tmp_path / "jobs.sqlite3")
+    store = HighlightJobStore(service, job_manager=manager)
+    failed = manager.create_job(
+        HIGHLIGHT_JOB_TYPE,
+        {"book_name": "sensor", "chapter_id": "chapter_001", "section_id": "all", "force": False},
+    )
+    store._run_job(failed["id"])
+    assert manager.get_job(failed["id"])["status"] == "failed"
+    assert service.terminals == ["failed"]
+
+    cancelled = manager.create_job(
+        HIGHLIGHT_JOB_TYPE,
+        {"book_name": "sensor", "chapter_id": "chapter_002", "section_id": "all", "force": False},
+    )
+    manager.request_cancel(cancelled["id"])
+    service.fail_terminal_write = True
+    store._run_job(cancelled["id"])
+    assert manager.get_job(cancelled["id"])["status"] == "cancelled"
+    assert service.generate_calls == 1
+    assert service.terminals == ["failed", "cancelled"]
+
+    # Metadata repair is best-effort and cannot break chapter-list requests.
+    store.reconcile_book("sensor")

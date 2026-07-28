@@ -166,7 +166,10 @@ def _practice_answer_service(book_name: str = "default") -> PracticeAnswerServic
     return PracticeAnswerService(
         bank=bank,
         book_name=book_name,
-        mistake_book=get_mistake_book(book_name, str(PROGRESS_PATH)),
+        mistake_book_provider=lambda: get_mistake_book(
+            book_name,
+            str(PROGRESS_PATH),
+        ),
         mistake_factory=_mistake_from_exercise,
         log_event=lambda event_type, record, payload: _log_learning_event(
             event_type,
@@ -242,13 +245,27 @@ def list_exercises(req: ExerciseListRequest, book_name: str = "default"):
 def get_exercise_overview(req: ExerciseListRequest, book_name: str = "default"):
     bank = _bank(book_name)
     records = _list_exercise_records(req, bank)
-    active = bank.get_active_practice_session()
+    errors = {}
+    try:
+        stats = bank.stats(subject=req.subject or None)
+    except Exception as exc:
+        print(f"[ExerciseOverview] stats unavailable: {exc}", flush=True)
+        stats = None
+        errors["stats"] = "习题统计暂不可用"
+    try:
+        active = bank.get_active_practice_session()
+        practice_session = _practice_session_data(bank, active) if active else None
+    except Exception as exc:
+        print(f"[ExerciseOverview] practice session unavailable: {exc}", flush=True)
+        practice_session = None
+        errors["practice_session"] = "练习会话暂不可用"
     return {
         "success": True,
         "data": {
             "records": [_record_to_out(record) for record in records],
-            "stats": bank.stats(subject=req.subject or None),
-            "practice_session": _practice_session_data(bank, active) if active else None,
+            "stats": stats,
+            "practice_session": practice_session,
+            "errors": errors,
         },
     }
 

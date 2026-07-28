@@ -220,8 +220,11 @@ const LearningPage: React.FC = () => {
     return () => window.clearInterval(timer);
   }, [kgJob?.id, kgJob?.status, load]);
 
+  const kgJobIsRunning = ['queued', 'running', 'cancelling'].includes(kgJob?.status || '');
+  const kgJobFailed = ['failed', 'cancelled', 'interrupted'].includes(kgJob?.status || '');
+
   const startKGEnhancement = async () => {
-    if (!bookName || kgJob?.status === 'running' || kgJob?.status === 'queued') return;
+    if (!bookName || kgJobIsRunning) return;
     setError('');
     try {
       const estimateRes = await get(`/kg/enhance/estimate?book_name=${encodeURIComponent(bookName)}`);
@@ -295,11 +298,11 @@ const LearningPage: React.FC = () => {
           </button>
           <button
             onClick={startKGEnhancement}
-            disabled={!bookName || kgJob?.status === 'queued' || kgJob?.status === 'running'}
+            disabled={!bookName || kgJobIsRunning}
             className="flex items-center gap-1.5 rounded-md border border-border bg-bg-primary px-3 py-1.5 text-sm text-text-primary transition-colors hover:border-accent disabled:opacity-50"
           >
-            <BrainCircuit className={`h-4 w-4 ${kgJob?.status === 'running' ? 'animate-pulse' : ''}`} />
-            {kgJob?.status === 'running' || kgJob?.status === 'queued' ? '正在完善知识关联' : '完善知识关联'}
+            <BrainCircuit className={`h-4 w-4 ${kgJobIsRunning ? 'animate-pulse' : ''}`} />
+            {kgJobIsRunning ? (kgJob?.status === 'cancelling' ? '正在终止知识关联' : '正在完善知识关联') : '完善知识关联'}
           </button>
         </div>
       </div>
@@ -307,7 +310,7 @@ const LearningPage: React.FC = () => {
       <div className="learning-page-content flex-1 space-y-5 overflow-y-auto p-6">
         {loading && <PageState kind="loading" title="正在整理学习情况" description="数据较多时可能需要十几秒。" />}
 
-        {kgJob && <TaskStatus title="完善知识关联" detail={kgJob.message || kgJob.status} progress={kgJob.progress} state={kgJob.status === 'failed' ? 'error' : kgJob.status === 'completed' ? 'success' : 'loading'} />}
+        {kgJob && <TaskStatus title="完善知识关联" detail={kgJob.message || kgJob.status} progress={kgJob.progress} state={kgJobFailed ? 'error' : kgJob.status === 'completed' ? 'success' : 'loading'} />}
 
         {error && !loading && <StatusBanner kind="error" title="学习情况加载失败" description={error} action={<button onClick={load} className="app-secondary-button">重试</button>} />}
         {!loading && !error && summary && (

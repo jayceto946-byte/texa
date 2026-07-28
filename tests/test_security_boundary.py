@@ -1,6 +1,11 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from backend.security import LocalApiBoundaryMiddleware, authorize_api_client, is_loopback_client
+from backend.security import (
+    LocalApiBoundaryMiddleware,
+    authorize_api_client,
+    is_loopback_client,
+    is_write_request,
+)
 
 
 def test_loopback_api_is_available_without_token():
@@ -35,6 +40,10 @@ def _test_client(monkeypatch, *, token: str = "", require_token: bool = False):
     def write():
         return {"success": True}
 
+    @app.post("/api/exercises/list")
+    def list_exercises():
+        return {"success": True, "data": []}
+
     return TestClient(app)
 
 
@@ -45,9 +54,40 @@ def test_untrusted_web_origin_cannot_write_to_loopback(monkeypatch):
     assert response.json()["error_code"] == "UNTRUSTED_ORIGIN"
 
 
-def test_trusted_dev_origin_and_non_browser_client_can_write(monkeypatch):
+def test_untrusted_origin_can_call_read_only_post_endpoint(monkeypatch):
     client = _test_client(monkeypatch)
-    assert client.post("/api/write", headers={"Origin": "http://127.0.0.1:5173"}).status_code == 200
+    response = client.post(
+        "/api/exercises/list",
+        headers={"Origin": "https://untrusted-ui.example"},
+    )
+    assert response.status_code == 200
+    assert response.json() == {"success": True, "data": []}
+
+
+def test_read_only_post_endpoints_are_not_classified_as_writes():
+    for path in (
+        "/api/exercises/list",
+        "/api/exercises/overview",
+        "/api/mistakes/list",
+        "/api/mistakes/overview",
+    ):
+        assert is_write_request("POST", path) is False
+        assert is_write_request("POST", f"{path}/") is False
+
+    assert is_write_request("POST", "/api/chat/log") is True
+    assert is_write_request("POST", "/api/exercises/practice") is True
+    assert is_write_request("DELETE", "/api/exercises/list") is True
+
+
+def test_trusted_local_ui_origins_and_non_browser_client_can_write(monkeypatch):
+    client = _test_client(monkeypatch)
+    for origin in (
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+    ):
+        assert client.post("/api/write", headers={"Origin": origin}).status_code == 200
     assert client.post("/api/write").status_code == 200
 
 

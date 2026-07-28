@@ -1,4 +1,4 @@
-import type { AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, ConceptCandidate } from '../types';
+import type { AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, ConceptCandidate, SubjectRouteSuggestion } from '../types';
 
 const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE_URL || '/api');
 const DEFAULT_TIMEOUT_MS = 20000;
@@ -53,6 +53,8 @@ export type ChatEvent = {
   content_count?: number;
   message?: string;
   conversation_id?: string;
+  turn_id?: string;
+  subject_suggestion?: SubjectRouteSuggestion;
   rewritten_question?: string;
   retrieval_status?: string;
   retrieval_error?: string;
@@ -158,6 +160,7 @@ export function chatStream(
   bookName: string = '',
   subject: string = '',
   conversationId: string = '',
+  turnId: string,
   onEvent: (event: ChatEvent) => void,
   onError?: (err: Error) => void
 ): () => void {
@@ -168,7 +171,7 @@ export function chatStream(
       const res = await fetch(apiUrl('/chat/stream'), {
         method: 'POST',
         headers: authHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ question, book_name: bookName, subject, conversation_id: conversationId }),
+        body: JSON.stringify({ question, book_name: bookName, subject, conversation_id: conversationId, turn_id: turnId }),
         signal: ctrl.signal,
       });
 
@@ -208,12 +211,13 @@ export async function chatAsk(
   bookName: string = '',
   subject: string = '',
   conversationId: string = '',
+  turnId: string,
   signal?: AbortSignal
-): Promise<{ content: string; intent: string; chapters: string[]; linked_concepts?: ConceptCandidate[]; conversation_id?: string; rewritten_question?: string }> {
+): Promise<{ content: string; intent: string; chapters: string[]; linked_concepts?: ConceptCandidate[]; conversation_id?: string; turn_id?: string; subject_suggestion?: SubjectRouteSuggestion; rewritten_question?: string }> {
   const res = await fetch(apiUrl('/chat/ask'), {
     method: 'POST',
     headers: authHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ question, book_name: bookName, subject, conversation_id: conversationId }),
+    body: JSON.stringify({ question, book_name: bookName, subject, conversation_id: conversationId, turn_id: turnId }),
     signal,
   });
   if (!res.ok) throw await responseError(res, 'chatAsk failed');

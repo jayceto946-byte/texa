@@ -28,6 +28,10 @@ class EventLogger(Protocol):
     ) -> None: ...
 
 
+class MistakeBookProvider(Protocol):
+    def __call__(self) -> MistakeBook: ...
+
+
 @dataclass(frozen=True)
 class PracticeAnswerResult:
     session: PracticeSession
@@ -41,7 +45,7 @@ class PracticeAnswerService:
     """Coordinate idempotent practice answers and optional mistake creation."""
 
     bank: ExerciseBank
-    mistake_book: MistakeBook
+    mistake_book_provider: MistakeBookProvider
     book_name: str
     mistake_factory: MistakeFactory
     log_event: EventLogger
@@ -72,7 +76,7 @@ class PracticeAnswerService:
                 "ps_" + hashlib.sha256(stable_key.encode("utf-8")).hexdigest()[:16]
             )
             try:
-                mistake_id = self.mistake_book.add_if_absent(
+                mistake_id = self.mistake_book_provider().add_if_absent(
                     self.mistake_factory(
                         record,
                         user_answer=user_answer,

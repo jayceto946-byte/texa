@@ -37,6 +37,7 @@ kaoyan-assistant/
 │   ├── retrieval_node.py       # 混合检索
 │   ├── chapter_subgraph.py     # 章节讲解路径
 │   ├── generator.py            # 回答生成
+│   ├── evidence_pack.py        # 有预算、按意图裁剪的统一证据包
 │   └── feedback_node.py        # 反馈闭环
 ├── ingestion/                  # 教材摄取、解析、向量索引
 │   ├── pdf_parser.py
@@ -58,8 +59,13 @@ kaoyan-assistant/
 ├── backend/                    # FastAPI 后端
 │   ├── main.py
 │   ├── schemas.py
-│   └── api/
+│   ├── services/               # 应用用例编排、缓存与跨存储协调
+│   │   ├── exercise_practice.py
+│   │   ├── kg_learning_summary.py
+│   │   └── mistake_images.py
+│   └── api/                    # 协议转换、依赖绑定与异常映射
 │       ├── chat.py             # SSE / 非流式对话
+│       ├── exercises.py        # 习题库与练习会话
 │       ├── mistakes.py         # 错题本 CRUD 与讲题
 │       ├── books.py            # 教材管理
 │       └── kg.py               # 知识图谱 API
@@ -68,11 +74,21 @@ kaoyan-assistant/
 │       ├── contexts/ChatContext.tsx
 │       ├── api/client.ts
 │       ├── hooks/useChat.ts
+│       ├── features/           # 习题、错题等领域工作流与局部组件
 │       ├── components/
 │       ├── layouts/
-│       └── pages/
+│       └── pages/              # 页面装配，不重复实现领域工作流
 └── ui/                         # CLI 保留；Gradio web 已废弃
 ```
+
+## 依赖方向与服务边界
+
+- `backend/api` 只负责 HTTP/SSE 协议转换、请求与响应模型、依赖绑定和异常映射；可复用的业务规则不得回写到 Router。
+- `backend/services` 负责应用用例编排，可以依赖 `graph`、`memory`、`knowledge` 和摄取层的公开能力，但不得依赖 FastAPI 请求/响应 DTO，也不得在无关分支提前实例化数据库、向量库等 IO 依赖。可选 IO 使用 factory/provider 惰性解析。
+- `graph` 负责 LLM/RAG 流程，不依赖 `backend/api`；`memory` 与其他存储层不反向依赖 API 或页面层。
+- 前端 `pages` 负责页面装配与跨功能协调；稳定的领域状态和事件流程放入 `features/*/hooks`，纯转换逻辑放入 feature 工具模块。React state updater 内不得产生副作用。
+- 聚合接口必须保留故障隔离：主体列表成功时，统计、活动会话或复习队列等辅助模块失败应返回局部结果与明确错误字段，而不是让整个页面不可用。
+- EvidencePack 是 RAG 行为边界，不是单纯格式化工具。字符预算、单条截断或按意图调整证据数时，必须覆盖定义、列举、比较、原理解释、推导、应用题和跨章节问题的事实覆盖回归。
 
 ## 核心工作流
 

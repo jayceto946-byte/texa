@@ -355,12 +355,19 @@ def list_mistakes(req: MistakeListRequest, book_name: str = "default"):
 def get_mistake_overview(req: MistakeListRequest, book_name: str = "default"):
     mistake_book = _mb(book_name)
     records = _list_mistake_records(req, mistake_book)
-    due = mistake_book.get_due(subject=req.subject or None)
+    errors = {}
+    try:
+        due = mistake_book.get_due(subject=req.subject or None)
+    except Exception as exc:
+        print(f"[MistakeOverview] due queue unavailable: {exc}", flush=True)
+        due = []
+        errors["due_records"] = "到期复习队列暂不可用"
     return {
         "success": True,
         "data": {
             "records": [_record_to_out(record) for record in records],
             "due_records": [_record_to_out(record) for record in due],
+            "errors": errors,
         },
     }
 
