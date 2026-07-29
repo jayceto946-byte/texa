@@ -9,6 +9,7 @@ import ScopeSelector from '../components/ScopeSelector';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useChatContext, type ChatMessage as ContextChatMessage } from '../contexts/ChatContext';
 import { composeMathQuestion } from '../features/math-input/composeMathQuestion';
+import { insertFormulaReference } from '../features/math-input/formulaReferences';
 import MathExpressionList from '../features/math-input/MathExpressionList';
 import type { MathEditRequest, MathExpression } from '../features/math-input/types';
 import VisualMathInputPopover from '../features/math-input/VisualMathInputPopover';
@@ -176,12 +177,14 @@ const ChatPage: React.FC = () => {
   };
 
   const handleAddMathExpression = (latex: string, displayMode: boolean) => {
-    const expression: MathExpression = {
-      id: `math-${Date.now()}-${++mathExpressionSequenceRef.current}`,
-      latex,
-      displayMode,
-    };
-    setMathExpressions((current) => [...current, expression]);
+    const id = `math-${Date.now()}-${++mathExpressionSequenceRef.current}`;
+    setMathExpressions((current) => {
+      const referenceNumber = current.reduce(
+        (maximum, item, index) => Math.max(maximum, item.referenceNumber ?? index + 1),
+        0,
+      ) + 1;
+      return [...current, { id, latex, displayMode, referenceNumber }];
+    });
   };
 
   const handleUpdateMathExpression = (id: string, latex: string, displayMode: boolean) => {
@@ -201,6 +204,22 @@ const ChatPage: React.FC = () => {
   const handleRemoveMathExpression = (id: string) => {
     setMathExpressions((current) => current.filter((item) => item.id !== id));
     setMathEditRequest((current) => current?.expression.id === id ? null : current);
+  };
+
+  const handleReferenceMathExpression = (referenceNumber: number) => {
+    const field = textareaRef.current;
+    const insertion = insertFormulaReference(
+      input,
+      referenceNumber,
+      field?.selectionStart ?? input.length,
+      field?.selectionEnd ?? input.length,
+    );
+    setInput(insertion.text);
+    window.requestAnimationFrame(() => {
+      field?.focus({ preventScroll: true });
+      field?.setSelectionRange(insertion.cursor, insertion.cursor);
+      if (field) field.style.height = Math.min(field.scrollHeight, 160) + 'px';
+    });
   };
 
   const showReport = async (mode: ReportMode) => {
@@ -398,15 +417,16 @@ const ChatPage: React.FC = () => {
                 expressions={mathExpressions}
                 onEdit={handleEditMathExpression}
                 onRemove={handleRemoveMathExpression}
+                onReference={handleReferenceMathExpression}
               />
               <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={handleInput}
                 onKeyDown={handleKeyDown}
-                placeholder={mathExpressions.length ? '继续输入问题，公式将按编号发送…' : '输入问题...'}
+                placeholder={mathExpressions.length ? '继续描述问题，点击公式编号可引用…' : '输入问题...'}
                 disabled={isLoading}
-                className="max-h-[108px] min-h-[40px] w-full resize-none overflow-y-auto border-0 bg-transparent px-4 py-2 type-body text-text-primary outline-none placeholder-text-secondary sm:max-h-[160px] sm:min-h-[48px] sm:px-5 sm:py-3"
+                className="max-h-[108px] min-h-[40px] w-full resize-none overflow-y-auto border-0 bg-transparent px-4 py-2 type-body text-text-primary outline-none shadow-none placeholder-text-secondary focus:shadow-none sm:max-h-[160px] sm:min-h-[48px] sm:px-5 sm:py-3"
               />
             </div>
             {isLoading ? (

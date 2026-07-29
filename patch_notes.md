@@ -1224,3 +1224,19 @@ The detailed historical notes for this period were damaged by mojibake before th
 - Full backend regression: 228 tests passed with one existing Starlette/httpx2 deprecation warning.
 - Frontend validation passed: 11 Vitest files / 35 tests, ESLint, TypeScript, and the Vite production build.
 - No database schema, textbook index format, mistake record, learning-event record, or RAG-trace migration was introduced.
+
+## 2026-07-28 - Stable formula references in the chat composer
+
+### Frontend
+
+- Replaced the clipped textarea focus shadow beneath formula attachments with the existing outer composer focus border, and added a quiet `surface-subtle` background to separate the formula layer from the question text.
+- Formula labels are now actionable: clicking `公式1`, `公式2`, and so on inserts that exact compact reference at the current question cursor or replaces the current selection.
+- Formula reference numbers remain stable after deletion, so removing `公式1` does not silently rename an existing `公式2`. Newly attached formulas continue from the highest remaining reference number.
+- Outgoing questions include an explicit reference registry mapping each compact label to its LaTeX expression, making phrases such as “比较公式1和公式2” deterministic for the answer generator.
+- No backend API, database, textbook index, mistake record, learning event, or RAG trace was changed.
+
+### Validation
+
+- Frontend Vitest: 12 files / 38 tests passed, including cursor insertion, selection replacement, stable numbering after deletion, formula-only questions, and explicit reference serialization.
+- Frontend ESLint, TypeScript checks, and the Vite production build passed.
+- The existing MathLive chunk-size warning remains unchanged and does not block the build.
