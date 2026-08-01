@@ -3,9 +3,16 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('kaoyanDesktop', {
   isElectron: true,
   minimize: () => ipcRenderer.invoke('window:minimize'),
+  isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
   toggleMaximize: () => ipcRenderer.invoke('window:toggle-maximize'),
   close: () => ipcRenderer.invoke('window:close'),
+  onMaximizedChange: (handler) => {
+    const listener = (_event, isMaximized) => handler(Boolean(isMaximized));
+    ipcRenderer.on('window:maximized-changed', listener);
+    return () => ipcRenderer.removeListener('window:maximized-changed', listener);
+  },
   restart: () => ipcRenderer.invoke('app:restart'),
+  retryStartup: () => ipcRenderer.invoke('startup:retry'),
   getStartupInfo: () => ipcRenderer.invoke('startup:info'),
   openWebFallback: () => ipcRenderer.invoke('startup:open-web'),
   openBackendLog: () => ipcRenderer.invoke('startup:open-log'),

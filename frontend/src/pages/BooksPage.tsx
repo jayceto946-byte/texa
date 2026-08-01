@@ -156,17 +156,16 @@ const BooksPage: React.FC = () => {
       <div className="mx-auto w-full max-w-6xl space-y-5 p-6">
         <section className="app-panel overflow-hidden">
           <div className="border-b border-border px-5 py-4">
-            <h3 className="type-section-title text-text-primary">选择导入方式</h3>
-            <p className="type-caption mt-1 text-text-secondary">普通 PDF 由系统完成解析；已有 MinerU 输出时可直接导入结果包。</p>
+            <h3 className="text-[18px] font-semibold leading-6 text-text-primary">选择导入方式</h3>
           </div>
           <div className="grid md:grid-cols-2">
-            <button type="button" onClick={() => setImportMode('pdf')} className={`flex items-start gap-3 px-5 py-4 text-left md:border-r ${importMode === 'pdf' ? 'bg-[var(--accent-softer)]' : 'hover:bg-bg-secondary'}`}>
-              <FileText className={`mt-0.5 h-5 w-5 ${importMode === 'pdf' ? 'text-accent' : 'text-text-secondary'}`} />
-              <span><span className="type-control block text-text-primary">导入 PDF 教材</span><span className="type-caption mt-1 block text-text-secondary">适合原始教材 PDF，包括扫描件。</span></span>
+            <button type="button" onClick={() => setImportMode('pdf')} className={`flex items-center gap-3 px-5 py-5 text-left md:border-r ${importMode === 'pdf' ? 'bg-[var(--accent-softer)]' : 'hover:bg-bg-secondary'}`}>
+              <FileText className={`h-5 w-5 ${importMode === 'pdf' ? 'text-accent' : 'text-text-secondary'}`} />
+              <span className="text-[16px] font-medium leading-6 text-text-primary">导入 PDF 教材</span>
             </button>
-            <button type="button" onClick={() => setImportMode('bundle')} className={`flex items-start gap-3 border-t border-border px-5 py-4 text-left md:border-t-0 ${importMode === 'bundle' ? 'bg-[var(--accent-softer)]' : 'hover:bg-bg-secondary'}`}>
-              <Archive className={`mt-0.5 h-5 w-5 ${importMode === 'bundle' ? 'text-accent' : 'text-text-secondary'}`} />
-              <span><span className="type-control block text-text-primary">导入 MinerU 输出包</span><span className="type-caption mt-1 block text-text-secondary">适合已经在外部完成 OCR 和版面解析的 zip。</span></span>
+            <button type="button" onClick={() => setImportMode('bundle')} className={`flex items-center gap-3 border-t border-border px-5 py-5 text-left md:border-t-0 ${importMode === 'bundle' ? 'bg-[var(--accent-softer)]' : 'hover:bg-bg-secondary'}`}>
+              <Archive className={`h-5 w-5 ${importMode === 'bundle' ? 'text-accent' : 'text-text-secondary'}`} />
+              <span className="text-[16px] font-medium leading-6 text-text-primary">导入 MinerU 输出包</span>
             </button>
           </div>
         </section>

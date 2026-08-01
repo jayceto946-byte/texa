@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { BarChart3, BookOpen, ClipboardCheck, HelpCircle, Loader2, RefreshCw } from 'lucide-react';
 import { get } from '../api/client';
 import { useChatContext } from '../contexts/ChatContext';
+import { useLearningNoteFont } from '../hooks/useLearningNoteFont';
 
 type WeeklyReport = {
   book_name: string;
@@ -23,6 +24,7 @@ const Metric: React.FC<{ label: string; value: number; compact?: boolean }> = ({
 );
 
 export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }> = ({ days = 7, compact = false }) => {
+  useLearningNoteFont();
   const { bookName, subject } = useChatContext();
   const [report, setReport] = useState<WeeklyReport | null>(null);
   const [loading, setLoading] = useState(false);
@@ -108,7 +110,7 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
             <section className="rounded-md border border-border bg-bg-card p-4">
               <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold"><HelpCircle className="h-4 w-4 text-accent" /> {suggestionTitle}</h3>
               <div className="space-y-2">
-                {(report?.suggestions || []).map((item, idx) => <div key={idx} className="rounded-md bg-bg-primary px-3 py-2 text-sm text-text-primary">{item}</div>)}
+                {(report?.suggestions || []).map((item, idx) => <div key={idx} className="learning-note rounded-md bg-bg-primary px-3 py-2 text-sm text-text-primary">{item}</div>)}
               </div>
             </section>
           </div>

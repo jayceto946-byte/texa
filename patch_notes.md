@@ -1,3 +1,13 @@
+# 2026-08-01 - Subject routing and conversation scope isolation
+
+- Lexical subject routing now compares the current subject's textbooks too; another subject must clearly outperform the current one before a transfer is suggested.
+- Each conversation ID is bound to one exact subject and textbook scope. Scope changes create a new ID in the frontend, with a matching backend safeguard.
+- Legacy mixed-scope conversations expose only messages from their current scope. Move-turn and reclassify-conversation workflows remain supported.
+
+### Validation
+
+- Real-index routing checks passed for three error-theory questions; backend 236 passed; frontend lint and TypeScript/Vite production build passed.
+
 # 2026-07-23 - 教材、学习汇总与页面初始化性能优化
 
 - 教材 PDF 列表、metadata、章节 JSON 和索引健康状态增加线程安全文件快照缓存；文件签名变化自动刷新，章节或 metadata 写入后主动失效。
@@ -1240,3 +1250,106 @@ The detailed historical notes for this period were damaged by mojibake before th
 - Frontend Vitest: 12 files / 38 tests passed, including cursor insertion, selection replacement, stable numbering after deletion, formula-only questions, and explicit reference serialization.
 - Frontend ESLint, TypeScript checks, and the Vite production build passed.
 - The existing MathLive chunk-size warning remains unchanged and does not block the build.
+
+## 2026-07-29 - Cross-subject routing preflight correction
+
+### Backend
+
+- Fixed subject ranking so a parent subject and its matching child route reinforce the same classification instead of incorrectly competing for the minimum lead. The reported sensor-to-English-writing question now resolves to the English/Writing scope with a high-confidence suggestion.
+- Subject routing now runs before the graph. When a confident cross-subject suggestion exists, the turn uses ordinary QA generation and does not retrieve from the currently selected, known-wrong textbook.
+- Streaming and non-streaming chat reuse the same preflight suggestion, while the actionable suggestion card remains attached to the completed answer.
+- The initial routing fix did not mutate Chroma. A follow-up integrity audit identified the reported `Nothing found on disk` entries as empty read-created collections rather than missing files from populated textbook indexes.
+
+### Validation
+
+- Added regression coverage for parent/child route scoring and for suppressing wrong-textbook retrieval when a cross-subject suggestion is active.
+- Targeted routing and stream reliability tests: 11 passed.
+- Full backend regression: 230 tests passed with one existing Starlette/httpx2 deprecation warning.
+
+## 2026-07-29 - Chroma phantom-collection repair
+
+### Cause and repair
+
+- `get_chapter_store()` had used LangChain Chroma get-or-create semantics on the read path since commit `ebf058e1` (2026-05-31). Commit `21ea40b9` (2026-07-03) added the current book-scoped `bk...` names but did not delete existing index files. Querying planner-generated subsection names triggered the latent bug on 2026-07-29.
+- The SQLite catalog contained eight unmapped collections with `count=0`; their HNSW directories never existed. All 507 mapped vector segments had matching directories, so no populated textbook index was corrupt.
+- Created a byte-for-byte full backup at `data/vector_db.backup-20260729-empty-collections` before repair, then deleted only the eight verified empty collections. PDFs, OCR/MinerU chunks, lexical indexes, mistakes, and learning records were untouched.
+- The read path now checks `get_collection()` before constructing the LangChain wrapper, preventing unknown chapter lookups from creating empty collections.
+
+### Validation
+
+- Chroma now reports 507 collections and zero registered vector segments with missing directories; unknown subsection queries keep the collection count unchanged at 507.
+- Sensor long-book index: 12 collections / 1359 vector chunks / 1359 lexical chunks; sensor short-book index: 479 collections / 562 vector chunks / 562 lexical chunks.
+- Real chapter retrieval returned results, and whole-book retrieval ranked Chapter 4 (force sensors) and Chapter 11 (signal processing) for the dynamic capacitive-sensor query.
+- Added a regression test proving a missing chapter read cannot construct a Chroma collection. Full backend regression: 231 tests passed with one existing Starlette/httpx2 deprecation warning.
+
+## 2026-07-30 - Electron startup recovery and titlebar feedback
+
+### Desktop and frontend
+
+- Replaced the non-customizable Windows Window Controls Overlay with isolated custom controls in both the React application and startup page. The BrowserWindow now uses `frame: false`; each interactive button owns an explicit `no-drag` hit region and standard click semantics, while window dragging remains on the non-overlapping left brand header. Minimize and maximize animate a full-button background and glyph geometry on hover, provide a compressed active state, preserve keyboard focus, and honor `prefers-reduced-motion`; close keeps its red danger state.
+- Restored the main page header as an Electron drag region, including native double-click maximize and restore behavior. Interactive controls inside the header remain explicit `no-drag` regions.
+- Kept the page-header drag region outside the 138px window-control hit area so it cannot suppress button hover/click feedback. The control backing now spans the full 64px header height and draws the same bottom border and translucent surface while the three animated buttons remain 42px high.
+- Electron now waits for backend health even when a frontend development URL is configured, preventing the React application from opening against a backend that is still starting.
+- Added a startup retry IPC flow and a visible “重新连接” action on the failure screen. If the backend process has exited, retry starts it again before waiting for health.
+- Added a per-launch cache key when loading the application so a restarted desktop client cannot reuse stale titlebar/overlay assets from the previous renderer session.
+- Removed the explanatory caption below “选择导入方式” and both option subtitles below “导入 PDF 教材” and “导入 MinerU 输出包”. Promoted the section heading to 18px semibold and the two option labels to 16px medium.
+- No backend API, database, vector index, textbook data, mistake record, or learning record format changed.
+
+### Validation
+
+- Frontend ESLint passed; TypeScript and Vite production build passed.
+- Frontend Vitest: 12 files / 38 tests passed. The first sandboxed run was blocked by Windows `spawn EPERM`; the approved unsandboxed rerun passed.
+- Electron main/preload syntax checks and `git diff --check` passed.
+- Windows Electron production-build validation at 125% display scaling confirmed visible full-button hover feedback for both minimize and maximize. A real maximize click changed the test window from 981×820 to 2048×1232 and synchronized the restore glyph. The 教材导入 page renders without the section caption or either option subtitle, and an isolated missing-backend simulation shows “重新连接”, Web fallback, and backend-log actions.
+- Fresh Electron development-window validation confirmed that double-clicking the central page header changes the window from 1280×820 to 2048×1232 and a second double-click restores it to 1280×820. Visual inspection confirmed one continuous bottom border across the brand header, page header, and right-side window-control area.
+- Follow-up Electron validation reproduced the overlapping drag-region regression, then confirmed the full-button hover background was visible again after separating the page-header and control hit areas; central-header double-click maximize remained functional.
+
+## 2026-07-30 - Scoped font trial
+
+### Frontend and packaging
+
+- Added a self-hosted Latin Regular subset of JetBrains Mono and placed it before the existing Windows monospaced fallbacks for code, identifiers, and other explicitly monospaced content.
+- Added the Unicode-split LXGW WenKai Screen webfont for learning suggestions and Markdown quotations only. Its stylesheet is injected only when a report or quotation surface mounts; navigation, controls, tables, metrics, normal answers, and the application shell continue to use the existing Windows system font stack.
+- Added bundled-font provenance and license texts under `THIRD_PARTY_NOTICES/fonts`; the desktop backend build now carries that notice directory into the packaged application.
+- No backend API, database, vector index, textbook data, mistake record, or learning record format changed.
+
+### Validation
+
+- Frontend ESLint passed; Vitest passed 12 files / 38 tests; TypeScript and the Vite production build passed.
+- Chromium production-asset checks confirmed both `LXGW WenKai Screen` and `JetBrains Mono` load successfully, and a visual specimen confirmed distinct glyph rendering without changing the surrounding system-font UI.
+- The production entry does not preload the LXGW stylesheet. The report surface injects the hashed `result-*.css` asset on mount.
+- JetBrains Mono adds two Latin font assets totaling 47.5 KiB. LXGW WenKai Screen adds 241 Unicode-split WOFF2 assets totaling 12.53 MiB to the offline package, while runtime font downloads remain limited by `unicode-range`.
+## 2026-07-30 - Practice workspace visual restructuring
+
+### Frontend
+
+- Rebuilt the practice workspace as one focused exercise surface instead of stacked full-width cards. Session controls, question context, answer entry, solution review, and mastery rating now form a clear top-to-bottom workflow with a bounded desktop reading width.
+- Removed the chat-bubble treatment from exercise questions and explanations by adding a reusable document rendering variant to `ChatMessage`; normal conversation rendering remains unchanged.
+- Kept answers and explanations collapsed by default. The expanded state uses a balanced two-column layout on desktop and falls back to one column on narrower viewports.
+- No practice handlers, backend APIs, database schemas, exercise records, or review scheduling rules changed.
+
+### Validation
+
+- Frontend ESLint passed.
+- Frontend Vitest passed 12 files / 38 tests.
+- TypeScript and the Vite production build passed.
+- Electron visual validation at 1280 x 820 confirmed both collapsed and expanded states fit without horizontal overflow and keep the primary practice actions visible.
+
+## 2026-08-01 - Sensor chapter index rebuild and Chroma preflight repair
+
+### Cause and data repair
+
+- The planner benchmark repeatedly reported `Error creating hnsw segment reader: Nothing found on disk` for valid sensor chapters. A direct full-store audit could query all 507 collections, but the real chat order (`get_book_index_stats()` followed by chapter retrieval) reproduced the failure reliably.
+- Created a complete recoverable backup at `data/vector_db.backup-20260801-230303-chapter-repair` before mutation.
+- Rebuilt the sensor short book from its independent lexical source (479 chapters / 562 chunks) and the sensor long book (12 chapters / 1359 chunks).
+- Replaced the legacy ASCII-parentheses full-text collection with the canonical chapter title. The old collection was removed only after all 59 `chunk_id` values and document texts matched the replacement exactly.
+- The underlying failure was not missing persisted HNSW files after rebuild: calling `count()` across hundreds of chapter collections during the chat preflight invalidated subsequent Chroma HNSW readers. Book health now uses collection mappings plus the independent lexical chunk count instead of opening every HNSW segment.
+- `ChapterVectorStore` now owns one persistent Chroma client and passes it to all LangChain Chroma wrappers, avoiding competing client lifecycles for the same persistent path.
+
+### Validation
+
+- Full vector audit: 507/507 collections completed a real embedding-vector query; zero mapped collections were missing, zero collections were unmapped, and no files under `data/vector_db` had the NTFS compressed attribute.
+- The exact production order of book-health preflight followed by retrieval now returns the requested `第二节 等效电路与测量电路` chapter without an HNSW error.
+- The full sensor teach retrieval includes both `第二节 等效电路与测量电路` and `第六章 压电式传感器` in the retrieved chapter set.
+- Added client-lifecycle and safe-health-check regression coverage. Full backend suite: 233 tests passed with one existing Starlette/httpx2 deprecation warning.
+- Machine-readable reports: `data/eval/vector_collection_health_20260801.json` and `data/eval/chapter_index_repair_final_20260801.json`.

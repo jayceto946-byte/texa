@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { ChatReportCard, LearningReport } from '../../types';
+import { useLearningNoteFont } from '../../hooks/useLearningNoteFont';
 
 const reportMetrics = [
   ['问答', 'qa_count'],
@@ -20,6 +21,7 @@ const ReportList = ({ title, items, empty }: { title: string; items: string[]; e
 );
 
 const ReportCard: React.FC<{ card: ChatReportCard }> = ({ card }) => {
+  useLearningNoteFont();
   const [open, setOpen] = useState(false);
   const report: LearningReport = card.report;
   const title = card.kind === 'daily' ? '学习日报' : '学习周报';
@@ -61,7 +63,7 @@ const ReportCard: React.FC<{ card: ChatReportCard }> = ({ card }) => {
         </div>
 
         {report.suggestions?.length > 0 && (
-          <div className="mt-3 rounded-lg border border-accent/20 bg-[var(--accent-softer)] px-3 py-2 text-sm text-text-primary">{report.suggestions[0]}</div>
+          <div className="learning-note mt-3 rounded-lg border border-accent/20 bg-[var(--accent-softer)] px-3 py-2 text-sm text-text-primary">{report.suggestions[0]}</div>
         )}
       </div>
 

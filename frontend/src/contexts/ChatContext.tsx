@@ -60,15 +60,30 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     abort?.();
   }, []);
 
-  const persistSubject = useCallback((next: string) => {
-    setSubject(next);
-    window.localStorage.setItem('kaoyan_subject', next);
-  }, []);
-
   const persistConversationId = useCallback((next: string) => {
     setConversationId(next);
     window.localStorage.setItem('kaoyan_conversation_id', next);
   }, []);
+
+  const resetConversationForScopeChange = useCallback(() => {
+    cancelActiveChat();
+    persistConversationId(createConversationId());
+    setIsLoading(false);
+    setMessages([]);
+  }, [cancelActiveChat, persistConversationId]);
+
+  const persistSubject = useCallback((next: string) => {
+    if (next === subject) return;
+    setSubject(next);
+    window.localStorage.setItem('kaoyan_subject', next);
+    resetConversationForScopeChange();
+  }, [resetConversationForScopeChange, subject]);
+
+  const persistBookName = useCallback((next: string) => {
+    if (next === bookName) return;
+    setBookName(next);
+    resetConversationForScopeChange();
+  }, [bookName, resetConversationForScopeChange]);
 
   const newConversation = useCallback(() => {
     cancelActiveChat();
@@ -83,9 +98,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     persistConversationId(id);
     setIsLoading(false);
     setMessages(nextMessages);
-    if (meta.subject !== undefined) persistSubject(meta.subject);
+    if (meta.subject !== undefined) {
+      setSubject(meta.subject);
+      window.localStorage.setItem('kaoyan_subject', meta.subject);
+    }
     if (meta.bookName !== undefined) setBookName(meta.bookName);
-  }, [cancelActiveChat, persistConversationId, persistSubject]);
+  }, [cancelActiveChat, persistConversationId]);
 
   const addMessage = useCallback((msg: ChatMessage) => {
     setMessages((prev) => [...prev, msg]);
@@ -113,7 +131,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       bookName,
       subject,
       conversationId,
-      setBookName,
+      setBookName: persistBookName,
       setSubject: persistSubject,
       setConversationId: persistConversationId,
       setActiveChatAbort,
@@ -125,7 +143,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading: setIsLoading,
       clearMessages,
     }),
-    [messages, isLoading, bookName, subject, conversationId, persistSubject, persistConversationId, setActiveChatAbort, cancelActiveChat, loadConversation, newConversation, addMessage, updateLastMessage, clearMessages]
+    [messages, isLoading, bookName, subject, conversationId, persistBookName, persistSubject, persistConversationId, setActiveChatAbort, cancelActiveChat, loadConversation, newConversation, addMessage, updateLastMessage, clearMessages]
   );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

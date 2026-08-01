@@ -116,6 +116,11 @@ def _threshold(source: str, target: str) -> float:
     return threshold
 
 
+def _same_subject_lineage(left: str, right: str) -> bool:
+    """Return True when one subject path is the ancestor of the other."""
+    return left == right or left.startswith(f"{right}/") or right.startswith(f"{left}/")
+
+
 def record_subject_routing_feedback(source: str, target: str, action: str) -> dict:
     if action not in {"accepted", "dismissed"}:
         raise ValueError("action must be accepted or dismissed")
@@ -178,12 +183,16 @@ def suggest_subject_scope(question: str, current_subject: str = "", current_book
             exact_book = book["name"]
 
     # If explicit terms found nothing, compare a bounded set of local lexical indexes.
-    # Requiring two strong hits keeps a single accidental chunk from rerouting a chat.
+    # The current subject must participate: shared terms occur in many textbooks,
+    # and an alternative-only search would always make some other book look best.
+    # A selected textbook is a strong scope decision. Cross-book BM25 alone
+    # cannot override it because shared terminology is common across courses.
+    # Explicit subject, child, or textbook names above can still suggest a move.
+    if not scores and current_book:
+        return None
     if not scores:
         best_by_subject: dict[str, tuple[float, dict]] = {}
         for book in books[:6]:
-            if book["subject"] == current_subject:
-                continue
             lexical_path = index_path(book["name"])
             try:
                 if not lexical_path.exists() or lexical_path.stat().st_size > 8_000_000:
@@ -199,7 +208,11 @@ def suggest_subject_scope(question: str, current_subject: str = "", current_book
             if previous is None or top_score > previous[0]:
                 best_by_subject[book["subject"]] = (top_score, book)
         inferred = sorted(best_by_subject.items(), key=lambda item: item[1][0], reverse=True)
-        if inferred and (len(inferred) == 1 or inferred[0][1][0] - inferred[1][1][0] >= 2.0):
+        if (
+            inferred
+            and not _same_subject_lineage(inferred[0][0], current_subject)
+            and (len(inferred) == 1 or inferred[0][1][0] - inferred[1][1][0] >= 2.0)
+        ):
             inferred_subject, (inferred_score, inferred_book) = inferred[0]
             scores[inferred_subject] = min(8.0, 3.0 + inferred_score / 2)
             reasons[inferred_subject].append(f"\u6559\u6750\u68c0\u7d22\u66f4\u63a5\u8fd1\u201c{inferred_book['display_name']}\u201d")
@@ -233,7 +246,12 @@ def suggest_subject_scope(question: str, current_subject: str = "", current_book
         score += min(2.0, retrieval_hits[0][0] / 4)
         reasons[target].append(f"\u6559\u6750\u68c0\u7d22\u547d\u4e2d\u201c{retrieval_hits[0][1]['display_name']}\u201d")
 
-    runner_up = max((value for path, value in ranked[1:] if path != target), default=0.0)
+    # Parent and child matches reinforce the same route. They must not compete
+    # with each other for the lead margin (for example English vs English/Writing).
+    runner_up = max(
+        (value for path, value in ranked[1:] if not _same_subject_lineage(path, target)),
+        default=0.0,
+    )
     if score < _threshold(current_subject, target) or score - runner_up < 1.5:
         return None
 

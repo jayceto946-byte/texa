@@ -21,9 +21,15 @@ declare global {
     kaoyanDesktop?: {
       isElectron: boolean;
       minimize: () => Promise<void>;
+      isMaximized?: () => Promise<boolean>;
       toggleMaximize: () => Promise<boolean>;
       close: () => Promise<void>;
+      onMaximizedChange?: (handler: (isMaximized: boolean) => void) => () => void;
       restart?: () => Promise<boolean>;
+      retryStartup?: () => Promise<{ ready: boolean; message?: string }>;
+      getStartupInfo?: () => Promise<{ message?: string; backendUrl?: string; logPath?: string; dataDir?: string }>;
+      openWebFallback?: () => Promise<void>;
+      openBackendLog?: () => Promise<string>;
       getRemoteCaptureStatus?: () => Promise<RemoteCaptureStatus>;
       setRemoteCaptureEnabled?: (enabled: boolean) => Promise<RemoteCaptureStatus>;
       getUpdateStatus?: () => Promise<DesktopUpdateStatus>;
@@ -31,7 +37,7 @@ declare global {
       downloadUpdate?: () => Promise<DesktopUpdateStatus>;
       installUpdate?: () => Promise<DesktopUpdateStatus>;
       onUpdateStatus?: (handler: (status: DesktopUpdateStatus) => void) => () => void;
-      onStartupError?: (handler: (message: string) => void) => void;
+      onStartupError?: (handler: (payload: { message?: string; backendUrl?: string; logPath?: string } | string) => void) => () => void;
     };
   }
 }

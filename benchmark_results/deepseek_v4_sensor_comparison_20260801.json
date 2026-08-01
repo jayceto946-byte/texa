@@ -1,0 +1,95 @@
+{
+  "run_at": "2026-08-01T22:09:39.192721+08:00",
+  "official_version_basis": "DeepSeek 2026-07-31 changelog: deepseek-v4-flash routes to the official DeepSeek-V4-Flash-0731 public beta; deepseek-v4-pro remains Preview.",
+  "official_source": "https://api-docs.deepseek.com/updates/",
+  "endpoint": "https://api.deepseek.com/v1",
+  "comparison_controls": {
+    "same_messages": true,
+    "thinking": {
+      "type": "enabled"
+    },
+    "reasoning_effort": "high",
+    "max_tokens": 8192,
+    "stream": false,
+    "separate_user_ids_for_cache_isolation": true,
+    "question_control_characters_checked": true,
+    "pro_retry_max_tokens": 16384,
+    "pro_retry_reason": "Initial Pro attempt used all 8193 completion tokens as reasoning and returned no final answer; only Pro was retried."
+  },
+  "system_prompt": "你是一名严谨的考研专业课教师，科目是传感器与检测技术。请给出自洽、可核验的中文解答，定义符号后再使用，公式统一使用 LaTeX。推导完整但避免堆砌概念，不要输出或提及内部思考过程。",
+  "question": "某电阻应变式压力传感器采用四片相同应变片组成全桥。各片初始电阻均为 \\(R\\)，灵敏系数 \\(K=2.1\\)，压力 \\(p\\) 与应变的关系为\n\n\\[\n\\varepsilon=\\alpha p,\\qquad \\alpha=8.0\\times10^{-6}\\ {\\rm kPa}^{-1}.\n\\]\n\n恒压桥源 \\(U_E=5.0\\ {\\rm V}\\)。受压后，桥臂 \\(R_1,R_4\\) 受拉，\\(\\Delta R/R=+K\\varepsilon\\)；桥臂 \\(R_2,R_3\\) 受压，\\(\\Delta R/R=-K\\varepsilon\\)。定义电桥输出极性，使压力增大时输出为正。电桥后接理想增益 \\(G=100\\) 的放大器。传感器动态可用一阶环节\n\n\\[\nH(s)=\\frac{1}{\\tau s+1},\\qquad \\tau=0.080\\ {\\rm s}\n\\]\n\n描述。\n\n请完成：\n\n1. 从惠斯通电桥分压关系出发，推导电桥输出 \\(U_o(p)\\)，说明这里的结果是精确式还是小信号近似；再求放大后静态灵敏度（单位分别写成 \\({\\rm V/kPa}\\) 和 \\({\\rm mV/kPa}\\)）以及 \\(p=200\\ {\\rm kPa}\\) 时的稳态输出。\n2. 压力从 0 突变为 \\(100\\ {\\rm kPa}\\) 时，写出放大后输出 \\(U(t)\\)，计算 \\(t=0.10\\ {\\rm s}\\) 的输出，以及进入并保持在最终值 \\(\\pm5\\%\\) 误差带内所需的最短时间。\n3. 若 \\(K,\\alpha,U_E,G\\) 的相对标准不确定度分别为 \\(1.0\\%,1.5\\%,0.2\\%,0.5\\%\\)，彼此独立，按均方根法求合成相对标准不确定度；同时给出最坏情况线性相加值，并换算成满量程 \\(200\\ {\\rm kPa}\\) 处的输出电压不确定度和等效压力不确定度。\n4. 解释为什么只给出静态灵敏度不足以描述该传感器对快速变化压力的测量能力，并指出本题两个最常见的计算错误。\n\n请按步骤作答，数值至少保留三位有效数字，全文控制在 1800 个汉字左右。",
+  "results": [
+    {
+      "model_requested": "deepseek-v4-flash",
+      "model_returned": "deepseek-v4-flash",
+      "system_fingerprint": "fp_a18b46594c_prod0820_fp8_kvcache_20260402",
+      "finish_reason": "stop",
+      "elapsed_seconds": 52.585,
+      "usage": {
+        "prompt_tokens": 614,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 614,
+        "completion_tokens": 6348,
+        "reasoning_tokens": 4972,
+        "total_tokens": 6962
+      },
+      "calculated_cost_cny_components": {
+        "cache_hit_input": 0.0,
+        "cache_miss_input": 0.000614,
+        "output": 0.012696
+      },
+      "calculated_cost_cny": 0.01331,
+      "answer": "设四片应变片构成全桥，电源电压为 \\(U_E\\)。令 \\(x=K\\varepsilon=K\\alpha p\\)。受压后取  \n\\[\nR_1=R_4=R(1+x),\\qquad R_2=R_3=R(1-x).\n\\]\n桥路接法为：\\(R_1\\) 与 \\(R_3\\) 串联成一支，\\(R_2\\) 与 \\(R_4\\) 串联成另一支；两中点分别为 A、B。负极侧为 \\(R_3\\)、\\(R_4\\)。则有  \n\\[\nV_A=U_E\\frac{R_3}{R_1+R_3}\n=U_E\\frac{R(1-x)}{2R}\n=\\frac{U_E}{2}(1-x),\n\\]\n\\[\nV_B=U_E\\frac{R_4}{R_2+R_4}\n=U_E\\frac{R(1+x)}{2R}\n=\\frac{U_E}{2}(1+x).\n\\]\n定义 \\(U_o=V_B-V_A\\)，则  \n\\[\nU_o(p)=U_E x=U_E K\\alpha p.\n\\]\n这里分母 \\(R_1+R_3=R_2+R_4=2R\\) 精确成立，故该式是精确式，并非小信号近似；全桥差动使非线性项抵消。放大后输出为  \n\\[\nU_{\\rm out}=G U_o=G U_E K\\alpha p.\n\\]\n\n## 1. 静态灵敏度与稳态输出\n\n静态灵敏度  \n\\[\nS=\\frac{\\mathrm dU_{\\rm out}}{\\mathrm dp}\n=G U_E K\\alpha.\n\\]\n代入 \\(G=100,\\ U_E=5.0\\ \\mathrm V,\\ K=2.1,\\ \\alpha=8.0\\times10^{-6}\\ \\mathrm{kPa^{-1}}\\)：\n\\[\nS=100\\times5.0\\times2.1\\times8.0\\times10^{-6}\n=8.40\\times10^{-3}\\ \\mathrm{V/kPa}\n=8.40\\ \\mathrm{mV/kPa}.\n\\]\n当 \\(p=200\\ \\mathrm{kPa}\\) 时稳态输出  \n\\[\nU_{\\rm out,200}=S\\times200=8.40\\times10^{-3}\\times200=1.68\\ \\mathrm V.\n\\]\n\n## 2. 阶跃响应\n\n压力从 0 突变为 \\(100\\ \\mathrm{kPa}\\)，放大后稳态值为  \n\\[\nU_f=S\\times100=0.840\\ \\mathrm V.\n\\]\n一阶系统 \\(H(s)=1/(\\tau s+1)\\)，\\(\\tau=0.080\\ \\mathrm s\\)，阶跃响应为  \n\\[\nU(t)=U_f\\left(1-\\mathrm e^{-t/\\tau}\\right)\n=0.840\\left(1-\\mathrm e^{-t/0.080}\\right)\\ \\mathrm V.\n\\]\n\\(t=0.10\\ \\mathrm s\\) 时，\n\\[\n\\frac{t}{\\tau}=1.25,\\qquad \\mathrm e^{-1.25}=0.2865,\n\\]\n\\[\nU(0.10)=0.840(1-0.2865)=0.599\\ \\mathrm V.\n\\]\n进入并保持在最终值 \\(\\pm5\\%\\) 误差带内，即需  \n\\[\nU(t)\\ge0.95U_f.\n\\]\n由  \n\\[\n1-\\mathrm e^{-t/\\tau}=0.95\n\\]\n得  \n\\[\nt=\\tau\\ln20=0.080\\times2.9957=0.240\\ \\mathrm s.\n\\]\n\n## 3. 不确定度合成\n\n各相对标准不确定度：  \n\\[\nu_{K,r}=1.0\\%,\\quad u_{\\alpha,r}=1.5\\%,\\quad u_{U_E,r}=0.2\\%,\\quad u_{G,r}=0.5\\%.\n\\]\n因 \\(U_{\\rm out}\\propto K\\alpha U_E G\\)，且相互独立，按均方根法：  \n\\[\nu_{c,r}=\\sqrt{1.0^2+1.5^2+0.2^2+0.5^2}\\%\n=\\sqrt{3.54}\\%\n=1.88\\%.\n\\]\n最坏情况线性相加：  \n\\[\nu_{wc,r}=1.0+1.5+0.2+0.5=3.2\\%.\n\\]\n满量程 \\(200\\ \\mathrm{kPa}\\) 处标称输出  \n\\[\nU_{FS}=1.68\\ \\mathrm V.\n\\]\n合成标准不确定度（RSS）对应的输出电压为  \n\\[\nu_c=0.0188\\times1.68=0.0316\\ \\mathrm V=31.6\\ \\mathrm{mV}.\n\\]\n最坏情况为  \n\\[\nu_{wc}=0.032\\times1.68=0.0538\\ \\mathrm V=53.8\\ \\mathrm{mV}.\n\\]\n等效压力不确定度：  \n\\[\nu_{c,p}=\\frac{u_c}{S}=\\frac{0.0316}{8.40\\times10^{-3}}=3.76\\ \\mathrm{kPa},\n\\]\n\\[\nu_{wc,p}=\\frac{u_{wc}}{S}=\\frac{0.0538}{8.40\\times10^{-3}}=6.40\\ \\mathrm{kPa}.\n\\]\n\n## 4. 动态局限性与常见错误\n\n静态灵敏度只描述稳态输入输出关系。传感器含一阶惯性环节，时间常数 \\(\\tau=0.080\\ \\mathrm s\\)，对快速变化的压力有低通滤波作用：频率接近或超过 \\(1/\\tau\\) 时，输出幅值明显衰减并产生相位滞后。因此仅凭静态灵敏度无法预测动态响应，还需知道时间常数、带宽或阶跃响应等动态特性。\n\n本题最常见的两个计算错误：  \n1. 第二问中把阶跃幅度误取为满量程 \\(200\\ \\mathrm{kPa}\\)，从而用 \\(1.68\\ \\mathrm V\\) 作为稳态值，正确应为 \\(100\\ \\mathrm{kPa}\\) 对应的 \\(0.840\\ \\mathrm V\\)。  \n2. 计算进入误差带时间时，误将“\\(\\pm5\\%\\)”理解为达到最终值的 \\(5\\%\\)，即令 \\(1-\\mathrm e^{-t/\\tau}=0.05\\)，正确应达到 \\(0.95\\)，即 \\(t=\\tau\\ln20\\)。",
+      "reasoning_content_saved": false
+    },
+    {
+      "model_requested": "deepseek-v4-pro",
+      "model_returned": "deepseek-v4-pro",
+      "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402",
+      "finish_reason": "stop",
+      "elapsed_seconds": 106.835,
+      "max_tokens": 16384,
+      "usage": {
+        "prompt_tokens": 535,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 535,
+        "completion_tokens": 6111,
+        "reasoning_tokens": 4834,
+        "total_tokens": 6646
+      },
+      "calculated_cost_cny_components": {
+        "cache_hit_input": 0.0,
+        "cache_miss_input": 0.001605,
+        "output": 0.036666
+      },
+      "calculated_cost_cny": 0.038271,
+      "answer": "**1. 电桥输出推导与静态灵敏度**  \n设四个桥臂电阻分别为 \\(R_1,R_2,R_3,R_4\\)，初始阻值均为 \\(R\\)。受压后  \n\\[\nR_1=R_4=R+\\Delta R,\\qquad R_2=R_3=R-\\Delta R,\n\\]\n其中 \\(\\Delta R/R = K\\varepsilon = K\\alpha p\\)。  \n桥源电压 \\(U_E\\) 加在桥路上、下两端。取输出电压 \\(U_o = U_B-U_A\\)（\\(U_A\\) 为 \\(R_1,R_2\\) 节点电压，\\(U_B\\) 为 \\(R_3,R_4\\) 节点电压），使 \\(p\\) 增大时输出为正。由分压关系  \n\\[\nU_A = U_E\\frac{R_2}{R_1+R_2},\\quad U_B = U_E\\frac{R_4}{R_3+R_4},\n\\]\n代入阻值得  \n\\[\nU_o = U_E\\left[\\frac{R+\\Delta R}{2R} - \\frac{R-\\Delta R}{2R}\\right] = U_E\\frac{\\Delta R}{R}.\n\\]\n分母恒为 \\(2R\\)，未作任何近似，故该式为**精确线性关系**，不是小信号近似。利用 \\(\\Delta R/R=K\\alpha p\\)，得  \n\\[\nU_o(p) = U_E K\\alpha p.\n\\]\n放大器增益 \\(G=100\\)，放大后输出为  \n\\[\nU_{\\text{amp}}(p) = G U_E K\\alpha p.\n\\]\n代入 \\(U_E=5.0\\,\\text{V},\\;K=2.1,\\;\\alpha=8.0\\times10^{-6}\\,\\text{kPa}^{-1}\\)：  \n\\[\n\\text{静态灵敏度} = 100\\times5.0\\times2.1\\times8.0\\times10^{-6}=8.40\\times10^{-3}\\ \\text{V/kPa}=8.40\\ \\text{mV/kPa}.\n\\]\n当 \\(p=200\\ \\text{kPa}\\) 时，稳态输出  \n\\[\nU_{\\text{amp}} = 8.40\\times10^{-3}\\times200 = 1.68\\ \\text{V}.\n\\]\n\n**2. 动态响应**  \n传感器动态为一阶环节 \\(H(s)=1/(\\tau s+1)\\)，\\(\\tau=0.080\\ \\text{s}\\)。压力由 \\(0\\) 突变至 \\(100\\ \\text{kPa}\\) 时，放大后输出的阶跃响应为  \n\\[\nU(t)=K_{\\text{amp}}\\times100\\times\\bigl(1-e^{-t/\\tau}\\bigr)=0.84\\bigl(1-e^{-t/0.080}\\bigr)\\ \\text{V}.\n\\]\n\\(t=0.10\\ \\text{s}\\) 时：  \n\\[\nU(0.10)=0.84\\bigl(1-e^{-1.25}\\bigr)=0.84\\times(1-0.2865)=0.599\\ \\text{V}.\n\\]\n进入并保持在最终值 \\(\\pm5\\%\\)（\\(\\pm0.042\\ \\text{V}\\)）误差带内，需  \n\\[\n0.84e^{-t/\\tau}\\le 0.042\\ \\Longrightarrow\\ e^{-t/\\tau}\\le0.05,\\quad t\\ge\\tau\\ln20\\approx0.080\\times2.9957=0.240\\ \\text{s}.\n\\]\n\n**3. 不确定度分析**  \n测量模型为 \\(U=G U_E K\\alpha p\\)。各分量相对标准不确定度独立，合成相对标准不确定度（均方根）  \n\\[\nu_{\\text{r}} = \\sqrt{(1.0\\%)^2+(1.5\\%)^2+(0.2\\%)^2+(0.5\\%)^2}=\\sqrt{3.54}\\%\\approx 1.88\\%.\n\\]\n最坏情况线性相加为 \\(1.0\\%+1.5\\%+0.2\\%+0.5\\%=3.20\\%\\)。  \n满量程 \\(200\\ \\text{kPa}\\) 处输出电压 \\(U=1.68\\ \\text{V}\\)，其标准不确定度  \n\\[\nu(U)=1.68\\times1.88\\%=0.0316\\ \\text{V}\\quad(\\text{均方根}),\\qquad 1.68\\times3.20\\%=0.0538\\ \\text{V}\\ (\\text{最坏}).\n\\]\n等效压力不确定度直接用满量程压力乘以相对不确定度：  \n\\[\nu(p)=200\\times1.88\\%=3.76\\ \\text{kPa}\\ (\\text{均方根}),\\qquad 200\\times3.20\\%=6.40\\ \\text{kPa}\\ (\\text{最坏}).\n\\]\n\n**4. 动态特性补充与常见错误**  \n仅给出静态灵敏度只能描述稳态输入-输出关系，无法反映传感器的频率响应和动态误差。该传感器具有一阶惯性，对快速变化压力存在响应滞后、幅值衰减等动态特性，必须同时给出时间常数或带宽等动态参数才能完整评价其测量能力。  \n**两个最常见计算错误：**  \n① 误用电桥输出近似式 \\(U_o\\approx\\frac{U_E}{4}\\bigl(\\frac{\\Delta R_1}{R_1}-\\frac{\\Delta R_2}{R_2}+\\frac{\\Delta R_3}{R_3}-\\frac{\\Delta R_4}{R_4}\\bigr)\\)，未认识到全桥对称结构给出的是精确线性关系，导致灵敏度系数错误或符号混淆。  \n② 计算阶跃响应进入误差带的时间时，混淆时间常数 \\(\\tau=0.080\\ \\text{s}\\) 与调节时间近似公式 \\(t_s=3\\tau\\) 的具体含义，或错误代入 \\(1/\\tau\\) 计算指数，亦或误用最终值的绝对误差带。",
+      "reasoning_content_saved": false
+    }
+  ],
+  "truncated_attempts": [
+    {
+      "model_requested": "deepseek-v4-pro",
+      "model_returned": "deepseek-v4-pro",
+      "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402",
+      "finish_reason": "length",
+      "elapsed_seconds": 142.735,
+      "usage": {
+        "prompt_tokens": 535,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 535,
+        "completion_tokens": 8193,
+        "reasoning_tokens": 8193,
+        "total_tokens": 8728
+      },
+      "calculated_cost_cny_components": {
+        "cache_hit_input": 0.0,
+        "cache_miss_input": 0.001605,
+        "output": 0.049158
+      },
+      "calculated_cost_cny": 0.050763,
+      "answer": "",
+      "reasoning_content_saved": false
+    }
+  ]
+}

@@ -34,8 +34,6 @@ export default function SubjectRouteSuggestionCard({
 }) {
   const {
     conversationId,
-    setBookName,
-    setSubject,
     loadConversation,
   } = useChatContext();
   const [busy, setBusy] = useState<'turn' | 'conversation' | 'dismiss' | null>(null);
@@ -77,9 +75,11 @@ export default function SubjectRouteSuggestionCard({
     setError('');
     try {
       const res = await patchApi(`/chat/conversations/${encodeURIComponent(conversationId)}/scope`, payload);
-      if (!res?.success) throw new Error(res?.message || labels.failed);
-      setSubject(suggestion.target_subject);
-      setBookName(suggestion.target_book_name || '');
+      if (!res?.success || !res.data) throw new Error(res?.message || labels.failed);
+      loadConversation(res.data.id, mapMessages(res.data.messages), {
+        subject: res.data.subject || suggestion.target_subject,
+        bookName: res.data.book_name || '',
+      });
       setResolved(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : labels.failed);

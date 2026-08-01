@@ -1,11 +1,10 @@
-﻿import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, BookOpen, CheckCircle2, ChevronDown, ChevronRight, ClipboardList, Loader2, Pause, Pencil, Play, RotateCcw, Save, Scissors, Search, Shuffle, Sparkles, Upload, X } from 'lucide-react';
 import { apiFetch, del, get, post } from '../api/client';
 import ChatMessage from '../components/ChatMessage';
 import ScopeSelector from '../components/ScopeSelector';
 import { useChatContext } from '../contexts/ChatContext';
 import {
-  ExerciseBlock,
   ExerciseDetail,
   ExerciseMetric,
   exerciseStatusText as statusText,
@@ -487,7 +486,7 @@ const ExercisesPage: React.FC = () => {
         </aside>
 
         <main className="overflow-y-auto p-4 lg:p-6">
-          <div className="space-y-5">
+          <div className={`mx-auto w-full space-y-5 ${workspaceMode === 'practice' ? 'max-w-[1180px]' : ''}`}>
             {workspaceMode === 'import' && candidates.length === 0 && (
               <section className="app-panel px-6 py-8">
                 <h3 className="type-section-title text-text-primary">导入流程</h3>
@@ -505,87 +504,131 @@ const ExercisesPage: React.FC = () => {
               <ExerciseMetric label="已掌握" value={stats?.by_status?.mastered || 0} />
             </div>
 
-            <section className={`${workspaceMode === 'practice' ? 'block' : 'hidden'} space-y-5 rounded-xl border border-border bg-bg-card p-5`}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
+            <section className={`${workspaceMode === 'practice' ? 'block' : 'hidden'} overflow-hidden rounded-2xl border border-border bg-bg-card`}>
+              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-6">
                 <div>
-                  <h3 className="text-sm font-semibold text-text-primary">练习</h3>
-
+                  <h3 className="text-[16px] font-semibold text-text-primary">专注练习</h3>
+                  <p className="mt-0.5 text-xs text-text-secondary">先完成推导，再核对答案并记录掌握度。</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={() => selectPractice()} disabled={practicePool.length === 0 || Boolean(practiceSession && ['active', 'paused'].includes(practiceSession.status))} className="rounded-xl border border-border bg-bg-primary px-3 py-1.5 text-xs hover:border-accent disabled:opacity-50">换一题</button>
-                  {currentPractice && (!practiceSession || !['active', 'paused'].includes(practiceSession.status)) && <button onClick={sendPracticeToMistake} className="rounded-xl border border-border bg-bg-primary px-3 py-1.5 text-xs hover:border-accent">转入错题本</button>}
+                  <button onClick={() => selectPractice()} disabled={practicePool.length === 0 || Boolean(practiceSession && ['active', 'paused'].includes(practiceSession.status))} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-xs text-text-primary hover:border-accent hover:text-accent disabled:opacity-50">换一题</button>
+                  {currentPractice && (!practiceSession || !['active', 'paused'].includes(practiceSession.status)) && <button onClick={sendPracticeToMistake} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-xs text-text-primary hover:border-accent hover:text-accent">转入错题本</button>}
                 </div>
-              </div>
+              </header>
 
               {practiceSession && ['active', 'paused'].includes(practiceSession.status) ? (
-                <div className="space-y-3 rounded-xl border border-accent/30 bg-accent/5 p-4">
+                <div className="border-b border-border bg-[var(--accent-softer)] px-5 py-3 sm:px-6">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-medium text-text-primary">连续练习进行中</div>
-                      <div className="mt-1 text-xs text-text-secondary">第 {Math.min(practiceSession.current_index + 1, practiceSession.summary.total)} / {practiceSession.summary.total} 题 · 已完成 {practiceSession.summary.answered} 题</div>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-sm font-semibold text-white">{Math.min(practiceSession.current_index + 1, practiceSession.summary.total)}</div>
+                      <div>
+                        <div className="text-sm font-medium text-text-primary">连续练习进行中</div>
+                        <div className="mt-0.5 text-xs text-text-secondary">共 {practiceSession.summary.total} 题，已完成 {practiceSession.summary.answered} 题</div>
+                      </div>
                     </div>
                     <div className="flex gap-2">
-                      {practiceSession.status === 'active' ? <button onClick={() => changePracticeSessionStatus('pause')} disabled={sessionBusy} className="flex items-center gap-1 rounded-lg border border-border bg-bg-primary px-3 py-1.5 text-xs"><Pause className="h-3.5 w-3.5" />暂停</button> : <button onClick={() => changePracticeSessionStatus('resume')} disabled={sessionBusy} className="flex items-center gap-1 rounded-lg bg-accent px-3 py-1.5 text-xs text-white"><Play className="h-3.5 w-3.5" />继续</button>}
-                      <button onClick={() => changePracticeSessionStatus('abandon')} disabled={sessionBusy} className="rounded-lg border border-border bg-bg-primary px-3 py-1.5 text-xs">结束本轮</button>
+                      {practiceSession.status === 'active' ? <button onClick={() => changePracticeSessionStatus('pause')} disabled={sessionBusy} className="flex items-center gap-1 rounded-lg border border-border bg-bg-card px-3 py-1.5 text-xs"><Pause className="h-3.5 w-3.5" />暂停</button> : <button onClick={() => changePracticeSessionStatus('resume')} disabled={sessionBusy} className="flex items-center gap-1 rounded-lg bg-accent px-3 py-1.5 text-xs text-white"><Play className="h-3.5 w-3.5" />继续</button>}
+                      <button onClick={() => changePracticeSessionStatus('abandon')} disabled={sessionBusy} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-xs">结束本轮</button>
                     </div>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-bg-primary"><div className="h-full bg-accent transition-all" style={{ width: `${practiceSession.summary.total ? (practiceSession.summary.answered / practiceSession.summary.total) * 100 : 0}%` }} /></div>
+                  <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/75"><div className="h-full bg-accent transition-all" style={{ width: `${practiceSession.summary.total ? (practiceSession.summary.answered / practiceSession.summary.total) * 100 : 0}%` }} /></div>
                 </div>
               ) : (
-                <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-bg-secondary p-4">
-                  <label className="flex items-center gap-2 text-xs text-text-secondary">题数<input type="number" min="1" max="200" value={sessionLimit} onChange={(e) => setSessionLimit(Math.max(1, Math.min(200, Number(e.target.value) || 1)))} className="w-20 rounded-lg border border-border bg-bg-primary px-2 py-1.5 text-sm" /></label>
-                  <button onClick={() => setSessionShuffle((value) => !value)} className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs ${sessionShuffle ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-bg-primary'}`}><Shuffle className="h-3.5 w-3.5" />{sessionShuffle ? '随机顺序' : '优先复习'}</button>
-                  <button onClick={startPracticeSession} disabled={sessionBusy || practicePool.length === 0} className="flex items-center gap-1.5 rounded-lg bg-accent px-4 py-1.5 text-xs text-white disabled:opacity-50">{sessionBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}开始连续练习</button>
-                  {practiceSession?.status === 'completed' && <span className="text-xs text-text-secondary">上轮：{practiceSession.summary.answered} 题，平均自评 {practiceSession.summary.average_quality}</span>}
+                <div className="flex flex-wrap items-center gap-3 border-b border-border bg-bg-secondary/70 px-5 py-3 sm:px-6">
+                  <label className="flex items-center gap-2 text-xs text-text-secondary">本轮题数<input type="number" min="1" max="200" value={sessionLimit} onChange={(e) => setSessionLimit(Math.max(1, Math.min(200, Number(e.target.value) || 1)))} className="h-8 w-16 rounded-lg border border-border bg-bg-card px-2 text-sm text-text-primary" /></label>
+                  <button onClick={() => setSessionShuffle((value) => !value)} className={`flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs ${sessionShuffle ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-bg-card text-text-primary'}`}><Shuffle className="h-3.5 w-3.5" />{sessionShuffle ? '随机顺序' : '优先复习'}</button>
+                  <button onClick={startPracticeSession} disabled={sessionBusy || practicePool.length === 0} className="flex h-8 items-center gap-1.5 rounded-lg bg-[var(--surface-black)] px-4 text-xs font-medium text-white disabled:opacity-50">{sessionBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}开始连续练习</button>
+                  {practiceSession?.status === 'completed' && <span className="text-xs text-text-secondary">上轮完成 {practiceSession.summary.answered} 题，平均自评 {practiceSession.summary.average_quality}</span>}
                 </div>
               )}
 
               {currentPractice ? (
-                <div className="grid gap-4">
-                  <div className="space-y-4 rounded-xl border border-border bg-bg-secondary p-4">
-                    <div className="flex flex-wrap gap-2 text-xs text-text-secondary">
-                      <span className="rounded border border-border px-2 py-0.5">{statusText[currentPractice.status] || currentPractice.status}</span>
-                      <span className="rounded border border-border px-2 py-0.5">练习 {currentPractice.practice_count || 0} 次</span>
-                      {currentPractice.chapter && <span className="rounded border border-border px-2 py-0.5">{currentPractice.chapter}</span>}
-                      {(currentPractice.tags || []).map((tag) => <span key={tag} className="rounded bg-bg-secondary px-2 py-0.5">{tag}</span>)}
+                <div>
+                  <article className="border-b border-border px-5 py-5 sm:px-6 sm:py-6">
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+                      <span className="rounded-md border border-accent/25 bg-[var(--accent-softer)] px-2 py-1 text-accent">{statusText[currentPractice.status] || currentPractice.status}</span>
+                      <span>练习 {currentPractice.practice_count || 0} 次</span>
+                      {currentPractice.chapter && <><span className="text-border">/</span><span>{currentPractice.chapter}</span></>}
+                      {(currentPractice.tags || []).map((tag) => <span key={tag} className="rounded-md bg-bg-secondary px-2 py-1">{tag}</span>)}
                     </div>
-                    <ChatMessage role="assistant" content={currentPractice.question_text} linkedConcepts={currentPractice.linked_concepts || []} />
-                  </div>
-                  <div className="space-y-4 rounded-xl border border-border bg-bg-secondary p-4">
-                    <div><div className="text-sm font-semibold text-text-primary">你的作答</div><div className="mt-1 text-xs text-text-secondary">先独立完成，再展开教材答案进行核对。</div></div>
-                    <textarea value={practiceAnswer} onChange={(e) => setPracticeAnswer(e.target.value)} placeholder="写下你的答案或推导过程" className="min-h-[168px] w-full rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none focus:border-accent" />
-                    <button onClick={() => setPracticeSolutionOpen((open) => !open)} className="w-full rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm hover:border-accent">{practiceSolutionOpen ? '收起答案解析' : '查看答案解析'}</button>
+                    <div className="mt-5 grid grid-cols-[36px_minmax(0,1fr)] gap-4">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-bg-secondary text-sm font-semibold text-text-secondary">题</div>
+                      <div className="min-w-0 pt-1 text-[16px] leading-7">
+                        <ChatMessage variant="document" role="assistant" content={currentPractice.question_text} linkedConcepts={currentPractice.linked_concepts || []} />
+                      </div>
+                    </div>
+                  </article>
+
+                  <section className="px-5 py-5 sm:px-6">
+                    <div className="flex flex-wrap items-end justify-between gap-2">
+                      <div>
+                        <h4 className="text-sm font-semibold text-text-primary">你的作答</h4>
+                        <p className="mt-1 text-xs text-text-secondary">可以只记录关键步骤，也可以写完整推导。</p>
+                      </div>
+                      <span className="text-xs text-text-secondary">答案仅保存在本次练习记录中</span>
+                    </div>
+                    <textarea value={practiceAnswer} onChange={(e) => setPracticeAnswer(e.target.value)} placeholder="从思路、公式或关键步骤开始……" className="mt-3 min-h-[140px] w-full resize-y rounded-xl border border-border bg-bg-primary px-4 py-3 text-sm leading-6 text-text-primary outline-none transition-colors focus:border-accent focus:bg-bg-card" />
+                    <div className="mt-3 flex justify-end">
+                      <button onClick={() => setPracticeSolutionOpen((open) => !open)} className="flex items-center gap-2 rounded-lg border border-border bg-bg-card px-3 py-2 text-sm font-medium text-text-primary hover:border-accent hover:text-accent">
+                        {practiceSolutionOpen ? '收起答案与解析' : '核对答案与解析'}
+                        <ChevronDown className={`h-4 w-4 transition-transform ${practiceSolutionOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                    </div>
+
                     {practiceSolutionOpen && (
-                      <div className="space-y-4 border-t border-border pt-4">
-                        <ExerciseBlock title="标准答案（可编辑）">
-                          <div className="space-y-2">
-                            <textarea value={answerDraft} onChange={(e) => setAnswerDraft(e.target.value)} placeholder="暂无答案，可基于教材 RAG 生成草稿" className="min-h-[220px] w-full rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm leading-6 text-text-primary outline-none focus:border-accent" />
-                            <div className="flex flex-wrap gap-2">
-                              <button onClick={generateStandardAnswer} disabled={answerBusy} className="flex items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 py-1.5 text-xs hover:border-accent disabled:opacity-50">
-                                {answerBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 text-accent" />} 基于教材 RAG 生成
-                              </button>
-                              <button onClick={saveStandardAnswer} disabled={answerBusy || !answerDraft.trim()} className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs text-white disabled:opacity-50">
-                                <Save className="h-3.5 w-3.5" /> 保存修改后的答案
-                              </button>
+                      <div className="mt-5 grid gap-4 border-t border-border pt-5 lg:grid-cols-2">
+                        <section className="min-w-0 rounded-xl border border-border bg-bg-secondary/55 p-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <h4 className="text-sm font-semibold text-text-primary">标准答案</h4>
+                              <p className="mt-0.5 text-xs text-text-secondary">可编辑并保存到题库。</p>
                             </div>
+                            <Sparkles className="h-4 w-4 text-accent" />
                           </div>
-                        </ExerciseBlock>
-                        <ExerciseBlock title="解析">{currentPractice.explanation ? <ChatMessage role="assistant" content={currentPractice.explanation} linkedConcepts={currentPractice.linked_concepts || []} /> : <span className="text-sm text-text-secondary">暂无解析</span>}</ExerciseBlock>
+                          <textarea value={answerDraft} onChange={(e) => setAnswerDraft(e.target.value)} placeholder="暂无答案，可基于教材 RAG 生成草稿" className="mt-3 min-h-[180px] w-full resize-y rounded-lg border border-border bg-bg-card px-3 py-2.5 text-sm leading-6 text-text-primary outline-none focus:border-accent" />
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <button onClick={generateStandardAnswer} disabled={answerBusy} className="flex items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 py-1.5 text-xs hover:border-accent hover:text-accent disabled:opacity-50">
+                              {answerBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} 基于教材 RAG 生成
+                            </button>
+                            <button onClick={saveStandardAnswer} disabled={answerBusy || !answerDraft.trim()} className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs text-white disabled:opacity-50">
+                              <Save className="h-3.5 w-3.5" /> 保存答案
+                            </button>
+                          </div>
+                        </section>
+                        <section className="min-w-0 rounded-xl border border-border bg-bg-secondary/55 p-4">
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="h-4 w-4 text-accent" />
+                            <h4 className="text-sm font-semibold text-text-primary">解析</h4>
+                          </div>
+                          <div className="mt-3 min-h-[180px] rounded-lg border border-border bg-bg-card p-3">
+                            {currentPractice.explanation ? <ChatMessage variant="document" role="assistant" content={currentPractice.explanation} linkedConcepts={currentPractice.linked_concepts || []} /> : <span className="text-sm text-text-secondary">暂无解析。生成标准答案后，可继续补充解题思路。</span>}
+                          </div>
+                        </section>
                       </div>
                     )}
-                    <div className="grid grid-cols-3 gap-2">
-                      <button onClick={() => submitPractice(1, true)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="rounded-lg border border-[#e6b2a9] bg-[#fff1ed] px-3 py-2 text-xs text-[var(--danger)] hover:border-[var(--danger)] disabled:opacity-50">做错</button>
-                      <button onClick={() => submitPractice(3)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="rounded-lg border border-[#e3c98f] bg-[#fff6df] px-3 py-2 text-xs text-[var(--warning)] hover:border-[var(--warning)] disabled:opacity-50">勉强会</button>
-                      <button onClick={() => submitPractice(5)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="rounded-lg border border-[#c9d8bd] bg-[#eef5e8] px-3 py-2 text-xs text-[var(--success)] hover:border-[var(--success)] disabled:opacity-50">掌握</button>
+                  </section>
+
+                  <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-bg-secondary/65 px-5 py-4 sm:px-6">
+                    <div>
+                      <div className="text-sm font-medium text-text-primary">本题掌握度</div>
+                      <div className="mt-0.5 text-xs text-text-secondary">自评将影响后续复习排序。</div>
                     </div>
-                    {practiceMessage && <div className="rounded border border-border bg-bg-primary px-3 py-2 text-xs text-text-secondary">{practiceMessage}</div>}
-                  </div>
+                    <div className="grid min-w-[360px] grid-cols-3 gap-2 max-sm:min-w-0 max-sm:w-full">
+                      <button onClick={() => submitPractice(1, true)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="rounded-lg border border-[#e6b2a9] bg-[#fff1ed] px-3 py-2 text-xs font-medium text-[var(--danger)] hover:border-[var(--danger)] disabled:opacity-50">做错</button>
+                      <button onClick={() => submitPractice(3)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="rounded-lg border border-[#e3c98f] bg-[#fff6df] px-3 py-2 text-xs font-medium text-[var(--warning)] hover:border-[var(--warning)] disabled:opacity-50">勉强会</button>
+                      <button onClick={() => submitPractice(5)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="rounded-lg border border-[#c9d8bd] bg-[#eef5e8] px-3 py-2 text-xs font-medium text-[var(--success)] hover:border-[var(--success)] disabled:opacity-50">掌握</button>
+                    </div>
+                  </footer>
+                  {practiceMessage && <div className="border-t border-border bg-bg-card px-5 py-3 text-xs text-text-secondary sm:px-6">{practiceMessage}</div>}
                 </div>
               ) : (
-                <div className="rounded-xl border border-dashed border-border bg-bg-secondary py-8 text-center text-sm text-text-secondary">暂无可练习习题，请先导入 Word/PDF 题目</div>
+                <div className="px-5 py-12 text-center sm:px-6">
+                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-bg-secondary"><ClipboardList className="h-5 w-5 text-text-secondary" /></div>
+                  <div className="mt-3 text-sm font-medium text-text-primary">暂无可练习习题</div>
+                  <div className="mt-1 text-xs text-text-secondary">请先从 Word、PDF 或教材中导入题目。</div>
+                </div>
               )}
             </section>
-
             {workspaceMode === 'import' && candidates.length > 0 && (
               <section className="space-y-3 rounded-xl border border-border bg-bg-card p-4">
                 <div className="flex items-center justify-between">

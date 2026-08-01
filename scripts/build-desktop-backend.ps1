@@ -170,6 +170,7 @@ Invoke-CheckedCommand "[3/3] Building backend executable..." {
       --exclude-module _tkinter `
       --add-data "${frontendDist};frontend\dist" `
       --add-data "${projectRoot}\VERSION;." `
+      --add-data "${projectRoot}\THIRD_PARTY_NOTICES;THIRD_PARTY_NOTICES" `
       --add-data "${sampleData};sample_data" `
       desktop\backend_server.py
 }

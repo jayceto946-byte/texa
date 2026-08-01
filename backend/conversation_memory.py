@@ -43,8 +43,30 @@ def _read_payload(conversation_id: str) -> dict:
 
 
 def load_history(conversation_id: str) -> list[dict]:
-    data = _read_payload(conversation_id)
-    return data.get("messages", []) if isinstance(data, dict) else []
+    return get_conversation(conversation_id).get("messages", [])
+
+
+def resolve_conversation_id_for_scope(
+    conversation_id: str,
+    subject: str = "",
+    book_name: str = "",
+) -> str:
+    """Keep one persisted conversation bound to one exact retrieval scope."""
+    conversation_id = ensure_conversation_id(conversation_id)
+    payload = _read_payload(conversation_id)
+    messages = payload.get("messages", []) if isinstance(payload, dict) else []
+    if not messages:
+        return conversation_id
+
+    stored_subject = normalize_subject_value(
+        str(payload.get("subject") or _last_meta(messages, "subject"))
+    )
+    requested_subject = normalize_subject_value(subject)
+    stored_book = str(payload.get("book_name") or _last_meta(messages, "book_name")).strip()
+    requested_book = str(book_name or "").strip()
+    if stored_subject == requested_subject and stored_book == requested_book:
+        return conversation_id
+    return ensure_conversation_id()
 
 
 def ensure_turn_id(turn_id: str = "") -> str:
@@ -196,9 +218,10 @@ def split_turn_to_conversation(
 
 def get_conversation(conversation_id: str) -> dict:
     payload = _read_payload(ensure_conversation_id(conversation_id))
-    messages = payload.get("messages", []) if isinstance(payload, dict) else []
-    subject = payload.get("subject", "") or _last_meta(messages, "subject")
-    book_name = payload.get("book_name", "") or _last_meta(messages, "book_name")
+    all_messages = payload.get("messages", []) if isinstance(payload, dict) else []
+    subject = normalize_subject_value(payload.get("subject", "") or _last_meta(all_messages, "subject"))
+    book_name = str(payload.get("book_name", "") or _last_meta(all_messages, "book_name")).strip()
+    messages = _messages_for_scope(all_messages, subject, book_name)
     return {
         "id": payload.get("id") or conversation_id,
         "subject": subject,
@@ -257,6 +280,19 @@ def _first_meta(messages: list[dict], key: str) -> str:
         if value:
             return value
     return ""
+
+
+def _messages_for_scope(messages: list[dict], subject: str, book_name: str) -> list[dict]:
+    """Hide turns written under another scope by legacy clients reusing one id."""
+    scoped = [item for item in messages if isinstance(item, dict) and (item.get("subject") or item.get("book_name"))]
+    if not scoped:
+        return [item for item in messages if isinstance(item, dict)]
+    return [
+        item
+        for item in scoped
+        if normalize_subject_value(str(item.get("subject") or "")) == subject
+        and str(item.get("book_name") or "").strip() == book_name
+    ]
 
 
 def rewrite_followup(question: str, history: list[dict], book_name: str = "", subject: str = "") -> str:

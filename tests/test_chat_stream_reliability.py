@@ -79,6 +79,51 @@ def test_chat_stream_done_survives_assistant_persistence_failure(monkeypatch):
     done_event = next(event for event in events if event["stage"] == "done")
     assert done_event["persistence_error"] == "conversation write failed"
 
+
+def test_chat_stream_disables_wrong_textbook_context_for_subject_suggestion(monkeypatch):
+    import backend.api.chat as chat_api
+    import graph.main_graph as main_graph
+
+    suggestion = {
+        "target_subject": "\u82f1\u8bed/\u5199\u4f5c",
+        "target_book_name": "",
+        "current_subject": "\u4e13\u4e1a\u8bfe/\u4f20\u611f\u5668",
+        "current_book_name": "sensor-book",
+        "confidence": 0.9,
+        "reason": "english writing terms",
+    }
+    monkeypatch.setattr(chat_api, "ensure_conversation_id", lambda value="": "cid")
+    monkeypatch.setattr(chat_api, "load_history", lambda conversation_id: [])
+    monkeypatch.setattr(chat_api, "rewrite_followup", lambda question, history, book_name="default", subject="": question)
+    monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: None)
+    monkeypatch.setattr(chat_api, "_safe_subject_suggestion", lambda *args: suggestion)
+
+    captured = {}
+
+    def fake_run_graph_stream(**kwargs):
+        captured.update(kwargs)
+        yield {"stage": "generate", "chunk": "answer", "done": False}
+        yield {"stage": "done", "state": {}, "enriched": False}
+
+    monkeypatch.setattr(main_graph, "run_graph_stream", fake_run_graph_stream)
+
+    client = TestClient(app)
+    response = client.post("/api/chat/stream", json={
+        "question": "\u4ecb\u7ecd\u51e0\u4e2a\u82f1\u8bed\u5199\u4f5c\u4e2d\u5e38\u7528\u7684\u5173\u8054\u8bcd\u3002",
+        "book_name": "sensor-book",
+        "subject": "\u4e13\u4e1a\u8bfe/\u4f20\u611f\u5668",
+    })
+
+    events = [
+        json.loads(block[6:])
+        for block in response.text.strip().split("\n\n")
+        if block.startswith("data: ")
+    ]
+    assert response.status_code == 200
+    assert captured["use_textbook_context"] is False
+    assert events[-1]["subject_suggestion"] == suggestion
+
+
 def test_chat_ask_passes_target_chapters(monkeypatch):
     import backend.api.chat as chat_api
     import graph.main_graph as main_graph

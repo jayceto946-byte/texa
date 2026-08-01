@@ -6,6 +6,7 @@ import rehypeKatex from 'rehype-katex';
 import type { PluggableList } from 'unified';
 import 'katex/dist/katex.min.css';
 import type { ConceptCandidate } from '../../types';
+import { useLearningNoteFont } from '../../hooks/useLearningNoteFont';
 import { prepareMathMarkdown } from '../../utils/mathText';
 import { ErrorBoundary } from '../ErrorBoundary';
 
@@ -145,6 +146,11 @@ const PlainMarkdownFallback: React.FC<{ content: string }> = ({ content }) => (
 const markdownPlugins: PluggableList = [remarkGfm, remarkMath];
 const katexPlugins: PluggableList = [[rehypeKatex, { strict: false, throwOnError: false, errorColor: 'inherit' }]];
 
+const LearningBlockquote = ({ children }: { children?: React.ReactNode }) => {
+  useLearningNoteFont();
+  return <blockquote className="learning-note my-2 border-l-2 border-border pl-3 text-text-secondary">{children}</blockquote>;
+};
+
 export const SimpleMarkdown: React.FC<{ content: string }> = ({ content }) => (
   <div className="markdown-body text-sm leading-relaxed break-words">
     <ReactMarkdown remarkPlugins={markdownPlugins} rehypePlugins={katexPlugins}>
@@ -232,7 +238,7 @@ export const MarkdownMessage: React.FC<{
       return <h3 className="text-sm font-bold my-1.5">{children}</h3>;
     },
     blockquote({ children }: { children?: React.ReactNode }) {
-      return <blockquote className="my-2 border-l-2 border-border pl-3 text-text-secondary">{children}</blockquote>;
+      return <LearningBlockquote>{children}</LearningBlockquote>;
     },
     table({ children }: { children?: React.ReactNode }) {
       return <div className="my-2 overflow-x-auto"><table className="border-collapse border border-border text-xs">{children}</table></div>;

@@ -14,6 +14,7 @@ import SubjectRouteSuggestionCard from './chat/SubjectRouteSuggestionCard';
 interface ChatMessageProps {
   role: 'user' | 'assistant';
   content: string;
+  variant?: 'message' | 'document';
   stage?: string;
   linkedConcepts?: ConceptCandidate[];
   turnId?: string;
@@ -25,7 +26,7 @@ interface ChatMessageProps {
   agentCard?: ChatAgentCard;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, stage, turnId, subjectSuggestion, linkedConcepts = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, variant = 'message', stage, turnId, subjectSuggestion, linkedConcepts = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard }) => {
   const [showSources, setShowSources] = useState(false);
   const [activeConcept, setActiveConcept] = useState<ConceptCandidate | null>(null);
   const { bookName, subject } = useChatContext();
@@ -47,12 +48,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, stage, turnId,
   const showMessageTools = !hasCard && !isThinking;
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-5`}>
-      <div className={`max-w-[min(96%,820px)] rounded-2xl px-3 py-3 sm:max-w-[min(86%,820px)] sm:px-4 ${isUser ? 'bg-accent text-white' : 'border border-border bg-bg-card text-text-primary'}`}>
-        <div className="mb-2 flex items-center gap-2">
+    <div className={variant === 'document' ? 'min-w-0' : `mb-5 flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+      <div className={variant === 'document' ? 'min-w-0 text-text-primary' : `max-w-[min(96%,820px)] rounded-2xl px-3 py-3 sm:max-w-[min(86%,820px)] sm:px-4 ${isUser ? 'bg-accent text-white' : 'border border-border bg-bg-card text-text-primary'}`}>
+        {variant === 'message' && <div className="mb-2 flex items-center gap-2">
           {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4 text-accent" />}
           <span className="text-xs opacity-70">{isUser ? '你' : 'AI 助手'}</span>
-        </div>
+        </div>}
 
         {agentCard ? (
           <AgentResultCard card={agentCard} />

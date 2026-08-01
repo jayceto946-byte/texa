@@ -41,7 +41,8 @@
   --shadow-tight: none;
   --font-app: "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
   --font-math: "STIX Two Math", "Cambria Math", "Times New Roman", serif;
-  --font-mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  --font-note: "LXGW WenKai Screen", "KaiTi", serif;
   --text-hero: 30px;
   --text-title: 24px;
   --text-section: 16px;
@@ -82,6 +83,12 @@ kbd,
 samp,
 .font-mono {
   font-family: var(--font-mono);
+}
+
+.learning-note {
+  font-family: var(--font-note);
+  font-synthesis: none;
+  line-height: 1.75;
 }
 
 .tabular-nums,
@@ -472,51 +479,176 @@ select:hover {
 
 
 
-/* Electron uses the native Window Controls Overlay; this marker enables desktop-only spacing and drag regions. */
-.electron-titlebar {
-  display: none;
+/* Electron window chrome. Keep this class isolated from the retired titlebar marker. */
+.desktop-window-controls {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 10000;
+  display: grid;
+  grid-template-columns: repeat(3, 46px);
+  align-items: start;
+  height: 64px;
+  border-bottom: 1px solid var(--color-border);
+  background: rgb(250 250 252 / 0.86);
+  backdrop-filter: blur(8px);
+  app-region: no-drag;
+  -webkit-app-region: no-drag;
 }
-body:has(.electron-titlebar) .app-page-header,
-body:has(.electron-titlebar) .app-brand-header {
+
+.desktop-window-control {
+  position: relative;
+  display: grid;
+  pointer-events: auto;
+  app-region: no-drag;
+  -webkit-app-region: no-drag;
+  width: 46px;
+  height: 42px;
+  place-items: center;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #4b4d50;
+  cursor: default;
+  outline: none;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.desktop-window-control::before {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+  background: #e5e5e7;
+  content: "";
+  opacity: 0;
+  transform: scaleX(0.35);
+  transition: opacity 140ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.desktop-window-control svg {
+  position: relative;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.75;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), stroke-width 180ms ease;
+}
+
+.desktop-window-control--minimize svg {
+  transform: translateY(1px) scaleX(0.78);
+}
+
+.desktop-window-control--maximize svg {
+  width: 12px;
+  height: 12px;
+  transform: scale(0.82);
+}
+
+.desktop-window-control:hover::before,
+.desktop-window-control:focus-visible::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.desktop-window-control:hover,
+.desktop-window-control:focus-visible {
+  color: #171719;
+}
+
+.desktop-window-control--minimize:hover svg,
+.desktop-window-control--minimize:focus-visible svg {
+  transform: translateY(2px) scaleX(1.08);
+}
+
+.desktop-window-control--maximize:hover svg,
+.desktop-window-control--maximize:focus-visible svg {
+  transform: scale(1.1);
+  stroke-width: 2.1;
+}
+
+.desktop-window-control:focus-visible {
+  box-shadow: inset 0 0 0 2px rgb(0 102 204 / 0.62);
+}
+
+.desktop-window-control:active::before {
+  background: #d0d0d3;
+  transform: scaleX(1);
+  transition-duration: 70ms;
+}
+
+.desktop-window-control:active svg {
+  transform: scale(0.82);
+  transition-duration: 70ms;
+}
+
+.desktop-window-control--minimize:active svg {
+  transform: translateY(3px) scaleX(0.82);
+}
+
+.desktop-window-control--close:hover,
+.desktop-window-control--close:focus-visible {
+  color: #fff;
+}
+
+.desktop-window-control--close::before {
+  inset: 0;
+  border-radius: 0;
+  background: #c42b1c;
+}
+
+.desktop-window-control--close:active::before {
+  background: #a12216;
+}
+
+body:has(.desktop-window-controls) .app-page-header {
   app-region: drag;
   -webkit-app-region: drag;
   user-select: none;
 }
 
-body:has(.electron-titlebar) .app-page-header button,
-body:has(.electron-titlebar) .app-page-header input,
-body:has(.electron-titlebar) .app-page-header select,
-body:has(.electron-titlebar) .app-page-header [role="button"],
-body:has(.electron-titlebar) .app-brand-header button,
-body:has(.electron-titlebar) .app-brand-header [role="button"] {
+body:has(.desktop-window-controls) .app-brand-header {
+  app-region: drag;
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+body:has(.desktop-window-controls) .app-page-header button,
+body:has(.desktop-window-controls) .app-page-header input,
+body:has(.desktop-window-controls) .app-page-header select,
+body:has(.desktop-window-controls) .app-page-header [role="button"],
+body:has(.desktop-window-controls) .app-brand-header button,
+body:has(.desktop-window-controls) .app-brand-header [role="button"] {
   app-region: no-drag;
   -webkit-app-region: no-drag;
 }
 
-
-
-body:has(.electron-titlebar) {
+body:has(.desktop-window-controls) {
   overflow: hidden;
 }
 
 /* Keep the Electron desktop workspace stable when an IME changes the visual viewport. */
-body:has(.electron-titlebar),
-body:has(.electron-titlebar) #root {
+body:has(.desktop-window-controls),
+body:has(.desktop-window-controls) #root {
   height: 100vh;
 }
 
-body:has(.electron-titlebar) .app-shell[data-layout="desktop"] {
+body:has(.desktop-window-controls) .app-shell[data-layout="desktop"] {
   height: 100vh;
 }
 
-body:has(.electron-titlebar) .app-page-header {
-  padding-right: 9.25rem;
+body:has(.desktop-window-controls) .app-page-header {
+  margin-right: 138px;
+  padding-right: 1.25rem;
 }
 
-body:has(.electron-titlebar) .app-shell[data-sidebar="collapsed"] .desktop-chat-header {
-  padding-right: 9.25rem;
+@media (prefers-reduced-motion: reduce) {
+  .desktop-window-control,
+  .desktop-window-control::before,
+  .desktop-window-control svg {
+    transition: none;
+  }
 }
-
 /* Desktop sidebar keeps both states mounted so width and content can transition together. */
 .desktop-sidebar-stage {
   position: relative;

@@ -12,9 +12,11 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@fontsource/jetbrains-mono": "^5.3.0",
     "@tailwindcss/postcss": "^4.3.0",
     "katex": "^0.17.0",
     "lucide-react": "^1.17.0",
+    "lxgw-wenkai-screen-web": "^1.522.0",
     "mathlive": "^0.110.0",
     "postcss": "^8.5.15",
     "react": "^19.2.6",

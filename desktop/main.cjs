@@ -369,6 +369,7 @@ async function fetchWithTimeout(url, timeoutMs = 2500) {
 
 function desktopAppUrl(targetUrl) {
   const target = new URL(targetUrl);
+  target.searchParams.set('desktop_launch', String(Date.now()));
   const hash = new URLSearchParams(target.hash.replace(/^#/, ''));
   hash.set('access_token', API_TOKEN);
   target.hash = hash.toString();
@@ -384,22 +385,32 @@ async function loadAppUrl(targetUrl) {
     // The loading document may already be gone; continue into the app.
   }
   if (!mainWindow || mainWindow.isDestroyed() || shuttingDown) return;
-  mainWindow.loadURL(targetUrl);
+  await mainWindow.loadURL(targetUrl);
 }
+
+async function openAppWhenBackendReady(timeoutMs = 60000) {
+  const ready = await waitForBackend(timeoutMs);
+  if (shuttingDown || !mainWindow || mainWindow.isDestroyed()) {
+    return { ready: false, message: '应用正在关闭' };
+  }
+  if (ready) {
+    await loadAppUrl(desktopAppUrl(FRONTEND_DEV_URL || BACKEND_URL));
+    return { ready: true };
+  }
+
+  const message = backendStartError || `后端服务启动超时：${BACKEND_URL}`;
+  appendBackendLog(`[timeout] ${message}`);
+  sendStartupError(message);
+  return { ready: false, message };
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 820,
     minWidth: 720,
     minHeight: 560,
-    titleBarStyle: 'hidden',
-    ...(process.platform !== 'darwin' ? {
-      titleBarOverlay: {
-        color: '#f5f5f700',
-        symbolColor: '#5f6368',
-        height: 42,
-      },
-    } : {}),
+    frame: false,
     show: false,
     backgroundColor: '#f5f5f7',
     title: '考研智能辅助系统',
@@ -412,6 +423,8 @@ function createWindow() {
   });
 
   mainWindow.once('ready-to-show', () => mainWindow?.show());
+  mainWindow.on('maximize', () => mainWindow?.webContents.send('window:maximized-changed', true));
+  mainWindow.on('unmaximize', () => mainWindow?.webContents.send('window:maximized-changed', false));
   mainWindow.loadFile(path.join(__dirname, 'loading.html'));
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:\/\//i.test(url)) void shell.openExternal(url);
@@ -425,25 +438,17 @@ function createWindow() {
     }
   });
 
-  const targetUrl = FRONTEND_DEV_URL || BACKEND_URL;
-  waitForBackend().then((ready) => {
-    if (shuttingDown || !mainWindow) return;
-    if (ready || FRONTEND_DEV_URL) {
-      void loadAppUrl(desktopAppUrl(targetUrl));
-      return;
-    }
-    const message = backendStartError || `后端服务启动超时：${BACKEND_URL}`;
-    appendBackendLog(`[timeout] ${message}`);
-    mainWindow.webContents.send('startup-error', startupInfo(message));
-  });
+  void openAppWhenBackendReady();
 }
 
 ipcMain.handle('window:minimize', () => mainWindow?.minimize());
+ipcMain.handle('window:is-maximized', () => mainWindow?.isMaximized() ?? false);
 ipcMain.handle('window:toggle-maximize', () => {
   if (!mainWindow) return false;
-  if (mainWindow.isMaximized()) mainWindow.unmaximize();
-  else mainWindow.maximize();
-  return mainWindow.isMaximized();
+  const nextState = !mainWindow.isMaximized();
+  if (nextState) mainWindow.maximize();
+  else mainWindow.unmaximize();
+  return nextState;
 });
 ipcMain.handle('window:close', () => mainWindow?.close());
 ipcMain.handle('app:restart', async () => {
@@ -456,6 +461,14 @@ ipcMain.handle('app:restart', async () => {
 });
 
 ipcMain.handle('startup:info', () => startupInfo());
+ipcMain.handle('startup:retry', async () => {
+  backendStartError = null;
+  if (!backendProcess || backendProcess.exitCode !== null) {
+    backendProcess = null;
+    startBackend();
+  }
+  return openAppWhenBackendReady();
+});
 ipcMain.handle('startup:open-web', async () => shell.openExternal(desktopAppUrl(BACKEND_URL)));
 ipcMain.handle('startup:open-log', async () => {
   const logPath = runtimePaths().backendLogPath;

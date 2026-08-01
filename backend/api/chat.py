@@ -15,6 +15,7 @@ from backend.conversation_memory import (
     get_conversation,
     list_conversations,
     load_history,
+    resolve_conversation_id_for_scope,
     reclassify_conversation,
     rewrite_followup,
     split_turn_to_conversation,
@@ -91,9 +92,11 @@ def subject_routing_feedback(req: SubjectRoutingFeedbackRequest):
 
 @router.post("/log")
 def log_conversation_messages(payload: dict):
-    conversation_id = ensure_conversation_id(str(payload.get("conversation_id") or ""))
     book_name = str(payload.get("book_name") or "").strip()
     subject = str(payload.get("subject") or "").strip()
+    conversation_id = resolve_conversation_id_for_scope(
+        str(payload.get("conversation_id") or ""), subject, book_name
+    )
     turn_id = ensure_turn_id(str(payload.get("turn_id") or ""))
     messages = payload.get("messages") or []
     if not isinstance(messages, list):
@@ -115,12 +118,15 @@ def log_conversation_messages(payload: dict):
 def chat_stream(req: ChatRequest):
     from graph.main_graph import run_graph_stream
 
-    conversation_id = ensure_conversation_id(req.conversation_id)
-    turn_id = ensure_turn_id(req.turn_id)
-    history = load_history(conversation_id)
     book_name = (req.book_name or "").strip()
     subject = (req.subject or "").strip()
-    use_textbook_context = bool(book_name)
+    conversation_id = resolve_conversation_id_for_scope(req.conversation_id, subject, book_name)
+    turn_id = ensure_turn_id(req.turn_id)
+    history = load_history(conversation_id)
+    subject_suggestion = _safe_subject_suggestion(req.question, subject, book_name)
+    # Do not retrieve from a known-wrong textbook while the user decides
+    # whether to move the turn or relabel the conversation.
+    use_textbook_context = bool(book_name) and subject_suggestion is None
     rewritten_question = rewrite_followup(req.question, history, book_name=book_name, subject=subject)
 
     def event_generator():
@@ -217,7 +223,7 @@ def chat_stream(req: ChatRequest):
                         persist_assistant()
                 if event.get("stage") == "done":
                     persistence_error = persist_assistant()
-                    event["subject_suggestion"] = _safe_subject_suggestion(req.question, subject, book_name)
+                    event["subject_suggestion"] = subject_suggestion
                     if persistence_error:
                         event["persistence_error"] = persistence_error
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
@@ -257,12 +263,13 @@ def chat_stream(req: ChatRequest):
 def chat_ask(req: ChatRequest):
     from graph.main_graph import run_graph
 
-    conversation_id = ensure_conversation_id(req.conversation_id)
-    turn_id = ensure_turn_id(req.turn_id)
-    history = load_history(conversation_id)
     book_name = (req.book_name or "").strip()
     subject = (req.subject or "").strip()
-    use_textbook_context = bool(book_name)
+    conversation_id = resolve_conversation_id_for_scope(req.conversation_id, subject, book_name)
+    turn_id = ensure_turn_id(req.turn_id)
+    history = load_history(conversation_id)
+    subject_suggestion = _safe_subject_suggestion(req.question, subject, book_name)
+    use_textbook_context = bool(book_name) and subject_suggestion is None
     rewritten_question = rewrite_followup(req.question, history, book_name=book_name, subject=subject)
     append_message(conversation_id, "user", req.question, book_name=book_name, subject=subject, turn_id=turn_id)
 
@@ -277,8 +284,6 @@ def chat_ask(req: ChatRequest):
     content = result.get("final_output", "")
     if content.strip():
         append_message(conversation_id, "assistant", content, book_name=book_name, subject=subject, turn_id=turn_id)
-
-    subject_suggestion = _safe_subject_suggestion(req.question, subject, book_name)
 
     return {
         "content": content,

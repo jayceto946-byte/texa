@@ -41,6 +41,12 @@ class ChapterVectorStore:
         self._map_file = self.db_path / "_chapter_map.json"
         self._map: dict[str, dict[str, str]] = self._load_map()
         self.available = True
+        # Chroma clients for one path share an underlying System. Keep one
+        # owner alive so temporary health checks cannot tear down HNSW readers
+        # still used by the LangChain wrappers.
+        import chromadb
+
+        self._client = chromadb.PersistentClient(path=str(self.db_path))
         # Recover mapping from existing collection metadata when Chroma is healthy.
         try:
             self._recover_map_from_collections()
@@ -54,11 +60,8 @@ class ChapterVectorStore:
 
     def _preload_all_stores(self):
         """Preload only book-level aggregate stores; chapter stores are lazy-loaded."""
-        import chromadb
-
         try:
-            client = chromadb.PersistentClient(path=str(self.db_path))
-            cols = [c for c in client.list_collections() if self._is_book_collection(c.name)]
+            cols = [c for c in self._client.list_collections() if self._is_book_collection(c.name)]
             for col in cols:
                 title = self._collection_to_title(col.name)
                 book_name = self._collection_to_book(col.name)
@@ -69,6 +72,7 @@ class ChapterVectorStore:
                             collection_name=col.name,
                             embedding_function=self.embeddings,
                             persist_directory=str(self.db_path),
+                            client=self._client,
                         )
                         self._stores[store_key] = store
                     except Exception:
@@ -113,11 +117,8 @@ class ChapterVectorStore:
 
     def _recover_map_from_collections(self):
         """从已有 collection 的 metadata 恢复章节标题映射。"""
-        import chromadb
-
         changed = False
-        client = chromadb.PersistentClient(path=str(self.db_path))
-        for col in client.list_collections():
+        for col in self._client.list_collections():
             if col.name in self._map or col.name == "_chapter_map.json":
                 continue
             try:
@@ -204,11 +205,8 @@ class ChapterVectorStore:
         return scoped or legacy
 
     def _delete_collection_if_exists(self, collection_name: str) -> None:
-        import chromadb
-
         try:
-            client = chromadb.PersistentClient(path=str(self.db_path))
-            client.delete_collection(collection_name)
+            self._client.delete_collection(collection_name)
         except Exception:
             pass
 
@@ -269,6 +267,7 @@ class ChapterVectorStore:
             embedding=self.embeddings,
             collection_name=collection_name,
             persist_directory=str(self.db_path),
+            client=self._client,
         )
         self._stores[store_key] = store
         self._map[collection_name] = {
@@ -331,6 +330,7 @@ class ChapterVectorStore:
                     embedding=self.embeddings,
                     collection_name=collection_name,
                     persist_directory=str(self.db_path),
+                    client=self._client,
                 )
             except Exception:
                 self._delete_collection_if_exists(collection_name)
@@ -340,6 +340,7 @@ class ChapterVectorStore:
                 collection_name=collection_name,
                 embedding_function=self.embeddings,
                 persist_directory=str(self.db_path),
+                client=self._client,
             )
         old_names = [
             name for name, entry in self._map.items()
@@ -370,10 +371,15 @@ class ChapterVectorStore:
 
         collection_name = self._title_to_collection(chapter_title, normalized_book)
         try:
+            # LangChain's Chroma wrapper uses get-or-create semantics. A read
+            # miss must be checked first, otherwise querying an unknown planner
+            # subsection leaves an empty collection with no HNSW files.
+            self._client.get_collection(collection_name)
             store = Chroma(
                 collection_name=collection_name,
                 embedding_function=self.embeddings,
                 persist_directory=str(self.db_path),
+                client=self._client,
             )
             self._stores[store_key] = store
             return store
@@ -393,11 +399,8 @@ class ChapterVectorStore:
 
         if not self.available:
             return mapped_names()
-        import chromadb
-
         try:
-            client = chromadb.PersistentClient(path=str(self.db_path))
-            collections = client.list_collections()
+            collections = self._client.list_collections()
         except Exception as e:
             self.available = False
             print(f"  [vector_store] list_collections failed, using chapter map only: {e}", flush=True)
@@ -408,30 +411,31 @@ class ChapterVectorStore:
         return names
 
     def get_book_index_stats(self, book_name: str) -> dict:
-        """Return per-book index health without embedding a query."""
+        """Return safe per-book health without opening every HNSW segment."""
         normalized_book = safe_book_name(book_name) if book_name else ""
         stats = {"book_name": normalized_book, "collection_count": 0, "chunk_count": 0, "healthy": False}
         if not normalized_book:
             return stats
         try:
-            import chromadb
-            client = chromadb.PersistentClient(path=str(self.db_path))
-            for collection in client.list_collections():
-                if self._is_book_collection(collection.name):
-                    continue
-                if self._collection_to_book(collection.name) != normalized_book:
-                    continue
-                stats["collection_count"] += 1
-                stats["chunk_count"] += int(collection.count())
+            stats["collection_count"] = sum(
+                1
+                for collection in self._client.list_collections()
+                if not self._is_book_collection(collection.name)
+                and self._collection_to_book(collection.name) == normalized_book
+            )
         except Exception as exc:
             stats["error"] = str(exc)
             return stats
-        stats["healthy"] = stats["collection_count"] > 0 and stats["chunk_count"] > 0
         try:
             from ingestion.lexical_index import load_book_index
             stats["lexical_chunk_count"] = len(load_book_index(normalized_book))
         except Exception:
             stats["lexical_chunk_count"] = 0
+        # Calling count() across hundreds of Chroma collections before a query
+        # can invalidate HNSW segment readers. The lexical index is generated
+        # from the same chunks and provides a safe, independent count.
+        stats["chunk_count"] = stats["lexical_chunk_count"]
+        stats["healthy"] = stats["collection_count"] > 0 and stats["chunk_count"] > 0
         return stats
 
     def search_chapter(
@@ -487,6 +491,7 @@ class ChapterVectorStore:
                         collection_name=col.name,
                         embedding_function=self.embeddings,
                         persist_directory=str(self.db_path),
+                        client=self._client,
                     )
                     self._stores[store_key] = store
                 kwargs = {"k": max(k * top_n * 4, k)}
@@ -541,11 +546,8 @@ class ChapterVectorStore:
         dt_embed = time.time() - t0
 
         scored_results: list[tuple[str, list[Document], float]] = []
-        import chromadb
-
         try:
-            client = chromadb.PersistentClient(path=str(self.db_path))
-            collections = client.list_collections()
+            collections = self._client.list_collections()
         except Exception as e:
             self.available = False
             print(f"  [vector_store] search_all skipped because Chroma is unavailable: {e}", flush=True)
@@ -570,6 +572,7 @@ class ChapterVectorStore:
                         collection_name=col.name,
                         embedding_function=self.embeddings,
                         persist_directory=str(self.db_path),
+                        client=self._client,
                     )
                     self._stores[store_key] = store
                 try:
