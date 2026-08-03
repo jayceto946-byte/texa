@@ -112,4 +112,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit("Legacy direct Chroma writer disabled. Use scripts/reindex_book.py instead.")

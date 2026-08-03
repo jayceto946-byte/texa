@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookMarked, BookOpenCheck, BrainCircuit, CalendarDays, ClipboardList, Loader2, Shuffle } from 'lucide-react';
+import { BookMarked, BookOpenCheck, BrainCircuit, CalendarDays, ClipboardList, Loader2, MessageSquareText, Shuffle } from 'lucide-react';
 import { get } from '../../api/client';
 import { scopeContainsBook, type TextbookScopeOption } from '../../utils/textbookScopes';
 
@@ -52,16 +52,8 @@ function firstLine(value = '') {
 }
 
 export default function ChatHomePanel({
-  bookName,
-  subject,
-  books,
-  isLoading,
-  onReviewMistake,
-  onReviewConcept,
-  onPracticeFromMemory,
-  onShowReport,
-  onPickRandomExercise,
-  onOpenHighlightDialog,
+  bookName, subject, books, isLoading, onReviewMistake, onReviewConcept,
+  onPracticeFromMemory, onShowReport, onPickRandomExercise, onOpenHighlightDialog,
   onOpenMistakeQuickCapture,
 }: ChatHomePanelProps) {
   const [summary, setSummary] = useState<ChatHomeLearningSummary | null>(null);
@@ -92,91 +84,76 @@ export default function ChatHomePanel({
       .finally(() => {
         if (alive) setLoading(false);
       });
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [bookName, subject]);
 
   const dueMistakes = summary?.due_mistakes || [];
-  const conceptPlan = summary?.concept_review_plan || [];
   const firstMistake = dueMistakes[0];
-  const firstConcept = conceptPlan[0];
+  const firstConcept = summary?.concept_review_plan?.[0];
   const currentScope = books.find((book) => scopeContainsBook(book, bookName));
   const scopeLabel = `${subject || '未限定学科'} / ${currentScope?.displayName || currentScope?.name || bookName || '通用问答'}`;
+  const recommended = firstMistake
+    ? {
+        icon: <BookOpenCheck className="h-4 w-4" />,
+        title: `${dueMistakes.length} 道错题已到复习时间`,
+        description: firstLine(firstMistake.question_text),
+        action: () => onReviewMistake(firstMistake),
+        link: <Link to={`/mistakes?mistake_id=${encodeURIComponent(firstMistake.id)}`} className="type-caption text-accent hover:underline">查看错题本</Link>,
+      }
+    : firstConcept
+      ? {
+          icon: <BrainCircuit className="h-4 w-4" />,
+          title: `建议复习：${firstConcept.name}`,
+          description: firstConcept.reasons?.[0] || '根据近期学习记录生成',
+          action: () => onReviewConcept(firstConcept, summary),
+          link: <Link to="/learning" className="type-caption text-accent hover:underline">查看学习情况</Link>,
+        }
+      : null;
 
   return (
-    <div className="mx-auto flex min-h-[55vh] w-full max-w-5xl flex-col justify-center py-8">
-      <header className="mb-5">
+    <div className="mx-auto flex min-h-[52vh] w-full max-w-3xl flex-col justify-center py-7">
+      <header className="mb-7">
         <div className="flex items-center gap-2">
-          <h2 className="type-hero text-text-primary">下一步学习</h2>
+          <MessageSquareText className="h-5 w-5 text-accent" />
+          <h2 className="type-title text-text-primary">开始一段学习对话</h2>
           {loading && <Loader2 className="h-4 w-4 animate-spin text-accent" />}
         </div>
-        <p className="type-body mt-1 text-text-secondary">根据复习时间和薄弱记录，先处理最值得回看的内容。</p>
-        <p className="type-caption mt-2 text-text-secondary">当前范围：{scopeLabel}</p>
+        <p className="type-body mt-2 text-text-secondary">可以提问、复习概念，或从一道题开始。</p>
+        <p className="type-caption mt-1 text-text-secondary">{scopeLabel}</p>
       </header>
 
-      <section className="app-panel overflow-hidden">
-        <div className="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(260px,0.65fr)]">
-          <div className="border-b border-border lg:border-b-0 lg:border-r">
-            <div className="border-b border-border px-5 py-3">
-              <h3 className="type-section-title text-text-primary">优先复习</h3>
+      {recommended && (
+        <section className="mb-6 border-y border-border py-4">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-accent">{recommended.icon}</span>
+            <div className="min-w-0 flex-1">
+              <h3 className="type-section-title text-text-primary">{recommended.title}</h3>
+              <p className="type-body mt-1 text-text-secondary">{recommended.description}</p>
+              <div className="mt-1.5">{recommended.link}</div>
             </div>
-            <TaskRow
-              icon={<BookOpenCheck className="h-4 w-4" />}
-              title={dueMistakes.length ? `${dueMistakes.length} 道错题已到复习时间` : '今天没有到期错题'}
-              description={firstMistake ? firstLine(firstMistake.question_text) : '可以从薄弱概念或题库练习继续。'}
-              actionLabel="开始复习"
-              disabled={!firstMistake || isLoading}
-              onClick={() => firstMistake && onReviewMistake(firstMistake)}
-              secondary={firstMistake ? <Link to={`/mistakes?mistake_id=${encodeURIComponent(firstMistake.id)}`} className="type-caption text-accent hover:underline">查看错题本</Link> : undefined}
-            />
-            <TaskRow
-              icon={<BrainCircuit className="h-4 w-4" />}
-              title={firstConcept ? `复习概念：${firstConcept.name}` : '暂无待复习概念'}
-              description={firstConcept?.reasons?.[0] || '概念复习计划会根据错题和学习记录更新。'}
-              actionLabel="开始复习"
-              disabled={!firstConcept || isLoading}
-              onClick={() => firstConcept && onReviewConcept(firstConcept, summary)}
-              secondary={<Link to="/learning" className="type-caption text-accent hover:underline">查看学习情况</Link>}
-            />
+            <button type="button" onClick={recommended.action} disabled={isLoading} className="app-primary-button flex-shrink-0 disabled:opacity-45">开始复习</button>
           </div>
+        </section>
+      )}
 
-          <div>
-            <div className="border-b border-border px-5 py-3">
-              <h3 className="type-section-title text-text-primary">其他入口</h3>
-            </div>
-            <div className="divide-y divide-border">
-              <ToolButton icon={<ClipboardList className="h-4 w-4" />} label="按薄弱点抽题" onClick={() => onPracticeFromMemory(summary)} disabled={isLoading} />
-              <ToolButton icon={<Shuffle className="h-4 w-4" />} label="随机抽一道题" onClick={onPickRandomExercise} disabled={isLoading} />
-              <ToolButton icon={<BookMarked className="h-4 w-4" />} label="教材重点" onClick={onOpenHighlightDialog} disabled={!books.length || isLoading} />
-              <ToolButton icon={<CalendarDays className="h-4 w-4" />} label="今日学习报告" onClick={() => onShowReport('daily')} disabled={isLoading} />
-              <ToolButton icon={<ClipboardList className="h-4 w-4" />} label="快速录入错题" onClick={onOpenMistakeQuickCapture} disabled={isLoading} />
-            </div>
-          </div>
+      <section aria-label="开始方式">
+        <h3 className="type-caption mb-2 font-medium text-text-secondary">你也可以</h3>
+        <div className="grid border-y border-border sm:grid-cols-2">
+          <QuickAction icon={<BrainCircuit className="h-4 w-4" />} label="按薄弱点练习" onClick={() => onPracticeFromMemory(summary)} disabled={isLoading} />
+          <QuickAction icon={<Shuffle className="h-4 w-4" />} label="随机抽一道题" onClick={onPickRandomExercise} disabled={isLoading} />
+          <QuickAction icon={<BookMarked className="h-4 w-4" />} label="查看教材重点" onClick={onOpenHighlightDialog} disabled={!books.length || isLoading} />
+          <QuickAction icon={<CalendarDays className="h-4 w-4" />} label="查看今日报告" onClick={() => onShowReport('daily')} disabled={isLoading} />
         </div>
+        <button type="button" onClick={onOpenMistakeQuickCapture} disabled={isLoading} className="type-caption mt-3 inline-flex items-center gap-1.5 text-text-secondary hover:text-accent disabled:opacity-45"><ClipboardList className="h-3.5 w-3.5" />快速录入错题</button>
       </section>
-      {failed && <p className="type-caption mt-3 text-[var(--warning-text)]">学习摘要暂时不可用，仍可使用右侧入口继续学习。</p>}
+      {failed && <p className="type-caption mt-3 text-[var(--warning-text)]">学习摘要暂时不可用，仍可直接提问或使用快捷操作。</p>}
     </div>
   );
 }
 
-function TaskRow({ icon, title, description, actionLabel, disabled, onClick, secondary }: { icon: React.ReactNode; title: string; description: string; actionLabel: string; disabled?: boolean; onClick: () => void; secondary?: React.ReactNode }) {
+function QuickAction({ icon, label, disabled, onClick }: { icon: React.ReactNode; label: string; disabled?: boolean; onClick: () => void }) {
   return (
-    <div className="flex items-start gap-3 border-b border-border px-5 py-4 last:border-b-0">
-      <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--accent-softer)] text-accent">{icon}</span>
-      <div className="min-w-0 flex-1">
-        <h4 className="type-section-title text-text-primary">{title}</h4>
-        <p className="type-body mt-1 text-text-secondary">{description}</p>
-        {secondary && <div className="mt-1.5">{secondary}</div>}
-      </div>
-      <button type="button" onClick={onClick} disabled={disabled} className="app-secondary-button flex-shrink-0 disabled:cursor-not-allowed disabled:opacity-45">{actionLabel}</button>
-    </div>
-  );
-}
-
-function ToolButton({ icon, label, disabled, onClick }: { icon: React.ReactNode; label: string; disabled?: boolean; onClick: () => void }) {
-  return (
-    <button type="button" onClick={onClick} disabled={disabled} className="type-control flex w-full items-center gap-3 px-5 py-3 text-left text-text-primary hover:bg-[var(--accent-softer)] disabled:cursor-not-allowed disabled:opacity-45">
+    <button type="button" onClick={onClick} disabled={disabled} className="type-control flex w-full items-center gap-3 border-b border-border px-3 py-3 text-left text-text-primary hover:bg-[var(--accent-softer)] disabled:cursor-not-allowed disabled:opacity-45 sm:odd:border-r">
       <span className="text-accent">{icon}</span>
       <span>{label}</span>
     </button>

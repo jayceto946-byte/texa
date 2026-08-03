@@ -19,6 +19,8 @@ type ImportJob = {
     indexed_chunks?: number;
     output_dir?: string;
     subject?: string;
+    concept_job_id?: string;
+    concept_extraction_warning?: string;
   } | null;
 };
 
@@ -44,6 +46,7 @@ const BooksPage: React.FC = () => {
   const [tocPages, setTocPages] = useState('');
   const [subject, setSubject] = useState('');
   const [requireMineru, setRequireMineru] = useState(true);
+  const [extractConcepts, setExtractConcepts] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [job, setJob] = useState<ImportJob | null>(null);
   const [error, setError] = useState('');
@@ -107,6 +110,7 @@ const BooksPage: React.FC = () => {
     formData.append('pre_read', 'false');
     formData.append('require_mineru', String(requireMineru));
     formData.append('subject', subject);
+    formData.append('extract_concepts', String(extractConcepts));
 
     try {
       const res = await apiFetch('/books/import-job', { method: 'POST', body: formData });
@@ -130,6 +134,7 @@ const BooksPage: React.FC = () => {
     formData.append('file', outputFile);
     formData.append('book_name', outputFile.name.replace(/\.zip$/i, ''));
     formData.append('subject', subject);
+    formData.append('extract_concepts', String(extractConcepts));
 
     try {
       const res = await apiFetch('/books/import-mineru-output', { method: 'POST', body: formData });
@@ -154,25 +159,23 @@ const BooksPage: React.FC = () => {
       </header>
 
       <div className="mx-auto w-full max-w-6xl space-y-5 p-6">
-        <section className="app-panel overflow-hidden">
-          <div className="border-b border-border px-5 py-4">
-            <h3 className="text-[18px] font-semibold leading-6 text-text-primary">选择导入方式</h3>
-          </div>
-          <div className="grid md:grid-cols-2">
-            <button type="button" onClick={() => setImportMode('pdf')} className={`flex items-center gap-3 px-5 py-5 text-left md:border-r ${importMode === 'pdf' ? 'bg-[var(--accent-softer)]' : 'hover:bg-bg-secondary'}`}>
-              <FileText className={`h-5 w-5 ${importMode === 'pdf' ? 'text-accent' : 'text-text-secondary'}`} />
-              <span className="text-[16px] font-medium leading-6 text-text-primary">导入 PDF 教材</span>
+        <section className="border-y border-border py-4">
+          <div className="mb-3 text-sm font-semibold text-text-primary">1. 选择来源</div>
+          <div className="inline-flex rounded-lg border border-border bg-bg-card p-1">
+            <button type="button" onClick={() => setImportMode('pdf')} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm ${importMode === 'pdf' ? 'bg-[var(--accent-soft)] font-medium text-accent' : 'text-text-secondary hover:text-text-primary'}`}>
+              <FileText className="h-4 w-4" />PDF 教材
             </button>
-            <button type="button" onClick={() => setImportMode('bundle')} className={`flex items-center gap-3 border-t border-border px-5 py-5 text-left md:border-t-0 ${importMode === 'bundle' ? 'bg-[var(--accent-softer)]' : 'hover:bg-bg-secondary'}`}>
-              <Archive className={`h-5 w-5 ${importMode === 'bundle' ? 'text-accent' : 'text-text-secondary'}`} />
-              <span className="text-[16px] font-medium leading-6 text-text-primary">导入 MinerU 输出包</span>
+            <button type="button" onClick={() => setImportMode('bundle')} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm ${importMode === 'bundle' ? 'bg-[var(--accent-soft)] font-medium text-accent' : 'text-text-secondary hover:text-text-primary'}`}>
+              <Archive className="h-4 w-4" />MinerU 输出包
             </button>
           </div>
         </section>
 
         {importMode === 'pdf' ? (
-          <section className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
-            <button type="button" onClick={() => inputRef.current?.click()} className="app-panel flex min-h-[280px] w-full flex-col items-center justify-center p-8 text-center hover:border-accent/60 hover:bg-[var(--accent-softer)]">
+          <section>
+            <h3 className="mb-3 text-sm font-semibold text-text-primary">2. 选择文件并设置参数</h3>
+            <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <button type="button" onClick={() => inputRef.current?.click()} className="app-panel flex min-h-[190px] w-full flex-col items-center justify-center p-8 text-center hover:border-accent/60 hover:bg-[var(--accent-softer)]">
               <Upload className="mb-4 h-9 w-9 text-accent" />
               <span className="type-section-title text-text-primary">{file ? file.name : '选择 PDF 教材'}</span>
               <span className="type-caption mt-2 text-text-secondary">点击选择本地 PDF 文件</span>
@@ -189,17 +192,29 @@ const BooksPage: React.FC = () => {
                 <span className="mb-1.5 block type-caption text-text-secondary">所属科目</span>
                 <ScopeSelector subject={subject} onSubjectChange={setSubject} bookMode="hidden" label="所属科目" fullWidth width="wide" />
               </label>
-              <label className="flex items-start gap-2 rounded-lg border border-border bg-bg-primary px-3 py-2.5 text-sm text-text-primary">
-                <input type="checkbox" checked={requireMineru} onChange={(e) => setRequireMineru(e.target.checked)} className="mt-0.5 accent-accent" />
-                <span><span className="block">扫描件必须完成高质量解析</span><span className="type-caption mt-0.5 block text-text-secondary">启用后不接受低质量文本降级结果。</span></span>
+              <details className="border-t border-border pt-3">
+                <summary className="cursor-pointer text-sm text-text-secondary">高级选项</summary>
+                <label className="mt-3 flex items-start gap-2 text-sm text-text-primary">
+                  <input type="checkbox" checked={requireMineru} onChange={(e) => setRequireMineru(e.target.checked)} className="mt-0.5 accent-accent" />
+                  <span><span className="block">扫描版教材使用高质量识别</span><span className="type-caption mt-0.5 block text-text-secondary">速度更慢，但公式和版面识别更准确。</span></span>
+                </label>
+              </details>
+              <label className="flex items-start gap-2 rounded-lg border border-border bg-bg-primary p-3 text-sm text-text-primary">
+                <input type="checkbox" checked={extractConcepts} onChange={(e) => setExtractConcepts(e.target.checked)} className="mt-0.5 accent-accent" />
+                <span><span className="block">{'\u5bfc\u5165\u540e\u5f02\u6b65\u63d0\u53d6\u6559\u6750\u6982\u5ff5\u7d22\u5f15'}</span><span className="type-caption mt-0.5 block text-text-secondary">{'\u6559\u6750\u539f\u6587\u548c\u68c0\u7d22\u7d22\u5f15\u4f1a\u5148\u8fdb\u5165\u53ef\u7528\u72b6\u6001\uff1b\u968f\u540e\u628a\u7b5b\u9009\u540e\u7684\u6559\u6750\u7247\u6bb5\u53d1\u9001\u7ed9\u5df2\u914d\u7f6e\u7684\u5916\u90e8 LLM\u3002\u53ef\u80fd\u8017\u65f6\u8f83\u957f\uff0c\u4e0d\u963b\u585e\u95ee\u7b54\u3002'}</span></span>
               </label>
-              <button onClick={handleUpload} disabled={!file || uploading} className="app-primary-button w-full disabled:cursor-not-allowed disabled:opacity-50">
+              {!file && <p className="type-caption text-text-secondary">请先选择 PDF 文件。</p>}
+              {file && !subject.trim() && <p className="type-caption text-[var(--warning-text)]">请选择所属科目。</p>}
+              <button onClick={handleUpload} disabled={!file || !subject.trim() || uploading} className="app-primary-button w-full disabled:cursor-not-allowed disabled:opacity-50">
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}{uploading ? '正在启动' : '开始导入'}
               </button>
             </div>
+            </div>
           </section>
         ) : (
-          <section className="app-panel grid gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <section>
+            <h3 className="mb-3 text-sm font-semibold text-text-primary">2. 选择已解析文件</h3>
+            <div className="app-panel grid gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div>
               <h3 className="type-section-title text-text-primary">导入已解析结果</h3>
               <p className="type-body mt-2 max-w-2xl text-text-secondary">输出包应包含 Markdown、content_list 或 middle JSON，以及引用的图片资源。系统只整理章节并建立本地索引，不会再次执行 OCR。</p>
@@ -208,7 +223,13 @@ const BooksPage: React.FC = () => {
             <div className="space-y-3">
               <button type="button" onClick={() => outputInputRef.current?.click()} className="app-secondary-button min-h-[72px] w-full"><Upload className="h-4 w-4" />{outputFile ? outputFile.name : '选择输出 zip'}</button>
               <input ref={outputInputRef} type="file" accept=".zip,application/zip" onChange={handleOutputFileChange} className="hidden" />
+              <label className="flex items-start gap-2 rounded-lg border border-border bg-bg-primary p-3 text-sm text-text-primary">
+                <input type="checkbox" checked={extractConcepts} onChange={(e) => setExtractConcepts(e.target.checked)} className="mt-0.5 accent-accent" />
+                <span><span className="block">{'\u5bfc\u5165\u540e\u5f02\u6b65\u63d0\u53d6\u6559\u6750\u6982\u5ff5\u7d22\u5f15'}</span><span className="type-caption mt-0.5 block text-text-secondary">{'\u6559\u6750\u539f\u6587\u548c\u68c0\u7d22\u7d22\u5f15\u4f1a\u5148\u8fdb\u5165\u53ef\u7528\u72b6\u6001\uff1b\u968f\u540e\u628a\u7b5b\u9009\u540e\u7684\u6559\u6750\u7247\u6bb5\u53d1\u9001\u7ed9\u5df2\u914d\u7f6e\u7684\u5916\u90e8 LLM\u3002\u53ef\u80fd\u8017\u65f6\u8f83\u957f\uff0c\u4e0d\u963b\u585e\u95ee\u7b54\u3002'}</span></span>
+              </label>
+              {!outputFile && <p className="type-caption text-text-secondary">请先选择 zip 输出包。</p>}
               <button onClick={handleOutputUpload} disabled={!outputFile || uploading} className="app-primary-button w-full disabled:cursor-not-allowed disabled:opacity-50">{uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}{uploading ? '正在启动' : '导入输出包'}</button>
+            </div>
             </div>
           </section>
         )}

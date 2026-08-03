@@ -99,6 +99,7 @@ def rebuild_with_roles(book_name: str):
 
 
 if __name__ == "__main__":
+    raise SystemExit("Legacy direct Chroma writer disabled. Use scripts/reindex_book.py instead.")
     parser = argparse.ArgumentParser(description="从 middle_chunks 重建向量索引并补 role")
     parser.add_argument("--book_name", default="优化设计", help="书籍名称")
     args = parser.parse_args()

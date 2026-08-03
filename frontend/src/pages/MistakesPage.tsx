@@ -699,6 +699,8 @@ const MistakesPage: React.FC = () => {
     );
   };
 
+  const hasEntryDraft = Boolean(rawFile || imageFile || form.question_text.trim() || form.user_answer.trim() || form.correct_answer.trim());
+
   return (
     <div className="flex h-full flex-col">
       <div className="app-page-header border-b border-border bg-bg-primary">
@@ -724,19 +726,19 @@ const MistakesPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-6">
         {activeTab === '录入' && (
           <div className="mx-auto max-w-6xl space-y-5">
-            <div className="app-panel flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-y border-border px-1 py-2">
               <div className="flex items-center gap-2">
                 {([1, 2, 3] as const).map((step) => (
                   <React.Fragment key={step}>
-                    <button type="button" onClick={() => step < entryStep && setEntryStep(step)} disabled={step > entryStep} className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm ${entryStep === step ? 'bg-[var(--accent-soft)] font-medium text-accent' : step < entryStep ? 'text-text-primary hover:bg-bg-secondary' : 'cursor-not-allowed text-text-secondary/55'}`}>
-                      <span className={`flex h-6 w-6 items-center justify-center rounded-md border text-xs ${entryStep >= step ? 'border-accent/35 bg-bg-card text-accent' : 'border-border'}`}>{step}</span>
+                    <button type="button" onClick={() => step < entryStep && setEntryStep(step)} disabled={step > entryStep} className={`flex items-center gap-2 px-2 py-1.5 text-sm ${entryStep === step ? 'font-medium text-accent' : step < entryStep ? 'text-text-primary hover:text-accent' : 'cursor-not-allowed text-text-secondary/55'}`}>
+                      <span className={`flex h-5 w-5 items-center justify-center rounded border text-[11px] ${entryStep >= step ? 'border-accent/35 text-accent' : 'border-border'}`}>{step}</span>
                       {step === 1 ? '添加题目' : step === 2 ? '校对内容' : '归因保存'}
                     </button>
                     {step < 3 && <span className="h-px w-5 bg-border" />}
                   </React.Fragment>
                 ))}
               </div>
-              <button type="button" onClick={resetForm} className="app-secondary-button">清空本题</button>
+              {hasEntryDraft && <button type="button" onClick={resetForm} className="type-caption text-text-secondary hover:text-[var(--danger)]">清空本题</button>}
             </div>
 
             {entryStep === 1 && (
@@ -747,19 +749,19 @@ const MistakesPage: React.FC = () => {
                   onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
                   onDragLeave={() => setDragActive(false)}
                   onDrop={(e) => { e.preventDefault(); setDragActive(false); const file = e.dataTransfer.files?.[0]; if (file) acceptFile(file); }}
-                  className={`app-panel flex min-h-[300px] w-full flex-col items-center justify-center p-6 text-center ${dragActive ? 'border-accent bg-[var(--accent-softer)]' : 'hover:border-accent/60'}`}
+                  className={`app-panel flex min-h-[190px] w-full flex-col items-center justify-center p-6 text-center ${dragActive ? 'border-accent bg-[var(--accent-softer)]' : 'hover:border-accent/60'}`}
                 >
                   {imagePreview || rawPreview ? <img src={imagePreview || rawPreview} alt="错题预览" className="max-h-[270px] w-full object-contain" /> : <><ImagePlus className="mb-3 h-9 w-9 text-text-secondary" /><span className="type-section-title text-text-primary">上传错题图片</span><span className="type-caption mt-2 text-text-secondary">拖入图片，或点击调用文件选择与相机。</span></>}
                 </button>
                 <input ref={inputRef} type="file" accept="image/*" capture="environment" onChange={handleFileChange} className="hidden" />
 
                 <div className="app-panel space-y-3 p-5">
-                  <h3 className="type-section-title text-text-primary">处理方式</h3>
-                  <p className="type-caption leading-5 text-text-secondary">图片会先裁剪和增强。识别结果必须在下一步人工校对。</p>
-                  <button onClick={() => inputRef.current?.click()} className="app-secondary-button w-full"><Camera className="h-4 w-4" />选择图片或拍照</button>
-                  <button onClick={() => rawFile && setCropOpen(true)} disabled={!rawFile} className="app-secondary-button w-full disabled:opacity-45"><Crop className="h-4 w-4" />调整裁剪区域</button>
-                  <button onClick={() => uploadForOcr(false)} disabled={!imageFile || ocrLoading || solveLoading} className="app-primary-button w-full disabled:opacity-45">{ocrLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}识别并校对</button>
-                  <button onClick={() => { setField('question_text', ''); setEntryStep(2); }} className="app-secondary-button w-full">跳过图片，手动录入</button>
+                  <h3 className="type-section-title text-text-primary">{rawFile ? '图片已就绪' : '选择录入方式'}</h3>
+                  <p className="type-caption leading-5 text-text-secondary">{rawFile ? '可调整题目区域，也可以直接识别。' : '拍照识别适合纸面题，识别后需要校对。'}</p>
+                  <button onClick={() => inputRef.current?.click()} className="app-secondary-button w-full"><Camera className="h-4 w-4" />{rawFile ? '重新选择图片' : '选择图片或拍照'}</button>
+                  {rawFile && <button onClick={() => setCropOpen(true)} className="app-secondary-button w-full"><Crop className="h-4 w-4" />调整题目区域</button>}
+                  {imageFile && <button onClick={() => uploadForOcr(false)} disabled={ocrLoading || solveLoading} className="app-primary-button w-full disabled:opacity-45">{ocrLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}开始识别</button>}
+                  {!rawFile && <button onClick={() => { setField('question_text', ''); setEntryStep(2); }} className="app-secondary-button w-full">手动录入</button>}
                   {uploadMessage && <StatusBanner kind={uploadMessage.includes('失败') ? 'error' : 'info'} title={uploadMessage} />}
                 </div>
               </section>

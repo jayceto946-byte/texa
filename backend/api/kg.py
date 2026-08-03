@@ -7,14 +7,13 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
-import threading
 
 from fastapi import APIRouter
 from pydantic import BaseModel
 
 from backend.schemas import KGGraphOut, KGRefreshOut
 from config import PROGRESS_PATH
-from backend.job_manager import JobCancelled, get_job_manager
+from backend.job_manager import get_job_manager
 from backend.services.dependency_cache import DependencyTTLCache
 from backend.services.kg_learning_summary import (
     build_concept_review_plan,
@@ -22,9 +21,8 @@ from backend.services.kg_learning_summary import (
     mistake_summary,
     parse_datetime,
 )
-from knowledge.kg_enhancement import enhance_book, estimate_enhancement
-
-KG_ENHANCEMENT_JOB_TYPE = "textbook_kg_enhancement"
+from knowledge.kg_enhancement import estimate_enhancement
+from backend.services.kg_enhancement_jobs import KG_ENHANCEMENT_JOB_TYPE, start_kg_enhancement_job
 _learning_summary_cache = DependencyTTLCache(ttl_seconds=5.0)
 from utils.path_safety import safe_book_name, safe_child_path
 
@@ -34,27 +32,6 @@ router = APIRouter(prefix="/kg", tags=["knowledge-graph"])
 class KGEnhancementRequest(BaseModel):
     book_name: str
     allow_external_llm: bool = False
-
-
-def _run_enhancement_job(job_id: str, book_name: str) -> None:
-    manager = get_job_manager()
-
-    def progress(stage: str, message: str, percent: int) -> None:
-        manager.raise_if_cancelled(job_id)
-        manager.update_job(job_id, status="running", stage=stage, message=message, progress=percent)
-
-    try:
-        manager.update_job(job_id, status="running", stage="prepare", progress=3, message="Preparing textbook knowledge enhancement")
-        result = enhance_book(
-            book_name,
-            progress=progress,
-            check_cancelled=lambda: manager.raise_if_cancelled(job_id),
-        )
-        manager.update_job(job_id, status="completed", stage="completed", progress=100, message="Textbook knowledge enhancement completed", result=result)
-    except JobCancelled as exc:
-        manager.update_job(job_id, status="cancelled", stage="cancelled", progress=100, message=str(exc) or "Knowledge enhancement cancelled", error=str(exc))
-    except Exception as exc:
-        manager.update_job(job_id, status="failed", stage="failed", progress=100, message=f"Knowledge enhancement failed: {exc}", error=str(exc))
 
 
 @router.get("/enhance/estimate")
@@ -71,22 +48,18 @@ def get_enhancement_estimate(book_name: str = ""):
 def start_enhancement(req: KGEnhancementRequest):
     if not req.allow_external_llm:
         return {"success": False, "message": "Explicit consent is required before sending selected textbook excerpts to the configured external LLM"}
-    book_name = safe_book_name(req.book_name)
-    estimate = estimate_enhancement(book_name)
-    if not estimate.get("total_chunks"):
-        return {"success": False, "message": "No textbook chunks are available for enhancement"}
-    manager = get_job_manager()
-    for existing in manager.list_jobs(job_type=KG_ENHANCEMENT_JOB_TYPE, limit=100):
-        if existing.get("book_name") == book_name and existing.get("status") in {"queued", "running", "cancelling"}:
-            return {"success": True, "message": "An enhancement job is already active for this textbook", "job_id": existing["id"], "data": existing}
-    job = manager.create_job(
-        KG_ENHANCEMENT_JOB_TYPE,
-        {"book_name": book_name, "allow_external_llm": True, "estimate": estimate},
-        status="queued", stage="queued", progress=0, message="Knowledge enhancement queued",
-    )
-    thread = threading.Thread(target=_run_enhancement_job, args=(job["id"], book_name), daemon=True)
-    thread.start()
-    return {"success": True, "message": "Knowledge enhancement started", "job_id": job["id"], "data": job}
+    try:
+        job, created = start_kg_enhancement_job(
+            req.book_name, allow_external_llm=req.allow_external_llm,
+        )
+    except (PermissionError, ValueError) as exc:
+        return {"success": False, "message": str(exc)}
+    return {
+        "success": True,
+        "message": "\u6559\u6750\u6982\u5ff5\u7d22\u5f15\u63d0\u53d6\u5df2\u542f\u52a8" if created else "\u8be5\u6559\u6750\u5df2\u6709\u6982\u5ff5\u63d0\u53d6\u4efb\u52a1\u6b63\u5728\u8fd0\u884c",
+        "job_id": job["id"],
+        "data": job,
+    }
 
 
 @router.get("/enhance/jobs/{job_id}")

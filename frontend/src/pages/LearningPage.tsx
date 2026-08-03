@@ -229,19 +229,19 @@ const LearningPage: React.FC = () => {
     try {
       const estimateRes = await get(`/kg/enhance/estimate?book_name=${encodeURIComponent(bookName)}`);
       if (!estimateRes?.success) {
-        setError(estimateRes?.message || '\u65e0\u6cd5\u4f30\u7b97\u77e5\u8bc6\u589e\u5f3a\u4efb\u52a1');
+        setError(estimateRes?.message || '\u65e0\u6cd5\u4f30\u7b97\u6982\u5ff5\u7d22\u5f15\u63d0\u53d6\u4efb\u52a1');
         return;
       }
       const estimate = estimateRes.data || {};
       const confirmed = window.confirm(
-        `\u77e5\u8bc6\u589e\u5f3a\u5c06\u5411\u5df2\u914d\u7f6e\u7684\u5916\u90e8 LLM \u53d1\u9001\u7b5b\u9009\u540e\u7684\u6559\u6750\u7247\u6bb5\u3002\n` +
+        `\u6559\u6750\u6982\u5ff5\u7d22\u5f15\u63d0\u53d6\u5c06\u5411\u5df2\u914d\u7f6e\u7684\u5916\u90e8 LLM \u53d1\u9001\u7b5b\u9009\u540e\u7684\u6559\u6750\u7247\u6bb5\u3002\n` +
         `\u9884\u8ba1\u53d1\u9001\u7ea6 ${estimate.selected_characters || 0} \u4e2a\u5b57\u7b26\u3002\n\n` +
         `\u662f\u5426\u7ee7\u7eed\uff1f`
       );
       if (!confirmed) return;
       const res = await post('/kg/enhance', { book_name: bookName, allow_external_llm: true });
       if (!res?.success) {
-        setError(res?.message || '\u77e5\u8bc6\u589e\u5f3a\u542f\u52a8\u5931\u8d25');
+        setError(res?.message || '\u6982\u5ff5\u7d22\u5f15\u63d0\u53d6\u542f\u52a8\u5931\u8d25');
         return;
       }
       setKgJob({ ...(res.data || {}), id: res.job_id || res.data?.id, status: res.data?.status || 'queued' });
@@ -315,17 +315,21 @@ const LearningPage: React.FC = () => {
         {error && !loading && <StatusBanner kind="error" title="学习情况加载失败" description={error} action={<button onClick={load} className="app-secondary-button">重试</button>} />}
         {!loading && !error && summary && (
           <div className="space-y-6">
-            <section className="learning-metrics grid grid-cols-2 border-y border-border bg-bg-card xl:grid-cols-4">
-              <Metric icon={BrainCircuit} label="严格概念" value={summary.stats.total_concepts} help={summary.review_rules?.strict_concepts} />
-              <Metric icon={Activity} label="高置信接触" value={summary.stats.total_exposures} help={summary.review_rules?.high_confidence_exposures} />
-              <Metric icon={AlertTriangle} label="薄弱概念" value={summary.stats.weak_count} tone="warn" help={summary.review_rules?.weak_concepts} />
-              <Metric icon={CalendarDays} label="今日待复习错题" value={summary.mistake_stats.due_today} tone="accent" help={summary.review_rules?.mistake_due} />
+            <section>
+              <h3 className="mb-2 text-sm font-semibold text-text-primary">今日结论</h3>
+              <div className="learning-metrics grid grid-cols-1 border-y border-border bg-bg-card md:grid-cols-3">
+                <Metric icon={CalendarDays} label="今日待复习" value={summary.mistake_stats.due_today} tone="accent" help={summary.review_rules?.mistake_due} />
+                <Metric icon={AlertTriangle} label="近期薄弱概念" value={summary.stats.weak_count} tone="warn" help={summary.weak_concepts?.slice(0, 2).map((item) => item.name).join('、') || summary.review_rules?.weak_concepts} />
+                <Metric icon={Activity} label="近 7 天活跃" value={summary.daily.slice(-7).filter((item) => item.total > 0).length} help="按有学习记录的天数统计" />
+              </div>
             </section>
 
             {reviewMessage && <div className="border-l-2 border-[var(--success)] bg-[#eef5e8] px-3 py-2 text-sm text-[#557a46]">{reviewMessage}</div>}
 
-            <div className="learning-review-sections divide-y divide-border border-y border-border bg-bg-card">
-              <ExpandableSection title="最近问答题干" count={summary.recent_questions?.length || 0} defaultOpen={!bookName}>
+            <section>
+              <h3 className="mb-2 text-sm font-semibold text-text-primary">下一步行动</h3>
+              <div className="learning-review-sections divide-y divide-border border-y border-border bg-bg-card">
+              <ExpandableSection title="近期问题" count={summary.recent_questions?.length || 0}>
                 <div className="divide-y divide-border px-4">
                   {summary.recent_questions?.length ? (
                     summary.recent_questions.map((item, index) => (
@@ -345,7 +349,7 @@ const LearningPage: React.FC = () => {
                   )}
                 </div>
               </ExpandableSection>
-              <ExpandableSection title="待复习错题" count={summary.due_mistakes?.length || 0} defaultOpen={Boolean(summary.due_mistakes?.length)}>
+              <ExpandableSection title="优先复习错题" count={summary.due_mistakes?.length || 0} defaultOpen={Boolean(summary.due_mistakes?.length)}>
                 <div className="divide-y divide-border px-4">
                   {summary.due_mistakes?.length ? (
                     summary.due_mistakes.map((mistake) => (
@@ -362,7 +366,7 @@ const LearningPage: React.FC = () => {
                 </div>
               </ExpandableSection>
 
-              <ExpandableSection title="今日概念复习" count={summary.concept_review_plan?.length || 0} defaultOpen>
+              <ExpandableSection title="优先复习概念" count={summary.concept_review_plan?.length || 0} defaultOpen>
                 <div className="learning-concept-grid grid grid-cols-1 gap-x-6 px-4 xl:grid-cols-2">
                   {summary.concept_review_plan?.length ? (
                     summary.concept_review_plan.map((item) => (
@@ -374,7 +378,7 @@ const LearningPage: React.FC = () => {
                 </div>
               </ExpandableSection>
 
-              <ExpandableSection title="待复习概念" count={summary.review_queue.length} defaultOpen>
+              <ExpandableSection title="更多待复习概念" count={summary.review_queue.length}>
                 <div className="divide-y divide-border px-4">
                   {summary.review_queue.length ? (
                     summary.review_queue.map((item) => (
@@ -388,9 +392,12 @@ const LearningPage: React.FC = () => {
                   )}
                 </div>
               </ExpandableSection>
-            </div>
+              </div>
+            </section>
 
-            <div className="learning-insights grid grid-cols-1 divide-y divide-border border-y border-border bg-bg-card xl:grid-cols-3 xl:divide-x xl:divide-y-0">
+            <section>
+              <h3 className="mb-2 text-sm font-semibold text-text-primary">补充分析</h3>
+              <div className="learning-insights grid grid-cols-1 divide-y divide-border border-y border-border bg-bg-card xl:grid-cols-3 xl:divide-x xl:divide-y-0">
               <Panel title="高频概念">
                 {summary.top_concepts.length ? (
                   summary.top_concepts.map((item) => (
@@ -414,7 +421,8 @@ const LearningPage: React.FC = () => {
                 selectedDate={selectedActivityDate}
                 onSelectDate={setSelectedActivityDate}
               />
-            </div>
+              </div>
+            </section>
           </div>
         )}
       </div>

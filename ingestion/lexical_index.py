@@ -8,7 +8,7 @@ import threading
 from collections import Counter
 from pathlib import Path
 
-from config import VECTOR_DB_PATH
+from config import PROGRESS_PATH, VECTOR_DB_PATH
 from utils.json_io import atomic_write_json
 from utils.path_safety import safe_book_name
 
@@ -18,6 +18,10 @@ _QUERY_STOP_TOKENS = {
     "\u54ea\u4e9b", "\u6709\u54ea", "\u7279\u70b9", "\u4e3b\u8981", "\u4ec0\u4e48", "\u4e3a\u4ec0", "\u4e48",
     "\u662f\u5426", "\u4e3a\u4f55", "\u8bf4\u660e", "\u7b80\u8ff0", "\u5217\u51fa", "\u5417",
 }
+_TITLE_DIRECT_STOP_TOKENS = {
+    "\u8ba1\u7b97", "\u7ed3\u679c", "\u600e\u4e48", "\u5982\u4f55", "\u89c4\u5219", "\u5b9a\u4e49", "\u8bef\u5dee",
+}
+
 
 
 
@@ -32,6 +36,15 @@ def tokenize(text: str) -> list[str]:
         else:
             tokens.append(term)
     return [token for token in tokens if token not in _QUERY_STOP_TOKENS]
+def _title_direct_hit(query: str, title: str) -> bool:
+    normalized_query = re.sub(r"\s+", "", (query or "").lower())
+    if not normalized_query or not title:
+        return False
+    return any(
+        len(token) >= 2 and token not in _TITLE_DIRECT_STOP_TOKENS and token in normalized_query
+        for token in tokenize(title)
+    )
+
 
 
 def index_path(book_name: str) -> Path:
@@ -53,27 +66,90 @@ def write_book_index(book_name: str, chunks: list[dict]) -> Path:
     return path
 
 
+def _source_chunk_paths(book_name: str) -> list[Path]:
+    root = Path(PROGRESS_PATH) / safe_book_name(book_name)
+    if not root.exists():
+        return []
+    paths: list[Path] = []
+    for path in root.rglob("*_middle_chunks.json"):
+        try:
+            if path.is_file() and path.stat().st_size <= 64 * 1024 * 1024:
+                paths.append(path)
+        except OSError:
+            continue
+    return sorted(paths)
+
+
+def _load_source_chunks(paths: list[Path], book_name: str) -> list[dict]:
+    rows: list[dict] = []
+    seen: set[str] = set()
+    for file_index, path in enumerate(paths):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if not isinstance(payload, list):
+            continue
+        for row_index, value in enumerate(payload):
+            if not isinstance(value, dict):
+                continue
+            content = str(value.get("content") or "").strip()
+            if not content:
+                continue
+            chunk_id = str(value.get("chunk_id") or f"source_{file_index}_{row_index}")
+            dedupe_key = chunk_id if value.get("chunk_id") else content[:500]
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            item = dict(value)
+            section_path = item.get("section_path") if isinstance(item.get("section_path"), list) else []
+            section_title = str(item.get("section_title") or "").strip()
+            chapter = str(item.get("chapter") or (section_path[0] if section_path else "") or section_title or "related section")
+            item.update({
+                "book_name": book_name,
+                "chapter": chapter,
+                "section_title": section_title,
+                "section_path": section_path or ([section_title] if section_title else []),
+                "chunk_id": chunk_id,
+                "content": content,
+                "retrieval_text": str(item.get("retrieval_text") or f"{chapter}\n{section_title}\n{content}"),
+            })
+            rows.append(item)
+    return rows
+
+
 def load_book_index(book_name: str) -> list[dict]:
     path = index_path(book_name)
-    if not path.exists():
+    source_paths = [] if path.exists() else _source_chunk_paths(book_name)
+    if not path.exists() and not source_paths:
         return []
-    stamp = path.stat().st_mtime
+    try:
+        stamp = (
+            ("index", path.stat().st_mtime_ns, path.stat().st_size)
+            if path.exists()
+            else ("source", tuple((str(item), item.stat().st_mtime_ns, item.stat().st_size) for item in source_paths))
+        )
+    except OSError:
+        return []
     key = safe_book_name(book_name)
     with _lock:
         cached = _cache.get(key)
         if cached and cached[0] == stamp:
             return cached[1]
         try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            rows = data if isinstance(data, list) else []
+            if path.exists():
+                data = json.loads(path.read_text(encoding="utf-8"))
+                rows = data if isinstance(data, list) else []
+            else:
+                rows = _load_source_chunks(source_paths, key)
         except Exception:
             rows = []
         _cache[key] = (stamp, rows)
         return rows
 
 
-def search_book(book_name: str, query: str, *, k: int = 20, chapters: list[str] | None = None) -> list[dict]:
-    rows = load_book_index(book_name)
+def search_rows(rows: list[dict], query: str, *, k: int = 20, chapters: list[str] | None = None) -> list[dict]:
+    """Run the same BM25 implementation against an explicit staged corpus."""
     if not rows:
         return []
     docs = [tokenize(str(row.get("retrieval_text") or row.get("content") or "")) for row in rows]
@@ -104,10 +180,15 @@ def search_book(book_name: str, query: str, *, k: int = 20, chapters: list[str] 
         item.update({
             "source": "bm25", "bm25_score": score,
             "retrieval_rank": rank, "text": item.get("content", ""),
-            "is_direct_hit": False,
+            "is_direct_hit": _title_direct_hit(query, str(item.get("section_title") or "")),
         })
         result.append(item)
     return result
+
+
+
+def search_book(book_name: str, query: str, *, k: int = 20, chapters: list[str] | None = None) -> list[dict]:
+    return search_rows(load_book_index(book_name), query, k=k, chapters=chapters)
 
 
 def expand_neighbors(book_name: str, chunk_ids: list[str], window: int = 1) -> list[dict]:

@@ -22,8 +22,8 @@ COMPONENT_VERSIONS: dict[str, int] = {
     "job_manager": 1,
     "rag_trace": 1,
     "backup": 2,
-    "vector_index": 3,
-    "lexical_index": 1,
+    "vector_index": 4,
+    "lexical_index": 2,
 }
 DATA_CLASSES: dict[str, list[str]] = {
     "authoritative": [

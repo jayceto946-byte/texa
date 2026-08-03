@@ -9,6 +9,8 @@ from pathlib import Path
 import chromadb
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+raise RuntimeError("Legacy direct Chroma writer disabled. Use scripts/reindex_book.py instead.")
+
 from config import get_embeddings
 
 ROOT = Path(r'D:\AI\agent\kaoyan-assistant')

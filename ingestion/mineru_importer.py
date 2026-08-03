@@ -19,6 +19,7 @@ from ingestion.chapter_splitter import ChapterSplitter
 from ingestion.chunk_roles import assign_chunk_roles, load_kg_chunk_roles, role_distribution
 from ingestion.textbook_chunk import TextbookChunk, link_neighbors
 from ingestion.lexical_index import write_book_index
+from ingestion.index_pipeline import build_and_activate_book_index
 from ingestion.mineru_client import MinerUClient
 from ingestion.pdf_parser import PDFParser
 from ingestion.vector_store import get_vector_store
@@ -425,6 +426,7 @@ def build_index_from_chapters(book_name: str, chapters: list[dict], output_dir: 
     vs = get_vector_store()
     kg_roles = load_kg_chunk_roles(book_name)
     all_chunks: list[dict] = []
+    chapter_groups: list[tuple[str, list[dict], dict[str, str]]] = []
 
     for chapter in chapters:
         title = chapter.get("title") or book_name
@@ -456,7 +458,7 @@ def build_index_from_chapters(book_name: str, chapters: list[dict], output_dir: 
             chunk_id = chunk.get("chunk_id", "")
             chunk["role"] = chunk_roles.get(chunk_id, "reference")
 
-        vs.build_chapter_store(title, chunks, chunk_roles=chunk_roles, book_name=book_name)
+        chapter_groups.append((title, chunks, chunk_roles))
         distribution = role_distribution(chunk_roles)
         if distribution:
             print(f"[index] {title}: roles {distribution}", flush=True)
@@ -466,15 +468,27 @@ def build_index_from_chapters(book_name: str, chapters: list[dict], output_dir: 
         (output_dir / f"{book_name}_middle_chunks.json").write_text(
             json.dumps(all_chunks, ensure_ascii=False, indent=2), encoding="utf-8"
         )
-        if hasattr(vs, "get_book_index_stats"):
-            write_book_index(book_name, all_chunks)
-        if hasattr(vs, "build_book_aggregate_store"):
-            vs.build_book_aggregate_store(book_name, all_chunks)
-        stats = vs.get_book_index_stats(book_name) if hasattr(vs, "get_book_index_stats") else {}
-        if stats and (not stats.get("healthy") or int(stats.get("chunk_count", 0)) < len(all_chunks)):
-            raise RuntimeError(
-                f"textbook index validation failed: expected={len(all_chunks)}, actual={stats.get('chunk_count', 0)}"
+        if hasattr(vs, "_client") and hasattr(vs, "_map_file"):
+            manifest = build_and_activate_book_index(
+                vs, book_name,
+                [(title, group) for title, group, _roles in chapter_groups],
+                all_chunks,
             )
+            if int(manifest.get("chunk_count", 0)) != len(all_chunks):
+                raise RuntimeError("activated textbook index failed manifest validation")
+        else:
+            # Lightweight adapters retain the legacy API; production always stages.
+            for title, group, roles in chapter_groups:
+                vs.build_chapter_store(title, group, chunk_roles=roles, book_name=book_name)
+            if hasattr(vs, "get_book_index_stats"):
+                write_book_index(book_name, all_chunks)
+            if hasattr(vs, "build_book_aggregate_store"):
+                vs.build_book_aggregate_store(book_name, all_chunks)
+            stats = vs.get_book_index_stats(book_name) if hasattr(vs, "get_book_index_stats") else {}
+            if stats and (not stats.get("healthy") or int(stats.get("chunk_count", 0)) < len(all_chunks)):
+                raise RuntimeError(
+                    f"textbook index validation failed: expected={len(all_chunks)}, actual={stats.get('chunk_count', 0)}"
+                )
     return len(all_chunks)
 
 def _normalize_text(text: str) -> str:

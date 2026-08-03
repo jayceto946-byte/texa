@@ -322,7 +322,7 @@ const SettingsPage: React.FC = () => {
       <header className="app-page-header border-b border-border bg-bg-card">
         <h2 className="app-page-title">设置</h2>
       </header>
-      <div className="mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-1 md:grid-cols-[200px_minmax(0,1fr)]">
+      <div className="mx-auto grid min-h-0 w-full max-w-5xl flex-1 grid-cols-1 md:grid-cols-[168px_minmax(0,1fr)]">
         <SettingsSidebar tab={tab} onTabChange={setTab} />
   <main className="min-h-0 overflow-y-auto p-5">
     {message && <div className="mb-4"><StatusBanner kind={message.includes('失败') || message.includes('异常') ? 'error' : message.includes('正在') ? 'loading' : 'success'} title={message} /></div>}
@@ -332,7 +332,7 @@ const SettingsPage: React.FC = () => {
         {loading && !health && <PageState kind="loading" title="正在检查系统状态" />}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-medium text-text-primary"><StatusIcon className={`h-4 w-4 ${meta.iconClass}`} />{meta.label}</div>
-          <button onClick={loadHealth} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm hover:border-accent"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />重新检查</button>
+          <button onClick={loadHealth} className="app-secondary-button min-h-8 px-3 text-xs"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />重新检查</button>
         </div>
         <div className="app-panel divide-y divide-border overflow-hidden">
           {health && Object.entries(health.components).map(([key, item]) => {

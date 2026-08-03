@@ -1,6 +1,7 @@
 """向量存储模块 - 为每个教材章节创建独立的向量数据库"""
 import hashlib
 import json
+import threading
 import time
 from pathlib import Path
 
@@ -13,20 +14,25 @@ from utils.path_safety import safe_book_name
 
 # ── 全局单例缓存 ──────────────────────────────────────────
 _chapter_vs_instance = None
+_chapter_vs_lock = threading.RLock()
 
 
 def get_vector_store() -> "ChapterVectorStore":
     """获取全局 ChapterVectorStore 单例实例（避免每次请求重复初始化）"""
     global _chapter_vs_instance
-    if _chapter_vs_instance is None:
-        _chapter_vs_instance = ChapterVectorStore()
-    return _chapter_vs_instance
+    if _chapter_vs_instance is not None:
+        return _chapter_vs_instance
+    with _chapter_vs_lock:
+        if _chapter_vs_instance is None:
+            _chapter_vs_instance = ChapterVectorStore()
+        return _chapter_vs_instance
 
 
 def reset_vector_store() -> None:
     """Clear cached Chroma handles after vector DB replacement/rebuild."""
     global _chapter_vs_instance
-    _chapter_vs_instance = None
+    with _chapter_vs_lock:
+        _chapter_vs_instance = None
 
 
 class ChapterVectorStore:
@@ -38,6 +44,7 @@ class ChapterVectorStore:
         self.db_path = Path(VECTOR_DB_PATH)
         self.db_path.mkdir(parents=True, exist_ok=True)
         self._stores: dict[str, Chroma] = {}
+        self._write_lock = threading.RLock()
         self._map_file = self.db_path / "_chapter_map.json"
         self._map: dict[str, dict[str, str]] = self._load_map()
         self.available = True
@@ -427,15 +434,26 @@ class ChapterVectorStore:
             stats["error"] = str(exc)
             return stats
         try:
-            from ingestion.lexical_index import load_book_index
+            from ingestion.index_pipeline import load_index_manifest
+            from ingestion.lexical_index import index_path, load_book_index
             stats["lexical_chunk_count"] = len(load_book_index(normalized_book))
+            stats["lexical_ready"] = index_path(normalized_book).exists() and stats["lexical_chunk_count"] > 0
+            stats["source_fallback_active"] = not stats["lexical_ready"] and stats["lexical_chunk_count"] > 0
+            manifest = load_index_manifest(normalized_book)
+            stats["index_version"] = str(manifest.get("index_version") or "")
+            stats["index_schema"] = int(manifest.get("schema_version", 0) or 0)
         except Exception:
             stats["lexical_chunk_count"] = 0
-        # Calling count() across hundreds of Chroma collections before a query
-        # can invalidate HNSW segment readers. The lexical index is generated
-        # from the same chunks and provides a safe, independent count.
+            stats["lexical_ready"] = False
+            stats["source_fallback_active"] = False
+            stats["index_version"] = ""
+            stats["index_schema"] = 0
+        # Avoid count() across all HNSW segments; the activated map and lexical
+        # corpus are independent, safe readiness signals.
         stats["chunk_count"] = stats["lexical_chunk_count"]
-        stats["healthy"] = stats["collection_count"] > 0 and stats["chunk_count"] > 0
+        stats["vector_ready"] = stats["collection_count"] > 0
+        stats["healthy"] = stats["vector_ready"] or stats["lexical_ready"] or stats["source_fallback_active"]
+        stats["status"] = "ready" if stats["vector_ready"] and stats["lexical_ready"] else ("degraded" if stats["healthy"] else "missing")
         return stats
 
     def search_chapter(

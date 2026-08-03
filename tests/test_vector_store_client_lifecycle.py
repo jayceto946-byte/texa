@@ -1,9 +1,58 @@
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+import threading
+import time
 
 import chromadb
 
 import ingestion.vector_store as vector_store_module
 from ingestion.vector_store import ChapterVectorStore
+
+
+def test_get_vector_store_initializes_singleton_once_under_concurrency(monkeypatch):
+    calls = 0
+    calls_lock = threading.Lock()
+
+    class FakeStore:
+        def __init__(self):
+            nonlocal calls
+            with calls_lock:
+                calls += 1
+            time.sleep(0.03)
+
+    monkeypatch.setattr(vector_store_module, "_chapter_vs_instance", None)
+    monkeypatch.setattr(vector_store_module, "ChapterVectorStore", FakeStore)
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        stores = list(executor.map(lambda _: vector_store_module.get_vector_store(), range(16)))
+
+    assert calls == 1
+    assert all(store is stores[0] for store in stores)
+
+
+def test_get_vector_store_retries_after_constructor_failure(monkeypatch):
+    attempts = 0
+    recovered = object()
+
+    def create_store():
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise RuntimeError("temporary Chroma initialization failure")
+        return recovered
+
+    monkeypatch.setattr(vector_store_module, "_chapter_vs_instance", None)
+    monkeypatch.setattr(vector_store_module, "ChapterVectorStore", create_store)
+
+    try:
+        vector_store_module.get_vector_store()
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError("first initialization should fail")
+
+    assert vector_store_module.get_vector_store() is recovered
+    assert attempts == 2
 
 
 class _Collection:

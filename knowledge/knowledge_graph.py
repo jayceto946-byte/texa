@@ -42,6 +42,7 @@ class KnowledgeGraph:
     @staticmethod
     def _resolve_local_dir(book_name: str) -> Path:
         candidates = [
+            Path(PROGRESS_PATH) / book_name / "kg_enhancement" / "active",
             Path(MINERU_OUTPUT_PATH) / book_name / "hybrid_auto",
             Path(MINERU_OUTPUT_PATH) / book_name / "hybrid_auto_external",
             Path(PROGRESS_PATH) / book_name / "hybrid_auto_external",

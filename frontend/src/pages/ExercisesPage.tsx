@@ -6,7 +6,7 @@ import ScopeSelector from '../components/ScopeSelector';
 import { useChatContext } from '../contexts/ChatContext';
 import {
   ExerciseDetail,
-  ExerciseMetric,
+
   exerciseStatusText as statusText,
 } from '../features/exercises/components/ExercisePresentation';
 import { useVisibleList } from '../hooks/useVisibleList';
@@ -56,6 +56,7 @@ const ExercisesPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [expandedId, setExpandedId] = useState('');
   const [practiceSession, setPracticeSession] = useState<ExercisePracticeSession | null>(null);
+  const [singlePracticeActive, setSinglePracticeActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState('');
@@ -152,7 +153,7 @@ const ExercisesPage: React.FC = () => {
     changePracticeSessionStatus,
     selectPractice,
     submitPractice,
-    sendPracticeToMistake,
+
     clearDeletedPractice,
   } = usePracticeSession({
     records,
@@ -164,6 +165,23 @@ const ExercisesPage: React.FC = () => {
     statusFilter,
     refreshOverview: load,
   });
+  const startConfiguredPractice = () => {
+    setSinglePracticeActive(false);
+    void startPracticeSession();
+  };
+
+  const startSinglePractice = (record: ExerciseRecord) => {
+    selectPractice(record);
+    setSinglePracticeActive(true);
+    setWorkspaceMode('practice');
+  };
+
+  const leaveSinglePractice = () => {
+    setSinglePracticeActive(false);
+    setPracticeAnswer('');
+    setPracticeSolutionOpen(false);
+  };
+
   const handleAnswerSaved = useCallback((saved: ExerciseRecord) => {
     setRecords((items) => items.map((item) => item.id === saved.id ? saved : item));
   }, []);
@@ -498,22 +516,15 @@ const ExercisesPage: React.FC = () => {
                 <p className="type-caption mt-5 border-t border-border pt-4 text-text-secondary">候选题会显示在这里，未经确认不会写入正式题库。</p>
               </section>
             )}
-            <div className={`${workspaceMode === 'import' ? 'hidden' : 'grid'} grid-cols-1 gap-4 sm:grid-cols-3`}>
-              <ExerciseMetric label="总习题" value={stats?.total || 0} />
-              <ExerciseMetric label="需复习" value={stats?.by_status?.needs_review || 0} />
-              <ExerciseMetric label="已掌握" value={stats?.by_status?.mastered || 0} />
+            <div className={`${workspaceMode === 'import' ? 'hidden' : 'flex'} flex-wrap items-center gap-x-5 gap-y-1 border-y border-border px-1 py-3 text-sm text-text-secondary`}>
+              <span>总习题 <strong className="font-semibold text-text-primary">{stats?.total || 0}</strong></span>
+              <span>需复习 <strong className="font-semibold text-[var(--warning-text)]">{stats?.by_status?.needs_review || 0}</strong></span>
+              <span>已掌握 <strong className="font-semibold text-[var(--success-text)]">{stats?.by_status?.mastered || 0}</strong></span>
             </div>
 
-            <section className={`${workspaceMode === 'practice' ? 'block' : 'hidden'} overflow-hidden rounded-2xl border border-border bg-bg-card`}>
-              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-6">
-                <div>
-                  <h3 className="text-[16px] font-semibold text-text-primary">专注练习</h3>
-                  <p className="mt-0.5 text-xs text-text-secondary">先完成推导，再核对答案并记录掌握度。</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => selectPractice()} disabled={practicePool.length === 0 || Boolean(practiceSession && ['active', 'paused'].includes(practiceSession.status))} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-xs text-text-primary hover:border-accent hover:text-accent disabled:opacity-50">换一题</button>
-                  {currentPractice && (!practiceSession || !['active', 'paused'].includes(practiceSession.status)) && <button onClick={sendPracticeToMistake} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-xs text-text-primary hover:border-accent hover:text-accent">转入错题本</button>}
-                </div>
+            <section className={`${workspaceMode === 'practice' ? 'block' : 'hidden'} overflow-hidden border-y border-border bg-bg-card`}>
+              <header className="border-b border-border px-5 py-3 sm:px-6">
+                <h3 className="text-[16px] font-semibold text-text-primary">专注练习</h3>
               </header>
 
               {practiceSession && ['active', 'paused'].includes(practiceSession.status) ? (
@@ -533,45 +544,43 @@ const ExercisesPage: React.FC = () => {
                   </div>
                   <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/75"><div className="h-full bg-accent transition-all" style={{ width: `${practiceSession.summary.total ? (practiceSession.summary.answered / practiceSession.summary.total) * 100 : 0}%` }} /></div>
                 </div>
+              ) : singlePracticeActive ? (
+                <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3 sm:px-6">
+                  <span className="text-sm font-medium text-text-primary">单题练习</span>
+                  <button onClick={leaveSinglePractice} className="app-secondary-button">返回练习设置</button>
+                </div>
               ) : (
-                <div className="flex flex-wrap items-center gap-3 border-b border-border bg-bg-secondary/70 px-5 py-3 sm:px-6">
-                  <label className="flex items-center gap-2 text-xs text-text-secondary">本轮题数<input type="number" min="1" max="200" value={sessionLimit} onChange={(e) => setSessionLimit(Math.max(1, Math.min(200, Number(e.target.value) || 1)))} className="h-8 w-16 rounded-lg border border-border bg-bg-card px-2 text-sm text-text-primary" /></label>
-                  <button onClick={() => setSessionShuffle((value) => !value)} className={`flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs ${sessionShuffle ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-bg-card text-text-primary'}`}><Shuffle className="h-3.5 w-3.5" />{sessionShuffle ? '随机顺序' : '优先复习'}</button>
-                  <button onClick={startPracticeSession} disabled={sessionBusy || practicePool.length === 0} className="flex h-8 items-center gap-1.5 rounded-lg bg-[var(--surface-black)] px-4 text-xs font-medium text-white disabled:opacity-50">{sessionBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}开始连续练习</button>
-                  {practiceSession?.status === 'completed' && <span className="text-xs text-text-secondary">上轮完成 {practiceSession.summary.answered} 题，平均自评 {practiceSession.summary.average_quality}</span>}
+                <div className="border-b border-border px-5 py-5 sm:px-6">
+                  <h4 className="text-sm font-semibold text-text-primary">设置本轮练习</h4>
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <label className="flex items-center gap-2 text-sm text-text-secondary">题数<input type="number" min="1" max="200" value={sessionLimit} onChange={(e) => setSessionLimit(Math.max(1, Math.min(200, Number(e.target.value) || 1)))} className="h-9 w-16 rounded-lg border border-border bg-bg-card px-2 text-sm text-text-primary" /></label>
+                    <button onClick={() => setSessionShuffle((value) => !value)} className={`flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm ${sessionShuffle ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-bg-card text-text-primary'}`}><Shuffle className="h-3.5 w-3.5" />{sessionShuffle ? '随机顺序' : '优先复习'}</button>
+                    <button onClick={startConfiguredPractice} disabled={sessionBusy || practicePool.length === 0} className="app-primary-button">{sessionBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}开始练习</button>
+                  </div>
+                  {practiceSession?.status === 'completed' && <p className="mt-3 text-xs text-text-secondary">上轮完成 {practiceSession.summary.answered} 题，平均自评 {practiceSession.summary.average_quality}</p>}
                 </div>
               )}
 
-              {currentPractice ? (
+              {((practiceSession && ['active', 'paused'].includes(practiceSession.status)) || singlePracticeActive) && currentPractice ? (
                 <div>
                   <article className="border-b border-border px-5 py-5 sm:px-6 sm:py-6">
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
-                      <span className="rounded-md border border-accent/25 bg-[var(--accent-softer)] px-2 py-1 text-accent">{statusText[currentPractice.status] || currentPractice.status}</span>
-                      <span>练习 {currentPractice.practice_count || 0} 次</span>
-                      {currentPractice.chapter && <><span className="text-border">/</span><span>{currentPractice.chapter}</span></>}
-                      {(currentPractice.tags || []).map((tag) => <span key={tag} className="rounded-md bg-bg-secondary px-2 py-1">{tag}</span>)}
+                    <div className="text-xs text-text-secondary">
+                      {practiceSession ? <>第 {Math.min(practiceSession.current_index + 1, practiceSession.summary.total)} / {practiceSession.summary.total} 题</> : <>单题练习</>}
+                      {currentPractice.chapter && <> · {currentPractice.chapter}</>}
+                      {currentPractice.tags?.[0] && <> / {currentPractice.tags[0]}</>}
+                      {' · '}练习 {currentPractice.practice_count || 0} 次
                     </div>
-                    <div className="mt-5 grid grid-cols-[36px_minmax(0,1fr)] gap-4">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-bg-secondary text-sm font-semibold text-text-secondary">题</div>
-                      <div className="min-w-0 pt-1 text-[16px] leading-7">
-                        <ChatMessage variant="document" role="assistant" content={currentPractice.question_text} linkedConcepts={currentPractice.linked_concepts || []} />
-                      </div>
+                    <div className="mt-4 min-w-0 text-[16px] leading-7">
+                      <ChatMessage variant="document" role="assistant" content={currentPractice.question_text} linkedConcepts={currentPractice.linked_concepts || []} />
                     </div>
                   </article>
 
                   <section className="px-5 py-5 sm:px-6">
-                    <div className="flex flex-wrap items-end justify-between gap-2">
-                      <div>
-                        <h4 className="text-sm font-semibold text-text-primary">你的作答</h4>
-                        <p className="mt-1 text-xs text-text-secondary">可以只记录关键步骤，也可以写完整推导。</p>
-                      </div>
-                      <span className="text-xs text-text-secondary">答案仅保存在本次练习记录中</span>
-                    </div>
-                    <textarea value={practiceAnswer} onChange={(e) => setPracticeAnswer(e.target.value)} placeholder="从思路、公式或关键步骤开始……" className="mt-3 min-h-[140px] w-full resize-y rounded-xl border border-border bg-bg-primary px-4 py-3 text-sm leading-6 text-text-primary outline-none transition-colors focus:border-accent focus:bg-bg-card" />
+                    <h4 className="text-sm font-semibold text-text-primary">你的作答</h4>
+                    <textarea value={practiceAnswer} onChange={(e) => setPracticeAnswer(e.target.value)} placeholder="输入思路、公式或关键步骤" className="mt-3 min-h-[112px] w-full resize-y rounded-lg border border-border bg-bg-primary px-4 py-3 text-sm leading-6 text-text-primary outline-none transition-colors focus:border-accent focus:bg-bg-card" />
                     <div className="mt-3 flex justify-end">
-                      <button onClick={() => setPracticeSolutionOpen((open) => !open)} className="flex items-center gap-2 rounded-lg border border-border bg-bg-card px-3 py-2 text-sm font-medium text-text-primary hover:border-accent hover:text-accent">
-                        {practiceSolutionOpen ? '收起答案与解析' : '核对答案与解析'}
-                        <ChevronDown className={`h-4 w-4 transition-transform ${practiceSolutionOpen ? 'rotate-180' : ''}`} />
+                      <button onClick={() => setPracticeSolutionOpen((open) => !open)} className={practiceSolutionOpen ? 'app-secondary-button' : 'app-primary-button'}>
+                        {practiceSolutionOpen ? '收起解析' : '提交并查看解析'}
                       </button>
                     </div>
 
@@ -608,26 +617,25 @@ const ExercisesPage: React.FC = () => {
                     )}
                   </section>
 
-                  <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-bg-secondary/65 px-5 py-4 sm:px-6">
+                  {practiceSolutionOpen && <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-4 sm:px-6">
                     <div>
-                      <div className="text-sm font-medium text-text-primary">本题掌握度</div>
-                      <div className="mt-0.5 text-xs text-text-secondary">自评将影响后续复习排序。</div>
+                      <div className="text-sm font-medium text-text-primary">核对后，你掌握得怎么样？</div>
                     </div>
                     <div className="grid min-w-[360px] grid-cols-3 gap-2 max-sm:min-w-0 max-sm:w-full">
-                      <button onClick={() => submitPractice(1, true)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="rounded-lg border border-[#e6b2a9] bg-[#fff1ed] px-3 py-2 text-xs font-medium text-[var(--danger)] hover:border-[var(--danger)] disabled:opacity-50">做错</button>
-                      <button onClick={() => submitPractice(3)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="rounded-lg border border-[#e3c98f] bg-[#fff6df] px-3 py-2 text-xs font-medium text-[var(--warning)] hover:border-[var(--warning)] disabled:opacity-50">勉强会</button>
-                      <button onClick={() => submitPractice(5)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="rounded-lg border border-[#c9d8bd] bg-[#eef5e8] px-3 py-2 text-xs font-medium text-[var(--success)] hover:border-[var(--success)] disabled:opacity-50">掌握</button>
+                      <button onClick={() => submitPractice(1, true)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="rounded-lg border border-[#e6b2a9] bg-[#fff1ed] px-3 py-2 text-xs font-medium text-[var(--danger)] hover:border-[var(--danger)] disabled:opacity-50">没掌握</button>
+                      <button onClick={() => submitPractice(3)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="rounded-lg border border-[#e3c98f] bg-[#fff6df] px-3 py-2 text-xs font-medium text-[var(--warning)] hover:border-[var(--warning)] disabled:opacity-50">基本理解</button>
+                      <button onClick={() => submitPractice(5)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="rounded-lg border border-[#c9d8bd] bg-[#eef5e8] px-3 py-2 text-xs font-medium text-[var(--success)] hover:border-[var(--success)] disabled:opacity-50">已掌握</button>
                     </div>
-                  </footer>
+                  </footer>}
                   {practiceMessage && <div className="border-t border-border bg-bg-card px-5 py-3 text-xs text-text-secondary sm:px-6">{practiceMessage}</div>}
                 </div>
-              ) : (
+              ) : practicePool.length === 0 ? (
                 <div className="px-5 py-12 text-center sm:px-6">
                   <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-bg-secondary"><ClipboardList className="h-5 w-5 text-text-secondary" /></div>
                   <div className="mt-3 text-sm font-medium text-text-primary">暂无可练习习题</div>
                   <div className="mt-1 text-xs text-text-secondary">请先从 Word、PDF 或教材中导入题目。</div>
                 </div>
-              )}
+              ) : null}
             </section>
             {workspaceMode === 'import' && candidates.length > 0 && (
               <section className="space-y-3 rounded-xl border border-border bg-bg-card p-4">
@@ -718,7 +726,7 @@ const ExercisesPage: React.FC = () => {
                         </div>
                         <span className="rounded border border-accent/30 bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent-hover">{statusText[record.status] || record.status}</span>
                       </button>
-                      {expanded && <ExerciseDetail record={record} onStatus={(status) => updateStatus(record.id, status)} onPractice={() => selectPractice(record)} onDelete={() => deleteExercise(record.id)} />}
+                      {expanded && <ExerciseDetail record={record} onStatus={(status) => updateStatus(record.id, status)} onPractice={() => startSinglePractice(record)} onDelete={() => deleteExercise(record.id)} />}
                     </article>
                   );
                 })}

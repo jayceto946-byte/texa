@@ -1,3 +1,38 @@
+# 2026-08-03 - Versioned textbook indexing and asynchronous concept extraction
+
+- Added one supported schema-4 indexing pipeline for normal imports and manual rebuilds. It builds versioned chapter and whole-book Chroma collections off to the side, validates exact counts plus a real dense query, stages the lexical corpus, validates a real BM25 query, and only then switches the active collection map and lexical file. Failed builds keep the previous active assets.
+- Index health now distinguishes `vector_ready`, `lexical_ready`, `source_fallback_active`, `status`, and `index_version`. Legacy direct Chroma-writing maintenance entry points are disabled; `scripts/reindex_book.py` is the supported rebuild command.
+- Created and verified a complete pre-change backup including Chroma, progress, books, imports, uploads, and MinerU output: `learning_data_20260803_125018_pre_stable_index_pipeline_error_.zip`, SHA-256 `190910097881834e55b505cd30d95d1988be6e043a6918d949f4a18049f88a79`.
+- Rebuilt `error theory and data processing` from its 511 preserved OCR chunks while retaining chunk IDs. The activated index has 7 chapter collections, one whole-book collection, 511 persisted lexical rows, schema 4, version `b0a00943f1bc0436`, and no source-file fallback.
+- Textbook import now offers an explicit, default-off option to send selected excerpts to the configured external LLM for concept-index extraction. The searchable textbook finishes first; concept extraction runs as a separate durable job and cannot turn a successful import into a failure.
+- Renamed the learning-page action from the misleading knowledge-relation wording to `extract textbook concept index`. Candidate checkpoints are content-fingerprint aware, and a completed graph is activated from a dedicated directory only after extraction finishes.
+
+### Validation
+
+- Real hybrid retrieval for the rounding question returned `status=ok` and included the exact `digital rounding rules` section with all three rules.
+- Full backend suite: 242 passed with one existing Starlette/httpx2 warning.
+- Frontend TypeScript and Vite production build passed.
+
+# 2026-08-03 - Read-only retrieval fallback for imported source chunks
+
+- When a persisted lexical index is absent, textbook retrieval now reads existing `*_middle_chunks.json` import artifacts as a cached, read-only BM25 source.
+- Persisted lexical indexes remain preferred. The fallback does not create or modify Chroma collections, lexical index files, textbook data, or learning records.
+- This restores direct evidence retrieval for the imported error-theory textbook, whose source chunks exist but whose Chroma and persisted lexical indexes are absent.
+
+### Validation
+
+- Fallback regression passed; real error-theory retrieval included the rounding section and all three rules in the generation prompt; full backend suite passed 240 tests with one existing Starlette/httpx2 warning.
+
+# 2026-08-02 - Thread-safe vector-store startup
+
+- Serialized the process-wide `ChapterVectorStore` singleton initialization so startup warmup and an early retrieval request cannot create competing Chroma `PersistentClient` instances for the same path.
+- Vector-store reset now uses the same lifecycle lock. Constructor failures leave the singleton empty so a later request can retry normally.
+- No vector collection, mapping, textbook index, or user learning data was changed.
+
+### Validation
+
+- Concurrency regression passed; a real 8-thread probe produced one initialized instance; full backend suite passed 238 tests with one existing Starlette/httpx2 warning.
+
 # 2026-08-01 - Subject routing and conversation scope isolation
 
 - Lexical subject routing now compares the current subject's textbooks too; another subject must clearly outperform the current one before a transfer is suggested.
@@ -1353,3 +1388,22 @@ The detailed historical notes for this period were damaged by mojibake before th
 - The full sensor teach retrieval includes both `第二节 等效电路与测量电路` and `第六章 压电式传感器` in the retrieved chapter set.
 - Added client-lifecycle and safe-health-check regression coverage. Full backend suite: 233 tests passed with one existing Starlette/httpx2 deprecation warning.
 - Machine-readable reports: `data/eval/vector_collection_health_20260801.json` and `data/eval/chapter_index_repair_final_20260801.json`.
+
+## 2026-08-02 - Task-first frontend hierarchy cleanup
+
+### Frontend
+
+- Reworked the chat empty state into one focused starting surface: one due-review recommendation, four flat study intents, and a tertiary mistake-capture entry replace the previous dashboard-like card collection.
+- Separated exercise configuration, continuous-session, single-question, submitted-solution, and mastery-rating states. The exercise question is hidden until practice starts, mastery controls appear only after solution review, and direct practice from the exercise bank remains an explicit single-question flow.
+- Simplified the mistake-entry wizard so crop, recognition, and clearing controls appear only when relevant; reduced the upload surface and removed implementation-oriented OCR microcopy.
+- Split textbook import into source selection and file/settings steps, moved MinerU quality controls under advanced options, and made missing prerequisites explicit next to the disabled primary action.
+- Reordered the learning overview to show today's conclusion first, then recommended actions, then supporting analysis; recent questions and secondary review concepts are collapsed by default.
+- Reduced settings width and navigation weight, replaced oversized exercise metric cards with a compact summary row, and removed explanatory or internal-status copy that did not help the next user decision.
+- No backend API, database schema, vector index, textbook data, mistake record, or review-scheduling format changed.
+
+### Validation
+
+- Frontend ESLint passed.
+- Frontend Vitest passed 12 files / 38 tests.
+- TypeScript and the Vite production build passed; the existing MathLive chunk-size warning remains unchanged.
+- In-app desktop-browser visual checks at 1280 x 720 covered chat, exercises, textbook import, mistake entry, and settings. The learning page layout was type/build verified because its local summary API remained unavailable during visual QA.

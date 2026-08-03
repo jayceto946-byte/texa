@@ -87,7 +87,8 @@ def enhance_book(
         if check_cancelled:
             check_cancelled()
         chunk_id = str(chunk.get("chunk_id") or "")
-        if chunk_id and chunk_id in by_chunk:
+        content_hash = hashlib.sha256(_text(chunk).encode("utf-8")).hexdigest()
+        if chunk_id and chunk_id in by_chunk and by_chunk[chunk_id].get("content_hash") == content_hash:
             continue
         prompt = (
             f"{SYSTEM_PROMPT}\n\nTextbook: {safe}\nChapter: {chunk.get('chapter') or chunk.get('section_title') or ''}"
@@ -101,6 +102,7 @@ def enhance_book(
             "section_title": chunk.get("section_title") or "",
             "page_idx": chunk.get("page_idx", -1),
             "role": chunk.get("role") or "reference",
+            "content_hash": content_hash,
             "concepts": _validated_concepts(payload.get("concepts"), _text(chunk)),
         }
         by_chunk[chunk_id or f"row_{index}"] = row
@@ -114,7 +116,9 @@ def enhance_book(
     if progress:
         progress("assemble", "Assembling traceable concept index", 92)
     graph = build_evidence_graph(safe, chunks, candidate_rows)
-    graph_dir = safe_child_path(PROGRESS_PATH, safe, "hybrid_auto_external")
+    # Activate only a complete graph. Candidate checkpoints remain outside the
+    # active directory, so users can keep using the previous graph while this runs.
+    graph_dir = safe_child_path(PROGRESS_PATH, safe, "kg_enhancement", "active")
     graph_path = graph_dir / f"{safe}_knowledge_graph.json"
     chunks_path = graph_dir / f"{safe}_middle_chunks.json"
     atomic_write_json(graph_path, graph)

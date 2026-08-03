@@ -36,7 +36,7 @@ export function useExerciseAnswerJob({
           onMessage(job.message || '标准答案正在后台生成');
         } else if (job.status === 'completed' && !exercise.answer && job.result?.answer) {
           setAnswerDraft(job.result.answer);
-          onMessage('后台答案草稿已完成，请检查修改后保存');
+          onMessage('解析已生成');
         }
       })
       .catch(() => undefined);

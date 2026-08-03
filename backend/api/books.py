@@ -15,6 +15,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from backend.job_manager import JobCancelled, get_job_manager
+from backend.services.kg_enhancement_jobs import start_kg_enhancement_job
 from backend.book_lifecycle import BookLifecycleService
 from backend.services.book_read_cache import BookReadCache
 from backend.services.book_chapters import (
@@ -107,13 +108,26 @@ def _compute_fast_book_index_stats(book_name: str) -> dict:
         stats["error"] = str(exc)
 
     try:
-        from ingestion.lexical_index import load_book_index
+        from ingestion.index_pipeline import load_index_manifest
+        from ingestion.lexical_index import index_path, load_book_index
 
         stats["lexical_chunk_count"] = len(load_book_index(normalized))
+        stats["lexical_ready"] = index_path(normalized).exists() and stats["lexical_chunk_count"] > 0
+        stats["source_fallback_active"] = not stats["lexical_ready"] and stats["lexical_chunk_count"] > 0
+        manifest = load_index_manifest(normalized)
+        stats["index_version"] = str(manifest.get("index_version") or "")
+        stats["index_schema"] = int(manifest.get("schema_version", 0) or 0)
     except Exception:
         stats["lexical_chunk_count"] = 0
+        stats["lexical_ready"] = False
+        stats["source_fallback_active"] = False
+        stats["index_version"] = ""
+        stats["index_schema"] = 0
 
-    stats["healthy"] = stats["collection_count"] > 0 or stats["lexical_chunk_count"] > 0
+    stats["chunk_count"] = stats["lexical_chunk_count"]
+    stats["vector_ready"] = stats["collection_count"] > 0
+    stats["healthy"] = stats["vector_ready"] or stats["lexical_ready"] or stats["source_fallback_active"]
+    stats["status"] = "ready" if stats["vector_ready"] and stats["lexical_ready"] else ("degraded" if stats["healthy"] else "missing")
     return stats
 
 
@@ -278,7 +292,18 @@ def _set_current_book(book_name: str, chapters: list[dict], pdf_path: Path | Non
     _book_state["book_pdf_path"] = str(pdf_path) if pdf_path else ""
 
 
-def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool, require_mineru: bool, subject: str = "") -> None:
+def _start_optional_concept_extraction(book_name: str, enabled: bool) -> tuple[dict | None, str]:
+    if not enabled:
+        return None, ""
+    try:
+        job, _created = start_kg_enhancement_job(book_name, allow_external_llm=True)
+        return job, ""
+    except Exception as exc:
+        # The searchable textbook is already ready; concept extraction is auxiliary.
+        return None, str(exc)
+
+
+def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool, require_mineru: bool, subject: str = "", extract_concepts: bool = False) -> None:
     book_name = pdf_path.stem
     final_pdf: Path | None = None
 
@@ -305,6 +330,7 @@ def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool,
         if pre_read and result.chapters and not result.used_mineru:
             _start_pre_read(book_name, result.chapters, final_pdf)
         index_status = get_vector_store().get_book_index_stats(book_name)
+        concept_job, concept_warning = _start_optional_concept_extraction(book_name, extract_concepts)
         _job_manager.complete_job(
             job_id,
             stage="completed",
@@ -318,6 +344,8 @@ def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool,
                 "index_status": index_status,
                 "output_dir": result.output_dir,
                 "subject": _book_subject(book_name),
+                "concept_job_id": concept_job.get("id", "") if concept_job else "",
+                "concept_extraction_warning": concept_warning,
             },
         )
     except JobCancelled as exc:
@@ -368,7 +396,7 @@ def reindex_book(book_name: str):
         stats = get_vector_store().get_book_index_stats(name)
     except Exception as exc:
         return {"success": False, "message": f"Reindex failed: {exc}"}
-    _write_book_meta(name, indexed_chunks=indexed, index_schema=3)
+    _write_book_meta(name, indexed_chunks=indexed, index_schema=4)
     return {
         "success": True,
         "message": f"Indexed {indexed} chunks",
@@ -639,7 +667,7 @@ def _copy_origin_pdf_if_present(output_dir: Path, book_name: str) -> Path | None
     return dest
 
 
-def _run_output_import_job(job_id: str, archive_path: Path, book_name: str, subject: str = "") -> None:
+def _run_output_import_job(job_id: str, archive_path: Path, book_name: str, subject: str = "", extract_concepts: bool = False) -> None:
     pdf_path: Path | None = None
 
     def progress(stage: str, message: str, percent: int | None = None) -> None:
@@ -664,6 +692,7 @@ def _run_output_import_job(job_id: str, archive_path: Path, book_name: str, subj
             source_archive=str(archive_path),
         )
         _set_current_book(book_name, result.chapters, pdf_path)
+        concept_job, concept_warning = _start_optional_concept_extraction(book_name, extract_concepts)
         _job_manager.complete_job(
             job_id,
             stage="completed",
@@ -677,6 +706,8 @@ def _run_output_import_job(job_id: str, archive_path: Path, book_name: str, subj
                 "output_dir": result.output_dir,
                 "subject": _book_subject(book_name),
                 "has_pdf": bool(pdf_path or _source_pdf_path(book_name)),
+                "concept_job_id": concept_job.get("id", "") if concept_job else "",
+                "concept_extraction_warning": concept_warning,
             },
         )
     except JobCancelled as exc:
@@ -693,6 +724,7 @@ def create_import_job(
     pre_read: bool = Form(False),
     require_mineru: bool = Form(True),
     subject: str = Form(""),
+    extract_concepts: bool = Form(False),
 ):
     try:
         pdf_path = _save_upload(file)
@@ -708,6 +740,7 @@ def create_import_job(
             "pre_read": pre_read,
             "require_mineru": require_mineru,
             "subject": normalize_subject_value(subject),
+            "extract_concepts": extract_concepts,
         },
         status="running",
         stage="queued",
@@ -715,7 +748,7 @@ def create_import_job(
         message="\u5df2\u52a0\u5165\u5bfc\u5165\u961f\u5217",
     )
     job_id = job["id"]
-    thread = threading.Thread(target=_run_import_job, args=(job_id, pdf_path, toc_pages, pre_read, require_mineru, subject), daemon=True)
+    thread = threading.Thread(target=_run_import_job, args=(job_id, pdf_path, toc_pages, pre_read, require_mineru, subject, extract_concepts), daemon=True)
     thread.start()
     return {"success": True, "message": "\u6559\u6750\u5bfc\u5165\u4efb\u52a1\u5df2\u542f\u52a8", "job_id": job_id, "data": job}
 
@@ -726,8 +759,12 @@ def import_book(
     toc_pages: str = Form(""),
     pre_read: bool = Form(False),
     subject: str = Form(""),
+    extract_concepts: bool = Form(False),
 ):
-    return create_import_job(file=file, toc_pages=toc_pages, pre_read=pre_read, require_mineru=True, subject=subject)
+    return create_import_job(
+        file=file, toc_pages=toc_pages, pre_read=pre_read, require_mineru=True,
+        subject=subject, extract_concepts=extract_concepts,
+    )
 
 
 
@@ -736,6 +773,7 @@ def import_mineru_output(
     file: UploadFile = File(...),
     book_name: str = Form(""),
     subject: str = Form(""),
+    extract_concepts: bool = Form(False),
 ):
     try:
         resolved_book = _unique_new_book_name(book_name or file.filename or "external_textbook")
@@ -751,6 +789,7 @@ def import_mineru_output(
             "require_mineru": False,
             "import_source": "external_mineru_output",
             "subject": normalize_subject_value(subject),
+            "extract_concepts": extract_concepts,
         },
         status="running",
         stage="queued",
@@ -758,7 +797,7 @@ def import_mineru_output(
         message="External OCR output import queued",
     )
     job_id = job["id"]
-    thread = threading.Thread(target=_run_output_import_job, args=(job_id, archive_path, resolved_book, subject), daemon=True)
+    thread = threading.Thread(target=_run_output_import_job, args=(job_id, archive_path, resolved_book, subject, extract_concepts), daemon=True)
     thread.start()
     return {"success": True, "message": "External OCR output import started", "job_id": job_id, "data": job}
 
@@ -775,6 +814,7 @@ def import_book_local(
     file: UploadFile = File(...),
     toc_pages: str = Form(""),
     subject: str = Form(""),
+    extract_concepts: bool = Form(False),
 ):
     try:
         pdf_path = _save_upload(file)
@@ -787,10 +827,16 @@ def import_book_local(
             mineru_output_dir=result.output_dir,
         )
         _set_current_book(pdf_path.stem, result.chapters, pdf_path)
+        concept_job, concept_warning = _start_optional_concept_extraction(pdf_path.stem, extract_concepts)
         return {
             "success": True,
             "message": result.message,
-            "data": {"name": pdf_path.stem, "subject": _book_subject(pdf_path.stem), "chapter_count": len(result.chapters), "used_mineru": False},
+            "data": {
+                "name": pdf_path.stem, "subject": _book_subject(pdf_path.stem),
+                "chapter_count": len(result.chapters), "used_mineru": False,
+                "concept_job_id": concept_job.get("id", "") if concept_job else "",
+                "concept_extraction_warning": concept_warning,
+            },
         }
     except Exception as exc:
         return {"success": False, "message": f"\u672c\u5730\u5bfc\u5165\u5931\u8d25\uff1a{exc}"}
