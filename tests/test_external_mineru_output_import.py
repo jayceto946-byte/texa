@@ -78,3 +78,27 @@ def test_import_textbook_requires_configured_mineru_backend(monkeypatch, tmp_pat
 
     with pytest.raises(RuntimeError, match="MINERU_API_URL.*MINERU_CLI_COMMAND"):
         mineru_importer.import_textbook(tmp_path / "book.pdf", "book", require_mineru=True)
+
+
+def test_explicit_local_parse_bypasses_configured_mineru(monkeypatch, tmp_path):
+    from ingestion import mineru_importer
+
+    monkeypatch.setattr(mineru_importer.config, "MINERU_API_URL", "http://mineru.test")
+    monkeypatch.setattr(
+        mineru_importer,
+        "_import_with_mineru",
+        lambda *args: pytest.fail("explicit local parsing must not call MinerU"),
+    )
+    monkeypatch.setattr(mineru_importer, "import_textbook_local", lambda *args: "local")
+
+    assert mineru_importer.import_textbook(tmp_path / "book.pdf", "book", parse_method="local") == "local"
+
+
+def test_auto_parse_falls_back_to_local_without_mineru(monkeypatch, tmp_path):
+    from ingestion import mineru_importer
+
+    monkeypatch.setattr(mineru_importer.config, "MINERU_API_URL", "")
+    monkeypatch.setattr(mineru_importer.config, "MINERU_CLI_COMMAND", "")
+    monkeypatch.setattr(mineru_importer, "import_textbook_local", lambda *args: "local")
+
+    assert mineru_importer.import_textbook(tmp_path / "book.pdf", "book", parse_method="auto") == "local"

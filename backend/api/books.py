@@ -69,7 +69,7 @@ _lifecycle = BookLifecycleService(PROGRESS_PATH)
 _job_manager.import_legacy_json_jobs(
     IMPORT_JOB_TYPE,
     Path(PROGRESS_PATH) / "import_jobs",
-    input_keys=("book_name", "file_path", "toc_pages", "pre_read", "require_mineru", "subject"),
+    input_keys=("book_name", "file_path", "toc_pages", "pre_read", "require_mineru", "parse_method", "subject", "extract_concepts"),
 )
 
 
@@ -303,7 +303,7 @@ def _start_optional_concept_extraction(book_name: str, enabled: bool) -> tuple[d
         return None, str(exc)
 
 
-def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool, require_mineru: bool, subject: str = "", extract_concepts: bool = False) -> None:
+def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool, require_mineru: bool, subject: str = "", extract_concepts: bool = False, parse_method: str = "") -> None:
     book_name = pdf_path.stem
     final_pdf: Path | None = None
 
@@ -316,7 +316,7 @@ def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool,
 
     try:
         progress("started", "\u51c6\u5907\u5bfc\u5165\u6559\u6750", 3)
-        result = import_textbook(pdf_path, book_name, toc_pages=toc_pages, require_mineru=require_mineru, on_progress=progress)
+        result = import_textbook(pdf_path, book_name, toc_pages=toc_pages, require_mineru=require_mineru, on_progress=progress, parse_method=parse_method)
         _job_manager.raise_if_cancelled(job_id)
         final_pdf = _promote_uploaded_pdf(pdf_path)
         _save_chapters(book_name, result.chapters)
@@ -723,9 +723,16 @@ def create_import_job(
     toc_pages: str = Form(""),
     pre_read: bool = Form(False),
     require_mineru: bool = Form(True),
+    parse_method: str = Form(""),
     subject: str = Form(""),
     extract_concepts: bool = Form(False),
 ):
+    resolved_parse_method = (parse_method or "").strip().lower()
+    if resolved_parse_method not in {"", "auto", "mineru", "local"}:
+        return {"success": False, "message": f"Unsupported textbook parse method: {parse_method}"}
+    if not resolved_parse_method:
+        resolved_parse_method = "mineru" if require_mineru else "auto"
+
     try:
         pdf_path = _save_upload(file)
     except Exception as exc:
@@ -740,6 +747,7 @@ def create_import_job(
             "pre_read": pre_read,
             "require_mineru": require_mineru,
             "subject": normalize_subject_value(subject),
+            "parse_method": resolved_parse_method,
             "extract_concepts": extract_concepts,
         },
         status="running",
@@ -748,7 +756,7 @@ def create_import_job(
         message="\u5df2\u52a0\u5165\u5bfc\u5165\u961f\u5217",
     )
     job_id = job["id"]
-    thread = threading.Thread(target=_run_import_job, args=(job_id, pdf_path, toc_pages, pre_read, require_mineru, subject, extract_concepts), daemon=True)
+    thread = threading.Thread(target=_run_import_job, args=(job_id, pdf_path, toc_pages, pre_read, require_mineru, subject, extract_concepts, resolved_parse_method), daemon=True)
     thread.start()
     return {"success": True, "message": "\u6559\u6750\u5bfc\u5165\u4efb\u52a1\u5df2\u542f\u52a8", "job_id": job_id, "data": job}
 
@@ -762,7 +770,7 @@ def import_book(
     extract_concepts: bool = Form(False),
 ):
     return create_import_job(
-        file=file, toc_pages=toc_pages, pre_read=pre_read, require_mineru=True,
+        file=file, toc_pages=toc_pages, pre_read=pre_read, require_mineru=True, parse_method="mineru",
         subject=subject, extract_concepts=extract_concepts,
     )
 

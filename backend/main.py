@@ -8,6 +8,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from pathlib import Path
 from contextlib import asynccontextmanager
 import logging
@@ -21,6 +22,30 @@ from utils.version import APP_VERSION
 logger = logging.getLogger(__name__)
 _warmup_state = {"status": "pending", "error": ""}
 _warmup_lock = threading.Lock()
+
+
+class SPAStaticFiles(StaticFiles):
+    """Serve the React entry point for client-side routes, but never for APIs/assets."""
+
+    @staticmethod
+    def _should_fallback(path: str, scope) -> bool:
+        raw_path = scope.get("raw_path", b"")
+        request_path = raw_path.decode("latin-1") if isinstance(raw_path, bytes) else str(raw_path)
+        normalized = (request_path or path).split("?", 1)[0].lstrip("/")
+        reserved = normalized == "api" or normalized.startswith(("api/", "assets/"))
+        return not reserved and not Path(normalized).suffix
+
+    async def get_response(self, path: str, scope):
+        try:
+            response = await super().get_response(path, scope)
+        except StarletteHTTPException as exc:
+            if exc.status_code != 404 or not self._should_fallback(path, scope):
+                raise
+            return await super().get_response("index.html", scope)
+
+        if response.status_code == 404 and self._should_fallback(path, scope):
+            return await super().get_response("index.html", scope)
+        return response
 
 
 @asynccontextmanager
@@ -94,7 +119,12 @@ app.include_router(backups.router, prefix="/api")
 # ── 健康检查 ──────────────────────────────────────────────
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": APP_VERSION, "warmup": dict(_warmup_state)}
+    return {
+        "status": "ok",
+        "version": APP_VERSION,
+        "instance_id": os.getenv("KAOYAN_INSTANCE_ID", ""),
+        "warmup": dict(_warmup_state),
+    }
 
 # ── 启动预热 ──────────────────────────────────────────────
 def _warmup():
@@ -136,7 +166,7 @@ def _warmup():
 # 如果 frontend/dist 存在，挂载为静态文件服务
 _dist_path = Path(__file__).parent.parent / "frontend" / "dist"
 if _dist_path.exists():
-    app.mount("/", StaticFiles(directory=str(_dist_path), html=True), name="static")
+    app.mount("/", SPAStaticFiles(directory=str(_dist_path), html=True), name="static")
 
 
 if __name__ == "__main__":

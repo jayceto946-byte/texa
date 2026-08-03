@@ -56,6 +56,10 @@
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
+  --motion-fast: 90ms;
+  --motion-base: 170ms;
+  --motion-slow: 200ms;
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
@@ -279,6 +283,76 @@ select:focus {
   }
 }
 
+@keyframes app-page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes app-overlay-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes app-dialog-enter {
+  from { opacity: 0; transform: translateY(7px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes app-large-dialog-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes app-drawer-enter {
+  from { opacity: 0.82; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes app-popover-enter {
+  from { opacity: 0; transform: translateY(-4px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes app-toast-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.app-route-stage {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 0%;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-route-stage { animation: app-page-enter var(--motion-slow) var(--motion-ease-out) both; }
+  .app-overlay-enter { animation: app-overlay-enter var(--motion-base) ease-out both; }
+  .app-dialog-enter { animation: app-dialog-enter var(--motion-slow) var(--motion-ease-out) both; }
+  .app-large-dialog-enter { animation: app-large-dialog-enter var(--motion-slow) var(--motion-ease-out) both; }
+  .app-drawer-enter { animation: app-drawer-enter var(--motion-slow) var(--motion-ease-out) both; }
+  .app-popover-enter { animation: app-popover-enter var(--motion-base) var(--motion-ease-out) both; transform-origin: top right; }
+  .app-toast-enter { animation: app-toast-enter var(--motion-slow) var(--motion-ease-out) both; }
+
+  .app-interactive,
+  .app-primary-button,
+  .app-secondary-button {
+    transition:
+      color var(--motion-fast) ease,
+      background-color var(--motion-fast) ease,
+      border-color var(--motion-fast) ease,
+      opacity var(--motion-fast) ease,
+      transform var(--motion-fast) ease;
+  }
+
+  .app-interactive:active:not(:disabled),
+  .app-primary-button:active:not(:disabled),
+  .app-secondary-button:active:not(:disabled) {
+    transform: translateY(1px) scale(0.985);
+  }
+}
 .app-primary-button,
 .app-secondary-button {
   display: inline-flex;

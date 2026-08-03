@@ -383,8 +383,8 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
   };
 
   const dialog = open ? (
-    <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/25 p-2 sm:p-4 lg:p-6">
-      <div role="dialog" aria-modal="true" aria-label="章节重点仓库" className="flex h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-none flex-col overflow-hidden rounded-lg border border-border bg-bg-card shadow-xl sm:h-[min(88dvh,780px)] lg:max-w-6xl">
+    <div className="app-overlay-enter fixed inset-0 z-[1200] flex items-center justify-center bg-black/25 p-2 sm:p-4 lg:p-6">
+      <div role="dialog" aria-modal="true" aria-label="章节重点仓库" className="app-large-dialog-enter flex h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-none flex-col overflow-hidden rounded-lg border border-border bg-bg-card shadow-xl sm:h-[min(88dvh,780px)] lg:max-w-6xl">
         <div className="flex min-h-12 items-center justify-between border-b border-border px-3 py-2 sm:px-4 sm:py-3">
           <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-text-primary"><BookMarked className="h-4 w-4 flex-shrink-0 text-accent" /><span className="truncate">章节重点仓库</span></div>
           <button type="button" onClick={onClose} className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary" title="关闭">
@@ -532,7 +532,7 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
   ) : null;
 
   const notice = completionNotice ? (
-    <div className="fixed bottom-4 right-4 z-[1300] w-[min(360px,calc(100vw-2rem))] rounded-lg border border-accent/25 bg-bg-card p-3 text-sm text-text-primary shadow-xl">
+    <div className="app-toast-enter fixed bottom-4 right-4 z-[1300] w-[min(360px,calc(100vw-2rem))] rounded-lg border border-accent/25 bg-bg-card p-3 text-sm text-text-primary shadow-xl">
       <div className="font-medium">{completionNotice.title}重点已生成</div>
       <div className="mt-1 text-xs text-text-secondary">点击跳转到生成结果。</div>
       <div className="mt-3 flex justify-end gap-2">

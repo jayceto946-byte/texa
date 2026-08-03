@@ -650,8 +650,8 @@ const MistakesPage: React.FC = () => {
   const renderCropModal = () => {
     if (!cropOpen || !rawPreview) return null;
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-        <div className="grid max-h-[92vh] w-full max-w-6xl grid-cols-1 gap-4 overflow-y-auto rounded-xl border border-border bg-bg-primary p-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="app-overlay-enter fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+        <div className="app-large-dialog-enter grid max-h-[92vh] w-full max-w-6xl grid-cols-1 gap-4 overflow-y-auto rounded-xl border border-border bg-bg-primary p-4 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-medium text-text-primary"><Crop className="h-4 w-4 text-accent" /> 裁剪错题区域</div>

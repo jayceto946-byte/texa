@@ -484,7 +484,7 @@ const ActivityHeatmap = ({ daily, selectedDate, onSelectDate }: { daily: DailyDe
                 type="button"
                 onClick={() => onSelectDate(key)}
                 title={`${key}：${detail?.total || 0} 次`}
-                className={`h-3.5 w-3.5 rounded-sm border transition-transform hover:scale-110 ${heatColor(detail?.total || 0)} ${currentDate === key ? 'ring-2 ring-accent ring-offset-1 ring-offset-bg-card' : ''}`}
+                className={`h-3.5 w-3.5 shrink-0 box-border rounded-sm border transition-colors hover:brightness-95 active:translate-y-0 active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent ${heatColor(detail?.total || 0)} ${currentDate === key ? 'ring-2 ring-inset ring-accent' : ''}`}
                 aria-label={`${key} 学习活动 ${detail?.total || 0} 次`}
               />
             )))}
@@ -629,7 +629,7 @@ const Metric = ({ icon: Icon, label, value, tone = 'normal', help }: { icon: Rea
       </div>
       <div className="mt-2 text-2xl font-semibold text-text-primary">{value ?? 0}</div>
       {help && open && (
-        <div className="absolute right-3 top-9 z-20 w-[min(340px,calc(100vw-88px))] rounded-xl border border-border bg-bg-primary p-3 text-xs">
+        <div className="app-popover-enter absolute right-3 top-9 z-20 w-[min(340px,calc(100vw-88px))] rounded-xl border border-border bg-bg-primary p-3 text-xs">
           <RuleItem title={`${label}的判定`} text={help} />
         </div>
       )}

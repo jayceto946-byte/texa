@@ -1,3 +1,30 @@
+# 2026-08-03 - Desktop startup identity and SPA route reliability
+
+- Added a constrained React SPA fallback for client-side routes while preserving real 404 responses for unknown API and missing asset paths. Refreshing `/settings`, `/books`, and other application routes now reloads the React entry point.
+- Added a per-launch desktop/backend instance ID handshake. A normal Electron launch no longer accepts an unrelated process that merely responds on the configured port; `KAOYAN_SKIP_BACKEND=1` remains the explicit opt-in path for an existing backend.
+- Made `parse_method=auto` fall back to local PDF text extraction when neither MinerU API nor CLI is configured, while explicit `mineru` and legacy `require_mineru=True` behavior remain strict.
+- Replaced double-escaped updater status strings with actual Chinese messages.
+- No textbook index, vector collection, mistake record, exercise record, or learning history was migrated.
+
+### Validation
+
+- Focused SPA, health identity, MinerU routing, and system-health regressions: 12 passed.
+- Full backend suite: 247 passed with one existing Starlette/httpx2 warning.
+- Frontend Vitest: 38 passed; ESLint and TypeScript/Vite production build passed.
+- Electron main-process syntax check and `git diff --check` passed.
+# 2026-08-03 - Explicit textbook parsing modes
+
+- Replaced the ambiguous high-quality-recognition checkbox with explicit MinerU parsing and local text extraction choices. Explanations are available from adjacent help buttons instead of permanent secondary copy.
+- Added a validated parse_method import field. Selecting local now always bypasses configured MinerU services and uses the PDF text layer; selecting mineru requires the configured API or CLI.
+- Kept legacy require_mineru callers compatible when parse_method is absent. External parsed ZIP import remains a separate source option.
+- Clarified that local extraction does not perform OCR and is unsuitable for image-only scanned textbooks.
+
+### Validation
+
+- MinerU/local routing regression: 6 passed.
+- Frontend TypeScript and Vite production build passed.
+- Full backend suite: 243 passed with one existing Starlette/httpx2 warning.
+
 # 2026-08-03 - Versioned textbook indexing and asynchronous concept extraction
 
 - Added one supported schema-4 indexing pipeline for normal imports and manual rebuilds. It builds versioned chapter and whole-book Chroma collections off to the side, validates exact counts plus a real dense query, stages the lexical corpus, validates a real BM25 query, and only then switches the active collection map and lexical file. Failed builds keep the previous active assets.
@@ -1407,3 +1434,21 @@ The detailed historical notes for this period were damaged by mojibake before th
 - Frontend Vitest passed 12 files / 38 tests.
 - TypeScript and the Vite production build passed; the existing MathLive chunk-size warning remains unchanged.
 - In-app desktop-browser visual checks at 1280 x 720 covered chat, exercises, textbook import, mistake entry, and settings. The learning page layout was type/build verified because its local summary API remained unavailable during visual QA.
+## 2026-08-03 - Lightweight interaction motion system
+
+### Frontend
+
+- Added a keyed route-stage entrance for page navigation, using a 200 ms opacity and 6 px vertical transform without retaining the previous route.
+- Added shared entrance treatments for modal backdrops, normal and large dialogs, the compact sidebar drawer, popovers, and completion notices. Large surfaces avoid scale transforms; all motion uses only opacity and transform.
+- Added a 90 ms tactile active state to shared primary/secondary buttons, sidebar navigation, sidebar controls, and scope-selector options.
+- Motion runs only when `prefers-reduced-motion: no-preference`; no animation library, timer, scroll listener, or persistent `will-change` layer was added.
+- No backend API, database schema, vector index, textbook data, mistake record, or learning record format changed.
+
+### Validation and performance
+
+- Frontend ESLint passed; Vitest passed 12 files / 38 tests; TypeScript and the Vite production build passed. The existing MathLive chunk-size warning remains unchanged.
+- Compared with the preceding production build, entry CSS increased from 68.52 kB / 12.99 kB gzip to 70.57 kB / 13.36 kB gzip (+2.05 kB / +0.37 kB gzip). Entry JavaScript increased from 42.79 kB / 13.35 kB gzip to 43.01 kB / 13.41 kB gzip (+0.22 kB / +0.06 kB gzip).
+- Fresh Electron validation at 1280 x 820 covered the first-run large dialog, 12 consecutive route changes across all six primary pages, and opening/closing the scope-selector popover.
+- In an 18-second interaction sample, the four new Electron processes averaged 58.2% of one CPU core, versus 33.3% during an equal recovery-idle sample. The process group returned to the lower idle level after interaction rather than remaining elevated. The 250 ms sampling peak was 267.8% of one core during page loading/capture.
+- Working set rose from 571.9 MB to a 614.0 MB peak while all lazy routes were visited, then stabilized around 586.0 MB; private memory stabilized around 285.6 MB. The retained increase is consistent with first-load route modules and page data, and no repeated growth was observed after interaction stopped.
+- Runtime CPU figures include Windows Graphics Capture used by the UI validation tool, so they are suitable for relative interaction-versus-idle comparison, not as an end-user absolute idle benchmark.

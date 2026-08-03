@@ -743,8 +743,8 @@ const ExercisesPage: React.FC = () => {
           </div>
         </main>
       {pdfOpen && sourcePdfUrl && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="教材 PDF 选页">
-          <div className="flex h-[64vh] w-[min(900px,92vw)] flex-col overflow-hidden rounded-2xl border border-border bg-bg-card shadow-2xl">
+        <div className="app-overlay-enter fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="教材 PDF 选页">
+          <div className="app-dialog-enter flex h-[64vh] w-[min(900px,92vw)] flex-col overflow-hidden rounded-2xl border border-border bg-bg-card shadow-2xl">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
               <div><div className="text-sm font-semibold text-text-primary">{activeName} · PDF 选页</div><div className="text-xs text-text-secondary">输入 PDF 页码后预览；“用作起始页”会回填抽题范围。</div></div>
               <div className="flex items-center gap-2">

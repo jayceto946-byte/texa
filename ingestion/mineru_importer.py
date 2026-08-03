@@ -43,12 +43,19 @@ def import_textbook(
     toc_pages: str = "",
     require_mineru: bool = True,
     on_progress: ProgressCallback | None = None,
+    parse_method: str = "",
 ) -> BookImportResult:
+    method = (parse_method or "").strip().lower()
+    if method not in {"", "auto", "mineru", "local"}:
+        raise ValueError(f"Unsupported textbook parse method: {parse_method}")
+    if method == "local":
+        return import_textbook_local(pdf_path, book_name, toc_pages, on_progress)
+
     if config.MINERU_API_URL:
         return _import_with_mineru(pdf_path, book_name, on_progress)
     if config.MINERU_CLI_COMMAND:
         return _import_with_mineru_cli(pdf_path, book_name, on_progress)
-    if require_mineru:
+    if method == "mineru" or (not method and require_mineru):
         raise RuntimeError("未配置 MINERU_API_URL 或 MINERU_CLI_COMMAND，无法执行 MinerU 教材导入")
     return import_textbook_local(pdf_path, book_name, toc_pages, on_progress)
 

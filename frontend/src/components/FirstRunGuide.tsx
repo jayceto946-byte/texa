@@ -135,8 +135,8 @@ export default function FirstRunGuide() {
   const hasPrimaryKey = Boolean(envStatus.DEEPSEEK_API_KEY?.configured || envStatus.MOONSHOT_API_KEY?.configured || envStatus.OPENAI_API_KEY?.configured);
 
   return (
-    <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-[#1f2824]/45 p-4">
-      <section className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-[18px] border border-border bg-bg-primary">
+    <div className="app-overlay-enter fixed inset-0 z-[1300] flex items-center justify-center bg-[#1f2824]/45 p-4">
+      <section className="app-large-dialog-enter flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-[18px] border border-border bg-bg-primary">
         <header className="flex items-center justify-between border-b border-border bg-bg-card px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-bg-secondary">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, BookOpen, ClipboardList, GraduationCap, Menu, MessageSquare, PanelLeftClose, PanelLeftOpen, Settings, Upload, X } from 'lucide-react';
 import { get } from '../api/client';
 import { useChatContext } from '../contexts/ChatContext';
@@ -30,6 +30,7 @@ function detectCompactLayout() {
 
 const MainLayout: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const initialCompact = detectCompactLayout();
   const [compactLayout, setCompactLayout] = useState(initialCompact);
   const [sidebarExpanded, setSidebarExpanded] = useState(!initialCompact);
@@ -108,7 +109,7 @@ const MainLayout: React.FC = () => {
         <button
           type="button"
           onClick={() => setSidebarExpanded(false)}
-          className="ml-2 flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-bg-card text-text-secondary hover:border-accent/50 hover:text-accent"
+          className="app-interactive ml-2 flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-bg-card text-text-secondary hover:border-accent/50 hover:text-accent"
           aria-label={mode === 'desktop' ? '折叠侧边栏' : '关闭侧边栏'}
         >
           {mode === 'desktop' ? <PanelLeftClose className="h-[18px] w-[18px]" /> : <X className="h-[18px] w-[18px]" />}
@@ -124,7 +125,7 @@ const MainLayout: React.FC = () => {
             to={item.to}
             onClick={() => mode === 'drawer' && setSidebarExpanded(false)}
             className={({ isActive }) =>
-              `mb-1 flex items-center rounded-lg border px-3 py-2.5 type-control transition-colors ${
+              `app-interactive mb-1 flex items-center rounded-lg border px-3 py-2.5 type-control ${
                 isActive
                   ? 'border-accent/30 bg-[var(--accent-soft)] text-accent'
                   : 'border-transparent text-text-secondary hover:border-border hover:bg-bg-card hover:text-text-primary'
@@ -144,7 +145,7 @@ const MainLayout: React.FC = () => {
       <button
         type="button"
         onClick={() => setSidebarExpanded(true)}
-        className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-white hover:bg-white/16"
+        className="app-interactive mb-2 flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-white hover:bg-white/16"
         aria-label="展开侧边栏"
       >
         {mode === 'desktop' ? <PanelLeftOpen className="h-[18px] w-[18px]" /> : <Menu className="h-[18px] w-[18px]" />}
@@ -152,7 +153,7 @@ const MainLayout: React.FC = () => {
       <button
         type="button"
         onClick={startNewConversation}
-        className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-white/72 hover:bg-white/16 hover:text-white"
+        className="app-interactive mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-white/72 hover:bg-white/16 hover:text-white"
         aria-label="新会话"
       >
         <MessageSquare className="h-[18px] w-[18px]" />
@@ -163,7 +164,7 @@ const MainLayout: React.FC = () => {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
+              `app-interactive flex h-10 w-10 items-center justify-center rounded-lg ${
                 isActive ? 'bg-white text-accent' : 'text-white/62 hover:bg-white/10 hover:text-white'
               }`
             }
@@ -196,8 +197,8 @@ const MainLayout: React.FC = () => {
       {compactLayout && rail('compact')}
 
       {compactLayout && sidebarExpanded && (
-        <div className="fixed inset-0 z-50 flex bg-black/35">
-          <aside className="flex h-full w-[min(292px,86vw)] flex-col overflow-hidden border-r border-border bg-bg-secondary">
+        <div className="app-overlay-enter fixed inset-0 z-50 flex bg-black/35">
+          <aside className="app-drawer-enter flex h-full w-[min(292px,86vw)] flex-col overflow-hidden border-r border-border bg-bg-secondary">
             {sidebarContent('drawer')}
           </aside>
           <button type="button" className="min-w-0 flex-1" onClick={() => setSidebarExpanded(false)} aria-label="关闭侧边栏" />
@@ -205,7 +206,9 @@ const MainLayout: React.FC = () => {
       )}
 
       <main className="relative z-0 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-bg-primary">
-        <Outlet />
+        <div key={location.pathname} className="app-route-stage">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

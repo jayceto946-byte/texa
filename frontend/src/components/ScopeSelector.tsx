@@ -277,7 +277,7 @@ export default function ScopeSelector({
         onClick={() => !disabled && setOpen((next) => !next)}
         disabled={disabled}
         aria-label={label}
-        className={`flex h-10 ${fullWidth ? 'w-full min-w-0' : widthClass(width)} max-w-full items-center gap-2 rounded-full border border-border bg-bg-card px-3 text-left text-sm text-text-primary transition-colors outline-none hover:border-accent/50 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-55`}
+        className={`app-interactive flex h-10 ${fullWidth ? 'w-full min-w-0' : widthClass(width)} max-w-full items-center gap-2 rounded-full border border-border bg-bg-card px-3 text-left text-sm text-text-primary outline-none hover:border-accent/50 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-55`}
       >
         <GraduationCap className="h-4 w-4 flex-shrink-0 text-accent" />
         <span className="min-w-0 flex-1 truncate text-sm font-medium leading-5">{valueText}</span>
@@ -288,7 +288,7 @@ export default function ScopeSelector({
         <div
           ref={popupRef}
           style={popupStyle || { visibility: 'hidden' }}
-          className="z-[1100] overflow-y-auto rounded-[18px] border border-border bg-bg-card"
+          className="app-popover-enter z-[1100] overflow-y-auto rounded-[18px] border border-border bg-bg-card"
         >
           <div className={`grid ${popupGridClass}`}>
             <Column title="一级科目">
@@ -368,7 +368,7 @@ function OptionButton({ active, onClick, children }: { active?: boolean; onClick
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-9 w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[13px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/15 ${
+      className={`app-interactive flex min-h-9 w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-accent/15 ${
         active ? 'bg-[var(--accent-soft)] font-semibold text-accent-hover' : 'text-text-primary hover:bg-bg-secondary'
       }`}
     >

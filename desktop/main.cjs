@@ -11,6 +11,8 @@ const BACKEND_URL = process.env.KAOYAN_BACKEND_URL || `http://127.0.0.1:${BACKEN
 const FRONTEND_DEV_URL = process.env.KAOYAN_FRONTEND_DEV_URL || '';
 const API_TOKEN = process.env.KAOYAN_API_TOKEN || crypto.randomBytes(32).toString('hex');
 const CAPTURE_TOKEN = process.env.KAOYAN_CAPTURE_TOKEN || crypto.randomBytes(24).toString('hex');
+const INSTANCE_ID = process.env.KAOYAN_INSTANCE_ID || crypto.randomUUID();
+const SKIP_BACKEND = process.env.KAOYAN_SKIP_BACKEND === '1';
 
 let mainWindow = null;
 let backendProcess = null;
@@ -112,6 +114,7 @@ function backendEnv() {
     KAOYAN_BACKEND_PORT: String(BACKEND_PORT),
     KAOYAN_API_TOKEN: API_TOKEN,
     KAOYAN_REQUIRE_API_TOKEN: '1',
+    KAOYAN_INSTANCE_ID: INSTANCE_ID,
     KAOYAN_CAPTURE_TOKEN: CAPTURE_TOKEN,
     KAOYAN_BACKEND_HOST: readRemoteCaptureSettings().enabled ? '0.0.0.0' : '127.0.0.1',
     DATA_DIR: paths.dataDir,
@@ -289,7 +292,7 @@ function stopBackend() {
 }
 
 function startBackend() {
-  if (process.env.KAOYAN_SKIP_BACKEND === '1') {
+  if (SKIP_BACKEND) {
     appendBackendLog('[main] KAOYAN_SKIP_BACKEND=1, backend spawn skipped.');
     return;
   }
@@ -336,11 +339,21 @@ function startBackend() {
 
 async function waitForBackend(timeoutMs = 60000) {
   const deadline = Date.now() + timeoutMs;
+  let lastIdentityError = '';
   while (Date.now() < deadline) {
     if (backendStartError) return false;
+    if (!SKIP_BACKEND && backendProcess && backendProcess.exitCode !== null) return false;
     try {
       const res = await fetchWithTimeout(`${BACKEND_URL}/health`);
-      if (res.ok) return true;
+      if (res.ok) {
+        const health = await res.json();
+        if (SKIP_BACKEND || health?.instance_id === INSTANCE_ID) return true;
+        const identityError = `backend identity mismatch at ${BACKEND_URL}`;
+        if (identityError !== lastIdentityError) {
+          appendBackendLog(`[wait] ${identityError}`);
+          lastIdentityError = identityError;
+        }
+      }
     } catch (error) {
       if (error?.name !== 'AbortError') {
         appendBackendLog(`[wait] backend not ready: ${error.message || error}`);
@@ -512,13 +525,13 @@ ipcMain.handle('updates:download', async () => {
 });
 ipcMain.handle('updates:install', async () => {
   if (updateState.status !== 'downloaded') {
-    return emitUpdateState({ status: 'error', message: '\\u66f4\\u65b0\\u5c1a\\u672a\\u4e0b\\u8f7d\\u5b8c\\u6210\\uff0c\\u65e0\\u6cd5\\u5b89\\u88c5\\u3002' });
+    return emitUpdateState({ status: 'error', message: '更新尚未下载完成，无法安装。' });
   }
   shuttingDown = true;
   await stopBackend();
   allowQuit = true;
   autoUpdater.quitAndInstall(false, true);
-  return emitUpdateState({ status: 'installing', message: '\\u6b63\\u5728\\u91cd\\u542f\\u5e76\\u5b89\\u88c5\\u66f4\\u65b0...' });
+  return emitUpdateState({ status: 'installing', message: '正在重启并安装更新...' });
 });
 
 app.whenReady().then(() => {
