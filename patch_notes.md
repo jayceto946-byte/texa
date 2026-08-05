@@ -1,3 +1,45 @@
+# 2026-08-04 - Electron textbook retrieval smoke acceptance
+
+- Ran the packaged Electron UI against the local FastAPI backend with the `专业课 / 传感器` textbook scope selected.
+- Verified one normal sensor question through the complete UI path, then submitted four consecutive textbook-external questions covering a future market size, a general market-size claim, a sales forecast, and an unrelated Mars-agriculture scenario.
+- Closed and cleanly relaunched Electron, restored the sensor scope, and verified a second normal textbook question to confirm that the rebuilt index remained usable across a desktop restart.
+- This was a read-only acceptance run: no textbook index, vector collection, mistake record, exercise record, or learning history was modified.
+
+### Validation
+
+- Normal grounded answers: 2/2 completed with correct textbook content and visible chapter/section citations. The post-restart thermistor query returned 10 evidence items and completed in 7.52 seconds.
+- Textbook-external refusal: 4/4 correctly refused to fill unsupported facts from model knowledge. All six RAG traces finished with status `done`, empty error fields, and no surfaced HNSW failure.
+- Retrieval stage latency across the six requests was 0.77-1.29 seconds. The first normal answer took 36.17 seconds backend total, dominated by 28.38 seconds to generation TTFT; this fails a strict no-obvious-wait latency expectation even though retrieval correctness and stability passed.
+- System health after the run was `healthy`; vector-store health reported 49 active chapter indexes and RAG trace storage was healthy.
+- Observed UX follow-up: scoped refusal messages still render a textbook source/tag derived from topic-overlap evidence, which can misleadingly imply that the refused fact itself has a citation.
+
+# 2026-08-03 - Sensor index repair and bounded dense fallback
+
+- Created and verified a complete pre-change backup including derived vector data: `learning_data_20260803_233450_pre_sensor_index_rebuild.zip`, SHA-256 `69BA32AF4C652C334F5A46B867631AC046CD9CBA106457A67AF8FFCFE691E665`.
+- Rebuilt `传感器短书` through the versioned schema-4 pipeline from 562 preserved OCR chunks. Exact chapter-heading boundaries mapped all chunks to 13 chapters with zero unmatched rows; the activated index now has 13 chapter collections plus one validated whole-book aggregate, version `e883c88af247f5fe`.
+- Extended the supported reindex script to hydrate empty chapter shells from exact, monotonic section headings. Missing or out-of-order headings still fail closed instead of guessing.
+- Aggregate query failures are now logged and quarantined for the process. Dense fallback receives a BM25 chapter shortlist capped at 12; an unavailable aggregate without a shortlist cannot fan out across more than 12 chapter collections.
+- Did not rebuild `传感器长书`: after bounded BM25 preselection it searches only 3-5 chapters in the measured workload, so another index mutation had limited incremental value.
+
+### Validation
+
+- Active short-book mapping: 13 chapter collections + 1 aggregate, 14/14 present, schema 4, 562 lexical/vector chunks, no source fallback.
+- Ten repeated short-book aggregate searches: median 23 ms, p95 150 ms, maximum/first query 554 ms; no HNSW errors.
+- Real 13-case textbook evaluation: Top-10 complete recall 100%, factual point recall 100%, unanswerable refusal 4/4; total run about 22 seconds versus about 69 seconds before repair.
+- Full backend suite: 259 passed with one existing Starlette/httpx2 warning.
+# 2026-08-03 - Textbook evidence sufficiency gate and factual-list recall
+
+- Added a query-level evidence sufficiency gate that separates the requested fact from the general topic. Topic-only BM25/vector hits no longer authorize a textbook-grounded answer for unsupported market-size, sales-forecast, or unrelated scenario questions.
+- Propagated explicit `supported`, `partial`, `insufficient`, `unavailable`, and `not_applicable` evidence states into generation. Insufficient evidence now produces a scoped refusal; partial evidence must disclose its limitation.
+- Kept full section titles in literal and evaluation matching, and retained the complete lexical chunk when dense and BM25 hits share a chunk ID.
+- Added an explicit selected-book marker independent of core/reference role. For factual enumeration questions only, selected-book BM25 order is preserved so list members split across consecutive sections survive Top-10 fusion; other intents retain hybrid reranking.
+- Expanded the retrieval evaluation set with three topic-overlap but unanswerable questions. No textbook index, vector collection, mistake record, exercise record, or learning history was modified.
+
+### Validation
+
+- Real 13-case textbook evaluation at Top-10: complete recall 100%, factual point recall 100%, and unanswerable refusal 4/4 (100%).
+- Full backend suite: 254 passed with one existing Starlette/httpx2 warning.
+- Observed but did not modify two independent index/performance issues: one corrupted Chroma HNSW segment is skipped through the existing degradation path, and a 479-chapter dense scan took about 40 seconds.
 # 2026-08-03 - Desktop startup identity and SPA route reliability
 
 - Added a constrained React SPA fallback for client-side routes while preserving real 404 responses for unknown API and missing asset paths. Refreshing `/settings`, `/books`, and other application routes now reloads the React entry point.

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from bisect import bisect_right
 import json
 import re
 import sys
@@ -43,10 +44,28 @@ def _best_middle_chunks(book_name: str) -> tuple[Path | None, list[dict]]:
     return path, rows
 
 
+def _chapter_heading_positions(chapters: list[dict], rows: list[dict]) -> list[int]:
+    """Locate chapter starts when persisted chapter records contain no body text."""
+    positions: list[int] = []
+    for chapter in chapters:
+        title = _normalized(chapter.get("title", ""))
+        if not title:
+            return []
+        position = next((
+            index for index, row in enumerate(rows)
+            if _normalized(row.get("section_title", "")) == title
+        ), None)
+        if position is None or (positions and position <= positions[-1]):
+            return []
+        positions.append(position)
+    return positions
+
+
 def hydrate_chapters(chapters: list[dict], rows: list[dict]) -> tuple[list[dict], int]:
     """Attach persisted chunks to their source chapter without changing chunk IDs."""
     chapter_texts = [_normalized(item.get("text", "")) for item in chapters]
     grouped = [[] for _ in chapters]
+    heading_positions = _chapter_heading_positions(chapters, rows) if not any(chapter_texts) else []
     unmatched = 0
     last_index = 0
     for offset, source in enumerate(rows):
@@ -54,8 +73,8 @@ def hydrate_chapters(chapters: list[dict], rows: list[dict]) -> tuple[list[dict]
         if not content:
             continue
         needle = _normalized(content)[:240]
-        match = None
-        if needle:
+        match = max(0, bisect_right(heading_positions, offset) - 1) if heading_positions else None
+        if match is None and needle:
             order = list(range(last_index, len(chapters))) + list(range(0, last_index))
             match = next((idx for idx in order if needle in chapter_texts[idx]), None)
         if match is None:

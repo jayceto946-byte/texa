@@ -8,3 +8,6 @@
 {"id":"sensor_piezo_static","book_name":"\u4f20\u611f\u5668\u957f\u4e66","question":"\u538b\u7535\u4f20\u611f\u5668\u80fd\u5426\u7528\u4e8e\u9759\u6001\u6d4b\u91cf\uff1f","intent":"factual_recall","required_points":["\u4e0d\u80fd\u7528\u4e8e\u9759\u6001\u6d4b\u91cf","\u7535\u8377","\u6cc4\u6f0f"],"answerable":true}
 {"id":"sensor_capacitive_environment","book_name":"\u4f20\u611f\u5668\u957f\u4e66","question":"\u7535\u5bb9\u5f0f\u4f20\u611f\u5668\u7684\u73af\u5883\u9002\u5e94\u6027\u5982\u4f55\uff1f","intent":"factual_recall","required_points":["\u9ad8\u4f4e\u6e29","\u5f3a\u8f90\u5c04","\u5f3a\u78c1\u573a"],"answerable":true}
 {"id":"sensor_unanswerable","book_name":"\u4f20\u611f\u5668\u957f\u4e66","question":"\u6559\u6750\u662f\u5426\u8bf4\u660e 2040 \u5e74\u7535\u5bb9\u4f20\u611f\u5668\u7684\u5168\u7403\u5e02\u573a\u89c4\u6a21\uff1f","intent":"factual_recall","required_points":[],"answerable":false}
+{"id":"sensor_unanswerable_market","book_name":"传感器长书","question":"教材有没有讲电容式传感器的全球市场规模？","intent":"factual_recall","required_points":[],"answerable":false}
+{"id":"sensor_unanswerable_sales","book_name":"传感器长书","question":"电容式传感器未来的商业销售预测是什么？","intent":"factual_recall","required_points":[],"answerable":false}
+{"id":"sensor_unanswerable_mars","book_name":"传感器长书","question":"电容式传感器在火星农业中的市场前景如何？","intent":"factual_recall","required_points":[],"answerable":false}

@@ -18,7 +18,13 @@ def load_cases(path: str | Path) -> list[dict]:
 def score_case(case: dict, items: list[dict], k: int = 20) -> dict:
     selected = items[:k]
     required = [str(point) for point in case.get("required_points", [])]
-    texts = [str(item.get("text") or item.get("preview") or "") for item in selected]
+    texts = [
+        "\n".join(filter(None, [
+            str(item.get("section_title") or ""),
+            str(item.get("text") or item.get("preview") or ""),
+        ]))
+        for item in selected
+    ]
     joined = "\n".join(texts)
     matched = [point for point in required if point in joined]
     first_complete_rank = 0

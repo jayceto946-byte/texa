@@ -70,12 +70,18 @@ def _has_example_marker(text: str) -> bool:
 def has_textbook_evidence(state: dict) -> bool:
     if not state.get("use_textbook_context", True):
         return True
+    support_status = str((state.get("evidence_support") or {}).get("status") or "")
+    if support_status in {"insufficient", "unavailable"}:
+        return False
     if state.get("evidence_gate_applied"):
         return bool(state.get("evidence_items"))
     return bool(state.get("evidence_items") or state.get("chapter_contents"))
 
 
 def grounded_failure_message(state: dict) -> str:
+    support = state.get("evidence_support") or {}
+    if support.get("reason") == "topic_matched_but_question_focus_missing":
+        return "当前教材中只检索到与问题主题相关的内容，但没有找到能够直接支持所问事实的证据，因此不使用模型自身知识补齐答案。"
     if state.get("retrieval_error") == "book_index_empty":
         return "\u5f53\u524d\u6559\u6750\u5c1a\u672a\u5efa\u7acb\u53ef\u7528\u7d22\u5f15\uff0c\u5df2\u505c\u6b62\u4f7f\u7528\u6a21\u578b\u81ea\u8eab\u77e5\u8bc6\u4f5c\u7b54\u3002\u8bf7\u5148\u91cd\u5efa\u8be5\u6559\u6750\u7d22\u5f15\u3002"
     return "\u5f53\u524d\u5bfc\u5165\u6559\u6750\u4e2d\u672a\u68c0\u7d22\u5230\u8db3\u591f\u7684\u76f4\u63a5\u8bc1\u636e\uff0c\u56e0\u6b64\u4e0d\u4f7f\u7528\u6a21\u578b\u81ea\u8eab\u77e5\u8bc6\u8865\u9f50\u7b54\u6848\u3002"
@@ -93,6 +99,8 @@ def _build_generate_prompt(state: dict) -> str:
         "application": "Give complete solution steps and mark common mistakes.",
         "comparison": "Compare only dimensions supported by the evidence.",
     }.get(intent, "Answer clearly in Chinese and stay grounded in the supplied material.")
+    if (state.get("evidence_support") or {}).get("status") == "partial":
+        output_instruction += " The textbook evidence supports only part of the question. State that limitation explicitly and answer only the supported part."
     if not state.get("use_textbook_context", True):
         return GENERAL_QA_PROMPT.format(subject=state.get("subject") or "unspecified", intent=intent, user_input=user_input, history_results=history_text or "(none)", output_instruction=output_instruction)
     evidence_pack = build_evidence_pack(

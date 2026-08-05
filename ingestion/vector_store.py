@@ -15,6 +15,7 @@ from utils.path_safety import safe_book_name
 # ── 全局单例缓存 ──────────────────────────────────────────
 _chapter_vs_instance = None
 _chapter_vs_lock = threading.RLock()
+MAX_CHAPTER_FANOUT = 12
 
 
 def get_vector_store() -> "ChapterVectorStore":
@@ -44,6 +45,7 @@ class ChapterVectorStore:
         self.db_path = Path(VECTOR_DB_PATH)
         self.db_path.mkdir(parents=True, exist_ok=True)
         self._stores: dict[str, Chroma] = {}
+        self._broken_aggregates: set[str] = set()
         self._write_lock = threading.RLock()
         self._map_file = self.db_path / "_chapter_map.json"
         self._map: dict[str, dict[str, str]] = self._load_map()
@@ -500,6 +502,8 @@ class ChapterVectorStore:
         scored_docs: list[tuple[float, Document]] = []
         searched = 0
         for col in collections:
+            if col.name in self._broken_aggregates:
+                continue
             try:
                 title = self._collection_to_title(col.name)
                 store_key = self._store_key(title, self._collection_to_book(col.name))
@@ -527,8 +531,11 @@ class ChapterVectorStore:
                     adjusted = float(score) - (priority * 0.03)
                     scored_docs.append((adjusted, doc))
                 searched += 1
-            except Exception:
-                pass
+            except Exception as exc:
+                self._broken_aggregates.add(col.name)
+                title = self._collection_to_title(col.name)
+                self._stores.pop(self._store_key(title, self._collection_to_book(col.name)), None)
+                print(f"  [向量库] aggregate 检索失败，已隔离 {col.name}: {exc}", flush=True)
         if not searched:
             return None
 
@@ -551,6 +558,7 @@ class ChapterVectorStore:
         top_n: int = 3,
         filter: dict | None = None,
         book_name: str = "",
+        fallback_chapters: list[str] | None = None,
     ) -> dict[str, list[Document]]:
         """在所有章节中检索。
 
@@ -579,8 +587,22 @@ class ChapterVectorStore:
                 print(f"  [检索] aggregate embed={dt_embed:.2f}s total={dt_total:.2f}s ({searched}书→取top{len(results)})", flush=True)
                 return results
 
+        chapter_collections = list(self._iter_collections_for_book(collections, book_name))
+        if fallback_chapters:
+            chapter_rank = {str(title): rank for rank, title in enumerate(fallback_chapters[:MAX_CHAPTER_FANOUT])}
+            chapter_collections = [
+                col for col in chapter_collections if self._collection_to_title(col.name) in chapter_rank
+            ]
+            chapter_collections.sort(key=lambda col: chapter_rank[self._collection_to_title(col.name)])
+        elif len(chapter_collections) > MAX_CHAPTER_FANOUT:
+            print(
+                f"  [向量库] aggregate 不可用且无章节 shortlist，已阻止扫描 {len(chapter_collections)} 个 collection",
+                flush=True,
+            )
+            return {}
+
         searched = 0
-        for col in self._iter_collections_for_book(collections, book_name):
+        for col in chapter_collections:
             title = self._collection_to_title(col.name)
             try:
                 store_key = self._store_key(title, self._collection_to_book(col.name))

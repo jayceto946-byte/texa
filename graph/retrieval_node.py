@@ -55,6 +55,24 @@ TOC_SECTION_MARKERS = {
     "toc",
 }
 
+_SUPPORT_META_PHRASES = (
+    "教材中有没有介绍", "教材里有没有介绍", "教材有没有介绍",
+    "教材中是否说明", "教材里是否说明", "教材是否说明",
+    "教材中有没有讲", "教材里有没有讲", "教材有没有讲",
+    "教材中是否有", "教材里是否有", "教材是否有",
+    "根据教材", "按照教材", "请问", "请解释", "请说明",
+)
+_SUPPORT_FILLER_PHRASES = (
+    "基本思想是什么", "是什么意思", "有哪些", "有什么", "是什么",
+    "为什么", "怎么样", "怎么", "如何", "是否", "能否", "适合吗",
+    "的主要", "主要", "讲一下", "介绍一下", "说明一下",
+    "请分析", "请解释", "请说明", "简述", "列出", "给出", "比较", "适合", "吗", "呢",
+)
+_TOPIC_SUFFIXES = (
+    "传感器", "热敏电阻", "电阻", "误差", "定理", "公式", "方法",
+    "算法", "效应", "模型", "概念", "原理", "定律", "法",
+)
+
 
 def retrieve_node(state: dict) -> dict:
     target_chapters = state.get("target_chapters", [])
@@ -75,6 +93,7 @@ def retrieve_node(state: dict) -> dict:
             "knowledge_graph_path": [],
             "knowledge_graph_formulas": [],
             "matched_concepts": [],
+            "evidence_support": {"status": "not_applicable", "reason": "textbook_context_disabled"},
             "retrieval_status": "ordinary_qa",
             "retrieval_error": "",
         }
@@ -101,6 +120,7 @@ def retrieve_node(state: dict) -> dict:
                 "chapter_contents": {}, "retrieval_debug_items": [], "evidence_items": [],
                 "concept_results": [], "history_results": [], "knowledge_graph_path": [],
                 "knowledge_graph_formulas": [], "matched_concepts": [],
+                "evidence_support": {"status": "unavailable", "reason": "book_index_empty"},
                 "retrieval_status": "unavailable",
                 "retrieval_error": "book_index_empty",
                 "index_stats": index_stats,
@@ -117,24 +137,30 @@ def retrieve_node(state: dict) -> dict:
     for resource in retrieval_resources:
         candidate_book = str(resource.get("book_name") or "")
         is_primary = bool(resource.get("is_primary"))
+        candidate_lexical = search_book(candidate_book, user_input, k=20 if is_primary else 12, chapters=(target_chapters or None) if is_primary else None)
+        lexical_results.extend(candidate_lexical)
+        fallback_chapters = list(dict.fromkeys(
+            str(item.get("chapter") or "") for item in candidate_lexical if item.get("chapter")
+        ))[:12]
         candidate_vectors = _vector_retrieval(
             vs, user_input, intent=intent, book_name=candidate_book,
             target_chapters=target_chapters if is_primary else [],
             precise_chapters=list({r["chapter"] for r in precise_results if r.get("chapter")}) if is_primary else [],
+            fallback_chapters=fallback_chapters,
             k=20 if is_primary else 12, top_n=4 if is_primary else 3,
         )
         vector_results.extend(candidate_vectors)
-        candidate_lexical = search_book(candidate_book, user_input, k=20 if is_primary else 12, chapters=(target_chapters or None) if is_primary else None)
-        lexical_results.extend(candidate_lexical)
         candidate_neighbors = expand_neighbors(candidate_book, [item.get("chunk_id", "") for item in candidate_lexical[:3]], window=1)
         default_role = str(resource.get("role") or "")
         default_priority = float(resource.get("priority") or 1.0)
+        is_selected_book = bool(resource.get("is_selected"))
         for item in candidate_vectors + candidate_lexical + candidate_neighbors:
             if default_role and not item.get("book_role"):
                 item["book_role"] = default_role
             if default_role and item.get("rag_priority") in {None, ""}:
                 item["rag_priority"] = default_priority
             item.setdefault("book_name", candidate_book)
+            item["is_selected_book"] = is_selected_book
         neighbor_results.extend(candidate_neighbors)
     chapter_contents, retrieval_debug_items = _merge_and_rerank(
         precise_results,
@@ -173,6 +199,36 @@ def retrieve_node(state: dict) -> dict:
 
     history_results = _load_history(primary_book, target_chapters)
 
+    candidate_evidence = [
+        {
+            "chunk_id": item.get("chunk_id", ""), "chapter": item.get("chapter", ""),
+            "section_title": item.get("section_title", ""), "page_idx": item.get("page_idx", -1),
+            "text": item.get("text", ""), "score": item.get("score", 0.0),
+            "query_coverage": item.get("query_coverage", 0.0),
+            "book_name": item.get("book_name", ""),
+            "book_role": item.get("book_role", ""),
+            "is_selected_book": bool(item.get("is_selected_book")),
+            "rag_priority": item.get("rag_priority", 1.0),
+            "role": item.get("role", ""),
+            "source": item.get("source", ""),
+            "is_direct_hit": bool(item.get("is_direct_hit")),
+            "fusion_sources": item.get("fusion_sources", []),
+        }
+        for item in retrieval_debug_items[:10]
+        if item.get("text")
+        and _supports_query_literals(
+            user_input,
+            f"{item.get('section_title', '')}\n{item.get('text', '')}",
+        )
+        and (item.get("is_direct_hit") or float(item.get("query_coverage", 0)) >= 0.2)
+    ]
+    evidence_support = _assess_evidence_support(
+        user_input,
+        candidate_evidence,
+        matched_concepts=matched_concepts,
+    )
+    evidence_items = candidate_evidence if evidence_support["status"] in {"supported", "partial"} else []
+
     return {
         "chapter_contents": chapter_contents,
         "retrieval_debug_items": retrieval_debug_items,
@@ -181,23 +237,8 @@ def retrieve_node(state: dict) -> dict:
         "knowledge_graph_path": kg_path,
         "knowledge_graph_formulas": kg_formulas,
         "matched_concepts": matched_concepts,
-        "evidence_items": [
-            {
-                "chunk_id": item.get("chunk_id", ""), "chapter": item.get("chapter", ""),
-                "section_title": item.get("section_title", ""), "page_idx": item.get("page_idx", -1),
-                "text": item.get("text", ""), "score": item.get("score", 0.0),
-                "query_coverage": item.get("query_coverage", 0.0),
-                "book_name": item.get("book_name", ""),
-                "book_role": item.get("book_role", ""),
-                "rag_priority": item.get("rag_priority", 1.0),
-                "role": item.get("role", ""),
-                "source": item.get("source", ""),
-                "is_direct_hit": bool(item.get("is_direct_hit")),
-                "fusion_sources": item.get("fusion_sources", []),
-            }
-            for item in retrieval_debug_items[:6]
-            if item.get("text") and _supports_query_literals(user_input, item.get("text", "")) and (item.get("is_direct_hit") or float(item.get("query_coverage", 0)) >= 0.2)
-        ],
+        "evidence_items": evidence_items,
+        "evidence_support": evidence_support,
         "index_stats": index_stats,
         "retrieval_status": "degraded" if retrieval_errors else "ok",
         "retrieval_error": "; ".join(dict.fromkeys(retrieval_errors)),
@@ -210,6 +251,129 @@ def _supports_query_literals(query: str, text: str) -> bool:
     return all(token in lowered for token in literals)
 
 
+
+
+def _normalized_support_text(value: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_.+一-鿿-]+", "", value or "").lower()
+
+
+def _dedupe_preserving_order(values: list[str]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        if value and value not in seen:
+            result.append(value)
+            seen.add(value)
+    return result
+
+
+def _extract_query_focus(query: str, matched_concepts: list[str] | None = None) -> tuple[list[str], list[str]]:
+    """Separate the known textbook topic from the fact the user actually asks for."""
+    cleaned = str(query or "").lower()
+    for phrase in _SUPPORT_META_PHRASES:
+        cleaned = cleaned.replace(phrase, " ")
+    normalized_query = _normalized_support_text(cleaned)
+
+    topics = [
+        _normalized_support_text(name)
+        for name in (matched_concepts or [])
+        if _normalized_support_text(name) in normalized_query
+    ]
+    suffix_pattern = "|".join(re.escape(value) for value in _TOPIC_SUFFIXES)
+    match = re.search(rf"[A-Za-z0-9_.+一-鿿-]{{2,}}?(?:{suffix_pattern})", normalized_query)
+    if match:
+        topics.append(match.group(0))
+    ordered_topics = _dedupe_preserving_order(sorted(topics, key=len, reverse=True))
+    topics = [
+        topic
+        for index, topic in enumerate(ordered_topics)
+        if not any(topic in longer for longer in ordered_topics[:index])
+    ]
+
+    residual = normalized_query
+    for topic in topics:
+        residual = residual.replace(topic, " ")
+    for phrase in _SUPPORT_FILLER_PHRASES:
+        residual = residual.replace(_normalized_support_text(phrase), " ")
+    residual = residual.replace("以及", " ").replace("并且", " ").replace("还有", " ")
+    residual = residual.replace("和", " ").replace("与", " ")
+    focus = [
+        value.strip("的是在中里")
+        for value in re.findall(r"[A-Za-z0-9_.+-]+|[一-鿿]{2,}", residual)
+    ]
+    focus = [value for value in focus if len(value) >= 2]
+    return topics, _dedupe_preserving_order(focus)
+
+
+def _focus_coverage(phrase: str, text: str) -> float:
+    phrase = _normalized_support_text(phrase)
+    text = _normalized_support_text(text)
+    if not phrase:
+        return 1.0
+    if phrase in text:
+        return 1.0
+    if re.fullmatch(r"[一-鿿]+", phrase) and len(phrase) >= 3:
+        bigrams = _dedupe_preserving_order([phrase[index:index + 2] for index in range(len(phrase) - 1)])
+        return sum(token in text for token in bigrams) / max(len(bigrams), 1)
+    return 0.0
+
+
+def _assess_evidence_support(
+    query: str,
+    evidence_items: list[dict],
+    *,
+    matched_concepts: list[str] | None = None,
+) -> dict:
+    """Reject topic-only matches when no evidence supports the question focus."""
+    topics, focus = _extract_query_focus(query, matched_concepts)
+    if not evidence_items:
+        return {
+            "status": "insufficient",
+            "reason": "required_literal_missing_or_no_candidates",
+            "topic_terms": topics,
+            "focus_terms": focus,
+            "matched_focus_terms": [],
+            "best_focus_coverage": 0.0,
+            "best_query_coverage": 0.0,
+        }
+
+    evidence_texts = [
+        f"{item.get('section_title', '')}\n{item.get('text', '')}"
+        for item in evidence_items
+    ]
+    focus_coverages = {
+        phrase: max((_focus_coverage(phrase, text) for text in evidence_texts), default=0.0)
+        for phrase in focus
+    }
+    matched_focus = [phrase for phrase, coverage in focus_coverages.items() if coverage >= 0.6]
+    best_focus_coverage = max(focus_coverages.values(), default=1.0 if not focus else 0.0)
+    best_query_coverage = max((float(item.get("query_coverage", 0.0)) for item in evidence_items), default=0.0)
+    strong_evidence = any(
+        item.get("is_direct_hit")
+        or "kg" in set(item.get("fusion_sources") or [])
+        or {"dense", "bm25"}.issubset(set(item.get("fusion_sources") or []))
+        or float(item.get("query_coverage", 0.0)) >= 0.5
+        for item in evidence_items
+    )
+
+    if not focus and strong_evidence:
+        status, reason = "supported", "topic_supported"
+    elif focus and len(matched_focus) == len(focus) and strong_evidence:
+        status, reason = "supported", "question_focus_supported"
+    elif matched_focus or (strong_evidence and best_query_coverage >= 0.45):
+        status, reason = "partial", "question_focus_partially_supported"
+    else:
+        status, reason = "insufficient", "topic_matched_but_question_focus_missing"
+
+    return {
+        "status": status,
+        "reason": reason,
+        "topic_terms": topics,
+        "focus_terms": focus,
+        "matched_focus_terms": matched_focus,
+        "best_focus_coverage": round(best_focus_coverage, 6),
+        "best_query_coverage": round(best_query_coverage, 6),
+    }
 
 
 def _find_debug_for_content(content: str, debug_by_preview: dict[str, dict]) -> dict | None:
@@ -318,7 +482,7 @@ def _kg_precise_retrieval(kg, user_input: str, intent: str = "qa") -> tuple[list
     return results, matched_names
 
 
-def _vector_retrieval(vs, user_input: str, *, intent: str = "qa", book_name: str = "", target_chapters: list[str], precise_chapters: list[str], k: int = 3, top_n: int = 2) -> list[dict]:
+def _vector_retrieval(vs, user_input: str, *, intent: str = "qa", book_name: str = "", target_chapters: list[str], precise_chapters: list[str], fallback_chapters: list[str] | None = None, k: int = 3, top_n: int = 2) -> list[dict]:
     results: list[dict] = []
     priority_roles = INTENT_ROLE_PRIORITY.get(intent, [])
     search_scope: list[str] = []
@@ -339,13 +503,13 @@ def _vector_retrieval(vs, user_input: str, *, intent: str = "qa", book_name: str
                 except Exception:
                     pass
     else:
-        all_results, used_role = _search_all_with_role(vs, user_input, k, top_n, priority_roles, book_name=book_name)
+        all_results, used_role = _search_all_with_role(vs, user_input, k, top_n, priority_roles, book_name=book_name, fallback_chapters=fallback_chapters)
         for ch_name, docs in all_results.items():
             for d in docs:
                 results.append(_doc_to_item(d, ch_name, f"vector({used_role})" if used_role else "vector"))
         if used_role == "example":
             try:
-                for ch_name, docs in vs.search_all(user_input, k=k * 2, top_n=top_n, book_name=book_name).items():
+                for ch_name, docs in vs.search_all(user_input, k=k * 2, top_n=top_n, book_name=book_name, fallback_chapters=fallback_chapters).items():
                     for d in docs:
                         results.append(_doc_to_item(d, ch_name, "vector(example_boost)"))
             except Exception:
@@ -384,9 +548,9 @@ def _search_chapter_with_role(vs, chapter: str, query: str, k: int, priority_rol
         return [], None
 
 
-def _search_all_with_role(vs, query: str, k: int, top_n: int, priority_roles: list[str], book_name: str = ""):
+def _search_all_with_role(vs, query: str, k: int, top_n: int, priority_roles: list[str], book_name: str = "", fallback_chapters: list[str] | None = None):
     try:
-        return vs.search_all(query, k=k, top_n=top_n, book_name=book_name), None
+        return vs.search_all(query, k=k, top_n=top_n, book_name=book_name, fallback_chapters=fallback_chapters), None
     except Exception:
         return {}, None
 
@@ -415,7 +579,11 @@ def _merge_and_rerank(
             source_key = "bm25" if source == "bm25" else ("kg" if source.startswith("kg") else "dense")
             rank = int(item.get("retrieval_rank") or position)
             source_ranks[(key, source_key)] = min(rank, source_ranks.get((key, source_key), rank))
-            fused.setdefault(key, item)
+            existing = fused.get(key)
+            if existing is None or source_key == "bm25":
+                # The lexical index stores the complete chunk. Dense hits may use a
+                # shorter child representation with the same chunk_id.
+                fused[key] = item
             if item.get("is_direct_hit"):
                 fused[key]["is_direct_hit"] = True
                 fused[key]["source"] = source
@@ -433,7 +601,7 @@ def _merge_and_rerank(
                 sources.append(source_key)
         if item.get("is_direct_hit"):
             score += 0.05
-        item_tokens = set(tokenize(str(item.get("text") or "")))
+        item_tokens = set(tokenize(f"{item.get('section_title', '')}\n{item.get('text', '')}"))
         coverage = 0.0
         if query_tokens:
             coverage = len(query_tokens & item_tokens) / len(query_tokens)
@@ -447,6 +615,12 @@ def _merge_and_rerank(
             score += 0.035
         elif book_role == "reference":
             score -= 0.006
+        # Explicit user selection is independent of the core/reference role.
+        # Keep selected reference evidence from disappearing behind generic core chunks.
+        if item.get("is_selected_book"):
+            score += 0.045
+            if intent == "factual_recall" and "bm25" in sources:
+                score += 0.025
         if item.get("source") == "neighbor":
             score -= 0.004
         if _looks_like_toc_chunk(item):
@@ -462,7 +636,20 @@ def _merge_and_rerank(
             item["score"] = float(item.get("score", 0)) + 0.15 * cross_score
     rerank_meta = reranker_status()
 
-    ranked.sort(key=lambda item: (-float(item.get("score", 0)), item.get("page_idx", 999999)))
+    enumeration_query = intent == "factual_recall" and any(
+        marker in query for marker in ("哪些", "优点", "特点", "不足", "缺点", "主要")
+    )
+    if enumeration_query:
+        # List answers are commonly split across consecutive textbook chunks.
+        # Preserve the selected book BM25 order so exact list members survive Top-K.
+        ranked.sort(key=lambda item: (
+            0 if item.get("is_selected_book") and "bm25" in item.get("fusion_sources", []) else 1,
+            int(item.get("retrieval_rank") or 999999),
+            -float(item.get("score", 0)),
+            item.get("page_idx", 999999),
+        ))
+    else:
+        ranked.sort(key=lambda item: (-float(item.get("score", 0)), item.get("page_idx", 999999)))
     chapter_contents: dict[str, list[str]] = {}
     debug_items: list[dict] = []
     total = 0
@@ -490,6 +677,7 @@ def _merge_and_rerank(
             "role": item.get("role", ""),
             "book_name": item.get("book_name", ""),
             "book_role": item.get("book_role", ""),
+            "is_selected_book": bool(item.get("is_selected_book")),
             "rag_priority": item.get("rag_priority", 1.0),
             "section_title": item.get("section_title", ""),
             "page_idx": item.get("page_idx", -1),

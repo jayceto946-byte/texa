@@ -92,6 +92,7 @@ def build_initial_state(
         "chapter_contents": {},
         "retrieval_debug_items": [],
         "evidence_items": [],
+        "evidence_support": {},
         "index_stats": {},
         "concept_results": [],
         "history_results": [],

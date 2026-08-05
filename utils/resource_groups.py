@@ -25,13 +25,13 @@ def resolve_retrieval_resources(book_name: str, subject: str = "") -> list[dict[
     """Return the selected book or its explicitly configured core/reference group."""
     selected = safe_book_name(book_name)
     if not selected or selected == "default":
-        return [{"book_name": book_name, "role": "", "priority": 1.0, "is_primary": True}]
+        return [{"book_name": book_name, "role": "", "priority": 1.0, "is_primary": True, "is_selected": True}]
     selected_meta = read_book_resource_meta(selected)
     selected_role = str(selected_meta.get("book_role") or "standalone").strip().lower()
     selected_group = str(selected_meta.get("resource_group") or "").strip()
     selected_subject = str(selected_meta.get("subject") or subject or "").strip()
     if selected_role not in GROUP_ROLES:
-        return [_resource(selected, selected_meta, True)]
+        return [_resource(selected, selected_meta, True, True)]
 
     candidates: list[tuple[str, dict[str, Any]]] = []
     root = Path(PROGRESS_PATH)
@@ -52,16 +52,17 @@ def resolve_retrieval_resources(book_name: str, subject: str = "") -> list[dict[
         candidates.append((selected, selected_meta))
     candidates.sort(key=lambda item: (0 if str(item[1].get("book_role") or "") == "core" else 1, -_priority(item[1]), item[0]))
     primary_name = next((name for name, meta in candidates if str(meta.get("book_role") or "") == "core"), selected)
-    return [_resource(name, meta, name == primary_name) for name, meta in candidates]
+    return [_resource(name, meta, name == primary_name, name == selected) for name, meta in candidates]
 
 
-def _resource(book_name: str, meta: dict[str, Any], is_primary: bool) -> dict[str, Any]:
+def _resource(book_name: str, meta: dict[str, Any], is_primary: bool, is_selected: bool) -> dict[str, Any]:
     role = str(meta.get("book_role") or "").strip().lower()
     return {
         "book_name": safe_book_name(book_name),
         "role": role if role in GROUP_ROLES else "",
         "priority": _priority(meta),
         "is_primary": is_primary,
+        "is_selected": is_selected,
         "resource_group": str(meta.get("resource_group") or "").strip(),
     }
 
