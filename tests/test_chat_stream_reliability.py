@@ -1,4 +1,5 @@
 import json
+from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 
@@ -121,7 +122,44 @@ def test_chat_stream_disables_wrong_textbook_context_for_subject_suggestion(monk
     ]
     assert response.status_code == 200
     assert captured["use_textbook_context"] is False
+    assert captured["answer_mode"] == "subject_mismatch"
     assert events[-1]["subject_suggestion"] == suggestion
+
+
+def test_chat_ask_explicit_global_mode_bypasses_subject_boundary(monkeypatch):
+    import backend.api.chat as chat_api
+    import graph.main_graph as main_graph
+
+    monkeypatch.setattr(chat_api, "load_history", lambda conversation_id: [])
+    monkeypatch.setattr(chat_api, "rewrite_followup", lambda question, history, book_name="default", subject="": question)
+    monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: None)
+
+    captured = {}
+
+    def fake_run_graph(**kwargs):
+        captured.update(kwargs)
+        return {
+            "final_output": "QKV answer",
+            "intent": "definition",
+            "target_chapters": [],
+            "linked_concepts": [],
+            "chapter_contents": {},
+        }
+
+    monkeypatch.setattr(main_graph, "run_graph", fake_run_graph)
+
+    client = TestClient(app)
+    response = client.post("/api/chat/ask", json={
+        "question": "Transformer 的 QKV 是什么？",
+        "book_name": "传感器短书",
+        "subject": "专业课/传感器",
+        "answer_mode": "global_general",
+    })
+
+    assert response.status_code == 200
+    assert captured["answer_mode"] == "global_general"
+    assert captured["use_textbook_context"] is False
+    assert response.json()["answer_mode"] == "global_general"
 
 
 def test_chat_ask_passes_target_chapters(monkeypatch):
@@ -186,3 +224,36 @@ def test_chat_stream_replace_event_overwrites_persisted_assistant_content(monkey
     assert response.status_code == 200
     assistant_contents = [content for role, content in saved if role == "assistant"]
     assert assistant_contents == ["gradient $\\nabla f$"]
+
+
+def test_chat_stream_exposes_and_persists_explicit_grounding_fallback(monkeypatch):
+    import backend.api.chat as chat_api
+    import graph.main_graph as main_graph
+
+    monkeypatch.setattr(chat_api, "load_history", lambda conversation_id: [])
+    monkeypatch.setattr(chat_api, "rewrite_followup", lambda question, history, book_name="", subject="": question)
+    monkeypatch.setattr(chat_api, "decide_answer_scope", lambda *args, **kwargs: SimpleNamespace(
+        answer_mode="textbook_grounded", use_textbook_context=True, reason="book_concept_match",
+    ))
+    saved = []
+    monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: saved.append(kwargs) or {"id": "message"})
+
+    def fake_run_graph_stream(**kwargs):
+        yield {"stage": "generate", "chunk": "教材证据不足。", "done": False, "suggested_answer_mode": "subject_general"}
+        yield {"stage": "generate", "chunk": "", "done": True, "suggested_answer_mode": "subject_general"}
+        yield {"stage": "done", "state": {"suggested_answer_mode": "subject_general"}, "enriched": False}
+
+    monkeypatch.setattr(main_graph, "run_graph_stream", fake_run_graph_stream)
+
+    response = TestClient(app).post("/api/chat/stream", json={
+        "question": "复杂教材问题", "book_name": "demo", "subject": "专业课/传感器",
+    })
+    events = [
+        json.loads(block[6:])
+        for block in response.text.strip().split("\n\n")
+        if block.startswith("data: ")
+    ]
+
+    assert events[-1]["suggested_answer_mode"] == "subject_general"
+    assistant_save = next(item for item in saved if item.get("answer_mode"))
+    assert assistant_save["suggested_answer_mode"] == "subject_general"

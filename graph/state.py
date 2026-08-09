@@ -16,6 +16,8 @@ class AgentState(TypedDict):
     subject: str
     conversation_id: str
     use_textbook_context: bool
+    answer_mode: str
+    scope_reason: str
 
     # === 会话上下文 ===
     messages: Annotated[list[dict], operator.add]
@@ -25,12 +27,15 @@ class AgentState(TypedDict):
     sub_tasks: list[dict]       # [{step, description, agent, chapter}]
     target_chapters: list[str]
     route_decision: str
+    planner_trace: dict
 
     # === 检索结果 ===
     chapter_contents: dict      # {chapter_name: [docs]}
     retrieval_debug_items: list[dict]  # final prompt chunks with metadata for eval/debug
     evidence_items: list[dict]  # selected textbook evidence passed to generation
     evidence_support: dict  # query-level support gate: supported | partial | insufficient | unavailable
+    suggested_answer_mode: str
+    citation_trace: dict
     index_stats: dict  # selected textbook index health
     concept_results: list[dict]  # 语义检索结果
     history_results: list[dict]  # 学习历史

@@ -58,14 +58,35 @@ def test_factual_recall_preserves_parallel_points_from_same_chapter():
     assert [item["chunk_id"] for item in pack["items"]] == ["a", "b", "c", "d", "e", "f"]
 
 
-def test_evidence_pack_uses_real_book_label_and_omits_unknown_page():
+def test_evidence_pack_uses_evidence_id_header_and_keeps_label_in_items():
     item = _item("a", "chapter-1", "definition")
     item["page_idx"] = -1
 
     pack = build_evidence_pack([item], {})
 
-    assert "[Sensor Textbook\u00b7chapter-1 / chapter-1]" in pack["text"]
+    # LLM 只看到稳定的证据编号，不再看到 human-readable 教材路径
+    assert "[E1]" in pack["text"]
+    assert "Sensor Textbook" not in pack["text"]
     assert "p.?" not in pack["text"]
+    assert pack["items"][0]["id"] == "E1"
+    assert pack["items"][0]["label"] == "Sensor Textbook\u00b7chapter-1"
+
+
+def test_evidence_pack_preserves_existing_section_path_without_inventing_parents():
+    item = _item("a", "第六章 压电式传感器", "definition")
+    item.update({
+        "section_title": "一、压电式加速度传感器",
+        "section_path": '["第六章 压电式传感器", "一、压电式加速度传感器"]',
+        "chunk_index": 17,
+        "page_idx": -1,
+    })
+
+    source = build_evidence_pack([item], {})["items"][0]
+
+    assert source["section_path"] == ["第六章 压电式传感器", "一、压电式加速度传感器"]
+    assert source["chunk_index"] == 17
+    assert source["heading_level"] == 3
+    assert source["label"] == "Sensor Textbook·第六章 压电式传感器 / 一、压电式加速度传感器"
 
 
 def test_generator_uses_selected_evidence_only_once():

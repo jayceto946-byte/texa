@@ -90,6 +90,11 @@ def append_message(
     *,
     turn_id: str = "",
     message_id: str = "",
+    sources: list | None = None,
+    linked_concepts: list | None = None,
+    answer_mode: str = "",
+    scope_reason: str = "",
+    suggested_answer_mode: str = "",
 ) -> dict:
     subject = normalize_subject_value(subject)
     now = time.strftime("%Y-%m-%dT%H:%M:%S")
@@ -105,6 +110,16 @@ def append_message(
             "subject": subject,
             "created_at": now,
         }
+        if sources:
+            item["sources"] = sources
+        if linked_concepts:
+            item["linked_concepts"] = linked_concepts
+        if answer_mode:
+            item["answer_mode"] = answer_mode
+        if scope_reason:
+            item["scope_reason"] = scope_reason
+        if suggested_answer_mode:
+            item["suggested_answer_mode"] = suggested_answer_mode
         history.append(item)
         payload = {
             "id": conversation_id,
@@ -116,6 +131,33 @@ def append_message(
         }
         atomic_write_json(_path(conversation_id), payload)
         return item
+
+
+def update_message_linked_concepts(
+    conversation_id: str,
+    message_id: str,
+    linked_concepts: list | None,
+) -> bool:
+    """把概念标签快照挂到已持久化的 assistant 消息上（用于历史会话回读）。
+
+    概念在流式回答的 done 阶段才计算完成，主消息已在 generate done 时写入；
+    这里只做原位补写，不新增消息，不触发重新抽取。
+    """
+    if not message_id or not linked_concepts:
+        return False
+    with _conversation_lock(conversation_id):
+        payload = _read_payload(conversation_id)
+        history = payload.get("messages", []) if isinstance(payload, dict) else []
+        updated = False
+        for item in history:
+            if isinstance(item, dict) and item.get("id") == message_id and item.get("role") == "assistant":
+                item["linked_concepts"] = linked_concepts
+                updated = True
+                break
+        if updated:
+            payload["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+            atomic_write_json(_path(conversation_id), payload)
+        return updated
 
 
 def reclassify_conversation(conversation_id: str, subject: str, book_name: str = "") -> dict:
@@ -295,29 +337,17 @@ def _messages_for_scope(messages: list[dict], subject: str, book_name: str) -> l
     ]
 
 
+# ---------------------------------------------------------------------------
+# Session 上下文追问解析（Conversation Resolver，结构化状态，毫秒级，无 LLM）
+# ---------------------------------------------------------------------------
+# 实现位于 services/session_context.py；conversation_memory 只保留兼容入口。
+
 def rewrite_followup(question: str, history: list[dict], book_name: str = "", subject: str = "") -> str:
-    """Turn an explicit anaphoric follow-up into a compact retrieval query."""
-    question = question.strip()
-    if not history or not _looks_like_followup(question):
-        return question
-    previous_user = next(
-        (_strip_internal_references(str(item.get("content", ""))) for item in reversed(history) if item.get("role") == "user" and str(item.get("content", "")).strip()),
-        "",
-    )
-    if not previous_user:
-        return question
-    scope = " / ".join(value for value in (subject.strip(), book_name.strip()) if value)
-    prefix = f"[{scope}] " if scope else ""
-    return f"{prefix}{previous_user[:500]}；{question}"
+    """把追问交给结构化 Session Context 解析器。"""
+    del book_name, subject  # scope 已由 conversation_id 隔离；参数仅为兼容旧调用。
+    from backend.services.session_context import resolve_followup
 
-
-def _looks_like_followup(question: str) -> bool:
-    compact = re.sub(r"\s+", "", question)
-    markers = [
-        "\u8fd9\u4e2a", "\u90a3\u4e2a", "\u4e0a\u9762", "\u521a\u624d", "\u524d\u9762", "\u7ee7\u7eed",
-        "\u8fd9\u91cc", "\u5b83", "\u5176", "\u8fd9\u4e00\u6b65", "\u518d\u89e3\u91ca", "\u5c55\u5f00", "\u8ffd\u95ee",
-    ]
-    return any(marker in compact for marker in markers)
+    return resolve_followup(question, history)
 
 
 def _strip_internal_references(text: str) -> str:

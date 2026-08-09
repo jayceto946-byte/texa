@@ -19,9 +19,11 @@ from backend.conversation_memory import (
     reclassify_conversation,
     rewrite_followup,
     split_turn_to_conversation,
+    update_message_linked_concepts,
 )
 from backend.schemas import ChatRequest, ConversationScopeRequest, ConversationSplitTurnRequest, SubjectRoutingFeedbackRequest
 from backend.services.subject_routing import record_subject_routing_feedback, suggest_subject_scope
+from backend.services.textbook_scope import decide_answer_scope
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
@@ -123,11 +125,21 @@ def chat_stream(req: ChatRequest):
     conversation_id = resolve_conversation_id_for_scope(req.conversation_id, subject, book_name)
     turn_id = ensure_turn_id(req.turn_id)
     history = load_history(conversation_id)
-    subject_suggestion = _safe_subject_suggestion(req.question, subject, book_name)
+    rewritten_question = rewrite_followup(req.question, history, book_name=book_name, subject=subject)
+    subject_suggestion = _safe_subject_suggestion(rewritten_question, subject, book_name)
     # Do not retrieve from a known-wrong textbook while the user decides
     # whether to move the turn or relabel the conversation.
-    use_textbook_context = bool(book_name) and subject_suggestion is None
-    rewritten_question = rewrite_followup(req.question, history, book_name=book_name, subject=subject)
+    scope_decision = decide_answer_scope(
+        req.question,
+        rewritten_question,
+        book_name=book_name,
+        subject=subject,
+        subject_suggestion=subject_suggestion,
+        requested_mode=req.answer_mode,
+    )
+    use_textbook_context = scope_decision.use_textbook_context
+    scope_reason = scope_decision.reason
+    answer_mode = scope_decision.answer_mode
 
     def event_generator():
         from backend.rag_trace import new_request_id, save_trace
@@ -145,9 +157,12 @@ def chat_stream(req: ChatRequest):
         assistant_chunks: list[str] = []
         assistant_persisted = False
         assistant_persistence_error = ""
+        assistant_sources: list = []
+        assistant_message_id = ""
+        suggested_answer_mode = ""
 
         def persist_assistant() -> str:
-            nonlocal assistant_persisted, assistant_persistence_error
+            nonlocal assistant_persisted, assistant_persistence_error, assistant_message_id
             if assistant_persisted:
                 return assistant_persistence_error
 
@@ -158,7 +173,19 @@ def chat_stream(req: ChatRequest):
                 return ""
 
             try:
-                append_message(conversation_id, "assistant", content, book_name=book_name, subject=subject, turn_id=turn_id)
+                item = append_message(
+                    conversation_id,
+                    "assistant",
+                    content,
+                    book_name=book_name,
+                    subject=subject,
+                    turn_id=turn_id,
+                    sources=assistant_sources,
+                    answer_mode=answer_mode,
+                    scope_reason=scope_reason,
+                    suggested_answer_mode=suggested_answer_mode,
+                )
+                assistant_message_id = str((item or {}).get("id") or "")
                 assistant_persisted = True
                 assistant_persistence_error = ""
             except Exception as exc:
@@ -180,12 +207,16 @@ def chat_stream(req: ChatRequest):
             if stage == "plan":
                 intent = str(event.get("intent") or "")
                 fast_path = bool(event.get("fast_path"))
+                if event.get("planner_trace"):
+                    timings["planner"] = event["planner_trace"]
             if stage == "generate" and event.get("chunk") and ttft_ms is None:
                 ttft_ms = round((now - started) * 1000, 2)
                 timings["generate_ttft"] = round((now - (generation_started or started)) * 1000, 2)
                 event["ttft_ms"] = ttft_ms
             if stage == "done":
                 final_state = event.get("state") or {}
+                if final_state.get("citation_trace"):
+                    timings["citation"] = final_state["citation_trace"]
                 stage_ms = round((now - (generation_started or last_milestone_at)) * 1000, 2)
                 timings["generate"] = stage_ms
                 timings["total"] = round((now - started) * 1000, 2)
@@ -197,7 +228,7 @@ def chat_stream(req: ChatRequest):
 
         graph_events = None
         try:
-            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'rewritten_question': rewritten_question if rewritten_question != req.question else ''}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'rewritten_question': rewritten_question if rewritten_question != req.question else '', 'use_textbook_context': use_textbook_context, 'scope_reason': scope_reason, 'answer_mode': answer_mode}, ensure_ascii=False)}\n\n"
             append_message(conversation_id, "user", req.question, book_name=book_name, subject=subject, turn_id=turn_id)
             context_finished = time.perf_counter()
             timings["context"] = round((context_finished - started) * 1000, 2)
@@ -209,12 +240,18 @@ def chat_stream(req: ChatRequest):
                 conversation_id=conversation_id,
                 target_chapters=req.target_chapters or [],
                 use_textbook_context=use_textbook_context,
+                answer_mode=answer_mode,
+                scope_reason=scope_reason,
             )
             for event in graph_events:
+                if event.get("suggested_answer_mode"):
+                    suggested_answer_mode = str(event["suggested_answer_mode"])
                 observe(event)
                 event["conversation_id"] = conversation_id
                 event["turn_id"] = turn_id
                 if event.get("stage") == "generate":
+                    if event.get("evidence_sources") is not None:
+                        assistant_sources = event["evidence_sources"]
                     if event.get("replace"):
                         assistant_chunks[:] = [str(event.get("chunk") or "")]
                     elif event.get("chunk"):
@@ -224,8 +261,21 @@ def chat_stream(req: ChatRequest):
                 if event.get("stage") == "done":
                     persistence_error = persist_assistant()
                     event["subject_suggestion"] = subject_suggestion
+                    event["answer_mode"] = answer_mode
+                    event["scope_reason"] = scope_reason
+                    event["suggested_answer_mode"] = (
+                        suggested_answer_mode
+                        or str((event.get("state") or {}).get("suggested_answer_mode") or "")
+                    )
                     if persistence_error:
                         event["persistence_error"] = persistence_error
+                    # 概念标签在 done 阶段才计算完成：补写历史回读所需的快照，避免重抽。
+                    concepts = (event.get("state") or {}).get("linked_concepts") or []
+                    if concepts and assistant_message_id:
+                        try:
+                            update_message_linked_concepts(conversation_id, assistant_message_id, concepts[:12])
+                        except Exception:
+                            logger.exception("concepts persistence failed")
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
         except GeneratorExit:
             logger.info("chat stream disconnected", extra={"request_id": request_id})
@@ -248,6 +298,7 @@ def chat_stream(req: ChatRequest):
                 save_trace({
                     "request_id": request_id, "conversation_id": conversation_id,
                     "book_name": book_name, "question": req.question, "intent": intent,
+                    "answer_mode": answer_mode, "scope_reason": scope_reason,
                     "fast_path": fast_path, "status": "error" if last_stage == "error" else "done",
                     "ttft_ms": ttft_ms, "total_ms": round((now - started) * 1000, 2),
                     "timings": timings, "evidence": final_state.get("retrieval_debug_items", []),
@@ -268,9 +319,19 @@ def chat_ask(req: ChatRequest):
     conversation_id = resolve_conversation_id_for_scope(req.conversation_id, subject, book_name)
     turn_id = ensure_turn_id(req.turn_id)
     history = load_history(conversation_id)
-    subject_suggestion = _safe_subject_suggestion(req.question, subject, book_name)
-    use_textbook_context = bool(book_name) and subject_suggestion is None
     rewritten_question = rewrite_followup(req.question, history, book_name=book_name, subject=subject)
+    subject_suggestion = _safe_subject_suggestion(rewritten_question, subject, book_name)
+    scope_decision = decide_answer_scope(
+        req.question,
+        rewritten_question,
+        book_name=book_name,
+        subject=subject,
+        subject_suggestion=subject_suggestion,
+        requested_mode=req.answer_mode,
+    )
+    use_textbook_context = scope_decision.use_textbook_context
+    scope_reason = scope_decision.reason
+    answer_mode = scope_decision.answer_mode
     append_message(conversation_id, "user", req.question, book_name=book_name, subject=subject, turn_id=turn_id)
 
     result = run_graph(
@@ -280,19 +341,38 @@ def chat_ask(req: ChatRequest):
         conversation_id=conversation_id,
         target_chapters=req.target_chapters or [],
         use_textbook_context=use_textbook_context,
+        answer_mode=answer_mode,
+        scope_reason=scope_reason,
     )
     content = result.get("final_output", "")
     if content.strip():
-        append_message(conversation_id, "assistant", content, book_name=book_name, subject=subject, turn_id=turn_id)
+        append_message(
+            conversation_id,
+            "assistant",
+            content,
+            book_name=book_name,
+            subject=subject,
+            turn_id=turn_id,
+            sources=result.get("evidence_sources", []),
+            linked_concepts=result.get("linked_concepts", []),
+            answer_mode=answer_mode,
+            scope_reason=scope_reason,
+            suggested_answer_mode=str(result.get("suggested_answer_mode") or ""),
+        )
 
     return {
         "content": content,
         "intent": result.get("intent", ""),
         "chapters": result.get("target_chapters", []),
         "linked_concepts": result.get("linked_concepts", []),
+        "sources": result.get("evidence_sources", []),
         "conversation_id": conversation_id,
         "turn_id": turn_id,
         "subject_suggestion": subject_suggestion,
+        "use_textbook_context": use_textbook_context,
+        "scope_reason": scope_reason,
+        "answer_mode": answer_mode,
+        "suggested_answer_mode": str(result.get("suggested_answer_mode") or ""),
         "rewritten_question": rewritten_question if rewritten_question != req.question else "",
         "chapter_contents": {k: [d[:200] for d in v[:3]] for k, v in result.get("chapter_contents", {}).items()},
     }

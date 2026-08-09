@@ -19,6 +19,7 @@ class ChatRequest(BaseModel):
     subject: str = Field(default="", description="Selected subject")
     conversation_id: str = Field(default="", description="Conversation id for follow-up context")
     turn_id: str = Field(default="", description="Stable id shared by the user/assistant turn")
+    answer_mode: str = Field(default="auto", description="auto/textbook_grounded/subject_general/global_general")
 
 
 class ConversationScopeRequest(BaseModel):
@@ -42,6 +43,7 @@ class ChatEvent(BaseModel):
     intent: Optional[str] = None
     chapters: Optional[list[str]] = None
     fast_path: Optional[bool] = None
+    planner_trace: Optional[dict] = None
     content_count: Optional[int] = None
     has_teaching: Optional[bool] = None
     chunk: Optional[str] = None
@@ -53,6 +55,10 @@ class ChatEvent(BaseModel):
     turn_id: Optional[str] = None
     subject_suggestion: Optional[dict] = None
     rewritten_question: Optional[str] = None
+    use_textbook_context: Optional[bool] = None
+    scope_reason: Optional[str] = None
+    answer_mode: Optional[str] = None
+    suggested_answer_mode: Optional[str] = None
     retrieval_status: Optional[str] = None
     retrieval_error: Optional[str] = None
 

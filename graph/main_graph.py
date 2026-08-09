@@ -6,6 +6,7 @@
 - 集成 ConceptMemory：回答后自动提取概念 + 附加学习提醒
 """
 import threading
+import time
 from langgraph.graph import StateGraph, START, END
 from graph.state import AgentState
 from graph.planner import plan_node
@@ -72,6 +73,8 @@ def build_initial_state(
     user_feedback: dict = None,
     target_chapters: list[str] = None,
     use_textbook_context: bool | None = None,
+    answer_mode: str = "",
+    scope_reason: str = "",
 ) -> dict:
     """构建 LangGraph 的初始状态字典。"""
     return {
@@ -84,15 +87,20 @@ def build_initial_state(
         "subject": subject,
         "conversation_id": conversation_id,
         "use_textbook_context": bool(book_name) if use_textbook_context is None else use_textbook_context,
+        "answer_mode": answer_mode or ("textbook_grounded" if (bool(book_name) if use_textbook_context is None else use_textbook_context) else ("subject_general" if subject else "global_general")),
+        "scope_reason": scope_reason,
         "messages": [],
         "intent": "",
         "sub_tasks": [],
         "target_chapters": target_chapters or [],
         "route_decision": "",
+        "planner_trace": {},
         "chapter_contents": {},
         "retrieval_debug_items": [],
         "evidence_items": [],
         "evidence_support": {},
+        "suggested_answer_mode": "",
+        "citation_trace": {},
         "index_stats": {},
         "concept_results": [],
         "history_results": [],
@@ -124,7 +132,9 @@ def run_graph(user_input: str, book_name: str = "default",
               user_images: list[str] = None,
               user_feedback: dict = None,
               target_chapters: list[str] = None,
-              use_textbook_context: bool | None = None) -> dict:
+              use_textbook_context: bool | None = None,
+              answer_mode: str = "",
+              scope_reason: str = "") -> dict:
     """运行一次完整的图谱推理（同步阻塞版）。"""
     graph = get_graph()
     initial_state = build_initial_state(
@@ -136,6 +146,8 @@ def run_graph(user_input: str, book_name: str = "default",
         user_feedback=user_feedback,
         target_chapters=target_chapters,
         use_textbook_context=use_textbook_context,
+        answer_mode=answer_mode,
+        scope_reason=scope_reason,
     )
     result = graph.invoke(initial_state)
     return result
@@ -150,6 +162,8 @@ def run_graph_stream(
     user_feedback: dict = None,
     target_chapters: list[str] = None,
     use_textbook_context: bool | None = None,
+    answer_mode: str = "",
+    scope_reason: str = "",
 ):
     """流式运行 graph pipeline，yield 事件供 UI 消费。
 
@@ -166,10 +180,11 @@ def run_graph_stream(
     from graph.chapter_subgraph import (
         prepare_chapter_subgraph, TEACH_PROMPT, _future_result_if_done,
     )
-    from graph.generator import _build_generate_prompt, _format_quiz_appendix, grounded_failure_message, has_textbook_evidence
+    from graph.generator import _build_generate_prompt, _format_quiz_appendix, grounded_failure_message, has_textbook_evidence, scope_boundary_message, suggested_fallback_mode
     from graph.feedback_node import feedback_node, link_concepts_for_response
     from knowledge.summary_store import SummaryStore
     from utils.latex_sanitizer import sanitize_latex
+    from utils.citation_protocol import sanitize_citation_protocol
     from utils.thinking_filter import ThinkingFilter
     from config import get_llm
 
@@ -182,9 +197,12 @@ def run_graph_stream(
         user_feedback=user_feedback,
         target_chapters=target_chapters,
         use_textbook_context=use_textbook_context,
+        answer_mode=answer_mode,
+        scope_reason=scope_reason,
     )
 
     # ── Step 0: 本地意图分类 ──
+    plan_enter = time.perf_counter()
     local_result = classify_intent_local(user_input)
     fast_path = is_fast_path_eligible(user_input, local_result)
     intent = local_result["intent"]
@@ -192,31 +210,27 @@ def run_graph_stream(
     if fast_path:
         # Fast Path：跳过 plan LLM，直接用本地分类结果
         state["intent"] = intent
-        # 章节如果没传，用向量检索补
-        if state.get("use_textbook_context", True) and not state.get("target_chapters"):
-            from graph.safe_retrieval import get_safe_vector_store
-
-            vs, vector_error = get_safe_vector_store()
-            if vector_error:
-                state["retrieval_status"] = "degraded"
-                state["retrieval_error"] = f"vector_store: {vector_error}"
-            else:
-                try:
-                    all_results = vs.search_all(user_input, k=1, book_name=state.get("book_name", ""))
-                    state["target_chapters"] = list(all_results.keys())[:2]
-                except Exception as exc:
-                    state["retrieval_status"] = "degraded"
-                    state["retrieval_error"] = f"vector_search: {exc}"
+        state["planner_trace"] = {
+            "mode": "fast_path",
+            "model": "deterministic",
+            "chapter_fallback_ms": 0.0,
+            "chapter_lookup_skipped": True,
+            "plan_total_ms": round((time.perf_counter() - plan_enter) * 1000, 2),
+        }
         yield {
             "stage": "plan",
             "intent": intent,
             "chapters": state.get("target_chapters", []),
             "fast_path": True,
+            "planner_trace": state["planner_trace"],
+            "use_textbook_context": state.get("use_textbook_context", True),
+            "answer_mode": state.get("answer_mode", ""),
         }
     else:
         # 正常路径：把本地分类结果作为 hint 传给 plan_node
         state["_local_intent"] = intent
         state["_local_intent_hint"] = local_result["hint"]
+        state["_local_intent_locked"] = bool(local_result.get("intent_locked"))
         state.update(plan_node(state))
         intent = state.get("intent", "qa")
         yield {
@@ -224,6 +238,9 @@ def run_graph_stream(
             "intent": intent,
             "chapters": state.get("target_chapters", []),
             "fast_path": False,
+            "planner_trace": state.get("planner_trace", {}),
+            "use_textbook_context": state.get("use_textbook_context", True),
+            "answer_mode": state.get("answer_mode", ""),
         }
 
     # ── Retrieve ──
@@ -233,6 +250,8 @@ def run_graph_stream(
         "content_count": len(state.get("chapter_contents", {})),
         "retrieval_status": state.get("retrieval_status", "ok"),
         "retrieval_error": state.get("retrieval_error", ""),
+        "use_textbook_context": state.get("use_textbook_context", True),
+        "answer_mode": state.get("answer_mode", ""),
     }
 
     # ── Chapter subgraph (条件) ──
@@ -309,13 +328,19 @@ def run_graph_stream(
         elif chapter_summary:
             content += f"\n\n---\n\n## 章节总结\n{chapter_summary}"
         state["final_output"] = sanitize_latex(content)
-        yield {"stage": "generate", "chunk": "", "done": True}
+        yield {"stage": "generate", "chunk": "", "done": True, "evidence_sources": state.get("evidence_sources", [])}
     else:
-        if state.get("use_textbook_context", True) and not has_textbook_evidence(state):
-            buffer = grounded_failure_message(state)
+        if state.get("answer_mode") == "subject_mismatch":
+            buffer = scope_boundary_message(state)
             state["final_output"] = buffer
             yield {"stage": "generate", "chunk": buffer, "done": False}
-            yield {"stage": "generate", "chunk": "", "done": True}
+            yield {"stage": "generate", "chunk": "", "done": True, "evidence_sources": []}
+        elif state.get("use_textbook_context", True) and not has_textbook_evidence(state):
+            buffer = grounded_failure_message(state)
+            state["suggested_answer_mode"] = suggested_fallback_mode(state)
+            state["final_output"] = buffer
+            yield {"stage": "generate", "chunk": buffer, "done": False, "suggested_answer_mode": state["suggested_answer_mode"]}
+            yield {"stage": "generate", "chunk": "", "done": True, "evidence_sources": state.get("evidence_sources", []), "suggested_answer_mode": state["suggested_answer_mode"]}
         else:
             prompt = _build_generate_prompt(state)
             try:
@@ -338,10 +363,15 @@ def run_graph_stream(
                 buffer += quiz_appendix
                 yield {"stage": "generate", "chunk": quiz_appendix, "done": False}
             sanitized_output = sanitize_latex(buffer)
+            sanitized_output, citation_trace = sanitize_citation_protocol(
+                sanitized_output,
+                state.get("evidence_sources") or [],
+            )
+            state["citation_trace"] = citation_trace
             if sanitized_output != buffer:
                 yield {"stage": "generate", "chunk": sanitized_output, "replace": True, "done": False}
             state["final_output"] = sanitized_output
-            yield {"stage": "generate", "chunk": "", "done": True}
+            yield {"stage": "generate", "chunk": "", "done": True, "evidence_sources": state.get("evidence_sources", [])}
 
     # UI concept links are resolved locally. Learning-memory writes are
     # best-effort background work and must never delay or replace the answer.

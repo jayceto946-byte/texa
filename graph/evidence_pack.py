@@ -1,6 +1,7 @@
 """Build one bounded, deduplicated evidence block for answer generation."""
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 
@@ -10,6 +11,7 @@ MAX_ITEM_CHARS = 1800
 _PER_CHAPTER_LIMITS = {
     "factual_recall": 6,
     "derivation": 4,
+    "calculation": 4,
     "application": 4,
     "comparison": 4,
     "teach": 4,
@@ -27,16 +29,58 @@ def _normalized_text(value: str) -> str:
     return re.sub(r"\s+", " ", value or "").strip()
 
 
+def _section_path(item: dict) -> list[str]:
+    """Return the location hierarchy already present in the index metadata."""
+    raw_path = item.get("section_path")
+    if isinstance(raw_path, str):
+        try:
+            decoded = json.loads(raw_path)
+            raw_path = decoded if isinstance(decoded, list) else []
+        except (TypeError, ValueError):
+            raw_path = []
+    if not isinstance(raw_path, (list, tuple)):
+        raw_path = []
+
+    parts: list[str] = []
+    for value in raw_path:
+        part = _normalized_text(str(value or ""))
+        if part and part not in parts:
+            parts.append(part)
+
+    chapter = _normalized_text(str(item.get("chapter") or ""))
+    section = _normalized_text(str(item.get("section_title") or ""))
+    if chapter and chapter not in parts:
+        parts.insert(0, chapter)
+    if section and section not in parts:
+        parts.append(section)
+    return parts
+
+
+def _heading_level(path: list[str]) -> int:
+    """Expose a best-effort level without inventing missing parent headings."""
+    if not path:
+        return 0
+    title = path[-1]
+    if len(path) == 1 or re.match(r"^第.+章(?:\s|$)", title):
+        return 1
+    if re.match(r"^第.+节(?:\s|$)", title):
+        return 2
+    if re.match(r"^[一二三四五六七八九十百]+[、．.]", title):
+        return 3
+    if re.match(r"^[（(][一二三四五六七八九十百]+[）)]", title):
+        return 4
+    return len(path)
+
+
 def _source_label(item: dict) -> str:
     page = item.get("page_idx", -1)
     role = str(item.get("book_role") or "")
     book_label = str(item.get("book_name") or "").strip()
     if not book_label:
         book_label = "\u4e3b\u8981\u6559\u6750" if role == "core" else ("\u8f85\u52a9\u6559\u6750" if role == "reference" else "\u6559\u6750")
-    parts = [
-        f"{book_label}\u00b7{item.get('chapter') or ''}",
-        str(item.get("section_title") or ""),
-    ]
+    path = _section_path(item)
+    location = " / ".join(path)
+    parts = [f"{book_label}\u00b7{location}" if location else book_label]
     if isinstance(page, (int, float)) and page >= 0:
         parts.append(f"p.{int(page) + 1}")
     return " / ".join(part for part in parts if part)
@@ -99,18 +143,27 @@ def build_evidence_pack(
             continue
 
         label = _source_label(item)
+        evidence_id = f"E{len(included) + 1}"
+        # LLM 只看到稳定的证据编号；human-readable 元数据只保留在 included 中供 UI/程序使用。
         separator_cost = 9 if lines else 0
-        remaining = budget - used - len(label) - 3 - separator_cost
+        remaining = budget - used - len(evidence_id) - 3 - separator_cost
         if remaining <= 120:
             break
         clipped = text[: min(MAX_ITEM_CHARS, remaining)]
-        line = f"[{label}]\n{clipped}"
+        line = f"[{evidence_id}]\n{clipped}"
         lines.append(line)
         used += len(line) + separator_cost
         included.append({
+            "id": evidence_id,
             "chunk_id": chunk_id,
+            "book_name": str(item.get("book_name") or ""),
             "chapter": chapter,
             "section_title": str(item.get("section_title") or ""),
+            "section_path": _section_path(item),
+            "chunk_index": item.get("chunk_index", -1),
+            "heading_level": _heading_level(_section_path(item)),
+            "page_idx": item.get("page_idx", -1),
+            "label": label,
             "chars": len(clipped),
         })
         if chunk_id:

@@ -1,5 +1,5 @@
 from graph.generator import grounded_failure_message, has_textbook_evidence
-from graph.retrieval_node import _assess_evidence_support, _extract_query_focus
+from graph.retrieval_node import _assess_evidence_support, _extract_query_focus, _retrieval_query_for_intent
 
 
 def _item(*, text: str, title: str = "", coverage: float = 0.7, sources=None, direct=False):
@@ -102,3 +102,70 @@ def test_factual_enumeration_preserves_selected_book_bm25_order():
         query="电容式传感器有哪些优点？", intent="factual_recall",
     )
     assert items[0]["chunk_id"] == "selected"
+
+def test_support_gate_application_phrasing_not_rejected_as_focus():
+    """Context Test A：\"压阻效应通常用在哪些传感器里？\" 的\"通常用在哪些\"是功能词，
+    不应变成无法被证据逐字覆盖的 focus 词导致误拒答。"""
+    topics, focus = _extract_query_focus(
+        "那压阻效应通常用在哪些传感器里？",
+        ["压阻效应", "传感器"],
+    )
+    assert any("压阻效应" in t for t in topics)
+    assert focus == []  # 应用介词/疑问词不构成需要证据覆盖的 focus
+
+    result = _assess_evidence_support(
+        "那压阻效应通常用在哪些传感器里？",
+        [_item(text="压阻式传感器利用压阻效应测量压力，广泛应用于工业测量。", sources=["dense", "bm25"], direct=True)],
+        matched_concepts=["压阻效应", "传感器"],
+    )
+    assert result["status"] == "supported"
+
+
+def test_support_gate_still_verifies_real_focus_terms():
+    """扩展 filler 后，缺点/特点等真实 focus 词仍必须被证据覆盖，gate 目的不变。"""
+    result = _assess_evidence_support(
+        "压阻效应的缺点是什么？",
+        [_item(text="压阻式传感器结构简单，温度稳定性较好。", coverage=0.5)],
+        matched_concepts=["压阻效应"],
+    )
+    assert result["status"] != "supported"  # 缺点 focus 未被证据覆盖，不能整答
+    assert result["matched_focus_terms"] == []
+
+
+def test_derivation_request_is_decomposed_into_supported_dimensions():
+    query = "请从基本公式开始，推导差动电容式传感器的灵敏度，并说明近似成立条件。"
+    topics, focus = _extract_query_focus(query, ["传感器"])
+    assert topics == ["传感器"]
+    assert focus == ["基本公式", "灵敏度", "近似成立条件"]
+
+    result = _assess_evidence_support(
+        query,
+        [
+            _item(title="静态灵敏度", text="由式（4-2）可得灵敏度表达式。"),
+            {**_item(text="当相对位移为小量时，可忽略高阶项并作近似。"), "role": "derivation"},
+        ],
+        matched_concepts=["传感器"],
+        intent="derivation",
+    )
+    assert result["status"] == "supported"
+
+
+def test_multi_sensor_comparison_can_be_partially_grounded_per_dimension():
+    query = "比较压阻式、压电式和电容式传感器，并分别说明灵敏度、频响、静态测量能力和典型误差来源。"
+    _, focus = _extract_query_focus(query, ["传感器"])
+    assert focus == ["灵敏度", "频率响应", "静态测量能力", "典型误差来源"]
+
+    result = _assess_evidence_support(
+        query,
+        [_item(title="静态灵敏度", text="本节给出灵敏度计算公式。")],
+        matched_concepts=["传感器"],
+        intent="comparison",
+    )
+    assert result["status"] == "partial"
+
+
+def test_calculation_retrieval_query_requests_formulas_not_device_examples():
+    query = _retrieval_query_for_intent("压阻式传感器怎么算？", "calculation")
+    assert query.startswith("压阻式传感器 ")
+    assert "计算公式" in query
+    assert "变量" in query

@@ -40,6 +40,12 @@ INTENT_META = {
         "description": "性质/定理",
         "is_simple": True,
     },
+    "calculation": {
+        "keywords": ["怎么算", "如何计算", "怎么计算", "计算方法", "如何算", "怎么求", "求法", "计算"],
+        "anti_keywords": ["推导", "证明"],
+        "description": "公式计算/计算方法",
+        "is_simple": False,
+    },
 
     # === 复杂意图 → 走完整 graph（plan + generate）===
     "derivation": {
@@ -55,7 +61,7 @@ INTENT_META = {
         "is_simple": False,
     },
     "application": {
-        "keywords": ["计算", "求解", "这道题", "例题", "应用", "怎么做", "求"],
+        "keywords": ["求解", "这道题", "例题", "应用", "怎么做", "求"],
         "anti_keywords": [],
         "description": "应用/计算",
         "is_simple": False,
@@ -95,6 +101,33 @@ INTENT_META = {
 # 简单意图的最大问题长度（含标点）
 _SIMPLE_MAX_LEN = 35
 
+_SIMPLE_COMPARISON_RE = re.compile(
+    r"^.{2,14}?(?:和|与|跟|同).{2,14}?(?:有什么|有何|的)?(?:区别|不同|差异|异同|联系)[？?。！!]*$"
+)
+_SIMPLE_CALCULATION_RE = re.compile(
+    r"^.{2,24}?(?:怎么算|怎么计算|如何算|如何计算|的计算方法(?:是什么)?)[？?。！!]*$"
+)
+_SIMPLE_EXPLANATION_RE = re.compile(
+    r"^(?:根据教材|按照教材|依据教材)?(?:请|帮我|再)?(?:解释|说明|介绍)(?:一下)?[^，,；;]{2,24}[？?。！!]*$"
+)
+_EXPLANATION_COMPLEX_SIGNALS = (
+    "为什么", "推导", "证明", "计算", "比较", "区别", "联系", "并说明", "分别", "系统", "详细",
+)
+
+
+def _deterministic_simple_shape(query: str) -> tuple[str, str] | None:
+    """Recognize bounded query shapes whose routing adds no value via an LLM."""
+    compact = re.sub(r"\s+", "", query).strip()
+    if len(compact) > _SIMPLE_MAX_LEN:
+        return None
+    if _SIMPLE_COMPARISON_RE.match(compact):
+        return "comparison", "simple_comparison"
+    if _SIMPLE_CALCULATION_RE.match(compact):
+        return "calculation", "simple_calculation"
+    if _SIMPLE_EXPLANATION_RE.match(compact) and not any(signal in compact for signal in _EXPLANATION_COMPLEX_SIGNALS):
+        return "definition", "simple_explanation"
+    return None
+
 
 def classify_intent_local(user_input: str) -> dict:
     """本地毫秒级意图分类。
@@ -110,6 +143,29 @@ def classify_intent_local(user_input: str) -> dict:
     q = user_input.lower().strip()
     if not q:
         return {"intent": "qa", "confidence": 1.0, "is_simple": True, "hint": "空输入"}
+
+    deterministic = _deterministic_simple_shape(q)
+    if deterministic:
+        intent, shape = deterministic
+        return {
+            "intent": intent,
+            "confidence": 0.9,
+            "is_simple": True,
+            "intent_locked": True,
+            "deterministic_shape": shape,
+            "hint": f"确定性短查询路由：{shape}",
+        }
+
+    # An explicit leading task verb is more reliable than keyword-score ties
+    # such as "比较……并说明……", where "说明" previously won by insertion order.
+    if re.match(r"^(?:请)?(?:比较|对比)", q):
+        return {
+            "intent": "comparison",
+            "confidence": 0.95,
+            "is_simple": False,
+            "intent_locked": True,
+            "hint": "显式比较任务（确定性意图，复杂约束仍交给 Planner 定位章节）",
+        }
 
     scores = {}
     for intent, meta in INTENT_META.items():
@@ -151,6 +207,10 @@ def classify_intent_local(user_input: str) -> dict:
         "intent": best_intent,
         "confidence": confidence,
         "is_simple": is_simple,
+        "intent_locked": bool(
+            (best_intent == "comparison" and re.search(r"(?:^|请)(?:比较|对比)", q))
+            or (best_intent in {"calculation", "derivation"} and best_kw)
+        ),
         "hint": hint,
     }
 
@@ -172,7 +232,11 @@ def is_fast_path_eligible(user_input: str, local_result: dict) -> bool:
         return False
 
     q = user_input.lower()
-    complex_signals = ["为什么", "怎么推导", "证明", "比较", "区别", "联系", "计算", "求解"]
+    shape = local_result.get("deterministic_shape")
+    if shape in {"simple_comparison", "simple_calculation", "simple_explanation"}:
+        complex_signals = ["为什么", "怎么推导", "证明", "推导过程", "并说明", "分别", "系统", "详细"]
+    else:
+        complex_signals = ["为什么", "怎么推导", "证明", "比较", "区别", "联系", "计算", "求解"]
     if local_result.get("intent") == "factual_recall":
         complex_signals = ["\u600e\u4e48\u63a8\u5bfc", "\u8bc1\u660e", "\u6bd4\u8f83", "\u533a\u522b", "\u8054\u7cfb", "\u8ba1\u7b97", "\u6c42\u89e3"]
     if any(s in q for s in complex_signals):

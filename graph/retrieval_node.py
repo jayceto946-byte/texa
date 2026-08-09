@@ -16,10 +16,11 @@ INTENT_ROLE_PRIORITY: dict[str, list[str]] = {
     "factual_recall": ["property", "definition", "reference", "theorem", "formula"],
     "definition": ["definition", "theorem", "property", "example", "derivation"],
     "formula": ["definition", "property", "derivation", "example"],
+    "calculation": ["formula", "algorithm", "derivation", "definition", "example"],
     "property": ["property", "theorem", "definition", "example"],
     "derivation": ["derivation", "theorem", "proof", "definition"],
     "comparison": ["definition", "property", "example"],
-    "application": ["example", "algorithm", "exercise", "derivation"],
+    "application": ["algorithm", "example", "exercise", "derivation"],
     "teach": ["definition", "example", "algorithm", "property", "derivation"],
     "summarize": ["definition", "property", "theorem", "derivation"],
     "quiz": ["example", "exercise", "derivation"],
@@ -67,11 +68,45 @@ _SUPPORT_FILLER_PHRASES = (
     "为什么", "怎么样", "怎么", "如何", "是否", "能否", "适合吗",
     "的主要", "主要", "讲一下", "介绍一下", "说明一下",
     "请分析", "请解释", "请说明", "简述", "列出", "给出", "比较", "适合", "吗", "呢",
+    # 应用场景类介词/疑问词：纯功能词，不应成为需要证据逐字覆盖的 focus 词
+    "通常", "用在", "用于", "应用于", "适用于", "常用于", "应用在", "哪些", "哪种", "何种",
 )
 _TOPIC_SUFFIXES = (
     "传感器", "热敏电阻", "电阻", "误差", "定理", "公式", "方法",
     "算法", "效应", "模型", "概念", "原理", "定律", "法",
 )
+
+# Facts/dimensions that must be supported independently.  Keeping these as
+# semantic atoms prevents a compound request from becoming one impossible
+# literal such as "灵敏度频响静态测量能力".
+_FOCUS_TERM_ALIASES: dict[str, tuple[str, ...]] = {
+    "全球市场规模": ("全球市场规模",),
+    "市场规模": ("市场规模",),
+    "典型误差来源": ("典型误差来源", "误差来源"),
+    "误差来源": ("误差来源",),
+    "静态测量能力": ("静态测量能力", "静态测量"),
+    "近似成立条件": ("近似成立条件", "近似条件"),
+    "基本公式": ("基本公式",),
+    "频率响应": ("频率响应", "频响"),
+    "灵敏度": ("灵敏度",),
+    "优缺点": ("优缺点",),
+    "优点": ("优点",),
+    "缺点": ("缺点",),
+    "特点": ("特点",),
+    "条件": ("成立条件", "条件"),
+}
+_GENERIC_TOPIC_TERMS = {"传感器", "公式", "方法", "原理", "概念"}
+
+
+def _retrieval_query_for_intent(query: str, intent: str) -> str:
+    if intent != "calculation":
+        return query
+    topic = re.sub(
+        r"(?:怎么算|怎么计算|如何算|如何计算|的计算方法(?:是什么)?)[？?。！!]*$",
+        "",
+        str(query or "").strip(),
+    ).strip("，,。？?!！ ")
+    return f"{topic or query} 计算公式 变量 灵敏度 输出"
 
 
 def retrieve_node(state: dict) -> dict:
@@ -83,6 +118,7 @@ def retrieve_node(state: dict) -> dict:
     primary_resource = next((item for item in retrieval_resources if item.get("is_primary")), retrieval_resources[0])
     primary_book = str(primary_resource.get("book_name") or book_name)
     intent = state.get("intent", "qa")
+    retrieval_query = _retrieval_query_for_intent(user_input, intent)
 
     if not state.get("use_textbook_context", True):
         return {
@@ -137,13 +173,13 @@ def retrieve_node(state: dict) -> dict:
     for resource in retrieval_resources:
         candidate_book = str(resource.get("book_name") or "")
         is_primary = bool(resource.get("is_primary"))
-        candidate_lexical = search_book(candidate_book, user_input, k=20 if is_primary else 12, chapters=(target_chapters or None) if is_primary else None)
+        candidate_lexical = search_book(candidate_book, retrieval_query, k=20 if is_primary else 12, chapters=(target_chapters or None) if is_primary else None)
         lexical_results.extend(candidate_lexical)
         fallback_chapters = list(dict.fromkeys(
             str(item.get("chapter") or "") for item in candidate_lexical if item.get("chapter")
         ))[:12]
         candidate_vectors = _vector_retrieval(
-            vs, user_input, intent=intent, book_name=candidate_book,
+            vs, retrieval_query, intent=intent, book_name=candidate_book,
             target_chapters=target_chapters if is_primary else [],
             precise_chapters=list({r["chapter"] for r in precise_results if r.get("chapter")}) if is_primary else [],
             fallback_chapters=fallback_chapters,
@@ -202,7 +238,10 @@ def retrieve_node(state: dict) -> dict:
     candidate_evidence = [
         {
             "chunk_id": item.get("chunk_id", ""), "chapter": item.get("chapter", ""),
-            "section_title": item.get("section_title", ""), "page_idx": item.get("page_idx", -1),
+            "section_title": item.get("section_title", ""),
+            "section_path": item.get("section_path", []),
+            "chunk_index": item.get("chunk_index", -1),
+            "page_idx": item.get("page_idx", -1),
             "text": item.get("text", ""), "score": item.get("score", 0.0),
             "query_coverage": item.get("query_coverage", 0.0),
             "book_name": item.get("book_name", ""),
@@ -226,6 +265,7 @@ def retrieve_node(state: dict) -> dict:
         user_input,
         candidate_evidence,
         matched_concepts=matched_concepts,
+        intent=intent,
     )
     evidence_items = candidate_evidence if evidence_support["status"] in {"supported", "partial"} else []
 
@@ -279,19 +319,38 @@ def _extract_query_focus(query: str, matched_concepts: list[str] | None = None) 
         for name in (matched_concepts or [])
         if _normalized_support_text(name) in normalized_query
     ]
-    suffix_pattern = "|".join(re.escape(value) for value in _TOPIC_SUFFIXES)
-    match = re.search(rf"[A-Za-z0-9_.+一-鿿-]{{2,}}?(?:{suffix_pattern})", normalized_query)
-    if match:
-        topics.append(match.group(0))
     ordered_topics = _dedupe_preserving_order(sorted(topics, key=len, reverse=True))
     topics = [
         topic
         for index, topic in enumerate(ordered_topics)
         if not any(topic in longer for longer in ordered_topics[:index])
     ]
+    residual_topics = list(topics)
+    if any(topic not in _GENERIC_TOPIC_TERMS for topic in topics):
+        topics = [topic for topic in topics if topic not in _GENERIC_TOPIC_TERMS]
+
+    explicit_focus: list[tuple[int, int, str]] = []
+    for canonical, aliases in _FOCUS_TERM_ALIASES.items():
+        for alias in aliases:
+            normalized_alias = _normalized_support_text(alias)
+            position = normalized_query.find(normalized_alias)
+            if position >= 0:
+                explicit_focus.append((position, -len(normalized_alias), canonical))
+                break
+    if explicit_focus:
+        result: list[str] = []
+        occupied: list[tuple[int, int]] = []
+        for position, negative_length, canonical in sorted(explicit_focus):
+            length = -negative_length
+            span = (position, position + length)
+            if any(start <= span[0] and end >= span[1] for start, end in occupied):
+                continue
+            result.append(canonical)
+            occupied.append(span)
+        return topics, result
 
     residual = normalized_query
-    for topic in topics:
+    for topic in residual_topics:
         residual = residual.replace(topic, " ")
     for phrase in _SUPPORT_FILLER_PHRASES:
         residual = residual.replace(_normalized_support_text(phrase), " ")
@@ -305,13 +364,29 @@ def _extract_query_focus(query: str, matched_concepts: list[str] | None = None) 
     return topics, _dedupe_preserving_order(focus)
 
 
-def _focus_coverage(phrase: str, text: str) -> float:
+def _focus_coverage(phrase: str, text: str, role: str = "") -> float:
     phrase = _normalized_support_text(phrase)
     text = _normalized_support_text(text)
     if not phrase:
         return 1.0
     if phrase in text:
         return 1.0
+    aliases = _FOCUS_TERM_ALIASES.get(phrase, ())
+    if any(_normalized_support_text(alias) in text for alias in aliases):
+        return 1.0
+    if phrase == "基本公式" and role in {"formula", "derivation"}:
+        return 0.8
+    if phrase == "近似成立条件" and role in {"formula", "derivation", "proof"}:
+        if any(marker in text for marker in ("近似", "远小于", "忽略", "条件", "小量")):
+            return 0.8
+    if phrase == "频率响应" and any(marker in text for marker in ("频率特性", "频带", "动态响应")):
+        return 0.8
+    if phrase == "静态测量能力" and any(marker in text for marker in ("静态", "直流", "零频")):
+        return 0.8
+    if phrase in {"典型误差来源", "误差来源"} and any(
+        marker in text for marker in ("误差", "非线性", "温度影响", "寄生", "漂移")
+    ):
+        return 0.8
     if re.fullmatch(r"[一-鿿]+", phrase) and len(phrase) >= 3:
         bigrams = _dedupe_preserving_order([phrase[index:index + 2] for index in range(len(phrase) - 1)])
         return sum(token in text for token in bigrams) / max(len(bigrams), 1)
@@ -323,6 +398,7 @@ def _assess_evidence_support(
     evidence_items: list[dict],
     *,
     matched_concepts: list[str] | None = None,
+    intent: str = "qa",
 ) -> dict:
     """Reject topic-only matches when no evidence supports the question focus."""
     topics, focus = _extract_query_focus(query, matched_concepts)
@@ -337,12 +413,15 @@ def _assess_evidence_support(
             "best_query_coverage": 0.0,
         }
 
-    evidence_texts = [
-        f"{item.get('section_title', '')}\n{item.get('text', '')}"
-        for item in evidence_items
-    ]
     focus_coverages = {
-        phrase: max((_focus_coverage(phrase, text) for text in evidence_texts), default=0.0)
+        phrase: max((
+            _focus_coverage(
+                phrase,
+                f"{item.get('section_title', '')}\n{item.get('text', '')}",
+                str(item.get("role") or ""),
+            )
+            for item in evidence_items
+        ), default=0.0)
         for phrase in focus
     }
     matched_focus = [phrase for phrase, coverage in focus_coverages.items() if coverage >= 0.6]
@@ -473,6 +552,8 @@ def _kg_precise_retrieval(kg, user_input: str, intent: str = "qa") -> tuple[list
                 "chunk_id": ch.get("chunk_id", ""),
                 "text": ch.get("text", ""),
                 "section_title": ch.get("section_title", ""),
+                "section_path": ch.get("section_path", []),
+                "chunk_index": ch.get("chunk_index", -1),
                 "page_idx": ch.get("page_idx", -1),
                 "is_direct_hit": ch.get("is_direct_hit", False),
                 "role": ch.get("role", ""),
@@ -530,6 +611,7 @@ def _doc_to_item(doc, chapter: str, source: str) -> dict:
         "prev_chunk_id": meta.get("prev_chunk_id", ""),
         "next_chunk_id": meta.get("next_chunk_id", ""),
         "section_path": meta.get("section_path", ""),
+        "chunk_index": meta.get("chunk_index", -1),
         "section_title": meta.get("section_title", ""),
         "page_idx": meta.get("page_idx", -1),
         "is_direct_hit": False,
@@ -680,6 +762,8 @@ def _merge_and_rerank(
             "is_selected_book": bool(item.get("is_selected_book")),
             "rag_priority": item.get("rag_priority", 1.0),
             "section_title": item.get("section_title", ""),
+            "section_path": item.get("section_path", []),
+            "chunk_index": item.get("chunk_index", -1),
             "page_idx": item.get("page_idx", -1),
             "is_direct_hit": bool(item.get("is_direct_hit", False)),
             "is_toc_like": _looks_like_toc_chunk(item),

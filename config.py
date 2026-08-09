@@ -107,11 +107,23 @@ def clear_llm_cache() -> None:
         _llm_cache.clear()
 
 
-def _get_chat_model(model: str, temperature: float, api_key: str, base_url: str, extra_body: Optional[dict] = None):
+def _get_chat_model(
+    model: str,
+    temperature: float,
+    api_key: str,
+    base_url: str,
+    extra_body: Optional[dict] = None,
+    *,
+    include_response_headers: bool = False,
+    stream_usage: bool = False,
+):
     from langchain_openai import ChatOpenAI
 
     normalized_extra = json.dumps(extra_body or {}, ensure_ascii=False, sort_keys=True)
-    key = ("chat", model, float(temperature), api_key, base_url, normalized_extra)
+    key = (
+        "chat", model, float(temperature), api_key, base_url, normalized_extra,
+        bool(include_response_headers), bool(stream_usage),
+    )
 
     def create():
         kwargs = dict(
@@ -121,6 +133,8 @@ def _get_chat_model(model: str, temperature: float, api_key: str, base_url: str,
             base_url=base_url,
             streaming=True,
             timeout=120,
+            include_response_headers=include_response_headers,
+            stream_usage=stream_usage,
         )
         if "http_socket_options" in getattr(ChatOpenAI, "model_fields", {}):
             # Disable LangChain's custom socket transport so httpx can honor system proxies.
@@ -132,7 +146,12 @@ def _get_chat_model(model: str, temperature: float, api_key: str, base_url: str,
     return _cached_llm(key, create)
 
 
-def get_llm(temperature=1):
+def get_llm(
+    temperature=1,
+    *,
+    include_response_headers: bool = False,
+    stream_usage: bool = False,
+):
     if LLM_BACKEND == "deepseek":
         return _get_chat_model(
             DEEPSEEK_MODEL_NAME,
@@ -140,11 +159,21 @@ def get_llm(temperature=1):
             DEEPSEEK_API_KEY,
             DEEPSEEK_API_BASE,
             extra_body={"reasoning_effort": "high", "thinking": {"type": "enabled"}},
+            include_response_headers=include_response_headers,
+            stream_usage=stream_usage,
         )
     elif LLM_BACKEND == "moonshot":
-        return _get_chat_model(LLM_MODEL_NAME, temperature, MOONSHOT_API_KEY, MOONSHOT_API_BASE)
+        return _get_chat_model(
+            LLM_MODEL_NAME, temperature, MOONSHOT_API_KEY, MOONSHOT_API_BASE,
+            include_response_headers=include_response_headers,
+            stream_usage=stream_usage,
+        )
     elif LLM_BACKEND == "openai":
-        return _get_chat_model(LLM_MODEL_NAME, temperature, OPENAI_API_KEY, OPENAI_API_BASE)
+        return _get_chat_model(
+            LLM_MODEL_NAME, temperature, OPENAI_API_KEY, OPENAI_API_BASE,
+            include_response_headers=include_response_headers,
+            stream_usage=stream_usage,
+        )
     else:
         from langchain_community.chat_models import ChatOllama
         return _cached_llm(
