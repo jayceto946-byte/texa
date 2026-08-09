@@ -1,4 +1,4 @@
-import type { AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, ConceptCandidate, SubjectRouteSuggestion } from '../types';
+import type { AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ConceptCandidate, SubjectRouteSuggestion } from '../types';
 
 const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE_URL || '/api');
 const DEFAULT_TIMEOUT_MS = 20000;
@@ -50,15 +50,20 @@ export type ChatEvent = {
   intent?: string;
   chapters?: string[];
   fast_path?: boolean;
+  planner_trace?: Record<string, unknown>;
   content_count?: number;
   message?: string;
   conversation_id?: string;
   turn_id?: string;
   subject_suggestion?: SubjectRouteSuggestion;
   rewritten_question?: string;
+  use_textbook_context?: boolean;
+  scope_reason?: string;
+  answer_mode?: AnswerMode;
+  suggested_answer_mode?: AnswerMode;
   retrieval_status?: string;
   retrieval_error?: string;
-  state?: { linked_concepts?: ConceptCandidate[] };
+  state?: { linked_concepts?: ConceptCandidate[]; evidence_sources?: AssistantSource[]; suggested_answer_mode?: AnswerMode };
 };
 
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
@@ -162,7 +167,8 @@ export function chatStream(
   conversationId: string = '',
   turnId: string,
   onEvent: (event: ChatEvent) => void,
-  onError?: (err: Error) => void
+  onError?: (err: Error) => void,
+  answerMode: AnswerMode = 'auto',
 ): () => void {
   const ctrl = new AbortController();
 
@@ -171,7 +177,7 @@ export function chatStream(
       const res = await fetch(apiUrl('/chat/stream'), {
         method: 'POST',
         headers: authHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ question, book_name: bookName, subject, conversation_id: conversationId, turn_id: turnId }),
+        body: JSON.stringify({ question, book_name: bookName, subject, conversation_id: conversationId, turn_id: turnId, answer_mode: answerMode }),
         signal: ctrl.signal,
       });
 
@@ -212,12 +218,13 @@ export async function chatAsk(
   subject: string = '',
   conversationId: string = '',
   turnId: string,
-  signal?: AbortSignal
-): Promise<{ content: string; intent: string; chapters: string[]; linked_concepts?: ConceptCandidate[]; conversation_id?: string; turn_id?: string; subject_suggestion?: SubjectRouteSuggestion; rewritten_question?: string }> {
+  signal?: AbortSignal,
+  answerMode: AnswerMode = 'auto',
+): Promise<{ content: string; intent: string; chapters: string[]; linked_concepts?: ConceptCandidate[]; sources?: AssistantSource[]; conversation_id?: string; turn_id?: string; subject_suggestion?: SubjectRouteSuggestion; rewritten_question?: string; answer_mode?: AnswerMode; suggested_answer_mode?: AnswerMode; scope_reason?: string; use_textbook_context?: boolean }> {
   const res = await fetch(apiUrl('/chat/ask'), {
     method: 'POST',
     headers: authHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ question, book_name: bookName, subject, conversation_id: conversationId, turn_id: turnId }),
+    body: JSON.stringify({ question, book_name: bookName, subject, conversation_id: conversationId, turn_id: turnId, answer_mode: answerMode }),
     signal,
   });
   if (!res.ok) throw await responseError(res, 'chatAsk failed');

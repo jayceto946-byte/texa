@@ -6,6 +6,7 @@ type MarkdownMessageProps = {
   content: string;
   linkedConcepts?: ConceptCandidate[];
   onConceptClick?: (concept: ConceptCandidate) => void;
+  citationIds?: Set<string>;
 };
 
 const SimpleMarkdownRenderer = lazy(() =>
@@ -26,8 +27,8 @@ export const SimpleMarkdown: React.FC<SimpleMarkdownProps> = ({ content }) => (
   </Suspense>
 );
 
-export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, linkedConcepts = [], onConceptClick = () => undefined }) => (
+export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, linkedConcepts = [], onConceptClick = () => undefined, citationIds }) => (
   <Suspense fallback={<PlainMarkdownFallback content={content} />}>
-    <MarkdownRenderer content={content} linkedConcepts={linkedConcepts} onConceptClick={onConceptClick} />
+    <MarkdownRenderer content={content} linkedConcepts={linkedConcepts} onConceptClick={onConceptClick} citationIds={citationIds} />
   </Suspense>
 );

@@ -16,12 +16,18 @@ const labels = {
 };
 
 function mapMessages(items: any[]): ChatMessage[] {
-  return (items || []).map((item) => ({
+  return (items || []).map((item, index) => ({
     id: item.id || undefined,
     turnId: item.turn_id || undefined,
     role: item.role === 'assistant' ? 'assistant' : 'user',
     content: item.content || '',
     stage: item.role === 'assistant' ? 'done' : undefined,
+    sources: Array.isArray(item.sources) ? item.sources : undefined,
+    linkedConcepts: Array.isArray(item.linked_concepts) ? item.linked_concepts : undefined,
+    answerMode: item.answer_mode || undefined,
+    suggestedAnswerMode: item.suggested_answer_mode || undefined,
+    scopeReason: item.scope_reason || undefined,
+    originalQuestion: item.role === 'assistant' && items[index - 1]?.role === 'user' ? items[index - 1].content : undefined,
   }));
 }
 

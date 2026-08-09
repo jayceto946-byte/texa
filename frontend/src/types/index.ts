@@ -1,16 +1,24 @@
 /** TypeScript mapping for backend schemas.py */
 
+export type AnswerMode = 'auto' | 'textbook_grounded' | 'subject_general' | 'global_general' | 'subject_mismatch';
+
 export interface ChatRequest {
   question: string;
   book_name?: string;
   target_chapters?: string[];
+  answer_mode?: AnswerMode;
+  suggested_answer_mode?: AnswerMode;
 }
 
 export interface ChatEvent {
-  stage: 'plan' | 'retrieve' | 'chapter' | 'generate' | 'done' | 'error';
+  stage: 'context' | 'plan' | 'retrieve' | 'chapter' | 'generate' | 'done' | 'error';
   intent?: string;
   chapters?: string[];
   fast_path?: boolean;
+  planner_trace?: Record<string, unknown>;
+  use_textbook_context?: boolean;
+  scope_reason?: string;
+  answer_mode?: AnswerMode;
   content_count?: number;
   has_teaching?: boolean;
   chunk?: string;
@@ -20,6 +28,8 @@ export interface ChatEvent {
   message?: string;
   state?: {
     linked_concepts?: ConceptCandidate[];
+    evidence_sources?: AssistantSource[];
+    suggested_answer_mode?: AnswerMode;
   };
 }
 
@@ -35,6 +45,19 @@ export interface ConceptCandidate {
   definition?: string;
   related_concepts?: string[];
   source_chapters?: string[];
+}
+
+export interface AssistantSource {
+  id?: string;
+  chunk_id?: string;
+  book_name?: string;
+  chapter?: string;
+  section_title?: string;
+  section_path?: string[];
+  chunk_index?: number;
+  heading_level?: number;
+  page_idx?: number;
+  label?: string;
 }
 
 export interface ConceptWiki {

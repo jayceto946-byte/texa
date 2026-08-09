@@ -138,12 +138,19 @@ export default function ChatHistorySidebar({
   const loadConversation = async (id: string) => {
     const res = await get(`/chat/conversations/${encodeURIComponent(id)}`, 20000);
     if (!res?.success || !res.data) return;
-    const messages = (res.data.messages || []).map((item: any) => ({
+    const storedMessages = res.data.messages || [];
+    const messages = storedMessages.map((item: any, index: number) => ({
       id: item.id || undefined,
       turnId: item.turn_id || undefined,
       role: item.role === 'assistant' ? 'assistant' : 'user',
       content: item.content || '',
       stage: item.role === 'assistant' ? 'done' : undefined,
+      sources: Array.isArray(item.sources) ? item.sources : undefined,
+      linkedConcepts: Array.isArray(item.linked_concepts) ? item.linked_concepts : undefined,
+      answerMode: item.answer_mode || undefined,
+      suggestedAnswerMode: item.suggested_answer_mode || undefined,
+      scopeReason: item.scope_reason || undefined,
+      originalQuestion: item.role === 'assistant' && storedMessages[index - 1]?.role === 'user' ? storedMessages[index - 1].content : undefined,
     })) as ChatMessage[];
     const storedBookName = res.data.book_name || '';
     const logicalScope = scopeBooks.find((item) => scopeContainsBook(item, storedBookName));

@@ -398,7 +398,7 @@ const ChatPage: React.FC = () => {
             )}
             {messages.map((msg, i) => (
               <ErrorBoundary key={msg.id || `${msg.turnId || 'message'}-${i}`}>
-                <ChatMessage role={msg.role} content={msg.content} stage={msg.stage} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} linkedConcepts={msg.linkedConcepts} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} agentCard={msg.agentCard} />
+                <ChatMessage role={msg.role} content={msg.content} stage={msg.stage} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => sendMessage(question, { answerMode: 'global_general' })} onRequestSuggestedAnswer={(question, answerMode) => sendMessage(question, { answerMode })} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} agentCard={msg.agentCard} />
               </ErrorBoundary>
             ))}
           </div>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { chatAsk, chatStream } from '../api/client';
 import { useChatContext } from '../contexts/ChatContext';
-import type { ConceptCandidate } from '../types';
+import type { AnswerMode, ConceptCandidate } from '../types';
 
 const USE_NON_STREAMING = import.meta.env.VITE_USE_NON_STREAMING === 'true';
 
@@ -24,9 +24,12 @@ export function useChat() {
   const streamContentRef = useRef('');
   const sourceChaptersRef = useRef<string[]>([]);
   const linkedConceptsRef = useRef<ConceptCandidate[]>([]);
+  const answerModeRef = useRef<AnswerMode>('auto');
+  const scopeReasonRef = useRef('');
+  const suggestedAnswerModeRef = useRef<AnswerMode | undefined>(undefined);
 
   const sendMessage = useCallback(
-    (question: string) => {
+    (question: string, options: { answerMode?: AnswerMode } = {}) => {
       if (!question.trim() || isLoading) return;
 
       cancelActiveChat();
@@ -35,6 +38,9 @@ export function useChat() {
       streamContentRef.current = '';
       sourceChaptersRef.current = [];
       linkedConceptsRef.current = [];
+      answerModeRef.current = options.answerMode || 'auto';
+      scopeReasonRef.current = '';
+      suggestedAnswerModeRef.current = undefined;
 
       addMessage({ role: 'user', content: question, turnId });
       setLoading(true);
@@ -55,15 +61,26 @@ export function useChat() {
         });
         (async () => {
           try {
-            const result = await chatAsk(question, bookName, subject, conversationId, turnId, ctrl.signal);
+            const result = await chatAsk(question, bookName, subject, conversationId, turnId, ctrl.signal, options.answerMode || 'auto');
             if (requestId !== requestSequenceRef.current) return;
             setActiveChatAbort(null);
             if (result.conversation_id) setConversationId(result.conversation_id);
             updateLastMessage((last) => {
               if (last.role !== 'assistant') return last;
-              const chapters = result.chapters || [];
-              const suffix = chapters.length > 0 && chapters[0] ? `\n\n*来源：${chapters.length > 1 ? `${chapters[0]} 等 ${chapters.length} 个章节` : chapters[0]}*` : '';
-              return { ...last, content: `${result.content}${suffix}`, stage: 'done', linkedConcepts: result.linked_concepts || [], turnId: result.turn_id || turnId, subjectSuggestion: result.subject_suggestion };
+              return {
+                ...last,
+                content: result.content,
+                stage: 'done',
+                linkedConcepts: result.linked_concepts || [],
+                sources: (result.sources || []).slice(0, 12),
+                sourceChapters: result.chapters || [],
+                turnId: result.turn_id || turnId,
+                subjectSuggestion: result.subject_suggestion,
+                answerMode: result.answer_mode,
+                suggestedAnswerMode: result.suggested_answer_mode,
+                scopeReason: result.scope_reason,
+                originalQuestion: question,
+              };
             });
             setLoading(false);
           } catch (err) {
@@ -83,9 +100,22 @@ export function useChat() {
         (event) => {
           if (requestId !== requestSequenceRef.current) return;
           if (event.conversation_id) setConversationId(event.conversation_id);
-          if (event.stage === 'context') return;
+          if (event.stage === 'context') {
+            answerModeRef.current = event.answer_mode || answerModeRef.current;
+            scopeReasonRef.current = event.scope_reason || '';
+            updateLastMessage((last) => last.role === 'assistant' ? {
+              ...last,
+              answerMode: answerModeRef.current,
+              scopeReason: scopeReasonRef.current,
+              originalQuestion: question,
+            } : last);
+            return;
+          }
           if (event.stage === 'plan') sourceChaptersRef.current = event.chapters || [];
           if (event.stage === 'done') linkedConceptsRef.current = event.state?.linked_concepts || [];
+          if (event.suggested_answer_mode || event.state?.suggested_answer_mode) {
+            suggestedAnswerModeRef.current = event.suggested_answer_mode || event.state?.suggested_answer_mode;
+          }
 
           let nextStreamContent = streamContentRef.current;
           if (event.stage === 'generate' && event.replace) {
@@ -109,7 +139,11 @@ export function useChat() {
               case 'retrieve':
                 if (last.stage !== 'generate' && last.stage !== 'done') {
                   next.stage = 'retrieve';
-                  next.content = `检索教材上下文${event.content_count ? ` (${event.content_count})` : ''}...`;
+                  next.content = (event.answer_mode || answerModeRef.current) === 'subject_mismatch'
+                    ? '确认学科范围...'
+                    : event.use_textbook_context === false || event.retrieval_status === 'ordinary_qa'
+                      ? '准备回答...'
+                    : `检索教材上下文${event.content_count ? ` (${event.content_count})` : ''}...`;
                 }
                 break;
               case 'chapter':
@@ -125,13 +159,16 @@ export function useChat() {
               case 'done': {
                 const chapters = sourceChaptersRef.current;
                 const linkedConcepts = linkedConceptsRef.current;
-                const base = streamContentRef.current || last.content;
-                const suffix = chapters.length > 0 && chapters[0] ? `\n\n*来源：${chapters.length > 1 ? `${chapters[0]} 等 ${chapters.length} 个章节` : chapters[0]}*` : '';
                 next.stage = 'done';
-                next.content = `${base}${suffix}`;
+                next.content = streamContentRef.current || last.content;
                 next.sourceChapters = chapters;
+                next.sources = (event.state?.evidence_sources || []).slice(0, 12);
                 next.linkedConcepts = linkedConcepts;
                 next.subjectSuggestion = event.subject_suggestion;
+                next.answerMode = event.answer_mode || answerModeRef.current;
+                next.suggestedAnswerMode = suggestedAnswerModeRef.current;
+                next.scopeReason = event.scope_reason || scopeReasonRef.current;
+                next.originalQuestion = question;
                 break;
               }
               case 'error':
@@ -147,7 +184,8 @@ export function useChat() {
             setLoading(false);
           }
         },
-        (err) => fail(err.message)
+        (err) => fail(err.message),
+        options.answerMode || 'auto',
       );
       setActiveChatAbort(() => {
         if (requestId === requestSequenceRef.current) requestSequenceRef.current += 1;

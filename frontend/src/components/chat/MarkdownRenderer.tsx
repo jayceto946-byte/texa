@@ -8,6 +8,7 @@ import 'katex/dist/katex.min.css';
 import type { ConceptCandidate } from '../../types';
 import { useLearningNoteFont } from '../../hooks/useLearningNoteFont';
 import { prepareMathMarkdown } from '../../utils/mathText';
+import { parseCitations } from '../../utils/citations';
 import { ErrorBoundary } from '../ErrorBoundary';
 
 function escapeRegExp(value: string): string {
@@ -163,15 +164,17 @@ export const MarkdownMessage: React.FC<{
   content: string;
   linkedConcepts: ConceptCandidate[];
   onConceptClick: (concept: ConceptCandidate) => void;
-}> = ({ content, linkedConcepts, onConceptClick }) => {
+  citationIds?: Set<string>;
+}> = ({ content, linkedConcepts, onConceptClick, citationIds }) => {
   const cleanContent = React.useMemo(() => {
     const withoutRefs = content
       .replace(/\u3010\u6765\u6e90\uff1a(.+?)\u3011/g, '')
       .replace(/\s*\/\s*[a-f0-9]{12,64}(?=\s*\])/gi, '')
       .replace(/\n{3,}/g, '\n\n');
     const mathReady = prepareMathMarkdown(withoutRefs);
-    return linkConcepts(mathReady, linkedConcepts);
-  }, [content, linkedConcepts]);
+    const cited = parseCitations(mathReady, citationIds);
+    return linkConcepts(cited.text, linkedConcepts);
+  }, [content, linkedConcepts, citationIds]);
 
   const contentBlocks = React.useMemo(() => splitMarkdownForRender(cleanContent), [cleanContent]);
   const conceptByName = React.useMemo(() => {
