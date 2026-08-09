@@ -17,6 +17,7 @@ const SKIP_BACKEND = process.env.KAOYAN_SKIP_BACKEND === '1';
 let mainWindow = null;
 let backendProcess = null;
 let backendStartError = null;
+let lastBackendExit = '';
 let shuttingDown = false;
 let allowQuit = false;
 let backendShutdownPromise = null;
@@ -217,7 +218,15 @@ function attachBackendLogging() {
   backendProcess.on('exit', (code, signal) => {
     const message = `后端进程退出：code=${code ?? 'null'}, signal=${signal ?? 'null'}`;
     appendBackendLog(`[exit] ${message}`);
-    if (!shuttingDown && !restartingBackend) sendStartupError(message);
+    if (shuttingDown || restartingBackend) return;
+    if (app.isPackaged) {
+      sendStartupError(message);
+      return;
+    }
+    // Dev mode: keep the option to fall back to an existing backend that answers
+    // on the port (e.g. a manually started one) instead of failing immediately.
+    // waitForBackend decides once it observes this process has exited.
+    lastBackendExit = message;
   });
 }
 
@@ -291,7 +300,7 @@ function stopBackend() {
   return backendShutdownPromise;
 }
 
-function startBackend() {
+async function startBackend() {
   if (SKIP_BACKEND) {
     appendBackendLog('[main] KAOYAN_SKIP_BACKEND=1, backend spawn skipped.');
     return;
@@ -317,8 +326,18 @@ function startBackend() {
       return;
     }
 
+    // Dev mode: if a healthy backend already answers on the configured port
+    // (e.g. started manually by the developer), adopt it instead of spawning a
+    // second instance that would fail to bind the same port.
+    if (await probeExistingBackend()) {
+      appendBackendLog(`[main] dev: adopting existing backend at ${BACKEND_URL} (spawn skipped).`);
+      lastBackendExit = '';
+      return;
+    }
+
     const python = process.env.KAOYAN_PYTHON || path.join(projectRoot(), 'venv310', 'Scripts', 'python.exe');
     appendBackendLog(`[main] starting dev backend: ${python}`);
+    lastBackendExit = '';
     backendProcess = spawn(
       python,
       ['-m', 'uvicorn', 'backend.main:app', '--host', backendHost, '--port', String(BACKEND_PORT)],
@@ -342,12 +361,12 @@ async function waitForBackend(timeoutMs = 60000) {
   let lastIdentityError = '';
   while (Date.now() < deadline) {
     if (backendStartError) return false;
-    if (!SKIP_BACKEND && backendProcess && backendProcess.exitCode !== null) return false;
+    if (app.isPackaged && !SKIP_BACKEND && backendProcess && backendProcess.exitCode !== null) return false;
     try {
       const res = await fetchWithTimeout(`${BACKEND_URL}/health`);
       if (res.ok) {
         const health = await res.json();
-        if (SKIP_BACKEND || health?.instance_id === INSTANCE_ID) return true;
+        if (SKIP_BACKEND || !app.isPackaged || health?.instance_id === INSTANCE_ID) return true;
         const identityError = `backend identity mismatch at ${BACKEND_URL}`;
         if (identityError !== lastIdentityError) {
           appendBackendLog(`[wait] ${identityError}`);
@@ -360,6 +379,12 @@ async function waitForBackend(timeoutMs = 60000) {
       } else {
         appendBackendLog(`[wait] backend health check timed out: ${BACKEND_URL}/health`);
       }
+    }
+    // Dev mode: our spawned backend already exited (e.g. the port was taken) and
+    // nothing healthy answers — fail with the recorded exit reason instead of
+    // waiting out the full timeout.
+    if (!app.isPackaged && !SKIP_BACKEND && backendProcess && backendProcess.exitCode !== null) {
+      return false;
     }
     await new Promise((resolve) => setTimeout(resolve, 600));
   }
@@ -377,6 +402,15 @@ async function fetchWithTimeout(url, timeoutMs = 2500) {
     return await fetch(url, { signal: ctrl.signal });
   } finally {
     clearTimeout(timer);
+  }
+}
+
+async function probeExistingBackend(timeoutMs = 2500) {
+  try {
+    const res = await fetchWithTimeout(`${BACKEND_URL}/health`, timeoutMs);
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 
@@ -411,7 +445,7 @@ async function openAppWhenBackendReady(timeoutMs = 60000) {
     return { ready: true };
   }
 
-  const message = backendStartError || `后端服务启动超时：${BACKEND_URL}`;
+  const message = backendStartError || lastBackendExit || `后端服务启动超时：${BACKEND_URL}`;
   appendBackendLog(`[timeout] ${message}`);
   sendStartupError(message);
   return { ready: false, message };
@@ -476,9 +510,10 @@ ipcMain.handle('app:restart', async () => {
 ipcMain.handle('startup:info', () => startupInfo());
 ipcMain.handle('startup:retry', async () => {
   backendStartError = null;
+  lastBackendExit = '';
   if (!backendProcess || backendProcess.exitCode !== null) {
     backendProcess = null;
-    startBackend();
+    await startBackend();
   }
   return openAppWhenBackendReady();
 });
@@ -498,7 +533,8 @@ ipcMain.handle('remote-capture:set-enabled', async (_event, enabled) => {
   try {
     await stopBackend();
     backendStartError = null;
-    startBackend();
+    lastBackendExit = '';
+    await startBackend();
     const ready = await waitForBackend(30000);
     return remoteCaptureStatus({
       ready,
@@ -534,8 +570,8 @@ ipcMain.handle('updates:install', async () => {
   return emitUpdateState({ status: 'installing', message: '正在重启并安装更新...' });
 });
 
-app.whenReady().then(() => {
-  startBackend();
+app.whenReady().then(async () => {
+  await startBackend();
   configureUpdater();
   createWindow();
 });
