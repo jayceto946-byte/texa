@@ -1,3 +1,102 @@
+# 2026-08-09 - Citation 协议收口与来源层级整理
+
+- 畸形引用根因：模型偶发输出全角/半角混用的 `［[cite:E7]］`；原前端只识别标准 ASCII `[[cite:E7]]`，因此协议文本会直接显示。会话抽查中对应 E1/E6/E7 的结构化来源均存在，问题不是多轮 metadata 丢失。
+- 新回答修复：生成收口阶段统一规范标准、全角混合和折叠 citation token，并按本轮 EvidencePack 的 E-id 白名单删除越界引用；规范化统计随 RAG trace timings 保存。持久化内容与最终 UI 内容使用同一份清洗结果。
+- 历史兼容：前端解析器兼容已经保存的全角/半角混合 token，旧会话无需迁移即可恢复为上标引用。
+- 编号乱序根因：正文编号按首次引用顺序派生，但来源列表此前仍按 EvidencePack 检索顺序渲染，形成 `1、2、5、3、6、4`。现改为先按正文编号排序，再展示。
+- 来源整理：将检索中已有的 `section_path`、`chunk_index` 和推断的 `heading_level` 贯通到 EvidencePack/UI；来源按“教材 → 章 → 现有标题路径”分组，同一位置的多个证据段合并显示，未被正文引用的检索材料默认二次折叠。章名与节名相同时去重，避免 `第六章 / 第六章`。
+- 边界：本轮不重建教材索引，不补造索引中缺失的中间标题，不修改向量库、教材数据、数据库结构或依赖。现有 metadata 只有“章 → 三级标题”时，UI 会忠实展示该路径，不会假定其所属二级标题。
+
+## 验证
+
+- 后端针对性测试：21 passed；后端全量：343 passed（仅既有 Starlette/httpx 弃用 warning）。
+- 前端 citation 工具：16 passed；前端全量：54 passed；ESLint 与生产构建通过。
+- 新增覆盖：全角/半角混合 token、折叠 token、越界 E-id 删除、正文顺序排序、同位置合并、章名去重、现有 section_path 贯通。
+
+# 2026-08-08 - Session 上下文追问 + ConceptMemory + Citation + 对话 UI 专项修复
+
+## 一、Session 内上下文追问（P0）
+
+- 现状确认：此前只有 `backend/conversation_memory.py::rewrite_followup` 的词法拼接（把上一条用户消息拼进 query），没有真正的 Conversation Resolver；graph 从未收到 history，概念抽取/retrieval/answer LLM 都只看改写后的单条 query。
+- 三个 Context 测试失败原因（均已实测复现）：
+  - Test1 Q3「那前者通常用在哪些传感器里？」：“前者”不在旧 follow-up 标记里 -> 原样进检索 -> KG 只命中「传感器」-> 答错对象。
+  - Test2 Q2「条件呢？」：非 follow-up 标记 -> 原样进检索 -> 无法检索到支撑证据。
+  - Test3 Q2「再解释一下霍尔效应。」：「再解释」被识别为 follow-up -> 拼接成「解释压阻效应。；再解释一下霍尔效应。」-> retrieval gate 因 focus 词覆盖失败判 `insufficient` -> 拒答。实测 standalone「再解释一下霍尔效应」单独检索完全正常（`supported, matched=[霍尔效应]`），拒答纯粹是错误拼接造成。
+- 修复（`backend/conversation_memory.py::rewrite_followup` 重写为规则式 Resolver，毫秒级、无 LLM）：
+  1. 自足检测：query 含显式概念时绝不拼接历史（修复 Test3 拒答根因）；
+  2. 「前者/后者」：取最近用户消息的比较对（含对侧指代解析）解析（Test1）；
+  3. 纯省略追问（条件呢/定义呢/性质呢...）：锚点概念 + 问题模板（Test2）；
+  4. 指代词（它/这个/...）：替换为当前显式概念或历史锚点；话题切换引导词（回到刚才的）剥离（Topic Switch Test）；
+  5. 解析失败且有指代信号才回退旧拼接。
+- 附带修复 `graph/retrieval_node.py`：`_SUPPORT_FILLER_PHRASES` 增加应用场景功能词（通常/用在/用于/应用于/哪些...），避免「通常用在哪些」被当成无法覆盖的 focus 词导致误拒答；缺点/特点/性质 等真实 focus 校验不变。
+
+## 二、ConceptMemory 延迟（P1）
+
+- 确认：`link_concepts_for_response`（UI 概念标签）同步运行在 answer 关键路径（done 事件之前）；确定性部分（词典/别名/KG 扫描）实测 1-3ms，唯一慢点是 `_targeted_repair` 的 LLM 逐项验证（仅当 query 含非 KG 并列概念时触发，约数秒）。`ConceptMemory` 持久化（`_record_concept_memory`）本就在后台线程。真实 trace 显示用户观察到的 5-10s 停顿主要是 plan LLM（非 fast-path 查询），概念链路本身不是主因。
+- 修复（`graph/feedback_node.py`）：`link_concepts_for_response` 走 `allow_llm_repair=False` 快速路径（无 LLM），UI 概念标签不再被 LLM 阻塞；完整（含 LLM repair）解析由后台 `_record_concept_memory` 执行，能力保留。增加 fast/full pipeline 耗时日志。
+
+## 三、Container 概念过度抽取（P1）
+
+- 根因：KG 概念无 type 字段；「传感器」「线性代数」等 container 作为 KG 概念被 `query_dictionary` 命中，`coverage_gate` 判 `auto_missing` 后被 `_targeted_repair` 无条件补回（confidence=1.0），成为 core concept。
+- 修复：`_targeted_repair` 对与当前 book/subject/chapter container 同名的 `auto_missing` 候选默认不补回（`_container_names_for_state`，book 名去 长书/短书/教材 等后缀）；「什么是传感器？」这类显式询问仍由 kg_matched 路径保留。
+
+## 四、Citation 泄漏（P1）
+
+- 根因：`frontend/src/utils/citations.ts::parseCitations` 正则只匹配 `[[cite:E1]]`；模型连续引用输出的折叠形式 `[[cite:E1][cite:E5]]` 不匹配，原样泄漏进正文。实测单引用/相邻/空格间隔正常，仅折叠形式泄漏。
+- 修复：正则升级为 `[[cite:E<id>](?:[cite:E<id>])*]`，单/多/连续/折叠引用统一替换为上标；非法 id 仍剔除。live streaming 与 history 共用同一 parser，两端同步生效。
+
+## 五、概念历史持久化（P2）
+
+- 根因：`append_message` 只持久化 content/sources，`linked_concepts` 只存在于前端内存 state；历史会话重载时概念消失。
+- 修复：`append_message` 新增 `linked_concepts` 参数；流式回答在 done 阶段用 `update_message_linked_concepts` 把概念快照补写回原消息（不新增消息、不重新抽取）；`/ask` 路径直接随消息持久化。
+
+## 六、输入框双重蓝线（P2）
+
+- 根因（Electron 实测）：`.chat-question-box` 有 `focus-within:border-accent` 蓝边（预期焦点指示），同时全局 `textarea:focus-visible { outline: 2px solid ...accent }` 因特异性 (0,1,1) 高于 textarea 的 `outline-none` (0,1,0) 而生效，形成内外两层蓝框（“双重输入框”）。box-shadow 已被 `focus:shadow-none` 抑制，非本因。
+- 修复：`index.css` 增加 `.chat-question-box textarea:focus-visible { outline: none }`，仅取消内层冗余 outline，外层 focus 指示保留。
+
+## 验证
+
+- 新增回归测试：`tests/test_conversation_followup.py`（Context A/B/C + Topic Switch + 负例）、`tests/test_evidence_support_gate.py`（TestA gate + focus 校验保持）、`tests/test_query_concepts.py`（container 过滤 2 例）、`tests/test_citation_pipeline.py`（概念持久化 2 例）、`frontend/src/utils/citations.test.ts`（折叠引用 3 例）。
+- 后端全量 301 passed；前端 vitest 49 passed；`tsc -b` 与 `vite build` 通过。
+- 端到端：三个 Context 测试 + Topic Switch 经 resolver -> retrieval gate 均 `supported/partial`，不再拒答。
+- 未改动依赖、索引格式、数据库结构、环境要求。
+
+# 2026-08-07 - 关键概念抽取：Query-first 候选 + Coverage Gate + Targeted repair
+
+- 问题：教材激活时最终概念集几乎完全由 KG 驱动（`ConceptLinker` 只返回能精确/别名命中 KG 的概念），且 LLM fallback 仅在 `not book_name and not concepts` 时运行。用户并列列出多个独立概念时，只要其中任何一个不是 KG 中的独立概念（如 "横向效应" 不在 KG、"压电效应" 只有 横向/纵向/正/逆压电效应 子类型而无裸形式），就会漏失。实测 "总结一下横向效应、压阻效应、压电效应的定义和区别" 最终只有 `压阻效应`。
+- 实现（新增 `knowledge/query_concepts.py`，只读、无副作用）：
+  1. `extract_query_candidates`：确定性并列结构切分（、，,/ 和 与 以及 及 或）+ KG 字典/别名扫描，正常情况不调用 LLM；词典精确命中视为已确认。任务词（定义/区别/特点/优点/缺点/应用 等）与通用噪声在切分时过滤。
+  2. 子串包含去重："随机误差、系统误差和粗大误差" 中 "误差" 从未独立出现，不再把 "误差/绝对误差(别名 误差)" 当独立候选；"什么是误差和随机误差的区别" 中 "误差" 有独立出现，保留。精确 canonical 命中优先于别名碰撞。
+  3. `coverage_gate`：按 concept_id / 归一化名称比较 query 显式候选与 final concepts；绝不使用 embedding/fuzzy 相似度（压阻效应 vs 压电效应 不会被误合并）。返回 auto_missing（字典确认缺失）与 validate_missing（启发式缺失）。
+  4. Targeted repair：字典确认缺失直接补回（不调 LLM）；启发式缺失做一次受限逐项验证（constrained classification，非重新自由生成），仅本地 KG 激活时执行。
+- 接入 `graph/feedback_node.py`：`_resolve_final_concepts` 统一 query-first -> 现有 KG linking -> merge -> coverage -> repair；`link_concepts_for_response`（UI）与 `_record_concept_memory`（学习记忆）共用同一结果；后台记忆线程复用 `state["linked_concepts"]` 避免重复 LLM 调用。非教材上下文（学科路由）保持原行为。
+- `knowledge/concept_memory.py`：`_CONCEPT_EXTRACT_PROMPT` 改为穷尽式识别语义（不按重要性排序、并列项逐项独立判断、任务词不作概念、上限 8->12）。
+- 新增回归测试 `tests/test_query_concepts.py`（覆盖任务 CASE 1-12）。
+- 未改动依赖、索引格式、数据库结构、环境要求；未改动检索/证据/Citation/前端。
+
+### Validation
+
+- 真实 pipeline（传感器长书 + DeepSeek repair）："总结一下横向效应、压阻效应、压电效应的定义和区别" 最终概念集 = `[压阻效应(question_mention), 横向效应(query_repair), 压电效应(query_repair)]`，无 "定义/区别"。
+- normal case（热敏电阻/正态分布/金属应变片/随机误差等）0 次额外 LLM 调用；repair case 每轮 +1 次受限验证调用，后台记忆不重复调用。
+- 精度："随机误差、系统误差和粗大误差？" 精确得到 3 个概念，不再带出 误差/绝对误差；"热敏电阻的定义、特点、优点、缺点和应用" 仅得 热敏电阻。
+- 全量测试 284 passed（含 22 个新测试）。
+- 残余 best-effort：generic QA（无教材）仍走既有 LLM `extract_concepts`（prompt 已改穷尽式）；"绝对误差" 别名碰撞在既有 linker weak-intent boost 下仍可能进入（KG 数据问题，非本次引入）；"金属应变片" 依赖 KG 中 电阻应变片 的 应变片 别名。
+
+# 2026-08-07 - Desktop dev 模式恢复「接管已有后端」工作流
+
+- 修复：dev（非打包）下 `npm run dev` 现在先探测 `BACKEND_URL/health`，若端口上已有健康后端（如手动启动的 uvicorn）则直接接管、跳过 spawn，不再因端口被手动后端占用而报 `后端进程退出：code=1, signal=null`。
+- 根因：8-03 提交 `55fcaf45` 引入的 instance_id 身份握手 + 「自拉后端退出即判失败」逻辑，破坏了「手动起后端 + npm run dev」这一既有工作流——此前自拉失败会被容忍并静默连上手动后端。
+- 实现（仅 `desktop/main.cjs`）：`startBackend` 改为 async，dev 路径 spawn 前调用 `probeExistingBackend()` 探测，命中则记录 `dev: adopting existing backend ...` 并返回；`waitForBackend` 的 fail-fast 与 identity 校验改为仅对 `app.isPackaged` 生效；dev 下自拉后端退出时保留 fallback 窗口，确无可用后端才以记录的退出原因判失败；退出处理器按打包/开发模式分流。
+- 打包版行为保持不变：仍严格校验 instance_id，自拉后端退出即失败。
+- 未改动任何数据、索引、数据库结构或依赖。
+
+### Validation
+
+- dev + 手动后端在 8000：日志出现 `dev: adopting existing backend at http://127.0.0.1:8000 (spawn skipped).`，无 10048、无 code=1，Electron 正常打开并接入手动后端；`node --check` 语法通过。
+- dev + 无后端（测试端口 8011）：自拉后端成功（`Uvicorn running on http://127.0.0.1:8011`），前端加载与 API 调用全部 200，无回归。
+- 打包版路径未做运行时验证（需完整打包构建），代码与改动前一致。
+
 # 2026-08-04 - Electron textbook retrieval smoke acceptance
 
 - Ran the packaged Electron UI against the local FastAPI backend with the `专业课 / 传感器` textbook scope selected.
@@ -1494,3 +1593,69 @@ The detailed historical notes for this period were damaged by mojibake before th
 - In an 18-second interaction sample, the four new Electron processes averaged 58.2% of one CPU core, versus 33.3% during an equal recovery-idle sample. The process group returned to the lower idle level after interaction rather than remaining elevated. The 250 ms sampling peak was 267.8% of one core during page loading/capture.
 - Working set rose from 571.9 MB to a 614.0 MB peak while all lazy routes were visited, then stabilized around 586.0 MB; private memory stabilized around 285.6 MB. The retained increase is consistent with first-load route modules and page data, and no repeated growth was observed after interaction stopped.
 - Runtime CPU figures include Windows Graphics Capture used by the UI validation tool, so they are suitable for relative interaction-versus-idle comparison, not as an end-user absolute idle benchmark.
+
+## 2026-08-09 - Session Context and Planner routing专项优化
+
+### Planner 与教材范围路由
+
+- 为 Planner 增加内部可观测 telemetry：提示词构建、API 请求起止、首 token、响应解析、章节 fallback 与总耗时，以及 token usage、reasoning token、finish reason、retry count、模型名和 request id。Fast-path 与 General QA bypass 使用相同的有界 trace 结构，不记录提示词或回答正文。
+- 在 Session Resolver 后加入保守的 deterministic 教材范围 gate。显式教材请求和已解析追问保留教材检索；明确学科错配、健康词法索引中缺失的特征英文词或定义锚点可退出当前教材模式；其余模糊问题继续继承已选教材。
+- 扩展短且结构明确的 deterministic fast-path，覆盖简单比较、计算方法和简短“解释 X”；多约束比较、推导、证明和详细解释仍进入 Planner。
+- 删除 fast-path 在正式 retrieve 前的向量章节预探测。章节定位由唯一的 retrieve 流程负责，避免同一问题做两次完整向量检索。
+
+### Session Context
+
+- 将追问解析迁移到 `backend/services/session_context.py`，以可重放的 `topic / entities / frame / constraints / intent / last_resolved_query` 状态替代旧的历史短语拼接。
+- 支持稳定实体顺序下的“第一个”、比较 frame 的“前者/后者”、后续条件增量，以及“性质 → 怎么算 → 举例”等连续意图继承。派生状态不写入会话文件，旧会话无需迁移，也不会把一次误解析永久固化。
+- 前端 retrieve 阶段根据 `use_textbook_context` 区分“检索教材上下文”和普通“准备回答”，避免 General QA 显示误导性的教材检索提示。
+- 未修改数据库、会话文件、向量索引、教材数据、错题记录或学习记录格式。
+
+### Validation
+
+- 后端全量 pytest 通过：319 tests passed；仅有既存 Starlette/httpx2 弃用警告。
+- 前端 ESLint、TypeScript 与 Vite 生产构建通过；Vitest 13 files / 49 tests passed。沙箱内首次 Vitest 因 Windows `spawn EPERM` 失败，获批的沙箱外重跑通过。
+- `git diff --check` 通过；Python `compileall` 因现有 `__pycache__` 目录写权限不足未作为验证依据，相关模块已由全量 pytest 导入覆盖。
+
+## 2026-08-09 - 学科专属 General QA 与 ConceptMemory 路由
+
+### 回答范围
+
+- 将回答范围显式拆分为 `textbook_grounded`、`subject_general`、`global_general` 和运行时的 `subject_mismatch`，保留 `use_textbook_context` 作为是否执行教材检索的内部细节，不再用它同时表达知识边界。
+- 自动模式优先使用当前教材；问题明显属于当前学科但教材没有对应内容时转为学科通用回答；明显跨出当前学科时停止生成并提示范围不匹配。用户可从该提示直接发起一次显式的跨学科通用回答，避免系统暗中扩大边界。
+- 范围判断会检查当前学科下全部健康教材的词法概念锚点，避免仅因当前选中的短教材未收录某个学科内概念就误判为跨学科。显式跨学科模式始终拥有最高优先级。
+- 对话界面显示“教材依据 / 学科通用 / 跨学科通用 / 范围待确认”来源标记；范围不匹配消息提供“跨学科通用回答”按钮，并保留原问题用于重新提交。
+
+### ConceptMemory
+
+- 教材回答继续按教材 KG 与检索概念归属；学科通用回答使用当前学科归属；跨学科通用回答进入通用归属，不再错误复用当前教材的知识图谱。
+- 通用回答在严格的本地概念链接后，异步复用结构化 LLM 概念提取作为 fallback；提取提示词带回答范围和学科约束，既支持无教材概念，也保留显式提及、证据支持和去泛化门槛。
+- `subject_mismatch` 不生成答案，也不写入 ConceptMemory。学习事件新增回答模式与范围原因，来源细分为教材、学科通用和跨学科通用。
+- 未迁移或重建 ConceptMemory、教材索引、向量库、错题及复习数据。会话消息仅新增可选的回答模式与范围原因字段，旧会话保持兼容。
+
+### Validation
+
+- 后端全量 pytest 通过：329 tests passed；仅有既存 Starlette/httpx2 弃用警告。
+- 前端 ESLint、TypeScript 与 Vite 生产构建通过；Vitest 通过：13 files / 49 tests passed。沙箱内首次启动仍受 Windows `spawn EPERM` 限制，获批的沙箱外重跑通过。构建仅保留既有的 MathLive 大 chunk 提示。
+- `git diff --check` 通过；真实路由检查确认传感器教材中的“QKV”进入 `subject_mismatch`，“压阻效应”保持 `textbook_grounded`，显式跨学科请求进入 `global_general`。
+
+## 2026-08-09 - 复合问答与指代追问修复
+
+### 根因与路由
+
+- “压阻式传感器怎么算”此前被归入宽泛的 `application`，其检索角色优先例题和实例，导致回答列举压阻式加速度、压力传感器而没有给出计算链路。新增独立的 `calculation` 意图，公式、算法和推导证据优先，并要求生成器先说明计算对象是否唯一，再给公式、变量、适用条件和计算顺序。
+- 显式“比较 / 推导 / 计算”任务现在可锁定本地确定性意图；Planner 仍负责复杂问题的章节定位，但不能因“并说明”等次要词把多维比较改判成事实背诵。
+- 计算检索使用同一次向量与词法调用中的意图化查询，不增加第二轮向量预检或新的 LLM 调用，保留本轮优化后的生成速度收益。
+
+### Session Context 与证据支持
+
+- 比较 frame 支持“比较 A 和 B。”以及三项以上的“比较 A、B 和 C，并分别说明……”结构，并补全中文并列结构中省略的共享后缀，例如将“压阻式和压电式传感器”解析为两个完整实体。
+- “前者 / 后者”从 comparison frame 按稳定顺序解析；“那后者呢”这类省略追问会继承上一问的谓词，而不是把原始指代词交给向量检索。由此避免误命中“静态磁头 / 动态磁头”。
+- 复合问题的 Evidence Support Gate 改为逐个事实维度检查。灵敏度、频响、静态测量能力、误差来源、基本公式和近似条件不再被拼成一个不可能逐字命中的长短语；多个证据块可以共同覆盖各维度。
+- 真实教材证据仍不足时不会自动混入模型知识。拒答文案给出缩小问题或改用学科通用回答的引导，前端同时提供显式“改用学科通用回答”按钮；拒答本身不写入 ConceptMemory。
+- 会话消息仅新增可选的建议回答模式字段；未迁移数据库、向量库、教材索引、ConceptMemory、错题或复习数据。
+
+### Validation
+
+- 用传感器短书真实索引重放：复杂推导题与三类传感器多维比较均由 `insufficient` 转为 `supported`；计算题进入 `calculation`；“前者”解析为压阻式传感器，“那后者呢”解析为同一谓词下的压电式传感器。
+- 后端全量 pytest 通过：340 tests passed；仅有既存 Starlette/httpx2 弃用警告。
+- 前端 ESLint、TypeScript、Vite 生产构建通过；Vitest 13 files / 49 tests passed。构建仅保留既有的 MathLive 大 chunk 提示。
