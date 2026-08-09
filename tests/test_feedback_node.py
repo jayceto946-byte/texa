@@ -118,3 +118,84 @@ def test_generic_qa_extracts_only_direct_high_confidence_concepts(monkeypatch):
     assert chat_event.book_name == "default"
     assert chat_event.payload["question"] == "导数怎么求"
     assert chat_event.concept_names == ["导数"]
+
+
+def test_subject_general_with_selected_book_uses_generic_llm_fallback(monkeypatch):
+    import graph.feedback_node as feedback
+    import knowledge.concept_memory as concept_memory
+    import memory.learning_events as learning_events
+
+    captured = {"extract": [], "exposures": [], "events": []}
+
+    class DummyMemory:
+        def __init__(self, book_name: str):
+            self.book_name = book_name
+
+        def extract_concepts(self, question, answer, **kwargs):
+            captured["extract"].append((question, kwargs))
+            return [{"name": "压阻效应", "confidence": 0.96, "aliases": []}]
+
+        def log_exposure(self, concepts, question, intent, **kwargs):
+            captured["exposures"].append((concepts, kwargs))
+
+        def log_candidates(self, *args, **kwargs):
+            return []
+
+    class DummyStore:
+        def append(self, event):
+            captured["events"].append(event)
+            return event.id
+
+    monkeypatch.setattr(feedback, "_link_concepts_locally", lambda state: [])
+    monkeypatch.setattr(concept_memory, "ConceptMemory", DummyMemory)
+    monkeypatch.setattr(learning_events, "get_learning_event_store", lambda: DummyStore())
+
+    concepts = feedback._record_concept_memory({
+        "book_name": "传感器短书",
+        "subject": "专业课/传感器",
+        "answer_mode": "subject_general",
+        "use_textbook_context": False,
+        "conversation_id": "conv-subject-general",
+        "user_input": "压阻效应有什么应用？",
+        "final_output": "压阻效应可用于应变测量。",
+        "intent": "application",
+    })
+
+    assert [item["name"] for item in concepts] == ["压阻效应"]
+    assert captured["extract"][0][1] == {
+        "subject": "专业课/传感器",
+        "answer_mode": "subject_general",
+    }
+    assert captured["exposures"][0][1]["source"] == "qa_subject_general"
+    chat_event = next(event for event in captured["events"] if event.event_type == "chat_qa")
+    assert chat_event.payload["answer_mode"] == "subject_general"
+
+
+def test_subject_mismatch_never_writes_concept_memory(monkeypatch):
+    import graph.feedback_node as feedback
+
+    monkeypatch.setattr(
+        feedback,
+        "_link_concepts_locally",
+        lambda state: (_ for _ in ()).throw(AssertionError("linker should not run")),
+    )
+    assert feedback._record_concept_memory({
+        "answer_mode": "subject_mismatch",
+        "user_input": "Transformer 的 QKV 是什么？",
+    }) == []
+
+
+def test_grounding_refusal_never_writes_concept_memory(monkeypatch):
+    import graph.feedback_node as feedback
+
+    monkeypatch.setattr(
+        feedback,
+        "_link_concepts_locally",
+        lambda state: (_ for _ in ()).throw(AssertionError("linker should not run")),
+    )
+    assert feedback._record_concept_memory({
+        "answer_mode": "textbook_grounded",
+        "use_textbook_context": True,
+        "evidence_support": {"status": "insufficient"},
+        "user_input": "教材没有覆盖的问题",
+    }) == []

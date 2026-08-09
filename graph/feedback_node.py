@@ -1,6 +1,16 @@
 """反馈节点 — 更新记忆 + 掌握度 + 优化策略"""
+import re
 from memory.study_memory import StudyMemory
 from memory.spaced_repetition import SpacedRepetition
+
+
+def _state_answer_mode(state: dict) -> str:
+    mode = str(state.get("answer_mode") or "").strip()
+    if mode:
+        return mode
+    if state.get("use_textbook_context") is not False and state.get("book_name"):
+        return "textbook_grounded"
+    return "subject_general" if state.get("subject") else "global_general"
 
 
 def _feedback_node_impl(state: dict) -> dict:
@@ -58,11 +68,175 @@ def feedback_node(state: dict) -> dict:
             "linked_concepts": link_concepts_for_response(state),
         }
 
-def link_concepts_for_response(state: dict) -> list[dict]:
-    """Resolve UI concept links locally without writing data or calling an LLM."""
+def _kg_for_state(state: dict):
+    """返回本地预构建 KG（用于字典扫描）；非本地返回 None。"""
     try:
-        raw_concepts = _link_concepts_locally(state)
-        return _strict_concepts(raw_concepts, str(state.get("user_input", "")))
+        from knowledge.knowledge_graph import get_kg
+        kg = get_kg(str(state.get("book_name") or "default"))
+        return kg if getattr(kg, "_is_local", False) else None
+    except Exception:
+        return None
+
+
+# 教材名/书目容器的常见后缀："传感器长书" -> "传感器"
+_BOOK_CONTAINER_SUFFIXES = (
+    "\u957f\u4e66", "\u77ed\u4e66", "\u6559\u6750", "\u8bb2\u4e49", "\u8bfe\u672c",
+    "\u4e0a\u518c", "\u4e0b\u518c", "\u7b2c\u4e00\u7248", "\u7b2c2\u7248", "\u7b2c\u4e8c\u7248",
+)
+
+
+def _strip_book_container_suffix(name: str) -> str:
+    """"传感器长书"->"传感器"（书目名容器）。"""
+    for suffix in _BOOK_CONTAINER_SUFFIXES:
+        if name.endswith(suffix) and len(name) > len(suffix) + 1:
+            return name[: -len(suffix)]
+    return name
+
+
+def _normalize_chapter_container(title: str) -> str:
+    """把章节标题归一化为可能出现的容器词（如"第1章 绪论"->"绪论"）。"""
+    value = re.sub(r"^\u7b2c[\u4e00-\u4e5d\u5341\u767e\u5343\d]+\u7ae0\s*", "", str(title or "")).strip()
+    value = re.sub(r"^\u7b2c[\u4e00-\u4e5d\u5341\u767e\u5343\d]+\u8282\s*", "", value).strip()
+    return value
+
+
+def _container_names_for_state(state: dict) -> set[str]:
+    """当前 book / subject / 章节层级的 container 名称集合（归一化后）。"""
+    from knowledge.query_concepts import normalize_full
+    names: set[str] = set()
+    for raw in (str(state.get("book_name") or ""), str(state.get("subject") or "")):
+        raw = raw.strip()
+        if raw:
+            names.add(normalize_full(raw))
+            stripped = _strip_book_container_suffix(raw)
+            if stripped and stripped != raw:
+                names.add(normalize_full(stripped))
+    for title in state.get("target_chapters") or []:
+        chapter_container = _normalize_chapter_container(title)
+        if chapter_container and len(chapter_container) >= 2:
+            names.add(normalize_full(chapter_container))
+    return names
+
+
+def _targeted_repair(
+    question: str,
+    auto_missing,
+    validate_missing,
+    kg,
+    *,
+    allow_llm_repair: bool = True,
+    container_names: set[str] | None = None,
+) -> list[dict]:
+    """Coverage Gate 发现的缺失候选 -> 受限补回。
+
+    - 字典已确认（query_dictionary）缺失：直接补回，不调用 LLM；
+      但与当前 book/subject/chapter container 同名的候选默认不补回
+      （容器只因词面出现，不是被询问的核心概念；"什么是传感器？"这类
+      显式询问仍由 kg_matched 路径覆盖，不受影响）。
+    - 启发式（query_parallel）缺失：一次受限逐项验证（constrained classification），
+      仅在 allow_llm_repair 且本地 KG 激活时执行，避免 UI 回答路径被 LLM 拖慢。
+    """
+    from knowledge.query_concepts import normalize_full
+    repaired: list[dict] = []
+    for cand in auto_missing or []:
+        name = cand.canonical_name or cand.name
+        if container_names and name and normalize_full(name) in container_names:
+            continue
+        repaired.append({
+            "name": name,
+            "concept_id": cand.concept_id or "",
+            "type": "concept",
+            "confidence": 1.0,
+            "source": "query_dictionary",
+            "evidence": cand.name,
+            "aliases": list(cand.aliases or []),
+        })
+    if allow_llm_repair and validate_missing and kg is not None and getattr(kg, "_is_local", False):
+        try:
+            from config import get_llm
+            from knowledge.query_concepts import validate_missing_candidates
+            repaired.extend(validate_missing_candidates(question, validate_missing, get_llm()))
+        except Exception as exc:
+            print(f"[ConceptMemory] repair validation failed: {exc}", flush=True)
+    return repaired
+
+
+def _resolve_final_concepts(state: dict, *, allow_llm_repair: bool = True) -> list[dict]:
+    """Query-first Candidate Extraction -> 现有 KG linking -> 合并 -> Coverage Gate -> targeted repair。
+
+    数据流：
+      query_candidates（确定性并列切分 + KG 字典/别名扫描，不依赖 answer）
+      raw（现有 ConceptLinker 从 question/answer/chunks/matched 抽取）
+      strict（confidence>=0.85 且出现在问题原文）
+      coverage_gate(strict) -> auto_missing / validate_missing
+      repair -> final（append_concepts 按 canonical identity 去重）
+
+    allow_llm_repair=False 时跳过 LLM 验证（UI 概念标签的同步快速路径），
+    完整（含 LLM repair）只在后台学习记忆路径执行。
+    """
+    import time as _time
+    _started = _time.perf_counter()
+    question = str(state.get("user_input", ""))
+    if _state_answer_mode(state) == "subject_mismatch" or (
+        _state_answer_mode(state) == "textbook_grounded"
+        and str((state.get("evidence_support") or {}).get("status") or "") in {"insufficient", "unavailable"}
+    ):
+        return []
+    if not state.get("use_textbook_context", True):
+        # General QA has no selected textbook evidence/KG. Keep the synchronous
+        # path local; the background memory path may add constrained LLM extraction.
+        return _strict_concepts(_link_concepts_locally(state), question)
+    try:
+        from knowledge.query_concepts import (
+            append_concepts,
+            coverage_gate,
+            debug_log_concepts,
+            extract_query_candidates,
+        )
+        kg = _kg_for_state(state)
+        query_candidates = extract_query_candidates(question, kg)
+        raw = _link_concepts_locally(state)
+        strict = _strict_concepts(raw, question)
+        auto_missing, validate_missing = coverage_gate(query_candidates, strict)
+        container_names = _container_names_for_state(state)
+        repaired = _targeted_repair(
+            question,
+            auto_missing,
+            validate_missing,
+            kg,
+            allow_llm_repair=allow_llm_repair,
+            container_names=container_names,
+        )
+        final = append_concepts(strict, repaired)
+        debug_log_concepts(question, query_candidates, final, auto_missing, validate_missing, repaired)
+        _elapsed_ms = round((_time.perf_counter() - _started) * 1000, 1)
+        if allow_llm_repair:
+            print(
+                f"[ConceptMemory] full pipeline {_elapsed_ms}ms (llm_repair={len(validate_missing) > 0})",
+                flush=True,
+            )
+        else:
+            print(
+                f"[ConceptMemory] fast pipeline {_elapsed_ms}ms (llm_repair deferred={len(validate_missing) > 0})",
+                flush=True,
+            )
+        return final
+    except Exception as exc:
+        print(f"[ConceptMemory] concept pipeline failed: {exc}", flush=True)
+        try:
+            return _strict_concepts(_link_concepts_locally(state), question)
+        except Exception:
+            return []
+
+
+def link_concepts_for_response(state: dict) -> list[dict]:
+    """Resolve UI concept links locally (query-first + coverage + repair).
+
+    UI 概念标签走快速路径（确定性 + 字典，不调用 LLM repair），保证回答路径不被 LLM 拖慢；
+    完整（含 LLM repair）解析由后台学习记忆路径执行，能力不丢失。
+    """
+    try:
+        return _resolve_final_concepts(state, allow_llm_repair=False)
     except Exception as exc:
         print(f"[ConceptMemory] response linking failed: {exc}", flush=True)
         return []
@@ -99,10 +273,16 @@ def _record_concept_memory(state: dict) -> list[dict]:
         from knowledge.concept_memory import ConceptMemory, has_explicit_weak_signal
         from memory.learning_events import LearningEvent, concept_names, get_learning_event_store
 
+        answer_mode = _state_answer_mode(state)
+        if answer_mode == "subject_mismatch" or (
+            answer_mode == "textbook_grounded"
+            and str((state.get("evidence_support") or {}).get("status") or "") in {"insufficient", "unavailable"}
+        ):
+            return []
         book_name = str(state.get("book_name") or "").strip()
-        memory_book = book_name or "default"
+        memory_book = "default" if answer_mode == "global_general" else (book_name or "default")
         intent = state.get("intent", "qa")
-        subject = state.get("subject", "")
+        subject = "" if answer_mode == "global_general" else state.get("subject", "")
         conversation_id = state.get("conversation_id", "")
         question = state.get("user_input", "")
         answer = state.get("final_output", "")
@@ -110,9 +290,20 @@ def _record_concept_memory(state: dict) -> list[dict]:
         explicit_weak = has_explicit_weak_signal(question)
 
         memory = ConceptMemory(memory_book)
-        concepts = _strict_concepts(raw_concepts, question)
-        if not book_name and not concepts:
-            extracted = memory.extract_concepts(question, answer)
+        # 主线程（stream 路径）已用快速路径计算 UI 概念标签（无 LLM repair）；
+        # 这里是后台学习记忆路径，执行完整解析以保留 LLM repair 能力。
+        # 同步路径（graph.invoke）此前未计算过，同样在此完整解析。
+        concepts = _resolve_final_concepts(state)
+        if answer_mode in {"subject_general", "global_general"} and not concepts:
+            try:
+                extracted = memory.extract_concepts(
+                    question,
+                    answer,
+                    subject=subject,
+                    answer_mode=answer_mode,
+                )
+            except TypeError:  # compatibility for older extensions/test doubles
+                extracted = memory.extract_concepts(question, answer)
             for item in extracted:
                 if isinstance(item, dict):
                     item.setdefault("source", "general_qa_llm")
@@ -124,20 +315,32 @@ def _record_concept_memory(state: dict) -> list[dict]:
                 concepts,
                 question,
                 intent,
-                source="qa",
+                source={
+                    "textbook_grounded": "qa_textbook",
+                    "subject_general": "qa_subject_general",
+                    "global_general": "qa_global_general",
+                }.get(answer_mode, "qa"),
                 weak=explicit_weak,
                 subject=subject,
                 conversation_id=conversation_id,
                 weak_reason="explicit_confusion" if explicit_weak else "",
             )
 
-        candidates = [item for item in raw_concepts if item not in concepts]
+        strict_names = {
+            str(item.get("name", "")).strip().lower()
+            for item in concepts
+            if item and item.get("name")
+        }
+        candidates = [
+            item for item in raw_concepts
+            if item and str(item.get("name", "")).strip().lower() not in strict_names
+        ]
         if candidates:
             memory.log_candidates(
                 candidates,
                 question,
                 intent,
-                source="qa_general_candidate" if not book_name else "qa_linker_candidate",
+                source="qa_general_candidate" if answer_mode in {"subject_general", "global_general"} else "qa_linker_candidate",
                 subject=subject,
                 conversation_id=conversation_id,
                 answer=answer,
@@ -158,6 +361,8 @@ def _record_concept_memory(state: dict) -> list[dict]:
                 "answer_preview": answer[:500],
                 "target_chapters": state.get("target_chapters", []),
                 "retrieval_status": state.get("retrieval_status", ""),
+                "answer_mode": answer_mode,
+                "scope_reason": state.get("scope_reason", ""),
                 "candidate_count": len(candidates or []),
             },
         ))
@@ -209,7 +414,9 @@ def _link_concepts_locally(state: dict) -> list[dict]:
     for docs in chapter_contents.values():
         chunks.extend(docs[:2])
 
-    return ConceptLinker(state.get("book_name", "default")).link(
+    answer_mode = _state_answer_mode(state)
+    linker_book = "default" if answer_mode in {"subject_general", "global_general", "subject_mismatch"} else state.get("book_name", "default")
+    return ConceptLinker(linker_book).link(
         question=state.get("user_input", ""),
         answer=state.get("final_output", ""),
         chunks=chunks,

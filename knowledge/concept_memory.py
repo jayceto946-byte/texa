@@ -45,7 +45,12 @@ from utils.state_locks import get_state_lock
 from utils.subject_catalog import normalize_subject_value
 
 
-_CONCEPT_EXTRACT_PROMPT = """从以下考研问答中，提取涉及的关键数学/专业课概念。
+_CONCEPT_EXTRACT_PROMPT = """从以下考研/学习问答中，提取用户问题明确涉及的关键概念。
+
+你在做穷尽式概念识别（exhaustive concept identification），不是做摘要或重要性排序。
+
+## 回答范围
+{scope}
 
 ## 问题
 {question}
@@ -58,15 +63,21 @@ _CONCEPT_EXTRACT_PROMPT = """从以下考研问答中，提取涉及的关键数
   {{
     "name": "概念名",
     "type": "算法/定理/公式/概念/方法",
-    "confidence": 0.9
+    "confidence": 0.9,
+    "explicit_span": "问题原文中对应的连续文本"
   }}
 ]
 要求：
-1. 只提取真正的专业概念，过滤常见词（如"我们""可以""这个"）
-2. 优先提取教材中的专有名词
-3. 概念名或有效别名必须直接出现在问题原文中，不得只从回答推测概念
-4. 置信度低于 0.5 的不要输出
-5. 最多输出 8 个概念
+1. 识别问题中明确提到的每一个独立成立的教材/学习概念。
+2. 如果问题并列列出多个概念（如 A、B、C，或“比较 A 和 B”），必须逐项独立判断，
+   不要把“最重要的那个”之外的项删掉。每个明确提到的有效学习概念都优先保留。
+3. 只提取真正的专业概念，过滤常见词（如"我们""可以""这个"）
+4. 优先提取教材中的专有名词
+5. 概念名或有效别名必须直接出现在问题原文中，不得只从回答推测概念
+6. 不要因为“定义、区别、特点、优点、缺点、应用、原因、总结、比较”等任务词
+   出现在并列结构中，就把它们当作概念。
+7. 置信度低于 0.5 的不要输出
+8. 最多输出 12 个概念
 """
 
 
@@ -167,10 +178,18 @@ class ConceptMemory:
 
     # ── 概念提取 ──────────────────────────────────────────
 
-    def extract_concepts(self, question: str, answer: str) -> list[dict]:
+    def extract_concepts(
+        self,
+        question: str,
+        answer: str,
+        *,
+        subject: str = "",
+        answer_mode: str = "",
+    ) -> list[dict]:
         """用 LLM 从问答中提取概念。返回 [{name, type, confidence}]。"""
         llm = get_llm()
         prompt = _CONCEPT_EXTRACT_PROMPT.format(
+            scope=(subject or "跨学科通用") + (f"；模式：{answer_mode}" if answer_mode else ""),
             question=question,
             answer=answer[:1000],
         )
