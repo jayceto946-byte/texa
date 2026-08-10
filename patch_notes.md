@@ -1,3 +1,29 @@
+# 2026-08-10 - venv310 环境重建与依赖锁定修复
+
+## 原因
+
+- venv310 长期混装 PaddleOCR / Marker / Surya / MinerU 等可选 OCR 运行库，未纳入锁定文件，`pip check` 报告 protobuf、numpy、pillow、openai 等版本冲突，环境不可复现。
+- 核实生产 OCR 路径：错题图片 OCR 走 Kimi Vision（`backend/api/mistakes.py`），教材解析走外部 MinerU（`ingestion/mineru_client.py`，纯 httpx API）；`ingestion/ocr.py` 的 PaddleOCR/PPStructure 只被遗留 CLI（`ui/cli.py`）与独立 agent（`agents/coordinator.py`）引用，生产路径不依赖本地 OCR 运行库。
+
+## 动作
+
+- 旧环境改名保留：`venv310` → `venv310-mixed-backup`（6.1G，未删除），包清单备份至 `logs/venv310_pip_freeze_backup.txt`（305 项，被 gitignore 忽略）。
+- 用 Python 3.10.11 全新创建 `venv310`，按 `requirements-dev.txt` 精确安装（torch 2.11.0+cpu、openai 2.46.0、chromadb 1.5.9 等），体积约 848M。
+- 修复锁定文件：`requirements-release.txt` 中 `openai==1.109.1` 与 `langchain-openai==1.2.2`（要求 `openai>=2.26,<3`）冲突，说明该锁定集此前从未从零安装验证；改为 `openai==2.46.0`（与已验证通过全量测试的本地环境版本一致）。
+
+## 影响
+
+- 主 venv310 回归纯净锁定集，`pip check` 通过、可复现；Electron/CI 的 fresh-env 安装现在可解析成功。
+- `ingestion/ocr.py` 缺 PaddleOCR 时按原有 try/except 降级返回“[PaddleOCR 不可用]”提示，不阻塞导入；CLI / `agents/coordinator.py` 的本地 OCR 功能不可用（生产路径不受影响）。
+- 未修改数据库、向量索引、教材、错题或学习记录。
+
+## 验证
+
+- `pip check`：No broken requirements found。
+- 后端全量 pytest：403 passed（88.8s），仅既有 Starlette/httpx2 弃用警告。
+- uvicorn 启动冒烟：`/api/system/health` 200、`/api/system/version` 200，embedding 本地快照加载，2.3s。
+- git：`requirements-release.txt` 的 openai pin 修复与本次环境重建记录已随独立 commit 提交；旧环境 `venv310-mixed-backup` 已于确认后删除，磁盘释放约 6G。
+
 # 2026-08-09 - Read-only Agent 超时与可观测性修复
 
 - Read-only Agent 新增 50 秒总预算、8 秒单工具预算和 35 秒模型总结预算；Agent 专用 LLM 请求禁用自动重试，并以相同的请求超时约束底层客户端。超时工具只标记为局部不可用，模型总结超时则保留已读取证据并返回明确提示，不再无限占用前端请求。
