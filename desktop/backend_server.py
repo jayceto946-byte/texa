@@ -119,13 +119,18 @@ def main() -> None:
     _seed_sample_data(data_dir)
 
     port = int(os.getenv("KAOYAN_BACKEND_PORT", "8000"))
-    uvicorn.run(
-        "backend.main:app",
+    from backend.main import app
+
+    config = uvicorn.Config(
+        app,
         host=os.getenv("KAOYAN_BACKEND_HOST", "127.0.0.1"),
         port=port,
         reload=False,
         access_log=False,
     )
+    server = uvicorn.Server(config)
+    app.state.desktop_server = server
+    server.run()
 
 
 if __name__ == "__main__":

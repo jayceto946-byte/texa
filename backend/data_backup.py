@@ -151,6 +151,9 @@ def create_backup(*, include_derived: bool = False, reason: str = "manual") -> d
                 "file_count": file_count,
                 "uncompressed_bytes": total_bytes,
                 "contains_secrets": False,
+                # Core data restore is deliberately non-destructive. Roots
+                # absent from this archive are preserved instead of deleted.
+                "restore_mode": "merge",
             }
             (snapshot / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
             temp_archive = archive_path.with_suffix(".zip.tmp")
@@ -239,6 +242,7 @@ def schedule_restore(name: str) -> dict:
         "archive": archive.name,
         "scheduled_at": _utc_now(),
         "safety_backup": safety_backup["name"],
+        "restore_mode": "merge",
     }
     _atomic_json(PENDING_RESTORE_PATH, payload)
     return {**payload, "restart_required": True}
@@ -265,6 +269,7 @@ def apply_pending_restore() -> dict | None:
     moved: list[tuple[Path, Path]] = []
     installed: list[Path] = []
     invalidated: list[str] = []
+    preserved_unlisted: list[str] = []
     try:
         payload = json.loads(PENDING_RESTORE_PATH.read_text(encoding="utf-8"))
         if not isinstance(payload, dict):
@@ -289,6 +294,10 @@ def apply_pending_restore() -> dict | None:
                 installed.append(target)
 
             included = set(manifest["included"])
+            for item in [f"data/{name}" for name in CORE_ROOTS + CORE_FILES]:
+                target = DATA_ROOT / Path(item).name
+                if item not in included and target.exists():
+                    preserved_unlisted.append(item)
             derived_targets = {
                 "data/vector_db": DATA_ROOT / "vector_db",
                 "mineru_output": MINERU_ROOT,
@@ -312,6 +321,8 @@ def apply_pending_restore() -> dict | None:
             "status": "completed",
             "completed_at": _utc_now(),
             "invalidated": invalidated,
+            "restore_mode": "merge",
+            "preserved_unlisted": preserved_unlisted,
             "reindex_required": "data/vector_db" in invalidated,
         }
         _atomic_json(RESTORE_RESULT_PATH, result)

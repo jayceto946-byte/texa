@@ -16,6 +16,16 @@ type RemoteCaptureStatus = {
   message: string;
 };
 
+export type DesktopBackendStatus = {
+  status: 'starting' | 'ready' | 'recovering' | 'failed' | 'stopped';
+  message: string;
+  attempt?: number;
+  maxAttempts?: number;
+  backendUrl?: string;
+  logPath?: string;
+  canRetry?: boolean;
+};
+
 declare global {
   interface Window {
     kaoyanDesktop?: {
@@ -28,6 +38,7 @@ declare global {
       restart?: () => Promise<boolean>;
       retryStartup?: () => Promise<{ ready: boolean; message?: string }>;
       getStartupInfo?: () => Promise<{ message?: string; backendUrl?: string; logPath?: string; dataDir?: string }>;
+      getBackendStatus?: () => Promise<DesktopBackendStatus>;
       openWebFallback?: () => Promise<void>;
       openBackendLog?: () => Promise<string>;
       getRemoteCaptureStatus?: () => Promise<RemoteCaptureStatus>;
@@ -38,6 +49,7 @@ declare global {
       installUpdate?: () => Promise<DesktopUpdateStatus>;
       onUpdateStatus?: (handler: (status: DesktopUpdateStatus) => void) => () => void;
       onStartupError?: (handler: (payload: { message?: string; backendUrl?: string; logPath?: string } | string) => void) => () => void;
+      onBackendStatus?: (handler: (status: DesktopBackendStatus) => void) => () => void;
     };
   }
 }

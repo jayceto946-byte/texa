@@ -20,6 +20,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+          cache: pip
+          cache-dependency-path: |
+            requirements-release.txt
+            requirements-dev.txt
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -35,8 +39,8 @@ jobs:
         run: |
           python -m venv venv310
           .\venv310\Scripts\python.exe -m pip install --upgrade pip
-          .\venv310\Scripts\python.exe -m pip install -r requirements-release.txt
-          .\venv310\Scripts\python.exe -m pip install pytest
+          .\venv310\Scripts\python.exe -m pip install -r requirements-dev.txt
+          .\venv310\Scripts\python.exe -m pip check
 
       - name: Install frontend dependencies
         shell: pwsh
@@ -60,11 +64,18 @@ jobs:
       - name: Run release gates
         shell: pwsh
         run: |
+          if (-not (Test-Path -LiteralPath LICENSE)) { throw "LICENSE is required for a public release" }
           .\venv310\Scripts\python.exe -m pytest -q
+          .\venv310\Scripts\python.exe scripts\check_dependency_lock.py
           Push-Location frontend
           npm.cmd run test
           npm.cmd run lint
           Pop-Location
+          Push-Location desktop
+          npm.cmd test
+          npm.cmd run check
+          Pop-Location
+          .\venv310\Scripts\python.exe scripts\check_release_content.py --sample-dir desktop\sample_data
 
       - name: Configure GitHub update feed
         shell: pwsh
@@ -87,6 +98,15 @@ jobs:
         shell: pwsh
         run: .\scripts\build-desktop-backend.ps1 -Python .\venv310\Scripts\python.exe
 
+      - name: Require Windows signing certificate
+        shell: pwsh
+        env:
+          CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
+        run: |
+          if (-not $env:CSC_LINK) { throw "WINDOWS_CSC_LINK is required for a public desktop release" }
+          if (-not $env:CSC_KEY_PASSWORD) { throw "WINDOWS_CSC_KEY_PASSWORD is required for a public desktop release" }
+
       - name: Publish desktop release
         shell: pwsh
         working-directory: desktop
@@ -95,3 +115,18 @@ jobs:
           CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
         run: npm run publish
+
+      - name: Verify Authenticode signatures
+        shell: pwsh
+        run: |
+          $targets = @(
+            Get-ChildItem -LiteralPath release -Filter *.exe -File -ErrorAction Stop
+            Get-ChildItem -LiteralPath release\win-unpacked -Filter *.exe -File -ErrorAction Stop
+          )
+          if ($targets.Count -lt 2) { throw "Expected signed installer and application executable" }
+          foreach ($target in $targets) {
+            $signature = Get-AuthenticodeSignature -LiteralPath $target.FullName
+            if ($signature.Status -ne 'Valid') {
+              throw "Invalid Authenticode signature: $($target.FullName) [$($signature.Status)]"
+            }
+          }

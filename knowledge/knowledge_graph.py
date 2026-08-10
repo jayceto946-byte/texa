@@ -139,6 +139,11 @@ class KnowledgeGraph:
                         cid = ch.get("chunk_id", "")
                         if not cid:
                             continue
+                        # Current ingestion writes chunk bodies as ``content``;
+                        # older graph exports used ``text``. Normalize at the
+                        # read boundary so every KG lookup follows one schema.
+                        if not ch.get("text") and ch.get("content"):
+                            ch = {**ch, "text": ch.get("content", "")}
                         self._chunk_map[cid] = ch
                         self._chunk_order.append(cid)
                         sec = ch.get("section_title", "")

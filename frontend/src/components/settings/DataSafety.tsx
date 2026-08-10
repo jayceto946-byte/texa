@@ -57,7 +57,7 @@ export default function DataSafety() {
 
   const restore = async (item: BackupItem) => {
     if (!item.valid) return;
-    if (!window.confirm(`确定恢复备份 ${item.name} 吗？\n\n系统会先创建当前数据的安全备份，实际恢复在重启时执行。`)) return;
+    if (!window.confirm(`确定从备份 ${item.name} 合并恢复吗？\n\n备份中包含的数据会被替换；备份中未包含的其他教材和记录会保留。系统会先创建当前数据的安全备份，实际恢复在重启时执行。`)) return;
     setBusy(item.name);
     setMessage('正在校验备份并创建恢复前快照...');
     try {
@@ -103,8 +103,9 @@ export default function DataSafety() {
       {message && <div className="rounded-lg border border-border bg-bg-card px-3 py-2 text-sm text-text-secondary">{message}</div>}
       {lastRestore?.status && (
         <div className={`rounded-lg border p-3 text-xs ${lastRestore.status === 'completed' ? 'border-[#bfd4c6] bg-[#edf6f0] text-[var(--success)]' : 'border-red-200 bg-red-50 text-[var(--danger)]'}`}>
-          最近恢复：{lastRestore.status === 'completed' ? '已完成' : '失败并已回滚'} · {lastRestore.archive}
+          最近合并恢复：{lastRestore.status === 'completed' ? '已完成' : '失败并已回滚'} · {lastRestore.archive}
           {lastRestore.status === 'completed' && lastRestore.reindex_required && ' · 已移除不匹配的向量索引，请在教材管理中重新索引'}
+          {lastRestore.status === 'completed' && lastRestore.preserved_unlisted?.length > 0 && ` · 已保留 ${lastRestore.preserved_unlisted.length} 个备份未包含的数据目录`}
         </div>
       )}
 
@@ -121,7 +122,7 @@ export default function DataSafety() {
                 <div className="mt-1 text-[11px] text-text-secondary">{item.valid ? `SHA-256 ${item.sha256?.slice(0, 16)}…` : `校验失败：${item.error || '未知错误'}`}</div>
               </div>
               <button type="button" onClick={() => restore(item)} disabled={!item.valid || Boolean(busy)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:border-accent disabled:opacity-50">
-                {busy === item.name ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}恢复
+                {busy === item.name ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}合并恢复
               </button>
             </div>
           </article>

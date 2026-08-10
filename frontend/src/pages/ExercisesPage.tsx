@@ -10,6 +10,7 @@ import {
   exerciseStatusText as statusText,
 } from '../features/exercises/components/ExercisePresentation';
 import { useVisibleList } from '../hooks/useVisibleList';
+import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 import { useExerciseAnswerJob } from '../features/exercises/hooks/useExerciseAnswerJob';
 import { useExerciseImportCandidates } from '../features/exercises/hooks/useExerciseImportCandidates';
 import { usePracticeSession } from '../features/exercises/hooks/usePracticeSession';
@@ -70,7 +71,8 @@ const ExercisesPage: React.FC = () => {
   const [textbookPageEnd, setTextbookPageEnd] = useState('');
   const [pdfOpen, setPdfOpen] = useState(false);
   const [pdfPage, setPdfPage] = useState('1');
-  const sourcePdfUrl = activeName && activeName !== 'default' ? `/api/books/${encodeURIComponent(activeName)}/source-pdf#page=${pdfPage || '1'}` : '';
+  const sourcePdfPath = activeName && activeName !== 'default' ? `/api/books/${encodeURIComponent(activeName)}/source-pdf` : '';
+  const sourcePdfAsset = useAuthenticatedBlobUrl(pdfOpen ? sourcePdfPath : '');
   const [textbookSourceMode, setTextbookSourceMode] = useState('exercise_sections');
   const [useLlmRepair, setUseLlmRepair] = useState(false);
   const [extractedPreview, setExtractedPreview] = useState('');
@@ -431,7 +433,7 @@ const ExercisesPage: React.FC = () => {
 
             <section className="space-y-3 rounded-xl border border-border bg-bg-card p-4">
               <div className="flex items-center gap-2 text-sm font-medium text-text-primary"><ClipboardList className="h-4 w-4 text-accent" /> 从当前教材抽题</div>
-              {sourcePdfUrl && (
+              {sourcePdfPath && (
                 <button type="button" onClick={() => { setPdfPage(textbookPageStart || '1'); setPdfOpen(true); }} className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm hover:border-accent">
                   <BookOpen className="h-4 w-4 text-accent" /> 弹窗打开教材 PDF 并选择页码
                 </button>
@@ -742,7 +744,7 @@ const ExercisesPage: React.FC = () => {
             </section>
           </div>
         </main>
-      {pdfOpen && sourcePdfUrl && (
+      {pdfOpen && sourcePdfPath && (
         <div className="app-overlay-enter fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="教材 PDF 选页">
           <div className="app-dialog-enter flex h-[64vh] w-[min(900px,92vw)] flex-col overflow-hidden rounded-2xl border border-border bg-bg-card shadow-2xl">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
@@ -755,7 +757,9 @@ const ExercisesPage: React.FC = () => {
                 <button onClick={() => setPdfOpen(false)} aria-label="关闭 PDF" className="rounded-lg border border-border p-1.5 hover:border-accent"><X className="h-4 w-4" /></button>
               </div>
             </div>
-            <iframe key={sourcePdfUrl + '#page=' + (pdfPage || '1')} title={"\u6559\u6750 PDF \u9884\u89c8"} src={sourcePdfUrl + '#page=' + Math.max(1, Number(pdfPage || 1))} className="min-h-0 flex-1 bg-white" />
+            {sourcePdfAsset.loading && <div className="flex min-h-0 flex-1 items-center justify-center gap-2 text-sm text-text-secondary"><Loader2 className="h-4 w-4 animate-spin" />正在安全加载教材 PDF...</div>}
+            {!sourcePdfAsset.loading && sourcePdfAsset.error && <div className="m-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">PDF 加载失败：{sourcePdfAsset.error}</div>}
+            {sourcePdfAsset.url && <iframe key={sourcePdfAsset.url + '#page=' + (pdfPage || '1')} title={"\u6559\u6750 PDF \u9884\u89c8"} src={sourcePdfAsset.url + '#page=' + Math.max(1, Number(pdfPage || 1))} className="min-h-0 flex-1 bg-white" />}
           </div>
         </div>
       )}

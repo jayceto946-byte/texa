@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { BarChart3, BookOpen, ClipboardList, GraduationCap, Menu, MessageSquare, PanelLeftClose, PanelLeftOpen, Settings, Upload, X } from 'lucide-react';
+import { AlertTriangle, BarChart3, BookOpen, ClipboardList, FileText, GraduationCap, Loader2, Menu, MessageSquare, PanelLeftClose, PanelLeftOpen, RotateCw, Settings, Upload, X } from 'lucide-react';
 import { get } from '../api/client';
 import { useChatContext } from '../contexts/ChatContext';
-import type { ChatMessage as ContextChatMessage } from '../contexts/ChatContext';
+import type { ChatMessage as ContextChatMessage, ConversationPage } from '../contexts/ChatContext';
+import type { DesktopBackendStatus } from '../types/electron';
 import ChatHistorySidebar from '../components/ChatHistorySidebar';
 
 const navItems = [
@@ -34,6 +35,7 @@ const MainLayout: React.FC = () => {
   const initialCompact = detectCompactLayout();
   const [compactLayout, setCompactLayout] = useState(initialCompact);
   const [sidebarExpanded, setSidebarExpanded] = useState(!initialCompact);
+  const [backendStatus, setBackendStatus] = useState<DesktopBackendStatus | null>(null);
   const { bookName, setBookName, subject, setSubject, conversationId, messages, newConversation, loadConversation } = useChatContext();
 
   useEffect(() => {
@@ -51,14 +53,53 @@ const MainLayout: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const desktop = window.kaoyanDesktop;
+    if (!desktop?.getBackendStatus) return;
+    let mounted = true;
+    desktop.getBackendStatus().then((status) => {
+      if (mounted) setBackendStatus(status);
+    }).catch(() => undefined);
+    const unsubscribe = desktop.onBackendStatus?.((status) => setBackendStatus(status));
+    return () => {
+      mounted = false;
+      unsubscribe?.();
+    };
+  }, []);
+
+  const retryBackend = async () => {
+    setBackendStatus((current) => ({
+      status: 'recovering',
+      message: '正在重新启动本地服务...',
+      maxAttempts: current?.maxAttempts,
+    }));
+    try {
+      const result = await window.kaoyanDesktop?.retryStartup?.();
+      if (result && !result.ready) {
+        setBackendStatus((current) => ({
+          ...current,
+          status: 'failed',
+          message: result.message || '本地服务恢复失败',
+          canRetry: true,
+        }));
+      }
+    } catch (error) {
+      setBackendStatus({
+        status: 'failed',
+        message: error instanceof Error ? error.message : String(error),
+        canRetry: true,
+      });
+    }
+  };
+
   const startNewConversation = () => {
     newConversation();
     if (compactLayout) setSidebarExpanded(false);
     navigate('/');
   };
 
-  const loadExistingConversation = ({ id, messages: nextMessages, subject: nextSubject, bookName: nextBookName }: { id: string; messages: ContextChatMessage[]; subject: string; bookName: string }) => {
-    loadConversation(id, nextMessages, { subject: nextSubject, bookName: nextBookName });
+  const loadExistingConversation = ({ id, messages: nextMessages, subject: nextSubject, bookName: nextBookName, page }: { id: string; messages: ContextChatMessage[]; subject: string; bookName: string; page: ConversationPage | null }) => {
+    loadConversation(id, nextMessages, { subject: nextSubject, bookName: nextBookName, page });
     if (compactLayout) setSidebarExpanded(false);
     navigate('/');
   };
@@ -206,6 +247,22 @@ const MainLayout: React.FC = () => {
       )}
 
       <main className="relative z-0 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-bg-primary">
+        {backendStatus && backendStatus.status !== 'ready' && (
+          <div className={`relative z-40 flex flex-wrap items-center gap-2 border-b px-3 py-2 text-xs ${backendStatus.status === 'failed' ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`} role="status">
+            {backendStatus.status === 'failed' ? <AlertTriangle className="h-4 w-4 flex-shrink-0" /> : <Loader2 className="h-4 w-4 flex-shrink-0 animate-spin" />}
+            <span className="min-w-0 flex-1">{backendStatus.message}</span>
+            {backendStatus.status === 'failed' && (
+              <>
+                <button type="button" onClick={() => void retryBackend()} className="inline-flex items-center gap-1 rounded-md border border-current/20 bg-white/70 px-2 py-1 font-medium hover:bg-white">
+                  <RotateCw className="h-3.5 w-3.5" /> 重试
+                </button>
+                <button type="button" onClick={() => void window.kaoyanDesktop?.openBackendLog?.()} className="inline-flex items-center gap-1 rounded-md border border-current/20 bg-white/70 px-2 py-1 font-medium hover:bg-white">
+                  <FileText className="h-3.5 w-3.5" /> 日志
+                </button>
+              </>
+            )}
+          </div>
+        )}
         <div key={location.pathname} className="app-route-stage">
           <Outlet />
         </div>

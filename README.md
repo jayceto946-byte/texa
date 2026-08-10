@@ -185,12 +185,12 @@ ConceptMemory 记录概念接触、候选链接、薄弱信号与复习信息。
     .\venv310\Scripts\python.exe -m pip install -r requirements.txt
 
     cd frontend
-    npm.cmd install
+    npm.cmd ci
     cd ..\desktop
-    npm.cmd install
+    npm.cmd ci
     cd ..
 
-<code>requirements.txt</code> 目前使用宽泛下限而不是锁文件。审阅环境的既有 venv 在安装后仍存在 PaddleOCR、Marker、Pillow、protobuf、PyYAML、websockets 等可选栈的版本冲突；发布前建议拆分可选 OCR/解析依赖并提供锁定环境。
+<code>requirements.txt</code> 是兼容入口：它转到 <code>requirements-dev.txt</code>，后者复用精确锁定的发布依赖并固定 pytest。CI 与桌面发布都会在安装后执行 <code>pip check</code>。PaddleOCR、Marker、MinerU 等可选 OCR/解析栈不混入主环境；需要这些组件时应使用独立环境，避免其 Pillow、protobuf、PyYAML 或 websockets 约束污染桌面运行时。已有的混合 venv 不会被安装脚本自动重装或清理。
 
 ### 配置
 

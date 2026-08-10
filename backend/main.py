@@ -58,7 +58,15 @@ async def lifespan(_app: FastAPI):
     books.migrate_book_identities()
     _recover_jobs()
     _start_warmup()
-    yield
+    try:
+        yield
+    finally:
+        try:
+            from ingestion.vector_store import reset_vector_store
+
+            reset_vector_store()
+        except Exception:
+            logger.exception("vector store shutdown cleanup failed")
 
 
 def _recover_jobs() -> None:

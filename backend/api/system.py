@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import sqlite3
+import asyncio
 from pathlib import Path
 from typing import Literal
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from config import PROGRESS_PATH, VECTOR_DB_PATH
 from backend.rag_trace import TRACE_DB_PATH, list_traces
@@ -160,6 +161,40 @@ def system_health(book_name: str = ""):
     statuses = {item["status"] for item in components.values()}
     overall = "error" if "error" in statuses else "degraded" if "degraded" in statuses else "healthy"
     return {"status": overall, "book_name": book_name, "components": components}
+
+
+@router.post("/shutdown")
+async def graceful_shutdown(request: Request):
+    """Ask the packaged Uvicorn server to drain requests and exit cleanly."""
+    server = getattr(request.app.state, "desktop_server", None)
+    if server is None:
+        return {
+            "success": False,
+            "message": "当前启动方式不支持远程停机，请在启动终端中停止服务。",
+        }
+
+    cancelling = 0
+    try:
+        from backend.job_manager import RUNNING_STATUSES, get_job_manager
+
+        manager = get_job_manager()
+        for job in manager.list_jobs(limit=500):
+            if job.get("status") in RUNNING_STATUSES:
+                manager.request_cancel(str(job["id"]), "应用正在退出，任务已请求取消")
+                cancelling += 1
+    except Exception:
+        cancelling = 0
+
+    async def stop_after_response() -> None:
+        await asyncio.sleep(0.2)
+        server.should_exit = True
+
+    asyncio.create_task(stop_after_response())
+    return {
+        "success": True,
+        "message": "后端正在完成当前请求并安全退出",
+        "cancelling_jobs": cancelling,
+    }
 
 # ---- Settings center -----------------------------------------------------
 import json

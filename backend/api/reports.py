@@ -38,7 +38,7 @@ def weekly_report(book_name: str = "default", subject: str = "", days: int = 7):
     reviewed_mistakes = []
     for m in mistakes:
         for item in m.review_history or []:
-            t = _parse_dt(str(item.get("timestamp") or item.get("time") or ""))
+            t = _parse_dt(str(item.get("timestamp") or item.get("time") or item.get("date") or ""))
             if t and t >= start:
                 reviewed_mistakes.append(m)
                 break
@@ -49,7 +49,7 @@ def weekly_report(book_name: str = "default", subject: str = "", days: int = 7):
     practiced = []
     for e in exercises:
         for item in e.practice_history or []:
-            t = _parse_dt(str(item.get("timestamp") or ""))
+            t = _parse_dt(str(item.get("timestamp") or item.get("time") or item.get("date") or ""))
             if t and t >= start:
                 practiced.append(e)
                 break

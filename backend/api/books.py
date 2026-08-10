@@ -824,29 +824,36 @@ def import_book_local(
     subject: str = Form(""),
     extract_concepts: bool = Form(False),
 ):
+    pdf_path: Path | None = None
+    final_pdf: Path | None = None
+    imported_book_name = ""
     try:
         pdf_path = _save_upload(file)
-        result = import_textbook_local(pdf_path, pdf_path.stem, toc_pages=toc_pages)
-        _save_chapters(pdf_path.stem, result.chapters)
+        imported_book_name = pdf_path.stem
+        result = import_textbook_local(pdf_path, imported_book_name, toc_pages=toc_pages)
+        final_pdf = _promote_uploaded_pdf(pdf_path)
+        _save_chapters(imported_book_name, result.chapters)
         _write_book_meta(
-            pdf_path.stem,
+            imported_book_name,
             subject=normalize_subject_value(subject),
             import_source="local_pdf",
             mineru_output_dir=result.output_dir,
         )
-        _set_current_book(pdf_path.stem, result.chapters, pdf_path)
-        concept_job, concept_warning = _start_optional_concept_extraction(pdf_path.stem, extract_concepts)
+        _set_current_book(imported_book_name, result.chapters, final_pdf)
+        concept_job, concept_warning = _start_optional_concept_extraction(imported_book_name, extract_concepts)
         return {
             "success": True,
             "message": result.message,
             "data": {
-                "name": pdf_path.stem, "subject": _book_subject(pdf_path.stem),
+                "name": imported_book_name, "subject": _book_subject(imported_book_name),
                 "chapter_count": len(result.chapters), "used_mineru": False,
                 "concept_job_id": concept_job.get("id", "") if concept_job else "",
                 "concept_extraction_warning": concept_warning,
             },
         }
     except Exception as exc:
+        if imported_book_name:
+            _cleanup_new_book_import(imported_book_name, pdf_path, final_pdf)
         return {"success": False, "message": f"\u672c\u5730\u5bfc\u5165\u5931\u8d25\uff1a{exc}"}
 
 

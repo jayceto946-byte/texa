@@ -1,5 +1,5 @@
-# Release-only backend requirements for the desktop PyInstaller build.
-# Keep this environment separate from the development venv.
+# Exact-pinned backend requirements used by the desktop PyInstaller build.
+# requirements-dev.txt extends this shared core with test tooling.
 # CPU-only torch is used for sentence-transformers embedding; MinerU/OCR heavy
 # runtimes stay external and are intentionally not installed here.
 --extra-index-url https://download.pytorch.org/whl/cpu

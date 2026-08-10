@@ -2,12 +2,12 @@ param(
     [string]$SourceData = "",
     [string]$TargetData = "",
     [string]$BookName = "优化设计",
-    [bool]$IncludeOriginalPdf = $true
+    [bool]$IncludeOriginalPdf = $false
 )
 
 $ErrorActionPreference = "Stop"
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-if (-not $SourceData) { $SourceData = Join-Path $projectRoot "kaoyan-assistant\data" }
+if (-not $SourceData) { $SourceData = Join-Path $projectRoot "data" }
 if (-not $TargetData) { $TargetData = Join-Path $projectRoot "desktop\sample_data" }
 
 $source = Resolve-Path -LiteralPath $SourceData -ErrorAction Stop

@@ -7,6 +7,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { get } from '../api/client';
+import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 import { prepareMathMarkdown } from '../utils/mathText';
 
 type HighlightDetail = {
@@ -76,9 +77,18 @@ function splitMarkdown(markdown: string): MarkdownChunk[] {
   return chunks.length ? chunks : [{ id: 'content', level: 1, title: '重点内容', markdown }];
 }
 
+const AuthenticatedMarkdownImage = ({ src, alt }: React.ImgHTMLAttributes<HTMLImageElement>) => {
+  const source = typeof src === 'string' && src.startsWith('/api/') ? src : '';
+  const asset = useAuthenticatedBlobUrl(source);
+  if (!source) return <img src={src} alt={alt || ''} />;
+  if (asset.loading) return <span className="inline-flex items-center gap-2 text-xs text-text-secondary"><Loader2 className="h-3.5 w-3.5 animate-spin" />正在加载教材图片...</span>;
+  if (asset.error) return <span className="text-xs text-red-700">图片加载失败：{asset.error}</span>;
+  return asset.url ? <img src={asset.url} alt={alt || ''} /> : null;
+};
+
 const MarkdownBlock = ({ markdown }: { markdown: string }) => (
   <div className="markdown-body text-[15px] leading-relaxed break-words">
-    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, errorColor: 'inherit' }]]}>
+    <ReactMarkdown components={{ img: AuthenticatedMarkdownImage }} remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false, errorColor: 'inherit' }]]}>
       {prepareMathMarkdown(markdown)}
     </ReactMarkdown>
   </div>
@@ -127,6 +137,7 @@ const HighlightPage: React.FC = () => {
   const title = meta.scope_title || meta.chapter_title || '章节重点';
   const generatedAt = meta.completed_at || meta.updated_at || '';
   const staticHtmlUrl = detail?.artifacts?.html_url || detail?.html_url || meta.html_url || '';
+  const staticHtmlAsset = useAuthenticatedBlobUrl(staticHtmlUrl, 'html');
   const localPath = detail?.artifacts?.html_path || meta.html_path || detail?.artifacts?.markdown_path || '';
   const jumpTo = useCallback((id: string) => {
     const target = document.getElementById(id);
@@ -162,7 +173,7 @@ const HighlightPage: React.FC = () => {
                 <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 py-2 text-xs text-text-primary hover:border-accent/50 hover:text-accent">
                   <Printer className="h-3.5 w-3.5" /> 打印
                 </button>
-                {staticHtmlUrl && <a href={staticHtmlUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 py-2 text-xs text-text-primary hover:border-accent/50 hover:text-accent"><ExternalLink className="h-3.5 w-3.5" /> 静态 HTML</a>}
+                {staticHtmlUrl && <a href={staticHtmlAsset.url || undefined} target="_blank" rel="noreferrer" aria-disabled={!staticHtmlAsset.url} title={staticHtmlAsset.error || undefined} className={`inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 py-2 text-xs text-text-primary hover:border-accent/50 hover:text-accent ${staticHtmlAsset.url ? '' : 'pointer-events-none opacity-55'}`}>{staticHtmlAsset.loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />} {staticHtmlAsset.error ? 'HTML 加载失败' : '静态 HTML'}</a>}
               </div>
             </div>
           </header>

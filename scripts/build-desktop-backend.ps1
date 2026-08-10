@@ -38,7 +38,7 @@ function Invoke-CheckedCommand {
 }
 
 if (-not $SkipSampleDataPrepare) {
-    if (-not $SampleSourceData) { $SampleSourceData = Join-Path $projectRoot "kaoyan-assistant\data" }
+    if (-not $SampleSourceData) { $SampleSourceData = Join-Path $projectRoot "data" }
     if (Test-Path -LiteralPath $SampleSourceData) {
         & (Join-Path $projectRoot "scripts\prepare-desktop-sample-data.ps1") -SourceData $SampleSourceData -TargetData $sampleData -BookName $SampleBookName
     } elseif ($RequireSampleData) {
@@ -59,6 +59,10 @@ if ($RequireSampleData -and $sampleFiles.Count -eq 0) {
 Write-Host "Sample data: $sampleData"
 Write-Host "  Files: $($sampleFiles.Count)"
 Write-Host "  Size:  $([math]::Round($sampleSize / 1MB, 1)) MiB"
+
+Invoke-CheckedCommand "[Content gate] Verifying bundled sample licenses and hashes..." {
+    & $Python scripts\check_release_content.py --sample-dir $sampleData
+}
 
 Invoke-CheckedCommand "[1/3] Building frontend assets..." {
     Push-Location (Join-Path $projectRoot "frontend")

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BookMarked, CheckCircle2, Circle, ExternalLink, FolderOpen, Loader2, RefreshCw, Square, Trash2, X } from 'lucide-react';
 import { del, get, post } from '../api/client';
+import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 
 type BookOption = { name: string };
 type HighlightScopeStatus = {
@@ -118,6 +119,7 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
   const [activeJobId, setActiveJobId] = useState('');
   const [activeJobTarget, setActiveJobTarget] = useState<ActiveJobTarget | undefined>();
   const [completionNotice, setCompletionNotice] = useState<CompletionNotice | null>(null);
+  const staticHtmlAsset = useAuthenticatedBlobUrl(open ? staticHtmlUrl : '', 'html');
 
   useEffect(() => {
     if (!open) return;
@@ -499,8 +501,8 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-3 py-3 sm:px-4">
           <div className="flex min-w-0 flex-wrap gap-2">
-            {viewUrl && <a href={viewUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-bg-card px-3 py-2 text-xs font-medium text-accent hover:bg-[var(--accent-softer)]"><FolderOpen className="h-3.5 w-3.5" /> 打开应用内重点</a>}
-            {staticHtmlUrl && <a href={staticHtmlUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 py-2 text-xs text-text-secondary hover:border-accent/40 hover:text-accent"><ExternalLink className="h-3.5 w-3.5" /> 静态 HTML</a>}
+            {viewUrl && <button type="button" onClick={() => openPreview(viewUrl)} className="inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-bg-card px-3 py-2 text-xs font-medium text-accent hover:bg-[var(--accent-softer)]"><FolderOpen className="h-3.5 w-3.5" /> 打开应用内重点</button>}
+            {staticHtmlUrl && <a href={staticHtmlAsset.url || undefined} target="_blank" rel="noreferrer" aria-disabled={!staticHtmlAsset.url} title={staticHtmlAsset.error || undefined} className={`inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 py-2 text-xs text-text-secondary hover:border-accent/40 hover:text-accent ${staticHtmlAsset.url ? '' : 'pointer-events-none opacity-55'}`}>{staticHtmlAsset.loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />} {staticHtmlAsset.error ? 'HTML 加载失败' : '静态 HTML'}</a>}
           </div>
           <div className="flex flex-1 flex-wrap justify-end gap-2 sm:flex-none">
             <button type="button" onClick={onClose} className="rounded-lg border border-border bg-bg-card px-3 py-2 text-xs text-text-secondary hover:text-text-primary">关闭</button>

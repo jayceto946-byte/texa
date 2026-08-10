@@ -5,14 +5,20 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const os = require('node:os');
+const { findAvailablePort, portFromUrl } = require('./runtime.cjs');
 
-const BACKEND_PORT = Number(process.env.KAOYAN_BACKEND_PORT || 8000);
-const BACKEND_URL = process.env.KAOYAN_BACKEND_URL || `http://127.0.0.1:${BACKEND_PORT}`;
+const BACKEND_URL_OVERRIDE = (process.env.KAOYAN_BACKEND_URL || '').trim();
+const BACKEND_PORT_OVERRIDE = Number(process.env.KAOYAN_BACKEND_PORT || 0);
 const FRONTEND_DEV_URL = process.env.KAOYAN_FRONTEND_DEV_URL || '';
 const API_TOKEN = process.env.KAOYAN_API_TOKEN || crypto.randomBytes(32).toString('hex');
 const CAPTURE_TOKEN = process.env.KAOYAN_CAPTURE_TOKEN || crypto.randomBytes(24).toString('hex');
 const INSTANCE_ID = process.env.KAOYAN_INSTANCE_ID || crypto.randomUUID();
 const SKIP_BACKEND = process.env.KAOYAN_SKIP_BACKEND === '1';
+const USE_DYNAMIC_BACKEND_PORT = !SKIP_BACKEND && !BACKEND_URL_OVERRIDE && !BACKEND_PORT_OVERRIDE;
+const MAX_BACKEND_RECOVERY_ATTEMPTS = 3;
+
+let backendPort = BACKEND_PORT_OVERRIDE || portFromUrl(BACKEND_URL_OVERRIDE) || 8000;
+let backendUrl = BACKEND_URL_OVERRIDE || `http://127.0.0.1:${backendPort}`;
 
 let mainWindow = null;
 let backendProcess = null;
@@ -21,7 +27,16 @@ let lastBackendExit = '';
 let shuttingDown = false;
 let allowQuit = false;
 let backendShutdownPromise = null;
+let backendRecoveryPromise = null;
 let restartingBackend = false;
+let backendState = {
+  status: 'starting',
+  message: '正在启动本地服务',
+  attempt: 0,
+  maxAttempts: MAX_BACKEND_RECOVERY_ATTEMPTS,
+};
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+if (!hasSingleInstanceLock) app.quit();
 let updaterConfigured = false;
 let updateState = {
   status: 'idle',
@@ -85,12 +100,12 @@ function lanAddresses() {
 function remoteCaptureStatus(extra = {}) {
   const enabled = readRemoteCaptureSettings().enabled;
   const urls = enabled
-    ? lanAddresses().map((address) => `http://${address}:${BACKEND_PORT}/capture#capture_token=${encodeURIComponent(CAPTURE_TOKEN)}`)
+    ? lanAddresses().map((address) => `http://${address}:${backendPort}/capture#capture_token=${encodeURIComponent(CAPTURE_TOKEN)}`)
     : [];
   return {
     enabled,
     urls,
-    port: BACKEND_PORT,
+    port: backendPort,
     ready: Boolean(backendProcess && backendProcess.exitCode === null),
     message: enabled
       ? (urls.length ? '\u624b\u673a\u91c7\u96c6\u5165\u53e3\u5df2\u5728\u5f53\u524d\u5c40\u57df\u7f51\u5f00\u653e\u3002' : '\u5df2\u5f00\u653e\uff0c\u4f46\u6ca1\u6709\u627e\u5230\u53ef\u7528\u7684\u5c40\u57df\u7f51 IPv4 \u5730\u5740\u3002')
@@ -112,7 +127,7 @@ function backendEnv() {
 
   return {
     ...process.env,
-    KAOYAN_BACKEND_PORT: String(BACKEND_PORT),
+    KAOYAN_BACKEND_PORT: String(backendPort),
     KAOYAN_API_TOKEN: API_TOKEN,
     KAOYAN_REQUIRE_API_TOKEN: '1',
     KAOYAN_INSTANCE_ID: INSTANCE_ID,
@@ -193,14 +208,26 @@ function configureUpdater() {
 
 function sendStartupError(message) {
   backendStartError = message;
+  emitBackendState({ status: 'failed', message, canRetry: true });
   mainWindow?.webContents.send('startup-error', startupInfo(message));
+}
+
+function emitBackendState(nextState) {
+  backendState = {
+    ...backendState,
+    ...nextState,
+    backendUrl,
+    logPath: runtimePaths().backendLogPath,
+  };
+  mainWindow?.webContents.send('backend:status', backendState);
+  return backendState;
 }
 
 function startupInfo(message = backendStartError) {
   const paths = runtimePaths();
   return {
     message: message || '',
-    backendUrl: BACKEND_URL,
+    backendUrl,
     logPath: paths.backendLogPath,
     dataDir: paths.dataDir,
   };
@@ -208,25 +235,21 @@ function startupInfo(message = backendStartError) {
 
 function attachBackendLogging() {
   if (!backendProcess) return;
-  backendProcess.stdout?.on('data', (chunk) => appendBackendLog(`[stdout] ${chunk.toString().trimEnd()}`));
-  backendProcess.stderr?.on('data', (chunk) => appendBackendLog(`[stderr] ${chunk.toString().trimEnd()}`));
-  backendProcess.on('error', (error) => {
+  const child = backendProcess;
+  child.stdout?.on('data', (chunk) => appendBackendLog(`[stdout] ${chunk.toString().trimEnd()}`));
+  child.stderr?.on('data', (chunk) => appendBackendLog(`[stderr] ${chunk.toString().trimEnd()}`));
+  child.on('error', (error) => {
     const message = `后端进程启动失败：${error.message || error}`;
     appendBackendLog(`[error] ${message}`);
     sendStartupError(message);
   });
-  backendProcess.on('exit', (code, signal) => {
+  child.on('exit', (code, signal) => {
     const message = `后端进程退出：code=${code ?? 'null'}, signal=${signal ?? 'null'}`;
     appendBackendLog(`[exit] ${message}`);
+    if (backendProcess === child) backendProcess = null;
     if (shuttingDown || restartingBackend) return;
-    if (app.isPackaged) {
-      sendStartupError(message);
-      return;
-    }
-    // Dev mode: keep the option to fall back to an existing backend that answers
-    // on the port (e.g. a manually started one) instead of failing immediately.
-    // waitForBackend decides once it observes this process has exited.
     lastBackendExit = message;
+    if (!SKIP_BACKEND) void recoverBackend(message);
   });
 }
 
@@ -270,6 +293,34 @@ function forceKillProcessTree(pid) {
   return Promise.resolve();
 }
 
+async function requestBackendShutdown() {
+  try {
+    const response = await fetch(`${backendUrl}/api/system/shutdown`, {
+      method: 'POST',
+      headers: { 'X-Kaoyan-Token': API_TOKEN },
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!response.ok) {
+      appendBackendLog(`[shutdown] graceful endpoint returned HTTP ${response.status}`);
+      return false;
+    }
+    const payload = await response.json();
+    appendBackendLog(`[shutdown] graceful shutdown accepted; cancelling_jobs=${payload?.cancelling_jobs || 0}`);
+    return payload?.success === true;
+  } catch (error) {
+    appendBackendLog('[shutdown] graceful endpoint unavailable: ' + (error.message || error));
+    return false;
+  }
+}
+
+async function prepareBackendEndpoint() {
+  if (!USE_DYNAMIC_BACKEND_PORT) return;
+  const host = readRemoteCaptureSettings().enabled ? '0.0.0.0' : '127.0.0.1';
+  backendPort = await findAvailablePort(host);
+  backendUrl = `http://127.0.0.1:${backendPort}`;
+  appendBackendLog(`[main] allocated backend endpoint ${backendUrl} (bind host ${host})`);
+}
+
 function stopBackend() {
   if (backendShutdownPromise) return backendShutdownPromise;
   const child = backendProcess;
@@ -278,7 +329,11 @@ function stopBackend() {
   backendShutdownPromise = (async () => {
     const pid = child.pid;
     appendBackendLog('[shutdown] stopping backend tree pid=' + pid);
-    if (process.platform === 'win32') {
+    const gracefulRequested = await requestBackendShutdown();
+    if (gracefulRequested && await waitForProcessExit(child, 8000)) {
+      appendBackendLog('[shutdown] backend exited gracefully');
+    } else if (process.platform === 'win32') {
+      appendBackendLog('[shutdown] graceful timeout; forcing backend tree pid=' + pid);
       await forceKillProcessTree(pid);
       await waitForProcessExit(child, 2500);
     } else {
@@ -307,6 +362,8 @@ async function startBackend() {
   }
 
   try {
+    await prepareBackendEndpoint();
+    emitBackendState({ status: 'starting', message: `正在启动本地服务（端口 ${backendPort}）`, canRetry: false });
     const env = backendEnv();
     const backendHost = env.KAOYAN_BACKEND_HOST;
     if (app.isPackaged) {
@@ -330,7 +387,7 @@ async function startBackend() {
     // (e.g. started manually by the developer), adopt it instead of spawning a
     // second instance that would fail to bind the same port.
     if (await probeExistingBackend()) {
-      appendBackendLog(`[main] dev: adopting existing backend at ${BACKEND_URL} (spawn skipped).`);
+      appendBackendLog(`[main] dev: adopting existing backend at ${backendUrl} (spawn skipped).`);
       lastBackendExit = '';
       return;
     }
@@ -340,7 +397,7 @@ async function startBackend() {
     lastBackendExit = '';
     backendProcess = spawn(
       python,
-      ['-m', 'uvicorn', 'backend.main:app', '--host', backendHost, '--port', String(BACKEND_PORT)],
+      ['-m', 'uvicorn', 'backend.main:app', '--host', backendHost, '--port', String(backendPort)],
       {
         cwd: projectRoot(),
         windowsHide: true,
@@ -361,13 +418,13 @@ async function waitForBackend(timeoutMs = 60000) {
   let lastIdentityError = '';
   while (Date.now() < deadline) {
     if (backendStartError) return false;
-    if (app.isPackaged && !SKIP_BACKEND && backendProcess && backendProcess.exitCode !== null) return false;
+    if (!SKIP_BACKEND && !backendProcess && lastBackendExit) return false;
     try {
-      const res = await fetchWithTimeout(`${BACKEND_URL}/health`);
+      const res = await fetchWithTimeout(`${backendUrl}/health`);
       if (res.ok) {
         const health = await res.json();
         if (SKIP_BACKEND || !app.isPackaged || health?.instance_id === INSTANCE_ID) return true;
-        const identityError = `backend identity mismatch at ${BACKEND_URL}`;
+        const identityError = `backend identity mismatch at ${backendUrl}`;
         if (identityError !== lastIdentityError) {
           appendBackendLog(`[wait] ${identityError}`);
           lastIdentityError = identityError;
@@ -377,7 +434,7 @@ async function waitForBackend(timeoutMs = 60000) {
       if (error?.name !== 'AbortError') {
         appendBackendLog(`[wait] backend not ready: ${error.message || error}`);
       } else {
-        appendBackendLog(`[wait] backend health check timed out: ${BACKEND_URL}/health`);
+        appendBackendLog(`[wait] backend health check timed out: ${backendUrl}/health`);
       }
     }
     // Dev mode: our spawned backend already exited (e.g. the port was taken) and
@@ -407,7 +464,7 @@ async function fetchWithTimeout(url, timeoutMs = 2500) {
 
 async function probeExistingBackend(timeoutMs = 2500) {
   try {
-    const res = await fetchWithTimeout(`${BACKEND_URL}/health`, timeoutMs);
+    const res = await fetchWithTimeout(`${backendUrl}/health`, timeoutMs);
     return res.ok;
   } catch {
     return false;
@@ -419,6 +476,7 @@ function desktopAppUrl(targetUrl) {
   target.searchParams.set('desktop_launch', String(Date.now()));
   const hash = new URLSearchParams(target.hash.replace(/^#/, ''));
   hash.set('access_token', API_TOKEN);
+  hash.set('api_base', `${backendUrl}/api`);
   target.hash = hash.toString();
   return target.toString();
 }
@@ -441,14 +499,71 @@ async function openAppWhenBackendReady(timeoutMs = 60000) {
     return { ready: false, message: '应用正在关闭' };
   }
   if (ready) {
-    await loadAppUrl(desktopAppUrl(FRONTEND_DEV_URL || BACKEND_URL));
+    emitBackendState({ status: 'ready', message: '本地服务已就绪', attempt: 0, canRetry: false });
+    await loadAppUrl(desktopAppUrl(FRONTEND_DEV_URL || backendUrl));
     return { ready: true };
   }
 
-  const message = backendStartError || lastBackendExit || `后端服务启动超时：${BACKEND_URL}`;
+  if (backendRecoveryPromise) {
+    const recovered = await backendRecoveryPromise;
+    if (recovered) return { ready: true };
+  }
+
+  const message = backendStartError || lastBackendExit || `后端服务启动超时：${backendUrl}`;
   appendBackendLog(`[timeout] ${message}`);
   sendStartupError(message);
   return { ready: false, message };
+}
+
+function recoverBackend(reason) {
+  if (backendRecoveryPromise) return backendRecoveryPromise;
+  backendRecoveryPromise = (async () => {
+    appendBackendLog(`[recovery] starting automatic recovery: ${reason}`);
+    for (let attempt = 1; attempt <= MAX_BACKEND_RECOVERY_ATTEMPTS; attempt += 1) {
+      if (shuttingDown) return false;
+      emitBackendState({
+        status: 'recovering',
+        message: `本地服务中断，正在自动恢复（${attempt}/${MAX_BACKEND_RECOVERY_ATTEMPTS}）`,
+        attempt,
+        canRetry: false,
+      });
+      await delay(Math.min(4000, 500 * (2 ** (attempt - 1))));
+      backendStartError = null;
+      lastBackendExit = '';
+      backendProcess = null;
+      await startBackend();
+      if (await waitForBackend(30000)) {
+        appendBackendLog(`[recovery] backend recovered on attempt ${attempt}`);
+        emitBackendState({ status: 'ready', message: '本地服务已恢复', attempt: 0, canRetry: false });
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          await loadAppUrl(desktopAppUrl(FRONTEND_DEV_URL || backendUrl));
+        }
+        return true;
+      }
+      appendBackendLog(`[recovery] attempt ${attempt} failed: ${backendStartError || lastBackendExit || 'health check timeout'}`);
+    }
+    const message = backendStartError || lastBackendExit || '本地服务自动恢复失败';
+    sendStartupError(`${message}；已自动重试 ${MAX_BACKEND_RECOVERY_ATTEMPTS} 次`);
+    return false;
+  })().finally(() => {
+    backendRecoveryPromise = null;
+  });
+  return backendRecoveryPromise;
+}
+
+async function retryBackendManually() {
+  if (backendRecoveryPromise) return { ready: await backendRecoveryPromise };
+  restartingBackend = true;
+  try {
+    await stopBackend();
+  } finally {
+    restartingBackend = false;
+  }
+  backendStartError = null;
+  lastBackendExit = '';
+  backendProcess = null;
+  const ready = await recoverBackend('用户手动重试');
+  return ready ? { ready: true } : { ready: false, message: backendStartError || lastBackendExit || '本地服务恢复失败' };
 }
 
 function createWindow() {
@@ -474,16 +589,26 @@ function createWindow() {
   mainWindow.on('unmaximize', () => mainWindow?.webContents.send('window:maximized-changed', false));
   mainWindow.loadFile(path.join(__dirname, 'loading.html'));
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('blob:')) {
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          autoHideMenuBar: true,
+          webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+        },
+      };
+    }
     if (/^https?:\/\//i.test(url)) void shell.openExternal(url);
     return { action: 'deny' };
   });
   mainWindow.webContents.on('will-navigate', (event, url) => {
-    const allowedOrigins = [BACKEND_URL, FRONTEND_DEV_URL].filter(Boolean).map((item) => new URL(item).origin);
+    const allowedOrigins = [backendUrl, FRONTEND_DEV_URL].filter(Boolean).map((item) => new URL(item).origin);
     if (!allowedOrigins.includes(new URL(url).origin)) {
       event.preventDefault();
       if (/^https?:\/\//i.test(url)) void shell.openExternal(url);
     }
   });
+  mainWindow.webContents.on('did-finish-load', () => emitBackendState({}));
 
   void openAppWhenBackendReady();
 }
@@ -508,16 +633,8 @@ ipcMain.handle('app:restart', async () => {
 });
 
 ipcMain.handle('startup:info', () => startupInfo());
-ipcMain.handle('startup:retry', async () => {
-  backendStartError = null;
-  lastBackendExit = '';
-  if (!backendProcess || backendProcess.exitCode !== null) {
-    backendProcess = null;
-    await startBackend();
-  }
-  return openAppWhenBackendReady();
-});
-ipcMain.handle('startup:open-web', async () => shell.openExternal(desktopAppUrl(BACKEND_URL)));
+ipcMain.handle('startup:retry', retryBackendManually);
+ipcMain.handle('startup:open-web', async () => shell.openExternal(desktopAppUrl(backendUrl)));
 ipcMain.handle('startup:open-log', async () => {
   const logPath = runtimePaths().backendLogPath;
   fs.mkdirSync(path.dirname(logPath), { recursive: true });
@@ -526,6 +643,7 @@ ipcMain.handle('startup:open-log', async () => {
 });
 
 ipcMain.handle('updates:status', () => updateState);
+ipcMain.handle('backend:status', () => emitBackendState({}));
 ipcMain.handle('remote-capture:status', () => remoteCaptureStatus());
 ipcMain.handle('remote-capture:set-enabled', async (_event, enabled) => {
   writeRemoteCaptureSettings(enabled);
@@ -536,6 +654,10 @@ ipcMain.handle('remote-capture:set-enabled', async (_event, enabled) => {
     lastBackendExit = '';
     await startBackend();
     const ready = await waitForBackend(30000);
+    if (ready) {
+      emitBackendState({ status: 'ready', message: '本地服务已重启', attempt: 0, canRetry: false });
+      await loadAppUrl(desktopAppUrl(FRONTEND_DEV_URL || backendUrl));
+    }
     return remoteCaptureStatus({
       ready,
       message: ready
@@ -570,11 +692,20 @@ ipcMain.handle('updates:install', async () => {
   return emitUpdateState({ status: 'installing', message: '正在重启并安装更新...' });
 });
 
-app.whenReady().then(async () => {
-  await startBackend();
-  configureUpdater();
-  createWindow();
-});
+if (hasSingleInstanceLock) {
+  app.on('second-instance', () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+  });
+
+  app.whenReady().then(async () => {
+    await startBackend();
+    configureUpdater();
+    createWindow();
+  });
+}
 
 app.on('before-quit', (event) => {
   shuttingDown = true;

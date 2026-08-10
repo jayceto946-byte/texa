@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('kaoyanDesktop', {
   restart: () => ipcRenderer.invoke('app:restart'),
   retryStartup: () => ipcRenderer.invoke('startup:retry'),
   getStartupInfo: () => ipcRenderer.invoke('startup:info'),
+  getBackendStatus: () => ipcRenderer.invoke('backend:status'),
   openWebFallback: () => ipcRenderer.invoke('startup:open-web'),
   openBackendLog: () => ipcRenderer.invoke('startup:open-log'),
   getRemoteCaptureStatus: () => ipcRenderer.invoke('remote-capture:status'),
@@ -31,5 +32,10 @@ contextBridge.exposeInMainWorld('kaoyanDesktop', {
     const listener = (_event, payload) => handler(payload);
     ipcRenderer.on('startup-error', listener);
     return () => ipcRenderer.removeListener('startup-error', listener);
+  },
+  onBackendStatus: (handler) => {
+    const listener = (_event, status) => handler(status);
+    ipcRenderer.on('backend:status', listener);
+    return () => ipcRenderer.removeListener('backend:status', listener);
   },
 });

@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="考研智能辅助系统：本地优先的学习工作台，把教材、错题、概念与复习接成一条可长期积累的学习线索。">
+  <meta name="theme-color" content="#faf7f1">
+  <title>考研智能辅助系统 | 本地学习工作台</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #faf7f1;
+      --surface: #ffffff;
+      --surface-soft: #f3eee4;
+      --text: #211d17;
+      --muted: #6f675a;
+      --line: #e3dccd;
+      --line-strong: #cfc5b0;
+      --accent: #b8392c;
+      --accent-soft: #f6eae6;
+      --overlay: rgba(33, 29, 23, 0.55);
+      --shadow-sm: 0 14px 40px rgba(54, 44, 30, 0.1);
+      --shadow-lg: 0 34px 80px rgba(54, 44, 30, 0.16);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --shell: 1080px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #17140f;
+        --surface: #1e1a13;
+        --surface-soft: #262118;
+        --text: #ece4d5;
+        --muted: #a89e8b;
+        --line: #37301f;
+        --line-strong: #4d4430;
+        --accent: #d96a5b;
+        --accent-soft: #3a251f;
+        --overlay: rgba(10, 8, 5, 0.7);
+        --shadow-sm: 0 14px 40px rgba(0, 0, 0, 0.35);
+        --shadow-lg: 0 34px 80px rgba(0, 0, 0, 0.5);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      line-height: 1.72;
+      text-rendering: optimizeLegibility;
+    }
+
+    body.lightbox-open { overflow: hidden; }
+
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    button { color: inherit; font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .serif {
+      font-family: "Noto Serif SC", "Songti SC", "STSong", "SimSun", Georgia, serif;
+    }
+
+    .shell { width: min(var(--shell), calc(100% - 48px)); margin-inline: auto; }
+
+    .skip-link {
+      position: fixed; left: 16px; top: -80px; z-index: 300;
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      background: var(--text); color: var(--bg);
+    }
+    .skip-link:focus { top: 12px; }
+
+    /* ── 刊头 ─────────────────────────────────── */
+    .masthead {
+      padding: 34px 0 26px;
+      border-bottom: 1px solid var(--line);
+    }
+    .masthead-row {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 24px;
+    }
+    .masthead-brand {
+      font-size: 15px; font-weight: 800; letter-spacing: 0.04em;
+    }
+    .masthead-brand em {
+      font-style: normal; color: var(--accent);
+    }
+    .masthead-note {
+      margin: 0; color: var(--muted); font-size: 12.5px; letter-spacing: 0.12em;
+    }
+
+    /* ── 开场主张 ─────────────────────────────── */
+    .opening {
+      padding-block: clamp(90px, 15vw, 150px) clamp(64px, 10vw, 110px);
+    }
+    .opening .serif {
+      margin: 0;
+      font-size: clamp(44px, 7.2vw, 88px);
+      font-weight: 700;
+      line-height: 1.14;
+      letter-spacing: -0.015em;
+    }
+    .opening .lead {
+      max-width: 620px;
+      margin: clamp(28px, 4vw, 40px) 0 0;
+      color: var(--muted);
+      font-size: clamp(17px, 2vw, 19px);
+      line-height: 1.85;
+    }
+    .opening .lead b { color: var(--text); font-weight: 700; }
+
+    /* ── 三条信念 ─────────────────────────────── */
+    .beliefs {
+      border-block: 1px solid var(--line);
+    }
+    .belief-list { display: grid; grid-template-columns: repeat(3, 1fr); }
+    .belief {
+      padding: clamp(26px, 4vw, 40px) clamp(22px, 3vw, 34px);
+      border-right: 1px solid var(--line);
+    }
+    .belief:first-child { padding-left: 0; }
+    .belief:last-child { border-right: 0; }
+    .belief-index {
+      display: block; margin-bottom: 16px;
+      color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: 0.18em;
+    }
+    .belief h3 {
+      margin: 0; font-size: 21px; font-weight: 750; letter-spacing: -0.01em;
+    }
+    .belief p {
+      margin: 12px 0 0; color: var(--muted); font-size: 14.5px;
+    }
+
+    /* ── 学习闭环 ─────────────────────────────── */
+    .loop-section {
+      padding-block: clamp(80px, 12vw, 130px) clamp(64px, 9vw, 100px);
+    }
+    .section-kicker {
+      display: block; margin-bottom: 14px;
+      color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: 0.2em;
+    }
+    .section-title {
+      margin: 0; font-size: clamp(30px, 4.4vw, 44px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .section-intro {
+      max-width: 640px; margin: 16px 0 0; color: var(--muted); font-size: 15.5px;
+    }
+
+    .loop {
+      margin-top: clamp(40px, 6vw, 64px);
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      border-top: 2px solid var(--text);
+      counter-reset: loop;
+    }
+    .loop-step {
+      position: relative;
+      padding: 22px 22px 8px 0;
+      border-right: 1px solid var(--line);
+      counter-increment: loop;
+    }
+    .loop-step:last-child { border-right: 0; }
+    .loop-step::before {
+      content: counter(loop, decimal-leading-zero);
+      position: absolute; top: -15px; left: 0;
+      padding: 0 8px 0 0;
+      background: var(--bg);
+      color: var(--accent);
+      font-family: "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
+      font-size: 13px; font-weight: 700;
+    }
+    .loop-step h4 { margin: 26px 0 0; font-size: 17px; font-weight: 750; }
+    .loop-step p { margin: 9px 0 0; color: var(--muted); font-size: 13.5px; }
+
+    /* ── 界面展示 ─────────────────────────────── */
+    .showcase-section {
+      padding-block: clamp(70px, 10vw, 110px);
+      background: var(--surface-soft);
+      border-block: 1px solid var(--line);
+    }
+    .showcase {
+      margin-top: clamp(36px, 5vw, 52px);
+      display: grid; gap: 56px;
+    }
+    .showcase-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+      gap: clamp(30px, 5vw, 60px);
+      align-items: center;
+    }
+    .showcase-item:nth-child(even) { grid-template-columns: minmax(280px, 0.75fr) minmax(0, 1.25fr); }
+    .showcase-item:nth-child(even) .showcase-media { order: 2; }
+    .showcase-item:nth-child(even) .showcase-copy { order: 1; }
+    .showcase-media {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+      cursor: zoom-in;
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+    .showcase-media:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+    .showcase-media img {
+      width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top;
+    }
+    .showcase-copy .index {
+      display: block; margin-bottom: 12px;
+      color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: 0.16em;
+    }
+    .showcase-copy h3 {
+      margin: 0; font-size: clamp(24px, 3vw, 31px); font-weight: 750; letter-spacing: -0.015em; line-height: 1.25;
+    }
+    .showcase-copy p {
+      margin: 14px 0 0; color: var(--muted); font-size: 15px;
+    }
+    .showcase-copy .hint {
+      margin-top: 18px; color: var(--text); font-size: 13px; font-weight: 650;
+    }
+
+    /* ── 擅长与边界 ───────────────────────────── */
+    .bounds-section { padding-block: clamp(80px, 12vw, 130px) clamp(64px, 9vw, 100px); }
+    .bounds-grid {
+      margin-top: clamp(36px, 5vw, 52px);
+      display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 22px;
+    }
+    .bounds-col {
+      padding: clamp(24px, 3.4vw, 34px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+    .bounds-col h3 { margin: 0 0 18px; font-size: 17px; font-weight: 780; }
+    .bounds-col h3 .mark { color: var(--accent); }
+    .bounds-col ul { margin: 0; padding: 0; list-style: none; }
+    .bounds-col li {
+      position: relative; margin-top: 11px; padding-left: 20px;
+      color: var(--muted); font-size: 14.5px;
+    }
+    .bounds-col li::before {
+      content: ""; position: absolute; left: 0; top: 0.72em;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--accent);
+    }
+    .bounds-col.bounds-col-soft { background: var(--surface-soft); }
+    .bounds-col.bounds-col-soft li::before { background: var(--line-strong); }
+
+    .postscript {
+      margin-top: 40px; padding: 24px 26px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      background: var(--accent-soft);
+    }
+    .postscript strong { font-size: 14px; }
+    .postscript p { margin: 7px 0 0; color: var(--muted); font-size: 14px; }
+
+    /* ── 结尾 ─────────────────────────────────── */
+    .closing {
+      padding-block: clamp(80px, 12vw, 130px);
+      text-align: center;
+      border-top: 1px solid var(--line);
+    }
+    .closing .serif {
+      margin: 0 auto;
+      max-width: 780px;
+      font-size: clamp(28px, 4.4vw, 44px);
+      font-weight: 700; line-height: 1.3; letter-spacing: -0.015em;
+    }
+    .closing-actions {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;
+      margin-top: clamp(30px, 4vw, 40px);
+    }
+    .button {
+      min-height: 48px; display: inline-flex; align-items: center; justify-content: center;
+      padding: 11px 24px; border-radius: 999px;
+      font-size: 14px; font-weight: 760;
+      transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+    }
+    .button:hover { transform: translateY(-2px); }
+    .button:active { transform: translateY(1px); }
+    .button-primary { background: var(--accent); color: #fff; }
+    .button-primary:hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
+    .button-secondary { border: 1px solid var(--line-strong); background: var(--surface); }
+    .button-secondary:hover { border-color: var(--accent); }
+
+    /* ── 页脚 ─────────────────────────────────── */
+    .site-footer {
+      border-top: 1px solid var(--line);
+      padding-block: 34px;
+    }
+    .footer-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 20px;
+      color: var(--muted); font-size: 12.5px;
+    }
+    .footer-row p { margin: 0; }
+    .footer-row a:hover { color: var(--accent); }
+
+    /* ── 灯箱 ─────────────────────────────────── */
+    .image-lightbox {
+      width: min(1240px, calc(100vw - 40px)); max-width: none;
+      max-height: calc(100dvh - 40px); margin: auto; padding: 0; overflow: hidden;
+      border: 1px solid var(--line-strong); border-radius: var(--radius-md);
+      background: var(--surface); color: var(--text); box-shadow: var(--shadow-lg);
+    }
+    .image-lightbox[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+    .image-lightbox::backdrop { background: var(--overlay); backdrop-filter: blur(6px); }
+    .lightbox-toolbar {
+      min-height: 64px; display: flex; align-items: center; justify-content: space-between;
+      gap: 20px; padding: 12px 16px 12px 22px; border-bottom: 1px solid var(--line);
+    }
+    .lightbox-toolbar div { min-width: 0; }
+    .lightbox-toolbar strong, .lightbox-toolbar span { display: block; }
+    .lightbox-toolbar strong { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+    .lightbox-toolbar span { margin-top: 1px; color: var(--muted); font-size: 11px; }
+    .lightbox-toolbar button {
+      padding: 8px 13px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+      background: var(--surface-soft); cursor: pointer;
+    }
+    .lightbox-toolbar button:hover { border-color: var(--accent); }
+    .lightbox-stage { min-height: 0; display: grid; place-items: center; overflow: auto; padding: 18px; background: #1a1712; }
+    .lightbox-stage img { width: auto; max-width: 100%; height: auto; max-height: calc(100dvh - 142px); object-fit: contain; }
+    .lightbox-stage img[data-loaded="error"] { display: none; }
+
+    /* ── 响应式 ───────────────────────────────── */
+    @media (max-width: 860px) {
+      .belief-list { grid-template-columns: 1fr; }
+      .belief, .belief:first-child { padding: 24px 0; border-right: 0; border-bottom: 1px solid var(--line); }
+      .belief:last-child { border-bottom: 0; }
+      .loop { grid-template-columns: 1fr 1fr; }
+      .loop-step { border-bottom: 1px solid var(--line); }
+      .loop-step:nth-child(odd) { border-right: 1px solid var(--line); }
+      .loop-step:nth-child(5) { grid-column: 1 / 3; border-right: 0; }
+      .showcase-item,
+      .showcase-item:nth-child(even) { grid-template-columns: 1fr; gap: 20px; }
+      .showcase-item:nth-child(even) .showcase-media { order: 0; }
+      .showcase-item:nth-child(even) .showcase-copy { order: 0; }
+      .bounds-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 32px, var(--shell)); }
+      .masthead-row { flex-direction: column; gap: 6px; }
+      .loop { grid-template-columns: 1fr; }
+      .loop-step, .loop-step:nth-child(odd), .loop-step:nth-child(5) { grid-column: auto; border-right: 0; }
+      .opening .serif { font-size: 40px; }
+      .closing-actions { flex-direction: column; align-items: stretch; }
+      .footer-row { flex-direction: column; gap: 8px; text-align: center; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <header class="masthead">
+    <div class="shell masthead-row">
+      <p class="masthead-brand">考研智能辅助系统<em>。</em></p>
+      <p class="masthead-note">LOCAL-FIRST STUDY WORKSPACE · 本地优先的学习工作台</p>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- 开场主张 -->
+    <section class="opening shell">
+      <h1 class="serif">学习不该是碎片的堆叠。</h1>
+      <p class="lead">
+        教材、错题、概念、复习，各自为战的时候，它们只是分散的记录；
+        连成一条线的时候，它们才是一个人的学习线索。
+        <b>这个工具做的是后者。</b>
+        它把你的教材、练习与复习记录留在本机，让每一次问答都有来源可查，
+        让每一道错题都进入下一次复习。
+      </p>
+    </section>
+
+    <!-- 三条信念 -->
+    <section class="beliefs" aria-label="三条设计信念">
+      <div class="shell belief-list">
+        <div class="belief">
+          <span class="belief-index">01 · 本地优先</span>
+          <h3>学习档案默认保存在本机</h3>
+          <p>教材索引、错题、习题与学习记录保存在本机；问答会把当前问题、必要会话上下文和选中的教材证据发送给你配置的 LLM 服务，Kimi 图片 OCR 会上传所选图片。离线时仍可查看本地资料与复习记录，但云端问答和 OCR 不可用。</p>
+        </div>
+        <div class="belief">
+          <span class="belief-index">02 · 可追溯</span>
+          <h3>每个结论都能回到出处</h3>
+          <p>问答基于选定教材的证据生成，答案标注教材名、章节与页码。没有教材证据支撑的事实，会被明确拒绝而不是编造。</p>
+        </div>
+        <div class="belief">
+          <span class="belief-index">03 · 长期积累</span>
+          <h3>练习沉淀为下一次行动</h3>
+          <p>错因、涉及概念与复习调度被记录下来。一次错误的练习，会变成到期队列里的一次复习。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 学习闭环 -->
+    <section class="loop-section shell" aria-label="学习闭环">
+      <span class="section-kicker">THE LEARNING LOOP</span>
+      <h2 class="section-title serif">一条从教材出发、又回到教材的线索。</h2>
+      <p class="section-intro">系统围绕教材组织知识，问答指向教材，练习沉淀为错题，错题按间隔重复回到复习，复习再把你带回教材。每一步都是下一步的输入。</p>
+
+      <div class="loop">
+        <div class="loop-step">
+          <h4>导入教材</h4>
+          <p>本地 PDF 或 MinerU 解析结果，建立章节、片段与检索索引。</p>
+        </div>
+        <div class="loop-step">
+          <h4>范围内问答</h4>
+          <p>在学科与教材范围内混合检索，流式生成，答案保留来源。</p>
+        </div>
+        <div class="loop-step">
+          <h4>练习与归因</h4>
+          <p>题目进入习题库，错误答案、错因与来源沉淀为错题记录。</p>
+        </div>
+        <div class="loop-step">
+          <h4>错题复习</h4>
+          <p>SM-2 间隔重复调度到期队列，错因与薄弱点参与统计。</p>
+        </div>
+        <div class="loop-step">
+          <h4>回到教材</h4>
+          <p>复习时回到相关概念与例题，学习情况呈现概念接触与薄弱信号。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 真实界面 -->
+    <section class="showcase-section" aria-label="真实界面">
+      <div class="shell">
+        <span class="section-kicker">REAL INTERFACE</span>
+        <h2 class="section-title serif">不是示意图，是正在运行的产品。</h2>
+        <p class="section-intro">以下截图来自统一的 1440 × 900 视口与隔离演示数据。点击图片可放大查看原始尺寸。</p>
+
+        <div class="showcase">
+          <div class="showcase-item">
+            <div class="showcase-media">
+              <img src="assets/images/03-rag-chat.png" alt="教材问答会话截图" width="1440" height="900" loading="lazy" data-preview-src="assets/images/03-rag-chat.png" data-preview-title="教材问答">
+            </div>
+            <div class="showcase-copy">
+              <span class="index">01 / 教材问答</span>
+              <h3>带来源的问答，而不是"感觉像"的答案。</h3>
+              <p>回答流式分阶段生成，公式用 KaTeX 渲染，教材来源以可读的章节与页码标注。检索异常时自动降级，不打断对话。</p>
+              <p class="hint">点击上方截图查看完整界面。</p>
+            </div>
+          </div>
+
+          <div class="showcase-item">
+            <div class="showcase-media">
+              <img src="assets/images/05-mistakes.png" alt="错题本截图" width="1440" height="900" loading="lazy" data-preview-src="assets/images/05-mistakes.png" data-preview-title="错题本">
+            </div>
+            <div class="showcase-copy">
+              <span class="index">02 / 错题本</span>
+              <h3>错因被记录，复习才有依据。</h3>
+              <p>手动或 OCR 录入，识别结果必须经过人工校正。错因、涉及概念与 SM-2 间隔调度构成完整复习闭环。</p>
+              <p class="hint">点击上方截图查看完整界面。</p>
+            </div>
+          </div>
+
+          <div class="showcase-item">
+            <div class="showcase-media">
+              <img src="assets/images/04-exercises.png" alt="习题工作区截图" width="1440" height="900" loading="lazy" data-preview-src="assets/images/04-exercises.png" data-preview-title="习题工作区">
+            </div>
+            <div class="showcase-copy">
+              <span class="index">03 / 习题工作区</span>
+              <h3>从题目导入，到连续练习会话。</h3>
+              <p>支持 Word、PDF 与教材抽题导入，保留来源、章节、题型与状态；练习会话可暂停、恢复并在重启后继续。</p>
+              <p class="hint">点击上方截图查看完整界面。</p>
+            </div>
+          </div>
+
+          <div class="showcase-item">
+            <div class="showcase-media">
+              <img src="assets/images/06-learning.png" alt="学习情况截图" width="1440" height="900" loading="lazy" data-preview-src="assets/images/06-learning.png" data-preview-title="学习情况">
+            </div>
+            <div class="showcase-copy">
+              <span class="index">04 / 学习情况</span>
+              <h3>薄弱信号与复习队列，一目了然。</h3>
+              <p>概念接触、错题薄弱点与到期复习队列被汇总到同一处。当日结论、建议行动与支撑分析层级清晰。</p>
+              <p class="hint">点击上方截图查看完整界面。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 擅长与边界 -->
+    <section class="bounds-section shell" aria-label="擅长与边界">
+      <span class="section-kicker">WHAT IT DOES, AND WHERE IT STOPS</span>
+      <h2 class="section-title serif">它擅长什么，边界在哪。</h2>
+      <p class="section-intro">一个学习工具的价值不只在于它能做什么，也在于它清楚自己不做。下面的划分来自真实运行结果，不是宣传文案。</p>
+
+      <div class="bounds-grid">
+        <div class="bounds-col">
+          <h3><span class="mark">擅长</span> · 已实现</h3>
+          <ul>
+            <li>教材范围内的问答，混合检索 + 证据门禁 + 来源引用</li>
+            <li>错题录入、错因归因、SM-2 间隔复习调度</li>
+            <li>习题导入、练习会话与批量回滚</li>
+            <li>可视化数学公式编辑与 LaTeX / KaTeX 渲染</li>
+            <li>本地数据闭环与备份恢复、本地 API 安全边界</li>
+          </ul>
+        </div>
+        <div class="bounds-col bounds-col-soft">
+          <h3>边界 · 依赖条件</h3>
+          <ul>
+            <li>回答、讲解与答案草稿需要自行配置 LLM</li>
+            <li>扫描件解析需要 MinerU，图片 OCR 需要 Kimi Vision</li>
+            <li>不依赖模型临场生成复杂计算题作为练习来源</li>
+            <li>OCR 识别结果始终视为草稿，必须人工校正</li>
+            <li>当前为个人项目，持续开发中</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="postscript">
+        <strong>一个诚实的说明</strong>
+        <p>仓库目前没有 LICENSE，内置教材与派生数据的公开分发授权也待确认。代码可公开查看，但不等同于已授予开源使用许可。这套工具的完整边界，你可以在仓库的审计记录里逐条核实。</p>
+      </div>
+    </section>
+
+    <!-- 结尾 -->
+    <section class="closing">
+      <div class="shell">
+        <p class="serif">学习工具的价值，<br>在于它陪你走完一整条线索。</p>
+        <div class="closing-actions">
+          <a class="button button-primary" href="https://github.com/jayceto946-byte/kaoyan-assistant">查看 GitHub 仓库</a>
+          <a class="button button-secondary" href="https://github.com/jayceto946-byte/kaoyan-assistant">阅读仓库文档</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-row">
+      <p>考研智能辅助系统 · 本地优先，持续开发，状态透明。</p>
+      <a href="#top">返回顶部</a>
+    </div>
+  </footer>
+
+  <dialog class="image-lightbox" aria-labelledby="lightbox-title">
+    <div class="lightbox-toolbar">
+      <div>
+        <strong id="lightbox-title">项目截图</strong>
+        <span>原始尺寸 1440 × 900</span>
+      </div>
+      <button type="button" data-lightbox-close>关闭</button>
+    </div>
+    <div class="lightbox-stage">
+      <img data-lightbox-image alt="">
+      <p class="lightbox-error" data-lightbox-error hidden>截图资源未能加载。</p>
+    </div>
+  </dialog>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var lightbox = document.querySelector('.image-lightbox');
+      var lightboxImage = lightbox && lightbox.querySelector('[data-lightbox-image]');
+      var lightboxTitle = lightbox && lightbox.querySelector('#lightbox-title');
+      var lightboxError = lightbox && lightbox.querySelector('[data-lightbox-error]');
+      var lastFocused = null;
+
+      function openLightbox(src, title) {
+        if (!lightbox || !lightboxImage || typeof lightbox.showModal !== 'function') return;
+        lastFocused = document.activeElement;
+        lightboxError.hidden = true;
+        lightboxImage.removeAttribute('src');
+        lightboxTitle.textContent = title || '项目截图';
+        lightboxImage.addEventListener('load', function onLoad() {
+          lightboxImage.removeEventListener('load', onLoad);
+          lightboxError.hidden = true;
+        });
+        lightboxImage.addEventListener('error', function onError() {
+          lightboxImage.removeEventListener('error', onError);
+          lightboxError.hidden = false;
+        });
+        lightboxImage.setAttribute('src', src);
+        lightbox.showModal();
+        document.body.classList.add('lightbox-open');
+      }
+      function closeLightbox() {
+        if (!lightbox || !lightbox.open) return;
+        lightbox.close();
+        document.body.classList.remove('lightbox-open');
+        if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+      }
+      document.querySelectorAll('[data-preview-src]').forEach(function (el) {
+        el.addEventListener('click', function () {
+          openLightbox(el.getAttribute('data-preview-src'), el.getAttribute('data-preview-title'));
+        });
+      });
+      var closeBtn = lightbox && lightbox.querySelector('[data-lightbox-close]');
+      if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
+      if (lightbox) {
+        lightbox.addEventListener('click', function (e) {
+          if (e.target === lightbox) closeLightbox();
+        });
+        lightbox.addEventListener('cancel', function (e) {
+          e.preventDefault();
+          closeLightbox();
+        });
+        lightbox.addEventListener('close', function () {
+          document.body.classList.remove('lightbox-open');
+        });
+      }
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && lightbox && lightbox.open) closeLightbox();
+      });
+    })();
+  </script>
+</body>
+</html>

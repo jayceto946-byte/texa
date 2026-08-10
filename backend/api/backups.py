@@ -33,7 +33,7 @@ def backups_restore(backup_name: str):
         result = schedule_restore(backup_name)
         return {
             "success": True,
-            "message": "恢复已登记，并已创建恢复前安全备份。重启应用后自动恢复。",
+            "message": "合并恢复已登记，并已创建恢复前安全备份。重启后将覆盖备份内的数据，保留备份中未包含的其他核心数据。",
             "data": result,
         }
     except Exception as exc:

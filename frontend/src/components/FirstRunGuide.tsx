@@ -27,7 +27,7 @@ type AssetStatus = {
 
 type EnvStatus = Record<string, { configured: boolean; value: string }>;
 
-const STORAGE_KEY = 'kaoyan:onboarding-complete:v1';
+const STORAGE_KEY = 'kaoyan:onboarding-complete:v2';
 const steps = ['快速了解', '本地资源', '模型配置'] as const;
 
 const defaultEnvDraft = {
@@ -53,8 +53,10 @@ export default function FirstRunGuide() {
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState<string>('');
   const [message, setMessage] = useState('');
+  const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
 
   const loadStatus = useCallback(async () => {
+    if (window.localStorage.getItem(STORAGE_KEY) !== '1') setOpen(true);
     try {
       const [assetRes, settingsRes] = await Promise.all([
         get('/system/assets/status', 20000),
@@ -80,9 +82,8 @@ export default function FirstRunGuide() {
           OPENAI_API_KEY: '',
         });
       }
-      if (window.localStorage.getItem(STORAGE_KEY) !== '1') setOpen(true);
     } catch {
-      // Backend may still be starting; onboarding is non-blocking.
+      // The disclosure remains visible even while the backend is starting.
     }
   }, []);
 
@@ -91,9 +92,16 @@ export default function FirstRunGuide() {
   }, [loadStatus]);
 
   const finish = () => {
+    if (!privacyAcknowledged) {
+      setStep(0);
+      setMessage('请先确认你已了解外部模型和 OCR 的数据传输范围。');
+      return;
+    }
     window.localStorage.setItem(STORAGE_KEY, '1');
     setOpen(false);
   };
+
+  const dismiss = () => setOpen(false);
 
   const download = async (asset: 'embedding' | 'vector-bundle') => {
     setBusy(asset);
@@ -147,7 +155,7 @@ export default function FirstRunGuide() {
 
             </div>
           </div>
-          <button type="button" onClick={finish} className="rounded-lg p-1.5 text-text-secondary hover:bg-bg-secondary hover:text-text-primary" aria-label="关闭">
+          <button type="button" onClick={dismiss} className="rounded-lg p-1.5 text-text-secondary hover:bg-bg-secondary hover:text-text-primary" aria-label="关闭，稍后再次提示">
             <X className="h-5 w-5" />
           </button>
         </header>
@@ -182,8 +190,12 @@ export default function FirstRunGuide() {
                   </div>
                 </div>
                 <div className="rounded-[18px] border border-border bg-bg-card p-4 text-sm leading-6 text-text-secondary">
-                  本地嵌入模型用于教材语义检索，不走 API 计费。LLM 和图片 OCR 仍需要你自己的 API Key。
+                  本地嵌入模型只在本机完成教材语义检索。问答时，当前问题、必要会话上下文和选中的教材证据会发送给你配置的 LLM 服务；使用 Kimi 图片 OCR 时，所选图片会发送给 Moonshot。外部服务将按各自隐私政策处理数据并可能产生费用。
                 </div>
+                <label className="flex items-start gap-2 rounded-[18px] border border-border bg-bg-card p-4 text-sm leading-6 text-text-primary">
+                  <input type="checkbox" checked={privacyAcknowledged} onChange={(event) => setPrivacyAcknowledged(event.target.checked)} className="mt-1" />
+                  <span>我已了解上述数据传输范围，并会避免上传无权处理或包含敏感个人信息的内容。</span>
+                </label>
               </section>
             )}
 
@@ -258,13 +270,13 @@ export default function FirstRunGuide() {
         </div>
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-bg-card px-5 py-4">
-          <button type="button" onClick={finish} className="rounded-lg border border-border px-3 py-2 text-sm text-text-secondary hover:border-accent hover:text-text-primary">稍后再看</button>
+          <button type="button" onClick={dismiss} className="rounded-lg border border-border px-3 py-2 text-sm text-text-secondary hover:border-accent hover:text-text-primary">稍后再看</button>
           <div className="flex gap-2">
             <button type="button" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0} className="rounded-lg border border-border px-3 py-2 text-sm text-text-primary hover:border-accent disabled:opacity-40">上一步</button>
             {step < steps.length - 1 ? (
               <button type="button" onClick={() => setStep(step + 1)} className="rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover">下一步</button>
             ) : (
-              <button type="button" onClick={finish} className="rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover">开始使用</button>
+              <button type="button" onClick={finish} disabled={!privacyAcknowledged} className="rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50">我已了解并开始使用</button>
             )}
           </div>
         </footer>

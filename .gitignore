@@ -73,3 +73,4 @@ desktop/sample_data/**
 desktop/sample_data_three_books/**
 !desktop/sample_data/
 !desktop/sample_data/README.md
+!desktop/sample_data/content-manifest.json

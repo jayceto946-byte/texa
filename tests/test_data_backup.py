@@ -137,3 +137,26 @@ def test_restore_without_derived_data_invalidates_stale_indexes(monkeypatch, tmp
     assert (progress / "state.json").read_text(encoding="utf-8") == '{"value":"old"}'
     assert not vector.exists()
     assert not mineru.exists()
+
+
+def test_merge_restore_preserves_core_roots_absent_from_old_backup(monkeypatch, tmp_path):
+    data_root, _backup_root = _configure_paths(monkeypatch, tmp_path)
+    progress = data_root / "progress"
+    progress.mkdir(parents=True)
+    (progress / "state.json").write_text('{"value":"old"}', encoding="utf-8")
+    original = data_backup.create_backup()
+
+    books = data_root / "books"
+    books.mkdir(parents=True)
+    later = books / "later.pdf"
+    later.write_bytes(b"later")
+    (progress / "state.json").write_text('{"value":"new"}', encoding="utf-8")
+
+    data_backup.schedule_restore(original["name"])
+    applied = data_backup.apply_pending_restore()
+
+    assert applied["status"] == "completed"
+    assert applied["restore_mode"] == "merge"
+    assert "data/books" in applied["preserved_unlisted"]
+    assert later.read_bytes() == b"later"
+    assert (progress / "state.json").read_text(encoding="utf-8") == '{"value":"old"}'
