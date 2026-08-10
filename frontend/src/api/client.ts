@@ -1,20 +1,27 @@
 import type { AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ConceptCandidate, SubjectRouteSuggestion } from '../types';
 
-const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE_URL || '/api');
 const DEFAULT_TIMEOUT_MS = 20000;
+export const AGENT_REQUEST_TIMEOUT_MS = 55000;
+export const AGENT_FALLBACK_TIMEOUT_MS = 60000;
+const NON_STREAMING_CHAT_TIMEOUT_MS = 130000;
 const API_TOKEN_KEY = 'kaoyan_api_token';
+const DESKTOP_API_BASE_KEY = 'kaoyan_desktop_api_base';
 
-function bootstrapApiToken() {
-  if (typeof window === 'undefined') return;
+function bootstrapDesktopLaunch(): string {
+  if (typeof window === 'undefined') return '';
   const hash = window.location.hash.replace(/^#/, '');
   const params = new URLSearchParams(hash);
   const token = (params.get('access_token') || params.get('capture_token'))?.trim();
-  if (!token) return;
-  window.localStorage.setItem(API_TOKEN_KEY, token);
-  window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+  const apiBase = params.get('api_base')?.trim() || '';
+  if (token) window.localStorage.setItem(API_TOKEN_KEY, token);
+  if (apiBase) window.sessionStorage.setItem(DESKTOP_API_BASE_KEY, apiBase);
+  if (token || apiBase) {
+    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+  }
+  return apiBase || window.sessionStorage.getItem(DESKTOP_API_BASE_KEY)?.trim() || '';
 }
 
-bootstrapApiToken();
+const API_BASE = normalizeApiBase(bootstrapDesktopLaunch() || import.meta.env.VITE_API_BASE_URL || '/api');
 
 function authHeaders(initial?: HeadersInit): Headers {
   const headers = new Headers(initial);
@@ -40,6 +47,23 @@ function apiUrl(path: string): string {
   return `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
+function authenticatedResourceUrl(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  try {
+    const parsed = new URL(trimmed, window.location.origin);
+    if (parsed.pathname === '/api' || parsed.pathname.startsWith('/api/')) {
+      return `${API_BASE}${parsed.pathname.slice(4)}${parsed.search}`;
+    }
+    if (/^https?:\/\//i.test(trimmed)) {
+      throw new Error('拒绝从本地 API 之外的地址加载鉴权资源');
+    }
+  } catch {
+    // Fall through to the API-relative form below.
+  }
+  return apiUrl(trimmed);
+}
+
 export type ChatEvent = {
   stage: string;
   request_id?: string;
@@ -55,6 +79,7 @@ export type ChatEvent = {
   message?: string;
   conversation_id?: string;
   turn_id?: string;
+  resolution_action?: 'continue' | 'clarify';
   subject_suggestion?: SubjectRouteSuggestion;
   rewritten_question?: string;
   use_textbook_context?: boolean;
@@ -69,15 +94,32 @@ export type ChatEvent = {
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
   const ctrl = new AbortController();
   const timer = window.setTimeout(() => ctrl.abort(), timeoutMs);
+  const sourceSignal = init.signal;
+  const abortFromSource = () => ctrl.abort();
+  if (sourceSignal?.aborted) ctrl.abort();
+  else sourceSignal?.addEventListener('abort', abortFromSource, { once: true });
   try {
-    return await fetch(input, { ...init, headers: authHeaders(init.headers), signal: init.signal || ctrl.signal });
+    return await fetch(input, { ...init, headers: authHeaders(init.headers), signal: ctrl.signal });
   } finally {
     window.clearTimeout(timer);
+    sourceSignal?.removeEventListener('abort', abortFromSource);
   }
 }
 
 export async function apiFetch(path: string, init: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<Response> {
   return fetchWithTimeout(apiUrl(path), init, timeoutMs);
+}
+
+export async function getAuthenticatedBlob(path: string, signal?: AbortSignal, timeoutMs = 60000): Promise<Blob> {
+  const res = await fetchWithTimeout(authenticatedResourceUrl(path), { signal }, timeoutMs);
+  if (!res.ok) throw await responseError(res, `GET ${path} failed`);
+  return res.blob();
+}
+
+export async function getAuthenticatedText(path: string, signal?: AbortSignal, timeoutMs = 60000): Promise<string> {
+  const res = await fetchWithTimeout(authenticatedResourceUrl(path), { signal }, timeoutMs);
+  if (!res.ok) throw await responseError(res, `GET ${path} failed`);
+  return res.text();
 }
 
 export async function get(path: string, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<any> {
@@ -220,13 +262,14 @@ export async function chatAsk(
   turnId: string,
   signal?: AbortSignal,
   answerMode: AnswerMode = 'auto',
+  timeoutMs = NON_STREAMING_CHAT_TIMEOUT_MS,
 ): Promise<{ content: string; intent: string; chapters: string[]; linked_concepts?: ConceptCandidate[]; sources?: AssistantSource[]; conversation_id?: string; turn_id?: string; subject_suggestion?: SubjectRouteSuggestion; rewritten_question?: string; answer_mode?: AnswerMode; suggested_answer_mode?: AnswerMode; scope_reason?: string; use_textbook_context?: boolean }> {
-  const res = await fetch(apiUrl('/chat/ask'), {
+  const res = await apiFetch('/chat/ask', {
     method: 'POST',
-    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question, book_name: bookName, subject, conversation_id: conversationId, turn_id: turnId, answer_mode: answerMode }),
     signal,
-  });
+  }, timeoutMs);
   if (!res.ok) throw await responseError(res, 'chatAsk failed');
   return res.json();
 }
@@ -257,12 +300,20 @@ export async function runReadOnlyAgent(
   subject = '',
   conversationId = '',
   synthesize = true,
+  signal?: AbortSignal,
 ): Promise<ReadOnlyAgentResponse> {
-  return post('/agent/read-only', {
-    question,
-    book_name: bookName,
-    subject,
-    conversation_id: conversationId,
-    synthesize,
-  }, 60000);
+  const res = await apiFetch('/agent/read-only', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      question,
+      book_name: bookName,
+      subject,
+      conversation_id: conversationId,
+      synthesize,
+    }),
+    signal,
+  }, AGENT_REQUEST_TIMEOUT_MS);
+  if (!res.ok) throw await responseError(res, 'Read-only agent failed');
+  return res.json();
 }

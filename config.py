@@ -116,13 +116,15 @@ def _get_chat_model(
     *,
     include_response_headers: bool = False,
     stream_usage: bool = False,
+    request_timeout: float = 120,
+    max_retries: int = 2,
 ):
     from langchain_openai import ChatOpenAI
 
     normalized_extra = json.dumps(extra_body or {}, ensure_ascii=False, sort_keys=True)
     key = (
         "chat", model, float(temperature), api_key, base_url, normalized_extra,
-        bool(include_response_headers), bool(stream_usage),
+        bool(include_response_headers), bool(stream_usage), float(request_timeout), int(max_retries),
     )
 
     def create():
@@ -132,7 +134,8 @@ def _get_chat_model(
             api_key=api_key,
             base_url=base_url,
             streaming=True,
-            timeout=120,
+            timeout=request_timeout,
+            max_retries=max_retries,
             include_response_headers=include_response_headers,
             stream_usage=stream_usage,
         )
@@ -151,6 +154,8 @@ def get_llm(
     *,
     include_response_headers: bool = False,
     stream_usage: bool = False,
+    request_timeout: float = 120,
+    max_retries: int = 2,
 ):
     if LLM_BACKEND == "deepseek":
         return _get_chat_model(
@@ -161,18 +166,24 @@ def get_llm(
             extra_body={"reasoning_effort": "high", "thinking": {"type": "enabled"}},
             include_response_headers=include_response_headers,
             stream_usage=stream_usage,
+            request_timeout=request_timeout,
+            max_retries=max_retries,
         )
     elif LLM_BACKEND == "moonshot":
         return _get_chat_model(
             LLM_MODEL_NAME, temperature, MOONSHOT_API_KEY, MOONSHOT_API_BASE,
             include_response_headers=include_response_headers,
             stream_usage=stream_usage,
+            request_timeout=request_timeout,
+            max_retries=max_retries,
         )
     elif LLM_BACKEND == "openai":
         return _get_chat_model(
             LLM_MODEL_NAME, temperature, OPENAI_API_KEY, OPENAI_API_BASE,
             include_response_headers=include_response_headers,
             stream_usage=stream_usage,
+            request_timeout=request_timeout,
+            max_retries=max_retries,
         )
     else:
         from langchain_community.chat_models import ChatOllama

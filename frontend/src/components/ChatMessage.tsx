@@ -127,7 +127,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, variant = 'mes
   };
 
   const isUser = role === 'user';
-  const isThinking = !isUser && (stage === 'thinking' || stage === 'plan') && !content.trim();
+  const isThinking = !isUser && (
+    stage === 'agent'
+    || ((stage === 'thinking' || stage === 'plan') && !content.trim())
+  );
   const hasCard = Boolean(reportCard || exerciseCard || chapterHighlightCard || utilityCard || agentCard);
   const showMessageTools = !hasCard && !isThinking;
   const modeLabel = answerMode === 'textbook_grounded'
@@ -192,7 +195,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, variant = 'mes
         ) : isThinking ? (
           <div className="flex items-center gap-2 py-2 text-text-secondary">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-accent" />
-            <span className="text-sm">思考中...</span>
+            <span className="text-sm">{stage === 'agent' ? content || '正在调用学习工具…' : '思考中...'}</span>
           </div>
         ) : (
           <MarkdownMessage content={content} linkedConcepts={isUser ? [] : linkedConcepts} onConceptClick={setActiveConcept} citationIds={validIds} />

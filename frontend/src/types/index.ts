@@ -313,6 +313,11 @@ export interface AgentToolOutput {
   tool: string;
   args: Record<string, unknown>;
   result: AgentToolResult;
+  timing?: {
+    status: 'complete' | 'timeout' | 'error';
+    elapsed_ms: number;
+    timeout_seconds: number;
+  };
 }
 
 export interface ReadOnlyAgentResponse {
@@ -326,6 +331,23 @@ export interface ReadOnlyAgentResponse {
     pending_actions: AgentPendingAction[];
     has_textbook_evidence: boolean;
     has_review_evidence: boolean;
+  };
+  execution_trace?: {
+    total_elapsed_ms: number;
+    budget_seconds: number;
+    tools: Array<{
+      tool: string;
+      success: boolean;
+      status: 'complete' | 'timeout' | 'error';
+      elapsed_ms: number;
+      timeout_seconds: number;
+    }>;
+    synthesis: {
+      status: 'complete' | 'timeout' | 'error' | 'skipped';
+      elapsed_ms: number;
+      timeout_seconds: number;
+      message?: string;
+    };
   };
 }
 export interface ChatAgentCard {
