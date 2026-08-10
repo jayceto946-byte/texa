@@ -10,7 +10,7 @@
 import pytest
 
 from backend.conversation_memory import rewrite_followup
-from backend.services.session_context import build_session_context
+from backend.services.session_context import build_session_context, resolve_followup_with_trace
 
 
 def _history(user_messages: list[str]) -> list[dict]:
@@ -132,3 +132,90 @@ def test_latter_only_followup_inherits_previous_comparison_predicate():
     resolved = rewrite_followup("那后者呢？", history)
 
     assert resolved == "压电式传感器适合测静态量吗？为什么？"
+
+
+def test_resolution_trace_records_before_after_rule_and_reference_turn():
+    history = [
+        {"role": "user", "content": "讲一下拉格朗日中值定理。", "turn_id": "turn-1"},
+        {"role": "assistant", "content": "（回答）", "turn_id": "turn-1"},
+    ]
+
+    resolved, trace = resolve_followup_with_trace("条件呢？", history)
+
+    assert resolved == "拉格朗日中值定理的成立条件是什么？"
+    assert trace["method"] == "deterministic_intent_inheritance"
+    assert trace["confidence_kind"] == "rule_strength"
+    assert trace["referenced_entity"] == "拉格朗日中值定理"
+    assert trace["referenced_turn_ids"] == ["turn-1"]
+    assert trace["state_before"]["intent"] == "explanation"
+    assert trace["state_after"]["intent"] == "condition"
+
+
+def test_resolver_v2_emits_constraint_replacement_operation():
+    history = _history(["压阻式和压电式哪个更适合低频测量？"])
+
+    resolved, trace = resolve_followup_with_trace("不是低频，我说的是高频。", history)
+
+    assert resolved == "在高频测量条件下，压阻式和压电式哪个更适合？"
+    assert trace["speech_act"] == "correction"
+    assert trace["state_operations"] == [{
+        "operation": "replace_constraint",
+        "old_value": "低频测量",
+        "new_value": "高频测量",
+    }]
+
+
+def test_resolver_v2_does_not_mutate_state_when_clarification_is_required():
+    history = _history(["解释压阻效应。"])
+
+    _resolved, trace = resolve_followup_with_trace("前者呢？", history)
+
+    assert trace["speech_act"] == "clarification"
+    assert trace["state_operations"] == [{"operation": "clarify"}]
+    assert trace["state_after"] == trace["state_before"]
+
+
+def test_resolution_trace_resolves_assistant_ordinal_reference():
+    history = [
+        {"role": "user", "content": "常用的收敛判别法有哪些？", "turn_id": "turn-1"},
+        {"role": "assistant", "content": "1. 比较判别法；2. 比值判别法。", "turn_id": "turn-1"},
+    ]
+
+    resolved, trace = resolve_followup_with_trace("第一个怎么算？", history)
+
+    assert resolved == "比较判别法怎么算？"
+    assert trace["is_followup"] is True
+    assert trace["method"] == "deterministic_assistant_artifact"
+    assert trace["confidence"] == 0.97
+    assert trace["referenced_entities"] == ["比较判别法"]
+    assert trace["referenced_turn_ids"] == ["turn-1"]
+
+
+def test_resolution_trace_requests_clarification_for_missing_ordinal():
+    history = [
+        {"role": "user", "content": "解释采样定理。", "turn_id": "turn-1"},
+        {"role": "assistant", "content": "采样定理描述采样频率要求。", "turn_id": "turn-1"},
+    ]
+
+    resolved, trace = resolve_followup_with_trace("第二个呢？", history)
+
+    assert resolved == "第二个呢？"
+    assert trace["resolution_action"] == "clarify"
+    assert trace["method"] == "unresolved_reference"
+    assert trace["clarification_message"]
+
+
+def test_resolver_v2_rephrase_keeps_topic_and_previous_intent():
+    history = _history(["什么是压阻效应？"])
+
+    resolved, trace = resolve_followup_with_trace("再简要解释一下。", history)
+
+    assert resolved == "请简要说明压阻效应的定义。"
+    assert trace["method"] == "deterministic_rephrase"
+    assert trace["speech_act"] == "continue"
+    assert trace["state_after"]["topic"] == "压阻效应"
+    assert trace["state_after"]["intent"] == "definition"
+    assert trace["state_operations"] == [{
+        "operation": "keep_previous_intent",
+        "value": "definition",
+    }]

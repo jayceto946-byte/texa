@@ -5,6 +5,12 @@ import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from backend.services.assistant_artifacts import (
+    extract_assistant_artifacts,
+    match_assistant_artifact,
+    rewrite_artifact_reference,
+)
+
 
 @dataclass
 class SessionContextState:
@@ -14,6 +20,10 @@ class SessionContextState:
     constraints: list[str] = field(default_factory=list)
     intent: str = "qa"
     last_resolved_query: str = ""
+    assistant_artifacts: list[dict[str, Any]] = field(default_factory=list)
+    topic_stack: list[str] = field(default_factory=list)
+    entity_records: list[dict[str, Any]] = field(default_factory=list)
+    entity_groups: list[dict[str, Any]] = field(default_factory=list)
 
 
 _ANAPHORA_WORDS = (
@@ -44,6 +54,7 @@ _INTENT_TASK_WORDS = {
     "定义", "性质", "特征", "特点", "条件", "前提", "公式", "表达式", "原理",
     "机理", "应用", "用途", "作用", "原因", "推导", "证明", "计算", "怎么算",
     "例子", "举例", "例题", "解释", "说明", "比较", "对比",
+    "看看", "帮我看看", "请帮我看看",
 }
 _ORDINAL_VALUES = {
     "一": 1, "二": 2, "三": 3, "四": 4, "五": 5,
@@ -78,6 +89,7 @@ def _strip_topic_switch(text: str) -> str:
 def _clean_query(question: str) -> str:
     result = _strip_topic_switch(question)
     result = re.sub(r"^再(?=解释|说明|介绍|讲|分析|求|计算|推导|证明)", "", result)
+    result = re.sub(r"^解释一下", "解释", result)
     return result.strip()
 
 
@@ -91,10 +103,19 @@ def _extract_topic(text: str) -> str:
     cleaned = _clean_query(text)
     if _has_anaphora(cleaned):
         return ""
+    explicit = re.sub(
+        r"^(?:请)?(?:(?:简要|简单|重新)?(?:解释|介绍|讲解|讲一下|讲讲|说明)|换一种说法解释|什么是|何谓)",
+        "",
+        cleaned,
+    ).strip()
+    has_explicit_topic_leadin = explicit != cleaned and bool(explicit)
+    if has_explicit_topic_leadin:
+        cleaned = explicit
     try:
         from knowledge.query_concepts import _strip_leading_noise, _strip_trailing_noise, is_task_word
 
-        cleaned = _strip_leading_noise(cleaned)
+        if not has_explicit_topic_leadin:
+            cleaned = _strip_leading_noise(cleaned)
     except Exception:
         def is_task_word(value: str) -> bool:
             return value in _INTENT_TASK_WORDS
@@ -105,10 +126,11 @@ def _extract_topic(text: str) -> str:
         cleaned,
         maxsplit=1,
     )[0]
-    try:
-        cleaned = _strip_trailing_noise(cleaned)
-    except NameError:
-        pass
+    if not has_explicit_topic_leadin:
+        try:
+            cleaned = _strip_trailing_noise(cleaned)
+        except NameError:
+            pass
     cleaned = cleaned.strip(" 　 、，,；:()（）\"'“”呢吗吧啊呀？?。！!")
     if (
         not cleaned
@@ -121,15 +143,35 @@ def _extract_topic(text: str) -> str:
     return cleaned
 
 
-def _append_entity(state: SessionContextState, entity: str) -> None:
+def _append_entity(state: SessionContextState, entity: str, turn_id: str = "") -> None:
     entity = entity.strip()
     if not entity:
         return
-    if entity in state.entities:
+    if entity not in state.entities:
+        state.entities.append(entity)
+        if len(state.entities) > 100:
+            del state.entities[:-100]
+    record = next((item for item in state.entity_records if item.get("name") == entity), None)
+    if record is None:
+        state.entity_records.append({
+            "name": entity,
+            "first_turn_id": turn_id,
+            "last_turn_id": turn_id,
+            "mentions": 1,
+        })
+    else:
+        record["last_turn_id"] = turn_id or record.get("last_turn_id", "")
+        record["mentions"] = int(record.get("mentions") or 0) + 1
+    state.entity_records = state.entity_records[-100:]
+
+
+def _push_topic(state: SessionContextState, topic: str) -> None:
+    topic = topic.strip()
+    if not topic:
         return
-    state.entities.append(entity)
-    if len(state.entities) > 12:
-        del state.entities[:-12]
+    if not state.topic_stack or state.topic_stack[-1] != topic:
+        state.topic_stack.append(topic)
+    state.topic_stack = state.topic_stack[-100:]
 
 
 def _expand_shared_entity_suffixes(entities: list[str]) -> list[str]:
@@ -155,6 +197,24 @@ def _expand_shared_entity_suffixes(entities: list[str]) -> list[str]:
 
 def _comparison_frame(text: str, state: SessionContextState) -> dict[str, Any] | None:
     compact = re.sub(r"\s+", "", _clean_query(text)).strip("。？?!！")
+    conditioned = re.match(
+        r"^在(?P<constraints>.+?)条件下[，,](?P<a>[^，,。？?；;]{1,28}?)"
+        r"(?:和|与|跟|同)(?P<b>[^，,。？?；;]{2,28}?)(?P<goal>哪个.*|哪一个.*|有什么.*|有何.*)$",
+        compact,
+    )
+    if conditioned:
+        constraints = [
+            value for value in re.split(r"[、]", conditioned.group("constraints")) if value
+        ]
+        a, b = _expand_shared_entity_suffixes([
+            conditioned.group("a"), conditioned.group("b"),
+        ])
+        return {
+            "kind": "comparison",
+            "entities": [a, b],
+            "goal": conditioned.group("goal"),
+            "constraints": constraints,
+        }
     explicit = re.match(r"^(?:请)?(?:比较|对比)(?:一下)?(?P<body>.+)$", compact)
     if explicit:
         body = explicit.group("body")
@@ -237,6 +297,18 @@ def _is_intent_fragment(text: str, intent: str) -> bool:
     compact = re.sub(r"^(?:那|那么|再|继续|请)(?:说说|讲讲|讲一下|解释一下)?", "", compact)
     if compact in _INTENT_TASK_WORDS:
         return True
+    fragment_patterns = {
+        "reason": r"^(?:为什么|什么原因|原因是什么)$",
+        "proof": r"^(?:怎么|如何)?证明$",
+        "derivation": r"^(?:怎么|如何)?推导(?:出来)?的?$",
+        "application": r"^(?:有什么|有哪些)?(?:应用|用途|作用)$",
+        "condition": r"^(?:成立)?条件(?:是什么)?$",
+        "property": r"^(?:有什么|有哪些)?(?:性质|特点|特征)$",
+        "formula": r"^(?:什么|哪个)?公式(?:是什么)?$",
+        "explanation": r"^(?:继续)?(?:解释|讲|说明)$",
+    }
+    if intent in fragment_patterns and re.fullmatch(fragment_patterns[intent], compact):
+        return True
     if intent == "calculation" and len(compact) <= 8:
         return True
     if intent == "example" and len(compact) <= 10:
@@ -244,15 +316,27 @@ def _is_intent_fragment(text: str, intent: str) -> bool:
     return False
 
 
+def _parse_ordinal_value(raw_value: str) -> int:
+    try:
+        return int(raw_value)
+    except ValueError:
+        pass
+    if raw_value in _ORDINAL_VALUES:
+        return _ORDINAL_VALUES[raw_value]
+    if "十" not in raw_value:
+        return 0
+    before, after = raw_value.split("十", 1)
+    tens = _ORDINAL_VALUES.get(before, 1 if before == "" else 0)
+    ones = _ORDINAL_VALUES.get(after, 0) if after else 0
+    return tens * 10 + ones if tens else 0
+
+
 def _ordinal_target(question: str, state: SessionContextState) -> tuple[str, str] | None:
     match = re.search(r"第(?P<value>[一二三四五六七八九十\d]+)个", question)
     if not match:
         return None
     raw_value = match.group("value")
-    try:
-        ordinal = int(raw_value)
-    except ValueError:
-        ordinal = _ORDINAL_VALUES.get(raw_value, 0)
+    ordinal = _parse_ordinal_value(raw_value)
     if ordinal <= 0 or ordinal > len(state.entities):
         return None
     target = state.entities[ordinal - 1]
@@ -272,6 +356,11 @@ def _replace_anaphora(question: str, target: str) -> str:
     if not replacement:
         return question
     result = stripped
+    for suffix in _SHARED_ENTITY_SUFFIXES:
+        if replacement.endswith(suffix):
+            result = result.replace(f"这个{suffix}", replacement)
+            result = result.replace(f"那个{suffix}", replacement)
+    result = re.sub(r"^(其)(?=[\u4e00-\u9fffA-Za-z0-9])", f"{replacement}的", result)
     for word in sorted(_ANAPHORA_WORDS, key=len, reverse=True):
         if word not in ("前者", "后者"):
             result = result.replace(word, replacement)
@@ -284,6 +373,119 @@ def _replace_anaphora(question: str, target: str) -> str:
     return _clean_query(result)
 
 
+def _render_comparison(state: SessionContextState, constraints: list[str]) -> str:
+    entities = list(state.frame.get("entities") or [])
+    if len(entities) != 2:
+        return ""
+    goal = str(state.frame.get("goal") or "有什么区别")
+    prefix = f"在{'、'.join(constraints)}条件下，" if constraints else ""
+    return f"{prefix}{entities[0]}和{entities[1]}{goal}？"
+
+
+def _normalize_replacement_constraint(old: str, new: str, constraints: list[str]) -> tuple[str, str]:
+    old = old.strip("，,。？?!！呢 ")
+    new = new.strip("，,。？?!！呢 ")
+    matched_old = next((item for item in constraints if old and old in item), old)
+    if matched_old.endswith("测量") and new and not new.endswith("测量"):
+        new = f"{new}测量"
+    return matched_old, new
+
+
+def _constraint_replacement(question: str, state: SessionContextState) -> dict[str, str] | None:
+    if state.frame.get("kind") != "comparison" or not state.constraints:
+        return None
+    compact = re.sub(r"\s+", "", question).strip("。？?!！")
+    match = re.fullmatch(r"(?:那|那么)?把(?P<old>.+?)改成(?P<new>.+?)(?:呢)?", compact)
+    if not match:
+        match = re.fullmatch(
+            r"(?:不对[，,]?)?不是(?P<old>.+?)[，,](?:我)?说的是(?P<new>.+)", compact,
+        )
+    if not match:
+        return None
+    old, new = _normalize_replacement_constraint(
+        match.group("old"), match.group("new"), list(state.constraints),
+    )
+    if not old or not new:
+        return None
+    constraints = [new if item == old else item for item in state.constraints]
+    return {"old": old, "new": new, "resolved": _render_comparison(state, constraints)}
+
+
+def _topic_correction(question: str, state: SessionContextState) -> dict[str, Any] | None:
+    compact = re.sub(r"\s+", "", question).strip("。？?!！")
+    reset_match = re.fullmatch(
+        r"(?:(?:我说错了|不对)[，,]?)?(?:我)?(?:想问|问的是)(?P<topic>.+)", compact,
+    )
+    keep_match = re.fullmatch(r"(?:我)?说的是(?P<topic>.+)", compact)
+    match = reset_match or keep_match
+    if not match:
+        return None
+    topic = match.group("topic").strip("，,。？?!！")
+    if not topic or len(topic) > 40 or topic == state.topic:
+        return None
+    keep_intent = keep_match is not None and reset_match is None
+    intent = state.intent if keep_intent and state.intent != "qa" else "explanation"
+    resolved = _render_intent(topic, intent, state.intent) or f"解释{topic}。"
+    return {
+        "topic": topic,
+        "keep_intent": keep_intent,
+        "resolved": resolved,
+    }
+
+
+def _topic_return_resolution(question: str, state: SessionContextState) -> dict[str, str] | None:
+    compact = re.sub(r"\s+", "", question)
+    has_return_marker = bool(re.match(r"^(?:还是)?(?:回到|说回)", compact))
+    has_explicit_continue = compact.startswith(("继续讲", "继续说", "继续解释"))
+    if not has_return_marker and not has_explicit_continue:
+        return None
+    target = next(
+        (entity for entity in sorted(state.entities, key=len, reverse=True) if entity in compact),
+        "",
+    )
+    if not target and has_return_marker:
+        ordinal = _ordinal_target(question, state)
+        target = ordinal[0] if ordinal else ""
+    if not target:
+        return None
+    if "，" in question or "," in question:
+        tail = re.split(r"[，,]", question, maxsplit=1)[1].strip()
+        if tail.startswith(("继续讲", "继续说", "继续解释")):
+            resolved = tail.replace("它", target).replace("这个", target).replace("那个", target)
+        else:
+            resolved = _replace_anaphora(tail, target)
+    elif has_return_marker:
+        resolved = re.sub(r"^(?:还是)?(?:回到|说回)(?:刚才的|前面的)?", "", question).strip()
+        resolved = _replace_anaphora(resolved, target)
+    else:
+        resolved = question.strip()
+        resolved = _replace_anaphora(resolved, target)
+    return {"target": target, "resolved": resolved}
+
+
+def _plural_reference(question: str, state: SessionContextState) -> dict[str, Any] | None:
+    if not any(token in question for token in ("它们", "这两个", "上述方法", "上述两个", "这些方法")):
+        return None
+    entities = list(state.frame.get("entities") or [])
+    if len(entities) < 2 and state.entity_groups:
+        entities = list(state.entity_groups[-1].get("entities") or [])
+    if len(entities) < 2:
+        return None
+    target = "和".join(entities)
+    resolved = question
+    for token in ("它们", "这两个", "上述方法", "上述两个", "这些方法"):
+        resolved = resolved.replace(token, target)
+    return {"entities": entities, "resolved": _clean_query(resolved)}
+
+
+def _assistant_topic_correction(content: str) -> str:
+    match = re.search(
+        r"(?:其实是|应当是|应该是|指的是)\s*([\u4e00-\u9fffA-Za-z0-9_]{2,30}?(?:效应|定理|方法|算法|模型|公式|传感器))",
+        content,
+    )
+    return match.group(1) if match else ""
+
+
 def _condition_update(question: str, state: SessionContextState) -> str:
     if state.frame.get("kind") != "comparison":
         return ""
@@ -294,31 +496,97 @@ def _condition_update(question: str, state: SessionContextState) -> str:
     )
     if not match:
         return ""
-    constraint = match.group("constraint").strip("，,、呢")
+    constraint = re.sub(r"^(?:改成|换成)", "", match.group("constraint")).strip("，,、呢")
     if not constraint:
         return ""
     constraints = list(state.constraints)
     if constraint not in constraints:
         constraints.append(constraint)
-    state.constraints = constraints
-    entities = list(state.frame.get("entities") or [])
-    if len(entities) != 2:
+    return _render_comparison(state, constraints)
+
+
+def _rephrase_followup(question: str, state: SessionContextState) -> str:
+    if not state.topic:
         return ""
-    goal = str(state.frame.get("goal") or "有什么区别")
-    return f"在{'、'.join(constraints)}条件下，{entities[0]}和{entities[1]}{goal}？"
+    compact = re.sub(r"\s+", "", question).strip("。？?!！")
+    def render(style: str) -> str:
+        facets = {
+            "definition": f"{state.topic}的定义",
+            "property": f"{state.topic}的性质",
+            "condition": f"{state.topic}的成立条件",
+            "formula": f"{state.topic}的公式",
+            "principle": f"{state.topic}的原理",
+            "application": f"{state.topic}的应用",
+            "reason": f"{state.topic}的原因",
+            "calculation": f"{state.topic}的计算方法",
+            "derivation": f"{state.topic}的推导过程",
+            "proof": f"{state.topic}的证明过程",
+        }
+        target = facets.get(state.intent)
+        return (
+            f"请{style}说明{target}。" if target
+            else f"请{style}解释{state.topic}。"
+        )
+
+    if re.fullmatch(
+        r"(?:再|重新)?(?:简要|简单)?(?:解释一下|解释|说明一下|说明|讲一下|讲讲)",
+        compact,
+    ):
+        prefix = "简要" if any(token in compact for token in ("简要", "简单")) else "重新"
+        return render(prefix)
+    if re.fullmatch(r"(?:再)?换(?:个|一种)?说法(?:解释|说明)?(?:一下)?", compact):
+        return render("换一种说法")
+    return ""
 
 
 def _resolve_with_state(question: str, state: SessionContextState) -> str:
     question = question.strip()
+    rephrased = _rephrase_followup(question, state)
+    if rephrased:
+        return rephrased
+    artifact = match_assistant_artifact(question, state.assistant_artifacts)
+    if artifact:
+        return rewrite_artifact_reference(question, artifact)
+
+    correction = _topic_correction(question, state)
+    if correction:
+        return str(correction["resolved"])
+
+    constraint_replacement = _constraint_replacement(question, state)
+    if constraint_replacement:
+        return constraint_replacement["resolved"]
+
+    topic_return = _topic_return_resolution(question, state)
+    if topic_return:
+        return topic_return["resolved"]
+
+    explicit_pronoun_topic = re.match(
+        r"^这个(?P<topic>[\u4e00-\u9fffA-Za-z0-9_]{2,30}?(?:效应|定理|方法|算法|模型|公式|传感器))(?P<tail>.*)$",
+        question,
+    )
+    if explicit_pronoun_topic:
+        return f"{explicit_pronoun_topic.group('topic')}{explicit_pronoun_topic.group('tail')}"
+
     ordinal = _ordinal_target(question, state)
     if ordinal:
         target, remainder = ordinal
-        return _replace_anaphora(remainder or target, target)
+        if not remainder or remainder.strip("。？?!！呢 ") == "":
+            previous = state.last_resolved_query
+            if previous:
+                for entity in reversed(state.entities):
+                    if entity in previous:
+                        return previous.replace(entity, target, 1)
+            return target
+        if _has_anaphora(remainder):
+            return _replace_anaphora(remainder, target)
+        return f"{target}{remainder.lstrip('，, ')}"
+
+    plural = _plural_reference(question, state)
+    if plural:
+        return str(plural["resolved"])
 
     if "前者" in question or "后者" in question:
         pair = list(state.frame.get("entities") or [])
-        if len(pair) < 2:
-            pair = state.entities[-2:]
         if len(pair) >= 2:
             target = pair[0] if "前者" in question else pair[1]
             remainder = re.sub(
@@ -335,9 +603,17 @@ def _resolve_with_state(question: str, state: SessionContextState) -> str:
             replaced = re.sub(r"^(?:那|那么)[，,]?", "", replaced)
             return _clean_query(replaced)
 
+    previous_pair = re.fullmatch(r"它和前面那个(?P<tail>.+)", re.sub(r"\s+", "", question))
+    if previous_pair and len(state.entities) >= 2:
+        return f"{state.entities[-1]}和{state.entities[-2]}{previous_pair.group('tail')}"
+
     updated = _condition_update(question, state)
     if updated:
         return updated
+
+    compact = re.sub(r"\s+", "", question).strip("。？?!！")
+    if state.topic and compact in {"继续讲", "继续说", "继续解释", "接着讲", "接着说"}:
+        return f"继续解释{state.topic}。"
 
     intent = _infer_intent(question)
     if state.topic and _is_intent_fragment(question, intent):
@@ -350,15 +626,24 @@ def _resolve_with_state(question: str, state: SessionContextState) -> str:
     return _clean_query(question)
 
 
-def _advance_state(state: SessionContextState, resolved: str) -> None:
+def _advance_state(state: SessionContextState, resolved: str, turn_id: str = "") -> None:
     frame = _comparison_frame(resolved, state)
     if frame:
         state.frame = {key: value for key, value in frame.items() if key != "constraints"}
-        state.constraints = list(frame.get("constraints") or state.constraints)
+        state.constraints = list(frame.get("constraints") or [])
         for entity in frame["entities"]:
-            _append_entity(state, entity)
+            _append_entity(state, entity, turn_id)
+        group = {
+            "kind": "comparison",
+            "entities": list(frame["entities"]),
+            "turn_id": turn_id,
+        }
+        if not state.entity_groups or state.entity_groups[-1] != group:
+            state.entity_groups.append(group)
+            state.entity_groups = state.entity_groups[-50:]
         if not state.topic:
             state.topic = frame["entities"][0]
+            _push_topic(state, state.topic)
         state.intent = "comparison"
     else:
         topic = _extract_topic(resolved)
@@ -367,21 +652,62 @@ def _advance_state(state: SessionContextState, resolved: str) -> None:
                 state.frame = {}
                 state.constraints = []
             state.topic = topic
-            _append_entity(state, topic)
+            _append_entity(state, topic, turn_id)
+            _push_topic(state, topic)
         state.intent = _infer_intent(resolved)
     state.last_resolved_query = resolved
 
 
-def rebuild_session_state(history: list[dict], limit: int = 24) -> SessionContextState:
-    state = SessionContextState()
-    user_turns = [
-        _strip_internal_references(str(item.get("content", "")))
-        for item in history
+def session_state_from_dict(value: dict[str, Any] | None) -> SessionContextState:
+    raw = value if isinstance(value, dict) else {}
+    allowed = SessionContextState.__dataclass_fields__
+    return SessionContextState(**{
+        key: raw[key] for key in allowed if key in raw
+    })
+
+
+def rebuild_session_state(
+    history: list[dict],
+    limit: int = 100,
+    initial_state: dict[str, Any] | SessionContextState | None = None,
+) -> SessionContextState:
+    if isinstance(initial_state, SessionContextState):
+        state = session_state_from_dict(asdict(initial_state))
+    else:
+        state = session_state_from_dict(initial_state)
+    user_positions = [
+        index for index, item in enumerate(history)
         if item.get("role") == "user" and str(item.get("content", "")).strip()
-    ][-limit:]
-    for raw_question in user_turns:
-        resolved = _resolve_with_state(raw_question, state)
-        _advance_state(state, resolved)
+    ]
+    start = user_positions[-limit] if len(user_positions) > limit else 0
+    for item in history[start:]:
+        role = str(item.get("role") or "")
+        raw_content = str(item.get("content", ""))
+        content = raw_content if role == "assistant" else _strip_internal_references(raw_content)
+        if not content:
+            continue
+        if role == "user":
+            resolved = _resolve_with_state(content, state)
+            _advance_state(
+                state, resolved,
+                str(item.get("turn_id") or item.get("id") or ""),
+            )
+        elif role == "assistant":
+            corrected_topic = _assistant_topic_correction(content)
+            if corrected_topic:
+                state.topic = corrected_topic
+                _append_entity(
+                    state, corrected_topic,
+                    str(item.get("turn_id") or item.get("id") or ""),
+                )
+                _push_topic(state, corrected_topic)
+            artifacts = extract_assistant_artifacts(
+                content,
+                user_query=state.last_resolved_query,
+                turn_id=str(item.get("turn_id") or item.get("id") or ""),
+            )
+            if artifacts:
+                state.assistant_artifacts = [*state.assistant_artifacts, *artifacts][-48:]
     return state
 
 
@@ -390,8 +716,337 @@ def build_session_context(history: list[dict]) -> dict[str, Any]:
     return asdict(rebuild_session_state(history))
 
 
+def _referenced_turn_ids(history: list[dict], entities: list[str]) -> list[str]:
+    """Locate the newest user turns that introduced the referenced entities."""
+    result: list[str] = []
+    for entity in entities:
+        if not entity:
+            continue
+        for item in reversed(history):
+            if item.get("role") != "user":
+                continue
+            content = _strip_internal_references(str(item.get("content", "")))
+            # Coordinate phrases may omit the shared suffix from the first item.
+            aliases = [entity]
+            for suffix in _SHARED_ENTITY_SUFFIXES:
+                if entity.endswith(suffix) and len(entity) > len(suffix):
+                    aliases.append(entity[:-len(suffix)])
+            if any(alias and alias in content for alias in aliases):
+                turn_id = str(item.get("turn_id") or item.get("id") or "").strip()
+                if turn_id and turn_id not in result:
+                    result.append(turn_id)
+                break
+    return result
+
+
+def _resolution_observation(
+    question: str,
+    history: list[dict],
+    state: SessionContextState,
+    resolved: str,
+) -> dict[str, Any]:
+    """Describe which deterministic rule produced the existing resolution.
+
+    ``confidence`` is a bounded rule-strength signal for observability and
+    evaluation.  It is deliberately not presented as a calibrated probability.
+    """
+    compact = re.sub(r"\s+", "", question)
+    referenced_entities: list[str] = []
+    method = "identity"
+    confidence = 1.0
+    is_followup = False
+    artifact = match_assistant_artifact(question, state.assistant_artifacts)
+    rephrased = _rephrase_followup(question, state)
+    correction = _topic_correction(question, state)
+    replacement = _constraint_replacement(question, state)
+    topic_return = _topic_return_resolution(question, state)
+    plural = _plural_reference(question, state)
+
+    ordinal = _ordinal_target(question, state)
+    explicit_ordinal = re.search(
+        r"第[一二三四五六七八九十\d]+(?:个公式|个|道题|部分|行|步)",
+        question,
+    )
+    if rephrased:
+        method = "deterministic_rephrase"
+        confidence = 0.98
+        is_followup = True
+        referenced_entities = [state.topic] if state.topic else []
+    elif artifact:
+        target = str(artifact.get("target") or "")
+        method = "deterministic_assistant_artifact"
+        confidence = 0.97
+        is_followup = True
+        referenced_entities = [target] if target else []
+    elif correction:
+        method = "deterministic_topic_correction"
+        confidence = 0.99
+        is_followup = bool(correction.get("keep_intent"))
+        referenced_entities = [str(correction["topic"])] if is_followup else []
+    elif replacement:
+        method = "deterministic_constraint_replacement"
+        confidence = 0.99
+        is_followup = True
+        referenced_entities = list(state.frame.get("entities") or [])
+    elif topic_return:
+        method = "deterministic_topic_return"
+        confidence = 0.99
+        is_followup = True
+        referenced_entities = [str(topic_return["target"])]
+    elif re.match(
+        r"^这个[\u4e00-\u9fffA-Za-z0-9_]{2,30}?(?:效应|定理|方法|算法|模型|公式|传感器)",
+        question,
+    ):
+        method = "deterministic_explicit_topic"
+        confidence = 1.0
+        is_followup = False
+    elif plural:
+        method = "deterministic_plural_reference"
+        confidence = 0.98
+        is_followup = True
+        referenced_entities = list(plural["entities"])
+    elif ordinal:
+        ordinal_target = ordinal[0]
+        target_rendered = ordinal_target in resolved
+        method = "deterministic_ordinal" if target_rendered else "incomplete_ordinal_resolution"
+        confidence = 0.98 if target_rendered else 0.0
+        is_followup = True
+        referenced_entities = [ordinal_target]
+    elif explicit_ordinal:
+        method = "unresolved_reference"
+        confidence = 0.0
+        is_followup = True
+    elif "前者" in compact or "后者" in compact:
+        pair = list(state.frame.get("entities") or [])
+        if len(pair) >= 2:
+            target = pair[0] if "前者" in compact else pair[1]
+            method = "deterministic_comparison_reference"
+            confidence = 0.98
+            is_followup = True
+            referenced_entities = [target]
+        else:
+            method = "unresolved_reference"
+            confidence = 0.0
+            is_followup = True
+    elif state.frame.get("kind") == "comparison" and re.fullmatch(
+        r"(?:那|那么)?(?:如果|若|假如)(?:考虑|是|在)?.+?(?:的话|呢)?[。？?!！]*",
+        compact,
+    ):
+        method = "deterministic_constraint_inheritance"
+        confidence = 0.96
+        is_followup = True
+        referenced_entities = list(state.frame.get("entities") or [])
+    else:
+        intent = _infer_intent(question)
+        previous_pair = re.fullmatch(r"它和前面那个(?P<tail>.+)", compact)
+        if previous_pair and len(state.entities) >= 2:
+            method = "deterministic_dual_reference"
+            confidence = 0.96
+            is_followup = True
+            referenced_entities = [state.entities[-1], state.entities[-2]]
+        elif state.topic and compact.strip("。？?!！") in {
+            "继续讲", "继续说", "继续解释", "接着讲", "接着说",
+        }:
+            method = "deterministic_continuation"
+            confidence = 0.97
+            is_followup = True
+            referenced_entities = [state.topic]
+        elif state.topic and _is_intent_fragment(question, intent):
+            method = "deterministic_intent_inheritance"
+            confidence = 0.96
+            is_followup = True
+            referenced_entities = [state.topic]
+        elif _has_anaphora(question):
+            is_followup = True
+            if state.topic:
+                method = "deterministic_anaphora"
+                confidence = 0.94
+                referenced_entities = [state.topic]
+            else:
+                method = "unresolved_reference"
+                confidence = 0.0
+        elif resolved != question.strip():
+            method = "deterministic_normalization"
+            confidence = 1.0
+
+    artifact_turn_ids = []
+    if artifact and artifact.get("turn_id"):
+        artifact_turn_ids = [str(artifact["turn_id"])]
+    state_turn_ids = []
+    if referenced_entities:
+        for entity in referenced_entities:
+            record = next((
+                item for item in reversed(state.entity_records)
+                if item.get("name") == entity
+            ), None)
+            turn_id = str((record or {}).get("last_turn_id") or "")
+            if turn_id and turn_id not in state_turn_ids:
+                state_turn_ids.append(turn_id)
+    return {
+        "is_followup": is_followup,
+        "resolution_changed": resolved != question.strip(),
+        "method": method,
+        "confidence": confidence,
+        "confidence_kind": "rule_strength",
+        "referenced_entity": referenced_entities[0] if referenced_entities else "",
+        "referenced_entities": referenced_entities,
+        "referenced_turn_ids": (
+            artifact_turn_ids
+            or state_turn_ids
+            or _referenced_turn_ids(history, referenced_entities)
+        ),
+    }
+
+
+def _state_operations(
+    question: str,
+    before: SessionContextState,
+    after: SessionContextState,
+    observation: dict[str, Any],
+    *,
+    should_clarify: bool,
+) -> tuple[str, list[dict[str, Any]]]:
+    operations: list[dict[str, Any]] = []
+    method = str(observation.get("method") or "")
+    if should_clarify:
+        return "clarification", [{"operation": "clarify"}]
+
+    correction = _topic_correction(question, before)
+    replacement = _constraint_replacement(question, before)
+    topic_return = _topic_return_resolution(question, before)
+    if replacement:
+        operations.append({
+            "operation": "replace_constraint",
+            "old_value": replacement["old"],
+            "new_value": replacement["new"],
+        })
+        speech_act = "correction"
+    elif correction:
+        operations.append({
+            "operation": "correct_entity",
+            "old_value": before.topic,
+            "new_value": correction["topic"],
+        })
+        if correction.get("keep_intent"):
+            operations.append({
+                "operation": "keep_previous_intent",
+                "value": before.intent,
+            })
+        speech_act = "correction"
+    elif topic_return:
+        operations.append({
+            "operation": "return_to_topic",
+            "value": topic_return["target"],
+        })
+        speech_act = "return"
+    elif method == "deterministic_assistant_artifact":
+        operations.append({
+            "operation": "select_artifact",
+            "value": observation.get("referenced_entity") or "",
+        })
+        speech_act = "followup"
+    elif method == "deterministic_continuation":
+        operations.append({
+            "operation": "keep_previous_intent",
+            "value": before.intent,
+        })
+        speech_act = "continue"
+    elif method == "deterministic_rephrase":
+        operations.append({
+            "operation": "keep_previous_intent",
+            "value": before.intent,
+        })
+        speech_act = "continue"
+    elif observation.get("is_followup"):
+        speech_act = "followup"
+    else:
+        speech_act = "ask"
+
+    if before.topic != after.topic and after.topic and not any(
+        item["operation"] in {"correct_entity", "return_to_topic"} for item in operations
+    ):
+        operations.append({
+            "operation": "set_topic",
+            "old_value": before.topic,
+            "new_value": after.topic,
+        })
+        if before.topic and speech_act == "ask":
+            speech_act = "switch_topic"
+    if before.constraints != after.constraints and not any(
+        item["operation"] == "replace_constraint" for item in operations
+    ):
+        added = [item for item in after.constraints if item not in before.constraints]
+        for value in added:
+            operations.append({"operation": "add_constraint", "value": value})
+    return speech_act, operations
+
+
+def build_resolution_trace(
+    question: str,
+    history: list[dict],
+    resolved_query: str | None = None,
+    initial_state: dict[str, Any] | SessionContextState | None = None,
+) -> dict[str, Any]:
+    """Build bounded resolver telemetry without changing the resolution path."""
+    raw_query = question.strip()
+    state_before = (
+        session_state_from_dict(asdict(initial_state) if isinstance(initial_state, SessionContextState) else initial_state)
+        if initial_state is not None
+        else rebuild_session_state(history)
+    )
+    has_context = bool(
+        history or state_before.topic or state_before.entities or state_before.assistant_artifacts
+    )
+    if resolved_query is None:
+        if not raw_query or not has_context:
+            resolved = raw_query
+        else:
+            resolved = _resolve_with_state(raw_query, state_before)
+    else:
+        resolved = str(resolved_query).strip()
+
+    observation = _resolution_observation(raw_query, history, state_before, resolved)
+    if not has_context and raw_query and not observation.get("is_followup"):
+        observation.update({
+            "method": "identity_no_history",
+            "confidence": 1.0,
+            "is_followup": False,
+        })
+
+    should_clarify = observation.get("method") in {
+        "unresolved_reference", "incomplete_ordinal_resolution",
+    }
+    state_after = session_state_from_dict(asdict(state_before))
+    if resolved and not should_clarify:
+        _advance_state(state_after, resolved)
+    clarification_message = (
+        "我还不能确定你指的是哪个对象。请补充对象名称，或说明你指的是上一条回答中的哪一项。"
+        if should_clarify else ""
+    )
+    speech_act, operations = _state_operations(
+        raw_query, state_before, state_after, observation,
+        should_clarify=should_clarify,
+    )
+    trace = {
+        "raw_query": raw_query,
+        "resolved_query": resolved,
+        "resolution_action": "clarify" if should_clarify else "continue",
+        "clarification_message": clarification_message,
+        "speech_act": speech_act,
+        "state_operations": operations,
+        "state_before": asdict(state_before),
+        "state_after": asdict(state_after),
+        **observation,
+    }
+    return trace
+
+
+def resolve_followup_with_trace(question: str, history: list[dict]) -> tuple[str, dict[str, Any]]:
+    """Resolve a query and return bounded before/after state for Context Trace v2."""
+    trace = build_resolution_trace(question, history)
+    return str(trace["resolved_query"]), trace
+
+
 def resolve_followup(question: str, history: list[dict]) -> str:
-    question = question.strip()
-    if not question or not history:
-        return question
-    return _resolve_with_state(question, rebuild_session_state(history))
+    resolved, _trace = resolve_followup_with_trace(question, history)
+    return resolved

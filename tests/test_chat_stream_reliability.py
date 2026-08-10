@@ -42,6 +42,32 @@ def test_run_graph_stream_done_survives_feedback_failure(monkeypatch):
     assert "answer" == "".join(event.get("chunk", "") for event in events if event["stage"] == "generate")
 
 
+def test_stream_teach_refuses_when_evidence_gate_is_insufficient(monkeypatch):
+    import graph.feedback_node as feedback_module
+    import graph.intent_classifier as intent_module
+    import graph.planner as planner_module
+    import graph.retrieval_node as retrieval_module
+    from graph.main_graph import run_graph_stream
+
+    monkeypatch.setattr(intent_module, "classify_intent_local", lambda text: {"intent": "teach", "hint": ""})
+    monkeypatch.setattr(intent_module, "is_fast_path_eligible", lambda text, result: False)
+    monkeypatch.setattr(planner_module, "plan_node", lambda state: {"intent": "teach", "target_chapters": ["chapter-1"]})
+    monkeypatch.setattr(retrieval_module, "retrieve_node", lambda state: {
+        "chapter_contents": {"chapter-1": ["旁路内容"]},
+        "evidence_items": [],
+        "evidence_gate_applied": True,
+        "evidence_support": {"status": "insufficient", "reason": "question_focus_missing"},
+    })
+    monkeypatch.setattr(feedback_module, "feedback_node", lambda state: {})
+
+    events = list(run_graph_stream("讲解这一章", book_name="demo-book"))
+    generated = "".join(str(event.get("chunk") or "") for event in events if event["stage"] == "generate")
+
+    assert "未检索到足够的直接证据" in generated
+    assert "旁路内容" not in generated
+    assert not any(event.get("stage") == "chapter" and event.get("has_teaching") for event in events)
+
+
 def test_chat_stream_done_survives_assistant_persistence_failure(monkeypatch):
     import backend.api.chat as chat_api
     import graph.main_graph as main_graph
@@ -79,6 +105,135 @@ def test_chat_stream_done_survives_assistant_persistence_failure(monkeypatch):
     assert "error" not in stages
     done_event = next(event for event in events if event["stage"] == "done")
     assert done_event["persistence_error"] == "conversation write failed"
+
+
+def test_chat_stream_persists_context_trace_v2(monkeypatch):
+    import backend.api.chat as chat_api
+    import backend.rag_trace as rag_trace
+    import graph.main_graph as main_graph
+
+    history = [
+        {"role": "user", "content": "讲一下拉格朗日中值定理。", "turn_id": "turn-1"},
+        {"role": "assistant", "content": "回答", "turn_id": "turn-1"},
+    ]
+    captured = {}
+    monkeypatch.setattr(chat_api, "resolve_conversation_id_for_scope", lambda *args: "cid")
+    monkeypatch.setattr(chat_api, "load_history", lambda conversation_id: history)
+    monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: {"id": "message"})
+    monkeypatch.setattr(chat_api, "_safe_subject_suggestion", lambda *args: None)
+    monkeypatch.setattr(chat_api, "decide_answer_scope", lambda *args, **kwargs: SimpleNamespace(
+        use_textbook_context=True,
+        reason="book_concept_match",
+        answer_mode="textbook_grounded",
+    ))
+    monkeypatch.setattr(rag_trace, "save_trace", lambda payload: captured.update(payload))
+
+    def fake_run_graph_stream(**kwargs):
+        yield {"stage": "plan", "intent": "condition", "chapters": [], "fast_path": True}
+        yield {"stage": "generate", "chunk": "answer", "done": False}
+        yield {"stage": "generate", "chunk": "", "done": True}
+        yield {"stage": "done", "state": {
+            "retrieval_action": "full",
+            "retrieval_query": "拉格朗日中值定理的成立条件是什么？",
+            "reused_evidence_ids": [],
+            "new_evidence_ids": ["chunk-1", "chunk-2"],
+            "dropped_evidence_ids": [],
+            "evidence_sources": [{"chunk_id": "chunk-1"}],
+            "retrieval_status": "ok",
+            "retrieval_error": "",
+            "evidence_support": {"status": "supported"},
+            "context_budget": {"budget_unit": "chars", "assembled_prompt_chars": 3000},
+        }, "enriched": False}
+
+    monkeypatch.setattr(main_graph, "run_graph_stream", fake_run_graph_stream)
+
+    response = TestClient(app).post("/api/chat/stream", json={
+        "question": "条件呢？", "book_name": "demo",
+    })
+
+    assert response.status_code == 200
+    context = captured["context"]
+    assert context["resolution"]["raw_query"] == "条件呢？"
+    assert context["resolution"]["resolved_query"] == "拉格朗日中值定理的成立条件是什么？"
+    assert context["resolution"]["state_before"]["topic"] == "拉格朗日中值定理"
+    assert context["retrieval"]["action"] == "full"
+    assert context["retrieval"]["new_evidence_ids"] == ["chunk-1"]
+    assert context["retrieval"]["dropped_evidence_ids"] == ["chunk-2"]
+    assert context["context_budget"]["assembled_prompt_chars"] == 3000
+
+
+def test_chat_stream_clarifies_unresolved_reference_without_running_graph(monkeypatch):
+    import backend.api.chat as chat_api
+    import graph.main_graph as main_graph
+
+    history = [
+        {"role": "user", "content": "解释采样定理。", "turn_id": "turn-1"},
+        {"role": "assistant", "content": "采样定理描述采样频率要求。", "turn_id": "turn-1"},
+    ]
+    saved = []
+    monkeypatch.setattr(chat_api, "resolve_conversation_id_for_scope", lambda *args: "cid")
+    monkeypatch.setattr(chat_api, "load_history", lambda conversation_id: history)
+    monkeypatch.setattr(chat_api, "append_message", lambda cid, role, content, **kwargs: saved.append(
+        (role, content)
+    ) or {"id": f"message-{role}"})
+    monkeypatch.setattr(chat_api, "_safe_subject_suggestion", lambda *args: None)
+    monkeypatch.setattr(chat_api, "decide_answer_scope", lambda *args, **kwargs: SimpleNamespace(
+        use_textbook_context=True, reason="book_concept_match", answer_mode="textbook_grounded",
+    ))
+    monkeypatch.setattr(main_graph, "run_graph_stream", lambda **kwargs: (_ for _ in ()).throw(
+        AssertionError("clarification must bypass graph execution")
+    ))
+
+    response = TestClient(app).post("/api/chat/stream", json={
+        "question": "第二个呢？", "book_name": "demo",
+    })
+    events = [
+        json.loads(block[6:])
+        for block in response.text.strip().split("\n\n")
+        if block.startswith("data: ")
+    ]
+
+    assert response.status_code == 200
+    assert [event["stage"] for event in events] == ["context", "generate", "generate", "done"]
+    assert events[0]["resolution_action"] == "clarify"
+    assert events[-1]["state"]["retrieval_action"] == "none"
+    assert events[-1]["state"]["conversation_context_pack"]["turn_ids"] == ["turn-1"]
+    assert "text" not in events[-1]["state"]["conversation_context_pack"]
+    assert saved[0] == ("user", "第二个呢？")
+    assert saved[1][0] == "assistant"
+    assert "不能确定" in saved[1][1]
+
+
+def test_chat_ask_clarifies_unresolved_reference_without_running_graph(monkeypatch):
+    import backend.api.chat as chat_api
+    import backend.rag_trace as rag_trace
+    import graph.main_graph as main_graph
+
+    history = [
+        {"role": "user", "content": "解释采样定理。", "turn_id": "turn-1"},
+        {"role": "assistant", "content": "采样定理描述采样频率要求。", "turn_id": "turn-1"},
+    ]
+    monkeypatch.setattr(chat_api, "resolve_conversation_id_for_scope", lambda *args: "cid")
+    monkeypatch.setattr(chat_api, "load_history", lambda conversation_id: history)
+    monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: {"id": "message"})
+    monkeypatch.setattr(chat_api, "_safe_subject_suggestion", lambda *args: None)
+    monkeypatch.setattr(chat_api, "decide_answer_scope", lambda *args, **kwargs: SimpleNamespace(
+        use_textbook_context=True, reason="book_concept_match", answer_mode="textbook_grounded",
+    ))
+    monkeypatch.setattr(rag_trace, "save_trace", lambda payload: None)
+    monkeypatch.setattr(main_graph, "run_graph", lambda **kwargs: (_ for _ in ()).throw(
+        AssertionError("clarification must bypass graph execution")
+    ))
+
+    response = TestClient(app).post("/api/chat/ask", json={
+        "question": "第二个呢？", "book_name": "demo",
+    })
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["resolution_action"] == "clarify"
+    assert "不能确定" in payload["content"]
+    assert payload["sources"] == []
 
 
 def test_chat_stream_disables_wrong_textbook_context_for_subject_suggestion(monkeypatch):

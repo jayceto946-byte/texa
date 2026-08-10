@@ -75,8 +75,10 @@ def build_initial_state(
     use_textbook_context: bool | None = None,
     answer_mode: str = "",
     scope_reason: str = "",
+    continuity_context: dict | None = None,
 ) -> dict:
     """构建 LangGraph 的初始状态字典。"""
+    continuity = continuity_context if isinstance(continuity_context, dict) else {}
     return {
         "user_input": user_input,
         "user_images": user_images or [],
@@ -89,6 +91,16 @@ def build_initial_state(
         "use_textbook_context": bool(book_name) if use_textbook_context is None else use_textbook_context,
         "answer_mode": answer_mode or ("textbook_grounded" if (bool(book_name) if use_textbook_context is None else use_textbook_context) else ("subject_general" if subject else "global_general")),
         "scope_reason": scope_reason,
+        "active_evidence_sources": list(continuity.get("active_evidence_sources") or [])[:12],
+        "active_evidence_ids": list(continuity.get("active_evidence_ids") or [])[:12],
+        "active_evidence_support": str(continuity.get("active_evidence_support") or ""),
+        "same_topic": bool(continuity.get("same_topic")),
+        "requires_new_facet": bool(continuity.get("requires_new_facet")),
+        "previous_intent": str(continuity.get("previous_intent") or ""),
+        "previous_book_name": str(continuity.get("previous_book_name") or ""),
+        "previous_subject": str(continuity.get("previous_subject") or ""),
+        "conversation_context_seed": dict(continuity.get("conversation_context_seed") or {}),
+        "conversation_context_pack": {},
         "messages": [],
         "intent": "",
         "sub_tasks": [],
@@ -110,6 +122,11 @@ def build_initial_state(
         "linked_concepts": [],
         "retrieval_status": "ok",
         "retrieval_error": "",
+        "retrieval_action": "none",
+        "retrieval_query": "",
+        "reused_evidence_ids": [],
+        "new_evidence_ids": [],
+        "dropped_evidence_ids": [],
         "teaching_content": "",
         "key_points": [],
         "extracted_examples": [],
@@ -117,6 +134,7 @@ def build_initial_state(
         "chapter_summary": "",
         "final_output": "",
         "output_type": "text",
+        "context_budget": {},
         "user_feedback": user_feedback,
         "mastery_update": {},
         "next_review": None,
@@ -134,7 +152,8 @@ def run_graph(user_input: str, book_name: str = "default",
               target_chapters: list[str] = None,
               use_textbook_context: bool | None = None,
               answer_mode: str = "",
-              scope_reason: str = "") -> dict:
+              scope_reason: str = "",
+              continuity_context: dict | None = None) -> dict:
     """运行一次完整的图谱推理（同步阻塞版）。"""
     graph = get_graph()
     initial_state = build_initial_state(
@@ -148,6 +167,7 @@ def run_graph(user_input: str, book_name: str = "default",
         use_textbook_context=use_textbook_context,
         answer_mode=answer_mode,
         scope_reason=scope_reason,
+        continuity_context=continuity_context,
     )
     result = graph.invoke(initial_state)
     return result
@@ -164,6 +184,7 @@ def run_graph_stream(
     use_textbook_context: bool | None = None,
     answer_mode: str = "",
     scope_reason: str = "",
+    continuity_context: dict | None = None,
 ):
     """流式运行 graph pipeline，yield 事件供 UI 消费。
 
@@ -180,7 +201,8 @@ def run_graph_stream(
     from graph.chapter_subgraph import (
         prepare_chapter_subgraph, TEACH_PROMPT, _future_result_if_done,
     )
-    from graph.generator import _build_generate_prompt, _format_quiz_appendix, grounded_failure_message, has_textbook_evidence, scope_boundary_message, suggested_fallback_mode
+    from graph.generator import _build_generate_prompt, _format_quiz_appendix, _record_context_budget, grounded_failure_message, has_textbook_evidence, scope_boundary_message, suggested_fallback_mode
+    from graph.conversation_context import prepare_conversation_context
     from graph.feedback_node import feedback_node, link_concepts_for_response
     from knowledge.summary_store import SummaryStore
     from utils.latex_sanitizer import sanitize_latex
@@ -199,6 +221,7 @@ def run_graph_stream(
         use_textbook_context=use_textbook_context,
         answer_mode=answer_mode,
         scope_reason=scope_reason,
+        continuity_context=continuity_context,
     )
 
     # ── Step 0: 本地意图分类 ──
@@ -255,7 +278,11 @@ def run_graph_stream(
     }
 
     # ── Chapter subgraph (条件) ──
-    if state.get("use_textbook_context", True) and intent in ("teach", "summarize"):
+    if (
+        state.get("use_textbook_context", True)
+        and intent in ("teach", "summarize")
+        and has_textbook_evidence(state)
+    ):
         # 获取内容 + 启动后台任务
         content, chapter, book_name_sub, executor, futures = prepare_chapter_subgraph(state)
 
@@ -274,9 +301,20 @@ def run_graph_stream(
 
             # 流式生成 teach 内容
             llm = get_llm()
+            conversation_text, _conversation_pack = prepare_conversation_context(state)
             teach_prompt = TEACH_PROMPT.format(
                 chapter=chapter,
                 content=content[:6000],
+                conversation_context=conversation_text,
+            )
+            _record_context_budget(
+                state,
+                teach_prompt,
+                assembly_mode="teach",
+                # The current TEACH_PROMPT receives chapter content, not the
+                # raw user query; keep the telemetry faithful to that input.
+                query_text=str(state.get("user_input") or ""),
+                teaching_text=content[:6000],
             )
             buffer = ""
             tf = ThinkingFilter()
@@ -294,6 +332,11 @@ def run_graph_stream(
             # 清洗 LaTeX 定界符，避免前端 KaTeX 报红。流式 chunk 已经发出，
             # 若清洗结果不同，需要发 replace 事件让前端用最终全文替换。
             sanitized_teaching = sanitize_latex(buffer)
+            sanitized_teaching, citation_trace = sanitize_citation_protocol(
+                sanitized_teaching,
+                state.get("evidence_sources") or [],
+            )
+            state["citation_trace"] = citation_trace
             if sanitized_teaching != buffer:
                 yield {"stage": "generate", "chunk": sanitized_teaching, "replace": True, "done": False}
             state["teaching_content"] = sanitized_teaching
@@ -332,11 +375,17 @@ def run_graph_stream(
     else:
         if state.get("answer_mode") == "subject_mismatch":
             buffer = scope_boundary_message(state)
+            _record_context_budget(
+                state, "", assembly_mode="subject_mismatch_no_generation", query_text="",
+            )
             state["final_output"] = buffer
             yield {"stage": "generate", "chunk": buffer, "done": False}
             yield {"stage": "generate", "chunk": "", "done": True, "evidence_sources": []}
         elif state.get("use_textbook_context", True) and not has_textbook_evidence(state):
             buffer = grounded_failure_message(state)
+            _record_context_budget(
+                state, "", assembly_mode="grounded_refusal_no_generation", query_text="",
+            )
             state["suggested_answer_mode"] = suggested_fallback_mode(state)
             state["final_output"] = buffer
             yield {"stage": "generate", "chunk": buffer, "done": False, "suggested_answer_mode": state["suggested_answer_mode"]}
@@ -375,6 +424,7 @@ def run_graph_stream(
 
     # UI concept links are resolved locally. Learning-memory writes are
     # best-effort background work and must never delay or replace the answer.
+    state["conversation_context_seed"] = {}
     state["linked_concepts"] = link_concepts_for_response(state)
 
     def _record_feedback() -> None:

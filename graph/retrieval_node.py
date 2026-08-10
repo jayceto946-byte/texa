@@ -10,6 +10,7 @@ from config import PROGRESS_PATH
 from ingestion.lexical_index import expand_neighbors, search_book, tokenize
 from ingestion.reranker import cross_encoder_scores, reranker_status
 from graph.safe_retrieval import get_safe_kg, get_safe_vector_store
+from graph.retrieval_policy import decide_retrieval_action
 from utils.resource_groups import resolve_retrieval_resources
 
 INTENT_ROLE_PRIORITY: dict[str, list[str]] = {
@@ -109,6 +110,59 @@ def _retrieval_query_for_intent(query: str, intent: str) -> str:
     return f"{topic or query} 计算公式 变量 灵敏度 输出"
 
 
+def _hydrate_active_evidence(state: dict, default_book: str) -> tuple[list[dict], list[str]]:
+    """Restore prior evidence text by chunk id; never trust metadata as content."""
+    sources = [
+        item for item in state.get("active_evidence_sources") or []
+        if isinstance(item, dict) and item.get("chunk_id")
+    ][:12]
+    by_book: dict[str, list[dict]] = {}
+    for source in sources:
+        source_book = str(source.get("book_name") or default_book).strip()
+        if source_book:
+            by_book.setdefault(source_book, []).append(source)
+
+    restored: list[dict] = []
+    errors: list[str] = []
+    for source_book, book_sources in by_book.items():
+        ids = [str(item.get("chunk_id") or "") for item in book_sources]
+        try:
+            rows = expand_neighbors(source_book, ids, window=0)
+        except Exception as exc:
+            errors.append(f"continuity_index:{source_book}:{exc}")
+            continue
+        source_by_id = {str(item.get("chunk_id") or ""): item for item in book_sources}
+        for row in rows:
+            chunk_id = str(row.get("chunk_id") or "")
+            source = source_by_id.get(chunk_id, {})
+            item = dict(row)
+            item["text"] = str(item.get("text") or item.get("content") or "")
+            item["book_name"] = source_book
+            item["chapter"] = str(item.get("chapter") or source.get("chapter") or "")
+            item["section_title"] = str(item.get("section_title") or source.get("section_title") or "")
+            item["section_path"] = item.get("section_path") or source.get("section_path") or []
+            item["chunk_index"] = item.get("chunk_index", source.get("chunk_index", -1))
+            item["page_idx"] = item.get("page_idx", source.get("page_idx", -1))
+            item["source"] = "evidence_reuse"
+            item["is_direct_hit"] = True
+            item.setdefault("query_coverage", 1.0)
+            item.setdefault("score", 1.0)
+            if item["text"]:
+                restored.append(item)
+    restored_by_id = {str(item.get("chunk_id") or ""): item for item in restored}
+    ordered = [restored_by_id[chunk_id] for chunk_id in state.get("active_evidence_ids") or [] if chunk_id in restored_by_id]
+    return ordered, errors
+
+
+def _chapter_contents_from_evidence(items: list[dict]) -> dict[str, list[str]]:
+    result: dict[str, list[str]] = {}
+    for item in items:
+        text = str(item.get("text") or "").strip()
+        if text:
+            result.setdefault(str(item.get("chapter") or "未分章"), []).append(text)
+    return result
+
+
 def retrieve_node(state: dict) -> dict:
     target_chapters = state.get("target_chapters", [])
     user_input = state.get("user_input", "")
@@ -119,6 +173,7 @@ def retrieve_node(state: dict) -> dict:
     primary_book = str(primary_resource.get("book_name") or book_name)
     intent = state.get("intent", "qa")
     retrieval_query = _retrieval_query_for_intent(user_input, intent)
+    retrieval_action = decide_retrieval_action(state)
 
     if not state.get("use_textbook_context", True):
         return {
@@ -132,9 +187,45 @@ def retrieve_node(state: dict) -> dict:
             "evidence_support": {"status": "not_applicable", "reason": "textbook_context_disabled"},
             "retrieval_status": "ordinary_qa",
             "retrieval_error": "",
+            "retrieval_action": retrieval_action,
+            "retrieval_query": "",
+            "reused_evidence_ids": [],
+            "new_evidence_ids": [],
+            "dropped_evidence_ids": [],
         }
 
-    retrieval_errors: list[str] = []
+    continuity_items: list[dict] = []
+    continuity_errors: list[str] = []
+    if retrieval_action in {"reuse", "delta"}:
+        continuity_items, continuity_errors = _hydrate_active_evidence(state, primary_book)
+        if retrieval_action == "reuse" and continuity_items:
+            reused_ids = [str(item.get("chunk_id") or "") for item in continuity_items]
+            return {
+                "chapter_contents": _chapter_contents_from_evidence(continuity_items),
+                "retrieval_debug_items": continuity_items,
+                "concept_results": [],
+                "history_results": [],
+                "knowledge_graph_path": [],
+                "knowledge_graph_formulas": [],
+                "matched_concepts": [],
+                "evidence_items": continuity_items,
+                "evidence_support": {"status": "supported", "reason": "active_evidence_reused"},
+                "index_stats": {},
+                "retrieval_status": "reused",
+                "retrieval_error": "; ".join(continuity_errors),
+                "evidence_gate_applied": True,
+                "retrieval_action": "reuse",
+                "retrieval_query": "",
+                "reused_evidence_ids": reused_ids,
+                "new_evidence_ids": [],
+                "dropped_evidence_ids": [],
+            }
+        if not continuity_items:
+            # Honest fallback: no evidence text means no actual reuse occurred.
+            continuity_errors.append("continuity_evidence_unavailable")
+            retrieval_action = "full"
+
+    retrieval_errors: list[str] = list(continuity_errors)
     if state.get("retrieval_error"):
         retrieval_errors.append(str(state.get("retrieval_error")))
 
@@ -160,6 +251,11 @@ def retrieve_node(state: dict) -> dict:
                 "retrieval_status": "unavailable",
                 "retrieval_error": "book_index_empty",
                 "index_stats": index_stats,
+                "retrieval_action": retrieval_action,
+                "retrieval_query": retrieval_query,
+                "reused_evidence_ids": [],
+                "new_evidence_ids": [],
+                "dropped_evidence_ids": [],
             }
 
     precise_results, matched_concepts = _kg_precise_retrieval(kg, user_input, intent=intent)
@@ -261,6 +357,17 @@ def retrieve_node(state: dict) -> dict:
         )
         and (item.get("is_direct_hit") or float(item.get("query_coverage", 0)) >= 0.2)
     ]
+    if retrieval_action == "delta" and continuity_items:
+        seen_continuity = {str(item.get("chunk_id") or "") for item in continuity_items}
+        candidate_evidence = [
+            *continuity_items,
+            *(item for item in candidate_evidence if str(item.get("chunk_id") or "") not in seen_continuity),
+        ]
+        retrieval_debug_items = [
+            *continuity_items,
+            *(item for item in retrieval_debug_items if str(item.get("chunk_id") or "") not in seen_continuity),
+        ]
+
     evidence_support = _assess_evidence_support(
         user_input,
         candidate_evidence,
@@ -268,6 +375,14 @@ def retrieve_node(state: dict) -> dict:
         intent=intent,
     )
     evidence_items = candidate_evidence if evidence_support["status"] in {"supported", "partial"} else []
+    active_ids = {str(item.get("chunk_id") or "") for item in continuity_items}
+    included_ids = list(dict.fromkeys(
+        str(item.get("chunk_id") or "")
+        for item in evidence_items
+        if item.get("chunk_id")
+    ))
+    reused_evidence_ids = [chunk_id for chunk_id in included_ids if chunk_id in active_ids]
+    new_evidence_ids = [chunk_id for chunk_id in included_ids if chunk_id not in active_ids]
 
     return {
         "chapter_contents": chapter_contents,
@@ -283,6 +398,11 @@ def retrieve_node(state: dict) -> dict:
         "retrieval_status": "degraded" if retrieval_errors else "ok",
         "retrieval_error": "; ".join(dict.fromkeys(retrieval_errors)),
         "evidence_gate_applied": True,
+        "retrieval_action": retrieval_action,
+        "retrieval_query": "" if retrieval_action == "reuse" else retrieval_query,
+        "reused_evidence_ids": reused_evidence_ids,
+        "new_evidence_ids": new_evidence_ids,
+        "dropped_evidence_ids": [],
     }
 def _supports_query_literals(query: str, text: str) -> bool:
     """Require exact years, identifiers and Latin tokens when the query has them."""

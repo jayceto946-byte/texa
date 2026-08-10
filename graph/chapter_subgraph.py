@@ -6,6 +6,7 @@ Pipeline: 获取内容 → 【并行】提炼重点 / 出题 / 生成讲解+总�
 import json
 from concurrent.futures import ThreadPoolExecutor
 from config import get_llm
+from graph.conversation_context import prepare_conversation_context
 from graph.safe_retrieval import get_safe_vector_store
 from knowledge.summary_store import SummaryStore
 from utils.latex_sanitizer import sanitize_latex
@@ -31,7 +32,10 @@ TEACH_PROMPT = """请基于以下教材内容，讲解"{chapter}"。直接开始
 ## 教材内容
 {content}
 
+{conversation_context}
+
 ## 要求
+0. 教材证据以 [E1]、[E2]… 标识。每个来自教材的事实结论都必须在句末使用 [[cite:E1]] 引用真实证据编号；不得编造编号，也不得用模型记忆补足证据缺口。
 1. 概念定义请使用教材原文表述，如"单纯形法是指……"、"某某概念是……"
 2. 遇到学习者可能第一次接触、或本身比较抽象陌生的概念时，在正式定义后补一个简短的“直观例子”或“生活化类比”，用日常场景说明它具体怎么体现；例子只用于帮助理解，不能替代教材定义、适用条件、公式推导或例题解法。
 3. 以例题为主线展开讲解，逐步拆解解题过程，每步都要有具体步骤和说明；若例题题干不完整，必须如实说明，不得编造缺失的题干。
@@ -95,59 +99,31 @@ def _future_result_if_done(futures: dict, name: str, default=None):
         return default
 
 def prepare_chapter_subgraph(state: dict):
-    """准备章节教学内容：获取内容、启动后台任务。
+    """Prepare bounded teaching material from the retrieval EvidencePack.
 
     Returns:
         (content, chapter, book_name, executor, futures)
     """
-    target = state.get("target_chapters", [])
-    if not target:
-        return "（无内容）", "", "", None, {}
+    from graph.evidence_pack import build_evidence_pack
+    from graph.generator import has_textbook_evidence
 
-    chapter = target[0]
-    user_input = state.get("user_input", "")
+    if state.get("use_textbook_context", True) and not has_textbook_evidence(state):
+        return "（无内容）", "", str(state.get("book_name") or ""), None, {}
+
+    target = state.get("target_chapters", [])
+    chapter = str(target[0]) if target else ""
     intent = state.get("intent", "teach")
     book_name = state.get("book_name", "default")
-
-    vs, vector_error = get_safe_vector_store()
-    if vector_error:
-        return "（无内容）", chapter, book_name, None, {}
-    llm = get_llm()
-
-    # Step 1: 获取内容（向量检索，毫秒级）
-    docs = vs.search_chapter(chapter, user_input + " 重点 概念 定义", k=8, book_name=book_name)
-    if not docs:
-        docs = vs.search_chapter(chapter, "全部内容", k=10, book_name=book_name)
-
-    # 【模糊匹配 fallback】如果按章节名精确匹配不到（plan_node 可能返回了小节标题），
-    # 用全库语义搜索找最相关的章节
-    if not docs:
-        all_results = vs.search_all(user_input, k=5, top_n=1, book_name=book_name)
-        if all_results:
-            chapter = list(all_results.keys())[0]
-            docs = vs.search_chapter(chapter, user_input + " 重点 概念 定义", k=8, book_name=book_name)
-            if not docs:
-                docs = vs.search_chapter(chapter, "全部内容", k=10, book_name=book_name)
-
-    content = "\n\n".join(d.page_content for d in docs) if docs else "（无内容）"
-    if content == "（无内容）":
-        return content, chapter, book_name, None, {}
-
-    # Step 2: 尝试从缓存获取摘要
-    ss = SummaryStore(book_name)
-    cached = ss.get(chapter)
-
-    # Step 3: 启动后台并行任务（提取重点、出题）
-    executor = ThreadPoolExecutor(max_workers=2)
-    futures = {}
-
-    if not cached:
-        futures["keypoints"] = executor.submit(_extract_keypoints, content[:4000], llm)
-
-    if intent == "teach":
-        futures["quiz"] = executor.submit(_generate_quiz, chapter, content, llm)
-
-    return content, chapter, book_name, executor, futures
+    evidence_pack = build_evidence_pack(
+        state.get("evidence_items") or [],
+        state.get("chapter_contents") or {},
+        intent=intent,
+    )
+    state["evidence_sources"] = evidence_pack["items"]
+    content = str(evidence_pack.get("text") or "")
+    if not chapter and evidence_pack["items"]:
+        chapter = str(evidence_pack["items"][0].get("chapter") or "")
+    return content or "（无内容）", chapter, book_name, None, {}
 
 
 def chapter_subgraph_run(state: dict) -> dict:
@@ -169,9 +145,20 @@ def chapter_subgraph_run(state: dict) -> dict:
 
     # Step 4: 一次 LLM 调用生成讲解 + 总结
     if intent in ("teach", "summarize"):
+        conversation_text, _conversation_pack = prepare_conversation_context(state)
         teach_prompt = TEACH_PROMPT.format(
             chapter=chapter,
             content=content[:6000],
+            conversation_context=conversation_text,
+        )
+        from graph.generator import _record_context_budget
+
+        _record_context_budget(
+            state,
+            teach_prompt,
+            assembly_mode="teach",
+            query_text=str(state.get("user_input") or ""),
+            teaching_text=content[:6000],
         )
         resp = llm.invoke(teach_prompt)
         full_output = resp.content
@@ -205,4 +192,7 @@ def chapter_subgraph_run(state: dict) -> dict:
         "extracted_examples": [],
         "quiz_questions": quiz_questions,
         "chapter_summary": summary,
+        "conversation_context_seed": {},
+        "conversation_context_pack": state.get("conversation_context_pack") or {},
+        "context_budget": state.get("context_budget") or {},
     }

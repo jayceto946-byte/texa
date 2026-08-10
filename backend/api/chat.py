@@ -15,18 +15,177 @@ from backend.conversation_memory import (
     get_conversation,
     list_conversations,
     load_history,
+    load_turn_messages,
     resolve_conversation_id_for_scope,
     reclassify_conversation,
     rewrite_followup,
     split_turn_to_conversation,
+    update_message_evidence_support,
     update_message_linked_concepts,
 )
 from backend.schemas import ChatRequest, ConversationScopeRequest, ConversationSplitTurnRequest, SubjectRoutingFeedbackRequest
+from backend.services.session_context import build_resolution_trace
+from backend.services.evidence_continuity import build_evidence_continuity_context
+from backend.services.session_ledger import (
+    get_or_rebuild_session_ledger,
+    record_assistant_in_ledger,
+    save_resolution_to_ledger,
+    update_ledger_evidence_support,
+)
 from backend.services.subject_routing import record_subject_routing_feedback, suggest_subject_scope
 from backend.services.textbook_scope import decide_answer_scope
+from graph.conversation_context import (
+    assemble_conversation_context_pack,
+    build_conversation_context_seed,
+)
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
+
+
+def _resolve_request_question(
+    question: str,
+    history: list[dict],
+    conversation_id: str,
+    *,
+    book_name: str,
+    subject: str,
+) -> tuple[str, dict]:
+    try:
+        ledger = get_or_rebuild_session_ledger(conversation_id, history)
+        trace = build_resolution_trace(
+            question, history, initial_state=ledger.get("state") or {},
+        )
+        return str(trace.get("resolved_query") or question), trace
+    except Exception:
+        logger.exception("session ledger resolution failed; falling back to recent history")
+        rewritten = rewrite_followup(
+            question, history, book_name=book_name, subject=subject,
+        )
+        return rewritten, build_resolution_trace(question, history, rewritten)
+
+
+def _conversation_context_seed(
+    conversation_id: str,
+    history: list[dict],
+    resolution_trace: dict,
+) -> dict:
+    try:
+        referenced_ids = [
+            str(value) for value in resolution_trace.get("referenced_turn_ids") or []
+            if str(value).strip()
+        ]
+        recent_ids = {
+            str(item.get("turn_id") or "") for item in history if isinstance(item, dict)
+        }
+        missing_ids = [value for value in referenced_ids if value not in recent_ids]
+        supplemental = load_turn_messages(conversation_id, missing_ids, max_turns=2)
+        return build_conversation_context_seed(
+            history,
+            resolution_trace,
+            supplemental_history=supplemental,
+        )
+    except Exception:
+        # Context continuity is a best-effort enhancement. A damaged projection
+        # must not prevent the current question from reaching the graph.
+        logger.exception("failed to assemble conversation context seed")
+        return {}
+
+
+def _safe_save_resolution_ledger(
+    conversation_id: str,
+    resolution_trace: dict,
+    user_message: dict | None,
+) -> None:
+    try:
+        save_resolution_to_ledger(conversation_id, resolution_trace, user_message)
+    except Exception:
+        logger.exception("failed to persist session ledger resolution")
+
+
+def _safe_record_assistant_ledger(conversation_id: str, assistant_message: dict | None) -> None:
+    try:
+        record_assistant_in_ledger(conversation_id, assistant_message)
+    except Exception:
+        logger.exception("failed to persist assistant session ledger state")
+
+
+def _clarification_result(
+    resolution_trace: dict,
+    conversation_context_seed: dict | None = None,
+) -> dict:
+    message = str(resolution_trace.get("clarification_message") or "").strip()
+    conversation_pack = assemble_conversation_context_pack({
+        "intent": "clarification",
+        "conversation_context_seed": conversation_context_seed or {},
+        "retrieval_action": "none",
+    })
+    conversation_pack.pop("text", None)
+    return {
+        "final_output": message,
+        "intent": "clarification",
+        "target_chapters": [],
+        "linked_concepts": [],
+        "evidence_sources": [],
+        "evidence_items": [],
+        "retrieval_debug_items": [],
+        "evidence_support": {"status": "not_applicable", "reason": "clarification_required"},
+        "retrieval_status": "clarification",
+        "retrieval_error": "",
+        "retrieval_action": "none",
+        "retrieval_query": "",
+        "reused_evidence_ids": [],
+        "new_evidence_ids": [],
+        "dropped_evidence_ids": [],
+        "conversation_context_pack": conversation_pack,
+        "context_budget": {
+            "assembly_mode": "clarification_no_generation",
+            "budget_unit": "characters",
+            "prompt_chars": 0,
+            "conversation_context_budget_chars": int(conversation_pack.get("budget") or 0),
+            "conversation_context_chars": int(conversation_pack.get("char_count") or 0),
+            "session_state_chars": int(conversation_pack.get("state_chars") or 0),
+            "recent_turns_chars": int(conversation_pack.get("recent_turns_chars") or 0),
+            "conversation_turn_count": len(conversation_pack.get("turn_ids") or []),
+        },
+    }
+
+
+def _context_trace_payload(resolution_trace: dict, final_state: dict) -> dict:
+    support = final_state.get("evidence_support") or {}
+    reused_candidates = list(final_state.get("reused_evidence_ids") or [])
+    new_candidates = list(final_state.get("new_evidence_ids") or [])
+    candidate_ids = list(dict.fromkeys([*reused_candidates, *new_candidates]))
+    evidence_sources = final_state.get("evidence_sources")
+    if isinstance(evidence_sources, list):
+        included_ids = list(dict.fromkeys(
+            str(item.get("chunk_id") or "")
+            for item in evidence_sources
+            if isinstance(item, dict) and item.get("chunk_id")
+        ))
+    else:
+        included_ids = candidate_ids
+    reused_ids = [item for item in reused_candidates if item in included_ids]
+    new_ids = [item for item in new_candidates if item in included_ids]
+    dropped_ids = list(dict.fromkeys([
+        *(final_state.get("dropped_evidence_ids") or []),
+        *(item for item in candidate_ids if item not in included_ids),
+    ]))
+    return {
+        "resolution": resolution_trace,
+        "conversation_context": final_state.get("conversation_context_pack") or {},
+        "retrieval": {
+            "action": str(final_state.get("retrieval_action") or "none"),
+            "query": str(final_state.get("retrieval_query") or ""),
+            "reused_evidence_ids": reused_ids,
+            "new_evidence_ids": new_ids,
+            "dropped_evidence_ids": dropped_ids,
+            "support_status": str(support.get("status") or ""),
+            "status": str(final_state.get("retrieval_status") or ""),
+            "error": str(final_state.get("retrieval_error") or ""),
+        },
+        "context_budget": final_state.get("context_budget") or {},
+    }
 
 def _safe_subject_suggestion(question: str, subject: str, book_name: str) -> dict | None:
     try:
@@ -49,9 +208,19 @@ def conversations(subject: str = "", book_name: str = "", limit: int = 80):
 
 
 @router.get("/conversations/{conversation_id}")
-def conversation_detail(conversation_id: str):
+def conversation_detail(conversation_id: str, limit: int = 40, before_seq: int | None = None):
     conversation_id = ensure_conversation_id(conversation_id)
-    return {"success": True, "data": get_conversation(conversation_id)}
+    return {
+        "success": True,
+        "data": get_conversation(conversation_id, limit=limit, before_seq=before_seq),
+    }
+
+
+@router.get("/conversations/{conversation_id}/messages")
+def conversation_messages(conversation_id: str, limit: int = 40, before_seq: int | None = None):
+    conversation_id = ensure_conversation_id(conversation_id)
+    data = get_conversation(conversation_id, limit=limit, before_seq=before_seq)
+    return {"success": True, "data": {"messages": data["messages"], "page": data["page"]}}
 
 
 @router.patch("/conversations/{conversation_id}/scope")
@@ -125,7 +294,15 @@ def chat_stream(req: ChatRequest):
     conversation_id = resolve_conversation_id_for_scope(req.conversation_id, subject, book_name)
     turn_id = ensure_turn_id(req.turn_id)
     history = load_history(conversation_id)
-    rewritten_question = rewrite_followup(req.question, history, book_name=book_name, subject=subject)
+    rewritten_question, resolution_trace = _resolve_request_question(
+        req.question, history, conversation_id, book_name=book_name, subject=subject,
+    )
+    continuity_context = build_evidence_continuity_context(
+        history, resolution_trace, book_name=book_name, subject=subject,
+    )
+    continuity_context["conversation_context_seed"] = _conversation_context_seed(
+        conversation_id, history, resolution_trace,
+    )
     subject_suggestion = _safe_subject_suggestion(rewritten_question, subject, book_name)
     # Do not retrieve from a known-wrong textbook while the user decides
     # whether to move the turn or relabel the conversation.
@@ -159,10 +336,12 @@ def chat_stream(req: ChatRequest):
         assistant_persistence_error = ""
         assistant_sources: list = []
         assistant_message_id = ""
+        assistant_message: dict | None = None
         suggested_answer_mode = ""
+        disconnected = False
 
-        def persist_assistant() -> str:
-            nonlocal assistant_persisted, assistant_persistence_error, assistant_message_id
+        def persist_assistant(delivery_status: str = "complete") -> str:
+            nonlocal assistant_persisted, assistant_persistence_error, assistant_message_id, assistant_message
             if assistant_persisted:
                 return assistant_persistence_error
 
@@ -184,8 +363,12 @@ def chat_stream(req: ChatRequest):
                     answer_mode=answer_mode,
                     scope_reason=scope_reason,
                     suggested_answer_mode=suggested_answer_mode,
+                    delivery_status=delivery_status,
                 )
                 assistant_message_id = str((item or {}).get("id") or "")
+                assistant_message = item if isinstance(item, dict) else None
+                if delivery_status == "complete":
+                    _safe_record_assistant_ledger(conversation_id, assistant_message)
                 assistant_persisted = True
                 assistant_persistence_error = ""
             except Exception as exc:
@@ -228,11 +411,42 @@ def chat_stream(req: ChatRequest):
 
         graph_events = None
         try:
-            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'rewritten_question': rewritten_question if rewritten_question != req.question else '', 'use_textbook_context': use_textbook_context, 'scope_reason': scope_reason, 'answer_mode': answer_mode}, ensure_ascii=False)}\n\n"
-            append_message(conversation_id, "user", req.question, book_name=book_name, subject=subject, turn_id=turn_id)
+            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'rewritten_question': rewritten_question if rewritten_question != req.question else '', 'resolution_action': resolution_trace.get('resolution_action', 'continue'), 'use_textbook_context': use_textbook_context, 'scope_reason': scope_reason, 'answer_mode': answer_mode}, ensure_ascii=False)}\n\n"
+            user_message = append_message(
+                conversation_id, "user", req.question,
+                book_name=book_name, subject=subject, turn_id=turn_id,
+            )
+            _safe_save_resolution_ledger(conversation_id, resolution_trace, user_message)
             context_finished = time.perf_counter()
             timings["context"] = round((context_finished - started) * 1000, 2)
             last_milestone_at = context_finished
+            if resolution_trace.get("resolution_action") == "clarify":
+                final_state = _clarification_result(
+                    resolution_trace,
+                    continuity_context.get("conversation_context_seed"),
+                )
+                clarification = str(final_state.get("final_output") or "")
+                assistant_chunks.append(clarification)
+                generate_event = {"stage": "generate", "chunk": clarification, "done": False}
+                observe(generate_event)
+                generate_event.update({"conversation_id": conversation_id, "turn_id": turn_id})
+                yield f"data: {json.dumps(generate_event, ensure_ascii=False)}\n\n"
+                persist_assistant()
+                generate_done = {
+                    "stage": "generate", "chunk": "", "done": True,
+                    "evidence_sources": [], "conversation_id": conversation_id, "turn_id": turn_id,
+                }
+                observe(generate_done)
+                yield f"data: {json.dumps(generate_done, ensure_ascii=False)}\n\n"
+                done_event = {
+                    "stage": "done", "state": final_state, "enriched": False,
+                    "conversation_id": conversation_id, "turn_id": turn_id,
+                    "subject_suggestion": subject_suggestion,
+                    "answer_mode": answer_mode, "scope_reason": scope_reason,
+                }
+                observe(done_event)
+                yield f"data: {json.dumps(done_event, ensure_ascii=False)}\n\n"
+                return
             graph_events = run_graph_stream(
                 user_input=rewritten_question,
                 book_name=book_name,
@@ -242,6 +456,7 @@ def chat_stream(req: ChatRequest):
                 use_textbook_context=use_textbook_context,
                 answer_mode=answer_mode,
                 scope_reason=scope_reason,
+                continuity_context=continuity_context,
             )
             for event in graph_events:
                 if event.get("suggested_answer_mode"):
@@ -276,12 +491,27 @@ def chat_stream(req: ChatRequest):
                             update_message_linked_concepts(conversation_id, assistant_message_id, concepts[:12])
                         except Exception:
                             logger.exception("concepts persistence failed")
+                    support_status = str(
+                        ((event.get("state") or {}).get("evidence_support") or {}).get("status") or ""
+                    )
+                    if support_status and assistant_message_id:
+                        try:
+                            update_message_evidence_support(
+                                conversation_id, assistant_message_id, support_status,
+                            )
+                            update_ledger_evidence_support(conversation_id, support_status)
+                        except Exception:
+                            logger.exception("evidence support persistence failed")
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
         except GeneratorExit:
+            disconnected = True
+            last_stage = "disconnected"
+            persist_assistant("partial")
             logger.info("chat stream disconnected", extra={"request_id": request_id})
             raise
         except Exception as exc:
             logger.exception("chat stream failed", extra={"request_id": request_id})
+            persist_assistant("error")
             event = {"stage": "error", "message": str(exc), "done": True, "conversation_id": conversation_id, "turn_id": turn_id}
             observe(event)
             yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
@@ -299,9 +529,11 @@ def chat_stream(req: ChatRequest):
                     "request_id": request_id, "conversation_id": conversation_id,
                     "book_name": book_name, "question": req.question, "intent": intent,
                     "answer_mode": answer_mode, "scope_reason": scope_reason,
-                    "fast_path": fast_path, "status": "error" if last_stage == "error" else "done",
+                    "fast_path": fast_path,
+                    "status": "disconnected" if disconnected else ("error" if last_stage == "error" else "done"),
                     "ttft_ms": ttft_ms, "total_ms": round((now - started) * 1000, 2),
                     "timings": timings, "evidence": final_state.get("retrieval_debug_items", []),
+                    "context": _context_trace_payload(resolution_trace, final_state),
                     "error": final_state.get("error", ""),
                 })
             except Exception:
@@ -313,13 +545,24 @@ def chat_stream(req: ChatRequest):
 @router.post("/ask")
 def chat_ask(req: ChatRequest):
     from graph.main_graph import run_graph
+    from backend.rag_trace import new_request_id, save_trace
 
+    request_id = new_request_id()
+    started = time.perf_counter()
     book_name = (req.book_name or "").strip()
     subject = (req.subject or "").strip()
     conversation_id = resolve_conversation_id_for_scope(req.conversation_id, subject, book_name)
     turn_id = ensure_turn_id(req.turn_id)
     history = load_history(conversation_id)
-    rewritten_question = rewrite_followup(req.question, history, book_name=book_name, subject=subject)
+    rewritten_question, resolution_trace = _resolve_request_question(
+        req.question, history, conversation_id, book_name=book_name, subject=subject,
+    )
+    continuity_context = build_evidence_continuity_context(
+        history, resolution_trace, book_name=book_name, subject=subject,
+    )
+    continuity_context["conversation_context_seed"] = _conversation_context_seed(
+        conversation_id, history, resolution_trace,
+    )
     subject_suggestion = _safe_subject_suggestion(rewritten_question, subject, book_name)
     scope_decision = decide_answer_scope(
         req.question,
@@ -332,21 +575,32 @@ def chat_ask(req: ChatRequest):
     use_textbook_context = scope_decision.use_textbook_context
     scope_reason = scope_decision.reason
     answer_mode = scope_decision.answer_mode
-    append_message(conversation_id, "user", req.question, book_name=book_name, subject=subject, turn_id=turn_id)
-
-    result = run_graph(
-        user_input=rewritten_question,
-        book_name=book_name,
-        subject=subject,
-        conversation_id=conversation_id,
-        target_chapters=req.target_chapters or [],
-        use_textbook_context=use_textbook_context,
-        answer_mode=answer_mode,
-        scope_reason=scope_reason,
+    user_message = append_message(
+        conversation_id, "user", req.question,
+        book_name=book_name, subject=subject, turn_id=turn_id,
     )
+    _safe_save_resolution_ledger(conversation_id, resolution_trace, user_message)
+
+    if resolution_trace.get("resolution_action") == "clarify":
+        result = _clarification_result(
+            resolution_trace,
+            continuity_context.get("conversation_context_seed"),
+        )
+    else:
+        result = run_graph(
+            user_input=rewritten_question,
+            book_name=book_name,
+            subject=subject,
+            conversation_id=conversation_id,
+            target_chapters=req.target_chapters or [],
+            use_textbook_context=use_textbook_context,
+            answer_mode=answer_mode,
+            scope_reason=scope_reason,
+            continuity_context=continuity_context,
+        )
     content = result.get("final_output", "")
     if content.strip():
-        append_message(
+        assistant_message = append_message(
             conversation_id,
             "assistant",
             content,
@@ -358,9 +612,32 @@ def chat_ask(req: ChatRequest):
             answer_mode=answer_mode,
             scope_reason=scope_reason,
             suggested_answer_mode=str(result.get("suggested_answer_mode") or ""),
+            evidence_support_status=str((result.get("evidence_support") or {}).get("status") or ""),
         )
+        _safe_record_assistant_ledger(conversation_id, assistant_message)
+
+    try:
+        save_trace({
+            "request_id": request_id,
+            "conversation_id": conversation_id,
+            "book_name": book_name,
+            "question": req.question,
+            "intent": result.get("intent", ""),
+            "answer_mode": answer_mode,
+            "scope_reason": scope_reason,
+            "fast_path": False,
+            "status": "done",
+            "total_ms": round((time.perf_counter() - started) * 1000, 2),
+            "timings": {"total": round((time.perf_counter() - started) * 1000, 2)},
+            "evidence": result.get("retrieval_debug_items", []),
+            "context": _context_trace_payload(resolution_trace, result),
+            "error": result.get("error", ""),
+        })
+    except Exception:
+        logger.exception("failed to persist non-streaming Context Trace", extra={"request_id": request_id})
 
     return {
+        "request_id": request_id,
         "content": content,
         "intent": result.get("intent", ""),
         "chapters": result.get("target_chapters", []),
@@ -374,5 +651,6 @@ def chat_ask(req: ChatRequest):
         "answer_mode": answer_mode,
         "suggested_answer_mode": str(result.get("suggested_answer_mode") or ""),
         "rewritten_question": rewritten_question if rewritten_question != req.question else "",
+        "resolution_action": str(resolution_trace.get("resolution_action") or "continue"),
         "chapter_contents": {k: [d[:200] for d in v[:3]] for k, v in result.get("chapter_contents", {}).items()},
     }

@@ -1,5 +1,6 @@
 """综合生成 Agent — 信息整合 + 推理生成 + 格式化输出"""
 from config import get_llm
+from graph.conversation_context import prepare_conversation_context
 from graph.evidence_pack import build_evidence_pack
 from utils.latex_sanitizer import sanitize_latex
 from utils.citation_protocol import sanitize_citation_protocol
@@ -22,6 +23,8 @@ GENERATE_PROMPT = """请基于以下信息回答用户问题。直接开始，�
 
 ## 用户意图：{intent}
 ## 用户问题：{user_input}
+
+{conversation_context}
 
 ## Selected textbook evidence
 {evidence_content}
@@ -51,6 +54,8 @@ Current subject: {subject}
 User intent: {intent}
 User question: {user_input}
 
+{conversation_context}
+
 Recent study memory:
 {history_results}
 
@@ -67,6 +72,8 @@ Requirements:
 GLOBAL_GENERAL_QA_PROMPT = """You are a postgraduate-study assistant answering in Chinese with general model knowledge.
 User intent: {intent}
 User question: {user_input}
+
+{conversation_context}
 
 Recent study memory:
 {history_results}
@@ -131,6 +138,50 @@ def scope_boundary_message(state: dict) -> str:
     return f"当前本地资料无法确认这个问题属于“{current_subject}”。为避免把可能的跨学科内容混入当前学习记录，本轮暂不直接作答；如需继续，可以选择“跨学科通用回答”。"
 
 
+def _record_context_budget(
+    state: dict,
+    prompt: str,
+    *,
+    assembly_mode: str,
+    query_text: str,
+    history_text: str = "",
+    teaching_text: str = "",
+    evidence_pack: dict | None = None,
+) -> str:
+    """Record bounded size telemetry without retaining prompt or evidence text."""
+    pack = evidence_pack or {}
+    conversation_pack = state.get("conversation_context_pack")
+    conversation_pack = conversation_pack if isinstance(conversation_pack, dict) else {}
+    evidence_chars = int(pack.get("char_count") or 0)
+    conversation_chars = int(conversation_pack.get("char_count") or 0)
+    component_chars = (
+        len(query_text) + len(history_text) + len(teaching_text)
+        + evidence_chars + conversation_chars
+    )
+    state["context_budget"] = {
+        "budget_unit": "chars",
+        "assembly_mode": assembly_mode,
+        "assembled_prompt_chars": len(prompt),
+        "query_chars": len(query_text),
+        "study_history_chars": len(history_text),
+        "teaching_chars": len(teaching_text),
+        "evidence_budget_chars": int(pack.get("budget") or 0),
+        "evidence_used_chars": evidence_chars,
+        "evidence_candidate_count": int(pack.get("candidate_count") or 0),
+        "evidence_included_count": len(pack.get("items") or []),
+        "evidence_dropped_count": int(pack.get("dropped_count") or 0),
+        "conversation_context_budget_chars": int(conversation_pack.get("budget") or 0),
+        "conversation_context_chars": conversation_chars,
+        "session_state_chars": int(conversation_pack.get("state_chars") or 0),
+        "recent_turns_chars": int(conversation_pack.get("recent_turns_chars") or 0),
+        "conversation_turn_count": len(conversation_pack.get("turn_ids") or []),
+        "conversation_artifact_count": len(conversation_pack.get("artifact_targets") or []),
+        "scaffold_chars": max(0, len(prompt) - component_chars),
+        "planner_prompt_chars": int((state.get("planner_trace") or {}).get("prompt_chars") or 0),
+    }
+    return prompt
+
+
 def _build_generate_prompt(state: dict) -> str:
     intent = state.get("intent", "qa")
     user_input = state.get("user_input", "")
@@ -159,11 +210,25 @@ def _build_generate_prompt(state: dict) -> str:
     if (state.get("evidence_support") or {}).get("status") == "partial":
         output_instruction += " The textbook evidence supports only part of the question. State that limitation explicitly and answer only the supported part."
     if mode == "subject_mismatch":
-        return scope_boundary_message(state)
+        prompt = scope_boundary_message(state)
+        return _record_context_budget(
+            state, prompt, assembly_mode=mode, query_text=user_input,
+            history_text=history_text,
+        )
     if mode == "global_general":
-        return GLOBAL_GENERAL_QA_PROMPT.format(intent=intent, user_input=user_input, history_results=history_text or "(none)", output_instruction=output_instruction)
+        conversation_text, _pack = prepare_conversation_context(state)
+        prompt = GLOBAL_GENERAL_QA_PROMPT.format(intent=intent, user_input=user_input, conversation_context=conversation_text, history_results=history_text or "(none)", output_instruction=output_instruction)
+        return _record_context_budget(
+            state, prompt, assembly_mode=mode, query_text=user_input,
+            history_text=history_text,
+        )
     if mode == "subject_general" or not state.get("use_textbook_context", True):
-        return SUBJECT_GENERAL_QA_PROMPT.format(subject=state.get("subject") or "unspecified", intent=intent, user_input=user_input, history_results=history_text or "(none)", output_instruction=output_instruction)
+        conversation_text, _pack = prepare_conversation_context(state)
+        prompt = SUBJECT_GENERAL_QA_PROMPT.format(subject=state.get("subject") or "unspecified", intent=intent, user_input=user_input, conversation_context=conversation_text, history_results=history_text or "(none)", output_instruction=output_instruction)
+        return _record_context_budget(
+            state, prompt, assembly_mode=mode, query_text=user_input,
+            history_text=history_text,
+        )
     evidence_pack = build_evidence_pack(
         state.get("evidence_items") or [],
         state.get("chapter_contents") or {},
@@ -171,17 +236,30 @@ def _build_generate_prompt(state: dict) -> str:
     )
     state["evidence_sources"] = evidence_pack["items"]
     evidence_text = evidence_pack["text"]
+    conversation_text, _conversation_pack = prepare_conversation_context(
+        state, evidence_pack,
+    )
     example_check = _EXAMPLE_CHECK_PROMPT if _has_example_marker(evidence_text) else (
         "\u82e5\u68c0\u7d22\u5185\u5bb9\u7f3a\u5c11\u5b8c\u6574\u9898\u5e72\uff0c\u5fc5\u987b\u660e\u786e\u8bf4\u660e\u9898\u5e72\u7f3a\u5931\uff0c\u4e0d\u80fd\u7f16\u9020\u6216\u5192\u5145\u6559\u6750\u539f\u9898\u3002"
         "\u975e\u4e8b\u5b9e\u80cc\u8bf5\u95ee\u9898\u53ef\u4ee5\u7ed9\u51fa[\u8865\u5145\u4f8b\u9898]\uff0c\u4f46\u53ea\u80fd\u4f7f\u7528\u5df2\u9009\u6559\u6750\u8bc1\u636e\u4e2d\u7684\u6982\u5ff5\u548c\u516c\u5f0f\uff1b"
         "\u4e8b\u5b9e\u80cc\u8bf5\u95ee\u9898\u4e0d\u5f97\u589e\u52a0\u8865\u5145\u4f8b\u9898\u3002"
     )
-    return GENERATE_PROMPT.format(
+    prompt = GENERATE_PROMPT.format(
         intent=intent, user_input=user_input,
+        conversation_context=conversation_text,
         evidence_content=evidence_text or "(no selected evidence)",
         history_results=history_text or "(none)",
         teaching_content=state.get("teaching_content") or "(none)", example_check=example_check,
         output_instruction=output_instruction,
+    )
+    return _record_context_budget(
+        state,
+        prompt,
+        assembly_mode=mode,
+        query_text=user_input,
+        history_text=history_text,
+        teaching_text=str(state.get("teaching_content") or ""),
+        evidence_pack=evidence_pack,
     )
 
 
@@ -207,14 +285,36 @@ def generate_node(state: dict) -> dict:
     output_type = state.get("output_type", "text")
     teaching_content = state.get("teaching_content", "")
     if _answer_mode(state) == "subject_mismatch":
-        return {"final_output": scope_boundary_message(state), "output_type": output_type}
+        _record_context_budget(
+            state, "", assembly_mode="subject_mismatch_no_generation", query_text="",
+        )
+        return {
+            "final_output": scope_boundary_message(state),
+            "output_type": output_type,
+            "context_budget": state["context_budget"],
+            "conversation_context_seed": {},
+            "conversation_context_pack": {},
+        }
     if state.get("use_textbook_context", True) and not has_textbook_evidence(state):
+        _record_context_budget(
+            state, "", assembly_mode="grounded_refusal_no_generation", query_text="",
+        )
         return {
             "final_output": grounded_failure_message(state),
             "output_type": output_type,
             "suggested_answer_mode": suggested_fallback_mode(state),
+            "context_budget": state["context_budget"],
+            "conversation_context_seed": {},
+            "conversation_context_pack": {},
         }
     if intent in ("teach", "summarize") and teaching_content:
+        if not state.get("context_budget"):
+            _record_context_budget(
+                state,
+                "",
+                assembly_mode="prebuilt_teaching_context_unobserved",
+                query_text="",
+            )
         final = teaching_content
         chapter_summary = state.get("chapter_summary", "")
         if chapter_summary and intent == "summarize":
@@ -231,4 +331,10 @@ def generate_node(state: dict) -> dict:
     final = sanitize_latex(strip_thinking(final))
     final, citation_trace = sanitize_citation_protocol(final, state.get("evidence_sources") or [])
     state["citation_trace"] = citation_trace
-    return {"final_output": final, "output_type": output_type}
+    return {
+        "final_output": final,
+        "output_type": output_type,
+        "context_budget": state.get("context_budget") or {},
+        "conversation_context_seed": {},
+        "conversation_context_pack": state.get("conversation_context_pack") or {},
+    }

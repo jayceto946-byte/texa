@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BookOpen, History, MessageSquarePlus, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { get } from '../api/client';
-import type { ChatMessage } from '../contexts/ChatContext';
+import type { ChatMessage, ConversationPage } from '../contexts/ChatContext';
 import ScopeSelector from './ScopeSelector';
+import { mapStoredConversationMessages } from '../utils/conversationMessages';
 import { buildTextbookScopeOptions, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
 
 type ConversationSummary = {
@@ -73,7 +74,7 @@ export default function ChatHistorySidebar({
   onSubjectChange: (value: string) => void;
   onBookChange: (value: string) => void;
   onNewConversation: () => void;
-  onLoadConversation: (payload: { id: string; messages: ChatMessage[]; subject: string; bookName: string }) => void;
+  onLoadConversation: (payload: { id: string; messages: ChatMessage[]; subject: string; bookName: string; page: ConversationPage | null }) => void;
 }) {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [books, setBooks] = useState<TextbookRecord[]>([]);
@@ -136,25 +137,18 @@ export default function ChatHistorySidebar({
   }, [query, conversationId, refreshKey, selectedScope]);
 
   const loadConversation = async (id: string) => {
-    const res = await get(`/chat/conversations/${encodeURIComponent(id)}`, 20000);
+    const res = await get(`/chat/conversations/${encodeURIComponent(id)}?limit=40`, 20000);
     if (!res?.success || !res.data) return;
-    const storedMessages = res.data.messages || [];
-    const messages = storedMessages.map((item: any, index: number) => ({
-      id: item.id || undefined,
-      turnId: item.turn_id || undefined,
-      role: item.role === 'assistant' ? 'assistant' : 'user',
-      content: item.content || '',
-      stage: item.role === 'assistant' ? 'done' : undefined,
-      sources: Array.isArray(item.sources) ? item.sources : undefined,
-      linkedConcepts: Array.isArray(item.linked_concepts) ? item.linked_concepts : undefined,
-      answerMode: item.answer_mode || undefined,
-      suggestedAnswerMode: item.suggested_answer_mode || undefined,
-      scopeReason: item.scope_reason || undefined,
-      originalQuestion: item.role === 'assistant' && storedMessages[index - 1]?.role === 'user' ? storedMessages[index - 1].content : undefined,
-    })) as ChatMessage[];
+    const messages = mapStoredConversationMessages(res.data.messages || []);
     const storedBookName = res.data.book_name || '';
     const logicalScope = scopeBooks.find((item) => scopeContainsBook(item, storedBookName));
-    onLoadConversation({ id: res.data.id, messages, subject: logicalScope?.subject || res.data.subject || '', bookName: storedBookName });
+    onLoadConversation({
+      id: res.data.id,
+      messages,
+      subject: logicalScope?.subject || res.data.subject || '',
+      bookName: storedBookName,
+      page: res.data.page || null,
+    });
   };
 
   if (!open) {

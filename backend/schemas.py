@@ -55,6 +55,7 @@ class ChatEvent(BaseModel):
     turn_id: Optional[str] = None
     subject_suggestion: Optional[dict] = None
     rewritten_question: Optional[str] = None
+    resolution_action: Optional[str] = None
     use_textbook_context: Optional[bool] = None
     scope_reason: Optional[str] = None
     answer_mode: Optional[str] = None

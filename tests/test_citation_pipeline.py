@@ -149,3 +149,17 @@ def test_update_message_linked_concepts_attaches_to_existing_message(monkeypatch
 
     # 不存在的 message_id -> False，不抛错
     assert memory.update_message_linked_concepts(conv_id, "missing", [{"name": "x"}]) is False
+
+
+def test_update_message_evidence_support_attaches_to_existing_message(monkeypatch, tmp_path):
+    monkeypatch.setattr(memory, "CONV_DIR", tmp_path)
+    conv_id = memory.ensure_conversation_id()
+    item = memory.append_message(
+        conv_id, "assistant", "正文内容", sources=[{"chunk_id": "chunk-1"}],
+    )
+
+    assert memory.update_message_evidence_support(conv_id, item["id"], "partial") is True
+
+    messages = memory.get_conversation(conv_id)["messages"]
+    assert messages[0]["evidence_support_status"] == "partial"
+    assert memory.update_message_evidence_support(conv_id, "missing", "supported") is False

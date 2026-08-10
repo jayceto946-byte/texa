@@ -21,6 +21,16 @@ class AgentState(TypedDict):
 
     # === 会话上下文 ===
     messages: Annotated[list[dict], operator.add]
+    active_evidence_sources: list[dict]
+    active_evidence_ids: list[str]
+    active_evidence_support: str
+    same_topic: bool
+    requires_new_facet: bool
+    previous_intent: str
+    previous_book_name: str
+    previous_subject: str
+    conversation_context_seed: dict
+    conversation_context_pack: dict
 
     # === Planner 输出 ===
     intent: str                 # qa | teach | summarize | quiz | plan | cross_chapter
@@ -45,6 +55,11 @@ class AgentState(TypedDict):
     linked_concepts: list[dict]  # KG 对齐后的本轮关键概念
     retrieval_status: str  # ok | degraded
     retrieval_error: str
+    retrieval_action: str  # none | reuse | delta | full
+    retrieval_query: str
+    reused_evidence_ids: list[str]
+    new_evidence_ids: list[str]
+    dropped_evidence_ids: list[str]
 
     # === 章节教学输出 ===
     teaching_content: str
@@ -56,6 +71,7 @@ class AgentState(TypedDict):
     # === 综合生成输出 ===
     final_output: str
     output_type: str            # text | quiz | plan | mindmap
+    context_budget: dict        # bounded generation-context telemetry
 
     # === 反馈 ===
     user_feedback: Optional[dict]

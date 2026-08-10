@@ -15,6 +15,7 @@ import type { MathEditRequest, MathExpression } from '../features/math-input/typ
 import VisualMathInputPopover from '../features/math-input/VisualMathInputPopover';
 import { useChat } from '../hooks/useChat';
 import type { ExerciseRecord } from '../types';
+import { mapStoredConversationMessages } from '../utils/conversationMessages';
 import { buildTextbookScopeOptions, findDefaultTextbookScope, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
 type ReportMode = 'daily' | 'weekly';
 type ActionMode = ReportMode | 'exercise';
@@ -75,8 +76,19 @@ const ChatPage: React.FC = () => {
   const [highlightDialogOpen, setHighlightDialogOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState<ActionMode | null>(null);
   const { messages, isLoading, sendMessage, stop } = useChat();
-  const { bookName, setBookName, subject, setSubject, conversationId, addMessage } = useChatContext();
+  const {
+    bookName,
+    setBookName,
+    subject,
+    setSubject,
+    conversationId,
+    addMessage,
+    historyPage,
+    prependConversationMessages,
+  } = useChatContext();
+  const [historyLoading, setHistoryLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const preserveHistoryScrollRef = useRef<{ height: number; top: number } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mathExpressionSequenceRef = useRef(0);
   const mathEditSequenceRef = useRef(0);
@@ -101,8 +113,42 @@ const ChatPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    const container = scrollRef.current;
+    if (!container) return;
+    const preserved = preserveHistoryScrollRef.current;
+    if (preserved) {
+      preserveHistoryScrollRef.current = null;
+      container.scrollTop = preserved.top + (container.scrollHeight - preserved.height);
+      return;
+    }
+    container.scrollTop = container.scrollHeight;
   }, [messages]);
+
+  const loadEarlierMessages = async () => {
+    const beforeSeq = historyPage?.next_before_seq;
+    if (!historyPage?.has_more || beforeSeq == null || historyLoading) return;
+    const container = scrollRef.current;
+    if (container) {
+      preserveHistoryScrollRef.current = {
+        height: container.scrollHeight,
+        top: container.scrollTop,
+      };
+    }
+    setHistoryLoading(true);
+    try {
+      const params = new URLSearchParams({ limit: '40', before_seq: String(beforeSeq) });
+      const res = await get(`/chat/conversations/${encodeURIComponent(conversationId)}/messages?${params.toString()}`, 20000);
+      if (!res?.success || !res.data) throw new Error(res?.message || '加载历史消息失败');
+      prependConversationMessages(
+        mapStoredConversationMessages(res.data.messages || []),
+        res.data.page,
+      );
+    } catch {
+      preserveHistoryScrollRef.current = null;
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   const persistLocalExchange = async (userContent: string, assistantContent: string) => {
     try {
@@ -381,6 +427,18 @@ const ChatPage: React.FC = () => {
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4 sm:px-5 sm:py-6">
           <div className="mx-auto max-w-5xl space-y-2">
+            {historyPage?.has_more && (
+              <div className="flex justify-center pb-2">
+                <button
+                  type="button"
+                  onClick={() => void loadEarlierMessages()}
+                  disabled={historyLoading}
+                  className="rounded-lg border border-border bg-bg-card px-3 py-1.5 type-caption text-text-secondary transition-colors hover:border-accent/50 hover:text-accent disabled:cursor-wait disabled:opacity-60"
+                >
+                  {historyLoading ? '加载中…' : `加载更早消息（共 ${historyPage.total} 条）`}
+                </button>
+              </div>
+            )}
             {messages.length === 0 && (
               <ChatHomePanel
                 bookName={bookName}

@@ -22,18 +22,27 @@ export interface ChatMessage {
   originalQuestion?: string;
 }
 
+export interface ConversationPage {
+  has_more: boolean;
+  next_before_seq?: number | null;
+  limit: number;
+  total: number;
+}
+
 interface ChatContextType {
   messages: ChatMessage[];
   isLoading: boolean;
   bookName: string;
   subject: string;
   conversationId: string;
+  historyPage: ConversationPage | null;
   setBookName: (name: string) => void;
   setSubject: (subject: string) => void;
   setConversationId: (id: string) => void;
   setActiveChatAbort: (abort: (() => void) | null) => void;
   cancelActiveChat: () => void;
-  loadConversation: (id: string, messages: ChatMessage[], meta?: { subject?: string; bookName?: string }) => void;
+  loadConversation: (id: string, messages: ChatMessage[], meta?: { subject?: string; bookName?: string; page?: ConversationPage | null }) => void;
+  prependConversationMessages: (messages: ChatMessage[], page: ConversationPage) => void;
   newConversation: () => void;
   addMessage: (msg: ChatMessage) => void;
   updateLastMessage: (updater: (msg: ChatMessage) => ChatMessage) => void;
@@ -53,6 +62,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [bookName, setBookName] = useState('');
   const [subject, setSubject] = useState(() => window.localStorage.getItem('kaoyan_subject') || '数学');
   const [conversationId, setConversationId] = useState(() => window.localStorage.getItem('kaoyan_conversation_id') || createConversationId());
+  const [historyPage, setHistoryPage] = useState<ConversationPage | null>(null);
   const activeChatAbortRef = useRef<(() => void) | null>(null);
 
   const setActiveChatAbort = useCallback((abort: (() => void) | null) => {
@@ -75,6 +85,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     persistConversationId(createConversationId());
     setIsLoading(false);
     setMessages([]);
+    setHistoryPage(null);
   }, [cancelActiveChat, persistConversationId]);
 
   const persistSubject = useCallback((next: string) => {
@@ -96,19 +107,30 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     persistConversationId(next);
     setIsLoading(false);
     setMessages([]);
+    setHistoryPage(null);
   }, [cancelActiveChat, persistConversationId]);
 
-  const loadConversation = useCallback((id: string, nextMessages: ChatMessage[], meta: { subject?: string; bookName?: string } = {}) => {
+  const loadConversation = useCallback((id: string, nextMessages: ChatMessage[], meta: { subject?: string; bookName?: string; page?: ConversationPage | null } = {}) => {
     cancelActiveChat();
     persistConversationId(id);
     setIsLoading(false);
     setMessages(nextMessages);
+    setHistoryPage(meta.page || null);
     if (meta.subject !== undefined) {
       setSubject(meta.subject);
       window.localStorage.setItem('kaoyan_subject', meta.subject);
     }
     if (meta.bookName !== undefined) setBookName(meta.bookName);
   }, [cancelActiveChat, persistConversationId]);
+
+  const prependConversationMessages = useCallback((olderMessages: ChatMessage[], page: ConversationPage) => {
+    setMessages((current) => {
+      const existingIds = new Set(current.map((item) => item.id).filter(Boolean));
+      const uniqueOlder = olderMessages.filter((item) => !item.id || !existingIds.has(item.id));
+      return [...uniqueOlder, ...current];
+    });
+    setHistoryPage(page);
+  }, []);
 
   const addMessage = useCallback((msg: ChatMessage) => {
     setMessages((prev) => [...prev, msg]);
@@ -127,6 +149,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     cancelActiveChat();
     setIsLoading(false);
     setMessages([]);
+    setHistoryPage(null);
   }, [cancelActiveChat]);
 
   const value = useMemo(
@@ -136,19 +159,21 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       bookName,
       subject,
       conversationId,
+      historyPage,
       setBookName: persistBookName,
       setSubject: persistSubject,
       setConversationId: persistConversationId,
       setActiveChatAbort,
       cancelActiveChat,
       loadConversation,
+      prependConversationMessages,
       newConversation,
       addMessage,
       updateLastMessage,
       setLoading: setIsLoading,
       clearMessages,
     }),
-    [messages, isLoading, bookName, subject, conversationId, persistBookName, persistSubject, persistConversationId, setActiveChatAbort, cancelActiveChat, loadConversation, newConversation, addMessage, updateLastMessage, clearMessages]
+    [messages, isLoading, bookName, subject, conversationId, historyPage, persistBookName, persistSubject, persistConversationId, setActiveChatAbort, cancelActiveChat, loadConversation, prependConversationMessages, newConversation, addMessage, updateLastMessage, clearMessages]
   );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

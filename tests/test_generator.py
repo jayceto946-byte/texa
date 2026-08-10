@@ -43,6 +43,29 @@ def test_build_prompt_includes_multiple_docs():
     assert doc3 in prompt
 
 
+def test_build_prompt_records_bounded_context_budget_without_prompt_body():
+    state = {
+        "intent": "definition",
+        "user_input": "什么是梯度下降法？",
+        "chapter_contents": {"第四章": ["梯度下降法是一种迭代优化方法。"]},
+        "evidence_items": [],
+        "history_results": [],
+        "teaching_content": "",
+        "planner_trace": {"prompt_chars": 321},
+    }
+
+    prompt = _build_generate_prompt(state)
+    budget = state["context_budget"]
+
+    assert budget["budget_unit"] == "chars"
+    assert budget["assembly_mode"] == "textbook_grounded"
+    assert budget["assembled_prompt_chars"] == len(prompt)
+    assert budget["evidence_used_chars"] > 0
+    assert budget["evidence_included_count"] == 1
+    assert budget["planner_prompt_chars"] == 321
+    assert "prompt" not in budget
+
+
 def test_build_prompt_warns_about_incomplete_examples():
     """prompt 应提醒 LLM 不要基于不完整的例题题干编造。"""
     state = {
