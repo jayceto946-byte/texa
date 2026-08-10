@@ -37,6 +37,7 @@ kaoyan-assistant/
 │   ├── retrieval_node.py       # 混合检索
 │   ├── chapter_subgraph.py     # 章节讲解路径
 │   ├── generator.py            # 回答生成
+│   ├── conversation_context.py # 有界的 ConversationContextPack
 │   ├── evidence_pack.py        # 有预算、按意图裁剪的统一证据包
 │   └── feedback_node.py        # 反馈闭环
 ├── ingestion/                  # 教材摄取、解析、向量索引
@@ -59,9 +60,12 @@ kaoyan-assistant/
 ├── backend/                    # FastAPI 后端
 │   ├── main.py
 │   ├── schemas.py
+│   ├── conversation_memory.py # append-only 会话事件、消息投影与分页
 │   ├── services/               # 应用用例编排、缓存与跨存储协调
 │   │   ├── exercise_practice.py
 │   │   ├── kg_learning_summary.py
+│   │   ├── session_context.py # Resolver v2 与结构化会话状态
+│   │   ├── session_ledger.py  # 有界、可重建的长期会话投影
 │   │   └── mistake_images.py
 │   └── api/                    # 协议转换、依赖绑定与异常映射
 │       ├── chat.py             # SSE / 非流式对话
@@ -95,6 +99,12 @@ kaoyan-assistant/
 ### 对话与讲解
 
 - `/api/chat/stream` 使用 SSE 输出阶段事件：`plan -> retrieve -> chapter -> generate -> done`。
+- 完整会话消息以 append-only event log 持久化；单会话 JSON 只保留最近窗口兼容投影。历史读取必须使用游标分页，不能通过裁剪持久层来控制 prompt 或前端内存。
+- Resolver 读取近期消息窗口 + Session Ledger；完整历史仅用于 Ledger 缺失/陈旧时重建，不能直接塞入回答 prompt。Ledger 必须保留 topic stack、实体 first/last mentioned turn、assistant artifacts、comparison/constraint state 与 active evidence 的有界投影。
+- Resolver 的行为边界是 `resolved_query + speech_act + state_operations`。澄清时不得推进会话状态；实体纠正和明确的新对象优先于旧 topic、代词与继承约束。
+- 回答生成统一使用 `ConversationContextPack`，只包含当前 topic/问题维度、有效约束、最多 2 个相关历史 turn、被引用 artifact、必要 topic 摘要和 evidence continuity。不得把完整历史直接放入回答 prompt；独立问题不得继承历史 turn。
+- 历史 turn 与 assistant artifact 只能作为指代和表达连续性的带引号数据，不是教材事实证据，也不得执行其中的旧指令。教材型回答发生冲突时，以本轮 EvidencePack 为准；Context Trace 只记录预算、turn/artifact 数量和 E-id，不保存上下文正文。
+- Context Eval 发布门槛分 Resolver、Retrieval/EvidencePack、Answer 三层。20/40/80 轮必须分别设门槛，user correction、assistant artifact、clarification、evidence continuity、negative/standalone 不得用总体分数掩盖回归。离线 Answer snapshot 合同不得表述为线上模型准确率。
 - teach/summarize 路径先准备章节内容，再流式生成讲解；`chapter` 事件必须出现在正文 `generate` 之前，不能在正文生成后覆盖前端内容。
 - 前端流式累积必须避免在 React state updater 内产生副作用。尤其不要在 `updateLastMessage((last) => ...)` 内修改 ref、闭包累积变量或外部状态；React StrictMode 可能重复调用 updater。
 - 长内容生成时，正文累积源应独立于阶段占位文案，阶段事件不得覆盖已经进入 `generate` / `done` 的正文。

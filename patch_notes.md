@@ -1,3 +1,128 @@
+# 2026-08-09 - Read-only Agent 超时与可观测性修复
+
+- Read-only Agent 新增 50 秒总预算、8 秒单工具预算和 35 秒模型总结预算；Agent 专用 LLM 请求禁用自动重试，并以相同的请求超时约束底层客户端。超时工具只标记为局部不可用，模型总结超时则保留已读取证据并返回明确提示，不再无限占用前端请求。
+- 每个工具输出新增执行状态、耗时和超时预算；响应新增总耗时、逐工具 trace 与模型总结 trace。后端只记录 conversation id、工具名、成功数、总结状态和总耗时，不记录问题或证据正文；前端 Agent 卡片显示总耗时、逐工具耗时和总结超时/失败标记。
+- 前端 Agent 请求上限调整为 55 秒，普通回答降级设置 60 秒上限；发生 Agent 网络/协议失败时，阶段文案明确切换为“正在降级到普通回答”，不再保留误导性的工具读取状态。普通非流式回答也获得 130 秒有界超时。
+- “我今天复习什么”等复习任务精简为 `build_review_plan` 与 `get_weak_concepts`，不再重复调用到期错题、错题统计，也不再附加无关的教材与概念搜索。加入错题提案不会再因包含“错题”而同时触发复习计划。
+- 未修改数据库、向量索引、教材、错题或学习记录格式。验证：后端全量 390 passed；前端 Vitest 15 files / 70 tests passed；ESLint、TypeScript、Vite production build 与 `git diff --check` 通过。构建仅保留既有 MathLive 大 chunk 提示。
+
+# 2026-08-09 - 主聊天接入 Read-only Agent
+
+- 主聊天发送链路新增保守的学习任务路由：明确的复习计划、学习进度、组题练习和教材例题查找进入 Read-only Agent；概念解释、讲题、证明推导、普通追问和依赖历史对象的“把这道题加入错题本”继续走既有 SSE/RAG，避免误路由和错误写入提案。
+- Agent 请求复用 ChatContext 的全局 loading/abort 生命周期，支持停止；请求失败或没有选择到工具时自动降级到 `/api/chat/ask` 普通回答。Agent 成功回答通过 `/api/chat/log` 写入 append-only 会话历史，保存完成后才重新开放下一轮输入，避免紧邻追问读不到刚完成的 Agent turn。
+- `runReadOnlyAgent` 接入 AbortSignal；通用 fetch timeout 现在会合并外部取消与内部超时，避免传入 signal 后丢失超时保护。
+- Agent 卡片补齐教材例题、薄弱概念、习题筛选、最近进度和练习提案标签；展示成功工具、局部失败数量和待确认操作，并明确标记提案“尚未执行”，不提供虚假的确认按钮。
+- 新增确定性前端路由回归，覆盖 5 类正例、6 类普通 RAG 负例、无教材 scope 和四类阶段文案。验证：前端 15 files / 69 tests passed，ESLint、TypeScript 与 Vite production build 通过；后端 Agent 工具专项 9 passed，`git diff --check` 通过。构建仍只有既有 mathlive 大 chunk 提示。
+
+# 2026-08-09 - 首批学习 Agent 工具补全
+
+- 补齐并注册首批工具中的四个缺口：`find_textbook_examples`、`get_weak_concepts`、`search_exercises` 与 `get_recent_progress`。连同既有的教材/概念搜索、到期错题、错题统计和两个提案工具，用户指定的 10 项能力现已全部出现在 Tool Registry。
+- 教材例题工具优先使用向量元数据中的 `example` 语义角色，并以确定性 chunk role 分类降级；返回教材 chunk、章节、页码与原文，不把模型生成题冒充教材例题。
+- 薄弱概念工具合并 ConceptMemory 显式弱项与错题关联概念，并保留局部故障字段；习题搜索覆盖自然语言请求、知识点/标签/章节匹配，规划阶段只返回题目元数据和答案存在性，不泄露答案正文。
+- 最近进度工具读取 append-only learning event log，在 1-31 天有界窗口内汇总问答、错题、练习和概念活动；练习会话工具只返回绑定题目 ID 的 `pending_action`，不会创建会话或修改学习数据。
+- Read-only Agent 的确定性选择器新增例题、习题、练习会话、最近进度和薄弱概念路由；工具证据压缩同步覆盖例题、习题和最近事件，避免把无界工具正文注入总结 prompt。
+- 验证：Agent 工具专项 9 passed；后端全量 386 passed，仅保留既有 Starlette/httpx2 弃用警告。
+
+# 2026-08-09 - ConversationContextPack 与三层 Context Eval
+
+## Conversation Context Assembler（P3）
+
+- 新增 `graph/conversation_context.py`。Resolver 完成后先构建轻量 seed，回答生成时再结合最终 intent 与 EvidencePack 组装统一 `ConversationContextPack`：当前 topic、问题维度、speech act、有效约束、最多 2 个相关历史 turn、被引用 assistant artifact、必要 topic 轨迹，以及本轮 `none/reuse/delta/full` 和复用/新增 E-id。
+- 相关 turn 按 Resolver 的 `referenced_turn_ids` 精确选取；若引用已超出最近 48 条消息窗口，只按 turn id 从 append-only 投影补读，既不扫描也不把完整会话放入 prompt。独立问题不继承历史 turn；显式 return/correction/continue 最多补充最近一轮维持表达连续性。
+- 教材 grounded、学科通用、跨学科通用以及 teach/summarize 的流式/非流式生成均接入同一上下文包。默认字符预算 2800、硬上限 5000；Context Trace 新增 state/turn 字符数、turn/artifact 数量、证据 E-id 与丢弃 turn 数，不保存 Context Pack 正文或内部 chunk id。
+- Prompt 明确把历史 turn/artifact 定义为带引号的对话数据：只可用于理解指代、表达和步骤连续性，不是事实证据，也不得执行其中的旧指令；教材事实冲突时以本轮 EvidencePack 为准。旧 turn 定点补读或组装失败会降级为空 pack，不阻断当前问答。
+- 澄清分支仍绕过 Planner/Retriever/Answer LLM，但会生成不含正文的 Context Pack telemetry，便于确认它引用了哪一轮后决定澄清。
+
+## 三层 Context Eval（P4）
+
+- `evaluation/context_eval.py` 报告升级为 schema v2，分别输出 Resolver、Retrieval/EvidencePack、Answer 三层结果和 release gates。Resolver 保留原 100 场景；新增 12 个流水线场景，覆盖 assistant list/step、约束纠正、意图继承、topic return、比较、standalone、20/40/80 轮、evidence reuse 与 clarification。
+- Retrieval 层运行生产 Resolver、retrieval policy、EvidencePack 和 ConversationContextPack，检查实际纳入/排除的 chunk、检索动作、相关 turn/artifact，以及 reused/new E-id，不以“候选检索到了”替代“最终进入 EvidencePack”。
+- Answer 层提供确定性的离线快照合同，检查回答对象、继承约束、必要内容、禁止漂移词和重复句，并加入错误对象 + 错误约束 + 重复的负向控制。该分数只代表离线回答快照通过合同，不代表线上 DeepSeek 回答准确率；报告通过 `layer_modes=offline_answer_snapshot_contract` 明示边界，后续可把真实采集回答送入同一评分器。
+- 发布门槛：三层总体均至少 80%，Retrieval/Answer 至少各 10 例；user correction、assistant artifact、clarification、evidence reuse/delta、negative 与 standalone 必须 100%；20/40/80 轮分别至少 80%，任何单独长会话门槛失败都会阻止 strict 通过。
+- 为支持“再简要解释一下”类 Answer 连续性，Resolver 新增 `deterministic_rephrase`，显式恢复 topic 与上轮 intent 并输出 `keep_previous_intent`；同时修正长会话引用 turn 优先级，避免“概念1”被“概念19”的字符串包含关系误绑。
+
+## 验证
+
+- Context Eval strict：Resolver 100/100、Retrieval/EvidencePack 12/12、离线 Answer snapshot contract 12/12；全部总体、专项和 20/40/80 独立 release gates 通过。
+- P3/P4 专项回归：66 passed（仅 1 条既存 Starlette/httpx2 弃用警告）。
+- 后端全量：380 passed（同一条既存弃用警告）。Electron 共用前端：ESLint 通过、56 tests passed、TypeScript 与 Vite production build 通过；构建仅保留既有的 mathlive 大 chunk 提示。
+
+# 2026-08-09 - Append-only 会话历史、Session Ledger 与 Resolver v2
+
+## 会话历史与分页
+
+- 会话消息改为 SQLite append-only event log：`conversations/_conversation_events.db` 保存不可变事件，`conversation_messages` 作为可分页读取的当前投影。原有单会话 JSON 保留为最近 40 条消息的轻量兼容投影，不再承担完整历史存储；列表中的 `message_count` 来自完整投影。
+- 旧 JSON 会话在首次读取/追加时惰性导入一次，迁移使用 `conversation_imports` 防重复。迁移不会修改教材索引、ChromaDB、错题或学习记录；若旧 JSON 在本次升级前已经裁掉了更早消息，那部分历史没有数据来源，无法事后恢复。
+- 会话详情和独立消息接口支持 `limit/before_seq` 游标分页。前端首次只加载最近 40 条，顶部可继续加载更早消息并保持滚动位置，不再把完整会话一次送入 React state。
+- 更新概念标签、证据支持状态、会话重分类和 turn 拆分时，同时更新消息投影并追加对应事件；重分类/拆分会使派生 Ledger 失效并在下次请求重建，原始事件不删除。
+
+## Session Ledger
+
+- 新增 `backend/services/session_ledger.py`，为每个会话保存有界的结构化状态：topic stack、最近 100 个实体及 first/last mentioned turn、entity groups、assistant artifacts、constraints、comparison frame、intent 和 active evidence。
+- Resolver 请求只读取最近 48 条消息与 Ledger；Ledger 缺失或落后于最新消息时，才从完整事件投影重建。完整历史用于重建状态，不直接塞入 Planner/Answer prompt。
+- Ledger 使用原子 JSON 写入和按会话分片的重入锁，避免同一会话并发读改写造成文件损坏或静默丢更新。80 轮专项回归确认：近期窗口已经不含第一轮时，“回到第一个”仍能解析到首轮实体。
+
+## Resolver v2
+
+- Resolver trace 在 `resolved_query` 之外正式输出 `speech_act` 与 `state_operations`。当前稳定操作包括 `set_topic`、`return_to_topic`、`select_artifact`、`replace_constraint`、`correct_entity`、`keep_previous_intent`、`add_constraint` 和 `clarify`。
+- 已覆盖条件替换、实体纠正并继承上轮意图、显式返回旧话题、长序数引用、多实体/assistant artifact 引用和独立问题防错误继承。澄清请求不再推进 `state_after`，避免无法解析的指代污染当前主题。
+- Context Trace v2 对 `speech_act/state_operations` 做有界持久化；Context Eval 同时校验这两个字段，不再只检查字符串改写是否碰巧正确。
+
+## 验证
+
+- Context Eval strict：100/100；resolution、follow-up、references、clarification、speech act、state operations、state、retrieval action/query、scope change 和 standalone preservation 均为 100%。其中包含真实展开的 20/40/80 轮场景。
+- 后端全量：371 passed（仅 1 条既存 Starlette/httpx2 弃用警告）。前端：ESLint 通过、56 tests passed、TypeScript 与 Vite production build 通过。
+- 新增专项测试覆盖 261 条消息的完整读取与两页无重叠分页、旧 JSON 单次导入、append-only event 数量、80 轮 Ledger 回指、Resolver v2 条件替换和澄清状态不变。
+
+# 2026-08-09 - Assistant Artifact Index、主动澄清与 Evidence Continuity
+
+## Assistant Artifact Index
+
+- 新增有界、确定性的 assistant 输出索引。Resolver 会从最近回答中提取可被后续指向的列表项、步骤、例题/反例、公式、Markdown 标题、表格数据行、结论和命名方法；普通正文不进入索引，单条回答最多保留 32 个 artifact，会话状态最多保留 48 个。
+- 支持“第一个/第二道题/第二步/第一部分/第二行/前者/后者/这个式子/这个结论/它的条件”等引用，并在 Context Trace 中记录 `deterministic_assistant_artifact`、引用对象和 assistant turn id。
+- Artifact Index 从现有会话正文即时重建，不新增数据库、不改历史会话格式，也不把整段 assistant 回答写入 RAG Trace。
+
+## 主动澄清
+
+- Resolver 对缺少候选集合的序数、前者/后者及无锚点代词返回 `resolution_action=clarify`，保留用户原问题并生成简短澄清请求；不再把低置信度猜测送入教材检索。
+- SSE 与 `/api/chat/ask` 均有独立 clarification 路径：保存 user/assistant 消息，但完全绕过 Planner、Retriever 和回答 LLM；Context Trace 记录 `retrieval_action=none` 与 `clarification_no_generation`。
+
+## Evidence Continuity
+
+- 会话从上一条 assistant 消息读取 sources 与最终 `evidence_support_status` 快照，结合 topic、intent、教材/学科 scope 和是否请求新维度，选择 `none/reuse/delta/full`。
+- `reuse` 通过 chunk id 从本地教材词法索引恢复原始证据正文并跳过向量库/KG 初始化；无法恢复正文时如实降级为 `full`。`delta` 保留已恢复的旧证据，并运行检索补充新维度，最终分别记录真正进入 EvidencePack 的 reused/new/dropped ids。
+- 只允许紧邻的上一条 assistant 回答提供 active evidence；中间出现无来源回答、topic 改变、教材/学科切换或旧证据不可恢复时，不复活更早的 stale evidence。上一轮 support 为 `partial` 时，即使同一维度也强制走 `delta`。
+- 会话 JSON 新增可选的 `evidence_support_status` 消息字段，旧会话无需迁移；教材索引、ChromaDB、错题和学习记录均未修改。
+
+## 评测与验证
+
+- 100 场景 Context Eval 从初始 41/100 提升到 64/100：assistant artifact 16/16、clarification 3/3、evidence reuse 2/2、evidence delta 2/2、retrieval policy 10/10；core 7/7 与 negative 9/9 保持不变。剩余 36 个失败主要属于长程早期实体、用户纠正、条件替换和更复杂意图链。
+- 新增生产路径测试覆盖 artifact 解析、澄清绕过 Graph、SSE/非流式协议、reuse 不初始化向量检索、delta 合并旧/新证据、partial support 强制补检和 support 快照持久化。
+- 针对性回归 58 passed；后端全量 366 passed，仅有既存 Starlette/httpx2 弃用警告；`git diff --check` 通过。
+
+# 2026-08-09 - Context Trace v2 与多轮 Context Eval 基线
+
+## Context Trace v2
+
+- 会话 Resolver 在保持原改写结果不变的前提下，新增有界的解析观测：`raw_query / resolved_query`、规则来源、规则强度、引用实体与 turn、以及 `state_before / state_after`。规则强度明确标记为 `rule_strength`，不冒充统计校准后的概率。
+- Chat 的 SSE 与非流式路径统一写入 Context Trace；检索侧记录 `none/reuse/delta/full` 动作、实际 retrieval query、复用/新增/丢弃的 chunk id、支持状态与降级错误。该初始基线尚未实现 evidence reuse，因此当时教材问答如实记录 `full` 和空的 reused 集合。
+- Generation 记录最终组装上下文的字符预算，包括实际 prompt、query、教材证据、学习历史、教学内容、scaffold、EvidencePack 候选/纳入/丢弃数量和 Planner prompt 字符数。Trace 只存大小与标识，不保存 prompt 正文、回答或 thinking。
+- RAG trace SQLite schema 升级到 v2，新增非空 `context_json`（默认 `{}`）。迁移使用现有 `PRAGMA user_version` runner，旧记录原样保留并回读为空 context；写入改为显式列名，避免后续加列破坏历史兼容。
+
+## Educational Conversation Eval
+
+- `evaluation/context_eval.py` 与 JSONL 黄金集扩展为 100 个多轮场景：指代 16、序数 14、比较 12、assistant artifact 16、用户纠正 4、scope 8、retrieval policy 10；另外分别包含 4 个 20/40/80 轮场景。测试对各类最小覆盖数量设有 release guard，避免后续删用例虚增分数。
+- 长会话使用受限的 `history_spec=topic_sequence` 确定性展开为真实 user/assistant turns，报告保存展开后的 `history_turn_count`；不是把一个摘要假装成长会话。教材/学科切换会校验 scope change；检索场景校验 action 与实际 retrieval query。
+- 新增显式 `graph/retrieval_policy.py` 边界并接入生产 Retriever。初始策略严格等价于旧行为：禁用教材时 `none`，启用教材时 `full`；active-evidence 输入先用于定义后续 `reuse/delta` 黄金目标。
+- 报告提供 resolution/follow-up/reference/state/clarification/retrieval-action/retrieval-query/scope accuracy、standalone preservation、按 tag 分组和逐例失败详情；默认生成报告但不因已知缺口退出失败，`--strict` 可用于未来 CI release gate。
+- 100 场景扩展基线为 41/100（41%）：core 7/7、negative 9/9、no-retrieval 3/3；20/40/80 轮均为 2/4。assistant artifact 0/16、clarification 0/3、evidence reuse 0/2、evidence delta 0/2；这些均是未实现能力的真实红灯，不是本轮回归。retrieval action 为 77.8%，retrieval query 与 scope-change checks 均为 100%。
+
+## 影响与验证
+
+- 针对性回归：49 passed，覆盖 v1 -> v2 SQLite 迁移、trace 裁剪、SSE 主链路、状态前后快照、上下文预算、长会话展开、coverage guard、clarification 红灯和 retrieval policy 红灯。
+- 后端全量：356 passed；仅有既存 Starlette/httpx2 弃用警告。`git diff --check` 通过。
+- 未改变 Planner、Retriever、EvidencePack 排序或回答策略；未修改会话文件、教材索引、向量库、错题和学习记录。现有 RAG trace 数据不删除。
+
 # 2026-08-09 - Citation 协议收口与来源层级整理
 
 - 畸形引用根因：模型偶发输出全角/半角混用的 `［[cite:E7]］`；原前端只识别标准 ASCII `[[cite:E7]]`，因此协议文本会直接显示。会话抽查中对应 E1/E6/E7 的结构化来源均存在，问题不是多轮 metadata 丢失。
@@ -1659,3 +1784,55 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 用传感器短书真实索引重放：复杂推导题与三类传感器多维比较均由 `insufficient` 转为 `supported`；计算题进入 `calculation`；“前者”解析为压阻式传感器，“那后者呢”解析为同一谓词下的压电式传感器。
 - 后端全量 pytest 通过：340 tests passed；仅有既存 Starlette/httpx2 弃用警告。
 - 前端 ESLint、TypeScript、Vite 生产构建通过；Vitest 13 files / 49 tests passed。构建仅保留既有的 MathLive 大 chunk 提示。
+
+## 2026-08-09 - 发布闸门与关键正确性收口
+
+### 数据安全与桌面生命周期
+
+- 将备份恢复正式定义为非破坏性的“合并恢复”：备份内的核心根目录会被替换，备份中未包含的其他核心数据会保留；恢复结果记录 `restore_mode` 与 `preserved_unlisted`，API 和设置页使用一致文案。派生向量库与 MinerU 产物仍按原策略失效，以避免旧索引和恢复数据不匹配。
+- 打包后端改为显式 `uvicorn.Server`，提供受本地 API token 保护的优雅停机端点。Electron 退出时先请求取消 durable jobs、等待 Uvicorn 排空请求并退出，8 秒超时后才回退到强制终止；后端 lifespan 退出阶段释放向量库缓存引用。
+- 首次引导升级隐私确认版本，明确 LLM 会接收问题、必要会话上下文和选中教材证据，Kimi OCR 会接收所选图片；“稍后再看”不再永久跳过提示。产品页同步删除“完全不上传云端、不依赖网络”的错误承诺。
+
+### 发布合规
+
+- 新增 `scripts/check_release_content.py`。正式包若包含样例教材、派生索引、图片或模型，必须逐文件声明来源、许可证、可再分发状态和 SHA-256；未声明、许可缺失或哈希不一致即阻止构建。样例 PDF 默认不再自动复制，历史错误的默认数据路径已修正。
+- Windows release workflow 现在要求仓库存在 `LICENSE`、要求签名证书和密码，并在发布产物生成后验证安装器与主程序 Authenticode 签名。
+- 当前本地 `desktop/sample_data` 仍包含未登记授权的《优化设计》PDF及派生文件，因此内容闸门按设计失败；未删除这些本地文件，也未伪造授权。补齐内容清单或从发布输入中移除后方可正式构建。
+
+### RAG、会话与导入正确性
+
+- teach/summarize 的同步与流式路径统一使用 Retrieval 产出的 EvidencePack；证据支持为 `insufficient/unavailable` 时直接走教材拒答，不再通过章节二次检索绕过门禁。教学提示词使用 E-id 引用协议，流式最终正文也执行 citation 清洗。
+- SQLite 事件库成为会话权威存储，最近窗口 JSON 明确降级为可重建的兼容投影；JSON 写入失败不再让已提交消息或 split 操作向调用方误报失败。
+- 同一 `conversation_id + turn_id + role` 重试改为幂等；断开的 SSE 会持久化 `partial` assistant 消息，重试完成后原位升级为 `complete`，避免重复 turn 和刷新后完全丢失已生成正文。
+- KG 加载边界兼容当前 `content` 与旧 `text` chunk schema；`/books/import-local` 成功后将 PDF 从 staging 提升至正式教材目录，失败时执行索引、metadata、上传文件与正式 PDF 的补偿清理。
+- 周报兼容错题复习和习题练习当前写入的 `date` 字段，修复本周复习数与练习数长期为零或偏低的问题。
+
+### Validation
+
+- 新增备份合并语义、会话幂等、partial completion、JSON 故障注入、split 投影故障、EvidencePack 拒答、KG schema、本地教材归档补偿、周报日期、内容授权闸门和优雅停机回归测试。
+- 后端全量 pytest：403 passed；仅保留既有 Starlette/httpx2 弃用警告。
+- 前端 Vitest：15 files / 70 tests passed；ESLint、TypeScript 与 Vite production build 通过。构建仍保留既有 MathLive 801.47 kB 大 chunk 提示。
+- `node --check desktop/main.cjs` 与变更 Python 文件 AST 解析通过；`git diff --check` 无空白错误。
+
+## 2026-08-09 - 桌面运行链路可靠性收口
+
+### 动态端口、单实例与故障恢复
+
+- Electron 在未显式设置 `KAOYAN_BACKEND_URL` / `KAOYAN_BACKEND_PORT` 时，启动和恢复阶段会按当前绑定范围分配可用端口；实际 API base 随一次性桌面启动参数传给前端，远程采集地址、优雅停机、健康检查和导航白名单统一使用当前端口。显式端口/URL以及 `KAOYAN_SKIP_BACKEND=1` 仍保留原有开发覆盖语义。
+- 主进程取得单实例锁；重复启动只恢复、显示并聚焦已有窗口，不再并行拉起第二套后端和数据目录访问者。
+- 被主进程托管的后端意外退出后最多自动恢复 3 次，使用有界指数退避并在成功后刷新到新的动态端口。前端增加“启动中 / 恢复中 / 失败”状态条，恢复耗尽后提供手动重试和打开后端日志；切换局域网采集导致的计划内重启也会刷新 API base。
+- 新增可独立运行的桌面 runtime helper 与 Node 单测；CI 新增 desktop job，使用 `npm ci` 后执行 helper 测试及 Electron 脚本语法检查，打包文件显式包含 runtime helper。
+
+### 鉴权资源与依赖锁定
+
+- 教材 PDF、章节重点静态 HTML及其本地图片不再以裸 `/api` URL 交给 `iframe`、`img` 或新窗口。前端先通过带 `X-Kaoyan-Token` 的请求取得内容，再使用有生命周期清理的 blob URL；静态 HTML 内的本地 API 图片同样会先鉴权并改写，外部 URL 被拒绝进入本地鉴权请求，避免 token 泄漏。
+- PDF 页码 fragment 只在 blob URL 上拼接一次，修复原先重复 `#page` 导致的错误预览地址。应用内重点入口改为 SPA 内导航，避免 Electron 把相对入口当成外部浏览器链接。
+- `requirements.txt` 改为兼容入口，统一转到复用精确发布依赖的 `requirements-dev.txt`；pytest 固定到 `9.0.3`。新增依赖锁检查脚本，CI 与桌面发布均执行 exact-pin 检查和 fresh-env `pip check`；前端/桌面继续由 lockfile + `npm ci` 约束。PaddleOCR、Marker、MinerU 等冲突较多的可选栈明确保持在主锁之外。
+
+### Validation
+
+- 后端全量 pytest：403 passed；仅保留既有 Starlette/httpx2 弃用警告。
+- Desktop Node tests：2 passed；`main.cjs`、`preload.cjs`、`runtime.cjs` 语法检查通过。
+- Frontend Vitest：15 files / 70 tests passed；ESLint、TypeScript 与 Vite production build 通过。构建仅保留既有 MathLive 801.47 kB 大 chunk 提示。
+- Python dependency exact-pin 检查通过；`git diff --check` 通过。
+- 当前既有 `venv310` 仍混装了未纳入主锁的 PaddleOCR、Marker、Surya 等可选栈，`pip check` 会报告其 Pillow、protobuf、PyYAML、numpy、openai、websockets 与 fsspec 冲突。按数据/环境安全约束，本次未擅自重装或清理该环境；fresh CI/发布环境会执行并要求 `pip check` 通过。
