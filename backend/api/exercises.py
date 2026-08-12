@@ -38,6 +38,7 @@ from utils.latex_sanitizer import sanitize_latex
 from utils.resource_limits import MAX_EXERCISE_UPLOAD_BYTES, copy_stream_limited
 from utils.subject_catalog import normalize_subject_value
 from utils.thinking_filter import strip_thinking
+from backend.services.learning_state import resolve_book_identity
 
 router = APIRouter(prefix="/exercises", tags=["exercises"])
 UPLOAD_DIR = DATA_DIR / "uploads" / "exercises"
@@ -47,9 +48,12 @@ _answer_job_lock = threading.Lock()
 
 def _log_learning_event(event_type: str, *, book_name: str = "default", record: ExerciseRecord | None = None, source_type: str = "exercise", source_id: str = "", payload: dict | None = None) -> None:
     try:
+        identity = resolve_book_identity(book_name)
         get_learning_event_store().append(LearningEvent(
             event_type=event_type,
+            book_id=identity["book_id"],
             book_name=book_name,
+            chapter_id=str(record.chapter or "") if record else "",
             subject=record.subject if record else "",
             source_type=source_type,
             source_id=source_id or (record.id if record else ""),

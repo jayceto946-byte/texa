@@ -378,6 +378,8 @@ def append_message(
     suggested_answer_mode: str = "",
     evidence_support_status: str = "",
     delivery_status: str = "complete",
+    request_id: str = "",
+    context_versions: dict | None = None,
 ) -> dict:
     subject = normalize_subject_value(subject)
     now = time.strftime("%Y-%m-%dT%H:%M:%S")
@@ -406,6 +408,14 @@ def append_message(
             item["evidence_support_status"] = str(evidence_support_status)[:40]
         if delivery_status:
             item["delivery_status"] = str(delivery_status)[:20]
+        if request_id:
+            item["request_id"] = str(request_id)[:80]
+        if isinstance(context_versions, dict) and context_versions:
+            item["context_versions"] = {
+                str(key)[:60]: value
+                for key, value in context_versions.items()
+                if isinstance(value, (str, int, float, bool))
+            }
         with _connect_events() as conn:
             _ensure_event_projection(conn, conversation_id, payload)
             existing_row = conn.execute(
@@ -555,6 +565,49 @@ def update_message_evidence_support(
             conversation_id, message_id,
             updates={"evidence_support_status": status},
             event_type="message_evidence_support_updated",
+        )
+
+
+def get_message(conversation_id: str, message_id: str) -> dict | None:
+    """Read one projected message without scanning the full conversation."""
+    if not conversation_id or not message_id:
+        return None
+    payload = _read_payload(conversation_id)
+    with _connect_events() as conn:
+        _ensure_event_projection(conn, conversation_id, payload)
+        row = conn.execute(
+            "SELECT payload_json FROM conversation_messages "
+            "WHERE conversation_id = ? AND message_id = ?",
+            (conversation_id, message_id),
+        ).fetchone()
+    if not row:
+        return None
+    try:
+        item = json.loads(str(row["payload_json"]))
+    except (TypeError, json.JSONDecodeError):
+        return None
+    return item if isinstance(item, dict) else None
+
+
+def update_message_answer_feedback(
+    conversation_id: str,
+    message_id: str,
+    feedback: dict,
+) -> bool:
+    """Persist a bounded feedback snapshot for conversation history reloads."""
+    if not message_id or not isinstance(feedback, dict):
+        return False
+    snapshot = {
+        "rating": str(feedback.get("rating") or "")[:20],
+        "reasons": [str(value)[:60] for value in (feedback.get("reasons") or [])[:5]],
+        "updated_at": str(feedback.get("updated_at") or "")[:40],
+    }
+    with _conversation_lock(conversation_id):
+        return _update_projected_message(
+            conversation_id,
+            message_id,
+            updates={"answer_feedback": snapshot},
+            event_type="message_answer_feedback_updated",
         )
 
 

@@ -184,7 +184,7 @@ def extract_assistant_artifacts(
 
 
 def _ordinal_value(question: str) -> int:
-    match = re.search(r"第([一二三四五六七八九十\d]+)(?:个|道题|部分|行|步)", question)
+    match = re.search(r"第([一二三四五六七八九十\d]+)(?:个|点|道题|部分|行|步)", question)
     if not match:
         return 0
     raw = match.group(1)
@@ -260,7 +260,7 @@ def rewrite_artifact_reference(question: str, artifact: dict[str, Any]) -> str:
     elif "前者" in result or "后者" in result:
         result = result.replace("前者", target).replace("后者", target)
     else:
-        ordinal_pattern = r"第[一二三四五六七八九十\d]+(?:个公式|个|道题|部分|行|步)"
+        ordinal_pattern = r"第[一二三四五六七八九十\d]+(?:个公式|个|点|道题|部分|行|步)"
         suffix = ""
         if kind == "example" and "道题" in result:
             suffix = "这道题"

@@ -78,6 +78,7 @@ def _sanitize_context_trace(value: dict | None) -> dict:
     conversation = context.get("conversation_context") if isinstance(context.get("conversation_context"), dict) else {}
     retrieval = context.get("retrieval") if isinstance(context.get("retrieval"), dict) else {}
     budget = context.get("context_budget") if isinstance(context.get("context_budget"), dict) else {}
+    versions = context.get("versions") if isinstance(context.get("versions"), dict) else {}
     numeric_budget = {
         str(key)[:80]: value
         for key, value in budget.items()
@@ -108,6 +109,12 @@ def _sanitize_context_trace(value: dict | None) -> dict:
             "referenced_entity": str(resolution.get("referenced_entity") or "")[:200],
             "referenced_entities": _bounded_string_list(resolution.get("referenced_entities"), limit=12),
             "referenced_turn_ids": _bounded_string_list(resolution.get("referenced_turn_ids"), limit=12, item_chars=100),
+            "semantic_attempted": bool(
+                (resolution.get("semantic_resolver") or {}).get("attempted")
+            ) if isinstance(resolution.get("semantic_resolver"), dict) else False,
+            "semantic_error": str(
+                (resolution.get("semantic_resolver") or {}).get("error") or ""
+            )[:300] if isinstance(resolution.get("semantic_resolver"), dict) else "",
             "state_before": _bounded_state(resolution.get("state_before")),
             "state_after": _bounded_state(resolution.get("state_after")),
         },
@@ -139,6 +146,11 @@ def _sanitize_context_trace(value: dict | None) -> dict:
             "error": str(retrieval.get("error") or "")[:500],
         },
         "context_budget": numeric_budget,
+        "versions": {
+            str(key)[:60]: value
+            for key, value in versions.items()
+            if isinstance(value, (str, int, float, bool))
+        },
     }
 
 
@@ -185,3 +197,59 @@ def list_traces(limit: int = 50) -> list[dict]:
         item["context"] = json.loads(item.pop("context_json") or "{}")
         result.append(item)
     return result
+
+
+def get_trace_resolver_methods(request_ids: list[str]) -> dict[str, str]:
+    """Return bounded resolver methods for feedback correlation without trace bodies."""
+    ids = list(dict.fromkeys(
+        str(value or "").strip()[:100] for value in request_ids if str(value or "").strip()
+    ))[:500]
+    if not ids or not TRACE_DB_PATH.exists():
+        return {}
+    placeholders = ",".join("?" for _ in ids)
+    with _connect() as conn:
+        rows = conn.execute(
+            f"SELECT request_id, context_json FROM rag_traces WHERE request_id IN ({placeholders})",
+            ids,
+        ).fetchall()
+    result: dict[str, str] = {}
+    for request_id, context_json in rows:
+        try:
+            context = json.loads(context_json or "{}")
+            resolution = context.get("resolution") if isinstance(context, dict) else {}
+            method = str((resolution or {}).get("method") or "unknown")[:80]
+        except (TypeError, ValueError):
+            method = "unknown"
+        result[str(request_id)] = method
+    return result
+
+
+def resolver_method_runtime_stats(*, limit: int = 500) -> dict:
+    """Count runtime routing outcomes by method; no answer correctness is inferred."""
+    if not TRACE_DB_PATH.exists():
+        return {"metric_kind": "runtime_outcomes_not_accuracy", "methods": []}
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT context_json FROM rag_traces ORDER BY created_at DESC LIMIT ?",
+            (max(1, min(int(limit), 500)),),
+        ).fetchall()
+    buckets: dict[str, dict[str, object]] = {}
+    for (context_json,) in rows:
+        try:
+            context = json.loads(context_json or "{}")
+            resolution = context.get("resolution") if isinstance(context, dict) else {}
+            method = str((resolution or {}).get("method") or "unknown")[:80]
+            action = str((resolution or {}).get("resolution_action") or "continue")[:40]
+        except (TypeError, ValueError):
+            method, action = "unknown", "continue"
+        bucket = buckets.setdefault(method, {
+            "method": method, "request_count": 0, "clarification_count": 0,
+        })
+        bucket["request_count"] = int(bucket["request_count"]) + 1
+        if action == "clarify":
+            bucket["clarification_count"] = int(bucket["clarification_count"]) + 1
+    methods = sorted(buckets.values(), key=lambda item: (-int(item["request_count"]), str(item["method"])))
+    for bucket in methods:
+        count = int(bucket["request_count"])
+        bucket["clarification_rate"] = int(bucket["clarification_count"]) / count if count else 0.0
+    return {"metric_kind": "runtime_outcomes_not_accuracy", "methods": methods}

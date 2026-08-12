@@ -1,6 +1,7 @@
 """Hybrid retrieval node: KG exact hits, role-aware vector search, rerank, and debug metadata."""
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -143,6 +144,16 @@ def _hydrate_active_evidence(state: dict, default_book: str) -> tuple[list[dict]
             item["section_path"] = item.get("section_path") or source.get("section_path") or []
             item["chunk_index"] = item.get("chunk_index", source.get("chunk_index", -1))
             item["page_idx"] = item.get("page_idx", source.get("page_idx", -1))
+            actual_fingerprint = hashlib.sha256(
+                re.sub(r"\s+", " ", item["text"]).strip().encode("utf-8")
+            ).hexdigest()[:24]
+            expected_fingerprint = str(source.get("content_fingerprint") or "")
+            if expected_fingerprint and actual_fingerprint != expected_fingerprint:
+                errors.append(f"continuity_fingerprint:{source_book}:{chunk_id}")
+                continue
+            item["book_id"] = str(source.get("book_id") or "")
+            item["corpus_version"] = str(source.get("corpus_version") or "")
+            item["content_fingerprint"] = actual_fingerprint
             item["source"] = "evidence_reuse"
             item["is_direct_hit"] = True
             item.setdefault("query_coverage", 1.0)

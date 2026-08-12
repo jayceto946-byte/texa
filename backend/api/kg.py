@@ -532,6 +532,22 @@ def mark_concept_review(payload: dict, book_name: str = ""):
     try:
         from knowledge.concept_memory import ConceptMemory
         updated = ConceptMemory(memory_book).mark_reviewed(name, quality=quality, note=note)
+        try:
+            from backend.services.learning_state import resolve_book_identity
+            from memory.learning_events import LearningEvent, get_learning_event_store
+            identity = resolve_book_identity(memory_book)
+            get_learning_event_store().append(LearningEvent(
+                event_type="concept_reviewed",
+                book_id=identity["book_id"],
+                book_name=memory_book,
+                subject=str(payload.get("subject") or ""),
+                source_type="concept_review",
+                source_id=name,
+                concept_names=[name],
+                payload={"quality": quality, "note": note[:200]},
+            ))
+        except Exception as exc:
+            print(f"[LearningEvent] concept review event failed: {exc}", flush=True)
         _learning_summary_cache.clear()
         return {"success": True, "message": "已记录概念复习", "data": updated}
     except Exception as e:

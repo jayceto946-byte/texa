@@ -14,6 +14,7 @@ export function useChat() {
     subject,
     conversationId,
     setConversationId,
+    syncRecoveredScope,
     setActiveChatAbort,
     cancelActiveChat,
     addMessage,
@@ -28,6 +29,7 @@ export function useChat() {
   const answerModeRef = useRef<AnswerMode>('auto');
   const scopeReasonRef = useRef('');
   const suggestedAnswerModeRef = useRef<AnswerMode | undefined>(undefined);
+  const backendRequestIdRef = useRef('');
 
   const sendMessage = useCallback(
     (question: string, options: { answerMode?: AnswerMode } = {}) => {
@@ -43,6 +45,7 @@ export function useChat() {
       answerModeRef.current = options.answerMode || 'auto';
       scopeReasonRef.current = '';
       suggestedAnswerModeRef.current = undefined;
+      backendRequestIdRef.current = '';
 
       addMessage({ role: 'user', content: question, turnId });
       setLoading(true);
@@ -129,6 +132,7 @@ export function useChat() {
               if (requestId !== requestSequenceRef.current) return;
               setActiveChatAbort(null);
               if (result.conversation_id) setConversationId(result.conversation_id);
+              if (result.book_name || result.subject) syncRecoveredScope(result.book_name || '', result.subject || '');
               updateLastMessage((last) => last.role === 'assistant' ? {
                 ...last,
                 content: result.content,
@@ -137,6 +141,8 @@ export function useChat() {
                 sources: (result.sources || []).slice(0, 12),
                 sourceChapters: result.chapters || [],
                 turnId: result.turn_id || turnId,
+                id: result.message_id || last.id,
+                requestId: result.request_id || undefined,
                 subjectSuggestion: result.subject_suggestion,
                 answerMode: result.answer_mode,
                 suggestedAnswerMode: result.suggested_answer_mode,
@@ -167,6 +173,7 @@ export function useChat() {
             if (requestId !== requestSequenceRef.current) return;
             setActiveChatAbort(null);
             if (result.conversation_id) setConversationId(result.conversation_id);
+            if (result.book_name || result.subject) syncRecoveredScope(result.book_name || '', result.subject || '');
             updateLastMessage((last) => {
               if (last.role !== 'assistant') return last;
               return {
@@ -177,6 +184,8 @@ export function useChat() {
                 sources: (result.sources || []).slice(0, 12),
                 sourceChapters: result.chapters || [],
                 turnId: result.turn_id || turnId,
+                id: result.message_id || last.id,
+                requestId: result.request_id || undefined,
                 subjectSuggestion: result.subject_suggestion,
                 answerMode: result.answer_mode,
                 suggestedAnswerMode: result.suggested_answer_mode,
@@ -203,6 +212,8 @@ export function useChat() {
           if (requestId !== requestSequenceRef.current) return;
           if (event.conversation_id) setConversationId(event.conversation_id);
           if (event.stage === 'context') {
+            if (event.book_name || event.subject) syncRecoveredScope(event.book_name || '', event.subject || '');
+            backendRequestIdRef.current = event.request_id || backendRequestIdRef.current;
             answerModeRef.current = event.answer_mode || answerModeRef.current;
             scopeReasonRef.current = event.scope_reason || '';
             updateLastMessage((last) => last.role === 'assistant' ? {
@@ -271,6 +282,8 @@ export function useChat() {
                 next.suggestedAnswerMode = suggestedAnswerModeRef.current;
                 next.scopeReason = event.scope_reason || scopeReasonRef.current;
                 next.originalQuestion = question;
+                next.id = event.message_id || next.id;
+                next.requestId = event.request_id || backendRequestIdRef.current || next.requestId;
                 break;
               }
               case 'error':
@@ -294,7 +307,7 @@ export function useChat() {
         abortStream();
       });
     },
-    [bookName, subject, conversationId, isLoading, addMessage, updateLastMessage, setLoading, setConversationId, setActiveChatAbort, cancelActiveChat]
+    [bookName, subject, conversationId, isLoading, addMessage, updateLastMessage, setLoading, setConversationId, syncRecoveredScope, setActiveChatAbort, cancelActiveChat]
   );
 
   const stop = useCallback(() => {

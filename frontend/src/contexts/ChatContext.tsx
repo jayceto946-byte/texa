@@ -5,6 +5,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   id?: string;
   turnId?: string;
+  requestId?: string;
   content: string;
   stage?: string;
   sourceChapters?: string[];
@@ -20,6 +21,7 @@ export interface ChatMessage {
   suggestedAnswerMode?: AnswerMode;
   scopeReason?: string;
   originalQuestion?: string;
+  answerFeedback?: { rating: 'helpful' | 'unhelpful'; reasons?: string[]; updated_at?: string };
 }
 
 export interface ConversationPage {
@@ -39,6 +41,7 @@ interface ChatContextType {
   setBookName: (name: string) => void;
   setSubject: (subject: string) => void;
   setConversationId: (id: string) => void;
+  syncRecoveredScope: (bookName: string, subject: string) => void;
   setActiveChatAbort: (abort: (() => void) | null) => void;
   cancelActiveChat: () => void;
   loadConversation: (id: string, messages: ChatMessage[], meta?: { subject?: string; bookName?: string; page?: ConversationPage | null }) => void;
@@ -110,6 +113,14 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setHistoryPage(null);
   }, [cancelActiveChat, persistConversationId]);
 
+  const syncRecoveredScope = useCallback((nextBookName: string, nextSubject: string) => {
+    if (nextBookName) setBookName(nextBookName);
+    if (nextSubject) {
+      setSubject(nextSubject);
+      window.localStorage.setItem('kaoyan_subject', nextSubject);
+    }
+  }, []);
+
   const loadConversation = useCallback((id: string, nextMessages: ChatMessage[], meta: { subject?: string; bookName?: string; page?: ConversationPage | null } = {}) => {
     cancelActiveChat();
     persistConversationId(id);
@@ -163,6 +174,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setBookName: persistBookName,
       setSubject: persistSubject,
       setConversationId: persistConversationId,
+      syncRecoveredScope,
       setActiveChatAbort,
       cancelActiveChat,
       loadConversation,
@@ -173,7 +185,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading: setIsLoading,
       clearMessages,
     }),
-    [messages, isLoading, bookName, subject, conversationId, historyPage, persistBookName, persistSubject, persistConversationId, setActiveChatAbort, cancelActiveChat, loadConversation, prependConversationMessages, newConversation, addMessage, updateLastMessage, clearMessages]
+    [messages, isLoading, bookName, subject, conversationId, historyPage, persistBookName, persistSubject, persistConversationId, syncRecoveredScope, setActiveChatAbort, cancelActiveChat, loadConversation, prependConversationMessages, newConversation, addMessage, updateLastMessage, clearMessages]
   );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

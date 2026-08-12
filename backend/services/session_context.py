@@ -10,6 +10,16 @@ from backend.services.assistant_artifacts import (
     match_assistant_artifact,
     rewrite_artifact_reference,
 )
+from backend.services.resolver_reference import (
+    ReferenceResolverHooks,
+    observe_reference_resolution,
+)
+from backend.services.resolver_state_operations import derive_state_operations
+from backend.services.resolver_speech_act import apply_learning_speech_act
+from backend.services.semantic_resolver import (
+    run_semantic_resolver,
+    should_attempt_semantic_resolution,
+)
 
 
 @dataclass
@@ -413,6 +423,21 @@ def _constraint_replacement(question: str, state: SessionContextState) -> dict[s
 
 def _topic_correction(question: str, state: SessionContextState) -> dict[str, Any] | None:
     compact = re.sub(r"\s+", "", question).strip("。？?!！")
+    facet_match = re.fullmatch(
+        r"(?:我)?问的是(?P<new>.+?)[，,](?:而)?不是(?P<old>.+)", compact,
+    )
+    if facet_match and state.topic:
+        new = facet_match.group("new").strip("，,。？?!！")
+        previous = str(state.last_resolved_query or "")
+        if new and "测量" in new:
+            resolved = re.sub(
+                r"(?:高频|低频)?动态测量", new, previous, count=1,
+            ) if "动态测量" in previous else f"{state.topic}是否适合{new}？"
+            return {
+                "topic": state.topic,
+                "keep_intent": True,
+                "resolved": _clean_query(resolved),
+            }
     reset_match = re.fullmatch(
         r"(?:(?:我说错了|不对)[，,]?)?(?:我)?(?:想问|问的是)(?P<topic>.+)", compact,
     )
@@ -745,157 +770,20 @@ def _resolution_observation(
     state: SessionContextState,
     resolved: str,
 ) -> dict[str, Any]:
-    """Describe which deterministic rule produced the existing resolution.
-
-    ``confidence`` is a bounded rule-strength signal for observability and
-    evaluation.  It is deliberately not presented as a calibrated probability.
-    """
-    compact = re.sub(r"\s+", "", question)
-    referenced_entities: list[str] = []
-    method = "identity"
-    confidence = 1.0
-    is_followup = False
-    artifact = match_assistant_artifact(question, state.assistant_artifacts)
-    rephrased = _rephrase_followup(question, state)
-    correction = _topic_correction(question, state)
-    replacement = _constraint_replacement(question, state)
-    topic_return = _topic_return_resolution(question, state)
-    plural = _plural_reference(question, state)
-
-    ordinal = _ordinal_target(question, state)
-    explicit_ordinal = re.search(
-        r"第[一二三四五六七八九十\d]+(?:个公式|个|道题|部分|行|步)",
-        question,
+    hooks = ReferenceResolverHooks(
+        match_artifact=match_assistant_artifact,
+        rephrase_followup=_rephrase_followup,
+        topic_correction=_topic_correction,
+        constraint_replacement=_constraint_replacement,
+        topic_return=_topic_return_resolution,
+        plural_reference=_plural_reference,
+        ordinal_target=_ordinal_target,
+        infer_intent=_infer_intent,
+        is_intent_fragment=_is_intent_fragment,
+        has_anaphora=_has_anaphora,
+        referenced_turn_ids=_referenced_turn_ids,
     )
-    if rephrased:
-        method = "deterministic_rephrase"
-        confidence = 0.98
-        is_followup = True
-        referenced_entities = [state.topic] if state.topic else []
-    elif artifact:
-        target = str(artifact.get("target") or "")
-        method = "deterministic_assistant_artifact"
-        confidence = 0.97
-        is_followup = True
-        referenced_entities = [target] if target else []
-    elif correction:
-        method = "deterministic_topic_correction"
-        confidence = 0.99
-        is_followup = bool(correction.get("keep_intent"))
-        referenced_entities = [str(correction["topic"])] if is_followup else []
-    elif replacement:
-        method = "deterministic_constraint_replacement"
-        confidence = 0.99
-        is_followup = True
-        referenced_entities = list(state.frame.get("entities") or [])
-    elif topic_return:
-        method = "deterministic_topic_return"
-        confidence = 0.99
-        is_followup = True
-        referenced_entities = [str(topic_return["target"])]
-    elif re.match(
-        r"^这个[\u4e00-\u9fffA-Za-z0-9_]{2,30}?(?:效应|定理|方法|算法|模型|公式|传感器)",
-        question,
-    ):
-        method = "deterministic_explicit_topic"
-        confidence = 1.0
-        is_followup = False
-    elif plural:
-        method = "deterministic_plural_reference"
-        confidence = 0.98
-        is_followup = True
-        referenced_entities = list(plural["entities"])
-    elif ordinal:
-        ordinal_target = ordinal[0]
-        target_rendered = ordinal_target in resolved
-        method = "deterministic_ordinal" if target_rendered else "incomplete_ordinal_resolution"
-        confidence = 0.98 if target_rendered else 0.0
-        is_followup = True
-        referenced_entities = [ordinal_target]
-    elif explicit_ordinal:
-        method = "unresolved_reference"
-        confidence = 0.0
-        is_followup = True
-    elif "前者" in compact or "后者" in compact:
-        pair = list(state.frame.get("entities") or [])
-        if len(pair) >= 2:
-            target = pair[0] if "前者" in compact else pair[1]
-            method = "deterministic_comparison_reference"
-            confidence = 0.98
-            is_followup = True
-            referenced_entities = [target]
-        else:
-            method = "unresolved_reference"
-            confidence = 0.0
-            is_followup = True
-    elif state.frame.get("kind") == "comparison" and re.fullmatch(
-        r"(?:那|那么)?(?:如果|若|假如)(?:考虑|是|在)?.+?(?:的话|呢)?[。？?!！]*",
-        compact,
-    ):
-        method = "deterministic_constraint_inheritance"
-        confidence = 0.96
-        is_followup = True
-        referenced_entities = list(state.frame.get("entities") or [])
-    else:
-        intent = _infer_intent(question)
-        previous_pair = re.fullmatch(r"它和前面那个(?P<tail>.+)", compact)
-        if previous_pair and len(state.entities) >= 2:
-            method = "deterministic_dual_reference"
-            confidence = 0.96
-            is_followup = True
-            referenced_entities = [state.entities[-1], state.entities[-2]]
-        elif state.topic and compact.strip("。？?!！") in {
-            "继续讲", "继续说", "继续解释", "接着讲", "接着说",
-        }:
-            method = "deterministic_continuation"
-            confidence = 0.97
-            is_followup = True
-            referenced_entities = [state.topic]
-        elif state.topic and _is_intent_fragment(question, intent):
-            method = "deterministic_intent_inheritance"
-            confidence = 0.96
-            is_followup = True
-            referenced_entities = [state.topic]
-        elif _has_anaphora(question):
-            is_followup = True
-            if state.topic:
-                method = "deterministic_anaphora"
-                confidence = 0.94
-                referenced_entities = [state.topic]
-            else:
-                method = "unresolved_reference"
-                confidence = 0.0
-        elif resolved != question.strip():
-            method = "deterministic_normalization"
-            confidence = 1.0
-
-    artifact_turn_ids = []
-    if artifact and artifact.get("turn_id"):
-        artifact_turn_ids = [str(artifact["turn_id"])]
-    state_turn_ids = []
-    if referenced_entities:
-        for entity in referenced_entities:
-            record = next((
-                item for item in reversed(state.entity_records)
-                if item.get("name") == entity
-            ), None)
-            turn_id = str((record or {}).get("last_turn_id") or "")
-            if turn_id and turn_id not in state_turn_ids:
-                state_turn_ids.append(turn_id)
-    return {
-        "is_followup": is_followup,
-        "resolution_changed": resolved != question.strip(),
-        "method": method,
-        "confidence": confidence,
-        "confidence_kind": "rule_strength",
-        "referenced_entity": referenced_entities[0] if referenced_entities else "",
-        "referenced_entities": referenced_entities,
-        "referenced_turn_ids": (
-            artifact_turn_ids
-            or state_turn_ids
-            or _referenced_turn_ids(history, referenced_entities)
-        ),
-    }
+    return observe_reference_resolution(question, history, state, resolved, hooks)
 
 
 def _state_operations(
@@ -906,79 +794,13 @@ def _state_operations(
     *,
     should_clarify: bool,
 ) -> tuple[str, list[dict[str, Any]]]:
-    operations: list[dict[str, Any]] = []
-    method = str(observation.get("method") or "")
-    if should_clarify:
-        return "clarification", [{"operation": "clarify"}]
-
-    correction = _topic_correction(question, before)
-    replacement = _constraint_replacement(question, before)
-    topic_return = _topic_return_resolution(question, before)
-    if replacement:
-        operations.append({
-            "operation": "replace_constraint",
-            "old_value": replacement["old"],
-            "new_value": replacement["new"],
-        })
-        speech_act = "correction"
-    elif correction:
-        operations.append({
-            "operation": "correct_entity",
-            "old_value": before.topic,
-            "new_value": correction["topic"],
-        })
-        if correction.get("keep_intent"):
-            operations.append({
-                "operation": "keep_previous_intent",
-                "value": before.intent,
-            })
-        speech_act = "correction"
-    elif topic_return:
-        operations.append({
-            "operation": "return_to_topic",
-            "value": topic_return["target"],
-        })
-        speech_act = "return"
-    elif method == "deterministic_assistant_artifact":
-        operations.append({
-            "operation": "select_artifact",
-            "value": observation.get("referenced_entity") or "",
-        })
-        speech_act = "followup"
-    elif method == "deterministic_continuation":
-        operations.append({
-            "operation": "keep_previous_intent",
-            "value": before.intent,
-        })
-        speech_act = "continue"
-    elif method == "deterministic_rephrase":
-        operations.append({
-            "operation": "keep_previous_intent",
-            "value": before.intent,
-        })
-        speech_act = "continue"
-    elif observation.get("is_followup"):
-        speech_act = "followup"
-    else:
-        speech_act = "ask"
-
-    if before.topic != after.topic and after.topic and not any(
-        item["operation"] in {"correct_entity", "return_to_topic"} for item in operations
-    ):
-        operations.append({
-            "operation": "set_topic",
-            "old_value": before.topic,
-            "new_value": after.topic,
-        })
-        if before.topic and speech_act == "ask":
-            speech_act = "switch_topic"
-    if before.constraints != after.constraints and not any(
-        item["operation"] == "replace_constraint" for item in operations
-    ):
-        added = [item for item in after.constraints if item not in before.constraints]
-        for value in added:
-            operations.append({"operation": "add_constraint", "value": value})
-    return speech_act, operations
+    return derive_state_operations(
+        question, before, after, observation,
+        should_clarify=should_clarify,
+        topic_correction=_topic_correction,
+        constraint_replacement=_constraint_replacement,
+        topic_return_resolution=_topic_return_resolution,
+    )
 
 
 def build_resolution_trace(
@@ -986,6 +808,8 @@ def build_resolution_trace(
     history: list[dict],
     resolved_query: str | None = None,
     initial_state: dict[str, Any] | SessionContextState | None = None,
+    semantic_model_runner: Any | None = None,
+    semantic_enabled: bool | None = None,
 ) -> dict[str, Any]:
     """Build bounded resolver telemetry without changing the resolution path."""
     raw_query = question.strip()
@@ -1013,11 +837,47 @@ def build_resolution_trace(
             "is_followup": False,
         })
 
+    semantic_error = ""
+    semantic_operation: dict[str, str] | None = None
+    if should_attempt_semantic_resolution(observation, enabled=semantic_enabled):
+        try:
+            semantic = run_semantic_resolver(
+                raw_query, state_before, model_runner=semantic_model_runner,
+            )
+            semantic_operation = semantic.operation
+            observation.update({
+                "method": semantic.method,
+                "confidence": semantic.confidence,
+                "confidence_kind": "rule_strength",
+            })
+            if semantic_operation.get("operation") == "resolve_reference":
+                target = str(semantic_operation.get("value") or "")
+                referenced_turn_ids = _referenced_turn_ids(history, [target])
+                record = next((
+                    item for item in reversed(state_before.entity_records)
+                    if item.get("name") == target
+                ), None)
+                record_turn_id = str((record or {}).get("last_turn_id") or "")
+                observation.update({
+                    "is_followup": True,
+                    "referenced_entity": target,
+                    "referenced_entities": [target],
+                    "referenced_turn_ids": (
+                        [record_turn_id] if record_turn_id else referenced_turn_ids
+                    ),
+                })
+                resolved = _replace_anaphora(raw_query, target)
+                if resolved == raw_query:
+                    resolved = f"关于{target}，{raw_query}"
+        except Exception as exc:
+            semantic_error = f"{type(exc).__name__}: {str(exc)[:300]}"
+
     should_clarify = observation.get("method") in {
-        "unresolved_reference", "incomplete_ordinal_resolution",
+        "unresolved_reference", "incomplete_ordinal_resolution", "semantic_clarification",
     }
+    learning_speech_act = apply_learning_speech_act(raw_query, "")
     state_after = session_state_from_dict(asdict(state_before))
-    if resolved and not should_clarify:
+    if resolved and not should_clarify and not learning_speech_act:
         _advance_state(state_after, resolved)
     clarification_message = (
         "我还不能确定你指的是哪个对象。请补充对象名称，或说明你指的是上一条回答中的哪一项。"
@@ -1027,6 +887,9 @@ def build_resolution_trace(
         raw_query, state_before, state_after, observation,
         should_clarify=should_clarify,
     )
+    speech_act = learning_speech_act or speech_act
+    if semantic_operation and semantic_operation.get("operation") == "resolve_reference":
+        operations.insert(0, semantic_operation)
     trace = {
         "raw_query": raw_query,
         "resolved_query": resolved,
@@ -1036,6 +899,10 @@ def build_resolution_trace(
         "state_operations": operations,
         "state_before": asdict(state_before),
         "state_after": asdict(state_after),
+        "semantic_resolver": {
+            "attempted": bool(semantic_operation or semantic_error),
+            "error": semantic_error,
+        },
         **observation,
     }
     return trace

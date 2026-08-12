@@ -25,7 +25,7 @@ def test_core_sqlite_stores_have_explicit_schema_versions(tmp_path):
 
     assert _user_version(exercise_path) == 1
     assert _user_version(mistake_path) == 1
-    assert _user_version(event_path) == 1
+    assert _user_version(event_path) == 2
     assert _user_version(job_path) == 1
 
 

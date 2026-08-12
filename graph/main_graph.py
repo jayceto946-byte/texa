@@ -101,6 +101,7 @@ def build_initial_state(
         "previous_subject": str(continuity.get("previous_subject") or ""),
         "conversation_context_seed": dict(continuity.get("conversation_context_seed") or {}),
         "conversation_context_pack": {},
+        "learning_context_pack": dict(continuity.get("learning_context_pack") or {}),
         "messages": [],
         "intent": "",
         "sub_tasks": [],

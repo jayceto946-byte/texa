@@ -31,6 +31,7 @@ class AgentState(TypedDict):
     previous_subject: str
     conversation_context_seed: dict
     conversation_context_pack: dict
+    learning_context_pack: dict
 
     # === Planner 输出 ===
     intent: str                 # qa | teach | summarize | quiz | plan | cross_chapter

@@ -6,6 +6,7 @@ from typing import Literal
 
 
 RetrievalAction = Literal["none", "reuse", "delta", "full"]
+RETRIEVAL_POLICY_VERSION = "evidence-continuity-v2"
 
 
 def decide_retrieval_action(context: Mapping | None = None) -> RetrievalAction:
@@ -14,6 +15,8 @@ def decide_retrieval_action(context: Mapping | None = None) -> RetrievalAction:
     if not bool(values.get("use_textbook_context", True)):
         return "none"
     if scope_changed(values):
+        return "full"
+    if str(values.get("active_evidence_invalidation_reason") or "") not in {"", "no_active_evidence"}:
         return "full"
 
     active_ids = [str(value) for value in values.get("active_evidence_ids") or [] if value]

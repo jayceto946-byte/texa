@@ -347,8 +347,14 @@ def _record_concept_memory(state: dict) -> list[dict]:
             )
 
         store = get_learning_event_store()
+        try:
+            from backend.services.learning_state import resolve_book_identity
+            learning_book_id = resolve_book_identity(memory_book)["book_id"]
+        except Exception:
+            learning_book_id = ""
         store.append(LearningEvent(
             event_type="chat_qa",
+            book_id=learning_book_id,
             book_name=memory_book,
             subject=subject,
             conversation_id=conversation_id,
@@ -369,6 +375,7 @@ def _record_concept_memory(state: dict) -> list[dict]:
         for item in concepts:
             store.append(LearningEvent(
                 event_type="concept_exposure",
+                book_id=learning_book_id,
                 book_name=memory_book,
                 subject=subject,
                 conversation_id=conversation_id,
@@ -386,6 +393,7 @@ def _record_concept_memory(state: dict) -> list[dict]:
         if candidates:
             store.append(LearningEvent(
                 event_type="concept_candidates",
+                book_id=learning_book_id,
                 book_name=memory_book,
                 subject=subject,
                 conversation_id=conversation_id,

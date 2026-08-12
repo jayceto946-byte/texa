@@ -24,7 +24,11 @@ from utils.subject_catalog import normalize_subject_value, subject_matches
 @dataclass
 class LearningEvent:
     event_type: str
+    learner_id: str = "local_default"
+    book_id: str = ""
     book_name: str = ""
+    chapter_id: str = ""
+    unit_id: str = ""
     subject: str = ""
     conversation_id: str = ""
     source_type: str = ""
@@ -79,7 +83,11 @@ class LearningEventStore:
                     id TEXT PRIMARY KEY,
                     event_type TEXT NOT NULL,
                     timestamp TEXT NOT NULL,
+                    learner_id TEXT NOT NULL DEFAULT 'local_default',
+                    book_id TEXT NOT NULL DEFAULT '',
                     book_name TEXT,
+                    chapter_id TEXT NOT NULL DEFAULT '',
+                    unit_id TEXT NOT NULL DEFAULT '',
                     subject TEXT,
                     conversation_id TEXT,
                     source_type TEXT,
@@ -93,7 +101,16 @@ class LearningEventStore:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_learning_events_book_time ON learning_events(book_name, timestamp)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_learning_events_subject_time ON learning_events(subject, timestamp)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_learning_events_source ON learning_events(source_type, source_id)")
-            apply_sqlite_migrations(conn, component="learning_events", current_version=1)
+            apply_sqlite_migrations(
+                conn,
+                component="learning_events",
+                current_version=2,
+                migrations={2: _migrate_learning_events_v2},
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_learning_events_learner_book_time "
+                "ON learning_events(learner_id, book_id, timestamp)"
+            )
             conn.commit()
 
     def _prepare_retry_db_files(self) -> None:
@@ -106,21 +123,30 @@ class LearningEventStore:
             )
 
     def append(self, event: LearningEvent) -> str:
+        event.learner_id = _clean_identifier(event.learner_id, "local_default")
+        event.book_id = _clean_identifier(event.book_id)
         event.subject = normalize_subject_value(event.subject)
         event.book_name = safe_book_name(event.book_name) if event.book_name else ""
+        event.chapter_id = _clean_identifier(event.chapter_id)
+        event.unit_id = _clean_identifier(event.unit_id)
         event.concept_names = _dedupe_names(event.concept_names)
         with self._connect() as conn:
             conn.execute(
                 """
                 INSERT OR IGNORE INTO learning_events
-                (id, event_type, timestamp, book_name, subject, conversation_id, source_type, source_id, concept_names, payload)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (id, event_type, timestamp, learner_id, book_id, book_name, chapter_id, unit_id,
+                 subject, conversation_id, source_type, source_id, concept_names, payload)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     event.id,
                     event.event_type,
                     event.timestamp,
+                    event.learner_id,
+                    event.book_id,
                     event.book_name,
+                    event.chapter_id,
+                    event.unit_id,
                     event.subject,
                     event.conversation_id,
                     event.source_type,
@@ -138,9 +164,11 @@ class LearningEventStore:
         event_type: str = "",
         book_name: str = "",
         subject: str = "",
+        learner_id: str = "",
+        book_id: str = "",
         limit: int = 100,
     ) -> list[LearningEvent]:
-        sql = "SELECT id, event_type, timestamp, book_name, subject, conversation_id, source_type, source_id, concept_names, payload FROM learning_events WHERE 1=1"
+        sql = _event_select_sql() + " WHERE 1=1"
         params: list[Any] = []
         if event_type:
             sql += " AND event_type = ?"
@@ -148,6 +176,12 @@ class LearningEventStore:
         if book_name:
             sql += " AND book_name = ?"
             params.append(safe_book_name(book_name))
+        if learner_id:
+            sql += " AND learner_id = ?"
+            params.append(_clean_identifier(learner_id, "local_default"))
+        if book_id:
+            sql += " AND book_id = ?"
+            params.append(_clean_identifier(book_id))
         sql += " ORDER BY timestamp DESC LIMIT ?"
         params.append(max(limit if not subject else limit * 10, 1))
         with self._connect() as conn:
@@ -158,22 +192,76 @@ class LearningEventStore:
             events = [event for event in events if subject_matches(event.subject, subject)]
         return events[:limit]
 
+    def list_for_state(
+        self,
+        *,
+        learner_id: str,
+        book_id: str = "",
+        book_name: str = "",
+    ) -> list[LearningEvent]:
+        """Read the complete ordered event stream for one rebuildable state."""
+        learner = _clean_identifier(learner_id, "local_default")
+        normalized_book = safe_book_name(book_name) if book_name else ""
+        sql = _event_select_sql() + " WHERE (learner_id = ? OR learner_id = '')"
+        params: list[Any] = [learner]
+        if book_id and normalized_book:
+            sql += " AND (book_id = ? OR (book_id = '' AND book_name = ?))"
+            params.extend([_clean_identifier(book_id), normalized_book])
+        elif book_id:
+            sql += " AND book_id = ?"
+            params.append(_clean_identifier(book_id))
+        elif normalized_book:
+            sql += " AND book_name = ?"
+            params.append(normalized_book)
+        sql += " ORDER BY timestamp ASC, rowid ASC"
+        with self._connect() as conn:
+            return [_row_to_event(row) for row in conn.execute(sql, params).fetchall()]
+
 
 def _row_to_event(row) -> LearningEvent:
-    concept_names = json.loads(row[8] or "[]")
-    payload = json.loads(row[9] or "{}")
+    concept_names = json.loads(row[12] or "[]")
+    payload = json.loads(row[13] or "{}")
     return LearningEvent(
         id=row[0],
         event_type=row[1],
         timestamp=row[2],
-        book_name=row[3] or "",
-        subject=row[4] or "",
-        conversation_id=row[5] or "",
-        source_type=row[6] or "",
-        source_id=row[7] or "",
+        learner_id=row[3] or "local_default",
+        book_id=row[4] or "",
+        book_name=row[5] or "",
+        chapter_id=row[6] or "",
+        unit_id=row[7] or "",
+        subject=row[8] or "",
+        conversation_id=row[9] or "",
+        source_type=row[10] or "",
+        source_id=row[11] or "",
         concept_names=concept_names if isinstance(concept_names, list) else [],
         payload=payload if isinstance(payload, dict) else {},
     )
+
+
+def _event_select_sql() -> str:
+    return (
+        "SELECT id, event_type, timestamp, learner_id, book_id, book_name, chapter_id, unit_id, "
+        "subject, conversation_id, source_type, source_id, concept_names, payload FROM learning_events"
+    )
+
+
+def _clean_identifier(value: str, default: str = "") -> str:
+    clean = " ".join(str(value or "").strip().split())[:160]
+    return clean or default
+
+
+def _migrate_learning_events_v2(conn: sqlite3.Connection) -> None:
+    columns = {str(row[1]) for row in conn.execute("PRAGMA table_info(learning_events)")}
+    additions = {
+        "learner_id": "TEXT NOT NULL DEFAULT 'local_default'",
+        "book_id": "TEXT NOT NULL DEFAULT ''",
+        "chapter_id": "TEXT NOT NULL DEFAULT ''",
+        "unit_id": "TEXT NOT NULL DEFAULT ''",
+    }
+    for name, declaration in additions.items():
+        if name not in columns:
+            conn.execute(f"ALTER TABLE learning_events ADD COLUMN {name} {declaration}")
 
 
 def _dedupe_names(names: list[str]) -> list[str]:

@@ -67,6 +67,7 @@ function authenticatedResourceUrl(value: string): string {
 export type ChatEvent = {
   stage: string;
   request_id?: string;
+  message_id?: string;
   elapsed_ms?: number;
   chunk?: string;
   replace?: boolean;
@@ -79,7 +80,9 @@ export type ChatEvent = {
   message?: string;
   conversation_id?: string;
   turn_id?: string;
-  resolution_action?: 'continue' | 'clarify';
+  book_name?: string;
+  subject?: string;
+  resolution_action?: 'continue' | 'clarify' | 'respond';
   subject_suggestion?: SubjectRouteSuggestion;
   rewritten_question?: string;
   use_textbook_context?: boolean;
@@ -263,7 +266,7 @@ export async function chatAsk(
   signal?: AbortSignal,
   answerMode: AnswerMode = 'auto',
   timeoutMs = NON_STREAMING_CHAT_TIMEOUT_MS,
-): Promise<{ content: string; intent: string; chapters: string[]; linked_concepts?: ConceptCandidate[]; sources?: AssistantSource[]; conversation_id?: string; turn_id?: string; subject_suggestion?: SubjectRouteSuggestion; rewritten_question?: string; answer_mode?: AnswerMode; suggested_answer_mode?: AnswerMode; scope_reason?: string; use_textbook_context?: boolean }> {
+): Promise<{ content: string; intent: string; chapters: string[]; linked_concepts?: ConceptCandidate[]; sources?: AssistantSource[]; conversation_id?: string; turn_id?: string; book_name?: string; subject?: string; request_id?: string; message_id?: string; subject_suggestion?: SubjectRouteSuggestion; rewritten_question?: string; answer_mode?: AnswerMode; suggested_answer_mode?: AnswerMode; scope_reason?: string; use_textbook_context?: boolean }> {
   const res = await apiFetch('/chat/ask', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

@@ -26,7 +26,10 @@ def _bounded_sources(values: Any) -> list[dict[str, Any]]:
         section_path = list(raw_path)[:8] if isinstance(raw_path, (list, tuple)) else []
         result.append({
             "chunk_id": chunk_id,
+            "book_id": str(value.get("book_id") or "").strip()[:100],
             "book_name": str(value.get("book_name") or "").strip()[:200],
+            "corpus_version": str(value.get("corpus_version") or "").strip()[:100],
+            "content_fingerprint": str(value.get("content_fingerprint") or "").strip()[:80],
             "chapter": str(value.get("chapter") or "").strip()[:300],
             "section_title": str(value.get("section_title") or "").strip()[:300],
             "section_path": section_path,
@@ -70,6 +73,31 @@ def build_evidence_continuity_context(
     after = after if isinstance(after, dict) else {}
     previous_book = str((latest_assistant or {}).get("book_name") or "").strip()
     previous_subject = str((latest_assistant or {}).get("subject") or "").strip()
+    previous_versions = (
+        (latest_assistant or {}).get("context_versions")
+        if isinstance((latest_assistant or {}).get("context_versions"), dict)
+        else {}
+    )
+    previous_corpus_version = str(previous_versions.get("corpus_version") or "")
+    try:
+        from backend.services.context_versions import current_context_versions
+
+        current_corpus_version = str(
+            current_context_versions(book_name).get("corpus_version") or ""
+        )
+    except Exception:
+        current_corpus_version = ""
+    corpus_version_matches = (
+        not previous_corpus_version
+        or not current_corpus_version
+        or previous_corpus_version == current_corpus_version
+    )
+    source_versions_match = all(
+        not item.get("corpus_version")
+        or not current_corpus_version
+        or item.get("corpus_version") == current_corpus_version
+        for item in sources
+    )
     same_scope = (
         (not previous_book or not book_name or previous_book == book_name)
         and (not previous_subject or not subject or previous_subject == subject)
@@ -79,11 +107,22 @@ def build_evidence_continuity_context(
     same_topic = (
         bool(resolution_trace.get("is_followup"))
         and same_scope
+        and corpus_version_matches
+        and source_versions_match
         and bool(before_topic)
         and before_topic == after_topic
     )
     previous_intent = str(before.get("intent") or "")
     current_intent = str(after.get("intent") or "")
+    invalidation_reason = ""
+    if sources and not same_scope:
+        invalidation_reason = "scope_changed"
+    elif sources and (not corpus_version_matches or not source_versions_match):
+        invalidation_reason = "corpus_version_changed"
+    elif sources and not bool(before_topic and before_topic == after_topic):
+        invalidation_reason = "topic_changed_or_unresolved"
+    elif not sources:
+        invalidation_reason = "no_active_evidence"
     return {
         "active_evidence_sources": sources,
         "active_evidence_ids": [item["chunk_id"] for item in sources],
@@ -100,6 +139,18 @@ def build_evidence_continuity_context(
         "previous_intent": previous_intent,
         "previous_book_name": previous_book,
         "previous_subject": previous_subject,
+        "previous_corpus_version": previous_corpus_version,
+        "current_corpus_version": current_corpus_version,
+        "corpus_version_matches": corpus_version_matches,
+        "source_versions_match": source_versions_match,
+        "active_evidence_scope": {
+            "book_name": previous_book,
+            "subject": previous_subject,
+            "chapters": list(dict.fromkeys(
+                str(item.get("chapter") or "") for item in sources if item.get("chapter")
+            ))[:12],
+        },
+        "active_evidence_invalidation_reason": invalidation_reason,
         "book_name": book_name,
         "subject": subject,
     }

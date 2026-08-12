@@ -6,6 +6,8 @@ from utils.latex_sanitizer import sanitize_latex
 from utils.citation_protocol import sanitize_citation_protocol
 from utils.thinking_filter import strip_thinking
 
+GENERATION_PROMPT_VERSION = "generator-context-v3-2026-08-11"
+
 _EXAMPLE_CHECK_PROMPT = """
 【例题完整性自检】
 在引用教材例题前，请先检查检索到的内容中是否有以"例X.X"或"例X"开头的完整题干。

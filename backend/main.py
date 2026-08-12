@@ -15,7 +15,7 @@ import logging
 import os
 import threading
 
-from backend.api import agent, chat, mistakes, books, kg, exercises, system, reports, assets, highlights, jobs, backups
+from backend.api import agent, chat, mistakes, books, kg, exercises, system, reports, assets, highlights, jobs, backups, learning_state
 from backend.security import LocalApiBoundaryMiddleware
 from utils.version import APP_VERSION
 
@@ -123,6 +123,7 @@ app.include_router(assets.router, prefix="/api/system")
 app.include_router(highlights.router, prefix="/api")
 app.include_router(jobs.router, prefix="/api")
 app.include_router(backups.router, prefix="/api")
+app.include_router(learning_state.router, prefix="/api")
 
 # ── 健康检查 ──────────────────────────────────────────────
 @app.get("/health")

@@ -77,6 +77,30 @@ def _write_ledger(conversation_id: str, value: dict[str, Any]) -> None:
     atomic_write_json(_ledger_path(conversation_id), payload)
 
 
+def _active_evidence_projection(message: dict[str, Any]) -> dict[str, Any]:
+    sources = message.get("sources") if isinstance(message.get("sources"), list) else []
+    bounded = [item for item in sources[:12] if isinstance(item, dict)]
+    versions = message.get("context_versions") if isinstance(message.get("context_versions"), dict) else {}
+    return {
+        "sources": bounded,
+        "ids": [
+            str(item.get("chunk_id") or "") for item in bounded if item.get("chunk_id")
+        ],
+        "book_id": next((str(item.get("book_id") or "") for item in bounded if item.get("book_id")), ""),
+        "book_name": str(message.get("book_name") or "")[:200],
+        "corpus_version": str(versions.get("corpus_version") or "")[:100],
+        "scope": {
+            "book_name": str(message.get("book_name") or "")[:200],
+            "subject": str(message.get("subject") or "")[:100],
+            "chapters": list(dict.fromkeys(
+                str(item.get("chapter") or "") for item in bounded if item.get("chapter")
+            ))[:12],
+        },
+        "support": str(message.get("evidence_support_status") or "")[:40],
+        "invalidation_reason": "",
+    }
+
+
 def get_or_rebuild_session_ledger(
     conversation_id: str,
     recent_history: list[dict] | None = None,
@@ -105,19 +129,11 @@ def get_or_rebuild_session_ledger(
         latest_assistant = next((
             item for item in reversed(history) if item.get("role") == "assistant"
         ), {})
-        sources = latest_assistant.get("sources") if isinstance(latest_assistant.get("sources"), list) else []
         ledger = {
             "schema_version": LEDGER_SCHEMA_VERSION,
             "conversation_id": conversation_id,
             "state": asdict(state),
-            "active_evidence": {
-                "sources": sources[:12],
-                "ids": [
-                    str(item.get("chunk_id") or "") for item in sources[:12]
-                    if isinstance(item, dict) and item.get("chunk_id")
-                ],
-                "support": str(latest_assistant.get("evidence_support_status") or ""),
-            },
+            "active_evidence": _active_evidence_projection(latest_assistant),
             "last_message_id": latest,
         }
         _write_ledger(conversation_id, ledger)
@@ -151,18 +167,10 @@ def record_assistant_in_ledger(
         state = rebuild_session_state(
             [assistant_message], limit=1, initial_state=existing.get("state") or {},
         )
-        sources = assistant_message.get("sources") if isinstance(assistant_message.get("sources"), list) else []
         _write_ledger(conversation_id, {
             **existing,
             "state": asdict(state),
-            "active_evidence": {
-                "sources": sources[:12],
-                "ids": [
-                    str(item.get("chunk_id") or "") for item in sources[:12]
-                    if isinstance(item, dict) and item.get("chunk_id")
-                ],
-                "support": str(assistant_message.get("evidence_support_status") or ""),
-            },
+            "active_evidence": _active_evidence_projection(assistant_message),
             "last_message_id": str(assistant_message.get("id") or ""),
         })
 
@@ -174,6 +182,16 @@ def update_ledger_evidence_support(conversation_id: str, status: str) -> None:
             return
         active = dict(existing.get("active_evidence") or {})
         active["support"] = str(status or "")[:40]
+        _write_ledger(conversation_id, {**existing, "active_evidence": active})
+
+
+def update_ledger_evidence_invalidation(conversation_id: str, reason: str) -> None:
+    with _ledger_lock(conversation_id):
+        existing = _read_ledger(conversation_id)
+        if not existing:
+            return
+        active = dict(existing.get("active_evidence") or {})
+        active["invalidation_reason"] = str(reason or "")[:80]
         _write_ledger(conversation_id, {**existing, "active_evidence": active})
 
 

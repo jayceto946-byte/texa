@@ -24,12 +24,17 @@ from backend.conversation_memory import (
     update_message_linked_concepts,
 )
 from backend.schemas import ChatRequest, ConversationScopeRequest, ConversationSplitTurnRequest, SubjectRoutingFeedbackRequest
+from backend.schemas import AnswerFeedbackRequest
+from backend.services.answer_feedback import record_answer_feedback
+from backend.services.context_versions import current_context_versions
 from backend.services.session_context import build_resolution_trace
+from backend.services.learning_state_bridge import bridge_learning_request
 from backend.services.evidence_continuity import build_evidence_continuity_context
 from backend.services.session_ledger import (
     get_or_rebuild_session_ledger,
     record_assistant_in_ledger,
     save_resolution_to_ledger,
+    update_ledger_evidence_invalidation,
     update_ledger_evidence_support,
 )
 from backend.services.subject_routing import record_subject_routing_feedback, suggest_subject_scope
@@ -41,6 +46,34 @@ from graph.conversation_context import (
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
+
+
+def _persisted_evidence_sources(
+    sources: list | None,
+    *,
+    book_name: str,
+    context_versions: dict,
+) -> list[dict]:
+    book_id = ""
+    if book_name:
+        try:
+            from utils.book_registry import BookRegistry
+
+            identity = BookRegistry().resolve(book_name)
+            book_id = str((identity or {}).get("book_id") or "")
+        except Exception:
+            logger.exception("failed to resolve textbook identity for evidence metadata")
+    corpus_version = str(context_versions.get("corpus_version") or "")
+    result = []
+    for source in (sources or [])[:20]:
+        if not isinstance(source, dict):
+            continue
+        result.append({
+            **source,
+            "book_id": str(source.get("book_id") or book_id)[:100],
+            "corpus_version": str(source.get("corpus_version") or corpus_version)[:100],
+        })
+    return result
 
 
 def _resolve_request_question(
@@ -56,6 +89,28 @@ def _resolve_request_question(
         trace = build_resolution_trace(
             question, history, initial_state=ledger.get("state") or {},
         )
+        bridge = bridge_learning_request(
+            question,
+            str(trace.get("speech_act") or ""),
+            book_name=book_name,
+            subject=subject,
+            conversation_id=conversation_id,
+            current_topic=str((trace.get("state_before") or {}).get("topic") or ""),
+        )
+        trace["learning_bridge"] = {
+            "action": bridge.action,
+            "learning_context": bridge.learning_context,
+            "state_operations": bridge.state_operations,
+            "error": bridge.error,
+        }
+        for operation in bridge.state_operations:
+            if operation not in trace["state_operations"]:
+                trace["state_operations"].append(operation)
+        if bridge.action in {"clarify", "handled"}:
+            trace["resolution_action"] = "respond" if bridge.action == "handled" else "clarify"
+            trace["clarification_message"] = bridge.clarification_message
+        elif bridge.resolved_query:
+            trace["resolved_query"] = bridge.resolved_query
         return str(trace.get("resolved_query") or question), trace
     except Exception:
         logger.exception("session ledger resolution failed; falling back to recent history")
@@ -110,27 +165,38 @@ def _safe_record_assistant_ledger(conversation_id: str, assistant_message: dict 
         logger.exception("failed to persist assistant session ledger state")
 
 
+def _safe_record_evidence_invalidation(conversation_id: str, context: dict) -> None:
+    reason = str(context.get("active_evidence_invalidation_reason") or "")
+    if not reason:
+        return
+    try:
+        update_ledger_evidence_invalidation(conversation_id, reason)
+    except Exception:
+        logger.exception("failed to persist active evidence invalidation")
+
+
 def _clarification_result(
     resolution_trace: dict,
     conversation_context_seed: dict | None = None,
 ) -> dict:
     message = str(resolution_trace.get("clarification_message") or "").strip()
+    intent = "direct_response" if resolution_trace.get("resolution_action") == "respond" else "clarification"
     conversation_pack = assemble_conversation_context_pack({
-        "intent": "clarification",
+        "intent": intent,
         "conversation_context_seed": conversation_context_seed or {},
         "retrieval_action": "none",
     })
     conversation_pack.pop("text", None)
     return {
         "final_output": message,
-        "intent": "clarification",
+        "intent": intent,
         "target_chapters": [],
         "linked_concepts": [],
         "evidence_sources": [],
         "evidence_items": [],
         "retrieval_debug_items": [],
-        "evidence_support": {"status": "not_applicable", "reason": "clarification_required"},
-        "retrieval_status": "clarification",
+        "evidence_support": {"status": "not_applicable", "reason": f"{intent}_no_retrieval"},
+        "retrieval_status": intent,
         "retrieval_error": "",
         "retrieval_action": "none",
         "retrieval_query": "",
@@ -139,7 +205,7 @@ def _clarification_result(
         "dropped_evidence_ids": [],
         "conversation_context_pack": conversation_pack,
         "context_budget": {
-            "assembly_mode": "clarification_no_generation",
+            "assembly_mode": f"{intent}_no_generation",
             "budget_unit": "characters",
             "prompt_chars": 0,
             "conversation_context_budget_chars": int(conversation_pack.get("budget") or 0),
@@ -151,7 +217,35 @@ def _clarification_result(
     }
 
 
-def _context_trace_payload(resolution_trace: dict, final_state: dict) -> dict:
+def _learning_context_for_graph(resolution_trace: dict) -> dict:
+    bridge = resolution_trace.get("learning_bridge")
+    if not isinstance(bridge, dict):
+        return {}
+    value = bridge.get("learning_context")
+    return dict(value) if isinstance(value, dict) else {}
+
+
+def _scope_from_learning_context(book_name: str, subject: str, resolution_trace: dict) -> tuple[str, str]:
+    pack = _learning_context_for_graph(resolution_trace)
+    return (
+        str(pack.get("book_name") or "") or book_name,
+        str(pack.get("subject") or "") or subject,
+    )
+
+
+def _target_chapters_from_learning_context(requested: list[str], resolution_trace: dict) -> list[str]:
+    if requested:
+        return requested
+    progress = _learning_context_for_graph(resolution_trace).get("current_progress") or {}
+    chapter_name = str(progress.get("chapter_name") or "")
+    return [chapter_name] if chapter_name else []
+
+
+def _context_trace_payload(
+    resolution_trace: dict,
+    final_state: dict,
+    context_versions: dict | None = None,
+) -> dict:
     support = final_state.get("evidence_support") or {}
     reused_candidates = list(final_state.get("reused_evidence_ids") or [])
     new_candidates = list(final_state.get("new_evidence_ids") or [])
@@ -185,6 +279,7 @@ def _context_trace_payload(resolution_trace: dict, final_state: dict) -> dict:
             "error": str(final_state.get("retrieval_error") or ""),
         },
         "context_budget": final_state.get("context_budget") or {},
+        "versions": context_versions or {},
     }
 
 def _safe_subject_suggestion(question: str, subject: str, book_name: str) -> dict | None:
@@ -261,6 +356,21 @@ def subject_routing_feedback(req: SubjectRoutingFeedbackRequest):
         return {"success": False, "message": str(exc)}
 
 
+@router.post("/feedback")
+def answer_feedback(req: AnswerFeedbackRequest):
+    try:
+        data = record_answer_feedback(
+            conversation_id=req.conversation_id,
+            message_id=req.message_id,
+            rating=req.rating,
+            reasons=req.reasons,
+            note=req.note,
+        )
+        return {"success": True, "data": data}
+    except ValueError as exc:
+        return {"success": False, "message": str(exc)}
+
+
 @router.post("/log")
 def log_conversation_messages(payload: dict):
     book_name = str(payload.get("book_name") or "").strip()
@@ -297,12 +407,17 @@ def chat_stream(req: ChatRequest):
     rewritten_question, resolution_trace = _resolve_request_question(
         req.question, history, conversation_id, book_name=book_name, subject=subject,
     )
+    book_name, subject = _scope_from_learning_context(book_name, subject, resolution_trace)
+    conversation_id = resolve_conversation_id_for_scope(conversation_id, subject, book_name)
+    target_chapters = _target_chapters_from_learning_context(req.target_chapters, resolution_trace)
     continuity_context = build_evidence_continuity_context(
         history, resolution_trace, book_name=book_name, subject=subject,
     )
+    _safe_record_evidence_invalidation(conversation_id, continuity_context)
     continuity_context["conversation_context_seed"] = _conversation_context_seed(
         conversation_id, history, resolution_trace,
     )
+    continuity_context["learning_context_pack"] = _learning_context_for_graph(resolution_trace)
     subject_suggestion = _safe_subject_suggestion(rewritten_question, subject, book_name)
     # Do not retrieve from a known-wrong textbook while the user decides
     # whether to move the turn or relabel the conversation.
@@ -317,6 +432,7 @@ def chat_stream(req: ChatRequest):
     use_textbook_context = scope_decision.use_textbook_context
     scope_reason = scope_decision.reason
     answer_mode = scope_decision.answer_mode
+    context_versions = current_context_versions(book_name)
 
     def event_generator():
         from backend.rag_trace import new_request_id, save_trace
@@ -359,11 +475,16 @@ def chat_stream(req: ChatRequest):
                     book_name=book_name,
                     subject=subject,
                     turn_id=turn_id,
-                    sources=assistant_sources,
+                    sources=_persisted_evidence_sources(
+                        assistant_sources, book_name=book_name,
+                        context_versions=context_versions,
+                    ),
                     answer_mode=answer_mode,
                     scope_reason=scope_reason,
                     suggested_answer_mode=suggested_answer_mode,
                     delivery_status=delivery_status,
+                    request_id=request_id,
+                    context_versions=context_versions,
                 )
                 assistant_message_id = str((item or {}).get("id") or "")
                 assistant_message = item if isinstance(item, dict) else None
@@ -411,16 +532,17 @@ def chat_stream(req: ChatRequest):
 
         graph_events = None
         try:
-            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'rewritten_question': rewritten_question if rewritten_question != req.question else '', 'resolution_action': resolution_trace.get('resolution_action', 'continue'), 'use_textbook_context': use_textbook_context, 'scope_reason': scope_reason, 'answer_mode': answer_mode}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'book_name': book_name, 'subject': subject, 'rewritten_question': rewritten_question if rewritten_question != req.question else '', 'resolution_action': resolution_trace.get('resolution_action', 'continue'), 'use_textbook_context': use_textbook_context, 'scope_reason': scope_reason, 'answer_mode': answer_mode}, ensure_ascii=False)}\n\n"
             user_message = append_message(
                 conversation_id, "user", req.question,
                 book_name=book_name, subject=subject, turn_id=turn_id,
+                request_id=request_id, context_versions=context_versions,
             )
             _safe_save_resolution_ledger(conversation_id, resolution_trace, user_message)
             context_finished = time.perf_counter()
             timings["context"] = round((context_finished - started) * 1000, 2)
             last_milestone_at = context_finished
-            if resolution_trace.get("resolution_action") == "clarify":
+            if resolution_trace.get("resolution_action") in {"clarify", "respond"}:
                 final_state = _clarification_result(
                     resolution_trace,
                     continuity_context.get("conversation_context_seed"),
@@ -441,6 +563,7 @@ def chat_stream(req: ChatRequest):
                 done_event = {
                     "stage": "done", "state": final_state, "enriched": False,
                     "conversation_id": conversation_id, "turn_id": turn_id,
+                    "message_id": assistant_message_id,
                     "subject_suggestion": subject_suggestion,
                     "answer_mode": answer_mode, "scope_reason": scope_reason,
                 }
@@ -452,7 +575,7 @@ def chat_stream(req: ChatRequest):
                 book_name=book_name,
                 subject=subject,
                 conversation_id=conversation_id,
-                target_chapters=req.target_chapters or [],
+                target_chapters=target_chapters,
                 use_textbook_context=use_textbook_context,
                 answer_mode=answer_mode,
                 scope_reason=scope_reason,
@@ -475,6 +598,7 @@ def chat_stream(req: ChatRequest):
                         persist_assistant()
                 if event.get("stage") == "done":
                     persistence_error = persist_assistant()
+                    event["message_id"] = assistant_message_id
                     event["subject_suggestion"] = subject_suggestion
                     event["answer_mode"] = answer_mode
                     event["scope_reason"] = scope_reason
@@ -533,7 +657,9 @@ def chat_stream(req: ChatRequest):
                     "status": "disconnected" if disconnected else ("error" if last_stage == "error" else "done"),
                     "ttft_ms": ttft_ms, "total_ms": round((now - started) * 1000, 2),
                     "timings": timings, "evidence": final_state.get("retrieval_debug_items", []),
-                    "context": _context_trace_payload(resolution_trace, final_state),
+                    "context": _context_trace_payload(
+                        resolution_trace, final_state, context_versions,
+                    ),
                     "error": final_state.get("error", ""),
                 })
             except Exception:
@@ -557,12 +683,17 @@ def chat_ask(req: ChatRequest):
     rewritten_question, resolution_trace = _resolve_request_question(
         req.question, history, conversation_id, book_name=book_name, subject=subject,
     )
+    book_name, subject = _scope_from_learning_context(book_name, subject, resolution_trace)
+    conversation_id = resolve_conversation_id_for_scope(conversation_id, subject, book_name)
+    target_chapters = _target_chapters_from_learning_context(req.target_chapters, resolution_trace)
     continuity_context = build_evidence_continuity_context(
         history, resolution_trace, book_name=book_name, subject=subject,
     )
+    _safe_record_evidence_invalidation(conversation_id, continuity_context)
     continuity_context["conversation_context_seed"] = _conversation_context_seed(
         conversation_id, history, resolution_trace,
     )
+    continuity_context["learning_context_pack"] = _learning_context_for_graph(resolution_trace)
     subject_suggestion = _safe_subject_suggestion(rewritten_question, subject, book_name)
     scope_decision = decide_answer_scope(
         req.question,
@@ -575,13 +706,15 @@ def chat_ask(req: ChatRequest):
     use_textbook_context = scope_decision.use_textbook_context
     scope_reason = scope_decision.reason
     answer_mode = scope_decision.answer_mode
+    context_versions = current_context_versions(book_name)
     user_message = append_message(
         conversation_id, "user", req.question,
         book_name=book_name, subject=subject, turn_id=turn_id,
+        request_id=request_id, context_versions=context_versions,
     )
     _safe_save_resolution_ledger(conversation_id, resolution_trace, user_message)
 
-    if resolution_trace.get("resolution_action") == "clarify":
+    if resolution_trace.get("resolution_action") in {"clarify", "respond"}:
         result = _clarification_result(
             resolution_trace,
             continuity_context.get("conversation_context_seed"),
@@ -592,13 +725,14 @@ def chat_ask(req: ChatRequest):
             book_name=book_name,
             subject=subject,
             conversation_id=conversation_id,
-            target_chapters=req.target_chapters or [],
+            target_chapters=target_chapters,
             use_textbook_context=use_textbook_context,
             answer_mode=answer_mode,
             scope_reason=scope_reason,
             continuity_context=continuity_context,
         )
     content = result.get("final_output", "")
+    assistant_message: dict | None = None
     if content.strip():
         assistant_message = append_message(
             conversation_id,
@@ -607,12 +741,17 @@ def chat_ask(req: ChatRequest):
             book_name=book_name,
             subject=subject,
             turn_id=turn_id,
-            sources=result.get("evidence_sources", []),
+            sources=_persisted_evidence_sources(
+                result.get("evidence_sources", []), book_name=book_name,
+                context_versions=context_versions,
+            ),
             linked_concepts=result.get("linked_concepts", []),
             answer_mode=answer_mode,
             scope_reason=scope_reason,
             suggested_answer_mode=str(result.get("suggested_answer_mode") or ""),
             evidence_support_status=str((result.get("evidence_support") or {}).get("status") or ""),
+            request_id=request_id,
+            context_versions=context_versions,
         )
         _safe_record_assistant_ledger(conversation_id, assistant_message)
 
@@ -630,7 +769,7 @@ def chat_ask(req: ChatRequest):
             "total_ms": round((time.perf_counter() - started) * 1000, 2),
             "timings": {"total": round((time.perf_counter() - started) * 1000, 2)},
             "evidence": result.get("retrieval_debug_items", []),
-            "context": _context_trace_payload(resolution_trace, result),
+            "context": _context_trace_payload(resolution_trace, result, context_versions),
             "error": result.get("error", ""),
         })
     except Exception:
@@ -638,6 +777,8 @@ def chat_ask(req: ChatRequest):
 
     return {
         "request_id": request_id,
+        "message_id": str((assistant_message or {}).get("id") or ""),
+        "context_versions": context_versions,
         "content": content,
         "intent": result.get("intent", ""),
         "chapters": result.get("target_chapters", []),
@@ -645,6 +786,8 @@ def chat_ask(req: ChatRequest):
         "sources": result.get("evidence_sources", []),
         "conversation_id": conversation_id,
         "turn_id": turn_id,
+        "book_name": book_name,
+        "subject": subject,
         "subject_suggestion": subject_suggestion,
         "use_textbook_context": use_textbook_context,
         "scope_reason": scope_reason,

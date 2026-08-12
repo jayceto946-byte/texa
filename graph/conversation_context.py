@@ -15,6 +15,7 @@ MAX_CONTEXT_CHAR_BUDGET = 5000
 MAX_RELEVANT_TURNS = 2
 MAX_USER_CHARS = 600
 MAX_ASSISTANT_CHARS = 1400
+CONVERSATION_CONTEXT_POLICY_VERSION = "conversation-context-v1"
 
 
 def _clean_text(value: Any, *, limit: int) -> str:

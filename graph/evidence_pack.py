@@ -1,6 +1,7 @@
 """Build one bounded, deduplicated evidence block for answer generation."""
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from typing import Any
@@ -86,6 +87,11 @@ def _source_label(item: dict) -> str:
     return " / ".join(part for part in parts if part)
 
 
+def _content_fingerprint(text: str) -> str:
+    normalized = _normalized_text(text)
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:24] if normalized else ""
+
+
 def _selected_candidates(
     evidence_items: list[dict],
     chapter_contents: dict[str, list[str]],
@@ -157,6 +163,9 @@ def build_evidence_pack(
             "id": evidence_id,
             "chunk_id": chunk_id,
             "book_name": str(item.get("book_name") or ""),
+            "book_id": str(item.get("book_id") or ""),
+            "corpus_version": str(item.get("corpus_version") or ""),
+            "content_fingerprint": _content_fingerprint(text),
             "chapter": chapter,
             "section_title": str(item.get("section_title") or ""),
             "section_path": _section_path(item),

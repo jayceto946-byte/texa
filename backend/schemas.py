@@ -38,6 +38,34 @@ class SubjectRoutingFeedbackRequest(BaseModel):
     action: str
 
 
+class AnswerFeedbackRequest(BaseModel):
+    conversation_id: str
+    message_id: str
+    rating: str
+    reasons: list[str] = Field(default_factory=list)
+    note: str = Field(default="", max_length=1000)
+
+
+class LearningStateOperationRequest(BaseModel):
+    operation: str
+    learner_id: str = "local_default"
+    book_name: str
+    subject: str = ""
+    conversation_id: str = ""
+    source_id: str = ""
+    goal_id: str = ""
+    target_type: str = ""
+    target_id: str = ""
+    target_name: str = ""
+    chapter_id: str = ""
+    chapter_name: str = ""
+    unit_id: str = ""
+    unit_name: str = ""
+    concept_names: list[str] = Field(default_factory=list)
+    quality: Optional[int] = Field(default=None, ge=0, le=5)
+    reason: str = Field(default="", max_length=500)
+
+
 class ChatEvent(BaseModel):
     stage: str = Field(..., description="plan/retrieve/chapter/generate/done/error")
     intent: Optional[str] = None
@@ -53,6 +81,8 @@ class ChatEvent(BaseModel):
     message: Optional[str] = None
     conversation_id: Optional[str] = None
     turn_id: Optional[str] = None
+    book_name: Optional[str] = None
+    subject: Optional[str] = None
     subject_suggestion: Optional[dict] = None
     rewritten_question: Optional[str] = None
     resolution_action: Optional[str] = None

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Bot, BookOpen, ChevronRight, Globe2, GraduationCap, ShieldAlert, User } from 'lucide-react';
+import { Bot, BookOpen, ChevronRight, Globe2, GraduationCap, ShieldAlert, ThumbsDown, ThumbsUp, User } from 'lucide-react';
 import type { AnswerMode, AssistantSource, ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate, SubjectRouteSuggestion } from '../types';
 import { useChatContext } from '../contexts/ChatContext';
 import { displayNumber, groupSourcesByLocation, parseCitations, partitionSources, type SourceChapterGroup } from '../utils/citations';
@@ -11,10 +11,13 @@ import MistakeQuickCaptureCard from './chat/MistakeQuickCaptureCard';
 import ReportCard from './chat/ReportCard';
 import AgentResultCard from './chat/AgentResultCard';
 import SubjectRouteSuggestionCard from './chat/SubjectRouteSuggestionCard';
+import { post } from '../api/client';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
   content: string;
+  messageId?: string;
+  answerFeedback?: { rating: 'helpful' | 'unhelpful'; reasons?: string[]; updated_at?: string };
   variant?: 'message' | 'document';
   stage?: string;
   linkedConcepts?: ConceptCandidate[];
@@ -66,16 +69,49 @@ const SourceGroupList: React.FC<{ groups: SourceChapterGroup[]; cited: boolean }
   </div>
 );
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, variant = 'message', stage, turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard }) => {
+const feedbackReasons = [
+  ['wrong_object', '答错对象'],
+  ['forgot_context', '忘记前文条件'],
+  ['stale_evidence', '错用旧证据'],
+  ['insufficient_evidence', '教材依据不足'],
+  ['irrelevant_or_repetitive', '答非所问或重复'],
+] as const;
+
+const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard }) => {
   const [showSources, setShowSources] = useState(false);
   const [sourcesExpanded, setSourcesExpanded] = useState(false);
   const [referencesExpanded, setReferencesExpanded] = useState(false);
   const [activeConcept, setActiveConcept] = useState<ConceptCandidate | null>(null);
   const [scopeResolved, setScopeResolved] = useState(false);
+  const [feedback, setFeedback] = useState(answerFeedback);
+  const [feedbackBusy, setFeedbackBusy] = useState(false);
+  const [showFeedbackReasons, setShowFeedbackReasons] = useState(false);
+  const [feedbackError, setFeedbackError] = useState('');
   const sourcesRef = React.useRef<HTMLDivElement | null>(null);
   const referencesRef = React.useRef<HTMLDivElement | null>(null);
   const chapterRef = React.useRef<HTMLDivElement | null>(null);
-  const { bookName, subject } = useChatContext();
+  const { bookName, subject, conversationId } = useChatContext();
+
+  const submitFeedback = async (rating: 'helpful' | 'unhelpful', reasons: string[] = []) => {
+    if (!messageId || feedbackBusy) return;
+    setFeedbackBusy(true);
+    setFeedbackError('');
+    try {
+      const result = await post('/chat/feedback', {
+        conversation_id: conversationId,
+        message_id: messageId,
+        rating,
+        reasons,
+      });
+      if (!result?.success) throw new Error(result?.message || '反馈保存失败');
+      setFeedback({ rating, reasons });
+      setShowFeedbackReasons(false);
+    } catch (error) {
+      setFeedbackError(error instanceof Error ? error.message : '反馈保存失败');
+    } finally {
+      setFeedbackBusy(false);
+    }
+  };
 
   const references = useMemo(() => {
     if (role !== 'assistant') return [];
@@ -330,6 +366,49 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, variant = 'mes
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {showMessageTools && !isUser && stage === 'done' && messageId && (
+          <div className="mt-3 border-t border-border pt-2">
+            <div className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
+              <span className="mr-1">这次回答有帮助吗？</span>
+              <button
+                type="button"
+                disabled={feedbackBusy}
+                aria-label="回答有帮助"
+                onClick={() => void submitFeedback('helpful')}
+                className={`rounded p-1 transition-colors hover:text-accent ${feedback?.rating === 'helpful' ? 'bg-[var(--accent-softer)] text-accent' : ''}`}
+              >
+                <ThumbsUp className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                disabled={feedbackBusy}
+                aria-label="回答没有帮助"
+                onClick={() => setShowFeedbackReasons((value) => !value)}
+                className={`rounded p-1 transition-colors hover:text-[var(--danger)] ${feedback?.rating === 'unhelpful' ? 'bg-red-50 text-[var(--danger)]' : ''}`}
+              >
+                <ThumbsDown className="h-3.5 w-3.5" />
+              </button>
+              {feedback && <span>{feedback.rating === 'helpful' ? '已记录' : '已记录问题'}</span>}
+            </div>
+            {showFeedbackReasons && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {feedbackReasons.map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    disabled={feedbackBusy}
+                    onClick={() => void submitFeedback('unhelpful', [value])}
+                    className="rounded-full border border-border px-2 py-1 text-[11px] text-text-secondary transition-colors hover:border-red-300 hover:text-[var(--danger)]"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+            {feedbackError && <div className="mt-1 text-[11px] text-[var(--danger)]">{feedbackError}</div>}
           </div>
         )}
       </div>
