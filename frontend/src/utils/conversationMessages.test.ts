@@ -11,6 +11,8 @@ describe('mapStoredConversationMessages', () => {
         role: 'assistant',
         content: '矩阵的秩是……',
         answer_mode: 'textbook_grounded',
+        request_id: 'req-1',
+        answer_feedback: { rating: 'unhelpful', reasons: ['forgot_context'] },
         sources: [{ id: 'E1', label: '教材位置' }],
       },
     ]);
@@ -22,6 +24,8 @@ describe('mapStoredConversationMessages', () => {
       stage: 'done',
       originalQuestion: '什么是矩阵的秩？',
       answerMode: 'textbook_grounded',
+      requestId: 'req-1',
+      answerFeedback: { rating: 'unhelpful', reasons: ['forgot_context'] },
     });
     expect(messages[1].sources).toHaveLength(1);
   });

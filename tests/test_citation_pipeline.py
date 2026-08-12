@@ -59,6 +59,7 @@ def test_generate_prompt_uses_evidence_ids_not_human_labels():
     sources = state["evidence_sources"]
     assert [src["id"] for src in sources] == ["E1", "E2"]
     assert sources[0]["label"].startswith("传感器短书")
+    assert all(src["content_fingerprint"] for src in sources)
 
 
 def test_citation_protocol_normalizes_fullwidth_and_folded_tokens():

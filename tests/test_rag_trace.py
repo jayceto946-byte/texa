@@ -26,6 +26,19 @@ def test_rag_trace_round_trip(monkeypatch, tmp_path):
     }]
 
 
+def test_resolver_method_runtime_stats_do_not_claim_accuracy(monkeypatch, tmp_path):
+    monkeypatch.setattr(trace, "TRACE_DB_PATH", tmp_path / "traces.db")
+    trace.save_trace({
+        "request_id": "req-method", "status": "done", "timings": {}, "evidence": [],
+        "context": {"resolution": {
+            "method": "unresolved_reference", "resolution_action": "clarify",
+        }},
+    })
+    result = trace.resolver_method_runtime_stats()
+    assert result["metric_kind"] == "runtime_outcomes_not_accuracy"
+    assert result["methods"][0]["clarification_rate"] == 1.0
+
+
 def test_context_trace_v2_round_trip_is_bounded(monkeypatch, tmp_path):
     monkeypatch.setattr(trace, "TRACE_DB_PATH", tmp_path / "traces.db")
     trace.save_trace({
@@ -49,6 +62,7 @@ def test_context_trace_v2_round_trip_is_bounded(monkeypatch, tmp_path):
                 "referenced_entity": "拉格朗日中值定理",
                 "referenced_entities": ["拉格朗日中值定理"],
                 "referenced_turn_ids": ["turn-1"],
+                "semantic_resolver": {"attempted": True, "error": "timeout"},
                 "state_before": {"topic": "拉格朗日中值定理", "entities": ["拉格朗日中值定理"]},
                 "state_after": {"topic": "拉格朗日中值定理", "intent": "condition"},
             },
@@ -83,6 +97,11 @@ def test_context_trace_v2_round_trip_is_bounded(monkeypatch, tmp_path):
                 "assembled_prompt_chars": 4200,
                 "prompt_body": "must not persist",
             },
+            "versions": {
+                "model_name": "deepseek-v4-pro",
+                "prompt_version": "prompt-v3",
+                "corpus_version": "book-v1",
+            },
         },
     })
 
@@ -96,12 +115,16 @@ def test_context_trace_v2_round_trip_is_bounded(monkeypatch, tmp_path):
         {"operation": "set_topic", "value": "拉格朗日中值定理"},
     ]
     assert context["resolution"]["state_before"]["topic"] == "拉格朗日中值定理"
+    assert context["resolution"]["semantic_attempted"] is True
+    assert context["resolution"]["semantic_error"] == "timeout"
     assert context["retrieval"]["new_evidence_ids"] == ["chunk-1"]
     assert context["conversation_context"]["turn_ids"] == ["turn-1"]
     assert context["conversation_context"]["new_evidence_refs"] == ["E1"]
     assert "text" not in context["conversation_context"]
     assert context["context_budget"]["assembled_prompt_chars"] == 4200
     assert "prompt_body" not in context["context_budget"]
+    assert context["versions"]["prompt_version"] == "prompt-v3"
+    assert context["versions"]["corpus_version"] == "book-v1"
 
 
 def test_context_trace_v2_migrates_v1_database(monkeypatch, tmp_path):
