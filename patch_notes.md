@@ -1,3 +1,82 @@
+# 2026-08-12 - Session Resolver 学习行为收口与 Learning State v1
+
+## Session Resolver 与跨 Session 桥接
+
+- Resolver v2 新增确定性的 `resume_learning`、`start_learning`、`pause_learning`、`set_learning_goal`、`review_request`、`self_report_weakness` speech act。学习命令不推进当前 Session topic；普通新会话问题仍只读取当前 Session Ledger，不继承其他会话的 topic、artifact 或旧指令。
+- 新增受控 `learning_state_bridge.py`：只有显式学习行为才读取长期 Learning State；唯一目标可恢复，多个目标要求用户指定教材，没有目标则要求先选择教材/章节。存储失败保留错误遥测并降级，不阻断普通 QA。
+- SSE/非流式聊天在恢复目标后返回实际 `book_name/subject/conversation_id`；Electron 优先的 React 聊天上下文同步恢复后的 scope，避免下一轮因前端仍持有旧教材作用域而重新切断会话。
+
+## Learning State v1 数据合同
+
+- 将既有 `progress/learning_events.db` 从 schema v1 原位升级到 v2，新增 `learner_id`、稳定 `book_id`、`chapter_id` 与 `unit_id`；旧事件保留并默认归属本地单用户 `local_default`。迁移使用 `PRAGMA user_version`，不删除或重写旧错题、概念、复习和会话数据。
+- 新增纯 `learning_state_reducer.py` 和应用服务 `learning_state.py`。append-only event 是权威事实源，`progress/learning_states/<learner>/<book>.json` 是可删除、可重建投影；状态包括 active goal、当前 chapter/unit、concept evidence、next action 和源事件 ID。
+- 掌握证据保持保守：普通问答/讲解只增加 `exposure`，不会自动提高 mastery；显式不会、错题或低质量评分进入 weak/practicing；至少两次有评分的练习证据后才可能进入 stable。LLM/Router 不能任意写 mastery，只能提交白名单学习 operation，由服务校验后追加事件。
+- 新增 `/api/learning-state` 与 `/api/learning-state/operations`，并把现有练习、错题和概念复习事件补充稳定教材/章节身份。LearningContextPack 与 ConversationContextPack、EvidencePack 分离，教材事实仍只来自本轮 EvidencePack。
+- storage manifest 中 `learning_events` 升级为 v2，并登记 rebuildable Learning State v1。数据库结构变化与验证方式记录于本条；现有特征存储继续兼容，尚未删除旧 `ConceptMemory`、`StudyMemory` 或 SM-2 数据。
+
+## 验证
+
+- Learning State v1/API/旧库迁移专项：10 passed。
+- Resolver、Context 安全、Learning Memory 与迁移组合回归：50 passed；另一次核心组合回归 41 passed。
+- 后端全量：442 passed；仅保留既有 Starlette/httpx2 弃用警告。
+- 前端 ESLint 通过；TypeScript + Vite production build 通过，仅保留既有 MathLive 大 chunk 提示。
+- `git diff --check` 通过；本次未调用外部模型，也未运行付费评测。
+
+# 2026-08-12 - Resolver 模块化、受控语义回退与证据连续性 v2
+
+## Resolver 边界与语义回退
+
+- 将 `session_context.py` 中的引用解析观测、speech act 分类和 state operation 派生拆为独立纯模块；检索动作继续由 `graph/retrieval_policy.py` 独立负责。兼容入口和确定性规则保持不变；接入受控语义编排后主文件为 916 行，低于原先 1000+ 行，且三项职责已有独立测试边界。
+- 新增默认关闭的 `semantic_resolver.py`。只有显式启用且确定性方法为低强度的 `unresolved_reference` / `incomplete_ordinal_resolution` 时才可尝试；模型只能从 Ledger 有界候选中选择一个 `resolve_reference`，或返回 `clarify`。任意新对象、自由 query、多个 operation、`set_topic` 等直接状态写入均被校验拒绝，错误自动保持澄清路径；输出先过滤 thinking。此次未启用、未调用外部模型。
+- RAG Trace 保存 semantic attempted/error 的有界遥测，不保存 semantic prompt、模型原文或 thinking。`confidence_kind` 继续明确为 `rule_strength`，未改称概率或准确率。
+
+## 反馈统计与 active evidence
+
+- 回答反馈通过既有 `request_id` 与 RAG Trace 关联，新增按 resolver method 的运行结果与用户反馈代理统计，不迁移反馈数据库。每个 method 少于 30 条反馈时 `routing_decision_ready=false`；统计明确标记为 feedback proxy/runtime outcome，而非校准准确率。
+- 当前最近 500 条 trace 中可识别 `identity_no_history` 234 条、`unresolved_reference` 28 条（均进入澄清），另有旧 trace/无 method 238 条；当前没有绑定反馈样本，因此不具备启用语义路由的依据，保持默认关闭。
+- EvidencePack source 新增 chunk 内容 SHA-256 截断指纹；assistant 消息和 Session Ledger 的 active evidence 新增教材 ID、教材/索引版本、有效 scope 与失效原因。教材/学科 scope、topic 或 corpus version 变化会记录原因并强制 full retrieval；复用时重新读取 chunk 并校验内容指纹，失配则禁止复用并降级为 full retrieval。
+- 以上均属于兼容的派生元数据扩展；未修改教材索引格式、数据库 schema、错题或学习记录。Retrieval policy version 升级为 `evidence-continuity-v2`，用于反馈与回归版本绑定。
+
+## 验证
+
+- Resolver/语义协议/证据连续性/聊天可靠性专项：56 passed；追加模块与指纹专项均通过。
+- 后端全量：431 passed；仅保留既有 Starlette/httpx2 弃用警告。
+- Context Eval v2 strict：Resolver 100/100、Retrieval 12/12、离线 Answer snapshot 12/12，全部门槛通过。
+- Context Eval v3 离线生产检索：12/12，release gate 通过；本次未再次调用付费 Answer Eval。
+- `git diff --check` 通过。
+
+# 2026-08-11 - Context Eval v3、回答反馈闭环与 Context 安全回归
+
+## 真实回放与生产检索评测
+
+- 新增 `evaluation/context_replay.py`：从本地 append-only 会话筛选用户纠正、话题返回、复杂约束、assistant artifact、多步追问和长会话候选；输出前过滤 thinking，并脱敏 token、邮箱、手机号、身份证号、URL 与本地路径。候选默认写入 `data/eval`，保持 `status=candidate`，只有人工补全期望并标记 `approved` 后才能进入发布评测。
+- 本机现有历史共筛出 7 条困难候选，数量不足计划中的 30-50 条，因此没有把它们冒充真实金标或提交到版本库。负向回答反馈会自动进入同一候选生成链路。
+- 新增 `evaluation/context_eval_v3.py` 与 12 条 `传感器长书` production-corpus/context 合同。Retrieval 层实际运行 Resolver、生产 KG/Chroma/BM25 检索和最终 EvidencePack，不再使用 fixture candidates；首轮真实结果为 9/12，暴露普通数字列表“第四点”解析失败、测量条件纠正丢失原对象，以及一处金标措辞未使用教材原文。修复后二次实跑为 12/12。
+- 真实 Answer Eval 复用生产 `_build_generate_prompt` / `generate_node`，默认完全关闭；必须同时传入 `--online --confirm-paid-model` 才会调用现有 DeepSeek 配置。获得明确授权后已执行 12 条付费 DeepSeek 案例，但首轮 CLI 在全部检索与调用完成后，因 Windows GBK 不能编码回答中的上标字符而在 `print(payload)` 处失败；旧实现又把报告写盘放在打印之后，因此本轮答案与通过率不可恢复，不能表述为 Answer 层已通过，也没有未经授权重复调用。
+- 修复 CLI 报告耐久性：先以 UTF-8 写入评测报告，再尝试控制台输出；控制台编码失败时降级为 ASCII-safe JSON。新增回归测试模拟 GBK 编码异常，保证终端输出故障不再导致付费评测结果丢失。
+- 获得第二轮明确授权后重跑同一批 12 条，报告成功落盘。生产检索为 12/12；原始精确字符串 Answer 合同为 9/12。人工核查确认 3 个失败均为评分误判：“极小/很小”同义表述、“高、低温/高低温”标点差异，以及禁止词错误命中“不适合高频动态测量”的否定语境，并非答案事实或引用失败。
+- Answer scorer 新增同义候选、中文顿号归一化和否定语境感知，针对上述三类误判加入确定性回归。对同一批已保存答案离线重评分为 12/12，在线 Answer 发布门槛通过；重评分未再次调用模型，原始 9/12 报告和修正后 12/12 报告均保留，避免覆盖原始观测。
+
+## 主聊天反馈与版本绑定
+
+- 新增本地 `progress/answer_feedback.db`，支持 helpful/unhelpful 覆盖更新和五类负向原因：答错对象、忘记前文条件、错用旧证据、教材依据不足、答非所问或重复。反馈绑定 `conversation_id/message_id/turn_id/request_id`，并保存 model、prompt、Context policy、retrieval policy 和 corpus version；消息投影保存轻量反馈快照，历史重载后仍可显示。
+- SSE/non-streaming 回答均返回持久化 `message_id`，会话消息和 RAG Trace 同步保存版本标识。前端回答卡新增轻量赞/踩与原因选择，不在 React state updater 中执行副作用。
+- 新增 corpus version 保护：新消息保存教材索引版本；若紧邻回答版本与当前教材版本不同，Evidence Continuity 不再复用旧 chunk，强制走 full retrieval。旧索引没有 manifest 时使用本地 lexical index 的 size/mtime 版本标识，旧历史没有版本字段时保持兼容。
+- `answer_feedback` 加入 storage manifest v1，位于既有 `progress` 备份范围；未修改教材、错题、学习记录或现有向量数据格式。
+
+## Resolver 与安全修复
+
+- Assistant Artifact Index 支持“第四点”等普通中文列表引用；测量条件形式的“我问的是高频动态测量，不是低频”会保留上一轮实体与问题结构，不再退化为缺少对象的泛化解释。
+- 新增历史 prompt injection 边界、教材版本失效、Ledger 损坏重建、并发 Ledger 写入、Agent 风格回答进入普通历史后的连续追问、在线模型失败隔离等回归。
+
+## 验证
+
+- 原 Context Eval v2：Resolver 100/100、fixture Retrieval 12/12、离线 Answer snapshot 12/12，strict gate 通过。
+- Context Eval v3 第二轮：生产检索 12/12；DeepSeek Answer 原始精确匹配 9/12，修复评分器后对相同已保存答案重评分 12/12，online release gate 通过。评分与报告器专项测试 6/6 通过。
+- 后端全量：419 passed；仅保留既有 Starlette/httpx2 弃用警告。
+- 前端：15 files / 70 tests passed；ESLint、TypeScript 与 Vite production build 通过，仅保留既有 MathLive 大 chunk 提示。
+- `git diff --check` 通过。
+
 # 2026-08-10 - venv310 环境重建与依赖锁定修复
 
 ## 原因

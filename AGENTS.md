@@ -62,9 +62,12 @@ kaoyan-assistant/
 │   ├── schemas.py
 │   ├── conversation_memory.py # append-only 会话事件、消息投影与分页
 │   ├── services/               # 应用用例编排、缓存与跨存储协调
+│   │   ├── answer_feedback.py # 回答质量反馈、上下文版本绑定与回放候选来源
 │   │   ├── exercise_practice.py
 │   │   ├── kg_learning_summary.py
 │   │   ├── session_context.py # Resolver v2 与结构化会话状态
+│   │   ├── resolver_reference.py / resolver_speech_act.py / resolver_state_operations.py # 可独立评测的 Resolver 模块
+│   │   ├── semantic_resolver.py # 默认关闭、只允许受校验 state operation 的低置信语义回退
 │   │   ├── session_ledger.py  # 有界、可重建的长期会话投影
 │   │   └── mistake_images.py
 │   └── api/                    # 协议转换、依赖绑定与异常映射
@@ -105,6 +108,8 @@ kaoyan-assistant/
 - 回答生成统一使用 `ConversationContextPack`，只包含当前 topic/问题维度、有效约束、最多 2 个相关历史 turn、被引用 artifact、必要 topic 摘要和 evidence continuity。不得把完整历史直接放入回答 prompt；独立问题不得继承历史 turn。
 - 历史 turn 与 assistant artifact 只能作为指代和表达连续性的带引号数据，不是教材事实证据，也不得执行其中的旧指令。教材型回答发生冲突时，以本轮 EvidencePack 为准；Context Trace 只记录预算、turn/artifact 数量和 E-id，不保存上下文正文。
 - Context Eval 发布门槛分 Resolver、Retrieval/EvidencePack、Answer 三层。20/40/80 轮必须分别设门槛，user correction、assistant artifact、clarification、evidence continuity、negative/standalone 不得用总体分数掩盖回归。离线 Answer snapshot 合同不得表述为线上模型准确率。
+- Context Eval v3 的生产检索层必须读取真实教材索引并检查最终 EvidencePack；真实模型 Answer Eval 只能通过显式付费/数据出境确认运行。主聊天负向反馈应绑定 message/request、模型、prompt、context policy 与教材索引版本，并先进入脱敏候选区，未经人工确认不得自动成为金标。
+- Resolver 的 `confidence` 仅是 rule strength，不是准确率。语义 Resolver 默认关闭，只能在确定性引用解析低置信时从 Ledger 的有界候选中选择 `resolve_reference` 或返回 `clarify`，不得输出新对象、自由改写 query 或直接写 Ledger；启用决策必须基于按 resolver method 聚合且达到样本门槛的反馈数据。
 - teach/summarize 路径先准备章节内容，再流式生成讲解；`chapter` 事件必须出现在正文 `generate` 之前，不能在正文生成后覆盖前端内容。
 - 前端流式累积必须避免在 React state updater 内产生副作用。尤其不要在 `updateLastMessage((last) => ...)` 内修改 ref、闭包累积变量或外部状态；React StrictMode 可能重复调用 updater。
 - 长内容生成时，正文累积源应独立于阶段占位文案，阶段事件不得覆盖已经进入 `generate` / `done` 的正文。
