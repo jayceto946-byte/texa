@@ -1,21 +1,23 @@
 """Mistakes API: CRUD, review, Kimi OCR, and DeepSeek explanations."""
 from __future__ import annotations
 
-import base64
 import json
 import os
 import re
+import time
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 
 from backend.services.mistake_images import MistakeImageStore
+from backend.services.multimodal_bridge import KimiVisionBridge, VisualProblemIR, build_solution_prompt
 
 from backend.schemas import (
     MistakeAddRequest,
     MistakeExplainRequest,
+    MistakeChatRequest,
     MistakeListRequest,
     MistakeRecordOut,
     MistakeReviewRequest,
@@ -27,7 +29,7 @@ from memory.mistake_book import MistakeRecord, get_mistake_book
 from memory.learning_events import LearningEvent, concept_names, get_learning_event_store
 from utils.latex_sanitizer import sanitize_latex
 from utils.subject_catalog import normalize_subject_value
-from utils.thinking_filter import strip_thinking
+from utils.thinking_filter import ThinkingFilter, strip_thinking
 from backend.services.learning_state import resolve_book_identity
 
 router = APIRouter(prefix="/mistakes", tags=["mistakes"])
@@ -87,6 +89,7 @@ def _record_to_out(record: MistakeRecord) -> MistakeRecordOut:
         created_at=record.created_at,
         image_path=record.image_path,
         ocr_text=record.ocr_text,
+        visual_ir=record.visual_ir,
         explanation=record.explanation,
         linked_concepts=record.linked_concepts,
         review_history=record.review_history,
@@ -112,6 +115,7 @@ def _record_from_request(req: MistakeAddRequest, book_name: str = "default") -> 
         difficulty=max(1, min(5, int(req.difficulty or 3))),
         image_path=req.image_path,
         ocr_text=req.ocr_text.strip(),
+        visual_ir=dict(req.visual_ir or {}),
         explanation=sanitize_latex(strip_thinking(req.explanation.strip())) if req.explanation.strip() else "",
     )
 
@@ -185,7 +189,13 @@ def _dedupe_concepts(concepts: list[dict], limit: int = 3) -> list[dict]:
     return result
 
 
-def _link_mistake_concepts(record: MistakeRecord, explanation: str = "", book_name: str = "default") -> list[dict]:
+def _link_mistake_concepts(
+    record: MistakeRecord,
+    explanation: str = "",
+    book_name: str = "default",
+    *,
+    allow_llm_fallback: bool = True,
+) -> list[dict]:
     try:
         from knowledge.concept_linker import ConceptLinker
 
@@ -193,30 +203,29 @@ def _link_mistake_concepts(record: MistakeRecord, explanation: str = "", book_na
         if not getattr(linker.kg, "_is_local", False):
             return []
 
-        concepts: list[dict] = []
-        for keyword in _extract_mistake_keywords_with_llm(record, explanation):
-            linked = linker.link(matched_concepts=[keyword], question=keyword, intent="mistake", limit=1)
-            if not linked:
-                linked = linker.link(question=keyword, intent="mistake", limit=1)
-            for item in linked:
-                item = dict(item)
-                item["confidence"] = 1.0
-                item["source"] = "mistake_llm"
-                item["evidence"] = keyword
-                concepts.append(item)
+        question = "\n".join(part for part in [record.question_text, record.correct_answer] if part)
+        concepts = linker.link(
+            question=question,
+            answer=explanation or record.explanation,
+            tags=record.tags,
+            intent="mistake",
+            limit=3,
+        )
+        for item in concepts:
+            item["confidence"] = max(float(item.get("confidence", 0) or 0), 0.999)
+            item["source"] = "mistake_linker"
 
-        if not concepts:
-            question = "\n".join(part for part in [record.question_text, record.correct_answer] if part)
-            concepts = linker.link(
-                question=question,
-                answer=explanation or record.explanation,
-                tags=record.tags,
-                intent="mistake",
-                limit=3,
-            )
-            for item in concepts:
-                item["confidence"] = max(float(item.get("confidence", 0) or 0), 0.999)
-                item["source"] = "mistake_linker"
+        if not concepts and allow_llm_fallback:
+            for keyword in _extract_mistake_keywords_with_llm(record, explanation):
+                linked = linker.link(matched_concepts=[keyword], question=keyword, intent="mistake", limit=1)
+                if not linked:
+                    linked = linker.link(question=keyword, intent="mistake", limit=1)
+                for item in linked:
+                    item = dict(item)
+                    item["confidence"] = 1.0
+                    item["source"] = "mistake_llm"
+                    item["evidence"] = keyword
+                    concepts.append(item)
 
         return _dedupe_concepts(concepts, limit=3)
     except Exception as e:
@@ -239,67 +248,15 @@ def _persist_mistake_concepts(record: MistakeRecord, explanation: str = "", book
 
 
 
-def _image_data_url(image_path: Path) -> str:
-    mime = "image/jpeg" if image_path.suffix.lower() in {".jpg", ".jpeg"} else "image/png"
-    b64 = base64.b64encode(image_path.read_bytes()).decode("utf-8")
-    return f"data:{mime};base64,{b64}"
-
-
-def _ocr_image_with_kimi(image_path: Path) -> str:
-    moonshot_api_key = os.getenv("MOONSHOT_API_KEY", os.getenv("OPENAI_API_KEY", ""))
-    moonshot_api_base = os.getenv("MOONSHOT_API_BASE", "https://api.moonshot.cn/v1")
-    kimi_vision_model = os.getenv("KIMI_VISION_MODEL", KIMI_VISION_MODEL)
-    if not moonshot_api_key:
-        raise RuntimeError("未配置 MOONSHOT_API_KEY，无法调用 Kimi Vision OCR")
-
-    import httpx
-    from openai import OpenAI
-
-    client = OpenAI(
-        api_key=moonshot_api_key,
-        base_url=moonshot_api_base,
-        http_client=httpx.Client(trust_env=False, timeout=120),
-    )
-    prompt = """请只做 OCR/题目转写，不要解题。
-任务：完整转写图片中的考研数学或专业课错题，包含题干、条件、选项、图表文字、公式和能看清的手写答案。
-要求：
-1. 数学公式使用 LaTeX，行内公式用 $...$，独立公式用 $$...$$。
-2. 保留题目结构，如小问、选项、矩阵、分段函数、约束条件。
-3. 无法确定的字符用 [不确定: ...] 标注，不要臆造。
-4. 只输出转写文本，不要解释、不要解题、不要寒暄。"""
-    resp = client.chat.completions.create(
-        model=kimi_vision_model,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": _image_data_url(image_path)}},
-                ],
-            }
-        ],
-        timeout=120,
-    )
-    return (resp.choices[0].message.content or "").strip()
+def _ocr_image_with_kimi(image_path: Path, *, user_question: str = "", subject: str = "") -> VisualProblemIR:
+    """Compatibility entrypoint for OCR plus visual-semantic extraction."""
+    return KimiVisionBridge().analyze(image_path, user_question=user_question, subject=subject)
 
 def _build_image_solution_prompt(ocr_text: str, user_answer: str = "", subject: str = "", tags: str = "") -> str:
-    return f"""你是考研数学与专业课错题讲解助手。请根据 OCR 转写出的题目内容进行解答。OCR 可能有误，若发现明显识别错误，请先给出你修正后的题意，再开始解题。
-
-## 题目 OCR
-{ocr_text or '（OCR 未识别到文字，请说明无法可靠看清题目，并提示用户手动补充题干。）'}
-
-## 用户答案
-{user_answer or '（未提供）'}
-
-## 学科/标签
-{subject or '（未填写）'} {tags or ''}
-
-## 输出要求
-1. 先复原题意，必要时说明 OCR 不确定处。
-2. 给出完整解题步骤，公式使用 LaTeX。
-3. 如果用户答案不为空，指出具体错误位置。
-4. 最后总结本题考点和易错点。
-直接输出讲解内容，不要寒暄，不要输出 thinking。"""
+    return build_solution_prompt(
+        VisualProblemIR(problem_text=ocr_text, visual_type="text_only"),
+        user_answer=user_answer, subject=subject, tags=tags,
+    )
 
 def _solve_ocr_text(ocr_text: str, user_answer: str = "", subject: str = "", tags: str = "") -> str:
     from config import get_llm
@@ -307,6 +264,49 @@ def _solve_ocr_text(ocr_text: str, user_answer: str = "", subject: str = "", tag
     prompt = _build_image_solution_prompt(ocr_text, user_answer=user_answer, subject=subject, tags=tags)
     result = get_llm().invoke(prompt).content
     return sanitize_latex(strip_thinking(result))
+
+
+def _solve_visual_ir(visual_ir: VisualProblemIR, *, user_question: str = "", user_answer: str = "", subject: str = "", tags: str = "") -> str:
+    from config import get_llm
+
+    prompt = build_solution_prompt(
+        visual_ir, user_question=user_question, user_answer=user_answer,
+        subject=subject, tags=tags,
+    )
+    return sanitize_latex(strip_thinking(
+        get_llm(
+            request_timeout=420,
+            max_retries=0,
+        ).invoke(prompt).content
+    ))
+
+
+def _iter_visual_solution_chunks(
+    visual_ir: VisualProblemIR,
+    *,
+    user_question: str = "",
+    user_answer: str = "",
+    subject: str = "",
+    tags: str = "",
+):
+    """Stream only user-visible answer text; DeepSeek thinking is never emitted."""
+    from config import get_llm
+
+    prompt = build_solution_prompt(
+        visual_ir, user_question=user_question, user_answer=user_answer,
+        subject=subject, tags=tags,
+    )
+    thinking_filter = ThinkingFilter()
+    for chunk in get_llm(
+        request_timeout=420,
+        max_retries=0,
+    ).stream(prompt):
+        clean = thinking_filter.filter(str(getattr(chunk, "content", "") or ""))
+        if clean:
+            yield clean
+    tail = thinking_filter.flush()
+    if tail:
+        yield tail
 
 
 @router.post("/add")
@@ -387,8 +387,8 @@ def recognize_mistake_image(file: UploadFile = File(...)):
     image_path: Path | None = None
     try:
         image_path = _image_store.save_upload(file)
-        ocr_text = _ocr_image_with_kimi(image_path)
-        if not ocr_text:
+        visual_ir = _ocr_image_with_kimi(image_path)
+        if not visual_ir.problem_text and not visual_ir.visual_summary:
             _image_store.delete(image_path)
             return {
                 "success": False,
@@ -397,10 +397,11 @@ def recognize_mistake_image(file: UploadFile = File(...)):
             }
         return {
             "success": True,
-            "message": "Kimi Vision 识别完成，请先校对题干再保存或解答。",
+            "message": "Kimi Vision 已提取题干和图形语义，请校对不确定项后再保存或解答。",
             "image_path": str(image_path),
-            "ocr_text": ocr_text,
-            "ocr_provider": "kimi-vision",
+            "ocr_text": visual_ir.problem_text,
+            "visual_ir": visual_ir.to_dict(),
+            "ocr_provider": "kimi-vision-bridge-v1",
             "optimized": image_path.name.endswith("_ocr.jpg"),
         }
     except Exception as e:
@@ -413,41 +414,334 @@ def solve_mistake_image(
     user_answer: str = Form(""),
     subject: str = Form(""),
     tags: str = Form(""),
+    question: str = Form(""),
+    import_to_mistakes: bool = Form(False),
+    book_name: str = Form("default"),
 ):
     image_path: Path | None = None
     try:
         image_path = _image_store.save_upload(file)
-        ocr_text = _ocr_image_with_kimi(image_path)
-        if not ocr_text:
+        visual_ir = _ocr_image_with_kimi(image_path, user_question=question, subject=subject)
+        if not visual_ir.problem_text and not visual_ir.visual_summary:
             _image_store.delete(image_path)
             return {
                 "success": False,
                 "message": "Kimi Vision 未返回有效 OCR 文本，请手动补充题干后再解答。",
                 "ocr_text": "",
             }
-        explanation = _solve_ocr_text(ocr_text, user_answer=user_answer, subject=subject, tags=tags)
+        explanation = _solve_visual_ir(
+            visual_ir, user_question=question, user_answer=user_answer,
+            subject=subject, tags=tags,
+        )
+        draft = MistakeRecord(
+            question_text=visual_ir.problem_text or visual_ir.visual_summary,
+            user_answer=user_answer, subject=normalize_subject_value(subject, fallback=book_name),
+            tags=_tags_from_text(tags), image_path=str(image_path),
+            ocr_text=visual_ir.problem_text, visual_ir=visual_ir.to_dict(), explanation=explanation,
+            source="问答图片上传",
+        )
+        # The answer is user-facing latency-critical. Link against the local KG
+        # only; an extra LLM concept-extraction call must not delay delivery.
+        linked_concepts = _link_mistake_concepts(
+            draft, explanation=explanation, book_name=book_name,
+            allow_llm_fallback=False,
+        )
+        if linked_concepts:
+            try:
+                from knowledge.concept_memory import ConceptMemory
+
+                ConceptMemory(book_name).log_exposure(
+                    linked_concepts, visual_ir.problem_text or question, "image_qa",
+                    source="chat_image", subject=draft.subject,
+                )
+            except Exception as exc:
+                print(f"[ConceptMemory] image QA exposure failed: {exc}", flush=True)
+        mistake_id = ""
+        if import_to_mistakes:
+            committed_path, _ = _image_store.commit_pending(str(image_path))
+            image_path = Path(committed_path)
+            draft.image_path = committed_path
+            draft.linked_concepts = linked_concepts
+            mistake_id = _mb(book_name).add(draft)
+            _log_learning_event("mistake_added", book_name=book_name, record=draft, payload={"origin": "chat_image"})
         return {
             "success": True,
-            "message": "已由 Kimi Vision 识题，并交给 DeepSeek 生成讲解。请校对 OCR 文本。",
+            "message": "Kimi Vision 已把题干与图形关系交给 DeepSeek 讲解，请校对视觉不确定项。",
             "image_path": str(image_path),
-            "ocr_text": ocr_text,
-            "ocr_provider": "kimi-vision",
+            "ocr_text": visual_ir.problem_text,
+            "visual_ir": visual_ir.to_dict(),
+            "ocr_provider": "kimi-vision-bridge-v1",
             "optimized": image_path.name.endswith("_ocr.jpg"),
             "explanation": explanation,
+            "linked_concepts": linked_concepts,
+            "mistake_id": mistake_id,
         }
     except Exception as e:
         _image_store.delete(image_path)
         return {"success": False, "message": f"讲解失败: {e}"}
 
+
+def _sse_event(stage: str, *, activity: dict | None = None, **payload) -> str:
+    event = {"stage": stage, **payload}
+    if activity:
+        event["activity"] = activity
+    return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+
+
+def _stream_solution_events(
+    visual_ir: VisualProblemIR,
+    *,
+    user_question: str,
+    user_answer: str,
+    subject: str,
+    tags: str,
+    reason_label: str,
+    reason_detail: str,
+):
+    """Yield observable reasoning/generation events and return the final answer."""
+    step_started = time.perf_counter()
+    yield _sse_event("activity", activity={
+        "id": "reason", "kind": "reasoning", "label": reason_label,
+        "status": "active", "detail": reason_detail,
+    })
+    chunks: list[str] = []
+    first_visible_chunk = True
+    for chunk in _iter_visual_solution_chunks(
+        visual_ir,
+        user_question=user_question,
+        user_answer=user_answer,
+        subject=subject,
+        tags=tags,
+    ):
+        if first_visible_chunk:
+            first_visible_chunk = False
+            yield _sse_event("activity", activity={
+                "id": "reason", "kind": "reasoning", "label": reason_label,
+                "status": "completed", "detail": "已形成可展示的解题路径",
+                "duration_ms": round((time.perf_counter() - step_started) * 1000, 2),
+            })
+        chunks.append(chunk)
+        yield _sse_event("generate", chunk=chunk, done=False, activity={
+            "id": "generate", "kind": "generation", "label": "生成答案",
+            "status": "active", "detail": "正在逐步输出正式讲解",
+        })
+
+    if first_visible_chunk:
+        yield _sse_event("activity", activity={
+            "id": "reason", "kind": "reasoning", "label": reason_label,
+            "status": "completed", "detail": "推理已结束，未产生可展示正文",
+            "duration_ms": round((time.perf_counter() - step_started) * 1000, 2),
+        })
+    raw_explanation = "".join(chunks).strip()
+    explanation = sanitize_latex(raw_explanation)
+    if explanation != raw_explanation:
+        yield _sse_event("generate", chunk=explanation, replace=True, done=False, activity={
+            "id": "generate", "kind": "generation", "label": "生成答案",
+            "status": "active", "detail": "正在规范公式与答案格式",
+        })
+    yield _sse_event("generate", chunk="", done=True, activity={
+        "id": "generate", "kind": "generation", "label": "生成答案",
+        "status": "completed", "detail": "正式讲解已生成",
+    })
+    return explanation
+
+
+@router.post("/solve-image-stream")
+def solve_mistake_image_stream(
+    file: UploadFile = File(...),
+    user_answer: str = Form(""),
+    subject: str = Form(""),
+    tags: str = Form(""),
+    question: str = Form(""),
+    import_to_mistakes: bool = Form(False),
+    book_name: str = Form("default"),
+):
+    """Observable image solution path. Each event reflects completed real work."""
+    def events():
+        image_path: Path | None = None
+        started = time.perf_counter()
+        try:
+            step_started = time.perf_counter()
+            image_path = _image_store.save_upload(file)
+            yield _sse_event("activity", activity={
+                "id": "attachment", "kind": "tool", "label": "读取题目图片",
+                "status": "completed", "detail": "图片已安全接收并完成尺寸优化",
+                "duration_ms": round((time.perf_counter() - step_started) * 1000, 2),
+            })
+
+            yield _sse_event("activity", activity={
+                "id": "vision", "kind": "tool", "label": "Kimi 识别图片",
+                "status": "active", "detail": "正在提取题干、公式、图形实体与连接关系",
+            })
+            step_started = time.perf_counter()
+            visual_ir = _ocr_image_with_kimi(image_path, user_question=question, subject=subject)
+            if not visual_ir.problem_text and not visual_ir.visual_summary:
+                raise RuntimeError("Kimi Vision 未返回有效题目内容")
+            entity_count = len(visual_ir.entities)
+            relation_count = len(visual_ir.relations)
+            uncertainty_count = len(visual_ir.uncertainties)
+            yield _sse_event("activity", activity={
+                "id": "vision", "kind": "tool", "label": "Kimi 识别图片",
+                "status": "completed",
+                "detail": f"识别为 {visual_ir.visual_type}；{entity_count} 个实体、{relation_count} 条关系、{uncertainty_count} 处不确定项",
+                "duration_ms": round((time.perf_counter() - step_started) * 1000, 2),
+                "meta": {"visual_type": visual_ir.visual_type, "uncertainties": visual_ir.uncertainties[:5]},
+            })
+
+            explanation = yield from _stream_solution_events(
+                visual_ir,
+                user_question=question,
+                user_answer=user_answer,
+                subject=subject,
+                tags=tags,
+                reason_label="综合题干与视觉关系",
+                reason_detail="正在依据结构化视觉证据组织可验证的解题步骤",
+            )
+
+            draft = MistakeRecord(
+                question_text=visual_ir.problem_text or visual_ir.visual_summary,
+                user_answer=user_answer, subject=normalize_subject_value(subject, fallback=book_name),
+                tags=_tags_from_text(tags), image_path=str(image_path),
+                ocr_text=visual_ir.problem_text, visual_ir=visual_ir.to_dict(), explanation=explanation,
+                source="问答图片上传",
+            )
+            linked_concepts = _link_mistake_concepts(
+                draft, explanation=explanation, book_name=book_name, allow_llm_fallback=False,
+            )
+            if linked_concepts:
+                try:
+                    from knowledge.concept_memory import ConceptMemory
+                    ConceptMemory(book_name).log_exposure(
+                        linked_concepts, visual_ir.problem_text or question, "image_qa",
+                        source="chat_image", subject=draft.subject,
+                    )
+                except Exception as exc:
+                    print(f"[ConceptMemory] image QA exposure failed: {exc}", flush=True)
+
+            mistake_id = ""
+            if import_to_mistakes:
+                committed_path, _ = _image_store.commit_pending(str(image_path))
+                image_path = Path(committed_path)
+                draft.image_path = committed_path
+                draft.linked_concepts = linked_concepts
+                mistake_id = _mb(book_name).add(draft)
+                _log_learning_event("mistake_added", book_name=book_name, record=draft, payload={"origin": "chat_image"})
+            yield _sse_event("done", done=True, result={
+                "success": True, "explanation": explanation, "linked_concepts": linked_concepts,
+                "question_text": visual_ir.problem_text, "visual_ir": visual_ir.to_dict(),
+                "image_path": str(image_path), "mistake_id": mistake_id,
+            }, activity={
+                "id": "memory", "kind": "memory", "label": "关联学习记录",
+                "status": "completed" if linked_concepts or mistake_id else "skipped",
+                "detail": (
+                    f"已关联 {len(linked_concepts)} 个概念" + ("并导入错题本" if mistake_id else "")
+                    if linked_concepts or mistake_id else "未发现可靠概念，未写入错题本"
+                ),
+            }, total_ms=round((time.perf_counter() - started) * 1000, 2))
+        except GeneratorExit:
+            raise
+        except Exception as exc:
+            _image_store.delete(image_path)
+            yield _sse_event("error", done=True, message=str(exc), activity={
+                "id": "error", "kind": "system", "label": "处理失败",
+                "status": "failed", "detail": str(exc),
+            })
+
+    return StreamingResponse(events(), media_type="text/event-stream")
+
+
+@router.post("/solve-cached")
+def solve_cached_mistake(req: MistakeChatRequest):
+    """Explain a stored mistake from its cached Visual IR without re-uploading."""
+    book_name = req.book_name or "default"
+    record = _mb(book_name).get(req.id)
+    if not record:
+        return {"success": False, "message": "错题不存在"}
+    try:
+        visual_ir = (
+            VisualProblemIR.from_dict(record.visual_ir)
+            if record.visual_ir
+            else VisualProblemIR(problem_text=record.question_text or record.ocr_text, visual_type="text_only")
+        )
+        explanation = _solve_visual_ir(
+            visual_ir, user_question=req.question, user_answer=req.user_answer or record.user_answer,
+            subject=record.subject, tags=", ".join(record.tags),
+        )
+        concepts = record.linked_concepts or _link_mistake_concepts(
+            record, explanation=explanation, book_name=book_name,
+            allow_llm_fallback=False,
+        )
+        if concepts and not record.linked_concepts:
+            record.linked_concepts = concepts
+            _mb(book_name).update(record)
+        return {
+            "success": True, "explanation": explanation, "linked_concepts": concepts,
+            "question_text": record.question_text, "mistake_id": record.id,
+            "visual_ir": visual_ir.to_dict(),
+        }
+    except Exception as exc:
+        return {"success": False, "message": f"讲解失败: {exc}"}
+
+
+@router.post("/solve-cached-stream")
+def solve_cached_mistake_stream(req: MistakeChatRequest):
+    def events():
+        book_name = req.book_name or "default"
+        record = _mb(book_name).get(req.id)
+        if not record:
+            yield _sse_event("error", done=True, message="错题不存在", activity={
+                "id": "cache", "kind": "tool", "label": "读取历史错题", "status": "failed", "detail": "错题不存在",
+            })
+            return
+        try:
+            visual_ir = VisualProblemIR.from_dict(record.visual_ir) if record.visual_ir else VisualProblemIR(
+                problem_text=record.question_text or record.ocr_text, visual_type="text_only",
+            )
+            yield _sse_event("activity", activity={
+                "id": "cache", "kind": "tool", "label": "读取历史错题", "status": "completed",
+                "detail": "已复用缓存的题干与视觉表示" if record.visual_ir else "旧记录无视觉缓存，使用题干文本降级",
+            })
+            explanation = yield from _stream_solution_events(
+                visual_ir,
+                user_question=req.question,
+                user_answer=req.user_answer or record.user_answer,
+                subject=record.subject,
+                tags=", ".join(record.tags),
+                reason_label="重新组织解题思路",
+                reason_detail="正在结合历史题目、用户追问和已有概念重新讲解",
+            )
+            concepts = record.linked_concepts or _link_mistake_concepts(
+                record, explanation=explanation, book_name=book_name, allow_llm_fallback=False,
+            )
+            if concepts and not record.linked_concepts:
+                record.linked_concepts = concepts
+                _mb(book_name).update(record)
+            yield _sse_event("done", done=True, result={
+                "success": True, "explanation": explanation, "linked_concepts": concepts,
+                "question_text": record.question_text, "mistake_id": record.id, "visual_ir": visual_ir.to_dict(),
+            }, activity={
+                "id": "memory", "kind": "memory", "label": "读取概念记录",
+                "status": "completed" if concepts else "skipped", "detail": f"已关联 {len(concepts)} 个概念" if concepts else "没有可靠概念标签",
+            })
+        except Exception as exc:
+            yield _sse_event("error", done=True, message=str(exc), activity={
+                "id": "error", "kind": "system", "label": "处理失败", "status": "failed", "detail": str(exc),
+            })
+    return StreamingResponse(events(), media_type="text/event-stream")
+
 @router.post("/solve-text")
 def solve_mistake_text(req: MistakeAddRequest):
     try:
-        explanation = _solve_ocr_text(
-            req.question_text.strip(),
-            user_answer=req.user_answer.strip(),
-            subject=req.subject.strip(),
-            tags=req.tags.strip(),
-        )
+        if req.visual_ir:
+            explanation = _solve_visual_ir(
+                VisualProblemIR.from_dict(req.visual_ir),
+                user_answer=req.user_answer.strip(), subject=req.subject.strip(), tags=req.tags.strip(),
+            )
+        else:
+            explanation = _solve_ocr_text(
+                req.question_text.strip(), user_answer=req.user_answer.strip(),
+                subject=req.subject.strip(), tags=req.tags.strip(),
+            )
         return {"success": True, "explanation": explanation}
     except Exception as e:
         return {"success": False, "message": f"讲解失败: {e}"}

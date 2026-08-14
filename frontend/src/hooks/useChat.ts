@@ -3,6 +3,7 @@ import { AGENT_FALLBACK_TIMEOUT_MS, chatAsk, chatStream, post, runReadOnlyAgent 
 import { useChatContext } from '../contexts/ChatContext';
 import type { AnswerMode, ConceptCandidate } from '../types';
 import { classifyLearningAgentIntent, learningAgentFallbackStatus, learningAgentStatus } from '../utils/learningAgentRouting';
+import { mergeChatActivity } from '../utils/chatActivities';
 
 const USE_NON_STREAMING = import.meta.env.VITE_USE_NON_STREAMING === 'true';
 
@@ -54,12 +55,20 @@ export function useChat() {
         content: agentIntent ? learningAgentStatus(agentIntent) : '',
         stage: agentIntent ? 'agent' : 'thinking',
         turnId,
+        activities: agentIntent ? [{ id: 'agent', kind: 'tool', label: '调用学习工具', status: 'active', detail: learningAgentStatus(agentIntent) }] : [],
       });
 
       const fail = (message: string) => {
         if (requestId !== requestSequenceRef.current) return;
         setActiveChatAbort(null);
-        updateLastMessage((last) => last.role === 'assistant' ? { ...last, content: `出错了：${message}`, stage: 'error' } : last);
+        updateLastMessage((last) => last.role === 'assistant' ? {
+          ...last,
+          content: `出错了：${message}`,
+          stage: 'error',
+          activities: (last.activities || []).map((activity) => activity.status === 'active'
+            ? { ...activity, status: 'failed' as const, detail: message }
+            : activity),
+        } : last);
         setLoading(false);
       };
 
@@ -89,6 +98,9 @@ export function useChat() {
               ...last,
               content,
               stage: 'done',
+              activities: mergeChatActivity(last.activities, {
+                id: 'agent', kind: 'tool', label: '调用学习工具', status: 'completed', detail: '学习工具执行完成',
+              }),
               turnId,
               originalQuestion: question,
               agentCard: { question, response: result },
@@ -117,6 +129,9 @@ export function useChat() {
               ...last,
               content: learningAgentFallbackStatus(),
               stage: 'agent',
+              activities: mergeChatActivity(last.activities, {
+                id: 'agent', kind: 'tool', label: '调用学习工具', status: 'failed', detail: '工具路径不可用，正在降级为普通回答',
+              }),
             } : last);
             try {
               const result = await chatAsk(
@@ -137,6 +152,9 @@ export function useChat() {
                 ...last,
                 content: result.content,
                 stage: 'done',
+                activities: mergeChatActivity(last.activities, {
+                  id: 'fallback', kind: 'generation', label: '生成普通回答', status: 'completed', detail: '降级回答已完成',
+                }),
                 linkedConcepts: result.linked_concepts || [],
                 sources: (result.sources || []).slice(0, 12),
                 sourceChapters: result.chapters || [],
@@ -218,6 +236,7 @@ export function useChat() {
             scopeReasonRef.current = event.scope_reason || '';
             updateLastMessage((last) => last.role === 'assistant' ? {
               ...last,
+              activities: mergeChatActivity(last.activities, event.activity),
               answerMode: answerModeRef.current,
               scopeReason: scopeReasonRef.current,
               originalQuestion: question,
@@ -242,6 +261,12 @@ export function useChat() {
           updateLastMessage((last) => {
             if (last.role !== 'assistant') return last;
             const next = { ...last };
+            const existingActivities = event.stage === 'error'
+              ? (last.activities || []).map((activity) => activity.status === 'active'
+                ? { ...activity, status: 'failed' as const, detail: event.message || '后端生成失败' }
+                : activity)
+              : last.activities;
+            next.activities = mergeChatActivity(existingActivities, event.activity);
             switch (event.stage) {
               case 'plan':
                 if (last.stage !== 'generate' && last.stage !== 'done') {
@@ -314,9 +339,12 @@ export function useChat() {
     cancelActiveChat();
     updateLastMessage((last) => {
       if (last.role !== 'assistant' || last.stage === 'done' || last.stage === 'error') return last;
-      if (last.stage === 'agent') return { ...last, content: '已停止学习工具调用。', stage: 'stopped' };
+      const activities = (last.activities || []).map((activity) => activity.status === 'active'
+        ? { ...activity, status: 'skipped' as const, detail: '用户已停止本次处理' }
+        : activity);
+      if (last.stage === 'agent') return { ...last, content: '已停止学习工具调用。', stage: 'stopped', activities };
       const content = streamContentRef.current.trim() || (last.content && !last.content.endsWith('...') ? last.content : '已停止生成。');
-      return { ...last, content, stage: 'stopped' };
+      return { ...last, content, stage: 'stopped', activities };
     });
     setLoading(false);
   }, [cancelActiveChat, setLoading, updateLastMessage]);

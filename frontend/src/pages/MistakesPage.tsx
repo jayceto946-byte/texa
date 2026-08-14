@@ -12,24 +12,17 @@ import {
   Loader2,
   Plus,
   Search,
-  SlidersHorizontal,
   TrendingUp,
   Trash2,
   Upload,
-  X,
 } from 'lucide-react';
-import { apiFetch, del, get, post } from '../api/client';
+import { apiFetch, del, get, IMAGE_RECOGNITION_TIMEOUT_MS, IMAGE_SOLUTION_TIMEOUT_MS, post } from '../api/client';
 import ChatMessage from '../components/ChatMessage';
 import ScopeSelector, { type ScopeBookOption } from '../components/ScopeSelector';
 import { StatusBanner } from '../components/ui/AsyncState';
 import { useChatContext } from '../contexts/ChatContext';
-import {
-  clamp,
-  renderProcessedImage,
-  type CropState,
-  type ImageAdjust,
-} from '../features/mistakes/imageProcessing';
-import { MistakeMetric, MistakeRange } from '../features/mistakes/components/MistakePresentation';
+import ProblemImageEditor from '../features/mistakes/components/ProblemImageEditor';
+import { MistakeMetric } from '../features/mistakes/components/MistakePresentation';
 import { useVisibleList } from '../hooks/useVisibleList';
 import type { MistakeRecord, MistakeStats, WeakPoint } from '../types';
 import { useMistakeReview } from '../features/mistakes/hooks/useMistakeReview';
@@ -47,19 +40,10 @@ type MistakeForm = {
   tags: string;
   difficulty: number;
   ocr_text: string;
+  visual_ir: Record<string, unknown>;
   explanation: string;
   mistake_type: string[];
   image_path?: string;
-};
-
-type CropDragMode = 'draw' | 'move' | 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
-type CropDragState = {
-  mode: CropDragMode;
-  originX: number;
-  originY: number;
-  startX: number;
-  startY: number;
-  startCrop: CropState;
 };
 
 const EMPTY_FORM: MistakeForm = {
@@ -72,23 +56,12 @@ const EMPTY_FORM: MistakeForm = {
   tags: '',
   difficulty: 3,
   ocr_text: '',
+  visual_ir: {},
   explanation: '',
   mistake_type: [],
   image_path: undefined,
 };
 
-const DEFAULT_CROP: CropState = { x: 5, y: 8, w: 90, h: 78 };
-const cropHandles: { mode: Exclude<CropDragMode, 'draw' | 'move'>; className: string; cursor: string }[] = [
-  { mode: 'nw', className: '-left-2 -top-2', cursor: 'nwse-resize' },
-  { mode: 'n', className: 'left-1/2 -top-2 -translate-x-1/2', cursor: 'ns-resize' },
-  { mode: 'ne', className: '-right-2 -top-2', cursor: 'nesw-resize' },
-  { mode: 'e', className: '-right-2 top-1/2 -translate-y-1/2', cursor: 'ew-resize' },
-  { mode: 'se', className: '-bottom-2 -right-2', cursor: 'nwse-resize' },
-  { mode: 's', className: '-bottom-2 left-1/2 -translate-x-1/2', cursor: 'ns-resize' },
-  { mode: 'sw', className: '-bottom-2 -left-2', cursor: 'nesw-resize' },
-  { mode: 'w', className: '-left-2 top-1/2 -translate-y-1/2', cursor: 'ew-resize' },
-];
-const DEFAULT_ADJUST: ImageAdjust = { brightness: 112, contrast: 138, sharpen: 35, grayscale: true };
 const MISTAKE_TYPE_OPTIONS = ['概念不清', '公式记错', '计算错误', '思路卡住', '粗心/审题错误'];
 const qualityLabels = ['完全不会', '很吃力', '勉强', '基本会', '熟练', '秒杀'];
 
@@ -128,8 +101,6 @@ const MistakesPage: React.FC = () => {
   const [rawPreview, setRawPreview] = useState('');
   const [imagePreview, setImagePreview] = useState('');
   const [cropOpen, setCropOpen] = useState(false);
-  const [crop, setCrop] = useState<CropState>(DEFAULT_CROP);
-  const [adjust, setAdjust] = useState<ImageAdjust>(DEFAULT_ADJUST);
   const [uploadMessage, setUploadMessage] = useState('');
   const [ocrLoading, setOcrLoading] = useState(false);
   const [solveLoading, setSolveLoading] = useState(false);
@@ -138,8 +109,6 @@ const MistakesPage: React.FC = () => {
   const [savedRecord, setSavedRecord] = useState<MistakeRecord | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const cropStageRef = useRef<HTMLDivElement>(null);
-  const cropDragRef = useRef<CropDragState | null>(null);
   const explanationRef = useRef('');
   const subjectSuggestions = Array.from(new Set([...records.map((item) => item.subject || '').filter(Boolean), ...books.map((book) => book.subject || '').filter(Boolean)]));
   const mistakeList = useVisibleList(records, 30, `${bookName}|${subjectFilter}`);
@@ -311,8 +280,6 @@ const MistakesPage: React.FC = () => {
     setImageFile(null);
     setRawPreview(URL.createObjectURL(file));
     setImagePreview('');
-    setCrop(DEFAULT_CROP);
-    setAdjust(DEFAULT_ADJUST);
     setCropOpen(true);
     setUploadMessage('');
     setExplanation('');
@@ -320,6 +287,7 @@ const MistakesPage: React.FC = () => {
     setSavedRecord(null);
     setField('question_text', '');
     setField('ocr_text', '');
+    setField('visual_ir', {});
     setField('explanation', '');
   };
 
@@ -328,10 +296,7 @@ const MistakesPage: React.FC = () => {
     if (nextFile) acceptFile(nextFile);
   };
 
-  const applyImageProcessing = async () => {
-    if (!rawFile) return;
-    setUploadMessage('正在生成 OCR 工作图...');
-    const processed = await renderProcessedImage(rawFile, crop, adjust);
+  const applyImageProcessing = (processed: { file: File; preview: string }) => {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImageFile(processed.file);
     setImagePreview(processed.preview);
@@ -376,7 +341,11 @@ const MistakesPage: React.FC = () => {
     }
 
     try {
-      const res = await apiFetch(`/mistakes/${solve ? 'solve-image' : 'recognize-image'}`, { method: 'POST', body: fd });
+      const res = await apiFetch(
+        `/mistakes/${solve ? 'solve-image' : 'recognize-image'}`,
+        { method: 'POST', body: fd },
+        solve ? IMAGE_SOLUTION_TIMEOUT_MS : IMAGE_RECOGNITION_TIMEOUT_MS,
+      );
       const data = await res.json();
       setUploadMessage(data.message || (data.success ? '处理完成' : '处理失败'));
       if (data.image_path) setField('image_path', data.image_path);
@@ -385,6 +354,7 @@ const MistakesPage: React.FC = () => {
         setField('question_text', data.ocr_text);
         setField('ocr_text', data.ocr_text);
       }
+      if (data.visual_ir) setField('visual_ir', data.visual_ir);
       if (data.explanation) {
         explanationRef.current = data.explanation;
         setExplanation(data.explanation);
@@ -570,135 +540,6 @@ const MistakesPage: React.FC = () => {
       </div>
     </div>
   );
-  const pointToCropPercent = (event: React.PointerEvent<HTMLDivElement>) => {
-    const rect = cropStageRef.current?.getBoundingClientRect();
-    if (!rect || rect.width <= 0 || rect.height <= 0) return null;
-    return {
-      x: clamp(((event.clientX - rect.left) / rect.width) * 100, 0, 100),
-      y: clamp(((event.clientY - rect.top) / rect.height) * 100, 0, 100),
-    };
-  };
-
-  const startCropDrag = (mode: CropDragMode, event: React.PointerEvent<HTMLDivElement>) => {
-    const point = pointToCropPercent(event);
-    if (!point) return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    cropDragRef.current = {
-      mode,
-      originX: point.x,
-      originY: point.y,
-      startX: point.x,
-      startY: point.y,
-      startCrop: crop,
-    };
-    if (mode === 'draw') {
-      setCrop({ x: point.x, y: point.y, w: 1, h: 1 });
-    }
-  };
-
-  const updateCropDrag = (event: React.PointerEvent<HTMLDivElement>) => {
-    const drag = cropDragRef.current;
-    if (!drag) return;
-    const point = pointToCropPercent(event);
-    if (!point) return;
-    event.preventDefault();
-
-    const minSize = 5;
-    const dx = point.x - drag.startX;
-    const dy = point.y - drag.startY;
-    const start = drag.startCrop;
-
-    if (drag.mode === 'draw') {
-      const left = clamp(Math.min(drag.originX, point.x), 0, 100 - minSize);
-      const top = clamp(Math.min(drag.originY, point.y), 0, 100 - minSize);
-      const right = clamp(Math.max(drag.originX, point.x), left + minSize, 100);
-      const bottom = clamp(Math.max(drag.originY, point.y), top + minSize, 100);
-      setCrop({ x: left, y: top, w: right - left, h: bottom - top });
-      return;
-    }
-
-    if (drag.mode === 'move') {
-      setCrop({
-        ...start,
-        x: clamp(start.x + dx, 0, 100 - start.w),
-        y: clamp(start.y + dy, 0, 100 - start.h),
-      });
-      return;
-    }
-
-    let left = start.x;
-    let top = start.y;
-    let right = start.x + start.w;
-    let bottom = start.y + start.h;
-
-    if (drag.mode.includes('w')) left = clamp(start.x + dx, 0, right - minSize);
-    if (drag.mode.includes('e')) right = clamp(start.x + start.w + dx, left + minSize, 100);
-    if (drag.mode.includes('n')) top = clamp(start.y + dy, 0, bottom - minSize);
-    if (drag.mode.includes('s')) bottom = clamp(start.y + start.h + dy, top + minSize, 100);
-
-    setCrop({ x: left, y: top, w: right - left, h: bottom - top });
-  };
-
-  const finishCropDrag = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!cropDragRef.current) return;
-    event.preventDefault();
-    cropDragRef.current = null;
-  };
-
-  const renderCropModal = () => {
-    if (!cropOpen || !rawPreview) return null;
-    return (
-      <div className="app-overlay-enter fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-        <div className="app-large-dialog-enter grid max-h-[92vh] w-full max-w-6xl grid-cols-1 gap-4 overflow-y-auto rounded-xl border border-border bg-bg-primary p-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium text-text-primary"><Crop className="h-4 w-4 text-accent" /> 裁剪错题区域</div>
-              <button onClick={() => setCropOpen(false)} className="rounded p-1 text-text-secondary hover:text-text-primary"><X className="h-5 w-5" /></button>
-            </div>
-            <div
-              ref={cropStageRef}
-              className="relative mx-auto max-h-[70vh] max-w-full touch-none select-none overflow-hidden rounded border border-border bg-bg-secondary"
-              onPointerDown={(e) => startCropDrag('draw', e)}
-              onPointerMove={updateCropDrag}
-              onPointerUp={finishCropDrag}
-              onPointerCancel={finishCropDrag}
-            >
-              <img src={rawPreview} alt="原图" draggable={false} className="max-h-[70vh] w-full select-none object-contain" style={{ filter: `brightness(${adjust.brightness}%) contrast(${adjust.contrast}%)${adjust.grayscale ? ' grayscale(100%)' : ''}` }} />
-              <div
-                className="absolute cursor-move border-2 border-accent bg-accent/10 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]"
-                style={{ left: `${crop.x}%`, top: `${crop.y}%`, width: `${crop.w}%`, height: `${crop.h}%` }}
-                onPointerDown={(e) => startCropDrag('move', e)}
-              >
-                <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-accent/85 px-2 py-1 text-[11px] font-medium text-white shadow-sm">拖动选框</div>
-                {cropHandles.map((handle) => (
-                  <div
-                    key={handle.mode}
-                    className={`absolute h-3.5 w-3.5 rounded-full border-2 border-white bg-accent shadow-sm ${handle.className}`}
-                    style={{ cursor: handle.cursor }}
-                    onPointerDown={(e) => startCropDrag(handle.mode, e)}
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="rounded-lg border border-border bg-bg-card px-3 py-2 text-xs leading-5 text-text-secondary">
-              拖动蓝色选框移动区域，拖拽圆点调整大小；也可以在图片上重新拖出一个新区域。
-            </div>
-          </div>
-          <div className="space-y-4 rounded-xl border border-border bg-bg-card p-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-text-primary"><SlidersHorizontal className="h-4 w-4 text-accent" /> 扫描增强</div>
-            <MistakeRange label="亮度" value={adjust.brightness} min={70} max={150} onChange={(v) => setAdjust((a) => ({ ...a, brightness: v }))} suffix="%" />
-            <MistakeRange label="对比度" value={adjust.contrast} min={80} max={200} onChange={(v) => setAdjust((a) => ({ ...a, contrast: v }))} suffix="%" />
-            <MistakeRange label="锐化" value={adjust.sharpen} min={0} max={100} onChange={(v) => setAdjust((a) => ({ ...a, sharpen: v }))} suffix="%" />
-            <label className="flex items-center gap-2 text-sm text-text-primary"><input type="checkbox" checked={adjust.grayscale} onChange={(e) => setAdjust((a) => ({ ...a, grayscale: e.target.checked }))} className="accent-accent" />黑白扫描效果</label>
-            <button onClick={applyImageProcessing} className="w-full rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover">使用该区域</button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const hasEntryDraft = Boolean(rawFile || imageFile || form.question_text.trim() || form.user_answer.trim() || form.correct_answer.trim());
 
   return (
@@ -781,6 +622,14 @@ const MistakesPage: React.FC = () => {
                   </div>
                   <div className="space-y-3">
                     {(imagePreview || rawPreview) && <img src={imagePreview || rawPreview} alt="错题原图对照" className="max-h-[190px] w-full rounded-lg border border-border bg-bg-primary object-contain" />}
+                    {Boolean(form.visual_ir.visual_type) && (
+                      <div className="rounded-xl border border-accent/25 bg-[var(--accent-softer)] p-3 text-xs text-text-secondary">
+                        <div className="font-medium text-text-primary">视觉解析：{String(form.visual_ir.visual_type)}</div>
+                        {Array.isArray(form.visual_ir.uncertainties) && form.visual_ir.uncertainties.length > 0 && (
+                          <div className="mt-1.5">请重点核对：{form.visual_ir.uncertainties.map(String).join('；')}</div>
+                        )}
+                      </div>
+                    )}
                     <textarea placeholder="你的答案，可选" value={form.user_answer} onChange={(e) => setField('user_answer', e.target.value)} className="min-h-[90px] w-full rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm outline-none focus:border-accent" />
                     <textarea placeholder="正确答案，可选" value={form.correct_answer} onChange={(e) => setField('correct_answer', e.target.value)} className="min-h-[90px] w-full rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm outline-none focus:border-accent" />
                     <button onClick={() => uploadForOcr(true)} disabled={!imageFile || ocrLoading || solveLoading} className="app-secondary-button w-full disabled:opacity-45">{solveLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4" />}根据图片生成讲解</button>
@@ -916,7 +765,13 @@ const MistakesPage: React.FC = () => {
           </div>
         )}
       </div>
-      {renderCropModal()}
+      <ProblemImageEditor
+        file={rawFile}
+        open={cropOpen}
+        title="裁剪错题区域"
+        onCancel={() => setCropOpen(false)}
+        onApply={applyImageProcessing}
+      />
     </div>
   );
 };

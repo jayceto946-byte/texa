@@ -7,6 +7,7 @@ from PIL import Image
 
 from backend.api import mistakes
 from backend.services.mistake_images import MistakeImageStore
+from backend.services.multimodal_bridge import VisualProblemIR
 
 
 def _upload(name: str, data: bytes) -> UploadFile:
@@ -58,7 +59,7 @@ def test_recognition_failure_removes_pending_image(tmp_path, monkeypatch):
     store = _store(tmp_path)
     monkeypatch.setattr(mistakes, "_image_store", store)
 
-    def fail_ocr(_path):
+    def fail_ocr(_path, **_kwargs):
         raise RuntimeError("vision unavailable")
 
     monkeypatch.setattr(mistakes, "_ocr_image_with_kimi", fail_ocr)
@@ -66,6 +67,26 @@ def test_recognition_failure_removes_pending_image(tmp_path, monkeypatch):
 
     assert result["success"] is False
     assert not any(store.pending_root.iterdir())
+
+
+def test_recognition_returns_visual_ir(tmp_path, monkeypatch):
+    store = _store(tmp_path)
+    monkeypatch.setattr(mistakes, "_image_store", store)
+    monkeypatch.setattr(
+        mistakes,
+        "_ocr_image_with_kimi",
+        lambda _path, **_kwargs: VisualProblemIR(
+            problem_text="求电路输出",
+            visual_type="circuit",
+            relations=[{"type": "connected_to", "source": "R1", "target": "C1"}],
+        ),
+    )
+
+    result = mistakes.recognize_mistake_image(_upload("circuit.png", b"image"))
+
+    assert result["success"] is True
+    assert result["ocr_text"] == "求电路输出"
+    assert result["visual_ir"]["visual_type"] == "circuit"
 
 
 def test_successful_optimization_replaces_raw_upload(tmp_path):

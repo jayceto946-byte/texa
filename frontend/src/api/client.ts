@@ -1,9 +1,11 @@
-import type { AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ConceptCandidate, SubjectRouteSuggestion } from '../types';
+import type { AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ChatActivity, ConceptCandidate, SubjectRouteSuggestion } from '../types';
 
 const DEFAULT_TIMEOUT_MS = 20000;
 export const AGENT_REQUEST_TIMEOUT_MS = 55000;
 export const AGENT_FALLBACK_TIMEOUT_MS = 60000;
 const NON_STREAMING_CHAT_TIMEOUT_MS = 130000;
+export const IMAGE_SOLUTION_TIMEOUT_MS = 6 * 60 * 1000;
+export const IMAGE_RECOGNITION_TIMEOUT_MS = 3 * 60 * 1000;
 const API_TOKEN_KEY = 'kaoyan_api_token';
 const DESKTOP_API_BASE_KEY = 'kaoyan_desktop_api_base';
 
@@ -91,18 +93,47 @@ export type ChatEvent = {
   suggested_answer_mode?: AnswerMode;
   retrieval_status?: string;
   retrieval_error?: string;
+  activity?: ChatActivity;
+  result?: {
+    success?: boolean;
+    explanation?: string;
+    linked_concepts?: ConceptCandidate[];
+    question_text?: string;
+    mistake_id?: string;
+    visual_ir?: Record<string, unknown>;
+  };
   state?: { linked_concepts?: ConceptCandidate[]; evidence_sources?: AssistantSource[]; suggested_answer_mode?: AnswerMode };
 };
 
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
   const ctrl = new AbortController();
-  const timer = window.setTimeout(() => ctrl.abort(), timeoutMs);
+  let timedOut = false;
+  let abortedBySource = false;
+  const timer = window.setTimeout(() => {
+    timedOut = true;
+    ctrl.abort(new DOMException(`请求超过 ${Math.ceil(timeoutMs / 1000)} 秒`, 'TimeoutError'));
+  }, timeoutMs);
   const sourceSignal = init.signal;
-  const abortFromSource = () => ctrl.abort();
-  if (sourceSignal?.aborted) ctrl.abort();
+  const abortFromSource = () => {
+    abortedBySource = true;
+    ctrl.abort(sourceSignal?.reason);
+  };
+  if (sourceSignal?.aborted) abortFromSource();
   else sourceSignal?.addEventListener('abort', abortFromSource, { once: true });
   try {
     return await fetch(input, { ...init, headers: authHeaders(init.headers), signal: ctrl.signal });
+  } catch (error) {
+    if (timedOut) {
+      throw new Error(
+        `请求处理超时（${Math.ceil(timeoutMs / 1000)} 秒）。图片识别或模型服务响应较慢，请重试。`,
+        { cause: error },
+      );
+    }
+    if (abortedBySource) throw new Error('请求已取消', { cause: error });
+    if (error instanceof Error && /signal is aborted|aborterror|aborted/i.test(`${error.name} ${error.message}`)) {
+      throw new Error('请求被中止。请确认应用窗口未刷新，并重新提交。', { cause: error });
+    }
+    throw error;
   } finally {
     window.clearTimeout(timer);
     sourceSignal?.removeEventListener('abort', abortFromSource);
@@ -255,6 +286,53 @@ export function chatStream(
   })();
 
   return () => ctrl.abort();
+}
+
+export function mistakeSolutionStream(
+  path: '/mistakes/solve-image-stream' | '/mistakes/solve-cached-stream',
+  payload: FormData | Record<string, unknown>,
+  onEvent: (event: ChatEvent) => void,
+  onError?: (error: Error) => void,
+): () => void {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => {
+    controller.abort(new DOMException('图片讲解超时', 'TimeoutError'));
+  }, IMAGE_SOLUTION_TIMEOUT_MS);
+
+  (async () => {
+    try {
+      const isForm = payload instanceof FormData;
+      const response = await fetch(apiUrl(path), {
+        method: 'POST',
+        headers: authHeaders(isForm ? undefined : { 'Content-Type': 'application/json' }),
+        body: isForm ? payload : JSON.stringify(payload),
+        signal: controller.signal,
+      });
+      if (!response.ok || !response.body) throw await responseError(response, '图片讲解流启动失败');
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let terminal = false;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const parsed = consumeSseChunk(decoder.decode(value, { stream: true }), buffer, onEvent);
+        buffer = parsed.buffer;
+        terminal = terminal || parsed.sawTerminalEvent;
+      }
+      terminal = flushSseBuffer(buffer + decoder.decode(), onEvent) || terminal;
+      if (!terminal && !controller.signal.aborted) throw new Error('图片讲解流意外结束');
+    } catch (error) {
+      if (controller.signal.aborted) {
+        if (controller.signal.reason?.name === 'TimeoutError') onError?.(new Error('图片讲解超时，请稍后重试', { cause: error }));
+        return;
+      }
+      onError?.(error instanceof Error ? error : new Error(String(error)));
+    } finally {
+      window.clearTimeout(timer);
+    }
+  })();
+  return () => controller.abort(new DOMException('用户取消', 'AbortError'));
 }
 
 export async function chatAsk(

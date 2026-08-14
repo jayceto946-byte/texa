@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BookMarked, CalendarDays, ImagePlus, Send, Shuffle, Square } from 'lucide-react';
-import { get, post } from '../api/client';
+import { BookMarked, CalendarDays, ImagePlus, Send, Shuffle, Square, X } from 'lucide-react';
+import { get, mistakeSolutionStream, post } from '../api/client';
 
 import HighlightRepositoryDialog from '../components/HighlightRepositoryDialog';
 import ChatHomePanel, { type ChatHomeConceptPlan, type ChatHomeDueMistake, type ChatHomeLearningSummary } from '../components/chat/ChatHomePanel';
@@ -9,13 +9,15 @@ import ScopeSelector from '../components/ScopeSelector';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useChatContext, type ChatMessage as ContextChatMessage } from '../contexts/ChatContext';
 import { composeMathQuestion } from '../features/math-input/composeMathQuestion';
+import ProblemImageEditor from '../features/mistakes/components/ProblemImageEditor';
 import { insertFormulaReference } from '../features/math-input/formulaReferences';
 import MathExpressionList from '../features/math-input/MathExpressionList';
 import type { MathEditRequest, MathExpression } from '../features/math-input/types';
 import VisualMathInputPopover from '../features/math-input/VisualMathInputPopover';
 import { useChat } from '../hooks/useChat';
-import type { ExerciseRecord } from '../types';
+import type { ExerciseRecord, MistakeRecord } from '../types';
 import { mapStoredConversationMessages } from '../utils/conversationMessages';
+import { mergeChatActivity } from '../utils/chatActivities';
 import { buildTextbookScopeOptions, findDefaultTextbookScope, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
 type ReportMode = 'daily' | 'weekly';
 type ActionMode = ReportMode | 'exercise';
@@ -75,6 +77,15 @@ const ChatPage: React.FC = () => {
   const [booksLoaded, setBooksLoaded] = useState(false);
   const [highlightDialogOpen, setHighlightDialogOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState<ActionMode | null>(null);
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [rawAttachmentFile, setRawAttachmentFile] = useState<File | null>(null);
+  const [attachmentPreview, setAttachmentPreview] = useState('');
+  const [attachmentEditorOpen, setAttachmentEditorOpen] = useState(false);
+  const [importAttachment, setImportAttachment] = useState(false);
+  const [attachmentLoading, setAttachmentLoading] = useState(false);
+  const [mistakePickerOpen, setMistakePickerOpen] = useState(false);
+  const [cachedMistakes, setCachedMistakes] = useState<MistakeRecord[]>([]);
+  const [selectedMistakeId, setSelectedMistakeId] = useState('');
   const { messages, isLoading, sendMessage, stop } = useChat();
   const {
     bookName,
@@ -83,6 +94,7 @@ const ChatPage: React.FC = () => {
     setSubject,
     conversationId,
     addMessage,
+    updateLastMessage,
     historyPage,
     prependConversationMessages,
   } = useChatContext();
@@ -90,6 +102,8 @@ const ChatPage: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const preserveHistoryScrollRef = useRef<{ height: number; top: number } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const visualAbortRef = useRef<(() => void) | null>(null);
   const mathExpressionSequenceRef = useRef(0);
   const mathEditSequenceRef = useRef(0);
   const subjectSuggestions = Array.from(new Set(books.map((book) => book.subject || '').filter(Boolean)));
@@ -198,10 +212,143 @@ const ChatPage: React.FC = () => {
     if (target) void switchBook(target.name);
   }, [bookName, booksLoaded, scopeBooks, setBookName, subject, switchBook]);
 
+  const clearAttachment = () => {
+    if (attachmentPreview) URL.revokeObjectURL(attachmentPreview);
+    setAttachmentFile(null);
+    setRawAttachmentFile(null);
+    setAttachmentPreview('');
+    setAttachmentEditorOpen(false);
+    if (attachmentInputRef.current) attachmentInputRef.current.value = '';
+  };
+
+  const selectAttachment = (file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    clearAttachment();
+    setSelectedMistakeId('');
+    setRawAttachmentFile(file);
+    setAttachmentEditorOpen(true);
+  };
+
+  const applyAttachmentProcessing = (processed: { file: File; preview: string }) => {
+    if (attachmentPreview) URL.revokeObjectURL(attachmentPreview);
+    setAttachmentFile(processed.file);
+    setAttachmentPreview(processed.preview);
+    setAttachmentEditorOpen(false);
+  };
+
+  const loadCachedMistakes = async () => {
+    setMistakePickerOpen((open) => !open);
+    if (cachedMistakes.length) return;
+    try {
+      const query = bookName ? `?book_name=${encodeURIComponent(bookName)}` : '';
+      const result = await post(`/mistakes/list${query}`, { subject, limit: 30 });
+      setCachedMistakes(result?.data || []);
+    } catch {
+      setCachedMistakes([]);
+    }
+  };
+
+  const submitVisualQuestion = (question: string) => {
+    if (attachmentLoading) return;
+    setAttachmentLoading(true);
+    const label = attachmentFile
+      ? `📎 ${attachmentFile.name}\n\n${question || '请完整讲解这道题'}`
+      : `从历史错题讲解：${firstLine(cachedMistakes.find((item) => item.id === selectedMistakeId)?.question_text || '')}\n\n${question || '请重新讲解这道错题'}`;
+    addMessage({ role: 'user', content: label });
+    addMessage({ role: 'assistant', content: '', stage: 'thinking', activities: [] });
+    let payload: FormData | Record<string, unknown>;
+    let path: '/mistakes/solve-image-stream' | '/mistakes/solve-cached-stream';
+    if (attachmentFile) {
+      const form = new FormData();
+      form.append('file', attachmentFile);
+      form.append('question', question || '请完整讲解这道题');
+      form.append('subject', subject);
+      form.append('book_name', bookName || 'default');
+      form.append('import_to_mistakes', String(importAttachment));
+      path = '/mistakes/solve-image-stream';
+      payload = form;
+    } else {
+      path = '/mistakes/solve-cached-stream';
+      payload = { id: selectedMistakeId, question: question || '请重新讲解这道错题', book_name: bookName || 'default' };
+    }
+    setInput('');
+    setMathExpressions([]);
+    setMathEditRequest(null);
+    setSelectedMistakeId('');
+    setMistakePickerOpen(false);
+    setImportAttachment(false);
+    clearAttachment();
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    let finalContent = '';
+    visualAbortRef.current = mistakeSolutionStream(path, payload, (event) => {
+      if (event.stage === 'generate' && event.chunk) finalContent = event.replace ? event.chunk : finalContent + event.chunk;
+      updateLastMessage((last) => last.role === 'assistant' ? {
+        ...last,
+        content: finalContent || last.content,
+        stage: event.stage === 'error' ? 'error' : event.stage === 'done' ? 'done' : event.stage === 'generate' ? 'generate' : last.stage,
+        activities: mergeChatActivity(
+          event.stage === 'error'
+            ? (last.activities || []).map((activity) => activity.status === 'active'
+              ? { ...activity, status: 'failed' as const, detail: event.message || '图片处理失败' }
+              : activity)
+            : last.activities,
+          event.activity,
+        ),
+        linkedConcepts: event.result?.linked_concepts || last.linkedConcepts,
+      } : last);
+      if (event.stage === 'done') {
+        visualAbortRef.current = null;
+        setAttachmentLoading(false);
+        void persistLocalExchange(label, finalContent);
+      } else if (event.stage === 'error') {
+        visualAbortRef.current = null;
+        setAttachmentLoading(false);
+        updateLastMessage((last) => last.role === 'assistant' ? { ...last, content: `图片处理失败：${event.message || '未知错误'}`, stage: 'error' } : last);
+      }
+    }, (error) => {
+      visualAbortRef.current = null;
+      setAttachmentLoading(false);
+      updateLastMessage((last) => last.role === 'assistant' ? {
+        ...last, content: `图片处理失败：${error.message}`, stage: 'error',
+        activities: mergeChatActivity(last.activities, { id: 'request', kind: 'system', label: '请求中断', status: 'failed', detail: error.message }),
+      } : last);
+    });
+  };
+
+  const stopVisualQuestion = () => {
+    visualAbortRef.current?.();
+    visualAbortRef.current = null;
+    setAttachmentLoading(false);
+    updateLastMessage((last) => {
+      if (last.role !== 'assistant' || last.stage === 'done' || last.stage === 'error') return last;
+      const activities = (last.activities || []).map((activity) => (
+        activity.status === 'active'
+          ? { ...activity, status: 'skipped' as const, detail: '用户已停止本次处理' }
+          : activity
+      ));
+      return {
+        ...last,
+        content: last.content || '已停止图片讲解。',
+        stage: 'stopped',
+        activities,
+      };
+    });
+  };
+
+  useEffect(() => () => {
+    visualAbortRef.current?.();
+    visualAbortRef.current = null;
+  }, []);
+
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     const question = composeMathQuestion(input, mathExpressions);
-    if (!question || isLoading) return;
+    if ((!question && !attachmentFile && !selectedMistakeId) || isLoading || attachmentLoading) return;
+    if (attachmentFile || selectedMistakeId) {
+      submitVisualQuestion(question);
+      return;
+    }
     sendMessage(question);
     setInput('');
     setMathExpressions([]);
@@ -456,14 +603,50 @@ const ChatPage: React.FC = () => {
             )}
             {messages.map((msg, i) => (
               <ErrorBoundary key={msg.id || `${msg.turnId || 'message'}-${i}`}>
-                <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => sendMessage(question, { answerMode: 'global_general' })} onRequestSuggestedAnswer={(question, answerMode) => sendMessage(question, { answerMode })} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} agentCard={msg.agentCard} />
+                <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => sendMessage(question, { answerMode: 'global_general' })} onRequestSuggestedAnswer={(question, answerMode) => sendMessage(question, { answerMode })} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} agentCard={msg.agentCard} />
               </ErrorBoundary>
             ))}
           </div>
         </div>
 
         <div className="chat-composer border-t border-border bg-bg-secondary/86 p-2 backdrop-blur sm:p-4">
+          {(attachmentPreview || selectedMistakeId) && (
+            <div className="mx-auto mb-2 flex max-w-5xl items-center gap-3 rounded-xl border border-accent/30 bg-bg-card p-2.5">
+              {attachmentPreview ? (
+                <img src={attachmentPreview} alt="待解析的题目附件" className="h-14 w-14 rounded-lg object-cover" />
+              ) : (
+                <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-accent"><BookMarked className="h-5 w-5" /></div>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium text-text-primary">
+                  {attachmentFile?.name || firstLine(cachedMistakes.find((item) => item.id === selectedMistakeId)?.question_text || '历史错题')}
+                </div>
+                {attachmentFile && (
+                  <label className="mt-1 inline-flex items-center gap-1.5 text-xs text-text-secondary">
+                    <input type="checkbox" checked={importAttachment} onChange={(event) => setImportAttachment(event.target.checked)} className="accent-accent" />
+                    解答后导入错题本
+                  </label>
+                )}
+              </div>
+              <button type="button" aria-label="移除附件" onClick={() => { clearAttachment(); setSelectedMistakeId(''); }} className="rounded-lg p-2 text-text-secondary hover:bg-bg-secondary"><X className="h-4 w-4" /></button>
+            </div>
+          )}
+          {mistakePickerOpen && (
+            <div className="mx-auto mb-2 max-h-52 max-w-5xl overflow-y-auto rounded-xl border border-border bg-bg-card p-2 shadow-lg">
+              {cachedMistakes.length ? cachedMistakes.map((mistake) => (
+                <button key={mistake.id} type="button" onClick={() => { clearAttachment(); setSelectedMistakeId(mistake.id); setMistakePickerOpen(false); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-bg-secondary">
+                  <div className="truncate text-sm text-text-primary">{firstLine(mistake.question_text || mistake.ocr_text || '未命名错题', 80)}</div>
+                  <div className="mt-0.5 text-xs text-text-secondary">{mistake.subject || '未分类'} · {(mistake.tags || []).join('、') || '无标签'}</div>
+                </button>
+              )) : <div className="px-3 py-5 text-center text-sm text-text-secondary">当前范围没有可用的历史错题</div>}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="mx-auto flex max-w-5xl items-end gap-2">
+            <input ref={attachmentInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" className="hidden" onChange={(event) => selectAttachment(event.target.files?.[0])} />
+            <div className="flex flex-shrink-0 gap-1">
+              <button type="button" disabled={isLoading || attachmentLoading} aria-label="上传题目图片" title="上传题目图片" onClick={() => attachmentInputRef.current?.click()} className="chat-image-upload-button flex h-11 items-center justify-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 text-text-secondary hover:border-accent/40 hover:text-accent disabled:opacity-50"><ImagePlus className="h-4 w-4" /><span className="text-xs">图片</span></button>
+              <button type="button" disabled={isLoading || attachmentLoading} title="选择历史错题" onClick={() => void loadCachedMistakes()} className="flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-bg-card text-text-secondary hover:border-accent/40 hover:text-accent disabled:opacity-50"><BookMarked className="h-4 w-4" /></button>
+            </div>
             <VisualMathInputPopover
               disabled={isLoading}
               editRequest={mathEditRequest}
@@ -483,16 +666,16 @@ const ChatPage: React.FC = () => {
                 onChange={handleInput}
                 onKeyDown={handleKeyDown}
                 placeholder={mathExpressions.length ? '继续描述问题，点击公式编号可引用…' : '输入问题...'}
-                disabled={isLoading}
+                disabled={isLoading || attachmentLoading}
                 className="max-h-[108px] min-h-[40px] w-full resize-none overflow-y-auto border-0 bg-transparent px-4 py-2 type-body text-text-primary outline-none shadow-none placeholder-text-secondary focus:shadow-none sm:max-h-[160px] sm:min-h-[48px] sm:px-5 sm:py-3"
               />
             </div>
-            {isLoading ? (
-              <button type="button" onClick={stop} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-red-300 bg-red-50 text-red-700 transition-colors hover:bg-red-100">
+            {isLoading || attachmentLoading ? (
+              <button type="button" onClick={attachmentLoading ? stopVisualQuestion : stop} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-red-300 bg-red-50 text-red-700 transition-colors hover:bg-red-100" aria-label="停止生成" title="停止生成">
                 <Square className="h-4 w-4 fill-current" />
               </button>
             ) : (
-              <button type="submit" disabled={!input.trim() && mathExpressions.length === 0} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-accent text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40">
+              <button type="submit" disabled={attachmentLoading || (!input.trim() && mathExpressions.length === 0 && !attachmentFile && !selectedMistakeId)} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-accent text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40">
                 <Send className="h-4 w-4" />
               </button>
             )}
@@ -543,6 +726,13 @@ const ChatPage: React.FC = () => {
         currentBookName={bookName}
 
         onClose={() => setHighlightDialogOpen(false)}
+      />
+      <ProblemImageEditor
+        file={rawAttachmentFile}
+        open={attachmentEditorOpen}
+        title="裁剪并增强题目图片"
+        onCancel={() => { setAttachmentEditorOpen(false); setRawAttachmentFile(null); if (attachmentInputRef.current) attachmentInputRef.current.value = ''; }}
+        onApply={applyAttachmentProcessing}
       />
     </div>
   );

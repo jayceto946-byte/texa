@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Bot, BookOpen, ChevronRight, Globe2, GraduationCap, ShieldAlert, ThumbsDown, ThumbsUp, User } from 'lucide-react';
-import type { AnswerMode, AssistantSource, ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate, SubjectRouteSuggestion } from '../types';
+import type { AnswerMode, AssistantSource, ChatActivity, ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate, SubjectRouteSuggestion } from '../types';
 import { useChatContext } from '../contexts/ChatContext';
 import { displayNumber, groupSourcesByLocation, parseCitations, partitionSources, type SourceChapterGroup } from '../utils/citations';
 import ConceptPopover from './ConceptPopover';
@@ -12,6 +12,7 @@ import ReportCard from './chat/ReportCard';
 import AgentResultCard from './chat/AgentResultCard';
 import SubjectRouteSuggestionCard from './chat/SubjectRouteSuggestionCard';
 import { post } from '../api/client';
+import ExecutionTrace from './chat/ExecutionTrace';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -20,6 +21,7 @@ interface ChatMessageProps {
   answerFeedback?: { rating: 'helpful' | 'unhelpful'; reasons?: string[]; updated_at?: string };
   variant?: 'message' | 'document';
   stage?: string;
+  activities?: ChatActivity[];
   linkedConcepts?: ConceptCandidate[];
   sources?: AssistantSource[];
   sourceChapters?: string[];
@@ -77,7 +79,7 @@ const feedbackReasons = [
   ['irrelevant_or_repetitive', '答非所问或重复'],
 ] as const;
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard }) => {
   const [showSources, setShowSources] = useState(false);
   const [sourcesExpanded, setSourcesExpanded] = useState(false);
   const [referencesExpanded, setReferencesExpanded] = useState(false);
@@ -218,6 +220,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
           </div>
         )}
 
+        {!isUser && activities.length > 0 && <ExecutionTrace activities={activities} stage={stage} />}
+
         {agentCard ? (
           <AgentResultCard card={agentCard} />
         ) : reportCard ? (
@@ -228,14 +232,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
           <ExerciseCard card={exerciseCard} bookName={bookName} />
         ) : utilityCard?.kind === 'mistake_quick_capture' ? (
           <MistakeQuickCaptureCard bookName={bookName} subject={subject} />
-        ) : isThinking ? (
+        ) : isThinking && activities.length === 0 ? (
           <div className="flex items-center gap-2 py-2 text-text-secondary">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-accent" />
             <span className="text-sm">{stage === 'agent' ? content || '正在调用学习工具…' : '思考中...'}</span>
           </div>
-        ) : (
+        ) : content.trim() ? (
           <MarkdownMessage content={content} linkedConcepts={isUser ? [] : linkedConcepts} onConceptClick={setActiveConcept} citationIds={validIds} />
-        )}
+        ) : null}
 
         {!isUser && stage === 'done' && answerMode === 'subject_mismatch' && originalQuestion && onRequestGlobalAnswer && !scopeResolved && (
           <div className="mt-3 rounded-lg border border-accent/25 bg-[var(--accent-softer)] px-3 py-2">

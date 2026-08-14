@@ -2,6 +2,19 @@
 
 export type AnswerMode = 'auto' | 'textbook_grounded' | 'subject_general' | 'global_general' | 'subject_mismatch';
 
+export type ActivityStatus = 'pending' | 'active' | 'completed' | 'skipped' | 'failed';
+export type ActivityKind = 'analysis' | 'tool' | 'evidence' | 'reasoning' | 'generation' | 'memory' | 'system';
+
+export interface ChatActivity {
+  id: string;
+  kind: ActivityKind;
+  label: string;
+  status: ActivityStatus;
+  detail?: string;
+  duration_ms?: number;
+  meta?: Record<string, unknown>;
+}
+
 export interface ChatRequest {
   question: string;
   book_name?: string;
@@ -11,7 +24,7 @@ export interface ChatRequest {
 }
 
 export interface ChatEvent {
-  stage: 'context' | 'plan' | 'retrieve' | 'chapter' | 'generate' | 'done' | 'error';
+  stage: 'context' | 'activity' | 'plan' | 'retrieve' | 'chapter' | 'generate' | 'done' | 'error';
   intent?: string;
   chapters?: string[];
   fast_path?: boolean;
@@ -26,6 +39,15 @@ export interface ChatEvent {
   done?: boolean;
   enriched?: boolean;
   message?: string;
+  activity?: ChatActivity;
+  result?: {
+    success?: boolean;
+    explanation?: string;
+    linked_concepts?: ConceptCandidate[];
+    question_text?: string;
+    mistake_id?: string;
+    visual_ir?: Record<string, unknown>;
+  };
   state?: {
     linked_concepts?: ConceptCandidate[];
     evidence_sources?: AssistantSource[];
@@ -98,6 +120,7 @@ export interface MistakeRecord {
   created_at: string;
   image_path?: string;
   ocr_text?: string;
+  visual_ir?: Record<string, unknown>;
   explanation?: string;
   linked_concepts?: ConceptCandidate[];
   review_history?: ReviewHistoryItem[];

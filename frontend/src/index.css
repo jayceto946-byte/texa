@@ -923,6 +923,12 @@ body:has(.desktop-window-controls) .app-page-header {
   border-radius: 10px;
 }
 
+.app-shell[data-layout="compact"] .chat-composer form .chat-image-upload-button {
+  width: auto;
+  min-width: 64px;
+  padding-inline: 0.65rem;
+}
+
 .app-shell[data-layout="compact"] .chat-composer form .math-input-panel button {
   width: auto;
   height: auto;

@@ -46,6 +46,7 @@ class MistakeRecord:
     image_path: Optional[str] = None
     notes: str = ""
     ocr_text: str = ""
+    visual_ir: dict = field(default_factory=dict)
     explanation: str = ""
     linked_concepts: list[dict] = field(default_factory=list)
     id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])

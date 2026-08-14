@@ -92,6 +92,7 @@ class ChatEvent(BaseModel):
     suggested_answer_mode: Optional[str] = None
     retrieval_status: Optional[str] = None
     retrieval_error: Optional[str] = None
+    activity: Optional[dict] = None
 
 
 class MistakeRecordOut(BaseModel):
@@ -109,6 +110,7 @@ class MistakeRecordOut(BaseModel):
     created_at: str = ""
     image_path: Optional[str] = None
     ocr_text: str = ""
+    visual_ir: dict = Field(default_factory=dict)
     explanation: str = ""
     linked_concepts: list[dict] = Field(default_factory=list)
     review_history: list[dict] = Field(default_factory=list)
@@ -128,6 +130,7 @@ class MistakeAddRequest(BaseModel):
     difficulty: int = Field(default=3, ge=1, le=5)
     image_path: Optional[str] = None
     ocr_text: str = ""
+    visual_ir: dict = Field(default_factory=dict)
     explanation: str = ""
 
 
@@ -146,6 +149,13 @@ class MistakeReviewRequest(BaseModel):
 
 class MistakeExplainRequest(BaseModel):
     id: str
+    book_name: str = ""
+
+
+class MistakeChatRequest(BaseModel):
+    id: str
+    question: str = "请重新讲解这道错题"
+    user_answer: str = ""
     book_name: str = ""
 
 

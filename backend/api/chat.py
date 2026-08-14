@@ -48,6 +48,60 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
 
 
+def _activity_for_chat_event(event: dict) -> dict | None:
+    """Describe real completed/active work without exposing model reasoning."""
+    stage = str(event.get("stage") or "")
+    duration_ms = event.get("stage_ms")
+    if stage == "plan":
+        chapters = [str(item) for item in event.get("chapters") or [] if str(item)]
+        return {
+            "id": "understand", "kind": "analysis", "label": "理解问题与确定范围",
+            "status": "completed",
+            "detail": f"已定位到：{'、'.join(chapters[:3])}" if chapters else "已识别问题意图与回答范围",
+            "duration_ms": duration_ms,
+        }
+    if stage == "retrieve":
+        ordinary = event.get("use_textbook_context") is False or event.get("retrieval_status") == "ordinary_qa"
+        failed = bool(event.get("retrieval_error"))
+        count = int(event.get("content_count") or 0)
+        return {
+            "id": "retrieve", "kind": "tool", "label": "检索教材上下文",
+            "status": "failed" if failed else ("skipped" if ordinary else "completed"),
+            "detail": str(event.get("retrieval_error") or (
+                "本题不需要教材证据" if ordinary else f"已整理 {count} 条相关教材内容"
+            )),
+            "duration_ms": duration_ms,
+        }
+    if stage == "chapter":
+        return {
+            "id": "evidence", "kind": "evidence", "label": "整理教材证据",
+            "status": "completed",
+            "detail": f"已准备 {int(event.get('content_count') or 0)} 项章节内容",
+            "duration_ms": duration_ms,
+        }
+    if stage == "generate":
+        return {
+            "id": "generate", "kind": "generation", "label": "生成答案",
+            "status": "completed" if event.get("done") else "active",
+            "detail": "答案生成完成" if event.get("done") else "正在把证据与推导组织成讲解",
+            "duration_ms": duration_ms,
+        }
+    if stage == "done":
+        state = event.get("state") or {}
+        concepts = state.get("linked_concepts") or []
+        return {
+            "id": "memory", "kind": "memory", "label": "关联学习记录",
+            "status": "completed" if concepts else "skipped",
+            "detail": f"已关联 {len(concepts)} 个核心概念；学习记录在后台更新" if concepts else "本轮没有可靠的概念标签",
+        }
+    if stage == "error":
+        return {
+            "id": "error", "kind": "system", "label": "回答中断",
+            "status": "failed", "detail": str(event.get("message") or "后端生成失败"),
+        }
+    return None
+
+
 def _persisted_evidence_sources(
     sources: list | None,
     *,
@@ -455,6 +509,21 @@ def chat_stream(req: ChatRequest):
         assistant_message: dict | None = None
         suggested_answer_mode = ""
         disconnected = False
+        reason_active = False
+        reason_started_at: float | None = None
+        evidence_active = False
+        generation_handoff_done = False
+
+        def activity_sse(activity: dict) -> str:
+            event = {
+                "stage": "activity",
+                "activity": activity,
+                "request_id": request_id,
+                "conversation_id": conversation_id,
+                "turn_id": turn_id,
+                "elapsed_ms": round((time.perf_counter() - started) * 1000, 2),
+            }
+            return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
         def persist_assistant(delivery_status: str = "complete") -> str:
             nonlocal assistant_persisted, assistant_persistence_error, assistant_message_id, assistant_message
@@ -529,10 +598,13 @@ def chat_stream(req: ChatRequest):
             last_stage = stage
             event["request_id"] = request_id
             event["elapsed_ms"] = round((now - started) * 1000, 2)
+            activity = _activity_for_chat_event(event)
+            if activity:
+                event["activity"] = activity
 
         graph_events = None
         try:
-            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'book_name': book_name, 'subject': subject, 'rewritten_question': rewritten_question if rewritten_question != req.question else '', 'resolution_action': resolution_trace.get('resolution_action', 'continue'), 'use_textbook_context': use_textbook_context, 'scope_reason': scope_reason, 'answer_mode': answer_mode}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'book_name': book_name, 'subject': subject, 'rewritten_question': rewritten_question if rewritten_question != req.question else '', 'resolution_action': resolution_trace.get('resolution_action', 'continue'), 'use_textbook_context': use_textbook_context, 'scope_reason': scope_reason, 'answer_mode': answer_mode, 'activity': {'id': 'context', 'kind': 'analysis', 'label': '读取会话上下文', 'status': 'completed', 'detail': '已解析当前问题、指代与学习范围'}}, ensure_ascii=False)}\n\n"
             user_message = append_message(
                 conversation_id, "user", req.question,
                 book_name=book_name, subject=subject, turn_id=turn_id,
@@ -581,9 +653,31 @@ def chat_stream(req: ChatRequest):
                 scope_reason=scope_reason,
                 continuity_context=continuity_context,
             )
+            yield activity_sse({
+                "id": "understand", "kind": "analysis", "label": "理解问题与确定范围",
+                "status": "active", "detail": "正在识别问题意图、对象与回答边界",
+            })
             for event in graph_events:
                 if event.get("suggested_answer_mode"):
                     suggested_answer_mode = str(event["suggested_answer_mode"])
+                if event.get("stage") == "generate" and not generation_handoff_done:
+                    generation_handoff_done = True
+                    if reason_active:
+                        yield activity_sse({
+                            "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
+                            "status": "completed", "detail": "已形成可展示的回答路径",
+                            "duration_ms": round((time.perf_counter() - (reason_started_at or time.perf_counter())) * 1000, 2),
+                        })
+                    else:
+                        if evidence_active:
+                            yield activity_sse({
+                                "id": "evidence", "kind": "evidence", "label": "整理教材证据",
+                                "status": "skipped", "detail": "无需额外展开章节内容",
+                            })
+                        yield activity_sse({
+                            "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
+                            "status": "completed", "detail": "已形成可展示的回答路径",
+                        })
                 observe(event)
                 event["conversation_id"] = conversation_id
                 event["turn_id"] = turn_id
@@ -627,6 +721,38 @@ def chat_stream(req: ChatRequest):
                         except Exception:
                             logger.exception("evidence support persistence failed")
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+                if event.get("stage") == "plan":
+                    yield activity_sse({
+                        "id": "retrieve", "kind": "tool", "label": "检索教材上下文",
+                        "status": "active", "detail": "正在定位相关章节、定义、公式与例题",
+                    })
+                elif event.get("stage") == "retrieve":
+                    has_chapter_step = (
+                        bool(event.get("use_textbook_context", True))
+                        and intent in {"teach", "summarize"}
+                        and int(event.get("content_count") or 0) > 0
+                    )
+                    if has_chapter_step:
+                        evidence_active = True
+                        yield activity_sse({
+                            "id": "evidence", "kind": "evidence", "label": "整理教材证据",
+                            "status": "active", "detail": "正在准备章节内容与可引用依据",
+                        })
+                    else:
+                        reason_active = True
+                        reason_started_at = time.perf_counter()
+                        yield activity_sse({
+                            "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
+                            "status": "active", "detail": "正在基于问题与已取得证据组织回答",
+                        })
+                elif event.get("stage") == "chapter":
+                    evidence_active = False
+                    reason_active = True
+                    reason_started_at = time.perf_counter()
+                    yield activity_sse({
+                        "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
+                        "status": "active", "detail": "正在基于章节证据组织讲解结构",
+                    })
         except GeneratorExit:
             disconnected = True
             last_stage = "disconnected"
