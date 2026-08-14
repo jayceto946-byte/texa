@@ -10,6 +10,7 @@
     "dev:vite": "set KAOYAN_SKIP_BACKEND=1&& set KAOYAN_FRONTEND_DEV_URL=http://127.0.0.1:5173&& electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --win nsis",
+    "dist:standard": "electron-builder --win nsis zip",
     "dist:portable": "electron-builder --win portable",
     "publish": "electron-builder --win nsis -p always",
     "test": "node --test runtime.test.cjs",
@@ -41,6 +42,13 @@
       {
         "from": "../build/backend",
         "to": "backend",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../assets/embedding-runtime",
+        "to": "embedding-runtime",
         "filter": [
           "**/*"
         ]

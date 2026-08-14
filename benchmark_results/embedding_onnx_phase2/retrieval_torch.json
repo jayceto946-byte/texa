@@ -1,0 +1,2330 @@
+{
+  "backend": "torch",
+  "provider": "torch_sentence_transformers",
+  "query_count": 100,
+  "vector_store_path": "D:\\AI\\agent\\kaoyan-assistant\\data\\vector_db",
+  "collection_count": 49,
+  "vector_load_ms": 1388.9057000051253,
+  "retrieval_total_ms": 40315.13220000488,
+  "retrieval_mean_ms": 403.1513220000488,
+  "component_totals": {
+    "kg": 148,
+    "dense": 759,
+    "bm25": 808
+  },
+  "rows": [
+    {
+      "id": "manual_001",
+      "query": "什么是压阻效应？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_1b8facd9eadc",
+        "sensor_core_b6bca1313cb6",
+        "sensor_core_875d9ac8b1f1",
+        "sensor_core_30c1f3808b01",
+        "sensor_core_f9cc9fb1d2d6",
+        "sensor_core_80b13761c614",
+        "sensor_core_b76b9dc0516d",
+        "sensor_core_409beccae18f",
+        "sensor_core_f512b7d497b6",
+        "sensor_core_b93b6e32ae83"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 1,
+        "dense": 6,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_002",
+      "query": "压阻效应有什么特点？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_1b8facd9eadc",
+        "sensor_core_b6bca1313cb6",
+        "sensor_core_4d1c1904c576",
+        "sensor_core_30c1f3808b01",
+        "sensor_core_80b13761c614",
+        "sensor_core_f9cc9fb1d2d6",
+        "sensor_core_409beccae18f",
+        "sensor_core_f512b7d497b6",
+        "sensor_core_b76b9dc0516d",
+        "sensor_core_0a61428480a4"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 5,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_003",
+      "query": "压阻效应和压电效应有什么区别？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_1b8facd9eadc",
+        "sensor_core_65bd6f0c1bfe",
+        "sensor_core_0a61428480a4",
+        "sensor_core_30c1f3808b01",
+        "sensor_core_b93b6e32ae83",
+        "sensor_core_64185259cda3",
+        "sensor_core_4cfb810b51d1",
+        "sensor_core_8c09228e5239",
+        "sensor_core_48783dd0dd8e",
+        "sensor_core_80b13761c614"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 1,
+        "dense": 6,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_004",
+      "query": "压阻效应在什么情况下会更明显？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_1b8facd9eadc",
+        "sensor_core_b6bca1313cb6",
+        "sensor_core_80b13761c614",
+        "sensor_core_30c1f3808b01",
+        "sensor_core_8cba08a72087",
+        "sensor_core_0a61428480a4",
+        "sensor_core_f9cc9fb1d2d6",
+        "sensor_core_f512b7d497b6",
+        "sensor_core_4d1c1904c576",
+        "sensor_core_4a8f131abedb"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 7,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_005",
+      "query": "传感器的静态特性指什么？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_2a6877d99357",
+        "78aa05eb06e7e4a7",
+        "sensor_core_0c4598f8bb96",
+        "f52c1f6dc70b862a",
+        "83b53cf138ddcaa4",
+        "4257bf3151e02fca",
+        "a88166b72336256c",
+        "2b837cffc18a31af",
+        "sensor_core_155b64d489bb",
+        "sensor_core_75fb15be6f87"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_006",
+      "query": "静态特性和动态特性有什么区别？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_2a6877d99357",
+        "83b53cf138ddcaa4",
+        "4257bf3151e02fca",
+        "sensor_core_0c4598f8bb96",
+        "78aa05eb06e7e4a7",
+        "sensor_core_d50921cbd52c",
+        "11c58e7b55ed920c",
+        "f52c1f6dc70b862a",
+        "1898b462129daef7",
+        "sensor_core_5e03b9de005f"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_007",
+      "query": "传感器灵敏度怎么算？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_dc90dc1672b9",
+        "sensor_core_af381f3a6b54",
+        "ef054f6e3bbd1efd",
+        "sensor_core_3096ab01ca88",
+        "0364fa89d1c565ad",
+        "7c3db29fe0cc4a50",
+        "sensor_core_2b6159f68210",
+        "d4957438b3952b28",
+        "2c9e62f93b13bd7d",
+        "sensor_core_9230b15772dc"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_008",
+      "query": "灵敏度和分辨率是一回事吗？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_e11327c9b083",
+        "sensor_core_2b6159f68210",
+        "56f2411546e67f29",
+        "3799c1e0a7378977",
+        "fb840c7bfaf331a3",
+        "sensor_core_1b8facd9eadc",
+        "sensor_core_3bc91e893b88",
+        "4d385d330f2f9f44",
+        "653a197dc42a49b8",
+        "sensor_core_32d4d9513c41"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_009",
+      "query": "什么是传感器的分辨力和阈值？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_e11327c9b083",
+        "sensor_core_11e3f190b8c5",
+        "sensor_core_4f2569de9ff7",
+        "sensor_core_3bc91e893b88",
+        "sensor_core_4d397c5d5468",
+        "sensor_core_25f682cc5345",
+        "sensor_core_e15371cd2859",
+        "sensor_core_381acf93ff6d",
+        "sensor_core_993267e2ac5f",
+        "sensor_core_3ce2361d0180"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 4,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_010",
+      "query": "绝对误差如何定义？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_887bc39f5212",
+        "error_theory_2ded737bd257",
+        "error_theory_b15afb344a4b",
+        "error_theory_6d88043d2169",
+        "error_theory_28f77ae8f0a3",
+        "error_theory_684ff2dd2c2c",
+        "error_theory_eddb004659bb",
+        "error_theory_04457962b7e9",
+        "error_theory_28ee47f69ba4",
+        "error_theory_350f2da6c51a"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 5,
+        "dense": 7,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_011",
+      "query": "绝对误差和相对误差如何换算？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_2ded737bd257",
+        "error_theory_b15afb344a4b",
+        "error_theory_887bc39f5212",
+        "error_theory_28ee47f69ba4",
+        "error_theory_28f77ae8f0a3",
+        "error_theory_6d88043d2169",
+        "error_theory_684ff2dd2c2c",
+        "error_theory_4119d1098305",
+        "error_theory_df084f419b42",
+        "error_theory_350f2da6c51a"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 5,
+        "bm25": 10,
+        "kg": 4
+      }
+    },
+    {
+      "id": "manual_012",
+      "query": "什么是霍尔效应？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_700e2bbe5b68",
+        "sensor_core_030052feb950",
+        "c06bc5646bf6b09c",
+        "3317f043cb02a7b4",
+        "8b20404407d4cf16",
+        "90c8cbf69702328e",
+        "5426d5b4fb6c2ad0",
+        "f89898c935456801",
+        "sensor_core_995e301c1911",
+        "0b6e021e8ac1fce4"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_013",
+      "query": "霍尔式传感器可以测哪些量？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_0a61428480a4",
+        "sensor_core_030052feb950",
+        "sensor_core_c9ba30c48bd2",
+        "sensor_core_2b863420358a",
+        "sensor_core_995e301c1911",
+        "sensor_core_06bcc5eabddc",
+        "sensor_core_7bb2fd384d97",
+        "sensor_core_1200b9f09963",
+        "sensor_core_ae3e3c7f9cf3",
+        "sensor_core_9479ee0a70c7"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 1,
+        "dense": 7,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_014",
+      "query": "国家标准如何定义传感器？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_cea75255e310",
+        "cf627dfbf4388782",
+        "0cdbf9f1aaaf6a90",
+        "caa7d8f570d40537",
+        "sensor_core_75fb15be6f87",
+        "sensor_core_5d06472a3b9c",
+        "sensor_core_3096ab01ca88",
+        "sensor_core_5e03b9de005f",
+        "sensor_core_ddd967dd86b1",
+        "sensor_core_6c97a22e4250"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 1,
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_015",
+      "query": "传感器线性度如何评定？",
+      "book_name": "传感器长书",
+      "ids": [
+        "23e50d2b97e7a8d5",
+        "733635226353d1dc",
+        "5bea34e49ce5057b",
+        "ef054f6e3bbd1efd",
+        "sensor_core_53d2fa32909b",
+        "sensor_core_75fb15be6f87",
+        "sensor_core_cea75255e310",
+        "sensor_core_479002289521",
+        "sensor_core_2b863420358a",
+        "sensor_core_06935981da05"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 9,
+        "kg": 1
+      }
+    },
+    {
+      "id": "manual_016",
+      "query": "迟滞误差是什么？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_7b8eb2b8e479",
+        "sensor_core_155b64d489bb",
+        "sensor_core_25f682cc5345",
+        "sensor_core_8d0a0676a5d3",
+        "sensor_core_0c4598f8bb96",
+        "sensor_core_53d2fa32909b",
+        "sensor_core_80aca3db10ac",
+        "decfff25ef788a7a",
+        "sensor_core_444d6d29fc8a",
+        "sensor_core_7e8bae16539d"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 8,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_017",
+      "query": "重复性和再现性有什么区别？",
+      "book_name": "传感器长书",
+      "ids": [
+        "2f4358aa8fa48d50",
+        "cc8d1fa8700deb21",
+        "ba9027dd1115fcdc",
+        "43375fe291703f64",
+        "sensor_core_8d0a0676a5d3",
+        "sensor_core_7bbc3bf5f535",
+        "sensor_core_c792c051acef",
+        "sensor_core_155b64d489bb",
+        "sensor_core_fe8818377e88",
+        "sensor_core_53128ee2e771"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 8,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_018",
+      "query": "摄氏温标和华氏温标如何换算？",
+      "book_name": "传感器长书",
+      "ids": [
+        "59f533b2da5add69",
+        "sensor_core_80aca3db10ac",
+        "sensor_core_cd3332bfb129",
+        "02b507661f34d806",
+        "7448047546a67dcd",
+        "sensor_core_3accd601270f",
+        "sensor_core_b832ac75eed6",
+        "sensor_core_fb1efe390dd6",
+        "sensor_core_5b118821aec1",
+        "21522eeecdaae13f"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 5,
+        "bm25": 9
+      }
+    },
+    {
+      "id": "manual_019",
+      "query": "热电效应产生的条件是什么？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_ae77b754094f",
+        "396e765e5de9b1e8",
+        "d9f9bb10853cb714",
+        "7b593bb695707bed",
+        "sensor_core_8cba08a72087",
+        "4c608532786fd73c",
+        "sensor_core_9293e10ea316",
+        "3326d3ba1d7b2959",
+        "sensor_core_583e4ff007ee",
+        "sensor_core_0a359dac893c"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 1,
+        "dense": 8,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_020",
+      "query": "外光电效应和内光电效应有什么区别？",
+      "book_name": "传感器长书",
+      "ids": [
+        "4c608532786fd73c",
+        "cb7c9c80661ac618",
+        "sensor_core_c1e6fe3400f0",
+        "sensor_core_c361d5ce87a3",
+        "ff93e83629386143",
+        "8c49d864b0f1f39b",
+        "sensor_core_f817fc00edb1",
+        "ad73ae2f7b3f51b9",
+        "42d879cdc2758cb9",
+        "sensor_core_e106649bb144"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10,
+        "kg": 2
+      }
+    },
+    {
+      "id": "manual_021",
+      "query": "电容式传感器有什么优点？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_c16bc172d9e2",
+        "sensor_core_e5f5362c49b4",
+        "sensor_core_32d4d9513c41",
+        "sensor_core_0b346bc343f5",
+        "sensor_core_835953aee566",
+        "sensor_core_edc7785855ce",
+        "sensor_core_cea75255e310",
+        "03347c4ba7f752e3",
+        "sensor_core_b3acfe0e98f0",
+        "sensor_core_b88eb7fccc49"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 9,
+        "bm25": 7,
+        "kg": 1
+      }
+    },
+    {
+      "id": "manual_022",
+      "query": "电感式传感器的工作原理是什么？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_0a61428480a4",
+        "sensor_core_1648d20d33cb",
+        "sensor_core_11e3f190b8c5",
+        "sensor_core_2db8cf39e91f",
+        "sensor_core_993267e2ac5f",
+        "sensor_core_4ec66824eec5",
+        "sensor_core_e15371cd2859",
+        "sensor_core_c9ba30c48bd2",
+        "sensor_core_d844a300a4a4",
+        "sensor_core_b35fe2562fb6"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "bm25": 10,
+        "dense": 4
+      }
+    },
+    {
+      "id": "manual_023",
+      "query": "金属应变片如何把应变转换为电阻变化？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_847d0dca8466",
+        "0803df4ca77259f2",
+        "81b6b86767d6cc84",
+        "sensor_core_b6bca1313cb6",
+        "de3543b411bf8b3a",
+        "4fcb122101ef4883",
+        "646a0ab11ff6ffc7",
+        "683264a39ce1447e",
+        "dda3170158764c6f",
+        "sensor_core_0ee927790191"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_024",
+      "query": "测量不确定度的定义是什么？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_eddb004659bb",
+        "error_theory_6d88043d2169",
+        "error_theory_bc0aefdf0005",
+        "error_theory_6cbe90346f34",
+        "error_theory_edff209ae4fe",
+        "error_theory_c6a77b7801db",
+        "error_theory_4e147c437d93",
+        "error_theory_2ded737bd257"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 3,
+        "dense": 6,
+        "bm25": 8
+      }
+    },
+    {
+      "id": "manual_025",
+      "query": "随机误差为什么具有统计规律？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_168f2f948d7e",
+        "error_theory_b112097694f3",
+        "error_theory_2688abcf9c5d",
+        "error_theory_d906a249b3a2",
+        "error_theory_456973ef0e68",
+        "error_theory_4119d1098305",
+        "error_theory_15dce8b2a10b",
+        "error_theory_02fc6551ae9c",
+        "error_theory_eddb004659bb",
+        "error_theory_68c2d88120ee"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 4,
+        "dense": 5,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_026",
+      "query": "系统误差为什么不能靠重复测量减小？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_02fc6551ae9c",
+        "error_theory_f256fd741033",
+        "error_theory_ba29379ce731",
+        "error_theory_b112097694f3",
+        "error_theory_0e603718efeb",
+        "error_theory_e9b7db861440",
+        "error_theory_55a59587642f",
+        "error_theory_d7576f8ae15d",
+        "error_theory_547c185c8f48",
+        "error_theory_1119539be35f"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 4,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_027",
+      "query": "什么是粗大误差？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_68c2d88120ee",
+        "error_theory_616ceaf73edc",
+        "error_theory_5bf9866bc415",
+        "error_theory_8a0aeb070ccb",
+        "error_theory_b6a53716f544",
+        "error_theory_3a4616d850be",
+        "error_theory_84709ca2a116",
+        "error_theory_6d88043d2169",
+        "error_theory_ceaba9ccd34a",
+        "error_theory_684ff2dd2c2c"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 5,
+        "bm25": 8,
+        "dense": 7
+      }
+    },
+    {
+      "id": "manual_028",
+      "query": "测量结果为什么取算术平均值？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_df0e813ec7f1",
+        "error_theory_6d3229095a73",
+        "error_theory_bc88e5f0ea78",
+        "error_theory_e54f6366059e",
+        "error_theory_c0b4e53e96c0",
+        "error_theory_79841200e941",
+        "error_theory_e3ab71bd26a6"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 6,
+        "bm25": 7
+      }
+    },
+    {
+      "id": "manual_029",
+      "query": "有效数字的舍入规则是什么？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_eba8d7849594",
+        "error_theory_ec871cd777a6",
+        "error_theory_b485bc47ee2b",
+        "error_theory_56532116a804",
+        "error_theory_2ded737bd257",
+        "error_theory_4e147c437d93",
+        "error_theory_4d6b92df40af",
+        "error_theory_c95793c46179",
+        "error_theory_426259ebfc73",
+        "error_theory_0d8a70cdb2ff"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 3,
+        "dense": 4,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_030",
+      "query": "最小二乘法用于解决什么问题？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_8f3f078d8d0f",
+        "error_theory_0173f2213e89",
+        "error_theory_40e281018022",
+        "error_theory_191cfe7431d9",
+        "error_theory_5c709c51aa19",
+        "error_theory_e3ab71bd26a6",
+        "error_theory_7a4b98ee5ea6",
+        "error_theory_3c278e5820cd",
+        "error_theory_4e3f27fba79f",
+        "error_theory_3678c856b829"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 6,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "manual_031",
+      "query": "优化设计中的目标函数是什么？",
+      "book_name": "优化设计",
+      "ids": [
+        "p13_c39",
+        "p11_c35",
+        "p7_c21",
+        "p12_c37",
+        "p37_c98",
+        "p35_c89",
+        "p35_c90",
+        "p22_c57",
+        "p7_c19",
+        "p34_c87"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 3,
+        "dense": 10
+      }
+    },
+    {
+      "id": "manual_032",
+      "query": "设计变量和设计常量如何区分？",
+      "book_name": "优化设计",
+      "ids": [
+        "p12_c37",
+        "p82_c204",
+        "p11_c35",
+        "p14_c41",
+        "p13_c39",
+        "p87_c213",
+        "p84_c207",
+        "p7_c19",
+        "p9_c31",
+        "p91_c224"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 3,
+        "dense": 10
+      }
+    },
+    {
+      "id": "manual_033",
+      "query": "优化问题的约束条件有什么几何意义？",
+      "book_name": "优化设计",
+      "ids": [
+        "p14_c41",
+        "p110_c259",
+        "p133_c318",
+        "p125_c299",
+        "p125_c301",
+        "p126_c302",
+        "p13_c39",
+        "p11_c35",
+        "p134_c319",
+        "p12_c37"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 4,
+        "dense": 9
+      }
+    },
+    {
+      "id": "manual_034",
+      "query": "梯度法为什么沿负梯度方向搜索？",
+      "book_name": "优化设计",
+      "ids": [
+        "p65_c164",
+        "p70_c175",
+        "p77_c192",
+        "p68_c171",
+        "p20_c54",
+        "p33_c84",
+        "p75_c187",
+        "p75_c188",
+        "p21_c55",
+        "p22_c56"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 3,
+        "dense": 10
+      }
+    },
+    {
+      "id": "manual_035",
+      "query": "牛顿法有哪些优点和局限？",
+      "book_name": "优化设计",
+      "ids": [
+        "p73_c182",
+        "p75_c187",
+        "p74_c185",
+        "p79_c194",
+        "p76_c189",
+        "p71_c177"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 6
+      }
+    },
+    {
+      "id": "manual_036",
+      "query": "共轭梯度法为什么比普通梯度法收敛快？",
+      "book_name": "优化设计",
+      "ids": [
+        "p68_c170",
+        "p20_c54",
+        "p51_c130",
+        "p81_c201",
+        "p70_c175",
+        "p68_c171",
+        "p69_c173",
+        "p36_c94",
+        "p35_c92",
+        "p21_c55"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 9,
+        "kg": 2
+      }
+    },
+    {
+      "id": "manual_037",
+      "query": "黄金分割法怎样缩小搜索区间？",
+      "book_name": "优化设计",
+      "ids": [
+        "p41_c107",
+        "p218_c531",
+        "p39_c100",
+        "p39_c103",
+        "p232_c548",
+        "p39_c102",
+        "p39_c101",
+        "p40_c105",
+        "p216_c528",
+        "p241_c558"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 10
+      }
+    },
+    {
+      "id": "manual_038",
+      "query": "二次插值法的基本思想是什么？",
+      "book_name": "优化设计",
+      "ids": [
+        "p45_c115",
+        "p44_c113",
+        "p39_c100",
+        "p40_c105",
+        "p41_c107",
+        "p46_c120"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 1,
+        "dense": 6
+      }
+    },
+    {
+      "id": "manual_039",
+      "query": "罚函数法怎样把约束优化转成无约束优化？",
+      "book_name": "优化设计",
+      "ids": [
+        "p125_c299",
+        "p125_c301",
+        "p127_c307",
+        "p128_c308",
+        "p110_c259",
+        "p126_c302",
+        "p14_c41",
+        "p28_c71",
+        "p36_c94",
+        "p25_c63"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 6,
+        "dense": 8
+      }
+    },
+    {
+      "id": "manual_040",
+      "query": "遗传算法的迭代步骤是什么？",
+      "book_name": "优化设计",
+      "ids": [
+        "p157_c368",
+        "p160_c374",
+        "p42_c110",
+        "p116_c277",
+        "p114_c272",
+        "p39_c100",
+        "p145_c341",
+        "p142_c335",
+        "p161_c375",
+        "p73_c182"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 4,
+        "dense": 10
+      }
+    },
+    {
+      "id": "reference_001",
+      "query": "请解释一、原始的牛顿法基本思想。",
+      "book_name": "优化设计",
+      "ids": [
+        "p73_c182",
+        "p75_c187",
+        "p71_c177",
+        "p61_c154",
+        "p79_c194",
+        "p53_c137"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 6
+      }
+    },
+    {
+      "id": "reference_002",
+      "query": "(一)系统误差的主要内容是什么？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_4e147c437d93",
+        "error_theory_d5237c9a258e",
+        "error_theory_fbf914a62449",
+        "error_theory_547c185c8f48",
+        "error_theory_ba29379ce731",
+        "error_theory_0e603718efeb",
+        "error_theory_85153ff00a55",
+        "error_theory_b119842e79aa",
+        "error_theory_cbb869e1dffd",
+        "error_theory_d18b1f575af2"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 4,
+        "bm25": 10,
+        "kg": 1
+      }
+    },
+    {
+      "id": "reference_003",
+      "query": "教材如何说明(2) 气体成分分析？",
+      "book_name": "传感器长书",
+      "ids": [
+        "18192b62343fff89",
+        "0262b3e8ef398d63",
+        "c6be7efa5991ee42",
+        "sensor_core_05a80bf023f7",
+        "c44df5963a894bc4",
+        "sensor_core_e67a0017b9d8",
+        "sensor_core_fb1efe390dd6",
+        "sensor_core_4225931fa9c1",
+        "sensor_core_3515d006374b",
+        "sensor_core_d1eabe940c3f"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 7,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_004",
+      "query": "请解释2. 传感器结构。",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_078836371dde",
+        "sensor_core_00598292b515",
+        "sensor_core_b76b9dc0516d",
+        "sensor_core_deed92ca101e",
+        "sensor_core_8c09228e5239",
+        "sensor_core_5406ef4bea81",
+        "sensor_core_920c2428b659",
+        "sensor_core_995e301c1911",
+        "sensor_core_169569967452",
+        "sensor_core_5d9dd9c2f897"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 4,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_005",
+      "query": "1. 标准不确定度A类评定的自由度的主要内容是什么？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_04457962b7e9",
+        "error_theory_df0332f1fad4",
+        "error_theory_6d88043d2169",
+        "error_theory_eddb004659bb",
+        "error_theory_64ba6115119d",
+        "error_theory_f081945b5967",
+        "error_theory_4e147c437d93",
+        "error_theory_78fd2c84196d",
+        "error_theory_4e7d25e98f2f",
+        "error_theory_b2c05e5b90da"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 7,
+        "dense": 6,
+        "bm25": 7
+      }
+    },
+    {
+      "id": "reference_006",
+      "query": "教材如何说明3. 光源的照射方式应符合传感器的测量要求？",
+      "book_name": "传感器长书",
+      "ids": [
+        "618f06659d603d70",
+        "0e4b8416db003d43",
+        "e5b567925632622b",
+        "108069751a78a0e8",
+        "bc80cb11d8f61e63",
+        "sensor_core_ed870d2029b1",
+        "da137a6bb2baad7d",
+        "sensor_core_d2008f434ebe",
+        "sensor_core_cea75255e310",
+        "sensor_core_af5ec79ec86a"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 7,
+        "bm25": 8,
+        "kg": 2
+      }
+    },
+    {
+      "id": "reference_007",
+      "query": "请解释(4) RC 有源滤波器。",
+      "book_name": "传感器长书",
+      "ids": [
+        "612c274856ee8290",
+        "9dc237201adb3e67",
+        "a8164a2089368e90",
+        "b0bba12a18d828e6",
+        "bc4f8837ca92ce65",
+        "50f1ed56a260e386",
+        "sensor_core_8edbcb60a427",
+        "sensor_core_c27e9db4edd8",
+        "sensor_core_bab9d53bfe85",
+        "sensor_core_a66021d2ed7f"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_008",
+      "query": "1. 方法原理的主要内容是什么？",
+      "book_name": "优化设计",
+      "ids": [],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {}
+    },
+    {
+      "id": "reference_009",
+      "query": "教材如何说明（三）加权算术平均值？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_c0b4e53e96c0",
+        "error_theory_79841200e941",
+        "error_theory_df0e813ec7f1",
+        "error_theory_6d3229095a73",
+        "error_theory_f9fe90cb270a",
+        "error_theory_ed0eb7ca20e8",
+        "error_theory_e3ab71bd26a6",
+        "error_theory_3b235d633de7"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 4,
+        "dense": 6,
+        "bm25": 8
+      }
+    },
+    {
+      "id": "reference_010",
+      "query": "请解释第三节精度估计。",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_28fca6be9804",
+        "error_theory_4e147c437d93",
+        "error_theory_decaeae19caa",
+        "error_theory_ebb318dbbd75",
+        "error_theory_fa0b8b3dc929",
+        "error_theory_76d83509d298",
+        "error_theory_c3f1905c4a6d",
+        "error_theory_a2c7b12c07da",
+        "error_theory_4ad8f308c422",
+        "error_theory_7b66b37e4285"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 1,
+        "dense": 4,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_011",
+      "query": "(3)温度特性的主要内容是什么？",
+      "book_name": "传感器长书",
+      "ids": [
+        "f34311c806349f96",
+        "c0d45b645b2b1241",
+        "sensor_core_5b118821aec1",
+        "336293b72577413b",
+        "sensor_core_75fb15be6f87",
+        "sensor_core_79c5f2c34089",
+        "f82d32ece94afa32",
+        "c232cd2c8f5143d2",
+        "fafbdf99c34ee5d3",
+        "ee9b4bb6151bb4e6"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 8,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_012",
+      "query": "教材如何说明(1) NTC热敏电阻的温度特性？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_0021848eb59d",
+        "5f3920f66da346f0",
+        "31c5f23e2c0cbcaf",
+        "9c210e0599565b09",
+        "9848fe4fd024c57d",
+        "cb2a5d72c3e00f19",
+        "sensor_core_7c387f2ab7df",
+        "sensor_core_76af3a76e123",
+        "6facd1583cd4ee28",
+        "sensor_core_79c5f2c34089"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 3,
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_013",
+      "query": "请解释1. 构造初始单纯形。",
+      "book_name": "优化设计",
+      "ids": [
+        "p62_c156",
+        "p61_c154",
+        "p110_c259",
+        "p63_c161",
+        "p103_c243",
+        "p96_c232",
+        "p106_c252",
+        "p101_c240",
+        "p133_c318",
+        "p64_c162"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 4,
+        "dense": 10
+      }
+    },
+    {
+      "id": "reference_014",
+      "query": "3.3.4半导体热电阻温度传感器的主要内容是什么？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_fb1efe390dd6",
+        "7b1a4b002014dfcf",
+        "973960d14419a716",
+        "3b867205215b2f5b",
+        "34d9da6f1ed08b29",
+        "sensor_core_a55f611e81bd",
+        "3dbe54dcbf95c55e",
+        "2eab1cc78d4d319a",
+        "sensor_core_0021848eb59d",
+        "d5327305e154266e"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 1,
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_015",
+      "query": "教材如何说明2. 汤姆逊效应？",
+      "book_name": "传感器长书",
+      "ids": [
+        "18c1846def938521",
+        "84ed08c9ddc7bc5f",
+        "sensor_core_deed92ca101e",
+        "396e765e5de9b1e8",
+        "sensor_core_ae77b754094f",
+        "sensor_core_ccff618b3aff",
+        "da361f48ca9ed0e6",
+        "68b38cd8f0024f47",
+        "sensor_core_ec39bcfc5eb6",
+        "sensor_core_997ec0ce5eed"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 5,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_016",
+      "query": "请解释(1）零型直流电桥（惠斯通电桥）。",
+      "book_name": "传感器长书",
+      "ids": [
+        "228b28f30fef3e4e",
+        "6c0e8f1e0ca730a8",
+        "bcc9bfeff2bb664a",
+        "b99d839313e3342a",
+        "fd895c6e0f23e4f7",
+        "8e72f558632e827d",
+        "sensor_core_cf4018aa06d1",
+        "sensor_core_a578935134dd",
+        "sensor_core_cd56668faf55",
+        "sensor_core_ae75a0723d0e"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_017",
+      "query": "4. 增强安全性的主要内容是什么？",
+      "book_name": "传感器长书",
+      "ids": [
+        "705665da79657ed9",
+        "sensor_core_5b118821aec1",
+        "sensor_core_44b729798244",
+        "892f4969968f8f52",
+        "65295e98c76bde28",
+        "2c8d749edaaeac47",
+        "8ed77c1597564ba9",
+        "sensor_core_a4b5c106fb51",
+        "a4ceb06e3765bd4f",
+        "sensor_core_9d99e767c9fd"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 6,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_018",
+      "query": "教材如何说明1.3.3 传感器的动态特性描述？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_2a6877d99357",
+        "763587b98e06edc8",
+        "11c58e7b55ed920c",
+        "1898b462129daef7",
+        "02b507661f34d806",
+        "sensor_core_0c4598f8bb96",
+        "sensor_core_5e03b9de005f",
+        "sensor_core_d50921cbd52c",
+        "cf5d8e47dee410d9",
+        "0df9e656f5424b37"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 8,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_019",
+      "query": "请解释1. 实用浓差电池 $Z r O _ { 2 }$ 氧传感器。",
+      "book_name": "传感器长书",
+      "ids": [
+        "b6ee22902a7fbee3",
+        "079328ac4a440746",
+        "99afb707cf5138af",
+        "1c42822f7eb58954",
+        "351407fd4b7dc1bd",
+        "d640efc308a49240",
+        "sensor_core_ae77b754094f",
+        "sensor_core_1a0e03fff25d",
+        "sensor_core_6649515d7d22",
+        "sensor_core_cea75255e310"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 7,
+        "bm25": 9,
+        "kg": 1
+      }
+    },
+    {
+      "id": "reference_020",
+      "query": "（二）环境误差的主要内容是什么？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_161397faae87",
+        "error_theory_d5237c9a258e",
+        "error_theory_27793a01091d",
+        "error_theory_16ca962a9f41",
+        "error_theory_168f2f948d7e",
+        "error_theory_b2f9087c19ed",
+        "error_theory_4ad8f308c422",
+        "error_theory_c797d2d55f7a",
+        "error_theory_30903f80abe0",
+        "error_theory_569881cce89a"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 3,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_021",
+      "query": "教材如何说明2. 温敏晶闸管的温度特性？",
+      "book_name": "传感器长书",
+      "ids": [
+        "7acdd55c23ad2645",
+        "fafbdf99c34ee5d3",
+        "50562c840a920983",
+        "9aeff750cde1905a",
+        "f1af229d0e0d3c74",
+        "sensor_core_79c5f2c34089",
+        "f82d32ece94afa32",
+        "3808701310ee1101",
+        "sensor_core_d7191ffb9747",
+        "sensor_core_e7d7e288fe14"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_022",
+      "query": "请解释第七章 光电式传感器。",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_e15371cd2859",
+        "sensor_core_f695d0ad17b3",
+        "sensor_core_64148e8d0901",
+        "sensor_core_89ebeccb9115",
+        "sensor_core_d5b0d92d7e43",
+        "sensor_core_c9fa2051038a",
+        "sensor_core_cea75255e310",
+        "sensor_core_1abff595d7bc",
+        "sensor_core_bc448eda538e",
+        "sensor_core_94bfb63185ad"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 7,
+        "bm25": 6,
+        "kg": 1
+      }
+    },
+    {
+      "id": "reference_023",
+      "query": "(3) 直接计算法的主要内容是什么？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_6d8da241a774",
+        "error_theory_2ded737bd257",
+        "error_theory_27793a01091d",
+        "error_theory_a27a680fe6e6",
+        "error_theory_e9fbc96567a5",
+        "error_theory_eccb77cdb60a",
+        "error_theory_7691e8ae505c",
+        "error_theory_304025aee278",
+        "error_theory_4e147c437d93",
+        "error_theory_1d60d21ccdcb"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 9,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_024",
+      "query": "教材如何说明2. 热电偶炉温测量系统？",
+      "book_name": "传感器长书",
+      "ids": [
+        "2e5e5b7eb8feb329",
+        "sensor_core_06935981da05",
+        "sensor_core_dc23f2346ef2",
+        "aecf354a9abbe18b",
+        "b056aad5f025af30",
+        "328e442ca2bdeae1",
+        "sensor_core_4a7ba32fc1f3",
+        "7912d6bba26de8fe",
+        "sensor_core_ae77b754094f",
+        "a38e87941f695fef"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 9,
+        "bm25": 9,
+        "kg": 2
+      }
+    },
+    {
+      "id": "reference_025",
+      "query": "请解释2. 热释电红外热辐射温度计。",
+      "book_name": "传感器长书",
+      "ids": [
+        "788737c69e17b5cb",
+        "bf4cee664950a1f5",
+        "52157ffb45cb7405",
+        "40ac9c6a0ef2808e",
+        "sensor_core_bc448eda538e",
+        "69c12c82e131bab0",
+        "sensor_core_ba7760154884",
+        "sensor_core_32c3d100237a",
+        "ef8ab2d9e0182404",
+        "sensor_core_e14f166ba333"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_026",
+      "query": "(3) 信号放大器的主要内容是什么？",
+      "book_name": "传感器长书",
+      "ids": [
+        "229d1a75833af171",
+        "f8097c229df0a575",
+        "85adcd401886c065",
+        "2b8c3bb6511abc8f",
+        "7900518063ea7c82",
+        "6a7ea3d54f44fed6",
+        "sensor_core_aae209e07f64",
+        "sensor_core_fb1efe390dd6",
+        "sensor_core_dcbb9b7a0c30",
+        "sensor_core_d0b9b909229e"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_027",
+      "query": "教材如何说明2. 学习规则？",
+      "book_name": "优化设计",
+      "ids": [
+        "p180_c421",
+        "p172_c406",
+        "p179_c418",
+        "p181_c422",
+        "p174_c412",
+        "p168_c397"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 3,
+        "dense": 6
+      }
+    },
+    {
+      "id": "reference_028",
+      "query": "请解释3. 多个约束条件起作用的情况。",
+      "book_name": "优化设计",
+      "ids": [
+        "p14_c41",
+        "p11_c35",
+        "p118_c282",
+        "p116_c278",
+        "p122_c293",
+        "p110_c259",
+        "p118_c283",
+        "p126_c302",
+        "p10_c32",
+        "p9_c31"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 4,
+        "dense": 8
+      }
+    },
+    {
+      "id": "reference_029",
+      "query": "7.2.2 压电声敏传感器的主要内容是什么？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_fb1efe390dd6",
+        "c0f307cc064dfb7e",
+        "569d309c16e27a6f",
+        "sensor_core_2db8cf39e91f",
+        "cf627dfbf4388782",
+        "c4edbb697b49d990",
+        "sensor_core_ac0f18a446f5",
+        "sensor_core_94bfb63185ad",
+        "sensor_core_cea75255e310",
+        "6842bb6665fc9b66"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 7,
+        "bm25": 9
+      }
+    },
+    {
+      "id": "reference_030",
+      "query": "教材如何说明11.3.1 晶体管阻抗匹配器？",
+      "book_name": "传感器长书",
+      "ids": [
+        "bcd9c004d5f3b099",
+        "450aa297b3f10793",
+        "698a9cf10e552209",
+        "4bc44b83844ade87",
+        "8da6d87a391a4d8f",
+        "6c4773bd2e16c596",
+        "065e07d42ef2143d",
+        "2c0ee3d64c9b3ed7",
+        "2e3265001b648c42",
+        "sensor_core_3b57f71486c0"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_031",
+      "query": "请解释9.1.2 露点。",
+      "book_name": "传感器长书",
+      "ids": [
+        "6fd296b1ed6d3e4d",
+        "sensor_core_d1eabe940c3f",
+        "sensor_core_2ab5f83bffe4",
+        "sensor_core_66be24eed8d8",
+        "8c49d864b0f1f39b",
+        "c5165e47ee088fe8",
+        "032129b6be55c5c7",
+        "c983ec7155174a44",
+        "43375fe291703f64",
+        "23e50d2b97e7a8d5"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 7,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_032",
+      "query": "思考题与习题的主要内容是什么？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_fb1efe390dd6",
+        "sensor_core_3d2706328454",
+        "sensor_core_5b118821aec1",
+        "sensor_core_03666b7341ff",
+        "sensor_core_237311b1c2d6",
+        "sensor_core_82ed874f3033",
+        "sensor_core_fe8818377e88",
+        "sensor_core_8eb426a90e74",
+        "sensor_core_b88eb7fccc49",
+        "sensor_core_61ece4f6c5f9"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "bm25": 5,
+        "dense": 6
+      }
+    },
+    {
+      "id": "reference_033",
+      "query": "教材如何说明7.3.2水声传感器用郎之万型换能器？",
+      "book_name": "传感器长书",
+      "ids": [
+        "ea9a081561eb6a89",
+        "6e7c722c44a1d52c",
+        "64a91230094d1001",
+        "28b9d627bd296748",
+        "4af791ea730c79a0",
+        "sensor_core_fb1efe390dd6",
+        "91e5d24fb1badf6b",
+        "sensor_core_cea75255e310",
+        "sensor_core_f061e5056953",
+        "sensor_core_4225931fa9c1"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 8,
+        "bm25": 10,
+        "kg": 2
+      }
+    },
+    {
+      "id": "reference_034",
+      "query": "请解释(2) 结构专一性。",
+      "book_name": "传感器长书",
+      "ids": [
+        "9d3cccb495130ea9",
+        "d2dd2d054730e3cc",
+        "sensor_core_2ab5f83bffe4",
+        "sensor_core_555ab4facb29",
+        "sensor_core_7c387f2ab7df",
+        "sensor_core_d1eabe940c3f",
+        "sensor_core_078836371dde",
+        "sensor_core_847d0dca8466",
+        "b2e0568205830e17",
+        "sensor_core_d18ee0be83b9"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 8,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_035",
+      "query": "(2)基于生物吸附的生物敏感膜的主要内容是什么？",
+      "book_name": "传感器长书",
+      "ids": [
+        "ce53e024821cb76e",
+        "fdf0f8d90729b14c",
+        "198f68edce7f9861",
+        "957c3d9a879bd477",
+        "sensor_core_64185259cda3",
+        "sensor_core_668983702115",
+        "23c32be8767f4aa3",
+        "6f468fd9900c6250",
+        "sensor_core_53d1da854789",
+        "sensor_core_237311b1c2d6"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 8,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_036",
+      "query": "教材如何说明(3)光电倍增管的性能参数？",
+      "book_name": "传感器长书",
+      "ids": [
+        "ac19f03f032c39ef",
+        "ac6934e00e40d093",
+        "sensor_core_c361d5ce87a3",
+        "cb7c9c80661ac618",
+        "sensor_core_625f651efdf9",
+        "70b9ee7dead2e674",
+        "sensor_core_169569967452",
+        "sensor_core_f817fc00edb1",
+        "sensor_core_3b57f71486c0",
+        "04ab26f994e608ee"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10,
+        "kg": 2
+      }
+    },
+    {
+      "id": "reference_037",
+      "query": "请解释二、函数随机误差计算。",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_d906a249b3a2",
+        "error_theory_ad9cbbb8eb6e",
+        "error_theory_1d60d21ccdcb",
+        "error_theory_33995bd027c2",
+        "error_theory_96ea7d8ea5de",
+        "error_theory_7393e97181f3",
+        "error_theory_3ff2c95498aa",
+        "error_theory_456973ef0e68",
+        "error_theory_4119d1098305",
+        "error_theory_4e147c437d93"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 6,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_038",
+      "query": "第四节 集成温度传感器的主要内容是什么？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_03666b7341ff",
+        "sensor_core_774c324df218",
+        "sensor_core_cd3332bfb129",
+        "sensor_core_9293e10ea316",
+        "sensor_core_1756af4699ee",
+        "sensor_core_449150686513",
+        "sensor_core_53128ee2e771",
+        "sensor_core_e8842849159f",
+        "sensor_core_73aee01e6fca",
+        "sensor_core_7bb2fd384d97"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 1,
+        "dense": 8,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_039",
+      "query": "教材如何说明6.3 光生伏特效应器件？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_973e69f6ceaf",
+        "7d294bcfe65f8e5e",
+        "ff93e83629386143",
+        "4f14b46b54cce1be",
+        "c273d81dc639d0b3",
+        "sensor_core_d5b0d92d7e43",
+        "sensor_core_2b334bac3848",
+        "5c3ea7cd44ada444",
+        "ad73ae2f7b3f51b9",
+        "sensor_core_e106649bb144"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_040",
+      "query": "请解释(四)面阵电荷耦合器件。",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_3b18eb674fe7",
+        "sensor_core_4047f0faed41",
+        "sensor_core_2956574ce47a",
+        "sensor_core_627a316d79fc",
+        "sensor_core_0a36f704911c",
+        "sensor_core_967b801053a0",
+        "sensor_core_973e69f6ceaf",
+        "sensor_core_1756af4699ee",
+        "sensor_core_03666b7341ff",
+        "sensor_core_7277668fbeae"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 6,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_041",
+      "query": "(3)差动式电压-电流变换电路的主要内容是什么？",
+      "book_name": "传感器长书",
+      "ids": [
+        "b1683057566f5245",
+        "1e710af99ed141dd",
+        "a8a8996f6f47bdc6",
+        "2deb2f83283ad49d",
+        "7579718eef695f89",
+        "sensor_core_f47395e680ab",
+        "sensor_core_8edbcb60a427",
+        "sensor_core_dc90dc1672b9",
+        "sensor_core_edc7785855ce",
+        "9b1ab146a1ffbdae"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 9,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_042",
+      "query": "教材如何说明3. 磁敏二极管和磁敏三极管的应用？",
+      "book_name": "传感器长书",
+      "ids": [
+        "dc73909638af763a",
+        "sensor_core_8dd56bca9dc3",
+        "c395daa0ded91752",
+        "sensor_core_1d5ee3d0b2be",
+        "sensor_core_2a5688a45cbb",
+        "sensor_core_3b57f71486c0",
+        "57e8ecc28f23a88e",
+        "sensor_core_2b87a469cff5",
+        "sensor_core_b6ffca707067",
+        "sensor_core_15f54af1af1d"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_043",
+      "query": "请解释2. 鉴幅方式。",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_cf7f422f4c77",
+        "sensor_core_039c32f63f86",
+        "sensor_core_3724484423e2",
+        "sensor_core_53a5dff15a2d",
+        "sensor_core_61ece4f6c5f9",
+        "sensor_core_bc448eda538e",
+        "sensor_core_2930488f633a",
+        "sensor_core_dfb05ea5752a",
+        "sensor_core_2ef3f52e335f",
+        "sensor_core_3515d006374b"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 6,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_044",
+      "query": "(3) 信号放大器的主要内容是什么？",
+      "book_name": "传感器长书",
+      "ids": [
+        "229d1a75833af171",
+        "f8097c229df0a575",
+        "85adcd401886c065",
+        "2b8c3bb6511abc8f",
+        "7900518063ea7c82",
+        "6a7ea3d54f44fed6",
+        "sensor_core_aae209e07f64",
+        "sensor_core_fb1efe390dd6",
+        "sensor_core_dcbb9b7a0c30",
+        "sensor_core_d0b9b909229e"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_045",
+      "query": "教材如何说明(2) 电压灵敏度？",
+      "book_name": "传感器长书",
+      "ids": [
+        "1b60cc41c8b2f45c",
+        "4dac3a3e33bc1d9e",
+        "9934d629e9527d56",
+        "72b072f57698b1f0",
+        "sensor_core_6d2a8a6bf584",
+        "sensor_core_9f08547aa1b9",
+        "2c9e62f93b13bd7d",
+        "sensor_core_dc90dc1672b9",
+        "4fb8b51c57ae948e",
+        "56e89838aceb5e54"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_046",
+      "query": "请解释(1)石英晶体的压电效应。",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_bbca5213964f",
+        "sensor_core_65bd6f0c1bfe",
+        "3326d3ba1d7b2959",
+        "581cadb8cb386583",
+        "fccbf633ab5a8bbd",
+        "7b593bb695707bed",
+        "7e14482f4ea6e862",
+        "4a2ee804117693c6",
+        "sensor_core_4cfb810b51d1",
+        "sensor_core_57c0c34863cb"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_047",
+      "query": "三、数据运算规则的主要内容是什么？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_2ded737bd257",
+        "error_theory_b485bc47ee2b",
+        "error_theory_56532116a804",
+        "error_theory_27793a01091d",
+        "error_theory_34660906899b",
+        "error_theory_4e147c437d93",
+        "error_theory_543e532a7087",
+        "error_theory_eba8d7849594",
+        "error_theory_c797d2d55f7a",
+        "error_theory_6d88043d2169"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 3,
+        "dense": 4,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_048",
+      "query": "教材如何说明(3) 信号放大器？",
+      "book_name": "传感器长书",
+      "ids": [
+        "229d1a75833af171",
+        "6a7ea3d54f44fed6",
+        "7900518063ea7c82",
+        "ab8828a62555d4c8",
+        "ec0a6c7d991863ac",
+        "85adcd401886c065",
+        "sensor_core_dcbb9b7a0c30",
+        "sensor_core_aae209e07f64",
+        "sensor_core_d0b9b909229e",
+        "sensor_core_f78e957f4375"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_049",
+      "query": "请解释一、工作原理与特性。",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_34b31696bade",
+        "sensor_core_fe8818377e88",
+        "sensor_core_03666b7341ff",
+        "sensor_core_efbd02fb297c",
+        "sensor_core_b35fe2562fb6",
+        "sensor_core_f188f0c7dc1a",
+        "sensor_core_0021848eb59d",
+        "sensor_core_119caa2a975a",
+        "sensor_core_4373ce272eab",
+        "sensor_core_7b409715b57a"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 7,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_050",
+      "query": "8.5.1 检测原理与结构的主要内容是什么？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_fb1efe390dd6",
+        "000a31b9adef2095",
+        "9ee4d2091123655d",
+        "6bc60b99d39daaed",
+        "1589eed0f7156e16",
+        "39df80a50232ab10",
+        "sensor_core_fe8818377e88",
+        "7c8a37b5aa31bb39",
+        "sensor_core_cb57a10ef373",
+        "8d4ea363bdbec90c"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 7,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_051",
+      "query": "教材如何说明第五章 线性测量的参数最小二乘法处理？",
+      "book_name": "误差理论与数据处理",
+      "ids": [
+        "error_theory_8f3f078d8d0f",
+        "error_theory_7a4b98ee5ea6",
+        "error_theory_9b553be43cbb",
+        "error_theory_ae08f82ea523",
+        "error_theory_8d02572d4c3f",
+        "error_theory_d546d0e9605b",
+        "error_theory_191cfe7431d9",
+        "error_theory_04457962b7e9",
+        "error_theory_810674cfc4ae",
+        "error_theory_bed76876b01b"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 9,
+        "bm25": 6
+      }
+    },
+    {
+      "id": "reference_052",
+      "query": "请解释一、压力式气动测量原理。",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_83c550362217",
+        "sensor_core_11173c7c5d68",
+        "sensor_core_dc0582398884",
+        "sensor_core_f512b7d497b6",
+        "sensor_core_efbd02fb297c",
+        "sensor_core_cc5cd550d0f1",
+        "sensor_core_a66021d2ed7f",
+        "sensor_core_03666b7341ff",
+        "sensor_core_8c09228e5239",
+        "sensor_core_9328b2d38819"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 7,
+        "bm25": 9
+      }
+    },
+    {
+      "id": "reference_053",
+      "query": "五、运算放大器式电路的主要内容是什么？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_d0b9b909229e",
+        "sensor_core_3c979d830f59",
+        "sensor_core_aae209e07f64",
+        "sensor_core_fd3ffb915a1d",
+        "sensor_core_190a8804a34c",
+        "sensor_core_f78e957f4375",
+        "sensor_core_14e3a1cd18ac",
+        "sensor_core_dcbb9b7a0c30",
+        "sensor_core_9f08547aa1b9",
+        "sensor_core_479002289521"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 9,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_054",
+      "query": "教材如何说明第十二章 半导体式物性传感器？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_707580b0eac4",
+        "sensor_core_c4d6ac1a4f72",
+        "sensor_core_d844a300a4a4",
+        "sensor_core_70760535bb4d",
+        "sensor_core_03400bfde996",
+        "sensor_core_cc874acba17c",
+        "sensor_core_cea75255e310",
+        "sensor_core_d5b0d92d7e43",
+        "sensor_core_f817fc00edb1",
+        "sensor_core_0ba4493d4c1f"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 9,
+        "bm25": 6,
+        "kg": 1
+      }
+    },
+    {
+      "id": "reference_055",
+      "query": "请解释1. 铂热电阻。",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_a52b5cf2fa2b",
+        "sensor_core_39c50979b66e",
+        "sensor_core_ae77b754094f",
+        "sensor_core_fcedae6e9254",
+        "sensor_core_68e44dfd1960",
+        "sensor_core_eb6b186bd7f6",
+        "sensor_core_7c387f2ab7df",
+        "sensor_core_b0f1057afa52",
+        "sensor_core_d1eabe940c3f",
+        "sensor_core_80b13761c614"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 10,
+        "bm25": 9
+      }
+    },
+    {
+      "id": "reference_056",
+      "query": "5. 灵敏度的主要内容是什么？",
+      "book_name": "传感器长书",
+      "ids": [
+        "sensor_core_af381f3a6b54",
+        "bcb898c5eb156904",
+        "c232cd2c8f5143d2",
+        "sensor_core_fb1efe390dd6",
+        "8c9ab9a44ef0f17f",
+        "b4ca7ef87109d859",
+        "569d309c16e27a6f",
+        "16336ae12818b5e5",
+        "sensor_core_53246825039c",
+        "sensor_core_79c5f2c34089"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 7,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_057",
+      "query": "教材如何说明(3) 屏蔽、隔离与抗干扰？",
+      "book_name": "传感器长书",
+      "ids": [
+        "a149397f87c03328",
+        "sensor_core_cd822c4b1be5",
+        "sensor_core_aae209e07f64",
+        "sensor_core_f874b7be317a",
+        "c7bdf10ef430e9c8",
+        "a4ceb06e3765bd4f",
+        "sensor_core_4225931fa9c1",
+        "sensor_core_724766d786c7",
+        "229d1a75833af171",
+        "c6424bf10af89a22"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 8,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_058",
+      "query": "请解释黄米t.ra。",
+      "book_name": "传感器长书",
+      "ids": [
+        "2c7ffc2df7c43dd7",
+        "8c49d864b0f1f39b",
+        "sensor_core_2ab5f83bffe4",
+        "sensor_core_cea75255e310",
+        "sensor_core_d1eabe940c3f",
+        "c983ec7155174a44",
+        "23e50d2b97e7a8d5",
+        "43375fe291703f64",
+        "c273d81dc639d0b3",
+        "c2de4b0673a73042"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 7,
+        "bm25": 9
+      }
+    },
+    {
+      "id": "reference_059",
+      "query": "一、类型及其工作原理的主要内容是什么？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_b35fe2562fb6",
+        "sensor_core_5b118821aec1",
+        "sensor_core_f188f0c7dc1a",
+        "sensor_core_604074ff5267",
+        "sensor_core_34b31696bade",
+        "sensor_core_4d1c1904c576",
+        "sensor_core_4373ce272eab",
+        "sensor_core_8f17a1ad31f6",
+        "sensor_core_a776684db2bd",
+        "sensor_core_bae5e8551384"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "dense": 5,
+        "bm25": 10
+      }
+    },
+    {
+      "id": "reference_060",
+      "query": "教材如何说明一、核辐射的物理基础？",
+      "book_name": "传感器短书",
+      "ids": [
+        "sensor_core_5040bceb2016",
+        "sensor_core_eddb6978ea3d",
+        "sensor_core_dd0402265768",
+        "sensor_core_a02b5e82a0ef",
+        "sensor_core_0d17ff315bef",
+        "sensor_core_b428f9a9c3d9",
+        "sensor_core_e14f166ba333",
+        "sensor_core_4225931fa9c1",
+        "sensor_core_fb1efe390dd6",
+        "sensor_core_5b118821aec1"
+      ],
+      "retrieval_status": "ok",
+      "retrieval_error": "",
+      "component_counts": {
+        "kg": 2,
+        "dense": 6,
+        "bm25": 10
+      }
+    }
+  ],
+  "process_total_ms": 95238.09260000417
+}

@@ -1,0 +1,214 @@
+{
+  "baseline": {
+    "runs": 5,
+    "first_health_ms": {
+      "median": 3513.690299994778,
+      "p95": 3553.241400004481
+    },
+    "warmup_ready_ms": {
+      "median": 10211.278700007824,
+      "p95": 10502.995600007125
+    },
+    "retrieval_wall_ms": {
+      "median": 463.5686999972677,
+      "p95": 692.0741999929305
+    },
+    "retrieval_stage_ms": {
+      "median": 91.69,
+      "p95": 91.94
+    },
+    "rows": [
+      {
+        "run": 1,
+        "pid": 218340,
+        "first_health_ms": 3513.690299994778,
+        "warmup_ready_ms": 10157.382199991844,
+        "warmup": {
+          "status": "ready",
+          "error": ""
+        },
+        "retrieval": {
+          "wall_ms": 431.95640000340063,
+          "stage_ms": 77.64,
+          "content_count": 1,
+          "retrieval_status": "ok",
+          "retrieval_error": ""
+        }
+      },
+      {
+        "run": 2,
+        "pid": 189720,
+        "first_health_ms": 3483.1056999973953,
+        "warmup_ready_ms": 10418.894900009036,
+        "warmup": {
+          "status": "ready",
+          "error": ""
+        },
+        "retrieval": {
+          "wall_ms": 692.0741999929305,
+          "stage_ms": 91.69,
+          "content_count": 1,
+          "retrieval_status": "ok",
+          "retrieval_error": ""
+        }
+      },
+      {
+        "run": 3,
+        "pid": 208736,
+        "first_health_ms": 3547.294399992097,
+        "warmup_ready_ms": 10075.452699995367,
+        "warmup": {
+          "status": "ready",
+          "error": ""
+        },
+        "retrieval": {
+          "wall_ms": 507.35650000569876,
+          "stage_ms": 87.27,
+          "content_count": 1,
+          "retrieval_status": "ok",
+          "retrieval_error": ""
+        }
+      },
+      {
+        "run": 4,
+        "pid": 100240,
+        "first_health_ms": 3553.241400004481,
+        "warmup_ready_ms": 10502.995600007125,
+        "warmup": {
+          "status": "ready",
+          "error": ""
+        },
+        "retrieval": {
+          "wall_ms": 442.353100006585,
+          "stage_ms": 91.83,
+          "content_count": 1,
+          "retrieval_status": "ok",
+          "retrieval_error": ""
+        }
+      },
+      {
+        "run": 5,
+        "pid": 138464,
+        "first_health_ms": 3498.186299999361,
+        "warmup_ready_ms": 10211.278700007824,
+        "warmup": {
+          "status": "ready",
+          "error": ""
+        },
+        "retrieval": {
+          "wall_ms": 463.5686999972677,
+          "stage_ms": 91.94,
+          "content_count": 1,
+          "retrieval_status": "ok",
+          "retrieval_error": ""
+        }
+      }
+    ]
+  },
+  "candidate": {
+    "runs": 5,
+    "first_health_ms": {
+      "median": 4030.57919999992,
+      "p95": 4044.4312000036007
+    },
+    "warmup_ready_ms": {
+      "median": 4030.57919999992,
+      "p95": 4044.4312000036007
+    },
+    "retrieval_wall_ms": {
+      "median": 404.70949999871664,
+      "p95": 597.0340999920154
+    },
+    "retrieval_stage_ms": {
+      "median": 63.82,
+      "p95": 85.76
+    },
+    "rows": [
+      {
+        "run": 1,
+        "pid": 132968,
+        "first_health_ms": 4043.331599998055,
+        "warmup_ready_ms": 4043.331599998055,
+        "warmup": {
+          "status": "ready",
+          "error": ""
+        },
+        "retrieval": {
+          "wall_ms": 447.5913999922341,
+          "stage_ms": 85.76,
+          "content_count": 1,
+          "retrieval_status": "ok",
+          "retrieval_error": ""
+        }
+      },
+      {
+        "run": 2,
+        "pid": 81396,
+        "first_health_ms": 4044.4312000036007,
+        "warmup_ready_ms": 4044.4312000036007,
+        "warmup": {
+          "status": "ready",
+          "error": ""
+        },
+        "retrieval": {
+          "wall_ms": 363.70159999933094,
+          "stage_ms": 53.19,
+          "content_count": 1,
+          "retrieval_status": "ok",
+          "retrieval_error": ""
+        }
+      },
+      {
+        "run": 3,
+        "pid": 176472,
+        "first_health_ms": 3600.4338000057032,
+        "warmup_ready_ms": 3671.3024000055157,
+        "warmup": {
+          "status": "ready",
+          "error": ""
+        },
+        "retrieval": {
+          "wall_ms": 361.33720001089387,
+          "stage_ms": 57.81,
+          "content_count": 1,
+          "retrieval_status": "ok",
+          "retrieval_error": ""
+        }
+      },
+      {
+        "run": 4,
+        "pid": 96828,
+        "first_health_ms": 4017.7975999977207,
+        "warmup_ready_ms": 4017.7975999977207,
+        "warmup": {
+          "status": "ready",
+          "error": ""
+        },
+        "retrieval": {
+          "wall_ms": 404.70949999871664,
+          "stage_ms": 63.82,
+          "content_count": 1,
+          "retrieval_status": "ok",
+          "retrieval_error": ""
+        }
+      },
+      {
+        "run": 5,
+        "pid": 231120,
+        "first_health_ms": 4030.57919999992,
+        "warmup_ready_ms": 4030.57919999992,
+        "warmup": {
+          "status": "ready",
+          "error": ""
+        },
+        "retrieval": {
+          "wall_ms": 597.0340999920154,
+          "stage_ms": 65.89,
+          "content_count": 1,
+          "retrieval_status": "ok",
+          "retrieval_error": ""
+        }
+      }
+    ]
+  }
+}

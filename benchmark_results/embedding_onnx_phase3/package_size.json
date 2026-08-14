@@ -1,0 +1,127 @@
+﻿{
+    "status":  "PASS",
+    "final_mib":  {
+                      "nsis":  254.2,
+                      "zip":  324.96,
+                      "installed":  752.56,
+                      "backend":  342.1
+                  },
+    "baseline_mib":  {
+                         "nsis":  401.83,
+                         "zip":  506.04,
+                         "installed":  1283.06,
+                         "backend":  963.59
+                     },
+    "installed_reduction_mib":  530.5,
+    "installed_reduction_percent":  41.35,
+    "gate_installed_reduction_ge_400_mib":  true,
+    "gate_relative_reduction_ge_25_percent":  true,
+    "largest_files":  [
+                          {
+                              "path":  "考研智能辅助系统.exe",
+                              "mib":  195.05
+                          },
+                          {
+                              "path":  "resources\\embedding-runtime\\bge-small-zh-v1.5\\onnx-fp32-v1\\model.onnx",
+                              "mib":  90.45
+                          },
+                          {
+                              "path":  "resources\\backend\\backend_server\\_internal\\chromadb_rust_bindings\\chromadb_rust_bindings.pyd",
+                              "mib":  60.46
+                          },
+                          {
+                              "path":  "resources\\backend\\backend_server\\backend_server.exe",
+                              "mib":  29.63
+                          },
+                          {
+                              "path":  "dxcompiler.dll",
+                              "mib":  24.7
+                          },
+                          {
+                              "path":  "resources\\backend\\backend_server\\_internal\\pymupdf\\mupdfcpp64.dll",
+                              "mib":  24.46
+                          },
+                          {
+                              "path":  "resources\\backend\\backend_server\\_internal\\numpy.libs\\libscipy_openblas64_-13e2df515630b4a41f92893938845698.dll",
+                              "mib":  19.45
+                          },
+                          {
+                              "path":  "resources\\backend\\backend_server\\_internal\\scipy.libs\\libscipy_openblas-f07f5a5d207a3a47104dca54d6d0c86a.dll",
+                              "mib":  19.22
+                          },
+                          {
+                              "path":  "resources\\backend\\backend_server\\_internal\\onnxruntime\\capi\\onnxruntime_pybind11_state.pyd",
+                              "mib":  18.41
+                          },
+                          {
+                              "path":  "resources\\backend\\backend_server\\_internal\\onnxruntime\\capi\\onnxruntime.dll",
+                              "mib":  14.98
+                          },
+                          {
+                              "path":  "LICENSES.chromium.html",
+                              "mib":  14.56
+                          },
+                          {
+                              "path":  "resources\\backend\\backend_server\\_internal\\pymupdf\\_mupdf.pyd",
+                              "mib":  11.73
+                          },
+                          {
+                              "path":  "resources\\backend\\backend_server\\_internal\\grpc\\_cython\\cygrpc.cp310-win_amd64.pyd",
+                              "mib":  10.61
+                          },
+                          {
+                              "path":  "icudtl.dat",
+                              "mib":  9.98
+                          },
+                          {
+                              "path":  "libGLESv2.dll",
+                              "mib":  7.68
+                          },
+                          {
+                              "path":  "resources\\backend\\backend_server\\_internal\\PIL\\_avif.cp310-win_amd64.pyd",
+                              "mib":  7.53
+                          },
+                          {
+                              "path":  "resources\\backend\\backend_server\\_internal\\tokenizers\\tokenizers.pyd",
+                              "mib":  7.05
+                          },
+                          {
+                              "path":  "resources.pak",
+                              "mib":  5.76
+                          },
+                          {
+                              "path":  "resources\\backend\\backend_server\\_internal\\scipy\\optimize\\_highspy\\_core.cp310-win_amd64.pyd",
+                              "mib":  5.51
+                          },
+                          {
+                              "path":  "vk_swiftshader.dll",
+                              "mib":  5.27
+                          }
+                      ],
+    "selected_directories":  [
+                                 {
+                                     "path":  "resources",
+                                     "mib":  435.3
+                                 },
+                                 {
+                                     "path":  "resources\\backend\\backend_server",
+                                     "mib":  342.1
+                                 },
+                                 {
+                                     "path":  "resources\\backend",
+                                     "mib":  342.1
+                                 },
+                                 {
+                                     "path":  "resources\\backend\\backend_server\\_internal",
+                                     "mib":  312.47
+                                 },
+                                 {
+                                     "path":  "resources\\embedding-runtime",
+                                     "mib":  90.98
+                                 },
+                                 {
+                                     "path":  "locales",
+                                     "mib":  42.5
+                                 }
+                             ]
+}

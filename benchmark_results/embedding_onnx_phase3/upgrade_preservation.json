@@ -1,0 +1,17 @@
+﻿{
+    "source_files":  2691,
+    "missing_files":  [
+
+                      ],
+    "changed_files":  [
+                          ".sample_data_seeded",
+                          "storage_manifest.json",
+                          "progress\\book_registry.json",
+                          "progress\\rag_traces.db",
+                          "progress\\conversations\\_conversation_events.db",
+                          "vector_db\\chroma.sqlite3",
+                          "vector_db\\a5b25090-e1c8-487a-9557-2d3e729edc83\\data_level0.bin",
+                          "vector_db\\a5b25090-e1c8-487a-9557-2d3e729edc83\\length.bin"
+                      ],
+    "all_preexisting_files_byte_identical":  false
+}

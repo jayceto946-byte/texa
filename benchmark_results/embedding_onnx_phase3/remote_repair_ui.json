@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "installer": "release/kaoyan-assistant-desktop-setup-1.0.0.exe",
+  "clean_install_dir": "benchmark_results/embedding_onnx_phase3/repair_ui_install_v2",
+  "isolated_profile": "benchmark_results/embedding_onnx_phase3/repair_ui_profile_v2",
+  "failure_before_repair": {
+    "code": "MODEL_MISSING",
+    "stage": "asset_verify",
+    "recoverable": true,
+    "repair_action": "repair_embedding_runtime",
+    "ui_button": "修复模型资源"
+  },
+  "repair": {
+    "trigger": "Electron UI",
+    "source": "http_files",
+    "release_tag": "embedding-runtime-onnx-fp32-v1",
+    "asset_count": 6,
+    "staging_entries_after_completion": 0,
+    "full_sha256": "PASS",
+    "atomic_active_pointer": "PASS",
+    "model_sha256": "8ffd0a0438704bbd55cab10c65d938df62d159879f59907557b3b09dfcc6fe0a"
+  },
+  "provider_retry": {
+    "embedding_ready": true,
+    "retrieval_ready": true,
+    "warmup_total_ms": 2987.31
+  },
+  "retrieval_smoke": {
+    "book": "TexaRepairVectorBeta",
+    "query": "cobalt-orchid calibration invariant",
+    "snippet_count": 2,
+    "expected_terms_found": ["cobalt-orchid", "271828"],
+    "status": "PASS"
+  },
+  "cleanup": {
+    "shipped_model_restored": true,
+    "restored_sha256": "8ffd0a0438704bbd55cab10c65d938df62d159879f59907557b3b09dfcc6fe0a"
+  }
+}

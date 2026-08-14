@@ -142,7 +142,7 @@ ConceptMemory 记录概念接触、候选链接、薄弱信号与复习信息。
 - 内容：react-markdown、remark-gfm、remark-math、rehype-katex、KaTeX
 - 后端：Python 3.10、FastAPI、Uvicorn、Pydantic 2
 - 编排：LangGraph、LangChain、OpenAI 兼容客户端
-- 检索：ChromaDB、sentence-transformers、BGE 中文嵌入、词法索引、可选 CrossEncoder
+- 检索：ChromaDB、ONNX Runtime、BGE-small-zh-v1.5 FP32 中文嵌入、词法索引、可选开发态 CrossEncoder
 - 摄取：PyMuPDF、MinerU、Kimi Vision、PaddleOCR
 - 测试：pytest、Vitest
 - 构建：PyInstaller、electron-builder、Docker 多阶段构建
@@ -190,7 +190,9 @@ ConceptMemory 记录概念接触、候选链接、薄弱信号与复习信息。
     npm.cmd ci
     cd ..
 
-<code>requirements.txt</code> 是兼容入口：它转到 <code>requirements-dev.txt</code>，后者复用精确锁定的发布依赖并固定 pytest。CI 与桌面发布都会在安装后执行 <code>pip check</code>。PaddleOCR、Marker、MinerU 等可选 OCR/解析栈不混入主环境；需要这些组件时应使用独立环境，避免其 Pillow、protobuf、PyYAML 或 websockets 约束污染桌面运行时。已有的混合 venv 不会被安装脚本自动重装或清理。
+<code>requirements-release.txt</code> 是 Torch-free Standard Runtime，只包含 ONNX Runtime、tokenizers 与实际生产依赖；<code>requirements-build.txt</code> 仅供 PyInstaller/CI 构建主机使用；<code>requirements-dev.txt</code> 才增加 Torch、SentenceTransformers、Transformers、safetensors、导出与 parity 测试依赖。<code>requirements.txt</code> 继续作为开发兼容入口并转到 <code>requirements-dev.txt</code>。PaddleOCR、Marker、MinerU 等可选 OCR/解析栈不混入主环境。
+
+Standard 默认使用版本化的 <code>BAAI/bge-small-zh-v1.5 / onnx-fp32-v1</code> 资产，保持 512 token 右截断/右填充、lowercase、CLS pooling、双 L2 normalization 与 512 维输出。现有 Chroma index 无需重建或重新 embedding。开发者只有在安装 <code>requirements-dev.txt</code> 后，才能显式设置 <code>TEXA_EMBEDDING_BACKEND=torch</code> 使用 parity/reference backend；Standard 不会静默回退或下载 Torch。资产版本、哈希、repair 与发布验证见 [ONNX embedding runtime](docs/embedding-runtime.md)。
 
 ### 配置
 
@@ -242,7 +244,12 @@ Electron 会启动后端并使用桌面用户数据目录。若已经单独启�
     npm.cmd run lint
     npm.cmd run build
 
-本次审阅结果：后端 137 passed；前端 3 个测试文件、9 passed；ESLint 通过；TypeScript 与 Vite 生产构建通过。
+    cd ..
+    .\scripts\build-desktop-backend.ps1
+    cd desktop
+    npm.cmd run dist:standard
+
+正式发布前还必须对 <code>release/win-unpacked</code> 运行 <code>scripts/validate_standard_release.py</code>。出现 torch、sentence_transformers、transformers、safetensors、c10/CUDA runtime，或缺少 ORT、tokenizer、Chroma 动态模块、manifest/模型哈希时，验证器会直接失败。
 
 ## 环境变量
 
@@ -253,7 +260,10 @@ Electron 会启动后端并使用桌面用户数据目录。若已经单独启�
 | <code>OPENAI_API_KEY</code> | 可选 OpenAI 兼容密钥 | 使用对应后端时 |
 | <code>MOONSHOT_API_KEY</code> | Kimi/Moonshot 与视觉流程 | 使用对应流程时 |
 | <code>OLLAMA_BASE_URL</code> | 本地 Ollama 地址 | 使用 Ollama 时 |
-| <code>EMBEDDING_MODEL_NAME</code> | 嵌入模型名 | 语义检索时 |
+| <code>TEXA_EMBEDDING_BACKEND</code> | 嵌入后端；生产默认 <code>onnx</code>，<code>torch</code> 仅开发参考 | Standard 无需设置 |
+| <code>TEXA_EMBEDDING_ASSET_DIR</code> | 版本化 ONNX 资产目录 | Electron 自动设置 |
+| <code>TEXA_EMBEDDING_FULL_VERIFY</code> | 启动时执行完整 SHA-256；正常启动默认使用版本/大小快检 | 修复或诊断时 |
+| <code>EMBEDDING_MODEL_NAME</code> | 开发态 Torch reference 模型名 | 仅 parity/debug |
 | <code>EMBEDDING_LOCAL_FILES_ONLY</code> | 是否只从本地加载嵌入模型 | 桌面离线模式建议为 1 |
 | <code>DATA_DIR</code> | 数据根目录 | 默认 <code>./data</code> |
 | <code>VECTOR_DB_PATH</code> | ChromaDB 目录 | 默认位于数据目录 |

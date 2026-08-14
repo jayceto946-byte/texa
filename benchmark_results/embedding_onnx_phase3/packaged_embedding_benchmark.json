@@ -1,0 +1,514 @@
+{
+  "status": "PASS",
+  "backend": "onnxruntime_fp32",
+  "runtime_config": {
+    "interactive": {
+      "intra_op_num_threads": 2,
+      "inter_op_num_threads": 1,
+      "execution_mode": "sequential",
+      "graph_optimization_level": "all"
+    },
+    "ingestion": {
+      "intra_op_num_threads": 12,
+      "inter_op_num_threads": 1,
+      "execution_mode": "sequential",
+      "graph_optimization_level": "all",
+      "load": "lazy_singleton"
+    },
+    "batch_size": 16,
+    "bucket_edges": [
+      64,
+      128,
+      256,
+      512
+    ]
+  },
+  "fixture_count": 500,
+  "interactive": {
+    "runs": 20,
+    "median_ms": 3.7344500015024096,
+    "p95_ms": 4.29660000372678,
+    "texts_per_second": 267.77704872141527,
+    "peak_rss_mib_p95": 169.171875,
+    "samples": [
+      {
+        "latency_ms": 3.336999987368472,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177266688,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.805899992585182,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177287168,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.33140000293497,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177291264,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.5929000005126,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177291264,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.6961000005248934,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177319936,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.5782000049948692,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177336320,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.767999995034188,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177356800,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.742700006114319,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177373184,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 4.01879999844823,
+        "process_cpu_ms": 31.25,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177373184,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 4.29660000372678,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177373184,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.75509999867063,
+        "process_cpu_ms": 31.25,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177373184,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.5551999899325892,
+        "process_cpu_ms": 15.625,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177373184,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.6908000038238242,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177381376,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 4.369699992821552,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177389568,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.501800005324185,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177389568,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.9163000037660822,
+        "process_cpu_ms": 15.625,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177389568,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.8791999977547675,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177389568,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.7261999968905,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177389568,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.6242000060155988,
+        "process_cpu_ms": 15.625,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177389568,
+        "max_native_threads": 36
+      },
+      {
+        "latency_ms": 3.9714000013191253,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 177401856,
+        "max_native_threads": 36
+      }
+    ]
+  },
+  "ingestion": {
+    "runs": 5,
+    "median_ms": 18333.003599997028,
+    "p95_ms": 18358.128499996383,
+    "texts_per_second": 27.273217793950636,
+    "peak_rss_mib_p95": 1179.3828125,
+    "samples": [
+      {
+        "latency_ms": 18343.55649999634,
+        "process_cpu_ms": 220921.875,
+        "effective_cpu_cores": 12.043568268783869,
+        "process_cpu_percent_of_machine": 75.27230167989917,
+        "system_cpu_percent": 76.89932385667892,
+        "cpu_sample_reliable": true,
+        "peak_rss_bytes": 1227751424,
+        "max_native_threads": 49
+      },
+      {
+        "latency_ms": 18327.67889999377,
+        "process_cpu_ms": 219359.375,
+        "effective_cpu_cores": 11.968748263047894,
+        "process_cpu_percent_of_machine": 74.80467664404934,
+        "system_cpu_percent": 76.00298364324152,
+        "cpu_sample_reliable": true,
+        "peak_rss_bytes": 1230295040,
+        "max_native_threads": 49
+      },
+      {
+        "latency_ms": 18333.003599997028,
+        "process_cpu_ms": 220171.875,
+        "effective_cpu_cores": 12.00959099795495,
+        "process_cpu_percent_of_machine": 75.05994373721843,
+        "system_cpu_percent": 76.2640524268741,
+        "cpu_sample_reliable": true,
+        "peak_rss_bytes": 1231732736,
+        "max_native_threads": 49
+      },
+      {
+        "latency_ms": 18358.128499996383,
+        "process_cpu_ms": 220890.625,
+        "effective_cpu_cores": 12.03230628873981,
+        "process_cpu_percent_of_machine": 75.20191430462381,
+        "system_cpu_percent": 77.27901287097117,
+        "cpu_sample_reliable": true,
+        "peak_rss_bytes": 1234087936,
+        "max_native_threads": 46
+      },
+      {
+        "latency_ms": 18312.924199999543,
+        "process_cpu_ms": 220546.875,
+        "effective_cpu_cores": 12.043236382751232,
+        "process_cpu_percent_of_machine": 75.2702273921952,
+        "system_cpu_percent": 78.648749533408,
+        "cpu_sample_reliable": true,
+        "peak_rss_bytes": 1236672512,
+        "max_native_threads": 46
+      }
+    ]
+  },
+  "concurrent": {
+    "runs": 20,
+    "median_ms": 6.649950002611149,
+    "p95_ms": 13.286899993545376,
+    "texts_per_second": 150.3770704452429,
+    "peak_rss_mib_p95": 1175.2265625,
+    "samples": [
+      {
+        "latency_ms": 5.14120000298135,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1228472320,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 6.786900004954077,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1228005376,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 7.289600005606189,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1228374016,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 6.674000003840774,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1229111296,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 7.656700006918982,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1229475840,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 5.987399999867193,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1229475840,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 6.243199997697957,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1229979648,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 6.302099995082244,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1229979648,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 10.835499997483566,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1230467072,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 5.967899996903725,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1230467072,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 11.194199993042275,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1230721024,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 4.49220000882633,
+        "process_cpu_ms": 0.0,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1231634432,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 6.613599995034747,
+        "process_cpu_ms": 109.375,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1231634432,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 7.496899997931905,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1231634432,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 16.695800004526973,
+        "process_cpu_ms": 406.25,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1231634432,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 13.286899993545376,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1231634432,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 6.625900001381524,
+        "process_cpu_ms": 93.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1232314368,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 5.895399997825734,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1232314368,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 6.52059999993071,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1232314368,
+        "max_native_threads": 47
+      },
+      {
+        "latency_ms": 7.134800005587749,
+        "process_cpu_ms": 218.75,
+        "effective_cpu_cores": null,
+        "process_cpu_percent_of_machine": null,
+        "system_cpu_percent": null,
+        "cpu_sample_reliable": false,
+        "peak_rss_bytes": 1232314368,
+        "max_native_threads": 47
+      }
+    ],
+    "ingestion_latency_ms": 18611.790399998426,
+    "ingestion_texts_per_second": 26.86469110462593
+  },
+  "process_rss_mib_after": 1127.734375,
+  "gates": {
+    "interactive_median_lt_5ms": true,
+    "interactive_faster_than_torch_6_762ms": true,
+    "ingestion_gte_20_texts_per_second": true,
+    "ingestion_gte_90pct_torch_baseline": true,
+    "concurrent_query_not_unusable": true
+  }
+}

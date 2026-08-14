@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "asset_type": "embedding_runtime",
+  "model_name": "BAAI/bge-small-zh-v1.5",
+  "model_version": "7999e1d3359715c523056ef9478215996d62a620",
+  "onnx_graph_version": "onnx-fp32-v1",
+  "embedding_dimension": 512,
+  "dtype": "float32",
+  "pooling": "cls",
+  "normalization": "l2_in_graph_twice",
+  "max_length": 512,
+  "padding": "right",
+  "truncation": "right",
+  "tokenizer_version": "bge-small-zh-v1.5@7999e1d3359715c523056ef9478215996d62a620+sentence-transformers-lowercase",
+  "minimum_texa_version": "1.0.0",
+  "expected_files": [
+    {
+      "path": "model.onnx",
+      "size": 94847144,
+      "sha256": "8ffd0a0438704bbd55cab10c65d938df62d159879f59907557b3b09dfcc6fe0a"
+    },
+    {
+      "path": "tokenizer.json",
+      "size": 439125,
+      "sha256": "48cea5d44424912a6fd1ea647bf4fe50b55ab8b1e5879c3275f80e339e8fae26"
+    },
+    {
+      "path": "tokenizer_config.json",
+      "size": 367,
+      "sha256": "e6f3b96db926a37d4039995fbf5ad17de158dfb8f6343d607e4dbaad18d75f5a"
+    },
+    {
+      "path": "sentence_bert_config.json",
+      "size": 52,
+      "sha256": "84e39fda68ccbff05bfa723ae9c0e70e23e2ec373b76e0f8c6e71af72a693cbf"
+    },
+    {
+      "path": "special_tokens_map.json",
+      "size": 125,
+      "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+    },
+    {
+      "path": "vocab.txt",
+      "size": 109540,
+      "sha256": "45bbac6b341c319adc98a532532882e91a9cefc0329aa57bac9ae761c27b291c"
+    }
+  ],
+  "repair_sources": [
+    {
+      "type": "bundled",
+      "name": "Texa Standard resources"
+    },
+    {
+      "type": "http_files",
+      "base_url": "https://github.com/jayceto946-byte/kaoyan-assistant/releases/download/embedding-runtime-onnx-fp32-v1"
+    }
+  ]
+}

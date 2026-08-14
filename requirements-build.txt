@@ -1,0 +1,4 @@
+# Release build host / CI only. These packages are not shipped as runtime features.
+-r requirements-release.txt
+pyinstaller==6.21.0
+pyinstaller-hooks-contrib==2026.6

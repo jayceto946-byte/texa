@@ -1,0 +1,16 @@
+{
+  "model_path": "D:\\AI\\agent\\kaoyan-assistant\\data\\models\\models--BAAI--bge-small-zh-v1.5\\snapshots\\7999e1d3359715c523056ef9478215996d62a620",
+  "onnx_path": "D:\\AI\\agent\\kaoyan-assistant\\benchmark_results\\embedding_onnx_phase1\\bge-small-zh-v1.5-fp32-single-normalization.onnx",
+  "bytes": 94846706,
+  "opset": 17,
+  "dtype": "float32",
+  "pooling": "cls",
+  "normalization_passes": 1,
+  "max_length": 512,
+  "inputs": [
+    "input_ids",
+    "attention_mask",
+    "token_type_ids"
+  ],
+  "output": "sentence_embedding"
+}

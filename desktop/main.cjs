@@ -23,6 +23,7 @@ let backendUrl = BACKEND_URL_OVERRIDE || `http://127.0.0.1:${backendPort}`;
 let mainWindow = null;
 let backendProcess = null;
 let backendStartError = null;
+let backendFailure = null;
 let lastBackendExit = '';
 let shuttingDown = false;
 let allowQuit = false;
@@ -139,6 +140,14 @@ function backendEnv() {
     SKIP_VECTOR_WARMUP: process.env.SKIP_VECTOR_WARMUP || '0',
     SKIP_EMBEDDING_WARMUP: process.env.SKIP_EMBEDDING_WARMUP || '0',
     EMBEDDING_LOCAL_FILES_ONLY: process.env.EMBEDDING_LOCAL_FILES_ONLY || '1',
+    TEXA_EMBEDDING_BACKEND: process.env.TEXA_EMBEDDING_BACKEND || 'onnx',
+    TEXA_EMBEDDING_ASSET_DIR: process.env.TEXA_EMBEDDING_ASSET_DIR || (
+      app.isPackaged
+        ? path.join(process.resourcesPath, 'embedding-runtime', 'bge-small-zh-v1.5', 'onnx-fp32-v1')
+        : path.join(projectRoot(), 'assets', 'embedding-runtime', 'bge-small-zh-v1.5', 'onnx-fp32-v1')
+    ),
+    TEXA_REQUIRE_WINDOWS_X64: app.isPackaged ? '1' : (process.env.TEXA_REQUIRE_WINDOWS_X64 || '0'),
+    RERANKER_MODEL_PATH: process.env.RERANKER_MODEL_PATH || '',
   };
 }
 
@@ -206,10 +215,11 @@ function configureUpdater() {
   return true;
 }
 
-function sendStartupError(message) {
+function sendStartupError(message, failure = null) {
   backendStartError = message;
-  emitBackendState({ status: 'failed', message, canRetry: true });
-  mainWindow?.webContents.send('startup-error', startupInfo(message));
+  backendFailure = failure;
+  emitBackendState({ status: 'failed', message, failure, canRetry: true });
+  mainWindow?.webContents.send('startup-error', startupInfo(message, failure));
 }
 
 function emitBackendState(nextState) {
@@ -223,13 +233,14 @@ function emitBackendState(nextState) {
   return backendState;
 }
 
-function startupInfo(message = backendStartError) {
+function startupInfo(message = backendStartError, failure = backendFailure) {
   const paths = runtimePaths();
   return {
     message: message || '',
     backendUrl,
     logPath: paths.backendLogPath,
     dataDir: paths.dataDir,
+    failure,
   };
 }
 
@@ -362,6 +373,7 @@ async function startBackend() {
   }
 
   try {
+    backendFailure = null;
     await prepareBackendEndpoint();
     emitBackendState({ status: 'starting', message: `正在启动本地服务（端口 ${backendPort}）`, canRetry: false });
     const env = backendEnv();
@@ -423,7 +435,32 @@ async function waitForBackend(timeoutMs = 60000) {
       const res = await fetchWithTimeout(`${backendUrl}/health`);
       if (res.ok) {
         const health = await res.json();
-        if (SKIP_BACKEND || !app.isPackaged || health?.instance_id === INSTANCE_ID) return true;
+        const identityMatches = SKIP_BACKEND || !app.isPackaged || health?.instance_id === INSTANCE_ID;
+        if (identityMatches) {
+          const warmup = health?.warmup || {};
+          if (warmup.status === 'ready') return true;
+          if (warmup.status === 'error') {
+            const failure = warmup.failure || { code: warmup.error || 'EMBEDDING_RUNTIME_FAILURE' };
+            const message = failure.message || `Texa runtime preparation failed (${failure.code})`;
+            sendStartupError(message, failure);
+            return false;
+          }
+          if (warmup.status === 'degraded') {
+            const failure = warmup.failure || { code: warmup.error || 'RETRIEVAL_DEGRADED' };
+            const message = failure.message || `Texa retrieval preparation failed (${failure.code})`;
+            sendStartupError(message, failure);
+            return false;
+          }
+          emitBackendState({
+            status: 'preparing',
+            stage: warmup.stage || 'runtime_check',
+            message: warmup.message || '正在准备 Texa',
+            failure: null,
+            canRetry: false,
+          });
+          await delay(200);
+          continue;
+        }
         const identityError = `backend identity mismatch at ${backendUrl}`;
         if (identityError !== lastIdentityError) {
           appendBackendLog(`[wait] ${identityError}`);
@@ -499,6 +536,7 @@ async function openAppWhenBackendReady(timeoutMs = 60000) {
     return { ready: false, message: '应用正在关闭' };
   }
   if (ready) {
+    backendFailure = null;
     emitBackendState({ status: 'ready', message: '本地服务已就绪', attempt: 0, canRetry: false });
     await loadAppUrl(desktopAppUrl(FRONTEND_DEV_URL || backendUrl));
     return { ready: true };
@@ -507,6 +545,11 @@ async function openAppWhenBackendReady(timeoutMs = 60000) {
   if (backendRecoveryPromise) {
     const recovered = await backendRecoveryPromise;
     if (recovered) return { ready: true };
+  }
+
+  // Preserve typed warmup failures so the loading page keeps its repair UI.
+  if (backendFailure) {
+    return { ready: false, ...startupInfo(backendStartError, backendFailure) };
   }
 
   const message = backendStartError || lastBackendExit || `后端服务启动超时：${backendUrl}`;
@@ -564,6 +607,48 @@ async function retryBackendManually() {
   backendProcess = null;
   const ready = await recoverBackend('用户手动重试');
   return ready ? { ready: true } : { ready: false, message: backendStartError || lastBackendExit || '本地服务恢复失败' };
+}
+
+async function repairEmbeddingRuntime() {
+  emitBackendState({ status: 'preparing', stage: 'asset_prepare', message: '正在修复 ONNX 模型资源', canRetry: false });
+  try {
+    const response = await fetch(`${backendUrl}/api/system/assets/repair/embedding`, {
+      method: 'POST',
+      headers: { 'X-Kaoyan-Token': API_TOKEN, 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(180000),
+    });
+    const payload = await response.json();
+    if (!response.ok || payload?.success !== true) {
+      const failure = payload?.error || { code: 'ASSET_REPAIR_FAILED', recoverable: true, repair_action: 'repair_embedding_runtime' };
+      sendStartupError(payload?.message || 'ONNX embedding runtime repair failed', failure);
+      return startupInfo(payload?.message, failure);
+    }
+  } catch (error) {
+    const failure = {
+      code: 'ASSET_REPAIR_FAILED', stage: 'asset_repair', recoverable: true,
+      message: error?.message || String(error), repair_action: 'repair_embedding_runtime',
+    };
+    sendStartupError('ONNX embedding runtime repair failed', failure);
+    return startupInfo('ONNX embedding runtime repair failed', failure);
+  }
+  restartingBackend = true;
+  try {
+    await stopBackend();
+    backendStartError = null;
+    backendFailure = null;
+    lastBackendExit = '';
+    backendProcess = null;
+    await startBackend();
+    const ready = await waitForBackend(90000);
+    if (ready) {
+      emitBackendState({ status: 'ready', message: '模型资源已修复', attempt: 0, canRetry: false });
+      await loadAppUrl(desktopAppUrl(FRONTEND_DEV_URL || backendUrl));
+      return { ready: true };
+    }
+    return startupInfo();
+  } finally {
+    restartingBackend = false;
+  }
 }
 
 function createWindow() {
@@ -634,6 +719,7 @@ ipcMain.handle('app:restart', async () => {
 
 ipcMain.handle('startup:info', () => startupInfo());
 ipcMain.handle('startup:retry', retryBackendManually);
+ipcMain.handle('startup:repair-embedding', repairEmbeddingRuntime);
 ipcMain.handle('startup:open-web', async () => shell.openExternal(desktopAppUrl(backendUrl)));
 ipcMain.handle('startup:open-log', async () => {
   const logPath = runtimePaths().backendLogPath;

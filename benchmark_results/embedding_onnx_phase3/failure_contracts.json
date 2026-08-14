@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "rows": [
+    {
+      "case": "model_missing",
+      "expected_code": "MODEL_MISSING",
+      "actual_code": "MODEL_MISSING",
+      "recoverable": true,
+      "repair_action": "repair_embedding_runtime",
+      "diagnostic_id_present": true,
+      "status": "PASS"
+    },
+    {
+      "case": "model_corrupt",
+      "expected_code": "MODEL_CORRUPT_OR_INCOMPATIBLE",
+      "actual_code": "MODEL_CORRUPT_OR_INCOMPATIBLE",
+      "recoverable": true,
+      "repair_action": "repair_embedding_runtime",
+      "diagnostic_id_present": true,
+      "status": "PASS"
+    },
+    {
+      "case": "tokenizer_missing",
+      "expected_code": "TOKENIZER_MISMATCH",
+      "actual_code": "TOKENIZER_MISMATCH",
+      "recoverable": true,
+      "repair_action": "repair_embedding_runtime",
+      "diagnostic_id_present": true,
+      "status": "PASS"
+    },
+    {
+      "case": "tokenizer_mismatch",
+      "expected_code": "TOKENIZER_MISMATCH",
+      "actual_code": "TOKENIZER_MISMATCH",
+      "recoverable": true,
+      "repair_action": "repair_embedding_runtime",
+      "diagnostic_id_present": true,
+      "status": "PASS"
+    },
+    {
+      "case": "ort_runtime_dll_missing",
+      "expected_code": "ORT_IMPORT_FAILURE",
+      "actual_code": "ORT_IMPORT_FAILURE",
+      "recoverable": true,
+      "repair_action": "repair_embedding_runtime",
+      "diagnostic_id_present": true,
+      "status": "PASS"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ venv/
 venv312/
 venv310/
 __pycache__/
+benchmark_results/embedding_onnx/*.onnx
 .env
 .env.*
 !.env.example

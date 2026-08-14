@@ -13,7 +13,6 @@ import uvicorn
 
 
 ASSET_MANIFEST_VERSION = 1
-EMBEDDING_REPO_ID = "BAAI/bge-small-zh-v1.5"
 VECTOR_BUNDLE_VERSION = "demo-v1"
 
 
@@ -57,18 +56,6 @@ def _write_asset_manifest(data_dir: Path) -> None:
     manifest.setdefault("schema_version", ASSET_MANIFEST_VERSION)
     assets = manifest.setdefault("assets", {})
     now = time.strftime("%Y-%m-%dT%H:%M:%S")
-
-    snapshots = data_dir / "models" / "models--BAAI--bge-small-zh-v1.5" / "snapshots"
-    snapshot_dirs = [p for p in snapshots.iterdir() if p.is_dir()] if snapshots.exists() else []
-    if snapshot_dirs:
-        snapshot = max(snapshot_dirs, key=lambda p: p.stat().st_mtime)
-        assets.setdefault("embedding_model", {
-            "repo_id": EMBEDDING_REPO_ID,
-            "revision": "main",
-            "hf_endpoint": os.getenv("HF_ENDPOINT", "https://hf-mirror.com"),
-            "path": str(snapshot),
-            "installed_at": now,
-        })
 
     vector_db = data_dir / "vector_db"
     if (vector_db / "chroma.sqlite3").exists():

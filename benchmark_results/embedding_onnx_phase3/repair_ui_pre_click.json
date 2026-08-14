@@ -1,0 +1,30 @@
+﻿{
+    "electron_pid":  424200,
+    "profile":  "D:\\AI\\agent\\kaoyan-assistant\\benchmark_results\\embedding_onnx_phase3\\repair_ui_profile",
+    "health":  {
+                   "status":  "ok",
+                   "version":  "1.0.0",
+                   "instance_id":  "5e4d082f-2808-4164-9dde-c5463f62a3ab",
+                   "process_alive":  true,
+                   "embedding_ready":  false,
+                   "retrieval_ready":  false,
+                   "warmup":  {
+                                  "status":  "error",
+                                  "stage":  "asset_verify",
+                                  "message":  "ONNX assets need repair",
+                                  "error":  "MODEL_MISSING",
+                                  "failure":  {
+                                                  "code":  "MODEL_MISSING",
+                                                  "stage":  "asset_verify",
+                                                  "recoverable":  true,
+                                                  "message":  "Versioned ONNX embedding runtime was not found; searched: D:\\AI\\agent\\kaoyan-assistant\\benchmark_results\\embedding_onnx_phase3\\repair_ui_install\\resources\\embedding-runtime\\bge-small-zh-v1.5\\onnx-fp32-v1, D:\\AI\\agent\\kaoyan-assistant\\benchmark_results\\embedding_onnx_phase3\\repair_ui_install\\resources\\backend\\backend_server\\_internal\\assets\\embedding-runtime\\bge-small-zh-v1.5\\onnx-fp32-v1, D:\\AI\\agent\\kaoyan-assistant\\benchmark_results\\embedding_onnx_phase3\\repair_ui_install\\resources\\backend\\backend_server\\embedding-runtime\\bge-small-zh-v1.5\\onnx-fp32-v1, D:\\AI\\agent\\kaoyan-assistant\\benchmark_results\\embedding_onnx_phase3\\repair_ui_install\\resources\\backend\\backend_server\\_internal\\embedding-runtime\\bge-small-zh-v1.5\\onnx-fp32-v1",
+                                                  "repair_action":  "repair_embedding_runtime",
+                                                  "diagnostic_id":  "e456c174b09c"
+                                              },
+                                  "stages_ms":  {
+                                                    "runtime_check":  379.85,
+                                                    "asset_verify":  18.45
+                                                }
+                              }
+               }
+}

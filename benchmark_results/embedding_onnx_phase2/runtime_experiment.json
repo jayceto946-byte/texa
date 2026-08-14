@@ -1,0 +1,21 @@
+{
+  "banned_packages_absent": {
+    "torch": true,
+    "sentence_transformers": true,
+    "transformers": true,
+    "safetensors": true
+  },
+  "backend_import": "考研智能辅助系统 API",
+  "embedding_dimensions": 512,
+  "embedding_query_ms": 7.094100001268089,
+  "chroma_available": true,
+  "collection_count": 314,
+  "search_chapter_count": 0,
+  "search_ms": 25.30740000656806,
+  "textbook_retrieval_status": "ok",
+  "textbook_evidence_count": 0,
+  "textbook_retrieval_error": "",
+  "generic_retrieval_status": "ordinary_qa",
+  "book_discovery_method": "",
+  "book_count": 0
+}

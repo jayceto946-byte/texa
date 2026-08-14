@@ -1,3 +1,122 @@
+# 2026-08-14 - Texa embedding ONNX Runtime Phase 3 production migration
+
+## Production runtime 与依赖
+
+- `config.get_embeddings()` 的 production default 已从 SentenceTransformers/PyTorch 切换为冻结的 `BAAI/bge-small-zh-v1.5` FP32 ONNX provider；保持 lowercase、512 token 右侧 padding/truncation、CLS pooling、双 L2 normalization 与 512 维输出。provider、tokenizer、interactive ORT session 均为进程级 lazy singleton；ingestion session 按需创建。
+- interactive 使用 2 个 intra-op threads、batch=1；ingestion 使用 physical core count、inter-op=1、sequential、ORT_ENABLE_ALL、batch=16 与 64/128/256/512 token buckets，完成后恢复输入顺序。独立 sessions 的并发实测不需要额外 scheduler/全局锁。
+- Standard 不存在 silent Torch fallback。`TEXA_EMBEDDING_BACKEND=torch` 只保留为显式 development reference；Standard 缺少该 runtime 时返回 `TORCH_RUNTIME_UNAVAILABLE`。CrossEncoder 保留 lazy optional 边界，Standard 配置模型路径时给出明确 unavailable 状态并使用 deterministic reranker。
+- 依赖拆为 `requirements-release.txt`、`requirements-dev.txt`、`requirements-build.txt`。Standard 锁定 ONNX Runtime/tokenizers 并移除 torch、sentence-transformers、transformers、safetensors；开发层继续支持 parity/export/debug，构建层只增加 PyInstaller tooling。
+
+## Asset、repair 与 Electron
+
+- 新增 `bge-small-zh-v1.5/onnx-fp32-v1/embedding-runtime.json`，记录 model/graph/tokenizer/Texa 版本、dtype、pooling、dimension、全部文件大小/SHA-256 与 versioned repair source mapping。正常启动使用 contract+size 快检，repair/发布验证执行完整 SHA-256。
+- repair 统一使用临时 staging、完整哈希、versioned install 目录、原子提升与 `active.json` 原子指针；不覆盖正在使用的文件，不自动清理升级用户的旧模型目录。固定 GitHub Release tag `embedding-runtime-onnx-fp32-v1` 已发布六个 manifest assets；逐文件 HEAD/GET、Content-Length、下载大小与 SHA-256 全部通过。
+- Electron 直接从只读 `resources/embedding-runtime` 加载约 95 MB graph，不再向每个 user-data 首启复制；启动状态拆为 runtime_check、asset_verify、embedding_load、index_discovery、ready。loading UI 消费结构化 typed failures，提供 retry/repair/logs，不向普通用户展示 traceback。
+- 正式 failure contract 为 `code/stage/recoverable/message/repair_action/diagnostic_id`。真实 frozen 注入覆盖 MODEL_MISSING、MODEL_CORRUPT_OR_INCOMPATIBLE、TOKENIZER_MISMATCH 与 ORT_IMPORT_FAILURE；Windows x64 architecture contract 另有单元回归。
+
+## Build、兼容与验证
+
+- PyInstaller 移除 Torch-oriented collection/CPU-wheel/DLL checks，加入 ONNX Runtime、tokenizers、versioned assets 与 Chroma dynamic modules；release validator 对 forbidden packages/DLL、ORT、tokenizers、Chroma、manifest/hash 和 HTTPS repair mapping fail closed。
+- 现有 49 collections / 100-query 回归未 rebuild：Recall@3/5/10 为 `78% / 88% / 89%`，Top-5 set overlap `98.8%`、Top-10 `96.4%`，全部通过 release gate。`第八章 热电式传感器` 的 HNSW `Nothing found on disk` 仍按既有数据问题单独记录，未混入迁移或全库重建。
+- 最终 packaged 5-run：first health median `2.403s`，full-ready `2.759s`，first textbook retrieval `428.0ms`。20 次 batch=1 median/p95 `3.734/4.297ms`，RSS p95 `169.17MiB`；500-text 五次 warm median `27.27 texts/s`；并发 ingestion + query 为 `6.65/13.29ms` median/p95、ingestion `26.86 texts/s`。
+- 最终 NSIS/ZIP/win-unpacked/backend 为 `254.20 / 324.96 / 752.56 / 342.10 MiB`。相对旧 installed `1283.06 MiB` 减少 `530.50 MiB / 41.35%`。最终产物 forbidden runtime 扫描为 0，asset hash、ORT、tokenizers 与 Chroma dynamic imports 通过。
+- NSIS clean install 在隔离 user-data、离线标志与不含 Python/Node 的 PATH 下启动成功，embedding/retrieval ready 且输出 512 维；静默卸载成功并保留 user-data。旧 runtime data 升级 smoke 保留 books、vector files 与旧 model assets，已有教材直接检索，无自动 re-embedding。
+- 后端全量 pytest：472 passed；仅保留既有 Starlette/httpx2 弃用警告。Electron main/preload/runtime Node syntax check、frontend TypeScript/Vite production build 与 `git diff --check` 通过。
+- 真实 NSIS clean install 中移走 shipped graph 后，Electron 显示 typed `MODEL_MISSING` 与“修复模型资源”；UI repair 完成六文件临时下载、full hash、原子安装、provider 自动重启与两片段检索 smoke。shipped graph 恢复后，新 profile 在 blocked outbound proxy + HF offline 下直接从 app resources 启动、入库并检索成功。Windows 拒绝创建管理员防火墙规则，因此额外离线证据属于进程级 air-gap；建议在管理员控制的 release VM 再做物理断网复核。最终发布判定为 **PHASE 3 PASS / GO**。
+
+# 2026-08-13 - Embedding ONNX Runtime FP32 可行性实验
+
+## 实验链路与固定数据
+
+- 在 `evaluation/embedding_backend` 新增完全隔离的 Torch/SentenceTransformers 与 ONNX Runtime FP32 provider；正式 `config.py`、默认 backend、Chroma 索引、chunk/retrieval/reranker 行为均未修改。
+- ONNX 导出图包含 BERT backbone、CLS pooling 和与当前 SentenceTransformers encode 等价的两次 L2 normalization；运行时使用相同本地 tokenizer、512 token 右侧截断/填充、CPUExecutionProvider 与 2 个 intra-op thread。
+- 修复直接加载 `tokenizer.json` 时遗漏 SentenceTransformers 根据 `sentence_bert_config.json` 注入 lowercase normalizer 的差异；最终 340/340 文本的 input IDs、attention mask 与 token type IDs 完全一致。
+- 固定保存 340 条 parity fixture（50 短概念、100 教材段落、60 长 chunk、50 公式/符号文本、40 组高相似概念）及 500 chunk / 100 query retrieval fixture；后者含 40 条人工核对 relevant chunk 的高价值 query。benchmark 只读 fixture，不读取或写入真实 Chroma。
+
+## 测量结果与判定
+
+- Embedding cosine mean/median/min 为 `1.0 / 1.0 / 0.9999998808`；逐元素 max/mean absolute error 为 `3.576e-7 / 4.055e-8`。
+- Top-1/3/5/10 集合 overlap 均为 100%；40 条人工 query 的 Torch 与 ONNX Recall@1/3/5 均为 `80% / 92.5% / 95%`，MRR@10 均为 `0.8646`。样本量只足以排查明显/系统性退化，不宣称统计等价。
+- 5 个全新进程测得 cold total median：Torch `8.45s`、ONNX `0.60s`；模型加载 RSS 增量约 `313.1MB / 120.4MB`，首次 embedding 峰值增量约 `366.6MB / 160.9MB`。
+- Warm 输入固定为单条短 query，以及 75% 中等/公式 chunk（不超过 900 字符）+25% 50–300 字符教材段落。ONNX 单条查询明显更快；batch 8/32 基本相当；batch 100 median 为 Torch `8.43s`、ONNX `10.25s`，出现约 21.6% 回归。
+- 已安装分发口径下，Torch embedding gross stack 约 `846.7MB`，ONNX gross stack 约 `187.0MB`。但当前生产 fallback、可选 CrossEncoder reranker、legacy tooling 与 release build 检查仍依赖 Torch/SentenceTransformers/Transformers，实际可删除 dependency 与旧模型资产均为 `0MB`；为保留 fallback 而同时加入 FP32 ONNX 会让 release 额外增加约 `90.5MiB`。
+- 结论为 **NO-GO**：质量门槛通过，cold/RAM 显著改善，但真实可删除发行体积无明显收益且大批量摄取性能退化。保留实验 provider 与 benchmark，PyTorch 继续作为正式默认 backend。
+
+## Validation
+
+- ONNX graph 经 `onnx.checker.check_model` 验证；完整 benchmark 连续复跑并保留最终 JSON/Markdown 报告。
+- 新增纯指标回归测试；`tests/test_embedding_backend_metrics.py`：2 passed。
+- 后端全量 pytest：455 passed；仅保留既有 Starlette/httpx2 弃用警告。
+
+# 2026-08-14 - ONNX Runtime FP32 Phase 1 throughput feasibility
+
+## 实验边界与根因
+
+- 在上一阶段数值/检索 parity 已通过的前提下，新增完全隔离的 Phase 1 benchmark；未修改生产 embedding backend、正式 ingestion、Chroma、BM25、KG、reranker 或 release dependencies。
+- 12 物理核 / 16 逻辑核 i5-12500H 上，使用 2 线程控制条件对 Torch 与 ONNX 的 batch 1/4/8/16/24/32/48/64/96/100/128 各完成 10 次 warm runs。batch=100 回归本轮为 6.9%，未稳定复现上一阶段 18–22% 的幅度；最大回归出现在 batch 16–48，为 22.6–26.6%。
+- 短文本下 ONNX 与 Torch 持平或更快；正常段落的 padding ratio 随 batch 增大并放大回归；全 512-token 长文本在 padding ratio=1.0 时仍有 15–19.5% 回归，说明原因同时包含 padding strategy 与两线程下 ORT 长序列 compute/memory scheduling。
+- batch=100 runtime 中约 99.8% 位于 `ORT session.run`；tokenization、NumPy input construction 和 result conversion 不是主要卡点。输入 batch/sequence axis 均为动态，未发现固定 shape。
+
+## 实验优化与验收
+
+- 单纯保持顺序的 micro-batching 最多只提升 4.8%；length-sorted batch=32 通过把 padding ratio 从 1.415 降至 1.040，在两线程下将真实 500-chunk 吞吐从 9.47 提升至 13.58 texts/s。固定长度桶也提升到 11.70 texts/s，输出写回原索引后的逐行 cosine minimum 为 1.0。
+- ORT intra-op 是主要吞吐杠杆；12 线程在 batch=100 达到 20.50 texts/s。inter-op 1/2/4 与 parallel execution 无有效收益。`ORT_ENABLE_EXTENDED/ALL` 相比 DISABLE/BASIC 在 batch 32/100 快约 7–8%。
+- 双 L2 normalization 的 single-normalization 实验图从 380 降为 374 nodes，但没有实质性能收益；340-text cosine mean 1.0，Top-1/3/5/10 overlap 100%。为保持 SentenceTransformers 兼容语义，baseline-compatible graph 不变。
+- 真实 `传感器长书` 500 chunks：Torch current batch=32 为 10.63 texts/s、峰值 1022.6 MB；实验 ONNX length-bucket batch=16 + intra=12 为 27.47 texts/s、峰值 1011.1 MB，吞吐 2.58× 且 RAM -1.1%；global length-sort batch=16 为 32.49 texts/s、峰值 1057.6 MB。50-text ONNX/Torch cosine mean 1.0、minimum 0.99999988。
+- Phase 1 判定为 PASS。建议仅作为后续候选：interactive 保持 batch=1 + 小线程池；offline ingestion 使用 0–64/65–128/129–256/257–512 bucket、batch=16、物理核心数 intra-op。生产默认 backend 未切换。
+
+## Validation
+
+- Phase 1 原始 checkpoint、完整报告、baseline-compatible graph 与 single-normalization 实验 graph 保存在 `benchmark_results/embedding_onnx_phase1`。
+- 实验 provider/worker、export variant 和报告脚本均通过 Python AST；length plan/padding 专项回归通过。`git diff --check` 无空白错误。
+
+# 2026-08-12 - 错题与问答多模态桥接层
+
+## 可观察问答执行过程
+
+- 问答助手消息新增可折叠的统一执行过程卡。执行中自动展开，完成、停止或失败后自动收拢；步骤显示真实状态、摘要和耗时，不展示模型隐藏 thinking。
+- 普通聊天把既有 `context → plan → retrieve → chapter → generate → done` SSE 映射为“读取会话上下文、理解问题与确定范围、检索教材上下文、整理教材证据、综合证据与知识推理、生成答案、关联学习记录”等用户可理解的活动；阶段交接时会先声明下一项正在执行，而不是只显示事后记录。
+- 图片问答新增 SSE 路径，真实报告“读取附件、Kimi 识别图片、综合题干与视觉关系、生成答案、关联学习记录”；DeepSeek 正文逐段流式显示，不再在长时间推理后整段跳出；视觉类型、实体/关系数量与不确定项作为可展开摘要展示。
+- 历史错题讲解新增 SSE 路径，明确显示复用 Visual IR 缓存或旧题干降级，不再让长时间模型调用表现为无反馈阻塞。
+- 活动事件采用稳定 `id` 原位更新，前端不会因 `active → completed` 重复增加步骤；失败步骤保留原因，教材不适用或概念未可靠匹配会显示为“已跳过”，不会假装成功。
+- 普通回答、图片讲解和历史错题讲解统一支持停止；停止或异常会结算仍在运行的步骤，执行卡不会残留永久转圈。
+
+## Kimi Vision → DeepSeek
+
+- 新增独立 `multimodal_bridge` 服务。Kimi 不再只转写 OCR，而是输出有界的 `VisualProblemIR v1`：题干、图形类型、实体、连接/空间/拓扑关系、图内标注、公式、选项、手写步骤、圈画和视觉不确定项；DeepSeek 以该结构化视觉证据完成最终推理。
+- 视觉证据在提示词中明确作为不可信只读数据处理，图片内指令不得执行；无法确定且会影响答案的信息要求显式提示用户校正，避免模型凭空补图。
+- 错题记录新增向后兼容的 `visual_ir` JSON 字段，无需迁移 SQLite schema；旧记录继续从 `question_text/ocr_text` 降级讲解。
+
+## 错题本与问答附件
+
+- 错题页的识别、看图讲题和文本重讲统一复用多模态桥接层，保存时同时缓存题干转写与 Visual IR。
+- 问答输入区新增图片附件和历史错题选择入口。新图片可直接讲解并显式选择是否导入错题本；历史错题优先复用缓存 Visual IR，不重复调用视觉模型。
+- 问答图片入口改为输入框左侧始终可见的“图片”文字按钮，紧凑 Electron 布局不再退化为难以辨认的纯图标；选图后先进入与错题页共用的 `ProblemImageEditor`，支持框选、亮度、对比度、锐化和黑白扫描效果。
+- 错题页原有裁剪与滤镜交互已收敛到同一共享组件，避免聊天端与错题端行为逐渐分叉。
+- 图片问答完成后复用现有 KG 概念链接与 ConceptMemory 接触记录；导入错题后保留图片、Visual IR、讲解和概念标签。
+
+## Validation
+
+- 多模态 IR 解析、旧 OCR 降级、视觉证据提示边界和图片答案流式事件均有回归覆盖。
+- 后端全量 pytest：448 passed；前端 Vitest：16 files / 72 tests passed；ESLint、TypeScript 和 Vite production build 通过。
+- 使用本地 production build 实际检查问答页 DOM：存在可见且有无障碍名称的“上传题目图片”按钮，按钮正文为“图片”。
+
+## 图片讲解请求中止修复
+
+- 修复问答图片链路使用 150 秒总超时，却串行执行最长 120 秒 Kimi Vision 与最长 120 秒 DeepSeek 导致前端先行中止的问题。图片讲解统一使用 6 分钟总时限，单独 OCR 使用 3 分钟，并覆盖问答页、错题页和错题速录三个入口。
+- `fetchWithTimeout` 现在区分超时、调用方取消和异常中止，不再把浏览器底层 `signal is aborted without reason` 原样展示给用户；超时会显示具体秒数和可执行的重试提示。
+- 图片主答案返回前的概念关联改为只读本地 KG 快速路径，不再额外串行调用一次 LLM；Kimi Vision 禁用 SDK 自动重试，DeepSeek 图片解题使用 180 秒明确上限且禁用自动重试，避免请求时长不可预测。
+
+## 图片讲解性能、发送状态与公式修复
+
+- 依据执行卡实测将约 297 秒拆为 Kimi 视觉解析 69 秒和 DeepSeek 首段前隐藏推理 228 秒；附件保存与概念关联不是主要卡点。Kimi 视觉解析关闭默认 thinking、限制 Visual IR 输出规模；DeepSeek 图片讲题与主问答统一维持 `V4 Pro + high + thinking`，本轮不同模型/强度测试只作为评测记录，不接入生产路由。
+- 同一张本地错题图的真实 API 中间基准（图片答案为 medium thinking）曾测得 Kimi 38.2 秒、DeepSeek 首段 104.1 秒、完整链路 155.3 秒；该档位仅用于性能观察，不作为当前生产配置。
+- 图片附件、历史错题选择、问题文本和公式输入在点击发送后立即清空，不再等待远端 `done`；删除附件预览中的“Kimi 提取题干与图形关系，DeepSeek 负责推理讲解”小字。
+- 图片讲题提示词强制所有 LaTeX 使用数学定界符；后端与前端兼容修复裸 `\\circ/\\text/\\approx`、跨 Markdown 段落错误配对的单个 `$`，因此新答案和已经保存的旧答案都可正常渲染。
+- 使用同一张 E 型热电偶试题和固定 Kimi Visual IR 对 DeepSeek V4 Pro 进行真实付费单样本基准：Kimi 生产预处理后视觉抽取 42.50 秒；`medium + thinking` 首段 200.22 秒、完整 211.38 秒；`high + thinking` 首段 184.50 秒、完整 198.82 秒。两者四问结论一致，high 输出更完整但本次反而更快，说明单样本在线延迟不能用于建立 `effort → 时延` 的单调假设。
+- 复用完全相同的 Visual IR 与 prompt 两次测试 `deepseek-v4-flash / high + thinking`：第 1 次首段 396.85 秒、完整 403.77 秒，第 2 次首段 361.54 秒、完整 368.92 秒。两次四问结论同样正确，第二次仅快 8.6%，平均完整耗时 386.35 秒，仍为 Pro medium 的 1.83 倍、Pro high 的 1.94 倍。首次慢响应不是一次重试后消失的孤立波动，但少量顺序样本仍不能区分模型自身耗时与端点持续负载，也不能视为长期性能排序。
+- 基准产物保存在 `data/eval/image_reasoning_20260813_201703`，包含生产优化图、Visual IR、四份完整答案、JSON 指标和汇总报告；thinking 内容未保存。初始未复用生产图片预处理的目录已用 `EXCLUDED.md` 明确排除。
+
 # 2026-08-12 - Session Resolver 学习行为收口与 Learning State v1
 
 ## Session Resolver 与跨 Session 桥接
@@ -1941,3 +2060,24 @@ The detailed historical notes for this period were damaged by mojibake before th
 - Frontend Vitest：15 files / 70 tests passed；ESLint、TypeScript 与 Vite production build 通过。构建仅保留既有 MathLive 801.47 kB 大 chunk 提示。
 - Python dependency exact-pin 检查通过；`git diff --check` 通过。
 - 当前既有 `venv310` 仍混装了未纳入主锁的 PaddleOCR、Marker、Surya 等可选栈，`pip check` 会报告其 Pillow、protobuf、PyYAML、numpy、openai、websockets 与 fsspec 冲突。按数据/环境安全约束，本次未擅自重装或清理该环境；fresh CI/发布环境会执行并要求 `pip check` 通过。
+# 2026-08-14 - ONNX Runtime Phase 2 release feasibility
+
+## Reachability 与 Torch-free runtime
+
+- 完成全仓库 Torch/SentenceTransformers/Transformers/safetensors/huggingface_hub 依赖清单和 Electron → packaged Python → FastAPI warmup → Chroma/retrieval/reranker 的 production reachability 追踪。当前 Standard 唯一必需的 Torch blocker 是 `config.py` embedding；CrossEncoder 仅在有效 `RERANKER_MODEL_PATH` 下函数内惰性加载，默认 deterministic rerank，普通用户路径不需要。
+- 建立独立 Python 3.10 Torch-free venv 与实验 Candidate entrypoint；未安装 torch、sentence-transformers、transformers、safetensors。backend import、FastAPI lifespan/health/warmup、512 维 query embedding、49 个真实 Chroma collections、教材/通用检索、5 本教材发现均通过。正式 `config.py` backend 和 release requirements 未切换。
+- 100 个固定 query 直接查询既有 PyTorch BGE Chroma index，不 rebuild。Torch/ONNX Top-1/3/5/10 mean set overlap 为 `96.0% / 98.33% / 97.8% / 98.4%`；relevance recall 为 `56/78/88/89%` 与 `55/78/88/89%`。两边均复现同一既有 HNSW segment 缺盘，差异归因于 HNSW/tie/hybrid ordering；已有教材无需重新向量化。
+
+## Windows package 与性能
+
+- 构建真实 PyInstaller + Electron NSIS/ZIP/win-unpacked Baseline 和 Torch-free Candidate。Candidate backend 路径中 torch、sentence_transformers、transformers、safetensors 命中均为 0；packaged warmup、真实 retrieval 和 Electron 首次使用 UI smoke 通过。
+- Baseline/Candidate installer 为 `401.83 / 285.54 MiB`，ZIP 为 `506.04 / 354.18 MiB`，win-unpacked 为 `1283.06 / 821.03 MiB`，backend 为 `963.59 / 501.55 MiB`。installed/backend 净减约 `462.03 MiB`，win-unpacked 减少 `36.01%`，installer/ZIP 分别减少 `28.94% / 30.01%`。
+- 五次 frozen backend cold run：Torch/ONNX full ready median `10.21 / 4.03s`；first retrieval wall median `463.57 / 404.71ms`。同一 Phase 1 worker 分别冻结后，batch=1 median `6.76 / 2.95ms`；500-text ingestion `10.59 / 27.00 texts/s`，p95 peak RSS 约 `1034.66 / 1022.93 MiB`。
+- 结构化 failure path 已覆盖模型缺失、模型损坏、ORT 导入失败、unsupported architecture 和 tokenizer mismatch；Standard 策略为明确错误、诊断日志和 repair 指引，不 silent fallback Torch。现有 HF repair 尚不能恢复自定义 ONNX graph，正式迁移前必须补齐 ONNX asset manifest/hash/download repair。
+
+## 判定
+
+- A. ONNX embedding production backend：`GO`（进入 Phase 3 迁移，不表示本阶段已经切换正式 backend）。
+- B. Torch-free Texa Standard Release：`GO`；installed size 通过 400 MB 与 25% gate，未达到 600 MB STRONG PASS。
+- C. Optional CrossEncoder：`MOVE TO OPTIONAL`；先从 Standard dependency 中移除，开发功能保留，有真实需求后再评估 Advanced Pack 或独立 ONNX migration。
+- 完整证据、Top 20 size attribution、风险和 Phase 3 计划见 `benchmark_results/embedding_onnx_phase2/report.md` 与 `phase2.json`。

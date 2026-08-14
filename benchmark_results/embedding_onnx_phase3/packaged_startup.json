@@ -1,0 +1,293 @@
+{
+  "status": "PASS",
+  "runs": 5,
+  "first_health_ms": {
+    "median": 2376.827600004617,
+    "p95": 2426.9148000021232
+  },
+  "full_ready_ms": {
+    "median": 2737.6909000013256,
+    "p95": 2788.629900009255
+  },
+  "first_textbook_retrieval_ms": {
+    "median": 432.0752000057837,
+    "p95": 545.3584999922896
+  },
+  "rows": [
+    {
+      "run": 1,
+      "status": "PASS",
+      "first_health_ms": 2426.9148000021232,
+      "full_ready_ms": 2788.629900009255,
+      "warmup": {
+        "status": "ready",
+        "stage": "ready",
+        "message": "Texa is ready",
+        "error": "",
+        "failure": null,
+        "stages_ms": {
+          "runtime_check": 50.2,
+          "asset_verify": 11.92,
+          "embedding_load": 371.19,
+          "index_discovery": 145.05,
+          "total": 578.4
+        }
+      },
+      "asset_runtime": {
+        "id": "embedding_model",
+        "label": "ONNX embedding runtime",
+        "installed": true,
+        "version_match": true,
+        "status": "ready",
+        "present": true,
+        "compatible": true,
+        "asset_dir": "D:\\AI\\agent\\kaoyan-assistant\\assets\\embedding-runtime\\bge-small-zh-v1.5\\onnx-fp32-v1",
+        "model_name": "BAAI/bge-small-zh-v1.5",
+        "model_version": "7999e1d3359715c523056ef9478215996d62a620",
+        "onnx_graph_version": "onnx-fp32-v1",
+        "embedding_dimension": 512,
+        "verification": "contract_and_size"
+      },
+      "generic": {
+        "wall_ms": 286.4736999908928,
+        "retrieval_status": "ordinary_qa",
+        "retrieval_error": "",
+        "content_count": 0
+      },
+      "textbook": {
+        "wall_ms": 458.47430000139866,
+        "retrieval_status": "ok",
+        "retrieval_error": "",
+        "content_count": 1
+      },
+      "checks": {
+        "health_ready": true,
+        "embedding_dimension_512": true,
+        "asset_contract_ready": true,
+        "generic_qa": true,
+        "textbook_qa": true,
+        "offline_assets": true
+      }
+    },
+    {
+      "run": 2,
+      "status": "PASS",
+      "first_health_ms": 2410.1406000118004,
+      "full_ready_ms": 2783.283000011579,
+      "warmup": {
+        "status": "ready",
+        "stage": "ready",
+        "message": "Texa is ready",
+        "error": "",
+        "failure": null,
+        "stages_ms": {
+          "runtime_check": 50.31,
+          "asset_verify": 6.72,
+          "embedding_load": 369.47,
+          "index_discovery": 162.39,
+          "total": 588.92
+        }
+      },
+      "asset_runtime": {
+        "id": "embedding_model",
+        "label": "ONNX embedding runtime",
+        "installed": true,
+        "version_match": true,
+        "status": "ready",
+        "present": true,
+        "compatible": true,
+        "asset_dir": "D:\\AI\\agent\\kaoyan-assistant\\assets\\embedding-runtime\\bge-small-zh-v1.5\\onnx-fp32-v1",
+        "model_name": "BAAI/bge-small-zh-v1.5",
+        "model_version": "7999e1d3359715c523056ef9478215996d62a620",
+        "onnx_graph_version": "onnx-fp32-v1",
+        "embedding_dimension": 512,
+        "verification": "contract_and_size"
+      },
+      "generic": {
+        "wall_ms": 419.43300000275485,
+        "retrieval_status": "ordinary_qa",
+        "retrieval_error": "",
+        "content_count": 0
+      },
+      "textbook": {
+        "wall_ms": 414.93610000179615,
+        "retrieval_status": "ok",
+        "retrieval_error": "",
+        "content_count": 1
+      },
+      "checks": {
+        "health_ready": true,
+        "embedding_dimension_512": true,
+        "asset_contract_ready": true,
+        "generic_qa": true,
+        "textbook_qa": true,
+        "offline_assets": true
+      }
+    },
+    {
+      "run": 3,
+      "status": "PASS",
+      "first_health_ms": 2304.3914000008954,
+      "full_ready_ms": 2666.2381000060122,
+      "warmup": {
+        "status": "ready",
+        "stage": "ready",
+        "message": "Texa is ready",
+        "error": "",
+        "failure": null,
+        "stages_ms": {
+          "runtime_check": 48.24,
+          "asset_verify": 10.8,
+          "embedding_load": 345.47,
+          "index_discovery": 150.56,
+          "total": 555.1
+        }
+      },
+      "asset_runtime": {
+        "id": "embedding_model",
+        "label": "ONNX embedding runtime",
+        "installed": true,
+        "version_match": true,
+        "status": "ready",
+        "present": true,
+        "compatible": true,
+        "asset_dir": "D:\\AI\\agent\\kaoyan-assistant\\assets\\embedding-runtime\\bge-small-zh-v1.5\\onnx-fp32-v1",
+        "model_name": "BAAI/bge-small-zh-v1.5",
+        "model_version": "7999e1d3359715c523056ef9478215996d62a620",
+        "onnx_graph_version": "onnx-fp32-v1",
+        "embedding_dimension": 512,
+        "verification": "contract_and_size"
+      },
+      "generic": {
+        "wall_ms": 431.9619000016246,
+        "retrieval_status": "ordinary_qa",
+        "retrieval_error": "",
+        "content_count": 0
+      },
+      "textbook": {
+        "wall_ms": 432.0752000057837,
+        "retrieval_status": "ok",
+        "retrieval_error": "",
+        "content_count": 1
+      },
+      "checks": {
+        "health_ready": true,
+        "embedding_dimension_512": true,
+        "asset_contract_ready": true,
+        "generic_qa": true,
+        "textbook_qa": true,
+        "offline_assets": true
+      }
+    },
+    {
+      "run": 4,
+      "status": "PASS",
+      "first_health_ms": 2376.827600004617,
+      "full_ready_ms": 2737.6909000013256,
+      "warmup": {
+        "status": "ready",
+        "stage": "ready",
+        "message": "Texa is ready",
+        "error": "",
+        "failure": null,
+        "stages_ms": {
+          "runtime_check": 47.7,
+          "asset_verify": 12.2,
+          "embedding_load": 358.58,
+          "index_discovery": 152.74,
+          "total": 571.26
+        }
+      },
+      "asset_runtime": {
+        "id": "embedding_model",
+        "label": "ONNX embedding runtime",
+        "installed": true,
+        "version_match": true,
+        "status": "ready",
+        "present": true,
+        "compatible": true,
+        "asset_dir": "D:\\AI\\agent\\kaoyan-assistant\\assets\\embedding-runtime\\bge-small-zh-v1.5\\onnx-fp32-v1",
+        "model_name": "BAAI/bge-small-zh-v1.5",
+        "model_version": "7999e1d3359715c523056ef9478215996d62a620",
+        "onnx_graph_version": "onnx-fp32-v1",
+        "embedding_dimension": 512,
+        "verification": "contract_and_size"
+      },
+      "generic": {
+        "wall_ms": 402.03830000245944,
+        "retrieval_status": "ordinary_qa",
+        "retrieval_error": "",
+        "content_count": 0
+      },
+      "textbook": {
+        "wall_ms": 545.3584999922896,
+        "retrieval_status": "ok",
+        "retrieval_error": "",
+        "content_count": 1
+      },
+      "checks": {
+        "health_ready": true,
+        "embedding_dimension_512": true,
+        "asset_contract_ready": true,
+        "generic_qa": true,
+        "textbook_qa": true,
+        "offline_assets": true
+      }
+    },
+    {
+      "run": 5,
+      "status": "PASS",
+      "first_health_ms": 2348.624199992628,
+      "full_ready_ms": 2714.1323999967426,
+      "warmup": {
+        "status": "ready",
+        "stage": "ready",
+        "message": "Texa is ready",
+        "error": "",
+        "failure": null,
+        "stages_ms": {
+          "runtime_check": 49.93,
+          "asset_verify": 12.05,
+          "embedding_load": 372.52,
+          "index_discovery": 159.42,
+          "total": 593.94
+        }
+      },
+      "asset_runtime": {
+        "id": "embedding_model",
+        "label": "ONNX embedding runtime",
+        "installed": true,
+        "version_match": true,
+        "status": "ready",
+        "present": true,
+        "compatible": true,
+        "asset_dir": "D:\\AI\\agent\\kaoyan-assistant\\assets\\embedding-runtime\\bge-small-zh-v1.5\\onnx-fp32-v1",
+        "model_name": "BAAI/bge-small-zh-v1.5",
+        "model_version": "7999e1d3359715c523056ef9478215996d62a620",
+        "onnx_graph_version": "onnx-fp32-v1",
+        "embedding_dimension": 512,
+        "verification": "contract_and_size"
+      },
+      "generic": {
+        "wall_ms": 426.99190000712406,
+        "retrieval_status": "ordinary_qa",
+        "retrieval_error": "",
+        "content_count": 0
+      },
+      "textbook": {
+        "wall_ms": 312.4220999889076,
+        "retrieval_status": "ok",
+        "retrieval_error": "",
+        "content_count": 1
+      },
+      "checks": {
+        "health_ready": true,
+        "embedding_dimension_512": true,
+        "asset_contract_ready": true,
+        "generic_qa": true,
+        "textbook_qa": true,
+        "offline_assets": true
+      }
+    }
+  ]
+}

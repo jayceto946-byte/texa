@@ -1,9 +1,7 @@
 # Build the backend executable for the Electron desktop app.
 #
-# IMPORTANT: This build MUST use CPU-only PyTorch (torch==2.11.0+cpu).
-# The release venv should be created from requirements-release.txt, NOT
-# from requirements.txt (which would install CUDA torch and cause
-# shm.dll load failures on end-user machines without NVIDIA drivers).
+# Texa Standard embeds with ONNX Runtime and MUST NOT package Torch,
+# SentenceTransformers, Transformers, or safetensors.
 #
 # To set up the release venv:
 #   python -m venv venv310
@@ -21,7 +19,7 @@ param(
 $ErrorActionPreference = "Stop"
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $frontendDist = Join-Path $projectRoot "frontend\dist"
-$sampleData = if ($SampleDataDir) { [System.IO.Path]::GetFullPath((Join-Path $projectRoot $SampleDataDir)) } else { Join-Path $projectRoot "desktop\sample_data" }
+$sampleData = if ($SampleDataDir) { [System.IO.Path]::GetFullPath((Join-Path $projectRoot $SampleDataDir)) } else { Join-Path $projectRoot "desktop\standard_seed" }
 Set-Location $projectRoot
 
 function Invoke-CheckedCommand {
@@ -37,8 +35,7 @@ function Invoke-CheckedCommand {
     }
 }
 
-if (-not $SkipSampleDataPrepare) {
-    if (-not $SampleSourceData) { $SampleSourceData = Join-Path $projectRoot "data" }
+if (-not $SkipSampleDataPrepare -and $SampleSourceData) {
     if (Test-Path -LiteralPath $SampleSourceData) {
         & (Join-Path $projectRoot "scripts\prepare-desktop-sample-data.ps1") -SourceData $SampleSourceData -TargetData $sampleData -BookName $SampleBookName
     } elseif ($RequireSampleData) {
@@ -77,30 +74,10 @@ Invoke-CheckedCommand "[2/3] Checking PyInstaller..." {
     & $Python -m PyInstaller --version
 }
 
-Write-Host "[2.5/3] Verifying CPU-only PyTorch..."
-$torchCheck = & $Python -c "import json, torch; print(json.dumps({'version': torch.__version__, 'compiled_cuda': torch.version.cuda, 'cuda_available': torch.cuda.is_available()}))" 2>&1
-if ($LASTEXITCODE -ne 0) {
-    throw "Failed to import torch: $torchCheck"
-}
-try {
-    $torchInfo = ($torchCheck | Select-Object -Last 1) | ConvertFrom-Json
-} catch {
-    throw "Could not parse PyTorch build information: $torchCheck"
-}
-Write-Host "  PyTorch version:      $($torchInfo.version)"
-Write-Host "  Compiled CUDA runtime: $($torchInfo.compiled_cuda)"
-Write-Host "  CUDA available:       $($torchInfo.cuda_available)"
-if (
-    $torchInfo.version -notmatch '\+cpu$' -or
-    $null -ne $torchInfo.compiled_cuda -or
-    [bool]$torchInfo.cuda_available
-) {
-    throw @"
-Non-CPU PyTorch detected: version=$($torchInfo.version), compiled_cuda=$($torchInfo.compiled_cuda), cuda_available=$($torchInfo.cuda_available)
-The release build requires an explicit +cpu wheel. Reinstall from requirements-release.txt.
-"@
-}
-Write-Host "  Explicit CPU-only PyTorch confirmed - OK"
+Write-Host "[2.5/3] Verifying ONNX Standard build environment..."
+$runtimeCheck = & $Python -B -c "import json, onnxruntime, tokenizers; print(json.dumps({'onnxruntime': onnxruntime.__version__, 'tokenizers': tokenizers.__version__}))" 2>&1
+if ($LASTEXITCODE -ne 0) { throw "Failed to import the ONNX Standard runtime: $runtimeCheck" }
+Write-Host ($runtimeCheck | Select-Object -Last 1)
 
 Invoke-CheckedCommand "[3/3] Building backend executable..." {
     & $Python -m PyInstaller `
@@ -114,17 +91,17 @@ Invoke-CheckedCommand "[3/3] Building backend executable..." {
       --hidden-import backend.main `
       --hidden-import langchain_chroma `
       --hidden-import chromadb `
-      --hidden-import sentence_transformers `
       --hidden-import huggingface_hub `
+      --hidden-import onnxruntime `
+      --hidden-import tokenizers `
       --collect-submodules backend `
       --collect-submodules graph `
       --collect-submodules ingestion `
       --collect-submodules knowledge `
       --collect-submodules memory `
       --collect-submodules utils `
+      --collect-submodules chromadb `
       --collect-data chromadb `
-      --collect-data sentence_transformers `
-      --collect-data transformers `
       --exclude-module agents `
       --exclude-module paddle `
       --exclude-module paddleocr `
@@ -169,7 +146,10 @@ Invoke-CheckedCommand "[3/3] Building backend executable..." {
       --exclude-module nltk `
       --exclude-module sklearn `
       --exclude-module lightning `
-      --exclude-module onnxruntime `
+      --exclude-module torch `
+      --exclude-module sentence_transformers `
+      --exclude-module transformers `
+      --exclude-module safetensors `
       --exclude-module tkinter `
       --exclude-module _tkinter `
       --add-data "${frontendDist};frontend\dist" `
@@ -179,10 +159,13 @@ Invoke-CheckedCommand "[3/3] Building backend executable..." {
       desktop\backend_server.py
 }
 
-Write-Host "[Post-build] Verifying CPU-only PE imports..."
-& $Python -B scripts\verify_cpu_only_build.py --root build\backend\backend_server
+Write-Host "[Post-build] Verifying Torch-free ONNX Standard runtime..."
+& $Python -B scripts\validate_standard_release.py `
+  --root build\backend\backend_server `
+  --asset-dir assets\embedding-runtime\bge-small-zh-v1.5\onnx-fp32-v1 `
+  --pyinstaller-xref build\pyinstaller\backend_server\xref-backend_server.html
 if ($LASTEXITCODE -ne 0) {
-    throw "CPU-only PE verification failed. The backend build was not accepted."
+    throw "Texa Standard validation failed. The backend build was not accepted."
 }
 Write-Host "Backend executable ready: build\backend\backend_server\backend_server.exe"
 Write-Host "Next: cd desktop; npm install; npm run dist"

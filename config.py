@@ -2,6 +2,7 @@ import os
 import re
 import base64
 import json
+import logging
 import threading
 from pathlib import Path
 from typing import Optional
@@ -228,6 +229,7 @@ def encode_image(image_path: str | Path) -> str:
 # Embedding adapter used by Chroma.
 _embeddings_instance = None
 _embeddings_lock = threading.Lock()
+logger = logging.getLogger(__name__)
 
 
 def get_embeddings():
@@ -241,10 +243,76 @@ def get_embeddings():
 
 
 def _load_embeddings():
-    global _embeddings_instance
-    print("  [embedding] loading model...", flush=True)
+    backend = os.getenv("TEXA_EMBEDDING_BACKEND", os.getenv("EMBEDDING_BACKEND", "onnx")).strip().lower()
+    if backend == "onnx":
+        return _load_onnx_embeddings()
+    if backend == "torch":
+        return _load_torch_embeddings()
+    from ingestion.embedding_errors import EmbeddingRuntimeError
+    raise EmbeddingRuntimeError(
+        "EMBEDDING_BACKEND_UNSUPPORTED",
+        f"Unknown embedding backend {backend!r}; expected 'onnx' or development-only 'torch'",
+        recoverable=False,
+        repair_action="set_supported_embedding_backend",
+    )
 
-    import torch
+
+def _load_onnx_embeddings():
+    global _embeddings_instance
+    import importlib.metadata
+    import time
+
+    from ingestion.embedding_assets import resolve_embedding_assets
+    from ingestion.embedding_errors import classify_embedding_error
+    from ingestion.onnx_embeddings import TexaONNXEmbeddings
+
+    started = time.perf_counter()
+    try:
+        asset_dir, manifest = resolve_embedding_assets(
+            full_hash=os.getenv("TEXA_EMBEDDING_FULL_VERIFY", "0") == "1"
+        )
+        provider = TexaONNXEmbeddings(asset_dir)
+    except Exception as exc:
+        diagnosed = classify_embedding_error(exc)
+        logger.error(
+            "embedding initialization failed backend=onnx code=%s diagnostic_id=%s",
+            diagnosed.code,
+            diagnosed.failure.diagnostic_id,
+            exc_info=True,
+        )
+        raise diagnosed from exc
+    _embeddings_instance = provider
+    logger.info(
+        "embedding ready backend=onnx ort=%s model=%s model_version=%s graph=%s "
+        "tokenizer=%s verification=%s load_ms=%.1f runtime=%s",
+        importlib.metadata.version("onnxruntime"),
+        manifest["model_name"],
+        manifest["model_version"],
+        manifest["onnx_graph_version"],
+        manifest["tokenizer_version"],
+        "sha256" if os.getenv("TEXA_EMBEDDING_FULL_VERIFY", "0") == "1" else "contract_and_size",
+        (time.perf_counter() - started) * 1000,
+        provider.runtime_config,
+    )
+    print("  [embedding] ONNX FP32 model ready", flush=True)
+    return provider
+
+
+def _load_torch_embeddings():
+    """Development-only SentenceTransformers reference backend."""
+    global _embeddings_instance
+    print("  [embedding] loading development Torch reference model...", flush=True)
+
+    try:
+        import torch
+    except ImportError as exc:
+        from ingestion.embedding_errors import EmbeddingRuntimeError
+        raise EmbeddingRuntimeError(
+            "TORCH_RUNTIME_UNAVAILABLE",
+            "Torch embedding is development-only and is not installed in Texa Standard",
+            recoverable=False,
+            repair_action="install_requirements_dev",
+        ) from exc
     torch.set_num_threads(2)
     embedding_local_files_only = os.getenv("EMBEDDING_LOCAL_FILES_ONLY", "1") == "1"
     if embedding_local_files_only:
@@ -299,3 +367,14 @@ def _load_embeddings():
     _embeddings_instance = _Embeddings()
     print("  [embedding] model ready", flush=True)
     return _embeddings_instance
+
+
+def reset_embeddings() -> None:
+    """Drop the singleton so a verified repaired asset can be initialized."""
+    global _embeddings_instance
+    with _embeddings_lock:
+        _embeddings_instance = None
+
+
+def embedding_backend_name() -> str:
+    return os.getenv("TEXA_EMBEDDING_BACKEND", os.getenv("EMBEDDING_BACKEND", "onnx")).strip().lower()

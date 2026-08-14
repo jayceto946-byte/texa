@@ -1,0 +1,34 @@
+{
+  "status": "PASS",
+  "profile_preexisting": false,
+  "network_isolation": {
+    "mode": "process-level air-gap",
+    "hf_hub_offline": true,
+    "embedding_local_files_only": true,
+    "outbound_proxy": "http://127.0.0.1:9",
+    "github_head_probe": "BLOCKED",
+    "github_probe_error": "WinError 10061",
+    "os_firewall_note": "Temporary path-scoped rules were attempted but Windows denied administrator access; no firewall rule was created."
+  },
+  "asset": {
+    "source": "read-only app resources",
+    "user_active_pointer_exists": false,
+    "embedding_dimension": 512,
+    "status": "ready"
+  },
+  "startup": {
+    "embedding_ready": true,
+    "retrieval_ready": true,
+    "warmup_total_ms": 2104.23
+  },
+  "ingestion": {
+    "book": "TexaRepairVectorBeta",
+    "chapter_count": 2,
+    "status": "PASS"
+  },
+  "retrieval": {
+    "query": "cobalt-orchid calibration invariant",
+    "snippet_count": 2,
+    "status": "PASS"
+  }
+}

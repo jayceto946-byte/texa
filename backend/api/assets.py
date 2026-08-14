@@ -15,6 +15,8 @@ import requests
 from fastapi import APIRouter
 
 from config import DATA_DIR, VECTOR_DB_PATH
+from ingestion.embedding_assets import embedding_asset_status, repair_embedding_assets
+from ingestion.embedding_errors import EmbeddingRuntimeError, classify_embedding_error
 
 router = APIRouter(prefix="/assets", tags=["assets"])
 
@@ -82,23 +84,13 @@ def _embedding_snapshot_path() -> Path | None:
 
 
 def _embedding_status(manifest: dict) -> dict:
-    item = manifest.get("assets", {}).get("embedding_model", {})
-    snapshot = _embedding_snapshot_path()
-    installed = bool(snapshot and snapshot.exists())
-    safe_repo_id = _safe_repo_id(EMBEDDING_REPO_ID)
-    safe_revision = _safe_public_text(EMBEDDING_REVISION, "main")
-    version_match = installed and (not item or (item.get("repo_id") == safe_repo_id and item.get("revision") == safe_revision))
+    status = embedding_asset_status(full_hash=False)
     return {
         "id": "embedding_model",
-        "label": "Embedding model",
-        "installed": installed,
-        "version_match": version_match,
-        "status": "ready" if version_match else "missing" if not installed else "version_mismatch",
-        "repo_id": safe_repo_id,
-        "revision": safe_revision,
-        "hf_endpoint": _safe_public_text(HF_ENDPOINT, "https://hf-mirror.com"),
-        "path": str(snapshot or MODEL_CACHE_DIR),
-        "installed_at": item.get("installed_at", ""),
+        "label": "ONNX embedding runtime",
+        "installed": status.get("present", False),
+        "version_match": status.get("compatible", False),
+        **status,
     }
 
 
@@ -166,32 +158,38 @@ def assets_status():
 
 @router.post("/download/embedding")
 def download_embedding():
-    try:
-        safe_repo_id = _safe_repo_id(EMBEDDING_REPO_ID)
-        safe_revision = _safe_public_text(EMBEDDING_REVISION, "main")
-        os.environ.setdefault("HF_ENDPOINT", _safe_public_text(HF_ENDPOINT, "https://hf-mirror.com"))
-        MODEL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        from huggingface_hub import snapshot_download
+    """Compatibility alias for the versioned ONNX repair operation."""
+    return repair_embedding()
 
-        snapshot = snapshot_download(
-            repo_id=safe_repo_id,
-            revision=safe_revision,
-            cache_dir=str(MODEL_CACHE_DIR),
-            local_files_only=False,
-            resume_download=True,
-        )
-        manifest = _read_manifest()
-        manifest.setdefault("assets", {})["embedding_model"] = {
-            "repo_id": safe_repo_id,
-            "revision": safe_revision,
-            "hf_endpoint": _safe_public_text(HF_ENDPOINT, "https://hf-mirror.com"),
-            "path": snapshot,
-            "installed_at": _now(),
+
+@router.post("/repair/embedding")
+def repair_embedding():
+    try:
+        result = repair_embedding_assets()
+        from config import get_embeddings, reset_embeddings
+        from ingestion.vector_store import reset_vector_store
+
+        reset_vector_store()
+        reset_embeddings()
+        get_embeddings()
+        return {
+            "success": True,
+            "message": "ONNX embedding runtime repaired and reinitialized.",
+            "data": {**result, "runtime": embedding_asset_status(full_hash=False)},
         }
-        _write_manifest(manifest)
-        return {"success": True, "message": "Embedding model downloaded.", "data": _embedding_status(manifest)}
+    except EmbeddingRuntimeError as exc:
+        return {
+            "success": False,
+            "message": "ONNX embedding runtime repair failed.",
+            "error": exc.as_dict(),
+        }
     except Exception as exc:
-        return {"success": False, "message": f"Embedding model download failed: {exc}"}
+        diagnosed = classify_embedding_error(exc, stage="asset_repair")
+        return {
+            "success": False,
+            "message": "ONNX embedding runtime repair failed.",
+            "error": diagnosed.as_dict(),
+        }
 
 
 @router.post("/download/vector-bundle")

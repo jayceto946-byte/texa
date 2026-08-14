@@ -1,0 +1,92 @@
+{
+  "status": "PASS",
+  "tag": "embedding-runtime-onnx-fp32-v1",
+  "asset_count": 6,
+  "temporary_download_removed": true,
+  "assets": [
+    {
+      "name": "model.onnx",
+      "url": "https://github.com/jayceto946-byte/kaoyan-assistant/releases/download/embedding-runtime-onnx-fp32-v1/model.onnx",
+      "final_url": "https://release-assets.githubusercontent.com/github-production-release-asset/1284019208/53d8d0c7-3a5f-48c4-af25-25f022479b4e",
+      "head_status": 200,
+      "get_status": 200,
+      "content_length": 94847144,
+      "expected_size": 94847144,
+      "downloaded_size": 94847144,
+      "sha256": "8ffd0a0438704bbd55cab10c65d938df62d159879f59907557b3b09dfcc6fe0a",
+      "expected_sha256": "8ffd0a0438704bbd55cab10c65d938df62d159879f59907557b3b09dfcc6fe0a",
+      "download_ms": 4277.91,
+      "status": "PASS"
+    },
+    {
+      "name": "tokenizer.json",
+      "url": "https://github.com/jayceto946-byte/kaoyan-assistant/releases/download/embedding-runtime-onnx-fp32-v1/tokenizer.json",
+      "final_url": "https://release-assets.githubusercontent.com/github-production-release-asset/1284019208/1f1c04a7-3927-4613-b4e8-c22dfa4ca9d8",
+      "head_status": 200,
+      "get_status": 200,
+      "content_length": 439125,
+      "expected_size": 439125,
+      "downloaded_size": 439125,
+      "sha256": "48cea5d44424912a6fd1ea647bf4fe50b55ab8b1e5879c3275f80e339e8fae26",
+      "expected_sha256": "48cea5d44424912a6fd1ea647bf4fe50b55ab8b1e5879c3275f80e339e8fae26",
+      "download_ms": 1005.44,
+      "status": "PASS"
+    },
+    {
+      "name": "tokenizer_config.json",
+      "url": "https://github.com/jayceto946-byte/kaoyan-assistant/releases/download/embedding-runtime-onnx-fp32-v1/tokenizer_config.json",
+      "final_url": "https://release-assets.githubusercontent.com/github-production-release-asset/1284019208/00dfe254-91fc-4585-be37-a87036b3bdaf",
+      "head_status": 200,
+      "get_status": 200,
+      "content_length": 367,
+      "expected_size": 367,
+      "downloaded_size": 367,
+      "sha256": "e6f3b96db926a37d4039995fbf5ad17de158dfb8f6343d607e4dbaad18d75f5a",
+      "expected_sha256": "e6f3b96db926a37d4039995fbf5ad17de158dfb8f6343d607e4dbaad18d75f5a",
+      "download_ms": 754.07,
+      "status": "PASS"
+    },
+    {
+      "name": "sentence_bert_config.json",
+      "url": "https://github.com/jayceto946-byte/kaoyan-assistant/releases/download/embedding-runtime-onnx-fp32-v1/sentence_bert_config.json",
+      "final_url": "https://release-assets.githubusercontent.com/github-production-release-asset/1284019208/8ec508e1-e2ad-4210-8e31-84e1cc7717b1",
+      "head_status": 200,
+      "get_status": 200,
+      "content_length": 52,
+      "expected_size": 52,
+      "downloaded_size": 52,
+      "sha256": "84e39fda68ccbff05bfa723ae9c0e70e23e2ec373b76e0f8c6e71af72a693cbf",
+      "expected_sha256": "84e39fda68ccbff05bfa723ae9c0e70e23e2ec373b76e0f8c6e71af72a693cbf",
+      "download_ms": 785.91,
+      "status": "PASS"
+    },
+    {
+      "name": "special_tokens_map.json",
+      "url": "https://github.com/jayceto946-byte/kaoyan-assistant/releases/download/embedding-runtime-onnx-fp32-v1/special_tokens_map.json",
+      "final_url": "https://release-assets.githubusercontent.com/github-production-release-asset/1284019208/790b4ff0-f24b-4eb4-8e14-c75f78e5318f",
+      "head_status": 200,
+      "get_status": 200,
+      "content_length": 125,
+      "expected_size": 125,
+      "downloaded_size": 125,
+      "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+      "expected_sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+      "download_ms": 759.81,
+      "status": "PASS"
+    },
+    {
+      "name": "vocab.txt",
+      "url": "https://github.com/jayceto946-byte/kaoyan-assistant/releases/download/embedding-runtime-onnx-fp32-v1/vocab.txt",
+      "final_url": "https://release-assets.githubusercontent.com/github-production-release-asset/1284019208/d150b4f8-75b0-4eba-b1ca-4537c48b9ab8",
+      "head_status": 200,
+      "get_status": 200,
+      "content_length": 109540,
+      "expected_size": 109540,
+      "downloaded_size": 109540,
+      "sha256": "45bbac6b341c319adc98a532532882e91a9cefc0329aa57bac9ae761c27b291c",
+      "expected_sha256": "45bbac6b341c319adc98a532532882e91a9cefc0329aa57bac9ae761c27b291c",
+      "download_ms": 911.5,
+      "status": "PASS"
+    }
+  ]
+}

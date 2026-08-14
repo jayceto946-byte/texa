@@ -1,0 +1,55 @@
+{
+  "phase": 3,
+  "verdict": "PASS",
+  "release_decision": "GO",
+  "blocking_reason": "",
+  "gates": {
+    "production_default_onnx": "PASS",
+    "torch_free_standard": "PASS",
+    "existing_index_migration": "PASS",
+    "asset_repair": "PASS",
+    "clean_windows_release": "PASS"
+  },
+  "matrix": {
+    "clean_install": "PASS",
+    "old_version_upgrade": "PASS",
+    "offline_startup": "PASS",
+    "model_missing": "PASS",
+    "model_corrupt": "PASS",
+    "tokenizer_mismatch": "PASS",
+    "ort_failure": "PASS",
+    "existing_chroma": "PASS",
+    "generic_qa_routing": "PASS",
+    "textbook_qa_retrieval": "PASS",
+    "ingestion": "PASS",
+    "restart": "PASS",
+    "electron_smoke": "PASS",
+    "packaged_size": "PASS",
+    "forbidden_dependency_scan": "PASS"
+  },
+  "external_generation_note": "No paid or external LLM generation was invoked; generic/textbook checks cover routing and retrieval evidence.",
+  "remote_repair_probe": {
+    "url": "https://github.com/jayceto946-byte/kaoyan-assistant/releases/download/embedding-runtime-onnx-fp32-v1/model.onnx",
+    "status_code": 200,
+    "reachable": true,
+    "asset_count": 6,
+    "content_length_and_sha256": "PASS"
+  },
+  "packaged_ui_repair": {
+    "trigger": "MODEL_MISSING -> repairEmbedding UI button",
+    "temporary_download": "PASS",
+    "full_hash": "PASS",
+    "atomic_install": "PASS",
+    "provider_retry": "PASS",
+    "retrieval_smoke": "PASS"
+  },
+  "offline_shipped_asset": {
+    "fresh_profile": true,
+    "source": "app resources",
+    "external_http_probe": "blocked by unreachable process proxy",
+    "startup": "PASS",
+    "ingestion": "PASS",
+    "retrieval": "PASS",
+    "scope_note": "OS firewall rule creation was denied; this is a process-level air-gap test, not a physical network disconnect."
+  }
+}

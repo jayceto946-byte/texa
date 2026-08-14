@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('kaoyanDesktop', {
   },
   restart: () => ipcRenderer.invoke('app:restart'),
   retryStartup: () => ipcRenderer.invoke('startup:retry'),
+  repairEmbeddingRuntime: () => ipcRenderer.invoke('startup:repair-embedding'),
   getStartupInfo: () => ipcRenderer.invoke('startup:info'),
   getBackendStatus: () => ipcRenderer.invoke('backend:status'),
   openWebFallback: () => ipcRenderer.invoke('startup:open-web'),

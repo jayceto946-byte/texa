@@ -1,0 +1,4 @@
+# Export-only dependency for the isolated FP32 ONNX feasibility benchmark.
+# Runtime inference uses onnxruntime + tokenizers + numpy already present in the
+# current release environment. This file is not part of release installation.
+onnx==1.17.0

@@ -50,18 +50,9 @@ if (Test-Path -LiteralPath $progressSource) {
 }
 
 Copy-IfExists (Join-Path $sourcePath "vector_db") (Join-Path $targetPath "vector_db")
-Copy-IfExists (Join-Path $sourcePath "models\models--BAAI--bge-small-zh-v1.5") (Join-Path $targetPath "models\models--BAAI--bge-small-zh-v1.5")
-
 $manifest = [ordered]@{
     schema_version = 1
     assets = [ordered]@{
-        embedding_model = [ordered]@{
-            repo_id = "BAAI/bge-small-zh-v1.5"
-            revision = "main"
-            hf_endpoint = "https://hf-mirror.com"
-            path = "models/models--BAAI--bge-small-zh-v1.5"
-            installed_at = (Get-Date).ToString("s")
-        }
         vector_bundle = [ordered]@{
             version = "demo-v1"
             url = "bundled://desktop/sample_data/vector_db"

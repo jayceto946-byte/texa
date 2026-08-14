@@ -1,0 +1,2216 @@
+{
+  "schema_version": 1,
+  "model": "BAAI/bge-small-zh-v1.5",
+  "selection": "fixed deterministic sample from the project's textbook Chroma corpus",
+  "counts": {
+    "total": 340,
+    "short_concept": 50,
+    "textbook_paragraph": 100,
+    "long_textbook_chunk": 60,
+    "formula_symbol_mix": 50,
+    "high_similarity_concept": 80,
+    "high_similarity_pairs": 40
+  },
+  "texts": [
+    {
+      "id": "short_001",
+      "category": "short_concept",
+      "text": "压阻效应"
+    },
+    {
+      "id": "short_002",
+      "category": "short_concept",
+      "text": "压电效应"
+    },
+    {
+      "id": "short_003",
+      "category": "short_concept",
+      "text": "霍尔效应"
+    },
+    {
+      "id": "short_004",
+      "category": "short_concept",
+      "text": "磁阻效应"
+    },
+    {
+      "id": "short_005",
+      "category": "short_concept",
+      "text": "热电效应"
+    },
+    {
+      "id": "short_006",
+      "category": "short_concept",
+      "text": "光电效应"
+    },
+    {
+      "id": "short_007",
+      "category": "short_concept",
+      "text": "光生伏特效应"
+    },
+    {
+      "id": "short_008",
+      "category": "short_concept",
+      "text": "传感器静态特性"
+    },
+    {
+      "id": "short_009",
+      "category": "short_concept",
+      "text": "传感器动态特性"
+    },
+    {
+      "id": "short_010",
+      "category": "short_concept",
+      "text": "灵敏度"
+    },
+    {
+      "id": "short_011",
+      "category": "short_concept",
+      "text": "分辨力"
+    },
+    {
+      "id": "short_012",
+      "category": "short_concept",
+      "text": "分辨率"
+    },
+    {
+      "id": "short_013",
+      "category": "short_concept",
+      "text": "线性度"
+    },
+    {
+      "id": "short_014",
+      "category": "short_concept",
+      "text": "迟滞"
+    },
+    {
+      "id": "short_015",
+      "category": "short_concept",
+      "text": "重复性"
+    },
+    {
+      "id": "short_016",
+      "category": "short_concept",
+      "text": "稳定性"
+    },
+    {
+      "id": "short_017",
+      "category": "short_concept",
+      "text": "温度漂移"
+    },
+    {
+      "id": "short_018",
+      "category": "short_concept",
+      "text": "频率响应"
+    },
+    {
+      "id": "short_019",
+      "category": "short_concept",
+      "text": "阶跃响应"
+    },
+    {
+      "id": "short_020",
+      "category": "short_concept",
+      "text": "应变片"
+    },
+    {
+      "id": "short_021",
+      "category": "short_concept",
+      "text": "电容式传感器"
+    },
+    {
+      "id": "short_022",
+      "category": "short_concept",
+      "text": "电感式传感器"
+    },
+    {
+      "id": "short_023",
+      "category": "short_concept",
+      "text": "霍尔式传感器"
+    },
+    {
+      "id": "short_024",
+      "category": "short_concept",
+      "text": "压电式传感器"
+    },
+    {
+      "id": "short_025",
+      "category": "short_concept",
+      "text": "温度传感器"
+    },
+    {
+      "id": "short_026",
+      "category": "short_concept",
+      "text": "绝对误差"
+    },
+    {
+      "id": "short_027",
+      "category": "short_concept",
+      "text": "相对误差"
+    },
+    {
+      "id": "short_028",
+      "category": "short_concept",
+      "text": "引用误差"
+    },
+    {
+      "id": "short_029",
+      "category": "short_concept",
+      "text": "系统误差"
+    },
+    {
+      "id": "short_030",
+      "category": "short_concept",
+      "text": "随机误差"
+    },
+    {
+      "id": "short_031",
+      "category": "short_concept",
+      "text": "粗大误差"
+    },
+    {
+      "id": "short_032",
+      "category": "short_concept",
+      "text": "标准差"
+    },
+    {
+      "id": "short_033",
+      "category": "short_concept",
+      "text": "算术平均值"
+    },
+    {
+      "id": "short_034",
+      "category": "short_concept",
+      "text": "有效数字"
+    },
+    {
+      "id": "short_035",
+      "category": "short_concept",
+      "text": "测量不确定度"
+    },
+    {
+      "id": "short_036",
+      "category": "short_concept",
+      "text": "最小二乘法"
+    },
+    {
+      "id": "short_037",
+      "category": "short_concept",
+      "text": "目标函数"
+    },
+    {
+      "id": "short_038",
+      "category": "short_concept",
+      "text": "设计变量"
+    },
+    {
+      "id": "short_039",
+      "category": "short_concept",
+      "text": "约束条件"
+    },
+    {
+      "id": "short_040",
+      "category": "short_concept",
+      "text": "可行域"
+    },
+    {
+      "id": "short_041",
+      "category": "short_concept",
+      "text": "梯度法"
+    },
+    {
+      "id": "short_042",
+      "category": "short_concept",
+      "text": "牛顿法"
+    },
+    {
+      "id": "short_043",
+      "category": "short_concept",
+      "text": "共轭梯度法"
+    },
+    {
+      "id": "short_044",
+      "category": "short_concept",
+      "text": "黄金分割法"
+    },
+    {
+      "id": "short_045",
+      "category": "short_concept",
+      "text": "二次插值法"
+    },
+    {
+      "id": "short_046",
+      "category": "short_concept",
+      "text": "罚函数法"
+    },
+    {
+      "id": "short_047",
+      "category": "short_concept",
+      "text": "单纯形法"
+    },
+    {
+      "id": "short_048",
+      "category": "short_concept",
+      "text": "遗传算法"
+    },
+    {
+      "id": "short_049",
+      "category": "short_concept",
+      "text": "线性规划"
+    },
+    {
+      "id": "short_050",
+      "category": "short_concept",
+      "text": "非线性规划"
+    },
+    {
+      "id": "p71_c177",
+      "category": "textbook_paragraph",
+      "text": "第六节 牛顿法\n牛顿法(Newton)是一种经典的优化方法，该方法也是梯度法进一步的改进与发展。为了加快收敛速度，更快地求得目标函数的极值点，牛顿法是同时利用目标函数的一、二阶偏导数所提供的信息来构造搜索方向的。牛顿法分原始的牛顿法和阻尼牛顿法两种。",
+      "book_name": "优化设计",
+      "section_title": "第六节 牛顿法"
+    },
+    {
+      "id": "a677c0d44f2a772e",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第4章 力敏传感器 > (2) 基底\n正文：为保证敏感栅形状、尺寸和位置不变，通常用黏结剂将它固定在纸质或胶质的基底上。应变片工作时，基底起着准确地将试件应变传递到敏感栅的作用。为此，基底必须很薄，一般为0.02\\~0.04mm。",
+      "book_name": "传感器长书",
+      "section_title": "(2) 基底"
+    },
+    {
+      "id": "sensor_core_3d684bb47ddc",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第五章 磁电式传感器 > 一、磁栅\nContent: ## 一、磁栅",
+      "book_name": "传感器短书",
+      "section_title": "一、磁栅"
+    },
+    {
+      "id": "sensor_core_f2b8439d1693",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第十一章 波式和射线式传感器 > 二、射线式传感器\nContent: ## 二、射线式传感器\n\n射线式传感器主要由放射源和探测器组成。",
+      "book_name": "传感器短书",
+      "section_title": "二、射线式传感器"
+    },
+    {
+      "id": "p117_c281",
+      "category": "textbook_paragraph",
+      "text": "1. 可行条件\n方向的可行条件是指沿该方向作微小移动后，所得到的新点应为可行点。如图6-12a所示，若 X^{(k)} 点在一个约束面 g(X) = 0 上，对 X^{(k)} 点作该约束面的切线为 \\tau ，显然满足可行条件的方向 S^{(k)} 应与该约束函数在 X^{(k)} 点的梯度 \\nabla g(X^{(k)}) 的夹角大于或等于 90^{\\circ} 。用向量关系式可表示为",
+      "book_name": "优化设计",
+      "section_title": "1. 可行条件"
+    },
+    {
+      "id": "error_theory_decaeae19caa",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第五章 线性测量的参数最小二乘法处理 > 第三节精度估计\nContent: ## 第三节精度估计\n\n对测量数据最小二乘法处理的最终结果，不仅要给出待求量的最可信赖的估计量，而且还要确定其可信赖程度，即应给出所得估计量的精度。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第三节精度估计"
+    },
+    {
+      "id": "02ca87d9344243b2",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第5章 磁敏传感器 > 4. 测量误差\n正文：压磁传感器的测量精度不高，这是由以下测量误差影响所致的。\n\n①温度误差。这是压磁传感器的一项主要误差。主要原因是压磁材料的磁化特性受温度影响较大，使用时需加温度补偿。日将\n\n②磁弹性滞环。这是压磁材料的磁弹性后效和磁滞作用所引起的。对于压磁材料需选用软磁性材料并经老化处理来消除这种误差。\n\n③电源影响。激励电源的电压幅值、频率波形及电源的内阻均是直接影响磁化特性的因素，因而对传感器的精度也有影响。对要求较高的场合，应选择稳频、稳压、恒流的电源。",
+      "book_name": "传感器长书",
+      "section_title": "4. 测量误差"
+    },
+    {
+      "id": "error_theory_b87646ed2998",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第四章 测量不确定度 > 五、量块校准的不确定度计算\nContent: ## 五、量块校准的不确定度计算",
+      "book_name": "误差理论与数据处理",
+      "section_title": "五、量块校准的不确定度计算"
+    },
+    {
+      "id": "error_theory_ee4c3513c04e",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第一章 绪论 > 系统误差又可按下列方法分类：\nContent: ## 系统误差又可按下列方法分类：",
+      "book_name": "误差理论与数据处理",
+      "section_title": "系统误差又可按下列方法分类："
+    },
+    {
+      "id": "70b9ee7dead2e674",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第6章 光敏传感器 > (1)光电倍增管原理\n正文：光电倍增管的结构如图6.10所示。光照射到阴极上产生光电子，光电子在真空中电场的作用下被加速投射到倍增极上，一个光电子可以多次加速，使激发倍增极后的电子数目得到倍增。一般有11个左右的倍增极。其原理为：当具有足够动能的电子轰击倍增极时，该倍增极表面将有电子发射出来，这种现象称为二次电子发射。一般二次电子发射率与材料相关。",
+      "book_name": "传感器长书",
+      "section_title": "(1)光电倍增管原理"
+    },
+    {
+      "id": "aec3fa2561552c6b",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第12章 传感器的智能化和网络化 > 9. 开放性\n正文：在近半个世纪的网络研究和发展中，人们总结出了一些宝贵的经验。国际标准化组织（ISO）采用HubertZimmerman提出的开放系统互连（OSI）的概念来描述网络的分层结构，虽然目前已有的大多数网络并没有完全遵从OSI的七层模型来设计，但丝毫不影响开放系统互联原则成为人们过去网络研究过程中得到的最有价值的经验。开放性是任何系统保持旺盛生命力和能够持续发展的重要属性。WSN体系结构的设计必须符合开放系统互联的原则。",
+      "book_name": "传感器长书",
+      "section_title": "9. 开放性"
+    },
+    {
+      "id": "53afb9123044d8cc",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第1章 绪论 > (4)频率响应特性指标\n正文：①频带传感器增益：保持在一定值内的频率范围为传感器频带或通频带，对应有上、下截止频率。\n\n②时间常数 $\\boldsymbol { \\tau } :$ 用时间常数τ来表征一阶传感器的动态特性。τ越小，频带越宽。\n\n③自然频率 $\\omega _ { \\mathrm { n } } \\mathrm { : }$ 二阶传感器的自然频率 $\\omega _ { \\mathrm { n } }$ 表征了其动态特性。",
+      "book_name": "传感器长书",
+      "section_title": "(4)频率响应特性指标"
+    },
+    {
+      "id": "error_theory_d52f8252311e",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第六章 回归分析 > 第一节 回归分析的基本概念\nContent: ## 第一节 回归分析的基本概念",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第一节 回归分析的基本概念"
+    },
+    {
+      "id": "p27_c65",
+      "category": "textbook_paragraph",
+      "text": "$$\n2 > 0, \\quad \\left| \\begin{array}{c c} 2 & - 1 \\\\ - 1 & 2 \\end{array} \\right| = 4 - 1 = 3 > 0\n$$\n所以 H(X^{*}) 为正定矩阵。\n由极值点的必要条件可知驻点 X^{*} = \\left[x_{1}^{*}, x_{2}^{*}\\right]^{\\mathrm{T}} = \\left[8, 6\\right]^{\\mathrm{T}} 是极小值点，其函数值 f\\left(\\boldsymbol{X}^{*}\\right) = 8。",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "p31_c78",
+      "category": "textbook_paragraph",
+      "text": "$$\n- \\nabla f \\left(\\boldsymbol {X} ^ {*}\\right) = \\sum_ {v = 1} ^ {P} \\lambda_ {v} \\nabla h _ {v} \\left(\\boldsymbol {X} ^ {*}\\right) \\tag {2-20}\n$$\n上式表示在极值点处目标函数的负梯度 -\\nabla f(\\mathbf{X}^{*}) 应等于各约束函数梯度 \\nabla h_{v}(\\mathbf{X}^{*}) （ v = 1,2,\\dots ,p) 的线性组合。",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "sensor_core_7acde757f561",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第十二章 半导体式物性传感器 > 一、湿度测量的名词术语\nContent: ## 一、湿度测量的名词术语",
+      "book_name": "传感器短书",
+      "section_title": "一、湿度测量的名词术语"
+    },
+    {
+      "id": "0deb07b8285224ad",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第3章 温敏传感器 > 3. 热电偶总电势\n正文：式中， $E _ { \\mathrm { A B } } ( T , O )$ 为热端的热电势； $E _ { \\mathrm { A B } } ( T _ { 0 } , 0 )$ 为冷端的热电势。",
+      "book_name": "传感器长书",
+      "section_title": "3. 热电偶总电势"
+    },
+    {
+      "id": "788737c69e17b5cb",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第6章 光敏传感器 > 2. 热释电红外热辐射温度计\n正文：热释电红外热辐射温度计是一种非接触式测温仪器。自然界中的物体，如人体、火焰、机器设备、房屋、岩石、冰等，都能辐射出红外线，只是辐射的红外线波长不同而已。例如，人体温度（36\\~37℃)放射的红外线波长为9\\~10μm，400\\~700℃的物体放射出的红外线波长为3\\~5μm。",
+      "book_name": "传感器长书",
+      "section_title": "2. 热释电红外热辐射温度计"
+    },
+    {
+      "id": "sensor_core_21ef86b8b11c",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第十章 谐振式传感器 > 一、典型的谐振式传感器\nContent: ## 一、典型的谐振式传感器",
+      "book_name": "传感器短书",
+      "section_title": "一、典型的谐振式传感器"
+    },
+    {
+      "id": "bb1161be458b97f2",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第12章 传感器的智能化和网络化 > 1. 第四代传感器网络\n正文：可将传感器网络的发展划分为4个阶段。一般将简单点到点信号传输功能的传统传感器所组成的测控系统称为第一代传感器网络；第二代为由智能传感器和现场控制站组成的测控网络；第三代为基于现场总线的智能传感器网络；无线传感器网络为第四代传感器网络，其应用领域发生了很大的变化。",
+      "book_name": "传感器长书",
+      "section_title": "1. 第四代传感器网络"
+    },
+    {
+      "id": "0b97dcad8fb45af6",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第7章 声敏传感器 > (1) 工作频率\n正文：对换能器工作频率的选取应该与整个水声设备的工作频率相适应。对发射用的换能器而言，工作\n\n频率一般都选取在其本身的谐振基频上。这样可以获得最佳工作状态，取得最大的发射功率和效率。一般主动式声呐换能器的工作频率在几千赫到几十千赫之间，而对专做接收用的被动式声呐换能器(即水听器)，其工作频率一般要求有一个较宽的频带，以保证换能器能有平坦的接收特性。",
+      "book_name": "传感器长书",
+      "section_title": "(1) 工作频率"
+    },
+    {
+      "id": "3ce350608efa3cba",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第5章 磁敏传感器 > 5.2.4霍尔元件的基本特性\n正文：霍尔元件的基本特性主要有以下几种。",
+      "book_name": "传感器长书",
+      "section_title": "5.2.4霍尔元件的基本特性"
+    },
+    {
+      "id": "ce53e024821cb76e",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第10章 生物传感器 > (2)基于生物吸附的生物敏感膜\n正文：此类敏感膜基于生物体内存在相互亲和性的物质（如抗体-抗原、结合蛋白质-生物素、激素-激素受体、DNA-RNA、植物凝血素-糖链等)。把它们的一方固定在膜上作为分子识别元件，当被测溶液中存在它们的配体时，发生特异性反应，形成稳定的复合体，测定反应前后膜电位的变化，即可得知配体浓度。其中一些生物传感器为提高灵敏度，不直接测定膜电位，而利用酶的放大作用，通过测定酶活性来确定待测物浓度。",
+      "book_name": "传感器长书",
+      "section_title": "(2)基于生物吸附的生物敏感膜"
+    },
+    {
+      "id": "p188_c443",
+      "category": "textbook_paragraph",
+      "text": "3~5个位置，用解析法或图解法解得机构的各运动学参数。若要求机构在较多对应的位置上再现给定的函数，且对机构各参数或性能还有某些限制，则必须采用优化设计的方法。",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "f4c411825be092d8",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第5章 磁敏传感器 > 5.2.8 霍尔式传感器的应用\n正文：霍尔式传感器具有结构简单、体积小、重量轻、频带宽、动态特性好和寿命长等许多优点，因而得到了广泛应用。在电磁测量中，用它测量恒定的或交变的磁感应强度、有功功率、无功功率、相位、电能等参数；在自动检测系统中，多用于位移、压力的测量，如微位移和压力的测量及磁场的测量。",
+      "book_name": "传感器长书",
+      "section_title": "5.2.8 霍尔式传感器的应用"
+    },
+    {
+      "id": "sensor_core_68332a1f4f89",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第二章 电阻式传感器 > 1. 粘合剂\nContent: ## 1. 粘合剂\n\n选择粘合剂必须适合应变片材料和被测试件材料及环境，例如工作温度、湿度、化学腐蚀等。对粘合剂要求为：①有一定的粘结强度；②能准确传递应变，有足够的剪切弹性模量；③蠕变、机械滞后小；④有足够的稳定性能；⑤耐湿、耐油、耐老化、耐疲劳等。常用的粘合剂类型有硝化纤维素粘合剂、氰基丙烯酸脂粘合剂、有机硅粘合剂等。",
+      "book_name": "传感器短书",
+      "section_title": "1. 粘合剂"
+    },
+    {
+      "id": "p192_c455",
+      "category": "textbook_paragraph",
+      "text": "3. 约束条件\n约束条件可参考上述再现函数的平面连杆机构优化设计的约束条件式（9-5）～式（9-7）。若对输入构件转角 \\theta 可自由选择时，还必须考虑输入构件是连续向前转动的，应满足以下的约束条件：\n$$\n\\theta_ {i} - \\theta_ {i + 1} \\leqslant 0 \\quad (i = 1, 2, \\dots , s - 1) \\tag {9-12}\n$$",
+      "book_name": "优化设计",
+      "section_title": "3. 约束条件"
+    },
+    {
+      "id": "a4eac030d70551ab",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第2章 传感器的功能材料及加工工艺 > 3. 微机电系统常用的集成电路工艺\n正文：微机电系统中基于集成电路制造工艺的微机械加工技术是在集成电路（IntegratedCircuits,IC）工艺和理论的基础上发展起来的。微机械的制造除了特殊技术外，还大量应用了常规集成电路的工艺，如氧化、掺杂、外延、光刻等微机械加工工艺。这类工艺是迅速发展的各种微传感器、微执行器及微结构的一类关键工艺。IC工艺的主要流程包括半导体晶体生长、晶片制备、晶片的处理加工、薄膜成形、曝光、印刷、掺杂、蚀刻、划片、封装等。",
+      "book_name": "传感器长书",
+      "section_title": "3. 微机电系统常用的集成电路工艺"
+    },
+    {
+      "id": "eee1fdb3120adfd2",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第12章 传感器的智能化和网络化 > 3. 复合敏感功能\n正文：智能传感器能够同时测量多种物理量和化学量，具有复合敏感功能，能够给出全面反映物质和变化规律的信息。例如，光强、波长、相位和偏振度等参数可反映光的运动特性；压力、真空度、温度梯度、热量和嫡，浓度、pH值等分别反映物质的力、热、化学特性。",
+      "book_name": "传感器长书",
+      "section_title": "3. 复合敏感功能"
+    },
+    {
+      "id": "sensor_core_96289e49f8ba",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第二章 电阻式传感器 > （二）压阻式压力传感器\nContent: ## （二）压阻式压力传感器",
+      "book_name": "传感器短书",
+      "section_title": "（二）压阻式压力传感器"
+    },
+    {
+      "id": "41eaa5bf34a0a284",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第6章 光敏传感器 > 1. 势垒效应\n正文：接触半导体和PN结中，当光线照射其接触区域时，便引起光电动势，这称为结光电效应。以PN结为例，光线照射PN结时，设光子能量大于禁带宽度 $E _ { \\mathrm { g } } ,$ 使价带中的电子跃迁到导带，而产生电子空穴对，在阻挡层内电场的作用下，被光激发的电子移向N区外侧，被光激发的空穴移向P区外侧，从而使P区带正电，N区带负电，形成光电动势。",
+      "book_name": "传感器长书",
+      "section_title": "1. 势垒效应"
+    },
+    {
+      "id": "p142_c334",
+      "category": "textbook_paragraph",
+      "text": "从而求得最优步长因子 \\alpha^{*} ，所以 \\alpha^{(k)} = \\alpha^{*} 。",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "cac7ee925f891c5e",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第1章 绪论 > (1)传感器数学模型\n正文：频率传递函数的模 $\\left| H ( \\mathrm { j } \\omega ) \\right|$ 为输出与输入的幅值之比，即B/A，它与角频率ω的关系被称为幅频特性。输出与输入的相位之差与频率的关系称为相频关系。",
+      "book_name": "传感器长书",
+      "section_title": "(1)传感器数学模型"
+    },
+    {
+      "id": "error_theory_161397faae87",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第一章 绪论 > （二）环境误差\nContent: ## （二）环境误差\n\n由于各种环境因素与规定的标准状态不一致而引起的测量装置和被测量本身的变化所造成的误差，如温度、湿度、气压（引起空气各部分的扰动）、振动（外界条件及测量人员引起的振动）、照明(引起视差）、重力加速度、电磁场等所引起的误差。通常仪器仪表在规\n\n定的正常工作条件所具有的误差称为基本误差，而超出此条件时所增加的误差称为附加误差。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "（二）环境误差"
+    },
+    {
+      "id": "sensor_core_50049f210cee",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第五章 磁电式传感器 > 二、霍尔元件的误差及其补偿\nContent: ## 二、霍尔元件的误差及其补偿\n\n由于制造工艺问题以及实际使用时所存在的各种影响霍尔元件性能的因素，如元件安装不合理、环境温度变化等，都会影响霍尔元件的转换精度，带来误差。",
+      "book_name": "传感器短书",
+      "section_title": "二、霍尔元件的误差及其补偿"
+    },
+    {
+      "id": "43375fe291703f64",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第2章 传感器的功能材料及加工工艺 > 习 题\n正文：1. 半导体敏感材料在传感器中得到广泛应用，但是半导体材料普遍存在温度漂移现象，请从物理学角度解释其存在的原因。\n\n2. 微机械加工工艺中常用的薄膜成形工艺有哪些？各有什么特点？薄膜工艺和厚膜工艺有什么区别？\n\n3. 微机械加工工艺中常用的掺杂工艺有哪些？各有什么特点？\n\n4. 传统超精密与特种加工技术有哪些？各有什么特点?",
+      "book_name": "传感器长书",
+      "section_title": "习 题"
+    },
+    {
+      "id": "15ee34860d9f8633",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第6章 光敏传感器 > 6.7.2 光电开关\n正文：图 6.54 光电开关结构  \n![](images/3199f94495ca953fe1e1e510fd6c2061354a6cc043b71e0df58ca9c21b847091.jpg)  \n图 6.55 光电开关基本电路\n\n光电开关广泛应用于工业控制、自动化包装线及安全装置中，主要用作光控制和光探测装置，也可在自控系统中用于物体检测、产品计数、料位检测、尺寸控制、安全报警及计算机输入接口等。",
+      "book_name": "传感器长书",
+      "section_title": "6.7.2 光电开关"
+    },
+    {
+      "id": "dcd5cc56e6c00de7",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第11章 传感器的信号处理 > (2) 偏转型直流电桥\n正文：温度从0℃变化到 $2 5 \\mathrm { ^ \\circ C }$ ，电压 $V _ { \\mathrm { { o } } }$ 的变化为 $( 0 . 4 5 5 - 0 ) = 0 . 4 5 5 \\mathrm { V }$ 温度从25℃变化到 $5 0 ^ { \\circ } \\mathrm { C }$ ，电压 $V _ { \\mathrm { o } }$ 的变化为 $( 0 . 8 3 3 - 0 . 4 5 5 ) = 0 . 3 7 8 \\mathrm { V }$",
+      "book_name": "传感器长书",
+      "section_title": "(2) 偏转型直流电桥"
+    },
+    {
+      "id": "p68_c170",
+      "category": "textbook_paragraph",
+      "text": "第五节 共轭梯度法\n鉴于梯度法在远离极值点时很有效，但经几步搜索之后，尤其到极值点附近收敛速度迅速减慢，而共轭方向法具有二次收敛的等特点，将两者结合，便形成了共轭梯度法。",
+      "book_name": "优化设计",
+      "section_title": "第五节 共轭梯度法"
+    },
+    {
+      "id": "f256a83e0080357b",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第11章 传感器的信号处理 > 11.2.1 电压—电流变换\n正文：输出负载中的电流正比于输入电压的电路，称为电压一电流变换器。由于传输系数是电导，又称为转移电导放大器。当输入电压为恒定值时，负载中的电流为恒定值，与负载无关，则构成恒流源电路。电压一电流变换器电路有多种构成方法，这里根据负载是否接地介绍几种典型电路。",
+      "book_name": "传感器长书",
+      "section_title": "11.2.1 电压—电流变换"
+    },
+    {
+      "id": "bc80cb11d8f61e63",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第6章 光敏传感器 > 1. 光源必须具有足够的照度\n正文：光源发出的光必须具有足够的照度，保证被测目标具有足够的亮度和光通路具有足够的光通量，以利于获得高的灵敏度和信噪比，以及提高测量精度和可靠性。一方面，光源照度不足将影响测量的稳定性，甚至导致测量失败。另一方面，光源的照度还应当稳定，尽可能减小能量变化和方向漂移。",
+      "book_name": "传感器长书",
+      "section_title": "1. 光源必须具有足够的照度"
+    },
+    {
+      "id": "p139_c327",
+      "category": "textbook_paragraph",
+      "text": "第五节 简约梯度法及广义简约梯度法\nWolfe将线性规划的单纯形法推广应用到求解约束条件为线性而目标函数为非线性的约束优化问题，从而提出了所谓的简约梯度法。随后，J.Abadie与J.Carpentier又将简约梯度法推广于解目标函数和约束函数均为非线性的约束优化问题，提出了著名的广义简约梯度法（GRG方法），成为目前解一般非线性规划问题的最有效的方法之一。",
+      "book_name": "优化设计",
+      "section_title": "第五节 简约梯度法及广义简约梯度法"
+    },
+    {
+      "id": "618f06659d603d70",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第6章 光敏传感器 > 3. 光源的照射方式应符合传感器的测量要求\n正文：为了实现对特定被测量的测量，传感器一般会要求光源发出的光具有一定的方向或角度，从而构成反射光、投射光、透射光、漫反射光、散射光等。此时，光源系统的设计显得尤为重要，对测量结果的影响较大。",
+      "book_name": "传感器长书",
+      "section_title": "3. 光源的照射方式应符合传感器的测量要求"
+    },
+    {
+      "id": "sensor_core_5942bcc72168",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第五章 磁电式传感器 > 三、应用\nContent: ## 三、应用",
+      "book_name": "传感器短书",
+      "section_title": "三、应用"
+    },
+    {
+      "id": "sensor_core_eddb6978ea3d",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第十一章 波式和射线式传感器 > 一、核辐射的物理基础\nContent: ## 一、核辐射的物理基础",
+      "book_name": "传感器短书",
+      "section_title": "一、核辐射的物理基础"
+    },
+    {
+      "id": "p127_c307",
+      "category": "textbook_paragraph",
+      "text": "1. 方法原理\n内罚函数法的主要特点是将惩罚函数定义在可行域的内部，这样，每一次迭代点都是在可行域内部移动，迭代点从可行域内部逐渐逼近原约束优化问题的最优解。",
+      "book_name": "优化设计",
+      "section_title": "1. 方法原理"
+    },
+    {
+      "id": "9b21ea48a750e712",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第9章 湿敏传感器 > 6. 湿滞回线和湿滞回差\n正文：![](images/f18015a94745c4cc8729a87ce6e0a777162b9a2d6c8ad6b27d7692579dc775cc.jpg)  \n图9.5 氯化锂（LiCl）湿敏电阻在15℃时的湿滞回线",
+      "book_name": "传感器长书",
+      "section_title": "6. 湿滞回线和湿滞回差"
+    },
+    {
+      "id": "fbdde87f152ce2bc",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第8章 气敏传感器 > 4. 稳定性\n正文：气体浓度不变时，若其他条件发生变化，在规定的时间内气敏元件输出特性维持不变的能力，称为稳定性。稳定性表示气敏元件对于气体浓度以外的各种因素的抵抗能力。",
+      "book_name": "传感器长书",
+      "section_title": "4. 稳定性"
+    },
+    {
+      "id": "error_theory_21a910be81d8",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第一章 绪论 > (四)人员误差\nContent: ## (四)人员误差\n\n由于测量者受分辨能力的限制，因工作疲劳引起的视觉器官的生理变化，固有习惯引起的读数误差，以及精神上的因素产生的一时疏忽等所引起的误差。\n\n总之，在计算测量结果的精度时，对上述4个方面的误差来源，必须进行全面的分析，力求不遗漏、不重复，特别要注意对误差影响较大的那些因素。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "(四)人员误差"
+    },
+    {
+      "id": "2c7ffc2df7c43dd7",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第5章 磁敏传感器 > 黄米t.ra\n正文：一00支图mer22R人08平小起昌\n\n文国005-08",
+      "book_name": "传感器长书",
+      "section_title": "黄米t.ra"
+    },
+    {
+      "id": "sensor_core_774c324df218",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第八章 热电式传感器 > 第四节 集成温度传感器\nContent: ## 第四节 集成温度传感器",
+      "book_name": "传感器短书",
+      "section_title": "第四节 集成温度传感器"
+    },
+    {
+      "id": "7cfc7a33c8611751",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第12章 传感器的智能化和网络化 > 12.3.9 无线传感器网络的关键技术\n正文：无线传感器网络作为当今信息领域新的研究热点，涉及微机电系统、计算机、通信、自动控制、人工智能等多学科交叉的研究领域，有非常多的关键技术有待发现和研究，下面仅列出部分关键技术。",
+      "book_name": "传感器长书",
+      "section_title": "12.3.9 无线传感器网络的关键技术"
+    },
+    {
+      "id": "p61_c153",
+      "category": "textbook_paragraph",
+      "text": "第三节 单纯形法\n单纯形法只需要计算目标函数值，是无需一维搜索，也无需进行求导的一种直接法。其优点计算比较简单，几何概念清晰，适用于目标函数求导比较困难或不知道目标函数的具体表达式而仅知其具体计算方法的情况。",
+      "book_name": "优化设计",
+      "section_title": "第三节 单纯形法"
+    },
+    {
+      "id": "a149397f87c03328",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第1章 绪论 > (3) 屏蔽、隔离与抗干扰\n正文：因外部环境而产生的随机误差和干扰，可通过屏蔽、隔离技术减小。采用屏蔽、隔离、滤波等方法能有效地消除或减小电磁波干扰。采用有效的隔离技术进行分离和抑制，对温度、湿度、气压、声压、辐射、气流等干扰的效果都是很明显的。",
+      "book_name": "传感器长书",
+      "section_title": "(3) 屏蔽、隔离与抗干扰"
+    },
+    {
+      "id": "error_theory_7a8df3e8d43f",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第二章 误差的基本性质与处理 > （三）残余误差校核法\nContent: ## （三）残余误差校核法",
+      "book_name": "误差理论与数据处理",
+      "section_title": "（三）残余误差校核法"
+    },
+    {
+      "id": "p218_c530",
+      "category": "textbook_paragraph",
+      "text": "clc;  \n\\mathrm{f} = \\mathrm{inline}('2 + \\mathrm{x}^2,'\\mathrm{x}');\\mathrm{xk0} = 2 ;th = 0.5 ;dir0 = 1 .  \n[ opt_step,fo,xx] = opt_range_serach(f,xk0,dir0,th)  \n执行结果为  \nopt_step = [ - 3 - 2 - 1 ]   \nfo = [323]\\mathrm{xx} = [ - 101]\n则得到单峰区间为：[-11]",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "sensor_core_11173c7c5d68",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第九章 气电式传感器 > 第一节 气动测量的原理\nContent: ## 第一节 气动测量的原理\n\n气动测量原理是把被测尺寸量的变化转换为气室中压力的变化或管路中流量的变化，因此原理上气动测量分为压力式气动测量和流量式气动测量。",
+      "book_name": "传感器短书",
+      "section_title": "第一节 气动测量的原理"
+    },
+    {
+      "id": "sensor_core_ab795b90bb8b",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第五章 磁电式传感器 > 第四节 磁栅式传感器\nContent: ## 第四节 磁栅式传感器\n\n磁栅式传感器主要由磁栅和磁头组成。磁栅上录有等间距的磁信号，它是利用磁带录音的原理将等节距的周期变化的电信号（正弦波或矩形波）用录磁的方法记录在磁性尺子或圆盘上而制成的。装有磁栅传感器的仪器或装置工作时，磁头相对于磁栅有一定的相对位置或相对位移，在这个过程中，磁头把磁栅上的磁信号读出来，这样就把被测位置或位移转换成电信号。",
+      "book_name": "传感器短书",
+      "section_title": "第四节 磁栅式传感器"
+    },
+    {
+      "id": "p5_c16",
+      "category": "textbook_paragraph",
+      "text": "第八章 现代优化方法简介 151\n第一节 工程遗传算法 151\n第二节 模拟退火算法 158\n第三节 人工神经网络与神经网络优化算法 165\n第四节 蚁群算法 175\n本章学习要点 179\n习题 180",
+      "book_name": "优化设计",
+      "section_title": "第八章 现代优化方法简介"
+    },
+    {
+      "id": "3e684177e4345d5f",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第3章 温敏传感器 > 1. 测量单点温度的基本测温电路\n正文：载电阻R)。根据所采用的热电偶的热电势与被测温度间的关系（线性或非线性），需要采用查表法、转换法等处理，方可直接显示所测温度数值。",
+      "book_name": "传感器长书",
+      "section_title": "1. 测量单点温度的基本测温电路"
+    },
+    {
+      "id": "0ebc800adcec1004",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第3章 温敏传感器 > 3.1.2 热力学相关概念\n正文：③辐射：指热量通过电磁波的发射来传递。",
+      "book_name": "传感器长书",
+      "section_title": "3.1.2 热力学相关概念"
+    },
+    {
+      "id": "sensor_core_5b1b1ebe3c5b",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第二章 电阻式传感器 > (一）直流电桥\nContent: ## (一）直流电桥",
+      "book_name": "传感器短书",
+      "section_title": "(一）直流电桥"
+    },
+    {
+      "id": "sensor_core_a4b5c106fb51",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第七章 光电式传感器 > 4. 液体激光器\nContent: ## 4. 液体激光器\n\n染料激光器是液体激光器中最普遍采用的激光器，它以染料作为工作物质。液体激光器多用光泵激励，有时也用另一个激光器作激励源。\n\n染料溶解干某种有机溶液中，在特定波长光的激励下，就能发出一定带宽的荧光光\n\n谱。某些染料溶液在足够强的光照下，可成为有放大特性的激活介质，在谐振腔内放入色散元件，通过调谐色散元件的色散范围，可获得不同的输出波长，称为可调谐染料激光器。如果采用不同的染料溶液和激发光源，输出的波长范围可达0.32\\~1μm。",
+      "book_name": "传感器短书",
+      "section_title": "4. 液体激光器"
+    },
+    {
+      "id": "82bfaabcd69e5ee0",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第8章 气敏传感器 > (3) ZnO 系气敏元件\n正文：![](images/d231ce64a2b410f50b9c868322170b6984ea9cc5aa566ce006a4bb413ea1dc25.jpg)  \n图 8.14 ZnO 铂铱复合型传感器结构图\n\n④其他半导体氧化物气敏元件。其他半导体氧化物气敏元件有 ${ \\sf W O } _ { 3 }$ 系气敏元件、非晶态 $\\mathrm { S i O } _ { 2 }$ 等。",
+      "book_name": "传感器长书",
+      "section_title": "(3) ZnO 系气敏元件"
+    },
+    {
+      "id": "d547d0b617cbba6c",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第10章 生物传感器 > (2) 自养与异养\n正文：根据微生物对营养的要求，微生物反应又可分为自养型与异养型。自养微生物以 $\\mathrm { C O } _ { 2 }$ 作为主要碳源，无机氮化物作为氮源，通过细菌的光合作用或化能合成作用获得能量；异养微生物以有机物作为碳源，无机物或有机物作为氮源，通过氧化有机物获得能量；绝大多数微生物种类都属于异养型。",
+      "book_name": "传感器长书",
+      "section_title": "(2) 自养与异养"
+    },
+    {
+      "id": "739212868d235e6f",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第9章 湿敏传感器 > 9.4 陶瓷式湿度传感器\n正文：陶瓷式湿度传感器主要使用多孔状金属氧化物材料。它具有良好的热稳定性及物理化学稳定性通过控制合理的组织和结构，则可制成稳定性好、灵敏度高、响应快、湿滞小的高质量湿度传感器。",
+      "book_name": "传感器长书",
+      "section_title": "9.4 陶瓷式湿度传感器"
+    },
+    {
+      "id": "sensor_core_ba7760154884",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第七章 光电式传感器 > 一、热探测器\nContent: ## 一、热探测器\n\n热探测器是基于光辐射与物质相互作用的热效应制成的传感器，它的突出优点是能够接收超低能量的光子，具有宽广和平坦的光谱响应，尤其适用于红外探测。常见的热探测器有测辐射热电偶、测辐射热敏电阻和热释电探测器，这些传感器将光信号转变为温度变化的规律大致相同，但温度转变到电信号的机理却不尽相同。",
+      "book_name": "传感器短书",
+      "section_title": "一、热探测器"
+    },
+    {
+      "id": "7a09fc73dca692ad",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第5章 磁敏传感器 > (3)温度特性\n正文：因此，减小基极电流，无灵敏度的温度点将向较高温度方向移动。当 $I _ { \\mathrm { b 0 } } = 2 \\mathrm { m A }$ 时，此温度点可达50℃左右。但另一方面，若 $I _ { \\mathrm { { b 0 } } }$ 过小，则会影响磁灵敏度。所以，当需要同时使用正负灵敏度时，温度要选在无灵敏度温度点以下。",
+      "book_name": "传感器长书",
+      "section_title": "(3)温度特性"
+    },
+    {
+      "id": "6806e097aa15e161",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第9章 湿敏传感器 > 9.2 湿度传感器的特性参数\n正文：湿度传感器是基于其功能材料能发生与湿度有关的物理效应或化学反应的基础上制造的。它具有可将湿度物理量转换为电信号的功能，这些功能可以通过与湿度有关的电阻或电容的变化、长度或体积的胀缩，以及结型器件或MOS器件的某些电参数的变化，如PN结击穿电压、电流放大系数、反向漏电流、MOS器件的沟道电阻等变化而得以实现。因此，湿度传感器的特性参数主要有湿度量程、灵敏度、湿度温度系数、响应时间、湿滞回差、感湿特征量—相对湿度特性曲线等。",
+      "book_name": "传感器长书",
+      "section_title": "9.2 湿度传感器的特性参数"
+    },
+    {
+      "id": "64a91230094d1001",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第7章 声敏传感器 > 7.3.2水声传感器用郎之万型换能器\n正文：表7.1 郎之万型换能器的参数",
+      "book_name": "传感器长书",
+      "section_title": "7.3.2水声传感器用郎之万型换能器"
+    },
+    {
+      "id": "5fb340ed414b63ba",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第9章 湿敏传感器 > 9.4.1 陶瓷电阻式湿度传感器\n正文：金属氧化物半导体陶瓷湿敏组件以其表面状态稳定（即化学稳定性、热稳定好)、固有阻值适中$( 1 0 ^ { 3 } \\mathrm { \\sim } 1 0 ^ { 8 } \\Omega )$ 、制作工艺简单、生产成本低等优点而受到普遍重视。",
+      "book_name": "传感器长书",
+      "section_title": "9.4.1 陶瓷电阻式湿度传感器"
+    },
+    {
+      "id": "p110_c259",
+      "category": "textbook_paragraph",
+      "text": "第一节 复合形法\n复合形法是求解仅具有不等式约束条件优化问题的一种较直观、较简单的直接方法。它来源于求解无约束优化问题的单纯形法，是单纯形法在约束优化问题中的拓展。在单纯形法中，不需要计算目标函数的梯度，而是靠选取单纯形的顶点并比较各顶点处目标函数值的大小，来寻求下一步的搜索方向。在用于求解约束问题的复合形法中，复合形各顶点的选择和替换，不仅要满足目标函数值下降的要求，而且还要满足所有的约束条件。",
+      "book_name": "优化设计",
+      "section_title": "第一节 复合形法"
+    },
+    {
+      "id": "df9349fa638b194e",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第4章 力敏传感器 > (1) 压电半导体\n正文：压电半导体材料既有半导体特性，又有压电性能，如硫化锌ZnS、硫化镉（CdS）、氧化锌（ZnO)、碲化镉（CaTe）、碲化锌（ZnTe）、砷化镓（GaAs）等。因此，压电半导体材料既可利用压电性能研制传感器，又可利用半导体特性制成电子器件，也可将两者结合起来，研制集转换元件和电子电路于一体的新型集成压电传感器测试系统。",
+      "book_name": "传感器长书",
+      "section_title": "(1) 压电半导体"
+    },
+    {
+      "id": "16abae791c41bd12",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第12章 传感器的智能化和网络化 > 12.3.4 无线传感器网络的应用\n正文：传感器网络的应用前景非常广阔，能够广泛应用于军事、环境监测和预报、医疗健康、家居智能及其他商用、工业领域。随着传感器网络的深入研究和广泛应用，传感器网络将逐渐深入到人们生活的各个领域。",
+      "book_name": "传感器长书",
+      "section_title": "12.3.4 无线传感器网络的应用"
+    },
+    {
+      "id": "sensor_core_b35fe2562fb6",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第五章 磁电式传感器 > 一、类型及其工作原理\nContent: ## 一、类型及其工作原理\n\n磁电感应式传感器是以电磁感应原理为基础的，根据结构原理的不同，可分为恒定磁通式和变磁通式两类。",
+      "book_name": "传感器短书",
+      "section_title": "一、类型及其工作原理"
+    },
+    {
+      "id": "error_theory_64ba6115119d",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第四章 测量不确定度 > 1. 标准不确定度A类评定的自由度\nContent: ## 1. 标准不确定度A类评定的自由度\n\n对A类评定的标准不确定度，其自由度ν即为标准差σ的自由度。由于标准差有不同的计算方法，其自由度也有所不同，并且可由相应公式计算出不同的自由度。例如，用贝塞尔法计算的标准差，其自由度 $\\nu = n - 1$ ，而用其他方法计算标准差，其自由度有所不同。为方便起见，将已计算好的自由度列表使用。表4-1给出了其他几种方法计算标准差的自由度。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "1. 标准不确定度A类评定的自由度"
+    },
+    {
+      "id": "sensor_core_bc5e3194f594",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第十三章 传感技术新发展 > 一、红外热像仪\nContent: ## 一、红外热像仪",
+      "book_name": "传感器短书",
+      "section_title": "一、红外热像仪"
+    },
+    {
+      "id": "sensor_core_7277668fbeae",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第六章 压电式传感器 > (四)电缆噪声\nContent: ## (四)电缆噪声\n\n普通的同轴电缆式由聚乙烯或者聚四氟乙烯作绝缘保护层的多股绞线组成，外部屏蔽是由编织的多股镀银金属套包在绝缘材料上。工作时电缆受到弯曲或振动时，屏蔽套、绝缘层和电缆芯线之间可能发生相对移动或摩檫而产生静电荷。由于压电式传感器是电容性的，这种静电荷不会很快消失而被直接送到放大器，形成电缆噪声。为减少这种噪声，可使用特制的低噪声电缆，同时将电缆固紧，以免产生相对运动。",
+      "book_name": "传感器短书",
+      "section_title": "(四)电缆噪声"
+    },
+    {
+      "id": "p208_c514",
+      "category": "textbook_paragraph",
+      "text": "3. 问题求解\n下面对IEEE14节点系统进行实际求解。如图9-13所示，其中节点1为松弛节点，节点2，3，4，5为 P - V 节点，其余节点为 P - Q 节点。",
+      "book_name": "优化设计",
+      "section_title": "3. 问题求解"
+    },
+    {
+      "id": "408a770a97b9d362",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第4章 力敏传感器 > (4) 引线\n正文：引线起着敏感栅与测量电路之间的过渡连接和引导作用。用直径为0.1\\~0.15cm的低阻镀锡或镀银铜线，并用钎焊与敏感栅端连接。",
+      "book_name": "传感器长书",
+      "section_title": "(4) 引线"
+    },
+    {
+      "id": "sensor_core_80aca3db10ac",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第一章 传感器的一般特性 > 七、温度稳定性\nContent: ## 七、温度稳定性\n\n温度稳定性又称为温度漂移，它是指传感器在外界温度变化时输出量发生的变化。测试时先将传感器置于一定温度（例如 $2 0 \\% )$ ，将其输出调至零点或某一特定点，使温度上升或下降一定的度数（例如 $5 \\mathrm { { 9 C } }$ 或 $1 0 \\% )$ ，再读出输出值，前后两次输出值之差即为温度稳定性误差。温度稳定性误差用温度每变化若干摄氏度的绝对误差或相对误差表示。每摄氏度引起的传感器误差又称为温度误差系数。",
+      "book_name": "传感器短书",
+      "section_title": "七、温度稳定性"
+    },
+    {
+      "id": "096ab941103b701b",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第3章 温敏传感器 > 3. 热电偶总电势\n正文：对于不同金属组成的热电偶，电动势和温度的关系一般用实验求取，如图3.4所示。\n\n![](images/e7a1009b0281812b3a00ef86f4a332f15f8cb7bcef851e5b0b39fcead784824b.jpg)  \n图3.4 各种热电偶的热电势与温度关系曲线 图3.4 各种热电偶的热电势与温度天系曲线",
+      "book_name": "传感器长书",
+      "section_title": "3. 热电偶总电势"
+    },
+    {
+      "id": "7d294bcfe65f8e5e",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第6章 光敏传感器 > 6.3 光生伏特效应器件\n正文：在光线作用下能够使物体产生一定方向的电动势的现象称为光生伏特效应。基于该效应的光电器件有光电池、光敏二极管和光敏三极管。",
+      "book_name": "传感器长书",
+      "section_title": "6.3 光生伏特效应器件"
+    },
+    {
+      "id": "error_theory_d74f0670891c",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第二章 误差的基本性质与处理 > 四、系统误差的减小和消除\nContent: ## 四、系统误差的减小和消除\n\n在测量过程中，发现有系统误差存在，必须进一步分析比较，找出可能产生系统误差的因素以及减小和消除系统误差的方法，但是这些方法和具体的测量对象、测量方法、测量人员的经验有关，因此要找出普遍有效的方法比较困难，下面介绍其中最基本的方法以及适应各种系统误差的特殊方法。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "四、系统误差的减小和消除"
+    },
+    {
+      "id": "sensor_core_9ac897c0fe38",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第七章 光电式传感器 > 三、激光扫描传感器\nContent: ## 三、激光扫描传感器\n\n激光束以恒定的速度扫描被测物体（如圆棒)，由于激光方向性好、亮度高，因此光束在物体边缘形成强对比度的光强分布，经光电器件转换成脉冲电信号，脉冲宽度与被测尺寸（如圆棒直径）成正比，从而实现了物体尺寸非接触自动测量。激光扫描传感器经常用于加工中（即在线）非接触主动测量，如热轧圆棒直径的测量、拉制粗导线线径的测量等。激光扫描传感器的精度可达0.01%\\~0.1%数量级。",
+      "book_name": "传感器短书",
+      "section_title": "三、激光扫描传感器"
+    },
+    {
+      "id": "9d3cccb495130ea9",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第10章 生物传感器 > (2) 结构专一性\n正文：酶催化的专一性是由酶蛋白分子（特别是分子中的活性部位）结构所决定的，根据酶对底物专一性程度的不同，大致可分为三种类型。\n\n第一种类型的酶专一性较低，能作用结构类似的一系列底物，又分为族专一性和键专一性两种。族专一性酶对底物的化学键及其一端有绝对要求，对键的另一端只有相对要求。键专一性酶对底物分子的化学键有绝对要求，而对键的两端只有相对要求。\n\n第二种类型的酶仅对一种物质有催化作用，它们对底物的化学键及其两端均有绝对要求。\n\n第三种类型的酶具有立体专一性，这类酶不仅要求底物有一定的化学结构，而且要求有一定的立体结构。",
+      "book_name": "传感器长书",
+      "section_title": "(2) 结构专一性"
+    },
+    {
+      "id": "sensor_core_8343c64a96b2",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第九章 气电式传感器 > 第三节 压力式气电传感器\nContent: ## 第三节 压力式气电传感器\n\n压力式气电传感器是利用气电转换元件将测量气室中压力转换为电信号输出。常用的转换形式有液柱式、膜片式、膜盒式和波纹管式等。膜片、波纹管可将气压变化转换为位移量，因为结构简单，目前应用较多。由于微电子技术的发展，越来越多地采用硅微型压敏元件来实现气电转换，大大减小了传感器的体积，提高了传感器的精度。",
+      "book_name": "传感器短书",
+      "section_title": "第三节 压力式气电传感器"
+    },
+    {
+      "id": "bc4f8837ca92ce65",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第11章 传感器的信号处理 > 11.4.4 按电路组成分类的滤波器\n正文：根据电路组成滤波器又可以分为LC无源滤波器、RC无源滤波器、由特殊元件构成的无源滤波器、RC有源滤波器。",
+      "book_name": "传感器长书",
+      "section_title": "11.4.4 按电路组成分类的滤波器"
+    },
+    {
+      "id": "p5_c12",
+      "category": "textbook_paragraph",
+      "text": "第四章 无约束优化方法 44\n第一节 共轭方向 44\n第二节 共轭方向法及其改进——Powell法 47\n第三节 单纯形法 55\n第四节 梯度法 59\n第五节 共轭梯度法 62\n第六节 牛顿法 65\n第七节 变尺度法（DFP法） 68\n本章学习要点 74\n习题 74",
+      "book_name": "优化设计",
+      "section_title": "第四章 无约束优化方法"
+    },
+    {
+      "id": "error_theory_70c5316c36fb",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第四章 测量不确定度 > 4. 展伸不确定度\nContent: ## 4. 展伸不确定度\n\n因各个不确定度分量和合成标准不确定度皆基于误差范围为 $3 \\sigma$ ，故取包含因子 $k = 3$ 则展伸不确定度为\n\n$$\nU = k u _ { c } = 3 \\times 0 . 0 7 6 \\% = 0 . 2 3 \\%\n$$",
+      "book_name": "误差理论与数据处理",
+      "section_title": "4. 展伸不确定度"
+    },
+    {
+      "id": "342907b9afe92bb6",
+      "category": "textbook_paragraph",
+      "text": "教材：传感器长书\n章节路径：第5章 磁敏传感器 > 5.5铁磁性金属薄膜磁阻元件\n正文：因为铁磁体具有很小的温度系数，性能稳定，灵敏度高，且制备工艺简单，所以铁磁性金属薄膜磁阻元件是一种很有前途的磁敏元件。",
+      "book_name": "传感器长书",
+      "section_title": "5.5铁磁性金属薄膜磁阻元件"
+    },
+    {
+      "id": "error_theory_eb9f78415206",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第一章 绪论\nContent: $$\n\\frac { \\delta _ { 3 } } { L _ { 2 } } = \\pm \\frac { 7 \\mu \\mathrm { m } } { 8 0 \\mathrm { m m } } = \\pm \\frac { 7 } { 8 0 0 0 0 } \\approx \\pm 0 . 0 0 9 \\%\n$$\n\n由此可知，第一种方法精度最低，第二种方法精度最高。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第一章 绪论"
+    },
+    {
+      "id": "p113_c267",
+      "category": "textbook_paragraph",
+      "text": "迭代。\n综上所述，反射成功的条件是\n$$\n\\begin{array}{r l} & g _ {u} \\left(\\boldsymbol {X} _ {R}\\right) \\leqslant 0 (u = 1, 2, \\dots , m) \\quad (\\text {可 行 条 件}) \\\\ & f \\left(\\boldsymbol {X} _ {R}\\right) <   f \\left(\\boldsymbol {X} _ {H}\\right) \\quad (\\text {下 降 条 件}) \\end{array} \\tag {6-10}\n$$",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "p5_c10",
+      "category": "textbook_paragraph",
+      "text": "第二章 优化设计方法的极值理论与数学基础 12\n第一节 函数的梯度 12\n第二节 多元函数的泰勒（Taylor）展开 16\n第三节 二次函数 18\n第四节 无约束优化问题的极值条件 19\n第五节 凸函数与凸规划 21\n第六节 约束优化问题的极值条件 23\n第七节 优化设计方法的基本思想与迭代终止准则 28\n本章学习要点 30\n习题 31",
+      "book_name": "优化设计",
+      "section_title": "第二章 优化设计方法的极值理论与数学基础"
+    },
+    {
+      "id": "error_theory_9b553be43cbb",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第五章 线性测量的参数最小二乘法处理\nContent: $$\n\\sigma = { \\sqrt { \\frac { \\sum _ { i = 1 } ^ { 6 } v _ { i } ^ { 2 } } { n - t } } } = { \\sqrt { \\frac { 0 . 0 1 0 6 } { 6 - 2 } } } { \\mathrm { m m } } = 0 . 0 5 1 { \\mathrm { m m } }\n$$",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第五章 线性测量的参数最小二乘法处理"
+    },
+    {
+      "id": "sensor_core_5e03b9de005f",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第一章 传感器的一般特性 > 二、传感器动态特性的实验确定法\nContent: ## 二、传感器动态特性的实验确定法\n\n传感器的动态标定，实质上就是通过实验得到传感器动态性能指标的具体数值。所以，下面讨论动态特性的实验确定法。确定方法常常因传感器的形式(如电的、机械的、气动的等)不同而不完全一样，但从原理上一般可分为阶跃信号响应法、正弦信号响应法、随机信号响应法和脉冲信号响应法等。\n\n应该指出，标定系统中所用标准设备的时间常数应比待标定传感器的小得多，而固有频率则应高得多。这样它们的动态误差才可忽略不计。",
+      "book_name": "传感器短书",
+      "section_title": "二、传感器动态特性的实验确定法"
+    },
+    {
+      "id": "error_theory_fbf914a62449",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第一章 绪论 > (一)系统误差\nContent: ## (一)系统误差\n\n在同一条件下，多次测量同一量值时，绝对值和符号保持不变，或在条件改变时，按一定规律变化的误差称为系统误差。例如标准量值的不准确、仪器刻度的不准确而引起的误差。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "(一)系统误差"
+    },
+    {
+      "id": "p212_c522",
+      "category": "textbook_paragraph",
+      "text": "三、数学模型求解\n该问题为多维无约束优化问题，采用非线性规划的单纯形法求解。\n取初始点 X^0 = [x_1^0, x_2^0, x_3^0]^{\\mathrm{T}} = [10000, 10000, 10000]^{\\mathrm{T}}，十次迭代数据列于表9-8。\n表 9-8 单纯形法迭代数据",
+      "book_name": "优化设计",
+      "section_title": "三、数学模型求解"
+    },
+    {
+      "id": "sensor_core_34b31696bade",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 传感器短书\nSection: 第五章 磁电式传感器 > 一、工作原理与特性\nContent: ## 一、工作原理与特性",
+      "book_name": "传感器短书",
+      "section_title": "一、工作原理与特性"
+    },
+    {
+      "id": "error_theory_1b75d3994c75",
+      "category": "textbook_paragraph",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第二章 误差的基本性质与处理 > 第一节随机误差\nContent: ## 第一节随机误差",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第一节随机误差"
+    },
+    {
+      "id": "sensor_core_623085ee5ca5",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第四章 电容式传感器\nContent: $$\n\\begin{array} { r l } & { \\frac { \\dot { \\hat { V } } _ { n } } { \\vert \\omega C _ { \\mathrm { w c } } \\vert } = \\frac { \\dot { \\hat { V } } _ { n } - \\dot { V } _ { \\mathrm { w } } } { \\vert \\frac { 1 } { \\omega C _ { \\mathrm { w c } } } } } \\\\ & { \\quad = \\frac { \\big ( U _ { \\mathrm { w } } \\mathrm { e } ^ { ( \\mathrm { i } \\cdot \\omega ^ { 2 } ) } \\big ) - \\dot { V } _ { \\mathrm { w } } } { \\vert \\frac { 1 } { \\omega C _ { \\mathrm { w } } } \\frac { 1 } { L _ { 0 } } } + \\frac { \\big ( U _ { \\mathrm { w } } \\mathrm { e } ^ { ( \\mathrm { i } \\cdot \\omega ^ { 2 } ) } \\big ) - \\dot { V } _ { \\mathrm { w } } } { \\vert \\frac { 1 } { \\omega C _ { \\mathrm { w } } } \\frac { 1 } { L _ { 0 } } } + \\frac { \\dot { U } _ { \\mathrm { w } } - \\dot { U } _ { \\mathrm { w } } } { \\vert \\frac { 1 } { \\omega C _ { \\mathrm { w } } } } } \\\\ & { \\quad \\quad \\quad + \\frac { \\big ( U _ { \\mathrm { w } } \\mathrm { e } ^ { \\mathrm { i } \\cdot \\omega ^ { 4 } } \\big ) - \\dot { V } _ { \\mathrm { w } } } { \\vert \\frac { 1 } { \\omega C _ { \\mathrm { w } } } \\frac { 1 } { L _ { 0 } } } + \\frac { \\dot { \\big ( } U _ { \\mathrm { w } } \\mathrm { e } ^ { \\mathrm { i } \\cdot \\omega ^ { 2 } } \\big ) - \\dot { V } _ { \\mathrm { w } } } { \\vert \\frac { 1 } { \\omega C _ { \\mathrm { w } } } \\frac { 1 } { L _ { 0 } } } } \\end{array}\n$$\n\n由上式可以推导出",
+      "book_name": "传感器短书",
+      "section_title": "第四章 电容式传感器"
+    },
+    {
+      "id": "error_theory_8477b9e1a40c",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第五章 线性测量的参数最小二乘法处理\nContent: 设t无误差，F值随t的变化呈线性关系 $F = k _ { 0 } + k t$ ，试给出线性方程中系数 $k _ { 0 }$ 和k的最小二乘估计及其相应精度。\n\n5-6 研究米尺基准器的线膨胀系数，得出在不同温度时该基准器的长度修正值可用公式 $\\Delta L = x + y t +$ $z t ^ { 2 }$ 表示。式中为0℃时米尺基准器的修正值（单位为 $\\mu \\mathrm { m } )$ ，y和z为温度系数，t为温度。在不同温度时米尺基准器的修正值 $\\Delta L$ 如下表所示：\n\n<table><tr><td rowspan=1 colspan=1> $\\iota / \\mathbb { C }$ </td><td rowspan=1 colspan=1>0.551</td><td rowspan=1 colspan=1>5.363</td><td rowspan=1 colspan=1>10.459</td><td rowspan=1 colspan=1>14.277</td><td rowspan=1 colspan=1>17.806</td><td rowspan=1 colspan=1>22.103</td><td rowspan=1 colspan=1>24.633</td><td rowspan=1 colspan=1>28.986</td><td rowspan=1 colspan=1>34.417</td></tr><tr><td rowspan=1 colspan=1> $\\Delta L / \\mu \\mathrm { m }$ </td><td rowspan=1 colspan=1>5.70</td><td rowspan=1 colspan=1>47.61</td><td rowspan=1 colspan=1>91.49</td><td rowspan=1 colspan=1>124.25</td><td rowspan=1 colspan=1>154.87</td><td rowspan=1 colspan=1>192.64</td><td rowspan=1 colspan=1>214.57</td><td rowspan=1 colspan=1>252.09</td><td rowspan=1 colspan=1>299.84</td></tr></table>\n\n试求x，y，z的最小二乘法处理及其相应精度。\n\n5-7 不等精度测量的方程组如下：\n\n$$\nx - 3 y = - 5 . 6 , P _ { 1 } = 1 ; 4 x + y = 8 . 1 , P _ { 2 } = 2 ; 2 x - y = 0 . 5 , P _ { 3 } = 3\n$$\n\n试求x、y的最小二乘法处理及其相应精度。\n\n5-8 对某一角度值 $\\mathbf { \\alpha } _ { a _ { i } }$ ，分两个测回进行测量，其权 $p _ { i }$ 等于测定次数，测定值如下表。试求该角度的最可信赖值及其标准差。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第五章 线性测量的参数最小二乘法处理"
+    },
+    {
+      "id": "error_theory_831a0900637c",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第四章 测量不确定度 > 3. 不确定度合成\nContent: ## 3. 不确定度合成\n\n上述不确定度分量互不相关，彼此独立，相关系数为零；不确定度传递系数均为1，故合成标准不确定度为\n\n$$\n\\begin{array} { r l } & { u _ { c } = \\sqrt { u _ { 1 } ^ { 2 } + u _ { 2 } ^ { 2 } + u _ { 3 } ^ { 2 } + u _ { 4 } ^ { 2 } } = \\sqrt { \\left( 0 . 1 6 3 \\right) ^ { 2 } + \\left( 0 . 3 3 3 \\right) ^ { 2 } + \\left( 0 . 2 8 9 \\right) ^ { 2 } + \\left( 0 . 1 7 3 \\right) ^ { 2 } } \\mathcal { U } \\mathrm { R H } = 0 . 5 0 1 \\mathcal { U } \\mathrm { e } \\mathrm { R H } } \\\\ & { \\overset { H } { \\underset { \\mathrm { f } } { = } } \\mathrm { H d } \\mathrm { j } \\frac { 1 6 \\pi ^ { 2 } } { 3 5 } \\mathcal { Y } } \\end{array}\n$$\n\n$$\n\\nu = \\frac { u _ { c } ^ { 4 } } { \\displaystyle \\sum _ { i = 1 } ^ { 4 } \\frac { u _ { i } ^ { 4 } } { \\nu _ { i } } } = \\frac { ( 0 . 5 0 1 ) ^ { 4 } } { \\displaystyle \\frac { ( 0 . 1 6 3 ) ^ { 4 } } { 9 } + \\frac { ( 0 . 3 3 3 ) ^ { 4 } } { 5 0 } + \\frac { ( 0 . 2 8 9 ) ^ { 4 } } { 1 2 . 5 } + \\frac { ( 0 . 1 7 3 ) ^ { 4 } } { 1 2 . 5 } } = 6 6\n$$\n\n取置信概率 $P = 9 5 \\%$ ，查t分布表得包含因子 $k = t _ { 0 . 9 5 } \\mathopen { } \\mathclose \\bgroup \\left( 6 6 \\aftergroup \\egroup \\right) = 2$ ，则展伸不确定度为\n\n$$\nU = k u _ { c } = 2 \\times 0 . 5 0 1 \\% \\mathrm { R H } = 1 . 0 0 2 \\% \\mathrm { R H }\n$$",
+      "book_name": "误差理论与数据处理",
+      "section_title": "3. 不确定度合成"
+    },
+    {
+      "id": "p36_c94",
+      "category": "long_textbook_chunk",
+      "text": "作为最优点。为此，需要有评定最优解的近似程度的准则，这个准则称为收敛准则，又称终止准则，通常有以下三种：\n(1)点距准则一般情况下，迭代点向极值点的逼近速度是逐渐变慢的，越接近极值点，相邻两迭代点间的距离越短。当相邻两迭代点间的距离充分小，即当\n$$\n\\| X ^ {(k + 1)} - X ^ {(k)} \\| \\leqslant \\varepsilon \\quad \\text {或} \\quad \\sqrt {\\sum_ {i = 1} ^ {n} \\left(x _ {i} ^ {k + 1} - x _ {i} ^ {k}\\right) ^ {2}} \\leqslant \\varepsilon \\tag {2-30}\n$$\n时，便可认为迭代点 X^{(k + 1)} 已充分接近极值点，可令 X^{*} = X^{(k + 1)} 。其中， \\varepsilon 是一充分小的正数，称为收敛精度。\n（2）值差准则 当迭代点接近极值点时，不仅迭代点间的距离变短，而且相邻两迭代点的函数值之差也越来越小。因此，可以将相邻两迭代点的函数值之差作为终止准则。即对一充分小的正数 \\varepsilon，如果\n$$\n\\left| f (X ^ {(k + 1)}) - f (X ^ {(k)}) \\right| \\leqslant \\varepsilon \\quad \\text {或} \\quad \\frac {\\left| f (X ^ {(k + 1)}) - f (X ^ {(k)}) \\right|}{\\left| f (X ^ {(k)}) \\right|} \\leqslant \\varepsilon \\tag {2-31}\n$$\n成立，则可以认为点 X^{(k + 1)} 就是满足收敛精度要求的近似最优点 X^{*}。\n（3）梯度准则 由无约束优化问题的极值必要条件可知，梯度近似于0的点则必定是接近极值点的点。因此，当\n$$\n\\| \\nabla f \\left(\\boldsymbol {X} ^ {(k + 1)}\\right) \\| \\leqslant \\varepsilon \\tag {2-32}\n$$\n时，将点 X^{(k + 1)} 作为满足收敛精度要求的近似最优点 X^{*}\n通常，上述三个准则都可单独使用。只要其中一个得到满足，即可认为达到了近似的最优解，终止迭代计算。\n但是，在某些特殊情况下，相邻两迭代点间的距离和对应的函数值之差不可能同时达到充分小，如图2-19所示。这时可将点距准则和值差准则联合起来使用。\n图2-19 相邻两迭代点与其函数值不同时收敛的情况",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "error_theory_278b6fac5f85",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第五章 线性测量的参数最小二乘法处理\nContent: $$\n\\hat { \\pmb { X } } = \\left( \\begin{array} { c } { { { \\boldsymbol { x } } _ { 1 } } } \\\\ { { } } \\\\ { { { \\boldsymbol { x } } _ { 2 } } } \\\\ { { } } \\\\ { { { \\boldsymbol { x } } _ { 3 } } } \\end{array} \\right) = \\pmb { C } ^ { - 1 } { \\boldsymbol { A } } ^ { \\mathrm { T } } { \\pmb { L } }\n$$\n\n$$\n \\begin{array} { r l } & { \\equiv { \\frac { 1 } { 4 } } { ( \\begin{array} { l l l l l l l } { 2 } & { - 1 } & { 0 } \\\\ & & & & { 1 } & { 0 } & { 0 } & { 1 } & { 0 } \\\\ & & & & & \\\\ & & { - 1 } & & { 2 } & { - 1 } & { 0 } & { 1 } & { 1 } & { 1 } \\\\ { - 1 } & & { 2 } & { - 1 } & { 0 } & & & & { 1 } & { 1 } \\\\ & & & & & & & { 1 } & { 0 } \\\\ { 0 } & { - 1 } & & { 2 } & { 0 } & { 0 } & { 1 } & { 0 } & { 1 } \\end{array} ) } { ( \\begin{array} { l } { 1 . 0 1 5 } \\\\ { 0 . 9 8 } \\\\ { 1 . 0 2 0 } \\\\ { 2 . 0 1 6 } \\\\ { 1 . 9 8 1 } \\\\ { 0 . 0 3 2 } \\end{array} ) } } \\\\ & { = { \\frac { 1 } { 4 } } { ( \\begin{array} { l l l l l l l } { 2 } & { - 1 } & { 0 } & { 1 } & { - 1 } & { 1 } & { 0 } & { 1 } \\\\ & & & { 0 } & { 1 } & { - 1 } & { 1 } \\\\ & & & & { 1 } & & { 0 } \\\\ { - 1 } & { 2 } & { - 1 } & { 1 } & { 1 } & { 0 } & { 0 } \\\\ { 0 } & { - 1 } & & { 2 } & { - 1 } & { 1 } & { 1 } \\end{array} ) } { ( \\begin{array} { l } { 1 . 0 1 5 } \\\\ { 0 . 9 8 } \\\\ { 1 . 0 2 0 } \\\\ { 0 . 9 1 6 } \\end{array} ) } } \\\\ &  \\qquad { ( \\begin{array} { l l l l l l } { 4 . 1 2 } & & & & { 0 } & & \\\\ & { 0 . 9 8 3 } & & & \\\\ & & { 0 . 9 1 2 } & & & \\\\ { 0 } & { - 1 } & { 2 } & { - 1 } & { 1 } & { 1 } \\end{array} ) }  ( \\begin{array} { l } { 1 . 0 2 8 } \\\\ { 0 . 9 8 3 } \\\\ { 1 . 9 1 2 } \\\\  0 . 9 \\end{array} \\end{array}\n$$\n\n即解得",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第五章 线性测量的参数最小二乘法处理"
+    },
+    {
+      "id": "error_theory_8ce47a1048ea",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第五章 线性测量的参数最小二乘法处理\nContent: $$\ny _ { 3 } = 5 0 . 0 0 6 \\mathrm { g }\n$$\n\n对砝码 $m _ { 1 } , ~ m _ { 2 }$ 之和组合测量，得 γ4 = 30.004g\n\n对砝码 $m _ { 1 } , ~ m _ { 3 }$ 之和组合测量，得\n\n$$\ny _ { 5 } = 6 0 . 0 0 2 \\mathrm { g }\n$$\n\n对砝码 $m _ { 2 } , ~ m _ { 3 }$ 之和组合测量，得\n\n$$\n{ \\bf \\gamma } _ { y _ { 6 } } = 7 0 . 0 0 2 { \\bf g }\n$$\n\n对砝码 $m _ { 1 } , m _ { 2 } , m _ { 3 }$ 之和组合测量，得 $y _ { 7 } = 8 0 . 0 0 8 \\mathrm { g }$\n\n求三只砝码的最佳估计值及其标准差？\n\n首先按式（5-9）列出误差方程\n\n$$\n\\left. \\begin{array} { l } { v _ { 1 } = y _ { 1 } - m _ { 1 } } \\\\ { } \\\\ { v _ { 2 } = y _ { 2 } - m _ { 2 } } \\\\ { } \\\\ { v _ { 3 } = y _ { 3 } - m _ { 3 } } \\\\ { } \\\\ { v _ { 4 } = y _ { 4 } - \\left( m _ { 1 } + m _ { 2 } \\right) } \\\\ { } \\\\ { v _ { 5 } = y _ { 5 } - \\left( m _ { 1 } + m _ { 3 } \\right) } \\\\ { } \\\\ { v _ { 6 } = y _ { 6 } - \\left( m _ { 2 } + m _ { 3 } \\right) } \\\\ { } \\\\ { v _ { 7 } = y _ { 7 } - \\left( m _ { 1 } + m _ { 2 } + m _ { 3 } \\right) } \\end{array} \\right\\}\n$$\n\n根据矩阵形式(5-10)，上式可以用矩阵表示为\n\n$$\n\\begin{array} { r } { \\left( \\begin{array} { l } { v _ { 1 } } \\\\ { v _ { 2 } } \\\\ { v _ { 3 } } \\\\ { v _ { 4 } } \\\\ { v _ { 5 } } \\\\ { v _ { 6 } } \\\\ { v _ { 7 } } \\end{array} \\right) = \\left( \\begin{array} { l l l } { y _ { 1 } } \\\\ { y _ { 2 } } \\\\ { y _ { 3 } } \\\\ { y _ { 4 } } \\\\ { y _ { 5 } } \\\\ { y _ { 6 } } \\\\ { y _ { 6 } } \\\\ { y _ { 7 } } \\end{array} \\right) = \\left( \\begin{array} { l l l } { 1 } & { 0 } & { 0 } \\\\ { 0 } & { 1 } & { 0 } \\\\ { 0 } & { 0 } & { 1 } \\\\ { 1 } & { 1 } & { 0 } \\\\ { 1 } & { 0 } & { 1 } \\\\ { 0 } & { 1 } & { 1 } \\\\ { 1 } & { 1 } & { 1 } \\end{array} \\right) \\left( \\begin{array} { l } { m _ { 1 } } \\\\ { m _ { 2 } } \\\\ { m _ { 3 } } \\end{array} \\right) } \\end{array}\n$$\n\n即",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第五章 线性测量的参数最小二乘法处理"
+    },
+    {
+      "id": "p71_c176",
+      "category": "long_textbook_chunk",
+      "text": "$$\n\\boldsymbol {X} ^ {(1)} = \\left( \\begin{array}{c} 2 \\\\ 0. 5 \\end{array} \\right); \\quad \\nabla f (\\boldsymbol {X} ^ {(1)}) = \\left( \\begin{array}{c} - 1 \\\\ - 2 \\end{array} \\right)\n$$\n（2）第二次迭代求共轭系数，得\n$$\n\\beta_ {0} = \\frac {\\| \\nabla f (\\boldsymbol {X} ^ {(1)}) \\| ^ {2}}{\\| \\nabla f (\\boldsymbol {X} ^ {(0)}) \\| ^ {2}} = \\frac {1 ^ {2} + 2 ^ {2}}{4 ^ {2} + 2 ^ {2}} = 0. 2 5\n$$\n构造共轭方向为\n$$\n\\boldsymbol {S} ^ {(1)} = - \\boldsymbol {\\nabla} f (\\boldsymbol {X} ^ {(1)}) + \\beta_ {0} \\boldsymbol {S} ^ {(0)} = - \\left( \\begin{array}{l} - 1 \\\\ - 2 \\end{array} \\right) + 0. 2 5 \\left( \\begin{array}{l} 4 \\\\ - 2 \\end{array} \\right) = \\left( \\begin{array}{l} 2 \\\\ 1. 5 \\end{array} \\right)\n$$\n求迭代新点，得\n$$\n\\boldsymbol {X} ^ {(2)} = \\boldsymbol {X} ^ {(1)} + \\alpha \\boldsymbol {S} ^ {(1)} = \\left( \\begin{array}{c} 2 \\\\ 0. 5 \\end{array} \\right) + \\alpha \\left( \\begin{array}{c} 2 \\\\ 1. 5 \\end{array} \\right) = \\left( \\begin{array}{c} 2 + 2 \\alpha \\\\ 0. 5 + 1. 5 \\alpha \\end{array} \\right)\n$$\n求最优步长因子：令 \\frac{\\mathrm{d}f(\\boldsymbol{X}^{(2)})}{\\mathrm{d}\\alpha} = 0 ，解得 \\alpha = 1 。将 \\alpha = 1 代入点 X^{(2)} 解得\n$$\n\\boldsymbol {X} ^ {(2)} = (4, 2) ^ {\\mathrm {T}}; f (\\boldsymbol {X} ^ {(2)}) = - 8; \\boldsymbol {\\nabla} f (\\boldsymbol {X} ^ {(2)}) = (0, 0) ^ {\\mathrm {T}}\n$$\n因 \\| \\nabla f(\\boldsymbol{X}^{(2)})\\| = 0 < \\varepsilon ，所以 X^{(2)} = (4,2)^{\\mathrm{T}} ， f(\\boldsymbol{X}^{(2)}) = -8 就是所求的最优解。由此可知，用共轭梯度法经过两次迭代便求得二元二次优化问题的极小值点。\n从共轭梯度法的计算过程可看出，第一个搜索方向取作负梯度方向，这就是最速下降法。其余各步的搜索方向是将负梯度方向偏转了一个角度，即对负梯度方向进行了修正。所以共轭梯度法实质上是对最速下降法进行的一种改进，故又被称为旋转梯度法。",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "p85_c210",
+      "category": "long_textbook_chunk",
+      "text": "(5-4c)，因此这五个解就不是可行解，当然也不是基本可行解。由该例和图1-7可看出，可行域中任一点都是可行解，故可行解为无穷多个，而基本可行解则仅仅在可行域的顶点上取得。\n表 5-1 算例的 10 个基本解\n由此例推广到一般情况。\n在式(5-3)约束方程系数矩阵 \\mathbf{A} 中，选 m 列线性无关的向量构成 m \\times m 阶非奇异子矩阵 \\mathbf{B}，则称 \\mathbf{B} 是线性规划解的一个基底，简称基。不妨设前 m 列为线性无关的向量，即\n$$\n\\boldsymbol {P} _ {1} = \\left( \\begin{array}{c} a _ {1 1} \\\\ a _ {2 1} \\\\ \\vdots \\\\ a _ {m 1} \\end{array} \\right), \\boldsymbol {P} _ {2} = \\left( \\begin{array}{c} a _ {1 2} \\\\ a _ {2 2} \\\\ \\vdots \\\\ a _ {m 2} \\end{array} \\right), \\dots , \\boldsymbol {P} _ {m} = \\left( \\begin{array}{c} a _ {1 m} \\\\ a _ {2 m} \\\\ \\vdots \\\\ a _ {m m} \\end{array} \\right) \\tag {5-5}\n$$\n则基为\n$$\n\\boldsymbol {B} = \\left(\\boldsymbol {P} _ {1}, \\boldsymbol {P} _ {2}, \\dots , \\boldsymbol {P} _ {m}\\right) = \\left( \\begin{array}{c c c c} a _ {1 1} & a _ {1 2} & \\dots & a _ {1 m} \\\\ a _ {2 1} & a _ {2 2} & \\dots & a _ {2 m} \\\\ \\vdots & \\vdots & & \\vdots \\\\ a _ {m 1} & a _ {m 2} & \\dots & a _ {m m} \\end{array} \\right) \\tag {5-6}\n$$\n而 P_{1}, P_{2}, \\dots, P_{m} 称为基向量。与基向量对应的变量 x_{1}, x_{2}, \\dots, x_{m} 称为基变量。 n 个变量中余下的 n - m 个变量 x_{m + 1}, x_{m + 2}, \\dots, x_{n}，称之为非基变量，其对应式(5-3)约束方程系数矩阵 A 中除去基之外的 n - m 个列向量 P_{m + 1}, P_{m + 2}, \\dots, P_{n}，这些列向量构成子矩阵 N = \\left[P_{m + 1}, P_{m + 2}, \\dots, P_{n}\\right]。\n综上所述，系数矩阵 \\mathbf{A} 写成分块形式为\n$$\n\\boldsymbol {A} = \\left[ \\boldsymbol {B} \\mid \\boldsymbol {N} \\right] = \\left[ \\boldsymbol {P} _ {1}, \\boldsymbol {P} _ {2}, \\dots , \\boldsymbol {P} _ {m} \\mid \\boldsymbol {P} _ {m + 1}, \\boldsymbol {P} _ {m + 2}, \\dots , \\boldsymbol {P} _ {n} \\right] \\tag {5-7}\n$$\n由于系数矩阵 \\mathbf{A} 有 n 列，从中任取 m 列都可构成一个基 \\mathbf{B}，不同的列组合就构成不同的基 \\mathbf{B}。由此可知，一个线性规划问题的基的个数等于 n 的 m 组合数，即\n$$\nC _ {n} ^ {m} = \\frac {n !}{m ! (n - m) !} \\tag {5-8}\n$$\n相应地，变量也可写成基变量和非基变量两部分，即\n$$\n\\boldsymbol {X} = \\left( \\begin{array}{c} \\boldsymbol {X} ^ {B} \\\\ \\boldsymbol {X} ^ {N} \\end{array} \\right) = \\left[ \\begin{array}{l} x _ {1}, x _ {2}, \\dots , x _ {m} \\end{array} \\mid x _ {m + 1}, x _ {m + 2}, \\dots , x _ {n} \\right] ^ {\\mathrm {T}} \\tag {5-9}\n$$\n将式（5-7）和式（5-9）代入式（5-3）的约束方程中，有",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "error_theory_b119842e79aa",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第二章 误差的基本性质与处理 > 2. 用于发现周期性系统误差\nContent: ## 2. 用于发现周期性系统误差\n\n若有一等精度测量列，按测量先后顺序将残余误差排列为 $v _ { 1 } , ~ v _ { 2 } , ~ \\cdots , ~ v _ { n }$ ，如果存在着按此顺序呈周期性变化的系统误差，则相邻两个残余误差的差值 $\\left( \\boldsymbol { v } _ { i } - \\boldsymbol { v } _ { i + 1 } \\right)$ 符号也将出现周期性的正负号变化，因此由差值 $\\left( \\boldsymbol { v } _ { i } - \\boldsymbol { v } _ { i + 1 } \\right)$ 可以判断是否存在周期性系统误差。但是这种方法只有当周期性系统误差是整个测量误差的主要成分时，才有实用效果。否则，差值$\\left( \\boldsymbol { v } _ { i } - \\boldsymbol { v } _ { i + 1 } \\right)$ 符号变化将主要取决于随机误差，以致不能判断出周期性系统误差。在此情况下，可用统计准则进行判断，令\n\n$$\nu = \\left| \\begin{array} { c }  { \\displaystyle { \\begin{array} { l } { { } ^ { n - 1 } } \\\\ { { \\sum _ { i = 1 } ^ { n } { { \\boldsymbol { v } } _ { i } } { \\boldsymbol { v } } _ { i + 1 } } \\\\ { { \\boldsymbol { u } } \\end{array} } } } \\end{array} } \\right| = | { \\boldsymbol { v } } _ { 1 } { \\boldsymbol { v } } _ { 2 } + { \\boldsymbol { v } } _ { 2 } { \\boldsymbol { v } } _ { 3 } + \\cdots + { \\boldsymbol { v } } _ { n - 1 } { \\boldsymbol { v } } _ { n } |\n$$\n\n若\n\n(2-85)\n\n则认为该测量列中含有周期性系统误差。这种校核法又叫阿卑一赫梅特准则，它能有效地发现周期性系统误差。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "2. 用于发现周期性系统误差"
+    },
+    {
+      "id": "sensor_core_897b5e186d37",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第四章 电容式传感器\nContent: 闭环传感器的系统框图可简化为图4-23。图中 $\\mathbb { W } _ { 0 } \\left( s \\right)$ 为前向环节的传递函数， $\\mathbb { W } _ { \\mathfrak { f } } \\left( s \\right)$ 为反馈环节的传递函数，则系统的传递函数 $\\boldsymbol { \\mathbb { W } } ( s )$ 为\n\n$$\n\\begin{array} { r l } { W ( s ) } & { = \\displaystyle \\frac { W _ { 0 } \\left( s \\right) } { 1 + W _ { t } \\left( s \\right) W _ { 0 } \\left( s \\right) } } \\end{array}\\tag{4-22}\n$$\n\n实际中容易保证： $\\mid W _ { \\circ } \\left( \\varsigma \\right) W _ { \\mathrm { f } } \\left( s \\right) \\mid \\gg 1$ ，且系统稳定。根据自控理论知，闭环系统静态增益为 $1 / \\mid W _ { \\mathrm { f } } ( s )$ ，时间常数（一阶系统）是开环系统的 $1 / ( \\mathrm { ~ 1 ~ + ~ } \\ \\left| \\begin{array} { l } { \\boldsymbol { W } _ { 0 } \\left( \\boldsymbol { s } \\right) \\boldsymbol { W } _ { \\mathrm { f } } \\left( \\boldsymbol { s } \\right) } \\end{array} \\right| )$ ，固有频率(二阶系统）为开环系统的 $\\sqrt { 1 + \\mid W _ { 0 } \\left( s \\right) W _ { t } \\left( s \\right) }$ 丁倍。因此，闭环传感器具有如下优点：①精度高。传感器的精度和稳定性主要取决于反\n\n![](images/6169132fe1a47e5f2fac162643d6a4b0ff688483ff3585cb90b2b5c91c21f5d5.jpg)  \n图4-23 闭环系统框图\n\n馈环节，而与前向环节无关；②灵敏度高，线性好、量程大。传感器工作于平衡状态附近，相对初始状态的偏移量很小；③动态特性好。时间常数小，固有频率高。但同时具有复杂、加工要求高、成本高、体积大等缺点。\n\n例如最为常用的力平衡式传感器就是先将被测量转换成力或力矩，然后用反馈力与其平衡的闭环传感器，它广泛应用于测量加速度、角速度、压力、重量、电功率和高电压等。",
+      "book_name": "传感器短书",
+      "section_title": "第四章 电容式传感器"
+    },
+    {
+      "id": "error_theory_f6ab99700106",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第四章 测量不确定度 > 2. 不确定度评定\nContent: ## 2. 不确定度评定\n\n(1）标准砝码的示值误差引起的不确定度分量 $u _ { 1 }$\n\n由标准砝码的校准证书可知， $m _ { s } = 1 5 0 0 0 . 0 0 5 \\mathrm { g }$ ，其不确定度按2倍的标准差为30mg，相对标准差为25%。则\n\n$$\nu _ { 1 } = \\frac { 3 0 \\mathrm { m g } } { 2 } = 1 5 \\mathrm { m g } , \\nu _ { 1 } = \\frac { 1 } { 2 ( 2 5 \\% ) ^ { 2 } } = 8\n$$\n\n(2) $\\Delta m$ 的测量重复性引起的不确定度分量 $u _ { 2 }$\n\n已知校准的单次测量的标准差为25mg，由20次重复测量样本所得。本次校准，由5次测量的平均值得到 $\\Delta m = 0 . 0 2 0 \\mathbf { g }$ ，则\n\n$$\nu _ { 2 } = \\frac { 2 5 \\mathrm { m g } } { \\sqrt { 5 } } = 1 1 . 2 \\mathrm { m g } , \\nu _ { 2 } = 2 0 - 1 = 1 9\n$$\n\n(3)标准砝码示值可能产生的漂移引起的不确定度分量 $u _ { 3 }$\n\n参考前几次标准砝码校准后的漂移情况，估计其漂移不超过 $\\pm 1 2 \\mathrm { m g }$ ，相对标准差为20%，按均匀分布，则\n\n$$\nu _ { 3 } = \\frac { 1 2 \\mathrm { m g } } { \\sqrt { 3 } } = 6 . 9 \\mathrm { m g } , \\nu _ { 3 } = \\frac { 1 } { 2 ( 2 0 \\% ) ^ { 2 } } = 1 2 . 5\n$$\n\n(4)比较仪的偏心度和磁效应引起的不确定度分量 $u _ { 4 }$\n\n由比较仪的说明书给出，偏心度和磁效应对测量影响的极限误差不超过 $\\pm 1 0 \\mathrm { m g }$ ，相对标准差为25%，按均匀分布，则\n\n$$\nu _ { 4 } = \\frac { 1 0 \\mathrm { m g } } { \\sqrt { 3 } } = 5 . 8 \\mathrm { m g } , \\nu _ { 4 } = \\frac { 1 } { 2 ( 2 5 \\% ) ^ { 2 } } = 8\n$$",
+      "book_name": "误差理论与数据处理",
+      "section_title": "2. 不确定度评定"
+    },
+    {
+      "id": "sensor_core_cf7f422f4c77",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第三章 电感式传感器 > 2. 鉴幅方式\nContent: ## 2. 鉴幅方式\n\n仍如图3-27所示，加到转尺两相绕组交流励磁电压如下：\n\n$$\nu _ { \\mathrm { ~ s ~ } } = U _ { \\mathrm { { s } } } \\sin \\omega t \\qquad u _ { \\mathrm { { c } } } = - \\mathrm { ~ } U _ { \\mathrm { { c } } } \\sin \\omega t\n$$\n\n它们分别在定尺绕组上感应出的电动势为\n\n$$\n\\begin{array} { r } { e _ { \\mathrm { s } } ~ = ~ k _ { \\nu } U _ { \\mathrm { s } } \\sin \\left( 2 \\pi x / W \\right) \\mathrm { c o s } \\omega t } \\\\ { e _ { \\mathrm { c } } ~ = - ~ k _ { \\nu } U _ { \\mathrm { c } } \\mathrm { c o s } \\left( 2 \\pi x / W \\right) \\mathrm { c o s } \\omega t } \\end{array}\\tag{3-43}\n$$\n\n定尺的总感应电动势为\n\n$$\ne ~ = ~ e _ { \\mathrm { ~ s ~ } } + e _ { \\mathrm { ~ c ~ } } = k _ { \\nu } \\cos ( U _ { \\mathrm { s } } \\mathrm { s i n } \\theta _ { x } - U _ { \\mathrm { c } } \\mathrm { c o s } \\theta _ { x } )\\tag{3-44}\n$$\n\n采用函数变压器使励磁电压幅值为\n\n$$\nU _ { \\mathrm { ~ s ~ } } = U _ { \\mathrm { { m } } } \\mathrm { { c o s } } \\theta _ { \\mathrm { { d } } } \\qquad U _ { \\mathrm { { c } } } = U _ { \\mathrm { { m } } } \\mathrm { { s i n } } \\theta _ { \\mathrm { { d } } }\n$$\n\n式中的 $\\theta _ { \\mathrm { d } }$ 为励磁电压的电相角，则感应电动势可写成\n\n$$\n\\begin{array} { r l } { e } & { = k _ { \\nu } U _ { \\mathrm { m } } \\mathrm { c o s } \\omega t ( \\mathrm { c o s } \\theta _ { \\mathrm { d } } \\mathrm { s i n } \\theta _ { x } \\textrm { -- } \\mathrm { s i n } \\theta _ { \\mathrm { d } } \\mathrm { c o s } \\theta _ { x } ) } \\\\ & { } \\\\ & { = k _ { \\nu } U _ { \\mathrm { m } } \\mathrm { c o s } \\omega t \\mathrm { s i n } ( \\theta _ { x } \\textrm { -- } \\theta _ { \\mathrm { d } } ) } \\end{array}\\tag{3-45}\n$$\n\n式（3-45）把感应同步器定尺转尺间的相对位移角 $\\theta _ { x }$ 与励磁电压的电相角 $\\theta _ { \\mathrm { d } }$ 联系了起来。\n\n设在原始状态时 $\\theta _ { \\mathrm { d } } = \\theta _ { x }$ ，则 $e = 0 _ { \\mathrm { ~ o ~ } }$ 然后滑尺相对定尺有一位移，则感应电动势增量为",
+      "book_name": "传感器短书",
+      "section_title": "2. 鉴幅方式"
+    },
+    {
+      "id": "p83_c205",
+      "category": "long_textbook_chunk",
+      "text": "$$\n\\left. \\begin{array}{l} \\min  f (\\boldsymbol {X}) = \\sum_ {j = 1} ^ {n} c _ {j} x _ {j} \\\\ \\text {s . t .} \\left\\{ \\begin{array}{l l} \\sum_ {j = 1} ^ {n} c _ {i j} x _ {j} = b _ {i} & (i = 1, 2, \\dots , m) \\\\ x _ {j} \\geqslant 0 & (j = 1, 2, \\dots , n) \\end{array} \\right. \\end{array} \\right\\} \\tag {5-2}\n$$\n还可以写成向量形式，即\n$$\n\\left.\\begin{array}{l}\\min  f (\\boldsymbol {X}) = \\boldsymbol {c} ^ {\\mathrm {T}} \\boldsymbol {X}\\\\\\text {s . t .} \\left\\{ \\right.\\begin{array}{l}\\boldsymbol {A} \\boldsymbol {X} = \\boldsymbol {b}\\\\x _ {j} \\geqslant 0\\end{array}\\quad (j = 1, 2, \\dots , n)\\end{array}\\right\\} \\tag {5-3}\n$$\n式中，\n$$\n\\boldsymbol {X} = \\left[ x _ {1}, x _ {2}, \\dots , x _ {n} \\right] ^ {\\mathrm {T}}, \\boldsymbol {c} = \\left[ c _ {1}, c _ {2}, \\dots , c _ {n} \\right] ^ {\\mathrm {T}}, \\boldsymbol {b} = \\left[ b _ {1}, b _ {2}, \\dots , b _ {m} \\right] ^ {\\mathrm {T}}\n$$\n$$\n\\boldsymbol {A} = \\left( \\begin{array}{c c c c} a _ {1 1} & a _ {1 2} & \\dots & a _ {1 n} \\\\ a _ {2 1} & a _ {2 2} & \\dots & a _ {2 n} \\\\ \\vdots & \\vdots & & \\vdots \\\\ a _ {m 1} & a _ {m 2} & \\dots & a _ {m n} \\end{array} \\right)\n$$\nAX = b 为约束方程； A 为系数矩阵； b ， c 为常数向量； x_{j}\\geqslant 0(j = 1 ，2，…， n 为非负约束。式(5-1)中 m 个约束方程应是相互独立的，因而式(5-3)中系数矩阵 A 的秩为 m ，即为满秩矩阵。\n一般情况下，应有 m < n 。因为 m = n 时约束方程只有一个唯一解，没有可供选择的其他解，也就不存在其为优化问题。当 m < n 时，约束方程有无穷多组解，线性规划就是从这些无穷多组解中寻找一组使目标函数值最小的最优解。\n为了论述问题和计算上的方便，线性规划的数学模型都应化为标准形式。\n首先，要把不等式约束化为等式约束。如果不等式约束为“\\leqslant”形式，应当加一个非负的松弛变量，使不等式约束化为等式约束。例如，第 k 个约束条件为\n$$\na _ {k 1} x _ {1} + a _ {k 2} x _ {2} + \\dots + a _ {k n} x _ {n} \\leqslant b _ {k}\n$$\n加入松弛变量 x_{n + k}\\geqslant 0 ，于是上式约束条件变为\n$$\na _ {k 1} x _ {1} + a _ {k 2} x _ {2} + \\dots + a _ {k n} x _ {n} + x _ {n + k} = b _ {k}\n$$\n显然，若不等式约束为“ \\geqslant ”，则应减去一个非负的松弛变量，使不等式约束化为等式约束。\n应当特别指出的是，松弛变量只引入约束方程，而不出现在目标函数中，或者说目标函数中的松弛变量的系数为零。\n其次，如果原问题是求目标函数 f(\\mathbf{X}) 的最大值，则要化为求目标函数 (-f(\\mathbf{X})) 的最小值。",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "sensor_core_9e949fec80c9",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第十章 谐振式传感器 > (一)开环激振\nContent: ## (一)开环激振\n\n开环激振也称为间歇激励，常用于振弦式传感器，其原理如图10-15所示。当张弛振\n\n荡器给出激励脉冲 $U _ { \\mathrm { \\tiny ~ e } }$ 时，继电器吸合，电流通过磁铁线圈，使磁铁吸住振弦。脉冲停止后松开振弦，振弦便自由振动、与线圈磁铁的间隙就周期性地变化，在线圈中产生感应电动势 $U _ { \\mathrm { o } }$ 并经继电器常闭接点输出。感应电动势的频率即为振弦的固有频率。由此可见，线圈兼有激励和拾振两种\n\n![](images/355f967379c65e1ed011c0164788b38f1d4c356e28941fa2b4ab7d0b303c315c.jpg)  \n图10-15 间歇激励式电路原理图\n\n作用。当然，也可同时放置两个线圈：一个只是用于激励；另一个只是用来拾振，但使传感器体积增大。\n\n需要指出，振弦式传感器输出频率f与被测力T之间是由式(10-2)所描述的非线性关系，即使取特性曲线较直的一段作为工作范围，其非线性误差也会高达5%\\~6%。为提高测量精度，采用图10-16所示以 $f ^ { 2 }$ 为传感器输出的电路，其线性度可达0.5%\\~2.5%。频率为 $f ( f = 1 / T _ { \\uparrow } )$ 的拾振线圈输出电压经放大整形后，触发定时定宽电路，则输出一频率仍为f、宽度固定为 $T ^ { \\prime }$ 的方波。同时控制两个 $f - V$ 转换电路，使它们在每个周期 $T _ { i }$ 里输出宽度为 $T _ { t } ^ { \\prime }$ 、幅值分别为 $U _ { \\mathrm { o l } }$ 和 $U _ { \\mathrm { o 2 } }$ 的方波 $u _ { 1 }$ 和 $u _ { 2 }$ ，再经过低通滤波成为直流电压 $U _ { \\mathrm { o 2 } }$ 和$U _ { \\mathrm { o } }$ 。那么 $U _ { \\mathrm { e } 2 } = ( U _ { \\mathrm { o l } } T _ { \\mathrm { f } } ^ { \\prime } ) / T _ { \\mathrm { f } } , U _ { \\mathrm { o } } = ( U _ { \\mathrm { o } 2 } T _ { \\mathrm { f } } ^ { \\prime } ) / T _ { \\mathrm { f } }$ ，将这两个公式联立求解有\n\n$$\nU _ { \\circ } = U _ { \\circ 1 } \\frac { T _ { \\mathrm { ~ f ~ } } ^ { 2 \\prime } } { T _ { \\mathrm { ~ f ~ } } ^ { 2 } } = U _ { \\circ 1 } T _ { \\mathrm { ~ f ~ } } ^ { \\prime 2 } f ^ { 2 }\\tag{10-22}\n$$\n\n其中， $U _ { \\mathrm { o l } }$ 为基准电压值， $T _ { \\mathrm { ~ f ~ } } ^ { \\prime }$ 为取决于图10-8中电路元件值的常数。所以该电路的输出电压 $U _ { \\mathrm { o } }$ 与振弦谐振频率f的平方成正比，进而与被测力T成正比。",
+      "book_name": "传感器短书",
+      "section_title": "(一)开环激振"
+    },
+    {
+      "id": "error_theory_98715c56c447",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第六章 回归分析\nContent: 表 6-14\n<table><tr><td>序号</td><td> $y / { } ^ { \\circ } \\mathrm { E }$ </td><td> $y ^ { 2 } / { } ^ { \\circ } \\mathrm { E } ^ { 2 }$ </td><td> ${ \\hat { y } } / { } ^ { \\circ } \\mathrm { E }$ </td><td> $( y - \\hat { y } ) / ^ { \\circ } \\mathrm { E }$ </td><td> $( \\boldsymbol { y } - \\hat { \\boldsymbol { y } } ) ^ { 2 } / { } ^ { \\circ } \\mathbf { E } ^ { 2 }$ </td></tr><tr><td>1</td><td>4.24</td><td>17.9776</td><td>4.355</td><td>-0.115</td><td>0.013225</td></tr><tr><td>2</td><td>3.51</td><td>12.3201</td><td>3.394</td><td>0.116</td><td>0.013456</td></tr><tr><td>3</td><td>2.92</td><td>8.5264</td><td>2.844</td><td>0.076</td><td>0.005776</td></tr><tr><td>4</td><td>2.52</td><td>6.3504</td><td>2.479</td><td>0.041</td><td>0.001681</td></tr><tr><td>5</td><td>2.20</td><td>4.8400</td><td>2.216</td><td>-0.016</td><td>0.000256</td></tr><tr><td>6</td><td>2.00</td><td>4.0000</td><td>2.016</td><td>-0.016</td><td>0.000256</td></tr><tr><td>7</td><td>1.81</td><td>3.2761</td><td>1.857</td><td>-0.047</td><td>0.002209</td></tr><tr><td>8</td><td>1.70</td><td>2.8900</td><td>1.727</td><td>-0.027</td><td>0.000729</td></tr><tr><td>9</td><td>1.60</td><td>2.5600</td><td>1.619</td><td>-0.019</td><td>0.000361</td></tr><tr><td>10</td><td>1.50</td><td>2.2500</td><td>1.527</td><td>-0.027</td><td>0.000729</td></tr><tr><td>序 号</td><td> $y / { } ^ { \\circ } \\mathrm { E }$ </td><td> $y ^ { 2 } / { } ^ { \\circ } \\mathrm { E } ^ { 2 }$ </td><td> ${ \\hat { y } } / { } ^ { \\circ } \\mathrm { E }$ </td><td> $( \\boldsymbol { y } - \\boldsymbol { \\hat { y } } ) \\quad / ^ { \\circ } \\mathrm { E }$ </td><td> $( \\boldsymbol { y } - \\hat { \\boldsymbol { y } } ) ^ { 2 } / { } ^ { \\circ } \\mathrm { E } ^ { 2 }$ </td></tr><tr><td>11</td><td>1.43</td><td>2.0449</td><td>1.447</td><td>-0.017</td><td>0.000289</td></tr><tr><td>12</td><td>1.37</td><td>1.8769</td><td>1.378</td><td>-0.008</td><td>0.000064</td></tr><tr><td>13</td><td>1.32</td><td>1.7427</td><td>1.316</td><td>0.004</td><td>0.000016</td></tr><tr><td>14</td><td>1.29</td><td>1.6641</td><td>1.262</td><td>0.028</td><td>0.000784</td></tr><tr><td>15</td><td>1.25</td><td>1.5625</td><td>1.213</td><td>0.037</td><td>0.001369</td></tr><tr><td>∑</td><td>30.66</td><td>73.8814</td><td></td><td>0.010</td><td>0.041200</td></tr></table>",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第六章 回归分析"
+    },
+    {
+      "id": "error_theory_0e146638dfc6",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第六章 回归分析\nContent: $$\n\\begin{array} { r l r } {  { d _ { t } ^ { \\prime } = \\frac { y _ { t } ^ { \\prime } - b _ { 0 } ^ { \\prime } - b ^ { \\prime } x _ { t } } { \\sqrt { 1 + b ^ { \\prime 2 } } } = \\frac { \\sqrt { \\lambda } } { \\sqrt { 1 + \\lambda b ^ { 2 } } } ( y _ { t } - b _ { 0 } - b x _ { t } ) } } \\\\ & { } & \\\\ & { } & { = \\frac { \\sqrt { \\lambda } } { \\sqrt { 1 + \\lambda b ^ { 2 } } } d _ { t } \\qquad ( 6 \\ – 5 }  \\end{array}\\tag{6}\n$$\n\n式中\n\n![](images/c59bc2e112ffc2d219e55c98ee95de31a332c4018fa2ed95caa4407f3294cc25.jpg)  \n图 6-5\n\n$$\nd _ { t } \\ = \\ y _ { t } - b _ { 0 } - b x _ { t }\\tag{6-57}\n$$\n\n根据最小二乘原理，为使 $\\sum _ { t = 1 } ^ { N } \\ d _ { t } ^ { \\prime 2 }$ 为最小，即求解\n\n$$\n\\left. \\begin{array} { c } { { \\displaystyle \\frac { \\partial \\left( \\displaystyle \\sum _ { t = 1 } ^ { N } d _ { t } ^ { \\prime 2 } \\right) } { \\partial b _ { 0 } } = 0 \\left( \\begin{array} { c } { { } } \\\\ { { } } \\\\ { { } } \\\\ { { \\frac { \\partial } { \\partial b } } } \\end{array} \\right) } } \\end{array} \\right\\} ,\\tag{6-58}\n$$\n\n得\n\n$$\n\\left. \\begin{array} { l } { b = \\frac { \\lambda l _ { y y } - l _ { x x } + \\sqrt { ( \\lambda l _ { y y } - l _ { x x } ) ^ { 2 } + 4 \\lambda l _ { x y } ^ { 2 } } } { 2 \\lambda l _ { x y } } } \\\\ { b _ { 0 } = \\bar { y } - b \\bar { x } } \\end{array} \\right\\}\\tag{6-59}\n$$\n\n式中，x、y、 $l _ { x x }$ $l _ { x y }$ $l _ { y y }$ 含义同前[见式（6-9)\\~式（6-13)]。\n\n变量x、y的方差可用下式估计：\n\n$$\n\\begin{array} { l } { { \\displaystyle \\sigma _ { x } ^ { 2 } ~ = \\frac { 1 } { N - 2 } ~ \\frac { \\lambda } { 1 ~ + { \\lambda b ^ { 2 } } } \\sum _ { t = 1 } ^ { N } d _ { t } ^ { 2 } } } \\\\ { { \\displaystyle \\sigma _ { y } ^ { 2 } ~ = \\frac { 1 } { N - 2 } ~ \\frac { 1 } { 1 ~ + { \\lambda b ^ { 2 } } } \\sum _ { t = 1 } ^ { N } d _ { t } ^ { 2 } ~ = \\frac { \\sigma _ { x } ^ { 2 } } { \\lambda } } } \\end{array}\\tag{6-60}\n$$",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第六章 回归分析"
+    },
+    {
+      "id": "sensor_core_83c550362217",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第九章 气电式传感器 > 一、压力式气动测量原理\nContent: ## 一、压力式气动测量原理\n\n压力式气动测量的测量原理如图9-1所示，气流经过净化和稳压后以工作压力 $p _ { \\mathrm { ~ g ~ } }$ 送入管路1，通过进气喷嘴2、气室4和测量喷嘴5后喷入大气。测量喷嘴与它前面的挡板或工件6之间的间隙变化时，代表了工件尺寸或位置的变化，z越小，气室内压力 $p _ { \\mathrm { ~ c ~ } }$ 越大。\n\n根据流体力学理论，可知气室内的测量压力为\n\n$$\np _ { \\mathrm { c } } = \\frac { p _ { \\mathrm { g } } } { 1 + \\left( \\displaystyle \\frac { 4 a d } { d _ { 1 } ^ { 2 } } z \\right) ^ { 2 } }\\tag{9-1}\n$$\n\n式中 $_ { a \\mathrm { ~ } }$ ——流量系数， $a = c _ { 1 } / c _ { 2 } , c _ { 1 }$ 进气喷嘴的流量系数， $c _ { 2 }$ 喷嘴挡板的流量系数；\n\n$d -$ ——测量喷嘴直径；\n\n$d _ { \\imath }$ ——进气喷嘴直径。\n\n式（9-1）为低气压量仪背压 $p _ { \\mathrm { ~ c ~ } }$ 与测量间隙\n\n的平方 $( z ^ { 2 } )$ 成反比，因此气动测量系统是非线性系统。测量时应该利用特性曲线中间近似线性的部分。一般在 $z = \\left( 0 . 1 4 4 ~ \\frac { d _ { 1 } ^ { 2 } } { a d } \\right)$ 为中心的一段范围内变化，或使 $p _ { \\mathrm { { c } } } = 0 . 7 5 p _ { \\mathrm { { t } } }$ 的左右范围内变动，近似线性度较好。不同的进气喷嘴直径 $d _ { \\scriptscriptstyle 1 }$ ，可以得不同的 $\\boldsymbol { p } _ { \\mathrm { ~ e ~ } } { - } \\boldsymbol { z }$ 曲线，如图9-2所示，可见 $d _ { \\scriptscriptstyle 1 }$ 越大，灵敏度越小，但测量范围越大。\n\n![](images/b333569241126812c743d53fb7bd707c04299794d3ff6bb949bb3c8156cdc1c4.jpg)  \n图9-1 压力式气动测量原理图\n\n在设计中， $d _ { \\scriptscriptstyle 1 }$ 的大小由d的大小确定之后，参考$p _ { \\mathrm { ~ c ~ } } { - } z$ 曲线族，根据所要求的测量范围，初步选定，并通过试验确定。\n\n测压计可由各种形式，如弹性元件式，液柱式和电气式等。弹性元件有膜片、膜盒、波纹管和包端管等。液柱可为水柱和水银柱。电气式一般采用压阻力敏元件。\n\n![](images/30f64c0b397cc9048fdd779bd5fab7c00597ddcb2f613698eb80f9d7d7fd22d9.jpg)\n\n中高压背压式气动量仪的工作压力 $p _ { _ B } > 0 . 0 2  { \\mathrm { M P a } }$ 超高压的工作压力可达0.2MPa以上。由于气体通过喷嘴孔的流速增大，工作状态有所改变，但 $p _ { \\mathrm { ~ c ~ } } { - } z$ 曲线仍然如图9-2所示。\n\n图9-2 压力式气动测量特性曲线",
+      "book_name": "传感器短书",
+      "section_title": "一、压力式气动测量原理"
+    },
+    {
+      "id": "p216_c528",
+      "category": "long_textbook_chunk",
+      "text": "\\begin{aligned} & \\mathrm{f2 = f3;} \\\\ & \\{\\} \\\\ & \\{\\} \\\\ & \\mathrm{if(h < 0)} \\\\ & \\mathrm{for(i = 0;i <   n;i + + )}\\\\ & \\{\\} \\\\ & \\mathrm{a[i] = *(x[2] + i);} \\\\ & \\mathrm{b[i] = *(x[0] + i);} \\\\ & \\{\\} \\\\ & \\mathrm{else}\\\\ & \\mathrm{for(i = 0;i <   n;i + + )}\\\\ & \\{\\} \\\\ & \\mathrm{a[i] = *(x[0] + i);} \\\\ & \\mathrm{b[i] = *(x[2] + i);} \\\\ & \\{\\} \\\\ & \\mathrm{for(i = 0;i <   3;i + + )}\\\\ & \\mathrm{free(x[i])}; \\end{aligned}\n应用实例1 求无约束优化问题 f(X) = 3x^3 - 8x + 9 的最优解。已知：初始点 a[0] = 0，一维迭代步长 h0 = 0.1，维数 n = 1。\n运用上述程序求解，计算机输出的优化结果为\n初始区间：a[] = 0.300000，b[] = 1.500000\n（3）MATLAB程序\nfunction[ opt_step,fo,xx] = opt_range_serach(f,xk0,dir0,th)\n\\% 用进退法搜索三个点，使中点函数值最小\n\\% 输出步长，函数值，设计变量值\n\\% \\mathrm{xk0} ：初始点\n\\% th:步长\n\\mathrm{t1} = 0;\\mathrm{t2} = \\mathrm{th}\n\\mathrm{xk1} = \\mathrm{xk0};\\mathrm{xk2} = \\mathrm{xk1} + \\mathrm{t2}*\\mathrm{dir0};\n\\mathbf{x}0 = \\mathbf{x}k1\n\\mathrm{f1} = \\mathrm{feval}(\\mathrm{f},\\mathrm{x0})\n\\mathrm{x0 = xk2}\n\\mathrm{f2 = feval(f,x0)}\nif f2 < f1\nt3 = t2 + th;\n\\mathrm{xk3} = \\mathrm{xk1} + \\mathrm{t3}*\\mathrm{dir0}\n\\mathrm{x0 = xk3}\n\\mathrm{f3 = feval(f,x0)}",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "p231_c547",
+      "category": "long_textbook_chunk",
+      "text": "double ff; \\mathrm{ff} = \\mathrm{x}[0]*\\mathrm{x}[0] + \\mathrm{x}[1]*\\mathrm{x}[1] - \\mathrm{x}[0]*\\mathrm{x}[1] - 10*\\mathrm{x}[0] - 4*\\mathrm{x}[1] + 60; return(ff);   \n//jtf.c代码如下：   \n//#include\"funct.c\"   \nvoid jtf(double \\mathrm{x0}[] ,double h0,double s[]，int n,double a[]，double b[]）   \n{ int i; double \\mathrm{*x[3]} ,h,f1,f2,f3; for (\\mathrm{i} = 0;\\mathrm{i} <   3;\\mathrm{i} + + )\\mathrm{x[i] = (\\mathrm{double} * \\mathrm{)}\\mathrm{malloc}(\\mathrm{n}*\\mathrm{sizeof}(\\mathrm{double}))}\\mathrm{h} = \\mathrm{h}0\\mathrm{for(i = 0;i <   n;i + + )}\\mathrm{*(\\mathbf{x}[0] + \\mathbf{i}) = \\mathbf{x0}[\\mathbf{i}]}\\mathrm{f1 = objf(x[0])}\\mathrm{for(i = 0;i <   n;i + + )}\\mathrm{*(\\mathbf{x}[1] + \\mathbf{i}) = \\mathbf{*(\\mathbf{x}[0] + \\mathbf{i})} + \\mathbf{h}*\\mathbf{s}[\\mathbf{i}]}\\mathrm{f2 = objf(x[1])}\\mathrm{if(f2 > = f1)}\\mathrm{h = -h0}\\mathrm{for(i = 0;i <   n;i + + )}\\mathrm{*(\\mathbf{x}[2] + \\mathbf{i}) = \\mathbf{*(\\mathbf{x}[0] + \\mathbf{i})}}\\mathrm{f3 = f1}\\mathrm{for(i = 0;i <   n;i + + )}\\mathrm{f1 = f2}\\mathrm{f2 = f3}   \n}   \nfor(;;) \\mathrm{h = 2*h}\\mathrm{for(i = 0;i <   n;i + + )}\\mathrm{*(\\mathbf{x}[2] + \\mathbf{i}) = \\mathbf{*(\\mathbf{x}[1] + \\mathbf{i})} + \\mathbf{h}*\\mathbf{s}[\\mathbf{i}]}\\mathrm{f3 = objf(x[2])}",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "error_theory_de25244958b1",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第五章 线性测量的参数最小二乘法处理 > 5-1 由测量方程\nContent: ## 5-1 由测量方程\n\n$$\n3 x + y = 2 . 9 x - 2 y = 0 . 9 2 x - 3 y = 1 . 9\n$$\n\n试求x、y的最小二乘法处理及其相应精度。\n\n5-2 对未知量x、y、z,组合测量的结果如下：\n\n$$\nx = 0 \\quad \\quad \\quad \\quad y = 0 \\quad \\quad \\quad z = 0 \\quad \\quad \\quad - y + x = 1 . 3 5 \\quad \\quad \\quad x - y = 0 . 9 2 \\quad \\quad \\quad - x + z = 1 . 0 0 5 \\neq 0 . \n$$\n\n试求x、γ、z的最可信赖值及其标准差。\n\n5-3 已知误差方程为\n\n$$\n\\begin{array} { r l r l r l } & { v _ { 1 } = 1 0 . } & { 0 1 3 - x _ { 1 } } & { \\qquad } & { v _ { 3 } = 1 0 . } & { 0 0 2 - x _ { 3 } } & { \\qquad } & { v _ { 5 } = 0 . } & { 0 0 8 - \\left( x _ { 1 } - x _ { 3 } \\right) } \\\\ & { v _ { 2 } = 1 0 . } & { 0 1 0 - x _ { 2 } } & { \\qquad } & { v _ { 4 } = 0 . } & { 0 0 4 - \\left( x _ { 1 } - x _ { 2 } \\right) } & { \\qquad } & { v _ { 6 } = 0 . } & { 0 0 6 - \\left( x _ { 2 } - x _ { 3 } \\right) } \\end{array}\n$$\n\n试给出 $x _ { 1 } , x _ { 2 } , x _ { 3 }$ 的最小二乘法处理及其相应精度。\n\n5-4 今有等精度测量方程组：\n\n$$\n\\begin{array} { l l l } { { x + 3 7 \\gamma + 1 3 6 9 z = 3 6 . 3 \\qquad } } & { { x + 2 7 \\gamma + 7 2 9 z = 4 7 . 5 \\qquad } } & { { x + 2 y + 4 8 4 z = 5 4 . 7 } } \\\\ { { x + 1 7 \\gamma + 2 8 9 z = 6 3 . 2 \\qquad } } & { { x + 1 2 y + 1 4 4 z = 7 2 . 9 \\qquad } } & { { x + 7 y + 4 9 z = 8 3 . 7 } } \\end{array}\n$$\n\n试用矩阵最小二乘法求x、y、z的最可信赖值及其精度。\n\n5-5 测力计示值与测量时的温度t的对应值独立测得如下表所示：\n\n<table><tr><td rowspan=1 colspan=1> $\\iota / \\mathbb { C }$ </td><td rowspan=1 colspan=1>15</td><td rowspan=1 colspan=1>18</td><td rowspan=1 colspan=1>21</td><td rowspan=1 colspan=1>24</td><td rowspan=1 colspan=1>27</td><td rowspan=1 colspan=1>30</td></tr><tr><td rowspan=1 colspan=1> $F / \\mathbf { N }$ </td><td rowspan=1 colspan=1>43.61</td><td rowspan=1 colspan=1>43.63</td><td rowspan=1 colspan=1>43.68</td><td rowspan=1 colspan=1>43.71</td><td rowspan=1 colspan=1>43.74</td><td rowspan=1 colspan=1>43.78</td></tr></table>",
+      "book_name": "误差理论与数据处理",
+      "section_title": "5-1 由测量方程"
+    },
+    {
+      "id": "sensor_core_9f08547aa1b9",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第六章 压电式传感器 > 1. 电压放大器\nContent: ## 1. 电压放大器\n\n把图6-9b的电压等效电路接到放大倍数为-A的放大器并进行简化便得图6-10。其中，等效电阻 $R = R _ { \\mathrm { a } } / / R _ { \\mathrm { i } }$ ，等效电容 $C = C _ { \\mathrm { c } } + C _ { \\mathrm { i } }$\n\n如果压电元件受到交变力 $\\widetilde { F } = F _ { _ \\mathrm { m } } \\mathrm { s i n } \\omega t$ 的作用，所用压电元件的材料为压电陶瓷，其压电系数为 $d _ { 3 3 }$ ，则根据式（6-9）在力作用下所产生的电压按正弦规律变化：\n\n$$\nu ~ = ~ U _ { \\mathrm { { m } } } \\sin \\omega t\n$$\n\n![](images/93eb879be8342e087a0198e4b509bc5b922c6ae5f0dbe7e3863857b7d2d674ee.jpg)\n\n式中 $U _ { \\mathrm { m } }$ 电压幅值， $U _ { \\mathrm { { m } } } = d _ { 3 3 } F _ { \\mathrm { { m } } } / C _ { \\mathrm { { a } } }$ o\n\n由图6-10可见，送入放大器输入端的电压为 $U _ { \\mathrm { i } }$ ，把它 图6-10 简化后的电压等效电路写成复数的形式，则得到\n\n$$\n\\dot { U } _ { \\mathrm { i } } = d _ { 3 3 } \\dot { F } \\frac { \\mathrm { j } \\omega R } { 1 + \\mathrm { j } \\omega R ( C + C _ { \\mathrm { a } } ) }\\tag{6-10}\n$$\n\n从式（6-10）可以看出电压 $U _ { \\mathrm { i } }$ 的幅值以及它与作用力之间的相位差 $\\varphi$ 可由下列两式表示：\n\n$$\nU _ { \\mathrm { i m } } ( \\omega ) \\ = \\ \\frac { d _ { 3 3 } F _ { \\mathrm { m } } \\omega R } { \\sqrt { 1 \\ + \\ \\omega ^ { 2 } R ^ { 2 } ( C _ { \\mathrm { a } } \\ + \\ C _ { \\mathrm { c } } \\ + \\ C _ { \\mathrm { i } } ) ^ { 2 } } }\\tag{6-11}\n$$\n\n$$\n\\varphi \\mathrm { ( } \\omega \\mathrm { ) } = \\frac { \\pi } { 2 } \\mathrm { \\mathrm { \\mathrm { ~ - ~ } a r c t a n } } \\omega \\mathrm { ( } C _ { \\mathrm { a } } \\mathrm { ~ + ~ } C _ { \\mathrm { c } } \\mathrm { ~ + ~ } C _ { \\mathrm { i } } \\mathrm { ) } R\\tag{6-12}\n$$\n\n从式（6-11）知，当作用在压电元件上的力是静态力 $\\scriptstyle ( \\omega = 0 )$ 时，则前置放大器的输入电压等于零。因为电荷会通过放大器的输入电阻和传感器本身的泄漏电阻漏掉。这也就从原理上决定了压电式传感器不能测量静态物理量。\n\n当 $\\omega$ 很大，即ω→∞时，则放大器输入端电压的幅值为\n\n$$\nU _ { \\mathrm { i m } } ( \\infty ) = \\frac { d _ { 3 3 } F _ { \\mathrm { m } } } { C _ { \\mathrm { a } } + C _ { \\mathrm { c } } + C _ { \\mathrm { i } } }\\tag{6-13}\n$$\n\n这时传感器的电压灵敏度为",
+      "book_name": "传感器短书",
+      "section_title": "1. 电压放大器"
+    },
+    {
+      "id": "p140_c332",
+      "category": "long_textbook_chunk",
+      "text": "3.搜索方向与步长因子\n求得简约梯度 r(X^{N}) 后，就可采用梯度法，沿着该简约梯度的负方向，即 -r(X^{N}) 方向寻求该目标函数的最优点。\n（1）搜索方向 由迭代公式\n$$\n\\boldsymbol {X} ^ {(k + 1)} = \\left( \\begin{array}{l} \\boldsymbol {X} ^ {\\boldsymbol {B}, k + 1} \\\\ \\boldsymbol {X} ^ {N, k + 1} \\end{array} \\right) = \\left( \\begin{array}{l} \\boldsymbol {X} ^ {\\boldsymbol {B}, k} \\\\ \\boldsymbol {X} ^ {N, k} \\end{array} \\right) + \\alpha^ {(k)} \\left( \\begin{array}{l} \\boldsymbol {S} ^ {\\boldsymbol {B}, k} \\\\ \\boldsymbol {S} ^ {N, k} \\end{array} \\right)\n$$\n1）求 S^{N,k} 。设迭代点 X^{N,k} 处的简约梯度的负方向为 -r(X^{N,k}) ，将其作为迭代方向，则应有\n$$\n\\boldsymbol {X} ^ {N, k + 1} = \\boldsymbol {X} ^ {N, k} - \\alpha^ {(k)} \\boldsymbol {r} \\left(\\boldsymbol {X} ^ {N, k}\\right) \\quad \\left(\\alpha^ {(k)} > 0\\right) \\tag {6-74}\n$$\n但一定要满足 x_{j}^{N,k + 1} > 0 (j = m + 1, \\dots, n) 的非负条件。若 X^{N,k} 中的某一分量 x_{j}^{N,k} = 0，相应的简约梯度 r(X^{N,k}) 中的分量 r_{j}^{N,k} > 0 时，对于任何 \\alpha^{(k)} > 0，按上式求得的分量 x_{j}^{N,k + 1} 一定",
+      "book_name": "优化设计",
+      "section_title": "3.搜索方向与步长因子"
+    },
+    {
+      "id": "error_theory_9c28d13c7a9b",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第六章 回归分析\nContent: 设欲求的回归方程的形式为\n\n$$\n\\hat { y } = \\mu _ { 0 } + b _ { 1 } \\big ( x _ { 1 } - \\bar { x } _ { 1 } \\big ) + b _ { 2 } \\big ( x _ { 2 } - \\bar { x } _ { 2 } \\big )\n$$\n\n$l _ { i j }$ 及 $l _ { j y }$ 的计算可按表6-16及表6-17进行，其中 $l _ { y }$ 供作进一步分析用。\n\n表 6-16\n<table><tr><td>序号</td><td> $x _ { 1 }$ </td><td> $\\boldsymbol { x } _ { 2 }$ </td><td>y</td><td> $x _ { 1 } ^ { 2 }$ </td><td> $x _ { 1 } x _ { 2 }$ </td><td> $x _ { 2 } ^ { 2 }$ </td><td> $x _ { 1 } y$ </td><td> $x _ { 2 } y$ </td><td> $y ^ { 2 }$ </td></tr><tr><td>1</td><td>15.58</td><td>1.95</td><td>1.34</td><td>243.7364</td><td>30.3810</td><td>3.8025</td><td>20.8772</td><td>2.6130</td><td>1.7956</td></tr><tr><td>2</td><td>10.68</td><td>1.37</td><td>1.27</td><td>114.0624</td><td>14.6316</td><td>1.8769</td><td>13.5630</td><td>1.7399</td><td>1.6129</td></tr><tr><td>3</td><td>15.62</td><td>2.39</td><td>1.65</td><td>243.9844</td><td>37.3318</td><td>5.7121</td><td>24.3672</td><td>3.7284</td><td>2.4336</td></tr><tr><td>:</td><td>:</td><td>:</td><td>:</td><td>:</td><td>:</td><td></td><td>:</td><td>:</td><td>:</td></tr><tr><td>28</td><td>12.57</td><td>0.87</td><td>2.06</td><td>158.0049</td><td>10.9359</td><td>0.7569</td><td>25.8942</td><td>1.7922</td><td>4.2436</td></tr><tr><td>29</td><td>17.61</td><td>1.21</td><td>1.57</td><td>310.1121</td><td>21.3081</td><td>1.4641</td><td>27.6477</td><td>1.8997</td><td>2.4649</td></tr><tr><td>∑</td><td>422.57</td><td>43.79</td><td>45.44</td><td>6317.3183</td><td>647.9873</td><td>71.8675</td><td>678.2800</td><td>69.7515</td><td>77.2434</td></tr></table>\n\n表6-17\n\n$$\nN = 2 9\n$$\n\n$$\n\\sum _ { t = 1 } ^ { N } x _ { t 1 } = 4 2 2 . 5 7\n$$\n\n$$\n\\sum _ { t = 1 } ^ { N } x _ { t 2 } \\ = 4 3 . 9 7\n$$\n\n$$\n\\bar { x } _ { 1 } ~ = ~ 1 4 . 5 7 1\n$$\n\n$$\n\\sum _ { t = 1 } ^ { N } y _ { t } = 4 5 . 4 4\n$$",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第六章 回归分析"
+    },
+    {
+      "id": "error_theory_fac057ed8267",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第七章 动态测试数据处理的基本方法 > 2. 平稳随机过程的自相关函数\nContent: ## 2. 平稳随机过程的自相关函数\n\n因为平稳过程的均值为常数，它的自相关函数就可直接用中心化的自相关函数式(7-19)表示：\n\n$$\nR _ { x } ( \\tau ) = E \\bigl [ x ^ { 0 } ( t ) x ^ { 0 } ( t + \\tau ) \\bigr ]\\tag{7-46}\n$$\n\n自相关函数还可以类似于式(7-20)，表示为标准化自相关函数\n\n$$\n\\rho _ { x } ( \\tau ) = \\frac { R _ { x } ( \\tau ) } { D _ { x } }\\tag{7-47}\n$$\n\n平稳随机过程的自相关函数主要性质如下：\n\n1)当 $\\tau = 0$ 时，自相关函数取得最大值，且等于其方差。\n\n为证明此性质，可取非负的函数 $\\{ x ( 0 ) \\pm x ( \\tau ) \\} ^ { 2 }$ ，此函数的数学期望也是非负的\n\n$$\nE [ \\{ x ( 0 ) \\pm x ( \\tau ) \\} ^ { 2 } ] \\ge 0\\tag{7-48}\n$$\n\n展开得\n\n$$\nE \\big [ x ^ { 2 } ( 0 ) \\big ] \\pm 2 E \\big [ x ( 0 ) x ( \\tau ) \\big ] + E \\big [ x ^ { 2 } ( \\tau ) \\big ] \\gtrsim 0\\tag{7-49}\n$$\n\n由于 $x ( t )$ 是平稳的，按式(7-45)和式(7-46)可知\n\n及\n\n则式（7-49）为\n\n$$\n\\begin{array} { c } { { E \\big [ x ^ { 2 } ( 0 ) \\big ] = E \\big [ x ^ { 2 } \\big ( \\tau \\big ) \\big ] = R _ { x } ( 0 ) } } \\\\ { { E \\big [ x ( 0 ) \\boldsymbol { x } ( \\tau ) \\big ] = R _ { x } ( \\tau ) } } \\\\ { { R _ { x } ( 0 ) \\pm R _ { x } ( \\tau ) \\geqslant 0 } } \\end{array}\n$$\n\n即\n\n$$\nR _ { x } ( 0 ) \\geqslant \\vert R _ { x } ( \\tau ) \\vert\\tag{7-50}\n$$\n\n由此证明 $\\tau = 0$ 时，平稳过程的自相关函数值必大于任意 $\\tau \\neq 0$ 时的自相关函数值。至于$R _ { x } ( 0 )$ 等于方差值，已由式（7-45）给出。\n\n2）平稳过程的自相关函数是偶函数，即\n\n$$\nR _ { x } ( { \\bf \\xi } - \\tau ) = R _ { x } ( \\tau )\\tag{7-51}\n$$\n\n因为由式(7-46)可知\n\n$$\nR _ { x } ( \\mathit { \\Pi } - \\tau ) = E [ \\mathit { x } ^ { 0 } ( t ) x ^ { 0 } ( t - \\tau ) ]\n$$\n\n今取 $t = t ^ { \\prime } + \\tau$ 代入上式，则\n\n$$\nR _ { x } ( { \\bf \\xi } - \\tau ) = E \\big [ x ^ { 0 } ( t ^ { \\prime } + \\tau ) x ^ { 0 } ( t ^ { \\prime } ) \\big ] = R _ { x } ( \\tau )\n$$\n\n故平稳过程自相关函数是偶函数，在实用中这个性质是重要的。据此，只需计算或测量$\\tau \\geqslant 0$ 的自相关函数值，不必重复研究 $\\tau < 0$ 的自相关函数值。\n\n3）均值为零的平稳随机过程，若 $\\tau { \\longrightarrow } \\infty$ 时 $x ( t )$ 与 $x \\left( { t + \\tau } \\right)$ 不相关，则其相关函数趋于 0,即",
+      "book_name": "误差理论与数据处理",
+      "section_title": "2. 平稳随机过程的自相关函数"
+    },
+    {
+      "id": "sensor_core_8ea30ff4d2e0",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第七章 光电式传感器\nContent: PSD可作为距离传感器，用一维PSD作距离传感器检测距离时，可利用三角测距的原理，如图7-23所示。设测距范围为 $L _ { 2 } \\left( \\mathrm { \\ m m } \\right) \\sim$ $L _ { 1 } \\left( \\mathbf { m m } \\right)$ ,投光透镜与聚光透镜的光轴间距离为B(mm)，聚光透镜与PSD受光面间距离为f(mm),则有\n\n$$\nx _ { 1 } ~ = ~ { \\frac { B f } { L _ { 1 } } }\n$$\n\n$$\nx _ { 2 } \\ = \\ { \\frac { B f } { L _ { 2 } } }\\tag{7-9}\n$$\n\n(7-10)\n\n![](images/d0bb753683bbbedd56c33b6dc49a773fdeb7dab65a445a3f651eb1dd0f5225b7.jpg)\n\n投光用光源使用红外LED，脉冲式发光。为了得到强光量，投光透镜要使用能量密度高且能得到小直径光点像的透镜。如果光源有足够尖锐的指向性，例如， $\\pm 2 ^ { n }$ 左右，也可不用投光透镜。\n\n现分析距离的计算方法。若在 $x _ { 1 }$ 和 $x _ { 2 }$ 位置得到光点，则根据式(7-6)和式(7-7)可得其光电流各自为\n\n图7-23 距离传感器构成原理\n\n$$\nI _ { _ { 1 1 } } = I _ { _ { 0 1 } } \\frac { L - x _ { 1 } } { L }\n$$\n\n1—投光透镜 2—红外LED\n\n3—一维 PSD 4—聚光透镜\n\n(7-11)\n\n$$\nI _ { { \\mathrm { 2 1 } } } ~ = ~ I _ { { \\mathrm { 0 1 } } } ~ \\frac { x _ { \\mathrm { 1 } } } { L }\\tag{7-12}\n$$\n\n$$\n{ \\cal I } _ { _ { 1 2 } } \\ = \\ { \\cal I } _ { _ { 0 2 } } \\frac { L - x _ { 2 } } { L }\\tag{7-13}\n$$\n\n$$\nI _ { 2 2 } \\ = \\ I _ { 0 2 } \\frac { x _ { 2 } } L\\tag{7-14}\n$$\n\n求入射位置的计算为\n\n$$\n{ \\frac { I _ { 1 1 } } { I _ { 1 1 } + I _ { 2 1 } } } = { \\frac { L - x _ { 1 } } { L } } = { \\frac { L - { \\frac { B f } { L _ { 1 } } } } { L } }\\tag{7-15}\n$$\n\n$$\n\\frac { I _ { 2 1 } - I _ { 1 1 } } { I _ { 1 1 } + I _ { 2 1 } } = \\frac { 2 x _ { 1 } } { L } - 1 = \\frac { 2 } { L } \\frac { B f } { L _ { 1 } } - 1\\tag{7-16}\n$$\n\n像这样变成与距离 $L _ { r }$ 成反比的形式，不好直接计算距离。若采用下述的方法，则计算的输出与被测任意距离 $L _ { n }$ 成正比。设测量距离范围是400\\~1200mm，光学系统为 $B f =$ $6 0 0 \\mathrm { { m m } ^ { 2 } \\left( \\it { B } \\cdot \\sqrt { 5 0 \\mathrm { { m m } } } \\right) }$ $f = 1 2 \\mathrm { m m } )$ ，PSD长为 $L = 2 \\mathrm { m m }$ ，全光电流 $I _ { 0 }$ 控制在160nA。在以上条件下，计算全光电流 $I _ { 0 }$ 与 $I _ { 2 }$ 之比\n\n$$\nI _ { _ { 0 1 } } ~ = ~ I _ { _ { 0 2 } } ~ = ~ I _ { _ { 0 } }\\tag{7-17}\n$$",
+      "book_name": "传感器短书",
+      "section_title": "第七章 光电式传感器"
+    },
+    {
+      "id": "error_theory_6064335cab59",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第五章 线性测量的参数最小二乘法处理\nContent: $$\n{ \\begin{array} { r } { a _ { 1 1 } v _ { 1 } + a _ { 2 1 } v _ { 2 } + \\cdots + a _ { n 1 } v _ { n } = 0 } \\\\ { \\qquad } \\\\ { a _ { 1 2 } v _ { 1 } + a _ { 2 2 } v _ { 2 } + \\cdots + a _ { n 2 } v _ { n } = 0 } \\\\ { \\qquad } \\\\ { \\qquad \\vdots } \\\\ { a _ { 1 t } v _ { 1 } + a _ { 2 t } v _ { 2 } + \\cdots + a _ { n t } v _ { n } = 0 } \\end{array} }\\tag{5-20}\n$$\n\n因而它可表示为\n\n$$\n\\left( \\begin{array} { c c c c c } { a _ { 1 1 } } & { a _ { 2 1 } } & { \\cdots } & { a _ { n 1 } } \\\\ { a _ { 1 2 } } & { a _ { 2 2 } } & { \\cdots } & { a _ { n 2 } } \\\\ & & & { \\vdots } \\\\ & & & & \\\\ & & & { a _ { 2 t } } & { \\cdots } & { a _ { n i } } \\end{array} \\right) \\quad \\left( \\begin{array} { c } { v _ { 1 } } \\\\ { v _ { 2 } } \\\\ { v _ { 2 } } \\\\ { \\vdots } \\\\ { v _ { n } } \\end{array} \\right) = \\quad \\left( \\begin{array} { c } { 0 } \\\\ { 0 } \\\\ { \\vdots } \\\\ { 0 } \\end{array} \\right)\n$$\n\n即\n\n$$\n\\pmb { A } ^ { \\mathrm { T } } \\pmb { V } = \\pmb { 0 }\\tag{5-21}\n$$\n\n这就是等精度测量情况下以矩阵形式表示的正规方程。又因\n\n$$\n\\pmb { V } = \\pmb { L } - \\pmb { A } \\hat { \\pmb X }\n$$\n\n所以正规方程又可表示为\n\n$$\n\\pmb { A } ^ { \\mathrm { T } } \\pmb { L } - \\pmb { A } ^ { \\mathrm { T } } \\pmb { A } \\hat { \\pmb { X } } = \\pmb { 0 }\n$$\n\n即\n\n$$\n\\left( { \\pmb { A } } ^ { \\mathrm { T } } { \\pmb { A } } \\right) \\hat { \\pmb { X } } = { \\pmb { A } } ^ { \\mathrm { T } } { \\pmb { L } }\\tag{5-22}\n$$\n\n若令\n\n$$\n\\pmb { C } = \\pmb { A } ^ { \\mathrm { T } } \\pmb { A }\n$$\n\n则正规方程又可写成\n\n$$\n\\boldsymbol { C } \\hat { \\boldsymbol { X } } = \\boldsymbol { A } ^ { \\mathrm { T } } \\boldsymbol { L }\\tag{5-23}\n$$\n\n若A的秩等于t，则矩阵C是满秩的，即其行列式 $\\mathbf { \\Lambda } ^ { C \\mathrm { ~ I ~ } } \\neq \\mathbf { 0 } _ { \\circ }$ 那么 $\\hat { \\pmb X }$ 必定有唯一的解。此时用 $c ^ { - 1 }$ 左乘正规方程的两边，就得到正规方程解的矩阵表达式",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第五章 线性测量的参数最小二乘法处理"
+    },
+    {
+      "id": "error_theory_2bf1273fff29",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第四章 测量不确定度 > 习 题\nContent: ## 习 题\n\n4-1 某圆球的半径为r，若重复10次测量得 $r \\pm \\sigma _ { r } = \\left( 3 . 1 3 2 \\pm 0 . 0 0 5 \\right)$ cm，试求该圆球最大截面的圆周和面积及圆球体积的测量不确定度（置信概率 $P = 9 9 \\% )$ 0\n\n4-2 望远镜的放大率 $D = f _ { 1 } / f _ { 2 }$ ，已测得物镜主焦距 $f _ { 1 } \\pm \\sigma _ { 1 } = \\left( 1 9 . 8 0 \\pm 0 . 1 0 \\right) \\mathrm { c m }$ ，目镜的主焦距 $f _ { 2 } \\pm \\sigma _ { 2 } =$ $( 0 . 8 0 0 \\pm 0 . 0 0 5 ) \\mathrm { c m }$ ，求放大率测量中由 $f _ { 1 } , f _ { 2 }$ 引起的不确定度分量和放大率D的标准不确定度。\n\n4-3 测量某电路电阻R两端的电压 U，由公式 $I = U / R$ 算出电路电流 $I _ { \\mathrm { o } }$ 若测得 $U \\pm \\sigma _ { U } = ( 1 6 . 5 0 \\pm$ $0 . 0 5 ) \\mathrm { V } , R \\pm \\sigma _ { R } = \\left( 4 . 2 6 \\pm 0 . 0 2 \\right) \\Omega$ 、相关系数 $\\rho _ { U R } = - 0 . 3 6$ ，试求电流I的标准不确定度。\n\n4-4 某校准证书说明，标称值10Ω的标准电阻器的电阻R在 $2 0 \\%$ 时为 $1 0 . 0 0 0 7 4 2 \\Omega \\pm 1 2 9 \\mu \\Omega \\ : \\ : ( { P = }$ 99%)，求该电阻器的标准不确定度，并说明属于哪一类评定的不确定度。\n\n4-5 在光学计上用52.5mm的量块组作为标准件测量圆柱体直径，量块组由三块量块研合而成，其尺寸分别是： $l _ { 1 } = 4 0 \\mathrm { m m } , \\ l _ { 2 } = 1 0 \\mathrm { m m } , \\ l _ { 3 } = 2 . 5 \\mathrm { m m }$ ，量块按“级”使用，经查手册得其研合误差分别不超过$\\pm 0 . 4 5 \\mu \\mathrm { m } _ { \\cdot } \\pm 0 . 3 0 \\mu \\mathrm { m } _ { \\cdot } \\pm 0 . 2 5 \\mu \\mathrm { m }$ (取置信概率 $P = 9 9 . 7 3 \\%$ 的正态分布)，求该量块组引起的测量不确定度。\n\n4-6 某数字电压表的说明书指出，该表在校准后的两年内，其2V量程的测量误差不超过$^ { \\pm } ( 1 4 \\times 1 0 ^ { - 6 } \\times$ 读数 $\\phantom { 0 } { + 1 } \\times 1 0 ^ { - 6 } \\phantom { + } \\times$ 量程)V，相对标准差为20%，若按均匀分布，求1V测量时电压表的标准不确定度。设在该表校准一年后，对标称值为1V的电压进行16次重复测量，得观测值的平均值为0.92857V，并由此算得单次测量的标准差为0.000036V，若以平均值作为测量的估计值，试分析影响测量结果不确定度的主要来源，分别求出不确定度分量，说明评定方法的类别，求测量结果的合成标准不确定度及其自由度。\n\n4-7 测量环路正弦交变电位差幅值和电流幅值，各重复测量5次，得到如下表所示的数据，已知相关系数 $\\rho = - 0 . 3 6$ ，试根据测量数据计算阻抗R的最佳估计值及其标准不确定度。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "习 题"
+    },
+    {
+      "id": "error_theory_b485bc47ee2b",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第一章 绪论 > 三、数据运算规则\nContent: ## 三、数据运算规则\n\n在近似数运算中，为了保证最后结果有尽可能高的精度，所有参与运算的数据，在有效数字后可多保留一位数字作为参考数字，或称为安全数字。\n\n1）在近似数加减运算时，各运算数据以小数位数最少的数据位数为准，其余各数据可多取一位小数，但最后结果应与小数位数最少的数据小数位相同。\n\n例如,求2643.0+987.7+4.187+0.2354=?\n\n$$\n\\begin{array} { r } { 2 6 4 3 . \\ 0 \\ + 9 8 7 . \\ 7 \\ + 4 . \\ 1 8 7 \\ + 0 . \\ 2 3 5 4 \\approx 2 6 4 3 . \\ 0 \\ + 9 8 7 . \\ 7 \\ + 4 . \\ 1 9 \\ + 0 . \\ 2 4 } \\\\ { = 3 6 3 5 . \\ 1 3 \\approx 3 6 3 5 . \\ 1 } \\end{array}\n$$\n\n2）在近似数乘除运算时，各运算数据以有效位数最少的数据位数为准，其余各数据要比有效位数最少的数据位数多取一位数字，而最后结果应与有效位数最少的数据位数相同。\n\n例如，求15.13×4.12=?\n\n$$\n1 5 . 1 3 \\times 4 . 1 2 = 6 2 . 3 3 5 6 \\approx 6 2 . 3\n$$\n\n3）在近似数平方或开方运算时，平方相当于乘法运算，开方是平方的逆运算，故可按乘除运算处理。\n\n4）在对数运算时，n位有效数字的数据应该用n位对数表，或用（n+1）位对数表，以免损失精度。\n\n5）三角函数运算中，所取函数值的位数应随角度误差的减小而增多，其对应关系如下表所示。\n\n<table><tr><td>角度误差（&quot;）</td><td>10 1</td></tr><tr><td>5</td><td>0.1 0.01 6 7 8</td></tr></table>\n\n以上所述的运算规则，都是一些常见的最简单情况，但实际问题的数据运算皆较复杂，往往一个问题要包括几种不同的简单运算，对中间的运算结果所保留的数据位数可比简单运算结果多取一位数字。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "三、数据运算规则"
+    },
+    {
+      "id": "error_theory_6dd79b5df3e8",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第二章 误差的基本性质与处理 > （二）残余误差观察法\nContent: ## （二）残余误差观察法\n\n残余误差观察法是根据测量列的各个残余误差大小和符号的变化规律，直接由误差数据或误差曲线图形来判断有无系统误差，这种方法主要适用于发现有规律变化的系统误差。\n\n若有测量列 $l _ { 1 } , \\ l _ { 2 } , \\ \\cdots , \\ l _ { n }$\n\n它们的系统误差为\n\n$$\n\\Delta l _ { 1 } , \\ \\Delta l _ { 2 } , \\ \\cdots , \\ \\Delta l _ { n }\n$$\n\n它们不含系统误差之值为\n\n则有\n\n$$\n\\begin{array} { c } { { l _ { 1 } ^ { \\prime } , ~ l _ { 2 } ^ { \\prime } , ~ \\cdots , ~ l _ { n } ^ { \\prime } } } \\\\ { { l _ { 1 } = l _ { 1 } ^ { \\prime } + \\Delta l _ { 1 } } } \\\\ { { l _ { 2 } = l _ { 2 } ^ { \\prime } + \\Delta l _ { 2 } } } \\\\ { { \\vdots } } \\\\ { { l _ { n } = l _ { n } ^ { \\prime } + \\Delta l _ { n } } } \\end{array}\n$$\n\n它们的算术平均值为\n\n因\n\n$$\n\\begin{array} { c } { { \\bar { x } = \\bar { x } ^ { \\prime } + \\Delta \\bar { x } } } \\\\ { { } } \\\\ { { l _ { i } - \\bar { x } = v _ { i } } } \\\\ { { } } \\\\ { { l _ { i } ^ { \\prime } - \\bar { x } ^ { \\prime } = v _ { i } ^ { \\prime } } } \\end{array}\n$$\n\n故有\n\n$$\nv _ { i } = v _ { i } ^ { \\prime } + \\left( \\Delta l _ { i } - \\Delta \\bar { x } \\right)\\tag{2-82}\n$$\n\n若系统误差显著大于随机误差， $ { \\boldsymbol { v } } _ { i } ^ { \\prime }$ 可以忽略，则得\n\n$$\nv _ { i } \\approx \\Delta l _ { i } - \\Delta \\bar { x }\\tag{2-83}\n$$\n\n式（2-83）说明，显著含有系统误差的测量列，其任一测量值的残余误差为系统误差与测量列系统误差平均值之差。\n\n根据测量先后顺序，将测量列的残余误差列表或作图进行观察，可以判断有无系统误差。\n\n![](images/cfef231339ade6c71b8e0b09517b06195cf76d054b894f3a48025c28c185947c.jpg)\n\n![](images/36a2dc5555d5d319f4dec769dc0fa3f4b6dd4d98ba33cb5e5f252a483990e0b5.jpg)\n\n若残余误差大体上是正负相同，且无显著变化规律，则无根据怀疑存在系统误差（见图2-16a)。若残余误差数值有规律地递增或递减，且在测量开始与结束时误差符号相反，则存在线性系统误差（见图2-16b)。若残余误差符号有规律地逐渐由负变正、再由正变负，且\n\n![](images/961bc4231878c432e6e3917d52f8e776459fc189c59e4b2146a77a2d5b86a60e.jpg)\n\n![](images/da524e40401d12b7fdbb5a73fda52f0799219cb05d1bb1b1630a8cd6a1bd47b1.jpg)  \n图 2-16",
+      "book_name": "误差理论与数据处理",
+      "section_title": "（二）残余误差观察法"
+    },
+    {
+      "id": "error_theory_e00ea9fbc412",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第二章 误差的基本性质与处理 > 5. 求测量列单次测量的标准差\nContent: ## 5. 求测量列单次测量的标准差\n\n根据贝塞尔公式(2-8)或别捷尔斯公式(2-26),求得测量列单次测量的标准差 $\\pmb { \\sigma }$ 为\n\n$$\n\\sigma = { \\sqrt { \\frac { \\sum _ { i = 1 } ^ { n } v _ { i } ^ { 2 } } { n - 1 } } } = { \\sqrt { \\frac { 0 . 0 0 0 0 6 9 } { 8 } { \\mathrm { m m } ^ { 2 } } } } = 0 . 0 0 2 9 { \\mathrm { m m } }\n$$\n\n$$\n\\sigma ^ { \\prime } = 1 . \\ 2 5 3 \\ \\frac { \\underset { i = 1 } { \\overset { n } { \\sum } } \\ | \\ v _ { i } | } { \\sqrt { n ( n - 1 ) } } = 1 . \\ 2 5 3 \\times \\frac { 0 . 0 2 1 } { \\sqrt { 9 \\times 8 } } \\ \\mathrm { m m } = 0 . 0 0 3 1 \\mathrm { m m }\n$$\n\n用两种方法计算的标准差比值为\n\n$$\n{ \\frac { \\sigma ^ { \\prime } } { \\sigma } } = { \\frac { 0 . 0 0 3 1 } { 0 . 0 0 2 9 } } = 1 . 0 6 9 = 1 + u\n$$\n\n$$\nu = 0 . \\ : 0 6 9\n$$\n\n因\n\n$$\n\\mid u \\mid = 0 . 0 6 9 < \\frac { 2 } { \\sqrt { n - 1 } } = \\frac { 2 } { \\sqrt { 8 } } \\approx 0 . 7 0 7\n$$\n\n故同样可判断该测量列无系统误差存在。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "5. 求测量列单次测量的标准差"
+    },
+    {
+      "id": "p81_c201",
+      "category": "long_textbook_chunk",
+      "text": "A. 两个共轭方向\nB. 一个共轭方向\nC. 三个共轭方向\nD. 四个共轭方向\n（4）下列无约束优化方法中，不具有二次收敛性的方法是\nA. DFP方法\nB. 梯度法\nC. 牛顿法\nD. Powell 法\n4-2 用单纯形法求解下列优化问题，收敛精度 \\varepsilon = 0.1\n(1) \\min f(\\boldsymbol{X}) = x_1^2 + 2x_2^2 - 4x_1 - 2x_1x_2，初始点：\\boldsymbol{X}^{(0)} = [1,1]^{\\mathrm{T}}。\n(2) \\min f(\\pmb{X}) = 3x_1^2 + x_2^2 - 12x_1 - 6x_2 + 21，初始点：\\pmb{X}^{(0)} = [3, 4]^{\\mathrm{T}}。\n4-3 用梯度法求解下列优化问题（作两次迭代计算）：\n（1）\\min f(\\boldsymbol{X}) = x_1^2 + 4x_2^2，初始点：\\boldsymbol{X}^{(0)} = [4, 4]^{\\mathrm{T}}。\n(2) \\min f(\\boldsymbol{X}) = (x_1 + x_2 - 5)^2 + (x_1 - x_2)^2，初始点：\\boldsymbol{X}^{(0)} = [1, 2]^{\\mathrm{T}}。\n(3) \\min f(\\boldsymbol{X}) = x_1^2 + x_2^2 - x_1 x_2 - 10 x_1 - 4 x_2，初始点：\\boldsymbol{X}^{(0)} = [1, 1]^{\\mathrm{T}}。\n4-4 用牛顿法求解下列优化问题：\n(1) \\min f(\\boldsymbol{X}) = x_1^2 + 4x_2^2 + 9x_3^2 - 2x_1 + 18x_3，初始点：\\boldsymbol{X}^{(0)} = [1, 2, 1]^{\\mathrm{T}}。\n(2) \\min f(\\pmb{X}) = x_1^2 - 2x_1x_2 + 1.5x_2^2 + x_1 - 2x_2，初始点：\\pmb{X}^{(0)} = [1, 2]^{\\mathrm{T}}。\n(3) \\min f(\\boldsymbol{X}) = x_1^3 - x_2^3 + 3x_1^2 + 2x_2^2 - 9x_1，初始点：\\boldsymbol{X}^{(0)} = [1, 1]^{\\mathrm{T}}。\n4-5 用变尺度法求解下列优化问题：\n(1) \\min f(\\boldsymbol{X}) = x_1^2 + x_2^2 - x_1 x_2 - 10 x_1 - 4 x_2，初始点：\\boldsymbol{X}^{(0)} = [1, 1]^{\\mathrm{T}}。\n(2) \\min f(\\boldsymbol{X}) = x_1^2 - 2x_1x_2 + 2x_2^2 - 4x_1，初始点：\\boldsymbol{X}^{(0)} = [1, 1]^{\\mathrm{T}}。\n(3) \\min f(\\pmb{X}) = x_1^2 - 2x_1x_2 + 3x_2^2 - 4x_1 - 5x_2，初始点：\\pmb{X}^{(0)} = [1, 1]^{\\mathrm{T}}。\n4-6 用共轭梯度法求解习题4-4。\n4-7 用Powell法求解习题4-4。",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "sensor_core_3accd601270f",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第一章 传感器的一般特性 > 一、数学模型与传递函数\nContent: ## 一、数学模型与传递函数\n\n为了分析动态特性，首先要写出数学模型，求得传递函数。\n\n一般情况下，传感器输出γ与被测量x之间的关系可写成\n\n$$\nf _ { 1 } ( \\mathrm { d } ^ { n } y / \\mathrm { d } t ^ { n } , \\cdots , \\mathrm { d } y / \\mathrm { d } t , y ) = f _ { 2 } ( \\mathrm { d } ^ { m } x / \\mathrm { d } t ^ { m } , \\cdots , \\mathrm { d } x / \\mathrm { d } t , x )\n$$\n\n不过，大多数传感器在其工作点附近一定范围内，其数学模型可用线性微分方程表示，即\n\n$$\na _ { n } \\mathrm { d } ^ { n } y / \\mathrm { d } t ^ { n } + \\dots + a _ { 1 } \\mathrm { d } y / \\mathrm { d } t + a _ { 0 } y = b _ { m } \\mathrm { d } ^ { m } x / \\mathrm { d } t ^ { m } + \\dots + b _ { 1 } \\mathrm { d } x / \\mathrm { d } t + b _ { 0 } x\\tag{1-17}\n$$\n\n设 $x ( t ) , y ( t )$ 的初始条件为零，对式（1-17）两边进行拉普拉斯变换，可得\n\n$$\na _ { n } s ^ { n } Y ( s ) \\ + \\ \\cdots \\ + a _ { 1 } s Y ( s ) \\ + a _ { 0 } Y ( s ) \\ = b _ { m } s ^ { n } X ( s ) \\ + \\ \\cdots + b _ { 1 } s X ( s ) \\ + b _ { 0 } X ( s ) \\ = 0\n$$\n\n由此可求得初始条件为零的条件下输出信号拉普拉斯变换 $Y ( s )$ 与输入信号拉普拉斯变换 $X ( s )$ 的比值\n\n$$\n{ \\frac { Y ( s ) } { X ( s ) } } = W ( s ) = { \\frac { b _ { m } s ^ { m } + \\cdots + b _ { 1 } s + b _ { 0 } } { a _ { n } s ^ { n } + \\cdots + a _ { 1 } s + a _ { 0 } } }\\tag{1-18}\n$$\n\n这一比值 $\\textbf { \\textit { W } } ( s )$ 被定义为传感器的传递函数。\n\n传递函数是拉普拉斯变换算子s的有理分式。所有系数 $a _ { n } \\ , \\cdots , \\ a _ { 1 } \\ , \\ a _ { 0 }$ 及 $b _ { { \\scriptscriptstyle m } }$ ,…,$b _ { 1 } , \\ b _ { 0 }$ 都是实数。这是由传感器的结构参数决定的。分子的阶次m不能大于分母的阶次n，这是由物理条件决定的，否则系统不稳定。分母的阶次用来代表该传感器的特征。$n = 0$ 时称零阶， $n = 1$ 时称一阶， $n = 2$ 时称二阶，n更大时称为高阶。稳定的传感器系统所有极点都位于复平面的左半平面，零点、极点可能是实数，也可能是共轭复数。",
+      "book_name": "传感器短书",
+      "section_title": "一、数学模型与传递函数"
+    },
+    {
+      "id": "sensor_core_a52b5cf2fa2b",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第八章 热电式传感器 > 1. 铂热电阻\nContent: ## 1. 铂热电阻\n\n铂是一种贵金属，其主要优点是物理化学性能极为稳定，并且有良好的工艺性，易于提纯，可以制成极细的铂丝（直径可达到0.02mm或更细）或极薄的铂箔。它的缺点是电阻温度系数较小。\n\n我国已采用IEC标准制作工业铂电阻温度计。按IEC标准，铂的使用温度范围为$- 2 0 0 \\sim 8 5 0 \\mathrm { ^ c }$ 。铂电阻温度计除作温度标准外，还广泛用于高精度的工业测量。由于铂为贵金属，在测量精度要求不高的场合下，均采用铜电阻。\n\n铂电阻阻值与温度变化之间的关系可近似用下式表示：\n\n在-200 $\\sim 0 \\mathrm { ‰ }$ 范围内\n\n$$\nR _ { \\circ } = R _ { \\circ } \\left[ 1 + A T + B T ^ { \\circ } + C ( T - 1 0 0 ) T ^ { 3 } \\right]\n$$\n\n在 $0 \\sim 8 5 0 ^ { \\circ } \\mathrm { C }$ 范围内\n\n$$\nR _ { \\mathrm { t } } = R _ { \\mathrm { 0 } } \\left( 1 + A T + B T ^ { 2 } \\right)\\tag{8-14}\n$$\n\n式中 $R _ { 0 } , R _ { \\iota }$ ——分别为 $_ { 0 \\mathrm { { C } } }$ 和 $t ( \\mathcal { { \\mathbf { C } } } )$ 时的电阻值。\n\n对于常用的工业铂电阻， $A = 3 . 9 0 8 0 2 \\times 1 0 ^ { - 3 } \\mathrm { { C } ^ { - 1 } , ~ } ~ B = - 5 . 8 0 2 \\times 1 0 ^ { - 7 } \\mathrm { { C } ^ { - 2 } }$ $C =$ $- 4 . 2 7 3 5 0 \\times 1 0 ^ { - 1 2 } \\mathrm { P C } ^ { - 4 }$",
+      "book_name": "传感器短书",
+      "section_title": "1. 铂热电阻"
+    },
+    {
+      "id": "error_theory_bbe7ca2e1a2c",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第二章 误差的基本性质与处理 > （二）权的确定方法\nContent: ## （二）权的确定方法\n\n既然测量结果的权说明了测量的可靠程度，因此可根据这一原则来确定权的大小。例如可按测量条件的优劣、测量仪器和测量方法所能达到的精度高低、重复测量次数的多少以及测量者水平高低等来确定权的大小，也即测量方法越完善，测量精度越高，所得测量结果的权也应越大。在相同条件下，由不同水平的测量者用同一种测量方法和仪器对同一被测量进行测量，显然对于经验丰富的测量者所测得的结果应给予较大的权。\n\n最简单的方法是按测量的次数来确定权，即测量条件和测量者水平皆相同，则重复测量次数越多，其可靠程度也越大，因此完全可由测量的次数来确定权的大小，即 $p _ { i } = n _ { i } { _ { \\mathrm { ~ c ~ } } }$\n\n假定同一个被测量有m组不等精度的测量结果，这m组测量结果是从单次测量精度相同而测量次数不同的一系列测量值求得的算术平均值。因为单次测量精度皆相同，其标准差均为 $\\sigma$ ，则各组算术平均值的标准差为\n\n$$\n\\sigma _ { \\bar { x } i } = { \\frac { \\sigma } { \\sqrt { n _ { i } } } } \\qquad i = 1 , ~ 2 , ~ \\cdots , ~ m\\tag{2-40}\n$$\n\n由此可得\n\n$$\nn _ { 1 } \\sigma _ { \\bar { x } 1 } ^ { 2 } = n _ { 2 } \\sigma _ { \\bar { x } 2 } ^ { 2 } = \\cdots = n _ { m } \\sigma _ { \\bar { x } m } ^ { 2 } = \\sigma ^ { 2 }\n$$\n\n因为 $p _ { i } = n _ { i }$ ，故上式又可写成\n\n$$\np _ { 1 } \\sigma _ { \\bar { x } 1 } ^ { 2 } = p _ { 2 } \\sigma _ { \\bar { x } 2 } ^ { 2 } = \\cdots = p _ { m } \\sigma _ { \\bar { x } m } ^ { 2 } = \\sigma ^ { 2 }\\tag{2-41}\n$$\n\n或表示为\n\n$$\np _ { 1 } : p _ { 2 } : \\cdots : p _ { m } = \\frac 1 { \\sigma _ { \\bar { x } 1 } ^ { 2 } } : \\frac 1 { \\sigma _ { \\bar { x } 2 } ^ { 2 } } : \\cdots : \\frac 1 { \\sigma _ { \\bar { x } m } ^ { 2 } }\\tag{2-42}\n$$\n\n由此可得出结论：每组测量结果的权与其相应的标准差平方成反比，若已知各组算术平均值的标准差，则可按式(2-42）确定相应权的大小。测量结果的权的数值只表示各组间的相对可靠程度，它是一个无量纲的数，允许各组的权数乘以相同的系数，使其以相同倍数增大或减小，而各组间的比例关系保持不变，但通常皆将各组的权数予以约简，使其中最小的权数为不可再约简的整数，以便用简单的数值来表示各组的权。\n\n例2-10 对一级钢卷尺的长度进行了三组不等精度测量，其结果为\n\n$$\n\\begin{array} { l l } { \\bar { x } _ { 1 } = 2 0 0 0 . 4 5 \\mathrm { m m } , } & { \\sigma _ { \\bar { x } 1 } = 0 . 0 5 \\mathrm { m m } } \\\\ { \\bar { x } _ { 2 } = 2 0 0 0 . 1 5 \\mathrm { m m } , } & { \\sigma _ { \\bar { x } 2 } = 0 . 2 0 \\mathrm { m m } } \\\\ { \\bar { x } _ { 3 } = 2 0 0 0 . 6 0 \\mathrm { m m } , } & { \\sigma _ { \\bar { x } 3 } = 0 . 1 0 \\mathrm { m m } } \\end{array}\n$$\n\n求各测量结果的权。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "（二）权的确定方法"
+    },
+    {
+      "id": "error_theory_04457962b7e9",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第四章 测量不确定度 > (一）自由度概念\nContent: ## (一）自由度概念\n\n根据概率论与数理统计所定义的自由度，在n个变量 $v _ { i }$ 的平方和 $\\sum _ { i = 1 } ^ { n } \\ v _ { i } ^ { 2 }$ 中，如果n个 $v _ { i }$ 之间存在着k个独立的线性约束条件，即n个变量中独立变量的个数仅为n-k，则称平方和 $\\sum _ { i \\ : = 1 } ^ { n } v _ { i } ^ { 2 }$ 的自由度为 $n - k _ { \\mathrm { o } }$ 。因此若用贝塞尔公式(2-18)计算单次测量标准差σ，式中 $\\sigma$ $\\sum _ { i \\mathop { = } 1 } ^ { n } v _ { i } ^ { 2 } \\ = \\sum _ { i \\mathop { = } 1 } ^ { n } \\left( x _ { i } - { \\bar { x } } \\right) ^ { 2 }$ 的n个变量 $v _ { i }$ 之间存在唯一的线性约束条件 $\\sum _ { i \\mathop { = } 1 } ^ { n } v _ { i } \\mathop { = } \\sum _ { i \\mathop { = } 1 } ^ { n } \\left( x _ { i } - { \\bar { x } } \\right) \\ = 0$ ,故平方和 $\\sum _ { i \\mathop { = } 1 } ^ { n } v _ { i } ^ { 2 }$ 的自由度为n-1，则由式（2-18）计算的标准差 $\\sigma$ 的自由度也等于 $n - 1$ 。由此可以看出，系列测量的标准差的可信赖程度与自由度有密切关系，自由度越大，标准差越可信赖。由于不确定度是用标准差来表征，因此不确定度评定的质量如何，也可用自由度来说明。每个不确定度都对应着一个自由度，并将不确定度计算表达式中总和所包含的项数减去各项之间存在的约束条件数，所得差值称为不确定度的自由度。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "(一）自由度概念"
+    },
+    {
+      "id": "sensor_core_57c0c34863cb",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第六章 压电式传感器 > 三、压电元件常用结构形式\nContent: ## 三、压电元件常用结构形式\n\n从压电常数矩阵可以看出，对能量转换有意义的石英晶体变形方式有以下几种：①厚度变形(TE方式），该方式就是石英晶体的纵向压电效应；②长度变形(LE方式），这是利用石英晶体的横向压电效应；③面剪切变形（FS方式）；④厚度剪切变形（TS方式）：⑤弯曲变形（BS方式）：⑥体积变形（VE方式）。图6-6示出了压电元件的受力状态及变形方式。\n\n在实际使用中，如仅用单片压电片工作的话，要产生足够的表面电荷就要有较大的作\n\n用力。而像用作测量粗糙度和微压常把两片或两片以上的压电片组合在 一起。图6-7示出了几种“双压电晶片”机构原理图。\n\n![](images/0b86e812adee0cdc48b016c8676a7cdb68c09fd367233a648e5611a0fb32166b.jpg)  \na)\n\n![](images/6451e03e2c63cdafbb794298e6665d6b5ec0c4b3f6e9b0246f63f6545290e5d0.jpg)\n\n![](images/a009d0239f915f41077b3cb7ee62562e30bcea18aee5b2dba2f14172131b8ad8.jpg)  \nb)  \nc)\n\n图6-7a为双片悬臂元件工作情况。当自由端受力F时，晶片弯曲，上片受拉，下片受压，但中性面00的长度不变，如图6-8a所示。每个单片产生的电荷和电压为\n\n$$\nQ \\ = \\ { \\frac { 3 } { 8 } } d _ { 3 1 } \\ { \\frac { l ^ { 2 } } { { \\delta } ^ { 2 } } } F\n$$\n\n![](images/82a05ad7af83f4b13823f0f17c2c775cd5eeef49639e75fb7ee3bb41e56a6f81.jpg)\n\n![](images/94e9f501266dbdd7232befbe9b08d52dbc93c17e2e2f12cd09d2ba7fe9bc69b2.jpg)  \nd)  \ne)\n\n(6-4)\n\n$$\nU = \\frac { Q } { C } = \\frac { 3 } { 8 } g _ { 3 1 } \\frac { l } { b \\delta } F\\tag{6-5}\n$$\n\n图6-6 压电元件的受力状态及变形方式a) 厚度变形 b) 长度变形 c) 面剪切变形d) 厚度剪切变形 e) 体积变形\n\n式中l、b、δ—压电元件的长、宽和厚度；\n\nC——压电元件本身的电容量；\n\n${ \\displaystyle g _ { 3 1 } = \\frac { d _ { 3 1 } } { \\varepsilon _ { r } \\varepsilon _ { 0 } } } .$ ——压电常数；\n\n$\\varepsilon _ { r }$ $\\scriptstyle { \\varepsilon _ { 0 } } ^ { \\prime }$ 。—相对介电常数和真空介电常数。\n\n由于压电材料是有极性的，因此存在并联和串联两种接法。\n\n![](images/b039dce3655ac4e12e9ab13cbdf015e43198424b671a70c120e095dab693256e.jpg)  \na)\n\n![](images/1c7ef6d6c80109e9903823507908f1f6f516abfc799717fbf31e604edbd4037c.jpg)\n\n![](images/6326c97f19a3cd19967347bec774dcc9615613bd8212308839478431ecdb36cf.jpg)\n\n![](images/0742ed763bdee3542be2d536d1800b2a4fb46f2e37deec0494e7b75d28bbd7eb.jpg)\n\n![](images/f85c46223727928702fef38331e7d6a1bcd1aec7ddd08ac6d7dcef640b02ae7c.jpg)",
+      "book_name": "传感器短书",
+      "section_title": "三、压电元件常用结构形式"
+    },
+    {
+      "id": "error_theory_f081945b5967",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第四章 测量不确定度 > 2. 不确定度评定\nContent: ## 2. 不确定度评定\n\n分析测量方法可知，对体积V的测量不确定度影响显著的因素主要有：直径和高度的\n\n测量重复性引起的不确定度 $u _ { 1 } , \\ u _ { 2 }$ ；测微仪示值误差引起的不确定度 $u _ { 3 }$ 。分析这些不确定度特点可知，不确定度 $u _ { 1 } , \\ u _ { 2 }$ 应采用A类评定方法，而不确定度 $u _ { 3 }$ 应采用B类评定方法。\n\n下面分别计算各主要因素引起的不确定度分量。\n\n(1)直径D的测量重复性引起的标准不确定度分量 $u _ { 1 }$\n\n由直径D的6次测量值求得平均值的标准差 $\\sigma _ { D } = 0 . 0 0 4 8 \\mathrm { m m }$ ，则直径D的测量标准不确定度 $u _ { D } = \\sigma _ { D } = 0 . 0 0 4 8 \\mathrm { m m }$ 。又因 $\\frac { \\partial V } { \\partial D } = \\frac { \\pi D } { 2 } h$ ，故由直径D测量重复性引起的不确定度分量为\n\n$$\nu _ { 1 } = \\left| \\frac { \\partial V } { \\partial D } \\right| u _ { D } = 0 . 7 7 \\mathrm { m m } ^ { 3 }\n$$\n\n其自由度 $\\nu _ { \\mathrm { 1 } } = 6 - 1 = 5$ o\n\n(2)高度h的测量重复性引起的标准不确定度分量 $u _ { 2 }$\n\n由高度h的6次测量值求得平均值的标准差 $\\sigma _ { h } = 0 . 0 0 1 8 \\mathrm { m m }$ ，则高度h的测量标准不确定度 $u _ { h } = \\sigma _ { h } = 0 . 0 0 1 8 \\mathrm { m m } .$ 。又因 $\\partial V / \\partial h = \\pi D ^ { 2 } / 4$ ，故由高度h测量重复性引起的不确定度分量为\n\n$$\nu _ { 2 } = \\bigg | \\frac { \\partial V } { \\partial h } \\bigg | u _ { h } = 0 . 1 4 \\mathrm { m m } ^ { 3 }\n$$\n\n其自由度 $\\nu _ { 2 } = 6 - 1 = 5$\n\n（3）测微仪的示值误差引起的标准不确定度分量 $u _ { 3 }$\n\n由仪器说明书获得测微仪的示值误差范围 $\\pm 0 . 0 1 \\mathrm { m m }$ ，取均匀分布，按式（4-3）计算得测微仪示值标准不确定度 $u _ { \\{ \\alpha }  = { \\frac { 0 . 0 1 { \\mathrm { m m } } } { \\sqrt { 3 } } } = 0 . 0 0 5 8 { \\mathrm { m m } }$ ，由此引起的直径和高度测量的标准不确定度分量分别为\n\n$$\nu _ { 3 D } = \\left| \\frac { \\partial V } { \\partial D } \\right| u _ { \\{ \\aleph }  , \\qquad u _ { 3 h } = \\left| \\frac { \\partial V } { \\partial h } \\right| u _ { \\aleph }\n$$\n\n则测微仪的示值引起的体积测量不确定度分量为",
+      "book_name": "误差理论与数据处理",
+      "section_title": "2. 不确定度评定"
+    },
+    {
+      "id": "sensor_core_4458e7342fb7",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第二章 电阻式传感器 > 1. 膜片式压力传感器\nContent: ## 1. 膜片式压力传感器\n\n膜片式压力传感器如图2-23a所示，弹性元件为周边固定的圆薄膜片。\n\n在压力 $p$ 作用下，膜片上各点的径向应力 $\\sigma _ { r }$ 和切向应力 $\\sigma _ { \\prime }$ 可用下列两式表示：\n\n$$\n\\sigma _ { \\tau } = \\frac { 3 p } { 8 h ^ { 2 } } [ \\left( 1 + \\mu \\right) r ^ { 2 } - \\left( 3 + \\mu \\right) x ^ { 2 } ]\\tag{2-21}\n$$\n\n$$\n\\sigma _ { \\it t } = \\frac { 3 p } { 8 h ^ { 2 } } [ \\left( 1 + \\mu \\right) r ^ { 2 } - \\left( 1 + 3 \\mu \\right) x ^ { 2 } ]\\tag{2-22}\n$$\n\n式中 $\\sigma _ { r }$ ——径向应力；\n\n$\\sigma _ { \\iota }$ ——切向应力；\n\n$\\mu$ ——膜片材料的泊松系数；\n\np——膜片承受的压力；\n\nr、x——膜片有效半径，计算点半径；\n\nh——膜片厚度。\n\n膜片产生径向应变 $\\varepsilon _ { r }$ 和切向应变 $\\boldsymbol { \\varepsilon } _ { t }$ ，如图2-23b所示。\n\n由应力分布规律可找出贴片的方法。由于切应变全是正的，中间最大，径向应变分布有正有负，当 $\\varepsilon _ { r }$ 在 $( \\boldsymbol { x } /$ $\\begin{array} { r l } { R ) } & { { } = 0 . 6 3 5 } \\end{array}$ 时为零值，一般在圆片中心处沿切向贴两片$R _ { 2 } , R _ { 3 }$ ，在边缘处沿径向贴两片 $R _ { 1 } , R _ { 4 }$ ，如图2-23c所示。应变片 $R _ { 1 } , R _ { 4 }$ 和 $R _ { 2 }$ 、 $R _ { 3 }$ 接在桥路4臂内，以提高灵敏度和进行温度补偿。也可以在0.635r半径的两侧径向处各贴两片，组成4臂差动电桥。",
+      "book_name": "传感器短书",
+      "section_title": "1. 膜片式压力传感器"
+    },
+    {
+      "id": "p142_c335",
+      "category": "long_textbook_chunk",
+      "text": "4.迭代步骤\n这里需要着重指出，在简约梯度法的迭代过程中，基变量 X^{B} 不是一成不变的。在开始迭代时，可在 X 的诸分量中任选取 m 个（m 为约束方程的个数）大于0的分量作为基变量，在进行一轮迭代后，若仍有 X^{B,k+1} 的各分量均大于0，则可不改变基变量，直接转入下一轮迭代；如果基变量 X^{B,k+1} 中有某一分量 x_{j}^{B,k+1} = 0，则可将该分量由基变量中撤出，代之以非基变量 X^{N,k+1} 中的最大分量 x_{j}^{N,k+1} > 0，构成新的基变量 X^{B,k+1} 与新的非基变量 X^{N,k+1}，继续迭代求解。\n简约梯度法的迭代步骤归纳如下：\n1）选择一个初始可行点 X^{(0)} ，将其分为基变量与非基变量两部分，即 X^{(0)} = \\begin{pmatrix} X^{R,0} \\\\ \\\\ X^{N,0} \\end{pmatrix} 但要满足 X^{B,0} 的各分量均大于0，给定允许误差 \\varepsilon > 0 ，令 k = 0 。\n2）将系数矩阵 \\mathbf{A} 对应的基变量与非基变量也分成两部分，即 \\mathbf{A} = \\left[\\mathbf{B} \\mid \\mathbf{N}\\right]，由式(6-73)计算简约梯度 \\boldsymbol{r}(\\boldsymbol{X}^{N,k}) 和式(6-77)计算搜索方向 \\boldsymbol{S}^{(k)}。\n3）若 \\| S^{(k)}\\| \\leqslant \\varepsilon ，则可视 X^{(k)} 为近似最优解，终止迭代；否则，由式(6-80)求 \\alpha_{\\mathrm{max}} ，并在区间 0\\leqslant \\alpha \\leqslant \\alpha_{\\mathrm{max}} 内求 \\alpha^{(k)} ，即求 \\min_{0\\leqslant \\alpha \\leqslant \\alpha_{\\mathrm{max}}}f(X^{N,k} + \\alpha S^{N,k}) 得 \\alpha^{*} ，令 \\alpha^{(k)} = \\alpha^{*} 。\n4）由式(6-78)计算 X^{(k + 1)} 。若 \\| X^{(k + 1)} - X^{(k)}\\| \\leqslant \\varepsilon ，则可视 X^{(k + 1)} 为近似最优解，终止迭代；否则，转下一步。\n5）判断 x_{j}^{B,k + 1} > 0(j = 1,2,\\dots ,n) 是否满足，若满足，则不改变基变量，令 k = k + 1 转第2)步；若不满足，将 x_{j}^{B,k + 1} = 0(j = 1,2,\\dots ,n) 的分量从基变量中撤出，用非基变量X^{N,k + 1} 中最大的分量 x_{j}^{N,k + 1} > 0 代替，构成新的基变量，令 k = k + 1 ，然后转第2)步。",
+      "book_name": "优化设计",
+      "section_title": "4.迭代步骤"
+    },
+    {
+      "id": "error_theory_ab692e18bc4d",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第四章 测量不确定度 > 1. 检定方法\nContent: ## 1. 检定方法\n\n用精密露点仪作为湿度测量的标准器，由恒温恒湿试验箱提供稳定的湿度场，采取比较法对湿度计进行检定。当试验箱的温度为 $2 0 \\%$ ，相对湿度为60%RH时，精密露点仪的示值为59.10%RH，被检湿度计的10次测量数据如下：\n\n<table><tr><td rowspan=1 colspan=1>n</td><td rowspan=1 colspan=1>1</td><td rowspan=1 colspan=1>2</td><td rowspan=1 colspan=1>3</td><td rowspan=1 colspan=1>4</td><td rowspan=1 colspan=1>5</td><td rowspan=1 colspan=1>6</td><td rowspan=1 colspan=1>7</td><td rowspan=1 colspan=1>8</td><td rowspan=1 colspan=1>9</td><td rowspan=1 colspan=1>10</td></tr><tr><td rowspan=1 colspan=1>Fi(% RH)</td><td rowspan=1 colspan=1>59.4</td><td rowspan=1 colspan=1>59.4</td><td rowspan=1 colspan=1>59.8</td><td rowspan=1 colspan=1>59.7</td><td rowspan=1 colspan=1>59.7</td><td rowspan=1 colspan=1>60.5</td><td rowspan=1 colspan=1>59.6</td><td rowspan=1 colspan=1>59.7</td><td rowspan=1 colspan=1>60.6</td><td rowspan=1 colspan=1>60.8</td></tr></table>\n\n计算10次测量数据的平均值 $\\overline { { F } } = 5 9 . 9 2 \\% \\mathrm { R H }$ ，则被检湿度计的误差\n\n$$\n\\Delta F = \\left( 5 9 . 9 2 - 5 9 . 1 0 \\right) \\% \\mathrm { R H } = 0 . 8 2 \\% \\mathrm { R H }\n$$\n\n对应湿度计该点示值的修正值为-0.82%RH。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "1. 检定方法"
+    },
+    {
+      "id": "error_theory_f16c576987fb",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第二章 误差的基本性质与处理 > (三)三角形分布\nContent: ## (三)三角形分布\n\n当两个误差限相同且服从均匀分布的随机误差求和时，其和的分布规律服从三角形分布，又称辛普逊（Simpson）分布。在实际测量中，若整个测量过程必须进行两次才能完成，而每次测量的随机误差服从相同的均匀分布，则总的测量误差为三角形分布误差。例如进行两次测量过程时数据凑整的误差；用代替法检定标准础码、标准电阻时，两次调零不准所引起的误差等，均为三角形分布误差。\n\n![](images/a76a91e4af6c81e4489067f290f7151e56def1a302987440ca4b565e487e32ff.jpg)\n\n三角形分布误差的分布密度f(δ)(见图2-7) 和分布函数F(δ) 分别为\n\n图 2-7\n\n$$\n\\begin{array} { r l } { f ( \\delta ) = \\left\\{ \\begin{array} { l l } { \\frac { a + \\delta } { a ^ { 2 } } } & { \\frac { \\mathbb { M } } { a } - a \\leqslant \\delta \\leqslant 0 } \\\\ { \\frac { a - \\delta } { a ^ { 2 } } } & { \\frac { \\mathbb { M } } { a } \\in \\delta \\leqslant a } \\\\ { 0 } & { \\frac { \\mathbb { M } } { a } \\mathbb { 1 } \\delta \\leqslant \\delta \\leqslant a } \\\\ { 0 } & { \\frac { \\mathbb { M } } { a } \\mathbb { 1 } \\delta \\leqslant - a } \\end{array} \\right. } & { } \\\\ { F ( \\delta ) = \\left\\{ \\begin{array} { l l } { \\frac { \\left( a + \\delta \\right) ^ { 2 } } { 2 a ^ { 2 } } } & { \\frac { \\mathbb { M } } { a } - a < \\delta \\leqslant 0 } \\\\ { 1 - \\frac { \\left( a - \\delta \\right) ^ { 2 } } { 2 a ^ { 2 } } } & { \\frac { \\mathbb { M } } { a } \\mathbb { 0 } < \\delta \\leqslant a } \\\\ { 1 } & { \\frac { \\mathbb { M } } { a } \\mathbb { 1 } \\delta \\geqslant a } \\end{array} \\right. } \\end{array}\\tag{2-62}\n$$\n\n(2-63)\n\n它的数学期望为\n\n$$\nE = 0\\tag{2-64}\n$$\n\n它的方差和标准差分别为\n\n$$\n\\sigma ^ { 2 } = \\frac { a ^ { 2 } } { 6 }\\tag{2-65}\n$$\n\n$$\n\\sigma = { \\frac { a } { \\sqrt { 6 } } }\\tag{2-66}\n$$\n\n必须指出，如果对两个误差限为不相等的均匀分布随机误差求和时，则其和的分布规律不再是三角形分布而是梯形分布。\n\n在测量工作中，除上述的非正态分布外，还有直角分布、截尾正态分布、双峰正态分布及二点分布等，现将常见的正态分布和部分非正态分布及其置信系数列于表2-8中。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "(三)三角形分布"
+    },
+    {
+      "id": "sensor_core_555ab4facb29",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第一章 传感器的一般特性 > 二、频率特性\nContent: ## 二、频率特性\n\n输入量x按正弦函数变化时，微分方程式(1-17）的特解（强迫振荡)，即输出量y也是同频率的正弦函数，其振幅和相位将随频率变化而变化。这一性质就称之为频率特性。\n\n设输入量为\n\n$$\nx = A \\mathrm { e } ^ { \\mathrm { j } ( \\omega t + \\varphi _ { 0 } ) }\\tag{1-19}\n$$\n\n获得的输出量为\n\n$$\ny ~ = ~ B \\mathrm { e } ^ { \\mathrm { j } ( \\omega t + \\phi _ { 0 } ) }\\tag{1-20}\n$$\n\n式中A、B、 $\\varphi _ { 0 }$ 、 $\\phi _ { \\mathrm { 0 } }$ ——输入、输出的振幅和初相角：\n\nω——角频率。\n\n则\n\n$$\n\\begin{array} { r l } { \\mathrm { d } x / \\mathrm { d } t = A \\mathrm { j } \\omega \\mathrm { e } ^ { \\mathrm { { j } } ( \\omega t + \\varphi _ { 0 } ) } = \\mathrm { j } \\omega x } & { } \\\\ { \\mathrm { d } ^ { 2 } x / \\mathrm { d } t ^ { 2 } = - A \\omega ^ { 2 } \\mathrm { e } ^ { \\mathrm { j } ( \\omega t + \\varphi _ { 0 } ) } = ( \\mathrm { j } \\omega ) ^ { 2 } x } \\\\ { \\vdots } \\\\ { \\mathrm { d } ^ { n } x / \\mathrm { d } t ^ { n } = ( \\mathrm { j } \\omega ) ^ { n } x } \\\\ { \\mathrm { d } y / \\mathrm { d } t = B \\mathrm { j } \\omega \\mathrm { e } ^ { \\mathrm { j } ( \\omega t + \\varphi _ { 0 } ) } = \\mathrm { j } \\omega y } \\\\ { \\mathrm { d } ^ { 2 } y / \\mathrm { d } t ^ { 2 } = - B \\omega ^ { 2 } \\mathrm { e } ^ { \\mathrm { j } ( \\omega t + \\varphi _ { 0 } ) } = ( \\mathrm { j } \\omega ) ^ { 2 } y } \\\\ { \\vdots } \\\\ { \\mathrm { d } ^ { n } y / \\mathrm { d } t ^ { n } = ( \\mathrm { j } \\omega ) ^ { n } y } \\end{array}\n$$\n\n将它们代入式(1-17)可得\n\n$$\n\\left[ a _ { n } \\left( \\mathrm { j } \\omega \\right) ^ { n } + \\cdots + a _ { 1 } \\left( \\mathrm { j } \\omega \\right) + a _ { 0 } \\right] y = \\left[ b _ { m } \\left( \\mathrm { j } \\omega \\right) ^ { m } + \\cdots + b _ { 1 } \\left( \\mathrm { j } \\omega \\right) + b _ { 0 } \\right] x\\tag{1-21}\n$$\n\n从而可得",
+      "book_name": "传感器短书",
+      "section_title": "二、频率特性"
+    },
+    {
+      "id": "p120_c290",
+      "category": "long_textbook_chunk",
+      "text": "2. \\alpha_{k} 取到约束边界的最大步长\n如图6-17所示，从 X^{(k)} 点沿 S^{(k)} 方向进行一维最优化搜索，得到的新点 X^{*} 为不可行点，根据可行方向法的搜索策略，应改变步长，使新点返回到约束面上来。使新点 X^{(k + 1)} 恰好位于约束面上的步长称为最大步长，记作 \\alpha_{M}，则本次迭代的步长取 \\alpha_{k} = \\alpha_{M}。\n图6-16 按最优步长确定新点\n图6-17 按最大步长确定新点\n由于不能预测 X^{(k)} 点到另一个起作用约束面的距离， \\alpha_{M} 的确定较为困难，大致可按以下步骤计算。\n（1）取一试验步长 \\alpha_{t} ，计算试验点 X_{t} 。试验步长 \\alpha_{t} 的值不能太大，以免因一步走得太远导致计算困难；也不能太小，使得计算效率太低。根据经验，试验步长 \\alpha_{t} 的值能使试验点 X_{t} 的目标函数值下降 5\\% \\sim 10\\% 为宜，即\n$$\n\\Delta f = f \\left(\\boldsymbol {X} ^ {(k)}\\right) - f \\left(\\boldsymbol {X} _ {t}\\right) = (0. 0 5 \\sim 0. 1) \\left| f \\left(\\boldsymbol {X} ^ {(k)}\\right) \\right| \\tag {6-26}\n$$\n将目标函数 f(\\pmb {X}) 在 X^{(k)} 点展开成泰勒级数的线性式，再将 \\pmb{X} 用 X_{t} 代替得\n$$\nf \\left(\\boldsymbol {X} _ {t}\\right) = f \\left(\\boldsymbol {X} ^ {(k)} + \\alpha_ {t} \\boldsymbol {S} ^ {(k)}\\right) = f \\left(\\boldsymbol {X} ^ {(k)}\\right) + \\left[ \\boldsymbol {\\nabla} f \\left(\\boldsymbol {X} ^ {(k)}\\right) \\right] ^ {\\mathrm {T}} \\alpha_ {t} \\boldsymbol {S} ^ {(k)}\n$$\n则 f(\\boldsymbol{X}^{(k)}) - f(\\boldsymbol{X}_t) = -\\alpha_t[\\nabla f(\\boldsymbol{X}^{(k)})]^{\\mathrm{T}}\\boldsymbol{S}^{(k)} (6-27)\n由此可得试验步长 \\alpha_{t} 的计算公式为\n$$\n\\alpha_ {t} = \\frac {- \\Delta f}{\\left[ \\nabla f \\left(\\boldsymbol {X} ^ {(k)}\\right) \\right] ^ {\\mathrm {T}} \\boldsymbol {S} ^ {(k)}} = (0. 0 5 \\sim 0. 1) \\frac {- \\left| f \\left(\\boldsymbol {X} ^ {(k)}\\right) \\right|}{\\left[ \\nabla f \\left(\\boldsymbol {X} ^ {(k)}\\right) \\right] ^ {\\mathrm {T}} \\boldsymbol {S} ^ {(k)}} \\tag {6-28}\n$$\n因 S^{(k)} 为目标函数的下降方向， [\\nabla f(\\boldsymbol{X}^{(k)})]^{\\mathrm{T}}\\boldsymbol{S}^{(k)} < 0 ，所以试验步长 \\alpha_{t} 恒为正值。试验步长选定后，试验点 X_{t} 按下式计算：\n$$\n\\boldsymbol {X} _ {t} = \\boldsymbol {X} ^ {(k)} + \\alpha_ {t} \\boldsymbol {S} ^ {(k)} \\tag {6-29}\n$$\n（2）判别试验点 X_{t} 的位置。由试验步长 \\alpha_{t} 确定的试验点 X_{t} 可能在约束面上，也可能在可行域或非可行域内。只要 X_{t} 不在约束面上，就要设法将其调整到约束面上来。要想使",
+      "book_name": "优化设计",
+      "section_title": "2. \\alpha_{k} 取到约束边界的最大步长"
+    },
+    {
+      "id": "p121_c291",
+      "category": "long_textbook_chunk",
+      "text": "X_{t} 到达约束面 g_{j}(\\boldsymbol {X}) = 0(j = 1,2,\\dots ,J) 是很困难的。为此，先确定一个约束允差 \\delta 。当试验点 X_{t} 满足\n$$\n- \\delta \\leqslant g _ {j} \\left(X _ {t}\\right) \\leqslant 0 \\quad (j = 1, 2, \\dots , J) \\tag {6-30}\n$$\n的条件时，则认为试验点 X_{t} 已位于约束面上。\n若试验点 X_{t} 位于非可行域内，则转步骤（3）。\n若试验点 X_{t} 位于可行域内，则应沿 S^{(k)} 方向以步长\\alpha_{t}\\sim 2\\alpha_{t} 继续向前搜索，直至新的试验点 X_{t} 到达约束面或越出可行域，再转步骤(3)。\n（3）将位于非可行域的试验点 X_{t} 调整到约束面上。若试验点 X_{t} 位于图6-18所示的位置，在 X_{t} 点处，g_{1}(X_{t}) > 0, g_{2}(X_{t}) > 0 。显然应将 X_{t} 点调整到 g_{1}(X_{t}) = 0 的约束面上，因为对于 X_{t} 点来说，g_{1}(X_{t}) 的约束违反量比 g_{2}(X_{t}) 大。设 g_{k}(X_{t}) 为约束违反量最大的约束条件，则 g_{k}(X_{t}) 应满足\n图6-18 违反量最大的约束条件\n$$\ng _ {k} \\left(\\boldsymbol {X} _ {t}\\right) = \\max  \\left\\{g _ {j} \\left(\\boldsymbol {X} _ {t}\\right) > 0 \\mid_ {j = 1, 2, \\dots , J} \\right\\} \\tag {6-31}\n$$\n将试验点 X_{t} 调整到 g_{k}(X_{t}) = 0 的约束面上的方法有试探法和插值法两种。\n1）试探法是当试验点位于非可行域时，将试验步长 \\alpha_{t} 缩短；当试验点位于可行域时，将试验步长 \\alpha_{t} 增加，即不断变化 \\alpha_{t} 的大小，直至将试验点 X_{t} 调整到 g_{k}(X_{t}) = 0 的约束面上。图6-19所示框图表示了用试探法调整试验步长 \\alpha_{t} 的过程。\n2）插值法是利用线性插值将位于非可行域的试验点 X_{t} 调整到约束面上。设试验步长为 \\alpha_{t} 时，求得可行试验点\n$$\n\\boldsymbol {X} _ {t 1} = \\boldsymbol {X} ^ {(k)} + \\alpha_ {t} \\boldsymbol {S} ^ {(k)} \\tag {6-32}\n$$\n当试验步长为 \\alpha_{t} + \\alpha_{0} 时，求得非可行试验点\n$$\n\\boldsymbol {X} _ {t 2} = \\boldsymbol {X} ^ {(k)} + \\left(\\alpha_ {t} + \\alpha_ {0}\\right) \\boldsymbol {S} ^ {(k)} \\tag {6-33}\n$$\n并设试验点 X_{t1} 和 X_{t2} 的约束函数值分别为 g_{k}(X_{t1}) < 0 ， g_{k}(X_{t2}) > 0 ，它们之间的位置关系如图6-20所示。\n图6-19 用试探法调整试验步长的框图\n图6-20 用插值法确定步长",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "error_theory_b0f5bcdd6f51",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第二章 误差的基本性质与处理\nContent: 表 2-1\n<table><tr><td>序 号</td><td> $l _ { i }$ </td><td> $\\Delta { l } _ { i }$ </td><td> $ { \\boldsymbol { v } } _ { i }$ </td></tr><tr><td>1</td><td>1879.64</td><td>-0.01</td><td>0</td></tr><tr><td>2</td><td>1879.69</td><td>+0.04</td><td>+0.05</td></tr><tr><td>3</td><td>1879.60</td><td>-0.05</td><td>-0.04</td></tr><tr><td>4</td><td>1879.69</td><td>+0.04</td><td>+0.05</td></tr><tr><td>5</td><td>1879.57</td><td>-0.08</td><td>-0.07</td></tr><tr><td>6</td><td>1879.62</td><td>-0.03</td><td>-0.02</td></tr><tr><td>7</td><td>1879.64</td><td>-0.01</td><td>0</td></tr><tr><td>8</td><td>1879.65</td><td>0</td><td>+0.01</td></tr><tr><td>9</td><td>1879.64</td><td>-0.01</td><td>0</td></tr><tr><td>10</td><td>1879.65</td><td>0</td><td>+0.01</td></tr><tr><td></td><td> $\\begin{array} { l } { \\bar { x } = 1 8 7 9 . 6 5 - 0 . 0 1 } \\\\ { = 1 8 7 9 . 6 4 } \\end{array}$ </td><td> $\\Delta \\bar { x } _ { 0 } = \\frac { \\displaystyle \\sum _ { i = 1 } ^ { 1 0 } \\Delta l _ { i } } { 1 0 } = - 0 . 0 1$ </td><td> $\\sum _ { i = 1 } ^ { 1 0 } v _ { i } \\ = - 0 . 0 1$ </td></tr></table>\n\n任选参考值 $l _ { 0 } = 1 8 7 9 . 6 5$ ，计算差值 $\\Delta { l _ { i } }$ 和 $\\Delta \\bar { x } _ { 0 }$ 列于表中，很容易求得算术平均值 $\\bar { \\boldsymbol { x } } =$ 1879.64。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第二章 误差的基本性质与处理"
+    },
+    {
+      "id": "error_theory_070d0cfe3f87",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第二章 误差的基本性质与处理 > 1. 代替法\nContent: ## 1. 代替法\n\n代替法的实质是在测量装置上对被测量测量后不改变测量条件，立即用一个标准量代替\n\n被测量，放到测量装置上再次进行测量，从而求出被测量与标准量的差值，即\n\n$$\n\\mathbb { \\hat { E } } \\mathbb { J } \\mathbb { \\times } \\mathbb { J } \\mathbb { M } \\mathbb { \\breve { E } } = \\mathbb { k } \\mathbb { \\breve { N } } \\mathbb { \\mathbb { \\hat { H } } } \\mathbb { \\mathbb { E } } \\mathbb { \\breve { H } } + \\mathbb { \\breve { Z } } _ { \\mathbb { r } } \\{ \\mathbb { H }\n$$\n\n例如在等臂天平上称重，被测重量X先与媒介物重量Q平衡，如天平的两臂长有误差，设长度为 $l _ { 1 } , \\ l _ { 2 }$ ，则\n\n$$\nX = \\frac { l _ { 2 } } { l _ { 1 } } Q\n$$\n\n但由于不能准确知道两臂长 $l _ { 1 }$ 、 $l _ { 2 }$ 的实际值，若取 $X = Q$ ，将带来固定不变的系统误差。今移去被测量 $X$ ，用已知质量为 $P$ 的标准砝码代替，若该砝码可使天平重新平衡，则有\n\n$$\nP = \\frac { l _ { 2 } } { l _ { 1 } } Q\n$$\n\n所以\n\n$$\nX = P\n$$\n\n若该砝码不能使天平重新平衡，读出差值 $\\Delta P$ ，则有\n\n$$\nP + \\Delta P = \\frac { l _ { 2 } } { l _ { 1 } } Q\n$$\n\n所以\n\n$$\nX = P + \\Delta P\n$$\n\n这样就可消除由于天平两臂不等而带来的系统误差。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "1. 代替法"
+    },
+    {
+      "id": "p26_c64",
+      "category": "long_textbook_chunk",
+      "text": "a)\nb)\nc)\n图2-9 二元函数的驻点\na）极小值点 b）极大值点 c）鞍点\n将极值点的必要条件 \\nabla f(\\boldsymbol{X}^{*}) = \\mathbf{0} 代入上式，得\n$$\nf (\\boldsymbol {X}) - f \\left(\\boldsymbol {X} ^ {*}\\right) \\approx \\frac {1}{2} \\left[ \\boldsymbol {X} - \\boldsymbol {X} ^ {*} \\right] ^ {\\mathrm {T}} \\boldsymbol {H} \\left(\\boldsymbol {X} ^ {*}\\right) \\left[ \\boldsymbol {X} - \\boldsymbol {X} ^ {*} \\right] \\tag {2-12}\n$$\n若 X^{*} 是极小值点，则在该点邻近的区域内对一切的点 X ，总有\n$$\nf (\\boldsymbol {X}) - f \\left(\\boldsymbol {X} ^ {*}\\right) > 0\n$$\n由式(2-12)得\n$$\n\\left[ \\boldsymbol {X} - \\boldsymbol {X} ^ {*} \\right] ^ {\\mathrm {T}} \\boldsymbol {H} \\left(\\boldsymbol {X} ^ {*}\\right) \\left[ \\boldsymbol {X} - \\boldsymbol {X} ^ {*} \\right] > 0\n$$\n由本章第三节正定矩阵的定义，上式的海赛矩阵 H(X^{*}) 为正定矩阵。因此， X^{*} 为极小值点的充分条件是海赛矩阵 H(X^{*}) 为正定矩阵。\n同理，若 X^{*} 是极大值点，则在该点邻近的区域内对一切的点 X ，总有\n$$\nf (X) - f \\left(X ^ {*}\\right) <   0\n$$\n由式(2-12)得\n$$\n\\left[ \\boldsymbol {X} - \\boldsymbol {X} ^ {*} \\right] ^ {\\mathrm {T}} \\boldsymbol {H} \\left(\\boldsymbol {X} ^ {*}\\right) \\left[ \\boldsymbol {X} - \\boldsymbol {X} ^ {*} \\right] <   0\n$$\n这表明，上式的海赛矩阵 H(X^{*}) 为负定矩阵。因此， X^{*} 为极大值点的充分条件是海赛矩阵H(X^{*}) 为负定矩阵。\n例2-5 求下列函数的极值点，并说明是极小值点还是极大值点并计算其函数值。\n$$\nf (\\boldsymbol {X}) = 6 0 - 1 0 x _ {1} - 4 x _ {2} + x _ {1} ^ {2} + x _ {2} ^ {2} - x _ {1} x _ {2}\n$$\n解 由极值点的必要条件： \\nabla f(\\boldsymbol{X}^{*}) = \\mathbf{0} ，得\n$$\n\\nabla f (\\boldsymbol {X} ^ {*}) = \\left( \\begin{array}{c} - 1 0 + 2 x _ {1} - x _ {2} \\\\ - 4 + 2 x _ {2} - x _ {1} \\end{array} \\right) = \\mathbf {0}\n$$\n即\n$$\n\\left\\{ \\begin{array}{l} - 1 0 + 2 x _ {1} - x _ {2} = 0 \\\\ - 4 + 2 x _ {2} - x _ {1} = 0 \\end{array} \\right.\n$$\n解得 x_{1}^{*} = 8, x_{2}^{*} = 6 ，即驻点为\n$$\nX ^ {*} = \\left[ x _ {1} ^ {*}, x _ {2} ^ {*} \\right] ^ {\\mathrm {T}} = \\left[ 8, 6 \\right] ^ {\\mathrm {T}}\n$$\n再由 H(X^{*}) 的正定性判断 X^{*} 是极小值点还是极大值点。\n$$\n\\boldsymbol {H} (\\boldsymbol {X} ^ {*}) = \\left( \\begin{array}{c c} 2 & - 1 \\\\ - 1 & 2 \\end{array} \\right)\n$$\n因为",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "error_theory_166d8734c0de",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第五章 线性测量的参数最小二乘法处理\nContent: $$\n{ \\begin{array} { l } { d _ { 1 1 } \\displaystyle \\sum _ { i = 1 } ^ { n } a _ { i i } a _ { i 1 } x _ { 1 } + d _ { 1 1 } \\displaystyle \\sum _ { i = 1 } ^ { n } a _ { i 1 } a _ { i 1 } x _ { 2 } + \\cdots + d _ { 1 1 } \\displaystyle \\sum _ { i = 1 } ^ { n } a _ { i 1 } a _ { i i } x _ { t } = d _ { 1 1 } \\displaystyle \\sum _ { i = 1 } ^ { n } a _ { i 1 } l _ { i } { \\Biggl \\} } } \\\\ { d _ { 1 2 } \\displaystyle \\sum _ { i = 1 } ^ { n } a _ { i 2 } a _ { i 1 } x _ { 1 } + d _ { 1 2 } \\displaystyle \\sum _ { i = 1 } ^ { n } a _ { i 2 } a _ { i 2 } x _ { 2 } + \\cdots + d _ { 1 2 } \\displaystyle \\sum _ { i = 1 } ^ { n } a _ { i 2 } a _ { i i } x _ { t } = d _ { 1 2 } \\displaystyle \\sum _ { i = 1 } ^ { n } a _ { i 2 } l _ { i } { \\Biggl \\} } } \\\\ { \\vdots } \\\\ { d _ { 1 1 } \\displaystyle \\sum _ { i = 1 } ^ { n } a _ { i i } a _ { i 1 } x _ { 1 } + d _ { 1 i } \\displaystyle \\sum _ { i = 1 } ^ { n } a _ { i i } a _ { i 2 } x _ { 2 } + \\cdots + d _ { 1 i } \\displaystyle \\sum _ { i = 1 } ^ { n } a _ { i i } a _ { i i } x _ { t } = d _ { 1 i } \\displaystyle \\sum _ { i = 1 } ^ { n } a _ { i i } l _ { i } } \\end{array} }\n$$\n\n将上面的方程组各式的左右两边分别相加得\n\n$$\n\\sum _ { r = 1 } ^ { t } d _ { 1 r } \\sum _ { i = 1 } ^ { n } a _ { i r } a _ { i 1 } x _ { 1 } \\ + \\ \\sum _ { r = 1 } ^ { t } d _ { 1 r } \\sum _ { i = 1 } ^ { n } a _ { i r } a _ { i 2 } x _ { 2 } \\ + \\ \\cdots \\ + \\ \\sum _ { r = 1 } ^ { t } d _ { 1 r } \\sum _ { i = 1 } ^ { n } a _ { i r } a _ { i i } x _ { t } \\ = \\ \\sum _ { r = 1 } ^ { t } d _ { 1 r } \\sum _ { i = 1 } ^ { n } a _ { i r } l _ { i }\n$$\n\n选择 $d _ { 1 1 } , \\ d _ { 1 2 } , \\ \\cdots , \\ d _ { 1 t }$ 值，使之满足如下条件：",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第五章 线性测量的参数最小二乘法处理"
+    },
+    {
+      "id": "error_theory_d7b89da5b4e2",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第六章 回归分析\nContent: $$\n\\begin{array} { r } { A = X ^ { \\mathsf { T } } X = \\left( \\begin{array} { l l l l l l } { N } & { 0 } & { 0 } & { 0 } & { 0 } \\\\ { 0 } & { \\displaystyle \\sum _ { i = 1 } ^ { N } \\left( x _ { i 1 } - { \\bar { x } } _ { 1 } \\right) ^ { 2 } } & { \\displaystyle \\sum _ { i = 1 } ^ { N } \\left( x _ { i 1 } - { \\bar { x } } _ { 1 } \\right) \\left( x _ { i 2 } - { \\bar { x } } _ { 2 } \\right) } & { \\cdots \\displaystyle \\sum _ { i = 1 } ^ { N } \\left( x _ { i 1 } - { \\bar { x } } _ { 1 } \\right) \\left( x _ { i M } - { \\bar { x } } _ { M } \\right) } \\\\ { \\vdots } & { \\vdots } & { \\vdots } & { \\vdots } & { \\vdots } \\\\ { 0 } & { \\displaystyle \\sum _ { i = 1 } ^ { N } \\left( x _ { i M } - { \\bar { x } } _ { M } \\right) \\left( x _ { i 1 } - { \\bar { x } } _ { 1 } \\right) } & { \\displaystyle \\sum _ { i = 1 } ^ { N } \\left( x _ { i M } - { \\bar { x } } _ { M } \\right) \\left( x _ { i 2 } - { \\bar { x } } _ { 2 } \\right) } & { \\cdots \\displaystyle \\sum _ { i = 1 } ^ { N } \\left( x _ { i M } - { \\bar { x } } _ { M } \\right) ^ { 2 } } \\end{array} \\right) } \\end{array}\n$$\n\n令",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第六章 回归分析"
+    },
+    {
+      "id": "sensor_core_b6bca1313cb6",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 传感器短书\nSection: 第二章 电阻式传感器 > (一）金属的电阻应变效应\nContent: ## (一）金属的电阻应变效应\n\n当金属丝在外力作用下发生机械变形时，其电阻值将发生变化，这种现象称为金属的电阻应变效应。\n\n设有一根长度为l、截面积为S、电阻率为 $\\rho$ 的金属丝，在未受力时，原始电阻为\n\n$$\nR = \\rho \\frac { l } { S }\\tag{2-1}\n$$\n\n当金属电阻丝受到轴向拉力F作用时，将伸长 $\\Delta l$ ，横截面积相应减小 $\\Delta S$ ，电阻率因晶格变化等因素的影响而改变 $\\Delta \\rho$ ，故引起电阻值变化 $\\Delta R$ 。对式（2-1）全微分，并用相对变化量来表示，则有\n\n$$\n\\frac { \\Delta R } { R } = \\frac { \\Delta l } { l } - \\frac { \\Delta S } { S } + \\frac { \\Delta \\rho } { \\rho }\\tag{2-2}\n$$\n\n式中的 $\\Delta l / l$ 为电阻丝的轴向应变，用 $\\varepsilon$ 表示，常用单位 $\\mu \\varepsilon \\textrm { ( 1 } \\mu \\varepsilon = 1 \\times 1 0 ^ { - 6 } \\mathrm { m m } /$ mm)。若径向应变为 $\\Delta r / r$ ，电阻丝的纵向伸长和横向收缩的关系用泊松比 $\\mu$ 表示为 $\\Delta r / r =$\n\n$- \\mu ( \\stackrel { \\prime } { \\Delta } l / l )$ ，因为 $\\Delta S / S = 2 \\ : \\ : \\ : ( \\ : \\Delta r / r )$ ，故式（2-2）可以写成\n\n$$\n\\frac { \\Delta R } { R } = \\frac { \\Delta l } { l } \\big ( 1 + 2 \\mu \\big ) + \\frac { \\Delta \\rho } { \\rho } = \\Bigg ( 1 + 2 \\mu + \\frac { \\Delta \\rho / \\rho } { \\Delta l / l } \\Bigg ) \\frac { \\Delta l } { l } = k _ { 0 } \\varepsilon\\tag{2-3}\n$$\n\n式（2-3）为“应变效应”的表达式。 $k _ { 0 }$ 称金属电阻的灵敏系数，从式（2-3）可见，k。受两个因素影响：一个是（1+2μ），它是由材料的几何尺寸变化引起的；另一个是$\\Delta \\rho ^ { \\prime } \\left( \\rho \\varepsilon \\right)$ ，它表示材料的电阻率 $\\rho$ 随应变而变化（称“压阻效应”）。对于金属材料而言，以前者为主，其 $k _ { 0 } \\approx 1 + 2 \\mu$ ，对半导体， $k _ { \\mathrm { 0 } }$ 值主要是由电阻率相对变化所决定。实验也表明，在金属电阻丝拉伸比例极限内，电阻相对变化与轴向应变成正比。通常金属丝的灵敏系数 $k _ { 0 } = 2$ 左右。",
+      "book_name": "传感器短书",
+      "section_title": "(一）金属的电阻应变效应"
+    },
+    {
+      "id": "error_theory_78b4258ddd2b",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第三章 误差的合成与分配 > 一、按极限误差合成\nContent: ## 一、按极限误差合成\n\n若测量过程中有r个单项已定系统误差，s个单项未定系统误差， $q$ 个单项随机误差，它们的误差值或极限误差分别为\n\n$$\n\\begin{array} { c } { { \\Delta _ { 1 } , ~ \\Delta _ { 2 } , ~ \\cdots , ~ \\Delta _ { r } } } \\\\ { { { e } _ { 1 } , ~ e _ { 2 } , ~ \\cdots , ~ e _ { s } } } \\\\ { { { \\delta } _ { 1 } , ~ \\delta _ { 2 } , ~ \\cdots , ~ \\delta _ { q } } } \\end{array}\n$$\n\n为计算方便，设各个误差传递系数均为1，则测量结果总的极限误差为\n\n$$\n\\Delta _ { \\mathcal { B } } = \\sum _ { i = 1 } ^ { r } \\Delta _ { i } \\pm t \\sqrt { \\sum _ { i = 1 } ^ { s } \\left( \\frac { e _ { i } } { t _ { i } } \\right) ^ { 2 } + \\sum _ { i = 1 } ^ { q } \\left( \\frac { \\delta _ { i } } { t _ { i } } \\right) ^ { 2 } + R }\\tag{3-45}\n$$\n\n式中，R为各个误差间协方差之和。\n\n当各个误差均服从正态分布，且各个误差间互不相关时，则式（3-45）可简化为\n\n$$\n{ \\Delta } _ { \\mathcal { E } } ~ = ~ \\sum _ { i = 1 } ^ { r } { \\Delta } _ { i } \\pm \\sqrt { \\sum _ { i = 1 } ^ { s } { { e } _ { i } ^ { 2 } } + \\sum _ { i = 1 } ^ { q } { { \\delta } _ { i } ^ { 2 } } }\\tag{3-46}\n$$\n\n一般情况下，已定系统误差经修正后，测量结果总的极限误差就是总的未定系统误差与总的随机误差的方均根，即\n\n$$\n{ \\Delta _ { \\mathcal { Q } } } = \\pm \\sqrt { \\sum _ { i = 1 } ^ { s } { { { e } _ { i } ^ { 2 } } + \\sum _ { i = 1 } ^ { q } { { \\delta } _ { i } ^ { 2 } } } }\\tag{3-47}\n$$\n\n由式（3-46）和式（3-47）可以看出，当多项未定系统误差和随机误差合成时，对某一项误差不论作哪一种误差处理，其最后合成结果均相同。但必须注意，对于单次测量，可直接按式（3-47）求得最后结果的总误差，但对多次重复测量，由于随机误差具有抵偿性，而系统误差则固定不变，因此总误差合成公式中的随机误差项应除以重复测量次数n，即测量结果平均值的总极限误差公式为\n\n$$\n{ \\Delta } _ { \\mathcal { B } } = \\pm \\sqrt { \\sum _ { i = 1 } ^ { s } { { e } _ { i } ^ { 2 } } + \\frac { 1 } { n } \\sum _ { i = 1 } ^ { q } { { \\delta } _ { i } ^ { 2 } } }\\tag{3-48}\n$$\n\n由式（3-48）可知，在单次测量的总误差合成中，不需严格区分各个单项误差为未定系统误差或随机误差，而在多次重复测量的总误差合成中，则必须严格区分各个单项误差的性质。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "一、按极限误差合成"
+    },
+    {
+      "id": "error_theory_e24c7c132988",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第五章 线性测量的参数最小二乘法处理\nContent: $$\n\\hat { \\sigma } = \\sqrt { \\frac { \\displaystyle \\sum _ { i = 1 } ^ { n } v _ { i } ^ { 2 } } { n - t } }\\tag{5-42}\n$$\n\n一般写成\n\n$$\n\\sigma = { \\sqrt { \\frac { \\displaystyle \\sum _ { i = 1 } ^ { n } v _ { i } ^ { 2 } } { n - t } } }\\tag{5-43}\n$$\n\n例5-3 试求例5-1中铜棒长度的测量精度。\n\n已知残余误差方程为\n\n$$\n\\boldsymbol { v } _ { i } \\ = \\ \\left[ l _ { i } \\mathrm { - } 1 9 9 9 . 9 7 \\times ( 1 \\ + 0 . 0 0 0 0 1 8 3 t _ { i } / \\mathrm { \\mathcal { T } } ) \\ \\right] \\bf { m m } \\quad ( \\it { i = 1 } \\ , 2 , \\cdots , 6 )\n$$\n\n将 $t _ { i }$ $l _ { i }$ 值代入上式，可得残余误差为\n\n$$\nv _ { 1 } = \\left[ 2 0 0 0 . 3 6 - 1 9 9 9 . 9 7 \\times \\left( 1 + 0 . 0 0 0 0 1 8 3 \\times 1 0 \\right) \\right] \\mathrm { m m } = 0 . \\ : 0 3 \\mathrm { m m }\n$$\n\n$$\nv _ { 2 } = \\left[ 2 0 0 0 . 7 2 - 1 9 9 9 . 9 7 \\times \\left( 1 + 0 . 0 0 0 0 1 8 3 \\times 2 0 \\right) \\right] \\mathrm { m m } = 0 . 0 2 \\mathrm { m m }\n$$\n\n$$\n { v _ { 3 } } = \\left[ 2 0 0 0 . 8 0 - 1 9 9 9 . 9 7 \\times \\left( 1 + 0 . 0 0 0 0 1 8 3 \\times 2 5 \\right) \\ \\right]  { \\mathbf { m } }  { \\mathbf { m } } = \\mathbf { \\ell } - 0 . 0 8  { \\mathbf { m } }  { \\mathbf { m } }\n$$\n\n$$\n\\boldsymbol { v } _ { 4 } = \\left[ 2 0 0 1 . 0 7 - 1 9 9 9 . 9 7 \\times \\left( 1 + 0 . 0 0 0 0 1 8 3 \\times 3 0 \\right) \\right] \\mathrm { m m } = 0 \\mathrm { m m }\n$$\n\n$$\nv _ { 5 } = \\left[ 2 0 0 1 . 4 8 - 1 9 9 9 . 9 7 \\times \\left( 1 + 0 . 0 0 0 0 1 8 3 \\times 4 0 \\right) \\right] \\mathrm { m m } = 0 . 0 5 \\mathrm { m m }\n$$\n\n$$\nv _ { 6 } = \\left[ 2 0 0 1 . 6 0 - 1 9 9 9 . 9 7 \\times \\left( 1 + 0 . 0 0 0 0 1 8 3 \\times 4 5 \\right) \\right] \\mathrm { m m } = \\mathrm { ~ - } 0 . 0 2 \\mathrm { m m }\n$$\n\n$$\n\\sum _ { i \\ : = 1 } ^ { 6 } v _ { i } ^ { 2 } \\ : = \\ : 0 . 0 1 0 6 \\mathrm { m m } ^ { 2 }\n$$\n\n因 $n = 6 , t = 2$\n\n于是可得标准差为",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第五章 线性测量的参数最小二乘法处理"
+    },
+    {
+      "id": "error_theory_e8b40d38f971",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第四章 测量不确定度\nContent: <table><tr><td rowspan=1 colspan=1>n</td><td rowspan=1 colspan=1>1</td><td rowspan=1 colspan=1>2</td><td rowspan=1 colspan=1>3</td><td rowspan=1 colspan=1>4</td><td rowspan=1 colspan=1>5</td><td rowspan=1 colspan=1>6</td><td rowspan=1 colspan=1>7</td><td rowspan=1 colspan=1>8</td><td rowspan=1 colspan=1>9</td><td rowspan=1 colspan=1>10</td></tr><tr><td rowspan=1 colspan=1> $\\nu _ { i } / V$ </td><td rowspan=1 colspan=1>10.000107</td><td rowspan=1 colspan=1>10.000103</td><td rowspan=1 colspan=1>10.000097</td><td rowspan=1 colspan=1>10.000111</td><td rowspan=1 colspan=1>10.000091</td><td rowspan=1 colspan=1>10.000108</td><td rowspan=1 colspan=1>10.000121</td><td rowspan=1 colspan=1>10.000101</td><td rowspan=1 colspan=1>10.000110</td><td rowspan=1 colspan=1>10.000094</td></tr></table>\n\n已知标准电压表的示值误差按3倍标准差计算为 $\\pm 3 . 5 \\times 1 0 ^ { - 6 } \\times U _ { 0 } ( U _ { 0 }$ 为标准电压表的读数，相对标准差为25%），24h的稳定度不超过 $\\pm 1 5 \\mu \\mathrm { V }$ (按均匀分布，相对标准差为10%)。若用10次测量的平均值作为电压测量的估计值，试分析电压测量的不确定度来源，并分别计算其标准不确定度和自由度。\n\n解：根据题意，引起电压测量不确定度的主要来源有电压测量的重复性、标准电压表的示值误差及其稳定性，其相应标准不确定度和自由度分别计算如下：\n\n(1）电压测量重复性引起的标准不确定度 $\\boldsymbol u _ { x 1 }$\n\n由10次测量数据计算的平均值 $\\overline { { V } } = 1 0 . 0 0 0 1 0 4 \\mathrm { V }$ ，用贝塞尔法计算单次测量的标准差\n\n$$\n\\sigma = \\sqrt { \\frac { \\displaystyle \\sum _ { i = 1 } ^ { 1 0 } \\left( \\nu _ { i } - \\overline { { V } } \\right) ^ { 2 } } { 1 0 - 1 } } = 0 . 0 0 0 0 0 9 \\mathrm { V } = 9 \\mathrm { { } } \\mathrm { { } } \\mathrm { { g V } }\n$$\n\n平均值的标准差\n\n电压测量重复性引起的标准不确定度 $\\boldsymbol u _ { x 1 }$ 的计算属A类评定，则 $u _ { x 1 } = \\sigma _ { V } ^ { } = 2 . 8 \\mu \\mathrm { V }$ ，其自由度 $\\nu _ { 1 } = 1 0 - 1 = 9$ o\n\n(2）标准电压表的示值误差引起的标准不确定度 $u _ { x 2 }$\n\n标准电压表的示值误差按3倍标准差计算，不确定度 $u _ { x 2 }$ 的计算属B类评定，根据式(4-2)计算，其中 $U _ { x } = 3 . 5 \\times 1 0 ^ { - 6 } \\times 1 0 \\mathrm { V }$ ，k=3，则标准不确定度为",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第四章 测量不确定度"
+    },
+    {
+      "id": "error_theory_521f46b92592",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第六章 回归分析\nContent: $$\n{ \\begin{array} { r l } { \\mathbf { { \\boldsymbol { Y } } } } & { = { \\left( \\begin{array} { l } { y _ { 1 } } \\\\ { y _ { 2 } } \\\\ { \\vdots } \\\\ { y _ { N } } \\end{array} \\right) } } & { \\mathbf { { \\boldsymbol { X } } } = { \\left( \\begin{array} { l l l l l l } { 1 } & { x _ { 1 1 } } & { x _ { 1 2 } } & { \\cdots } & { x _ { 1 M } } \\\\ { 1 } & { x _ { 2 1 } } & { x _ { 2 2 } } & { \\cdots } & { x _ { 2 M } } \\\\ { \\vdots } & { \\vdots } & { \\vdots } & { \\vdots } & { \\vdots } \\\\ { 1 } & { x _ { N } } & { x _ { N 2 } } & { \\cdots } & { x _ { N M } } \\end{array} \\right) } } \\\\ { \\beta } & { = { \\left( \\begin{array} { l } { \\beta _ { 0 } } \\\\ { \\beta _ { 1 } } \\\\ { \\vdots } \\\\ { \\beta _ { M } } \\end{array} \\right) } } & { \\mathbf { { \\boldsymbol { \\varepsilon } } } = { \\left( \\begin{array} { l } { \\varepsilon _ { 1 } } \\\\ { \\varepsilon _ { 2 } } \\\\ { \\vdots } \\\\ { \\varepsilon _ { N } } \\end{array} \\right) } } \\end{array} }\\tag{6-69}\n$$\n\n其多元线性回归的数学模型式(6-68）可以写成矩阵形式\n\n$$\nY = X { \\pmb { \\beta } } + { \\pmb { \\varepsilon } }\\tag{6-70}\n$$\n\n式中， $\\pmb { \\varepsilon }$ 为N维随机向量，它的分量是相互独立的。\n\n我们仍用最小二乘法估计参数 $\\pmb { \\beta } _ { \\mathrm { c } }$ 设 $b _ { 0 }$ ， $b _ { 1 }$ ,…, $b _ { M }$ 分别是参数 $\\beta _ { 0 }$ ， $\\beta _ { 1 }$ ， $\\cdots$ ， $\\beta _ { M }$ 的最小二乘估计，则回归方程为\n\n$$\n\\hat { y } = b _ { 0 } + b _ { 1 } x _ { 1 } + \\cdots + b _ { M } x _ { M }\\tag{6-71}\n$$\n\n由最小二乘法知道， $b _ { 0 } , \\ b _ { 1 } , \\ \\cdots , \\ b _ { M }$ 应使得全部观测值 $\\boldsymbol { y } _ { t }$ 与回归值 $\\widehat { \\boldsymbol { y } } _ { t }$ 的残差平方和达到最小，即",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第六章 回归分析"
+    },
+    {
+      "id": "error_theory_eff067d3a6d1",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第五章 线性测量的参数最小二乘法处理\nContent: $$\nV = { \\left( \\begin{array} { l } { v _ { 1 } } \\\\ { v _ { 2 } } \\\\ { v _ { 3 } } \\\\ { v _ { 4 } } \\\\ { v _ { 5 } } \\\\ { v _ { 6 } } \\\\ { v _ { 7 } } \\end{array} \\right) } , \\quad F = { \\left( \\begin{array} { l } { y _ { 1 } } \\\\ { y _ { 2 } } \\\\ { y _ { 3 } } \\\\ { y _ { 4 } } \\\\ { y _ { 5 } } \\\\ { y _ { 6 } } \\\\ { y _ { 7 } } \\end{array} \\right) } = { \\left( \\begin{array} { l l l } { 1 0 . 0 0 2 } \\\\ { 2 0 . 0 0 2 } \\\\ { 5 0 . 0 0 6 } \\\\ { 3 0 . 0 0 4 } \\\\ { 6 0 . 0 0 2 } \\\\ { 7 0 . 0 0 2 } \\\\ { 8 0 . 0 0 8 } \\end{array} \\right) } , \\quad A = { \\left( \\begin{array} { l l l } { 1 } & { 0 } & { 0 } \\\\ { 0 } & { 1 } & { 0 } \\\\ { 0 } & { 0 } & { 1 } \\\\ { 1 } & { 1 } & { 0 } \\\\ { 1 } & { 0 } & { 1 } \\\\ { 0 } & { 1 } & { 1 } \\\\ { 1 } & { 1 } & { 1 } \\end{array} \\right) } , \\quad { \\hat { M } } = { \\left( \\begin{array} { l } { m _ { 1 } } \\\\ { m _ { 2 } } \\\\ { m _ { 3 } } \\\\ { m _ { 3 } } \\end{array} \\right) }\n$$\n\n由式（5-24）可得\n\n$$\n\\begin{array} { r } { \\hat { \\pmb { M } } = \\left( \\begin{array} { l } { m _ { 1 } } \\\\ { m _ { 2 } } \\\\ { m _ { 3 } } \\end{array} \\right) = \\pmb { C } ^ { - 1 } \\pmb { A } ^ { \\top } \\pmb { Y } } \\end{array}\n$$\n\n式中",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第五章 线性测量的参数最小二乘法处理"
+    },
+    {
+      "id": "p262_c583",
+      "category": "long_textbook_chunk",
+      "text": "\\begin{array}{l}\\mathrm{a[i] = *(x[0] + i);}\\\\ \\mathrm{b[i] = *(x[2] + i);}\\\\ \\mathrm{free(x[i])};\\\\ \\mathrm{for(i = 0;i <   3;i + + )}\\\\ \\mathrm{free(x[i])};\\\\ \\mathrm{double~gold(double~a[ ],double~b[ ],double~eps,int~n,double~xx[ ])}\\\\ \\mathrm{int~i;}\\\\ \\mathrm{double~f1,f2,*x[2],ff,q,w;}\\\\ \\mathrm{for(i = 0;i <   2;i + + )}\\\\ \\mathrm{x[i] = (double *)malloc(n * sizeof(double));}\\\\ \\mathrm{for(i = 0;i <   n;i + + )}\\\\ \\mathrm{for(i = 0;i <   n;i + + )}\\\\ \\mathrm{for(i = 0;i <   n;i + + )}\\\\ \\mathrm{for(i = 0;i <   n;i + + )}\\\\ \\mathrm{b[i] = *(x[0] + i);}\\\\ \\mathrm{b[i] = *(x[0] + i);}\\\\ \\mathrm{f1 = objf(x[0])};\\\\ \\mathrm{f2 = objf(x[1])};\\\\ \\mathrm{do}\\\\ \\mathrm{if(f1 > f2)}\\\\ \\mathrm{for(i = 0;i <   n;i + + )}\\\\ \\mathrm{b[i] = *(x[0] + i);}\\\\ \\mathrm{f1 = f2;}\\\\ \\mathrm{for(i = 0;i <   n;i + + )}\\\\ \\mathrm{*(x[1] + i) = a[i] + 0.382*(b[i] - a[i])};\\\\ \\mathrm{f2 = objf(x[1])};\\\\ \\mathrm{else}\\\\ \\mathrm{for(i = 0;i <   n;i + + )}\\\\ \\mathrm{a[i] = *(x[1] + i)}; \\end{array}",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "error_theory_f2ac226ac72b",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第七章 动态测试数据处理的基本方法\nContent: $$\n\\begin{array} { l } { R _ { x } ( t , t + \\tau ) = E \\big [ \\ \\mathrm { \\textmu } x ( t ) - m _ { x } ( t ) \\ \\mathrm { \\textmu } \\big \\} \\ \\mathrm { \\textmu } x ( t + \\tau ) \\ - m _ { x } ( t + \\tau ) \\ \\mathrm { \\textmu } \\big \\} \\ \\ \\big ] } \\\\ { = E \\big [ \\ \\mathrm { \\textmu } x ( t + \\tau ) \\ - m _ { x } ( t + \\tau ) \\ \\mathrm { \\textmu } \\big \\{ \\mathrm { \\mu } x ( t ) \\ - m _ { x } ( t ) \\ \\mathrm { \\textmu } \\big \\} \\ \\big ] } \\\\ { = R _ { x } ( { t + \\tau } , t ) } \\end{array}\\tag{7-23}\n$$\n\n因此，自相关函数对t和 $t + \\tau$ 来说是对称的，即交换t与 $t + \\tau$ ，函数值不变。\n\n3）在随机函数上加上一个非随机函数时，它的均值（数学期望）也要加上同样的非随机函数，但它的自相关函数不变。\n\n所谓非随机函数可以是一个固定的数，也可以是t的某个确定性函数。\n\n设在随机函数 $x ( t )$ 上加上一个非随机函数 $g ( t )$ ，得到新的随机函数 $y ( t )$\n\n$$\ny ( t ) = x ( t ) + g ( t )\\tag{7-24}\n$$\n\n按数学期望的加法定理，可得\n\n$$\nm _ { y } ( t ) = m _ { x } ( t ) + g ( t )\\tag{7-25}\n$$\n\n因此， $y ( t )$ 的均值是 $x ( t )$ 的均值加上该非随机函数。用 $y ^ { \\circ } ( t ^ { \\prime } )$ 表示 $y ( t ^ { \\prime } )$ 的中心化随机函数。而自相关函数",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第七章 动态测试数据处理的基本方法"
+    },
+    {
+      "id": "p180_c421",
+      "category": "long_textbook_chunk",
+      "text": "2. 学习规则\n神经网络学习算法的另一个重点是学习规则。目前使用比较普遍的学习规则有以下7种，我们逐一进行讲解。\n（1）Hebb学习规则 该著名规则是由Donald Hebb在1949年提出的，基本规则可以简单归纳为：如果处理单元从另一个处理单元接到一个输入，并且如果两个单元都处于高度活动状态，这时两个单元间的处理权重就会被加强。\nHebb学习规则是一种联想式学习方法。联想是人脑形象思维过程的一种表现形式，例如，在空间和时间上相互接近的事物间都容易在人脑中引起联想。生物学家Donald Hebb基于对生物和生理学的研究，提出了学习行为的突触联系和神经群理论。认为突触前与突触后二者同时兴奋，即两个神经元同时处于激发状态时，它们之间的连接强度得到加强，这一理论的数学描述被称为Hebb学习规则。\nHebb学习规则是一种没有指导的学习方法，它只根据神经元连接间的激活水平改变权重，因此这种方法又称为相关学习或并联学习。\n（2）Delta（δ）学习规则 Delta（δ）学习规则是最常用的学习规则，其要点是改变单元间的连接权重来减小系统实际输出与应有的输出间的误差。这个规则也叫做 Widrow-Hoff 学习规则，也可称为最小均方差规则。\nDelta学习规则实现了梯度下降减小误差，因此使误差函数达到最小值，但该学习规则只适用于线性可分函数，无法用于多层网络。前面介绍的BP网络的学习算法也是在Delta学习规则的基础上发展起来的。\n（3）梯度下降学习规则 这是对减小实际输出和应有输出间误差方法的数学说明。Delta学习规则是梯度下降学习规则的一个特例。梯度下降学习规则的要点是在学习过程中，保持误差曲线的梯度下降。误差曲线可能会出现局部最小值。在网络学习时，尽可能摆脱误差的局部最小值，而达到真正的误差最小值。\n（4）Kohonen学习规则 该规则是由Teuvo Kohonen在研究生物系统学习的基础上提出的，用于没有指导下的训练网络。在学习过程中，处理单元竞争学习的时候，具有高的输出单元是胜利者，它有能力阻止它的竞争者并激发相邻的单元。只有胜利者才能有输出，也只有胜利者与其相邻单元可以调节权重。\n在训练周期内，相邻单元的规模是可变的。一般的方法是从定义较大的相邻单元开始，在训练过程中不断减小相邻的范围。胜利单元可以定义为与输入模式最为接近的单元。Kohonen网络可以模拟输入的分配。\n（5）后向传播学习规则 后向传播（Back Propagation）学习规则，是目前应用最为广",
+      "book_name": "优化设计",
+      "section_title": "2. 学习规则"
+    },
+    {
+      "id": "error_theory_3cc630b4057e",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第五章 线性测量的参数最小二乘法处理\nContent: $$\n\\pmb { C } ^ { * } = \\pmb { A } ^ { * \\mathrm { T } } \\pmb { A } ^ { * } = \\pmb { A } ^ { \\mathrm { T } } \\pmb { P } \\pmb { A }\n$$\n\n则\n\n$$\n\\hat { \\pmb X } = \\pmb { C } ^ { * - 1 } \\pmb { A } ^ { \\mathrm { T } } \\pmb { P } \\pmb { L }\\tag{5-30}\n$$\n\n这就是不等精度线性测量时，线性测量参数的最小二乘法处理。因为\n\n$$\n\\begin{array} { r } { E \\big ( \\hat { X } \\big ) \\ = \\ E \\big ( C ^ { * - 1 } A ^ { \\top } P L \\big ) \\ = \\ C ^ { * - 1 } A ^ { \\top } P E \\big ( L \\big ) \\ = \\ C ^ { * - 1 } A ^ { \\top } P A X \\ = \\ X } \\end{array}\n$$\n\n可见 $\\hat { \\pmb X }$ 是X的无偏估计。\n\n例5-2 某测量过程有误差方程式及相应的标准差如下：\n\n$$\n{ \\begin{array} { r l r l } & { v _ { 1 } = 6 . 4 4 - \\left( x _ { 1 } + x _ { 2 } \\right) \\quad } & { \\sigma _ { 1 } = 0 . 0 6 } \\\\ & { v _ { 2 } = 8 . 6 0 - \\left( x _ { 1 } + 2 x _ { 2 } \\right) \\quad } & { \\sigma _ { 2 } = 0 . 0 6 } \\\\ & { v _ { 3 } = 1 0 . 8 1 - \\left( x _ { 1 } + 3 x _ { 2 } \\right) \\quad } & { \\sigma _ { 3 } = 0 . 0 8 } \\\\ & { v _ { 4 } = 1 3 . 2 2 - \\left( x _ { 1 } + 4 x _ { 2 } \\right) \\quad } & { \\sigma _ { 4 } = 0 . 0 8 } \\\\ & { v _ { 5 } = 1 5 . 2 7 - \\left( x _ { 1 } + 5 x _ { 2 } \\right) \\quad } & { \\sigma _ { 5 } = 0 . 0 8 } \\end{array} }\n$$\n\n试求 $x _ { 1 }$ 、 $x _ { 2 }$ 的最小二乘法处理正规方程的解。\n\n解：首先确定各式的权，由式（2-42）得",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第五章 线性测量的参数最小二乘法处理"
+    },
+    {
+      "id": "error_theory_a5b89306b3ed",
+      "category": "long_textbook_chunk",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第三章 误差的合成与分配\nContent: $$\n\\sigma _ { y } ^ { 2 } = { \\Big ( } { \\frac { \\partial f } { \\partial x _ { 1 } } } { \\Big ) } ^ { 2 } \\sigma _ { x 1 } ^ { 2 } + { \\Big ( } { \\frac { \\partial f } { \\partial x _ { 2 } } } { \\Big ) } ^ { 2 } \\sigma _ { x 2 } ^ { 2 } + \\cdots + { \\Big ( } { \\frac { \\partial f } { \\partial x _ { n } } } { \\Big ) } ^ { 2 } \\sigma _ { x n } ^ { 2 } + 2 \\sum _ { 1 \\leq i < j } ^ { n } { \\Big ( } { \\frac { \\partial f } { \\partial x _ { i } } } { \\frac { \\partial f } { \\partial x _ { j } } } \\ \\rho _ { i j } \\sigma _ { x i } \\sigma _ { x j } { \\Big ) }\\tag{3-13}\n$$\n\n式中， $\\rho _ { i j }$ 为第i个测量值和第j个测量值之间的误差相关系数。\n\n根据式(3-13）可由各个测量值的标准差计算出函数的标准差，故称该式为函数随机误差公式，而 $\\partial f / \\partial x _ { i } ( i = 1 , ~ 2 , ~ \\cdots , ~ n )$ 为各个测量值的误差传递系数。\n\n若各测量值的随机误差是相互独立的，且当N适当大时，相关项\n\n$$\nK _ { i j } \\ = \\ \\frac { \\displaystyle \\sum _ { m = 1 } ^ { N } \\delta _ { x _ { i m } } \\delta _ { x _ { j m } } } { N } \\ = \\ 0\n$$\n\n则相关系数ρ也为零，误差公式（3-13）可简化为 $\\rho _ { i j }$\n\n$$\n\\sigma _ { y } ^ { 2 } = { \\bigg ( } { \\frac { \\partial f } { \\partial x _ { 1 } } } { \\bigg ) } ^ { 2 } \\sigma _ { x 1 } ^ { 2 } + { \\bigg ( } { \\frac { \\partial f } { \\partial x _ { 2 } } } { \\bigg ) } ^ { 2 } \\sigma _ { x 2 } ^ { 2 } + \\cdots + { \\bigg ( } { \\frac { \\partial f } { \\partial x _ { n } } } { \\bigg ) } ^ { 2 } \\sigma _ { x n } ^ { 2 }\n$$\n\n$$\n\\sigma _ { y } = { \\sqrt { \\left( { \\frac { \\partial f } { \\partial x _ { 1 } } } \\right) ^ { 2 } \\sigma _ { x 1 } ^ { 2 } + \\left( { \\frac { \\partial f } { \\partial x _ { 2 } } } \\right) ^ { 2 } \\sigma _ { x 2 } ^ { 2 } + \\cdots + \\left( { \\frac { \\partial f } { \\partial x _ { n } } } \\right) ^ { 2 } \\sigma _ { x n } ^ { 2 } } }\\tag{3-14}\n$$\n\n$\\partial f / \\partial x _ { i } = a _ { i }$ ，则式（3-14）可写成",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第三章 误差的合成与分配"
+    },
+    {
+      "id": "p32_c80",
+      "category": "formula_symbol_mix",
+      "text": "3）若 \\lambda_{u} \\neq 0，由式（2-23c），则必有 x_{n + u} = 0。由式（2-23b），g_{u}(X) = 0，点 X 落在 g_{u}(X) = 0 约束边界上，对应的约束 g_{u}(X) \\leqslant 0 为起作用的约束，如图2-12b所示的情况。\n综上所述三种情况，不等式约束的优化问题的极值条件为\n$$\n\\nabla f \\left(\\boldsymbol {X} ^ {*}\\right) + \\sum_ {u = 1} ^ {q} \\lambda_ {u} \\nabla g _ {u} \\left(\\boldsymbol {X} ^ {*}\\right) = 0 \\quad \\left(\\lambda_ {u} > 0\\right) \\tag {2-24}\n$$\n此式就是不等式约束优化问题的K-T条件。式中， q 为起作用约束的个数，若式中的 q 换成 m （不等式约束的个数），则应取 \\lambda_{u}\\geqslant 0 也就是说，不起作用的约束对应的 \\lambda 取0。\n图2-13 无约束极值点落在约束边界上\n为了对K-T条件有直观的理解，现以二维约束优化问题几何意义说明如下：",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "91f76dcbfec6c25c",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第8章 气敏传感器 > (2) $\\mathrm { T i O } _ { 2 }$ ${ \\bf N b } _ { 2 } { \\bf O } _ { 5 }$ 氧敏元件\n正文：$\\mathrm { T i O } _ { 2 }$ 是具有金红石结构的N型半导体，在常温下难以和空气中的氧发生化学吸附而不显示氧敏特性，在高温下才有明显的氧敏特性。为了提高 $\\mathrm { T i O } _ { 2 }$ 的氧敏特性，通常添加贵金属铂作为催化剂，元件工作时环境中的氧首先在铂上吸附形成原子态氧，再与 $\\mathrm { T i O } _ { 2 }$ 发生化学吸附。实验表明，添加铂催化剂后 $\\mathrm { T i O } _ { 2 }$ 元件在 $3 0 0 ^ { \\circ } \\mathrm { C }$ 以上对氧具有较好的响应特性。但是，由于 $\\mathrm { T i O } _ { 2 }$ 的电阻率随温度升高而下降的现象与元件吸附氧后电阻率变化现象混淆，造成测量误差。为此，通常在测试中使用一个用氧化钴一氧化镁二元系材料制作的其阻值与氧敏元件一致的温度补偿元件，消除温度变化所引起的误差，如图8.21所示。另外， $\\mathrm { T i O } _ { 2 }$ ${ \\bf Y } _ { 2 } { \\bf O } _ { 3 }$ $\\mathbf { A l } _ { 2 } \\mathbf { O } _ { 3 }$ 和 $\\mathrm { C e O } _ { 2 }$ 等也可作为温度补偿材料",
+      "book_name": "传感器长书",
+      "section_title": "(2) $\\mathrm { T i O } _ { 2 }$ ${ \\bf N b } _ { 2 } { \\bf O } _ { 5 }$ 氧敏元件"
+    },
+    {
+      "id": "p113_c269",
+      "category": "formula_symbol_mix",
+      "text": "3.收缩\n若在形心 X_{C} 以外找不到好的反射点，还可以在 X_{C} 以内，即采用收缩的方法寻找较好\n的新点 X_{K} ， X_{K} 称为收缩点。其计算公式为\n$$\n\\boldsymbol {X} _ {K} = \\boldsymbol {X} _ {H} + \\beta \\left(\\boldsymbol {X} _ {C} - \\boldsymbol {X} _ {H}\\right) \\tag {6-12}\n$$\n式中，\\beta 为收缩系数，一般取 \\beta = 0.7。\n收缩点 X_{K} 与最坏点 X_{H} 、中心点 X_{C} 的相对位置如图6-5所示。\n若 f(\\pmb{X}_K) < f(\\pmb{X}_H)，则收缩成功，用 \\pmb{X}_K 取代 \\pmb{X}_H，构成新的复合形。",
+      "book_name": "优化设计",
+      "section_title": "3.收缩"
+    },
+    {
+      "id": "sensor_core_d18ee0be83b9",
+      "category": "formula_symbol_mix",
+      "text": "Textbook: 传感器短书\nSection: 第五章 磁电式传感器 > (一）磁栅的结构\nContent: ## (一）磁栅的结构\n\n磁栅的结构如图5-19所示，磁栅基体1是用非导磁材料做成的，上面镀一层均匀的磁性薄膜2，经过录磁，其磁信号排列情况如图中所示，要求录磁信号幅度均匀，幅度变化应小于10%，节距均匀。目前长磁栅常用的磁信号节距一般为0.05mm和0.02mm两种，圆磁栅的角节距一般为几角分至几十角分。\n\n磁栅基体1要有良好的加工性能和电镀性能，其线膨胀系数应与被测件接近，基体也常用\n\n![](images/dc6435a568b90fb60719f20cfca6bce4d6c0bc27d2a30415c67e4e97ed77cb45.jpg)  \n图 5-19 磁栅的结构  \n1—磁栅基体 2—磁性薄膜\n\n钢制作，然后用镀铜的方法解决隔磁问题，铜层厚度为0.15\\~0.20mm。长磁栅基体工作面平直度误差范围为0.005\\~0.01mm/m，圆磁栅工作面不圆度范围为0.005\\~0.01mm。粗糙度 Ra 在 0.16μm 以下。\n\n磁性薄膜2的剩余磁感应强度B要大、矫顽力H要高、性能稳定、电镀均匀。目前常用的磁性薄膜材料为镍钴磷合金，其 $B _ { \\mathrm { \\ell } } = 0 . 7 \\sim 0 . 8 \\mathrm { T }$ $H _ { c } = 6 . 3 7 \\times 1 0 ^ { 4 } \\mathrm { ~ A ~ } \\cdot \\mathrm { ~ m ~ } ^ { - 1 }$ 。薄膜厚度为0.10\\~0.20mm。",
+      "book_name": "传感器短书",
+      "section_title": "(一）磁栅的结构"
+    },
+    {
+      "id": "9ee4d2091123655d",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第8章 气敏传感器 > 8.5.1 检测原理与结构\n正文：图8.44(b)所示为接触燃烧式气敏元件的检测电路。图中 $\\mathrm { F } _ { 1 }$ 是气敏元件， $\\mathrm { F } _ { 2 }$ 是补偿元件，其作用是补偿可燃性气体接触燃烧以外的环境温度变化、电源电压变化等因素所引起的偏差。另外，作为补偿元件铂线圈的尺寸、阻值均应与检测元件相同，并且也应涂敷氧化铝或氧化硅载体层，只是无须浸渍于贵金属盐溶液或混入贵金属触媒粉体，形成触媒层而已。这种气敏传感器工作时要求在 $\\mathrm { F } _ { 1 }$ 和 $\\mathrm { F } _ { 2 }$ 上应保持一定的电流通过（一般为100\\~200mA），以供给可燃性气体在检测元件$\\mathrm { F } _ { 1 }$ 上发生氧化反应（接触燃烧）所需的热量。当气敏元件 $\\mathrm { F } _ { 1 }$ 与可燃性气体接触时，由于剧烈的氧化作用释放出热量，使得气敏元件的温度上升，电阻值相应增大，电桥不再平衡，在A、B之间产生电位差E。\n\n![](images/59125caedf830bca1a5b3ede2dee155be184bf86650ba64386952d124205d68b.jpg)  \n图 8.44 接触燃烧式气敏元件",
+      "book_name": "传感器长书",
+      "section_title": "8.5.1 检测原理与结构"
+    },
+    {
+      "id": "error_theory_48556a61e78a",
+      "category": "formula_symbol_mix",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第四章 测量不确定度\nContent: $$\nu _ { x 2 } = { \\frac { 3 . 5 \\times 1 0 ^ { - 6 } \\times 1 0 \\mathrm { V } } { 3 } } = 1 . 1 7 \\times 1 0 ^ { - 5 } \\mathrm { V } = 1 1 . 7 \\mu \\mathrm { V }\n$$\n\n其相对标准差为25%，则自由度为\n\n$$\n\\nu _ { 2 } = \\frac { 1 } { 2 \\left( \\displaystyle \\frac { \\sigma _ { u 2 } } { u _ { 2 } } \\right) ^ { 2 } } = \\frac { 1 } { 2 \\times ( 2 5 \\% ) ^ { 2 } } = 8\n$$\n\n(3)标准电压表的稳定度引起的标准不确定度 $u _ { x 3 }$\n\n标准电压表的稳定度按均匀分布，其不确定度u属B类评定，根据式（4-3）计算标 $u _ { x 3 }$ 准不确定度为\n\n$$\nu _ { x 3 } = { \\frac { 1 5 \\mu \\mathrm { V } } { \\sqrt { 3 } } } = 8 . 7 \\mu \\mathrm { V }\n$$\n\n其相对标准差为10%，则自由度为\n\n$$\n\\nu _ { 3 } = \\frac { 1 } { 2 \\bigg ( \\displaystyle \\frac { \\sigma _ { u 3 } } { u _ { 3 } } \\bigg ) ^ { 2 } } = \\frac { 1 } { 2 \\times ( 1 0 \\% ) ^ { 2 } } = 5 0\n$$",
+      "book_name": "误差理论与数据处理",
+      "section_title": "第四章 测量不确定度"
+    },
+    {
+      "id": "sensor_core_30c1f3808b01",
+      "category": "formula_symbol_mix",
+      "text": "Textbook: 传感器短书\nSection: 第二章 电阻式传感器 > （三）压阻式加速度传感器\nContent: ## （三）压阻式加速度传感器\n\n压阻式加速度传感器采用单晶硅作悬臂梁，在其近根部扩散4个电阻，如图2-33所示。\n\n当梁的自由端的质量块受到加速度作用时，在梁上受到弯矩和应力，使电阻值发生变化。电阻相对变化与加速度成正比。由4个电阻组成的电桥将产生与加速度成正比例电压输出。在设计时，恰当地选择传感器尺寸及阻尼系数，则可用来测量低频加速度与直线加速度。\n\n利用锰铜的压阻效应测压始于20世纪初。20世纪50年代又出现了锰铜动压测试系统用于测火炮\n\n![](images/63213590d1adbc98839769b134c29289b3e2f5e1f83139d91e17ef12b8ca1bf9.jpg)  \n图2-33 压阻式加速度传感器\n\n的压力，当时是用锰铜线圈做的压力传感器。目前，锰铜压阻传感器的结构形式很多，可分丝式和箔式，有高阻和低阻，还有线圈式等。丝式和箔式锰铜压阻传感器外形和制造工艺与金属电阻应变计几乎完全相同，所不同的是工作原理和安装方式。\n\n国内外均采用锰铜丝、锰铜箔应变计制成的压力传感器研究冲击波、爆炸力学效应、爆炸效应以及高静水压力的影响。虽然锰铜的电阻率低，其压力灵敏度系数仅为0.27%/$1 0 ^ { 8 } \\mathrm { P a }$ ，但它的电阻变化与冲击波压力问呈线性关系。这种传感器可测量(1\\~40)×$1 0 ^ { 6 } \\mathrm { P a }$ 的压力。",
+      "book_name": "传感器短书",
+      "section_title": "（三）压阻式加速度传感器"
+    },
+    {
+      "id": "p154_c356",
+      "category": "formula_symbol_mix",
+      "text": "二、极大极小法\n极大极小法的基本思路是，在各目标最不利的情况中求得最好方案。即用各个目标 f_{i}(i\n= 1,2,\\dots ,l) 的最大值作为评价函数（目标函数），然后再在可行域内进行极小化求解。例如，对 n = 1 ， l = 2 的两个单度量函数 f_{1}(x) ， f_{2}(x) 取较大值构造评价函数 \\max \\{f_1(x)f_{2}(x)\\} ，然后再极小化该函数，即 \\min \\max \\{f_1(x),f_2(x)\\} ，求得最优解 x^{*} ，如图7-1所示。图中实线表示对目标函数f_{1}(x) ， f_{2}(x) 取较大值。该方法的特点是对各目标函数作极大值选择后，再在可行域内进行极小化，故称为极大极小法。\n图7-1 极大极小法示意图",
+      "book_name": "优化设计",
+      "section_title": "二、极大极小法"
+    },
+    {
+      "id": "sensor_core_2b863420358a",
+      "category": "formula_symbol_mix",
+      "text": "Textbook: 传感器短书\nSection: 第五章 磁电式传感器 > （一)霍尔式位移传感器\nContent: ## （一)霍尔式位移传感器\n\n保持霍尔元件的控制电流恒定，而使霍尔元件在一个均匀梯度的磁场中沿x方向移\n\n动，如图5-13所示。则输出的霍尔电动势为\n\n$$\nU _ { \\mathrm { ~ H ~ } } = k x\n$$\n\n式中k——位移传感器的灵敏度。\n\n(5-10)\n\n霍尔电动势的极性表示了元件位移的方向。磁场梯度越大，灵敏度越高；磁场梯度越均匀，输出线性度就越好。为了得到均匀的磁场梯度，往往将磁钢的磁极片设计成特殊形状，如图5-14a所示。这种位移传感器可用来测量 $\\pm \\ : 0 . 5 \\mathrm { m m }$ 的小位移，特别适用于微位移、机械振动等测量。若霍尔元件在均匀磁场内转动，则产生与转角的正弦函数成比例的霍尔电压，因此可用来测量角位移。\n\n![](images/0a94ee061c3762d27c5072a807896127789af0e662b65665dc8671bd259bc10c.jpg)\n\n![](images/11c030404458ef0f045ea62a66c1cb024ca99a587c90b6945c39db3d12ead4c4.jpg)",
+      "book_name": "传感器短书",
+      "section_title": "（一)霍尔式位移传感器"
+    },
+    {
+      "id": "f06ca790768fe403",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第3章 温敏传感器 > 3. 平均温度测量电路\n正文：测量平均温度的方法通常是将几只同型号的热电偶并联在一起，如图3.18所示。 $R _ { 1 }$ $R _ { 2 } .$ $R _ { 3 }$ 阻值很大，以免 $T _ { 1 } , \\ T _ { 2 } , \\ T _ { 3 }$ 不相等时，每个热电偶线路上流过的电流会因其热电偶的电阻变化而变化。由电路可知回路中总的热电势为\n\n$$\nE _ { \\mathrm { T } } = \\frac { E _ { \\mathrm { A B } } ( T _ { 1 } , T _ { 0 } ) + E _ { \\mathrm { A B } } ( T _ { 2 } , T _ { 0 } ) + E _ { \\mathrm { A B } } ( T _ { 3 } , T _ { 0 } ) } { 3 }\\tag{3.24}\n$$\n\n此电路的优点是，仪表的分度表和单独用一个热电偶时一样，可直接读出平均温度；缺点是，若有一个热电偶被烧断，从仪表上不能反映出来。",
+      "book_name": "传感器长书",
+      "section_title": "3. 平均温度测量电路"
+    },
+    {
+      "id": "264c28efe38be607",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第3章 温敏传感器 > 2. 测量两点之间温差的测温电路\n正文：测量两点之间温差的测温电路如图3.17所示。这是测量 $T _ { 1 }$ 和 $T _ { 2 }$ 之差的一种实用线路。两个温度同型号的热电偶，配用相同的补偿导线，连接的方法应使各自产生的热电势互相抵消。这时用两只仪表即可测得 $T _ { 1 }$ 和 $T _ { 2 }$ 的温度之差。证明如下。\n\n回路内的总电势为\n\n$$\n\\begin{array} { r } { E _ { \\mathrm { T } } = E _ { \\mathrm { A B } } ( T _ { 1 } ) + E _ { \\mathrm { B D } } ( T _ { 0 } ) + E _ { \\mathrm { D B } } ( T _ { 0 } ^ { \\prime } ) + E _ { \\mathrm { B A } } ( T _ { 2 } ) + E _ { \\mathrm { A C } } ( T _ { 0 } ^ { \\prime } ) + E _ { \\mathrm { C A } } ( T _ { 0 } ) } \\end{array}\\tag{3.20}\n$$\n\n因B、D材料性质相同，故\n\n$$\nE _ { \\mathrm { B D } } ( T _ { 0 } ) = E _ { \\mathrm { D B } } ( T _ { 0 } ^ { \\prime } ) = 0\\tag{3.21}\n$$\n\n又C、A材料性质相同，故",
+      "book_name": "传感器长书",
+      "section_title": "2. 测量两点之间温差的测温电路"
+    },
+    {
+      "id": "b6ee22902a7fbee3",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第8章 气敏传感器 > 1. 实用浓差电池 $Z r O _ { 2 }$ 氧传感器\n正文：![](images/83c4df92264eee74b919dc43fec90976240f50f1d0c98ce5234dfb916cee4c5c.jpg)  \n图 8.39 控制空燃比的 $Z _ { \\mathrm { { r } } } \\mathrm { { O } } _ { 2 }$ 氧传感器的结构\n\n![](images/71a99e457d09e5a37199d227b82e8e3842a01d8cd8ab3dd87b5664354284cc52.jpg)  \n图 8.40 浓差电池 ${ \\mathrm { Z r O } } _ { 2 }$ 氧传感器的输出特性",
+      "book_name": "传感器长书",
+      "section_title": "1. 实用浓差电池 $Z r O _ { 2 }$ 氧传感器"
+    },
+    {
+      "id": "76a28f2701648361",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第2章 传感器的功能材料及加工工艺 > 2.1.3 磁性材料\n正文：式中，M为每单位体积的磁偶极矩或磁化强度；μ为相对磁导率。 $\\mu _ { \\mathrm { r } }$\n\n固体的磁特性与原子中电子的特性有关。顺磁材料 $ { \\left( \\mu _ { \\mathrm { r } } \\right) } > 1 )$ 中的原子或离子的外层未被电子填满。不成对的单个电子自旋产生磁矩，但单个偶极子的随机取向则使偶极矩可忽略不计。当加上外磁场时，单个偶极子将趋向最小能量方向，使自身与外加磁场平行。因此，外加磁场对顺磁材料产生吸引作用，而热运动则会破坏磁偶极子取向趋于一致的趋势。因此，只有在热力学零度（0K）下，才能得到理想的磁化效果（居里-维恩定律)。抗磁材料 $( \\mu _ { \\mathrm { r } } < 1 )$ 具有带完整电子壳层的原子或离子，因此它们没有磁矩。然而，外加磁场将使电子产生附加旋转（拉莫尔进动)，这种电子运动在与外加磁场相反的方向上产生净磁矩，因此外加磁场对抗磁材料产生排斥作用。这种磁矩的取向不受温度影响。\n\n顺磁材料和抗磁材料中的磁感应强度与真空中的磁感应强度只有很小的差异，其幅度与外加磁场的大小无关。铁磁材料和铁氧体材料则会受到强磁化 $( \\mu _ { \\mathrm { r } } \\gg 1 )$ ，且随外加磁场而变。铁磁材料可以视为由许多称为磁畴的体积单元构成，每个体积单元在给定方向被磁化。当磁化方向呈随机取向时，材料未被磁化。当磁化方向在一定程度上趋于一致时，材料即被磁化。",
+      "book_name": "传感器长书",
+      "section_title": "2.1.3 磁性材料"
+    },
+    {
+      "id": "6fd296b1ed6d3e4d",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第9章 湿敏传感器 > 9.1.2 露点\n正文：由于水的饱和蒸气压是随着温度的降低而降低的，因此降低温度可以使未饱和水汽变成饱和水汽。露点就是指使原来未饱和的水汽变成饱和水汽所必须降低到的温度。当大气中的未饱和水汽接触到温度较低的物体时，就会使大气中的未饱和水汽达到或接近饱和状态，凝结成水滴，这时相对湿度为100%RH，这种现象称为结露。\n\n湿度传感器用来检阅大气中的湿度，它种类繁多，按照结构分类法，可分为电阻式和电容式两种，产品的基本形式都为在基片上涂敷感湿材料形成感湿膜。由于水的饱和蒸气压是随着环境温度的降低而逐渐下降的，则空气温度越低时，其水蒸气压与同温度下的饱和蒸气压差值就越小。当温度下降到某一温度时，其水蒸气压与同温度下的饱和蒸气压相等，此时空气中的水蒸气将向液相转化而凝结为露珠，其相对湿度为100%RH，这一特定的温度被称为空气的露点温度（简称露点)；如果这一特定温度低于 $0 \\mathrm { { ^ \\circ C } }$ ，水蒸气将会结霜，因此又称为霜点温度，通常两者统称为露点。空气中水蒸气压越小，露点越低，因而可以用露点表示空气湿度的大小。露点与相对湿度的对应关系如图9.1所示。\n\n![](images/fdab1bf142371d2cf28117dda8ef8f78c32a96d0a06f8497b53c1d632c98ed98.jpg)  \n图9.1 温度-相对湿度-露点的对应关系",
+      "book_name": "传感器长书",
+      "section_title": "9.1.2 露点"
+    },
+    {
+      "id": "error_theory_33cd06349311",
+      "category": "formula_symbol_mix",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第三章 误差的合成与分配 > 1. 标准差的合成\nContent: ## 1. 标准差的合成\n\n若测量过程中有s个单项未定系统误差，它们的标准差分别为 $u _ { 1 } , u _ { 2 } , \\cdots , u _ { s }$ ，其相应的误差传递系数为 $a _ { 1 } , a _ { 2 } , \\cdots , a _ { s }$ ，则合成后未定系统误差的总标准差为\n\n$$\nu ~ = ~ \\sqrt { \\sum _ { i = 1 } ^ { s } \\left( a _ { i } u _ { i } \\right) ^ { 2 } + 2 \\sum _ { 1 \\leqslant i < j } ^ { s } \\rho _ { i j } a _ { i } a _ { j } u _ { i } u _ { j } }\\tag{3-38}\n$$\n\n当 ${ \\rho _ { i j } } = 0$ 时，则有\n\n$$\nu = \\sqrt { \\sum _ { i = 1 } ^ { s } \\left( a _ { i } u _ { i } \\right) ^ { 2 } }\\tag{3-39}\n$$",
+      "book_name": "误差理论与数据处理",
+      "section_title": "1. 标准差的合成"
+    },
+    {
+      "id": "b5ffd08f16d490fe",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第11章 传感器的信号处理 > (2) 偏转型直流电桥\n正文：由式（11.3）表示输出读数和测量值的非线性关系，这与线性输入输出关系的正常需求不相符。解决这种非线性的方法，会随测量系统的主转换器的形式而变。\n\n一个特殊的情况是，未知电阻 $R _ { \\mathrm { u } }$ 的变化与其标称值相比非常得小。当式(11.3)中的可变电阻 $R _ { \\mathrm { u } }$ 变化量为 $\\delta R _ { \\mathrm { u } }$ 时，可以计算出新的电压 $V _ { \\mathrm { o } } ^ { \\prime }$ ，有\n\n$$\nV _ { \\mathrm { o } } ^ { \\prime } = V _ { \\mathrm { i } } \\left( { \\frac { R _ { \\mathrm { u } } + \\delta R _ { \\mathrm { u } } } { R _ { \\mathrm { u } } + \\delta R _ { \\mathrm { u } } + R _ { 3 } } } - { \\frac { R _ { 1 } } { R _ { 1 } + R _ { 2 } } } \\right)\\tag{11.4}\n$$\n\n电压输出的变化由此得出",
+      "book_name": "传感器长书",
+      "section_title": "(2) 偏转型直流电桥"
+    },
+    {
+      "id": "000a31b9adef2095",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第8章 气敏传感器 > 8.5.1 检测原理与结构\n正文：可燃性气体 $\\mathrm { { ( H _ { 2 } , ~ C O , ~ C H _ { 4 } } }$ 和LPG液化石油气体等）与空气中的氧接触，会发生氧化反应，产生反应热(无焰接触燃烧热)，使得作为敏感材料的铂丝温度升高，具有正的温度系数的金属铂的电阻值相应增加，并目在温度不太高时，电阻率与温度的关系具有良好的线性关系。一般情况下，空气中可燃性气体的浓度都不太高(低于10%)，可以完全燃烧，其发热量与可燃性气体的浓度成正比。这样，铂电阻值的增大量就与可燃性气体浓度成正比。因此，只要测定铂丝的电阻变化值(∆R)，就可以检测到空气中可燃性气体的浓度。但是，使用单纯的铂丝线圈作为检测元件，其使用寿命较短。所以实际应用的检测元件，都是在铂丝圈外面涂敷一层氧化物触媒，以延长其寿命，提高其响应特性。图8.44(a)所示为接触燃烧式气敏元件的结构图。用直径50\\~60μm的高纯（99.999%）铂丝，绕制成直径约为0.5mm的线圈，为了使线圈具有适当的阻值(1\\~2Ω)，一般应绕10圈以上，在线圈外面涂以氧化铝（或氧化铝和氧化硅混合物）的膏状涂敷层，干燥后在一定温度下烧结成球状多孔体。烧结后，放在贵金属铂、钯等的盐溶液中，充分浸渍后取出烘干，然后经过高温热处理，在氧化铝载体上形成贵金属接触媒层，最后组装成气体敏感元件。除此之外，也可以将贵金属触媒粉体与氧化铝等载体充分混合后配成膏状，涂敷在铂丝绕成的线圈上，直接烧成后备用。",
+      "book_name": "传感器长书",
+      "section_title": "8.5.1 检测原理与结构"
+    },
+    {
+      "id": "e8f183c356df7b76",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第6章 光敏传感器 > (2)充气光电二极管\n正文：rowspan=1 colspan=1>3 800</td><td rowspan=1 colspan=1>45</td><td rowspan=1 colspan=1>21.8</td><td rowspan=1 colspan=1> $3 \\times 1 0 ^ { - 1 9 }$ </td></tr><tr><td rowspan=1 colspan=1>S—12</td><td rowspan=1 colspan=1>GaAs</td><td rowspan=1 colspan=1>玻璃</td><td rowspan=1 colspan=1>R</td><td rowspan=1 colspan=1>9000</td><td rowspan=1 colspan=1>1500</td><td rowspan=1 colspan=1>0.46</td><td rowspan=1 colspan=1> $< 1 0 ^ { - 1 6 }$ </td></tr><tr><td rowspan=1 colspan=1>S—13</td><td rowspan=1 colspan=1> $\\mathrm { I n } _ { 0 . 0 7 } \\mathrm { G a } _ { 0 . 9 3 } \\mathrm { A s }$ </td><td rowspan=1 colspan=1>玻璃</td><td rowspan=1 colspan=1>R</td><td rowspan=1 colspan=1>13 000</td><td rowspan=1",
+      "book_name": "传感器长书",
+      "section_title": "(2)充气光电二极管"
+    },
+    {
+      "id": "p114_c273",
+      "category": "formula_symbol_mix",
+      "text": "六、复合形法的特点\n1）不必计算目标函数的一、二阶导数，只计算目标函数值，因此对目标函数 f(\\pmb {X}) 无特殊要求。\n2）无需一维搜索，程序较简单。\n3）随着设计变量 (n\\geqslant 5) 和约束条件的增多其计算效率显著降低。\n例6-1 试用复合形法求解下列约束优化问题，迭代精度取 \\varepsilon = 0.01\n$$\n\\min  f (\\boldsymbol {X}) = (x _ {1} - 3) ^ {2} + x _ {2} ^ {2}\n$$\n$$\n\\begin{array}{l} \\text {s . t .} \\quad \\left\\{ \\begin{array}{l} g _ {1} (\\boldsymbol {X}) = x _ {1} ^ {2} + x _ {2} - 4 \\leqslant 0 \\\\ g _ {2} (\\boldsymbol {X}) = - x _ {2} \\leqslant 0 \\\\ g _ {3} (\\boldsymbol {X}) = 0. 5 - x _ {1} \\leqslant 0 \\end{array} \\right. \\end{array}\n$$",
+      "book_name": "优化设计",
+      "section_title": "六、复合形法的特点"
+    },
+    {
+      "id": "p35_c90",
+      "category": "formula_symbol_mix",
+      "text": "二、基本迭代公式\n由图2-18所示，迭代的基本公式为\n$$\n\\boldsymbol {X} ^ {(k + 1)} = \\boldsymbol {X} ^ {(k)} + \\alpha^ {(k)} \\boldsymbol {S} ^ {(k)} \\quad (k = 0, 1, 2, \\dots) \\tag {2-28}\n$$\n从而使\n$$\nf \\left(\\boldsymbol {X} ^ {(k + 1)}\\right) <   f \\left(\\boldsymbol {X} ^ {(k)}\\right)\n$$\n式中， X^{(k)} 为第 k 步迭代的初始点（出发点）； X^{(k + 1)} 为第 k 步迭代产生的新点（终止点），也是第 (k + 1) 步迭代的初始点；S^{(k)} 为第 k 步迭代搜索方向，是一个矢量； \\alpha^{(k)} 为第 k 步迭代最优步长因子，是标量。\n由此不难看出，一个下降迭代算法需要解决两个基本问题：\n图2-18 迭代算法示意图\n1）如何选取搜索方向 S^{(k)} 。不同的 S^{(k)} 构成了不同的下降迭代算法，因此，寻找一个使目标函数值迅速下降的可行方向是优化设计研究的核心问题。\n2）确定步长因子 \\alpha^{(k)} 。一般由一维搜索方法取得 \\alpha^{(k)} 。",
+      "book_name": "优化设计",
+      "section_title": "二、基本迭代公式"
+    },
+    {
+      "id": "error_theory_22daae1c8419",
+      "category": "formula_symbol_mix",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第二章 误差的基本性质与处理 > 4. 判断系统误差\nContent: ## 4. 判断系统误差\n\n根据残余误差观察法，由上表可以看出误差符号大体上正负相同，且无显著变化规律，因此可判断该测量列无变化的系统误差存在。\n\n若按残余误差校核法，因 $n = 9$ ，则\n\n$$\nK = { \\frac { n + 1 } { 2 } } = 5\n$$\n\n$$\n\\Delta = ~ \\sum _ { i = 1 } ^ { 5 } v _ { i } ~ - ~ \\sum _ { i = 6 } ^ { 9 } v _ { i } ~ = ~ \\left[ 0 ~ - ~ ( - 0 . 0 0 1 ) ~ \\right] \\mathrm { { m m } ~ = ~ 0 . 0 0 1 \\mathrm { { m m } } }\n$$\n\n因差值Δ较小，故也可判断该测量列无系统误差存在。",
+      "book_name": "误差理论与数据处理",
+      "section_title": "4. 判断系统误差"
+    },
+    {
+      "id": "a8a8996f6f47bdc6",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第11章 传感器的信号处理 > (3)差动式电压-电流变换电路\n正文：因此负载中的电流为\n\n$$\nI _ { \\mathrm { { L } } } = I _ { 3 } - I _ { 1 } = { \\frac { { \\displaystyle \\frac { V _ { \\mathrm { i } 2 } } { R _ { 3 } } } - { \\frac { V _ { \\mathrm { i 1 } } } { R _ { 1 } } } { \\frac { R _ { 2 } } { R _ { 1 } } } + I _ { \\mathrm { { L } } } R _ { \\mathrm { { L } } } ( R _ { 2 } R _ { 3 } - R _ { 1 } R _ { 4 } ) } { R _ { 1 } R _ { 3 } R _ { 4 } } }\\tag{11.54}\n$$\n\n因此，为获得负载中的电流与负载无关的特性，电阻的选择必须满足条件\n\n$$\nR _ { 1 } R _ { 4 } = R _ { 2 } R _ { 3 }\\tag{11.55}\n$$\n\n相应的接地负载中电流为\n\n$$\nI _ { \\mathrm { L } } = { \\frac { V _ { \\mathrm { i } 2 } - V _ { \\mathrm { i } 1 } } { R _ { 3 } } }\\tag{11.56}\n$$\n\n由式（11.56）可知，若任意一个输入电压为零，则此电路也可以是另外一种接地负载的电压一电流变换器。采用仪器放大器也可以实现差动式电压一电流变换电路。",
+      "book_name": "传感器长书",
+      "section_title": "(3)差动式电压-电流变换电路"
+    },
+    {
+      "id": "86d5f5a6d2b79150",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第11章 传感器的信号处理 > (3)测量仪器的电流不可忽略的情况\n正文：(1)测量仪器内阻 $R _ { \\mathrm { m } }$ 可以忽略。\n\n(2) 考虑的 $R _ { \\mathrm { m } }$ 值。\n\n解： $R _ { \\mathrm { u } } = 5 0 0 \\Omega$ $V _ { \\mathrm { m } } = 0$ 。为了确定灵敏度，计算$R _ { \\mathrm { u } } = 5 0 1 \\Omega$ 时的 $V _ { \\mathrm { m } }$ 。\n\n（1）运用式（11.3）有\n\n$$\nV _ { \\mathrm { m } } = V _ { \\mathrm { i } } \\left( { \\frac { R _ { \\mathrm { u } } } { R _ { \\mathrm { u } } + R _ { 3 } } } - { \\frac { R _ { 1 } } { R _ { 1 } + R _ { 2 } } } \\right)\n$$\n\n代入数值得\n\n$$\nV _ { \\mathrm { m } } = 1 0 \\times { \\bigg ( } { \\frac { 5 0 1 } { 1 0 0 1 } } { - } { \\frac { 5 0 0 } { 1 0 0 0 } } { \\bigg ) } = 5 . 0 0 { \\mathrm { m V } }\n$$\n\n![](images/e6bd0f591e11af1f4444678508a62a1daa640cec1a47059988dac34ab67102c4.jpg)",
+      "book_name": "传感器长书",
+      "section_title": "(3)测量仪器的电流不可忽略的情况"
+    },
+    {
+      "id": "83148534b9b6dff4",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第3章 温敏传感器 > (5) 皮拉尼真空计\n正文：典型的皮拉尼真空计如图3.46(a)所示，它同热敏真空计类似，所不同的是，它的热敏元件由4个并联连接的钨丝构成。两个通用的管材连接如图3.46(b)所示，内部4根钨丝连接成电桥电路，其中一个管中抽真空至一个非常低的压力，另外一个管中是待测的未知压力。由于气体的热传导率，钨丝上有电流流过。钨丝上的电阻变化破坏了测量电桥的平衡，因此皮拉尼真空计避免了采用热敏元器件或热电偶来测量温度实现压力测定。这种方式可以测量的压力范围为 $1 0 ^ { - 5 } \\mathrm { { M } \\mathrm { { \\sim } 1 \\mathrm { { M P a } } } }$ 0\n\n![](images/ce0e05909c3698f79dbcd2f68146b2ee705476b56106bac9f424735d8c82dc4e.jpg)  \n图 3.46 皮拉尼真空计",
+      "book_name": "传感器长书",
+      "section_title": "(5) 皮拉尼真空计"
+    },
+    {
+      "id": "p88_c219",
+      "category": "formula_symbol_mix",
+      "text": "2. 从一个基本可行解迭代出另一个基本可行解，并判断是否为最优解\n将初始基本可行解 X^{(0)} 中的 x_{1} = 0 ， x_{2} = 0 代入到式(5-12)目标函数中得 f(\\mathbf{X}^{(0)}) = 0 。从目标函数中可直接看出，由于 x_{1} ， x_{2} 的系数都是负数，如果使 x_{1} ， x_{2} 由零变为正数，则目标函数值显然可以下降。所以，初始基本可行解 X^{(0)} 不是最优解，需要进行变换基本可行解的迭代运算。\n从上节例5-1可知，取不同的基可得到不同的基本解。因此，从一个基本可行解迭代到另一个基本可行解，必须从一个基变换出另一个基，而且这种基变换应遵循以下两个重要的",
+      "book_name": "优化设计",
+      "section_title": "2. 从一个基本可行解迭代出另一个基本可行解，并判断是否为最优解"
+    },
+    {
+      "id": "780305d4a19448ed",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第7章 声敏传感器 > 7.5.2 SAW 传感器的结构与工作原理\n正文：SAW传感器的关键是SAW振荡器，它由压电材料基片和沉积在基片上的不同功能的叉指换能器组成，有延迟线型和振子型两种振荡器，延迟线型SAW振荡器基本结构如图7.38所示，其由一组SAW发射接收电极（IDT）和反馈放大器组成，其振荡频率为\n\n$$\nf _ { 0 } = \\frac { V _ { \\mathrm { R } } } { L } \\left( n - \\frac { \\phi _ { \\mathrm { E } } } { 2 \\pi } \\right)\\tag{7.51}\n$$\n\n式中， $V _ { \\mathrm { R } }$ 为SAW传播速度；L为两个IDT之间的距离； $\\phi _ { \\mathrm { E } }$ 为放大器相移量；n为正整数（与电极形状及L值有关)。当 $\\phi _ { \\mathrm { E } }$ 值不变，外界被测参量变化时，会引起 $V _ { \\mathrm { R } } ,$ L值发生变化，从而引起振荡频率改变。\n\n$$\n\\Delta \\mathit { f } \\mathit { f } _ { 0 } { = } \\Delta \\mathit { V } _ { \\mathrm { R } } / \\mathit { V } _ { \\mathrm { R } } { - } \\Delta \\mathit { L } / \\mathit { L }\\tag{7.52}\n$$\n\n因此，根据 $\\Delta f$ 的大小即可测出外界参量的变化量。图7.39所示为声表面波（SAW）器件的工作原理。",
+      "book_name": "传感器长书",
+      "section_title": "7.5.2 SAW 传感器的结构与工作原理"
+    },
+    {
+      "id": "sensor_core_3b18eb674fe7",
+      "category": "formula_symbol_mix",
+      "text": "Textbook: 传感器短书\nSection: 第七章 光电式传感器 > (四)面阵电荷耦合器件\nContent: ## (四)面阵电荷耦合器件\n\n面阵电荷耦合器件是把光敏元等排列成矩阵的器件，它有数种结构形式，图7-19表\n\n示了一种叫“场转移面阵电荷耦合器件”的结构示意图。它由一个光敏元面阵、存储器面阵和读出移位寄存器（线阵）组成。光敏元面阵可视作为由若干列线阵电荷耦合器件组成，存储器面阵可视为由若干列线阵读出寄存器组成。\n\n为了对面阵电荷耦合器件的工作原理叙述简单起见，假设它是一个4×4的面阵。在光积分时间，各个光敏元曝光，吸收光生电荷。曝光结束时，器件实行场转移，亦即在一个瞬间内将原整场的光电图像迅速地转移到存储器列阵中去，譬如将脚注为$a _ { 1 } \\ 、 \\ a _ { 2 } \\ 、 \\ a _ { 3 } \\ 、 \\ a _ { 4 }$ 的光敏元中的光生电荷分别转移到脚注相同的存储单元中去。此时光敏元开始第二次光积分，而存储器列阵则将它里面存储的光生电荷信息一行行地转移到读出移位寄存器，在高速时钟驱动下，读出移位寄存器输出每行中各位的光生电荷信息。如第一次将 $a _ { 1 } , b _ { 1 } , c _ { 1 } , d _ { 1 }$ 这一行信息转移到读出移位寄存器，读出移位寄存器立即将它们按 $a _ { 1 } , b _ { 1 } , c _ { 1 } , d _ { 1 }$ 的次序有规则地输出。接着再将 $a _ { 2 }$ $b _ { 2 }$ $c _ { 2 }$ $d _ { 2 }$ 这一行信息传到读出移位寄存器，直至最后由读出移位寄存器输出 $a _ { 4 }$ $b _ { 4 }$ $c _ { 4 }$ $d _ { 4 }$ 的信息为止。\n\n![](images/825e05acd1d9077eb80ef8e1b2c17d7f6c5a826d6091ce26542717249d15f3da.jpg)  \n图7-19 场转移面阵电荷耦合器件",
+      "book_name": "传感器短书",
+      "section_title": "(四)面阵电荷耦合器件"
+    },
+    {
+      "id": "b99d839313e3342a",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第11章 传感器的信号处理 > (1）零型直流电桥（惠斯通电桥）\n正文：因此\n\n![](images/848da65dcd003743a4ffa1facb8c69f1ceeb2b8b91bfe7d84c8c4a056d580f40.jpg)  \n图 11.1 惠斯通电桥\n\n$$\nV _ { \\mathrm { o } } = - { \\frac { V _ { \\mathrm { i } } R _ { \\mathrm { v } } } { R _ { \\mathrm { v } } + R _ { \\mathrm { 2 } } } } + { \\frac { V _ { \\mathrm { i } } R _ { \\mathrm { u } } } { R _ { \\mathrm { u } } + R _ { 3 } } }\\tag{11.1}\n$$\n\n零点处 $V _ { \\mathrm { o } } = 0$ ，因此\n\n$$\n{ \\frac { R _ { \\mathrm { u } } } { R _ { \\mathrm { u } } + R _ { 3 } } } = { \\frac { R _ { \\mathrm { v } } } { R _ { \\mathrm { v } } + R _ { 2 } } }\n$$\n\n两边求倒数\n\n$$\n\\frac { R _ { \\mathrm { u } } + R _ { 3 } } { R _ { \\mathrm { u } } } = \\frac { R _ { \\mathrm { v } } + R _ { 2 } } { R _ { \\mathrm { v } } }\n$$",
+      "book_name": "传感器长书",
+      "section_title": "(1）零型直流电桥（惠斯通电桥）"
+    },
+    {
+      "id": "sensor_core_cf757b6ef415",
+      "category": "formula_symbol_mix",
+      "text": "Textbook: 传感器短书\nSection: 第二章 电阻式传感器 > 思考题与习题\nContent: ## 思考题与习题\n\n1. 何为金属的电阻应变效应？怎样利用这种效应制成应变片？\n\n2. 什么是应变片的灵敏系数？它与电阻丝的灵敏系数有何不同？为什么？\n\n3. 对于箔式应变片，为什么增加两端各电阻条的横截面积便能减小横向灵敏度？\n\n4. 用应变片测量时，为什么必须采用温度补偿措施？\n\n5. 一应变片的电阻 $R = 1 2 0 \\Omega , k = 2 . 0 5$ 。用作应变为 $8 0 0 \\mu \\mathrm { m / m }$ 的传感元件。①求∆R和 $\\Delta R / R$ ②若电源电压 $U = 3 \\mathrm { V }$ ，求初始平衡时惠斯登电桥的输出电压 $U _ { \\textrm { \\tiny 0 } }$ o\n\n6. 金属应变片与半导体应变片在工作原理上有何不同？",
+      "book_name": "传感器短书",
+      "section_title": "思考题与习题"
+    },
+    {
+      "id": "p150_c349",
+      "category": "formula_symbol_mix",
+      "text": "6-1 单项选择题\n（1）在复合形法中，若反射系数 \\alpha 已缩小到预定的数 (\\delta = 10^{-5}) 仍不能满足反射点优于最坏点，则可用\nA. 好点代替坏点\nB. 次坏点代替坏点\nC. 反射点代替坏点\nD. 形心点代替坏点\n（2）对于极小化 f(\\pmb {X}) ，而受约束 g_{u}(X)\\geqslant 0(u = 1,2,\\dots ,m) 的优化问题，其内点罚函数表达式为\nA. \\varphi(\\boldsymbol{X}, r^{(k)}) = f(\\boldsymbol{X}) + r^{(k)} \\sum_{u=1}^{m} \\left[ \\max \\left\\{ g_u(\\boldsymbol{X}), 0 \\right\\} \\right]^2\nB. \\varphi(\\boldsymbol{X}, r^{(k)}) = f(\\boldsymbol{X}) + r^{(k)} \\sum_{u=1}^{m} \\left[ \\min \\left\\{ g_u(\\boldsymbol{X}), 0 \\right\\} \\right]^2\nC. \\varphi(\\boldsymbol{X}, r^{(k)}) = f(\\boldsymbol{X}) - r^{(k)} \\sum_{u=1}^{m} \\frac{1}{g_u(\\boldsymbol{X})}\nD. \\varphi(\\boldsymbol{X}, r^{(k)}) = f(\\boldsymbol{X}) + r^{(k)} \\sum_{u=1}^{m} \\frac{1}{g_u(\\boldsymbol{X})}",
+      "book_name": "优化设计",
+      "section_title": "6-1 单项选择题"
+    },
+    {
+      "id": "cfaac013cf4292ef",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第3章 温敏传感器 > 3. 负温临界热敏电阻\n正文：负温临界热敏电阻（CTR）是指在某一温度附近电阻值发生突变，且于几度的狭小温区内随温度的增加阻值降低3\\~4个数量级的一类热敏元件。典型的CTR热敏电阻-温度特性曲线如图3.37所示。典型的 CTR 电阻材料 ${ \\bf V } _ { 2 } { \\bf O } _ { 3 }$ ，其相变点可通过添加Ge、Ni、W、Mn等元素来调整。CRT热敏电阻与相变温度对应的宏观开关温度 $( T _ { \\mathrm { C } } )$ 定义为电阻值下降到某一规定值（通常是标称电阻乘以一规定系数，如80%）时所对应的温度，该规定值称为开关电阻 $( R _ { \\mathrm { C } } )$ 。通常，也可以按照曲线先求出切线在高阻端的交点 $R _ { \\mathrm { h } }$ 和切线在低阻端的交点 $R _ { 1 }$ 其经验算式为\n\n$$\nR _ { \\mathrm { C } } = { \\left( R _ { \\mathrm { h } } + R _ { 1 } \\right) } ^ { 1 / 2 }\n$$",
+      "book_name": "传感器长书",
+      "section_title": "3. 负温临界热敏电阻"
+    },
+    {
+      "id": "4af791ea730c79a0",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第7章 声敏传感器 > 7.3.2水声传感器用郎之万型换能器\n正文：从压电陶瓷材料的机电耦合系数来看，其纵向机电耦合系数为最大，即利用沿极化方向的伸缩振动的效果为最好。\n\n水声传播的频率一般都比较低，如果采用圆柱形压电陶瓷，制得频率为50kHz的换能器，其沿极化方向的厚度为42\\~45mm。制作厚度很大的电压陶瓷在工艺和技术上都十分困难，而郎之万型换能器可以克服这类困难。\n\n在一片电压陶瓷片两侧（极化方向与厚度方向平行)各黏结一个金属圆柱，就构成了郎之万型换能器，郎之万型换能器的整个厚度等于基波半波长。这种结构的优点在于既利用了压电陶瓷的纵向效应，又利于获得较低的谐振频率，而且阻抗也可做得比较低。郎之万型换能器的温度系数很小，换能器在负载情况下的 $Q _ { \\mathrm { m } }$ 值随金属圆柱的材料不同而改变；当使用钢之类相对密度较大的金属圆柱时， $Q _ { \\mathrm { m } }$ 值将变高；而使用像铝之类的轻金属圆柱时， $Q _ { \\mathrm { m } }$ 值将下降到用钢圆柱时的1/2以下。\n\n郎之万型换能器，实质上是复合棒式的振子。郎之万型换能器的振幅波形如图7.17所示，在基波振动时，辐射面中部振幅最大，由中心到四周振幅逐渐衰减；二次谐波振动的情况则相反，辐射面边缘的振幅为最大，而中心部位振幅最小。\n\n最早付诸实施并使用于鱼群探测仪的郎之万型换能器，是由外径为60mm、厚度为5mm的压电陶瓷片与厚度为14mm的两个钢柱黏结而成的，质量约为700g，谐振频率为50kHz。",
+      "book_name": "传感器长书",
+      "section_title": "7.3.2水声传感器用郎之万型换能器"
+    },
+    {
+      "id": "sensor_core_cd38cead349f",
+      "category": "formula_symbol_mix",
+      "text": "Textbook: 传感器短书\nSection: 第十一章 波式和射线式传感器 > 4. 声波的衰减\nContent: ## 4. 声波的衰减\n\n声波在介质中传播时，随着传播距离的增加，能量逐渐衰减。其声压和声强的衰减规律如下：\n\n$$\n\\begin{array} { l } { { \\boldsymbol { p } } _ { x } = p _ { 0 } { \\mathrm { ~ e ~ } } ^ { - \\alpha x } } \\\\ { \\qquad I _ { x } = I _ { 0 } { \\mathrm { e } } ^ { - 2 \\alpha x } } \\end{array}\\tag{11-2}\n$$\n\n式中 $p _ { x }$ 1 $I _ { x }$ ——平面波在x处的声压和声强；\n\n$p _ { \\mathrm { 0 } }$ $I _ { 0 }$ —平面波在x =0处的声压和声强；\n\nα——衰减系数。\n\n声波在介质中传播时，能量的衰减，取定于声波的扩散、散射和吸收。在理想介质中，声波的衰减仅来自于声波的扩散，就是随着声波传播距离的增加，在单位面积内声能将要减弱。散射衰减就是声波在固体介质中颗粒界面上散射，或在流体介质中有悬浮粒子使超声波散射。而声波的吸收是由介质的导热性、粘滞性及弹性滞后等造成的。吸收随声波频率的升高而增高。α因介质材料的性质而异，但晶粒越粗，频率越高，则衰减愈大。最大探测厚度往往受衰减系数的限制。经常以dB/cm或 $1 0 \\textsuperscript { - 3 } \\mathrm { d B / m m }$ 为单位来表示衰减系数。在一般探测频率上，材料的衰减系数在一到几百之间。例如衰减系数为1dB/mm的材料，则声波穿透1mm衰减1dB；声波穿透20mm时，衰减20dB。",
+      "book_name": "传感器短书",
+      "section_title": "4. 声波的衰减"
+    },
+    {
+      "id": "sensor_core_baf15d879648",
+      "category": "formula_symbol_mix",
+      "text": "Textbook: 传感器短书\nSection: 第五章 磁电式传感器 > (二）磁致伸缩振动传感器\nContent: ## (二）磁致伸缩振动传感器\n\n磁致伸缩振动传感器结构如图5-18所示。导杆1与GMM材料制作的振动杆5刚性连\n\n接，并由弹簧4支承。永久磁铁2提供偏置磁场 $H _ { \\mathrm { ~ o ~ c ~ } }$ 设导杆承受的动态力 $F = F _ { \\mathrm { m } } \\sin \\mathrm { ~ ( ~ } \\omega t \\mathrm { ~ ) ~ }$ $\\boldsymbol { F } _ { \\mathrm { m } }$ 为动态力幅值，ω为角频率，则振动杆的应力 $\\sigma = \\textit { F } _ { \\mathrm { m } } \\mathrm { s i n } \\omega t \\textit { } / S$ ，S为振动杆横截面积。因而，振动杆会发生维拉利效应，振动杆的磁化强度M随其应力状态而变化。磁化强度M进一步改变磁感应强度B，两者关系为\n\n$$\n\\boldsymbol { B } \\ = \\ \\mu _ { 0 } \\left( \\ M + \\ H _ { 0 } \\right)\n$$\n\n![](images/c0232b4ea35c554134a712d7ae0d9db8e26cf501862cdf72a7202b7a7ea25c86.jpg)\n\n(5-14)\n\n相应地，线圈3因磁通量变化而产生的感应电动势为\n\n$$\n\\boldsymbol { e } _ { \\mathrm { ~ o ~ } } = N A \\ \\frac { \\mathrm { d } B } { \\mathrm { d } t }\\tag{5-15}\n$$\n\n图5-18 磁致伸缩振动传感器结构示意图\n\n式中 N——线圈匝数；\n\n1—导杆2—永久磁铁3—线圈 4—弹簧 5—振动杆\n\nA——线圈横截面积。\n\n通过测量电路，就可以测量出被测的振动信号。",
+      "book_name": "传感器短书",
+      "section_title": "(二）磁致伸缩振动传感器"
+    },
+    {
+      "id": "p253_c573",
+      "category": "formula_symbol_mix",
+      "text": "sg = sg + r0 / (* (g + i)); else sg = sg + r0 * (1e + 10); free(g); ff = f(p) + sg; return(ff); void jtf(double x0[], double h0, double s[], int n, double a[], double b[]) { int i; double *x[3], h, f1, f2, f3; for (i = 0; i < 3; i++) x[i] = (double *) malloc(n * sizeof(double)); h = h0; for (i = 0; i < n; i++) * (x[0] + i) = x0[i]; f1 = objf(x[0]); for (i = 0; i < n; i++) * (x[1] + i) = * (x[0] + i) + h * s[i]; f2 = objf(x[1]); if (f2 >= f1) { h = -h0; for (i = 0; i < n; i++) * (x[2] + i) = * (x[0] + i); f3 = f1; for (i = 0; i < n; i++) { * (x[0] + i) = * (x[1] + i); * (x[1] + i) = * (x[2] + i); } f1 = f2; f2 = f3; } for (;;) { h = 2 * h; for (i = 0; i < n; i++)",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "cc6c9cb8d5eb92db",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第7章 声敏传感器 > 7.1.3声波的反射、折射、透射和吸收\n正文：声波在传播过程中常常会遇到各种各样的障碍物，会有一部分声波反射回来，同时也有一部分声波会透射过去。声波在分界面上的反射和透射的大小仅决定于媒质的特性阻抗。由于篇幅所限本书对以下公式不做详细推导，直接引用结论。\n\n当平面声波垂直从媒质Ⅰ入射到媒质Ⅱ的界面上时，反射波声压pra与入射波声压pia之比γp、反 $p _ { \\mathtt { r A } }$ $p _ { \\mathrm { i A } }$ $\\gamma _ { \\mathfrak { p } } .$ 射质点速度 $\\nu _ { \\mathrm { r A } }$ 与入射波质点速度 $\\nu _ { \\mathrm { i A } }$ 之比 $\\gamma _ { \\mathrm { v } }$ 、透射波声压 $p _ { \\mathsf { t A } }$ 与入射波声压 $p _ { \\mathrm { i A } }$ 之比 $t _ { \\mathfrak { p } } .$ 透射波质点速\n\n度 $\\nu _ { \\mathrm { t A } }$ 与入射波质点速度 $\\nu _ { \\mathrm { i A } }$ 之比 $t _ { \\mathrm { v } }$ 分别为",
+      "book_name": "传感器长书",
+      "section_title": "7.1.3声波的反射、折射、透射和吸收"
+    },
+    {
+      "id": "p199_c487",
+      "category": "formula_symbol_mix",
+      "text": "第四节 行星减速器的优化设计\n行星减速器是机械传动中应用较广泛的一种传动装置，其具有体积小、传动比大的突出优点，但设计计算比较复杂。\n行星减速器的体积、重量及其承载能力，主要取决于传动参数的选择。设计问题一般是在给定传动比和输入扭矩的情况下，确定行星轮的个数、各轮的齿数、模数和齿轮宽度等参数。由于行星减速器在结构上的特殊性，各齿轮的齿数不能任意选取，必须严格按照依据“机械原理”推导出来的配齿公式进行设计配齿。但这种配齿设计计算的结果不是唯一的，能获得多种配齿方案，可根据结构布置和设计者的经验，从中选择一组齿数方案，再按照强度条件计算模数、齿宽等参数。在选择参数方案时，往往没有明确的评价指标，如果要选择一组既能满足设计要求又比较好的设计方案，则必须从多种配齿方案的大量计算中通过比较来选择。即使这样，也还不能得到最优的方案。因此，行星减速器的优化设计是一个具有实际意义的课题。\n下面以应用较为广泛的单排2K-H型行星减速器为例说明优化设计方法。为便于配齿，使问题简化，这里仅涉及标准齿轮的行星减速器[10]。\n图9-8所示是单排2K-H型行星减速器的简图。1，3为中心轮，2是行星轮， H 为系杆。齿轮1为输入件，系杆 H 为输出构件。其原始数据为：传动比 i_{1H} = 4.64 ，输入扭矩 T_{1} = 1117\\mathrm{N}\\cdot \\mathrm{m} ，齿轮材料均用 38\\mathrm{SiMnMo} 钢，表面淬火硬度 \\mathrm{HRC} = 45\\sim 55 ，选取行星轮个数 K =",
+      "book_name": "优化设计",
+      "section_title": "第四节 行星减速器的优化设计"
+    },
+    {
+      "id": "df275cc10e3e3a79",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第7章 声敏传感器 > 4. 表面横波\n正文：利用周期性表面扰动，如采用金属栅，可将表面滑移体波（Surface Skimming Bulk Wave，SSBW）能量限制在表面，得到表面横波（SurfaceTransverse Wave，STW)。由于表面金属的质量负载、金属条内波速较慢、金属条的电短路等因素，导致金属栅对波起到一种减速作用。与APM相比，STW是剪切平行极化的。但由于STW的能量集中在表面附近，所得到的质量灵敏度更高一些。STW器件的结构如图7.37所示，在旋转Y切型（如ST切型）石英晶片上制作金属栅格时，金属条的方向与x轴平行。\n\n![](images/5ab98a5580fb1bbfa7565b70cf11b467892bb2999d01692b9b37364522e5a0cf.jpg)  \n图 7.37 STW 器件的结构\n\n同样，这种波的质量灵敏度约为\n\n$$\nS _ { \\mathrm { m } } = - 1 / \\rho b\\tag{7.50}\n$$\n\n式中，b为波导层的有效厚度； $\\rho$ 为晶体的密度。用250MHz的这种器件检测人体免疫球蛋白HIgG，可敏感的表面质量达 $1 8 \\mathrm { g } / \\mathrm { c m } ^ { 2 }$ ，检测下限为0.2ng/cm²。",
+      "book_name": "传感器长书",
+      "section_title": "4. 表面横波"
+    },
+    {
+      "id": "33246d5355044163",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第11章 传感器的信号处理 > 11.4.1 滤波器的基本知识\n正文：式中， $V _ { \\mathrm { i } } ( s )$ 和 $V _ { \\circ } ( s )$ 分别为输入和输出电压信号的拉普拉斯变换。\n\n传递函数定义了滤波器对任意输入信号的响应。但在实际应用中，经常需要了解的是滤波器对连续正弦波信号的影响情况。尤其重要的是，传递函数的幅值反映了滤波器在各个频率点对正弦信号的幅值影响情况。知道了传递函数在每个频率点的幅值（或增益)，就可以确定滤波器对不同频率信号的区分情况。传递函数的幅值一频率特性称为幅频特性。有时，尤其是在音频应用领域，也直接称为频率响应。\n\n同样，滤波器的相频特性给出了滤波器在各个频率点上对正弦信号所添加的相移。由于信号相位的改变同样也反映为信号在时域中形状的改变，因此滤波器的相频特性对于那些需要严格考虑信号中各频率成分间时域关系的复杂信号非常重要。\n\n将jω代入式（11.76)，可得到滤波器的幅频特性及相频特性\n\n$$\n\\left| H ( \\mathrm { j } \\omega ) \\right| { = } \\left| \\frac { V _ { \\mathrm { o } } ( \\mathrm { j } \\omega ) } { V _ { \\mathrm { i } } ( \\mathrm { j } \\omega ) } \\right|\n$$",
+      "book_name": "传感器长书",
+      "section_title": "11.4.1 滤波器的基本知识"
+    },
+    {
+      "id": "d83e5f276f066c0d",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第8章 气敏传感器 > 8.3.1 电阻型半导体气敏元件\n正文：colspan=1>室温~450℃室温~200℃室温~150℃</td><td rowspan=1 colspan=1>可燃气、 $\\mathrm { N O _ { 2 } } , \\ \\mathrm { H _ { 2 } } , \\ \\mathrm { C O } ,$ 乙醇、 $\\mathrm { H } _ { 2 } , \\ \\mathrm { H } _ { 2 } \\mathrm { S } , \\ \\mathrm { N H } _ { 3 }$ </td></tr><tr><td rowspan=1 colspan=1>体相控制型（晶格缺陷）</td><td rowspan=1 colspan=1>电导率</td><td rowspan=1 colspan=1> $_ { \\textrm { L a } _ { 1 - x } \\textrm { S } , \\textrm { C o O } _ { 2 } , }$  $\\gamma \\mathrm { - F e } _ { 2 } \\mathrm { O } _ { 3 } , \\ \\mathrm { T i O } _ { 2 }$  $\\mathrm { C o O - M g O , \\Delta S n O _ { 2 } }$ </td><td rowspan=1 colspan=1>300~450℃700℃以上</td><td rowspan=1 colspan=1>乙醇、可燃气、 $\\mathrm { O } _ { 2 }$ </td></tr></table>",
+      "book_name": "传感器长书",
+      "section_title": "8.3.1 电阻型半导体气敏元件"
+    },
+    {
+      "id": "e8ed037c795a5c37",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第3章 温敏传感器 > 3. 热电偶总电势\n正文：{ d } T } } \\\\ { { \\displaystyle \\quad \\quad = \\frac { k _ { 0 } T } { q } \\ln \\frac { n _ { \\mathrm { A } } ( T ) } { n _ { \\mathrm { B } } ( T ) } - \\frac { k _ { 0 } T _ { 0 } } { q } \\ln \\frac { n _ { \\mathrm { A } } ( T _ { 0 } ) } { n _ { \\mathrm { B } } ( T _ { 0 } ) } + \\int _ { 0 } ^ { T } ( \\sigma _ { \\mathrm { B } } - \\sigma _ { \\mathrm { A } } ) \\mathrm { d } T - \\int _ { 0 } ^ { T _ { 0 } } { ( \\sigma _ { \\mathrm { B } } - \\sigma _ { \\mathrm { A } } ) \\mathrm { d } T } } } \\\\   \\displaystyle \\quad \\quad = [ \\frac { k _ { 0 } T } { q } \\ln \\frac { n _ { \\mathrm { A } } ( T ) } { n _ { \\mathrm { B } } ( T ) } + \\int _ { 0 } ^ { T } ( \\sigma _ { \\mathrm { B } } - \\sigma _ {",
+      "book_name": "传感器长书",
+      "section_title": "3. 热电偶总电势"
+    },
+    {
+      "id": "91c65d72ce45e15e",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第4章 力敏传感器 > 2. 测量电路\n正文：由于 $\\mathrm { V D } _ { 1 }$ 和 $\\mathrm { V D } _ { 2 }$ 特性相同， $R _ { 1 } = R _ { 2 } = R$ 。当没有压力输给传感器时，差动电容 $C _ { 1 } = C _ { 2 }$ ，即在 $u$ 的一个周期内流过 $R _ { \\mathrm { L } }$ 的 $i _ { \\mathrm { L } }$ 与 $i _ { \\mathrm { L } } ^ { \\prime }$ 的平均值为零，即 $R _ { \\mathrm { L } }$ 上无信号输出。当有压力输给传感器时， $C _ { 1 } \\neq C _ { 2 }$ 在 $R _ { \\mathrm { L } }$ 上产生的平均电流不为零，则有信号输出。此时 $R _ { \\mathrm { L } }$ 两端的平均电压为\n\n$$\nU _ { \\circ } \\approx { \\frac { R ( R + 2 R _ { \\mathrm { L } } ) } { { ( R + R _ { \\mathrm { L } } ) } ^ { 2 } } } U R _ { \\mathrm { L } } ( C _ { 1 } - C _ { 2 } ) f\n$$",
+      "book_name": "传感器长书",
+      "section_title": "2. 测量电路"
+    },
+    {
+      "id": "97dba65e11691b6c",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第8章 气敏传感器 > 1. 表面电阻控制型气敏传感器\n正文：因此，被氧原子捕获的电子重新回到半导体中去，表面电阻下降。利用这种表面电阻的变化来检测各种气体的敏感器件，称为表面电阻控制型气敏器件。这种器件的表面电阻大于体电阻时方能得到应用。因此，目前这类器件大部分都做成多孔质烧结体、薄膜、厚膜等形状。多孔质烧结体、薄膜和厚膜器件都是多晶体，它们由很多晶粒组合而成，晶粒接触部分的形状对气敏特性有很大的影响。当吸附引起的电子浓度变化与每个晶粒表面空间电荷层厚度 $d$ 的两倍差不多时，器件的电阻变化率最大。\n\n另外，在晶粒接触部分如果存在由于晶轴之间的偏离产生的错位，它们将形成妨碍载流子运动的势垒，这种势垒也因吸附气体而改变其高度，由此也改变了器件的电阻。\n\n对于表面电阻控制型气敏器件及其他类型的半导体气敏器件，为了加快气体分子在表面上的吸附/脱附作用，多数器件都在加热到 $1 5 0 ^ { \\circ } \\mathrm { C }$ 以上的温度下工作。因此目前实际应用的表面电阻控制型气敏器件大多是由禁带宽度比较大、耐高温的金属氧化物半导体材料制备的。为了提高器件的灵敏度，常常在这些材料中添加Pd、Pt等催化剂。",
+      "book_name": "传感器长书",
+      "section_title": "1. 表面电阻控制型气敏传感器"
+    },
+    {
+      "id": "p199_c485",
+      "category": "formula_symbol_mix",
+      "text": "4. 按高速级大齿轮与低速轴（轴Ⅲ）不干涉条件\n$$\nE + 0. 5 d _ {a 2} - a _ {3 4} \\leqslant 0\n$$\n由齿轮几何尺寸计算得\n$$\n2 \\cos \\beta \\left(E + m _ {n 1 2}\\right) + m _ {n 1 2} z _ {1} i _ {1 2} - m _ {n 3 4} z _ {3} \\left(1 + i _ {3 4}\\right) \\leqslant 0 \\tag {9-35}\n$$\n式中， E 为低速轴线与高速级大齿轮齿顶圆之间的距离，单位为 \\mathrm{mm} ； d_{a2} 为高速级大齿轮的齿顶圆直径，单位为 \\mathrm{mm} 。\n将式（9-35）用设计变量代换，得约束条件\n$$\ng _ {1 9} (X) = 2 \\cos x _ {6} (E + x _ {1}) x _ {5} + x _ {1} x _ {3} x _ {5} ^ {2} - x _ {2} x _ {4} (i + x _ {5}) \\leqslant 0 \\tag {9-36}\n$$\n至此，已完成了所有约束条件的建立。将目标函数式（9-22）用设计变量代换，得该问题的数学模型：\n$$\n\\begin{array}{l} \\min  f (X) = \\frac {1}{2 \\cos x _ {6}} \\left[ x _ {1} x _ {3} \\left(1 + x _ {5}\\right) + x _ {2} x _ {4} \\left(1 + \\frac {i}{x _ {5}}\\right) \\right] \\\\ \\mathrm {s . t .} g _ {u} (X) \\leqslant 0 \\quad (u = 1, 2, \\dots , 1 9) \\\\ \\end{array}\n$$\n其中19个约束条件前面已有具体的表达式",
+      "book_name": "优化设计",
+      "section_title": "4. 按高速级大齿轮与低速轴（轴Ⅲ）不干涉条件"
+    },
+    {
+      "id": "error_theory_d53c1e13fc39",
+      "category": "formula_symbol_mix",
+      "text": "Textbook: 误差理论与数据处理\nSection: 第二章 误差的基本性质与处理 > 当开关S与a接通时\nContent: ## 当开关S与a接通时\n\n![](images/d4ab19bc02e313370db14cd179b86e7c01000fa6f59cb2760ce4eff5b5046142.jpg)  \n图 2-13\n\n![](images/a598853dee43994b86326fe9e4dd4dee016a9287e85b6a88f7c23b3fce372db5.jpg)  \n图 2-14\n\n$$\n{ \\frac { E _ { n } } { R _ { n } } } = I _ { 0 }\n$$\n\n当开关S与b接通时\n\n$$\n\\frac { E _ { x } } { R _ { x } } = I _ { 0 } + \\Delta I\n$$\n\n则\n\n$$\n\\frac { E _ { x } } { R _ { x } } = \\frac { E _ { n } } { R _ { n } } + \\Delta I\n$$\n\n显然， $\\Delta t = t _ { 2 } - t _ { 1 }$ 越大，则ΔI也越大。\n\n若仍认为\n\n$$\n{ \\frac { E _ { x } } { R _ { x } } } = { \\frac { E _ { n } } { R _ { n } } }\n$$\n\n![](images/7b7f9ff33d7b6500bfb099c2fa19923dd4e9d481bb5c50ba8a34fe5d76dca573.jpg)\n\n则工作电流的降低将带来线性误差 $- \\Delta I R _ { x }$ o",
+      "book_name": "误差理论与数据处理",
+      "section_title": "当开关S与a接通时"
+    },
+    {
+      "id": "sensor_core_fd3ffb915a1d",
+      "category": "formula_symbol_mix",
+      "text": "Textbook: 传感器短书\nSection: 第六章 压电式传感器\nContent: $$\nU _ { \\mathrm { ~ o ~ } } = - \\mathrm { ~ } Q / C _ { \\mathrm { ~ F ~ } }\n$$\n\n这个结果同式（6-18）是一样的。\n\n当将 $Q = C _ { \\mathrm { a } } U$ 代入式（6-22），设 $C _ { \\mathrm { a } } = C _ { \\mathrm { F } }$ ，并取 $U _ { \\mathrm { { o } } } / U = 1 / \\sqrt { 2 }$ ，可得频率下限为\n\n$$\n\\omega _ { \\mathrm { ~ L ~ } } = 1 / ( A R C _ { \\mathrm { { F } } } )\n$$\n\n将此式与式(6-16)相比,如果R相同, $C _ { \\mathrm { { F } } }$ 与 $C _ { \\mathrm { ~ a ~ } } + C _ { \\mathrm { ~ c ~ } } + C _ { \\mathrm { ~ i ~ } }$ 数量级相近，则电荷放大\n\n器的低频截止频率将是电压放大器的1/A，而A又比较大，显然是一个很大的优点。\n\n至于电荷放大器工作频带的上限主要与两种因素有关：一是运算放大器的频率响应；二是若电缆很长，杂散电容和电缆电容增加，导线自身的电阻也增加，它们会影响电荷放大器的高频特性，但影响不大。例如100m电缆的电阻仅几欧到数十欧，故对频率上限影响可以忽略。\n\n需要指出，电荷放大器虽然允许使用很长的电缆，并且电容变化不影响灵敏度，但它比电压放大器的价格高，电路较复杂，调整也比较困难。",
+      "book_name": "传感器短书",
+      "section_title": "第六章 压电式传感器"
+    },
+    {
+      "id": "p232_c548",
+      "category": "formula_symbol_mix",
+      "text": "if(f2 < f3)  \nbreak;  \nelse  \n{  \n    for(i = 0; i < n; i++)  \n    {  \n        *(x[0] + i) = *(x[1] + i);  \n        *(x[1] + i) = *(x[2] + i);  \n    }  \n    f1 = f2;  \n    f2 = f3;  \n}  \n}  \nif(h < 0)  \nfor(i = 0; i < n; i++)  \n{  \n    a[i] = *(x[2] + i);  \n    b[i] = *(x[0] + i);  \n}  \nelse  \nfor(i = 0; i < n; i++)  \n{  \n    a[i] = *(x[0] + i);  \n    b[i] = *(x[2] + i);  \n}  \nfor(i = 0; i < 3; i++)  \nfree(x[i]);  \n}  \n//黄金分割法 hjfgf.c 代码如下：\n//include\"jtf.c\" double gold(double a[]，double b[]，double eps,int n,double xx[]） { int i; double f1,f2，\\*x[2]，ff,q,w; for \\mathrm{(i = 0;i <   2;i + + )}\\mathrm{x[i] = (double *)} malloc \\mathrm{(n*sizeof(doublc))} ）; for \\mathrm{(i = 0;i <   n;i + + )}\\begin{array}{rl}{\\mathrm{~\\ast~}(x[0] + i) = a[i] + 0.618*(b[i] - a[i])} & \\end{array}",
+      "book_name": "优化设计",
+      "section_title": "unsectioned"
+    },
+    {
+      "id": "3ad1a02cd1b4393e",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第7章 声敏传感器 > 5. 乐甫波\n正文：{ g }$ </td><td rowspan=1 colspan=1>气体、液体</td><td rowspan=1 colspan=1>中</td><td rowspan=1 colspan=1>低平面工艺金属到晶体</td><td rowspan=1 colspan=1>气体生物化学</td></tr><tr><td rowspan=1 colspan=1>拉姆波</td><td rowspan=1 colspan=1>高/中 $2 0 0 { \\sim } 1 0 0 0 \\mathrm { c m } ^ { 2 } / \\mathrm { g }$ </td><td rowspan=1 colspan=1>气体、液体</td><td rowspan=1 colspan=1>低/中</td><td rowspan=1 colspan=1>高硅土的平面工艺</td><td rowspan=1 colspan=1>生物化学密度、声速</td></tr><tr><td rowspan=1 colspan=1>STW</td><td rowspan=1 colspan=1>高/低 $1 0 0 { \\sim } 2 0 0 \\mathrm { c m } ^ { 2 } / \\mathrm { g }$ </td><td rowspan=1 colspan=1>气体、液体</td><td rowspan=1 colspan=1>高</td><td rowspan=1 colspan=1>低平面工艺金属到晶体</td><td rowspan=1",
+      "book_name": "传感器长书",
+      "section_title": "5. 乐甫波"
+    },
+    {
+      "id": "cc110306bf4fb7cd",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第1章 绪论 > (1)传感器数学模型\n正文：a _ { \\mathrm { n } } { \\frac { \\mathrm { d } ^ { n } q _ { \\mathrm { o } } } { \\mathrm { d } t ^ { n } } } + a _ { \\mathrm { n - 1 } } { \\frac { \\mathrm { d } ^ { n - 1 } q _ { o } } { \\mathrm { d } t ^ { n - 1 } } } + \\cdots + a _ { \\mathrm { l } } { \\frac { \\mathrm { d } q _ { \\mathrm { o } } } { \\mathrm { d } t } } + a _ { 0 } q _ { \\mathrm { o } } = b _ { \\mathrm { m } } { \\frac { \\mathrm { d } ^ { m } q _ { \\mathrm { i } } } { \\mathrm { d } t ^ { m } } } + b _ { \\mathrm { m - 1 } } { \\frac { \\mathrm { d } ^ { m - 1 } q _ { \\mathrm { i } } } { \\mathrm { d } t ^ { m - 1 } } } + \\cdots + b _ { \\mathrm { l } } { \\frac { \\mathrm { d } q _ { \\mathrm { i } } } { \\mathrm { d } t } } + b _ { 0",
+      "book_name": "传感器长书",
+      "section_title": "(1)传感器数学模型"
+    },
+    {
+      "id": "2bfa9aeed37e2e74",
+      "category": "formula_symbol_mix",
+      "text": "教材：传感器长书\n章节路径：第11章 传感器的信号处理 > (4) 误差分析\n正文：$$\nR _ { \\mathrm { v } } = { \\frac { 5 2 1 . 4 4 \\times 5 0 0 5 } { 4 9 9 5 } } \\approx 5 2 2 . 4 8 \\Omega\n$$\n\n运用式（11.2），其中 $R _ { \\mathrm { v } } = 5 2 0 . 4 - 0 . 2 \\% = 5 1 9 . 3 6 \\Omega$ $R _ { 3 } = 5 0 0 0 - 0 . 1 \\% = 4 9 9 5 \\Omega$ $R _ { 2 } = 5 0 0 0 +$ $0 . 1 \\% = 5 0 0 5 \\Omega$ ，可得\n\n$$\nR _ { \\mathrm { v } } = { \\frac { 5 1 9 . 3 6 \\times 4 9 9 5 } { 5 0 0 5 } } \\approx 5 1 8 . 3 2 \\Omega\n$$\n\n因此， $R _ { \\mathrm { u } }$ 的误差范围为±0.4%。\n\n在电桥电路中，各部件的误差累积效应是显而易见的。尽管任何一个部件的最大误差为±0.2%，$R _ { \\mathrm { u } }$ 测量值的可能误差为±0.4%。这种误差的大小往往是不能接受的，必须采取特别措施以克服组件容限值引入的误差。引入顶点平衡就是众多电桥平衡方法中的一种实用的方法。",
+      "book_name": "传感器长书",
+      "section_title": "(4) 误差分析"
+    },
+    {
+      "id": "pair_001_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_001",
+      "text": "压阻效应"
+    },
+    {
+      "id": "pair_001_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_001",
+      "text": "压电效应"
+    },
+    {
+      "id": "pair_002_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_002",
+      "text": "静态特性"
+    },
+    {
+      "id": "pair_002_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_002",
+      "text": "动态特性"
+    },
+    {
+      "id": "pair_003_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_003",
+      "text": "灵敏度"
+    },
+    {
+      "id": "pair_003_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_003",
+      "text": "分辨率"
+    },
+    {
+      "id": "pair_004_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_004",
+      "text": "绝对误差"
+    },
+    {
+      "id": "pair_004_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_004",
+      "text": "相对误差"
+    },
+    {
+      "id": "pair_005_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_005",
+      "text": "系统误差"
+    },
+    {
+      "id": "pair_005_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_005",
+      "text": "随机误差"
+    },
+    {
+      "id": "pair_006_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_006",
+      "text": "随机误差"
+    },
+    {
+      "id": "pair_006_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_006",
+      "text": "粗大误差"
+    },
+    {
+      "id": "pair_007_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_007",
+      "text": "重复性"
+    },
+    {
+      "id": "pair_007_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_007",
+      "text": "再现性"
+    },
+    {
+      "id": "pair_008_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_008",
+      "text": "线性度"
+    },
+    {
+      "id": "pair_008_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_008",
+      "text": "迟滞"
+    },
+    {
+      "id": "pair_009_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_009",
+      "text": "分辨力"
+    },
+    {
+      "id": "pair_009_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_009",
+      "text": "阈值"
+    },
+    {
+      "id": "pair_010_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_010",
+      "text": "稳定性"
+    },
+    {
+      "id": "pair_010_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_010",
+      "text": "温度稳定性"
+    },
+    {
+      "id": "pair_011_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_011",
+      "text": "霍尔效应"
+    },
+    {
+      "id": "pair_011_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_011",
+      "text": "磁阻效应"
+    },
+    {
+      "id": "pair_012_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_012",
+      "text": "外光电效应"
+    },
+    {
+      "id": "pair_012_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_012",
+      "text": "内光电效应"
+    },
+    {
+      "id": "pair_013_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_013",
+      "text": "热电效应"
+    },
+    {
+      "id": "pair_013_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_013",
+      "text": "热阻效应"
+    },
+    {
+      "id": "pair_014_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_014",
+      "text": "电容式传感器"
+    },
+    {
+      "id": "pair_014_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_014",
+      "text": "电感式传感器"
+    },
+    {
+      "id": "pair_015_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_015",
+      "text": "有源传感器"
+    },
+    {
+      "id": "pair_015_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_015",
+      "text": "无源传感器"
+    },
+    {
+      "id": "pair_016_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_016",
+      "text": "频率响应"
+    },
+    {
+      "id": "pair_016_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_016",
+      "text": "阶跃响应"
+    },
+    {
+      "id": "pair_017_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_017",
+      "text": "一阶传感器"
+    },
+    {
+      "id": "pair_017_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_017",
+      "text": "二阶传感器"
+    },
+    {
+      "id": "pair_018_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_018",
+      "text": "应变"
+    },
+    {
+      "id": "pair_018_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_018",
+      "text": "应力"
+    },
+    {
+      "id": "pair_019_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_019",
+      "text": "准确度"
+    },
+    {
+      "id": "pair_019_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_019",
+      "text": "精密度"
+    },
+    {
+      "id": "pair_020_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_020",
+      "text": "测量范围"
+    },
+    {
+      "id": "pair_020_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_020",
+      "text": "量程"
+    },
+    {
+      "id": "pair_021_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_021",
+      "text": "标准差"
+    },
+    {
+      "id": "pair_021_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_021",
+      "text": "极限误差"
+    },
+    {
+      "id": "pair_022_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_022",
+      "text": "算术平均值"
+    },
+    {
+      "id": "pair_022_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_022",
+      "text": "加权平均值"
+    },
+    {
+      "id": "pair_023_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_023",
+      "text": "贝塞尔公式"
+    },
+    {
+      "id": "pair_023_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_023",
+      "text": "极差法"
+    },
+    {
+      "id": "pair_024_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_024",
+      "text": "已定系统误差"
+    },
+    {
+      "id": "pair_024_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_024",
+      "text": "未定系统误差"
+    },
+    {
+      "id": "pair_025_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_025",
+      "text": "直接测量"
+    },
+    {
+      "id": "pair_025_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_025",
+      "text": "间接测量"
+    },
+    {
+      "id": "pair_026_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_026",
+      "text": "等精度测量"
+    },
+    {
+      "id": "pair_026_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_026",
+      "text": "不等精度测量"
+    },
+    {
+      "id": "pair_027_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_027",
+      "text": "目标函数"
+    },
+    {
+      "id": "pair_027_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_027",
+      "text": "约束函数"
+    },
+    {
+      "id": "pair_028_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_028",
+      "text": "设计变量"
+    },
+    {
+      "id": "pair_028_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_028",
+      "text": "设计常量"
+    },
+    {
+      "id": "pair_029_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_029",
+      "text": "可行点"
+    },
+    {
+      "id": "pair_029_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_029",
+      "text": "不可行点"
+    },
+    {
+      "id": "pair_030_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_030",
+      "text": "局部最优解"
+    },
+    {
+      "id": "pair_030_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_030",
+      "text": "全局最优解"
+    },
+    {
+      "id": "pair_031_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_031",
+      "text": "梯度法"
+    },
+    {
+      "id": "pair_031_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_031",
+      "text": "共轭梯度法"
+    },
+    {
+      "id": "pair_032_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_032",
+      "text": "牛顿法"
+    },
+    {
+      "id": "pair_032_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_032",
+      "text": "阻尼牛顿法"
+    },
+    {
+      "id": "pair_033_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_033",
+      "text": "黄金分割法"
+    },
+    {
+      "id": "pair_033_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_033",
+      "text": "二次插值法"
+    },
+    {
+      "id": "pair_034_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_034",
+      "text": "外罚函数法"
+    },
+    {
+      "id": "pair_034_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_034",
+      "text": "内罚函数法"
+    },
+    {
+      "id": "pair_035_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_035",
+      "text": "线性规划"
+    },
+    {
+      "id": "pair_035_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_035",
+      "text": "非线性规划"
+    },
+    {
+      "id": "pair_036_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_036",
+      "text": "单纯形法"
+    },
+    {
+      "id": "pair_036_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_036",
+      "text": "复合形法"
+    },
+    {
+      "id": "pair_037_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_037",
+      "text": "遗传算法"
+    },
+    {
+      "id": "pair_037_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_037",
+      "text": "工程遗传算法"
+    },
+    {
+      "id": "pair_038_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_038",
+      "text": "目标函数极小值"
+    },
+    {
+      "id": "pair_038_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_038",
+      "text": "目标函数极大值"
+    },
+    {
+      "id": "pair_039_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_039",
+      "text": "等式约束"
+    },
+    {
+      "id": "pair_039_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_039",
+      "text": "不等式约束"
+    },
+    {
+      "id": "pair_040_a",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_040",
+      "text": "绝对灵敏度"
+    },
+    {
+      "id": "pair_040_b",
+      "category": "high_similarity_concept",
+      "pair_id": "pair_040",
+      "text": "相对灵敏度"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "status": "PASS",
+  "runs": 1,
+  "first_health_ms": {
+    "median": 2382.044099998893,
+    "p95": 2382.044099998893
+  },
+  "full_ready_ms": {
+    "median": 2746.055700001307,
+    "p95": 2746.055700001307
+  },
+  "first_textbook_retrieval_ms": {
+    "median": 590.797199998633,
+    "p95": 590.797199998633
+  },
+  "rows": [
+    {
+      "run": 1,
+      "status": "PASS",
+      "first_health_ms": 2382.044099998893,
+      "full_ready_ms": 2746.055700001307,
+      "warmup": {
+        "status": "ready",
+        "stage": "ready",
+        "message": "Texa is ready",
+        "error": "",
+        "failure": null,
+        "stages_ms": {
+          "runtime_check": 54.35,
+          "asset_verify": 12.33,
+          "embedding_load": 327.33,
+          "index_discovery": 153.74,
+          "total": 547.78
+        }
+      },
+      "asset_runtime": {
+        "id": "embedding_model",
+        "label": "ONNX embedding runtime",
+        "installed": true,
+        "version_match": true,
+        "status": "ready",
+        "present": true,
+        "compatible": true,
+        "asset_dir": "D:\\AI\\agent\\kaoyan-assistant\\assets\\embedding-runtime\\bge-small-zh-v1.5\\onnx-fp32-v1",
+        "model_name": "BAAI/bge-small-zh-v1.5",
+        "model_version": "7999e1d3359715c523056ef9478215996d62a620",
+        "onnx_graph_version": "onnx-fp32-v1",
+        "embedding_dimension": 512,
+        "verification": "contract_and_size"
+      },
+      "generic": {
+        "wall_ms": 456.1776999908034,
+        "retrieval_status": "ordinary_qa",
+        "retrieval_error": "",
+        "content_count": 0
+      },
+      "textbook": {
+        "wall_ms": 590.797199998633,
+        "retrieval_status": "ok",
+        "retrieval_error": "",
+        "content_count": 1
+      },
+      "checks": {
+        "health_ready": true,
+        "embedding_dimension_512": true,
+        "asset_contract_ready": true,
+        "generic_qa": true,
+        "textbook_qa": true,
+        "offline_assets": true
+      }
+    }
+  ]
+}

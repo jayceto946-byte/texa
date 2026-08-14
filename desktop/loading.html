@@ -320,6 +320,7 @@
           <div class="details" id="details"></div>
           <div class="actions" id="actions">
             <button class="primary" id="retryStartup">重新连接</button>
+            <button class="primary" id="repairEmbedding">修复模型资源</button>
             <button id="openWeb">用浏览器打开 Web 端</button>
             <button id="openLog">查看后端日志</button>
           </div>
@@ -355,6 +356,7 @@
       const details = document.getElementById('details');
       const actions = document.getElementById('actions');
       const retryButton = document.getElementById('retryStartup');
+      const repairButton = document.getElementById('repairEmbedding');
 
       const greetings = {
         earlyMorning: [
@@ -436,12 +438,22 @@
 
       function showStartupError(payload) {
         const info = typeof payload === 'string' ? { message: payload } : payload || {};
+        const failure = info.failure || {};
+        const friendlyFailures = {
+          MODEL_MISSING: '嵌入模型缺失，可以尝试修复运行资源。',
+          MODEL_CORRUPT_OR_INCOMPATIBLE: '嵌入模型已损坏或版本不兼容，可以尝试修复。',
+          ORT_IMPORT_FAILURE: 'ONNX Runtime 无法加载，请重新安装当前 Windows x64 版本。',
+          UNSUPPORTED_ARCHITECTURE: '当前系统架构不受支持，Texa Standard 需要 Windows x64。',
+          TOKENIZER_MISMATCH: '分词器资源与模型版本不匹配，可以尝试修复。',
+          ASSET_REPAIR_FAILED: '运行资源修复失败，请检查网络后重试或查看诊断日志。',
+        };
         shell.classList.add('error');
-        greeting.textContent = '本地服务启动失败';
-        statusText.textContent = '需要处理';
+        greeting.textContent = 'Texa 启动需要处理';
+        statusText.textContent = friendlyFailures[failure.code] || '本地服务暂不可用';
         details.style.display = 'block';
         actions.style.display = 'flex';
-        details.textContent = `${info.message || '未知错误'}\n服务地址：${info.backendUrl || 'http://127.0.0.1:8000'}\n日志：${info.logPath || '%APPDATA%\\kaoyan-assistant-desktop\\logs\\backend.log'}`;
+        repairButton.style.display = failure.recoverable && failure.repair_action === 'repair_embedding_runtime' ? '' : 'none';
+        details.textContent = `错误代码：${failure.code || 'STARTUP_FAILURE'}\n诊断编号：${failure.diagnostic_id || '未生成'}\n日志：${info.logPath || '%APPDATA%\\kaoyan-assistant-desktop\\logs\\backend.log'}`;
       }
 
       setTimeGreeting();
@@ -465,6 +477,30 @@
       document.getElementById('openWeb').addEventListener('click', () => desktop?.openWebFallback?.());
       document.getElementById('openLog').addEventListener('click', () => desktop?.openBackendLog?.());
       desktop?.onStartupError?.(showStartupError);
+      desktop?.onBackendStatus?.((state) => {
+        if (!state || state.status === 'failed') return;
+        shell.classList.remove('error');
+        greeting.textContent = '正在准备 Texa';
+        statusText.textContent = state.message || '正在初始化本地学习环境';
+        details.style.display = 'none';
+        actions.style.display = 'none';
+      });
+      repairButton.addEventListener('click', async () => {
+        shell.classList.remove('error');
+        greeting.textContent = '正在修复 Texa';
+        statusText.textContent = '正在校验并安装模型资源';
+        details.style.display = 'none';
+        actions.style.display = 'none';
+        repairButton.disabled = true;
+        try {
+          const result = await desktop?.repairEmbeddingRuntime?.();
+          if (result && !result.ready) showStartupError(result);
+        } catch (error) {
+          showStartupError({ message: error?.message || String(error), failure: { code: 'ASSET_REPAIR_FAILED' } });
+        } finally {
+          repairButton.disabled = false;
+        }
+      });
       desktop?.getStartupInfo?.().then((info) => {
         if (info?.message) showStartupError(info);
       });

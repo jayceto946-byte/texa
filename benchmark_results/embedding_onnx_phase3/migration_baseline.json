@@ -1,0 +1,45 @@
+{
+  "captured_at": "2026-08-14T12:40:10.8527125+08:00",
+  "branch": "Refactor-ONNX",
+  "git_commit": "5ea4fb0a3c71fe0b9cbd6ca3034b45e7b6cb3605",
+  "rollback_reference": "git show 5ea4fb0a3c71fe0b9cbd6ca3034b45e7b6cb3605:<path>",
+  "production_files": {
+    "requirements": "requirements-release.txt",
+    "build_script": "scripts/build-desktop-backend.ps1",
+    "config_embedding_path": "config.py:get_embeddings->_load_embeddings->SentenceTransformer",
+    "pyinstaller_entrypoint": "desktop/backend_server.py",
+    "electron_extra_resources": ["build/backend"],
+    "warmup_path": "backend.main:_warmup->get_embeddings->get_vector_store",
+    "asset_repair_path": "backend.api.assets:download_embedding->huggingface_hub.snapshot_download"
+  },
+  "formal_phase2_packaged_baseline": {
+    "source": "benchmark_results/embedding_onnx_phase2/packaged_startup.json",
+    "runs": 5,
+    "first_health_ms_median": 3513.690299994778,
+    "warmup_ready_ms_median": 10211.278700007824,
+    "first_retrieval_wall_ms_median": 463.5686999972677
+  },
+  "current_reference_smoke": {
+    "backend_startup": "PASS",
+    "health": "PASS",
+    "embedding_ready": "PASS",
+    "existing_chroma_retrieval": "PASS",
+    "textbook_qa_retrieve_stage": "PASS",
+    "generic_qa": "PASS_FROM_PHASE2_RUNTIME_REAL_INDEX",
+    "first_health_ms": 9659.760299997288,
+    "warmup_ready_ms": 62823.497800010955,
+    "first_retrieval_wall_ms": 677.0230000111042,
+    "retrieval_stage_ms": 238.47,
+    "retrieval_content_count": 1,
+    "retrieval_status": "ok",
+    "note": "The one-off current smoke used the preserved full runtime data and was materially slower than the five-run formal baseline; both references are retained."
+  },
+  "existing_index_reference": {
+    "source": "benchmark_results/embedding_onnx_phase2/runtime_real_index.json",
+    "collection_count": 49,
+    "textbook_retrieval_status": "ok",
+    "textbook_evidence_count": 10,
+    "generic_retrieval_status": "ordinary_qa",
+    "automatic_rebuild": false
+  }
+}

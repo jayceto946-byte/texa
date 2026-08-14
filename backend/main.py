@@ -20,8 +20,20 @@ from backend.security import LocalApiBoundaryMiddleware
 from utils.version import APP_VERSION
 
 logger = logging.getLogger(__name__)
-_warmup_state = {"status": "pending", "error": ""}
+_warmup_state = {
+    "status": "pending",
+    "stage": "runtime_check",
+    "message": "Preparing Texa runtime",
+    "error": "",
+    "failure": None,
+    "stages_ms": {},
+}
 _warmup_lock = threading.Lock()
+
+
+def _update_warmup(**values) -> None:
+    with _warmup_lock:
+        _warmup_state.update(values)
 
 
 class SPAStaticFiles(StaticFiles):
@@ -84,7 +96,7 @@ def _start_warmup() -> None:
     with _warmup_lock:
         if _warmup_state["status"] != "pending":
             return
-        _warmup_state.update(status="starting", error="")
+        _warmup_state.update(status="starting", stage="runtime_check", message="Preparing Texa runtime", error="", failure=None)
         threading.Thread(target=_warmup, name="backend-warmup", daemon=True).start()
 
 app = FastAPI(
@@ -128,47 +140,98 @@ app.include_router(learning_state.router, prefix="/api")
 # ── 健康检查 ──────────────────────────────────────────────
 @app.get("/health")
 def health():
+    with _warmup_lock:
+        warmup = dict(_warmup_state)
+        warmup["stages_ms"] = dict(_warmup_state.get("stages_ms") or {})
     return {
         "status": "ok",
         "version": APP_VERSION,
         "instance_id": os.getenv("KAOYAN_INSTANCE_ID", ""),
-        "warmup": dict(_warmup_state),
+        "process_alive": True,
+        "embedding_ready": warmup.get("stage") in {"index_discovery", "ready"} and warmup.get("status") != "error",
+        "retrieval_ready": warmup.get("status") == "ready",
+        "warmup": warmup,
     }
 
 # ── 启动预热 ──────────────────────────────────────────────
 def _warmup():
     """启动时预热：加载嵌入模型和向量库，避免首请求长时间等待。"""
     import time
-    t0 = time.time()
-    _warmup_state.update(status="running", error="")
-    errors = []
+    from ingestion.embedding_errors import EmbeddingRuntimeError, classify_embedding_error
+
+    t0 = time.perf_counter()
+    stage_started = t0
+    stages_ms = {}
+    _update_warmup(status="running", stage="runtime_check", message="Checking runtime", error="", failure=None, stages_ms={})
+    try:
+        from ingestion.embedding_assets import ensure_supported_architecture
+
+        ensure_supported_architecture()
+    except Exception as exc:
+        failure = classify_embedding_error(exc, stage="runtime_check")
+        stages_ms["runtime_check"] = round((time.perf_counter() - stage_started) * 1000, 2)
+        _update_warmup(status="error", stage="runtime_check", message="Runtime is unavailable", error=failure.code, failure=failure.as_dict(), stages_ms=stages_ms)
+        logger.exception("runtime check failed code=%s diagnostic_id=%s", failure.code, failure.failure.diagnostic_id)
+        return
+
+    stages_ms["runtime_check"] = round((time.perf_counter() - stage_started) * 1000, 2)
+    stage_started = time.perf_counter()
+    _update_warmup(stage="asset_verify", message="Verifying ONNX assets", stages_ms=dict(stages_ms))
+    try:
+        from ingestion.embedding_assets import resolve_embedding_assets
+
+        resolve_embedding_assets(full_hash=os.getenv("TEXA_EMBEDDING_FULL_VERIFY", "0") == "1")
+    except Exception as exc:
+        failure = classify_embedding_error(exc, stage="asset_verify")
+        stages_ms["asset_verify"] = round((time.perf_counter() - stage_started) * 1000, 2)
+        _update_warmup(status="error", stage="asset_verify", message="ONNX assets need repair", error=failure.code, failure=failure.as_dict(), stages_ms=stages_ms)
+        logger.exception("asset verification failed code=%s diagnostic_id=%s", failure.code, failure.failure.diagnostic_id)
+        return
+
+    stages_ms["asset_verify"] = round((time.perf_counter() - stage_started) * 1000, 2)
+    stage_started = time.perf_counter()
+    _update_warmup(stage="embedding_load", message="Loading ONNX embedding runtime", stages_ms=dict(stages_ms))
     if os.getenv('SKIP_EMBEDDING_WARMUP', '0') == '1':
         logger.info("embedding warmup skipped")
     else:
         try:
             from config import get_embeddings
             get_embeddings()
-            logger.info("embeddings loaded in %.1fs", time.time() - t0)
-        except Exception as e:
-            errors.append(str(e))
-            logger.exception("embedding warmup failed")
+            logger.info("embeddings loaded in %.1fms", (time.perf_counter() - stage_started) * 1000)
+        except Exception as exc:
+            failure = classify_embedding_error(exc, stage="embedding_load")
+            stages_ms["embedding_load"] = round((time.perf_counter() - stage_started) * 1000, 2)
+            _update_warmup(status="error", stage="embedding_load", message="ONNX embedding runtime needs repair", error=failure.code, failure=failure.as_dict(), stages_ms=stages_ms)
+            logger.exception("embedding warmup failed code=%s diagnostic_id=%s", failure.code, failure.failure.diagnostic_id)
+            return
 
-    t1 = time.time()
+    stages_ms["embedding_load"] = round((time.perf_counter() - stage_started) * 1000, 2)
+    stage_started = time.perf_counter()
+    _update_warmup(stage="index_discovery", message="Discovering textbook indexes", stages_ms=dict(stages_ms))
     if os.getenv('SKIP_VECTOR_WARMUP', '0') == '1':
         logger.info("vector store warmup skipped")
     else:
         try:
             from ingestion.vector_store import get_vector_store
             get_vector_store()
-            logger.info("vector store loaded in %.1fs", time.time() - t1)
-        except Exception as e:
-            errors.append(str(e))
+            logger.info("vector store loaded in %.1fms", (time.perf_counter() - stage_started) * 1000)
+        except Exception as exc:
+            failure = EmbeddingRuntimeError(
+                "CHROMA_LOAD_FAILURE",
+                str(exc) or type(exc).__name__,
+                stage="index_discovery",
+                repair_action="inspect_vector_store_diagnostics",
+            )
+            stages_ms["index_discovery"] = round((time.perf_counter() - stage_started) * 1000, 2)
+            _update_warmup(status="degraded", stage="index_discovery", message="Textbook indexes are degraded", error=failure.code, failure=failure.as_dict(), stages_ms=stages_ms)
             logger.exception("vector store warmup failed")
+            return
 
     logger.info("concept graph warmup skipped")
-
-    _warmup_state.update(status="degraded" if errors else "ready", error="; ".join(errors))
-    logger.info("startup warmup completed in %.1fs", time.time() - t0)
+    stages_ms["index_discovery"] = round((time.perf_counter() - stage_started) * 1000, 2)
+    stages_ms["total"] = round((time.perf_counter() - t0) * 1000, 2)
+    _update_warmup(status="ready", stage="ready", message="Texa is ready", error="", failure=None, stages_ms=stages_ms)
+    logger.info("startup warmup completed in %.1fms stages=%s", stages_ms["total"], stages_ms)
 
 
 # ── 静态文件（前端 build 产物）─────────────────────────────

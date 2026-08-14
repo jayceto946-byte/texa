@@ -120,6 +120,28 @@ def _check_runtime_config() -> dict:
         "LLM configuration is ready" if configured else f"API key for {backend} is not configured",
         backend=backend,
         embedding_model=getattr(config, "EMBEDDING_MODEL_NAME", ""),
+        embedding_backend=getattr(config, "embedding_backend_name", lambda: "unknown")(),
+    )
+
+
+def _check_embedding_runtime() -> dict:
+    from ingestion.embedding_assets import embedding_asset_status
+
+    status = embedding_asset_status(full_hash=False)
+    if status.get("status") == "ready":
+        details = {key: value for key, value in status.items() if key != "status"}
+        return _component(
+            "healthy",
+            "ONNX embedding runtime is ready",
+            backend="onnxruntime_fp32",
+            **details,
+        )
+    failure = status.get("failure") or {}
+    return _component(
+        "error",
+        failure.get("message") or "ONNX embedding runtime is unavailable",
+        backend="onnxruntime_fp32",
+        failure=failure,
     )
 
 
@@ -148,6 +170,7 @@ def reload_vector_store():
 def system_health(book_name: str = ""):
     safe_book_name = Path(book_name or "default").name
     components = {
+        "embedding_runtime": _check_embedding_runtime(),
         "vector_store": _check_vector_store(),
         "mistake_book": _check_sqlite(
             Path(PROGRESS_PATH) / f"mistake_book_{safe_book_name}.db", "mistakes", "错题库"

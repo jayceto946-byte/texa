@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "artifact_root": "D:\\AI\\agent\\kaoyan-assistant\\build\\backend\\backend_server",
+  "forbidden_dependencies": [],
+  "onnxruntime_present": true,
+  "tokenizers_present": true,
+  "chromadb_dynamic_imports_present": true,
+  "pyinstaller_xref": "D:\\AI\\agent\\kaoyan-assistant\\build\\pyinstaller\\backend_server\\xref-backend_server.html",
+  "asset_dir": "D:\\AI\\agent\\kaoyan-assistant\\assets\\embedding-runtime\\bge-small-zh-v1.5\\onnx-fp32-v1",
+  "model_name": "BAAI/bge-small-zh-v1.5",
+  "model_version": "7999e1d3359715c523056ef9478215996d62a620",
+  "onnx_graph_version": "onnx-fp32-v1",
+  "embedding_dimension": 512,
+  "asset_sha256_valid": true
+}

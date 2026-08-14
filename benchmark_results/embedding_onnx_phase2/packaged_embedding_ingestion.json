@@ -1,0 +1,740 @@
+{
+  "method": "same Phase 1 benchmark worker frozen by PyInstaller in each release environment",
+  "interactive": {
+    "baseline": {
+      "task": "scaling",
+      "backend": "torch",
+      "cases": {
+        "1": {
+          "warm_runs": 20,
+          "samples": [
+            {
+              "latency_ms": 6.737699994118884,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428392448,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.857899992610328,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428392448,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.871499994304031,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428400640,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.838600005721673,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428404736,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.717500000377186,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428412928,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.836400003521703,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428412928,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.9552999921143055,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428412928,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.6470000019762665,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428412928,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.744600003003143,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428412928,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.933800003025681,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428412928,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 7.182299988926388,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428421120,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 7.6659000042127445,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428421120,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.672799994703382,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428421120,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.573099992237985,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428421120,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.694800002151169,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428421120,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.741999997757375,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428421120,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.786700003431179,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428421120,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.778500013751909,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428421120,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.572099999175407,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428421120,
+              "max_native_threads": 53
+            },
+            {
+              "latency_ms": 6.541000009747222,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 428421120,
+              "max_native_threads": 53
+            }
+          ],
+          "median_ms": 6.761550008377526,
+          "p95_ms": 7.182299988926388,
+          "texts_per_second": 147.89508304471684,
+          "effective_cpu_cores_median": null,
+          "effective_cpu_cores_p95": null,
+          "process_cpu_percent_of_machine_median": null,
+          "process_cpu_percent_of_machine_p95": null,
+          "system_cpu_percent_median": null,
+          "system_cpu_percent_p95": null,
+          "peak_rss_bytes_median": 428417024.0,
+          "peak_rss_bytes_p95": 428421120.0,
+          "max_native_threads_median": 53.0,
+          "max_native_threads_p95": 53.0,
+          "tokens": {
+            "min_token_length": 6,
+            "median_token_length": 6,
+            "max_token_length": 6,
+            "total_real_tokens": 6,
+            "total_padded_tokens": 6,
+            "padding_ratio": 1.0,
+            "padding_waste_fraction": 0.0
+          },
+          "batch_sizes": [
+            1
+          ]
+        }
+      },
+      "environment": {
+        "logical_cpu_count": 16,
+        "physical_cpu_core_count": 12,
+        "provider": "torch_sentence_transformers",
+        "session_options": null,
+        "torch_threads": 2
+      }
+    },
+    "candidate": {
+      "task": "scaling",
+      "backend": "onnx",
+      "cases": {
+        "1": {
+          "warm_runs": 20,
+          "samples": [
+            {
+              "latency_ms": 2.834300001268275,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166694912,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 3.216700002667494,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166719488,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 2.8276999946683645,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166723584,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 2.9331999976420775,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166727680,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 2.8722999995807186,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166735872,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 2.802900009555742,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166764544,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 2.9667999915545806,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166785024,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 3.259400007664226,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166813696,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 2.7791000029537827,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166817792,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 3.4435999987181276,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166817792,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 3.2176999957300723,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166821888,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 3.0830999894533306,
+              "process_cpu_ms": 15.625,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166825984,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 2.7791000029537827,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166825984,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 2.6144000003114343,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166834176,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 3.0926000035833567,
+              "process_cpu_ms": 15.625,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166842368,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 2.985600003739819,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166842368,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 2.864100009901449,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166842368,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 2.7865000010933727,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166842368,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 3.4641999955056235,
+              "process_cpu_ms": 31.25,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166842368,
+              "max_native_threads": 36
+            },
+            {
+              "latency_ms": 3.035199988516979,
+              "process_cpu_ms": 0.0,
+              "effective_cpu_cores": null,
+              "process_cpu_percent_of_machine": null,
+              "system_cpu_percent": null,
+              "cpu_sample_reliable": false,
+              "peak_rss_bytes": 166842368,
+              "max_native_threads": 36
+            }
+          ],
+          "median_ms": 2.949999994598329,
+          "p95_ms": 3.4435999987181276,
+          "texts_per_second": 338.98305146816097,
+          "effective_cpu_cores_median": null,
+          "effective_cpu_cores_p95": null,
+          "process_cpu_percent_of_machine_median": null,
+          "process_cpu_percent_of_machine_p95": null,
+          "system_cpu_percent_median": null,
+          "system_cpu_percent_p95": null,
+          "peak_rss_bytes_median": 166819840.0,
+          "peak_rss_bytes_p95": 166842368.0,
+          "max_native_threads_median": 36.0,
+          "max_native_threads_p95": 36.0,
+          "tokens": {
+            "min_token_length": 6,
+            "median_token_length": 6,
+            "max_token_length": 6,
+            "total_real_tokens": 6,
+            "total_padded_tokens": 6,
+            "padding_ratio": 1.0,
+            "padding_waste_fraction": 0.0
+          },
+          "batch_sizes": [
+            1
+          ]
+        }
+      },
+      "environment": {
+        "logical_cpu_count": 16,
+        "physical_cpu_core_count": 12,
+        "provider": "onnxruntime_fp32",
+        "session_options": {
+          "intra_op_num_threads": 2,
+          "inter_op_num_threads": 1,
+          "execution_mode": "sequential",
+          "graph_optimization_level": "all"
+        },
+        "torch_threads": null
+      }
+    }
+  },
+  "ingestion": {
+    "baseline": {
+      "task": "ingestion",
+      "backend": "torch",
+      "strategy": "naive",
+      "batch_size": 32,
+      "corpus_count": 500,
+      "corpus_source": "fixed isolated sample; benchmark never queries live Chroma",
+      "result": {
+        "warm_runs": 5,
+        "samples": [
+          {
+            "latency_ms": 47217.602900011116,
+            "process_cpu_ms": 94671.875,
+            "effective_cpu_cores": 2.00501230866122,
+            "process_cpu_percent_of_machine": 12.531326929132625,
+            "system_cpu_percent": 13.838039094011789,
+            "cpu_sample_reliable": true,
+            "peak_rss_bytes": 1084448768,
+            "max_native_threads": 53
+          },
+          {
+            "latency_ms": 47249.357099994086,
+            "process_cpu_ms": 95234.375,
+            "effective_cpu_cores": 2.0155697525884837,
+            "process_cpu_percent_of_machine": 12.597310953678024,
+            "system_cpu_percent": 13.814701504878451,
+            "cpu_sample_reliable": true,
+            "peak_rss_bytes": 1084112896,
+            "max_native_threads": 50
+          },
+          {
+            "latency_ms": 47214.25290001207,
+            "process_cpu_ms": 95234.375,
+            "effective_cpu_cores": 2.017068345901448,
+            "process_cpu_percent_of_machine": 12.60667716188405,
+            "system_cpu_percent": 13.963796031647405,
+            "cpu_sample_reliable": true,
+            "peak_rss_bytes": 1084760064,
+            "max_native_threads": 50
+          },
+          {
+            "latency_ms": 47299.49249999481,
+            "process_cpu_ms": 95468.75,
+            "effective_cpu_cores": 2.0183884636819407,
+            "process_cpu_percent_of_machine": 12.61492789801213,
+            "system_cpu_percent": 13.967414871869,
+            "cpu_sample_reliable": true,
+            "peak_rss_bytes": 1084747776,
+            "max_native_threads": 50
+          },
+          {
+            "latency_ms": 47053.99860000762,
+            "process_cpu_ms": 94765.625,
+            "effective_cpu_cores": 2.0139760237078908,
+            "process_cpu_percent_of_machine": 12.587350148174318,
+            "system_cpu_percent": 13.742538011939182,
+            "cpu_sample_reliable": true,
+            "peak_rss_bytes": 1084923904,
+            "max_native_threads": 50
+          }
+        ],
+        "median_ms": 47217.602900011116,
+        "p95_ms": 47299.49249999481,
+        "texts_per_second": 10.589271146585086,
+        "effective_cpu_cores_median": 2.0155697525884837,
+        "effective_cpu_cores_p95": 2.0183884636819407,
+        "process_cpu_percent_of_machine_median": 12.597310953678024,
+        "process_cpu_percent_of_machine_p95": 12.61492789801213,
+        "system_cpu_percent_median": 13.838039094011789,
+        "system_cpu_percent_p95": 13.967414871869,
+        "peak_rss_bytes_median": 1084747776.0,
+        "peak_rss_bytes_p95": 1084923904.0,
+        "max_native_threads_median": 50.0,
+        "max_native_threads_p95": 53.0,
+        "tokens": {
+          "min_token_length": 35,
+          "median_token_length": 414.0,
+          "max_token_length": 512,
+          "total_real_tokens": 180866,
+          "total_padded_tokens": 256000,
+          "padding_ratio": 1.4154125153428505,
+          "padding_waste_fraction": 0.2934921875
+        },
+        "batch_sizes": [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          20
+        ]
+      },
+      "environment": {
+        "logical_cpu_count": 16,
+        "physical_cpu_core_count": 12,
+        "provider": "torch_sentence_transformers",
+        "session_options": null,
+        "torch_threads": 2
+      }
+    },
+    "candidate": {
+      "task": "ingestion",
+      "backend": "onnx",
+      "strategy": "length_bucket",
+      "batch_size": 16,
+      "corpus_count": 500,
+      "corpus_source": "fixed isolated sample; benchmark never queries live Chroma",
+      "result": {
+        "warm_runs": 5,
+        "samples": [
+          {
+            "latency_ms": 18575.889999992796,
+            "process_cpu_ms": 223250.0,
+            "effective_cpu_cores": 12.01826668870706,
+            "process_cpu_percent_of_machine": 75.11416680441913,
+            "system_cpu_percent": 77.53482260183968,
+            "cpu_sample_reliable": true,
+            "peak_rss_bytes": 1065254912,
+            "max_native_threads": 48
+          },
+          {
+            "latency_ms": 18550.820800010115,
+            "process_cpu_ms": 222578.125,
+            "effective_cpu_cores": 11.998289854639674,
+            "process_cpu_percent_of_machine": 74.98931159149797,
+            "system_cpu_percent": 77.06117721385701,
+            "cpu_sample_reliable": true,
+            "peak_rss_bytes": 1068912640,
+            "max_native_threads": 48
+          },
+          {
+            "latency_ms": 18516.700299995136,
+            "process_cpu_ms": 223171.875,
+            "effective_cpu_cores": 12.052464606777624,
+            "process_cpu_percent_of_machine": 75.32790379236015,
+            "system_cpu_percent": 78.07373806635371,
+            "cpu_sample_reliable": true,
+            "peak_rss_bytes": 1071321088,
+            "max_native_threads": 48
+          },
+          {
+            "latency_ms": 18241.85910000233,
+            "process_cpu_ms": 219000.0,
+            "effective_cpu_cores": 12.005355309425234,
+            "process_cpu_percent_of_machine": 75.03347068390771,
+            "system_cpu_percent": 76.59437751004016,
+            "cpu_sample_reliable": true,
+            "peak_rss_bytes": 1072242688,
+            "max_native_threads": 45
+          },
+          {
+            "latency_ms": 18267.088699998567,
+            "process_cpu_ms": 219843.75,
+            "effective_cpu_cores": 12.034963732344346,
+            "process_cpu_percent_of_machine": 75.21852332715217,
+            "system_cpu_percent": 78.046302732182,
+            "cpu_sample_reliable": true,
+            "peak_rss_bytes": 1072619520,
+            "max_native_threads": 45
+          }
+        ],
+        "median_ms": 18516.700299995136,
+        "p95_ms": 18575.889999992796,
+        "texts_per_second": 27.00265122291423,
+        "effective_cpu_cores_median": 12.01826668870706,
+        "effective_cpu_cores_p95": 12.052464606777624,
+        "process_cpu_percent_of_machine_median": 75.11416680441913,
+        "process_cpu_percent_of_machine_p95": 75.32790379236015,
+        "system_cpu_percent_median": 77.53482260183968,
+        "system_cpu_percent_p95": 78.07373806635371,
+        "peak_rss_bytes_median": 1071321088.0,
+        "peak_rss_bytes_p95": 1072619520.0,
+        "max_native_threads_median": 48.0,
+        "max_native_threads_p95": 48.0,
+        "tokens": {
+          "min_token_length": 35,
+          "median_token_length": 414.0,
+          "max_token_length": 512,
+          "total_real_tokens": 180866,
+          "total_padded_tokens": 210599,
+          "padding_ratio": 1.1643924231198788,
+          "padding_waste_fraction": 0.14118300656698274
+        },
+        "batch_sizes": [
+          16,
+          9,
+          16,
+          16,
+          2,
+          16,
+          16,
+          16,
+          16,
+          15,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          10
+        ]
+      },
+      "environment": {
+        "logical_cpu_count": 16,
+        "physical_cpu_core_count": 12,
+        "provider": "onnxruntime_fp32",
+        "session_options": {
+          "intra_op_num_threads": 12,
+          "inter_op_num_threads": 1,
+          "execution_mode": "sequential",
+          "graph_optimization_level": "all"
+        },
+        "torch_threads": null
+      }
+    }
+  }
+}

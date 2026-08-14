@@ -1,0 +1,484 @@
+{
+  "schema_version": 1,
+  "generated_at_local": "2026-08-13T21:52:59+0800",
+  "environment": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "cpu_count": 16,
+    "onnxruntime": "1.23.2",
+    "torch": "2.11.0+cpu",
+    "sentence_transformers": "5.5.1"
+  },
+  "fixtures": {
+    "parity_path": "D:\\AI\\agent\\kaoyan-assistant\\evaluation\\datasets\\embedding_parity.json",
+    "parity_sha256": "7c221b3d9497ba8b63c97e2cae9f294ef999cbd02286c4157617dd153fa758d4",
+    "retrieval_path": "D:\\AI\\agent\\kaoyan-assistant\\evaluation\\datasets\\embedding_retrieval.json",
+    "retrieval_sha256": "ede30ea91a3fb49b19234caf7a1bc74e1cc6b3f1c601ddf7699038df658088af"
+  },
+  "onnx": {
+    "path": "D:\\AI\\agent\\kaoyan-assistant\\benchmark_results\\embedding_onnx\\bge-small-zh-v1.5-fp32.onnx",
+    "sha256": "8ffd0a0438704bbd55cab10c65d938df62d159879f59907557b3b09dfcc6fe0a",
+    "bytes": 94847144
+  },
+  "tokenization": {
+    "total": 340,
+    "exact_matches": 340,
+    "all_exact": true
+  },
+  "parity": {
+    "count": 340,
+    "cosine": {
+      "mean": 1.0,
+      "median": 1.0,
+      "p95": 1.0000001192092896,
+      "p05": 0.9999999403953552,
+      "minimum": 0.9999998807907104
+    },
+    "element_error": {
+      "max_absolute": 3.5762786865234375e-07,
+      "mean_absolute": 4.054728819369302e-08
+    },
+    "norms": {
+      "torch_mean": 1.0,
+      "onnx_mean": 1.0
+    },
+    "categories": {
+      "formula_symbol_mix": {
+        "count": 50,
+        "cosine_mean": 1.0,
+        "cosine_min": 0.9999998807907104
+      },
+      "high_similarity_concept": {
+        "count": 80,
+        "cosine_mean": 1.0,
+        "cosine_min": 0.9999998807907104
+      },
+      "long_textbook_chunk": {
+        "count": 60,
+        "cosine_mean": 1.0,
+        "cosine_min": 0.9999998807907104
+      },
+      "short_concept": {
+        "count": 50,
+        "cosine_mean": 1.0,
+        "cosine_min": 0.9999998807907104
+      },
+      "textbook_paragraph": {
+        "count": 100,
+        "cosine_mean": 1.0,
+        "cosine_min": 0.9999998807907104
+      }
+    }
+  },
+  "retrieval": {
+    "corpus_count": 500,
+    "query_count": 100,
+    "overlap": {
+      "top_1": {
+        "mean_set_overlap": 1.0,
+        "queries_with_identical_order": 100,
+        "query_count": 100
+      },
+      "top_3": {
+        "mean_set_overlap": 1.0,
+        "queries_with_identical_order": 100,
+        "query_count": 100
+      },
+      "top_5": {
+        "mean_set_overlap": 1.0,
+        "queries_with_identical_order": 100,
+        "query_count": 100
+      },
+      "top_10": {
+        "mean_set_overlap": 1.0,
+        "queries_with_identical_order": 100,
+        "query_count": 100
+      }
+    },
+    "human_quality": {
+      "torch": {
+        "recall_at_1": 0.8,
+        "recall_at_3": 0.925,
+        "recall_at_5": 0.95,
+        "mrr_at_10": 0.8645833333333333,
+        "query_count": 40
+      },
+      "onnx": {
+        "recall_at_1": 0.8,
+        "recall_at_3": 0.925,
+        "recall_at_5": 0.95,
+        "mrr_at_10": 0.8645833333333333,
+        "query_count": 40
+      },
+      "delta": {
+        "recall_at_5_percentage_points": 0.0,
+        "mrr_absolute": 0.0,
+        "mrr_relative_percent": 0.0
+      }
+    }
+  },
+  "performance": {
+    "cold": {
+      "torch": {
+        "runs": [
+          {
+            "backend": "torch",
+            "load_ms": 8044.060899999749,
+            "first_embedding_ms": 25.01019999908749,
+            "internal_total_ms": 8163.223800002015,
+            "rss_before_runtime": 27955200,
+            "rss_after_model_load": 356397056,
+            "peak_rss_after_model_load": 356577280,
+            "peak_rss_after_embedding": 412385280,
+            "rss_stable_after_embedding": 412385280,
+            "process_total_ms": 9079.126199998427
+          },
+          {
+            "backend": "torch",
+            "load_ms": 7622.75370000134,
+            "first_embedding_ms": 23.903100001916755,
+            "internal_total_ms": 7740.931300002558,
+            "rss_before_runtime": 27820032,
+            "rss_after_model_load": 356179968,
+            "peak_rss_after_model_load": 356388864,
+            "peak_rss_after_embedding": 412348416,
+            "rss_stable_after_embedding": 412348416,
+            "process_total_ms": 8589.29189999617
+          },
+          {
+            "backend": "torch",
+            "load_ms": 7505.603500001598,
+            "first_embedding_ms": 24.028200001339428,
+            "internal_total_ms": 7621.794500002579,
+            "rss_before_runtime": 27832320,
+            "rss_after_model_load": 355905536,
+            "peak_rss_after_model_load": 356065280,
+            "peak_rss_after_embedding": 411869184,
+            "rss_stable_after_embedding": 411869184,
+            "process_total_ms": 8446.026899997378
+          },
+          {
+            "backend": "torch",
+            "load_ms": 7418.616399998427,
+            "first_embedding_ms": 29.39640000113286,
+            "internal_total_ms": 7541.24320000119,
+            "rss_before_runtime": 27828224,
+            "rss_after_model_load": 356737024,
+            "peak_rss_after_model_load": 356900864,
+            "peak_rss_after_embedding": 412721152,
+            "rss_stable_after_embedding": 412721152,
+            "process_total_ms": 8390.455400003702
+          },
+          {
+            "backend": "torch",
+            "load_ms": 7434.168800005864,
+            "first_embedding_ms": 24.988999997731298,
+            "internal_total_ms": 7556.817600001523,
+            "rss_before_runtime": 27828224,
+            "rss_after_model_load": 356159488,
+            "peak_rss_after_model_load": 356331520,
+            "peak_rss_after_embedding": 412102656,
+            "rss_stable_after_embedding": 412102656,
+            "process_total_ms": 8401.895199996943
+          }
+        ],
+        "run_count": 5,
+        "process_total_ms": {
+          "median": 8446.026899997378,
+          "p95": 8981.159339997976
+        },
+        "load_ms": {
+          "median": 7505.603500001598,
+          "p95": 7959.7994600000675
+        },
+        "first_embedding_ms": {
+          "median": 24.988999997731298,
+          "p95": 28.519160000723787
+        },
+        "rss_before_runtime": {
+          "median": 27828224.0,
+          "p95": 27930624.0
+        },
+        "rss_after_model_load": {
+          "median": 356179968.0,
+          "p95": 356669030.4
+        },
+        "peak_rss_after_embedding": {
+          "median": 412348416.0,
+          "p95": 412653977.6
+        },
+        "rss_stable_after_embedding": {
+          "median": 412348416.0,
+          "p95": 412653977.6
+        },
+        "rss_model_load_delta_median": 328359936,
+        "rss_peak_inference_delta_median": 384430080
+      },
+      "onnx": {
+        "runs": [
+          {
+            "backend": "onnx",
+            "load_ms": 575.8138000019244,
+            "first_embedding_ms": 4.568799995467998,
+            "internal_total_ms": 588.3198000010452,
+            "rss_before_runtime": 27930624,
+            "rss_after_model_load": 154259456,
+            "peak_rss_after_model_load": 196698112,
+            "peak_rss_after_embedding": 196698112,
+            "rss_stable_after_embedding": 157495296,
+            "process_total_ms": 898.4805000000051
+          },
+          {
+            "backend": "onnx",
+            "load_ms": 296.8766999983927,
+            "first_embedding_ms": 5.050699997809716,
+            "internal_total_ms": 310.1805999976932,
+            "rss_before_runtime": 27881472,
+            "rss_after_model_load": 154173440,
+            "peak_rss_after_model_load": 196575232,
+            "peak_rss_after_embedding": 196575232,
+            "rss_stable_after_embedding": 157458432,
+            "process_total_ms": 600.2327999958652
+          },
+          {
+            "backend": "onnx",
+            "load_ms": 290.3489000018453,
+            "first_embedding_ms": 4.8427000001538545,
+            "internal_total_ms": 303.41239999688696,
+            "rss_before_runtime": 27918336,
+            "rss_after_model_load": 154132480,
+            "peak_rss_after_model_load": 196653056,
+            "peak_rss_after_embedding": 196653056,
+            "rss_stable_after_embedding": 157491200,
+            "process_total_ms": 599.8245999944629
+          },
+          {
+            "backend": "onnx",
+            "load_ms": 298.02590000326745,
+            "first_embedding_ms": 4.731499997433275,
+            "internal_total_ms": 311.10289999924134,
+            "rss_before_runtime": 27926528,
+            "rss_after_model_load": 154218496,
+            "peak_rss_after_model_load": 196685824,
+            "peak_rss_after_embedding": 196685824,
+            "rss_stable_after_embedding": 157483008,
+            "process_total_ms": 593.7226000023657
+          },
+          {
+            "backend": "onnx",
+            "load_ms": 287.14720000425586,
+            "first_embedding_ms": 4.82640000700485,
+            "internal_total_ms": 300.2247999975225,
+            "rss_before_runtime": 27770880,
+            "rss_after_model_load": 154083328,
+            "peak_rss_after_model_load": 196616192,
+            "peak_rss_after_embedding": 196616192,
+            "rss_stable_after_embedding": 157298688,
+            "process_total_ms": 581.4601000020048
+          }
+        ],
+        "run_count": 5,
+        "process_total_ms": {
+          "median": 599.8245999944629,
+          "p95": 838.8309599991771
+        },
+        "load_ms": {
+          "median": 296.8766999983927,
+          "p95": 520.256220002193
+        },
+        "first_embedding_ms": {
+          "median": 4.82640000700485,
+          "p95": 5.009099998278543
+        },
+        "rss_before_runtime": {
+          "median": 27918336.0,
+          "p95": 27929804.8
+        },
+        "rss_after_model_load": {
+          "median": 154173440.0,
+          "p95": 154251264.0
+        },
+        "peak_rss_after_embedding": {
+          "median": 196653056.0,
+          "p95": 196695654.4
+        },
+        "rss_stable_after_embedding": {
+          "median": 157483008.0,
+          "p95": 157494476.8
+        },
+        "rss_model_load_delta_median": 126291968,
+        "rss_peak_inference_delta_median": 168759296
+      }
+    },
+    "warm": {
+      "torch": {
+        "backend": "torch",
+        "repeats": 5,
+        "input_profile": "batch=1 short query; batch=8/32/100 fixed 75% <=900-char formula/medium chunks + 25% 50-300-char paragraphs",
+        "batches": {
+          "1": {
+            "samples_ms": [
+              7.713900005910546,
+              9.61010000173701,
+              7.383899996057153,
+              7.629500003531575,
+              7.404999996651895
+            ],
+            "median_ms": 7.629500003531575,
+            "p95_ms": 9.61010000173701,
+            "median_texts_per_second": 131.0701880250496
+          },
+          "8": {
+            "samples_ms": [
+              880.0794999988284,
+              865.8914999978151,
+              870.5130000016652,
+              865.6652999998187,
+              876.6675000006217
+            ],
+            "median_ms": 870.5130000016652,
+            "p95_ms": 880.0794999988284,
+            "median_texts_per_second": 9.189983377599987
+          },
+          "32": {
+            "samples_ms": [
+              3324.911899995641,
+              3297.0882000008714,
+              3333.2358000043314,
+              3310.3818999952637,
+              3347.1521999963443
+            ],
+            "median_ms": 3324.911899995641,
+            "p95_ms": 3347.1521999963443,
+            "median_texts_per_second": 9.624315158558623
+          },
+          "100": {
+            "samples_ms": [
+              8535.225799998443,
+              8431.07389999932,
+              8423.445599997649,
+              8361.723599999095,
+              8489.88829999871
+            ],
+            "median_ms": 8431.07389999932,
+            "p95_ms": 8535.225799998443,
+            "median_texts_per_second": 11.860885242627049
+          }
+        },
+        "process_total_ms": 75170.81799999869
+      },
+      "onnx": {
+        "backend": "onnx",
+        "repeats": 5,
+        "input_profile": "batch=1 short query; batch=8/32/100 fixed 75% <=900-char formula/medium chunks + 25% 50-300-char paragraphs",
+        "batches": {
+          "1": {
+            "samples_ms": [
+              2.8848999936599284,
+              2.352499999688007,
+              2.274099999340251,
+              2.246800002467353,
+              2.198499998485204
+            ],
+            "median_ms": 2.274099999340251,
+            "p95_ms": 2.8848999936599284,
+            "median_texts_per_second": 439.73440054971826
+          },
+          "8": {
+            "samples_ms": [
+              882.3341999959666,
+              882.7287999956752,
+              871.5269999956945,
+              854.3955999994068,
+              838.4358999974211
+            ],
+            "median_ms": 871.5269999956945,
+            "p95_ms": 882.7287999956752,
+            "median_texts_per_second": 9.179291060448525
+          },
+          "32": {
+            "samples_ms": [
+              3489.8443999991287,
+              3361.2716999996337,
+              3302.440300001763,
+              3307.2527999975136,
+              3309.8300999990897
+            ],
+            "median_ms": 3309.8300999990897,
+            "p95_ms": 3489.8443999991287,
+            "median_texts_per_second": 9.668169976461572
+          },
+          "100": {
+            "samples_ms": [
+              10245.919600005436,
+              10248.026699999173,
+              10414.449000003515,
+              10243.76409999968,
+              10278.108500002418
+            ],
+            "median_ms": 10248.026699999173,
+            "p95_ms": 10414.449000003515,
+            "median_texts_per_second": 9.757976137982551
+          }
+        },
+        "process_total_ms": 76790.8099999986
+      }
+    }
+  },
+  "distribution": {
+    "installed_distribution_bytes": {
+      "torch": 458161383,
+      "sentence-transformers": 3758131,
+      "transformers": 89918581,
+      "tokenizers": 7707519,
+      "safetensors": 848108,
+      "huggingface-hub": 4380652,
+      "scipy": 136896831,
+      "scikit-learn": 38459936,
+      "numpy": 51310917,
+      "onnxruntime": 41642900
+    },
+    "model_assets": {
+      "torch_safetensors": 95827648,
+      "onnx_fp32": 94847144,
+      "tokenizer_assets": 549157
+    },
+    "gross_torch_runtime_bytes": 887818863,
+    "gross_onnx_runtime_bytes": 196057637,
+    "shared_or_already_required_packages": [
+      "huggingface-hub",
+      "numpy",
+      "onnxruntime",
+      "tokenizers"
+    ],
+    "future_candidate_reduction_bytes_if_all_torch_consumers_removed": 729023474,
+    "real_removable_dependency_bytes_preserving_current_optional_reranker": 0,
+    "real_removable_model_asset_bytes_preserving_torch_fallback": 0,
+    "added_onnx_asset_bytes_preserving_torch_fallback": 94847144,
+    "estimated_release_net_reduction_bytes_preserving_torch_fallback": -94847144,
+    "notes": [
+      "onnxruntime, tokenizers and numpy are already dependencies of the installed Chroma stack.",
+      "The optional CrossEncoder reranker imports sentence-transformers and therefore retains torch and transformers.",
+      "Gross totals intentionally show complete stacks; real removable size excludes shared dependencies and preserves current features."
+    ]
+  },
+  "dependency_audit": {
+    "delete_torch": "NO",
+    "delete_sentence_transformers": "NO",
+    "delete_transformers": "NO",
+    "blocking_source": "config.py production fallback; ingestion/reranker.py optional CrossEncoder; legacy index/build tooling and release CPU-Torch checks"
+  },
+  "decision": {
+    "verdict": "NO-GO",
+    "reason": "The ONNX embedding path is numerically/retrieval compatible and greatly improves cold start/RAM, but batch-100 warm inference regresses by more than the allowed 10%. More importantly, the required Torch fallback and optional CrossEncoder reranker retain SentenceTransformers, Transformers, Torch, and the safetensors model. No dependency or old model asset can be removed, while ONNX adds about 90.5 MB. Performance and distribution gates therefore fail. Keep PyTorch as the production default.",
+    "gates": {
+      "quality": true,
+      "performance": false,
+      "distribution": false,
+      "cold_improved_5_percent": true,
+      "ram_improved_10_percent": true,
+      "warm_no_batch_regressed_over_10_percent": false
+    }
+  }
+}

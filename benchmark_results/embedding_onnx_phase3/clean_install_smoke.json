@@ -1,0 +1,20 @@
+﻿{
+    "status":  "PASS",
+    "installer_exit_code":  0,
+    "isolated_user_data":  true,
+    "user_data_path":  "D:\\AI\\agent\\kaoyan-assistant\\benchmark_results\\embedding_onnx_phase3\\clean_profile_isolated\\data\\desktop_assets.json",
+    "path_excludes_python_and_node":  true,
+    "offline_env":  true,
+    "process_alive":  true,
+    "embedding_ready":  true,
+    "retrieval_ready":  true,
+    "warmup_stage":  "ready",
+    "embedding_dimension":  512,
+    "generic_retrieval_status":  "ordinary_qa",
+    "generic_generation":  "EXTERNAL_LLM_NOT_ASSERTED",
+    "notes":  [
+                  "Packaged Electron/backend launched without system Python or Node",
+                  "No pre-existing Texa user data was used",
+                  "Retrieval path is independent of optional external LLM credentials"
+              ]
+}

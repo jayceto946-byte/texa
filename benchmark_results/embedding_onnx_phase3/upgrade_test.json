@@ -1,0 +1,12 @@
+﻿{
+    "status":  "PASS",
+    "old_user_data_preserved":  true,
+    "books_preserved":  true,
+    "existing_vector_files_preserved":  true,
+    "existing_index_retrieval":  true,
+    "automatic_rebuild_observed":  false,
+    "legacy_model_assets_retained":  true,
+    "settings_and_history_preserved":  true,
+    "offline_startup":  true,
+    "full_ready_ms":  3258.7178999965545
+}

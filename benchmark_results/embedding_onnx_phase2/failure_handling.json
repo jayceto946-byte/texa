@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "policy": "no Torch fallback; structured error plus diagnostic log",
+  "cases": [
+    {
+      "case": "model_missing",
+      "status": "PASS",
+      "expected_code": "MODEL_MISSING",
+      "code": "MODEL_MISSING",
+      "message": "Embedding runtime unavailable [MODEL_MISSING]: ONNX model not found at D:\\AI\\agent\\kaoyan-assistant\\does-not-exist-phase2.onnx. Repair Texa runtime/model and retry.",
+      "diagnostic_log_present": true
+    },
+    {
+      "case": "model_corrupt",
+      "status": "PASS",
+      "expected_code": "MODEL_CORRUPT_OR_INCOMPATIBLE",
+      "code": "MODEL_CORRUPT_OR_INCOMPATIBLE",
+      "message": "Embedding runtime unavailable [MODEL_CORRUPT_OR_INCOMPATIBLE]: [ONNXRuntimeError] : 7 : INVALID_PROTOBUF : Load model from C:\\Users\\JayceJi\\AppData\\Local\\Temp\\texa-phase2-corrupt-qvi4yiy1\\corrupt.onnx failed:Protobuf parsing failed.. Repair Texa runtime/model and retry.",
+      "diagnostic_log_present": true
+    },
+    {
+      "case": "ort_import_failure",
+      "status": "PASS",
+      "expected_code": "ORT_IMPORT_FAILURE",
+      "code": "ORT_IMPORT_FAILURE",
+      "message": "Embedding runtime unavailable [ORT_IMPORT_FAILURE]: onnxruntime import deliberately blocked for Phase 2 validation. Repair Texa runtime/model and retry.",
+      "diagnostic_log_present": true
+    },
+    {
+      "case": "unsupported_architecture",
+      "status": "PASS",
+      "code": "UNSUPPORTED_ARCHITECTURE",
+      "message": "Embedding runtime unavailable [UNSUPPORTED_ARCHITECTURE]: unsupported architecture: ARM64 provider unavailable. Repair Texa runtime/model and retry.",
+      "validation": "classifier",
+      "diagnostic_log_present": false
+    },
+    {
+      "case": "tokenizer_mismatch",
+      "status": "PASS",
+      "expected_code": "TOKENIZER_MISMATCH",
+      "code": "TOKENIZER_MISMATCH",
+      "message": "Embedding runtime unavailable [TOKENIZER_MISMATCH]: Tokenizer JSON not found: C:\\Users\\JayceJi\\AppData\\Local\\Temp\\texa-phase2-tokenizer-n1skgrr1\\tokenizer.json. Repair Texa runtime/model and retry.",
+      "diagnostic_log_present": true
+    }
+  ]
+}
