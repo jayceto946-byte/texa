@@ -1,12 +1,12 @@
 # Electron 界面截图索引
 
-截图时间：2026-07-15。后端健康状态为 `ready`，截图反映当前本地数据状态。
+截图时间：2026-08-14。用户可见品牌为 `Texa`；后端健康状态为 `ready`，截图使用隔离演示数据生成。
 
 | 文件 | 界面 |
 | --- | --- |
 | `01-chat-home.jpg` | 学习对话首页 |
 | `02-chat-quick-capture.jpg` | 对话内错题速录卡片 |
-| `03-chat-highlight-repository.jpg` | 章节重点仓库 |
+| `03-chat-highlight-repository.jpg` | 学习对话中的教材重点入口 |
 | `04-learning-dashboard.jpg` | 学习情况 |
 | `05-mistakes-entry.jpg` | 错题录入 |
 | `06-mistakes-entry-form.jpg` | 错题录入表单视图 |

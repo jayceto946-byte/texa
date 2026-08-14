@@ -100,7 +100,7 @@ def _start_warmup() -> None:
         threading.Thread(target=_warmup, name="backend-warmup", daemon=True).start()
 
 app = FastAPI(
-    title="考研智能辅助系统 API",
+    title="Texa API",
     description="FastAPI + React 架构后端",
     version=APP_VERSION,
     lifespan=lifespan,

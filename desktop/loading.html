@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>考研智能辅助系统</title>
+    <title>Texa</title>
     <style>
       * { box-sizing: border-box; }
       :root {
@@ -453,7 +453,7 @@
         details.style.display = 'block';
         actions.style.display = 'flex';
         repairButton.style.display = failure.recoverable && failure.repair_action === 'repair_embedding_runtime' ? '' : 'none';
-        details.textContent = `错误代码：${failure.code || 'STARTUP_FAILURE'}\n诊断编号：${failure.diagnostic_id || '未生成'}\n日志：${info.logPath || '%APPDATA%\\kaoyan-assistant-desktop\\logs\\backend.log'}`;
+        details.textContent = `错误代码：${failure.code || 'STARTUP_FAILURE'}\n诊断编号：${failure.diagnostic_id || '未生成'}\n日志：${info.logPath || '应用数据目录\\logs\\backend.log'}`;
       }
 
       setTimeGreeting();

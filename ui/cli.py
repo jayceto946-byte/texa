@@ -38,7 +38,7 @@ class StudyCLI:
     def show_banner(self):
         banner = """
 ╔══════════════════════════════════════════════╗
-║      📚 考研智能辅助系统 v3.0 (LangGraph)      ║
+║              📚 Texa v3.0 (LangGraph)           ║
 ║   Planner → Retrieve → Chapter → Generate    ║
 ║   ⭐ 多模态 | 知识图谱 | 反馈闭环 | SM-2      ║
 ╚══════════════════════════════════════════════╝

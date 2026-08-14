@@ -1,4 +1,4 @@
-# AGENTS.md — 考研智能辅助系统开发约定
+# AGENTS.md — Texa 开发约定
 
 ## 项目目的
 
@@ -27,7 +27,7 @@
 ## 当前架构
 
 ```text
-kaoyan-assistant/
+texa/
 ├── main.py                     # CLI 入口
 ├── config.py                   # LLM、嵌入模型、路径配置
 ├── agents/                     # Agent 封装，与 UI 解耦

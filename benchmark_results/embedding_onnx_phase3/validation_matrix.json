@@ -29,7 +29,7 @@
   },
   "external_generation_note": "No paid or external LLM generation was invoked; generic/textbook checks cover routing and retrieval evidence.",
   "remote_repair_probe": {
-    "url": "https://github.com/jayceto946-byte/kaoyan-assistant/releases/download/embedding-runtime-onnx-fp32-v1/model.onnx",
+    "url": "https://github.com/jayceto946-byte/texa/releases/download/embedding-runtime-onnx-fp32-v1/model.onnx",
     "status_code": 200,
     "reachable": true,
     "asset_count": 6,

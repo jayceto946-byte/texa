@@ -7,6 +7,12 @@ const crypto = require('node:crypto');
 const os = require('node:os');
 const { findAvailablePort, portFromUrl } = require('./runtime.cjs');
 
+// Keep the pre-Texa userData locations stable. Changing productName/package name
+// without this override would make existing installations appear to lose data.
+app.setName('Texa');
+const LEGACY_USER_DATA_DIRNAME = app.isPackaged ? '考研智能辅助系统' : 'kaoyan-assistant-desktop';
+app.setPath('userData', path.join(app.getPath('appData'), LEGACY_USER_DATA_DIRNAME));
+
 const BACKEND_URL_OVERRIDE = (process.env.KAOYAN_BACKEND_URL || '').trim();
 const BACKEND_PORT_OVERRIDE = Number(process.env.KAOYAN_BACKEND_PORT || 0);
 const FRONTEND_DEV_URL = process.env.KAOYAN_FRONTEND_DEV_URL || '';
@@ -660,7 +666,7 @@ function createWindow() {
     frame: false,
     show: false,
     backgroundColor: '#f5f5f7',
-    title: '考研智能辅助系统',
+    title: 'Texa',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,

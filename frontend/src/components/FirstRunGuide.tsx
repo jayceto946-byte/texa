@@ -151,7 +151,7 @@ export default function FirstRunGuide() {
               <PackageOpen className="h-5 w-5 text-accent" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-text-primary">首次打开考研助手</h2>
+              <h2 className="text-base font-semibold text-text-primary">首次打开 Texa</h2>
 
             </div>
           </div>

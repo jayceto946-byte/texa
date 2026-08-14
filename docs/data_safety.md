@@ -26,6 +26,8 @@ cd D:\AI\agent\kaoyan-assistant
 
 `data/vector_db` 和 `mineru_output` 体积可能较大，默认不打包；需要保留时请单独复制整个目录。
 
+产品重命名后的 Electron 数据目录仍使用旧兼容路径。未来切换到 Texa 独立目录时，必须遵循 [userData 目录迁移方案](user-data-migration.md)，在实现与回归门槛通过前不得移除兼容路径。
+
 ## 验证
 
 每次改动错题、复习、教材导入、RAG 或前端构建后，至少运行：

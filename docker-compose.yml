@@ -1,10 +1,10 @@
 services:
-  kaoyan-assistant:
+  texa:
     build:
       context: .
       dockerfile: Dockerfile
-    image: kaoyan-assistant:local
-    container_name: kaoyan-assistant
+    image: texa:local
+    container_name: texa
     restart: unless-stopped
     env_file:
       - .env

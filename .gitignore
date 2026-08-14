@@ -83,7 +83,7 @@ release/
 build/
 tmp_seed_runtime/
 .codex/
-kaoyan-assistant/
+texa/
 
 # Local desktop demo payloads; keep only instructions in Git.
 desktop/sample_data/**

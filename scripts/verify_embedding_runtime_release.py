@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "assets/embedding-runtime/bge-small-zh-v1.5/onnx-fp32-v1/embedding-runtime.json"
 DEFAULT_TAG = "embedding-runtime-onnx-fp32-v1"
-DEFAULT_BASE = "https://github.com/jayceto946-byte/kaoyan-assistant/releases/download"
+DEFAULT_BASE = "https://github.com/jayceto946-byte/texa/releases/download"
 
 
 def sha256(path: Path) -> str:

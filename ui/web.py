@@ -652,11 +652,11 @@ class StudyWebUI:
     # === UI 启动 ===
 
     def launch(self, share=False, port=7860):
-        with gr.Blocks(title="考研助手") as app:
+        with gr.Blocks(title="Texa") as app:
             with gr.Row(equal_height=True):
                 # === 左侧边栏 — 加宽 ===
                 with gr.Column(scale=1, elem_id="sidebar", min_width=320):
-                    gr.Markdown("## 📚 考研助手")
+                    gr.Markdown("## 📚 Texa")
 
                     book_dd = gr.Dropdown(
                         label="选择教材",

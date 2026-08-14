@@ -84,7 +84,7 @@ From the project root:
 .\scripts\export-new-user-package.ps1
 ```
 
-The output is written to `exports/kaoyan-assistant-new-user-<timestamp>/kaoyan-assistant`.
+The output is written to `exports/texa-new-user-<timestamp>/texa`.
 
 The export script includes tracked files plus untracked source files that are not ignored by `.gitignore`. It excludes local data, secrets, virtual environments, dependency folders, and generated build artifacts.
 

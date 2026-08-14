@@ -52,7 +52,7 @@
     },
     {
       "type": "http_files",
-      "base_url": "https://github.com/jayceto946-byte/kaoyan-assistant/releases/download/embedding-runtime-onnx-fp32-v1"
+      "base_url": "https://github.com/jayceto946-byte/texa/releases/download/embedding-runtime-onnx-fp32-v1"
     }
   ]
 }

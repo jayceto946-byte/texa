@@ -1,4 +1,4 @@
-name: CI
+name: Texa CI
 
 on:
   pull_request:
@@ -9,6 +9,7 @@ on:
 
 jobs:
   backend:
+    name: Texa backend
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,6 +34,7 @@ jobs:
         run: python -m pytest -q
 
   frontend:
+    name: Texa frontend
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,6 +57,7 @@ jobs:
         run: npm run build
 
   desktop:
+    name: Texa desktop
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4

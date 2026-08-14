@@ -1,4 +1,4 @@
-name: Deploy Project Site
+name: Deploy Texa Project Site
 
 on:
   push:
@@ -20,6 +20,7 @@ concurrency:
 
 jobs:
   deploy:
+    name: Deploy Texa site
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

@@ -4,7 +4,7 @@ import argparse
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Kaoyan Assistant developer CLI (legacy)")
+    parser = argparse.ArgumentParser(description="Texa developer CLI (legacy)")
     parser.add_argument("mode", nargs="?", default="cli", choices=["cli"])
     parser.parse_args()
     from ui.cli import StudyCLI

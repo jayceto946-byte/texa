@@ -1,4 +1,4 @@
-# 考研智能辅助系统
+# Texa
 
 一个围绕教材、习题、错题和复习记录构建的本地优先考研学习辅助系统。
 
@@ -149,7 +149,7 @@ ConceptMemory 记录概念接触、候选链接、薄弱信号与复习信息。
 
 ## 项目目录
 
-    kaoyan-assistant/
+    texa/
     ├── backend/          FastAPI 应用、API、任务与安全边界
     ├── frontend/         React/Vite 前端
     ├── desktop/          Electron 主进程、预加载与打包配置
@@ -177,8 +177,8 @@ ConceptMemory 记录概念接触、候选链接、薄弱信号与复习信息。
 
 ### 安装依赖
 
-    git clone https://github.com/jayceto946-byte/kaoyan-assistant.git
-    cd kaoyan-assistant
+    git clone https://github.com/jayceto946-byte/texa.git
+    cd texa
 
     py -3.10 -m venv venv310
     .\venv310\Scripts\python.exe -m pip install --upgrade pip
@@ -283,7 +283,7 @@ Electron 会启动后端并使用桌面用户数据目录。若已经单独启�
 
 不要直接修改 <code>desktop/sample_data</code> 或正式 <code>data/</code>。建议先复制到仓库外的独立目录：
 
-    $demoRoot = Join-Path $env:TEMP 'kaoyan-assistant-demo'
+    $demoRoot = Join-Path $env:TEMP 'texa-demo'
     New-Item -ItemType Directory -Path $demoRoot -Force | Out-Null
     Copy-Item -Recurse desktop\sample_data (Join-Path $demoRoot 'data')
 
@@ -342,7 +342,7 @@ seed 脚本具有稳定 ID，可重复运行，并会拒绝写入仓库正式 <c
 
 <code>site/</code> 是不依赖构建工具的项目介绍页。直接打开 <code>site/index.html</code>，或在仓库根目录运行：
 
-在线演示：<https://jayceto946-byte.github.io/kaoyan-assistant/>
+在线演示：<https://jayceto946-byte.github.io/texa/>
 
     .\venv310\Scripts\python.exe -m http.server 4173 --directory site
 

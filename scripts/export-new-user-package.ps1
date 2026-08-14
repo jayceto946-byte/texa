@@ -24,8 +24,8 @@ $projectRel = (Get-RelativePathCompat -From $repoRoot -To $projectRoot).Replace(
 
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $outputBase = Join-Path $projectRoot $OutputRoot
-$packageRoot = Join-Path $outputBase "kaoyan-assistant-new-user-$timestamp"
-$targetRoot = Join-Path $packageRoot "kaoyan-assistant"
+$packageRoot = Join-Path $outputBase "texa-new-user-$timestamp"
+$targetRoot = Join-Path $packageRoot "texa"
 
 New-Item -ItemType Directory -Force -Path $targetRoot | Out-Null
 
@@ -58,7 +58,7 @@ if ($IncludeOutsideNotes) {
 }
 
 $manifest = @()
-$manifest += "kaoyan-assistant new-user source package"
+$manifest += "Texa new-user source package"
 $manifest += "Generated: $(Get-Date -Format o)"
 $manifest += "Project root: $projectRoot"
 $manifest += "Repository root: $repoRoot"

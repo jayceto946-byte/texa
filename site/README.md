@@ -1,8 +1,8 @@
 # 静态项目介绍页
 
-这是考研智能辅助系统的独立宣传页面，不依赖 Node.js、打包器或外部 CDN。
+这是 Texa 的独立宣传页面，不依赖 Node.js、打包器或外部 CDN。
 
-在线演示：<https://jayceto946-byte.github.io/kaoyan-assistant/>
+在线演示：<https://jayceto946-byte.github.io/texa/>
 
 ## 直接打开
 
@@ -32,7 +32,7 @@
 - LLM、OCR、MinerU 和知识增强能力按依赖条件标注。
 - 未完成能力统一列在 Roadmap。
 - 仓库当前没有 LICENSE，页面没有声称采用任何开源协议。
-- GitHub 入口指向仓库现有 remote：jayceto946-byte/kaoyan-assistant。
+- GitHub 入口指向仓库现有 remote：jayceto946-byte/texa。
 
 ## 发布
 

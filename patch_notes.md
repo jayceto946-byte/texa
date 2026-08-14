@@ -1,3 +1,21 @@
+# 2026-08-14 - Product rename to Texa
+
+- 用户可见品牌统一为 `Texa`，桌面 npm 工程名、Docker 工程名、导出包名和安装包名统一使用 `texa` / `Texa`。
+- Electron 继续显式使用改名前的 `userData` 目录，避免既有教材索引、错题、配置和学习记录在升级后失联；本次不迁移数据目录、不修改 `appId`、自动更新仓库标识、IPC、环境变量、API、数据库或 Chroma 标识。
+- GitHub 仓库已从 `jayceto946-byte/kaoyan-assistant` 改名为 `jayceto946-byte/texa`，并更新 description、topics、homepage、Pages 地址、Electron update provider 与 embedding runtime release URL；旧 URL 仅保留在历史验证快照中。
+- Electron 仍继续使用改名前的 `userData` 目录；独立迁移与回滚方案见 `docs/user-data-migration.md`，在实现、故障注入与升级回归通过前不得移除兼容路径。
+- GitHub `latest` 曾被不含 Electron `latest.yml` 的 embedding runtime Release 占用；已将现有唯一含安装包、blockmap 与更新清单的 `v0.2.0` 恢复为 Latest。该遗留清单仍描述 `0.1.0` 安装包；在签名的 Texa `v1.0.0` 正式发布前，只保证旧客户端不会读取模型资源 Release，不把遗留 feed 表述为新的 Texa 发布。
+- 当前 frontend 与 desktop npm 工程均为 private，仓库没有 Python registry 发布清单，因此本次没有 npm/PyPI 名称迁移或发布操作。
+
+## Validation
+
+- frontend ESLint 通过；Vitest 17 files / 74 tests 通过；`tsc -b && vite build` 通过。
+- backend 全量 pytest 472 passed（1 条既有 Starlette/httpx2 弃用警告）。
+- Electron main/preload/runtime 语法检查通过；Node tests 3 passed，包含 Texa metadata、旧 appId 与旧 `userData` 路径保护回归。
+- PyInstaller 后端构建、electron-builder NSIS/ZIP 构建与 Standard release validator 通过；生成 `Texa.exe`、`Texa-Setup-1.0.0.exe` 和 `Texa-Setup-1.0.0.zip`，`latest.yml` 指向 Texa 安装包。
+- README、静态站点与 Electron 截图使用隔离演示数据重新渲染，截图归档更新为 `screenshots/texa-electron-screenshots.zip`。
+- 改名后 GitHub API 核验仓库管理员权限、Pages workflow、4 个 Release 与 6 个 embedding assets；新 Pages、更新清单、embedding 资源和旧仓库重定向均返回 HTTP 200。完整下载验证结果写入 `remote_asset_verification.json`：6 个文件的 HEAD/GET、Content-Length、下载大小与 SHA-256 全部 PASS，临时下载已移除；GitHub 服务端 size/digest 交叉核验也全部匹配 manifest。命令包装器在结果落盘后因网络连接未及时退出触发 4 分钟超时，不影响已落盘的完整性结果。
+
 # 2026-08-14 - Texa embedding ONNX Runtime Phase 3 production migration
 
 ## Production runtime 与依赖
@@ -909,7 +927,7 @@
 - `npm.cmd run lint` completed with no errors and the existing `HighlightRepositoryDialog.tsx` React hooks dependency warning.
 
 ---
-# Patch Notes - Kaoyan Assistant
+# Patch Notes - Texa
 
 This file records version changes, bug fixes, migration notes, validation results, and environment repair records.
 

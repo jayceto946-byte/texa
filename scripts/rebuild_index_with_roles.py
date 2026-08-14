@@ -1,7 +1,7 @@
 """重建向量索引，给每个 chunk 的 metadata 补上 role 字段。
 
 用法：
-    cd D:/AI/agent/kaoyan-assistant
+    cd D:/path/to/texa
     . venv310/Scripts/activate
     python scripts/rebuild_index_with_roles.py --book_name 优化设计
 

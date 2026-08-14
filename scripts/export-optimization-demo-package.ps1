@@ -23,7 +23,7 @@ function Copy-IfExists {
 
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-$packageName = "kaoyan-assistant-demo-$BookName-$timestamp"
+$packageName = "texa-demo-$BookName-$timestamp"
 $packageRoot = Join-Path (Join-Path $projectRoot $OutputRoot) $packageName
 $dataRoot = Join-Path $packageRoot "data"
 $copied = New-Object System.Collections.Generic.List[string]
@@ -61,7 +61,7 @@ if ($IncludeSourcePdf) {
 $readme = @"
 # $BookName 示例数据包
 
-这是考研智能辅助系统的示例数据包，用于向新用户演示教材问答、知识图谱、错题本和习题库能力。
+这是 Texa 的示例数据包，用于向新用户演示教材问答、知识图谱、错题本和习题库能力。
 
 ## 包含内容
 

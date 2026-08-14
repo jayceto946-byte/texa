@@ -1,6 +1,6 @@
 param(
     [string]$Owner = "jayceto946-byte",
-    [string]$Repository = "kaoyan-assistant",
+    [string]$Repository = "texa",
     [string]$Tag = "embedding-runtime-onnx-fp32-v1",
     [string]$TargetCommitish = "5ea4fb0a3c71fe0b9cbd6ca3034b45e7b6cb3605",
     [string]$AssetDirectory = "assets\embedding-runtime\bge-small-zh-v1.5\onnx-fp32-v1"

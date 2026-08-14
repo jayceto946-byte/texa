@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    考研智能辅助系统 — 完整启动脚本
+    Texa — 完整启动脚本
 .DESCRIPTION
     自动检测虚拟环境、检查配置、清理残留进程、启动服务。
     支持 Web UI 和 CLI 两种模式。
@@ -145,7 +145,7 @@ if ($Missing.Count -gt 0) {
 # ── 5. 清理残留并启动 ─────────────────────────────────────
 Kill-Residual
 
-Write-Section "启动考研助手"
+Write-Section "启动 Texa"
 if ($Mode -eq "web" -or $Mode -eq "") {
     Write-Info "模式: Web UI | 端口: $Port"
     Write-Info "访问地址: http://127.0.0.1:$Port"

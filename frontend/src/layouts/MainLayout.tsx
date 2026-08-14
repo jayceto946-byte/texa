@@ -145,7 +145,7 @@ const MainLayout: React.FC = () => {
           <BookOpen className="h-4.5 w-4.5 text-white" />
         </div>
         <div className="ml-3 flex min-w-0 flex-1 items-center gap-2">
-          <h1 className="truncate text-[19px] font-semibold leading-6 text-text-primary">考研助手</h1>
+          <h1 className="truncate text-[19px] font-semibold leading-6 text-text-primary">Texa</h1>
         </div>
         <button
           type="button"

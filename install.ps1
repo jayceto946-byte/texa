@@ -1,5 +1,5 @@
-# 考研辅助系统 - Windows 安装脚本
-Write-Host "📚 考研智能辅助系统 - 安装脚本" -ForegroundColor Cyan
+# Texa - Windows 安装脚本
+Write-Host "📚 Texa - 安装脚本" -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
 # 1. 检查Python

@@ -1,4 +1,4 @@
-name: Desktop Release
+name: Texa Desktop Release
 
 on:
   push:
@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   build-windows:
+    name: Build Texa for Windows
     runs-on: windows-latest
 
     steps:

@@ -13,7 +13,7 @@ raise RuntimeError("Legacy direct Chroma writer disabled. Use scripts/reindex_bo
 
 from config import get_embeddings
 
-ROOT = Path(r'D:\AI\agent\kaoyan-assistant')
+ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / 'data'
 DELIVERABLES = DATA / 'imports' / 'kaoyan_ocr_20260704' / 'deliverables'
 VECTOR_DB = DATA / 'vector_db'
