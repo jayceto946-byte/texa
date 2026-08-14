@@ -61,6 +61,22 @@ _check_chunks.py
 session_*.zip
 exports/
 
+# Generated ONNX migration benchmark/install payloads
+benchmark_results/embedding_onnx_phase1/*.onnx
+benchmark_results/embedding_onnx_phase2/baseline/
+benchmark_results/embedding_onnx_phase2/candidate/
+benchmark_results/embedding_onnx_phase2/candidate_sample_data/
+benchmark_results/embedding_onnx_phase2/packaged_runtime_data_*/
+benchmark_results/embedding_onnx_phase2/*.log
+benchmark_results/embedding_onnx_phase3/*.pdf
+benchmark_results/embedding_onnx_phase3/*.log
+benchmark_results/embedding_onnx_phase3/benchmark_companion*/
+benchmark_results/embedding_onnx_phase3/clean_profile*/
+benchmark_results/embedding_onnx_phase3/offline_shipped_profile/
+benchmark_results/embedding_onnx_phase3/repair_ui_install*/
+benchmark_results/embedding_onnx_phase3/repair_ui_profile*/
+benchmark_results/embedding_onnx_phase3/upgrade_runtime_data/
+
 desktop/node_modules/
 desktop/dist/
 release/
