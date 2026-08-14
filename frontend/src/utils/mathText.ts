@@ -36,6 +36,63 @@ function convertTexDelimiters(text: string): string {
     .replace(/\\\[((?:.|\n)*?)\\\]/g, (_match, body: string) => '$$\n' + body + '\n$$')
     .replace(/\\\(((?:.|\n)*?)\\\)/g, (_match, body: string) => `$${body}$`);
 }
+
+function singleDollarPositions(line: string): number[] {
+  const positions: number[] = [];
+  for (let index = 0; index < line.length; index += 1) {
+    if (
+      line[index] === '$'
+      && line[index - 1] !== '$'
+      && line[index + 1] !== '$'
+      && !isEscaped(line, index)
+    ) positions.push(index);
+  }
+  return positions;
+}
+
+function repairMultilineInlineMath(text: string): string {
+  let inFence = false;
+  let inBlockMath = false;
+  return text.split('\n').map((originalLine) => {
+    let line = originalLine;
+    const stripped = line.trim();
+    if (stripped.startsWith('```')) {
+      inFence = !inFence;
+      return line;
+    }
+    const blockTokens = line.match(/(?<!\\)\$\$/g)?.length || 0;
+    if (!inFence && blockTokens % 2 === 1) inBlockMath = !inBlockMath;
+    if (inFence || inBlockMath) return line;
+    const positions = singleDollarPositions(line);
+    if (positions.length === 1) {
+      const position = positions[0];
+      if (!line.slice(0, position).trim()) line = `${line.trimEnd()}$`;
+      else if (!line.slice(position + 1).trim()) line = `$${line.trimStart()}`;
+    }
+    return line;
+  }).join('\n');
+}
+
+function wrapBareLatex(text: string): string {
+  const { text: unprotected, tokens } = protectMathAndCode(text);
+  const withTemperatures = unprotected.replace(
+    /(?<![$\\])((?:[A-Za-z][A-Za-z0-9_{}]*\s*=\s*)?[-+]?\d+(?:\.\d+)?\s*\^?\\circ\s*(?:\\text\{C\}|C))(?![$A-Za-z])/g,
+    '$$$1$',
+  );
+  const lines = withTemperatures.split('\n').map((line) => {
+    const stripped = line.trim();
+    if (
+      stripped
+      && !stripped.includes('$')
+      && /\\(?:approx|text|circ|frac|sqrt|sum|int|Delta|theta|lambda|mu|sigma|mathrm|mathbf)\b/.test(stripped)
+      && !containsChineseOutsideBraces(stripped)
+    ) {
+      return `${line.slice(0, line.length - line.trimStart().length)}$${stripped}$`;
+    }
+    return line;
+  }).join('\n');
+  return restoreProtected(lines, tokens);
+}
 function wrapBareMathEnvironments(text: string): string {
   const { text: unprotected, tokens } = protectMathAndCode(text);
   const envs = 'aligned|align|gathered|gather|cases|matrix|pmatrix|bmatrix|vmatrix|Vmatrix|array|split|equation';
@@ -112,5 +169,6 @@ function balanceDollarMath(text: string): string {
 }
 
 export function prepareMathMarkdown(text: string): string {
-  return balanceDollarMath(wrapBareMathEnvironments(convertTexDelimiters(normalizeLatexText(text))));
+  const normalized = convertTexDelimiters(normalizeLatexText(text));
+  return balanceDollarMath(wrapBareMathEnvironments(wrapBareLatex(repairMultilineInlineMath(normalized))));
 }

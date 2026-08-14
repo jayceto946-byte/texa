@@ -14,7 +14,11 @@ def sanitize_latex(text: str) -> str:
     text = _normalize_latex_text(str(text or ""))
     text = _strip_latex_spacing_options(text)
     text = _convert_tex_delimiters(text)
+    text = _repair_multiline_inline_math(text)
+    text = _wrap_bare_temperature_fragments(text)
+    text = _wrap_bare_latex_lines(text)
     text = _wrap_bare_math_environments(text)
+    text = _remove_inline_delimiters_inside_display_math(text)
     text = _remove_empty_math(text)
     return _balance_math_delimiters(text)
 
@@ -40,6 +44,84 @@ def _convert_tex_delimiters(text: str) -> str:
     text = re.sub(r'(?<!\\)\\\((.+?)(?<!\\)\\\)', r'$\1$', text, flags=re.DOTALL)
     text = re.sub(r'(?<!\\)\\\[(.+?)(?<!\\)\\\]', r'$$\1$$', text, flags=re.DOTALL)
     return text
+
+
+def _single_dollar_positions(line: str) -> list[int]:
+    return [
+        index for index, char in enumerate(line)
+        if char == '$'
+        and (index == 0 or line[index - 1] != '$')
+        and (index + 1 >= len(line) or line[index + 1] != '$')
+        and not _is_escaped(line, index)
+    ]
+
+
+def _repair_multiline_inline_math(text: str) -> str:
+    """Inline math cannot span Markdown paragraphs; repair isolated edge dollars per line."""
+    result: list[str] = []
+    in_fence = False
+    in_block_math = False
+    for line in text.split('\n'):
+        stripped = line.strip()
+        if stripped.startswith('```'):
+            in_fence = not in_fence
+            result.append(line)
+            continue
+        if not in_fence and line.count('$$') % 2:
+            in_block_math = not in_block_math
+        if in_fence or in_block_math:
+            result.append(line)
+            continue
+        positions = _single_dollar_positions(line)
+        if len(positions) == 1:
+            position = positions[0]
+            if not line[:position].strip():
+                line = line.rstrip() + '$'
+            elif not line[position + 1:].strip():
+                line = '$' + line.lstrip()
+        result.append(line)
+    return '\n'.join(result)
+
+
+_BARE_TEMPERATURE_RE = re.compile(
+    r'(?<![$\\])(?P<value>(?:[A-Za-z][A-Za-z0-9_{}]*\s*=\s*)?[-+]?\d+(?:\.\d+)?\s*\^?\\circ\s*(?:\\text\{C\}|C))(?![$A-Za-z])'
+)
+
+
+def _wrap_bare_temperature_fragments(text: str) -> str:
+    protected, tokens = _protect_segments(text)
+    protected = _BARE_TEMPERATURE_RE.sub(lambda match: f"${match.group('value')}$", protected)
+    return _restore_segments(protected, tokens)
+
+
+def _wrap_bare_latex_lines(text: str) -> str:
+    """Wrap formula-only lines containing TeX commands, including legacy answers."""
+    protected, tokens = _protect_segments(text)
+    result: list[str] = []
+    in_fence = False
+    for line in protected.split('\n'):
+        stripped = line.strip()
+        if stripped.startswith('```'):
+            in_fence = not in_fence
+        if (
+            not in_fence
+            and stripped
+            and '$' not in stripped
+            and re.search(r'\\(?:approx|text|circ|frac|sqrt|sum|int|Delta|theta|lambda|mu|sigma|mathrm|mathbf)\b', stripped)
+            and _find_chinese_outside_braces(stripped) is None
+        ):
+            prefix = line[:len(line) - len(line.lstrip())]
+            line = f"{prefix}${stripped}$"
+        result.append(line)
+    return _restore_segments('\n'.join(result), tokens)
+
+
+def _remove_inline_delimiters_inside_display_math(text: str) -> str:
+    def clean(match: re.Match) -> str:
+        body = re.sub(r'(?<!\\)(?<!\$)\$(?!\$)', '', match.group(1))
+        return f"$${body}$$"
+
+    return re.sub(r'(?<!\\)\$\$([\s\S]*?)(?<!\\)\$\$', clean, text)
 
 
 def _protect_segments(text: str) -> tuple[str, list[str]]:
@@ -75,8 +157,10 @@ def _wrap_bare_math_environments(text: str) -> str:
 
 
 def _remove_empty_math(text: str) -> str:
-    text = re.sub(r'(?<!\\)\$\$\s*(?<!\\)\$\$', '', text, flags=re.DOTALL)
-    return re.sub(r'(?<!\\)(?<!\$)\$(?!\$)\s*(?<!\\)(?<!\$)\$(?!\$)', '', text, flags=re.DOTALL)
+    # Newlines separate Markdown math blocks. Treat only horizontal whitespace
+    # as an empty expression, otherwise `$\n\n$` can erase two valid boundaries.
+    text = re.sub(r'(?<!\\)\$\$[ \t]*(?<!\\)\$\$', '', text)
+    return re.sub(r'(?<!\\)(?<!\$)\$(?!\$)[ \t]*(?<!\\)(?<!\$)\$(?!\$)', '', text)
 
 
 def _is_escaped(text: str, index: int) -> bool:
