@@ -274,7 +274,8 @@ const LearningPage: React.FC = () => {
   return (
     <div className="learning-page flex h-full min-w-0 flex-col">
       <div className="app-page-header learning-page-header border-b border-border bg-bg-primary">
-        <h2 className="app-page-title">学习情况</h2>
+        <h2 className="app-page-title">复习计划</h2>
+        <div className="window-drag-region" aria-hidden="true" />
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           <ScopeSelector
             subject={subjectFilter}
@@ -291,7 +292,7 @@ const LearningPage: React.FC = () => {
           <button
             onClick={load}
             disabled={loading}
-            className="flex items-center gap-1.5 rounded-md border border-border bg-bg-primary px-3 py-1.5 text-sm text-text-primary transition-colors hover:border-accent disabled:opacity-50"
+            className="review-toolbar-button app-secondary-button"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             刷新
@@ -299,7 +300,7 @@ const LearningPage: React.FC = () => {
           <button
             onClick={startKGEnhancement}
             disabled={!bookName || kgJobIsRunning}
-            className="flex items-center gap-1.5 rounded-md border border-border bg-bg-primary px-3 py-1.5 text-sm text-text-primary transition-colors hover:border-accent disabled:opacity-50"
+            className="review-toolbar-button app-secondary-button"
           >
             <BrainCircuit className={`h-4 w-4 ${kgJobIsRunning ? 'animate-pulse' : ''}`} />
             {kgJobIsRunning ? (kgJob?.status === 'cancelling' ? '正在终止知识关联' : '正在完善知识关联') : '完善知识关联'}
@@ -307,50 +308,30 @@ const LearningPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="learning-page-content flex-1 space-y-5 overflow-y-auto p-6">
+      <div className="learning-page-content flex-1 overflow-y-auto p-6">
         {loading && <PageState kind="loading" title="正在整理学习情况" description="数据较多时可能需要十几秒。" />}
 
         {kgJob && <TaskStatus title="完善知识关联" detail={kgJob.message || kgJob.status} progress={kgJob.progress} state={kgJobFailed ? 'error' : kgJob.status === 'completed' ? 'success' : 'loading'} />}
 
         {error && !loading && <StatusBanner kind="error" title="学习情况加载失败" description={error} action={<button onClick={load} className="app-secondary-button">重试</button>} />}
         {!loading && !error && summary && (
-          <div className="space-y-6">
-            <section>
-              <h3 className="mb-2 text-sm font-semibold text-text-primary">今日结论</h3>
-              <div className="learning-metrics grid grid-cols-1 border-y border-border bg-bg-card md:grid-cols-3">
-                <Metric icon={CalendarDays} label="今日待复习" value={summary.mistake_stats.due_today} tone="accent" help={summary.review_rules?.mistake_due} />
-                <Metric icon={AlertTriangle} label="近期薄弱概念" value={summary.stats.weak_count} tone="warn" help={summary.weak_concepts?.slice(0, 2).map((item) => item.name).join('、') || summary.review_rules?.weak_concepts} />
-                <Metric icon={Activity} label="近 7 天活跃" value={summary.daily.slice(-7).filter((item) => item.total > 0).length} help="按有学习记录的天数统计" />
+          <div className="mx-auto max-w-6xl space-y-8">
+            <section aria-labelledby="review-today-title">
+              <div className="mb-4">
+                <h3 id="review-today-title" className="type-section-title text-text-primary">今天要做什么</h3>
+                <p className="mt-1 type-caption text-text-secondary">先处理到期错题，再复习由近期薄弱记录触发的概念。</p>
               </div>
-            </section>
+              <div className="review-summary grid grid-cols-1 gap-4 border-b border-border pb-5 md:grid-cols-3 md:gap-0 md:divide-x md:divide-border">
+                <SummaryFact icon={CalendarDays} label="到期错题" value={summary.mistake_stats.due_today} unit="道" tone="accent" help={summary.review_rules?.mistake_due} emphasis />
+                <SummaryFact icon={AlertTriangle} label="近期薄弱概念" value={summary.stats.weak_count} unit="个" tone="warn" help={summary.weak_concepts?.slice(0, 2).map((item) => item.name).join('、') || summary.review_rules?.weak_concepts} />
+                <SummaryFact icon={Activity} label="近 7 天有学习记录" value={summary.daily.slice(-7).filter((item) => item.total > 0).length} unit="天" help="按有学习记录的天数统计" />
+              </div>
 
-            {reviewMessage && <div className="border-l-2 border-[var(--success)] bg-[#eef5e8] px-3 py-2 text-sm text-[#557a46]">{reviewMessage}</div>}
+              {reviewMessage && <div className="mt-4 border-l-2 border-[var(--success)] px-3 py-2 text-sm text-[var(--success-text)]">{reviewMessage}</div>}
 
-            <section>
-              <h3 className="mb-2 text-sm font-semibold text-text-primary">下一步行动</h3>
-              <div className="learning-review-sections divide-y divide-border border-y border-border bg-bg-card">
-              <ExpandableSection title="近期问题" count={summary.recent_questions?.length || 0}>
-                <div className="divide-y divide-border px-4">
-                  {summary.recent_questions?.length ? (
-                    summary.recent_questions.map((item, index) => (
-                      <div key={`${item.timestamp}-${index}`} className="space-y-2 px-1 py-3">
-                        <p className="text-sm leading-6 text-text-primary">{item.question}</p>
-                        <div className="flex flex-wrap items-center gap-1.5 text-xs text-text-secondary">
-                          <span>{item.source === 'mistake' ? '错题' : '通用问答'}</span>
-                          {item.timestamp && <span>{item.timestamp.slice(0, 10)}</span>}
-                          {item.concepts?.map((concept) => (
-                            <span key={concept.name} className="rounded border border-accent/25 bg-accent/10 px-2 py-0.5 text-accent-hover">{concept.name}</span>
-                          ))}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <Empty text="暂无问答记录" compact />
-                  )}
-                </div>
-              </ExpandableSection>
-              <ExpandableSection title="优先复习错题" count={summary.due_mistakes?.length || 0} defaultOpen={Boolean(summary.due_mistakes?.length)}>
-                <div className="divide-y divide-border px-4">
+              <div className="learning-review-sections mt-3 divide-y divide-border border-y border-border">
+                <ExpandableSection title="优先复习错题" count={summary.due_mistakes?.length || 0} defaultOpen={Boolean(summary.due_mistakes?.length)}>
+                <div className="divide-y divide-border">
                   {summary.due_mistakes?.length ? (
                     summary.due_mistakes.map((mistake) => (
                       <MistakePreview
@@ -364,10 +345,10 @@ const LearningPage: React.FC = () => {
                     <Empty text="当前没有到期错题" compact />
                   )}
                 </div>
-              </ExpandableSection>
+                </ExpandableSection>
 
-              <ExpandableSection title="优先复习概念" count={summary.concept_review_plan?.length || 0} defaultOpen>
-                <div className="learning-concept-grid grid grid-cols-1 gap-x-6 px-4 xl:grid-cols-2">
+                <ExpandableSection title="优先复习概念" count={summary.concept_review_plan?.length || 0} defaultOpen>
+                <div className="learning-concept-grid grid grid-cols-1 gap-x-6 xl:grid-cols-2">
                   {summary.concept_review_plan?.length ? (
                     summary.concept_review_plan.map((item) => (
                       <ConceptReviewCard key={item.name} item={item} onReview={handleConceptReview} reviewing={reviewingConcept === item.name} />
@@ -376,10 +357,10 @@ const LearningPage: React.FC = () => {
                     <div className="xl:col-span-2"><Empty text="暂无需要优先复习的概念" compact /></div>
                   )}
                 </div>
-              </ExpandableSection>
+                </ExpandableSection>
 
-              <ExpandableSection title="更多待复习概念" count={summary.review_queue.length}>
-                <div className="divide-y divide-border px-4">
+                <ExpandableSection title="更多待复习概念" count={summary.review_queue.length}>
+                <div className="divide-y divide-border">
                   {summary.review_queue.length ? (
                     summary.review_queue.map((item) => (
                       <div key={item.name} className="flex items-center justify-between px-1 py-3 text-sm">
@@ -391,14 +372,42 @@ const LearningPage: React.FC = () => {
                     <Empty text="暂无待复习概念" compact />
                   )}
                 </div>
-              </ExpandableSection>
+                </ExpandableSection>
               </div>
             </section>
 
-            <section>
-              <h3 className="mb-2 text-sm font-semibold text-text-primary">补充分析</h3>
-              <div className="learning-insights grid grid-cols-1 divide-y divide-border border-y border-border bg-bg-card xl:grid-cols-3 xl:divide-x xl:divide-y-0">
-              <Panel title="高频概念">
+            <section aria-labelledby="review-reason-title">
+              <div className="mb-3">
+                <h3 id="review-reason-title" className="type-section-title text-text-primary">为什么这些内容优先</h3>
+                <p className="mt-1 type-caption text-text-secondary">近期问答、错题关联与遗忘间隔共同决定本次顺序。</p>
+              </div>
+              <div className="divide-y divide-border border-y border-border">
+                <ExpandableSection title="近期问题" count={summary.recent_questions?.length || 0}>
+                  <div className="divide-y divide-border">
+                    {summary.recent_questions?.length ? (
+                      summary.recent_questions.map((item, index) => (
+                        <div key={`${item.timestamp}-${index}`} className="space-y-1 py-3">
+                          <p className="text-sm leading-6 text-text-primary">{item.question}</p>
+                          <p className="type-caption text-text-secondary">
+                            {item.source === 'mistake' ? '来自错题' : '来自问答'}
+                            {item.timestamp ? ` · ${item.timestamp.slice(0, 10)}` : ''}
+                            {item.concepts?.length ? ` · 关联 ${item.concepts.map((concept) => concept.name).join('、')}` : ''}
+                          </p>
+                        </div>
+                      ))
+                    ) : <Empty text="暂无问答记录" compact />}
+                  </div>
+                </ExpandableSection>
+              </div>
+            </section>
+
+            <section aria-labelledby="review-analysis-title">
+              <div className="mb-3">
+                <h3 id="review-analysis-title" className="type-section-title text-text-primary">补充分析</h3>
+                <p className="mt-1 type-caption text-text-secondary">用于观察长期模式，不改变今天的行动顺序。</p>
+              </div>
+              <div className="learning-insights grid grid-cols-1 divide-y divide-border border-y border-border xl:grid-cols-3 xl:divide-x xl:divide-y-0">
+                <Panel title="高频概念">
                 {summary.top_concepts.length ? (
                   summary.top_concepts.map((item) => (
                     <RankRow key={item.name} name={item.name} detail={`${item.count} 次`} />
@@ -406,8 +415,8 @@ const LearningPage: React.FC = () => {
                 ) : (
                   <Empty text="暂无高置信概念" compact />
                 )}
-              </Panel>
-              <Panel title="错题相关薄弱点">
+                </Panel>
+                <Panel title="错题相关薄弱点">
                 {summary.mistake_weak_points.length ? (
                   summary.mistake_weak_points.map((item) => (
                     <RankRow key={`${item.type}-${item.name}`} name={item.name} detail={`${item.count} 道`} />
@@ -415,12 +424,12 @@ const LearningPage: React.FC = () => {
                 ) : (
                   <Empty text="暂无错题薄弱点" compact />
                 )}
-              </Panel>
-              <ActivityHeatmap
+                </Panel>
+                <ActivityHeatmap
                 daily={summary.daily_details || summary.daily.map((item) => ({ ...item, subjects: [] }))}
                 selectedDate={selectedActivityDate}
                 onSelectDate={setSelectedActivityDate}
-              />
+                />
               </div>
             </section>
           </div>
@@ -497,23 +506,18 @@ const ActivityHeatmap = ({ daily, selectedDate, onSelectDate }: { daily: DailyDe
           </div>
           {current ? (
             <div className="space-y-3">
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="rounded border border-border px-2 py-0.5 text-text-secondary">问答 {current.qa}</span>
-                <span className="rounded border border-border px-2 py-0.5 text-text-secondary">错题 {current.mistake}</span>
-              </div>
+              <p className="text-xs text-text-secondary">问答 {current.qa} · 错题 {current.mistake}</p>
               {current.subjects.length ? current.subjects.map((item) => (
                 <div key={item.book_name || item.subject} className="space-y-2 border-t border-border pt-3 first:border-t-0 first:pt-0">
                   <div className="flex items-center justify-between gap-2 text-xs">
                     <span className="truncate font-medium text-text-primary">{item.book_name || item.subject}</span>
                     <span className="flex-shrink-0 text-text-secondary">问答 {item.qa} / 错题 {item.mistake}</span>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {item.concepts.length ? item.concepts.map((concept) => (
-                      <span key={concept.name} className="rounded border border-accent/25 bg-accent/10 px-2 py-0.5 text-xs text-accent-hover">
-                        {concept.name}{concept.count > 1 ? ` ×${concept.count}` : ''}
-                      </span>
-                    )) : <span className="text-xs text-text-secondary">暂无概念明细</span>}
-                  </div>
+                  <p className="text-xs leading-5 text-text-secondary">
+                    {item.concepts.length
+                      ? `涉及 ${item.concepts.map((concept) => `${concept.name}${concept.count > 1 ? ` ×${concept.count}` : ''}`).join('、')}`
+                      : '暂无概念明细'}
+                  </p>
                 </div>
               )) : <div className="text-xs text-text-secondary">暂无教材概念明细</div>}
             </div>
@@ -538,11 +542,7 @@ const ConceptReviewCard = ({ item, onReview, reviewing }: { item: ConceptReviewC
             <BrainCircuit className={`h-4 w-4 ${item.weak ? 'text-[#9f3f2e]' : 'text-accent'}`} />
             <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">{item.name}</h3>
           </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {item.reasons.map((reason) => (
-              <span key={reason} className="max-w-full truncate rounded border border-accent/25 bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent-hover">{reason}</span>
-            ))}
-          </div>
+          {item.reasons.length > 0 && <p className="mt-2 pl-6 text-xs leading-5 text-text-secondary">{item.reasons.join('；')}</p>}
         </button>
         <button disabled={reviewing} onClick={() => onReview(item.name, 4)} className="flex h-8 flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded border border-border px-2.5 py-1 text-xs text-text-primary hover:border-accent hover:text-accent disabled:cursor-wait disabled:opacity-60">
           <CheckCircle2 className="h-3.5 w-3.5" /> {reviewing ? '记录中…' : '已复习'}
@@ -550,7 +550,7 @@ const ConceptReviewCard = ({ item, onReview, reviewing }: { item: ConceptReviewC
       </div>
 
       {open && (
-        <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
+        <div className="mt-4 grid gap-4 border-l border-border pl-4 text-sm md:grid-cols-2">
           <MiniBlock icon={BookOpen} title="教材线索">
             {item.textbook_snippets.length ? item.textbook_snippets.map((snippet, index) => (
               <p key={`${snippet.type}-${index}`} className="text-xs leading-5 text-text-secondary">{snippet.chapter || snippet.text}</p>
@@ -580,7 +580,7 @@ const ConceptReviewCard = ({ item, onReview, reviewing }: { item: ConceptReviewC
 };
 
 const MiniBlock = ({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) => (
-  <div className="bg-bg-secondary p-3">
+  <div>
     <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-text-primary"><Icon className="h-3.5 w-3.5 text-accent" />{title}</div>
     <div className="space-y-2">{children}</div>
   </div>
@@ -612,10 +612,10 @@ const MistakePreview = ({ mistake, expanded, onToggle }: { mistake: LearningMist
   </div>
 );
 
-const Metric = ({ icon: Icon, label, value, tone = 'normal', help }: { icon: React.ElementType; label: string; value: number; tone?: 'normal' | 'warn' | 'accent'; help?: string }) => {
+const SummaryFact = ({ icon: Icon, label, value, unit, tone = 'normal', help, emphasis = false }: { icon: React.ElementType; label: string; value: number; unit: string; tone?: 'normal' | 'warn' | 'accent'; help?: string; emphasis?: boolean }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div className="learning-metric relative px-4 py-4">
+    <div className="relative px-0 md:px-5 md:first:pl-0">
       <div className="flex items-start justify-between gap-2 sm:gap-3">
         <div className="flex items-center gap-2 text-xs text-text-secondary">
           <Icon className={tone === 'warn' ? 'h-4 w-4 text-[#9f3f2e]' : tone === 'accent' ? 'h-4 w-4 text-accent' : 'h-4 w-4'} />
@@ -627,7 +627,7 @@ const Metric = ({ icon: Icon, label, value, tone = 'normal', help }: { icon: Rea
           </button>
         )}
       </div>
-      <div className="mt-2 text-2xl font-semibold text-text-primary">{value ?? 0}</div>
+      <div className={`mt-2 font-semibold text-text-primary ${emphasis ? 'text-2xl' : 'text-lg'}`}>{value ?? 0}<span className="ml-1 text-sm font-normal text-text-secondary">{unit}</span></div>
       {help && open && (
         <div className="app-popover-enter absolute right-3 top-9 z-20 w-[min(340px,calc(100vw-88px))] rounded-xl border border-border bg-bg-primary p-3 text-xs">
           <RuleItem title={`${label}的判定`} text={help} />
@@ -645,7 +645,7 @@ const RuleItem = ({ title, text }: { title: string; text: string }) => (
 );
 
 const Header = ({ title, count, open, onToggle }: { title: string; count?: number; open?: boolean; onToggle?: () => void }) => (
-  <button type="button" onClick={onToggle} className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-bg-secondary">
+  <button type="button" onClick={onToggle} className="flex w-full items-center justify-between py-3 text-left text-sm font-medium text-text-primary hover:text-accent">
     <span className="flex items-center gap-2">
       {open ? <ChevronDown className="h-4 w-4 text-accent" /> : <ChevronRight className="h-4 w-4 text-text-secondary" />}
       {title}
@@ -659,7 +659,7 @@ const ExpandableSection = ({ title, count, defaultOpen = false, children }: { ti
   return (
     <section>
       <Header title={title} count={count} open={open} onToggle={() => setOpen(!open)} />
-      {open && <div className="border-t border-border">{children}</div>}
+      {open && <div className="mb-3 ml-6 border-l border-border pl-4">{children}</div>}
     </section>
   );
 };

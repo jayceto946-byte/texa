@@ -144,12 +144,10 @@ export default function FirstRunGuide() {
 
   return (
     <div className="app-overlay-enter fixed inset-0 z-[1300] flex items-center justify-center bg-[#1f2824]/45 p-4">
-      <section className="app-large-dialog-enter flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-[18px] border border-border bg-bg-primary">
+      <section className="app-large-dialog-enter flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[var(--radius-large)] border border-border bg-bg-primary shadow-lg">
         <header className="flex items-center justify-between border-b border-border bg-bg-card px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-bg-secondary">
-              <PackageOpen className="h-5 w-5 text-accent" />
-            </div>
+            <PackageOpen className="h-5 w-5 text-accent" />
             <div>
               <h2 className="text-base font-semibold text-text-primary">首次打开 Texa</h2>
 
@@ -169,7 +167,7 @@ export default function FirstRunGuide() {
                 onClick={() => setStep(index)}
                 className={`mb-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm ${step === index ? 'bg-[var(--accent-soft)] text-accent' : 'text-text-secondary hover:bg-bg-card hover:text-text-primary'}`}
               >
-                <span className="flex h-5 w-5 items-center justify-center rounded-full border border-current text-[11px]">{index + 1}</span>
+                <span className="w-4 text-[11px] tabular-nums">{index + 1}</span>
                 {item}
               </button>
             ))}
@@ -180,19 +178,19 @@ export default function FirstRunGuide() {
 
             {step === 0 && (
               <section className="space-y-4">
-                <div className="rounded-[18px] border border-border bg-bg-card p-5">
+                <div className="border-y border-border py-4">
                   <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary"><BookOpen className="h-5 w-5 text-accent" />你会用到的几个入口</div>
-                  <div className="grid gap-3 md:grid-cols-2">
+                  <div className="divide-y divide-border">
                     <GuidePoint title="对话" text="围绕教材、错题和知识点提问，系统会优先走本地教材检索。" />
-                    <GuidePoint title="教材导入" text="把 PDF 教材导入后，会生成章节、索引和后续检索上下文。" />
+                    <GuidePoint title="教材库" text="管理教材与学科范围；导入后会建立章节和本地检索索引。" />
                     <GuidePoint title="错题本" text="保存错题、错因和复习状态，后续按概念和来源回看。" />
-                    <GuidePoint title="设置" text="左上角扳手可以管理服务器状态、版本更新、学科和模型配置。" />
+                    <GuidePoint title="设置" text="侧栏底部可检查服务、版本、备份和模型配置。" />
                   </div>
                 </div>
-                <div className="rounded-[18px] border border-border bg-bg-card p-4 text-sm leading-6 text-text-secondary">
+                <div className="border-l-2 border-accent/50 pl-4 text-sm leading-6 text-text-secondary">
                   本地嵌入模型只在本机完成教材语义检索。问答时，当前问题、必要会话上下文和选中的教材证据会发送给你配置的 LLM 服务；使用 Kimi 图片 OCR 时，所选图片会发送给 Moonshot。外部服务将按各自隐私政策处理数据并可能产生费用。
                 </div>
-                <label className="flex items-start gap-2 rounded-[18px] border border-border bg-bg-card p-4 text-sm leading-6 text-text-primary">
+                <label className="flex items-start gap-2 border-t border-border pt-4 text-sm leading-6 text-text-primary">
                   <input type="checkbox" checked={privacyAcknowledged} onChange={(event) => setPrivacyAcknowledged(event.target.checked)} className="mt-1" />
                   <span>我已了解上述数据传输范围，并会避免上传无权处理或包含敏感个人信息的内容。</span>
                 </label>
@@ -224,7 +222,7 @@ export default function FirstRunGuide() {
                     onAction={() => download('vector-bundle')}
                   />
                 </div>
-                <div className="rounded-[18px] border border-border bg-bg-card p-4 text-sm leading-6 text-text-secondary">
+                <div className="border-t border-border pt-4 text-sm leading-6 text-text-secondary">
                   模型和向量库会保存到用户数据目录，软件更新不会覆盖你的教材、错题和个人索引。
                 </div>
               </section>
@@ -232,10 +230,10 @@ export default function FirstRunGuide() {
 
             {step === 2 && (
               <section className="space-y-4">
-                <div className="rounded-[18px] border border-border bg-bg-card p-4 text-sm leading-6 text-text-secondary">
+                <div className="border-l-2 border-accent/50 pl-4 text-sm leading-6 text-text-secondary">
                   API Key 只写入本机 .env。后端状态接口只返回“是否已配置”，不会把已有密钥回显到前端。
                 </div>
-                <div className="rounded-[18px] border border-border bg-bg-card p-4 text-sm leading-6 text-text-secondary">
+                <div className="border-t border-border pt-4 text-sm leading-6 text-text-secondary">
                   Recommended OCR path: run MinerU 3.x on a rented GPU or external service, then import the output zip. Local MinerU CLI is optional and should live in a separate Python 3.10 environment with MinerU/Paddle/CUDA dependencies.
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
@@ -286,7 +284,7 @@ export default function FirstRunGuide() {
 }
 
 function GuidePoint({ title, text }: { title: string; text: string }) {
-  return <div className="rounded-lg border border-border bg-bg-primary p-3"><div className="text-sm font-medium text-text-primary">{title}</div><div className="mt-1 text-xs leading-5 text-text-secondary">{text}</div></div>;
+  return <div className="grid gap-1 py-2.5 sm:grid-cols-[88px_minmax(0,1fr)]"><div className="text-sm font-medium text-text-primary">{title}</div><div className="text-xs leading-5 text-text-secondary">{text}</div></div>;
 }
 
 function AssetPanel({
@@ -311,7 +309,7 @@ function AssetPanel({
   onAction: () => void;
 }) {
   return (
-    <div className="rounded-[18px] border border-border bg-bg-card p-4">
+    <div className="rounded-[var(--radius-medium)] border border-border bg-bg-card p-4">
       <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary"><span className="text-accent">{icon}</span>{title}</div>
       <div className="text-xs leading-5 text-text-secondary">{subtitle}</div>
       <div className="mt-1 text-xs leading-5 text-text-secondary">{detail}</div>

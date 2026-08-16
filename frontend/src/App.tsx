@@ -4,6 +4,7 @@ import { ChatProvider } from './contexts/ChatContext';
 import MainLayout from './layouts/MainLayout';
 import DesktopTitleBar from './components/DesktopTitleBar';
 import FirstRunGuide from './components/FirstRunGuide';
+import { InspectorProvider } from './contexts/InspectorContext';
 
 const ChatPage = lazy(() => import('./pages/ChatPage'));
 const MistakesPage = lazy(() => import('./pages/MistakesPage'));
@@ -17,25 +18,28 @@ const SettingsPage = lazy(() => import('./components/SystemHealth'));
 function App() {
   return (
     <ChatProvider>
-      <DesktopTitleBar />
-      <FirstRunGuide />
-      <BrowserRouter>
-        <Suspense fallback={<div className="h-full bg-bg-primary" />}>
-          <Routes>
-            <Route path="/" element={<MainLayout />}>
-              <Route index element={<ChatPage />} />
-              <Route path="mistakes" element={<MistakesPage />} />
-              <Route path="exercises" element={<ExercisesPage />} />
-              <Route path="kg" element={<Navigate to="/learning" replace />} />
-              <Route path="learning" element={<LearningPage />} />
-              <Route path="weekly" element={<WeeklyReportPage />} />
-              <Route path="books" element={<BooksPage />} />
-              <Route path="highlights" element={<HighlightPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-            </Route>
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
+      <InspectorProvider>
+        <DesktopTitleBar />
+        <FirstRunGuide />
+        <BrowserRouter>
+          <Suspense fallback={<div className="h-full bg-bg-primary" />}>
+            <Routes>
+              <Route path="/" element={<MainLayout />}>
+                <Route index element={<ChatPage />} />
+                <Route path="mistakes" element={<MistakesPage />} />
+                <Route path="exercises" element={<ExercisesPage />} />
+                <Route path="kg" element={<Navigate to="/learning" replace />} />
+                <Route path="learning" element={<LearningPage />} />
+                <Route path="weekly" element={<WeeklyReportPage />} />
+                <Route path="books" element={<SettingsPage standaloneTab="subjects" />} />
+                <Route path="books/import" element={<BooksPage />} />
+                <Route path="highlights" element={<HighlightPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Route>
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </InspectorProvider>
     </ChatProvider>
   );
 }

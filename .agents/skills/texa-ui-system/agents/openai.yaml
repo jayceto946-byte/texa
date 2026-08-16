@@ -1,0 +1,4 @@
+interface:
+  display_name: "Texa UI System"
+  short_description: "Texa 用户界面、导航与交互的最高产品视觉约束"
+  default_prompt: "Use $texa-ui-system to design or review a Texa user-facing interface."

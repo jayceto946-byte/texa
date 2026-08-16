@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BookOpen, BrainCircuit, Check, ChevronRight, Circle, Database, Image, Loader2, Sparkles, Wrench, X } from 'lucide-react';
+import { BookOpen, BrainCircuit, Check, ChevronRight, Circle, Database, Image, Loader2, MessageSquareText, Wrench, X } from 'lucide-react';
 
 import type { ActivityKind, ChatActivity } from '../../types';
 import { activityDuration, completedActivityCount } from '../../utils/chatActivities';
@@ -8,8 +8,8 @@ const icons: Record<ActivityKind, React.ComponentType<{ className?: string }>> =
   analysis: BrainCircuit,
   tool: Wrench,
   evidence: BookOpen,
-  reasoning: Sparkles,
-  generation: Sparkles,
+  reasoning: BrainCircuit,
+  generation: MessageSquareText,
   memory: Database,
   system: Image,
 };

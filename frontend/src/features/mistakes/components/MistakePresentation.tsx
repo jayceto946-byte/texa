@@ -38,8 +38,8 @@ export const MistakeMetric = ({
   value: number;
   tone: string;
 }) => (
-  <div className="rounded-xl border border-border bg-bg-card p-4 text-center">
-    <div className={`text-2xl font-bold ${tone}`}>{value}</div>
+  <div className="px-4 py-3 text-left">
+    <div className={`text-xl font-semibold ${tone}`}>{value}</div>
     <div className="mt-1 text-xs text-text-secondary">{label}</div>
   </div>
 );

@@ -30,7 +30,6 @@ const SETTINGS_TABS: Array<{ id: Tab; label: string }> = [
   { id: 'health', label: '服务器健康' },
   { id: 'version', label: '版本更新' },
   { id: 'data', label: '备份恢复' },
-  { id: 'subjects', label: '资料库' },
   { id: 'models', label: '模型配置' },
 ];
 
@@ -48,11 +47,11 @@ function bookBelongsTo(book: ManagedBook, parent: string, child = '') {
   return value === parent || value.startsWith(`${parent}/`);
 }
 
-const SettingsPage: React.FC = () => {
+const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab }) => {
   const { bookName, setBookName, setSubject } = useChatContext();
   const { health, loading, loadHealth } = useSystemHealth(bookName);
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>('health');
+  const [tab, setTab] = useState<Tab>(standaloneTab || 'health');
   const [version, setVersion] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
   const [subjects, setSubjects] = useState<SubjectNode[]>([]);
@@ -278,7 +277,7 @@ const SettingsPage: React.FC = () => {
   };
 
   const openBookImport = () => {
-    navigate('/books');
+    navigate('/books/import');
   };
 
   const reloadVectorStore = async () => {
@@ -317,10 +316,52 @@ const SettingsPage: React.FC = () => {
       setMessage(res.message || '正在安装更新');
     }
   };
+  if (standaloneTab === 'subjects') {
+    return (
+      <div className="flex h-full min-w-0 flex-col bg-bg-primary">
+        <header className="app-page-header border-b border-border bg-bg-card">
+          <div>
+            <h2 className="app-page-title">教材库</h2>
+            <p className="type-caption mt-0.5 text-text-secondary">组织学科、切换当前教材并管理检索范围</p>
+          </div>
+          <div className="window-drag-region" aria-hidden="true" />
+        </header>
+        <main className="mx-auto min-h-0 w-full max-w-6xl flex-1 overflow-y-auto p-4 sm:p-5">
+          {message && <div className="mb-4"><StatusBanner kind={message.includes('失败') || message.includes('异常') ? 'error' : message.includes('正在') ? 'loading' : 'success'} title={message} /></div>}
+          <LibraryManager
+            subjects={subjects}
+            books={books}
+            selectedSubjectIndex={selectedSubjectIndex}
+            selectedChildIndex={selectedChildIndex}
+            onSelect={(subjectIndex, childIndex) => { setSelectedSubjectIndex(subjectIndex); setSelectedChildIndex(childIndex); }}
+            onAddSubject={addSubject}
+            onAddChild={addChild}
+            onRenameSubject={updateSubjectName}
+            onRenameChild={updateChildName}
+            onDeleteSubject={deleteSubject}
+            onDeleteChild={deleteChild}
+            onSaveSubjects={() => saveSubjects()}
+            onImportBook={openBookImport}
+            onRefresh={loadBooks}
+            onMoveBook={moveBookToTarget}
+            onSwitchBook={switchManagedBook}
+            onArchiveBook={deleteManagedBook}
+            onRestoreBook={restoreManagedBook}
+            onRenameBook={renameManagedBook}
+            onSetRole={setBookRole}
+            onSetResourceGroup={setBookResourceGroup}
+            currentBookName={bookName}
+          />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full min-w-0 flex-col bg-bg-primary">
       <header className="app-page-header border-b border-border bg-bg-card">
         <h2 className="app-page-title">设置</h2>
+        <div className="window-drag-region" aria-hidden="true" />
       </header>
       <div className="mx-auto grid min-h-0 w-full max-w-5xl flex-1 grid-cols-1 md:grid-cols-[168px_minmax(0,1fr)]">
         <SettingsSidebar tab={tab} onTabChange={setTab} />
@@ -380,32 +421,6 @@ const SettingsPage: React.FC = () => {
 
     {tab === 'data' && (
       <DataSafety />
-    )}
-
-    {tab === 'subjects' && (
-      <LibraryManager
-        subjects={subjects}
-        books={books}
-        selectedSubjectIndex={selectedSubjectIndex}
-        selectedChildIndex={selectedChildIndex}
-        onSelect={(subjectIndex, childIndex) => { setSelectedSubjectIndex(subjectIndex); setSelectedChildIndex(childIndex); }}
-        onAddSubject={addSubject}
-        onAddChild={addChild}
-        onRenameSubject={updateSubjectName}
-        onRenameChild={updateChildName}
-        onDeleteSubject={deleteSubject}
-        onDeleteChild={deleteChild}
-        onSaveSubjects={() => saveSubjects()}
-        onImportBook={openBookImport}
-        onRefresh={loadBooks}
-        onMoveBook={moveBookToTarget}
-        onSwitchBook={switchManagedBook}
-        onArchiveBook={deleteManagedBook}
-        onRestoreBook={restoreManagedBook}
-        onRenameBook={renameManagedBook}
-        onSetRole={setBookRole}
-        onSetResourceGroup={setBookResourceGroup}
-      />
     )}
 
     {tab === 'models' && (

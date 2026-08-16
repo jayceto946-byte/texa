@@ -179,7 +179,8 @@ const BooksPage: React.FC = () => {
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-bg-primary">
       <header className="app-page-header border-b border-border bg-bg-card">
-        <h2 className="app-page-title">教材导入</h2>
+        <h2 className="app-page-title">导入教材</h2>
+        <div className="window-drag-region" aria-hidden="true" />
       </header>
 
       <div className="mx-auto w-full max-w-6xl space-y-5 p-6">

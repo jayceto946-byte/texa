@@ -546,6 +546,7 @@ const MistakesPage: React.FC = () => {
     <div className="flex h-full flex-col">
       <div className="app-page-header border-b border-border bg-bg-primary">
         <h2 className="app-page-title">错题本</h2>
+        <div className="window-drag-region" aria-hidden="true" />
         <ScopeSelector
           subject={subjectFilter}
           bookName={bookName}
@@ -760,7 +761,7 @@ const MistakesPage: React.FC = () => {
           <div className="max-w-3xl space-y-6">
             {pageLoading && <div className="flex items-center justify-center gap-2 py-8 text-text-secondary"><Loader2 className="h-5 w-5 animate-spin" /> 加载统计中...</div>}
             {pageError && <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-[var(--danger)]">{pageError}</div>}
-            {!pageLoading && !pageError && stats && <><div className="grid grid-cols-1 gap-4 sm:grid-cols-3"><MistakeMetric label="总错题数" value={stats.total ?? 0} tone="text-accent" /><MistakeMetric label="今日待复习" value={stats.due_today ?? 0} tone="text-[var(--danger)]" /><MistakeMetric label="错因类型" value={stats.by_type ? Object.keys(stats.by_type).length : 0} tone="text-[var(--success)]" /></div><div className="rounded-xl border border-border bg-bg-card p-4"><h3 className="mb-3 flex items-center gap-2 text-sm font-medium"><TrendingUp className="h-4 w-4 text-accent" /> 薄弱点 TOP 列表</h3><div className="space-y-2">{weakPoints.map((w, i) => <div key={`${w.type}-${w.name}`} className="flex items-center justify-between gap-3 text-sm"><span className="min-w-0 truncate text-text-primary">{i + 1}. <strong>{w.name || '未命名'}</strong><span className="ml-1 text-text-secondary">({w.type || '类型未知'})</span></span><span className="flex-shrink-0 font-medium text-accent">{w.count ?? 0} 次</span></div>)}{weakPoints.length === 0 && <div className="text-sm text-text-secondary">暂无薄弱点数据</div>}</div></div></>}
+            {!pageLoading && !pageError && stats && <><div className="grid grid-cols-1 divide-y divide-border border-y border-border bg-bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0"><MistakeMetric label="总错题数" value={stats.total ?? 0} tone="text-text-primary" /><MistakeMetric label="今日待复习" value={stats.due_today ?? 0} tone="text-[var(--danger)]" /><MistakeMetric label="错因类型" value={stats.by_type ? Object.keys(stats.by_type).length : 0} tone="text-text-primary" /></div><div className="border-y border-border bg-bg-card p-4"><h3 className="mb-3 flex items-center gap-2 text-sm font-medium"><TrendingUp className="h-4 w-4 text-accent" /> 薄弱点 TOP 列表</h3><div className="space-y-2">{weakPoints.map((w, i) => <div key={`${w.type}-${w.name}`} className="flex items-center justify-between gap-3 text-sm"><span className="min-w-0 truncate text-text-primary">{i + 1}. <strong>{w.name || '未命名'}</strong><span className="ml-1 text-text-secondary">({w.type || '类型未知'})</span></span><span className="flex-shrink-0 font-medium text-accent">{w.count ?? 0} 次</span></div>)}{weakPoints.length === 0 && <div className="text-sm text-text-secondary">暂无薄弱点数据</div>}</div></div></>}
             {!pageLoading && !pageError && !stats && <div className="py-12 text-center text-text-secondary">暂无统计数据</div>}
           </div>
         )}

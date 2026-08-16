@@ -131,21 +131,18 @@ const VisualMathInputPopover: React.FC<VisualMathInputPopoverProps> = ({
           setView('templates');
           setEditingId(null);
         }}
-        className={`flex h-11 w-11 items-center justify-center rounded-lg border transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-          open
-            ? 'border-accent bg-[var(--accent-soft)] text-accent'
-            : 'border-border bg-bg-card text-text-secondary hover:border-accent/40 hover:text-text-primary'
-        }`}
+        className={`composer-tool-button ${open ? 'is-active' : ''}`}
         title="数学符号与公式"
       >
         <Sigma className="h-4 w-4" aria-hidden="true" />
+        <span>公式</span>
       </button>
 
       {open && (
         <div
           role="dialog"
           aria-label="数学符号与公式"
-          className="math-input-panel fixed bottom-[54px] left-2 right-2 z-30 max-h-[min(72vh,620px)] overflow-hidden rounded-xl border border-border bg-bg-card sm:absolute sm:bottom-[calc(100%+0.5rem)] sm:left-0 sm:right-auto sm:w-[min(calc(100vw-2rem),680px)]"
+          className="math-input-panel fixed bottom-[54px] left-16 right-2 z-30 max-h-[min(72vh,620px)] overflow-hidden rounded-xl border border-border bg-bg-card md:absolute md:bottom-[calc(100%+0.5rem)] md:left-0 md:right-auto md:w-[min(calc(100vw-2rem),680px)]"
         >
           <div className="flex items-center justify-between border-b border-border px-3 py-2">
             <div className="flex min-w-0 items-center gap-2">

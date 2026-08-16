@@ -277,7 +277,7 @@ export default function ScopeSelector({
         onClick={() => !disabled && setOpen((next) => !next)}
         disabled={disabled}
         aria-label={label}
-        className={`app-interactive flex h-10 ${fullWidth ? 'w-full min-w-0' : widthClass(width)} max-w-full items-center gap-2 rounded-full border border-border bg-bg-card px-3 text-left text-sm text-text-primary outline-none hover:border-accent/50 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-55`}
+        className={`app-interactive flex h-9 ${fullWidth ? 'w-full min-w-0' : widthClass(width)} max-w-full items-center gap-2 rounded-[var(--radius-medium)] border border-border bg-bg-card px-3 text-left text-sm text-text-primary outline-none hover:border-accent/50 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-55`}
       >
         <GraduationCap className="h-4 w-4 flex-shrink-0 text-accent" />
         <span className="min-w-0 flex-1 truncate text-sm font-medium leading-5">{valueText}</span>
@@ -288,7 +288,7 @@ export default function ScopeSelector({
         <div
           ref={popupRef}
           style={popupStyle || { visibility: 'hidden' }}
-          className="app-popover-enter z-[1100] overflow-y-auto rounded-[18px] border border-border bg-bg-card"
+          className="app-popover-enter z-[1100] overflow-y-auto rounded-[var(--radius-large)] border border-border bg-bg-card shadow-lg"
         >
           <div className={`grid ${popupGridClass}`}>
             <Column title="一级科目">

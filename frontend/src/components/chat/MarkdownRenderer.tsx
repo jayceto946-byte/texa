@@ -209,10 +209,10 @@ export const MarkdownMessage: React.FC<{
       );
     },
     p({ children }: { children?: React.ReactNode }) {
-      return <p className="my-1.5">{children}</p>;
+      return <p>{children}</p>;
     },
     pre({ children }: { children?: React.ReactNode }) {
-      return <pre className="my-3 overflow-x-auto rounded-lg border border-border bg-[var(--surface-subtle)] p-3 font-mono text-xs shadow-sm">{children}</pre>;
+      return <pre className="my-3 overflow-x-auto rounded-lg border border-border bg-[var(--surface-subtle)] p-3 font-mono text-xs">{children}</pre>;
     },
     code({ className, children, ...props }: { className?: string; children?: React.ReactNode }) {
       const isInline = !className;
@@ -223,22 +223,22 @@ export const MarkdownMessage: React.FC<{
       );
     },
     ul({ children }: { children?: React.ReactNode }) {
-      return <ul className="list-disc pl-5 my-1.5">{children}</ul>;
+      return <ul className="list-disc">{children}</ul>;
     },
     ol({ children }: { children?: React.ReactNode }) {
-      return <ol className="list-decimal pl-5 my-1.5">{children}</ol>;
+      return <ol className="list-decimal">{children}</ol>;
     },
     li({ children }: { children?: React.ReactNode }) {
-      return <li className="my-0.5">{children}</li>;
+      return <li>{children}</li>;
     },
     h1({ children }: { children?: React.ReactNode }) {
-      return <h1 className="text-lg font-bold my-2">{children}</h1>;
+      return <h1>{children}</h1>;
     },
     h2({ children }: { children?: React.ReactNode }) {
-      return <h2 className="text-base font-bold my-2">{children}</h2>;
+      return <h2>{children}</h2>;
     },
     h3({ children }: { children?: React.ReactNode }) {
-      return <h3 className="text-sm font-bold my-1.5">{children}</h3>;
+      return <h3>{children}</h3>;
     },
     blockquote({ children }: { children?: React.ReactNode }) {
       return <LearningBlockquote>{children}</LearningBlockquote>;
@@ -255,7 +255,7 @@ export const MarkdownMessage: React.FC<{
   };
 
   return (
-    <div className="markdown-body text-[15px] leading-relaxed break-words">
+    <div className="markdown-body learning-reading-content break-words">
       {contentBlocks.map((block, index) => {
         const key = blockKey(block, index);
         return (

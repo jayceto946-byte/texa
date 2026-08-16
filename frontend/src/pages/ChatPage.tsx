@@ -3,11 +3,11 @@ import { BookMarked, CalendarDays, ImagePlus, Send, Shuffle, Square, X } from 'l
 import { get, mistakeSolutionStream, post } from '../api/client';
 
 import HighlightRepositoryDialog from '../components/HighlightRepositoryDialog';
-import ChatHomePanel, { type ChatHomeConceptPlan, type ChatHomeDueMistake, type ChatHomeLearningSummary } from '../components/chat/ChatHomePanel';
+import LearningEmptyWorkspace from '../components/chat/LearningEmptyWorkspace';
+import ComposerOverflowMenu from '../components/chat/ComposerOverflowMenu';
 import ChatMessage from '../components/ChatMessage';
-import ScopeSelector from '../components/ScopeSelector';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { useChatContext, type ChatMessage as ContextChatMessage } from '../contexts/ChatContext';
+import { useChatContext } from '../contexts/ChatContext';
 import { composeMathQuestion } from '../features/math-input/composeMathQuestion';
 import ProblemImageEditor from '../features/mistakes/components/ProblemImageEditor';
 import { insertFormulaReference } from '../features/math-input/formulaReferences';
@@ -26,48 +26,6 @@ function firstLine(value = '', maxLength = 48) {
   const line = value.replace(/\s+/g, ' ').trim();
   return line.length > maxLength ? `${line.slice(0, maxLength)}...` : line;
 }
-
-function uniqueTexts(values: string[]) {
-  const seen = new Set<string>();
-  const next: string[] = [];
-  for (const value of values) {
-    const text = value.trim();
-    const key = text.toLowerCase();
-    if (!text || seen.has(key)) continue;
-    seen.add(key);
-    next.push(text);
-  }
-  return next;
-}
-
-function focusTermsFromSummary(summary: ChatHomeLearningSummary | null) {
-  const values: string[] = [];
-  for (const item of summary?.concept_review_plan || []) values.push(item.name);
-  for (const item of summary?.mistake_weak_points || []) values.push(item.name);
-  for (const item of summary?.weak_concepts || []) values.push(item.name);
-  for (const mistake of summary?.due_mistakes || []) {
-    values.push(mistake.chapter || '');
-    values.push(...(mistake.tags || []));
-    values.push(...(mistake.linked_concepts || []).map((item) => item.name));
-  }
-  return uniqueTexts(values).slice(0, 16);
-}
-
-function recordMatchesTerms(record: ExerciseRecord, terms: string[]) {
-  if (!terms.length) return false;
-  const haystack = [
-    record.question_text,
-    record.answer,
-    record.explanation,
-    record.subject,
-    record.chapter || '',
-    record.source,
-    ...(record.tags || []),
-    ...(record.linked_concepts || []).map((item) => item.name),
-  ].join('\n').toLowerCase();
-  return terms.some((term) => haystack.includes(term.toLowerCase()));
-}
-
 
 const ChatPage: React.FC = () => {
   const [input, setInput] = useState('');
@@ -106,7 +64,6 @@ const ChatPage: React.FC = () => {
   const visualAbortRef = useRef<(() => void) | null>(null);
   const mathExpressionSequenceRef = useRef(0);
   const mathEditSequenceRef = useRef(0);
-  const subjectSuggestions = Array.from(new Set(books.map((book) => book.subject || '').filter(Boolean)));
   const scopeBooks = useMemo(() => buildTextbookScopeOptions(books), [books]);
 
   useEffect(() => {
@@ -178,12 +135,6 @@ const ChatPage: React.FC = () => {
     } catch {
       // Local workflow cards should stay usable even if the backend has not been restarted yet.
     }
-  };
-
-  const addLocalExchange = (userContent: string, assistantContent: string, extra: Partial<ContextChatMessage> = {}) => {
-    addMessage({ role: 'user', content: userContent });
-    addMessage({ role: 'assistant', content: assistantContent, stage: 'done', ...extra });
-    void persistLocalExchange(userContent, assistantContent);
   };
 
   const switchBook = useCallback(async (name: string) => {
@@ -469,89 +420,6 @@ const ChatPage: React.FC = () => {
   };
 
 
-  const reviewMistakeFromSummary = (mistake: ChatHomeDueMistake) => {
-    if (actionLoading) return;
-    const concepts = (mistake.linked_concepts || []).map((item) => item.name).filter(Boolean);
-    const tags = mistake.tags || [];
-    const assistantContent = [
-      '## 到期错题复习',
-      '',
-      `**题目**：${mistake.question_text || '未命名错题'}`,
-      mistake.chapter ? `**章节**：${mistake.chapter}` : '',
-      concepts.length ? `**涉及概念**：${concepts.join('、')}` : '',
-      tags.length ? `**标签**：${tags.join('、')}` : '',
-      '',
-      '建议先独立重做一遍，再回到错题本核对答案、错因和复习评级。',
-    ].filter(Boolean).join('\n');
-    addLocalExchange(`复习错题：${firstLine(mistake.question_text || mistake.id)}`, assistantContent, {
-      linkedConcepts: concepts.map((name) => ({ name })),
-    });
-  };
-
-  const reviewConceptFromSummary = (concept: ChatHomeConceptPlan, summary: ChatHomeLearningSummary | null) => {
-    if (actionLoading) return;
-    const relatedMistakes = concept.related_mistakes || (summary?.due_mistakes || []).filter((mistake) => {
-      const names = (mistake.linked_concepts || []).map((item) => item.name);
-      return names.includes(concept.name) || (mistake.tags || []).includes(concept.name);
-    });
-    const assistantContent = [
-      `## 概念复习：${concept.name}`,
-      '',
-      concept.reasons?.length ? `复习原因：${concept.reasons.slice(0, 2).join('；')}` : '复习原因：该概念出现在近期薄弱记录中。',
-      relatedMistakes.length ? '' : '',
-      relatedMistakes.length ? '### 相关错题线索' : '',
-      ...relatedMistakes.slice(0, 3).map((item, index) => `${index + 1}. ${firstLine(item.question_text || item.id, 72)}`),
-      '',
-      '下一步：先用自己的话说出定义、适用条件和常见误区，再抽一道相关题检查。',
-    ].filter(Boolean).join('\n');
-    addLocalExchange(`复习概念：${concept.name}`, assistantContent, { linkedConcepts: [{ name: concept.name }] });
-  };
-
-  const practiceFromMemory = async (summary: ChatHomeLearningSummary | null) => {
-    if (actionLoading) return;
-    const userContent = '按薄弱点抽一道题';
-    const terms = focusTermsFromSummary(summary);
-    addMessage({ role: 'user', content: userContent });
-    setActionLoading('exercise');
-    const bookQuery = bookName ? `?book_name=${encodeURIComponent(bookName)}` : '';
-    try {
-      const statuses = ['needs_review', 'practicing', 'new', ''];
-      let pool: ExerciseRecord[] = [];
-      let fallback: ExerciseRecord[] = [];
-      for (const status of statuses) {
-        const res = await post(`/exercises/list${bookQuery}`, { search_kw: '', subject, status, limit: 120 });
-        if (!res?.success || !Array.isArray(res.data)) continue;
-        const rows = (res.data as ExerciseRecord[]).filter((item) => item.status !== 'mastered');
-        fallback = [...fallback, ...rows];
-        const matched = terms.length ? rows.filter((record) => recordMatchesTerms(record, terms)) : rows;
-        if (matched.length) {
-          pool = matched;
-          break;
-        }
-      }
-      if (!pool.length) pool = fallback;
-      if (!pool.length) {
-        const content = terms.length
-          ? `已经定位到薄弱线索：${terms.slice(0, 5).join('、')}，但习题库里暂时没有匹配题。可以先导入 Word/PDF 题库，或从错题本转入习题。`
-          : '学习记录里还没有可用薄弱点，习题库也没有可抽取题目。可以先导入题库或录入错题。';
-        addMessage({ role: 'assistant', content, stage: 'done' });
-        void persistLocalExchange(userContent, content);
-        return;
-      }
-      const record = pool[Math.floor(Math.random() * pool.length)];
-      addMessage({ role: 'assistant', content: '', stage: 'done', exerciseCard: { record } });
-      const matchedTerms = terms.filter((term) => recordMatchesTerms(record, [term])).slice(0, 5);
-      const assistantText = matchedTerms.length
-        ? `已按薄弱点 ${matchedTerms.join('、')} 抽题：${firstLine(record.question_text, 72)}`
-        : `已从待复习题库抽题：${firstLine(record.question_text, 72)}`;
-      void persistLocalExchange(userContent, assistantText);
-    } catch (err) {
-      addMessage({ role: 'assistant', content: `出错了：${err instanceof Error ? err.message : String(err)}`, stage: 'error' });
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
   const openMistakeQuickCapture = () => {
     const userContent = '打开错题速录';
     const assistantContent = '已打开错题速录卡片，可以上传图片、粘贴题干并校正识别结果。';
@@ -568,12 +436,16 @@ const ChatPage: React.FC = () => {
   return (
     <div className="relative flex h-full min-w-0 bg-bg-primary">
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="app-page-header desktop-chat-header hidden border-b border-border bg-bg-secondary/86 backdrop-blur sm:flex">
-          <h2 className="app-page-title">学习对话</h2>
+        <div className="learning-workspace-header">
+          <div className="learning-workspace-title min-w-0">
+            <h2>{messages.length ? firstLine(messages.find((message) => message.role === 'user')?.content || '学习会话', 56) : '新学习会话'}</h2>
+            <p>{subject || '未限定学科'} / {scopeBooks.find((scope) => scopeContainsBook(scope, bookName))?.displayName || bookName || '通用问答'}</p>
+          </div>
+          <div className="window-drag-region" aria-hidden="true" />
         </div>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4 sm:px-5 sm:py-6">
-          <div className="mx-auto max-w-5xl space-y-2">
+        <div ref={scrollRef} className="learning-workspace-scroll">
+          <div className="learning-document-column">
             {historyPage?.has_more && (
               <div className="flex justify-center pb-2">
                 <button
@@ -587,18 +459,11 @@ const ChatPage: React.FC = () => {
               </div>
             )}
             {messages.length === 0 && (
-              <ChatHomePanel
+              <LearningEmptyWorkspace
                 bookName={bookName}
                 subject={subject}
                 books={scopeBooks}
                 isLoading={isLoading || Boolean(actionLoading)}
-                onReviewMistake={reviewMistakeFromSummary}
-                onReviewConcept={reviewConceptFromSummary}
-                onPracticeFromMemory={practiceFromMemory}
-                onShowReport={showReport}
-                onPickRandomExercise={pickRandomExercise}
-                onOpenHighlightDialog={openHighlightDialog}
-                onOpenMistakeQuickCapture={openMistakeQuickCapture}
               />
             )}
             {messages.map((msg, i) => (
@@ -609,30 +474,9 @@ const ChatPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="chat-composer border-t border-border bg-bg-secondary/86 p-2 backdrop-blur sm:p-4">
-          {(attachmentPreview || selectedMistakeId) && (
-            <div className="mx-auto mb-2 flex max-w-5xl items-center gap-3 rounded-xl border border-accent/30 bg-bg-card p-2.5">
-              {attachmentPreview ? (
-                <img src={attachmentPreview} alt="待解析的题目附件" className="h-14 w-14 rounded-lg object-cover" />
-              ) : (
-                <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-accent"><BookMarked className="h-5 w-5" /></div>
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-text-primary">
-                  {attachmentFile?.name || firstLine(cachedMistakes.find((item) => item.id === selectedMistakeId)?.question_text || '历史错题')}
-                </div>
-                {attachmentFile && (
-                  <label className="mt-1 inline-flex items-center gap-1.5 text-xs text-text-secondary">
-                    <input type="checkbox" checked={importAttachment} onChange={(event) => setImportAttachment(event.target.checked)} className="accent-accent" />
-                    解答后导入错题本
-                  </label>
-                )}
-              </div>
-              <button type="button" aria-label="移除附件" onClick={() => { clearAttachment(); setSelectedMistakeId(''); }} className="rounded-lg p-2 text-text-secondary hover:bg-bg-secondary"><X className="h-4 w-4" /></button>
-            </div>
-          )}
+        <div className="chat-composer">
           {mistakePickerOpen && (
-            <div className="mx-auto mb-2 max-h-52 max-w-5xl overflow-y-auto rounded-xl border border-border bg-bg-card p-2 shadow-lg">
+            <div className="composer-popover max-h-52 overflow-y-auto p-2">
               {cachedMistakes.length ? cachedMistakes.map((mistake) => (
                 <button key={mistake.id} type="button" onClick={() => { clearAttachment(); setSelectedMistakeId(mistake.id); setMistakePickerOpen(false); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-bg-secondary">
                   <div className="truncate text-sm text-text-primary">{firstLine(mistake.question_text || mistake.ocr_text || '未命名错题', 80)}</div>
@@ -641,19 +485,30 @@ const ChatPage: React.FC = () => {
               )) : <div className="px-3 py-5 text-center text-sm text-text-secondary">当前范围没有可用的历史错题</div>}
             </div>
           )}
-          <form onSubmit={handleSubmit} className="mx-auto flex max-w-5xl items-end gap-2">
+          <form onSubmit={handleSubmit} className="composer-surface">
             <input ref={attachmentInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" className="hidden" onChange={(event) => selectAttachment(event.target.files?.[0])} />
-            <div className="flex flex-shrink-0 gap-1">
-              <button type="button" disabled={isLoading || attachmentLoading} aria-label="上传题目图片" title="上传题目图片" onClick={() => attachmentInputRef.current?.click()} className="chat-image-upload-button flex h-11 items-center justify-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 text-text-secondary hover:border-accent/40 hover:text-accent disabled:opacity-50"><ImagePlus className="h-4 w-4" /><span className="text-xs">图片</span></button>
-              <button type="button" disabled={isLoading || attachmentLoading} title="选择历史错题" onClick={() => void loadCachedMistakes()} className="flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-bg-card text-text-secondary hover:border-accent/40 hover:text-accent disabled:opacity-50"><BookMarked className="h-4 w-4" /></button>
-            </div>
-            <VisualMathInputPopover
-              disabled={isLoading}
-              editRequest={mathEditRequest}
-              onAddExpression={handleAddMathExpression}
-              onUpdateExpression={handleUpdateMathExpression}
-            />
-            <div className="chat-question-box min-w-0 flex-1 overflow-hidden rounded-xl border border-border bg-bg-card transition-colors focus-within:border-accent">
+            {(attachmentPreview || selectedMistakeId) && (
+              <div className="composer-attachment">
+                {attachmentPreview ? (
+                  <img src={attachmentPreview} alt="待解析的题目附件" className="h-12 w-12 rounded-[var(--radius-small)] object-cover" />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-small)] bg-[var(--accent-soft)] text-accent"><BookMarked className="h-5 w-5" /></div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium text-text-primary">
+                    {attachmentFile?.name || firstLine(cachedMistakes.find((item) => item.id === selectedMistakeId)?.question_text || '历史错题')}
+                  </div>
+                  {attachmentFile && (
+                    <label className="mt-1 inline-flex items-center gap-1.5 text-xs text-text-secondary">
+                      <input type="checkbox" checked={importAttachment} onChange={(event) => setImportAttachment(event.target.checked)} className="accent-accent" />
+                      解答后导入错题本
+                    </label>
+                  )}
+                </div>
+                <button type="button" aria-label="移除附件" onClick={() => { clearAttachment(); setSelectedMistakeId(''); }} className="app-icon-button"><X className="h-4 w-4" /></button>
+              </div>
+            )}
+            <div className="min-w-0 overflow-hidden">
               <MathExpressionList
                 expressions={mathExpressions}
                 onEdit={handleEditMathExpression}
@@ -667,57 +522,44 @@ const ChatPage: React.FC = () => {
                 onKeyDown={handleKeyDown}
                 placeholder={mathExpressions.length ? '继续描述问题，点击公式编号可引用…' : '输入问题...'}
                 disabled={isLoading || attachmentLoading}
-                className="max-h-[108px] min-h-[40px] w-full resize-none overflow-y-auto border-0 bg-transparent px-4 py-2 type-body text-text-primary outline-none shadow-none placeholder-text-secondary focus:shadow-none sm:max-h-[160px] sm:min-h-[48px] sm:px-5 sm:py-3"
+                className="composer-textarea"
               />
             </div>
-            {isLoading || attachmentLoading ? (
-              <button type="button" onClick={attachmentLoading ? stopVisualQuestion : stop} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-red-300 bg-red-50 text-red-700 transition-colors hover:bg-red-100" aria-label="停止生成" title="停止生成">
-                <Square className="h-4 w-4 fill-current" />
-              </button>
-            ) : (
-              <button type="submit" disabled={attachmentLoading || (!input.trim() && mathExpressions.length === 0 && !attachmentFile && !selectedMistakeId)} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-accent text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40">
-                <Send className="h-4 w-4" />
-              </button>
-            )}
+            <div className="composer-toolbar">
+              <div className="composer-tools" role="toolbar" aria-label="问题输入工具">
+                <button type="button" disabled={isLoading || attachmentLoading} aria-label="上传题目图片" title="上传题目图片" onClick={() => attachmentInputRef.current?.click()} className="composer-tool-button chat-image-upload-button"><ImagePlus className="h-4 w-4" /><span>图片</span></button>
+                <button type="button" disabled={isLoading || attachmentLoading} aria-label="选择历史错题" title="选择历史错题" onClick={() => void loadCachedMistakes()} className="composer-tool-button"><BookMarked className="h-4 w-4" /><span>错题</span></button>
+                <VisualMathInputPopover
+                  disabled={isLoading || attachmentLoading}
+                  editRequest={mathEditRequest}
+                  onAddExpression={handleAddMathExpression}
+                  onUpdateExpression={handleUpdateMathExpression}
+                />
+                {messages.length > 0 && (
+                  <ComposerOverflowMenu>
+                    {(close) => (
+                      <>
+                        <button role="menuitem" type="button" onClick={() => { close(); void showReport('daily'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'daily' ? '整理日报' : '学习日报'}</button>
+                        <button role="menuitem" type="button" onClick={() => { close(); void showReport('weekly'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'weekly' ? '整理周报' : '学习周报'}</button>
+                        <button role="menuitem" type="button" onClick={() => { close(); void pickRandomExercise(); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><Shuffle className="h-3.5 w-3.5" />{actionLoading === 'exercise' ? '抽题中' : '随机抽题'}</button>
+                        <button role="menuitem" type="button" onClick={() => { close(); openHighlightDialog(); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><BookMarked className="h-3.5 w-3.5" />查看/生成重点</button>
+                        <button role="menuitem" type="button" onClick={() => { close(); openMistakeQuickCapture(); }} className="composer-overflow-item"><ImagePlus className="h-3.5 w-3.5" />错题速录</button>
+                      </>
+                    )}
+                  </ComposerOverflowMenu>
+                )}
+              </div>
+              {isLoading || attachmentLoading ? (
+                <button type="button" onClick={attachmentLoading ? stopVisualQuestion : stop} className="composer-send is-stopping" aria-label="停止生成" title="停止生成">
+                  <Square className="h-4 w-4 fill-current" />
+                </button>
+              ) : (
+                <button type="submit" aria-label="发送问题" title="发送" disabled={attachmentLoading || (!input.trim() && mathExpressions.length === 0 && !attachmentFile && !selectedMistakeId)} className="composer-send">
+                  <Send className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </form>
-
-          {messages.length > 0 && <div className="chat-toolbar mx-auto mt-2 max-w-5xl">
-            <div className="chat-scope-control mb-1.5 sm:mb-0 sm:inline-flex">
-              <ScopeSelector
-                subject={subject}
-                bookName={bookName}
-                books={scopeBooks}
-                suggestions={subjectSuggestions}
-                onSubjectChange={setSubject}
-                onBookChange={switchBook}
-                placement="top"
-                width="wide"
-                disabled={isLoading}
-              />
-            </div>
-            <div className="mobile-action-row flex flex-wrap items-center gap-1.5 overflow-visible pb-0 sm:inline-flex sm:gap-2 sm:pl-2">
-              <button type="button" onClick={() => showReport('daily')} disabled={Boolean(actionLoading)} className={`flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg border px-3 type-control transition-colors ${actionLoading === 'daily' ? 'border-accent/30 bg-[var(--accent-soft)] text-accent' : 'border-border bg-bg-card text-text-secondary hover:border-accent/40 hover:text-text-primary'} disabled:opacity-60`}>
-                <CalendarDays className="h-3.5 w-3.5" />
-                {actionLoading === 'daily' ? '整理日报' : '学习日报'}
-              </button>
-              <button type="button" onClick={() => showReport('weekly')} disabled={Boolean(actionLoading)} className={`flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg border px-3 type-control transition-colors ${actionLoading === 'weekly' ? 'border-accent/30 bg-[var(--accent-soft)] text-accent' : 'border-border bg-bg-card text-text-secondary hover:border-accent/40 hover:text-text-primary'} disabled:opacity-60`}>
-                <CalendarDays className="h-3.5 w-3.5" />
-                {actionLoading === 'weekly' ? '整理周报' : '学习周报'}
-              </button>
-              <button type="button" onClick={pickRandomExercise} disabled={Boolean(actionLoading)} className={`flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg border px-3 type-control transition-colors ${actionLoading === 'exercise' ? 'border-accent/30 bg-[var(--accent-soft)] text-accent' : 'border-border bg-bg-card text-text-secondary hover:border-accent/40 hover:text-text-primary'} disabled:opacity-60`}>
-                <Shuffle className="h-3.5 w-3.5" />
-                {actionLoading === 'exercise' ? '抽题中' : '随机抽题'}
-              </button>
-              <button type="button" onClick={openHighlightDialog} disabled={Boolean(actionLoading)} className="flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 type-control text-text-secondary transition-colors hover:border-accent/40 hover:text-text-primary disabled:opacity-60">
-                <BookMarked className="h-3.5 w-3.5" />
-                查看/生成重点
-              </button>
-              <button type="button" onClick={openMistakeQuickCapture} className="flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 type-control text-text-secondary transition-colors hover:border-accent/40 hover:text-text-primary">
-                <ImagePlus className="h-3.5 w-3.5" />
-                错题速录
-              </button>
-            </div>
-          </div>}
         </div>
       </div>
       <HighlightRepositoryDialog

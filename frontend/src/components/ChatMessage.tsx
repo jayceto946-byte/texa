@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Bot, BookOpen, ChevronRight, Globe2, GraduationCap, ShieldAlert, ThumbsDown, ThumbsUp, User } from 'lucide-react';
+import { BookOpen, Globe2, GraduationCap, Paperclip, ShieldAlert, ThumbsDown, ThumbsUp } from 'lucide-react';
 import type { AnswerMode, AssistantSource, ChatActivity, ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate, SubjectRouteSuggestion } from '../types';
 import { useChatContext } from '../contexts/ChatContext';
 import { displayNumber, groupSourcesByLocation, parseCitations, partitionSources, type SourceChapterGroup } from '../utils/citations';
@@ -13,6 +13,7 @@ import AgentResultCard from './chat/AgentResultCard';
 import SubjectRouteSuggestionCard from './chat/SubjectRouteSuggestionCard';
 import { post } from '../api/client';
 import ExecutionTrace from './chat/ExecutionTrace';
+import { useInspector } from '../contexts/InspectorContext';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -38,6 +39,11 @@ interface ChatMessageProps {
   chapterHighlightCard?: ChatChapterHighlightCard;
   utilityCard?: ChatUtilityCard;
   agentCard?: ChatAgentCard;
+}
+
+function splitQuestionAttachment(content: string) {
+  const match = content.match(/^📎\s*([^\r\n]+)\r?\n(?:\r?\n)+([\s\S]*)$/);
+  return match ? { attachmentName: match[1].trim(), body: match[2] } : { attachmentName: '', body: content };
 }
 
 const SourceGroupList: React.FC<{ groups: SourceChapterGroup[]; cited: boolean }> = ({ groups, cited }) => (
@@ -71,6 +77,35 @@ const SourceGroupList: React.FC<{ groups: SourceChapterGroup[]; cited: boolean }
   </div>
 );
 
+const SourceInspectorContent = ({ citedGroups, referenceGroups, chapters, legacyReferences }: { citedGroups: SourceChapterGroup[]; referenceGroups: SourceChapterGroup[]; chapters: string[]; legacyReferences: string[] }) => (
+  <div className="space-y-5">
+    {citedGroups.length > 0 && (
+      <section>
+        <h3 className="mb-2 text-xs font-semibold text-text-primary">正文引用</h3>
+        <SourceGroupList groups={citedGroups} cited />
+      </section>
+    )}
+    {referenceGroups.length > 0 && (
+      <section className={citedGroups.length > 0 ? 'border-t border-border pt-4' : ''}>
+        <h3 className="mb-2 text-xs font-semibold text-text-primary">其他检索材料</h3>
+        <SourceGroupList groups={referenceGroups} cited={false} />
+      </section>
+    )}
+    {chapters.length > 0 && (
+      <section className="border-t border-border pt-4">
+        <h3 className="mb-2 text-xs font-semibold text-text-primary">参考章节</h3>
+        <div className="space-y-1 text-xs leading-5 text-text-secondary">{chapters.map((chapter) => <div key={chapter}>{chapter}</div>)}</div>
+      </section>
+    )}
+    {legacyReferences.length > 0 && (
+      <section className="border-t border-border pt-4">
+        <h3 className="mb-2 text-xs font-semibold text-text-primary">来源标记</h3>
+        <div className="space-y-2 text-xs leading-5 text-text-secondary">{legacyReferences.map((reference, index) => <div key={`${reference}-${index}`}>{reference}</div>)}</div>
+      </section>
+    )}
+  </div>
+);
+
 const feedbackReasons = [
   ['wrong_object', '答错对象'],
   ['forgot_context', '忘记前文条件'],
@@ -80,19 +115,13 @@ const feedbackReasons = [
 ] as const;
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard }) => {
-  const [showSources, setShowSources] = useState(false);
-  const [sourcesExpanded, setSourcesExpanded] = useState(false);
-  const [referencesExpanded, setReferencesExpanded] = useState(false);
-  const [activeConcept, setActiveConcept] = useState<ConceptCandidate | null>(null);
   const [scopeResolved, setScopeResolved] = useState(false);
   const [feedback, setFeedback] = useState(answerFeedback);
   const [feedbackBusy, setFeedbackBusy] = useState(false);
   const [showFeedbackReasons, setShowFeedbackReasons] = useState(false);
   const [feedbackError, setFeedbackError] = useState('');
-  const sourcesRef = React.useRef<HTMLDivElement | null>(null);
-  const referencesRef = React.useRef<HTMLDivElement | null>(null);
-  const chapterRef = React.useRef<HTMLDivElement | null>(null);
   const { bookName, subject, conversationId } = useChatContext();
+  const { openInspector } = useInspector();
 
   const submitFeedback = async (rating: 'helpful' | 'unhelpful', reasons: string[] = []) => {
     if (!messageId || feedbackBusy) return;
@@ -151,20 +180,29 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
     [referenceSources],
   );
 
-  const scrollToSources = () => {
-    if (hasStructuredSources) {
-      // 一次操作直接看到来源内容：先展开，再滚动到来源区
-      setSourcesExpanded(true);
-      requestAnimationFrame(() => sourcesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-    } else if (references.length > 0) {
-      setShowSources(true);
-      requestAnimationFrame(() => referencesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
-    } else if (sourceChapters.length > 0) {
-      chapterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+  const openSources = () => {
+    openInspector({
+      kind: 'source',
+      title: '回答来源',
+      subtitle: bookName || subject || '当前学习范围',
+      content: <SourceInspectorContent citedGroups={citedSourceGroups} referenceGroups={referenceSourceGroups} chapters={sourceChapters} legacyReferences={references} />,
+    });
+  };
+
+  const openConcept = (concept: ConceptCandidate) => {
+    openInspector({
+      kind: 'concept',
+      title: concept.name,
+      subtitle: '概念',
+      content: <ConceptPopover concept={concept} bookName={bookName} />,
+    });
   };
 
   const isUser = role === 'user';
+  const questionContent = useMemo(
+    () => (isUser && variant === 'message' ? splitQuestionAttachment(content) : { attachmentName: '', body: content }),
+    [content, isUser, variant],
+  );
   const isThinking = !isUser && (
     stage === 'agent'
     || ((stage === 'thinking' || stage === 'plan') && !content.trim())
@@ -189,17 +227,16 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
         : Globe2;
 
   return (
-    <div className={variant === 'document' ? 'min-w-0' : `mb-5 flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={variant === 'document' ? 'min-w-0 text-text-primary' : `max-w-[min(96%,820px)] rounded-2xl px-3 py-3 sm:max-w-[min(86%,820px)] sm:px-4 ${isUser ? 'bg-accent text-white' : 'border border-border bg-bg-card text-text-primary'}`}>
+    <div className={variant === 'document' ? 'min-w-0' : `learning-message ${isUser ? 'is-question' : 'is-answer'}`}>
+      <article className={variant === 'document' ? 'min-w-0 text-text-primary' : isUser ? 'learning-question' : 'learning-answer-document'}>
         {variant === 'message' && (
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4 text-accent" />}
-              <span className="text-xs opacity-70">{isUser ? '你' : 'AI 助手'}</span>
+          <div className="learning-message-header">
+            <div className="flex items-center gap-2 text-xs text-text-secondary">
+              <span>{isUser ? '问题' : '回答'}</span>
               {!isUser && stage === 'done' && modeLabel && (
                 <span
                   title={scopeReason || modeLabel}
-                  className={`inline-flex items-center gap-1 rounded-full bg-[var(--surface-subtle)] px-2 py-0.5 text-[10px] font-medium ${answerMode === 'subject_mismatch' ? 'text-[var(--danger)]' : 'text-text-secondary'}`}
+                  className={`inline-flex items-center gap-1 border-l border-border pl-2 text-[11px] ${answerMode === 'subject_mismatch' ? 'text-[var(--danger)]' : 'text-text-secondary'}`}
                 >
                   <ModeIcon className="h-3 w-3" />
                   {modeLabel}
@@ -209,14 +246,21 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
             {!isUser && (hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
               <button
                 type="button"
-                onClick={scrollToSources}
-                title="滚动到参考来源"
-                className="flex items-center gap-1 text-xs text-text-secondary/60 transition-colors hover:text-text-secondary"
+                onClick={openSources}
+                title="检查回答来源"
+                className="flex items-center gap-1 text-xs text-text-secondary transition-colors hover:text-accent"
               >
                 <BookOpen className="h-3 w-3" />
                 来源 {hasStructuredSources ? sources.length : references.length || sourceChapters.length}
               </button>
             )}
+          </div>
+        )}
+
+        {isUser && questionContent.attachmentName && (
+          <div className="learning-query-attachment">
+            <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>附件：{questionContent.attachmentName}</span>
           </div>
         )}
 
@@ -238,7 +282,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
             <span className="text-sm">{stage === 'agent' ? content || '正在调用学习工具…' : '思考中...'}</span>
           </div>
         ) : content.trim() ? (
-          <MarkdownMessage content={content} linkedConcepts={isUser ? [] : linkedConcepts} onConceptClick={setActiveConcept} citationIds={validIds} />
+          <MarkdownMessage content={isUser ? questionContent.body : content} linkedConcepts={isUser ? [] : linkedConcepts} onConceptClick={openConcept} citationIds={validIds} />
         ) : null}
 
         {!isUser && stage === 'done' && answerMode === 'subject_mismatch' && originalQuestion && onRequestGlobalAnswer && !scopeResolved && (
@@ -275,79 +319,19 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
           </div>
         )}
 
-        {hasStructuredSources && (
-          <div ref={sourcesRef} className="mt-3 rounded-lg border border-border bg-[var(--surface-subtle)] px-3 py-2">
-            <button
-              type="button"
-              onClick={() => setSourcesExpanded((v) => !v)}
-              aria-expanded={sourcesExpanded}
-              className="flex w-full cursor-pointer items-center gap-1.5 text-left text-xs font-medium text-text-secondary transition-colors hover:text-text-primary"
-            >
-              <BookOpen className="h-3 w-3" />
-              <span className="flex-1">
-                {citedSources.length > 0 ? `参考来源 ${citedSources.length} 条` : `参考材料 ${referenceSources.length} 条`}
-              </span>
-              <ChevronRight className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${sourcesExpanded ? 'rotate-90' : ''}`} />
-            </button>
-            {sourcesExpanded && (
-              <div className="mt-1.5">
-                {citedSources.length > 0 ? (
-                  <>
-                    <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-text-secondary">
-                      <BookOpen className="h-3 w-3" />
-                      参考来源
-                    </div>
-                    <SourceGroupList groups={citedSourceGroups} cited />
-                  </>
-                ) : (
-                  <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-text-secondary">
-                    <BookOpen className="h-3 w-3" />
-                    参考材料
-                  </div>
-                )}
-                {referenceSources.length > 0 && (
-                  <>
-                    {citedSources.length > 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => setReferencesExpanded((value) => !value)}
-                        aria-expanded={referencesExpanded}
-                        className="mt-2 flex w-full items-center gap-1 text-left text-xs font-medium text-text-secondary transition-colors hover:text-text-primary"
-                      >
-                        <ChevronRight className={`h-3.5 w-3.5 transition-transform ${referencesExpanded ? 'rotate-90' : ''}`} />
-                        其他检索材料 {referenceSources.length} 条
-                      </button>
-                    ) : null}
-                    {(citedSources.length === 0 || referencesExpanded) && (
-                      <div className={citedSources.length > 0 ? 'mt-1.5' : ''}>
-                        <SourceGroupList groups={referenceSourceGroups} cited={false} />
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {!hasStructuredSources && !isUser && sourceChapters.length > 0 && (
-          <div ref={chapterRef} className="mt-3 border-t border-border pt-2 text-xs text-text-secondary/70">
-            参考章节：{sourceChapters.join('、')}
-          </div>
-        )}
-
         {!isUser && stage === 'done' && subjectSuggestion && (
           <SubjectRouteSuggestionCard suggestion={subjectSuggestion} turnId={turnId} />
         )}
 
         {showMessageTools && linkedConcepts.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-1.5 border-t border-border pt-3">
+          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-3 text-xs">
+            <span className="text-text-tertiary">相关概念</span>
             {linkedConcepts.slice(0, 8).map((concept) => (
               <button
                 key={concept.concept_id || concept.name}
                 type="button"
-                onClick={() => setActiveConcept(concept)}
-                className="rounded-full border border-accent/20 bg-[var(--accent-softer)] px-2.5 py-1 text-xs text-accent transition-colors hover:border-accent/50"
+                onClick={() => openConcept(concept)}
+                className="border-b border-transparent py-0.5 text-text-secondary hover:border-accent/35 hover:text-accent"
               >
                 {concept.name}
               </button>
@@ -355,21 +339,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
           </div>
         )}
 
-        {showMessageTools && !hasStructuredSources && references.length > 0 && (
-          <div ref={referencesRef} className="mt-3 border-t border-border pt-2">
-            <button onClick={() => setShowSources(!showSources)} className="flex items-center gap-1 text-xs text-text-secondary transition-colors hover:text-text-primary">
+        {showMessageTools && variant === 'document' && (hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
+          <div className="mt-3 border-t border-border pt-2">
+            <button type="button" onClick={openSources} className="flex items-center gap-1 text-xs text-text-secondary transition-colors hover:text-accent">
               <BookOpen className="h-3 w-3" />
-              {showSources ? '隐藏来源' : `查看来源 (${references.length})`}
+              检查来源 {hasStructuredSources ? sources.length : references.length || sourceChapters.length}
             </button>
-            {showSources && (
-              <div className="mt-2 space-y-1">
-                {references.map((ref, idx) => (
-                  <div key={idx} className="rounded-lg border border-border bg-[var(--surface-subtle)] px-2 py-1 text-xs text-text-secondary">
-                    {ref}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
@@ -405,7 +380,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
                     type="button"
                     disabled={feedbackBusy}
                     onClick={() => void submitFeedback('unhelpful', [value])}
-                    className="rounded-full border border-border px-2 py-1 text-[11px] text-text-secondary transition-colors hover:border-red-300 hover:text-[var(--danger)]"
+                    className="rounded border border-border px-2 py-1 text-[11px] text-text-secondary transition-colors hover:border-red-300 hover:text-[var(--danger)]"
                   >
                     {label}
                   </button>
@@ -415,8 +390,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
             {feedbackError && <div className="mt-1 text-[11px] text-[var(--danger)]">{feedbackError}</div>}
           </div>
         )}
-      </div>
-      {activeConcept && <ConceptPopover concept={activeConcept} bookName={bookName} onClose={() => setActiveConcept(null)} />}
+      </article>
     </div>
   );
 };

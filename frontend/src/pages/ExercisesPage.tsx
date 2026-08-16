@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, CheckCircle2, ChevronDown, ChevronRight, ClipboardList, Loader2, Pause, Pencil, Play, RotateCcw, Save, Scissors, Search, Shuffle, Sparkles, Upload, X } from 'lucide-react';
+import { AlertTriangle, BookOpen, CheckCircle2, ChevronDown, ChevronRight, ClipboardList, Loader2, Pause, Pencil, Play, RotateCcw, Save, Scissors, Search, Shuffle, Upload, X } from 'lucide-react';
 import { apiFetch, del, get, post } from '../api/client';
 import ChatMessage from '../components/ChatMessage';
 import ScopeSelector from '../components/ScopeSelector';
@@ -400,6 +400,7 @@ const ExercisesPage: React.FC = () => {
     <div className="flex h-full flex-col">
       <div className="app-page-header border-b border-border bg-bg-primary">
         <h2 className="app-page-title">习题工作区</h2>
+        <div className="window-drag-region" aria-hidden="true" />
         <div className="flex items-center gap-2">
           <div className="flex rounded-lg border border-border bg-bg-card p-0.5">
             {([['practice', '练习'], ['bank', '题库'], ['import', '导入']] as const).map(([mode, label]) => (
@@ -449,11 +450,11 @@ const ExercisesPage: React.FC = () => {
                 <input type="number" min="1" placeholder="结束页" value={textbookPageEnd} onChange={(e) => setTextbookPageEnd(e.target.value)} className="rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm outline-none focus:border-accent" />
               </div>
               <button onClick={analyzeTextbookExercises} disabled={importing || !activeName || activeName === 'default'} className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50">
-                {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} 抽取教材候选题
+                {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} 抽取教材候选题
               </button>
             </section>
             <section className="space-y-3 rounded-xl border border-border bg-bg-card p-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-text-primary"><Sparkles className="h-4 w-4 text-accent" /> Word/PDF 导入</div>
+              <div className="flex items-center gap-2 text-sm font-medium text-text-primary"><Upload className="h-4 w-4 text-accent" /> Word/PDF 导入</div>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
                 <input placeholder="来源，如 2025 模拟卷" value={importSource} onChange={(e) => setImportSource(e.target.value)} className="rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm outline-none focus:border-accent" />
                 <input placeholder="章节，可留空" value={importChapter} onChange={(e) => setImportChapter(e.target.value)} className="rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm outline-none focus:border-accent" />
@@ -474,7 +475,7 @@ const ExercisesPage: React.FC = () => {
                 </span>
               </label>
               <button onClick={analyzeImportFile} disabled={importing || !importFile} className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50">
-                {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} 分析文件
+                {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} 分析文件
               </button>
               {extractedPreview && <div className="space-y-2">
                 <div className="text-xs font-medium text-text-primary">导入原文对照</div>
@@ -594,12 +595,12 @@ const ExercisesPage: React.FC = () => {
                               <h4 className="text-sm font-semibold text-text-primary">标准答案</h4>
                               <p className="mt-0.5 text-xs text-text-secondary">可编辑并保存到题库。</p>
                             </div>
-                            <Sparkles className="h-4 w-4 text-accent" />
+                            <BookOpen className="h-4 w-4 text-accent" />
                           </div>
                           <textarea value={answerDraft} onChange={(e) => setAnswerDraft(e.target.value)} placeholder="暂无答案，可基于教材 RAG 生成草稿" className="mt-3 min-h-[180px] w-full resize-y rounded-lg border border-border bg-bg-card px-3 py-2.5 text-sm leading-6 text-text-primary outline-none focus:border-accent" />
                           <div className="mt-3 flex flex-wrap gap-2">
                             <button onClick={generateStandardAnswer} disabled={answerBusy} className="flex items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 py-1.5 text-xs hover:border-accent hover:text-accent disabled:opacity-50">
-                              {answerBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} 基于教材 RAG 生成
+                              {answerBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <BookOpen className="h-3.5 w-3.5" />} 基于教材 RAG 生成
                             </button>
                             <button onClick={saveStandardAnswer} disabled={answerBusy || !answerDraft.trim()} className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs text-white disabled:opacity-50">
                               <Save className="h-3.5 w-3.5" /> 保存答案
