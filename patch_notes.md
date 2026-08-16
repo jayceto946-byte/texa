@@ -1,3 +1,57 @@
+# 2026-08-15 - Electron 原生窗口控制回归修复
+
+- 在用户当前 Texa 窗口中复现：React 自绘最大化按钮的 46px DOM 区域可见，但真实桌面点击被 frameless drag hit-test 吞掉；此前用 CDP 触发 `.click()` 只能证明 IPC 可用，不能证明桌面指针命中正常。
+- 移除 React 主界面与启动页的自绘最小化/最大化/关闭按钮，`BrowserWindow` 改用 Electron 官方 `titleBarStyle: hidden` + Windows/Linux `titleBarOverlay`，由原生窗口控件负责 DPI、hover、点击、最大化状态与关闭行为。
+- 保留 64px Header drag region；交互元素继续使用 `no-drag`。React 只渲染 Electron presence marker，窗口控件安全区优先读取 `titlebar-area-*` CSS environment variables，并保留 138px Windows fallback。
+
+## Validation
+
+- 在 125% Windows 缩放、隔离 test profile 的真实 Electron 窗口中用桌面指针命中原生按钮：maximize 将 1280×820 窗口切换为 2048×1232，restore 回到 1280×820；minimize 后可正常恢复；close 后隔离窗口进程正常退出。用户原有 Texa 窗口未关闭，隔离 profile 已删除。
+- Frontend ESLint、TypeScript + Vite production build 通过；Vitest 18 files / 83 tests 通过。Electron main/preload/runtime syntax check 与 runtime tests 3/3 通过；仅保留既有 MathLive 大 chunk 提示。
+
+# 2026-08-15 - 学习问答页面定向 UI 与 Electron chrome 修复
+
+- 将 Question 从带左侧强调线和浅灰底的块状样式改为 Reading Canvas 上的轻量 Query Header；附件文件名从用户消息的既有 `📎 filename` 前缀中做纯展示拆分，单独显示为 attachment row，正文与 Answer 继续共用 800px Content Axis 和 15px / 1.72 阅读排版。
+- 学习 Sidebar 的 `Sessions` 改为“历史记录”；active row 删除 inset accent line，改用既有 Texa blue 8% tint、正常前景与 600 标题字重，不增加 border、shadow 或额外 indicator。
+- Composer 明确由 `.composer-surface` 单独负责 border、background、radius 与 focus ring；提高内部 textarea 的透明背景/无边框规则优先级，清除全局 textarea focus shadow，toolbar 保持无边框，避免不同宽度下出现分段外框。
+- 将原生 `details` 更多菜单替换为受控 `ComposerOverflowMenu`；支持 trigger toggle、捕获阶段 outside pointer dismissal、Esc 关闭并归还 trigger 焦点、菜单项执行前关闭，并在 unmount 时自动移除监听。
+- 新增共享 `--app-header-height: 64px`，统一 Rail logo、学习 Sidebar Header、Main Header 和 Electron controls；Main title/scope 改为同一行 baseline 布局，Logo 使用固定 20px optical wrapper。Main Header、workspace 与 Composer surrounding area 统一使用 primary workspace surface，仅用底部分隔线建立层级。
+- 首次修复仍沿用了 `frame: false` 的自绘 Windows controls；该方案随后在真实桌面指针测试中确认仍会被 drag hit-test 吞掉，已由上方原生 Window Controls Overlay 修复取代。
+
+## Validation
+
+- Frontend ESLint 通过；Vitest 18 files / 83 tests 通过；TypeScript + Vite production build 通过，仅保留既有 MathLive 大 chunk 提示。Electron main/preload/runtime syntax check 通过；Node runtime tests 3/3 通过。
+- Browser 在 720px 与 1280px 复核：Question 无 border/background/shadow，正文与 Answer 同轴；Composer 无横向溢出，textarea/toolbar 均为透明无边框；更多菜单的 outside click、Esc、menu item 三种关闭路径均通过。
+- Electron 初次隔离验证确认 64px Header、双击空白区 maximize/restore、边缘 resize 与页面布局正常；但窗口按钮只通过 CDP/DOM 事件触发 IPC，没有覆盖真实桌面指针 hit-test。用户后续复现的物理点击回归及最终原生控件验证见上方修复记录。
+
+# 2026-08-15 - 学习问答 Reading Canvas 布局重构
+
+- 删除学习 Sidebar 中重复的当前会话标题，Top Header 作为唯一 Session Title；Sidebar 只保留学习范围、新会话与会话历史，并在 session scope 与当前范围一致时省略重复 metadata。
+- 将 Question 降级为紧凑的文档上下文块，将 Answer 定义为开放式 Reading Canvas；统一 Question、Answer 与 Composer 的 content axis，正文限制稳定阅读宽度，并通过 15px / 1.72 正文、600 字重与 section spacing 重建 Markdown 层级。
+- 将图片、历史错题、公式、更多与发送收进单一 Composer surface；移除主结构中的外置工具布局，低频功能改为 toolbar 内 overflow menu，并补齐窄窗下的自然收缩规则。
+- 审计问答生成 Prompt：当前 `graph/generator.py` 与 `graph/chapter_subgraph.py` 已明确限制粗体只用于核心结论、概念与关键因果/对比，因此本轮不修改 Prompt、RAG、citation 协议或会话数据。
+
+## Validation
+
+- Frontend ESLint 通过；Vitest 18 files / 81 tests 通过；TypeScript + Vite production build 通过，仅保留既有 MathLive 大 chunk 提示。
+- Browser 实机复核通过：1600px 下 Canvas / Composer 均为 920px、正文为 800px；1100px 下 Sidebar 与 695px 主轴并列；720px 下 Canvas / Composer 均为 639px，overflow 与公式面板无裁切或横向溢出；900px 下学习 Sidebar 默认收为可打开抽屉。
+- 已验证唯一 Session Title、相同 scope metadata 去重、Markdown strong / heading 均为 600、正文 15px / 25.8px line-height，以及图片、历史错题、公式、overflow、发送按钮的可访问名称与布局。
+
+# 2026-08-14 - Texa frontend product rebuild
+
+- Rebuilt the React/Electron presentation layer around a persistent learning-harness shell: expandable session/navigation sidebar, dominant workspace, and an optional contextual inspector for sources and concepts. No backend, API, retrieval, ONNX, Chroma, database, session-event, or user-data changes were made.
+- Replaced page labels and routing with a user-object IA: 学习对话 / 复习计划 / 错题 / 练习 / 教材库 / 设置. `/books` is now the actual library manager and existing import is nested at `/books/import`; the duplicate Settings library tab was removed.
+- Migrated QA from answer cards/chat bubbles to a document flow; made scope context persistent, simplified the empty state and Composer, and moved low-frequency reports/random practice/highlights/quick capture under progressive disclosure. Sources and concepts now open in a contextual inspector.
+- Consolidated neutral/color/spacing/radius/type/shadow/motion tokens; removed route entrance animation, shell blur, Sparkles, KPI cards in mistake statistics, nested library cards, oversized radii, and promotional onboarding copy while preserving Markdown/KaTeX/citation/status behavior.
+- Added the repo-local `.agents/skills/texa-ui-system/` reusable product authority and `docs/texa-frontend-rebuild-report.md`, including audit, IA, anti-slop review, UX flow review, screenshot evidence, tests, and final verdict.
+
+## Validation
+
+- Frontend ESLint passed; Vitest 18 files / 78 tests passed, including new IA/inspector/anti-slop/ONNX-repair UI contracts; TypeScript + Vite production build passed.
+- Electron syntax check passed; runtime Node tests 3/3 passed; the Electron development window launched as the unique `Texa` window against the live Vite frontend.
+- Targeted backend presentation-critical regression passed: 35 tests covering chat stream reliability, citations, conversation events, embedding assets/typed repair, and book lifecycle.
+- Repo-local Skill validator and `git diff --check` passed. Browser visual QA covered onboarding, empty workspace, active QA with Markdown/LaTeX, source inspector, library, review plan, Settings, 720×560 minimum, and 1600×900 wide layouts.
+
 # 2026-08-14 - Product rename to Texa
 
 - 用户可见品牌统一为 `Texa`，桌面 npm 工程名、Docker 工程名、导出包名和安装包名统一使用 `texa` / `Texa`。
@@ -2099,3 +2153,44 @@ The detailed historical notes for this period were damaged by mojibake before th
 - B. Torch-free Texa Standard Release：`GO`；installed size 通过 400 MB 与 25% gate，未达到 600 MB STRONG PASS。
 - C. Optional CrossEncoder：`MOVE TO OPTIONAL`；先从 Standard dependency 中移除，开发功能保留，有真实需求后再评估 Advanced Pack 或独立 ONNX migration。
 - 完整证据、Top 20 size attribution、风险和 Phase 3 计划见 `benchmark_results/embedding_onnx_phase2/report.md` 与 `phase2.json`。
+
+## 2026-08-14 - Frontend structural rebuild
+
+### Shell 与学习工作区
+
+- 将旧的单侧栏骨架替换为固定 `AppRail + LearningContextSidebar + Main Workspace + optional Inspector`。App Rail 只保留学习、复习、错题、练习、教材和设置一级导航；scope、新会话和 session history 全部进入独立学习上下文侧栏。
+- 删除 `ChatHistorySidebar` 与 `ChatHomePanel`，移除中央 onboarding、推荐摘要请求和五个重复 quick actions。空会话只保留当前学习范围、`Ask Texa` 和输入提示。
+- 学习页顶部不再重复 ScopeSelector，改为当前 session 标题与范围摘要；历史回答保持文档流，Composer 保持底部稳定位置，sources/concepts 继续通过可选 Inspector 渐进披露。
+- 新增窄窗 overlay context 行为：正常桌面并列显示 rail/context/workspace，低于 1180px 时 context 以可关闭 overlay 打开，720px 级窗口保持主输入可用。
+
+### Validation
+
+- Frontend ESLint 通过；Vitest 18 files / 80 tests passed；TypeScript + Vite production build 通过，仅保留既有 MathLive 大 chunk 提示。
+- Electron 实机验证通过：initial state、scope switching、existing session restore、new session、context collapse/reopen、783×702 窄窗与 2048×1232 宽窗均实际运行并截图。
+- QA 请求进入 plan/retrieve/generate 流程，但当前运行环境缺少模型凭据，在线长回答、LaTeX 与新 source 生成被 `Missing credentials` 阻塞。按后端边界未修改 Python、API、RAG、模型配置或数据；记录为 `UX_BLOCKED_BY_BACKEND`。已有 history、Markdown/document rendering 与 Inspector contract 由实机会话和前端测试覆盖。
+
+## 2026-08-15 - Shell、复习层级与教材检索角色定向修复
+
+### Electron drag 与统一 header geometry
+
+- 根因是整个 page/sidebar/workspace header 被声明为 `-webkit-app-region: drag`；折叠态的绝对定位展开按钮与 workspace header 重叠后，Electron 的 draggable hit-test 会先吞掉点击。现改为 header 内显式 `.window-drag-region` 空白 flex 区，父 header 不再整体可拖动，所有按钮、链接、selector、menu trigger 和原生交互元素统一 `no-drag`。
+- Window Controls Overlay 继续使用 64px 高度；App Rail logo、Sidebar Title、Main Header 与原生窗口按钮共享同一 header token。原生控制区改为 header 内右侧安全 padding，不再用外部 margin 截断 header 边界。
+
+### 复习页与教材库 UI
+
+- 复习页重排为“今天要做什么 → 为什么这些内容优先 → 补充分析”。主要行动只使用一层 grouped rows；展开内容通过缩进和左侧 hairline 表达父子关系。高频概念、错题薄弱点与活动热图降为末尾 secondary analytics。
+- 移除概念原因、活动分类和关联概念的装饰性 badge，改为普通辅助文本；顶部 scope/刷新/完善知识关联统一为 36px control geometry。Anti-slop 结果：同级 page/section cards `REMOVED`，嵌套 bordered surfaces 与 decorative badges `REDUCED`；菜单 shadow 和“当前教材”状态标记因浮层/真实状态语义 `JUSTIFIED`。
+- 教材行按“名称与角色 / 归属与必要 metadata / 当前动作 / overflow”组织。主要、辅助、独立改为显式 role choice，并常驻说明“优先参考”或“补充、交叉验证和缺失内容”；重命名、隐藏移入支持 Escape/点击外部关闭的 contextual menu。
+
+### 教材角色 retrieval policy
+
+- 角色仍只存为教材级 `metadata.json`，没有复制正文或建立第二套索引。检索时按资料组解析教材，分别进行 BM25/向量召回，在 RRF、literal coverage、semantic role、selected-book 与可选 cross-encoder 信号之后施加统一 soft prior，再由 EvidencePack 进入生成器。
+- 移除 rerank 内写死的 `core +0.035 / reference -0.006` 和 vector 阶段读取索引快照 priority 的分散逻辑。新增集中 policy：默认 primary `1.04`、supplementary `0.98`、standalone `1.0`，可通过 `TEXA_*_TEXTBOOK_MULTIPLIER` 环境变量配置；将两个 role multiplier 设为 `1.0` 即可回退。可选教材级 `rag_priority` 保留但被安全夹在 `0.90..1.10`，最终组合 prior 限制在 `0.85..1.15`。
+- `relevance_score` 保留 prior 前原值，`textbook_role_multiplier` 与最终 `score` 分开记录。运行时教材 metadata 覆盖索引中的旧 `book_role/rag_priority` 快照，因此角色或资料组修改下一次请求立即生效；没有主要教材时，所选教材仍成为组内 primary resource 并正常检索。无需重新 OCR、embedding、BM25 或 Chroma indexing。
+
+### Validation
+
+- Frontend TypeScript + Vite production build、ESLint 通过；完整 Vitest：18 files / 83 tests passed。构建仅保留既有 MathLive 大 chunk 提示。
+- 后端全量 pytest：475 passed；仅保留既有 Starlette/httpx2 弃用警告。教材 policy、resource group、hybrid rerank、EvidencePack、citation 与 evidence continuity 定向集合为 50 passed。
+- Desktop `main.cjs`、`preload.cjs`、`runtime.cjs` 语法检查通过。
+- Electron 实机重启到新资源后，展开态折叠按钮与折叠态展开按钮均实际点击成功；1280×720、720×720 与 1600×900 运行态截图覆盖层级、密度和多宽度布局。`git diff --check` 无空白错误。
