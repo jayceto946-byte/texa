@@ -69,6 +69,6 @@ def _resource(book_name: str, meta: dict[str, Any], is_primary: bool, is_selecte
 
 def _priority(meta: dict[str, Any]) -> float:
     try:
-        return max(0.05, min(2.0, float(meta.get("rag_priority") or (0.55 if meta.get("book_role") == "reference" else 1.0))))
+        return max(0.05, min(2.0, float(meta.get("rag_priority") or 1.0)))
     except (TypeError, ValueError):
         return 1.0

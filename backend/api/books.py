@@ -478,7 +478,10 @@ def update_book(book_name: str, req: BookUpdateRequest):
             return {"success": False, "message": "book_role must be standalone, core, or reference"}
         updates["book_role"] = role
         if req.rag_priority is None:
-            updates["rag_priority"] = 0.55 if role == "reference" else 1.0
+            # A role change resets any legacy auto-generated weight to neutral.
+            # Callers that intentionally manage a per-book override can submit
+            # role and rag_priority together in the same request.
+            updates["rag_priority"] = 1.0
     if req.rag_priority is not None:
         updates["rag_priority"] = max(0.05, min(2.0, float(req.rag_priority)))
     if req.resource_group is not None:

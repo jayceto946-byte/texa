@@ -525,11 +525,9 @@ class ChapterVectorStore:
                     docs = store.similarity_search_by_vector(query_vec, **kwargs)
                     docs_with_scores = [(d, float(i)) for i, d in enumerate(docs)]
                 for doc, score in docs_with_scores:
-                    meta = getattr(doc, "metadata", {}) or {}
-                    priority = float(meta.get("rag_priority") or 1.0)
-                    # Existing search_all treats smaller score as better; high-priority sources get a mild boost.
-                    adjusted = float(score) - (priority * 0.03)
-                    scored_docs.append((adjusted, doc))
+                    # Preserve raw vector relevance here. Textbook-level priors
+                    # are applied centrally after fusion using live book metadata.
+                    scored_docs.append((float(score), doc))
                 searched += 1
             except Exception as exc:
                 self._broken_aggregates.add(col.name)

@@ -11,7 +11,7 @@ from config import PROGRESS_PATH
 from ingestion.lexical_index import expand_neighbors, search_book, tokenize
 from ingestion.reranker import cross_encoder_scores, reranker_status
 from graph.safe_retrieval import get_safe_kg, get_safe_vector_store
-from graph.retrieval_policy import decide_retrieval_action
+from graph.retrieval_policy import decide_retrieval_action, textbook_retrieval_policy
 from utils.resource_groups import resolve_retrieval_resources
 
 INTENT_ROLE_PRIORITY: dict[str, list[str]] = {
@@ -271,9 +271,9 @@ def retrieve_node(state: dict) -> dict:
 
     precise_results, matched_concepts = _kg_precise_retrieval(kg, user_input, intent=intent)
     for item in precise_results:
-        item.setdefault("book_name", primary_book)
-        item.setdefault("book_role", str(primary_resource.get("role") or ""))
-        item.setdefault("rag_priority", float(primary_resource.get("priority") or 1.0))
+        item["book_name"] = primary_book
+        item["book_role"] = str(primary_resource.get("role") or "")
+        item["rag_priority"] = float(primary_resource.get("priority") or 1.0)
     vector_results: list[dict] = []
     lexical_results: list[dict] = []
     neighbor_results: list[dict] = []
@@ -298,11 +298,11 @@ def retrieve_node(state: dict) -> dict:
         default_priority = float(resource.get("priority") or 1.0)
         is_selected_book = bool(resource.get("is_selected"))
         for item in candidate_vectors + candidate_lexical + candidate_neighbors:
-            if default_role and not item.get("book_role"):
-                item["book_role"] = default_role
-            if default_role and item.get("rag_priority") in {None, ""}:
-                item["rag_priority"] = default_priority
-            item.setdefault("book_name", candidate_book)
+            # Runtime book metadata is authoritative. Index metadata may be an
+            # older snapshot and must not make role changes require rebuilding.
+            item["book_role"] = default_role
+            item["rag_priority"] = default_priority
+            item["book_name"] = candidate_book
             item["is_selected_book"] = is_selected_book
         neighbor_results.extend(candidate_neighbors)
     chapter_contents, retrieval_debug_items = _merge_and_rerank(
@@ -823,11 +823,6 @@ def _merge_and_rerank(
         role = str(item.get("role") or "")
         if role in role_order:
             score += 0.012 * (len(role_order) - role_order.index(role)) / max(len(role_order), 1)
-        book_role = str(item.get("book_role") or "")
-        if book_role == "core":
-            score += 0.035
-        elif book_role == "reference":
-            score -= 0.006
         # Explicit user selection is independent of the core/reference role.
         # Keep selected reference evidence from disappearing behind generic core chunks.
         if item.get("is_selected_book"):
@@ -847,6 +842,13 @@ def _merge_and_rerank(
         for item, cross_score in zip(ranked, cross_scores):
             item["cross_encoder_score"] = cross_score
             item["score"] = float(item.get("score", 0)) + 0.15 * cross_score
+    policy = textbook_retrieval_policy()
+    for item in ranked:
+        relevance_score = float(item.get("score", 0.0))
+        multiplier = policy.multiplier(item.get("book_role", ""), item.get("rag_priority", 1.0))
+        item["relevance_score"] = round(relevance_score, 6)
+        item["textbook_role_multiplier"] = multiplier
+        item["score"] = round(relevance_score * multiplier, 6)
     rerank_meta = reranker_status()
 
     enumeration_query = intent == "factual_recall" and any(
@@ -879,6 +881,8 @@ def _merge_and_rerank(
             "rank": total + 1,
             "chapter": chapter,
             "score": item.get("score", 0.0),
+            "relevance_score": item.get("relevance_score", item.get("score", 0.0)),
+            "textbook_role_multiplier": item.get("textbook_role_multiplier", 1.0),
             "fusion_sources": item.get("fusion_sources", []),
             "text": text,
             "parent_id": item.get("parent_id", ""),
