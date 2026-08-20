@@ -1,3 +1,15 @@
+# 2026-08-20 - 模型角色配置与 Multi-Provider 调用层解耦
+
+- 新增 Provider 注册表、模型角色解析和 Transport 工厂，业务调用不再通过 `if provider == ...` 创建 SDK 客户端；内置 DeepSeek、Moonshot/Kimi、Qwen、Gemini、OpenAI、Ollama 与自定义 OpenAI-compatible 配置。
+- 模型配置拆分为推理模型与识图模型，每个角色独立配置 Provider、模型名、凭据和 Endpoint；默认继续使用 DeepSeek 推理与 Moonshot/Kimi 识图，并兼容旧版环境变量。
+- 设置页和首次运行引导共用角色配置组件。API Key 只提交给后端并写入本地 `.env`，状态接口不返回密钥；Base URL 默认折叠在高级连接参数中，可填写任意 OpenAI-compatible 地址和模型名。
+- 图片任务保留 `split` 模式，并新增 `native` 模式让识图角色对应模型继续完成推理；目录识别、按页视觉阅读、章节图片问答和错题图片解析改为读取统一识图角色。
+
+## Validation
+
+- Python 全量回归 482 项通过，覆盖旧配置兼容、Provider/Model capability 校验、自定义 Endpoint/模型、密钥不回显与模型缓存。
+- Frontend ESLint、Vitest 18 files / 83 tests、TypeScript + Vite production build 通过；仅保留既有 MathLive 大 chunk 提示。
+
 # 2026-08-16 - 问答页教材来源面板可正常关闭
 
 - 根因：来源/概念面板（`ContextInspector`）在窄窗 overlay 态下只有关闭按钮与 Esc 两种退出方式，点击面板外区域不会关闭，用户感知为面板“关不掉”。

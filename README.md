@@ -255,11 +255,10 @@ Electron 会启动后端并使用桌面用户数据目录。若已经单独启�
 
 | 变量 | 作用 | 是否必需 |
 |---|---|---|
-| <code>LLM_BACKEND</code> | 选择 deepseek 或其他兼容后端 | 需要生成能力时 |
-| <code>DEEPSEEK_API_KEY</code> | 默认 LLM 密钥 | 使用 DeepSeek 时 |
-| <code>OPENAI_API_KEY</code> | 可选 OpenAI 兼容密钥 | 使用对应后端时 |
-| <code>MOONSHOT_API_KEY</code> | Kimi/Moonshot 与视觉流程 | 使用对应流程时 |
-| <code>OLLAMA_BASE_URL</code> | 本地 Ollama 地址 | 使用 Ollama 时 |
+| <code>LLM_REASONING_PROVIDER / MODEL / API_KEY / BASE_URL</code> | 推理模型的 Provider、模型、凭据和连接地址 | 需要生成能力时 |
+| <code>LLM_VISION_PROVIDER / MODEL / API_KEY / BASE_URL</code> | 识图模型的 Provider、模型、凭据和连接地址 | 使用图片流程时 |
+| <code>LLM_MULTIMODAL_MODE</code> | <code>split</code> 使用识图+推理双模型；<code>native</code> 由识图模型继续推理 | 默认 <code>split</code> |
+| <code>LLM_BACKEND / DEEPSEEK_* / MOONSHOT_*</code> | 旧版配置，只读兼容；设置页保存时会写入新的角色变量 | 仅兼容旧环境 |
 | <code>TEXA_EMBEDDING_BACKEND</code> | 嵌入后端；生产默认 <code>onnx</code>，<code>torch</code> 仅开发参考 | Standard 无需设置 |
 | <code>TEXA_EMBEDDING_ASSET_DIR</code> | 版本化 ONNX 资产目录 | Electron 自动设置 |
 | <code>TEXA_EMBEDDING_FULL_VERIFY</code> | 启动时执行完整 SHA-256；正常启动默认使用版本/大小快检 | 修复或诊断时 |
