@@ -4,7 +4,7 @@
     Texa — 完整启动脚本
 .DESCRIPTION
     自动检测虚拟环境、检查配置、清理残留进程、启动服务。
-    支持 Web UI 和 CLI 两种模式。
+    支持 FastAPI 后端和 CLI 两种模式。
 .EXAMPLE
     .\launch.ps1 web        # 启动 Web UI（默认端口 8080）
     .\launch.ps1 web 9000   # 启动 Web UI（自定义端口）
@@ -36,7 +36,7 @@ function Write-Section ($msg) { Write-Host "`n>>> $msg" -ForegroundColor Magenta
 function Kill-Residual {
     Write-Section "清理残留进程"
     $procs = Get-Process -Name "python" -ErrorAction SilentlyContinue | Where-Object {
-        $_.CommandLine -match "main\.py" -or $_.CommandLine -match "gradio"
+        $_.CommandLine -match "main\.py" -or $_.CommandLine -match "uvicorn" -or $_.CommandLine -match "backend\.main"
     }
     if ($procs) {
         foreach ($p in $procs) {
@@ -121,7 +121,7 @@ if ($hasMoonshot) {
 
 # ── 4. 检查关键依赖 ───────────────────────────────────────
 Write-Section "检查依赖"
-$RequiredPkgs = @("gradio", "langchain", "sentence_transformers", "chromadb")
+$RequiredPkgs = @("fastapi", "uvicorn", "langchain", "chromadb")
 $Missing = @()
 foreach ($pkg in $RequiredPkgs) {
     $found = python -c "import $pkg" 2>$null
@@ -147,10 +147,10 @@ Kill-Residual
 
 Write-Section "启动 Texa"
 if ($Mode -eq "web" -or $Mode -eq "") {
-    Write-Info "模式: Web UI | 端口: $Port"
+    Write-Info "模式: FastAPI 后端 | 端口: $Port"
     Write-Info "访问地址: http://127.0.0.1:$Port"
     Write-Host "────────────────────────────────────────" -ForegroundColor DarkGray
-    python main.py web --port $Port
+    python main.py web --host 127.0.0.1 --port $Port
 } elseif ($Mode -eq "cli") {
     Write-Info "模式: CLI"
     Write-Host "────────────────────────────────────────" -ForegroundColor DarkGray

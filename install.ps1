@@ -62,7 +62,7 @@ $cliScript | Out-File -FilePath "$PSScriptRoot\启动CLI.bat" -Encoding default
 $webScript = @"
 @echo off
 call "$PSScriptRoot\venv\Scripts\activate"
-python "$PSScriptRoot\main.py" web
+python "$PSScriptRoot\main.py" web --host 127.0.0.1 --port 8000
 pause
 "@
 $webScript | Out-File -FilePath "$PSScriptRoot\启动Web.bat" -Encoding default
@@ -75,6 +75,6 @@ Write-Host "✅ 安装完成！" -ForegroundColor Green
 Write-Host "使用方法：" -ForegroundColor White
 Write-Host "  1. 将PDF教材放入 data/books/ 目录" -ForegroundColor White
 Write-Host "  2. 编辑 .env 文件配置 API Key" -ForegroundColor White
-Write-Host "  3. 运行 启动CLI.bat 或 启动Web.bat" -ForegroundColor White
-Write-Host "  或手动运行: python main.py cli 或 python main.py web" -ForegroundColor White
+Write-Host "  3. 运行 启动Web.bat 启动 FastAPI 后端，浏览器访问 http://127.0.0.1:8000" -ForegroundColor White
+Write-Host "  或手动运行: python main.py web --port 8000" -ForegroundColor White
 Write-Host "========================================" -ForegroundColor Cyan

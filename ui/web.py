@@ -1,4 +1,19 @@
-"""Web v5.3 — 模态弹窗 + 固定滚动目录 + 懒加载知识图谱"""
+"""DEPRECATED: legacy Gradio web UI.
+
+This module is retained only for historical reference and is not part of the
+supported entry points. The active web backend is ``backend.main:app``; start it
+with ``python main.py web`` or ``python -m uvicorn backend.main:app``.
+"""
+__deprecated__ = True
+
+import warnings
+
+warnings.warn(
+    "ui.web is deprecated; use the FastAPI backend instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 import json, time, io, base64, threading, re
 from pathlib import Path
 from typing import Optional
