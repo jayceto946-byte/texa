@@ -137,7 +137,7 @@ def chapter_subgraph_run(state: dict) -> dict:
 
     if content == "（无内容）":
         # 返回空字符串，让 generate_node fallback 到正常 QA 生成流程
-        return {"teaching_content": "", "error": "no_chapter"}
+        return {"teaching_content": "", "error": "no_chapter", "evidence_sources": state.get("evidence_sources") or []}
 
     llm = get_llm()
     ss = SummaryStore(book_name)
@@ -195,4 +195,5 @@ def chapter_subgraph_run(state: dict) -> dict:
         "conversation_context_seed": {},
         "conversation_context_pack": state.get("conversation_context_pack") or {},
         "context_budget": state.get("context_budget") or {},
+        "evidence_sources": state.get("evidence_sources") or [],
     }

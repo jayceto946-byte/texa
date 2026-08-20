@@ -24,6 +24,7 @@ class AgentState(TypedDict):
     active_evidence_sources: list[dict]
     active_evidence_ids: list[str]
     active_evidence_support: str
+    active_evidence_invalidation_reason: str
     same_topic: bool
     requires_new_facet: bool
     previous_intent: str
@@ -35,6 +36,9 @@ class AgentState(TypedDict):
 
     # === Planner 输出 ===
     intent: str                 # qa | teach | summarize | quiz | plan | cross_chapter
+    _local_intent: str          # 本地分类器 hint（仅流式路径写入）
+    _local_intent_hint: str
+    _local_intent_locked: bool
     sub_tasks: list[dict]       # [{step, description, agent, chapter}]
     target_chapters: list[str]
     route_decision: str
@@ -44,7 +48,9 @@ class AgentState(TypedDict):
     chapter_contents: dict      # {chapter_name: [docs]}
     retrieval_debug_items: list[dict]  # final prompt chunks with metadata for eval/debug
     evidence_items: list[dict]  # selected textbook evidence passed to generation
+    evidence_sources: list[dict]  # human-readable evidence metadata returned to UI/persistence
     evidence_support: dict  # query-level support gate: supported | partial | insufficient | unavailable
+    evidence_gate_applied: bool
     suggested_answer_mode: str
     citation_trace: dict
     index_stats: dict  # selected textbook index health

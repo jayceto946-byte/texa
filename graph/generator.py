@@ -296,6 +296,7 @@ def generate_node(state: dict) -> dict:
             "context_budget": state["context_budget"],
             "conversation_context_seed": {},
             "conversation_context_pack": {},
+            "evidence_sources": state.get("evidence_sources") or [],
         }
     if state.get("use_textbook_context", True) and not has_textbook_evidence(state):
         _record_context_budget(
@@ -308,6 +309,7 @@ def generate_node(state: dict) -> dict:
             "context_budget": state["context_budget"],
             "conversation_context_seed": {},
             "conversation_context_pack": {},
+            "evidence_sources": state.get("evidence_sources") or [],
         }
     if intent in ("teach", "summarize") and teaching_content:
         if not state.get("context_budget"):
@@ -339,4 +341,5 @@ def generate_node(state: dict) -> dict:
         "context_budget": state.get("context_budget") or {},
         "conversation_context_seed": {},
         "conversation_context_pack": state.get("conversation_context_pack") or {},
+        "evidence_sources": state.get("evidence_sources") or [],
     }
