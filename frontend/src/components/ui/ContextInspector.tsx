@@ -1,12 +1,25 @@
+import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useInspector } from '../../contexts/InspectorContext';
 
 export default function ContextInspector() {
   const { inspector, closeInspector } = useInspector();
+  const panelRef = useRef<HTMLElement | null>(null);
+
+  // 点击面板外区域关闭（捕获阶段，与其他菜单/浮层模式一致）。
+  useEffect(() => {
+    if (!inspector) return;
+    const dismissOutside = (event: PointerEvent) => {
+      if (!panelRef.current?.contains(event.target as Node)) closeInspector();
+    };
+    document.addEventListener('pointerdown', dismissOutside, true);
+    return () => document.removeEventListener('pointerdown', dismissOutside, true);
+  }, [closeInspector, inspector]);
+
   if (!inspector) return null;
 
   return (
-    <aside className="context-inspector" aria-label={`${inspector.title}详情`}>
+    <aside ref={panelRef} className="context-inspector" aria-label={`${inspector.title}详情`}>
       <header className="context-inspector-header">
         <div className="min-w-0 flex-1">
           {inspector.subtitle && <div className="type-micro text-text-secondary">{inspector.subtitle}</div>}

@@ -1,3 +1,14 @@
+# 2026-08-16 - 问答页教材来源面板可正常关闭
+
+- 根因：来源/概念面板（`ContextInspector`）在窄窗 overlay 态下只有关闭按钮与 Esc 两种退出方式，点击面板外区域不会关闭，用户感知为面板“关不掉”。
+- 在 `frontend/src/components/ui/ContextInspector.tsx` 为面板挂载 `ref`，面板打开期间在 `document` 捕获阶段监听 `pointerdown`，点击落在 `<aside>` 外即 `closeInspector()`；监听随面板卸载自动移除。与既有 `ComposerOverflowMenu` 的 outside-dismissal 模式保持一致。
+- 未改动来源数据结构、引用逻辑与任何 backend；关闭按钮、Esc 关闭（`InspectorContext` 既有实现）与 `openInspector` 替换旧面板状态保持不变。
+
+## Validation
+
+- 在运行中的 Electron/前端（1280 宽、inspector overlay 态）用真实来源面板逐项验证：关闭按钮关闭 ✓、点击面板外关闭 ✓、Esc 关闭 ✓、来源→概念新面板替换旧状态且仅保留一个面板 ✓。
+- Frontend TypeScript `tsc -b` 通过；Vitest 18 files / 83 tests passed。
+
 # 2026-08-15 - Electron 原生窗口控制回归修复
 
 - 在用户当前 Texa 窗口中复现：React 自绘最大化按钮的 46px DOM 区域可见，但真实桌面点击被 frameless drag hit-test 吞掉；此前用 CDP 触发 `.click()` 只能证明 IPC 可用，不能证明桌面指针命中正常。
