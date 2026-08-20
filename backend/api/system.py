@@ -108,17 +108,18 @@ def _check_sqlite(path: Path, table_name: str, label: str) -> dict:
 
 def _check_runtime_config() -> dict:
     import config
-    backend = str(getattr(config, "LLM_BACKEND", ""))
-    keys = {
-        "deepseek": getattr(config, "DEEPSEEK_API_KEY", ""),
-        "moonshot": getattr(config, "MOONSHOT_API_KEY", ""),
-        "openai": getattr(config, "OPENAI_API_KEY", ""),
-    }
-    configured = backend not in keys or bool(keys.get(backend))
+    from llm.configuration import resolve_model_role
+
+    reasoning = resolve_model_role("reasoning")
+    vision = resolve_model_role("vision")
+    configured = reasoning.credential_configured
     return _component(
         "healthy" if configured else "degraded",
-        "LLM configuration is ready" if configured else f"API key for {backend} is not configured",
-        backend=backend,
+        "LLM configuration is ready" if configured else f"{reasoning.provider.label} API Key 尚未配置",
+        provider=reasoning.provider.provider_id,
+        model=reasoning.model,
+        vision_provider=vision.provider.provider_id,
+        vision_model=vision.model,
         embedding_model=getattr(config, "EMBEDDING_MODEL_NAME", ""),
         embedding_backend=getattr(config, "embedding_backend_name", lambda: "unknown")(),
     )
@@ -226,27 +227,17 @@ import subprocess
 from datetime import datetime
 
 from config import BASE_DIR
+from llm.configuration import model_settings_env_values, model_settings_payload
+from llm.factory import clear_model_cache
 from utils.version import APP_VERSION
 from utils.subject_catalog import DEFAULT_SUBJECT_TREE, clean_subject_tree, read_subject_tree, write_subject_tree
 
 ENV_PATH = Path(os.getenv("ENV_PATH", str(BASE_DIR / ".env")))
 
 ENV_KEYS = [
-    "LLM_BACKEND",
-    "DEEPSEEK_API_KEY",
-    "DEEPSEEK_API_BASE",
-    "DEEPSEEK_MODEL_NAME",
-    "MOONSHOT_API_KEY",
-    "MOONSHOT_API_BASE",
-    "KIMI_VISION_MODEL",
-    "OPENAI_API_KEY",
-    "OPENAI_API_BASE",
-    "LLM_MODEL_NAME",
     "MINERU_API_URL",
     "MINERU_CLI_COMMAND",
 ]
-
-SECRET_KEYS = {"DEEPSEEK_API_KEY", "MOONSHOT_API_KEY", "OPENAI_API_KEY"}
 
 
 def _read_env_lines() -> list[str]:
@@ -256,6 +247,9 @@ def _read_env_lines() -> list[str]:
 
 
 def _write_env_values(values: dict[str, str]) -> None:
+    for key, value in values.items():
+        if "\n" in key or "\r" in key or "=" in key or "\n" in value or "\r" in value:
+            raise ValueError("配置项不能包含换行符")
     lines = _read_env_lines()
     seen: set[str] = set()
     next_lines: list[str] = []
@@ -298,10 +292,7 @@ def _env_status() -> dict:
     result = {}
     for key in ENV_KEYS:
         value = os.getenv(key, "")
-        if key in SECRET_KEYS:
-            result[key] = {"configured": bool(value), "value": ""}
-        else:
-            result[key] = {"configured": bool(value), "value": _redact_public_value(value)}
+        result[key] = {"configured": bool(value), "value": _redact_public_value(value)}
     return result
 
 
@@ -319,6 +310,7 @@ def get_settings():
         "success": True,
         "data": {
             "env": _env_status(),
+            "models": model_settings_payload(),
             "subjects": _read_subject_tree(),
         },
     }
@@ -331,14 +323,29 @@ def save_env_settings(payload: dict):
         if key not in payload:
             continue
         value = str(payload.get(key) or "").strip()
-        if key in SECRET_KEYS and not value:
-            continue
         values[key] = value
     if not values:
         return {"success": False, "message": "没有可保存的配置"}
     _write_env_values(values)
     _apply_runtime_env(values)
     return {"success": True, "message": "配置已写入 .env。API Key 不会在界面回显。", "data": _env_status()}
+
+
+@router.post("/settings/models")
+def save_model_settings(payload: dict):
+    """Persist role-oriented model settings without returning credentials."""
+    try:
+        values = model_settings_env_values(payload)
+        _write_env_values(values)
+        _apply_runtime_env(values)
+        clear_model_cache()
+        return {
+            "success": True,
+            "message": "模型配置已保存。API Key 不会在界面回显。",
+            "data": model_settings_payload(),
+        }
+    except ValueError as exc:
+        return {"success": False, "message": str(exc)}
 
 
 @router.get("/settings/subjects")

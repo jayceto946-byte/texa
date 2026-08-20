@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type React from 'react';
 import { BookOpen, CheckCircle2, Database, Download, KeyRound, Loader2, PackageOpen, ShieldCheck, X } from 'lucide-react';
 import { get, post } from '../api/client';
+import ModelSettingsForm, { type ModelSettingsValue } from './settings/ModelSettingsForm';
 
 type AssetState = {
   id: string;
@@ -25,30 +26,18 @@ type AssetStatus = {
   };
 };
 
-type EnvStatus = Record<string, { configured: boolean; value: string }>;
-
 const STORAGE_KEY = 'kaoyan:onboarding-complete:v2';
 const steps = ['快速了解', '本地资源', '模型配置'] as const;
 
 const defaultEnvDraft = {
-  LLM_BACKEND: 'deepseek',
-  DEEPSEEK_API_BASE: 'https://api.deepseek.com/v1',
-  DEEPSEEK_MODEL_NAME: 'deepseek-v4-pro',
-  DEEPSEEK_API_KEY: '',
-  MOONSHOT_API_BASE: 'https://api.moonshot.cn/v1',
-  MOONSHOT_API_KEY: '',
-  KIMI_VISION_MODEL: 'kimi-k2.5',
-  OPENAI_API_BASE: 'https://api.openai.com/v1',
-  OPENAI_API_KEY: '',
-  LLM_MODEL_NAME: '',
   MINERU_API_URL: '',
   MINERU_CLI_COMMAND: '',
 };
 
 export default function FirstRunGuide() {
   const [status, setStatus] = useState<AssetStatus | null>(null);
-  const [envStatus, setEnvStatus] = useState<EnvStatus>({});
   const [envDraft, setEnvDraft] = useState<Record<string, string>>(defaultEnvDraft);
+  const [modelDraft, setModelDraft] = useState<ModelSettingsValue | null>(null);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState<string>('');
@@ -65,21 +54,11 @@ export default function FirstRunGuide() {
       if (assetRes?.success) setStatus(assetRes.data as AssetStatus);
       if (settingsRes?.success) {
         const env = settingsRes.data?.env || {};
-        setEnvStatus(env);
+        setModelDraft(settingsRes.data?.models || null);
         setEnvDraft({
           ...defaultEnvDraft,
-          LLM_BACKEND: env.LLM_BACKEND?.value || defaultEnvDraft.LLM_BACKEND,
-          DEEPSEEK_API_BASE: env.DEEPSEEK_API_BASE?.value || defaultEnvDraft.DEEPSEEK_API_BASE,
-          DEEPSEEK_MODEL_NAME: env.DEEPSEEK_MODEL_NAME?.value || defaultEnvDraft.DEEPSEEK_MODEL_NAME,
-          MOONSHOT_API_BASE: env.MOONSHOT_API_BASE?.value || defaultEnvDraft.MOONSHOT_API_BASE,
-          KIMI_VISION_MODEL: env.KIMI_VISION_MODEL?.value || defaultEnvDraft.KIMI_VISION_MODEL,
-          OPENAI_API_BASE: env.OPENAI_API_BASE?.value || defaultEnvDraft.OPENAI_API_BASE,
-          LLM_MODEL_NAME: env.LLM_MODEL_NAME?.value || '',
           MINERU_API_URL: env.MINERU_API_URL?.value || '',
           MINERU_CLI_COMMAND: env.MINERU_CLI_COMMAND?.value || '',
-          DEEPSEEK_API_KEY: '',
-          MOONSHOT_API_KEY: '',
-          OPENAI_API_KEY: '',
         });
       }
     } catch {
@@ -121,12 +100,11 @@ export default function FirstRunGuide() {
     setBusy('api-keys');
     setMessage('正在保存模型配置...');
     try {
-      const payload: Record<string, string> = {};
-      for (const [key, value] of Object.entries(envDraft)) {
-        if ((key.endsWith('_API_KEY') || key === 'OPENAI_API_KEY') && !value.trim()) continue;
-        payload[key] = value.trim();
+      if (!modelDraft) throw new Error('模型配置尚未加载完成');
+      const res = await post('/system/settings/models', modelDraft, 20000);
+      if (res?.success && Object.values(envDraft).some((value) => value.trim())) {
+        await post('/system/settings/env', envDraft, 20000);
       }
-      const res = await post('/system/settings/env', payload, 20000);
       setMessage(res?.message || (res?.success ? '配置已保存' : '保存失败'));
       await loadStatus();
     } catch (err) {
@@ -140,7 +118,7 @@ export default function FirstRunGuide() {
 
   const embedding = status?.assets.embedding_model;
   const vector = status?.assets.vector_bundle;
-  const hasPrimaryKey = Boolean(envStatus.DEEPSEEK_API_KEY?.configured || envStatus.MOONSHOT_API_KEY?.configured || envStatus.OPENAI_API_KEY?.configured);
+  const hasPrimaryKey = Boolean(modelDraft && (modelDraft.credentials.reasoning.configured || !modelDraft.credentials.reasoning.required));
 
   return (
     <div className="app-overlay-enter fixed inset-0 z-[1300] flex items-center justify-center bg-[#1f2824]/45 p-4">
@@ -188,7 +166,7 @@ export default function FirstRunGuide() {
                   </div>
                 </div>
                 <div className="border-l-2 border-accent/50 pl-4 text-sm leading-6 text-text-secondary">
-                  本地嵌入模型只在本机完成教材语义检索。问答时，当前问题、必要会话上下文和选中的教材证据会发送给你配置的 LLM 服务；使用 Kimi 图片 OCR 时，所选图片会发送给 Moonshot。外部服务将按各自隐私政策处理数据并可能产生费用。
+                  本地嵌入模型只在本机完成教材语义检索。问答时，当前问题、必要会话上下文和选中的教材证据会发送给你配置的推理服务；使用图片识别时，所选图片会发送给你配置的识图服务。外部服务将按各自隐私政策处理数据并可能产生费用。
                 </div>
                 <label className="flex items-start gap-2 border-t border-border pt-4 text-sm leading-6 text-text-primary">
                   <input type="checkbox" checked={privacyAcknowledged} onChange={(event) => setPrivacyAcknowledged(event.target.checked)} className="mt-1" />
@@ -233,26 +211,14 @@ export default function FirstRunGuide() {
                 <div className="border-l-2 border-accent/50 pl-4 text-sm leading-6 text-text-secondary">
                   API Key 只写入本机 .env。后端状态接口只返回“是否已配置”，不会把已有密钥回显到前端。
                 </div>
-                <div className="border-t border-border pt-4 text-sm leading-6 text-text-secondary">
-                  Recommended OCR path: run MinerU 3.x on a rented GPU or external service, then import the output zip. Local MinerU CLI is optional and should live in a separate Python 3.10 environment with MinerU/Paddle/CUDA dependencies.
-                </div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <Field label="推理后端">
-                    <select value={envDraft.LLM_BACKEND} onChange={(e) => setEnvDraft({ ...envDraft, LLM_BACKEND: e.target.value })} className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm">
-                      <option value="deepseek">DeepSeek</option>
-                      <option value="moonshot">Moonshot/Kimi</option>
-                      <option value="openai">OpenAI</option>
-                      <option value="ollama">Ollama</option>
-                    </select>
-                  </Field>
-                  <Field label="DeepSeek 模型"><input value={envDraft.DEEPSEEK_MODEL_NAME} onChange={(e) => setEnvDraft({ ...envDraft, DEEPSEEK_MODEL_NAME: e.target.value })} className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-                  <Field label={`DeepSeek API Key（${envStatus.DEEPSEEK_API_KEY?.configured ? '已配置' : '未配置'}）`}><input type="password" autoComplete="off" value={envDraft.DEEPSEEK_API_KEY} onChange={(e) => setEnvDraft({ ...envDraft, DEEPSEEK_API_KEY: e.target.value })} placeholder="留空则不修改" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-                  <Field label="DeepSeek Base URL"><input value={envDraft.DEEPSEEK_API_BASE} onChange={(e) => setEnvDraft({ ...envDraft, DEEPSEEK_API_BASE: e.target.value })} className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-                  <Field label={`Kimi/OCR API Key（${envStatus.MOONSHOT_API_KEY?.configured ? '已配置' : '未配置'}）`}><input type="password" autoComplete="off" value={envDraft.MOONSHOT_API_KEY} onChange={(e) => setEnvDraft({ ...envDraft, MOONSHOT_API_KEY: e.target.value })} placeholder="留空则不修改" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-                  <Field label="Kimi/OCR 模型"><input value={envDraft.KIMI_VISION_MODEL} onChange={(e) => setEnvDraft({ ...envDraft, KIMI_VISION_MODEL: e.target.value })} className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-                  <Field label="MinerU API URL (recommended external service)"><input value={envDraft.MINERU_API_URL} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_API_URL: e.target.value })} placeholder="SSH tunnel example: http://127.0.0.1:9001" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-                  <Field label="Local MinerU CLI (advanced, optional)"><input value={envDraft.MINERU_CLI_COMMAND} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_CLI_COMMAND: e.target.value })} placeholder="Example: mineru -p {input} -o {output}" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-                </div>
+                {modelDraft && <ModelSettingsForm value={modelDraft} onChange={setModelDraft} compact />}
+                <details className="rounded-xl border border-border bg-bg-secondary/40 p-3">
+                  <summary className="cursor-pointer text-sm font-medium text-text-primary">教材解析服务（可选）</summary>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <Field label="MinerU API URL"><input value={envDraft.MINERU_API_URL} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_API_URL: e.target.value })} placeholder="http://127.0.0.1:9001" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
+                    <Field label="本地 MinerU CLI"><input value={envDraft.MINERU_CLI_COMMAND} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_CLI_COMMAND: e.target.value })} placeholder="mineru -p {input} -o {output}" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
+                  </div>
+                </details>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${hasPrimaryKey ? 'bg-[#edf6f0] text-[var(--success)]' : 'bg-[#fff7de] text-[var(--warning)]'}`}>
                     <ShieldCheck className="h-3.5 w-3.5" />{hasPrimaryKey ? '已有可用 Key' : '尚未配置 Key'}

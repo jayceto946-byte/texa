@@ -7,6 +7,7 @@ import { useChatContext } from '../contexts/ChatContext';
 import type { SystemHealthStatus } from '../types';
 import LibraryManager from './settings/LibraryManager';
 import DataSafety from './settings/DataSafety';
+import ModelSettingsForm, { type ModelSettingsValue } from './settings/ModelSettingsForm';
 import { PageState, StatusBanner } from './ui/AsyncState';
 
 type SubjectNode = { name: string; children: string[] };
@@ -25,7 +26,6 @@ function componentMessage(key: string, message = '') {
   if (key === 'runtime_config' && /LLM configuration is ready/i.test(message)) return '模型配置已就绪';
   return message;
 }
-const secretKeys = ['DEEPSEEK_API_KEY', 'MOONSHOT_API_KEY', 'OPENAI_API_KEY'];
 const SETTINGS_TABS: Array<{ id: Tab; label: string }> = [
   { id: 'health', label: '服务器健康' },
   { id: 'version', label: '版本更新' },
@@ -53,11 +53,11 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>(standaloneTab || 'health');
   const [version, setVersion] = useState<any>(null);
-  const [settings, setSettings] = useState<any>(null);
   const [subjects, setSubjects] = useState<SubjectNode[]>([]);
   const [books, setBooks] = useState<ManagedBook[]>([]);
   const [bookDrafts, setBookDrafts] = useState<Record<string, string>>({});
   const [envDraft, setEnvDraft] = useState<Record<string, string>>({});
+  const [modelDraft, setModelDraft] = useState<ModelSettingsValue | null>(null);
   const [desktopUpdate, setDesktopUpdate] = useState<any>(null);
   const [message, setMessage] = useState('');
   const [selectedSubjectIndex, setSelectedSubjectIndex] = useState(0);
@@ -66,22 +66,12 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
   const loadSettings = useCallback(async () => {
     const res = await get('/system/settings', 20000);
     if (!res?.success) return;
-    setSettings(res.data);
+    setModelDraft(res.data.models || null);
     setSubjects(res.data.subjects || []);
     const env = res.data.env || {};
     setEnvDraft({
-      LLM_BACKEND: env.LLM_BACKEND?.value || 'deepseek',
-      DEEPSEEK_API_BASE: env.DEEPSEEK_API_BASE?.value || 'https://api.deepseek.com/v1',
-      DEEPSEEK_MODEL_NAME: env.DEEPSEEK_MODEL_NAME?.value || 'deepseek-v4-pro',
-      MOONSHOT_API_BASE: env.MOONSHOT_API_BASE?.value || 'https://api.moonshot.cn/v1',
-      KIMI_VISION_MODEL: env.KIMI_VISION_MODEL?.value || 'kimi-k2.5',
-      OPENAI_API_BASE: env.OPENAI_API_BASE?.value || 'https://api.openai.com/v1',
-      LLM_MODEL_NAME: env.LLM_MODEL_NAME?.value || '',
       MINERU_API_URL: env.MINERU_API_URL?.value || '',
       MINERU_CLI_COMMAND: env.MINERU_CLI_COMMAND?.value || '',
-      DEEPSEEK_API_KEY: '',
-      MOONSHOT_API_KEY: '',
-      OPENAI_API_KEY: '',
     });
   }, []);
 
@@ -139,14 +129,13 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
   const targetSubject = subjectPath(selectedSubject?.name, selectedChild);
 
 
-  const saveEnv = async () => {
+  const saveModels = async () => {
     setMessage('');
-    const payload: Record<string, string> = {};
-    for (const [key, value] of Object.entries(envDraft)) {
-      if (secretKeys.includes(key) && !value.trim()) continue;
-      payload[key] = value;
+    if (!modelDraft) return;
+    const res = await post('/system/settings/models', modelDraft, 20000);
+    if (res?.success && Object.values(envDraft).some((value) => value.trim())) {
+      await post('/system/settings/env', envDraft, 20000);
     }
-    const res = await post('/system/settings/env', payload, 20000);
     setMessage(res?.message || (res?.success ? '已保存' : '保存失败'));
     if (res?.success) await loadSettings();
   };
@@ -425,20 +414,16 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
 
     {tab === 'models' && (
       <section className="space-y-4">
-        <div className="rounded-lg border border-border bg-bg-card p-3 text-xs leading-5 text-text-secondary">API Key 只写入本地 .env；界面只显示是否已配置，不回显密钥。保存后新请求会读取新配置，已有长任务可能需要重启后端。</div>
-        <div className="grid gap-3 md:grid-cols-2">
-          <Field label="推理后端"><select value={envDraft.LLM_BACKEND || 'deepseek'} onChange={(e) => setEnvDraft({ ...envDraft, LLM_BACKEND: e.target.value })} className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm"><option value="deepseek">DeepSeek</option><option value="moonshot">Moonshot/Kimi</option><option value="openai">OpenAI</option><option value="ollama">Ollama</option></select></Field>
-          <Field label="DeepSeek 模型"><input value={envDraft.DEEPSEEK_MODEL_NAME || ''} onChange={(e) => setEnvDraft({ ...envDraft, DEEPSEEK_MODEL_NAME: e.target.value })} className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-          <Field label={`DeepSeek API Key（${settings?.env?.DEEPSEEK_API_KEY?.configured ? '已配置' : '未配置'}）`}><input type="password" value={envDraft.DEEPSEEK_API_KEY || ''} onChange={(e) => setEnvDraft({ ...envDraft, DEEPSEEK_API_KEY: e.target.value })} placeholder="留空则不修改" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-          <Field label="DeepSeek Base URL"><input value={envDraft.DEEPSEEK_API_BASE || ''} onChange={(e) => setEnvDraft({ ...envDraft, DEEPSEEK_API_BASE: e.target.value })} className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-          <Field label={`OCR/Kimi API Key（${settings?.env?.MOONSHOT_API_KEY?.configured ? '已配置' : '未配置'}）`}><input type="password" value={envDraft.MOONSHOT_API_KEY || ''} onChange={(e) => setEnvDraft({ ...envDraft, MOONSHOT_API_KEY: e.target.value })} placeholder="留空则不修改" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-          <Field label="OCR/Kimi 模型"><input value={envDraft.KIMI_VISION_MODEL || ''} onChange={(e) => setEnvDraft({ ...envDraft, KIMI_VISION_MODEL: e.target.value })} className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-          <Field label="MinerU API URL（推荐外部服务）"><input value={envDraft.MINERU_API_URL || ''} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_API_URL: e.target.value })} placeholder="SSH 隧道示例：http://127.0.0.1:9001" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-          <Field label="本地 MinerU CLI（高级，可选）"><input value={envDraft.MINERU_CLI_COMMAND || ''} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_CLI_COMMAND: e.target.value })} placeholder="Example: mineru -p {input} -o {output}" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-          <Field label={`OpenAI API Key（${settings?.env?.OPENAI_API_KEY?.configured ? '已配置' : '未配置'}）`}><input type="password" value={envDraft.OPENAI_API_KEY || ''} onChange={(e) => setEnvDraft({ ...envDraft, OPENAI_API_KEY: e.target.value })} placeholder="留空则不修改" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-          <Field label="通用模型名"><input value={envDraft.LLM_MODEL_NAME || ''} onChange={(e) => setEnvDraft({ ...envDraft, LLM_MODEL_NAME: e.target.value })} className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-        </div>
-        <button onClick={saveEnv} className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover"><Save className="h-4 w-4" />保存模型配置</button>
+        <div className="rounded-lg border border-border bg-bg-card p-3 text-xs leading-5 text-text-secondary">按用途配置推理与识图模型。API Key 只写入本地 .env，界面仅显示配置状态；连接地址默认隐藏在高级参数中。</div>
+        {modelDraft ? <ModelSettingsForm value={modelDraft} onChange={setModelDraft} /> : <PageState kind="loading" title="正在读取模型配置" />}
+        <details className="rounded-xl border border-border bg-bg-card p-4">
+          <summary className="cursor-pointer text-sm font-medium text-text-primary">教材解析服务</summary>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <Field label="MinerU API URL"><input value={envDraft.MINERU_API_URL || ''} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_API_URL: e.target.value })} placeholder="http://127.0.0.1:9001" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
+            <Field label="本地 MinerU CLI（可选）"><input value={envDraft.MINERU_CLI_COMMAND || ''} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_CLI_COMMAND: e.target.value })} placeholder="mineru -p {input} -o {output}" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
+          </div>
+        </details>
+        <button onClick={saveModels} disabled={!modelDraft} className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"><Save className="h-4 w-4" />保存模型配置</button>
       </section>
     )}
         </main>
