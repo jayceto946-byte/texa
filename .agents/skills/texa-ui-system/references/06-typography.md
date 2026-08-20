@@ -17,16 +17,7 @@
 - Small: 12px / 1.5 / 400 or 500
 - Caption, rare: 11px / 1.4 / 400
 
-Most application screens should use page title, section title, body, and small only. Avoid 700 weight except rare emphasis inside learning content.
-
-## Reading content
-
-- Keep answer measure near 72ch for Chinese and mixed math text.
-- Use 1.6 to 1.72 line height for body explanations.
-- Keep Markdown headings restrained and proportionate to the answer.
-- Allow text selection and copying.
-- Give tables and display formulas horizontal overflow.
-- Keep inline formula baseline aligned with Chinese body text.
+Most application surfaces use page title, section title, body, and small only. Avoid 700 weight except rare emphasis inside learning content. Long-form reading rules live in 03-learning-canvas.md.
 
 ## Hierarchy
 

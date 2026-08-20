@@ -20,13 +20,7 @@ Use 1px neutral hairlines. Avoid a border around every child. In lists, prefer o
 
 Default shadow to none. Use one restrained shadow token only for menus, popovers, modals, and floating inspectors.
 
-## Conversation
+## Consistency
 
-- User question: compact differentiated block, not a giant bubble.
-- Answer: open document flow on the workspace surface.
-- Evidence: compact source row plus inspector.
-- Concept: inline link or compact metadata row when inspectable.
-
-## Library and settings
-
-Use split views and list rows. Do not wrap a split view in a card and then wrap every row in another card.
+- Do not wrap a split view in a card and then wrap every row in another card.
+- Content presentation (conversation, document flow) lives in 03-learning-canvas.md; page layout lives in 02-page-layout.md.
