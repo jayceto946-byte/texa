@@ -1,12 +1,14 @@
 import os
 import re
 import base64
-import json
 import logging
 import threading
 from pathlib import Path
-from typing import Optional
 from dotenv import load_dotenv
+
+from llm.configuration import resolve_model_role
+from llm.factory import build_chat_model, build_openai_client, clear_model_cache, get_chat_model
+from llm.types import ModelRole
 
 load_dotenv(os.getenv("ENV_PATH") or None)
 
@@ -88,66 +90,8 @@ LLM_BACKEND = os.getenv("LLM_BACKEND", "deepseek")
 # Multimodal entrypoint is intentionally disabled unless OCR/Vision workflows enable it.
 MULTIMODAL_ENABLED = False
 
-_llm_cache: dict[tuple, object] = {}
-_llm_cache_lock = threading.RLock()
-
-
-def _cached_llm(key: tuple, factory):
-    """Return one reusable model/client instance for an immutable config key."""
-    with _llm_cache_lock:
-        instance = _llm_cache.get(key)
-        if instance is None:
-            instance = factory()
-            _llm_cache[key] = instance
-        return instance
-
-
-def clear_llm_cache() -> None:
-    """Drop cached clients for tests or explicit runtime reconfiguration."""
-    with _llm_cache_lock:
-        _llm_cache.clear()
-
-
-def _get_chat_model(
-    model: str,
-    temperature: float,
-    api_key: str,
-    base_url: str,
-    extra_body: Optional[dict] = None,
-    *,
-    include_response_headers: bool = False,
-    stream_usage: bool = False,
-    request_timeout: float = 120,
-    max_retries: int = 2,
-):
-    from langchain_openai import ChatOpenAI
-
-    normalized_extra = json.dumps(extra_body or {}, ensure_ascii=False, sort_keys=True)
-    key = (
-        "chat", model, float(temperature), api_key, base_url, normalized_extra,
-        bool(include_response_headers), bool(stream_usage), float(request_timeout), int(max_retries),
-    )
-
-    def create():
-        kwargs = dict(
-            model=model,
-            temperature=temperature,
-            api_key=api_key,
-            base_url=base_url,
-            streaming=True,
-            timeout=request_timeout,
-            max_retries=max_retries,
-            include_response_headers=include_response_headers,
-            stream_usage=stream_usage,
-        )
-        if "http_socket_options" in getattr(ChatOpenAI, "model_fields", {}):
-            # Disable LangChain's custom socket transport so httpx can honor system proxies.
-            kwargs["http_socket_options"] = ()
-        if extra_body:
-            kwargs["extra_body"] = extra_body
-        return ChatOpenAI(**kwargs)
-
-    return _cached_llm(key, create)
+clear_llm_cache = clear_model_cache
+_get_chat_model = get_chat_model
 
 
 def get_llm(
@@ -158,66 +102,23 @@ def get_llm(
     request_timeout: float = 120,
     max_retries: int = 2,
 ):
-    if LLM_BACKEND == "deepseek":
-        return _get_chat_model(
-            DEEPSEEK_MODEL_NAME,
-            temperature,
-            DEEPSEEK_API_KEY,
-            DEEPSEEK_API_BASE,
-            extra_body={"reasoning_effort": "high", "thinking": {"type": "enabled"}},
-            include_response_headers=include_response_headers,
-            stream_usage=stream_usage,
-            request_timeout=request_timeout,
-            max_retries=max_retries,
-        )
-    elif LLM_BACKEND == "moonshot":
-        return _get_chat_model(
-            LLM_MODEL_NAME, temperature, MOONSHOT_API_KEY, MOONSHOT_API_BASE,
-            include_response_headers=include_response_headers,
-            stream_usage=stream_usage,
-            request_timeout=request_timeout,
-            max_retries=max_retries,
-        )
-    elif LLM_BACKEND == "openai":
-        return _get_chat_model(
-            LLM_MODEL_NAME, temperature, OPENAI_API_KEY, OPENAI_API_BASE,
-            include_response_headers=include_response_headers,
-            stream_usage=stream_usage,
-            request_timeout=request_timeout,
-            max_retries=max_retries,
-        )
-    else:
-        from langchain_community.chat_models import ChatOllama
-        return _cached_llm(
-            ("ollama", LLM_MODEL_NAME, float(temperature), OLLAMA_BASE_URL),
-            lambda: ChatOllama(
-                model=LLM_MODEL_NAME,
-                temperature=temperature,
-                base_url=OLLAMA_BASE_URL,
-            ),
-        )
-
-
-def get_llm_client():
-    """Return a non-streaming OpenAI-compatible client for utility calls."""
-    from openai import OpenAI
-    import httpx
-    if LLM_BACKEND == "deepseek":
-        key, api_key, base_url = ("client", "deepseek", DEEPSEEK_API_KEY, DEEPSEEK_API_BASE), DEEPSEEK_API_KEY, DEEPSEEK_API_BASE
-    elif LLM_BACKEND == "moonshot":
-        key, api_key, base_url = ("client", "moonshot", MOONSHOT_API_KEY, MOONSHOT_API_BASE), MOONSHOT_API_KEY, MOONSHOT_API_BASE
-    elif LLM_BACKEND == "openai":
-        key, api_key, base_url = ("client", "openai", OPENAI_API_KEY, OPENAI_API_BASE), OPENAI_API_KEY, OPENAI_API_BASE
-    else:
-        return None
-    return _cached_llm(
-        key,
-        lambda: OpenAI(
-            api_key=api_key,
-            base_url=base_url,
-            http_client=httpx.Client(trust_env=False, timeout=120),
-        ),
+    return build_chat_model(
+        resolve_model_role(ModelRole.REASONING),
+        temperature,
+        include_response_headers=include_response_headers,
+        stream_usage=stream_usage,
+        request_timeout=request_timeout,
+        max_retries=max_retries,
     )
+
+
+def get_model_role_config(role: ModelRole | str = ModelRole.REASONING):
+    return resolve_model_role(role)
+
+
+def get_llm_client(role: ModelRole | str = ModelRole.REASONING, *, timeout: float = 120, max_retries: int = 0):
+    """Return a provider-neutral utility client when the transport is OpenAI-compatible."""
+    return build_openai_client(resolve_model_role(role), timeout=timeout, max_retries=max_retries)
 
 
 def encode_image(image_path: str | Path) -> str:

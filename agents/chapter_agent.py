@@ -6,7 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
-from config import get_llm, get_llm_client, MULTIMODAL_ENABLED
+from config import get_llm, get_llm_client, get_model_role_config, MULTIMODAL_ENABLED
 from ingestion.vector_store import ChapterVectorStore
 
 CHAPTER_QA_PROMPT = ChatPromptTemplate.from_messages([
@@ -74,12 +74,11 @@ class ChapterAgent:
         if not MULTIMODAL_ENABLED:
             return self.ask(question)
 
-        client = get_llm_client()
+        client = get_llm_client("vision")
         if client is None:
             return self.ask(question)
 
-        import os
-        model = os.getenv("LLM_MODEL_NAME", "kimi-k2.6")
+        model = get_model_role_config("vision").model
 
         context = self.retrieve_context(question)
 

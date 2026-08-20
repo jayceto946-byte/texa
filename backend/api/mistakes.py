@@ -1,4 +1,4 @@
-"""Mistakes API: CRUD, review, Kimi OCR, and DeepSeek explanations."""
+"""Mistakes API: CRUD, review, provider-neutral vision and explanations."""
 from __future__ import annotations
 
 import json
@@ -267,14 +267,12 @@ def _solve_ocr_text(ocr_text: str, user_answer: str = "", subject: str = "", tag
 
 
 def _solve_visual_ir(visual_ir: VisualProblemIR, *, user_question: str = "", user_answer: str = "", subject: str = "", tags: str = "") -> str:
-    from config import get_llm
-
     prompt = build_solution_prompt(
         visual_ir, user_question=user_question, user_answer=user_answer,
         subject=subject, tags=tags,
     )
     return sanitize_latex(strip_thinking(
-        get_llm(
+        _get_image_reasoning_llm(
             request_timeout=420,
             max_retries=0,
         ).invoke(prompt).content
@@ -289,15 +287,14 @@ def _iter_visual_solution_chunks(
     subject: str = "",
     tags: str = "",
 ):
-    """Stream only user-visible answer text; DeepSeek thinking is never emitted."""
-    from config import get_llm
+    """Stream only user-visible answer text; provider thinking is never emitted."""
 
     prompt = build_solution_prompt(
         visual_ir, user_question=user_question, user_answer=user_answer,
         subject=subject, tags=tags,
     )
     thinking_filter = ThinkingFilter()
-    for chunk in get_llm(
+    for chunk in _get_image_reasoning_llm(
         request_timeout=420,
         max_retries=0,
     ).stream(prompt):
@@ -307,6 +304,17 @@ def _iter_visual_solution_chunks(
     tail = thinking_filter.flush()
     if tail:
         yield tail
+
+
+def _get_image_reasoning_llm(**kwargs):
+    """Use the vision role for native mode, otherwise preserve split-model behavior."""
+    import os
+    from config import get_llm, get_model_role_config
+    from llm.factory import build_chat_model
+
+    if os.getenv("LLM_MULTIMODAL_MODE", "split").strip().lower() == "native":
+        return build_chat_model(get_model_role_config("vision"), 1, **kwargs)
+    return get_llm(**kwargs)
 
 
 @router.post("/add")
@@ -392,12 +400,12 @@ def recognize_mistake_image(file: UploadFile = File(...)):
             _image_store.delete(image_path)
             return {
                 "success": False,
-                "message": "Kimi Vision 未返回有效 OCR 文本，请手动输入题干后保存。",
+                "message": "识图模型未返回有效 OCR 文本，请手动输入题干后保存。",
                 "ocr_text": "",
             }
         return {
             "success": True,
-            "message": "Kimi Vision 已提取题干和图形语义，请校对不确定项后再保存或解答。",
+            "message": "识图模型已提取题干和图形语义，请校对不确定项后再保存或解答。",
             "image_path": str(image_path),
             "ocr_text": visual_ir.problem_text,
             "visual_ir": visual_ir.to_dict(),
@@ -426,7 +434,7 @@ def solve_mistake_image(
             _image_store.delete(image_path)
             return {
                 "success": False,
-                "message": "Kimi Vision 未返回有效 OCR 文本，请手动补充题干后再解答。",
+                "message": "识图模型未返回有效 OCR 文本，请手动补充题干后再解答。",
                 "ocr_text": "",
             }
         explanation = _solve_visual_ir(
@@ -466,7 +474,7 @@ def solve_mistake_image(
             _log_learning_event("mistake_added", book_name=book_name, record=draft, payload={"origin": "chat_image"})
         return {
             "success": True,
-            "message": "Kimi Vision 已把题干与图形关系交给 DeepSeek 讲解，请校对视觉不确定项。",
+            "message": "识图模型已提取题干与图形关系并完成讲解，请校对视觉不确定项。",
             "image_path": str(image_path),
             "ocr_text": visual_ir.problem_text,
             "visual_ir": visual_ir.to_dict(),
@@ -570,18 +578,18 @@ def solve_mistake_image_stream(
             })
 
             yield _sse_event("activity", activity={
-                "id": "vision", "kind": "tool", "label": "Kimi 识别图片",
+                "id": "vision", "kind": "tool", "label": "识图模型解析图片",
                 "status": "active", "detail": "正在提取题干、公式、图形实体与连接关系",
             })
             step_started = time.perf_counter()
             visual_ir = _ocr_image_with_kimi(image_path, user_question=question, subject=subject)
             if not visual_ir.problem_text and not visual_ir.visual_summary:
-                raise RuntimeError("Kimi Vision 未返回有效题目内容")
+                raise RuntimeError("识图模型未返回有效题目内容")
             entity_count = len(visual_ir.entities)
             relation_count = len(visual_ir.relations)
             uncertainty_count = len(visual_ir.uncertainties)
             yield _sse_event("activity", activity={
-                "id": "vision", "kind": "tool", "label": "Kimi 识别图片",
+                "id": "vision", "kind": "tool", "label": "识图模型解析图片",
                 "status": "completed",
                 "detail": f"识别为 {visual_ir.visual_type}；{entity_count} 个实体、{relation_count} 条关系、{uncertainty_count} 处不确定项",
                 "duration_ms": round((time.perf_counter() - step_started) * 1000, 2),

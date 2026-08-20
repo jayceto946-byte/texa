@@ -1,9 +1,8 @@
 """Kimi Vision 按需阅读 — 合并关键词提取为一次调用"""
 import base64
 import json
-import os
 from pathlib import Path
-from config import BOOKS_PATH, CHAPTERS_PATH, get_llm
+from config import BOOKS_PATH, CHAPTERS_PATH, get_llm, get_model_role_config
 
 
 class KimiReader:
@@ -80,7 +79,7 @@ class KimiReader:
 
         content = [{"type": "text", "text": prompt}] + images
         resp = client.chat.completions.create(
-            model=os.getenv("KIMI_VISION_MODEL", "kimi-k2.5"),
+            model=get_model_role_config("vision").model,
             messages=[{"role": "user", "content": content}],
             timeout=120,
         )
@@ -136,7 +135,7 @@ class KimiReader:
 
         content = [{"type": "text", "text": prompt}] + images
         resp = client.chat.completions.create(
-            model=os.getenv("KIMI_VISION_MODEL", "kimi-k2.5"),
+            model=get_model_role_config("vision").model,
             messages=[{"role": "user", "content": content}],
         )
         raw = resp.choices[0].message.content or ""
@@ -185,9 +184,6 @@ class KimiReader:
         return "".join(c if c.isalnum() else "_" for c in chapter)[:40]
 
     def _get_client(self):
-        from openai import OpenAI
-        from dotenv import load_dotenv
-        load_dotenv()
-        key = os.getenv("MOONSHOT_API_KEY", os.getenv("OPENAI_API_KEY", ""))
-        base_url = os.getenv("MOONSHOT_API_BASE", "https://api.moonshot.cn/v1")
-        return OpenAI(api_key=key, base_url=base_url) if key else None
+        from config import get_llm_client
+
+        return get_llm_client("vision")

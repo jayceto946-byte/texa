@@ -19,7 +19,7 @@ def _legacy_corpus_version(book_name: str) -> str:
 
 
 def current_context_versions(book_name: str = "") -> dict[str, Any]:
-    from config import DEEPSEEK_MODEL_NAME, LLM_BACKEND, LLM_MODEL_NAME
+    from config import get_model_role_config
     from graph.conversation_context import CONVERSATION_CONTEXT_POLICY_VERSION
     from graph.generator import GENERATION_PROMPT_VERSION
     from graph.retrieval_policy import RETRIEVAL_POLICY_VERSION
@@ -27,9 +27,10 @@ def current_context_versions(book_name: str = "") -> dict[str, Any]:
 
     manifest = load_index_manifest(book_name) if book_name else {}
     corpus_version = str(manifest.get("index_version") or "") or _legacy_corpus_version(book_name)
+    model = get_model_role_config("reasoning")
     return {
-        "model_backend": str(LLM_BACKEND),
-        "model_name": str(DEEPSEEK_MODEL_NAME if LLM_BACKEND == "deepseek" else LLM_MODEL_NAME),
+        "model_backend": model.provider.provider_id,
+        "model_name": model.model,
         "prompt_version": GENERATION_PROMPT_VERSION,
         "context_policy_version": CONVERSATION_CONTEXT_POLICY_VERSION,
         "retrieval_policy_version": RETRIEVAL_POLICY_VERSION,

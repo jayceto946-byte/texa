@@ -61,15 +61,12 @@ class PDFParser:
     def _kimi_toc_scan(self) -> list[dict]:
         """完整 Kimi 流程：搜目录 → OCR"""
         import base64, json
-        from openai import OpenAI
-        from dotenv import load_dotenv
-        load_dotenv()
+        from config import get_llm_client, get_model_role_config
 
-        key = os.getenv("MOONSHOT_API_KEY", os.getenv("KIMI_API_KEY", os.getenv("OPENAI_API_KEY", "")))
-        if not key:
+        model_config = get_model_role_config("vision")
+        client = get_llm_client("vision")
+        if client is None or not model_config.credential_configured:
             return self._fallback_single_chapter()
-
-        client = OpenAI(api_key=key, base_url="https://api.moonshot.cn/v1")
         scan = min(20, self.total_pages)
 
         print(f"[TOC-Kimi] 扫描前{scan}页...", flush=True)
@@ -80,7 +77,7 @@ class PDFParser:
             images.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}})
 
         resp = client.chat.completions.create(
-            model=os.getenv("KIMI_VISION_MODEL", "kimi-k2.5"),
+            model=model_config.model,
             messages=[{"role": "user", "content": [{
                 "type": "text",
                 "text": "Find the TOC pages. Return JSON: {\"toc_start\": int, \"toc_end\": int}"
@@ -103,15 +100,12 @@ class PDFParser:
     def _extract_chapters_via_kimi(self, toc_start_0b: int, toc_end: int) -> list[dict]:
         """Kimi OCR 目录页并解析为章节列表"""
         import base64, json
-        from openai import OpenAI
-        from dotenv import load_dotenv
-        load_dotenv()
+        from config import get_llm_client, get_model_role_config
 
-        key = os.getenv("MOONSHOT_API_KEY", os.getenv("KIMI_API_KEY", os.getenv("OPENAI_API_KEY", "")))
-        if not key:
+        model_config = get_model_role_config("vision")
+        client = get_llm_client("vision")
+        if client is None or not model_config.credential_configured:
             return self._fallback_single_chapter()
-
-        client = OpenAI(api_key=key, base_url="https://api.moonshot.cn/v1")
         print(f"[TOC-Kimi] OCR p{toc_start_0b+1}-p{toc_end}...", flush=True)
 
         toc_imgs = []
@@ -121,7 +115,7 @@ class PDFParser:
             toc_imgs.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}})
 
         resp = client.chat.completions.create(
-            model=os.getenv("KIMI_VISION_MODEL", "kimi-k2.5"),
+            model=model_config.model,
             messages=[{"role": "user", "content": [{
                 "type": "text",
                 "text": (

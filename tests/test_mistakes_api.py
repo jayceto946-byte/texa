@@ -70,7 +70,7 @@ def test_image_solution_stream_reports_real_activity_steps(monkeypatch, tmp_path
     ]
     labels = [event.get("activity", {}).get("label") for event in events]
     assert "读取题目图片" in labels
-    assert "Kimi 识别图片" in labels
+    assert "识图模型解析图片" in labels
     assert "综合题干与视觉关系" in labels
     assert "生成答案" in labels
     generate_events = [event for event in events if event["stage"] == "generate"]
