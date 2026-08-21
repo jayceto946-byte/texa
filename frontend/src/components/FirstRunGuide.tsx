@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import type React from 'react';
 import { BookOpen, CheckCircle2, Database, Download, KeyRound, Loader2, PackageOpen, ShieldCheck, X } from 'lucide-react';
-import { get, post } from '../api/client';
-import ModelSettingsForm, { type ModelSettingsValue } from './settings/ModelSettingsForm';
+import { del, get, post } from '../api/client';
+import ModelSettingsManager from './settings/ModelSettingsManager';
+import type { ModelRoleId, ModelSettingsValue } from './settings/ModelSettingsForm';
 
 type AssetState = {
   id: string;
@@ -101,7 +102,10 @@ export default function FirstRunGuide() {
     setMessage('正在保存模型配置...');
     try {
       if (!modelDraft) throw new Error('模型配置尚未加载完成');
-      const res = await post('/system/settings/models', modelDraft, 20000);
+      const res = await post('/system/settings/model-profiles', {
+        activate: true,
+        profile: { ...modelDraft, id: modelDraft.editing_profile_id, name: modelDraft.profile_name },
+      }, 20000);
       if (res?.success && Object.values(envDraft).some((value) => value.trim())) {
         await post('/system/settings/env', envDraft, 20000);
       }
@@ -114,6 +118,30 @@ export default function FirstRunGuide() {
     }
   };
 
+  const activateModelProfile = async (profileId: string) => {
+    setMessage('');
+    const res = await post(`/system/settings/model-profiles/${encodeURIComponent(profileId)}/activate`, {}, 20000);
+    setMessage(res?.message || (res?.success ? '模型方案已切换' : '切换失败'));
+    if (res?.success) setModelDraft(res.data as ModelSettingsValue);
+  };
+
+  const deleteModelProfile = async (profileId: string) => {
+    if (!window.confirm('删除这个模型方案吗？已保存的 API Key 不会被删除。')) return;
+    const res = await del(`/system/settings/model-profiles/${encodeURIComponent(profileId)}`, 20000);
+    setMessage(res?.message || (res?.success ? '模型方案已删除' : '删除失败'));
+    if (res?.success) setModelDraft(res.data as ModelSettingsValue);
+  };
+
+  const testModelConnection = async (role: ModelRoleId) => {
+    if (!modelDraft) return { success: false, message: '模型配置尚未加载' };
+    try {
+      const res = await post('/system/settings/models/test', { role, settings: modelDraft }, 30000);
+      return { success: Boolean(res?.success), message: res?.message || (res?.success ? '连接成功' : '连接失败') };
+    } catch (error) {
+      return { success: false, message: error instanceof Error ? error.message : '连接失败' };
+    }
+  };
+
   if (!open) return null;
 
   const embedding = status?.assets.embedding_model;
@@ -122,7 +150,7 @@ export default function FirstRunGuide() {
 
   return (
     <div className="app-overlay-enter fixed inset-0 z-[1300] flex items-center justify-center bg-[#1f2824]/45 p-4">
-      <section className="app-large-dialog-enter flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[var(--radius-large)] border border-border bg-bg-primary shadow-lg">
+      <section className="app-large-dialog-enter flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[var(--radius-large)] border border-border bg-bg-primary shadow-lg">
         <header className="flex items-center justify-between border-b border-border bg-bg-card px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
             <PackageOpen className="h-5 w-5 text-accent" />
@@ -211,7 +239,15 @@ export default function FirstRunGuide() {
                 <div className="border-l-2 border-accent/50 pl-4 text-sm leading-6 text-text-secondary">
                   API Key 只写入本机 .env。后端状态接口只返回“是否已配置”，不会把已有密钥回显到前端。
                 </div>
-                {modelDraft && <ModelSettingsForm value={modelDraft} onChange={setModelDraft} compact />}
+                {modelDraft && (
+                  <ModelSettingsManager
+                    value={modelDraft}
+                    onChange={setModelDraft}
+                    onActivateProfile={activateModelProfile}
+                    onDeleteProfile={deleteModelProfile}
+                    onTestConnection={testModelConnection}
+                  />
+                )}
                 <details className="rounded-xl border border-border bg-bg-secondary/40 p-3">
                   <summary className="cursor-pointer text-sm font-medium text-text-primary">教材解析服务（可选）</summary>
                   <div className="mt-3 grid gap-3 md:grid-cols-2">

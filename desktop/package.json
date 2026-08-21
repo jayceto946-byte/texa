@@ -64,7 +64,7 @@
       }
     ],
     "win": {
-      "icon": "assets/texa.ico",
+      "icon": "assets/texa-taskbar.ico",
       "target": [
         "nsis"
       ]

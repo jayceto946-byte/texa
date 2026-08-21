@@ -8,6 +8,7 @@ import shell from './layouts/MainLayout.tsx?raw';
 import rail from './components/AppRail.tsx?raw';
 import learningContext from './components/LearningContextSidebar.tsx?raw';
 import chatPage from './pages/ChatPage.tsx?raw';
+import exercisesPage from './pages/ExercisesPage.tsx?raw';
 import composerOverflow from './components/chat/ComposerOverflowMenu.tsx?raw';
 import appearance from './components/settings/AppearanceSettings.tsx?raw';
 import settings from './components/SystemHealth.tsx?raw';
@@ -82,12 +83,17 @@ describe('Texa product UI contract', () => {
     expect(desktopTitleBar).toContain('className="desktop-titlebar-marker"');
     expect(desktopTitleBar).toContain('desktop-window-button');
     expect(desktopMain).toContain("frame: false");
-    expect(desktopMain).toContain("'assets', 'texa.ico'");
+    expect(desktopMain).toContain("'assets', 'texa-taskbar.ico'");
     expect(desktopMain).not.toContain('titleBarOverlay:');
     expect(loading).toContain('loading-window-controls');
     expect(shell).toContain('className="context-sidebar-trigger"');
     expect(learningContext).toContain('className="window-drag-region"');
     expect(chatPage).toContain('className="window-drag-region"');
+  });
+
+  it('keeps the exercise workspace toolbar at the shared compact control height', () => {
+    expect(exercisesPage).toContain('className="flex h-9 rounded-lg border border-border bg-bg-card p-0.5"');
+    expect(exercisesPage).toContain('className="review-toolbar-button app-secondary-button disabled:opacity-50"');
   });
 
   it('uses a minimal learning empty workspace without duplicate navigation', () => {
@@ -96,6 +102,13 @@ describe('Texa product UI contract', () => {
     expect(emptyWorkspace).not.toContain('其他开始方式');
     expect(emptyWorkspace).not.toContain('随机抽一道题');
     expect(emptyWorkspace).not.toContain('查看今日报告');
+  });
+
+  it('reuses the settings model manager in the first-run guide', () => {
+    expect(firstRun).toContain('<ModelSettingsManager');
+    expect(firstRun).not.toContain('<ModelSettingsForm');
+    expect(firstRun).toContain("'/system/settings/model-profiles'");
+    expect(firstRun).toContain("'/system/settings/models/test'");
   });
 
   it('preserves typed ONNX repair states in the Electron startup UI', () => {

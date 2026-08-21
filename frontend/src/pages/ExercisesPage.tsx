@@ -402,12 +402,12 @@ const ExercisesPage: React.FC = () => {
         <h2 className="app-page-title">习题工作区</h2>
         <div className="window-drag-region" aria-hidden="true" />
         <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border border-border bg-bg-card p-0.5">
+          <div className="flex h-9 rounded-lg border border-border bg-bg-card p-0.5">
             {([['practice', '练习'], ['bank', '题库'], ['import', '导入']] as const).map(([mode, label]) => (
-              <button key={mode} type="button" onClick={() => setWorkspaceMode(mode)} className={`rounded-md px-3 py-1.5 text-sm ${workspaceMode === mode ? 'bg-[var(--surface-black)] text-white' : 'text-text-secondary hover:text-text-primary'}`}>{label}</button>
+              <button key={mode} type="button" onClick={() => setWorkspaceMode(mode)} className={`rounded-md px-3 type-control ${workspaceMode === mode ? 'bg-[var(--surface-black)] text-white' : 'text-text-secondary hover:text-text-primary'}`}>{label}</button>
             ))}
           </div>
-          <button onClick={load} disabled={loading} className="flex items-center gap-1.5 rounded-xl border border-border bg-bg-primary px-3 py-1.5 text-sm text-text-primary hover:border-accent disabled:opacity-50">
+          <button onClick={load} disabled={loading} className="review-toolbar-button app-secondary-button disabled:opacity-50">
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} 刷新
         </button>
       </div>

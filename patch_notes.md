@@ -2272,3 +2272,19 @@ The detailed historical notes for this period were damaged by mojibake before th
 - Electron 窗口运行时图标与 Windows 打包图标统一改为透明底多尺寸 `texa.ico`，并设置与 `appId` 一致的 Windows App User Model ID；桌面打包文件清单显式包含品牌资源。
 - App Rail 左上角由书本图标替换为纯图案 Texa 标识；启动加载页由书本插画替换为完整的 Texa 图文 Logo。两处均直接使用透明底 SVG，保留清晰缩放。
 - 验证：前端 Vitest `19 files / 87 tests passed`、ESLint、TypeScript 与 Vite production build 通过；Electron runtime `3 passed`、主进程脚本检查通过；实际截图确认 App Rail 标识与启动页完整 Logo 的比例和清晰度正常。electron-builder 已正确读取新图标配置并进入 Windows 打包阶段，但下载其 Windows 辅助组件时连接 GitHub 超时，因此本机未生成新的完整 `win-unpacked` 产物。
+
+## 2026-08-21 习题工作区工具栏尺寸统一
+
+- 习题工作区的“练习 / 题库 / 导入”分段控件与刷新按钮统一采用复习区的 36px 工具栏高度、14px 控件文字和 12px 横向内边距，移除原先独立纵向 padding 造成的视觉放大。
+- 验证：前端 ESLint、TypeScript 与 Vite production build 通过，UI contract 定向测试 `11 passed`；1280×720 与 1600×900 实测分段控件外框和刷新按钮均为 36px，宽屏无横向溢出。Anti-slop 结果：不一致的大尺寸控件 `REMOVED`，未新增表面、阴影、徽章或动画。
+
+## 2026-08-21 深浅任务栏兼容图标
+
+- Electron 窗口与 Windows 打包图标切换为独立的 `texa-taskbar.ico`：原 Texa 矢量轮廓和深灰/浅蓝配色保持不变，增加浅色圆角底板与细深色边界，避免深色任务栏吞掉主体。应用内透明 Logo 和启动页图文 Logo 不变；底板仅用于系统背景对比，属于小尺寸可辨识度处理。
+- ICO 包含 16、20、24、32、40、48、64、96、128 与 256px 图层；1024px RGBA PNG 作为确定性源资产保留。深色、浅色背景模拟和 16–32px 像素检查均可辨识，且正负形仍与原 Logo 一致。Electron 本地窗口成功启动；Windows 自动化未获窗口读取授权，因此没有直接任务栏截图。Electron 脚本检查、runtime `3 passed`、前端 ESLint 与 UI contract `11 passed`。
+
+## 2026-08-21 首次打开模型设置复用
+
+- 首次打开引导移除旧 `ModelSettingsForm`，直接复用正式设置页的 `ModelSettingsManager`，统一模型方案、服务商、常用/自定义 model id、API Key、图片任务模式、连接设置与连接测试界面。
+- 首次打开页保存模型时改用与正式设置页相同的 model profile 接口，并补齐方案切换和删除；教材解析服务仍作为首次配置中的独立可选项保留。
+- 验证：前端 ESLint、TypeScript 与 Vite production build 通过，UI contract 定向测试 `12 passed`；1280px 实际页面对照确认首次打开页与正式设置页均渲染同一模型管理器，弹窗和页面无横向溢出。
