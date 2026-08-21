@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="Texa_Logo_lockup.svg" alt="Texa" width="220">
+<img src="Texa_Logo.png" alt="Texa" width="320">
 
 # Texa
 
