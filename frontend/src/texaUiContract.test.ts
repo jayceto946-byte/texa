@@ -77,9 +77,12 @@ describe('Texa product UI contract', () => {
 
   it('shares one desktop header geometry and keeps responsive custom window controls', () => {
     expect(rail).toContain('app-rail-logo-icon');
+    expect(rail).toContain('/brand/texa-mark.svg');
+    expect(loading).toContain('./assets/texa-lockup.svg');
     expect(desktopTitleBar).toContain('className="desktop-titlebar-marker"');
     expect(desktopTitleBar).toContain('desktop-window-button');
     expect(desktopMain).toContain("frame: false");
+    expect(desktopMain).toContain("'assets', 'texa.ico'");
     expect(desktopMain).not.toContain('titleBarOverlay:');
     expect(loading).toContain('loading-window-controls');
     expect(shell).toContain('className="context-sidebar-trigger"');

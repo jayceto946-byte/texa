@@ -28,7 +28,9 @@ export default function AppRail() {
   return (
     <aside className="app-rail" aria-label="产品导航">
       <NavLink to="/" className="app-rail-mark" aria-label="Texa 学习工作区" title="Texa">
-        <span className="app-rail-logo-icon"><BookOpen className="h-5 w-5" /></span>
+        <span className="app-rail-logo-icon" aria-hidden="true">
+          <img src="/brand/texa-mark.svg" alt="" />
+        </span>
       </NavLink>
 
       <nav className="app-rail-primary" aria-label="主要功能">

@@ -2266,3 +2266,9 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 新增模型与教材归属共用的 `ScrollableSelect`：浮层使用常驻原生纵向滚动槽，可滚轮滚动并拖动滑块；选项支持分组、当前项、14px Texa 控件字体和悬停阴影。
 - 补齐方向键、Home/End、Enter、Escape、Tab、外部点击关闭、焦点返回和视口边界定位；教材归属沿用现有学科数据，但未修改学科树或全局 `ScopeSelector`。
 - 验证：前端 Vitest `19 files / 87 tests passed`，ESLint、TypeScript 与 Vite production build 通过；1280×720 和 1600×900 浏览器实测无横向溢出，长教材归属列表滚动位置可变，运行日志无 error/warn。
+
+## 2026-08-21 Texa 品牌标识接入
+
+- Electron 窗口运行时图标与 Windows 打包图标统一改为透明底多尺寸 `texa.ico`，并设置与 `appId` 一致的 Windows App User Model ID；桌面打包文件清单显式包含品牌资源。
+- App Rail 左上角由书本图标替换为纯图案 Texa 标识；启动加载页由书本插画替换为完整的 Texa 图文 Logo。两处均直接使用透明底 SVG，保留清晰缩放。
+- 验证：前端 Vitest `19 files / 87 tests passed`、ESLint、TypeScript 与 Vite production build 通过；Electron runtime `3 passed`、主进程脚本检查通过；实际截图确认 App Rail 标识与启动页完整 Logo 的比例和清晰度正常。electron-builder 已正确读取新图标配置并进入 Windows 打包阶段，但下载其 Windows 辅助组件时连接 GitHub 超时，因此本机未生成新的完整 `win-unpacked` 产物。

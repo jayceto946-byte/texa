@@ -35,6 +35,7 @@
       "preload.cjs",
       "runtime.cjs",
       "loading.html",
+      "assets/**/*",
       "update-config.json",
       "package.json"
     ],
@@ -63,6 +64,7 @@
       }
     ],
     "win": {
+      "icon": "assets/texa.ico",
       "target": [
         "nsis"
       ]

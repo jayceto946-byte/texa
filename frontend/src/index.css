@@ -1068,8 +1068,11 @@ body:has(.desktop-titlebar-marker) .learning-workspace-header {
   line-height: 0;
 }
 
-.app-rail-logo-icon svg {
+.app-rail-logo-icon img {
   display: block;
+  width: 18px;
+  height: 22px;
+  object-fit: contain;
 }
 
 .app-rail-primary,
