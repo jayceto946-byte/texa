@@ -1,352 +1,268 @@
+<div align="center">
+
+<img src="Texa_Logo_lockup.svg" alt="Texa" width="220">
+
 # Texa
 
-一个围绕教材、习题、错题和复习记录构建的本地优先考研学习辅助系统。
+面向教材学习、练习与长期复习的本地桌面工作台
 
-> 当前版本：1.0.0。项目处于个人项目持续开发阶段，核心本地数据闭环可运行；教材解析、OCR、LLM 生成与部分知识增强能力依赖外部服务或本地模型。仓库目前尚未添加开源许可证。
+[界面预览](#界面预览) · [核心功能](#核心功能) · [系统架构](#系统架构) · [安装与运行](#安装与运行)
 
-## 项目背景
+</div>
 
-考研资料通常散落在 PDF、纸质题目、聊天记录和错题笔记中。单次问答可以解决眼前问题，却很难把教材出处、练习过程、错误原因和后续复习连接起来。
+Texa 面向考研数学与专业课学习。它把教材、对话、习题、错题和复习记录组织在同一个学习范围内，让一次提问可以回到教材证据，让一道错题可以进入复习计划，也让长期积累不散落在多个工具中。
 
-本项目尝试把这些对象放进同一个本地应用：
+项目优先提供 Electron 桌面体验，学习数据保存在本地；生成式能力通过可配置的模型服务接入。
 
-- 教材先被解析为章节与检索片段，再用于有范围的问答。
-- 习题和错题保留来源、章节、标签、概念与练习状态。
-- 错题复习使用 SM-2 兼容的间隔调度。
-- 概念接触和学习事件用于生成学习情况与规则式周报。
-- Electron 将前后端和用户数据目录组织成桌面应用。
+## 界面预览
 
-它不是通用聊天机器人，也不把模型生成题目当作主要练习来源。
+### 学习工作区
 
-## 当前实现状态
+围绕当前教材组织会话、历史记录、图片题目、公式输入与学习报告。
 
-| 能力 | 状态 | 说明 |
-|---|---|---|
-| 教材管理与多教材隔离 | 已实现 | 支持导入任务、列表、切换、归档、恢复、清理与重建索引 |
-| 教材问答与 SSE 流式输出 | 已实现，依赖条件 | 调用链完整；生成需要可用 LLM，语义检索需要有效索引和嵌入模型 |
-| 混合检索与降级 | 已实现 | 组合知识图谱、向量、词法、语义角色和相邻片段；单个检索源失败可降级 |
-| 习题库与练习会话 | 已实现 | 支持手动/批量导入、状态筛选、练习、答案记录、回滚和错题互转 |
-| 错题本与间隔复习 | 已实现 | 支持手动录入、CRUD、筛选、复习历史、SM-2 兼容调度和统计 |
-| 图片 OCR 录入 | 条件式实现 | 前端可裁剪和校正；错题图片识别依赖 Kimi Vision |
-| 学习情况与规则周报 | 已实现 | 聚合概念、错题、习题、会话和学习事件；不是模型生成的权威评价 |
-| 章节重点与知识图谱增强 | 条件式实现 | 后台任务和查看链已存在，需要教材派生数据与 LLM |
-| 受控 Agent | 部分实现 | 后端工具注册和结果渲染存在，当前主界面没有完整触发入口 |
-| Electron 自动更新 | 未配置 | 代码已接入 electron-updater，GitHub 发布仓库仍是占位配置 |
-| PWA、推送、完整 Agent Loop | Roadmap | 当前没有可交付实现 |
+![Texa 学习工作区](docs/images/texa-workspace.png)
 
-更完整的代码审计见 [PROJECT_AUDIT.md](PROJECT_AUDIT.md)。
+### 复习计划
 
-## 项目截图
+把到期错题、薄弱概念与近期学习记录合并为今天可执行的复习队列。
 
-截图来自 1440 × 900 的统一浏览器视口。数据来自 <code>desktop/sample_data</code> 的隔离副本和 <code>scripts/seed_docs_demo.py</code> 写入的非个人演示记录；没有使用正式 <code>data/</code>。
+![Texa 复习计划](docs/images/texa-review.png)
 
-### 主工作台
-
-![学习对话主工作台](docs/images/01-dashboard.png)
-
-### 教材与资料库
-
-![教材资料库](docs/images/02-library.png)
-
-### 教材问答
-
-![教材问答会话](docs/images/03-rag-chat.png)
-
-该图用于验证已有会话、来源和 KaTeX 渲染。回答内容由隔离 demo seed 写入，不代表本次审阅调用了在线模型。
-
-### 习题工作区
-
-![习题工作区](docs/images/04-exercises.png)
-
-### 错题本
-
-![错题本](docs/images/05-mistakes.png)
-
-### 学习情况
-
-![学习情况与概念复习](docs/images/06-learning.png)
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/texa-mistakes.png" alt="Texa 错题录入"></td>
+    <td width="50%"><img src="docs/images/texa-library.png" alt="Texa 教材库"></td>
+  </tr>
+  <tr>
+    <td align="center">错题录入与校对</td>
+    <td align="center">教材分类与资料角色</td>
+  </tr>
+</table>
 
 ## 核心功能
 
-### 教材摄取与问答
+### 教材范围内的问答与讲解
 
-教材可以经 MinerU 结果、本地解析或已有派生数据进入章节切分、chunk 建立、词法索引和 Chroma 索引。问答时，系统先确定意图与教材范围，再组合知识图谱精确命中、向量结果、词法结果、语义角色和相邻片段。生成阶段会过滤模型 thinking 内容，并以 Markdown 和 KaTeX 渲染正文。
+- 以当前学科、教材和章节作为学习范围。
+- 结合知识图谱定位、向量检索、词法检索与相邻片段补全证据。
+- 支持连续追问、公式渲染、教材来源与流式生成过程。
+- 检索源局部不可用时保留降级路径，避免中断整个问答流程。
 
-### 习题库
+### 教材与资料管理
 
-习题记录包括题干、答案、解析、来源、章节、题型、难度、标签、概念链接、状态与练习历史。当前代码支持手动添加、Word/PDF 文本抽取候选、批量导入、最近批次回滚和可恢复的练习会话。
+- 导入 PDF 教材或复用 MinerU 解析结果。
+- 按学科与分类管理资料，并设置主要、辅助或独立教材角色。
+- 保存章节结构、片段、关键词、概念关系和向量索引。
 
-### 错题本与复习
+### 习题库与练习
 
-错题记录包括用户答案、正确答案、错因、来源、标签、图片引用和复习状态。OCR 结果必须先由用户校正，不能直接视为可信题干。复习质量会更新间隔、重复次数与下次复习日期。
+- 手动录入，或从 Word、PDF 中抽取候选题并校对后入库。
+- 记录题干、答案、解析、来源、章节、题型、难度和概念标签。
+- 支持练习会话、进度恢复、作答记录以及习题与错题之间的转换。
 
-### 学习记忆
+### 错题与复习
 
-ConceptMemory 记录概念接触、候选链接、薄弱信号与复习信息。追加式 learning events 提供跨功能时间线，原有错题、习题和会话数据库仍是事实来源。周报是规则聚合，适合回顾，不应当作能力测评。
+- 支持手动录入、图片上传、OCR 校对和错因归档。
+- 关联教材、章节、概念、来源与用户答案。
+- 通过兼容 SM-2 的间隔调度生成到期复习队列。
+- 汇总概念接触、薄弱信号、学习日报和周报。
 
-## 使用流程
+### 本地桌面体验
 
-    导入教材或导入已有 MinerU 结果
-        ↓
-    建立章节、chunk、词法索引与向量索引
-        ↓
-    在选定学科和教材范围内问答
-        ↓
-    将练习结果沉淀到习题库或错题本
-        ↓
-    按到期队列复习，并查看概念与学习汇总
+- Electron 管理本地 FastAPI 服务、数据目录、启动检查与更新入口。
+- 页面切换保留已访问工作区的状态，会话与列表在后台静默刷新。
+- 模型凭据由本地设置管理；教材、索引和学习记录默认留在本机。
 
-只使用错题、习题和学习记录时，可以不配置在线 LLM。教材自动解析、OCR、回答生成和知识增强需要相应服务。
+## 学习流程
 
-## 技术架构
+```text
+导入教材
+   │
+   ▼
+解析章节与内容 ──► 建立词法 / 向量 / 概念索引
+   │
+   ▼
+在教材范围内提问 ──► 规划意图 ──► 混合检索 ──► 组织证据 ──► 流式回答
+   │
+   ├──────────────► 保存会话与学习线索
+   │
+   ▼
+练习题目 ──► 记录作答 ──► 错题归因 ──► 到期复习 ──► 更新概念记忆
+```
 
-    Electron main
-      ├─ 启动 FastAPI / 打包后的 PyInstaller 后端
-      ├─ 生成每次启动使用的本地 API token
-      └─ 加载 React 应用并管理用户数据目录
+对话历史采用追加式事件记录保存；回答时只提取与当前问题相关的近期上下文、结构化会话状态和教材证据，不把完整历史直接塞进模型输入。
 
-    React + Vite
-      ├─ REST: 教材、错题、习题、学习情况、系统与备份
-      └─ SSE: plan → retrieve → chapter → generate → done/error
+## 系统架构
 
-    FastAPI
-      ├─ graph/: LangGraph 问答编排
-      ├─ ingestion/: PDF、MinerU、OCR、切分与索引
-      ├─ knowledge/: 知识图谱、概念记忆、章节重点
-      └─ memory/: 错题、习题、SM-2、学习事件
+```text
+┌────────────────────────────────────────────────────────┐
+│ Electron desktop                                       │
+│ 窗口生命周期 · 本地后端托管 · 数据目录 · 更新与恢复     │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+┌──────────────────────────▼─────────────────────────────┐
+│ React + TypeScript                                     │
+│ 学习 · 复习 · 错题 · 练习 · 教材 · 设置                │
+└──────────────────────────┬─────────────────────────────┘
+                           │ REST + SSE
+┌──────────────────────────▼─────────────────────────────┐
+│ FastAPI application                                    │
+│ API 协议层 · 应用服务 · 后台任务 · 数据边界             │
+└───────────────┬──────────────────────┬─────────────────┘
+                │                      │
+┌───────────────▼──────────────┐  ┌────▼─────────────────┐
+│ LangGraph / RAG              │  │ Learning services    │
+│ Resolver · Retrieval         │  │ 习题 · 错题 · SM-2   │
+│ EvidencePack · Generation    │  │ 概念记忆 · 学习记录  │
+└───────────────┬──────────────┘  └────┬─────────────────┘
+                └──────────┬───────────┘
+                           ▼
+              ChromaDB · SQLite · JSON · Files
+```
 
-    Storage
-      ├─ ChromaDB: 向量索引
-      ├─ SQLite: 错题、习题、学习事件、任务
-      ├─ JSON: 会话与部分学习状态
-      └─ Files: PDF、章节、图片与派生产物
+主要边界：
 
-### 教材问答主要调用链
-
-    ChatPage / useChat
-      → POST /api/chat/stream
-      → 会话历史与追问改写
-      → run_graph_stream()
-      → 意图规划
-      → KG / 向量 / 词法混合检索
-      → teach 或 summarize 时准备章节内容
-      → LLM 流式生成 + thinking 过滤 + LaTeX 清洗
-      → 概念链接与学习事件
-      → SSE 完成或错误事件
-      → 前端累积正文、来源与会话历史
-
-## 技术栈
-
-- 桌面端：Electron 37、electron-builder、electron-updater
-- 前端：React 19、TypeScript 6、Vite 8、React Router 7、Tailwind CSS 4
-- 内容：react-markdown、remark-gfm、remark-math、rehype-katex、KaTeX
-- 后端：Python 3.10、FastAPI、Uvicorn、Pydantic 2
-- 编排：LangGraph、LangChain、OpenAI 兼容客户端
-- 检索：ChromaDB、ONNX Runtime、BGE-small-zh-v1.5 FP32 中文嵌入、词法索引、可选开发态 CrossEncoder
-- 摄取：PyMuPDF、MinerU、Kimi Vision、PaddleOCR
-- 测试：pytest、Vitest
-- 构建：PyInstaller、electron-builder、Docker 多阶段构建
+- `backend/api` 负责 HTTP、SSE、依赖绑定和错误映射。
+- `backend/services` 编排教材、练习、错题、会话与学习状态用例。
+- `graph` 负责意图解析、检索、上下文控制和回答生成。
+- `ingestion` 与 `knowledge` 负责教材解析、索引和概念关系。
+- `memory` 负责错题、反馈、概念记忆与间隔复习。
+- 前端页面只装配工作区，稳定的领域状态放在 `features` 与 hooks 中。
 
 ## 项目目录
 
-    texa/
-    ├── backend/          FastAPI 应用、API、任务与安全边界
-    ├── frontend/         React/Vite 前端
-    ├── desktop/          Electron 主进程、预加载与打包配置
-    ├── graph/            问答图、规划、检索、生成和反馈
-    ├── ingestion/        教材解析、OCR、切分与索引
-    ├── knowledge/        知识图谱、概念记忆与章节重点
-    ├── memory/           错题、习题、SM-2 与学习事件
-    ├── agents/           实验性 Agent 封装
-    ├── tests/            后端测试
-    ├── evaluation/       RAG 评测数据与脚本
-    ├── scripts/          构建、备份、索引和 demo seed
-    ├── docs/images/      本次实机截图
-    ├── site/             无构建工具的静态宣传页
-    ├── PROJECT_AUDIT.md  当前代码审计
-    └── patch_notes.md    版本、修复和实测记录
+```text
+texa/
+├── desktop/                  Electron 桌面壳、安装包与运行时管理
+├── frontend/                 React + Vite 用户界面
+│   └── src/
+│       ├── api/              REST / SSE 客户端
+│       ├── components/       通用组件
+│       ├── contexts/         全局学习与会话上下文
+│       ├── features/         习题、错题等领域工作流
+│       ├── layouts/          桌面布局
+│       └── pages/            页面装配
+├── backend/
+│   ├── api/                  FastAPI 路由与协议转换
+│   ├── services/             应用用例与跨存储协调
+│   ├── conversation_memory.py
+│   └── main.py
+├── graph/                    LangGraph、检索与回答生成
+├── ingestion/                PDF、MinerU、OCR 与向量索引
+├── knowledge/                知识图谱、概念记忆与关键词索引
+├── memory/                   错题、反馈与间隔复习
+├── evaluation/               上下文与检索评测工具
+├── scripts/                  构建、索引和维护脚本
+├── tests/                    后端与工作流测试
+├── docs/images/              README 界面截图
+├── site/                     项目静态站点
+├── config.py                 模型与本地路径配置
+└── main.py                   CLI 入口
+```
 
-## 安装与启动
+## 安装与运行
 
-### 前置条件
+### 环境要求
 
-- Windows 10/11 是当前桌面端主要验证环境。
-- Python 必须使用 3.10。当前仓库实测为 Python 3.10.11。
-- Node.js 与 npm。
-- 可选：DeepSeek/OpenAI 兼容 LLM、Moonshot/Kimi、MinerU、本地 OCR 依赖。
+- Windows 10/11（桌面端优先）
+- Python 3.10
+- Node.js 20 或更高版本
+- 可选：OpenAI-compatible 模型服务、MinerU 或视觉模型
 
-### 安装依赖
+### 1. 获取代码
 
-    git clone https://github.com/jayceto946-byte/texa.git
-    cd texa
+```powershell
+git clone https://github.com/jayceto946-byte/texa.git
+cd texa
+```
 
-    py -3.10 -m venv venv310
-    .\venv310\Scripts\python.exe -m pip install --upgrade pip
-    .\venv310\Scripts\python.exe -m pip install -r requirements.txt
+### 2. 创建 Python 环境
 
-    cd frontend
-    npm.cmd ci
-    cd ..\desktop
-    npm.cmd ci
-    cd ..
+```powershell
+py -3.10 -m venv venv310
+.\venv310\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
 
-<code>requirements-release.txt</code> 是 Torch-free Standard Runtime，只包含 ONNX Runtime、tokenizers 与实际生产依赖；<code>requirements-build.txt</code> 仅供 PyInstaller/CI 构建主机使用；<code>requirements-dev.txt</code> 才增加 Torch、SentenceTransformers、Transformers、safetensors、导出与 parity 测试依赖。<code>requirements.txt</code> 继续作为开发兼容入口并转到 <code>requirements-dev.txt</code>。PaddleOCR、Marker、MinerU 等可选 OCR/解析栈不混入主环境。
+复制环境配置：
 
-Standard 默认使用版本化的 <code>BAAI/bge-small-zh-v1.5 / onnx-fp32-v1</code> 资产，保持 512 token 右截断/右填充、lowercase、CLS pooling、双 L2 normalization 与 512 维输出。现有 Chroma index 无需重建或重新 embedding。开发者只有在安装 <code>requirements-dev.txt</code> 后，才能显式设置 <code>TEXA_EMBEDDING_BACKEND=torch</code> 使用 parity/reference backend；Standard 不会静默回退或下载 Torch。资产版本、哈希、repair 与发布验证见 [ONNX embedding runtime](docs/embedding-runtime.md)。
+```powershell
+Copy-Item .env.example .env
+```
 
-### 配置
+模型角色、API Key、Base URL、MinerU 与数据路径均可在 `.env` 中配置；桌面端首次启动后也可以在“设置”中填写模型连接。
 
-    Copy-Item .env.example .env
+### 3. 安装前端与桌面依赖
 
-编辑 <code>.env</code>，只填写需要使用的服务。不要提交真实密钥。
+```powershell
+cd frontend
+npm install
+cd ..\desktop
+npm install
+cd ..
+```
 
-### Web 开发模式
+### 4. 开发运行
 
-终端 1：
+分别启动后端与前端：
 
-    $env:SKIP_EMBEDDING_WARMUP='1'
-    $env:SKIP_VECTOR_WARMUP='1'
-    .\venv310\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```powershell
+.\venv310\Scripts\python.exe -m uvicorn backend.main:app --port 8000
+```
 
-终端 2：
+```powershell
+cd frontend
+npm run dev
+```
 
-    cd frontend
-    npm.cmd run dev -- --host 127.0.0.1
+连接现有开发服务启动 Electron：
 
-访问 <http://127.0.0.1:5173>。关闭 warmup 适合先验证界面和本地数据；需要语义检索时应启用嵌入模型。
+```powershell
+cd desktop
+npm run dev:vite
+```
 
-### 生产 Web 模式
+也可以让 Electron 按桌面运行方式启动并托管本地后端：
 
-    cd frontend
-    npm.cmd run build
-    cd ..
-    .\venv310\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```powershell
+cd desktop
+npm run dev
+```
 
-构建成功后，FastAPI 会同源提供 <code>frontend/dist</code>。
+### 构建与测试
 
-### Electron 开发模式
+```powershell
+cd frontend
+npm run build
+```
 
-    cd desktop
-    npm.cmd run dev
+```powershell
+.\venv310\Scripts\python.exe -m pytest -q
+```
 
-Electron 会启动后端并使用桌面用户数据目录。若已经单独启动后端，可以设置 <code>KAOYAN_BACKEND_URL</code> 后运行：
+Windows 安装包需要先准备桌面后端与嵌入运行时，再执行：
 
-    npm.cmd run dev:existing
+```powershell
+cd desktop
+npm run dist
+```
 
-本次审阅实际用隔离数据在 8765 端口启动 FastAPI，并用 <code>dev:existing</code> 验证 Electron 能进入真实应用。
+## 数据与配置
 
-### 测试与构建
+默认本地数据位于 `data/`：教材、章节、图片、会话、学习记录与 ChromaDB 索引按类型保存。桌面安装版使用 Electron 的用户数据目录，并在卸载时保留学习数据。
 
-    .\venv310\Scripts\python.exe -m pytest -q
+请勿提交 `.env`、API Key、个人教材、题库、学习记录、数据库或索引文件。公开分享教材和题库前，也应确认相应内容的授权范围。
 
-    cd frontend
-    npm.cmd run test
-    npm.cmd run lint
-    npm.cmd run build
+## 发展方向
 
-    cd ..
-    .\scripts\build-desktop-backend.ps1
-    cd desktop
-    npm.cmd run dist:standard
+Texa 的目标不是增加更多零散的 AI 按钮，而是形成稳定、可追溯的个人学习基础设施。后续会继续围绕这些方向推进：
 
-正式发布前还必须对 <code>release/win-unpacked</code> 运行 <code>scripts/validate_standard_release.py</code>。出现 torch、sentence_transformers、transformers、safetensors、c10/CUDA runtime，或缺少 ORT、tokenizer、Chroma 动态模块、manifest/模型哈希时，验证器会直接失败。
+- 提升 PDF、扫描件、公式与题目结构化的导入质量。
+- 完善习题来源、答案校对、错因归档和复习反馈闭环。
+- 让教材证据、会话上下文与概念记忆在长周期学习中保持一致。
+- 降低本地安装、模型配置、索引维护和数据迁移的成本。
+- 在核心桌面流程稳定后，探索移动端、离线能力与提醒机制。
 
-## 环境变量
+---
 
-| 变量 | 作用 | 是否必需 |
-|---|---|---|
-| <code>LLM_REASONING_PROVIDER / MODEL / API_KEY / BASE_URL</code> | 推理模型的 Provider、模型、凭据和连接地址 | 需要生成能力时 |
-| <code>LLM_VISION_PROVIDER / MODEL / API_KEY / BASE_URL</code> | 识图模型的 Provider、模型、凭据和连接地址 | 使用图片流程时 |
-| <code>LLM_MULTIMODAL_MODE</code> | <code>split</code> 使用识图+推理双模型；<code>native</code> 由识图模型继续推理 | 默认 <code>split</code> |
-| <code>LLM_BACKEND / DEEPSEEK_* / MOONSHOT_*</code> | 旧版配置，只读兼容；设置页保存时会写入新的角色变量 | 仅兼容旧环境 |
-| <code>TEXA_EMBEDDING_BACKEND</code> | 嵌入后端；生产默认 <code>onnx</code>，<code>torch</code> 仅开发参考 | Standard 无需设置 |
-| <code>TEXA_EMBEDDING_ASSET_DIR</code> | 版本化 ONNX 资产目录 | Electron 自动设置 |
-| <code>TEXA_EMBEDDING_FULL_VERIFY</code> | 启动时执行完整 SHA-256；正常启动默认使用版本/大小快检 | 修复或诊断时 |
-| <code>EMBEDDING_MODEL_NAME</code> | 开发态 Torch reference 模型名 | 仅 parity/debug |
-| <code>EMBEDDING_LOCAL_FILES_ONLY</code> | 是否只从本地加载嵌入模型 | 桌面离线模式建议为 1 |
-| <code>DATA_DIR</code> | 数据根目录 | 默认 <code>./data</code> |
-| <code>VECTOR_DB_PATH</code> | ChromaDB 目录 | 默认位于数据目录 |
-| <code>PROGRESS_PATH</code> | 学习记录目录 | 默认位于数据目录 |
-| <code>MINERU_API_URL</code> | 可选 MinerU 服务地址 | 自动解析时 |
-| <code>MINERU_CLI_COMMAND</code> | 可选 MinerU CLI 模板 | CLI 解析时 |
-| <code>KAOYAN_API_TOKEN</code> | 本地 API 令牌 | Electron 自动生成 |
-| <code>KAOYAN_REQUIRE_API_TOKEN</code> | 是否强制令牌 | 暴露到非本机前应启用 |
-| <code>SKIP_EMBEDDING_WARMUP</code> | 跳过嵌入预热 | 仅界面验证时可设为 1 |
-| <code>SKIP_VECTOR_WARMUP</code> | 跳过向量库预热 | 仅界面验证时可设为 1 |
-
-完整默认值见 [.env.example](.env.example)。
-
-## 演示数据
-
-仓库现有 <code>desktop/sample_data</code> 当前包含一套“优化设计”教材派生数据、PDF、图片、进度目录、ChromaDB 和离线嵌入模型。其历史说明文件与实际内容不完全一致。使用前还需要确认教材 PDF 与派生内容是否有公开分发授权。
-
-不要直接修改 <code>desktop/sample_data</code> 或正式 <code>data/</code>。建议先复制到仓库外的独立目录：
-
-    $demoRoot = Join-Path $env:TEMP 'texa-demo'
-    New-Item -ItemType Directory -Path $demoRoot -Force | Out-Null
-    Copy-Item -Recurse desktop\sample_data (Join-Path $demoRoot 'data')
-
-再写入确定性的非个人展示记录：
-
-    .\venv310\Scripts\python.exe scripts\seed_docs_demo.py --data-dir (Join-Path $demoRoot 'data')
-
-seed 脚本具有稳定 ID，可重复运行，并会拒绝写入仓库正式 <code>data/</code> 与 <code>desktop/sample_data</code>。
-
-启动隔离后端：
-
-    $env:DATA_DIR = Join-Path $demoRoot 'data'
-    $env:PROGRESS_PATH = Join-Path $env:DATA_DIR 'progress'
-    $env:VECTOR_DB_PATH = Join-Path $env:DATA_DIR 'vector_db'
-    $env:BOOKS_PATH = Join-Path $env:DATA_DIR 'books'
-    $env:CHAPTERS_PATH = Join-Path $env:DATA_DIR 'chapters'
-    $env:IMAGES_PATH = Join-Path $env:DATA_DIR 'images'
-    $env:SKIP_EMBEDDING_WARMUP = '1'
-    $env:SKIP_VECTOR_WARMUP = '1'
-    .\venv310\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
-
-## 当前限制
-
-- 生成式问答、自动答案、章节重点和知识图谱增强依赖已配置的 LLM；本地数据管理本身不依赖在线模型。
-- MinerU 与 Kimi Vision 不随仓库作为完整服务交付；本地 OCR 依赖需单独安装。
-- 样例教材及派生内容的公开分发授权需要维护者另行确认。
-- Python 依赖没有锁文件，可选 OCR/解析栈在审阅环境中存在版本冲突。
-- 周报当前只读取练习/复习历史中的 <code>timestamp</code> 或 <code>time</code>，而核心存储写入 <code>date</code>，因此可能低估已练习习题与已复习错题。
-- 受控 Agent 后端尚未形成主界面可操作闭环。
-- 独立知识图谱页为空，<code>/kg</code> 会重定向到综合学习情况页。
-- 自动更新发布仓库仍是占位配置。
-- 根目录旧 <code>launch.ps1</code> 与 <code>install.ps1</code> 仍指向已废弃的 Gradio 流程，当前应使用上文 FastAPI、Vite 和 Electron 命令。
-- Dockerfile 与打包脚本存在，但本次审阅未实际构建 Docker 镜像或安装包。
-- 当前没有仓库级开源许可证。
-
-## Roadmap
-
-- 建立来源清晰、可授权分发的习题与真题导入流程。
-- 完善图片 OCR 的校正、公式保留和端到端测试。
-- 修正周报历史字段兼容并补充回归测试。
-- 让受控 Agent 的只读查询和提案确认形成前端闭环。
-- 拆分并锁定核心、OCR、MinerU 和桌面打包依赖。
-- 完成移动端/PWA、离线缓存和提醒能力验证。
-- 配置并验证 GitHub Releases 自动更新。
-- 添加明确的开源许可证与贡献指南。
-
-## 适用人群
-
-- 希望把教材问答、错题和复习记录放在同一个本地工具中的考研学习者。
-- 需要参考 FastAPI、React、Electron、RAG 与本地学习数据建模的个人开发者。
-- 愿意自行配置模型、OCR 或 MinerU，并接受当前个人项目维护状态的贡献者。
-
-不适合需要即装即用云服务、多人协作平台、自动生成大量可靠试题或已验证商业 SLA 的场景。
-
-## 静态项目页
-
-<code>site/</code> 是不依赖构建工具的项目介绍页。直接打开 <code>site/index.html</code>，或在仓库根目录运行：
-
-在线演示：<https://jayceto946-byte.github.io/texa/>
-
-    .\venv310\Scripts\python.exe -m http.server 4173 --directory site
-
-## 开源协议
-
-当前仓库没有 <code>LICENSE</code> 或 <code>LICENSE.md</code>。在维护者选择并提交许可证前，不应把本项目描述为采用 MIT、Apache-2.0 或其他开源协议，也不应假定代码和内置教材内容可以自由再分发。
-
-代码许可证与教材、图片、模型文件的内容授权需要分别确认。
+Texa 希望让教材不只被存放，让练习不只被做完，让每次错误都能成为下一次复习的入口。

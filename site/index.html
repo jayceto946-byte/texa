@@ -25,7 +25,6 @@
         <a href="#features">功能</a>
         <a href="#workflow">流程</a>
         <a href="#architecture">架构</a>
-        <a href="#status">状态</a>
         <a class="nav-cta" href="https://github.com/jayceto946-byte/texa">查看 GitHub</a>
       </nav>
     </div>
@@ -63,7 +62,7 @@
             <dd>按需配置 LLM 与 OCR</dd>
           </div>
         </dl>
-        <p class="hero-facts-note">个人项目持续开发中。核心本地数据闭环已通过实际运行验证。</p>
+        <p class="hero-facts-note">从教材理解到错题复习，持续保留同一条学习线索。</p>
       </aside>
     </section>
 
@@ -71,7 +70,7 @@
       <div class="shell proof-grid">
         <p><strong>本地数据闭环</strong><span>教材、习题、错题与学习记录</span></p>
         <p><strong>实际代码驱动</strong><span>FastAPI、React、Electron 与 ChromaDB</span></p>
-        <p><strong>状态透明</strong><span>条件式能力与 Roadmap 明确标注</span></p>
+        <p><strong>持续复习</strong><span>把概念、错题与下一次行动连接起来</span></p>
       </div>
     </section>
 
@@ -86,7 +85,7 @@
           <p class="feature-label">教材问答</p>
           <h3>在选定教材范围内检索、生成并保留来源。</h3>
           <p>问答链组合知识图谱精确命中、向量检索、词法索引、语义角色与相邻片段。SSE 按阶段返回，单个检索源异常时可以降级。</p>
-          <button class="preview-link" type="button" data-preview-src="assets/images/03-rag-chat.png" data-preview-title="教材问答会话">查看教材问答界面</button>
+          <button class="preview-link" type="button" data-preview-src="assets/images/texa-workspace.png" data-preview-title="学习工作区">查看学习界面</button>
         </article>
 
         <div class="feature-secondary">
@@ -94,13 +93,13 @@
             <p class="feature-label">习题工作区</p>
             <h3>从题目导入到练习会话。</h3>
             <p>保留来源、章节、题型、难度、概念、状态与练习历史，支持批量导入和回滚。</p>
-            <button class="preview-link" type="button" data-preview-src="assets/images/04-exercises.png" data-preview-title="习题工作区">查看习题界面</button>
+            <button class="preview-link" type="button" data-preview-src="assets/images/texa-review.png" data-preview-title="复习计划">查看复习界面</button>
           </article>
           <article>
             <p class="feature-label">错题复习</p>
             <h3>记录错因，并按到期队列复习。</h3>
             <p>手动录入、筛选、复习历史和 SM-2 兼容调度已形成闭环。OCR 结果必须人工校正。</p>
-            <button class="preview-link" type="button" data-preview-src="assets/images/05-mistakes.png" data-preview-title="错题本">查看错题界面</button>
+            <button class="preview-link" type="button" data-preview-src="assets/images/texa-mistakes.png" data-preview-title="错题本">查看错题界面</button>
           </article>
         </div>
       </div>
@@ -110,34 +109,26 @@
       <div class="shell">
         <div class="section-heading">
           <p class="eyebrow">REAL INTERFACE</p>
-          <h2>六个真实页面，点击查看完整截图。</h2>
-          <p>所有图片来自统一的 1440 × 900 浏览器视口和隔离演示数据。缩略图只用于定位，展开后按原始比例查看。</p>
+          <h2>当前桌面界面，点击查看完整截图。</h2>
+          <p>图片来自最新 Electron 桌面端。缩略图用于定位，展开后按原始比例查看。</p>
         </div>
 
         <div class="screenshot-grid" aria-label="项目截图资源">
-          <button class="screenshot-card screenshot-wide" type="button" data-preview-src="assets/images/01-dashboard.png" data-preview-title="主工作台">
-            <span class="screenshot-media"><img src="assets/images/01-dashboard.png" alt="" width="1440" height="900" loading="lazy"></span>
-            <span class="screenshot-caption"><strong>主工作台</strong><small>范围选择、历史与下一步行动</small></span>
+          <button class="screenshot-card screenshot-wide" type="button" data-preview-src="assets/images/texa-workspace.png" data-preview-title="学习工作区">
+            <span class="screenshot-media"><img src="assets/images/texa-workspace.png" alt="" width="1280" height="820" loading="lazy"></span>
+            <span class="screenshot-caption"><strong>学习工作区</strong><small>教材范围、会话历史与学习报告</small></span>
           </button>
-          <button class="screenshot-card" type="button" data-preview-src="assets/images/02-library.png" data-preview-title="教材与资料库">
-            <span class="screenshot-media"><img src="assets/images/02-library.png" alt="" width="1440" height="900" loading="lazy"></span>
-            <span class="screenshot-caption"><strong>教材与资料库</strong><small>教材切换、章节和数据状态</small></span>
+          <button class="screenshot-card" type="button" data-preview-src="assets/images/texa-review.png" data-preview-title="复习计划">
+            <span class="screenshot-media"><img src="assets/images/texa-review.png" alt="" width="1280" height="820" loading="lazy"></span>
+            <span class="screenshot-caption"><strong>复习计划</strong><small>到期错题、薄弱概念与近期记录</small></span>
           </button>
-          <button class="screenshot-card" type="button" data-preview-src="assets/images/03-rag-chat.png" data-preview-title="教材问答">
-            <span class="screenshot-media"><img src="assets/images/03-rag-chat.png" alt="" width="1440" height="900" loading="lazy"></span>
-            <span class="screenshot-caption"><strong>教材问答</strong><small>会话、公式渲染与教材来源</small></span>
+          <button class="screenshot-card" type="button" data-preview-src="assets/images/texa-mistakes.png" data-preview-title="错题录入">
+            <span class="screenshot-media"><img src="assets/images/texa-mistakes.png" alt="" width="1280" height="820" loading="lazy"></span>
+            <span class="screenshot-caption"><strong>错题录入</strong><small>图片识别、人工校对与错因归档</small></span>
           </button>
-          <button class="screenshot-card screenshot-wide" type="button" data-preview-src="assets/images/04-exercises.png" data-preview-title="习题工作区">
-            <span class="screenshot-media"><img src="assets/images/04-exercises.png" alt="" width="1440" height="900" loading="lazy"></span>
-            <span class="screenshot-caption"><strong>习题工作区</strong><small>题库筛选、状态和练习入口</small></span>
-          </button>
-          <button class="screenshot-card screenshot-wide" type="button" data-preview-src="assets/images/05-mistakes.png" data-preview-title="错题本">
-            <span class="screenshot-media"><img src="assets/images/05-mistakes.png" alt="" width="1440" height="900" loading="lazy"></span>
-            <span class="screenshot-caption"><strong>错题本</strong><small>错因、概念和复习记录</small></span>
-          </button>
-          <button class="screenshot-card" type="button" data-preview-src="assets/images/06-learning.png" data-preview-title="学习情况">
-            <span class="screenshot-media"><img src="assets/images/06-learning.png" alt="" width="1440" height="900" loading="lazy"></span>
-            <span class="screenshot-caption"><strong>学习情况</strong><small>概念、薄弱信号和复习队列</small></span>
+          <button class="screenshot-card screenshot-wide" type="button" data-preview-src="assets/images/texa-library.png" data-preview-title="教材库">
+            <span class="screenshot-media"><img src="assets/images/texa-library.png" alt="" width="1280" height="820" loading="lazy"></span>
+            <span class="screenshot-caption"><strong>教材库</strong><small>学科分类、教材角色与资料范围</small></span>
           </button>
         </div>
       </div>
@@ -207,52 +198,6 @@
       </div>
     </section>
 
-    <section id="status" class="section shell">
-      <div class="section-heading">
-        <h2>当前可用范围与边界。</h2>
-        <p>代码链完整不等于所有外部服务已经配置。以下状态按实际仓库和运行结果划分。</p>
-      </div>
-
-      <div class="status-board">
-        <article class="status-column">
-          <p class="status-title">已实现</p>
-          <ul>
-            <li>教材列表、生命周期和多教材隔离</li>
-            <li>教材问答调用链与混合检索降级</li>
-            <li>习题库、练习会话和批量回滚</li>
-            <li>错题 CRUD、复习历史与间隔调度</li>
-            <li>学习情况、规则周报与系统健康检查</li>
-            <li>Electron 本地 API 令牌边界</li>
-          </ul>
-        </article>
-        <article class="status-column">
-          <p class="status-title">依赖条件</p>
-          <ul>
-            <li>LLM 回答、答案草稿和章节讲解</li>
-            <li>MinerU 教材解析与扫描件 OCR</li>
-            <li>图片错题识别和图片讲解</li>
-            <li>章节重点与知识图谱增强</li>
-            <li>自动更新需要真实发布仓库</li>
-          </ul>
-        </article>
-        <article class="status-column">
-          <p class="status-title">Roadmap</p>
-          <ul>
-            <li>完整 Agent 工具调用闭环</li>
-            <li>PWA、离线缓存和推送提醒</li>
-            <li>依赖拆分与锁定环境</li>
-            <li>可授权的公开演示教材与题库</li>
-            <li>开源许可证与贡献指南</li>
-          </ul>
-        </article>
-      </div>
-
-      <div class="caveat">
-        <strong>发布前提示</strong>
-        <p>仓库当前没有 LICENSE，内置教材和派生数据的公开分发授权也需要确认。项目代码可公开查看，不等同于已授予开源使用许可。</p>
-      </div>
-    </section>
-
     <section class="section use-cases section-tint">
       <div class="shell use-case-grid">
         <div>
@@ -261,14 +206,14 @@
         <div class="use-case-list">
           <p><strong>考研学习者</strong><span>希望把教材问答、错题和复习记录放在一个本地工具中。</span></p>
           <p><strong>个人开发者</strong><span>想参考 FastAPI、React、Electron、RAG 和本地数据建模。</span></p>
-          <p><strong>项目贡献者</strong><span>愿意自行配置模型和文档解析服务，并接受持续开发状态。</span></p>
+          <p><strong>项目贡献者</strong><span>共同完善教材解析、学习工作流与桌面体验。</span></p>
         </div>
       </div>
     </section>
 
     <section class="cta shell">
       <div>
-        <h2>从代码、审计记录和真实限制开始了解项目。</h2>
+        <h2>从一次教材导入，建立自己的长期学习工作区。</h2>
       </div>
       <div class="cta-actions">
         <a class="button button-primary" href="https://github.com/jayceto946-byte/texa">查看 GitHub</a>
@@ -280,7 +225,7 @@
   <footer class="site-footer">
     <div class="shell footer-row">
       <p>Texa</p>
-      <p>本地优先，持续开发，状态透明。</p>
+      <p>让教材、练习与复习记录保持连接。</p>
       <a href="#top">返回顶部</a>
     </div>
   </footer>
@@ -289,7 +234,7 @@
     <div class="lightbox-toolbar">
       <div>
         <strong id="lightbox-title">项目截图</strong>
-        <span>原始尺寸 1440 × 900</span>
+        <span>最新 Electron 桌面截图</span>
       </div>
       <button type="button" data-lightbox-close>关闭</button>
     </div>

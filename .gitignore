@@ -48,6 +48,9 @@ ocr_*.json
 ocr_*.txt
 
 # Local diagnostics and benchmark scratch files
+screenshots/
+artifacts/
+*_audit_report.json
 _benchmark*.py
 _benchmark*_output.txt
 _test_*.py
