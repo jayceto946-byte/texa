@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('kaoyanDesktop', {
   isElectron: true,
+  platform: process.platform,
   minimize: () => ipcRenderer.invoke('window:minimize'),
   isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
   toggleMaximize: () => ipcRenderer.invoke('window:toggle-maximize'),

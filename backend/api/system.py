@@ -227,8 +227,10 @@ import subprocess
 from datetime import datetime
 
 from config import BASE_DIR
-from llm.configuration import model_settings_env_values, model_settings_payload
+from llm.configuration import model_settings_env_values
+from llm.connectivity import test_model_settings_connection
 from llm.factory import clear_model_cache
+from llm.profiles import activate_profile, delete_profile, profiles_payload, save_profile
 from utils.version import APP_VERSION
 from utils.subject_catalog import DEFAULT_SUBJECT_TREE, clean_subject_tree, read_subject_tree, write_subject_tree
 
@@ -310,7 +312,7 @@ def get_settings():
         "success": True,
         "data": {
             "env": _env_status(),
-            "models": model_settings_payload(),
+            "models": profiles_payload(),
             "subjects": _read_subject_tree(),
         },
     }
@@ -342,8 +344,74 @@ def save_model_settings(payload: dict):
         return {
             "success": True,
             "message": "模型配置已保存。API Key 不会在界面回显。",
-            "data": model_settings_payload(),
+            "data": profiles_payload(),
         }
+    except ValueError as exc:
+        return {"success": False, "message": str(exc)}
+
+
+@router.post("/settings/models/test")
+def test_model_connection(payload: dict):
+    """Test a draft role configuration without saving it or returning credentials."""
+    try:
+        role = str(payload.get("role", "reasoning") or "reasoning")
+        settings = payload.get("settings") if isinstance(payload.get("settings"), dict) else payload
+        resolved = test_model_settings_connection(settings, role)
+        return {
+            "success": True,
+            "message": f"连接成功：{resolved.provider.label} / {resolved.model}",
+            "data": {"role": role, "provider": resolved.provider.provider_id, "model": resolved.model},
+        }
+    except Exception as exc:
+        message = str(exc).strip() or exc.__class__.__name__
+        settings = payload.get("settings") if isinstance(payload.get("settings"), dict) else payload
+        credentials = settings.get("credentials") if isinstance(settings.get("credentials"), dict) else {}
+        for item in credentials.values():
+            if not isinstance(item, dict):
+                continue
+            secret = str(item.get("api_key", "") or "")
+            if secret:
+                message = message.replace(secret, "***")
+        return {"success": False, "message": f"连接失败：{message[:240]}"}
+
+
+@router.post("/settings/model-profiles")
+def save_model_profile(payload: dict):
+    try:
+        profile_payload = payload.get("profile") if isinstance(payload.get("profile"), dict) else payload
+        profile, values = save_profile(profile_payload)
+        activate = bool(payload.get("activate", True))
+        if activate:
+            values["LLM_ACTIVE_PROFILE_ID"] = profile["id"]
+        else:
+            values = {key: value for key, value in values.items() if key.startswith("LLM_CREDENTIAL_")}
+        _write_env_values(values)
+        _apply_runtime_env(values)
+        clear_model_cache()
+        return {"success": True, "message": "模型方案已保存并启用" if activate else "模型方案已保存", "data": profiles_payload()}
+    except ValueError as exc:
+        return {"success": False, "message": str(exc)}
+
+
+@router.post("/settings/model-profiles/{profile_id}/activate")
+def activate_model_profile(profile_id: str):
+    try:
+        values = activate_profile(profile_id)
+        _write_env_values(values)
+        _apply_runtime_env(values)
+        clear_model_cache()
+        return {"success": True, "message": "模型方案已切换", "data": profiles_payload()}
+    except ValueError as exc:
+        return {"success": False, "message": str(exc)}
+
+
+@router.delete("/settings/model-profiles/{profile_id}")
+def remove_model_profile(profile_id: str):
+    try:
+        if os.getenv("LLM_ACTIVE_PROFILE_ID", "") == profile_id:
+            return {"success": False, "message": "当前方案正在使用，请先切换到其他方案"}
+        delete_profile(profile_id)
+        return {"success": True, "message": "模型方案已删除", "data": profiles_payload()}
     except ValueError as exc:
         return {"success": False, "message": str(exc)}
 

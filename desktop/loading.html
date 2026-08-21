@@ -203,12 +203,37 @@
         app-region: drag;
         -webkit-app-region: drag;
       }
+      .loading-window-controls {
+        position: fixed;
+        inset: 0 0 auto auto;
+        z-index: 10001;
+        display: flex;
+        app-region: no-drag;
+        -webkit-app-region: no-drag;
+      }
+      .loading-window-button {
+        display: grid;
+        width: 46px;
+        height: 40px;
+        place-items: center;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: #4b4d50;
+        padding: 0;
+        font: 16px/1 "Segoe UI Symbol", sans-serif;
+        transition: background-color 140ms ease, color 140ms ease, transform 120ms ease;
+      }
+      .loading-window-button:hover { border-color: transparent; background: rgba(0,0,0,0.07); }
+      .loading-window-button:active { transform: scale(0.96); }
+      .loading-window-close:hover { background: #c42b1c; color: #fff; }
       @media (max-width: 520px) {
         .shell { padding: 36px 24px 28px; }
         .book-logo { margin-bottom: 28px; }
       }
       @media (prefers-reduced-motion: reduce) {
         .stage, body.is-leaving .stage, .pulse, .bar::before { animation: none; }
+        .loading-window-button { transition: none; }
       }
       @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
         .shell { background: var(--panel-strong); }
@@ -217,6 +242,11 @@
   </head>
   <body>
     <div class="loading-window-dragbar" aria-hidden="true"></div>
+    <div class="loading-window-controls" aria-label="窗口控制">
+      <button class="loading-window-button" id="minimizeWindow" aria-label="最小化窗口">−</button>
+      <button class="loading-window-button" id="maximizeWindow" aria-label="最大化窗口">□</button>
+      <button class="loading-window-button loading-window-close" id="closeWindow" aria-label="关闭窗口">×</button>
+    </div>
     <main class="stage">
       <section class="shell" id="shell">
         <div class="content">
@@ -251,6 +281,19 @@
       const actions = document.getElementById('actions');
       const retryButton = document.getElementById('retryStartup');
       const repairButton = document.getElementById('repairEmbedding');
+      const maximizeButton = document.getElementById('maximizeWindow');
+
+      document.getElementById('minimizeWindow').addEventListener('click', () => desktop?.minimize?.());
+      document.getElementById('closeWindow').addEventListener('click', () => desktop?.close?.());
+      document.getElementById('maximizeWindow').addEventListener('click', async () => {
+        const maximized = await desktop?.toggleMaximize?.();
+        maximizeButton.textContent = maximized ? '❐' : '□';
+        maximizeButton.setAttribute('aria-label', maximized ? '还原窗口' : '最大化窗口');
+      });
+      desktop?.isMaximized?.().then((maximized) => {
+        maximizeButton.textContent = maximized ? '❐' : '□';
+        maximizeButton.setAttribute('aria-label', maximized ? '还原窗口' : '最大化窗口');
+      });
 
       const greetings = {
         earlyMorning: [

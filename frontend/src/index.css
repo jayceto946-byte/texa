@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg-primary: #f4f5f7;
-  --color-bg-secondary: #f8f9fb;
-  --color-bg-card: #ffffff;
-  --color-text-primary: #20242a;
-  --color-text-secondary: #66707c;
-  --color-text-tertiary: #89929d;
-  --color-accent: #2367a8;
-  --color-accent-hover: #1b558b;
-  --color-border: #dfe3e8;
+  --color-bg-primary: #f2f4f1;
+  --color-bg-secondary: #ecefea;
+  --color-bg-card: #fbfcfa;
+  --color-text-primary: #232825;
+  --color-text-secondary: #626b65;
+  --color-text-tertiary: #858e88;
+  --color-accent: #35695a;
+  --color-accent-hover: #285448;
+  --color-border: #d7ddd7;
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 8px;
@@ -18,15 +18,15 @@
 }
 
 :root {
-  --surface-raised: #ffffff;
-  --surface-muted: #f4f5f7;
-  --surface-subtle: #f8f9fb;
-  --surface-black: #20242a;
-  --surface-tile: #eceff3;
-  --text-muted: #7a8490;
-  --accent-muted: rgba(35, 103, 168, 0.1);
-  --accent-soft: rgba(35, 103, 168, 0.08);
-  --accent-softer: rgba(35, 103, 168, 0.045);
+  --surface-raised: #fbfcfa;
+  --surface-muted: #eef1ed;
+  --surface-subtle: #f6f8f5;
+  --surface-black: #29312d;
+  --surface-tile: #e5e9e4;
+  --text-muted: #737d76;
+  --accent-muted: rgba(53, 105, 90, 0.13);
+  --accent-soft: rgba(53, 105, 90, 0.095);
+  --accent-softer: rgba(53, 105, 90, 0.055);
   --success: #2f6b4f;
   --success-text: #2f6b4f;
   --success-bg: #edf6f0;
@@ -39,7 +39,19 @@
   --danger-text: #b42318;
   --danger-bg: #fff1ed;
   --danger-border: #e6b2a9;
-  --info: #2367a8;
+  --info: #35695a;
+  --scrollbar-thumb: #c8cec9;
+  --scrollbar-thumb-hover: #9da69f;
+  --heat-0-bg: #f0f2ef;
+  --heat-0-border: #dfe4df;
+  --heat-1-bg: #dce9e2;
+  --heat-1-border: #c3d9cc;
+  --heat-2-bg: #a9c9b9;
+  --heat-2-border: #86b29d;
+  --heat-3-bg: #5f927f;
+  --heat-3-border: #497766;
+  --heat-4-bg: #35695a;
+  --heat-4-border: #285448;
   --shadow-soft: none;
   --shadow-tight: none;
   --font-app: "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
@@ -153,8 +165,8 @@ select:focus-visible,
   outline-offset: 2px;
 }
 
-/* 聊天输入框：focus 指示由外层 .chat-question-box 的 focus-within 蓝边提供；
-   textarea 自身若再渲染全局 focus-visible outline，会与外层蓝边重叠成“双重蓝线”。
+/* 聊天输入框：focus 指示由外层 .chat-question-box 的 focus-within 强调边提供；
+   textarea 自身若再渲染全局 focus-visible outline，会与外层边框重叠成双线。
    只在内层 textarea 上取消冗余 outline，外层 focus 指示保持不变。 */
 .chat-question-box textarea:focus-visible {
   outline: none;
@@ -231,7 +243,7 @@ input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.14);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 
@@ -295,6 +307,110 @@ select:focus {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-medium);
   background: var(--color-bg-card);
+}
+
+.appearance-theme-list {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-bg-card);
+}
+
+.appearance-theme-option {
+  display: grid;
+  width: 100%;
+  min-height: 72px;
+  grid-template-columns: minmax(0, 1fr) auto 24px;
+  align-items: center;
+  gap: 16px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  padding: 12px 14px;
+  color: var(--color-text-primary);
+  text-align: left;
+}
+
+.appearance-theme-option:last-child {
+  border-bottom: 0;
+}
+
+.appearance-theme-option:hover {
+  background: var(--surface-subtle);
+}
+
+.appearance-theme-option.is-active {
+  background: var(--accent-softer);
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+.appearance-theme-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.appearance-theme-name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-normal);
+}
+
+.appearance-theme-description {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  line-height: var(--leading-normal);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appearance-theme-swatches {
+  display: flex;
+  gap: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-bg-card);
+  padding: 3px;
+}
+
+.appearance-theme-swatches > span {
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgb(32 36 42 / 0.12);
+  border-radius: 2px;
+}
+
+.appearance-theme-state {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: var(--color-accent);
+}
+
+.appearance-theme-state svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+@media (max-width: 520px) {
+  .appearance-theme-option {
+    grid-template-columns: minmax(0, 1fr) 24px;
+    gap: 10px;
+  }
+
+  .appearance-theme-swatches {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .appearance-theme-state {
+    grid-column: 2;
+    grid-row: 1;
+  }
 }
 
 .learning-metric {
@@ -506,13 +622,13 @@ select:focus {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d2d2d7;
+  background: var(--scrollbar-thumb);
   border: 2px solid transparent;
   border-radius: 999px;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8ad;
+  background: var(--scrollbar-thumb-hover);
   background-clip: padding-box;
 }
 
@@ -562,12 +678,12 @@ select {
 .app-select:focus,
 select:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.14);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .app-select:hover,
 select:hover {
-  border-color: rgba(0, 102, 204, 0.48);
+  border-color: color-mix(in srgb, var(--color-accent) 48%, var(--color-border));
 }
 
 .app-select-plain,
@@ -579,6 +695,63 @@ select:hover {
 
 .app-select-plain {
   background-color: transparent;
+}
+
+.app-scrollable-select-popover {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-bg-card);
+  box-shadow: 0 8px 24px rgba(32, 36, 42, 0.1);
+}
+
+.app-scrollable-select-list {
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: auto;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.app-scrollable-select-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.app-scrollable-select-list::-webkit-scrollbar-thumb {
+  min-height: 36px;
+}
+
+.app-scrollable-select-option {
+  display: flex;
+  min-height: 40px;
+  cursor: default;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius-small);
+  padding: 8px;
+  color: var(--color-text-primary);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+  transition: background-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+.app-scrollable-select-option.is-selected {
+  background: var(--accent-soft);
+  font-weight: var(--weight-medium);
+}
+
+.app-scrollable-select-option.is-active,
+.app-scrollable-select-option:hover {
+  position: relative;
+  z-index: 1;
+  background: var(--color-bg-card);
+  box-shadow: 0 2px 8px rgba(32, 36, 42, 0.11);
+}
+
+.app-scrollable-select-option.is-selected.is-active,
+.app-scrollable-select-option.is-selected:hover {
+  background: var(--accent-soft);
 }
 
 .surface-panel {
@@ -613,16 +786,60 @@ select:hover {
 
 
 
-/* Electron native Window Controls Overlay marker and drag geometry. */
+/* Electron custom window controls and drag geometry. */
 .desktop-titlebar-marker {
-  display: none;
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  right: 0;
+  display: flex;
+  height: 40px;
+  app-region: no-drag;
+  -webkit-app-region: no-drag;
+}
+
+.desktop-window-button {
+  display: grid;
+  width: 46px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  transition: background-color 140ms ease, color 140ms ease, transform 120ms ease;
+}
+
+.desktop-window-button svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.5;
+  transition: transform 140ms ease;
+}
+
+.desktop-window-button:hover {
+  background: var(--surface-muted);
+  color: var(--color-text-primary);
+}
+
+.desktop-window-button:hover svg {
+  transform: scale(1.08);
+}
+
+.desktop-window-button:active {
+  transform: scale(0.96);
+}
+
+.desktop-window-close:hover {
+  background: #c42b1c;
+  color: #fff;
+}
+
+.desktop-restore-icon {
+  transform: rotate(180deg);
 }
 
 body:has(.desktop-titlebar-marker) {
-  --window-controls-inset: max(
-    138px,
-    calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw))
-  );
+  --window-controls-inset: 138px;
   overflow: hidden;
 }
 
@@ -659,6 +876,13 @@ body:has(.desktop-titlebar-marker) .app-page-header {
 
 body:has(.desktop-titlebar-marker) .learning-workspace-header {
   padding-right: calc(24px + var(--window-controls-inset));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-window-button,
+  .desktop-window-button svg {
+    transition: none;
+  }
 }
 @media print {
   .no-print {

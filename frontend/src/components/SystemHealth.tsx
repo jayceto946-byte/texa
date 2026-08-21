@@ -7,12 +7,14 @@ import { useChatContext } from '../contexts/ChatContext';
 import type { SystemHealthStatus } from '../types';
 import LibraryManager from './settings/LibraryManager';
 import DataSafety from './settings/DataSafety';
-import ModelSettingsForm, { type ModelSettingsValue } from './settings/ModelSettingsForm';
+import AppearanceSettings from './settings/AppearanceSettings';
+import type { ModelSettingsValue } from './settings/ModelSettingsForm';
+import ModelSettingsManager from './settings/ModelSettingsManager';
 import { PageState, StatusBanner } from './ui/AsyncState';
 
 type SubjectNode = { name: string; children: string[] };
 type ManagedBook = { name: string; book_id?: string; storage_name?: string; display_name?: string; lifecycle_status?: 'active' | 'archived'; subject?: string; path?: string; has_pdf?: boolean; chapter_count?: number; size?: number; book_role?: 'standalone' | 'core' | 'reference'; rag_priority?: number; resource_group?: string };
-type Tab = 'health' | 'version' | 'data' | 'subjects' | 'models';
+type Tab = 'health' | 'version' | 'data' | 'subjects' | 'models' | 'appearance';
 
 const statusMeta: Record<SystemHealthStatus, { label: string; icon: typeof CheckCircle2; iconClass: string; className: string }> = {
   healthy: { label: '系统正常', icon: CheckCircle2, iconClass: 'text-[var(--success)]', className: 'status-success' },
@@ -30,6 +32,7 @@ const SETTINGS_TABS: Array<{ id: Tab; label: string }> = [
   { id: 'health', label: '服务器健康' },
   { id: 'version', label: '版本更新' },
   { id: 'data', label: '备份恢复' },
+  { id: 'appearance', label: '外观' },
   { id: 'models', label: '模型配置' },
 ];
 
@@ -132,12 +135,39 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
   const saveModels = async () => {
     setMessage('');
     if (!modelDraft) return;
-    const res = await post('/system/settings/models', modelDraft, 20000);
+    const res = await post('/system/settings/model-profiles', {
+      activate: true,
+      profile: { ...modelDraft, id: modelDraft.editing_profile_id, name: modelDraft.profile_name },
+    }, 20000);
     if (res?.success && Object.values(envDraft).some((value) => value.trim())) {
       await post('/system/settings/env', envDraft, 20000);
     }
     setMessage(res?.message || (res?.success ? '已保存' : '保存失败'));
     if (res?.success) await loadSettings();
+  };
+
+  const activateModelProfile = async (profileId: string) => {
+    setMessage('');
+    const res = await post(`/system/settings/model-profiles/${encodeURIComponent(profileId)}/activate`, {}, 20000);
+    setMessage(res?.message || (res?.success ? '模型方案已切换' : '切换失败'));
+    if (res?.success) setModelDraft(res.data as ModelSettingsValue);
+  };
+
+  const deleteModelProfile = async (profileId: string) => {
+    if (!window.confirm('删除这个模型方案吗？已保存的 API Key 不会被删除。')) return;
+    const res = await del(`/system/settings/model-profiles/${encodeURIComponent(profileId)}`, 20000);
+    setMessage(res?.message || (res?.success ? '模型方案已删除' : '删除失败'));
+    if (res?.success) setModelDraft(res.data as ModelSettingsValue);
+  };
+
+  const testModelConnection = async (role: 'reasoning' | 'vision') => {
+    if (!modelDraft) return { success: false, message: '模型配置尚未加载' };
+    try {
+      const res = await post('/system/settings/models/test', { role, settings: modelDraft }, 30000);
+      return { success: Boolean(res?.success), message: res?.message || (res?.success ? '连接成功' : '连接失败') };
+    } catch (error) {
+      return { success: false, message: error instanceof Error ? error.message : '连接失败' };
+    }
   };
 
   const saveSubjects = async (next = subjects) => {
@@ -311,7 +341,6 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
         <header className="app-page-header border-b border-border bg-bg-card">
           <div>
             <h2 className="app-page-title">教材库</h2>
-            <p className="type-caption mt-0.5 text-text-secondary">组织学科、切换当前教材并管理检索范围</p>
           </div>
           <div className="window-drag-region" aria-hidden="true" />
         </header>
@@ -412,10 +441,11 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
       <DataSafety />
     )}
 
+    {tab === 'appearance' && <AppearanceSettings />}
+
     {tab === 'models' && (
       <section className="space-y-4">
-        <div className="rounded-lg border border-border bg-bg-card p-3 text-xs leading-5 text-text-secondary">按用途配置推理与识图模型。API Key 只写入本地 .env，界面仅显示配置状态；连接地址默认隐藏在高级参数中。</div>
-        {modelDraft ? <ModelSettingsForm value={modelDraft} onChange={setModelDraft} /> : <PageState kind="loading" title="正在读取模型配置" />}
+        {modelDraft ? <ModelSettingsManager value={modelDraft} onChange={setModelDraft} onActivateProfile={activateModelProfile} onDeleteProfile={deleteModelProfile} onTestConnection={testModelConnection} /> : <PageState kind="loading" title="正在读取模型配置" />}
         <details className="rounded-xl border border-border bg-bg-card p-4">
           <summary className="cursor-pointer text-sm font-medium text-text-primary">教材解析服务</summary>
           <div className="mt-4 grid gap-3 md:grid-cols-2">

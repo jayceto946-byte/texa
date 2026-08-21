@@ -9,6 +9,9 @@ import rail from './components/AppRail.tsx?raw';
 import learningContext from './components/LearningContextSidebar.tsx?raw';
 import chatPage from './pages/ChatPage.tsx?raw';
 import composerOverflow from './components/chat/ComposerOverflowMenu.tsx?raw';
+import appearance from './components/settings/AppearanceSettings.tsx?raw';
+import settings from './components/SystemHealth.tsx?raw';
+import theme from './theme.ts?raw';
 import desktopTitleBar from './components/DesktopTitleBar.tsx?raw';
 import desktopMain from '../../desktop/main.cjs?raw';
 import loading from '../../desktop/loading.html?raw';
@@ -44,6 +47,7 @@ describe('Texa product UI contract', () => {
   it('keeps the composer as one responsive surface with an internal overflow menu', () => {
     expect(chatPage).toContain('className="composer-surface"');
     expect(chatPage).toContain('className="composer-toolbar"');
+    expect(chatPage).not.toMatch(/messages\.length\s*>\s*0[\s\S]{0,120}<ComposerOverflowMenu>/);
     expect(composerOverflow).toContain('className="composer-overflow-menu"');
     expect(composerOverflow).toContain('aria-label="更多"');
     expect(composerOverflow).toContain("event.key !== 'Escape'");
@@ -52,19 +56,32 @@ describe('Texa product UI contract', () => {
     expect(chatPage).not.toContain('chat-toolbar mx-auto');
   });
 
+  it('uses a semantic, locally persisted appearance theme registry', () => {
+    expect(settings).toContain("{ id: 'appearance', label: '外观' }");
+    expect(settings).toContain('<AppearanceSettings />');
+    expect(appearance).toContain('role="radiogroup"');
+    expect(appearance).toContain('applyTexaTheme(nextThemeId)');
+    expect(theme).toContain("id: 'mineral'");
+    expect(theme).toContain("id: 'graphite'");
+    expect(theme).toContain("id: 'clay'");
+    expect(theme).toContain("id: 'notebook'");
+    expect(theme).toContain("id: 'codex'");
+    expect(theme).toContain("'--color-accent'");
+  });
+
   it('renders a question as a lightweight query header with a separate attachment row', () => {
     expect(message).toContain('splitQuestionAttachment');
     expect(message).toContain('className="learning-query-attachment"');
     expect(message).toContain('附件：{questionContent.attachmentName}');
   });
 
-  it('shares one desktop header geometry and preserves native resize hit areas', () => {
+  it('shares one desktop header geometry and keeps responsive custom window controls', () => {
     expect(rail).toContain('app-rail-logo-icon');
     expect(desktopTitleBar).toContain('className="desktop-titlebar-marker"');
-    expect(desktopMain).toContain("titleBarStyle: 'hidden'");
-    expect(desktopMain).toContain('titleBarOverlay:');
-    expect(desktopMain).not.toContain('frame: false');
-    expect(loading).not.toContain('loading-window-controls');
+    expect(desktopTitleBar).toContain('desktop-window-button');
+    expect(desktopMain).toContain("frame: false");
+    expect(desktopMain).not.toContain('titleBarOverlay:');
+    expect(loading).toContain('loading-window-controls');
     expect(shell).toContain('className="context-sidebar-trigger"');
     expect(learningContext).toContain('className="window-drag-region"');
     expect(chatPage).toContain('className="window-drag-region"');

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from collections.abc import Mapping
 
 from llm.registry import get_model, get_provider, list_models, list_providers
@@ -13,6 +14,13 @@ ROLE_ENV_PREFIX = {
     ModelRole.REASONING: "LLM_REASONING",
     ModelRole.VISION: "LLM_VISION",
 }
+
+
+def credential_env_name(credential_id: str) -> str:
+    safe_id = re.sub(r"[^A-Za-z0-9]+", "_", credential_id.strip()).strip("_").upper()
+    if not safe_id:
+        raise ValueError("credential_id 不能为空")
+    return f"LLM_CREDENTIAL_{safe_id}_API_KEY"
 
 
 def _first(env: Mapping[str, str], names: tuple[str, ...]) -> str:
@@ -53,7 +61,10 @@ def resolve_model_role(
     if not endpoint:
         endpoint = provider.default_endpoint
 
-    api_key = _first(source, (f"{prefix}_API_KEY",))
+    explicit_credential_id = _first(source, (f"{prefix}_CREDENTIAL_ID",))
+    credential_id = explicit_credential_id or provider.provider_id
+    credential_sources = (credential_env_name(credential_id),) if explicit_credential_id else (credential_env_name(credential_id), f"{prefix}_API_KEY")
+    api_key = _first(source, credential_sources)
     if not api_key:
         api_key = _first(source, provider.legacy_api_key_env)
 
@@ -84,7 +95,7 @@ def model_settings_payload(env: Mapping[str, str] | None = None) -> dict:
         roles[role_id] = {
             "provider": resolved.provider.provider_id,
             "model": resolved.model,
-            "credential_id": role_id,
+            "credential_id": _first(source, (f"{ROLE_ENV_PREFIX[role]}_CREDENTIAL_ID",)) or resolved.provider.provider_id,
             "endpoint_id": role_id,
             "required_capabilities": [required.value],
         }
@@ -144,6 +155,10 @@ def model_settings_env_values(payload: Mapping[str, object]) -> dict[str, str]:
         values[f"{prefix}_PROVIDER"] = provider.provider_id
         values[f"{prefix}_MODEL"] = model
 
+        credential_data = credentials.get(role_id) if isinstance(credentials.get(role_id), Mapping) else {}
+        credential_id = str(role_data.get("credential_id", "") or provider.provider_id).strip()
+        values[f"{prefix}_CREDENTIAL_ID"] = credential_id
+
         endpoint_data = endpoints.get(role_id) if isinstance(endpoints.get(role_id), Mapping) else {}
         endpoint = str(endpoint_data.get("base_url", "") or "").strip()
         endpoint = endpoint or provider.default_endpoint
@@ -153,10 +168,9 @@ def model_settings_env_values(payload: Mapping[str, object]) -> dict[str, str]:
             raise ValueError(f"{role_id} Base URL 必须以 http:// 或 https:// 开头")
         values[f"{prefix}_BASE_URL"] = endpoint.rstrip("/")
 
-        credential_data = credentials.get(role_id) if isinstance(credentials.get(role_id), Mapping) else {}
         api_key = str(credential_data.get("api_key", "") or "").strip()
         if api_key:
-            values[f"{prefix}_API_KEY"] = api_key
+            values[credential_env_name(credential_id)] = api_key
 
     mode = str(payload.get("multimodal_mode", "split") or "split").strip().lower()
     if mode not in {"split", "native"}:

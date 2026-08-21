@@ -447,11 +447,11 @@ const toDateKey = (date: Date) => {
 };
 
 const heatColor = (total: number) => {
-  if (total <= 0) return 'bg-[#f5f5f7] border-[#e0e0e0]';
-  if (total === 1) return 'bg-[#dceeff] border-[#b8dcff]';
-  if (total <= 3) return 'bg-[#a8d4ff] border-[#7dbdff]';
-  if (total <= 7) return 'bg-[#3f97e8] border-[#237fca]';
-  return 'bg-[#0066cc] border-[#0057ad]';
+  if (total <= 0) return 'bg-[var(--heat-0-bg)] border-[var(--heat-0-border)]';
+  if (total === 1) return 'bg-[var(--heat-1-bg)] border-[var(--heat-1-border)]';
+  if (total <= 3) return 'bg-[var(--heat-2-bg)] border-[var(--heat-2-border)]';
+  if (total <= 7) return 'bg-[var(--heat-3-bg)] border-[var(--heat-3-border)]';
+  return 'bg-[var(--heat-4-bg)] border-[var(--heat-4-border)]';
 };
 
 const ActivityHeatmap = ({ daily, selectedDate, onSelectDate }: { daily: DailyDetail[]; selectedDate: string; onSelectDate: (date: string) => void }) => {

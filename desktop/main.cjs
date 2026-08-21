@@ -663,14 +663,7 @@ function createWindow() {
     height: 820,
     minWidth: 720,
     minHeight: 560,
-    titleBarStyle: 'hidden',
-    ...(process.platform !== 'darwin' ? {
-      titleBarOverlay: {
-        color: '#f4f5f7',
-        symbolColor: '#4b4d50',
-        height: 64,
-      },
-    } : {}),
+    ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' } : { frame: false }),
     show: false,
     backgroundColor: '#f5f5f7',
     title: 'Texa',

@@ -535,19 +535,17 @@ const ChatPage: React.FC = () => {
                   onAddExpression={handleAddMathExpression}
                   onUpdateExpression={handleUpdateMathExpression}
                 />
-                {messages.length > 0 && (
-                  <ComposerOverflowMenu>
-                    {(close) => (
-                      <>
-                        <button role="menuitem" type="button" onClick={() => { close(); void showReport('daily'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'daily' ? '整理日报' : '学习日报'}</button>
-                        <button role="menuitem" type="button" onClick={() => { close(); void showReport('weekly'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'weekly' ? '整理周报' : '学习周报'}</button>
-                        <button role="menuitem" type="button" onClick={() => { close(); void pickRandomExercise(); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><Shuffle className="h-3.5 w-3.5" />{actionLoading === 'exercise' ? '抽题中' : '随机抽题'}</button>
-                        <button role="menuitem" type="button" onClick={() => { close(); openHighlightDialog(); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><BookMarked className="h-3.5 w-3.5" />查看/生成重点</button>
-                        <button role="menuitem" type="button" onClick={() => { close(); openMistakeQuickCapture(); }} className="composer-overflow-item"><ImagePlus className="h-3.5 w-3.5" />错题速录</button>
-                      </>
-                    )}
-                  </ComposerOverflowMenu>
-                )}
+                <ComposerOverflowMenu>
+                  {(close) => (
+                    <>
+                      <button role="menuitem" type="button" onClick={() => { close(); void showReport('daily'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'daily' ? '整理日报' : '学习日报'}</button>
+                      <button role="menuitem" type="button" onClick={() => { close(); void showReport('weekly'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'weekly' ? '整理周报' : '学习周报'}</button>
+                      <button role="menuitem" type="button" onClick={() => { close(); void pickRandomExercise(); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><Shuffle className="h-3.5 w-3.5" />{actionLoading === 'exercise' ? '抽题中' : '随机抽题'}</button>
+                      <button role="menuitem" type="button" onClick={() => { close(); openHighlightDialog(); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><BookMarked className="h-3.5 w-3.5" />查看/生成重点</button>
+                      <button role="menuitem" type="button" onClick={() => { close(); openMistakeQuickCapture(); }} className="composer-overflow-item"><ImagePlus className="h-3.5 w-3.5" />错题速录</button>
+                    </>
+                  )}
+                </ComposerOverflowMenu>
               </div>
               {isLoading || attachmentLoading ? (
                 <button type="button" onClick={attachmentLoading ? stopVisualQuestion : stop} className="composer-send is-stopping" aria-label="停止生成" title="停止生成">

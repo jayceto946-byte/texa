@@ -30,6 +30,7 @@ declare global {
   interface Window {
     kaoyanDesktop?: {
       isElectron: boolean;
+      platform?: 'win32' | 'darwin' | 'linux' | string;
       minimize: () => Promise<void>;
       isMaximized?: () => Promise<boolean>;
       toggleMaximize: () => Promise<boolean>;
