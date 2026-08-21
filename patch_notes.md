@@ -1,3 +1,34 @@
+# 2026-08-21 - 记事本与灰白黑外观主题
+
+- 新增“记事本”与“灰白黑”主题。记事本采用温和纸面、墨色正文与暗金操作色；灰白黑采用中性壳层分区与黑色操作信号，不复制参考产品的具体色值或布局。
+- 两套主题继续使用矿物、石墨和陶土相同的语义 token 合同，完整覆盖选择态、滚动条和学习热力图；切换即时生效并保存在当前设备。
+- 扩展主题注册表与 Texa UI 契约测试；Electron 运行态已覆盖外观列表、两套主题切换、空会话与历史对话工作区。
+
+# 2026-08-21 - 语义主题色与外观切换
+
+- 将默认强调色从通用淡蓝调整为低饱和矿物绿，并重新校准冷中性背景、边框、正文层级、选择态和焦点态，降低默认 Web UI 与 Toy Project 感。
+- 新增“矿物 / 石墨 / 陶土”三套浅色主题。设置页新增“外观”入口，选择后立即应用并保存在当前设备；主题通过统一注册表映射语义 token，后续可继续增加皮肤而无需改写业务组件。
+- 学习活动热力图与表单焦点不再写死蓝色，改为消费主题 token；补充主题注册表单元测试与 Texa UI 契约约束。
+
+# 2026-08-21 - 新会话“更多”菜单可用性修复
+
+- 修复聊天输入框的“更多”菜单只在已有消息时渲染的问题；新建空会话现在也可直接使用学习日报、学习周报、随机抽题、查看/生成重点和错题速录。
+- 新增 UI 契约回归约束，避免再次把 Composer 的 OverflowMenu 与 `messages.length` 绑定。
+- 验证：前端定向 Vitest 9 项、ESLint、TypeScript 与 Vite 生产构建通过；Electron 在普通窗口和最大化宽屏下实测空会话可见并可展开“更多”菜单。
+
+# 2026-08-20 - 模型方案管理与 Provider 切换状态修复
+
+- 修复模型配置页切换 Provider 时清空 `configured` 状态的问题。Credential 改为独立槽位，同一 Provider 切走再切回会恢复已保存状态；显式槽位不会误用其他 Provider 遗留的角色密钥。
+- 新增本地模型方案管理：方案可命名、保存、删除和一键启用，可组合推理模型、识图模型与 split/native 图片模式。方案结构保存在 `data/model_profiles.json`，API Key 仍只写入 `.env`，不会进入方案文件或接口响应。
+- Provider 与模型方案改为带前后控制、snap 定位的横向滑动列表；自定义 OpenAI-compatible 被选中时立即显示服务地址和可选 API Key。
+- native 图片模式下连接名称改为“普通问答连接 / 图片任务连接”；移除模型页说明卡、角色副标题和重复小字，保留单一保存动作。
+
+## Validation
+
+- Python 全量回归 486 项通过；Frontend ESLint、Vitest 18 files / 83 tests、TypeScript + Vite production build 通过。
+- 本地隔离后端实测：Moonshot/Kimi → Qwen → Moonshot/Kimi 后 API Key 仍显示“已配置”；自定义 OpenAI-compatible 选中后同层立即出现服务地址；native 模式连接显示为“普通问答连接 / 图片任务连接”。
+- 1280×800 与 1600×900 两轮截图复核通过：方案/Provider 滑动轨道不产生页面横向溢出，主层级无说明卡、角色副标题或小号模板文案。
+
 # 2026-08-20 - 模型角色配置与 Multi-Provider 调用层解耦
 
 - 新增 Provider 注册表、模型角色解析和 Transport 工厂，业务调用不再通过 `if provider == ...` 创建 SDK 客户端；内置 DeepSeek、Moonshot/Kimi、Qwen、Gemini、OpenAI、Ollama 与自定义 OpenAI-compatible 配置。
@@ -2217,3 +2248,21 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 后端全量 pytest：475 passed；仅保留既有 Starlette/httpx2 弃用警告。教材 policy、resource group、hybrid rerank、EvidencePack、citation 与 evidence continuity 定向集合为 50 passed。
 - Desktop `main.cjs`、`preload.cjs`、`runtime.cjs` 语法检查通过。
 - Electron 实机重启到新资源后，展开态折叠按钮与折叠态展开按钮均实际点击成功；1280×720、720×720 与 1600×900 运行态截图覆盖层级、密度和多宽度布局。`git diff --check` 无空白错误。
+# 2026-08-21 模型目录、连接测试与桌面窗口反馈
+
+- 模型配置把固定输入改为“常用官方 model id + 自定义 model id”，补充 DeepSeek V4、Qwen 3.5–3.8、Gemini 3.6/3.7 与 OpenAI GPT-5.4/5.6 系列候选，同时保留既有默认与兼容别名，避免升级破坏当前配置。
+- 新增不落盘的模型连接测试。测试直接使用表单中的 Provider、Endpoint、Credential 与 model id 发起最小调用，确保自定义模型名会进入实际请求；错误信息会过滤表单中的密钥。
+- 教材库页移除标题下重复说明；Windows/Linux 桌面端恢复自绘最小化、最大化与关闭按钮，并为 hover、press、最大化状态增加短反馈动效，减少动态效果模式下关闭过渡。
+- 验证：Python 全量测试 `489 passed`；前端 `83 passed`、ESLint 与生产构建通过；Electron 运行时 `3 passed`。浏览器实测覆盖常用型号列表、自定义 model id 输入与测试按钮启用、教材库标题区域。Electron 窗口成功启动，但 Windows 自动化截图授权超时，因此窗口动效以运行时测试和代码检查为准。
+
+## 2026-08-21 教材库文字层级收口
+
+- 教材库移除重复的分类、归档和检索机制说明，教材角色文案压缩为直接结果；常规标签、角色选择、输入与操作统一使用 14px 的 `type-control` / `type-body`，仅计数、状态和存储名保留 12px 辅助层级。
+- 教材行在普通笔记本宽度改为单列，在宽屏恢复双列，避免归属和资料组控件被压缩。Anti-slop 结果：重复说明与 11px 文字 `REMOVED`，逐行机制解释 `REDUCED`，计数、当前状态与存储名 `JUSTIFIED`。
+- 验证：前端 Vitest `19 files / 87 tests passed`，ESLint、TypeScript 与 Vite production build 通过；浏览器实测覆盖 1280×720 和 1600×900，两种宽度均无横向溢出，教材行标签、输入、下拉和角色按钮计算字号均为 14px。
+
+## 2026-08-21 模型与教材归属滚动列表
+
+- 新增模型与教材归属共用的 `ScrollableSelect`：浮层使用常驻原生纵向滚动槽，可滚轮滚动并拖动滑块；选项支持分组、当前项、14px Texa 控件字体和悬停阴影。
+- 补齐方向键、Home/End、Enter、Escape、Tab、外部点击关闭、焦点返回和视口边界定位；教材归属沿用现有学科数据，但未修改学科树或全局 `ScopeSelector`。
+- 验证：前端 Vitest `19 files / 87 tests passed`，ESLint、TypeScript 与 Vite production build 通过；1280×720 和 1600×900 浏览器实测无横向溢出，长教材归属列表滚动位置可变，运行日志无 error/warn。
