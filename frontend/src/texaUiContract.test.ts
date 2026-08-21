@@ -45,6 +45,17 @@ describe('Texa product UI contract', () => {
     expect(learningContext).toContain('sessionScopeLabel');
   });
 
+  it('keeps visited routes and the learning context mounted without route loading copy', () => {
+    expect(app).not.toContain('lazy(');
+    expect(shell).toContain('<PersistentRouteOutlet />');
+    expect(shell).toContain('setCachedOutlets(renderedOutlets)');
+    expect(shell).toContain('className="persistent-route-panel"');
+    expect(shell).toContain('hidden={!isLearningWorkspace || !contextOpen}');
+    expect(shell).not.toContain('正在打开页面');
+    expect(learningContext).toContain('conversationCacheKey');
+    expect(learningContext).toContain('writeCache(cacheKey, rows)');
+  });
+
   it('keeps the composer as one responsive surface with an internal overflow menu', () => {
     expect(chatPage).toContain('className="composer-surface"');
     expect(chatPage).toContain('className="composer-toolbar"');

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import { AlertTriangle, FileText, Loader2, PanelLeftOpen, RotateCw } from 'lucide-react';
 import { get } from '../api/client';
 import { useChatContext } from '../contexts/ChatContext';
@@ -13,6 +13,40 @@ import { useInspector } from '../contexts/InspectorContext';
 function layoutSnapshot() {
   const width = typeof window === 'undefined' ? 1280 : window.innerWidth || 1280;
   return { compact: width <= 760, contextOverlay: width < 920 };
+}
+
+function PersistentRouteOutlet() {
+  const location = useLocation();
+  const outlet = useOutlet();
+  const routeKey = location.pathname;
+  const routeSignature = `${location.pathname}${location.search}${location.hash}`;
+  const [cachedOutlets, setCachedOutlets] = useState(() => new Map([
+    [routeKey, { signature: routeSignature, outlet }],
+  ]));
+  let renderedOutlets = cachedOutlets;
+
+  // Keep visited workspaces mounted so their lists, scroll positions, drafts and
+  // active streams survive navigation. The active outlet is replaced so router
+  // context (including search params) still stays current.
+  if (cachedOutlets.get(routeKey)?.signature !== routeSignature) {
+    renderedOutlets = new Map(cachedOutlets);
+    renderedOutlets.set(routeKey, { signature: routeSignature, outlet });
+    setCachedOutlets(renderedOutlets);
+  }
+
+  return Array.from(renderedOutlets.entries()).map(([key, cachedRoute]) => {
+    const active = key === routeKey;
+    return (
+      <section
+        key={key}
+        className="persistent-route-panel"
+        hidden={!active}
+        aria-hidden={!active || undefined}
+      >
+        {cachedRoute.outlet}
+      </section>
+    );
+  });
 }
 
 const MainLayout: React.FC = () => {
@@ -126,19 +160,18 @@ const MainLayout: React.FC = () => {
     >
       <AppRail />
 
-      {isLearningWorkspace && contextOpen && (
-        <LearningContextSidebar
-          subject={subject}
-          bookName={bookName}
-          conversationId={conversationId}
-          refreshKey={messages.length}
-          onClose={() => setContextOpen(false)}
-          onSubjectChange={setSubject}
-          onBookChange={switchBook}
-          onNewConversation={startNewConversation}
-          onLoadConversation={loadExistingConversation}
-        />
-      )}
+      <LearningContextSidebar
+        hidden={!isLearningWorkspace || !contextOpen}
+        subject={subject}
+        bookName={bookName}
+        conversationId={conversationId}
+        refreshKey={messages.length}
+        onClose={() => setContextOpen(false)}
+        onSubjectChange={setSubject}
+        onBookChange={switchBook}
+        onNewConversation={startNewConversation}
+        onLoadConversation={loadExistingConversation}
+      />
 
       {isLearningWorkspace && contextOpen && contextOverlay && (
         <button type="button" className="context-sidebar-scrim" onClick={() => setContextOpen(false)} aria-label="关闭学习上下文" />
@@ -169,7 +202,7 @@ const MainLayout: React.FC = () => {
             </div>
           )}
           <div className="app-route-stage">
-            <Outlet />
+            <PersistentRouteOutlet />
           </div>
         </main>
         <ContextInspector />

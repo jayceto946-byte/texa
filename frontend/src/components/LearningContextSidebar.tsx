@@ -15,6 +15,30 @@ type ConversationSummary = {
   message_count: number;
 };
 
+const BOOKS_CACHE_KEY = 'texa:learning-context:books:v1';
+
+function conversationCacheKey(query: string) {
+  return `texa:learning-context:conversations:v1:${query}`;
+}
+
+function readCache<T>(key: string): T | null {
+  try {
+    const cached = JSON.parse(window.localStorage.getItem(key) || 'null');
+    if (!cached || !Array.isArray(cached.value)) return null;
+    return cached.value as T;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache<T>(key: string, value: T) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify({ savedAt: Date.now(), value }));
+  } catch {
+    // The in-memory state remains authoritative when device storage is unavailable.
+  }
+}
+
 function relativeTime(value = '') {
   if (!value) return '';
   const time = new Date(value.replace(' ', 'T')).getTime();
@@ -26,6 +50,7 @@ function relativeTime(value = '') {
 }
 
 export default function LearningContextSidebar({
+  hidden = false,
   subject,
   bookName,
   conversationId,
@@ -36,6 +61,7 @@ export default function LearningContextSidebar({
   onNewConversation,
   onLoadConversation,
 }: {
+  hidden?: boolean;
   subject: string;
   bookName: string;
   conversationId: string;
@@ -46,13 +72,23 @@ export default function LearningContextSidebar({
   onNewConversation: () => void;
   onLoadConversation: (payload: { id: string; messages: ChatMessage[]; subject: string; bookName: string; page: ConversationPage | null }) => void;
 }) {
-  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
-  const [books, setBooks] = useState<TextbookRecord[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [books, setBooks] = useState<TextbookRecord[]>(() => readCache<TextbookRecord[]>(BOOKS_CACHE_KEY) || []);
 
   const subjectSuggestions = useMemo(() => Array.from(new Set(books.map((book) => book.subject || '').filter(Boolean))), [books]);
   const scopeBooks = useMemo(() => buildTextbookScopeOptions(books), [books]);
   const selectedScope = useMemo(() => scopeBooks.find((item) => scopeContainsBook(item, bookName)), [bookName, scopeBooks]);
+
+  const query = useMemo(() => {
+    const params = new URLSearchParams({ limit: '80' });
+    const groupedScope = (selectedScope?.sourceNames?.length || 0) > 1;
+    if (subject.trim() && !groupedScope) params.set('subject', subject.trim());
+    if (bookName.trim() && (selectedScope?.sourceNames?.length || 0) <= 1) params.set('book_name', bookName.trim());
+    return params.toString();
+  }, [bookName, selectedScope, subject]);
+  const groupedNamesKey = (selectedScope?.sourceNames || []).join('\0');
+  const initialConversations = readCache<ConversationSummary[]>(conversationCacheKey(query)) || [];
+  const [conversations, setConversations] = useState<ConversationSummary[]>(initialConversations);
+  const [loading, setLoading] = useState(initialConversations.length === 0);
 
   const sessionScopeLabel = (item: ConversationSummary) => {
     const sameSubject = (item.subject || '').trim() === (subject || '').trim();
@@ -66,9 +102,13 @@ export default function LearningContextSidebar({
   const loadBooks = useCallback(async () => {
     try {
       const res = await get('/books/list', 20000);
-      setBooks(res?.success ? res.data || [] : []);
+      if (res?.success) {
+        const nextBooks = res.data || [];
+        setBooks(nextBooks);
+        writeCache(BOOKS_CACHE_KEY, nextBooks);
+      }
     } catch {
-      setBooks([]);
+      // Keep the last successful snapshot visible while the backend recovers.
     }
   }, []);
 
@@ -79,30 +119,32 @@ export default function LearningContextSidebar({
     return () => window.removeEventListener('books:changed', onChanged);
   }, [loadBooks]);
 
-  const query = useMemo(() => {
-    const params = new URLSearchParams({ limit: '80' });
-    const groupedScope = (selectedScope?.sourceNames?.length || 0) > 1;
-    if (subject.trim() && !groupedScope) params.set('subject', subject.trim());
-    if (bookName.trim() && (selectedScope?.sourceNames?.length || 0) <= 1) params.set('book_name', bookName.trim());
-    return params.toString();
-  }, [bookName, selectedScope, subject]);
-
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    const cacheKey = conversationCacheKey(query);
+    const cachedRows = readCache<ConversationSummary[]>(cacheKey);
+    const groupedNames = groupedNamesKey ? groupedNamesKey.split('\0') : [];
+    if (cachedRows) {
+      setConversations(groupedNames.length > 1
+        ? cachedRows.filter((item) => groupedNames.includes(item.book_name))
+        : cachedRows);
+    } else {
+      setLoading(true);
+    }
     get(`/chat/conversations?${query}`, 20000)
       .then((res) => {
         if (cancelled) return;
-        const rows = res?.success ? res.data || [] : [];
-        const groupedNames = selectedScope?.sourceNames || [];
+        if (!res?.success) return;
+        const rows = res.data || [];
+        writeCache(cacheKey, rows);
         setConversations(groupedNames.length > 1
           ? rows.filter((item: ConversationSummary) => groupedNames.includes(item.book_name))
           : rows);
       })
-      .catch(() => { if (!cancelled) setConversations([]); })
+      .catch(() => undefined)
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [conversationId, query, refreshKey, selectedScope]);
+  }, [conversationId, groupedNamesKey, query, refreshKey]);
 
   const loadConversation = async (id: string) => {
     const res = await get(`/chat/conversations/${encodeURIComponent(id)}?limit=40`, 20000);
@@ -119,7 +161,7 @@ export default function LearningContextSidebar({
   };
 
   return (
-    <aside className="learning-context-sidebar" aria-label="学习上下文">
+    <aside className="learning-context-sidebar" aria-label="学习上下文" hidden={hidden}>
       <header className="learning-context-header">
         <h1 className="min-w-0 text-[16px] font-semibold text-text-primary">学习</h1>
         <div className="window-drag-region" aria-hidden="true" />
@@ -151,7 +193,7 @@ export default function LearningContextSidebar({
       <section className="learning-context-sessions" aria-labelledby="session-list-title">
         <div className="context-session-heading">
           <span id="session-list-title" className="context-section-label">历史记录</span>
-          <span className="type-caption text-text-tertiary">{loading ? '加载中' : conversations.length}</span>
+          <span className="type-caption text-text-tertiary">{loading && conversations.length === 0 ? '加载中' : conversations.length}</span>
         </div>
         <div className="context-session-list">
           {!loading && conversations.length === 0 && <p className="context-session-empty">当前范围暂无会话</p>}

@@ -843,6 +843,18 @@ body:has(.desktop-titlebar-marker) {
   overflow: hidden;
 }
 
+.persistent-route-panel {
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 0%;
+  overflow: hidden;
+}
+
+.persistent-route-panel:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+}
+
 .window-drag-region {
   min-width: 24px;
   align-self: stretch;
@@ -1127,6 +1139,10 @@ body:has(.desktop-titlebar-marker) .learning-workspace-header {
   flex-direction: column;
   border-right: 1px solid var(--color-border);
   background: var(--color-bg-secondary);
+}
+
+.learning-context-sidebar[hidden] {
+  display: none !important;
 }
 
 .learning-context-header {
