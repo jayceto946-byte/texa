@@ -80,7 +80,7 @@ def _register_builtins() -> None:
         provider_id="qwen", label="Qwen / 通义千问", transport="openai_compatible",
         capabilities=common | {Capability.VISION, Capability.REASONING},
         default_endpoint="https://dashscope.aliyuncs.com/compatible-mode/v1",
-        default_models={ModelRole.REASONING: "qwen-plus", ModelRole.VISION: "qwen-vl-plus"},
+        default_models={ModelRole.REASONING: "qwen3.7-plus", ModelRole.VISION: "qwen3.7-plus"},
         legacy_api_key_env=("DASHSCOPE_API_KEY",),
         legacy_endpoint_env=("DASHSCOPE_API_BASE",),
     ))
@@ -128,7 +128,9 @@ def _register_builtins() -> None:
             "extra_body": {"thinking": {"type": "disabled"}},
         }),
         ModelSpec("qwen", "qwen3.8-max", "Qwen 3.8 Max", common | {Capability.REASONING}),
-        ModelSpec("qwen", "qwen3.7-plus", "Qwen 3.7 Plus", common | {Capability.REASONING}),
+        ModelSpec("qwen", "qwen3.7-plus", "Qwen 3.7 Plus", common | {Capability.REASONING, Capability.VISION}, {
+            "extra_body": {"enable_thinking": True},
+        }),
         ModelSpec("qwen", "qwen3.5-plus", "Qwen 3.5 Plus", common | {Capability.REASONING}),
         ModelSpec("qwen", "qwen3.5-flash", "Qwen 3.5 Flash", common | {Capability.REASONING}),
         ModelSpec("qwen", "qwen-plus", "Qwen Plus（兼容别名）", common | {Capability.REASONING}),

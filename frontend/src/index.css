@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "HarmonyOS Sans SC";
+  src: url("/fonts/HarmonyOS_Sans_SC_Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HarmonyOS Sans SC";
+  src: url("/fonts/HarmonyOS_Sans_SC_Medium.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 500 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HarmonyOS Sans SC";
+  src: url("/fonts/HarmonyOS_Sans_SC_Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
 @theme {
   --color-bg-primary: #f2f4f1;
   --color-bg-secondary: #ecefea;
@@ -54,7 +78,7 @@
   --heat-4-border: #285448;
   --shadow-soft: none;
   --shadow-tight: none;
-  --font-app: "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+  --font-app: "HarmonyOS Sans SC", "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
   --font-math: "STIX Two Math", "Cambria Math", "Times New Roman", serif;
   --font-mono: "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Consolas, monospace;
   --font-note: "LXGW WenKai Screen", "KaiTi", serif;
@@ -552,8 +576,8 @@ select:focus {
   padding-inline: 12px;
 }
 .markdown-body strong {
-  /* 语义强调保留为 600；层级主要由标题与段落节奏建立。 */
-  font-weight: var(--weight-semibold);
+  /* Markdown 语义强调使用字体家族的独立 Bold 字形，与正文和标题明确区分。 */
+  font-weight: var(--weight-bold);
 }
 .markdown-body h1,
 .markdown-body h2,

@@ -30,6 +30,24 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
   const remembered = useRef<Record<string, { model: string; endpoint: string; credentialId: string; configured: boolean; apiKey: string }>>({});
   const profileRail = useRef<HTMLDivElement>(null);
   const providersById = useMemo(() => Object.fromEntries(value.providers.map((item) => [item.id, item])), [value.providers]);
+  const configuredRoles: ModelRoleId[] = value.multimodal_mode === 'native' ? ['vision'] : ['reasoning', 'vision'];
+
+  const changeMode = (mode: 'split' | 'native') => {
+    if (mode === 'split') {
+      onChange({ ...value, multimodal_mode: mode });
+      return;
+    }
+    onChange({
+      ...value,
+      multimodal_mode: mode,
+      roles: {
+        ...value.roles,
+        reasoning: { ...value.roles.vision, endpoint_id: 'reasoning' },
+      },
+      credentials: { ...value.credentials, reasoning: { ...value.credentials.vision } },
+      endpoints: { ...value.endpoints, reasoning: { ...value.endpoints.vision } },
+    });
+  };
 
   const selectProvider = (role: ModelRoleId, providerId: string) => {
     const current = value.roles[role];
@@ -46,11 +64,15 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
     const credentialId = previous?.credentialId || (providerId === 'openai_compatible'
       ? `${value.editing_profile_id || 'draft'}-${role}-custom`
       : providerId);
+    const nextRole = { ...current, provider: providerId, model: previous?.model || provider.default_models[role] || '', credential_id: credentialId };
+    const nextCredential = { configured: previous?.configured ?? Boolean(value.credential_status?.[credentialId]), required: provider.requires_api_key, api_key: previous?.apiKey || '' };
+    const nextEndpoint = { base_url: previous?.endpoint ?? provider.default_endpoint, is_default: !previous };
+    const syncIntegrated = value.multimodal_mode === 'native' && role === 'vision';
     onChange({
       ...value,
-      roles: { ...value.roles, [role]: { ...current, provider: providerId, model: previous?.model || provider.default_models[role] || '', credential_id: credentialId } },
-      credentials: { ...value.credentials, [role]: { configured: previous?.configured ?? Boolean(value.credential_status?.[credentialId]), required: provider.requires_api_key, api_key: previous?.apiKey || '' } },
-      endpoints: { ...value.endpoints, [role]: { base_url: previous?.endpoint ?? provider.default_endpoint, is_default: !previous } },
+      roles: { ...value.roles, [role]: nextRole, ...(syncIntegrated ? { reasoning: { ...nextRole, endpoint_id: 'reasoning' } } : {}) },
+      credentials: { ...value.credentials, [role]: nextCredential, ...(syncIntegrated ? { reasoning: { ...nextCredential } } : {}) },
+      endpoints: { ...value.endpoints, [role]: nextEndpoint, ...(syncIntegrated ? { reasoning: { ...nextEndpoint } } : {}) },
     });
   };
 
@@ -108,23 +130,27 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
         </div>
       </section>
 
+      <label className="block text-sm font-medium text-text-primary">图片任务处理方式<select value={value.multimodal_mode} onChange={(event) => changeMode(event.target.value as 'split' | 'native')} className={`${controlClass} mt-1.5`}><option value="split">识图 / 推理分离</option><option value="native">集成回复</option></select><span className="mt-1.5 block text-xs font-normal leading-5 text-text-secondary">{value.multimodal_mode === 'split' ? '识图模型提取题目与图形关系，再由推理模型生成回复。' : '一个多模态模型完成图片理解、推理与回复。'}</span></label>
+
       <div className="divide-y divide-border border-y border-border">
-        {(['reasoning', 'vision'] as ModelRoleId[]).map((role) => {
+        {configuredRoles.map((role) => {
           const meta = roleMeta[role];
+          const displayTitle = value.multimodal_mode === 'native' ? '集成模型' : meta.title;
           const roleValue = value.roles[role];
           const credential = value.credentials[role];
-          const providers = value.providers.filter((item) => item.capabilities.includes(meta.capability));
-          const models = value.models.filter((item) => item.provider === roleValue.provider && item.capabilities.includes(meta.capability));
+          const requiredCapabilities = value.multimodal_mode === 'native' ? ['text', 'vision'] : [meta.capability];
+          const providers = value.providers.filter((item) => requiredCapabilities.every((capability) => item.capabilities.includes(capability)));
+          const models = value.models.filter((item) => item.provider === roleValue.provider && requiredCapabilities.every((capability) => item.capabilities.includes(capability)));
           const isCustom = roleValue.provider === 'openai_compatible';
           const acceptsCredential = credential.required || isCustom;
           return (
             <fieldset key={role} className="space-y-4 py-5">
-              <legend className="text-base font-semibold text-text-primary">{meta.title}</legend>
-              <ProviderRail label={`${meta.title}服务商`} providers={providers} selected={roleValue.provider} onSelect={(providerId) => selectProvider(role, providerId)} />
+              <legend className="text-base font-semibold text-text-primary">{displayTitle}</legend>
+              <ProviderRail label={`${displayTitle}服务商`} providers={providers} selected={roleValue.provider} onSelect={(providerId) => selectProvider(role, providerId)} />
               <div className="grid gap-4 sm:grid-cols-2">
-                <ModelPicker role={role} model={roleValue.model} models={models} onChange={(model) => onChange({ ...value, roles: { ...value.roles, [role]: { ...roleValue, model } } })} />
-                {isCustom && <label className="text-sm font-medium text-text-primary">服务地址<input value={value.endpoints[role].base_url} onChange={(event) => onChange({ ...value, endpoints: { ...value.endpoints, [role]: { base_url: event.target.value, is_default: false } } })} placeholder="https://example.com/v1" className={`${controlClass} mt-1.5`} spellCheck={false} /></label>}
-                <label className={`text-sm font-medium text-text-primary ${isCustom ? 'sm:col-span-2' : ''}`}><span className="flex items-center gap-2"><KeyRound className="h-4 w-4" />API Key <span className={credential.configured ? 'text-[var(--success)]' : 'text-text-secondary'}>{credential.configured ? '已配置' : isCustom ? '可选' : credential.required ? '未配置' : '无需配置'}</span></span><input type="password" autoComplete="new-password" value={credential.api_key || ''} disabled={!acceptsCredential} onChange={(event) => onChange({ ...value, credentials: { ...value.credentials, [role]: { ...credential, api_key: event.target.value } } })} placeholder={acceptsCredential ? '留空保留现有密钥' : '无需填写'} className={`${controlClass} mt-1.5`} /></label>
+                <ModelPicker role={role} title={displayTitle} model={roleValue.model} models={models} onChange={(model) => onChange({ ...value, roles: { ...value.roles, [role]: { ...roleValue, model }, ...(value.multimodal_mode === 'native' ? { reasoning: { ...value.roles.reasoning, provider: roleValue.provider, model, credential_id: roleValue.credential_id } } : {}) } })} />
+                {isCustom && <label className="text-sm font-medium text-text-primary">服务地址<input value={value.endpoints[role].base_url} onChange={(event) => { const endpoint = { base_url: event.target.value, is_default: false }; onChange({ ...value, endpoints: { ...value.endpoints, [role]: endpoint, ...(value.multimodal_mode === 'native' ? { reasoning: { ...endpoint } } : {}) } }); }} placeholder="https://example.com/v1" className={`${controlClass} mt-1.5`} spellCheck={false} /></label>}
+                <label className={`text-sm font-medium text-text-primary ${isCustom ? 'sm:col-span-2' : ''}`}><span className="flex items-center gap-2"><KeyRound className="h-4 w-4" />API Key <span className={credential.configured ? 'text-[var(--success)]' : 'text-text-secondary'}>{credential.configured ? '已配置' : isCustom ? '可选' : credential.required ? '未配置' : '无需配置'}</span></span><input type="password" autoComplete="new-password" value={credential.api_key || ''} disabled={!acceptsCredential} onChange={(event) => { const nextCredential = { ...credential, api_key: event.target.value }; onChange({ ...value, credentials: { ...value.credentials, [role]: nextCredential, ...(value.multimodal_mode === 'native' ? { reasoning: { ...nextCredential } } : {}) } }); }} placeholder={acceptsCredential ? '留空保留现有密钥' : '无需填写'} className={`${controlClass} mt-1.5`} /></label>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <button type="button" onClick={() => void testConnection(role)} disabled={testingRole !== null || !roleValue.model.trim()} className="app-secondary-button min-h-9 px-3 text-sm">
@@ -138,13 +164,11 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
         })}
       </div>
 
-      <label className="block text-sm font-medium text-text-primary">图片任务<select value={value.multimodal_mode} onChange={(event) => onChange({ ...value, multimodal_mode: event.target.value as 'split' | 'native' })} className={`${controlClass} mt-1.5`}><option value="split">识图后交给推理模型</option><option value="native">识图模型直接解答</option></select></label>
-
       <div>
         <button type="button" aria-expanded={connectionsOpen} onClick={() => setConnectionsOpen((open) => !open)} className="app-secondary-button min-h-9 px-3 text-sm"><ChevronDown className={`h-4 w-4 transition-transform ${connectionsOpen ? 'rotate-180' : ''}`} />连接设置</button>
         {connectionsOpen && <div className="mt-3 grid gap-4 border-t border-border pt-4 sm:grid-cols-2">
-          {(['reasoning', 'vision'] as ModelRoleId[]).filter((role) => value.roles[role].provider !== 'openai_compatible').map((role) => {
-            const label = value.multimodal_mode === 'native' ? (role === 'reasoning' ? '普通问答连接' : '图片任务连接') : roleMeta[role].title;
+          {configuredRoles.filter((role) => value.roles[role].provider !== 'openai_compatible').map((role) => {
+            const label = value.multimodal_mode === 'native' ? '集成模型' : roleMeta[role].title;
             return <label key={role} className="text-sm font-medium text-text-primary">{label}<input value={value.endpoints[role].base_url} onChange={(event) => onChange({ ...value, endpoints: { ...value.endpoints, [role]: { base_url: event.target.value, is_default: false } } })} placeholder="https://example.com/v1" className={`${controlClass} mt-1.5`} spellCheck={false} /></label>;
           })}
         </div>}
@@ -153,7 +177,7 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
   );
 }
 
-function ModelPicker({ role, model, models, onChange }: { role: ModelRoleId; model: string; models: ModelSettingsValue['models']; onChange: (model: string) => void }) {
+function ModelPicker({ role, title, model, models, onChange }: { role: ModelRoleId; title: string; model: string; models: ModelSettingsValue['models']; onChange: (model: string) => void }) {
   const isSuggested = models.some((item) => item.id === model);
   const options = [
     ...models.map((item) => ({ value: item.id, label: item.label, description: item.label === item.id ? undefined : item.id })),
@@ -162,7 +186,7 @@ function ModelPicker({ role, model, models, onChange }: { role: ModelRoleId; mod
   return (
     <div className="space-y-3">
       <label className="block text-sm font-medium text-text-primary">常用型号</label>
-      <ScrollableSelect ariaLabel={`${roleMeta[role].title}常用型号`} value={isSuggested ? model : '__custom__'} options={options} onChange={(nextValue) => onChange(nextValue === '__custom__' ? '' : nextValue)} />
+      <ScrollableSelect ariaLabel={`${title}常用型号`} value={isSuggested ? model : '__custom__'} options={options} onChange={(nextValue) => onChange(nextValue === '__custom__' ? '' : nextValue)} />
       {!isSuggested && <label className="block text-sm font-medium text-text-primary">自定义模型名
         <input value={model} onChange={(event) => onChange(event.target.value)} placeholder={role === 'reasoning' ? '例如部署名或新模型 ID' : '例如视觉模型或本地部署名'} className={`${controlClass} mt-1.5`} autoComplete="off" spellCheck={false} />
       </label>}

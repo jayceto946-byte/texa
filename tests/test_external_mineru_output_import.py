@@ -7,6 +7,8 @@ import pytest
 def test_import_textbook_from_markdown_output(monkeypatch, tmp_path):
     from ingestion import mineru_importer
 
+    monkeypatch.setattr(mineru_importer.config, "PROGRESS_PATH", tmp_path / "progress")
+
     output_dir = tmp_path / "mineru_out"
     output_dir.mkdir()
     (output_dir / "book.md").write_text(
@@ -16,8 +18,17 @@ def test_import_textbook_from_markdown_output(monkeypatch, tmp_path):
     captured = []
 
     class FakeSplitter:
-        def split_chapter(self, title, text):
-            return [{"chapter": title, "chunk_index": 0, "content": text, "chunk_id": title}]
+        def split_canonical_book(self, book):
+            return [
+                {
+                    "chapter": block.section_path[0],
+                    "chunk_index": index,
+                    "content": block.text,
+                    "chunk_id": block.block_id,
+                }
+                for index, block in enumerate(book.blocks)
+                if block.block_type != "heading" and block.text.strip()
+            ]
 
     class FakeVectorStore:
         def build_chapter_store(self, title, chunks, chunk_roles=None, book_name=""):
@@ -31,6 +42,8 @@ def test_import_textbook_from_markdown_output(monkeypatch, tmp_path):
 
     assert result.used_mineru is True
     assert result.indexed_chunks == 2
+    assert result.canonical_book is not None
+    assert {block.block_type for block in result.canonical_book.blocks} >= {"heading", "paragraph"}
     assert [chapter["title"] for chapter in result.chapters] == ["第一章 绪论", "第二章 单纯形法"]
     assert [item[0] for item in captured] == ["第一章 绪论", "第二章 单纯形法"]
     assert {item[3] for item in captured} == {"demo"}

@@ -196,7 +196,7 @@ def _ordinal_value(question: str) -> int:
 
 def _compatible_kinds(question: str) -> set[str]:
     if "公式" in question or "式子" in question:
-        return {"formula"}
+        return {"formula", "list_item", "named_entity", "heading"}
     if "反例" in question:
         return {"counterexample"}
     if "道题" in question or "例题" in question:
@@ -216,6 +216,21 @@ def match_assistant_artifact(question: str, artifacts: list[dict]) -> dict[str, 
     """Return the newest compatible artifact referenced by the question."""
     if not artifacts:
         return None
+    if any(token in question for token in ("这些方法", "上述方法", "四个方法", "它们")):
+        newest_group = str(artifacts[-1].get("group_id") or "")
+        group = [
+            item for item in artifacts
+            if str(item.get("group_id") or "") == newest_group
+            and item.get("kind") in {"list_item", "named_entity", "heading"}
+        ]
+        if len(group) >= 2:
+            return {
+                "target": "、".join(str(item.get("target") or "") for item in group),
+                "kind": "artifact_group",
+                "ordinal": 0,
+                "turn_id": str(group[-1].get("turn_id") or ""),
+                "group_id": newest_group,
+            }
     kinds = _compatible_kinds(question)
     compatible = [item for item in artifacts if item.get("kind") in kinds]
     if not compatible:
@@ -245,7 +260,10 @@ def rewrite_artifact_reference(question: str, artifact: dict[str, Any]) -> str:
         return question.strip()
     result = question.strip()
 
-    if "这个结论" in result:
+    if kind == "artifact_group":
+        for token in ("这些方法", "上述方法", "四个方法", "它们"):
+            result = result.replace(token, target)
+    elif "这个结论" in result:
         result = result.replace("是这个结论", target).replace("这个结论", target)
     elif "刚才那道题" in result:
         result = result.replace("刚才那道题", f"刚才{target}那道题")
@@ -260,7 +278,7 @@ def rewrite_artifact_reference(question: str, artifact: dict[str, Any]) -> str:
     elif "前者" in result or "后者" in result:
         result = result.replace("前者", target).replace("后者", target)
     else:
-        ordinal_pattern = r"第[一二三四五六七八九十\d]+(?:个公式|个|点|道题|部分|行|步)"
+        ordinal_pattern = r"第[一二三四五六七八九十\d]+(?:个方法|个公式|个|点|道题|部分|行|步)"
         suffix = ""
         if kind == "example" and "道题" in result:
             suffix = "这道题"

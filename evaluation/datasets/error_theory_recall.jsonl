@@ -1,0 +1,22 @@
+{"id":"error_definition","book_name":"误差理论与数据处理","question":"测量误差是怎样定义的？","intent":"definition","required_points":["测得值与被测量的真值之间的差"],"answerable":true,"target_chapters":["第一章 绪论"]}
+{"id":"error_classification","book_name":"误差理论与数据处理","question":"误差按性质分为哪三类？","intent":"factual_recall","required_points":["系统误差","随机误差","粗大误差"],"answerable":true,"target_chapters":["第一章 绪论"]}
+{"id":"error_precision_dimensions","book_name":"误差理论与数据处理","question":"精度包括哪些方面？","intent":"factual_recall","required_points":["准确度","精密度","精确度"],"answerable":true,"target_chapters":["第一章 绪论"]}
+{"id":"error_significant_digits","book_name":"误差理论与数据处理","question":"教材如何定义有效数字？","intent":"definition","required_points":["第一位有效数字","最末一位数字","有效数字"],"answerable":true,"target_chapters":["第一章 绪论"]}
+{"id":"error_random_causes","book_name":"误差理论与数据处理","question":"随机误差产生的主要原因有哪些？","intent":"factual_recall","required_points":["测量装置方面的因素","环境方面的因素","人员方面的因素"],"answerable":true,"target_chapters":["第二章 误差的基本性质与处理"]}
+{"id":"error_std_four_methods","book_name":"误差理论与数据处理","question":"求标准差的四个方法是什么？","intent":"factual_recall","required_points":["贝塞尔","别捷尔斯法","极差法","最大误差法"],"answerable":true,"target_chapters":["第二章 误差的基本性质与处理"]}
+{"id":"error_maximum_error_formula","book_name":"误差理论与数据处理","question":"最大误差法怎样计算标准差？","intent":"formula","required_points":["最大误差法","K _ { n }","最大残余误差"],"answerable":true,"target_chapters":["第二章 误差的基本性质与处理"]}
+{"id":"error_system_detection","book_name":"误差理论与数据处理","question":"发现系统误差的七种方法有哪些？","intent":"factual_recall","required_points":["实验对比法","残余误差观察法","残余误差校核法","不同公式计算标准差比较法","计算数据比较法","秩和检验法","t检验法"],"answerable":true,"target_chapters":["第二章 误差的基本性质与处理"]}
+{"id":"error_romanovsky","book_name":"误差理论与数据处理","question":"罗曼诺夫斯基准则有什么特点？","intent":"factual_recall","required_points":["t检验准则","剔除一个可疑的测得值","t分布检验"],"answerable":true,"target_chapters":["第二章 误差的基本性质与处理"]}
+{"id":"error_weight_definition","book_name":"误差理论与数据处理","question":"不等精度测量中的权表示什么？","intent":"definition","required_points":["可靠程度","信赖程度"],"answerable":true,"target_chapters":["第二章 误差的基本性质与处理"]}
+{"id":"error_indirect_measurement","book_name":"误差理论与数据处理","question":"什么是间接测量和函数误差？","intent":"definition","required_points":["函数关系式","间接测量误差","函数误差"],"answerable":true,"target_chapters":["第三章 误差的合成与分配"]}
+{"id":"error_correlation_coefficient","book_name":"误差理论与数据处理","question":"误差相关系数的定义和取值范围是什么？","intent":"formula","required_points":["协方差","标准差","- 1","+ 1"],"answerable":true,"target_chapters":["第三章 误差的合成与分配"]}
+{"id":"error_uncertainty_definition","book_name":"误差理论与数据处理","question":"测量不确定度如何定义？","intent":"definition","required_points":["测量结果变化的不肯定","分散性","A类评定","B类评定"],"answerable":true,"target_chapters":["第四章 测量不确定度"]}
+{"id":"error_uncertainty_a","book_name":"误差理论与数据处理","question":"标准不确定度的A类评定采用什么方法？","intent":"factual_recall","required_points":["统计分析法","系列观测值","标准差"],"answerable":true,"target_chapters":["第四章 测量不确定度"]}
+{"id":"error_normal_equation","book_name":"误差理论与数据处理","question":"什么是最小二乘法的正规方程？","intent":"definition","required_points":["确定解的代数方程组","未知数的个数","法方程"],"answerable":true,"target_chapters":["第五章 线性测量的参数最小二乘法处理"]}
+{"id":"error_weighted_least_squares","book_name":"误差理论与数据处理","question":"不等精度线性测量的最小二乘条件是什么？","intent":"formula","required_points":["加权残余误差平方和","求导数并令其为0"],"answerable":true,"target_chapters":["第五章 线性测量的参数最小二乘法处理"]}
+{"id":"error_regression_vs_least_squares","book_name":"误差理论与数据处理","question":"回归分析和最小二乘法是什么关系？","intent":"comparison","required_points":["最小二乘原理是回归分析的主要理论基础","实际应用与扩展","显著性检验"],"answerable":true,"target_chapters":["第六章 回归分析"]}
+{"id":"error_autocorrelation","book_name":"误差理论与数据处理","question":"自相关函数用于反映随机过程的什么特性？","intent":"definition","required_points":["不同时刻之间的线性相关程度","相关函数或自相关函数"],"answerable":true,"target_chapters":["第七章 动态测试数据处理的基本方法"]}
+{"id":"error_ergodic_process","book_name":"误差理论与数据处理","question":"什么是各态历经随机过程？","intent":"definition","required_points":["足够长的时间内","许多次实验","平稳随机过程"],"answerable":true,"target_chapters":["第七章 动态测试数据处理的基本方法"]}
+{"id":"error_stationary_mean_variance","book_name":"误差理论与数据处理","question":"平稳随机过程的均值和方差有什么性质？","intent":"factual_recall","required_points":["均值和方差都是常数","方差等于τ为0的自相关函数值"],"answerable":true,"target_chapters":["第七章 动态测试数据处理的基本方法"]}
+{"id":"error_unanswerable_market","book_name":"误差理论与数据处理","question":"教材是否预测了2035年测量仪器的全球市场规模？","intent":"factual_recall","required_points":[],"answerable":false}
+{"id":"error_unanswerable_software","book_name":"误差理论与数据处理","question":"教材推荐使用哪个版本的Python进行最小二乘计算？","intent":"factual_recall","required_points":[],"answerable":false}

@@ -80,10 +80,10 @@ def test_build_index_from_chapters_writes_role_metadata(monkeypatch, tmp_path):
     captured = []
 
     class FakeSplitter:
-        def split_chapter(self, title, text):
+        def split_canonical_book(self, book):
             return [
-                {"chapter": title, "chunk_index": 0, "content": "定义 群是满足运算封闭性的集合。", "chunk_id": "c_def"},
-                {"chapter": title, "chunk_index": 1, "content": "例题 判断整数加法是否构成群。", "chunk_id": "c_ex"},
+                {"chapter": book.blocks[0].section_path[0], "chunk_index": 0, "page_idx": 1, "content": "定义 群是满足运算封闭性的集合。", "chunk_id": "c_def"},
+                {"chapter": book.blocks[0].section_path[0], "chunk_index": 1, "page_idx": 1, "content": "例题 判断整数加法是否构成群。", "chunk_id": "c_ex"},
             ]
 
     class FakeVectorStore:
@@ -125,6 +125,7 @@ def test_vector_store_collection_names_are_scoped_by_book():
     vs._map = {
         "legacy_col": {"chapter": chapter, "book_name": "", "schema_version": "1"},
         "scoped_col": {"chapter": chapter, "book_name": "book-a", "schema_version": "2"},
+        "retained_col": {"chapter": chapter, "book_name": "book-a", "schema_version": "5", "active": False},
     }
     assert vs._title_to_collection(chapter, "book-a") == "scoped_col"
     assert vs._title_to_collection(chapter, "book-b") == "legacy_col"

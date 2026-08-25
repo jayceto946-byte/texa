@@ -53,18 +53,42 @@ def test_named_profile_keeps_secret_out_of_profile_file(tmp_path, monkeypatch):
     assert "LLM_CREDENTIAL_DEEPSEEK_API_KEY=profile-secret" in env_path.read_text(encoding="utf-8")
 
 
-def test_profile_can_be_activated_with_one_request(tmp_path, monkeypatch):
+def test_integrated_profile_uses_one_model_for_both_compatible_roles(tmp_path, monkeypatch):
+    for key in (
+        "LLM_REASONING_PROVIDER", "LLM_REASONING_MODEL", "LLM_REASONING_CREDENTIAL_ID", "LLM_REASONING_BASE_URL",
+        "LLM_VISION_PROVIDER", "LLM_VISION_MODEL", "LLM_VISION_CREDENTIAL_ID", "LLM_VISION_BASE_URL",
+        "LLM_MULTIMODAL_MODE", "LLM_ACTIVE_PROFILE_ID",
+    ):
+        monkeypatch.setenv(key, os.environ.get(key, ""))
     monkeypatch.setattr(system, "ENV_PATH", tmp_path / ".env")
     monkeypatch.setattr(profiles, "PROFILE_PATH", tmp_path / "model_profiles.json")
     payload = model_settings_payload({})
-    payload.update({"id": "native-vision", "name": "图片直解", "multimodal_mode": "native"})
+    payload.update({"id": "integrated-vision", "name": "集成回复", "multimodal_mode": "native"})
+    payload["roles"]["vision"].update({"provider": "openai", "model": "gpt-4o-mini", "credential_id": "openai"})
+    payload["endpoints"]["vision"]["base_url"] = "https://api.openai.com/v1"
     system.save_model_profile({"profile": payload, "activate": False})
 
-    result = system.activate_model_profile("native-vision")
+    result = system.activate_model_profile("integrated-vision")
 
     assert result["success"] is True
-    assert result["data"]["active_profile_id"] == "native-vision"
+    assert result["data"]["active_profile_id"] == "integrated-vision"
     assert result["data"]["multimodal_mode"] == "native"
+    assert result["data"]["roles"]["reasoning"]["model"] == "gpt-4o-mini"
+    assert result["data"]["roles"]["vision"]["model"] == "gpt-4o-mini"
+
+
+def test_integrated_settings_ignore_a_separate_reasoning_model():
+    payload = model_settings_payload({})
+    payload["multimodal_mode"] = "native"
+    payload["roles"]["reasoning"].update({"provider": "deepseek", "model": "deepseek-v4-pro"})
+    payload["roles"]["vision"].update({"provider": "openai", "model": "gpt-4o-mini", "credential_id": "shared"})
+    payload["endpoints"]["vision"]["base_url"] = "https://api.openai.com/v1"
+
+    values = profiles.model_settings_env_values(payload)
+
+    assert values["LLM_REASONING_PROVIDER"] == "openai"
+    assert values["LLM_REASONING_MODEL"] == "gpt-4o-mini"
+    assert values["LLM_VISION_MODEL"] == "gpt-4o-mini"
 
 
 def test_saving_profile_migrates_existing_role_key_to_credential_slot(tmp_path, monkeypatch):

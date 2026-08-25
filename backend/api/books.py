@@ -27,6 +27,7 @@ from backend.services.book_chapters import (
 from backend.schemas import PreReadStatusOut
 from config import BOOKS_PATH, DATA_DIR, MINERU_OUTPUT_PATH, PROGRESS_PATH, VECTOR_DB_PATH
 from ingestion.background_reader import BackgroundReader
+from ingestion.document_ir import load_canonical_book, validate_canonical_book
 from ingestion.vector_store import get_vector_store
 from ingestion.mineru_importer import build_index_from_chapters, import_textbook, import_textbook_from_mineru_output, import_textbook_local
 from ingestion.pdf_parser import PDFParser
@@ -318,6 +319,16 @@ def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool,
         progress("started", "\u51c6\u5907\u5bfc\u5165\u6559\u6750", 3)
         result = import_textbook(pdf_path, book_name, toc_pages=toc_pages, require_mineru=require_mineru, on_progress=progress, parse_method=parse_method)
         _job_manager.raise_if_cancelled(job_id)
+        ingestion_report: dict = {}
+        ingestion_warning = ""
+        if result.canonical_book is not None:
+            try:
+                # The importer persists the canonical IR before index I/O. The
+                # API only exposes the deterministic report in job metadata.
+                report = validate_canonical_book(result.canonical_book)
+                ingestion_report = report.to_dict()
+            except Exception as exc:
+                ingestion_warning = str(exc)
         final_pdf = _promote_uploaded_pdf(pdf_path)
         _save_chapters(book_name, result.chapters)
         _write_book_meta(
@@ -325,6 +336,7 @@ def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool,
             subject=normalize_subject_value(subject),
             import_source="mineru" if result.used_mineru else "local_pdf",
             mineru_output_dir=result.output_dir,
+            canonical_ir_status=("ready" if ingestion_report.get("valid") else "needs_review") if ingestion_report else "unavailable",
         )
         _set_current_book(book_name, result.chapters, final_pdf)
         if pre_read and result.chapters and not result.used_mineru:
@@ -346,6 +358,8 @@ def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool,
                 "subject": _book_subject(book_name),
                 "concept_job_id": concept_job.get("id", "") if concept_job else "",
                 "concept_extraction_warning": concept_warning,
+                "ingestion_report": ingestion_report,
+                "ingestion_report_warning": ingestion_warning,
             },
         )
     except JobCancelled as exc:
@@ -392,11 +406,21 @@ def reindex_book(book_name: str):
         return {"success": False, "message": "No persisted textbook content found"}
     output_dir = safe_child_path(PROGRESS_PATH, name)
     try:
-        indexed = build_index_from_chapters(name, chapters, output_dir)
+        try:
+            canonical_book = load_canonical_book(name, progress_root=PROGRESS_PATH)
+        except FileNotFoundError:
+            canonical_book = None
+        indexed = build_index_from_chapters(
+            name,
+            chapters,
+            output_dir,
+            canonical_book=canonical_book,
+            canonical_progress_root=PROGRESS_PATH,
+        )
         stats = get_vector_store().get_book_index_stats(name)
     except Exception as exc:
         return {"success": False, "message": f"Reindex failed: {exc}"}
-    _write_book_meta(name, indexed_chunks=indexed, index_schema=4)
+    _write_book_meta(name, indexed_chunks=indexed, index_schema=5)
     return {
         "success": True,
         "message": f"Indexed {indexed} chunks",

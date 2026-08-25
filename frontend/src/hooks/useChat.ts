@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { AGENT_FALLBACK_TIMEOUT_MS, chatAsk, chatStream, post, runReadOnlyAgent } from '../api/client';
+import { chatAsk, chatStream } from '../api/client';
 import { useChatContext } from '../contexts/ChatContext';
 import type { AnswerMode, ConceptCandidate } from '../types';
-import { classifyLearningAgentIntent, learningAgentFallbackStatus, learningAgentStatus } from '../utils/learningAgentRouting';
 import { mergeChatActivity } from '../utils/chatActivities';
 
 const USE_NON_STREAMING = import.meta.env.VITE_USE_NON_STREAMING === 'true';
@@ -36,7 +35,6 @@ export function useChat() {
     (question: string, options: { answerMode?: AnswerMode } = {}) => {
       if (!question.trim() || isLoading) return;
 
-      const agentIntent = options.answerMode ? null : classifyLearningAgentIntent(question, Boolean(bookName));
       cancelActiveChat();
       const requestId = ++requestSequenceRef.current;
       const turnId = `turn_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
@@ -52,10 +50,10 @@ export function useChat() {
       setLoading(true);
       addMessage({
         role: 'assistant',
-        content: agentIntent ? learningAgentStatus(agentIntent) : '',
-        stage: agentIntent ? 'agent' : 'thinking',
+        content: '',
+        stage: 'thinking',
         turnId,
-        activities: agentIntent ? [{ id: 'agent', kind: 'tool', label: '调用学习工具', status: 'active', detail: learningAgentStatus(agentIntent) }] : [],
+        activities: [],
       });
 
       const fail = (message: string) => {
@@ -71,113 +69,6 @@ export function useChat() {
         } : last);
         setLoading(false);
       };
-
-      if (agentIntent) {
-        const ctrl = new AbortController();
-        setActiveChatAbort(() => {
-          requestSequenceRef.current += 1;
-          ctrl.abort();
-        });
-        (async () => {
-          try {
-            const result = await runReadOnlyAgent(
-              question,
-              bookName,
-              subject,
-              conversationId,
-              true,
-              ctrl.signal,
-            );
-            if (requestId !== requestSequenceRef.current) return;
-            if (!result.success || result.selected_tools.length === 0) {
-              throw new Error('没有找到适合当前任务的学习工具');
-            }
-            const content = result.answer.trim() || '学习工具已执行，但暂时没有生成文字总结。';
-            setActiveChatAbort(null);
-            updateLastMessage((last) => last.role === 'assistant' ? {
-              ...last,
-              content,
-              stage: 'done',
-              activities: mergeChatActivity(last.activities, {
-                id: 'agent', kind: 'tool', label: '调用学习工具', status: 'completed', detail: '学习工具执行完成',
-              }),
-              turnId,
-              originalQuestion: question,
-              agentCard: { question, response: result },
-            } : last);
-            try {
-              const logged = await post('/chat/log', {
-                conversation_id: conversationId,
-                book_name: bookName,
-                subject,
-                turn_id: turnId,
-                messages: [
-                  { role: 'user', content: question, turn_id: turnId },
-                  { role: 'assistant', content, turn_id: turnId },
-                ],
-              }, 15000);
-              if (requestId === requestSequenceRef.current && logged?.conversation_id) {
-                setConversationId(logged.conversation_id);
-              }
-            } catch {
-              // The in-memory Agent card remains usable if persistence is temporarily unavailable.
-            }
-            if (requestId === requestSequenceRef.current) setLoading(false);
-          } catch (agentError) {
-            if (ctrl.signal.aborted || requestId !== requestSequenceRef.current) return;
-            updateLastMessage((last) => last.role === 'assistant' ? {
-              ...last,
-              content: learningAgentFallbackStatus(),
-              stage: 'agent',
-              activities: mergeChatActivity(last.activities, {
-                id: 'agent', kind: 'tool', label: '调用学习工具', status: 'failed', detail: '工具路径不可用，正在降级为普通回答',
-              }),
-            } : last);
-            try {
-              const result = await chatAsk(
-                question,
-                bookName,
-                subject,
-                conversationId,
-                turnId,
-                ctrl.signal,
-                options.answerMode || 'auto',
-                AGENT_FALLBACK_TIMEOUT_MS,
-              );
-              if (requestId !== requestSequenceRef.current) return;
-              setActiveChatAbort(null);
-              if (result.conversation_id) setConversationId(result.conversation_id);
-              if (result.book_name || result.subject) syncRecoveredScope(result.book_name || '', result.subject || '');
-              updateLastMessage((last) => last.role === 'assistant' ? {
-                ...last,
-                content: result.content,
-                stage: 'done',
-                activities: mergeChatActivity(last.activities, {
-                  id: 'fallback', kind: 'generation', label: '生成普通回答', status: 'completed', detail: '降级回答已完成',
-                }),
-                linkedConcepts: result.linked_concepts || [],
-                sources: (result.sources || []).slice(0, 12),
-                sourceChapters: result.chapters || [],
-                turnId: result.turn_id || turnId,
-                id: result.message_id || last.id,
-                requestId: result.request_id || undefined,
-                subjectSuggestion: result.subject_suggestion,
-                answerMode: result.answer_mode,
-                suggestedAnswerMode: result.suggested_answer_mode,
-                scopeReason: result.scope_reason,
-                originalQuestion: question,
-              } : last);
-              setLoading(false);
-            } catch (fallbackError) {
-              if (ctrl.signal.aborted) return;
-              const agentMessage = agentError instanceof Error ? agentError.message : String(agentError);
-              const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
-              fail(`${agentMessage}；普通回答降级也失败：${fallbackMessage}`);
-            }
-          }
-        })();
-        return;
-      }
 
       if (USE_NON_STREAMING) {
         const ctrl = new AbortController();

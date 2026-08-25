@@ -33,8 +33,8 @@ def _first(env: Mapping[str, str], names: tuple[str, ...]) -> str:
 
 def _legacy_provider(role: ModelRole, env: Mapping[str, str]) -> str:
     if role is ModelRole.REASONING:
-        return _first(env, ("LLM_PROVIDER", "LLM_BACKEND")) or "deepseek"
-    return _first(env, ("VISION_PROVIDER",)) or "moonshot"
+        return _first(env, ("LLM_PROVIDER", "LLM_BACKEND")) or "qwen"
+    return _first(env, ("VISION_PROVIDER",)) or "qwen"
 
 
 def resolve_model_role(
@@ -109,6 +109,7 @@ def model_settings_payload(env: Mapping[str, str] | None = None) -> dict:
             "is_default": resolved.endpoint.rstrip("/") == resolved.provider.default_endpoint.rstrip("/"),
         }
 
+    mode = str(source.get("LLM_MULTIMODAL_MODE", "split") or "split").strip().lower()
     return {
         "providers": [{
             "id": item.provider_id,
@@ -127,7 +128,7 @@ def model_settings_payload(env: Mapping[str, str] | None = None) -> dict:
         "roles": roles,
         "credentials": credentials,
         "endpoints": endpoints,
-        "multimodal_mode": str(source.get("LLM_MULTIMODAL_MODE", "split") or "split").strip(),
+        "multimodal_mode": mode,
     }
 
 
@@ -135,6 +136,16 @@ def model_settings_env_values(payload: Mapping[str, object]) -> dict[str, str]:
     roles = payload.get("roles") if isinstance(payload.get("roles"), Mapping) else {}
     credentials = payload.get("credentials") if isinstance(payload.get("credentials"), Mapping) else {}
     endpoints = payload.get("endpoints") if isinstance(payload.get("endpoints"), Mapping) else {}
+    mode = str(payload.get("multimodal_mode", "split") or "split").strip().lower()
+    if mode not in {"split", "native"}:
+        raise ValueError("multimodal_mode 必须是 split 或 native")
+    if mode == "native":
+        integrated_role = roles.get(ModelRole.VISION.value) if isinstance(roles.get(ModelRole.VISION.value), Mapping) else {}
+        integrated_credentials = credentials.get(ModelRole.VISION.value) if isinstance(credentials.get(ModelRole.VISION.value), Mapping) else {}
+        integrated_endpoint = endpoints.get(ModelRole.VISION.value) if isinstance(endpoints.get(ModelRole.VISION.value), Mapping) else {}
+        roles = {**roles, ModelRole.REASONING.value: integrated_role}
+        credentials = {**credentials, ModelRole.REASONING.value: integrated_credentials}
+        endpoints = {**endpoints, ModelRole.REASONING.value: integrated_endpoint}
     values: dict[str, str] = {}
 
     for role in ModelRole:
@@ -172,8 +183,5 @@ def model_settings_env_values(payload: Mapping[str, object]) -> dict[str, str]:
         if api_key:
             values[credential_env_name(credential_id)] = api_key
 
-    mode = str(payload.get("multimodal_mode", "split") or "split").strip().lower()
-    if mode not in {"split", "native"}:
-        raise ValueError("multimodal_mode 必须是 split 或 native")
     values["LLM_MULTIMODAL_MODE"] = mode
     return values

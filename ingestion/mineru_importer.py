@@ -17,9 +17,11 @@ from typing import Any, Callable
 import config
 from ingestion.chapter_splitter import ChapterSplitter
 from ingestion.chunk_roles import assign_chunk_roles, load_kg_chunk_roles, role_distribution
-from ingestion.textbook_chunk import TextbookChunk, link_neighbors
+from ingestion.document_adapters import MinerUAdapter, PdfTextAdapter
+from ingestion.document_ir import CanonicalBook, persist_canonical_book, validate_canonical_book
 from ingestion.lexical_index import write_book_index
 from ingestion.index_pipeline import build_and_activate_book_index
+from ingestion.acceptance_probes import generate_acceptance_probes, persist_acceptance_probes
 from ingestion.mineru_client import MinerUClient
 from ingestion.pdf_parser import PDFParser
 from ingestion.vector_store import get_vector_store
@@ -35,6 +37,7 @@ class BookImportResult:
     indexed_chunks: int = 0
     output_dir: str = ""
     message: str = ""
+    canonical_book: CanonicalBook | None = None
 
 
 def import_textbook(
@@ -69,11 +72,17 @@ def import_textbook_local(
     if on_progress:
         on_progress("local_parse", "使用本地目录解析，扫描件正文不会 OCR", 35)
     chapters = _parse_chapters_locally(pdf_path, book_name, toc_pages)
+    canonical_book = PdfTextAdapter.from_chapters(
+        chapters, book_name=book_name, source_file=pdf_path.name,
+    )
     if on_progress:
         on_progress("indexing", "Building local textbook index", 75)
     output_dir = config.MINERU_OUTPUT_PATH / book_name / "local"
     output_dir.mkdir(parents=True, exist_ok=True)
-    indexed = build_index_from_chapters(book_name, chapters, output_dir)
+    indexed = build_index_from_chapters(
+        book_name, chapters, output_dir,
+        canonical_book=canonical_book, canonical_progress_root=config.PROGRESS_PATH,
+    )
     return BookImportResult(
         book_name=book_name,
         chapters=chapters,
@@ -81,6 +90,7 @@ def import_textbook_local(
         message="本地目录解析完成；扫描件正文未 OCR",
         indexed_chunks=indexed,
         output_dir=str(output_dir),
+        canonical_book=canonical_book,
     )
 
 
@@ -107,7 +117,11 @@ def import_textbook_from_mineru_output(
 
     if on_progress:
         on_progress("indexing", "Building local chapter vector index", 70)
-    indexed = build_index_from_chapters(book_name, chapters, output_dir)
+    canonical_book = _canonical_mineru_book(output_dir, chapters, book_name)
+    indexed = build_index_from_chapters(
+        book_name, chapters, output_dir,
+        canonical_book=canonical_book, canonical_progress_root=config.PROGRESS_PATH,
+    )
     return BookImportResult(
         book_name=book_name,
         chapters=chapters,
@@ -115,6 +129,7 @@ def import_textbook_from_mineru_output(
         indexed_chunks=indexed,
         output_dir=str(output_dir),
         message=f"External OCR output imported; indexed {indexed} text chunks",
+        canonical_book=canonical_book,
     )
 
 def _import_with_mineru(pdf_path: Path, book_name: str, on_progress: ProgressCallback | None) -> BookImportResult:
@@ -146,12 +161,22 @@ def _import_with_mineru(pdf_path: Path, book_name: str, on_progress: ProgressCal
     if on_progress:
         on_progress("structure", "整理章节和正文块", 70)
     chapters = chapters_from_mineru_output(output_dir, book_name)
+    used_mineru_output = bool(chapters)
     if not chapters:
         chapters = _parse_chapters_locally(pdf_path, book_name, "")
 
     if on_progress:
         on_progress("indexing", "写入章节向量索引", 84)
-    indexed = build_index_from_chapters(book_name, chapters, output_dir)
+    canonical_book = (
+        _canonical_mineru_book(output_dir, chapters, book_name)
+        if used_mineru_output else PdfTextAdapter.from_chapters(
+            chapters, book_name=book_name, source_file=pdf_path.name,
+        )
+    )
+    indexed = build_index_from_chapters(
+        book_name, chapters, output_dir,
+        canonical_book=canonical_book, canonical_progress_root=config.PROGRESS_PATH,
+    )
 
     return BookImportResult(
         book_name=book_name,
@@ -160,6 +185,7 @@ def _import_with_mineru(pdf_path: Path, book_name: str, on_progress: ProgressCal
         indexed_chunks=indexed,
         output_dir=str(output_dir),
         message=f"MinerU 解析完成，已索引 {indexed} 个文本块",
+        canonical_book=canonical_book,
     )
 
 
@@ -180,7 +206,11 @@ def _import_with_mineru_cli(pdf_path: Path, book_name: str, on_progress: Progres
         raise RuntimeError("MinerU CLI 未生成可识别的 content_list/middle 输出")
     if on_progress:
         on_progress("indexing", "写入章节向量索引", 84)
-    indexed = build_index_from_chapters(book_name, chapters, output_dir)
+    canonical_book = _canonical_mineru_book(output_dir, chapters, book_name)
+    indexed = build_index_from_chapters(
+        book_name, chapters, output_dir,
+        canonical_book=canonical_book, canonical_progress_root=config.PROGRESS_PATH,
+    )
     return BookImportResult(
         book_name=book_name,
         chapters=chapters,
@@ -188,6 +218,7 @@ def _import_with_mineru_cli(pdf_path: Path, book_name: str, on_progress: Progres
         indexed_chunks=indexed,
         output_dir=str(output_dir),
         message=f"MinerU CLI 解析完成，已索引 {indexed} 个文本块",
+        canonical_book=canonical_book,
     )
 
 def _parse_chapters_locally(pdf_path: Path, book_name: str, toc_pages: str) -> list[dict]:
@@ -199,6 +230,14 @@ def _parse_chapters_locally(pdf_path: Path, book_name: str, toc_pages: str) -> l
     if not chapters:
         chapters = [{"title": f"{book_name} (全文)", "page_number": 1, "end_page": 0, "text": ""}]
     return chapters
+
+
+def _canonical_mineru_book(output_dir: Path, chapters: list[dict], book_name: str) -> CanonicalBook:
+    """Prefer MinerU's source blocks; retain a chapter adapter fallback."""
+    canonical = MinerUAdapter.from_output_dir(output_dir, book_name=book_name)
+    if canonical.blocks:
+        return canonical
+    return MinerUAdapter.from_chapters(chapters, book_name=book_name, source_file=Path(output_dir).name)
 
 
 def chapters_from_mineru_output(output_dir: Path, book_name: str) -> list[dict]:
@@ -427,49 +466,76 @@ def _coalesce_external_ocr_chapters(chapters: list[dict], book_name: str) -> lis
     ]
 
 
-def build_index_from_chapters(book_name: str, chapters: list[dict], output_dir: Path) -> int:
+def build_index_from_chapters(
+    book_name: str,
+    chapters: list[dict],
+    output_dir: Path,
+    *,
+    canonical_book: CanonicalBook | None = None,
+    canonical_progress_root: str | Path | None = None,
+) -> int:
+    """Build every textbook index from the canonical Document IR contract.
+
+    ``chapters`` remains a compatibility input for maintenance/tests, but it is
+    adapted to ``CanonicalBook`` at this boundary. There is no independent
+    chapter-string splitter/index path after this point.
+    """
     chapters = _coalesce_external_ocr_chapters(chapters, book_name)
     splitter = ChapterSplitter()
-    vs = get_vector_store()
-    kg_roles = load_kg_chunk_roles(book_name)
     all_chunks: list[dict] = []
     chapter_groups: list[tuple[str, list[dict], dict[str, str]]] = []
 
-    for chapter in chapters:
-        title = chapter.get("title") or book_name
-        text = chapter.get("text", "")
-        if not text.strip():
-            continue
-        native_rows = chapter.get("chunks") if isinstance(chapter.get("chunks"), list) else []
-        chunks = []
-        if native_rows:
-            for native_index, source in enumerate(native_rows):
-                model = TextbookChunk.from_source(
-                    source, book_name=book_name, chapter=title, chunk_index=native_index,
-                )
-                if model is not None:
-                    chunks.append(model.to_dict())
-            link_neighbors(chunks)
-        else:
-            try:
-                chunks = splitter.split_chapter(title, text, book_name=book_name)
-            except TypeError:
-                chunks = splitter.split_chapter(title, text)
-            for chunk in chunks:
-                chunk["section_title"] = chunk.get("section_title") or title
-                chunk["page_idx"] = max(int(chapter.get("page_number", 1) or 1) - 1, 0)
+    if canonical_book is None:
+        has_native_blocks = any(
+            isinstance(chapter.get("chunks"), list) and chapter.get("chunks")
+            for chapter in chapters
+        )
+        adapter = MinerUAdapter if has_native_blocks else PdfTextAdapter
+        canonical_book = adapter.from_chapters(
+            chapters,
+            book_name=book_name,
+            source_file=str(Path(output_dir).name),
+        )
+    report = validate_canonical_book(canonical_book)
+    if not report.valid:
+        errors = [issue.code for issue in report.issues if issue.severity == "error"]
+        raise RuntimeError(f"canonical textbook failed ingestion validation: {errors}")
+    if canonical_progress_root is not None:
+        # The durable IR and its intake report are the release gate. No vector
+        # or lexical asset is touched before both files exist.
+        persist_canonical_book(canonical_book, progress_root=canonical_progress_root)
+        probe_report = persist_acceptance_probes(
+            canonical_book, progress_root=canonical_progress_root,
+        )
+    else:
+        probe_report = generate_acceptance_probes(canonical_book)
 
-        source_roles = {str(chunk.get("chunk_id") or ""): str(chunk.get("role") or "") for chunk in chunks if chunk.get("role") not in {None, "", "reference"}}
+    vs = get_vector_store()
+    kg_roles = load_kg_chunk_roles(book_name)
+
+    def add_group(title: str, chunks: list[dict]) -> None:
+        if not chunks:
+            return
+        source_roles = {
+            str(chunk.get("chunk_id") or ""): str(chunk.get("role") or "")
+            for chunk in chunks if chunk.get("role") not in {None, "", "reference"}
+        }
         chunk_roles = assign_chunk_roles(chunks, {**source_roles, **kg_roles})
         for chunk in chunks:
             chunk_id = chunk.get("chunk_id", "")
             chunk["role"] = chunk_roles.get(chunk_id, "reference")
-
         chapter_groups.append((title, chunks, chunk_roles))
         distribution = role_distribution(chunk_roles)
         if distribution:
             print(f"[index] {title}: roles {distribution}", flush=True)
         all_chunks.extend(chunks)
+
+    grouped: dict[str, list[dict]] = {}
+    for chunk in splitter.split_canonical_book(canonical_book):
+        title = str(chunk.get("chapter") or book_name)
+        grouped.setdefault(title, []).append(chunk)
+    for title, chunks in grouped.items():
+        add_group(title, chunks)
 
     if all_chunks:
         (output_dir / f"{book_name}_middle_chunks.json").write_text(
@@ -480,6 +546,8 @@ def build_index_from_chapters(book_name: str, chapters: list[dict], output_dir: 
                 vs, book_name,
                 [(title, group) for title, group, _roles in chapter_groups],
                 all_chunks,
+                acceptance_probes=probe_report["cases"],
+                specialty_inventory=probe_report["inventory"],
             )
             if int(manifest.get("chunk_count", 0)) != len(all_chunks):
                 raise RuntimeError("activated textbook index failed manifest validation")

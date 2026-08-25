@@ -5,12 +5,21 @@ Pipeline: 获取内容 → 【并行】提炼重点 / 出题 / 生成讲解+总�
 """
 import json
 from concurrent.futures import ThreadPoolExecutor
+from langchain_core.messages import HumanMessage, SystemMessage
 from config import get_llm
 from graph.conversation_context import prepare_conversation_context
 from graph.safe_retrieval import get_safe_vector_store
 from knowledge.summary_store import SummaryStore
 from utils.latex_sanitizer import sanitize_latex
 from utils.thinking_filter import strip_thinking
+from graph.teaching_prompts import (
+    MINIMAL_TEACHING_PROMPT,
+    REFINED_TEACHING_PROMPT,
+    active_teaching_prompt_version,
+    minimal_teaching_prompt_enabled,
+    refined_teaching_prompt_enabled,
+    teaching_prompt_mode,
+)
 
 EXTRACT_KEYPOINTS_PROMPT = """基于以下章节内容，提取考研重点：
 
@@ -153,14 +162,47 @@ def chapter_subgraph_run(state: dict) -> dict:
         )
         from graph.generator import _record_context_budget
 
-        _record_context_budget(
-            state,
-            teach_prompt,
-            assembly_mode="teach",
-            query_text=str(state.get("user_input") or ""),
-            teaching_text=content[:6000],
-        )
-        resp = llm.invoke(teach_prompt)
+        if minimal_teaching_prompt_enabled() or refined_teaching_prompt_enabled():
+            minimal_payload = (
+                f"## 学习任务\n讲解“{chapter}”\n\n"
+                f"## 教材证据\n{content[:6000]}\n\n"
+                f"## 当前学习上下文\n{conversation_text or '(none)'}\n\n"
+                "## 引用协议\n若使用某条教材证据支持具体结论，请在该句末输出其真实编号，"
+                "格式为 [[cite:E1]]；不要生成不存在的编号。"
+            )
+            compact_system = (
+                MINIMAL_TEACHING_PROMPT
+                if minimal_teaching_prompt_enabled()
+                else REFINED_TEACHING_PROMPT
+            )
+            _record_context_budget(
+                state,
+                f"{compact_system}\n\n{minimal_payload}",
+                assembly_mode=f"teach_{teaching_prompt_mode()}",
+                query_text=str(state.get("user_input") or ""),
+                teaching_text=content[:6000],
+            )
+            budget = state.get("context_budget")
+            if isinstance(budget, dict):
+                budget.update({
+                    "message_roles": ["system", "human"],
+                    "system_message_chars": len(compact_system),
+                    "human_message_chars": len(minimal_payload),
+                    "prompt_version": active_teaching_prompt_version(),
+                })
+            resp = llm.invoke([
+                SystemMessage(content=compact_system),
+                HumanMessage(content=minimal_payload),
+            ])
+        else:
+            _record_context_budget(
+                state,
+                teach_prompt,
+                assembly_mode="teach_legacy",
+                query_text=str(state.get("user_input") or ""),
+                teaching_text=content[:6000],
+            )
+            resp = llm.invoke(teach_prompt)
         full_output = resp.content
         teaching = sanitize_latex(full_output)
         summary = ""

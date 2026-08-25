@@ -132,6 +132,98 @@ def test_support_gate_still_verifies_real_focus_terms():
     assert result["matched_focus_terms"] == []
 
 
+def test_support_gate_strips_user_correction_speech_act():
+    query = "其他两个方法应该叫别捷尔斯法和极差法"
+    topics, focus = _extract_query_focus(query, ["别捷尔斯法", "极差法"])
+    assert topics == ["别捷尔斯法", "极差法"]
+    assert focus == []
+    result = _assess_evidence_support(
+        query,
+        [_item(title="标准差的其他计算法", text="计算标准差还有别捷尔斯法、极差法。", direct=True)],
+        matched_concepts=["别捷尔斯法", "极差法"],
+    )
+    assert result["status"] == "supported"
+
+
+def test_support_gate_requires_topic_and_focus_in_same_evidence():
+    result = _assess_evidence_support(
+        "电容式传感器有哪些缺点？",
+        [
+            _item(text="电容式传感器结构简单。", coverage=0.7),
+            _item(title="其他器件的缺点", text="缺点是输出不稳定。", coverage=0.7),
+        ],
+        matched_concepts=["电容式传感器"],
+    )
+    assert result["status"] != "supported"
+    assert result["matched_focus_terms"] == []
+
+
+def test_relationship_question_is_supported_by_explicit_cross_topic_evidence():
+    result = _assess_evidence_support(
+        "标准差和随机误差之间的联系",
+        [
+            _item(
+                title="函数随机误差",
+                text="随机误差是用表征其取值分散程度的标准差来评定的。",
+                direct=True,
+                coverage=0.6,
+            ),
+            _item(
+                text="标准差不是某一次具体随机误差，而是反映测量列随机误差分散程度的统计量。",
+                coverage=0.6,
+            ),
+        ],
+        matched_concepts=["标准差", "随机误差"],
+        intent="comparison",
+    )
+    assert result["status"] == "supported"
+    assert result["matched_focus_terms"] == ["关系"]
+
+
+def test_relationship_question_stays_partial_without_an_explicit_relation():
+    result = _assess_evidence_support(
+        "标准差和随机误差之间的联系",
+        [
+            _item(text="标准差用于表示数据分散程度。", direct=True, coverage=0.5),
+            _item(text="随机误差的符号和绝对值不可预定。", direct=True, coverage=0.5),
+        ],
+        matched_concepts=["标准差", "随机误差"],
+        intent="comparison",
+    )
+    assert result["status"] != "supported"
+
+
+def test_enumeration_count_is_supported_by_four_named_methods():
+    result = _assess_evidence_support(
+        "求标准差的四个方法是什么？",
+        [_item(
+            title="标准差的其他计算法",
+            text="除了贝塞尔公式外，计算标准差还有别捷尔斯法、极差法及最大误差法。",
+            direct=True,
+            coverage=0.5,
+        )],
+        matched_concepts=["标准差"],
+        intent="factual_recall",
+    )
+    assert result["status"] == "supported"
+
+
+def test_formula_role_supports_specific_formula_followup():
+    result = _assess_evidence_support(
+        "标准差的四个方法分别有哪些具体公式？",
+        [_item(
+            title="标准差的其他计算法",
+            text="贝塞尔公式、别捷尔斯法、极差法和最大误差法都有对应公式。",
+            direct=True,
+            coverage=0.5,
+        ) | {"role": "formula"}],
+        matched_concepts=["标准差"],
+        intent="formula",
+    )
+    assert result["status"] == "supported"
+    assert "具体公式" in result["matched_focus_terms"]
+
+
 def test_derivation_request_is_decomposed_into_supported_dimensions():
     query = "请从基本公式开始，推导差动电容式传感器的灵敏度，并说明近似成立条件。"
     topics, focus = _extract_query_focus(query, ["传感器"])

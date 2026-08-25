@@ -5,7 +5,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from config import PROGRESS_PATH
 from ingestion.lexical_index import expand_neighbors, search_book, tokenize
@@ -21,7 +21,11 @@ INTENT_ROLE_PRIORITY: dict[str, list[str]] = {
     "calculation": ["formula", "algorithm", "derivation", "definition", "example"],
     "property": ["property", "theorem", "definition", "example"],
     "derivation": ["derivation", "theorem", "proof", "definition"],
-    "comparison": ["definition", "property", "example"],
+    # A relationship/comparison answer still needs the equations that connect
+    # the two concepts.  Schema-5 stores equations in atomic sibling blocks, so
+    # treating formulas as irrelevant here turns a teaching answer into a list
+    # of prose snippets.
+    "comparison": ["definition", "formula", "derivation", "property", "example"],
     "application": ["algorithm", "example", "exercise", "derivation"],
     "teach": ["definition", "example", "algorithm", "property", "derivation"],
     "summarize": ["definition", "property", "theorem", "derivation"],
@@ -64,6 +68,9 @@ _SUPPORT_META_PHRASES = (
     "教材中有没有讲", "教材里有没有讲", "教材有没有讲",
     "教材中是否有", "教材里是否有", "教材是否有",
     "根据教材", "按照教材", "请问", "请解释", "请说明",
+    # Speech acts describe the user's conversational move, not textbook facts.
+    "纠正一下", "我说的是", "我问的是", "正确的是", "应该叫", "应当叫",
+    "其他两个", "另外两个", "分别是", "不是",
 )
 _SUPPORT_FILLER_PHRASES = (
     "基本思想是什么", "是什么意思", "有哪些", "有什么", "是什么",
@@ -72,6 +79,7 @@ _SUPPORT_FILLER_PHRASES = (
     "请分析", "请解释", "请说明", "简述", "列出", "给出", "比较", "适合", "吗", "呢",
     # 应用场景类介词/疑问词：纯功能词，不应成为需要证据逐字覆盖的 focus 词
     "通常", "用在", "用于", "应用于", "适用于", "常用于", "应用在", "哪些", "哪种", "何种",
+    "方法",
 )
 _TOPIC_SUFFIXES = (
     "传感器", "热敏电阻", "电阻", "误差", "定理", "公式", "方法",
@@ -89,6 +97,7 @@ _FOCUS_TERM_ALIASES: dict[str, tuple[str, ...]] = {
     "静态测量能力": ("静态测量能力", "静态测量"),
     "近似成立条件": ("近似成立条件", "近似条件"),
     "基本公式": ("基本公式",),
+    "具体公式": ("具体公式", "计算公式", "公式"),
     "频率响应": ("频率响应", "频响"),
     "灵敏度": ("灵敏度",),
     "优缺点": ("优缺点",),
@@ -96,8 +105,14 @@ _FOCUS_TERM_ALIASES: dict[str, tuple[str, ...]] = {
     "缺点": ("缺点",),
     "特点": ("特点",),
     "条件": ("成立条件", "条件"),
+    "关系": ("之间的联系", "相互联系", "联系", "之间的关系", "关系"),
+    "区别": ("区别", "不同之处", "差异"),
 }
 _GENERIC_TOPIC_TERMS = {"传感器", "公式", "方法", "原理", "概念"}
+
+_EXPLANATORY_RELATION_MARKERS = (
+    "联系", "关系", "区别", "差异", "异同", "比较", "对比",
+)
 
 
 def _retrieval_query_for_intent(query: str, intent: str) -> str:
@@ -109,6 +124,99 @@ def _retrieval_query_for_intent(query: str, intent: str) -> str:
         str(query or "").strip(),
     ).strip("，,。？?!！ ")
     return f"{topic or query} 计算公式 变量 灵敏度 输出"
+
+
+def _needs_teaching_unit_context(query: str, intent: str) -> bool:
+    """Whether atomic IR hits must be reassembled into a teachable unit."""
+    if intent in {"teach", "derivation"}:
+        return True
+    return intent in {"comparison", "qa"} and any(
+        marker in str(query or "") for marker in _EXPLANATORY_RELATION_MARKERS
+    )
+
+
+def _teaching_unit_neighbors(anchors: list[dict], expanded: list[dict]) -> list[dict]:
+    """Keep the nearest equation sibling for each high-signal prose anchor.
+
+    Schema-5 deliberately stores equations atomically.  An equation often has
+    almost no lexical overlap with a natural-language question, so ordinary
+    reranking drops it even when the adjacent paragraph says "按下式".  This
+    function restores only same-section, local formula siblings; it does not
+    broaden the answer to arbitrary formulas elsewhere in the chapter.
+    """
+    selected: list[dict] = []
+    seen: set[str] = set()
+    rows = [dict(item) for item in expanded]
+    for order, anchor in enumerate(anchors, 1):
+        anchor_id = str(anchor.get("chunk_id") or "")
+        anchor_chapter = str(anchor.get("chapter") or "")
+        anchor_section = str(anchor.get("section_title") or "")
+        try:
+            anchor_index = int(anchor.get("chunk_index", -1))
+        except (TypeError, ValueError):
+            anchor_index = -1
+        if not anchor_id or anchor_index < 0:
+            continue
+        anchor_item = next(
+            (dict(item) for item in rows if str(item.get("chunk_id") or "") == anchor_id),
+            dict(anchor),
+        )
+        candidates = []
+        for item in rows:
+            if str(item.get("block_type") or "") != "formula":
+                continue
+            if anchor_chapter and str(item.get("chapter") or "") != anchor_chapter:
+                continue
+            if anchor_section and str(item.get("section_title") or "") != anchor_section:
+                continue
+            try:
+                formula_index = int(item.get("chunk_index", -1))
+                distance = abs(formula_index - anchor_index)
+            except (TypeError, ValueError):
+                continue
+            if distance > 2:
+                continue
+            local_rows = sorted(
+                (
+                    row for row in rows
+                    if str(row.get("chapter") or "") == anchor_chapter
+                    and str(row.get("section_title") or "") == anchor_section
+                    and min(anchor_index, formula_index) <= int(row.get("chunk_index", -1)) <= max(anchor_index, formula_index)
+                ),
+                key=lambda row: int(row.get("chunk_index", -1)),
+            )
+            local_prose = "\n".join(
+                str(row.get("text") or row.get("content") or "")
+                for row in local_rows
+                if str(row.get("block_type") or "") != "formula"
+            ).strip()
+            if formula_index > anchor_index:
+                has_formula_cue = bool(re.search(
+                    r"(?:按下式(?:计算)?|由下式|公式(?:为|如下)|一般形式为|可表示为|可写为|计算如下|得|为)\s*[：:]?\s*$",
+                    local_prose[-160:],
+                ))
+            else:
+                has_formula_cue = bool(re.search(r"(?:式中|由式|根据式|上式)", local_prose[:180]))
+            if has_formula_cue:
+                candidates.append((distance, formula_index, item))
+        if not candidates:
+            continue
+        distance, _index, formula = min(candidates, key=lambda value: (value[0], value[1]))
+        if anchor_id not in seen:
+            anchor_item["is_teaching_anchor"] = True
+            anchor_item["teaching_anchor_order"] = order
+            anchor_item["teaching_neighbor_distance"] = 0
+            selected.append(anchor_item)
+            seen.add(anchor_id)
+        chunk_id = str(formula.get("chunk_id") or "")
+        if chunk_id in seen:
+            continue
+        formula["is_teaching_neighbor"] = True
+        formula["teaching_anchor_order"] = order
+        formula["teaching_neighbor_distance"] = distance
+        selected.append(formula)
+        seen.add(chunk_id)
+    return selected
 
 
 def _hydrate_active_evidence(state: dict, default_book: str) -> tuple[list[dict], list[str]]:
@@ -174,7 +282,106 @@ def _chapter_contents_from_evidence(items: list[dict]) -> dict[str, list[str]]:
     return result
 
 
-def retrieve_node(state: dict) -> dict:
+def _select_enumeration_anchor(items: list[dict]) -> dict | None:
+    """Choose the semantic list header instead of the first generic method hit."""
+    candidates = [
+        item for item in items
+        if float(item.get("enumeration_match_quality") or 0.0) >= 0.25
+        or any(
+            marker in str(item.get("section_title") or "")
+            for marker in ("特点", "优点", "缺点", "不足", "方法", "计算法", "分类", "类型", "步骤", "作用")
+        )
+    ]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda item: (
+        2.0 * float(item.get("title_match_quality") or 0.0)
+        + float(item.get("enumeration_match_quality") or 0.0)
+        + (0.2 if item.get("is_direct_hit") else 0.0)
+        - 0.001 * int(item.get("retrieval_rank") or 999),
+        -int(item.get("retrieval_rank") or 999),
+    ))
+
+
+def _method_members(text: str) -> list[str]:
+    """Extract named methods/formulas from a compact enumeration sentence."""
+    segments = re.split(r"[、，。；;]|以及|还有|包括|即|以及|和|及|外", str(text or ""))
+    members: list[str] = []
+    for segment in segments:
+        compact = re.sub(r"\s+", "", segment).rstrip("等")
+        match = re.search(r"([A-Za-z一-鿿]{2,18}(?:公式|法))$", compact)
+        if not match:
+            continue
+        name = re.sub(r"^(?:除了|采用|使用|计算标准差|标准差)", "", match.group(1))
+        if name and name not in members:
+            members.append(name)
+    return members[:10]
+
+
+def _list_group_neighbors(anchor: dict, expanded: list[dict]) -> list[dict]:
+    """Keep a list header with the first explanation/formula for each named member."""
+    anchor_id = str(anchor.get("chunk_id") or "")
+    chapter = str(anchor.get("chapter") or "")
+    members = _method_members(str(anchor.get("text") or anchor.get("content") or ""))
+    selected: list[dict] = []
+    anchor_item = next((dict(item) for item in expanded if str(item.get("chunk_id") or "") == anchor_id), dict(anchor))
+    anchor_item["is_list_neighbor"] = True
+    anchor_item["list_group_order"] = 0
+    anchor_item["list_group_part"] = "header"
+    selected.append(anchor_item)
+
+    for order, member in enumerate(members, 1):
+        core = re.sub(r"(?:公式|法)$", "", member)
+        matches = [
+            item for item in expanded
+            if str(item.get("chunk_id") or "") != anchor_id
+            and (not chapter or str(item.get("chapter") or "") == chapter)
+            and core
+            and core in str(item.get("section_title") or "")
+        ]
+        paragraph = next((item for item in matches if str(item.get("block_type") or "") != "formula"), None)
+        formulas = [item for item in matches if str(item.get("block_type") or "") == "formula"]
+        tagged = [item for item in formulas if "\\tag{" in str(item.get("text") or item.get("content") or "")]
+        selected_formulas = (tagged[-2:] if tagged else formulas[:1])
+        for part, item in (("member", paragraph), *(("formula", value) for value in selected_formulas)):
+            if item is None:
+                continue
+            enriched = dict(item)
+            enriched["is_list_neighbor"] = True
+            enriched["list_group_order"] = order
+            enriched["list_group_part"] = part
+            selected.append(enriched)
+    return selected
+
+
+def retrieve_node(
+    state: dict,
+    *,
+    vector_store=None,
+    lexical_search: Callable[..., list[dict]] | None = None,
+    neighbor_expander: Callable[..., list[dict]] | None = None,
+    index_stats_override: dict[str, dict] | None = None,
+) -> dict:
+    """Run the production retrieval path.
+
+    The optional read-only bindings let an index candidate exercise this exact
+    path before activation. Normal chat requests use the process-wide active
+    stores, while release validation supplies staged vector/lexical views
+    without swapping files or mutating global retrieval state.
+    """
+    tool_pack = state.get("tool_context_pack") or {}
+    if tool_pack.get("skip_textbook_retrieval"):
+        return {
+            "chapter_contents": {}, "retrieval_debug_items": [], "evidence_items": [],
+            "evidence_sources": [], "evidence_support": {
+                "status": "not_applicable", "reason": "authoritative_local_tool_context",
+            },
+            "evidence_gate_applied": True, "retrieval_status": "tool_context",
+            "retrieval_error": "", "retrieval_action": "none", "retrieval_query": "",
+            "reused_evidence_ids": [], "new_evidence_ids": [], "dropped_evidence_ids": [],
+            "concept_results": [], "history_results": [], "knowledge_graph_path": [],
+            "knowledge_graph_formulas": [], "matched_concepts": [], "index_stats": {},
+        }
     target_chapters = state.get("target_chapters", [])
     user_input = state.get("user_input", "")
     book_name = state.get("book_name", "default")
@@ -240,7 +447,10 @@ def retrieve_node(state: dict) -> dict:
     if state.get("retrieval_error"):
         retrieval_errors.append(str(state.get("retrieval_error")))
 
-    vs, vector_error = get_safe_vector_store()
+    if vector_store is None:
+        vs, vector_error = get_safe_vector_store()
+    else:
+        vs, vector_error = vector_store, ""
     kg, kg_error = get_safe_kg(primary_book)
     if vector_error:
         retrieval_errors.append(f"vector_store: {vector_error}")
@@ -248,7 +458,9 @@ def retrieve_node(state: dict) -> dict:
         retrieval_errors.append(f"knowledge_graph: {kg_error}")
 
     index_stats = {}
-    if primary_book and primary_book != "default" and hasattr(vs, "get_book_index_stats"):
+    if primary_book and primary_book != "default" and index_stats_override and primary_book in index_stats_override:
+        index_stats = dict(index_stats_override[primary_book])
+    elif primary_book and primary_book != "default" and hasattr(vs, "get_book_index_stats"):
         try:
             index_stats = vs.get_book_index_stats(primary_book)
         except Exception as exc:
@@ -277,10 +489,22 @@ def retrieve_node(state: dict) -> dict:
     vector_results: list[dict] = []
     lexical_results: list[dict] = []
     neighbor_results: list[dict] = []
+    teaching_unit_request = _needs_teaching_unit_context(user_input, intent)
+    enumeration_request = intent in {"factual_recall", "formula"} and any(
+        marker in user_input for marker in (
+            "哪些", "优点", "特点", "不足", "缺点", "主要", "列举", "分别",
+            "几种", "几个", "多少种", "四个方法", "包括什么", "包括哪些",
+        )
+    )
     for resource in retrieval_resources:
         candidate_book = str(resource.get("book_name") or "")
         is_primary = bool(resource.get("is_primary"))
-        candidate_lexical = search_book(candidate_book, retrieval_query, k=20 if is_primary else 12, chapters=(target_chapters or None) if is_primary else None)
+        candidate_lexical = (lexical_search or search_book)(
+            candidate_book,
+            retrieval_query,
+            k=20 if is_primary else 12,
+            chapters=(target_chapters or None) if is_primary else None,
+        )
         lexical_results.extend(candidate_lexical)
         fallback_chapters = list(dict.fromkeys(
             str(item.get("chapter") or "") for item in candidate_lexical if item.get("chapter")
@@ -293,7 +517,65 @@ def retrieve_node(state: dict) -> dict:
             k=20 if is_primary else 12, top_n=4 if is_primary else 3,
         )
         vector_results.extend(candidate_vectors)
-        candidate_neighbors = expand_neighbors(candidate_book, [item.get("chunk_id", "") for item in candidate_lexical[:3]], window=1)
+        list_anchor: list[dict] = []
+        if enumeration_request and candidate_lexical:
+            # A chapter-title hit often outranks the actual "特点/方法" list
+            # header.  Expanding around that chapter hit walks arbitrary chunks
+            # and can evict the consecutive list members from the final pack.
+            semantic_anchor = _select_enumeration_anchor(candidate_lexical)
+            if semantic_anchor is not None:
+                list_anchor = [semantic_anchor]
+            elif float(candidate_lexical[0].get("title_match_quality") or 0.0) >= 0.5:
+                list_anchor = candidate_lexical[:1]
+        formula_anchors = []
+        if intent == "formula":
+            formula_anchors = [
+                item for item in candidate_lexical
+                if str(item.get("block_type") or "") == "formula"
+            ][:1]
+        teaching_anchors: list[dict] = []
+        if teaching_unit_request and is_primary:
+            seen_anchor_ids: set[str] = set()
+            topic_terms, _focus_terms = _extract_query_focus(user_input, matched_concepts)
+            vector_teaching_anchors = []
+            for anchor in candidate_vectors[:8]:
+                anchor_text = f"{anchor.get('section_title', '')}\n{anchor.get('text', '')}"
+                if topic_terms and not all(term in anchor_text for term in topic_terms):
+                    continue
+                vector_teaching_anchors.append(anchor)
+            for anchor in [*candidate_lexical[:5], *vector_teaching_anchors[:3]]:
+                anchor_id = str(anchor.get("chunk_id") or "")
+                if not anchor_id or anchor_id in seen_anchor_ids:
+                    continue
+                teaching_anchors.append(anchor)
+                seen_anchor_ids.add(anchor_id)
+                if len(teaching_anchors) >= 10:
+                    break
+        neighbor_anchors = list_anchor or formula_anchors or teaching_anchors or candidate_lexical[:3]
+        candidate_neighbors = (neighbor_expander or expand_neighbors)(
+            candidate_book,
+            [item.get("chunk_id", "") for item in neighbor_anchors],
+            window=36 if list_anchor else (2 if intent == "formula" or teaching_unit_request else 1),
+        )
+        if list_anchor:
+            candidate_neighbors = _list_group_neighbors(list_anchor[0], candidate_neighbors)
+        elif teaching_anchors:
+            candidate_neighbors = _teaching_unit_neighbors(teaching_anchors, candidate_neighbors)
+        for item in candidate_neighbors:
+            item["is_list_neighbor"] = bool(list_anchor)
+            if formula_anchors:
+                item_index = int(item.get("chunk_index", -1))
+                distances = [
+                    (order, abs(item_index - int(anchor.get("chunk_index", -1))))
+                    for order, anchor in enumerate(formula_anchors, 1)
+                    if item.get("chapter") == anchor.get("chapter")
+                    and item_index >= 0
+                    and int(anchor.get("chunk_index", -1)) >= 0
+                ]
+                if distances:
+                    order, distance = min(distances, key=lambda value: (value[1], value[0]))
+                    item["formula_anchor_order"] = order
+                    item["formula_neighbor_distance"] = distance
         default_role = str(resource.get("role") or "")
         default_priority = float(resource.get("priority") or 1.0)
         is_selected_book = bool(resource.get("is_selected"))
@@ -304,12 +586,13 @@ def retrieve_node(state: dict) -> dict:
             item["rag_priority"] = default_priority
             item["book_name"] = candidate_book
             item["is_selected_book"] = is_selected_book
+            item["is_primary_book"] = is_primary
         neighbor_results.extend(candidate_neighbors)
     chapter_contents, retrieval_debug_items = _merge_and_rerank(
         precise_results,
         vector_results + lexical_results + neighbor_results,
         max_chunks_per_chapter=6,
-        max_total_chunks=10,
+        max_total_chunks=12 if enumeration_request or intent == "formula" else 10,
         include_metadata=True,
         query=user_input,
         intent=intent,
@@ -348,6 +631,7 @@ def retrieve_node(state: dict) -> dict:
             "section_title": item.get("section_title", ""),
             "section_path": item.get("section_path", []),
             "chunk_index": item.get("chunk_index", -1),
+            "section_chunk_index": item.get("section_chunk_index", -1),
             "page_idx": item.get("page_idx", -1),
             "text": item.get("text", ""), "score": item.get("score", 0.0),
             "query_coverage": item.get("query_coverage", 0.0),
@@ -358,15 +642,27 @@ def retrieve_node(state: dict) -> dict:
             "role": item.get("role", ""),
             "source": item.get("source", ""),
             "is_direct_hit": bool(item.get("is_direct_hit")),
+            "is_list_neighbor": bool(item.get("is_list_neighbor")),
+            "is_teaching_anchor": bool(item.get("is_teaching_anchor")),
+            "is_teaching_neighbor": bool(item.get("is_teaching_neighbor")),
+            "teaching_anchor_order": item.get("teaching_anchor_order"),
+            "teaching_neighbor_distance": item.get("teaching_neighbor_distance"),
+            "list_group_order": item.get("list_group_order"),
+            "list_group_part": item.get("list_group_part", ""),
             "fusion_sources": item.get("fusion_sources", []),
         }
-        for item in retrieval_debug_items[:10]
+        for item in retrieval_debug_items
         if item.get("text")
         and _supports_query_literals(
             user_input,
             f"{item.get('section_title', '')}\n{item.get('text', '')}",
         )
-        and (item.get("is_direct_hit") or float(item.get("query_coverage", 0)) >= 0.2)
+        and (
+            item.get("is_direct_hit")
+            or item.get("list_group_order") is not None
+            or item.get("is_teaching_neighbor")
+            or float(item.get("query_coverage", 0)) >= 0.2
+        )
     ]
     if retrieval_action == "delta" and continuity_items:
         seen_continuity = {str(item.get("chunk_id") or "") for item in continuity_items}
@@ -496,8 +792,9 @@ def _extract_query_focus(query: str, matched_concepts: list[str] | None = None) 
 
 
 def _focus_coverage(phrase: str, text: str, role: str = "") -> float:
+    raw_text = str(text or "")
     phrase = _normalized_support_text(phrase)
-    text = _normalized_support_text(text)
+    text = _normalized_support_text(raw_text)
     if not phrase:
         return 1.0
     if phrase in text:
@@ -505,7 +802,10 @@ def _focus_coverage(phrase: str, text: str, role: str = "") -> float:
     aliases = _FOCUS_TERM_ALIASES.get(phrase, ())
     if any(_normalized_support_text(alias) in text for alias in aliases):
         return 1.0
-    if phrase == "基本公式" and role in {"formula", "derivation"}:
+    requested_counts = {"两个": 2, "三个": 3, "四个": 4, "五个": 5, "六个": 6, "七个": 7}
+    if phrase in requested_counts and len(_method_members(raw_text)) >= requested_counts[phrase]:
+        return 1.0
+    if phrase in {"基本公式", "具体公式"} and role in {"formula", "derivation"}:
         return 0.8
     if phrase == "近似成立条件" and role in {"formula", "derivation", "proof"}:
         if any(marker in text for marker in ("近似", "远小于", "忽略", "条件", "小量")):
@@ -522,6 +822,24 @@ def _focus_coverage(phrase: str, text: str, role: str = "") -> float:
         bigrams = _dedupe_preserving_order([phrase[index:index + 2] for index in range(len(phrase) - 1)])
         return sum(token in text for token in bigrams) / max(len(bigrams), 1)
     return 0.0
+
+
+def _relationship_supported(focus: list[str], topics: list[str], item_support: list[tuple]) -> bool:
+    if not any(phrase in {"关系", "区别"} for phrase in focus) or len(topics) < 2:
+        return False
+    all_text = _normalized_support_text("\n".join(text for _item, text, _match in item_support))
+    if not all(topic in all_text for topic in topics[:4]):
+        return False
+    relation_markers = (
+        "关系", "联系", "区别", "不同", "相同", "对应", "评定", "反映", "取决于",
+        "不是", "而是", "用来", "用于", "衡量", "表征", "属于", "等同于",
+    )
+    for _item, text, _topic_match in item_support:
+        normalized = _normalized_support_text(text)
+        covered_topics = sum(topic in normalized for topic in topics[:4])
+        if covered_topics >= 2 and any(marker in normalized for marker in relation_markers):
+            return True
+    return False
 
 
 def _assess_evidence_support(
@@ -544,26 +862,38 @@ def _assess_evidence_support(
             "best_query_coverage": 0.0,
         }
 
+    item_support = []
+    for item in evidence_items:
+        text = f"{item.get('section_title', '')}\n{item.get('text', '')}"
+        normalized_text = _normalized_support_text(text)
+        topic_match = (
+            not topics
+            or all(topic in _GENERIC_TOPIC_TERMS for topic in topics)
+            or any(topic in normalized_text for topic in topics)
+        )
+        item_support.append((item, text, topic_match))
     focus_coverages = {
         phrase: max((
-            _focus_coverage(
-                phrase,
-                f"{item.get('section_title', '')}\n{item.get('text', '')}",
-                str(item.get("role") or ""),
-            )
-            for item in evidence_items
+            _focus_coverage(phrase, text, str(item.get("role") or ""))
+            for item, text, topic_match in item_support if topic_match
         ), default=0.0)
         for phrase in focus
     }
+    if _relationship_supported(focus, topics, item_support):
+        for phrase in ("关系", "区别"):
+            if phrase in focus:
+                focus_coverages[phrase] = 1.0
     matched_focus = [phrase for phrase, coverage in focus_coverages.items() if coverage >= 0.6]
     best_focus_coverage = max(focus_coverages.values(), default=1.0 if not focus else 0.0)
     best_query_coverage = max((float(item.get("query_coverage", 0.0)) for item in evidence_items), default=0.0)
     strong_evidence = any(
-        item.get("is_direct_hit")
-        or "kg" in set(item.get("fusion_sources") or [])
-        or {"dense", "bm25"}.issubset(set(item.get("fusion_sources") or []))
-        or float(item.get("query_coverage", 0.0)) >= 0.5
-        for item in evidence_items
+        topic_match and (
+            item.get("is_direct_hit")
+            or "kg" in set(item.get("fusion_sources") or [])
+            or {"dense", "bm25"}.issubset(set(item.get("fusion_sources") or []))
+            or float(item.get("query_coverage", 0.0)) >= 0.5
+        )
+        for item, _text, topic_match in item_support
     )
 
     if not focus and strong_evidence:
@@ -583,6 +913,7 @@ def _assess_evidence_support(
         "matched_focus_terms": matched_focus,
         "best_focus_coverage": round(best_focus_coverage, 6),
         "best_query_coverage": round(best_query_coverage, 6),
+        "topic_focus_same_evidence": bool(not focus or len(matched_focus) == len(focus)),
     }
 
 
@@ -708,6 +1039,25 @@ def _vector_retrieval(vs, user_input: str, *, intent: str = "qa", book_name: str
             docs, used_role = _search_chapter_with_role(vs, ch, user_input, k, priority_roles, book_name=book_name)
             for d in docs:
                 results.append(_doc_to_item(d, ch, f"vector({used_role})" if used_role else "vector"))
+            if not docs:
+                # A single chapter HNSW segment can be missing/corrupt while
+                # the book aggregate remains healthy. Preserve the same
+                # chapter scope through metadata filtering instead of silently
+                # dropping dense retrieval for the whole request.
+                try:
+                    fallback = vs.search_all(
+                        user_input,
+                        k=max(k * 2, 4),
+                        top_n=1,
+                        filter={"chapter": ch},
+                        book_name=book_name,
+                        fallback_chapters=[ch],
+                    )
+                    for fallback_chapter, fallback_docs in fallback.items():
+                        for d in fallback_docs:
+                            results.append(_doc_to_item(d, fallback_chapter or ch, "vector(aggregate_chapter_fallback)"))
+                except Exception:
+                    pass
             if used_role == "example":
                 try:
                     for d in vs.search_chapter(ch, user_input, k=k * 2, book_name=book_name):
@@ -800,6 +1150,31 @@ def _merge_and_rerank(
             if item.get("is_direct_hit"):
                 fused[key]["is_direct_hit"] = True
                 fused[key]["source"] = source
+            if item.get("is_list_neighbor"):
+                fused[key]["is_list_neighbor"] = True
+            if item.get("is_teaching_neighbor"):
+                fused[key]["is_teaching_neighbor"] = True
+                fused[key]["teaching_anchor_order"] = int(item.get("teaching_anchor_order") or 999999)
+                fused[key]["teaching_neighbor_distance"] = int(item.get("teaching_neighbor_distance") or 0)
+            if item.get("is_teaching_anchor"):
+                fused[key]["is_teaching_anchor"] = True
+                fused[key]["teaching_anchor_order"] = int(item.get("teaching_anchor_order") or 999999)
+                fused[key]["teaching_neighbor_distance"] = 0
+            if item.get("list_group_order") is not None:
+                fused[key]["list_group_order"] = int(item.get("list_group_order") or 0)
+                fused[key]["list_group_part"] = str(item.get("list_group_part") or "")
+            if item.get("formula_anchor_order") is not None:
+                candidate_order = (
+                    int(item.get("formula_anchor_order") or 999999),
+                    int(item.get("formula_neighbor_distance") or 0),
+                )
+                current_order = (
+                    int(fused[key].get("formula_anchor_order") or 999999),
+                    int(fused[key].get("formula_neighbor_distance") or 999999),
+                )
+                if candidate_order < current_order:
+                    fused[key]["formula_anchor_order"] = candidate_order[0]
+                    fused[key]["formula_neighbor_distance"] = candidate_order[1]
 
     query_tokens = set(tokenize(query))
     role_order = INTENT_ROLE_PRIORITY.get(intent, [])
@@ -812,8 +1187,13 @@ def _merge_and_rerank(
             if rank is not None:
                 score += 1.0 / (60.0 + rank)
                 sources.append(source_key)
+        bm25_rank = source_ranks.get((key, "bm25"))
+        if bm25_rank is not None:
+            score += 0.04 * max(0.0, 1.0 - (bm25_rank - 1) / 20.0)
         if item.get("is_direct_hit"):
             score += 0.05
+        score += 0.08 * float(item.get("title_match_quality") or 0.0)
+        score += 0.06 * float(item.get("enumeration_match_quality") or 0.0)
         item_tokens = set(tokenize(f"{item.get('section_title', '')}\n{item.get('text', '')}"))
         coverage = 0.0
         if query_tokens:
@@ -831,6 +1211,10 @@ def _merge_and_rerank(
                 score += 0.025
         if item.get("source") == "neighbor":
             score -= 0.004
+        if _needs_teaching_unit_context(query, intent) and item.get("is_teaching_neighbor"):
+            # Symbol-only formula blocks have little lexical overlap with prose
+            # questions.  The same-section anchor is the relevance signal.
+            score += 0.18
         if _looks_like_toc_chunk(item):
             score -= 0.2
         item["score"] = round(score, 6)
@@ -851,15 +1235,55 @@ def _merge_and_rerank(
         item["score"] = round(relevance_score * multiplier, 6)
     rerank_meta = reranker_status()
 
-    enumeration_query = intent == "factual_recall" and any(
-        marker in query for marker in ("哪些", "优点", "特点", "不足", "缺点", "主要")
+    enumeration_query = intent in {"factual_recall", "formula"} and any(
+        marker in query for marker in (
+            "哪些", "优点", "特点", "不足", "缺点", "主要", "列举", "分别",
+            "几种", "几个", "多少种", "四个方法", "包括什么", "包括哪些",
+        )
     )
+    formula_query = intent == "formula"
     if enumeration_query:
         # List answers are commonly split across consecutive textbook chunks.
         # Preserve the selected book BM25 order so exact list members survive Top-K.
         ranked.sort(key=lambda item: (
-            0 if item.get("is_selected_book") and "bm25" in item.get("fusion_sources", []) else 1,
+            0 if item.get("list_group_order") is not None else (1 if (
+                item.get("is_selected_book") and "bm25" in item.get("fusion_sources", [])
+                and (
+                    int(item.get("retrieval_rank") or 999999) <= 3
+                    or bool(re.match(r"^\s*(?:\d+|[一二三四五六七八九十]+)[.、）)]", str(item.get("section_title") or "")))
+                )
+            ) else (2 if item.get("is_list_neighbor") else 3)),
+            int(item.get("list_group_order") if item.get("list_group_order") is not None else 999999),
+            {"header": 0, "member": 1, "formula": 2}.get(str(item.get("list_group_part") or ""), 3),
             int(item.get("retrieval_rank") or 999999),
+            int(item.get("section_chunk_index", 999999) if item.get("section_chunk_index") is not None else 999999),
+            int(item.get("chunk_index", 999999) if item.get("chunk_index") is not None else 999999),
+            -float(item.get("score", 0)),
+            item.get("page_idx", 999999),
+        ))
+    elif _needs_teaching_unit_context(query, intent):
+        # Keep each explanatory prose anchor immediately before its atomic
+        # formula sibling.  This prevents the EvidencePack's per-chapter limit
+        # from retaining equations while dropping the prose that explains them.
+        ranked.sort(key=lambda item: (
+            0 if item.get("is_teaching_anchor") or item.get("is_teaching_neighbor") else 1,
+            int(item.get("teaching_anchor_order") or 999999),
+            0 if item.get("is_teaching_anchor") else 1,
+            -float(item.get("score", 0)),
+            item.get("page_idx", 999999),
+        ))
+    elif formula_query:
+        # A formula and its surrounding explanation form one semantic unit.
+        # Keep that local IR neighborhood ahead of unrelated formulas so the
+        # three-item formula EvidencePack remains complete.
+        ranked.sort(key=lambda item: (
+            0 if (
+                item.get("is_primary_book")
+                and item.get("formula_anchor_order") is not None
+            ) else 1,
+            int(item.get("formula_anchor_order") or 999999),
+            int(item["formula_neighbor_distance"]) if item.get("formula_neighbor_distance") is not None else 999999,
+            int(item["chunk_index"]) if item.get("chunk_index") is not None else 999999,
             -float(item.get("score", 0)),
             item.get("page_idx", 999999),
         ))
@@ -876,6 +1300,13 @@ def _merge_and_rerank(
         if total >= max_total_chunks:
             break
         text = item.get("text", "")
+        section_title = str(item.get("section_title") or "").strip()
+        if (
+            (intent == "formula" or item.get("list_group_order") is not None)
+            and section_title
+            and section_title not in text[: max(120, len(section_title) + 10)]
+        ):
+            text = f"## {section_title}\n\n{text}"
         chapter_contents[chapter].append(text)
         debug_items.append({
             "rank": total + 1,
@@ -895,12 +1326,21 @@ def _merge_and_rerank(
             "book_name": item.get("book_name", ""),
             "book_role": item.get("book_role", ""),
             "is_selected_book": bool(item.get("is_selected_book")),
+            "is_primary_book": bool(item.get("is_primary_book")),
             "rag_priority": item.get("rag_priority", 1.0),
             "section_title": item.get("section_title", ""),
             "section_path": item.get("section_path", []),
             "chunk_index": item.get("chunk_index", -1),
+            "section_chunk_index": item.get("section_chunk_index", -1),
             "page_idx": item.get("page_idx", -1),
             "is_direct_hit": bool(item.get("is_direct_hit", False)),
+            "is_list_neighbor": bool(item.get("is_list_neighbor", False)),
+            "is_teaching_anchor": bool(item.get("is_teaching_anchor", False)),
+            "is_teaching_neighbor": bool(item.get("is_teaching_neighbor", False)),
+            "teaching_anchor_order": item.get("teaching_anchor_order"),
+            "teaching_neighbor_distance": item.get("teaching_neighbor_distance"),
+            "list_group_order": item.get("list_group_order"),
+            "list_group_part": item.get("list_group_part", ""),
             "is_toc_like": _looks_like_toc_chunk(item),
             "preview": text[:180],
         })

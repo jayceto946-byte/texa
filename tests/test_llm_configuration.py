@@ -1,7 +1,20 @@
 import os
 
 from llm.configuration import model_settings_env_values, model_settings_payload, resolve_model_role
-from llm.registry import list_models
+from llm.registry import get_model, list_models
+from llm.types import Capability
+
+
+def test_unconfigured_default_is_qwen37_plus_for_both_roles():
+    payload = model_settings_payload({})
+    resolved = resolve_model_role("reasoning", {})
+
+    assert resolved.provider.provider_id == "qwen"
+    assert resolved.model == "qwen3.7-plus"
+    assert resolved.options["extra_body"]["enable_thinking"] is True
+    assert payload["multimodal_mode"] == "split"
+    assert payload["roles"]["reasoning"]["model"] == "qwen3.7-plus"
+    assert payload["roles"]["vision"]["model"] == "qwen3.7-plus"
 
 
 def test_legacy_environment_preserves_deepseek_default():
@@ -79,3 +92,26 @@ def test_catalog_includes_current_provider_models_and_keeps_compatibility_aliase
     assert ("gemini", "gemini-3.7-flash") in ids
     assert ("openai", "gpt-5.6-terra") in ids
     assert ("openai", "gpt-4o-mini") in ids
+
+
+def test_qwen37_plus_is_available_to_integrated_text_and_vision_mode():
+    model = get_model("qwen", "qwen3.7-plus")
+
+    assert model is not None
+    assert Capability.TEXT in model.capabilities
+    assert Capability.VISION in model.capabilities
+
+    payload = model_settings_payload({})
+    payload["multimodal_mode"] = "native"
+    payload["roles"]["vision"].update({
+        "provider": "qwen",
+        "model": "qwen3.7-plus",
+        "credential_id": "qwen",
+    })
+    payload["endpoints"]["vision"]["base_url"] = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+
+    values = model_settings_env_values(payload)
+
+    assert values["LLM_REASONING_MODEL"] == "qwen3.7-plus"
+    assert values["LLM_VISION_MODEL"] == "qwen3.7-plus"
+    assert values["LLM_MULTIMODAL_MODE"] == "native"

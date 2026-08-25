@@ -1,3 +1,16 @@
+# 2026-08-23 - Canonical block 原生切分与索引 schema v5
+
+- `ChapterSplitter` 新增 `split_blocks()` / `split_canonical_book()`：公式块保持原子性；结构化表格过大时只按行拆分并为每个子块重复表题、表头；例题/习题的题干、条件与答案通过稳定 `parent_id` 关联；普通段落在相同章节和来源内累积后切分。
+- 统一 chunk 继承章节路径、页范围、bbox、公式、复核状态、来源类型/文件、OCR 置信度与源 block 位置，并在全书范围生成确定性的 `chunk_id`、`parent_id` 和闭合的前后邻接关系。
+- 新教材导入在任何向量/词法索引写入前，必须先通过 CanonicalBook 确定性体检并落盘 `canonical_document.jsonl` 与 `ingestion_report.json`；已有 canonical 的重建索引优先走 block 路径，没有 canonical 的历史教材继续保留章节字符串兼容路径。
+- Chroma 与 BM25 索引 schema 提升到 v5，新增页范围、来源、OCR、源 block 与结构化表格元数据；保留 `_middle_chunks.json` 作为当前兼容/回滚派生产物，不再作为新导入的上游输入。
+- Word 适配器增加保守的显式“例题/习题”标签识别，并把紧随的条件、解答、答案归入同一逻辑组；未命中明确标签的正文仍按普通段落处理。
+
+## Validation
+
+- 四类契约 fixture 覆盖文本 PDF、公式/表格密集 MinerU、扫描 OCR、含标题/表格/例题的 Word；断言章节路径、公式原子性、表头保留、例题父子关系、来源回溯和邻接闭合。
+- Python 全量回归：515 passed，1 个既有 Starlette/httpx 弃用警告。
+
 # 2026-08-21 - README 深色主题 Logo 对比度
 
 - README 顶部品牌图改用白底 `Texa_Logo.png`，避免透明深色字标在 GitHub 深色主题下失去对比度。
@@ -2304,3 +2317,114 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 首次打开引导移除旧 `ModelSettingsForm`，直接复用正式设置页的 `ModelSettingsManager`，统一模型方案、服务商、常用/自定义 model id、API Key、图片任务模式、连接设置与连接测试界面。
 - 首次打开页保存模型时改用与正式设置页相同的 model profile 接口，并补齐方案切换和删除；教材解析服务仍作为首次配置中的独立可选项保留。
 - 验证：前端 ESLint、TypeScript 与 Vite production build 通过，UI contract 定向测试 `12 passed`；1280px 实际页面对照确认首次打开页与正式设置页均渲染同一模型管理器，弹窗和页面无横向溢出。
+
+## 2026-08-22 《误差理论与数据处理》索引重建与发布门槛
+
+- 新增覆盖 7 章、20 个教材内问题和 2 个教材外问题的黄金检索集；评测对象由候选调试列表改为生成器实际接收的最终 EvidencePack。索引激活前按本书数据集校验 Recall@K 与要点覆盖率，未达到配置门槛时不切换 active version，并把结果写入索引 manifest。
+- 从清洗后的章节 Markdown 重新切分《误差理论与数据处理》，未复用旧 511 个 middle chunks。新 schema 4 索引版本为 `8b28cb1f64215c1a`，共 1034 chunks、7 个章节 collection；公式块保持原子性，并补充 section path、section chunk index、equations、block type 与 review status 元数据。
+- 混合检索在 BM25 top-20 前增加标题、完整主题短语、直接章节与列举结构加权；列举问题围绕语义列表标题扩展相邻项，避免章节标题命中挤掉连续列表。Evidence support gate 去除纠正话语噪声，并要求主题与问题焦点在同一证据项内成立。
+- Resolver/ConversationContext 支持“这四个方法的公式”“第三个方法”等组引用与序数引用；Context Eval 增加《误差理论》方法组、用户纠正和序数追问案例。传感器旧金标中的逐字匹配改为同义短语组，保持教材事实要求不变。
+- 验证：重建后《误差理论》最终 EvidencePack 黄金集 `22/22`，Recall@K `1.0`、point recall `1.0`、MRR `0.9091`；生产 Context Eval v3 检索层 `15/15` 严格通过。原 OCR 中少量可疑公式仅被保留并标记，本次未重新调用外部 MinerU，因此不把结构完整性等同于公式识别已人工校正。
+
+## 2026-08-23 教材 Canonical Document IR 基础层
+
+- 新增 `ingestion/document_ir.py`：定义与来源无关的 `CanonicalBook`、`DocumentBlock`、确定性校验报告和 schema version 1。该层记录章节路径、页码、bbox、公式、来源、OCR 置信度、审阅状态和可扩展属性，作为解析与 chunking 之间的稳定契约。
+- Canonical IR 以 `data/progress/<book>/canonical_document.jsonl` 落盘，并同步写入 `ingestion_report.json`。即使校验失败也会保留诊断源文件，但报告会标记为不可用于后续 splitter/index pipeline；本次未修改既有导入器或已激活教材索引。
+- 体检扩展为可修复告警与阻断错误：检查标题层级跳跃/循环、公式分隔符、表格标题/表头/行、源页码范围、OCR 短文本/乱码/空正文页。公式分隔符异常会保留原文并追加 `needs_formula_review`；单页和单块质量问题只告警，只有 IR 合同损坏或没有可索引正文才阻断后续切分。
+- 验证：新增 IR 的 JSONL round-trip、无效来源诊断、书级 provenance 与完整入库体检测试，`5 passed`；后续适配 PDF、MinerU、OCR 与 Word 时必须先输出该契约。
+
+## 2026-08-23 Canonical Document IR 来源适配器
+
+- 新增 `ingestion/document_adapters.py`：`PdfTextAdapter` 接收现有 `PDFParser` 章节输出；`MinerUAdapter` 支持 content-list、middle JSON 与 Markdown；`OcrAdapter` 接收页面版面/OCR blocks；`DocxAdapter` 通过受资源限制的 Office XML 读取标题、段落、表格与基础 OMML 公式文本。全部返回 `CanonicalBook`，并保留页码、bbox、OCR 置信度、表格结构、公式和来源属性。
+- PDF/MinerU 正式教材导入结果现在携带 CanonicalBook；API 成功导入后将其落盘到教材 progress 目录，并在任务结果与教材 metadata 中写入 IR 体检状态。当前仍以旧 chapter/chunk 管线建立生产索引，IR 报告仅用于诊断，不因新适配器的 warning 阻断既有导入；后续完成 block splitter 后再把它升级为唯一入口。
+- 验证：四种适配器、IR 体检、MinerU 外部导入与导入可靠性定向回归 `21 passed`。
+
+## 2026-08-23 Canonical IR 唯一索引入口与生产检索激活事务
+
+- 正式 PDF、MinerU/API、MinerU CLI、外部 MinerU 输出和教材重建统一先生成或加载 `CanonicalBook`，通过确定性 IR 校验并落盘后，再由 `ChapterSplitter.split_canonical_book()` 生成检索 chunks。旧 `chapters` 调用仅保留为兼容适配边界，内部会先转换成 Canonical IR，不再进入独立的 chapter-string 切块分支；既有教材首次重建时会自动补齐 IR，已有 IR 则优先复用以保留来源结构。
+- 索引激活门槛由 staged lexical BM25 升级为完整生产混合检索：候选 Chroma collections、候选 lexical rows 和邻接扩展以只读依赖注入方式进入现有 `retrieve_node`，继续经过线上 KG/向量/BM25 融合、rerank、evidence support gate 与最终 EvidencePack。验收期间不替换 active map、不覆盖线上 lexical 文件，失败时删除候选 collections 并保持旧索引可用。
+- 版本发布现在保留 active 版本和最近两个历史版本。历史 Chroma collections 在 map 中标记 `active=false`，不会被章节/aggregate 检索、预加载或健康统计选中；每个版本同时保存独立 lexical 快照，manifest 记录版本、collections、快照路径、激活时间和 chunk 数。超过保留上限的旧资产在新 manifest 原子切换成功后清理。
+- 验证：后端全量回归 `518 passed`（仅 1 条既有 Starlette/httpx2 弃用警告）；使用《误差理论与数据处理》现有真实 Chroma/lexical 资产通过新 staged 生产验收入口实跑 `22/22`，Recall@K `1.0`、point recall `1.0`、MRR `0.9091`。本次只读实跑未重建或切换现有教材索引。
+
+## 2026-08-23 自动结构探针与四类专项发布门槛
+
+- 新增 `ingestion/acceptance_probes.py`：从 Canonical IR 确定性识别公式、编号/项目列表、例题和结构化/Markdown 表格，生成有界且稳定的结构验收探针。每条探针保留来源 block、章节路径、页码、review status 和 `human_approved=false`，明确只验证解析、切块、索引、检索与 EvidencePack 是否保留来源结构，不把自动结果冒充 OCR 正确性或人工语义金标。
+- 正式导入和教材重建在 IR 落盘后同步写入 `acceptance_probes.generated.jsonl` 与 inventory report；探针按类型跨章节取样，每类最多 8 条。重复结构只计一次，避免重复公式/列表把最低覆盖样本数虚高。
+- staged 生产检索发布门槛增加 `formula/list/example/table` 四个独立 gate。教材存在该类结构时要求最多 3 条样本覆盖，Recall@K 与 point recall 均为 `1.0`；不存在时显式返回 `not_applicable`。任何适用专项在样本覆盖或质量上失败都会拒绝激活并保留旧版本，manifest 的 `release_quality.specialty_gates` 保存逐类 inventory、样本数、阈值、Recall、point recall 和 MRR。
+- 验证：探针确定性、四类识别、持久化、四类探针通过真实 staged lexical/生产 EvidencePack 路径、专项失败阻止激活及旧版本保护测试通过；后端全量回归 `522 passed`（仅 1 条既有 Starlette/httpx2 弃用警告）。《误差理论与数据处理》当前真实 active 资产只读回归仍为 `22/22`、Recall@K `1.0`、point recall `1.0`、MRR `0.9091`；其中 3 条既有公式黄金用例通过公式专项门槛，其他三类因当前版本尚无 IR inventory 而如实标记 `not_applicable`，本次未重建或切换现有教材索引。
+
+## 2026-08-24 《误差理论与数据处理》Canonical IR 正式重建
+
+- 以已落盘 Canonical Document IR 重新生成 7 个章节、2557 个检索块并激活 schema 5 索引 `2ce6661f40535ee4`；旧版本 `8b28cb1f64215c1a` 的 8 个 Chroma collections 与 lexical 快照作为可回滚历史版本保留。失败候选均在拒绝激活后清理，没有孤立 collection 或半切换状态。
+- PDF 章节适配不再把整章压成单段：内部 Markdown 标题、段落、公式和例题按 IR block 保存，同时把章节正文中的一级标题限制为章内层级，避免把“小节”误识别成额外章节。本次 inventory 为公式 1033、列表 23、例题 79、表格 0；表格门槛按真实来源标记 `not_applicable`。
+- 公式检索以精确命中的公式 block 为锚点，优先保留前后 IR 邻接说明，并在 EvidencePack 候选文本中携带公式小节标题。章节级 Chroma HNSW 暂时不可读时，检索会退回同一本书 aggregate collection 并保持章节 metadata 过滤，不扩大教材范围。
+- 激活事务运行 46 个生产混合检索与最终 EvidencePack 用例，Recall@K `1.0`、point recall `1.0`；公式 11、列表 8、例题 8 个专项用例均为 `1.0`。激活后的固定人工回归为 `22/22`，Recall@K `1.0`、point recall `1.0`、MRR `0.9091`。后端全量回归 `524 passed`，仅保留 1 条既有 Starlette/httpx2 弃用警告。
+- 修正重建脚本写入教材 metadata 时硬编码旧 schema 4 的问题，改为采用激活后健康检查返回的实际 schema；当前教材 metadata、manifest 与 API 统计统一为 schema 5。
+
+## 2026-08-24 受控学习工具收敛到主聊天
+
+- Tool Registry 增加结果 schema、capability、风险、超时、版本和 provenance 契约；`ToolResult` 明确区分数据、证据、校验、警告与待确认操作。新增 `docs/tool-calling-contract.md`，规定主聊天只有一条回答路径、只读自动执行、写操作保持提案，以及工具成功不等同于答案正确。
+- 前端移除基于关键词切换 `/agent/read-only` 的独立回答分支。主聊天现在由 `backend/services/tool_orchestration.py` 在进入 graph 前选择并执行最多 6 个相关只读工具，把有界 Tool Context Pack 交给原有 planner/retrieval/generator；SSE 继续输出真实活动，工具失败会保留原回答降级路径。
+- `search_textbook` 不再直接返回简化向量检索结果，改为复用生产 `retrieve_node`、evidence support gate 与最终 EvidencePack。学习进度、复习队列等本地状态工具成功时会跳过无关教材检索，但不会放宽教材事实的 EvidencePack 边界。
+- 新增基于 SymPy 1.14 的受限数学工具：只接受有界 AST 表达式，支持数值计算、化简、求导、积分和一元方程；禁止任意 Python、导入、属性访问与代码执行。可验证结果会自动调用等价、导数、原函数、定积分或代入校验，警告和失败状态必须进入回答上下文。
+- 已被受限数学路由可靠识别的闭合表达式不再交给教材向量命中猜测学科，避免纯算式被误判为其他专业课并在计算前触发跨学科确认；不符合受限语法的问题仍保留原学科路由边界。
+- 新增 40 条考研学习场景离线对照集和 `evaluation/tool_calling_eval.py`。当前 route accuracy、no-tool precision、数学执行成功率与验证通过率均为 `1.0`；无工具策略的路由准确率为 `0.35`，受控路由提升 `0.65`。该结果只代表离线路由/工具合同，不表述为线上模型答案准确率。
+- 验证：后端全量 `533 passed`（1 条既有 Starlette/httpx2 弃用警告）；前端 `19 files / 90 tests passed`、ESLint 与生产构建通过。1280×720 和 1600×900 实际页面确认答案保持 Learning Canvas 文档流，工具步骤在生成时可见、完成后默认折叠，展开后显示计算与校验，不再进入独立 Agent 卡片。Anti-slop：独立工具回答卡 `REMOVED`，处理记录技术细节 `REDUCED`，真实失败/校验状态 `JUSTIFIED`。
+## 2026-08-24 - 工具接入后的教材 RAG 与生成消息边界修复
+
+- 先将《误差理论与数据处理》临时回滚到保留的 schema 4 版本 `8b28cb1f64215c1a`，确认回滚事务可恢复 active map、词法索引与 manifest；修复后再激活 schema 5 版本 `2ce6661f40535ee4`，旧版本与现有数据均保留。
+- schema 5 列举检索改为选择语义列表标题，并把标题、成员说明及对应公式按原始顺序组成证据组；formula 追问也复用同一列举路径，避免“系统误差的前四种方法”压过“标准差的四种计算方法”。
+- Evidence support gate 增加“关系/联系/区别”、数量词和具体公式的语义支持判断；跨对象关系必须有同一证据明确表达关系，不能只因分别命中两个对象而判定充分。
+- Resolver 对“再查查”“具体公式呢”“真的没有吗”等追问继承上一轮 resolved query，并显式触发重新检索，不建立无关新 topic。
+- 线上回答生成不再把全部内容作为单个字符串调用模型：稳定约束使用 `SystemMessage`，问题、ConversationContextPack、EvidencePack 与实际工具结果使用 `HumanMessage`；没有成功工具结果时不注入空 Tool Context。同步与 SSE 流式路径使用同一消息合同。
+- 验证：schema 5 最终 EvidencePack 人工黄金集 `22/22`，Recall@K `1.0`、point recall `1.0`、MRR `0.9091`；三个复现问法均为 `supported`。相关定向回归 50 passed，消息/工具/SSE 回归 33 passed。
+- 同一 EvidencePack、同一 System/Human 消息在线对照中，本地检索约 `2.963s`；DeepSeek V4 Flash 为 `73.830s`、6556 completion tokens（其中 reasoning 5928），V4 Pro 为 `51.271s`、3216 completion tokens（其中 reasoning 2735）。两者均未误报“教材无依据”，引用 ID 均合法；Flash 输出更长且使用 3 个 Markdown 标题。共同上限为 8192；2200 的预跑会被 reasoning tokens 占满，不可作为质量对照。
+
+## 2026-08-25 schema 5 关系题教学完整性修复
+
+- 修复 schema 5 原子公式块在“联系 / 关系 / 区别 / 比较”类问题中被普通词面 rerank 丢弃的问题。检索现在只在主要教材内，把高相关正文与同章、同小节、距离不超过 2 个 IR block 且存在明确公式引导语的公式重新组成教学单元；辅助教材不会用局部邻接块挤占主要教材 EvidencePack。
+- 关系题的正文锚点与公式按“解释 → 公式”顺序进入 rerank，避免 EvidencePack 的单章数量上限留下公式却丢掉符号解释。comparison 语义角色优先级补入 formula / derivation，但不放宽教材事实边界，也不从模型记忆补公式。
+- 生成合同升级为 `generator-teaching-units-v1-2026-08-25`：关系题须按概念、数学联系、符号解释、直观含义和关键区别组织；所选证据含公式时必须实际展示并解释，禁止退化为“教材要点”摘录。
+- 本地复现“标准差和随机误差之间的关系”时，最终 EvidencePack 保持 `supported`，并包含单次测量标准差公式 `σ = sqrt(Σδᵢ²/n)` 及其同小节解释。未调用付费模型做线上生成评测。
+
+## 2026-08-25 图片任务模型配置语义修正
+
+- 图片处理方式由“识图后交给推理模型 / 识图模型直接解答”改为“识图 / 推理分离 / 集成回复”。分离模式保留识图与推理两套配置；集成模式只展示一套同时支持文本与视觉的模型配置。
+- 保留已有 `split/native` 环境值和 profile 字段以兼容旧方案。保存集成模式时，后端以集成模型同步推理与视觉兼容角色，普通问答、图片解析和图片回复不再需要两个独立模型选项。profile 仍不保存密钥。
+- 验证：模型配置、连接、视觉桥接与错题图片 API 定向回归 `20 passed`；前端 TypeScript/Vite build 与 ESLint 通过。1280×800 和 1600×1000 实际界面确认集成模式仅一个“集成模型”分组，旧文案不可见，控制台无错误。
+
+## 2026-08-25 Qwen 3.7 Plus / DeepSeek V4 Pro 受控对照实验基础设施
+
+- 只读审查主聊天、Teach、Planner、Resolver、Evidence gate、工具和视觉路径的实际 Prompt/调用链；确认 Legacy Teaching Prompt 同时叠加证据、工具、引用、格式、教学流程和 intent 规则，且 Teach 与 generator 存在重复约束。
+- 新增可回滚 `minimal-teaching-v1-2026-08-25`：仅在 `TEXA_TEACHING_PROMPT_MODE=minimal` 时启用用户指定的统一中文系统消息，保留相同 ConversationContextPack、EvidencePack、工具结果和必要引用协议；默认继续使用 Legacy 分支，未增加模型专属 Prompt 或改写 Planner routing。
+- 新增独立 dry-run/online benchmark 脚本与 31 个固定 case（A=4、B=5、C=2、D=3、E=4、F=1、G=12），冻结消息、真实检索证据、工具结果和 SHA-256；线上运行必须同时具备两模型凭据并显式确认付费调用。
+- 当前环境缺少 Qwen/DashScope 凭据，因而没有进行任何付费模型调用，也未生成或臆造模型胜负、token、延迟与成本结论。审查与方法报告保存在 `docs/benchmarks/qwen37-vs-deepseek-v4pro-20260825.md`。
+- 验证：Minimal/Legacy prompt 切换、generator、follow-up 与工具编排定向回归 `48 passed`；离线夹具构建成功。Legacy generator/Teach 源码完整快照保存在 `benchmark_results/prompt_backups/teaching_prompt_legacy_20260825.json`。
+
+## 2026-08-25 Qwen 3.7 Plus 集成视觉能力修正
+
+- 修正模型能力目录把 `qwen3.7-plus` 误标为仅文本推理的问题；按官方 Image/Text/Video 输入能力补充 `vision` capability。集成回复仍复用现有单模型配置、OpenAI-compatible 图片消息和角色校验，没有新增模型专属视觉流程。
+- 增加配置合同回归：模型必须同时暴露 text/vision 能力，native 模式保存时必须将同一 `qwen3.7-plus` 同步到 reasoning 与 vision 角色。该修复同时恢复设置页常用型号筛选及连接测试前的能力校验。
+- 验证：模型配置、系统设置与视觉角色定向回归 `26 passed`；重启本地后端后，实时 `/api/system/settings` 已返回 `qwen3.7-plus` 的 `text` 与 `vision` 能力。
+
+## 2026-08-25 Qwen 3.7 Plus / DeepSeek V4 Pro 在线受控对照结果
+
+- 在相同 Minimal Teaching Prompt、冻结生产 EvidencePack / Context Pack / 工具结果、`temperature=0.1`、请求 `max_tokens=4096` 下完成 25 个文本 case × 2 模型 × 3 次，共 150 条文本结果；另完成 Qwen 原生视觉与 Kimi K2.5 VisualProblemIR → DeepSeek 各 3 次。原始响应、token、reasoning、TTFT、总延迟、成本估算与视觉阶段 trace 均已落盘。
+- 普通教材 RAG 必需事实点召回为 Qwen `96.3%`、DeepSeek `92.6%`；12 轮 session 的模型阶段中位延迟为 Qwen `22.372s`、DeepSeek `42.290s`。Qwen 75 条文本无空答；DeepSeek 有 3 次长会话空答、5 次 length finish，空答均因 4096 token 全被 high-reasoning 消耗。
+- Qwen 原生视觉 3 次均完成，但热电偶分度表题三次都把约 `492.4–492.5℃` 算成约 `490℃`。Kimi 三次均正确生成结构化题图 IR，后续 DeepSeek 三次均在 4096 reasoning token 处截断而无正文；未为改善任一模型临时调 prompt、reasoning effort 或输出上限。
+- benchmark 续跑合并键补入 `group`，避免 A/B 中同名 case 被去重；从 append-only JSONL 无付费重建出完整 150 条记录。新增确定性分析脚本与聚合 JSON。最终报告位于 `docs/benchmarks/qwen37-vs-deepseek-v4pro-20260825-final.md`，建议 Qwen 作为默认文本 reasoning 小流量试运行、DeepSeek 保留回退，精密视觉题继续要求可验证表格/计算证据。
+
+## 2026-08-25 Qwen Teaching Prompt 三 preset 对照
+
+- 新增 `refined-teaching-v1-2026-08-25`，保留教材/工具事实边界、引用、证据不足、例题真实性、LaTeX 和克制格式合同，删除 Legacy 中重复的 intent 流程、固定教学步骤和中英混排长规则。Legacy 仍为默认并可直接回滚；`minimal`、`refined` 以及 `fine-tune` 兼容别名均可显式切换。
+- Generator 与 Teach 子图统一支持三套 preset；Compact 路径继续使用相同的有界 ConversationContextPack、EvidencePack 和工具结果。修正 Teach 子图在 Minimal/Refined 下仍记录 Legacy prompt 长度的问题，context telemetry 现在保存实际 preset、system/human 字符数和 prompt version。
+- 仅使用 Qwen 3.7 Plus，在 `temperature=0.1`、thinking 开启、`max_tokens=4096` 下对 A/B/G 的 18 个真实模型 case 各重复 3 次。Minimal 54 条经 message SHA-256 全量匹配后复用；Legacy 与 Refined 新增 108 次调用，零错误，原始回答和 telemetry 全部落盘。
+- Refined 相比 Legacy 的总延迟中位由 `37.012s` 降至 `20.794s`，reasoning token 降低 `50.5%`，正文字符中位由 `643` 降至 `301.5`，按北京原价估算由 `¥1.2501` 降至 `¥0.6900`。逐题复核未发现 A/B 教材事实或引用的实质退化；G 组错误 context 上的无关扩写明显减少。
+- 验证：Teaching Prompt / generator 定向回归 `18 passed`；benchmark 三套均为 `54/54` 成功、无无效引用。最终报告位于 `docs/benchmarks/qwen37-prompt-presets-abg-20260825-final.md`，完整原文位于 `benchmark_results/qwen37_prompt_presets_abg_raw_20260825.md`。
+
+## 2026-08-25 Refined Teaching Prompt 与 Qwen 3.7 Plus 转为默认
+
+- `TEXA_TEACHING_PROMPT_MODE` 未配置时由 Legacy 改为 `refined-teaching-v1-2026-08-25`；`legacy` 和 `minimal` 仍可显式选择，保留一键回滚与 benchmark control。
+- 未配置模型角色时，reasoning 与 vision provider 均默认解析为 Qwen，默认型号为 `qwen3.7-plus`；Qwen 3.7 Plus 的正式 ModelSpec 启用 `enable_thinking=true`，与受控实验条件保持一致。显式保存的用户 profile、DeepSeek legacy 环境变量和自定义 provider 继续优先于默认值。
+- `.env.example` 改为 Qwen 3.7 Plus 双角色示例。多模态模式的未配置默认仍为 `split`，避免把既有 reasoning-only / 分离式配置静默解释成集成模式；当前本机已保存的 `native` Qwen profile 不受影响。
+- 运行态解析确认：Teaching preset 为 `refined`，active reasoning 为 `qwen/qwen3.7-plus` 且 thinking 开启；空环境也解析为相同默认。模型配置、Prompt 切换与缓存定向回归 `25 passed`。

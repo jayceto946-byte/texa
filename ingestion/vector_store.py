@@ -70,7 +70,10 @@ class ChapterVectorStore:
     def _preload_all_stores(self):
         """Preload only book-level aggregate stores; chapter stores are lazy-loaded."""
         try:
-            cols = [c for c in self._client.list_collections() if self._is_book_collection(c.name)]
+            cols = [
+                c for c in self._client.list_collections()
+                if self._is_book_collection(c.name) and self._is_active_collection(c.name)
+            ]
             for col in cols:
                 title = self._collection_to_title(col.name)
                 book_name = self._collection_to_book(col.name)
@@ -110,6 +113,8 @@ class ChapterVectorStore:
                             "book_name": str(value.get("book_name") or ""),
                             "schema_version": str(value.get("schema_version") or "2"),
                             "kind": str(value.get("kind") or "chapter"),
+                            "active": bool(value.get("active", True)),
+                            "index_version": str(value.get("index_version") or ""),
                         }
                     else:
                         result[collection_name] = {
@@ -117,6 +122,8 @@ class ChapterVectorStore:
                             "book_name": "",
                             "schema_version": "1",
                             "kind": "chapter",
+                            "active": True,
+                            "index_version": "",
                         }
             return result
         return {}
@@ -171,6 +178,10 @@ class ChapterVectorStore:
     def _is_book_collection(self, collection_name: str) -> bool:
         entry = self._map.get(collection_name) or {}
         return entry.get("kind") == "book_aggregate" or str(collection_name).startswith("book")
+
+    def _is_active_collection(self, collection_name: str) -> bool:
+        entry = self._map.get(collection_name) or {}
+        return bool(entry.get("active", True))
     def _collection_to_title(self, collection_name: str) -> str:
         """collection 名 -> 中文标题。"""
         entry = self._map.get(collection_name)
@@ -188,10 +199,14 @@ class ChapterVectorStore:
         """中文标题 -> collection 名（反向查）。"""
         normalized_book = safe_book_name(book_name) if book_name else ""
         for col, entry in self._map.items():
+            if not bool(entry.get("active", True)):
+                continue
             if entry.get("chapter") == chapter_title and entry.get("book_name", "") == normalized_book:
                 return col
         if normalized_book:
             for col, entry in self._map.items():
+                if not bool(entry.get("active", True)):
+                    continue
                 if entry.get("chapter") == chapter_title and not entry.get("book_name"):
                     return col
         return self._chapter_collection_name(chapter_title, normalized_book)
@@ -201,7 +216,11 @@ class ChapterVectorStore:
         scoped = []
         legacy = []
         for col in collections:
-            if col.name == "_chapter_map.json" or self._is_book_collection(col.name):
+            if (
+                col.name == "_chapter_map.json"
+                or self._is_book_collection(col.name)
+                or not self._is_active_collection(col.name)
+            ):
                 continue
             entry_book = self._collection_to_book(col.name)
             if normalized_book:
@@ -265,7 +284,17 @@ class ChapterVectorStore:
                     "bbox": json.dumps(chunk.get("bbox", []), ensure_ascii=False),
                     "equations": json.dumps(chunk.get("equations", []), ensure_ascii=False),
                     "block_type": chunk.get("block_type", "text"),
-                    "collection_schema": 2,
+                    "page_start": int(chunk.get("page_start")) if chunk.get("page_start") is not None else -1,
+                    "page_end": int(chunk.get("page_end")) if chunk.get("page_end") is not None else -1,
+                    "source_kind": chunk.get("source_kind", ""),
+                    "source_file": chunk.get("source_file", ""),
+                    "ocr_confidence": float(chunk.get("ocr_confidence")) if chunk.get("ocr_confidence") is not None else -1.0,
+                    "source_block_ids": json.dumps(chunk.get("source_block_ids", []), ensure_ascii=False),
+                    "source_locations": json.dumps(chunk.get("source_locations", []), ensure_ascii=False),
+                    "table_title": chunk.get("table_title", ""),
+                    "table_header": json.dumps(chunk.get("table_header", []), ensure_ascii=False),
+                    "table_rows": json.dumps(chunk.get("table_rows", []), ensure_ascii=False),
+                    "collection_schema": 5,
                 },
             )
             for chunk in chunks
@@ -282,7 +311,7 @@ class ChapterVectorStore:
         self._map[collection_name] = {
             "chapter": chapter_title,
             "book_name": normalized_book,
-            "schema_version": "2",
+            "schema_version": "5",
         }
         self._save_map()
         return store
@@ -323,7 +352,17 @@ class ChapterVectorStore:
                     "bbox": json.dumps(chunk.get("bbox", []), ensure_ascii=False),
                     "equations": json.dumps(chunk.get("equations", []), ensure_ascii=False),
                     "block_type": chunk.get("block_type", "text"),
-                    "collection_schema": 3,
+                    "page_start": int(chunk.get("page_start")) if chunk.get("page_start") is not None else -1,
+                    "page_end": int(chunk.get("page_end")) if chunk.get("page_end") is not None else -1,
+                    "source_kind": chunk.get("source_kind", ""),
+                    "source_file": chunk.get("source_file", ""),
+                    "ocr_confidence": float(chunk.get("ocr_confidence")) if chunk.get("ocr_confidence") is not None else -1.0,
+                    "source_block_ids": json.dumps(chunk.get("source_block_ids", []), ensure_ascii=False),
+                    "source_locations": json.dumps(chunk.get("source_locations", []), ensure_ascii=False),
+                    "table_title": chunk.get("table_title", ""),
+                    "table_header": json.dumps(chunk.get("table_header", []), ensure_ascii=False),
+                    "table_rows": json.dumps(chunk.get("table_rows", []), ensure_ascii=False),
+                    "collection_schema": 5,
                 },
             )
             for chunk in chunks
@@ -360,7 +399,7 @@ class ChapterVectorStore:
         self._map[collection_name] = {
             "chapter": f"{normalized_book} (aggregate)",
             "book_name": normalized_book,
-            "schema_version": "3",
+            "schema_version": "5",
             "kind": "book_aggregate",
             "chunk_count": len(documents),
         }
@@ -430,6 +469,7 @@ class ChapterVectorStore:
                 1
                 for collection in self._client.list_collections()
                 if not self._is_book_collection(collection.name)
+                and self._is_active_collection(collection.name)
                 and self._collection_to_book(collection.name) == normalized_book
             )
         except Exception as exc:
@@ -485,6 +525,8 @@ class ChapterVectorStore:
         result = []
         for col in collections:
             if not self._is_book_collection(col.name):
+                continue
+            if not self._is_active_collection(col.name):
                 continue
             entry_book = self._collection_to_book(col.name)
             if not normalized_book or entry_book == normalized_book:

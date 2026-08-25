@@ -21,7 +21,7 @@ def _legacy_corpus_version(book_name: str) -> str:
 def current_context_versions(book_name: str = "") -> dict[str, Any]:
     from config import get_model_role_config
     from graph.conversation_context import CONVERSATION_CONTEXT_POLICY_VERSION
-    from graph.generator import GENERATION_PROMPT_VERSION
+    from graph.teaching_prompts import active_teaching_prompt_version
     from graph.retrieval_policy import RETRIEVAL_POLICY_VERSION
     from ingestion.index_pipeline import load_index_manifest
 
@@ -31,7 +31,7 @@ def current_context_versions(book_name: str = "") -> dict[str, Any]:
     return {
         "model_backend": model.provider.provider_id,
         "model_name": model.model,
-        "prompt_version": GENERATION_PROMPT_VERSION,
+        "prompt_version": active_teaching_prompt_version(),
         "context_policy_version": CONVERSATION_CONTEXT_POLICY_VERSION,
         "retrieval_policy_version": RETRIEVAL_POLICY_VERSION,
         "corpus_version": corpus_version,

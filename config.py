@@ -56,7 +56,7 @@ def _data_path(env_name: str, default_name: str) -> Path:
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "deepseek-v4-pro")
+LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "qwen3.7-plus")
 
 # Kimi / Moonshot configuration
 MOONSHOT_API_KEY = os.getenv("MOONSHOT_API_KEY", OPENAI_API_KEY)
@@ -84,8 +84,9 @@ MINERU_CLI_COMMAND = os.getenv("MINERU_CLI_COMMAND", "")
 MINERU_TASK_TIMEOUT_SECONDS = int(os.getenv("MINERU_TASK_TIMEOUT_SECONDS", "3600"))
 MINERU_TASK_POLL_SECONDS = float(os.getenv("MINERU_TASK_POLL_SECONDS", "2"))
 
-# LLM backend. The default is DeepSeek.
-LLM_BACKEND = os.getenv("LLM_BACKEND", "deepseek")
+# LLM backend. Qwen 3.7 Plus is the unconfigured default; explicit role/profile
+# settings and legacy provider variables continue to take precedence.
+LLM_BACKEND = os.getenv("LLM_BACKEND", "qwen")
 
 # Multimodal entrypoint is intentionally disabled unless OCR/Vision workflows enable it.
 MULTIMODAL_ENABLED = False

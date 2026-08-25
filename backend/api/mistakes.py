@@ -307,7 +307,7 @@ def _iter_visual_solution_chunks(
 
 
 def _get_image_reasoning_llm(**kwargs):
-    """Use the vision role for native mode, otherwise preserve split-model behavior."""
+    """Use the integrated model for native mode, or the reasoning role for split mode."""
     import os
     from config import get_llm, get_model_role_config
     from llm.factory import build_chat_model

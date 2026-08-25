@@ -1,0 +1,118 @@
+{
+  "run_at": "2026-08-24T23:28:18.981584+08:00",
+  "question": "标准差和随机误差之间的联系",
+  "book": "误差理论与数据处理",
+  "comparison_controls": {
+    "same_messages": true,
+    "message_sha256": "803c0bddcf185717cba8b4e23dda2700479725b6e8e55fc3afba0ccd90736cca",
+    "message_roles": [
+      "system",
+      "user"
+    ],
+    "system_chars": 1079,
+    "human_chars": 2294,
+    "tool_context_injected": false,
+    "temperature": 0.1,
+    "max_tokens": 8192,
+    "stream": false,
+    "model_runtime_options": {
+      "deepseek-v4-flash": "production registry default (no explicit thinking option)",
+      "deepseek-v4-pro": "production registry default (thinking enabled, reasoning_effort high)"
+    }
+  },
+  "retrieval": {
+    "elapsed_seconds": 2.963,
+    "support": {
+      "status": "supported",
+      "reason": "question_focus_supported",
+      "topic_terms": [
+        "随机误差",
+        "标准差"
+      ],
+      "focus_terms": [
+        "关系"
+      ],
+      "matched_focus_terms": [
+        "关系"
+      ],
+      "best_focus_coverage": 1.0,
+      "best_query_coverage": 0.615385,
+      "topic_focus_same_evidence": true
+    },
+    "evidence_count": 8,
+    "evidence_ids": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8"
+    ],
+    "sections": [
+      "1. 随机误差",
+      "（二）随机误差",
+      "1. 随机误差",
+      "二、函数随机误差计算",
+      "二、函数随机误差计算",
+      "(三)粗大误差",
+      "（二）均值、方差和方均值",
+      "（一）测量列中单次测量的标准差"
+    ]
+  },
+  "results": [
+    {
+      "model_requested": "deepseek-v4-flash",
+      "model_returned": "deepseek-v4-flash",
+      "finish_reason": "stop",
+      "elapsed_seconds": 73.83,
+      "usage": {
+        "prompt_tokens": 1809,
+        "prompt_cache_hit_tokens": 1792,
+        "prompt_cache_miss_tokens": 17,
+        "completion_tokens": 6556,
+        "reasoning_tokens": 5928,
+        "total_tokens": 8365
+      },
+      "assessment": {
+        "mentions_both_objects": true,
+        "states_relationship": true,
+        "false_no_evidence_refusal": false,
+        "citation_count": 12,
+        "invalid_citation_ids": [],
+        "markdown_heading_count": 3,
+        "bold_span_count": 2,
+        "answer_chars": 1171
+      },
+      "answer": "随机误差与标准差不是同一个概念，而是“被评定的误差”与“评定参数”的关系。\n\n**随机误差**是指：在同一测量条件下，多次测量同一量值时，绝对值和符号以不可预定方式变化的误差。[[cite:E2]] 例如仪器仪表中传动部件的间隙和摩擦、连接件的弹性变形等引起的示值不稳定。[[cite:E2]]\n\n**标准差**则是用来评定随机误差的统计量。教材明确指出：随机误差是用表征其取值分散程度的标准差来评定的，对于函数的随机误差，也是用函数的标准差来进行评定。[[cite:E4]]\n\n直观地说：打靶时每次子弹落点都不完全重合，方向时左时右、大小时大时小，这就是随机误差；而用所有落点围绕靶心的散布程度来刻画这种不稳定，就相当于用标准差来评定随机误差。标准差并不是某一次偏了多少，而是整组散布的总体度量。\n\n二者的联系与区别可归结为以下几点：\n\n### 1. 标准差描述的是随机误差的概率分布情况，而不是某一次误差的数值\n\n教材明确指出：标准差σ不是测量列中任何一个具体测得值的随机误差，σ的大小只说明在一定条件下等精度测量列随机误差的概率分布情况。[[cite:E8]] 在该条件下，任一单次测得值的随机误差δ一般都不等于σ，但这一系列测量中所有测得值都属同样一个标准差σ的概率分布。[[cite:E8]]\n\n所以，不能把“标准差”与“某次随机误差的大小”画等号。\n\n### 2. 标准差随测量条件而变化\n\n不同条件下，对同一被测量进行两个系列的等精度测量，其标准差σ也不相同。[[cite:E8]] 因此，随机误差的标准差必须结合具体测量条件来理解，它不是固定不变的常数。\n\n### 3. 在函数误差计算中，标准差是把多个随机误差联系起来的桥梁\n\n对于函数随机误差，也是用函数的标准差来评定。[[cite:E4]] 如果只是把各测量值的随机误差$\\delta x_1, \\delta x_2, \\cdots, \\delta x_n$代入函数微分式，只能得到函数的随机误差$\\delta y$，得不到函数的标准差$\\sigma_y$；必须按函数随机误差公式，由各个测量值的标准差和误差传递系数$\\partial f/\\partial x_i$计算出函数的标准差。[[cite:E4]][[cite:E5]]\n\n教材还以天平为例说明这一做法：天平示值变动性所引起的误差为随机误差，用多次重复称量同一球的质量，得天平的标准差。[[cite:E1]] 不过检索材料中该例后续数值缺失，无法给出具体结果。\n\n因此，二者关系可概括为：随机误差回答的是“误差如何变化”——绝对值和符号不可预定；标准差回答的是“这种变化有多分散”——用统计量定量刻画其分散程度。前者是误差类别，后者是评定这个类别分散程度的统计指标。[[cite:E2]][[cite:E4]]",
+      "reasoning_content_saved": false
+    },
+    {
+      "model_requested": "deepseek-v4-pro",
+      "model_returned": "deepseek-v4-pro",
+      "finish_reason": "stop",
+      "elapsed_seconds": 51.271,
+      "usage": {
+        "prompt_tokens": 1809,
+        "prompt_cache_hit_tokens": 1792,
+        "prompt_cache_miss_tokens": 17,
+        "completion_tokens": 3216,
+        "reasoning_tokens": 2735,
+        "total_tokens": 5025
+      },
+      "assessment": {
+        "mentions_both_objects": true,
+        "states_relationship": true,
+        "false_no_evidence_refusal": false,
+        "citation_count": 8,
+        "invalid_citation_ids": [],
+        "markdown_heading_count": 0,
+        "bold_span_count": 5,
+        "answer_chars": 945
+      },
+      "answer": "标准差与随机误差的联系，可以概括为：**随机误差用标准差来评定，但标准差本身不是某个具体的随机误差。**下面从概念、计算和数值含义三个层面说明。\n\n**1. 随机误差是“不可预定方式变化”的测量误差**\n\n随机误差是指在同一测量条件下，多次测量同一量值时，绝对值和符号以不可预定方式变化的误差。例如仪器仪表中传动部件的间隙和摩擦、连接件的弹性变形等引起的示值不稳定。[[cite:E2]] 天平示值变动性所引起的误差也属于随机误差。[[cite:E1]]\n\n**2. 标准差是评定随机误差分散程度的指标**\n\n随机误差是用表征其取值分散程度的标准差来评定的；对于函数的随机误差，也是用函数的标准差来进行评定。[[cite:E4]] 因此，函数随机误差计算的核心，就是研究函数的标准差与各测量值 $x_1,x_2,\\cdots,x_n$ 的标准差之间的关系；如果只是把各测量值的随机误差 $\\delta x_1,\\delta x_2,\\cdots,\\delta x_n$ 代替微分量，只能得到函数的随机误差 $\\delta y$，而得不到函数的标准差 $\\sigma_y$。[[cite:E4]] 进一步可以由各个测量值的标准差计算出函数的标准差，其中 $\\partial f/\\partial x_i$ 为各个测量值的误差传递系数。[[cite:E5]]\n\n**3. 标准差不等于某一次具体的随机误差**\n\n标准差 $\\sigma$ 不是测量列中任何一个具体测得值的随机误差；$\\sigma$ 的大小只说明在一定条件下等精度测量列随机误差的概率分布情况。在该条件下，任一单次测得值的随机误差一般都不等于 $\\sigma$，但可以认为这一系列测量中所有测得值都属于同一个标准差 $\\sigma$ 的概率分布；在不同条件下对同一被测量进行两个系列的等精度测量，其标准差 $\\sigma$ 也不相同。[[cite:E8]]\n\n**直观例子**\n\n多次重复称量同一球的质量，天平的示值变动性会产生随机误差；这时用多次称量所得的天平标准差来描述这种随机误差的分散程度。[[cite:E1]] 这个标准差不是某一次称量误差的具体数值，而是说明整组称量值随机误差的概率分布分散程度。[[cite:E8]]",
+      "reasoning_content_saved": false
+    }
+  ]
+}

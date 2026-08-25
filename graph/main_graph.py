@@ -103,6 +103,7 @@ def build_initial_state(
         "conversation_context_seed": dict(continuity.get("conversation_context_seed") or {}),
         "conversation_context_pack": {},
         "learning_context_pack": dict(continuity.get("learning_context_pack") or {}),
+        "tool_context_pack": dict(continuity.get("tool_context_pack") or {}),
         "messages": [],
         "intent": "",
         "_local_intent": "qa",
@@ -208,7 +209,7 @@ def run_graph_stream(
     from graph.chapter_subgraph import (
         prepare_chapter_subgraph, TEACH_PROMPT, _future_result_if_done,
     )
-    from graph.generator import _build_generate_prompt, _format_quiz_appendix, _record_context_budget, grounded_failure_message, has_textbook_evidence, scope_boundary_message, suggested_fallback_mode
+    from graph.generator import _build_generate_messages, _format_quiz_appendix, _record_context_budget, grounded_failure_message, has_generation_support, has_textbook_evidence, scope_boundary_message, suggested_fallback_mode
     from graph.conversation_context import prepare_conversation_context
     from graph.feedback_node import feedback_node, link_concepts_for_response
     from knowledge.summary_store import SummaryStore
@@ -388,7 +389,7 @@ def run_graph_stream(
             state["final_output"] = buffer
             yield {"stage": "generate", "chunk": buffer, "done": False}
             yield {"stage": "generate", "chunk": "", "done": True, "evidence_sources": []}
-        elif state.get("use_textbook_context", True) and not has_textbook_evidence(state):
+        elif state.get("use_textbook_context", True) and not has_generation_support(state):
             buffer = grounded_failure_message(state)
             _record_context_budget(
                 state, "", assembly_mode="grounded_refusal_no_generation", query_text="",
@@ -398,7 +399,7 @@ def run_graph_stream(
             yield {"stage": "generate", "chunk": buffer, "done": False, "suggested_answer_mode": state["suggested_answer_mode"]}
             yield {"stage": "generate", "chunk": "", "done": True, "evidence_sources": state.get("evidence_sources", []), "suggested_answer_mode": state["suggested_answer_mode"]}
         else:
-            prompt = _build_generate_prompt(state)
+            prompt = _build_generate_messages(state)
             try:
                 llm = get_llm(temperature=0.1 if state.get("use_textbook_context", True) else 1)
             except TypeError:

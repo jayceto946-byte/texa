@@ -12,6 +12,7 @@ import exercisesPage from './pages/ExercisesPage.tsx?raw';
 import composerOverflow from './components/chat/ComposerOverflowMenu.tsx?raw';
 import appearance from './components/settings/AppearanceSettings.tsx?raw';
 import settings from './components/SystemHealth.tsx?raw';
+import modelSettings from './components/settings/ModelSettingsManager.tsx?raw';
 import theme from './theme.ts?raw';
 import desktopTitleBar from './components/DesktopTitleBar.tsx?raw';
 import desktopMain from '../../desktop/main.cjs?raw';
@@ -120,6 +121,13 @@ describe('Texa product UI contract', () => {
     expect(firstRun).not.toContain('<ModelSettingsForm');
     expect(firstRun).toContain("'/system/settings/model-profiles'");
     expect(firstRun).toContain("'/system/settings/models/test'");
+  });
+
+  it('presents split and integrated image handling without a direct-answer mode', () => {
+    expect(modelSettings).toContain('识图 / 推理分离');
+    expect(modelSettings).toContain('集成回复');
+    expect(modelSettings).toContain("value.multimodal_mode === 'native' ? ['vision'] : ['reasoning', 'vision']");
+    expect(modelSettings).not.toContain('识图模型直接解答');
   });
 
   it('preserves typed ONNX repair states in the Electron startup UI', () => {

@@ -1,5 +1,7 @@
 """生成节点相关单元测试"""
-from graph.generator import _build_generate_prompt, _has_example_marker
+from langchain_core.messages import HumanMessage, SystemMessage
+
+from graph.generator import _build_generate_messages, _build_generate_prompt, _has_example_marker
 from graph.chapter_subgraph import TEACH_PROMPT
 from knowledge.chapter_highlights import ChapterHighlightService, PROMPT_VERSION
 
@@ -64,6 +66,77 @@ def test_build_prompt_records_bounded_context_budget_without_prompt_body():
     assert budget["evidence_included_count"] == 1
     assert budget["planner_prompt_chars"] == 321
     assert "prompt" not in budget
+
+
+def test_generation_uses_real_system_and_human_messages_without_empty_tool_context():
+    state = {
+        "intent": "comparison",
+        "user_input": "标准差和随机误差之间有什么联系？",
+        "chapter_contents": {"第一章": ["随机误差用标准差评定其分散程度。"]},
+        "evidence_items": [],
+        "history_results": [],
+        "teaching_content": "",
+    }
+
+    messages = _build_generate_messages(state)
+
+    assert len(messages) == 2
+    assert isinstance(messages[0], SystemMessage)
+    assert isinstance(messages[1], HumanMessage)
+    assert "教材事实只依据本轮提供的教材证据" in messages[0].content
+    assert "## 用户问题\n标准差和随机误差之间有什么联系？" in messages[1].content
+    assert "## 教材证据" in messages[1].content
+    assert "Deterministic tool results" not in messages[0].content
+    assert "Deterministic tool results" not in messages[1].content
+    assert state["context_budget"]["message_roles"] == ["system", "human"]
+    assert state["context_budget"]["tool_context_injected"] is False
+
+
+def test_generation_injects_tool_context_only_after_actual_tool_result():
+    state = {
+        "intent": "calculation",
+        "user_input": "计算结果是多少？",
+        "chapter_contents": {"第一章": ["标准差按给定公式计算。"]},
+        "evidence_items": [],
+        "history_results": [],
+        "teaching_content": "",
+        "tool_context_pack": {
+            "text": "[calculator] result=2.5; verification=passed",
+            "successful_tool_count": 1,
+            "sufficient": True,
+        },
+    }
+
+    messages = _build_generate_messages(state)
+
+    assert "## 已执行工具结果" in messages[1].content
+    assert "result=2.5" in messages[1].content
+    assert "工具事实只依据已返回的工具结果" in messages[0].content
+    assert state["context_budget"]["tool_context_injected"] is True
+
+
+def test_relationship_prompt_requires_equation_led_explanation_not_evidence_list():
+    state = {
+        "intent": "comparison",
+        "user_input": "标准差和随机误差之间的关系",
+        "evidence_items": [
+            {
+                "chunk_id": "definition", "chapter": "第二章",
+                "text": "标准差用于评定随机误差的分散程度。",
+            },
+            {
+                "chunk_id": "formula", "chapter": "第二章",
+                "text": "$$\\sigma=\\sqrt{\\sum_i\\delta_i^2/n}$$",
+            },
+        ],
+        "chapter_contents": {}, "history_results": [], "teaching_content": "",
+    }
+
+    prompt = _build_generate_prompt(state)
+
+    assert "若所选证据含公式，必须展示最能说明关系的公式" in prompt
+    assert "Explain the relationship, not merely a list of retrieved facts" in prompt
+    assert "explain its symbols" in prompt
 
 
 def test_build_prompt_warns_about_incomplete_examples():

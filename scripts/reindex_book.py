@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from config import PROGRESS_PATH
+from ingestion.document_ir import load_canonical_book
 from ingestion.mineru_importer import build_index_from_chapters
 from ingestion.vector_store import get_vector_store
 from utils.json_io import atomic_write_json
@@ -114,7 +115,17 @@ def rebuild(book_name: str, *, prefer_middle: bool = False) -> dict:
             chapters, unmatched = hydrate_chapters(chapters, rows)
             if unmatched > max(5, int(len(rows) * 0.05)):
                 raise RuntimeError(f"too many source chunks could not be mapped to chapters: {unmatched}/{len(rows)}")
-    indexed = build_index_from_chapters(safe, chapters, root)
+    try:
+        canonical_book = load_canonical_book(safe, progress_root=PROGRESS_PATH)
+    except FileNotFoundError:
+        canonical_book = None
+    indexed = build_index_from_chapters(
+        safe,
+        chapters,
+        root,
+        canonical_book=canonical_book,
+        canonical_progress_root=PROGRESS_PATH,
+    )
     stats = get_vector_store().get_book_index_stats(safe)
     if stats.get("status") != "ready" or int(stats.get("chunk_count", 0)) != indexed:
         raise RuntimeError(f"activated index did not pass final health check: {stats}")
@@ -123,7 +134,11 @@ def rebuild(book_name: str, *, prefer_middle: bool = False) -> dict:
         metadata = json.loads(metadata_path.read_text(encoding="utf-8")) if metadata_path.exists() else {}
     except Exception:
         metadata = {}
-    metadata.update({"indexed_chunks": indexed, "index_schema": 4, "index_version": stats.get("index_version", "")})
+    metadata.update({
+        "indexed_chunks": indexed,
+        "index_schema": int(stats.get("index_schema", 0) or 0),
+        "index_version": stats.get("index_version", ""),
+    })
     atomic_write_json(metadata_path, metadata)
     return {"book_name": safe, "indexed_chunks": indexed, "source_chunks": str(source_path or ""), "unmatched_chunks": unmatched, "index_status": stats}
 

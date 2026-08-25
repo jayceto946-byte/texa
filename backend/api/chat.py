@@ -39,6 +39,11 @@ from backend.services.session_ledger import (
 )
 from backend.services.subject_routing import record_subject_routing_feedback, suggest_subject_scope
 from backend.services.textbook_scope import decide_answer_scope
+from backend.services.tool_orchestration import (
+    ToolOrchestrationRequest,
+    execute_read_only_tools,
+    select_tool_calls,
+)
 from graph.conversation_context import (
     assemble_conversation_context_pack,
     build_conversation_context_seed,
@@ -46,6 +51,45 @@ from graph.conversation_context import (
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
+
+_TOOL_ACTIVITY_LABELS = {
+    "symbolic_math": "执行确定性计算",
+    "verify_math_result": "核对计算结果",
+    "build_review_plan": "读取复习队列",
+    "get_weak_concepts": "读取薄弱概念",
+    "get_recent_progress": "汇总学习进度",
+    "search_exercises": "筛选练习题",
+    "propose_practice_session": "准备练习方案",
+    "propose_add_mistake": "准备错题记录",
+}
+
+
+def _main_tool_request(question: str, book_name: str, subject: str, conversation_id: str) -> ToolOrchestrationRequest:
+    return ToolOrchestrationRequest(
+        question=question,
+        book_name=book_name,
+        subject=subject,
+        conversation_id=conversation_id,
+        max_tools=6,
+        include_textbook_tool=False,
+    )
+
+
+def _prepare_main_tool_context(question: str, book_name: str, subject: str, conversation_id: str) -> dict:
+    try:
+        return execute_read_only_tools(_main_tool_request(question, book_name, subject, conversation_id))
+    except Exception as exc:
+        logger.exception("main chat tool orchestration failed")
+        return {
+            "selected_tools": [], "tool_outputs": [],
+            "tool_context_pack": {
+                "text": "", "char_count": 0, "tool_count": 0,
+                "successful_tool_count": 0, "selected_tools": [],
+                "sufficient": False, "skip_textbook_retrieval": False,
+                "outputs": [], "error": str(exc)[:300],
+            },
+            "execution_trace": {"total_elapsed_ms": 0, "budget_seconds": 0, "tools": []},
+        }
 
 
 def _activity_for_chat_event(event: dict) -> dict | None:
@@ -338,6 +382,12 @@ def _context_trace_payload(
 
 def _safe_subject_suggestion(question: str, subject: str, book_name: str) -> dict | None:
     try:
+        # A closed expression already accepted by the restricted math router is
+        # not evidence of another textbook scope. Let it remain in the current
+        # learning context instead of asking vector retrieval to guess a subject.
+        math_calls = select_tool_calls(_main_tool_request(question, book_name, subject, ""))
+        if any(item.get("tool") == "symbolic_math" for item in math_calls):
+            return None
         return suggest_subject_scope(question, subject, book_name)
     except Exception:
         logger.exception("subject routing suggestion failed")
@@ -642,6 +692,46 @@ def chat_stream(req: ChatRequest):
                 observe(done_event)
                 yield f"data: {json.dumps(done_event, ensure_ascii=False)}\n\n"
                 return
+            tool_request = _main_tool_request(
+                rewritten_question, book_name, subject, conversation_id,
+            )
+            planned_tools = select_tool_calls(tool_request)
+            if planned_tools and answer_mode != "subject_mismatch":
+                yield activity_sse({
+                    "id": "tools", "kind": "tool", "label": "使用学习工具",
+                    "status": "active", "detail": f"正在执行 {len(planned_tools)} 项受控只读操作",
+                })
+                tool_run = _prepare_main_tool_context(
+                    rewritten_question, book_name, subject, conversation_id,
+                )
+                tool_pack = dict(tool_run.get("tool_context_pack") or {})
+                tool_pack["execution_trace"] = tool_run.get("execution_trace") or {}
+                continuity_context["tool_context_pack"] = tool_pack
+                for index, item in enumerate(tool_run.get("tool_outputs") or []):
+                    tool_name = str(item.get("tool") or "")
+                    result = item.get("result") or {}
+                    timing = item.get("timing") or {}
+                    verification = result.get("verification") or {}
+                    if verification:
+                        detail = "结果校验通过" if verification.get("passed") else "结果校验未通过"
+                    else:
+                        detail = str(result.get("message") or ("已完成" if result.get("success") else "执行失败"))[:160]
+                    yield activity_sse({
+                        "id": f"tool:{index}:{tool_name}", "kind": "tool",
+                        "label": _TOOL_ACTIVITY_LABELS.get(tool_name, "执行学习工具"),
+                        "status": "completed" if result.get("success") else "failed",
+                        "detail": detail,
+                        "duration_ms": timing.get("elapsed_ms"),
+                    })
+                yield activity_sse({
+                    "id": "tools", "kind": "tool", "label": "使用学习工具",
+                    "status": "completed" if tool_pack.get("sufficient") else "failed",
+                    "detail": (
+                        f"{int(tool_pack.get('successful_tool_count') or 0)} 项操作可用于本轮回答"
+                        if tool_pack.get("sufficient") else "工具未提供可用结果，继续使用原回答路径"
+                    ),
+                    "duration_ms": (tool_run.get("execution_trace") or {}).get("total_elapsed_ms"),
+                })
             graph_events = run_graph_stream(
                 user_input=rewritten_question,
                 book_name=book_name,
@@ -846,6 +936,13 @@ def chat_ask(req: ChatRequest):
             continuity_context.get("conversation_context_seed"),
         )
     else:
+        if answer_mode != "subject_mismatch":
+            tool_run = _prepare_main_tool_context(
+                rewritten_question, book_name, subject, conversation_id,
+            )
+            tool_pack = dict(tool_run.get("tool_context_pack") or {})
+            tool_pack["execution_trace"] = tool_run.get("execution_trace") or {}
+            continuity_context["tool_context_pack"] = tool_pack
         result = run_graph(
             user_input=rewritten_question,
             book_name=book_name,

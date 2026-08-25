@@ -139,6 +139,17 @@ def build_conversation_context_seed(
             })
         if len(artifacts) >= 2:
             break
+    if (
+        not artifacts
+        and str(trace.get("method") or "") == "deterministic_assistant_artifact"
+        and referenced_entities
+    ):
+        artifacts.append({
+            "target": referenced_entities[0][:160],
+            "kind": "artifact_group" if "、" in referenced_entities[0] else "artifact",
+            "ordinal": 0,
+            "turn_id": (referenced_ids[0] if referenced_ids else "")[:100],
+        })
 
     topic_stack = [str(value) for value in after.get("topic_stack") or [] if str(value).strip()]
     summary = ""

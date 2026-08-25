@@ -105,7 +105,10 @@ def _clean_query(question: str) -> str:
 
 def _has_anaphora(question: str) -> bool:
     compact = re.sub(r"\s+", "", question)
-    return any(word in compact for word in _ANAPHORA_WORDS)
+    return any(
+        (bool(re.search(r"(?:^|[，,。；;])其(?!他|中|次)", compact)) if word == "其" else word in compact)
+        for word in _ANAPHORA_WORDS
+    )
 
 
 def _extract_topic(text: str) -> str:
@@ -373,7 +376,10 @@ def _replace_anaphora(question: str, target: str) -> str:
     result = re.sub(r"^(其)(?=[\u4e00-\u9fffA-Za-z0-9])", f"{replacement}的", result)
     for word in sorted(_ANAPHORA_WORDS, key=len, reverse=True):
         if word not in ("前者", "后者"):
-            result = result.replace(word, replacement)
+            if word == "其":
+                result = re.sub(r"(^|[，,。；;])其(?!他|中|次)", rf"\1{replacement}", result)
+            else:
+                result = result.replace(word, replacement)
     if direct:
         result = re.sub(
             rf"{re.escape(explicit_target)}[，,]\s*{re.escape(explicit_target)}",
@@ -534,6 +540,25 @@ def _rephrase_followup(question: str, state: SessionContextState) -> str:
     if not state.topic:
         return ""
     compact = re.sub(r"\s+", "", question).strip("。？?!！")
+
+    reconsideration = re.sub(r"[，,。？?!！]", "", compact)
+    asks_formula_again = bool(re.fullmatch(
+        r"(?:真的)?(?:没有|找不到)?(?:具体的?)?公式(?:吗|呢)?(?:再查查|再检索一下|重新查查)?",
+        reconsideration,
+    ))
+    asks_retrieve_again = bool(re.fullmatch(
+        r"(?:请)?(?:再查查|再检索一下|重新查查|重新检索一下|再找找)",
+        reconsideration,
+    ))
+    if state.last_resolved_query and (asks_formula_again or asks_retrieve_again):
+        previous = state.last_resolved_query.strip()
+        if asks_formula_again:
+            topic = re.sub(r"^(?:请)?(?:求|介绍|说明|解释)", "", previous)
+            topic = re.sub(r"(?:是什么|有哪些|有什么|怎么计算|如何计算)[。？?!！]*$", "", topic)
+            topic = topic.strip("，,。？?!！ ") or state.topic
+            return f"{topic}分别有哪些具体公式？请重新检索教材。"
+        return f"请重新检索教材并回答：{previous}"
+
     def render(style: str) -> str:
         facets = {
             "definition": f"{state.topic}的定义",

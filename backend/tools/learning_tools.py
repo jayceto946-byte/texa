@@ -104,45 +104,75 @@ def _exercise_query_terms(query: str) -> list[str]:
 
 
 def search_textbook(context: ToolContext, args: dict[str, Any]) -> ToolResult:
+    """Run the same retrieval, support gate and EvidencePack used by chat."""
     query = str(args.get("query") or "").strip()
     if not query:
         return ToolResult(False, message="query is required")
     book_name = str(args.get("book_name") or context.book_name or "").strip()
     chapter = str(args.get("chapter") or "").strip()
     limit = _as_int(args.get("limit"), 5, high=12)
+    if not book_name:
+        return ToolResult(False, message="book_name is required for textbook evidence")
 
-    vs, error = get_safe_vector_store()
-    if error:
-        return ToolResult(False, data=[], message=f"vector store unavailable: {error}")
+    from graph.evidence_pack import build_evidence_pack
+    from graph.intent_classifier import classify_intent_local
+    from graph.retrieval_node import retrieve_node
 
-    snippets: list[dict] = []
-    if chapter:
-        docs = vs.search_chapter(chapter, query, k=limit, book_name=book_name)
-        for doc in docs:
-            snippets.append({
-                "chapter": chapter,
-                "chunk_id": doc.metadata.get("chunk_id", ""),
-                "role": doc.metadata.get("role", ""),
-                "page": doc.metadata.get("page_idx", doc.metadata.get("page", "")),
-                "text": doc.page_content[:1200],
-            })
-    else:
-        results = vs.search_all(query, k=min(3, limit), top_n=limit, book_name=book_name)
-        for ch_name, docs in results.items():
-            for doc in docs:
-                snippets.append({
-                    "chapter": ch_name,
-                    "chunk_id": doc.metadata.get("chunk_id", ""),
-                    "role": doc.metadata.get("role", ""),
-                    "page": doc.metadata.get("page_idx", doc.metadata.get("page", "")),
-                    "text": doc.page_content[:1200],
-                })
-                if len(snippets) >= limit:
-                    break
-            if len(snippets) >= limit:
-                break
-
-    return ToolResult(True, data={"book_name": book_name, "snippets": snippets})
+    intent = str(classify_intent_local(query).get("intent") or "qa")
+    state = {
+        "user_input": query,
+        "book_name": book_name,
+        "subject": context.subject,
+        "use_textbook_context": True,
+        "answer_mode": "textbook_grounded",
+        "intent": intent,
+        "target_chapters": [chapter] if chapter else [],
+        "active_evidence_sources": [],
+        "active_evidence_ids": [],
+        "active_evidence_support": "",
+        "same_topic": False,
+        "requires_new_facet": True,
+        "retrieval_error": "",
+    }
+    result = retrieve_node(state)
+    evidence_items = list(result.get("evidence_items") or [])
+    pack = build_evidence_pack(
+        evidence_items,
+        result.get("chapter_contents") or {},
+        intent=intent,
+        char_budget=max(3000, min(9000, limit * 1500)),
+    )
+    by_chunk = {str(item.get("chunk_id") or ""): item for item in evidence_items}
+    snippets = []
+    for source in pack["items"][:limit]:
+        raw = by_chunk.get(str(source.get("chunk_id") or ""), {})
+        snippets.append({
+            "id": source.get("id"),
+            "book_name": source.get("book_name") or book_name,
+            "chapter": source.get("chapter", ""),
+            "section_title": source.get("section_title", ""),
+            "chunk_id": source.get("chunk_id", ""),
+            "role": raw.get("role", ""),
+            "page": source.get("page_idx", -1),
+            "label": source.get("label", ""),
+            "text": str(raw.get("text") or "")[:1800],
+        })
+    support = result.get("evidence_support") or {}
+    success = bool(snippets) and str(support.get("status") or "") not in {"insufficient", "unavailable"}
+    return ToolResult(
+        success,
+        data={
+            "book_name": book_name,
+            "query": query,
+            "intent": intent,
+            "snippets": snippets,
+            "evidence_support": support,
+            "retrieval_status": result.get("retrieval_status", ""),
+        },
+        message="production EvidencePack ready" if success else "production EvidencePack is insufficient",
+        evidence=pack["items"],
+        warnings=[str(result.get("retrieval_error"))] if result.get("retrieval_error") else [],
+    )
 
 
 def find_textbook_examples(context: ToolContext, args: dict[str, Any]) -> ToolResult:
@@ -661,9 +691,25 @@ def summarize_learning_evidence(tool_outputs: list[dict]) -> dict:
 def register_learning_tools(registry: ToolRegistry):
     registry.register(ToolSpec(
         name="search_textbook",
-        description="Search textbook chunks from the local vector store.",
-        parameters={"query": "str", "book_name": "str?", "chapter": "str?", "limit": "int?"},
+        description="Build a source-grounded EvidencePack through the production textbook retrieval path.",
+        parameters={
+            "type": "object", "required": ["query"],
+            "properties": {
+                "query": {"type": "string", "minLength": 1, "maxLength": 1000},
+                "book_name": {"type": "string"}, "chapter": {"type": "string"},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 12},
+            },
+        },
+        result_schema={
+            "type": "object", "required": ["book_name", "snippets", "evidence_support"],
+            "properties": {"snippets": {"type": "array"}, "evidence_support": {"type": "object"}},
+        },
+        capabilities=("textbook_retrieval", "evidence_pack", "provenance"),
         read_only=True,
+        risk_level="low",
+        timeout_seconds=8.0,
+        version="2",
+        provenance="production-retrieval/evidence-pack",
         handler=search_textbook,
     ))
     registry.register(ToolSpec(

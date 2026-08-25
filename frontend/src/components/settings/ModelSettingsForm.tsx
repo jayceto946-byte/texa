@@ -112,8 +112,8 @@ export default function ModelSettingsForm({ value, onChange, compact = false }: 
       <label className="grid gap-1.5 text-xs font-medium text-text-secondary">
         图片任务处理方式
         <select value={value.multimodal_mode} onChange={(event) => onChange({ ...value, multimodal_mode: event.target.value as 'split' | 'native' })} className={fieldClass()}>
-          <option value="split">识图模型提取内容，推理模型完成解答</option>
-          <option value="native">识图模型同时负责图片理解与解答</option>
+          <option value="split">识图 / 推理分离</option>
+          <option value="native">集成回复</option>
         </select>
       </label>
 
