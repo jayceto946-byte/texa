@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { BookOpen, Globe2, GraduationCap, Paperclip, ShieldAlert, ThumbsDown, ThumbsUp } from 'lucide-react';
-import type { AnswerMode, AssistantSource, ChatActivity, ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate, SubjectRouteSuggestion } from '../types';
+import type { AnswerMode, AssistantSource, ChatActivity, ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
 import { useChatContext } from '../contexts/ChatContext';
 import { displayNumber, groupSourcesByLocation, parseCitations, partitionSources, type SourceChapterGroup } from '../utils/citations';
 import ConceptPopover from './ConceptPopover';
@@ -13,6 +13,9 @@ import AgentResultCard from './chat/AgentResultCard';
 import SubjectRouteSuggestionCard from './chat/SubjectRouteSuggestionCard';
 import { post } from '../api/client';
 import ExecutionTrace from './chat/ExecutionTrace';
+import LearningTaskGate from './chat/LearningTaskGate';
+import LearningTaskActions from './chat/LearningTaskActions';
+import LearningTaskResume from './chat/LearningTaskResume';
 import { useInspector } from '../contexts/InspectorContext';
 
 interface ChatMessageProps {
@@ -39,6 +42,9 @@ interface ChatMessageProps {
   chapterHighlightCard?: ChatChapterHighlightCard;
   utilityCard?: ChatUtilityCard;
   agentCard?: ChatAgentCard;
+  learningTask?: LearningTaskState;
+  onResumeLearningTask?: (task: LearningTaskState, action: 'provide_input' | 'method_only', file?: File) => Promise<void> | void;
+  onResumeInterruptedTask?: (task: LearningTaskState) => void;
 }
 
 function splitQuestionAttachment(content: string) {
@@ -114,7 +120,7 @@ const feedbackReasons = [
   ['irrelevant_or_repetitive', '答非所问或重复'],
 ] as const;
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard, learningTask, onResumeLearningTask, onResumeInterruptedTask }) => {
   const [scopeResolved, setScopeResolved] = useState(false);
   const [feedback, setFeedback] = useState(answerFeedback);
   const [feedbackBusy, setFeedbackBusy] = useState(false);
@@ -284,6 +290,16 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
         ) : content.trim() ? (
           <MarkdownMessage content={isUser ? questionContent.body : content} linkedConcepts={isUser ? [] : linkedConcepts} onConceptClick={openConcept} citationIds={validIds} />
         ) : null}
+
+        {!isUser && learningTask?.task_type === 'visual_qa' && learningTask.status === 'waiting_for_input' && onResumeLearningTask && (
+          <LearningTaskGate task={learningTask} onResume={onResumeLearningTask} />
+        )}
+        {!isUser && learningTask?.status === 'waiting_for_confirmation' && (
+          <LearningTaskActions initialTask={learningTask} />
+        )}
+        {!isUser && learningTask?.status === 'interrupted' && onResumeInterruptedTask && (
+          <LearningTaskResume task={learningTask} onResume={onResumeInterruptedTask} />
+        )}
 
         {!isUser && stage === 'done' && answerMode === 'subject_mismatch' && originalQuestion && onRequestGlobalAnswer && !scopeResolved && (
           <div className="mt-3 rounded-lg border border-accent/25 bg-[var(--accent-softer)] px-3 py-2">

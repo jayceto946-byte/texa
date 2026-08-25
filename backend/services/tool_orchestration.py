@@ -10,11 +10,48 @@ from dataclasses import dataclass
 from typing import Any
 
 from backend.tools.registry import ToolContext, ToolResult, get_tool_registry
+from backend.services.pending_actions import get_pending_action_store
 
 
 DEFAULT_TOOL_TIMEOUT_SECONDS = 8.0
 DEFAULT_TOTAL_TIMEOUT_SECONDS = 18.0
 TOOL_CONTEXT_CHAR_BUDGET = 9000
+
+_TOOL_REQUIRED_OUTPUTS: dict[str, list[dict[str, str]]] = {
+    "symbolic_math": [{"key": "computed_result", "path": "data.result"}],
+    "verify_math_result": [{"key": "verified_math", "path": "verification.passed"}],
+    "search_textbook": [{"key": "textbook_evidence", "path": "data.snippets"}],
+    "find_textbook_examples": [{"key": "textbook_examples", "path": "data.examples"}],
+    "search_concepts": [{"key": "concept_matches", "path": "data.concepts"}],
+    "search_exercises": [{"key": "exercise_matches", "path": "data.exercises"}],
+    "propose_add_mistake": [{"key": "confirmable_action", "path": "pending_action.action_id"}],
+    "propose_concept_review": [{"key": "confirmable_action", "path": "pending_action.action_id"}],
+    "propose_practice_session": [{"key": "confirmable_action", "path": "pending_action.action_id"}],
+}
+
+
+def _required_outputs(tool: str) -> list[dict[str, str]]:
+    return [dict(item) for item in _TOOL_REQUIRED_OUTPUTS.get(tool, [{"key": "successful_result", "path": "success"}])]
+
+
+def _path_value(value: Any, path: str) -> Any:
+    current = value
+    for part in path.split("."):
+        if not isinstance(current, dict) or part not in current:
+            return None
+        current = current[part]
+    return current
+
+
+def _validate_required_outputs(result: dict[str, Any], requirements: list[dict[str, str]]) -> tuple[list[str], list[str]]:
+    satisfied: list[str] = []
+    missing: list[str] = []
+    for requirement in requirements:
+        key = str(requirement.get("key") or requirement.get("path") or "output")
+        value = _path_value(result, str(requirement.get("path") or ""))
+        valid = value is True or (value not in (None, "", [], {}))
+        (satisfied if valid else missing).append(key)
+    return satisfied, missing
 
 
 @dataclass(frozen=True)
@@ -25,6 +62,8 @@ class ToolOrchestrationRequest:
     conversation_id: str = ""
     max_tools: int = 6
     include_textbook_tool: bool = False
+    learning_task_id: str = ""
+    max_followup_rounds: int = 1
 
 
 def _contains_any(text: str, terms: list[str]) -> bool:
@@ -186,6 +225,9 @@ def _compact_result(item: dict[str, Any]) -> dict[str, Any]:
         "verification": result.get("verification") or {},
         "warnings": list(result.get("warnings") or [])[:5],
         "pending_action": result.get("pending_action"),
+        "required_outputs": list(item.get("required_outputs") or []),
+        "satisfied_required_outputs": list(item.get("satisfied_required_outputs") or []),
+        "missing_required_outputs": list(item.get("missing_required_outputs") or []),
     }
 
 
@@ -195,6 +237,10 @@ def build_tool_context_pack(outputs: list[dict[str, Any]]) -> dict[str, Any]:
     if len(text) > TOOL_CONTEXT_CHAR_BUDGET:
         text = text[:TOOL_CONTEXT_CHAR_BUDGET] + "\n[tool context truncated]"
     successful = [item for item in compact if item["success"]]
+    missing_required = [
+        {"tool": item["tool"], "outputs": item["missing_required_outputs"]}
+        for item in compact if item["missing_required_outputs"]
+    ]
     tool_names = [str(item.get("tool") or "") for item in compact]
     state_only = bool(tool_names) and all(name in {
         "build_review_plan", "get_weak_concepts", "get_recent_progress",
@@ -206,8 +252,9 @@ def build_tool_context_pack(outputs: list[dict[str, Any]]) -> dict[str, Any]:
         "tool_count": len(compact),
         "successful_tool_count": len(successful),
         "selected_tools": tool_names,
-        "sufficient": bool(successful),
-        "skip_textbook_retrieval": state_only and bool(successful),
+        "sufficient": bool(successful) and not missing_required,
+        "missing_required_outputs": missing_required,
+        "skip_textbook_retrieval": state_only and bool(successful) and not missing_required,
         "outputs": compact,
     }
 
@@ -224,6 +271,7 @@ def execute_read_only_tools(
     context = ToolContext(req.book_name, req.subject, req.conversation_id)
     selected = select_tool_calls(req)
     outputs: list[dict[str, Any]] = []
+    followup_rounds = 0
 
     index = 0
     while index < len(selected) and len(outputs) < max(1, min(req.max_tools, 10)):
@@ -242,15 +290,36 @@ def execute_read_only_tools(
             timeout,
         ) if timeout > 0 else {"status": "timeout", "value": None, "message": "tool budget exhausted", "elapsed_ms": 0}
         result = outcome["value"] if outcome["status"] == "complete" else ToolResult(False, message=outcome["message"])
+        result_dict = result.to_dict()
+        pending_action = result_dict.get("pending_action")
+        if result.success and isinstance(pending_action, dict):
+            result_dict["pending_action"] = get_pending_action_store().create(
+                pending_action,
+                context={
+                    "book_name": req.book_name or "default",
+                    "subject": req.subject,
+                    "conversation_id": req.conversation_id,
+                    "learning_task_id": req.learning_task_id,
+                },
+            )
+        requirements = _required_outputs(call["tool"])
+        satisfied, missing = _validate_required_outputs(result_dict, requirements)
         outputs.append({
-            "tool": call["tool"], "args": call.get("args") or {}, "result": result.to_dict(),
+            "tool": call["tool"], "args": call.get("args") or {}, "result": result_dict,
+            "required_outputs": requirements,
+            "satisfied_required_outputs": satisfied,
+            "missing_required_outputs": missing,
             "timing": {"status": outcome["status"], "elapsed_ms": outcome["elapsed_ms"], "timeout_seconds": round(timeout, 3)},
         })
 
         verification_request = (result.data or {}).get("verification_request") if isinstance(result.data, dict) else None
-        if result.success and verification_request and len(selected) < req.max_tools:
+        if (
+            result.success and verification_request and len(selected) < req.max_tools
+            and followup_rounds < max(0, min(req.max_followup_rounds, 1))
+        ):
             verification_call = {"tool": "verify_math_result", "args": verification_request}
             selected.insert(index, verification_call)
+            followup_rounds += 1
 
     pack = build_tool_context_pack(outputs)
     return {
@@ -260,6 +329,8 @@ def execute_read_only_tools(
         "execution_trace": {
             "total_elapsed_ms": round((time.perf_counter() - started) * 1000),
             "budget_seconds": total_timeout_seconds,
+            "followup_rounds": followup_rounds,
+            "followup_policy": "required_output_gap_max_one_round",
             "tools": [
                 {"tool": item["tool"], "success": bool(item["result"].get("success")), **item["timing"]}
                 for item in outputs

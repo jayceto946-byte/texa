@@ -7,6 +7,17 @@ export function mergeChatActivity(current: ChatActivity[] = [], incoming?: ChatA
   return current.map((item, itemIndex) => itemIndex === index ? { ...item, ...incoming } : item);
 }
 
+export function settleChatActivity(
+  current: ChatActivity[] = [],
+  id: string,
+  status: 'completed' | 'failed',
+  detail: string,
+): ChatActivity[] {
+  return current.map((item) => item.id === id && item.status === 'active'
+    ? { ...item, status, detail }
+    : item);
+}
+
 export function completedActivityCount(activities: ChatActivity[] = []): number {
   return activities.filter((item) => item.status === 'completed' || item.status === 'skipped').length;
 }

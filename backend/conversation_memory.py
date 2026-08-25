@@ -380,6 +380,7 @@ def append_message(
     delivery_status: str = "complete",
     request_id: str = "",
     context_versions: dict | None = None,
+    learning_task: dict | None = None,
 ) -> dict:
     subject = normalize_subject_value(subject)
     now = time.strftime("%Y-%m-%dT%H:%M:%S")
@@ -416,6 +417,8 @@ def append_message(
                 for key, value in context_versions.items()
                 if isinstance(value, (str, int, float, bool))
             }
+        if isinstance(learning_task, dict) and learning_task:
+            item["learning_task"] = learning_task
         with _connect_events() as conn:
             _ensure_event_projection(conn, conversation_id, payload)
             existing_row = conn.execute(
@@ -427,7 +430,7 @@ def append_message(
                 existing = json.loads(str(existing_row["payload_json"]))
                 can_complete_partial = (
                     role == "assistant"
-                    and str(existing.get("delivery_status") or "complete") in {"partial", "error"}
+                    and str(existing.get("delivery_status") or "complete") in {"partial", "error", "waiting"}
                     and delivery_status == "complete"
                 )
                 if can_complete_partial:
@@ -566,6 +569,28 @@ def update_message_evidence_support(
             updates={"evidence_support_status": status},
             event_type="message_evidence_support_updated",
         )
+
+
+def update_learning_task_projection(
+    conversation_id: str,
+    task_id: str,
+    learning_task: dict,
+) -> bool:
+    """Refresh the latest assistant snapshot after an out-of-band task action."""
+    if not conversation_id or not task_id or not isinstance(learning_task, dict):
+        return False
+    page = load_message_page(conversation_id, limit=20)
+    for item in reversed(page.get("messages") or []):
+        task_ref = item.get("learning_task") if isinstance(item, dict) else None
+        if item.get("role") == "assistant" and isinstance(task_ref, dict) and task_ref.get("id") == task_id:
+            with _conversation_lock(conversation_id):
+                return _update_projected_message(
+                    conversation_id,
+                    str(item.get("id") or ""),
+                    updates={"learning_task": learning_task},
+                    event_type="message_learning_task_updated",
+                )
+    return False
 
 
 def get_message(conversation_id: str, message_id: str) -> dict | None:

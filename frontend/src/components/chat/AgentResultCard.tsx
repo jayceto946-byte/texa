@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { AlertTriangle, Bot, CheckCircle2, ChevronDown, ChevronRight, Clock3, Database, FileText, ShieldCheck } from 'lucide-react';
-import type { ChatAgentCard } from '../../types';
+import type { AgentPendingAction, ChatAgentCard } from '../../types';
+import { resolveAgentAction } from '../../api/client';
 import { MarkdownMessage } from './MarkdownMessage';
 
 const toolLabels: Record<string, string> = {
@@ -43,10 +44,13 @@ function compactData(value: unknown) {
 
 export default function AgentResultCard({ card }: { card: ChatAgentCard }) {
   const [open, setOpen] = useState(false);
+  const [actions, setActions] = useState<AgentPendingAction[]>(() => card.response.summary.pending_actions || []);
+  const [resolvingId, setResolvingId] = useState('');
+  const [actionError, setActionError] = useState('');
   const { response } = card;
   const successfulTools = response.tool_outputs.filter((item) => item.result.success);
   const failedTools = response.tool_outputs.filter((item) => !item.result.success);
-  const pendingActions = response.summary.pending_actions || [];
+  const pendingActions = actions;
   const executionTrace = response.execution_trace;
   const synthesisStatus = executionTrace?.synthesis.status;
   const chips = useMemo(() => (
@@ -60,6 +64,22 @@ export default function AgentResultCard({ card }: { card: ChatAgentCard }) {
       };
     })
   ), [successfulTools]);
+
+  const resolveAction = async (action: AgentPendingAction, decision: 'confirm' | 'reject') => {
+    if (!action.action_id || resolvingId) return;
+    setResolvingId(action.action_id);
+    setActionError('');
+    try {
+      const resolved = await resolveAgentAction(action.action_id, decision);
+      setActions((current) => current.map((item) => (
+        item.action_id === resolved.action.action_id ? resolved.action : item
+      )));
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : '操作未完成，请重试');
+    } finally {
+      setResolvingId('');
+    }
+  };
 
   return (
     <article className="agent-result-card overflow-hidden rounded-xl border border-border bg-bg-card">
@@ -115,12 +135,36 @@ export default function AgentResultCard({ card }: { card: ChatAgentCard }) {
           <div className="mb-1.5 text-xs font-medium text-text-primary">待确认操作</div>
           <div className="space-y-1.5">
             {pendingActions.map((action, index) => (
-              <div key={`${action.type}-${index}`} className="flex items-center justify-between gap-3 rounded-lg bg-[var(--accent-softer)] px-2.5 py-2 text-xs">
+              <div key={action.action_id || `${action.type}-${index}`} className="flex items-center justify-between gap-3 rounded-lg bg-[var(--accent-softer)] px-2.5 py-2 text-xs">
                 <span className="text-text-primary">{pendingActionLabels[action.type] || action.type}</span>
-                <span className="flex-shrink-0 text-text-secondary">尚未执行</span>
+                {(!action.status || action.status === 'pending') ? (
+                  <span className="flex flex-shrink-0 items-center gap-1.5">
+                    <button
+                      type="button"
+                      disabled={!action.action_id || Boolean(resolvingId)}
+                      onClick={() => void resolveAction(action, 'reject')}
+                      className="rounded-md px-2 py-1 text-text-secondary hover:text-text-primary disabled:opacity-50"
+                    >
+                      暂不执行
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!action.action_id || Boolean(resolvingId)}
+                      onClick={() => void resolveAction(action, 'confirm')}
+                      className="rounded-md bg-accent px-2 py-1 font-medium text-white hover:bg-accent-hover disabled:opacity-50"
+                    >
+                      {resolvingId === action.action_id ? '执行中…' : '确认执行'}
+                    </button>
+                  </span>
+                ) : (
+                  <span className="flex-shrink-0 text-text-secondary">
+                    {action.status === 'confirmed' ? '已执行' : action.status === 'rejected' ? '已取消' : '执行失败'}
+                  </span>
+                )}
               </div>
             ))}
           </div>
+          {actionError && <div className="mt-2 text-xs text-red-600">{actionError}</div>}
         </div>
       )}
 

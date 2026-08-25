@@ -1,9 +1,11 @@
 import json
+import threading
 from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 
 from backend.main import app
+from backend.services.learning_task import LearningTaskStore, interrupt_learning_task, resume_learning_task
 
 
 class DummyChunk:
@@ -39,7 +41,154 @@ def test_run_graph_stream_done_survives_feedback_failure(monkeypatch):
 
     assert events[-1]["stage"] == "done"
     assert "error" not in [event["stage"] for event in events]
-    assert "answer" == "".join(event.get("chunk", "") for event in events if event["stage"] == "generate")
+    content = ""
+    for event in events:
+        if event["stage"] != "generate":
+            continue
+        if event.get("replace"):
+            content = event.get("chunk", "")
+        else:
+            content += event.get("chunk", "")
+    assert content.startswith("answer")
+
+
+def test_run_graph_stream_resume_reuses_retrieval_checkpoint(monkeypatch):
+    import config
+    import graph.feedback_node as feedback_module
+    import graph.intent_classifier as intent_module
+    import graph.planner as planner_module
+    import graph.retrieval_node as retrieval_module
+    from graph.main_graph import run_graph_stream
+
+    monkeypatch.setattr(intent_module, "classify_intent_local", lambda text: {"intent": "qa", "hint": ""})
+    monkeypatch.setattr(intent_module, "is_fast_path_eligible", lambda text, result: False)
+    monkeypatch.setattr(planner_module, "plan_node", lambda state: (_ for _ in ()).throw(
+        AssertionError("resume must not run planner")
+    ))
+    monkeypatch.setattr(retrieval_module, "retrieve_node", lambda state: (_ for _ in ()).throw(
+        AssertionError("resume must not repeat retrieval")
+    ))
+    monkeypatch.setattr(feedback_module, "feedback_node", lambda state: {})
+    monkeypatch.setattr(config, "get_llm", lambda *args, **kwargs: DummyLLM())
+
+    events = list(run_graph_stream(
+        "解释压阻效应",
+        book_name="demo-book",
+        resume_state={
+            "intent": "qa",
+            "target_chapters": ["chapter-1"],
+            "chapter_contents": {"chapter-1": ["材料受力后电阻率变化"]},
+            "evidence_items": [{"chunk_id": "chunk-1", "text": "材料受力后电阻率变化"}],
+            "evidence_sources": [{"id": "E1", "chunk_id": "chunk-1", "text": "材料受力后电阻率变化"}],
+            "retrieval_status": "ok",
+            "evidence_support": {"status": "supported"},
+        },
+    ))
+
+    assert events[0]["stage"] == "plan" and events[0]["resumed"] is True
+    assert events[1]["stage"] == "retrieve" and events[1]["resumed"] is True
+    assert events[-1]["stage"] == "done"
+
+
+def test_chat_interrupt_acknowledges_checkpoint_before_resume(monkeypatch, tmp_path):
+    import backend.api.chat as chat_api
+
+    store = LearningTaskStore(tmp_path)
+    task = store.create(
+        task_type="qa", goal="解释压阻效应", conversation_id="cid", turn_id="turn-1",
+        artifacts={"resume_stage": "retrieve", "active_run_id": "run-old"},
+    )
+    stale_stream_task = store.get(task.id)
+    projected = []
+    monkeypatch.setattr(chat_api, "get_learning_task_store", lambda: store)
+    monkeypatch.setattr(chat_api, "update_learning_task_projection", lambda cid, task_id, value: projected.append(
+        (cid, task_id, value["status"])
+    ) or True)
+
+    client = TestClient(app)
+    response = client.post(
+        f"/api/chat/tasks/{task.id}/interrupt",
+        json={"stage": "user_stopped", "partial_output": "已生成一部分"},
+    )
+    repeated = client.post(f"/api/chat/tasks/{task.id}/interrupt", json={})
+
+    assert response.status_code == 200
+    assert response.json()["learning_task"]["status"] == "interrupted"
+    assert repeated.status_code == 200
+    assert store.get(task.id).artifacts["partial_output"] == "已生成一部分"
+    assert projected[-1] == ("cid", task.id, "interrupted")
+
+    store.checkpoint_for_run(
+        stale_stream_task, "run-old", "generation_failed", status="failed", detail="late failure",
+    )
+    assert store.get(task.id).status == "interrupted"
+
+    resumed = resume_learning_task(store, store.get(task.id), run_id="run-new")
+    store.checkpoint_for_run(
+        stale_stream_task, "run-old", "generation_failed", status="failed", detail="older run failure",
+    )
+    current = store.get(task.id)
+    assert current.status == "running"
+    assert current.artifacts["active_run_id"] == "run-new"
+    assert resumed.checkpoints[-1]["stage"] == "resumed"
+
+    interrupt_learning_task(
+        store, stale_stream_task, stage="late_disconnect", expected_run_id="run-old",
+    )
+    current = store.get(task.id)
+    assert current.status == "running"
+    assert current.artifacts["active_run_id"] == "run-new"
+
+
+def test_late_stream_failure_cannot_overwrite_acknowledged_interrupt(monkeypatch, tmp_path):
+    import backend.api.chat as chat_api
+    import graph.main_graph as main_graph
+
+    store = LearningTaskStore(tmp_path)
+    task = store.create(
+        task_type="qa", goal="解释压阻效应", conversation_id="cid", turn_id="turn-1",
+        artifacts={"resolved_query": "解释压阻效应"},
+    )
+    graph_started = threading.Event()
+    release_graph = threading.Event()
+    result = {}
+
+    monkeypatch.setattr(chat_api, "get_learning_task_store", lambda: store)
+    monkeypatch.setattr(chat_api, "_start_chat_learning_task", lambda **kwargs: task)
+    monkeypatch.setattr(chat_api, "resolve_conversation_id_for_scope", lambda *args: "cid")
+    monkeypatch.setattr(chat_api, "load_history", lambda conversation_id: [])
+    monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: {"id": "message"})
+    monkeypatch.setattr(chat_api, "_safe_subject_suggestion", lambda *args: None)
+    monkeypatch.setattr(chat_api, "decide_answer_scope", lambda *args, **kwargs: SimpleNamespace(
+        use_textbook_context=False, reason="requested_subject_general", answer_mode="subject_general",
+    ))
+    monkeypatch.setattr(chat_api, "update_learning_task_projection", lambda *args: True)
+
+    def late_failure(**kwargs):
+        yield {"stage": "plan", "intent": "qa", "chapters": [], "fast_path": False}
+        graph_started.set()
+        release_graph.wait(timeout=3)
+        raise RuntimeError("old stream failed late")
+
+    monkeypatch.setattr(main_graph, "run_graph_stream", late_failure)
+    client = TestClient(app)
+
+    def consume_stream():
+        result["response"] = client.post("/api/chat/stream", json={
+            "question": "解释压阻效应", "conversation_id": "cid", "subject": "数学/线代",
+        })
+
+    worker = threading.Thread(target=consume_stream)
+    worker.start()
+    assert graph_started.wait(timeout=3)
+    interrupted = client.post(f"/api/chat/tasks/{task.id}/interrupt", json={"stage": "user_stopped"})
+    release_graph.set()
+    worker.join(timeout=5)
+
+    assert not worker.is_alive()
+    assert interrupted.status_code == 200
+    assert store.get(task.id).status == "interrupted"
+    assert "old stream failed late" not in result["response"].text
 
 
 def test_stream_teach_refuses_when_evidence_gate_is_insufficient(monkeypatch):

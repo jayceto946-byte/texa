@@ -13,6 +13,16 @@ from fastapi.responses import FileResponse, StreamingResponse
 
 from backend.services.mistake_images import MistakeImageStore
 from backend.services.multimodal_bridge import KimiVisionBridge, VisualProblemIR, build_solution_prompt
+from backend.services.learning_task import (
+    blocking_required_inputs,
+    get_learning_task_store,
+    mark_required_inputs,
+)
+from backend.services.answer_verification import (
+    derive_required_outputs,
+    verification_notice,
+    verify_answer,
+)
 
 from backend.schemas import (
     MistakeAddRequest,
@@ -266,10 +276,20 @@ def _solve_ocr_text(ocr_text: str, user_answer: str = "", subject: str = "", tag
     return sanitize_latex(strip_thinking(result))
 
 
-def _solve_visual_ir(visual_ir: VisualProblemIR, *, user_question: str = "", user_answer: str = "", subject: str = "", tags: str = "") -> str:
+def _solve_visual_ir(
+    visual_ir: VisualProblemIR,
+    *,
+    user_question: str = "",
+    user_answer: str = "",
+    subject: str = "",
+    tags: str = "",
+    supplemental_visual_irs: list[VisualProblemIR] | None = None,
+    answer_policy: str = "exact",
+) -> str:
     prompt = build_solution_prompt(
         visual_ir, user_question=user_question, user_answer=user_answer,
-        subject=subject, tags=tags,
+        subject=subject, tags=tags, supplemental_visual_irs=supplemental_visual_irs,
+        answer_policy=answer_policy,
     )
     return sanitize_latex(strip_thinking(
         _get_image_reasoning_llm(
@@ -286,12 +306,15 @@ def _iter_visual_solution_chunks(
     user_answer: str = "",
     subject: str = "",
     tags: str = "",
+    supplemental_visual_irs: list[VisualProblemIR] | None = None,
+    answer_policy: str = "exact",
 ):
     """Stream only user-visible answer text; provider thinking is never emitted."""
 
     prompt = build_solution_prompt(
         visual_ir, user_question=user_question, user_answer=user_answer,
-        subject=subject, tags=tags,
+        subject=subject, tags=tags, supplemental_visual_irs=supplemental_visual_irs,
+        answer_policy=answer_policy,
     )
     thinking_filter = ThinkingFilter()
     for chunk in _get_image_reasoning_llm(
@@ -425,6 +448,8 @@ def solve_mistake_image(
     question: str = Form(""),
     import_to_mistakes: bool = Form(False),
     book_name: str = Form("default"),
+    conversation_id: str = Form(""),
+    turn_id: str = Form(""),
 ):
     image_path: Path | None = None
     try:
@@ -437,9 +462,34 @@ def solve_mistake_image(
                 "message": "识图模型未返回有效 OCR 文本，请手动补充题干后再解答。",
                 "ocr_text": "",
             }
+        missing_inputs = blocking_required_inputs(visual_ir.required_inputs)
+        if missing_inputs:
+            task = _create_visual_learning_task(
+                visual_ir=visual_ir,
+                image_path=image_path,
+                question=question,
+                user_answer=user_answer,
+                subject=subject,
+                tags=tags,
+                book_name=book_name,
+                import_to_mistakes=import_to_mistakes,
+                conversation_id=conversation_id,
+                turn_id=turn_id,
+            )
+            return {
+                "success": True,
+                "message": "精确解答需要补充材料。你可以补充后继续，或暂时只看方法。",
+                "image_path": str(image_path),
+                "ocr_text": visual_ir.problem_text,
+                "visual_ir": visual_ir.to_dict(),
+                "learning_task": task.to_dict(public=True),
+            }
         explanation = _solve_visual_ir(
             visual_ir, user_question=question, user_answer=user_answer,
             subject=subject, tags=tags,
+        )
+        explanation, answer_verification = _verify_visual_answer(
+            explanation, question=question, visual_ir=visual_ir,
         )
         draft = MistakeRecord(
             question_text=visual_ir.problem_text or visual_ir.visual_summary,
@@ -483,6 +533,7 @@ def solve_mistake_image(
             "explanation": explanation,
             "linked_concepts": linked_concepts,
             "mistake_id": mistake_id,
+            "answer_verification": answer_verification,
         }
     except Exception as e:
         _image_store.delete(image_path)
@@ -496,6 +547,71 @@ def _sse_event(stage: str, *, activity: dict | None = None, **payload) -> str:
     return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
 
+def _create_visual_learning_task(
+    *,
+    visual_ir: VisualProblemIR,
+    image_path: Path,
+    question: str,
+    user_answer: str,
+    subject: str,
+    tags: str,
+    book_name: str,
+    import_to_mistakes: bool,
+    conversation_id: str = "",
+    turn_id: str = "",
+):
+    task = get_learning_task_store().create(
+        task_type="visual_qa",
+        goal=question or visual_ir.problem_text or "完整讲解图片题",
+        conversation_id=conversation_id,
+        turn_id=turn_id,
+        answer_mode="visual_grounded",
+        required_inputs=visual_ir.required_inputs,
+        required_outputs=derive_required_outputs(
+            question or visual_ir.problem_text,
+            intent="application",
+            answer_mode="visual_grounded",
+        ),
+        artifacts={
+            "image_path": str(image_path),
+            "visual_ir": visual_ir.to_dict(),
+            "supplemental_visual_irs": [],
+            "question": question,
+            "user_answer": user_answer,
+            "subject": subject,
+            "tags": tags,
+            "book_name": book_name,
+            "import_to_mistakes": bool(import_to_mistakes),
+            "completed_derivation": "",
+        },
+        status="waiting_for_input",
+    )
+    return task
+
+
+def _verify_visual_answer(
+    answer: str,
+    *,
+    question: str,
+    visual_ir: VisualProblemIR,
+    supplemental_visual_irs: list[VisualProblemIR] | None = None,
+    required_outputs: list[dict] | None = None,
+    answer_policy: str = "exact",
+) -> tuple[str, dict]:
+    evidence = [visual_ir.to_dict(), *[item.to_dict() for item in (supplemental_visual_irs or [])]]
+    result = verify_answer(
+        answer,
+        required_outputs=required_outputs or derive_required_outputs(
+            question or visual_ir.problem_text, intent="application", answer_mode="visual_grounded",
+        ),
+        evidence_items=evidence,
+        answer_policy=answer_policy,
+    )
+    notice = verification_notice(result)
+    final = answer.rstrip() + (f"\n\n{notice}" if notice and notice not in answer else "")
+    return final, result
+
+
 def _stream_solution_events(
     visual_ir: VisualProblemIR,
     *,
@@ -505,6 +621,8 @@ def _stream_solution_events(
     tags: str,
     reason_label: str,
     reason_detail: str,
+    supplemental_visual_irs: list[VisualProblemIR] | None = None,
+    answer_policy: str = "exact",
 ):
     """Yield observable reasoning/generation events and return the final answer."""
     step_started = time.perf_counter()
@@ -520,6 +638,8 @@ def _stream_solution_events(
         user_answer=user_answer,
         subject=subject,
         tags=tags,
+        supplemental_visual_irs=supplemental_visual_irs,
+        answer_policy=answer_policy,
     ):
         if first_visible_chunk:
             first_visible_chunk = False
@@ -563,6 +683,8 @@ def solve_mistake_image_stream(
     question: str = Form(""),
     import_to_mistakes: bool = Form(False),
     book_name: str = Form("default"),
+    conversation_id: str = Form(""),
+    turn_id: str = Form(""),
 ):
     """Observable image solution path. Each event reflects completed real work."""
     def events():
@@ -596,6 +718,35 @@ def solve_mistake_image_stream(
                 "meta": {"visual_type": visual_ir.visual_type, "uncertainties": visual_ir.uncertainties[:5]},
             })
 
+            missing_inputs = blocking_required_inputs(visual_ir.required_inputs)
+            if missing_inputs:
+                task = _create_visual_learning_task(
+                    visual_ir=visual_ir,
+                    image_path=image_path,
+                    question=question,
+                    user_answer=user_answer,
+                    subject=subject,
+                    tags=tags,
+                    book_name=book_name,
+                    import_to_mistakes=import_to_mistakes,
+                    conversation_id=conversation_id,
+                    turn_id=turn_id,
+                )
+                yield _sse_event("waiting_for_input", done=True, result={
+                    "success": True,
+                    "question_text": visual_ir.problem_text,
+                    "visual_ir": visual_ir.to_dict(),
+                    "image_path": str(image_path),
+                    "learning_task": task.to_dict(public=True),
+                }, activity={
+                    "id": "required-inputs",
+                    "kind": "system",
+                    "label": "等待补充材料",
+                    "status": "completed",
+                    "detail": f"有 {len(missing_inputs)} 项缺失材料会影响最终结论，已暂停精确解答",
+                }, total_ms=round((time.perf_counter() - started) * 1000, 2))
+                return
+
             explanation = yield from _stream_solution_events(
                 visual_ir,
                 user_question=question,
@@ -605,6 +756,16 @@ def solve_mistake_image_stream(
                 reason_label="综合题干与视觉关系",
                 reason_detail="正在依据结构化视觉证据组织可验证的解题步骤",
             )
+            verified_explanation, answer_verification = _verify_visual_answer(
+                explanation, question=question, visual_ir=visual_ir,
+            )
+            if verified_explanation != explanation:
+                explanation = verified_explanation
+                yield _sse_event("generate", chunk=explanation, replace=True, done=False, activity={
+                    "id": "verify", "kind": "evidence", "label": "核对答案完整性",
+                    "status": "completed", "detail": "已标记无法确定性验证的结果",
+                })
+                yield _sse_event("generate", chunk="", done=True)
 
             draft = MistakeRecord(
                 question_text=visual_ir.problem_text or visual_ir.visual_summary,
@@ -638,6 +799,7 @@ def solve_mistake_image_stream(
                 "success": True, "explanation": explanation, "linked_concepts": linked_concepts,
                 "question_text": visual_ir.problem_text, "visual_ir": visual_ir.to_dict(),
                 "image_path": str(image_path), "mistake_id": mistake_id,
+                "answer_verification": answer_verification,
             }, activity={
                 "id": "memory", "kind": "memory", "label": "关联学习记录",
                 "status": "completed" if linked_concepts or mistake_id else "skipped",
@@ -653,6 +815,157 @@ def solve_mistake_image_stream(
             yield _sse_event("error", done=True, message=str(exc), activity={
                 "id": "error", "kind": "system", "label": "处理失败",
                 "status": "failed", "detail": str(exc),
+            })
+
+    return StreamingResponse(events(), media_type="text/event-stream")
+
+
+@router.post("/visual-tasks/{task_id}/resume-stream")
+def resume_visual_learning_task(
+    task_id: str,
+    action: str = Form(...),
+    file: UploadFile | None = File(None),
+):
+    """Resume one paused visual task without re-reading its original image."""
+    def events():
+        store = get_learning_task_store()
+        task = store.get(task_id)
+        supplemental_path: Path | None = None
+        if not task or task.task_type != "visual_qa":
+            yield _sse_event("error", done=True, message="未找到可恢复的图片学习任务")
+            return
+        if task.status == "completed":
+            yield _sse_event("done", done=True, result={
+                "success": True,
+                "explanation": str((task.artifacts or {}).get("completed_derivation") or ""),
+                "learning_task": task.to_dict(public=True),
+            })
+            return
+        if task.status != "waiting_for_input":
+            yield _sse_event("error", done=True, message=f"当前任务状态不能恢复：{task.status}")
+            return
+
+        normalized_action = str(action or "").strip().lower()
+        if normalized_action not in {"provide_input", "method_only"}:
+            yield _sse_event("error", done=True, message="无效的恢复方式")
+            return
+        if normalized_action == "provide_input" and file is None:
+            yield _sse_event("error", done=True, message="请先选择要补充的图片或附表")
+            return
+
+        artifacts = dict(task.artifacts or {})
+        original_ir = VisualProblemIR.from_dict(dict(artifacts.get("visual_ir") or {}))
+        supplemental_irs = [
+            VisualProblemIR.from_dict(item)
+            for item in (artifacts.get("supplemental_visual_irs") or [])
+            if isinstance(item, dict)
+        ]
+        try:
+            if normalized_action == "provide_input":
+                supplemental_path = _image_store.save_upload(file)
+                yield _sse_event("activity", activity={
+                    "id": "supplement", "kind": "tool", "label": "解析补充材料",
+                    "status": "active", "detail": "只读取本次新增材料，原题与已有视觉表示保持不变",
+                })
+                supplement = _ocr_image_with_kimi(
+                    supplemental_path,
+                    user_question=f"这是题目所需的补充材料：{', '.join(str(item.get('name') or '') for item in task.required_inputs)}",
+                    subject=str(artifacts.get("subject") or ""),
+                )
+                supplemental_irs.append(supplement)
+                artifacts["supplemental_visual_irs"] = [item.to_dict() for item in supplemental_irs]
+                artifacts["supplemental_image_paths"] = [
+                    *(artifacts.get("supplemental_image_paths") or []), str(supplemental_path),
+                ]
+                mark_required_inputs(task, "provided")
+                answer_policy = "exact"
+                detail = "补充材料已合并，继续原任务"
+            else:
+                mark_required_inputs(task, "waived")
+                answer_policy = "method_only"
+                detail = "已按用户选择降级为只讲方法"
+
+            task.artifacts = artifacts
+            store.checkpoint(task, "inputs_resolved", status="running", detail=detail)
+            yield _sse_event("activity", activity={
+                "id": "required-inputs", "kind": "system", "label": "恢复原任务",
+                "status": "completed", "detail": detail,
+            })
+            explanation = yield from _stream_solution_events(
+                original_ir,
+                user_question=str(artifacts.get("question") or ""),
+                user_answer=str(artifacts.get("user_answer") or ""),
+                subject=str(artifacts.get("subject") or ""),
+                tags=str(artifacts.get("tags") or ""),
+                supplemental_visual_irs=supplemental_irs,
+                answer_policy=answer_policy,
+                reason_label="继续原题推导",
+                reason_detail="正在结合原题、已完成解析与新增材料继续解答",
+            )
+
+            raw_explanation = explanation
+            explanation, answer_verification = _verify_visual_answer(
+                explanation,
+                question=str(artifacts.get("question") or ""),
+                visual_ir=original_ir,
+                supplemental_visual_irs=supplemental_irs,
+                required_outputs=task.required_outputs,
+                answer_policy=answer_policy,
+            )
+            if normalized_action == "method_only" and "未验证估算" not in explanation and "未作为精确答案" not in explanation:
+                explanation = explanation.rstrip() + "\n\n> 本次未补充必要材料；涉及的数值结论均未作为精确答案提交。"
+            if explanation != raw_explanation:
+                yield _sse_event("generate", chunk=explanation, replace=True, done=False)
+                yield _sse_event("generate", chunk="", done=True)
+
+            task.artifacts["completed_derivation"] = explanation
+            task.verification = {
+                **answer_verification,
+                "input_gate": "passed" if normalized_action == "provide_input" else "degraded_method_only",
+            }
+            completion_status = "completed" if answer_verification.get("passed") else "degraded"
+            store.checkpoint(task, "answer_generated", status=completion_status, detail="原任务已恢复并完成验收")
+
+            book_name = str(artifacts.get("book_name") or "default")
+            draft = MistakeRecord(
+                question_text=original_ir.problem_text or original_ir.visual_summary,
+                user_answer=str(artifacts.get("user_answer") or ""),
+                subject=normalize_subject_value(str(artifacts.get("subject") or ""), fallback=book_name),
+                tags=_tags_from_text(str(artifacts.get("tags") or "")),
+                image_path=str(artifacts.get("image_path") or ""),
+                ocr_text=original_ir.problem_text,
+                visual_ir=original_ir.to_dict(),
+                explanation=explanation,
+                source="问答图片上传",
+            )
+            linked_concepts = _link_mistake_concepts(
+                draft, explanation=explanation, book_name=book_name, allow_llm_fallback=False,
+            )
+            mistake_id = ""
+            if bool(artifacts.get("import_to_mistakes")):
+                committed_path, _ = _image_store.commit_pending(str(artifacts.get("image_path") or ""))
+                draft.image_path = committed_path
+                draft.linked_concepts = linked_concepts
+                mistake_id = _mb(book_name).add(draft)
+                _log_learning_event("mistake_added", book_name=book_name, record=draft, payload={"origin": "chat_image_resumed"})
+
+            yield _sse_event("done", done=True, result={
+                "success": True,
+                "explanation": explanation,
+                "linked_concepts": linked_concepts,
+                "question_text": original_ir.problem_text,
+                "visual_ir": original_ir.to_dict(),
+                "mistake_id": mistake_id,
+                "learning_task": task.to_dict(public=True),
+                "answer_verification": answer_verification,
+            })
+        except GeneratorExit:
+            raise
+        except Exception as exc:
+            store.checkpoint(task, "resume_failed", status="waiting_for_input", detail=str(exc))
+            yield _sse_event("error", done=True, message=str(exc), activity={
+                "id": "resume", "kind": "system", "label": "恢复失败",
+                "status": "failed", "detail": "原任务和已有材料已保留，可以重试",
             })
 
     return StreamingResponse(events(), media_type="text/event-stream")

@@ -66,6 +66,43 @@ def test_feedback_node_survives_learning_storage_failure(monkeypatch):
     assert result["linked_concepts"] == []
     assert result["mastery_update"] == {}
 
+
+def test_chapter_progress_requires_verified_task(monkeypatch):
+    import graph.feedback_node as feedback
+
+    calls = []
+
+    class DummyStudyMemory:
+        def __init__(self, _book_name):
+            pass
+
+        def mark_chapter_studied(self, chapter):
+            calls.append(chapter)
+
+        def get_chapter_progress(self, chapter):
+            return {"chapter": chapter}
+
+    class DummySR:
+        def __init__(self, _book_name):
+            pass
+
+    monkeypatch.setattr(feedback, "StudyMemory", DummyStudyMemory)
+    monkeypatch.setattr(feedback, "SpacedRepetition", DummySR)
+    monkeypatch.setattr(feedback, "_record_concept_memory", lambda _state: [])
+
+    unverified = feedback._feedback_node_impl({
+        "book_name": "demo", "target_chapters": ["第一章"],
+        "answer_verification": {"status": "unverified"},
+    })
+    verified = feedback._feedback_node_impl({
+        "book_name": "demo", "target_chapters": ["第一章"],
+        "answer_verification": {"status": "passed"},
+    })
+
+    assert unverified["learning_update_status"] == "exposure_only"
+    assert verified["learning_update_status"] == "verified_task"
+    assert calls == ["第一章"]
+
 def test_generic_qa_extracts_only_direct_high_confidence_concepts(monkeypatch):
     import graph.feedback_node as feedback
     import knowledge.concept_memory as concept_memory

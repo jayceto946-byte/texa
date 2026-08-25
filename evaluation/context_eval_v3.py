@@ -25,7 +25,7 @@ from graph.evidence_pack import build_evidence_pack
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATASET = ROOT / "evaluation" / "datasets" / "context_production.jsonl"
 DEFAULT_REPORT = ROOT / "data" / "eval" / "context_eval_v3_report.json"
-CONTEXT_EVAL_SCHEMA_VERSION = 3
+CONTEXT_EVAL_SCHEMA_VERSION = 4
 
 
 def _normalized(value: Any) -> str:
@@ -248,7 +248,10 @@ def evaluate(
     online: bool = False,
     retrieval_runner: Callable[[dict], dict] | None = None,
     answer_runner: Callable[[dict], str] | None = None,
+    lifecycle_runner: Callable[[], list[dict[str, Any]]] | None = None,
 ) -> dict[str, Any]:
+    from evaluation.learning_task_lifecycle_eval import evaluate_learning_task_lifecycle
+
     cases = load_approved_cases(dataset)
     retrieval_details: list[dict[str, Any]] = []
     answer_details: list[dict[str, Any]] = []
@@ -261,25 +264,34 @@ def evaluate(
             answer_details.append(score_online_answer_case(
                 case, state, answer_runner=answer_runner,
             ))
+    lifecycle_details = (lifecycle_runner or evaluate_learning_task_lifecycle)()
+    retrieval_passed = bool(retrieval_details) and all(item.get("passed") for item in retrieval_details)
+    lifecycle_passed = bool(lifecycle_details) and all(item.get("passed") for item in lifecycle_details)
+    answer_passed = bool(answer_details) and all(item.get("passed") or item.get("skipped") for item in answer_details)
+    offline_passed = retrieval_passed and lifecycle_passed
+    production_passed = offline_passed and online and answer_passed
     return {
         "schema_version": CONTEXT_EVAL_SCHEMA_VERSION,
         "dataset": str(Path(dataset)),
         "modes": {
             "retrieval": "production_retrieval_and_evidence_pack",
             "answer": "live_model" if online else "disabled_no_model_call",
+            "lifecycle": "deterministic_production_state_transitions",
         },
         "layers": {
             "retrieval": _summary(retrieval_details),
             "answer": _summary(answer_details),
+            "lifecycle": _summary(lifecycle_details),
         },
         "release_gates": {
-            "passed": bool(retrieval_details)
-            and all(item.get("passed") for item in retrieval_details)
-            and (not online or bool(answer_details) and all(item.get("passed") or item.get("skipped") for item in answer_details)),
-            "online_answer_required": online,
+            "passed": production_passed,
+            "offline_passed": offline_passed,
+            "production_passed": production_passed,
+            "online_answer_required": True,
         },
         "retrieval_details": retrieval_details,
         "answer_details": answer_details,
+        "lifecycle_details": lifecycle_details,
     }
 
 

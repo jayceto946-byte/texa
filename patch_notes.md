@@ -2428,3 +2428,34 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 未配置模型角色时，reasoning 与 vision provider 均默认解析为 Qwen，默认型号为 `qwen3.7-plus`；Qwen 3.7 Plus 的正式 ModelSpec 启用 `enable_thinking=true`，与受控实验条件保持一致。显式保存的用户 profile、DeepSeek legacy 环境变量和自定义 provider 继续优先于默认值。
 - `.env.example` 改为 Qwen 3.7 Plus 双角色示例。多模态模式的未配置默认仍为 `split`，避免把既有 reasoning-only / 分离式配置静默解释成集成模式；当前本机已保存的 `native` Qwen profile 不受影响。
 - 运行态解析确认：Teaching preset 为 `refined`，active reasoning 为 `qwen/qwen3.7-plus` 且 thinking 开启；空环境也解析为相同默认。模型配置、Prompt 切换与缓存定向回归 `25 passed`。
+
+## 2026-08-25 学习问答 Harness 状态门槛
+
+- 新增持久化 `LearningTask`：普通问答与图片题统一记录 goal、required inputs/outputs、artifacts、checkpoint 和 verification。图片 VPIR 增加结构化 `required_inputs`；缺少会影响结论的附表、附录、另一页或模糊区域时，在调用推理模型前进入 `waiting_for_input`。用户可补充新材料后恢复原任务，或选择只讲方法；原图和原 VPIR 不重复解析，未核验数值必须显式标注。
+- 最终答案增加确定性后置验证：检查分项覆盖、本轮引用 ID、数值是否由数学工具或输入证据支持。验证未通过不会静默当作完整答案；任务进入 `degraded`，并在正文披露未满足/未核验项。
+- 工具编排从“任一工具成功”改为逐工具 `required_outputs` 门槛。三个写入提案使用持久化 pending action、白名单执行、action id 幂等确认和拒绝终态；主聊天直接展示确认区。即使后续推理模型连接失败，已经形成的操作提案仍会保留，处理后同步刷新会话中的任务投影。
+- 学习状态不再因“已生成回答”直接推进：未验证回答只记录概念接触；章节完成仅在 answer verification 通过后更新，掌握度和间隔复习仍要求显式用户评分或实际作答结果。
+- 验证：后端全量回归 `565 passed`（仅 1 条既有 Starlette/httpx2 弃用警告）；前端 `19 files / 91 tests passed`、ESLint 与 TypeScript/Vite 生产构建通过。实际 Learning Canvas 在推理服务不可用时仍显示“确认后才会写入学习记录”，取消后稳定显示“已取消”，没有新增任务中心或独立 Agent 页面；冒烟测试产生的 3 条会话、task、action 与 trace 记录已精确清理。
+
+## 2026-08-25 学习问答 Harness 生命周期与答案契约
+
+- Context Eval 升级为 schema 4，新增不调用模型的 LearningTask 生命周期层，覆盖阻断输入、补充后恢复、中断检查点、method-only 降级和验收失败。报告拆分 `offline_passed` 与 `production_passed`；未显式运行在线 Answer Eval 时，顶层生产发布门槛不再可能通过。
+- 普通问答支持停止后的同任务恢复。中断时保存原 task/turn、partial、最近阶段和检索后的证据状态；恢复使用原 turn，并从检索检查点重新生成完整答案。同 turn 的 complete 投影覆盖 partial，不重复写入用户问题。前端只在原答案下方显示“继续本次解答”。
+- required outputs 增加公式与目标单位合同；后置验证检查完整 LaTeX 公式、最终结论单位，以及引用附近的结论是否与对应证据存在语义重合。无法确定性证明的数值仍保持 `unverified/degraded`，不提升为精确答案。
+- 动态工具循环没有扩展为开放式 Agent Loop。只保留由数学工具显式 `verification_request` 触发的最多一轮校验补偿，并在 execution trace 记录 follow-up 轮次和策略；其他缺材料继续进入 required inputs。
+- 验证：后端全量 `569 passed`（1 条既有 Starlette/httpx2 弃用警告）；前端 `19 files / 91 tests passed`、ESLint 与 TypeScript/Vite 生产构建通过。前端测试首次受 Windows 沙箱 `spawn EPERM` 限制，授权后原命令通过。
+- 重生成的 schema 4 离线报告如实为：生命周期 `5/5`，生产检索 `14/15`，Answer `0`；因此 `offline_passed=false`、`production_passed=false`。当前失败项是电容式传感器优点 case 未覆盖“温度稳定性较好”，未用生命周期改造掩盖既有检索回归。
+
+## 2026-08-25 枚举题小节标题证据修复
+
+- 定位 `prod_sensor_capacitive_advantages`：目标 chunk 已存在于索引、融合排序和最终候选，缺失发生在 EvidencePack 文本投影。该条正文只解释稳定性原因，“温度稳定性好”位于 `1. 温度稳定性好` 小节标题；枚举题此前只为显式 list group 补标题，导致模型与 Eval 看不到条目名称。
+- 枚举型 factual recall 现在会保留真正编号条目的小节标题；编号判断排除 `11.1.4` 这类章节号，避免无关章节被误当作第 11 条枚举项。未修改索引、数据集期望或 EvidencePack 字符预算。
+- 验证：定向检索 case 通过、缺失证据点为空；真实生产检索 Eval 恢复 `15/15`，生命周期 `5/5`，`offline_passed=true`。未运行付费 Answer Eval，因此 `production_passed=false` 保持正确。后端全量 `571 passed`（1 条既有 Starlette/httpx2 弃用警告）。
+
+## 2026-08-25 学习任务停止竞态与恢复界面终态
+
+- 普通问答停止改为显式中断确认：前端取消 SSE 后先进入不可恢复的 `stopping` 本地状态，后端完成幂等 checkpoint 并返回 `interrupted` 后才显示“继续本次解答”，避免立即继续命中 `learning task is not resumable: running`。
+- 每次生成拥有独立 `active_run_id`。一旦停止已确认或新恢复轮次取得任务所有权，旧 SSE 后续到达的 checkpoint、完成或异常都不能覆盖当前任务；补充并发回归覆盖“旧模型调用稍后失败”仍保持 `interrupted`。
+- 普通问答和图片题恢复开始时立即把任务投影切为 `running`，补充材料选项不再在新一轮流式输出期间残留。`done`、SSE `error` 和传输错误都会收敛恢复 activity，状态条不再永久显示旋转中的“从检查点恢复”。
+- 验证覆盖中断接口幂等、partial/checkpoint/会话投影保留，以及恢复 activity 的成功和失败终态。本地 Learning Canvas 冒烟验证停止确认无竞态、恢复操作即时收起；隔离后端无法连接外部推理模型，因此真实成功生成由状态投影测试覆盖，失败路径在界面中确认停止旋转并显示明确终态。
+- 最终回归：后端 `573 passed`（1 条既有 Starlette/httpx2 弃用警告）；前端 `19 files / 93 tests passed`，ESLint 与 TypeScript/Vite 生产构建通过。冒烟测试产生的 3 条会话、4 个 task 及对应 event/trace 已精确清理。

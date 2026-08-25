@@ -49,6 +49,22 @@ def test_math_orchestration_runs_postcondition_verifier():
     assert result["tool_outputs"][0]["result"]["data"]["result"]["exact"] == ["2", "3"]
     assert result["tool_outputs"][1]["result"]["verification"]["passed"] is True
     assert result["tool_context_pack"]["sufficient"] is True
+    assert result["tool_outputs"][1]["satisfied_required_outputs"] == ["verified_math"]
+
+
+def test_context_pack_is_not_sufficient_when_required_output_is_missing():
+    from backend.services.tool_orchestration import build_tool_context_pack
+
+    pack = build_tool_context_pack([{
+        "tool": "search_textbook",
+        "result": {"success": True, "data": {"snippets": []}},
+        "required_outputs": [{"key": "textbook_evidence", "path": "data.snippets"}],
+        "satisfied_required_outputs": [],
+        "missing_required_outputs": ["textbook_evidence"],
+    }])
+
+    assert pack["sufficient"] is False
+    assert pack["missing_required_outputs"] == [{"tool": "search_textbook", "outputs": ["textbook_evidence"]}]
 
 
 def test_main_router_keeps_textbook_retrieval_in_production_graph():

@@ -53,7 +53,10 @@ def test_context_eval_v3_uses_production_state_without_live_model(tmp_path):
     report = evaluate(_dataset(tmp_path), retrieval_runner=_retrieval)
     assert report["modes"]["answer"] == "disabled_no_model_call"
     assert report["layers"]["retrieval"]["passed"] == 1
-    assert report["release_gates"]["passed"] is True
+    assert report["layers"]["lifecycle"]["failed"] == 0
+    assert report["release_gates"]["offline_passed"] is True
+    assert report["release_gates"]["passed"] is False
+    assert report["release_gates"]["online_answer_required"] is True
 
 
 def test_context_eval_v3_scores_opt_in_live_answer(tmp_path):
@@ -107,6 +110,16 @@ def test_context_eval_v3_records_live_model_failure_without_losing_report(tmp_pa
     assert report["layers"]["answer"]["failed"] == 1
     assert "ConnectionError" in report["answer_details"][0]["error"]
     assert report["release_gates"]["passed"] is False
+
+
+def test_context_eval_v3_lifecycle_failure_blocks_offline_and_production_gate(tmp_path):
+    report = evaluate(
+        _dataset(tmp_path), online=True, retrieval_runner=_retrieval,
+        answer_runner=lambda _state: "材料受力后电阻率变化。[[cite:E1]]",
+        lifecycle_runner=lambda: [{"name": "resume", "passed": False, "actual": "running"}],
+    )
+    assert report["release_gates"]["offline_passed"] is False
+    assert report["release_gates"]["production_passed"] is False
 
 
 def test_context_eval_v3_persists_report_before_console_encoding_failure(

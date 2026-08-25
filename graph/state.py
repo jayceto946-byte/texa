@@ -34,6 +34,9 @@ class AgentState(TypedDict):
     conversation_context_pack: dict
     learning_context_pack: dict
     tool_context_pack: dict  # bounded read-only results prepared by backend orchestration
+    learning_task: dict
+    required_outputs: list[dict]
+    answer_verification: dict
 
     # === Planner 输出 ===
     intent: str                 # qa | teach | summarize | quiz | plan | cross_chapter

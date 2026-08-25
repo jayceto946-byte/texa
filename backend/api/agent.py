@@ -8,7 +8,7 @@ import threading
 import time
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from backend.tools.learning_tools import summarize_learning_evidence
@@ -18,6 +18,9 @@ from backend.services.tool_orchestration import (
     execute_read_only_tools,
     select_tool_calls,
 )
+from backend.services.pending_actions import get_pending_action_store
+from backend.services.learning_task import get_learning_task_store
+from backend.conversation_memory import update_learning_task_projection
 from utils.thinking_filter import strip_thinking
 
 router = APIRouter(prefix="/agent", tags=["controlled-agent"])
@@ -286,3 +289,53 @@ def run_read_only_agent(req: ReadOnlyAgentRequest):
         "summary": summary,
         "execution_trace": execution_trace,
     }
+
+
+@router.post("/actions/{action_id}/confirm")
+def confirm_agent_action(action_id: str):
+    try:
+        action = get_pending_action_store().confirm(action_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="pending action not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"action execution failed: {exc}") from exc
+    return {"success": True, "action": action, "learning_task": _settle_linked_learning_task(action)}
+
+
+@router.post("/actions/{action_id}/reject")
+def reject_agent_action(action_id: str):
+    try:
+        action = get_pending_action_store().reject(action_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="pending action not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"success": True, "action": action, "learning_task": _settle_linked_learning_task(action)}
+
+
+def _settle_linked_learning_task(action: dict[str, Any]) -> dict[str, Any] | None:
+    task_id = str((action.get("context") or {}).get("learning_task_id") or "")
+    if not task_id:
+        return None
+    task_store = get_learning_task_store()
+    task = task_store.get(task_id)
+    if task is None:
+        return None
+    action_store = get_pending_action_store()
+    refreshed = []
+    for item in task.artifacts.get("pending_actions") or []:
+        action_id = str(item.get("action_id") or "") if isinstance(item, dict) else ""
+        refreshed.append(action_store.get(action_id) or item)
+    task.artifacts["pending_actions"] = refreshed
+    if refreshed and all(str(item.get("status") or "pending") != "pending" for item in refreshed):
+        status = "completed" if task.verification.get("status") == "passed" else "degraded"
+        task_store.checkpoint(task, "confirmations_resolved", status=status)
+    else:
+        task_store.save(task)
+    public_task = task.to_dict(public=True)
+    conversation_id = str((action.get("context") or {}).get("conversation_id") or "")
+    if conversation_id:
+        update_learning_task_projection(conversation_id, task.id, public_task)
+    return public_task

@@ -16,6 +16,11 @@ from graph.teaching_prompts import (
 )
 from utils.latex_sanitizer import sanitize_latex
 from utils.citation_protocol import sanitize_citation_protocol
+from backend.services.answer_verification import (
+    derive_required_outputs,
+    verification_notice,
+    verify_answer,
+)
 from utils.thinking_filter import strip_thinking
 
 GENERATION_PROMPT_VERSION = LEGACY_TEACHING_PROMPT_VERSION
@@ -171,6 +176,38 @@ def scope_boundary_message(state: dict) -> str:
     if reason == "known_subject_mismatch":
         return f"这个问题更可能属于其他学科，而不是当前的“{current_subject}”。为避免把跨学科内容混入当前学习记录，本轮暂不直接作答；你可以切换学科，或选择“跨学科通用回答”。"
     return f"当前本地资料无法确认这个问题属于“{current_subject}”。为避免把可能的跨学科内容混入当前学习记录，本轮暂不直接作答；如需继续，可以选择“跨学科通用回答”。"
+
+
+def finalize_answer_verification(
+    state: dict,
+    answer: str,
+    *,
+    citation_trace: dict | None = None,
+    answer_policy: str = "exact",
+) -> str:
+    """Run deterministic postconditions and disclose non-passing results."""
+    required_outputs = list(state.get("required_outputs") or [])
+    if not required_outputs:
+        required_outputs = derive_required_outputs(
+            str(state.get("user_input") or ""),
+            intent=str(state.get("intent") or "qa"),
+            answer_mode=_answer_mode(state),
+        )
+        state["required_outputs"] = required_outputs
+    result = verify_answer(
+        answer,
+        required_outputs=required_outputs,
+        sources=state.get("evidence_sources") or [],
+        citation_trace=citation_trace or state.get("citation_trace") or {},
+        tool_context_pack=state.get("tool_context_pack") or {},
+        evidence_items=state.get("evidence_items") or [],
+        answer_policy=answer_policy,
+    )
+    state["answer_verification"] = result
+    notice = verification_notice(result)
+    if notice and notice not in answer:
+        return answer.rstrip() + "\n\n" + notice
+    return answer
 
 
 def _record_context_budget(
@@ -527,6 +564,7 @@ def generate_node(state: dict) -> dict:
     final = sanitize_latex(strip_thinking(final))
     final, citation_trace = sanitize_citation_protocol(final, state.get("evidence_sources") or [])
     state["citation_trace"] = citation_trace
+    final = finalize_answer_verification(state, final, citation_trace=citation_trace)
     return {
         "final_output": final,
         "output_type": output_type,
@@ -534,4 +572,6 @@ def generate_node(state: dict) -> dict:
         "conversation_context_seed": {},
         "conversation_context_pack": state.get("conversation_context_pack") or {},
         "evidence_sources": state.get("evidence_sources") or [],
+        "required_outputs": state.get("required_outputs") or [],
+        "answer_verification": state.get("answer_verification") or {},
     }

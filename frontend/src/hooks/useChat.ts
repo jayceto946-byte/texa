@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { chatAsk, chatStream } from '../api/client';
+import { chatAsk, chatStream, interruptChatTask, resumeChatTaskStream } from '../api/client';
 import { useChatContext } from '../contexts/ChatContext';
-import type { AnswerMode, ConceptCandidate } from '../types';
-import { mergeChatActivity } from '../utils/chatActivities';
+import type { AnswerMode, ConceptCandidate, LearningTaskState } from '../types';
+import { mergeChatActivity, settleChatActivity } from '../utils/chatActivities';
 
 const USE_NON_STREAMING = import.meta.env.VITE_USE_NON_STREAMING === 'true';
 
@@ -19,6 +19,7 @@ export function useChat() {
     cancelActiveChat,
     addMessage,
     updateLastMessage,
+    updateMessageByTaskId,
     setLoading,
   } = useChatContext();
 
@@ -131,6 +132,7 @@ export function useChat() {
               answerMode: answerModeRef.current,
               scopeReason: scopeReasonRef.current,
               originalQuestion: question,
+              learningTask: event.learning_task || last.learningTask,
             } : last);
             return;
           }
@@ -152,6 +154,7 @@ export function useChat() {
           updateLastMessage((last) => {
             if (last.role !== 'assistant') return last;
             const next = { ...last };
+            next.learningTask = event.learning_task || next.learningTask;
             const existingActivities = event.stage === 'error'
               ? (last.activities || []).map((activity) => activity.status === 'active'
                 ? { ...activity, status: 'failed' as const, detail: event.message || '后端生成失败' }
@@ -200,6 +203,7 @@ export function useChat() {
                 next.originalQuestion = question;
                 next.id = event.message_id || next.id;
                 next.requestId = event.request_id || backendRequestIdRef.current || next.requestId;
+                next.learningTask = event.state?.learning_task || next.learningTask;
                 break;
               }
               case 'error':
@@ -227,6 +231,12 @@ export function useChat() {
   );
 
   const stop = useCallback(() => {
+    const activeMessage = [...messages].reverse().find((message) => (
+      message.role === 'assistant' && message.stage !== 'done' && message.stage !== 'error'
+    ));
+    const task = activeMessage?.learningTask;
+    const partialOutput = streamContentRef.current.trim()
+      || (activeMessage?.content && !activeMessage.content.endsWith('...') ? activeMessage.content : '');
     cancelActiveChat();
     updateLastMessage((last) => {
       if (last.role !== 'assistant' || last.stage === 'done' || last.stage === 'error') return last;
@@ -235,15 +245,89 @@ export function useChat() {
         : activity);
       if (last.stage === 'agent') return { ...last, content: '已停止学习工具调用。', stage: 'stopped', activities };
       const content = streamContentRef.current.trim() || (last.content && !last.content.endsWith('...') ? last.content : '已停止生成。');
-      return { ...last, content, stage: 'stopped', activities };
+      return {
+        ...last, content, stage: 'stopped', activities,
+        learningTask: last.learningTask ? {
+          ...last.learningTask,
+          status: 'stopping',
+          artifacts: { ...(last.learningTask.artifacts || {}), resume_available: false, partial_output: content },
+        } : last.learningTask,
+      };
     });
     setLoading(false);
-  }, [cancelActiveChat, setLoading, updateLastMessage]);
+    if (task?.id) {
+      void interruptChatTask(task.id, partialOutput).then((result) => {
+        updateMessageByTaskId(task.id, (message) => ({
+          ...message,
+          learningTask: result.learning_task,
+        }));
+      }).catch((error) => {
+        updateMessageByTaskId(task.id, (message) => ({
+          ...message,
+          activities: mergeChatActivity(message.activities, {
+            id: 'interrupt', kind: 'system', label: '暂停状态未确认', status: 'failed',
+            detail: `${error.message}；重新打开本会话后可读取后端最终状态`,
+          }),
+        }));
+      });
+    }
+  }, [cancelActiveChat, messages, setLoading, updateLastMessage, updateMessageByTaskId]);
+
+  const resumeTask = useCallback((task: LearningTaskState) => {
+    if (isLoading || task.status !== 'interrupted') return;
+    setLoading(true);
+    let content = '';
+    updateMessageByTaskId(task.id, (message) => ({
+      ...message, stage: 'thinking',
+      learningTask: message.learningTask ? { ...message.learningTask, status: 'running' } : message.learningTask,
+      activities: mergeChatActivity(message.activities, {
+        id: 'resume', kind: 'system', label: '从检查点恢复', status: 'active',
+        detail: '已保留原题、检索证据与任务验收条件',
+      }),
+    }));
+    const abort = resumeChatTaskStream(task.id, (event) => {
+      if (event.stage === 'generate' && event.chunk) content = event.replace ? event.chunk : content + event.chunk;
+      updateMessageByTaskId(task.id, (message) => {
+        const terminalStatus = event.stage === 'done' ? 'completed' : event.stage === 'error' ? 'failed' : null;
+        const activities = terminalStatus
+          ? settleChatActivity(
+            message.activities,
+            'resume',
+            terminalStatus,
+            event.stage === 'done' ? '已从检查点完成本次解答' : event.message || '恢复失败',
+          )
+          : message.activities;
+        return {
+          ...message,
+          content: content || message.content,
+          stage: event.stage === 'done' ? 'done' : event.stage === 'error' ? 'error' : event.stage === 'generate' ? 'generate' : message.stage,
+          learningTask: event.state?.learning_task || event.learning_task || message.learningTask,
+          sources: event.state?.evidence_sources || message.sources,
+          linkedConcepts: event.state?.linked_concepts || message.linkedConcepts,
+          activities: mergeChatActivity(activities, event.activity),
+        };
+      });
+      if (event.stage === 'done' || event.stage === 'error') {
+        setActiveChatAbort(null);
+        setLoading(false);
+      }
+    }, (error) => {
+      setActiveChatAbort(null);
+      setLoading(false);
+      updateMessageByTaskId(task.id, (message) => ({
+        ...message, stage: 'stopped',
+        activities: mergeChatActivity(message.activities, {
+          id: 'resume', kind: 'system', label: '从检查点恢复', status: 'failed', detail: error.message,
+        }),
+      }));
+    });
+    setActiveChatAbort(abort);
+  }, [isLoading, setActiveChatAbort, setLoading, updateMessageByTaskId]);
 
   useEffect(() => () => {
     cancelActiveChat();
     setLoading(false);
   }, [cancelActiveChat, setLoading]);
 
-  return { messages, isLoading, sendMessage, stop };
+  return { messages, isLoading, sendMessage, stop, resumeTask };
 }

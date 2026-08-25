@@ -104,6 +104,9 @@ def build_initial_state(
         "conversation_context_pack": {},
         "learning_context_pack": dict(continuity.get("learning_context_pack") or {}),
         "tool_context_pack": dict(continuity.get("tool_context_pack") or {}),
+        "learning_task": dict(continuity.get("learning_task") or {}),
+        "required_outputs": list(continuity.get("required_outputs") or []),
+        "answer_verification": {},
         "messages": [],
         "intent": "",
         "_local_intent": "qa",
@@ -193,6 +196,7 @@ def run_graph_stream(
     answer_mode: str = "",
     scope_reason: str = "",
     continuity_context: dict | None = None,
+    resume_state: dict | None = None,
 ):
     """流式运行 graph pipeline，yield 事件供 UI 消费。
 
@@ -209,7 +213,7 @@ def run_graph_stream(
     from graph.chapter_subgraph import (
         prepare_chapter_subgraph, TEACH_PROMPT, _future_result_if_done,
     )
-    from graph.generator import _build_generate_messages, _format_quiz_appendix, _record_context_budget, grounded_failure_message, has_generation_support, has_textbook_evidence, scope_boundary_message, suggested_fallback_mode
+    from graph.generator import _build_generate_messages, _format_quiz_appendix, _record_context_budget, finalize_answer_verification, grounded_failure_message, has_generation_support, has_textbook_evidence, scope_boundary_message, suggested_fallback_mode
     from graph.conversation_context import prepare_conversation_context
     from graph.feedback_node import feedback_node, link_concepts_for_response
     from knowledge.summary_store import SummaryStore
@@ -232,13 +236,29 @@ def run_graph_stream(
         continuity_context=continuity_context,
     )
 
+    reusable = dict(resume_state or {})
+    if reusable:
+        for key in (
+            "intent", "target_chapters", "chapter_contents", "evidence_items", "evidence_sources",
+            "retrieval_status", "retrieval_error", "evidence_support", "retrieval_debug_items",
+        ):
+            if key in reusable:
+                state[key] = reusable[key]
+
     # ── Step 0: 本地意图分类 ──
     plan_enter = time.perf_counter()
     local_result = classify_intent_local(user_input)
     fast_path = is_fast_path_eligible(user_input, local_result)
-    intent = local_result["intent"]
+    intent = str(state.get("intent") or local_result["intent"])
 
-    if fast_path:
+    if reusable and state.get("intent"):
+        yield {
+            "stage": "plan", "intent": intent, "chapters": state.get("target_chapters", []),
+            "fast_path": True, "resumed": True, "planner_trace": {"mode": "resume_checkpoint"},
+            "use_textbook_context": state.get("use_textbook_context", True),
+            "answer_mode": state.get("answer_mode", ""),
+        }
+    elif fast_path:
         # Fast Path：跳过 plan LLM，直接用本地分类结果
         state["intent"] = intent
         state["planner_trace"] = {
@@ -275,7 +295,8 @@ def run_graph_stream(
         }
 
     # ── Retrieve ──
-    state.update(retrieve_node(state))
+    if not reusable:
+        state.update(retrieve_node(state))
     yield {
         "stage": "retrieve",
         "content_count": len(state.get("chapter_contents", {})),
@@ -283,6 +304,13 @@ def run_graph_stream(
         "retrieval_error": state.get("retrieval_error", ""),
         "use_textbook_context": state.get("use_textbook_context", True),
         "answer_mode": state.get("answer_mode", ""),
+        "resumed": bool(reusable),
+        "checkpoint_state": {
+            key: state.get(key) for key in (
+                "intent", "target_chapters", "chapter_contents", "evidence_items", "evidence_sources",
+                "retrieval_status", "retrieval_error", "evidence_support", "retrieval_debug_items",
+            )
+        },
     }
 
     # ── Chapter subgraph (条件) ──
@@ -345,9 +373,12 @@ def run_graph_stream(
                 state.get("evidence_sources") or [],
             )
             state["citation_trace"] = citation_trace
-            if sanitized_teaching != buffer:
-                yield {"stage": "generate", "chunk": sanitized_teaching, "replace": True, "done": False}
-            state["teaching_content"] = sanitized_teaching
+            verified_teaching = finalize_answer_verification(
+                state, sanitized_teaching, citation_trace=citation_trace,
+            )
+            if verified_teaching != buffer:
+                yield {"stage": "generate", "chunk": verified_teaching, "replace": True, "done": False}
+            state["teaching_content"] = verified_teaching
             state["chapter_summary"] = ""
 
             # 收集后台任务结果。后台任务不阻塞主讲解；没完成就跳过。
@@ -425,9 +456,12 @@ def run_graph_stream(
                 state.get("evidence_sources") or [],
             )
             state["citation_trace"] = citation_trace
-            if sanitized_output != buffer:
-                yield {"stage": "generate", "chunk": sanitized_output, "replace": True, "done": False}
-            state["final_output"] = sanitized_output
+            verified_output = finalize_answer_verification(
+                state, sanitized_output, citation_trace=citation_trace,
+            )
+            if verified_output != buffer:
+                yield {"stage": "generate", "chunk": verified_output, "replace": True, "done": False}
+            state["final_output"] = verified_output
             yield {"stage": "generate", "chunk": "", "done": True, "evidence_sources": state.get("evidence_sources", [])}
 
     # UI concept links are resolved locally. Learning-memory writes are

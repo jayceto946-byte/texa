@@ -15,9 +15,9 @@ import MathExpressionList from '../features/math-input/MathExpressionList';
 import type { MathEditRequest, MathExpression } from '../features/math-input/types';
 import VisualMathInputPopover from '../features/math-input/VisualMathInputPopover';
 import { useChat } from '../hooks/useChat';
-import type { ExerciseRecord, MistakeRecord } from '../types';
+import type { ExerciseRecord, LearningTaskState, MistakeRecord } from '../types';
 import { mapStoredConversationMessages } from '../utils/conversationMessages';
-import { mergeChatActivity } from '../utils/chatActivities';
+import { mergeChatActivity, settleChatActivity } from '../utils/chatActivities';
 import { buildTextbookScopeOptions, findDefaultTextbookScope, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
 type ReportMode = 'daily' | 'weekly';
 type ActionMode = ReportMode | 'exercise';
@@ -44,7 +44,7 @@ const ChatPage: React.FC = () => {
   const [mistakePickerOpen, setMistakePickerOpen] = useState(false);
   const [cachedMistakes, setCachedMistakes] = useState<MistakeRecord[]>([]);
   const [selectedMistakeId, setSelectedMistakeId] = useState('');
-  const { messages, isLoading, sendMessage, stop } = useChat();
+  const { messages, isLoading, sendMessage, stop, resumeTask } = useChat();
   const {
     bookName,
     setBookName,
@@ -53,6 +53,7 @@ const ChatPage: React.FC = () => {
     conversationId,
     addMessage,
     updateLastMessage,
+    updateMessageByTaskId,
     historyPage,
     prependConversationMessages,
   } = useChatContext();
@@ -121,15 +122,23 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  const persistLocalExchange = async (userContent: string, assistantContent: string) => {
+  const persistLocalExchange = async (
+    userContent: string,
+    assistantContent: string,
+    options: { turnId?: string; learningTask?: LearningTaskState; deliveryStatus?: 'waiting' | 'complete' | 'error' } = {},
+  ) => {
     try {
       await post('/chat/log', {
         conversation_id: conversationId,
         book_name: bookName,
         subject,
+        turn_id: options.turnId,
         messages: [
-          { role: 'user', content: userContent },
-          { role: 'assistant', content: assistantContent },
+          { role: 'user', content: userContent, turn_id: options.turnId },
+          {
+            role: 'assistant', content: assistantContent, turn_id: options.turnId,
+            delivery_status: options.deliveryStatus || 'complete', learning_task: options.learningTask,
+          },
         ],
       }, 15000);
     } catch {
@@ -206,8 +215,9 @@ const ChatPage: React.FC = () => {
     const label = attachmentFile
       ? `📎 ${attachmentFile.name}\n\n${question || '请完整讲解这道题'}`
       : `从历史错题讲解：${firstLine(cachedMistakes.find((item) => item.id === selectedMistakeId)?.question_text || '')}\n\n${question || '请重新讲解这道错题'}`;
-    addMessage({ role: 'user', content: label });
-    addMessage({ role: 'assistant', content: '', stage: 'thinking', activities: [] });
+    const turnId = `turn_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
+    addMessage({ role: 'user', content: label, turnId });
+    addMessage({ role: 'assistant', content: '', stage: 'thinking', activities: [], turnId });
     let payload: FormData | Record<string, unknown>;
     let path: '/mistakes/solve-image-stream' | '/mistakes/solve-cached-stream';
     if (attachmentFile) {
@@ -217,6 +227,8 @@ const ChatPage: React.FC = () => {
       form.append('subject', subject);
       form.append('book_name', bookName || 'default');
       form.append('import_to_mistakes', String(importAttachment));
+      form.append('conversation_id', conversationId);
+      form.append('turn_id', turnId);
       path = '/mistakes/solve-image-stream';
       payload = form;
     } else {
@@ -237,7 +249,7 @@ const ChatPage: React.FC = () => {
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
         content: finalContent || last.content,
-        stage: event.stage === 'error' ? 'error' : event.stage === 'done' ? 'done' : event.stage === 'generate' ? 'generate' : last.stage,
+        stage: event.stage === 'error' ? 'error' : event.stage === 'waiting_for_input' ? 'waiting_for_input' : event.stage === 'done' ? 'done' : event.stage === 'generate' ? 'generate' : last.stage,
         activities: mergeChatActivity(
           event.stage === 'error'
             ? (last.activities || []).map((activity) => activity.status === 'active'
@@ -247,11 +259,20 @@ const ChatPage: React.FC = () => {
           event.activity,
         ),
         linkedConcepts: event.result?.linked_concepts || last.linkedConcepts,
+        learningTask: event.result?.learning_task || last.learningTask,
       } : last);
-      if (event.stage === 'done') {
+      if (event.stage === 'waiting_for_input') {
         visualAbortRef.current = null;
         setAttachmentLoading(false);
-        void persistLocalExchange(label, finalContent);
+        const task = event.result?.learning_task;
+        const waitingContent = '精确解答已暂停：缺失材料会影响最终结论。';
+        finalContent = waitingContent;
+        updateLastMessage((last) => last.role === 'assistant' ? { ...last, content: waitingContent, stage: 'waiting_for_input', learningTask: task } : last);
+        if (task) void persistLocalExchange(label, waitingContent, { turnId, learningTask: task, deliveryStatus: 'waiting' });
+      } else if (event.stage === 'done') {
+        visualAbortRef.current = null;
+        setAttachmentLoading(false);
+        void persistLocalExchange(label, finalContent, { turnId, learningTask: event.result?.learning_task, deliveryStatus: 'complete' });
       } else if (event.stage === 'error') {
         visualAbortRef.current = null;
         setAttachmentLoading(false);
@@ -264,6 +285,81 @@ const ChatPage: React.FC = () => {
         ...last, content: `图片处理失败：${error.message}`, stage: 'error',
         activities: mergeChatActivity(last.activities, { id: 'request', kind: 'system', label: '请求中断', status: 'failed', detail: error.message }),
       } : last);
+    });
+  };
+
+  const resumeLearningTask = async (
+    task: LearningTaskState,
+    action: 'provide_input' | 'method_only',
+    file?: File,
+  ) => {
+    if (attachmentLoading) return;
+    setAttachmentLoading(true);
+    updateMessageByTaskId(task.id, (message) => ({
+      ...message,
+      stage: 'thinking',
+      learningTask: message.learningTask ? { ...message.learningTask, status: 'running' } : message.learningTask,
+      activities: mergeChatActivity(message.activities, {
+        id: 'resume', kind: 'system', label: '恢复原任务', status: 'active', detail: '正在读取已保存的原题与任务状态',
+      }),
+    }));
+    const form = new FormData();
+    form.append('action', action);
+    if (file) form.append('file', file);
+    let finalContent = '';
+    await new Promise<void>((resolve, reject) => {
+      visualAbortRef.current = mistakeSolutionStream(
+        `/mistakes/visual-tasks/${task.id}/resume-stream`,
+        form,
+        (event) => {
+          if (event.stage === 'generate' && event.chunk) {
+            finalContent = event.replace ? event.chunk : finalContent + event.chunk;
+          }
+          updateMessageByTaskId(task.id, (message) => {
+            const terminalStatus = event.stage === 'done' ? 'completed' : event.stage === 'error' ? 'failed' : null;
+            const activities = terminalStatus
+              ? settleChatActivity(
+                message.activities,
+                'resume',
+                terminalStatus,
+                event.stage === 'done' ? '原任务已恢复并完成' : event.message || '恢复失败',
+              )
+              : message.activities;
+            return {
+              ...message,
+              content: finalContent || message.content,
+              stage: event.stage === 'error' ? 'error' : event.stage === 'done' ? 'done' : event.stage === 'generate' ? 'generate' : message.stage,
+              activities: mergeChatActivity(activities, event.activity),
+              linkedConcepts: event.result?.linked_concepts || message.linkedConcepts,
+              learningTask: event.learning_task || event.result?.learning_task || message.learningTask,
+            };
+          });
+          if (event.stage === 'done') {
+            visualAbortRef.current = null;
+            setAttachmentLoading(false);
+            void persistLocalExchange(
+              task.goal,
+              finalContent || event.result?.explanation || '',
+              { turnId: task.turn_id, learningTask: event.result?.learning_task, deliveryStatus: 'complete' },
+            );
+            resolve();
+          } else if (event.stage === 'error') {
+            visualAbortRef.current = null;
+            setAttachmentLoading(false);
+            reject(new Error(event.message || '恢复任务失败'));
+          }
+        },
+        (error) => {
+          visualAbortRef.current = null;
+          setAttachmentLoading(false);
+          updateMessageByTaskId(task.id, (message) => ({
+            ...message,
+            stage: 'waiting_for_input',
+            activities: settleChatActivity(message.activities, 'resume', 'failed', error.message || '恢复失败'),
+          }));
+          reject(error);
+        },
+      );
     });
   };
 
@@ -468,7 +564,7 @@ const ChatPage: React.FC = () => {
             )}
             {messages.map((msg, i) => (
               <ErrorBoundary key={msg.id || `${msg.turnId || 'message'}-${i}`}>
-                <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => sendMessage(question, { answerMode: 'global_general' })} onRequestSuggestedAnswer={(question, answerMode) => sendMessage(question, { answerMode })} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} agentCard={msg.agentCard} />
+                <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => sendMessage(question, { answerMode: 'global_general' })} onRequestSuggestedAnswer={(question, answerMode) => sendMessage(question, { answerMode })} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} agentCard={msg.agentCard} learningTask={msg.learningTask} onResumeLearningTask={resumeLearningTask} onResumeInterruptedTask={resumeTask} />
               </ErrorBoundary>
             ))}
           </div>

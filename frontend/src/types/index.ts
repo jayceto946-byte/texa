@@ -5,6 +5,30 @@ export type AnswerMode = 'auto' | 'textbook_grounded' | 'subject_general' | 'glo
 export type ActivityStatus = 'pending' | 'active' | 'completed' | 'skipped' | 'failed';
 export type ActivityKind = 'analysis' | 'tool' | 'evidence' | 'reasoning' | 'generation' | 'memory' | 'system';
 
+export interface LearningRequiredInput {
+  type: string;
+  name: string;
+  reason: string;
+  affects: string[];
+  blocking: boolean;
+  status: 'missing' | 'provided' | 'waived' | string;
+}
+
+export interface LearningTaskState {
+  schema_version: string;
+  id: string;
+  task_type: 'qa' | 'visual_qa' | string;
+  goal: string;
+  status: 'running' | 'interrupted' | 'waiting_for_input' | 'waiting_for_confirmation' | 'degraded' | 'completed' | 'failed' | string;
+  conversation_id?: string;
+  turn_id?: string;
+  answer_mode?: string;
+  required_inputs: LearningRequiredInput[];
+  required_outputs: Array<Record<string, unknown>>;
+  artifacts?: Record<string, unknown>;
+  verification?: Record<string, unknown>;
+}
+
 export interface ChatActivity {
   id: string;
   kind: ActivityKind;
@@ -24,7 +48,7 @@ export interface ChatRequest {
 }
 
 export interface ChatEvent {
-  stage: 'context' | 'activity' | 'plan' | 'retrieve' | 'chapter' | 'generate' | 'done' | 'error';
+  stage: 'context' | 'activity' | 'plan' | 'retrieve' | 'chapter' | 'generate' | 'waiting_for_input' | 'verify' | 'done' | 'error';
   intent?: string;
   chapters?: string[];
   fast_path?: boolean;
@@ -32,6 +56,7 @@ export interface ChatEvent {
   use_textbook_context?: boolean;
   scope_reason?: string;
   answer_mode?: AnswerMode;
+  learning_task?: LearningTaskState;
   content_count?: number;
   has_teaching?: boolean;
   chunk?: string;
@@ -47,11 +72,13 @@ export interface ChatEvent {
     question_text?: string;
     mistake_id?: string;
     visual_ir?: Record<string, unknown>;
+    learning_task?: LearningTaskState;
   };
   state?: {
     linked_concepts?: ConceptCandidate[];
     evidence_sources?: AssistantSource[];
     suggested_answer_mode?: AnswerMode;
+    learning_task?: LearningTaskState;
   };
 }
 
@@ -316,8 +343,12 @@ export interface AgentToolSpec {
 }
 
 export interface AgentPendingAction {
+  action_id?: string;
   type: string;
   payload: Record<string, unknown>;
+  status?: 'pending' | 'confirmed' | 'rejected' | 'failed';
+  result?: Record<string, unknown> | null;
+  error?: string;
 }
 
 export interface AgentToolResult {
@@ -336,6 +367,9 @@ export interface AgentToolOutput {
   tool: string;
   args: Record<string, unknown>;
   result: AgentToolResult;
+  required_outputs?: Array<{ key: string; path: string }>;
+  satisfied_required_outputs?: string[];
+  missing_required_outputs?: string[];
   timing?: {
     status: 'complete' | 'timeout' | 'error';
     elapsed_ms: number;

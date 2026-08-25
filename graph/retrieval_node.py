@@ -303,6 +303,15 @@ def _select_enumeration_anchor(items: list[dict]) -> dict | None:
     ))
 
 
+def _is_enumeration_member_title(value: str) -> bool:
+    """Match list-member headings without treating 11.1.4 as item 11."""
+    return bool(re.match(
+        r"^\s*(?:[（(](?:\d+|[一二三四五六七八九十]+)[）)]|"
+        r"(?:\d+|[一二三四五六七八九十]+)[.、）)])(?!\d)",
+        str(value or ""),
+    ))
+
+
 def _method_members(text: str) -> list[str]:
     """Extract named methods/formulas from a compact enumeration sentence."""
     segments = re.split(r"[、，。；;]|以及|还有|包括|即|以及|和|及|外", str(text or ""))
@@ -1250,7 +1259,7 @@ def _merge_and_rerank(
                 item.get("is_selected_book") and "bm25" in item.get("fusion_sources", [])
                 and (
                     int(item.get("retrieval_rank") or 999999) <= 3
-                    or bool(re.match(r"^\s*(?:\d+|[一二三四五六七八九十]+)[.、）)]", str(item.get("section_title") or "")))
+                    or _is_enumeration_member_title(str(item.get("section_title") or ""))
                 )
             ) else (2 if item.get("is_list_neighbor") else 3)),
             int(item.get("list_group_order") if item.get("list_group_order") is not None else 999999),
@@ -1301,8 +1310,9 @@ def _merge_and_rerank(
             break
         text = item.get("text", "")
         section_title = str(item.get("section_title") or "").strip()
+        enumeration_member = enumeration_query and _is_enumeration_member_title(section_title)
         if (
-            (intent == "formula" or item.get("list_group_order") is not None)
+            (intent == "formula" or item.get("list_group_order") is not None or enumeration_member)
             and section_title
             and section_title not in text[: max(120, len(section_title) + 10)]
         ):

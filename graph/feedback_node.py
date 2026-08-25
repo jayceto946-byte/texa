@@ -23,11 +23,15 @@ def _feedback_node_impl(state: dict) -> dict:
     sr = SpacedRepetition(book_name)
 
     mastery_update = {}
+    verification = state.get("answer_verification") or {}
+    answer_verified = verification.get("status") == "passed"
 
-    # 更新章节学习标记
-    for ch in target_chapters:
-        memory.mark_chapter_studied(ch)
-        mastery_update[ch] = memory.get_chapter_progress(ch)
+    # A generated answer is only exposure. Chapter completion is recorded only
+    # after the task's deterministic postconditions pass.
+    if answer_verified:
+        for ch in target_chapters:
+            memory.mark_chapter_studied(ch)
+            mastery_update[ch] = memory.get_chapter_progress(ch)
 
     # 处理反馈评分
     rating = feedback.get("rating", 0)
@@ -39,18 +43,11 @@ def _feedback_node_impl(state: dict) -> dict:
         quality = _rating_to_quality(rating)
         sr.review(card_id, quality)
 
-    # 如果做了题，更新 SR
-    quiz_questions = state.get("quiz_questions", [])
-    for q in quiz_questions:
-        if isinstance(q, dict) and not q.get("error"):
-            kp = q.get("knowledge_point", q.get("question", "")[:30])
-            card_id = f"{target_chapters[0] if target_chapters else 'general'}::{kp}"
-            sr.add_knowledge_point(card_id, target_chapters[0] if target_chapters else "", kp)
-
     linked_concepts = _record_concept_memory(state)
 
     return {
         "mastery_update": mastery_update,
+        "learning_update_status": "verified_task" if answer_verified else "exposure_only",
         "user_feedback": None,
         "linked_concepts": linked_concepts,
     }
@@ -64,6 +61,7 @@ def feedback_node(state: dict) -> dict:
         print(f"[feedback] record failed: {exc}", flush=True)
         return {
             "mastery_update": {},
+            "learning_update_status": "exposure_only",
             "user_feedback": None,
             "linked_concepts": link_concepts_for_response(state),
         }

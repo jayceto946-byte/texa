@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
-import type { AnswerMode, AssistantSource, ChatActivity, ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate, SubjectRouteSuggestion } from '../types';
+import type { AnswerMode, AssistantSource, ChatActivity, ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -22,6 +22,7 @@ export interface ChatMessage {
   suggestedAnswerMode?: AnswerMode;
   scopeReason?: string;
   originalQuestion?: string;
+  learningTask?: LearningTaskState;
   answerFeedback?: { rating: 'helpful' | 'unhelpful'; reasons?: string[]; updated_at?: string };
 }
 
@@ -50,6 +51,7 @@ interface ChatContextType {
   newConversation: () => void;
   addMessage: (msg: ChatMessage) => void;
   updateLastMessage: (updater: (msg: ChatMessage) => ChatMessage) => void;
+  updateMessageByTaskId: (taskId: string, updater: (msg: ChatMessage) => ChatMessage) => void;
   setLoading: (loading: boolean) => void;
   clearMessages: () => void;
 }
@@ -157,6 +159,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   }, []);
 
+  const updateMessageByTaskId = useCallback((taskId: string, updater: (msg: ChatMessage) => ChatMessage) => {
+    setMessages((current) => current.map((message) => (
+      message.learningTask?.id === taskId ? updater(message) : message
+    )));
+  }, []);
+
   const clearMessages = useCallback(() => {
     cancelActiveChat();
     setIsLoading(false);
@@ -183,10 +191,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       newConversation,
       addMessage,
       updateLastMessage,
+      updateMessageByTaskId,
       setLoading: setIsLoading,
       clearMessages,
     }),
-    [messages, isLoading, bookName, subject, conversationId, historyPage, persistBookName, persistSubject, persistConversationId, syncRecoveredScope, setActiveChatAbort, cancelActiveChat, loadConversation, prependConversationMessages, newConversation, addMessage, updateLastMessage, clearMessages]
+    [messages, isLoading, bookName, subject, conversationId, historyPage, persistBookName, persistSubject, persistConversationId, syncRecoveredScope, setActiveChatAbort, cancelActiveChat, loadConversation, prependConversationMessages, newConversation, addMessage, updateLastMessage, updateMessageByTaskId, clearMessages]
   );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

@@ -4,8 +4,9 @@ from __future__ import annotations
 import json
 import logging
 import time
+import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from backend.conversation_memory import (
@@ -22,6 +23,7 @@ from backend.conversation_memory import (
     split_turn_to_conversation,
     update_message_evidence_support,
     update_message_linked_concepts,
+    update_learning_task_projection,
 )
 from backend.schemas import ChatRequest, ConversationScopeRequest, ConversationSplitTurnRequest, SubjectRoutingFeedbackRequest
 from backend.schemas import AnswerFeedbackRequest
@@ -44,6 +46,14 @@ from backend.services.tool_orchestration import (
     execute_read_only_tools,
     select_tool_calls,
 )
+from backend.services.answer_verification import derive_required_outputs, verify_answer
+from backend.services.learning_task import (
+    LearningTask,
+    get_learning_task_store,
+    interrupt_learning_task,
+    mark_required_inputs,
+    resume_learning_task,
+)
 from graph.conversation_context import (
     assemble_conversation_context_pack,
     build_conversation_context_seed,
@@ -64,7 +74,10 @@ _TOOL_ACTIVITY_LABELS = {
 }
 
 
-def _main_tool_request(question: str, book_name: str, subject: str, conversation_id: str) -> ToolOrchestrationRequest:
+def _main_tool_request(
+    question: str, book_name: str, subject: str, conversation_id: str,
+    learning_task_id: str = "",
+) -> ToolOrchestrationRequest:
     return ToolOrchestrationRequest(
         question=question,
         book_name=book_name,
@@ -72,12 +85,104 @@ def _main_tool_request(question: str, book_name: str, subject: str, conversation
         conversation_id=conversation_id,
         max_tools=6,
         include_textbook_tool=False,
+        learning_task_id=learning_task_id,
     )
 
 
-def _prepare_main_tool_context(question: str, book_name: str, subject: str, conversation_id: str) -> dict:
+def _start_chat_learning_task(
+    *, question: str, rewritten_question: str, history: list[dict],
+    conversation_id: str, turn_id: str, answer_mode: str,
+) -> LearningTask:
+    store = get_learning_task_store()
+    for message in reversed(history[-6:]):
+        task_ref = message.get("learning_task") if isinstance(message, dict) else None
+        if not isinstance(task_ref, dict) or task_ref.get("task_type") != "qa":
+            continue
+        if task_ref.get("status") != "waiting_for_input":
+            break
+        task = store.get(str(task_ref.get("id") or ""))
+        if task is not None and task.conversation_id == conversation_id:
+            mark_required_inputs(task, "provided")
+            task.status = "running"
+            task.artifacts["clarification_response"] = question
+            return store.checkpoint(task, "input_provided", status="running", detail="resumed from clarification")
+        break
+    return store.create(
+        task_type="qa", goal=question, conversation_id=conversation_id, turn_id=turn_id,
+        answer_mode=answer_mode,
+        required_outputs=derive_required_outputs(rewritten_question, answer_mode=answer_mode),
+        artifacts={"resolved_query": rewritten_question},
+    )
+
+
+def _finish_chat_learning_task(
+    task: LearningTask,
+    state: dict,
+    *,
+    waiting_reason: str = "",
+    run_id: str = "",
+) -> LearningTask:
+    store = get_learning_task_store()
+    if waiting_reason:
+        task.required_inputs = [{
+            "type": "clarification", "name": "用户澄清", "reason": waiting_reason[:500],
+            "affects": ["answer_scope"], "blocking": True, "status": "missing",
+        }]
+        task.verification = {"status": "waiting_for_input", "passed": False, "checks": []}
+        checkpoint = store.checkpoint_for_run if run_id else store.checkpoint
+        args = (task, run_id, "waiting_for_input") if run_id else (task, "waiting_for_input")
+        return checkpoint(*args, status="waiting_for_input", detail=waiting_reason)
+    verification = dict(state.get("answer_verification") or {})
+    if not verification:
+        verification = verify_answer(
+            str(state.get("final_output") or ""), required_outputs=task.required_outputs,
+            sources=state.get("evidence_sources") or [], citation_trace=state.get("citation_trace") or {},
+            tool_context_pack=state.get("tool_context_pack") or {}, evidence_items=state.get("evidence_items") or [],
+        )
+    task.verification = verification
+    task.required_outputs = list(state.get("required_outputs") or task.required_outputs)
+    task.artifacts.update({
+        "final_output": str(state.get("final_output") or ""),
+        "evidence_ids": [
+            str(item.get("id") or item.get("chunk_id") or "")
+            for item in state.get("evidence_sources") or [] if isinstance(item, dict)
+        ][:20],
+    })
+    pending_actions = list(task.artifacts.get("pending_actions") or [])
+    has_pending = any(
+        str(item.get("status") or "pending") == "pending"
+        for item in pending_actions if isinstance(item, dict)
+    )
+    status = "waiting_for_confirmation" if has_pending else (
+        "completed" if verification.get("status") == "passed" else "degraded"
+    )
+    if run_id:
+        return store.checkpoint_for_run(
+            task, run_id, "verified", status=status,
+            detail=str(verification.get("status") or "unknown"),
+        )
+    return store.checkpoint(task, "verified", status=status, detail=str(verification.get("status") or "unknown"))
+
+
+def _attach_pending_actions(task: LearningTask, tool_run: dict) -> None:
+    actions = [
+        item.get("result", {}).get("pending_action")
+        for item in tool_run.get("tool_outputs") or []
+        if isinstance(item, dict) and item.get("result", {}).get("pending_action")
+    ]
+    if actions:
+        task.artifacts["pending_actions"] = actions[:10]
+        get_learning_task_store().checkpoint(task, "waiting_for_confirmation", status="waiting_for_confirmation")
+
+
+def _prepare_main_tool_context(
+    question: str, book_name: str, subject: str, conversation_id: str,
+    learning_task_id: str = "",
+) -> dict:
     try:
-        return execute_read_only_tools(_main_tool_request(question, book_name, subject, conversation_id))
+        return execute_read_only_tools(_main_tool_request(
+            question, book_name, subject, conversation_id, learning_task_id,
+        ))
     except Exception as exc:
         logger.exception("main chat tool orchestration failed")
         return {
@@ -494,13 +599,26 @@ def log_conversation_messages(payload: dict):
         content = str(item.get("content") or "").strip()
         if not content:
             continue
-        append_message(conversation_id, role, content, book_name=book_name, subject=subject, turn_id=str(item.get("turn_id") or turn_id))
+        append_message(
+            conversation_id,
+            role,
+            content,
+            book_name=book_name,
+            subject=subject,
+            turn_id=str(item.get("turn_id") or turn_id),
+            delivery_status=str(item.get("delivery_status") or "complete"),
+            learning_task=item.get("learning_task") if isinstance(item.get("learning_task"), dict) else None,
+        )
         appended += 1
     return {"success": True, "conversation_id": conversation_id, "appended": appended}
 
 
-@router.post("/stream")
-def chat_stream(req: ChatRequest):
+def _chat_stream(
+    req: ChatRequest,
+    _learning_task: LearningTask | None = None,
+    _resume: bool = False,
+    _run_id: str = "",
+):
     from graph.main_graph import run_graph_stream
 
     book_name = (req.book_name or "").strip()
@@ -511,6 +629,10 @@ def chat_stream(req: ChatRequest):
     rewritten_question, resolution_trace = _resolve_request_question(
         req.question, history, conversation_id, book_name=book_name, subject=subject,
     )
+    if _resume and _learning_task is not None:
+        rewritten_question = str(_learning_task.artifacts.get("resolved_query") or rewritten_question)
+        resolution_trace["resolution_action"] = "continue"
+        resolution_trace["resolved_query"] = rewritten_question
     book_name, subject = _scope_from_learning_context(book_name, subject, resolution_trace)
     conversation_id = resolve_conversation_id_for_scope(conversation_id, subject, book_name)
     target_chapters = _target_chapters_from_learning_context(req.target_chapters, resolution_trace)
@@ -537,6 +659,26 @@ def chat_stream(req: ChatRequest):
     scope_reason = scope_decision.reason
     answer_mode = scope_decision.answer_mode
     context_versions = current_context_versions(book_name)
+    learning_task = _learning_task or _start_chat_learning_task(
+        question=req.question, rewritten_question=rewritten_question, history=history,
+        conversation_id=conversation_id, turn_id=turn_id, answer_mode=answer_mode,
+    )
+    if _resume:
+        rewritten_question = str(learning_task.artifacts.get("resolved_query") or rewritten_question)
+        turn_id = learning_task.turn_id or turn_id
+    run_id = _run_id or f"run_{uuid.uuid4().hex}"
+    learning_task.artifacts.update({
+        "resolved_query": rewritten_question,
+        "book_name": book_name,
+        "subject": subject,
+        "target_chapters": target_chapters,
+        "use_textbook_context": use_textbook_context,
+        "scope_reason": scope_reason,
+        "active_run_id": run_id,
+    })
+    get_learning_task_store().save(learning_task)
+    continuity_context["learning_task"] = learning_task.to_dict()
+    continuity_context["required_outputs"] = learning_task.required_outputs
 
     def event_generator():
         from backend.rag_trace import new_request_id, save_trace
@@ -604,6 +746,7 @@ def chat_stream(req: ChatRequest):
                     delivery_status=delivery_status,
                     request_id=request_id,
                     context_versions=context_versions,
+                    learning_task=learning_task.to_dict(public=True),
                 )
                 assistant_message_id = str((item or {}).get("id") or "")
                 assistant_message = item if isinstance(item, dict) else None
@@ -654,13 +797,14 @@ def chat_stream(req: ChatRequest):
 
         graph_events = None
         try:
-            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'book_name': book_name, 'subject': subject, 'rewritten_question': rewritten_question if rewritten_question != req.question else '', 'resolution_action': resolution_trace.get('resolution_action', 'continue'), 'use_textbook_context': use_textbook_context, 'scope_reason': scope_reason, 'answer_mode': answer_mode, 'activity': {'id': 'context', 'kind': 'analysis', 'label': '读取会话上下文', 'status': 'completed', 'detail': '已解析当前问题、指代与学习范围'}}, ensure_ascii=False)}\n\n"
-            user_message = append_message(
-                conversation_id, "user", req.question,
-                book_name=book_name, subject=subject, turn_id=turn_id,
-                request_id=request_id, context_versions=context_versions,
-            )
-            _safe_save_resolution_ledger(conversation_id, resolution_trace, user_message)
+            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'book_name': book_name, 'subject': subject, 'rewritten_question': rewritten_question if rewritten_question != req.question else '', 'resolution_action': resolution_trace.get('resolution_action', 'continue'), 'use_textbook_context': use_textbook_context, 'scope_reason': scope_reason, 'answer_mode': answer_mode, 'learning_task': learning_task.to_dict(public=True), 'activity': {'id': 'context', 'kind': 'analysis', 'label': '读取会话上下文', 'status': 'completed', 'detail': '已解析当前问题、指代与学习范围'}}, ensure_ascii=False)}\n\n"
+            if not _resume:
+                user_message = append_message(
+                    conversation_id, "user", req.question,
+                    book_name=book_name, subject=subject, turn_id=turn_id,
+                    request_id=request_id, context_versions=context_versions,
+                )
+                _safe_save_resolution_ledger(conversation_id, resolution_trace, user_message)
             context_finished = time.perf_counter()
             timings["context"] = round((context_finished - started) * 1000, 2)
             last_milestone_at = context_finished
@@ -675,7 +819,6 @@ def chat_stream(req: ChatRequest):
                 observe(generate_event)
                 generate_event.update({"conversation_id": conversation_id, "turn_id": turn_id})
                 yield f"data: {json.dumps(generate_event, ensure_ascii=False)}\n\n"
-                persist_assistant()
                 generate_done = {
                     "stage": "generate", "chunk": "", "done": True,
                     "evidence_sources": [], "conversation_id": conversation_id, "turn_id": turn_id,
@@ -689,6 +832,17 @@ def chat_stream(req: ChatRequest):
                     "subject_suggestion": subject_suggestion,
                     "answer_mode": answer_mode, "scope_reason": scope_reason,
                 }
+                waiting_reason = clarification if resolution_trace.get("resolution_action") == "clarify" else ""
+                completed_task = _finish_chat_learning_task(
+                    learning_task, final_state, waiting_reason=waiting_reason, run_id=run_id,
+                )
+                if (
+                    completed_task.status == "interrupted"
+                    or str(completed_task.artifacts.get("active_run_id") or "") != run_id
+                ):
+                    return
+                final_state["learning_task"] = completed_task.to_dict(public=True)
+                persist_assistant()
                 observe(done_event)
                 yield f"data: {json.dumps(done_event, ensure_ascii=False)}\n\n"
                 return
@@ -702,8 +856,10 @@ def chat_stream(req: ChatRequest):
                     "status": "active", "detail": f"正在执行 {len(planned_tools)} 项受控只读操作",
                 })
                 tool_run = _prepare_main_tool_context(
-                    rewritten_question, book_name, subject, conversation_id,
+                    rewritten_question, book_name, subject, conversation_id, learning_task.id,
                 )
+                _attach_pending_actions(learning_task, tool_run)
+                continuity_context["learning_task"] = learning_task.to_dict()
                 tool_pack = dict(tool_run.get("tool_context_pack") or {})
                 tool_pack["execution_trace"] = tool_run.get("execution_trace") or {}
                 continuity_context["tool_context_pack"] = tool_pack
@@ -742,12 +898,26 @@ def chat_stream(req: ChatRequest):
                 answer_mode=answer_mode,
                 scope_reason=scope_reason,
                 continuity_context=continuity_context,
+                resume_state=(learning_task.artifacts.get("resume_state") or {}) if _resume else None,
             )
             yield activity_sse({
                 "id": "understand", "kind": "analysis", "label": "理解问题与确定范围",
                 "status": "active", "detail": "正在识别问题意图、对象与回答边界",
             })
             for event in graph_events:
+                if not get_learning_task_store().run_is_active(learning_task.id, run_id):
+                    disconnected = True
+                    last_stage = "interrupted"
+                    logger.info("stale chat stream stopped", extra={"request_id": request_id})
+                    return
+                checkpoint_state = event.pop("checkpoint_state", None)
+                if isinstance(checkpoint_state, dict):
+                    learning_task.artifacts["resume_state"] = checkpoint_state
+                    learning_task.artifacts["resume_stage"] = "retrieve"
+                    get_learning_task_store().save_for_run(learning_task, run_id)
+                if event.get("stage") == "generate" and learning_task.artifacts.get("resume_stage") != "generate":
+                    learning_task.artifacts["resume_stage"] = "generate"
+                    get_learning_task_store().save_for_run(learning_task, run_id)
                 if event.get("suggested_answer_mode"):
                     suggested_answer_mode = str(event["suggested_answer_mode"])
                 if event.get("stage") == "generate" and not generation_handoff_done:
@@ -778,9 +948,18 @@ def chat_stream(req: ChatRequest):
                         assistant_chunks[:] = [str(event.get("chunk") or "")]
                     elif event.get("chunk"):
                         assistant_chunks.append(str(event.get("chunk")))
-                    if event.get("done"):
-                        persist_assistant()
                 if event.get("stage") == "done":
+                    completed_task = _finish_chat_learning_task(
+                        learning_task, event.get("state") or {}, run_id=run_id,
+                    )
+                    if (
+                        completed_task.status == "interrupted"
+                        or str(completed_task.artifacts.get("active_run_id") or "") != run_id
+                    ):
+                        disconnected = True
+                        last_stage = "interrupted"
+                        return
+                    event.setdefault("state", {})["learning_task"] = completed_task.to_dict(public=True)
                     persistence_error = persist_assistant()
                     event["message_id"] = assistant_message_id
                     event["subject_suggestion"] = subject_suggestion
@@ -846,13 +1025,44 @@ def chat_stream(req: ChatRequest):
         except GeneratorExit:
             disconnected = True
             last_stage = "disconnected"
-            persist_assistant("partial")
+            store = get_learning_task_store()
+            current = store.get(learning_task.id)
+            if current and str(current.artifacts.get("active_run_id") or "") == run_id:
+                interrupted_task = interrupt_learning_task(
+                    store, current,
+                    stage=str(current.artifacts.get("resume_stage") or last_stage),
+                    partial_output="".join(assistant_chunks),
+                    expected_run_id=run_id,
+                )
+                if (
+                    interrupted_task.status == "interrupted"
+                    and str(interrupted_task.artifacts.get("active_run_id") or "") == run_id
+                ):
+                    persist_assistant("partial")
             logger.info("chat stream disconnected", extra={"request_id": request_id})
             raise
         except Exception as exc:
+            if not get_learning_task_store().run_is_active(learning_task.id, run_id):
+                disconnected = True
+                last_stage = "interrupted"
+                logger.info("stale chat stream failure ignored", extra={"request_id": request_id})
+                return
             logger.exception("chat stream failed", extra={"request_id": request_id})
+            pending_actions = list(learning_task.artifacts.get("pending_actions") or [])
+            failure_status = "waiting_for_confirmation" if pending_actions else "failed"
+            failed_task = get_learning_task_store().checkpoint_for_run(
+                learning_task, run_id, "generation_failed", status=failure_status, detail=str(exc),
+            )
+            if str(failed_task.artifacts.get("active_run_id") or "") != run_id:
+                disconnected = True
+                last_stage = "interrupted"
+                return
             persist_assistant("error")
-            event = {"stage": "error", "message": str(exc), "done": True, "conversation_id": conversation_id, "turn_id": turn_id}
+            event = {
+                "stage": "error", "message": str(exc), "done": True,
+                "conversation_id": conversation_id, "turn_id": turn_id,
+                "learning_task": failed_task.to_dict(public=True),
+            }
             observe(event)
             yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
         finally:
@@ -882,6 +1092,55 @@ def chat_stream(req: ChatRequest):
                 logger.exception("failed to persist RAG trace", extra={"request_id": request_id})
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@router.post("/stream")
+def chat_stream(req: ChatRequest):
+    return _chat_stream(req)
+
+
+@router.post("/tasks/{task_id}/resume-stream")
+def resume_chat_task_stream(task_id: str):
+    store = get_learning_task_store()
+    task = store.get(task_id)
+    if task is None or task.task_type != "qa":
+        raise HTTPException(status_code=404, detail="learning task not found")
+    run_id = f"run_{uuid.uuid4().hex}"
+    try:
+        task = resume_learning_task(store, task, run_id=run_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    artifacts = task.artifacts or {}
+    request = ChatRequest(
+        question=str(artifacts.get("resolved_query") or task.goal),
+        book_name=str(artifacts.get("book_name") or ""),
+        subject=str(artifacts.get("subject") or ""),
+        conversation_id=task.conversation_id,
+        turn_id=task.turn_id,
+        target_chapters=list(artifacts.get("target_chapters") or []),
+        answer_mode=task.answer_mode or "auto",
+    )
+    return _chat_stream(request, _learning_task=task, _resume=True, _run_id=run_id)
+
+
+@router.post("/tasks/{task_id}/interrupt")
+def interrupt_chat_task(task_id: str, payload: dict | None = None):
+    """Acknowledge a user stop before the UI exposes the resume action."""
+    store = get_learning_task_store()
+    task = store.get(task_id)
+    if task is None or task.task_type != "qa":
+        raise HTTPException(status_code=404, detail="learning task not found")
+    body = payload or {}
+    if task.status not in {"interrupted", "completed", "degraded", "failed", "cancelled"}:
+        task = interrupt_learning_task(
+            store,
+            task,
+            stage=str(body.get("stage") or task.artifacts.get("resume_stage") or "stopped"),
+            partial_output=str(body.get("partial_output") or ""),
+        )
+    public_task = task.to_dict(public=True)
+    update_learning_task_projection(task.conversation_id, task.id, public_task)
+    return {"success": True, "learning_task": public_task}
 
 
 @router.post("/ask")
@@ -923,6 +1182,12 @@ def chat_ask(req: ChatRequest):
     scope_reason = scope_decision.reason
     answer_mode = scope_decision.answer_mode
     context_versions = current_context_versions(book_name)
+    learning_task = _start_chat_learning_task(
+        question=req.question, rewritten_question=rewritten_question, history=history,
+        conversation_id=conversation_id, turn_id=turn_id, answer_mode=answer_mode,
+    )
+    continuity_context["learning_task"] = learning_task.to_dict()
+    continuity_context["required_outputs"] = learning_task.required_outputs
     user_message = append_message(
         conversation_id, "user", req.question,
         book_name=book_name, subject=subject, turn_id=turn_id,
@@ -938,8 +1203,10 @@ def chat_ask(req: ChatRequest):
     else:
         if answer_mode != "subject_mismatch":
             tool_run = _prepare_main_tool_context(
-                rewritten_question, book_name, subject, conversation_id,
+                rewritten_question, book_name, subject, conversation_id, learning_task.id,
             )
+            _attach_pending_actions(learning_task, tool_run)
+            continuity_context["learning_task"] = learning_task.to_dict()
             tool_pack = dict(tool_run.get("tool_context_pack") or {})
             tool_pack["execution_trace"] = tool_run.get("execution_trace") or {}
             continuity_context["tool_context_pack"] = tool_pack
@@ -954,6 +1221,9 @@ def chat_ask(req: ChatRequest):
             scope_reason=scope_reason,
             continuity_context=continuity_context,
         )
+    waiting_reason = str(result.get("final_output") or "") if resolution_trace.get("resolution_action") == "clarify" else ""
+    learning_task = _finish_chat_learning_task(learning_task, result, waiting_reason=waiting_reason)
+    result["learning_task"] = learning_task.to_dict(public=True)
     content = result.get("final_output", "")
     assistant_message: dict | None = None
     if content.strip():
@@ -975,6 +1245,7 @@ def chat_ask(req: ChatRequest):
             evidence_support_status=str((result.get("evidence_support") or {}).get("status") or ""),
             request_id=request_id,
             context_versions=context_versions,
+            learning_task=learning_task.to_dict(public=True),
         )
         _safe_record_assistant_ledger(conversation_id, assistant_message)
 
@@ -1018,5 +1289,6 @@ def chat_ask(req: ChatRequest):
         "suggested_answer_mode": str(result.get("suggested_answer_mode") or ""),
         "rewritten_question": rewritten_question if rewritten_question != req.question else "",
         "resolution_action": str(resolution_trace.get("resolution_action") or "continue"),
+        "learning_task": learning_task.to_dict(public=True),
         "chapter_contents": {k: [d[:200] for d in v[:3]] for k, v in result.get("chapter_contents", {}).items()},
     }

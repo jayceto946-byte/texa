@@ -103,6 +103,34 @@ def test_factual_enumeration_preserves_selected_book_bm25_order():
     )
     assert items[0]["chunk_id"] == "selected"
 
+
+def test_factual_enumeration_keeps_numbered_member_heading_as_evidence():
+    from graph.evidence_pack import build_evidence_pack
+    from graph.retrieval_node import _merge_and_rerank
+
+    item = {
+        "chunk_id": "temperature", "text": "电容值与电极材料无关，本身发热极小。",
+        "section_title": "1. 温度稳定性好", "chapter": "第四章",
+        "source": "bm25", "retrieval_rank": 4, "book_name": "selected",
+        "book_role": "core", "is_selected_book": True,
+    }
+    chapters, debug = _merge_and_rerank(
+        [], [item], include_metadata=True,
+        query="电容式传感器有哪些优点？", intent="factual_recall",
+    )
+    pack = build_evidence_pack(debug, chapters, intent="factual_recall")
+
+    assert debug[0]["text"].startswith("## 1. 温度稳定性好")
+    assert "温度稳定性好" in pack["text"]
+
+
+def test_section_number_is_not_mistaken_for_enumeration_member():
+    from graph.retrieval_node import _is_enumeration_member_title
+
+    assert _is_enumeration_member_title("1. 温度稳定性好") is True
+    assert _is_enumeration_member_title("（2）结构简单") is True
+    assert _is_enumeration_member_title("11.1.4 电容测量电路") is False
+
 def test_support_gate_application_phrasing_not_rejected_as_focus():
     """Context Test A：\"压阻效应通常用在哪些传感器里？\" 的\"通常用在哪些\"是功能词，
     不应变成无法被证据逐字覆盖的 focus 词导致误拒答。"""

@@ -1,4 +1,4 @@
-import type { AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ChatActivity, ConceptCandidate, SubjectRouteSuggestion } from '../types';
+import type { AgentPendingAction, AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ChatActivity, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
 
 const DEFAULT_TIMEOUT_MS = 20000;
 export const AGENT_REQUEST_TIMEOUT_MS = 55000;
@@ -91,6 +91,7 @@ export type ChatEvent = {
   scope_reason?: string;
   answer_mode?: AnswerMode;
   suggested_answer_mode?: AnswerMode;
+  learning_task?: LearningTaskState;
   retrieval_status?: string;
   retrieval_error?: string;
   activity?: ChatActivity;
@@ -101,8 +102,9 @@ export type ChatEvent = {
     question_text?: string;
     mistake_id?: string;
     visual_ir?: Record<string, unknown>;
+    learning_task?: LearningTaskState;
   };
-  state?: { linked_concepts?: ConceptCandidate[]; evidence_sources?: AssistantSource[]; suggested_answer_mode?: AnswerMode };
+  state?: { linked_concepts?: ConceptCandidate[]; evidence_sources?: AssistantSource[]; suggested_answer_mode?: AnswerMode; learning_task?: LearningTaskState };
 };
 
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
@@ -206,7 +208,7 @@ export function consumeSseLine(line: string, onEvent: (event: ChatEvent) => void
   try {
     const event = JSON.parse(payload) as ChatEvent;
     onEvent(event);
-    return event.stage === 'done' || event.stage === 'error';
+    return event.stage === 'done' || event.stage === 'error' || event.stage === 'waiting_for_input';
   } catch (err) {
     warnMalformedSse(payload, err);
     return false;
@@ -288,8 +290,51 @@ export function chatStream(
   return () => ctrl.abort();
 }
 
+export function resumeChatTaskStream(
+  taskId: string,
+  onEvent: (event: ChatEvent) => void,
+  onError?: (err: Error) => void,
+): () => void {
+  const ctrl = new AbortController();
+  (async () => {
+    try {
+      const res = await fetch(apiUrl(`/chat/tasks/${encodeURIComponent(taskId)}/resume-stream`), {
+        method: 'POST', headers: authHeaders(), signal: ctrl.signal,
+      });
+      if (!res.ok || !res.body) throw await responseError(res, '恢复任务失败');
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let terminal = false;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const parsed = consumeSseChunk(decoder.decode(value, { stream: true }), buffer, onEvent);
+        buffer = parsed.buffer;
+        terminal = parsed.sawTerminalEvent || terminal;
+      }
+      buffer += decoder.decode();
+      terminal = flushSseBuffer(buffer, onEvent) || terminal;
+      if (!terminal && !ctrl.signal.aborted) throw new Error('恢复流未返回终止事件');
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      onError?.(error instanceof Error ? error : new Error(String(error)));
+    }
+  })();
+  return () => ctrl.abort();
+}
+
+export async function interruptChatTask(
+  taskId: string,
+  partialOutput = '',
+): Promise<{ success: boolean; learning_task: LearningTaskState }> {
+  return post(`/chat/tasks/${encodeURIComponent(taskId)}/interrupt`, {
+    stage: 'user_stopped', partial_output: partialOutput,
+  });
+}
+
 export function mistakeSolutionStream(
-  path: '/mistakes/solve-image-stream' | '/mistakes/solve-cached-stream',
+  path: '/mistakes/solve-image-stream' | '/mistakes/solve-cached-stream' | `/mistakes/visual-tasks/${string}/resume-stream`,
   payload: FormData | Record<string, unknown>,
   onEvent: (event: ChatEvent) => void,
   onError?: (error: Error) => void,
@@ -397,4 +442,11 @@ export async function runReadOnlyAgent(
   }, AGENT_REQUEST_TIMEOUT_MS);
   if (!res.ok) throw await responseError(res, 'Read-only agent failed');
   return res.json();
+}
+
+export async function resolveAgentAction(
+  actionId: string,
+  decision: 'confirm' | 'reject',
+): Promise<{ success: boolean; action: AgentPendingAction; learning_task?: LearningTaskState | null }> {
+  return post(`/agent/actions/${encodeURIComponent(actionId)}/${decision}`, {});
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { activityDuration, completedActivityCount, mergeChatActivity } from './chatActivities';
+import { activityDuration, completedActivityCount, mergeChatActivity, settleChatActivity } from './chatActivities';
 
 describe('chat activity projection', () => {
   it('updates an existing activity without reordering it', () => {
@@ -17,5 +17,15 @@ describe('chat activity projection', () => {
       { id: 'b', kind: 'tool', label: 'B', status: 'skipped' },
       { id: 'c', kind: 'generation', label: 'C', status: 'active' },
     ])).toBe(2);
+  });
+
+  it.each(['completed', 'failed'] as const)('settles an active resume activity as %s', (status) => {
+    const settled = settleChatActivity([
+      { id: 'resume', kind: 'system', label: '从检查点恢复', status: 'active' },
+      { id: 'evidence', kind: 'evidence', label: '沿用检索证据', status: 'completed' },
+    ], 'resume', status, '恢复流程已结束');
+
+    expect(settled[0]).toMatchObject({ status, detail: '恢复流程已结束' });
+    expect(settled.some((activity) => activity.status === 'active')).toBe(false);
   });
 });
