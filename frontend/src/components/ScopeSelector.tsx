@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { createPortal } from 'react-dom';
 import { BookOpen, Check, ChevronDown, ChevronRight, GraduationCap } from 'lucide-react';
 import { get } from '../api/client';
-import { scopeContainsBook, type TextbookScopeOption } from '../utils/textbookScopes';
+import { formatLearningScopeLabel, scopeContainsBook, type TextbookScopeOption } from '../utils/textbookScopes';
 
 export type ScopeBookOption = TextbookScopeOption;
 
@@ -251,7 +251,10 @@ export default function ScopeSelector({
       : 'grid-cols-1 divide-y divide-border sm:grid-cols-[160px_190px_minmax(0,1fr)] sm:divide-x sm:divide-y-0';
   const valueText = bookMode === 'hidden'
     ? (activeSubject ? subjectLabel(activeSubject) : placeholder)
-    : `${activeSubject ? subjectLabel(activeSubject) : '全部学科'} · ${currentBook?.displayName || currentBook?.name || (visibleBooks.length ? '选择教材' : '通用 QA')}`;
+    : formatLearningScopeLabel(
+        activeSubject || '全部学科',
+        currentBook?.displayName || currentBook?.name || (visibleBooks.length ? '选择教材' : '通用 QA'),
+      );
 
   const selectSubject = (nextSubject: string) => {
     onSubjectChange(nextSubject);

@@ -110,10 +110,18 @@ describe('Texa product UI contract', () => {
 
   it('uses a minimal learning empty workspace without duplicate navigation', () => {
     expect(emptyWorkspace).toContain('Ask Texa');
+    expect(emptyWorkspace).toContain('<h1>Ask Texa</h1>');
     expect(emptyWorkspace).toContain('输入问题、公式或上传图片');
+    expect(emptyWorkspace).not.toContain('learning-empty-context');
+    expect(emptyWorkspace).not.toContain('scopeContainsBook');
     expect(emptyWorkspace).not.toContain('其他开始方式');
     expect(emptyWorkspace).not.toContain('随机抽一道题');
     expect(emptyWorkspace).not.toContain('查看今日报告');
+  });
+
+  it('centers the existing composer with the prompt only before the first message', () => {
+    expect(chatPage).toContain("data-empty={messages.length === 0 ? 'true' : 'false'}");
+    expect(chatPage.match(/className="chat-composer"/g)).toHaveLength(1);
   });
 
   it('reuses the settings model manager in the first-run guide', () => {

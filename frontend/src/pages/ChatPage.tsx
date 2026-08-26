@@ -18,7 +18,7 @@ import { useChat } from '../hooks/useChat';
 import type { ExerciseRecord, LearningTaskState, MistakeRecord } from '../types';
 import { mapStoredConversationMessages } from '../utils/conversationMessages';
 import { mergeChatActivity, projectExecutionEvent, settleChatActivity } from '../utils/chatActivities';
-import { buildTextbookScopeOptions, findDefaultTextbookScope, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
+import { buildTextbookScopeOptions, findDefaultTextbookScope, formatLearningScopeLabel, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
 type ReportMode = 'daily' | 'weekly';
 type ActionMode = ReportMode | 'exercise';
 
@@ -66,6 +66,11 @@ const ChatPage: React.FC = () => {
   const mathExpressionSequenceRef = useRef(0);
   const mathEditSequenceRef = useRef(0);
   const scopeBooks = useMemo(() => buildTextbookScopeOptions(books), [books]);
+  const currentScope = scopeBooks.find((scope) => scopeContainsBook(scope, bookName));
+  const headerScopeLabel = formatLearningScopeLabel(
+    subject,
+    currentScope?.displayName || currentScope?.name || bookName || '通用问答',
+  );
 
   useEffect(() => {
     const loadBooks = async () => {
@@ -542,11 +547,14 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="relative flex h-full min-w-0 bg-bg-primary">
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div
+        data-empty={messages.length === 0 ? 'true' : 'false'}
+        className="learning-workspace-shell flex min-w-0 flex-1 flex-col"
+      >
         <div className="learning-workspace-header">
           <div className="learning-workspace-title min-w-0">
             <h2>{messages.length ? firstLine(messages.find((message) => message.role === 'user')?.content || '学习会话', 56) : '新学习会话'}</h2>
-            <p>{subject || '未限定学科'} / {scopeBooks.find((scope) => scopeContainsBook(scope, bookName))?.displayName || bookName || '通用问答'}</p>
+            <p>{headerScopeLabel}</p>
           </div>
           <div className="window-drag-region" aria-hidden="true" />
         </div>
@@ -567,9 +575,6 @@ const ChatPage: React.FC = () => {
             )}
             {messages.length === 0 && (
               <LearningEmptyWorkspace
-                bookName={bookName}
-                subject={subject}
-                books={scopeBooks}
                 isLoading={isLoading || Boolean(actionLoading)}
               />
             )}

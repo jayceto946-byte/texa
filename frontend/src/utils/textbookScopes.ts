@@ -17,6 +17,18 @@ function clean(value = '') {
   return value.trim().replace(/^\/+|\/+$/g, '');
 }
 
+function subjectParts(value = '') {
+  return clean(value).split('/').map(clean).filter(Boolean);
+}
+
+export function formatLearningScopeLabel(subject = '', scopeLabel = '') {
+  const parts = subjectParts(subject);
+  const normalizedScope = clean(scopeLabel);
+  const subjectLabel = parts.length ? parts.join(' / ') : '未限定学科';
+  if (!normalizedScope || normalizedScope === parts.at(-1)) return subjectLabel;
+  return `${subjectLabel} · ${normalizedScope}`;
+}
+
 function groupKey(book: TextbookRecord) {
   if (book.book_role !== 'core' && book.book_role !== 'reference') return '';
   const group = clean(book.resource_group || '') || clean(book.subject || '');
@@ -27,7 +39,7 @@ function groupLabel(book: TextbookRecord) {
   const explicit = clean(book.resource_group || '');
   if (explicit) return explicit;
   const subject = clean(book.subject || '');
-  return subject.split('/').filter(Boolean).at(-1) || book.displayName || book.name;
+  return subjectParts(subject).at(-1) || book.displayName || book.name;
 }
 
 /**
