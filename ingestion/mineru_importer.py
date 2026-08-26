@@ -17,7 +17,7 @@ from typing import Any, Callable
 import config
 from ingestion.chapter_splitter import ChapterSplitter
 from ingestion.chunk_roles import assign_chunk_roles, load_kg_chunk_roles, role_distribution
-from ingestion.document_adapters import MinerUAdapter, PdfTextAdapter
+from ingestion.document_adapters import MinerUAdapter, PdfTextAdapter, materialize_figure_assets
 from ingestion.document_ir import CanonicalBook, persist_canonical_book, validate_canonical_book
 from ingestion.lexical_index import write_book_index
 from ingestion.index_pipeline import build_and_activate_book_index
@@ -496,6 +496,10 @@ def build_index_from_chapters(
             book_name=book_name,
             source_file=str(Path(output_dir).name),
         )
+    if canonical_progress_root is not None:
+        materialize_figure_assets(
+            canonical_book, source_root=output_dir, progress_root=canonical_progress_root,
+        )
     report = validate_canonical_book(canonical_book)
     if not report.valid:
         errors = [issue.code for issue in report.issues if issue.severity == "error"]
@@ -512,6 +516,17 @@ def build_index_from_chapters(
 
     vs = get_vector_store()
     kg_roles = load_kg_chunk_roles(book_name)
+    all_chunks = splitter.split_canonical_book(canonical_book)
+    indexable_chunks = [
+        dict(chunk) for chunk in all_chunks if not bool(chunk.get("retrieval_excluded"))
+    ]
+    for chunk_index, chunk in enumerate(indexable_chunks):
+        chunk["chunk_index"] = chunk_index
+        chunk["prev_chunk_id"] = indexable_chunks[chunk_index - 1]["chunk_id"] if chunk_index else ""
+        chunk["next_chunk_id"] = (
+            indexable_chunks[chunk_index + 1]["chunk_id"]
+            if chunk_index + 1 < len(indexable_chunks) else ""
+        )
 
     def add_group(title: str, chunks: list[dict]) -> None:
         if not chunks:
@@ -528,43 +543,52 @@ def build_index_from_chapters(
         distribution = role_distribution(chunk_roles)
         if distribution:
             print(f"[index] {title}: roles {distribution}", flush=True)
-        all_chunks.extend(chunks)
 
     grouped: dict[str, list[dict]] = {}
-    for chunk in splitter.split_canonical_book(canonical_book):
+    for chunk in indexable_chunks:
         title = str(chunk.get("chapter") or book_name)
         grouped.setdefault(title, []).append(chunk)
     for title, chunks in grouped.items():
         add_group(title, chunks)
 
+    roles_by_chunk_id = {
+        str(chunk.get("chunk_id") or ""): str(chunk.get("role") or "reference")
+        for chunk in indexable_chunks
+    }
+    for chunk in all_chunks:
+        chunk_id = str(chunk.get("chunk_id") or "")
+        if chunk_id in roles_by_chunk_id:
+            chunk["role"] = roles_by_chunk_id[chunk_id]
+
     if all_chunks:
         (output_dir / f"{book_name}_middle_chunks.json").write_text(
             json.dumps(all_chunks, ensure_ascii=False, indent=2), encoding="utf-8"
         )
+    if indexable_chunks:
         if hasattr(vs, "_client") and hasattr(vs, "_map_file"):
             manifest = build_and_activate_book_index(
                 vs, book_name,
                 [(title, group) for title, group, _roles in chapter_groups],
-                all_chunks,
+                indexable_chunks,
                 acceptance_probes=probe_report["cases"],
                 specialty_inventory=probe_report["inventory"],
             )
-            if int(manifest.get("chunk_count", 0)) != len(all_chunks):
+            if int(manifest.get("chunk_count", 0)) != len(indexable_chunks):
                 raise RuntimeError("activated textbook index failed manifest validation")
         else:
             # Lightweight adapters retain the legacy API; production always stages.
             for title, group, roles in chapter_groups:
                 vs.build_chapter_store(title, group, chunk_roles=roles, book_name=book_name)
             if hasattr(vs, "get_book_index_stats"):
-                write_book_index(book_name, all_chunks)
+                write_book_index(book_name, indexable_chunks)
             if hasattr(vs, "build_book_aggregate_store"):
-                vs.build_book_aggregate_store(book_name, all_chunks)
+                vs.build_book_aggregate_store(book_name, indexable_chunks)
             stats = vs.get_book_index_stats(book_name) if hasattr(vs, "get_book_index_stats") else {}
-            if stats and (not stats.get("healthy") or int(stats.get("chunk_count", 0)) < len(all_chunks)):
+            if stats and (not stats.get("healthy") or int(stats.get("chunk_count", 0)) < len(indexable_chunks)):
                 raise RuntimeError(
-                    f"textbook index validation failed: expected={len(all_chunks)}, actual={stats.get('chunk_count', 0)}"
+                    f"textbook index validation failed: expected={len(indexable_chunks)}, actual={stats.get('chunk_count', 0)}"
                 )
-    return len(all_chunks)
+    return len(indexable_chunks)
 
 def _normalize_text(text: str) -> str:
     text = text.replace("\r\n", "\n").replace("\r", "\n")

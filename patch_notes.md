@@ -1,3 +1,16 @@
+# 2026-08-26 - MinerU Figure Canonical Artifact 保真
+
+- MinerU JSON 导入改为按 payload 结构确定性识别 content-list v1、content-list v2 与 middle，不再依赖 `rglob()` 的首个遍历结果；Figure 保留图注、页码、page bbox、章节路径、来源和原始图片相对路径。
+- Figure 继续沿用 `DocumentBlock + attributes`，`figure_id` 复用 `block_id`。导入时将图片原子复制到每本教材的 `figures/<block_id>.<ext>`，Canonical IR 仅保存受控相对路径、SHA-256、像素尺寸和明确的 page/xyxy 坐标语义；重复导入保持相同 identity、路径和内容哈希。
+- 空图注 Figure 不再被 Canonical splitter 丢弃；兼容 `_middle_chunks.json` 中保留 provenance-only artifact，同时以 `retrieval_excluded` 避免强行进入普通文本索引。图片缺失或损坏会在 block review status、book warning 和 ingestion report 中明确降级，不阻断仍可用的正文。
+
+## Validation
+
+- 定向回归：45 passed，覆盖 v1/v2/middle、确定性格式选择、图片路径/图注/page/bbox/section_path、空图注、缺失资产、稳定复制、幂等性、Canonical 持久化和文本索引边界。
+- Python 全量回归：581 passed，1 个既有 Starlette/httpx 弃用警告；现有文本 ingestion、Canonical splitter、角色分配、词法/向量索引相关测试无回归。
+- 真实 MinerU 样本 `CGQ_2_content_list.json`：原始 Figure 508、Canonical Figure 508、有图注 455、有效稳定资产 508，Canonical intake report 有效。
+- 仓库 12 个现存候选 JSON 均可明确分类：content-list v1 4 个、v2 4 个、middle 4 个，无未知 payload shape 或 JSON 读取错误。
+
 # 2026-08-26 - 问答执行轨迹统一事件流
 
 - 保留现有 SSE 与 `stage` 协议，新增版本化 `texa.execution/v1` 事件：用单调 `seq`、稳定 `operation_id` 和明确的 `type / phase / status` 描述真实进度、工具调用、工具结果、状态转换与终态；兼容层继续投影旧 `activity`。

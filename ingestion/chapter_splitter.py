@@ -102,7 +102,9 @@ class ChapterSplitter:
         for block in blocks:
             if not isinstance(block, DocumentBlock):
                 raise TypeError("split_blocks expects DocumentBlock instances")
-            if block.block_type == "heading" or not str(block.text or "").strip():
+            if block.block_type == "heading" or (
+                block.block_type != "figure" and not str(block.text or "").strip()
+            ):
                 flush_prose()
                 flush_structured()
                 continue
@@ -167,12 +169,23 @@ class ChapterSplitter:
 
     def _emit_atomic(self, rows: list[dict], block: DocumentBlock, *, book_name: str) -> None:
         content = str(block.text or "").strip()
-        if not content:
+        if not content and block.block_type != "figure":
             return
+        figure_attributes = block.attributes or {}
+        extra = None
+        if block.block_type == "figure":
+            content = content or "[教材图片：无图注]"
+            extra = {
+                "figure_id": str(figure_attributes.get("figure_id") or block.block_id),
+                "asset_relpath": str(figure_attributes.get("asset_relpath") or ""),
+                "artifact_only": not bool(str(block.text or "").strip()),
+                "retrieval_excluded": not bool(str(block.text or "").strip()),
+            }
         parent_id = self._stable_id(book_name, block.block_type, self._logical_parent_key(block))
         self._append_chunk(
             rows, [block], content, book_name=book_name, block_type=block.block_type,
             parent_id=parent_id, parent_content=content, child_index=0,
+            extra=extra,
         )
 
     def _emit_table(self, rows: list[dict], block: DocumentBlock, *, book_name: str) -> None:

@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 import json
 import math
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import uuid
 from typing import Any
@@ -218,6 +218,40 @@ def validate_canonical_book(book: CanonicalBook) -> IngestionReport:
                 issues.append(_issue("warning", "table_without_header", "table has no table_header", block_id))
             if not block.table_rows:
                 issues.append(_issue("warning", "table_without_rows", "table has no table_rows", block_id))
+        if block.block_type == "figure":
+            attributes = block.attributes or {}
+            figure_id = str(attributes.get("figure_id") or "").strip()
+            if not figure_id:
+                issues.append(_issue("warning", "missing_figure_id", "figure_id is missing", block_id))
+            elif figure_id != block_id:
+                issues.append(_issue(
+                    "error", "figure_id_mismatch", "figure_id must reuse the Canonical block_id", block_id,
+                ))
+            asset_relpath = str(attributes.get("asset_relpath") or "").strip().replace("\\", "/")
+            if asset_relpath:
+                asset_path = PurePosixPath(asset_relpath)
+                if asset_path.is_absolute() or ".." in asset_path.parts or not asset_relpath.startswith("figures/"):
+                    issues.append(_issue(
+                        "error", "invalid_figure_asset_relpath",
+                        "asset_relpath must be a controlled path below figures/", block_id,
+                    ))
+            asset_status = str(attributes.get("asset_status") or "").strip()
+            if asset_status == "ready":
+                if not asset_relpath:
+                    issues.append(_issue("error", "missing_figure_asset_relpath", "ready figure has no asset_relpath", block_id))
+                content_hash = str(attributes.get("content_hash") or "").strip()
+                if not re.fullmatch(r"[0-9a-f]{64}", content_hash):
+                    issues.append(_issue("error", "invalid_figure_content_hash", "ready figure needs a SHA-256 content_hash", block_id))
+                width = _optional_int(attributes.get("image_width"))
+                height = _optional_int(attributes.get("image_height"))
+                if width is None or height is None or width < 1 or height < 1:
+                    issues.append(_issue("error", "invalid_figure_dimensions", "ready figure dimensions must be positive", block_id))
+            elif asset_status in {"missing", "invalid"}:
+                issues.append(_issue(
+                    "warning", f"figure_asset_{asset_status}", f"figure asset is {asset_status}", block_id,
+                ))
+            if block.bbox and not str(attributes.get("bbox_space") or "").strip():
+                issues.append(_issue("warning", "missing_figure_bbox_space", "figure bbox coordinate space is missing", block_id))
         if block.block_type == "heading" and block.section_path:
             heading_paths.append((
                 block_id,

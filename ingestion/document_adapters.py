@@ -12,11 +12,13 @@ from html.parser import HTMLParser
 import json
 from pathlib import Path
 import re
+import shutil
+import tempfile
 from typing import Any, Iterable
 import zipfile
 from xml.etree import ElementTree as ET
 
-from ingestion.document_ir import CanonicalBook, DocumentBlock
+from ingestion.document_ir import CanonicalBook, DocumentBlock, canonical_paths
 from utils.resource_limits import (
     MAX_DOCX_EXPANDED_BYTES,
     MAX_DOCX_FILES,
@@ -116,12 +118,19 @@ class MinerUAdapter:
         book_name: str,
         source_file: str = "",
         source_page_count: int | None = None,
+        source_root: str | Path | None = None,
+        source_base: str | Path | None = None,
+        parser_version: str = "mineru-content-list-v1",
     ) -> CanonicalBook:
         builder = _BlockBuilder(book_name, source_kind="mineru", source_file=source_file)
         for source_index, item in enumerate(items):
-            _append_mineru_item(builder, item, source_index=source_index)
+            _append_mineru_item(
+                builder, item, source_index=source_index,
+                source_root=Path(source_root) if source_root is not None else None,
+                source_base=Path(source_base) if source_base is not None else None,
+            )
         return builder.book(
-            parser_version="mineru-content-list-v1",
+            parser_version=parser_version,
             source_page_count=source_page_count,
         )
 
@@ -129,23 +138,29 @@ class MinerUAdapter:
     def from_output_dir(cls, output_dir: str | Path, *, book_name: str) -> CanonicalBook:
         """Read the same MinerU formats already accepted by ``mineru_importer``."""
         root = Path(output_dir)
-        content_path = _find_first_json(root, ("*content_list*.json", "*content-list*.json"))
-        if content_path is not None:
-            payload = _read_json(content_path)
-            if isinstance(payload, list):
-                page_count = _mineru_page_count(payload)
+        selected = _select_mineru_json(root)
+        if selected is not None:
+            source_format, source_path, payload = selected
+            if source_format == "content-list-v1":
                 return cls.from_content_list(
-                    payload, book_name=book_name, source_file=content_path.name, source_page_count=page_count,
+                    payload, book_name=book_name, source_file=source_path.name,
+                    source_page_count=_mineru_page_count(payload), source_root=root,
+                    source_base=source_path.parent, parser_version="mineru-content-list-v1",
                 )
-        middle_path = _find_first_json(root, ("*middle*.json",))
-        if middle_path is not None:
-            payload = _read_json(middle_path)
-            if isinstance(payload, dict):
-                items, page_count = _items_from_middle_json(payload)
-                if items:
-                    return cls.from_content_list(
-                        items, book_name=book_name, source_file=middle_path.name, source_page_count=page_count,
-                    )
+            if source_format == "content-list-v2":
+                items, page_count = _items_from_content_list_v2(payload)
+                return cls.from_content_list(
+                    items, book_name=book_name, source_file=source_path.name,
+                    source_page_count=page_count, source_root=root,
+                    source_base=source_path.parent, parser_version="mineru-content-list-v2",
+                )
+            items, page_count = _items_from_middle_json(payload)
+            if items:
+                return cls.from_content_list(
+                    items, book_name=book_name, source_file=source_path.name,
+                    source_page_count=page_count, source_root=root,
+                    source_base=source_path.parent, parser_version="mineru-middle-v1",
+                )
         markdown_paths = sorted(root.rglob("*.md"), key=lambda path: str(path).lower())
         if markdown_paths:
             builder = _BlockBuilder(book_name, source_kind="mineru", source_file="")
@@ -164,6 +179,79 @@ class MinerUAdapter:
             blocks=[],
             warnings=["No MinerU content-list, middle JSON, or Markdown file was found."],
         )
+
+
+def materialize_figure_assets(
+    book: CanonicalBook,
+    *,
+    source_root: str | Path,
+    progress_root: str | Path,
+) -> CanonicalBook:
+    """Copy MinerU figure files into the book's stable Canonical asset area.
+
+    The persisted reference is always relative to the per-book progress
+    directory. Missing or invalid source images degrade the individual figure
+    without blocking otherwise usable textbook text.
+    """
+    source_directory = Path(source_root).resolve()
+    document_path, _report_path = canonical_paths(book.book_name, progress_root=progress_root)
+    figures_directory = document_path.parent / "figures"
+
+    for block in book.blocks:
+        if block.block_type != "figure":
+            continue
+        attributes = block.attributes
+        attributes["figure_id"] = block.block_id
+        attributes["caption"] = str(attributes.get("caption") or block.text or "").strip()
+        attributes["page_idx"] = block.page_start - 1 if block.page_start is not None else None
+        attributes["page_bbox"] = list(block.bbox) if block.bbox else []
+        attributes.setdefault("bbox_space", "page")
+        attributes.setdefault("bbox_format", "xyxy")
+        attributes.setdefault("bbox_units", "mineru_source_units")
+
+        source_relpath = str(attributes.get("source_asset_relpath") or "").strip()
+        source_path = _controlled_source_path(source_directory, source_relpath)
+        existing = sorted(figures_directory.glob(f"{block.block_id}.*")) if figures_directory.exists() else []
+        if source_path is None and existing:
+            source_path = existing[0]
+        if source_path is None:
+            attributes.update({
+                "asset_relpath": "", "asset_status": "missing",
+                "image_width": 0, "image_height": 0, "content_hash": "",
+            })
+            _append_review_status(block, "missing_figure_asset")
+            _append_book_warning(book, f"Figure asset missing: {block.block_id} ({source_relpath or 'no path'})")
+            continue
+
+        try:
+            width, height, suffix = _inspect_figure_image(source_path)
+            content_hash = _sha256_file(source_path)
+        except (OSError, ValueError) as exc:
+            attributes.update({
+                "asset_relpath": "", "asset_status": "invalid",
+                "image_width": 0, "image_height": 0, "content_hash": "",
+            })
+            _append_review_status(block, "invalid_figure_asset")
+            _append_book_warning(book, f"Figure asset invalid: {block.block_id} ({exc})")
+            continue
+
+        figures_directory.mkdir(parents=True, exist_ok=True)
+        target = figures_directory / f"{block.block_id}{suffix}"
+        if source_path.resolve() != target.resolve():
+            current_hash = _sha256_file(target) if target.is_file() else ""
+            if current_hash != content_hash:
+                _atomic_copy(source_path, target)
+        for stale in existing:
+            if stale.resolve() != target.resolve():
+                stale.unlink(missing_ok=True)
+        attributes.update({
+            "asset_relpath": f"figures/{target.name}",
+            "asset_status": "ready",
+            "image_width": width,
+            "image_height": height,
+            "content_hash": content_hash,
+        })
+    return book
 
 
 class OcrAdapter:
@@ -338,14 +426,20 @@ class _BlockBuilder:
         table_header: list[str] | None = None,
         table_rows: list[list[str]] | None = None,
         attributes: dict[str, Any] | None = None,
-    ) -> None:
+    ) -> DocumentBlock:
         cleaned = _clean_text(text)
         path = list(self.path) or [self.book_name or "未分章正文"]
         source_position = len(self.blocks)
         digest = hashlib.sha1(
             f"{self.book_name}|{self.source_kind}|{self.source_file}|{source_position}|{block_type}|{cleaned[:240]}".encode("utf-8")
         ).hexdigest()[:20]
-        self.blocks.append(DocumentBlock(
+        block_attributes = dict(attributes or {})
+        if block_type == "figure":
+            block_attributes.setdefault("figure_id", digest)
+            block_attributes.setdefault("caption", cleaned)
+            block_attributes.setdefault("page_idx", page_start - 1 if page_start is not None else None)
+            block_attributes.setdefault("page_bbox", list(bbox) if bbox else [])
+        block = DocumentBlock(
             block_id=digest,
             block_type=block_type,
             text=cleaned,
@@ -361,8 +455,10 @@ class _BlockBuilder:
             table_title=table_title,
             table_header=list(table_header or []),
             table_rows=[list(row) for row in table_rows or []],
-            attributes=dict(attributes or {}),
-        ))
+            attributes=block_attributes,
+        )
+        self.blocks.append(block)
+        return block
 
     def book(self, *, parser_version: str, source_page_count: int | None = None, warnings: list[str] | None = None) -> CanonicalBook:
         source_files = sorted(set(self.source_files))
@@ -385,6 +481,8 @@ def _append_mineru_item(
     *,
     fallback_page: int | None = None,
     source_index: int,
+    source_root: Path | None = None,
+    source_base: Path | None = None,
 ) -> None:
     if not isinstance(item, dict):
         return
@@ -407,16 +505,31 @@ def _append_mineru_item(
     table_title, table_header, table_rows = _table_parts(item)
     equations = _equations(item, text)
     review_status = "needs_formula_review" if block_type == "formula" and not equations else ""
+    attributes = {
+        "source_block_index": source_index,
+        "mineru_type": raw_type,
+        "source_markdown": _clean_text(item.get("source_markdown")),
+        "semantic_role": _clean_text(item.get("semantic_role") or item.get("role")),
+    }
+    if block_type == "figure":
+        asset_path = _figure_asset_path(item)
+        attributes.update({
+            "caption": _figure_caption(item),
+            "page_idx": page - 1 if page is not None else None,
+            "page_bbox": list(bbox) if bbox else [],
+            "bbox_space": "page",
+            "bbox_format": "xyxy",
+            "bbox_units": "mineru_source_units",
+            "source_asset_relpath": _source_asset_relpath(
+                asset_path, source_root=source_root, source_base=source_base,
+            ),
+            "asset_status": "pending" if asset_path else "missing",
+        })
     builder.add(
         block_type, text, page_start=page, page_end=page, bbox=bbox, confidence=confidence,
         equations=equations, review_status=review_status, table_title=table_title,
         table_header=table_header, table_rows=table_rows,
-        attributes={
-            "source_block_index": source_index,
-            "mineru_type": raw_type,
-            "source_markdown": _clean_text(item.get("source_markdown")),
-            "semantic_role": _clean_text(item.get("semantic_role") or item.get("role")),
-        },
+        attributes=attributes,
     )
 
 
@@ -562,6 +675,121 @@ def _item_text(item: dict[str, Any]) -> str:
     return "\n".join(parts)
 
 
+def _figure_caption(item: dict[str, Any]) -> str:
+    return _joined_text(item.get("image_caption") or item.get("caption"))
+
+
+def _figure_asset_path(item: dict[str, Any]) -> str:
+    direct = item.get("img_path") or item.get("image_path") or item.get("asset_path")
+    if _clean_text(direct):
+        return _clean_text(direct)
+    content = item.get("content")
+    if isinstance(content, dict):
+        source = content.get("image_source")
+        if isinstance(source, dict):
+            return _clean_text(source.get("path") or source.get("image_path"))
+    return ""
+
+
+def _source_asset_relpath(
+    value: str,
+    *,
+    source_root: Path | None,
+    source_base: Path | None,
+) -> str:
+    """Return a controlled path relative to the MinerU output root, never absolute."""
+    raw = str(value or "").strip().replace("\\", "/")
+    if not raw or Path(raw).is_absolute() or ".." in Path(raw).parts:
+        return ""
+    if source_root is None:
+        return Path(raw).as_posix()
+    root = source_root.resolve()
+    base = (source_base or source_root).resolve()
+    candidates = [base / Path(raw), root / Path(raw)]
+    name = Path(raw).name
+    if name:
+        candidates.extend(sorted(root.rglob(name), key=lambda path: path.as_posix().casefold()))
+    for candidate in candidates:
+        try:
+            resolved = candidate.resolve()
+            resolved.relative_to(root)
+        except (OSError, ValueError):
+            continue
+        if resolved.is_file():
+            return resolved.relative_to(root).as_posix()
+    try:
+        unresolved = (base / Path(raw)).resolve()
+        return unresolved.relative_to(root).as_posix()
+    except (OSError, ValueError):
+        return Path(raw).as_posix()
+
+
+def _controlled_source_path(root: Path, relpath: str) -> Path | None:
+    raw = str(relpath or "").strip().replace("\\", "/")
+    if not raw or Path(raw).is_absolute() or ".." in Path(raw).parts:
+        return None
+    try:
+        candidate = (root / Path(raw)).resolve()
+        candidate.relative_to(root)
+    except (OSError, ValueError):
+        return None
+    return candidate if candidate.is_file() else None
+
+
+def _inspect_figure_image(path: Path) -> tuple[int, int, str]:
+    from PIL import Image, UnidentifiedImageError
+
+    suffixes = {
+        "JPEG": ".jpg", "PNG": ".png", "WEBP": ".webp", "BMP": ".bmp",
+        "GIF": ".gif", "TIFF": ".tiff",
+    }
+    try:
+        with Image.open(path) as image:
+            width, height = image.size
+            image_format = str(image.format or "").upper()
+    except UnidentifiedImageError as exc:
+        raise ValueError("file is not a supported image") from exc
+    if width < 1 or height < 1:
+        raise ValueError("image dimensions must be positive")
+    suffix = suffixes.get(image_format) or path.suffix.lower()
+    if not re.fullmatch(r"\.[a-z0-9]{2,5}", suffix):
+        raise ValueError("image extension is unsupported")
+    return int(width), int(height), suffix
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _atomic_copy(source: Path, target: Path) -> None:
+    temp_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=target.parent, prefix=f".{target.name}.", suffix=".tmp", delete=False) as temp:
+            temp_path = Path(temp.name)
+            with source.open("rb") as handle:
+                shutil.copyfileobj(handle, temp)
+        temp_path.replace(target)
+    finally:
+        if temp_path is not None:
+            temp_path.unlink(missing_ok=True)
+
+
+def _append_review_status(block: DocumentBlock, status: str) -> None:
+    values = [item.strip() for item in str(block.review_status or "").split(",") if item.strip()]
+    if status not in values:
+        values.append(status)
+    block.review_status = ",".join(values)
+
+
+def _append_book_warning(book: CanonicalBook, warning: str) -> None:
+    if warning not in book.warnings:
+        book.warnings.append(warning)
+
+
 def _equations(item: dict[str, Any], text: str) -> list[str]:
     values = item.get("equations")
     equations = [str(value).strip() for value in values if str(value).strip()] if isinstance(values, list) else []
@@ -633,6 +861,35 @@ def _parse_html_table(value: str) -> list[list[str]]:
     return parser.rows
 
 
+def _items_from_content_list_v2(payload: list[Any]) -> tuple[list[dict[str, Any]], int | None]:
+    items: list[dict[str, Any]] = []
+    for page_index, page in enumerate(payload):
+        if not isinstance(page, list):
+            continue
+        for block in page:
+            if not isinstance(block, dict):
+                continue
+            raw_type = str(block.get("type") or "paragraph")
+            content = block.get("content") if isinstance(block.get("content"), dict) else {}
+            normalized: dict[str, Any] = {
+                "type": raw_type,
+                "text": _nested_text(content),
+                "page_idx": page_index,
+                "bbox": block.get("bbox") or [],
+            }
+            if raw_type == "title":
+                normalized["text_level"] = content.get("level") or 1
+                normalized["text"] = _nested_text(content.get("title_content"))
+            if raw_type in {"image", "figure", "img"}:
+                normalized["text"] = ""
+                source = content.get("image_source") if isinstance(content.get("image_source"), dict) else {}
+                normalized["img_path"] = source.get("path") or source.get("image_path") or ""
+                normalized["image_caption"] = _nested_text_list(content.get("image_caption"))
+                normalized["image_footnote"] = _nested_text_list(content.get("image_footnote"))
+            items.append(normalized)
+    return items, len(payload) or None
+
+
 def _items_from_middle_json(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], int | None]:
     items: list[dict[str, Any]] = []
     pages = payload.get("pdf_info") if isinstance(payload.get("pdf_info"), list) else []
@@ -640,14 +897,22 @@ def _items_from_middle_json(payload: dict[str, Any]) -> tuple[list[dict[str, Any
         page_idx = _zero_based_index(page.get("page_idx"))
         for block in page.get("para_blocks", []) or []:
             text = _middle_block_text(block)
-            if text:
-                items.append({
-                    "type": block.get("type") or "text",
+            raw_type = str(block.get("type") or "text")
+            image_path = _middle_image_path(block) if raw_type in {"image", "figure", "img"} else ""
+            if text or image_path:
+                item = {
+                    "type": raw_type,
                     "text": text,
                     "page_idx": page_idx if page_idx is not None else page_index,
                     "bbox": block.get("bbox") or [],
                     "equations": block.get("equations") or [],
-                })
+                }
+                if image_path:
+                    item["text"] = ""
+                    item["image_path"] = image_path
+                    item["image_caption"] = _middle_child_text(block, "image_caption")
+                    item["image_footnote"] = _middle_child_text(block, "image_footnote")
+                items.append(item)
     return items, len(pages) or None
 
 
@@ -664,6 +929,54 @@ def _middle_block_text(block: dict[str, Any]) -> str:
     return " ".join(parts)
 
 
+def _middle_image_path(block: dict[str, Any]) -> str:
+    for line in block.get("lines", []) or []:
+        for span in line.get("spans", []) or []:
+            path = _clean_text(span.get("image_path") or span.get("img_path"))
+            if path:
+                return path
+    for child in block.get("blocks", []) or []:
+        path = _middle_image_path(child)
+        if path:
+            return path
+    return ""
+
+
+def _middle_child_text(block: dict[str, Any], child_type: str) -> list[str]:
+    values: list[str] = []
+    for child in block.get("blocks", []) or []:
+        if str(child.get("type") or "") == child_type:
+            text = _middle_block_text(child)
+            if text:
+                values.append(text)
+        values.extend(_middle_child_text(child, child_type))
+    return values
+
+
+def _nested_text(value: Any) -> str:
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, list):
+        return " ".join(part for item in value if (part := _nested_text(item)))
+    if isinstance(value, dict):
+        direct = value.get("content")
+        if isinstance(direct, str) and direct.strip():
+            return direct.strip()
+        ignored = {"image_source", "path", "image_path", "bbox", "level"}
+        return " ".join(
+            part for key, item in value.items()
+            if key not in ignored and (part := _nested_text(item))
+        )
+    return ""
+
+
+def _nested_text_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        text = _nested_text(value)
+        return [text] if text else []
+    return [text for item in value if (text := _nested_text(item))]
+
+
 def _mineru_page_count(items: Iterable[dict[str, Any]]) -> int | None:
     pages = []
     for item in items:
@@ -673,11 +986,53 @@ def _mineru_page_count(items: Iterable[dict[str, Any]]) -> int | None:
     return max(pages, default=None)
 
 
-def _find_first_json(root: Path, patterns: Iterable[str]) -> Path | None:
-    for pattern in patterns:
-        for path in root.rglob(pattern):
-            return path
-    return None
+def _select_mineru_json(root: Path) -> tuple[str, Path, Any] | None:
+    """Select a supported MinerU JSON deterministically by payload shape.
+
+    Flat content-list v1 is preferred because it is the established Texa text
+    ingestion contract. Page-array v2 is next, then middle JSON. File-system
+    traversal order never affects the result.
+    """
+    candidates: list[tuple[int, str, str, Path, Any]] = []
+    parse_errors: list[tuple[Path, Exception]] = []
+    for path in sorted(root.rglob("*.json"), key=lambda item: item.as_posix().casefold()):
+        name = path.name.casefold().replace("-", "_")
+        if "content_list" in name:
+            try:
+                payload = _read_json(path)
+            except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+                parse_errors.append((path, exc))
+                continue
+            source_format = _content_list_format(payload)
+            if source_format == "content-list-v1":
+                candidates.append((0, path.as_posix().casefold(), source_format, path, payload))
+            elif source_format == "content-list-v2":
+                candidates.append((1, path.as_posix().casefold(), source_format, path, payload))
+        elif "middle" in name:
+            try:
+                payload = _read_json(path)
+            except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+                parse_errors.append((path, exc))
+                continue
+            if isinstance(payload, dict) and isinstance(payload.get("pdf_info"), list):
+                candidates.append((2, path.as_posix().casefold(), "middle", path, payload))
+    if not candidates:
+        if parse_errors:
+            path, exc = parse_errors[0]
+            raise ValueError(f"unable to read MinerU JSON: {path}") from exc
+        return None
+    _rank, _key, source_format, path, payload = min(candidates, key=lambda item: (item[0], item[1]))
+    return source_format, path, payload
+
+
+def _content_list_format(payload: Any) -> str:
+    if not isinstance(payload, list) or not payload:
+        return ""
+    if all(isinstance(item, dict) for item in payload):
+        return "content-list-v1"
+    if all(isinstance(page, list) and all(isinstance(item, dict) for item in page) for page in payload):
+        return "content-list-v2"
+    return ""
 
 
 def _read_json(path: Path) -> Any:
