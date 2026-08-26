@@ -18,7 +18,8 @@
 
 - Python 使用 `venv310`，解释器必须是 Python 3.10。若出现二进制扩展导入异常，先检查 `venv310\pyvenv.cfg` 是否误指向其他 Python 版本。
 - 默认以 Electron 桌面端作为优先交付入口。涉及前端、后端 API、路径、数据目录、构建或运行方式的改动，应优先确认桌面端开发/打包路径是否受影响；功能验证也应优先覆盖 Electron 端，除非用户明确只要求 Web/CLI。
-- 主要 LLM 使用 DeepSeek V4 Pro 思考模式，正式展示给用户前必须过滤 thinking 内容。
+- 未配置模型角色时默认使用 Qwen 3.7 Plus 与 Refined Teaching Prompt；DeepSeek V4 Pro 保留为可回退推理模型。显式保存的用户 profile、旧环境变量与自定义 OpenAI-compatible 配置优先于默认值，业务流程不得绑定单一供应商。
+- 推理与视觉是独立的模型角色；`split` 模式分别配置识图与推理，`native` 模式由同一多模态模型完成图片理解和回复。任何模型输出在正式展示前都必须过滤 thinking 内容，profile 与错误信息不得持久化或回显密钥。
 - 扫描件 PDF 正文录入优先使用 MinerU，目录/TOC 检测可使用 Kimi Vision。
 - 公式、矩阵、推导过程使用 LaTeX。前端对话渲染走 `react-markdown` + `remark-math` + `rehype-katex`。
 - 本地向量库使用 ChromaDB，路径为 `data/vector_db`。该目录必须允许当前用户修改/删除临时文件，且不应启用 Windows 压缩属性，否则 SQLite/Chroma 可能出现 journal 或 disk I/O 问题。
@@ -28,64 +29,31 @@
 
 ```text
 texa/
-├── main.py                     # CLI 入口
-├── config.py                   # LLM、嵌入模型、路径配置
-├── agents/                     # Agent 封装，与 UI 解耦
-├── graph/                      # LangGraph 主流程与节点
-│   ├── main_graph.py           # 主图、run_graph_stream()
-│   ├── planner.py              # 意图规划与章节定位
-│   ├── retrieval_node.py       # 混合检索
-│   ├── chapter_subgraph.py     # 章节讲解路径
-│   ├── generator.py            # 回答生成
-│   ├── conversation_context.py # 有界的 ConversationContextPack
-│   ├── evidence_pack.py        # 有预算、按意图裁剪的统一证据包
-│   └── feedback_node.py        # 反馈闭环
-├── ingestion/                  # 教材摄取、解析、向量索引
-│   ├── pdf_parser.py
-│   ├── kimi_reader.py
-│   ├── background_reader.py
-│   ├── chapter_splitter.py
-│   ├── vector_store.py
-│   └── ocr.py
-├── knowledge/                  # 知识层
-│   ├── knowledge_graph.py
-│   ├── concept_memory.py
-│   ├── keyword_index.py
-│   └── kg_visualizer.py
-├── memory/                     # 学习记录、错题、间隔重复
-│   ├── study_memory.py
-│   ├── spaced_repetition.py
-│   ├── mistake_book.py
-│   └── feedback.py
-├── backend/                    # FastAPI 后端
-│   ├── main.py
-│   ├── schemas.py
-│   ├── conversation_memory.py # append-only 会话事件、消息投影与分页
-│   ├── services/               # 应用用例编排、缓存与跨存储协调
-│   │   ├── answer_feedback.py # 回答质量反馈、上下文版本绑定与回放候选来源
-│   │   ├── exercise_practice.py
-│   │   ├── kg_learning_summary.py
-│   │   ├── session_context.py # Resolver v2 与结构化会话状态
-│   │   ├── resolver_reference.py / resolver_speech_act.py / resolver_state_operations.py # 可独立评测的 Resolver 模块
-│   │   ├── semantic_resolver.py # 默认关闭、只允许受校验 state operation 的低置信语义回退
-│   │   ├── session_ledger.py  # 有界、可重建的长期会话投影
-│   │   └── mistake_images.py
-│   └── api/                    # 协议转换、依赖绑定与异常映射
-│       ├── chat.py             # SSE / 非流式对话
-│       ├── exercises.py        # 习题库与练习会话
-│       ├── mistakes.py         # 错题本 CRUD 与讲题
-│       ├── books.py            # 教材管理
-│       └── kg.py               # 知识图谱 API
-├── frontend/                   # React + Vite 前端
+├── desktop/                    # Electron 壳、后端托管、数据目录、更新与恢复
+├── frontend/                   # React + Vite 学习工作区
 │   └── src/
-│       ├── contexts/ChatContext.tsx
-│       ├── api/client.ts
-│       ├── hooks/useChat.ts
-│       ├── features/           # 习题、错题等领域工作流与局部组件
-│       ├── components/
+│       ├── api/                # REST / SSE 客户端
+│       ├── contexts/           # 会话与 Inspector 上下文
+│       ├── features/           # 习题、错题、数学输入等领域工作流
+│       ├── components/         # 学习画布、任务门槛、执行记录与通用组件
 │       ├── layouts/
-│       └── pages/              # 页面装配，不重复实现领域工作流
-└── ui/                         # CLI 保留；Gradio web 已废弃
+│       └── pages/              # 页面装配，不重复实现领域流程
+├── backend/                    # FastAPI 应用
+│   ├── api/                    # HTTP/SSE、依赖绑定与异常映射
+│   ├── services/               # 会话、LearningTask、验证、工具与学习状态编排
+│   ├── tools/                  # 有 schema、风险和 provenance 契约的受控工具
+│   ├── conversation_memory.py  # append-only 会话事件、兼容投影与游标分页
+│   └── main.py
+├── graph/                      # Resolver、LangGraph、检索、EvidencePack 与生成
+├── ingestion/                  # Canonical Document IR、来源适配、切块与索引发布
+├── llm/                        # Provider/Model registry、角色配置、连接与客户端工厂
+├── knowledge/                  # 知识图谱、概念记忆、关键词与章节重点
+├── memory/                     # 习题、错题、学习事件、反馈与间隔复习
+├── evaluation/                 # Context、RAG、工具与任务生命周期发布评测
+├── agents/                     # 兼容/辅助封装，不是独立自主 Agent 产品入口
+├── scripts/                    # 构建、索引、评测、发布与维护脚本
+├── config.py                   # 模型、嵌入与路径兼容入口
+└── main.py                     # CLI 入口
 ```
 
 ## 依赖方向与服务边界
@@ -93,15 +61,21 @@ texa/
 - `backend/api` 只负责 HTTP/SSE 协议转换、请求与响应模型、依赖绑定和异常映射；可复用的业务规则不得回写到 Router。
 - `backend/services` 负责应用用例编排，可以依赖 `graph`、`memory`、`knowledge` 和摄取层的公开能力，但不得依赖 FastAPI 请求/响应 DTO，也不得在无关分支提前实例化数据库、向量库等 IO 依赖。可选 IO 使用 factory/provider 惰性解析。
 - `graph` 负责 LLM/RAG 流程，不依赖 `backend/api`；`memory` 与其他存储层不反向依赖 API 或页面层。
+- `llm` 负责供应商、模型能力、推理/视觉角色、连接参数与客户端构造。新增供应商或自定义模型时通过注册和配置扩展，不得在聊天、教材、错题等业务分支中增加 provider 判断。
+- `backend/tools` 定义工具输入、输出、风险和来源契约；`backend/services/tool_orchestration.py` 只负责受控选择、预算、执行与结果压缩。工具结果是可验证输入，不等同于最终答案，也不得绕过 EvidencePack 的教材事实边界。
+- `ingestion` 的稳定入口是 `CanonicalBook` / `DocumentBlock`。PDF、MinerU、OCR、Word 等来源先适配为 Canonical Document IR，再进入共享切块与索引管线；来源专属结构不得泄漏为下游业务依赖。
 - 前端 `pages` 负责页面装配与跨功能协调；稳定的领域状态和事件流程放入 `features/*/hooks`，纯转换逻辑放入 feature 工具模块。React state updater 内不得产生副作用。
 - 聚合接口必须保留故障隔离：主体列表成功时，统计、活动会话或复习队列等辅助模块失败应返回局部结果与明确错误字段，而不是让整个页面不可用。
 - EvidencePack 是 RAG 行为边界，不是单纯格式化工具。字符预算、单条截断或按意图调整证据数时，必须覆盖定义、列举、比较、原理解释、推导、应用题和跨章节问题的事实覆盖回归。
 
 ## 核心工作流
 
-### 对话与讲解
+### 主聊天与学习任务
 
-- `/api/chat/stream` 使用 SSE 输出阶段事件：`plan -> retrieve -> chapter -> generate -> done`。
+- 主聊天是问答、教材检索、受控工具和图片题的统一回答入口，不新增平行的 Agent 回答页或第二套生成链路。`/api/chat/stream` 通过 SSE 输出上下文解析、工具、`plan -> retrieve -> chapter -> generate -> done` 和持久化 execution event。
+- 每次学习问答绑定持久化 `LearningTask`，记录 goal、required inputs/outputs、artifacts、checkpoint、active run 与 verification。缺少会影响结论的图片、附表、另一页或其他关键输入时必须进入 `waiting_for_input`；不得在信息不完整时伪造精确结论。
+- 停止、断开和恢复必须保持同一 task/turn 的幂等语义。只有后端确认中断后前端才显示恢复入口；旧 run 的迟到事件不得覆盖新 run，完成投影不得重复写入用户问题。
+- 最终答案必须经过确定性后置验证，至少检查 required outputs、引用合法性以及数值/公式/单位的可验证支持。验证失败或无法确定时进入 `degraded` / `unverified` 并向用户披露；验证门槛不是模型答案准确率证明。
 - 完整会话消息以 append-only event log 持久化；单会话 JSON 只保留最近窗口兼容投影。历史读取必须使用游标分页，不能通过裁剪持久层来控制 prompt 或前端内存。
 - Resolver 读取近期消息窗口 + Session Ledger；完整历史仅用于 Ledger 缺失/陈旧时重建，不能直接塞入回答 prompt。Ledger 必须保留 topic stack、实体 first/last mentioned turn、assistant artifacts、comparison/constraint state 与 active evidence 的有界投影。
 - Resolver 的行为边界是 `resolved_query + speech_act + state_operations`。澄清时不得推进会话状态；实体纠正和明确的新对象优先于旧 topic、代词与继承约束。
@@ -115,20 +89,34 @@ texa/
 - 长内容生成时，正文累积源应独立于阶段占位文案，阶段事件不得覆盖已经进入 `generate` / `done` 的正文。
 - 后端 SSE 异常应转为 `stage=error` 事件，避免直接冒泡为 ASGI ExceptionGroup。
 
+### 受控工具
+
+- 只读工具可以在主聊天内自动执行；写操作只能生成持久化 pending action，由用户确认后通过白名单执行。确认与拒绝必须幂等，模型文本本身不得直接修改错题、进度或复习状态。
+- 工具调用有数量、总时长、单工具超时、结果 schema、required outputs 和 provenance 预算。局部失败应保留主回答降级路径，并在执行记录中如实显示失败或缺失项。
+- 当前不实现开放式自主 Agent Loop。动态补偿只允许由受限数学工具的结构化 `verification_request` 触发最多一轮校验；其他缺口回到 required inputs 或明确降级。
+- 数学工具只接受受限表达式和白名单运算，禁止任意 Python、导入、属性访问或代码执行。计算成功仍需根据任务类型执行等价、求导、积分、定积分或代入校验。
+
+### 教材摄取与索引发布
+
+- 所有正式教材来源必须先生成并持久化 Canonical Document IR 与 `ingestion_report.json`。可修复的 OCR、公式、表格、页码或层级问题记录 warning/review status；IR 合同损坏或没有可索引正文才阻断后续切分与索引。
+- 索引构建使用 staged candidate，不得在验收前覆盖 active map、线上 lexical 文件或现有 Chroma collections。只有生产混合检索与最终 EvidencePack 门槛通过后才能原子激活；失败时清理候选并保留旧版本。
+- 每个索引版本保留 manifest、独立 lexical 快照、release quality 与可回滚历史。公式、列表、例题、表格等自动探针只验证结构在解析—切块—检索链路中的保真度，不能冒充 OCR 正确性或人工语义金标。
+
 ### 检索策略
 
 当前检索采用混合策略：
 
 1. KG 精确命中：通过概念 occurrence 的 `chunk_id` 定位定义、公式、例题或相关段落。
-2. 向量补充：使用 ChromaDB 在目标章节或全库检索相关 chunk。
-3. 语义角色过滤：按 intent 优先检索 `definition`、`example`、`algorithm`、`derivation` 等 role。
-4. 去重重排：精确命中优先，向量结果补充；例题场景需要尽量带回完整题干、步骤和相邻 chunk。
+2. 混合召回：在明确教材/章节范围内组合 Chroma 向量、BM25/词法、标题与结构信号；局部章节 collection 不可读时可退回同书 aggregate，但不得静默扩大教材范围。
+3. 角色与邻接补全：按 intent 优先 `definition`、`example`、`algorithm`、`derivation`、`formula`、`comparison` 等角色，并用 Canonical IR 邻接关系恢复完整题干、列表、公式和解释。
+4. 融合与证据门槛：教材主/辅角色只作为可解释的软先验；最终去重、rerank、support gate 和 EvidencePack 共同决定生成器可见证据。
 
-检索必须有降级路径：单个 Chroma collection 损坏、章节名未精确命中或 KG 缺失时，不应打断整条对话，应回退到更宽的向量检索或普通 QA 生成。
+检索必须有降级路径：单个章节 Chroma collection 损坏、章节名未精确命中或 KG 缺失时，不应打断整条对话；优先回退到同书 aggregate 或其他同范围召回。只有当前回答模式本来允许普通 QA 时才能退化为普通生成，不得以降级为由静默扩大教材或学科范围。
 
 ### 错题本与复习
 
 - 错题本是核心功能，记录题目、用户答案、正确答案、错因、涉及概念、来源、难度与复习状态。
+- 习题库支持手动录入及 Word/PDF 候选抽取；候选必须经过人工校对后入库，并保留来源、章节、题型、难度、答案、解析与概念标签。练习会话、作答记录、错题转换和恢复应使用稳定的领域服务，不在页面中复制状态机。
 - 复习调度使用 SM-2 或兼容的间隔重复策略。
 - 错题讲解可注入教材 RAG 上下文；通用题目可退化为纯 LLM 讲解。
 - OCR 录入必须允许用户编辑识别结果，不能把 OCR 输出视为可信最终题干。
@@ -149,6 +137,7 @@ texa/
 - 错题本：OCR/手输/PDF 截取录入，错因标记，复习提醒。
 - ConceptMemory：概念接触记录、薄弱点、复习提醒。
 - SM-2 间隔重复：服务错题和概念复习。
+- 主聊天内的受控工具与 LearningTask：用于检索、计算、练习提案、输入门槛、停止恢复和答案验证，不扩展成独立 Agent 产品。
 
 谨慎或放弃：
 
@@ -156,6 +145,7 @@ texa/
 - 不做重 AI 规划；进度追踪以用户自设目标、系统记录和提醒为主。
 - 不优先做渐进式 TutorAgent；遇到不会做题时，更可靠的路径是看完整答案、归因错因、回到相关概念和例题复习。
 - 章节测验不应依赖模型临场编题，优先来自教材例题、课后题、真题或用户导入题库。
+- 不把当前受控工具扩展成可自主规划、任意循环或直接写入数据的 Agent。只有核心学习闭环、验证门槛和失败恢复稳定后，才重新评估开放式 Agent Loop。
 
 ## 未来目标
 
@@ -163,15 +153,16 @@ texa/
 
 | 功能 | 优先级 | 目标 |
 |------|--------|------|
-| 习题库建设 | P1 | 支持 Word/PDF/真题解析，题目结构化、知识点标注、来源追踪 |
-| 图片上传与 OCR | P1 | 错题录入支持图片上传、OCR、人工校正、公式保留 |
-| 错题复习工作流 | P1 | 到期复习、薄弱点统计、按概念/错因/来源筛选 |
+| 学习任务与答案发布门槛 | P1 | 补齐真实模型 Answer Eval、任务中断/恢复与 degraded 路径评测；不得用离线生命周期或检索分数代替线上答案质量 |
+| 教材质量规模化 | P1 | 为更多真实教材建立人工黄金集与公式/表格/OCR 审阅流程，持续验证 Canonical IR、索引激活和 EvidencePack 要点覆盖 |
+| 习题—作答—错题—复习闭环 | P1 | 强化 Word/PDF 候选校对、练习记录、错因归档、到期复习和概念薄弱信号之间的可追溯状态流 |
+| 图片题证据与计算验证 | P1 | 完善缺页/附表门槛、人工校正、公式保留和数值校验，避免仅凭视觉模型输出精密计算结论 |
 | 周期性复习提醒 | P2 | 基于 ConceptMemory 与错题复习队列提醒用户 |
-| 前端性能优化 | P2 | KaTeX/Markdown 懒加载、代码分割、首屏体积下降 |
+| 桌面性能与发布可靠性 | P2 | KaTeX/Markdown 懒加载、代码分割、首屏体积、离线嵌入运行时、升级回滚与数据恢复 |
 | 移动端/PWA 验证 | P3 | 手机端布局、离线缓存、主屏入口、推送能力 |
 | 简化进度追踪 | P3 | 用户自设目标，系统记录完成度与提醒 |
 | 章节学习模式 | P4 | 章节选择、概念地图、例题主线、阶段总结 |
-| Tool Calling / Agent Loop | P5 | 仅在核心学习闭环稳定后再引入 |
+| 开放式 Agent Loop | P5 | 当前受控工具保持有界；仅在核心学习闭环、验证和写入安全成熟后重新评估自主规划与多轮工具循环 |
 
 ## 常用命令
 
