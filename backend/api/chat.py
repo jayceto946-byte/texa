@@ -1,8 +1,11 @@
 """Chat API: SSE streaming and non-streaming dialogue."""
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import queue
+import threading
 import time
 import uuid
 
@@ -53,6 +56,11 @@ from backend.services.learning_task import (
     interrupt_learning_task,
     mark_required_inputs,
     resume_learning_task,
+)
+from backend.services.execution_events import (
+    ExecutionEventEmitter,
+    execution_sse_payload,
+    legacy_activity_from_execution,
 )
 from graph.conversation_context import (
     assemble_conversation_context_pack,
@@ -178,11 +186,12 @@ def _attach_pending_actions(task: LearningTask, tool_run: dict) -> None:
 def _prepare_main_tool_context(
     question: str, book_name: str, subject: str, conversation_id: str,
     learning_task_id: str = "",
+    on_event=None,
 ) -> dict:
     try:
         return execute_read_only_tools(_main_tool_request(
             question, book_name, subject, conversation_id, learning_task_id,
-        ))
+        ), on_event=on_event)
     except Exception as exc:
         logger.exception("main chat tool orchestration failed")
         return {
@@ -201,6 +210,17 @@ def _activity_for_chat_event(event: dict) -> dict | None:
     """Describe real completed/active work without exposing model reasoning."""
     stage = str(event.get("stage") or "")
     duration_ms = event.get("stage_ms")
+    if stage == "progress":
+        return {
+            "id": str(event.get("operation_id") or "progress"),
+            "kind": str(event.get("kind") or "analysis"),
+            "label": str(event.get("label") or "继续处理"),
+            "status": "active",
+            "detail": str(event.get("message") or "仍在等待当前步骤完成"),
+            "meta": {
+                "waited_ms": event.get("waited_ms"),
+            } if event.get("waited_ms") is not None else {},
+        }
     if stage == "plan":
         chapters = [str(item) for item in event.get("chapters") or [] if str(item)]
         return {
@@ -613,11 +633,13 @@ def log_conversation_messages(payload: dict):
     return {"success": True, "conversation_id": conversation_id, "appended": appended}
 
 
-def _chat_stream(
+def _prepared_chat_stream(
     req: ChatRequest,
     _learning_task: LearningTask | None = None,
     _resume: bool = False,
     _run_id: str = "",
+    _request_id: str = "",
+    _start_seq: int = 0,
 ):
     from graph.main_graph import run_graph_stream
 
@@ -683,7 +705,24 @@ def _chat_stream(
     def event_generator():
         from backend.rag_trace import new_request_id, save_trace
 
-        request_id = new_request_id()
+        request_id = _request_id or new_request_id()
+        task_store = get_learning_task_store()
+        def persist_execution_event(event: dict) -> None:
+            updated = task_store.append_execution_event_for_run(learning_task.id, run_id, event)
+            if updated is not None:
+                learning_task.artifacts["execution_events"] = list(
+                    updated.artifacts.get("execution_events") or []
+                )[-40:]
+
+        emitter = ExecutionEventEmitter(
+            request_id=request_id,
+            task_id=learning_task.id,
+            run_id=run_id,
+            conversation_id=conversation_id,
+            turn_id=turn_id,
+            start_seq=_start_seq,
+            persist=persist_execution_event,
+        )
         started = time.perf_counter()
         last_milestone_at = started
         generation_started = None
@@ -706,16 +745,120 @@ def _chat_stream(
         evidence_active = False
         generation_handoff_done = False
 
-        def activity_sse(activity: dict) -> str:
-            event = {
-                "stage": "activity",
-                "activity": activity,
-                "request_id": request_id,
-                "conversation_id": conversation_id,
-                "turn_id": turn_id,
-                "elapsed_ms": round((time.perf_counter() - started) * 1000, 2),
-            }
-            return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+        def execution_sse(
+            event_type: str,
+            *,
+            phase: str,
+            status: str,
+            summary: str,
+            operation_id: str,
+            label: str,
+            kind: str,
+            payload: dict | None = None,
+            duration_ms: int | float | None = None,
+            stage: str = "execution",
+        ) -> str:
+            execution_event = emitter.emit(
+                event_type,
+                phase=phase,
+                status=status,
+                summary=summary,
+                operation_id=operation_id,
+                label=label,
+                kind=kind,
+                payload=payload,
+                duration_ms=duration_ms,
+            )
+            return f"data: {json.dumps(execution_sse_payload(execution_event, stage=stage), ensure_ascii=False)}\n\n"
+
+        def activity_sse(activity: dict, *, event_type: str | None = None, phase: str = "orchestration") -> str:
+            raw_status = str(activity.get("status") or "pending")
+            status = {
+                "active": "started",
+                "completed": "completed",
+                "failed": "failed",
+                "skipped": "skipped",
+            }.get(raw_status, "running")
+            resolved_type = event_type or ("progress" if raw_status == "active" else "state_transition")
+            return execution_sse(
+                resolved_type,
+                phase=phase,
+                status=status,
+                summary=str(activity.get("detail") or activity.get("label") or ""),
+                operation_id=str(activity.get("id") or f"{phase}:{resolved_type}"),
+                label=str(activity.get("label") or "执行任务"),
+                kind=str(activity.get("kind") or "system"),
+                payload=dict(activity.get("meta") or {}),
+                duration_ms=activity.get("duration_ms"),
+                stage="activity",
+            )
+
+        def stream_tool_context():
+            event_queue: queue.Queue = queue.Queue()
+
+            def on_tool_event(event: dict) -> None:
+                event_queue.put(("event", event))
+
+            def execute_tools() -> None:
+                try:
+                    result = _prepare_main_tool_context(
+                        rewritten_question,
+                        book_name,
+                        subject,
+                        conversation_id,
+                        learning_task.id,
+                        on_event=on_tool_event,
+                    )
+                    event_queue.put(("done", result))
+                except Exception as exc:  # pragma: no cover - service already degrades safely
+                    event_queue.put(("error", exc))
+
+            worker = threading.Thread(target=execute_tools, name="chat-tool-events", daemon=True)
+            worker.start()
+            active_tool = "学习工具"
+            while True:
+                try:
+                    item_type, value = event_queue.get(timeout=10.0)
+                except queue.Empty:
+                    yield execution_sse(
+                        "progress",
+                        phase="tool",
+                        status="running",
+                        summary=f"{active_tool}仍在执行，正在等待可验证结果",
+                        operation_id="tools",
+                        label="使用学习工具",
+                        kind="tool",
+                    )
+                    continue
+                if item_type == "done":
+                    return value
+                if item_type == "error":
+                    raise value
+                tool_name = str(value.get("tool") or "")
+                active_tool = _TOOL_ACTIVITY_LABELS.get(tool_name, "执行学习工具")
+                event_type = str(value.get("type") or "progress")
+                status = str(value.get("status") or "running")
+                summary = str(value.get("message") or (
+                    f"开始{active_tool}" if event_type == "tool_call" else f"{active_tool}已返回结果"
+                ))
+                yield execution_sse(
+                    event_type,
+                    phase="tool",
+                    status=status,
+                    summary=summary,
+                    operation_id=str(value.get("operation_id") or f"tool:{tool_name}"),
+                    label=active_tool,
+                    kind="tool",
+                    payload={
+                        key: value.get(key)
+                        for key in (
+                            "tool", "args_summary", "timeout_seconds", "success", "required_outputs",
+                            "satisfied_required_outputs", "missing_required_outputs", "followup",
+                        )
+                        if value.get(key) is not None
+                    },
+                    duration_ms=value.get("elapsed_ms"),
+                )
 
         def persist_assistant(delivery_status: str = "complete") -> str:
             nonlocal assistant_persisted, assistant_persistence_error, assistant_message_id, assistant_message
@@ -793,11 +936,49 @@ def _chat_stream(
             event["elapsed_ms"] = round((now - started) * 1000, 2)
             activity = _activity_for_chat_event(event)
             if activity:
-                event["activity"] = activity
+                stage_type = {
+                    "progress": "progress",
+                    "generate": "output_delta" if not event.get("done") else "state_transition",
+                    "done": "final",
+                    "error": "error",
+                }.get(stage, "state_transition")
+                activity_status = str(activity.get("status") or "")
+                status = {
+                    "completed": "completed",
+                    "skipped": "skipped",
+                    "failed": "failed",
+                    "active": "running",
+                }.get(activity_status, "failed" if stage == "error" else "running")
+                execution_event = emitter.emit(
+                    stage_type,
+                    phase={
+                        "progress": str(event.get("phase") or "orchestration"),
+                        "plan": "planning", "retrieve": "retrieval", "chapter": "evidence",
+                        "generate": "generation", "done": "final", "error": "error",
+                    }.get(stage, stage),
+                    status=status,
+                    summary=str(activity.get("detail") or activity.get("label") or ""),
+                    operation_id=str(activity.get("id") or stage),
+                    label=str(activity.get("label") or stage),
+                    kind=str(activity.get("kind") or "system"),
+                    payload=dict(activity.get("meta") or {}),
+                    duration_ms=activity.get("duration_ms"),
+                )
+                event["execution_event"] = execution_event
+                event["activity"] = legacy_activity_from_execution(execution_event)
 
         graph_events = None
         try:
-            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'book_name': book_name, 'subject': subject, 'rewritten_question': rewritten_question if rewritten_question != req.question else '', 'resolution_action': resolution_trace.get('resolution_action', 'continue'), 'use_textbook_context': use_textbook_context, 'scope_reason': scope_reason, 'answer_mode': answer_mode, 'learning_task': learning_task.to_dict(public=True), 'activity': {'id': 'context', 'kind': 'analysis', 'label': '读取会话上下文', 'status': 'completed', 'detail': '已解析当前问题、指代与学习范围'}}, ensure_ascii=False)}\n\n"
+            context_execution = emitter.emit(
+                "state_transition",
+                phase="context",
+                status="completed",
+                summary="已解析当前问题、指代与学习范围",
+                operation_id="context",
+                label="读取会话上下文",
+                kind="analysis",
+            )
+            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'book_name': book_name, 'subject': subject, 'rewritten_question': rewritten_question if rewritten_question != req.question else '', 'resolution_action': resolution_trace.get('resolution_action', 'continue'), 'use_textbook_context': use_textbook_context, 'scope_reason': scope_reason, 'answer_mode': answer_mode, 'learning_task': learning_task.to_dict(public=True), 'execution_event': context_execution, 'activity': legacy_activity_from_execution(context_execution)}, ensure_ascii=False)}\n\n"
             if not _resume:
                 user_message = append_message(
                     conversation_id, "user", req.question,
@@ -854,31 +1035,13 @@ def _chat_stream(
                 yield activity_sse({
                     "id": "tools", "kind": "tool", "label": "使用学习工具",
                     "status": "active", "detail": f"正在执行 {len(planned_tools)} 项受控只读操作",
-                })
-                tool_run = _prepare_main_tool_context(
-                    rewritten_question, book_name, subject, conversation_id, learning_task.id,
-                )
+                }, phase="tool")
+                tool_run = yield from stream_tool_context()
                 _attach_pending_actions(learning_task, tool_run)
                 continuity_context["learning_task"] = learning_task.to_dict()
                 tool_pack = dict(tool_run.get("tool_context_pack") or {})
                 tool_pack["execution_trace"] = tool_run.get("execution_trace") or {}
                 continuity_context["tool_context_pack"] = tool_pack
-                for index, item in enumerate(tool_run.get("tool_outputs") or []):
-                    tool_name = str(item.get("tool") or "")
-                    result = item.get("result") or {}
-                    timing = item.get("timing") or {}
-                    verification = result.get("verification") or {}
-                    if verification:
-                        detail = "结果校验通过" if verification.get("passed") else "结果校验未通过"
-                    else:
-                        detail = str(result.get("message") or ("已完成" if result.get("success") else "执行失败"))[:160]
-                    yield activity_sse({
-                        "id": f"tool:{index}:{tool_name}", "kind": "tool",
-                        "label": _TOOL_ACTIVITY_LABELS.get(tool_name, "执行学习工具"),
-                        "status": "completed" if result.get("success") else "failed",
-                        "detail": detail,
-                        "duration_ms": timing.get("elapsed_ms"),
-                    })
                 yield activity_sse({
                     "id": "tools", "kind": "tool", "label": "使用学习工具",
                     "status": "completed" if tool_pack.get("sufficient") else "failed",
@@ -887,7 +1050,7 @@ def _chat_stream(
                         if tool_pack.get("sufficient") else "工具未提供可用结果，继续使用原回答路径"
                     ),
                     "duration_ms": (tool_run.get("execution_trace") or {}).get("total_elapsed_ms"),
-                })
+                }, phase="tool")
             graph_events = run_graph_stream(
                 user_input=rewritten_question,
                 book_name=book_name,
@@ -1092,6 +1255,68 @@ def _chat_stream(
                 logger.exception("failed to persist RAG trace", extra={"request_id": request_id})
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+def _chat_stream(
+    req: ChatRequest,
+    _learning_task: LearningTask | None = None,
+    _resume: bool = False,
+    _run_id: str = "",
+):
+    """Open SSE immediately, then prepare the context without a blank TTFB gap."""
+    from backend.rag_trace import new_request_id
+
+    request_id = new_request_id()
+
+    async def outer_events():
+        preflight = ExecutionEventEmitter(request_id=request_id)
+        accepted = preflight.emit(
+            "progress",
+            phase="context",
+            status="started",
+            summary="正在读取会话上下文并确认学习范围",
+            operation_id="context",
+            label="读取会话上下文",
+            kind="analysis",
+        )
+        yield f"data: {json.dumps(execution_sse_payload(accepted), ensure_ascii=False)}\n\n"
+        try:
+            prepared = await asyncio.to_thread(
+                _prepared_chat_stream,
+                req,
+                _learning_task,
+                _resume,
+                _run_id,
+                request_id,
+                int(accepted["seq"]),
+            )
+            async for chunk in prepared.body_iterator:
+                yield chunk
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            failed = preflight.emit(
+                "error",
+                phase="context",
+                status="failed",
+                summary=str(exc),
+                operation_id="context",
+                label="读取会话上下文",
+                kind="system",
+            )
+            payload = execution_sse_payload(failed, stage="error")
+            payload.update({"done": True, "message": str(exc)})
+            yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(
+        outer_events(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @router.post("/stream")

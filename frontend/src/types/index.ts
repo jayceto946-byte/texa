@@ -37,6 +37,31 @@ export interface ChatActivity {
   detail?: string;
   duration_ms?: number;
   meta?: Record<string, unknown>;
+  seq?: number;
+  operation_id?: string;
+  event_type?: string;
+  phase?: string;
+  elapsed_ms?: number;
+}
+
+export interface ExecutionEvent {
+  schema: 'texa.execution/v1' | string;
+  seq: number;
+  request_id: string;
+  task_id?: string;
+  run_id?: string;
+  conversation_id?: string;
+  turn_id?: string;
+  operation_id: string;
+  type: 'progress' | 'tool_call' | 'tool_result' | 'state_transition' | 'output_delta' | 'final' | 'error' | string;
+  phase: string;
+  status: 'started' | 'running' | 'completed' | 'failed' | 'skipped' | 'cancelled' | string;
+  summary: string;
+  label: string;
+  kind: ActivityKind;
+  elapsed_ms?: number;
+  duration_ms?: number;
+  payload?: Record<string, unknown>;
 }
 
 export interface ChatRequest {
@@ -48,7 +73,7 @@ export interface ChatRequest {
 }
 
 export interface ChatEvent {
-  stage: 'context' | 'activity' | 'plan' | 'retrieve' | 'chapter' | 'generate' | 'waiting_for_input' | 'verify' | 'done' | 'error';
+  stage: 'context' | 'execution' | 'progress' | 'activity' | 'plan' | 'retrieve' | 'chapter' | 'generate' | 'waiting_for_input' | 'verify' | 'done' | 'error';
   intent?: string;
   chapters?: string[];
   fast_path?: boolean;
@@ -65,6 +90,7 @@ export interface ChatEvent {
   enriched?: boolean;
   message?: string;
   activity?: ChatActivity;
+  execution_event?: ExecutionEvent;
   result?: {
     success?: boolean;
     explanation?: string;

@@ -93,6 +93,7 @@ class ChatEvent(BaseModel):
     retrieval_status: Optional[str] = None
     retrieval_error: Optional[str] = None
     activity: Optional[dict] = None
+    execution_event: Optional[dict] = None
 
 
 class MistakeRecordOut(BaseModel):

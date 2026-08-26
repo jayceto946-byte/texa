@@ -1,8 +1,21 @@
 import { describe, expect, it } from 'vitest';
 
-import { activityDuration, completedActivityCount, mergeChatActivity, settleChatActivity } from './chatActivities';
+import { activityDuration, completedActivityCount, createTransportActivity, mergeChatActivity, projectExecutionEvent, settleChatActivity } from './chatActivities';
 
 describe('chat activity projection', () => {
+  it('shows a truthful transport state before the first backend event', () => {
+    const initial = createTransportActivity();
+    const connected = projectExecutionEvent([initial], {
+      schema: 'texa.execution/v1', seq: 1, request_id: 'req', operation_id: 'context',
+      type: 'progress', phase: 'context', status: 'started', summary: '正在读取上下文',
+      label: '读取会话上下文', kind: 'analysis', elapsed_ms: 12,
+    });
+
+    expect(initial).toMatchObject({ id: 'transport', status: 'active' });
+    expect(connected[0]).toMatchObject({ id: 'transport', status: 'completed', detail: '执行流已连接' });
+    expect(connected[1]).toMatchObject({ id: 'context', elapsed_ms: 12 });
+  });
+
   it('updates an existing activity without reordering it', () => {
     const started = mergeChatActivity([], { id: 'vision', kind: 'tool', label: '识别图片', status: 'active' });
     const completed = mergeChatActivity(started, { id: 'vision', kind: 'tool', label: '识别图片', status: 'completed', duration_ms: 1200 });
@@ -27,5 +40,30 @@ describe('chat activity projection', () => {
 
     expect(settled[0]).toMatchObject({ status, detail: '恢复流程已结束' });
     expect(settled.some((activity) => activity.status === 'active')).toBe(false);
+  });
+
+  it('projects execution events by operation id and ignores stale sequence updates', () => {
+    const started = projectExecutionEvent([], {
+      schema: 'texa.execution/v1', seq: 3, request_id: 'req', operation_id: 'tool:0:math',
+      type: 'tool_call', phase: 'tool', status: 'started', summary: '开始计算',
+      label: '执行确定性计算', kind: 'tool',
+    });
+    const stale = projectExecutionEvent(started, {
+      schema: 'texa.execution/v1', seq: 2, request_id: 'req', operation_id: 'tool:0:math',
+      type: 'progress', phase: 'tool', status: 'running', summary: '旧进度',
+      label: '执行确定性计算', kind: 'tool',
+    });
+    const completed = projectExecutionEvent(stale, {
+      schema: 'texa.execution/v1', seq: 4, request_id: 'req', operation_id: 'tool:0:math',
+      type: 'tool_result', phase: 'tool', status: 'completed', summary: '计算完成',
+      label: '执行确定性计算', kind: 'tool',
+    });
+    const legacyAfterSequenced = mergeChatActivity(completed, {
+      id: 'tool:0:math', kind: 'tool', label: '旧事件', status: 'active', detail: '旧状态',
+    });
+
+    expect(stale[0].detail).toBe('开始计算');
+    expect(completed[0]).toMatchObject({ status: 'completed', detail: '计算完成', seq: 4 });
+    expect(legacyAfterSequenced[0]).toMatchObject({ status: 'completed', detail: '计算完成', seq: 4 });
   });
 });

@@ -17,7 +17,7 @@ import VisualMathInputPopover from '../features/math-input/VisualMathInputPopove
 import { useChat } from '../hooks/useChat';
 import type { ExerciseRecord, LearningTaskState, MistakeRecord } from '../types';
 import { mapStoredConversationMessages } from '../utils/conversationMessages';
-import { mergeChatActivity, settleChatActivity } from '../utils/chatActivities';
+import { mergeChatActivity, projectExecutionEvent, settleChatActivity } from '../utils/chatActivities';
 import { buildTextbookScopeOptions, findDefaultTextbookScope, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
 type ReportMode = 'daily' | 'weekly';
 type ActionMode = ReportMode | 'exercise';
@@ -250,14 +250,23 @@ const ChatPage: React.FC = () => {
         ...last,
         content: finalContent || last.content,
         stage: event.stage === 'error' ? 'error' : event.stage === 'waiting_for_input' ? 'waiting_for_input' : event.stage === 'done' ? 'done' : event.stage === 'generate' ? 'generate' : last.stage,
-        activities: mergeChatActivity(
-          event.stage === 'error'
+        activities: event.execution_event
+          ? projectExecutionEvent(
+            event.stage === 'error'
+              ? (last.activities || []).map((activity) => activity.status === 'active'
+                ? { ...activity, status: 'failed' as const, detail: event.message || '图片处理失败' }
+                : activity)
+              : last.activities,
+            event.execution_event,
+          )
+          : mergeChatActivity(
+            event.stage === 'error'
             ? (last.activities || []).map((activity) => activity.status === 'active'
               ? { ...activity, status: 'failed' as const, detail: event.message || '图片处理失败' }
               : activity)
             : last.activities,
-          event.activity,
-        ),
+            event.activity,
+          ),
         linkedConcepts: event.result?.linked_concepts || last.linkedConcepts,
         learningTask: event.result?.learning_task || last.learningTask,
       } : last);
@@ -329,7 +338,9 @@ const ChatPage: React.FC = () => {
               ...message,
               content: finalContent || message.content,
               stage: event.stage === 'error' ? 'error' : event.stage === 'done' ? 'done' : event.stage === 'generate' ? 'generate' : message.stage,
-              activities: mergeChatActivity(activities, event.activity),
+              activities: event.execution_event
+                ? projectExecutionEvent(activities, event.execution_event)
+                : mergeChatActivity(activities, event.activity),
               linkedConcepts: event.result?.linked_concepts || message.linkedConcepts,
               learningTask: event.learning_task || event.result?.learning_task || message.learningTask,
             };

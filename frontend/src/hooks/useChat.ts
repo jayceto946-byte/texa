@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { chatAsk, chatStream, interruptChatTask, resumeChatTaskStream } from '../api/client';
 import { useChatContext } from '../contexts/ChatContext';
 import type { AnswerMode, ConceptCandidate, LearningTaskState } from '../types';
-import { mergeChatActivity, settleChatActivity } from '../utils/chatActivities';
+import { createTransportActivity, mergeChatActivity, projectExecutionEvent, settleChatActivity } from '../utils/chatActivities';
 
 const USE_NON_STREAMING = import.meta.env.VITE_USE_NON_STREAMING === 'true';
 
@@ -54,7 +54,7 @@ export function useChat() {
         content: '',
         stage: 'thinking',
         turnId,
-        activities: [],
+        activities: [createTransportActivity()],
       });
 
       const fail = (message: string) => {
@@ -128,7 +128,9 @@ export function useChat() {
             scopeReasonRef.current = event.scope_reason || '';
             updateLastMessage((last) => last.role === 'assistant' ? {
               ...last,
-              activities: mergeChatActivity(last.activities, event.activity),
+              activities: event.execution_event
+                ? projectExecutionEvent(last.activities, event.execution_event)
+                : mergeChatActivity(last.activities, event.activity),
               answerMode: answerModeRef.current,
               scopeReason: scopeReasonRef.current,
               originalQuestion: question,
@@ -160,28 +162,27 @@ export function useChat() {
                 ? { ...activity, status: 'failed' as const, detail: event.message || '后端生成失败' }
                 : activity)
               : last.activities;
-            next.activities = mergeChatActivity(existingActivities, event.activity);
+            next.activities = event.execution_event
+              ? projectExecutionEvent(existingActivities, event.execution_event)
+              : mergeChatActivity(existingActivities, event.activity);
             switch (event.stage) {
+              case 'execution':
+              case 'progress':
+              case 'activity':
+                break;
               case 'plan':
                 if (last.stage !== 'generate' && last.stage !== 'done') {
                   next.stage = 'plan';
-                  next.content = event.fast_path ? '快速回答中...' : '分析问题中...';
                 }
                 break;
               case 'retrieve':
                 if (last.stage !== 'generate' && last.stage !== 'done') {
                   next.stage = 'retrieve';
-                  next.content = (event.answer_mode || answerModeRef.current) === 'subject_mismatch'
-                    ? '确认学科范围...'
-                    : event.use_textbook_context === false || event.retrieval_status === 'ordinary_qa'
-                      ? '准备回答...'
-                    : `检索教材上下文${event.content_count ? ` (${event.content_count})` : ''}...`;
                 }
                 break;
               case 'chapter':
                 if (last.stage !== 'generate' && last.stage !== 'done') {
                   next.stage = 'chapter';
-                  next.content = '整理章节内容...';
                 }
                 break;
               case 'generate':

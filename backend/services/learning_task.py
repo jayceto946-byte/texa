@@ -103,6 +103,7 @@ class LearningTask:
                 "resume_available": self.status in RESUMABLE_TASK_STATUSES,
                 "resume_stage": _bounded_text(artifacts.get("resume_stage"), 80),
                 "partial_output": _bounded_text(artifacts.get("partial_output"), 4000),
+                "execution_events": list(artifacts.get("execution_events") or [])[-40:],
             }
         return value
 
@@ -202,6 +203,35 @@ class LearningTaskStore:
             if str(current.artifacts.get("active_run_id") or "") != str(run_id or ""):
                 return current
             return self.checkpoint(task, stage, status=status, detail=detail)
+
+    def append_execution_event_for_run(
+        self,
+        task_id: str,
+        run_id: str,
+        event: dict[str, Any],
+        *,
+        limit: int = 40,
+    ) -> LearningTask | None:
+        """Persist bounded orchestration milestones, never token deltas/heartbeats."""
+        with _TASK_LOCK:
+            current = self.get(task_id)
+            if current is None:
+                return None
+            if str(current.artifacts.get("active_run_id") or "") != str(run_id or ""):
+                return current
+            compact = {
+                key: event.get(key)
+                for key in (
+                    "schema", "seq", "request_id", "run_id", "operation_id", "type",
+                    "phase", "status", "summary", "label", "kind", "elapsed_ms",
+                    "duration_ms", "payload",
+                )
+                if event.get(key) is not None
+            }
+            current.artifacts["execution_events"] = [
+                *(current.artifacts.get("execution_events") or []), compact,
+            ][-max(1, min(int(limit), 80)):]
+            return self.save(current)
 
     def checkpoint(self, task: LearningTask, stage: str, *, status: str | None = None, detail: str = "") -> LearningTask:
         if status:

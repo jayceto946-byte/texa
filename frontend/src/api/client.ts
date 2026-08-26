@@ -1,4 +1,4 @@
-import type { AgentPendingAction, AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ChatActivity, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
+import type { AgentPendingAction, AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ChatActivity, ConceptCandidate, ExecutionEvent, LearningTaskState, SubjectRouteSuggestion } from '../types';
 
 const DEFAULT_TIMEOUT_MS = 20000;
 export const AGENT_REQUEST_TIMEOUT_MS = 55000;
@@ -95,6 +95,7 @@ export type ChatEvent = {
   retrieval_status?: string;
   retrieval_error?: string;
   activity?: ChatActivity;
+  execution_event?: ExecutionEvent;
   result?: {
     success?: boolean;
     explanation?: string;

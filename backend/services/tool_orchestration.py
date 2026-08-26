@@ -7,7 +7,7 @@ import re
 import threading
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 from backend.tools.registry import ToolContext, ToolResult, get_tool_registry
 from backend.services.pending_actions import get_pending_action_store
@@ -265,6 +265,7 @@ def execute_read_only_tools(
     total_timeout_seconds: float = DEFAULT_TOTAL_TIMEOUT_SECONDS,
     per_tool_timeout_seconds: float | None = None,
     registry=None,
+    on_event: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     started = time.perf_counter()
     registry = registry or get_tool_registry()
@@ -277,6 +278,7 @@ def execute_read_only_tools(
     while index < len(selected) and len(outputs) < max(1, min(req.max_tools, 10)):
         call = selected[index]
         index += 1
+        operation_id = f"tool:{len(outputs)}:{call['tool']}"
         remaining = total_timeout_seconds - (time.perf_counter() - started)
         spec = registry.get(call["tool"]) if hasattr(registry, "get") else None
         configured_timeout = (
@@ -285,6 +287,18 @@ def execute_read_only_tools(
             else float((getattr(spec, "timeout_seconds", None) or DEFAULT_TOOL_TIMEOUT_SECONDS))
         )
         timeout = min(configured_timeout, max(0.0, remaining))
+        if on_event:
+            try:
+                on_event({
+                    "type": "tool_call",
+                    "operation_id": operation_id,
+                    "tool": call["tool"],
+                    "status": "started",
+                    "args_summary": {"keys": sorted(str(key) for key in (call.get("args") or {}).keys())[:12]},
+                    "timeout_seconds": round(timeout, 3),
+                })
+            except Exception:
+                pass
         outcome = _run_bounded(
             lambda current=call: registry.call(current["tool"], current.get("args") or {}, context, allow_write=False),
             timeout,
@@ -311,6 +325,23 @@ def execute_read_only_tools(
             "missing_required_outputs": missing,
             "timing": {"status": outcome["status"], "elapsed_ms": outcome["elapsed_ms"], "timeout_seconds": round(timeout, 3)},
         })
+        if on_event:
+            try:
+                on_event({
+                    "type": "tool_result",
+                    "operation_id": operation_id,
+                    "tool": call["tool"],
+                    "status": "completed" if result.success and not missing else "failed",
+                    "success": bool(result.success),
+                    "message": str(result.message or ("工具执行完成" if result.success else "工具执行失败"))[:300],
+                    "elapsed_ms": outcome["elapsed_ms"],
+                    "required_outputs": requirements,
+                    "satisfied_required_outputs": satisfied,
+                    "missing_required_outputs": missing,
+                    "followup": call["tool"] == "verify_math_result",
+                })
+            except Exception:
+                pass
 
         verification_request = (result.data or {}).get("verification_request") if isinstance(result.data, dict) else None
         if (

@@ -343,8 +343,11 @@ def test_chat_stream_clarifies_unresolved_reference_without_running_graph(monkey
     ]
 
     assert response.status_code == 200
-    assert [event["stage"] for event in events] == ["context", "generate", "generate", "done"]
-    assert events[0]["resolution_action"] == "clarify"
+    assert response.headers["cache-control"] == "no-cache, no-transform"
+    assert response.headers["x-accel-buffering"] == "no"
+    assert [event["stage"] for event in events] == ["execution", "context", "generate", "generate", "done"]
+    assert events[0]["execution_event"]["type"] == "progress"
+    assert events[1]["resolution_action"] == "clarify"
     assert events[-1]["state"]["retrieval_action"] == "none"
     assert events[-1]["state"]["conversation_context_pack"]["turn_ids"] == ["turn-1"]
     assert "text" not in events[-1]["state"]["conversation_context_pack"]

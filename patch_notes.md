@@ -1,3 +1,19 @@
+# 2026-08-26 - 问答执行轨迹统一事件流
+
+- 保留现有 SSE 与 `stage` 协议，新增版本化 `texa.execution/v1` 事件：用单调 `seq`、稳定 `operation_id` 和明确的 `type / phase / status` 描述真实进度、工具调用、工具结果、状态转换与终态；兼容层继续投影旧 `activity`。
+- Planner、教材检索与模型流改由 worker queue 驱动。阻塞超过 10 秒时只发送中性、低频的等待进度；首个可展示 token 到达后停止等待提示，不向前端暴露模型 thinking 或 hidden reasoning。
+- 工具编排在每次 registry 调用前后实时发送 `tool_call / tool_result`，运行中发现的数学校验工具按实际插入顺序呈现。LearningTask 仅有界保存关键状态转换、工具结果和终态，不保存 heartbeat、工具开始或 token delta。
+- 前端按 `seq + operation_id` 投影到现有 Learning Canvas / ExecutionTrace，忽略乱序和无序号的陈旧更新；移除固定阶段正文占位，正文区域只承载真实回答。
+- 根据真实长请求复核，补充发送后立即可见的本地 transport 状态；首个后端事件到达后明确切换为“执行流已连接”。运行中改为开放式事件日志并显示当前操作实际等待时长，终态默认折叠为低权重披露，不再把执行过程呈现为占据回答首屏的固定步骤卡。
+- 收紧终态“查看执行过程”披露控件：字号降为 caption 级，图标、箭头、行高和垂直点击留白同步减小，使其与“回答 / 教材依据 / 来源”元信息处于同一视觉层级。
+- SSE 响应显式设置 `no-cache, no-transform` 与 `X-Accel-Buffering: no`，避免桌面代理或中间层聚合小事件。真实记录显示最近一次长问答的 124.8 秒中，约 114 秒消耗在模型首个可展示 token 之前，而不是冷启动或检索阶段。
+
+## Validation
+
+- Python 全量回归：577 passed，1 个既有 Starlette/httpx 弃用警告；新增覆盖事件持久化边界、动态工具顺序、阻塞阶段 progress 与无 CoT 契约。
+- Frontend Vitest：19 files / 95 tests；ESLint 与 TypeScript + Vite production build 通过，仅保留既有 MathLive chunk 提示。
+- 运行态验证：SSE 建连后立即显示“读取会话上下文”，完成后按真实事件更新 ExecutionTrace；1024px 与 1440px 桌面宽度下无横向溢出，控制台无 warning/error。
+
 # 2026-08-23 - Canonical block 原生切分与索引 schema v5
 
 - `ChapterSplitter` 新增 `split_blocks()` / `split_canonical_book()`：公式块保持原子性；结构化表格过大时只按行拆分并为每个子块重复表题、表头；例题/习题的题干、条件与答案通过稳定 `parent_id` 关联；普通段落在相同章节和来源内累积后切分。

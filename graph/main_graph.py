@@ -5,6 +5,7 @@
 - Fast Path：definition/formula/property 跳过 plan LLM
 - 集成 ConceptMemory：回答后自动提取概念 + 附加学习提醒
 """
+import queue
 import threading
 import time
 from langgraph.graph import StateGraph, START, END
@@ -55,6 +56,106 @@ def build_main_graph() -> StateGraph:
 
 # 全局编译好的图实例（单例）
 _main_graph = None
+PROGRESS_INTERVAL_SECONDS = 10.0
+
+
+def _run_blocking_with_progress(
+    action,
+    *,
+    phase: str,
+    operation_id: str,
+    label: str,
+    summary: str,
+    interval_seconds: float | None = None,
+):
+    """Run blocking orchestration work while yielding neutral elapsed progress."""
+    result_queue: queue.Queue = queue.Queue(maxsize=1)
+
+    def execute() -> None:
+        try:
+            result_queue.put(("done", action()))
+        except Exception as exc:
+            result_queue.put(("error", exc))
+
+    threading.Thread(target=execute, name=f"graph-{phase}-progress", daemon=True).start()
+    interval = max(0.01, float(interval_seconds or PROGRESS_INTERVAL_SECONDS))
+    waiting_started = time.perf_counter()
+    while True:
+        try:
+            status, value = result_queue.get(timeout=interval)
+        except queue.Empty:
+            yield {
+                "stage": "progress",
+                "phase": phase,
+                "operation_id": operation_id,
+                "label": label,
+                "kind": "evidence" if phase == "retrieval" else "analysis",
+                "message": summary,
+                "waited_ms": round((time.perf_counter() - waiting_started) * 1000, 2),
+            }
+            continue
+        if status == "error":
+            raise value
+        return value
+
+
+def _iterate_stream_with_progress(
+    stream_factory,
+    *,
+    phase: str,
+    operation_id: str,
+    label: str,
+    summary: str,
+    interval_seconds: float | None = None,
+):
+    """Move a blocking provider iterator off the SSE producer thread."""
+    item_queue: queue.Queue = queue.Queue()
+    stop_requested = threading.Event()
+
+    def execute() -> None:
+        iterator = None
+        try:
+            iterator = iter(stream_factory())
+            for item in iterator:
+                if stop_requested.is_set():
+                    break
+                item_queue.put(("item", item))
+            item_queue.put(("done", None))
+        except Exception as exc:
+            item_queue.put(("error", exc))
+        finally:
+            close = getattr(iterator, "close", None)
+            if close:
+                try:
+                    close()
+                except Exception:
+                    pass
+
+    threading.Thread(target=execute, name=f"graph-{phase}-stream", daemon=True).start()
+    interval = max(0.01, float(interval_seconds or PROGRESS_INTERVAL_SECONDS))
+    waiting_started = time.perf_counter()
+    try:
+        while True:
+            try:
+                status, value = item_queue.get(timeout=interval)
+            except queue.Empty:
+                yield "progress", {
+                    "stage": "progress",
+                    "phase": phase,
+                    "operation_id": operation_id,
+                    "label": label,
+                    "kind": "reasoning",
+                    "message": summary,
+                    "waited_ms": round((time.perf_counter() - waiting_started) * 1000, 2),
+                }
+                continue
+            if status == "done":
+                return
+            if status == "error":
+                raise value
+            yield "item", value
+    finally:
+        stop_requested.set()
 
 
 def get_graph() -> StateGraph:
@@ -282,7 +383,14 @@ def run_graph_stream(
         state["_local_intent"] = intent
         state["_local_intent_hint"] = local_result["hint"]
         state["_local_intent_locked"] = bool(local_result.get("intent_locked"))
-        state.update(plan_node(state))
+        plan_result = yield from _run_blocking_with_progress(
+            lambda: plan_node(state),
+            phase="planning",
+            operation_id="understand",
+            label="理解问题与确定范围",
+            summary="问题范围分析仍在进行，正在等待可验证的规划结果",
+        )
+        state.update(plan_result)
         intent = state.get("intent", "qa")
         yield {
             "stage": "plan",
@@ -296,7 +404,14 @@ def run_graph_stream(
 
     # ── Retrieve ──
     if not reusable:
-        state.update(retrieve_node(state))
+        retrieval_result = yield from _run_blocking_with_progress(
+            lambda: retrieve_node(state),
+            phase="retrieval",
+            operation_id="retrieve",
+            label="检索教材上下文",
+            summary="仍在检索和筛选教材证据",
+        )
+        state.update(retrieval_result)
     yield {
         "stage": "retrieve",
         "content_count": len(state.get("chapter_contents", {})),
@@ -354,9 +469,22 @@ def run_graph_stream(
             )
             buffer = ""
             tf = ThinkingFilter()
-            for chunk in llm.stream(teach_prompt):
+            visible_started = False
+            for item_type, value in _iterate_stream_with_progress(
+                lambda: llm.stream(teach_prompt),
+                phase="generation",
+                operation_id="reason",
+                label="组织讲解路径",
+                summary="仍在等待推理服务返回可展示的讲解内容",
+            ):
+                if item_type == "progress":
+                    if not visible_started:
+                        yield value
+                    continue
+                chunk = value
                 text = tf.filter(chunk.content)
                 if text:
+                    visible_started = True
                     buffer += text
                     yield {"stage": "generate", "chunk": text, "done": False}
             # flush 剩余非 thinking 内容
@@ -437,9 +565,22 @@ def run_graph_stream(
                 llm = get_llm()
             buffer = ""
             tf = ThinkingFilter()
-            for chunk in llm.stream(prompt):
+            visible_started = False
+            for item_type, value in _iterate_stream_with_progress(
+                lambda: llm.stream(prompt),
+                phase="generation",
+                operation_id="reason",
+                label="组织回答",
+                summary="仍在等待推理服务返回可展示内容",
+            ):
+                if item_type == "progress":
+                    if not visible_started:
+                        yield value
+                    continue
+                chunk = value
                 text = tf.filter(chunk.content)
                 if text:
+                    visible_started = True
                     buffer += text
                     yield {"stage": "generate", "chunk": text, "done": False}
             final_flush = tf.flush()
