@@ -1,6 +1,6 @@
 /** TypeScript mapping for backend schemas.py */
 
-export type AnswerMode = 'auto' | 'textbook_grounded' | 'subject_general' | 'global_general' | 'subject_mismatch';
+export type AnswerMode = 'auto' | 'textbook_grounded' | 'visual_grounded' | 'subject_general' | 'global_general' | 'subject_mismatch';
 
 export type ActivityStatus = 'pending' | 'active' | 'completed' | 'skipped' | 'failed';
 export type ActivityKind = 'analysis' | 'tool' | 'evidence' | 'reasoning' | 'generation' | 'memory' | 'system';
@@ -133,6 +133,38 @@ export interface AssistantSource {
   heading_level?: number;
   page_idx?: number;
   label?: string;
+  figure_id?: string;
+  caption?: string;
+  asset_url?: string;
+  pdf_url?: string;
+}
+
+export interface VisualRegion {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+export interface FigureArtifact {
+  figure_id: string;
+  book_name: string;
+  caption: string;
+  source_text?: string;
+  page?: number | null;
+  page_idx?: number | null;
+  page_bbox: number[];
+  bbox_space: 'page' | string;
+  bbox_format: 'xyxy' | string;
+  bbox_units?: string;
+  section_path: string[];
+  source_file: string;
+  source_kind: string;
+  asset_status: 'ready' | 'missing' | 'invalid' | string;
+  image_width: number;
+  image_height: number;
+  image_url: string;
+  pdf_url: string;
 }
 
 export interface ConceptWiki {

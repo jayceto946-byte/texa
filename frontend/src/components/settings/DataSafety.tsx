@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Archive, Database, Loader2, RefreshCw, RotateCcw } from 'lucide-react';
+import { Database, Loader2, RefreshCw, RotateCcw } from 'lucide-react';
 import { get, post } from '../../api/client';
 
 type BackupItem = {
@@ -76,58 +76,58 @@ export default function DataSafety() {
   };
 
   return (
-    <section className="space-y-4">
-      <div className="rounded-xl border border-border bg-bg-card p-4">
-        <div className="flex items-start gap-3">
-          <Archive className="mt-0.5 h-5 w-5 text-accent" />
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold text-text-primary">学习数据备份</div>
-            <div className="mt-1 text-xs leading-5 text-text-secondary">默认备份教材、章节、错题、习题和学习记录，不包含 API Key。备份完成后会自动校验压缩包。</div>
-            {backupPath && <div className="mt-2 break-all text-[11px] text-text-secondary">保存位置：{backupPath}</div>}
-          </div>
+    <div className="settings-data-safety">
+      <section className="settings-section" aria-labelledby="backup-create-heading">
+        <div>
+          <h4 id="backup-create-heading" className="settings-section-title">学习数据备份</h4>
+          <p className="mt-1 settings-secondary">默认备份教材、章节、错题、习题和学习记录，不包含 API Key。备份完成后会自动校验压缩包。</p>
+          {backupPath && <p className="mt-2 break-all font-mono settings-secondary">保存位置：{backupPath}</p>}
         </div>
-        <label className="mt-4 flex items-start gap-2 text-xs text-text-secondary">
+        <label className="flex items-start gap-2 settings-secondary">
           <input type="checkbox" checked={includeDerived} onChange={(event) => setIncludeDerived(event.target.checked)} className="mt-0.5" />
           <span>同时备份向量库和 MinerU 产物（体积可能很大，但恢复后无需重新索引）</span>
         </label>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" onClick={create} disabled={Boolean(busy)} className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-60">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={create} disabled={Boolean(busy)} className="app-primary-button disabled:opacity-60">
             {busy === 'create' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}立即备份
           </button>
-          <button type="button" onClick={() => load()} disabled={Boolean(busy)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:border-accent disabled:opacity-60">
+          <button type="button" onClick={() => load()} disabled={Boolean(busy)} className="app-secondary-button disabled:opacity-60">
             <RefreshCw className="h-4 w-4" />刷新列表
           </button>
         </div>
-      </div>
+      </section>
 
-      {message && <div className="rounded-lg border border-border bg-bg-card px-3 py-2 text-sm text-text-secondary">{message}</div>}
+      {message && <div role="status" className="border-l-2 border-border px-3 py-1 settings-secondary">{message}</div>}
       {lastRestore?.status && (
-        <div className={`rounded-lg border p-3 text-xs ${lastRestore.status === 'completed' ? 'border-[#bfd4c6] bg-[#edf6f0] text-[var(--success)]' : 'border-red-200 bg-red-50 text-[var(--danger)]'}`}>
+        <div className={`rounded-md border p-3 settings-secondary ${lastRestore.status === 'completed' ? 'status-success' : 'status-danger'}`}>
           最近合并恢复：{lastRestore.status === 'completed' ? '已完成' : '失败并已回滚'} · {lastRestore.archive}
           {lastRestore.status === 'completed' && lastRestore.reindex_required && ' · 已移除不匹配的向量索引，请在教材管理中重新索引'}
           {lastRestore.status === 'completed' && lastRestore.preserved_unlisted?.length > 0 && ` · 已保留 ${lastRestore.preserved_unlisted.length} 个备份未包含的数据目录`}
         </div>
       )}
 
-      <div className="space-y-2">
-        {items.length === 0 && <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-text-secondary">还没有备份</div>}
-        {items.map((item) => (
-          <article key={item.name} className="rounded-xl border border-border bg-bg-card p-4">
+      <section className="settings-section" aria-labelledby="backup-existing-heading">
+        <h4 id="backup-existing-heading" className="settings-section-title">已有备份</h4>
+        {items.length === 0 && <p className="py-4 settings-secondary">还没有备份。</p>}
+        {items.length > 0 && <div className="settings-row-list">
+          {items.map((item) => (
+          <article key={item.name} className="settings-row px-0">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="break-all text-sm font-medium text-text-primary">{item.name}</div>
-                <div className="mt-1 text-xs text-text-secondary">
+                <div className="break-all settings-row-title">{item.name}</div>
+                <div className="mt-1 settings-secondary">
                   {item.created_at ? new Date(item.created_at).toLocaleString() : '时间未知'} · {formatBytes(item.size)} · {item.file_count || 0} 个文件 · v{item.app_version || '未知'}
                 </div>
-                <div className="mt-1 text-[11px] text-text-secondary">{item.valid ? `SHA-256 ${item.sha256?.slice(0, 16)}…` : `校验失败：${item.error || '未知错误'}`}</div>
+                <div className="mt-1 font-mono settings-secondary">{item.valid ? `SHA-256 ${item.sha256?.slice(0, 16)}…` : `校验失败：${item.error || '未知错误'}`}</div>
               </div>
-              <button type="button" onClick={() => restore(item)} disabled={!item.valid || Boolean(busy)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:border-accent disabled:opacity-50">
+              <button type="button" onClick={() => restore(item)} disabled={!item.valid || Boolean(busy)} className="app-secondary-button disabled:opacity-50">
                 {busy === item.name ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}合并恢复
               </button>
             </div>
           </article>
-        ))}
-      </div>
-    </section>
+          ))}
+        </div>}
+      </section>
+    </div>
   );
 }

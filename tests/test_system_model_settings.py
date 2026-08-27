@@ -53,6 +53,30 @@ def test_named_profile_keeps_secret_out_of_profile_file(tmp_path, monkeypatch):
     assert "LLM_CREDENTIAL_DEEPSEEK_API_KEY=profile-secret" in env_path.read_text(encoding="utf-8")
 
 
+def test_custom_model_display_name_round_trips_without_entering_env(tmp_path, monkeypatch):
+    env_path = tmp_path / ".env"
+    profile_path = tmp_path / "model_profiles.json"
+    monkeypatch.setattr(system, "ENV_PATH", env_path)
+    monkeypatch.setattr(profiles, "PROFILE_PATH", profile_path)
+    payload = model_settings_payload({})
+    payload.update({"id": "custom-course", "name": "课程模型"})
+    payload["roles"]["reasoning"].update({
+        "provider": "openai_compatible",
+        "model": "qwen3.7-plus",
+        "display_name": "课程专用 Qwen",
+        "credential_id": "custom-course-reasoning",
+    })
+    payload["endpoints"]["reasoning"]["base_url"] = "https://gateway.example/v1"
+
+    result = system.save_model_profile({"profile": payload, "activate": True})
+
+    assert result["success"] is True
+    assert result["data"]["roles"]["reasoning"]["model"] == "qwen3.7-plus"
+    assert result["data"]["roles"]["reasoning"]["display_name"] == "课程专用 Qwen"
+    assert '"display_name": "课程专用 Qwen"' in profile_path.read_text(encoding="utf-8")
+    assert "课程专用 Qwen" not in env_path.read_text(encoding="utf-8")
+
+
 def test_integrated_profile_uses_one_model_for_both_compatible_roles(tmp_path, monkeypatch):
     for key in (
         "LLM_REASONING_PROVIDER", "LLM_REASONING_MODEL", "LLM_REASONING_CREDENTIAL_ID", "LLM_REASONING_BASE_URL",

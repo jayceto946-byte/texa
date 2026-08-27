@@ -6,7 +6,7 @@ import { formatLearningScopeLabel, scopeContainsBook, type TextbookScopeOption }
 
 export type ScopeBookOption = TextbookScopeOption;
 
-type SubjectNode = {
+export type ScopeSubjectNode = {
   name: string;
   children?: string[];
 };
@@ -15,7 +15,7 @@ type Placement = 'top' | 'bottom';
 type Width = 'compact' | 'normal' | 'wide';
 type BookMode = 'optional' | 'hidden';
 
-const DEFAULT_SUBJECT_TREE: SubjectNode[] = [
+const DEFAULT_SUBJECT_TREE: ScopeSubjectNode[] = [
   { name: '数学', children: ['高数', '线代', '概率论'] },
   { name: '英语', children: ['阅读', '写作', '翻译', '词汇'] },
   { name: '政治', children: ['马原', '毛中特', '史纲', '思修'] },
@@ -43,7 +43,7 @@ function subjectValue(parent: string, child = '') {
   return nextChild ? `${nextParent}/${nextChild}` : nextParent;
 }
 
-function addNode(target: SubjectNode[], parent: string, child = '') {
+function addNode(target: ScopeSubjectNode[], parent: string, child = '') {
   const nextParent = clean(parent);
   const nextChild = clean(child);
   if (!nextParent) return;
@@ -57,8 +57,8 @@ function addNode(target: SubjectNode[], parent: string, child = '') {
   }
 }
 
-function mergeSubjectTree(managed: SubjectNode[], suggestions: string[], books: ScopeBookOption[]) {
-  const merged: SubjectNode[] = [];
+function mergeSubjectTree(managed: ScopeSubjectNode[], suggestions: string[], books: ScopeBookOption[]) {
+  const merged: ScopeSubjectNode[] = [];
   const ingest = (value: string) => {
     const { parent, child } = splitSubject(value);
     addNode(merged, parent, child);
@@ -78,7 +78,7 @@ function mergeSubjectTree(managed: SubjectNode[], suggestions: string[], books: 
   return merged.filter((node) => node.name);
 }
 
-function inferSubject(value: string, tree: SubjectNode[]) {
+function inferSubject(value: string, tree: ScopeSubjectNode[]) {
   const raw = clean(value);
   if (!raw) return { parent: '', child: '', value: '' };
   const direct = splitSubject(raw);
@@ -127,6 +127,7 @@ export default function ScopeSelector({
   onSubjectChange,
   onBookChange,
   suggestions = [],
+  subjectTree,
   label = '选择科目',
   placeholder = '选择科目',
   allowAllSubjects = false,
@@ -144,6 +145,7 @@ export default function ScopeSelector({
   onSubjectChange: (value: string) => void;
   onBookChange?: (value: string) => void;
   suggestions?: string[];
+  subjectTree?: ScopeSubjectNode[];
   label?: string;
   placeholder?: string;
   allowAllSubjects?: boolean;
@@ -159,20 +161,21 @@ export default function ScopeSelector({
   const popupRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [popupStyle, setPopupStyle] = useState<CSSProperties | null>(null);
-  const [managedSubjects, setManagedSubjects] = useState<SubjectNode[]>([]);
+  const [loadedSubjects, setLoadedSubjects] = useState<ScopeSubjectNode[]>([]);
 
   useEffect(() => {
+    if (subjectTree) return;
     let cancelled = false;
     get('/system/settings/subjects', 15000)
       .then((res) => {
         if (cancelled || !res?.success) return;
-        setManagedSubjects(Array.isArray(res.data) ? res.data : []);
+        setLoadedSubjects(Array.isArray(res.data) ? res.data : []);
       })
       .catch(() => undefined);
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [subjectTree]);
 
   const updatePopupPosition = useCallback(() => {
     const rect = rootRef.current?.getBoundingClientRect();
@@ -230,6 +233,7 @@ export default function ScopeSelector({
   }, [open]);
 
   const scopeBooks = books;
+  const managedSubjects = subjectTree || loadedSubjects;
   const tree = useMemo(() => mergeSubjectTree(managedSubjects, suggestions, scopeBooks), [managedSubjects, suggestions, scopeBooks]);
   const active = useMemo(() => inferSubject(subject, tree), [subject, tree]);
   const activeParent = active.parent || (allowAllSubjects ? '' : tree[0]?.name || '');

@@ -11,10 +11,10 @@ export default function AppearanceSettings() {
   };
 
   return (
-    <section aria-labelledby="appearance-theme-heading">
-      <div className="mb-3">
-        <h3 id="appearance-theme-heading" className="type-section text-text-primary">主题色</h3>
-        <p className="mt-1 text-xs leading-5 text-text-secondary">选择后立即应用，并保存在当前设备。</p>
+    <section aria-labelledby="appearance-theme-heading" className="settings-section">
+      <div>
+        <h4 id="appearance-theme-heading" className="settings-section-title">主题色</h4>
+        <p className="mt-1 settings-secondary">选择后立即应用，并保存在当前设备。</p>
       </div>
       <div className="appearance-theme-list" role="radiogroup" aria-label="主题色">
         {TEXA_THEMES.map((theme) => {

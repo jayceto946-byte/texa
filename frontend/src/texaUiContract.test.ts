@@ -13,12 +13,16 @@ import composerOverflow from './components/chat/ComposerOverflowMenu.tsx?raw';
 import appearance from './components/settings/AppearanceSettings.tsx?raw';
 import settings from './components/SystemHealth.tsx?raw';
 import booksImport from './pages/BooksPage.tsx?raw';
-import library from './components/settings/LibraryManager.tsx?raw';
+import library from './components/settings/LibraryWorkbench.tsx?raw';
 import modelSettings from './components/settings/ModelSettingsManager.tsx?raw';
 import theme from './theme.ts?raw';
 import desktopTitleBar from './components/DesktopTitleBar.tsx?raw';
 import desktopMain from '../../desktop/main.cjs?raw';
 import loading from '../../desktop/loading.html?raw';
+import dialog from './components/ui/Dialog.tsx?raw';
+import settingsDialog from './components/settings/SettingsDialog.tsx?raw';
+import scopeSelector from './components/ScopeSelector.tsx?raw';
+import figureViewer from './features/visual-learning/FigureRegionViewer.tsx?raw';
 
 describe('Texa product UI contract', () => {
   it('keeps Library as the object and import as a nested action', () => {
@@ -37,7 +41,7 @@ describe('Texa product UI contract', () => {
   });
 
   it('separates product navigation from learning context', () => {
-    expect(shell).toContain('<AppRail />');
+    expect(shell).toContain('<AppRail onOpenSettings={openSettings} settingsButtonRef={settingsButtonRef} />');
     expect(shell).toContain('<LearningContextSidebar');
     expect(rail).not.toContain('ScopeSelector');
     expect(rail).not.toContain('新会话');
@@ -71,8 +75,19 @@ describe('Texa product UI contract', () => {
     expect(chatPage).not.toContain('chat-toolbar mx-auto');
   });
 
+  it('keeps textbook Figure selection inside the Learning Canvas with normalized keyboard-accessible regions', () => {
+    expect(chatPage).toContain('<FigureRegionViewer');
+    expect(chatPage).toContain('aria-label="选择教材图片"');
+    expect(figureViewer).toContain('normalizedPoint');
+    expect(figureViewer).toContain('onPointerDown');
+    expect(figureViewer).toContain('onKeyDown');
+    expect(figureViewer).toContain('Shift + 方向键');
+    expect(figureViewer).not.toContain('gradient');
+    expect(figureViewer).not.toContain('Sparkles');
+  });
+
   it('uses a semantic, locally persisted appearance theme registry', () => {
-    expect(settings).toContain("{ id: 'appearance', label: '外观' }");
+    expect(settings).toContain("{ label: '常规', items: [{ id: 'appearance', label: '外观' }] }");
     expect(settings).toContain('<AppearanceSettings />');
     expect(appearance).toContain('role="radiogroup"');
     expect(appearance).toContain('applyTexaTheme(nextThemeId)');
@@ -82,6 +97,29 @@ describe('Texa product UI contract', () => {
     expect(theme).toContain("id: 'notebook'");
     expect(theme).toContain("id: 'codex'");
     expect(theme).toContain("'--color-accent'");
+  });
+
+  it('opens settings as a focus-managed utility dialog over the current workspace', () => {
+    expect(app).toContain('<Navigate to="/" replace state={{ openSettings: true }} />');
+    expect(rail).toContain('aria-haspopup="dialog"');
+    expect(rail).not.toContain('to="/settings"');
+    expect(shell).toContain('<SettingsDialog open={settingsOpen} onClose={closeSettings} />');
+    expect(settingsDialog).toContain('className="settings-dialog"');
+    expect(settingsDialog).toContain('<SettingsPage />');
+    expect(dialog).toContain('role="dialog"');
+    expect(dialog).toContain('aria-modal="true"');
+    expect(dialog).toContain("event.key === 'Escape'");
+    expect(dialog).toContain("event.key !== 'Tab'");
+    expect(dialog).toContain('returnFocusRef.current?.focus()');
+  });
+
+  it('uses one settings page grammar and keeps commit actions separate from local actions', () => {
+    expect(settings).not.toContain('<h2 className="app-page-title">设置</h2>');
+    expect(settings).toContain('className="settings-page-header"');
+    expect(settings).toContain('className="settings-section"');
+    expect(settings).toContain('className="settings-page-actions"');
+    expect(settings).toContain('className="app-ghost-button flex-shrink-0"');
+    expect(settings).toContain('>保存更改</button>');
   });
 
   it('renders a question as a lightweight query header with a separate attachment row', () => {
@@ -122,7 +160,7 @@ describe('Texa product UI contract', () => {
   });
 
   it('centers the existing composer with the prompt only before the first message', () => {
-    expect(chatPage).toContain("data-empty={messages.length === 0 ? 'true' : 'false'}");
+    expect(chatPage).toContain("data-empty={messages.length === 0 && !activeFigure ? 'true' : 'false'}");
     expect(chatPage.match(/className="chat-composer"/g)).toHaveLength(1);
   });
 
@@ -133,11 +171,31 @@ describe('Texa product UI contract', () => {
     expect(firstRun).toContain("'/system/settings/models/test'");
   });
 
-  it('presents split and integrated image handling without a direct-answer mode', () => {
-    expect(modelSettings).toContain('识图 / 推理分离');
-    expect(modelSettings).toContain('集成回复');
+  it('presents shared and independent vision handling without internal architecture terms', () => {
+    expect(modelSettings).toContain('使用推理模型');
+    expect(modelSettings).toContain('使用独立视觉模型');
     expect(modelSettings).toContain("value.multimodal_mode === 'native' ? ['vision'] : ['reasoning', 'vision']");
+    expect(modelSettings).not.toContain('ProviderRail');
+    expect(modelSettings).not.toContain('集成回复');
     expect(modelSettings).not.toContain('识图模型直接解答');
+  });
+
+  it('reuses the shared scrollable select for every model-settings list', () => {
+    expect(modelSettings.match(/<ScrollableSelect/g)).toHaveLength(4);
+    expect(modelSettings).toContain('showSelectedDescription={false}');
+    expect(modelSettings).toContain("label: '添加自定义模型…'");
+    expect(modelSettings).toContain('显示名称');
+    expect(modelSettings).toContain('placeholder="例如：qwen3.7-plus"');
+    expect(modelSettings.match(/\n\s+compact\n/g)).toHaveLength(4);
+    expect(modelSettings).not.toContain('仅用于在 Texa 中显示');
+    expect(modelSettings).not.toContain('通常由小写字母');
+    expect(modelSettings).not.toContain('<select');
+  });
+
+  it('keeps textbook parsing outside the model-provider flow', () => {
+    expect(settings).toContain("{ id: 'ingestion', label: '教材解析' }");
+    expect(settings).toContain('配置教材导入时使用的 MinerU 文档解析服务');
+    expect(settings).not.toContain('这些设置独立于模型 Provider');
   });
 
   it('preserves typed ONNX repair states in the Electron startup UI', () => {
@@ -152,12 +210,43 @@ describe('Texa product UI contract', () => {
   });
 
   it('keeps textbook readiness actionable without overstating semantic quality', () => {
-    expect(library).toContain('检索索引');
-    expect(library).toContain('Canonical IR');
-    expect(library).toContain('语义质量');
-    expect(library).toContain('未验证，不等同答案准确');
-    expect(library).toContain('重新索引');
+    expect(library).toContain('索引与 IR');
+    expect(library).toContain('<b>检索</b>');
+    expect(library).toContain('<b>IR</b>');
+    expect(library).toContain('语义质量尚未人工验证');
+    expect(library).not.toContain('未验证，不等同答案准确');
+    expect(library).toContain('重索引');
     expect(settings).toContain('/reindex');
+  });
+
+  it('keeps textbook management as a dense workbench with inline category editing and archive filtering', () => {
+    expect(settings).toContain('library-page-main');
+    expect(settings).toContain('<LibraryWorkbench');
+    expect(library).toContain('library-workbench');
+    expect(library).toContain('renamingCategory');
+    expect(library).toContain("useState<'active' | 'archived'>('active')");
+    expect(library).toContain('library-list-columns');
+    expect(library).not.toContain('回答时优先参考。');
+    expect(library).not.toContain('用于补充主要教材的内容。');
+  });
+
+  it('reuses the managed subject hierarchy for textbook assignment', () => {
+    expect(library).toContain('<ScopeSelector');
+    expect(library).toContain('subjectTree={subjects}');
+    expect(library).toContain('bookMode="hidden"');
+    expect(library).not.toContain('<ScrollableSelect');
+    expect(scopeSelector).toContain('subjectTree?: ScopeSubjectNode[]');
+    expect(scopeSelector).toContain('if (subjectTree) return;');
+  });
+
+  it('keeps one library toolbar and dismisses non-error health feedback', () => {
+    expect(settings).toContain('library-page-heading');
+    expect(settings).toContain('app-page-header border-b border-border bg-bg-primary');
+    expect(settings).not.toContain('教材管理</h2>');
+    expect(settings).toContain("window.setTimeout(() => setMessage(''), 3600)");
+    expect(settings).toContain("['available', 'downloading', 'downloaded', 'installing', 'error']");
+    expect(settings).toContain("/开发模式|不执行自动更新|无需更新|最新版本/");
+    expect(settings).toContain("feedbackKind(version.message) === 'error'");
   });
 
   it('checks MinerU before selecting it and exposes the output-bundle fallback', () => {

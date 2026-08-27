@@ -1,20 +1,20 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { AlertTriangle, CheckCircle2, CircleX, RefreshCw, Save } from 'lucide-react';
+import { AlertTriangle, BookOpen, CheckCircle2, CircleX, RefreshCw, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { del, get, patch, post } from '../api/client';
 import { useSystemHealth } from '../hooks/useSystemHealth';
 import { useChatContext } from '../contexts/ChatContext';
 import type { SystemHealthStatus } from '../types';
-import LibraryManager, { type LibraryBook } from './settings/LibraryManager';
+import LibraryWorkbench, { type LibraryBook } from './settings/LibraryWorkbench';
 import DataSafety from './settings/DataSafety';
 import AppearanceSettings from './settings/AppearanceSettings';
 import type { ModelSettingsValue } from './settings/ModelSettingsForm';
 import ModelSettingsManager from './settings/ModelSettingsManager';
-import { PageState, StatusBanner } from './ui/AsyncState';
+import { PageState, StatusBanner, type AsyncStateKind } from './ui/AsyncState';
 
 type SubjectNode = { name: string; children: string[] };
 type ManagedBook = LibraryBook & { size?: number };
-type Tab = 'health' | 'version' | 'data' | 'subjects' | 'models' | 'appearance';
+type Tab = 'health' | 'version' | 'data' | 'subjects' | 'models' | 'appearance' | 'ingestion';
 
 const statusMeta: Record<SystemHealthStatus, { label: string; icon: typeof CheckCircle2; iconClass: string; className: string }> = {
   healthy: { label: '系统正常', icon: CheckCircle2, iconClass: 'text-[var(--success)]', className: 'status-success' },
@@ -28,12 +28,24 @@ function componentMessage(key: string, message = '') {
   if (key === 'runtime_config' && /LLM configuration is ready/i.test(message)) return '模型配置已就绪';
   return message;
 }
-const SETTINGS_TABS: Array<{ id: Tab; label: string }> = [
-  { id: 'health', label: '服务器健康' },
-  { id: 'version', label: '版本更新' },
-  { id: 'data', label: '备份恢复' },
-  { id: 'appearance', label: '外观' },
-  { id: 'models', label: '模型配置' },
+
+function feedbackKind(message: string): AsyncStateKind {
+  if (/失败|异常|错误|不可用/.test(message)) return 'error';
+  if (/正在|检查中|下载中|安装中/.test(message)) return 'loading';
+  if (/开发模式|不执行自动更新|无需更新|最新版本/.test(message)) return 'info';
+  return 'success';
+}
+const SETTINGS_GROUPS: Array<{ label: string; items: Array<{ id: Tab; label: string }> }> = [
+  { label: '常规', items: [{ id: 'appearance', label: '外观' }] },
+  { label: '系统', items: [
+    { id: 'health', label: '服务器健康' },
+    { id: 'version', label: '版本更新' },
+    { id: 'data', label: '备份恢复' },
+  ] },
+  { label: '模型', items: [
+    { id: 'models', label: '模型配置' },
+    { id: 'ingestion', label: '教材解析' },
+  ] },
 ];
 
 function subjectPath(parent?: string, child?: string) {
@@ -110,6 +122,14 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
   }, []);
 
   useEffect(() => {
+    if (!message) return;
+    const kind = feedbackKind(message);
+    if (kind === 'error' || kind === 'loading') return;
+    const timer = window.setTimeout(() => setMessage(''), 3600);
+    return () => window.clearTimeout(timer);
+  }, [message]);
+
+  useEffect(() => {
     if (selectedSubjectIndex < 0) return;
     if (!subjects.length) {
       setSelectedSubjectIndex(0);
@@ -131,6 +151,10 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
   const selectedSubject = subjects[selectedSubjectIndex] || null;
   const selectedChild = selectedSubject && selectedChildIndex !== null ? selectedSubject.children[selectedChildIndex] || '' : '';
   const targetSubject = subjectPath(selectedSubject?.name, selectedChild);
+  const activeBookCount = books.filter((book) => book.lifecycle_status !== 'archived').length;
+  const persistentUpdateMessage = desktopUpdate && ['available', 'downloading', 'downloaded', 'installing', 'error'].includes(desktopUpdate.status)
+    ? desktopUpdate.message
+    : version?.message && feedbackKind(version.message) === 'error' ? version.message : '';
 
 
   const saveModels = async () => {
@@ -140,10 +164,14 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
       activate: true,
       profile: { ...modelDraft, id: modelDraft.editing_profile_id, name: modelDraft.profile_name },
     }, 20000);
-    if (res?.success && Object.values(envDraft).some((value) => value.trim())) {
-      await post('/system/settings/env', envDraft, 20000);
-    }
     setMessage(res?.message || (res?.success ? '已保存' : '保存失败'));
+    if (res?.success) await loadSettings();
+  };
+
+  const saveIngestion = async () => {
+    setMessage('');
+    const res = await post('/system/settings/env', envDraft, 20000);
+    setMessage(res?.message || (res?.success ? '教材解析配置已保存' : '保存失败'));
     if (res?.success) await loadSettings();
   };
 
@@ -357,15 +385,19 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
   if (standaloneTab === 'subjects') {
     return (
       <div className="flex h-full min-w-0 flex-col bg-bg-primary">
-        <header className="app-page-header border-b border-border bg-bg-card">
-          <div>
+        <header className="app-page-header border-b border-border bg-bg-primary">
+          <div className="library-page-heading">
             <h2 className="app-page-title">教材库</h2>
+            <span>{activeBookCount} 本活跃教材</span>
           </div>
-          <div className="window-drag-region" aria-hidden="true" />
+          <div className="library-page-actions">
+            <button onClick={openBookImport} className="app-secondary-button"><BookOpen className="h-4 w-4" />导入教材</button>
+            <button onClick={() => saveSubjects()} className="app-primary-button"><Save className="h-4 w-4" />保存目录</button>
+          </div>
         </header>
-        <main className="mx-auto min-h-0 w-full max-w-6xl flex-1 overflow-y-auto p-4 sm:p-5">
-          {message && <div className="mb-4"><StatusBanner kind={message.includes('失败') || message.includes('异常') ? 'error' : message.includes('正在') ? 'loading' : 'success'} title={message} /></div>}
-          <LibraryManager
+        <main className="library-page-main min-h-0 min-w-0 flex-1">
+          {message && <div className="library-transient-feedback"><StatusBanner kind={feedbackKind(message)} title={message} /></div>}
+          <LibraryWorkbench
             subjects={subjects}
             books={books}
             selectedSubjectIndex={selectedSubjectIndex}
@@ -377,8 +409,6 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
             onRenameChild={updateChildName}
             onDeleteSubject={deleteSubject}
             onDeleteChild={deleteChild}
-            onSaveSubjects={() => saveSubjects()}
-            onImportBook={openBookImport}
             onRefresh={loadBooks}
             onMoveBook={moveBookToTarget}
             onSwitchBook={switchManagedBook}
@@ -397,107 +427,124 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
   }
 
   return (
-    <div className="flex h-full min-w-0 flex-col bg-bg-primary">
-      <header className="app-page-header border-b border-border bg-bg-card">
-        <h2 className="app-page-title">设置</h2>
-        <div className="window-drag-region" aria-hidden="true" />
-      </header>
-      <div className="mx-auto grid min-h-0 w-full max-w-5xl flex-1 grid-cols-1 md:grid-cols-[168px_minmax(0,1fr)]">
-        <SettingsSidebar tab={tab} onTabChange={setTab} />
-  <main className="min-h-0 overflow-y-auto p-5">
-    {message && <div className="mb-4"><StatusBanner kind={message.includes('失败') || message.includes('异常') ? 'error' : message.includes('正在') ? 'loading' : 'success'} title={message} /></div>}
+    <div className="settings-dialog-body">
+      <SettingsSidebar tab={tab} onTabChange={(nextTab) => { setMessage(''); setTab(nextTab); }} />
+      <main className="settings-content-pane">
+        {message && <div className="mb-5"><StatusBanner kind={feedbackKind(message)} title={message} /></div>}
 
-    {tab === 'health' && (
-      <section className="space-y-4">
-        {loading && !health && <PageState kind="loading" title="正在检查系统状态" />}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-medium text-text-primary"><StatusIcon className={`h-4 w-4 ${meta.iconClass}`} />{meta.label}</div>
-          <button onClick={loadHealth} className="app-secondary-button min-h-8 px-3 text-xs"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />重新检查</button>
-        </div>
-        <div className="app-panel divide-y divide-border overflow-hidden">
-          {health && Object.entries(health.components).map(([key, item]) => {
-            const itemMeta = statusMeta[item.status] || statusMeta.degraded;
-            const ItemIcon = itemMeta.icon;
-            return (
-              <div key={key} className="flex items-start gap-3 px-4 py-3.5">
-                <ItemIcon className={`mt-0.5 h-4 w-4 flex-shrink-0 ${itemMeta.iconClass}`} />
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium text-text-primary">{componentLabels[key] || '系统组件'}</div>
-                  <div className="mt-0.5 text-xs leading-5 text-text-secondary">{componentMessage(key, item.message)}</div>
+        {tab === 'health' && (
+          <section className="settings-page">
+            <SettingsPageHeader title="服务器健康" description="查看 Texa 本地服务与数据组件的运行状态。" />
+            {loading && !health && <PageState kind="loading" title="正在检查系统状态" />}
+            <section className="settings-section" aria-labelledby="health-status-heading">
+              <div className="settings-section-header">
+                <div>
+                  <h4 id="health-status-heading" className="settings-section-title">系统状态</h4>
+                  <div className="mt-2 flex items-center gap-2 settings-row-title"><StatusIcon className={`h-4 w-4 ${meta.iconClass}`} />{meta.label}</div>
                 </div>
-                {key === 'vector_store' && (
-                  <button type="button" onClick={reloadVectorStore} className="app-secondary-button min-h-8 flex-shrink-0 px-3 text-xs"><RefreshCw className="h-3.5 w-3.5" />重载</button>
-                )}
+                <button onClick={loadHealth} className="app-secondary-button"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />重新检查</button>
               </div>
-            );
-          })}
-        </div>
-      </section>
-    )}
-
-    {tab === 'version' && (
-      <section className="space-y-4">
-        <div className="rounded-xl border border-border bg-bg-card p-4 text-sm text-text-primary">
-          <div>当前版本：{desktopUpdate?.currentVersion || version?.version || '未知'}</div>
-          <div className="mt-2 text-text-secondary">分支：{version?.branch || '未知'} / 提交：{version?.commit || '未知'}</div>
-          <div className="mt-2 text-xs text-text-secondary">{desktopUpdate?.message || version?.message || '正在读取版本信息...'}</div>
-          <div className="mt-2 text-xs text-text-secondary">本软件使用 HarmonyOS Sans 字体。Copyright 2021 Huawei Device Co., Ltd.</div>
-        </div>
-        {desktopUpdate?.updateInfo?.version && <div className="rounded-xl border border-[#bfd4c6] bg-[#edf6f0] p-4 text-sm text-[var(--success)]">可更新到：{desktopUpdate.updateInfo.version}</div>}
-        {desktopUpdate?.status === 'downloading' && (
-          <div className="rounded-xl border border-border bg-bg-card p-4">
-            <div className="mb-2 flex justify-between text-xs text-text-secondary"><span>下载进度</span><span>{Math.round(desktopUpdate?.progress?.percent || 0)}%</span></div>
-            <div className="h-2 overflow-hidden rounded-full bg-bg-secondary"><div className="h-full rounded-full bg-accent" style={{ width: `${Math.round(desktopUpdate?.progress?.percent || 0)}%` }} /></div>
-          </div>
+              <div className="settings-row-list">
+                {health && Object.entries(health.components).map(([key, item]) => {
+                  const itemMeta = statusMeta[item.status] || statusMeta.degraded;
+                  const ItemIcon = itemMeta.icon;
+                  return (
+                    <div key={key} className="settings-row">
+                      <ItemIcon className={`mt-0.5 h-4 w-4 flex-shrink-0 ${itemMeta.iconClass}`} />
+                      <div className="min-w-0 flex-1">
+                        <div className="settings-row-title">{componentLabels[key] || '系统组件'}</div>
+                        <div className="mt-1 settings-secondary">{componentMessage(key, item.message)}</div>
+                      </div>
+                      {key === 'vector_store' && <button type="button" onClick={reloadVectorStore} className="app-ghost-button flex-shrink-0"><RefreshCw className="h-3.5 w-3.5" />重载</button>}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </section>
         )}
-        <div className="flex flex-wrap gap-2">
-          <button onClick={loadVersion} className="rounded-lg border border-border px-3 py-2 text-sm hover:border-accent">读取版本</button>
-          <button onClick={updateApp} className="rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover">检查更新</button>
-          {desktopUpdate?.status === 'available' && <button onClick={downloadUpdate} className="rounded-lg border border-border px-3 py-2 text-sm hover:border-accent">下载更新</button>}
-          {desktopUpdate?.status === 'downloaded' && <button onClick={installUpdate} className="rounded-lg border border-border px-3 py-2 text-sm hover:border-accent">重启安装</button>}
-        </div>
-      </section>
-    )}
 
-    {tab === 'data' && (
-      <DataSafety />
-    )}
+        {tab === 'version' && (
+          <section className="settings-page">
+            <SettingsPageHeader title="版本更新" description="查看当前版本并检查 Texa 更新。" />
+            <section className="settings-section" aria-labelledby="version-current-heading">
+              <h4 id="version-current-heading" className="settings-section-title">当前版本</h4>
+              <dl className="settings-definition-list">
+                <div><dt>版本</dt><dd>{desktopUpdate?.currentVersion || version?.version || '未知'}</dd></div>
+                <div><dt>分支</dt><dd>{version?.branch || '未知'}</dd></div>
+                <div><dt>提交</dt><dd className="font-mono">{version?.commit || '未知'}</dd></div>
+              </dl>
+              {persistentUpdateMessage && <p className="settings-secondary">{persistentUpdateMessage}</p>}
+              <p className="settings-secondary">本软件使用 HarmonyOS Sans 字体。Copyright 2021 Huawei Device Co., Ltd.</p>
+              {desktopUpdate?.updateInfo?.version && <div className="status-success rounded-md border p-3 text-sm">可更新到 {desktopUpdate.updateInfo.version}</div>}
+              {desktopUpdate?.status === 'downloading' && (
+                <div>
+                  <div className="mb-2 flex justify-between settings-secondary"><span>下载进度</span><span>{Math.round(desktopUpdate?.progress?.percent || 0)}%</span></div>
+                  <div className="h-2 overflow-hidden rounded-full bg-bg-secondary"><div className="h-full rounded-full bg-accent" style={{ width: `${Math.round(desktopUpdate?.progress?.percent || 0)}%` }} /></div>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2 pt-1">
+                <button onClick={loadVersion} className="app-secondary-button">读取版本</button>
+                <button onClick={updateApp} disabled={desktopUpdate?.status === 'checking'} className="app-primary-button">{desktopUpdate?.status === 'checking' ? '检查中' : '检查更新'}</button>
+                {desktopUpdate?.status === 'available' && <button onClick={downloadUpdate} className="app-secondary-button">下载更新</button>}
+                {desktopUpdate?.status === 'downloaded' && <button onClick={installUpdate} className="app-secondary-button">重启安装</button>}
+              </div>
+            </section>
+          </section>
+        )}
 
-    {tab === 'appearance' && <AppearanceSettings />}
+        {tab === 'data' && <section className="settings-page"><SettingsPageHeader title="备份恢复" description="备份学习数据，并在需要时恢复。" /><DataSafety /></section>}
 
-    {tab === 'models' && (
-      <section className="space-y-4">
-        {modelDraft ? <ModelSettingsManager value={modelDraft} onChange={setModelDraft} onActivateProfile={activateModelProfile} onDeleteProfile={deleteModelProfile} onTestConnection={testModelConnection} /> : <PageState kind="loading" title="正在读取模型配置" />}
-        <details className="rounded-xl border border-border bg-bg-card p-4">
-          <summary className="cursor-pointer text-sm font-medium text-text-primary">教材解析服务</summary>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <Field label="MinerU API URL"><input value={envDraft.MINERU_API_URL || ''} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_API_URL: e.target.value })} placeholder="http://127.0.0.1:9001" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-            <Field label="本地 MinerU CLI（可选）"><input value={envDraft.MINERU_CLI_COMMAND || ''} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_CLI_COMMAND: e.target.value })} placeholder="mineru -p {input} -o {output}" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm" /></Field>
-          </div>
-        </details>
-        <button onClick={saveModels} disabled={!modelDraft} className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"><Save className="h-4 w-4" />保存模型配置</button>
-      </section>
-    )}
-        </main>
-      </div>
+        {tab === 'appearance' && <section className="settings-page"><SettingsPageHeader title="外观" description="选择 Texa 的主题色与界面风格。" /><AppearanceSettings /></section>}
+
+        {tab === 'models' && (
+          <section className="settings-page">
+            {modelDraft ? <ModelSettingsManager value={modelDraft} onChange={setModelDraft} onActivateProfile={activateModelProfile} onDeleteProfile={deleteModelProfile} onTestConnection={testModelConnection} /> : <PageState kind="loading" title="正在读取模型配置" />}
+            <div className="settings-page-actions"><button onClick={saveModels} disabled={!modelDraft} className="app-primary-button"><Save className="h-4 w-4" />保存更改</button></div>
+          </section>
+        )}
+
+        {tab === 'ingestion' && (
+          <section className="settings-page">
+            <SettingsPageHeader title="教材解析" description="配置教材导入时使用的 MinerU 文档解析服务。" />
+            <section className="settings-section max-w-2xl" aria-labelledby="ingestion-service-heading">
+              <h4 id="ingestion-service-heading" className="settings-section-title">解析服务</h4>
+              <div className="space-y-5">
+                <Field label="MinerU API URL"><input value={envDraft.MINERU_API_URL || ''} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_API_URL: e.target.value })} placeholder="http://127.0.0.1:9001" className="settings-input" /></Field>
+                <Field label="本地 MinerU CLI（可选）"><input value={envDraft.MINERU_CLI_COMMAND || ''} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_CLI_COMMAND: e.target.value })} placeholder="mineru -p {input} -o {output}" className="settings-input" /></Field>
+              </div>
+            </section>
+            <div className="settings-page-actions"><button onClick={saveIngestion} className="app-primary-button"><Save className="h-4 w-4" />保存更改</button></div>
+          </section>
+        )}
+      </main>
     </div>
   );
 };
 
 const SettingsSidebar = ({ tab, onTabChange }: { tab: Tab; onTabChange: (tab: Tab) => void }) => (
-  <aside className="overflow-x-auto border-b border-border bg-bg-secondary/80 p-3 md:border-b-0 md:border-r">
-    <div className="flex min-w-max gap-1 md:block md:min-w-0">
-      {SETTINGS_TABS.map((item) => (
-        <button key={item.id} onClick={() => onTabChange(item.id)} className={`w-auto whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm md:mb-1 md:w-full ${tab === item.id ? 'bg-[var(--accent-soft)] text-accent' : 'text-text-secondary hover:bg-bg-card hover:text-text-primary'}`}>
-          {item.label}
-        </button>
+  <aside className="settings-sidebar" aria-label="设置分类">
+    <div className="settings-sidebar-groups">
+      {SETTINGS_GROUPS.map((group) => (
+        <section key={group.label} className="settings-nav-group" aria-labelledby={`settings-group-${group.label}`}>
+          <h3 id={`settings-group-${group.label}`} className="settings-nav-group-label">{group.label}</h3>
+          <div className="settings-nav-items">
+            {group.items.map((item) => (
+              <button key={item.id} onClick={() => onTabChange(item.id)} className={`settings-nav-item ${tab === item.id ? 'is-active' : ''}`} aria-current={tab === item.id ? 'page' : undefined}>{item.label}</button>
+            ))}
+          </div>
+        </section>
       ))}
     </div>
   </aside>
 );
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <label className="block space-y-1.5 text-sm text-text-primary"><span className="text-xs font-medium text-text-secondary">{label}</span>{children}</label>
+  <label className="settings-form-row"><span className="settings-label">{label}</span><span className="block min-w-0">{children}</span></label>
+);
+
+const SettingsPageHeader = ({ title, description }: { title: string; description: string }) => (
+  <header className="settings-page-header"><h3>{title}</h3><p>{description}</p></header>
 );
 
 export default SettingsPage;

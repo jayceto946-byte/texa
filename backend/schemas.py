@@ -22,6 +22,16 @@ class ChatRequest(BaseModel):
     answer_mode: str = Field(default="auto", description="auto/textbook_grounded/subject_general/global_general")
 
 
+class FigureQuestionRequest(BaseModel):
+    book_name: str = Field(..., min_length=1, max_length=200)
+    figure_id: str = Field(..., min_length=1, max_length=100)
+    question: str = Field(..., min_length=1, max_length=4000)
+    bbox: list[float] | None = Field(default=None, description="Normalized image xyxy coordinates in [0, 1]")
+    subject: str = Field(default="", max_length=100)
+    conversation_id: str = Field(default="", max_length=100)
+    turn_id: str = Field(default="", max_length=100)
+
+
 class ConversationScopeRequest(BaseModel):
     subject: str
     book_name: str = ""

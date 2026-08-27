@@ -1,4 +1,4 @@
-import { Check, ChevronDown, ChevronLeft, ChevronRight, KeyRound, Link2, LoaderCircle, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, Link2, LoaderCircle, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import ScrollableSelect from '../ui/ScrollableSelect';
 import type { ModelRoleId, ModelSettingsValue } from './ModelSettingsForm';
@@ -19,18 +19,24 @@ type Props = {
 
 const roleMeta: Record<ModelRoleId, { title: string; capability: string }> = {
   reasoning: { title: '推理模型', capability: 'text' },
-  vision: { title: '识图模型', capability: 'vision' },
+  vision: { title: '独立视觉模型', capability: 'vision' },
 };
-const controlClass = 'w-full rounded-md border border-border bg-bg-primary px-3 py-2.5 text-sm text-text-primary outline-none focus:border-accent focus:ring-2 focus:ring-[var(--accent-soft)]';
+
+const controlClass = 'settings-form-control';
+const fieldRowClass = 'settings-form-row';
 
 export default function ModelSettingsManager({ value, onChange, onActivateProfile, onDeleteProfile, onTestConnection }: Props) {
   const [connectionsOpen, setConnectionsOpen] = useState(false);
   const [testingRole, setTestingRole] = useState<ModelRoleId | null>(null);
   const [testResults, setTestResults] = useState<Partial<Record<ModelRoleId, { success: boolean; message: string }>>>({});
-  const remembered = useRef<Record<string, { model: string; endpoint: string; credentialId: string; configured: boolean; apiKey: string }>>({});
-  const profileRail = useRef<HTMLDivElement>(null);
+  const remembered = useRef<Record<string, { model: string; displayName?: string; endpoint: string; credentialId: string; configured: boolean; apiKey: string }>>({});
   const providersById = useMemo(() => Object.fromEntries(value.providers.map((item) => [item.id, item])), [value.providers]);
-  const configuredRoles: ModelRoleId[] = value.multimodal_mode === 'native' ? ['vision'] : ['reasoning', 'vision'];
+  const profiles = value.profiles || [];
+  const editingSavedProfile = profiles.some((profile) => profile.id === value.editing_profile_id);
+  const profileSelectValue = editingSavedProfile ? value.editing_profile_id! : '__draft__';
+  const reasoningRole: ModelRoleId = value.multimodal_mode === 'native' ? 'vision' : 'reasoning';
+  const connectedRoles: ModelRoleId[] = value.multimodal_mode === 'native' ? ['vision'] : ['reasoning', 'vision'];
+  const connectionExpanded = connectionsOpen;
 
   const changeMode = (mode: 'split' | 'native') => {
     if (mode === 'split') {
@@ -40,10 +46,7 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
     onChange({
       ...value,
       multimodal_mode: mode,
-      roles: {
-        ...value.roles,
-        reasoning: { ...value.roles.vision, endpoint_id: 'reasoning' },
-      },
+      roles: { ...value.roles, reasoning: { ...value.roles.vision, endpoint_id: 'reasoning' } },
       credentials: { ...value.credentials, reasoning: { ...value.credentials.vision } },
       endpoints: { ...value.endpoints, reasoning: { ...value.endpoints.vision } },
     });
@@ -53,6 +56,7 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
     const current = value.roles[role];
     remembered.current[`${role}:${current.provider}`] = {
       model: current.model,
+      displayName: current.display_name,
       endpoint: value.endpoints[role].base_url,
       credentialId: current.credential_id,
       configured: value.credentials[role].configured,
@@ -61,10 +65,14 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
     const provider = providersById[providerId];
     const previous = remembered.current[`${role}:${providerId}`];
     if (!provider) return;
-    const credentialId = previous?.credentialId || (providerId === 'openai_compatible'
-      ? `${value.editing_profile_id || 'draft'}-${role}-custom`
-      : providerId);
-    const nextRole = { ...current, provider: providerId, model: previous?.model || provider.default_models[role] || '', credential_id: credentialId };
+    const credentialId = previous?.credentialId || (providerId === 'openai_compatible' ? `${value.editing_profile_id || 'draft'}-${role}-custom` : providerId);
+    const nextRole = {
+      ...current,
+      provider: providerId,
+      model: previous?.model || provider.default_models[role] || '',
+      display_name: previous?.displayName,
+      credential_id: credentialId,
+    };
     const nextCredential = { configured: previous?.configured ?? Boolean(value.credential_status?.[credentialId]), required: provider.requires_api_key, api_key: previous?.apiKey || '' };
     const nextEndpoint = { base_url: previous?.endpoint ?? provider.default_endpoint, is_default: !previous };
     const syncIntegrated = value.multimodal_mode === 'native' && role === 'vision';
@@ -74,6 +82,31 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
       credentials: { ...value.credentials, [role]: nextCredential, ...(syncIntegrated ? { reasoning: { ...nextCredential } } : {}) },
       endpoints: { ...value.endpoints, [role]: nextEndpoint, ...(syncIntegrated ? { reasoning: { ...nextEndpoint } } : {}) },
     });
+  };
+
+  const updateModel = (role: ModelRoleId, model: string, displayName?: string) => {
+    const roleValue = value.roles[role];
+    const syncIntegrated = value.multimodal_mode === 'native' && role === 'vision';
+    onChange({
+      ...value,
+      roles: {
+        ...value.roles,
+        [role]: { ...roleValue, model, display_name: displayName },
+        ...(syncIntegrated ? { reasoning: { ...value.roles.reasoning, provider: roleValue.provider, model, display_name: displayName, credential_id: roleValue.credential_id } } : {}),
+      },
+    });
+  };
+
+  const updateCredential = (role: ModelRoleId, apiKey: string) => {
+    const nextCredential = { ...value.credentials[role], api_key: apiKey };
+    const syncIntegrated = value.multimodal_mode === 'native' && role === 'vision';
+    onChange({ ...value, credentials: { ...value.credentials, [role]: nextCredential, ...(syncIntegrated ? { reasoning: { ...nextCredential } } : {}) } });
+  };
+
+  const updateEndpoint = (role: ModelRoleId, baseUrl: string) => {
+    const endpoint = { base_url: baseUrl, is_default: false };
+    const syncIntegrated = value.multimodal_mode === 'native' && role === 'vision';
+    onChange({ ...value, endpoints: { ...value.endpoints, [role]: endpoint, ...(syncIntegrated ? { reasoning: { ...endpoint } } : {}) } });
   };
 
   const newProfile = () => {
@@ -87,7 +120,7 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
     });
     onChange({ ...value, roles, credentials, editing_profile_id: id, profile_name: '新方案' });
   };
-  const scrollProfiles = (direction: number) => profileRail.current?.scrollBy({ left: direction * 280, behavior: 'smooth' });
+
   const testConnection = async (role: ModelRoleId) => {
     setTestingRole(role);
     setTestResults((current) => ({ ...current, [role]: undefined }));
@@ -99,111 +132,202 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <section aria-labelledby="profile-heading" className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h3 id="profile-heading" className="text-base font-semibold text-text-primary">模型方案</h3>
-          <div className="flex items-center gap-1">
-            <button type="button" onClick={() => scrollProfiles(-1)} className="app-ghost-button h-9 w-9 p-0" aria-label="向前浏览方案"><ChevronLeft className="h-4 w-4" /></button>
-            <button type="button" onClick={() => scrollProfiles(1)} className="app-ghost-button h-9 w-9 p-0" aria-label="向后浏览方案"><ChevronRight className="h-4 w-4" /></button>
-            <button type="button" onClick={newProfile} className="app-secondary-button min-h-9 px-3 text-sm"><Plus className="h-4 w-4" />新建</button>
+  const renderRoleFields = (role: ModelRoleId, title: string) => {
+    const meta = roleMeta[role];
+    const roleValue = value.roles[role];
+    const credential = value.credentials[role];
+    const requiredCapabilities = value.multimodal_mode === 'native' && role === 'vision' ? ['text', 'vision'] : [meta.capability];
+    const providers = value.providers.filter((item) => requiredCapabilities.every((capability) => item.capabilities.includes(capability)));
+    const models = value.models.filter((item) => item.provider === roleValue.provider && requiredCapabilities.every((capability) => item.capabilities.includes(capability)));
+    const isCustom = roleValue.provider === 'openai_compatible';
+    const acceptsCredential = credential.required || isCustom;
+    const credentialLabel = credential.configured ? '已配置' : isCustom ? '可选' : credential.required ? '未配置' : '无需配置';
+
+    return (
+      <div className="settings-subsection">
+        <h4 className="settings-section-title">{title}</h4>
+        <div className={fieldRowClass}>
+          <span className="settings-label">Provider</span>
+          <ScrollableSelect
+            compact
+            ariaLabel={`${title} Provider`}
+            value={roleValue.provider}
+            options={providers.map((provider) => ({ value: provider.id, label: provider.label }))}
+            onChange={(providerId) => selectProvider(role, providerId)}
+          />
+        </div>
+        <ModelPicker
+          role={role}
+          title={title}
+          model={roleValue.model}
+          displayName={roleValue.display_name || ''}
+          models={models}
+          onChange={(model, displayName) => updateModel(role, model, displayName)}
+        />
+        {isCustom && (
+          <div className={fieldRowClass}>
+            <label htmlFor={`${role}-custom-base-url`} className="settings-label">Base URL</label>
+            <div className="min-w-0">
+              <input id={`${role}-custom-base-url`} value={value.endpoints[role].base_url} onChange={(event) => updateEndpoint(role, event.target.value)} placeholder="https://example.com/v1" className={controlClass} autoComplete="url" spellCheck={false} />
+              <p className="mt-1 settings-secondary">填写 OpenAI-compatible API 地址。</p>
+            </div>
+          </div>
+        )}
+        <div className={fieldRowClass}>
+          <label htmlFor={`${role}-api-key`} className="settings-label">API Key</label>
+          <div className="min-w-0">
+            <input id={`${role}-api-key`} type="password" autoComplete="new-password" value={credential.api_key || ''} disabled={!acceptsCredential} onChange={(event) => updateCredential(role, event.target.value)} placeholder={acceptsCredential ? '留空保留现有密钥' : '无需填写'} className={controlClass} />
+            <p className={`mt-1 settings-secondary ${credential.configured ? 'text-[var(--success)]' : ''}`}>{credentialLabel}</p>
           </div>
         </div>
-        <div ref={profileRail} className="flex snap-x snap-mandatory gap-2 overflow-x-auto border-y border-border py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {(value.profiles || []).map((profile) => {
-            const active = profile.id === value.active_profile_id;
-            return (
-              <button key={profile.id} type="button" onClick={() => { if (!active) onActivateProfile(profile.id); }} className={`flex min-w-52 snap-start items-center justify-between rounded-md border px-3 py-2.5 text-left text-sm transition-colors ${active ? 'border-accent bg-[var(--accent-soft)] text-text-primary' : 'border-border bg-bg-primary text-text-secondary hover:border-accent hover:text-text-primary'}`}>
-                <span className="truncate font-medium">{profile.name}</span>
-                {active && <Check className="h-4 w-4 flex-none text-accent" aria-label="当前方案" />}
-              </button>
-            );
-          })}
-          {!(value.profiles || []).length && <div className="px-1 py-2 text-sm text-text-secondary">尚未保存方案</div>}
+      </div>
+    );
+  };
+
+  return (
+    <div className="settings-model-manager">
+      <header className="settings-page-header">
+        <h3>模型配置</h3>
+        <p>管理 Texa 使用的模型、凭据与连接信息。</p>
+      </header>
+
+      <section aria-labelledby="profile-heading" className="settings-section">
+        <h4 id="profile-heading" className="settings-section-title">模型方案</h4>
+        <div className={fieldRowClass}>
+          <span className="settings-label">方案</span>
+          <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+            <ScrollableSelect
+              compact
+              ariaLabel="模型方案"
+              className="min-w-0 flex-1"
+              value={profileSelectValue}
+              options={[
+                ...(!editingSavedProfile ? [{ value: '__draft__', label: '新方案', description: '未保存' }] : []),
+                ...profiles.map((profile) => ({ value: profile.id, label: profile.name, description: profile.id === value.active_profile_id ? '当前方案' : undefined })),
+              ]}
+              onChange={(profileId) => { if (profileId !== '__draft__') onActivateProfile(profileId); }}
+            />
+            <button type="button" onClick={newProfile} className="app-secondary-button flex-none px-3"><Plus className="h-4 w-4" />新建方案</button>
+          </div>
         </div>
-        <div className="flex items-end gap-2">
-          <label className="min-w-0 flex-1 text-sm font-medium text-text-primary">方案名称<input value={value.profile_name || ''} onChange={(event) => onChange({ ...value, profile_name: event.target.value })} className={`${controlClass} mt-1.5`} /></label>
-          {value.editing_profile_id && value.editing_profile_id !== value.active_profile_id && (value.profiles || []).some((item) => item.id === value.editing_profile_id) && (
-            <button type="button" onClick={() => onDeleteProfile(value.editing_profile_id!)} className="app-ghost-button min-h-10 px-3 text-[var(--danger)]"><Trash2 className="h-4 w-4" />删除</button>
-          )}
+        <div className={fieldRowClass}>
+          <label htmlFor="profile-name" className="settings-label">方案名称</label>
+          <div className="flex min-w-0 gap-2">
+            <input id="profile-name" value={value.profile_name || ''} onChange={(event) => onChange({ ...value, profile_name: event.target.value })} className={`${controlClass} min-w-0 flex-1`} />
+            {value.editing_profile_id && value.editing_profile_id !== value.active_profile_id && editingSavedProfile && (
+              <button type="button" onClick={() => onDeleteProfile(value.editing_profile_id!)} className="settings-danger-action"><Trash2 className="h-4 w-4" />删除</button>
+            )}
+          </div>
         </div>
       </section>
 
-      <label className="block text-sm font-medium text-text-primary">图片任务处理方式<select value={value.multimodal_mode} onChange={(event) => changeMode(event.target.value as 'split' | 'native')} className={`${controlClass} mt-1.5`}><option value="split">识图 / 推理分离</option><option value="native">集成回复</option></select><span className="mt-1.5 block text-xs font-normal leading-5 text-text-secondary">{value.multimodal_mode === 'split' ? '识图模型提取题目与图形关系，再由推理模型生成回复。' : '一个多模态模型完成图片理解、推理与回复。'}</span></label>
+      <section aria-labelledby="models-heading" className="settings-section">
+        <h4 id="models-heading" className="settings-section-title">模型</h4>
+        {renderRoleFields(reasoningRole, '推理模型')}
 
-      <div className="divide-y divide-border border-y border-border">
-        {configuredRoles.map((role) => {
-          const meta = roleMeta[role];
-          const displayTitle = value.multimodal_mode === 'native' ? '集成模型' : meta.title;
-          const roleValue = value.roles[role];
-          const credential = value.credentials[role];
-          const requiredCapabilities = value.multimodal_mode === 'native' ? ['text', 'vision'] : [meta.capability];
-          const providers = value.providers.filter((item) => requiredCapabilities.every((capability) => item.capabilities.includes(capability)));
-          const models = value.models.filter((item) => item.provider === roleValue.provider && requiredCapabilities.every((capability) => item.capabilities.includes(capability)));
-          const isCustom = roleValue.provider === 'openai_compatible';
-          const acceptsCredential = credential.required || isCustom;
-          return (
-            <fieldset key={role} className="space-y-4 py-5">
-              <legend className="text-base font-semibold text-text-primary">{displayTitle}</legend>
-              <ProviderRail label={`${displayTitle}服务商`} providers={providers} selected={roleValue.provider} onSelect={(providerId) => selectProvider(role, providerId)} />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <ModelPicker role={role} title={displayTitle} model={roleValue.model} models={models} onChange={(model) => onChange({ ...value, roles: { ...value.roles, [role]: { ...roleValue, model }, ...(value.multimodal_mode === 'native' ? { reasoning: { ...value.roles.reasoning, provider: roleValue.provider, model, credential_id: roleValue.credential_id } } : {}) } })} />
-                {isCustom && <label className="text-sm font-medium text-text-primary">服务地址<input value={value.endpoints[role].base_url} onChange={(event) => { const endpoint = { base_url: event.target.value, is_default: false }; onChange({ ...value, endpoints: { ...value.endpoints, [role]: endpoint, ...(value.multimodal_mode === 'native' ? { reasoning: { ...endpoint } } : {}) } }); }} placeholder="https://example.com/v1" className={`${controlClass} mt-1.5`} spellCheck={false} /></label>}
-                <label className={`text-sm font-medium text-text-primary ${isCustom ? 'sm:col-span-2' : ''}`}><span className="flex items-center gap-2"><KeyRound className="h-4 w-4" />API Key <span className={credential.configured ? 'text-[var(--success)]' : 'text-text-secondary'}>{credential.configured ? '已配置' : isCustom ? '可选' : credential.required ? '未配置' : '无需配置'}</span></span><input type="password" autoComplete="new-password" value={credential.api_key || ''} disabled={!acceptsCredential} onChange={(event) => { const nextCredential = { ...credential, api_key: event.target.value }; onChange({ ...value, credentials: { ...value.credentials, [role]: nextCredential, ...(value.multimodal_mode === 'native' ? { reasoning: { ...nextCredential } } : {}) } }); }} placeholder={acceptsCredential ? '留空保留现有密钥' : '无需填写'} className={`${controlClass} mt-1.5`} /></label>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <button type="button" onClick={() => void testConnection(role)} disabled={testingRole !== null || !roleValue.model.trim()} className="app-secondary-button min-h-9 px-3 text-sm">
-                  {testingRole === role ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
-                  {testingRole === role ? '测试中' : '测试连接'}
-                </button>
-                {testResults[role] && <span role="status" className={`text-sm ${testResults[role]?.success ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>{testResults[role]?.message}</span>}
-              </div>
-            </fieldset>
-          );
-        })}
-      </div>
+        <div className="settings-subsection">
+          <h4 className="settings-section-title">视觉模型</h4>
+          <div className={fieldRowClass}>
+            <span className="settings-label">处理方式</span>
+            <div className="min-w-0">
+              <ScrollableSelect
+                compact
+                ariaLabel="视觉模型处理方式"
+                value={value.multimodal_mode}
+                options={[
+                  { value: 'native', label: '使用推理模型' },
+                  { value: 'split', label: '使用独立视觉模型' },
+                ]}
+                onChange={(mode) => changeMode(mode as 'split' | 'native')}
+              />
+              <p className="mt-1 settings-secondary">
+                {value.multimodal_mode === 'native' ? '当前模型支持视觉输入时，直接处理图片并生成回复。' : '先由独立视觉模型理解图片，再交给推理模型生成回复。'}
+              </p>
+            </div>
+          </div>
+          {value.multimodal_mode === 'split' && renderRoleFields('vision', '独立视觉模型')}
+        </div>
+      </section>
 
-      <div>
-        <button type="button" aria-expanded={connectionsOpen} onClick={() => setConnectionsOpen((open) => !open)} className="app-secondary-button min-h-9 px-3 text-sm"><ChevronDown className={`h-4 w-4 transition-transform ${connectionsOpen ? 'rotate-180' : ''}`} />连接设置</button>
-        {connectionsOpen && <div className="mt-3 grid gap-4 border-t border-border pt-4 sm:grid-cols-2">
-          {configuredRoles.filter((role) => value.roles[role].provider !== 'openai_compatible').map((role) => {
-            const label = value.multimodal_mode === 'native' ? '集成模型' : roleMeta[role].title;
-            return <label key={role} className="text-sm font-medium text-text-primary">{label}<input value={value.endpoints[role].base_url} onChange={(event) => onChange({ ...value, endpoints: { ...value.endpoints, [role]: { base_url: event.target.value, is_default: false } } })} placeholder="https://example.com/v1" className={`${controlClass} mt-1.5`} spellCheck={false} /></label>;
-          })}
-        </div>}
-      </div>
+      <section aria-labelledby="connection-heading" className="settings-section">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h4 id="connection-heading" className="settings-section-title">连接</h4>
+            <p className="mt-1 settings-secondary">默认 Base URL 通常无需修改。</p>
+          </div>
+          <button type="button" aria-expanded={connectionExpanded} onClick={() => setConnectionsOpen((open) => !open)} className="app-ghost-button">
+            <ChevronDown className={`h-4 w-4 transition-transform ${connectionExpanded ? 'rotate-180' : ''}`} />
+            {connectionExpanded ? '收起连接设置' : '展开连接设置'}
+          </button>
+        </div>
+        {connectionExpanded && (
+          <div className="mt-4 space-y-4">
+            {connectedRoles.map((role) => {
+              const label = value.multimodal_mode === 'native' ? '推理模型' : roleMeta[role].title;
+              const result = testResults[role];
+              return (
+                <div key={role} className="space-y-3">
+                  {value.roles[role].provider !== 'openai_compatible' && (
+                    <div className={fieldRowClass}>
+                      <label htmlFor={`${role}-base-url`} className="settings-label">{label} Base URL</label>
+                      <input id={`${role}-base-url`} value={value.endpoints[role].base_url} onChange={(event) => updateEndpoint(role, event.target.value)} placeholder="https://example.com/v1" className={controlClass} spellCheck={false} />
+                    </div>
+                  )}
+                  <div className={fieldRowClass}>
+                    <span aria-hidden="true" />
+                    <div className="flex min-w-0 flex-wrap items-center gap-3">
+                      <button type="button" onClick={() => void testConnection(role)} disabled={testingRole !== null || !value.roles[role].model.trim()} className="app-secondary-button">
+                        {testingRole === role ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
+                        {testingRole === role ? '测试中' : `测试${label}连接`}
+                      </button>
+                      {result && <span role="status" className={`min-w-0 settings-secondary ${result.success ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>{result.message}</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
 
-function ModelPicker({ role, title, model, models, onChange }: { role: ModelRoleId; title: string; model: string; models: ModelSettingsValue['models']; onChange: (model: string) => void }) {
+function ModelPicker({ role, title, model, displayName, models, onChange }: { role: ModelRoleId; title: string; model: string; displayName: string; models: ModelSettingsValue['models']; onChange: (model: string, displayName?: string) => void }) {
   const isSuggested = models.some((item) => item.id === model);
   const options = [
     ...models.map((item) => ({ value: item.id, label: item.label, description: item.label === item.id ? undefined : item.id })),
-    { value: '__custom__', label: '自定义 model id…' },
+    ...(!isSuggested ? [{ value: '__current_custom__', label: displayName || model || '未命名自定义模型', description: model || '等待填写 Model ID' }] : []),
+    { value: '__new_custom__', label: '添加自定义模型…' },
   ];
   return (
-    <div className="space-y-3">
-      <label className="block text-sm font-medium text-text-primary">常用型号</label>
-      <ScrollableSelect ariaLabel={`${title}常用型号`} value={isSuggested ? model : '__custom__'} options={options} onChange={(nextValue) => onChange(nextValue === '__custom__' ? '' : nextValue)} />
-      {!isSuggested && <label className="block text-sm font-medium text-text-primary">自定义模型名
-        <input value={model} onChange={(event) => onChange(event.target.value)} placeholder={role === 'reasoning' ? '例如部署名或新模型 ID' : '例如视觉模型或本地部署名'} className={`${controlClass} mt-1.5`} autoComplete="off" spellCheck={false} />
-      </label>}
-    </div>
-  );
-}
-
-function ProviderRail({ label, providers, selected, onSelect }: { label: string; providers: ModelSettingsValue['providers']; selected: string; onSelect: (providerId: string) => void }) {
-  const rail = useRef<HTMLDivElement>(null);
-  const scroll = (direction: number) => rail.current?.scrollBy({ left: direction * 260, behavior: 'smooth' });
-  return (
-    <div className="grid grid-cols-[36px_minmax(0,1fr)_36px] items-center gap-1">
-      <button type="button" onClick={() => scroll(-1)} className="app-ghost-button h-9 w-9 p-0" aria-label={`${label}向前`}><ChevronLeft className="h-4 w-4" /></button>
-      <div ref={rail} className="flex snap-x snap-mandatory gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label={label}>
-        {providers.map((provider) => <button key={provider.id} type="button" onClick={() => onSelect(provider.id)} className={`min-w-max snap-start rounded-md border px-3 py-2 text-sm font-medium transition-colors ${selected === provider.id ? 'border-accent bg-[var(--accent-soft)] text-text-primary' : 'border-border bg-bg-primary text-text-secondary hover:border-accent hover:text-text-primary'}`}>{provider.label}</button>)}
+    <>
+      <div className={fieldRowClass}>
+        <span className="settings-label">Model</span>
+        <ScrollableSelect
+          compact
+          ariaLabel={`${title} Model`}
+          value={isSuggested ? model : '__current_custom__'}
+          options={options}
+          showSelectedDescription={false}
+          onChange={(nextValue) => {
+            if (nextValue === '__new_custom__') onChange('', '');
+            else if (nextValue !== '__current_custom__') onChange(nextValue, undefined);
+          }}
+        />
       </div>
-      <button type="button" onClick={() => scroll(1)} className="app-ghost-button h-9 w-9 p-0" aria-label={`${label}向后`}><ChevronRight className="h-4 w-4" /></button>
-    </div>
+      {!isSuggested && (
+        <>
+          <div className={fieldRowClass}>
+            <label htmlFor={`${role}-custom-model-name`} className="settings-label">显示名称</label>
+            <input id={`${role}-custom-model-name`} value={displayName} onChange={(event) => onChange(model, event.target.value)} placeholder="例如：课程专用 Qwen" className={controlClass} autoComplete="off" />
+          </div>
+          <div className={fieldRowClass}>
+            <label htmlFor={`${role}-custom-model-id`} className="settings-label">Model ID</label>
+            <input id={`${role}-custom-model-id`} value={model} onChange={(event) => onChange(event.target.value, displayName)} placeholder="例如：qwen3.7-plus" className={controlClass} autoComplete="off" spellCheck={false} />
+          </div>
+        </>
+      )}
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import type { AgentPendingAction, AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ChatActivity, ConceptCandidate, ExecutionEvent, LearningTaskState, SubjectRouteSuggestion } from '../types';
+import type { AgentPendingAction, AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ChatActivity, ConceptCandidate, ExecutionEvent, LearningTaskState, SubjectRouteSuggestion, VisualRegion } from '../types';
 
 const DEFAULT_TIMEOUT_MS = 20000;
 export const AGENT_REQUEST_TIMEOUT_MS = 55000;
@@ -104,6 +104,12 @@ export type ChatEvent = {
     mistake_id?: string;
     visual_ir?: Record<string, unknown>;
     learning_task?: LearningTaskState;
+    sources?: AssistantSource[];
+    message_id?: string;
+    conversation_id?: string;
+    turn_id?: string;
+    figure_id?: string;
+    region?: number[] | null;
   };
   state?: { linked_concepts?: ConceptCandidate[]; evidence_sources?: AssistantSource[]; suggested_answer_mode?: AnswerMode; learning_task?: LearningTaskState };
 };
@@ -289,6 +295,66 @@ export function chatStream(
   })();
 
   return () => ctrl.abort();
+}
+
+export function figureQuestionStream(
+  payload: {
+    book_name: string;
+    figure_id: string;
+    question: string;
+    bbox?: VisualRegion | null;
+    subject?: string;
+    conversation_id?: string;
+    turn_id?: string;
+  },
+  onEvent: (event: ChatEvent) => void,
+  onError?: (error: Error) => void,
+): () => void {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => {
+    controller.abort(new DOMException('教材图片问答超时', 'TimeoutError'));
+  }, IMAGE_SOLUTION_TIMEOUT_MS);
+
+  void (async () => {
+    try {
+      const body = {
+        ...payload,
+        bbox: payload.bbox
+          ? [payload.bbox.x1, payload.bbox.y1, payload.bbox.x2, payload.bbox.y2]
+          : null,
+      };
+      const response = await fetch(apiUrl('/visual-learning/figure-stream'), {
+        method: 'POST',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      if (!response.ok || !response.body) throw await responseError(response, '教材图片问答流启动失败');
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let terminal = false;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const parsed = consumeSseChunk(decoder.decode(value, { stream: true }), buffer, onEvent);
+        buffer = parsed.buffer;
+        terminal = parsed.sawTerminalEvent || terminal;
+      }
+      buffer += decoder.decode();
+      terminal = flushSseBuffer(buffer, onEvent) || terminal;
+      if (!terminal && !controller.signal.aborted) throw new Error('教材图片问答流未返回终止事件');
+    } catch (error) {
+      if (controller.signal.aborted && error instanceof Error && /abort/i.test(error.name)) return;
+      onError?.(error instanceof Error ? error : new Error(String(error)));
+    } finally {
+      window.clearTimeout(timer);
+    }
+  })();
+  return () => {
+    window.clearTimeout(timer);
+    controller.abort();
+  };
 }
 
 export function resumeChatTaskStream(

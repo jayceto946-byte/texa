@@ -31,7 +31,7 @@ function App() {
               <Route path="books" element={<SettingsPage standaloneTab="subjects" />} />
               <Route path="books/import" element={<BooksPage />} />
               <Route path="highlights" element={<HighlightPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+              <Route path="settings" element={<Navigate to="/" replace state={{ openSettings: true }} />} />
             </Route>
           </Routes>
         </BrowserRouter>

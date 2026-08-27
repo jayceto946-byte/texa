@@ -1,3 +1,48 @@
+# 2026-08-27 - Canonical Figure Visual Learning V1
+
+- 在主聊天和现有 Learning Canvas 内新增教材 Figure 选择与查看，不新建平行 Agent 页或状态机。Figure/Region 只作为当前会话的临时前端状态；旧教材尚无 Canonical Figure 时明确提示重新导入，不伪造图片列表。
+- 后端新增有界 Figure 列表、详情和受控图片读取接口；Figure context 从 Canonical 顺序中收集同章节前后文本块并映射相关 chunk IDs，不强制 Figure 进入普通向量检索。
+- 用户选区统一为基于图片自然尺寸的 `[x1, y1, x2, y2]` 归一化坐标；服务端校验范围、方向和最小尺寸，Pillow crop 只是确定性 runtime helper，不注册为模型工具，临时 crop 在请求结束时清理。
+- 视觉请求沿用独立 vision model role，一次请求可携带完整 Figure、同一 Figure 的局部 crop 和只读教材上下文；缓存图与选区的角色会显式标注。SSE 显示 context/crop/vision 活动，最终回答必须绑定请求中的 Figure/Page E1 来源。
+- 前端 Figure Viewer 支持单击、拖框、重新框选、清除选区、中心选区、教材页来源，以及方向键移动 / `Shift + 方向键` 调整大小的键盘备选操作。
+
+## Validation
+
+- Python 全量回归：596 passed，1 个既有 Starlette/httpx 弃用警告；Frontend Vitest：21 files / 112 tests，ESLint 和 TypeScript 通过。
+- 真实 MinerU 样本 `CGQ_2_content_list.json` 以系统临时目录验收：原始 Figure 508、Canonical Figure 508、有图注 455、有效稳定资产 508；Figure 列表 total 508，首幅 context 关联 6 个邻近 block / 3 个 chunk，intake report 有效。无图注但带 `image_footnote` 的 6 幅图保留为独立 `source_text`，不误计为 caption。
+- 运行态验证覆盖 900 / 1280 / 1600px，Figure 入口、Inspector 空状态和响应式布局无 body 横向溢出。现有本地教材尚未用 Figure ingestion 重新导入，因此未为 UI 实跑擅自改写用户教材数据；完整选区几何和 SSE 流程由定向回归覆盖。未调用付费多模态模型。
+
+# 2026-08-27 - 教材库高密度管理工作台
+
+- `/books` 移除居中 `max-w-6xl` 容器，改为 App Rail 后的全宽双栏工作台：240px 分类树与占满剩余宽度的教材主区；1024px 下分类树收窄至 224px，窄窗口转为上下区域并保持主列表内部滚动。
+- 分类名称从常驻输入框改为按需 inline rename；有教材的分类继续禁止重命名和删除，阻塞原因收进控件 title，不再长期展示重复说明。
+- 教材记录从纵向详情块改为稳定的“教材 / 索引与 IR / 归属与资料组 / 角色 / 操作”紧凑行。检索与 Canonical IR 保持直接可见，语义质量说明转入 title；主要/辅助/独立角色说明不再逐条重复展示。
+- 当前教材改为低权重状态，其他教材提供明确“设为当前”动作；重索引与更多菜单保持固定操作列。归档教材从页面尾部独立 section 改为“活跃 / 已归档”列表筛选，恢复逻辑不变。
+- 教材归属不再使用扁平分组选项，改为复用问答、错题页的 `ScopeSelector` 学科树与一级/二级联动；由教材管理页直接注入已加载分类，避免每条教材重复请求分类接口。
+- 移除教材页单独放大的 24px 标题和重复“教材管理”toolbar，合并为共享页面 Header。成功/普通检查结果改为 3.6 秒自动消退的 transient status；错误继续保留，版本页只持续展示可更新、下载、安装或错误等行动状态，不再常驻开发模式提示。
+
+## Validation
+
+- 1366×768 与 1600×900 下分类树为 240px，主区无居中留白，教材行稳定为 108px；1024×768 下行高约 115px，700×650 下转为上下区域，页面无 body 横向溢出。
+- 1366×768 运行态确认教材页只保留一个 18px 页面标题；教材归属弹层呈现一级/二级分类联动，版本页初始无持久 Banner 或开发模式更新提示。
+- 前端 ESLint、TypeScript 与 Vite production build、Vitest 全量测试及 `git diff --check` 通过；构建仅保留既有 MathLive 大 chunk 与 MarkdownRenderer 混合导入警告。
+
+# 2026-08-27 - Settings 浮窗与配置页面语法统一
+
+- 左下角“设置”从独立 Workspace 路由改为覆盖当前工作区的应用级 Dialog；保留 `/settings` 兼容入口，并新增 ESC、Tab 焦点圈定、关闭后焦点恢复和未保存草稿保留。
+- Dialog 使用固定 header、160px 分组侧栏和独立滚动 content；窄窗口改为横向紧凑导航，避免双滚动条与横向溢出。
+- 六个设置页统一标题、说明、section、divider、表单与操作层级；移除健康、版本、备份、外观中的大面积 Card 包裹，只为真实状态或备份实体保留必要边界。
+- 完成纯 UI density refinement：文字层级收敛为 24/16/14/13px，表单标签列统一为 144px，主要控件与 primary action 统一为 36px；侧栏条目、圆角、行距和辅助文字对比度同步收敛。健康状态与外观列表移除 row-level divider，模型配置删除重复说明并将“模型名称”改为“显示名称”。
+- 外观继续即时应用；模型配置与教材解析继续显式保存。模型 Provider、custom model、credential 与连接测试数据流未改，MinerU 教材解析仍独立于 LLM Provider。
+
+## Validation
+
+- Frontend Vitest：20 files / 105 tests；ESLint、TypeScript 与 Vite production build 通过。
+- 模型设置定向 Python 回归：9 passed；`git diff --check` 通过。
+- 浏览器运行态覆盖 1366×768 与 700×650：六页标题和内容骨架正确，长模型页仅右侧滚动，无横向溢出；ESC、Tab 回绕、焦点恢复、草稿保留和 `/settings` 兼容入口均通过，控制台无错误。
+- 六页 refinement 复核未发现低于 13px 的可见正文或遗留的大型表单控件；模型页高度由约 1004px 收敛至约 803px，紧凑 Select 选项行为和自定义模型字段顺序保持正确。
+- 构建仍保留既有 MathLive 大 chunk 与 MarkdownRenderer 动态/静态混合导入警告。
+
 # 2026-08-27 - 教材就绪状态、重新索引与 MinerU 导入引导
 
 - 教材库从真实索引 manifest、Canonical IR 与 ingestion report 派生三项独立状态：检索索引、Canonical IR、语义质量；自动结构探针不再被表述为语义验证，只有包含人工案例的 release quality 才显示“已验证”。

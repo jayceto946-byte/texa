@@ -63,6 +63,13 @@ def profiles_payload(env: Mapping[str, str] | None = None) -> dict:
         })]
     active_id = str(source.get("LLM_ACTIVE_PROFILE_ID", "") or profiles[0]["id"])
     active = next((item for item in profiles if item["id"] == active_id), None)
+    if active:
+        active_roles = active.get("roles") if isinstance(active.get("roles"), Mapping) else {}
+        for role_id in ("reasoning", "vision"):
+            active_role = active_roles.get(role_id) if isinstance(active_roles.get(role_id), Mapping) else {}
+            display_name = str(active_role.get("display_name", "") or "").strip()
+            if display_name and isinstance(settings.get("roles", {}).get(role_id), dict):
+                settings["roles"][role_id]["display_name"] = display_name
     settings.update({
         "profiles": profiles,
         "active_profile_id": active_id,
@@ -116,6 +123,19 @@ def save_profile(payload: Mapping[str, object]) -> tuple[dict, dict[str, str]]:
         settings_payload["roles"] = {**roles, "reasoning": {**vision_role, "endpoint_id": "reasoning"}}
         settings_payload["endpoints"] = {**endpoints, "reasoning": dict(vision_endpoint)}
         settings_payload["credentials"] = {**credentials, "reasoning": dict(vision_credential)}
+    roles = settings_payload["roles"] if isinstance(settings_payload["roles"], Mapping) else {}
+    normalized_roles = {}
+    for role_id, role_value in roles.items():
+        if not isinstance(role_value, Mapping):
+            continue
+        normalized_role = dict(role_value)
+        display_name = str(normalized_role.get("display_name", "") or "").strip()[:80]
+        if display_name:
+            normalized_role["display_name"] = display_name
+        else:
+            normalized_role.pop("display_name", None)
+        normalized_roles[str(role_id)] = normalized_role
+    settings_payload["roles"] = normalized_roles
     env_values = model_settings_env_values(settings_payload)
     roles = settings_payload["roles"] if isinstance(settings_payload["roles"], Mapping) else {}
     credentials = settings_payload["credentials"] if isinstance(settings_payload["credentials"], Mapping) else {}

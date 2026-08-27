@@ -17,6 +17,7 @@ import LearningTaskGate from './chat/LearningTaskGate';
 import LearningTaskActions from './chat/LearningTaskActions';
 import LearningTaskResume from './chat/LearningTaskResume';
 import { useInspector } from '../contexts/InspectorContext';
+import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -83,8 +84,32 @@ const SourceGroupList: React.FC<{ groups: SourceChapterGroup[]; cited: boolean }
   </div>
 );
 
-const SourceInspectorContent = ({ citedGroups, referenceGroups, chapters, legacyReferences }: { citedGroups: SourceChapterGroup[]; referenceGroups: SourceChapterGroup[]; chapters: string[]; legacyReferences: string[] }) => (
+const FigureSourceDetail = ({ source }: { source: AssistantSource }) => {
+  const [showPdf, setShowPdf] = useState(false);
+  const image = useAuthenticatedBlobUrl(source.asset_url || '');
+  const pdf = useAuthenticatedBlobUrl(showPdf ? source.pdf_url || '' : '');
+  return (
+    <section className="figure-source-inspector">
+      <div className="figure-source-inspector-heading">
+        <div>
+          <h3>{source.caption || source.label || '教材 Figure'}</h3>
+          <p>{typeof source.page_idx === 'number' && source.page_idx >= 0 ? `p.${source.page_idx + 1}` : '未标页'} · {(source.section_path || []).join(' › ') || source.book_name}</p>
+        </div>
+        {source.pdf_url && <button type="button" onClick={() => setShowPdf((value) => !value)}>{showPdf ? '收起教材页' : '打开教材页'}</button>}
+      </div>
+      {image.loading && <div className="figure-source-status">正在读取 Figure…</div>}
+      {image.error && <div className="figure-source-status is-error">{image.error}</div>}
+      {image.url && <img src={image.url} alt={source.caption || source.label || '教材 Figure'} />}
+      {showPdf && pdf.loading && <div className="figure-source-status">正在读取教材 PDF…</div>}
+      {showPdf && pdf.error && <div className="figure-source-status is-error">{pdf.error}</div>}
+      {showPdf && pdf.url && <iframe title="教材 PDF 来源页" src={`${pdf.url}#page=${Math.max(1, Number(source.page_idx ?? 0) + 1)}`} />}
+    </section>
+  );
+};
+
+const SourceInspectorContent = ({ citedGroups, referenceGroups, chapters, legacyReferences, figureSources }: { citedGroups: SourceChapterGroup[]; referenceGroups: SourceChapterGroup[]; chapters: string[]; legacyReferences: string[]; figureSources: AssistantSource[] }) => (
   <div className="space-y-5">
+    {figureSources.map((source) => <FigureSourceDetail key={source.figure_id || source.id} source={source} />)}
     {citedGroups.length > 0 && (
       <section>
         <h3 className="mb-2 text-xs font-semibold text-text-primary">正文引用</h3>
@@ -178,11 +203,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
     [sources, citationOrder],
   );
   const citedSourceGroups = useMemo(
-    () => groupSourcesByLocation(citedSources, citationOrder),
+    () => groupSourcesByLocation(citedSources.filter((source) => !source.figure_id), citationOrder),
     [citedSources, citationOrder],
   );
   const referenceSourceGroups = useMemo(
-    () => groupSourcesByLocation(referenceSources),
+    () => groupSourcesByLocation(referenceSources.filter((source) => !source.figure_id)),
     [referenceSources],
   );
 
@@ -191,7 +216,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
       kind: 'source',
       title: '回答来源',
       subtitle: bookName || subject || '当前学习范围',
-      content: <SourceInspectorContent citedGroups={citedSourceGroups} referenceGroups={referenceSourceGroups} chapters={sourceChapters} legacyReferences={references} />,
+      content: <SourceInspectorContent citedGroups={citedSourceGroups} referenceGroups={referenceSourceGroups} chapters={sourceChapters} legacyReferences={references} figureSources={sources.filter((source) => Boolean(source.figure_id))} />,
     });
   };
 
@@ -217,6 +242,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
   const showMessageTools = !hasCard && !isThinking;
   const modeLabel = answerMode === 'textbook_grounded'
     ? '教材依据'
+    : answerMode === 'visual_grounded'
+      ? '教材图片依据'
     : answerMode === 'subject_general'
       ? '学科通用'
       : answerMode === 'global_general'
@@ -226,6 +253,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
           : '';
   const ModeIcon = answerMode === 'textbook_grounded'
     ? BookOpen
+    : answerMode === 'visual_grounded'
+      ? BookOpen
     : answerMode === 'subject_general'
       ? GraduationCap
       : answerMode === 'subject_mismatch'

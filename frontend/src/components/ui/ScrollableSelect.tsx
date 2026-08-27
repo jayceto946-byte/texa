@@ -16,6 +16,8 @@ type Props = {
   onChange: (value: string) => void;
   className?: string;
   placeholder?: string;
+  showSelectedDescription?: boolean;
+  compact?: boolean;
 };
 
 type Placement = {
@@ -26,7 +28,7 @@ type Placement = {
   width: number;
 };
 
-export default function ScrollableSelect({ ariaLabel, value, options, onChange, className = '', placeholder = '请选择' }: Props) {
+export default function ScrollableSelect({ ariaLabel, value, options, onChange, className = '', placeholder = '请选择', showSelectedDescription = true, compact = false }: Props) {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [placement, setPlacement] = useState<Placement | null>(null);
@@ -136,11 +138,11 @@ export default function ScrollableSelect({ ariaLabel, value, options, onChange, 
           event.preventDefault();
           setOpen(true);
         }}
-        className="flex min-h-10 w-full items-center gap-2 rounded-md border border-border bg-bg-card px-3 text-left type-control text-text-primary outline-none hover:border-accent/45 focus:border-accent focus:ring-2 focus:ring-[var(--accent-soft)]"
+        className={`app-scrollable-select-trigger flex w-full items-center gap-2 rounded-md border border-border bg-bg-card px-3 text-left type-control text-text-primary outline-none hover:border-accent/45 focus:border-accent focus:ring-2 focus:ring-[var(--accent-soft)] ${compact ? 'is-compact' : 'min-h-10'}`}
       >
         <span className="min-w-0 flex-1 truncate">
           <span>{selected?.label || value || placeholder}</span>
-          {selected?.description && <span className="ml-2 text-text-secondary">{selected.description}</span>}
+          {showSelectedDescription && selected?.description && <span className="ml-2 text-text-secondary">{selected.description}</span>}
         </span>
         <ChevronDown className={`h-4 w-4 flex-none text-text-secondary transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
@@ -154,7 +156,7 @@ export default function ScrollableSelect({ ariaLabel, value, options, onChange, 
           aria-activedescendant={`${listId}-option-${activeIndex}`}
           tabIndex={0}
           onKeyDown={onListKeyDown}
-          className="app-scrollable-select-popover app-popover-enter fixed z-[1400] outline-none"
+          className={`app-scrollable-select-popover app-popover-enter fixed z-[1400] outline-none ${compact ? 'is-compact' : ''}`}
           style={{ bottom: placement.bottom, left: placement.left, top: placement.top, width: placement.width }}
         >
           <div className="app-scrollable-select-list p-1.5" style={{ maxHeight: placement.maxHeight }}>

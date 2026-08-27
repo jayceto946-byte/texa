@@ -1,4 +1,5 @@
 import { BarChart3, BookOpen, ClipboardList, GraduationCap, MessageSquare, Settings } from 'lucide-react';
+import type { RefObject } from 'react';
 import { NavLink } from 'react-router-dom';
 
 const primaryItems = [
@@ -24,7 +25,12 @@ function RailLink({ to, icon: Icon, label }: (typeof primaryItems)[number]) {
   );
 }
 
-export default function AppRail() {
+type AppRailProps = {
+  onOpenSettings: () => void;
+  settingsButtonRef: RefObject<HTMLButtonElement | null>;
+};
+
+export default function AppRail({ onOpenSettings, settingsButtonRef }: AppRailProps) {
   return (
     <aside className="app-rail" aria-label="产品导航">
       <NavLink to="/" className="app-rail-mark" aria-label="Texa 学习工作区" title="Texa">
@@ -38,7 +44,10 @@ export default function AppRail() {
       </nav>
 
       <nav className="app-rail-footer" aria-label="应用设置">
-        <RailLink to="/settings" icon={Settings} label="设置" />
+        <button ref={settingsButtonRef} type="button" onClick={onOpenSettings} className="app-rail-link" aria-label="设置" title="设置" aria-haspopup="dialog">
+          <Settings className="h-[18px] w-[18px]" />
+          <span>设置</span>
+        </button>
       </nav>
     </aside>
   );

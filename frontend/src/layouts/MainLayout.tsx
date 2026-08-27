@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import { AlertTriangle, FileText, Loader2, PanelLeftOpen, RotateCw } from 'lucide-react';
 import { get } from '../api/client';
@@ -9,6 +9,7 @@ import AppRail from '../components/AppRail';
 import LearningContextSidebar from '../components/LearningContextSidebar';
 import ContextInspector from '../components/ui/ContextInspector';
 import { useInspector } from '../contexts/InspectorContext';
+import SettingsDialog from '../components/settings/SettingsDialog';
 
 function layoutSnapshot() {
   const width = typeof window === 'undefined' ? 1280 : window.innerWidth || 1280;
@@ -57,10 +58,27 @@ const MainLayout: React.FC = () => {
   const [contextOverlay, setContextOverlay] = useState(initialLayout.contextOverlay);
   const [contextOpen, setContextOpen] = useState(!initialLayout.compact && !initialLayout.contextOverlay);
   const [backendStatus, setBackendStatus] = useState<DesktopBackendStatus | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsMounted, setSettingsMounted] = useState(false);
+  const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const { bookName, setBookName, subject, setSubject, conversationId, messages, newConversation, loadConversation } = useChatContext();
   const { closeInspector } = useInspector();
 
   const isLearningWorkspace = location.pathname === '/';
+
+  useEffect(() => {
+    if (!(location.state as { openSettings?: boolean } | null)?.openSettings) return;
+    setSettingsMounted(true);
+    setSettingsOpen(true);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
+
+  const openSettings = useCallback(() => {
+    setSettingsMounted(true);
+    setSettingsOpen(true);
+  }, []);
+
+  const closeSettings = useCallback(() => setSettingsOpen(false), []);
 
   useEffect(() => {
     const next = layoutSnapshot();
@@ -158,7 +176,7 @@ const MainLayout: React.FC = () => {
       data-context-overlay={contextOverlay ? 'true' : 'false'}
       className="app-shell"
     >
-      <AppRail />
+      <AppRail onOpenSettings={openSettings} settingsButtonRef={settingsButtonRef} />
 
       <LearningContextSidebar
         hidden={!isLearningWorkspace || !contextOpen}
@@ -207,6 +225,7 @@ const MainLayout: React.FC = () => {
         </main>
         <ContextInspector />
       </div>
+      {settingsMounted && <SettingsDialog open={settingsOpen} onClose={closeSettings} />}
     </div>
   );
 };
