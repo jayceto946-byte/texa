@@ -5,7 +5,7 @@ import { del, get, patch, post } from '../api/client';
 import { useSystemHealth } from '../hooks/useSystemHealth';
 import { useChatContext } from '../contexts/ChatContext';
 import type { SystemHealthStatus } from '../types';
-import LibraryManager from './settings/LibraryManager';
+import LibraryManager, { type LibraryBook } from './settings/LibraryManager';
 import DataSafety from './settings/DataSafety';
 import AppearanceSettings from './settings/AppearanceSettings';
 import type { ModelSettingsValue } from './settings/ModelSettingsForm';
@@ -13,7 +13,7 @@ import ModelSettingsManager from './settings/ModelSettingsManager';
 import { PageState, StatusBanner } from './ui/AsyncState';
 
 type SubjectNode = { name: string; children: string[] };
-type ManagedBook = { name: string; book_id?: string; storage_name?: string; display_name?: string; lifecycle_status?: 'active' | 'archived'; subject?: string; path?: string; has_pdf?: boolean; chapter_count?: number; size?: number; book_role?: 'standalone' | 'core' | 'reference'; rag_priority?: number; resource_group?: string };
+type ManagedBook = LibraryBook & { size?: number };
 type Tab = 'health' | 'version' | 'data' | 'subjects' | 'models' | 'appearance';
 
 const statusMeta: Record<SystemHealthStatus, { label: string; icon: typeof CheckCircle2; iconClass: string; className: string }> = {
@@ -65,6 +65,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
   const [message, setMessage] = useState('');
   const [selectedSubjectIndex, setSelectedSubjectIndex] = useState(0);
   const [selectedChildIndex, setSelectedChildIndex] = useState<number | null>(null);
+  const [reindexingBook, setReindexingBook] = useState('');
 
   const loadSettings = useCallback(async () => {
     const res = await get('/system/settings', 20000);
@@ -299,6 +300,24 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
     navigate('/books/import');
   };
 
+  const reindexManagedBook = async (name: string) => {
+    if (reindexingBook) return;
+    setReindexingBook(name);
+    setMessage(`正在重新索引《${name}》…`);
+    try {
+      const res = await post(`/books/${encodeURIComponent(name)}/reindex`, {}, 10 * 60 * 1000);
+      setMessage(res?.message || (res?.success ? '教材索引已重建' : '重新索引失败'));
+      if (res?.success) {
+        await loadBooks();
+        window.dispatchEvent(new Event('books:changed'));
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? `重新索引失败：${error.message}` : '重新索引失败');
+    } finally {
+      setReindexingBook('');
+    }
+  };
+
   const reloadVectorStore = async () => {
     setMessage('正在重载向量库...');
     const res = await post('/system/vector-store/reload', {}, 90000);
@@ -368,6 +387,8 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
             onRenameBook={renameManagedBook}
             onSetRole={setBookRole}
             onSetResourceGroup={setBookResourceGroup}
+            onReindexBook={reindexManagedBook}
+            reindexingBook={reindexingBook}
             currentBookName={bookName}
           />
         </main>

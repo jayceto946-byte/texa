@@ -1,3 +1,25 @@
+# 2026-08-27 - 教材就绪状态、重新索引与 MinerU 导入引导
+
+- 教材库从真实索引 manifest、Canonical IR 与 ingestion report 派生三项独立状态：检索索引、Canonical IR、语义质量；自动结构探针不再被表述为语义验证，只有包含人工案例的 release quality 才显示“已验证”。
+- 教材行新增可见的“重新索引”操作，复用已有 staged candidate 发布流程；执行期间显示进行态，成功或失败后刷新教材状态并给出明确反馈。
+- 新增有界的 MinerU API/CLI 可用性检查。首次进入导入页默认使用本地文本提取；仅在 MinerU 实际可达时自动选择 MinerU，不可用时明确提供本地文本模式与 MinerU 输出包两条路径。
+
+## Validation
+
+- Python 全量回归：588 passed，1 个既有 Starlette/httpx 弃用警告。
+- Frontend 契约测试：17 passed；ESLint 与 TypeScript + Vite production build 通过，仅保留既有 MathLive chunk 提示。
+
+# 2026-08-26 - Docker 干净部署嵌入运行时修复
+
+- Docker 后端依赖改为直接安装已锁定、Torch-free 的 requirements-release.txt，避免 requirements.txt 引用未复制的开发依赖文件导致干净构建失败。
+- 镜像显式携带版本化 BGE ONNX 模型、tokenizer 与 manifest，并固定 TEXA_EMBEDDING_BACKEND / TEXA_EMBEDDING_ASSET_DIR；容器首次启动不再依赖下载 embedding。
+- docker build 在产出镜像前执行完整 SHA-256 资产校验，缺文件、大小不符、manifest 合同不兼容或哈希损坏都会直接阻断构建；Compose 与部署文档同步为本地只读资产语义。
+
+## Validation
+
+- Docker release contract 回归覆盖 release 依赖、ONNX 资产复制、显式运行时绑定和构建期 full-hash gate。
+- 本机仍未安装 Docker；已完成仓库内真实 ONNX 资产 full-hash 校验与 Python 回归，容器 build/start 需在有 Docker 的干净环境继续执行。
+
 # 2026-08-26 - MinerU Figure Canonical Artifact 保真
 
 - MinerU JSON 导入改为按 payload 结构确定性识别 content-list v1、content-list v2 与 middle，不再依赖 `rglob()` 的首个遍历结果；Figure 保留图注、页码、page bbox、章节路径、来源和原始图片相对路径。

@@ -12,6 +12,8 @@ import exercisesPage from './pages/ExercisesPage.tsx?raw';
 import composerOverflow from './components/chat/ComposerOverflowMenu.tsx?raw';
 import appearance from './components/settings/AppearanceSettings.tsx?raw';
 import settings from './components/SystemHealth.tsx?raw';
+import booksImport from './pages/BooksPage.tsx?raw';
+import library from './components/settings/LibraryManager.tsx?raw';
 import modelSettings from './components/settings/ModelSettingsManager.tsx?raw';
 import theme from './theme.ts?raw';
 import desktopTitleBar from './components/DesktopTitleBar.tsx?raw';
@@ -147,6 +149,22 @@ describe('Texa product UI contract', () => {
     ]) expect(loading).toContain(code);
     expect(loading).toContain('repairEmbedding');
     expect(loading).toContain('修复模型资源');
+  });
+
+  it('keeps textbook readiness actionable without overstating semantic quality', () => {
+    expect(library).toContain('检索索引');
+    expect(library).toContain('Canonical IR');
+    expect(library).toContain('语义质量');
+    expect(library).toContain('未验证，不等同答案准确');
+    expect(library).toContain('重新索引');
+    expect(settings).toContain('/reindex');
+  });
+
+  it('checks MinerU before selecting it and exposes the output-bundle fallback', () => {
+    expect(booksImport).toContain('/books/import-capabilities');
+    expect(booksImport).toContain("useState<'mineru' | 'local'>('local')");
+    expect(booksImport).toContain('MinerU 当前不可用');
+    expect(booksImport).toContain('转到 MinerU 输出包');
   });
 
   it('keeps high-frequency surfaces free of known AI-slop patterns', () => {

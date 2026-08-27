@@ -18,6 +18,7 @@ from backend.job_manager import JobCancelled, get_job_manager
 from backend.services.kg_enhancement_jobs import start_kg_enhancement_job
 from backend.book_lifecycle import BookLifecycleService
 from backend.services.book_read_cache import BookReadCache
+from backend.services.book_readiness import derive_book_readiness
 from backend.services.book_chapters import (
     chapters_from_embedded_toc,
     chapters_from_ocr_headings,
@@ -30,6 +31,7 @@ from ingestion.background_reader import BackgroundReader
 from ingestion.document_ir import load_canonical_book, validate_canonical_book
 from ingestion.vector_store import get_vector_store
 from ingestion.mineru_importer import build_index_from_chapters, import_textbook, import_textbook_from_mineru_output, import_textbook_local
+from ingestion.mineru_runtime import inspect_mineru_runtime
 from ingestion.pdf_parser import PDFParser
 from utils.json_io import atomic_write_json
 from utils.path_safety import safe_book_name, safe_child_path
@@ -377,6 +379,12 @@ def list_books(include_archived: bool = False):
         pdf_path = _book_pdf_path(name)
         index_status = _fast_book_index_stats(name)
         identity, meta = _ensure_book_identity(name)
+        readiness = derive_book_readiness(
+            name,
+            index_status=index_status,
+            progress_root=PROGRESS_PATH,
+            vector_db_root=VECTOR_DB_PATH,
+        )
         data.append({
             "book_id": identity["book_id"],
             "name": name,
@@ -393,8 +401,28 @@ def list_books(include_archived: bool = False):
             "has_pdf": bool(pdf_path or _source_pdf_path(name)),
             "chapter_count": len(_load_chapters(name)),
             "index_status": index_status,
+            "readiness": readiness,
         })
     return {"success": True, "data": data}
+
+
+@router.get("/import-capabilities")
+def import_capabilities():
+    import config as config_module
+
+    return {
+        "success": True,
+        "data": {
+            "mineru": inspect_mineru_runtime(
+                config_module.MINERU_API_URL,
+                config_module.MINERU_CLI_COMMAND,
+            ),
+            "local_pdf": {"available": True, "limitation": "text_layer_only"},
+            "output_bundle": {"available": True},
+        },
+    }
+
+
 @router.post("/{book_name}/reindex")
 def reindex_book(book_name: str):
     """Rebuild derived retrieval assets while preserving OCR/source data."""

@@ -24,6 +24,17 @@ type ImportJob = {
   } | null;
 };
 
+type ImportCapabilities = {
+  mineru: {
+    configured: boolean;
+    available: boolean;
+    mode: 'api' | 'cli' | 'none';
+    reason: 'ready' | 'api_error' | 'api_unreachable' | 'cli_missing' | 'not_configured' | string;
+  };
+  local_pdf: { available: boolean; limitation: string };
+  output_bundle: { available: boolean };
+};
+
 const stageLabels: Record<string, string> = {
   queued: '排队',
   started: '准备',
@@ -69,7 +80,9 @@ const BooksPage: React.FC = () => {
   const [outputFile, setOutputFile] = useState<File | null>(null);
   const [tocPages, setTocPages] = useState('');
   const [subject, setSubject] = useState('');
-  const [parseMethod, setParseMethod] = useState<'mineru' | 'local'>('mineru');
+  const [parseMethod, setParseMethod] = useState<'mineru' | 'local'>('local');
+  const [capabilities, setCapabilities] = useState<ImportCapabilities | null>(null);
+  const [capabilitiesLoading, setCapabilitiesLoading] = useState(true);
   const [extractConcepts, setExtractConcepts] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [job, setJob] = useState<ImportJob | null>(null);
@@ -85,6 +98,27 @@ const BooksPage: React.FC = () => {
 
   useEffect(() => () => {
     if (pollRef.current) window.clearInterval(pollRef.current);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    apiFetch('/books/import-capabilities')
+      .then((response) => response.json())
+      .then((payload) => {
+        if (!active) return;
+        const next = payload?.success ? payload.data as ImportCapabilities : null;
+        setCapabilities(next);
+        setParseMethod(next?.mineru?.available ? 'mineru' : 'local');
+      })
+      .catch(() => {
+        if (active) setCapabilities(null);
+      })
+      .finally(() => {
+        if (active) setCapabilitiesLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const pollJob = (jobId: string) => {
@@ -124,6 +158,10 @@ const BooksPage: React.FC = () => {
 
   const handleUpload = async () => {
     if (!file || uploading) return;
+    if (parseMethod === 'mineru' && !capabilities?.mineru.available) {
+      setError('MinerU 当前不可用。请选择本地文本提取，或导入已解析的 MinerU 输出包。');
+      return;
+    }
     setUploading(true);
     setError('');
     setJob(null);
@@ -175,6 +213,14 @@ const BooksPage: React.FC = () => {
   const progress = Math.max(0, Math.min(100, job?.progress ?? 0));
   const isDone = job?.status === 'completed';
   const isFailed = ['failed', 'cancelled', 'interrupted'].includes(job?.status || '');
+  const mineru = capabilities?.mineru;
+  const mineruUnavailableText = !mineru?.configured
+    ? 'MinerU 未配置'
+    : mineru.reason === 'api_unreachable' || mineru.reason === 'api_error'
+      ? 'MinerU API 当前无法连接'
+      : mineru.reason === 'cli_missing'
+        ? 'MinerU CLI 当前不可执行'
+        : '无法确认 MinerU 状态';
 
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-bg-primary">
@@ -221,7 +267,7 @@ const BooksPage: React.FC = () => {
                 <div className="mb-2 type-caption text-text-secondary">{'\u89e3\u6790\u65b9\u5f0f'}</div>
                 <div className="grid gap-2">
                   <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${parseMethod === 'mineru' ? 'border-accent bg-[var(--accent-softer)] text-text-primary' : 'border-border bg-bg-primary text-text-secondary'}`}>
-                    <input id="parse-mineru" name="parse-method" type="radio" checked={parseMethod === 'mineru'} onChange={() => setParseMethod('mineru')} className="mt-0.5 accent-accent" />
+                    <input id="parse-mineru" name="parse-method" type="radio" checked={parseMethod === 'mineru'} disabled={capabilitiesLoading || !mineru?.available} onChange={() => setParseMethod('mineru')} className="mt-0.5 accent-accent disabled:cursor-not-allowed" />
                     <label htmlFor="parse-mineru" className="flex-1">{'MinerU \u89e3\u6790'}</label>
                     <OptionHelp
                       title={'MinerU \u89e3\u6790'}
@@ -236,6 +282,17 @@ const BooksPage: React.FC = () => {
                       description={'\u76f4\u63a5\u8bfb\u53d6 PDF \u81ea\u5e26\u7684\u6587\u5b57\u5c42\uff0c\u4e0d\u6267\u884c OCR\u3002\u4ec5\u9002\u5408\u53ef\u590d\u5236\u6587\u5b57\u7684 PDF\uff1b\u626b\u63cf\u7248\u53ef\u80fd\u65e0\u6b63\u6587\u3002\u9009\u62e9\u540e\u4e0d\u4f1a\u8c03\u7528 MinerU\u3002'}
                     />
                   </div>
+                  {capabilitiesLoading ? (
+                    <p className="type-caption text-text-secondary">正在检查 MinerU 连接…</p>
+                  ) : !mineru?.available ? (
+                    <div className="border-l-2 border-[var(--warning)] pl-3">
+                      <p className="type-caption text-[var(--warning-text)]">{mineruUnavailableText}，当前已选择本地文本提取。</p>
+                      <p className="mt-1 type-caption text-text-secondary">扫描版或复杂版面教材请先完成外部解析，再导入输出包。</p>
+                      <button type="button" onClick={() => setImportMode('bundle')} className="mt-2 text-xs font-medium text-accent hover:underline">转到 MinerU 输出包</button>
+                    </div>
+                  ) : (
+                    <p className="type-caption text-[var(--success)]">MinerU {mineru.mode === 'api' ? 'API' : 'CLI'} 可用。</p>
+                  )}
                 </div>
               </div>
               <div className="flex items-start gap-2 rounded-lg border border-border bg-bg-primary p-3 text-sm text-text-primary">

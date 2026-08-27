@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Archive, BookOpen, ChevronDown, ChevronRight, FolderOpen, Library, MoreHorizontal, Pencil, Plus, RefreshCw, Save, Trash2 } from 'lucide-react';
+import { AlertTriangle, Archive, BookOpen, CheckCircle2, ChevronDown, ChevronRight, CircleHelp, FolderOpen, Library, MoreHorizontal, Pencil, Plus, RefreshCw, Save, Trash2 } from 'lucide-react';
 import ScrollableSelect from '../ui/ScrollableSelect';
 
 export type LibrarySubject = { name: string; children: string[] };
-export type LibraryBook = { name: string; book_id?: string; storage_name?: string; display_name?: string; lifecycle_status?: 'active' | 'archived'; subject?: string; path?: string; has_pdf?: boolean; chapter_count?: number; book_role?: 'standalone' | 'core' | 'reference'; rag_priority?: number; resource_group?: string };
+export type BookReadiness = {
+  technical?: { status?: 'ready' | 'degraded' | 'missing'; vector_ready?: boolean; lexical_ready?: boolean; chunk_count?: number; index_version?: string };
+  canonical?: { status?: 'ready' | 'needs_review' | 'invalid' | 'unavailable'; warning_count?: number; error_count?: number; block_count?: number };
+  semantic?: { status?: 'verified' | 'unverified'; release_status?: string; case_count?: number; human_case_count?: number; generated_probe_cases?: number };
+};
+export type LibraryBook = { name: string; book_id?: string; storage_name?: string; display_name?: string; lifecycle_status?: 'active' | 'archived'; subject?: string; path?: string; has_pdf?: boolean; chapter_count?: number; book_role?: 'standalone' | 'core' | 'reference'; rag_priority?: number; resource_group?: string; readiness?: BookReadiness };
 
 type Props = {
   subjects: LibrarySubject[]; books: LibraryBook[]; selectedSubjectIndex: number; selectedChildIndex: number | null;
@@ -15,6 +20,7 @@ type Props = {
   onSetResourceGroup: (name: string, resourceGroup: string) => void;
   onSwitchBook: (name: string) => void; onArchiveBook: (name: string) => void;
   onRestoreBook: (name: string) => void; onRenameBook: (name: string, displayName: string) => void;
+  onReindexBook: (name: string) => void; reindexingBook?: string;
   currentBookName?: string;
 };
 
@@ -89,7 +95,7 @@ export default function LibraryManager(props: Props) {
         </div>}
 
         <div className="mt-4 space-y-2">
-          {currentBooks.map((book) => <BookRow key={book.book_id || book.name} book={book} active={props.currentBookName === book.name} subjects={subjects} onMove={(targetValue) => props.onMoveBook(book.name, targetValue)} onSetRole={(role) => props.onSetRole(book.name, role)} onSetResourceGroup={(group) => props.onSetResourceGroup(book.name, group)} onSwitch={() => props.onSwitchBook(book.name)} onRename={() => props.onRenameBook(book.name, book.display_name || book.name)} onArchive={() => props.onArchiveBook(book.name)} />)}
+          {currentBooks.map((book) => <BookRow key={book.book_id || book.name} book={book} active={props.currentBookName === book.name} subjects={subjects} reindexing={props.reindexingBook === book.name} onMove={(targetValue) => props.onMoveBook(book.name, targetValue)} onSetRole={(role) => props.onSetRole(book.name, role)} onSetResourceGroup={(group) => props.onSetResourceGroup(book.name, group)} onSwitch={() => props.onSwitchBook(book.name)} onReindex={() => props.onReindexBook(book.name)} onRename={() => props.onRenameBook(book.name, book.display_name || book.name)} onArchive={() => props.onArchiveBook(book.name)} />)}
           {!currentBooks.length && <div className="px-4 py-12 text-center"><BookOpen className="mx-auto h-5 w-5 text-text-secondary" /><div className="mt-2 type-control">这里还没有教材</div><div className="mt-1 type-body text-text-secondary">移动已有教材到此处，或导入新教材。</div></div>}
         </div>
 
@@ -124,7 +130,38 @@ const ROLE_OPTIONS = [
   { value: 'standalone' as const, label: '独立' },
 ];
 
-function BookRow({ book, active, subjects, onMove, onSetRole, onSetResourceGroup, onSwitch, onRename, onArchive }: { book: LibraryBook; active: boolean; subjects: LibrarySubject[]; onMove: (target: string) => void; onSetRole: (role: 'standalone' | 'core' | 'reference') => void; onSetResourceGroup: (group: string) => void; onSwitch: () => void; onRename: () => void; onArchive: () => void }) {
+function ReadinessItem({ label, state, detail }: { label: string; state: 'ready' | 'warning' | 'unknown'; detail: string }) {
+  const Icon = state === 'ready' ? CheckCircle2 : state === 'warning' ? AlertTriangle : CircleHelp;
+  const color = state === 'ready' ? 'text-[var(--success)]' : state === 'warning' ? 'text-[var(--warning-text)]' : 'text-text-secondary';
+  return <div className="min-w-0">
+    <dt className="type-caption text-text-secondary">{label}</dt>
+    <dd className={`mt-0.5 flex items-start gap-1.5 type-caption ${color}`}><Icon className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span className="min-w-0 leading-snug">{detail}</span></dd>
+  </div>;
+}
+
+function BookReadinessSummary({ book }: { book: LibraryBook }) {
+  const technical = book.readiness?.technical;
+  const canonical = book.readiness?.canonical;
+  const semantic = book.readiness?.semantic;
+  const technicalReady = technical?.status === 'ready';
+  const canonicalReady = canonical?.status === 'ready';
+  const canonicalDetail = canonical?.status === 'needs_review'
+    ? `待复核 · ${canonical.warning_count || 0} 项提醒`
+    : canonical?.status === 'invalid'
+      ? '不可用'
+      : canonicalReady
+        ? '结构完整'
+        : '尚无记录';
+  return (
+    <dl className="mt-3 grid gap-2 pl-6 sm:grid-cols-3 2xl:grid-cols-2">
+      <ReadinessItem label="检索索引" state={technicalReady ? 'ready' : 'warning'} detail={technicalReady ? `可用 · ${technical?.chunk_count || 0} 片段` : technical?.status === 'degraded' ? '部分可用，建议重建' : '缺失，需重新索引'} />
+      <ReadinessItem label="Canonical IR" state={canonicalReady ? 'ready' : canonical?.status === 'needs_review' || canonical?.status === 'invalid' ? 'warning' : 'unknown'} detail={canonicalDetail} />
+      <ReadinessItem label="语义质量" state={semantic?.status === 'verified' ? 'ready' : 'unknown'} detail={semantic?.status === 'verified' ? `已验证 · ${semantic.human_case_count || 0} 个人工案例` : '未验证，不等同答案准确'} />
+    </dl>
+  );
+}
+
+function BookRow({ book, active, subjects, reindexing, onMove, onSetRole, onSetResourceGroup, onSwitch, onReindex, onRename, onArchive }: { book: LibraryBook; active: boolean; subjects: LibrarySubject[]; reindexing: boolean; onMove: (target: string) => void; onSetRole: (role: 'standalone' | 'core' | 'reference') => void; onSetResourceGroup: (group: string) => void; onSwitch: () => void; onReindex: () => void; onRename: () => void; onArchive: () => void }) {
   const role = book.book_role || 'standalone';
   const assignmentOptions = useMemo(() => [
     { value: '', label: '未分类' },
@@ -145,6 +182,7 @@ function BookRow({ book, active, subjects, onMove, onSetRole, onSetResourceGroup
           {book.has_pdf ? 'PDF' : 'OCR/Markdown'} · {book.chapter_count || 0} 章
           {book.display_name && book.display_name !== book.name ? ` · 存储名 ${book.name}` : ''}
         </p>
+        <BookReadinessSummary book={book} />
         <div className="mt-3 pl-6">
           <div className="type-control text-text-secondary">教材角色</div>
           <div className="mt-1.5 inline-flex rounded-lg border border-border bg-bg-card p-0.5" role="group" aria-label={`${book.display_name || book.name}的教材角色`}>
@@ -182,6 +220,7 @@ function BookRow({ book, active, subjects, onMove, onSetRole, onSetResourceGroup
           )}
         </div>
         <div className="flex items-center justify-end gap-2">
+          <button onClick={onReindex} disabled={reindexing} className="app-secondary-button h-9 min-h-9 px-3 disabled:cursor-wait disabled:opacity-60"><RefreshCw className={`h-4 w-4 ${reindexing ? 'animate-spin' : ''}`} />{reindexing ? '正在重建' : '重新索引'}</button>
           <button onClick={onSwitch} disabled={active} className="app-secondary-button h-9 min-h-9 px-3 disabled:cursor-default disabled:opacity-55">{active ? '当前教材' : '用于问答'}</button>
           <BookOverflowMenu onRename={onRename} onArchive={onArchive} />
         </div>

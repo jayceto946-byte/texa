@@ -16,7 +16,9 @@ services:
       PROGRESS_PATH: /app/data/progress
       IMAGES_PATH: /app/data/images
       SKIP_VECTOR_WARMUP: "1"
-      EMBEDDING_LOCAL_FILES_ONLY: "0"
+      EMBEDDING_LOCAL_FILES_ONLY: "1"
+      TEXA_EMBEDDING_BACKEND: onnx
+      TEXA_EMBEDDING_ASSET_DIR: /app/assets/embedding-runtime/bge-small-zh-v1.5/onnx-fp32-v1
       MINERU_API_URL: ${MINERU_API_URL:-}
       MINERU_OUTPUT_PATH: /app/mineru_output
       MINERU_TASK_TIMEOUT_SECONDS: ${MINERU_TASK_TIMEOUT_SECONDS:-3600}

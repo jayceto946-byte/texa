@@ -8,7 +8,8 @@ The image/container contains:
 
 - FastAPI backend
 - React production build
-- Python and Node dependencies
+- Torch-free Python runtime dependencies
+- Versioned BGE ONNX embedding runtime and tokenizer assets
 - Startup script
 
 The host `./data` directory contains:
@@ -19,7 +20,7 @@ The host `./data` directory contains:
 - Mistake book records
 - Study memory and review records
 - Knowledge graph and concept memory files
-- Embedding model cache
+- Verified embedding repair overrides, when explicitly installed
 
 Updating or deleting the container must not delete `./data`.
 
@@ -38,6 +39,8 @@ http://127.0.0.1:8000
 ```
 
 On a new computer, `./data` starts empty. The user imports textbooks and generates Chroma indexes and study records locally.
+
+The versioned ONNX embedding model is part of the image and is verified with its manifest and SHA-256 hashes during docker build; first start does not download an embedding model.
 
 ## Update
 
