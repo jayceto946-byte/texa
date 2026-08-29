@@ -36,15 +36,18 @@ def _path(conversation_id: str) -> Path:
     return CONV_DIR / f"{conversation_id}.json"
 
 
-def _read_payload(conversation_id: str) -> dict:
+def _read_legacy_payload(conversation_id: str) -> dict:
+    """Read a legacy JSON conversation only at the one-shot import boundary."""
     path = _path(conversation_id)
     if not path.exists():
         return {"id": conversation_id, "messages": []}
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-        return data if isinstance(data, dict) else {"id": conversation_id, "messages": []}
-    except Exception:
-        return {"id": conversation_id, "messages": []}
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"legacy conversation JSON is invalid: {path}") from exc
+    if not isinstance(data, dict):
+        raise ValueError(f"legacy conversation JSON must contain an object: {path}")
+    return data
 
 
 def _event_db_path() -> Path:
@@ -53,21 +56,15 @@ def _event_db_path() -> Path:
 
 
 def conversation_exists(conversation_id: str) -> bool:
-    """Return whether either the compatibility JSON or durable projection exists."""
-    if _path(conversation_id).exists():
-        return True
-    db_path = CONV_DIR / "_conversation_events.db"
-    if not db_path.exists():
-        return False
-    try:
-        with sqlite3.connect(str(db_path), timeout=2) as conn:
-            row = conn.execute(
-                "SELECT 1 FROM conversation_messages WHERE conversation_id = ? LIMIT 1",
-                (conversation_id,),
-            ).fetchone()
-        return row is not None
-    except sqlite3.Error:
-        return False
+    """Return whether the authoritative SQLite projection contains the conversation."""
+    conversation_id = ensure_conversation_id(conversation_id)
+    with _connect_events() as conn:
+        _ensure_event_projection(conn, conversation_id)
+        row = conn.execute(
+            "SELECT 1 FROM conversation_messages WHERE conversation_id = ? LIMIT 1",
+            (conversation_id,),
+        ).fetchone()
+    return row is not None
 
 
 def _connect_events() -> sqlite3.Connection:
@@ -168,13 +165,13 @@ def _insert_projection_message(
 def _ensure_event_projection(
     conn: sqlite3.Connection,
     conversation_id: str,
-    payload: dict,
 ) -> None:
     imported = conn.execute(
         "SELECT 1 FROM conversation_imports WHERE conversation_id = ?", (conversation_id,),
     ).fetchone()
     if imported:
         return
+    payload = _read_legacy_payload(conversation_id)
     existing = [item for item in payload.get("messages", []) if isinstance(item, dict)]
     seq = 0
     for raw_item in existing:
@@ -207,6 +204,24 @@ def _projection_scope_clause(
     if not scoped_count:
         return "", []
     return " AND subject = ? AND book_name = ?", [normalize_subject_value(subject), book_name.strip()]
+
+
+def _authoritative_scope(conn: sqlite3.Connection, conversation_id: str) -> tuple[str, str]:
+    row = conn.execute(
+        "SELECT subject, book_name FROM conversation_messages "
+        "WHERE conversation_id = ? AND (subject != '' OR book_name != '') "
+        "ORDER BY seq DESC LIMIT 1",
+        (conversation_id,),
+    ).fetchone()
+    if row is None:
+        row = conn.execute(
+            "SELECT subject, book_name FROM conversation_messages "
+            "WHERE conversation_id = ? ORDER BY seq DESC LIMIT 1",
+            (conversation_id,),
+        ).fetchone()
+    if row is None:
+        return "", ""
+    return normalize_subject_value(str(row["subject"] or "")), str(row["book_name"] or "").strip()
 
 
 def _message_page_from_projection(
@@ -255,20 +270,9 @@ def load_message_page(
     before_seq: int | None = None,
 ) -> dict:
     conversation_id = ensure_conversation_id(conversation_id)
-    payload = _read_payload(conversation_id)
-    subject = normalize_subject_value(str(payload.get("subject") or ""))
-    book_name = str(payload.get("book_name") or "").strip()
     with _connect_events() as conn:
-        _ensure_event_projection(conn, conversation_id, payload)
-        if not subject and not book_name:
-            latest_scope = conn.execute(
-                "SELECT subject, book_name FROM conversation_messages "
-                "WHERE conversation_id = ? ORDER BY seq DESC LIMIT 1",
-                (conversation_id,),
-            ).fetchone()
-            if latest_scope:
-                subject = str(latest_scope["subject"] or "")
-                book_name = str(latest_scope["book_name"] or "")
+        _ensure_event_projection(conn, conversation_id)
+        subject, book_name = _authoritative_scope(conn, conversation_id)
         return _message_page_from_projection(
             conn, conversation_id, subject=subject, book_name=book_name,
             limit=limit, before_seq=before_seq,
@@ -277,21 +281,10 @@ def load_message_page(
 
 def load_full_history(conversation_id: str, *, limit: int = 5000) -> list[dict]:
     conversation_id = ensure_conversation_id(conversation_id)
-    payload = _read_payload(conversation_id)
-    subject = normalize_subject_value(str(payload.get("subject") or ""))
-    book_name = str(payload.get("book_name") or "").strip()
     safe_limit = max(1, min(int(limit), 5000))
     with _connect_events() as conn:
-        _ensure_event_projection(conn, conversation_id, payload)
-        if not subject and not book_name:
-            latest_scope = conn.execute(
-                "SELECT subject, book_name FROM conversation_messages "
-                "WHERE conversation_id = ? ORDER BY seq DESC LIMIT 1",
-                (conversation_id,),
-            ).fetchone()
-            if latest_scope:
-                subject = str(latest_scope["subject"] or "")
-                book_name = str(latest_scope["book_name"] or "")
+        _ensure_event_projection(conn, conversation_id)
+        subject, book_name = _authoritative_scope(conn, conversation_id)
         return _message_page_from_projection(
             conn, conversation_id, subject=subject, book_name=book_name,
             limit=safe_limit, max_limit=5000,
@@ -315,10 +308,9 @@ def load_turn_messages(
     if not requested:
         return []
     conversation_id = ensure_conversation_id(conversation_id)
-    payload = _read_payload(conversation_id)
     placeholders = ",".join("?" for _ in requested)
     with _connect_events() as conn:
-        _ensure_event_projection(conn, conversation_id, payload)
+        _ensure_event_projection(conn, conversation_id)
         rows = conn.execute(
             "SELECT payload_json FROM conversation_messages "
             f"WHERE conversation_id = ? AND turn_id IN ({placeholders}) ORDER BY seq",
@@ -334,16 +326,16 @@ def resolve_conversation_id_for_scope(
 ) -> str:
     """Keep one persisted conversation bound to one exact retrieval scope."""
     conversation_id = ensure_conversation_id(conversation_id)
-    payload = _read_payload(conversation_id)
-    messages = payload.get("messages", []) if isinstance(payload, dict) else []
-    if not messages:
-        return conversation_id
-
-    stored_subject = normalize_subject_value(
-        str(payload.get("subject") or _last_meta(messages, "subject"))
-    )
+    with _connect_events() as conn:
+        _ensure_event_projection(conn, conversation_id)
+        exists = conn.execute(
+            "SELECT 1 FROM conversation_messages WHERE conversation_id = ? LIMIT 1",
+            (conversation_id,),
+        ).fetchone()
+        if not exists:
+            return conversation_id
+        stored_subject, stored_book = _authoritative_scope(conn, conversation_id)
     requested_subject = normalize_subject_value(subject)
-    stored_book = str(payload.get("book_name") or _last_meta(messages, "book_name")).strip()
     requested_book = str(book_name or "").strip()
     if stored_subject == requested_subject and stored_book == requested_book:
         return conversation_id
@@ -386,7 +378,6 @@ def append_message(
     subject = normalize_subject_value(subject)
     now = time.strftime("%Y-%m-%dT%H:%M:%S")
     with _conversation_lock(conversation_id):
-        payload = _read_payload(conversation_id)
         item = {
             "id": ensure_message_id(message_id),
             "turn_id": ensure_turn_id(turn_id),
@@ -427,7 +418,7 @@ def append_message(
                 if isinstance(value, (str, int, float, bool, list))
             }
         with _connect_events() as conn:
-            _ensure_event_projection(conn, conversation_id, payload)
+            _ensure_event_projection(conn, conversation_id)
             existing_row = conn.execute(
                 "SELECT message_id, payload_json FROM conversation_messages "
                 "WHERE conversation_id = ? AND turn_id = ? AND role = ? ORDER BY seq LIMIT 1",
@@ -470,23 +461,8 @@ def append_message(
                     conn, conversation_id, "message_added", item,
                     message_id=item["id"], created_at=now,
                 )
-            page = _message_page_from_projection(
-                conn, conversation_id, subject=subject, book_name=book_name,
-                limit=RECENT_MESSAGE_LIMIT,
-            )
-        payload = {
-            **payload,
-            "id": conversation_id,
-            "messages": page["messages"],
-            "message_count": page["total"],
-            "subject": subject or payload.get("subject", ""),
-            "book_name": book_name or payload.get("book_name", ""),
-            "created_at": payload.get("created_at") or now,
-            "updated_at": now,
-        }
-        if not payload.get("title") and role == "user":
-            payload["title"] = _conversation_title([item])
-        _write_json_projection(_path(conversation_id), payload)
+            projection = _conversation_snapshot(conn, conversation_id)
+        _write_json_projection(_path(conversation_id), projection)
         return item
 
 
@@ -497,9 +473,8 @@ def _update_projected_message(
     updates: dict,
     event_type: str,
 ) -> bool:
-    payload = _read_payload(conversation_id)
     with _connect_events() as conn:
-        _ensure_event_projection(conn, conversation_id, payload)
+        _ensure_event_projection(conn, conversation_id)
         row = conn.execute(
             "SELECT payload_json FROM conversation_messages "
             "WHERE conversation_id = ? AND message_id = ?",
@@ -528,16 +503,8 @@ def _update_projected_message(
             conn, conversation_id, event_type,
             {"message_id": message_id, "updates": updates}, message_id=message_id,
         )
-        page = _message_page_from_projection(
-            conn, conversation_id,
-            subject=str(payload.get("subject") or ""),
-            book_name=str(payload.get("book_name") or ""),
-            limit=RECENT_MESSAGE_LIMIT,
-        )
-    payload["messages"] = page["messages"]
-    payload["message_count"] = page["total"]
-    payload["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
-    _write_json_projection(_path(conversation_id), payload)
+        projection = _conversation_snapshot(conn, conversation_id)
+    _write_json_projection(_path(conversation_id), projection)
     return True
 
 
@@ -604,9 +571,8 @@ def get_message(conversation_id: str, message_id: str) -> dict | None:
     """Read one projected message without scanning the full conversation."""
     if not conversation_id or not message_id:
         return None
-    payload = _read_payload(conversation_id)
     with _connect_events() as conn:
-        _ensure_event_projection(conn, conversation_id, payload)
+        _ensure_event_projection(conn, conversation_id)
         row = conn.execute(
             "SELECT payload_json FROM conversation_messages "
             "WHERE conversation_id = ? AND message_id = ?",
@@ -643,15 +609,61 @@ def update_message_answer_feedback(
         )
 
 
+def _conversation_snapshot(
+    conn: sqlite3.Connection,
+    conversation_id: str,
+    *,
+    limit: int = RECENT_MESSAGE_LIMIT,
+    before_seq: int | None = None,
+) -> dict:
+    subject, book_name = _authoritative_scope(conn, conversation_id)
+    page = _message_page_from_projection(
+        conn,
+        conversation_id,
+        subject=subject,
+        book_name=book_name,
+        limit=limit,
+        before_seq=before_seq,
+    )
+    scope_sql, scope_params = _projection_scope_clause(
+        conn, conversation_id, subject, book_name,
+    )
+    metadata = conn.execute(
+        "SELECT MIN(NULLIF(created_at, '')) AS created_at, "
+        "MAX(NULLIF(created_at, '')) AS updated_at "
+        "FROM conversation_messages WHERE conversation_id = ?" + scope_sql,
+        (conversation_id, *scope_params),
+    ).fetchone()
+    first_user = conn.execute(
+        "SELECT payload_json FROM conversation_messages "
+        "WHERE conversation_id = ? AND role = 'user'" + scope_sql + " ORDER BY seq LIMIT 1",
+        (conversation_id, *scope_params),
+    ).fetchone()
+    title_messages = [json.loads(str(first_user["payload_json"]))] if first_user else page["messages"]
+    return {
+        "id": conversation_id,
+        "subject": subject,
+        "book_name": book_name,
+        "messages": page["messages"],
+        "created_at": str((metadata or {})["created_at"] or "") if metadata else "",
+        "updated_at": str((metadata or {})["updated_at"] or "") if metadata else "",
+        "title": _conversation_title(title_messages),
+        "message_count": page["total"],
+        "page": {
+            "has_more": page["has_more"],
+            "next_before_seq": page["next_before_seq"],
+            "limit": page["limit"],
+            "total": page["total"],
+        },
+    }
 def reclassify_conversation(conversation_id: str, subject: str, book_name: str = "") -> dict:
     """Relabel one conversation without touching learning events or RAG traces."""
     conversation_id = ensure_conversation_id(conversation_id)
     subject = normalize_subject_value(subject)
     now = time.strftime("%Y-%m-%dT%H:%M:%S")
     with _conversation_lock(conversation_id):
-        payload = _read_payload(conversation_id)
         with _connect_events() as conn:
-            _ensure_event_projection(conn, conversation_id, payload)
+            _ensure_event_projection(conn, conversation_id)
             rows = conn.execute(
                 "SELECT message_id, payload_json FROM conversation_messages "
                 "WHERE conversation_id = ? ORDER BY seq",
@@ -660,10 +672,8 @@ def reclassify_conversation(conversation_id: str, subject: str, book_name: str =
             messages = [json.loads(str(row["payload_json"])) for row in rows]
             if not messages:
                 raise ValueError("conversation not found or empty")
-            previous = {
-                "subject": str(payload.get("subject") or _last_meta(messages, "subject")),
-                "book_name": str(payload.get("book_name") or _last_meta(messages, "book_name")),
-            }
+            previous_subject, previous_book = _authoritative_scope(conn, conversation_id)
+            previous = {"subject": previous_subject, "book_name": previous_book}
             for row, item in zip(rows, messages):
                 item.update({"subject": subject, "book_name": book_name})
                 conn.execute(
@@ -674,27 +684,8 @@ def reclassify_conversation(conversation_id: str, subject: str, book_name: str =
             _append_event(conn, conversation_id, "scope_reclassified", {
                 "from": previous, "to": {"subject": subject, "book_name": book_name},
             }, created_at=now)
-            page = _message_page_from_projection(
-                conn, conversation_id, subject=subject, book_name=book_name,
-                limit=RECENT_MESSAGE_LIMIT,
-            )
-        history = list(payload.get("scope_history") or [])
-        history.append({
-            "mode": "reclassify",
-            "from": previous,
-            "to": {"subject": subject, "book_name": book_name},
-            "created_at": now,
-        })
-        payload.update({
-            "id": conversation_id,
-            "messages": page["messages"],
-            "message_count": page["total"],
-            "subject": subject,
-            "book_name": book_name,
-            "updated_at": now,
-            "scope_history": history[-20:],
-        })
-        _write_json_projection(_path(conversation_id), payload)
+            projection = _conversation_snapshot(conn, conversation_id)
+        _write_json_projection(_path(conversation_id), projection)
         try:
             from backend.services.session_ledger import invalidate_session_ledger
 
@@ -721,11 +712,9 @@ def split_turn_to_conversation(
         lock.acquire()
     target_written = False
     try:
-        source = _read_payload(conversation_id)
-        target_seed = {"id": target_id, "messages": [], "subject": subject, "book_name": book_name}
         with _connect_events() as conn:
-            _ensure_event_projection(conn, conversation_id, source)
-            _ensure_event_projection(conn, target_id, target_seed)
+            _ensure_event_projection(conn, conversation_id)
+            _ensure_event_projection(conn, target_id)
             moved_rows = conn.execute(
                 "SELECT message_id, payload_json FROM conversation_messages "
                 "WHERE conversation_id = ? AND turn_id = ? ORDER BY seq",
@@ -755,48 +744,10 @@ def split_turn_to_conversation(
                 "turn_id": turn_id, "source_conversation_id": conversation_id,
                 "messages": moved,
             }, created_at=now)
-            last_source = conn.execute(
-                "SELECT subject, book_name FROM conversation_messages "
-                "WHERE conversation_id = ? ORDER BY seq DESC LIMIT 1",
-                (conversation_id,),
-            ).fetchone()
-            source_subject = str(last_source["subject"] or "") if last_source else str(source.get("subject") or "")
-            source_book = str(last_source["book_name"] or "") if last_source else str(source.get("book_name") or "")
-            source_page = _message_page_from_projection(
-                conn, conversation_id, subject=source_subject, book_name=source_book,
-                limit=RECENT_MESSAGE_LIMIT,
-            )
-            target_page = _message_page_from_projection(
-                conn, target_id, subject=subject, book_name=book_name,
-                limit=RECENT_MESSAGE_LIMIT,
-            )
-        target = {
-            "id": target_id,
-            "messages": target_page["messages"],
-            "message_count": target_page["total"],
-            "subject": subject,
-            "book_name": book_name,
-            "created_at": moved[0].get("created_at") or now,
-            "updated_at": now,
-            "split_from": {"conversation_id": conversation_id, "turn_id": turn_id},
-        }
-        target_written = _write_json_projection(_path(target_id), target)
-
-        source["messages"] = source_page["messages"]
-        source["message_count"] = source_page["total"]
-        source["subject"] = source_subject
-        source["book_name"] = source_book
-        source["updated_at"] = now
-        split_history = list(source.get("scope_history") or [])
-        split_history.append({
-            "mode": "split_turn",
-            "turn_id": turn_id,
-            "target_conversation_id": target_id,
-            "to": {"subject": subject, "book_name": book_name},
-            "created_at": now,
-        })
-        source["scope_history"] = split_history[-20:]
-        _write_json_projection(_path(conversation_id), source)
+            source_projection = _conversation_snapshot(conn, conversation_id)
+            target_projection = _conversation_snapshot(conn, target_id)
+        target_written = _write_json_projection(_path(target_id), target_projection)
+        _write_json_projection(_path(conversation_id), source_projection)
         try:
             from backend.services.session_ledger import invalidate_session_ledger
 
@@ -825,63 +776,29 @@ def get_conversation(
     before_seq: int | None = None,
 ) -> dict:
     conversation_id = ensure_conversation_id(conversation_id)
-    payload = _read_payload(conversation_id)
-    recent = payload.get("messages", []) if isinstance(payload, dict) else []
-    subject = normalize_subject_value(payload.get("subject", "") or _last_meta(recent, "subject"))
-    book_name = str(payload.get("book_name", "") or _last_meta(recent, "book_name")).strip()
-    page = load_message_page(conversation_id, limit=limit, before_seq=before_seq)
-    messages = page["messages"]
-    subject = normalize_subject_value(payload.get("subject", "") or _last_meta(messages, "subject"))
-    book_name = str(payload.get("book_name", "") or _last_meta(messages, "book_name")).strip()
-    title = str(payload.get("title") or "").strip()
-    if not title:
-        with _connect_events() as conn:
-            scope_sql, scope_params = _projection_scope_clause(
-                conn, conversation_id, subject, book_name,
-            )
-            first_user = conn.execute(
-                "SELECT payload_json FROM conversation_messages "
-                "WHERE conversation_id = ? AND role = 'user'" + scope_sql + " ORDER BY seq LIMIT 1",
-                (conversation_id, *scope_params),
-            ).fetchone()
-        title = _conversation_title([
-            json.loads(str(first_user["payload_json"]))
-        ] if first_user else messages)
-    return {
-        "id": payload.get("id") or conversation_id,
-        "subject": subject,
-        "book_name": book_name,
-        "messages": messages,
-        "created_at": payload.get("created_at") or _first_meta(messages, "created_at"),
-        "updated_at": payload.get("updated_at") or _last_meta(messages, "created_at"),
-        "title": title,
-        "message_count": page["total"],
-        "page": {
-            "has_more": page["has_more"],
-            "next_before_seq": page["next_before_seq"],
-            "limit": page["limit"],
-            "total": page["total"],
-        },
-    }
+    with _connect_events() as conn:
+        _ensure_event_projection(conn, conversation_id)
+        return _conversation_snapshot(
+            conn, conversation_id, limit=limit, before_seq=before_seq,
+        )
 
 
 def list_conversations(subject: str = "", book_name: str = "", limit: int = 80) -> list[dict]:
     CONV_DIR.mkdir(parents=True, exist_ok=True)
+    legacy_ids = {path.stem for path in CONV_DIR.glob("*.json")}
+    with _connect_events() as conn:
+        for conversation_id in legacy_ids:
+            _ensure_event_projection(conn, conversation_id)
+        conversation_ids = [
+            str(row[0]) for row in conn.execute(
+                "SELECT DISTINCT conversation_id FROM conversation_messages"
+            )
+        ]
+        snapshots = [
+            _conversation_snapshot(conn, conversation_id) for conversation_id in conversation_ids
+        ]
     items: list[dict] = []
-    conversation_ids = {path.stem for path in CONV_DIR.glob("*.json")}
-    db_path = CONV_DIR / "_conversation_events.db"
-    if db_path.exists():
-        try:
-            with sqlite3.connect(str(db_path), timeout=2) as conn:
-                conversation_ids.update(
-                    str(row[0]) for row in conn.execute(
-                        "SELECT DISTINCT conversation_id FROM conversation_messages"
-                    )
-                )
-        except sqlite3.Error:
-            pass
-    for conversation_id in conversation_ids:
-        item = get_conversation(conversation_id)
+    for item in snapshots:
         if subject and not subject_matches(item.get("subject", ""), subject):
             continue
         if book_name and item.get("book_name") != book_name:
@@ -907,35 +824,6 @@ def _conversation_title(messages: list[dict]) -> str:
             content = re.sub(r"\s+", " ", str(item.get("content", "")).strip())
             return content[:36] or "新会话"
     return "新会话"
-
-
-def _last_meta(messages: list[dict], key: str) -> str:
-    for item in reversed(messages):
-        value = str(item.get(key, "")).strip()
-        if value:
-            return value
-    return ""
-
-
-def _first_meta(messages: list[dict], key: str) -> str:
-    for item in messages:
-        value = str(item.get(key, "")).strip()
-        if value:
-            return value
-    return ""
-
-
-def _messages_for_scope(messages: list[dict], subject: str, book_name: str) -> list[dict]:
-    """Hide turns written under another scope by legacy clients reusing one id."""
-    scoped = [item for item in messages if isinstance(item, dict) and (item.get("subject") or item.get("book_name"))]
-    if not scoped:
-        return [item for item in messages if isinstance(item, dict)]
-    return [
-        item
-        for item in scoped
-        if normalize_subject_value(str(item.get("subject") or "")) == subject
-        and str(item.get("book_name") or "").strip() == book_name
-    ]
 
 
 # ---------------------------------------------------------------------------

@@ -6,14 +6,14 @@ def test_concurrent_appends_do_not_lose_messages(monkeypatch, tmp_path):
     import backend.conversation_memory as memory
 
     monkeypatch.setattr(memory, "CONV_DIR", tmp_path)
-    original_read = memory._read_payload
+    original_read = memory._read_legacy_payload
 
     def slow_read(conversation_id: str):
         payload = original_read(conversation_id)
         time.sleep(0.01)
         return payload
 
-    monkeypatch.setattr(memory, "_read_payload", slow_read)
+    monkeypatch.setattr(memory, "_read_legacy_payload", slow_read)
     threads = [
         threading.Thread(
             target=memory.append_message,

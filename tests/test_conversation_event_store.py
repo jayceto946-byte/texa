@@ -99,6 +99,56 @@ def test_legacy_json_is_imported_once_without_duplicates(monkeypatch, tmp_path):
     assert imported == 2
 
 
+def test_stale_or_corrupt_json_cannot_change_sqlite_routing_metadata(monkeypatch, tmp_path):
+    import backend.conversation_memory as memory
+
+    monkeypatch.setattr(memory, "CONV_DIR", tmp_path)
+    conversation_id = "sqlite-authority"
+    memory.append_message(
+        conversation_id,
+        "user",
+        "真实问题",
+        subject="专业课/传感器",
+        book_name="sensor-book",
+        turn_id="turn-1",
+        message_id="message-1",
+    )
+    projection_path = tmp_path / f"{conversation_id}.json"
+    projection_path.write_text(json.dumps({
+        "id": conversation_id,
+        "subject": "数学/线代",
+        "book_name": "wrong-book",
+        "title": "伪造标题",
+        "messages": [{"role": "user", "content": "伪造问题"}],
+    }, ensure_ascii=False), encoding="utf-8")
+
+    conversation = memory.get_conversation(conversation_id)
+    assert conversation["subject"] == "专业课/传感器"
+    assert conversation["book_name"] == "sensor-book"
+    assert conversation["title"] == "真实问题"
+    assert memory.resolve_conversation_id_for_scope(
+        conversation_id, "专业课/传感器", "sensor-book",
+    ) == conversation_id
+
+    projection_path.write_text("{broken", encoding="utf-8")
+    assert memory.get_conversation(conversation_id)["title"] == "真实问题"
+    assert [item["id"] for item in memory.list_conversations()] == [conversation_id]
+
+
+def test_invalid_legacy_json_fails_import_explicitly(monkeypatch, tmp_path):
+    import backend.conversation_memory as memory
+
+    monkeypatch.setattr(memory, "CONV_DIR", tmp_path)
+    (tmp_path / "broken-legacy.json").write_text("{broken", encoding="utf-8")
+
+    try:
+        memory.get_conversation("broken-legacy")
+    except ValueError as exc:
+        assert "legacy conversation JSON is invalid" in str(exc)
+    else:
+        raise AssertionError("invalid legacy JSON was silently treated as an empty conversation")
+
+
 def test_turn_retry_is_idempotent_and_completed_answer_replaces_partial(monkeypatch, tmp_path):
     import backend.conversation_memory as memory
 
