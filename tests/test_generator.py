@@ -13,6 +13,9 @@ def test_build_prompt_includes_longer_context():
         "intent": "definition",
         "user_input": "梯度下降法是什么",
         "chapter_contents": {"第四章 无约束优化方法": [long_content]},
+        "evidence_items": [{
+            "chunk_id": "long-example", "chapter": "第四章 无约束优化方法", "text": long_content,
+        }],
         "concept_results": [],
         "history_results": [],
         "knowledge_graph_path": [],
@@ -34,6 +37,10 @@ def test_build_prompt_includes_multiple_docs():
         "intent": "definition",
         "user_input": "梯度下降法是什么",
         "chapter_contents": {"第四章 无约束优化方法": [doc1, doc2, doc3]},
+        "evidence_items": [
+            {"chunk_id": f"example-{index}", "chapter": "第四章 无约束优化方法", "text": text}
+            for index, text in enumerate((doc1, doc2, doc3), 1)
+        ],
         "concept_results": [],
         "history_results": [],
         "knowledge_graph_path": [],
@@ -50,7 +57,10 @@ def test_build_prompt_records_bounded_context_budget_without_prompt_body():
         "intent": "definition",
         "user_input": "什么是梯度下降法？",
         "chapter_contents": {"第四章": ["梯度下降法是一种迭代优化方法。"]},
-        "evidence_items": [],
+        "evidence_items": [{
+            "chunk_id": "gradient-definition", "chapter": "第四章",
+            "text": "梯度下降法是一种迭代优化方法。",
+        }],
         "history_results": [],
         "teaching_content": "",
         "planner_trace": {"prompt_chars": 321},
@@ -73,7 +83,10 @@ def test_generation_uses_real_system_and_human_messages_without_empty_tool_conte
         "intent": "comparison",
         "user_input": "标准差和随机误差之间有什么联系？",
         "chapter_contents": {"第一章": ["随机误差用标准差评定其分散程度。"]},
-        "evidence_items": [],
+        "evidence_items": [{
+            "chunk_id": "random-error", "chapter": "第一章",
+            "text": "随机误差用标准差评定其分散程度。",
+        }],
         "history_results": [],
         "teaching_content": "",
     }
@@ -97,7 +110,10 @@ def test_generation_injects_tool_context_only_after_actual_tool_result():
         "intent": "calculation",
         "user_input": "计算结果是多少？",
         "chapter_contents": {"第一章": ["标准差按给定公式计算。"]},
-        "evidence_items": [],
+        "evidence_items": [{
+            "chunk_id": "standard-deviation-formula", "chapter": "第一章",
+            "text": "标准差按给定公式计算。",
+        }],
         "history_results": [],
         "teaching_content": "",
         "tool_context_pack": {
@@ -170,6 +186,10 @@ def test_prompt_includes_example_check_when_example_found():
         "intent": "definition",
         "user_input": "梯度下降法是什么",
         "chapter_contents": {"第四章": ["例4-2 用梯度法求解无约束优化问题..."]},
+        "evidence_items": [{
+            "chunk_id": "example-4-2", "chapter": "第四章",
+            "text": "例4-2 用梯度法求解无约束优化问题...",
+        }],
         "concept_results": [],
         "history_results": [],
         "knowledge_graph_path": [],

@@ -141,6 +141,25 @@ export interface AssistantSource {
   chunk_index?: number;
   heading_level?: number;
   page_idx?: number;
+  page_start?: number | null;
+  page_end?: number | null;
+  provenance_schema?: string;
+  index_version?: string;
+  source_block_ids?: string[];
+  source_locations?: Array<{
+    block_id: string;
+    source_kind: string;
+    source_file: string;
+    page_start: number | null;
+    page_end: number | null;
+    bbox: number[];
+    bbox_space: string;
+    bbox_format: string;
+    bbox_units: string;
+  }>;
+  source_kind?: string;
+  source_file?: string;
+  bbox?: number[];
   label?: string;
   figure_id?: string;
   block_id?: string;

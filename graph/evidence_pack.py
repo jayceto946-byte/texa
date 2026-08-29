@@ -94,27 +94,10 @@ def _content_fingerprint(text: str) -> str:
 
 def _selected_candidates(
     evidence_items: list[dict],
-    chapter_contents: dict[str, list[str]],
     intent: str,
 ) -> tuple[list[dict], int]:
     per_chapter_limit = _PER_CHAPTER_LIMITS.get(intent, 2)
-    selected = list(evidence_items or [])
-    if selected:
-        return selected, per_chapter_limit
-
-    # Backward-compatible fallback for old indexes and unit-level callers.
-    fallback = []
-    for chapter, docs in list((chapter_contents or {}).items())[:3]:
-        for index, text in enumerate(list(docs or [])[:4]):
-            fallback.append({
-                "chunk_id": "",
-                "chapter": chapter,
-                "section_title": "",
-                "page_idx": -1,
-                "text": text,
-                "_fallback_index": index,
-            })
-    return fallback, max(4, per_chapter_limit)
+    return list(evidence_items or []), per_chapter_limit
 
 
 def build_evidence_pack(
@@ -126,7 +109,7 @@ def build_evidence_pack(
 ) -> dict[str, Any]:
     """Purely format ranked evidence with intent-aware chapter and character limits."""
     budget = max(3000, min(int(char_budget), 20000))
-    candidates, per_chapter_limit = _selected_candidates(evidence_items, chapter_contents, intent)
+    candidates, per_chapter_limit = _selected_candidates(evidence_items, intent)
     seen_ids: set[str] = set()
     seen_texts: set[str] = set()
     chapter_counts: dict[str, int] = {}
@@ -165,6 +148,8 @@ def build_evidence_pack(
             "book_name": str(item.get("book_name") or ""),
             "book_id": str(item.get("book_id") or ""),
             "corpus_version": str(item.get("corpus_version") or ""),
+            "provenance_schema": str(item.get("provenance_schema") or ""),
+            "index_version": str(item.get("index_version") or ""),
             "content_fingerprint": _content_fingerprint(text),
             "chapter": chapter,
             "section_title": str(item.get("section_title") or ""),
@@ -172,6 +157,14 @@ def build_evidence_pack(
             "chunk_index": item.get("chunk_index", -1),
             "heading_level": _heading_level(_section_path(item)),
             "page_idx": item.get("page_idx", -1),
+            "page_start": item.get("page_start"),
+            "page_end": item.get("page_end"),
+            "source_block_ids": list(item.get("source_block_ids") or []),
+            "source_locations": list(item.get("source_locations") or []),
+            "source_kind": str(item.get("source_kind") or ""),
+            "source_file": str(item.get("source_file") or ""),
+            "bbox": list(item.get("bbox") or []),
+            "figure_id": str(item.get("figure_id") or ""),
             "label": label,
             "chars": len(clipped),
         })

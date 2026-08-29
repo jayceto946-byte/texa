@@ -18,6 +18,7 @@ from config import PROGRESS_PATH
 
 
 DOCUMENT_IR_SCHEMA_VERSION = 1
+PROVENANCE_SCHEMA_VERSION = "texa.provenance/v1"
 CANONICAL_DOCUMENT_FILENAME = "canonical_document.jsonl"
 INGESTION_REPORT_FILENAME = "ingestion_report.json"
 BLOCK_TYPES = frozenset({
@@ -25,6 +26,58 @@ BLOCK_TYPES = frozenset({
 })
 BODY_BLOCK_TYPES = frozenset({"paragraph", "formula", "table", "example", "exercise"})
 OCR_SOURCE_KINDS = frozenset({"ocr", "mineru"})
+
+
+def chunk_provenance_errors(chunk: dict[str, Any], *, require_index_version: bool = False) -> list[str]:
+    """Validate the minimum stable provenance carried by an indexed chunk."""
+    errors: list[str] = []
+    if str(chunk.get("provenance_schema") or "") != PROVENANCE_SCHEMA_VERSION:
+        errors.append("invalid_provenance_schema")
+    if not str(chunk.get("chunk_id") or "").strip():
+        errors.append("missing_chunk_id")
+    if require_index_version and not str(chunk.get("index_version") or "").strip():
+        errors.append("missing_index_version")
+
+    source_ids = chunk.get("source_block_ids")
+    if not isinstance(source_ids, list) or not source_ids or any(not str(value or "").strip() for value in source_ids):
+        errors.append("missing_source_block_ids")
+        source_ids = []
+    elif len(set(str(value) for value in source_ids)) != len(source_ids):
+        errors.append("duplicate_source_block_ids")
+
+    locations = chunk.get("source_locations")
+    if not isinstance(locations, list) or not locations:
+        errors.append("missing_source_locations")
+        locations = []
+    location_ids: list[str] = []
+    required_location_keys = {
+        "block_id", "source_kind", "source_file", "page_start", "page_end",
+        "bbox", "bbox_space", "bbox_format", "bbox_units",
+    }
+    for location in locations:
+        if not isinstance(location, dict):
+            errors.append("invalid_source_location")
+            continue
+        if not required_location_keys.issubset(location):
+            errors.append("incomplete_source_location")
+        block_id = str(location.get("block_id") or "").strip()
+        if not block_id:
+            errors.append("source_location_missing_block_id")
+        else:
+            location_ids.append(block_id)
+        bbox = location.get("bbox")
+        if bbox and (not isinstance(bbox, list) or len(bbox) != 4):
+            errors.append("invalid_source_location_bbox")
+    if source_ids and location_ids != [str(value) for value in source_ids]:
+        errors.append("source_location_block_mismatch")
+
+    if str(chunk.get("block_type") or "") == "figure":
+        figure_id = str(chunk.get("figure_id") or "").strip()
+        if not figure_id:
+            errors.append("missing_figure_id")
+        elif source_ids and figure_id not in {str(value) for value in source_ids}:
+            errors.append("figure_id_not_in_source_blocks")
+    return list(dict.fromkeys(errors))
 
 
 @dataclass

@@ -569,7 +569,7 @@ def build_index_from_chapters(
             manifest = build_and_activate_book_index(
                 vs, book_name,
                 [(title, group) for title, group, _roles in chapter_groups],
-                indexable_chunks,
+                all_chunks,
                 acceptance_probes=probe_report["cases"],
                 specialty_inventory=probe_report["inventory"],
             )
@@ -580,7 +580,7 @@ def build_index_from_chapters(
             for title, group, roles in chapter_groups:
                 vs.build_chapter_store(title, group, chunk_roles=roles, book_name=book_name)
             if hasattr(vs, "get_book_index_stats"):
-                write_book_index(book_name, indexable_chunks)
+                write_book_index(book_name, all_chunks)
             if hasattr(vs, "build_book_aggregate_store"):
                 vs.build_book_aggregate_store(book_name, indexable_chunks)
             stats = vs.get_book_index_stats(book_name) if hasattr(vs, "get_book_index_stats") else {}

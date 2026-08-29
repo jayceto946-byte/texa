@@ -114,7 +114,11 @@ def _compute_fast_book_index_stats(book_name: str) -> dict:
         from ingestion.index_pipeline import load_index_manifest
         from ingestion.lexical_index import index_path, load_book_index
 
-        stats["lexical_chunk_count"] = len(load_book_index(normalized))
+        lexical_rows = load_book_index(normalized)
+        stats["catalog_chunk_count"] = len(lexical_rows)
+        stats["lexical_chunk_count"] = sum(
+            not bool(row.get("retrieval_excluded")) for row in lexical_rows
+        )
         stats["lexical_ready"] = index_path(normalized).exists() and stats["lexical_chunk_count"] > 0
         stats["source_fallback_active"] = not stats["lexical_ready"] and stats["lexical_chunk_count"] > 0
         manifest = load_index_manifest(normalized)
@@ -122,6 +126,7 @@ def _compute_fast_book_index_stats(book_name: str) -> dict:
         stats["index_schema"] = int(manifest.get("schema_version", 0) or 0)
     except Exception:
         stats["lexical_chunk_count"] = 0
+        stats["catalog_chunk_count"] = 0
         stats["lexical_ready"] = False
         stats["source_fallback_active"] = False
         stats["index_version"] = ""

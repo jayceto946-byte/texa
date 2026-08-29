@@ -4,7 +4,7 @@ import hashlib
 import re
 from pathlib import Path
 
-from ingestion.document_ir import CanonicalBook, DocumentBlock
+from ingestion.document_ir import CanonicalBook, DocumentBlock, PROVENANCE_SCHEMA_VERSION
 
 
 def _get_splitter(chunk_size: int, chunk_overlap: int):
@@ -179,7 +179,7 @@ class ChapterSplitter:
                 "figure_id": str(figure_attributes.get("figure_id") or block.block_id),
                 "asset_relpath": str(figure_attributes.get("asset_relpath") or ""),
                 "artifact_only": not bool(str(block.text or "").strip()),
-                "retrieval_excluded": not bool(str(block.text or "").strip()),
+                "retrieval_excluded": True,
             }
         parent_id = self._stable_id(book_name, block.block_type, self._logical_parent_key(block))
         self._append_chunk(
@@ -248,6 +248,7 @@ class ChapterSplitter:
         path = " > ".join(section_path)
         prefix = f"教材：{book_name}\n章节路径：{path}\n" if book_name else f"章节路径：{path}\n"
         row = {
+            "provenance_schema": PROVENANCE_SCHEMA_VERSION,
             "book_name": book_name,
             "chapter": chapter,
             "section_title": section_title,
@@ -275,9 +276,14 @@ class ChapterSplitter:
             "source_locations": [
                 {
                     "block_id": block.block_id,
+                    "source_kind": block.source_kind,
+                    "source_file": block.source_file,
                     "page_start": block.page_start,
                     "page_end": block.page_end,
                     "bbox": list(block.bbox) if block.bbox else [],
+                    "bbox_space": str((block.attributes or {}).get("bbox_space") or "unknown"),
+                    "bbox_format": str((block.attributes or {}).get("bbox_format") or "unknown"),
+                    "bbox_units": str((block.attributes or {}).get("bbox_units") or "unknown"),
                 }
                 for block in blocks
             ],

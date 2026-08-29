@@ -54,10 +54,35 @@ class FakeStore:
         self._map_file.write_text(json.dumps(self._map), encoding="utf-8")
 
 
+def _chunk(chunk_id: str, content: str, *, role: str = "definition", **extra):
+    block_id = f"block-{chunk_id}"
+    return {
+        "provenance_schema": "texa.provenance/v1",
+        "chunk_id": chunk_id,
+        "chapter": "chapter-one",
+        "section_title": "definition",
+        "content": content,
+        "role": role,
+        "source_block_ids": [block_id],
+        "source_locations": [{
+            "block_id": block_id,
+            "source_kind": "test",
+            "source_file": "fixture.md",
+            "page_start": 1,
+            "page_end": 1,
+            "bbox": [],
+            "bbox_space": "unknown",
+            "bbox_format": "unknown",
+            "bbox_units": "unknown",
+        }],
+        **extra,
+    }
+
+
 def _chunks():
     return [
-        {"chunk_id": "c1", "chapter": "chapter-one", "section_title": "definition", "content": "absolute error is measured value minus true value", "role": "definition"},
-        {"chunk_id": "c2", "chapter": "chapter-one", "section_title": "definition", "content": "absolute error is measured value minus true value", "role": "algorithm"},
+        _chunk("c1", "absolute error is measured value minus true value"),
+        _chunk("c2", "absolute error is measured value minus true value", role="algorithm"),
     ]
 
 
@@ -83,7 +108,14 @@ def test_versioned_index_activates_only_after_dense_and_lexical_validation(monke
         entry.get("index_version") == manifest["index_version"]
         for entry in store._map.values() if entry.get("active", True)
     )
-    assert len(json.loads(lexical_index.index_path("demo").read_text(encoding="utf-8"))) == 2
+    lexical_rows = json.loads(lexical_index.index_path("demo").read_text(encoding="utf-8"))
+    assert len(lexical_rows) == 2
+    assert {row["provenance_schema"] for row in lexical_rows} == {"texa.provenance/v1"}
+    assert {row["index_version"] for row in lexical_rows} == {manifest["index_version"]}
+    aggregate_rows = store._client.collections[manifest["aggregate_collection"]].rows.values()
+    assert {
+        metadata["index_version"] for _document, _embedding, metadata in aggregate_rows
+    } == {manifest["index_version"]}
     assert index_pipeline.load_index_manifest("demo")["content_fingerprint"] == manifest["content_fingerprint"]
 
 
@@ -192,11 +224,7 @@ def test_version_retention_keeps_active_plus_two_previous_versions(monkeypatch, 
 
     manifests = []
     for revision in range(3):
-        chunks = [{
-            "chunk_id": f"c{revision}", "chapter": "chapter-one",
-            "section_title": "definition", "content": f"definition revision {revision}",
-            "role": "definition",
-        }]
+        chunks = [_chunk(f"c{revision}", f"definition revision {revision}")]
         manifests.append(index_pipeline.build_and_activate_book_index(
             store, "demo", [("chapter-one", chunks)], chunks,
         ))
@@ -225,10 +253,7 @@ def test_retained_version_can_be_reactivated_without_deleting_current(monkeypatc
     first = index_pipeline.build_and_activate_book_index(
         store, "demo", [("chapter-one", _chunks())], _chunks(),
     )
-    second_chunks = [{
-        "chunk_id": "c-new", "chapter": "chapter-one",
-        "section_title": "definition", "content": "new definition", "role": "definition",
-    }]
+    second_chunks = [_chunk("c-new", "new definition")]
     second = index_pipeline.build_and_activate_book_index(
         store, "demo", [("chapter-one", second_chunks)], second_chunks,
     )

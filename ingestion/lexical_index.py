@@ -95,12 +95,14 @@ def write_book_index(book_name: str, chunks: list[dict]) -> Path:
     path = index_path(book_name)
     path.parent.mkdir(parents=True, exist_ok=True)
     keys = (
+        "provenance_schema", "index_version", "book_name",
         "chapter", "section_title", "section_path", "chunk_index", "section_chunk_index", "chunk_id",
         "parent_id", "prev_chunk_id", "next_chunk_id", "page_idx", "role",
         "content", "retrieval_text", "parent_content", "subject", "book_role", "rag_priority",
         "bbox", "equations", "block_type", "source_markdown", "review_status",
         "page_start", "page_end", "source_kind", "source_file", "ocr_confidence",
         "source_block_ids", "source_locations", "table_title", "table_header", "table_rows",
+        "figure_id", "retrieval_excluded",
     )
     atomic_write_json(path, [{key: chunk.get(key) for key in keys} for chunk in chunks])
     with _lock:
@@ -192,6 +194,7 @@ def load_book_index(book_name: str) -> list[dict]:
 
 def search_rows(rows: list[dict], query: str, *, k: int = 20, chapters: list[str] | None = None) -> list[dict]:
     """Run the same BM25 implementation against an explicit staged corpus."""
+    rows = [row for row in rows if not bool(row.get("retrieval_excluded"))]
     if not rows:
         return []
     docs = [tokenize(str(row.get("content") or row.get("retrieval_text") or "")) for row in rows]
@@ -281,6 +284,8 @@ def expand_neighbors_rows(rows: list[dict], chunk_ids: list[str], window: int = 
             continue
         for idx in range(max(0, pos - window), min(len(rows), pos + window + 1)):
             row = dict(rows[idx])
+            if bool(row.get("retrieval_excluded")):
+                continue
             row["text"] = row.get("content", "")
             row["source"] = "neighbor" if idx != pos else "index"
             row["is_direct_hit"] = idx == pos

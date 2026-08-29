@@ -22,7 +22,7 @@ INTENT_ROLE_PRIORITY: dict[str, list[str]] = {
     "property": ["property", "theorem", "definition", "example"],
     "derivation": ["derivation", "theorem", "proof", "definition"],
     # A relationship/comparison answer still needs the equations that connect
-    # the two concepts.  Schema-5 stores equations in atomic sibling blocks, so
+    # the two concepts.  Canonical chunks store equations in atomic sibling blocks, so
     # treating formulas as irrelevant here turns a teaching answer into a list
     # of prose snippets.
     "comparison": ["definition", "formula", "derivation", "property", "example"],
@@ -138,7 +138,7 @@ def _needs_teaching_unit_context(query: str, intent: str) -> bool:
 def _teaching_unit_neighbors(anchors: list[dict], expanded: list[dict]) -> list[dict]:
     """Keep the nearest equation sibling for each high-signal prose anchor.
 
-    Schema-5 deliberately stores equations atomically.  An equation often has
+    Canonical splitting deliberately stores equations atomically.  An equation often has
     almost no lexical overlap with a natural-language question, so ordinary
     reranking drops it even when the adjacent paragraph says "按下式".  This
     function restores only same-section, local formula siblings; it does not
@@ -657,6 +657,16 @@ def retrieve_node(
             "chunk_index": item.get("chunk_index", -1),
             "section_chunk_index": item.get("section_chunk_index", -1),
             "page_idx": item.get("page_idx", -1),
+            "page_start": item.get("page_start"),
+            "page_end": item.get("page_end"),
+            "provenance_schema": item.get("provenance_schema", ""),
+            "index_version": item.get("index_version", ""),
+            "source_block_ids": item.get("source_block_ids", []),
+            "source_locations": item.get("source_locations", []),
+            "source_kind": item.get("source_kind", ""),
+            "source_file": item.get("source_file", ""),
+            "bbox": item.get("bbox", []),
+            "figure_id": item.get("figure_id", ""),
             "text": item.get("text", ""), "score": item.get("score", 0.0),
             "query_coverage": item.get("query_coverage", 0.0),
             "book_name": item.get("book_name", ""),
@@ -1120,6 +1130,19 @@ def _vector_retrieval(vs, user_input: str, *, intent: str = "qa", book_name: str
 
 def _doc_to_item(doc, chapter: str, source: str) -> dict:
     meta = getattr(doc, "metadata", {}) or {}
+
+    def metadata_list(name: str) -> list:
+        value = meta.get(name)
+        if isinstance(value, list):
+            return value
+        if isinstance(value, str) and value:
+            try:
+                decoded = json.loads(value)
+                return decoded if isinstance(decoded, list) else []
+            except (TypeError, ValueError):
+                return []
+        return []
+
     return {
         "chapter": chapter,
         "chunk_id": meta.get("chunk_id", ""),
@@ -1127,10 +1150,20 @@ def _doc_to_item(doc, chapter: str, source: str) -> dict:
         "parent_id": meta.get("parent_id", ""),
         "prev_chunk_id": meta.get("prev_chunk_id", ""),
         "next_chunk_id": meta.get("next_chunk_id", ""),
-        "section_path": meta.get("section_path", ""),
+        "section_path": metadata_list("section_path"),
         "chunk_index": meta.get("chunk_index", -1),
         "section_title": meta.get("section_title", ""),
         "page_idx": meta.get("page_idx", -1),
+        "page_start": meta.get("page_start", -1),
+        "page_end": meta.get("page_end", -1),
+        "provenance_schema": meta.get("provenance_schema", ""),
+        "index_version": meta.get("index_version", ""),
+        "source_block_ids": metadata_list("source_block_ids"),
+        "source_locations": metadata_list("source_locations"),
+        "source_kind": meta.get("source_kind", ""),
+        "source_file": meta.get("source_file", ""),
+        "bbox": metadata_list("bbox"),
+        "figure_id": meta.get("figure_id", ""),
         "is_direct_hit": False,
         "role": meta.get("role", ""),
         "book_role": meta.get("book_role", ""),
@@ -1356,6 +1389,16 @@ def _merge_and_rerank(
             "chunk_index": item.get("chunk_index", -1),
             "section_chunk_index": item.get("section_chunk_index", -1),
             "page_idx": item.get("page_idx", -1),
+            "page_start": item.get("page_start"),
+            "page_end": item.get("page_end"),
+            "provenance_schema": item.get("provenance_schema", ""),
+            "index_version": item.get("index_version", ""),
+            "source_block_ids": item.get("source_block_ids", []),
+            "source_locations": item.get("source_locations", []),
+            "source_kind": item.get("source_kind", ""),
+            "source_file": item.get("source_file", ""),
+            "bbox": item.get("bbox", []),
+            "figure_id": item.get("figure_id", ""),
             "is_direct_hit": bool(item.get("is_direct_hit", False)),
             "is_list_neighbor": bool(item.get("is_list_neighbor", False)),
             "is_teaching_anchor": bool(item.get("is_teaching_anchor", False)),

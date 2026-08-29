@@ -1,3 +1,14 @@
+# 2026-08-29 - Provenance V1 and index schema 6
+
+- Canonical chunks now carry `texa.provenance/v1`: stable `chunk_id`, ordered `source_block_ids`, source locations (`block_id`, page range, bbox coordinate contract, source kind/file), plus `figure_id` for Figure blocks.
+- Index schema 6 stamps one `index_version` through active lexical rows and vector metadata. EvidencePack and citation sources preserve the same provenance instead of rebuilding anonymous sources from `chapter_contents` text.
+- Figure rows remain in the versioned lexical catalog for deterministic source mapping but are marked `retrieval_excluded`; ordinary BM25, vector and neighbor retrieval cannot return them. Manifest `chunk_count` remains the searchable count and `catalog_chunk_count` records all versioned rows.
+- Schema-5 indexes remain readable for ordinary retrieval, but they do not satisfy Provenance V1. Reindexing is required before features that require exact active-index block/Figure mapping can operate.
+
+## Validation
+
+- Provenance contract tests cover Canonical split, vector metadata hydration, lexical exclusion, EvidencePack propagation and fail-fast activation for anonymous legacy chunks.
+
 # 2026-08-29 - Explicit retrieval outcomes
 
 - Dense retrieval now returns an explicit `RetrievalOutcome`: `ok` includes a healthy empty result, `partial` preserves successful same-scope results plus backend diagnostics, and `failed` means no requested dense backend completed successfully.

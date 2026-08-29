@@ -11,11 +11,15 @@ import uuid
 from pathlib import Path
 
 from config import VECTOR_DB_PATH
+from ingestion.document_ir import (
+    PROVENANCE_SCHEMA_VERSION,
+    chunk_provenance_errors,
+)
 from ingestion.lexical_index import index_path
 from utils.json_io import atomic_write_json
 from utils.path_safety import safe_book_name
 
-INDEX_SCHEMA_VERSION = 5
+INDEX_SCHEMA_VERSION = 6
 RELEASE_MIN_RECALL = 1.0
 RELEASE_MIN_POINT_RECALL = 1.0
 MAX_RETAINED_INDEX_VERSIONS = 2
@@ -27,13 +31,14 @@ SPECIALTY_RELEASE_THRESHOLDS = {
 }
 _BUILD_LOCK = threading.RLock()
 _LEXICAL_KEYS = (
+    "provenance_schema", "index_version", "book_name",
     "chapter", "section_title", "section_path", "chunk_index", "section_chunk_index", "chunk_id",
     "parent_id", "prev_chunk_id", "next_chunk_id", "page_idx", "role",
     "content", "retrieval_text", "parent_content", "subject", "book_role",
     "rag_priority", "bbox", "equations", "block_type", "source_markdown",
     "review_status", "page_start", "page_end", "source_kind", "source_file",
     "ocr_confidence", "source_block_ids", "source_locations", "table_title",
-    "table_header", "table_rows",
+    "table_header", "table_rows", "figure_id", "retrieval_excluded",
 )
 
 
@@ -65,16 +70,27 @@ def load_index_manifest(book_name: str) -> dict:
 
 def _fingerprint(chunks: list[dict]) -> str:
     digest = hashlib.sha256()
+    digest.update(f"index:{INDEX_SCHEMA_VERSION}|{PROVENANCE_SCHEMA_VERSION}".encode("utf-8"))
+    digest.update(b"\0")
     for chunk in chunks:
         digest.update(str(chunk.get("chunk_id") or "").encode("utf-8"))
         digest.update(b"\0")
         digest.update(str(chunk.get("content") or "").encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(json.dumps({
+            "source_block_ids": chunk.get("source_block_ids") or [],
+            "source_locations": chunk.get("source_locations") or [],
+            "figure_id": chunk.get("figure_id") or "",
+            "retrieval_excluded": bool(chunk.get("retrieval_excluded")),
+        }, ensure_ascii=False, sort_keys=True).encode("utf-8"))
         digest.update(b"\0")
     return digest.hexdigest()
 
 
 def _metadata(chunk: dict, book_name: str, chapter: str) -> dict:
     return {
+        "provenance_schema": str(chunk.get("provenance_schema") or ""),
+        "index_version": str(chunk.get("index_version") or ""),
         "raw_content": str(chunk.get("content") or ""),
         "section_path": json.dumps(chunk.get("section_path") or [], ensure_ascii=False),
         "parent_id": str(chunk.get("parent_id") or ""),
@@ -106,6 +122,8 @@ def _metadata(chunk: dict, book_name: str, chapter: str) -> dict:
         "table_title": str(chunk.get("table_title") or ""),
         "table_header": json.dumps(chunk.get("table_header") or [], ensure_ascii=False),
         "table_rows": json.dumps(chunk.get("table_rows") or [], ensure_ascii=False),
+        "figure_id": str(chunk.get("figure_id") or ""),
+        "retrieval_excluded": bool(chunk.get("retrieval_excluded")),
         "collection_schema": INDEX_SCHEMA_VERSION,
     }
 
@@ -130,7 +148,11 @@ def _add_collection(vs, name: str, book_name: str, chapter: str, chunks: list[di
     except Exception:
         pass
     collection = vs._client.get_or_create_collection(name)
-    rows = [chunk for chunk in chunks if str(chunk.get("content") or "").strip()]
+    rows = [
+        chunk for chunk in chunks
+        if str(chunk.get("content") or "").strip()
+        and not bool(chunk.get("retrieval_excluded"))
+    ]
     for start in range(0, len(rows), 64):
         batch = rows[start:start + 64]
         texts = [str(item.get("retrieval_text") or item.get("content") or "") for item in batch]
@@ -236,8 +258,9 @@ def _validate_staged_production_retrieval(
             index_stats_override={book_name: {
                 "book_name": book_name,
                 "collection_count": len(staged_entries),
-                "chunk_count": len(lexical_rows),
-                "lexical_chunk_count": len(lexical_rows),
+                "chunk_count": sum(not bool(row.get("retrieval_excluded")) for row in lexical_rows),
+                "catalog_chunk_count": len(lexical_rows),
+                "lexical_chunk_count": sum(not bool(row.get("retrieval_excluded")) for row in lexical_rows),
                 "vector_ready": True,
                 "lexical_ready": True,
                 "healthy": True,
@@ -410,6 +433,7 @@ def activate_retained_index_version(vs, book_name: str, version: str) -> dict:
             "lexical_ready": True,
             "source_fallback_active": False,
             "chunk_count": int(target.get("chunk_count", 0) or 0),
+            "catalog_chunk_count": int(target.get("catalog_chunk_count", target.get("chunk_count", 0)) or 0),
             "lexical_chunk_count": int(target.get("chunk_count", 0) or 0),
             "chapter_collection_count": sum(
                 1 for entry in target_entries if str(entry.get("kind") or "chapter") == "chapter"
@@ -466,6 +490,53 @@ def build_and_activate_book_index(
         raise ValueError("book index requires a book name and non-empty chunks")
     fingerprint = _fingerprint(chunks)
     version = fingerprint[:16]
+    catalog_chunks: list[dict] = []
+    seen_chunk_ids: set[str] = set()
+    for chunk in chunks:
+        prepared = {**chunk, "book_name": normalized, "index_version": version}
+        errors = chunk_provenance_errors(prepared, require_index_version=True)
+        if errors:
+            raise ValueError(
+                f"chunk provenance contract failed for {prepared.get('chunk_id') or '<missing>'}: {errors}"
+            )
+        chunk_id = str(prepared["chunk_id"])
+        if chunk_id in seen_chunk_ids:
+            raise ValueError(f"duplicate chunk_id in index catalog: {chunk_id}")
+        seen_chunk_ids.add(chunk_id)
+        catalog_chunks.append(prepared)
+    prepared_by_id = {str(chunk["chunk_id"]): chunk for chunk in catalog_chunks}
+    prepared_groups: list[tuple[str, list[dict]]] = []
+    grouped_chunk_ids: set[str] = set()
+    for title, group in chapter_groups:
+        unknown_ids = [
+            str(chunk.get("chunk_id") or "")
+            for chunk in group
+            if str(chunk.get("chunk_id") or "") not in prepared_by_id
+        ]
+        if unknown_ids:
+            raise ValueError(f"chapter group references unknown chunks: {unknown_ids[:3]}")
+        prepared_group = [
+            prepared_by_id[str(chunk.get("chunk_id") or "")]
+            for chunk in group
+            if str(chunk.get("chunk_id") or "") in prepared_by_id
+            and not bool(prepared_by_id[str(chunk.get("chunk_id") or "")].get("retrieval_excluded"))
+        ]
+        if prepared_group:
+            prepared_groups.append((title, prepared_group))
+            grouped_chunk_ids.update(str(chunk["chunk_id"]) for chunk in prepared_group)
+    retrieval_chunks = [
+        chunk for chunk in catalog_chunks if not bool(chunk.get("retrieval_excluded"))
+    ]
+    if not retrieval_chunks:
+        raise ValueError("book index requires at least one retrieval-enabled chunk")
+    ungrouped_ids = [
+        str(chunk["chunk_id"]) for chunk in retrieval_chunks
+        if str(chunk["chunk_id"]) not in grouped_chunk_ids
+    ]
+    if ungrouped_ids:
+        raise ValueError(f"retrieval chunks missing chapter group: {ungrouped_ids[:3]}")
+    chunks = catalog_chunks
+    chapter_groups = prepared_groups
     build_id = f"{version[:10]}{uuid.uuid4().hex[:6]}"
     staged_entries: dict[str, dict] = {}
     staged_names: list[str] = []
@@ -496,7 +567,7 @@ def build_and_activate_book_index(
                 "schema_version": str(INDEX_SCHEMA_VERSION), "kind": "book_aggregate",
                 "chunk_count": aggregate_count, "index_version": version,
             }
-            probe_text = str(chunks[0].get("content") or "")[:500]
+            probe_text = str(retrieval_chunks[0].get("content") or "")[:500]
             probe = vs._client.get_collection(aggregate_name).query(
                 query_embeddings=[vs.embeddings.embed_query(probe_text)], n_results=1,
             )
@@ -512,7 +583,11 @@ def build_and_activate_book_index(
             if len(lexical_rows) != len(chunks):
                 raise RuntimeError("lexical index validation failed")
             from ingestion.lexical_index import search_rows, tokenize
-            probe_tokens = tokenize(str(chunks[0].get("content") or chunks[0].get("section_title") or ""))
+            probe_tokens = tokenize(str(
+                retrieval_chunks[0].get("content")
+                or retrieval_chunks[0].get("section_title")
+                or ""
+            ))
             lexical_probe = probe_tokens[0] if probe_tokens else ""
             if not lexical_probe or not search_rows(lexical_rows, lexical_probe, k=1):
                 raise RuntimeError("BM25 query validation failed")
@@ -547,14 +622,19 @@ def build_and_activate_book_index(
                     "lexical_path": _manifest_asset_path(old_version_lexical),
                     "activated_at": str(old_manifest.get("activated_at") or ""),
                     "chunk_count": int(old_manifest.get("chunk_count", 0) or 0),
+                    "catalog_chunk_count": int(
+                        old_manifest.get("catalog_chunk_count", old_manifest.get("lexical_chunk_count", 0)) or 0
+                    ),
                 }
 
             candidate_records = [{
                 "index_version": version,
+                "provenance_schema": PROVENANCE_SCHEMA_VERSION,
                 "collections": list(staged_entries),
                 "lexical_path": _manifest_asset_path(new_version_lexical),
                 "activated_at": activated_at,
-                "chunk_count": len(chunks),
+                "chunk_count": len(retrieval_chunks),
+                "catalog_chunk_count": len(chunks),
             }]
             if previous_record is not None:
                 candidate_records.append(previous_record)
@@ -598,13 +678,15 @@ def build_and_activate_book_index(
                     "book_name": normalized,
                     "schema_version": INDEX_SCHEMA_VERSION,
                     "index_version": version,
+                    "provenance_schema": PROVENANCE_SCHEMA_VERSION,
                     "content_fingerprint": fingerprint,
                     "status": "ready",
                     "vector_ready": True,
                     "lexical_ready": True,
                     "source_fallback_active": False,
-                    "chunk_count": len(chunks),
-                    "lexical_chunk_count": len(lexical_rows),
+                    "chunk_count": len(retrieval_chunks),
+                    "catalog_chunk_count": len(chunks),
+                    "lexical_chunk_count": len(retrieval_chunks),
                     "chapter_collection_count": len(chapter_groups),
                     "aggregate_collection": aggregate_name,
                     "release_quality": release_quality,
