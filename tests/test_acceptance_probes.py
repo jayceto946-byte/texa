@@ -66,6 +66,7 @@ def test_generated_probes_and_inventory_report_are_persisted(tmp_path):
 def test_generated_probes_pass_the_real_staged_lexical_retrieval_path():
     from ingestion.chapter_splitter import ChapterSplitter
     from ingestion.index_pipeline import _validate_staged_production_retrieval
+    from ingestion.vector_store import RetrievalOutcome
 
     book = _book()
     probes = generate_acceptance_probes(book)
@@ -75,6 +76,12 @@ def test_generated_probes_pass_the_real_staged_lexical_retrieval_path():
         _map = {}
         _stores = {}
         _broken_aggregates = set()
+
+        def search_chapter(self, *_args, **_kwargs):
+            return RetrievalOutcome(items=[])
+
+        def search_all(self, *_args, **_kwargs):
+            return RetrievalOutcome(items={})
 
     summary = _validate_staged_production_retrieval(
         LexicalOnlyStagedStore(),

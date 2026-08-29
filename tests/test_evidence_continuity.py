@@ -177,7 +177,7 @@ def test_changed_chunk_fingerprint_blocks_reuse(monkeypatch):
     monkeypatch.setattr(module, "get_safe_kg", lambda _book: (type("KG", (), {"_is_local": False})(), ""))
     monkeypatch.setattr(module, "_kg_precise_retrieval", lambda *args, **kwargs: ([], []))
     monkeypatch.setattr(module, "search_book", lambda *args, **kwargs: [])
-    monkeypatch.setattr(module, "_vector_retrieval", lambda *args, **kwargs: [])
+    monkeypatch.setattr(module, "_vector_retrieval", lambda *args, **kwargs: ([], [], True))
     monkeypatch.setattr(module, "_merge_and_rerank", lambda *args, **kwargs: ({}, []))
     monkeypatch.setattr(module, "_load_history", lambda *args: [])
     monkeypatch.setattr(module, "_assess_evidence_support", lambda *args, **kwargs: {
@@ -226,7 +226,7 @@ def test_retrieve_node_delta_combines_old_and_new_evidence(monkeypatch):
         "chunk_id": "chunk-property", "chapter": "第一章", "text": "压阻效应缺点正文。",
         "content": "压阻效应缺点正文。", "is_direct_hit": True, "query_coverage": 1.0,
     }])
-    monkeypatch.setattr(module, "_vector_retrieval", lambda *args, **kwargs: [])
+    monkeypatch.setattr(module, "_vector_retrieval", lambda *args, **kwargs: ([], [], True))
     monkeypatch.setattr(module, "_merge_and_rerank", lambda *args, **kwargs: ({
         "第一章": ["压阻效应缺点正文。"],
     }, [{

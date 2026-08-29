@@ -106,18 +106,15 @@ def test_generator_uses_selected_evidence_only_once():
     assert prompt.count("UNIQUE_EVIDENCE_TEXT") == 1
 
 
-def test_evidence_pack_falls_back_to_legacy_chapter_contents():
+def test_evidence_pack_rejects_anonymous_legacy_chapter_contents():
     chapter_contents = {
         "chapter-1": ["first legacy chunk", "second legacy chunk", "third legacy chunk"],
     }
 
     pack = build_evidence_pack([], chapter_contents)
 
-    assert all(text in pack["text"] for text in (
-        "first legacy chunk",
-        "second legacy chunk",
-        "third legacy chunk",
-    ))
+    assert pack["text"] == ""
+    assert pack["items"] == []
 
 
 @pytest.mark.parametrize(
