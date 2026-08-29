@@ -1,4 +1,4 @@
-import json
+import sqlite3
 from concurrent.futures import ThreadPoolExecutor
 
 from backend import conversation_memory
@@ -40,9 +40,12 @@ def test_corrupt_ledger_rebuilds_from_append_only_messages(monkeypatch, tmp_path
     conversation_memory.append_message(
         "conv-corrupt", "assistant", "压阻效应回答", turn_id="t1",
     )
-    ledger_dir = conversation_memory.CONV_DIR / "_session_ledgers"
-    ledger_dir.mkdir(parents=True, exist_ok=True)
-    (ledger_dir / "conv-corrupt.json").write_text("{broken", encoding="utf-8")
+    session_ledger.get_or_rebuild_session_ledger("conv-corrupt")
+    with sqlite3.connect(conversation_memory.CONV_DIR / "_conversation_events.db") as conn:
+        conn.execute(
+            "UPDATE conversation_ledgers SET state_json = ? WHERE conversation_id = ?",
+            ("{broken", "conv-corrupt"),
+        )
     ledger = session_ledger.get_or_rebuild_session_ledger("conv-corrupt")
     assert ledger["state"]["topic"] == "压阻效应"
     assert ledger["last_message_id"]
@@ -66,9 +69,8 @@ def test_concurrent_ledger_updates_leave_valid_projection(monkeypatch, tmp_path)
             lambda message: session_ledger.record_assistant_in_ledger(conversation_id, message),
             messages,
         ))
-    ledger_path = conversation_memory.CONV_DIR / "_session_ledgers" / f"{conversation_id}.json"
-    payload = json.loads(ledger_path.read_text(encoding="utf-8"))
-    assert payload["schema_version"] == 1
+    payload = conversation_memory.load_session_ledger_projection(conversation_id)
+    assert payload["schema_version"] == 2
     assert isinstance(payload["state"], dict)
 
 

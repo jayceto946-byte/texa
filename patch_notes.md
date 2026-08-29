@@ -1,3 +1,13 @@
+# 2026-08-29 - Conversation SQLite authority and Session Ledger convergence
+
+- Conversation scope, title, timestamps, counts, history, routing and existence now derive only from `conversation_messages` in `_conversation_events.db`; per-conversation JSON remains a best-effort compatibility projection.
+- Legacy conversation JSON is read exactly once inside the transactional import boundary. After the `conversation_imports` marker is committed, later JSON edits, deletion or corruption cannot affect routing or Resolver inputs.
+- Session Ledger schema v2 is stored as the rebuildable `conversation_ledgers` SQLite projection keyed by the latest message sequence/id. The former `_session_ledgers/*.json` files are no longer read or written; stale or invalid ledger rows rebuild from append-only messages.
+
+## Validation
+
+- Conversation event-store, concurrency, subject-routing, context-safety and follow-up regression suites pass after the storage convergence.
+
 # 2026-08-28 - Figure 金标与受控 Qwen 视觉验收
 
 - 基于 `传感器长书` 建立 24 项 review-ready Figure 金标候选，覆盖结构图、测量电路、特性曲线、工艺流程、原理图和系统框图；每项绑定稳定 `figure_id`、页码、检索词、学习问题及可解释要点。金标已逐图检查，但明确保留 `pending_human_signoff`，不冒充传感器课程教师审核。

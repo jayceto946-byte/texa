@@ -1,18 +1,14 @@
-"""Persistent bounded projection of conversation state used by Resolver v2."""
+"""Persistent bounded SQLite projection of conversation state used by Resolver v2."""
 from __future__ import annotations
 
-import json
 import threading
-import time
 from dataclasses import asdict
-from pathlib import Path
 from typing import Any
 
 from backend.services.session_context import rebuild_session_state, session_state_from_dict
-from utils.json_io import atomic_write_json
 
 
-LEDGER_SCHEMA_VERSION = 1
+LEDGER_SCHEMA_VERSION = 2
 _LEDGER_LOCKS = tuple(threading.RLock() for _ in range(64))
 
 
@@ -26,28 +22,12 @@ def _conversation_memory():
     return conversation_memory
 
 
-def _ledger_dir() -> Path:
-    path = Path(_conversation_memory().CONV_DIR) / "_session_ledgers"
-    path.mkdir(parents=True, exist_ok=True)
-    return path
-
-
-def _ledger_path(conversation_id: str) -> Path:
-    return _ledger_dir() / f"{conversation_id}.json"
-
-
 def _conversation_exists(conversation_id: str) -> bool:
     return _conversation_memory().conversation_exists(conversation_id)
 
 
 def _read_ledger(conversation_id: str) -> dict[str, Any] | None:
-    path = _ledger_path(conversation_id)
-    if not path.exists():
-        return None
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return None
+    value = _conversation_memory().load_session_ledger_projection(conversation_id)
     if not isinstance(value, dict) or value.get("schema_version") != LEDGER_SCHEMA_VERSION:
         return None
     return value
@@ -72,9 +52,8 @@ def _write_ledger(conversation_id: str, value: dict[str, Any]) -> None:
         "state": _bounded_state(value.get("state") or {}),
         "active_evidence": value.get("active_evidence") or {},
         "last_message_id": str(value.get("last_message_id") or "")[:100],
-        "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
     }
-    atomic_write_json(_ledger_path(conversation_id), payload)
+    _conversation_memory().save_session_ledger_projection(conversation_id, payload)
 
 
 def _active_evidence_projection(message: dict[str, Any]) -> dict[str, Any]:
@@ -105,7 +84,7 @@ def get_or_rebuild_session_ledger(
     conversation_id: str,
     recent_history: list[dict] | None = None,
 ) -> dict[str, Any]:
-    """Return a current ledger, rebuilding from the event projection only when stale."""
+    """Return a current ledger, rebuilding only from authoritative SQLite messages."""
     with _ledger_lock(conversation_id):
         recent = [item for item in (recent_history or []) if isinstance(item, dict)]
         if not _conversation_exists(conversation_id):
@@ -115,17 +94,19 @@ def get_or_rebuild_session_ledger(
                 "state": asdict(rebuild_session_state(recent, limit=5000)),
                 "active_evidence": {},
                 "last_message_id": str((recent[-1] if recent else {}).get("id") or ""),
+                "last_seq": 0,
             }
-        latest_message_id = str((recent[-1] if recent else {}).get("id") or "")
+
+        latest_seq, latest_message_id = _conversation_memory().latest_message_marker(conversation_id)
         existing = _read_ledger(conversation_id)
         if existing and (
-            not latest_message_id or existing.get("last_message_id") == latest_message_id
+            existing.get("last_message_id") == latest_message_id
+            and int(existing.get("last_seq") or 0) == latest_seq
         ):
             return existing
 
         history = _conversation_memory().load_full_history(conversation_id)
         state = rebuild_session_state(history, limit=5000)
-        latest = str((history[-1] if history else {}).get("id") or "")
         latest_assistant = next((
             item for item in reversed(history) if item.get("role") == "assistant"
         ), {})
@@ -134,10 +115,11 @@ def get_or_rebuild_session_ledger(
             "conversation_id": conversation_id,
             "state": asdict(state),
             "active_evidence": _active_evidence_projection(latest_assistant),
-            "last_message_id": latest,
+            "last_message_id": latest_message_id,
+            "last_seq": latest_seq,
         }
         _write_ledger(conversation_id, ledger)
-        return ledger
+        return _read_ledger(conversation_id) or ledger
 
 
 def save_resolution_to_ledger(
@@ -196,6 +178,6 @@ def update_ledger_evidence_invalidation(conversation_id: str, reason: str) -> No
 
 
 def invalidate_session_ledger(conversation_id: str) -> None:
-    """Remove a derived projection after split/reclassification; raw events remain intact."""
+    """Remove a derived ledger projection; authoritative message events remain intact."""
     with _ledger_lock(conversation_id):
-        _ledger_path(conversation_id).unlink(missing_ok=True)
+        _conversation_memory().delete_session_ledger_projection(conversation_id)

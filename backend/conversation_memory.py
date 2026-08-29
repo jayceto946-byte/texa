@@ -102,7 +102,100 @@ def _connect_events() -> sqlite3.Connection:
         "CREATE TABLE IF NOT EXISTS conversation_imports ("
         "conversation_id TEXT PRIMARY KEY, imported_at TEXT NOT NULL)"
     )
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS conversation_ledgers ("
+        "conversation_id TEXT PRIMARY KEY, schema_version INTEGER NOT NULL, "
+        "state_json TEXT NOT NULL, active_evidence_json TEXT NOT NULL, "
+        "last_message_id TEXT NOT NULL DEFAULT '', last_seq INTEGER NOT NULL DEFAULT 0, "
+        "updated_at TEXT NOT NULL)"
+    )
     return conn
+
+
+def latest_message_marker(conversation_id: str) -> tuple[int, str]:
+    conversation_id = ensure_conversation_id(conversation_id)
+    with _connect_events() as conn:
+        _ensure_event_projection(conn, conversation_id)
+        row = conn.execute(
+            "SELECT seq, message_id FROM conversation_messages "
+            "WHERE conversation_id = ? ORDER BY seq DESC LIMIT 1",
+            (conversation_id,),
+        ).fetchone()
+    return (int(row["seq"]), str(row["message_id"] or "")) if row else (0, "")
+
+
+def load_session_ledger_projection(conversation_id: str) -> dict | None:
+    conversation_id = ensure_conversation_id(conversation_id)
+    with _connect_events() as conn:
+        _ensure_event_projection(conn, conversation_id)
+        row = conn.execute(
+            "SELECT schema_version, state_json, active_evidence_json, "
+            "last_message_id, last_seq, updated_at FROM conversation_ledgers "
+            "WHERE conversation_id = ?",
+            (conversation_id,),
+        ).fetchone()
+    if row is None:
+        return None
+    try:
+        state = json.loads(str(row["state_json"]))
+        active_evidence = json.loads(str(row["active_evidence_json"]))
+    except (TypeError, json.JSONDecodeError):
+        logger.exception("invalid SQLite session ledger projection: %s", conversation_id)
+        return None
+    if not isinstance(state, dict) or not isinstance(active_evidence, dict):
+        logger.error("invalid SQLite session ledger shape: %s", conversation_id)
+        return None
+    return {
+        "schema_version": int(row["schema_version"]),
+        "conversation_id": conversation_id,
+        "state": state,
+        "active_evidence": active_evidence,
+        "last_message_id": str(row["last_message_id"] or ""),
+        "last_seq": int(row["last_seq"] or 0),
+        "updated_at": str(row["updated_at"] or ""),
+    }
+
+
+def save_session_ledger_projection(conversation_id: str, value: dict) -> bool:
+    conversation_id = ensure_conversation_id(conversation_id)
+    with _connect_events() as conn:
+        _ensure_event_projection(conn, conversation_id)
+        latest = conn.execute(
+            "SELECT seq, message_id FROM conversation_messages "
+            "WHERE conversation_id = ? ORDER BY seq DESC LIMIT 1",
+            (conversation_id,),
+        ).fetchone()
+        if latest is None:
+            return False
+        conn.execute(
+            "INSERT INTO conversation_ledgers "
+            "(conversation_id, schema_version, state_json, active_evidence_json, "
+            "last_message_id, last_seq, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(conversation_id) DO UPDATE SET "
+            "schema_version = excluded.schema_version, state_json = excluded.state_json, "
+            "active_evidence_json = excluded.active_evidence_json, "
+            "last_message_id = excluded.last_message_id, last_seq = excluded.last_seq, "
+            "updated_at = excluded.updated_at",
+            (
+                conversation_id,
+                int(value.get("schema_version") or 1),
+                json.dumps(value.get("state") or {}, ensure_ascii=False),
+                json.dumps(value.get("active_evidence") or {}, ensure_ascii=False),
+                str(value.get("last_message_id") or latest["message_id"] or ""),
+                int(latest["seq"]),
+                time.strftime("%Y-%m-%dT%H:%M:%S"),
+            ),
+        )
+    return True
+
+
+def delete_session_ledger_projection(conversation_id: str) -> None:
+    conversation_id = ensure_conversation_id(conversation_id)
+    with _connect_events() as conn:
+        conn.execute(
+            "DELETE FROM conversation_ledgers WHERE conversation_id = ?",
+            (conversation_id,),
+        )
 
 
 def _write_json_projection(path: Path, payload: dict) -> bool:
