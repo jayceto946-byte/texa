@@ -101,6 +101,7 @@ export function useChat() {
                 suggestedAnswerMode: result.suggested_answer_mode,
                 scopeReason: result.scope_reason,
                 originalQuestion: question,
+                learningTask: result.learning_task,
               };
             });
             setLoading(false);

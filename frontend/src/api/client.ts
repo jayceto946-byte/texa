@@ -500,7 +500,7 @@ export async function chatAsk(
   signal?: AbortSignal,
   answerMode: AnswerMode = 'auto',
   timeoutMs = NON_STREAMING_CHAT_TIMEOUT_MS,
-): Promise<{ content: string; intent: string; chapters: string[]; linked_concepts?: ConceptCandidate[]; sources?: AssistantSource[]; conversation_id?: string; turn_id?: string; book_name?: string; subject?: string; request_id?: string; message_id?: string; subject_suggestion?: SubjectRouteSuggestion; rewritten_question?: string; answer_mode?: AnswerMode; suggested_answer_mode?: AnswerMode; scope_reason?: string; use_textbook_context?: boolean }> {
+): Promise<{ content: string; intent: string; chapters: string[]; linked_concepts?: ConceptCandidate[]; sources?: AssistantSource[]; conversation_id?: string; turn_id?: string; book_name?: string; subject?: string; request_id?: string; message_id?: string; subject_suggestion?: SubjectRouteSuggestion; rewritten_question?: string; answer_mode?: AnswerMode; suggested_answer_mode?: AnswerMode; scope_reason?: string; use_textbook_context?: boolean; learning_task?: LearningTaskState }> {
   const res = await apiFetch('/chat/ask', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
