@@ -74,3 +74,21 @@ def test_citation_must_support_its_adjacent_claim_when_source_text_is_available(
     )
     assert result["status"] == "failed"
     assert result["checks"][0]["unsupported_ids"] == ["E1"]
+
+
+def test_formula_only_source_can_support_an_equivalent_formula_citation():
+    result = verify_answer(
+        r"线圈电感满足 $L=N^2/R_{\mathrm m}$。[[cite:E1]]",
+        required_outputs=[{"id": "citations", "kind": "citation", "required": True}],
+        sources=[{"id": "E1", "text": r"$$L = N ^ { 2 } / R _ { \mathrm { m } }\tag{4.46}$$"}],
+    )
+    assert result["status"] == "passed"
+
+
+def test_explanatory_temperature_question_does_not_require_numeric_answer():
+    outputs = derive_required_outputs(
+        "说明参考端温度变化如何影响补偿电势。",
+        intent="application",
+        answer_mode="visual_grounded",
+    )
+    assert "final_numeric_answer" not in {item["id"] for item in outputs}

@@ -381,6 +381,7 @@ def append_message(
     request_id: str = "",
     context_versions: dict | None = None,
     learning_task: dict | None = None,
+    citation_provenance: dict | None = None,
 ) -> dict:
     subject = normalize_subject_value(subject)
     now = time.strftime("%Y-%m-%dT%H:%M:%S")
@@ -419,6 +420,12 @@ def append_message(
             }
         if isinstance(learning_task, dict) and learning_task:
             item["learning_task"] = learning_task
+        if isinstance(citation_provenance, dict) and citation_provenance:
+            item["citation_provenance"] = {
+                str(key)[:60]: value
+                for key, value in citation_provenance.items()
+                if isinstance(value, (str, int, float, bool, list))
+            }
         with _connect_events() as conn:
             _ensure_event_projection(conn, conversation_id, payload)
             existing_row = conn.execute(

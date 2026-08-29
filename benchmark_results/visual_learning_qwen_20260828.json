@@ -1,0 +1,1402 @@
+{
+  "schema_version": "visual-learning-online-eval/v1",
+  "book_name": "传感器长书",
+  "model": {
+    "provider": "qwen",
+    "model": "qwen3.7-plus"
+  },
+  "gold_review": {
+    "status": "agent_screened_requires_human_signoff",
+    "method": "逐图检查稳定资产、caption 与邻近 Canonical 正文；只标注图中直接可见或正文明确支持的要点。",
+    "human_signoff": false,
+    "known_risk": "尚未经过传感器课程教师签字确认；发布前仍需人工复核要点措辞。"
+  },
+  "summary": {
+    "cases": 24,
+    "retrieval_top3_rate": 1.0,
+    "model_completion_rate": 1.0,
+    "model_source_citation_rate": 0.75,
+    "source_citation_rate": 1.0,
+    "citation_autofill_count": 6,
+    "verification_pass_rate": 1.0,
+    "key_point_coverage": 1.0,
+    "serious_unsupported_claims": 0
+  },
+  "thresholds": {
+    "minimum_cases": 20,
+    "minimum_retrieval_top3_rate": 0.9,
+    "minimum_model_completion_rate": 0.95,
+    "minimum_source_citation_rate": 1.0,
+    "minimum_verification_pass_rate": 0.9,
+    "minimum_key_point_coverage": 0.85,
+    "maximum_serious_unsupported_claims": 0
+  },
+  "checks": {
+    "minimum_cases": true,
+    "retrieval_top3_rate": true,
+    "model_completion_rate": true,
+    "source_citation_rate": true,
+    "verification_pass_rate": true,
+    "key_point_coverage": true,
+    "serious_unsupported_claims": true
+  },
+  "failure_buckets": {
+    "ingestion": [],
+    "retrieval": [],
+    "model": [],
+    "verification": []
+  },
+  "details": [
+    {
+      "id": "sensor-basic-components",
+      "category": "system_block",
+      "figure_id": "d8e936a82c2da13cbdf7",
+      "page": 12,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "敏感元件",
+        "转换元件",
+        "信号调理",
+        "数据处理",
+        "显示记录"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图1.1（传感器的基本组成）[[cite:E1]]，按信号流向，图中的主要模块依次为：\n\n1. **敏感元件**：接收初始被测量。\n2. **转换元件**：接收来自敏感元件的输出。\n3. **信号调理电路**：对转换元件输出的信号进行处理。\n4. **数据处理**：对调理后的信号进行进一步运算或分析。\n5. **显示记录**：最终输出和保存结果。\n\n此外，图中还包含辅助模块：**电源**为转换元件和信号调理电路提供能量；**通信接口**与数据处理模块相连，用于数据传输。\n\n结合教材内容，敏感元件和转换元件各自承担的作用如下：\n\n* **敏感元件**：承担“预变换”的作用。在完成非电量到电量的变换过程中，它负责先将非电量参数变换成一种易于变换成电量的非电量（如位移、应变等）[[cite:E2]]。\n* **转换元件**：承担将非电量参数转换为电量的作用。它是传感器的核心部分，负责将敏感元件感觉到的被测非电量参数（或直接感受到的被测量）转换为电量（如利用应变计、压电晶体、热电偶等原理）[[cite:E2]]。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "d8e936a82c2da13cbdf7",
+        "928c9a42aac00a2d482e"
+      ],
+      "ordinal": 1,
+      "elapsed_seconds": 40.674,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E2"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-output-characteristic",
+      "category": "characteristic_curve",
+      "figure_id": "2532e2889c9e9109497b",
+      "page": 16,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "测量值",
+        "输出读数",
+        "拟合直线",
+        "灵敏度"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图1.5及教材内容，测量值、输出读数和拟合直线的关系如下：\n\n1. **测量值与输出读数**：图的横轴代表测量值（被测量值），纵轴代表传感器的输出读数。图中的“×”标记点表示相应测量值所对应的传感器典型输出读数[[cite:E4]]。\n2. **拟合直线**：为了描述传感器的线性特性，通常通过这些“×”数据点画出一条合适的直线，即图中的拟合直线，以表示输出读数与测量值之间理想的线性正比关系[[cite:E4]]。\n3. **斜率的含义**：图中明确标注了“梯度 = 测量灵敏度”，因此该拟合直线的斜率（梯度）代表传感器的**测量灵敏度**[[cite:E1]]。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "2532e2889c9e9109497b"
+      ],
+      "ordinal": 2,
+      "elapsed_seconds": 39.608,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E4"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-hysteresis",
+      "category": "characteristic_curve",
+      "figure_id": "6e8577d6f400c4e3ff6e",
+      "page": 18,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "正反行程",
+        "输出不重合",
+        "最大迟滞量"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图1.9及教材内容，解答如下：\n\n**1. 图中的两条路径为什么不同？**\n图中的两条路径分别代表传感器在全测量范围内的正行程和反行程[[cite:E1]]。这两条路径不重合的现象称为迟滞（或滞后）[[cite:E4]]。造成这种现象的原因主要是传感器敏感元件材料的物理性质和机械零部件的缺陷，例如弹性敏感元件的弹性滞后、运动部件摩擦、传动机构的间隙以及紧固件松动等[[cite:E5]]。\n\n**2. 最大迟滞量在图中的含义**\n图中标注的 $\\Delta H_{\\max}$ 表示正行程和反行程曲线之间在垂直方向上的最大距离，其含义为正反量程最大输出偏差[[cite:E1]]。在迟滞计算公式 $\\delta _ { \\mathrm { H } } = \\pm { \\frac { \\Delta H _ { \\mathrm { m a x } } } { Y _ { \\mathrm { F S } } } } \\times 1 0 0 \\%$ 中，$\\Delta H_{\\max}$ 即为该最大输出偏差，而 $Y_{\\mathrm{FS}}$ 为满量程输出[[cite:E7]]。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "6e8577d6f400c4e3ff6e"
+      ],
+      "ordinal": 3,
+      "elapsed_seconds": 44.502,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E4",
+              "E5",
+              "E7"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-step-response",
+      "category": "dynamic_curve",
+      "figure_id": "6da15e9e4a276c611dfe",
+      "page": 32,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "振荡",
+        "衰减",
+        "二阶系统",
+        "振荡周期"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图1.27及教材内容，传感器系统受到阶跃压力后的动态响应及可读取的动态量如下：\n\n**1. 动态响应描述**\n图1.27展示了传感器系统对阶跃压力的响应曲线（时域曲线）[[cite:E1]]。从曲线形态可以看出，系统在受到阶跃输入后，输出信号迅速上升并超过稳态值，随后围绕稳态值（图中中间的水平实线）进行振荡。由于振荡幅度随时间有规律地单调减小（由上下两条虚线包络线所示），且振荡周期 $T_{\\mathrm{d}}$ 稳定，这表明该传感器（或测压系统）可以近似视为单自由度的欠阻尼二阶系统[[cite:E3]]。\n\n**2. 可从曲线读取的动态量**\n根据图示标注，可以直接从曲线中读取以下动态量：\n\n*   **振动周期 $T_{\\mathrm{d}}$**：图中明确标注了相邻两个波峰之间的时间间隔为 $T_{\\mathrm{d}}$[[cite:E6]]。根据该周期，可以计算系统的有阻尼自然频率 $\\omega_{\\mathrm{d}}$（公式为 $\\omega_{\\mathrm{d}} = 2\\pi / T_{\\mathrm{d}}$）[[cite:E7]]。\n*   **振荡幅度（超调量）**：图中标注了 $y_1$、$y_2$ 和 $y_3$。\n    *   $y_1$ 表示第一个波峰超出稳态值的幅度。\n    *   $y_2$ 表示第一个波谷低于稳态值的幅度。\n    *   $y_3$ 表示后续波峰的幅度。\n    这些幅度值反映了系统的阻尼特性，通常用于计算阻尼比 $\\xi$ 和无阻尼自然频率 $\\omega_{\\mathrm{n}}$，进而确定传感器的幅频特性和相频特性[[cite:E3]]。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "6da15e9e4a276c611dfe",
+        "0f9515b5c23bd8e5aea6"
+      ],
+      "ordinal": 4,
+      "elapsed_seconds": 33.49,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E3",
+              "E6",
+              "E7"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-edm-principle",
+      "category": "process_principle",
+      "figure_id": "5bd949af0c6e897465ab",
+      "page": 44,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "工件",
+        "线电极",
+        "工作液",
+        "脉冲发生器",
+        "相对运动"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "依据图2.3“线电极电火花磨削法原理示意图”[[cite:E1]]，工件、线电极、工作液和脉冲发生器之间的关系如下：\n\n1. **脉冲发生器与电极的连接**：脉冲发生器通过导线分别连接到工件和线电极上。图中显示工件上方标有“+”号，表明工件接脉冲发生器的正极，而线电极接负极（或另一端），从而在两者之间建立脉冲电场。\n2. **工作液的喷射位置**：工作液通过左侧的喷嘴直接喷射到工件与线电极相互靠近的加工间隙处，用于冷却和排屑。\n3. **工件与线电极的相对运动**：工件在脉冲发生器连接端标有旋转箭头，表示工件在加工时旋转；线电极穿过导线板，下方箭头指示其沿特定方向连续移动。两者在脉冲发生器的作用下，于工作液环境中产生电火花放电，实现磨削加工。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "5bd949af0c6e897465ab",
+        "89b3b6b0c231dc77d43c"
+      ],
+      "ordinal": 5,
+      "elapsed_seconds": 14.447,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-thick-film-process",
+      "category": "process_flow",
+      "figure_id": "2cd30842f7edb7da42d6",
+      "page": 48,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "浆料制备",
+        "印刷",
+        "烧结",
+        "补偿或封装",
+        "测试标定"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图2.13及教材正文，厚膜压力传感器的制作流程及关键工序如下：\n\n**制作流程（按图中先后顺序）：**\n1. **浆料制备**：将酸盐导电相合成与玻璃相制备的产物进行混合、研磨，再加入黏合剂进行调浆，最终制成厚膜电阻浆料（厚膜应变电阻浆料）[[cite:E1]]。\n2. **基体加工**：对陶瓷弹性体进行设计与加工，并印烧导带[[cite:E1]]。\n3. **印刷与烧结**：通过丝网制作，将厚膜应变电阻浆料印刷到基片上，随后进行烧结[[cite:E1]]。\n4. **后处理与测试**：依次经过补偿、封装，制成压力传感器，最后进行测试与标定[[cite:E1]]。\n\n**关键工序：**\n结合正文，**烧结**是制作过程中的关键工序[[cite:E4]]。在基片上干燥过的厚膜元件必须经过烧结才具备一定的电性能，烧结是厚膜技术区别于薄膜技术的特征工序，对厚膜电阻的特性起决定性作用（烧结温度一般在600~1000℃之间）[[cite:E4]]。此外，选择适宜的浆料和掌握熟练的印制技巧也是重要环节[[cite:E4]]。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "2cd30842f7edb7da42d6"
+      ],
+      "ordinal": 6,
+      "elapsed_seconds": 28.471,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E4"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-thermoelectric-effect",
+      "category": "principle_diagram",
+      "figure_id": "7b32e6520bbf91a9af7e",
+      "page": 53,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "两种导体",
+        "两个温度",
+        "热电势",
+        "测量仪表"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图示，导体 A、B 和两个接点温度 T、T0 构成热电效应测量回路的方式如下：\n\n1. **闭合回路结构**：两种不同材料的导体 A 和 B 首尾相连，构成一个闭合回路 [[cite:E1]]。\n2. **接点与温度**：导体 A 和 B 在下端直接连接形成一个接点，该接点处于温度 T；在上端通过一个微安表（μA）连接形成另一个接点，该接点处于温度 T0 [[cite:E1]]。\n3. **测量回路形成**：当两个接点处于不同温度（T 和 T0）时，由于珀耳帖效应（接触电势）和汤姆逊效应（温差电势，即均质导体两端温度不同产生的电势差 [[cite:E6]]），回路中会产生总热电势。串联在回路中的微安表（μA）用于检测或测量该热电势产生的电流，从而构成了完整的热电效应测量回路 [[cite:E1]]。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "7b32e6520bbf91a9af7e"
+      ],
+      "ordinal": 7,
+      "elapsed_seconds": 17.048,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E6"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-thermocouple-circuit",
+      "category": "measurement_circuit",
+      "figure_id": "df0e7de5b8a0a914bbda",
+      "page": 54,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "测温接点",
+        "参考端",
+        "测量仪表",
+        "温差决定输出"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图 3.7 热电偶测温电路 [[cite:E1]]，各部分识别及温度作用说明如下：\n\n1. **测温接点**：图左侧由导体 a 和 b 连接而成的端点，图中标注为“测温接点”，其温度标记为 $T$ [[cite:E1]]。\n2. **参考端**：图中导体 a-c 和 b-c 路径上标注为 $T_0$ 的两个节点位置，即热电偶的参考端（冷端） [[cite:E1]]。\n3. **测量仪表**：图右侧带有“+”、“-”接线端的方框，标注为“测量仪表”，用于测量热电偶产生的热电势 [[cite:E1]]。\n\n**$T$ 与 $T_0$ 在该电路中的作用**：\n- **$T$** 代表测温接点（工作端）的温度，即实际需要测量的被测温度 [[cite:E1]]。\n- **$T_0$** 代表参考端（冷端）的温度 [[cite:E1]]。\n热电偶回路中产生的总热电势取决于这两个接点的温度，即接点温度为 $(T, T_0)$ 时的热电势 $E_{\\mathrm{AB}}(T, T_0)$ [[cite:E2]]。测量仪表通过测量该热电势来反映被测温度 $T$ 的大小。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "df0e7de5b8a0a914bbda",
+        "9d6f75772d5d6191bd79",
+        "444cf83eaa6c4b1d1dfb"
+      ],
+      "ordinal": 8,
+      "elapsed_seconds": 16.093,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E2"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-armored-thermocouple",
+      "category": "structure_diagram",
+      "figure_id": "228a2f193458b1172d49",
+      "page": 55,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "单芯双芯",
+        "套管",
+        "热电极",
+        "绝缘材料"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图3.10的断面结构，单芯与双芯铠装热电偶的比较及位置关系如下：\n\n**单芯与双芯的比较**\n*   **单芯（图a）**：中心只有一个内电极，其最外层的套管同时兼作外电极（套管兼外电极）[[cite:E1]]。\n*   **双芯（图b）**：中心包含两个并排的内电极，最外层仅为套管[[cite:E1]]。\n\n**套管、热电极和绝缘材料的位置关系**\n从外向内看，三者的位置关系为：\n1.  **套管**：位于最外层，作为金属管将内部结构组合成一个坚实的整体[[cite:E4]]。\n2.  **绝缘材料**：填充在套管内部，包裹着热电极，起到绝缘和固定作用[[cite:E1]]。\n3.  **热电极**：位于最中心（即图中的内电极），被绝缘材料严密包裹[[cite:E1]]。在单芯结构中，热电极由中心的内电极和外层的套管共同组成[[cite:E1]]。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "228a2f193458b1172d49"
+      ],
+      "ordinal": 9,
+      "elapsed_seconds": 28.973,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E4"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-bridge-compensation",
+      "category": "measurement_circuit",
+      "figure_id": "eefa30e9baea3405aa04",
+      "page": 58,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "电桥",
+        "铜电阻",
+        "环境温度",
+        "补偿电势"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "结合图 3.14 的电路原理图与教材正文，电桥补偿法补偿热电偶参考端温度变化的原理如下：\n\n在图 3.14 中，电桥的一个桥臂采用了铜电阻 $R_{\\mathrm{Cu}}$（即正文中的 $R_{\\mathrm{t}}$），它被放置在热电偶的参考端（冷端）处，与热电偶感受相同的环境温度 $T_{\\mathrm{n}}$ [[cite:E1]]。\n\n根据热电偶的中间温度定律，热电偶在测量端温度 $T$ 和标准参考端温度 $T_0$ 之间的总热电势可以表示为：\n$$E_{\\mathrm{AB}}(T, T_0) = E_{\\mathrm{AB}}(T, T_{\\mathrm{n}}) + E_{\\mathrm{AB}}(T_{\\mathrm{n}}, T_0)$$ [[cite:E3]]\n\n当环境温度 $T_{\\mathrm{n}}$ 升高时，热电偶实际输出的热电势 $E_{\\mathrm{AB}}(T, T_{\\mathrm{n}})$ 会下降。与此同时，电桥中的铜电阻 $R_{\\mathrm{Cu}}$ 阻值随温度升高而增大，使得电桥输出的不平衡电压 $U_{\\mathrm{A}} \\approx I R_{\\mathrm{t}}$ 随之升高。通过电路设计，使该补偿电压 $U_{\\mathrm{A}} = E_{\\mathrm{AB}}(T_{\\mathrm{n}}, T_0)$，从而起到补偿环境温度影响的作用 [[cite:E2]]。\n\n因此，当环境温度 $T_{\\mathrm{n}}$ 升高时，$E_{\\mathrm{AB}}(T, T_{\\mathrm{n}})$ 的下降量恰好被电桥产生的补偿电压 $E_{\\mathrm{AB}}(T_{\\mathrm{n}}, T_0)$ 的升高量所抵消，最终使得测量系统得到的总电势 $E_{\\mathrm{AB}}(T, T_0)$ 保持不变，实现了对参考端温度变化的自动补偿 [[cite:E4]]。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "eefa30e9baea3405aa04"
+      ],
+      "ordinal": 10,
+      "elapsed_seconds": 33.522,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E2",
+              "E3",
+              "E4"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-four-wire-resistance",
+      "category": "measurement_circuit",
+      "figure_id": "78bd52e7839d748cbf2b",
+      "page": 63,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "恒流源",
+        "电压表",
+        "电流引线",
+        "电压引线",
+        "引线电阻影响"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图 3.23 四线式电阻测量电路，四线式测量通过以下方式分开回路并减小引线电阻的影响：\n\n**1. 分开电流回路和电压测量回路**\n电路使用四根引线将热电阻 $R_t$ 分别连接到恒流源和电压表 [[cite:E1]]。\n*   **电流回路**：恒流源通过外侧的两根引线（对应引线电阻 $r_1$ 和 $r_4$）向热电阻 $R_t$ 提供恒定的测量电流 $I_M$ [[cite:E1]]。\n*   **电压测量回路**：电压表通过内侧的两根引线（对应引线电阻 $r_2$ 和 $r_3$）直接并联在热电阻 $R_t$ 两端，用于测量其电压降 $E_M$ [[cite:E1]]。\n\n**2. 减小引线电阻影响的原因**\n*   **电压回路引线电阻影响可忽略**：由于电压表的内阻非常大，流过电压测量回路的电流 $I_V$ 极小（$I_V \\ll I_M$，$I_V \\approx 0$）[[cite:E4]]。因此，引线电阻 $r_2$ 和 $r_3$ 上产生的压降几乎为零，电压表的读数 $E_M$ 可以认为完全等于热电阻 $R_t$ 两端的真实电压。\n*   **电流回路引线电阻不影响测量**：虽然恒流源提供的电流 $I_M$ 会在外侧引线电阻 $r_1$ 和 $r_4$ 上产生较大的压降，但由于电压测量回路是独立接在 $r_1$ 和 $r_4$ 内侧的，这些压降并不在电压表的测量范围内，因此不会干扰电压读数。\n\n通过这种电流与电压回路分离的设计，四线式测量彻底消除了引线电阻对热电阻阻值测量精度的影响。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "78bd52e7839d748cbf2b",
+        "a36fcf96415767060b89"
+      ],
+      "ordinal": 11,
+      "elapsed_seconds": 21.46,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E4"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-temperature-characteristics",
+      "category": "comparison_curve",
+      "figure_id": "f05c5e5f3bff5eacd2f4",
+      "page": 66,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "半导体下降",
+        "金属上升",
+        "载流子",
+        "非线性"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图 3.28 及教材正文，半导体热敏电阻与金属热电阻随温度变化的趋势及原因如下：\n\n**1. 变化趋势比较**\n从图 3.28 可以看出 [[cite:E1]]：\n*   **半导体热敏电阻**：其阻值随温度的升高而急剧减小，且变化曲线呈明显的非线性（下降趋势越来越平缓）。\n*   **金属热电阻**：其阻值随温度的升高而增加，变化曲线近似为一条斜向上的直线，呈较好的线性关系。\n\n**2. 原因解释**\n结合教材正文，两者趋势不同的根本原因在于导电机制不同：\n*   **金属热电阻**：金属导电依靠自由电子在电场作用下的定向运动。当温度升高时，自由电子的数目基本不增加，只有自由电子杂乱无章的动能增加了 [[cite:E4]]。因此，在一定电场作用下，自由电子做定向运动时会遇到更大的阻力，导致金属的电阻值随温度升高而增加 [[cite:E5]]。\n*   **半导体热敏电阻**：半导体导电依靠载流子（自由电子和空穴）。在一般情况下，半导体中的载流子数目很少，电阻值很大。但当温度升高时，半导体中更多的价电子获得热能而被激发，挣脱核束缚成为载流子，使得参加导电的载流子数目显著增加 [[cite:E5]]。因此，半导体的电阻值随温度升高而急剧减小，且按指数规律下降，呈现出非线性关系 [[cite:E5]]。这也正是热敏电阻阻值与温度变化呈非线性关系的原因 [[cite:E2]]。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "f05c5e5f3bff5eacd2f4"
+      ],
+      "ordinal": 12,
+      "elapsed_seconds": 16.795,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E2",
+              "E4",
+              "E5"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-strain-gauge-structure",
+      "category": "structure_diagram",
+      "figure_id": "2618cbdc859065e301a2",
+      "page": 83,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "敏感栅",
+        "基底",
+        "覆盖层",
+        "引线",
+        "栅长栅宽"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据教材图4.1及相关说明，金属电阻应变片的组成部分及图中符号含义如下：\n\n**1. 金属电阻应变片的组成部分**\n金属电阻应变片主要由以下部分组成：敏感栅、基底、覆盖层、引线和黏结剂等 [[cite:E3]]。从图中也可以直观地看到引线、覆盖层、敏感栅和基底等结构 [[cite:E1]]。\n\n**2. 图中 $l$ 与 $b$ 的含义**\n在图4.1中，$l$ 表示栅长，$b$ 表示栅宽 [[cite:E7]]。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "2618cbdc859065e301a2",
+        "61bcb96e94160c4b7e3f",
+        "3836bbbd0fa99cdfca0e"
+      ],
+      "ordinal": 13,
+      "elapsed_seconds": 10.973,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E3",
+              "E7"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-hall-effect",
+      "category": "principle_diagram",
+      "figure_id": "de3cbad0f64af80381b1",
+      "page": 125,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": false,
+      "source_cited": true,
+      "citation_autofilled": true,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "电流",
+        "磁场",
+        "洛伦兹力",
+        "电荷积累",
+        "霍尔电压"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图 5.2 霍尔效应示意图及教材说明，电流、磁场、载流子受力和霍尔电压（电场）之间的方向关系如下：\n\n1.  **磁场与电流方向**：外磁场 $B$ 的方向垂直于导电板向上；导电板通以电流 $I$，方向如图所示（沿板长方向向左）[[cite:E3]]。\n2.  **载流子运动与洛伦兹力**：导电板中的电流是由自由电子的定向运动形成的，电子的运动平均速度 $\\nu$ 方向与电流 $I$ 方向相反（图中向右）。每个电子在磁场中受到洛伦兹力 $f_1$ 的作用，其大小由公式 $f_1 = e \\nu \\times B$ 决定[[cite:E3]]、[[cite:E4]]。\n3.  **电荷积累方向**：在洛伦兹力 $f_1$ 的作用下，电子除了沿电流反方向运动外，还会发生侧向漂移（图中显示向上/向后漂移）。这导致金属导电板的一个面（图中称为上底面）积累电子（负电荷），而相对的另一面（图中称为下底面，画有“+”号）积累正电荷[[cite:E6]]。\n4.  **霍尔电场与受力平衡**：电荷的积累形成了附加内电场，即霍尔电场 $E_H$。该电场的方向由积累正电荷的面指向积累负电荷的面（即由下底面指向上底面）。此时电子还受到与洛伦兹力 $f_1$ 方向相反的电场力 $f_E$ 作用，当两者平衡时形成稳定的霍尔电势[[cite:E6]]。\n\n来源：传感器长书 · p.125 · Figure de3cbad0f64af80381b1 [[cite:E1]]",
+      "error": "",
+      "retrieved_figure_ids": [
+        "de3cbad0f64af80381b1"
+      ],
+      "ordinal": 14,
+      "elapsed_seconds": 59.443,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E3",
+              "E4",
+              "E6"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-variable-gap-inductance",
+      "category": "principle_diagram",
+      "figure_id": "ee91a8c886201045964f",
+      "page": 112,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": false,
+      "source_cited": true,
+      "citation_autofilled": true,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "弹性元件",
+        "衔铁",
+        "铁芯线圈",
+        "气隙",
+        "电感变化"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图4.37及教材内容，外力 $F$ 改变气隙 $\\delta$ 并影响线圈电感的过程如下：\n\n1. **外力作用于弹性元件**：外力 $F$ 作用在弹性元件上，使其发生形变。由于衔铁安装在弹性元件上，弹性元件的形变会带动衔铁产生位移 [[cite:E6]]。\n2. **改变气隙 $\\delta$**：衔铁的位移直接改变了衔铁与铁芯之间的气隙 $\\delta$ 的大小。气隙 $\\delta$ 的大小随着外力 $F$ 的变化而变化 [[cite:E6]]。\n3. **影响线圈电感 $L$**：气隙 $\\delta$ 的变化会引起磁路中磁阻 $R_{\\mathrm{m}}$ 的改变。根据线圈电感的计算公式 $L = N^2 / R_{\\mathrm{m}}$ [[cite:E7]]，磁阻的变化会进一步导致线圈电感 $L$ 发生相应的变化（通常气隙减小，磁阻减小，电感增大）。\n\n来源：传感器长书 · p.112 · Figure ee91a8c886201045964f [[cite:E1]]",
+      "error": "",
+      "retrieved_figure_ids": [
+        "7813501f02b553ea5c12",
+        "ee91a8c886201045964f",
+        "b5d3447c2ac159e40ce0"
+      ],
+      "ordinal": 15,
+      "elapsed_seconds": 14.95,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E6",
+              "E7"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-differential-transformer",
+      "category": "structure_principle",
+      "figure_id": "e236759682ce5bc75fd3",
+      "page": 114,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": false,
+      "source_cited": true,
+      "citation_autofilled": true,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "膜盒",
+        "衔铁",
+        "线圈",
+        "零位平衡",
+        "位移反映压力"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "结合图4.40的剖面结构与教材原理，压力经膜盒和衔铁转换为差动变压器输出的过程如下：\n\n1. **压力输入与膜盒位移**：被测压力通过底部的“接头”传入传感器内部 [[cite:E2]]。压力作用于“膜盒”（图中底座上方的波纹状弹性元件），使其产生一定的位移，该位移的大小与被测压力成正比 [[cite:E2]]。\n2. **带动衔铁移动**：膜盒的中心通过刚性连接杆直接带动上方的“衔铁”移动，使衔铁在差动变压器的“线圈”内部发生轴向位移 [[cite:E2]]。\n3. **差动变压器电势变化**：\n   - 当被测压力为零时，膜盒处于初始状态，衔铁位于线圈的中间位置，此时两个次级线圈的感应电势大小相等、方向相反，传感器输出电压为零 [[cite:E2]]。\n   - 当压力使衔铁偏离中间位置时，两个次级线圈的感应电势一个增大、另一个减小，总输出电势为两个线圈感应电势的代数和，其大小取决于衔铁的移动距离 [[cite:E2]]。\n4. **信号输出**：差动变压器产生的交流电压信号经线路板上的相敏检波等电路处理后，最终通过右侧的“插头”输出，输出电压即可反映被测压力的数值 [[cite:E2]]。这种传感器多用来测量微小压力 [[cite:E2]]。\n\n来源：传感器长书 · p.114 · Figure e236759682ce5bc75fd3 [[cite:E1]]",
+      "error": "",
+      "retrieved_figure_ids": [
+        "e236759682ce5bc75fd3"
+      ],
+      "ordinal": 16,
+      "elapsed_seconds": 18.736,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E2"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-resonant-pressure",
+      "category": "feedback_block",
+      "figure_id": "fa7e2989b0996bc48405",
+      "page": 114,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": false,
+      "source_cited": true,
+      "citation_autofilled": true,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "激振元件",
+        "振子",
+        "拾振元件",
+        "放大反馈",
+        "频率输出"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图4.41及教材内容，按闭环方向说明各元件维持振动并输出频率的过程如下：\n\n1. **激振元件激发振动**：激振元件提供激振力，激发振子产生振动[[cite:E6]]。\n2. **振子振动与拾振**：振子在被测物理量（如压力）作用下发生振动，拾振元件负责检测振子的振动频率，并由此引出频率输出信号[[cite:E6]]。\n3. **信号放大与反馈**：拾振元件检测到的振动信号被送入放大器进行放大，随后放大后的信号被输送回激振元件[[cite:E6]]。\n4. **形成闭环维持振动**：通过上述“激振元件 $\\rightarrow$ 振子 $\\rightarrow$ 拾振元件 $\\rightarrow$ 放大器 $\\rightarrow$ 激振元件”的反馈路径，系统形成了一个闭环，从而能够维持振子持续不断地振动[[cite:E6]]。\n\n来源：传感器长书 · p.114 · Figure fa7e2989b0996bc48405 [[cite:E1]]",
+      "error": "",
+      "retrieved_figure_ids": [
+        "fa7e2989b0996bc48405"
+      ],
+      "ordinal": 17,
+      "elapsed_seconds": 12.765,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E6"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-diaphragm-pressure-curve",
+      "category": "characteristic_curve",
+      "figure_id": "717ba5a9841231124c31",
+      "page": 116,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "压力",
+        "频率",
+        "初始频率",
+        "随压力上升",
+        "非线性"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图4.44（振膜压力传感器输入/输出特性）可以看出，横轴表示压力 $p$，纵轴表示频率 $f$。当压力 $p=0$ 时，频率具有一个初始值 $f_0$；随着压力 $p$ 的逐渐增大，频率 $f$ 也随之增大，但曲线的斜率逐渐减小，呈现出增长趋势变缓的曲线形态 [[cite:E1]]。\n\n关于该输入输出关系是否线性：根据教材正文说明，由相关公式推导得出的振膜式压力传感器谐振频率 $f$ 与压力 $p$ 的关系，其输入/输出特性是近似抛物线的非线性关系 [[cite:E5]]。因此，该关系是非线性的。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "717ba5a9841231124c31",
+        "17810aeee06b3587c83f"
+      ],
+      "ordinal": 18,
+      "elapsed_seconds": 13.763,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E5"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-solar-power-system",
+      "category": "system_block",
+      "figure_id": "b5ba62d1387d88e195ec",
+      "page": 169,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "太阳电池方阵",
+        "蓄电池",
+        "调节控制器",
+        "阻塞二极管",
+        "逆变器与交流负载"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图 6.31 太阳能电池电源系统框图及教材内容，各组件按能量流向的关系如下：\n\n1.  **能量产生与输入**：\n    能量来源于**太阳电池方阵**。产生的电能首先经过**阻塞二极管**（防止蓄电池向太阳电池方阵反向放电），然后流向**调节控制器** [[cite:E1]]。\n\n2.  **能量控制与存储**：\n    **调节控制器**是系统的核心枢纽。它接收来自太阳电池方阵的电能，并与**蓄电池组**相连。\n    *   当光照充足时，控制器将电能输送给蓄电池进行充电储存。\n    *   当光照不足或负载需求大时，蓄电池通过控制器释放电能 [[cite:E1]]。\n    教材指出系统主要由太阳电池方阵、蓄电池组、调节控制和阻塞二极管组成 [[cite:E4]]。\n\n3.  **能量输出（负载）**：\n    调节控制器（及系统总线）将电能分配给负载：\n    *   **直流负载**：直接连接在系统线路上，使用直流电。\n    *   **交流负载**：如果负载需要交流电，系统会配置一个**逆变器**（即教材中提到的直流-交流变换器）。电能从控制器流向逆变器，转换为交流电后，再供给交流负载 [[cite:E1]] [[cite:E4]]。\n\n**总结流向**：太阳电池方阵 $\\rightarrow$ 阻塞二极管 $\\rightarrow$ 调节控制器 $\\leftrightarrow$ 蓄电池组（充/放电）；同时 调节控制器 $\\rightarrow$ 直流负载；调节控制器 $\\rightarrow$ 逆变器 $\\rightarrow$ 交流负载。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "b5ba62d1387d88e195ec"
+      ],
+      "ordinal": 19,
+      "elapsed_seconds": 41.923,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E4"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-fiber-gas-system",
+      "category": "optical_system",
+      "figure_id": "8742237347088b9d765a",
+      "page": 193,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": false,
+      "source_cited": true,
+      "citation_autofilled": true,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "光源",
+        "光纤与吸收盒",
+        "分光滤光",
+        "光电二极管",
+        "数据处理"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图6.82及教材正文，该光纤气体检测系统的信号路径可概括为以下四个主要阶段：\n\n1. **光源发射与参考光路监测**：光源（如气体激光器）发出包含两个频率 $f_{\\mathrm{A}}$、$f_{\\mathrm{W}}$（分别对应被测气体分子的吸收频率和非吸收频率）的光信号[[cite:E4]]。光束首先经过光劈 B.S.(2) 分出一小部分作为参考光，该参考光经光栅分光后，由硅光电二极管 $\\mathrm{PD}_3$、$\\mathrm{PD}_4$ 转换为电信号 $I_{\\mathrm{r}}(\\lambda_1)$、$I_{\\mathrm{r}}(\\lambda_2)$，用于后续消除光源发光不稳定性带来的误差[[cite:E4]]。\n2. **光纤传输与气体吸收**：光源的主光束通过长光纤远距离传输至被测气体的多次反射吸收盒（即怀特盒）[[cite:E4]]。光在怀特盒内经过多次反射，气体分子对特定波长的光产生差动吸收[[cite:E4]]。\n3. **探测光路分光与光电转换**：怀特盒输出的携带气体浓度信息的光信号经透镜到达光劈 B.S.(1)，被分为两束[[cite:E4]]。这两束光分别通过滤光片 $L_1$、$L_2$ 提取出 $\\lambda_1$、$\\lambda_2$ 两个波长的光信号，随后由硅光电二极管 $\\mathrm{PD}_1$、$\\mathrm{PD}_2$ 接收并转换为电信号 $I_{\\mathrm{t}}(\\lambda_1)$、$I_{\\mathrm{t}}(\\lambda_2)$[[cite:E4]]。\n4. **数据处理与结果显示**：上述4路电流信号（$I_{\\mathrm{r}}(\\lambda_1)$、$I_{\\mathrm{r}}(\\lambda_2)$、$I_{\\mathrm{t}}(\\lambda_1)$、$I_{\\mathrm{t}}(\\lambda_2)$）全部输入到数据处理（模拟处理）单元[[cite:E4]]。系统在此进行信号处理，补偿光纤传输损失、校正激光器发光不稳定性及系统系数标定，最终显示并记录被测气体的浓度[[cite:E4]]。\n\n来源：传感器长书 · p.193 · Figure 8742237347088b9d765a [[cite:E1]]",
+      "error": "",
+      "retrieved_figure_ids": [
+        "8742237347088b9d765a"
+      ],
+      "ordinal": 20,
+      "elapsed_seconds": 31.407,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E4"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-saw-telemetry",
+      "category": "wireless_system",
+      "figure_id": "53dfd63b008844249ad5",
+      "page": 220,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "SAW 传感振荡",
+        "无线传输",
+        "高频放大",
+        "混频低通",
+        "计数显示"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图 7.41 的框图及教材描述，SAW 温度遥测系统的信号流向过程如下：\n\n1. **传感与发射**：SAW 振荡器和振荡元件构成温度传感器，感知温度变化并引起振荡频率变化。其输出信号经过 IC 设计模块处理后，通过小型简易天线发射出去 [[cite:E1]]。\n2. **无线传输**：发射天线将携带温度信息的射频信号通过空间无线传输至接收端 [[cite:E4]]。\n3. **接收与频率处理**：接收天线捕获信号后，依次进入高频放大模块进行放大，随后通过混频器利用外差法将高频信号转换为低频信号，再经过低通滤波器滤除高频杂波 [[cite:E1]]。\n4. **计数与显示**：滤波后的低频信号送入计数器进行计频，计数器的输出最终送入微机（或显示模块），转化为对应的温度值并显示出来 [[cite:E4]]。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "53dfd63b008844249ad5"
+      ],
+      "ordinal": 21,
+      "elapsed_seconds": 13.668,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E4"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-humidity-curve-circuit",
+      "category": "curve_and_circuit",
+      "figure_id": "cb5c0cf4ad65a1daa24f",
+      "page": 263,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": false,
+      "source_cited": true,
+      "citation_autofilled": true,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "电容湿度关系",
+        "线性关系",
+        "MHS1100",
+        "两级运放",
+        "输出电压"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据教材内容，两幅子图的作用分别如下：\n\n**左侧（图 9.21）电容—湿度关系的作用：**\n该图展示了 MHS1100 湿度传感器的电容-湿度关系曲线，其作用是表明该传感器的电容变化与相对湿度之间属于线性关系[[cite:E2]]。\n\n**右侧（图 9.22）线性输出电路的作用：**\n该图是湿度传感器的线性输出应用电路，其作用是将传感器的电容信号转换为与湿度成线性关系的电压输出。具体工作过程为：传感器信号先接入运放 $\\mathrm{IC}_{1}$ 的反向输入端，经三极管 $\\mathrm{VT}_{1}$ 放大后接入运放 $\\mathrm{IC}_{2}$ 的同相端；通过选择适当的电阻和电容参数，最终可得到输出电压 $V_{\\mathrm{OUT}}$ 与湿度的线性曲线（如图中公式所示 $V_{\\mathrm{OUT}}=0.01 \\times \\mathrm{RH}+1.5$）[[cite:E2]]。\n\n来源：传感器长书 · p.263 · Figure cb5c0cf4ad65a1daa24f [[cite:E1]]",
+      "error": "",
+      "retrieved_figure_ids": [
+        "cb5c0cf4ad65a1daa24f"
+      ],
+      "ordinal": 22,
+      "elapsed_seconds": 30.982,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E2"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-smart-system",
+      "category": "system_block",
+      "figure_id": "5aece735a3c9452312fd",
+      "page": 325,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "传感器",
+        "预处理接口",
+        "微型机",
+        "显示记录",
+        "执行机构"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图12.1智能传感器系统的结构框图及教材内容，沿数据流方向各模块的功能解释如下：\n\n1. **被测量**：外部世界中需要获取的物理量或信息。\n2. **传感器**：作为系统的感知前端，负责获取被测量并进行初步的信号形式转换。\n3. **预处理及接口**：包含信号预处理和模拟信号数字化输入接口，负责对传感器输出的模拟信号进行调理和A/D转换，使其能够被数字系统处理。\n4. **微型机**：系统的信息处理中心，包含微处理器（MP）、ROM、RAM以及信息处理和校正软件。\n5. **输出接口**：含有D/A转换及驱动电路，将微型机处理后的数字信号转换为模拟信号或驱动信号。\n6. **执行机构 / 显示记录**：接收输出接口的信号，执行相应的控制动作，或将数据进行显示和记录。[[cite:E1]]\n\n**微型机为何是其智能化核心：**\n微型机（微处理器单元）是智能传感器实现“智能”的关键所在，原因如下：\n* **独立处理与决策能力**：微型机使传感器具备了独立处理能力，能够像人一样将感知到的外部世界中的有用信息提取出来，对周围情况作出反应，而不需要将信息传送给中央控制器。[[cite:E2]][[cite:E3]]\n* **强大的自补偿与计算功能**：依托微型机内部集成的嵌入式微处理器及软件，系统可实现多方面的性能补偿（如零点补偿、增益补偿、线性补偿、温度漂移补偿等）以及工作状态自诊断。[[cite:E6]]\n* **复杂算法支持**：微型机能够执行信号调理、逻辑控制、数据压缩、模式识别等计算功能，甚至支持模糊算法、人工神经网络等复杂算法，从而极大地提升了传感器的精度、稳定性和功能性。[[cite:E7]][[cite:E4]]",
+      "error": "",
+      "retrieved_figure_ids": [
+        "5aece735a3c9452312fd"
+      ],
+      "ordinal": 23,
+      "elapsed_seconds": 30.811,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E2",
+              "E3",
+              "E4",
+              "E6",
+              "E7"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    },
+    {
+      "id": "sensor-fieldbus-system",
+      "category": "network_block",
+      "figure_id": "91e0802b9b9f4847a471",
+      "page": 328,
+      "retrieval_top3": true,
+      "model_completed": true,
+      "model_source_cited": true,
+      "source_cited": true,
+      "citation_autofilled": false,
+      "verification_status": "passed",
+      "key_point_coverage": 1.0,
+      "matched_points": [
+        "计算机",
+        "监控机",
+        "现场总线",
+        "传感器",
+        "执行元件"
+      ],
+      "missing_points": [],
+      "serious_unsupported_claim": false,
+      "failure_bucket": "",
+      "answer": "根据图12.2“现场总线控制系统框图”及相关教材内容，计算机、监控机、现场总线和现场设备之间的层级与通信关系如下：\n\n**1. 层级结构**\n系统呈现典型的自上而下的分层结构 [[cite:E1]]：\n*   **最高层（管理/控制层）**：**计算机**。位于系统顶端，负责整体控制或管理。\n*   **中间层（监控层）**：**监控机**。计算机通过上层总线连接多个监控机，形成分布式监控结构。\n*   **底层（现场层）**：**现场总线**与**现场设备**。每个监控机下方连接一条现场总线，现场总线上挂载了具体的现场设备。\n\n**2. 通信关系**\n*   **计算机与监控机**：计算机与多个监控机之间通过总线进行连接和通信。\n*   **监控机与现场设备**：监控机通过**现场总线**与底层的现场设备进行通信。现场总线是连接监控机与现场设备的通信链路 [[cite:E1]]。\n*   **现场设备节点**：现场总线的节点即为现场设备或现场仪表，包括图中的**传感器**（传感器1、传感器2...传感器n）和**执行元件**。这些节点不仅仅是传统的单功能仪表，而是具有综合功能的智能仪表 [[cite:E2]]。\n*   **通信方式**：现场总线（如BIT总线）通常设计用于集散式测控系统中的通信传输，常采用主从式高速串行网结构，通过串行通信接口实现数据通信 [[cite:E6]]。\n\n综上所述，计算机通过监控机管理现场总线，现场总线则直接连接并通信于各个智能传感器和执行元件，构成了一个完整的现场总线控制系统（FCS）。",
+      "error": "",
+      "retrieved_figure_ids": [
+        "91e0802b9b9f4847a471"
+      ],
+      "ordinal": 24,
+      "elapsed_seconds": 31.838,
+      "verification": {
+        "status": "passed",
+        "passed": true,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "final_numeric_answer",
+            "label": "最终数值及单位",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1",
+              "E2",
+              "E6"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          }
+        ],
+        "failures": [],
+        "unverified": []
+      }
+    }
+  ],
+  "online_model_called": true,
+  "passed": true,
+  "rescored_without_new_model_calls": true,
+  "review_gate": {
+    "status": "pending_human_signoff",
+    "blocks_automated_harness": false
+  }
+}

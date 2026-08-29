@@ -1,0 +1,82 @@
+{
+  "schema_version": "visual-learning-eval/v1",
+  "book_name": "传感器视觉验收",
+  "parser_version": "mineru-content-list-v1",
+  "step1_ingestion": {
+    "figure_count": 508,
+    "caption_rate": 0.90748,
+    "ready_asset_rate": 1.0,
+    "required_field_rate": 1.0,
+    "canonical_valid": true,
+    "errors": 0,
+    "warnings": 6537
+  },
+  "step2_search_open": {
+    "query_top3_rate": 1.0,
+    "cases": [
+      {
+        "query": "厚膜压力 制作工艺",
+        "matched_top3": true,
+        "returned": 1,
+        "top_figure_id": "e182d19da8bd1074bcf5"
+      },
+      {
+        "query": "热电偶 测温电路",
+        "matched_top3": true,
+        "returned": 3,
+        "top_figure_id": "8cdf6fbe48cb4302eec9"
+      },
+      {
+        "query": "金属电阻 应变片结构",
+        "matched_top3": true,
+        "returned": 3,
+        "top_figure_id": "5bfdb482ce7f1e6e701b"
+      },
+      {
+        "query": "霍尔效应 示意图",
+        "matched_top3": true,
+        "returned": 1,
+        "top_figure_id": "d74777410d193b381538"
+      }
+    ]
+  },
+  "step3_region_question_contract": {
+    "passed": true,
+    "figure_id": "e182d19da8bd1074bcf5",
+    "normalized_bbox": [
+      0.2,
+      0.2,
+      0.8,
+      0.8
+    ],
+    "pixel_bbox": [
+      196,
+      76,
+      782,
+      306
+    ],
+    "crop_size": [
+      586,
+      230
+    ]
+  },
+  "step4_answer_provenance": {
+    "passed": true,
+    "source_count": 7,
+    "nearby_text_source_count": 6,
+    "related_chunk_count": 4,
+    "citation_status": "passed"
+  },
+  "checks": {
+    "step1_figure_count": true,
+    "step1_caption_rate": true,
+    "step1_asset_rate": true,
+    "step1_required_fields": true,
+    "step1_canonical_valid": true,
+    "step2_query_top3": true,
+    "step3_region_crop": true,
+    "step4_provenance": true
+  },
+  "passed": true,
+  "online_model_called": false
+}

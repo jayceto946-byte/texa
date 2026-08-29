@@ -4,14 +4,24 @@ from __future__ import annotations
 from contextlib import nullcontext
 import json
 from pathlib import Path
+import re
 from urllib.parse import quote
+import uuid
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse, StreamingResponse
 
 from backend.conversation_memory import append_message, ensure_turn_id, resolve_conversation_id_for_scope
 from backend.schemas import FigureQuestionRequest
+from backend.services.answer_verification import derive_required_outputs, verification_notice, verify_answer
 from backend.services.figure_learning import FigureLearningService, NormalizedBBox
+from backend.services.learning_task import (
+    LearningTask,
+    LearningTaskStore,
+    get_learning_task_store,
+    interrupt_learning_task,
+    resume_learning_task,
+)
 from backend.services.multimodal_bridge import VisionModelBridge
 from config import PROGRESS_PATH
 from utils.citation_protocol import sanitize_citation_protocol
@@ -23,6 +33,10 @@ router = APIRouter(tags=["visual-learning"])
 
 def _service() -> FigureLearningService:
     return FigureLearningService(Path(PROGRESS_PATH))
+
+
+def _task_store() -> LearningTaskStore:
+    return get_learning_task_store()
 
 
 def _event(stage: str, **payload) -> str:
@@ -39,6 +53,42 @@ def _http_error(exc: Exception) -> HTTPException:
     if isinstance(exc, ValueError):
         return HTTPException(status_code=400, detail=str(exc))
     return HTTPException(status_code=500, detail=str(exc))
+
+
+_CITATION_RE = re.compile(r"\[\[cite:(E[\w-]+)\]\]", re.IGNORECASE)
+
+
+def _citation_provenance(answer: str, citation_trace: dict, sources: list[dict]) -> dict:
+    valid_ids = {
+        str(source.get("id") or "").upper()
+        for source in sources if isinstance(source, dict) and source.get("id")
+    }
+    model_ids = list(dict.fromkeys(
+        value.upper() for value in _CITATION_RE.findall(answer) if value.upper() in valid_ids
+    ))
+    invalid_removed = int(citation_trace.get("invalid_ids_removed") or 0)
+    if "E1" in model_ids and invalid_removed == 0:
+        status = "model_aligned"
+        paragraph_alignment = "complete"
+    elif model_ids:
+        status = "partially_aligned"
+        paragraph_alignment = "partial"
+    else:
+        status = "sources_attached"
+        paragraph_alignment = "unverified"
+    return {
+        "status": status,
+        "model_citation_ids": model_ids,
+        "source_attachment_origin": "system",
+        "paragraph_alignment": paragraph_alignment,
+        "automatic_citation_inserted": False,
+    }
+
+
+def _display_question(task: LearningTask) -> str:
+    page = task.artifacts.get("page")
+    page_label = f"p.{page}" if page else "未标页"
+    return f"📎 教材 Figure · {page_label}\n\n{task.goal}"
 
 
 @router.get("/books/{book_name}/figures")
@@ -84,36 +134,63 @@ def get_book_figure_image(book_name: str, figure_id: str):
     )
 
 
-@router.post("/visual-learning/figure-stream")
-def answer_figure_question(req: FigureQuestionRequest):
-    """Keep Figure → context → optional crop → multimodal answer bounded and observable."""
+def _figure_stream(
+    req: FigureQuestionRequest,
+    *,
+    existing_task: LearningTask | None = None,
+    run_id: str = "",
+):
+    """Keep Figure → context → optional crop → multimodal answer bounded and resumable."""
+
+    active_run_id = run_id or f"run_{uuid.uuid4().hex}"
 
     def events():
         service = _service()
         answer_chunks: list[str] = []
+        task = existing_task
+        sources: list[dict] = []
         try:
             context = service.build_context(req.book_name, req.figure_id)
             figure = context.figure
             full_image = service.asset_path(req.book_name, req.figure_id)
-            source = {
-                "id": "E1",
-                "figure_id": req.figure_id,
-                "book_name": req.book_name,
-                "chapter": (figure.get("section_path") or [req.book_name])[0],
-                "section_title": (figure.get("section_path") or [req.book_name])[-1],
-                "section_path": figure.get("section_path") or [],
-                "page_idx": figure.get("page_idx"),
-                "caption": figure.get("caption") or "",
-                "label": f"Figure {req.figure_id}",
-                "asset_url": figure.get("image_url") or "",
-                "pdf_url": figure.get("pdf_url") or "",
-            }
+            sources = service.evidence_sources(context)
+            conversation_id = resolve_conversation_id_for_scope(
+                req.conversation_id, req.subject, req.book_name,
+            )
+            turn_id = ensure_turn_id(req.turn_id)
+            required_outputs = derive_required_outputs(
+                req.question, intent="application", answer_mode="visual_grounded",
+            )
+            if task is None:
+                task = _task_store().create(
+                    task_type="figure_qa",
+                    goal=req.question,
+                    conversation_id=conversation_id,
+                    turn_id=turn_id,
+                    answer_mode="visual_grounded",
+                    required_outputs=required_outputs,
+                    artifacts={
+                        "book_name": req.book_name,
+                        "figure_id": req.figure_id,
+                        "subject": req.subject,
+                        "page": figure.get("page"),
+                        "region": req.bbox,
+                        "related_chunk_ids": context.related_chunk_ids,
+                        "source_ids": [source.get("id") for source in sources],
+                        "active_run_id": active_run_id,
+                    },
+                )
+            task.artifacts["active_run_id"] = active_run_id
+            task = _task_store().save_for_run(task, active_run_id)
+            task = _task_store().checkpoint_for_run(
+                task, active_run_id, "figure_context_ready", detail=f"{len(sources)} sources",
+            )
             yield _event("activity", activity={
                 "id": "figure-context", "kind": "evidence", "label": "读取教材 Figure 上下文",
                 "status": "completed",
                 "detail": f"已关联第 {figure.get('page') or '?'} 页及 {len(context.nearby_blocks)} 个邻近正文块",
                 "meta": {"figure_id": req.figure_id, "related_chunk_ids": context.related_chunk_ids},
-            })
+            }, learning_task=task.to_dict(public=True))
 
             bbox = NormalizedBBox.from_values(req.bbox) if req.bbox is not None else None
             crop_manager = (
@@ -138,41 +215,74 @@ def answer_figure_question(req: FigureQuestionRequest):
                 for chunk in bridge.iter_figure_answer(
                     full_image,
                     user_question=req.question,
-                    figure_context={**context.to_dict(), "user_region": crop_metadata},
+                    figure_context={
+                        **context.to_dict(),
+                        "user_region": crop_metadata,
+                        "evidence_sources": sources,
+                    },
                     cropped_region_path=crop_path,
                 ):
+                    if not _task_store().run_is_active(task.id, active_run_id):
+                        return
                     answer_chunks.append(chunk)
+                    task.artifacts["partial_output"] = "".join(answer_chunks)[-12000:]
+                    _task_store().save_for_run(task, active_run_id)
                     yield _event("generate", chunk=chunk, done=False)
 
+            if not _task_store().run_is_active(task.id, active_run_id):
+                return
             answer = sanitize_latex("".join(answer_chunks).strip())
             if not answer:
                 raise RuntimeError("多模态模型未返回可展示回答")
-            if "[[cite:E1]]" not in answer:
-                page_label = f"p.{int(figure['page'])}" if figure.get("page") else "未标页"
-                answer = f"{answer}\n\n来源：{req.book_name} · {page_label} · Figure {req.figure_id} [[cite:E1]]"
-            answer, citation_trace = sanitize_citation_protocol(answer, [source])
+            answer, citation_trace = sanitize_citation_protocol(answer, sources)
+            citation_provenance = _citation_provenance(answer, citation_trace, sources)
+            answer_verification = verify_answer(
+                answer,
+                required_outputs=required_outputs,
+                sources=sources,
+                citation_trace=citation_trace,
+                evidence_items=[{"id": source.get("id"), "text": source.get("text", "")} for source in sources],
+            )
+            notice = verification_notice(answer_verification)
+            if notice and notice not in answer:
+                answer = f"{answer.rstrip()}\n\n{notice}"
             streamed = "".join(answer_chunks).strip()
             if answer != streamed:
                 yield _event("generate", chunk=answer, replace=True, done=False)
 
-            conversation_id = resolve_conversation_id_for_scope(
-                req.conversation_id, req.subject, req.book_name,
+            task.verification = answer_verification
+            task.artifacts["answer"] = answer
+            task.artifacts.pop("partial_output", None)
+            completion_status = "completed" if answer_verification.get("status") == "passed" else "degraded"
+            task = _task_store().checkpoint_for_run(
+                task, active_run_id, "verified", status=completion_status,
+                detail=str(answer_verification.get("status") or "unknown"),
             )
-            turn_id = ensure_turn_id(req.turn_id)
+            if task.status not in {"completed", "degraded"}:
+                return
+
             append_message(
-                conversation_id, "user", req.question,
+                conversation_id, "user", _display_question(task),
                 book_name=req.book_name, subject=req.subject, turn_id=turn_id,
             )
             assistant_message = append_message(
                 conversation_id, "assistant", answer,
                 book_name=req.book_name, subject=req.subject, turn_id=turn_id,
-                sources=[source], answer_mode="visual_grounded", evidence_support_status="grounded",
+                sources=sources, answer_mode="visual_grounded",
+                evidence_support_status="grounded" if citation_provenance["status"] == "model_aligned" else "degraded",
+                delivery_status="complete", learning_task=task.to_dict(public=True),
+                citation_provenance=citation_provenance,
             )
+            task.artifacts["message_id"] = assistant_message.get("id", "")
+            _task_store().save(task)
             yield _event("done", done=True, result={
                 "success": True,
                 "explanation": answer,
-                "sources": [source],
+                "sources": sources,
                 "citation_trace": citation_trace,
+                "citation_provenance": citation_provenance,
+                "answer_verification": answer_verification,
+                "learning_task": task.to_dict(public=True),
                 "message_id": assistant_message.get("id", ""),
                 "conversation_id": conversation_id,
                 "turn_id": turn_id,
@@ -183,6 +293,23 @@ def answer_figure_question(req: FigureQuestionRequest):
                 "status": "completed", "detail": "回答已绑定本次 Figure/Page 来源",
             })
         except Exception as exc:
+            if task is not None:
+                if not _task_store().run_is_active(task.id, active_run_id):
+                    return
+                task.verification = {"status": "failed", "passed": False, "checks": []}
+                task = _task_store().checkpoint_for_run(
+                    task, active_run_id, "failed", status="failed", detail=str(exc),
+                )
+                append_message(
+                    task.conversation_id, "user", _display_question(task),
+                    book_name=req.book_name, subject=req.subject, turn_id=task.turn_id,
+                )
+                append_message(
+                    task.conversation_id, "assistant", f"教材图片问答失败：{exc}",
+                    book_name=req.book_name, subject=req.subject, turn_id=task.turn_id,
+                    sources=sources, answer_mode="visual_grounded", evidence_support_status="failed",
+                    delivery_status="error", learning_task=task.to_dict(public=True),
+                )
             yield _event("error", done=True, message=str(exc), activity={
                 "id": "figure-error", "kind": "system", "label": "Figure 问答失败",
                 "status": "failed", "detail": str(exc),
@@ -192,3 +319,67 @@ def answer_figure_question(req: FigureQuestionRequest):
         events(), media_type="text/event-stream",
         headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
     )
+
+
+@router.post("/visual-learning/figure-stream")
+def answer_figure_question(req: FigureQuestionRequest):
+    return _figure_stream(req)
+
+
+@router.post("/visual-learning/tasks/{task_id}/interrupt")
+def interrupt_figure_task(task_id: str, payload: dict | None = None):
+    store = _task_store()
+    task = store.get(task_id)
+    if task is None or task.task_type != "figure_qa":
+        raise HTTPException(status_code=404, detail="Figure learning task not found")
+    data = payload or {}
+    task = interrupt_learning_task(
+        store,
+        task,
+        stage=str(data.get("stage") or "user_stopped"),
+        partial_output=str(data.get("partial_output") or ""),
+    )
+    if task.status == "interrupted":
+        book_name = str(task.artifacts.get("book_name") or "")
+        subject = str(task.artifacts.get("subject") or "")
+        sources: list[dict] = []
+        try:
+            context = _service().build_context(book_name, str(task.artifacts.get("figure_id") or ""))
+            sources = _service().evidence_sources(context)
+        except Exception:
+            pass
+        append_message(
+            task.conversation_id, "user", _display_question(task),
+            book_name=book_name, subject=subject, turn_id=task.turn_id,
+        )
+        append_message(
+            task.conversation_id, "assistant",
+            str(task.artifacts.get("partial_output") or "").strip() or "已停止教材图片问答。",
+            book_name=book_name, subject=subject, turn_id=task.turn_id,
+            sources=sources, answer_mode="visual_grounded", delivery_status="partial",
+            learning_task=task.to_dict(public=True),
+        )
+    return {"success": True, "learning_task": task.to_dict(public=True)}
+
+
+@router.post("/visual-learning/tasks/{task_id}/resume-stream")
+def resume_figure_task_stream(task_id: str):
+    store = _task_store()
+    task = store.get(task_id)
+    if task is None or task.task_type != "figure_qa":
+        raise HTTPException(status_code=404, detail="Figure learning task not found")
+    run_id = f"run_{uuid.uuid4().hex}"
+    try:
+        task = resume_learning_task(store, task, run_id=run_id)
+        req = FigureQuestionRequest(
+            book_name=str(task.artifacts.get("book_name") or ""),
+            figure_id=str(task.artifacts.get("figure_id") or ""),
+            question=task.goal,
+            bbox=task.artifacts.get("region"),
+            subject=str(task.artifacts.get("subject") or ""),
+            conversation_id=task.conversation_id,
+            turn_id=task.turn_id,
+        )
+    except Exception as exc:
+        raise _http_error(exc) from exc
+    return _figure_stream(req, existing_task=task, run_id=run_id)

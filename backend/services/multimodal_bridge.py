@@ -120,6 +120,48 @@ def _image_data_url(image_path: Path) -> str:
     return f"data:{mime};base64,{encoded}"
 
 
+def _bounded_figure_context(figure_context: dict[str, Any]) -> str:
+    """Keep citation IDs and evidence text ahead of low-value context fields."""
+    figure = dict(figure_context.get("figure") or {})
+    figure = {
+        key: figure.get(key)
+        for key in (
+            "figure_id", "book_name", "caption", "page", "page_idx",
+            "section_path", "image_width", "image_height",
+        )
+        if figure.get(key) not in (None, "", [])
+    }
+    raw_sources = [
+        source for source in figure_context.get("evidence_sources") or []
+        if isinstance(source, dict) and source.get("id")
+    ][:8]
+    source_index = [{
+        key: source.get(key)
+        for key in ("id", "figure_id", "block_id", "page_idx", "section_title", "caption")
+        if source.get(key) not in (None, "", [])
+    } for source in raw_sources]
+    nearby = [{
+        "evidence_id": source.get("id"),
+        "block_id": source.get("block_id"),
+        "page_idx": source.get("page_idx"),
+        "section_title": source.get("section_title"),
+        "text": str(source.get("text") or "")[:1200],
+    } for source in raw_sources if source.get("id") != "E1" and source.get("text")]
+    payload = {
+        "figure": figure,
+        "user_region": figure_context.get("user_region"),
+        "evidence_sources": source_index,
+        "nearby_blocks": nearby,
+        "related_chunk_ids": list(figure_context.get("related_chunk_ids") or [])[:12],
+    }
+    rendered = json.dumps(payload, ensure_ascii=False, indent=2)
+    while len(rendered) > 12000 and any(item.get("text") for item in nearby):
+        for item in nearby:
+            item["text"] = str(item.get("text") or "")[:-200]
+        rendered = json.dumps(payload, ensure_ascii=False, indent=2)
+    return rendered
+
+
 class VisionModelBridge:
     """Use the configured vision role without exposing provider details to callers."""
 
@@ -211,7 +253,7 @@ JSON 字段固定为：
         if self.client is None:
             raise RuntimeError("当前识图 Provider 不支持 OpenAI-compatible 图片接口")
 
-        bounded_context = json.dumps(figure_context, ensure_ascii=False, indent=2)[:12000]
+        bounded_context = _bounded_figure_context(figure_context)
         prompt = f"""你是教材 Figure 问答助手。当前任务不是识别一道独立习题，而是解释教材中指定 Figure 及用户明确选择的局部区域。
 
 用户问题：{str(user_question or '').strip()[:2000]}
@@ -224,10 +266,11 @@ JSON 字段固定为：
 要求：
 1. 第一张图始终是同一个 Figure 的完整视图；若有第二张图，它是第一张图中用户 bbox 对应的放大局部，不是另一个对象。
 2. 优先回答用户选区相关问题，同时用完整图确认方向、图例、标签和上下文。
-3. nearby_blocks 是教材原文证据；若视觉内容与附近文字冲突，明确披露，不自行编造。
+3. nearby_blocks 是教材原文证据，并带有对应 evidence_id；若视觉内容与附近文字冲突，明确披露，不自行编造。
 4. 只回答当前 Figure 能支持的内容；看不清、超出图示或需要其他页面时明确说明。
 5. 公式使用 LaTeX；不要输出 thinking 或隐藏推理。
-6. 支撑性结论句末引用 [[cite:E1]]。E1 仅代表本请求中的 Figure/Page 来源。
+6. evidence_sources 给出本轮唯一合法的引用编号。视觉观察引用 E1；引用 nearby_blocks 的教材结论时，使用对应的 E2、E3……。不要引用不存在的编号。
+7. 每个事实段落末尾必须使用精确格式 [[cite:E1]]；教材正文按 evidence_id 使用 [[cite:E2]]、[[cite:E3]] 等。不要输出 [E1]、[E2] 或“证据来源”列表。
 """
         content: list[dict[str, Any]] = [
             {"type": "text", "text": prompt},

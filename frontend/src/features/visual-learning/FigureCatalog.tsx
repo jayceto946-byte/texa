@@ -3,24 +3,40 @@ import { Image as ImageIcon, Search } from 'lucide-react';
 import { get } from '../../api/client';
 import type { FigureArtifact } from '../../types';
 
-export default function FigureCatalog({ bookName, onSelect }: { bookName: string; onSelect: (figure: FigureArtifact) => void }) {
+export default function FigureCatalog({ bookNames = [], onSelect }: { bookNames?: string[]; onSelect: (figure: FigureArtifact) => void }) {
   const [items, setItems] = useState<FigureArtifact[]>([]);
   const [total, setTotal] = useState(0);
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedQuery(query), 250);
+    return () => window.clearTimeout(timer);
+  }, [query]);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError('');
     const params = new URLSearchParams({ limit: '100' });
-    if (query.trim()) params.set('query', query.trim());
-    void get(`/books/${encodeURIComponent(bookName)}/figures?${params.toString()}`, 30000)
-      .then((response) => {
+    if (debouncedQuery.trim()) params.set('query', debouncedQuery.trim());
+    const sources = Array.from(new Set(bookNames.map((name) => name.trim()).filter(Boolean)));
+    void Promise.allSettled(sources.map((name) => (
+      get(`/books/${encodeURIComponent(name)}/figures?${params.toString()}`, 30000)
+    )))
+      .then((responses) => {
         if (!active) return;
-        setItems(response?.data?.items || []);
-        setTotal(Number(response?.data?.total || 0));
+        const available = responses.flatMap((response) => (
+          response.status === 'fulfilled' && response.value?.data ? [response.value.data] : []
+        ));
+        if (!available.length && responses.some((response) => response.status === 'rejected')) {
+          const rejected = responses.find((response) => response.status === 'rejected');
+          throw rejected?.status === 'rejected' ? rejected.reason : new Error('教材图片读取失败');
+        }
+        setItems(available.flatMap((result) => result.items || []));
+        setTotal(available.reduce((sum, result) => sum + Number(result.total || 0), 0));
       })
       .catch((reason) => {
         if (!active) return;
@@ -35,19 +51,19 @@ export default function FigureCatalog({ bookName, onSelect }: { bookName: string
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [bookName, query]);
+  }, [bookNames, debouncedQuery]);
 
   return (
     <div className="figure-catalog">
       <label className="figure-catalog-search">
         <Search className="h-3.5 w-3.5" aria-hidden="true" />
-        <span className="sr-only">搜索图注或章节</span>
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索图注或章节" />
+        <span className="sr-only">搜索图注、章节或邻近正文</span>
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索图注、章节或邻近正文" />
       </label>
       <div className="figure-catalog-summary">{loading ? '正在读取…' : `共 ${total} 幅教材图片`}</div>
       {error && <p className="figure-catalog-error">{error}</p>}
       {!loading && !error && items.length === 0 && (
-        <p className="figure-catalog-empty">当前 Canonical 教材中没有可用 Figure。重新导入旧教材后才会生成稳定图片资产。</p>
+        <p className="figure-catalog-empty">当前教材范围中没有可用 Figure。重新导入旧教材后才会生成稳定图片资产。</p>
       )}
       <div className="figure-catalog-list">
         {items.map((figure) => (
@@ -57,6 +73,7 @@ export default function FigureCatalog({ bookName, onSelect }: { bookName: string
               <span className="figure-catalog-caption">{figure.caption || '无图注 Figure'}</span>
               <span className="figure-catalog-location">
                 {figure.page ? `p.${figure.page}` : '未标页'} · {figure.section_path.join(' › ') || '未标章节'}
+                {figure.match_scope === 'nearby_text' ? ' · 命中邻近正文' : ''}
               </span>
             </span>
           </button>

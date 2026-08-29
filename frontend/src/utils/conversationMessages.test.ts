@@ -14,6 +14,12 @@ describe('mapStoredConversationMessages', () => {
         request_id: 'req-1',
         answer_feedback: { rating: 'unhelpful', reasons: ['forgot_context'] },
         sources: [{ id: 'E1', label: '教材位置' }],
+        citation_provenance: {
+          status: 'sources_attached',
+          source_attachment_origin: 'system',
+          paragraph_alignment: 'unverified',
+          automatic_citation_inserted: false,
+        },
       },
     ]);
 
@@ -28,6 +34,10 @@ describe('mapStoredConversationMessages', () => {
       answerFeedback: { rating: 'unhelpful', reasons: ['forgot_context'] },
     });
     expect(messages[1].sources).toHaveLength(1);
+    expect(messages[1].citationProvenance).toMatchObject({
+      status: 'sources_attached',
+      automatic_citation_inserted: false,
+    });
   });
 
   it('does not invent an original question across a pagination boundary', () => {

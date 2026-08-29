@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { BookOpen, Globe2, GraduationCap, Paperclip, ShieldAlert, ThumbsDown, ThumbsUp } from 'lucide-react';
-import type { AnswerMode, AssistantSource, ChatActivity, ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
+import type { AnswerMode, AssistantSource, ChatActivity, ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, CitationProvenance, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
 import { useChatContext } from '../contexts/ChatContext';
 import { displayNumber, groupSourcesByLocation, parseCitations, partitionSources, type SourceChapterGroup } from '../utils/citations';
 import ConceptPopover from './ConceptPopover';
@@ -44,6 +44,7 @@ interface ChatMessageProps {
   utilityCard?: ChatUtilityCard;
   agentCard?: ChatAgentCard;
   learningTask?: LearningTaskState;
+  citationProvenance?: CitationProvenance;
   onResumeLearningTask?: (task: LearningTaskState, action: 'provide_input' | 'method_only', file?: File) => Promise<void> | void;
   onResumeInterruptedTask?: (task: LearningTaskState) => void;
 }
@@ -107,8 +108,13 @@ const FigureSourceDetail = ({ source }: { source: AssistantSource }) => {
   );
 };
 
-const SourceInspectorContent = ({ citedGroups, referenceGroups, chapters, legacyReferences, figureSources }: { citedGroups: SourceChapterGroup[]; referenceGroups: SourceChapterGroup[]; chapters: string[]; legacyReferences: string[]; figureSources: AssistantSource[] }) => (
+const SourceInspectorContent = ({ citedGroups, referenceGroups, chapters, legacyReferences, figureSources, citationProvenance }: { citedGroups: SourceChapterGroup[]; referenceGroups: SourceChapterGroup[]; chapters: string[]; legacyReferences: string[]; figureSources: AssistantSource[]; citationProvenance?: CitationProvenance }) => (
   <div className="space-y-5">
+    {citationProvenance && citationProvenance.status !== 'model_aligned' && (
+      <div className="border-l-2 border-[var(--warning)] pl-3 text-xs leading-5 text-text-secondary">
+        来源由系统附加，模型正文未完成段落级对齐。下方材料可用于人工核对，不代表支持每一句结论。
+      </div>
+    )}
     {figureSources.map((source) => <FigureSourceDetail key={source.figure_id || source.id} source={source} />)}
     {citedGroups.length > 0 && (
       <section>
@@ -145,7 +151,7 @@ const feedbackReasons = [
   ['irrelevant_or_repetitive', '答非所问或重复'],
 ] as const;
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard, learningTask, onResumeLearningTask, onResumeInterruptedTask }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard, learningTask, citationProvenance, onResumeLearningTask, onResumeInterruptedTask }) => {
   const [scopeResolved, setScopeResolved] = useState(false);
   const [feedback, setFeedback] = useState(answerFeedback);
   const [feedbackBusy, setFeedbackBusy] = useState(false);
@@ -216,7 +222,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
       kind: 'source',
       title: '回答来源',
       subtitle: bookName || subject || '当前学习范围',
-      content: <SourceInspectorContent citedGroups={citedSourceGroups} referenceGroups={referenceSourceGroups} chapters={sourceChapters} legacyReferences={references} figureSources={sources.filter((source) => Boolean(source.figure_id))} />,
+      content: <SourceInspectorContent citedGroups={citedSourceGroups} referenceGroups={referenceSourceGroups} chapters={sourceChapters} legacyReferences={references} figureSources={sources.filter((source) => Boolean(source.figure_id))} citationProvenance={citationProvenance} />,
     });
   };
 
@@ -238,68 +244,32 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
     stage === 'agent'
     || ((stage === 'thinking' || stage === 'plan') && !content.trim())
   );
+  const isTerminal = stage === 'done' || stage === 'error' || stage === 'stopped';
   const hasCard = Boolean(reportCard || exerciseCard || chapterHighlightCard || utilityCard || agentCard);
   const showMessageTools = !hasCard && !isThinking;
   const modeLabel = answerMode === 'textbook_grounded'
-    ? '教材依据'
+    ? '基于教材'
     : answerMode === 'visual_grounded'
-      ? '教材图片依据'
+      ? '基于教材图'
     : answerMode === 'subject_general'
       ? '学科通用'
-      : answerMode === 'global_general'
-        ? '跨学科通用'
+    : answerMode === 'global_general'
+        ? '通用回答'
         : answerMode === 'subject_mismatch'
           ? '范围待确认'
           : '';
-  const ModeIcon = answerMode === 'textbook_grounded'
-    ? BookOpen
-    : answerMode === 'visual_grounded'
-      ? BookOpen
-    : answerMode === 'subject_general'
-      ? GraduationCap
-      : answerMode === 'subject_mismatch'
-        ? ShieldAlert
-        : Globe2;
 
   return (
     <div className={variant === 'document' ? 'min-w-0' : `learning-message ${isUser ? 'is-question' : 'is-answer'}`}>
       <article className={variant === 'document' ? 'min-w-0 text-text-primary' : isUser ? 'learning-question' : 'learning-answer-document'}>
-        {variant === 'message' && (
-          <div className="learning-message-header">
-            <div className="flex items-center gap-2 text-xs text-text-secondary">
-              <span>{isUser ? '问题' : '回答'}</span>
-              {!isUser && stage === 'done' && modeLabel && (
-                <span
-                  title={scopeReason || modeLabel}
-                  className={`inline-flex items-center gap-1 border-l border-border pl-2 text-[11px] ${answerMode === 'subject_mismatch' ? 'text-[var(--danger)]' : 'text-text-secondary'}`}
-                >
-                  <ModeIcon className="h-3 w-3" />
-                  {modeLabel}
-                </span>
-              )}
-            </div>
-            {!isUser && (hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
-              <button
-                type="button"
-                onClick={openSources}
-                title="检查回答来源"
-                className="flex items-center gap-1 text-xs text-text-secondary transition-colors hover:text-accent"
-              >
-                <BookOpen className="h-3 w-3" />
-                来源 {hasStructuredSources ? sources.length : references.length || sourceChapters.length}
-              </button>
-            )}
-          </div>
-        )}
-
         {isUser && questionContent.attachmentName && (
           <div className="learning-query-attachment">
             <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>附件：{questionContent.attachmentName}</span>
+            <span>{questionContent.attachmentName}</span>
           </div>
         )}
 
-        {!isUser && activities.length > 0 && <ExecutionTrace activities={activities} stage={stage} />}
+        {!isUser && activities.length > 0 && !isTerminal && <ExecutionTrace activities={activities} stage={stage} />}
 
         {agentCard ? (
           <AgentResultCard card={agentCard} />
@@ -319,6 +289,34 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
         ) : content.trim() ? (
           <MarkdownMessage content={isUser ? questionContent.body : content} linkedConcepts={isUser ? [] : linkedConcepts} onConceptClick={openConcept} citationIds={validIds} />
         ) : null}
+
+        {variant === 'message' && !isUser && stage === 'done' && (modeLabel || hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
+          <div className="learning-answer-meta">
+            {modeLabel && (
+              <span
+                title={scopeReason || modeLabel}
+                className={answerMode === 'subject_mismatch' ? 'text-[var(--danger)]' : undefined}
+              >
+                {modeLabel}
+              </span>
+            )}
+            {(hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
+              <button type="button" onClick={openSources} title="检查回答来源">
+                <BookOpen className="h-3 w-3" />
+                来源 {hasStructuredSources ? sources.length : references.length || sourceChapters.length}
+              </button>
+            )}
+          </div>
+        )}
+
+        {!isUser && activities.length > 0 && isTerminal && <ExecutionTrace activities={activities} stage={stage} />}
+
+        {!isUser && stage === 'done' && citationProvenance && citationProvenance.status !== 'model_aligned' && (
+          <div className="mt-3 flex items-start gap-2 border-l-2 border-[var(--warning)] pl-3 text-xs leading-5 text-text-secondary" role="status">
+            <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--warning)]" aria-hidden="true" />
+            <span>来源已附，段落引用未完全对齐。</span>
+          </div>
+        )}
 
         {!isUser && learningTask?.task_type === 'visual_qa' && learningTask.status === 'waiting_for_input' && onResumeLearningTask && (
           <LearningTaskGate task={learningTask} onResume={onResumeLearningTask} />

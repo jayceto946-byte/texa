@@ -20,8 +20,11 @@ import desktopTitleBar from './components/DesktopTitleBar.tsx?raw';
 import desktopMain from '../../desktop/main.cjs?raw';
 import loading from '../../desktop/loading.html?raw';
 import dialog from './components/ui/Dialog.tsx?raw';
+import contextInspector from './components/ui/ContextInspector.tsx?raw';
 import settingsDialog from './components/settings/SettingsDialog.tsx?raw';
 import scopeSelector from './components/ScopeSelector.tsx?raw';
+import figureCatalog from './features/visual-learning/FigureCatalog.tsx?raw';
+import figureContextAttachment from './features/visual-learning/FigureContextAttachment.tsx?raw';
 import figureViewer from './features/visual-learning/FigureRegionViewer.tsx?raw';
 
 describe('Texa product UI contract', () => {
@@ -38,6 +41,19 @@ describe('Texa product UI contract', () => {
     expect(message).toContain('SourceInspectorContent');
     expect(message).toContain("kind: 'source'");
     expect(message).toContain("kind: 'concept'");
+    expect(message).toContain('来源已附，段落引用未完全对齐');
+    expect(message).toContain("citationProvenance.status !== 'model_aligned'");
+    expect(shell).toContain("data-inspector={inspector ? 'open' : 'closed'}");
+    expect(shell).toContain('inspectorReplacesContext');
+    expect(contextInspector).toContain("window.matchMedia('(max-width: 919.98px)').matches");
+    expect(contextInspector).toContain('context-inspector-close');
+  });
+
+  it('keeps Figure interruption resumable through the original learning task', () => {
+    expect(chatPage).toContain('interruptFigureTask(task.id, partialOutput)');
+    expect(chatPage).toContain("task.task_type === 'figure_qa'");
+    expect(chatPage).toContain('resumeFigureTaskStream(task.id');
+    expect(chatPage).toContain('onResumeInterruptedTask={resumeInterruptedTask}');
   });
 
   it('separates product navigation from learning context', () => {
@@ -77,7 +93,16 @@ describe('Texa product UI contract', () => {
 
   it('keeps textbook Figure selection inside the Learning Canvas with normalized keyboard-accessible regions', () => {
     expect(chatPage).toContain('<FigureRegionViewer');
+    expect(chatPage).toContain('activeFigure && figureWorkspaceExpanded');
+    expect(chatPage).toContain('<FigureContextAttachment');
+    expect(chatPage).toContain("setFigureWorkspaceExpanded(false)");
+    expect(chatPage).toContain("setVisualRegion(null)");
+    expect(figureContextAttachment).toContain('继续询问时默认使用整图');
+    expect(figureContextAttachment).toContain('查看与框选');
     expect(chatPage).toContain('aria-label="选择教材图片"');
+    expect(chatPage).toContain('bookNames={currentScope?.sourceNames?.length ? currentScope.sourceNames : [bookName]}');
+    expect(figureCatalog).toContain('Promise.allSettled');
+    expect(figureCatalog).toContain("response.status === 'fulfilled'");
     expect(figureViewer).toContain('normalizedPoint');
     expect(figureViewer).toContain('onPointerDown');
     expect(figureViewer).toContain('onKeyDown');
@@ -125,7 +150,8 @@ describe('Texa product UI contract', () => {
   it('renders a question as a lightweight query header with a separate attachment row', () => {
     expect(message).toContain('splitQuestionAttachment');
     expect(message).toContain('className="learning-query-attachment"');
-    expect(message).toContain('附件：{questionContent.attachmentName}');
+    expect(message).toContain('<span>{questionContent.attachmentName}</span>');
+    expect(message).not.toContain("{isUser ? '问题' : '回答'}");
   });
 
   it('shares one desktop header geometry and keeps responsive custom window controls', () => {

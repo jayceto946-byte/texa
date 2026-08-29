@@ -56,7 +56,7 @@ const ExecutionTrace: React.FC<{ activities: ChatActivity[]; stage?: string }> =
 
   if (!activities.length) return null;
   return (
-    <section className="mb-4" aria-label="任务执行过程">
+    <section className={`execution-trace ${terminal ? 'is-terminal' : ''}`} aria-label="任务执行过程">
       {terminal ? (
         <button type="button" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded} className="flex items-center gap-1.5 py-0.5 text-left text-[11px] leading-4 text-text-secondary hover:text-text-primary">
           {failed ? <X className="h-3 w-3 text-[var(--danger)]" /> : <Check className="h-3 w-3 text-[var(--success)]" />}

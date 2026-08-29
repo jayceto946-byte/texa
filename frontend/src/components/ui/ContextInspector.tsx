@@ -10,6 +10,7 @@ export default function ContextInspector() {
   useEffect(() => {
     if (!inspector) return;
     const dismissOutside = (event: PointerEvent) => {
+      if (!window.matchMedia('(max-width: 919.98px)').matches) return;
       if (!panelRef.current?.contains(event.target as Node)) closeInspector();
     };
     document.addEventListener('pointerdown', dismissOutside, true);
@@ -25,7 +26,7 @@ export default function ContextInspector() {
           {inspector.subtitle && <div className="type-micro text-text-secondary">{inspector.subtitle}</div>}
           <h2 className="mt-0.5 truncate text-[15px] font-semibold text-text-primary">{inspector.title}</h2>
         </div>
-        <button type="button" onClick={closeInspector} className="app-icon-button" aria-label="关闭详情面板">
+        <button type="button" onClick={closeInspector} className="app-icon-button context-inspector-close" aria-label="关闭详情面板">
           <X className="h-4 w-4" />
         </button>
       </header>

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BookMarked, CalendarDays, ImagePlus, Images, Send, Shuffle, Square, X } from 'lucide-react';
-import { figureQuestionStream, get, mistakeSolutionStream, post } from '../api/client';
+import { figureQuestionStream, get, interruptFigureTask, mistakeSolutionStream, post, resumeFigureTaskStream } from '../api/client';
 
 import HighlightRepositoryDialog from '../components/HighlightRepositoryDialog';
 import LearningEmptyWorkspace from '../components/chat/LearningEmptyWorkspace';
@@ -15,6 +15,7 @@ import MathExpressionList from '../features/math-input/MathExpressionList';
 import type { MathEditRequest, MathExpression } from '../features/math-input/types';
 import VisualMathInputPopover from '../features/math-input/VisualMathInputPopover';
 import FigureCatalog from '../features/visual-learning/FigureCatalog';
+import FigureContextAttachment from '../features/visual-learning/FigureContextAttachment';
 import FigurePageInspector from '../features/visual-learning/FigurePageInspector';
 import FigureRegionViewer from '../features/visual-learning/FigureRegionViewer';
 import { useChat } from '../hooks/useChat';
@@ -29,6 +30,11 @@ type ActionMode = ReportMode | 'exercise';
 function firstLine(value = '', maxLength = 48) {
   const line = value.replace(/\s+/g, ' ').trim();
   return line.length > maxLength ? `${line.slice(0, maxLength)}...` : line;
+}
+
+function conversationTitle(value = '') {
+  const withoutAttachment = value.replace(/^📎[^\r\n]*\r?\n(?:\r?\n)+/, '').trim();
+  return firstLine(withoutAttachment || value || '学习会话', 56);
 }
 
 const ChatPage: React.FC = () => {
@@ -50,6 +56,7 @@ const ChatPage: React.FC = () => {
   const [selectedMistakeId, setSelectedMistakeId] = useState('');
   const [activeFigure, setActiveFigure] = useState<FigureArtifact | null>(null);
   const [visualRegion, setVisualRegion] = useState<VisualRegion | null>(null);
+  const [figureWorkspaceExpanded, setFigureWorkspaceExpanded] = useState(false);
   const { messages, isLoading, sendMessage, stop, resumeTask } = useChat();
   const {
     bookName,
@@ -69,6 +76,8 @@ const ChatPage: React.FC = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const visualAbortRef = useRef<(() => void) | null>(null);
+  const activeVisualTaskRef = useRef<LearningTaskState | null>(null);
+  const visualPartialOutputRef = useRef('');
   const mathExpressionSequenceRef = useRef(0);
   const mathEditSequenceRef = useRef(0);
   const { openInspector, closeInspector } = useInspector();
@@ -200,6 +209,7 @@ const ChatPage: React.FC = () => {
     setSelectedMistakeId('');
     setActiveFigure(null);
     setVisualRegion(null);
+    setFigureWorkspaceExpanded(false);
     setRawAttachmentFile(file);
     setAttachmentEditorOpen(true);
   };
@@ -207,6 +217,7 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     setActiveFigure(null);
     setVisualRegion(null);
+    setFigureWorkspaceExpanded(false);
   }, [bookName]);
 
   const applyAttachmentProcessing = (processed: { file: File; preview: string }) => {
@@ -236,13 +247,14 @@ const ChatPage: React.FC = () => {
       subtitle: currentScope?.displayName || currentScope?.name || bookName,
       content: (
         <FigureCatalog
-          bookName={bookName}
+          bookNames={currentScope?.sourceNames?.length ? currentScope.sourceNames : [bookName]}
           onSelect={(figure) => {
             clearAttachment();
             setSelectedMistakeId('');
             setMistakePickerOpen(false);
             setActiveFigure(figure);
             setVisualRegion(null);
+            setFigureWorkspaceExpanded(true);
             closeInspector();
           }}
         />
@@ -264,8 +276,10 @@ const ChatPage: React.FC = () => {
     if (!activeFigure || attachmentLoading) return;
     const question = questionValue || (visualRegion ? '请解释选中区域。' : '请解释这幅教材图片。');
     const turnId = `turn_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
-    const label = `📎 教材 Figure · ${activeFigure.page ? `p.${activeFigure.page}` : '未标页'}\n\n${question}`;
+    const label = `📎 教材图 · ${activeFigure.page ? `p.${activeFigure.page}` : '未标页'}\n\n${question}`;
     setAttachmentLoading(true);
+    activeVisualTaskRef.current = null;
+    visualPartialOutputRef.current = '';
     addMessage({ role: 'user', content: label, turnId });
     addMessage({ role: 'assistant', content: '', stage: 'thinking', activities: [], turnId, answerMode: 'visual_grounded' });
     setInput('');
@@ -285,7 +299,10 @@ const ChatPage: React.FC = () => {
     }, (event) => {
       if (event.stage === 'generate' && event.chunk) {
         finalContent = event.replace ? event.chunk : finalContent + event.chunk;
+        visualPartialOutputRef.current = finalContent;
       }
+      const eventTask = event.learning_task || event.result?.learning_task;
+      if (eventTask) activeVisualTaskRef.current = eventTask;
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
         id: event.result?.message_id || last.id,
@@ -293,6 +310,8 @@ const ChatPage: React.FC = () => {
         stage: event.stage === 'error' ? 'error' : event.stage === 'done' ? 'done' : event.stage === 'generate' ? 'generate' : last.stage,
         answerMode: 'visual_grounded',
         sources: event.result?.sources || last.sources,
+        learningTask: eventTask || last.learningTask,
+        citationProvenance: event.result?.citation_provenance || last.citationProvenance,
         activities: mergeChatActivity(
           event.stage === 'error'
             ? (last.activities || []).map((activity) => activity.status === 'active'
@@ -304,10 +323,18 @@ const ChatPage: React.FC = () => {
       } : last);
       if (event.stage === 'done' || event.stage === 'error') {
         visualAbortRef.current = null;
+        activeVisualTaskRef.current = null;
+        visualPartialOutputRef.current = '';
         setAttachmentLoading(false);
+        if (event.stage === 'done') {
+          setVisualRegion(null);
+          setFigureWorkspaceExpanded(false);
+        }
       }
     }, (error) => {
       visualAbortRef.current = null;
+      activeVisualTaskRef.current = null;
+      visualPartialOutputRef.current = '';
       setAttachmentLoading(false);
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
@@ -485,7 +512,79 @@ const ChatPage: React.FC = () => {
     });
   };
 
+  const resumeFigureLearningTask = (task: LearningTaskState) => {
+    if (attachmentLoading) return;
+    setAttachmentLoading(true);
+    activeVisualTaskRef.current = task;
+    visualPartialOutputRef.current = '';
+    updateMessageByTaskId(task.id, (message) => ({
+      ...message,
+      content: '',
+      stage: 'thinking',
+      learningTask: { ...task, status: 'running' },
+      activities: mergeChatActivity(message.activities, {
+        id: 'figure-resume', kind: 'system', label: '恢复 Figure 问答', status: 'active', detail: '正在重用已保存的 Figure、选区与教材上下文',
+      }),
+    }));
+    let finalContent = '';
+    visualAbortRef.current = resumeFigureTaskStream(task.id, (event) => {
+      if (event.stage === 'generate' && event.chunk) {
+        finalContent = event.replace ? event.chunk : finalContent + event.chunk;
+        visualPartialOutputRef.current = finalContent;
+      }
+      const eventTask = event.learning_task || event.result?.learning_task;
+      if (eventTask) activeVisualTaskRef.current = eventTask;
+      updateMessageByTaskId(task.id, (message) => ({
+        ...message,
+        id: event.result?.message_id || message.id,
+        content: finalContent || event.result?.explanation || message.content,
+        stage: event.stage === 'error' ? 'error' : event.stage === 'done' ? 'done' : event.stage === 'generate' ? 'generate' : message.stage,
+        sources: event.result?.sources || message.sources,
+        citationProvenance: event.result?.citation_provenance || message.citationProvenance,
+        learningTask: eventTask || message.learningTask,
+        activities: mergeChatActivity(
+          event.stage === 'done'
+            ? settleChatActivity(message.activities, 'figure-resume', 'completed', '原 Figure 问答已恢复并完成')
+            : event.stage === 'error'
+              ? settleChatActivity(message.activities, 'figure-resume', 'failed', event.message || '恢复失败')
+              : message.activities,
+          event.activity,
+        ),
+      }));
+      if (event.stage === 'done' || event.stage === 'error') {
+        visualAbortRef.current = null;
+        activeVisualTaskRef.current = null;
+        visualPartialOutputRef.current = '';
+        setAttachmentLoading(false);
+        if (event.stage === 'done') {
+          setVisualRegion(null);
+          setFigureWorkspaceExpanded(false);
+        }
+      }
+    }, (error) => {
+      visualAbortRef.current = null;
+      activeVisualTaskRef.current = null;
+      visualPartialOutputRef.current = '';
+      setAttachmentLoading(false);
+      updateMessageByTaskId(task.id, (message) => ({
+        ...message,
+        stage: 'stopped',
+        activities: settleChatActivity(message.activities, 'figure-resume', 'failed', error.message || '恢复失败'),
+      }));
+    });
+  };
+
+  const resumeInterruptedTask = (task: LearningTaskState) => {
+    if (task.task_type === 'figure_qa') {
+      resumeFigureLearningTask(task);
+      return;
+    }
+    resumeTask(task);
+  };
+
   const stopVisualQuestion = () => {
+    const task = activeVisualTaskRef.current;
+    const partialOutput = visualPartialOutputRef.current;
     visualAbortRef.current?.();
     visualAbortRef.current = null;
     setAttachmentLoading(false);
@@ -500,9 +599,27 @@ const ChatPage: React.FC = () => {
         ...last,
         content: last.content || '已停止图片讲解。',
         stage: 'stopped',
+        learningTask: task ? { ...task, status: 'interrupted' } : last.learningTask,
         activities,
       };
     });
+    if (task?.task_type === 'figure_qa') {
+      void interruptFigureTask(task.id, partialOutput).then((response) => {
+        activeVisualTaskRef.current = response.learning_task;
+        updateMessageByTaskId(task.id, (message) => ({
+          ...message,
+          stage: response.learning_task.status === 'interrupted' ? 'stopped' : message.stage,
+          learningTask: response.learning_task,
+        }));
+      }).catch((error) => {
+        updateMessageByTaskId(task.id, (message) => ({
+          ...message,
+          activities: mergeChatActivity(message.activities, {
+            id: 'figure-interrupt', kind: 'system', label: '停止状态未保存', status: 'failed', detail: error instanceof Error ? error.message : String(error),
+          }),
+        }));
+      });
+    }
   };
 
   useEffect(() => () => {
@@ -663,7 +780,7 @@ const ChatPage: React.FC = () => {
       >
         <div className="learning-workspace-header">
           <div className="learning-workspace-title min-w-0">
-            <h2>{messages.length ? firstLine(messages.find((message) => message.role === 'user')?.content || '学习会话', 56) : '新学习会话'}</h2>
+            <h2>{messages.length ? conversationTitle(messages.find((message) => message.role === 'user')?.content) : '新学习会话'}</h2>
             <p>{headerScopeLabel}</p>
           </div>
           <div className="window-drag-region" aria-hidden="true" />
@@ -690,16 +807,16 @@ const ChatPage: React.FC = () => {
             )}
             {messages.map((msg, i) => (
               <ErrorBoundary key={msg.id || `${msg.turnId || 'message'}-${i}`}>
-                <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => sendMessage(question, { answerMode: 'global_general' })} onRequestSuggestedAnswer={(question, answerMode) => sendMessage(question, { answerMode })} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} agentCard={msg.agentCard} learningTask={msg.learningTask} onResumeLearningTask={resumeLearningTask} onResumeInterruptedTask={resumeTask} />
+                <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => sendMessage(question, { answerMode: 'global_general' })} onRequestSuggestedAnswer={(question, answerMode) => sendMessage(question, { answerMode })} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} agentCard={msg.agentCard} learningTask={msg.learningTask} citationProvenance={msg.citationProvenance} onResumeLearningTask={resumeLearningTask} onResumeInterruptedTask={resumeInterruptedTask} />
               </ErrorBoundary>
             ))}
-            {activeFigure && (
+            {activeFigure && figureWorkspaceExpanded && (
               <FigureRegionViewer
                 figure={activeFigure}
                 region={visualRegion}
                 onRegionChange={setVisualRegion}
                 onOpenSource={openActiveFigureSource}
-                onClose={() => { setActiveFigure(null); setVisualRegion(null); }}
+                onClose={() => setFigureWorkspaceExpanded(false)}
               />
             )}
           </div>
@@ -718,6 +835,14 @@ const ChatPage: React.FC = () => {
           )}
           <form onSubmit={handleSubmit} className="composer-surface">
             <input ref={attachmentInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" className="hidden" onChange={(event) => selectAttachment(event.target.files?.[0])} />
+            {activeFigure && !figureWorkspaceExpanded && (
+              <FigureContextAttachment
+                figure={activeFigure}
+                onEditRegion={() => setFigureWorkspaceExpanded(true)}
+                onOpenSource={openActiveFigureSource}
+                onRemove={() => { setActiveFigure(null); setVisualRegion(null); }}
+              />
+            )}
             {(attachmentPreview || selectedMistakeId) && (
               <div className="composer-attachment">
                 {attachmentPreview ? (

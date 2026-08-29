@@ -1,0 +1,374 @@
+{
+  "schema_version": "visual-learning-gold/v1",
+  "book_name": "传感器长书",
+  "description": "面向本科及硕士入学前学习任务的传感器 Figure 金标候选集，覆盖结构、曲线、电路、流程和系统框图。",
+  "review": {
+    "status": "agent_screened_requires_human_signoff",
+    "method": "逐图检查稳定资产、caption 与邻近 Canonical 正文；只标注图中直接可见或正文明确支持的要点。",
+    "human_signoff": false,
+    "known_risk": "尚未经过传感器课程教师签字确认；发布前仍需人工复核要点措辞。"
+  },
+  "release_thresholds": {
+    "minimum_cases": 20,
+    "minimum_retrieval_top3_rate": 0.9,
+    "minimum_model_completion_rate": 0.95,
+    "minimum_source_citation_rate": 1.0,
+    "minimum_verification_pass_rate": 0.9,
+    "minimum_key_point_coverage": 0.85,
+    "maximum_serious_unsupported_claims": 0
+  },
+  "cases": [
+    {
+      "id": "sensor-basic-components",
+      "category": "system_block",
+      "query": "传感器 基本组成",
+      "figure_id": "d8e936a82c2da13cbdf7",
+      "page": 12,
+      "question": "按信号流向说明图中的主要模块，并结合教材指出敏感元件和转换元件各自承担什么作用。",
+      "bbox": [0.02, 0.02, 0.98, 0.98],
+      "expected_points": [
+        {"label": "敏感元件", "keywords": ["敏感元件"]},
+        {"label": "转换元件", "keywords": ["转换元件"]},
+        {"label": "信号调理", "keywords": ["信号调理"]},
+        {"label": "数据处理", "keywords": ["数据处理"]},
+        {"label": "显示记录", "keywords": ["显示记录", "显示与记录"]}
+      ]
+    },
+    {
+      "id": "sensor-output-characteristic",
+      "category": "characteristic_curve",
+      "query": "图1.5 传感器 输出特性",
+      "figure_id": "2532e2889c9e9109497b",
+      "page": 16,
+      "question": "解释图中测量值、输出读数和拟合直线的关系，并说明斜率代表什么。",
+      "expected_points": [
+        {"label": "测量值", "keywords": ["测量值"]},
+        {"label": "输出读数", "keywords": ["输出读数", "输出"]},
+        {"label": "拟合直线", "keywords": ["拟合直线", "直线拟合"]},
+        {"label": "灵敏度", "keywords": ["灵敏度"]}
+      ]
+    },
+    {
+      "id": "sensor-hysteresis",
+      "category": "characteristic_curve",
+      "query": "传感器 迟滞特性",
+      "figure_id": "6e8577d6f400c4e3ff6e",
+      "page": 18,
+      "question": "图中的两条路径为什么不同？指出最大迟滞量在图中的含义。",
+      "expected_points": [
+        {"label": "正反行程", "keywords": ["正行程", "反行程", "上升过程", "下降过程"]},
+        {"label": "输出不重合", "keywords": ["不重合", "不同输出"]},
+        {"label": "最大迟滞量", "keywords": ["最大迟滞", "ΔH", "迟滞误差"]}
+      ]
+    },
+    {
+      "id": "sensor-step-response",
+      "category": "dynamic_curve",
+      "query": "阶跃压力 响应曲线",
+      "figure_id": "6da15e9e4a276c611dfe",
+      "page": 32,
+      "question": "根据曲线描述系统受到阶跃压力后的动态响应，并指出可从曲线读取的动态量。",
+      "expected_points": [
+        {"label": "振荡", "keywords": ["振荡"]},
+        {"label": "衰减", "keywords": ["衰减", "幅度减小", "单调减小", "幅度随时间"]},
+        {"label": "二阶系统", "keywords": ["二阶系统", "二阶"]},
+        {"label": "振荡周期", "keywords": ["振荡周期", "Td", "T_d"]}
+      ]
+    },
+    {
+      "id": "sensor-edm-principle",
+      "category": "process_principle",
+      "query": "线电极 电火花 磨削 原理",
+      "figure_id": "5bd949af0c6e897465ab",
+      "page": 44,
+      "question": "只依据图示说明线电极电火花磨削时工件、线电极、工作液和脉冲发生器之间的关系。",
+      "expected_points": [
+        {"label": "工件", "keywords": ["工件"]},
+        {"label": "线电极", "keywords": ["线电极"]},
+        {"label": "工作液", "keywords": ["工作液"]},
+        {"label": "脉冲发生器", "keywords": ["脉冲发生器"]},
+        {"label": "相对运动", "keywords": ["旋转", "运动"]}
+      ]
+    },
+    {
+      "id": "sensor-thick-film-process",
+      "category": "process_flow",
+      "query": "厚膜压力 制作工艺 流程",
+      "figure_id": "2cd30842f7edb7da42d6",
+      "page": 48,
+      "question": "按图中的先后顺序概括厚膜压力传感器的制作流程，并结合正文指出关键工序。",
+      "expected_points": [
+        {"label": "浆料制备", "keywords": ["混合", "研磨", "调浆"]},
+        {"label": "印刷", "keywords": ["印刷", "丝网制作"]},
+        {"label": "烧结", "keywords": ["烧结"]},
+        {"label": "补偿或封装", "keywords": ["补偿", "封装"]},
+        {"label": "测试标定", "keywords": ["测试", "标定"]}
+      ]
+    },
+    {
+      "id": "sensor-thermoelectric-effect",
+      "category": "principle_diagram",
+      "query": "热电效应 原理",
+      "figure_id": "7b32e6520bbf91a9af7e",
+      "page": 53,
+      "question": "说明图中导体 A、B 和两个接点温度 T、T0 如何构成热电效应测量回路。",
+      "expected_points": [
+        {"label": "两种导体", "keywords": ["导体 A", "导体A", "A、B", "A 和 B"]},
+        {"label": "两个温度", "keywords": ["T0", "T_0", "两个接点", "温差"]},
+        {"label": "热电势", "keywords": ["热电势", "热电动势", "电势差"]},
+        {"label": "测量仪表", "keywords": ["电流表", "微安表", "仪表", "μA"]}
+      ]
+    },
+    {
+      "id": "sensor-thermocouple-circuit",
+      "category": "measurement_circuit",
+      "query": "热电偶 测温电路",
+      "figure_id": "df0e7de5b8a0a914bbda",
+      "page": 54,
+      "question": "识别测温接点、参考端和测量仪表，并说明 T 与 T0 在该电路中的作用。",
+      "expected_points": [
+        {"label": "测温接点", "keywords": ["测温接点", "测量端", "热端"]},
+        {"label": "参考端", "keywords": ["参考端", "冷端", "T0", "T_0"]},
+        {"label": "测量仪表", "keywords": ["测量仪表", "仪表"]},
+        {"label": "温差决定输出", "keywords": ["温差", "热电势"]}
+      ]
+    },
+    {
+      "id": "sensor-armored-thermocouple",
+      "category": "structure_diagram",
+      "query": "铠装热电偶 断面结构",
+      "figure_id": "228a2f193458b1172d49",
+      "page": 55,
+      "question": "比较图中的单芯与双芯铠装热电偶，并指出套管、热电极和绝缘材料的位置关系。",
+      "expected_points": [
+        {"label": "单芯双芯", "keywords": ["单芯", "双芯"]},
+        {"label": "套管", "keywords": ["套管"]},
+        {"label": "热电极", "keywords": ["热电极"]},
+        {"label": "绝缘材料", "keywords": ["绝缘材料"]}
+      ]
+    },
+    {
+      "id": "sensor-bridge-compensation",
+      "category": "measurement_circuit",
+      "query": "电桥补偿法 电路原理图",
+      "figure_id": "eefa30e9baea3405aa04",
+      "page": 58,
+      "question": "结合电路图和正文说明电桥补偿法如何补偿热电偶参考端温度变化。",
+      "expected_points": [
+        {"label": "电桥", "keywords": ["电桥"]},
+        {"label": "铜电阻", "keywords": ["Rcu", "R_{Cu}", "铜电阻"]},
+        {"label": "环境温度", "keywords": ["环境温度", "参考端温度", "冷端温度"]},
+        {"label": "补偿电势", "keywords": ["补偿电势", "补偿电压", "补偿"]}
+      ]
+    },
+    {
+      "id": "sensor-four-wire-resistance",
+      "category": "measurement_circuit",
+      "query": "四线式 电阻 测量电路",
+      "figure_id": "78bd52e7839d748cbf2b",
+      "page": 63,
+      "question": "说明四线式测量如何分开电流回路和电压测量回路，以及这样做为何能减小引线电阻影响。",
+      "expected_points": [
+        {"label": "恒流源", "keywords": ["恒流源"]},
+        {"label": "电压表", "keywords": ["电压表"]},
+        {"label": "电流引线", "keywords": ["电流引线", "电流回路"]},
+        {"label": "电压引线", "keywords": ["电压引线", "电压回路"]},
+        {"label": "引线电阻影响", "keywords": ["引线电阻", "压降可忽略"]}
+      ]
+    },
+    {
+      "id": "sensor-temperature-characteristics",
+      "category": "comparison_curve",
+      "query": "热敏电阻 热电阻 温度特性",
+      "figure_id": "f05c5e5f3bff5eacd2f4",
+      "page": 66,
+      "question": "比较图中半导体热敏电阻与金属热电阻随温度变化的趋势，并结合正文解释原因。",
+      "expected_points": [
+        {"label": "半导体下降", "keywords": ["半导体", "减小", "下降"]},
+        {"label": "金属上升", "keywords": ["金属", "增加", "上升"]},
+        {"label": "载流子", "keywords": ["载流子"]},
+        {"label": "非线性", "keywords": ["非线性", "指数"]}
+      ]
+    },
+    {
+      "id": "sensor-strain-gauge-structure",
+      "category": "structure_diagram",
+      "query": "金属电阻 应变片 结构",
+      "figure_id": "2618cbdc859065e301a2",
+      "page": 83,
+      "question": "指出金属电阻应变片的各组成部分，并解释图中 l 与 b 分别表示什么。",
+      "expected_points": [
+        {"label": "敏感栅", "keywords": ["敏感栅"]},
+        {"label": "基底", "keywords": ["基底", "基底层"]},
+        {"label": "覆盖层", "keywords": ["覆盖层"]},
+        {"label": "引线", "keywords": ["引线"]},
+        {"label": "栅长栅宽", "keywords": ["栅长", "栅宽"]}
+      ]
+    },
+    {
+      "id": "sensor-hall-effect",
+      "category": "principle_diagram",
+      "query": "霍尔效应 示意图",
+      "figure_id": "de3cbad0f64af80381b1",
+      "page": 125,
+      "question": "根据图示说明电流、磁场、载流子受力和霍尔电压之间的方向关系。",
+      "expected_points": [
+        {"label": "电流", "keywords": ["电流 I", "电流I", "电流方向"]},
+        {"label": "磁场", "keywords": ["磁场 B", "磁场B", "磁场方向"]},
+        {"label": "洛伦兹力", "keywords": ["洛伦兹力"]},
+        {"label": "电荷积累", "keywords": ["电荷积累", "正电荷", "负电荷"]},
+        {"label": "霍尔电压", "keywords": ["霍尔电压", "霍尔电势"]}
+      ]
+    },
+    {
+      "id": "sensor-variable-gap-inductance",
+      "category": "principle_diagram",
+      "query": "变隙式 电感 压力传感器",
+      "figure_id": "ee91a8c886201045964f",
+      "page": 112,
+      "question": "说明外力 F 如何通过弹性元件改变气隙 δ，并进一步影响线圈电感。",
+      "expected_points": [
+        {"label": "弹性元件", "keywords": ["弹性元件"]},
+        {"label": "衔铁", "keywords": ["衔铁"]},
+        {"label": "铁芯线圈", "keywords": ["铁芯", "线圈"]},
+        {"label": "气隙", "keywords": ["气隙", "δ"]},
+        {"label": "电感变化", "keywords": ["电感", "L"]}
+      ]
+    },
+    {
+      "id": "sensor-differential-transformer",
+      "category": "structure_principle",
+      "query": "差动变压器 压力传感器 结构原理",
+      "figure_id": "e236759682ce5bc75fd3",
+      "page": 114,
+      "question": "结合剖面图说明压力如何经膜盒和衔铁转换为差动变压器输出。",
+      "expected_points": [
+        {"label": "膜盒", "keywords": ["膜盒"]},
+        {"label": "衔铁", "keywords": ["衔铁"]},
+        {"label": "线圈", "keywords": ["线圈", "次级线圈"]},
+        {"label": "零位平衡", "keywords": ["输出为零", "大小相等", "中间位置"]},
+        {"label": "位移反映压力", "keywords": ["位移", "压力"]}
+      ]
+    },
+    {
+      "id": "sensor-resonant-pressure",
+      "category": "feedback_block",
+      "query": "谐振式 压力传感器 工作原理",
+      "figure_id": "fa7e2989b0996bc48405",
+      "page": 114,
+      "question": "按闭环方向说明激振元件、振子、拾振元件和放大器如何维持振动并输出频率。",
+      "expected_points": [
+        {"label": "激振元件", "keywords": ["激振元件"]},
+        {"label": "振子", "keywords": ["振子"]},
+        {"label": "拾振元件", "keywords": ["拾振元件"]},
+        {"label": "放大反馈", "keywords": ["放大器", "反馈", "闭环"]},
+        {"label": "频率输出", "keywords": ["频率输出", "输出频率"]}
+      ]
+    },
+    {
+      "id": "sensor-diaphragm-pressure-curve",
+      "category": "characteristic_curve",
+      "query": "振膜 压力传感器 输入 输出 特性",
+      "figure_id": "717ba5a9841231124c31",
+      "page": 116,
+      "question": "说明图中压力 p 与频率 f 的关系，并判断该输入输出关系是否线性。",
+      "expected_points": [
+        {"label": "压力", "keywords": ["压力 p", "压力p"]},
+        {"label": "频率", "keywords": ["频率 f", "频率f"]},
+        {"label": "初始频率", "keywords": ["f0", "f_0", "初始频率"]},
+        {"label": "随压力上升", "keywords": ["增大", "上升"]},
+        {"label": "非线性", "keywords": ["非线性", "近似抛物线"]}
+      ]
+    },
+    {
+      "id": "sensor-solar-power-system",
+      "category": "system_block",
+      "query": "太阳能电池 电源系统 框图",
+      "figure_id": "b5ba62d1387d88e195ec",
+      "page": 169,
+      "question": "按能量流向说明太阳能电池电源系统中电池方阵、蓄电池、控制器和负载之间的关系。",
+      "expected_points": [
+        {"label": "太阳电池方阵", "keywords": ["太阳电池方阵", "太阳能电池方阵"]},
+        {"label": "蓄电池", "keywords": ["蓄电池"]},
+        {"label": "调节控制器", "keywords": ["调节控制器", "控制器"]},
+        {"label": "阻塞二极管", "keywords": ["阻塞二极管"]},
+        {"label": "逆变器与交流负载", "keywords": ["逆变器", "交流负载"]}
+      ]
+    },
+    {
+      "id": "sensor-fiber-gas-system",
+      "category": "optical_system",
+      "query": "光纤 远距离 气体 分子 测量 框图",
+      "figure_id": "8742237347088b9d765a",
+      "page": 193,
+      "question": "概括该光纤气体检测系统从光源、吸收盒到光电检测和数据处理的信号路径。",
+      "expected_points": [
+        {"label": "光源", "keywords": ["光源"]},
+        {"label": "光纤与吸收盒", "keywords": ["光纤", "怀特盒", "吸收盒"]},
+        {"label": "分光滤光", "keywords": ["光劈", "分光", "滤光片"]},
+        {"label": "光电二极管", "keywords": ["光电二极管", "PD"]},
+        {"label": "数据处理", "keywords": ["数据处理", "记录显示"]}
+      ]
+    },
+    {
+      "id": "sensor-saw-telemetry",
+      "category": "wireless_system",
+      "query": "SAW 温度遥测 系统框图",
+      "figure_id": "53dfd63b008844249ad5",
+      "page": 220,
+      "question": "按信号流向说明 SAW 温度遥测系统从传感、无线传输到频率处理和显示的过程。",
+      "expected_points": [
+        {"label": "SAW 传感振荡", "keywords": ["SAW 传感器", "SAW传感器", "SAW 振荡器", "SAW振荡器"]},
+        {"label": "无线传输", "keywords": ["无线", "发射", "接收", "天线"]},
+        {"label": "高频放大", "keywords": ["高频放大"]},
+        {"label": "混频低通", "keywords": ["混频", "低通"]},
+        {"label": "计数显示", "keywords": ["计数器", "显示"]}
+      ]
+    },
+    {
+      "id": "sensor-humidity-curve-circuit",
+      "category": "curve_and_circuit",
+      "query": "MHS1100 电容 湿度 关系曲线 线性输出",
+      "figure_id": "cb5c0cf4ad65a1daa24f",
+      "page": 263,
+      "question": "分别说明左侧电容—湿度关系和右侧线性输出电路的作用，不要把两幅子图混为一体。",
+      "expected_points": [
+        {"label": "电容湿度关系", "keywords": ["电容", "湿度"]},
+        {"label": "线性关系", "keywords": ["线性"]},
+        {"label": "MHS1100", "keywords": ["MHS1100"]},
+        {"label": "两级运放", "keywords": ["IC1", "IC2", "两级运放", "两个运放"]},
+        {"label": "输出电压", "keywords": ["VOUT", "输出电压"]}
+      ]
+    },
+    {
+      "id": "sensor-smart-system",
+      "category": "system_block",
+      "query": "智能传感器 系统 结构框图",
+      "figure_id": "5aece735a3c9452312fd",
+      "page": 325,
+      "question": "沿图中的数据流解释智能传感器系统各模块，并指出微型机为何是其智能化核心。",
+      "expected_points": [
+        {"label": "传感器", "keywords": ["传感器"]},
+        {"label": "预处理接口", "keywords": ["预处理", "接口"]},
+        {"label": "微型机", "keywords": ["微型机", "微处理器"]},
+        {"label": "显示记录", "keywords": ["显示记录"]},
+        {"label": "执行机构", "keywords": ["执行机构"]}
+      ]
+    },
+    {
+      "id": "sensor-fieldbus-system",
+      "category": "network_block",
+      "query": "现场总线 控制系统 框图",
+      "figure_id": "91e0802b9b9f4847a471",
+      "page": 328,
+      "question": "说明计算机、监控机、现场总线和现场设备之间的层级与通信关系。",
+      "expected_points": [
+        {"label": "计算机", "keywords": ["计算机"]},
+        {"label": "监控机", "keywords": ["监控机"]},
+        {"label": "现场总线", "keywords": ["现场总线"]},
+        {"label": "传感器", "keywords": ["传感器"]},
+        {"label": "执行元件", "keywords": ["执行元件", "执行机构"]}
+      ]
+    }
+  ]
+}

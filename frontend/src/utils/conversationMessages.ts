@@ -13,6 +13,7 @@ type StoredConversationMessage = {
   request_id?: string;
   answer_feedback?: ChatMessage['answerFeedback'];
   learning_task?: ChatMessage['learningTask'];
+  citation_provenance?: ChatMessage['citationProvenance'];
 };
 
 export function mapStoredConversationMessages(
@@ -32,6 +33,7 @@ export function mapStoredConversationMessages(
     scopeReason: item.scope_reason || undefined,
     answerFeedback: item.answer_feedback || undefined,
     learningTask: item.learning_task || undefined,
+    citationProvenance: item.citation_provenance || undefined,
     originalQuestion: item.role === 'assistant' && storedMessages[index - 1]?.role === 'user'
       ? storedMessages[index - 1].content
       : undefined,

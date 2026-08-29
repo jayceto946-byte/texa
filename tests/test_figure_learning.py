@@ -9,7 +9,9 @@ import pytest
 
 from backend.main import app
 from backend.services.figure_learning import FigureLearningService, NormalizedBBox
+from backend.services.learning_task import LearningTaskStore
 from backend.services.multimodal_bridge import VisionModelBridge
+from evaluation.visual_learning_eval import evaluate_visual_learning_corpus
 from ingestion.document_ir import CanonicalBook, DocumentBlock, persist_canonical_book
 
 
@@ -59,7 +61,25 @@ def test_figure_service_lists_context_and_controlled_asset(tmp_path):
     context = service.build_context("视觉教材", "figure-1")
     assert [item["block_id"] for item in context.nearby_blocks] == ["before", "after"]
     assert context.related_chunk_ids
+    assert all(item["chunk_ids"] for item in context.nearby_blocks)
     assert context.figure["section_path"] == ["第一章", "结构"]
+    sources = service.evidence_sources(context)
+    assert [item["id"] for item in sources] == ["E1", "E2", "E3"]
+    assert sources[0]["figure_id"] == "figure-1"
+    assert sources[1]["block_id"] == "before"
+    assert sources[1]["text"] == "图前正文说明。"
+
+
+def test_figure_search_matches_caption_section_and_nearby_text(tmp_path):
+    _figure_book(tmp_path)
+    service = FigureLearningService(tmp_path)
+
+    assert service.list_figures("视觉教材", query="结构示意")['total'] == 1
+    assert service.list_figures("视觉教材", query="第一章 结构")['total'] == 1
+    nearby = service.list_figures("视觉教材", query="连接关系")
+    assert nearby["total"] == 1
+    assert nearby["items"][0]["match_scope"] == "nearby_text"
+    assert service.list_figures("视觉教材", query="另一章正文")['total'] == 0
 
 
 def test_figure_caption_does_not_fall_back_to_image_footnote_text(tmp_path):
@@ -132,7 +152,11 @@ def test_vision_bridge_sends_full_figure_crop_and_text_context_in_one_request(tm
     answer = "".join(bridge.iter_figure_answer(
         full,
         user_question="局部结构是什么？",
-        figure_context={"figure": {"figure_id": "f1"}, "nearby_blocks": [{"text": "教材原文"}]},
+        figure_context={
+            "figure": {"figure_id": "f1"},
+            "nearby_blocks": [{"text": "教材原文"}],
+            "evidence_sources": [{"id": "E1"}, {"id": "E2", "text": "教材原文"}],
+        },
         cropped_region_path=crop,
     ))
 
@@ -142,6 +166,9 @@ def test_vision_bridge_sends_full_figure_crop_and_text_context_in_one_request(tm
     assert [item["type"] for item in content].count("image_url") == 2
     assert "同一 Figure 中用户选区" in content[-2]["text"]
     assert "nearby_blocks" in content[0]["text"]
+    assert '"evidence_id": "E2"' in content[0]["text"]
+    assert "视觉观察引用 E1" in content[0]["text"]
+    assert "不要输出 [E1]" in content[0]["text"]
 
 
 def test_figure_api_lists_serves_and_streams_grounded_source(monkeypatch, tmp_path):
@@ -150,12 +177,13 @@ def test_figure_api_lists_serves_and_streams_grounded_source(monkeypatch, tmp_pa
 
     service = FigureLearningService(tmp_path)
     monkeypatch.setattr(figures, "_service", lambda: service)
+    monkeypatch.setattr(figures, "_task_store", lambda: LearningTaskStore(tmp_path / "tasks"))
     monkeypatch.setattr(figures, "resolve_conversation_id_for_scope", lambda value, *_args: value or "conv-figure")
     monkeypatch.setattr(figures, "append_message", lambda *_args, **kwargs: {"id": "message-1", **kwargs})
 
     class FakeBridge:
         def iter_figure_answer(self, *_args, **_kwargs):
-            yield "这是局部结构。"
+            yield "这是局部结构。 [[cite:E1]]"
 
     monkeypatch.setattr(figures, "VisionModelBridge", FakeBridge)
     client = TestClient(app)
@@ -180,4 +208,155 @@ def test_figure_api_lists_serves_and_streams_grounded_source(monkeypatch, tmp_pa
     assert any(item.get("activity", {}).get("id") == "crop-region" for item in payloads)
     done = next(item for item in payloads if item["stage"] == "done")
     assert done["result"]["sources"][0]["figure_id"] == "figure-1"
+    assert [item["id"] for item in done["result"]["sources"]] == ["E1", "E2", "E3"]
+    assert done["result"]["sources"][1]["block_id"] == "before"
     assert "[[cite:E1]]" in done["result"]["explanation"]
+    assert done["result"]["answer_verification"]["status"] == "passed"
+    assert done["result"]["citation_provenance"]["status"] == "model_aligned"
+    assert done["result"]["citation_provenance"]["automatic_citation_inserted"] is False
+    assert done["result"]["learning_task"]["status"] == "completed"
+
+
+def test_figure_api_attaches_sources_without_inventing_inline_citation(monkeypatch, tmp_path):
+    _figure_book(tmp_path)
+    from backend.api import figures
+
+    service = FigureLearningService(tmp_path)
+    monkeypatch.setattr(figures, "_service", lambda: service)
+    monkeypatch.setattr(figures, "_task_store", lambda: LearningTaskStore(tmp_path / "tasks"))
+    monkeypatch.setattr(figures, "resolve_conversation_id_for_scope", lambda value, *_args: value or "conv-figure")
+    saved: list[dict] = []
+    monkeypatch.setattr(figures, "append_message", lambda *_args, **kwargs: saved.append(kwargs) or {"id": "message-1", **kwargs})
+
+    class FakeBridge:
+        def iter_figure_answer(self, *_args, **_kwargs):
+            yield "模型只给出了观察结论。"
+
+    monkeypatch.setattr(figures, "VisionModelBridge", FakeBridge)
+    response = TestClient(app).post("/api/visual-learning/figure-stream", json={
+        "book_name": "视觉教材", "figure_id": "figure-1", "question": "这里是什么？",
+        "conversation_id": "conv-figure", "turn_id": "turn-unaligned",
+    })
+    payloads = [
+        json.loads(line.removeprefix("data: "))
+        for line in response.text.splitlines() if line.startswith("data: ")
+    ]
+    done = next(item for item in payloads if item["stage"] == "done")
+    explanation = done["result"]["explanation"]
+    assert "[[cite:E1]]" not in explanation
+    assert done["result"]["citation_provenance"]["status"] == "sources_attached"
+    assert done["result"]["answer_verification"]["status"] == "failed"
+    assert done["result"]["learning_task"]["status"] == "degraded"
+    assert saved[-1]["evidence_support_status"] == "degraded"
+    assert saved[-1]["citation_provenance"]["source_attachment_origin"] == "system"
+
+
+def test_figure_context_cache_reuses_split_and_invalidates_on_canonical_change(monkeypatch, tmp_path):
+    book, _image_path = _figure_book(tmp_path)
+    import backend.services.figure_learning as module
+
+    original_split = module.ChapterSplitter.split_canonical_book
+    calls = {"count": 0}
+
+    def counted_split(self, value):
+        calls["count"] += 1
+        return original_split(self, value)
+
+    monkeypatch.setattr(module.ChapterSplitter, "split_canonical_book", counted_split)
+    service = FigureLearningService(tmp_path)
+    first = service.build_context("视觉教材", "figure-1")
+    second = FigureLearningService(tmp_path).build_context("视觉教材", "figure-1")
+    assert first.related_chunk_ids == second.related_chunk_ids
+    assert calls["count"] == 1
+    first_metadata = service.cache_metadata("视觉教材")
+
+    book.blocks[1].text = "更新后的图前正文。"
+    persist_canonical_book(book, progress_root=tmp_path)
+    refreshed = service.build_context("视觉教材", "figure-1")
+    assert calls["count"] == 2
+    assert refreshed.nearby_blocks[0]["text"] == "更新后的图前正文。"
+    assert service.cache_metadata("视觉教材")["canonical_hash"] != first_metadata["canonical_hash"]
+
+
+def test_figure_task_interrupt_and_resume_reuses_saved_figure_context(monkeypatch, tmp_path):
+    _figure_book(tmp_path)
+    from backend.api import figures
+
+    service = FigureLearningService(tmp_path)
+    store = LearningTaskStore(tmp_path / "tasks")
+    monkeypatch.setattr(figures, "_service", lambda: service)
+    monkeypatch.setattr(figures, "_task_store", lambda: store)
+    monkeypatch.setattr(figures, "append_message", lambda *_args, **kwargs: {"id": "message-resumed", **kwargs})
+
+    class FakeBridge:
+        def iter_figure_answer(self, *_args, **_kwargs):
+            yield "恢复后回答 [[cite:E1]]"
+
+    monkeypatch.setattr(figures, "VisionModelBridge", FakeBridge)
+    task = store.create(
+        task_type="figure_qa", goal="请解释这幅图",
+        conversation_id="conv-resume", turn_id="turn-resume", answer_mode="visual_grounded",
+        artifacts={
+            "book_name": "视觉教材", "figure_id": "figure-1", "subject": "传感器",
+            "page": 2, "region": [0.1, 0.1, 0.6, 0.8], "active_run_id": "run-initial",
+        },
+    )
+    client = TestClient(app)
+    stopped = client.post(
+        f"/api/visual-learning/tasks/{task.id}/interrupt",
+        json={"stage": "user_stopped", "partial_output": "部分回答"},
+    ).json()["learning_task"]
+    assert stopped["status"] == "interrupted"
+    assert stopped["artifacts"]["partial_output"] == "部分回答"
+    assert stopped["artifacts"]["resume_available"] is True
+
+    response = client.post(f"/api/visual-learning/tasks/{task.id}/resume-stream")
+    payloads = [
+        json.loads(line.removeprefix("data: "))
+        for line in response.text.splitlines() if line.startswith("data: ")
+    ]
+    done = next(item for item in payloads if item["stage"] == "done")
+    assert done["result"]["learning_task"]["status"] == "completed"
+    assert done["result"]["region"] == [0.1, 0.1, 0.6, 0.8]
+    assert "[[cite:E1]]" in done["result"]["explanation"]
+
+
+def test_visual_learning_acceptance_exercises_all_four_steps(tmp_path):
+    output = tmp_path / "mineru"
+    (output / "images").mkdir(parents=True)
+    Image.new("RGB", (120, 80), (245, 245, 245)).save(output / "images" / "sensor.png")
+    (output / "sensor_content_list.json").write_text(json.dumps([
+        {"type": "text", "text_level": 1, "text": "第二章 传感器", "page_idx": 0},
+        {"type": "text", "text": "厚膜压力传感器先印刷电阻浆料，再烧结形成敏感结构。", "page_idx": 1},
+        {
+            "type": "image", "img_path": "images/sensor.png", "page_idx": 1,
+            "bbox": [10, 20, 110, 70],
+            "image_caption": ["图2.13 厚膜压力传感器的制作工艺流程示意图"],
+        },
+        {"type": "text", "text": "图中箭头表示制作工序的先后关系。", "page_idx": 1},
+    ], ensure_ascii=False), encoding="utf-8")
+    standard = {
+        "schema_version": "visual-learning-sensor/v1",
+        "thresholds": {
+            "minimum_figures": 1, "minimum_caption_rate": 1,
+            "minimum_ready_asset_rate": 1, "minimum_required_field_rate": 1,
+            "minimum_query_top3_rate": 1,
+        },
+        "queries": [{
+            "query": "厚膜压力 制作工艺",
+            "expected_caption_terms": ["厚膜压力传感器", "制作工艺流程"],
+            "expected_page": 2,
+        }],
+        "region": {"query": "厚膜压力 制作工艺", "bbox": [0.2, 0.2, 0.8, 0.8]},
+    }
+
+    result = evaluate_visual_learning_corpus(
+        output, progress_root=tmp_path / "progress", standard=standard, book_name="传感器验收小样",
+    )
+
+    assert result.passed is True
+    assert result.report["step1_ingestion"]["ready_asset_rate"] == 1
+    assert result.report["step2_search_open"]["query_top3_rate"] == 1
+    assert result.report["step3_region_question_contract"]["passed"] is True
+    assert result.report["step4_answer_provenance"]["passed"] is True
+    assert result.report["online_model_called"] is False

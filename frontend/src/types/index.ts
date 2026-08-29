@@ -2,6 +2,14 @@
 
 export type AnswerMode = 'auto' | 'textbook_grounded' | 'visual_grounded' | 'subject_general' | 'global_general' | 'subject_mismatch';
 
+export interface CitationProvenance {
+  status: 'model_aligned' | 'partially_aligned' | 'sources_attached' | string;
+  model_citation_ids?: string[];
+  source_attachment_origin?: 'system' | string;
+  paragraph_alignment?: 'complete' | 'partial' | 'unverified' | string;
+  automatic_citation_inserted?: boolean;
+}
+
 export type ActivityStatus = 'pending' | 'active' | 'completed' | 'skipped' | 'failed';
 export type ActivityKind = 'analysis' | 'tool' | 'evidence' | 'reasoning' | 'generation' | 'memory' | 'system';
 
@@ -99,6 +107,7 @@ export interface ChatEvent {
     mistake_id?: string;
     visual_ir?: Record<string, unknown>;
     learning_task?: LearningTaskState;
+    citation_provenance?: CitationProvenance;
   };
   state?: {
     linked_concepts?: ConceptCandidate[];
@@ -134,7 +143,9 @@ export interface AssistantSource {
   page_idx?: number;
   label?: string;
   figure_id?: string;
+  block_id?: string;
   caption?: string;
+  text?: string;
   asset_url?: string;
   pdf_url?: string;
 }
@@ -165,6 +176,7 @@ export interface FigureArtifact {
   image_height: number;
   image_url: string;
   pdf_url: string;
+  match_scope?: 'caption' | 'section' | 'nearby_text' | string;
 }
 
 export interface ConceptWiki {

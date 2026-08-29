@@ -1,11 +1,15 @@
 """Canonical Figure lookup, bounded context assembly, and deterministic crops."""
 from __future__ import annotations
 
+from collections import OrderedDict
 from contextlib import contextmanager
 from dataclasses import dataclass
+import hashlib
 from pathlib import Path, PurePosixPath
 import tempfile
+import threading
 from typing import Any, Iterator
+import unicodedata
 from urllib.parse import quote
 
 from PIL import Image, ImageOps
@@ -13,12 +17,14 @@ from PIL import Image, ImageOps
 from config import PROGRESS_PATH
 from ingestion.chapter_splitter import ChapterSplitter
 from ingestion.document_ir import CanonicalBook, DocumentBlock, canonical_paths, load_canonical_book
+from ingestion.index_pipeline import load_index_manifest
 
 
 MAX_FIGURE_ASSET_BYTES = 25 * 1024 * 1024
 MAX_FIGURE_PIXELS = 60_000_000
 MIN_REGION_FRACTION = 0.005
 MIN_REGION_PIXELS = 8
+MAX_CACHED_FIGURE_BOOKS = 8
 
 
 @dataclass(frozen=True)
@@ -67,15 +73,104 @@ class FigureContextPackage:
         }
 
 
+@dataclass
+class _FigureBookCacheEntry:
+    signature: tuple[int, int, str]
+    canonical_hash: str
+    index_version: str
+    book: CanonicalBook
+    block_positions: dict[str, int]
+    figures: list[tuple[int, DocumentBlock]]
+    chunks: list[dict[str, Any]] | None = None
+    block_chunk_ids: dict[str, list[str]] | None = None
+    chunk_order: dict[str, int] | None = None
+
+
 class FigureLearningService:
+    _cache_lock = threading.RLock()
+    _book_cache: "OrderedDict[tuple[str, str], _FigureBookCacheEntry]" = OrderedDict()
+
     def __init__(self, progress_root: str | Path = PROGRESS_PATH) -> None:
         self.progress_root = Path(progress_root)
 
-    def load_book(self, book_name: str) -> CanonicalBook:
+    def _cache_key(self, book_name: str) -> tuple[str, str]:
+        return str(self.progress_root.resolve()), book_name
+
+    def _source_signature(self, book_name: str) -> tuple[int, int, str]:
+        document_path, _report_path = canonical_paths(book_name, progress_root=self.progress_root)
+        stat = document_path.stat()
+        index_version = str(load_index_manifest(book_name).get("index_version") or "")
+        return stat.st_mtime_ns, stat.st_size, index_version
+
+    def _cache_entry(self, book_name: str) -> _FigureBookCacheEntry:
         name = str(book_name or "").strip()
         if not name:
             raise ValueError("book_name 不能为空")
-        return load_canonical_book(name, progress_root=self.progress_root)
+        key = self._cache_key(name)
+        signature = self._source_signature(name)
+        with self._cache_lock:
+            cached = self._book_cache.get(key)
+            if cached is not None and cached.signature == signature:
+                self._book_cache.move_to_end(key)
+                return cached
+
+            document_path, _report_path = canonical_paths(name, progress_root=self.progress_root)
+            canonical_hash = hashlib.sha256(document_path.read_bytes()).hexdigest()
+            book = load_canonical_book(name, progress_root=self.progress_root)
+            block_positions = {
+                block.block_id: index for index, block in enumerate(book.blocks) if block.block_id
+            }
+            figures = [
+                (index, block) for index, block in enumerate(book.blocks) if block.block_type == "figure"
+            ]
+            entry = _FigureBookCacheEntry(
+                signature=signature,
+                canonical_hash=canonical_hash,
+                index_version=signature[2],
+                book=book,
+                block_positions=block_positions,
+                figures=figures,
+            )
+            self._book_cache[key] = entry
+            self._book_cache.move_to_end(key)
+            while len(self._book_cache) > MAX_CACHED_FIGURE_BOOKS:
+                self._book_cache.popitem(last=False)
+            return entry
+
+    def _ensure_chunk_index(self, entry: _FigureBookCacheEntry) -> None:
+        if entry.chunks is not None:
+            return
+        with self._cache_lock:
+            if entry.chunks is not None:
+                return
+            chunks = ChapterSplitter().split_canonical_book(entry.book)
+            block_chunk_ids: dict[str, list[str]] = {}
+            chunk_order: dict[str, int] = {}
+            for chunk_index, chunk in enumerate(chunks):
+                chunk_id = str(chunk.get("chunk_id") or "")
+                if not chunk_id:
+                    continue
+                chunk_order[chunk_id] = chunk_index
+                for block_id in chunk.get("source_block_ids") or []:
+                    block_key = str(block_id or "")
+                    if block_key and chunk_id not in block_chunk_ids.setdefault(block_key, []):
+                        block_chunk_ids[block_key].append(chunk_id)
+            entry.chunks = chunks
+            entry.block_chunk_ids = block_chunk_ids
+            entry.chunk_order = chunk_order
+
+    def load_book(self, book_name: str) -> CanonicalBook:
+        return self._cache_entry(book_name).book
+
+    def cache_metadata(self, book_name: str) -> dict[str, Any]:
+        entry = self._cache_entry(book_name)
+        return {
+            "canonical_hash": entry.canonical_hash,
+            "index_version": entry.index_version,
+            "figure_count": len(entry.figures),
+            "chunk_count": len(entry.chunks or []),
+            "chunk_index_ready": entry.chunks is not None,
+        }
 
     def list_figures(
         self,
@@ -85,24 +180,51 @@ class FigureLearningService:
         limit: int = 50,
         query: str = "",
     ) -> dict[str, Any]:
-        book = self.load_book(book_name)
-        needle = str(query or "").strip().casefold()
-        figures = [self._figure_payload(book, block) for block in book.blocks if block.block_type == "figure"]
-        if needle:
-            figures = [item for item in figures if needle in " ".join([
-                str(item.get("caption") or ""),
-                " ".join(item.get("section_path") or []),
-                str(item.get("page") or ""),
-            ]).casefold()]
+        entry = self._cache_entry(book_name)
+        book = entry.book
+        needle = self._normalize_search_text(query)
+        terms = [term for term in needle.split() if term]
+        ranked: list[tuple[int, int, dict[str, Any]]] = []
+        for index, block in entry.figures:
+            payload = self._figure_payload(book, block)
+            if not needle:
+                ranked.append((0, index, payload))
+                continue
+            caption_text = self._normalize_search_text(" ".join([
+                str(payload.get("caption") or ""), str(payload.get("source_text") or ""),
+            ]))
+            section_text = self._normalize_search_text(" ".join(payload.get("section_path") or []))
+            nearby_text = self._normalize_search_text(self._search_context(book, index))
+            combined = " ".join([caption_text, section_text, nearby_text, str(payload.get("page") or "")])
+            required = terms or [needle]
+            if not all(term in combined for term in required):
+                continue
+            score = sum(4 for term in required if term in caption_text)
+            score += sum(3 for term in required if term in section_text)
+            score += sum(1 for term in required if term in nearby_text)
+            if needle in caption_text:
+                score += 8
+                payload["match_scope"] = "caption"
+            elif needle in section_text:
+                score += 6
+                payload["match_scope"] = "section"
+            else:
+                payload["match_scope"] = "nearby_text"
+            ranked.append((score, index, payload))
+        ranked.sort(key=lambda item: (-item[0], item[1]))
+        figures = [item[2] for item in ranked]
         start = max(0, int(offset or 0))
         size = min(100, max(1, int(limit or 50)))
         return {"items": figures[start:start + size], "total": len(figures), "offset": start, "limit": size}
 
     def get_figure(self, book_name: str, figure_id: str) -> tuple[CanonicalBook, DocumentBlock, dict[str, Any]]:
-        book = self.load_book(book_name)
+        entry = self._cache_entry(book_name)
+        book = entry.book
         target = str(figure_id or "").strip()
-        for block in book.blocks:
-            if block.block_type == "figure" and block.block_id == target:
+        position = entry.block_positions.get(target)
+        if position is not None:
+            block = book.blocks[position]
+            if block.block_type == "figure":
                 return book, block, self._figure_payload(book, block)
         raise KeyError(f"Figure not found: {target}")
 
@@ -133,8 +255,10 @@ class FigureLearningService:
         neighbor_count: int = 3,
         max_text_chars: int = 6000,
     ) -> FigureContextPackage:
+        entry = self._cache_entry(book_name)
+        self._ensure_chunk_index(entry)
         book, figure, payload = self.get_figure(book_name, figure_id)
-        figure_index = book.blocks.index(figure)
+        figure_index = entry.block_positions[figure.block_id]
         before: list[DocumentBlock] = []
         after: list[DocumentBlock] = []
         for block in reversed(book.blocks[:figure_index]):
@@ -164,16 +288,54 @@ class FigureLearningService:
                 "page": block.page_start,
                 "page_idx": block.page_start - 1 if block.page_start is not None else None,
                 "section_path": list(block.section_path),
+                "chunk_ids": list((entry.block_chunk_ids or {}).get(block.block_id) or []),
             })
 
         source_ids = {figure.block_id, *(item["block_id"] for item in nearby)}
-        related_chunk_ids: list[str] = []
-        for chunk in ChapterSplitter().split_canonical_book(book):
-            if source_ids.intersection(str(value) for value in chunk.get("source_block_ids") or []):
-                chunk_id = str(chunk.get("chunk_id") or "")
-                if chunk_id and chunk_id not in related_chunk_ids:
-                    related_chunk_ids.append(chunk_id)
+        related_chunk_ids = sorted(
+            {
+                chunk_id
+                for block_id in source_ids
+                for chunk_id in (entry.block_chunk_ids or {}).get(block_id, [])
+            },
+            key=lambda chunk_id: (entry.chunk_order or {}).get(chunk_id, len(entry.chunk_order or {})),
+        )
         return FigureContextPackage(payload, nearby, related_chunk_ids)
+
+    @staticmethod
+    def evidence_sources(context: FigureContextPackage) -> list[dict[str, Any]]:
+        """Expose the Figure and its nearby text as distinct citation targets."""
+        figure = context.figure
+        section_path = list(figure.get("section_path") or [])
+        sources: list[dict[str, Any]] = [{
+            "id": "E1",
+            "figure_id": figure.get("figure_id") or "",
+            "book_name": figure.get("book_name") or "",
+            "chapter": section_path[0] if section_path else figure.get("book_name") or "",
+            "section_title": section_path[-1] if section_path else figure.get("book_name") or "",
+            "section_path": section_path,
+            "page_idx": figure.get("page_idx"),
+            "caption": figure.get("caption") or "",
+            "label": f"Figure {figure.get('figure_id') or ''}".strip(),
+            "asset_url": figure.get("image_url") or "",
+            "pdf_url": figure.get("pdf_url") or "",
+        }]
+        for index, block in enumerate(context.nearby_blocks, start=2):
+            block_path = list(block.get("section_path") or section_path)
+            chunk_ids = list(block.get("chunk_ids") or [])
+            sources.append({
+                "id": f"E{index}",
+                "chunk_id": chunk_ids[0] if chunk_ids else "",
+                "block_id": block.get("block_id") or "",
+                "book_name": figure.get("book_name") or "",
+                "chapter": block_path[0] if block_path else figure.get("book_name") or "",
+                "section_title": block_path[-1] if block_path else figure.get("book_name") or "",
+                "section_path": block_path,
+                "page_idx": block.get("page_idx"),
+                "label": "Figure 邻近正文",
+                "text": block.get("text") or "",
+            })
+        return sources
 
     @contextmanager
     def cropped_region(
@@ -217,6 +379,26 @@ class FigureLearningService:
         figure_root = (figure.section_path or [""])[0]
         block_root = (block.section_path or [""])[0]
         return not figure_root or not block_root or figure_root == block_root
+
+    def _search_context(self, book: CanonicalBook, figure_index: int, *, neighbor_count: int = 2) -> str:
+        figure = book.blocks[figure_index]
+        before: list[str] = []
+        after: list[str] = []
+        for block in reversed(book.blocks[:figure_index]):
+            if self._nearby_text_candidate(block, figure):
+                before.append(str(block.text or ""))
+            if len(before) >= neighbor_count:
+                break
+        for block in book.blocks[figure_index + 1:]:
+            if self._nearby_text_candidate(block, figure):
+                after.append(str(block.text or ""))
+            if len(after) >= neighbor_count:
+                break
+        return " ".join([*reversed(before), *after])[:4000]
+
+    @staticmethod
+    def _normalize_search_text(value: Any) -> str:
+        return " ".join(unicodedata.normalize("NFKC", str(value or "")).casefold().split())
 
     def _figure_payload(self, book: CanonicalBook, block: DocumentBlock) -> dict[str, Any]:
         attributes = block.attributes or {}

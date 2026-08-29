@@ -1,4 +1,4 @@
-import type { AgentPendingAction, AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ChatActivity, ConceptCandidate, ExecutionEvent, LearningTaskState, SubjectRouteSuggestion, VisualRegion } from '../types';
+import type { AgentPendingAction, AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ChatActivity, CitationProvenance, ConceptCandidate, ExecutionEvent, LearningTaskState, SubjectRouteSuggestion, VisualRegion } from '../types';
 
 const DEFAULT_TIMEOUT_MS = 20000;
 export const AGENT_REQUEST_TIMEOUT_MS = 55000;
@@ -110,6 +110,7 @@ export type ChatEvent = {
     turn_id?: string;
     figure_id?: string;
     region?: number[] | null;
+    citation_provenance?: CitationProvenance;
   };
   state?: { linked_concepts?: ConceptCandidate[]; evidence_sources?: AssistantSource[]; suggested_answer_mode?: AnswerMode; learning_task?: LearningTaskState };
 };
@@ -389,6 +390,49 @@ export function resumeChatTaskStream(
     }
   })();
   return () => ctrl.abort();
+}
+
+export function resumeFigureTaskStream(
+  taskId: string,
+  onEvent: (event: ChatEvent) => void,
+  onError?: (err: Error) => void,
+): () => void {
+  const ctrl = new AbortController();
+  void (async () => {
+    try {
+      const res = await fetch(apiUrl(`/visual-learning/tasks/${encodeURIComponent(taskId)}/resume-stream`), {
+        method: 'POST', headers: authHeaders(), signal: ctrl.signal,
+      });
+      if (!res.ok || !res.body) throw await responseError(res, '恢复 Figure 问答失败');
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let terminal = false;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const parsed = consumeSseChunk(decoder.decode(value, { stream: true }), buffer, onEvent);
+        buffer = parsed.buffer;
+        terminal = parsed.sawTerminalEvent || terminal;
+      }
+      buffer += decoder.decode();
+      terminal = flushSseBuffer(buffer, onEvent) || terminal;
+      if (!terminal && !ctrl.signal.aborted) throw new Error('Figure 恢复流未返回终止事件');
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      onError?.(error instanceof Error ? error : new Error(String(error)));
+    }
+  })();
+  return () => ctrl.abort();
+}
+
+export async function interruptFigureTask(
+  taskId: string,
+  partialOutput = '',
+): Promise<{ success: boolean; learning_task: LearningTaskState }> {
+  return post(`/visual-learning/tasks/${encodeURIComponent(taskId)}/interrupt`, {
+    stage: 'user_stopped', partial_output: partialOutput,
+  });
 }
 
 export async function interruptChatTask(

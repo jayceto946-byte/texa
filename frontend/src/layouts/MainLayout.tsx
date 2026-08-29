@@ -13,7 +13,11 @@ import SettingsDialog from '../components/settings/SettingsDialog';
 
 function layoutSnapshot() {
   const width = typeof window === 'undefined' ? 1280 : window.innerWidth || 1280;
-  return { compact: width <= 760, contextOverlay: width < 920 };
+  return {
+    compact: width <= 760,
+    contextOverlay: width < 920,
+    inspectorReplacesContext: width >= 920 && width < 1440,
+  };
 }
 
 function PersistentRouteOutlet() {
@@ -56,13 +60,15 @@ const MainLayout: React.FC = () => {
   const initialLayout = layoutSnapshot();
   const [compactLayout, setCompactLayout] = useState(initialLayout.compact);
   const [contextOverlay, setContextOverlay] = useState(initialLayout.contextOverlay);
+  const [inspectorReplacesContext, setInspectorReplacesContext] = useState(initialLayout.inspectorReplacesContext);
   const [contextOpen, setContextOpen] = useState(!initialLayout.compact && !initialLayout.contextOverlay);
   const [backendStatus, setBackendStatus] = useState<DesktopBackendStatus | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsMounted, setSettingsMounted] = useState(false);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
+  const restoreContextAfterInspectorRef = useRef(false);
   const { bookName, setBookName, subject, setSubject, conversationId, messages, newConversation, loadConversation } = useChatContext();
-  const { closeInspector } = useInspector();
+  const { inspector, closeInspector } = useInspector();
 
   const isLearningWorkspace = location.pathname === '/';
 
@@ -91,6 +97,7 @@ const MainLayout: React.FC = () => {
       const next = layoutSnapshot();
       setCompactLayout(next.compact);
       setContextOverlay(next.contextOverlay);
+      setInspectorReplacesContext(next.inspectorReplacesContext);
       if (next.compact || next.contextOverlay) setContextOpen(false);
     };
     updateLayout();
@@ -99,6 +106,24 @@ const MainLayout: React.FC = () => {
       window.removeEventListener('resize', updateLayout);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isLearningWorkspace) return;
+    if (inspector && inspectorReplacesContext) {
+      if (contextOpen) restoreContextAfterInspectorRef.current = true;
+      setContextOpen(false);
+      return;
+    }
+    if (inspector && !inspectorReplacesContext && restoreContextAfterInspectorRef.current && !compactLayout && !contextOverlay) {
+      restoreContextAfterInspectorRef.current = false;
+      setContextOpen(true);
+      return;
+    }
+    if (!inspector && restoreContextAfterInspectorRef.current && !compactLayout && !contextOverlay) {
+      restoreContextAfterInspectorRef.current = false;
+      setContextOpen(true);
+    }
+  }, [compactLayout, contextOpen, contextOverlay, inspector, inspectorReplacesContext, isLearningWorkspace]);
 
   useEffect(() => {
     const desktop = window.kaoyanDesktop;
@@ -174,6 +199,7 @@ const MainLayout: React.FC = () => {
       data-layout={compactLayout ? 'compact' : 'desktop'}
       data-context={isLearningWorkspace && contextOpen ? 'open' : 'closed'}
       data-context-overlay={contextOverlay ? 'true' : 'false'}
+      data-inspector={inspector ? 'open' : 'closed'}
       className="app-shell"
     >
       <AppRail onOpenSettings={openSettings} settingsButtonRef={settingsButtonRef} />

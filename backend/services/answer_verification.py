@@ -52,7 +52,7 @@ def derive_required_outputs(question: str, *, intent: str = "qa", answer_mode: s
             "required": True,
         })
     numeric_requested = intent == "calculation" or bool(re.search(
-        r"计算|求值|数值|多少|结果为|反查|温度|电势|电压|电流|概率", text,
+        r"计算|求值|数值|多少|结果为|反查|求出|最终.{0,8}(?:温度|电势|电压|电流|概率)", text,
     ))
     if numeric_requested:
         outputs.append({
@@ -69,7 +69,7 @@ def derive_required_outputs(question: str, *, intent: str = "qa", answer_mode: s
         outputs.append({
             "id": "formula", "label": "所需公式或推导关系", "kind": "formula", "required": True,
         })
-    if answer_mode == "textbook_grounded":
+    if answer_mode in {"textbook_grounded", "visual_grounded"}:
         outputs.append({
             "id": "citations", "label": "教材结论的本轮来源", "kind": "citation", "required": True,
         })
@@ -124,7 +124,34 @@ def _citation_semantically_supported(answer: str, source_id: str, source_text: s
 
     claim_terms = terms(claim) - _STOP_ANCHORS
     source_terms = terms(source_text)
-    return len(claim_terms & source_terms) >= 2
+    if len(claim_terms & source_terms) >= 2:
+        return True
+
+    # Formula-only Canonical blocks have few or no Chinese bigrams. Compare
+    # mathematical identifiers so an equivalent adjacent formula can still be
+    # verified without weakening prose citations.
+    ignored_commands = {
+        "begin", "end", "array", "mathrm", "mathfrak", "mathbf", "boldsymbol",
+        "text", "tag", "left", "right", "frac", "dfrac", "sqrt", "cdot",
+    }
+
+    def formula_symbols(value: str) -> set[str]:
+        symbols = {
+            command.casefold()
+            for command in re.findall(r"\\([A-Za-z]+)", value)
+            if command.casefold() not in ignored_commands
+        }
+        symbols.update(item.casefold() for item in re.findall(r"(?<![A-Za-z\\])[A-Za-z](?![A-Za-z])", value))
+        symbols.update(re.findall(r"\d+", value))
+        symbols.update(re.findall(r"[Α-Ωα-ω]", value))
+        return symbols
+
+    if _FORMULA_RE.search(source_text) and _FORMULA_RE.search(claim):
+        source_symbols = formula_symbols(source_text)
+        claim_symbols = formula_symbols(claim)
+        required_overlap = min(4, max(2, len(source_symbols) // 2))
+        return len(source_symbols & claim_symbols) >= required_overlap
+    return False
 
 
 def verify_answer(

@@ -1,3 +1,18 @@
+# 2026-08-28 - Figure 金标与受控 Qwen 视觉验收
+
+- 基于 `传感器长书` 建立 24 项 review-ready Figure 金标候选，覆盖结构图、测量电路、特性曲线、工艺流程、原理图和系统框图；每项绑定稳定 `figure_id`、页码、检索词、学习问题及可解释要点。金标已逐图检查，但明确保留 `pending_human_signoff`，不冒充传感器课程教师审核。
+- 新增受控在线评测入口：只读取配置好的 vision role，不读写或输出凭据；支持按 case、小并发和复用既有回答离线重评分。调试过程实际向已配置的 Qwen 3.7 Plus 发起 54 次请求（1 次接口烟雾、24 次基线、5 次提示复测、24 次最终全量）；正式报告只采用最后 24 项结果，后续 verifier 修复通过保存回答离线重评分，未再次调用模型。
+- 多模态上下文改为优先保留 Figure 元数据、E1/E2 引用映射和有界邻近正文，避免尾部 evidence sources 被 12k 字符预算截断；提示明确要求 `[[cite:E1]]` 协议。模型原生引用率为 75%，其余 6 项由既有发布层确定性补齐，发布后引用率 100%。
+- 修复确定性 answer verifier 的两个假阴性：公式-only Canonical block 现在可按 LaTeX 标识符核对相邻公式引用；仅出现“温度/电压”等物理量名的解释题不再被误判为要求最终数值。
+- 正式报告 `benchmark_results/visual_learning_qwen_20260828.json`：24/24 模型完成，Recall@3 100%，关键点覆盖 100%，发布后引用 100%，verification 100%，严重不受支持声明 0；报告保留 `pending_human_signoff`，自动 Harness 通过不等于课程内容已由教师签字。
+- 主学习工作流继续复用现有 Learning Canvas：Composer 的“教材图”打开当前逻辑教材范围的 Figure Inspector，选择后直接进入整图/选区提问和 Figure/Page 来源查看，不新增独立视觉 Agent 页面。
+
+## Validation
+
+- Figure/answer verification 定向回归：20 passed；Python 全量回归：603 passed，1 个既有 Starlette/httpx 弃用警告。
+- Frontend Vitest：21 files / 112 tests；ESLint、TypeScript 与 Vite production build 通过。构建只保留既有 MathLive 大 chunk 与 MarkdownRenderer 混合导入警告。
+- 在线模型输出只保存回答、脱敏错误、模型名和聚合指标；未保存图片副本、API Key 或请求认证信息。
+
 # 2026-08-27 - Canonical Figure Visual Learning V1
 
 - 在主聊天和现有 Learning Canvas 内新增教材 Figure 选择与查看，不新建平行 Agent 页或状态机。Figure/Region 只作为当前会话的临时前端状态；旧教材尚无 Canonical Figure 时明确提示重新导入，不伪造图片列表。
@@ -2555,3 +2570,17 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 普通问答和图片题恢复开始时立即把任务投影切为 `running`，补充材料选项不再在新一轮流式输出期间残留。`done`、SSE `error` 和传输错误都会收敛恢复 activity，状态条不再永久显示旋转中的“从检查点恢复”。
 - 验证覆盖中断接口幂等、partial/checkpoint/会话投影保留，以及恢复 activity 的成功和失败终态。本地 Learning Canvas 冒烟验证停止确认无竞态、恢复操作即时收起；隔离后端无法连接外部推理模型，因此真实成功生成由状态投影测试覆盖，失败路径在界面中确认停止旋转并显示明确终态。
 - 最终回归：后端 `573 passed`（1 条既有 Starlette/httpx2 弃用警告）；前端 `19 files / 93 tests passed`，ESLint 与 TypeScript/Vite 生产构建通过。冒烟测试产生的 3 条会话、4 个 task 及对应 event/trace 已精确清理。
+## 2026-08-28 教材 Figure 学习闭环与传感器验收
+
+- 按“稳定保存 → 搜索并打开 → 区域提问 → Figure/Page/正文绑定”补齐教材 Figure 学习闭环。Figure 搜索现在覆盖图注、章节与同节邻近正文；逻辑教材范围会聚合 core/reference 物理教材，单本缺少 Canonical IR 时局部降级，不再让参考教材中的图片不可见。
+- FigureContext 为每个邻近正文块保留对应 Canonical block 与 chunk provenance；多模态 Prompt 将 E1 定义为 Figure 视觉来源、E2 起定义为邻近教材正文。最终回答通过引用协议和确定性 required outputs 验收，并持久化 `figure_qa` LearningTask；未通过验收时进入 degraded，而不是仅因附带图片来源就标记完整。
+- 新增 `visual-learning-sensor/v1` 离线标准与评测脚本，不调用在线模型。真实《传感器原理及应用》MinerU 产物实测 5,588 个 block、508 幅 Figure，图注率 90.748%、稳定资产率 100%、必要字段完整率 100%；4 个结构图/电路图/流程图查询 Top-3 全命中，归一化区域裁剪及 Figure/Page/邻近正文引用契约通过。报告保存在 `benchmark_results/visual_learning_sensor_20260828.json`。
+- 已为本机“传感器长书”生成 Canonical IR 与 508 个受控 Figure 资产，未重建或覆盖现有向量索引。Canonical 合同无 error；6,537 条 warning 主要来自既有 OCR 置信度、短文本和页面质量检查，保持 `needs_review`，不将结构验收冒充 OCR 语义正确率。
+- 验证：后端全量 `598 passed`（1 条既有 Starlette/httpx2 弃用警告）；前端 `21 files / 112 tests passed`、ESLint 与 TypeScript/Vite 生产构建通过。1280×800 与 1600×1000 运行态确认搜索、Figure 打开、选区和来源 Inspector 可用，最终控制台无 warning/error。未发起付费 Qwen 调用，因此模型识图准确率仍需单独的显式在线评测。
+
+## 2026-08-28 Figure 学习界面层级与响应式 Inspector
+
+- 已完成回答不再持续占用大幅 Figure 框选画布；保留紧凑的教材图上下文条，需要继续局部提问时再显式展开。回答区移除重复的“问题/回答”层级标签，执行记录在终态收拢到正文之后；系统自动补充来源时明确标记“来源已附，段落引用未完全对齐”，不冒充模型原生段落引用。
+- 教材图片列表改为位于应用标题栏下方的右侧 Inspector，不再从窗口顶部贯穿到底或与原生窗口控件共用一行。宽屏保留 284px 学习上下文并由 Inspector 自然压缩主对话标题与正文；920–1439px 使用主对话与 Inspector 两区，临时收起历史上下文并在关闭后恢复；低于 920px 才使用标题栏下方的覆盖层，并支持点击外部关闭。
+- Electron Inspector 的关闭按钮位于独立的面板标题行，与原生最小化、最大化、关闭区域纵向分层；Inspector 使用 360–400px 约束宽度和克制的次级表面。完整重启桌面端后，在宽屏、常规与窄窗口三种尺寸实测，并以真实指针验证关闭 Inspector 不会误触窗口关闭。
+- 验证：前端 `21 files / 113 tests passed`，ESLint 与 TypeScript/Vite 生产构建通过；未修改后端 API、数据库或教材索引。

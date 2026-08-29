@@ -1,0 +1,39 @@
+{
+  "schema_version": "visual-learning-sensor/v1",
+  "description": "使用真实传感器教材 MinerU 产物验收 Figure 学习闭环；不调用付费模型。",
+  "thresholds": {
+    "minimum_figures": 400,
+    "minimum_caption_rate": 0.85,
+    "minimum_ready_asset_rate": 0.98,
+    "minimum_required_field_rate": 1.0,
+    "minimum_query_top3_rate": 1.0
+  },
+  "queries": [
+    {
+      "query": "厚膜压力 制作工艺",
+      "expected_caption_terms": ["厚膜压力传感器", "制作工艺流程"],
+      "expected_page": 48
+    },
+    {
+      "query": "热电偶 测温电路",
+      "expected_caption_terms": ["热电偶", "测温电路"],
+      "expected_page": 54
+    },
+    {
+      "query": "金属电阻 应变片结构",
+      "expected_caption_terms": ["金属电阻应变片", "结构"],
+      "expected_page": 83
+    },
+    {
+      "query": "霍尔效应 示意图",
+      "expected_caption_terms": ["霍尔效应", "示意图"],
+      "expected_page": 125
+    }
+  ],
+  "region": {
+    "query": "厚膜压力 制作工艺",
+    "bbox": [0.2, 0.2, 0.8, 0.8],
+    "minimum_crop_width": 8,
+    "minimum_crop_height": 8
+  }
+}
