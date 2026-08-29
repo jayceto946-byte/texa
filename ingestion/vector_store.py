@@ -3,8 +3,11 @@ import hashlib
 import json
 import threading
 import time
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any, Literal
 
+from chromadb.errors import NotFoundError
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 
@@ -16,6 +19,39 @@ from utils.path_safety import safe_book_name
 _chapter_vs_instance = None
 _chapter_vs_lock = threading.RLock()
 MAX_CHAPTER_FANOUT = 12
+
+
+@dataclass(frozen=True)
+class RetrievalFailure:
+    backend: str
+    operation: str
+    scope: str
+    error_code: str
+    message: str = ""
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "backend": self.backend,
+            "operation": self.operation,
+            "scope": self.scope,
+            "error_code": self.error_code,
+            "message": self.message,
+        }
+
+
+@dataclass
+class RetrievalOutcome:
+    items: Any
+    status: Literal["ok", "partial", "failed"] = "ok"
+    failures: list[RetrievalFailure] = field(default_factory=list)
+
+    @property
+    def empty(self) -> bool:
+        return self.status == "ok" and not self.items
+
+    @classmethod
+    def failed(cls, items: Any, failure: RetrievalFailure) -> "RetrievalOutcome":
+        return cls(items=items, status="failed", failures=[failure])
 
 
 def get_vector_store() -> "ChapterVectorStore":
@@ -431,8 +467,12 @@ class ChapterVectorStore:
             )
             self._stores[store_key] = store
             return store
-        except Exception:
+        except NotFoundError:
             return None
+        except Exception as exc:
+            raise RuntimeError(
+                f"failed to open chapter collection {collection_name}: {exc}"
+            ) from exc
 
     def get_chapter_names(self, book_name: str = "") -> list[str]:
         """获取所有已索引的章节名（返回中文标题）。"""
@@ -505,20 +545,34 @@ class ChapterVectorStore:
         k: int = 5,
         filter: dict | None = None,
         book_name: str = "",
-    ) -> list[Document]:
+    ) -> RetrievalOutcome:
         """在指定章节中检索相关内容。"""
-        store = self.get_chapter_store(chapter_title, book_name=book_name)
+        try:
+            store = self.get_chapter_store(chapter_title, book_name=book_name)
+        except Exception as exc:
+            return RetrievalOutcome.failed([], RetrievalFailure(
+                backend="chroma",
+                operation="open_chapter",
+                scope=f"{book_name}:{chapter_title}",
+                error_code="chapter_open_failed",
+                message=str(exc),
+            ))
         if store is None:
-            return []
+            return RetrievalOutcome(items=[])
         kwargs = {"k": k}
         if filter:
             kwargs["filter"] = filter
         try:
-            return store.similarity_search(query, **kwargs)
+            return RetrievalOutcome(items=store.similarity_search(query, **kwargs))
         except Exception as e:
             self._stores.pop(self._store_key(chapter_title, book_name), None)
-            print(f"  [向量库] 章节检索失败，已跳过 {chapter_title}: {e}", flush=True)
-            return []
+            return RetrievalOutcome.failed([], RetrievalFailure(
+                backend="chroma",
+                operation="search_chapter",
+                scope=f"{book_name}:{chapter_title}",
+                error_code="chapter_query_failed",
+                message=str(e),
+            ))
 
     def _aggregate_collections(self, collections, book_name: str = ""):
         normalized_book = safe_book_name(book_name) if book_name else ""
@@ -540,11 +594,18 @@ class ChapterVectorStore:
         k: int,
         top_n: int,
         filter: dict | None = None,
-    ) -> tuple[dict[str, list[Document]], int] | None:
+    ) -> tuple[dict[str, list[Document]], int, list[RetrievalFailure]]:
         scored_docs: list[tuple[float, Document]] = []
         searched = 0
+        failures: list[RetrievalFailure] = []
         for col in collections:
             if col.name in self._broken_aggregates:
+                failures.append(RetrievalFailure(
+                    backend="chroma",
+                    operation="search_aggregate",
+                    scope=col.name,
+                    error_code="aggregate_quarantined",
+                ))
                 continue
             try:
                 title = self._collection_to_title(col.name)
@@ -575,9 +636,15 @@ class ChapterVectorStore:
                 self._broken_aggregates.add(col.name)
                 title = self._collection_to_title(col.name)
                 self._stores.pop(self._store_key(title, self._collection_to_book(col.name)), None)
-                print(f"  [向量库] aggregate 检索失败，已隔离 {col.name}: {exc}", flush=True)
+                failures.append(RetrievalFailure(
+                    backend="chroma",
+                    operation="search_aggregate",
+                    scope=col.name,
+                    error_code="aggregate_query_failed",
+                    message=str(exc),
+                ))
         if not searched:
-            return None
+            return {}, 0, failures
 
         scored_docs.sort(key=lambda item: item[0])
         chapter_docs: dict[str, list[Document]] = {}
@@ -590,7 +657,8 @@ class ChapterVectorStore:
             chapter_docs[chapter].append(doc)
             if len(chapter_docs) >= top_n and all(len(docs) >= k for docs in chapter_docs.values()):
                 break
-        return dict(list(chapter_docs.items())[:top_n]), searched
+        return dict(list(chapter_docs.items())[:top_n]), searched, failures
+
     def search_all(
         self,
         query: str,
@@ -599,33 +667,59 @@ class ChapterVectorStore:
         filter: dict | None = None,
         book_name: str = "",
         fallback_chapters: list[str] | None = None,
-    ) -> dict[str, list[Document]]:
+    ) -> RetrievalOutcome:
         """在所有章节中检索。
 
         query 只 embed 一次，按相似度排序，只返回最相关的 top_n 章。
         传入 book_name 后只检索该教材索引；若该教材没有新格式索引，则兼容旧索引。
         """
         if not self.available:
-            return {}
+            return RetrievalOutcome.failed({}, RetrievalFailure(
+                backend="chroma",
+                operation="search_all",
+                scope=book_name or "all_books",
+                error_code="vector_store_unavailable",
+            ))
         t0 = time.time()
-        query_vec = self.embeddings.embed_query(query)
+        try:
+            query_vec = self.embeddings.embed_query(query)
+        except Exception as exc:
+            return RetrievalOutcome.failed({}, RetrievalFailure(
+                backend="embedding",
+                operation="embed_query",
+                scope=book_name or "all_books",
+                error_code="query_embedding_failed",
+                message=str(exc),
+            ))
         dt_embed = time.time() - t0
 
         scored_results: list[tuple[str, list[Document], float]] = []
+        failures: list[RetrievalFailure] = []
         try:
             collections = self._client.list_collections()
         except Exception as e:
             self.available = False
-            print(f"  [vector_store] search_all skipped because Chroma is unavailable: {e}", flush=True)
-            return {}
+            return RetrievalOutcome.failed({}, RetrievalFailure(
+                backend="chroma",
+                operation="list_collections",
+                scope=book_name or "all_books",
+                error_code="collection_listing_failed",
+                message=str(e),
+            ))
         aggregate_cols = self._aggregate_collections(collections, book_name)
         if aggregate_cols:
-            aggregate_result = self._search_aggregate_collections(aggregate_cols, query_vec, k, top_n, filter=filter)
-            if aggregate_result is not None:
-                results, searched = aggregate_result
+            results, searched, aggregate_failures = self._search_aggregate_collections(
+                aggregate_cols, query_vec, k, top_n, filter=filter,
+            )
+            failures.extend(aggregate_failures)
+            if searched:
                 dt_total = time.time() - t0
                 print(f"  [检索] aggregate embed={dt_embed:.2f}s total={dt_total:.2f}s ({searched}书→取top{len(results)})", flush=True)
-                return results
+                return RetrievalOutcome(
+                    items=results,
+                    status="partial" if failures else "ok",
+                    failures=failures,
+                )
 
         chapter_collections = list(self._iter_collections_for_book(collections, book_name))
         if fallback_chapters:
@@ -635,11 +729,14 @@ class ChapterVectorStore:
             ]
             chapter_collections.sort(key=lambda col: chapter_rank[self._collection_to_title(col.name)])
         elif len(chapter_collections) > MAX_CHAPTER_FANOUT:
-            print(
-                f"  [向量库] aggregate 不可用且无章节 shortlist，已阻止扫描 {len(chapter_collections)} 个 collection",
-                flush=True,
-            )
-            return {}
+            failures.append(RetrievalFailure(
+                backend="chroma",
+                operation="search_chapters",
+                scope=book_name or "all_books",
+                error_code="chapter_fanout_blocked",
+                message=f"{len(chapter_collections)} collections exceed limit {MAX_CHAPTER_FANOUT}",
+            ))
+            return RetrievalOutcome(items={}, status="failed", failures=failures)
 
         searched = 0
         for col in chapter_collections:
@@ -660,7 +757,7 @@ class ChapterVectorStore:
                     if filter:
                         kwargs["filter"] = filter
                     docs_with_scores = store.similarity_search_by_vector_with_relevance_scores(query_vec, **kwargs)
-                except Exception:
+                except (AttributeError, NotImplementedError):
                     kwargs = {"k": k}
                     if filter:
                         kwargs["filter"] = filter
@@ -671,8 +768,15 @@ class ChapterVectorStore:
                     best_score = min(score for _, score in docs_with_scores)
                     scored_results.append((title, docs, best_score))
                 searched += 1
-            except Exception:
-                pass
+            except Exception as exc:
+                self._stores.pop(self._store_key(title, self._collection_to_book(col.name)), None)
+                failures.append(RetrievalFailure(
+                    backend="chroma",
+                    operation="search_chapter_collection",
+                    scope=col.name,
+                    error_code="chapter_query_failed",
+                    message=str(exc),
+                ))
 
         scored_results.sort(key=lambda item: item[2])
         top_results = scored_results[:top_n]
@@ -680,4 +784,12 @@ class ChapterVectorStore:
 
         dt_total = time.time() - t0
         print(f"  [检索] embed={dt_embed:.2f}s total={dt_total:.2f}s ({searched}章→取top{len(top_results)})", flush=True)
-        return results
+        if searched:
+            return RetrievalOutcome(
+                items=results,
+                status="partial" if failures else "ok",
+                failures=failures,
+            )
+        if failures:
+            return RetrievalOutcome(items=results, status="failed", failures=failures)
+        return RetrievalOutcome(items=results)

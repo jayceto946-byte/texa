@@ -13,13 +13,17 @@ class RetrievalAgents:
         self.memory = StudyMemory(book_name)
 
     def search_chapter(self, chapter: str, query: str, k: int = 6) -> list[str]:
-        docs = self.vector_store.search_chapter(chapter, query, k=k)
-        return [d.page_content for d in docs]
+        outcome = self.vector_store.search_chapter(chapter, query, k=k)
+        if outcome.status == "failed":
+            raise RuntimeError(f"chapter retrieval failed: {outcome.failures}")
+        return [d.page_content for d in outcome.items]
 
     def search_concepts(self, query: str, k: int = 5) -> list[dict]:
-        all_results = self.vector_store.search_all(query, k=2)
+        outcome = self.vector_store.search_all(query, k=2)
+        if outcome.status == "failed":
+            raise RuntimeError(f"concept retrieval failed: {outcome.failures}")
         results = []
-        for ch, docs in all_results.items():
+        for ch, docs in outcome.items.items():
             for d in docs:
                 results.append({
                     "chapter": ch,

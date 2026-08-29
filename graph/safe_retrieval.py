@@ -9,21 +9,6 @@ from dataclasses import dataclass
 
 
 @dataclass
-class SafeVectorStore:
-    error: str = ""
-    available: bool = False
-
-    def get_chapter_names(self, *args, **kwargs) -> list[str]:
-        return []
-
-    def search_chapter(self, *args, **kwargs) -> list:
-        return []
-
-    def search_all(self, *args, **kwargs) -> dict:
-        return {}
-
-
-@dataclass
 class SafeKG:
     error: str = ""
     _is_local: bool = False
@@ -51,10 +36,10 @@ def get_safe_vector_store():
         vs = get_vector_store()
     except Exception as exc:
         error = str(exc)
-        return SafeVectorStore(error=error), error
+        return None, error
 
     if not getattr(vs, "available", True):
-        return vs, "vector store unavailable"
+        return None, "vector store unavailable"
     return vs, ""
 
 

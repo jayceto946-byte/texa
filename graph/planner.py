@@ -197,11 +197,14 @@ def plan_node(state: dict) -> dict:
     if vector_error:
         retrieval_errors.append(f"vector_store: {vector_error}")
     chapter_names_started = time.perf_counter()
-    try:
-        chapters = vs.get_chapter_names(book_name=state.get("book_name", ""))
-    except Exception as exc:
+    if vs is None:
         chapters = []
-        retrieval_errors.append(f"chapter_names: {exc}")
+    else:
+        try:
+            chapters = vs.get_chapter_names(book_name=state.get("book_name", ""))
+        except Exception as exc:
+            chapters = []
+            retrieval_errors.append(f"chapter_names: {exc}")
     planner_trace["chapter_names_ms"] = round((time.perf_counter() - chapter_names_started) * 1000, 2)
     planner_trace["chapter_count"] = len(chapters)
 
@@ -263,7 +266,10 @@ def plan_node(state: dict) -> dict:
     # 如果 planner 没指定章节，用向量检索找
     if not target_chapters and chapters:
         chapter_fallback_started = time.perf_counter()
-        target_chapters = _find_relevant_chapters(user_input, chapters, vs, book_name=state.get("book_name", ""))
+        target_chapters, chapter_failures = _find_relevant_chapters(
+            user_input, chapters, vs, book_name=state.get("book_name", ""),
+        )
+        retrieval_errors.extend(chapter_failures)
         planner_trace["chapter_fallback_ms"] = round((time.perf_counter() - chapter_fallback_started) * 1000, 2)
 
     # 为 teach/summarize 意图构建分步任务
@@ -290,10 +296,18 @@ def plan_node(state: dict) -> dict:
     }
 
 
-def _find_relevant_chapters(question: str, chapters: list[str], vs, book_name: str = "") -> list[str]:
+def _find_relevant_chapters(
+    question: str,
+    chapters: list[str],
+    vs,
+    book_name: str = "",
+) -> tuple[list[str], list[str]]:
     """用向量检索找相关章节"""
-    try:
-        all_results = vs.search_all(question, k=1, book_name=book_name)
-    except Exception:
-        return []
-    return list(all_results.keys())[:3]
+    if vs is None:
+        return [], []
+    outcome = vs.search_all(question, k=1, book_name=book_name)
+    failures = [
+        f"chapter_search:{failure.error_code}:{failure.scope}"
+        for failure in outcome.failures
+    ]
+    return list(outcome.items.keys())[:3], failures

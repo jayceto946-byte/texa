@@ -12,7 +12,8 @@ def generate_quiz_from_state(state: dict, count: int = 5) -> list[dict]:
         return [{"question": "请先选择章节", "type": "text", "error": True}]
 
     vs = ChapterVectorStore()
-    docs = vs.search_chapter(chapter, "重点 概念 例题", k=8) if chapter else []
+    outcome = vs.search_chapter(chapter, "重点 概念 例题", k=8) if chapter else None
+    docs = outcome.items if outcome is not None and outcome.status != "failed" else []
     content = "\n\n".join(d.page_content for d in docs) if docs else teaching[:4000]
 
     llm = get_llm()

@@ -1151,22 +1151,19 @@ def explain_mistake(req: MistakeExplainRequest, book_name: str = "default"):
     def rag_provider(record: MistakeRecord):
         if not rag_book:
             return ""
-        try:
-            vs, vector_error = get_safe_vector_store()
-            if vector_error:
-                return ""
-            if vs and record.tags:
-                ch_docs = vs.search_all(record.tags[0], k=3, book_name=rag_book)
-                texts = []
-                for chapter, docs in ch_docs.items():
-                    texts.append("章节：" + chapter)
-                    for doc in docs:
-                        texts.append(doc.page_content[:400])
-                rag_context["text"] = "\n".join(texts)
-                return rag_context["text"]
-        except Exception:
-            pass
-        return ""
+        vs, vector_error = get_safe_vector_store()
+        if vector_error or not record.tags:
+            return ""
+        outcome = vs.search_all(record.tags[0], k=3, book_name=rag_book)
+        if outcome.status == "failed":
+            return ""
+        texts = []
+        for chapter, docs in outcome.items.items():
+            texts.append("章节：" + chapter)
+            for doc in docs:
+                texts.append(doc.page_content[:400])
+        rag_context["text"] = "\n".join(texts)
+        return rag_context["text"]
 
     try:
         result = mb.explain(req.id, lambda prompt: strip_thinking(llm.invoke(prompt).content), context_provider=rag_provider)

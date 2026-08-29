@@ -490,7 +490,14 @@ def retrieve_node(
                 "dropped_evidence_ids": [],
             }
 
-    precise_results, matched_concepts = _kg_precise_retrieval(kg, user_input, intent=intent)
+    successful_retrieval_backends = 0
+    try:
+        precise_results, matched_concepts = _kg_precise_retrieval(kg, user_input, intent=intent)
+        if not kg_error:
+            successful_retrieval_backends += 1
+    except Exception as exc:
+        precise_results, matched_concepts = [], []
+        retrieval_errors.append(f"knowledge_graph_query: {exc}")
     for item in precise_results:
         item["book_name"] = primary_book
         item["book_role"] = str(primary_resource.get("role") or "")
@@ -508,23 +515,31 @@ def retrieve_node(
     for resource in retrieval_resources:
         candidate_book = str(resource.get("book_name") or "")
         is_primary = bool(resource.get("is_primary"))
-        candidate_lexical = (lexical_search or search_book)(
-            candidate_book,
-            retrieval_query,
-            k=20 if is_primary else 12,
-            chapters=(target_chapters or None) if is_primary else None,
-        )
+        try:
+            candidate_lexical = (lexical_search or search_book)(
+                candidate_book,
+                retrieval_query,
+                k=20 if is_primary else 12,
+                chapters=(target_chapters or None) if is_primary else None,
+            )
+            successful_retrieval_backends += 1
+        except Exception as exc:
+            candidate_lexical = []
+            retrieval_errors.append(f"lexical:{candidate_book}:{exc}")
         lexical_results.extend(candidate_lexical)
         fallback_chapters = list(dict.fromkeys(
             str(item.get("chapter") or "") for item in candidate_lexical if item.get("chapter")
         ))[:12]
-        candidate_vectors = _vector_retrieval(
+        candidate_vectors, candidate_failures, vector_succeeded = _vector_retrieval(
             vs, retrieval_query, intent=intent, book_name=candidate_book,
             target_chapters=target_chapters if is_primary else [],
             precise_chapters=list({r["chapter"] for r in precise_results if r.get("chapter")}) if is_primary else [],
             fallback_chapters=fallback_chapters,
             k=20 if is_primary else 12, top_n=4 if is_primary else 3,
         )
+        if vector_succeeded:
+            successful_retrieval_backends += 1
+        retrieval_errors.extend(candidate_failures)
         vector_results.extend(candidate_vectors)
         list_anchor: list[dict] = []
         if enumeration_request and candidate_lexical:
@@ -700,6 +715,12 @@ def retrieve_node(
     reused_evidence_ids = [chunk_id for chunk_id in included_ids if chunk_id in active_ids]
     new_evidence_ids = [chunk_id for chunk_id in included_ids if chunk_id not in active_ids]
 
+    retrieval_status = "degraded" if retrieval_errors else "ok"
+    if retrieval_errors and successful_retrieval_backends == 0:
+        retrieval_status = "unavailable"
+        evidence_support = {"status": "unavailable", "reason": "retrieval_backends_failed"}
+        evidence_items = []
+
     return {
         "chapter_contents": chapter_contents,
         "retrieval_debug_items": retrieval_debug_items,
@@ -711,7 +732,7 @@ def retrieve_node(
         "evidence_items": evidence_items,
         "evidence_support": evidence_support,
         "index_stats": index_stats,
-        "retrieval_status": "degraded" if retrieval_errors else "ok",
+        "retrieval_status": retrieval_status,
         "retrieval_error": "; ".join(dict.fromkeys(retrieval_errors)),
         "evidence_gate_applied": True,
         "retrieval_action": retrieval_action,
@@ -1034,9 +1055,19 @@ def _kg_precise_retrieval(kg, user_input: str, intent: str = "qa") -> tuple[list
     return results, matched_names
 
 
-def _vector_retrieval(vs, user_input: str, *, intent: str = "qa", book_name: str = "", target_chapters: list[str], precise_chapters: list[str], fallback_chapters: list[str] | None = None, k: int = 3, top_n: int = 2) -> list[dict]:
+def _retrieval_failure_messages(outcome) -> list[str]:
+    return [
+        f"vector:{failure.error_code}:{failure.scope}"
+        for failure in outcome.failures
+    ]
+
+
+def _vector_retrieval(vs, user_input: str, *, intent: str = "qa", book_name: str = "", target_chapters: list[str], precise_chapters: list[str], fallback_chapters: list[str] | None = None, k: int = 3, top_n: int = 2) -> tuple[list[dict], list[str], bool]:
     results: list[dict] = []
-    priority_roles = INTENT_ROLE_PRIORITY.get(intent, [])
+    failures: list[str] = []
+    if vs is None:
+        return results, failures, False
+    succeeded = False
     search_scope: list[str] = []
     if precise_chapters:
         search_scope = [ch for ch in precise_chapters if ch]
@@ -1045,50 +1076,46 @@ def _vector_retrieval(vs, user_input: str, *, intent: str = "qa", book_name: str
 
     if search_scope:
         for ch in search_scope:
-            docs, used_role = _search_chapter_with_role(vs, ch, user_input, k, priority_roles, book_name=book_name)
-            for d in docs:
-                results.append(_doc_to_item(d, ch, f"vector({used_role})" if used_role else "vector"))
-            if not docs:
+            outcome = vs.search_chapter(ch, user_input, k=k, book_name=book_name)
+            succeeded = succeeded or outcome.status != "failed"
+            failures.extend(_retrieval_failure_messages(outcome))
+            for d in outcome.items:
+                results.append(_doc_to_item(d, ch, "vector"))
+            if not outcome.items:
                 # A single chapter HNSW segment can be missing/corrupt while
                 # the book aggregate remains healthy. Preserve the same
                 # chapter scope through metadata filtering instead of silently
                 # dropping dense retrieval for the whole request.
-                try:
-                    fallback = vs.search_all(
-                        user_input,
-                        k=max(k * 2, 4),
-                        top_n=1,
-                        filter={"chapter": ch},
-                        book_name=book_name,
-                        fallback_chapters=[ch],
-                    )
-                    for fallback_chapter, fallback_docs in fallback.items():
-                        for d in fallback_docs:
-                            results.append(_doc_to_item(d, fallback_chapter or ch, "vector(aggregate_chapter_fallback)"))
-                except Exception:
-                    pass
-            if used_role == "example":
-                try:
-                    for d in vs.search_chapter(ch, user_input, k=k * 2, book_name=book_name):
-                        results.append(_doc_to_item(d, ch, "vector(example_boost)"))
-                except Exception:
-                    pass
+                fallback = vs.search_all(
+                    user_input,
+                    k=max(k * 2, 4),
+                    top_n=1,
+                    filter={"chapter": ch},
+                    book_name=book_name,
+                    fallback_chapters=[ch],
+                )
+                succeeded = succeeded or fallback.status != "failed"
+                failures.extend(_retrieval_failure_messages(fallback))
+                for fallback_chapter, fallback_docs in fallback.items.items():
+                    for d in fallback_docs:
+                        results.append(_doc_to_item(d, fallback_chapter or ch, "vector(aggregate_chapter_fallback)"))
     else:
-        all_results, used_role = _search_all_with_role(vs, user_input, k, top_n, priority_roles, book_name=book_name, fallback_chapters=fallback_chapters)
-        for ch_name, docs in all_results.items():
+        outcome = vs.search_all(
+            user_input,
+            k=k,
+            top_n=top_n,
+            book_name=book_name,
+            fallback_chapters=fallback_chapters,
+        )
+        succeeded = outcome.status != "failed"
+        failures.extend(_retrieval_failure_messages(outcome))
+        for ch_name, docs in outcome.items.items():
             for d in docs:
-                results.append(_doc_to_item(d, ch_name, f"vector({used_role})" if used_role else "vector"))
-        if used_role == "example":
-            try:
-                for ch_name, docs in vs.search_all(user_input, k=k * 2, top_n=top_n, book_name=book_name, fallback_chapters=fallback_chapters).items():
-                    for d in docs:
-                        results.append(_doc_to_item(d, ch_name, "vector(example_boost)"))
-            except Exception:
-                pass
+                results.append(_doc_to_item(d, ch_name, "vector"))
     for rank, item in enumerate(results, 1):
         item["retrieval_rank"] = rank
         item["dense_rank"] = rank
-    return results
+    return results, failures, succeeded
 
 
 def _doc_to_item(doc, chapter: str, source: str) -> dict:
@@ -1111,20 +1138,6 @@ def _doc_to_item(doc, chapter: str, source: str) -> dict:
         "subject": meta.get("subject", ""),
         "source": source,
     }
-
-
-def _search_chapter_with_role(vs, chapter: str, query: str, k: int, priority_roles: list[str], book_name: str = ""):
-    try:
-        return vs.search_chapter(chapter, query, k=k, book_name=book_name), None
-    except Exception:
-        return [], None
-
-
-def _search_all_with_role(vs, query: str, k: int, top_n: int, priority_roles: list[str], book_name: str = "", fallback_chapters: list[str] | None = None):
-    try:
-        return vs.search_all(query, k=k, top_n=top_n, book_name=book_name, fallback_chapters=fallback_chapters), None
-    except Exception:
-        return {}, None
 
 
 def _merge_and_rerank(

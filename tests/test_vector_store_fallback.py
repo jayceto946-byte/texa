@@ -70,7 +70,8 @@ def test_search_all_limits_fallback_to_bm25_shortlist():
         "query", book_name="book", fallback_chapters=["chapter-7", "chapter-3"], k=1, top_n=2,
     )
 
-    assert list(result) == ["chapter-7", "chapter-3"]
+    assert result.status == "ok"
+    assert list(result.items) == ["chapter-7", "chapter-3"]
     called = {
         chapter for chapter, backend in (
             (entry["chapter"], store._stores[store._store_key(entry["chapter"], "book")])
@@ -80,10 +81,40 @@ def test_search_all_limits_fallback_to_bm25_shortlist():
     assert called == {"chapter-7", "chapter-3"}
 
 
+def test_search_all_distinguishes_healthy_empty_index():
+    store = _store(chapter_count=0)
+
+    outcome = store.search_all("query", book_name="book")
+
+    assert outcome.status == "ok"
+    assert outcome.empty is True
+    assert outcome.items == {}
+    assert outcome.failures == []
+
+
+def test_search_all_reports_all_collection_failures():
+    store = _store(chapter_count=2)
+    for backend in store._stores.values():
+        backend.broken = True
+
+    outcome = store.search_all(
+        "query",
+        book_name="book",
+        fallback_chapters=["chapter-0", "chapter-1"],
+    )
+
+    assert outcome.status == "failed"
+    assert outcome.empty is False
+    assert {failure.scope for failure in outcome.failures} == {"c0", "c1"}
+    assert {failure.error_code for failure in outcome.failures} == {"chapter_query_failed"}
+
+
 def test_search_all_blocks_unbounded_fanout_without_shortlist():
     store = _store(chapter_count=MAX_CHAPTER_FANOUT + 1)
 
-    assert store.search_all("query", book_name="book") == {}
+    outcome = store.search_all("query", book_name="book")
+    assert outcome.status == "failed"
+    assert outcome.failures[0].error_code == "chapter_fanout_blocked"
     assert all(backend.calls == 0 for backend in store._stores.values())
 
 
@@ -95,7 +126,9 @@ def test_broken_aggregate_is_quarantined_and_uses_shortlist():
     first_calls = aggregate.calls
     second = store.search_all("query", book_name="book", fallback_chapters=["chapter-2"], k=1, top_n=1)
 
-    assert list(first) == ["chapter-2"]
-    assert list(second) == ["chapter-2"]
+    assert first.status == "partial"
+    assert second.status == "partial"
+    assert list(first.items) == ["chapter-2"]
+    assert list(second.items) == ["chapter-2"]
     assert "book-aggregate" in store._broken_aggregates
     assert aggregate.calls == first_calls

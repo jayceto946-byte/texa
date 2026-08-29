@@ -136,4 +136,7 @@ class CoordinatorAgent:
         return {"answer": answer, "chapter": primary, "chapters": [primary] + related}
 
     def search_all_chapters(self, question: str) -> dict[str, list]:
-        return self.vector_store.search_all(question)
+        outcome = self.vector_store.search_all(question)
+        if outcome.status == "failed":
+            raise RuntimeError(f"chapter retrieval failed: {outcome.failures}")
+        return outcome.items

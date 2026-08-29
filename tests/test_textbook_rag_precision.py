@@ -305,16 +305,17 @@ def test_chapter_vector_failure_falls_back_to_filtered_book_aggregate():
     from langchain_core.documents import Document
 
     from graph.retrieval_node import _vector_retrieval
+    from ingestion.vector_store import RetrievalOutcome
 
     calls = []
 
     class Store:
         def search_chapter(self, *_args, **_kwargs):
-            return []
+            return RetrievalOutcome(items=[])
 
         def search_all(self, query, **kwargs):
             calls.append((query, kwargs))
-            return {
+            return RetrievalOutcome(items={
                 "第二章": [
                     Document(
                         page_content="最大误差法使用最大残余误差。",
@@ -325,9 +326,9 @@ def test_chapter_vector_failure_falls_back_to_filtered_book_aggregate():
                         },
                     )
                 ]
-            }
+            })
 
-    rows = _vector_retrieval(
+    rows, failures, succeeded = _vector_retrieval(
         Store(),
         "最大误差法公式",
         intent="formula",
@@ -340,6 +341,8 @@ def test_chapter_vector_failure_falls_back_to_filtered_book_aggregate():
 
     assert rows[0]["chunk_id"] == "aggregate-hit"
     assert rows[0]["source"] == "vector(aggregate_chapter_fallback)"
+    assert failures == []
+    assert succeeded is True
     assert calls[0][1]["filter"] == {"chapter": "第二章"}
 
 

@@ -47,7 +47,8 @@ class QuizAgent:
         question_type: str = "选择题",
     ) -> list[dict]:
         """为指定章节生成练习题"""
-        docs = self.vector_store.search_chapter(chapter, "重点概念 公式 定理 例题", k=10)
+        outcome = self.vector_store.search_chapter(chapter, "重点概念 公式 定理 例题", k=10)
+        docs = outcome.items if outcome.status != "failed" else []
         context = "\n\n".join(d.page_content for d in docs)
 
         if not context:

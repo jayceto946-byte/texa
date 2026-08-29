@@ -278,10 +278,10 @@ class KGVisualizer:
         try:
             # 尝试搜索小节标题
             query = f"{ch_title} {sec_title}"
-            docs = vector_store.search_all(query, k=3)
+            outcome = vector_store.search_all(query, k=3)
 
             texts = []
-            for title, d_list in docs.items():
+            for title, d_list in outcome.items.items():
                 for d in d_list:
                     texts.append(d.page_content)
 
@@ -447,8 +447,8 @@ class KGVisualizer:
             try:
                 queries = [concept, f"{concept} 是", f"{concept} 指", f"{concept} 定义"]
                 for query in queries:
-                    docs = vector_store.search_all(query, k=2)
-                    for title, d_list in docs.items():
+                    outcome = vector_store.search_all(query, k=2)
+                    for title, d_list in outcome.items.items():
                         for d in d_list:
                             txt = d.page_content
                             concept_texts.append(txt)

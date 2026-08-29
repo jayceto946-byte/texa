@@ -37,9 +37,12 @@ class ChapterAgent:
 
     def _build_chain(self):
         def retrieve(q: dict) -> str:
-            docs = self.vector_store.search_chapter(
+            outcome = self.vector_store.search_chapter(
                 self.chapter_title, q["question"], k=6
             )
+            if outcome.status == "failed":
+                return f"（章节「{self.chapter_title}」检索失败）"
+            docs = outcome.items
             if not docs:
                 return f"（章节「{self.chapter_title}」中没有找到相关信息）"
             return "\n\n".join(
@@ -61,7 +64,10 @@ class ChapterAgent:
         })
 
     def retrieve_context(self, question: str, k: int = 6) -> str:
-        docs = self.vector_store.search_chapter(self.chapter_title, question, k=k)
+        outcome = self.vector_store.search_chapter(self.chapter_title, question, k=k)
+        if outcome.status == "failed":
+            return ""
+        docs = outcome.items
         if not docs:
             return ""
         return "\n\n".join(
@@ -85,7 +91,8 @@ class ChapterAgent:
         if additional_chapters:
             for ch in additional_chapters:
                 if ch != self.chapter_title:
-                    docs = self.vector_store.search_chapter(ch, question, k=3)
+                    outcome = self.vector_store.search_chapter(ch, question, k=3)
+                    docs = outcome.items if outcome.status != "failed" else []
                     if docs:
                         context += "\n\n## 关联章节「" + ch + "」\n"
                         context += "\n\n".join(d.page_content for d in docs)

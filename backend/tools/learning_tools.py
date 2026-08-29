@@ -188,33 +188,48 @@ def find_textbook_examples(context: ToolContext, args: dict[str, Any]) -> ToolRe
     if error:
         return ToolResult(False, data=[], message=f"vector store unavailable: {error}")
 
-    def search(*, role_filter: bool) -> list[tuple[str, Any]]:
+    def search(*, role_filter: bool) -> tuple[list[tuple[str, Any]], list[str]]:
         filter_value = {"role": "example"} if role_filter else None
         if chapter:
-            docs = vs.search_chapter(
+            outcome = vs.search_chapter(
                 chapter,
                 query,
                 k=max(8, limit * 3),
                 filter=filter_value,
                 book_name=book_name,
             )
-            return [(chapter, doc) for doc in docs]
-        results = vs.search_all(
+            return (
+                [(chapter, doc) for doc in outcome.items],
+                [failure.error_code for failure in outcome.failures],
+            )
+        outcome = vs.search_all(
             query,
             k=max(4, limit),
             top_n=min(6, max(2, limit)),
             filter=filter_value,
             book_name=book_name,
         )
-        return [
-            (chapter_name, doc)
-            for chapter_name, docs in results.items()
-            for doc in docs
-        ]
+        return (
+            [
+                (chapter_name, doc)
+                for chapter_name, docs in outcome.items.items()
+                for doc in docs
+            ],
+            [failure.error_code for failure in outcome.failures],
+        )
 
-    candidates = search(role_filter=True)
+    candidates, retrieval_warnings = search(role_filter=True)
     if len(candidates) < limit:
-        candidates.extend(search(role_filter=False))
+        fallback_candidates, fallback_warnings = search(role_filter=False)
+        candidates.extend(fallback_candidates)
+        retrieval_warnings.extend(fallback_warnings)
+    if not candidates and retrieval_warnings:
+        return ToolResult(
+            False,
+            data=[],
+            message="textbook retrieval failed",
+            warnings=list(dict.fromkeys(retrieval_warnings)),
+        )
 
     examples: list[dict] = []
     seen: set[str] = set()
@@ -245,11 +260,15 @@ def find_textbook_examples(context: ToolContext, args: dict[str, Any]) -> ToolRe
         if len(examples) >= limit:
             break
 
-    return ToolResult(True, data={
-        "book_name": book_name,
-        "query": query,
-        "examples": examples,
-    })
+    return ToolResult(
+        True,
+        data={
+            "book_name": book_name,
+            "query": query,
+            "examples": examples,
+        },
+        warnings=list(dict.fromkeys(retrieval_warnings)),
+    )
 
 
 def search_concepts(context: ToolContext, args: dict[str, Any]) -> ToolResult:

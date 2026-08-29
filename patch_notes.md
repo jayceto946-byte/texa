@@ -1,3 +1,13 @@
+# 2026-08-29 - Explicit retrieval outcomes
+
+- Dense retrieval now returns an explicit `RetrievalOutcome`: `ok` includes a healthy empty result, `partial` preserves successful same-scope results plus backend diagnostics, and `failed` means no requested dense backend completed successfully.
+- The main retrieval node propagates backend failures into `retrieval_status` / `retrieval_error`; lexical or KG success keeps a partial answer path, while an actual all-backend failure is marked unavailable. The former null vector-store adapter and silent chapter/aggregate catches were removed.
+- Same-book aggregate fallback and broken-collection isolation remain, but their failures are now observable instead of being indistinguishable from “no matching evidence”.
+
+## Validation
+
+- Retrieval outcome, aggregate fallback, planner, controlled-tool and textbook RAG regression suites pass, including healthy-empty, partial and all-collection-failed cases.
+
 # 2026-08-29 - Conversation SQLite authority and Session Ledger convergence
 
 - Conversation scope, title, timestamps, counts, history, routing and existence now derive only from `conversation_messages` in `_conversation_events.db`; per-conversation JSON remains a best-effort compatibility projection.

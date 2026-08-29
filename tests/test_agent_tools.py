@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 from types import SimpleNamespace
+
+from ingestion.vector_store import RetrievalOutcome
 import time
 
 from backend.api import agent as agent_api
@@ -64,7 +66,7 @@ def test_find_textbook_examples_filters_and_deduplicates(monkeypatch):
 
     class DummyVectorStore:
         def search_all(self, *_args, **_kwargs):
-            return {"第一章": [example, reference]}
+            return RetrievalOutcome(items={"第一章": [example, reference]})
 
     monkeypatch.setattr(
         learning_tools,

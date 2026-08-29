@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import graph.planner as planner
 import graph.safe_retrieval as safe_retrieval
+from ingestion.vector_store import RetrievalOutcome
 
 
 class _VectorStore:
@@ -9,7 +10,7 @@ class _VectorStore:
         return ["第一章", "第二章"]
 
     def search_all(self, question, k=1, book_name=""):
-        return {"第一章": ["content"]}
+        return RetrievalOutcome(items={"第一章": ["content"]})
 
 
 class _PlannerLlm:
