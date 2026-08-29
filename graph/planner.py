@@ -115,6 +115,7 @@ def plan_node(state: dict) -> dict:
     如果 state 中已有 _local_intent（Fast Path 未命中但本地有 hint），
     将其传入 LLM prompt 减少猜测。
     """
+    from graph.intent_classifier import classify_intent_local, is_fast_path_eligible
     from graph.safe_retrieval import get_safe_vector_store
 
     plan_enter = time.perf_counter()
@@ -148,8 +149,30 @@ def plan_node(state: dict) -> dict:
             "error": "empty input", "planner_trace": planner_trace,
         }
 
+    local_result = classify_intent_local(user_input)
+    local_intent = str(local_result.get("intent") or "qa")
+    state["_local_intent"] = local_intent
+    state["_local_intent_hint"] = str(local_result.get("hint") or "")
+    state["_local_intent_locked"] = bool(local_result.get("intent_locked"))
+    if is_fast_path_eligible(user_input, local_result):
+        planner_trace.update({
+            "mode": "fast_path",
+            "model": "deterministic",
+            "chapter_lookup_skipped": True,
+            "plan_total_ms": round((time.perf_counter() - plan_enter) * 1000, 2),
+        })
+        return {
+            "intent": local_intent,
+            "target_chapters": list(state.get("target_chapters") or []),
+            "sub_tasks": [],
+            "route_decision": local_intent,
+            "retrieval_status": state.get("retrieval_status", "ok"),
+            "retrieval_error": str(state.get("retrieval_error") or ""),
+            "planner_trace": planner_trace,
+        }
+
     if not state.get("use_textbook_context", True):
-        intent = state.get("_local_intent", "qa") or "qa"
+        intent = local_intent
         planner_trace.update({
             "mode": "general_qa_bypass",
             "plan_total_ms": round((time.perf_counter() - plan_enter) * 1000, 2),
