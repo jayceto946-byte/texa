@@ -9,7 +9,11 @@ from typing import Any
 from PIL import Image
 
 from backend.services.answer_verification import derive_required_outputs, verify_answer
-from backend.services.figure_learning import FigureLearningService, NormalizedBBox
+from backend.services.figure_learning import (
+    FigureIndexOutOfDateError,
+    FigureLearningService,
+    NormalizedBBox,
+)
 from ingestion.document_adapters import MinerUAdapter, materialize_figure_assets
 from ingestion.document_ir import persist_canonical_book, validate_canonical_book
 from utils.citation_protocol import sanitize_citation_protocol
@@ -108,35 +112,43 @@ def evaluate_visual_learning_corpus(
             "crop_size": [crop_width, crop_height],
         }
 
-        context = service.build_context(book_name, figure["figure_id"])
-        sources = service.evidence_sources(context)
-        answer = "选区来自指定教材 Figure。[[cite:E1]]"
-        if len(sources) > 1:
-            excerpt = str(sources[1].get("text") or "")[:120]
-            answer += f" 教材邻近正文写道：{excerpt} [[cite:{sources[1]['id']}]]"
-        sanitized, trace = sanitize_citation_protocol(answer, sources)
-        verification = verify_answer(
-            sanitized,
-            required_outputs=derive_required_outputs(
-                "说明该图及其教材语境", intent="application", answer_mode="visual_grounded",
-            ),
-            sources=sources,
-            citation_trace=trace,
-        )
-        step4 = {
-            "passed": bool(
-                sources
-                and sources[0].get("figure_id") == figure["figure_id"]
-                and sources[0].get("page_idx") is not None
-                and any(source.get("block_id") and source.get("text") for source in sources[1:])
-                and any(source.get("chunk_id") for source in sources[1:])
-                and verification.get("status") == "passed"
-            ),
-            "source_count": len(sources),
-            "nearby_text_source_count": sum(bool(source.get("text")) for source in sources[1:]),
-            "related_chunk_count": len(context.related_chunk_ids),
-            "citation_status": verification.get("status"),
-        }
+        try:
+            context = service.build_context(book_name, figure["figure_id"])
+        except FigureIndexOutOfDateError as exc:
+            step4 = {
+                "passed": False,
+                "status": "active_index_required",
+                "reason": str(exc),
+            }
+        else:
+            sources = service.evidence_sources(context)
+            answer = "选区来自指定教材 Figure。[[cite:E1]]"
+            if len(sources) > 1:
+                excerpt = str(sources[1].get("text") or "")[:120]
+                answer += f" 教材邻近正文写道：{excerpt} [[cite:{sources[1]['id']}]]"
+            sanitized, trace = sanitize_citation_protocol(answer, sources)
+            verification = verify_answer(
+                sanitized,
+                required_outputs=derive_required_outputs(
+                    "说明该图及其教材语境", intent="application", answer_mode="visual_grounded",
+                ),
+                sources=sources,
+                citation_trace=trace,
+            )
+            step4 = {
+                "passed": bool(
+                    sources
+                    and sources[0].get("figure_id") == figure["figure_id"]
+                    and sources[0].get("page_idx") is not None
+                    and any(source.get("block_id") and source.get("text") for source in sources[1:])
+                    and any(source.get("chunk_id") for source in sources[1:])
+                    and verification.get("status") == "passed"
+                ),
+                "source_count": len(sources),
+                "nearby_text_source_count": sum(bool(source.get("text")) for source in sources[1:]),
+                "related_chunk_count": len(context.related_chunk_ids),
+                "citation_status": verification.get("status"),
+            }
 
     thresholds = standard.get("thresholds") or {}
     checks = {

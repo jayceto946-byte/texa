@@ -8,11 +8,65 @@ from PIL import Image
 import pytest
 
 from backend.main import app
-from backend.services.figure_learning import FigureLearningService, NormalizedBBox
+from backend.services.figure_learning import (
+    FigureIndexOutOfDateError,
+    FigureLearningService,
+    NormalizedBBox,
+)
 from backend.services.learning_task import LearningTaskStore
 from backend.services.multimodal_bridge import VisionModelBridge
 from evaluation.visual_learning_eval import evaluate_visual_learning_corpus
-from ingestion.document_ir import CanonicalBook, DocumentBlock, persist_canonical_book
+from ingestion.chapter_splitter import ChapterSplitter
+from ingestion.document_ir import (
+    CanonicalBook,
+    DocumentBlock,
+    canonical_book_fingerprint,
+    persist_canonical_book,
+)
+
+
+_ACTIVE_FIGURE_INDEXES: dict[str, dict] = {}
+
+
+@pytest.fixture(autouse=True)
+def _active_figure_index(monkeypatch):
+    import backend.services.figure_learning as module
+
+    _ACTIVE_FIGURE_INDEXES.clear()
+    FigureLearningService._book_cache.clear()
+    monkeypatch.setattr(
+        module,
+        "load_index_manifest",
+        lambda book_name: dict((_ACTIVE_FIGURE_INDEXES.get(book_name) or {}).get("manifest") or {}),
+    )
+    monkeypatch.setattr(
+        module,
+        "load_book_index",
+        lambda book_name: [dict(row) for row in ((_ACTIVE_FIGURE_INDEXES.get(book_name) or {}).get("rows") or [])],
+    )
+    yield
+    FigureLearningService._book_cache.clear()
+    _ACTIVE_FIGURE_INDEXES.clear()
+
+
+def _activate_figure_index(book: CanonicalBook, *, version: str = "figure-index-v1", rows=None) -> list[dict]:
+    active_rows = [dict(row) for row in (rows or ChapterSplitter().split_canonical_book(book))]
+    canonical_hash = canonical_book_fingerprint(book)
+    for row in active_rows:
+        row.update({
+            "index_version": version,
+            "canonical_hash": canonical_hash,
+        })
+    _ACTIVE_FIGURE_INDEXES[book.book_name] = {
+        "manifest": {
+            "schema_version": 6,
+            "provenance_schema": "texa.provenance/v1",
+            "index_version": version,
+            "canonical_hash": canonical_hash,
+        },
+        "rows": active_rows,
+    }
+    return active_rows
 
 
 def _figure_book(progress_root: Path, book_name: str = "视觉教材") -> tuple[CanonicalBook, Path]:
@@ -45,6 +99,7 @@ def _figure_book(progress_root: Path, book_name: str = "视觉教材") -> tuple[
         ],
     )
     assert persist_canonical_book(book, progress_root=progress_root).valid
+    _activate_figure_index(book)
     return book, image_path
 
 
@@ -251,31 +306,61 @@ def test_figure_api_attaches_sources_without_inventing_inline_citation(monkeypat
     assert saved[-1]["citation_provenance"]["source_attachment_origin"] == "system"
 
 
-def test_figure_context_cache_reuses_split_and_invalidates_on_canonical_change(monkeypatch, tmp_path):
+def test_figure_context_uses_active_index_and_rejects_canonical_drift(tmp_path):
     book, _image_path = _figure_book(tmp_path)
-    import backend.services.figure_learning as module
-
-    original_split = module.ChapterSplitter.split_canonical_book
-    calls = {"count": 0}
-
-    def counted_split(self, value):
-        calls["count"] += 1
-        return original_split(self, value)
-
-    monkeypatch.setattr(module.ChapterSplitter, "split_canonical_book", counted_split)
     service = FigureLearningService(tmp_path)
     first = service.build_context("视觉教材", "figure-1")
     second = FigureLearningService(tmp_path).build_context("视觉教材", "figure-1")
     assert first.related_chunk_ids == second.related_chunk_ids
-    assert calls["count"] == 1
     first_metadata = service.cache_metadata("视觉教材")
 
     book.blocks[1].text = "更新后的图前正文。"
     persist_canonical_book(book, progress_root=tmp_path)
+    with pytest.raises(FigureIndexOutOfDateError, match="Canonical IR differs"):
+        service.build_context("视觉教材", "figure-1")
+
+    _activate_figure_index(book, version="figure-index-v2")
     refreshed = service.build_context("视觉教材", "figure-1")
-    assert calls["count"] == 2
     assert refreshed.nearby_blocks[0]["text"] == "更新后的图前正文。"
     assert service.cache_metadata("视觉教材")["canonical_hash"] != first_metadata["canonical_hash"]
+
+
+def test_figure_mapping_tracks_active_version_and_retained_reactivation(tmp_path):
+    book, _image_path = _figure_book(tmp_path)
+    v1_rows = [dict(row) for row in _ACTIVE_FIGURE_INDEXES[book.book_name]["rows"]]
+    service = FigureLearningService(tmp_path)
+    v1_ids = service.build_context("视觉教材", "figure-1").related_chunk_ids
+
+    v2_rows = [{**row, "chunk_id": f"v2-{row['chunk_id']}"} for row in v1_rows]
+    _activate_figure_index(book, version="figure-index-v2", rows=v2_rows)
+    v2_ids = service.build_context("视觉教材", "figure-1").related_chunk_ids
+    assert v2_ids and v2_ids != v1_ids
+
+    _activate_figure_index(book, version="figure-index-v1", rows=v1_rows)
+    reactivated_ids = service.build_context("视觉教材", "figure-1").related_chunk_ids
+    assert reactivated_ids == v1_ids
+
+
+def test_figure_context_explicitly_rejects_legacy_index(tmp_path):
+    _figure_book(tmp_path)
+    _ACTIVE_FIGURE_INDEXES["视觉教材"]["manifest"]["schema_version"] = 5
+
+    with pytest.raises(FigureIndexOutOfDateError, match="schema-6"):
+        FigureLearningService(tmp_path).build_context("视觉教材", "figure-1")
+
+
+def test_figure_api_returns_conflict_for_legacy_index(monkeypatch, tmp_path):
+    _figure_book(tmp_path)
+    _ACTIVE_FIGURE_INDEXES["视觉教材"]["manifest"]["schema_version"] = 5
+    from backend.api import figures
+
+    monkeypatch.setattr(figures, "_service", lambda: FigureLearningService(tmp_path))
+    response = TestClient(app).get(
+        "/api/books/%E8%A7%86%E8%A7%89%E6%95%99%E6%9D%90/figures/figure-1"
+    )
+
+    assert response.status_code == 409
+    assert response.json()["detail"].startswith("figure_index_out_of_date:")
 
 
 def test_figure_task_interrupt_and_resume_reuses_saved_figure_context(monkeypatch, tmp_path):
@@ -321,7 +406,7 @@ def test_figure_task_interrupt_and_resume_reuses_saved_figure_context(monkeypatc
     assert "[[cite:E1]]" in done["result"]["explanation"]
 
 
-def test_visual_learning_acceptance_exercises_all_four_steps(tmp_path):
+def test_visual_learning_acceptance_requires_active_index_for_provenance_step(tmp_path):
     output = tmp_path / "mineru"
     (output / "images").mkdir(parents=True)
     Image.new("RGB", (120, 80), (245, 245, 245)).save(output / "images" / "sensor.png")
@@ -354,9 +439,13 @@ def test_visual_learning_acceptance_exercises_all_four_steps(tmp_path):
         output, progress_root=tmp_path / "progress", standard=standard, book_name="传感器验收小样",
     )
 
-    assert result.passed is True
+    assert result.passed is False
     assert result.report["step1_ingestion"]["ready_asset_rate"] == 1
     assert result.report["step2_search_open"]["query_top3_rate"] == 1
     assert result.report["step3_region_question_contract"]["passed"] is True
-    assert result.report["step4_answer_provenance"]["passed"] is True
+    assert result.report["step4_answer_provenance"] == {
+        "passed": False,
+        "status": "active_index_required",
+        "reason": "figure_index_out_of_date: active schema-6 provenance index required",
+    }
     assert result.report["online_model_called"] is False

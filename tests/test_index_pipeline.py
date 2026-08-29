@@ -58,6 +58,7 @@ def _chunk(chunk_id: str, content: str, *, role: str = "definition", **extra):
     block_id = f"block-{chunk_id}"
     return {
         "provenance_schema": "texa.provenance/v1",
+        "canonical_hash": "a" * 64,
         "chunk_id": chunk_id,
         "chapter": "chapter-one",
         "section_title": "definition",

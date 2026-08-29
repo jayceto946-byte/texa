@@ -150,6 +150,7 @@ def build_evidence_pack(
             "corpus_version": str(item.get("corpus_version") or ""),
             "provenance_schema": str(item.get("provenance_schema") or ""),
             "index_version": str(item.get("index_version") or ""),
+            "canonical_hash": str(item.get("canonical_hash") or ""),
             "content_fingerprint": _content_fingerprint(text),
             "chapter": chapter,
             "section_title": str(item.get("section_title") or ""),

@@ -7,6 +7,7 @@ the downstream splitter is allowed to make retrieval chunks.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+import hashlib
 import json
 import math
 from pathlib import Path, PurePosixPath
@@ -37,6 +38,8 @@ def chunk_provenance_errors(chunk: dict[str, Any], *, require_index_version: boo
         errors.append("missing_chunk_id")
     if require_index_version and not str(chunk.get("index_version") or "").strip():
         errors.append("missing_index_version")
+    if require_index_version and not re.fullmatch(r"[0-9a-f]{64}", str(chunk.get("canonical_hash") or "")):
+        errors.append("missing_canonical_hash")
 
     source_ids = chunk.get("source_block_ids")
     if not isinstance(source_ids, list) or not source_ids or any(not str(value or "").strip() for value in source_ids):
@@ -154,6 +157,16 @@ class CanonicalBook:
             "warnings": list(self.warnings),
             "source_page_count": self.source_page_count,
         }
+
+
+def canonical_book_fingerprint(book: CanonicalBook) -> str:
+    """Hash the logical Canonical IR independent of file timestamps or formatting."""
+    payload = {
+        "header": book.header_dict(),
+        "blocks": [block.to_dict() for block in book.blocks],
+    }
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
 @dataclass(frozen=True)

@@ -2615,3 +2615,11 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 教材图片列表改为位于应用标题栏下方的右侧 Inspector，不再从窗口顶部贯穿到底或与原生窗口控件共用一行。宽屏保留 284px 学习上下文并由 Inspector 自然压缩主对话标题与正文；920–1439px 使用主对话与 Inspector 两区，临时收起历史上下文并在关闭后恢复；低于 920px 才使用标题栏下方的覆盖层，并支持点击外部关闭。
 - Electron Inspector 的关闭按钮位于独立的面板标题行，与原生最小化、最大化、关闭区域纵向分层；Inspector 使用 360–400px 约束宽度和克制的次级表面。完整重启桌面端后，在宽屏、常规与窄窗口三种尺寸实测，并以真实指针验证关闭 Inspector 不会误触窗口关闭。
 - 验证：前端 `21 files / 113 tests passed`，ESLint 与 TypeScript/Vite 生产构建通过；未修改后端 API、数据库或教材索引。
+
+## 2026-08-30 Figure provenance 绑定 active index
+
+- Figure 上下文不再运行时重新调用 `ChapterSplitter` 生成 chunk mapping，而是只读取当前 active schema-6 lexical catalog；Figure、邻近正文与引用来源因此共享同一 `index_version`、`canonical_hash`、`block_id`、`chunk_id`、页码与 bbox provenance。
+- Canonical IR 增加稳定内容指纹，并写入 candidate manifest、lexical catalog、vector metadata、retrieval result 与 EvidencePack。active manifest、catalog 和当前 Canonical 任一不一致时，Figure API 明确返回 409 `figure_index_out_of_date`，要求重建或重新激活索引，不再静默使用可能错位的运行时切块结果。
+- Figure mapping cache 以 active index version 与 Canonical 指纹为签名；切换版本、回滚或重新激活 retained index 后会重新装载对应 catalog。旧 schema、缺失 provenance、缺少 Figure catalog row 的索引均 fail-fast。
+- 离线视觉评测在只有 Canonical IR、没有 active provenance index 时将 step 4 标为 `active_index_required`，不再把缺少线上一致性约束的 Figure/Page/正文绑定报告为通过。
+- 验证：Figure、provenance 与 index pipeline 定向回归 `27 passed`；完整回归结果见本次收敛提交的最终验证记录。

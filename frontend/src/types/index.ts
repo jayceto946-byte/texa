@@ -145,6 +145,7 @@ export interface AssistantSource {
   page_end?: number | null;
   provenance_schema?: string;
   index_version?: string;
+  canonical_hash?: string;
   source_block_ids?: string[];
   source_locations?: Array<{
     block_id: string;

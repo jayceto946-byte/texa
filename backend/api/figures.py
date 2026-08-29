@@ -14,7 +14,11 @@ from fastapi.responses import FileResponse, StreamingResponse
 from backend.conversation_memory import append_message, ensure_turn_id, resolve_conversation_id_for_scope
 from backend.schemas import FigureQuestionRequest
 from backend.services.answer_verification import derive_required_outputs, verification_notice, verify_answer
-from backend.services.figure_learning import FigureLearningService, NormalizedBBox
+from backend.services.figure_learning import (
+    FigureIndexOutOfDateError,
+    FigureLearningService,
+    NormalizedBBox,
+)
 from backend.services.learning_task import (
     LearningTask,
     LearningTaskStore,
@@ -44,6 +48,8 @@ def _event(stage: str, **payload) -> str:
 
 
 def _http_error(exc: Exception) -> HTTPException:
+    if isinstance(exc, FigureIndexOutOfDateError):
+        return HTTPException(status_code=409, detail=str(exc))
     if isinstance(exc, KeyError):
         return HTTPException(status_code=404, detail=str(exc).strip("'"))
     if isinstance(exc, FileNotFoundError):

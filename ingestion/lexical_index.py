@@ -95,7 +95,7 @@ def write_book_index(book_name: str, chunks: list[dict]) -> Path:
     path = index_path(book_name)
     path.parent.mkdir(parents=True, exist_ok=True)
     keys = (
-        "provenance_schema", "index_version", "book_name",
+        "provenance_schema", "index_version", "canonical_hash", "book_name",
         "chapter", "section_title", "section_path", "chunk_index", "section_chunk_index", "chunk_id",
         "parent_id", "prev_chunk_id", "next_chunk_id", "page_idx", "role",
         "content", "retrieval_text", "parent_content", "subject", "book_role", "rag_priority",

@@ -4,7 +4,12 @@ import hashlib
 import re
 from pathlib import Path
 
-from ingestion.document_ir import CanonicalBook, DocumentBlock, PROVENANCE_SCHEMA_VERSION
+from ingestion.document_ir import (
+    CanonicalBook,
+    DocumentBlock,
+    PROVENANCE_SCHEMA_VERSION,
+    canonical_book_fingerprint,
+)
 
 
 def _get_splitter(chunk_size: int, chunk_overlap: int):
@@ -146,7 +151,11 @@ class ChapterSplitter:
 
     def split_canonical_book(self, book: CanonicalBook) -> list[dict]:
         """Convenience entry point for the canonical ingestion contract."""
-        return self.split_blocks(book.blocks, book_name=book.book_name)
+        rows = self.split_blocks(book.blocks, book_name=book.book_name)
+        canonical_hash = canonical_book_fingerprint(book)
+        for row in rows:
+            row["canonical_hash"] = canonical_hash
+        return rows
 
     def _emit_block_group(
         self,

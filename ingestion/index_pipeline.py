@@ -31,7 +31,7 @@ SPECIALTY_RELEASE_THRESHOLDS = {
 }
 _BUILD_LOCK = threading.RLock()
 _LEXICAL_KEYS = (
-    "provenance_schema", "index_version", "book_name",
+    "provenance_schema", "index_version", "canonical_hash", "book_name",
     "chapter", "section_title", "section_path", "chunk_index", "section_chunk_index", "chunk_id",
     "parent_id", "prev_chunk_id", "next_chunk_id", "page_idx", "role",
     "content", "retrieval_text", "parent_content", "subject", "book_role",
@@ -80,6 +80,7 @@ def _fingerprint(chunks: list[dict]) -> str:
         digest.update(json.dumps({
             "source_block_ids": chunk.get("source_block_ids") or [],
             "source_locations": chunk.get("source_locations") or [],
+            "canonical_hash": chunk.get("canonical_hash") or "",
             "figure_id": chunk.get("figure_id") or "",
             "retrieval_excluded": bool(chunk.get("retrieval_excluded")),
         }, ensure_ascii=False, sort_keys=True).encode("utf-8"))
@@ -91,6 +92,7 @@ def _metadata(chunk: dict, book_name: str, chapter: str) -> dict:
     return {
         "provenance_schema": str(chunk.get("provenance_schema") or ""),
         "index_version": str(chunk.get("index_version") or ""),
+        "canonical_hash": str(chunk.get("canonical_hash") or ""),
         "raw_content": str(chunk.get("content") or ""),
         "section_path": json.dumps(chunk.get("section_path") or [], ensure_ascii=False),
         "parent_id": str(chunk.get("parent_id") or ""),
@@ -537,6 +539,10 @@ def build_and_activate_book_index(
         raise ValueError(f"retrieval chunks missing chapter group: {ungrouped_ids[:3]}")
     chunks = catalog_chunks
     chapter_groups = prepared_groups
+    canonical_hashes = {str(chunk.get("canonical_hash") or "") for chunk in chunks}
+    if len(canonical_hashes) != 1:
+        raise ValueError("index catalog must reference exactly one Canonical IR fingerprint")
+    canonical_hash = canonical_hashes.pop()
     build_id = f"{version[:10]}{uuid.uuid4().hex[:6]}"
     staged_entries: dict[str, dict] = {}
     staged_names: list[str] = []
@@ -630,6 +636,7 @@ def build_and_activate_book_index(
             candidate_records = [{
                 "index_version": version,
                 "provenance_schema": PROVENANCE_SCHEMA_VERSION,
+                "canonical_hash": canonical_hash,
                 "collections": list(staged_entries),
                 "lexical_path": _manifest_asset_path(new_version_lexical),
                 "activated_at": activated_at,
@@ -679,6 +686,7 @@ def build_and_activate_book_index(
                     "schema_version": INDEX_SCHEMA_VERSION,
                     "index_version": version,
                     "provenance_schema": PROVENANCE_SCHEMA_VERSION,
+                    "canonical_hash": canonical_hash,
                     "content_fingerprint": fingerprint,
                     "status": "ready",
                     "vector_ready": True,

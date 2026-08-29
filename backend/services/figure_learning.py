@@ -4,7 +4,6 @@ from __future__ import annotations
 from collections import OrderedDict
 from contextlib import contextmanager
 from dataclasses import dataclass
-import hashlib
 from pathlib import Path, PurePosixPath
 import tempfile
 import threading
@@ -15,9 +14,16 @@ from urllib.parse import quote
 from PIL import Image, ImageOps
 
 from config import PROGRESS_PATH
-from ingestion.chapter_splitter import ChapterSplitter
-from ingestion.document_ir import CanonicalBook, DocumentBlock, canonical_paths, load_canonical_book
-from ingestion.index_pipeline import load_index_manifest
+from ingestion.document_ir import (
+    CanonicalBook,
+    DocumentBlock,
+    PROVENANCE_SCHEMA_VERSION,
+    canonical_book_fingerprint,
+    canonical_paths,
+    load_canonical_book,
+)
+from ingestion.index_pipeline import INDEX_SCHEMA_VERSION, load_index_manifest
+from ingestion.lexical_index import load_book_index
 
 
 MAX_FIGURE_ASSET_BYTES = 25 * 1024 * 1024
@@ -25,6 +31,10 @@ MAX_FIGURE_PIXELS = 60_000_000
 MIN_REGION_FRACTION = 0.005
 MIN_REGION_PIXELS = 8
 MAX_CACHED_FIGURE_BOOKS = 8
+
+
+class FigureIndexOutOfDateError(RuntimeError):
+    """The active index cannot prove a mapping to the current Canonical IR."""
 
 
 @dataclass(frozen=True)
@@ -82,6 +92,7 @@ class _FigureBookCacheEntry:
     block_positions: dict[str, int]
     figures: list[tuple[int, DocumentBlock]]
     chunks: list[dict[str, Any]] | None = None
+    chunks_by_id: dict[str, dict[str, Any]] | None = None
     block_chunk_ids: dict[str, list[str]] | None = None
     chunk_order: dict[str, int] | None = None
 
@@ -115,8 +126,8 @@ class FigureLearningService:
                 return cached
 
             document_path, _report_path = canonical_paths(name, progress_root=self.progress_root)
-            canonical_hash = hashlib.sha256(document_path.read_bytes()).hexdigest()
             book = load_canonical_book(name, progress_root=self.progress_root)
+            canonical_hash = canonical_book_fingerprint(book)
             block_positions = {
                 block.block_id: index for index, block in enumerate(book.blocks) if block.block_id
             }
@@ -143,19 +154,58 @@ class FigureLearningService:
         with self._cache_lock:
             if entry.chunks is not None:
                 return
-            chunks = ChapterSplitter().split_canonical_book(entry.book)
+            manifest = load_index_manifest(entry.book.book_name)
+            active_version = str(manifest.get("index_version") or "")
+            if (
+                int(manifest.get("schema_version", 0) or 0) != INDEX_SCHEMA_VERSION
+                or str(manifest.get("provenance_schema") or "") != PROVENANCE_SCHEMA_VERSION
+                or not active_version
+            ):
+                raise FigureIndexOutOfDateError(
+                    "figure_index_out_of_date: active schema-6 provenance index required"
+                )
+            if str(manifest.get("canonical_hash") or "") != entry.canonical_hash:
+                raise FigureIndexOutOfDateError(
+                    "figure_index_out_of_date: Canonical IR differs from the active index"
+                )
+            chunks = load_book_index(entry.book.book_name)
+            if not chunks:
+                raise FigureIndexOutOfDateError(
+                    "figure_index_out_of_date: active lexical catalog is unavailable"
+                )
             block_chunk_ids: dict[str, list[str]] = {}
             chunk_order: dict[str, int] = {}
+            chunks_by_id: dict[str, dict[str, Any]] = {}
             for chunk_index, chunk in enumerate(chunks):
                 chunk_id = str(chunk.get("chunk_id") or "")
                 if not chunk_id:
-                    continue
+                    raise FigureIndexOutOfDateError(
+                        "figure_index_out_of_date: active catalog contains an anonymous chunk"
+                    )
+                if (
+                    str(chunk.get("provenance_schema") or "") != PROVENANCE_SCHEMA_VERSION
+                    or str(chunk.get("index_version") or "") != active_version
+                    or str(chunk.get("canonical_hash") or "") != entry.canonical_hash
+                ):
+                    raise FigureIndexOutOfDateError(
+                        "figure_index_out_of_date: active catalog provenance mismatch"
+                    )
                 chunk_order[chunk_id] = chunk_index
+                chunks_by_id[chunk_id] = chunk
                 for block_id in chunk.get("source_block_ids") or []:
                     block_key = str(block_id or "")
                     if block_key and chunk_id not in block_chunk_ids.setdefault(block_key, []):
                         block_chunk_ids[block_key].append(chunk_id)
+            missing_figures = [
+                block.block_id for _position, block in entry.figures
+                if block.block_id not in block_chunk_ids
+            ]
+            if missing_figures:
+                raise FigureIndexOutOfDateError(
+                    f"figure_index_out_of_date: active catalog is missing Figure blocks {missing_figures[:3]}"
+                )
             entry.chunks = chunks
+            entry.chunks_by_id = chunks_by_id
             entry.block_chunk_ids = block_chunk_ids
             entry.chunk_order = chunk_order
 
@@ -258,6 +308,17 @@ class FigureLearningService:
         entry = self._cache_entry(book_name)
         self._ensure_chunk_index(entry)
         book, figure, payload = self.get_figure(book_name, figure_id)
+        figure_chunk_ids = list((entry.block_chunk_ids or {}).get(figure.block_id) or [])
+        figure_row = (entry.chunks_by_id or {}).get(figure_chunk_ids[0], {}) if figure_chunk_ids else {}
+        payload = {
+            **payload,
+            "provenance_schema": PROVENANCE_SCHEMA_VERSION,
+            "index_version": entry.index_version,
+            "canonical_hash": entry.canonical_hash,
+            "chunk_ids": figure_chunk_ids,
+            "source_block_ids": list(figure_row.get("source_block_ids") or [figure.block_id]),
+            "source_locations": list(figure_row.get("source_locations") or []),
+        }
         figure_index = entry.block_positions[figure.block_id]
         before: list[DocumentBlock] = []
         after: list[DocumentBlock] = []
@@ -290,6 +351,18 @@ class FigureLearningService:
                 "section_path": list(block.section_path),
                 "chunk_ids": list((entry.block_chunk_ids or {}).get(block.block_id) or []),
             })
+            chunk_ids = nearby[-1]["chunk_ids"]
+            source_row = (entry.chunks_by_id or {}).get(chunk_ids[0], {}) if chunk_ids else {}
+            nearby[-1].update({
+                "provenance_schema": source_row.get("provenance_schema", ""),
+                "index_version": source_row.get("index_version", ""),
+                "canonical_hash": source_row.get("canonical_hash", ""),
+                "source_block_ids": list(source_row.get("source_block_ids") or [block.block_id]),
+                "source_locations": list(source_row.get("source_locations") or []),
+                "source_kind": source_row.get("source_kind", block.source_kind),
+                "source_file": source_row.get("source_file", block.source_file),
+                "bbox": list(source_row.get("bbox") or []),
+            })
 
         source_ids = {figure.block_id, *(item["block_id"] for item in nearby)}
         related_chunk_ids = sorted(
@@ -309,6 +382,7 @@ class FigureLearningService:
         section_path = list(figure.get("section_path") or [])
         sources: list[dict[str, Any]] = [{
             "id": "E1",
+            "chunk_id": (figure.get("chunk_ids") or [""])[0],
             "figure_id": figure.get("figure_id") or "",
             "book_name": figure.get("book_name") or "",
             "chapter": section_path[0] if section_path else figure.get("book_name") or "",
@@ -319,6 +393,14 @@ class FigureLearningService:
             "label": f"Figure {figure.get('figure_id') or ''}".strip(),
             "asset_url": figure.get("image_url") or "",
             "pdf_url": figure.get("pdf_url") or "",
+            "provenance_schema": figure.get("provenance_schema") or "",
+            "index_version": figure.get("index_version") or "",
+            "canonical_hash": figure.get("canonical_hash") or "",
+            "source_block_ids": list(figure.get("source_block_ids") or []),
+            "source_locations": list(figure.get("source_locations") or []),
+            "source_kind": figure.get("source_kind") or "",
+            "source_file": figure.get("source_file") or "",
+            "bbox": list(figure.get("page_bbox") or []),
         }]
         for index, block in enumerate(context.nearby_blocks, start=2):
             block_path = list(block.get("section_path") or section_path)
@@ -334,6 +416,14 @@ class FigureLearningService:
                 "page_idx": block.get("page_idx"),
                 "label": "Figure 邻近正文",
                 "text": block.get("text") or "",
+                "provenance_schema": block.get("provenance_schema") or "",
+                "index_version": block.get("index_version") or "",
+                "canonical_hash": block.get("canonical_hash") or "",
+                "source_block_ids": list(block.get("source_block_ids") or []),
+                "source_locations": list(block.get("source_locations") or []),
+                "source_kind": block.get("source_kind") or "",
+                "source_file": block.get("source_file") or "",
+                "bbox": list(block.get("bbox") or []),
             })
         return sources
 
