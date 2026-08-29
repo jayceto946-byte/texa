@@ -40,7 +40,7 @@ class AgentState(TypedDict):
 
     # === Planner 输出 ===
     intent: str                 # qa | teach | summarize | quiz | plan | cross_chapter
-    _local_intent: str          # 本地分类器 hint（仅流式路径写入）
+    _local_intent: str          # canonical Planner 的本地分类 hint
     _local_intent_hint: str
     _local_intent_locked: bool
     sub_tasks: list[dict]       # [{step, description, agent, chapter}]
@@ -93,3 +93,5 @@ class AgentState(TypedDict):
     error: str
     iteration: int
     max_iterations: int
+    resume_phase: str
+    resume_checkpoint_version: int

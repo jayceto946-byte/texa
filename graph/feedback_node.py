@@ -1,5 +1,6 @@
 """反馈节点 — 更新记忆 + 掌握度 + 优化策略"""
 import re
+import threading
 from memory.study_memory import StudyMemory
 from memory.spaced_repetition import SpacedRepetition
 
@@ -54,17 +55,22 @@ def _feedback_node_impl(state: dict) -> dict:
 
 
 def feedback_node(state: dict) -> dict:
-    """Best-effort feedback that never invalidates an already generated answer."""
-    try:
-        return _feedback_node_impl(state)
-    except Exception as exc:
-        print(f"[feedback] record failed: {exc}", flush=True)
-        return {
-            "mastery_update": {},
-            "learning_update_status": "exposure_only",
-            "user_feedback": None,
-            "linked_concepts": link_concepts_for_response(state),
-        }
+    """Finalize response semantics, then record learning side effects off-path."""
+    linked_concepts = link_concepts_for_response(state)
+
+    def record() -> None:
+        try:
+            _feedback_node_impl(dict(state))
+        except Exception as exc:
+            print(f"[feedback] record failed: {exc}", flush=True)
+
+    threading.Thread(target=record, name="chat-feedback", daemon=True).start()
+    return {
+        "mastery_update": {},
+        "learning_update_status": "exposure_only",
+        "user_feedback": None,
+        "linked_concepts": linked_concepts,
+    }
 
 def _kg_for_state(state: dict):
     """返回本地预构建 KG（用于字典扫描）；非本地返回 None。"""

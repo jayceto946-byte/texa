@@ -38,9 +38,8 @@ def test_explanation_with_derivation_still_uses_planner():
 
 
 def test_fast_path_skips_pre_retrieve_vector_chapter_lookup(monkeypatch):
-    import graph.retrieval_node as retrieval_module
+    import graph.main_graph as main_graph
     import graph.safe_retrieval as safe_retrieval
-    from graph.main_graph import run_graph_stream
 
     retrieve_calls = []
     monkeypatch.setattr(
@@ -49,7 +48,7 @@ def test_fast_path_skips_pre_retrieve_vector_chapter_lookup(monkeypatch):
         lambda: (_ for _ in ()).throw(AssertionError("duplicate chapter lookup")),
     )
     monkeypatch.setattr(
-        retrieval_module,
+        main_graph,
         "retrieve_node",
         lambda state: retrieve_calls.append(state["user_input"]) or {
             "chapter_contents": {},
@@ -57,8 +56,9 @@ def test_fast_path_skips_pre_retrieve_vector_chapter_lookup(monkeypatch):
             "retrieval_error": "",
         },
     )
+    monkeypatch.setattr(main_graph, "_main_graph", None)
 
-    stream = run_graph_stream("解释压阻效应。", book_name="传感器短书")
+    stream = main_graph.run_graph_stream("解释压阻效应。", book_name="传感器短书")
     plan_event = next(stream)
     retrieve_event = next(stream)
     stream.close()

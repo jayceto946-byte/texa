@@ -19,25 +19,26 @@ class DummyLLM:
 
 
 def test_run_graph_stream_done_survives_feedback_failure(monkeypatch):
-    import config
     import graph.feedback_node as feedback_module
-    import graph.intent_classifier as intent_module
-    import graph.planner as planner_module
-    import graph.retrieval_node as retrieval_module
-    from graph.main_graph import run_graph_stream
-
-    monkeypatch.setattr(intent_module, "classify_intent_local", lambda text: {"intent": "qa", "hint": ""})
-    monkeypatch.setattr(intent_module, "is_fast_path_eligible", lambda text, result: False)
-    monkeypatch.setattr(planner_module, "plan_node", lambda state: {"intent": "qa", "target_chapters": ["chapter-1"]})
-    monkeypatch.setattr(retrieval_module, "retrieve_node", lambda state: {"chapter_contents": {"chapter-1": ["context"]}})
-    monkeypatch.setattr(config, "get_llm", lambda: DummyLLM())
+    import graph.main_graph as main_graph
 
     def fail_feedback(state):
         raise RuntimeError("feedback disk failure")
 
-    monkeypatch.setattr(feedback_module, "feedback_node", fail_feedback)
+    monkeypatch.setattr(main_graph, "plan_node", lambda state: {
+        "intent": "qa", "target_chapters": ["chapter-1"],
+        "planner_trace": {"mode": "llm"},
+    })
+    monkeypatch.setattr(main_graph, "retrieve_node", lambda state: {
+        "chapter_contents": {"chapter-1": ["context"]},
+        "evidence_items": [], "evidence_sources": [],
+        "evidence_support": {"status": "not_applicable"},
+    })
+    monkeypatch.setattr(main_graph, "generate_node", lambda state: {"final_output": "answer"})
+    monkeypatch.setattr(feedback_module, "_feedback_node_impl", fail_feedback)
+    monkeypatch.setattr(main_graph, "_main_graph", None)
 
-    events = list(run_graph_stream("question", book_name="demo-book"))
+    events = list(main_graph.run_graph_stream("question", book_name="demo-book"))
 
     assert events[-1]["stage"] == "done"
     assert "error" not in [event["stage"] for event in events]
@@ -53,25 +54,19 @@ def test_run_graph_stream_done_survives_feedback_failure(monkeypatch):
 
 
 def test_run_graph_stream_resume_reuses_retrieval_checkpoint(monkeypatch):
-    import config
-    import graph.feedback_node as feedback_module
-    import graph.intent_classifier as intent_module
-    import graph.planner as planner_module
-    import graph.retrieval_node as retrieval_module
-    from graph.main_graph import run_graph_stream
+    import graph.main_graph as main_graph
 
-    monkeypatch.setattr(intent_module, "classify_intent_local", lambda text: {"intent": "qa", "hint": ""})
-    monkeypatch.setattr(intent_module, "is_fast_path_eligible", lambda text, result: False)
-    monkeypatch.setattr(planner_module, "plan_node", lambda state: (_ for _ in ()).throw(
+    monkeypatch.setattr(main_graph, "plan_node", lambda state: (_ for _ in ()).throw(
         AssertionError("resume must not run planner")
     ))
-    monkeypatch.setattr(retrieval_module, "retrieve_node", lambda state: (_ for _ in ()).throw(
+    monkeypatch.setattr(main_graph, "retrieve_node", lambda state: (_ for _ in ()).throw(
         AssertionError("resume must not repeat retrieval")
     ))
-    monkeypatch.setattr(feedback_module, "feedback_node", lambda state: {})
-    monkeypatch.setattr(config, "get_llm", lambda *args, **kwargs: DummyLLM())
+    monkeypatch.setattr(main_graph, "generate_node", lambda state: {"final_output": "answer"})
+    monkeypatch.setattr(main_graph, "feedback_node", lambda state: {})
+    monkeypatch.setattr(main_graph, "_main_graph", None)
 
-    events = list(run_graph_stream(
+    events = list(main_graph.run_graph_stream(
         "解释压阻效应",
         book_name="demo-book",
         resume_state={
@@ -192,24 +187,28 @@ def test_late_stream_failure_cannot_overwrite_acknowledged_interrupt(monkeypatch
 
 
 def test_stream_teach_refuses_when_evidence_gate_is_insufficient(monkeypatch):
-    import graph.feedback_node as feedback_module
-    import graph.intent_classifier as intent_module
-    import graph.planner as planner_module
-    import graph.retrieval_node as retrieval_module
-    from graph.main_graph import run_graph_stream
+    import graph.main_graph as main_graph
+    from graph.generator import generate_node
 
-    monkeypatch.setattr(intent_module, "classify_intent_local", lambda text: {"intent": "teach", "hint": ""})
-    monkeypatch.setattr(intent_module, "is_fast_path_eligible", lambda text, result: False)
-    monkeypatch.setattr(planner_module, "plan_node", lambda state: {"intent": "teach", "target_chapters": ["chapter-1"]})
-    monkeypatch.setattr(retrieval_module, "retrieve_node", lambda state: {
+    monkeypatch.setattr(main_graph, "plan_node", lambda state: {
+        "intent": "teach", "target_chapters": ["chapter-1"],
+        "planner_trace": {"mode": "llm"},
+    })
+    monkeypatch.setattr(main_graph, "retrieve_node", lambda state: {
         "chapter_contents": {"chapter-1": ["旁路内容"]},
         "evidence_items": [],
+        "evidence_sources": [],
         "evidence_gate_applied": True,
         "evidence_support": {"status": "insufficient", "reason": "question_focus_missing"},
     })
-    monkeypatch.setattr(feedback_module, "feedback_node", lambda state: {})
+    monkeypatch.setattr(main_graph, "chapter_subgraph_run", lambda state: {
+        "teaching_content": "", "error": "no_chapter",
+    })
+    monkeypatch.setattr(main_graph, "generate_node", generate_node)
+    monkeypatch.setattr(main_graph, "feedback_node", lambda state: {})
+    monkeypatch.setattr(main_graph, "_main_graph", None)
 
-    events = list(run_graph_stream("讲解这一章", book_name="demo-book"))
+    events = list(main_graph.run_graph_stream("讲解这一章", book_name="demo-book"))
     generated = "".join(str(event.get("chunk") or "") for event in events if event["stage"] == "generate")
 
     assert "未检索到足够的直接证据" in generated
