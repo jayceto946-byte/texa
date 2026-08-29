@@ -299,6 +299,47 @@ def _persisted_evidence_sources(
     return result
 
 
+def _append_assistant_result(
+    *,
+    conversation_id: str,
+    content: str,
+    book_name: str,
+    subject: str,
+    turn_id: str,
+    sources: list | None,
+    context_versions: dict,
+    answer_mode: str,
+    scope_reason: str,
+    suggested_answer_mode: str,
+    request_id: str,
+    learning_task: LearningTask,
+    linked_concepts: list | None = None,
+    delivery_status: str = "complete",
+    evidence_support_status: str = "",
+) -> dict:
+    """Persist the canonical assistant projection for either chat transport."""
+    return append_message(
+        conversation_id,
+        "assistant",
+        content,
+        book_name=book_name,
+        subject=subject,
+        turn_id=turn_id,
+        sources=_persisted_evidence_sources(
+            sources, book_name=book_name, context_versions=context_versions,
+        ),
+        linked_concepts=linked_concepts,
+        answer_mode=answer_mode,
+        scope_reason=scope_reason,
+        suggested_answer_mode=suggested_answer_mode,
+        delivery_status=delivery_status,
+        evidence_support_status=evidence_support_status,
+        request_id=request_id,
+        context_versions=context_versions,
+        learning_task=learning_task.to_dict(public=True),
+    )
+
+
 def _resolve_request_question(
     question: str,
     history: list[dict],
@@ -519,6 +560,64 @@ def _safe_subject_suggestion(question: str, subject: str, book_name: str) -> dic
         return None
 
 
+def _prepare_chat_turn(
+    req: ChatRequest,
+    *,
+    resume_task: LearningTask | None = None,
+    resume: bool = False,
+) -> dict:
+    """Resolve the transport-independent input, scope, and context for one chat turn."""
+    book_name = (req.book_name or "").strip()
+    subject = (req.subject or "").strip()
+    conversation_id = resolve_conversation_id_for_scope(req.conversation_id, subject, book_name)
+    turn_id = ensure_turn_id(req.turn_id)
+    history = load_history(conversation_id)
+    rewritten_question, resolution_trace = _resolve_request_question(
+        req.question, history, conversation_id, book_name=book_name, subject=subject,
+    )
+    if resume and resume_task is not None:
+        rewritten_question = str(resume_task.artifacts.get("resolved_query") or rewritten_question)
+        resolution_trace["resolution_action"] = "continue"
+        resolution_trace["resolved_query"] = rewritten_question
+
+    book_name, subject = _scope_from_learning_context(book_name, subject, resolution_trace)
+    conversation_id = resolve_conversation_id_for_scope(conversation_id, subject, book_name)
+    target_chapters = _target_chapters_from_learning_context(req.target_chapters, resolution_trace)
+    continuity_context = build_evidence_continuity_context(
+        history, resolution_trace, book_name=book_name, subject=subject,
+    )
+    _safe_record_evidence_invalidation(conversation_id, continuity_context)
+    continuity_context["conversation_context_seed"] = _conversation_context_seed(
+        conversation_id, history, resolution_trace,
+    )
+    continuity_context["learning_context_pack"] = _learning_context_for_graph(resolution_trace)
+    subject_suggestion = _safe_subject_suggestion(rewritten_question, subject, book_name)
+    scope_decision = decide_answer_scope(
+        req.question,
+        rewritten_question,
+        book_name=book_name,
+        subject=subject,
+        subject_suggestion=subject_suggestion,
+        requested_mode=req.answer_mode,
+    )
+    return {
+        "book_name": book_name,
+        "subject": subject,
+        "conversation_id": conversation_id,
+        "turn_id": turn_id,
+        "history": history,
+        "rewritten_question": rewritten_question,
+        "resolution_trace": resolution_trace,
+        "target_chapters": target_chapters,
+        "continuity_context": continuity_context,
+        "subject_suggestion": subject_suggestion,
+        "use_textbook_context": scope_decision.use_textbook_context,
+        "scope_reason": scope_decision.reason,
+        "answer_mode": scope_decision.answer_mode,
+        "context_versions": current_context_versions(book_name),
+    }
+
+
 
 def _safe_record_subject_feedback(source: str, target: str, action: str) -> None:
     try:
@@ -643,44 +742,21 @@ def _prepared_chat_stream(
 ):
     from graph.main_graph import run_graph_stream
 
-    book_name = (req.book_name or "").strip()
-    subject = (req.subject or "").strip()
-    conversation_id = resolve_conversation_id_for_scope(req.conversation_id, subject, book_name)
-    turn_id = ensure_turn_id(req.turn_id)
-    history = load_history(conversation_id)
-    rewritten_question, resolution_trace = _resolve_request_question(
-        req.question, history, conversation_id, book_name=book_name, subject=subject,
-    )
-    if _resume and _learning_task is not None:
-        rewritten_question = str(_learning_task.artifacts.get("resolved_query") or rewritten_question)
-        resolution_trace["resolution_action"] = "continue"
-        resolution_trace["resolved_query"] = rewritten_question
-    book_name, subject = _scope_from_learning_context(book_name, subject, resolution_trace)
-    conversation_id = resolve_conversation_id_for_scope(conversation_id, subject, book_name)
-    target_chapters = _target_chapters_from_learning_context(req.target_chapters, resolution_trace)
-    continuity_context = build_evidence_continuity_context(
-        history, resolution_trace, book_name=book_name, subject=subject,
-    )
-    _safe_record_evidence_invalidation(conversation_id, continuity_context)
-    continuity_context["conversation_context_seed"] = _conversation_context_seed(
-        conversation_id, history, resolution_trace,
-    )
-    continuity_context["learning_context_pack"] = _learning_context_for_graph(resolution_trace)
-    subject_suggestion = _safe_subject_suggestion(rewritten_question, subject, book_name)
-    # Do not retrieve from a known-wrong textbook while the user decides
-    # whether to move the turn or relabel the conversation.
-    scope_decision = decide_answer_scope(
-        req.question,
-        rewritten_question,
-        book_name=book_name,
-        subject=subject,
-        subject_suggestion=subject_suggestion,
-        requested_mode=req.answer_mode,
-    )
-    use_textbook_context = scope_decision.use_textbook_context
-    scope_reason = scope_decision.reason
-    answer_mode = scope_decision.answer_mode
-    context_versions = current_context_versions(book_name)
+    prepared = _prepare_chat_turn(req, resume_task=_learning_task, resume=_resume)
+    book_name = prepared["book_name"]
+    subject = prepared["subject"]
+    conversation_id = prepared["conversation_id"]
+    turn_id = prepared["turn_id"]
+    history = prepared["history"]
+    rewritten_question = prepared["rewritten_question"]
+    resolution_trace = prepared["resolution_trace"]
+    target_chapters = prepared["target_chapters"]
+    continuity_context = prepared["continuity_context"]
+    subject_suggestion = prepared["subject_suggestion"]
+    use_textbook_context = prepared["use_textbook_context"]
+    scope_reason = prepared["scope_reason"]
+    answer_mode = prepared["answer_mode"]
+    context_versions = prepared["context_versions"]
     learning_task = _learning_task or _start_chat_learning_task(
         question=req.question, rewritten_question=rewritten_question, history=history,
         conversation_id=conversation_id, turn_id=turn_id, answer_mode=answer_mode,
@@ -872,24 +948,20 @@ def _prepared_chat_stream(
                 return ""
 
             try:
-                item = append_message(
-                    conversation_id,
-                    "assistant",
-                    content,
+                item = _append_assistant_result(
+                    conversation_id=conversation_id,
+                    content=content,
                     book_name=book_name,
                     subject=subject,
                     turn_id=turn_id,
-                    sources=_persisted_evidence_sources(
-                        assistant_sources, book_name=book_name,
-                        context_versions=context_versions,
-                    ),
+                    sources=assistant_sources,
+                    context_versions=context_versions,
                     answer_mode=answer_mode,
                     scope_reason=scope_reason,
                     suggested_answer_mode=suggested_answer_mode,
                     delivery_status=delivery_status,
                     request_id=request_id,
-                    context_versions=context_versions,
-                    learning_task=learning_task.to_dict(public=True),
+                    learning_task=learning_task,
                 )
                 assistant_message_id = str((item or {}).get("id") or "")
                 assistant_message = item if isinstance(item, dict) else None
@@ -1375,38 +1447,21 @@ def chat_ask(req: ChatRequest):
 
     request_id = new_request_id()
     started = time.perf_counter()
-    book_name = (req.book_name or "").strip()
-    subject = (req.subject or "").strip()
-    conversation_id = resolve_conversation_id_for_scope(req.conversation_id, subject, book_name)
-    turn_id = ensure_turn_id(req.turn_id)
-    history = load_history(conversation_id)
-    rewritten_question, resolution_trace = _resolve_request_question(
-        req.question, history, conversation_id, book_name=book_name, subject=subject,
-    )
-    book_name, subject = _scope_from_learning_context(book_name, subject, resolution_trace)
-    conversation_id = resolve_conversation_id_for_scope(conversation_id, subject, book_name)
-    target_chapters = _target_chapters_from_learning_context(req.target_chapters, resolution_trace)
-    continuity_context = build_evidence_continuity_context(
-        history, resolution_trace, book_name=book_name, subject=subject,
-    )
-    _safe_record_evidence_invalidation(conversation_id, continuity_context)
-    continuity_context["conversation_context_seed"] = _conversation_context_seed(
-        conversation_id, history, resolution_trace,
-    )
-    continuity_context["learning_context_pack"] = _learning_context_for_graph(resolution_trace)
-    subject_suggestion = _safe_subject_suggestion(rewritten_question, subject, book_name)
-    scope_decision = decide_answer_scope(
-        req.question,
-        rewritten_question,
-        book_name=book_name,
-        subject=subject,
-        subject_suggestion=subject_suggestion,
-        requested_mode=req.answer_mode,
-    )
-    use_textbook_context = scope_decision.use_textbook_context
-    scope_reason = scope_decision.reason
-    answer_mode = scope_decision.answer_mode
-    context_versions = current_context_versions(book_name)
+    prepared = _prepare_chat_turn(req)
+    book_name = prepared["book_name"]
+    subject = prepared["subject"]
+    conversation_id = prepared["conversation_id"]
+    turn_id = prepared["turn_id"]
+    history = prepared["history"]
+    rewritten_question = prepared["rewritten_question"]
+    resolution_trace = prepared["resolution_trace"]
+    target_chapters = prepared["target_chapters"]
+    continuity_context = prepared["continuity_context"]
+    subject_suggestion = prepared["subject_suggestion"]
+    use_textbook_context = prepared["use_textbook_context"]
+    scope_reason = prepared["scope_reason"]
+    answer_mode = prepared["answer_mode"]
+    context_versions = prepared["context_versions"]
     learning_task = _start_chat_learning_task(
         question=req.question, rewritten_question=rewritten_question, history=history,
         conversation_id=conversation_id, turn_id=turn_id, answer_mode=answer_mode,
@@ -1452,25 +1507,21 @@ def chat_ask(req: ChatRequest):
     content = result.get("final_output", "")
     assistant_message: dict | None = None
     if content.strip():
-        assistant_message = append_message(
-            conversation_id,
-            "assistant",
-            content,
+        assistant_message = _append_assistant_result(
+            conversation_id=conversation_id,
+            content=content,
             book_name=book_name,
             subject=subject,
             turn_id=turn_id,
-            sources=_persisted_evidence_sources(
-                result.get("evidence_sources", []), book_name=book_name,
-                context_versions=context_versions,
-            ),
+            sources=result.get("evidence_sources", []),
+            context_versions=context_versions,
             linked_concepts=result.get("linked_concepts", []),
             answer_mode=answer_mode,
             scope_reason=scope_reason,
             suggested_answer_mode=str(result.get("suggested_answer_mode") or ""),
             evidence_support_status=str((result.get("evidence_support") or {}).get("status") or ""),
             request_id=request_id,
-            context_versions=context_versions,
-            learning_task=learning_task.to_dict(public=True),
+            learning_task=learning_task,
         )
         _safe_record_assistant_ledger(conversation_id, assistant_message)
 
