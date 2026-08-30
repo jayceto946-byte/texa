@@ -1,6 +1,7 @@
 import hashlib
 import json
 from pathlib import Path
+import threading
 from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
@@ -8,12 +9,16 @@ from PIL import Image
 import pytest
 
 from backend.main import app
+from backend.services.execution_events import (
+    EXECUTION_EVENT_TERMINAL_TYPES,
+    validate_execution_event_sequence,
+)
 from backend.services.figure_learning import (
     FigureIndexOutOfDateError,
     FigureLearningService,
     NormalizedBBox,
 )
-from backend.services.learning_task import LearningTaskStore
+from backend.services.learning_task import LearningTaskStore, resume_learning_task
 from backend.services.multimodal_bridge import VisionModelBridge
 from evaluation.visual_learning_eval import evaluate_visual_learning_corpus
 from ingestion.chapter_splitter import ChapterSplitter
@@ -231,8 +236,9 @@ def test_figure_api_lists_serves_and_streams_grounded_source(monkeypatch, tmp_pa
     from backend.api import figures
 
     service = FigureLearningService(tmp_path)
+    store = LearningTaskStore(tmp_path / "tasks")
     monkeypatch.setattr(figures, "_service", lambda: service)
-    monkeypatch.setattr(figures, "_task_store", lambda: LearningTaskStore(tmp_path / "tasks"))
+    monkeypatch.setattr(figures, "_task_store", lambda: store)
     monkeypatch.setattr(figures, "resolve_conversation_id_for_scope", lambda value, *_args: value or "conv-figure")
     monkeypatch.setattr(figures, "append_message", lambda *_args, **kwargs: {"id": "message-1", **kwargs})
 
@@ -270,6 +276,33 @@ def test_figure_api_lists_serves_and_streams_grounded_source(monkeypatch, tmp_pa
     assert done["result"]["citation_provenance"]["status"] == "model_aligned"
     assert done["result"]["citation_provenance"]["automatic_citation_inserted"] is False
     assert done["result"]["learning_task"]["status"] == "completed"
+    task = done["result"]["learning_task"]
+    canonical = [
+        item["execution_event"]
+        for item in payloads
+        if (item.get("execution_event") or {}).get("task_id") == task["id"]
+    ]
+    validate_execution_event_sequence(canonical)
+    assert {event["type"] for event in canonical} <= {
+        "progress", "state_transition", "tool_result", "output_delta", "final", "error",
+    }
+    assert [event["seq"] for event in canonical] == sorted(event["seq"] for event in canonical)
+    terminals = [event for event in canonical if event["type"] in EXECUTION_EVENT_TERMINAL_TYPES]
+    assert len(terminals) == 1 and terminals[0]["type"] == "final"
+    assert canonical[-1] == terminals[0]
+    assert terminals[0]["payload"]["task_status"] == task["status"]
+    deltas = [event for event in canonical if event["type"] == "output_delta"]
+    assert deltas
+    assert all(set(event["payload"]) == {"text", "replace"} for event in deltas)
+    assert all(
+        item["activity"]["event_type"] == item["execution_event"]["type"]
+        and item["activity"]["seq"] == item["execution_event"]["seq"]
+        for item in payloads if item.get("execution_event") and item.get("activity")
+    )
+    stored = store.get(task["id"])
+    assert [event["type"] for event in stored.artifacts["execution_events"]] == [
+        "state_transition", "tool_result", "final",
+    ]
 
 
 def test_figure_api_attaches_sources_without_inventing_inline_citation(monkeypatch, tmp_path):
@@ -277,8 +310,9 @@ def test_figure_api_attaches_sources_without_inventing_inline_citation(monkeypat
     from backend.api import figures
 
     service = FigureLearningService(tmp_path)
+    store = LearningTaskStore(tmp_path / "tasks")
     monkeypatch.setattr(figures, "_service", lambda: service)
-    monkeypatch.setattr(figures, "_task_store", lambda: LearningTaskStore(tmp_path / "tasks"))
+    monkeypatch.setattr(figures, "_task_store", lambda: store)
     monkeypatch.setattr(figures, "resolve_conversation_id_for_scope", lambda value, *_args: value or "conv-figure")
     saved: list[dict] = []
     monkeypatch.setattr(figures, "append_message", lambda *_args, **kwargs: saved.append(kwargs) or {"id": "message-1", **kwargs})
@@ -307,6 +341,218 @@ def test_figure_api_attaches_sources_without_inventing_inline_citation(monkeypat
     assert done["result"]["learning_task"]["resumable"] is False
     assert saved[-1]["evidence_support_status"] == "degraded"
     assert saved[-1]["citation_provenance"]["source_attachment_origin"] == "system"
+    task = done["result"]["learning_task"]
+    canonical = [
+        item["execution_event"]
+        for item in payloads
+        if (item.get("execution_event") or {}).get("task_id") == task["id"]
+    ]
+    validate_execution_event_sequence(canonical)
+    terminals = [event for event in canonical if event["type"] in EXECUTION_EVENT_TERMINAL_TYPES]
+    assert len(terminals) == 1 and terminals[0]["type"] == "final"
+    assert terminals[0]["payload"]["task_status"] == "degraded"
+    assert store.get(task["id"]).status == "degraded"
+
+
+def test_figure_output_delta_uses_exact_append_and_replace_payload(monkeypatch, tmp_path):
+    _figure_book(tmp_path)
+    from backend.api import figures
+
+    store = LearningTaskStore(tmp_path / "tasks")
+    monkeypatch.setattr(figures, "_service", lambda: FigureLearningService(tmp_path))
+    monkeypatch.setattr(figures, "_task_store", lambda: store)
+    monkeypatch.setattr(figures, "append_message", lambda *_args, **kwargs: {"id": "message-1"})
+    monkeypatch.setattr(figures, "sanitize_latex", lambda _answer: "normalized answer")
+    monkeypatch.setattr(figures, "verify_answer", lambda *_args, **_kwargs: {
+        "status": "passed", "passed": True, "checks": [],
+    })
+
+    class FakeBridge:
+        def iter_figure_answer(self, *_args, **_kwargs):
+            yield "raw "
+            yield "answer"
+
+    monkeypatch.setattr(figures, "VisionModelBridge", FakeBridge)
+
+    response = TestClient(app).post("/api/visual-learning/figure-stream", json={
+        "book_name": "视觉教材", "figure_id": "figure-1", "question": "解释这幅图",
+        "conversation_id": "conv-delta", "turn_id": "turn-delta",
+    })
+    payloads = [
+        json.loads(line.removeprefix("data: "))
+        for line in response.text.splitlines() if line.startswith("data: ")
+    ]
+    deltas = [
+        item["execution_event"]["payload"]
+        for item in payloads
+        if (item.get("execution_event") or {}).get("type") == "output_delta"
+    ]
+
+    assert response.status_code == 200
+    assert deltas == [
+        {"text": "raw ", "replace": False},
+        {"text": "answer", "replace": False},
+        {"text": "normalized answer", "replace": True},
+    ]
+    done = next(item for item in payloads if item["stage"] == "done")
+    assert done["result"]["explanation"] == "normalized answer"
+
+
+def test_figure_terminal_survives_conversation_projection_failure(monkeypatch, tmp_path):
+    _figure_book(tmp_path)
+    from backend.api import figures
+
+    store = LearningTaskStore(tmp_path / "tasks")
+    monkeypatch.setattr(figures, "_service", lambda: FigureLearningService(tmp_path))
+    monkeypatch.setattr(figures, "_task_store", lambda: store)
+    monkeypatch.setattr(
+        figures, "append_message",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("conversation write failed")),
+    )
+    monkeypatch.setattr(figures, "verify_answer", lambda *_args, **_kwargs: {
+        "status": "passed", "passed": True, "checks": [],
+    })
+
+    class FakeBridge:
+        def iter_figure_answer(self, *_args, **_kwargs):
+            yield "grounded answer [[cite:E1]]"
+
+    monkeypatch.setattr(figures, "VisionModelBridge", FakeBridge)
+
+    response = TestClient(app).post("/api/visual-learning/figure-stream", json={
+        "book_name": "视觉教材", "figure_id": "figure-1", "question": "解释这幅图",
+        "conversation_id": "conv-persist", "turn_id": "turn-persist",
+    })
+    payloads = [
+        json.loads(line.removeprefix("data: "))
+        for line in response.text.splitlines() if line.startswith("data: ")
+    ]
+    done = next(item for item in payloads if item["stage"] == "done")
+    task = done["result"]["learning_task"]
+
+    assert done["persistence_error"] == "conversation write failed"
+    assert done["execution_event"]["type"] == "final"
+    assert done["execution_event"]["payload"]["task_status"] == "completed"
+    assert store.get(task["id"]).status == "completed"
+
+
+def test_figure_stream_maps_active_index_mismatch_to_canonical_error(monkeypatch, tmp_path):
+    _figure_book(tmp_path)
+    _ACTIVE_FIGURE_INDEXES["视觉教材"]["manifest"]["schema_version"] = 5
+    from backend.api import figures
+
+    store = LearningTaskStore(tmp_path / "tasks")
+    monkeypatch.setattr(figures, "_service", lambda: FigureLearningService(tmp_path))
+    monkeypatch.setattr(figures, "_task_store", lambda: store)
+    monkeypatch.setattr(figures, "append_message", lambda *_args, **kwargs: {"id": "message-error"})
+
+    class UnexpectedBridge:
+        def __init__(self):
+            raise AssertionError("vision model must not run after provenance failure")
+
+    monkeypatch.setattr(figures, "VisionModelBridge", UnexpectedBridge)
+
+    response = TestClient(app).post("/api/visual-learning/figure-stream", json={
+        "book_name": "视觉教材", "figure_id": "figure-1", "question": "解释这幅图",
+        "conversation_id": "conv-stale-index", "turn_id": "turn-stale-index",
+    })
+    payloads = [
+        json.loads(line.removeprefix("data: "))
+        for line in response.text.splitlines() if line.startswith("data: ")
+    ]
+    error = next(item for item in payloads if item["stage"] == "error")
+    task = error["learning_task"]
+    canonical = [
+        item["execution_event"]
+        for item in payloads
+        if (item.get("execution_event") or {}).get("task_id") == task["id"]
+    ]
+
+    assert response.status_code == 200
+    validate_execution_event_sequence(canonical)
+    terminals = [event for event in canonical if event["type"] in EXECUTION_EVENT_TERMINAL_TYPES]
+    assert len(terminals) == 1 and terminals[0]["type"] == "error"
+    assert canonical[-1] == terminals[0]
+    assert error["http_status"] == 409
+    assert error["error_code"] == "figure_index_out_of_date"
+    assert terminals[0]["payload"]["http_status"] == 409
+    assert terminals[0]["payload"]["task_status"] == "failed"
+    assert task["status"] == "failed"
+    assert store.get(task["id"]).status == "failed"
+    assert not any(item["stage"] == "done" for item in payloads)
+
+
+def test_figure_stale_run_cannot_emit_after_interrupt_and_new_run(monkeypatch, tmp_path):
+    _figure_book(tmp_path)
+    from backend.api import figures
+
+    stream_paused = threading.Event()
+    release_stream = threading.Event()
+
+    class TrackingStore(LearningTaskStore):
+        task_id = ""
+
+        def create(self, **kwargs):
+            task = super().create(**kwargs)
+            self.task_id = task.id
+            return task
+
+    store = TrackingStore(tmp_path / "tasks")
+    monkeypatch.setattr(figures, "_service", lambda: FigureLearningService(tmp_path))
+    monkeypatch.setattr(figures, "_task_store", lambda: store)
+    monkeypatch.setattr(figures, "append_message", lambda *_args, **kwargs: {"id": "message-partial"})
+
+    class BlockingBridge:
+        def iter_figure_answer(self, *_args, **_kwargs):
+            yield "partial"
+            stream_paused.set()
+            release_stream.wait(timeout=3)
+            yield "late"
+
+    monkeypatch.setattr(figures, "VisionModelBridge", BlockingBridge)
+    client = TestClient(app)
+    result = {}
+
+    def consume_stream():
+        result["response"] = client.post("/api/visual-learning/figure-stream", json={
+            "book_name": "视觉教材", "figure_id": "figure-1", "question": "解释这幅图",
+            "conversation_id": "conv-interrupt", "turn_id": "turn-interrupt",
+        })
+
+    worker = threading.Thread(target=consume_stream)
+    worker.start()
+    assert stream_paused.wait(timeout=3)
+
+    interrupted = client.post(
+        f"/api/visual-learning/tasks/{store.task_id}/interrupt",
+        json={"stage": "user_stopped", "partial_output": "partial"},
+    ).json()["learning_task"]
+    assert interrupted["status"] == "interrupted"
+    resumed = resume_learning_task(store, store.get(store.task_id), run_id="run-new")
+    assert resumed.status == "running"
+
+    release_stream.set()
+    worker.join(timeout=5)
+
+    assert not worker.is_alive()
+    payloads = [
+        json.loads(line.removeprefix("data: "))
+        for line in result["response"].text.splitlines() if line.startswith("data: ")
+    ]
+    old_run_events = [
+        item["execution_event"]
+        for item in payloads
+        if (item.get("execution_event") or {}).get("run_id") != "run-new"
+    ]
+    validate_execution_event_sequence(old_run_events)
+    assert not any(event["type"] in EXECUTION_EVENT_TERMINAL_TYPES for event in old_run_events)
+    assert not any(
+        event["type"] == "output_delta" and event["payload"]["text"] == "late"
+        for event in old_run_events
+    )
+    current = store.get(store.task_id)
+    assert current.status == "running"
+    assert current.artifacts["active_run_id"] == "run-new"
 
 
 def test_figure_context_uses_active_index_and_rejects_canonical_drift(tmp_path):
@@ -407,6 +653,17 @@ def test_figure_task_interrupt_and_resume_reuses_saved_figure_context(monkeypatc
     assert done["result"]["learning_task"]["status"] == "completed"
     assert done["result"]["region"] == [0.1, 0.1, 0.6, 0.8]
     assert "[[cite:E1]]" in done["result"]["explanation"]
+    canonical = [
+        item["execution_event"]
+        for item in payloads
+        if (item.get("execution_event") or {}).get("task_id") == task.id
+    ]
+    validate_execution_event_sequence(canonical)
+    assert len({event["run_id"] for event in canonical}) == 1
+    assert canonical[0]["run_id"] != "run-initial"
+    terminals = [event for event in canonical if event["type"] in EXECUTION_EVENT_TERMINAL_TYPES]
+    assert len(terminals) == 1 and terminals[0]["type"] == "final"
+    assert terminals[0]["payload"]["task_status"] == "completed"
 
 
 def test_visual_learning_acceptance_requires_active_index_for_provenance_step(tmp_path):

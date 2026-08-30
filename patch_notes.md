@@ -1,3 +1,13 @@
+# 2026-08-30 - Figure ExecutionEvent V1 Producer Migration
+
+- Migrated the Figure question stream to the frozen `texa.execution/v1` emitter without changing the event schema. Figure context, crop, vision progress, answer deltas, final, and error lifecycle now use canonical event types and per-run sequence validation.
+- Figure answer chunks now use exact `{text, replace}` `output_delta` payloads. Completed and degraded runs emit one `final` with the persisted LearningTask status; provenance/index conflicts emit one explicit `error` with `figure_index_out_of_date` and HTTP 409 metadata.
+- Interrupted or superseded Figure runs stop before emitting late deltas or milestones. Existing `stage`, `activity`, `chunk`, `result`, and error fields remain as one-way projections from validated canonical events for the current frontend.
+
+## Validation
+
+- Figure, ExecutionEvent, LearningTask, and visual-eval regressions: 62 passed. Full Python regression: 677 passed; the existing Starlette/httpx deprecation warning remains.
+
 # 2026-08-30 - ExecutionEvent V1 Contract Freeze
 
 - Froze `texa.execution/v1` identity, event types, output-delta payload, per-run ordering, single-terminal, public-reasoning, and LearningTask transition validation in the existing execution event service.
