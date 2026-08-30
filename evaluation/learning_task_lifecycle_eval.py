@@ -55,7 +55,7 @@ def evaluate_learning_task_lifecycle() -> list[dict[str, Any]]:
         interrupted = interrupt_learning_task(
             store, interrupted, stage="generate", partial_output="已完成公式推导",
         )
-        resumed = resume_learning_task(store, interrupted)
+        resumed = resume_learning_task(store, interrupted, run_id="run-evaluation")
         cases.append(_case(
             "interrupted_task_keeps_checkpoint_and_resumes",
             resumed.status == "running"

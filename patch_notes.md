@@ -1,3 +1,13 @@
+# 2026-08-30 - Architecture Convergence Phase 2A
+
+- Textbook resume checkpoints now require the current checkpoint contract version, an applied evidence gate, and an explicit index version that exactly matches the active book index. Missing or mismatched metadata marks the checkpoint stale and restarts the normal plan/retrieve path without reusing prior evidence.
+- LearningTask status semantics now live in one per-state contract that derives the transition table and all public capabilities. `degraded` is terminal, status writes must pass through `checkpoint()`, and run-owned writes fail closed without an explicit run ID.
+- Chat clarification, Figure completion, and Mistake input-resume use the shared state contract. Mistake resume now claims an `active_run_id`; stale or concurrent runs cannot checkpoint task state.
+
+## Validation
+
+- Focused resume, LearningTask, Chat, Figure, Mistake, and execution-event regressions: 67 passed. Full Python regression: 655 passed; the existing Starlette/httpx deprecation warning remains.
+
 # 2026-08-29 - Provenance V1 and index schema 6
 
 - Canonical chunks now carry `texa.provenance/v1`: stable `chunk_id`, ordered `source_block_ids`, source locations (`block_id`, page range, bbox coordinate contract, source kind/file), plus `figure_id` for Figure blocks.

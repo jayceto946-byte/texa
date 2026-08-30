@@ -67,6 +67,7 @@ def build_main_graph() -> StateGraph:
 # 全局编译好的图实例（单例）
 _main_graph = None
 PROGRESS_INTERVAL_SECONDS = 10.0
+RESUME_CHECKPOINT_VERSION = 1
 
 
 def _run_blocking_with_progress(
@@ -264,7 +265,7 @@ def build_initial_state(
         "iteration": 0,
         "max_iterations": 10,
         "resume_phase": "",
-        "resume_checkpoint_version": 1,
+        "resume_checkpoint_version": RESUME_CHECKPOINT_VERSION,
     }
 
 
@@ -296,8 +297,15 @@ def run_graph(user_input: str, book_name: str = "default",
     return graph.invoke(initial_state)
 
 
-def _validated_resume_state(resume_state: dict | None, book_name: str) -> dict:
+def _validated_resume_state(
+    resume_state: dict | None,
+    book_name: str,
+    *,
+    use_textbook_context: bool,
+) -> dict:
     if not isinstance(resume_state, dict) or not resume_state:
+        return {}
+    if resume_state.get("resume_checkpoint_version") != RESUME_CHECKPOINT_VERSION:
         return {}
     required = {
         "intent", "target_chapters", "chapter_contents", "evidence_items",
@@ -306,23 +314,24 @@ def _validated_resume_state(resume_state: dict | None, book_name: str) -> dict:
     if any(key not in resume_state for key in required):
         return {}
 
-    checkpoint_version = str(
-        resume_state.get("index_version")
-        or (resume_state.get("index_stats") or {}).get("index_version")
-        or ""
-    )
-    if checkpoint_version and book_name and book_name != "default":
+    if use_textbook_context:
+        if resume_state.get("evidence_gate_applied") is not True:
+            return {}
+        checkpoint_version = str(resume_state.get("index_version") or "").strip()
+        if not checkpoint_version:
+            return {}
         try:
             from ingestion.index_pipeline import load_index_manifest
 
             active_version = str(load_index_manifest(book_name).get("index_version") or "")
         except Exception:
             return {}
-        if active_version and active_version != checkpoint_version:
+        if not active_version or active_version != checkpoint_version:
             return {}
 
     reusable_keys = (
-        "intent", "target_chapters", "chapter_contents", "evidence_items", "evidence_sources",
+        "resume_checkpoint_version", "intent", "target_chapters", "chapter_contents",
+        "evidence_items", "evidence_sources",
         "retrieval_status", "retrieval_error", "evidence_support", "retrieval_debug_items",
         "evidence_gate_applied", "suggested_answer_mode", "index_stats", "retrieval_action",
         "retrieval_query", "reused_evidence_ids", "new_evidence_ids", "dropped_evidence_ids",
@@ -376,7 +385,11 @@ def run_graph_stream(
         scope_reason=scope_reason,
         continuity_context=continuity_context,
     )
-    reusable = _validated_resume_state(resume_state, book_name)
+    reusable = _validated_resume_state(
+        resume_state,
+        book_name,
+        use_textbook_context=bool(state.get("use_textbook_context", True)),
+    )
     if reusable:
         state.update(reusable)
         state["resume_phase"] = "post_retrieve"
@@ -457,6 +470,7 @@ def run_graph_stream(
             elif node == "retrieve":
                 checkpoint_state = {
                     key: state.get(key) for key in (
+                        "resume_checkpoint_version",
                         "intent", "target_chapters", "chapter_contents", "evidence_items",
                         "evidence_sources", "retrieval_status", "retrieval_error",
                         "evidence_support", "retrieval_debug_items", "evidence_gate_applied",

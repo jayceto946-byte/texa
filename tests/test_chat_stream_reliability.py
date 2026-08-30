@@ -3,6 +3,7 @@ import threading
 from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
+import pytest
 
 from backend.main import app
 from backend.services.learning_task import LearningTaskStore, interrupt_learning_task, resume_learning_task
@@ -16,6 +17,59 @@ class DummyChunk:
 class DummyLLM:
     def stream(self, prompt: str):
         yield DummyChunk("answer")
+
+
+def _prepared_chat_turn() -> dict:
+    return {
+        "book_name": "demo-book",
+        "subject": "math",
+        "conversation_id": "cid",
+        "turn_id": "turn-1",
+        "history": [],
+        "rewritten_question": "question",
+        "resolution_trace": {"resolution_action": "continue"},
+        "target_chapters": [],
+        "continuity_context": {},
+        "subject_suggestion": None,
+        "use_textbook_context": False,
+        "scope_reason": "explicit_global_mode",
+        "answer_mode": "global_general",
+        "context_versions": {},
+    }
+
+
+def _pending_tool_run() -> dict:
+    return {
+        "tool_outputs": [{
+            "result": {
+                "pending_action": {
+                    "id": "action-1",
+                    "type": "add_mistake",
+                    "status": "pending",
+                    "payload": {"question_text": "question"},
+                },
+            },
+        }],
+        "tool_context_pack": {"sufficient": True, "successful_tool_count": 1},
+        "execution_trace": {"total_elapsed_ms": 1},
+    }
+
+
+def _resume_checkpoint(**updates):
+    checkpoint = {
+        "resume_checkpoint_version": 1,
+        "intent": "qa",
+        "target_chapters": ["chapter-1"],
+        "chapter_contents": {"chapter-1": ["材料受力后电阻率变化"]},
+        "evidence_items": [{"chunk_id": "chunk-1", "text": "材料受力后电阻率变化"}],
+        "evidence_sources": [{"id": "E1", "chunk_id": "chunk-1", "text": "材料受力后电阻率变化"}],
+        "retrieval_status": "ok",
+        "evidence_support": {"status": "supported"},
+        "evidence_gate_applied": True,
+        "index_version": "index-v2",
+    }
+    checkpoint.update(updates)
+    return checkpoint
 
 
 def test_run_graph_stream_done_survives_feedback_failure(monkeypatch):
@@ -55,7 +109,9 @@ def test_run_graph_stream_done_survives_feedback_failure(monkeypatch):
 
 def test_run_graph_stream_resume_reuses_retrieval_checkpoint(monkeypatch):
     import graph.main_graph as main_graph
+    import ingestion.index_pipeline as index_pipeline
 
+    monkeypatch.setattr(index_pipeline, "load_index_manifest", lambda _book: {"index_version": "index-v2"})
     monkeypatch.setattr(main_graph, "plan_node", lambda state: (_ for _ in ()).throw(
         AssertionError("resume must not run planner")
     ))
@@ -69,19 +125,122 @@ def test_run_graph_stream_resume_reuses_retrieval_checkpoint(monkeypatch):
     events = list(main_graph.run_graph_stream(
         "解释压阻效应",
         book_name="demo-book",
-        resume_state={
-            "intent": "qa",
-            "target_chapters": ["chapter-1"],
-            "chapter_contents": {"chapter-1": ["材料受力后电阻率变化"]},
-            "evidence_items": [{"chunk_id": "chunk-1", "text": "材料受力后电阻率变化"}],
-            "evidence_sources": [{"id": "E1", "chunk_id": "chunk-1", "text": "材料受力后电阻率变化"}],
-            "retrieval_status": "ok",
-            "evidence_support": {"status": "supported"},
-        },
+        resume_state=_resume_checkpoint(),
     ))
 
     assert events[0]["stage"] == "plan" and events[0]["resumed"] is True
     assert events[1]["stage"] == "retrieve" and events[1]["resumed"] is True
+    assert events[-1]["stage"] == "done"
+
+
+@pytest.mark.parametrize("missing_key", [
+    "resume_checkpoint_version",
+    "evidence_gate_applied",
+    "index_version",
+])
+def test_textbook_resume_rejects_checkpoint_missing_provenance_contract(monkeypatch, missing_key):
+    import graph.main_graph as main_graph
+    import ingestion.index_pipeline as index_pipeline
+
+    monkeypatch.setattr(index_pipeline, "load_index_manifest", lambda _book: {"index_version": "index-v2"})
+    checkpoint = _resume_checkpoint()
+    checkpoint.pop(missing_key)
+
+    assert main_graph._validated_resume_state(
+        checkpoint, "demo-book", use_textbook_context=True,
+    ) == {}
+
+
+def test_textbook_resume_rejects_active_index_version_mismatch(monkeypatch):
+    import graph.main_graph as main_graph
+    import ingestion.index_pipeline as index_pipeline
+
+    monkeypatch.setattr(index_pipeline, "load_index_manifest", lambda _book: {"index_version": "index-v3"})
+
+    assert main_graph._validated_resume_state(
+        _resume_checkpoint(), "demo-book", use_textbook_context=True,
+    ) == {}
+
+
+@pytest.mark.parametrize("override", [
+    {"resume_checkpoint_version": 2},
+    {"evidence_gate_applied": False},
+])
+def test_textbook_resume_rejects_invalid_checkpoint_contract(monkeypatch, override):
+    import graph.main_graph as main_graph
+    import ingestion.index_pipeline as index_pipeline
+
+    monkeypatch.setattr(index_pipeline, "load_index_manifest", lambda _book: {"index_version": "index-v2"})
+
+    assert main_graph._validated_resume_state(
+        _resume_checkpoint(**override), "demo-book", use_textbook_context=True,
+    ) == {}
+
+
+def test_textbook_resume_rejects_checkpoint_after_active_index_rollback(monkeypatch):
+    import graph.main_graph as main_graph
+    import ingestion.index_pipeline as index_pipeline
+
+    active = {"index_version": "index-v2"}
+    monkeypatch.setattr(index_pipeline, "load_index_manifest", lambda _book: dict(active))
+    checkpoint = _resume_checkpoint()
+    assert main_graph._validated_resume_state(
+        checkpoint, "demo-book", use_textbook_context=True,
+    )["evidence_gate_applied"] is True
+
+    active["index_version"] = "index-v1"
+    assert main_graph._validated_resume_state(
+        checkpoint, "demo-book", use_textbook_context=True,
+    ) == {}
+
+
+def test_stale_textbook_resume_runs_plan_and_retrieval_without_old_evidence(monkeypatch):
+    import graph.main_graph as main_graph
+
+    calls = {"plan": 0, "retrieve": 0}
+
+    def plan(state):
+        calls["plan"] += 1
+        return {"intent": "qa", "target_chapters": ["fresh-chapter"], "planner_trace": {"mode": "test"}}
+
+    def retrieve(state):
+        calls["retrieve"] += 1
+        return {
+            "chapter_contents": {"fresh-chapter": ["fresh evidence"]},
+            "evidence_items": [{"chunk_id": "fresh", "text": "fresh evidence"}],
+            "evidence_sources": [{"id": "E1", "chunk_id": "fresh", "text": "fresh evidence"}],
+            "retrieval_status": "ok",
+            "evidence_support": {"status": "supported"},
+            "evidence_gate_applied": True,
+            "index_stats": {"index_version": "index-v3"},
+        }
+
+    def generate(state):
+        assert [item["chunk_id"] for item in state["evidence_items"]] == ["fresh"]
+        assert "legacy" not in state["chapter_contents"]
+        return {"final_output": "fresh answer"}
+
+    monkeypatch.setattr(main_graph, "plan_node", plan)
+    monkeypatch.setattr(main_graph, "retrieve_node", retrieve)
+    monkeypatch.setattr(main_graph, "generate_node", generate)
+    monkeypatch.setattr(main_graph, "feedback_node", lambda state: {})
+    monkeypatch.setattr(main_graph, "_main_graph", None)
+
+    stale = _resume_checkpoint(
+        chapter_contents={"legacy": ["stale evidence"]},
+        evidence_items=[{"chunk_id": "stale", "text": "stale evidence"}],
+    )
+    stale.pop("index_version")
+    events = list(main_graph.run_graph_stream(
+        "解释压阻效应", book_name="demo-book", resume_state=stale,
+    ))
+
+    assert calls == {"plan": 1, "retrieve": 1}
+    assert not any(event.get("resumed") is True for event in events)
+    retrieve_event = next(event for event in events if event.get("stage") == "retrieve")
+    assert retrieve_event["checkpoint_state"]["resume_checkpoint_version"] == 1
+    assert retrieve_event["checkpoint_state"]["evidence_gate_applied"] is True
+    assert retrieve_event["checkpoint_state"]["index_version"] == "index-v3"
     assert events[-1]["stage"] == "done"
 
 
@@ -109,6 +268,9 @@ def test_chat_interrupt_acknowledges_checkpoint_before_resume(monkeypatch, tmp_p
 
     assert response.status_code == 200
     assert response.json()["learning_task"]["status"] == "interrupted"
+    assert response.json()["learning_task"]["terminal"] is False
+    assert response.json()["learning_task"]["interruptible"] is False
+    assert response.json()["learning_task"]["resumable"] is True
     assert repeated.status_code == 200
     assert store.get(task.id).artifacts["partial_output"] == "已生成一部分"
     assert projected[-1] == ("cid", task.id, "interrupted")
@@ -253,6 +415,77 @@ def test_chat_stream_done_survives_assistant_persistence_failure(monkeypatch):
     assert "error" not in stages
     done_event = next(event for event in events if event["stage"] == "done")
     assert done_event["persistence_error"] == "conversation write failed"
+
+
+def test_chat_stream_pending_action_stays_running_until_finalization(monkeypatch, tmp_path):
+    import backend.api.chat as chat_api
+    import backend.rag_trace as rag_trace
+    import graph.main_graph as main_graph
+
+    store = LearningTaskStore(tmp_path)
+    observed_statuses = []
+    monkeypatch.setattr(chat_api, "get_learning_task_store", lambda: store)
+    monkeypatch.setattr(chat_api, "_prepare_chat_turn", lambda *args, **kwargs: _prepared_chat_turn())
+    monkeypatch.setattr(chat_api, "select_tool_calls", lambda _request: [{"tool": "propose_add_mistake"}])
+    monkeypatch.setattr(chat_api, "_prepare_main_tool_context", lambda *args, **kwargs: _pending_tool_run())
+    monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: {"id": "message"})
+    monkeypatch.setattr(chat_api, "_safe_save_resolution_ledger", lambda *args: None)
+    monkeypatch.setattr(chat_api, "_safe_record_assistant_ledger", lambda *args: None)
+    monkeypatch.setattr(rag_trace, "save_trace", lambda _payload: None)
+
+    def fake_run_graph_stream(**kwargs):
+        observed_statuses.append(kwargs["continuity_context"]["learning_task"]["status"])
+        yield {"stage": "generate", "chunk": "answer", "done": False}
+        yield {"stage": "generate", "chunk": "", "done": True}
+        yield {"stage": "done", "state": {"final_output": "answer"}, "enriched": False}
+
+    monkeypatch.setattr(main_graph, "run_graph_stream", fake_run_graph_stream)
+
+    response = TestClient(app).post("/api/chat/stream", json={"question": "question"})
+    events = [
+        json.loads(block[6:])
+        for block in response.text.strip().split("\n\n")
+        if block.startswith("data: ")
+    ]
+
+    assert response.status_code == 200
+    assert observed_statuses == ["running"]
+    done = next(event for event in events if event.get("stage") == "done")
+    task = done["state"]["learning_task"]
+    assert task["status"] == "waiting_for_confirmation"
+    assert task["confirmation_required"] is True
+    assert task["artifacts"]["pending_actions"][0]["id"] == "action-1"
+
+
+def test_chat_ask_pending_action_stays_running_until_finalization(monkeypatch, tmp_path):
+    import backend.api.chat as chat_api
+    import backend.rag_trace as rag_trace
+    import graph.main_graph as main_graph
+
+    store = LearningTaskStore(tmp_path)
+    observed_statuses = []
+    monkeypatch.setattr(chat_api, "get_learning_task_store", lambda: store)
+    monkeypatch.setattr(chat_api, "_prepare_chat_turn", lambda *args, **kwargs: _prepared_chat_turn())
+    monkeypatch.setattr(chat_api, "_prepare_main_tool_context", lambda *args, **kwargs: _pending_tool_run())
+    monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: {"id": "message"})
+    monkeypatch.setattr(chat_api, "_safe_save_resolution_ledger", lambda *args: None)
+    monkeypatch.setattr(chat_api, "_safe_record_assistant_ledger", lambda *args: None)
+    monkeypatch.setattr(rag_trace, "save_trace", lambda _payload: None)
+
+    def fake_run_graph(**kwargs):
+        observed_statuses.append(kwargs["continuity_context"]["learning_task"]["status"])
+        return {"final_output": "answer", "evidence_sources": [], "linked_concepts": []}
+
+    monkeypatch.setattr(main_graph, "run_graph", fake_run_graph)
+
+    response = TestClient(app).post("/api/chat/ask", json={"question": "question"})
+    task = response.json()["learning_task"]
+
+    assert response.status_code == 200
+    assert observed_statuses == ["running"]
+    assert task["status"] == "waiting_for_confirmation"
+    assert task["confirmation_required"] is True
+    assert task["artifacts"]["pending_actions"][0]["id"] == "action-1"
 
 
 def test_chat_stream_persists_context_trace_v2(monkeypatch):

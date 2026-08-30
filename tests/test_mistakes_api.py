@@ -112,6 +112,10 @@ def test_image_solution_waits_for_blocking_required_input(monkeypatch, tmp_path)
     assert events[-1]["stage"] == "waiting_for_input"
     task = events[-1]["result"]["learning_task"]
     assert task["status"] == "waiting_for_input"
+    assert task["terminal"] is False
+    assert task["interruptible"] is False
+    assert task["resumable"] is False
+    assert task["input_action_required"] is True
     assert task["conversation_id"] == "conv-gate"
     assert task["required_inputs"][0]["name"] == "E 型热电偶分度表"
 

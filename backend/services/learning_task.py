@@ -19,8 +19,120 @@ from utils.json_io import atomic_write_json
 
 
 LEARNING_TASK_SCHEMA_VERSION = "learning-task/v1"
-TERMINAL_TASK_STATUSES = {"completed", "failed", "cancelled"}
-RESUMABLE_TASK_STATUSES = {"interrupted"}
+LEARNING_TASK_STATE_CONTRACT = {
+    "running": {
+        "phase": "active",
+        "transitions": frozenset({
+            "interrupted", "waiting_for_input", "waiting_for_confirmation",
+            "completed", "degraded", "failed",
+        }),
+        "terminal": False,
+        "interruptible": True,
+        "resumable": False,
+        "delivered": False,
+        "input_action_required": False,
+        "confirmation_required": False,
+    },
+    "interrupted": {
+        "phase": "paused",
+        "transitions": frozenset({"running", "cancelled"}),
+        "terminal": False,
+        "interruptible": False,
+        "resumable": True,
+        "delivered": False,
+        "input_action_required": False,
+        "confirmation_required": False,
+    },
+    "waiting_for_input": {
+        "phase": "paused",
+        "transitions": frozenset({"running", "cancelled", "failed"}),
+        "terminal": False,
+        "interruptible": False,
+        "resumable": False,
+        "delivered": False,
+        "input_action_required": True,
+        "confirmation_required": False,
+    },
+    "waiting_for_confirmation": {
+        "phase": "paused",
+        "transitions": frozenset({"completed", "degraded", "failed", "cancelled"}),
+        "terminal": False,
+        "interruptible": False,
+        "resumable": False,
+        "delivered": False,
+        "input_action_required": False,
+        "confirmation_required": True,
+    },
+    "completed": {
+        "phase": "terminal",
+        "transitions": frozenset({"completed"}),
+        "terminal": True,
+        "interruptible": False,
+        "resumable": False,
+        "delivered": True,
+        "input_action_required": False,
+        "confirmation_required": False,
+    },
+    "degraded": {
+        "phase": "terminal",
+        "transitions": frozenset({"degraded"}),
+        "terminal": True,
+        "interruptible": False,
+        "resumable": False,
+        "delivered": True,
+        "input_action_required": False,
+        "confirmation_required": False,
+    },
+    "failed": {
+        "phase": "terminal",
+        "transitions": frozenset({"failed"}),
+        "terminal": True,
+        "interruptible": False,
+        "resumable": False,
+        "delivered": False,
+        "input_action_required": False,
+        "confirmation_required": False,
+    },
+    "cancelled": {
+        "phase": "terminal",
+        "transitions": frozenset({"cancelled"}),
+        "terminal": True,
+        "interruptible": False,
+        "resumable": False,
+        "delivered": False,
+        "input_action_required": False,
+        "confirmation_required": False,
+    },
+}
+LEARNING_TASK_STATUSES = frozenset(LEARNING_TASK_STATE_CONTRACT)
+LEARNING_TASK_TRANSITIONS = {
+    status: contract["transitions"]
+    for status, contract in LEARNING_TASK_STATE_CONTRACT.items()
+}
+ACTIVE_TASK_STATUSES = frozenset(
+    status for status, contract in LEARNING_TASK_STATE_CONTRACT.items()
+    if contract["phase"] == "active"
+)
+PAUSED_TASK_STATUSES = frozenset(
+    status for status, contract in LEARNING_TASK_STATE_CONTRACT.items()
+    if contract["phase"] == "paused"
+)
+TERMINAL_TASK_STATUSES = frozenset(
+    status for status, contract in LEARNING_TASK_STATE_CONTRACT.items()
+    if contract["terminal"]
+)
+INTERRUPTIBLE_TASK_STATUSES = frozenset(
+    status for status, contract in LEARNING_TASK_STATE_CONTRACT.items()
+    if contract["interruptible"]
+)
+RESUMABLE_TASK_STATUSES = frozenset(
+    status for status, contract in LEARNING_TASK_STATE_CONTRACT.items()
+    if contract["resumable"]
+)
+DELIVERED_TASK_STATUSES = frozenset(
+    status for status, contract in LEARNING_TASK_STATE_CONTRACT.items()
+    if contract["delivered"]
+)
 _TASK_LOCK = threading.RLock()
 
 
@@ -47,6 +159,51 @@ def _bounded_json(value: Any, *, depth: int = 0) -> Any:
             for key, item in list(value.items())[:100]
         }
     return _bounded_text(value, 500)
+
+
+def validate_learning_task_status(status: str) -> str:
+    normalized = _bounded_text(status, 40)
+    if normalized not in LEARNING_TASK_STATUSES:
+        raise ValueError(f"invalid learning task status: {normalized or '<empty>'}")
+    return normalized
+
+
+def validate_learning_task_transition(current_status: str, target_status: str) -> str:
+    current = validate_learning_task_status(current_status)
+    target = validate_learning_task_status(target_status)
+    if target not in LEARNING_TASK_TRANSITIONS[current]:
+        raise ValueError(f"invalid learning task transition: {current} -> {target}")
+    return target
+
+
+def is_terminal_task_status(status: str) -> bool:
+    contract = LEARNING_TASK_STATE_CONTRACT.get(status)
+    return bool(contract and contract["terminal"])
+
+
+def is_interruptible_task_status(status: str) -> bool:
+    contract = LEARNING_TASK_STATE_CONTRACT.get(status)
+    return bool(contract and contract["interruptible"])
+
+
+def is_resumable_task_status(status: str) -> bool:
+    contract = LEARNING_TASK_STATE_CONTRACT.get(status)
+    return bool(contract and contract["resumable"])
+
+
+def is_delivered_task_status(status: str) -> bool:
+    contract = LEARNING_TASK_STATE_CONTRACT.get(status)
+    return bool(contract and contract["delivered"])
+
+
+def task_requires_input_action(status: str) -> bool:
+    contract = LEARNING_TASK_STATE_CONTRACT.get(status)
+    return bool(contract and contract["input_action_required"])
+
+
+def task_requires_confirmation(status: str) -> bool:
+    contract = LEARNING_TASK_STATE_CONTRACT.get(status)
+    return bool(contract and contract["confirmation_required"])
 
 
 @dataclass
@@ -94,13 +251,20 @@ class LearningTask:
     def to_dict(self, *, public: bool = False) -> dict[str, Any]:
         value = asdict(self)
         if public:
+            value.update({
+                "terminal": is_terminal_task_status(self.status),
+                "interruptible": is_interruptible_task_status(self.status),
+                "resumable": is_resumable_task_status(self.status),
+                "input_action_required": task_requires_input_action(self.status),
+                "confirmation_required": task_requires_confirmation(self.status),
+            })
             artifacts = value.get("artifacts") or {}
             value["artifacts"] = {
                 "visual_ir": artifacts.get("visual_ir") or {},
                 "supplement_count": len(artifacts.get("supplemental_visual_irs") or []),
                 "completed_derivation": _bounded_text(artifacts.get("completed_derivation"), 4000),
                 "pending_actions": list(artifacts.get("pending_actions") or [])[:10],
-                "resume_available": self.status in RESUMABLE_TASK_STATUSES,
+                "resume_available": is_resumable_task_status(self.status),
                 "resume_stage": _bounded_text(artifacts.get("resume_stage"), 80),
                 "partial_output": _bounded_text(artifacts.get("partial_output"), 4000),
                 "execution_events": list(artifacts.get("execution_events") or [])[-40:],
@@ -131,11 +295,12 @@ class LearningTaskStore:
         artifacts: dict[str, Any] | None = None,
         status: str = "running",
     ) -> LearningTask:
+        normalized_status = validate_learning_task_status(status)
         task = LearningTask(
             id=f"task_{uuid.uuid4().hex}",
             task_type=_bounded_text(task_type, 80),
             goal=_bounded_text(goal, 2000),
-            status=_bounded_text(status, 40),
+            status=normalized_status,
             conversation_id=_bounded_text(conversation_id, 100),
             turn_id=_bounded_text(turn_id, 100),
             answer_mode=_bounded_text(answer_mode, 80),
@@ -143,8 +308,8 @@ class LearningTaskStore:
             required_outputs=[_bounded_json(item) for item in (required_outputs or [])[:40] if isinstance(item, dict)],
             artifacts=_bounded_json(artifacts or {}),
         )
-        task.checkpoints.append({"stage": "created", "status": status, "at": task.created_at})
-        self.save(task)
+        task.checkpoints.append({"stage": "created", "status": normalized_status, "at": task.created_at})
+        self._persist(task)
         return task
 
     def get(self, task_id: str) -> LearningTask | None:
@@ -158,31 +323,50 @@ class LearningTaskStore:
         if value.get("schema_version") != LEARNING_TASK_SCHEMA_VERSION:
             return None
         fields = LearningTask.__dataclass_fields__
-        return LearningTask(**{key: value[key] for key in fields if key in value})
+        task = LearningTask(**{key: value[key] for key in fields if key in value})
+        validate_learning_task_status(task.status)
+        return task
 
-    def save(self, task: LearningTask) -> LearningTask:
-        task.updated_at = _now()
-        path = self._path(task.id)
+    def _persist(self, task: LearningTask) -> LearningTask:
+        validate_learning_task_status(task.status)
         with _TASK_LOCK:
+            task.updated_at = _now()
+            path = self._path(task.id)
             path.parent.mkdir(parents=True, exist_ok=True)
             atomic_write_json(path, task.to_dict())
         return task
 
+    def save(self, task: LearningTask) -> LearningTask:
+        """Persist non-status mutations; status changes must use checkpoint()."""
+        with _TASK_LOCK:
+            current = self.get(task.id)
+            if current is not None and current.status != task.status:
+                raise ValueError("learning task status changes must use checkpoint()")
+            return self._persist(task)
+
     def run_is_active(self, task_id: str, run_id: str) -> bool:
+        normalized_run_id = str(run_id or "")
+        if not normalized_run_id:
+            return False
         current = self.get(task_id)
         return bool(
             current
-            and current.status == "running"
-            and str(current.artifacts.get("active_run_id") or "") == str(run_id or "")
+            and is_interruptible_task_status(current.status)
+            and str(current.artifacts.get("active_run_id") or "") == normalized_run_id
         )
 
     def save_for_run(self, task: LearningTask, run_id: str) -> LearningTask:
         """Save stream-owned state only while that exact run still owns the task."""
         with _TASK_LOCK:
             current = self.get(task.id)
-            if not current or current.status != "running":
+            if not current or not is_interruptible_task_status(current.status):
                 return current or task
-            if str(current.artifacts.get("active_run_id") or "") != str(run_id or ""):
+            normalized_run_id = str(run_id or "")
+            if not normalized_run_id:
+                return current
+            if str(current.artifacts.get("active_run_id") or "") != normalized_run_id:
+                return current
+            if task.status != current.status:
                 return current
             return self.save(task)
 
@@ -198,9 +382,12 @@ class LearningTaskStore:
         """Checkpoint without allowing a stale stream to overwrite stop/resume state."""
         with _TASK_LOCK:
             current = self.get(task.id)
-            if not current or current.status != "running":
+            if not current or not is_interruptible_task_status(current.status):
                 return current or task
-            if str(current.artifacts.get("active_run_id") or "") != str(run_id or ""):
+            normalized_run_id = str(run_id or "")
+            if not normalized_run_id:
+                return current
+            if str(current.artifacts.get("active_run_id") or "") != normalized_run_id:
                 return current
             return self.checkpoint(task, stage, status=status, detail=detail)
 
@@ -217,7 +404,10 @@ class LearningTaskStore:
             current = self.get(task_id)
             if current is None:
                 return None
-            if str(current.artifacts.get("active_run_id") or "") != str(run_id or ""):
+            normalized_run_id = str(run_id or "")
+            if not normalized_run_id:
+                return current
+            if str(current.artifacts.get("active_run_id") or "") != normalized_run_id:
                 return current
             compact = {
                 key: event.get(key)
@@ -234,13 +424,21 @@ class LearningTaskStore:
             return self.save(current)
 
     def checkpoint(self, task: LearningTask, stage: str, *, status: str | None = None, detail: str = "") -> LearningTask:
-        if status:
-            task.status = _bounded_text(status, 40)
-        task.checkpoints = [
-            *task.checkpoints,
-            {"stage": _bounded_text(stage, 80), "status": task.status, "detail": _bounded_text(detail, 500), "at": _now()},
-        ][-30:]
-        return self.save(task)
+        with _TASK_LOCK:
+            target_status = (
+                validate_learning_task_transition(task.status, status)
+                if status is not None
+                else validate_learning_task_status(task.status)
+            )
+            current = self.get(task.id)
+            if current is not None and current.status != task.status:
+                return current
+            task.status = target_status
+            task.checkpoints = [
+                *task.checkpoints,
+                {"stage": _bounded_text(stage, 80), "status": task.status, "detail": _bounded_text(detail, 500), "at": _now()},
+            ][-30:]
+            return self._persist(task)
 
 
 def blocking_required_inputs(required_inputs: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
@@ -268,14 +466,14 @@ def interrupt_learning_task(
 ) -> LearningTask:
     """Persist the smallest safe checkpoint needed to resume the same turn."""
     with _TASK_LOCK:
+        current = store.get(task.id)
+        if current is None:
+            return task
         if expected_run_id:
-            current = store.get(task.id)
-            if current is None:
-                return task
             if str(current.artifacts.get("active_run_id") or "") != str(expected_run_id):
                 return current
-            task = current
-        if task.status in TERMINAL_TASK_STATUSES:
+        task = current
+        if is_terminal_task_status(task.status):
             return task
         if task.status == "interrupted":
             if stage:
@@ -283,6 +481,8 @@ def interrupt_learning_task(
             if partial_output:
                 task.artifacts["partial_output"] = _bounded_text(partial_output, 12000)
             return store.save(task)
+        if not is_interruptible_task_status(task.status):
+            raise ValueError(f"learning task is not interruptible: {task.status}")
         task.artifacts["resume_stage"] = _bounded_text(stage or "unknown", 80)
         task.artifacts["partial_output"] = _bounded_text(partial_output, 12000)
         return store.checkpoint(task, "interrupted", status="interrupted", detail=stage)
@@ -295,16 +495,27 @@ def resume_learning_task(
     run_id: str = "",
 ) -> LearningTask:
     """Move an interrupted task back to running without discarding its artifacts."""
-    if task.status not in RESUMABLE_TASK_STATUSES:
-        raise ValueError(f"learning task is not resumable: {task.status}")
-    if run_id:
-        task.artifacts["active_run_id"] = _bounded_text(run_id, 80)
-    return store.checkpoint(
-        task,
-        "resumed",
-        status="running",
-        detail=str(task.artifacts.get("resume_stage") or "unknown"),
-    )
+    normalized_run_id = _bounded_text(run_id, 80)
+    if not normalized_run_id:
+        raise ValueError("run_id is required to resume learning task")
+    with _TASK_LOCK:
+        current = store.get(task.id)
+        if current is None:
+            raise ValueError("learning task no longer exists")
+        active_run_id = str(current.artifacts.get("active_run_id") or "")
+        if current.status == "running":
+            if active_run_id == normalized_run_id:
+                return current
+            raise ValueError("learning task is already running under another run")
+        if not is_resumable_task_status(current.status):
+            raise ValueError(f"learning task is not resumable: {current.status}")
+        current.artifacts["active_run_id"] = normalized_run_id
+        return store.checkpoint(
+            current,
+            "resumed",
+            status="running",
+            detail=str(current.artifacts.get("resume_stage") or "unknown"),
+        )
 
 
 _DEFAULT_STORE: LearningTaskStore | None = None

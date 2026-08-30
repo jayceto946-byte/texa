@@ -302,6 +302,9 @@ def test_figure_api_attaches_sources_without_inventing_inline_citation(monkeypat
     assert done["result"]["citation_provenance"]["status"] == "sources_attached"
     assert done["result"]["answer_verification"]["status"] == "failed"
     assert done["result"]["learning_task"]["status"] == "degraded"
+    assert done["result"]["learning_task"]["terminal"] is True
+    assert done["result"]["learning_task"]["interruptible"] is False
+    assert done["result"]["learning_task"]["resumable"] is False
     assert saved[-1]["evidence_support_status"] == "degraded"
     assert saved[-1]["citation_provenance"]["source_attachment_origin"] == "system"
 

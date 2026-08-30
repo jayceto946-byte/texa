@@ -5,6 +5,7 @@ import json
 import os
 import re
 import time
+import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
@@ -16,7 +17,10 @@ from backend.services.multimodal_bridge import KimiVisionBridge, VisualProblemIR
 from backend.services.learning_task import (
     blocking_required_inputs,
     get_learning_task_store,
+    is_delivered_task_status,
+    is_terminal_task_status,
     mark_required_inputs,
+    task_requires_input_action,
 )
 from backend.services.answer_verification import (
     derive_required_outputs,
@@ -834,14 +838,17 @@ def resume_visual_learning_task(
         if not task or task.task_type != "visual_qa":
             yield _sse_event("error", done=True, message="未找到可恢复的图片学习任务")
             return
-        if task.status == "completed":
+        if is_delivered_task_status(task.status):
             yield _sse_event("done", done=True, result={
                 "success": True,
                 "explanation": str((task.artifacts or {}).get("completed_derivation") or ""),
                 "learning_task": task.to_dict(public=True),
             })
             return
-        if task.status != "waiting_for_input":
+        if is_terminal_task_status(task.status):
+            yield _sse_event("error", done=True, message=f"当前任务已终止：{task.status}")
+            return
+        if not task_requires_input_action(task.status):
             yield _sse_event("error", done=True, message=f"当前任务状态不能恢复：{task.status}")
             return
 
@@ -851,6 +858,13 @@ def resume_visual_learning_task(
             return
         if normalized_action == "provide_input" and file is None:
             yield _sse_event("error", done=True, message="请先选择要补充的图片或附表")
+            return
+
+        run_id = f"run_{uuid.uuid4().hex}"
+        task.artifacts["active_run_id"] = run_id
+        task = store.checkpoint(task, "resume_started", status="running", detail="input gate resume")
+        if not store.run_is_active(task.id, run_id):
+            yield _sse_event("error", done=True, message="该任务已由另一运行实例恢复")
             return
 
         artifacts = dict(task.artifacts or {})
@@ -886,7 +900,9 @@ def resume_visual_learning_task(
                 detail = "已按用户选择降级为只讲方法"
 
             task.artifacts = artifacts
-            store.checkpoint(task, "inputs_resolved", status="running", detail=detail)
+            task = store.checkpoint_for_run(task, run_id, "inputs_resolved", detail=detail)
+            if not store.run_is_active(task.id, run_id):
+                return
             yield _sse_event("activity", activity={
                 "id": "required-inputs", "kind": "system", "label": "恢复原任务",
                 "status": "completed", "detail": detail,
@@ -924,7 +940,12 @@ def resume_visual_learning_task(
                 "input_gate": "passed" if normalized_action == "provide_input" else "degraded_method_only",
             }
             completion_status = "completed" if answer_verification.get("passed") else "degraded"
-            store.checkpoint(task, "answer_generated", status=completion_status, detail="原任务已恢复并完成验收")
+            task = store.checkpoint_for_run(
+                task, run_id, "answer_generated", status=completion_status,
+                detail="原任务已恢复并完成验收",
+            )
+            if task.status != completion_status:
+                return
 
             book_name = str(artifacts.get("book_name") or "default")
             draft = MistakeRecord(
@@ -962,7 +983,9 @@ def resume_visual_learning_task(
         except GeneratorExit:
             raise
         except Exception as exc:
-            store.checkpoint(task, "resume_failed", status="waiting_for_input", detail=str(exc))
+            task = store.checkpoint_for_run(
+                task, run_id, "resume_failed", status="waiting_for_input", detail=str(exc),
+            )
             yield _sse_event("error", done=True, message=str(exc), activity={
                 "id": "resume", "kind": "system", "label": "恢复失败",
                 "status": "failed", "detail": "原任务和已有材料已保留，可以重试",

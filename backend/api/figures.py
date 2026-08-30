@@ -24,6 +24,7 @@ from backend.services.learning_task import (
     LearningTaskStore,
     get_learning_task_store,
     interrupt_learning_task,
+    is_resumable_task_status,
     resume_learning_task,
 )
 from backend.services.multimodal_bridge import VisionModelBridge
@@ -264,7 +265,7 @@ def _figure_stream(
                 task, active_run_id, "verified", status=completion_status,
                 detail=str(answer_verification.get("status") or "unknown"),
             )
-            if task.status not in {"completed", "degraded"}:
+            if task.status != completion_status:
                 return
 
             append_message(
@@ -345,7 +346,7 @@ def interrupt_figure_task(task_id: str, payload: dict | None = None):
         stage=str(data.get("stage") or "user_stopped"),
         partial_output=str(data.get("partial_output") or ""),
     )
-    if task.status == "interrupted":
+    if is_resumable_task_status(task.status):
         book_name = str(task.artifacts.get("book_name") or "")
         subject = str(task.artifacts.get("subject") or "")
         sources: list[dict] = []

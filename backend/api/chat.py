@@ -54,8 +54,11 @@ from backend.services.learning_task import (
     LearningTask,
     get_learning_task_store,
     interrupt_learning_task,
+    is_interruptible_task_status,
+    is_resumable_task_status,
     mark_required_inputs,
     resume_learning_task,
+    task_requires_input_action,
 )
 from backend.services.execution_events import (
     ExecutionEventEmitter,
@@ -106,12 +109,11 @@ def _start_chat_learning_task(
         task_ref = message.get("learning_task") if isinstance(message, dict) else None
         if not isinstance(task_ref, dict) or task_ref.get("task_type") != "qa":
             continue
-        if task_ref.get("status") != "waiting_for_input":
+        if not task_requires_input_action(str(task_ref.get("status") or "")):
             break
         task = store.get(str(task_ref.get("id") or ""))
         if task is not None and task.conversation_id == conversation_id:
             mark_required_inputs(task, "provided")
-            task.status = "running"
             task.artifacts["clarification_response"] = question
             return store.checkpoint(task, "input_provided", status="running", detail="resumed from clarification")
         break
@@ -172,7 +174,7 @@ def _finish_chat_learning_task(
     return store.checkpoint(task, "verified", status=status, detail=str(verification.get("status") or "unknown"))
 
 
-def _attach_pending_actions(task: LearningTask, tool_run: dict) -> None:
+def _attach_pending_actions(task: LearningTask, tool_run: dict, *, run_id: str = "") -> LearningTask:
     actions = [
         item.get("result", {}).get("pending_action")
         for item in tool_run.get("tool_outputs") or []
@@ -180,7 +182,11 @@ def _attach_pending_actions(task: LearningTask, tool_run: dict) -> None:
     ]
     if actions:
         task.artifacts["pending_actions"] = actions[:10]
-        get_learning_task_store().checkpoint(task, "waiting_for_confirmation", status="waiting_for_confirmation")
+        store = get_learning_task_store()
+        if run_id:
+            return store.save_for_run(task, run_id)
+        return store.save(task)
+    return task
 
 
 def _prepare_main_tool_context(
@@ -779,6 +785,7 @@ def _prepared_chat_stream(
     continuity_context["required_outputs"] = learning_task.required_outputs
 
     def event_generator():
+        nonlocal learning_task
         from backend.rag_trace import new_request_id, save_trace
 
         request_id = _request_id or new_request_id()
@@ -1090,7 +1097,7 @@ def _prepared_chat_stream(
                     learning_task, final_state, waiting_reason=waiting_reason, run_id=run_id,
                 )
                 if (
-                    completed_task.status == "interrupted"
+                    is_resumable_task_status(completed_task.status)
                     or str(completed_task.artifacts.get("active_run_id") or "") != run_id
                 ):
                     return
@@ -1109,7 +1116,7 @@ def _prepared_chat_stream(
                     "status": "active", "detail": f"正在执行 {len(planned_tools)} 项受控只读操作",
                 }, phase="tool")
                 tool_run = yield from stream_tool_context()
-                _attach_pending_actions(learning_task, tool_run)
+                learning_task = _attach_pending_actions(learning_task, tool_run, run_id=run_id)
                 continuity_context["learning_task"] = learning_task.to_dict()
                 tool_pack = dict(tool_run.get("tool_context_pack") or {})
                 tool_pack["execution_trace"] = tool_run.get("execution_trace") or {}
@@ -1188,7 +1195,7 @@ def _prepared_chat_stream(
                         learning_task, event.get("state") or {}, run_id=run_id,
                     )
                     if (
-                        completed_task.status == "interrupted"
+                        is_resumable_task_status(completed_task.status)
                         or str(completed_task.artifacts.get("active_run_id") or "") != run_id
                     ):
                         disconnected = True
@@ -1270,7 +1277,7 @@ def _prepared_chat_stream(
                     expected_run_id=run_id,
                 )
                 if (
-                    interrupted_task.status == "interrupted"
+                    is_resumable_task_status(interrupted_task.status)
                     and str(interrupted_task.artifacts.get("active_run_id") or "") == run_id
                 ):
                     persist_assistant("partial")
@@ -1428,7 +1435,7 @@ def interrupt_chat_task(task_id: str, payload: dict | None = None):
     if task is None or task.task_type != "qa":
         raise HTTPException(status_code=404, detail="learning task not found")
     body = payload or {}
-    if task.status not in {"interrupted", "completed", "degraded", "failed", "cancelled"}:
+    if is_interruptible_task_status(task.status):
         task = interrupt_learning_task(
             store,
             task,
@@ -1485,7 +1492,7 @@ def chat_ask(req: ChatRequest):
             tool_run = _prepare_main_tool_context(
                 rewritten_question, book_name, subject, conversation_id, learning_task.id,
             )
-            _attach_pending_actions(learning_task, tool_run)
+            learning_task = _attach_pending_actions(learning_task, tool_run)
             continuity_context["learning_task"] = learning_task.to_dict()
             tool_pack = dict(tool_run.get("tool_context_pack") or {})
             tool_pack["execution_trace"] = tool_run.get("execution_trace") or {}
