@@ -6,6 +6,10 @@ from fastapi.testclient import TestClient
 import pytest
 
 from backend.main import app
+from backend.services.execution_events import (
+    EXECUTION_EVENT_TERMINAL_TYPES,
+    validate_execution_event_sequence,
+)
 from backend.services.learning_task import LearningTaskStore, interrupt_learning_task, resume_learning_task
 
 
@@ -332,7 +336,8 @@ def test_late_stream_failure_cannot_overwrite_acknowledged_interrupt(monkeypatch
 
     def consume_stream():
         result["response"] = client.post("/api/chat/stream", json={
-            "question": "解释压阻效应", "conversation_id": "cid", "subject": "数学/线代",
+            "question": "解释压阻效应", "conversation_id": "cid", "turn_id": "turn-1",
+            "subject": "数学/线代",
         })
 
     worker = threading.Thread(target=consume_stream)
@@ -346,6 +351,128 @@ def test_late_stream_failure_cannot_overwrite_acknowledged_interrupt(monkeypatch
     assert interrupted.status_code == 200
     assert store.get(task.id).status == "interrupted"
     assert "old stream failed late" not in result["response"].text
+    events = [
+        json.loads(block[6:])
+        for block in result["response"].text.strip().split("\n\n")
+        if block.startswith("data: ")
+    ]
+    canonical = [
+        event["execution_event"]
+        for event in events
+        if (event.get("execution_event") or {}).get("task_id") == task.id
+    ]
+    validate_execution_event_sequence(canonical)
+    assert not any(event["type"] in EXECUTION_EVENT_TERMINAL_TYPES for event in canonical)
+    persisted = store.get(task.id).artifacts.get("execution_events") or []
+    assert not any(event["type"] in EXECUTION_EVENT_TERMINAL_TYPES for event in persisted)
+
+
+def test_chat_resume_stream_uses_new_run_and_emits_one_consistent_final(monkeypatch, tmp_path):
+    import backend.api.chat as chat_api
+    import backend.rag_trace as rag_trace
+    import graph.main_graph as main_graph
+
+    store = LearningTaskStore(tmp_path)
+    task = store.create(
+        task_type="qa", goal="question", conversation_id="cid", turn_id="turn-1",
+        answer_mode="global_general",
+        artifacts={"resolved_query": "question", "active_run_id": "run-old"},
+    )
+    interrupted = interrupt_learning_task(
+        store, task, stage="user_stopped", expected_run_id="run-old",
+    )
+    assert interrupted.status == "interrupted"
+
+    monkeypatch.setattr(chat_api, "get_learning_task_store", lambda: store)
+    monkeypatch.setattr(chat_api, "_prepare_chat_turn", lambda *args, **kwargs: _prepared_chat_turn())
+    monkeypatch.setattr(chat_api, "select_tool_calls", lambda _request: [])
+    monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: {"id": "message"})
+    monkeypatch.setattr(chat_api, "_safe_save_resolution_ledger", lambda *args: None)
+    monkeypatch.setattr(chat_api, "_safe_record_assistant_ledger", lambda *args: None)
+    monkeypatch.setattr(rag_trace, "save_trace", lambda _payload: None)
+
+    def fake_run_graph_stream(**kwargs):
+        yield {"stage": "generate", "chunk": "resumed answer", "done": False}
+        yield {"stage": "generate", "chunk": "", "done": True}
+        yield {
+            "stage": "done",
+            "state": {
+                "final_output": "resumed answer",
+                "answer_verification": {"status": "passed", "passed": True, "checks": []},
+            },
+            "enriched": False,
+        }
+
+    monkeypatch.setattr(main_graph, "run_graph_stream", fake_run_graph_stream)
+
+    response = TestClient(app).post(f"/api/chat/tasks/{task.id}/resume-stream")
+    events = [
+        json.loads(block[6:])
+        for block in response.text.strip().split("\n\n")
+        if block.startswith("data: ")
+    ]
+    done = next(event for event in events if event.get("stage") == "done")
+    canonical = [
+        event["execution_event"]
+        for event in events
+        if (event.get("execution_event") or {}).get("task_id") == task.id
+    ]
+
+    assert response.status_code == 200
+    validate_execution_event_sequence(canonical)
+    resumed_run_ids = {event["run_id"] for event in canonical}
+    assert len(resumed_run_ids) == 1
+    assert "run-old" not in resumed_run_ids
+    terminals = [event for event in canonical if event["type"] in EXECUTION_EVENT_TERMINAL_TYPES]
+    assert len(terminals) == 1 and terminals[0]["type"] == "final"
+    assert done["state"]["learning_task"]["status"] == "completed"
+    assert terminals[0]["payload"]["task_status"] == "completed"
+    assert store.get(task.id).status == "completed"
+
+
+def test_chat_stream_error_is_single_terminal_and_matches_failed_task(monkeypatch, tmp_path):
+    import backend.api.chat as chat_api
+    import backend.rag_trace as rag_trace
+    import graph.main_graph as main_graph
+
+    store = LearningTaskStore(tmp_path)
+    monkeypatch.setattr(chat_api, "get_learning_task_store", lambda: store)
+    monkeypatch.setattr(chat_api, "_prepare_chat_turn", lambda *args, **kwargs: _prepared_chat_turn())
+    monkeypatch.setattr(chat_api, "select_tool_calls", lambda _request: [])
+    monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: {"id": "message"})
+    monkeypatch.setattr(chat_api, "_safe_save_resolution_ledger", lambda *args: None)
+    monkeypatch.setattr(chat_api, "_safe_record_assistant_ledger", lambda *args: None)
+    monkeypatch.setattr(rag_trace, "save_trace", lambda _payload: None)
+
+    def failing_graph(**kwargs):
+        yield {"stage": "generate", "chunk": "partial", "done": False}
+        raise RuntimeError("generation failed")
+
+    monkeypatch.setattr(main_graph, "run_graph_stream", failing_graph)
+
+    response = TestClient(app).post("/api/chat/stream", json={"question": "question"})
+    events = [
+        json.loads(block[6:])
+        for block in response.text.strip().split("\n\n")
+        if block.startswith("data: ")
+    ]
+    error = next(event for event in events if event.get("stage") == "error")
+    task = error["learning_task"]
+    canonical = [
+        event["execution_event"]
+        for event in events
+        if (event.get("execution_event") or {}).get("task_id") == task["id"]
+    ]
+
+    assert response.status_code == 200
+    validate_execution_event_sequence(canonical)
+    terminals = [event for event in canonical if event["type"] in EXECUTION_EVENT_TERMINAL_TYPES]
+    assert len(terminals) == 1 and terminals[0]["type"] == "error"
+    assert canonical[-1] == terminals[0]
+    assert any(event["type"] == "output_delta" for event in canonical[:-1])
+    assert terminals[0]["payload"]["task_status"] == "failed"
+    assert task["status"] == "failed"
+    assert store.get(task["id"]).status == "failed"
 
 
 def test_stream_teach_refuses_when_evidence_gate_is_insufficient(monkeypatch):
@@ -427,7 +554,18 @@ def test_chat_stream_pending_action_stays_running_until_finalization(monkeypatch
     monkeypatch.setattr(chat_api, "get_learning_task_store", lambda: store)
     monkeypatch.setattr(chat_api, "_prepare_chat_turn", lambda *args, **kwargs: _prepared_chat_turn())
     monkeypatch.setattr(chat_api, "select_tool_calls", lambda _request: [{"tool": "propose_add_mistake"}])
-    monkeypatch.setattr(chat_api, "_prepare_main_tool_context", lambda *args, **kwargs: _pending_tool_run())
+    def fake_tool_context(*args, on_event=None, **kwargs):
+        on_event({
+            "type": "tool_call", "status": "started", "tool": "propose_add_mistake",
+            "operation_id": "tool:propose_add_mistake", "args_summary": {"question": "question"},
+        })
+        on_event({
+            "type": "tool_result", "status": "completed", "tool": "propose_add_mistake",
+            "operation_id": "tool:propose_add_mistake", "success": True,
+        })
+        return _pending_tool_run()
+
+    monkeypatch.setattr(chat_api, "_prepare_main_tool_context", fake_tool_context)
     monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: {"id": "message"})
     monkeypatch.setattr(chat_api, "_safe_save_resolution_ledger", lambda *args: None)
     monkeypatch.setattr(chat_api, "_safe_record_assistant_ledger", lambda *args: None)
@@ -455,6 +593,32 @@ def test_chat_stream_pending_action_stays_running_until_finalization(monkeypatch
     assert task["status"] == "waiting_for_confirmation"
     assert task["confirmation_required"] is True
     assert task["artifacts"]["pending_actions"][0]["id"] == "action-1"
+    canonical = [
+        event["execution_event"]
+        for event in events
+        if (event.get("execution_event") or {}).get("task_id") == task["id"]
+    ]
+    validate_execution_event_sequence(canonical)
+    assert "tool_call" not in {event["type"] for event in canonical}
+    tool_started = next(
+        event for event in canonical
+        if event["type"] == "progress" and event["payload"].get("tool_event") == "call_started"
+    )
+    assert tool_started["status"] == "started"
+    assert tool_started["payload"]["tool"] == "propose_add_mistake"
+    assert any(
+        event["type"] == "tool_result"
+        and event["payload"].get("tool_event") == "result_available"
+        for event in canonical
+    )
+    terminals = [event for event in canonical if event["type"] in EXECUTION_EVENT_TERMINAL_TYPES]
+    assert len(terminals) == 1
+    assert terminals[0]["type"] == "final"
+    assert terminals[0]["payload"]["task_status"] == task["status"]
+    delta_index = next(index for index, event in enumerate(canonical) if event["type"] == "output_delta")
+    terminal_index = canonical.index(terminals[0])
+    assert delta_index < terminal_index
+    assert canonical[delta_index]["payload"] == {"text": "answer", "replace": False}
 
 
 def test_chat_ask_pending_action_stays_running_until_finalization(monkeypatch, tmp_path):
@@ -761,6 +925,20 @@ def test_chat_stream_replace_event_overwrites_persisted_assistant_content(monkey
     response = client.post("/api/chat/stream", json={"question": "question", "book_name": "demo-book"})
 
     assert response.status_code == 200
+    events = [
+        json.loads(block[6:])
+        for block in response.text.strip().split("\n\n")
+        if block.startswith("data: ")
+    ]
+    deltas = [
+        event["execution_event"]["payload"]
+        for event in events
+        if (event.get("execution_event") or {}).get("type") == "output_delta"
+    ]
+    assert deltas == [
+        {"text": "gradient $\\nabla f", "replace": False},
+        {"text": "gradient $\\nabla f$", "replace": True},
+    ]
     assistant_contents = [content for role, content in saved if role == "assistant"]
     assert assistant_contents == ["gradient $\\nabla f$"]
 

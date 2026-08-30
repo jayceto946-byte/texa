@@ -792,10 +792,20 @@ def _prepared_chat_stream(
         task_store = get_learning_task_store()
         def persist_execution_event(event: dict) -> None:
             updated = task_store.append_execution_event_for_run(learning_task.id, run_id, event)
-            if updated is not None:
-                learning_task.artifacts["execution_events"] = list(
-                    updated.artifacts.get("execution_events") or []
-                )[-40:]
+            if (
+                updated is None
+                or str(updated.artifacts.get("active_run_id") or "") != run_id
+            ):
+                raise ValueError("stale chat execution run cannot persist events")
+            if event.get("type") in {"final", "error"}:
+                event_task_status = str((event.get("payload") or {}).get("task_status") or "")
+                if not event_task_status or updated.status != event_task_status:
+                    raise ValueError("chat terminal event does not match the current task state")
+            elif not task_store.run_is_active(learning_task.id, run_id):
+                raise ValueError("stale chat execution run cannot persist events")
+            learning_task.artifacts["execution_events"] = list(
+                updated.artifacts.get("execution_events") or []
+            )[-40:]
 
         emitter = ExecutionEventEmitter(
             request_id=request_id,
@@ -841,6 +851,8 @@ def _prepared_chat_stream(
             duration_ms: int | float | None = None,
             stage: str = "execution",
         ) -> str:
+            if not task_store.run_is_active(learning_task.id, run_id):
+                raise ValueError("stale chat execution run cannot emit events")
             execution_event = emitter.emit(
                 event_type,
                 phase=phase,
@@ -919,10 +931,18 @@ def _prepared_chat_stream(
                     raise value
                 tool_name = str(value.get("tool") or "")
                 active_tool = _TOOL_ACTIVITY_LABELS.get(tool_name, "执行学习工具")
-                event_type = str(value.get("type") or "progress")
+                internal_event_type = str(value.get("type") or "")
+                if internal_event_type == "tool_call":
+                    event_type = "progress"
+                    tool_event = "call_started"
+                elif internal_event_type == "tool_result":
+                    event_type = "tool_result"
+                    tool_event = "result_available"
+                else:
+                    raise ValueError(f"unsupported chat tool event type: {internal_event_type}")
                 status = str(value.get("status") or "running")
                 summary = str(value.get("message") or (
-                    f"开始{active_tool}" if event_type == "tool_call" else f"{active_tool}已返回结果"
+                    f"开始{active_tool}" if internal_event_type == "tool_call" else f"{active_tool}已返回结果"
                 ))
                 yield execution_sse(
                     event_type,
@@ -933,12 +953,15 @@ def _prepared_chat_stream(
                     label=active_tool,
                     kind="tool",
                     payload={
-                        key: value.get(key)
-                        for key in (
-                            "tool", "args_summary", "timeout_seconds", "success", "required_outputs",
-                            "satisfied_required_outputs", "missing_required_outputs", "followup",
-                        )
-                        if value.get(key) is not None
+                        "tool_event": tool_event,
+                        **{
+                            key: value.get(key)
+                            for key in (
+                                "tool", "args_summary", "timeout_seconds", "success", "required_outputs",
+                                "satisfied_required_outputs", "missing_required_outputs", "followup",
+                            )
+                            if value.get(key) is not None
+                        },
                     },
                     duration_ms=value.get("elapsed_ms"),
                 )
@@ -985,6 +1008,10 @@ def _prepared_chat_stream(
             nonlocal last_milestone_at, generation_started, last_stage, ttft_ms, final_state, intent, fast_path
             now = time.perf_counter()
             stage = str(event.get("stage") or "unknown")
+            if stage not in {"done", "error"} and not task_store.run_is_active(
+                learning_task.id, run_id,
+            ):
+                raise ValueError("stale chat execution run cannot emit events")
             if stage in {"plan", "retrieve", "chapter"}:
                 stage_ms = round((now - last_milestone_at) * 1000, 2)
                 timings[stage] = stage_ms
@@ -1028,6 +1055,20 @@ def _prepared_chat_stream(
                     "failed": "failed",
                     "active": "running",
                 }.get(activity_status, "failed" if stage == "error" else "running")
+                if stage == "generate" and not event.get("done"):
+                    payload = {
+                        "text": str(event.get("chunk") or ""),
+                        "replace": bool(event.get("replace", False)),
+                    }
+                else:
+                    payload = dict(activity.get("meta") or {})
+                    if stage == "done":
+                        task_snapshot = (event.get("state") or {}).get("learning_task") or {}
+                        payload["task_status"] = str(task_snapshot.get("status") or "")
+                        status = "completed"
+                    elif stage == "error":
+                        task_snapshot = event.get("learning_task") or {}
+                        payload["task_status"] = str(task_snapshot.get("status") or "")
                 execution_event = emitter.emit(
                     stage_type,
                     phase={
@@ -1040,7 +1081,7 @@ def _prepared_chat_stream(
                     operation_id=str(activity.get("id") or stage),
                     label=str(activity.get("label") or stage),
                     kind=str(activity.get("kind") or "system"),
-                    payload=dict(activity.get("meta") or {}),
+                    payload=payload,
                     duration_ms=activity.get("duration_ms"),
                 )
                 event["execution_event"] = execution_event
@@ -1180,7 +1221,6 @@ def _prepared_chat_stream(
                             "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
                             "status": "completed", "detail": "已形成可展示的回答路径",
                         })
-                observe(event)
                 event["conversation_id"] = conversation_id
                 event["turn_id"] = turn_id
                 if event.get("stage") == "generate":
@@ -1202,6 +1242,7 @@ def _prepared_chat_stream(
                         last_stage = "interrupted"
                         return
                     event.setdefault("state", {})["learning_task"] = completed_task.to_dict(public=True)
+                    observe(event)
                     persistence_error = persist_assistant()
                     event["message_id"] = assistant_message_id
                     event["subject_suggestion"] = subject_suggestion
@@ -1231,6 +1272,8 @@ def _prepared_chat_stream(
                             update_ledger_evidence_support(conversation_id, support_status)
                         except Exception:
                             logger.exception("evidence support persistence failed")
+                else:
+                    observe(event)
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
                 if event.get("stage") == "plan":
                     yield activity_sse({

@@ -1,3 +1,14 @@
+# 2026-08-30 - ExecutionEvent V1 Contract Freeze
+
+- Froze `texa.execution/v1` identity, event types, output-delta payload, per-run ordering, single-terminal, public-reasoning, and LearningTask transition validation in the existing execution event service.
+- LearningTask milestone persistence now rejects mismatched task/run identity and non-monotonic or post-terminal events, stores the complete event identity, and does not persist progress or output deltas.
+- Chat is now the first migrated producer: internal `tool_call` notifications map to canonical `progress`, `output_delta` carries only `text` and `replace`, and every emitted event passes the shared V1 validator before persistence or SSE projection.
+- Chat run ownership, per-run sequence, single-terminal behavior, interrupt/resume, pending-action confirmation, and final LearningTask status are covered end to end. The existing legacy `activity` projection is still derived from the validated canonical event; Figure, Mistake, and frontend migration remains intentionally deferred.
+
+## Validation
+
+- ExecutionEvent, Chat, LearningTask, and tool regressions: 79 passed. Full Python regression: 673 passed; the existing Starlette/httpx deprecation warning remains.
+
 # 2026-08-30 - Architecture Convergence Phase 2A
 
 - Textbook resume checkpoints now require the current checkpoint contract version, an applied evidence gate, and an explicit index version that exactly matches the active book index. Missing or mismatched metadata marks the checkpoint stale and restarts the normal plan/retrieve path without reusing prior evidence.

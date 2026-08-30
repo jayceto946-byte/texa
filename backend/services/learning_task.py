@@ -400,6 +400,12 @@ class LearningTaskStore:
         limit: int = 40,
     ) -> LearningTask | None:
         """Persist bounded orchestration milestones, never token deltas/heartbeats."""
+        from backend.services.execution_events import (
+            EXECUTION_EVENT_TERMINAL_TYPES,
+            should_persist_execution_event,
+            validate_execution_event,
+        )
+
         with _TASK_LOCK:
             current = self.get(task_id)
             if current is None:
@@ -409,12 +415,51 @@ class LearningTaskStore:
                 return current
             if str(current.artifacts.get("active_run_id") or "") != normalized_run_id:
                 return current
+            persisted_milestone = should_persist_execution_event(event)
+            validate_execution_event(
+                event,
+                expected_task_id=task_id,
+                expected_run_id=normalized_run_id,
+                expected_conversation_id=current.conversation_id,
+                expected_turn_id=current.turn_id,
+                require_persisted_identity=persisted_milestone,
+            )
+            event_type = str(event.get("type") or "")
+            event_task_status = str((event.get("payload") or {}).get("task_status") or "")
+            terminal_matches_current = bool(
+                event_type in EXECUTION_EVENT_TERMINAL_TYPES
+                and event_task_status
+                and event_task_status == current.status
+            )
+            if event_type in EXECUTION_EVENT_TERMINAL_TYPES and not terminal_matches_current:
+                return current
+            if (
+                event_type not in EXECUTION_EVENT_TERMINAL_TYPES
+                and not is_interruptible_task_status(current.status)
+            ):
+                return current
+            if not persisted_milestone:
+                return current
+            existing_events = list(current.artifacts.get("execution_events") or [])
+            current_run_events = [
+                item for item in existing_events
+                if isinstance(item, dict)
+                and str(item.get("run_id") or "") == normalized_run_id
+            ]
+            previous_seq = max(
+                (int(item.get("seq") or 0) for item in current_run_events),
+                default=0,
+            )
+            if int(event["seq"]) <= previous_seq:
+                raise ValueError("execution event seq must increase within a task run")
+            if any(item.get("type") in EXECUTION_EVENT_TERMINAL_TYPES for item in current_run_events):
+                raise ValueError("execution events cannot follow final or error")
             compact = {
                 key: event.get(key)
                 for key in (
-                    "schema", "seq", "request_id", "run_id", "operation_id", "type",
-                    "phase", "status", "summary", "label", "kind", "elapsed_ms",
-                    "duration_ms", "payload",
+                    "schema", "request_id", "task_id", "run_id", "conversation_id", "turn_id",
+                    "seq", "operation_id", "type", "phase", "status", "summary", "label",
+                    "kind", "elapsed_ms", "duration_ms", "payload",
                 )
                 if event.get(key) is not None
             }
