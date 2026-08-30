@@ -1,3 +1,14 @@
+# 2026-08-30 - Mistake ExecutionEvent V1 Producer Migration
+
+- Migrated image, input-resume, and cached-mistake streams from raw `stage/activity` lifecycle construction to the frozen `texa.execution/v1` emitter. Mistake answer chunks now use exact `{text, replace}` `output_delta` payloads; existing `stage`, `activity`, `chunk`, `result`, and error fields remain one-way frontend projections.
+- Visual mistake runs now carry complete request/task/run/conversation/turn identity from task creation through completion. Waiting for required input is a non-terminal `state_transition`; input resumes claim a new non-empty run ID, and stale input or generation work cannot write artifacts or emit late terminal events.
+- Completed and degraded visual runs emit one `final` whose `task_status` matches the persisted LearningTask. True execution failures emit one matching `error`; unreadable supplemental input returns to `waiting_for_input` without pretending the task failed or completed.
+- LearningTask milestone persistence now records a completed state-transition milestone after the shared state change when its `task_status_after` matches the current task, closing the transition/event race without changing the ExecutionEvent schema.
+
+## Validation
+
+- Mistake, ExecutionEvent, LearningTask, Chat, and Figure targeted regressions: 100 passed, covering completion, waiting/input resume, stale ownership, degraded/failed terminals, strict delta payloads, sequence order, terminal cardinality, and legacy projection direction. Full Python regression: 685 passed; the existing Starlette/httpx deprecation warning remains.
+
 # 2026-08-30 - Figure ExecutionEvent V1 Producer Migration
 
 - Migrated the Figure question stream to the frozen `texa.execution/v1` emitter without changing the event schema. Figure context, crop, vision progress, answer deltas, final, and error lifecycle now use canonical event types and per-run sequence validation.

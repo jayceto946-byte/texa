@@ -12,14 +12,17 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from fastapi.responses import FileResponse, StreamingResponse
 
+from backend.conversation_memory import ensure_conversation_id, ensure_turn_id
+from backend.rag_trace import new_request_id
+from backend.services.execution_events import ExecutionEventEmitter, execution_sse_payload
 from backend.services.mistake_images import MistakeImageStore
 from backend.services.multimodal_bridge import KimiVisionBridge, VisualProblemIR, build_solution_prompt
 from backend.services.learning_task import (
     blocking_required_inputs,
     get_learning_task_store,
-    is_delivered_task_status,
     is_terminal_task_status,
     mark_required_inputs,
+    resume_learning_task,
     task_requires_input_action,
 )
 from backend.services.answer_verification import (
@@ -544,15 +547,73 @@ def solve_mistake_image(
         return {"success": False, "message": f"讲解失败: {e}"}
 
 
-def _sse_event(stage: str, *, activity: dict | None = None, **payload) -> str:
-    event = {"stage": stage, **payload}
-    if activity:
-        event["activity"] = activity
-    return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+def _sse(payload: dict) -> str:
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+
+def _execution_event_sse(
+    event: dict,
+    *,
+    stage: str | None = None,
+    extra: dict | None = None,
+) -> str:
+    """Project one validated canonical event to the existing SSE envelope."""
+    event_type = str(event.get("type") or "")
+    legacy_stage = stage or {
+        "output_delta": "generate",
+        "final": "done",
+        "error": "error",
+    }.get(event_type, "activity")
+    envelope = execution_sse_payload(event, stage=legacy_stage)
+    if event_type == "output_delta":
+        envelope.update({
+            "chunk": event["payload"]["text"],
+            "replace": event["payload"]["replace"],
+            "done": False,
+        })
+    elif event_type in {"final", "error"}:
+        envelope["done"] = True
+    if extra:
+        envelope.update(extra)
+    return _sse(envelope)
+
+
+def _visual_task_emitter(*, store, task, run_id: str, request_id: str) -> ExecutionEventEmitter:
+    def persist_execution_event(event: dict) -> None:
+        updated = store.append_execution_event_for_run(task.id, run_id, event)
+        if (
+            updated is None
+            or str(updated.artifacts.get("active_run_id") or "") != run_id
+        ):
+            raise ValueError("stale Mistake execution run cannot persist events")
+        if event.get("type") in {"final", "error"}:
+            event_task_status = str((event.get("payload") or {}).get("task_status") or "")
+            if not event_task_status or updated.status != event_task_status:
+                raise ValueError("Mistake terminal event does not match the current task state")
+        elif (
+            event.get("type") == "state_transition"
+            and str((event.get("payload") or {}).get("task_status_after") or "") == updated.status
+        ):
+            pass
+        elif not store.run_is_active(task.id, run_id):
+            raise ValueError("stale Mistake execution run cannot persist events")
+        task.artifacts["execution_events"] = list(
+            updated.artifacts.get("execution_events") or []
+        )[-40:]
+
+    return ExecutionEventEmitter(
+        request_id=request_id,
+        task_id=task.id,
+        run_id=run_id,
+        conversation_id=task.conversation_id,
+        turn_id=task.turn_id,
+        persist=persist_execution_event,
+    )
 
 
 def _create_visual_learning_task(
     *,
+    store,
     visual_ir: VisualProblemIR,
     image_path: Path,
     question: str,
@@ -563,8 +624,9 @@ def _create_visual_learning_task(
     import_to_mistakes: bool,
     conversation_id: str = "",
     turn_id: str = "",
+    run_id: str,
 ):
-    task = get_learning_task_store().create(
+    task = store.create(
         task_type="visual_qa",
         goal=question or visual_ir.problem_text or "完整讲解图片题",
         conversation_id=conversation_id,
@@ -587,8 +649,9 @@ def _create_visual_learning_task(
             "book_name": book_name,
             "import_to_mistakes": bool(import_to_mistakes),
             "completed_derivation": "",
+            "active_run_id": run_id,
         },
-        status="waiting_for_input",
+        status="running",
     )
     return task
 
@@ -627,13 +690,14 @@ def _stream_solution_events(
     reason_detail: str,
     supplemental_visual_irs: list[VisualProblemIR] | None = None,
     answer_policy: str = "exact",
+    emit_sse,
 ):
-    """Yield observable reasoning/generation events and return the final answer."""
+    """Yield canonical reasoning/generation events and return the final answer."""
     step_started = time.perf_counter()
-    yield _sse_event("activity", activity={
-        "id": "reason", "kind": "reasoning", "label": reason_label,
-        "status": "active", "detail": reason_detail,
-    })
+    yield emit_sse(
+        "progress", phase="reasoning", status="started", summary=reason_detail,
+        operation_id="reason", label=reason_label, kind="reasoning",
+    )
     chunks: list[str] = []
     first_visible_chunk = True
     for chunk in _iter_visual_solution_chunks(
@@ -647,34 +711,41 @@ def _stream_solution_events(
     ):
         if first_visible_chunk:
             first_visible_chunk = False
-            yield _sse_event("activity", activity={
-                "id": "reason", "kind": "reasoning", "label": reason_label,
-                "status": "completed", "detail": "已形成可展示的解题路径",
-                "duration_ms": round((time.perf_counter() - step_started) * 1000, 2),
-            })
+            yield emit_sse(
+                "progress", phase="reasoning", status="completed",
+                summary="已形成可展示的解题路径", operation_id="reason",
+                label=reason_label, kind="reasoning",
+                duration_ms=round((time.perf_counter() - step_started) * 1000, 2),
+            )
         chunks.append(chunk)
-        yield _sse_event("generate", chunk=chunk, done=False, activity={
-            "id": "generate", "kind": "generation", "label": "生成答案",
-            "status": "active", "detail": "正在逐步输出正式讲解",
-        })
+        yield emit_sse(
+            "output_delta", phase="generation", status="running",
+            summary="正在逐步输出正式讲解", operation_id="generate",
+            label="生成答案", kind="generation",
+            payload={"text": str(chunk or ""), "replace": False},
+        )
 
     if first_visible_chunk:
-        yield _sse_event("activity", activity={
-            "id": "reason", "kind": "reasoning", "label": reason_label,
-            "status": "completed", "detail": "推理已结束，未产生可展示正文",
-            "duration_ms": round((time.perf_counter() - step_started) * 1000, 2),
-        })
+        yield emit_sse(
+            "progress", phase="reasoning", status="completed",
+            summary="推理已结束，未产生可展示正文", operation_id="reason",
+            label=reason_label, kind="reasoning",
+            duration_ms=round((time.perf_counter() - step_started) * 1000, 2),
+        )
     raw_explanation = "".join(chunks).strip()
     explanation = sanitize_latex(raw_explanation)
     if explanation != raw_explanation:
-        yield _sse_event("generate", chunk=explanation, replace=True, done=False, activity={
-            "id": "generate", "kind": "generation", "label": "生成答案",
-            "status": "active", "detail": "正在规范公式与答案格式",
-        })
-    yield _sse_event("generate", chunk="", done=True, activity={
-        "id": "generate", "kind": "generation", "label": "生成答案",
-        "status": "completed", "detail": "正式讲解已生成",
-    })
+        yield emit_sse(
+            "output_delta", phase="generation", status="running",
+            summary="正在规范公式与答案格式", operation_id="generate",
+            label="生成答案", kind="generation",
+            payload={"text": explanation, "replace": True},
+        )
+    yield emit_sse(
+        "progress", phase="generation", status="completed",
+        summary="正式讲解已生成", operation_id="generate",
+        label="生成答案", kind="generation",
+    )
     return explanation
 
 
@@ -690,65 +761,145 @@ def solve_mistake_image_stream(
     conversation_id: str = Form(""),
     turn_id: str = Form(""),
 ):
-    """Observable image solution path. Each event reflects completed real work."""
+    """Run one image solution as a canonical, task-owned execution stream."""
+    request_id = new_request_id()
+    run_id = f"run_{uuid.uuid4().hex}"
+    resolved_conversation_id = ensure_conversation_id(conversation_id)
+    resolved_turn_id = ensure_turn_id(turn_id)
+    store = get_learning_task_store()
+
     def events():
         image_path: Path | None = None
+        task = None
+        emitter = None
         started = time.perf_counter()
+
+        def emit_sse(
+            event_type: str,
+            *,
+            phase: str,
+            status: str,
+            summary: str,
+            operation_id: str,
+            label: str,
+            kind: str,
+            payload: dict | None = None,
+            duration_ms: int | float | None = None,
+            extra: dict | None = None,
+        ) -> str:
+            if emitter is None:
+                raise ValueError("Mistake execution emitter is not initialized")
+            if event_type not in {"final", "error"} and not store.run_is_active(
+                task.id, run_id,
+            ):
+                raise ValueError("stale Mistake execution run cannot emit events")
+            event = emitter.emit(
+                event_type,
+                phase=phase,
+                status=status,
+                summary=summary,
+                operation_id=operation_id,
+                label=label,
+                kind=kind,
+                payload=payload,
+                duration_ms=duration_ms,
+            )
+            return _execution_event_sse(event, extra=extra)
+
         try:
             step_started = time.perf_counter()
             image_path = _image_store.save_upload(file)
-            yield _sse_event("activity", activity={
-                "id": "attachment", "kind": "tool", "label": "读取题目图片",
-                "status": "completed", "detail": "图片已安全接收并完成尺寸优化",
-                "duration_ms": round((time.perf_counter() - step_started) * 1000, 2),
-            })
+            task = _create_visual_learning_task(
+                store=store,
+                visual_ir=VisualProblemIR(problem_text=question),
+                image_path=image_path,
+                question=question,
+                user_answer=user_answer,
+                subject=subject,
+                tags=tags,
+                book_name=book_name,
+                import_to_mistakes=import_to_mistakes,
+                conversation_id=resolved_conversation_id,
+                turn_id=resolved_turn_id,
+                run_id=run_id,
+            )
+            emitter = _visual_task_emitter(
+                store=store, task=task, run_id=run_id, request_id=request_id,
+            )
+            yield emit_sse(
+                "tool_result", phase="input", status="completed",
+                summary="图片已安全接收并完成尺寸优化", operation_id="attachment",
+                label="读取题目图片", kind="tool",
+                payload={"image_path": str(image_path)},
+                duration_ms=round((time.perf_counter() - step_started) * 1000, 2),
+            )
 
-            yield _sse_event("activity", activity={
-                "id": "vision", "kind": "tool", "label": "识图模型解析图片",
-                "status": "active", "detail": "正在提取题干、公式、图形实体与连接关系",
-            })
+            yield emit_sse(
+                "progress", phase="input", status="started",
+                summary="正在提取题干、公式、图形实体与连接关系", operation_id="vision",
+                label="识图模型解析图片", kind="tool",
+            )
             step_started = time.perf_counter()
             visual_ir = _ocr_image_with_kimi(image_path, user_question=question, subject=subject)
             if not visual_ir.problem_text and not visual_ir.visual_summary:
                 raise RuntimeError("识图模型未返回有效题目内容")
+            if not store.run_is_active(task.id, run_id):
+                return
+            task.required_inputs = [dict(item) for item in visual_ir.required_inputs]
+            task.artifacts["visual_ir"] = visual_ir.to_dict()
+            task = store.save_for_run(task, run_id)
+            if not store.run_is_active(task.id, run_id):
+                return
             entity_count = len(visual_ir.entities)
             relation_count = len(visual_ir.relations)
             uncertainty_count = len(visual_ir.uncertainties)
-            yield _sse_event("activity", activity={
-                "id": "vision", "kind": "tool", "label": "识图模型解析图片",
-                "status": "completed",
-                "detail": f"识别为 {visual_ir.visual_type}；{entity_count} 个实体、{relation_count} 条关系、{uncertainty_count} 处不确定项",
-                "duration_ms": round((time.perf_counter() - step_started) * 1000, 2),
-                "meta": {"visual_type": visual_ir.visual_type, "uncertainties": visual_ir.uncertainties[:5]},
-            })
+            yield emit_sse(
+                "tool_result", phase="input", status="completed",
+                summary=f"识别为 {visual_ir.visual_type}；{entity_count} 个实体、{relation_count} 条关系、{uncertainty_count} 处不确定项",
+                operation_id="vision", label="识图模型解析图片", kind="tool",
+                payload={
+                    "visual_type": visual_ir.visual_type,
+                    "uncertainties": visual_ir.uncertainties[:5],
+                },
+                duration_ms=round((time.perf_counter() - step_started) * 1000, 2),
+            )
 
             missing_inputs = blocking_required_inputs(visual_ir.required_inputs)
             if missing_inputs:
-                task = _create_visual_learning_task(
-                    visual_ir=visual_ir,
-                    image_path=image_path,
-                    question=question,
-                    user_answer=user_answer,
-                    subject=subject,
-                    tags=tags,
-                    book_name=book_name,
-                    import_to_mistakes=import_to_mistakes,
-                    conversation_id=conversation_id,
-                    turn_id=turn_id,
+                task = store.checkpoint_for_run(
+                    task, run_id, "required_inputs", status="waiting_for_input",
+                    detail=f"{len(missing_inputs)} blocking inputs",
                 )
-                yield _sse_event("waiting_for_input", done=True, result={
-                    "success": True,
-                    "question_text": visual_ir.problem_text,
-                    "visual_ir": visual_ir.to_dict(),
-                    "image_path": str(image_path),
-                    "learning_task": task.to_dict(public=True),
-                }, activity={
-                    "id": "required-inputs",
-                    "kind": "system",
-                    "label": "等待补充材料",
-                    "status": "completed",
-                    "detail": f"有 {len(missing_inputs)} 项缺失材料会影响最终结论，已暂停精确解答",
-                }, total_ms=round((time.perf_counter() - started) * 1000, 2))
+                if task.status != "waiting_for_input":
+                    return
+                transition = emitter.emit(
+                    "state_transition",
+                    phase="input",
+                    status="completed",
+                    summary=f"有 {len(missing_inputs)} 项缺失材料会影响最终结论，已暂停精确解答",
+                    operation_id="required-inputs",
+                    label="等待补充材料",
+                    kind="system",
+                    payload={
+                        "task_status_before": "running",
+                        "task_status_after": "waiting_for_input",
+                    },
+                )
+                yield _execution_event_sse(
+                    transition,
+                    stage="waiting_for_input",
+                    extra={
+                        "done": False,
+                        "result": {
+                            "success": True,
+                            "question_text": visual_ir.problem_text,
+                            "visual_ir": visual_ir.to_dict(),
+                            "image_path": str(image_path),
+                            "learning_task": task.to_dict(public=True),
+                        },
+                        "total_ms": round((time.perf_counter() - started) * 1000, 2),
+                    },
+                )
                 return
 
             explanation = yield from _stream_solution_events(
@@ -759,17 +910,22 @@ def solve_mistake_image_stream(
                 tags=tags,
                 reason_label="综合题干与视觉关系",
                 reason_detail="正在依据结构化视觉证据组织可验证的解题步骤",
+                emit_sse=emit_sse,
             )
             verified_explanation, answer_verification = _verify_visual_answer(
                 explanation, question=question, visual_ir=visual_ir,
             )
             if verified_explanation != explanation:
                 explanation = verified_explanation
-                yield _sse_event("generate", chunk=explanation, replace=True, done=False, activity={
-                    "id": "verify", "kind": "evidence", "label": "核对答案完整性",
-                    "status": "completed", "detail": "已标记无法确定性验证的结果",
-                })
-                yield _sse_event("generate", chunk="", done=True)
+                yield emit_sse(
+                    "output_delta", phase="generation", status="running",
+                    summary="已标记无法确定性验证的结果", operation_id="verify",
+                    label="核对答案完整性", kind="evidence",
+                    payload={"text": explanation, "replace": True},
+                )
+
+            if not store.run_is_active(task.id, run_id):
+                return
 
             draft = MistakeRecord(
                 question_text=visual_ir.problem_text or visual_ir.visual_summary,
@@ -781,6 +937,8 @@ def solve_mistake_image_stream(
             linked_concepts = _link_mistake_concepts(
                 draft, explanation=explanation, book_name=book_name, allow_llm_fallback=False,
             )
+            if not store.run_is_active(task.id, run_id):
+                return
             if linked_concepts:
                 try:
                     from knowledge.concept_memory import ConceptMemory
@@ -791,6 +949,8 @@ def solve_mistake_image_stream(
                 except Exception as exc:
                     print(f"[ConceptMemory] image QA exposure failed: {exc}", flush=True)
 
+            if not store.run_is_active(task.id, run_id):
+                return
             mistake_id = ""
             if import_to_mistakes:
                 committed_path, _ = _image_store.commit_pending(str(image_path))
@@ -799,29 +959,71 @@ def solve_mistake_image_stream(
                 draft.linked_concepts = linked_concepts
                 mistake_id = _mb(book_name).add(draft)
                 _log_learning_event("mistake_added", book_name=book_name, record=draft, payload={"origin": "chat_image"})
-            yield _sse_event("done", done=True, result={
-                "success": True, "explanation": explanation, "linked_concepts": linked_concepts,
-                "question_text": visual_ir.problem_text, "visual_ir": visual_ir.to_dict(),
-                "image_path": str(image_path), "mistake_id": mistake_id,
-                "answer_verification": answer_verification,
-            }, activity={
-                "id": "memory", "kind": "memory", "label": "关联学习记录",
-                "status": "completed" if linked_concepts or mistake_id else "skipped",
-                "detail": (
+            if not store.run_is_active(task.id, run_id):
+                return
+            task.artifacts["completed_derivation"] = explanation
+            task.verification = answer_verification
+            completion_status = "completed" if answer_verification.get("passed") else "degraded"
+            task = store.checkpoint_for_run(
+                task, run_id, "answer_generated", status=completion_status,
+                detail=str(answer_verification.get("status") or "unknown"),
+            )
+            if task.status != completion_status:
+                return
+            yield emit_sse(
+                "final", phase="final", status="completed",
+                summary=(
                     f"已关联 {len(linked_concepts)} 个概念" + ("并导入错题本" if mistake_id else "")
-                    if linked_concepts or mistake_id else "未发现可靠概念，未写入错题本"
+                    if linked_concepts or mistake_id else "讲解已完成，未写入错题本"
                 ),
-            }, total_ms=round((time.perf_counter() - started) * 1000, 2))
+                operation_id="mistake-answer", label="完成错题讲解", kind="memory",
+                payload={"task_status": task.status, "mistake_id": mistake_id},
+                extra={
+                    "result": {
+                        "success": True,
+                        "explanation": explanation,
+                        "linked_concepts": linked_concepts,
+                        "question_text": visual_ir.problem_text,
+                        "visual_ir": visual_ir.to_dict(),
+                        "image_path": str(image_path),
+                        "mistake_id": mistake_id,
+                        "answer_verification": answer_verification,
+                        "learning_task": task.to_dict(public=True),
+                    },
+                    "total_ms": round((time.perf_counter() - started) * 1000, 2),
+                },
+            )
         except GeneratorExit:
             raise
         except Exception as exc:
+            if task is not None and not store.run_is_active(task.id, run_id):
+                return
             _image_store.delete(image_path)
-            yield _sse_event("error", done=True, message=str(exc), activity={
-                "id": "error", "kind": "system", "label": "处理失败",
-                "status": "failed", "detail": str(exc),
-            })
+            if task is not None and emitter is not None:
+                task = store.checkpoint_for_run(
+                    task, run_id, "failed", status="failed", detail=str(exc),
+                )
+                if task.status != "failed":
+                    return
+                yield emit_sse(
+                    "error", phase="error", status="failed", summary=str(exc),
+                    operation_id="mistake-error", label="处理失败", kind="system",
+                    payload={"task_status": task.status, "error_code": "mistake_execution_failed"},
+                    extra={"message": str(exc), "learning_task": task.to_dict(public=True)},
+                )
+            else:
+                request_emitter = ExecutionEventEmitter(request_id=request_id)
+                event = request_emitter.emit(
+                    "error", phase="error", status="failed", summary=str(exc),
+                    operation_id="mistake-error", label="处理失败", kind="system",
+                    payload={"error_code": "mistake_request_failed"},
+                )
+                yield _execution_event_sse(event, extra={"message": str(exc)})
 
-    return StreamingResponse(events(), media_type="text/event-stream")
+    return StreamingResponse(
+        events(), media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
+    )
 
 
 @router.post("/visual-tasks/{task_id}/resume-stream")
@@ -831,41 +1033,78 @@ def resume_visual_learning_task(
     file: UploadFile | None = File(None),
 ):
     """Resume one paused visual task without re-reading its original image."""
+    store = get_learning_task_store()
+    task = store.get(task_id)
+    if not task or task.task_type != "visual_qa":
+        raise HTTPException(status_code=404, detail="未找到可恢复的图片学习任务")
+    if not task.conversation_id or not task.turn_id:
+        raise HTTPException(status_code=409, detail="图片学习任务缺少 execution identity，不能恢复")
+    if is_terminal_task_status(task.status):
+        raise HTTPException(status_code=409, detail=f"当前任务已终止：{task.status}")
+    if not task_requires_input_action(task.status):
+        raise HTTPException(status_code=409, detail=f"当前任务状态不能恢复：{task.status}")
+
+    normalized_action = str(action or "").strip().lower()
+    if normalized_action not in {"provide_input", "method_only"}:
+        raise HTTPException(status_code=400, detail="无效的恢复方式")
+    if normalized_action == "provide_input" and file is None:
+        raise HTTPException(status_code=400, detail="请先选择要补充的图片或附表")
+
+    previous_status = task.status
+    run_id = f"run_{uuid.uuid4().hex}"
+    task = resume_learning_task(store, task, run_id=run_id)
+    request_id = new_request_id()
+
     def events():
-        store = get_learning_task_store()
-        task = store.get(task_id)
+        nonlocal task
         supplemental_path: Path | None = None
-        if not task or task.task_type != "visual_qa":
-            yield _sse_event("error", done=True, message="未找到可恢复的图片学习任务")
-            return
-        if is_delivered_task_status(task.status):
-            yield _sse_event("done", done=True, result={
-                "success": True,
-                "explanation": str((task.artifacts or {}).get("completed_derivation") or ""),
-                "learning_task": task.to_dict(public=True),
-            })
-            return
-        if is_terminal_task_status(task.status):
-            yield _sse_event("error", done=True, message=f"当前任务已终止：{task.status}")
-            return
-        if not task_requires_input_action(task.status):
-            yield _sse_event("error", done=True, message=f"当前任务状态不能恢复：{task.status}")
-            return
-
-        normalized_action = str(action or "").strip().lower()
-        if normalized_action not in {"provide_input", "method_only"}:
-            yield _sse_event("error", done=True, message="无效的恢复方式")
-            return
-        if normalized_action == "provide_input" and file is None:
-            yield _sse_event("error", done=True, message="请先选择要补充的图片或附表")
-            return
-
-        run_id = f"run_{uuid.uuid4().hex}"
-        task.artifacts["active_run_id"] = run_id
-        task = store.checkpoint(task, "resume_started", status="running", detail="input gate resume")
         if not store.run_is_active(task.id, run_id):
-            yield _sse_event("error", done=True, message="该任务已由另一运行实例恢复")
             return
+
+        emitter = _visual_task_emitter(
+            store=store, task=task, run_id=run_id, request_id=request_id,
+        )
+
+        def emit_sse(
+            event_type: str,
+            *,
+            phase: str,
+            status: str,
+            summary: str,
+            operation_id: str,
+            label: str,
+            kind: str,
+            payload: dict | None = None,
+            duration_ms: int | float | None = None,
+            extra: dict | None = None,
+        ) -> str:
+            if event_type not in {"final", "error"} and not store.run_is_active(
+                task.id, run_id,
+            ):
+                raise ValueError("stale Mistake execution run cannot emit events")
+            event = emitter.emit(
+                event_type,
+                phase=phase,
+                status=status,
+                summary=summary,
+                operation_id=operation_id,
+                label=label,
+                kind=kind,
+                payload=payload,
+                duration_ms=duration_ms,
+            )
+            return _execution_event_sse(event, extra=extra)
+
+        yield emit_sse(
+            "state_transition", phase="input", status="completed",
+            summary="已取得新运行实例的任务所有权", operation_id="resume",
+            label="恢复原任务", kind="system",
+            payload={
+                "task_status_before": previous_status,
+                "task_status_after": "running",
+            },
+            extra={"learning_task": task.to_dict(public=True)},
+        )
 
         artifacts = dict(task.artifacts or {})
         original_ir = VisualProblemIR.from_dict(dict(artifacts.get("visual_ir") or {}))
@@ -874,39 +1113,79 @@ def resume_visual_learning_task(
             for item in (artifacts.get("supplemental_visual_irs") or [])
             if isinstance(item, dict)
         ]
-        try:
-            if normalized_action == "provide_input":
+        if normalized_action == "provide_input":
+            try:
                 supplemental_path = _image_store.save_upload(file)
-                yield _sse_event("activity", activity={
-                    "id": "supplement", "kind": "tool", "label": "解析补充材料",
-                    "status": "active", "detail": "只读取本次新增材料，原题与已有视觉表示保持不变",
-                })
+                yield emit_sse(
+                    "progress", phase="input", status="started",
+                    summary="只读取本次新增材料，原题与已有视觉表示保持不变",
+                    operation_id="supplement", label="解析补充材料", kind="tool",
+                )
                 supplement = _ocr_image_with_kimi(
                     supplemental_path,
                     user_question=f"这是题目所需的补充材料：{', '.join(str(item.get('name') or '') for item in task.required_inputs)}",
                     subject=str(artifacts.get("subject") or ""),
                 )
+                if not store.run_is_active(task.id, run_id):
+                    _image_store.delete(supplemental_path)
+                    return
                 supplemental_irs.append(supplement)
                 artifacts["supplemental_visual_irs"] = [item.to_dict() for item in supplemental_irs]
                 artifacts["supplemental_image_paths"] = [
                     *(artifacts.get("supplemental_image_paths") or []), str(supplemental_path),
                 ]
-                mark_required_inputs(task, "provided")
-                answer_policy = "exact"
-                detail = "补充材料已合并，继续原任务"
-            else:
-                mark_required_inputs(task, "waived")
-                answer_policy = "method_only"
-                detail = "已按用户选择降级为只讲方法"
+            except GeneratorExit:
+                raise
+            except Exception as exc:
+                if not store.run_is_active(task.id, run_id):
+                    return
+                _image_store.delete(supplemental_path)
+                task = store.checkpoint_for_run(
+                    task, run_id, "input_parse_failed", status="waiting_for_input",
+                    detail=str(exc),
+                )
+                if task.status != "waiting_for_input":
+                    return
+                transition = emitter.emit(
+                    "state_transition",
+                    phase="input",
+                    status="failed",
+                    summary="补充材料未能解析，原任务和已有材料已保留",
+                    operation_id="supplement",
+                    label="等待重新补充材料",
+                    kind="system",
+                    payload={
+                        "task_status_before": "running",
+                        "task_status_after": "waiting_for_input",
+                    },
+                )
+                yield _execution_event_sse(
+                    transition,
+                    stage="waiting_for_input",
+                    extra={
+                        "done": False,
+                        "message": str(exc),
+                        "result": {"success": False, "learning_task": task.to_dict(public=True)},
+                    },
+                )
+                return
+            mark_required_inputs(task, "provided")
+            answer_policy = "exact"
+            detail = "补充材料已合并，继续原任务"
+        else:
+            mark_required_inputs(task, "waived")
+            answer_policy = "method_only"
+            detail = "已按用户选择降级为只讲方法"
 
+        try:
             task.artifacts = artifacts
             task = store.checkpoint_for_run(task, run_id, "inputs_resolved", detail=detail)
             if not store.run_is_active(task.id, run_id):
                 return
-            yield _sse_event("activity", activity={
-                "id": "required-inputs", "kind": "system", "label": "恢复原任务",
-                "status": "completed", "detail": detail,
-            })
+            yield emit_sse(
+                "progress", phase="input", status="completed", summary=detail,
+                operation_id="required-inputs", label="恢复原任务", kind="system",
+            )
             explanation = yield from _stream_solution_events(
                 original_ir,
                 user_question=str(artifacts.get("question") or ""),
@@ -917,6 +1196,7 @@ def resume_visual_learning_task(
                 answer_policy=answer_policy,
                 reason_label="继续原题推导",
                 reason_detail="正在结合原题、已完成解析与新增材料继续解答",
+                emit_sse=emit_sse,
             )
 
             raw_explanation = explanation
@@ -931,22 +1211,21 @@ def resume_visual_learning_task(
             if normalized_action == "method_only" and "未验证估算" not in explanation and "未作为精确答案" not in explanation:
                 explanation = explanation.rstrip() + "\n\n> 本次未补充必要材料；涉及的数值结论均未作为精确答案提交。"
             if explanation != raw_explanation:
-                yield _sse_event("generate", chunk=explanation, replace=True, done=False)
-                yield _sse_event("generate", chunk="", done=True)
+                yield emit_sse(
+                    "output_delta", phase="generation", status="running",
+                    summary="已完成输入门槛与答案校验", operation_id="verify",
+                    label="核对答案完整性", kind="evidence",
+                    payload={"text": explanation, "replace": True},
+                )
 
+            if not store.run_is_active(task.id, run_id):
+                return
             task.artifacts["completed_derivation"] = explanation
             task.verification = {
                 **answer_verification,
                 "input_gate": "passed" if normalized_action == "provide_input" else "degraded_method_only",
             }
             completion_status = "completed" if answer_verification.get("passed") else "degraded"
-            task = store.checkpoint_for_run(
-                task, run_id, "answer_generated", status=completion_status,
-                detail="原任务已恢复并完成验收",
-            )
-            if task.status != completion_status:
-                return
-
             book_name = str(artifacts.get("book_name") or "default")
             draft = MistakeRecord(
                 question_text=original_ir.problem_text or original_ir.visual_summary,
@@ -962,6 +1241,8 @@ def resume_visual_learning_task(
             linked_concepts = _link_mistake_concepts(
                 draft, explanation=explanation, book_name=book_name, allow_llm_fallback=False,
             )
+            if not store.run_is_active(task.id, run_id):
+                return
             mistake_id = ""
             if bool(artifacts.get("import_to_mistakes")):
                 committed_path, _ = _image_store.commit_pending(str(artifacts.get("image_path") or ""))
@@ -970,28 +1251,53 @@ def resume_visual_learning_task(
                 mistake_id = _mb(book_name).add(draft)
                 _log_learning_event("mistake_added", book_name=book_name, record=draft, payload={"origin": "chat_image_resumed"})
 
-            yield _sse_event("done", done=True, result={
-                "success": True,
-                "explanation": explanation,
-                "linked_concepts": linked_concepts,
-                "question_text": original_ir.problem_text,
-                "visual_ir": original_ir.to_dict(),
-                "mistake_id": mistake_id,
-                "learning_task": task.to_dict(public=True),
-                "answer_verification": answer_verification,
-            })
+            if not store.run_is_active(task.id, run_id):
+                return
+            task = store.checkpoint_for_run(
+                task, run_id, "answer_generated", status=completion_status,
+                detail="原任务已恢复并完成验收",
+            )
+            if task.status != completion_status:
+                return
+            yield emit_sse(
+                "final", phase="final", status="completed",
+                summary="原任务已恢复并完成验收", operation_id="mistake-resume",
+                label="完成错题讲解", kind="system",
+                payload={"task_status": task.status, "mistake_id": mistake_id},
+                extra={
+                    "result": {
+                        "success": True,
+                        "explanation": explanation,
+                        "linked_concepts": linked_concepts,
+                        "question_text": original_ir.problem_text,
+                        "visual_ir": original_ir.to_dict(),
+                        "mistake_id": mistake_id,
+                        "learning_task": task.to_dict(public=True),
+                        "answer_verification": answer_verification,
+                    },
+                },
+            )
         except GeneratorExit:
             raise
         except Exception as exc:
+            if not store.run_is_active(task.id, run_id):
+                return
             task = store.checkpoint_for_run(
-                task, run_id, "resume_failed", status="waiting_for_input", detail=str(exc),
+                task, run_id, "resume_failed", status="failed", detail=str(exc),
             )
-            yield _sse_event("error", done=True, message=str(exc), activity={
-                "id": "resume", "kind": "system", "label": "恢复失败",
-                "status": "failed", "detail": "原任务和已有材料已保留，可以重试",
-            })
+            if task.status != "failed":
+                return
+            yield emit_sse(
+                "error", phase="error", status="failed", summary=str(exc),
+                operation_id="mistake-resume-error", label="恢复失败", kind="system",
+                payload={"task_status": task.status, "error_code": "mistake_resume_failed"},
+                extra={"message": str(exc), "learning_task": task.to_dict(public=True)},
+            )
 
-    return StreamingResponse(events(), media_type="text/event-stream")
+    return StreamingResponse(
+        events(), media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
+    )
 
 
 @router.post("/solve-cached")
@@ -1029,22 +1335,57 @@ def solve_cached_mistake(req: MistakeChatRequest):
 
 @router.post("/solve-cached-stream")
 def solve_cached_mistake_stream(req: MistakeChatRequest):
+    request_id = new_request_id()
+
     def events():
+        emitter = ExecutionEventEmitter(request_id=request_id)
+
+        def emit_sse(
+            event_type: str,
+            *,
+            phase: str,
+            status: str,
+            summary: str,
+            operation_id: str,
+            label: str,
+            kind: str,
+            payload: dict | None = None,
+            duration_ms: int | float | None = None,
+            extra: dict | None = None,
+        ) -> str:
+            event = emitter.emit(
+                event_type,
+                phase=phase,
+                status=status,
+                summary=summary,
+                operation_id=operation_id,
+                label=label,
+                kind=kind,
+                payload=payload,
+                duration_ms=duration_ms,
+            )
+            return _execution_event_sse(event, extra=extra)
+
         book_name = req.book_name or "default"
-        record = _mb(book_name).get(req.id)
-        if not record:
-            yield _sse_event("error", done=True, message="错题不存在", activity={
-                "id": "cache", "kind": "tool", "label": "读取历史错题", "status": "failed", "detail": "错题不存在",
-            })
-            return
         try:
+            record = _mb(book_name).get(req.id)
+            if not record:
+                yield emit_sse(
+                    "error", phase="error", status="failed", summary="错题不存在",
+                    operation_id="cache", label="读取历史错题", kind="tool",
+                    payload={"error_code": "mistake_not_found"},
+                    extra={"message": "错题不存在"},
+                )
+                return
             visual_ir = VisualProblemIR.from_dict(record.visual_ir) if record.visual_ir else VisualProblemIR(
                 problem_text=record.question_text or record.ocr_text, visual_type="text_only",
             )
-            yield _sse_event("activity", activity={
-                "id": "cache", "kind": "tool", "label": "读取历史错题", "status": "completed",
-                "detail": "已复用缓存的题干与视觉表示" if record.visual_ir else "旧记录无视觉缓存，使用题干文本降级",
-            })
+            yield emit_sse(
+                "tool_result", phase="input", status="completed",
+                summary="已复用缓存的题干与视觉表示" if record.visual_ir else "旧记录无视觉缓存，使用题干文本降级",
+                operation_id="cache", label="读取历史错题", kind="tool",
+                payload={"mistake_id": record.id, "visual_ir_cached": bool(record.visual_ir)},
+            )
             explanation = yield from _stream_solution_events(
                 visual_ir,
                 user_question=req.question,
@@ -1053,6 +1394,7 @@ def solve_cached_mistake_stream(req: MistakeChatRequest):
                 tags=", ".join(record.tags),
                 reason_label="重新组织解题思路",
                 reason_detail="正在结合历史题目、用户追问和已有概念重新讲解",
+                emit_sse=emit_sse,
             )
             concepts = record.linked_concepts or _link_mistake_concepts(
                 record, explanation=explanation, book_name=book_name, allow_llm_fallback=False,
@@ -1060,18 +1402,33 @@ def solve_cached_mistake_stream(req: MistakeChatRequest):
             if concepts and not record.linked_concepts:
                 record.linked_concepts = concepts
                 _mb(book_name).update(record)
-            yield _sse_event("done", done=True, result={
-                "success": True, "explanation": explanation, "linked_concepts": concepts,
-                "question_text": record.question_text, "mistake_id": record.id, "visual_ir": visual_ir.to_dict(),
-            }, activity={
-                "id": "memory", "kind": "memory", "label": "读取概念记录",
-                "status": "completed" if concepts else "skipped", "detail": f"已关联 {len(concepts)} 个概念" if concepts else "没有可靠概念标签",
-            })
+            yield emit_sse(
+                "final", phase="final", status="completed",
+                summary=f"已关联 {len(concepts)} 个概念" if concepts else "没有可靠概念标签",
+                operation_id="mistake-cached-answer", label="完成历史错题讲解", kind="memory",
+                payload={"mistake_id": record.id},
+                extra={
+                    "result": {
+                        "success": True,
+                        "explanation": explanation,
+                        "linked_concepts": concepts,
+                        "question_text": record.question_text,
+                        "mistake_id": record.id,
+                        "visual_ir": visual_ir.to_dict(),
+                    },
+                },
+            )
         except Exception as exc:
-            yield _sse_event("error", done=True, message=str(exc), activity={
-                "id": "error", "kind": "system", "label": "处理失败", "status": "failed", "detail": str(exc),
-            })
-    return StreamingResponse(events(), media_type="text/event-stream")
+            yield emit_sse(
+                "error", phase="error", status="failed", summary=str(exc),
+                operation_id="mistake-cached-error", label="处理失败", kind="system",
+                payload={"error_code": "mistake_cached_execution_failed"},
+                extra={"message": str(exc)},
+            )
+    return StreamingResponse(
+        events(), media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
+    )
 
 @router.post("/solve-text")
 def solve_mistake_text(req: MistakeAddRequest):

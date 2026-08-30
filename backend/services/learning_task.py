@@ -425,17 +425,23 @@ class LearningTaskStore:
                 require_persisted_identity=persisted_milestone,
             )
             event_type = str(event.get("type") or "")
-            event_task_status = str((event.get("payload") or {}).get("task_status") or "")
+            event_payload = event.get("payload") or {}
+            event_task_status = str(event_payload.get("task_status") or "")
             terminal_matches_current = bool(
                 event_type in EXECUTION_EVENT_TERMINAL_TYPES
                 and event_task_status
                 and event_task_status == current.status
+            )
+            transition_matches_current = bool(
+                event_type == "state_transition"
+                and str(event_payload.get("task_status_after") or "") == current.status
             )
             if event_type in EXECUTION_EVENT_TERMINAL_TYPES and not terminal_matches_current:
                 return current
             if (
                 event_type not in EXECUTION_EVENT_TERMINAL_TYPES
                 and not is_interruptible_task_status(current.status)
+                and not transition_matches_current
             ):
                 return current
             if not persisted_milestone:
@@ -539,7 +545,7 @@ def resume_learning_task(
     *,
     run_id: str = "",
 ) -> LearningTask:
-    """Move an interrupted task back to running without discarding its artifacts."""
+    """Move a resumable or input-gated task to a run-owned running state."""
     normalized_run_id = _bounded_text(run_id, 80)
     if not normalized_run_id:
         raise ValueError("run_id is required to resume learning task")
@@ -552,7 +558,10 @@ def resume_learning_task(
             if active_run_id == normalized_run_id:
                 return current
             raise ValueError("learning task is already running under another run")
-        if not is_resumable_task_status(current.status):
+        if not (
+            is_resumable_task_status(current.status)
+            or task_requires_input_action(current.status)
+        ):
             raise ValueError(f"learning task is not resumable: {current.status}")
         current.artifacts["active_run_id"] = normalized_run_id
         return store.checkpoint(
