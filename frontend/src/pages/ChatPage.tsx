@@ -21,7 +21,7 @@ import FigureRegionViewer from '../features/visual-learning/FigureRegionViewer';
 import { useChat } from '../hooks/useChat';
 import type { ExerciseRecord, FigureArtifact, LearningTaskState, MistakeRecord, VisualRegion } from '../types';
 import { mapStoredConversationMessages } from '../utils/conversationMessages';
-import { mergeChatActivity, projectExecutionEvent, settleChatActivity } from '../utils/chatActivities';
+import { createExecutionLifecycle, executionMessageStage, mergeChatActivity, mergeExecutionLifecycle, settleChatActivity } from '../utils/chatActivities';
 import { buildTextbookScopeOptions, findDefaultTextbookScope, formatLearningScopeLabel, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
 import { useInspector } from '../contexts/InspectorContext';
 type ReportMode = 'daily' | 'weekly';
@@ -77,6 +77,7 @@ const ChatPage: React.FC = () => {
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const visualAbortRef = useRef<(() => void) | null>(null);
   const activeVisualTaskRef = useRef<LearningTaskState | null>(null);
+  const activeFigureIdentityRef = useRef<{ taskId: string; runId: string } | null>(null);
   const visualPartialOutputRef = useRef('');
   const mathExpressionSequenceRef = useRef(0);
   const mathEditSequenceRef = useRef(0);
@@ -279,6 +280,7 @@ const ChatPage: React.FC = () => {
     const label = `📎 教材图 · ${activeFigure.page ? `p.${activeFigure.page}` : '未标页'}\n\n${question}`;
     setAttachmentLoading(true);
     activeVisualTaskRef.current = null;
+    activeFigureIdentityRef.current = null;
     visualPartialOutputRef.current = '';
     addMessage({ role: 'user', content: label, turnId });
     addMessage({ role: 'assistant', content: '', stage: 'thinking', activities: [], turnId, answerMode: 'visual_grounded' });
@@ -287,7 +289,7 @@ const ChatPage: React.FC = () => {
     setMathEditRequest(null);
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
-    let finalContent = '';
+    let lifecycle = createExecutionLifecycle('');
     visualAbortRef.current = figureQuestionStream({
       book_name: activeFigure.book_name,
       figure_id: activeFigure.figure_id,
@@ -297,36 +299,35 @@ const ChatPage: React.FC = () => {
       conversation_id: conversationId,
       turn_id: turnId,
     }, (event) => {
-      if (event.stage === 'generate' && event.chunk) {
-        finalContent = event.replace ? event.chunk : finalContent + event.chunk;
-        visualPartialOutputRef.current = finalContent;
-      }
+      const merged = mergeExecutionLifecycle(lifecycle, event.execution_event);
+      if (merged === lifecycle) return;
+      lifecycle = merged;
+      visualPartialOutputRef.current = lifecycle.output;
+      if (lifecycle.taskId) activeFigureIdentityRef.current = { taskId: lifecycle.taskId, runId: lifecycle.runId };
       const eventTask = event.learning_task || event.result?.learning_task;
       if (eventTask) activeVisualTaskRef.current = eventTask;
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
         id: event.result?.message_id || last.id,
-        content: finalContent || event.result?.explanation || last.content,
-        stage: event.stage === 'error' ? 'error' : event.stage === 'done' ? 'done' : event.stage === 'generate' ? 'generate' : last.stage,
+        content: lifecycle.terminalType === 'error'
+          ? (lifecycle.errorCode === 'figure_index_out_of_date'
+            ? `教材图片索引已过期：${lifecycle.errorMessage || '请重新导入教材后再试'}`
+            : `教材图片问答失败：${lifecycle.errorMessage || '未知错误'}`)
+          : lifecycle.hasOutput ? lifecycle.output : last.content,
+        stage: executionMessageStage(lifecycle, eventTask || last.learningTask),
         answerMode: 'visual_grounded',
         sources: event.result?.sources || last.sources,
         learningTask: eventTask || last.learningTask,
         citationProvenance: event.result?.citation_provenance || last.citationProvenance,
-        activities: mergeChatActivity(
-          event.stage === 'error'
-            ? (last.activities || []).map((activity) => activity.status === 'active'
-              ? { ...activity, status: 'failed' as const, detail: event.message || 'Figure 问答失败' }
-              : activity)
-            : last.activities,
-          event.activity,
-        ),
+        activities: lifecycle.activities,
       } : last);
-      if (event.stage === 'done' || event.stage === 'error') {
+      if (lifecycle.terminal) {
         visualAbortRef.current = null;
         activeVisualTaskRef.current = null;
+        activeFigureIdentityRef.current = null;
         visualPartialOutputRef.current = '';
         setAttachmentLoading(false);
-        if (event.stage === 'done') {
+        if (lifecycle.terminalType === 'final') {
           setVisualRegion(null);
           setFigureWorkspaceExpanded(false);
         }
@@ -334,6 +335,7 @@ const ChatPage: React.FC = () => {
     }, (error) => {
       visualAbortRef.current = null;
       activeVisualTaskRef.current = null;
+      activeFigureIdentityRef.current = null;
       visualPartialOutputRef.current = '';
       setAttachmentLoading(false);
       updateLastMessage((last) => last.role === 'assistant' ? {
@@ -350,6 +352,8 @@ const ChatPage: React.FC = () => {
   const submitVisualQuestion = (question: string) => {
     if (attachmentLoading) return;
     setAttachmentLoading(true);
+    activeVisualTaskRef.current = null;
+    activeFigureIdentityRef.current = null;
     const label = attachmentFile
       ? `📎 ${attachmentFile.name}\n\n${question || '请完整讲解这道题'}`
       : `从历史错题讲解：${firstLine(cachedMistakes.find((item) => item.id === selectedMistakeId)?.question_text || '')}\n\n${question || '请重新讲解这道错题'}`;
@@ -381,49 +385,35 @@ const ChatPage: React.FC = () => {
     setImportAttachment(false);
     clearAttachment();
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
-    let finalContent = '';
+    let lifecycle = createExecutionLifecycle('');
     visualAbortRef.current = mistakeSolutionStream(path, payload, (event) => {
-      if (event.stage === 'generate' && event.chunk) finalContent = event.replace ? event.chunk : finalContent + event.chunk;
+      const merged = mergeExecutionLifecycle(lifecycle, event.execution_event);
+      if (merged === lifecycle) return;
+      lifecycle = merged;
+      const eventTask = event.learning_task || event.result?.learning_task;
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
-        content: finalContent || last.content,
-        stage: event.stage === 'error' ? 'error' : event.stage === 'waiting_for_input' ? 'waiting_for_input' : event.stage === 'done' ? 'done' : event.stage === 'generate' ? 'generate' : last.stage,
-        activities: event.execution_event
-          ? projectExecutionEvent(
-            event.stage === 'error'
-              ? (last.activities || []).map((activity) => activity.status === 'active'
-                ? { ...activity, status: 'failed' as const, detail: event.message || '图片处理失败' }
-                : activity)
-              : last.activities,
-            event.execution_event,
-          )
-          : mergeChatActivity(
-            event.stage === 'error'
-            ? (last.activities || []).map((activity) => activity.status === 'active'
-              ? { ...activity, status: 'failed' as const, detail: event.message || '图片处理失败' }
-              : activity)
-            : last.activities,
-            event.activity,
-          ),
+        content: lifecycle.terminalType === 'error'
+          ? `图片处理失败：${lifecycle.errorMessage || '未知错误'}`
+          : lifecycle.hasOutput ? lifecycle.output : last.content,
+        stage: executionMessageStage(lifecycle, eventTask || last.learningTask),
+        activities: lifecycle.activities,
         linkedConcepts: event.result?.linked_concepts || last.linkedConcepts,
-        learningTask: event.result?.learning_task || last.learningTask,
+        learningTask: eventTask || last.learningTask,
       } : last);
-      if (event.stage === 'waiting_for_input') {
+      if (eventTask?.input_action_required) {
         visualAbortRef.current = null;
         setAttachmentLoading(false);
-        const task = event.result?.learning_task;
         const waitingContent = '精确解答已暂停：缺失材料会影响最终结论。';
-        finalContent = waitingContent;
-        updateLastMessage((last) => last.role === 'assistant' ? { ...last, content: waitingContent, stage: 'waiting_for_input', learningTask: task } : last);
-        if (task) void persistLocalExchange(label, waitingContent, { turnId, learningTask: task, deliveryStatus: 'waiting' });
-      } else if (event.stage === 'done') {
+        updateLastMessage((last) => last.role === 'assistant' ? { ...last, content: waitingContent, stage: 'waiting_for_input', learningTask: eventTask } : last);
+        void persistLocalExchange(label, waitingContent, { turnId, learningTask: eventTask, deliveryStatus: 'waiting' });
+      } else if (lifecycle.terminalType === 'final') {
         visualAbortRef.current = null;
         setAttachmentLoading(false);
-        void persistLocalExchange(label, finalContent, { turnId, learningTask: event.result?.learning_task, deliveryStatus: 'complete' });
-      } else if (event.stage === 'error') {
+        void persistLocalExchange(label, lifecycle.output, { turnId, learningTask: eventTask, deliveryStatus: 'complete' });
+      } else if (lifecycle.terminalType === 'error') {
         visualAbortRef.current = null;
         setAttachmentLoading(false);
-        updateLastMessage((last) => last.role === 'assistant' ? { ...last, content: `图片处理失败：${event.message || '未知错误'}`, stage: 'error' } : last);
       }
     }, (error) => {
       visualAbortRef.current = null;
@@ -440,12 +430,11 @@ const ChatPage: React.FC = () => {
     action: 'provide_input' | 'method_only',
     file?: File,
   ) => {
-    if (attachmentLoading) return;
+    if (attachmentLoading || !task.input_action_required) return;
     setAttachmentLoading(true);
     updateMessageByTaskId(task.id, (message) => ({
       ...message,
       stage: 'thinking',
-      learningTask: message.learningTask ? { ...message.learningTask, status: 'running' } : message.learningTask,
       activities: mergeChatActivity(message.activities, {
         id: 'resume', kind: 'system', label: '恢复原任务', status: 'active', detail: '正在读取已保存的原题与任务状态',
       }),
@@ -453,49 +442,45 @@ const ChatPage: React.FC = () => {
     const form = new FormData();
     form.append('action', action);
     if (file) form.append('file', file);
-    let finalContent = '';
+    let lifecycle = createExecutionLifecycle('');
     await new Promise<void>((resolve, reject) => {
       visualAbortRef.current = mistakeSolutionStream(
         `/mistakes/visual-tasks/${task.id}/resume-stream`,
         form,
         (event) => {
-          if (event.stage === 'generate' && event.chunk) {
-            finalContent = event.replace ? event.chunk : finalContent + event.chunk;
-          }
+          const merged = mergeExecutionLifecycle(lifecycle, event.execution_event);
+          if (merged === lifecycle) return;
+          lifecycle = merged;
+          const eventTask = event.learning_task || event.result?.learning_task;
           updateMessageByTaskId(task.id, (message) => {
-            const terminalStatus = event.stage === 'done' ? 'completed' : event.stage === 'error' ? 'failed' : null;
-            const activities = terminalStatus
-              ? settleChatActivity(
-                message.activities,
-                'resume',
-                terminalStatus,
-                event.stage === 'done' ? '原任务已恢复并完成' : event.message || '恢复失败',
-              )
-              : message.activities;
             return {
               ...message,
-              content: finalContent || message.content,
-              stage: event.stage === 'error' ? 'error' : event.stage === 'done' ? 'done' : event.stage === 'generate' ? 'generate' : message.stage,
-              activities: event.execution_event
-                ? projectExecutionEvent(activities, event.execution_event)
-                : mergeChatActivity(activities, event.activity),
+              content: lifecycle.terminalType === 'error'
+                ? `图片处理失败：${lifecycle.errorMessage || '恢复失败'}`
+                : lifecycle.hasOutput ? lifecycle.output : message.content,
+              stage: executionMessageStage(lifecycle, eventTask || message.learningTask),
+              activities: lifecycle.activities,
               linkedConcepts: event.result?.linked_concepts || message.linkedConcepts,
-              learningTask: event.learning_task || event.result?.learning_task || message.learningTask,
+              learningTask: eventTask || message.learningTask,
             };
           });
-          if (event.stage === 'done') {
+          if (eventTask?.input_action_required) {
+            visualAbortRef.current = null;
+            setAttachmentLoading(false);
+            resolve();
+          } else if (lifecycle.terminalType === 'final') {
             visualAbortRef.current = null;
             setAttachmentLoading(false);
             void persistLocalExchange(
               task.goal,
-              finalContent || event.result?.explanation || '',
-              { turnId: task.turn_id, learningTask: event.result?.learning_task, deliveryStatus: 'complete' },
+              lifecycle.output,
+              { turnId: task.turn_id, learningTask: eventTask, deliveryStatus: 'complete' },
             );
             resolve();
-          } else if (event.stage === 'error') {
+          } else if (lifecycle.terminalType === 'error') {
             visualAbortRef.current = null;
             setAttachmentLoading(false);
-            reject(new Error(event.message || '恢复任务失败'));
+            reject(new Error(lifecycle.errorMessage || '恢复任务失败'));
           }
         },
         (error) => {
@@ -513,50 +498,49 @@ const ChatPage: React.FC = () => {
   };
 
   const resumeFigureLearningTask = (task: LearningTaskState) => {
-    if (attachmentLoading) return;
+    if (attachmentLoading || !task.resumable) return;
     setAttachmentLoading(true);
     activeVisualTaskRef.current = task;
+    activeFigureIdentityRef.current = { taskId: task.id, runId: '' };
     visualPartialOutputRef.current = '';
     updateMessageByTaskId(task.id, (message) => ({
       ...message,
       content: '',
       stage: 'thinking',
-      learningTask: { ...task, status: 'running' },
       activities: mergeChatActivity(message.activities, {
         id: 'figure-resume', kind: 'system', label: '恢复 Figure 问答', status: 'active', detail: '正在重用已保存的 Figure、选区与教材上下文',
       }),
     }));
-    let finalContent = '';
+    let lifecycle = createExecutionLifecycle('');
     visualAbortRef.current = resumeFigureTaskStream(task.id, (event) => {
-      if (event.stage === 'generate' && event.chunk) {
-        finalContent = event.replace ? event.chunk : finalContent + event.chunk;
-        visualPartialOutputRef.current = finalContent;
-      }
+      const merged = mergeExecutionLifecycle(lifecycle, event.execution_event);
+      if (merged === lifecycle) return;
+      lifecycle = merged;
+      visualPartialOutputRef.current = lifecycle.output;
+      if (lifecycle.taskId) activeFigureIdentityRef.current = { taskId: lifecycle.taskId, runId: lifecycle.runId };
       const eventTask = event.learning_task || event.result?.learning_task;
       if (eventTask) activeVisualTaskRef.current = eventTask;
       updateMessageByTaskId(task.id, (message) => ({
         ...message,
         id: event.result?.message_id || message.id,
-        content: finalContent || event.result?.explanation || message.content,
-        stage: event.stage === 'error' ? 'error' : event.stage === 'done' ? 'done' : event.stage === 'generate' ? 'generate' : message.stage,
+        content: lifecycle.terminalType === 'error'
+          ? (lifecycle.errorCode === 'figure_index_out_of_date'
+            ? `教材图片索引已过期：${lifecycle.errorMessage || '请重新导入教材后再试'}`
+            : `教材图片问答失败：${lifecycle.errorMessage || '恢复失败'}`)
+          : lifecycle.hasOutput ? lifecycle.output : message.content,
+        stage: executionMessageStage(lifecycle, eventTask || message.learningTask),
         sources: event.result?.sources || message.sources,
         citationProvenance: event.result?.citation_provenance || message.citationProvenance,
         learningTask: eventTask || message.learningTask,
-        activities: mergeChatActivity(
-          event.stage === 'done'
-            ? settleChatActivity(message.activities, 'figure-resume', 'completed', '原 Figure 问答已恢复并完成')
-            : event.stage === 'error'
-              ? settleChatActivity(message.activities, 'figure-resume', 'failed', event.message || '恢复失败')
-              : message.activities,
-          event.activity,
-        ),
+        activities: lifecycle.activities,
       }));
-      if (event.stage === 'done' || event.stage === 'error') {
+      if (lifecycle.terminal) {
         visualAbortRef.current = null;
         activeVisualTaskRef.current = null;
+        activeFigureIdentityRef.current = null;
         visualPartialOutputRef.current = '';
         setAttachmentLoading(false);
-        if (event.stage === 'done') {
+        if (lifecycle.terminalType === 'final') {
           setVisualRegion(null);
           setFigureWorkspaceExpanded(false);
         }
@@ -564,6 +548,7 @@ const ChatPage: React.FC = () => {
     }, (error) => {
       visualAbortRef.current = null;
       activeVisualTaskRef.current = null;
+      activeFigureIdentityRef.current = null;
       visualPartialOutputRef.current = '';
       setAttachmentLoading(false);
       updateMessageByTaskId(task.id, (message) => ({
@@ -584,12 +569,15 @@ const ChatPage: React.FC = () => {
 
   const stopVisualQuestion = () => {
     const task = activeVisualTaskRef.current;
+    const identity = activeFigureIdentityRef.current;
     const partialOutput = visualPartialOutputRef.current;
     visualAbortRef.current?.();
     visualAbortRef.current = null;
+    activeVisualTaskRef.current = null;
+    activeFigureIdentityRef.current = null;
     setAttachmentLoading(false);
     updateLastMessage((last) => {
-      if (last.role !== 'assistant' || last.stage === 'done' || last.stage === 'error') return last;
+      if (last.role !== 'assistant' || last.learningTask?.terminal || last.stage === 'done' || last.stage === 'error') return last;
       const activities = (last.activities || []).map((activity) => (
         activity.status === 'active'
           ? { ...activity, status: 'skipped' as const, detail: '用户已停止本次处理' }
@@ -599,20 +587,21 @@ const ChatPage: React.FC = () => {
         ...last,
         content: last.content || '已停止图片讲解。',
         stage: 'stopped',
-        learningTask: task ? { ...task, status: 'interrupted' } : last.learningTask,
+        learningTask: task || last.learningTask,
         activities,
       };
     });
-    if (task?.task_type === 'figure_qa') {
-      void interruptFigureTask(task.id, partialOutput).then((response) => {
+    const figureTaskId = task?.task_type === 'figure_qa' ? task.id : identity?.taskId;
+    if (figureTaskId && task?.interruptible !== false) {
+      void interruptFigureTask(figureTaskId, partialOutput).then((response) => {
         activeVisualTaskRef.current = response.learning_task;
-        updateMessageByTaskId(task.id, (message) => ({
+        updateMessageByTaskId(figureTaskId, (message) => ({
           ...message,
-          stage: response.learning_task.status === 'interrupted' ? 'stopped' : message.stage,
+          stage: response.learning_task.resumable ? 'stopped' : response.learning_task.terminal ? 'done' : message.stage,
           learningTask: response.learning_task,
         }));
       }).catch((error) => {
-        updateMessageByTaskId(task.id, (message) => ({
+        updateMessageByTaskId(figureTaskId, (message) => ({
           ...message,
           activities: mergeChatActivity(message.activities, {
             id: 'figure-interrupt', kind: 'system', label: '停止状态未保存', status: 'failed', detail: error instanceof Error ? error.message : String(error),

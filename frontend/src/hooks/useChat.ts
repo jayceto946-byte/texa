@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { chatAsk, chatStream, interruptChatTask, resumeChatTaskStream } from '../api/client';
 import { useChatContext } from '../contexts/ChatContext';
 import type { AnswerMode, ConceptCandidate, LearningTaskState } from '../types';
-import { createTransportActivity, mergeChatActivity, projectExecutionEvent, settleChatActivity } from '../utils/chatActivities';
+import { createExecutionLifecycle, createTransportActivity, executionMessageStage, mergeChatActivity, mergeExecutionLifecycle } from '../utils/chatActivities';
 
 const USE_NON_STREAMING = import.meta.env.VITE_USE_NON_STREAMING === 'true';
 
@@ -113,6 +113,7 @@ export function useChat() {
         return;
       }
 
+      let lifecycle = createExecutionLifecycle('', [createTransportActivity()]);
       const abortStream = chatStream(
         question,
         bookName,
@@ -121,102 +122,44 @@ export function useChat() {
         turnId,
         (event) => {
           if (requestId !== requestSequenceRef.current) return;
-          if (event.conversation_id) setConversationId(event.conversation_id);
-          if (event.stage === 'context') {
-            if (event.book_name || event.subject) syncRecoveredScope(event.book_name || '', event.subject || '');
-            backendRequestIdRef.current = event.request_id || backendRequestIdRef.current;
-            answerModeRef.current = event.answer_mode || answerModeRef.current;
-            scopeReasonRef.current = event.scope_reason || '';
-            updateLastMessage((last) => last.role === 'assistant' ? {
-              ...last,
-              activities: event.execution_event
-                ? projectExecutionEvent(last.activities, event.execution_event)
-                : mergeChatActivity(last.activities, event.activity),
-              answerMode: answerModeRef.current,
-              scopeReason: scopeReasonRef.current,
-              originalQuestion: question,
-              learningTask: event.learning_task || last.learningTask,
-            } : last);
-            return;
-          }
-          if (event.stage === 'plan') sourceChaptersRef.current = event.chapters || [];
-          if (event.stage === 'done') linkedConceptsRef.current = event.state?.linked_concepts || [];
+          const merged = mergeExecutionLifecycle(lifecycle, event.execution_event);
+          if (merged === lifecycle) return;
+          lifecycle = merged;
+          streamContentRef.current = lifecycle.output;
+          if (event.execution_event.conversation_id) setConversationId(event.execution_event.conversation_id);
+          if (event.book_name || event.subject) syncRecoveredScope(event.book_name || '', event.subject || '');
+          backendRequestIdRef.current = event.execution_event.request_id;
+          answerModeRef.current = event.answer_mode || answerModeRef.current;
+          scopeReasonRef.current = event.scope_reason || scopeReasonRef.current;
+          if (event.chapters) sourceChaptersRef.current = event.chapters;
+          if (event.state?.linked_concepts) linkedConceptsRef.current = event.state.linked_concepts;
           if (event.suggested_answer_mode || event.state?.suggested_answer_mode) {
             suggestedAnswerModeRef.current = event.suggested_answer_mode || event.state?.suggested_answer_mode;
-          }
-
-          let nextStreamContent = streamContentRef.current;
-          if (event.stage === 'generate' && event.replace) {
-            nextStreamContent = event.chunk || '';
-            streamContentRef.current = nextStreamContent;
-          } else if (event.stage === 'generate' && event.chunk) {
-            nextStreamContent += event.chunk;
-            streamContentRef.current = nextStreamContent;
           }
 
           updateLastMessage((last) => {
             if (last.role !== 'assistant') return last;
             const next = { ...last };
-            next.learningTask = event.learning_task || next.learningTask;
-            const existingActivities = event.stage === 'error'
-              ? (last.activities || []).map((activity) => activity.status === 'active'
-                ? { ...activity, status: 'failed' as const, detail: event.message || '后端生成失败' }
-                : activity)
-              : last.activities;
-            next.activities = event.execution_event
-              ? projectExecutionEvent(existingActivities, event.execution_event)
-              : mergeChatActivity(existingActivities, event.activity);
-            switch (event.stage) {
-              case 'execution':
-              case 'progress':
-              case 'activity':
-                break;
-              case 'plan':
-                if (last.stage !== 'generate' && last.stage !== 'done') {
-                  next.stage = 'plan';
-                }
-                break;
-              case 'retrieve':
-                if (last.stage !== 'generate' && last.stage !== 'done') {
-                  next.stage = 'retrieve';
-                }
-                break;
-              case 'chapter':
-                if (last.stage !== 'generate' && last.stage !== 'done') {
-                  next.stage = 'chapter';
-                }
-                break;
-              case 'generate':
-                next.stage = event.done ? 'done' : 'generate';
-                next.content = nextStreamContent || last.content;
-                break;
-              case 'done': {
-                const chapters = sourceChaptersRef.current;
-                const linkedConcepts = linkedConceptsRef.current;
-                next.stage = 'done';
-                next.content = streamContentRef.current || last.content;
-                next.sourceChapters = chapters;
-                next.sources = (event.state?.evidence_sources || []).slice(0, 12);
-                next.linkedConcepts = linkedConcepts;
-                next.subjectSuggestion = event.subject_suggestion;
-                next.answerMode = event.answer_mode || answerModeRef.current;
-                next.suggestedAnswerMode = suggestedAnswerModeRef.current;
-                next.scopeReason = event.scope_reason || scopeReasonRef.current;
-                next.originalQuestion = question;
-                next.id = event.message_id || next.id;
-                next.requestId = event.request_id || backendRequestIdRef.current || next.requestId;
-                next.learningTask = event.state?.learning_task || next.learningTask;
-                break;
-              }
-              case 'error':
-                next.stage = 'error';
-                next.content = `出错了：${event.message || '后端生成失败'}`;
-                break;
-            }
+            next.learningTask = event.state?.learning_task || event.learning_task || next.learningTask;
+            next.activities = lifecycle.activities;
+            next.stage = executionMessageStage(lifecycle, next.learningTask);
+            next.content = lifecycle.terminalType === 'error'
+              ? `出错了：${lifecycle.errorMessage || '后端生成失败'}`
+              : lifecycle.hasOutput ? lifecycle.output : last.content;
+            next.sourceChapters = sourceChaptersRef.current;
+            next.sources = (event.state?.evidence_sources || next.sources || []).slice(0, 12);
+            next.linkedConcepts = linkedConceptsRef.current;
+            next.subjectSuggestion = event.subject_suggestion || next.subjectSuggestion;
+            next.answerMode = event.answer_mode || answerModeRef.current;
+            next.suggestedAnswerMode = suggestedAnswerModeRef.current;
+            next.scopeReason = event.scope_reason || scopeReasonRef.current;
+            next.originalQuestion = question;
+            next.id = event.message_id || next.id;
+            next.requestId = event.execution_event.request_id;
             return next;
           });
 
-          if (event.stage === 'done' || event.stage === 'error') {
+          if (lifecycle.terminal) {
             setActiveChatAbort(null);
             setLoading(false);
           }
@@ -234,14 +177,16 @@ export function useChat() {
 
   const stop = useCallback(() => {
     const activeMessage = [...messages].reverse().find((message) => (
-      message.role === 'assistant' && message.stage !== 'done' && message.stage !== 'error'
+      message.role === 'assistant' && (message.learningTask
+        ? message.learningTask.interruptible
+        : message.stage !== 'done' && message.stage !== 'error')
     ));
     const task = activeMessage?.learningTask;
     const partialOutput = streamContentRef.current.trim()
       || (activeMessage?.content && !activeMessage.content.endsWith('...') ? activeMessage.content : '');
     cancelActiveChat();
     updateLastMessage((last) => {
-      if (last.role !== 'assistant' || last.stage === 'done' || last.stage === 'error') return last;
+      if (last.role !== 'assistant' || last.learningTask?.terminal || last.stage === 'done' || last.stage === 'error') return last;
       const activities = (last.activities || []).map((activity) => activity.status === 'active'
         ? { ...activity, status: 'skipped' as const, detail: '用户已停止本次处理' }
         : activity);
@@ -249,15 +194,11 @@ export function useChat() {
       const content = streamContentRef.current.trim() || (last.content && !last.content.endsWith('...') ? last.content : '已停止生成。');
       return {
         ...last, content, stage: 'stopped', activities,
-        learningTask: last.learningTask ? {
-          ...last.learningTask,
-          status: 'stopping',
-          artifacts: { ...(last.learningTask.artifacts || {}), resume_available: false, partial_output: content },
-        } : last.learningTask,
+        learningTask: last.learningTask,
       };
     });
     setLoading(false);
-    if (task?.id) {
+    if (task?.id && task.interruptible) {
       void interruptChatTask(task.id, partialOutput).then((result) => {
         updateMessageByTaskId(task.id, (message) => ({
           ...message,
@@ -276,40 +217,35 @@ export function useChat() {
   }, [cancelActiveChat, messages, setLoading, updateLastMessage, updateMessageByTaskId]);
 
   const resumeTask = useCallback((task: LearningTaskState) => {
-    if (isLoading || task.status !== 'interrupted') return;
+    if (isLoading || !task.resumable) return;
     setLoading(true);
-    let content = '';
+    let lifecycle = createExecutionLifecycle('');
     updateMessageByTaskId(task.id, (message) => ({
       ...message, stage: 'thinking',
-      learningTask: message.learningTask ? { ...message.learningTask, status: 'running' } : message.learningTask,
       activities: mergeChatActivity(message.activities, {
         id: 'resume', kind: 'system', label: '从检查点恢复', status: 'active',
         detail: '已保留原题、检索证据与任务验收条件',
       }),
     }));
     const abort = resumeChatTaskStream(task.id, (event) => {
-      if (event.stage === 'generate' && event.chunk) content = event.replace ? event.chunk : content + event.chunk;
+      const merged = mergeExecutionLifecycle(lifecycle, event.execution_event);
+      if (merged === lifecycle) return;
+      lifecycle = merged;
       updateMessageByTaskId(task.id, (message) => {
-        const terminalStatus = event.stage === 'done' ? 'completed' : event.stage === 'error' ? 'failed' : null;
-        const activities = terminalStatus
-          ? settleChatActivity(
-            message.activities,
-            'resume',
-            terminalStatus,
-            event.stage === 'done' ? '已从检查点完成本次解答' : event.message || '恢复失败',
-          )
-          : message.activities;
+        const eventTask = event.state?.learning_task || event.learning_task || message.learningTask;
         return {
           ...message,
-          content: content || message.content,
-          stage: event.stage === 'done' ? 'done' : event.stage === 'error' ? 'error' : event.stage === 'generate' ? 'generate' : message.stage,
-          learningTask: event.state?.learning_task || event.learning_task || message.learningTask,
+          content: lifecycle.terminalType === 'error'
+            ? `出错了：${lifecycle.errorMessage || '恢复失败'}`
+            : lifecycle.hasOutput ? lifecycle.output : message.content,
+          stage: executionMessageStage(lifecycle, eventTask),
+          learningTask: eventTask,
           sources: event.state?.evidence_sources || message.sources,
           linkedConcepts: event.state?.linked_concepts || message.linkedConcepts,
-          activities: mergeChatActivity(activities, event.activity),
+          activities: lifecycle.activities,
         };
       });
-      if (event.stage === 'done' || event.stage === 'error') {
+      if (lifecycle.terminal) {
         setActiveChatAbort(null);
         setLoading(false);
       }

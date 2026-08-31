@@ -318,13 +318,13 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
           </div>
         )}
 
-        {!isUser && learningTask?.task_type === 'visual_qa' && learningTask.status === 'waiting_for_input' && onResumeLearningTask && (
+        {!isUser && learningTask?.task_type === 'visual_qa' && learningTask.input_action_required && onResumeLearningTask && (
           <LearningTaskGate task={learningTask} onResume={onResumeLearningTask} />
         )}
-        {!isUser && learningTask?.status === 'waiting_for_confirmation' && (
+        {!isUser && learningTask?.confirmation_required && (
           <LearningTaskActions initialTask={learningTask} />
         )}
-        {!isUser && learningTask?.status === 'interrupted' && onResumeInterruptedTask && (
+        {!isUser && learningTask?.resumable && onResumeInterruptedTask && (
           <LearningTaskResume task={learningTask} onResume={onResumeInterruptedTask} />
         )}
 

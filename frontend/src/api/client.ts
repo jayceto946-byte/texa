@@ -1,4 +1,5 @@
-import type { AgentPendingAction, AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ChatActivity, CitationProvenance, ConceptCandidate, ExecutionEvent, LearningTaskState, SubjectRouteSuggestion, VisualRegion } from '../types';
+import type { AgentPendingAction, AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ConceptCandidate, ExecutionStreamEnvelope, LearningTaskState, SubjectRouteSuggestion, VisualRegion } from '../types';
+import { isExecutionEventV1 } from '../utils/chatActivities';
 
 const DEFAULT_TIMEOUT_MS = 20000;
 export const AGENT_REQUEST_TIMEOUT_MS = 55000;
@@ -65,55 +66,6 @@ function authenticatedResourceUrl(value: string): string {
   }
   return apiUrl(trimmed);
 }
-
-export type ChatEvent = {
-  stage: string;
-  request_id?: string;
-  message_id?: string;
-  elapsed_ms?: number;
-  chunk?: string;
-  replace?: boolean;
-  done?: boolean;
-  intent?: string;
-  chapters?: string[];
-  fast_path?: boolean;
-  planner_trace?: Record<string, unknown>;
-  content_count?: number;
-  message?: string;
-  conversation_id?: string;
-  turn_id?: string;
-  book_name?: string;
-  subject?: string;
-  resolution_action?: 'continue' | 'clarify' | 'respond';
-  subject_suggestion?: SubjectRouteSuggestion;
-  rewritten_question?: string;
-  use_textbook_context?: boolean;
-  scope_reason?: string;
-  answer_mode?: AnswerMode;
-  suggested_answer_mode?: AnswerMode;
-  learning_task?: LearningTaskState;
-  retrieval_status?: string;
-  retrieval_error?: string;
-  activity?: ChatActivity;
-  execution_event?: ExecutionEvent;
-  result?: {
-    success?: boolean;
-    explanation?: string;
-    linked_concepts?: ConceptCandidate[];
-    question_text?: string;
-    mistake_id?: string;
-    visual_ir?: Record<string, unknown>;
-    learning_task?: LearningTaskState;
-    sources?: AssistantSource[];
-    message_id?: string;
-    conversation_id?: string;
-    turn_id?: string;
-    figure_id?: string;
-    region?: number[] | null;
-    citation_provenance?: CitationProvenance;
-  };
-  state?: { linked_concepts?: ConceptCandidate[]; evidence_sources?: AssistantSource[]; suggested_answer_mode?: AnswerMode; learning_task?: LearningTaskState };
-};
 
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
   const ctrl = new AbortController();
@@ -206,17 +158,25 @@ function warnMalformedSse(payload: string, err: unknown) {
   }
 }
 
-export function consumeSseLine(line: string, onEvent: (event: ChatEvent) => void): boolean {
+function isExecutionStreamBoundary(event: ExecutionStreamEnvelope): boolean {
+  const canonical = event.execution_event;
+  if (canonical.type === 'final' || canonical.type === 'error') return true;
+  return canonical.type === 'state_transition'
+    && canonical.payload.task_status_after === 'waiting_for_input';
+}
+
+export function consumeSseLine(line: string, onEvent: (event: ExecutionStreamEnvelope) => void): boolean {
   const trimmed = line.trim();
   if (!trimmed.startsWith('data: ')) return false;
 
   const payload = trimmed.slice(6);
-  if (payload === '[DONE]') return true;
+  if (payload === '[DONE]') return false;
 
   try {
-    const event = JSON.parse(payload) as ChatEvent;
-    onEvent(event);
-    return event.stage === 'done' || event.stage === 'error' || event.stage === 'waiting_for_input';
+    const event = JSON.parse(payload) as Partial<ExecutionStreamEnvelope>;
+    if (!isExecutionEventV1(event.execution_event)) throw new Error('missing or invalid ExecutionEvent V1');
+    onEvent(event as ExecutionStreamEnvelope);
+    return isExecutionStreamBoundary(event as ExecutionStreamEnvelope);
   } catch (err) {
     warnMalformedSse(payload, err);
     return false;
@@ -226,24 +186,24 @@ export function consumeSseLine(line: string, onEvent: (event: ChatEvent) => void
 export function consumeSseChunk(
   chunk: string,
   buffer: string,
-  onEvent: (event: ChatEvent) => void,
-): { buffer: string; sawTerminalEvent: boolean } {
+  onEvent: (event: ExecutionStreamEnvelope) => void,
+): { buffer: string; sawBoundaryEvent: boolean } {
   const lines = `${buffer}${chunk}`.split('\n');
   const nextBuffer = lines.pop() || '';
-  let sawTerminalEvent = false;
+  let sawBoundaryEvent = false;
   for (const line of lines) {
-    sawTerminalEvent = consumeSseLine(line, onEvent) || sawTerminalEvent;
+    sawBoundaryEvent = consumeSseLine(line, onEvent) || sawBoundaryEvent;
   }
-  return { buffer: nextBuffer, sawTerminalEvent };
+  return { buffer: nextBuffer, sawBoundaryEvent };
 }
 
-export function flushSseBuffer(buffer: string, onEvent: (event: ChatEvent) => void): boolean {
+export function flushSseBuffer(buffer: string, onEvent: (event: ExecutionStreamEnvelope) => void): boolean {
   if (!buffer.trim()) return false;
-  let sawTerminalEvent = false;
+  let sawBoundaryEvent = false;
   for (const line of buffer.split('\n')) {
-    sawTerminalEvent = consumeSseLine(line, onEvent) || sawTerminalEvent;
+    sawBoundaryEvent = consumeSseLine(line, onEvent) || sawBoundaryEvent;
   }
-  return sawTerminalEvent;
+  return sawBoundaryEvent;
 }
 
 export function chatStream(
@@ -252,7 +212,7 @@ export function chatStream(
   subject: string = '',
   conversationId: string = '',
   turnId: string,
-  onEvent: (event: ChatEvent) => void,
+  onEvent: (event: ExecutionStreamEnvelope) => void,
   onError?: (err: Error) => void,
   answerMode: AnswerMode = 'auto',
 ): () => void {
@@ -272,20 +232,20 @@ export function chatStream(
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let sawTerminalEvent = false;
+      let sawBoundaryEvent = false;
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const parsed = consumeSseChunk(decoder.decode(value, { stream: true }), buffer, onEvent);
         buffer = parsed.buffer;
-        sawTerminalEvent = parsed.sawTerminalEvent || sawTerminalEvent;
+        sawBoundaryEvent = parsed.sawBoundaryEvent || sawBoundaryEvent;
       }
 
       buffer += decoder.decode();
-      sawTerminalEvent = flushSseBuffer(buffer, onEvent) || sawTerminalEvent;
+      sawBoundaryEvent = flushSseBuffer(buffer, onEvent) || sawBoundaryEvent;
 
-      if (!sawTerminalEvent && !ctrl.signal.aborted) {
+      if (!sawBoundaryEvent && !ctrl.signal.aborted) {
         throw new Error('stream ended without terminal event');
       }
     } catch (err) {
@@ -308,7 +268,7 @@ export function figureQuestionStream(
     conversation_id?: string;
     turn_id?: string;
   },
-  onEvent: (event: ChatEvent) => void,
+  onEvent: (event: ExecutionStreamEnvelope) => void,
   onError?: (error: Error) => void,
 ): () => void {
   const controller = new AbortController();
@@ -334,17 +294,17 @@ export function figureQuestionStream(
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let terminal = false;
+      let sawBoundaryEvent = false;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const parsed = consumeSseChunk(decoder.decode(value, { stream: true }), buffer, onEvent);
         buffer = parsed.buffer;
-        terminal = parsed.sawTerminalEvent || terminal;
+        sawBoundaryEvent = parsed.sawBoundaryEvent || sawBoundaryEvent;
       }
       buffer += decoder.decode();
-      terminal = flushSseBuffer(buffer, onEvent) || terminal;
-      if (!terminal && !controller.signal.aborted) throw new Error('教材图片问答流未返回终止事件');
+      sawBoundaryEvent = flushSseBuffer(buffer, onEvent) || sawBoundaryEvent;
+      if (!sawBoundaryEvent && !controller.signal.aborted) throw new Error('教材图片问答流未返回 canonical 结束边界');
     } catch (error) {
       if (controller.signal.aborted && error instanceof Error && /abort/i.test(error.name)) return;
       onError?.(error instanceof Error ? error : new Error(String(error)));
@@ -360,7 +320,7 @@ export function figureQuestionStream(
 
 export function resumeChatTaskStream(
   taskId: string,
-  onEvent: (event: ChatEvent) => void,
+  onEvent: (event: ExecutionStreamEnvelope) => void,
   onError?: (err: Error) => void,
 ): () => void {
   const ctrl = new AbortController();
@@ -373,17 +333,17 @@ export function resumeChatTaskStream(
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let terminal = false;
+      let sawBoundaryEvent = false;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const parsed = consumeSseChunk(decoder.decode(value, { stream: true }), buffer, onEvent);
         buffer = parsed.buffer;
-        terminal = parsed.sawTerminalEvent || terminal;
+        sawBoundaryEvent = parsed.sawBoundaryEvent || sawBoundaryEvent;
       }
       buffer += decoder.decode();
-      terminal = flushSseBuffer(buffer, onEvent) || terminal;
-      if (!terminal && !ctrl.signal.aborted) throw new Error('恢复流未返回终止事件');
+      sawBoundaryEvent = flushSseBuffer(buffer, onEvent) || sawBoundaryEvent;
+      if (!sawBoundaryEvent && !ctrl.signal.aborted) throw new Error('恢复流未返回 canonical 结束边界');
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
       onError?.(error instanceof Error ? error : new Error(String(error)));
@@ -394,7 +354,7 @@ export function resumeChatTaskStream(
 
 export function resumeFigureTaskStream(
   taskId: string,
-  onEvent: (event: ChatEvent) => void,
+  onEvent: (event: ExecutionStreamEnvelope) => void,
   onError?: (err: Error) => void,
 ): () => void {
   const ctrl = new AbortController();
@@ -407,17 +367,17 @@ export function resumeFigureTaskStream(
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let terminal = false;
+      let sawBoundaryEvent = false;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const parsed = consumeSseChunk(decoder.decode(value, { stream: true }), buffer, onEvent);
         buffer = parsed.buffer;
-        terminal = parsed.sawTerminalEvent || terminal;
+        sawBoundaryEvent = parsed.sawBoundaryEvent || sawBoundaryEvent;
       }
       buffer += decoder.decode();
-      terminal = flushSseBuffer(buffer, onEvent) || terminal;
-      if (!terminal && !ctrl.signal.aborted) throw new Error('Figure 恢复流未返回终止事件');
+      sawBoundaryEvent = flushSseBuffer(buffer, onEvent) || sawBoundaryEvent;
+      if (!sawBoundaryEvent && !ctrl.signal.aborted) throw new Error('Figure 恢复流未返回 canonical 结束边界');
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
       onError?.(error instanceof Error ? error : new Error(String(error)));
@@ -447,7 +407,7 @@ export async function interruptChatTask(
 export function mistakeSolutionStream(
   path: '/mistakes/solve-image-stream' | '/mistakes/solve-cached-stream' | `/mistakes/visual-tasks/${string}/resume-stream`,
   payload: FormData | Record<string, unknown>,
-  onEvent: (event: ChatEvent) => void,
+  onEvent: (event: ExecutionStreamEnvelope) => void,
   onError?: (error: Error) => void,
 ): () => void {
   const controller = new AbortController();
@@ -468,16 +428,16 @@ export function mistakeSolutionStream(
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let terminal = false;
+      let sawBoundaryEvent = false;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const parsed = consumeSseChunk(decoder.decode(value, { stream: true }), buffer, onEvent);
         buffer = parsed.buffer;
-        terminal = terminal || parsed.sawTerminalEvent;
+        sawBoundaryEvent = sawBoundaryEvent || parsed.sawBoundaryEvent;
       }
-      terminal = flushSseBuffer(buffer + decoder.decode(), onEvent) || terminal;
-      if (!terminal && !controller.signal.aborted) throw new Error('图片讲解流意外结束');
+      sawBoundaryEvent = flushSseBuffer(buffer + decoder.decode(), onEvent) || sawBoundaryEvent;
+      if (!sawBoundaryEvent && !controller.signal.aborted) throw new Error('图片讲解流未返回 canonical 结束边界');
     } catch (error) {
       if (controller.signal.aborted) {
         if (controller.signal.reason?.name === 'TimeoutError') onError?.(new Error('图片讲解超时，请稍后重试', { cause: error }));

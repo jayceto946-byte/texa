@@ -35,6 +35,11 @@ export interface LearningTaskState {
   required_outputs: Array<Record<string, unknown>>;
   artifacts?: Record<string, unknown>;
   verification?: Record<string, unknown>;
+  terminal: boolean;
+  interruptible: boolean;
+  resumable: boolean;
+  input_action_required: boolean;
+  confirmation_required: boolean;
 }
 
 export interface ChatActivity {
@@ -52,53 +57,50 @@ export interface ChatActivity {
   elapsed_ms?: number;
 }
 
+export type ExecutionEventType = 'progress' | 'state_transition' | 'tool_result' | 'output_delta' | 'final' | 'error';
+export type ExecutionEventStatus = 'started' | 'running' | 'completed' | 'failed' | 'skipped' | 'cancelled';
+
 export interface ExecutionEvent {
-  schema: 'texa.execution/v1' | string;
+  schema: 'texa.execution/v1';
   seq: number;
   request_id: string;
-  task_id?: string;
-  run_id?: string;
-  conversation_id?: string;
-  turn_id?: string;
+  task_id: string;
+  run_id: string;
+  conversation_id: string;
+  turn_id: string;
   operation_id: string;
-  type: 'progress' | 'tool_call' | 'tool_result' | 'state_transition' | 'output_delta' | 'final' | 'error' | string;
+  type: ExecutionEventType;
   phase: string;
-  status: 'started' | 'running' | 'completed' | 'failed' | 'skipped' | 'cancelled' | string;
+  status: ExecutionEventStatus;
   summary: string;
   label: string;
   kind: ActivityKind;
-  elapsed_ms?: number;
+  elapsed_ms: number;
   duration_ms?: number;
-  payload?: Record<string, unknown>;
+  payload: Record<string, unknown>;
 }
 
-export interface ChatRequest {
-  question: string;
-  book_name?: string;
-  target_chapters?: string[];
-  answer_mode?: AnswerMode;
-  suggested_answer_mode?: AnswerMode;
-}
-
-export interface ChatEvent {
-  stage: 'context' | 'execution' | 'progress' | 'activity' | 'plan' | 'retrieve' | 'chapter' | 'generate' | 'waiting_for_input' | 'verify' | 'done' | 'error';
+/** Transport envelope for canonical execution events plus non-lifecycle business projections. */
+export interface ExecutionStreamEnvelope {
+  execution_event: ExecutionEvent;
+  message_id?: string;
   intent?: string;
   chapters?: string[];
   fast_path?: boolean;
   planner_trace?: Record<string, unknown>;
+  content_count?: number;
+  book_name?: string;
+  subject?: string;
+  resolution_action?: 'continue' | 'clarify' | 'respond';
+  subject_suggestion?: SubjectRouteSuggestion;
+  rewritten_question?: string;
   use_textbook_context?: boolean;
   scope_reason?: string;
   answer_mode?: AnswerMode;
+  suggested_answer_mode?: AnswerMode;
   learning_task?: LearningTaskState;
-  content_count?: number;
-  has_teaching?: boolean;
-  chunk?: string;
-  replace?: boolean;
-  done?: boolean;
-  enriched?: boolean;
-  message?: string;
-  activity?: ChatActivity;
-  execution_event?: ExecutionEvent;
+  retrieval_status?: string;
+  retrieval_error?: string;
   result?: {
     success?: boolean;
     explanation?: string;
@@ -107,6 +109,12 @@ export interface ChatEvent {
     mistake_id?: string;
     visual_ir?: Record<string, unknown>;
     learning_task?: LearningTaskState;
+    sources?: AssistantSource[];
+    message_id?: string;
+    conversation_id?: string;
+    turn_id?: string;
+    figure_id?: string;
+    region?: number[] | null;
     citation_provenance?: CitationProvenance;
   };
   state?: {
@@ -115,6 +123,14 @@ export interface ChatEvent {
     suggested_answer_mode?: AnswerMode;
     learning_task?: LearningTaskState;
   };
+}
+
+export interface ChatRequest {
+  question: string;
+  book_name?: string;
+  target_chapters?: string[];
+  answer_mode?: AnswerMode;
+  suggested_answer_mode?: AnswerMode;
 }
 
 export interface ConceptCandidate {

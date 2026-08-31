@@ -50,7 +50,8 @@ describe('Texa product UI contract', () => {
   });
 
   it('keeps Figure interruption resumable through the original learning task', () => {
-    expect(chatPage).toContain('interruptFigureTask(task.id, partialOutput)');
+    expect(chatPage).toContain('activeFigureIdentityRef.current = { taskId: lifecycle.taskId, runId: lifecycle.runId }');
+    expect(chatPage).toContain('interruptFigureTask(figureTaskId, partialOutput)');
     expect(chatPage).toContain("task.task_type === 'figure_qa'");
     expect(chatPage).toContain('resumeFigureTaskStream(task.id');
     expect(chatPage).toContain('onResumeInterruptedTask={resumeInterruptedTask}');

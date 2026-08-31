@@ -1,4 +1,5 @@
 import type { ChatMessage } from '../contexts/ChatContext';
+import { executionMessageStage, replayExecutionEvents } from './chatActivities';
 
 type StoredConversationMessage = {
   id?: string;
@@ -19,13 +20,26 @@ type StoredConversationMessage = {
 export function mapStoredConversationMessages(
   storedMessages: StoredConversationMessage[],
 ): ChatMessage[] {
-  return storedMessages.map((item, index) => ({
+  return storedMessages.map((item, index) => {
+    const executionEvents = Array.isArray(item.learning_task?.artifacts?.execution_events)
+      ? item.learning_task.artifacts.execution_events
+      : [];
+    const lifecycle = replayExecutionEvents(executionEvents, item.content || '');
+    const assistantStage = executionEvents.length
+      ? executionMessageStage(lifecycle, item.learning_task)
+      : item.learning_task?.input_action_required
+        ? 'waiting_for_input'
+        : item.learning_task?.resumable
+          ? 'stopped'
+          : 'done';
+    return ({
     id: item.id || undefined,
     turnId: item.turn_id || undefined,
     requestId: item.request_id || undefined,
     role: item.role === 'assistant' ? 'assistant' : 'user',
     content: item.content || '',
-    stage: item.role === 'assistant' ? 'done' : undefined,
+    stage: item.role === 'assistant' ? assistantStage : undefined,
+    activities: item.role === 'assistant' && executionEvents.length ? lifecycle.activities : undefined,
     sources: Array.isArray(item.sources) ? item.sources : undefined,
     linkedConcepts: Array.isArray(item.linked_concepts) ? item.linked_concepts : undefined,
     answerMode: item.answer_mode || undefined,
@@ -37,5 +51,6 @@ export function mapStoredConversationMessages(
     originalQuestion: item.role === 'assistant' && storedMessages[index - 1]?.role === 'user'
       ? storedMessages[index - 1].content
       : undefined,
-  }));
+    });
+  });
 }

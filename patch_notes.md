@@ -1,3 +1,16 @@
+# 2026-08-31 - ExecutionEvent V1 Frontend Consumer Migration
+
+- Replaced the duplicate frontend `ChatEvent` lifecycle union with the exact frozen `texa.execution/v1` type and a canonical SSE envelope that carries business projections separately from lifecycle state.
+- Consolidated Chat, Figure, Mistake, resume, and persisted-history replay into the existing `chatActivities` utility. The shared merge path owns task/run identity, monotonic sequence rejection, stale-run retirement, append/replace output, activity projection, run switching, single terminal handling, and post-terminal late-event rejection.
+- Frontend lifecycle decisions no longer read legacy `stage`, `activity`, `chunk`, top-level `replace`, `done`, or `result` terminal signals. LearningTask actions now use the backend-provided `terminal`, `interruptible`, `resumable`, `input_action_required`, and `confirmation_required` capabilities instead of local status sets.
+- Figure index conflicts now read `figure_index_out_of_date` from the canonical error payload. Taskless cached-mistake streams remain valid through request identity, while task-owned Mistake input resumes and Figure resumes use canonical task/run ownership.
+- Legacy `result`/`state` projections remain only for non-lifecycle business data not present in ExecutionEvent V1: message IDs, sources, linked concepts, citation provenance, and full public LearningTask snapshots.
+
+## Validation
+
+- Frontend production build, ESLint, and Vitest pass. Canonical fixtures cover Chat/Figure/Mistake identity, append/replace (including empty replacement), sequence ordering, duplicates, stale runs, run switches, terminal cardinality, post-terminal events, degraded final, waiting input, pending confirmation, interrupt/resume, Figure 409, taskless Mistake, and history replay.
+- Targeted backend ExecutionEvent, Chat, Figure, and Mistake regressions: 77 passed with the existing Starlette/httpx deprecation warning. No backend producer or ExecutionEvent V1 contract changes were required.
+
 # 2026-08-30 - Mistake ExecutionEvent V1 Producer Migration
 
 - Migrated image, input-resume, and cached-mistake streams from raw `stage/activity` lifecycle construction to the frozen `texa.execution/v1` emitter. Mistake answer chunks now use exact `{text, replace}` `output_delta` payloads; existing `stage`, `activity`, `chunk`, `result`, and error fields remain one-way frontend projections.
