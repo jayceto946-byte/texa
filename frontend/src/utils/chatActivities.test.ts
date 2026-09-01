@@ -64,12 +64,12 @@ describe('chat activity projection', () => {
       type: 'tool_result', phase: 'tool', status: 'completed', summary: '计算完成',
       label: '执行确定性计算', kind: 'tool',
     }));
-    const legacyAfterSequenced = mergeChatActivity(completed.activities, {
-      id: 'tool:0:math', kind: 'tool', label: '旧事件', status: 'active', detail: '旧状态',
+    const unsequencedLocalUpdate = mergeChatActivity(completed.activities, {
+      id: 'tool:0:math', kind: 'tool', label: '本地状态', status: 'active', detail: '本地旧状态',
     });
 
     expect(stale.activities[0].detail).toBe('开始计算');
     expect(completed.activities[0]).toMatchObject({ status: 'completed', detail: '计算完成', seq: 4 });
-    expect(legacyAfterSequenced[0]).toMatchObject({ status: 'completed', detail: '计算完成', seq: 4 });
+    expect(unsequencedLocalUpdate[0]).toMatchObject({ status: 'completed', detail: '计算完成', seq: 4 });
   });
 });

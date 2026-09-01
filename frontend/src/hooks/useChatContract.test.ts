@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import client from '../api/client.ts?raw';
 import message from '../components/ChatMessage.tsx?raw';
 import chatPage from '../pages/ChatPage.tsx?raw';
+import types from '../types/index.ts?raw';
 import useChat from './useChat.ts?raw';
 
 describe('non-stream chat contract', () => {
@@ -15,10 +16,21 @@ describe('non-stream chat contract', () => {
       expect(consumer).toContain('mergeExecutionLifecycle');
       expect(consumer).not.toMatch(/event\.(stage|chunk|replace|done|activity|message)\b/);
     }
-    expect(client).not.toContain('type ChatEvent');
+    expect(types).not.toMatch(/(?:type|interface) ChatEvent\b/);
     expect(client).toContain('isExecutionEventV1(event.execution_event)');
     expect(message).toContain('learningTask.input_action_required');
     expect(message).toContain('learningTask?.confirmation_required');
     expect(message).toContain('learningTask?.resumable');
+  });
+
+  it('keeps domain sidecars only for non-lifecycle presentation data', () => {
+    expect(useChat).toContain('event.state?.evidence_sources');
+    expect(useChat).toContain('event.state?.linked_concepts');
+    expect(useChat).toContain('event.state?.learning_task');
+    expect(chatPage).toContain('event.result?.message_id');
+    expect(chatPage).toContain('event.result?.sources');
+    expect(chatPage).toContain('event.result?.citation_provenance');
+    expect(chatPage).toContain('event.result?.linked_concepts');
+    expect(chatPage).toContain('event.result?.learning_task');
   });
 });

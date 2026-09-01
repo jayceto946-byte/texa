@@ -1,3 +1,16 @@
+# 2026-09-01 - ExecutionEvent V1 Legacy Projection Retirement
+
+- Retired the backend SSE lifecycle compatibility projection. Chat, Figure, and Mistake envelopes now expose one validated `execution_event` plus explicitly separate domain sidecars; top-level `stage`, `activity`, `chunk`, `replace`, `done`, duplicate execution identity/timing fields, and legacy terminal/error fields are no longer emitted.
+- Removed the obsolete backend `legacy_activity_from_execution` utility. The shared SSE wrapper rejects any sidecar that attempts to reintroduce canonical or legacy lifecycle semantics, while Chat's internal graph-event adapter remains private to the existing Legacy Agent boundary.
+- Preserved domain data outside the frozen V1 contract: Chat `state` and context metadata; Figure `result` message ID, sources, citation provenance, verification and full LearningTask snapshot; Mistake `result` linked concepts, explanation data and full LearningTask snapshot. Frontend lifecycle/run/output/terminal decisions do not read these sidecars.
+- Hardened the frontend SSE parser to accept only legacy-free canonical envelopes and retain domain sidecar consumption. Removed the final legacy-named activity test fixture; canonical reducer, history replay, interrupt/resume, taskless Mistake, degraded final, waiting input, pending confirmation and Figure 409 behavior remain on the shared consumer.
+
+## Validation
+
+- Backend canonical lifecycle contract and Chat/Figure/Mistake targeted regressions: 78 passed with the existing Starlette/httpx deprecation warning.
+- Frontend Vitest: 24 files / 137 tests; ESLint and production build passed. The build retains the existing MathLive chunk-size and MarkdownRenderer mixed-import warnings.
+- Full Python regression: 686 passed with the same existing Starlette/httpx deprecation warning.
+
 # 2026-08-31 - ExecutionEvent V1 Frontend Consumer Migration
 
 - Replaced the duplicate frontend `ChatEvent` lifecycle union with the exact frozen `texa.execution/v1` type and a canonical SSE envelope that carries business projections separately from lifecycle state.

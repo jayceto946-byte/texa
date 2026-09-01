@@ -44,6 +44,20 @@ _OPTIONAL_EVENT_FIELDS = frozenset({"duration_ms"})
 _PRIVATE_REASONING_KEYS = frozenset({
     "chain_of_thought", "chainofthought", "cot", "hidden_reasoning", "reasoning", "thinking",
 })
+EXECUTION_SSE_FORBIDDEN_LIFECYCLE_FIELDS = frozenset({
+    *_REQUIRED_EVENT_FIELDS,
+    *_OPTIONAL_EVENT_FIELDS,
+    "activity",
+    "chunk",
+    "done",
+    "error",
+    "error_code",
+    "http_status",
+    "message",
+    "replace",
+    "stage",
+    "terminal",
+})
 
 
 def _bounded(value: Any, limit: int) -> str:
@@ -283,43 +297,18 @@ class ExecutionEventEmitter:
         return event
 
 
-def legacy_activity_from_execution(event: dict[str, Any]) -> dict[str, Any]:
-    """Compatibility projection for existing ChatActivity consumers."""
-    raw_status = str(event.get("status") or "")
-    status = {
-        "started": "active",
-        "running": "active",
-        "completed": "completed",
-        "failed": "failed",
-        "skipped": "skipped",
-        "cancelled": "skipped",
-    }.get(raw_status, "pending")
-    activity = {
-        "id": str(event.get("operation_id") or f"{event.get('phase')}:{event.get('type')}"),
-        "kind": str(event.get("kind") or "system"),
-        "label": str(event.get("label") or event.get("summary") or "执行任务"),
-        "status": status,
-        "detail": str(event.get("summary") or ""),
-        "seq": int(event.get("seq") or 0),
-        "operation_id": str(event.get("operation_id") or ""),
-        "event_type": str(event.get("type") or ""),
-        "phase": str(event.get("phase") or ""),
-    }
-    if event.get("duration_ms") is not None:
-        activity["duration_ms"] = event["duration_ms"]
-    payload = event.get("payload")
-    if isinstance(payload, dict) and payload:
-        activity["meta"] = payload
-    return activity
-
-
-def execution_sse_payload(event: dict[str, Any], *, stage: str = "execution") -> dict[str, Any]:
-    return {
-        "stage": stage,
-        "execution_event": event,
-        "activity": legacy_activity_from_execution(event),
-        "request_id": event.get("request_id"),
-        "conversation_id": event.get("conversation_id"),
-        "turn_id": event.get("turn_id"),
-        "elapsed_ms": event.get("elapsed_ms"),
-    }
+def execution_sse_payload(
+    event: dict[str, Any],
+    *,
+    sidecar: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Wrap one canonical event plus domain-only sidecar data."""
+    validate_execution_event(event)
+    domain_sidecar = dict(sidecar or {})
+    forbidden = EXECUTION_SSE_FORBIDDEN_LIFECYCLE_FIELDS.intersection(domain_sidecar)
+    if forbidden:
+        raise ValueError(
+            "execution SSE sidecar contains lifecycle fields: "
+            + ", ".join(sorted(forbidden))
+        )
+    return {"execution_event": event, **domain_sidecar}

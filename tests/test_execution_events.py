@@ -3,9 +3,11 @@ import threading
 import pytest
 
 from backend.services.execution_events import (
+    EXECUTION_SSE_FORBIDDEN_LIFECYCLE_FIELDS,
     EXECUTION_EVENT_SCHEMA,
     EXECUTION_EVENT_V1_CONTRACT,
     ExecutionEventEmitter,
+    execution_sse_payload,
     validate_execution_event,
     validate_execution_event_sequence,
 )
@@ -94,6 +96,21 @@ def test_execution_event_v1_contract_is_frozen():
         "output_delta_payload_fields": frozenset({"text", "replace"}),
         "reasoning_visibility": "public_summary_only",
     }
+
+
+def test_execution_sse_payload_has_only_canonical_event_and_domain_sidecar():
+    event = _event()
+    envelope = execution_sse_payload(event, sidecar={"result": {"linked_concepts": []}})
+
+    assert envelope == {
+        "execution_event": event,
+        "result": {"linked_concepts": []},
+    }
+    assert not EXECUTION_SSE_FORBIDDEN_LIFECYCLE_FIELDS.intersection(envelope)
+
+    for field in EXECUTION_SSE_FORBIDDEN_LIFECYCLE_FIELDS:
+        with pytest.raises(ValueError, match="sidecar contains lifecycle fields"):
+            execution_sse_payload(event, sidecar={field: "legacy"})
 
 
 def _event(*, event_type="progress", run_id="run-1", start_seq=0, payload=None):

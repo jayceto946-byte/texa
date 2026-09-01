@@ -255,22 +255,7 @@ def _figure_stream(
                 kind=kind,
                 payload=payload,
             )
-            legacy_stage = {
-                "output_delta": "generate",
-                "final": "done",
-                "error": "error",
-            }.get(event_type, "activity")
-            envelope = execution_sse_payload(execution_event, stage=legacy_stage)
-            if event_type == "output_delta":
-                envelope.update({
-                    "chunk": execution_event["payload"]["text"],
-                    "replace": execution_event["payload"]["replace"],
-                    "done": False,
-                })
-            elif event_type in {"final", "error"}:
-                envelope["done"] = True
-            if extra:
-                envelope.update(extra)
+            envelope = execution_sse_payload(execution_event, sidecar=extra)
             return _sse(envelope)
 
         try:
@@ -518,10 +503,7 @@ def _figure_stream(
                     "figure_id": req.figure_id,
                 },
                 extra={
-                    "message": str(exc),
                     "learning_task": task.to_dict(public=True),
-                    "error_code": error_code,
-                    "http_status": http_status,
                     **({"persistence_error": persistence_error} if persistence_error else {}),
                 },
             )

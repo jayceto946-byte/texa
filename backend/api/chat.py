@@ -63,7 +63,6 @@ from backend.services.learning_task import (
 from backend.services.execution_events import (
     ExecutionEventEmitter,
     execution_sse_payload,
-    legacy_activity_from_execution,
 )
 from graph.conversation_context import (
     assemble_conversation_context_pack,
@@ -83,6 +82,38 @@ _TOOL_ACTIVITY_LABELS = {
     "propose_practice_session": "准备练习方案",
     "propose_add_mistake": "准备错题记录",
 }
+
+_CHAT_DOMAIN_SIDECAR_FIELDS = frozenset({
+    "answer_mode",
+    "book_name",
+    "chapters",
+    "content_count",
+    "fast_path",
+    "intent",
+    "learning_task",
+    "message_id",
+    "persistence_error",
+    "planner_trace",
+    "resolution_action",
+    "retrieval_error",
+    "retrieval_status",
+    "rewritten_question",
+    "scope_reason",
+    "state",
+    "subject",
+    "subject_suggestion",
+    "suggested_answer_mode",
+    "use_textbook_context",
+})
+
+
+def _chat_execution_envelope(event: dict) -> dict:
+    """Keep domain data beside V1 without re-projecting lifecycle semantics."""
+    return execution_sse_payload(event["execution_event"], sidecar={
+        key: event[key]
+        for key in _CHAT_DOMAIN_SIDECAR_FIELDS
+        if key in event
+    })
 
 
 def _main_tool_request(
@@ -849,7 +880,6 @@ def _prepared_chat_stream(
             kind: str,
             payload: dict | None = None,
             duration_ms: int | float | None = None,
-            stage: str = "execution",
         ) -> str:
             if not task_store.run_is_active(learning_task.id, run_id):
                 raise ValueError("stale chat execution run cannot emit events")
@@ -864,7 +894,7 @@ def _prepared_chat_stream(
                 payload=payload,
                 duration_ms=duration_ms,
             )
-            return f"data: {json.dumps(execution_sse_payload(execution_event, stage=stage), ensure_ascii=False)}\n\n"
+            return f"data: {json.dumps(execution_sse_payload(execution_event), ensure_ascii=False)}\n\n"
 
         def activity_sse(activity: dict, *, event_type: str | None = None, phase: str = "orchestration") -> str:
             raw_status = str(activity.get("status") or "pending")
@@ -885,7 +915,6 @@ def _prepared_chat_stream(
                 kind=str(activity.get("kind") or "system"),
                 payload=dict(activity.get("meta") or {}),
                 duration_ms=activity.get("duration_ms"),
-                stage="activity",
             )
 
         def stream_tool_context():
@@ -1085,7 +1114,6 @@ def _prepared_chat_stream(
                     duration_ms=activity.get("duration_ms"),
                 )
                 event["execution_event"] = execution_event
-                event["activity"] = legacy_activity_from_execution(execution_event)
 
         graph_events = None
         try:
@@ -1098,7 +1126,18 @@ def _prepared_chat_stream(
                 label="读取会话上下文",
                 kind="analysis",
             )
-            yield f"data: {json.dumps({'stage': 'context', 'request_id': request_id, 'conversation_id': conversation_id, 'turn_id': turn_id, 'book_name': book_name, 'subject': subject, 'rewritten_question': rewritten_question if rewritten_question != req.question else '', 'resolution_action': resolution_trace.get('resolution_action', 'continue'), 'use_textbook_context': use_textbook_context, 'scope_reason': scope_reason, 'answer_mode': answer_mode, 'learning_task': learning_task.to_dict(public=True), 'execution_event': context_execution, 'activity': legacy_activity_from_execution(context_execution)}, ensure_ascii=False)}\n\n"
+            context_envelope = _chat_execution_envelope({
+                "execution_event": context_execution,
+                "book_name": book_name,
+                "subject": subject,
+                "rewritten_question": rewritten_question if rewritten_question != req.question else "",
+                "resolution_action": resolution_trace.get("resolution_action", "continue"),
+                "use_textbook_context": use_textbook_context,
+                "scope_reason": scope_reason,
+                "answer_mode": answer_mode,
+                "learning_task": learning_task.to_dict(public=True),
+            })
+            yield f"data: {json.dumps(context_envelope, ensure_ascii=False)}\n\n"
             if not _resume:
                 user_message = append_message(
                     conversation_id, "user", req.question,
@@ -1118,14 +1157,13 @@ def _prepared_chat_stream(
                 assistant_chunks.append(clarification)
                 generate_event = {"stage": "generate", "chunk": clarification, "done": False}
                 observe(generate_event)
-                generate_event.update({"conversation_id": conversation_id, "turn_id": turn_id})
-                yield f"data: {json.dumps(generate_event, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps(_chat_execution_envelope(generate_event), ensure_ascii=False)}\n\n"
                 generate_done = {
                     "stage": "generate", "chunk": "", "done": True,
                     "evidence_sources": [], "conversation_id": conversation_id, "turn_id": turn_id,
                 }
                 observe(generate_done)
-                yield f"data: {json.dumps(generate_done, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps(_chat_execution_envelope(generate_done), ensure_ascii=False)}\n\n"
                 done_event = {
                     "stage": "done", "state": final_state, "enriched": False,
                     "conversation_id": conversation_id, "turn_id": turn_id,
@@ -1145,7 +1183,7 @@ def _prepared_chat_stream(
                 final_state["learning_task"] = completed_task.to_dict(public=True)
                 persist_assistant()
                 observe(done_event)
-                yield f"data: {json.dumps(done_event, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps(_chat_execution_envelope(done_event), ensure_ascii=False)}\n\n"
                 return
             tool_request = _main_tool_request(
                 rewritten_question, book_name, subject, conversation_id,
@@ -1274,7 +1312,7 @@ def _prepared_chat_stream(
                             logger.exception("evidence support persistence failed")
                 else:
                     observe(event)
-                yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps(_chat_execution_envelope(event), ensure_ascii=False)}\n\n"
                 if event.get("stage") == "plan":
                     yield activity_sse({
                         "id": "retrieve", "kind": "tool", "label": "检索教材上下文",
@@ -1349,7 +1387,7 @@ def _prepared_chat_stream(
                 "learning_task": failed_task.to_dict(public=True),
             }
             observe(event)
-            yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps(_chat_execution_envelope(event), ensure_ascii=False)}\n\n"
         finally:
             close = getattr(graph_events, "close", None)
             if close:
@@ -1426,9 +1464,7 @@ def _chat_stream(
                 label="读取会话上下文",
                 kind="system",
             )
-            payload = execution_sse_payload(failed, stage="error")
-            payload.update({"done": True, "message": str(exc)})
-            yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps(execution_sse_payload(failed), ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
         outer_events(),

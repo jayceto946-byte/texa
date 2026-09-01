@@ -76,36 +76,6 @@ class LearningStateOperationRequest(BaseModel):
     reason: str = Field(default="", max_length=500)
 
 
-class ChatEvent(BaseModel):
-    stage: str = Field(..., description="plan/retrieve/chapter/generate/done/error")
-    intent: Optional[str] = None
-    chapters: Optional[list[str]] = None
-    fast_path: Optional[bool] = None
-    planner_trace: Optional[dict] = None
-    content_count: Optional[int] = None
-    has_teaching: Optional[bool] = None
-    chunk: Optional[str] = None
-    replace: Optional[bool] = None
-    done: Optional[bool] = None
-    enriched: Optional[bool] = None
-    message: Optional[str] = None
-    conversation_id: Optional[str] = None
-    turn_id: Optional[str] = None
-    book_name: Optional[str] = None
-    subject: Optional[str] = None
-    subject_suggestion: Optional[dict] = None
-    rewritten_question: Optional[str] = None
-    resolution_action: Optional[str] = None
-    use_textbook_context: Optional[bool] = None
-    scope_reason: Optional[str] = None
-    answer_mode: Optional[str] = None
-    suggested_answer_mode: Optional[str] = None
-    retrieval_status: Optional[str] = None
-    retrieval_error: Optional[str] = None
-    activity: Optional[dict] = None
-    execution_event: Optional[dict] = None
-
-
 class MistakeRecordOut(BaseModel):
     id: str
     book_id: str = ""

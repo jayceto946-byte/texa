@@ -8,6 +8,7 @@ import pytest
 from backend.main import app
 from backend.services.execution_events import (
     EXECUTION_EVENT_TERMINAL_TYPES,
+    EXECUTION_SSE_FORBIDDEN_LIFECYCLE_FIELDS,
     validate_execution_event_sequence,
 )
 from backend.services.learning_task import LearningTaskStore, interrupt_learning_task, resume_learning_task
@@ -21,6 +22,20 @@ class DummyChunk:
 class DummyLLM:
     def stream(self, prompt: str):
         yield DummyChunk("answer")
+
+
+def _stream_events(response) -> list[dict]:
+    events = [
+        json.loads(block[6:])
+        for block in response.text.strip().split("\n\n")
+        if block.startswith("data: ")
+    ]
+    assert events
+    assert all(
+        set(event).isdisjoint(EXECUTION_SSE_FORBIDDEN_LIFECYCLE_FIELDS)
+        for event in events
+    )
+    return events
 
 
 def _prepared_chat_turn() -> dict:
@@ -351,11 +366,7 @@ def test_late_stream_failure_cannot_overwrite_acknowledged_interrupt(monkeypatch
     assert interrupted.status_code == 200
     assert store.get(task.id).status == "interrupted"
     assert "old stream failed late" not in result["response"].text
-    events = [
-        json.loads(block[6:])
-        for block in result["response"].text.strip().split("\n\n")
-        if block.startswith("data: ")
-    ]
+    events = _stream_events(result["response"])
     canonical = [
         event["execution_event"]
         for event in events
@@ -406,12 +417,8 @@ def test_chat_resume_stream_uses_new_run_and_emits_one_consistent_final(monkeypa
     monkeypatch.setattr(main_graph, "run_graph_stream", fake_run_graph_stream)
 
     response = TestClient(app).post(f"/api/chat/tasks/{task.id}/resume-stream")
-    events = [
-        json.loads(block[6:])
-        for block in response.text.strip().split("\n\n")
-        if block.startswith("data: ")
-    ]
-    done = next(event for event in events if event.get("stage") == "done")
+    events = _stream_events(response)
+    done = next(event for event in events if event["execution_event"]["type"] == "final")
     canonical = [
         event["execution_event"]
         for event in events
@@ -451,12 +458,8 @@ def test_chat_stream_error_is_single_terminal_and_matches_failed_task(monkeypatc
     monkeypatch.setattr(main_graph, "run_graph_stream", failing_graph)
 
     response = TestClient(app).post("/api/chat/stream", json={"question": "question"})
-    events = [
-        json.loads(block[6:])
-        for block in response.text.strip().split("\n\n")
-        if block.startswith("data: ")
-    ]
-    error = next(event for event in events if event.get("stage") == "error")
+    events = _stream_events(response)
+    error = next(event for event in events if event["execution_event"]["type"] == "error")
     task = error["learning_task"]
     canonical = [
         event["execution_event"]
@@ -531,16 +534,11 @@ def test_chat_stream_done_survives_assistant_persistence_failure(monkeypatch):
     response = client.post("/api/chat/stream", json={"question": "question", "book_name": "demo-book"})
 
     assert response.status_code == 200
-    events = []
-    for block in response.text.strip().split("\n\n"):
-        if not block.startswith("data: "):
-            continue
-        events.append(json.loads(block[6:]))
-
-    stages = [event["stage"] for event in events]
-    assert "done" in stages
-    assert "error" not in stages
-    done_event = next(event for event in events if event["stage"] == "done")
+    events = _stream_events(response)
+    event_types = [event["execution_event"]["type"] for event in events]
+    assert "final" in event_types
+    assert "error" not in event_types
+    done_event = next(event for event in events if event["execution_event"]["type"] == "final")
     assert done_event["persistence_error"] == "conversation write failed"
 
 
@@ -580,15 +578,11 @@ def test_chat_stream_pending_action_stays_running_until_finalization(monkeypatch
     monkeypatch.setattr(main_graph, "run_graph_stream", fake_run_graph_stream)
 
     response = TestClient(app).post("/api/chat/stream", json={"question": "question"})
-    events = [
-        json.loads(block[6:])
-        for block in response.text.strip().split("\n\n")
-        if block.startswith("data: ")
-    ]
+    events = _stream_events(response)
 
     assert response.status_code == 200
     assert observed_statuses == ["running"]
-    done = next(event for event in events if event.get("stage") == "done")
+    done = next(event for event in events if event["execution_event"]["type"] == "final")
     task = done["state"]["learning_task"]
     assert task["status"] == "waiting_for_confirmation"
     assert task["confirmation_required"] is True
@@ -732,16 +726,14 @@ def test_chat_stream_clarifies_unresolved_reference_without_running_graph(monkey
     response = TestClient(app).post("/api/chat/stream", json={
         "question": "第二个呢？", "book_name": "demo",
     })
-    events = [
-        json.loads(block[6:])
-        for block in response.text.strip().split("\n\n")
-        if block.startswith("data: ")
-    ]
+    events = _stream_events(response)
 
     assert response.status_code == 200
     assert response.headers["cache-control"] == "no-cache, no-transform"
     assert response.headers["x-accel-buffering"] == "no"
-    assert [event["stage"] for event in events] == ["execution", "context", "generate", "generate", "done"]
+    assert [event["execution_event"]["type"] for event in events] == [
+        "progress", "state_transition", "output_delta", "state_transition", "final",
+    ]
     assert events[0]["execution_event"]["type"] == "progress"
     assert events[1]["resolution_action"] == "clarify"
     assert events[-1]["state"]["retrieval_action"] == "none"
@@ -818,11 +810,7 @@ def test_chat_stream_disables_wrong_textbook_context_for_subject_suggestion(monk
         "subject": "\u4e13\u4e1a\u8bfe/\u4f20\u611f\u5668",
     })
 
-    events = [
-        json.loads(block[6:])
-        for block in response.text.strip().split("\n\n")
-        if block.startswith("data: ")
-    ]
+    events = _stream_events(response)
     assert response.status_code == 200
     assert captured["use_textbook_context"] is False
     assert captured["answer_mode"] == "subject_mismatch"
@@ -925,11 +913,7 @@ def test_chat_stream_replace_event_overwrites_persisted_assistant_content(monkey
     response = client.post("/api/chat/stream", json={"question": "question", "book_name": "demo-book"})
 
     assert response.status_code == 200
-    events = [
-        json.loads(block[6:])
-        for block in response.text.strip().split("\n\n")
-        if block.startswith("data: ")
-    ]
+    events = _stream_events(response)
     deltas = [
         event["execution_event"]["payload"]
         for event in events
@@ -965,11 +949,7 @@ def test_chat_stream_exposes_and_persists_explicit_grounding_fallback(monkeypatc
     response = TestClient(app).post("/api/chat/stream", json={
         "question": "复杂教材问题", "book_name": "demo", "subject": "专业课/传感器",
     })
-    events = [
-        json.loads(block[6:])
-        for block in response.text.strip().split("\n\n")
-        if block.startswith("data: ")
-    ]
+    events = _stream_events(response)
 
     assert events[-1]["suggested_answer_mode"] == "subject_general"
     assistant_save = next(item for item in saved if item.get("answer_mode"))

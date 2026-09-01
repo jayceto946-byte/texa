@@ -5,7 +5,11 @@ from fastapi.testclient import TestClient
 
 from backend.main import app
 from backend.api import mistakes
-from backend.services.execution_events import EXECUTION_EVENT_TYPES, validate_execution_event
+from backend.services.execution_events import (
+    EXECUTION_EVENT_TYPES,
+    EXECUTION_SSE_FORBIDDEN_LIFECYCLE_FIELDS,
+    validate_execution_event,
+)
 from backend.services.multimodal_bridge import VisualProblemIR
 from backend.services.learning_task import LearningTaskStore
 from memory.mistake_book import MistakeBook, MistakeRecord
@@ -82,6 +86,8 @@ def _configure_visual_stream(
 
 
 def _assert_canonical_stream(events: list[dict], *, task_bound: bool = True) -> list[dict]:
+    for envelope in events:
+        assert set(envelope).isdisjoint(EXECUTION_SSE_FORBIDDEN_LIFECYCLE_FIELDS)
     execution_events = [event["execution_event"] for event in events]
     assert execution_events
     for event in execution_events:
@@ -171,14 +177,17 @@ def test_image_solution_stream_uses_canonical_events_and_completes(monkeypatch, 
     assert response.status_code == 200
     events = _stream_events(response)
     execution_events = _assert_canonical_stream(events)
-    labels = [event.get("activity", {}).get("label") for event in events]
+    labels = [event["execution_event"]["label"] for event in events]
     assert "读取题目图片" in labels
     assert "识图模型解析图片" in labels
     assert "综合题干与视觉关系" in labels
     assert "生成答案" in labels
-    generate_events = [event for event in events if event["stage"] == "generate"]
-    assert [event.get("chunk") for event in generate_events[:2]] == ["正式", "讲解"]
-    assert events[-1]["stage"] == "done"
+    generate_events = [
+        event["execution_event"] for event in events
+        if event["execution_event"]["type"] == "output_delta"
+    ]
+    assert [event["payload"]["text"] for event in generate_events[:2]] == ["正式", "讲解"]
+    assert events[-1]["execution_event"]["type"] == "final"
     assert events[-1]["result"]["explanation"] == "正式讲解"
     task = events[-1]["result"]["learning_task"]
     assert task["status"] == "completed"
@@ -212,8 +221,7 @@ def test_image_solution_waits_for_blocking_required_input(monkeypatch, tmp_path)
     events = _stream_events(response)
     execution_events = _assert_canonical_stream(events)
 
-    assert events[-1]["stage"] == "waiting_for_input"
-    assert events[-1]["done"] is False
+    assert events[-1]["execution_event"]["type"] == "state_transition"
     assert execution_events[-1]["type"] == "state_transition"
     assert not any(event["type"] in {"final", "error"} for event in execution_events)
     assert execution_events[-1]["payload"] == {
@@ -264,7 +272,7 @@ def test_visual_task_resume_parses_only_supplement_and_completes(monkeypatch, tm
 
     assert len(calls) == 1
     assert calls[0].name != __import__("pathlib").Path(original_path).name
-    assert events[-1]["stage"] == "done"
+    assert events[-1]["execution_event"]["type"] == "final"
     assert events[-1]["result"]["learning_task"]["status"] == "completed"
     assert events[-1]["result"]["explanation"] == "精确答案 120°C"
     run_id = execution_events[0]["run_id"]
@@ -296,7 +304,7 @@ def test_visual_task_method_only_resume_finishes_degraded(monkeypatch, tmp_path)
     events = _stream_events(response)
     execution_events = _assert_canonical_stream(events)
 
-    assert events[-1]["stage"] == "done"
+    assert events[-1]["execution_event"]["type"] == "final"
     assert events[-1]["result"]["learning_task"]["status"] == "degraded"
     assert execution_events[-1]["type"] == "final"
     assert execution_events[-1]["payload"]["task_status"] == "degraded"
@@ -323,7 +331,7 @@ def test_visual_task_execution_failure_emits_matching_error(monkeypatch, tmp_pat
     events = _stream_events(response)
     execution_events = _assert_canonical_stream(events)
 
-    assert events[-1]["stage"] == "error"
+    assert events[-1]["execution_event"]["type"] == "error"
     assert execution_events[-1]["type"] == "error"
     assert execution_events[-1]["payload"]["task_status"] == "failed"
     assert task_store.get(task.id).status == "failed"
@@ -356,7 +364,7 @@ def test_visual_task_input_parse_failure_returns_to_waiting_without_terminal_eve
     events = _stream_events(response)
     execution_events = _assert_canonical_stream(events)
 
-    assert events[-1]["stage"] == "waiting_for_input"
+    assert events[-1]["execution_event"]["type"] == "state_transition"
     assert execution_events[-1]["type"] == "state_transition"
     assert not any(event["type"] in {"final", "error"} for event in execution_events)
     assert task_store.get(task.id).status == "waiting_for_input"
@@ -382,7 +390,7 @@ def test_image_solution_failure_emits_matching_error_terminal(monkeypatch, tmp_p
     events = _stream_events(response)
     execution_events = _assert_canonical_stream(events)
 
-    assert events[-1]["stage"] == "error"
+    assert events[-1]["execution_event"]["type"] == "error"
     assert execution_events[-1]["type"] == "error"
     assert execution_events[-1]["payload"]["task_status"] == "failed"
     task = events[-1]["learning_task"]
@@ -510,7 +518,7 @@ def test_cached_mistake_stream_projects_only_from_canonical_events(monkeypatch, 
     execution_events = _assert_canonical_stream(events, task_bound=False)
 
     assert all(event["task_id"] == event["run_id"] == "" for event in execution_events)
-    assert events[-1]["stage"] == "done"
+    assert events[-1]["execution_event"]["type"] == "final"
     assert events[-1]["result"]["explanation"] == "答案完成"
     assert execution_events[-1]["type"] == "final"
     assert "result" not in execution_events[-1]

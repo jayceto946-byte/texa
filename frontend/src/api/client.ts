@@ -158,6 +158,17 @@ function warnMalformedSse(payload: string, err: unknown) {
   }
 }
 
+const REMOVED_EXECUTION_LIFECYCLE_FIELDS = [
+  'activity', 'chunk', 'conversation_id', 'done', 'duration_ms', 'elapsed_ms', 'error',
+  'error_code', 'http_status', 'kind', 'label', 'message', 'operation_id', 'payload', 'phase',
+  'replace', 'request_id', 'run_id', 'schema', 'seq', 'stage', 'status', 'summary', 'task_id',
+  'terminal', 'turn_id', 'type',
+] as const;
+
+function hasRemovedExecutionLifecycleFields(event: Record<string, unknown>): boolean {
+  return REMOVED_EXECUTION_LIFECYCLE_FIELDS.some((field) => Object.hasOwn(event, field));
+}
+
 function isExecutionStreamBoundary(event: ExecutionStreamEnvelope): boolean {
   const canonical = event.execution_event;
   if (canonical.type === 'final' || canonical.type === 'error') return true;
@@ -173,7 +184,8 @@ export function consumeSseLine(line: string, onEvent: (event: ExecutionStreamEnv
   if (payload === '[DONE]') return false;
 
   try {
-    const event = JSON.parse(payload) as Partial<ExecutionStreamEnvelope>;
+    const event = JSON.parse(payload) as Partial<ExecutionStreamEnvelope> & Record<string, unknown>;
+    if (hasRemovedExecutionLifecycleFields(event)) throw new Error('removed lifecycle projection in SSE envelope');
     if (!isExecutionEventV1(event.execution_event)) throw new Error('missing or invalid ExecutionEvent V1');
     onEvent(event as ExecutionStreamEnvelope);
     return isExecutionStreamBoundary(event as ExecutionStreamEnvelope);

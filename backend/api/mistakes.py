@@ -554,27 +554,10 @@ def _sse(payload: dict) -> str:
 def _execution_event_sse(
     event: dict,
     *,
-    stage: str | None = None,
     extra: dict | None = None,
 ) -> str:
-    """Project one validated canonical event to the existing SSE envelope."""
-    event_type = str(event.get("type") or "")
-    legacy_stage = stage or {
-        "output_delta": "generate",
-        "final": "done",
-        "error": "error",
-    }.get(event_type, "activity")
-    envelope = execution_sse_payload(event, stage=legacy_stage)
-    if event_type == "output_delta":
-        envelope.update({
-            "chunk": event["payload"]["text"],
-            "replace": event["payload"]["replace"],
-            "done": False,
-        })
-    elif event_type in {"final", "error"}:
-        envelope["done"] = True
-    if extra:
-        envelope.update(extra)
+    """Wrap one canonical event and optional domain result sidecar."""
+    envelope = execution_sse_payload(event, sidecar=extra)
     return _sse(envelope)
 
 
@@ -887,9 +870,7 @@ def solve_mistake_image_stream(
                 )
                 yield _execution_event_sse(
                     transition,
-                    stage="waiting_for_input",
                     extra={
-                        "done": False,
                         "result": {
                             "success": True,
                             "question_text": visual_ir.problem_text,
@@ -1009,7 +990,7 @@ def solve_mistake_image_stream(
                     "error", phase="error", status="failed", summary=str(exc),
                     operation_id="mistake-error", label="处理失败", kind="system",
                     payload={"task_status": task.status, "error_code": "mistake_execution_failed"},
-                    extra={"message": str(exc), "learning_task": task.to_dict(public=True)},
+                    extra={"learning_task": task.to_dict(public=True)},
                 )
             else:
                 request_emitter = ExecutionEventEmitter(request_id=request_id)
@@ -1018,7 +999,7 @@ def solve_mistake_image_stream(
                     operation_id="mistake-error", label="处理失败", kind="system",
                     payload={"error_code": "mistake_request_failed"},
                 )
-                yield _execution_event_sse(event, extra={"message": str(exc)})
+                yield _execution_event_sse(event)
 
     return StreamingResponse(
         events(), media_type="text/event-stream",
@@ -1161,10 +1142,7 @@ def resume_visual_learning_task(
                 )
                 yield _execution_event_sse(
                     transition,
-                    stage="waiting_for_input",
                     extra={
-                        "done": False,
-                        "message": str(exc),
                         "result": {"success": False, "learning_task": task.to_dict(public=True)},
                     },
                 )
@@ -1291,7 +1269,7 @@ def resume_visual_learning_task(
                 "error", phase="error", status="failed", summary=str(exc),
                 operation_id="mistake-resume-error", label="恢复失败", kind="system",
                 payload={"task_status": task.status, "error_code": "mistake_resume_failed"},
-                extra={"message": str(exc), "learning_task": task.to_dict(public=True)},
+                extra={"learning_task": task.to_dict(public=True)},
             )
 
     return StreamingResponse(
@@ -1374,7 +1352,6 @@ def solve_cached_mistake_stream(req: MistakeChatRequest):
                     "error", phase="error", status="failed", summary="错题不存在",
                     operation_id="cache", label="读取历史错题", kind="tool",
                     payload={"error_code": "mistake_not_found"},
-                    extra={"message": "错题不存在"},
                 )
                 return
             visual_ir = VisualProblemIR.from_dict(record.visual_ir) if record.visual_ir else VisualProblemIR(
@@ -1423,7 +1400,6 @@ def solve_cached_mistake_stream(req: MistakeChatRequest):
                 "error", phase="error", status="failed", summary=str(exc),
                 operation_id="mistake-cached-error", label="处理失败", kind="system",
                 payload={"error_code": "mistake_cached_execution_failed"},
-                extra={"message": str(exc)},
             )
     return StreamingResponse(
         events(), media_type="text/event-stream",

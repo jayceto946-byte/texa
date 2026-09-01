@@ -11,6 +11,7 @@ import pytest
 from backend.main import app
 from backend.services.execution_events import (
     EXECUTION_EVENT_TERMINAL_TYPES,
+    EXECUTION_SSE_FORBIDDEN_LIFECYCLE_FIELDS,
     validate_execution_event_sequence,
 )
 from backend.services.figure_learning import (
@@ -31,6 +32,19 @@ from ingestion.document_ir import (
 
 
 _ACTIVE_FIGURE_INDEXES: dict[str, dict] = {}
+
+
+def _stream_payloads(response) -> list[dict]:
+    payloads = [
+        json.loads(line.removeprefix("data: "))
+        for line in response.text.splitlines() if line.startswith("data: ")
+    ]
+    assert payloads
+    assert all(
+        set(payload).isdisjoint(EXECUTION_SSE_FORBIDDEN_LIFECYCLE_FIELDS)
+        for payload in payloads
+    )
+    return payloads
 
 
 @pytest.fixture(autouse=True)
@@ -262,12 +276,9 @@ def test_figure_api_lists_serves_and_streams_grounded_source(monkeypatch, tmp_pa
         "turn_id": "turn-figure",
     })
     assert response.status_code == 200
-    payloads = [
-        json.loads(line.removeprefix("data: "))
-        for line in response.text.splitlines() if line.startswith("data: ")
-    ]
-    assert any(item.get("activity", {}).get("id") == "crop-region" for item in payloads)
-    done = next(item for item in payloads if item["stage"] == "done")
+    payloads = _stream_payloads(response)
+    assert any(item["execution_event"]["operation_id"] == "crop-region" for item in payloads)
+    done = next(item for item in payloads if item["execution_event"]["type"] == "final")
     assert done["result"]["sources"][0]["figure_id"] == "figure-1"
     assert [item["id"] for item in done["result"]["sources"]] == ["E1", "E2", "E3"]
     assert done["result"]["sources"][1]["block_id"] == "before"
@@ -294,11 +305,6 @@ def test_figure_api_lists_serves_and_streams_grounded_source(monkeypatch, tmp_pa
     deltas = [event for event in canonical if event["type"] == "output_delta"]
     assert deltas
     assert all(set(event["payload"]) == {"text", "replace"} for event in deltas)
-    assert all(
-        item["activity"]["event_type"] == item["execution_event"]["type"]
-        and item["activity"]["seq"] == item["execution_event"]["seq"]
-        for item in payloads if item.get("execution_event") and item.get("activity")
-    )
     stored = store.get(task["id"])
     assert [event["type"] for event in stored.artifacts["execution_events"]] == [
         "state_transition", "tool_result", "final",
@@ -326,11 +332,8 @@ def test_figure_api_attaches_sources_without_inventing_inline_citation(monkeypat
         "book_name": "视觉教材", "figure_id": "figure-1", "question": "这里是什么？",
         "conversation_id": "conv-figure", "turn_id": "turn-unaligned",
     })
-    payloads = [
-        json.loads(line.removeprefix("data: "))
-        for line in response.text.splitlines() if line.startswith("data: ")
-    ]
-    done = next(item for item in payloads if item["stage"] == "done")
+    payloads = _stream_payloads(response)
+    done = next(item for item in payloads if item["execution_event"]["type"] == "final")
     explanation = done["result"]["explanation"]
     assert "[[cite:E1]]" not in explanation
     assert done["result"]["citation_provenance"]["status"] == "sources_attached"
@@ -378,10 +381,7 @@ def test_figure_output_delta_uses_exact_append_and_replace_payload(monkeypatch, 
         "book_name": "视觉教材", "figure_id": "figure-1", "question": "解释这幅图",
         "conversation_id": "conv-delta", "turn_id": "turn-delta",
     })
-    payloads = [
-        json.loads(line.removeprefix("data: "))
-        for line in response.text.splitlines() if line.startswith("data: ")
-    ]
+    payloads = _stream_payloads(response)
     deltas = [
         item["execution_event"]["payload"]
         for item in payloads
@@ -394,7 +394,7 @@ def test_figure_output_delta_uses_exact_append_and_replace_payload(monkeypatch, 
         {"text": "answer", "replace": False},
         {"text": "normalized answer", "replace": True},
     ]
-    done = next(item for item in payloads if item["stage"] == "done")
+    done = next(item for item in payloads if item["execution_event"]["type"] == "final")
     assert done["result"]["explanation"] == "normalized answer"
 
 
@@ -423,11 +423,8 @@ def test_figure_terminal_survives_conversation_projection_failure(monkeypatch, t
         "book_name": "视觉教材", "figure_id": "figure-1", "question": "解释这幅图",
         "conversation_id": "conv-persist", "turn_id": "turn-persist",
     })
-    payloads = [
-        json.loads(line.removeprefix("data: "))
-        for line in response.text.splitlines() if line.startswith("data: ")
-    ]
-    done = next(item for item in payloads if item["stage"] == "done")
+    payloads = _stream_payloads(response)
+    done = next(item for item in payloads if item["execution_event"]["type"] == "final")
     task = done["result"]["learning_task"]
 
     assert done["persistence_error"] == "conversation write failed"
@@ -456,11 +453,8 @@ def test_figure_stream_maps_active_index_mismatch_to_canonical_error(monkeypatch
         "book_name": "视觉教材", "figure_id": "figure-1", "question": "解释这幅图",
         "conversation_id": "conv-stale-index", "turn_id": "turn-stale-index",
     })
-    payloads = [
-        json.loads(line.removeprefix("data: "))
-        for line in response.text.splitlines() if line.startswith("data: ")
-    ]
-    error = next(item for item in payloads if item["stage"] == "error")
+    payloads = _stream_payloads(response)
+    error = next(item for item in payloads if item["execution_event"]["type"] == "error")
     task = error["learning_task"]
     canonical = [
         item["execution_event"]
@@ -473,13 +467,12 @@ def test_figure_stream_maps_active_index_mismatch_to_canonical_error(monkeypatch
     terminals = [event for event in canonical if event["type"] in EXECUTION_EVENT_TERMINAL_TYPES]
     assert len(terminals) == 1 and terminals[0]["type"] == "error"
     assert canonical[-1] == terminals[0]
-    assert error["http_status"] == 409
-    assert error["error_code"] == "figure_index_out_of_date"
     assert terminals[0]["payload"]["http_status"] == 409
+    assert terminals[0]["payload"]["error_code"] == "figure_index_out_of_date"
     assert terminals[0]["payload"]["task_status"] == "failed"
     assert task["status"] == "failed"
     assert store.get(task["id"]).status == "failed"
-    assert not any(item["stage"] == "done" for item in payloads)
+    assert not any(item["execution_event"]["type"] == "final" for item in payloads)
 
 
 def test_figure_stale_run_cannot_emit_after_interrupt_and_new_run(monkeypatch, tmp_path):
@@ -535,10 +528,7 @@ def test_figure_stale_run_cannot_emit_after_interrupt_and_new_run(monkeypatch, t
     worker.join(timeout=5)
 
     assert not worker.is_alive()
-    payloads = [
-        json.loads(line.removeprefix("data: "))
-        for line in result["response"].text.splitlines() if line.startswith("data: ")
-    ]
+    payloads = _stream_payloads(result["response"])
     old_run_events = [
         item["execution_event"]
         for item in payloads
@@ -645,11 +635,8 @@ def test_figure_task_interrupt_and_resume_reuses_saved_figure_context(monkeypatc
     assert stopped["artifacts"]["resume_available"] is True
 
     response = client.post(f"/api/visual-learning/tasks/{task.id}/resume-stream")
-    payloads = [
-        json.loads(line.removeprefix("data: "))
-        for line in response.text.splitlines() if line.startswith("data: ")
-    ]
-    done = next(item for item in payloads if item["stage"] == "done")
+    payloads = _stream_payloads(response)
+    done = next(item for item in payloads if item["execution_event"]["type"] == "final")
     assert done["result"]["learning_task"]["status"] == "completed"
     assert done["result"]["region"] == [0.1, 0.1, 0.6, 0.8]
     assert "[[cite:E1]]" in done["result"]["explanation"]
