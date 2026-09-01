@@ -343,7 +343,7 @@ def _get_image_reasoning_llm(**kwargs):
     from llm.factory import build_chat_model
 
     if os.getenv("LLM_MULTIMODAL_MODE", "split").strip().lower() == "native":
-        return build_chat_model(get_model_role_config("vision"), 1, **kwargs)
+        return build_chat_model(get_model_role_config("reasoning"), 1, **kwargs)
     return get_llm(**kwargs)
 
 

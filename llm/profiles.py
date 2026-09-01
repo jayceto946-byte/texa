@@ -113,16 +113,6 @@ def save_profile(payload: Mapping[str, object]) -> tuple[dict, dict[str, str]]:
         "endpoints": payload.get("endpoints", {}),
         "multimodal_mode": payload.get("multimodal_mode", "split"),
     }
-    if settings_payload["multimodal_mode"] == "native":
-        roles = settings_payload["roles"] if isinstance(settings_payload["roles"], Mapping) else {}
-        endpoints = settings_payload["endpoints"] if isinstance(settings_payload["endpoints"], Mapping) else {}
-        credentials = settings_payload["credentials"] if isinstance(settings_payload["credentials"], Mapping) else {}
-        vision_role = roles.get("vision") if isinstance(roles.get("vision"), Mapping) else {}
-        vision_endpoint = endpoints.get("vision") if isinstance(endpoints.get("vision"), Mapping) else {}
-        vision_credential = credentials.get("vision") if isinstance(credentials.get("vision"), Mapping) else {}
-        settings_payload["roles"] = {**roles, "reasoning": {**vision_role, "endpoint_id": "reasoning"}}
-        settings_payload["endpoints"] = {**endpoints, "reasoning": dict(vision_endpoint)}
-        settings_payload["credentials"] = {**credentials, "reasoning": dict(vision_credential)}
     roles = settings_payload["roles"] if isinstance(settings_payload["roles"], Mapping) else {}
     normalized_roles = {}
     for role_id, role_value in roles.items():

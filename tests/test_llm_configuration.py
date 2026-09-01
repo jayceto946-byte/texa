@@ -115,3 +115,19 @@ def test_qwen37_plus_is_available_to_integrated_text_and_vision_mode():
     assert values["LLM_REASONING_MODEL"] == "qwen3.7-plus"
     assert values["LLM_VISION_MODEL"] == "qwen3.7-plus"
     assert values["LLM_MULTIMODAL_MODE"] == "native"
+
+
+def test_native_mode_rejects_conflicting_draft_keys_without_overwrite():
+    payload = model_settings_payload({})
+    payload["multimodal_mode"] = "native"
+    payload["credentials"]["reasoning"]["api_key"] = "reasoning-key"
+    payload["credentials"]["vision"]["api_key"] = "vision-key"
+
+    try:
+        model_settings_env_values(payload)
+    except ValueError as exc:
+        assert "API Key 不一致" in str(exc)
+        assert "reasoning-key" not in str(exc)
+        assert "vision-key" not in str(exc)
+    else:
+        raise AssertionError("native mode silently overwrote one draft API key")

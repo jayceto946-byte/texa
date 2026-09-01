@@ -51,13 +51,17 @@ def list_models(provider_id: str | None = None) -> list[ModelSpec]:
 
 
 def _register_builtins() -> None:
-    common = frozenset({
+    openai_compatible = frozenset({
         Capability.TEXT, Capability.STREAMING,
         Capability.SYSTEM_PROMPT, Capability.TOKEN_USAGE,
     })
+    ollama = frozenset({
+        Capability.TEXT, Capability.STREAMING,
+        Capability.SYSTEM_PROMPT, Capability.REASONING, Capability.LOCAL,
+    })
     register_provider(ProviderSpec(
         provider_id="deepseek", label="DeepSeek", transport="openai_compatible",
-        capabilities=common | {Capability.REASONING},
+        capabilities=openai_compatible | {Capability.REASONING},
         default_endpoint="https://api.deepseek.com/v1",
         default_models={ModelRole.REASONING: "deepseek-v4-pro"},
         legacy_api_key_env=("DEEPSEEK_API_KEY", "OPENAI_API_KEY"),
@@ -66,7 +70,7 @@ def _register_builtins() -> None:
     ))
     register_provider(ProviderSpec(
         provider_id="moonshot", label="Moonshot / Kimi", transport="openai_compatible",
-        capabilities=common | {Capability.VISION, Capability.REASONING},
+        capabilities=openai_compatible | {Capability.VISION, Capability.REASONING},
         default_endpoint="https://api.moonshot.cn/v1",
         default_models={ModelRole.REASONING: "kimi-k2.6", ModelRole.VISION: "kimi-k2.5"},
         legacy_api_key_env=("MOONSHOT_API_KEY", "OPENAI_API_KEY"),
@@ -78,7 +82,7 @@ def _register_builtins() -> None:
     ))
     register_provider(ProviderSpec(
         provider_id="qwen", label="Qwen / 通义千问", transport="openai_compatible",
-        capabilities=common | {Capability.VISION, Capability.REASONING},
+        capabilities=openai_compatible | {Capability.VISION, Capability.REASONING},
         default_endpoint="https://dashscope.aliyuncs.com/compatible-mode/v1",
         default_models={ModelRole.REASONING: "qwen3.7-plus", ModelRole.VISION: "qwen3.7-plus"},
         legacy_api_key_env=("DASHSCOPE_API_KEY",),
@@ -86,7 +90,7 @@ def _register_builtins() -> None:
     ))
     register_provider(ProviderSpec(
         provider_id="gemini", label="Google Gemini", transport="openai_compatible",
-        capabilities=common | {Capability.VISION, Capability.REASONING},
+        capabilities=openai_compatible | {Capability.VISION, Capability.REASONING},
         default_endpoint="https://generativelanguage.googleapis.com/v1beta/openai/",
         default_models={ModelRole.REASONING: "gemini-2.5-pro", ModelRole.VISION: "gemini-2.5-pro"},
         legacy_api_key_env=("GEMINI_API_KEY",),
@@ -94,7 +98,7 @@ def _register_builtins() -> None:
     ))
     register_provider(ProviderSpec(
         provider_id="openai", label="OpenAI", transport="openai_compatible",
-        capabilities=common | {Capability.VISION, Capability.REASONING},
+        capabilities=openai_compatible | {Capability.VISION, Capability.REASONING},
         default_endpoint="https://api.openai.com/v1",
         default_models={ModelRole.REASONING: "gpt-4o-mini", ModelRole.VISION: "gpt-4o-mini"},
         legacy_api_key_env=("OPENAI_API_KEY",),
@@ -103,49 +107,48 @@ def _register_builtins() -> None:
     ))
     register_provider(ProviderSpec(
         provider_id="ollama", label="Ollama（本地）", transport="ollama",
-        capabilities=common | {Capability.VISION, Capability.LOCAL},
+        capabilities=ollama,
         default_endpoint="http://localhost:11434",
-        default_models={ModelRole.REASONING: "qwen2.5:7b", ModelRole.VISION: "qwen2.5vl:7b"},
+        default_models={ModelRole.REASONING: "qwen2.5:7b"},
         requires_api_key=False,
         legacy_endpoint_env=("OLLAMA_BASE_URL",),
         legacy_model_env={ModelRole.REASONING: ("LLM_MODEL_NAME",)},
     ))
     register_provider(ProviderSpec(
         provider_id="openai_compatible", label="自定义 OpenAI-compatible", transport="openai_compatible",
-        capabilities=common | {Capability.VISION, Capability.REASONING, Capability.LOCAL},
+        capabilities=openai_compatible | {Capability.VISION, Capability.REASONING, Capability.LOCAL},
         default_endpoint="",
         default_models={ModelRole.REASONING: "", ModelRole.VISION: ""},
         requires_api_key=False,
     ))
 
     for spec in (
-        ModelSpec("deepseek", "deepseek-v4-pro", "DeepSeek V4 Pro", common | {Capability.REASONING}, {
+        ModelSpec("deepseek", "deepseek-v4-pro", "DeepSeek V4 Pro", openai_compatible | {Capability.REASONING}, {
             "extra_body": {"reasoning_effort": "high", "thinking": {"type": "enabled"}},
         }),
-        ModelSpec("deepseek", "deepseek-v4-flash", "DeepSeek V4 Flash", common | {Capability.REASONING}),
-        ModelSpec("moonshot", "kimi-k2.6", "Kimi K2.6", common | {Capability.REASONING, Capability.VISION}),
-        ModelSpec("moonshot", "kimi-k2.5", "Kimi K2.5", common | {Capability.REASONING, Capability.VISION}, {
+        ModelSpec("deepseek", "deepseek-v4-flash", "DeepSeek V4 Flash", openai_compatible | {Capability.REASONING}),
+        ModelSpec("moonshot", "kimi-k2.6", "Kimi K2.6", openai_compatible | {Capability.REASONING}),
+        ModelSpec("moonshot", "kimi-k2.5", "Kimi K2.5", openai_compatible | {Capability.REASONING, Capability.VISION}, {
             "extra_body": {"thinking": {"type": "disabled"}},
         }),
-        ModelSpec("qwen", "qwen3.8-max", "Qwen 3.8 Max", common | {Capability.REASONING}),
-        ModelSpec("qwen", "qwen3.7-plus", "Qwen 3.7 Plus", common | {Capability.REASONING, Capability.VISION}, {
+        ModelSpec("qwen", "qwen3.8-max", "Qwen 3.8 Max", openai_compatible | {Capability.REASONING}),
+        ModelSpec("qwen", "qwen3.7-plus", "Qwen 3.7 Plus", openai_compatible | {Capability.REASONING, Capability.VISION}, {
             "extra_body": {"enable_thinking": True},
         }),
-        ModelSpec("qwen", "qwen3.5-plus", "Qwen 3.5 Plus", common | {Capability.REASONING}),
-        ModelSpec("qwen", "qwen3.5-flash", "Qwen 3.5 Flash", common | {Capability.REASONING}),
-        ModelSpec("qwen", "qwen-plus", "Qwen Plus（兼容别名）", common | {Capability.REASONING}),
-        ModelSpec("qwen", "qwen3-vl-plus", "Qwen 3 VL Plus", common | {Capability.REASONING, Capability.VISION}),
-        ModelSpec("qwen", "qwen-vl-plus", "Qwen VL Plus（兼容别名）", common | {Capability.REASONING, Capability.VISION}),
-        ModelSpec("gemini", "gemini-3.7-flash", "Gemini 3.7 Flash", common | {Capability.REASONING, Capability.VISION}),
-        ModelSpec("gemini", "gemini-3.6-flash", "Gemini 3.6 Flash", common | {Capability.REASONING, Capability.VISION}),
-        ModelSpec("gemini", "gemini-2.5-pro", "Gemini 2.5 Pro（兼容）", common | {Capability.REASONING, Capability.VISION}),
-        ModelSpec("openai", "gpt-5.6-sol", "GPT-5.6 Sol", common | {Capability.REASONING, Capability.VISION}),
-        ModelSpec("openai", "gpt-5.6-terra", "GPT-5.6 Terra", common | {Capability.REASONING, Capability.VISION}),
-        ModelSpec("openai", "gpt-5.6-luna", "GPT-5.6 Luna", common | {Capability.REASONING, Capability.VISION}),
-        ModelSpec("openai", "gpt-5.4-mini", "GPT-5.4 mini", common | {Capability.REASONING, Capability.VISION}),
-        ModelSpec("openai", "gpt-4o-mini", "GPT-4o mini（兼容）", common | {Capability.REASONING, Capability.VISION}),
-        ModelSpec("ollama", "qwen2.5:7b", "Qwen 2.5 7B（本地）", common | {Capability.LOCAL}),
-        ModelSpec("ollama", "qwen2.5vl:7b", "Qwen 2.5 VL 7B（本地）", common | {Capability.REASONING, Capability.VISION, Capability.LOCAL}),
+        ModelSpec("qwen", "qwen3.5-plus", "Qwen 3.5 Plus", openai_compatible | {Capability.REASONING}),
+        ModelSpec("qwen", "qwen3.5-flash", "Qwen 3.5 Flash", openai_compatible | {Capability.REASONING}),
+        ModelSpec("qwen", "qwen-plus", "Qwen Plus（兼容别名）", openai_compatible | {Capability.REASONING}),
+        ModelSpec("qwen", "qwen3-vl-plus", "Qwen 3 VL Plus", openai_compatible | {Capability.REASONING, Capability.VISION}),
+        ModelSpec("qwen", "qwen-vl-plus", "Qwen VL Plus（兼容别名）", openai_compatible | {Capability.REASONING, Capability.VISION}),
+        ModelSpec("gemini", "gemini-3.7-flash", "Gemini 3.7 Flash", openai_compatible | {Capability.REASONING, Capability.VISION}),
+        ModelSpec("gemini", "gemini-3.6-flash", "Gemini 3.6 Flash", openai_compatible | {Capability.REASONING, Capability.VISION}),
+        ModelSpec("gemini", "gemini-2.5-pro", "Gemini 2.5 Pro（兼容）", openai_compatible | {Capability.REASONING, Capability.VISION}),
+        ModelSpec("openai", "gpt-5.6-sol", "GPT-5.6 Sol", openai_compatible | {Capability.REASONING, Capability.VISION}),
+        ModelSpec("openai", "gpt-5.6-terra", "GPT-5.6 Terra", openai_compatible | {Capability.REASONING, Capability.VISION}),
+        ModelSpec("openai", "gpt-5.6-luna", "GPT-5.6 Luna", openai_compatible | {Capability.REASONING, Capability.VISION}),
+        ModelSpec("openai", "gpt-5.4-mini", "GPT-5.4 mini", openai_compatible | {Capability.REASONING, Capability.VISION}),
+        ModelSpec("openai", "gpt-4o-mini", "GPT-4o mini（兼容）", openai_compatible | {Capability.REASONING, Capability.VISION}),
+        ModelSpec("ollama", "qwen2.5:7b", "Qwen 2.5 7B（本地）", ollama),
     ):
         register_model(spec)
 

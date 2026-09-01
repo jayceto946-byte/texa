@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from llm.factory import create_vision_completion
 from utils.thinking_filter import ThinkingFilter
 
 
@@ -217,9 +218,8 @@ JSON 字段固定为：
     "blocking": true
   }}]
 }}"""
-        request_options = dict(self.config.options.get("extra_body") or {})
-        response = self.client.chat.completions.create(
-            model=self.model,
+        response = create_vision_completion(
+            self.config,
             messages=[{
                 "role": "user",
                 "content": [
@@ -228,8 +228,8 @@ JSON 字段固定为：
                 ],
             }],
             max_tokens=int(os.getenv("LLM_VISUAL_IR_MAX_TOKENS", os.getenv("KIMI_VISUAL_IR_MAX_TOKENS", "3000"))),
-            extra_body=request_options or None,
             timeout=120,
+            client=self.client,
         )
         content = response.choices[0].message.content or ""
         if not isinstance(content, str):
@@ -282,14 +282,13 @@ JSON 字段固定为：
                 {"type": "text", "text": "同一 Figure 中用户选区的放大视图："},
                 {"type": "image_url", "image_url": {"url": _image_data_url(cropped_region_path)}},
             ])
-        request_options = dict(self.config.options.get("extra_body") or {})
-        response = self.client.chat.completions.create(
-            model=self.model,
+        response = create_vision_completion(
+            self.config,
             messages=[{"role": "user", "content": content}],
             max_tokens=int(os.getenv("LLM_FIGURE_ANSWER_MAX_TOKENS", "3000")),
-            extra_body=request_options or None,
             timeout=180,
             stream=True,
+            client=self.client,
         )
         thinking_filter = ThinkingFilter()
         for chunk in response:

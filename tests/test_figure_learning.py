@@ -203,6 +203,8 @@ def test_figure_asset_path_cannot_escape_book_asset_directory(tmp_path):
 
 
 def test_vision_bridge_sends_full_figure_crop_and_text_context_in_one_request(tmp_path):
+    from llm.configuration import resolve_model_role
+
     full = tmp_path / "full.png"
     crop = tmp_path / "crop.png"
     Image.new("RGB", (20, 10)).save(full)
@@ -215,11 +217,11 @@ def test_vision_bridge_sends_full_figure_crop_and_text_context_in_one_request(tm
             return [SimpleNamespace(choices=[SimpleNamespace(delta=SimpleNamespace(content="回答 [[cite:E1]]"))])]
 
     bridge = VisionModelBridge.__new__(VisionModelBridge)
-    bridge.config = SimpleNamespace(
-        credential_configured=True,
-        provider=SimpleNamespace(label="测试视觉模型"),
-        options={},
-    )
+    bridge.config = resolve_model_role("vision", {
+        "LLM_VISION_PROVIDER": "qwen",
+        "LLM_VISION_MODEL": "qwen3.7-plus",
+        "LLM_VISION_API_KEY": "test-key",
+    })
     bridge.client = SimpleNamespace(chat=SimpleNamespace(completions=Completions()))
     bridge.model = "vision-test"
 

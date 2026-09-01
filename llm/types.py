@@ -22,6 +22,11 @@ class ModelRole(str, Enum):
     VISION = "vision"
 
 
+def required_capability_for_role(role: ModelRole) -> Capability:
+    """Return the application capability required by a configured model role."""
+    return Capability.REASONING if role is ModelRole.REASONING else Capability.VISION
+
+
 @dataclass(frozen=True)
 class ProviderSpec:
     provider_id: str
@@ -37,8 +42,7 @@ class ProviderSpec:
     role_options: Mapping[ModelRole, Mapping[str, object]] = field(default_factory=dict)
 
     def supports(self, role: ModelRole) -> bool:
-        required = Capability.TEXT if role is ModelRole.REASONING else Capability.VISION
-        return required in self.capabilities
+        return required_capability_for_role(role) in self.capabilities
 
 
 @dataclass(frozen=True)

@@ -2691,3 +2691,11 @@ The detailed historical notes for this period were damaged by mojibake before th
 - Figure mapping cache 以 active index version 与 Canonical 指纹为签名；切换版本、回滚或重新激活 retained index 后会重新装载对应 catalog。旧 schema、缺失 provenance、缺少 Figure catalog row 的索引均 fail-fast。
 - 离线视觉评测在只有 Canonical IR、没有 active provenance index 时将 step 4 标为 `active_index_required`，不再把缺少线上一致性约束的 Figure/Page/正文绑定报告为通过。
 - 验证：Figure、provenance 与 index pipeline 定向回归 `27 passed`；完整回归结果见本次收敛提交的最终验证记录。
+
+## 2026-09-01 Provider capability truthfulness
+
+- reasoning 角色改为要求显式 `reasoning` capability，不再以通用 `text` capability 代替；registry 的 Provider/Model 声明会同时对照 runtime transport capability，配置解析和保存遇到不匹配时直接失败，不切换 Provider/Model，也不修改 profile。
+- Ollama 移除 application-level vision capability、默认 vision model 和 `qwen2.5vl:7b` 视觉目录项。本阶段未实现 Ollama 图片 transport；文本 runtime 改用项目既有 OpenAI client 对接 Ollama 官方 `/v1/chat/completions`，替代当前依赖中已不可导入的 `ChatOllama`。
+- 文本连接测试从 Ollama `/api/tags`/模型列表检查升级为最小文本 completion；视觉连接测试发送有效 base64 PNG，并与 `VisionModelBridge` 共用同一个图片 completion dispatcher。上游拒绝、超时、空 completion shape 和 capability mismatch 均返回具体的文本/图片实际请求失败原因，密钥仍由 API 层脱敏。
+- `kimi-k2.6` 不再继承未证实的 vision capability；Moonshot vision 默认仍为已验证目录项 `kimi-k2.5`。Provider tool-calling capability 未进入 registry，现有受控工具仍是应用层编排，不以模型 catalog 冒充原生 tools transport。
+- 验证：capability/runtime、Ollama 拒绝、native profile/credential 不重写、无 silent fallback、文本/视觉 connectivity success/failure 定向回归 `55 passed`；Python 全量回归 `700 passed`，仅保留 1 条既有 Starlette/httpx2 弃用警告。

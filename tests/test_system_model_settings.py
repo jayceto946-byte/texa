@@ -1,4 +1,5 @@
 import os
+from types import SimpleNamespace
 
 from backend.api import system
 from llm.configuration import model_settings_payload
@@ -88,8 +89,9 @@ def test_integrated_profile_uses_one_model_for_both_compatible_roles(tmp_path, m
     monkeypatch.setattr(profiles, "PROFILE_PATH", tmp_path / "model_profiles.json")
     payload = model_settings_payload({})
     payload.update({"id": "integrated-vision", "name": "集成回复", "multimodal_mode": "native"})
-    payload["roles"]["vision"].update({"provider": "openai", "model": "gpt-4o-mini", "credential_id": "openai"})
-    payload["endpoints"]["vision"]["base_url"] = "https://api.openai.com/v1"
+    for role in ("reasoning", "vision"):
+        payload["roles"][role].update({"provider": "openai", "model": "gpt-4o-mini", "credential_id": "openai"})
+        payload["endpoints"][role]["base_url"] = "https://api.openai.com/v1"
     system.save_model_profile({"profile": payload, "activate": False})
 
     result = system.activate_model_profile("integrated-vision")
@@ -101,18 +103,37 @@ def test_integrated_profile_uses_one_model_for_both_compatible_roles(tmp_path, m
     assert result["data"]["roles"]["vision"]["model"] == "gpt-4o-mini"
 
 
-def test_integrated_settings_ignore_a_separate_reasoning_model():
+def test_integrated_settings_reject_mismatched_roles_without_rewriting_profile():
     payload = model_settings_payload({})
     payload["multimodal_mode"] = "native"
     payload["roles"]["reasoning"].update({"provider": "deepseek", "model": "deepseek-v4-pro"})
     payload["roles"]["vision"].update({"provider": "openai", "model": "gpt-4o-mini", "credential_id": "shared"})
     payload["endpoints"]["vision"]["base_url"] = "https://api.openai.com/v1"
 
-    values = profiles.model_settings_env_values(payload)
+    try:
+        profiles.model_settings_env_values(payload)
+    except ValueError as exc:
+        assert "显式使用同一 Provider、模型、凭据和 Base URL" in str(exc)
+    else:
+        raise AssertionError("native profile silently rewrote a mismatched reasoning role")
 
-    assert values["LLM_REASONING_PROVIDER"] == "openai"
-    assert values["LLM_REASONING_MODEL"] == "gpt-4o-mini"
-    assert values["LLM_VISION_MODEL"] == "gpt-4o-mini"
+    assert payload["roles"]["reasoning"]["provider"] == "deepseek"
+    assert payload["roles"]["reasoning"]["model"] == "deepseek-v4-pro"
+
+
+def test_mismatched_native_profile_is_not_persisted(tmp_path, monkeypatch):
+    profile_path = tmp_path / "model_profiles.json"
+    monkeypatch.setattr(system, "ENV_PATH", tmp_path / ".env")
+    monkeypatch.setattr(profiles, "PROFILE_PATH", profile_path)
+    payload = model_settings_payload({})
+    payload.update({"id": "invalid-native", "name": "不一致方案", "multimodal_mode": "native"})
+    payload["roles"]["reasoning"].update({"provider": "deepseek", "model": "deepseek-v4-pro"})
+
+    result = system.save_model_profile({"profile": payload, "activate": True})
+
+    assert result["success"] is False
+    assert "配置未保存" in result["message"]
+    assert not profile_path.exists()
 
 
 def test_saving_profile_migrates_existing_role_key_to_credential_slot(tmp_path, monkeypatch):
@@ -141,6 +162,9 @@ def test_connection_check_uses_unsaved_custom_model_and_does_not_write_env(tmp_p
     class Completions:
         def create(self, **kwargs):
             calls.append(kwargs)
+            return SimpleNamespace(choices=[SimpleNamespace(
+                message=SimpleNamespace(content="OK"),
+            )])
 
     class Client:
         chat = type("Chat", (), {"completions": Completions()})()

@@ -6,8 +6,13 @@ import os
 import re
 from collections.abc import Mapping
 
+from llm.factory import (
+    ensure_runtime_support,
+    validate_model_runtime_contract,
+    validate_provider_runtime_contract,
+)
 from llm.registry import get_model, get_provider, list_models, list_providers
-from llm.types import Capability, ModelRole, ResolvedModelRole
+from llm.types import ModelRole, ResolvedModelRole, required_capability_for_role
 
 
 ROLE_ENV_PREFIX = {
@@ -54,6 +59,8 @@ def resolve_model_role(
         model = _first(source, tuple(provider.legacy_model_env.get(role, ())))
     if not model:
         model = str(provider.default_models.get(role, "") or "")
+    if not model:
+        raise ValueError(f"No model configured for the {role.value} role")
 
     endpoint = _first(source, (f"{prefix}_BASE_URL",))
     if not endpoint:
@@ -69,11 +76,11 @@ def resolve_model_role(
         api_key = _first(source, provider.legacy_api_key_env)
 
     model_spec = get_model(provider.provider_id, model)
-    required_capability = Capability.TEXT if role is ModelRole.REASONING else Capability.VISION
+    required_capability = required_capability_for_role(role)
     if model_spec and required_capability not in model_spec.capabilities:
         raise ValueError(f"Model {model!r} does not support the {role.value} role")
     options = dict(model_spec.options) if model_spec else dict(provider.role_options.get(role, {}))
-    return ResolvedModelRole(
+    resolved = ResolvedModelRole(
         role=role,
         provider=provider,
         model=model,
@@ -81,17 +88,25 @@ def resolve_model_role(
         endpoint=endpoint,
         options=options,
     )
+    ensure_runtime_support(resolved, required_capability)
+    return resolved
 
 
 def model_settings_payload(env: Mapping[str, str] | None = None) -> dict:
     source = env if env is not None else os.environ
+    providers = list_providers()
+    models = list_models()
+    for provider in providers:
+        validate_provider_runtime_contract(provider)
+    for model in models:
+        validate_model_runtime_contract(model, get_provider(model.provider_id))
     roles = {}
     credentials = {}
     endpoints = {}
     for role in ModelRole:
         resolved = resolve_model_role(role, source)
         role_id = role.value
-        required = Capability.TEXT if role is ModelRole.REASONING else Capability.VISION
+        required = required_capability_for_role(role)
         roles[role_id] = {
             "provider": resolved.provider.provider_id,
             "model": resolved.model,
@@ -118,13 +133,13 @@ def model_settings_payload(env: Mapping[str, str] | None = None) -> dict:
             "default_endpoint": item.default_endpoint,
             "default_models": {key.value: value for key, value in item.default_models.items()},
             "requires_api_key": item.requires_api_key,
-        } for item in list_providers()],
+        } for item in providers],
         "models": [{
             "provider": item.provider_id,
             "id": item.model_id,
             "label": item.label,
             "capabilities": sorted(value.value for value in item.capabilities),
-        } for item in list_models()],
+        } for item in models],
         "roles": roles,
         "credentials": credentials,
         "endpoints": endpoints,
@@ -140,12 +155,27 @@ def model_settings_env_values(payload: Mapping[str, object]) -> dict[str, str]:
     if mode not in {"split", "native"}:
         raise ValueError("multimodal_mode 必须是 split 或 native")
     if mode == "native":
-        integrated_role = roles.get(ModelRole.VISION.value) if isinstance(roles.get(ModelRole.VISION.value), Mapping) else {}
-        integrated_credentials = credentials.get(ModelRole.VISION.value) if isinstance(credentials.get(ModelRole.VISION.value), Mapping) else {}
-        integrated_endpoint = endpoints.get(ModelRole.VISION.value) if isinstance(endpoints.get(ModelRole.VISION.value), Mapping) else {}
-        roles = {**roles, ModelRole.REASONING.value: integrated_role}
-        credentials = {**credentials, ModelRole.REASONING.value: integrated_credentials}
-        endpoints = {**endpoints, ModelRole.REASONING.value: integrated_endpoint}
+        native_values = []
+        for role in ModelRole:
+            role_id = role.value
+            role_data = roles.get(role_id) if isinstance(roles.get(role_id), Mapping) else {}
+            endpoint_data = endpoints.get(role_id) if isinstance(endpoints.get(role_id), Mapping) else {}
+            provider_id = str(role_data.get("provider", "") or "").strip().lower()
+            provider = get_provider(provider_id)
+            native_values.append((
+                provider.provider_id,
+                str(role_data.get("model", "") or "").strip(),
+                str(role_data.get("credential_id", "") or provider.provider_id).strip(),
+                (str(endpoint_data.get("base_url", "") or "").strip() or provider.default_endpoint).rstrip("/"),
+            ))
+        if native_values[0] != native_values[1]:
+            raise ValueError("native 模式要求 reasoning 与 vision 显式使用同一 Provider、模型、凭据和 Base URL；配置未保存")
+        draft_keys = []
+        for role in ModelRole:
+            credential_data = credentials.get(role.value) if isinstance(credentials.get(role.value), Mapping) else {}
+            draft_keys.append(str(credential_data.get("api_key", "") or "").strip())
+        if all(draft_keys) and draft_keys[0] != draft_keys[1]:
+            raise ValueError("native 模式的 reasoning 与 vision API Key 不一致；配置未保存")
     values: dict[str, str] = {}
 
     for role in ModelRole:
@@ -154,13 +184,16 @@ def model_settings_env_values(payload: Mapping[str, object]) -> dict[str, str]:
         role_data = roles.get(role_id) if isinstance(roles.get(role_id), Mapping) else {}
         provider_id = str(role_data.get("provider", "") or "").strip().lower()
         provider = get_provider(provider_id)
+        validate_provider_runtime_contract(provider)
         if not provider.supports(role):
             raise ValueError(f"{provider.label} 不支持{role_id}角色")
         model = str(role_data.get("model", "") or "").strip()
         if not model:
             raise ValueError(f"{role_id} 模型名不能为空")
         model_spec = get_model(provider.provider_id, model)
-        required = Capability.TEXT if role is ModelRole.REASONING else Capability.VISION
+        required = required_capability_for_role(role)
+        if model_spec:
+            validate_model_runtime_contract(model_spec, provider)
         if model_spec and required not in model_spec.capabilities:
             raise ValueError(f"{model} 不支持{role_id}角色")
         values[f"{prefix}_PROVIDER"] = provider.provider_id
