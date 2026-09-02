@@ -1,3 +1,15 @@
+# 2026-09-02 - P2 Retirement Batch 1
+
+- Removed the unused `_build_minimal_generate_messages` and `decide_textbook_context` compatibility entry points. Textbook scope tests now exercise the production `decide_answer_scope` contract directly.
+- Removed the unused `chapter_contents` parameter from `build_evidence_pack` and all callers. EvidencePack remains provenance-only: anonymous chapter text cannot become answer evidence, while the active AgentState and resume-checkpoint `chapter_contents` contract is unchanged.
+- Removed the zero-read AgentState fields `user_profile`, `learning_progress`, `long_term_memory`, `iteration`, `max_iterations`, `next_review`, and `extracted_examples`, including the empty chapter-subgraph projection. Active message, image, output-projection, and checkpoint fields are unchanged.
+
+## Validation
+
+- Graph import/initial-state smoke and resume-state reuse assertion passed.
+- EvidencePack provenance, production answer-scope, support-gate, and resume/checkpoint regressions: 75 passed with the existing Starlette/httpx deprecation warning.
+- Full Python regression: 700 passed with the same existing warning.
+
 # 2026-09-01 - ExecutionEvent V1 Legacy Projection Retirement
 
 - Retired the backend SSE lifecycle compatibility projection. Chat, Figure, and Mistake envelopes now expose one validated `execution_event` plus explicitly separate domain sidecars; top-level `stage`, `activity`, `chunk`, `replace`, `done`, duplicate execution identity/timing fields, and legacy terminal/error fields are no longer emitted.

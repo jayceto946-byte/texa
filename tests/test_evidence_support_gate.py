@@ -114,11 +114,11 @@ def test_factual_enumeration_keeps_numbered_member_heading_as_evidence():
         "source": "bm25", "retrieval_rank": 4, "book_name": "selected",
         "book_role": "core", "is_selected_book": True,
     }
-    chapters, debug = _merge_and_rerank(
+    _chapters, debug = _merge_and_rerank(
         [], [item], include_metadata=True,
         query="电容式传感器有哪些优点？", intent="factual_recall",
     )
-    pack = build_evidence_pack(debug, chapters, intent="factual_recall")
+    pack = build_evidence_pack(debug, intent="factual_recall")
 
     assert debug[0]["text"].startswith("## 1. 温度稳定性好")
     assert "温度稳定性好" in pack["text"]

@@ -102,7 +102,6 @@ def _selected_candidates(
 
 def build_evidence_pack(
     evidence_items: list[dict],
-    chapter_contents: dict[str, list[str]],
     *,
     intent: str = "",
     char_budget: int = DEFAULT_CHAR_BUDGET,

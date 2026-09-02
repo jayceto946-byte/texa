@@ -79,7 +79,6 @@ def retrieve_case(case: dict) -> list[dict]:
         return [] if support == "insufficient" else result.get("evidence_items", [])
     pack = build_evidence_pack(
         result.get("evidence_items") or [],
-        result.get("chapter_contents") or {},
         intent=str(case.get("intent") or "factual_recall"),
     )
     return [{"chunk_id": "final-evidence-pack", "text": str(pack.get("text") or "")}]

@@ -275,7 +275,6 @@ def _validate_staged_production_retrieval(
         else:
             pack = build_evidence_pack(
                 result.get("evidence_items") or [],
-                result.get("chapter_contents") or {},
                 intent=str(case.get("intent") or "factual_recall"),
             )
             items = [{"chunk_id": "final-evidence-pack", "text": str(pack.get("text") or "")}]

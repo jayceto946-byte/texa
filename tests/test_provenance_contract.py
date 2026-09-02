@@ -107,12 +107,12 @@ def test_vector_metadata_and_retrieval_item_preserve_provenance():
 def test_evidence_pack_keeps_provenance_and_rejects_text_only_fallback():
     row = ChapterSplitter().split_canonical_book(_book())[0]
     row.update({"index_version": "index-v1", "text": row["content"]})
-    pack = build_evidence_pack([row], {"第一章": ["ignored projection"]})
+    pack = build_evidence_pack([row])
 
     assert pack["items"][0]["chunk_id"] == row["chunk_id"]
     assert pack["items"][0]["source_block_ids"] == ["block-text"]
     assert pack["items"][0]["source_locations"][0]["page_start"] == 3
-    assert build_evidence_pack([], {"第一章": ["legacy text without chunk id"]})["items"] == []
+    assert build_evidence_pack([])["items"] == []
 
 
 def test_index_activation_fails_fast_on_missing_provenance():

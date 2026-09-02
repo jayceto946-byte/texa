@@ -24,7 +24,7 @@ def test_evidence_pack_deduplicates_ids_and_content():
         _item("c", "chapter-2", "different text"),
     ]
 
-    pack = build_evidence_pack(evidence, {})
+    pack = build_evidence_pack(evidence)
 
     assert [item["chunk_id"] for item in pack["items"]] == ["a", "c"]
     assert pack["text"].count("definition text") == 1
@@ -38,7 +38,7 @@ def test_evidence_pack_limits_default_intent_to_two_items_per_chapter():
         _item("d", "chapter-2", "fourth"),
     ]
 
-    pack = build_evidence_pack(evidence, {})
+    pack = build_evidence_pack(evidence)
 
     assert [item["chunk_id"] for item in pack["items"]] == ["a", "b", "d"]
 
@@ -53,7 +53,7 @@ def test_factual_recall_preserves_parallel_points_from_same_chapter():
         _item("f", "chapter-1", "point six"),
     ]
 
-    pack = build_evidence_pack(evidence, {}, intent="factual_recall")
+    pack = build_evidence_pack(evidence, intent="factual_recall")
 
     assert [item["chunk_id"] for item in pack["items"]] == ["a", "b", "c", "d", "e", "f"]
 
@@ -62,7 +62,7 @@ def test_evidence_pack_uses_evidence_id_header_and_keeps_label_in_items():
     item = _item("a", "chapter-1", "definition")
     item["page_idx"] = -1
 
-    pack = build_evidence_pack([item], {})
+    pack = build_evidence_pack([item])
 
     # LLM 只看到稳定的证据编号，不再看到 human-readable 教材路径
     assert "[E1]" in pack["text"]
@@ -81,7 +81,7 @@ def test_evidence_pack_preserves_existing_section_path_without_inventing_parents
         "page_idx": -1,
     })
 
-    source = build_evidence_pack([item], {})["items"][0]
+    source = build_evidence_pack([item])["items"][0]
 
     assert source["section_path"] == ["第六章 压电式传感器", "一、压电式加速度传感器"]
     assert source["chunk_index"] == 17
@@ -106,12 +106,15 @@ def test_generator_uses_selected_evidence_only_once():
     assert prompt.count("UNIQUE_EVIDENCE_TEXT") == 1
 
 
-def test_evidence_pack_rejects_anonymous_legacy_chapter_contents():
-    chapter_contents = {
-        "chapter-1": ["first legacy chunk", "second legacy chunk", "third legacy chunk"],
+def test_evidence_pack_rejects_anonymous_chapter_text_without_provenance():
+    state = {
+        "chapter_contents": {
+            "chapter-1": ["first legacy chunk", "second legacy chunk", "third legacy chunk"],
+        },
+        "evidence_items": [],
     }
 
-    pack = build_evidence_pack([], chapter_contents)
+    pack = build_evidence_pack(state["evidence_items"])
 
     assert pack["text"] == ""
     assert pack["items"] == []
@@ -135,7 +138,7 @@ def test_evidence_pack_quality_contract_by_question_type(intent, expected_count)
         for index in range(1, 7)
     ]
 
-    pack = build_evidence_pack(evidence, {}, intent=intent)
+    pack = build_evidence_pack(evidence, intent=intent)
 
     assert len(pack["items"]) == expected_count
     assert all(
@@ -151,7 +154,7 @@ def test_cross_chapter_questions_preserve_three_items_from_each_chapter():
         for index in range(1, 4)
     ]
 
-    pack = build_evidence_pack(evidence, {}, intent="cross_chapter")
+    pack = build_evidence_pack(evidence, intent="cross_chapter")
 
     assert len(pack["items"]) == 9
     assert {item["chapter"] for item in pack["items"]} == {

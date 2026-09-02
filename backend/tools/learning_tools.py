@@ -138,7 +138,6 @@ def search_textbook(context: ToolContext, args: dict[str, Any]) -> ToolResult:
     evidence_items = list(result.get("evidence_items") or [])
     pack = build_evidence_pack(
         evidence_items,
-        result.get("chapter_contents") or {},
         intent=intent,
         char_budget=max(3000, min(9000, limit * 1500)),
     )

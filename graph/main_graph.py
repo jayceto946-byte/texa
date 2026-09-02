@@ -194,9 +194,6 @@ def build_initial_state(
     return {
         "user_input": user_input,
         "user_images": user_images or [],
-        "user_profile": {},
-        "learning_progress": {},
-        "long_term_memory": {},
         "book_name": book_name,
         "subject": subject,
         "conversation_id": conversation_id,
@@ -252,7 +249,6 @@ def build_initial_state(
         "dropped_evidence_ids": [],
         "teaching_content": "",
         "key_points": [],
-        "extracted_examples": [],
         "quiz_questions": [],
         "chapter_summary": "",
         "final_output": "",
@@ -260,10 +256,7 @@ def build_initial_state(
         "context_budget": {},
         "user_feedback": user_feedback,
         "mastery_update": {},
-        "next_review": None,
         "error": "",
-        "iteration": 0,
-        "max_iterations": 10,
         "resume_phase": "",
         "resume_checkpoint_version": RESUME_CHECKPOINT_VERSION,
     }

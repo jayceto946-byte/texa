@@ -8,10 +8,6 @@ class AgentState(TypedDict):
     user_input: str
     user_images: list[str]
 
-    # === 用户画像 (长期) ===
-    user_profile: dict
-    learning_progress: dict
-    long_term_memory: dict
     book_name: str
     subject: str
     conversation_id: str
@@ -75,7 +71,6 @@ class AgentState(TypedDict):
     # === 章节教学输出 ===
     teaching_content: str
     key_points: list[str]
-    extracted_examples: list[dict]
     quiz_questions: list[dict]
     chapter_summary: str
 
@@ -87,11 +82,8 @@ class AgentState(TypedDict):
     # === 反馈 ===
     user_feedback: Optional[dict]
     mastery_update: dict
-    next_review: Optional[str]
 
     # === 控制 ===
     error: str
-    iteration: int
-    max_iterations: int
     resume_phase: str
     resume_checkpoint_version: int

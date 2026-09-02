@@ -255,19 +255,3 @@ def decide_answer_scope(
     if use_textbook:
         return AnswerScopeDecision("textbook_grounded", True, reason)
     return AnswerScopeDecision("global_general", False, reason)
-
-
-def decide_textbook_context(
-    question: str,
-    resolved_question: str,
-    *,
-    book_name: str,
-    subject_suggestion: dict | None = None,
-) -> tuple[bool, str]:
-    """Backward-compatible textbook gate used by focused unit callers."""
-    return _decide_textbook_context(
-        question,
-        resolved_question,
-        book_name=book_name,
-        subject_suggestion=subject_suggestion,
-    )

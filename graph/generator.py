@@ -316,7 +316,6 @@ def _build_generate_prompt(state: dict) -> str:
         )
     evidence_pack = build_evidence_pack(
         state.get("evidence_items") or [],
-        state.get("chapter_contents") or {},
         intent=intent,
     )
     state["evidence_sources"] = evidence_pack["items"]
@@ -433,7 +432,6 @@ def _build_compact_generate_messages(
     if mode == "textbook_grounded":
         evidence_pack = build_evidence_pack(
             state.get("evidence_items") or [],
-            state.get("chapter_contents") or {},
             intent=intent,
         )
         state["evidence_sources"] = evidence_pack["items"]
@@ -484,14 +482,6 @@ def _build_compact_generate_messages(
         SystemMessage(content=system_prompt),
         HumanMessage(content=human),
     ]
-
-
-def _build_minimal_generate_messages(state: dict) -> list:
-    """Backward-compatible entry point used by focused tests and callers."""
-    return _build_compact_generate_messages(
-        state, system_prompt=MINIMAL_TEACHING_PROMPT, preset="minimal",
-        include_citation_protocol=True,
-    )
 
 
 def _format_quiz_appendix(state: dict) -> str:

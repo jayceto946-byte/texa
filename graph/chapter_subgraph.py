@@ -125,7 +125,6 @@ def prepare_chapter_subgraph(state: dict):
     book_name = state.get("book_name", "default")
     evidence_pack = build_evidence_pack(
         state.get("evidence_items") or [],
-        state.get("chapter_contents") or {},
         intent=intent,
     )
     state["evidence_sources"] = evidence_pack["items"]
@@ -231,7 +230,6 @@ def chapter_subgraph_run(state: dict) -> dict:
     return {
         "teaching_content": teaching,
         "key_points": key_points_str.split("\n") if key_points_str else [],
-        "extracted_examples": [],
         "quiz_questions": quiz_questions,
         "chapter_summary": summary,
         "conversation_context_seed": {},

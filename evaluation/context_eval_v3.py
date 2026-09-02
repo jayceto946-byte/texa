@@ -118,7 +118,6 @@ def prepare_production_state(
     state.update(retrieval)
     evidence_pack = build_evidence_pack(
         state.get("evidence_items") or [],
-        state.get("chapter_contents") or {},
         intent=intent,
     )
     state["evidence_sources"] = evidence_pack.get("items") or []

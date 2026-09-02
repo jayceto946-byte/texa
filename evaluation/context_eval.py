@@ -293,7 +293,6 @@ def _score_retrieval_layer(base_case: dict, layer_case: dict) -> dict:
     evidence_items = [item for item in fixture.get("evidence_items") or [] if isinstance(item, dict)]
     evidence_pack = build_evidence_pack(
         evidence_items,
-        {},
         intent=str(policy_context.get("intent") or trace.get("state_after", {}).get("intent") or "qa"),
         char_budget=int(fixture.get("char_budget") or 9000),
     ) if action != "none" else {
