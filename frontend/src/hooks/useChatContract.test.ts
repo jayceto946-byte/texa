@@ -3,6 +3,7 @@ import client from '../api/client.ts?raw';
 import message from '../components/ChatMessage.tsx?raw';
 import chatPage from '../pages/ChatPage.tsx?raw';
 import types from '../types/index.ts?raw';
+import learningTaskActions from '../components/chat/LearningTaskActions.tsx?raw';
 import useChat from './useChat.ts?raw';
 
 describe('non-stream chat contract', () => {
@@ -32,5 +33,15 @@ describe('non-stream chat contract', () => {
     expect(chatPage).toContain('event.result?.citation_provenance');
     expect(chatPage).toContain('event.result?.linked_concepts');
     expect(chatPage).toContain('event.result?.learning_task');
+  });
+
+  it('keeps pending-action controls without the standalone read-only-agent surface', () => {
+    expect(client).not.toContain('/agent/read-only');
+    expect(client).not.toContain('/agent/tools');
+    expect(message).not.toContain('agentCard');
+    expect(types).not.toContain('ReadOnlyAgentResponse');
+    expect(types).toContain('interface AgentPendingAction');
+    expect(client).toContain('/agent/actions/');
+    expect(learningTaskActions).toContain("resolveAgentAction(action.action_id, decision)");
   });
 });

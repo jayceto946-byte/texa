@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { BookOpen, Globe2, GraduationCap, Paperclip, ShieldAlert, ThumbsDown, ThumbsUp } from 'lucide-react';
-import type { AnswerMode, AssistantSource, ChatActivity, ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, CitationProvenance, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
+import type { AnswerMode, AssistantSource, ChatActivity, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, CitationProvenance, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
 import { useChatContext } from '../contexts/ChatContext';
 import { displayNumber, groupSourcesByLocation, parseCitations, partitionSources, type SourceChapterGroup } from '../utils/citations';
 import ConceptPopover from './ConceptPopover';
@@ -9,7 +9,6 @@ import ExerciseCard from './chat/ExerciseCard';
 import { MarkdownMessage } from './chat/MarkdownMessage';
 import MistakeQuickCaptureCard from './chat/MistakeQuickCaptureCard';
 import ReportCard from './chat/ReportCard';
-import AgentResultCard from './chat/AgentResultCard';
 import SubjectRouteSuggestionCard from './chat/SubjectRouteSuggestionCard';
 import { post } from '../api/client';
 import ExecutionTrace from './chat/ExecutionTrace';
@@ -42,7 +41,6 @@ interface ChatMessageProps {
   exerciseCard?: ChatExerciseCard;
   chapterHighlightCard?: ChatChapterHighlightCard;
   utilityCard?: ChatUtilityCard;
-  agentCard?: ChatAgentCard;
   learningTask?: LearningTaskState;
   citationProvenance?: CitationProvenance;
   onResumeLearningTask?: (task: LearningTaskState, action: 'provide_input' | 'method_only', file?: File) => Promise<void> | void;
@@ -151,7 +149,7 @@ const feedbackReasons = [
   ['irrelevant_or_repetitive', '答非所问或重复'],
 ] as const;
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, agentCard, learningTask, citationProvenance, onResumeLearningTask, onResumeInterruptedTask }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, learningTask, citationProvenance, onResumeLearningTask, onResumeInterruptedTask }) => {
   const [scopeResolved, setScopeResolved] = useState(false);
   const [feedback, setFeedback] = useState(answerFeedback);
   const [feedbackBusy, setFeedbackBusy] = useState(false);
@@ -245,7 +243,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
     || ((stage === 'thinking' || stage === 'plan') && !content.trim())
   );
   const isTerminal = stage === 'done' || stage === 'error' || stage === 'stopped';
-  const hasCard = Boolean(reportCard || exerciseCard || chapterHighlightCard || utilityCard || agentCard);
+  const hasCard = Boolean(reportCard || exerciseCard || chapterHighlightCard || utilityCard);
   const showMessageTools = !hasCard && !isThinking;
   const modeLabel = answerMode === 'textbook_grounded'
     ? '基于教材'
@@ -271,9 +269,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
 
         {!isUser && activities.length > 0 && !isTerminal && <ExecutionTrace activities={activities} stage={stage} />}
 
-        {agentCard ? (
-          <AgentResultCard card={agentCard} />
-        ) : reportCard ? (
+        {reportCard ? (
           <ReportCard card={reportCard} />
         ) : chapterHighlightCard ? (
           <ChapterHighlightCard card={chapterHighlightCard} />

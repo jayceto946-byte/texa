@@ -1,9 +1,7 @@
-import type { AgentPendingAction, AgentToolResult, AgentToolSpec, ReadOnlyAgentResponse, AnswerMode, AssistantSource, ConceptCandidate, ExecutionStreamEnvelope, LearningTaskState, SubjectRouteSuggestion, VisualRegion } from '../types';
+import type { AgentPendingAction, AnswerMode, AssistantSource, ConceptCandidate, ExecutionStreamEnvelope, LearningTaskState, SubjectRouteSuggestion, VisualRegion } from '../types';
 import { isExecutionEventV1 } from '../utils/chatActivities';
 
 const DEFAULT_TIMEOUT_MS = 20000;
-export const AGENT_REQUEST_TIMEOUT_MS = 55000;
-export const AGENT_FALLBACK_TIMEOUT_MS = 60000;
 const NON_STREAMING_CHAT_TIMEOUT_MS = 130000;
 export const IMAGE_SOLUTION_TIMEOUT_MS = 6 * 60 * 1000;
 export const IMAGE_RECOGNITION_TIMEOUT_MS = 3 * 60 * 1000;
@@ -482,51 +480,6 @@ export async function chatAsk(
   if (!res.ok) throw await responseError(res, 'chatAsk failed');
   return res.json();
 }
-export async function listAgentTools(includeWrite = false): Promise<AgentToolSpec[]> {
-  const res = await get(`/agent/tools?include_write=${includeWrite ? 'true' : 'false'}`);
-  return res.data || [];
-}
-
-export async function callAgentTool(
-  tool: string,
-  args: Record<string, unknown> = {},
-  bookName = '',
-  subject = '',
-  conversationId = '',
-): Promise<{ success: boolean; tool: string; result: AgentToolResult }> {
-  return post('/agent/tools/call', {
-    tool,
-    args,
-    book_name: bookName,
-    subject,
-    conversation_id: conversationId,
-  });
-}
-
-export async function runReadOnlyAgent(
-  question: string,
-  bookName = '',
-  subject = '',
-  conversationId = '',
-  synthesize = true,
-  signal?: AbortSignal,
-): Promise<ReadOnlyAgentResponse> {
-  const res = await apiFetch('/agent/read-only', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      question,
-      book_name: bookName,
-      subject,
-      conversation_id: conversationId,
-      synthesize,
-    }),
-    signal,
-  }, AGENT_REQUEST_TIMEOUT_MS);
-  if (!res.ok) throw await responseError(res, 'Read-only agent failed');
-  return res.json();
-}
-
 export async function resolveAgentAction(
   actionId: string,
   decision: 'confirm' | 'reject',

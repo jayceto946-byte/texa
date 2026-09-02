@@ -1,3 +1,14 @@
+# 2026-09-02 - P2 Retirement Batch 2 / Commit C
+
+- Removed the unreachable frontend read-only-agent surface: unused tool/read-only client helpers, intent-routing helper and its isolated test, `AgentResultCard`, `agentCard` message plumbing, and response-only TypeScript types.
+- Preserved `resolveAgentAction`, `AgentPendingAction`, LearningTask types/components, and the pending-action confirm/reject UI. The backend `/agent/read-only` route and controlled-tool endpoints remain unchanged.
+
+## Validation
+
+- Static scans found no production assignment or remaining standalone read-only client/helper/card/type surface. Targeted frontend lifecycle/retirement contracts passed (12 tests), and backend controlled-agent route tests passed (12 tests), including the preserved `/agent/read-only` implementation.
+- Normal-window and 1600×900 runtime inspection confirmed the Learning Canvas, context/sidebar hierarchy, and composer remained intact with no browser console warning/error; the targeted contract also confirmed LearningTask action wiring. No UI redesign was introduced.
+- Full Python regression: 700 passed with the existing Starlette/httpx deprecation warning. Frontend: 23 files / 124 tests passed; ESLint and production build passed with the existing MathLive chunk-size and MarkdownRenderer mixed-import warnings.
+
 # 2026-09-02 - P2 Retirement Batch 2 / Commit B
 
 - Removed five zero-call legacy agent modules: retrieval, quiz agent, progress agent, coordinator, and chapter agent. `agents/quiz.py` and `agents/__init__.py` remain for the unchanged legacy CLI.

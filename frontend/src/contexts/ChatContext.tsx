@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
-import type { AnswerMode, AssistantSource, ChatActivity, ChatAgentCard, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, CitationProvenance, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
+import type { AnswerMode, AssistantSource, ChatActivity, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, CitationProvenance, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -16,7 +16,6 @@ export interface ChatMessage {
   exerciseCard?: ChatExerciseCard;
   chapterHighlightCard?: ChatChapterHighlightCard;
   utilityCard?: ChatUtilityCard;
-  agentCard?: ChatAgentCard;
   subjectSuggestion?: SubjectRouteSuggestion;
   answerMode?: AnswerMode;
   suggestedAnswerMode?: AnswerMode;

@@ -436,18 +436,9 @@ export interface SubjectRouteSuggestion {
   confidence: number;
   reason: string;
 }
-
-
 export interface ChatUtilityCard {
   kind: 'mistake_quick_capture';
 }
-export interface AgentToolSpec {
-  name: string;
-  description: string;
-  parameters: Record<string, unknown>;
-  read_only: boolean;
-}
-
 export interface AgentPendingAction {
   action_id?: string;
   type: string;
@@ -455,65 +446,4 @@ export interface AgentPendingAction {
   status?: 'pending' | 'confirmed' | 'rejected' | 'failed';
   result?: Record<string, unknown> | null;
   error?: string;
-}
-
-export interface AgentToolResult {
-  success: boolean;
-  message?: string;
-  data?: unknown;
-  pending_action?: AgentPendingAction | null;
-}
-
-export interface AgentToolCall {
-  tool: string;
-  args: Record<string, unknown>;
-}
-
-export interface AgentToolOutput {
-  tool: string;
-  args: Record<string, unknown>;
-  result: AgentToolResult;
-  required_outputs?: Array<{ key: string; path: string }>;
-  satisfied_required_outputs?: string[];
-  missing_required_outputs?: string[];
-  timing?: {
-    status: 'complete' | 'timeout' | 'error';
-    elapsed_ms: number;
-    timeout_seconds: number;
-  };
-}
-
-export interface ReadOnlyAgentResponse {
-  success: boolean;
-  mode: 'read_only';
-  answer: string;
-  selected_tools: AgentToolCall[];
-  tool_outputs: AgentToolOutput[];
-  summary: {
-    tool_counts: Record<string, number>;
-    pending_actions: AgentPendingAction[];
-    has_textbook_evidence: boolean;
-    has_review_evidence: boolean;
-  };
-  execution_trace?: {
-    total_elapsed_ms: number;
-    budget_seconds: number;
-    tools: Array<{
-      tool: string;
-      success: boolean;
-      status: 'complete' | 'timeout' | 'error';
-      elapsed_ms: number;
-      timeout_seconds: number;
-    }>;
-    synthesis: {
-      status: 'complete' | 'timeout' | 'error' | 'skipped';
-      elapsed_ms: number;
-      timeout_seconds: number;
-      message?: string;
-    };
-  };
-}
-export interface ChatAgentCard {
-  question: string;
-  response: ReadOnlyAgentResponse;
 }
