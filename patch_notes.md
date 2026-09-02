@@ -1,3 +1,13 @@
+# 2026-09-02 - P2 Retirement Batch 2 / Commit B
+
+- Removed five zero-call legacy agent modules: retrieval, quiz agent, progress agent, coordinator, and chapter agent. `agents/quiz.py` and `agents/__init__.py` remain for the unchanged legacy CLI.
+- Removed stale architecture references to the retired quiz-agent implementation. Docker/build package-level handling remains because it still describes the retained `agents` package rather than any deleted module.
+
+## Validation
+
+- Static scans found no callers or filename-specific Docker/build references for the five removed modules. All 168 application modules imported successfully; repository compileall, the retained CLI/quiz import, and 13 targeted controlled-agent/smoke tests passed.
+- Full Python regression: 700 passed with the existing Starlette/httpx deprecation warning. Frontend: 24 files / 137 tests passed; ESLint and production build passed with the existing MathLive chunk-size and MarkdownRenderer mixed-import warnings.
+
 # 2026-09-02 - P2 Retirement Batch 2 / Commit A
 
 - Removed the deprecated `ui/web.py` Gradio surface after confirming it had no import or startup callers and Gradio was absent from every dependency manifest.

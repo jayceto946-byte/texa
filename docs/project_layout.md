@@ -7,7 +7,7 @@ This project is a local postgraduate exam study assistant. The repository contai
 ```text
 backend/      FastAPI API routes and schemas
 frontend/     React + Vite web UI
-agents/       legacy/utility agent wrappers
+agents/       legacy CLI quiz helper
 graph/        LangGraph workflow, planner, retrieval, generation, feedback
 ingestion/    PDF parsing, OCR adapters, textbook ingestion, vector store
 knowledge/    knowledge graph, concept memory, keyword index, visualization

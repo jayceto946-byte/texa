@@ -127,7 +127,6 @@
 - 但 `graph/main_graph.py` 只把 `teach/summarize` 路由到 chapter subgraph，`quiz` 直接进入 generate。
 - `graph/generator.py: _format_quiz_appendix()` 依赖 `state["quiz_questions"]`，但没有任何节点填充它。
 - `graph/chapter_subgraph.py: _generate_quiz()` 已存在，但 `prepare_chapter_subgraph()` 未真正启动后台出题任务（executor/futures 恒为空）。
-- `agents/quiz_agent.py` 也有出题实现，但与主 graph 未连接。
 
 **未来目标**：
 
@@ -212,7 +211,7 @@ question generation
 
 - 先梳理 `quiz` 意图在 stream / non-stream 两条路径中的统一接入点；
 - 实现 question generation → answer evaluation → mastery update → review scheduling 的最小闭环；
-- 复用 `graph/chapter_subgraph._generate_quiz()` 或 `agents/quiz_agent.py` 中的可用逻辑，收敛为单一实现；
+- 复用 `graph/chapter_subgraph._generate_quiz()` 中的可用逻辑，收敛为单一实现；
 - 不要同时改 retrieval / evidence 结构。
 
 ### Phase 3：统一 graph execution
@@ -223,7 +222,7 @@ question generation
 
 ### Phase 4：架构清理
 
-- 删除或正式归档 `agents/` 中的死代码；
+- `agents/` 只保留 legacy CLI 使用的 quiz helper；
 - 处理 `backend/api/chat.py`、`graph/retrieval_node.py` 等长文件拆分；
 - 统一 `launch.ps1` / `install.ps1` / Vite 代理的默认端口；
 - 清理仓库根目录中的运行时数据、备份与发布产物。
