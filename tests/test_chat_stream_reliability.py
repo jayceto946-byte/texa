@@ -581,6 +581,7 @@ def test_chat_stream_pending_action_stays_running_until_finalization(monkeypatch
     events = _stream_events(response)
 
     assert response.status_code == 200
+    assert "Deprecation" not in response.headers
     assert observed_statuses == ["running"]
     done = next(event for event in events if event["execution_event"]["type"] == "final")
     task = done["state"]["learning_task"]

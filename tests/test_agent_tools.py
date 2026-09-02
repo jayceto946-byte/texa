@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from types import SimpleNamespace
 
+from fastapi import FastAPI, Request, Response
+from fastapi.testclient import TestClient
 from ingestion.vector_store import RetrievalOutcome
 import time
 
@@ -9,6 +11,19 @@ from backend.api.agent import ReadOnlyAgentRequest, _select_tool_calls
 from backend.tools import learning_tools
 from backend.tools.registry import ToolContext, ToolResult, get_tool_registry
 from memory.exercise_bank import ExerciseRecord
+
+
+def _request(host: str = "testclient") -> Request:
+    return Request({
+        "type": "http",
+        "method": "POST",
+        "path": "/api/agent/read-only",
+        "headers": [],
+        "client": (host, 50000),
+        "server": ("testserver", 80),
+        "scheme": "http",
+        "query_string": b"",
+    })
 
 
 def test_tool_registry_exposes_read_only_learning_tools():
@@ -266,7 +281,7 @@ def test_read_only_agent_records_tool_and_synthesis_timings(monkeypatch):
         question="我今天复习什么",
         book_name="math",
         subject="math",
-    ))
+    ), _request(), Response())
 
     assert response["success"] is True
     assert response["answer"] == "今日复习建议"
@@ -298,7 +313,7 @@ def test_read_only_agent_returns_when_synthesis_exceeds_budget(monkeypatch):
     response = agent_api.run_read_only_agent(ReadOnlyAgentRequest(
         question="我今天复习什么",
         book_name="math",
-    ))
+    ), _request(), Response())
 
     assert time.perf_counter() - started < 0.07
     assert response["success"] is True
@@ -325,8 +340,65 @@ def test_read_only_agent_marks_slow_tool_unavailable(monkeypatch):
         question="到期错题",
         book_name="math",
         synthesize=False,
-    ))
+    ), _request(), Response())
 
     assert response["success"] is False
     assert response["tool_outputs"][0]["timing"]["status"] == "timeout"
     assert "timed out" in response["tool_outputs"][0]["result"]["message"]
+
+
+def test_read_only_agent_http_deprecation_contract_and_internal_usage_log(monkeypatch, caplog):
+    orchestration = {
+        "selected_tools": [{"tool": "build_review_plan", "args": {}}],
+        "tool_outputs": [{
+            "tool": "build_review_plan",
+            "result": {"success": True, "message": "ready", "data": {"plan": []}},
+        }],
+        "execution_trace": {"tools": []},
+    }
+    monkeypatch.setattr(agent_api, "execute_read_only_tools", lambda *_args, **_kwargs: orchestration)
+    monkeypatch.setattr(agent_api, "summarize_learning_evidence", lambda _outputs: {"pending_actions": []})
+    app = FastAPI()
+    app.include_router(agent_api.router, prefix="/api")
+    client = TestClient(app)
+    payload = {
+        "question": "sensitive-question",
+        "book_name": "sensitive-book",
+        "subject": "sensitive-subject",
+        "conversation_id": "sensitive-conversation",
+        "synthesize": False,
+    }
+
+    with caplog.at_level("INFO", logger=agent_api.__name__):
+        response = client.post("/api/agent/read-only", json=payload)
+
+    assert response.status_code == 200
+    assert response.headers["Deprecation"] == agent_api.READ_ONLY_AGENT_DEPRECATION
+    assert response.json() == {
+        "success": True,
+        "mode": "read_only",
+        "answer": "",
+        "selected_tools": orchestration["selected_tools"],
+        "tool_outputs": orchestration["tool_outputs"],
+        "summary": {"pending_actions": []},
+        "execution_trace": {
+            "total_elapsed_ms": response.json()["execution_trace"]["total_elapsed_ms"],
+            "budget_seconds": agent_api.AGENT_TOTAL_TIMEOUT_SECONDS,
+            "tools": [],
+            "synthesis": {
+                "status": "skipped",
+                "elapsed_ms": 0,
+                "timeout_seconds": 0,
+                "message": "",
+            },
+        },
+    }
+    operation = app.openapi()["paths"]["/api/agent/read-only"]["post"]
+    assert operation["deprecated"] is True
+    assert "Deprecation" in operation["responses"]["200"]["headers"]
+    assert "usage_classification=internal_test" in caplog.text
+    assert all(value not in caplog.text for value in payload.values() if isinstance(value, str))
+
+
+def test_read_only_agent_real_socket_is_external_observed():
+    assert agent_api._usage_classification(_request("127.0.0.1")) == "external_observed"

@@ -8,7 +8,7 @@ import threading
 import time
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
 from backend.tools.learning_tools import summarize_learning_evidence
@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 AGENT_TOOL_TIMEOUT_SECONDS = 8.0
 AGENT_SYNTHESIS_TIMEOUT_SECONDS = 35.0
 AGENT_TOTAL_TIMEOUT_SECONDS = 50.0
+READ_ONLY_AGENT_DEPRECATION = "@1788307200"
 
 
 class ToolCallRequest(BaseModel):
@@ -203,8 +204,28 @@ def call_agent_tool(req: ToolCallRequest):
     return {"success": result.success, "tool": req.tool, "result": result.to_dict()}
 
 
-@router.post("/read-only")
-def run_read_only_agent(req: ReadOnlyAgentRequest):
+def _usage_classification(request: Request) -> str:
+    host = request.client.host if request.client else ""
+    return "internal_test" if host == "testclient" else "external_observed"
+
+
+@router.post(
+    "/read-only",
+    deprecated=True,
+    responses={
+        200: {
+            "headers": {
+                "Deprecation": {
+                    "description": "RFC 9745 deprecation date for this compatibility endpoint.",
+                    "schema": {"type": "string", "example": READ_ONLY_AGENT_DEPRECATION},
+                },
+            },
+        },
+    },
+)
+def run_read_only_agent(req: ReadOnlyAgentRequest, request: Request, response: Response):
+    response.headers["Deprecation"] = READ_ONLY_AGENT_DEPRECATION
+    usage_classification = _usage_classification(request)
     request_started = time.perf_counter()
     orchestration = execute_read_only_tools(
         ToolOrchestrationRequest(
@@ -273,9 +294,10 @@ def run_read_only_agent(req: ReadOnlyAgentRequest):
         "synthesis": synthesis,
     }
     logger.info(
-        "read-only agent completed conversation_id=%s tools=%s successful=%s synthesis=%s total_ms=%s",
-        req.conversation_id or "(new)",
-        ",".join(item["tool"] for item in outputs) or "(none)",
+        "read-only agent request completed endpoint=/api/agent/read-only usage_classification=%s "
+        "tool_count=%s successful=%s synthesis=%s total_ms=%s",
+        usage_classification,
+        len(outputs),
         successful_tools,
         synthesis["status"],
         total_elapsed_ms,

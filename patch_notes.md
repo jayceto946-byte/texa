@@ -1,3 +1,12 @@
+# 2026-09-02 - P2 Read-only Agent Endpoint Deprecation
+
+- Marked only `/api/agent/read-only` deprecated in OpenAPI and added the RFC 9745 `Deprecation` response header. The response status, body, schema, time budgets, main Chat path, controlled tool endpoints, and pending-action confirmation routes remain unchanged.
+- Reused the existing completion log with `internal_test` / `external_observed` usage classification and removed conversation identifiers and tool names from that log. No request content, model credentials, raw User-Agent, or telemetry subsystem was added.
+
+## Validation
+
+- Backend deprecation, Chat isolation, and pending-action regressions: 17 passed. Frontend retirement contract: 4 passed. `git diff --check` passed; the only warning remained the existing Starlette/httpx TestClient deprecation warning.
+
 # 2026-09-02 - P2 Retirement Batch 2 / Commit C
 
 - Removed the unreachable frontend read-only-agent surface: unused tool/read-only client helpers, intent-routing helper and its isolated test, `AgentResultCard`, `agentCard` message plumbing, and response-only TypeScript types.
