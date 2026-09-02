@@ -13,7 +13,7 @@ ingestion/    PDF parsing, OCR adapters, textbook ingestion, vector store
 knowledge/    knowledge graph, concept memory, keyword index, visualization
 memory/       mistake book, exercise bank, study memory, spaced repetition
 utils/        shared text/LaTeX/thinking-filter helpers
-ui/           CLI and legacy Gradio UI
+ui/           legacy developer CLI
 ```
 
 ## Deployment and operations

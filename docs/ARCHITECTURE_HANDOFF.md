@@ -89,10 +89,8 @@
 
 ### 2.3 Legacy UI 清理
 
-- **Gradio 状态**：
-  - `ui/web.py` 顶部已标记 `__deprecated__ = True` 并发出 `DeprecationWarning`；
-  - 文件保留但不再参与任何启动链路；
-  - `requirements*.txt` 中未发现 gradio 依赖。
+- deprecated Gradio Web 入口已删除；`ui/` 只保留 legacy developer CLI。
+- `requirements*.txt` 不包含 Gradio 依赖。
 - **main.py web 入口**：
   - `main.py` 现在支持 `cli` 与 `web` 两种 mode；
   - `python main.py web --host 127.0.0.1 --port N` 会执行 `uvicorn.run("backend.main:app", ...)`；
@@ -192,7 +190,7 @@ question generation
 - 改变 evidence 数据结构；
 - 修改 `backend/conversation_memory.py` 的 SQLite schema；
 - 改动前端 SSE 事件字段或 sources 结构而不做前后端联调；
-- 删除 `ui/web.py` 或 `agents/` 旧代码后再顺手重构周边模块。
+- 删除 legacy surface 后再顺手重构周边模块。
 
 **原因**：
 当前系统需要稳定迭代，而不是重新设计。上一阶段已经出现“同一能力多处实现、启动入口不统一”等问题，但修复应当按阶段小步进行，避免在验证不足时引入新风险。
@@ -208,7 +206,7 @@ question generation
 - 启动 `backend.main:app`，确认 `/health` 正常；
 - 调用 `/api/chat/ask` 确认 `sources` 返回非空（需已导入教材并建立索引）；
 - 启动 Electron，确认桌面后端与窗口正常；
-- 验证 `python main.py web` 不再进入 Gradio 路径。
+- 验证 `python main.py web` 启动 `backend.main:app`。
 
 ### Phase 2：设计并实现 Quiz Agent
 
@@ -225,7 +223,7 @@ question generation
 
 ### Phase 4：架构清理
 
-- 删除或正式归档 `ui/web.py`、`agents/` 中的死代码；
+- 删除或正式归档 `agents/` 中的死代码；
 - 处理 `backend/api/chat.py`、`graph/retrieval_node.py` 等长文件拆分；
 - 统一 `launch.ps1` / `install.ps1` / Vite 代理的默认端口；
 - 清理仓库根目录中的运行时数据、备份与发布产物。

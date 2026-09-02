@@ -1,3 +1,13 @@
+# 2026-09-02 - P2 Retirement Batch 2 / Commit A
+
+- Removed the deprecated `ui/web.py` Gradio surface after confirming it had no import or startup callers and Gradio was absent from every dependency manifest.
+- Removed the matching Gradio-only PyInstaller exclusions and stale architecture/layout references. The legacy CLI remains, and `main.py web`, Electron, Docker, and packaged desktop startup still target `backend.main:app`.
+
+## Validation
+
+- Static code/startup scans found no remaining `ui.web` caller or dependency-manifest Gradio entry. A mocked `main.py web` launch still called `uvicorn.run("backend.main:app", ...)`; FastAPI startup/health and SPA smoke tests passed (5 tests).
+- Full Python regression: 700 passed with the existing Starlette/httpx deprecation warning. Frontend: 24 files / 137 tests passed; ESLint and production build passed with the existing MathLive chunk-size and MarkdownRenderer mixed-import warnings.
+
 # 2026-09-02 - P2 Retirement Batch 1
 
 - Removed the unused `_build_minimal_generate_messages` and `decide_textbook_context` compatibility entry points. Textbook scope tests now exercise the production `decide_answer_scope` contract directly.

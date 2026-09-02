@@ -117,8 +117,6 @@ Invoke-CheckedCommand "[3/3] Building backend executable..." {
       --exclude-module modelscope `
       --exclude-module albumentations `
       --exclude-module skimage `
-      --exclude-module gradio `
-      --exclude-module gradio_client `
       --exclude-module plotly `
       --exclude-module coverage `
       --exclude-module hypothesis `

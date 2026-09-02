@@ -70,8 +70,8 @@ if ($Variant -eq "baseline") {
 $excludes = @(
     "agents", "paddle", "paddleocr", "paddlex", "cv2", "mineru",
     "mineru_vl_utils", "marker_pdf", "marker", "surya", "nougat",
-    "doclayout_yolo", "modelscope", "albumentations", "skimage", "gradio",
-    "gradio_client", "plotly", "coverage", "hypothesis", "pytest_cov",
+    "doclayout_yolo", "modelscope", "albumentations", "skimage", "plotly",
+    "coverage", "hypothesis", "pytest_cov",
     "notebook", "jupyter", "jupyterlab", "sphinx", "mkdocs", "ultralytics",
     "torchvision", "datasets", "timm", "av", "boto3", "botocore",
     "s3transfer", "pandas", "polars", "pyarrow", "matplotlib", "IPython",
