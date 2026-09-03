@@ -62,10 +62,13 @@ def derive_book_readiness(
     return {
         "technical": {
             "status": technical_status,
+            "healthy": bool(index_status.get("healthy")),
             "vector_ready": bool(index_status.get("vector_ready")),
             "lexical_ready": bool(index_status.get("lexical_ready")),
             "chunk_count": max(0, int(index_status.get("chunk_count", 0) or 0)),
             "index_version": str(index_status.get("index_version") or ""),
+            "error_code": str(index_status.get("error_code") or ""),
+            "reindex_required": bool(index_status.get("reindex_required")),
         },
         "canonical": {
             "status": canonical_status,

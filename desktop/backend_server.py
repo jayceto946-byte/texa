@@ -81,6 +81,11 @@ def _seed_sample_data(data_dir: Path) -> None:
     if not real_files:
         return
 
+    vector_seed = sample_dir / "vector_db"
+    if vector_seed.exists():
+        from ingestion.index_pipeline import require_scoped_vector_snapshot
+        require_scoped_vector_snapshot(vector_seed)
+
     data_dir.mkdir(parents=True, exist_ok=True)
     copied = _copy_missing_seed_files(sample_dir, data_dir, exclude_roots={"mineru_output"})
     mineru_seed = sample_dir / "mineru_output"

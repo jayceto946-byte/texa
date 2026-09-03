@@ -1,3 +1,14 @@
+# 2026-09-03 - P2 Legacy Unscoped Vector Snapshot Guard
+
+- Added one shared vector-scope invariant validator for chapter maps, Chroma collection inventory, active manifests, and retained versions. Legacy string maps, empty `book_name`, unmapped SQLite collections, and missing or cross-book manifest references now fail with `legacy_unscoped_index_requires_rebuild`.
+- Applied the guard before startup map recovery, active/retained activation writes, restore data movement, desktop sample copying, vector-bundle installation, and release packaging. Book, fast-book, and asset readiness remain unhealthy and require reindex even when lexical data is available.
+- Preserved the existing unscoped retrieval fallback and old CLI. This change does not migrate backups or samples; the historical `desktop/sample_data` bundle is now intentionally blocked until it is rebuilt from Canonical IR, while the current active index and scoped three-book sample pass the invariant.
+
+## Validation
+
+- Scope, cache, and integration regressions: 43 passed; adjacent backup/import/reindex/vector/release regressions: 37 passed. Full Python regression: 722 passed with the existing Starlette/httpx warning.
+- Frontend API contract regression: 10 passed after rerunning outside the sandbox because the initial Windows Vite process spawn returned `EPERM`.
+
 # 2026-09-02 - P2 Read-only Agent Endpoint Deprecation
 
 - Marked only `/api/agent/read-only` deprecated in OpenAPI and added the RFC 9745 `Deprecation` response header. The response status, body, schema, time budgets, main Chat path, controlled tool endpoints, and pending-action confirmation routes remain unchanged.

@@ -5,10 +5,12 @@ import hashlib
 import json
 import os
 import copy
+import sqlite3
 import threading
 import time
 import uuid
 from pathlib import Path
+from typing import Iterable
 
 from config import VECTOR_DB_PATH
 from ingestion.document_ir import (
@@ -40,6 +42,126 @@ _LEXICAL_KEYS = (
     "ocr_confidence", "source_block_ids", "source_locations", "table_title",
     "table_header", "table_rows", "figure_id", "retrieval_excluded",
 )
+
+LEGACY_UNSCOPED_INDEX_ERROR_CODE = "legacy_unscoped_index_requires_rebuild"
+
+
+class VectorScopeInvariantError(RuntimeError):
+    """A vector snapshot cannot prove that every collection belongs to one book."""
+
+    error_code = LEGACY_UNSCOPED_INDEX_ERROR_CODE
+
+    def __init__(self, reason: str):
+        self.reason = str(reason or "invalid vector scope")
+        super().__init__(f"{self.error_code}: {self.reason}")
+
+
+def _snapshot_collection_names(vector_root: Path) -> set[str]:
+    database = vector_root / "chroma.sqlite3"
+    if not database.exists():
+        return set()
+    connection = None
+    try:
+        uri = f"file:{database.resolve().as_posix()}?mode=ro"
+        connection = sqlite3.connect(uri, uri=True)
+        rows = connection.execute("SELECT name FROM collections").fetchall()
+        return {str(row[0]) for row in rows if row and str(row[0])}
+    except Exception as exc:
+        raise VectorScopeInvariantError("collection inventory is unreadable") from exc
+    finally:
+        if connection is not None:
+            connection.close()
+
+
+def _snapshot_manifests(vector_root: Path) -> list[dict]:
+    directory = vector_root / "_index_manifests"
+    if not directory.exists():
+        return []
+    manifests: list[dict] = []
+    for path in sorted(directory.glob("*.json")):
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            raise VectorScopeInvariantError(f"manifest is unreadable: {path.name}") from exc
+        if not isinstance(value, dict):
+            raise VectorScopeInvariantError(f"manifest is not an object: {path.name}")
+        manifests.append(value)
+    return manifests
+
+
+def require_scoped_vector_snapshot(
+    vector_root: str | Path | None = None,
+    *,
+    mapping: dict | None = None,
+    collection_names: Iterable[object] | None = None,
+    manifests: Iterable[dict] | None = None,
+) -> None:
+    """Reject vector state whose collection-to-book ownership is not explicit."""
+    root = Path(vector_root) if vector_root is not None else None
+    if mapping is None:
+        map_file = root / "_chapter_map.json" if root is not None else None
+        if map_file is None or not map_file.exists():
+            mapping = {}
+        else:
+            try:
+                value = json.loads(map_file.read_text(encoding="utf-8"))
+            except Exception as exc:
+                raise VectorScopeInvariantError("chapter map is unreadable") from exc
+            if not isinstance(value, dict):
+                raise VectorScopeInvariantError("chapter map is not an object")
+            mapping = value
+    elif not isinstance(mapping, dict):
+        raise VectorScopeInvariantError("chapter map is not an object")
+
+    normalized_map: dict[str, dict] = {}
+    for raw_name, entry in mapping.items():
+        name = str(raw_name or "").strip()
+        if not name or not isinstance(entry, dict):
+            raise VectorScopeInvariantError("chapter map contains a legacy non-object value")
+        book_name = str(entry.get("book_name") or "").strip()
+        if not book_name:
+            raise VectorScopeInvariantError(f"collection has no book scope: {name}")
+        normalized_map[name] = entry
+
+    names: set[str] | None
+    if collection_names is None:
+        names = _snapshot_collection_names(root) if root is not None else None
+    else:
+        names = {
+            str(getattr(item, "name", item) or "").strip()
+            for item in collection_names
+            if str(getattr(item, "name", item) or "").strip()
+        }
+    if names is not None:
+        unmapped = sorted(names.difference(normalized_map))
+        if unmapped:
+            raise VectorScopeInvariantError(f"unmapped collection: {unmapped[0]}")
+
+    manifest_values = list(manifests) if manifests is not None else (
+        _snapshot_manifests(root) if root is not None else []
+    )
+    for manifest in manifest_values:
+        if not isinstance(manifest, dict):
+            raise VectorScopeInvariantError("manifest is not an object")
+        manifest_book = str(manifest.get("book_name") or "").strip()
+        versions = manifest.get("versions", [])
+        if not isinstance(versions, list):
+            raise VectorScopeInvariantError("manifest versions is not an array")
+        references = {str(manifest.get("aggregate_collection") or "").strip()}
+        for version in versions:
+            if not isinstance(version, dict):
+                raise VectorScopeInvariantError("retained version is not an object")
+            version_collections = version.get("collections", [])
+            if not isinstance(version_collections, list):
+                raise VectorScopeInvariantError("retained version collections is not an array")
+            references.update(str(name or "").strip() for name in version_collections)
+        references.discard("")
+        for name in sorted(references):
+            entry = normalized_map.get(name)
+            if entry is None or (names is not None and name not in names):
+                raise VectorScopeInvariantError(f"manifest references a missing collection: {name}")
+            if not manifest_book or str(entry.get("book_name") or "").strip() != manifest_book:
+                raise VectorScopeInvariantError(f"manifest book scope mismatch: {name}")
 
 
 def manifest_path(book_name: str) -> Path:
@@ -379,6 +501,11 @@ def activate_retained_index_version(vs, book_name: str, version: str) -> dict:
         raise ValueError("book_name and version are required")
 
     with _BUILD_LOCK:
+        require_scoped_vector_snapshot(
+            Path(vs._map_file).parent,
+            mapping=vs._map,
+            collection_names=vs._client.list_collections(),
+        )
         current_manifest = load_index_manifest(normalized)
         records = [item for item in current_manifest.get("versions", []) if isinstance(item, dict)]
         target = next((item for item in records if str(item.get("index_version") or "") == requested), None)
@@ -449,6 +576,18 @@ def activate_retained_index_version(vs, book_name: str, version: str) -> dict:
             "activated_at": activated_at,
             "versions": ordered_versions,
         }
+
+        collection_names = vs._client.list_collections()
+        require_scoped_vector_snapshot(
+            Path(vs._map_file).parent,
+            mapping=new_map,
+            collection_names=collection_names,
+        )
+        require_scoped_vector_snapshot(
+            mapping=new_map,
+            collection_names=collection_names,
+            manifests=[new_manifest],
+        )
 
         try:
             _atomic_write_bytes(lexical_target, target_lexical.read_bytes())
@@ -554,6 +693,11 @@ def build_and_activate_book_index(
 
     with _BUILD_LOCK:
         try:
+            require_scoped_vector_snapshot(
+                Path(vs._map_file).parent,
+                mapping=vs._map,
+                collection_names=vs._client.list_collections(),
+            )
             for title, group in chapter_groups:
                 chapter_hash = hashlib.md5(f"{normalized}\0{title}".encode("utf-8")).hexdigest()[:14]
                 name = f"bk{chapter_hash}{build_id[:14]}"
@@ -670,37 +814,47 @@ def build_and_activate_book_index(
                 if entry.get("book_name") != normalized
             }
             for name in old_names:
-                if name in retained_names:
-                    new_map[name] = {**old_map[name], "active": False}
+                new_map[name] = {**old_map[name], "active": False}
             new_map.update({name: {**entry, "active": True} for name, entry in staged_entries.items()})
             pruned_names = [name for name in old_names if name not in retained_names]
+            manifest = {
+                "book_name": normalized,
+                "schema_version": INDEX_SCHEMA_VERSION,
+                "index_version": version,
+                "provenance_schema": PROVENANCE_SCHEMA_VERSION,
+                "canonical_hash": canonical_hash,
+                "content_fingerprint": fingerprint,
+                "status": "ready",
+                "vector_ready": True,
+                "lexical_ready": True,
+                "source_fallback_active": False,
+                "chunk_count": len(retrieval_chunks),
+                "catalog_chunk_count": len(chunks),
+                "lexical_chunk_count": len(retrieval_chunks),
+                "chapter_collection_count": len(chapter_groups),
+                "aggregate_collection": aggregate_name,
+                "release_quality": release_quality,
+                "release_gate_mode": "production_hybrid_retrieval_and_evidence_pack",
+                "activated_at": activated_at,
+                "versions": versions,
+            }
+            collection_names = vs._client.list_collections()
+            require_scoped_vector_snapshot(
+                Path(vs._map_file).parent,
+                mapping=new_map,
+                collection_names=collection_names,
+            )
+            require_scoped_vector_snapshot(
+                mapping=new_map,
+                collection_names=collection_names,
+                manifests=[manifest],
+            )
             try:
                 os.replace(lexical_stage, lexical_target)
                 atomic_write_json(vs._map_file, new_map)
                 vs._map = new_map
                 for key in [key for key in vs._stores if key.startswith(f"{normalized}\0")]:
                     vs._stores.pop(key, None)
-                manifest = {
-                    "book_name": normalized,
-                    "schema_version": INDEX_SCHEMA_VERSION,
-                    "index_version": version,
-                    "provenance_schema": PROVENANCE_SCHEMA_VERSION,
-                    "canonical_hash": canonical_hash,
-                    "content_fingerprint": fingerprint,
-                    "status": "ready",
-                    "vector_ready": True,
-                    "lexical_ready": True,
-                    "source_fallback_active": False,
-                    "chunk_count": len(retrieval_chunks),
-                    "catalog_chunk_count": len(chunks),
-                    "lexical_chunk_count": len(retrieval_chunks),
-                    "chapter_collection_count": len(chapter_groups),
-                    "aggregate_collection": aggregate_name,
-                    "release_quality": release_quality,
-                    "release_gate_mode": "production_hybrid_retrieval_and_evidence_pack",
-                    "activated_at": activated_at,
-                    "versions": versions,
-                }
                 atomic_write_json(manifest_path(normalized), manifest)
             except Exception:
                 atomic_write_json(vs._map_file, old_map)
@@ -719,9 +873,20 @@ def build_and_activate_book_index(
                     lexical_index._cache.pop(normalized, None)
             except Exception:
                 pass
+            deleted_names: list[str] = []
             for name in pruned_names:
                 try:
                     vs._client.delete_collection(name)
+                    deleted_names.append(name)
+                except Exception:
+                    pass
+            if deleted_names:
+                cleaned_map = {
+                    name: entry for name, entry in vs._map.items() if name not in deleted_names
+                }
+                try:
+                    atomic_write_json(vs._map_file, cleaned_map)
+                    vs._map = cleaned_map
                 except Exception:
                     pass
             return manifest

@@ -1,4 +1,5 @@
 import json
+import shutil
 import sqlite3
 import zipfile
 
@@ -17,6 +18,14 @@ def _configure_paths(monkeypatch, tmp_path):
     monkeypatch.setattr(data_backup, "PENDING_RESTORE_PATH", backup_root / "pending_restore.json")
     monkeypatch.setattr(data_backup, "RESTORE_RESULT_PATH", backup_root / "last_restore.json")
     return data_root, backup_root
+
+
+def _write_vector_snapshot(root, names, mapping):
+    root.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(root / "chroma.sqlite3") as connection:
+        connection.execute("CREATE TABLE collections (name TEXT NOT NULL)")
+        connection.executemany("INSERT INTO collections VALUES (?)", [(name,) for name in names])
+    (root / "_chapter_map.json").write_text(json.dumps(mapping), encoding="utf-8")
 
 
 def test_backup_is_verified_and_does_not_include_secrets(monkeypatch, tmp_path):
@@ -160,3 +169,48 @@ def test_merge_restore_preserves_core_roots_absent_from_old_backup(monkeypatch, 
     assert "data/books" in applied["preserved_unlisted"]
     assert later.read_bytes() == b"later"
     assert (progress / "state.json").read_text(encoding="utf-8") == '{"value":"old"}'
+
+
+def test_restore_rejects_unmapped_staging_collection_before_replacing_user_data(monkeypatch, tmp_path):
+    data_root, _backup_root = _configure_paths(monkeypatch, tmp_path)
+    vector = data_root / "vector_db"
+    _write_vector_snapshot(
+        vector,
+        ["scoped", "rogue"],
+        {"scoped": {"chapter": "one", "book_name": "book-a"}},
+    )
+    invalid = data_backup.create_backup(include_derived=True, reason="invalid-vector")
+
+    shutil.rmtree(vector)
+    _write_vector_snapshot(
+        vector,
+        ["current"],
+        {"current": {"chapter": "one", "book_name": "book-current"}},
+    )
+    marker = vector / "keep.txt"
+    marker.write_text("current-user-data", encoding="utf-8")
+
+    data_backup.schedule_restore(invalid["name"])
+    result = data_backup.apply_pending_restore()
+
+    assert result["status"] == "failed"
+    assert result["error_code"] == "legacy_unscoped_index_requires_rebuild"
+    assert marker.read_text(encoding="utf-8") == "current-user-data"
+
+
+def test_restore_schedule_rejects_legacy_archive_map_before_safety_backup(monkeypatch, tmp_path):
+    from ingestion.index_pipeline import VectorScopeInvariantError
+
+    data_root, backup_root = _configure_paths(monkeypatch, tmp_path)
+    _write_vector_snapshot(
+        data_root / "vector_db",
+        ["legacy"],
+        {"legacy": "chapter one"},
+    )
+    invalid = data_backup.create_backup(include_derived=True, reason="legacy-map")
+
+    with pytest.raises(VectorScopeInvariantError, match="legacy_unscoped_index_requires_rebuild"):
+        data_backup.schedule_restore(invalid["name"])
+
+    assert not data_backup.PENDING_RESTORE_PATH.exists()
+    assert len(list(backup_root.glob("learning_data_*.zip"))) == 1

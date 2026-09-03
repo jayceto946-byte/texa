@@ -60,6 +60,30 @@ def test_index_stats_loader_runs_once_per_file_snapshot(tmp_path):
     assert cache.index_stats("book", chapter_map, lexical, loader)["calls"] == 2
 
 
+def test_index_stats_cache_tracks_vector_inventory_dependencies(tmp_path):
+    cache = BookReadCache()
+    chapter_map = tmp_path / "map.json"
+    lexical = tmp_path / "lexical.json"
+    sqlite = tmp_path / "chroma.sqlite3"
+    chapter_map.write_text("{}", encoding="utf-8")
+    lexical.write_text("[]", encoding="utf-8")
+    sqlite.write_bytes(b"one")
+    calls = 0
+
+    def loader():
+        nonlocal calls
+        calls += 1
+        return {"calls": calls}
+
+    assert cache.index_stats(
+        "book", chapter_map, lexical, loader, dependency_paths=(sqlite,),
+    )["calls"] == 1
+    sqlite.write_bytes(b"changed")
+    assert cache.index_stats(
+        "book", chapter_map, lexical, loader, dependency_paths=(sqlite,),
+    )["calls"] == 2
+
+
 def test_json_cache_refreshes_after_same_size_overwrite(tmp_path):
     path = tmp_path / "metadata.json"
     path.write_text('{"value":"one"}', encoding="utf-8")

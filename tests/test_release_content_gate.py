@@ -35,3 +35,14 @@ def test_release_content_gate_verifies_license_and_checksum(tmp_path):
     }), encoding="utf-8")
 
     assert check(tmp_path) == ["demo.bin"]
+
+
+def test_release_content_gate_rejects_legacy_vector_before_license_gate(tmp_path):
+    vector = tmp_path / "vector_db"
+    vector.mkdir()
+    (vector / "_chapter_map.json").write_text(
+        json.dumps({"legacy": "chapter one"}), encoding="utf-8",
+    )
+
+    with pytest.raises(RuntimeError, match="legacy_unscoped_index_requires_rebuild"):
+        check(tmp_path)

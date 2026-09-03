@@ -4,7 +4,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 
 IGNORED = {"README.md", ".gitkeep", "content-manifest.json"}
@@ -26,6 +31,11 @@ def check(sample_dir: Path) -> list[str]:
     ) if sample_dir.exists() else []
     if not files:
         return []
+
+    vector_seed = sample_dir / "vector_db"
+    if vector_seed.exists():
+        from ingestion.index_pipeline import require_scoped_vector_snapshot
+        require_scoped_vector_snapshot(vector_seed)
 
     manifest_path = sample_dir / "content-manifest.json"
     if not manifest_path.exists():

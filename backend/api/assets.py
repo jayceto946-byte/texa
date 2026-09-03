@@ -17,6 +17,10 @@ from fastapi import APIRouter
 from config import DATA_DIR, VECTOR_DB_PATH
 from ingestion.embedding_assets import embedding_asset_status, repair_embedding_assets
 from ingestion.embedding_errors import EmbeddingRuntimeError, classify_embedding_error
+from ingestion.index_pipeline import (
+    VectorScopeInvariantError,
+    require_scoped_vector_snapshot,
+)
 
 router = APIRouter(prefix="/assets", tags=["assets"])
 
@@ -99,7 +103,7 @@ def _vector_status(manifest: dict) -> dict:
     db_path = Path(VECTOR_DB_PATH) / "chroma.sqlite3"
     installed = db_path.exists()
     version_match = installed and (not item or item.get("version") == VECTOR_BUNDLE_VERSION)
-    return {
+    result = {
         "id": "vector_bundle",
         "label": "Example vector database",
         "installed": installed,
@@ -110,6 +114,18 @@ def _vector_status(manifest: dict) -> dict:
         "path": str(VECTOR_DB_PATH),
         "installed_at": item.get("installed_at", ""),
     }
+    if installed:
+        try:
+            require_scoped_vector_snapshot(Path(VECTOR_DB_PATH))
+        except VectorScopeInvariantError as exc:
+            result.update({
+                "healthy": False,
+                "vector_ready": False,
+                "status": "missing",
+                "error_code": exc.error_code,
+                "reindex_required": True,
+            })
+    return result
 
 
 def _safe_extract(zip_path: Path, target_dir: Path) -> None:
@@ -215,6 +231,7 @@ def download_vector_bundle():
         if not source:
             return {"success": False, "message": "vector_db directory was not found in the archive."}
 
+        require_scoped_vector_snapshot(source)
         vector_target = Path(VECTOR_DB_PATH)
         if vector_target.exists():
             backup = vector_target.with_name(f"{vector_target.name}.backup-{int(time.time())}")
@@ -236,5 +253,11 @@ def download_vector_bundle():
         }
         _write_manifest(manifest)
         return {"success": True, "message": "Vector bundle installed.", "data": _vector_status(manifest)}
+    except VectorScopeInvariantError as exc:
+        return {
+            "success": False,
+            "message": "Vector bundle requires a scoped index rebuild.",
+            "error_code": exc.error_code,
+        }
     except Exception as exc:
         return {"success": False, "message": f"Vector bundle download failed: {exc}"}

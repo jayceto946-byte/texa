@@ -33,12 +33,8 @@ class BookReadCache:
         self._json: dict[str, tuple[FileSignature | None, Any]] = {}
         self._pdfs: dict[str, tuple[FileSignature | None, tuple[Path, ...]]] = {}
         self._index: dict[
-            tuple[str, str, str],
-            tuple[
-                FileSignature | None,
-                FileSignature | None,
-                dict,
-            ],
+            tuple[str, str, str, tuple[str, ...]],
+            tuple[tuple[FileSignature | None, ...], dict],
         ] = {}
 
     def clear(self) -> None:
@@ -81,27 +77,26 @@ class BookReadCache:
         chapter_map_path: Path,
         lexical_path: Path,
         loader: Callable[[], dict],
+        *,
+        dependency_paths: tuple[Path, ...] = (),
     ) -> dict:
+        resolved_dependencies = tuple(str(path.resolve()) for path in dependency_paths)
         key = (
             book_name,
             str(chapter_map_path.resolve()),
             str(lexical_path.resolve()),
+            resolved_dependencies,
         )
-        map_signature = _signature(chapter_map_path)
-        lexical_signature = _signature(lexical_path)
+        signatures = (
+            _signature(chapter_map_path),
+            _signature(lexical_path),
+            *(_signature(path) for path in dependency_paths),
+        )
         with self._lock:
             cached = self._index.get(key)
-            if (
-                cached
-                and cached[0] == map_signature
-                and cached[1] == lexical_signature
-            ):
-                return deepcopy(cached[2])
+            if cached and cached[0] == signatures:
+                return deepcopy(cached[1])
         value = loader()
         with self._lock:
-            self._index[key] = (
-                map_signature,
-                lexical_signature,
-                deepcopy(value),
-            )
+            self._index[key] = (signatures, deepcopy(value))
         return deepcopy(value)

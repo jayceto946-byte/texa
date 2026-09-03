@@ -83,3 +83,24 @@ def test_human_release_cases_are_required_for_semantic_verification(tmp_path):
     assert result["canonical"]["status"] == "unavailable"
     assert result["semantic"]["status"] == "verified"
     assert result["semantic"]["human_case_count"] == 3
+
+
+def test_scope_rebuild_requirement_is_preserved_in_readiness_contract(tmp_path):
+    result = derive_book_readiness(
+        "demo",
+        index_status={
+            "status": "missing",
+            "healthy": False,
+            "vector_ready": False,
+            "lexical_ready": True,
+            "error_code": "legacy_unscoped_index_requires_rebuild",
+            "reindex_required": True,
+        },
+        progress_root=tmp_path / "progress",
+        vector_db_root=tmp_path / "vector",
+    )
+
+    assert result["technical"]["healthy"] is False
+    assert result["technical"]["vector_ready"] is False
+    assert result["technical"]["error_code"] == "legacy_unscoped_index_requires_rebuild"
+    assert result["technical"]["reindex_required"] is True

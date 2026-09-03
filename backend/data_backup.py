@@ -16,6 +16,7 @@ from pathlib import Path
 
 from config import DATA_DIR, MINERU_OUTPUT_PATH
 from backend.backup_migrations import BACKUP_SCHEMA_VERSION, migrate_backup_manifest
+from ingestion.index_pipeline import require_scoped_vector_snapshot
 from utils.storage_manifest import COMPONENT_VERSIONS, DATA_CLASSES, DATA_SCHEMA_VERSION, ensure_storage_manifest
 from utils.version import APP_VERSION
 
@@ -209,6 +210,31 @@ def inspect_backup(path: Path) -> dict:
             parts = Path(info.filename.replace("\\", "/")).parts
             if info.filename.startswith("/") or ".." in parts:
                 raise ValueError("备份包含不安全路径")
+        has_vector_snapshot = any(
+            name == "data/vector_db/chroma.sqlite3"
+            or name == "data/vector_db/_chapter_map.json"
+            or name.startswith("data/vector_db/_index_manifests/")
+            for name in names
+        )
+        if "data/vector_db" in included and has_vector_snapshot:
+            map_name = "data/vector_db/_chapter_map.json"
+            try:
+                archive_map = json.loads(archive.read(map_name).decode("utf-8"))
+            except Exception:
+                archive_map = "missing_or_unreadable"
+            archive_manifests: list[object] = []
+            for name in sorted(
+                item for item in names
+                if item.startswith("data/vector_db/_index_manifests/") and item.endswith(".json")
+            ):
+                try:
+                    archive_manifests.append(json.loads(archive.read(name).decode("utf-8")))
+                except Exception:
+                    archive_manifests.append("unreadable")
+            require_scoped_vector_snapshot(
+                mapping=archive_map,  # type: ignore[arg-type]
+                manifests=archive_manifests,  # type: ignore[arg-type]
+            )
         return manifest
 
 
@@ -279,6 +305,12 @@ def apply_pending_restore() -> dict | None:
         with tempfile.TemporaryDirectory(prefix="restore_", dir=str(BACKUP_ROOT)) as temp_name:
             extracted = Path(temp_name) / "extracted"
             manifest = _extract_checked(archive_path, extracted)
+            restored_vector_root = extracted / "data" / "vector_db"
+            if "data/vector_db" in manifest["included"] and any(
+                (restored_vector_root / name).exists()
+                for name in ("chroma.sqlite3", "_chapter_map.json", "_index_manifests")
+            ):
+                require_scoped_vector_snapshot(restored_vector_root)
             for item in manifest["included"]:
                 source = extracted / item
                 if not source.exists():
@@ -348,6 +380,7 @@ def apply_pending_restore() -> dict | None:
             "status": "failed",
             "failed_at": _utc_now(),
             "error": str(exc),
+            "error_code": str(getattr(exc, "error_code", "")),
             "rollback_errors": rollback_errors,
         }
         try:

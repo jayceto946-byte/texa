@@ -99,7 +99,10 @@ def _compute_fast_book_index_stats(book_name: str) -> dict:
     stats = {"book_name": normalized, "collection_count": 0, "chunk_count": 0, "healthy": False}
 
     map_path = Path(VECTOR_DB_PATH) / "_chapter_map.json"
+    scope_error = None
     try:
+        from ingestion.index_pipeline import require_scoped_vector_snapshot
+        require_scoped_vector_snapshot(Path(VECTOR_DB_PATH))
         raw = _book_read_cache.read_json(map_path, {})
         if isinstance(raw, dict):
             for value in raw.values():
@@ -108,7 +111,11 @@ def _compute_fast_book_index_stats(book_name: str) -> dict:
                 if value.get("book_name") == normalized and value.get("kind") != "book_aggregate":
                     stats["collection_count"] += 1
     except Exception as exc:
-        stats["error"] = str(exc)
+        from ingestion.index_pipeline import VectorScopeInvariantError
+        if isinstance(exc, VectorScopeInvariantError):
+            scope_error = exc
+        else:
+            stats["error"] = str(exc)
 
     try:
         from ingestion.index_pipeline import load_index_manifest
@@ -136,6 +143,15 @@ def _compute_fast_book_index_stats(book_name: str) -> dict:
     stats["vector_ready"] = stats["collection_count"] > 0
     stats["healthy"] = stats["vector_ready"] or stats["lexical_ready"] or stats["source_fallback_active"]
     stats["status"] = "ready" if stats["vector_ready"] and stats["lexical_ready"] else ("degraded" if stats["healthy"] else "missing")
+    if scope_error is not None:
+        stats.update({
+            "healthy": False,
+            "vector_ready": False,
+            "source_fallback_active": False,
+            "status": "missing",
+            "error_code": scope_error.error_code,
+            "reindex_required": True,
+        })
     return stats
 
 
@@ -148,6 +164,10 @@ def _fast_book_index_stats(book_name: str) -> dict:
         map_path,
         lexical_path,
         lambda: _compute_fast_book_index_stats(normalized),
+        dependency_paths=(
+            Path(VECTOR_DB_PATH) / "chroma.sqlite3",
+            Path(VECTOR_DB_PATH) / "chroma.sqlite3-wal",
+        ),
     )
 
 def _book_pdf_path(name: str) -> Path | None:

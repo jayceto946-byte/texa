@@ -86,6 +86,7 @@ class ChapterVectorStore:
         self._map_file = self.db_path / "_chapter_map.json"
         self._map: dict[str, dict[str, str]] = self._load_map()
         self.available = True
+        self.scope_error = None
         # Chroma clients for one path share an underlying System. Keep one
         # owner alive so temporary health checks cannot tear down HNSW readers
         # still used by the LangChain wrappers.
@@ -94,9 +95,16 @@ class ChapterVectorStore:
         self._client = chromadb.PersistentClient(path=str(self.db_path))
         # Recover mapping from existing collection metadata when Chroma is healthy.
         try:
+            from ingestion.index_pipeline import require_scoped_vector_snapshot
+            collections = self._client.list_collections()
+            require_scoped_vector_snapshot(
+                self.db_path,
+                collection_names=collections,
+            )
             self._recover_map_from_collections()
         except Exception as e:
             self.available = False
+            self.scope_error = e
             print(f"  [vector_store] Chroma unavailable, retrieval will degrade: {e}", flush=True)
         # Preload only when Chroma can be opened successfully.
         if self.available:
@@ -504,17 +512,29 @@ class ChapterVectorStore:
         stats = {"book_name": normalized_book, "collection_count": 0, "chunk_count": 0, "healthy": False}
         if not normalized_book:
             return stats
+        scope_error = getattr(self, "scope_error", None)
         try:
+            from ingestion.index_pipeline import require_scoped_vector_snapshot
+            collections = self._client.list_collections()
+            require_scoped_vector_snapshot(
+                getattr(self, "db_path", None),
+                mapping=self._map,
+                collection_names=collections,
+            )
             stats["collection_count"] = sum(
                 1
-                for collection in self._client.list_collections()
+                for collection in collections
                 if not self._is_book_collection(collection.name)
                 and self._is_active_collection(collection.name)
                 and self._collection_to_book(collection.name) == normalized_book
             )
         except Exception as exc:
-            stats["error"] = str(exc)
-            return stats
+            from ingestion.index_pipeline import VectorScopeInvariantError
+            if isinstance(exc, VectorScopeInvariantError):
+                scope_error = exc
+            else:
+                stats["error"] = str(exc)
+                return stats
         try:
             from ingestion.index_pipeline import load_index_manifest
             from ingestion.lexical_index import index_path, load_book_index
@@ -541,6 +561,17 @@ class ChapterVectorStore:
         stats["vector_ready"] = stats["collection_count"] > 0
         stats["healthy"] = stats["vector_ready"] or stats["lexical_ready"] or stats["source_fallback_active"]
         stats["status"] = "ready" if stats["vector_ready"] and stats["lexical_ready"] else ("degraded" if stats["healthy"] else "missing")
+        if scope_error is not None:
+            from ingestion.index_pipeline import VectorScopeInvariantError
+            if isinstance(scope_error, VectorScopeInvariantError):
+                stats.update({
+                    "healthy": False,
+                    "vector_ready": False,
+                    "source_fallback_active": False,
+                    "status": "missing",
+                    "error_code": scope_error.error_code,
+                    "reindex_required": True,
+                })
         return stats
 
     def search_chapter(

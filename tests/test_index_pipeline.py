@@ -42,6 +42,9 @@ class FakeClient:
     def get_collection(self, name):
         return self.collections[name]
 
+    def list_collections(self):
+        return list(self.collections)
+
 
 class FakeStore:
     def __init__(self, root: Path, query_ok=True):
@@ -314,4 +317,58 @@ def test_specialty_gate_failure_blocks_activation_and_preserves_old_version(monk
         )
 
     assert store._map == {"old": {"chapter": "old", "book_name": "demo", "kind": "chapter"}}
+    assert set(store._client.collections) == {"old"}
+
+
+def test_candidate_activation_rejects_legacy_map_before_staging_mutation(monkeypatch, tmp_path):
+    import pytest
+    from ingestion import index_pipeline, lexical_index
+
+    vector_root = tmp_path / "vector"
+    monkeypatch.setattr(index_pipeline, "VECTOR_DB_PATH", vector_root)
+    monkeypatch.setattr(lexical_index, "VECTOR_DB_PATH", vector_root)
+    store = FakeStore(vector_root)
+    store._map = {"old": "legacy chapter"}
+    store._map_file.write_text(json.dumps(store._map), encoding="utf-8")
+
+    with pytest.raises(
+        index_pipeline.VectorScopeInvariantError,
+        match=index_pipeline.LEGACY_UNSCOPED_INDEX_ERROR_CODE,
+    ):
+        index_pipeline.build_and_activate_book_index(
+            store, "demo", [("chapter-one", _chunks())], _chunks(),
+        )
+
+    assert set(store._client.collections) == {"old"}
+    assert not lexical_index.index_path("demo").exists()
+
+
+def test_retained_activation_rejects_manifest_mismatch_before_writes(monkeypatch, tmp_path):
+    import pytest
+    from ingestion import index_pipeline, lexical_index
+
+    vector_root = tmp_path / "vector"
+    monkeypatch.setattr(index_pipeline, "VECTOR_DB_PATH", vector_root)
+    monkeypatch.setattr(lexical_index, "VECTOR_DB_PATH", vector_root)
+    store = FakeStore(vector_root)
+    manifest_file = index_pipeline.manifest_path("demo")
+    manifest_file.parent.mkdir(parents=True)
+    manifest_file.write_text(json.dumps({
+        "book_name": "demo",
+        "index_version": "old-version",
+        "versions": [{
+            "index_version": "old-version",
+            "collections": ["missing"],
+            "lexical_path": "_lexical_versions/demo/old-version.json",
+        }],
+    }), encoding="utf-8")
+    original_map = json.loads(store._map_file.read_text(encoding="utf-8"))
+
+    with pytest.raises(
+        index_pipeline.VectorScopeInvariantError,
+        match=index_pipeline.LEGACY_UNSCOPED_INDEX_ERROR_CODE,
+    ):
+        index_pipeline.activate_retained_index_version(store, "demo", "old-version")
+
+    assert json.loads(store._map_file.read_text(encoding="utf-8")) == original_map
     assert set(store._client.collections) == {"old"}
