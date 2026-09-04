@@ -5,6 +5,7 @@ import json
 import math
 import re
 import threading
+import unicodedata
 from collections import Counter
 from pathlib import Path
 
@@ -45,6 +46,16 @@ def _title_direct_hit(query: str, title: str) -> bool:
         len(token) >= 2 and token not in _TITLE_DIRECT_STOP_TOKENS and token in normalized_query
         for token in tokenize(title)
     )
+
+
+def _normalized_table_title(value: str) -> str:
+    normalized = unicodedata.normalize("NFKC", str(value or "")).strip().lower()
+    return re.sub(r"\s+", "", normalized)
+
+
+def _table_title_direct_hit(query: str, table_title: str) -> bool:
+    normalized_title = _normalized_table_title(table_title)
+    return bool(normalized_title and normalized_title in _normalized_table_title(query))
 
 
 def _title_match_quality(query: str, title: str) -> float:
@@ -195,6 +206,9 @@ def load_book_index(book_name: str) -> list[dict]:
 def search_rows(rows: list[dict], query: str, *, k: int = 20, chapters: list[str] | None = None) -> list[dict]:
     """Run the same BM25 implementation against an explicit staged corpus."""
     rows = [row for row in rows if not bool(row.get("retrieval_excluded"))]
+    preferred = {str(chapter) for chapter in chapters or [] if str(chapter)}
+    if preferred:
+        rows = [row for row in rows if str(row.get("chapter") or "") in preferred]
     if not rows:
         return []
     docs = [tokenize(str(row.get("content") or row.get("retrieval_text") or "")) for row in rows]
@@ -213,7 +227,6 @@ def search_rows(rows: list[dict], query: str, *, k: int = 20, chapters: list[str
     n = len(docs)
     avgdl = sum(len(doc) for doc in docs) / max(n, 1)
     df = Counter(token for doc in docs for token in set(doc))
-    preferred = set(chapters or [])
     scored = []
     for idx, tokens in enumerate(docs):
         tf, dl, score = Counter(tokens), len(tokens), 0.0
@@ -223,8 +236,6 @@ def search_rows(rows: list[dict], query: str, *, k: int = 20, chapters: list[str
                 continue
             idf = math.log(1 + (n - df[token] + 0.5) / (df[token] + 0.5))
             score += idf * (freq * 2.2) / (freq + 1.2 * (0.25 + 0.75 * dl / max(avgdl, 1)))
-        if preferred and rows[idx].get("chapter") in preferred:
-            score *= 1.2
         if len(query_core_compact) >= 2 and query_core_compact in re.sub(r"\s+", "", str(rows[idx].get("content") or "")):
             score *= 1.8
         title = str(rows[idx].get("section_title") or "")
@@ -238,6 +249,17 @@ def search_rows(rows: list[dict], query: str, *, k: int = 20, chapters: list[str
             score += title_quality * max(title_idf, 0.25) * 1.5
             if int(rows[idx].get("section_chunk_index", 999999) or 0) <= 1:
                 score += title_quality * max(title_idf, 0.25)
+        table_direct_hit = (
+            str(rows[idx].get("block_type") or "") == "table"
+            and _table_title_direct_hit(query, str(rows[idx].get("table_title") or ""))
+        )
+        if table_direct_hit:
+            table_tokens = set(tokenize(str(rows[idx].get("table_title") or "")))
+            table_idf = sum(
+                math.log(1 + (n - df[token] + 0.5) / (df[token] + 0.5))
+                for token in query_tokens if token in table_tokens
+            )
+            score += max(table_idf, 1.0) * 3.0
         enumeration_quality = _enumeration_match_quality(query, str(rows[idx].get("content") or ""))
         explicit_counts = (
             "两种", "三种", "四种", "四个", "五种", "六种", "七种", "八种",
@@ -258,10 +280,15 @@ def search_rows(rows: list[dict], query: str, *, k: int = 20, chapters: list[str
     result = []
     for rank, (score, idx) in enumerate(scored[:k], 1):
         item = dict(rows[idx])
+        table_direct_hit = (
+            str(item.get("block_type") or "") == "table"
+            and _table_title_direct_hit(query, str(item.get("table_title") or ""))
+        )
         item.update({
             "source": "bm25", "bm25_score": score,
             "retrieval_rank": rank, "text": item.get("content", ""),
-            "is_direct_hit": _title_direct_hit(query, str(item.get("section_title") or "")),
+            "is_direct_hit": table_direct_hit or _title_direct_hit(query, str(item.get("section_title") or "")),
+            "is_table_direct_hit": table_direct_hit,
             "title_match_quality": round(_title_match_quality(query, str(item.get("section_title") or "")), 6),
             "enumeration_match_quality": round(_enumeration_match_quality(query, str(item.get("content") or "")), 6),
         })

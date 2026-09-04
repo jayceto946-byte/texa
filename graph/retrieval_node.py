@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import unicodedata
 from pathlib import Path
 from typing import Any, Callable
 
@@ -108,6 +109,12 @@ _FOCUS_TERM_ALIASES: dict[str, tuple[str, ...]] = {
     "关系": ("之间的联系", "相互联系", "联系", "之间的关系", "关系"),
     "区别": ("区别", "不同之处", "差异"),
 }
+
+_TABLE_QUERY_MARKERS = (
+    "哪些字段", "什么字段", "哪些数据", "什么数据", "字段或数据",
+    "哪些特点", "什么特点", "表中列出", "表里列出", "表内列出",
+    "表中有哪些", "表里有哪些", "表内有哪些", "表的内容", "表中内容",
+)
 _GENERIC_TOPIC_TERMS = {"传感器", "公式", "方法", "原理", "概念"}
 
 _EXPLANATORY_RELATION_MARKERS = (
@@ -124,6 +131,33 @@ def _retrieval_query_for_intent(query: str, intent: str) -> str:
         str(query or "").strip(),
     ).strip("，,。？?!！ ")
     return f"{topic or query} 计算公式 变量 灵敏度 输出"
+
+
+def _is_table_query(query: str) -> bool:
+    compact = re.sub(r"\s+", "", str(query or ""))
+    return "表" in compact and any(marker in compact for marker in _TABLE_QUERY_MARKERS)
+
+
+def _normalized_table_title(value: str) -> str:
+    normalized = unicodedata.normalize("NFKC", str(value or "")).strip().lower()
+    return re.sub(r"\s+", "", normalized)
+
+
+def _is_exact_table_title_hit(query: str, item: dict) -> bool:
+    if str(item.get("block_type") or "") != "table":
+        return False
+    normalized_title = _normalized_table_title(str(item.get("table_title") or ""))
+    return bool(normalized_title and normalized_title in _normalized_table_title(query))
+
+
+def _is_table_reference_item(item: dict) -> bool:
+    if str(item.get("block_type") or "") == "table":
+        return False
+    compact = re.sub(r"\s+", "", str(item.get("text") or item.get("content") or ""))
+    return "表" in compact and bool(re.search(
+        r"(?:如下|下列|列于|见表|表中|表内|给出|得到|得出|构造|建立|形成|整理|汇总|所示)",
+        compact,
+    ))
 
 
 def _needs_teaching_unit_context(query: str, intent: str) -> bool:
@@ -506,7 +540,8 @@ def retrieve_node(
     lexical_results: list[dict] = []
     neighbor_results: list[dict] = []
     teaching_unit_request = _needs_teaching_unit_context(user_input, intent)
-    enumeration_request = intent in {"factual_recall", "formula"} and any(
+    table_request = _is_table_query(user_input)
+    enumeration_request = not table_request and intent in {"factual_recall", "formula"} and any(
         marker in user_input for marker in (
             "哪些", "优点", "特点", "不足", "缺点", "主要", "列举", "分别",
             "几种", "几个", "多少种", "四个方法", "包括什么", "包括哪些",
@@ -515,31 +550,66 @@ def retrieve_node(
     for resource in retrieval_resources:
         candidate_book = str(resource.get("book_name") or "")
         is_primary = bool(resource.get("is_primary"))
+        if target_chapters and not is_primary:
+            continue
+        scoped_chapters = (target_chapters or None) if is_primary else None
+        lexical_scope = "target_chapters" if scoped_chapters else "same_book"
+        lexical_succeeded = False
         try:
             candidate_lexical = (lexical_search or search_book)(
                 candidate_book,
                 retrieval_query,
                 k=20 if is_primary else 12,
-                chapters=(target_chapters or None) if is_primary else None,
+                chapters=scoped_chapters,
             )
+            lexical_succeeded = True
             successful_retrieval_backends += 1
         except Exception as exc:
             candidate_lexical = []
             retrieval_errors.append(f"lexical:{candidate_book}:{exc}")
-        lexical_results.extend(candidate_lexical)
         fallback_chapters = list(dict.fromkeys(
             str(item.get("chapter") or "") for item in candidate_lexical if item.get("chapter")
         ))[:12]
         candidate_vectors, candidate_failures, vector_succeeded = _vector_retrieval(
             vs, retrieval_query, intent=intent, book_name=candidate_book,
             target_chapters=target_chapters if is_primary else [],
-            precise_chapters=list({r["chapter"] for r in precise_results if r.get("chapter")}) if is_primary else [],
+            precise_chapters=list({r["chapter"] for r in precise_results if r.get("chapter")}) if is_primary and not target_chapters else [],
             fallback_chapters=fallback_chapters,
             k=20 if is_primary else 12, top_n=4 if is_primary else 3,
         )
         if vector_succeeded:
             successful_retrieval_backends += 1
         retrieval_errors.extend(candidate_failures)
+        if scoped_chapters and not candidate_lexical and not candidate_vectors:
+            lexical_scope = "same_book_fallback"
+            try:
+                candidate_lexical = (lexical_search or search_book)(
+                    candidate_book,
+                    retrieval_query,
+                    k=20 if is_primary else 12,
+                    chapters=None,
+                )
+                if not lexical_succeeded:
+                    successful_retrieval_backends += 1
+                lexical_succeeded = True
+            except Exception as exc:
+                candidate_lexical = []
+                retrieval_errors.append(f"lexical_fallback:{candidate_book}:{exc}")
+            fallback_chapters = list(dict.fromkeys(
+                str(item.get("chapter") or "") for item in candidate_lexical if item.get("chapter")
+            ))[:12]
+            candidate_vectors, fallback_failures, fallback_succeeded = _vector_retrieval(
+                vs, retrieval_query, intent=intent, book_name=candidate_book,
+                target_chapters=[], precise_chapters=[], fallback_chapters=fallback_chapters,
+                k=20 if is_primary else 12, top_n=4 if is_primary else 3,
+            )
+            if fallback_succeeded and not vector_succeeded:
+                successful_retrieval_backends += 1
+            vector_succeeded = vector_succeeded or fallback_succeeded
+            retrieval_errors.extend(fallback_failures)
+        for item in candidate_lexical + candidate_vectors:
+            item["retrieval_scope"] = lexical_scope
+        lexical_results.extend(candidate_lexical)
         vector_results.extend(candidate_vectors)
         list_anchor: list[dict] = []
         if enumeration_request and candidate_lexical:
@@ -575,7 +645,14 @@ def retrieve_node(
                 seen_anchor_ids.add(anchor_id)
                 if len(teaching_anchors) >= 10:
                     break
-        neighbor_anchors = list_anchor or formula_anchors or teaching_anchors or candidate_lexical[:3]
+        table_anchors = [item for item in candidate_lexical if _is_exact_table_title_hit(user_input, item)]
+        if table_request:
+            table_anchors.extend(item for item in candidate_lexical if _is_table_reference_item(item))
+        table_anchors = list({
+            str(item.get("chunk_id")): item
+            for item in table_anchors if item.get("chunk_id")
+        }.values())[:3]
+        neighbor_anchors = table_anchors or list_anchor or formula_anchors or teaching_anchors or candidate_lexical[:3]
         candidate_neighbors = (neighbor_expander or expand_neighbors)(
             candidate_book,
             [item.get("chunk_id", "") for item in neighbor_anchors],
@@ -587,6 +664,23 @@ def retrieve_node(
             candidate_neighbors = _teaching_unit_neighbors(teaching_anchors, candidate_neighbors)
         for item in candidate_neighbors:
             item["is_list_neighbor"] = bool(list_anchor)
+            if table_request and str(item.get("block_type") or "") == "table":
+                item_index = int(item.get("chunk_index", -1))
+                distances = [
+                    (order, abs(item_index - int(anchor.get("chunk_index", -1))), anchor)
+                    for order, anchor in enumerate(table_anchors, 1)
+                    if item.get("chapter") == anchor.get("chapter")
+                    and item_index >= 0
+                    and int(anchor.get("chunk_index", -1)) >= 0
+                ]
+                if distances:
+                    order, distance, anchor = min(distances, key=lambda value: (value[1], value[0]))
+                    if distance <= 1:
+                        item["is_table_neighbor"] = True
+                        item["table_anchor_order"] = order
+                        item["table_neighbor_distance"] = distance
+                        item["table_anchor_chunk_id"] = str(anchor.get("chunk_id") or "")
+                        item["table_anchor_text"] = str(anchor.get("text") or anchor.get("content") or "")
             if formula_anchors:
                 item_index = int(item.get("chunk_index", -1))
                 distances = [
@@ -675,6 +769,10 @@ def retrieve_node(
             "is_selected_book": bool(item.get("is_selected_book")),
             "rag_priority": item.get("rag_priority", 1.0),
             "role": item.get("role", ""),
+            "block_type": item.get("block_type", ""),
+            "table_title": item.get("table_title", ""),
+            "table_header": list(item.get("table_header") or []),
+            "table_rows": list(item.get("table_rows") or []),
             "source": item.get("source", ""),
             "is_direct_hit": bool(item.get("is_direct_hit")),
             "is_list_neighbor": bool(item.get("is_list_neighbor")),
@@ -685,17 +783,29 @@ def retrieve_node(
             "list_group_order": item.get("list_group_order"),
             "list_group_part": item.get("list_group_part", ""),
             "fusion_sources": item.get("fusion_sources", []),
+            "is_table_direct_hit": bool(item.get("is_table_direct_hit")),
+            "is_table_neighbor": bool(item.get("is_table_neighbor")),
+            "table_anchor_order": item.get("table_anchor_order"),
+            "table_neighbor_distance": item.get("table_neighbor_distance"),
+            "table_anchor_chunk_id": item.get("table_anchor_chunk_id", ""),
+            "retrieval_scope": item.get("retrieval_scope", ""),
         }
         for item in retrieval_debug_items
         if item.get("text")
         and _supports_query_literals(
             user_input,
-            f"{item.get('section_title', '')}\n{item.get('text', '')}",
+            f"{item.get('section_title', '')}\n{item.get('text', '')}\n{item.get('table_anchor_text', '')}",
         )
         and (
             item.get("is_direct_hit")
             or item.get("list_group_order") is not None
             or item.get("is_teaching_neighbor")
+            or (table_request and item.get("is_table_neighbor"))
+            or (
+                table_request
+                and str(item.get("block_type") or "") == "table"
+                and {"dense", "bm25"}.issubset(set(item.get("fusion_sources") or []))
+            )
             or float(item.get("query_coverage", 0)) >= 0.2
         )
     ]
@@ -1014,6 +1124,8 @@ def _rank_concept_matches(matches: list[tuple[float, dict]], user_input: str, in
 
 
 def _looks_like_toc_chunk(item: dict) -> bool:
+    if str(item.get("block_type") or "") == "table" and str(item.get("table_title") or "").strip():
+        return False
     section = str(item.get("section_title") or "")
     section_lc = section.strip().lower()
     text = str(item.get("text") or "")
@@ -1082,7 +1194,7 @@ def _vector_retrieval(vs, user_input: str, *, intent: str = "qa", book_name: str
     search_scope: list[str] = []
     if precise_chapters:
         search_scope = [ch for ch in precise_chapters if ch]
-    elif target_chapters:
+    if target_chapters:
         search_scope = target_chapters[:2]
 
     if search_scope:
@@ -1154,6 +1266,7 @@ def _doc_to_item(doc, chapter: str, source: str) -> dict:
         "section_path": metadata_list("section_path"),
         "chunk_index": meta.get("chunk_index", -1),
         "section_title": meta.get("section_title", ""),
+        "section_chunk_index": meta.get("section_chunk_index", -1),
         "page_idx": meta.get("page_idx", -1),
         "page_start": meta.get("page_start", -1),
         "page_end": meta.get("page_end", -1),
@@ -1166,6 +1279,10 @@ def _doc_to_item(doc, chapter: str, source: str) -> dict:
         "source_file": meta.get("source_file", ""),
         "bbox": metadata_list("bbox"),
         "figure_id": meta.get("figure_id", ""),
+        "block_type": meta.get("block_type", ""),
+        "table_title": meta.get("table_title", ""),
+        "table_header": metadata_list("table_header"),
+        "table_rows": metadata_list("table_rows"),
         "is_direct_hit": False,
         "role": meta.get("role", ""),
         "book_role": meta.get("book_role", ""),
@@ -1232,6 +1349,12 @@ def _merge_and_rerank(
                 if candidate_order < current_order:
                     fused[key]["formula_anchor_order"] = candidate_order[0]
                     fused[key]["formula_neighbor_distance"] = candidate_order[1]
+            if item.get("is_table_neighbor"):
+                fused[key]["is_table_neighbor"] = True
+                fused[key]["table_anchor_order"] = int(item.get("table_anchor_order") or 999999)
+                fused[key]["table_neighbor_distance"] = int(item.get("table_neighbor_distance") or 0)
+                fused[key]["table_anchor_chunk_id"] = str(item.get("table_anchor_chunk_id") or "")
+                fused[key]["table_anchor_text"] = str(item.get("table_anchor_text") or "")
 
     query_tokens = set(tokenize(query))
     role_order = INTENT_ROLE_PRIORITY.get(intent, [])
@@ -1247,6 +1370,10 @@ def _merge_and_rerank(
         bm25_rank = source_ranks.get((key, "bm25"))
         if bm25_rank is not None:
             score += 0.04 * max(0.0, 1.0 - (bm25_rank - 1) / 20.0)
+        table_direct_hit = _is_exact_table_title_hit(query, item)
+        if table_direct_hit:
+            item["is_table_direct_hit"] = True
+            item["is_direct_hit"] = True
         if item.get("is_direct_hit"):
             score += 0.05
         score += 0.08 * float(item.get("title_match_quality") or 0.0)
@@ -1274,6 +1401,13 @@ def _merge_and_rerank(
             score += 0.18
         if _looks_like_toc_chunk(item):
             score -= 0.2
+        if _is_table_query(query) and str(item.get("block_type") or "") == "table":
+            if table_direct_hit:
+                score += 0.12
+            if {"dense", "bm25"}.issubset(set(sources)):
+                score += 0.04
+            if item.get("is_table_neighbor"):
+                score += 0.18
         item["score"] = round(score, 6)
         item["fusion_sources"] = sources
         ranked.append(item)
@@ -1292,14 +1426,28 @@ def _merge_and_rerank(
         item["score"] = round(relevance_score * multiplier, 6)
     rerank_meta = reranker_status()
 
-    enumeration_query = intent in {"factual_recall", "formula"} and any(
+    table_query = _is_table_query(query)
+    enumeration_query = not table_query and intent in {"factual_recall", "formula"} and any(
         marker in query for marker in (
             "哪些", "优点", "特点", "不足", "缺点", "主要", "列举", "分别",
             "几种", "几个", "多少种", "四个方法", "包括什么", "包括哪些",
         )
     )
     formula_query = intent == "formula"
-    if enumeration_query:
+    if table_query:
+        ranked.sort(key=lambda item: (
+            0 if item.get("is_table_direct_hit") else 1,
+            0 if item.get("is_table_neighbor") else 1,
+            int(item.get("table_anchor_order") or 999999),
+            int(item.get("table_neighbor_distance") or 999999),
+            0 if (
+                str(item.get("block_type") or "") == "table"
+                and {"dense", "bm25"}.issubset(set(item.get("fusion_sources") or []))
+            ) else 1,
+            -float(item.get("score", 0)),
+            item.get("page_idx", 999999),
+        ))
+    elif enumeration_query:
         # List answers are commonly split across consecutive textbook chunks.
         # Preserve the selected book BM25 order so exact list members survive Top-K.
         ranked.sort(key=lambda item: (
@@ -1381,6 +1529,10 @@ def _merge_and_rerank(
             "chunk_id": item.get("chunk_id", ""),
             "source": item.get("source", ""),
             "role": item.get("role", ""),
+            "block_type": item.get("block_type", ""),
+            "table_title": item.get("table_title", ""),
+            "table_header": list(item.get("table_header") or []),
+            "table_rows": list(item.get("table_rows") or []),
             "book_name": item.get("book_name", ""),
             "book_role": item.get("book_role", ""),
             "is_selected_book": bool(item.get("is_selected_book")),
@@ -1403,6 +1555,13 @@ def _merge_and_rerank(
             "bbox": item.get("bbox", []),
             "figure_id": item.get("figure_id", ""),
             "is_direct_hit": bool(item.get("is_direct_hit", False)),
+            "is_table_direct_hit": bool(item.get("is_table_direct_hit", False)),
+            "is_table_neighbor": bool(item.get("is_table_neighbor", False)),
+            "table_anchor_order": item.get("table_anchor_order"),
+            "table_neighbor_distance": item.get("table_neighbor_distance"),
+            "table_anchor_chunk_id": item.get("table_anchor_chunk_id", ""),
+            "table_anchor_text": item.get("table_anchor_text", ""),
+            "retrieval_scope": item.get("retrieval_scope", ""),
             "is_list_neighbor": bool(item.get("is_list_neighbor", False)),
             "is_teaching_anchor": bool(item.get("is_teaching_anchor", False)),
             "is_teaching_neighbor": bool(item.get("is_teaching_neighbor", False)),
