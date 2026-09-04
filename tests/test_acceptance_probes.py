@@ -94,3 +94,107 @@ def test_generated_probes_pass_the_real_staged_lexical_retrieval_path():
 
     assert summary["generated_probe_cases"] == 4
     assert all(gate["passed"] for gate in summary["specialty_gates"].values())
+
+
+def _table(block_id, text, *, title="", section="表格节"):
+    return DocumentBlock(
+        block_id=block_id,
+        block_type="table",
+        text=text,
+        section_path=["第一章", section],
+        source_kind="mineru",
+        table_title=title,
+        table_header=["字段", "数据"],
+        table_rows=[[block_id, "1"]],
+    )
+
+
+def _paragraph(block_id, text, *, section="表格节"):
+    return DocumentBlock(
+        block_id=block_id,
+        block_type="paragraph",
+        text=text,
+        section_path=["第一章", section],
+        source_kind="mineru",
+    )
+
+
+def _table_book(blocks):
+    return CanonicalBook(
+        book_name="表格教材",
+        source_kind="mineru",
+        parser_version="test-v1",
+        blocks=blocks,
+    )
+
+
+def test_captioned_table_probe_uses_real_caption_and_source_points():
+    table = _table(
+        "table-captioned",
+        "表1-1 参数表\n| 字段 | 数据 |\n|---|---|\n| table-captioned | 1 |",
+        title="表1-1 参数表",
+    )
+
+    result = generate_acceptance_probes(_table_book([table]))
+    case = next(case for case in result["cases"] if case["specialty"] == "table")
+
+    assert case["question"].startswith("表1-1 参数表")
+    assert case["provenance"]["target_grounding"] == "caption"
+    assert case["hard_gate"] is True
+    assert all(point in table.text for point in case["required_points"])
+
+
+def test_untitled_single_table_probe_is_grounded_by_its_section():
+    table = _table(
+        "table-only",
+        "| 字段 | 数据 |\n|---|---|\n| table-only | 1 |",
+        section="唯一表格节",
+    )
+
+    result = generate_acceptance_probes(_table_book([table]))
+    case = next(case for case in result["cases"] if case["specialty"] == "table")
+
+    assert case["question"] == "唯一表格节中的表格列出了哪些字段或数据？"
+    assert case["provenance"]["target_grounding"] == "single_table_section"
+    assert result["manual"]["table"] == 0
+
+
+def test_untitled_multi_table_probes_require_unique_adjacent_source_text():
+    first_context = _paragraph("context-1", "（1）构造初始单纯形表如下：")
+    first = _table("table-1", "| 字段 | 数据 |\n|---|---|\n| table-1 | 1 |")
+    second_context = _paragraph("context-2", "（2）经变换得到下列检验表：")
+    second = _table("table-2", "| 字段 | 数据 |\n|---|---|\n| table-2 | 1 |")
+
+    result = generate_acceptance_probes(_table_book([first_context, first, second_context, second]))
+    cases = [case for case in result["cases"] if case["specialty"] == "table"]
+
+    assert len(cases) == 2
+    assert len({case["question"] for case in cases}) == 2
+    assert {case["provenance"]["block_id"] for case in cases} == {"table-1", "table-2"}
+    assert all(case["provenance"]["target_grounding"] == "adjacent_source_text" for case in cases)
+    assert all(len(case["provenance"]["source_block_ids"]) == 2 for case in cases)
+    tables = {"table-1": first, "table-2": second}
+    assert all(
+        point in tables[case["provenance"]["block_id"]].text
+        for case in cases for point in case["required_points"]
+    )
+
+
+def test_ambiguous_untitled_multi_table_targets_are_manual_and_not_hard_gate():
+    first_context = _paragraph("context-1", "构造单纯形表如下：")
+    first = _table("table-1", "| 字段 | 数据 |\n|---|---|\n| table-1 | 1 |")
+    second_context = _paragraph("context-2", "构造单纯形表如下：")
+    second = _table("table-2", "| 字段 | 数据 |\n|---|---|\n| table-2 | 1 |")
+
+    result = generate_acceptance_probes(_table_book([first_context, first, second_context, second]))
+    cases = [case for case in result["cases"] if case["specialty"] == "table"]
+
+    assert cases == []
+    assert result["inventory"]["table"] == 0
+    assert result["source_inventory"]["table"] == 2
+    assert result["manual"]["table"] == 2
+    assert all(item["status"] == "manual_review" for item in result["manual_review"])
+    assert all(item["hard_gate"] is False for item in result["manual_review"])
+    assert all(item["reason"] == "ambiguous_untitled_table_in_multi_table_section" for item in result["manual_review"])
+    assert all(item["source_evidence"]["table_text"] for item in result["manual_review"])
+    assert all(item["source_evidence"]["adjacent_context"] for item in result["manual_review"])
