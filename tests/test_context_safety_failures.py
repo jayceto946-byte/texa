@@ -70,7 +70,7 @@ def test_concurrent_ledger_updates_leave_valid_projection(monkeypatch, tmp_path)
             messages,
         ))
     payload = conversation_memory.load_session_ledger_projection(conversation_id)
-    assert payload["schema_version"] == 2
+    assert payload["schema_version"] == session_ledger.LEDGER_SCHEMA_VERSION
     assert isinstance(payload["state"], dict)
 
 

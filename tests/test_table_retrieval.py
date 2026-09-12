@@ -256,6 +256,7 @@ def test_source_grounded_table_reference_promotes_its_adjacent_table(monkeypatch
     _standalone_book(monkeypatch)
     context = {
         "chunk_id": "table-context",
+        "index_version": "index-v1",
         "book_name": "Book A",
         "chapter": "本章学习要点",
         "section_title": "本章学习要点",

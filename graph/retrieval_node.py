@@ -397,7 +397,36 @@ def _list_group_neighbors(anchor: dict, expanded: list[dict]) -> list[dict]:
     return selected
 
 
-def retrieve_node(
+def retrieve_node(state: dict, *, vector_store=None, lexical_search=None,
+                  neighbor_expander=None, index_stats_override=None) -> dict:
+    from ingestion.index_snapshot import index_read_snapshot
+    from ingestion.index_pipeline import load_index_manifest
+    with index_read_snapshot():
+        result = _retrieve_node(state, vector_store=vector_store, lexical_search=lexical_search,
+                                neighbor_expander=neighbor_expander, index_stats_override=index_stats_override)
+        versions = {}
+        invalid = False
+        for item in result.get("evidence_items") or []:
+            book = str(item.get("book_name") or state.get("book_name") or "")
+            version = str(item.get("index_version") or "")
+            versions.setdefault(book, set()).add(version)
+        for book, found in versions.items():
+            if len(found) > 1:
+                invalid = True
+            # Candidate release validation owns a separate, staged snapshot.
+            if vector_store is None and index_stats_override is None:
+                active = str(load_index_manifest(book).get("index_version") or "")
+                if active and found != {active}:
+                    invalid = True
+        if invalid:
+            result.update(chapter_contents={}, evidence_items=[], evidence_sources=[],
+                          retrieval_status="unavailable", retrieval_error="inconsistent_evidence_snapshot",
+                          evidence_gate_applied=True,
+                          evidence_support={"status": "unavailable", "reason": "inconsistent_evidence_snapshot"})
+        return result
+
+
+def _retrieve_node(
     state: dict,
     *,
     vector_store=None,
@@ -536,6 +565,20 @@ def retrieve_node(
         item["book_name"] = primary_book
         item["book_role"] = str(primary_resource.get("role") or "")
         item["rag_priority"] = float(primary_resource.get("priority") or 1.0)
+    # KG occurrences identify chunks; the pinned lexical snapshot owns their text
+    # and provenance. Never label cached KG text with a newly active version.
+    if precise_results:
+        from ingestion.index_pipeline import load_index_manifest
+        if index_stats_override or load_index_manifest(primary_book).get("index_version"):
+            rows = (neighbor_expander or expand_neighbors)(
+                primary_book, [item["chunk_id"] for item in precise_results], window=0,
+            )
+            by_id = {row.get("chunk_id"): row for row in rows}
+            precise_results = [
+                {**item, **by_id[item["chunk_id"]], "text": str(by_id[item["chunk_id"]].get("text") or by_id[item["chunk_id"]].get("content") or ""),
+                 "source": "kg_precise", "is_direct_hit": item.get("is_direct_hit", False)}
+                for item in precise_results if item["chunk_id"] in by_id
+            ]
     vector_results: list[dict] = []
     lexical_results: list[dict] = []
     neighbor_results: list[dict] = []
@@ -706,6 +749,15 @@ def retrieve_node(
             item["is_selected_book"] = is_selected_book
             item["is_primary_book"] = is_primary
         neighbor_results.extend(candidate_neighbors)
+    candidate_versions: dict[str, set[str]] = {}
+    for item in precise_results + vector_results + lexical_results + neighbor_results:
+        if item.get("index_version"):
+            candidate_versions.setdefault(str(item.get("book_name") or primary_book), set()).add(str(item["index_version"]))
+    if any(len(versions) > 1 for versions in candidate_versions.values()):
+        return {"chapter_contents": {}, "evidence_items": [], "evidence_sources": [],
+                "retrieval_debug_items": [], "retrieval_status": "unavailable",
+                "retrieval_error": "inconsistent_evidence_snapshot", "evidence_gate_applied": True,
+                "evidence_support": {"status": "unavailable", "reason": "inconsistent_evidence_snapshot"}}
     chapter_contents, retrieval_debug_items = _merge_and_rerank(
         precise_results,
         vector_results + lexical_results + neighbor_results,

@@ -31,6 +31,8 @@ SPECIALTY_RELEASE_THRESHOLDS = {
     "example": {"min_recall": 1.0, "min_point_recall": 1.0, "max_required_cases": 3},
     "table": {"min_recall": 1.0, "min_point_recall": 1.0, "max_required_cases": 3},
 }
+from ingestion.index_snapshot import index_publication
+
 _BUILD_LOCK = threading.RLock()
 _LEXICAL_KEYS = (
     "provenance_schema", "index_version", "canonical_hash", "book_name",
@@ -589,29 +591,30 @@ def activate_retained_index_version(vs, book_name: str, version: str) -> dict:
             manifests=[new_manifest],
         )
 
-        try:
-            _atomic_write_bytes(lexical_target, target_lexical.read_bytes())
-            atomic_write_json(vs._map_file, new_map)
-            vs._map = new_map
-            atomic_write_json(manifest_path(normalized), new_manifest)
-        except Exception:
-            atomic_write_json(vs._map_file, old_map)
-            vs._map = old_map
-            atomic_write_json(manifest_path(normalized), old_manifest)
-            if old_lexical is None:
-                lexical_target.unlink(missing_ok=True)
-            else:
-                _atomic_write_bytes(lexical_target, old_lexical)
-            raise
+        with index_publication():
+            try:
+                _atomic_write_bytes(lexical_target, target_lexical.read_bytes())
+                atomic_write_json(vs._map_file, new_map)
+                vs._map = new_map
+                atomic_write_json(manifest_path(normalized), new_manifest)
+            except Exception:
+                atomic_write_json(vs._map_file, old_map)
+                vs._map = old_map
+                atomic_write_json(manifest_path(normalized), old_manifest)
+                if old_lexical is None:
+                    lexical_target.unlink(missing_ok=True)
+                else:
+                    _atomic_write_bytes(lexical_target, old_lexical)
+                raise
 
-        for key in [key for key in vs._stores if key.startswith(f"{normalized}\0")]:
-            vs._stores.pop(key, None)
-        try:
-            from ingestion import lexical_index
-            with lexical_index._lock:
-                lexical_index._cache.pop(normalized, None)
-        except Exception:
-            pass
+            for key in [key for key in vs._stores if key.startswith(f"{normalized}\0")]:
+                vs._stores.pop(key, None)
+            try:
+                from ingestion import lexical_index
+                with lexical_index._lock:
+                    lexical_index._cache.pop(normalized, None)
+            except Exception:
+                pass
         return new_manifest
 
 
@@ -686,12 +689,12 @@ def build_and_activate_book_index(
     staged_names: list[str] = []
     lexical_target = index_path(normalized)
     lexical_stage = lexical_target.with_name(f".{lexical_target.name}.{build_id}.staging")
-    old_lexical = lexical_target.read_bytes() if lexical_target.exists() else None
-    old_manifest = load_index_manifest(normalized)
     new_version_lexical = versioned_lexical_path(normalized, version)
     new_version_lexical_existed = new_version_lexical.exists()
 
     with _BUILD_LOCK:
+        old_lexical = lexical_target.read_bytes() if lexical_target.exists() else None
+        old_manifest = load_index_manifest(normalized)
         try:
             require_scoped_vector_snapshot(
                 Path(vs._map_file).parent,
@@ -849,46 +852,47 @@ def build_and_activate_book_index(
                 collection_names=collection_names,
                 manifests=[manifest],
             )
-            try:
-                os.replace(lexical_stage, lexical_target)
-                atomic_write_json(vs._map_file, new_map)
-                vs._map = new_map
-                for key in [key for key in vs._stores if key.startswith(f"{normalized}\0")]:
-                    vs._stores.pop(key, None)
-                atomic_write_json(manifest_path(normalized), manifest)
-            except Exception:
-                atomic_write_json(vs._map_file, old_map)
-                vs._map = old_map
-                if old_lexical is None:
-                    lexical_target.unlink(missing_ok=True)
-                else:
-                    restore = lexical_target.with_suffix(lexical_target.suffix + ".restore")
-                    restore.write_bytes(old_lexical)
-                    os.replace(restore, lexical_target)
-                raise
+            with index_publication():
+                try:
+                    os.replace(lexical_stage, lexical_target)
+                    atomic_write_json(vs._map_file, new_map)
+                    vs._map = new_map
+                    for key in [key for key in vs._stores if key.startswith(f"{normalized}\0")]:
+                        vs._stores.pop(key, None)
+                    atomic_write_json(manifest_path(normalized), manifest)
+                except Exception:
+                    atomic_write_json(vs._map_file, old_map)
+                    vs._map = old_map
+                    if old_lexical is None:
+                        lexical_target.unlink(missing_ok=True)
+                    else:
+                        restore = lexical_target.with_suffix(lexical_target.suffix + ".restore")
+                        restore.write_bytes(old_lexical)
+                        os.replace(restore, lexical_target)
+                    raise
 
-            try:
-                from ingestion import lexical_index
-                with lexical_index._lock:
-                    lexical_index._cache.pop(normalized, None)
-            except Exception:
-                pass
-            deleted_names: list[str] = []
-            for name in pruned_names:
                 try:
-                    vs._client.delete_collection(name)
-                    deleted_names.append(name)
+                    from ingestion import lexical_index
+                    with lexical_index._lock:
+                        lexical_index._cache.pop(normalized, None)
                 except Exception:
                     pass
-            if deleted_names:
-                cleaned_map = {
-                    name: entry for name, entry in vs._map.items() if name not in deleted_names
-                }
-                try:
-                    atomic_write_json(vs._map_file, cleaned_map)
-                    vs._map = cleaned_map
-                except Exception:
-                    pass
+                deleted_names: list[str] = []
+                for name in pruned_names:
+                    try:
+                        vs._client.delete_collection(name)
+                        deleted_names.append(name)
+                    except Exception:
+                        pass
+                if deleted_names:
+                    cleaned_map = {
+                        name: entry for name, entry in vs._map.items() if name not in deleted_names
+                    }
+                    try:
+                        atomic_write_json(vs._map_file, cleaned_map)
+                        vs._map = cleaned_map
+                    except Exception:
+                        pass
             return manifest
         except BaseException:
             lexical_stage.unlink(missing_ok=True)
