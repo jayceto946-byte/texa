@@ -19,6 +19,13 @@ const REQUIRED_EVENT_FIELDS = new Set([
   'schema', 'request_id', 'task_id', 'run_id', 'conversation_id', 'turn_id', 'seq',
   'operation_id', 'type', 'phase', 'status', 'summary', 'label', 'kind', 'elapsed_ms', 'payload',
 ]);
+const TASK_TRANSITIONS: Record<string, string[]> = {
+  running: ['interrupted', 'waiting_for_input', 'waiting_for_confirmation', 'completed', 'degraded', 'failed'],
+  interrupted: ['running', 'cancelled'],
+  waiting_for_input: ['running', 'cancelled', 'failed'],
+  waiting_for_confirmation: ['completed', 'degraded', 'failed', 'cancelled'],
+  completed: ['completed'], degraded: ['degraded'], failed: ['failed'], cancelled: ['cancelled'],
+};
 
 export interface ExecutionLifecycleState {
   requestId: string;
@@ -27,7 +34,6 @@ export interface ExecutionLifecycleState {
   conversationId: string;
   turnId: string;
   lastSeq: number;
-  retiredRunIds: string[];
   output: string;
   hasOutput: boolean;
   activities: ChatActivity[];
@@ -45,7 +51,7 @@ export function createExecutionLifecycle(
 ): ExecutionLifecycleState {
   return {
     requestId: '', taskId: '', runId: '', conversationId: '', turnId: '', lastSeq: 0,
-    retiredRunIds: [], output, hasOutput: output.length > 0, activities, terminal: false,
+    output, hasOutput: output.length > 0, activities, terminal: false,
   };
 }
 
@@ -69,12 +75,24 @@ export function isExecutionEventV1(value: unknown): value is ExecutionEvent {
     if (typeof event[field] !== 'string') return false;
   }
   if (!event.request_id || Boolean(event.task_id) !== Boolean(event.run_id)) return false;
+  if (event.type === 'final' && event.status !== 'completed') return false;
+  if (event.type === 'error' && !['failed', 'cancelled'].includes(event.status!)) return false;
   if (!event.payload || typeof event.payload !== 'object' || Array.isArray(event.payload)) return false;
+  const before = event.payload.task_status_before;
+  const after = event.payload.task_status_after;
+  const snapshot = event.payload.task_status;
+  if (snapshot !== undefined && (typeof snapshot !== 'string' || !Object.hasOwn(TASK_TRANSITIONS, snapshot))) return false;
+  if (before !== undefined || after !== undefined) {
+    if (event.type !== 'state_transition' || typeof before !== 'string' || typeof after !== 'string') return false;
+    if (!Object.hasOwn(TASK_TRANSITIONS, before) || !TASK_TRANSITIONS[before].includes(after)) return false;
+  }
   if (event.type === 'output_delta') {
     const keys = Object.keys(event.payload);
     if (keys.length !== 2 || !keys.includes('text') || !keys.includes('replace')) return false;
     if (typeof event.payload.text !== 'string' || typeof event.payload.replace !== 'boolean') return false;
   }
+  if (['final', 'error'].includes(event.type!) && snapshot !== undefined &&
+      !['completed', 'degraded', 'failed', 'waiting_for_input', 'waiting_for_confirmation', 'interrupted'].includes(String(snapshot))) return false;
   return true;
 }
 
@@ -145,9 +163,6 @@ function eventTaskStatus(event: ExecutionEvent): string | undefined {
 }
 
 function startNewRun(current: ExecutionLifecycleState, event: ExecutionEvent): ExecutionLifecycleState {
-  const retiredRunIds = current.runId && current.runId !== event.run_id
-    ? [...new Set([...current.retiredRunIds, current.runId])]
-    : current.retiredRunIds;
   return {
     ...createExecutionLifecycle(current.output, current.requestId ? [] : current.activities),
     requestId: event.request_id,
@@ -155,7 +170,6 @@ function startNewRun(current: ExecutionLifecycleState, event: ExecutionEvent): E
     runId: event.run_id,
     conversationId: event.conversation_id,
     turnId: event.turn_id,
-    retiredRunIds,
     hasOutput: current.hasOutput,
   };
 }
@@ -173,19 +187,23 @@ export function mergeExecutionLifecycle(current: ExecutionLifecycleState, candid
     if (event.task_id !== current.taskId) {
       return current;
     } else if (event.run_id !== current.runId) {
-      if (current.retiredRunIds.includes(event.run_id)) return current;
-      base = startNewRun(current, event);
+      // Each HTTP execution owns one run. A different run needs a new request
+      // consumer; transport events alone cannot grant it authority.
+      return current;
     } else if (event.request_id !== current.requestId) {
       return current;
     }
   } else if (event.task_id) {
     if (event.request_id !== current.requestId) return current;
-    base = { ...current, taskId: event.task_id, runId: event.run_id, conversationId: event.conversation_id, turnId: event.turn_id };
+    base = { ...current, lastSeq: 0, taskId: event.task_id, runId: event.run_id, conversationId: event.conversation_id, turnId: event.turn_id };
   } else if (event.request_id !== current.requestId) {
     return current;
   }
 
   if (event.seq <= base.lastSeq) return current;
+  if (base.conversationId !== event.conversation_id || base.turnId !== event.turn_id) return current;
+  if (base.lastEvent?.type === 'state_transition' && base.taskStatus && base.taskStatus !== 'running') return current;
+  if (event.payload.task_status_before && base.taskStatus && event.payload.task_status_before !== base.taskStatus) return current;
 
   let output = base.output;
   if (event.type === 'output_delta') {
@@ -221,8 +239,13 @@ export function mergeExecutionLifecycle(current: ExecutionLifecycleState, candid
   };
 }
 
-export function replayExecutionEvents(events: unknown[], output = ''): ExecutionLifecycleState {
-  return events.reduce(mergeExecutionLifecycle, createExecutionLifecycle(output));
+export function replayExecutionEvents(events: unknown[], output = '', activeRunId?: string): ExecutionLifecycleState {
+  // Persisted milestones are ordered by the server, may span runs, and omit
+  // transport deltas. Select the authoritative run before applying its reducer.
+  const valid = events.filter(isExecutionEventV1);
+  const runId = activeRunId || valid.at(-1)?.run_id;
+  const selected = runId ? valid.filter((event) => event.run_id === runId) : valid;
+  return selected.reduce(mergeExecutionLifecycle, createExecutionLifecycle(output));
 }
 
 export function executionMessageStage(lifecycle: ExecutionLifecycleState, task?: LearningTaskState): string {

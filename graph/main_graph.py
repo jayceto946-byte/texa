@@ -68,6 +68,9 @@ def build_main_graph() -> StateGraph:
 _main_graph = None
 PROGRESS_INTERVAL_SECONDS = 10.0
 RESUME_CHECKPOINT_VERSION = 1
+# A stopped synchronous provider may remain in next() until its timeout. Bound
+# these workers across conversations; waiting requests do not spawn more threads.
+_STREAM_WORKER_SLOTS = threading.BoundedSemaphore(4)
 
 
 def _run_blocking_with_progress(
@@ -120,8 +123,21 @@ def _iterate_stream_with_progress(
     interval_seconds: float | None = None,
 ):
     """Move a blocking provider iterator off the SSE producer thread."""
-    item_queue: queue.Queue = queue.Queue()
+    item_queue: queue.Queue = queue.Queue(maxsize=32)
     stop_requested = threading.Event()
+    interval = max(0.01, float(interval_seconds or PROGRESS_INTERVAL_SECONDS))
+    slots = _STREAM_WORKER_SLOTS
+    while not slots.acquire(timeout=min(interval, 0.25)):
+        yield "progress", {"stage": "progress", "phase": phase, "operation_id": operation_id,
+                           "label": label, "kind": "reasoning", "message": "正在等待可用的执行资源"}
+
+    def publish(value) -> None:
+        while not stop_requested.is_set():
+            try:
+                item_queue.put(value, timeout=0.05)
+                return
+            except queue.Full:
+                continue
 
     def execute() -> None:
         iterator = None
@@ -130,10 +146,12 @@ def _iterate_stream_with_progress(
             for item in iterator:
                 if stop_requested.is_set():
                     break
-                item_queue.put(("item", item))
-            item_queue.put(("done", None))
+                publish(("item", item))
+                if stop_requested.is_set():
+                    break
+            publish(("done", None))
         except Exception as exc:
-            item_queue.put(("error", exc))
+            publish(("error", exc))
         finally:
             close = getattr(iterator, "close", None)
             if close:
@@ -141,9 +159,13 @@ def _iterate_stream_with_progress(
                     close()
                 except Exception:
                     pass
+            slots.release()
 
-    threading.Thread(target=execute, name=f"graph-{phase}-stream", daemon=True).start()
-    interval = max(0.01, float(interval_seconds or PROGRESS_INTERVAL_SECONDS))
+    try:
+        threading.Thread(target=execute, name=f"graph-{phase}-stream", daemon=True).start()
+    except BaseException:
+        slots.release()
+        raise
     waiting_started = time.perf_counter()
     try:
         while True:
@@ -290,7 +312,13 @@ def run_graph(user_input: str, book_name: str = "default",
     return graph.invoke(initial_state)
 
 
-def _validated_resume_state(
+def _validated_resume_state(resume_state: dict | None, book_name: str, *, use_textbook_context: bool) -> dict:
+    from ingestion.index_snapshot import index_read_snapshot
+    with index_read_snapshot():
+        return _validate_resume_snapshot(resume_state, book_name, use_textbook_context=use_textbook_context)
+
+
+def _validate_resume_snapshot(
     resume_state: dict | None,
     book_name: str,
     *,
@@ -321,9 +349,22 @@ def _validated_resume_state(
             return {}
         if not active_version or active_version != checkpoint_version:
             return {}
+        versions = {book_name: active_version}
+        for item in [*(resume_state.get("evidence_items") or []), *(resume_state.get("evidence_sources") or [])]:
+            if not isinstance(item, dict):
+                return {}
+            evidence_book = str(item.get("book_name") or book_name)
+            if evidence_book not in versions:
+                try:
+                    versions[evidence_book] = str(load_index_manifest(evidence_book).get("index_version") or "")
+                except Exception:
+                    return {}
+            if not versions[evidence_book] or str(item.get("index_version") or "") != versions[evidence_book]:
+                return {}
+
 
     reusable_keys = (
-        "resume_checkpoint_version", "intent", "target_chapters", "chapter_contents",
+        "resume_checkpoint_version", "index_version", "intent", "target_chapters", "chapter_contents",
         "evidence_items", "evidence_sources",
         "retrieval_status", "retrieval_error", "evidence_support", "retrieval_debug_items",
         "evidence_gate_applied", "suggested_answer_mode", "index_stats", "retrieval_action",
@@ -409,6 +450,8 @@ def run_graph_stream(
 
     graph = get_graph()
     answer_chunks: list[str] = []
+    from utils.thinking_filter import ThinkingFilter
+    thinking_filter = ThinkingFilter()
     chapter_announced = False
     generation_done = False
 
@@ -433,7 +476,7 @@ def run_graph_stream(
             node = str(metadata.get("langgraph_node") or "")
             if node not in {"chapter", "generate"}:
                 continue
-            text = _answer_chunk(message)
+            text = thinking_filter.filter(_answer_chunk(message))
             if not text:
                 continue
             if node == "chapter" and not chapter_announced:
@@ -448,6 +491,9 @@ def run_graph_stream(
         for node, update in payload.items():
             if not isinstance(update, dict):
                 continue
+            if node in {"chapter", "generate"}:
+                thinking_filter.flush()
+                thinking_filter = ThinkingFilter()
             state.update(update)
             if node == "plan":
                 trace = state.get("planner_trace") or {}

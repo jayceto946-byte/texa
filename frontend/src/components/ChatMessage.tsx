@@ -15,6 +15,7 @@ import ExecutionTrace from './chat/ExecutionTrace';
 import LearningTaskGate from './chat/LearningTaskGate';
 import LearningTaskActions from './chat/LearningTaskActions';
 import LearningTaskResume from './chat/LearningTaskResume';
+import LearningTaskEffects from './chat/LearningTaskEffects';
 import { useInspector } from '../contexts/InspectorContext';
 import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 
@@ -319,6 +320,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
         )}
         {!isUser && learningTask?.confirmation_required && (
           <LearningTaskActions initialTask={learningTask} />
+        )}
+        {!isUser && learningTask?.terminal && (
+          <LearningTaskEffects key={`${learningTask.id}:${learningTask.active_run_id}`} task={learningTask} />
         )}
         {!isUser && learningTask?.resumable && onResumeInterruptedTask && (
           <LearningTaskResume task={learningTask} onResume={onResumeInterruptedTask} />

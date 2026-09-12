@@ -520,7 +520,7 @@ def test_figure_stale_run_cannot_emit_after_interrupt_and_new_run(monkeypatch, t
 
     interrupted = client.post(
         f"/api/visual-learning/tasks/{store.task_id}/interrupt",
-        json={"stage": "user_stopped", "partial_output": "partial"},
+        json={"stage": "user_stopped", "partial_output": "partial", "run_id": store.get(store.task_id).artifacts["active_run_id"]},
     ).json()["learning_task"]
     assert interrupted["status"] == "interrupted"
     resumed = resume_learning_task(store, store.get(store.task_id), run_id="run-new")
@@ -630,7 +630,7 @@ def test_figure_task_interrupt_and_resume_reuses_saved_figure_context(monkeypatc
     client = TestClient(app)
     stopped = client.post(
         f"/api/visual-learning/tasks/{task.id}/interrupt",
-        json={"stage": "user_stopped", "partial_output": "部分回答"},
+        json={"stage": "user_stopped", "partial_output": "部分回答", "run_id": "run-initial"},
     ).json()["learning_task"]
     assert stopped["status"] == "interrupted"
     assert stopped["artifacts"]["partial_output"] == "部分回答"

@@ -6,6 +6,8 @@ hidden model reasoning or chain-of-thought text.
 from __future__ import annotations
 
 import time
+import math
+from dataclasses import dataclass
 from collections.abc import Callable
 from typing import Any
 
@@ -110,6 +112,10 @@ def _validate_task_state_payload(event_type: str, payload: dict[str, Any]) -> No
         from backend.services.learning_task import validate_learning_task_status
 
         validate_learning_task_status(snapshot)
+        if event_type in EXECUTION_EVENT_TERMINAL_TYPES and snapshot not in {
+            "completed", "degraded", "failed", "waiting_for_input", "waiting_for_confirmation", "interrupted",
+        }:
+            raise ValueError("terminal execution event cannot describe a running task")
 
 
 def validate_execution_event(
@@ -172,15 +178,19 @@ def validate_execution_event(
             )
     if event["status"] not in _EVENT_STATUSES:
         raise ValueError(f"invalid execution event status: {event['status']}")
+    if (event_type == "final" and event["status"] != "completed") or (
+        event_type == "error" and event["status"] not in {"failed", "cancelled"}
+    ):
+        raise ValueError("terminal execution status does not match its type")
     for field in ("operation_id", "phase", "summary", "label", "kind"):
         if not isinstance(event[field], str):
             raise ValueError(f"execution event {field} must be a string")
     if event["kind"] not in _ACTIVITY_KINDS:
         raise ValueError(f"invalid execution event kind: {event['kind']}")
-    if not isinstance(event["elapsed_ms"], (int, float)) or event["elapsed_ms"] < 0:
+    if isinstance(event["elapsed_ms"], bool) or not isinstance(event["elapsed_ms"], (int, float)) or not math.isfinite(event["elapsed_ms"]) or event["elapsed_ms"] < 0:
         raise ValueError("execution event elapsed_ms must be non-negative")
     if "duration_ms" in event and (
-        not isinstance(event["duration_ms"], (int, float)) or event["duration_ms"] < 0
+        isinstance(event["duration_ms"], bool) or not isinstance(event["duration_ms"], (int, float)) or not math.isfinite(event["duration_ms"]) or event["duration_ms"] < 0
     ):
         raise ValueError("execution event duration_ms must be non-negative")
 
@@ -198,25 +208,36 @@ def validate_execution_event(
     return event
 
 
+@dataclass(frozen=True)
+class ExecutionRunState:
+    identity: tuple[str, ...] = ()
+    seq: int = 0
+    task_status: str = ""
+    closed: bool = False
+
+
+def advance_execution_run(state: ExecutionRunState, event: dict) -> ExecutionRunState:
+    """One run, including sparse persisted milestones and nonterminal input gates."""
+    validate_execution_event(event, previous_seq=state.seq)
+    identity = tuple(event[key] for key in ("request_id", "task_id", "run_id", "conversation_id", "turn_id"))
+    if state.identity and state.identity != identity:
+        raise ValueError("execution event sequence cannot mix task runs or request/turn identities")
+    if state.closed:
+        raise ValueError("execution events cannot follow final or error or a closed run boundary")
+    payload = event["payload"]
+    before = payload.get("task_status_before")
+    after = payload.get("task_status_after", payload.get("task_status", state.task_status))
+    if before and state.task_status and before != state.task_status:
+        raise ValueError("execution task transition does not match the previous state")
+    closed = event["type"] in EXECUTION_EVENT_TERMINAL_TYPES or bool(before and after != "running")
+    return ExecutionRunState(identity, event["seq"], after, closed)
+
+
 def validate_execution_event_sequence(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Validate monotonic order and a single terminal event for one task/run."""
-    identity: tuple[str, str] | None = None
-    previous_seq: int | None = None
-    terminal_seen = False
+    """Validate the same run contract used by the runtime emitter."""
+    state = ExecutionRunState()
     for event in events:
-        validate_execution_event(event, previous_seq=previous_seq)
-        current_identity = (event["task_id"], event["run_id"])
-        if not all(current_identity):
-            raise ValueError("execution event sequence requires task_id and run_id")
-        if identity is None:
-            identity = current_identity
-        elif current_identity != identity:
-            raise ValueError("execution event sequence cannot mix task runs")
-        if terminal_seen:
-            raise ValueError("execution events cannot follow final or error")
-        if event["type"] in EXECUTION_EVENT_TERMINAL_TYPES:
-            terminal_seen = True
-        previous_seq = event["seq"]
+        state = advance_execution_run(state, event)
     return events
 
 
@@ -247,7 +268,7 @@ class ExecutionEventEmitter:
         self.persist = persist
         self._seq = max(0, int(start_seq))
         self._started = time.perf_counter()
-        self._terminal_emitted = False
+        self._run_state = ExecutionRunState(seq=self._seq)
 
     def emit(
         self,
@@ -262,8 +283,6 @@ class ExecutionEventEmitter:
         payload: dict[str, Any] | None = None,
         duration_ms: int | float | None = None,
     ) -> dict[str, Any]:
-        if self._terminal_emitted:
-            raise ValueError("execution events cannot follow final or error")
         next_seq = self._seq + 1
         event = {
             "schema": EXECUTION_EVENT_SCHEMA,
@@ -285,15 +304,11 @@ class ExecutionEventEmitter:
         }
         if duration_ms is not None:
             event["duration_ms"] = round(float(duration_ms), 2)
-        validate_execution_event(
-            event,
-            previous_seq=self._seq if self._seq else None,
-        )
-        self._seq = next_seq
+        next_state = advance_execution_run(self._run_state, event)
         if self.persist and event_type in PERSISTED_EVENT_TYPES:
             self.persist(event)
-        if event_type in EXECUTION_EVENT_TERMINAL_TYPES:
-            self._terminal_emitted = True
+        self._seq = next_seq
+        self._run_state = next_state
         return event
 
 

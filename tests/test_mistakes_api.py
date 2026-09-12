@@ -1,5 +1,7 @@
 import io
 import json
+from pathlib import Path
+import pytest
 
 from fastapi.testclient import TestClient
 
@@ -414,8 +416,9 @@ def test_stale_input_resume_cannot_write_or_emit_terminal(monkeypatch, tmp_path)
 
     def supersede_run(*_args, **_kwargs):
         current = task_store.get(task.id)
-        current.artifacts["active_run_id"] = "run-new-owner"
-        task_store.save(current)
+        from backend.services.learning_task import interrupt_learning_task, resume_learning_task
+        current = interrupt_learning_task(task_store, current, stage="test")
+        resume_learning_task(task_store, current, run_id="run-new-owner")
         return VisualProblemIR(problem_text="迟到的补充材料")
 
     monkeypatch.setattr(mistakes, "_ocr_image_with_kimi", supersede_run)
@@ -448,8 +451,9 @@ def test_superseded_image_run_cannot_import_generated_mistake(monkeypatch, tmp_p
     def supersede_before_write(*_args, **_kwargs):
         task_id = next(task_store.root.glob("task_*.json")).stem
         current = task_store.get(task_id)
-        current.artifacts["active_run_id"] = "run-new-owner"
-        task_store.save(current)
+        from backend.services.learning_task import interrupt_learning_task, resume_learning_task
+        current = interrupt_learning_task(task_store, current, stage="test")
+        resume_learning_task(task_store, current, run_id="run-new-owner")
         return []
 
     monkeypatch.setattr(mistakes, "_link_mistake_concepts", supersede_before_write)
@@ -524,3 +528,109 @@ def test_cached_mistake_stream_projects_only_from_canonical_events(monkeypatch, 
     assert "result" not in execution_events[-1]
     assert "stage" not in execution_events[-1]
     assert "activity" not in execution_events[-1]
+
+
+@pytest.mark.parametrize("policy,missing", [("exact", False), ("method_only", False), ("exact", True)])
+def test_interrupted_visual_resume_preserves_policy_and_input_gate(monkeypatch, tmp_path, policy, missing):
+    from backend.services.learning_task import resume_learning_task, interrupt_learning_task
+    image_store, task_store = _configure_visual_stream(monkeypatch, tmp_path, visual_ir=VisualProblemIR(problem_text="原题"))
+    task = _create_waiting_visual_task(task_store, image_store)
+    task = resume_learning_task(task_store, task, run_id="run-before-stop")
+    task.artifacts["answer_policy"] = policy
+    if not missing:
+        task.required_inputs[0]["status"] = "waived" if policy == "method_only" else "provided"
+    task_store.save_for_run(task, "run-before-stop")
+    interrupt_learning_task(task_store, task, stage="disconnected", expected_run_id="run-before-stop")
+    calls = []
+    def chunks(_ir, **kwargs):
+        calls.append(kwargs["answer_policy"])
+        return iter(["继续讲解"])
+    monkeypatch.setattr(mistakes, "_iter_visual_solution_chunks", chunks)
+    monkeypatch.setattr(mistakes, "_ocr_image_with_kimi", lambda *_a, **_k: pytest.fail("saved IR must be reused"))
+    response = TestClient(app).post(f"/api/mistakes/visual-tasks/{task.id}/resume-stream", data={"action": "resume"})
+    assert response.status_code == 200
+    events = _assert_canonical_stream(_stream_events(response))
+    current = task_store.get(task.id)
+    assert current.turn_id == task.turn_id
+    assert current.artifacts["active_run_id"] != "run-before-stop"
+    if missing:
+        assert current.status == "waiting_for_input"
+        assert calls == []
+        assert events[-1]["type"] == "state_transition"
+    else:
+        assert events[-1]["type"] == "final"
+        assert calls == [policy]
+        assert current.verification["input_gate"] == ("passed" if policy == "exact" else "degraded_method_only")
+
+
+def test_visual_interrupt_fences_old_run_and_resume_retries_unfinished_vision(monkeypatch, tmp_path):
+    image_store, task_store = _configure_visual_stream(monkeypatch, tmp_path, visual_ir=VisualProblemIR(problem_text="原题"))
+    image_path = image_store.save_upload(type("Upload", (), {
+        "filename": "original.png", "content_type": "image/png", "file": io.BytesIO(b"original"),
+    })())
+    task = mistakes._create_visual_learning_task(
+        store=task_store, visual_ir=VisualProblemIR(problem_text="用户问题"), image_path=image_path,
+        question="用户问题", user_answer="", subject="", tags="", book_name="default", import_to_mistakes=False,
+        conversation_id="conv-vision-crash", turn_id="turn-vision-crash", run_id="run-vision", vision_pending=True,
+    )
+    client = TestClient(app)
+    path = f"/api/mistakes/visual-tasks/{task.id}"
+    assert client.post(path + "/interrupt", json={"run_id": "stale"}).status_code == 409
+    assert task_store.get(task.id).status == "running"
+    assert client.post(path + "/interrupt", json={"run_id": "run-vision"}).json()["learning_task"]["resumable"]
+    calls = []
+    def ocr(path, **_kwargs):
+        calls.append(path)
+        return VisualProblemIR(problem_text="识别后的完整题目", required_inputs=[{"name": "附表", "blocking": True}])
+    monkeypatch.setattr(mistakes, "_ocr_image_with_kimi", ocr)
+    response = client.post(path + "/resume-stream", data={"action": "resume"})
+    _assert_canonical_stream(_stream_events(response))
+    current = task_store.get(task.id)
+    assert current.status == "waiting_for_input"
+    assert calls == [Path(task.artifacts["image_path"])]
+    assert image_path.read_bytes() == calls[0].read_bytes()
+    assert current.artifacts["vision_pending"] is False
+    assert current.artifacts["visual_ir"]["problem_text"] == "识别后的完整题目"
+    assert client.post(path + "/interrupt", json={"run_id": "run-vision"}).status_code == 409
+
+
+def test_visual_answer_survives_lost_client_and_projection_receipt(monkeypatch, tmp_path):
+    from backend import conversation_memory as cm
+    monkeypatch.setattr(cm, "CONV_DIR", tmp_path / "conversations")
+    _, task_store = _configure_visual_stream(monkeypatch, tmp_path, visual_ir=VisualProblemIR(problem_text="原题"))
+    project = task_store.project_outcome
+    monkeypatch.setattr(task_store, "project_outcome", lambda *_a, **_k: (_ for _ in ()).throw(OSError("SQLite unavailable")))
+    response = TestClient(app).post("/api/mistakes/solve-image-stream",
+        files={"file": ("problem.png", b"image", "image/png")},
+        data={"question": "讲解原题", "conversation_id": "recover-visual", "turn_id": "turn"})
+    events = _stream_events(response)
+    assert events[-1]["result"]["persistence_error"]
+    task = task_store.get(events[-1]["execution_event"]["task_id"])
+    assert task.status == "completed"
+    assert task.artifacts["execution_outcome"]["projected"] is False
+    monkeypatch.setattr(task_store, "project_outcome", project)
+    task_store.recover_unfinished()
+    project(task.id)
+    messages = cm.load_full_history("recover-visual")
+    assert [(m["role"], m["content"]) for m in messages] == [("user", "讲解原题"), ("assistant", "正式讲解")]
+    assert messages[-1]["learning_task"]["status"] == "completed"
+
+
+def test_visual_gate_and_resume_share_one_durable_assistant_message(monkeypatch, tmp_path):
+    from backend import conversation_memory as cm
+    monkeypatch.setattr(cm, "CONV_DIR", tmp_path / "conversations")
+    _, task_store = _configure_visual_stream(monkeypatch, tmp_path,
+        visual_ir=VisualProblemIR(problem_text="原题", required_inputs=[{"name": "附表", "blocking": True}]))
+    client = TestClient(app)
+    response = client.post("/api/mistakes/solve-image-stream",
+        files={"file": ("problem.png", b"image", "image/png")},
+        data={"conversation_id": "visual-gate", "turn_id": "turn", "question": "原题"})
+    task_id = _stream_events(response)[-1]["execution_event"]["task_id"]
+    before = cm.load_full_history("visual-gate")
+    assert before[-1]["delivery_status"] == "waiting"
+    resumed = client.post(f"/api/mistakes/visual-tasks/{task_id}/resume-stream", data={"action": "method_only"})
+    assert _stream_events(resumed)[-1]["execution_event"]["type"] == "final"
+    task_store.recover_unfinished()
+    after = cm.load_full_history("visual-gate")
+    assert len(after) == 2 and after[-1]["id"] == before[-1]["id"]
+    assert after[-1]["delivery_status"] == "complete"

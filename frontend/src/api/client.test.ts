@@ -1,7 +1,24 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { ExecutionEvent } from '../types';
-import { consumeSseLine } from './client';
+import { consumeSseLine, interruptChatTask, interruptFigureTask } from './client';
+
+it('addresses Chat and Figure interruption to the exact active run', async () => {
+  const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: true }), {
+    headers: { 'Content-Type': 'application/json' },
+  }));
+  vi.stubGlobal('fetch', fetchMock);
+  vi.stubGlobal('window', { setTimeout, clearTimeout, localStorage: { getItem: () => null } });
+  try {
+    await interruptChatTask('task-chat', 'partial', 'run-chat');
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ success: true })));
+    await interruptFigureTask('task-figure', 'partial', 'run-figure');
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({ run_id: 'run-chat', partial_output: 'partial' });
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toMatchObject({ run_id: 'run-figure' });
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
 
 function event(overrides: Partial<ExecutionEvent> = {}): ExecutionEvent {
   return {

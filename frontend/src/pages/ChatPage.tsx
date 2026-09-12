@@ -391,8 +391,11 @@ const ChatPage: React.FC = () => {
       if (merged === lifecycle) return;
       lifecycle = merged;
       const eventTask = event.learning_task || event.result?.learning_task;
+      if (eventTask) activeVisualTaskRef.current = eventTask;
+      visualPartialOutputRef.current = lifecycle.output;
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
+        id: event.result?.message_id || last.id,
         content: lifecycle.terminalType === 'error'
           ? `图片处理失败：${lifecycle.errorMessage || '未知错误'}`
           : lifecycle.hasOutput ? lifecycle.output : last.content,
@@ -406,11 +409,10 @@ const ChatPage: React.FC = () => {
         setAttachmentLoading(false);
         const waitingContent = '精确解答已暂停：缺失材料会影响最终结论。';
         updateLastMessage((last) => last.role === 'assistant' ? { ...last, content: waitingContent, stage: 'waiting_for_input', learningTask: eventTask } : last);
-        void persistLocalExchange(label, waitingContent, { turnId, learningTask: eventTask, deliveryStatus: 'waiting' });
       } else if (lifecycle.terminalType === 'final') {
         visualAbortRef.current = null;
         setAttachmentLoading(false);
-        void persistLocalExchange(label, lifecycle.output, { turnId, learningTask: eventTask, deliveryStatus: 'complete' });
+        if (!lifecycle.taskId) void persistLocalExchange(label, lifecycle.output, { turnId, deliveryStatus: 'complete' });
       } else if (lifecycle.terminalType === 'error') {
         visualAbortRef.current = null;
         setAttachmentLoading(false);
@@ -427,10 +429,11 @@ const ChatPage: React.FC = () => {
 
   const resumeLearningTask = async (
     task: LearningTaskState,
-    action: 'provide_input' | 'method_only',
+    action: 'provide_input' | 'method_only' | 'resume',
     file?: File,
   ) => {
-    if (attachmentLoading || !task.input_action_required) return;
+    if (attachmentLoading || !(action === 'resume' ? task.resumable : task.input_action_required)) return;
+    activeVisualTaskRef.current = task;
     setAttachmentLoading(true);
     updateMessageByTaskId(task.id, (message) => ({
       ...message,
@@ -452,9 +455,12 @@ const ChatPage: React.FC = () => {
           if (merged === lifecycle) return;
           lifecycle = merged;
           const eventTask = event.learning_task || event.result?.learning_task;
+          if (eventTask) activeVisualTaskRef.current = eventTask;
+          visualPartialOutputRef.current = lifecycle.output;
           updateMessageByTaskId(task.id, (message) => {
             return {
               ...message,
+              id: event.result?.message_id || message.id,
               content: lifecycle.terminalType === 'error'
                 ? `图片处理失败：${lifecycle.errorMessage || '恢复失败'}`
                 : lifecycle.hasOutput ? lifecycle.output : message.content,
@@ -471,11 +477,6 @@ const ChatPage: React.FC = () => {
           } else if (lifecycle.terminalType === 'final') {
             visualAbortRef.current = null;
             setAttachmentLoading(false);
-            void persistLocalExchange(
-              task.goal,
-              lifecycle.output,
-              { turnId: task.turn_id, learningTask: eventTask, deliveryStatus: 'complete' },
-            );
             resolve();
           } else if (lifecycle.terminalType === 'error') {
             visualAbortRef.current = null;
@@ -560,6 +561,10 @@ const ChatPage: React.FC = () => {
   };
 
   const resumeInterruptedTask = (task: LearningTaskState) => {
+    if (task.task_type === 'visual_qa') {
+      void resumeLearningTask(task, 'resume').catch(() => { /* The stream callback records the error. */ });
+      return;
+    }
     if (task.task_type === 'figure_qa') {
       resumeFigureLearningTask(task);
       return;
@@ -592,8 +597,28 @@ const ChatPage: React.FC = () => {
       };
     });
     const figureTaskId = task?.task_type === 'figure_qa' ? task.id : identity?.taskId;
+    if (task?.task_type === 'visual_qa' && task.active_run_id && task.interruptible !== false) {
+      void post(
+        `/mistakes/visual-tasks/${encodeURIComponent(task.id)}/interrupt`,
+        { run_id: task.active_run_id, partial_output: partialOutput },
+      ).then((response) => {
+        updateMessageByTaskId(task.id, (message) => ({
+          ...message,
+          learningTask: response.learning_task,
+          stage: response.learning_task.resumable ? 'stopped' : message.stage,
+        }));
+      }).catch((error) => {
+        updateMessageByTaskId(task.id, (message) => ({
+          ...message,
+          activities: mergeChatActivity(message.activities, {
+            id: 'visual-interrupt', kind: 'system', label: '停止状态未保存', status: 'failed',
+            detail: error instanceof Error ? error.message : String(error),
+          }),
+        }));
+      });
+    }
     if (figureTaskId && task?.interruptible !== false) {
-      void interruptFigureTask(figureTaskId, partialOutput).then((response) => {
+      void interruptFigureTask(figureTaskId, partialOutput, task?.active_run_id || identity?.runId).then((response) => {
         activeVisualTaskRef.current = response.learning_task;
         updateMessageByTaskId(figureTaskId, (message) => ({
           ...message,

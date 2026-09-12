@@ -75,13 +75,12 @@ describe('ExecutionEvent V1 lifecycle consumer', () => {
     expect(accepted.lastEvent?.summary).toBe('current');
   });
 
-  it('switches to a new run and rejects late events from the retired run', () => {
+  it('keeps online ownership fixed and requires a new consumer for a new run', () => {
     const run1 = mergeExecutionLifecycle(createExecutionLifecycle(), fixture({ seq: 4, run_id: 'run-1' }));
     const run2 = mergeExecutionLifecycle(run1, fixture({ seq: 1, request_id: 'req-resume', run_id: 'run-2', operation_id: 'resume' }));
-    const lateRun1 = mergeExecutionLifecycle(run2, fixture({ seq: 5, run_id: 'run-1', summary: 'late' }));
-
-    expect(run2).toMatchObject({ runId: 'run-2', lastSeq: 1, retiredRunIds: ['run-1'] });
-    expect(lateRun1).toBe(run2);
+    expect(run2).toBe(run1);
+    const resumed = mergeExecutionLifecycle(createExecutionLifecycle(), fixture({ request_id: 'req-resume', run_id: 'run-2' }));
+    expect(mergeExecutionLifecycle(resumed, fixture({ seq: 5, run_id: 'run-1', summary: 'late' }))).toBe(resumed);
   });
 
   it('accepts one terminal and ignores all later events in that run', () => {
@@ -114,7 +113,7 @@ describe('ExecutionEvent V1 lifecycle consumer', () => {
       payload: { task_status_before: 'running', task_status_after: 'interrupted' },
     }));
     expect(executionMessageStage(interrupted, task({ status: 'interrupted', interruptible: false, resumable: true }))).toBe('stopped');
-    const resumed = mergeExecutionLifecycle(interrupted, fixture({
+    const resumed = mergeExecutionLifecycle(createExecutionLifecycle(), fixture({
       seq: 1, request_id: 'req-resume', run_id: 'run-2', type: 'state_transition',
       payload: { task_status_before: 'interrupted', task_status_after: 'running' },
     }));
@@ -134,5 +133,53 @@ describe('ExecutionEvent V1 lifecycle consumer', () => {
     expect(isExecutionEventV1({ ...fixture(), type: 'tool_call' })).toBe(false);
     expect(isExecutionEventV1({ ...fixture(), type: 'output_delta', payload: { text: 'x', replace: false, chunk: 'legacy' } })).toBe(false);
     expect(isExecutionEventV1({ ...fixture(), stage: 'done' })).toBe(false);
+  });
+
+  it('replays the persisted active run after an old terminal without concatenating old output', () => {
+    const events = [
+      fixture({ type: 'final', status: 'completed', payload: { task_status: 'waiting_for_input' } }),
+      fixture({ request_id: 'resume', run_id: 'run-2', type: 'state_transition',
+        payload: { task_status_before: 'waiting_for_input', task_status_after: 'running' } }),
+      fixture({ request_id: 'resume', run_id: 'run-2', seq: 7, type: 'final', status: 'completed', payload: { task_status: 'degraded' } }),
+    ];
+    const replayed = replayExecutionEvents(events, 'SQLite answer', 'run-2');
+    expect(replayed).toMatchObject({ runId: 'run-2', terminal: true, taskStatus: 'degraded', output: 'SQLite answer' });
+    expect(replayExecutionEvents(events, 'partial', 'run-3')).toMatchObject({ terminal: false, lastSeq: 0, output: 'partial' });
+  });
+
+  it('resets seq when preflight binds a task and rejects conversation/turn identity drift', () => {
+    const preflight = mergeExecutionLifecycle(createExecutionLifecycle(), fixture({ task_id: '', run_id: '' }));
+    const bound = mergeExecutionLifecycle(preflight, fixture({ seq: 1 }));
+    expect(bound.taskId).toBe('task-chat');
+    for (const drift of [{ conversation_id: 'other' }, { turn_id: 'other' }, { request_id: 'other' }]) {
+      expect(mergeExecutionLifecycle(bound, fixture({ seq: 2, ...drift }))).toBe(bound);
+    }
+  });
+
+  it('matches a bounded reference model for append, replace, gate and terminal sequences', () => {
+    const actions = ['append', 'replace', 'gate', 'final', 'error'] as const;
+    for (let n = 0; n < 625; n++) {
+      let code = n;
+      let modelOutput = '';
+      let closed = false;
+      let state = createExecutionLifecycle();
+      for (let seq = 1; seq <= 4; seq++) {
+        const action = actions[code % actions.length];
+        code = Math.floor(code / actions.length);
+        const event = fixture({ seq,
+          type: action === 'append' || action === 'replace' ? 'output_delta' : action === 'gate' ? 'state_transition' : action,
+          status: action === 'error' ? 'failed' : action === 'final' ? 'completed' : 'running',
+          payload: action === 'append' || action === 'replace' ? { text: 'x', replace: action === 'replace' }
+            : action === 'gate' ? { task_status_before: 'running', task_status_after: 'waiting_for_input' } : {},
+        });
+        const previous = state;
+        state = mergeExecutionLifecycle(state, event);
+        if (closed) expect(state).toBe(previous);
+        else if (action === 'append') modelOutput += 'x';
+        else if (action === 'replace') modelOutput = 'x';
+        else closed = true;
+        expect(state.output).toBe(modelOutput);
+      }
+    }
   });
 });

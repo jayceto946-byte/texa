@@ -24,7 +24,7 @@ export function mapStoredConversationMessages(
     const executionEvents = Array.isArray(item.learning_task?.artifacts?.execution_events)
       ? item.learning_task.artifacts.execution_events
       : [];
-    const lifecycle = replayExecutionEvents(executionEvents, item.content || '');
+    const lifecycle = replayExecutionEvents(executionEvents, item.content || '', item.learning_task?.active_run_id);
     const assistantStage = executionEvents.length
       ? executionMessageStage(lifecycle, item.learning_task)
       : item.learning_task?.input_action_required

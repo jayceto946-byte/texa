@@ -122,6 +122,13 @@ export async function get(path: string, timeoutMs = DEFAULT_TIMEOUT_MS): Promise
   return res.json();
 }
 
+export async function getLearningTask(taskId: string, signal?: AbortSignal): Promise<LearningTaskState> {
+  const response = await apiFetch(`/chat/tasks/${encodeURIComponent(taskId)}`, { signal });
+  if (!response.ok) throw await responseError(response, '未能读取学习记录状态');
+  const payload = await response.json();
+  return payload.learning_task;
+}
+
 export async function post(path: string, body: unknown, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<any> {
   const res = await fetchWithTimeout(apiUrl(path), {
     method: 'POST',
@@ -399,18 +406,20 @@ export function resumeFigureTaskStream(
 export async function interruptFigureTask(
   taskId: string,
   partialOutput = '',
+  runId = '',
 ): Promise<{ success: boolean; learning_task: LearningTaskState }> {
   return post(`/visual-learning/tasks/${encodeURIComponent(taskId)}/interrupt`, {
-    stage: 'user_stopped', partial_output: partialOutput,
+    stage: 'user_stopped', partial_output: partialOutput, run_id: runId,
   });
 }
 
 export async function interruptChatTask(
   taskId: string,
   partialOutput = '',
+  runId = '',
 ): Promise<{ success: boolean; learning_task: LearningTaskState }> {
   return post(`/chat/tasks/${encodeURIComponent(taskId)}/interrupt`, {
-    stage: 'user_stopped', partial_output: partialOutput,
+    stage: 'user_stopped', partial_output: partialOutput, run_id: runId,
   });
 }
 

@@ -199,7 +199,7 @@ export function useChat() {
     });
     setLoading(false);
     if (task?.id && task.interruptible) {
-      void interruptChatTask(task.id, partialOutput).then((result) => {
+      void interruptChatTask(task.id, partialOutput, task.active_run_id).then((result) => {
         updateMessageByTaskId(task.id, (message) => ({
           ...message,
           learningTask: result.learning_task,

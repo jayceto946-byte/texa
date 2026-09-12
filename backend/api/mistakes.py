@@ -1,6 +1,8 @@
 """Mistakes API: CRUD, review, provider-neutral vision and explanations."""
 from __future__ import annotations
 
+from backend.services.owned_stream import OwnedStreamingResponse, close_task_run, owned_provider_events
+
 import json
 import os
 import re
@@ -12,14 +14,18 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from fastapi.responses import FileResponse, StreamingResponse
 
-from backend.conversation_memory import ensure_conversation_id, ensure_turn_id
+from backend.conversation_memory import ensure_conversation_id, ensure_turn_id, update_learning_task_projection
 from backend.rag_trace import new_request_id
 from backend.services.execution_events import ExecutionEventEmitter, execution_sse_payload
 from backend.services.mistake_images import MistakeImageStore
+from backend.services.execution_effects import recover_task_effects, visual_effect, visual_effect_result
 from backend.services.multimodal_bridge import KimiVisionBridge, VisualProblemIR, build_solution_prompt
 from backend.services.learning_task import (
     blocking_required_inputs,
     get_learning_task_store,
+    interrupt_learning_task,
+    is_interruptible_task_status,
+    is_resumable_task_status,
     is_terminal_task_status,
     mark_required_inputs,
     resume_learning_task,
@@ -324,13 +330,19 @@ def _iter_visual_solution_chunks(
         answer_policy=answer_policy,
     )
     thinking_filter = ThinkingFilter()
-    for chunk in _get_image_reasoning_llm(
+    provider = _get_image_reasoning_llm(
         request_timeout=420,
         max_retries=0,
-    ).stream(prompt):
-        clean = thinking_filter.filter(str(getattr(chunk, "content", "") or ""))
-        if clean:
-            yield clean
+    ).stream(prompt)
+    try:
+        for chunk in provider:
+            clean = thinking_filter.filter(str(getattr(chunk, "content", "") or ""))
+            if clean:
+                yield clean
+    finally:
+        close = getattr(provider, "close", None)
+        if close:
+            close()
     tail = thinking_filter.flush()
     if tail:
         yield tail
@@ -459,6 +471,9 @@ def solve_mistake_image(
     turn_id: str = Form(""),
 ):
     image_path: Path | None = None
+    store = get_learning_task_store()
+    task = None
+    run_id = "run_" + uuid.uuid4().hex
     try:
         image_path = _image_store.save_upload(file)
         visual_ir = _ocr_image_with_kimi(image_path, user_question=question, subject=subject)
@@ -469,20 +484,21 @@ def solve_mistake_image(
                 "message": "识图模型未返回有效 OCR 文本，请手动补充题干后再解答。",
                 "ocr_text": "",
             }
+        task = _create_visual_learning_task(
+            store=store, run_id=run_id, visual_ir=visual_ir, image_path=image_path,
+            question=question, user_answer=user_answer, subject=subject, tags=tags,
+            book_name=book_name, import_to_mistakes=import_to_mistakes,
+            conversation_id=ensure_conversation_id(conversation_id), turn_id=ensure_turn_id(turn_id),
+        )
+        image_path = Path(task.artifacts["image_path"])
+        emitter = _visual_task_emitter(store=store, task=task, run_id=run_id,
+                                       request_id=new_request_id(), task_provider=lambda: task)
         missing_inputs = blocking_required_inputs(visual_ir.required_inputs)
         if missing_inputs:
-            task = _create_visual_learning_task(
-                visual_ir=visual_ir,
-                image_path=image_path,
-                question=question,
-                user_answer=user_answer,
-                subject=subject,
-                tags=tags,
-                book_name=book_name,
-                import_to_mistakes=import_to_mistakes,
-                conversation_id=conversation_id,
-                turn_id=turn_id,
-            )
+            task = store.prepare_checkpoint_for_run(task, run_id, "required_inputs", status="waiting_for_input")
+            emitter.emit("state_transition", phase="verification", status="completed",
+                         summary="等待补充必要材料",
+                         payload={"task_status_before": "running", "task_status_after": "waiting_for_input"})
             return {
                 "success": True,
                 "message": "精确解答需要补充材料。你可以补充后继续，或暂时只看方法。",
@@ -511,24 +527,15 @@ def solve_mistake_image(
             draft, explanation=explanation, book_name=book_name,
             allow_llm_fallback=False,
         )
-        if linked_concepts:
-            try:
-                from knowledge.concept_memory import ConceptMemory
-
-                ConceptMemory(book_name).log_exposure(
-                    linked_concepts, visual_ir.problem_text or question, "image_qa",
-                    source="chat_image", subject=draft.subject,
-                )
-            except Exception as exc:
-                print(f"[ConceptMemory] image QA exposure failed: {exc}", flush=True)
-        mistake_id = ""
-        if import_to_mistakes:
-            committed_path, _ = _image_store.commit_pending(str(image_path))
-            image_path = Path(committed_path)
-            draft.image_path = committed_path
-            draft.linked_concepts = linked_concepts
-            mistake_id = _mb(book_name).add(draft)
-            _log_learning_event("mistake_added", book_name=book_name, record=draft, payload={"origin": "chat_image"})
+        draft.linked_concepts = linked_concepts
+        task.artifacts.update(completed_derivation=explanation, linked_concepts=linked_concepts,
+                              visual_effect_proposal=visual_effect(draft, book_name=book_name,
+                                                                   import_to_mistakes=import_to_mistakes))
+        task.verification = answer_verification
+        task = store.prepare_checkpoint_for_run(task, run_id, "answer_generated",
+                    status="completed" if answer_verification.get("passed") else "degraded")
+        emitter.emit("final", phase="final", status="completed", summary="讲解已保存",
+                     payload={"task_status": task.status})
         return {
             "success": True,
             "message": "识图模型已提取题干与图形关系并完成讲解，请校对视觉不确定项。",
@@ -539,11 +546,20 @@ def solve_mistake_image(
             "optimized": image_path.name.endswith("_ocr.jpg"),
             "explanation": explanation,
             "linked_concepts": linked_concepts,
-            "mistake_id": mistake_id,
+            **getattr(emitter, "effects_result", {}),
             "answer_verification": answer_verification,
         }
     except Exception as e:
-        _image_store.delete(image_path)
+        if task is not None:
+            current = store.get(task.id)
+            if current and current.status in {"completed", "degraded"}:
+                return {"success": True, "explanation": current.artifacts.get("completed_derivation", ""),
+                        "learning_task": current.to_dict(public=True), "effects_status": "pending",
+                        "effects_message": "答案已保存，学习记录待恢复"}
+            if store.run_is_active(task.id, run_id):
+                close_task_run(store, task, run_id)
+        else:
+            _image_store.delete(image_path)
         return {"success": False, "message": f"讲解失败: {e}"}
 
 
@@ -561,9 +577,40 @@ def _execution_event_sse(
     return _sse(envelope)
 
 
-def _visual_task_emitter(*, store, task, run_id: str, request_id: str) -> ExecutionEventEmitter:
+def _visual_task_emitter(*, store, task, run_id: str, request_id: str, task_provider=None) -> ExecutionEventEmitter:
     def persist_execution_event(event: dict) -> None:
-        updated = store.append_execution_event_for_run(task.id, run_id, event)
+        current_task = task_provider() if task_provider else task
+        input_gate = event.get("type") == "state_transition" and event["payload"].get("task_status_after") == "waiting_for_input"
+        if event.get("type") in {"final", "error"} or input_gate:
+            artifacts = current_task.artifacts
+            content = (str(artifacts.get("completed_derivation") or "") if event["type"] == "final" else
+                       "精确解答已暂停：缺失材料会影响最终结论。" if input_gate else event["summary"])
+            scope = {"book_name": str(artifacts.get("book_name") or "default"),
+                     "subject": str(artifacts.get("subject") or ""), "request_id": request_id}
+            messages = [
+                {"role": "user", "text": str(artifacts.get("question") or current_task.goal), **scope},
+                {"role": "assistant", "text": content, "linked_concepts": artifacts.get("linked_concepts") or [],
+                 "delivery_status": "waiting" if input_gate else "error" if event["type"] == "error" else "complete", **scope},
+            ]
+            proposal = artifacts.get("visual_effect_proposal")
+            updated = store.commit_outcome(current_task, run_id, event, messages=messages,
+                                           effects=[proposal] if proposal and event["type"] == "final" else [])
+            if proposal and event["type"] == "final":
+                try:
+                    recover_task_effects(store, task.id, run_id=run_id)
+                except Exception:
+                    # A committed answer must stay delivered even if a receipt write fails.
+                    pass
+                emitter.effects_result = visual_effect_result(store, task.id, run_id)
+                updated = store.get(task.id)
+                emitter.effects_result["learning_task"] = updated.to_dict(public=True)
+            try:
+                projected = store.project_outcome(task.id, run_id=run_id)
+                emitter.message_id = str(projected[-1].get("id") or "") if projected else ""
+            except Exception:
+                emitter.persistence_error = "答案已保存在任务中，会话投影待恢复"
+        else:
+            updated = store.append_execution_event_for_run(task.id, run_id, event)
         if (
             updated is None
             or str(updated.artifacts.get("active_run_id") or "") != run_id
@@ -584,7 +631,7 @@ def _visual_task_emitter(*, store, task, run_id: str, request_id: str) -> Execut
             updated.artifacts.get("execution_events") or []
         )[-40:]
 
-    return ExecutionEventEmitter(
+    emitter = ExecutionEventEmitter(
         request_id=request_id,
         task_id=task.id,
         run_id=run_id,
@@ -592,6 +639,7 @@ def _visual_task_emitter(*, store, task, run_id: str, request_id: str) -> Execut
         turn_id=task.turn_id,
         persist=persist_execution_event,
     )
+    return emitter
 
 
 def _create_visual_learning_task(
@@ -608,6 +656,7 @@ def _create_visual_learning_task(
     conversation_id: str = "",
     turn_id: str = "",
     run_id: str,
+    vision_pending: bool = False,
 ):
     task = store.create(
         task_type="visual_qa",
@@ -633,10 +682,13 @@ def _create_visual_learning_task(
             "import_to_mistakes": bool(import_to_mistakes),
             "completed_derivation": "",
             "active_run_id": run_id,
+            "vision_pending": vision_pending,
         },
         status="running",
     )
-    return task
+    retained = _image_store.retain_for_task(image_path, task.id)
+    task.artifacts["image_path"] = str(retained)
+    return store.save_for_run(task, run_id)
 
 
 def _verify_visual_answer(
@@ -683,7 +735,7 @@ def _stream_solution_events(
     )
     chunks: list[str] = []
     first_visible_chunk = True
-    for chunk in _iter_visual_solution_chunks(
+    with owned_provider_events(lambda: _iter_visual_solution_chunks(
         visual_ir,
         user_question=user_question,
         user_answer=user_answer,
@@ -691,22 +743,28 @@ def _stream_solution_events(
         tags=tags,
         supplemental_visual_irs=supplemental_visual_irs,
         answer_policy=answer_policy,
-    ):
-        if first_visible_chunk:
-            first_visible_chunk = False
+    )) as provider_events:
+        for event_type, chunk in provider_events:
+            if event_type == "progress":
+                yield emit_sse("progress", phase="reasoning", status="running",
+                               summary="模型仍在处理当前问题", operation_id="reason",
+                               label=reason_label, kind="reasoning")
+                continue
+            if first_visible_chunk:
+                first_visible_chunk = False
+                yield emit_sse(
+                    "progress", phase="reasoning", status="completed",
+                    summary="已形成可展示的解题路径", operation_id="reason",
+                    label=reason_label, kind="reasoning",
+                    duration_ms=round((time.perf_counter() - step_started) * 1000, 2),
+                )
+            chunks.append(chunk)
             yield emit_sse(
-                "progress", phase="reasoning", status="completed",
-                summary="已形成可展示的解题路径", operation_id="reason",
-                label=reason_label, kind="reasoning",
-                duration_ms=round((time.perf_counter() - step_started) * 1000, 2),
+                "output_delta", phase="generation", status="running",
+                summary="正在逐步输出正式讲解", operation_id="generate",
+                label="生成答案", kind="generation",
+                payload={"text": str(chunk or ""), "replace": False},
             )
-        chunks.append(chunk)
-        yield emit_sse(
-            "output_delta", phase="generation", status="running",
-            summary="正在逐步输出正式讲解", operation_id="generate",
-            label="生成答案", kind="generation",
-            payload={"text": str(chunk or ""), "replace": False},
-        )
 
     if first_visible_chunk:
         yield emit_sse(
@@ -750,10 +808,11 @@ def solve_mistake_image_stream(
     resolved_conversation_id = ensure_conversation_id(conversation_id)
     resolved_turn_id = ensure_turn_id(turn_id)
     store = get_learning_task_store()
+    task = None
 
     def events():
+        nonlocal task
         image_path: Path | None = None
-        task = None
         emitter = None
         started = time.perf_counter()
 
@@ -787,6 +846,11 @@ def solve_mistake_image_stream(
                 payload=payload,
                 duration_ms=duration_ms,
             )
+            if event_type in {"final", "error"}:
+                extra = {**(extra or {}), "result": {**((extra or {}).get("result") or {}),
+                         "message_id": getattr(emitter, "message_id", ""),
+                         "persistence_error": getattr(emitter, "persistence_error", ""),
+                         **getattr(emitter, "effects_result", {})}}
             return _execution_event_sse(event, extra=extra)
 
         try:
@@ -805,15 +869,18 @@ def solve_mistake_image_stream(
                 conversation_id=resolved_conversation_id,
                 turn_id=resolved_turn_id,
                 run_id=run_id,
+                vision_pending=True,
             )
+            image_path = Path(task.artifacts["image_path"])
             emitter = _visual_task_emitter(
-                store=store, task=task, run_id=run_id, request_id=request_id,
+                store=store, task=task, run_id=run_id, request_id=request_id, task_provider=lambda: task,
             )
             yield emit_sse(
                 "tool_result", phase="input", status="completed",
                 summary="图片已安全接收并完成尺寸优化", operation_id="attachment",
                 label="读取题目图片", kind="tool",
                 payload={"image_path": str(image_path)},
+                extra={"learning_task": task.to_dict(public=True)},
                 duration_ms=round((time.perf_counter() - step_started) * 1000, 2),
             )
 
@@ -830,6 +897,7 @@ def solve_mistake_image_stream(
                 return
             task.required_inputs = [dict(item) for item in visual_ir.required_inputs]
             task.artifacts["visual_ir"] = visual_ir.to_dict()
+            task.artifacts["vision_pending"] = False
             task = store.save_for_run(task, run_id)
             if not store.run_is_active(task.id, run_id):
                 return
@@ -849,7 +917,7 @@ def solve_mistake_image_stream(
 
             missing_inputs = blocking_required_inputs(visual_ir.required_inputs)
             if missing_inputs:
-                task = store.checkpoint_for_run(
+                task = store.prepare_checkpoint_for_run(
                     task, run_id, "required_inputs", status="waiting_for_input",
                     detail=f"{len(missing_inputs)} blocking inputs",
                 )
@@ -920,32 +988,16 @@ def solve_mistake_image_stream(
             )
             if not store.run_is_active(task.id, run_id):
                 return
-            if linked_concepts:
-                try:
-                    from knowledge.concept_memory import ConceptMemory
-                    ConceptMemory(book_name).log_exposure(
-                        linked_concepts, visual_ir.problem_text or question, "image_qa",
-                        source="chat_image", subject=draft.subject,
-                    )
-                except Exception as exc:
-                    print(f"[ConceptMemory] image QA exposure failed: {exc}", flush=True)
-
-            if not store.run_is_active(task.id, run_id):
-                return
             mistake_id = ""
-            if import_to_mistakes:
-                committed_path, _ = _image_store.commit_pending(str(image_path))
-                image_path = Path(committed_path)
-                draft.image_path = committed_path
-                draft.linked_concepts = linked_concepts
-                mistake_id = _mb(book_name).add(draft)
-                _log_learning_event("mistake_added", book_name=book_name, record=draft, payload={"origin": "chat_image"})
-            if not store.run_is_active(task.id, run_id):
-                return
+            draft.linked_concepts = linked_concepts
+            task.artifacts["visual_effect_proposal"] = visual_effect(
+                draft, book_name=book_name, import_to_mistakes=import_to_mistakes,
+            )
             task.artifacts["completed_derivation"] = explanation
+            task.artifacts["linked_concepts"] = linked_concepts
             task.verification = answer_verification
             completion_status = "completed" if answer_verification.get("passed") else "degraded"
-            task = store.checkpoint_for_run(
+            task = store.prepare_checkpoint_for_run(
                 task, run_id, "answer_generated", status=completion_status,
                 detail=str(answer_verification.get("status") or "unknown"),
             )
@@ -953,10 +1005,7 @@ def solve_mistake_image_stream(
                 return
             yield emit_sse(
                 "final", phase="final", status="completed",
-                summary=(
-                    f"已关联 {len(linked_concepts)} 个概念" + ("并导入错题本" if mistake_id else "")
-                    if linked_concepts or mistake_id else "讲解已完成，未写入错题本"
-                ),
+                summary="讲解已保存" + (f"，已关联 {len(linked_concepts)} 个概念" if linked_concepts else ""),
                 operation_id="mistake-answer", label="完成错题讲解", kind="memory",
                 payload={"task_status": task.status, "mistake_id": mistake_id},
                 extra={
@@ -981,7 +1030,7 @@ def solve_mistake_image_stream(
                 return
             _image_store.delete(image_path)
             if task is not None and emitter is not None:
-                task = store.checkpoint_for_run(
+                task = store.prepare_checkpoint_for_run(
                     task, run_id, "failed", status="failed", detail=str(exc),
                 )
                 if task.status != "failed":
@@ -1001,10 +1050,28 @@ def solve_mistake_image_stream(
                 )
                 yield _execution_event_sse(event)
 
-    return StreamingResponse(
-        events(), media_type="text/event-stream",
+    return OwnedStreamingResponse(
+        events(), on_close=lambda: close_task_run(store, task, run_id), media_type="text/event-stream",
         headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
     )
+
+
+@router.post("/visual-tasks/{task_id}/interrupt")
+def interrupt_visual_learning_task(task_id: str, payload: dict | None = None):
+    store = get_learning_task_store()
+    task = store.get(task_id)
+    if task is None or task.task_type != "visual_qa":
+        raise HTTPException(status_code=404, detail="learning task not found")
+    body = payload or {}
+    if not body.get("run_id") or body["run_id"] != task.artifacts.get("active_run_id"):
+        raise HTTPException(status_code=409, detail="interrupt requires the current run_id")
+    if is_interruptible_task_status(task.status):
+        task = interrupt_learning_task(store, task, stage="stopped",
+                                       partial_output=str(body.get("partial_output") or ""),
+                                       expected_run_id=body["run_id"])
+    public_task = task.to_dict(public=True)
+    update_learning_task_projection(task.conversation_id, task.id, public_task)
+    return {"success": True, "learning_task": public_task}
 
 
 @router.post("/visual-tasks/{task_id}/resume-stream")
@@ -1022,12 +1089,14 @@ def resume_visual_learning_task(
         raise HTTPException(status_code=409, detail="图片学习任务缺少 execution identity，不能恢复")
     if is_terminal_task_status(task.status):
         raise HTTPException(status_code=409, detail=f"当前任务已终止：{task.status}")
-    if not task_requires_input_action(task.status):
+    if not (task_requires_input_action(task.status) or is_resumable_task_status(task.status)):
         raise HTTPException(status_code=409, detail=f"当前任务状态不能恢复：{task.status}")
 
     normalized_action = str(action or "").strip().lower()
-    if normalized_action not in {"provide_input", "method_only"}:
+    if normalized_action not in {"provide_input", "method_only", "resume"}:
         raise HTTPException(status_code=400, detail="无效的恢复方式")
+    if normalized_action == "resume" and not is_resumable_task_status(task.status):
+        raise HTTPException(status_code=409, detail="当前任务需要补充材料或明确选择只讲方法")
     if normalized_action == "provide_input" and file is None:
         raise HTTPException(status_code=400, detail="请先选择要补充的图片或附表")
 
@@ -1043,7 +1112,7 @@ def resume_visual_learning_task(
             return
 
         emitter = _visual_task_emitter(
-            store=store, task=task, run_id=run_id, request_id=request_id,
+            store=store, task=task, run_id=run_id, request_id=request_id, task_provider=lambda: task,
         )
 
         def emit_sse(
@@ -1074,6 +1143,11 @@ def resume_visual_learning_task(
                 payload=payload,
                 duration_ms=duration_ms,
             )
+            if event_type in {"final", "error"}:
+                extra = {**(extra or {}), "result": {**((extra or {}).get("result") or {}),
+                         "message_id": getattr(emitter, "message_id", ""),
+                         "persistence_error": getattr(emitter, "persistence_error", ""),
+                         **getattr(emitter, "effects_result", {})}}
             return _execution_event_sse(event, extra=extra)
 
         yield emit_sse(
@@ -1089,6 +1163,40 @@ def resume_visual_learning_task(
 
         artifacts = dict(task.artifacts or {})
         original_ir = VisualProblemIR.from_dict(dict(artifacts.get("visual_ir") or {}))
+        if artifacts.get("vision_pending"):
+            try:
+                original_ir = _ocr_image_with_kimi(
+                    Path(artifacts["image_path"]),
+                    user_question=str(artifacts.get("question") or ""),
+                    subject=str(artifacts.get("subject") or ""),
+                )
+                if not original_ir.problem_text and not original_ir.visual_summary:
+                    raise RuntimeError("识图模型未返回有效题目内容")
+                if not store.run_is_active(task.id, run_id):
+                    return
+                artifacts.update(visual_ir=original_ir.to_dict(), vision_pending=False)
+                task.artifacts = artifacts
+                task.required_inputs = [dict(item) for item in original_ir.required_inputs]
+                task = store.save_for_run(task, run_id)
+            except Exception as exc:
+                if not store.run_is_active(task.id, run_id):
+                    return
+                task = store.prepare_checkpoint_for_run(task, run_id, "vision_failed", status="failed", detail=str(exc))
+                yield emit_sse("error", phase="error", status="failed", summary=str(exc),
+                               operation_id="vision", label="识图失败", kind="system",
+                               payload={"task_status": task.status, "error_code": "mistake_vision_failed"},
+                               extra={"learning_task": task.to_dict(public=True)})
+                return
+        if normalized_action == "resume" and blocking_required_inputs(task.required_inputs):
+            task = store.prepare_checkpoint_for_run(task, run_id, "required_inputs", status="waiting_for_input")
+            if task.status != "waiting_for_input" or task.artifacts.get("active_run_id") != run_id:
+                return
+            transition = emitter.emit("state_transition", phase="input", status="completed",
+                           summary="缺失材料会影响最终结论，请补充材料或选择只讲方法",
+                           operation_id="required-inputs", label="等待补充材料", kind="system",
+                           payload={"task_status_before": "running", "task_status_after": "waiting_for_input"})
+            yield _execution_event_sse(transition, extra={"learning_task": task.to_dict(public=True)})
+            return
         supplemental_irs = [
             VisualProblemIR.from_dict(item)
             for item in (artifacts.get("supplemental_visual_irs") or [])
@@ -1121,7 +1229,7 @@ def resume_visual_learning_task(
                 if not store.run_is_active(task.id, run_id):
                     return
                 _image_store.delete(supplemental_path)
-                task = store.checkpoint_for_run(
+                task = store.prepare_checkpoint_for_run(
                     task, run_id, "input_parse_failed", status="waiting_for_input",
                     detail=str(exc),
                 )
@@ -1150,12 +1258,16 @@ def resume_visual_learning_task(
             mark_required_inputs(task, "provided")
             answer_policy = "exact"
             detail = "补充材料已合并，继续原任务"
-        else:
+        elif normalized_action == "method_only":
             mark_required_inputs(task, "waived")
             answer_policy = "method_only"
             detail = "已按用户选择降级为只讲方法"
+        else:
+            answer_policy = str(artifacts.get("answer_policy") or "exact")
+            detail = "重用已保存的视觉材料与回答策略，继续原任务"
 
         try:
+            artifacts["answer_policy"] = answer_policy
             task.artifacts = artifacts
             task = store.checkpoint_for_run(task, run_id, "inputs_resolved", detail=detail)
             if not store.run_is_active(task.id, run_id):
@@ -1186,7 +1298,7 @@ def resume_visual_learning_task(
                 required_outputs=task.required_outputs,
                 answer_policy=answer_policy,
             )
-            if normalized_action == "method_only" and "未验证估算" not in explanation and "未作为精确答案" not in explanation:
+            if answer_policy == "method_only" and "未验证估算" not in explanation and "未作为精确答案" not in explanation:
                 explanation = explanation.rstrip() + "\n\n> 本次未补充必要材料；涉及的数值结论均未作为精确答案提交。"
             if explanation != raw_explanation:
                 yield emit_sse(
@@ -1201,7 +1313,7 @@ def resume_visual_learning_task(
             task.artifacts["completed_derivation"] = explanation
             task.verification = {
                 **answer_verification,
-                "input_gate": "passed" if normalized_action == "provide_input" else "degraded_method_only",
+                "input_gate": "degraded_method_only" if answer_policy == "method_only" else "passed",
             }
             completion_status = "completed" if answer_verification.get("passed") else "degraded"
             book_name = str(artifacts.get("book_name") or "default")
@@ -1219,19 +1331,19 @@ def resume_visual_learning_task(
             linked_concepts = _link_mistake_concepts(
                 draft, explanation=explanation, book_name=book_name, allow_llm_fallback=False,
             )
+            task.artifacts["linked_concepts"] = linked_concepts
             if not store.run_is_active(task.id, run_id):
                 return
             mistake_id = ""
-            if bool(artifacts.get("import_to_mistakes")):
-                committed_path, _ = _image_store.commit_pending(str(artifacts.get("image_path") or ""))
-                draft.image_path = committed_path
-                draft.linked_concepts = linked_concepts
-                mistake_id = _mb(book_name).add(draft)
-                _log_learning_event("mistake_added", book_name=book_name, record=draft, payload={"origin": "chat_image_resumed"})
+            draft.image_path = str(_image_store.retain_for_task(draft.image_path, task.id))
+            draft.linked_concepts = linked_concepts
+            task.artifacts["visual_effect_proposal"] = visual_effect(
+                draft, book_name=book_name, import_to_mistakes=bool(artifacts.get("import_to_mistakes")),
+            )
 
             if not store.run_is_active(task.id, run_id):
                 return
-            task = store.checkpoint_for_run(
+            task = store.prepare_checkpoint_for_run(
                 task, run_id, "answer_generated", status=completion_status,
                 detail="原任务已恢复并完成验收",
             )
@@ -1260,7 +1372,7 @@ def resume_visual_learning_task(
         except Exception as exc:
             if not store.run_is_active(task.id, run_id):
                 return
-            task = store.checkpoint_for_run(
+            task = store.prepare_checkpoint_for_run(
                 task, run_id, "resume_failed", status="failed", detail=str(exc),
             )
             if task.status != "failed":
@@ -1272,8 +1384,8 @@ def resume_visual_learning_task(
                 extra={"learning_task": task.to_dict(public=True)},
             )
 
-    return StreamingResponse(
-        events(), media_type="text/event-stream",
+    return OwnedStreamingResponse(
+        events(), on_close=lambda: close_task_run(store, task, run_id), media_type="text/event-stream",
         headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
     )
 

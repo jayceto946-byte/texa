@@ -51,7 +51,7 @@ describe('Texa product UI contract', () => {
 
   it('keeps Figure interruption resumable through the original learning task', () => {
     expect(chatPage).toContain('activeFigureIdentityRef.current = { taskId: lifecycle.taskId, runId: lifecycle.runId }');
-    expect(chatPage).toContain('interruptFigureTask(figureTaskId, partialOutput)');
+    expect(chatPage).toContain('interruptFigureTask(figureTaskId, partialOutput, task?.active_run_id || identity?.runId)');
     expect(chatPage).toContain("task.task_type === 'figure_qa'");
     expect(chatPage).toContain('resumeFigureTaskStream(task.id');
     expect(chatPage).toContain('onResumeInterruptedTask={resumeInterruptedTask}');
@@ -213,7 +213,7 @@ describe('Texa product UI contract', () => {
     expect(modelSettings).toContain("label: '添加自定义模型…'");
     expect(modelSettings).toContain('显示名称');
     expect(modelSettings).toContain('placeholder="例如：qwen3.7-plus"');
-    expect(modelSettings.match(/\n\s+compact\n/g)).toHaveLength(4);
+    expect(modelSettings.match(/\r?\n\s+compact\r?\n/g)).toHaveLength(4);
     expect(modelSettings).not.toContain('仅用于在 Texa 中显示');
     expect(modelSettings).not.toContain('通常由小写字母');
     expect(modelSettings).not.toContain('<select');

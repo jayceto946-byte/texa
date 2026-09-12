@@ -1,6 +1,8 @@
 """Read-only Canonical Figure APIs and the bounded Figure question stream."""
 from __future__ import annotations
 
+from backend.services.owned_stream import OwnedStreamingResponse, close_task_run, owned_provider_events
+
 from contextlib import nullcontext
 import json
 import logging
@@ -10,7 +12,7 @@ from urllib.parse import quote
 import uuid
 
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse
 
 from backend.conversation_memory import append_message, ensure_turn_id, resolve_conversation_id_for_scope
 from backend.rag_trace import new_request_id
@@ -155,6 +157,7 @@ def _figure_stream(
 
     active_run_id = run_id or f"run_{uuid.uuid4().hex}"
     request_id = new_request_id()
+    owned_task = [existing_task]
 
     def events():
         service = _service()
@@ -203,8 +206,13 @@ def _figure_stream(
         if not store.run_is_active(task.id, active_run_id):
             return
 
+        owned_task[0] = task
+        outcome_messages = []
         def persist_execution_event(event: dict) -> None:
-            updated = store.append_execution_event_for_run(task.id, active_run_id, event)
+            if event.get("type") in {"final", "error"}:
+                updated = store.commit_outcome(task, active_run_id, event, messages=outcome_messages)
+            else:
+                updated = store.append_execution_event_for_run(task.id, active_run_id, event)
             if (
                 updated is None
                 or str(updated.artifacts.get("active_run_id") or "") != active_run_id
@@ -255,6 +263,14 @@ def _figure_stream(
                 kind=kind,
                 payload=payload,
             )
+            if event_type in {"final", "error"}:
+                try:
+                    projected = store.project_outcome(task.id, run_id=active_run_id, append=append_message)
+                    if extra and isinstance(extra.get("result"), dict):
+                        extra["result"]["message_id"] = (projected[-1] if projected else {}).get("id", "")
+                except Exception as exc:
+                    extra = {**(extra or {}), "persistence_error": str(exc)}
+                    logger.exception("Figure outcome projection pending recovery")
             envelope = execution_sse_payload(execution_event, sidecar=extra)
             return _sse(envelope)
 
@@ -334,7 +350,7 @@ def _figure_stream(
                     kind="reasoning",
                 )
                 bridge = VisionModelBridge()
-                for chunk in bridge.iter_figure_answer(
+                with owned_provider_events(lambda: bridge.iter_figure_answer(
                     full_image,
                     user_question=req.question,
                     figure_context={
@@ -343,25 +359,31 @@ def _figure_stream(
                         "evidence_sources": sources,
                     },
                     cropped_region_path=crop_path,
-                ):
-                    if not store.run_is_active(task.id, active_run_id):
-                        return
-                    visible_chunk = str(chunk or "")
-                    answer_chunks.append(visible_chunk)
-                    task.artifacts["partial_output"] = "".join(answer_chunks)[-12000:]
-                    task = store.save_for_run(task, active_run_id)
-                    if not store.run_is_active(task.id, active_run_id):
-                        return
-                    yield emit_sse(
-                        "output_delta",
-                        phase="generation",
-                        status="running",
-                        summary="正在生成 Figure 讲解",
-                        operation_id="figure-answer",
-                        label="生成 Figure 讲解",
-                        kind="generation",
-                        payload={"text": visible_chunk, "replace": False},
-                    )
+                )) as provider_events:
+                    for event_type, chunk in provider_events:
+                        if event_type == "progress":
+                            yield emit_sse("progress", phase="reasoning", status="running",
+                                           summary="模型仍在处理当前问题", operation_id="figure-vision",
+                                           label="理解 Figure 与选区", kind="reasoning")
+                            continue
+                        if not store.run_is_active(task.id, active_run_id):
+                            return
+                        visible_chunk = str(chunk or "")
+                        answer_chunks.append(visible_chunk)
+                        task.artifacts["partial_output"] = "".join(answer_chunks)[-12000:]
+                        task = store.save_for_run(task, active_run_id)
+                        if not store.run_is_active(task.id, active_run_id):
+                            return
+                        yield emit_sse(
+                            "output_delta",
+                            phase="generation",
+                            status="running",
+                            summary="正在生成 Figure 讲解",
+                            operation_id="figure-answer",
+                            label="生成 Figure 讲解",
+                            kind="generation",
+                            payload={"text": visible_chunk, "replace": False},
+                        )
 
             if not store.run_is_active(task.id, active_run_id):
                 return
@@ -397,7 +419,7 @@ def _figure_stream(
             task.artifacts["answer"] = answer
             task.artifacts.pop("partial_output", None)
             completion_status = "completed" if answer_verification.get("status") == "passed" else "degraded"
-            task = store.checkpoint_for_run(
+            task = store.prepare_checkpoint_for_run(
                 task, active_run_id, "verified", status=completion_status,
                 detail=str(answer_verification.get("status") or "unknown"),
             )
@@ -406,26 +428,13 @@ def _figure_stream(
 
             assistant_message: dict = {}
             persistence_error = ""
-            try:
-                append_message(
-                    conversation_id, "user", _display_question(task),
-                    book_name=req.book_name, subject=req.subject, turn_id=turn_id,
-                )
-                assistant_message = append_message(
-                    conversation_id, "assistant", answer,
-                    book_name=req.book_name, subject=req.subject, turn_id=turn_id,
-                    sources=sources, answer_mode="visual_grounded",
-                    evidence_support_status=(
-                        "grounded" if citation_provenance["status"] == "model_aligned" else "degraded"
-                    ),
-                    delivery_status="complete", learning_task=task.to_dict(public=True),
-                    citation_provenance=citation_provenance,
-                )
-            except Exception as persistence_exc:
-                persistence_error = str(persistence_exc)
-                logger.exception("Figure conversation persistence failed")
-            task.artifacts["message_id"] = assistant_message.get("id", "")
-            store.save(task)
+            outcome_messages = [
+                {"role": "user", "text": _display_question(task), "book_name": req.book_name, "subject": req.subject},
+                {"role": "assistant", "text": answer, "book_name": req.book_name, "subject": req.subject,
+                 "sources": sources, "answer_mode": "visual_grounded", "delivery_status": "complete",
+                 "evidence_support_status": "grounded" if citation_provenance["status"] == "model_aligned" else "degraded",
+                 "citation_provenance": citation_provenance},
+            ]
             yield emit_sse(
                 "final",
                 phase="final",
@@ -462,26 +471,18 @@ def _figure_stream(
             if not store.run_is_active(task.id, active_run_id):
                 return
             task.verification = {"status": "failed", "passed": False, "checks": []}
-            task = store.checkpoint_for_run(
+            task = store.prepare_checkpoint_for_run(
                 task, active_run_id, "failed", status="failed", detail=str(exc),
             )
             if task.status != "failed":
                 return
             persistence_error = ""
-            try:
-                append_message(
-                    task.conversation_id, "user", _display_question(task),
-                    book_name=req.book_name, subject=req.subject, turn_id=task.turn_id,
-                )
-                append_message(
-                    task.conversation_id, "assistant", f"教材图片问答失败：{exc}",
-                    book_name=req.book_name, subject=req.subject, turn_id=task.turn_id,
-                    sources=sources, answer_mode="visual_grounded", evidence_support_status="failed",
-                    delivery_status="error", learning_task=task.to_dict(public=True),
-                )
-            except Exception as persistence_exc:
-                persistence_error = str(persistence_exc)
-                logger.exception("Figure failure projection persistence failed")
+            outcome_messages = [
+                {"role": "user", "text": _display_question(task), "book_name": req.book_name, "subject": req.subject},
+                {"role": "assistant", "text": str(exc), "book_name": req.book_name, "subject": req.subject,
+                 "sources": sources, "answer_mode": "visual_grounded", "delivery_status": "error",
+                 "evidence_support_status": "failed"},
+            ]
             http_status = _http_error(exc).status_code
             error_code = (
                 "figure_index_out_of_date"
@@ -508,8 +509,8 @@ def _figure_stream(
                 },
             )
 
-    return StreamingResponse(
-        events(), media_type="text/event-stream",
+    return OwnedStreamingResponse(
+        events(), on_close=lambda: close_task_run(_task_store(), owned_task[0], active_run_id), media_type="text/event-stream",
         headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
     )
 
@@ -526,11 +527,14 @@ def interrupt_figure_task(task_id: str, payload: dict | None = None):
     if task is None or task.task_type != "figure_qa":
         raise HTTPException(status_code=404, detail="Figure learning task not found")
     data = payload or {}
+    if not data.get("run_id") or data["run_id"] != task.artifacts.get("active_run_id"):
+        raise HTTPException(status_code=409, detail="interrupt requires the current run_id")
     task = interrupt_learning_task(
         store,
         task,
         stage=str(data.get("stage") or "user_stopped"),
         partial_output=str(data.get("partial_output") or ""),
+        expected_run_id=data["run_id"],
     )
     if is_resumable_task_status(task.status):
         book_name = str(task.artifacts.get("book_name") or "")

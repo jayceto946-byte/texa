@@ -291,15 +291,20 @@ JSON 字段固定为：
             client=self.client,
         )
         thinking_filter = ThinkingFilter()
-        for chunk in response:
-            choices = getattr(chunk, "choices", None) or []
-            delta = getattr(choices[0], "delta", None) if choices else None
-            raw = getattr(delta, "content", "") if delta is not None else ""
-            if not isinstance(raw, str):
-                raw = json.dumps(raw, ensure_ascii=False) if raw else ""
-            clean = thinking_filter.filter(raw)
-            if clean:
-                yield clean
+        try:
+            for chunk in response:
+                choices = getattr(chunk, "choices", None) or []
+                delta = getattr(choices[0], "delta", None) if choices else None
+                raw = getattr(delta, "content", "") if delta is not None else ""
+                if not isinstance(raw, str):
+                    raw = json.dumps(raw, ensure_ascii=False) if raw else ""
+                clean = thinking_filter.filter(raw)
+                if clean:
+                    yield clean
+        finally:
+            close = getattr(response, "close", None)
+            if close:
+                close()
         tail = thinking_filter.flush()
         if tail:
             yield tail

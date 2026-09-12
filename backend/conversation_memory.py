@@ -117,11 +117,21 @@ def latest_message_marker(conversation_id: str) -> tuple[int, str]:
     with _connect_events() as conn:
         _ensure_event_projection(conn, conversation_id)
         row = conn.execute(
-            "SELECT seq, message_id FROM conversation_messages "
-            "WHERE conversation_id = ? ORDER BY seq DESC LIMIT 1",
+            "SELECT (SELECT COALESCE(MAX(event_id), 0) FROM conversation_events e "
+            "WHERE e.conversation_id = conversation_messages.conversation_id) AS seq, message_id FROM conversation_messages "
+            "WHERE conversation_id = ? ORDER BY conversation_messages.seq DESC LIMIT 1",
             (conversation_id,),
         ).fetchone()
     return (int(row["seq"]), str(row["message_id"] or "")) if row else (0, "")
+
+
+def resolution_is_current(conversation_id: str, base_revision: int, message_id: str) -> bool:
+    with _connect_events() as conn:
+        rows = conn.execute(
+            "SELECT event_type, message_id FROM conversation_events WHERE conversation_id = ? AND event_id > ?",
+            (conversation_id, base_revision),
+        ).fetchall()
+    return len(rows) == 1 and rows[0]["event_type"] == "message_added" and rows[0]["message_id"] == message_id
 
 
 def load_session_ledger_projection(conversation_id: str) -> dict | None:
@@ -159,13 +169,19 @@ def load_session_ledger_projection(conversation_id: str) -> dict | None:
 def save_session_ledger_projection(conversation_id: str, value: dict) -> bool:
     conversation_id = ensure_conversation_id(conversation_id)
     with _connect_events() as conn:
+        conn.execute("BEGIN IMMEDIATE")
         _ensure_event_projection(conn, conversation_id)
         latest = conn.execute(
-            "SELECT seq, message_id FROM conversation_messages "
-            "WHERE conversation_id = ? ORDER BY seq DESC LIMIT 1",
+            "SELECT (SELECT COALESCE(MAX(event_id), 0) FROM conversation_events e "
+            "WHERE e.conversation_id = conversation_messages.conversation_id) AS seq, message_id FROM conversation_messages "
+            "WHERE conversation_id = ? ORDER BY conversation_messages.seq DESC LIMIT 1",
             (conversation_id,),
         ).fetchone()
         if latest is None:
+            return False
+        if "last_seq" in value and int(value["last_seq"]) != int(latest["seq"]):
+            return False
+        if value.get("last_message_id") and value["last_message_id"] != latest["message_id"]:
             return False
         conn.execute(
             "INSERT INTO conversation_ledgers "
@@ -642,10 +658,19 @@ def update_learning_task_projection(
     conversation_id: str,
     task_id: str,
     learning_task: dict,
+    *,
+    message_id: str = "",
 ) -> bool:
     """Refresh the latest assistant snapshot after an out-of-band task action."""
     if not conversation_id or not task_id or not isinstance(learning_task, dict):
         return False
+    if message_id:
+        with _conversation_lock(conversation_id):
+            message = get_message(conversation_id, message_id)
+            if not message or (message.get("learning_task") or {}).get("id") != task_id:
+                return False
+            return _update_projected_message(conversation_id, message_id, updates={"learning_task": learning_task},
+                                             event_type="message_learning_task_updated")
     page = load_message_page(conversation_id, limit=20)
     for item in reversed(page.get("messages") or []):
         task_ref = item.get("learning_task") if isinstance(item, dict) else None

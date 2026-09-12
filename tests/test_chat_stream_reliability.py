@@ -80,8 +80,8 @@ def _resume_checkpoint(**updates):
         "intent": "qa",
         "target_chapters": ["chapter-1"],
         "chapter_contents": {"chapter-1": ["材料受力后电阻率变化"]},
-        "evidence_items": [{"chunk_id": "chunk-1", "text": "材料受力后电阻率变化"}],
-        "evidence_sources": [{"id": "E1", "chunk_id": "chunk-1", "text": "材料受力后电阻率变化"}],
+        "evidence_items": [{"chunk_id": "chunk-1", "text": "材料受力后电阻率变化", "book_name": "demo-book", "index_version": "index-v2"}],
+        "evidence_sources": [{"id": "E1", "chunk_id": "chunk-1", "text": "材料受力后电阻率变化", "book_name": "demo-book", "index_version": "index-v2"}],
         "retrieval_status": "ok",
         "evidence_support": {"status": "supported"},
         "evidence_gate_applied": True,
@@ -281,9 +281,9 @@ def test_chat_interrupt_acknowledges_checkpoint_before_resume(monkeypatch, tmp_p
     client = TestClient(app)
     response = client.post(
         f"/api/chat/tasks/{task.id}/interrupt",
-        json={"stage": "user_stopped", "partial_output": "已生成一部分"},
+        json={"stage": "user_stopped", "partial_output": "已生成一部分", "run_id": "run-old"},
     )
-    repeated = client.post(f"/api/chat/tasks/{task.id}/interrupt", json={})
+    repeated = client.post(f"/api/chat/tasks/{task.id}/interrupt", json={"run_id": "run-old"})
 
     assert response.status_code == 200
     assert response.json()["learning_task"]["status"] == "interrupted"
@@ -358,7 +358,7 @@ def test_late_stream_failure_cannot_overwrite_acknowledged_interrupt(monkeypatch
     worker = threading.Thread(target=consume_stream)
     worker.start()
     assert graph_started.wait(timeout=3)
-    interrupted = client.post(f"/api/chat/tasks/{task.id}/interrupt", json={"stage": "user_stopped"})
+    interrupted = client.post(f"/api/chat/tasks/{task.id}/interrupt", json={"stage": "user_stopped", "run_id": store.get(task.id).artifacts["active_run_id"]})
     release_graph.set()
     worker.join(timeout=5)
 

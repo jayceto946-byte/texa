@@ -23,6 +23,7 @@ export interface LearningRequiredInput {
 }
 
 export interface LearningTaskState {
+  active_run_id?: string;
   schema_version: string;
   id: string;
   task_type: 'qa' | 'visual_qa' | string;
