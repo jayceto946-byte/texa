@@ -69,10 +69,18 @@ async def lifespan(_app: FastAPI):
     ensure_storage_manifest()
     books.migrate_book_identities()
     _recover_jobs()
-    _start_warmup()
+    from backend.services.learning_task import get_learning_task_store
+    get_learning_task_store().recover_unfinished()
+    from backend.services.execution_effects import ExecutionEffectsWorker
+    effects_worker = ExecutionEffectsWorker(get_learning_task_store())
+    _app.state.execution_effects_worker = effects_worker
+    effects_worker.start()
     try:
+        _start_warmup()
         yield
     finally:
+        if not effects_worker.stop():
+            logger.warning("an in-flight effect step is finishing; subsequent steps are disabled on shutdown")
         try:
             from ingestion.vector_store import reset_vector_store
 

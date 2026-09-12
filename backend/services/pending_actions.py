@@ -76,6 +76,11 @@ class PendingActionStore:
                 raise ValueError("confirmed action cannot be rejected")
             if action.get("status") == "rejected":
                 return action
+            receipt = _read_domain_receipt(action)
+            if receipt is not None:
+                action.update(status="confirmed", result=receipt, error="")
+                self.save(action)
+                raise ValueError("executed action cannot be rejected")
             action["status"] = "rejected"
             action["result"] = {"rejected": True}
             return self.save(action)
@@ -90,7 +95,8 @@ class PendingActionStore:
             if action.get("status") == "rejected":
                 raise ValueError("rejected action cannot be confirmed")
             try:
-                action["result"] = _execute(action)
+                receipt = _read_domain_receipt(action)
+                action["result"] = receipt if receipt is not None else _execute(action)
                 action["status"] = "confirmed"
                 action["error"] = ""
             except Exception as exc:
@@ -101,10 +107,46 @@ class PendingActionStore:
             return self.save(action)
 
 
+def _read_domain_receipt(action: dict[str, Any]) -> dict[str, Any] | None:
+    """Read without constructing stores, migrations, or a domain write."""
+    import sqlite3
+    from utils.path_safety import safe_book_name, safe_child_path
+    from utils.state_locks import get_state_lock
+    payload, context = action.get("payload") or {}, action.get("context") or {}
+    book = safe_book_name(payload.get("book_name") or context.get("book_name") or "default")
+    operation_id, kind = action["action_id"], action["type"]
+    if kind == "mark_concept_reviewed":
+        path = safe_child_path(PROGRESS_PATH, book, "concept_memory.json")
+        with get_state_lock(path):
+            if not path.is_file():
+                return None
+            value = json.loads(path.read_text(encoding="utf-8")).get("review_operations", {}).get(operation_id)
+        return {"concept": value} if value is not None else None
+    tables = {"add_mistake": ("mistake_book", "mistakes"),
+              "create_practice_session": ("exercise_bank", "exercise_practice_sessions")}
+    if kind not in tables:
+        raise ValueError("unsupported pending action type")
+    prefix, table = tables[kind]
+    path = safe_child_path(PROGRESS_PATH, f"{prefix}_{book}.db")
+    if not path.is_file():
+        return None
+    conn = sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)
+    try:
+        row = conn.execute(f"SELECT data FROM {table} WHERE id = ?", (operation_id,)).fetchone()
+    finally:
+        conn.close()
+    if not row:
+        return None
+    data = json.loads(row[0])
+    return ({"mistake_id": operation_id} if kind == "add_mistake" else
+            {"session_id": operation_id, "exercise_ids": data["exercise_ids"]})
+
+
 def _execute(action: dict[str, Any]) -> dict[str, Any]:
     action_type = str(action.get("type") or "")
     payload = dict(action.get("payload") or {})
     context = dict(action.get("context") or {})
+    operation_id = str(action["action_id"])
     book_name = str(payload.get("book_name") or context.get("book_name") or "default")
 
     if action_type == "add_mistake":
@@ -114,6 +156,7 @@ def _execute(action: dict[str, Any]) -> dict[str, Any]:
         if isinstance(tags, str):
             tags = [item.strip() for item in tags.replace("，", ",").split(",") if item.strip()]
         record = MistakeRecord(
+            id=operation_id,
             question_text=str(payload.get("question_text") or "").strip(),
             user_answer=str(payload.get("user_answer") or ""),
             correct_answer=str(payload.get("correct_answer") or ""),
@@ -127,7 +170,7 @@ def _execute(action: dict[str, Any]) -> dict[str, Any]:
         )
         if not record.question_text:
             raise ValueError("question_text is required")
-        record_id = get_mistake_book(book_name, str(PROGRESS_PATH)).add(record)
+        record_id = get_mistake_book(book_name, str(PROGRESS_PATH)).add_if_absent(record)
         return {"mistake_id": record_id}
 
     if action_type == "mark_concept_reviewed":
@@ -140,6 +183,7 @@ def _execute(action: dict[str, Any]) -> dict[str, Any]:
             name,
             quality=max(0, min(5, int(payload.get("quality") or 4))),
             note=str(payload.get("note") or "agent_confirmation"),
+            operation_id=operation_id,
         )
         return {"concept": result}
 
@@ -147,21 +191,20 @@ def _execute(action: dict[str, Any]) -> dict[str, Any]:
         from memory.exercise_bank import PracticeSession, get_exercise_bank
 
         bank = get_exercise_bank(book_name, str(PROGRESS_PATH))
+        existing = bank.get_practice_session(operation_id)
+        if existing:
+            return {"session_id": existing.id, "exercise_ids": existing.exercise_ids}
         exercise_ids = [str(item) for item in payload.get("exercise_ids") or []]
         valid_ids = [exercise_id for exercise_id in exercise_ids if bank.get(exercise_id) is not None]
         if not valid_ids or len(valid_ids) != len(exercise_ids):
             raise ValueError("practice proposal is stale or contains missing exercises")
-        previous = bank.get_active_practice_session()
-        if previous:
-            previous.status = "replaced"
-            previous.completed_at = _now()
-            bank.save_practice_session(previous)
         session = PracticeSession(
+            id=operation_id,
             exercise_ids=valid_ids,
             filters={key: str(payload.get(key) or "") for key in ("subject", "chapter", "tag", "status", "query")},
             shuffle=bool(payload.get("shuffle")),
         )
-        bank.save_practice_session(session)
+        bank.create_practice_session_once(session)
         return {"session_id": session.id, "exercise_ids": valid_ids}
 
     raise ValueError(f"unsupported pending action type: {action_type}")

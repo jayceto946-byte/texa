@@ -57,7 +57,7 @@ class SpacedRepetition:
             self._save()
 
     @_with_fresh_cards
-    def review(self, card_id: str, quality: int):
+    def review(self, card_id: str, quality: int, *, operation_id: str = ""):
         """复习知识点并更新间隔
 
         Args:
@@ -65,6 +65,9 @@ class SpacedRepetition:
         """
         card = self._cards.get(card_id)
         if not card:
+            return
+        operations = card.setdefault("operations", {})
+        if operation_id and operation_id in operations:
             return
 
         card["last_review"] = date.today().isoformat()
@@ -91,6 +94,8 @@ class SpacedRepetition:
             date.today() + timedelta(days=max(1, card["interval"]))
         ).isoformat()
 
+        if operation_id:
+            operations[operation_id] = card["last_review"]
         self._save()
 
     @_with_fresh_cards

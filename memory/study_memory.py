@@ -76,12 +76,20 @@ class StudyMemory:
         atomic_write_json(path, data)
 
     @_with_fresh_memory("progress")
-    def mark_chapter_studied(self, chapter: str):
+    def mark_chapter_studied(self, chapter: str, *, operation_id: str = ""):
+        previous = self._progress.get(chapter, {})
+        operations = dict(previous.get("operations") or {})
+        if operation_id and operation_id in operations:
+            return
         today = datetime.now().strftime("%Y-%m-%d %H:%M")
+        if operation_id:
+            operations[operation_id] = today
         self._progress[chapter] = {
+            **previous,
             "status": "studied",
             "last_review": today,
-            "review_count": self._progress.get(chapter, {}).get("review_count", 0) + 1,
+            "review_count": previous.get("review_count", 0) + 1,
+            "operations": operations,
         }
         self._save_json(self.progress_file, self._progress)
 

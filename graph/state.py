@@ -80,6 +80,7 @@ class AgentState(TypedDict):
     context_budget: dict        # bounded generation-context telemetry
 
     # === 反馈 ===
+    feedback_proposal: dict  # Committed by the task owner before domain writes
     user_feedback: Optional[dict]
     mastery_update: dict
 

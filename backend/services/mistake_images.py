@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import shutil
 import time
 import uuid
@@ -77,6 +78,33 @@ class MistakeImageStore:
             destination = root / f"{uuid.uuid4().hex}_{source.name}"
         shutil.move(str(source), str(destination))
         return str(destination), True
+
+    def retain_for_task(self, path: str | Path, task_id: str) -> Path:
+        """Copy once to a stable task path; never move the recoverable input."""
+        if not task_id or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in task_id):
+            raise ValueError("invalid image task id")
+        root = self.image_root.resolve()
+        source = Path(path).resolve()
+        if not source.is_relative_to(root) or source.suffix.lower() not in self.allowed_extensions:
+            raise ValueError("图片路径不在错题图片目录内")
+        destination = (root / "tasks" / task_id / ("input" + source.suffix.lower())).resolve()
+        if not destination.is_relative_to(root):
+            raise ValueError("invalid retained image path")
+        if destination.is_file() and destination.stat().st_size > 0:
+            return destination
+        if not source.is_file() or source.stat().st_size <= 0:
+            raise ValueError("待保留图片不存在")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        temporary = destination.with_name(f".{destination.name}.{uuid.uuid4().hex}.tmp")
+        try:
+            with source.open("rb") as src, temporary.open("wb") as dst:
+                shutil.copyfileobj(src, dst)
+                dst.flush()
+                os.fsync(dst.fileno())
+            os.replace(temporary, destination)
+        finally:
+            temporary.unlink(missing_ok=True)
+        return destination
 
     def save_upload(self, file: Any) -> Path:
         filename = file.filename or "mistake.png"

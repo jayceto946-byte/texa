@@ -417,6 +417,27 @@ class ExerciseBankStore:
             conn.commit()
         return session
 
+    def create_session_once(self, session: PracticeSession) -> PracticeSession:
+        """Replace the active session and insert this operation in one transaction."""
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT data FROM exercise_practice_sessions WHERE id = ?", (session.id,)).fetchone()
+            if row:
+                return PracticeSession.from_dict(json.loads(row[0]))
+            rows = conn.execute("SELECT data FROM exercise_practice_sessions WHERE status IN ('active', 'paused')").fetchall()
+            now = datetime.now().isoformat()
+            for row in rows:
+                previous = PracticeSession.from_dict(json.loads(row[0]))
+                previous.status = "replaced"
+                previous.completed_at = now
+                previous.updated_at = now
+                conn.execute("UPDATE exercise_practice_sessions SET data = ?, status = ?, updated_at = ? WHERE id = ?",
+                             (json.dumps(previous.to_dict(), ensure_ascii=False), previous.status, now, previous.id))
+            session.updated_at = now
+            conn.execute("INSERT INTO exercise_practice_sessions (id, data, updated_at, status) VALUES (?, ?, ?, ?)",
+                         (session.id, json.dumps(session.to_dict(), ensure_ascii=False), now, session.status))
+        return session
+
     def get_session(self, session_id: str) -> Optional[PracticeSession]:
         with self._connect() as conn:
             row = conn.execute("SELECT data FROM exercise_practice_sessions WHERE id = ?", (session_id,)).fetchone()
@@ -662,6 +683,9 @@ class ExerciseBank:
 
     def save_practice_session(self, session: PracticeSession) -> PracticeSession:
         return self.store.save_session(session)
+
+    def create_practice_session_once(self, session: PracticeSession) -> PracticeSession:
+        return self.store.create_session_once(session)
 
     def current_session_record(self, session: PracticeSession) -> Optional[ExerciseRecord]:
         if session.current_index < 0 or session.current_index >= len(session.exercise_ids):

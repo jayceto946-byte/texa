@@ -155,8 +155,9 @@ class ConceptMemory:
             try:
                 with open(self._file, "r", encoding="utf-8") as f:
                     return self._normalize_data(json.load(f))
-            except (json.JSONDecodeError, UnicodeDecodeError):
-                pass
+            except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+                # Losing operation receipts would make recovery repeat writes.
+                raise ValueError("concept memory is unreadable; refusing to reset receipts") from exc
         return self._normalize_data({
             "concepts": {},
             "exposures": [],
@@ -165,7 +166,7 @@ class ConceptMemory:
 
     def _normalize_data(self, data: dict) -> dict:
         if not isinstance(data, dict):
-            data = {}
+            raise ValueError("invalid concept memory; refusing to reset receipts")
         data.setdefault("concepts", {})
         data.setdefault("exposures", [])
         data.setdefault("review_queue", [])
@@ -187,7 +188,7 @@ class ConceptMemory:
         answer_mode: str = "",
     ) -> list[dict]:
         """用 LLM 从问答中提取概念。返回 [{name, type, confidence}]。"""
-        llm = get_llm()
+        llm = get_llm(request_timeout=30, max_retries=0)
         prompt = _CONCEPT_EXTRACT_PROMPT.format(
             scope=(subject or "跨学科通用") + (f"；模式：{answer_mode}" if answer_mode else ""),
             question=question,
@@ -243,8 +244,12 @@ class ConceptMemory:
         subject: str = "",
         conversation_id: str = "",
         weak_reason: str = "",
+        operation_id: str = "",
     ):
         """记录一次概念接触。"""
+        operations = self._data.setdefault("exposure_operations", {})
+        if operation_id and operation_id in operations:
+            return
         subject = normalize_subject_value(subject)
         concepts = [
             c for c in concepts
@@ -318,6 +323,8 @@ class ConceptMemory:
         if len(self._data["exposures"]) > 500:
             self._data["exposures"] = self._data["exposures"][-300:]
 
+        if operation_id:
+            operations[operation_id] = now
         self._save()
 
     @_with_fresh_state
@@ -332,8 +339,12 @@ class ConceptMemory:
         conversation_id: str = "",
         answer: str = "",
         limit: int = 12,
+        operation_id: str = "",
     ):
         """Store low-confidence concept candidates without affecting strict stats."""
+        operations = self._data.setdefault("candidate_operations", {})
+        if operation_id and operation_id in operations:
+            return list(self._data["candidate_concepts"].values())
         subject = normalize_subject_value(subject)
         now = datetime.now().isoformat()
         saved = 0
@@ -386,6 +397,8 @@ class ConceptMemory:
             return []
         if len(self._data["candidate_exposures"]) > 500:
             self._data["candidate_exposures"] = self._data["candidate_exposures"][-300:]
+        if operation_id:
+            operations[operation_id] = now
         self._save()
         return list(self._data["candidate_concepts"].values())
 
@@ -514,11 +527,19 @@ class ConceptMemory:
         ]
 
     @_with_fresh_state
-    def mark_reviewed(self, concept_name: str, quality: int = 4, note: str = "") -> dict:
+    def get_review_receipt(self, operation_id: str) -> dict | None:
+        result = self._data.get("review_operations", {}).get(operation_id)
+        return dict(result) if result is not None else None
+
+    @_with_fresh_state
+    def mark_reviewed(self, concept_name: str, quality: int = 4, note: str = "", *, operation_id: str = "") -> dict:
         """记录一次概念复习，供学习页的复习动作调用。"""
         name = concept_name.strip()
         if not name:
             raise ValueError("concept_name is required")
+        operations = self._data.setdefault("review_operations", {})
+        if operation_id and operation_id in operations:
+            return dict(operations[operation_id])
         now = datetime.now().isoformat()
         concept = self._data["concepts"].setdefault(name, {
             "aliases": [],
@@ -551,6 +572,8 @@ class ConceptMemory:
         })
         if len(self._data["review_events"]) > 300:
             self._data["review_events"] = self._data["review_events"][-200:]
+        if operation_id:
+            operations[operation_id] = {"name": name, **concept}
         self._save()
         return {"name": name, **concept}
     @_with_fresh_state

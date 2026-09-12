@@ -8,6 +8,8 @@ for books, mistakes, exercises, or learner mastery.
 from __future__ import annotations
 
 import threading
+import copy
+import logging
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
@@ -252,6 +254,7 @@ class LearningTask:
         value = asdict(self)
         if public:
             value.update({
+                "active_run_id": str(self.artifacts.get("active_run_id") or ""),
                 "terminal": is_terminal_task_status(self.status),
                 "interruptible": is_interruptible_task_status(self.status),
                 "resumable": is_resumable_task_status(self.status),
@@ -268,6 +271,12 @@ class LearningTask:
                 "resume_stage": _bounded_text(artifacts.get("resume_stage"), 80),
                 "partial_output": _bounded_text(artifacts.get("partial_output"), 4000),
                 "execution_events": list(artifacts.get("execution_events") or [])[-40:],
+                "effects": [
+                    {"id": item["id"], "kind": item["kind"],
+                     "status": "completed" if item.get("receipt") is not None else "pending",
+                     "result": item.get("receipt"), "error": item.get("error", "")}
+                    for item in (artifacts.get("execution_outcome") or {}).get("effects", [])
+                ],
             }
         return value
 
@@ -342,7 +351,183 @@ class LearningTaskStore:
             current = self.get(task.id)
             if current is not None and current.status != task.status:
                 raise ValueError("learning task status changes must use checkpoint()")
+            if current is not None and current.artifacts.get("active_run_id") != task.artifacts.get("active_run_id"):
+                raise ValueError("run ownership changes require claim_run or resume")
+            if current is not None and current.artifacts.get("execution_outcome"):
+                # Terminal projections may still hold an older task snapshot.
+                # Only the dedicated outcome methods may change frozen effects/receipts.
+                task.artifacts["execution_outcome"] = copy.deepcopy(current.artifacts["execution_outcome"])
             return self._persist(task)
+
+    def claim_run(self, task: LearningTask, run_id: str) -> LearningTask:
+        with _TASK_LOCK:
+            current = self.get(task.id)
+            if not current or current.status != "running" or not run_id:
+                raise ValueError("task cannot claim a run")
+            if current.artifacts.get("active_run_id") not in (None, "", run_id):
+                raise ValueError("task is already owned by another run")
+            current.artifacts["active_run_id"] = run_id
+            return self._persist(current)
+
+    def prepare_checkpoint_for_run(self, task: LearningTask, run_id: str, stage: str,
+                                   *, status: str, detail: str = "") -> LearningTask:
+        """Prepare an outcome in memory; commit it together with its terminal event."""
+        with _TASK_LOCK:
+            current = self.get(task.id)
+            if not current or not self.run_is_active(task.id, run_id):
+                raise ValueError("stale run cannot prepare an outcome")
+            task.status = validate_learning_task_transition(current.status, status)
+            task.checkpoints = [*current.checkpoints, {
+                "stage": stage, "status": status, "detail": detail[:500], "at": _now(),
+            }][-30:]
+            task.artifacts["execution_events"] = copy.deepcopy(current.artifacts.get("execution_events") or [])
+            return task
+
+    def commit_outcome(self, task: LearningTask, run_id: str, event: dict,
+                       *, messages: list[dict] | None = None, effects: list[dict] | None = None) -> LearningTask:
+        from backend.services.execution_events import validate_execution_event
+        with _TASK_LOCK:
+            current = self.get(task.id)
+            if current and (current.artifacts.get("execution_outcome") or {}).get("event") == event:
+                return current
+            if not current or not self.run_is_active(task.id, run_id):
+                raise ValueError("stale run cannot commit an outcome")
+            if (task.conversation_id, task.turn_id, task.artifacts.get("active_run_id")) != (
+                current.conversation_id, current.turn_id, run_id,
+            ):
+                raise ValueError("outcome task identity does not match its run")
+            validate_execution_event(event, expected_task_id=task.id, expected_run_id=run_id,
+                                     expected_conversation_id=current.conversation_id,
+                                     expected_turn_id=current.turn_id, require_persisted_identity=True)
+            boundary_status = event["payload"].get("task_status")
+            if event["type"] == "state_transition" and task.status == "waiting_for_input":
+                boundary_status = event["payload"].get("task_status_after")
+            elif event["type"] not in {"final", "error"}:
+                raise ValueError("outcome requires a terminal event or input gate")
+            if boundary_status != task.status:
+                raise ValueError("outcome requires a matching task boundary")
+            if task.status not in {"completed", "degraded", "failed", "waiting_for_input", "waiting_for_confirmation"}:
+                raise ValueError("outcome cannot leave the task running")
+            validate_learning_task_transition(current.status, task.status)
+            events = list(current.artifacts.get("execution_events") or [])
+            owned = [e for e in events if e.get("run_id") == run_id]
+            if any(e.get("type") in {"final", "error"} for e in owned):
+                raise ValueError("run already has a terminal event")
+            if event["seq"] <= max((e["seq"] for e in owned), default=0):
+                raise ValueError("outcome sequence must increase")
+            from backend.services.execution_events import validate_execution_event_sequence
+            validate_execution_event_sequence([*owned, event])
+            outcome = copy.deepcopy(task)
+            outcome.artifacts["execution_events"] = [*events, copy.deepcopy(event)][-40:]
+            outcome.artifacts["execution_outcome"] = {
+                "event": copy.deepcopy(event), "messages": copy.deepcopy(messages or []),
+                "projected": not bool(messages),
+            }
+            if effects:
+                from backend.services.execution_effects import bind_effects
+                outcome.artifacts["execution_outcome"]["effects"] = bind_effects(current, task, event, effects)
+            return self._persist(outcome)
+
+    def outcome_effects(self, task_id: str, run_id: str = "") -> list[dict]:
+        """Only explicit effects on a committed, delivered outcome are eligible."""
+        with _TASK_LOCK:
+            task = self.get(task_id)
+            if not task or task.status not in DELIVERED_TASK_STATUSES:
+                return []
+            outcome = task.artifacts.get("execution_outcome") or {}
+            event = outcome.get("event") or {}
+            if (event.get("type") != "final" or event.get("run_id") != task.artifacts.get("active_run_id")
+                    or (run_id and run_id != event.get("run_id"))):
+                return []
+            effects = outcome.get("effects") or []
+            if not effects:
+                return []
+            from backend.services.execution_effects import bind_effects, EFFECT_SCHEMA
+            from backend.services.execution_events import validate_execution_event
+            validate_execution_event(event, expected_task_id=task.id, expected_run_id=event["run_id"],
+                                     expected_conversation_id=task.conversation_id, expected_turn_id=task.turn_id,
+                                     require_persisted_identity=True)
+            expected = bind_effects(task, task, event, [
+                {"kind": item["kind"], "payload": item["payload"]} for item in effects
+            ])
+            for item, bound in zip(effects, expected):
+                if (item.get("schema") != EFFECT_SCHEMA or item.get("id") != bound["id"]
+                        or item.get("run_id") != event["run_id"] or item["payload"] != bound["payload"]):
+                    raise ValueError("invalid persisted effect authority")
+            return copy.deepcopy(effects)
+
+    def update_outcome_effect(self, task_id: str, run_id: str, effect_id: str, **changes) -> dict:
+        """Merge only effect state; never overwrite answer or run authority."""
+        if set(changes) - {"prepared", "receipt", "attempts", "retry_at", "error"}:
+            raise ValueError("invalid effect state update")
+        with _TASK_LOCK:
+            effects = self.outcome_effects(task_id, run_id)
+            if not any(item.get("id") == effect_id for item in effects):
+                raise ValueError("effect is not authorized by the committed outcome")
+            task = self.get(task_id)
+            effect = next(item for item in task.artifacts["execution_outcome"]["effects"] if item["id"] == effect_id)
+            if effect.get("receipt") is not None:
+                return copy.deepcopy(effect)
+            if effect.get("prepared") is not None:
+                changes.pop("prepared", None)
+            effect.update(copy.deepcopy(changes))
+            task.artifacts["execution_outcome"]["effects_projected"] = False
+            self._persist(task)
+            return copy.deepcopy(effect)
+
+    def project_effects(self, task_id: str) -> None:
+        """Refresh the existing assistant message; no new answer or execution event."""
+        from backend.conversation_memory import update_learning_task_projection
+        with _TASK_LOCK:
+            task = self.get(task_id)
+            outcome = task.artifacts.get("execution_outcome") if task else None
+            if not outcome or not outcome.get("effects") or outcome.get("effects_projected"):
+                return
+            self.outcome_effects(task_id)  # Validate the persisted authority before projecting it.
+            projected = self.project_outcome(task_id)
+            task = self.get(task_id)
+            for message in projected:
+                if message.get("role") == "assistant":
+                    if not update_learning_task_projection(task.conversation_id, task.id, task.to_dict(public=True),
+                                                           message_id=message["id"]):
+                        raise ValueError("effect projection target is unavailable")
+            task.artifacts["execution_outcome"]["effects_projected"] = True
+            self._persist(task)
+
+    def project_outcome(self, task_id: str, *, run_id: str = "", append=None) -> list[dict]:
+        if append is None:
+            from backend.conversation_memory import append_message
+            append = append_message
+        with _TASK_LOCK:
+            task = self.get(task_id)
+            outcome = task.artifacts.get("execution_outcome") if task else None
+            if not outcome:
+                return []
+            if run_id and outcome["event"]["run_id"] != run_id:
+                return []
+            results = []
+            for message in outcome.get("messages") or []:
+                values = copy.deepcopy(message)
+                if values.get("role") == "assistant":
+                    values["learning_task"] = task.to_dict(public=True)
+                results.append(append(task.conversation_id, values.pop("role"), values.pop("text"),
+                                      turn_id=task.turn_id, **values))
+            if not outcome.get("projected"):
+                outcome["projected"] = True
+                self._persist(task)
+            return results
+
+    def recover_unfinished(self) -> None:
+        for path in self.root.glob("*.json"):
+            try:
+                task = self.get(path.stem)
+                if task and task.status == "running":
+                    interrupt_learning_task(self, task, stage="process_restarted",
+                                            expected_run_id=str(task.artifacts.get("active_run_id") or ""))
+                if task and (task.artifacts.get("execution_outcome") or {}).get("projected") is False:
+                    self.project_outcome(task.id)
+            except Exception:
+                logging.getLogger(__name__).exception("task recovery failed: %s", path.stem)
 
     def run_is_active(self, task_id: str, run_id: str) -> bool:
         normalized_run_id = str(run_id or "")
@@ -460,6 +645,8 @@ class LearningTaskStore:
                 raise ValueError("execution event seq must increase within a task run")
             if any(item.get("type") in EXECUTION_EVENT_TERMINAL_TYPES for item in current_run_events):
                 raise ValueError("execution events cannot follow final or error")
+            from backend.services.execution_events import validate_execution_event_sequence
+            validate_execution_event_sequence([*current_run_events, event])
             compact = {
                 key: event.get(key)
                 for key in (
@@ -482,8 +669,11 @@ class LearningTaskStore:
                 else validate_learning_task_status(task.status)
             )
             current = self.get(task.id)
-            if current is not None and current.status != task.status:
+            if current is not None and (current.status != task.status or
+                    current.artifacts.get("active_run_id") != task.artifacts.get("active_run_id")):
                 return current
+            if current is not None and current.artifacts.get("execution_outcome"):
+                task.artifacts["execution_outcome"] = copy.deepcopy(current.artifacts["execution_outcome"])
             task.status = target_status
             task.checkpoints = [
                 *task.checkpoints,
@@ -544,6 +734,8 @@ def resume_learning_task(
     task: LearningTask,
     *,
     run_id: str = "",
+    turn_id: str = "",
+    run_artifacts: dict | None = None,
 ) -> LearningTask:
     """Move a resumable or input-gated task to a run-owned running state."""
     normalized_run_id = _bounded_text(run_id, 80)
@@ -563,13 +755,21 @@ def resume_learning_task(
             or task_requires_input_action(current.status)
         ):
             raise ValueError(f"learning task is not resumable: {current.status}")
+        if (current.artifacts.get("execution_outcome") or {}).get("projected") is False:
+            store.project_outcome(current.id)
+            current = store.get(current.id)
+        current.status = validate_learning_task_transition(current.status, "running")
         current.artifacts["active_run_id"] = normalized_run_id
-        return store.checkpoint(
-            current,
-            "resumed",
-            status="running",
-            detail=str(current.artifacts.get("resume_stage") or "unknown"),
-        )
+        current.artifacts.pop("execution_outcome", None)
+        if run_artifacts:
+            current.artifacts.update(copy.deepcopy(run_artifacts))
+        if turn_id:
+            current.turn_id = turn_id
+            mark_required_inputs(current, "provided")
+        current.checkpoints = [*current.checkpoints, {
+            "stage": "resumed", "status": "running", "at": _now(),
+        }][-30:]
+        return store._persist(current)
 
 
 _DEFAULT_STORE: LearningTaskStore | None = None

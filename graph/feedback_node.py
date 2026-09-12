@@ -64,13 +64,24 @@ def feedback_node(state: dict) -> dict:
         except Exception as exc:
             print(f"[feedback] record failed: {exc}", flush=True)
 
-    threading.Thread(target=record, name="chat-feedback", daemon=True).start()
+    if not state.get("learning_task"):
+        threading.Thread(target=record, name="chat-feedback", daemon=True).start()
     return {
         "mastery_update": {},
         "learning_update_status": "exposure_only",
         "user_feedback": None,
         "linked_concepts": linked_concepts,
+        "feedback_proposal": feedback_proposal(state) if state.get("learning_task") else {},
     }
+
+def feedback_proposal(state: dict) -> dict:
+    """The existing feedback inputs; this proposal grants no write permission."""
+    import copy
+    fields = ("book_name", "subject", "conversation_id", "user_input", "final_output",
+              "intent", "answer_mode", "use_textbook_context", "evidence_support",
+              "target_chapters", "user_feedback", "answer_verification", "chapter_contents",
+              "matched_concepts", "retrieval_status", "scope_reason")
+    return copy.deepcopy({key: state[key] for key in fields if key in state})
 
 def _kg_for_state(state: dict):
     """返回本地预构建 KG（用于字典扫描）；非本地返回 None。"""
@@ -159,7 +170,7 @@ def _targeted_repair(
         try:
             from config import get_llm
             from knowledge.query_concepts import validate_missing_candidates
-            repaired.extend(validate_missing_candidates(question, validate_missing, get_llm()))
+            repaired.extend(validate_missing_candidates(question, validate_missing, get_llm(request_timeout=30, max_retries=0)))
         except Exception as exc:
             print(f"[ConceptMemory] repair validation failed: {exc}", flush=True)
     return repaired
@@ -271,7 +282,8 @@ def _strict_concepts(concepts: list[dict], question: str = "") -> list[dict]:
     return strict
 
 
-def _record_concept_memory(state: dict) -> list[dict]:
+def _record_concept_memory(state: dict, *, prepared: dict | None = None,
+                           prepare_only: bool = False, operation_id: str = "", before_write=None) -> list[dict] | dict:
     """Link final QA output to KG concepts and persist shared concept memory."""
     try:
         from knowledge.concept_memory import ConceptMemory, has_explicit_weak_signal
@@ -282,7 +294,7 @@ def _record_concept_memory(state: dict) -> list[dict]:
             answer_mode == "textbook_grounded"
             and str((state.get("evidence_support") or {}).get("status") or "") in {"insufficient", "unavailable"}
         ):
-            return []
+            return {"skip": True} if prepare_only else []
         book_name = str(state.get("book_name") or "").strip()
         memory_book = "default" if answer_mode == "global_general" else (book_name or "default")
         intent = state.get("intent", "qa")
@@ -290,15 +302,15 @@ def _record_concept_memory(state: dict) -> list[dict]:
         conversation_id = state.get("conversation_id", "")
         question = state.get("user_input", "")
         answer = state.get("final_output", "")
-        raw_concepts = _link_concepts_locally(state)
+        raw_concepts = prepared["raw_concepts"] if prepared is not None else _link_concepts_locally(state)
         explicit_weak = has_explicit_weak_signal(question)
 
         memory = ConceptMemory(memory_book)
         # 主线程（stream 路径）已用快速路径计算 UI 概念标签（无 LLM repair）；
         # 这里是后台学习记忆路径，执行完整解析以保留 LLM repair 能力。
         # 同步路径（graph.invoke）此前未计算过，同样在此完整解析。
-        concepts = _resolve_final_concepts(state)
-        if answer_mode in {"subject_general", "global_general"} and not concepts:
+        concepts = prepared["concepts"] if prepared is not None else _resolve_final_concepts(state)
+        if prepared is None and answer_mode in {"subject_general", "global_general"} and not concepts:
             try:
                 extracted = memory.extract_concepts(
                     question,
@@ -314,7 +326,11 @@ def _record_concept_memory(state: dict) -> list[dict]:
                     item.setdefault("aliases", [])
             raw_concepts = [*raw_concepts, *extracted]
             concepts = _strict_concepts(raw_concepts, question)
+        if prepare_only:
+            return {"concepts": concepts, "raw_concepts": raw_concepts}
         if concepts:
+            if before_write:
+                before_write()
             memory.log_exposure(
                 concepts,
                 question,
@@ -328,6 +344,7 @@ def _record_concept_memory(state: dict) -> list[dict]:
                 subject=subject,
                 conversation_id=conversation_id,
                 weak_reason="explicit_confusion" if explicit_weak else "",
+                **({"operation_id": operation_id + ":exposure"} if operation_id else {}),
             )
 
         strict_names = {
@@ -340,6 +357,8 @@ def _record_concept_memory(state: dict) -> list[dict]:
             if item and str(item.get("name", "")).strip().lower() not in strict_names
         ]
         if candidates:
+            if before_write:
+                before_write()
             memory.log_candidates(
                 candidates,
                 question,
@@ -348,6 +367,7 @@ def _record_concept_memory(state: dict) -> list[dict]:
                 subject=subject,
                 conversation_id=conversation_id,
                 answer=answer,
+                **({"operation_id": operation_id + ":candidates"} if operation_id else {}),
             )
 
         store = get_learning_event_store()
@@ -356,8 +376,11 @@ def _record_concept_memory(state: dict) -> list[dict]:
             learning_book_id = resolve_book_identity(memory_book)["book_id"]
         except Exception:
             learning_book_id = ""
+        if before_write:
+            before_write()
         store.append(LearningEvent(
             event_type="chat_qa",
+            **({"id": operation_id + ":chat"} if operation_id else {}),
             book_id=learning_book_id,
             book_name=memory_book,
             subject=subject,
@@ -376,9 +399,12 @@ def _record_concept_memory(state: dict) -> list[dict]:
                 "candidate_count": len(candidates or []),
             },
         ))
-        for item in concepts:
+        for ordinal, item in enumerate(concepts):
+            if before_write:
+                before_write()
             store.append(LearningEvent(
                 event_type="concept_exposure",
+                **({"id": f"{operation_id}:concept:{ordinal}"} if operation_id else {}),
                 book_id=learning_book_id,
                 book_name=memory_book,
                 subject=subject,
@@ -395,8 +421,11 @@ def _record_concept_memory(state: dict) -> list[dict]:
                 },
             ))
         if candidates:
+            if before_write:
+                before_write()
             store.append(LearningEvent(
                 event_type="concept_candidates",
+                **({"id": operation_id + ":candidates"} if operation_id else {}),
                 book_id=learning_book_id,
                 book_name=memory_book,
                 subject=subject,
@@ -413,6 +442,8 @@ def _record_concept_memory(state: dict) -> list[dict]:
 
         return concepts
     except Exception as e:
+        if prepare_only or operation_id:
+            raise
         print(f"[ConceptMemory] QA record failed: {e}", flush=True)
         return []
 
