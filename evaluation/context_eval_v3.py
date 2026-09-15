@@ -25,7 +25,7 @@ from graph.evidence_pack import build_evidence_pack
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATASET = ROOT / "evaluation" / "datasets" / "context_production.jsonl"
 DEFAULT_REPORT = ROOT / "data" / "eval" / "context_eval_v3_report.json"
-CONTEXT_EVAL_SCHEMA_VERSION = 4
+CONTEXT_EVAL_SCHEMA_VERSION = 5
 
 
 def _normalized(value: Any) -> str:
@@ -166,6 +166,7 @@ def score_production_retrieval_case(
         "id": str(case.get("id") or ""),
         "tags": list(case.get("tags") or []),
         "passed": passed,
+        "failure_bucket": "" if passed else "retrieval",
         "checks": checks,
         "actual": {
             "resolved_query": resolved,
@@ -213,6 +214,7 @@ def score_online_answer_case(
             "id": str(case.get("id") or ""),
             "skipped": False,
             "passed": False,
+            "failure_bucket": "generation",
             "checks": {"model_call": False},
             "answer": "",
             "error": f"{type(exc).__name__}: {str(exc)[:500]}",
@@ -230,12 +232,30 @@ def score_online_answer_case(
         )
     if expected.get("require_citations"):
         checks["citations"] = bool(re.search(r"\[\[cite:E[\w-]+\]\]", answer, re.I))
+    verification = dict(state.get("answer_verification") or {})
+    if verification:
+        checks["verification"] = str(verification.get("status") or "") == "passed"
+    generation_checks = [
+        value for key, value in checks.items()
+        if key not in {"citations", "verification"}
+    ]
+    verification_checks = [
+        value for key, value in checks.items()
+        if key in {"citations", "verification"}
+    ]
+    failure_bucket = (
+        "generation" if generation_checks and not all(generation_checks)
+        else "verification" if verification_checks and not all(verification_checks)
+        else ""
+    )
     return {
         "id": str(case.get("id") or ""),
         "skipped": False,
         "passed": bool(checks) and all(checks.values()),
+        "failure_bucket": failure_bucket,
         "checks": checks,
         "answer": answer,
+        "verification_status": str(verification.get("status") or "not_recorded"),
         "elapsed_ms": round((time.perf_counter() - started) * 1000, 2),
         "versions": _runtime_versions(str(case.get("book_name") or "")),
     }
@@ -260,9 +280,19 @@ def evaluate(
         )
         retrieval_details.append(retrieval_detail)
         if online:
-            answer_details.append(score_online_answer_case(
-                case, state, answer_runner=answer_runner,
-            ))
+            if retrieval_detail.get("passed"):
+                answer_details.append(score_online_answer_case(
+                    case, state, answer_runner=answer_runner,
+                ))
+            else:
+                answer_details.append({
+                    "id": str(case.get("id") or ""),
+                    "skipped": True,
+                    "passed": False,
+                    "failure_bucket": "retrieval",
+                    "skip_reason": "retrieval_gate_failed",
+                    "checks": {},
+                })
     lifecycle_details = (lifecycle_runner or evaluate_learning_task_lifecycle)()
     retrieval_passed = bool(retrieval_details) and all(item.get("passed") for item in retrieval_details)
     lifecycle_passed = bool(lifecycle_details) and all(item.get("passed") for item in lifecycle_details)
@@ -287,6 +317,21 @@ def evaluate(
             "offline_passed": offline_passed,
             "production_passed": production_passed,
             "online_answer_required": True,
+        },
+        "failure_buckets": {
+            "ingestion": [],
+            "retrieval": [
+                str(item.get("id") or "") for item in retrieval_details
+                if item.get("failure_bucket") == "retrieval"
+            ],
+            "generation": [
+                str(item.get("id") or "") for item in answer_details
+                if item.get("failure_bucket") == "generation"
+            ],
+            "verification": [
+                str(item.get("id") or "") for item in answer_details
+                if item.get("failure_bucket") == "verification"
+            ],
         },
         "retrieval_details": retrieval_details,
         "answer_details": answer_details,

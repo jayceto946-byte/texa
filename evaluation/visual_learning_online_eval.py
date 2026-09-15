@@ -11,7 +11,11 @@ import time
 from typing import Any, Callable, Iterable
 
 from backend.services.answer_verification import derive_required_outputs, verify_answer
-from backend.services.figure_learning import FigureLearningService, NormalizedBBox
+from backend.services.figure_learning import (
+    FigureIndexOutOfDateError,
+    FigureLearningService,
+    NormalizedBBox,
+)
 from backend.services.multimodal_bridge import VisionModelBridge
 from utils.citation_protocol import sanitize_citation_protocol
 
@@ -227,7 +231,7 @@ def _evaluate_case(
             result["failure_bucket"] = "verification"
         elif result["key_point_coverage"] < 0.85:
             result["failure_bucket"] = "model"
-    except (FileNotFoundError, KeyError, ValueError) as exc:
+    except (FileNotFoundError, FigureIndexOutOfDateError, KeyError, ValueError) as exc:
         result["failure_bucket"] = "ingestion"
         result["error"] = _safe_error(exc)
     except Exception as exc:  # Provider/runtime failures are reported without secrets.

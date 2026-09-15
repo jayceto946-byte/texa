@@ -109,7 +109,45 @@ def test_context_eval_v3_records_live_model_failure_without_losing_report(tmp_pa
     assert report["layers"]["retrieval"]["passed"] == 1
     assert report["layers"]["answer"]["failed"] == 1
     assert "ConnectionError" in report["answer_details"][0]["error"]
+    assert report["failure_buckets"]["generation"] == ["production-1"]
     assert report["release_gates"]["passed"] is False
+
+
+def test_context_eval_v3_skips_model_when_retrieval_gate_fails(tmp_path):
+    calls = []
+
+    def empty_retrieval(_state):
+        return {
+            **_retrieval(_state),
+            "evidence_items": [],
+            "evidence_support": {"status": "insufficient"},
+        }
+
+    report = evaluate(
+        _dataset(tmp_path), online=True, retrieval_runner=empty_retrieval,
+        answer_runner=lambda _state: calls.append(True) or "must not run",
+    )
+
+    assert calls == []
+    assert report["answer_details"][0]["skip_reason"] == "retrieval_gate_failed"
+    assert report["failure_buckets"]["retrieval"] == ["production-1"]
+
+
+def test_context_eval_v3_separates_generation_and_verification_failures(tmp_path):
+    verification_failure = evaluate(
+        _dataset(tmp_path), online=True, retrieval_runner=_retrieval,
+        answer_runner=lambda state: (
+            state.update({"answer_verification": {"status": "failed"}})
+            or "材料受力后电阻率变化。[[cite:E1]]"
+        ),
+    )
+    generation_failure = evaluate(
+        _dataset(tmp_path), online=True, retrieval_runner=_retrieval,
+        answer_runner=lambda _state: "答非所问。[[cite:E1]]",
+    )
+
+    assert verification_failure["failure_buckets"]["verification"] == ["production-1"]
+    assert generation_failure["failure_buckets"]["generation"] == ["production-1"]
 
 
 def test_context_eval_v3_lifecycle_failure_blocks_offline_and_production_gate(tmp_path):

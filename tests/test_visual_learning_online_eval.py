@@ -115,3 +115,18 @@ def test_conflict_case_fails_when_model_does_not_disclose_mismatch(monkeypatch, 
     assert result.passed is False
     assert result.report["summary"]["serious_unsupported_claims"] == 1
     assert result.report["failure_buckets"]["model"] == ["case-1"]
+
+
+def test_stale_figure_index_is_classified_as_ingestion(monkeypatch, tmp_path):
+    class StaleIndexService(_Service):
+        def build_context(self, _book_name, _figure_id):
+            raise online_eval.FigureIndexOutOfDateError("Canonical IR differs")
+
+    monkeypatch.setattr(online_eval, "FigureLearningService", StaleIndexService)
+    result = online_eval.evaluate_visual_learning_online(
+        _gold(), progress_root=tmp_path, bridge_factory=_Bridge,
+    )
+
+    assert result.passed is False
+    assert result.report["failure_buckets"]["ingestion"] == ["case-1"]
+    assert result.report["failure_buckets"]["model"] == []

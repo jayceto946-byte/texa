@@ -1,0 +1,68 @@
+{
+  "schema_version": "visual-learning-gold/v1",
+  "book_name": "优化设计",
+  "description": "从隔离重建且已激活的《优化设计》Canonical IR 中逐图核对的最小 Figure 真实模型基线。",
+  "review": {
+    "status": "manual_source_reviewed_requires_human_signoff",
+    "method": "Codex 逐图查看受控图片资产，并对照同页 Canonical 正文、caption、block id 和页码限定预期要点。",
+    "reviewed_at": "2026-09-13",
+    "human_signoff": false,
+    "known_risk": "这是工程人工复核候选，不冒充课程教师签字金标。"
+  },
+  "release_thresholds": {
+    "minimum_cases": 3,
+    "minimum_retrieval_top3_rate": 1.0,
+    "minimum_model_completion_rate": 1.0,
+    "minimum_source_citation_rate": 1.0,
+    "minimum_verification_pass_rate": 1.0,
+    "minimum_key_point_coverage": 0.85,
+    "maximum_serious_unsupported_claims": 0
+  },
+  "cases": [
+    {
+      "id": "optimization-cargo-dimensions",
+      "category": "engineering_geometry",
+      "query": "货箱 例图 x1 x2 x3",
+      "figure_id": "c4a3bfb53155306fab5e",
+      "page": 10,
+      "question": "说明图中 x1、x2、x3 各表示货箱的哪个尺寸，并结合教材指出这个无盖货箱实例的优化目标。",
+      "expected_points": [
+        {"label": "x1为长", "keywords": ["x1 表示长", "x_1 表示长", "x₁表示长", "长度"]},
+        {"label": "x2为宽", "keywords": ["x2 表示宽", "x_2 表示宽", "x₂表示宽", "宽度"]},
+        {"label": "x3为高", "keywords": ["x3 表示高", "x_3 表示高", "x₃表示高", "高度"]},
+        {"label": "表面积最小", "keywords": ["表面积最小", "用料最省"]}
+      ]
+    },
+    {
+      "id": "optimization-feasible-direction-flow",
+      "category": "algorithm_flowchart",
+      "query": "可行方向法 计算程序框图",
+      "figure_id": "ddc9f16839f94cc372b0",
+      "page": 124,
+      "question": "概括该程序框图从输入可行点到输出近似最优点的主流程，并指出图中的两个终止判据。",
+      "expected_points": [
+        {"label": "输入可行点", "keywords": ["输入可行点", "X^(0)", "初始可行点"]},
+        {"label": "约束检查", "keywords": ["g_j", "约束函数", "g_k"]},
+        {"label": "计算可用方向", "keywords": ["可用方向", "可行方向", "S^(k)"]},
+        {"label": "下降判据", "keywords": ["ε1", "epsilon_1", "下降判据", "梯度"]},
+        {"label": "收敛判据", "keywords": ["ε2", "epsilon_2", "δ", "收敛判据"]},
+        {"label": "输出近似最优点", "keywords": ["X*", "近似最优点", "输出最优点"]}
+      ]
+    },
+    {
+      "id": "optimization-feasible-direction-geometry",
+      "category": "constraint_geometry",
+      "query": "例6-2 图解 最优方向 S",
+      "figure_id": "0b3edb104c244bebca3d",
+      "page": 125,
+      "question": "解释图中的 s1、s2、单位圆、阴影可行扇形区和 S* 的关系；S* 为什么是该步的最优可行方向？",
+      "expected_points": [
+        {"label": "方向分量", "keywords": ["s1", "s_1", "s2", "s_2", "方向分量"]},
+        {"label": "单位圆约束", "keywords": ["单位圆", "s1^2+s2^2", "模长", "半径为 1"]},
+        {"label": "可行扇形区", "keywords": ["可行扇形", "可行区域", "阴影"]},
+        {"label": "目标下降", "keywords": ["目标函数值减小", "下降", "负梯度"]},
+        {"label": "切点最优方向", "keywords": ["切点", "S*", "最优方向"]}
+      ]
+    }
+  ]
+}
