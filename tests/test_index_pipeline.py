@@ -294,6 +294,10 @@ def test_specialty_gate_failure_blocks_activation_and_preserves_old_version(monk
     by_question = {case["question"]: case for case in probes}
 
     def fake_retrieve(state, **_bindings):
+        assert _bindings["retrieval_resources_override"] == [{
+            "book_name": "demo", "role": "", "priority": 1.0,
+            "is_primary": True, "is_selected": True, "resource_group": "",
+        }]
         case = by_question[state["user_input"]]
         text = "" if case["specialty"] == "table" else case["required_points"][0]
         return {

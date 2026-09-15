@@ -2,7 +2,7 @@ import zipfile
 
 from ingestion.chapter_splitter import ChapterSplitter
 from ingestion.document_adapters import DocxAdapter, MinerUAdapter, OcrAdapter, PdfTextAdapter
-from ingestion.document_ir import DocumentBlock
+from ingestion.document_ir import CanonicalBook, DocumentBlock
 
 
 def _block(block_id: str, block_type: str, text: str, **kwargs) -> DocumentBlock:
@@ -155,6 +155,37 @@ def test_docx_heading_table_and_example_fixture_reaches_uniform_chunks(tmp_path)
     assert examples and len({chunk["parent_id"] for chunk in examples}) == 1
     assert "例题 1" in examples[0]["parent_content"] and "答案" in examples[0]["parent_content"]
     _assert_closed_neighbors(chunks)
+
+
+def test_canonical_splitter_carries_numbered_chapter_over_flat_mineru_paths():
+    book = CanonicalBook(
+        book_name="传感器长书",
+        source_kind="mineru",
+        parser_version="test-v1",
+        blocks=[
+            DocumentBlock(
+                block_id="heading-4", block_type="heading", text="第4章 力敏传感器",
+                section_path=["传感器原理及应用", "第4章 力敏传感器"], source_kind="mineru",
+            ),
+            DocumentBlock(
+                block_id="body-4", block_type="paragraph", text="电容式传感器正文。",
+                section_path=["传感器原理及应用", "4.3 电容式传感器"], source_kind="mineru",
+            ),
+            DocumentBlock(
+                block_id="heading-5", block_type="heading", text="第5章磁敏传感器",
+                section_path=["传感器原理及应用", "第5章磁敏传感器"], source_kind="mineru",
+            ),
+            DocumentBlock(
+                block_id="body-5", block_type="paragraph", text="磁敏传感器正文。",
+                section_path=["传感器原理及应用", "5.1 霍尔传感器"], source_kind="mineru",
+            ),
+        ],
+    )
+
+    chunks = ChapterSplitter(chunk_size=200, chunk_overlap=10).split_canonical_book(book)
+
+    assert [chunk["chapter"] for chunk in chunks] == ["第4章 力敏传感器", "第5章 磁敏传感器"]
+    assert book.blocks[1].section_path == ["传感器原理及应用", "4.3 电容式传感器"]
 
 
 def test_index_builder_prefers_canonical_blocks_and_persists_provenance(monkeypatch, tmp_path):

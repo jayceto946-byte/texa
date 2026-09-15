@@ -19,8 +19,8 @@ _PER_CHAPTER_LIMITS = {
     "summarize": 4,
     "quiz": 4,
     "qa": 4,
-    "definition": 3,
-    "formula": 3,
+    "definition": 4,
+    "formula": 4,
     "property": 3,
     "cross_chapter": 3,
 }

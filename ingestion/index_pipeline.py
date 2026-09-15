@@ -381,6 +381,14 @@ def _validate_staged_production_retrieval(
             vector_store=staged_vs,
             lexical_search=staged_search,
             neighbor_expander=staged_neighbors,
+            retrieval_resources_override=[{
+                "book_name": book_name,
+                "role": "",
+                "priority": 1.0,
+                "is_primary": True,
+                "is_selected": True,
+                "resource_group": "",
+            }],
             index_stats_override={book_name: {
                 "book_name": book_name,
                 "collection_count": len(staged_entries),
@@ -422,10 +430,15 @@ def _validate_staged_production_retrieval(
             item["id"] for item in details
             if item["recall_at_k"] < 1 or item["point_recall"] < RELEASE_MIN_POINT_RECALL
         ]
+        missing = {
+            item["id"]: item.get("missing_points", [])
+            for item in details
+            if item["recall_at_k"] < 1 or item["point_recall"] < RELEASE_MIN_POINT_RECALL
+        }
         raise RuntimeError(
             "staged production retrieval release gate failed: "
             f"recall={summary['recall_at_k']:.3f}, point_recall={summary['point_recall']:.3f}, "
-            f"failed={failed}, specialty_gates={failed_specialties}"
+            f"failed={failed}, missing={missing}, specialty_gates={failed_specialties}"
         )
     return summary
 

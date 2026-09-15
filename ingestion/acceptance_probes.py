@@ -13,7 +13,12 @@ import re
 import uuid
 from typing import Any
 
-from ingestion.document_ir import CanonicalBook, DocumentBlock, canonical_paths
+from ingestion.document_ir import (
+    CanonicalBook,
+    DocumentBlock,
+    canonical_paths,
+    canonical_retrieval_paths,
+)
 
 
 PROBE_SCHEMA_VERSION = 1
@@ -35,10 +40,11 @@ def generate_acceptance_probes(
     source_inventory = {name: 0 for name in SPECIALTIES}
     manual_review: list[dict] = []
     seen: set[tuple[str, str, tuple[str, ...]]] = set()
+    retrieval_paths = canonical_retrieval_paths(book.blocks)
     table_groups: dict[tuple[str, ...], list[int]] = {}
     for index, block in enumerate(book.blocks):
         if block.block_type == "table":
-            table_groups.setdefault(tuple(block.section_path), []).append(index)
+            table_groups.setdefault(tuple(retrieval_paths.get(block.block_id, block.section_path)), []).append(index)
     table_contexts = _table_contexts(book.blocks, table_groups)
 
     for block_index, block in enumerate(book.blocks):
@@ -63,7 +69,7 @@ def generate_acceptance_probes(
                 "intent": _intent(specialty),
                 "required_points": usable_points[:3 if specialty == "list" else 6],
                 "answerable": True,
-                "target_chapters": list(block.section_path[:1]),
+                "target_chapters": list(retrieval_paths.get(block.block_id, block.section_path)[:1]),
                 "specialty": specialty,
                 "tags": ["generated_probe", "structural_gate", specialty],
                 "provenance": {
@@ -115,7 +121,7 @@ def generate_acceptance_probes(
             "intent": "factual_recall",
             "required_points": usable_points[:6],
             "answerable": True,
-            "target_chapters": list(block.section_path[:1]),
+            "target_chapters": list(retrieval_paths.get(block.block_id, block.section_path)[:1]),
             "specialty": "table",
             "tags": ["generated_probe", "structural_gate", "table", grounding],
             "provenance": {
@@ -136,11 +142,25 @@ def generate_acceptance_probes(
     # OCR/Markdown chapters often place each numbered item and its explanation
     # in separate paragraphs. Reassemble the item labels by section so list
     # coverage does not depend on parser paragraph boundaries.
-    by_section: dict[tuple[str, ...], list[DocumentBlock]] = {}
+    # A short heading such as "3. 约束条件" can occur in several unrelated
+    # chapters. Group only contiguous occurrences; merging every identical
+    # section_path fabricates a probe whose points never coexist in the source.
+    section_runs: list[tuple[tuple[str, ...], list[DocumentBlock]]] = []
+    active_path: tuple[str, ...] | None = None
+    active_blocks: list[DocumentBlock] = []
     for block in book.blocks:
+        section_path = tuple(retrieval_paths.get(block.block_id, block.section_path))
+        if section_path != active_path:
+            if active_path is not None and active_blocks:
+                section_runs.append((active_path, active_blocks))
+            active_path = section_path
+            active_blocks = []
         if block.block_type == "paragraph" and str(block.text or "").strip():
-            by_section.setdefault(tuple(block.section_path), []).append(block)
-    for section_path, blocks in by_section.items():
+            active_blocks.append(block)
+    if active_path is not None and active_blocks:
+        section_runs.append((active_path, active_blocks))
+
+    for section_path, blocks in section_runs:
         combined_text = "\n".join(str(block.text or "") for block in blocks)
         if not _has_list_context(combined_text) or any(
             marker in (section_path[-1] if section_path else "") for marker in ("习题", "练习题", "例题")
@@ -153,7 +173,7 @@ def generate_acceptance_probes(
         if len(points) < 2:
             continue
         section_label = section_path[-1] if section_path else "本节"
-        question = f"{section_label} {' '.join(points[:2])}"[:160]
+        question = _list_probe_question(section_label, points)
         key = ("list", question, tuple(points[:6]))
         if key in seen:
             continue
@@ -249,11 +269,11 @@ def _block_probes(block: DocumentBlock):
         # Structural probes deliberately include a bounded source fragment.
         # Their job is to catch loss across parsing/indexing/EvidencePack, not
         # to act as automatically generated semantic examination questions.
-        yield "formula", formulas[0][:120], formulas[:3]
+        yield "formula", formulas[0][:120], formulas[:1]
 
     list_items = _list_items(text)
     if len(list_items) >= 2 and _has_list_context(text):
-        yield "list", f"{section} {' '.join(list_items[:2])}"[:160], list_items[:3]
+        yield "list", _list_probe_question(section, list_items), list_items[:3]
 
     if block.block_type == "example" or re.match(r"^(?:例题|例\s*\d+|示例)", text):
         label = _first_match(r"(?:例题\s*[\d.-]*|例\s*\d+(?:[.-]\d+)*|示例\s*\d*)", text)
@@ -280,6 +300,11 @@ def _formula_anchors(block: DocumentBlock, text: str) -> list[str]:
     return anchors
 
 
+def _list_probe_question(section: str, points: list[str]) -> str:
+    """Keep structural list probes on the production enumeration route."""
+    return f"{section}主要包括哪些内容？{' '.join(points[:2])}"[:160]
+
+
 def _formula_symbol(formula: str) -> str:
     left = formula.split("=", 1)[0]
     tokens = re.findall(r"\\[A-Za-z]+|[A-Za-z][A-Za-z0-9_]*|[\u4e00-\u9fff]{2,8}", left)
@@ -294,8 +319,8 @@ def _list_items(text: str) -> list[str]:
             line,
         )
         if match:
-            anchor = _source_anchor(text, match.group(1))
-            if anchor:
+            anchor = _concise_numbered_item(text, match.group(1))
+            if anchor and _semantic_list_item(anchor):
                 items.append(anchor)
     if len(items) >= 2:
         return _unique(items)
@@ -313,8 +338,26 @@ def _numbered_item_anchor(text: str) -> str:
         r"^(?:[-*•]|[（(]?\d+\s*[）).、]|[（(]?[一二三四五六七八九十]+[）)、.])\s*(.+?)\s*$",
         first_line,
     )
-    anchor = match.group(1).strip()[:96] if match and len(match.group(1).strip()) >= 2 else ""
+    anchor = _concise_numbered_item(text, match.group(1)) if match else ""
     return anchor if _semantic_list_item(anchor) else ""
+
+
+def _concise_numbered_item(source_text: str, value: str) -> str:
+    """Keep a source-verbatim list label instead of its full explanation."""
+    candidate = str(value or "").strip()
+    if not candidate:
+        return ""
+    candidate = re.split(r"[：:，,。；;]", candidate, maxsplit=1)[0].strip()
+    functional_label = re.match(r"^(.{2,16}?功能)", candidate)
+    if functional_label:
+        candidate = functional_label.group(1)
+    label = re.match(
+        r"^(.{2,24}?)(?=(?:\s+)?(?:其|它|在|是|可|主要|一般|只能))",
+        candidate,
+    )
+    if label:
+        candidate = label.group(1).strip()
+    return _source_anchor(source_text, candidate[:48])
 
 
 def _has_list_context(text: str) -> bool:

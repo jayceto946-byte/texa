@@ -68,19 +68,21 @@ _SUPPORT_META_PHRASES = (
     "教材中是否说明", "教材里是否说明", "教材是否说明",
     "教材中有没有讲", "教材里有没有讲", "教材有没有讲",
     "教材中是否有", "教材里是否有", "教材是否有",
-    "根据教材", "按照教材", "请问", "请解释", "请说明",
+    "教材如何定义", "教材怎么定义", "根据教材", "按照教材", "教材中", "教材里", "教材",
+    "请问", "请解释", "请说明",
     # Speech acts describe the user's conversational move, not textbook facts.
     "纠正一下", "我说的是", "我问的是", "正确的是", "应该叫", "应当叫",
     "其他两个", "另外两个", "分别是", "不是",
 )
 _SUPPORT_FILLER_PHRASES = (
-    "基本思想是什么", "是什么意思", "有哪些", "有什么", "是什么",
+    "基本思想是什么", "是什么意思", "表示什么", "代表什么", "如何定义", "怎么定义", "有哪些", "有什么", "是什么",
     "为什么", "怎么样", "怎么", "如何", "是否", "能否", "适合吗",
     "的主要", "主要", "讲一下", "介绍一下", "说明一下",
     "请分析", "请解释", "请说明", "简述", "列出", "给出", "比较", "适合", "吗", "呢",
     # 应用场景类介词/疑问词：纯功能词，不应成为需要证据逐字覆盖的 focus 词
     "通常", "用在", "用于", "应用于", "适用于", "常用于", "应用在", "哪些", "哪种", "何种",
     "方法",
+    "写出", "一般形式", "并说明它的", "并说明",
 )
 _TOPIC_SUFFIXES = (
     "传感器", "热敏电阻", "电阻", "误差", "定理", "公式", "方法",
@@ -105,6 +107,8 @@ _FOCUS_TERM_ALIASES: dict[str, tuple[str, ...]] = {
     "优点": ("优点",),
     "缺点": ("缺点",),
     "特点": ("特点",),
+    "分类": ("分类", "分为"),
+    "取值范围": ("取值范围", "范围"),
     "条件": ("成立条件", "条件"),
     "关系": ("之间的联系", "相互联系", "联系", "之间的关系", "关系"),
     "区别": ("区别", "不同之处", "差异"),
@@ -114,6 +118,7 @@ _TABLE_QUERY_MARKERS = (
     "哪些字段", "什么字段", "哪些数据", "什么数据", "字段或数据",
     "哪些特点", "什么特点", "表中列出", "表里列出", "表内列出",
     "表中有哪些", "表里有哪些", "表内有哪些", "表的内容", "表中内容",
+    "如下表", "下表",
 )
 _GENERIC_TOPIC_TERMS = {"传感器", "公式", "方法", "原理", "概念"}
 
@@ -123,6 +128,19 @@ _EXPLANATORY_RELATION_MARKERS = (
 
 
 def _retrieval_query_for_intent(query: str, intent: str) -> str:
+    if intent == "definition":
+        compact = re.sub(r"\s+", "", str(query or "").strip())
+        patterns = (
+            r"教材(?:如何|怎么)定义(.+?)[？?。！!]*$",
+            r"(?:中的|中)(.+?)(?:表示什么|代表什么)[？?。！!]*$",
+            r"什么是(.+?)[？?。！!]*$",
+        )
+        term = next(
+            (match.group(1).strip("的") for pattern in patterns if (match := re.search(pattern, compact))),
+            "",
+        )
+        if term:
+            return f"{term} {term}的概念 定义 {query}"
     if intent != "calculation":
         return query
     topic = re.sub(
@@ -135,7 +153,22 @@ def _retrieval_query_for_intent(query: str, intent: str) -> str:
 
 def _is_table_query(query: str) -> bool:
     compact = re.sub(r"\s+", "", str(query or ""))
+    if re.search(r"表\d+(?:[-－—.]\d+)+", compact):
+        return True
     return "表" in compact and any(marker in compact for marker in _TABLE_QUERY_MARKERS)
+
+
+def _is_enumeration_query(query: str, intent: str, *, table_request: bool = False) -> bool:
+    if table_request or intent not in {"factual_recall", "formula"}:
+        return False
+    compact = re.sub(r"\s+", "", str(query or ""))
+    if any(marker in compact for marker in (
+        "哪些", "优点", "特点", "不足", "缺点", "主要", "列举", "分别",
+        "几种", "几个", "多少种", "四个方法", "包括什么", "包括哪些",
+        "哪几个阶段", "哪四个阶段", "几个阶段",
+    )):
+        return True
+    return bool(re.search(r"哪[一二三四五六七八九十\d]+(?:类|种|项|个|方面|步骤|方法|阶段)", compact))
 
 
 def _normalized_table_title(value: str) -> str:
@@ -146,8 +179,34 @@ def _normalized_table_title(value: str) -> str:
 def _is_exact_table_title_hit(query: str, item: dict) -> bool:
     if str(item.get("block_type") or "") != "table":
         return False
-    normalized_title = _normalized_table_title(str(item.get("table_title") or ""))
-    return bool(normalized_title and normalized_title in _normalized_table_title(query))
+    query_title = _normalized_table_title(query)
+    explicit_ids = set(re.findall(r"表\d+(?:[-－—.]\d+)+", query_title))
+    stored_title = str(item.get("table_title") or "").strip()
+    content_title = str(item.get("text") or item.get("content") or "").splitlines()[0].strip()
+    candidate_titles = [
+        _normalized_table_title(value)
+        for value in (stored_title, content_title)
+        if value
+    ]
+    if explicit_ids:
+        return any(any(identifier in title for identifier in explicit_ids) for title in candidate_titles)
+    return any(title and title in query_title for title in candidate_titles)
+
+
+def _explicit_example_label(query: str) -> str:
+    compact = _normalized_table_title(query)
+    match = re.search(r"例(\d+(?:[-－—.]\d+)+)", compact)
+    return match.group(1) if match else ""
+
+
+def _is_exact_example_hit(query: str, item: dict) -> bool:
+    label = _explicit_example_label(query)
+    if not label:
+        return False
+    haystack = _normalized_table_title(
+        f"{item.get('section_title', '')}\n{item.get('text') or item.get('content') or ''}"
+    )
+    return bool(re.search(rf"例{re.escape(label)}(?![、，,及和])", haystack))
 
 
 def _is_table_reference_item(item: dict) -> bool:
@@ -160,9 +219,24 @@ def _is_table_reference_item(item: dict) -> bool:
     ))
 
 
+def _is_formula_item(item: dict) -> bool:
+    """Recognize equation-bearing prose preserved by source adapters."""
+    if str(item.get("block_type") or "") == "formula" or str(item.get("role") or "") == "formula":
+        return True
+    equations = item.get("equations")
+    if isinstance(equations, (list, tuple)):
+        return any(str(value).strip() for value in equations)
+    if isinstance(equations, str):
+        compact = equations.strip()
+        return bool(compact and compact not in {"[]", "null", "None"})
+    return False
+
+
 def _needs_teaching_unit_context(query: str, intent: str) -> bool:
     """Whether atomic IR hits must be reassembled into a teachable unit."""
     if intent in {"teach", "derivation"}:
+        return True
+    if intent == "formula" and any(marker in str(query or "") for marker in ("定义", "取值范围")):
         return True
     return intent in {"comparison", "qa"} and any(
         marker in str(query or "") for marker in _EXPLANATORY_RELATION_MARKERS
@@ -197,7 +271,7 @@ def _teaching_unit_neighbors(anchors: list[dict], expanded: list[dict]) -> list[
         )
         candidates = []
         for item in rows:
-            if str(item.get("block_type") or "") != "formula":
+            if not _is_formula_item(item):
                 continue
             if anchor_chapter and str(item.get("chapter") or "") != anchor_chapter:
                 continue
@@ -222,11 +296,11 @@ def _teaching_unit_neighbors(anchors: list[dict], expanded: list[dict]) -> list[
             local_prose = "\n".join(
                 str(row.get("text") or row.get("content") or "")
                 for row in local_rows
-                if str(row.get("block_type") or "") != "formula"
+                if not _is_formula_item(row)
             ).strip()
             if formula_index > anchor_index:
                 has_formula_cue = bool(re.search(
-                    r"(?:按下式(?:计算)?|由下式|公式(?:为|如下)|一般形式为|可表示为|可写为|计算如下|得|为)\s*[：:]?\s*$",
+                    r"(?:按下式(?:计算)?|由下式|公式(?:为|如下)|一般形式为|可表示为|可写为|计算如下|得|为|是)\s*[：:]?\s*$",
                     local_prose[-160:],
                 ))
             else:
@@ -316,21 +390,58 @@ def _chapter_contents_from_evidence(items: list[dict]) -> dict[str, list[str]]:
     return result
 
 
-def _select_enumeration_anchor(items: list[dict]) -> dict | None:
+def _select_enumeration_anchor(items: list[dict], query: str = "") -> dict | None:
     """Choose the semantic list header instead of the first generic method hit."""
+    query_parts = re.split(r"[?？]", str(query or ""), maxsplit=1)
+    hint_tokens = set(tokenize(query_parts[1])) if len(query_parts) == 2 else set()
+
+    def hint_coverage(item: dict) -> float:
+        if not hint_tokens:
+            return 0.0
+        item_tokens = set(tokenize(str(item.get("text") or item.get("content") or "")))
+        return len(hint_tokens & item_tokens) / len(hint_tokens)
+
+    def marker_match(item: dict) -> bool:
+        haystack = f"{item.get('section_title', '')}\n{item.get('text') or item.get('content') or ''}"
+        return any(marker in haystack for marker in query_markers)
+
+    query_markers = [
+        marker for marker in ("特点", "优点", "缺点", "不足", "方法", "分类", "类型", "步骤", "阶段", "作用")
+        if marker in str(query or "")
+    ]
     candidates = [
         item for item in items
         if float(item.get("enumeration_match_quality") or 0.0) >= 0.25
         or any(
             marker in str(item.get("section_title") or "")
-            for marker in ("特点", "优点", "缺点", "不足", "方法", "计算法", "分类", "类型", "步骤", "作用")
+            for marker in ("特点", "优点", "缺点", "不足", "方法", "计算法", "分类", "类型", "步骤", "阶段", "作用")
         )
+        or any(marker in str(item.get("text") or item.get("content") or "") for marker in query_markers)
+        or hint_coverage(item) >= 0.5
     ]
     if not candidates:
         return None
+    inferred_topics, _focus = _extract_query_focus(query, [])
+    if inferred_topics:
+        topic_candidates = [
+            item for item in candidates
+            if any(
+                topic in _normalized_support_text(
+                    f"{item.get('section_title', '')}\n{item.get('text') or item.get('content') or ''}"
+                )
+                for topic in inferred_topics
+            )
+        ]
+        if topic_candidates:
+            candidates = topic_candidates
+    non_toc_candidates = [item for item in candidates if not _looks_like_toc_chunk(item)]
+    if non_toc_candidates:
+        candidates = non_toc_candidates
     return max(candidates, key=lambda item: (
-        2.0 * float(item.get("title_match_quality") or 0.0)
-        + float(item.get("enumeration_match_quality") or 0.0)
+        3.0 * hint_coverage(item)
+        + (2.0 if marker_match(item) else 0.0)
+        + 2.0 * float(item.get("title_match_quality") or 0.0)
+        + 0.25 * float(item.get("enumeration_match_quality") or 0.0)
         + (0.2 if item.get("is_direct_hit") else 0.0)
         - 0.001 * int(item.get("retrieval_rank") or 999),
         -int(item.get("retrieval_rank") or 999),
@@ -343,6 +454,16 @@ def _is_enumeration_member_title(value: str) -> bool:
         r"^\s*(?:[（(](?:\d+|[一二三四五六七八九十]+)[）)]|"
         r"(?:\d+|[一二三四五六七八九十]+)[.、）)])(?!\d)",
         str(value or ""),
+    ))
+
+
+def _contains_enumeration_member(value: str) -> bool:
+    """Include a list header that introduces its first numbered item inline."""
+    text = str(value or "")
+    return _is_enumeration_member_title(text) or bool(re.search(
+        r"(?:^|\n)\s*(?:[（(](?:\d+|[一二三四五六七八九十]+)[）)]|"
+        r"(?:\d+|[一二三四五六七八九十]+)[.、）)])(?!\d)",
+        text,
     ))
 
 
@@ -373,6 +494,50 @@ def _list_group_neighbors(anchor: dict, expanded: list[dict]) -> list[dict]:
     anchor_item["list_group_part"] = "header"
     selected.append(anchor_item)
 
+    if not members:
+        section_title = str(anchor.get("section_title") or "")
+        anchor_path = tuple(str(value) for value in (anchor.get("section_path") or [])[:-1])
+        anchor_index = int(anchor.get("chunk_index") or 0)
+        anchor_text = str(anchor.get("text") or anchor.get("content") or "")
+        list_introduction = bool(re.search(
+            r"(?:包括|分为|分别为|主要有|有以下|如下(?:(?:[一二三四五六七八九十\d]+个)|几|各)?(?:项|点|种|类|方面|步骤|阶段))",
+            re.sub(r"\s+", "", anchor_text),
+        )) and not _contains_enumeration_member(anchor_text)
+        generic_members = sorted(
+            (
+                item for item in expanded
+                if str(item.get("chunk_id") or "") != anchor_id
+                and (not chapter or str(item.get("chapter") or "") == chapter)
+                and str(item.get("block_type") or "") != "formula"
+                and (not list_introduction or int(item.get("chunk_index") or 0) > anchor_index)
+                and (
+                    not section_title
+                    or str(item.get("section_title") or "") == section_title
+                    or (
+                        anchor_path
+                        and tuple(str(value) for value in (item.get("section_path") or [])[:-1]) == anchor_path
+                    )
+                )
+                and (
+                    _is_enumeration_member_title(str(item.get("section_title") or ""))
+                    or _contains_enumeration_member(str(item.get("text") or item.get("content") or ""))
+                )
+            ),
+            key=lambda item: (
+                abs(int(item.get("chunk_index") or 0) - anchor_index),
+                int(item.get("chunk_index") or 999999),
+                int(item.get("section_chunk_index") or 999999),
+            ),
+        )[:7]
+        generic_members.sort(key=lambda item: int(item.get("chunk_index") or 999999))
+        for order, item in enumerate(generic_members, 1):
+            enriched = dict(item)
+            enriched["is_list_neighbor"] = True
+            enriched["list_group_order"] = order
+            enriched["list_group_part"] = "member"
+            selected.append(enriched)
+        return selected
+
     for order, member in enumerate(members, 1):
         core = re.sub(r"(?:公式|法)$", "", member)
         matches = [
@@ -382,8 +547,8 @@ def _list_group_neighbors(anchor: dict, expanded: list[dict]) -> list[dict]:
             and core
             and core in str(item.get("section_title") or "")
         ]
-        paragraph = next((item for item in matches if str(item.get("block_type") or "") != "formula"), None)
-        formulas = [item for item in matches if str(item.get("block_type") or "") == "formula"]
+        paragraph = next((item for item in matches if not _is_formula_item(item)), None)
+        formulas = [item for item in matches if _is_formula_item(item)]
         tagged = [item for item in formulas if "\\tag{" in str(item.get("text") or item.get("content") or "")]
         selected_formulas = (tagged[-2:] if tagged else formulas[:1])
         for part, item in (("member", paragraph), *(("formula", value) for value in selected_formulas)):
@@ -398,12 +563,19 @@ def _list_group_neighbors(anchor: dict, expanded: list[dict]) -> list[dict]:
 
 
 def retrieve_node(state: dict, *, vector_store=None, lexical_search=None,
-                  neighbor_expander=None, index_stats_override=None) -> dict:
+                  neighbor_expander=None, index_stats_override=None,
+                  retrieval_resources_override=None) -> dict:
     from ingestion.index_snapshot import index_read_snapshot
     from ingestion.index_pipeline import load_index_manifest
     with index_read_snapshot():
-        result = _retrieve_node(state, vector_store=vector_store, lexical_search=lexical_search,
-                                neighbor_expander=neighbor_expander, index_stats_override=index_stats_override)
+        result = _retrieve_node(
+            state,
+            vector_store=vector_store,
+            lexical_search=lexical_search,
+            neighbor_expander=neighbor_expander,
+            index_stats_override=index_stats_override,
+            retrieval_resources_override=retrieval_resources_override,
+        )
         versions = {}
         invalid = False
         for item in result.get("evidence_items") or []:
@@ -433,6 +605,7 @@ def _retrieve_node(
     lexical_search: Callable[..., list[dict]] | None = None,
     neighbor_expander: Callable[..., list[dict]] | None = None,
     index_stats_override: dict[str, dict] | None = None,
+    retrieval_resources_override: list[dict] | None = None,
 ) -> dict:
     """Run the production retrieval path.
 
@@ -458,7 +631,20 @@ def _retrieve_node(
     user_input = state.get("user_input", "")
     book_name = state.get("book_name", "default")
     subject = str(state.get("subject") or "").strip()
-    retrieval_resources = resolve_retrieval_resources(book_name, subject)
+    retrieval_resources = (
+        [dict(item) for item in retrieval_resources_override]
+        if retrieval_resources_override is not None
+        else resolve_retrieval_resources(book_name, subject)
+    )
+    if target_chapters:
+        # A chapter is scoped to the explicitly selected textbook.  A core
+        # book remains the default for unscoped group retrieval, but must not
+        # replace a selected reference book's named chapter.
+        selected_resource = next(
+            (item for item in retrieval_resources if item.get("is_selected")),
+            retrieval_resources[0],
+        )
+        retrieval_resources = [{**selected_resource, "is_primary": True}]
     primary_resource = next((item for item in retrieval_resources if item.get("is_primary")), retrieval_resources[0])
     primary_book = str(primary_resource.get("book_name") or book_name)
     intent = state.get("intent", "qa")
@@ -584,12 +770,8 @@ def _retrieve_node(
     neighbor_results: list[dict] = []
     teaching_unit_request = _needs_teaching_unit_context(user_input, intent)
     table_request = _is_table_query(user_input)
-    enumeration_request = not table_request and intent in {"factual_recall", "formula"} and any(
-        marker in user_input for marker in (
-            "哪些", "优点", "特点", "不足", "缺点", "主要", "列举", "分别",
-            "几种", "几个", "多少种", "四个方法", "包括什么", "包括哪些",
-        )
-    )
+    example_label = _explicit_example_label(user_input)
+    enumeration_request = _is_enumeration_query(user_input, intent, table_request=table_request)
     for resource in retrieval_resources:
         candidate_book = str(resource.get("book_name") or "")
         is_primary = bool(resource.get("is_primary"))
@@ -659,7 +841,7 @@ def _retrieve_node(
             # A chapter-title hit often outranks the actual "特点/方法" list
             # header.  Expanding around that chapter hit walks arbitrary chunks
             # and can evict the consecutive list members from the final pack.
-            semantic_anchor = _select_enumeration_anchor(candidate_lexical)
+            semantic_anchor = _select_enumeration_anchor(candidate_lexical, user_input)
             if semantic_anchor is not None:
                 list_anchor = [semantic_anchor]
             elif float(candidate_lexical[0].get("title_match_quality") or 0.0) >= 0.5:
@@ -668,7 +850,7 @@ def _retrieve_node(
         if intent == "formula":
             formula_anchors = [
                 item for item in candidate_lexical
-                if str(item.get("block_type") or "") == "formula"
+                if _is_formula_item(item)
             ][:1]
         teaching_anchors: list[dict] = []
         if teaching_unit_request and is_primary:
@@ -695,11 +877,15 @@ def _retrieve_node(
             str(item.get("chunk_id")): item
             for item in table_anchors if item.get("chunk_id")
         }.values())[:3]
-        neighbor_anchors = table_anchors or list_anchor or formula_anchors or teaching_anchors or candidate_lexical[:3]
+        example_anchors = [
+            item for item in candidate_lexical
+            if example_label and _is_exact_example_hit(user_input, item)
+        ][:1]
+        neighbor_anchors = table_anchors or list_anchor or example_anchors or formula_anchors or teaching_anchors or candidate_lexical[:3]
         candidate_neighbors = (neighbor_expander or expand_neighbors)(
             candidate_book,
             [item.get("chunk_id", "") for item in neighbor_anchors],
-            window=36 if list_anchor else (2 if intent == "formula" or teaching_unit_request else 1),
+            window=36 if list_anchor else (6 if example_anchors else (2 if intent == "formula" or teaching_unit_request else 1)),
         )
         if list_anchor:
             candidate_neighbors = _list_group_neighbors(list_anchor[0], candidate_neighbors)
@@ -707,6 +893,20 @@ def _retrieve_node(
             candidate_neighbors = _teaching_unit_neighbors(teaching_anchors, candidate_neighbors)
         for item in candidate_neighbors:
             item["is_list_neighbor"] = bool(list_anchor)
+            if example_anchors:
+                item_index = int(item.get("chunk_index", -1))
+                anchor_index = int(example_anchors[0].get("chunk_index", -1))
+                if (
+                    item.get("chapter") == example_anchors[0].get("chapter")
+                    and item.get("section_title") == example_anchors[0].get("section_title")
+                    and str(item.get("block_type") or "") != "figure"
+                    and item_index >= 0
+                    and anchor_index >= 0
+                ):
+                    item["is_example_neighbor"] = True
+                    item["example_neighbor_distance"] = abs(item_index - anchor_index)
+                    item["example_neighbor_direction"] = item_index - anchor_index
+                    item["is_example_anchor"] = item_index == anchor_index
             if table_request and str(item.get("block_type") or "") == "table":
                 item_index = int(item.get("chunk_index", -1))
                 distances = [
@@ -832,6 +1032,10 @@ def _retrieve_node(
             "is_teaching_neighbor": bool(item.get("is_teaching_neighbor")),
             "teaching_anchor_order": item.get("teaching_anchor_order"),
             "teaching_neighbor_distance": item.get("teaching_neighbor_distance"),
+            "is_example_anchor": bool(item.get("is_example_anchor")),
+            "is_example_neighbor": bool(item.get("is_example_neighbor")),
+            "example_neighbor_distance": item.get("example_neighbor_distance"),
+            "example_neighbor_direction": item.get("example_neighbor_direction"),
             "list_group_order": item.get("list_group_order"),
             "list_group_part": item.get("list_group_part", ""),
             "fusion_sources": item.get("fusion_sources", []),
@@ -840,6 +1044,7 @@ def _retrieve_node(
             "table_anchor_order": item.get("table_anchor_order"),
             "table_neighbor_distance": item.get("table_neighbor_distance"),
             "table_anchor_chunk_id": item.get("table_anchor_chunk_id", ""),
+            "table_anchor_text": item.get("table_anchor_text", ""),
             "retrieval_scope": item.get("retrieval_scope", ""),
         }
         for item in retrieval_debug_items
@@ -852,6 +1057,8 @@ def _retrieve_node(
             item.get("is_direct_hit")
             or item.get("list_group_order") is not None
             or item.get("is_teaching_neighbor")
+            or item.get("is_example_neighbor")
+            or item.get("formula_anchor_order") is not None
             or (table_request and item.get("is_table_neighbor"))
             or (
                 table_request
@@ -927,6 +1134,13 @@ def _normalized_support_text(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.+一-鿿-]+", "", value or "").lower()
 
 
+def _topic_term_matches(topic: str, normalized_text: str) -> bool:
+    if topic in normalized_text:
+        return True
+    compact_topic = topic.replace("的", "")
+    return len(compact_topic) >= 4 and compact_topic in normalized_text.replace("的", "")
+
+
 def _dedupe_preserving_order(values: list[str]) -> list[str]:
     result: list[str] = []
     seen: set[str] = set()
@@ -955,6 +1169,16 @@ def _extract_query_focus(query: str, matched_concepts: list[str] | None = None) 
         for index, topic in enumerate(ordered_topics)
         if not any(topic in longer for longer in ordered_topics[:index])
     ]
+    if not any(topic not in _GENERIC_TOPIC_TERMS for topic in topics):
+        inferred_topic = re.match(
+            r"(?P<topic>[一-鿿]{1,6}传感器)(?:的|在|未来|是否|能否|有|是|$)",
+            normalized_query,
+        )
+        if inferred_topic:
+            topics = _dedupe_preserving_order([
+                *[topic for topic in topics if topic not in _GENERIC_TOPIC_TERMS],
+                inferred_topic.group("topic"),
+            ])
     residual_topics = list(topics)
     if any(topic not in _GENERIC_TOPIC_TERMS for topic in topics):
         topics = [topic for topic in topics if topic not in _GENERIC_TOPIC_TERMS]
@@ -1067,12 +1291,16 @@ def _assess_evidence_support(
 
     item_support = []
     for item in evidence_items:
-        text = f"{item.get('section_title', '')}\n{item.get('text', '')}"
+        text = (
+            f"{item.get('section_title', '')}\n"
+            f"{item.get('table_anchor_text', '')}\n"
+            f"{item.get('text', '')}"
+        )
         normalized_text = _normalized_support_text(text)
         topic_match = (
             not topics
             or all(topic in _GENERIC_TOPIC_TERMS for topic in topics)
-            or any(topic in normalized_text for topic in topics)
+            or any(_topic_term_matches(topic, normalized_text) for topic in topics)
         )
         item_support.append((item, text, topic_match))
     focus_coverages = {
@@ -1092,6 +1320,9 @@ def _assess_evidence_support(
     strong_evidence = any(
         topic_match and (
             item.get("is_direct_hit")
+            or item.get("is_table_neighbor")
+            or item.get("is_example_neighbor")
+            or item.get("formula_anchor_order") is not None
             or "kg" in set(item.get("fusion_sources") or [])
             or {"dense", "bm25"}.issubset(set(item.get("fusion_sources") or []))
             or float(item.get("query_coverage", 0.0)) >= 0.5
@@ -1179,7 +1410,7 @@ def _looks_like_toc_chunk(item: dict) -> bool:
     if str(item.get("block_type") or "") == "table" and str(item.get("table_title") or "").strip():
         return False
     section = str(item.get("section_title") or "")
-    section_lc = section.strip().lower()
+    section_lc = re.sub(r"\s+", "", section).lower()
     text = str(item.get("text") or "")
     if section_lc in TOC_SECTION_MARKERS:
         return True
@@ -1378,6 +1609,11 @@ def _merge_and_rerank(
                 fused[key]["source"] = source
             if item.get("is_list_neighbor"):
                 fused[key]["is_list_neighbor"] = True
+            if item.get("is_example_neighbor"):
+                fused[key]["is_example_neighbor"] = True
+                fused[key]["is_example_anchor"] = bool(item.get("is_example_anchor"))
+                fused[key]["example_neighbor_distance"] = int(item.get("example_neighbor_distance") or 0)
+                fused[key]["example_neighbor_direction"] = int(item.get("example_neighbor_direction") or 0)
             if item.get("is_teaching_neighbor"):
                 fused[key]["is_teaching_neighbor"] = True
                 fused[key]["teaching_anchor_order"] = int(item.get("teaching_anchor_order") or 999999)
@@ -1479,12 +1715,8 @@ def _merge_and_rerank(
     rerank_meta = reranker_status()
 
     table_query = _is_table_query(query)
-    enumeration_query = not table_query and intent in {"factual_recall", "formula"} and any(
-        marker in query for marker in (
-            "哪些", "优点", "特点", "不足", "缺点", "主要", "列举", "分别",
-            "几种", "几个", "多少种", "四个方法", "包括什么", "包括哪些",
-        )
-    )
+    enumeration_query = _is_enumeration_query(query, intent, table_request=table_query)
+    example_query = bool(_explicit_example_label(query))
     formula_query = intent == "formula"
     if table_query:
         ranked.sort(key=lambda item: (
@@ -1503,6 +1735,7 @@ def _merge_and_rerank(
         # List answers are commonly split across consecutive textbook chunks.
         # Preserve the selected book BM25 order so exact list members survive Top-K.
         ranked.sort(key=lambda item: (
+            0 if item.get("is_selected_book") else 1,
             0 if item.get("list_group_order") is not None else (1 if (
                 item.get("is_selected_book") and "bm25" in item.get("fusion_sources", [])
                 and (
@@ -1515,6 +1748,16 @@ def _merge_and_rerank(
             int(item.get("retrieval_rank") or 999999),
             int(item.get("section_chunk_index", 999999) if item.get("section_chunk_index") is not None else 999999),
             int(item.get("chunk_index", 999999) if item.get("chunk_index") is not None else 999999),
+            -float(item.get("score", 0)),
+            item.get("page_idx", 999999),
+        ))
+    elif example_query:
+        ranked.sort(key=lambda item: (
+            0 if item.get("is_example_neighbor") else 1,
+            0 if item.get("is_example_anchor") else 1,
+            0 if int(item.get("example_neighbor_direction") or 0) >= 0 else 1,
+            int(item["example_neighbor_distance"]) if item.get("example_neighbor_distance") is not None else 999999,
+            int(item.get("chunk_index") or 999999),
             -float(item.get("score", 0)),
             item.get("page_idx", 999999),
         ))
@@ -1619,6 +1862,12 @@ def _merge_and_rerank(
             "is_teaching_neighbor": bool(item.get("is_teaching_neighbor", False)),
             "teaching_anchor_order": item.get("teaching_anchor_order"),
             "teaching_neighbor_distance": item.get("teaching_neighbor_distance"),
+            "is_example_anchor": bool(item.get("is_example_anchor", False)),
+            "is_example_neighbor": bool(item.get("is_example_neighbor", False)),
+            "example_neighbor_distance": item.get("example_neighbor_distance"),
+            "example_neighbor_direction": item.get("example_neighbor_direction"),
+            "formula_anchor_order": item.get("formula_anchor_order"),
+            "formula_neighbor_distance": item.get("formula_neighbor_distance"),
             "list_group_order": item.get("list_group_order"),
             "list_group_part": item.get("list_group_part", ""),
             "is_toc_like": _looks_like_toc_chunk(item),

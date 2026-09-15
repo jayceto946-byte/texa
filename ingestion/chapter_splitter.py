@@ -2,6 +2,7 @@
 import json
 import hashlib
 import re
+from dataclasses import replace
 from pathlib import Path
 
 from ingestion.document_ir import (
@@ -9,6 +10,7 @@ from ingestion.document_ir import (
     DocumentBlock,
     PROVENANCE_SCHEMA_VERSION,
     canonical_book_fingerprint,
+    canonical_retrieval_paths,
 )
 
 
@@ -151,7 +153,12 @@ class ChapterSplitter:
 
     def split_canonical_book(self, book: CanonicalBook) -> list[dict]:
         """Convenience entry point for the canonical ingestion contract."""
-        rows = self.split_blocks(book.blocks, book_name=book.book_name)
+        retrieval_paths = canonical_retrieval_paths(book.blocks)
+        retrieval_blocks = [
+            replace(block, section_path=retrieval_paths.get(block.block_id, list(block.section_path)))
+            for block in book.blocks
+        ]
+        rows = self.split_blocks(retrieval_blocks, book_name=book.book_name)
         canonical_hash = canonical_book_fingerprint(book)
         for row in rows:
             row["canonical_hash"] = canonical_hash

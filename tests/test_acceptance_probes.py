@@ -47,6 +47,8 @@ def test_generator_builds_four_deterministic_structural_probe_types():
     assert all(case["status"] == "generated_structural" for case in first["cases"])
     assert all(case["provenance"]["human_approved"] is False for case in first["cases"])
     assert all(case["required_points"] for case in first["cases"])
+    list_case = next(case for case in first["cases"] if case["specialty"] == "list")
+    assert "包括哪些" in list_case["question"]
 
 
 def test_generated_probes_and_inventory_report_are_persisted(tmp_path):
@@ -61,6 +63,110 @@ def test_generated_probes_and_inventory_report_are_persisted(tmp_path):
     assert report["inventory"] == result["inventory"]
     assert "cases" not in report
     assert report["limitations"]
+
+
+def test_generated_probe_uses_carried_numbered_chapter_for_flat_mineru_paths():
+    book = CanonicalBook(
+        book_name="传感器长书",
+        source_kind="mineru",
+        parser_version="test-v1",
+        blocks=[
+            DocumentBlock(
+                block_id="heading", block_type="heading", text="第4章 力敏传感器",
+                section_path=["传感器原理及应用", "第4章 力敏传感器"], source_kind="mineru",
+            ),
+            DocumentBlock(
+                block_id="formula", block_type="formula", text="灵敏度公式：$$S=\\Delta C/\\Delta x$$",
+                equations=["S=\\Delta C/\\Delta x"],
+                section_path=["传感器原理及应用", "4.3 电容式传感器"], source_kind="mineru",
+            ),
+        ],
+    )
+
+    result = generate_acceptance_probes(book)
+
+    assert result["cases"][0]["target_chapters"] == ["第4章 力敏传感器"]
+    assert book.blocks[1].section_path == ["传感器原理及应用", "4.3 电容式传感器"]
+
+
+def test_formula_probe_requires_only_the_formula_named_by_its_question():
+    block = DocumentBlock(
+        block_id="multi-formula", block_type="paragraph",
+        text="第一式 $$a=b$$ 随后第二式 $$c=d$$",
+        equations=["a=b", "c=d"], section_path=["第一章"], source_kind="mineru",
+    )
+    book = CanonicalBook(
+        book_name="多公式教材", source_kind="mineru", parser_version="test-v1", blocks=[block],
+    )
+
+    case = next(case for case in generate_acceptance_probes(book)["cases"] if case["specialty"] == "formula")
+
+    assert case["question"] == "a=b"
+    assert case["required_points"] == ["a=b"]
+
+
+def test_numbered_list_probe_uses_labels_not_full_explanations():
+    block = DocumentBlock(
+        block_id="radiation-list", block_type="paragraph",
+        text=(
+            "粒子有以下几种：\n"
+            "(1)α粒子 其质量较大并带正电。\n"
+            "(2)β粒子它实际上是高速电子。\n"
+            "(3)γ射线它是一种电磁辐射。"
+        ),
+        section_path=["第十一章"], source_kind="mineru",
+    )
+    book = CanonicalBook(
+        book_name="射线教材", source_kind="mineru", parser_version="test-v1", blocks=[block],
+    )
+
+    case = next(case for case in generate_acceptance_probes(book)["cases"] if case["specialty"] == "list")
+
+    assert case["required_points"] == ["α粒子", "β粒子", "γ射线"]
+    assert len(case["question"]) < 80
+
+
+def test_numbered_list_probe_stops_at_compound_function_label():
+    block = DocumentBlock(
+        block_id="function-list", block_type="paragraph",
+        text=(
+            "智能式传感器包括：\n"
+            "(1)控制功能。\n"
+            "(2)数据处理功能。\n"
+            "(3)数据传输功能智能式传感器除了能独立完成一定的功能外，还能通信。"
+        ),
+        section_path=["第十三章"], source_kind="mineru",
+    )
+    book = CanonicalBook(
+        book_name="智能传感器教材", source_kind="mineru", parser_version="test-v1", blocks=[block],
+    )
+
+    case = next(case for case in generate_acceptance_probes(book)["cases"] if case["specialty"] == "list")
+
+    assert case["required_points"] == ["控制功能", "数据处理功能", "数据传输功能"]
+
+
+def test_repeated_section_titles_do_not_merge_unrelated_list_points():
+    book = CanonicalBook(
+        book_name="重复标题教材",
+        source_kind="mineru",
+        parser_version="test-v1",
+        blocks=[
+            _paragraph("a0", "本节主要包括以下条件。", section="3. 约束条件"),
+            _paragraph("a1", "1）甲条件", section="3. 约束条件"),
+            _paragraph("a2", "2）乙条件", section="3. 约束条件"),
+            _paragraph("split", "另一节正文", section="4. 设计实例"),
+            _paragraph("b0", "本节主要包括以下条件。", section="3. 约束条件"),
+            _paragraph("b1", "1）丙条件", section="3. 约束条件"),
+            _paragraph("b2", "2）丁条件", section="3. 约束条件"),
+        ],
+    )
+
+    result = generate_acceptance_probes(book)
+    list_cases = [case for case in result["cases"] if case["specialty"] == "list"]
+
+    assert len(list_cases) == 2
+    assert all(not ({"甲条件", "丙条件"} <= set(case["required_points"])) for case in list_cases)
 
 
 def test_generated_probes_pass_the_real_staged_lexical_retrieval_path():

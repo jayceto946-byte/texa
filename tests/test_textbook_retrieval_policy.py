@@ -44,6 +44,49 @@ def test_rerank_keeps_raw_relevance_separate_from_textbook_prior(monkeypatch):
     assert items[0]["score"] > items[0]["relevance_score"]
 
 
+def test_explicit_reference_chapter_does_not_fall_back_to_group_core(monkeypatch):
+    from types import SimpleNamespace
+
+    from graph import retrieval_node
+    from ingestion.vector_store import RetrievalOutcome
+
+    resources = [
+        {"book_name": "core-book", "role": "core", "priority": 1.0, "is_primary": True, "is_selected": False},
+        {"book_name": "reference-book", "role": "reference", "priority": 1.0, "is_primary": False, "is_selected": True},
+    ]
+    searched_books = []
+
+    class EmptyVectorStore:
+        def search_chapter(self, _chapter, _query, *, book_name="", **_kwargs):
+            searched_books.append(book_name)
+            return RetrievalOutcome(items=[])
+
+        def search_all(self, _query, *, book_name="", **_kwargs):
+            searched_books.append(book_name)
+            return RetrievalOutcome(items={})
+
+    monkeypatch.setattr(retrieval_node, "resolve_retrieval_resources", lambda *_args: resources)
+    monkeypatch.setattr(retrieval_node, "get_safe_kg", lambda *_args: (SimpleNamespace(_is_local=False), "unavailable"))
+    monkeypatch.setattr(retrieval_node, "_kg_precise_retrieval", lambda *_args, **_kwargs: ([], []))
+
+    retrieval_node.retrieve_node(
+        {
+            "user_input": "参考书第四章讲了什么？",
+            "book_name": "reference-book",
+            "intent": "factual_recall",
+            "target_chapters": ["第四章"],
+            "use_textbook_context": True,
+        },
+        vector_store=EmptyVectorStore(),
+        lexical_search=lambda book, *_args, **_kwargs: searched_books.append(book) or [],
+        neighbor_expander=lambda *_args, **_kwargs: [],
+        index_stats_override={"reference-book": {"healthy": True}},
+    )
+
+    assert searched_books
+    assert set(searched_books) == {"reference-book"}
+
+
 def test_role_change_and_reference_only_group_resolve_without_reindex(monkeypatch, tmp_path):
     from utils import resource_groups
 
@@ -67,4 +110,3 @@ def test_role_change_and_reference_only_group_resolve_without_reindex(monkeypatc
     )
     changed = resource_groups.resolve_retrieval_resources("book-b", "course-a")
     assert next(item for item in changed if item["is_primary"])["book_name"] == "book-a"
-

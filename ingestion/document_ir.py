@@ -27,6 +27,49 @@ BLOCK_TYPES = frozenset({
 })
 BODY_BLOCK_TYPES = frozenset({"paragraph", "formula", "table", "example", "exercise"})
 OCR_SOURCE_KINDS = frozenset({"ocr", "mineru"})
+_NUMBERED_CHAPTER_RE = re.compile(
+    r"^\s*第\s*(?P<number>\d+|[一二三四五六七八九十百零〇]+)\s*章\s*(?P<title>.*)$"
+)
+
+
+def canonical_chapter_title(value: str) -> str:
+    """Return a stable numbered-chapter title, or an empty string."""
+    match = _NUMBERED_CHAPTER_RE.match(str(value or "").strip())
+    if not match:
+        return ""
+    number = match.group("number")
+    title = re.sub(r"\s+", "", match.group("title") or "")
+    return f"第{number}章" + (f" {title}" if title else "")
+
+
+def canonical_retrieval_paths(blocks: list["DocumentBlock"]) -> dict[str, list[str]]:
+    """Derive chapter-first retrieval paths without mutating Canonical IR.
+
+    Some MinerU exports keep the book title as the root and replace their
+    second path element for every subsection.  The numbered chapter heading
+    remains in the ordered block stream, so carry it forward for retrieval.
+    """
+    active_chapter = ""
+    paths: dict[str, list[str]] = {}
+    for block in blocks:
+        candidates = []
+        if block.block_type == "heading":
+            candidates.append(block.text)
+        candidates.extend(block.section_path)
+        detected = next(
+            (chapter for value in candidates if (chapter := canonical_chapter_title(value))),
+            "",
+        )
+        if detected:
+            active_chapter = detected
+        source_path = [str(value).strip() for value in block.section_path if str(value).strip()]
+        if active_chapter:
+            source_path = [active_chapter, *[
+                value for value in source_path
+                if canonical_chapter_title(value) != active_chapter
+            ]]
+        paths[block.block_id] = source_path
+    return paths
 
 
 def chunk_provenance_errors(chunk: dict[str, Any], *, require_index_version: bool = False) -> list[str]:

@@ -162,6 +162,58 @@ def test_standard_deviation_method_group_outranks_unrelated_four_method_hit():
     }
 
 
+def test_generic_numbered_list_group_keeps_same_section_members():
+    rows = [
+        {
+            "chunk_id": "anchor", "chapter": "第九章", "section_title": "3. 约束条件",
+            "chunk_index": 100, "content": "约束条件包括若干部分。1）保证两轮无根切。",
+        },
+        {
+            "chunk_id": "formula", "chapter": "第九章", "section_title": "3. 约束条件",
+            "chunk_index": 101, "block_type": "formula", "content": "$$g_1(X) \\leq 0$$",
+        },
+        {
+            "chunk_id": "overlap", "chapter": "第九章", "section_title": "3. 约束条件",
+            "chunk_index": 102, "content": "2）重合度大于等于许用重合度。",
+        },
+        {
+            "chunk_id": "sharp", "chapter": "第九章", "section_title": "3. 约束条件",
+            "chunk_index": 103, "content": "3）齿顶不变尖。",
+        },
+        {
+            "chunk_id": "other", "chapter": "第九章", "section_title": "4. 计算结果",
+            "chunk_index": 104, "content": "4）不属于约束条件列表。",
+        },
+    ]
+
+    group = _list_group_neighbors(rows[0], rows)
+
+    assert [item["chunk_id"] for item in group] == ["anchor", "overlap", "sharp"]
+    assert [item["list_group_order"] for item in group] == [0, 1, 2]
+
+
+def test_generic_numbered_list_group_keeps_inline_first_member_header():
+    anchor = {
+        "chunk_id": "second", "chapter": "约束条件", "section_title": "约束条件",
+        "chunk_index": 13, "content": "2）第二项",
+    }
+    expanded = [
+        {
+            "chunk_id": "first", "chapter": "约束条件", "section_title": "约束条件",
+            "chunk_index": 10, "content": "本节包括三个条件。\n\n1）第一项",
+        },
+        anchor,
+        {
+            "chunk_id": "third", "chapter": "约束条件", "section_title": "约束条件",
+            "chunk_index": 15, "content": "3）第三项",
+        },
+    ]
+
+    group = _list_group_neighbors(anchor, expanded)
+
+    assert [item["chunk_id"] for item in group] == ["second", "first", "third"]
+
+
 def test_formula_rerank_preserves_formula_and_local_ir_neighbors():
     neighborhood = [
         {

@@ -123,7 +123,8 @@ def test_evidence_pack_rejects_anonymous_chapter_text_without_provenance():
 @pytest.mark.parametrize(
     ("intent", "expected_count"),
     [
-        ("definition", 3),
+        ("definition", 4),
+        ("formula", 4),
         ("factual_recall", 6),
         ("comparison", 4),
         ("qa", 4),
