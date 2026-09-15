@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const net = require('node:net');
 const path = require('node:path');
 const test = require('node:test');
-const { findAvailablePort, portFromUrl } = require('./runtime.cjs');
+const { findAvailablePort, portFromUrl, resolveUserDataPath } = require('./runtime.cjs');
 
 test('Texa branding preserves the existing desktop identity and userData paths', () => {
   const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
@@ -14,8 +14,19 @@ test('Texa branding preserves the existing desktop identity and userData paths',
   assert.equal(packageJson.build.artifactName, 'Texa-Setup-${version}.${ext}');
   assert.equal(packageJson.build.appId, 'local.kaoyan.assistant');
   assert.match(mainSource, /app\.setName\('Texa'\)/);
-  assert.match(mainSource, /'考研智能辅助系统' : 'kaoyan-assistant-desktop'/);
+  assert.match(mainSource, /process\.env\.KAOYAN_USER_DATA_DIR/);
   assert.match(mainSource, /app\.setPath\('userData'/);
+});
+
+test('userData keeps the legacy default and accepts an explicit isolated override', () => {
+  assert.equal(
+    resolveUserDataPath({ override: '', appDataPath: 'C:\\Users\\demo\\AppData\\Roaming', isPackaged: true }),
+    path.join('C:\\Users\\demo\\AppData\\Roaming', '考研智能辅助系统'),
+  );
+  assert.equal(
+    resolveUserDataPath({ override: 'D:\\isolated\\texa-user-data', appDataPath: 'ignored', isPackaged: true }),
+    path.resolve('D:\\isolated\\texa-user-data'),
+  );
 });
 
 test('portFromUrl resolves explicit and default HTTP ports', () => {

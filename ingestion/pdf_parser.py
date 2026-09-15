@@ -149,9 +149,16 @@ class PDFParser:
 
         print(f"[TOC-Kimi] {len(chapters)}章", flush=True)
         return chapters
+
+    def _fallback_single_chapter(self) -> list[dict]:
+        """Keep the complete text layer when no reliable chapter structure exists."""
         name = self.pdf_path.stem
-        text = self.extract_text()[:10000]
-        return [{"title": f"{name} (全文)", "text": text, "page_number": 1}]
+        return [{
+            "title": f"{name} (全文)",
+            "text": self.extract_text(),
+            "page_number": 1,
+            "end_page": self.total_pages,
+        }]
 
     # ----- 内置目录 -----
 

@@ -100,8 +100,20 @@ def _embedding_status(manifest: dict) -> dict:
 
 def _vector_status(manifest: dict) -> dict:
     item = manifest.get("assets", {}).get("vector_bundle", {})
-    db_path = Path(VECTOR_DB_PATH) / "chroma.sqlite3"
-    installed = db_path.exists()
+    vector_root = Path(VECTOR_DB_PATH)
+    db_path = vector_root / "chroma.sqlite3"
+    map_path = vector_root / "_chapter_map.json"
+    scope_error: VectorScopeInvariantError | None = None
+    installed = False
+    if db_path.exists() and map_path.exists():
+        try:
+            require_scoped_vector_snapshot(vector_root)
+            chapter_map = json.loads(map_path.read_text(encoding="utf-8-sig"))
+            installed = isinstance(chapter_map, dict) and bool(chapter_map)
+        except VectorScopeInvariantError as exc:
+            scope_error = exc
+        except Exception:
+            installed = False
     version_match = installed and (not item or item.get("version") == VECTOR_BUNDLE_VERSION)
     result = {
         "id": "vector_bundle",
@@ -114,17 +126,14 @@ def _vector_status(manifest: dict) -> dict:
         "path": str(VECTOR_DB_PATH),
         "installed_at": item.get("installed_at", ""),
     }
-    if installed:
-        try:
-            require_scoped_vector_snapshot(Path(VECTOR_DB_PATH))
-        except VectorScopeInvariantError as exc:
-            result.update({
-                "healthy": False,
-                "vector_ready": False,
-                "status": "missing",
-                "error_code": exc.error_code,
-                "reindex_required": True,
-            })
+    if scope_error is not None:
+        result.update({
+            "healthy": False,
+            "vector_ready": False,
+            "status": "missing",
+            "error_code": scope_error.error_code,
+            "reindex_required": True,
+        })
     return result
 
 

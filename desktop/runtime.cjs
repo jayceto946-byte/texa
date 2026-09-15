@@ -1,4 +1,12 @@
 const net = require('node:net');
+const path = require('node:path');
+
+function resolveUserDataPath({ override = '', appDataPath, isPackaged }) {
+  const explicit = String(override || '').trim();
+  if (explicit) return path.resolve(explicit);
+  const directoryName = isPackaged ? '考研智能辅助系统' : 'kaoyan-assistant-desktop';
+  return path.join(appDataPath, directoryName);
+}
 
 function portFromUrl(value) {
   if (!value) return 0;
@@ -28,4 +36,4 @@ function findAvailablePort(host = '127.0.0.1') {
   });
 }
 
-module.exports = { findAvailablePort, portFromUrl };
+module.exports = { findAvailablePort, portFromUrl, resolveUserDataPath };

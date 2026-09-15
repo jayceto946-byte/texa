@@ -203,6 +203,21 @@ def test_vector_asset_readiness_reports_stable_scope_error(monkeypatch, tmp_path
     assert status["reindex_required"] is True
 
 
+def test_vector_asset_readiness_does_not_treat_empty_chroma_file_as_installed(monkeypatch, tmp_path):
+    from backend.api import assets
+
+    root = tmp_path / "vector_db"
+    root.mkdir()
+    (root / "chroma.sqlite3").write_bytes(b"")
+    monkeypatch.setattr(assets, "VECTOR_DB_PATH", root)
+
+    status = assets._vector_status({"assets": {}})
+
+    assert status["installed"] is False
+    assert status["version_match"] is False
+    assert status["status"] == "missing"
+
+
 def test_sample_seed_rejects_invalid_vector_before_creating_user_data(monkeypatch, tmp_path):
     from desktop import backend_server
 
