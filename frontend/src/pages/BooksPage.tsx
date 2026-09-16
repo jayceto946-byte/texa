@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Archive, FileText, HelpCircle, Loader2, Upload } from 'lucide-react';
+import { Archive, ArrowLeft, FileText, HelpCircle, Loader2, Upload } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api/client';
 import ScopeSelector from '../components/ScopeSelector';
-import { StatusBanner, TaskStatus } from '../components/ui/AsyncState';
+import { ActionableIssue, StatusBanner, TaskStatus } from '../components/ui/AsyncState';
 
 type ImportJob = {
   id: string;
@@ -75,6 +76,7 @@ const OptionHelp = ({ title, description }: { title: string; description: string
 };
 
 const BooksPage: React.FC = () => {
+  const navigate = useNavigate();
   const [importMode, setImportMode] = useState<'pdf' | 'bundle'>('pdf');
   const [file, setFile] = useState<File | null>(null);
   const [outputFile, setOutputFile] = useState<File | null>(null);
@@ -225,6 +227,7 @@ const BooksPage: React.FC = () => {
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-bg-primary">
       <header className="app-page-header border-b border-border bg-bg-card">
+        <button type="button" onClick={() => navigate('/books')} className="app-icon-button" aria-label="返回教材"><ArrowLeft className="h-4 w-4" /></button>
         <h2 className="app-page-title">导入教材</h2>
         <div className="window-drag-region" aria-hidden="true" />
       </header>
@@ -338,8 +341,17 @@ const BooksPage: React.FC = () => {
           </section>
         )}
 
-        {error && <StatusBanner kind="error" title="导入失败" description={error} />}
-        {job && <TaskStatus title={job.book_name || '教材导入任务'} detail={`${stageLabels[job.stage] || job.stage} / ${job.message}`} progress={progress} state={isFailed ? 'error' : isDone ? 'success' : 'loading'} />}
+        {error && <ActionableIssue title="教材没有导入成功" impact="这本教材暂时不能用于回答；已有教材和当前学习范围不受影响。" actions={<><button type="button" onClick={() => setError('')} className="app-secondary-button">重新选择文件</button><button type="button" onClick={() => navigate('/books')} className="app-secondary-button">返回教材</button></>} details={error} />}
+        {job && <>
+          <TaskStatus
+            title={isDone ? `${job.book_name || '教材'}已可用于学习` : isFailed ? `${job.book_name || '教材'}没有准备完成` : `正在准备${job.book_name ? `《${job.book_name}》` : '教材'}`}
+            detail={isDone ? `已整理 ${job.result?.chapter_count || 0} 章内容。现在可以设为当前学习范围并开始提问。` : isFailed ? '这本教材暂时不能用于回答。请查看详细信息后重试。' : '正在整理教材内容，完成后即可用于有来源的回答。'}
+            progress={progress}
+            state={isFailed ? 'error' : isDone ? 'success' : 'loading'}
+          />
+          <details className="border-b border-border px-4 py-3 type-caption text-text-secondary"><summary className="cursor-pointer">详细信息</summary><p className="mt-2">{stageLabels[job.stage] || job.stage} · {job.message}</p></details>
+          {isDone && <div className="flex justify-end"><button type="button" onClick={() => navigate('/books')} className="app-primary-button">查看教材状态</button></div>}
+        </>}
       </div>
     </div>
   );

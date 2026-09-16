@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { ChatReportCard, LearningReport } from '../../types';
 import { useLearningNoteFont } from '../../hooks/useLearningNoteFont';
 
@@ -28,6 +29,7 @@ const ReportCard: React.FC<{ card: ChatReportCard }> = ({ card }) => {
   const summary = report.summary || {};
   const topConceptText = report.top_concepts?.length ? report.top_concepts.slice(0, 3).map((item) => item.name).join('、') : '暂无概念记录';
   const weakText = report.weak_points?.length ? report.weak_points.slice(0, 3).map((item) => item.name).join('、') : '暂无新增薄弱点';
+  const nextStep = report.suggestions?.[0] || '现有记录还不足以生成复习建议；可以先完成一次问答或错题复习。';
 
   return (
     <div className="space-y-3">
@@ -42,33 +44,39 @@ const ReportCard: React.FC<{ card: ChatReportCard }> = ({ card }) => {
           </button>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {reportMetrics.map(([label, key]) => (
-            <div key={key} className="rounded-lg border border-border bg-bg-card px-3 py-2">
-              <div className="text-lg font-semibold text-text-primary">{summary[key] || 0}</div>
-              <div className="text-[11px] text-text-secondary">{label}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 grid gap-2 text-sm md:grid-cols-2">
+        <div className="mt-4 grid gap-2 text-sm md:grid-cols-3">
           <div className="rounded-lg border border-border bg-bg-card px-3 py-2">
-            <div className="mb-1 text-xs font-medium text-text-secondary">高频概念</div>
+            <div className="mb-1 text-xs font-medium text-text-secondary">{card.kind === 'daily' ? '今天学了什么' : '本周学了什么'}</div>
             <div className="text-text-primary">{topConceptText}</div>
           </div>
           <div className="rounded-lg border border-border bg-bg-card px-3 py-2">
-            <div className="mb-1 text-xs font-medium text-text-secondary">薄弱点</div>
+            <div className="mb-1 text-xs font-medium text-text-secondary">哪些内容仍然薄弱</div>
             <div className="text-text-primary">{weakText}</div>
+          </div>
+          <div className="learning-note rounded-lg border border-accent/20 bg-[var(--accent-softer)] px-3 py-2">
+            <div className="mb-1 text-xs font-medium text-text-secondary">下一步建议复习什么</div>
+            <div className="text-text-primary">{nextStep}</div>
           </div>
         </div>
 
-        {report.suggestions?.length > 0 && (
-          <div className="learning-note mt-3 rounded-lg border border-accent/20 bg-[var(--accent-softer)] px-3 py-2 text-sm text-text-primary">{report.suggestions[0]}</div>
-        )}
+        <div className="mt-4 flex justify-end">
+          <Link to="/mistakes?tab=review&session=1" className="app-primary-button">开始复习</Link>
+        </div>
       </div>
 
       {open && (
         <div className="space-y-3 rounded-xl border border-border bg-bg-card p-4">
+          <section>
+            <div className="mb-2 text-xs font-medium text-text-secondary">学习统计</div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {reportMetrics.map(([label, key]) => (
+                <div key={key} className="rounded-lg border border-border bg-[var(--surface-subtle)] px-3 py-2">
+                  <div className="text-lg font-semibold text-text-primary">{summary[key] || 0}</div>
+                  <div className="text-[11px] text-text-secondary">{label}</div>
+                </div>
+              ))}
+            </div>
+          </section>
           <div className="grid gap-3 md:grid-cols-3">
             <ReportList title="高频概念" items={(report.top_concepts || []).map((item) => `${item.name} · ${item.count}`)} empty="暂无概念记录" />
             <ReportList title="薄弱点" items={(report.weak_points || []).map((item) => `${item.name} · ${item.count}`)} empty="暂无新增错题薄弱点" />

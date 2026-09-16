@@ -648,9 +648,12 @@ def test_chat_ask_pending_action_stays_running_until_finalization(monkeypatch, t
 
 
 def test_chat_stream_persists_context_trace_v2(monkeypatch):
+    from dataclasses import asdict
+
     import backend.api.chat as chat_api
     import backend.rag_trace as rag_trace
     import graph.main_graph as main_graph
+    from backend.services.session_context import rebuild_session_state
 
     history = [
         {"role": "user", "content": "讲一下拉格朗日中值定理。", "turn_id": "turn-1"},
@@ -659,6 +662,10 @@ def test_chat_stream_persists_context_trace_v2(monkeypatch):
     captured = {}
     monkeypatch.setattr(chat_api, "resolve_conversation_id_for_scope", lambda *args: "cid")
     monkeypatch.setattr(chat_api, "load_history", lambda conversation_id: history)
+    monkeypatch.setattr(chat_api, "get_or_rebuild_session_ledger", lambda _conversation_id, recent_history: {
+        "state": asdict(rebuild_session_state(recent_history)),
+        "last_seq": 0,
+    })
     monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: {"id": "message"})
     monkeypatch.setattr(chat_api, "_safe_subject_suggestion", lambda *args: None)
     monkeypatch.setattr(chat_api, "decide_answer_scope", lambda *args, **kwargs: SimpleNamespace(

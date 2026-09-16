@@ -36,13 +36,13 @@ export function useMistakeReview({
     setExpandedReviewId((current) => current === id ? '' : current);
   }, []);
 
-  const handleReview = useCallback(async (id: string, quality: number) => {
+  const handleReview = useCallback(async (id: string, quality: number): Promise<MistakeRecord | null> => {
     setReviewMessage('');
     try {
       const res = await post(`/mistakes/review${bookQuery}`, { id, quality });
       if (!res?.success) {
         setReviewMessage(res?.message || '复习记录失败');
-        return;
+        return null;
       }
       const updated = res.data as MistakeRecord | undefined;
       if (updated) {
@@ -54,8 +54,10 @@ export function useMistakeReview({
       }
       await refreshDue();
       await refreshStats();
+      return updated || null;
     } catch (error) {
       setReviewMessage(error instanceof Error ? error.message : String(error));
+      return null;
     }
   }, [bookQuery, refreshDue, refreshStats, setDueRecords, setRecords]);
 

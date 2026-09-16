@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { BarChart3, BookOpen, ClipboardCheck, HelpCircle, Loader2, RefreshCw } from 'lucide-react';
 import { get } from '../api/client';
+import { ActionableIssue } from '../components/ui/AsyncState';
 import { useChatContext } from '../contexts/ChatContext';
 import { useLearningNoteFont } from '../hooks/useLearningNoteFont';
 
@@ -29,8 +31,8 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
   const [report, setReport] = useState<WeeklyReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showStats, setShowStats] = useState(false);
   const title = days <= 1 ? '学习日报' : '学习周报';
-  const suggestionTitle = days <= 1 ? '今日建议' : '下周建议';
 
   const loadReport = useCallback(async () => {
     setLoading(true);
@@ -50,6 +52,9 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
   useEffect(() => { loadReport(); }, [loadReport]);
 
   const summary = report?.summary || {};
+  const learnedText = report?.top_concepts?.length ? report.top_concepts.slice(0, 4).map((item) => item.name).join('、') : '现有记录还不足以归纳学习内容。';
+  const weakText = report?.weak_points?.length ? report.weak_points.slice(0, 4).map((item) => item.name).join('、') : '暂未发现新的薄弱点。';
+  const nextStep = report?.suggestions?.[0] || '先完成一次问答或错题复习，再回来查看建议。';
 
   return (
     <div className={compact ? 'space-y-4' : 'h-full overflow-y-auto bg-bg-primary p-6'}>
@@ -75,45 +80,47 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
         </div>
       )}
 
-      {error && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {error && <ActionableIssue
+        title={`${title}暂时无法整理`}
+        impact="本次学习记录不会丢失，但现在无法生成学习结论和复习建议。"
+        actions={<button type="button" onClick={loadReport} className="app-secondary-button">重新整理</button>}
+        details={error}
+      />}
 
-      {(!loading || report) && (
+      {report && (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+          <div className="grid gap-4 xl:grid-cols-3">
+            <section className="rounded-md border border-border bg-bg-card p-4">
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold"><BookOpen className="h-4 w-4 text-accent" /> {days <= 1 ? '今天学了什么' : '本周学了什么'}</h3>
+              <p className="text-sm leading-6 text-text-primary">{learnedText}</p>
+            </section>
+
+            <section className="rounded-md border border-border bg-bg-card p-4">
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold"><ClipboardCheck className="h-4 w-4 text-accent" /> 哪些内容仍然薄弱</h3>
+              <p className="text-sm leading-6 text-text-primary">{weakText}</p>
+            </section>
+
+            <section className="rounded-md border border-border bg-bg-card p-4">
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold"><HelpCircle className="h-4 w-4 text-accent" /> 下一步建议复习什么</h3>
+              <p className="learning-note text-sm leading-6 text-text-primary">{nextStep}</p>
+            </section>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-y border-border py-3">
+            <button type="button" onClick={() => setShowStats((value) => !value)} className="app-secondary-button">
+              {showStats ? '收起学习统计' : '查看学习统计'}
+            </button>
+            <Link to="/mistakes?tab=review&session=1" className="app-primary-button">开始复习</Link>
+          </div>
+
+          {showStats && <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
             <Metric label="问答次数" value={summary.qa_count || 0} compact={compact} />
             <Metric label="新增错题" value={summary.new_mistakes || 0} compact={compact} />
             <Metric label="复习错题" value={summary.reviewed_mistakes || 0} compact={compact} />
             <Metric label="新增习题" value={summary.new_exercises || 0} compact={compact} />
             <Metric label="练习习题" value={summary.practiced_exercises || 0} compact={compact} />
             <Metric label="概念接触" value={summary.concept_exposures || 0} compact={compact} />
-          </div>
-
-          <div className="grid gap-4 xl:grid-cols-3">
-            <section className="rounded-md border border-border bg-bg-card p-4">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold"><BookOpen className="h-4 w-4 text-accent" /> 高频概念</h3>
-              <div className="space-y-2">
-                {(report?.top_concepts || []).length ? report!.top_concepts.map((item) => (
-                  <div key={item.name} className="flex justify-between rounded-md bg-bg-primary px-3 py-2 text-sm"><span>{item.name}</span><span className="text-text-secondary">{item.count}</span></div>
-                )) : <div className="text-sm text-text-secondary">暂无概念记录</div>}
-              </div>
-            </section>
-
-            <section className="rounded-md border border-border bg-bg-card p-4">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold"><ClipboardCheck className="h-4 w-4 text-accent" /> 薄弱点</h3>
-              <div className="space-y-2">
-                {(report?.weak_points || []).length ? report!.weak_points.map((item) => (
-                  <div key={item.name} className="flex justify-between rounded-md bg-bg-primary px-3 py-2 text-sm"><span>{item.name}</span><span className="text-text-secondary">{item.count}</span></div>
-                )) : <div className="text-sm text-text-secondary">暂无新增错题薄弱点</div>}
-              </div>
-            </section>
-
-            <section className="rounded-md border border-border bg-bg-card p-4">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold"><HelpCircle className="h-4 w-4 text-accent" /> {suggestionTitle}</h3>
-              <div className="space-y-2">
-                {(report?.suggestions || []).map((item, idx) => <div key={idx} className="learning-note rounded-md bg-bg-primary px-3 py-2 text-sm text-text-primary">{item}</div>)}
-              </div>
-            </section>
-          </div>
+          </div>}
 
           <section className="rounded-md border border-border bg-bg-card p-4">
             <h3 className="mb-3 text-sm font-semibold">最近提问</h3>

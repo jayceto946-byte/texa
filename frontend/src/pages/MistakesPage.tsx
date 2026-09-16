@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
+  ArrowRight,
   BookOpenCheck,
   BrainCircuit,
   Camera,
@@ -19,13 +20,20 @@ import {
 import { apiFetch, del, get, IMAGE_RECOGNITION_TIMEOUT_MS, IMAGE_SOLUTION_TIMEOUT_MS, post } from '../api/client';
 import ChatMessage from '../components/ChatMessage';
 import ScopeSelector, { type ScopeBookOption } from '../components/ScopeSelector';
-import { StatusBanner } from '../components/ui/AsyncState';
+import { ActionableIssue, StatusBanner } from '../components/ui/AsyncState';
 import { useChatContext } from '../contexts/ChatContext';
 import ProblemImageEditor from '../features/mistakes/components/ProblemImageEditor';
 import { MistakeMetric } from '../features/mistakes/components/MistakePresentation';
 import { useVisibleList } from '../hooks/useVisibleList';
 import type { MistakeRecord, MistakeStats, WeakPoint } from '../types';
 import { useMistakeReview } from '../features/mistakes/hooks/useMistakeReview';
+import {
+  collectReviewConcepts,
+  estimateReviewMinutes,
+  nextSuggestedReview,
+  summarizeReviewSession,
+  type ReviewSessionResult,
+} from '../features/mistakes/reviewSession';
 
 const TABS = ['录入', '列表', '今日复习', '统计'] as const;
 type Tab = (typeof TABS)[number];
@@ -83,8 +91,9 @@ const MistakesPage: React.FC = () => {
   const [books, setBooks] = useState<ScopeBookOption[]>([]);
   const [searchParams] = useSearchParams();
   const focusMistakeId = searchParams.get('mistake_id') || '';
+  const sessionRequested = searchParams.get('session') === '1';
   const bookQuery = bookName ? `?book_name=${encodeURIComponent(bookName)}` : '';
-  const [activeTab, setActiveTab] = useState<Tab>('录入');
+  const [activeTab, setActiveTab] = useState<Tab>(searchParams.get('tab') === 'review' ? '今日复习' : '录入');
   const [entryStep, setEntryStep] = useState<1 | 2 | 3>(1);
   const [records, setRecords] = useState<MistakeRecord[]>([]);
   const [dueRecords, setDueRecords] = useState<MistakeRecord[]>([]);
@@ -108,11 +117,16 @@ const MistakesPage: React.FC = () => {
   const [expandedId, setExpandedId] = useState('');
   const [savedRecord, setSavedRecord] = useState<MistakeRecord | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [reviewSessionItems, setReviewSessionItems] = useState<MistakeRecord[]>([]);
+  const [reviewSessionIndex, setReviewSessionIndex] = useState(0);
+  const [reviewSessionResults, setReviewSessionResults] = useState<ReviewSessionResult[]>([]);
+  const [reviewAnswer, setReviewAnswer] = useState('');
+  const [reviewFeedbackOpen, setReviewFeedbackOpen] = useState(false);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const explanationRef = useRef('');
   const subjectSuggestions = Array.from(new Set([...records.map((item) => item.subject || '').filter(Boolean), ...books.map((book) => book.subject || '').filter(Boolean)]));
   const mistakeList = useVisibleList(records, 30, `${bookName}|${subjectFilter}`);
-  const reviewList = useVisibleList(dueRecords, 20, `${bookName}|${subjectFilter}|review`);
 
   useEffect(() => {
     let cancelled = false;
@@ -216,11 +230,9 @@ const MistakesPage: React.FC = () => {
   }, [scopedQuery]);
 
   const {
-    expandedReviewId,
     reviewMessage,
     showReviewMessage,
     expandReview,
-    toggleReview,
     clearDeletedReview,
     handleReview,
   } = useMistakeReview({
@@ -230,6 +242,48 @@ const MistakesPage: React.FC = () => {
     refreshDue: loadDue,
     refreshStats: loadStats,
   });
+
+  const startReviewSession = useCallback(() => {
+    if (!dueRecords.length) return;
+    setReviewSessionItems([...dueRecords]);
+    setReviewSessionIndex(0);
+    setReviewSessionResults([]);
+    setReviewAnswer('');
+    setReviewFeedbackOpen(false);
+    showReviewMessage('');
+  }, [dueRecords, showReviewMessage]);
+
+  useEffect(() => {
+    if (sessionRequested && activeTab === '今日复习' && dueRecords.length && reviewSessionItems.length === 0) {
+      startReviewSession();
+    }
+  }, [activeTab, dueRecords.length, reviewSessionItems.length, sessionRequested, startReviewSession]);
+
+  useEffect(() => {
+    setReviewSessionItems([]);
+    setReviewSessionIndex(0);
+    setReviewSessionResults([]);
+    setReviewAnswer('');
+    setReviewFeedbackOpen(false);
+  }, [bookName, subjectFilter]);
+
+  const submitSessionReview = async (quality: number) => {
+    const current = reviewSessionItems[reviewSessionIndex];
+    if (!current || reviewSubmitting) return;
+    setReviewSubmitting(true);
+    const updated = await handleReview(current.id, quality);
+    setReviewSubmitting(false);
+    if (!updated) return;
+    setReviewSessionResults((items) => [...items, {
+      id: current.id,
+      title: deriveMistakeTitle(current),
+      quality,
+      nextReview: updated.next_review,
+    }]);
+    setReviewSessionIndex((value) => value + 1);
+    setReviewAnswer('');
+    setReviewFeedbackOpen(false);
+  };
 
   useEffect(() => {
     loadOverview();
@@ -541,6 +595,11 @@ const MistakesPage: React.FC = () => {
     </div>
   );
   const hasEntryDraft = Boolean(rawFile || imageFile || form.question_text.trim() || form.user_answer.trim() || form.correct_answer.trim());
+  const reviewConcepts = collectReviewConcepts(dueRecords);
+  const currentReviewItem = reviewSessionItems[reviewSessionIndex];
+  const reviewSessionComplete = reviewSessionItems.length > 0 && reviewSessionIndex >= reviewSessionItems.length;
+  const reviewOutcome = summarizeReviewSession(reviewSessionResults);
+  const nextReviewDate = nextSuggestedReview(reviewSessionResults);
 
   return (
     <div className="flex h-full flex-col">
@@ -712,55 +771,75 @@ const MistakesPage: React.FC = () => {
         )}
         {activeTab === '今日复习' && (
           <div className="mx-auto max-w-5xl space-y-4">
-            <div className="flex items-center gap-2 text-text-secondary"><BookOpenCheck className="h-4 w-4" /><span className="text-sm">今日待复习 {dueRecords.length} 道</span></div>
-            {reviewMessage && <div className="rounded-lg border border-[#c9d8bd] bg-[#eef5e8] px-3 py-2 text-sm text-[var(--success)]">{reviewMessage}</div>}
-            <div className="space-y-3">
-              {reviewList.visibleItems.map((record) => {
-                const expanded = expandedReviewId === record.id;
-                return (
-                  <div key={record.id} className="rounded-xl border border-border bg-bg-card p-4 transition-colors hover:border-accent/50">
-                    <button type="button" onClick={() => toggleReview(record.id)} className="flex w-full items-start justify-between gap-3 text-left">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 text-sm font-medium text-text-primary">
-                          {expanded ? <ChevronDown className="h-4 w-4 text-accent" /> : <ChevronRight className="h-4 w-4 text-text-secondary" />}
-                          <span className="truncate">{deriveMistakeTitle(record)}</span>
-                        </div>
-                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-text-secondary">
-                          <span>{record.subject || '未分类'}</span>
-                          {record.chapter && <span>{record.chapter}</span>}
-                          <span>{record.tags.join(', ') || '无标签'}</span>
-                          <span className="text-accent">难度 {record.difficulty}</span>
-                        </div>
-                      </div>
-                      <span className="flex-shrink-0 text-xs text-text-secondary">间隔: {record.interval ?? 1} 天</span>
-                    </button>
-                    {expanded && renderSavedRecordDetail(record, true)}
-                    <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
-                      {[1, 2, 3, 4, 5].map((quality) => (
-                        <button key={quality} onClick={() => handleReview(record.id, quality)} className="rounded border border-border bg-bg-primary px-3 py-1 text-xs transition-colors hover:border-accent hover:text-accent">
-                          {quality} {qualityLabels[quality]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-              {reviewList.hasMore && (
-                <div className="flex justify-center pt-1">
-                  <button onClick={reviewList.showMore} className="rounded-xl border border-border bg-bg-primary px-4 py-2 text-sm text-text-secondary hover:border-accent hover:text-text-primary">
-                    加载更多复习题（已显示 {reviewList.visibleCount} / {reviewList.totalCount}）
-                  </button>
+            {!currentReviewItem && !reviewSessionComplete && <section className="app-panel p-5">
+              <div className="flex flex-wrap items-start justify-between gap-5">
+                <div>
+                  <div className="flex items-center gap-2 text-text-primary"><BookOpenCheck className="h-5 w-5 text-accent" /><h3 className="type-section-title">今日复习</h3></div>
+                  <p className="mt-2 text-sm text-text-secondary">{dueRecords.length} 项 · 预计 {estimateReviewMinutes(dueRecords.length)} 分钟</p>
+                  <p className="mt-3 text-sm text-text-primary">主要涉及：{reviewConcepts.length ? reviewConcepts.join('、') : '现有记录未标注知识点'}</p>
                 </div>
-              )}
-              {dueRecords.length === 0 && <div className="app-panel px-4 py-8 text-center text-text-secondary">今日没有到期错题，可以继续整理新错题或前往习题库练习。</div>}
-            </div>
+                {dueRecords.length > 0 && <button type="button" onClick={startReviewSession} className="app-primary-button">开始本次复习 <ArrowRight className="h-4 w-4" /></button>}
+              </div>
+              {dueRecords.length === 0 && <p className="mt-4 border-t border-border pt-4 text-sm text-text-secondary">今日没有到期错题，可以继续整理新错题或前往习题库练习。</p>}
+            </section>}
+
+            {currentReviewItem && <section className="app-panel overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+                <div>
+                  <div className="type-caption text-text-secondary">本轮进度 {reviewSessionIndex + 1} / {reviewSessionItems.length}</div>
+                  <h3 className="mt-1 type-section-title text-text-primary">{deriveMistakeTitle(currentReviewItem)}</h3>
+                </div>
+                <button type="button" onClick={() => setReviewSessionItems([])} className="app-secondary-button">退出本轮</button>
+              </div>
+              <div className="space-y-5 p-5">
+                <div className="rounded-xl border border-border bg-bg-secondary p-4">
+                  <ChatMessage role="assistant" content={currentReviewItem.question_text} linkedConcepts={currentReviewItem.linked_concepts || []} />
+                </div>
+                {!reviewFeedbackOpen ? <div className="space-y-3">
+                  <label className="block type-caption text-text-secondary" htmlFor="review-session-answer">先独立作答，再查看反馈</label>
+                  <textarea id="review-session-answer" value={reviewAnswer} onChange={(event) => setReviewAnswer(event.target.value)} placeholder="在这里整理你的答案；本轮不会覆盖原错题记录。" className="min-h-[120px] w-full rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none focus:border-accent" />
+                  <div className="flex justify-end"><button type="button" onClick={() => setReviewFeedbackOpen(true)} className="app-primary-button">查看答案与反馈</button></div>
+                </div> : <div className="space-y-4 border-t border-border pt-5">
+                  <section>
+                    <div className="mb-2 type-caption text-text-secondary">正确答案</div>
+                    <div className="rounded-xl border border-border bg-bg-secondary p-4">{currentReviewItem.correct_answer ? <ChatMessage role="assistant" content={currentReviewItem.correct_answer} linkedConcepts={currentReviewItem.linked_concepts || []} /> : <p className="text-sm text-text-secondary">这道题尚未保存正确答案，请结合已保存讲解判断。</p>}</div>
+                  </section>
+                  {currentReviewItem.explanation && <section>
+                    <div className="mb-2 type-caption text-text-secondary">已保存讲解</div>
+                    <div className="rounded-xl border border-border bg-bg-secondary p-4"><ChatMessage role="assistant" content={currentReviewItem.explanation} linkedConcepts={currentReviewItem.linked_concepts || []} /></div>
+                  </section>}
+                  <section>
+                    <div className="mb-2 text-sm font-medium text-text-primary">这次掌握得怎么样？</div>
+                    <div className="flex flex-wrap gap-2">
+                      {[1, 2, 3, 4, 5].map((quality) => <button key={quality} type="button" disabled={reviewSubmitting} onClick={() => submitSessionReview(quality)} className="rounded border border-border bg-bg-primary px-3 py-2 text-xs transition-colors hover:border-accent hover:text-accent disabled:cursor-wait disabled:opacity-50">{quality} {qualityLabels[quality]}</button>)}
+                    </div>
+                  </section>
+                </div>}
+              </div>
+            </section>}
+
+            {reviewSessionComplete && <section className="app-panel p-5">
+              <h3 className="type-section-title text-text-primary">本轮复习完成</h3>
+              <p className="mt-2 text-sm text-text-secondary">已连续完成 {reviewSessionResults.length} 项，结果已写入原有复习记录。</p>
+              <div className="mt-5 grid grid-cols-1 divide-y divide-border border-y border-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                <MistakeMetric label="已掌握" value={reviewOutcome.mastered} tone="text-[var(--success)]" />
+                <MistakeMetric label="需要再次复习" value={reviewOutcome.revisit} tone="text-text-primary" />
+                <MistakeMetric label="仍然薄弱" value={reviewOutcome.weak} tone="text-[var(--warning-text)]" />
+              </div>
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+                <p className="text-sm text-text-secondary">下一次建议复习时间：<span className="font-medium text-text-primary">{nextReviewDate || '等待复习计划更新'}</span></p>
+                <button type="button" onClick={() => { setReviewSessionItems([]); setReviewSessionResults([]); }} className="app-secondary-button">返回今日复习</button>
+              </div>
+            </section>}
+
+            {reviewMessage && currentReviewItem && <div className="rounded-lg border border-[#c9d8bd] bg-[#eef5e8] px-3 py-2 text-sm text-[var(--success)]">{reviewMessage}</div>}
           </div>
         )}
 
         {activeTab === '统计' && (
           <div className="max-w-3xl space-y-6">
             {pageLoading && <div className="flex items-center justify-center gap-2 py-8 text-text-secondary"><Loader2 className="h-5 w-5 animate-spin" /> 加载统计中...</div>}
-            {pageError && <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-[var(--danger)]">{pageError}</div>}
+            {pageError && <ActionableIssue title="错题统计暂时无法加载" impact="错题列表和复习记录仍然保留，但本页统计可能不完整。" actions={<button type="button" onClick={loadStats} className="app-secondary-button">重新加载</button>} details={pageError} />}
             {!pageLoading && !pageError && stats && <><div className="grid grid-cols-1 divide-y divide-border border-y border-border bg-bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0"><MistakeMetric label="总错题数" value={stats.total ?? 0} tone="text-text-primary" /><MistakeMetric label="今日待复习" value={stats.due_today ?? 0} tone="text-[var(--danger)]" /><MistakeMetric label="错因类型" value={stats.by_type ? Object.keys(stats.by_type).length : 0} tone="text-text-primary" /></div><div className="border-y border-border bg-bg-card p-4"><h3 className="mb-3 flex items-center gap-2 text-sm font-medium"><TrendingUp className="h-4 w-4 text-accent" /> 薄弱点 TOP 列表</h3><div className="space-y-2">{weakPoints.map((w, i) => <div key={`${w.type}-${w.name}`} className="flex items-center justify-between gap-3 text-sm"><span className="min-w-0 truncate text-text-primary">{i + 1}. <strong>{w.name || '未命名'}</strong><span className="ml-1 text-text-secondary">({w.type || '类型未知'})</span></span><span className="flex-shrink-0 font-medium text-accent">{w.count ?? 0} 次</span></div>)}{weakPoints.length === 0 && <div className="text-sm text-text-secondary">暂无薄弱点数据</div>}</div></div></>}
             {!pageLoading && !pageError && !stats && <div className="py-12 text-center text-text-secondary">暂无统计数据</div>}
           </div>

@@ -60,6 +60,7 @@ TOC_SECTION_MARKERS = {
     "\u53c2\u8003\u6587\u732e",
     "\u9644\u5f55",
     "table of contents",
+    "tableofcontents",
     "toc",
 }
 
@@ -1414,7 +1415,7 @@ def _looks_like_toc_chunk(item: dict) -> bool:
     text = str(item.get("text") or "")
     if section_lc in TOC_SECTION_MARKERS:
         return True
-    if any(marker in section_lc for marker in ("\u76ee\u5f55", "\u672c\u7ae0\u5b66\u4e60\u8981\u70b9", "\u4e60\u9898", "table of contents")):
+    if any(marker in section_lc for marker in ("\u76ee\u5f55", "\u672c\u7ae0\u5b66\u4e60\u8981\u70b9", "\u4e60\u9898", "tableofcontents")):
         return True
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     if not lines:

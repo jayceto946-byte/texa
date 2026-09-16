@@ -18,7 +18,7 @@ import {
 import { get, post } from '../api/client';
 import ChatMessage from '../components/ChatMessage';
 import ScopeSelector, { type ScopeBookOption } from '../components/ScopeSelector';
-import { PageState, StatusBanner, TaskStatus } from '../components/ui/AsyncState';
+import { ActionableIssue, PageState, TaskStatus } from '../components/ui/AsyncState';
 import { useChatContext } from '../contexts/ChatContext';
 import type { ConceptCandidate, ReviewHistoryItem } from '../types';
 
@@ -313,7 +313,7 @@ const LearningPage: React.FC = () => {
 
         {kgJob && <TaskStatus title="完善知识关联" detail={kgJob.message || kgJob.status} progress={kgJob.progress} state={kgJobFailed ? 'error' : kgJob.status === 'completed' ? 'success' : 'loading'} />}
 
-        {error && !loading && <StatusBanner kind="error" title="学习情况加载失败" description={error} action={<button onClick={load} className="app-secondary-button">重试</button>} />}
+        {error && !loading && <ActionableIssue title="暂时无法整理复习计划" impact="今天的薄弱点和待复习顺序可能不完整；错题和学习记录不会丢失。" actions={<button onClick={load} className="app-secondary-button">重新加载</button>} details={error} />}
         {!loading && !error && summary && (
           <div className="mx-auto max-w-6xl space-y-8">
             <section aria-labelledby="review-today-title">

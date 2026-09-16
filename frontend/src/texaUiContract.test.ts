@@ -26,6 +26,10 @@ import scopeSelector from './components/ScopeSelector.tsx?raw';
 import figureCatalog from './features/visual-learning/FigureCatalog.tsx?raw';
 import figureContextAttachment from './features/visual-learning/FigureContextAttachment.tsx?raw';
 import figureViewer from './features/visual-learning/FigureRegionViewer.tsx?raw';
+import asyncState from './components/ui/AsyncState.tsx?raw';
+import reportCard from './components/chat/ReportCard.tsx?raw';
+import weeklyReport from './pages/WeeklyReportPage.tsx?raw';
+import mistakesPage from './pages/MistakesPage.tsx?raw';
 
 describe('Texa product UI contract', () => {
   it('keeps Library as the object and import as a nested action', () => {
@@ -41,12 +45,43 @@ describe('Texa product UI contract', () => {
     expect(message).toContain('SourceInspectorContent');
     expect(message).toContain("kind: 'source'");
     expect(message).toContain("kind: 'concept'");
-    expect(message).toContain('来源已附，段落引用未完全对齐');
+    expect(message).toContain('部分段落未能对应到明确来源');
     expect(message).toContain("citationProvenance.status !== 'model_aligned'");
     expect(shell).toContain("data-inspector={inspector ? 'open' : 'closed'}");
     expect(shell).toContain('inspectorReplacesContext');
     expect(contextInspector).toContain("window.matchMedia('(max-width: 919.98px)').matches");
     expect(contextInspector).toContain('context-inspector-close');
+  });
+
+  it('uses actionable issue states and discloses technical details secondarily', () => {
+    expect(asyncState).toContain('export function ActionableIssue');
+    expect(asyncState).toContain('impact: string');
+    expect(asyncState).toContain('<summary className="cursor-pointer">详细信息</summary>');
+    expect(message).toContain('这次回答没有完成');
+    expect(message).toContain("'texa:focus-composer'");
+    expect(figureViewer).toContain('这张教材图片未能显示');
+    expect(figureViewer).toContain('继续只使用文字');
+    expect(weeklyReport).toContain('学习记录不会丢失');
+    expect(weeklyReport).toContain('details={error}');
+  });
+
+  it('puts learning conclusions and a review action before secondary metrics', () => {
+    for (const source of [reportCard, weeklyReport]) {
+      expect(source).toContain('学了什么');
+      expect(source).toContain('哪些内容仍然薄弱');
+      expect(source).toContain('下一步建议复习什么');
+      expect(source).toContain('开始复习');
+      expect(source.indexOf('下一步建议复习什么')).toBeLessThan(source.indexOf('学习统计'));
+    }
+  });
+
+  it('offers a continuous review session on top of the existing review API', () => {
+    expect(mistakesPage).toContain('开始本次复习');
+    expect(mistakesPage).toContain('先独立作答，再查看反馈');
+    expect(mistakesPage).toContain('查看答案与反馈');
+    expect(mistakesPage).toContain('submitSessionReview');
+    expect(mistakesPage).toContain('本轮复习完成');
+    expect(mistakesPage).toContain('下一次建议复习时间');
   });
 
   it('keeps Figure interruption resumable through the original learning task', () => {
@@ -193,9 +228,15 @@ describe('Texa product UI contract', () => {
 
   it('reuses the settings model manager in the first-run guide', () => {
     expect(firstRun).toContain('<ModelSettingsManager');
+    expect(firstRun).toContain('guided');
     expect(firstRun).not.toContain('<ModelSettingsForm');
     expect(firstRun).toContain("'/system/settings/model-profiles'");
     expect(firstRun).toContain("'/system/settings/models/test'");
+    expect(firstRun).toContain("['准备教材', '配置回答模型', '开始第一次学习']");
+    expect(firstRun).toContain("get('/books/list'");
+    expect(firstRun).toContain("'texa:onboarding-awaiting-source'");
+    expect(firstRun).toContain("'texa:onboarding-question-selected'");
+    expect(firstRun).not.toContain('Canonical IR');
   });
 
   it('presents shared and independent vision handling without internal architecture terms', () => {
@@ -208,7 +249,7 @@ describe('Texa product UI contract', () => {
   });
 
   it('reuses the shared scrollable select for every model-settings list', () => {
-    expect(modelSettings.match(/<ScrollableSelect/g)).toHaveLength(4);
+    expect(modelSettings.match(/<ScrollableSelect/g)).toHaveLength(5);
     expect(modelSettings).toContain('showSelectedDescription={false}');
     expect(modelSettings).toContain("label: '添加自定义模型…'");
     expect(modelSettings).toContain('显示名称');
@@ -237,12 +278,15 @@ describe('Texa product UI contract', () => {
   });
 
   it('keeps textbook readiness actionable without overstating semantic quality', () => {
-    expect(library).toContain('索引与 IR');
-    expect(library).toContain('<b>检索</b>');
-    expect(library).toContain('<b>IR</b>');
-    expect(library).toContain('语义质量尚未人工验证');
+    expect(library).toContain('教材状态');
+    expect(library).toContain('可用于学习');
+    expect(library).toContain('<summary className="cursor-pointer hover:text-text-primary">详细信息</summary>');
+    expect(library).toContain('人工抽查');
+    expect(library).not.toContain('索引与 IR');
+    expect(library).not.toContain('<b>IR</b>');
     expect(library).not.toContain('未验证，不等同答案准确');
-    expect(library).toContain('重索引');
+    expect(library).toContain('重新准备');
+    expect(library).toContain('设为学习范围');
     expect(settings).toContain('/reindex');
   });
 

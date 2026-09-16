@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { BookOpen, Focus, Scan, X } from 'lucide-react';
 import { useAuthenticatedBlobUrl } from '../../hooks/useAuthenticatedBlobUrl';
 import type { FigureArtifact, VisualRegion } from '../../types';
+import { ActionableIssue } from '../../components/ui/AsyncState';
 import { moveRegion, normalizedPoint, regionFromPoints, regionStyle, resizeRegion } from './regionGeometry';
 
 type Point = { x: number; y: number };
@@ -19,7 +20,8 @@ export default function FigureRegionViewer({
   onOpenSource: () => void;
   onClose: () => void;
 }) {
-  const asset = useAuthenticatedBlobUrl(figure.image_url);
+  const [reloadKey, setReloadKey] = useState(0);
+  const asset = useAuthenticatedBlobUrl(figure.image_url, 'binary', reloadKey);
   const imageRef = useRef<HTMLImageElement>(null);
   const pointerStart = useRef<Point | null>(null);
   const [draft, setDraft] = useState<VisualRegion | null>(null);
@@ -83,7 +85,7 @@ export default function FigureRegionViewer({
       </header>
       <div className="figure-region-stage">
         {asset.loading && <div className="figure-region-status">正在读取教材图片…</div>}
-        {asset.error && <div className="figure-region-status is-error">{asset.error}</div>}
+        {asset.error && <div className="p-4"><ActionableIssue title="这张教材图片未能显示" impact="涉及图片细节的问题可能无法完整回答，文字内容不受影响。" actions={<><button type="button" onClick={() => setReloadKey((value) => value + 1)} className="app-secondary-button">重新读取</button><button type="button" onClick={onOpenSource} className="app-secondary-button">查看原页</button><button type="button" onClick={onClose} className="app-ghost-button">继续只使用文字</button></>} details={asset.error} /></div>}
         {asset.url && (
           <div
             className="figure-region-image-wrap"

@@ -108,7 +108,7 @@ export default function LibraryWorkbench(props: Props) {
           </header>
 
           {listMode === 'active' ? <div className="library-book-list">
-            <div className="library-list-columns" aria-hidden="true"><span>教材</span><span>索引与 IR</span><span>归属与资料组</span><span>角色</span><span>操作</span></div>
+            <div className="library-list-columns" aria-hidden="true"><span>教材</span><span>教材状态</span><span>当前学习范围</span><span>使用方式</span><span>操作</span></div>
             {currentBooks.map((book) => <BookRow key={book.book_id || book.name} book={book} active={props.currentBookName === book.name} subjects={subjects} reindexing={props.reindexingBook === book.name} onMove={(value) => props.onMoveBook(book.name, value)} onSetRole={(role) => props.onSetRole(book.name, role)} onSetResourceGroup={(group) => props.onSetResourceGroup(book.name, group)} onSwitch={() => props.onSwitchBook(book.name)} onReindex={() => props.onReindexBook(book.name)} onRename={() => props.onRenameBook(book.name, book.display_name || book.name)} onArchive={() => props.onArchiveBook(book.name)} />)}
             {!currentBooks.length && <div className="library-empty"><BookOpen className="h-5 w-5" /><strong>这里还没有教材</strong><span>移动已有教材到此处，或导入新教材。</span></div>}
           </div> : <ArchivedBookList books={archivedBooks} onRestore={props.onRestoreBook} />}
@@ -126,24 +126,39 @@ function ReadinessSummary({ book }: { book: LibraryBook }) {
   const canonical = book.readiness?.canonical;
   const technicalReady = technical?.status === 'ready';
   const canonicalReady = canonical?.status === 'ready';
-  const canonicalLabel = canonical?.status === 'needs_review' ? `待复核 · ${canonical.warning_count || 0} 项` : canonical?.status === 'invalid' ? '不可用' : canonicalReady ? '完整' : '无';
-  return <div className="library-readiness" title={book.readiness?.semantic?.status === 'verified' ? `语义质量已验证 · ${book.readiness.semantic.human_case_count || 0} 个人工案例` : '语义质量尚未人工验证'}>
-    <span className={technicalReady ? 'is-ready' : 'is-warning'}>{technicalReady ? <CheckCircle2 /> : <AlertTriangle />}<b>检索</b>{technicalReady ? `可用 · ${technical?.chunk_count || 0} 片段` : technical?.status === 'degraded' ? '部分可用' : '需重建'}</span>
-    <span className={canonicalReady ? 'is-ready' : canonical?.status === 'needs_review' || canonical?.status === 'invalid' ? 'is-warning' : ''}>{canonicalReady ? <CheckCircle2 /> : <AlertTriangle />}<b>IR</b>{canonicalLabel}</span>
+  const contentNeedsAttention = canonical?.status === 'needs_review' || canonical?.status === 'invalid';
+  const ready = technicalReady && !contentNeedsAttention;
+  const statusLabel = ready
+    ? '可用于学习'
+    : technical?.status === 'degraded'
+      ? '可使用，部分内容可能找不到'
+      : contentNeedsAttention
+        ? '需要检查教材内容'
+        : '尚未准备完成';
+  return <div className="library-readiness">
+    <span className={ready ? 'is-ready' : 'is-warning'}>{ready ? <CheckCircle2 /> : <AlertTriangle />}<b>{statusLabel}</b></span>
+    <details className="type-caption text-text-secondary">
+      <summary className="cursor-pointer hover:text-text-primary">详细信息</summary>
+      <div className="mt-1 leading-5">
+        <div>检索：{technicalReady ? `可用 · ${technical?.chunk_count || 0} 个内容片段` : technical?.status === 'degraded' ? '部分可用' : '未就绪'}</div>
+        <div>内容结构：{canonicalReady ? '完整' : canonical?.status === 'needs_review' ? `${canonical.warning_count || 0} 项待检查` : canonical?.status === 'invalid' ? '不可用' : '尚无记录'}</div>
+        <div>人工抽查：{book.readiness?.semantic?.status === 'verified' ? `已完成 ${book.readiness.semantic.human_case_count || 0} 例` : '尚未完成'}</div>
+      </div>
+    </details>
   </div>;
 }
 
 function BookRow({ book, active, subjects, reindexing, onMove, onSetRole, onSetResourceGroup, onSwitch, onReindex, onRename, onArchive }: { book: LibraryBook; active: boolean; subjects: LibrarySubject[]; reindexing: boolean; onMove: (target: string) => void; onSetRole: (role: 'standalone' | 'core' | 'reference') => void; onSetResourceGroup: (group: string) => void; onSwitch: () => void; onReindex: () => void; onRename: () => void; onArchive: () => void }) {
   const role = book.book_role || 'standalone';
   return <article className="library-book-row">
-    <div className="library-book-identity"><div><h4>{book.display_name || book.name}</h4>{active && <span className="library-current-status">当前</span>}</div><p>{book.has_pdf ? 'PDF' : 'OCR / Markdown'} · {book.chapter_count || 0} 章</p></div>
+    <div className="library-book-identity"><div><h4>{book.display_name || book.name}</h4>{active && <span className="library-current-status">学习中</span>}</div><p>{book.has_pdf ? 'PDF' : '已解析教材'} · {book.chapter_count || 0} 章</p></div>
     <ReadinessSummary book={book} />
     <div className="library-book-scope">
       <div className="library-subject-field"><span>归属</span><ScopeSelector subject={book.subject || ''} subjectTree={subjects} onSubjectChange={onMove} bookMode="hidden" width="normal" label={`${book.display_name || book.name}教材归属`} placeholder="未分类" className="library-subject-selector" /></div>
-      {role === 'standalone' ? <div className="library-resource-group-static"><span>资料组</span><strong>不加入资料组</strong></div> : <label><span>资料组</span><input defaultValue={book.resource_group || ''} placeholder={book.subject ? `默认：${book.subject}` : '输入资料组'} onBlur={(event) => onSetResourceGroup(event.target.value.trim())} /></label>}
+      {role === 'standalone' ? <div className="library-resource-group-static"><span>配套教材</span><strong>单独使用</strong></div> : <label><span>配套教材组</span><input defaultValue={book.resource_group || ''} placeholder={book.subject ? `默认：${book.subject}` : '输入组名'} onBlur={(event) => onSetResourceGroup(event.target.value.trim())} /></label>}
     </div>
     <div className="library-role-control" role="group" aria-label={`${book.display_name || book.name}的教材角色`} title={roleGuidance(role)}>{ROLE_OPTIONS.map((option) => <button key={option.value} type="button" aria-pressed={role === option.value} onClick={() => role !== option.value && onSetRole(option.value)}>{option.label}</button>)}</div>
-    <div className="library-book-actions"><button onClick={onReindex} disabled={reindexing} className="app-secondary-button"><RefreshCw className={`h-4 w-4 ${reindexing ? 'animate-spin' : ''}`} />{reindexing ? '重建中' : '重索引'}</button>{!active ? <button onClick={onSwitch} className="app-ghost-button">设为当前</button> : <span className="library-active-label">当前教材</span>}<BookOverflowMenu onRename={onRename} onArchive={onArchive} /></div>
+    <div className="library-book-actions"><button onClick={onReindex} disabled={reindexing} className="app-secondary-button"><RefreshCw className={`h-4 w-4 ${reindexing ? 'animate-spin' : ''}`} />{reindexing ? '准备中' : '重新准备'}</button>{!active ? <button onClick={onSwitch} className="app-ghost-button">设为学习范围</button> : <span className="library-active-label">当前学习范围</span>}<BookOverflowMenu onRename={onRename} onArchive={onArchive} /></div>
   </article>;
 }
 

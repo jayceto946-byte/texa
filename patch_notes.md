@@ -1,3 +1,12 @@
+# 2026-09-16 - Learning Flow Consolidation
+
+- Reordered first use around the learning outcome: prepare a textbook, configure one answer model, then launch a suggested first question. Onboarding now completes only after a finished answer exposes textbook sources; provider details, endpoint overrides, and split reasoning/vision roles remain available under advanced settings.
+- Consolidated textbook-facing language around `教材`, `当前学习范围`, and `教材状态` without changing Scope, collection, index, source-jump, or retrieval contracts. Readiness and import feedback now lead with user impact while retaining technical fields under details.
+- Added one shared actionable issue presentation for visible answer, citation, figure, textbook-import, learning-summary, mistake-stat, and report failures. Each state states the impact and offers an immediate action; raw diagnostics remain secondary.
+- Reordered daily/weekly reports around learned content, weak points, and the next review suggestion. Existing counts remain available in a secondary disclosure, and missing data produces an explicit limited-data message rather than inferred conclusions.
+- Added a continuous mistake-review Session over the existing due queue and SM-2 review endpoint. It snapshots the current due items, guides answer to feedback to rating to the next item, and summarizes mastered/revisit/weak outcomes plus the earliest actual next-review date. No scheduling algorithm or persistence schema changed.
+- Fixed an adjacent retrieval regression where whitespace-normalized English `table of contents` titles were not recognized, and isolated a context-trace test from residual durable ledger state. Validation: Python 3.10 suite `838 passed`; frontend `136 passed`; ESLint, TypeScript/Vite production build, and `git diff --check` passed. Existing Starlette/httpx deprecation and Vite mixed-import/chunk-size warnings remain.
+
 # 2026-09-15 - Material Mechanics Real-book Validation Paused
 
 - Inspected the user-provided `材料力学 I（第6版）` source as a 414-page, unencrypted image-only scan. Representative cover, contents, formula, force-diagram, worked-content, and exercise-answer pages are visually legible, but the PDF has no extractable text layer; ordinary local PDF import is therefore not a valid ingestion route.

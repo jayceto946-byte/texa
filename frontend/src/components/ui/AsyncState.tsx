@@ -65,3 +65,33 @@ export function TaskStatus({ title, detail, progress, state = 'loading' }: { tit
     </div>
   );
 }
+
+export function ActionableIssue({
+  title,
+  impact,
+  actions,
+  details,
+  kind = 'error',
+}: {
+  title: string;
+  impact: string;
+  actions: React.ReactNode;
+  details?: React.ReactNode;
+  kind?: 'error' | 'info';
+}) {
+  const item = meta[kind];
+  const Icon = item.icon;
+  return (
+    <section role={kind === 'error' ? 'alert' : 'status'} className={`rounded-lg border px-3 py-3 ${item.className}`}>
+      <div className="flex items-start gap-3">
+        <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${item.iconClass}`} />
+        <div className="min-w-0 flex-1">
+          <h3 className="type-control text-text-primary">{title}</h3>
+          <p className="type-caption mt-1 leading-5 opacity-90">{impact}</p>
+          <div className="mt-3 flex flex-wrap gap-2">{actions}</div>
+          {details && <details className="mt-3 type-caption opacity-80"><summary className="cursor-pointer">详细信息</summary><div className="mt-1 break-words leading-5">{details}</div></details>}
+        </div>
+      </div>
+    </section>
+  );
+}

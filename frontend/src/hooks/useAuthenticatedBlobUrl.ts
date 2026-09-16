@@ -32,7 +32,7 @@ async function authenticatedHtmlBlob(path: string, signal: AbortSignal, childUrl
   return new Blob([`<!doctype html>\n${documentNode.documentElement.outerHTML}`], { type: 'text/html;charset=utf-8' });
 }
 
-export function useAuthenticatedBlobUrl(path: string, kind: 'binary' | 'html' = 'binary'): AuthenticatedBlobState {
+export function useAuthenticatedBlobUrl(path: string, kind: 'binary' | 'html' = 'binary', reloadKey = 0): AuthenticatedBlobState {
   const [state, setState] = useState<AuthenticatedBlobState>({ url: '', loading: false, error: '' });
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export function useAuthenticatedBlobUrl(path: string, kind: 'binary' | 'html' = 
       if (objectUrl) URL.revokeObjectURL(objectUrl);
       childUrls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [kind, path]);
+  }, [kind, path, reloadKey]);
 
   return state;
 }

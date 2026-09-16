@@ -15,6 +15,7 @@ type Props = {
   onActivateProfile: (profileId: string) => void;
   onDeleteProfile: (profileId: string) => void;
   onTestConnection: (role: ModelRoleId) => Promise<{ success: boolean; message: string }>;
+  guided?: boolean;
 };
 
 const roleMeta: Record<ModelRoleId, { title: string; capability: string }> = {
@@ -25,7 +26,7 @@ const roleMeta: Record<ModelRoleId, { title: string; capability: string }> = {
 const controlClass = 'settings-form-control';
 const fieldRowClass = 'settings-form-row';
 
-export default function ModelSettingsManager({ value, onChange, onActivateProfile, onDeleteProfile, onTestConnection }: Props) {
+export default function ModelSettingsManager({ value, onChange, onActivateProfile, onDeleteProfile, onTestConnection, guided = false }: Props) {
   const [connectionsOpen, setConnectionsOpen] = useState(false);
   const [testingRole, setTestingRole] = useState<ModelRoleId | null>(null);
   const [testResults, setTestResults] = useState<Partial<Record<ModelRoleId, { success: boolean; message: string }>>>({});
@@ -187,11 +188,11 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
   return (
     <div className="settings-model-manager">
       <header className="settings-page-header">
-        <h3>模型配置</h3>
-        <p>管理 Texa 使用的模型、凭据与连接信息。</p>
+        <h3>{guided ? '选择回答模型' : '模型配置'}</h3>
+        <p>{guided ? '选择用于回答问题的模型，并填写它需要的凭证。' : '管理 Texa 使用的模型、凭据与连接信息。'}</p>
       </header>
 
-      <section aria-labelledby="profile-heading" className="settings-section">
+      {!guided && <section aria-labelledby="profile-heading" className="settings-section">
         <h4 id="profile-heading" className="settings-section-title">模型方案</h4>
         <div className={fieldRowClass}>
           <span className="settings-label">方案</span>
@@ -219,13 +220,13 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
             )}
           </div>
         </div>
-      </section>
+      </section>}
 
       <section aria-labelledby="models-heading" className="settings-section">
-        <h4 id="models-heading" className="settings-section-title">模型</h4>
-        {renderRoleFields(reasoningRole, '推理模型')}
+        <h4 id="models-heading" className="settings-section-title">{guided ? '回答模型' : '模型'}</h4>
+        {renderRoleFields(reasoningRole, guided ? '回答模型' : '推理模型')}
 
-        <div className="settings-subsection">
+        {!guided && <div className="settings-subsection">
           <h4 className="settings-section-title">视觉模型</h4>
           <div className={fieldRowClass}>
             <span className="settings-label">处理方式</span>
@@ -246,22 +247,34 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
             </div>
           </div>
           {value.multimodal_mode === 'split' && renderRoleFields('vision', '独立视觉模型')}
-        </div>
+        </div>}
       </section>
 
-      <section aria-labelledby="connection-heading" className="settings-section">
+      <section aria-labelledby="connection-heading" className={guided ? 'settings-section' : 'settings-section'}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h4 id="connection-heading" className="settings-section-title">连接</h4>
-            <p className="mt-1 settings-secondary">默认 Base URL 通常无需修改。</p>
+            <h4 id="connection-heading" className="settings-section-title">{guided ? '高级设置' : '连接'}</h4>
+            <p className="mt-1 settings-secondary">{guided ? '图片模型、API 地址和连接测试按需设置。' : '默认 Base URL 通常无需修改。'}</p>
           </div>
           <button type="button" aria-expanded={connectionExpanded} onClick={() => setConnectionsOpen((open) => !open)} className="app-ghost-button">
             <ChevronDown className={`h-4 w-4 transition-transform ${connectionExpanded ? 'rotate-180' : ''}`} />
-            {connectionExpanded ? '收起连接设置' : '展开连接设置'}
+            {connectionExpanded ? '收起高级设置' : '展开高级设置'}
           </button>
         </div>
         {connectionExpanded && (
           <div className="mt-4 space-y-4">
+            {guided && (
+              <div className="settings-subsection">
+                <h4 className="settings-section-title">图片处理</h4>
+                <div className={fieldRowClass}>
+                  <span className="settings-label">处理方式</span>
+                  <div className="min-w-0">
+                    <ScrollableSelect compact ariaLabel="视觉模型处理方式" value={value.multimodal_mode} options={[{ value: 'native', label: '使用回答模型' }, { value: 'split', label: '使用独立图片模型' }]} onChange={(mode) => changeMode(mode as 'split' | 'native')} />
+                    {value.multimodal_mode === 'split' && <div className="mt-4">{renderRoleFields('vision', '独立图片模型')}</div>}
+                  </div>
+                </div>
+              </div>
+            )}
             {connectedRoles.map((role) => {
               const label = value.multimodal_mode === 'native' ? '推理模型' : roleMeta[role].title;
               const result = testResults[role];

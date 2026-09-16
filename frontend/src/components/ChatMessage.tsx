@@ -10,6 +10,7 @@ import { MarkdownMessage } from './chat/MarkdownMessage';
 import MistakeQuickCaptureCard from './chat/MistakeQuickCaptureCard';
 import ReportCard from './chat/ReportCard';
 import SubjectRouteSuggestionCard from './chat/SubjectRouteSuggestionCard';
+import { ActionableIssue } from './ui/AsyncState';
 import { post } from '../api/client';
 import ExecutionTrace from './chat/ExecutionTrace';
 import LearningTaskGate from './chat/LearningTaskGate';
@@ -283,6 +284,13 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-accent" />
             <span className="text-sm">{stage === 'agent' ? content || '正在调用学习工具…' : '思考中...'}</span>
           </div>
+        ) : !isUser && stage === 'error' ? (
+          <ActionableIssue
+            title="这次回答没有完成"
+            impact="当前问题还没有可用答案；会话、教材范围和已经保存的学习记录不会受影响。"
+            actions={<button type="button" onClick={() => window.dispatchEvent(new Event('texa:focus-composer'))} className="app-secondary-button">回到输入框重试</button>}
+            details={content.replace(/^(出错了|图片处理失败)[：:]\s*/, '') || '未收到可用的错误说明'}
+          />
         ) : content.trim() ? (
           <MarkdownMessage content={isUser ? questionContent.body : content} linkedConcepts={isUser ? [] : linkedConcepts} onConceptClick={openConcept} citationIds={validIds} />
         ) : null}
@@ -309,9 +317,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
         {!isUser && activities.length > 0 && isTerminal && <ExecutionTrace activities={activities} stage={stage} />}
 
         {!isUser && stage === 'done' && citationProvenance && citationProvenance.status !== 'model_aligned' && (
-          <div className="mt-3 flex items-start gap-2 border-l-2 border-[var(--warning)] pl-3 text-xs leading-5 text-text-secondary" role="status">
-            <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--warning)]" aria-hidden="true" />
-            <span>来源已附，段落引用未完全对齐。</span>
+          <div className="mt-3">
+            <ActionableIssue
+              kind="info"
+              title="部分段落未能对应到明确来源"
+              impact="回答仍可阅读，但这些段落不应视为已经由教材逐条支持。"
+              actions={<button type="button" onClick={openSources} className="app-secondary-button"><ShieldAlert className="h-3.5 w-3.5" />查看已找到的来源</button>}
+              details={`来源对齐状态：${citationProvenance.status}`}
+            />
           </div>
         )}
 

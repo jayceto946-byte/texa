@@ -321,7 +321,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
     }
     setBookName(res.data?.name || name);
     if (res.data?.subject) setSubject(res.data.subject);
-    setMessage('已设为当前对话教材');
+    setMessage('已更新当前学习范围');
   };
 
   const openBookImport = () => {
@@ -331,16 +331,16 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
   const reindexManagedBook = async (name: string) => {
     if (reindexingBook) return;
     setReindexingBook(name);
-    setMessage(`正在重新索引《${name}》…`);
+    setMessage(`正在重新准备《${name}》…`);
     try {
       const res = await post(`/books/${encodeURIComponent(name)}/reindex`, {}, 10 * 60 * 1000);
-      setMessage(res?.message || (res?.success ? '教材索引已重建' : '重新索引失败'));
+      setMessage(res?.success ? '教材已重新准备，可以继续学习' : (res?.message || '教材准备失败'));
       if (res?.success) {
         await loadBooks();
         window.dispatchEvent(new Event('books:changed'));
       }
     } catch (error) {
-      setMessage(error instanceof Error ? `重新索引失败：${error.message}` : '重新索引失败');
+      setMessage(error instanceof Error ? `教材准备失败：${error.message}` : '教材准备失败');
     } finally {
       setReindexingBook('');
     }
@@ -387,8 +387,8 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
       <div className="flex h-full min-w-0 flex-col bg-bg-primary">
         <header className="app-page-header border-b border-border bg-bg-primary">
           <div className="library-page-heading">
-            <h2 className="app-page-title">教材库</h2>
-            <span>{activeBookCount} 本活跃教材</span>
+             <h2 className="app-page-title">教材</h2>
+             <span>{activeBookCount} 本教材</span>
           </div>
           <div className="library-page-actions">
             <button onClick={openBookImport} className="app-secondary-button"><BookOpen className="h-4 w-4" />导入教材</button>

@@ -90,6 +90,32 @@ const ChatPage: React.FC = () => {
   );
 
   useEffect(() => {
+    const applySuggestion = (question: string) => {
+      if (!question) return;
+      window.localStorage.removeItem('texa:onboarding-first-question');
+      setInput(question);
+      window.setTimeout(() => textareaRef.current?.focus(), 0);
+    };
+    const suggested = window.localStorage.getItem('texa:onboarding-first-question');
+    if (suggested) applySuggestion(suggested);
+    const onQuestionSelected = (event: Event) => applySuggestion((event as CustomEvent<{ question?: string }>).detail?.question || '');
+    window.addEventListener('texa:onboarding-question-selected', onQuestionSelected);
+    return () => window.removeEventListener('texa:onboarding-question-selected', onQuestionSelected);
+  }, []);
+
+  useEffect(() => {
+    if (window.localStorage.getItem('texa:onboarding-awaiting-source') !== '1') return;
+    const hasSourcedAnswer = messages.some((message) => message.role === 'assistant' && message.stage === 'done' && (message.sources?.length || message.sourceChapters?.length));
+    if (hasSourcedAnswer) window.dispatchEvent(new Event('texa:onboarding-sourced-answer'));
+  }, [messages]);
+
+  useEffect(() => {
+    const focusComposer = () => textareaRef.current?.focus();
+    window.addEventListener('texa:focus-composer', focusComposer);
+    return () => window.removeEventListener('texa:focus-composer', focusComposer);
+  }, []);
+
+  useEffect(() => {
     const loadBooks = async () => {
       try {
         const res = await get('/books/list');

@@ -18,8 +18,8 @@ function App() {
     <ChatProvider>
       <InspectorProvider>
         <DesktopTitleBar />
-        <FirstRunGuide />
         <BrowserRouter>
+          <FirstRunGuide />
           <Routes>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<ChatPage />} />
