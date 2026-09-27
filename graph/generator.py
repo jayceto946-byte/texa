@@ -500,6 +500,19 @@ def _format_quiz_appendix(state: dict) -> str:
     return quiz_text
 
 
+def prepare_answer_generation(state: dict):
+    """Shared ContextPack/EvidencePack prompt boundary for answer adapters."""
+    return _build_generate_messages(state)
+
+
+def finalize_generated_answer(state: dict, text: str) -> str:
+    """Apply the same public answer postconditions for every generation entry."""
+    final = sanitize_latex(strip_thinking(text + _format_quiz_appendix(state)))
+    final, citation_trace = sanitize_citation_protocol(final, state.get("evidence_sources") or [])
+    state["citation_trace"] = citation_trace
+    return finalize_answer_verification(state, final, citation_trace=citation_trace)
+
+
 def generate_node(state: dict) -> dict:
     """Integrate retrieved evidence and generate the final output."""
     intent = state.get("intent", "qa")
@@ -549,12 +562,8 @@ def generate_node(state: dict) -> dict:
             llm = get_llm(temperature=0.1 if state.get("use_textbook_context", True) else 1)
         except TypeError:
             llm = get_llm()
-        final = llm.invoke(_build_generate_messages(state)).content
-    final += _format_quiz_appendix(state)
-    final = sanitize_latex(strip_thinking(final))
-    final, citation_trace = sanitize_citation_protocol(final, state.get("evidence_sources") or [])
-    state["citation_trace"] = citation_trace
-    final = finalize_answer_verification(state, final, citation_trace=citation_trace)
+        final = llm.invoke(prepare_answer_generation(state)).content
+    final = finalize_generated_answer(state, final)
     return {
         "final_output": final,
         "output_type": output_type,

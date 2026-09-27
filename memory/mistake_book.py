@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import sqlite3
 import uuid
 from dataclasses import asdict, dataclass, field
@@ -52,6 +53,7 @@ class MistakeRecord:
     id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
     sm2: dict = field(default_factory=dict)
     review_history: list[dict] = field(default_factory=list)
+    revision: int = 1
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -122,7 +124,8 @@ class MistakeBookStore:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_subject ON mistakes(subject)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_next_review ON mistakes(next_review)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_chapter ON mistakes(chapter)")
-            apply_sqlite_migrations(conn, component="mistake_book", current_version=1)
+            apply_sqlite_migrations(conn, component="mistake_book", current_version=2,
+                migrations={2: lambda db: db.execute("CREATE TABLE IF NOT EXISTS mistake_operations (operation_id TEXT PRIMARY KEY, args_hash TEXT NOT NULL, result_json TEXT NOT NULL)")})
             conn.commit()
 
     def _prepare_retry_db_files(self) -> None:
@@ -196,6 +199,10 @@ class MistakeBookStore:
 
     def update(self, record: MistakeRecord):
         with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            old = conn.execute("SELECT data FROM mistakes WHERE id=?", (record.id,)).fetchone()
+            if old:
+                record.revision = int(json.loads(old[0]).get("revision", 1)) + 1
             conn.execute(
                 "UPDATE mistakes SET data = ?, next_review = ?, subject = ?, chapter = ? WHERE id = ?",
                 (
@@ -207,6 +214,37 @@ class MistakeBookStore:
                 ),
             )
             conn.commit()
+
+    def update_once(self, rid: str, *, operation_id: str, expected_revision: int,
+                    changes: dict) -> dict:
+        if not operation_id or set(changes) - {"notes", "tags", "difficulty"}:
+            raise ValueError("unsupported mistake update")
+        if "notes" in changes and (not isinstance(changes["notes"], str) or len(changes["notes"]) > 6000):
+            raise ValueError("invalid mistake notes")
+        if "tags" in changes and (not isinstance(changes["tags"], list) or len(changes["tags"]) > 30 or any(not isinstance(tag, str) or len(tag) > 120 for tag in changes["tags"])):
+            raise ValueError("invalid mistake tags")
+        if "difficulty" in changes and (type(changes["difficulty"]) is not int or not 1 <= changes["difficulty"] <= 5):
+            raise ValueError("invalid mistake difficulty")
+        args_hash = hashlib.sha256(json.dumps([rid, expected_revision, changes], sort_keys=True).encode()).hexdigest()
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            receipt = conn.execute("SELECT args_hash,result_json FROM mistake_operations WHERE operation_id=?", (operation_id,)).fetchone()
+            if receipt:
+                if receipt[0] != args_hash:
+                    raise ValueError("mistake operation arguments changed")
+                return json.loads(receipt[1])
+            row = conn.execute("SELECT data FROM mistakes WHERE id=?", (rid,)).fetchone()
+            if not row:
+                raise ValueError("mistake not found")
+            data = json.loads(row[0])
+            if int(data.get("revision", 1)) != expected_revision:
+                raise ValueError("mistake revision changed")
+            data.update(changes)
+            data["revision"] = expected_revision + 1
+            conn.execute("UPDATE mistakes SET data=? WHERE id=?", (json.dumps(data, ensure_ascii=False), rid))
+            result = {"mistake_id": rid, "revision": data["revision"]}
+            conn.execute("INSERT INTO mistake_operations VALUES (?,?,?)", (operation_id, args_hash, json.dumps(result)))
+            return result
 
     def delete(self, rid: str):
         with self._connect() as conn:
@@ -353,6 +391,9 @@ class MistakeBook:
 
     def update(self, record: MistakeRecord):
         self.store.update(record)
+
+    def update_once(self, rid: str, *, operation_id: str, expected_revision: int, changes: dict) -> dict:
+        return self.store.update_once(rid, operation_id=operation_id, expected_revision=expected_revision, changes=changes)
 
     def delete(self, rid: str):
         self.store.delete(rid)

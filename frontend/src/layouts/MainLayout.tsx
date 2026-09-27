@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import { AlertTriangle, FileText, Loader2, PanelLeftOpen, RotateCw } from 'lucide-react';
-import { get } from '../api/client';
 import { useChatContext } from '../contexts/ChatContext';
 import type { ChatMessage as ContextChatMessage, ConversationPage } from '../contexts/ChatContext';
 import type { DesktopBackendStatus } from '../types/electron';
@@ -10,13 +9,14 @@ import LearningContextSidebar from '../components/LearningContextSidebar';
 import ContextInspector from '../components/ui/ContextInspector';
 import { useInspector } from '../contexts/InspectorContext';
 import SettingsDialog from '../components/settings/SettingsDialog';
+import './ApprovedWorkspace.css';
+import './StudyDesk.css';
 
 function layoutSnapshot() {
   const width = typeof window === 'undefined' ? 1280 : window.innerWidth || 1280;
   return {
     compact: width <= 760,
     contextOverlay: width < 920,
-    inspectorReplacesContext: width >= 920 && width < 1440,
   };
 }
 
@@ -60,17 +60,16 @@ const MainLayout: React.FC = () => {
   const initialLayout = layoutSnapshot();
   const [compactLayout, setCompactLayout] = useState(initialLayout.compact);
   const [contextOverlay, setContextOverlay] = useState(initialLayout.contextOverlay);
-  const [inspectorReplacesContext, setInspectorReplacesContext] = useState(initialLayout.inspectorReplacesContext);
   const [contextOpen, setContextOpen] = useState(!initialLayout.compact && !initialLayout.contextOverlay);
   const [backendStatus, setBackendStatus] = useState<DesktopBackendStatus | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsMounted, setSettingsMounted] = useState(false);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
-  const restoreContextAfterInspectorRef = useRef(false);
-  const { bookName, setBookName, subject, setSubject, conversationId, messages, newConversation, loadConversation } = useChatContext();
+  const { bookName, subject, conversationId, messages, newConversation, loadConversation } = useChatContext();
   const { inspector, closeInspector } = useInspector();
 
   const isLearningWorkspace = location.pathname === '/';
+  const isStudyDesk = isLearningWorkspace || location.pathname === '/books';
 
   useEffect(() => {
     if (!(location.state as { openSettings?: boolean } | null)?.openSettings) return;
@@ -89,7 +88,7 @@ const MainLayout: React.FC = () => {
   useEffect(() => {
     const next = layoutSnapshot();
     closeInspector();
-    setContextOpen(isLearningWorkspace && !next.compact && !next.contextOverlay);
+    if (next.compact || next.contextOverlay) setContextOpen(false);
   }, [closeInspector, isLearningWorkspace, location.pathname]);
 
   useEffect(() => {
@@ -97,7 +96,6 @@ const MainLayout: React.FC = () => {
       const next = layoutSnapshot();
       setCompactLayout(next.compact);
       setContextOverlay(next.contextOverlay);
-      setInspectorReplacesContext(next.inspectorReplacesContext);
       if (next.compact || next.contextOverlay) setContextOpen(false);
     };
     updateLayout();
@@ -106,24 +104,6 @@ const MainLayout: React.FC = () => {
       window.removeEventListener('resize', updateLayout);
     };
   }, []);
-
-  useEffect(() => {
-    if (!isLearningWorkspace) return;
-    if (inspector && inspectorReplacesContext) {
-      if (contextOpen) restoreContextAfterInspectorRef.current = true;
-      setContextOpen(false);
-      return;
-    }
-    if (inspector && !inspectorReplacesContext && restoreContextAfterInspectorRef.current && !compactLayout && !contextOverlay) {
-      restoreContextAfterInspectorRef.current = false;
-      setContextOpen(true);
-      return;
-    }
-    if (!inspector && restoreContextAfterInspectorRef.current && !compactLayout && !contextOverlay) {
-      restoreContextAfterInspectorRef.current = false;
-      setContextOpen(true);
-    }
-  }, [compactLayout, contextOpen, contextOverlay, inspector, inspectorReplacesContext, isLearningWorkspace]);
 
   useEffect(() => {
     const desktop = window.kaoyanDesktop;
@@ -176,54 +156,40 @@ const MainLayout: React.FC = () => {
     navigate('/');
   };
 
-  const switchBook = async (name: string) => {
-    if (!name) {
-      setBookName('');
-      return;
-    }
-    try {
-      const res = await get(`/books/switch/${encodeURIComponent(name)}`);
-      if (res?.success) {
-        setBookName(res.data?.name || name);
-        if (res.data?.subject) setSubject(res.data.subject);
-      } else {
-        setBookName(name);
-      }
-    } catch {
-      setBookName(name);
-    }
-  };
-
   return (
     <div
       data-layout={compactLayout ? 'compact' : 'desktop'}
+      data-navigation={contextOpen ? 'open' : 'closed'}
       data-context={isLearningWorkspace && contextOpen ? 'open' : 'closed'}
       data-context-overlay={contextOverlay ? 'true' : 'false'}
       data-inspector={inspector ? 'open' : 'closed'}
-      className="app-shell"
+      className={`app-shell${isStudyDesk ? ' study-desk' : ''}${isLearningWorkspace ? ' learning-route' : ''}`}
     >
-      <AppRail onOpenSettings={openSettings} settingsButtonRef={settingsButtonRef} />
+      <div className="study-navigation">
+        <AppRail onCollapse={() => setContextOpen(false)} onOpenSettings={openSettings} settingsButtonRef={settingsButtonRef} />
 
-      <LearningContextSidebar
-        hidden={!isLearningWorkspace || !contextOpen}
-        subject={subject}
-        bookName={bookName}
-        conversationId={conversationId}
-        refreshKey={messages.length}
-        onClose={() => setContextOpen(false)}
-        onSubjectChange={setSubject}
-        onBookChange={switchBook}
-        onNewConversation={startNewConversation}
-        onLoadConversation={loadExistingConversation}
-      />
+        <LearningContextSidebar
+          hidden={!isLearningWorkspace || !contextOpen}
+          subject={subject}
+          bookName={bookName}
+          conversationId={conversationId}
+          refreshKey={messages.length}
+          onClose={() => setContextOpen(false)}
+          onNewConversation={startNewConversation}
+          onLoadConversation={loadExistingConversation}
+          capabilityActions={[]}
+        />
+
+        <div id="workspace-context-navigation" />
+      </div>
 
       {isLearningWorkspace && contextOpen && contextOverlay && (
         <button type="button" className="context-sidebar-scrim" onClick={() => setContextOpen(false)} aria-label="关闭学习上下文" />
       )}
 
       <div className="workspace-stage">
-        {isLearningWorkspace && !contextOpen && (
-          <button type="button" className="context-sidebar-trigger" onClick={() => setContextOpen(true)} aria-label="打开学习上下文" title="学习上下文">
+        {!contextOpen && (
+          <button type="button" className="context-sidebar-trigger" onClick={() => setContextOpen(true)} aria-label="展开侧栏" title="展开侧栏">
             <PanelLeftOpen className="h-[18px] w-[18px]" />
           </button>
         )}

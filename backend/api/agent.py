@@ -316,10 +316,18 @@ def run_read_only_agent(req: ReadOnlyAgentRequest, request: Request, response: R
 @router.post("/actions/{action_id}/confirm")
 def confirm_agent_action(action_id: str):
     try:
-        action = get_pending_action_store().confirm(action_id)
+        pending = get_pending_action_store()
+        proposal = pending.get(action_id)
+        from backend.services.agent_runtime.locator import is_runtime_task
+        if proposal and is_runtime_task(str(proposal["context"].get("learning_task_id") or "")):
+            from backend.services.agent_runtime.chat_binding import resolve_runtime_action
+            return resolve_runtime_action(action_id, "confirm", pending)
+        action = pending.confirm(action_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="pending action not found") from exc
     except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RuntimeError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"action execution failed: {exc}") from exc
@@ -329,10 +337,18 @@ def confirm_agent_action(action_id: str):
 @router.post("/actions/{action_id}/reject")
 def reject_agent_action(action_id: str):
     try:
-        action = get_pending_action_store().reject(action_id)
+        pending = get_pending_action_store()
+        proposal = pending.get(action_id)
+        from backend.services.agent_runtime.locator import is_runtime_task
+        if proposal and is_runtime_task(str(proposal["context"].get("learning_task_id") or "")):
+            from backend.services.agent_runtime.chat_binding import resolve_runtime_action
+            return resolve_runtime_action(action_id, "reject", pending)
+        action = pending.reject(action_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="pending action not found") from exc
     except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RuntimeError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return {"success": True, "action": action, "learning_task": _settle_linked_learning_task(action)}
 

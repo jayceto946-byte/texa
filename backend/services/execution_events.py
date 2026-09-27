@@ -30,6 +30,7 @@ EXECUTION_EVENT_V1_CONTRACT = {
     "reasoning_visibility": "public_summary_only",
 }
 EXECUTION_EVENT_SCHEMA = EXECUTION_EVENT_V1_CONTRACT["schema"]
+EXECUTION_EVENT_V2_SCHEMA = "texa.execution/v2"
 EXECUTION_EVENT_IDENTITY_FIELDS = EXECUTION_EVENT_V1_CONTRACT["identity_fields"]
 EXECUTION_EVENT_TYPES = EXECUTION_EVENT_V1_CONTRACT["types"]
 EXECUTION_EVENT_TERMINAL_TYPES = EXECUTION_EVENT_V1_CONTRACT["terminal_types"]
@@ -134,11 +135,19 @@ def validate_execution_event(
     missing = _REQUIRED_EVENT_FIELDS - event.keys()
     if missing:
         raise ValueError(f"execution event missing fields: {', '.join(sorted(missing))}")
-    unexpected = event.keys() - _REQUIRED_EVENT_FIELDS - _OPTIONAL_EVENT_FIELDS
+    schema = event.get("schema")
+    if schema not in {EXECUTION_EVENT_SCHEMA, EXECUTION_EVENT_V2_SCHEMA}:
+        raise ValueError(f"invalid execution event schema: {schema}")
+    optional = _OPTIONAL_EVENT_FIELDS | ({"origin"} if schema == EXECUTION_EVENT_V2_SCHEMA else set())
+    unexpected = event.keys() - _REQUIRED_EVENT_FIELDS - optional
     if unexpected:
         raise ValueError(f"execution event has unexpected fields: {', '.join(sorted(unexpected))}")
-    if event["schema"] != EXECUTION_EVENT_SCHEMA:
-        raise ValueError(f"invalid execution event schema: {event['schema']}")
+    if schema == EXECUTION_EVENT_V2_SCHEMA:
+        origin = event.get("origin")
+        if not isinstance(origin, dict) or set(origin) != {"kind", "id"} or origin.get("kind") not in {"user", "ui_action", "goal", "schedule"} or not isinstance(origin.get("id"), str) or not origin["id"].strip():
+            raise ValueError("V2 execution event requires a valid origin")
+        if origin["kind"] in {"schedule", "goal"} and (event.get("conversation_id") or event.get("turn_id")):
+            raise ValueError("scheduled V2 event must not invent conversation identity")
 
     for field in ("request_id", "task_id", "run_id", "conversation_id", "turn_id"):
         if not isinstance(event[field], str):
@@ -168,8 +177,9 @@ def validate_execution_event(
     if require_persisted_identity:
         if event_type not in PERSISTED_EVENT_TYPES:
             raise ValueError(f"execution event type is not a persisted milestone: {event_type}")
+        identity_fields = ("request_id", "task_id", "run_id") if schema == EXECUTION_EVENT_V2_SCHEMA and event["origin"]["kind"] in {"schedule", "goal"} else ("request_id", "task_id", "run_id", "conversation_id", "turn_id")
         missing_identity = [
-            field for field in ("request_id", "task_id", "run_id", "conversation_id", "turn_id")
+            field for field in identity_fields
             if not event[field]
         ]
         if missing_identity:
@@ -220,6 +230,8 @@ def advance_execution_run(state: ExecutionRunState, event: dict) -> ExecutionRun
     """One run, including sparse persisted milestones and nonterminal input gates."""
     validate_execution_event(event, previous_seq=state.seq)
     identity = tuple(event[key] for key in ("request_id", "task_id", "run_id", "conversation_id", "turn_id"))
+    if event["schema"] == EXECUTION_EVENT_V2_SCHEMA:
+        identity += (event["origin"]["kind"], event["origin"]["id"])
     if state.identity and state.identity != identity:
         raise ValueError("execution event sequence cannot mix task runs or request/turn identities")
     if state.closed:
@@ -259,6 +271,8 @@ class ExecutionEventEmitter:
         turn_id: str = "",
         start_seq: int = 0,
         persist: Callable[[dict[str, Any]], None] | None = None,
+        schema: str = EXECUTION_EVENT_SCHEMA,
+        origin: dict[str, str] | None = None,
     ):
         self.request_id = request_id
         self.task_id = task_id
@@ -266,6 +280,8 @@ class ExecutionEventEmitter:
         self.conversation_id = conversation_id
         self.turn_id = turn_id
         self.persist = persist
+        self.schema = schema
+        self.origin = origin
         self._seq = max(0, int(start_seq))
         self._started = time.perf_counter()
         self._run_state = ExecutionRunState(seq=self._seq)
@@ -285,7 +301,7 @@ class ExecutionEventEmitter:
     ) -> dict[str, Any]:
         next_seq = self._seq + 1
         event = {
-            "schema": EXECUTION_EVENT_SCHEMA,
+            "schema": self.schema,
             "seq": next_seq,
             "request_id": self.request_id,
             "task_id": self.task_id,
@@ -304,6 +320,8 @@ class ExecutionEventEmitter:
         }
         if duration_ms is not None:
             event["duration_ms"] = round(float(duration_ms), 2)
+        if self.schema == EXECUTION_EVENT_V2_SCHEMA:
+            event["origin"] = dict(self.origin or {})
         next_state = advance_execution_run(self._run_state, event)
         if self.persist and event_type in PERSISTED_EVENT_TYPES:
             self.persist(event)

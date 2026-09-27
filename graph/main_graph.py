@@ -26,6 +26,8 @@ def _route_after_retrieve(state: dict) -> str:
 
 
 def _route_from_start(state: dict) -> str:
+    if state.get("direct_answer") and not state.get("use_textbook_context", True):
+        return "generate"
     if state.get("resume_phase") == "post_retrieve":
         return _route_after_retrieve(state)
     return "plan"
@@ -214,6 +216,7 @@ def build_initial_state(
     """构建 LangGraph 的初始状态字典。"""
     continuity = continuity_context if isinstance(continuity_context, dict) else {}
     return {
+        "direct_answer": bool(continuity.get("direct_answer")) and use_textbook_context is False,
         "user_input": user_input,
         "user_images": user_images or [],
         "book_name": book_name,

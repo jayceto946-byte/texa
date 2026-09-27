@@ -1,9 +1,10 @@
-import { BarChart3, BookOpen, ClipboardList, GraduationCap, MessageSquare, Settings } from 'lucide-react';
+import { BarChart3, BookOpen, ClipboardList, GraduationCap, MessageSquare, Settings, PanelLeftClose, Target } from 'lucide-react';
 import type { RefObject } from 'react';
 import { NavLink } from 'react-router-dom';
 
 const primaryItems = [
   { to: '/', icon: MessageSquare, label: '学习' },
+  { to: '/goals', icon: Target, label: '目标与任务' },
   { to: '/learning', icon: BarChart3, label: '复习' },
   { to: '/mistakes', icon: GraduationCap, label: '错题' },
   { to: '/exercises', icon: ClipboardList, label: '练习' },
@@ -27,16 +28,19 @@ function RailLink({ to, icon: Icon, label }: (typeof primaryItems)[number]) {
 
 type AppRailProps = {
   onOpenSettings: () => void;
+  onCollapse: () => void;
   settingsButtonRef: RefObject<HTMLButtonElement | null>;
 };
 
-export default function AppRail({ onOpenSettings, settingsButtonRef }: AppRailProps) {
+export default function AppRail({ onOpenSettings, settingsButtonRef, onCollapse }: AppRailProps) {
   return (
     <aside className="app-rail" aria-label="产品导航">
+      <button className="navigation-collapse app-icon-button" onClick={onCollapse} aria-label="收起侧栏" title="收起侧栏"><PanelLeftClose size={18} /></button>
       <NavLink to="/" className="app-rail-mark" aria-label="Texa 学习工作区" title="Texa">
         <span className="app-rail-logo-icon" aria-hidden="true">
           <img src="/brand/texa-mark.svg" alt="" />
         </span>
+        <span className="study-brand-name">Texa<span>学习工作区</span></span>
       </NavLink>
 
       <nav className="app-rail-primary" aria-label="主要功能">

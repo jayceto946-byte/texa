@@ -6,6 +6,7 @@ from backend.services.owned_stream import OwnedStreamingResponse, prepare_owned_
 import asyncio
 import json
 import logging
+import os
 import queue
 import threading
 import time
@@ -782,6 +783,11 @@ def _prepared_chat_stream(
     from graph.main_graph import run_graph_stream
 
     prepared = _prepare_chat_turn(req, resume_task=_learning_task, resume=_resume)
+    if not _resume and _learning_task is None:
+        from backend.services.agent_runtime.chat_binding import try_chat_response
+        runtime_response = try_chat_response(req, prepared, _request_id or f"req_{uuid.uuid4().hex}")
+        if runtime_response is not None:
+            return runtime_response
     book_name = prepared["book_name"]
     subject = prepared["subject"]
     conversation_id = prepared["conversation_id"]
@@ -820,12 +826,42 @@ def _prepared_chat_stream(
     continuity_context["learning_task"] = learning_task.to_dict()
     continuity_context["required_outputs"] = learning_task.required_outputs
 
+    routing_decision = None
+    if os.getenv("TEXA_AGENT_ROUTER_SHADOW", "0") == "1" or os.getenv("TEXA_AGENT_DIRECT_FAST_PATH", "0") == "1":
+        try:
+            from backend.services.decision.contracts import DecisionContext
+            from backend.services.decision.router import DecisionRouter
+            semantic = None
+            if os.getenv("TEXA_AGENT_ROUTER_SEMANTIC_SHADOW", "0") == "1":
+                from backend.services.decision.semantic import LocalPrototypeBackend
+                from config import get_embeddings
+                semantic = LocalPrototypeBackend(get_embeddings, backend_version="local-v1")
+            routing_decision = DecisionRouter(semantic=semantic, shadow=True).route(DecisionContext(
+                request_id=_request_id or run_id, text=req.question,
+                resolved_query=rewritten_question, answer_mode=answer_mode,
+                subject=subject, book_ids=(book_name,) if book_name else (),
+                current_task_status="", resolution_status=str(resolution_trace.get("resolution_action") or "resolved"),
+            ))
+        except Exception:
+            logger.exception("shadow capability routing failed")
+
     def event_generator():
         nonlocal learning_task
         from backend.rag_trace import new_request_id, save_trace
 
         request_id = _request_id or new_request_id()
         task_store = get_learning_task_store()
+        if routing_decision is not None:
+            try:
+                from backend.services.decision.contracts import DecisionContext
+                from backend.services.decision.trace import RoutingTraceStore, DEFAULT_ROUTING_DB_PATH
+                RoutingTraceStore(DEFAULT_ROUTING_DB_PATH).record(DecisionContext(
+                    request_id=request_id, text=req.question, resolved_query=rewritten_question,
+                    answer_mode=answer_mode, subject=subject,
+                    book_ids=(book_name,) if book_name else (),
+                ), routing_decision, task_id=learning_task.id)
+            except Exception:
+                logger.exception("shadow routing trace persistence failed")
         def persist_execution_event(event: dict) -> None:
             if event.get("type") in {"final", "error"}:
                 content = "".join(assistant_chunks)
@@ -1212,10 +1248,14 @@ def _prepared_chat_stream(
                 observe(done_event)
                 yield f"data: {json.dumps(_chat_execution_envelope(done_event), ensure_ascii=False)}\n\n"
                 return
-            tool_request = _main_tool_request(
-                rewritten_question, book_name, subject, conversation_id,
-            )
-            planned_tools = select_tool_calls(tool_request)
+            direct = (routing_decision is not None and routing_decision.mode == "direct_answer"
+                      and not use_textbook_context and os.getenv("TEXA_AGENT_DIRECT_FAST_PATH", "0") == "1")
+            if direct:
+                planned_tools = []
+                continuity_context["direct_answer"] = True
+            else:
+                tool_request = _main_tool_request(rewritten_question, book_name, subject, conversation_id)
+                planned_tools = select_tool_calls(tool_request)
             if planned_tools and answer_mode != "subject_mismatch":
                 yield activity_sse({
                     "id": "tools", "kind": "tool", "label": "使用学习工具",
@@ -1518,6 +1558,25 @@ def chat_stream(req: ChatRequest):
 
 @router.post("/tasks/{task_id}/resume-stream")
 def resume_chat_task_stream(task_id: str):
+    from backend.services.agent_runtime.locator import is_runtime_task, runtime_store
+    if is_runtime_task(task_id):
+        from backend.services.agent_runtime.chat_binding import stream_run
+        runtime = runtime_store()
+        snapshot = runtime.task_snapshot(task_id) if runtime else None
+        if snapshot is None:
+            raise HTTPException(404, "runtime task not found")
+        if any(call["permission"] == "LOCAL_WRITE" and call["status"] == "unknown" for call in snapshot["tool_calls"]):
+            raise HTTPException(409, "unknown write requires explicit receipt reconciliation")
+        owner = uuid.uuid4().hex
+        try:
+            resumed = runtime.resume(task_id, expected_revision=snapshot["task_revision"],
+                request_key=f"resume_{uuid.uuid4().hex}", request_id=f"req_{uuid.uuid4().hex}",
+                owner_token=owner, turn_id=snapshot["task"]["turn_id"])
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return stream_run(runtime, resumed["run"]["id"], owner)
     store = get_learning_task_store()
     task = store.get(task_id)
     if task is None or task.task_type != "qa":
@@ -1543,6 +1602,21 @@ def resume_chat_task_stream(task_id: str):
 @router.post("/tasks/{task_id}/interrupt")
 def interrupt_chat_task(task_id: str, payload: dict | None = None):
     """Acknowledge a user stop before the UI exposes the resume action."""
+    from backend.services.agent_runtime.locator import is_runtime_task, runtime_store, public_task
+    if is_runtime_task(task_id):
+        runtime = runtime_store()
+        snapshot = runtime.task_snapshot(task_id) if runtime else None
+        if snapshot is None:
+            raise HTTPException(404, "runtime task not found")
+        if (payload or {}).get("run_id") != snapshot["run"]["id"]:
+            raise HTTPException(409, "interrupt requires current run_id")
+        if snapshot["run"]["status"] == "running":
+            try:
+                snapshot = runtime.close(snapshot["run"]["id"], snapshot["run"]["owner_token"],
+                    outcome="paused", error_code="user_stopped")
+            except RuntimeError as exc:
+                raise HTTPException(409, str(exc)) from exc
+        return {"success": True, "learning_task": public_task(runtime, snapshot)}
     store = get_learning_task_store()
     task = store.get(task_id)
     if task is None or task.task_type != "qa":
@@ -1563,9 +1637,36 @@ def interrupt_chat_task(task_id: str, payload: dict | None = None):
     return {"success": True, "learning_task": public_task}
 
 
+@router.get("/tasks/{task_id}/events")
+def get_chat_runtime_events(task_id: str, run_id: str, after_seq: int = 0, limit: int = 100):
+    """Cursor replay of one owned run; ephemeral output deltas are not persisted."""
+    from backend.services.agent_runtime.locator import is_runtime_task, runtime_store
+    if not is_runtime_task(task_id):
+        raise HTTPException(400, "event replay requires a runtime task")
+    if after_seq < 0 or not 1 <= limit <= 500:
+        raise HTTPException(400, "invalid event cursor")
+    store = runtime_store()
+    try:
+        snapshot = store.snapshot(run_id) if store else None
+    except KeyError:
+        snapshot = None
+    if snapshot is None or snapshot["task"]["id"] != task_id:
+        raise HTTPException(404, "runtime run not found")
+    events = store.events(run_id, after_seq=after_seq, limit=limit)
+    return {"success": True, "events": events,
+            "next_seq": events[-1]["seq"] if events else after_seq}
+
+
 @router.get("/tasks/{task_id}")
 def get_chat_learning_task(task_id: str):
     """Read current task/effect status without executing or resuming any work."""
+    from backend.services.agent_runtime.locator import is_runtime_task, runtime_store, public_task
+    if is_runtime_task(task_id):
+        runtime = runtime_store()
+        snapshot = runtime.task_snapshot(task_id) if runtime else None
+        if snapshot is None:
+            raise HTTPException(404, "runtime task not found")
+        return {"success": True, "learning_task": public_task(runtime, snapshot)}
     try:
         task = get_learning_task_store().get(task_id)
     except ValueError as exc:

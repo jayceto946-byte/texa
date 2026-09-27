@@ -66,7 +66,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
   const { bookName, setBookName, setSubject } = useChatContext();
   const { health, loading, loadHealth } = useSystemHealth(bookName);
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>(standaloneTab || 'health');
+  const [tab, setTab] = useState<Tab>(standaloneTab || 'models');
   const [version, setVersion] = useState<any>(null);
   const [subjects, setSubjects] = useState<SubjectNode[]>([]);
   const [books, setBooks] = useState<ManagedBook[]>([]);
@@ -384,15 +384,15 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
   };
   if (standaloneTab === 'subjects') {
     return (
-      <div className="flex h-full min-w-0 flex-col bg-bg-primary">
+      <div className="management-workspace flex h-full min-w-0 flex-col bg-bg-primary">
         <header className="app-page-header border-b border-border bg-bg-primary">
           <div className="library-page-heading">
              <h2 className="app-page-title">教材</h2>
              <span>{activeBookCount} 本教材</span>
           </div>
           <div className="library-page-actions">
-            <button onClick={openBookImport} className="app-secondary-button"><BookOpen className="h-4 w-4" />导入教材</button>
-            <button onClick={() => saveSubjects()} className="app-primary-button"><Save className="h-4 w-4" />保存目录</button>
+            <button onClick={() => saveSubjects()} className="app-secondary-button"><Save className="h-4 w-4" />保存目录</button>
+            <button onClick={openBookImport} className="app-primary-button"><BookOpen className="h-4 w-4" />导入教材</button>
           </div>
         </header>
         <main className="library-page-main min-h-0 min-w-0 flex-1">
@@ -476,7 +476,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects' }> = ({ standaloneTab 
               </dl>
               {persistentUpdateMessage && <p className="settings-secondary">{persistentUpdateMessage}</p>}
               <p className="settings-secondary">本软件使用 HarmonyOS Sans 字体。Copyright 2021 Huawei Device Co., Ltd.</p>
-              {desktopUpdate?.updateInfo?.version && <div className="status-success rounded-md border p-3 text-sm">可更新到 {desktopUpdate.updateInfo.version}</div>}
+              {desktopUpdate?.updateInfo?.version && <div className="status-success workspace-radius workspace-interface-text border p-3">可更新到 {desktopUpdate.updateInfo.version}</div>}
               {desktopUpdate?.status === 'downloading' && (
                 <div>
                   <div className="mb-2 flex justify-between settings-secondary"><span>下载进度</span><span>{Math.round(desktopUpdate?.progress?.percent || 0)}%</span></div>

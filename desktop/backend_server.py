@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import sqlite3
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -109,6 +111,30 @@ def main() -> None:
     os.environ.setdefault("EMBEDDING_LOCAL_FILES_ONLY", "1")
 
     _seed_sample_data(data_dir)
+
+    if os.getenv("TEXA_FROZEN_SMOKE", "0") == "1":
+        import chromadb
+        from config import get_embeddings
+
+        embeddings = get_embeddings()
+        with tempfile.TemporaryDirectory(prefix="texa-frozen-smoke-") as temporary:
+            root = Path(temporary)
+            with sqlite3.connect(root / "smoke.sqlite3") as connection:
+                connection.execute("CREATE TABLE smoke (value TEXT)")
+                connection.execute("INSERT INTO smoke VALUES (?)", ("ready",))
+                assert connection.execute("SELECT value FROM smoke").fetchone() == ("ready",)
+            client = chromadb.PersistentClient(path=str(root / "vector_db"))
+            collection = client.get_or_create_collection("frozen_smoke")
+            collection.add(
+                ids=["one"],
+                documents=["线性代数中的特征值"],
+                embeddings=[embeddings.embed_query("线性代数中的特征值")],
+            )
+            matches = collection.query(query_embeddings=[embeddings.embed_query("特征值")], n_results=1)
+            assert matches["ids"] == [["one"]]
+        assert (_bundle_root() / "frontend" / "dist" / "index.html").is_file()
+        print("TEXA_FROZEN_SMOKE_PASS", flush=True)
+        return
 
     port = int(os.getenv("KAOYAN_BACKEND_PORT", "8000"))
     from backend.main import app

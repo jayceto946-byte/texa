@@ -4,6 +4,7 @@ import MainLayout from './layouts/MainLayout';
 import DesktopTitleBar from './components/DesktopTitleBar';
 import FirstRunGuide from './components/FirstRunGuide';
 import { InspectorProvider } from './contexts/InspectorContext';
+import GoalsPage from './pages/GoalsPage';
 import ChatPage from './pages/ChatPage';
 import MistakesPage from './pages/MistakesPage';
 import ExercisesPage from './pages/ExercisesPage';
@@ -19,10 +20,11 @@ function App() {
       <InspectorProvider>
         <DesktopTitleBar />
         <BrowserRouter>
-          <FirstRunGuide />
+          <FirstRunGuide>
           <Routes>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<ChatPage />} />
+              <Route path="goals" element={<GoalsPage />} />
               <Route path="mistakes" element={<MistakesPage />} />
               <Route path="exercises" element={<ExercisesPage />} />
               <Route path="kg" element={<Navigate to="/learning" replace />} />
@@ -34,6 +36,7 @@ function App() {
               <Route path="settings" element={<Navigate to="/" replace state={{ openSettings: true }} />} />
             </Route>
           </Routes>
+          </FirstRunGuide>
         </BrowserRouter>
       </InspectorProvider>
     </ChatProvider>

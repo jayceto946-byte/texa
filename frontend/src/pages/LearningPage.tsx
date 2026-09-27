@@ -272,9 +272,10 @@ const LearningPage: React.FC = () => {
   const subjectSuggestions = Array.from(new Set([...subjects, ...books.map((book) => book.subject || '').filter(Boolean)]));
 
   return (
-    <div className="learning-page flex h-full min-w-0 flex-col">
+    <div className="learning-page management-workspace flex h-full min-w-0 flex-col">
       <div className="app-page-header learning-page-header border-b border-border bg-bg-primary">
         <h2 className="app-page-title">复习计划</h2>
+        <Link className="app-secondary-button" to="/goals">目标与任务</Link>
         <div className="window-drag-region" aria-hidden="true" />
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           <ScopeSelector
@@ -289,47 +290,51 @@ const LearningPage: React.FC = () => {
             width="wide"
             disabled={loading && !books.length}
           />
-          <button
-            onClick={load}
-            disabled={loading}
-            className="review-toolbar-button app-secondary-button"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            刷新
-          </button>
-          <button
-            onClick={startKGEnhancement}
-            disabled={!bookName || kgJobIsRunning}
-            className="review-toolbar-button app-secondary-button"
-          >
-            <BrainCircuit className={`h-4 w-4 ${kgJobIsRunning ? 'animate-pulse' : ''}`} />
-            {kgJobIsRunning ? (kgJob?.status === 'cancelling' ? '正在终止知识关联' : '正在完善知识关联') : '完善知识关联'}
-          </button>
         </div>
       </div>
 
-      <div className="learning-page-content flex-1 overflow-y-auto p-6">
+      <div className="learning-page-content management-page-content flex-1 overflow-y-auto">
         {loading && <PageState kind="loading" title="正在整理学习情况" description="数据较多时可能需要十几秒。" />}
 
         {kgJob && <TaskStatus title="完善知识关联" detail={kgJob.message || kgJob.status} progress={kgJob.progress} state={kgJobFailed ? 'error' : kgJob.status === 'completed' ? 'success' : 'loading'} />}
 
         {error && !loading && <ActionableIssue title="暂时无法整理复习计划" impact="今天的薄弱点和待复习顺序可能不完整；错题和学习记录不会丢失。" actions={<button onClick={load} className="app-secondary-button">重新加载</button>} details={error} />}
         {!loading && !error && summary && (
-          <div className="mx-auto max-w-6xl space-y-8">
-            <section aria-labelledby="review-today-title">
-              <div className="mb-4">
-                <h3 id="review-today-title" className="type-section-title text-text-primary">今天要做什么</h3>
-                <p className="mt-1 type-caption text-text-secondary">先处理到期错题，再复习由近期薄弱记录触发的概念。</p>
+          <div className="mx-auto max-w-6xl space-y-6">
+            <section className="management-section" aria-labelledby="review-today-title">
+              <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                <h3 id="review-today-title" className="workspace-section-heading">今天要做什么</h3>
+                <p className="mt-1 type-secondary text-text-secondary">{summary.mistake_stats.due_today > 0 || summary.concept_review_plan?.length ? '先处理到期错题，再复习由近期薄弱记录触发的概念。' : '复习计划会根据到期错题和近期薄弱记录更新。'}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {summary.mistake_stats.due_today > 0 ? (
+                    <Link to="/mistakes?tab=review" className="app-primary-button">开始本次复习</Link>
+                  ) : summary.concept_review_plan?.length ? (
+                    <a href="#review-concepts" className="app-primary-button">开始本次复习</a>
+                  ) : null}
+                  <button onClick={load} disabled={loading} className="app-ghost-button"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />刷新</button>
+                </div>
               </div>
-              <div className="review-summary grid grid-cols-1 gap-4 border-b border-border pb-5 md:grid-cols-3 md:gap-0 md:divide-x md:divide-border">
-                <SummaryFact icon={CalendarDays} label="到期错题" value={summary.mistake_stats.due_today} unit="道" tone="accent" help={summary.review_rules?.mistake_due} emphasis />
-                <SummaryFact icon={AlertTriangle} label="近期薄弱概念" value={summary.stats.weak_count} unit="个" tone="warn" help={summary.weak_concepts?.slice(0, 2).map((item) => item.name).join('、') || summary.review_rules?.weak_concepts} />
-                <SummaryFact icon={Activity} label="近 7 天有学习记录" value={summary.daily.slice(-7).filter((item) => item.total > 0).length} unit="天" help="按有学习记录的天数统计" />
-              </div>
+              {summary.mistake_stats.due_today > 0 || summary.concept_review_plan?.length || summary.review_queue.length ? (
+                <div className="review-summary grid grid-cols-3 gap-2 border-b border-border pb-4 md:gap-0 md:divide-x md:divide-border">
+                  <SummaryFact icon={CalendarDays} label="到期错题" value={summary.mistake_stats.due_today} unit="道" tone="accent" help={summary.review_rules?.mistake_due} />
+                  <SummaryFact icon={AlertTriangle} label="近期薄弱概念" value={summary.stats.weak_count} unit="个" tone="warn" help={summary.weak_concepts?.slice(0, 2).map((item) => item.name).join('、') || summary.review_rules?.weak_concepts} />
+                  <SummaryFact icon={Activity} label="近 7 天有学习记录" value={summary.daily.slice(-7).filter((item) => item.total > 0).length} unit="天" help="按有学习记录的天数统计" />
+                </div>
+              ) : (
+                <div className="max-w-xl py-3">
+                  <p className="type-body text-text-primary">今天没有待复习内容。可以继续学习，或录入一道错题，之后会在这里安排复习。</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link to="/" className="app-primary-button">继续学习</Link>
+                    <Link to="/mistakes" className="app-secondary-button">录入错题</Link>
+                  </div>
+                </div>
+              )}
 
-              {reviewMessage && <div className="mt-4 border-l-2 border-[var(--success)] px-3 py-2 text-sm text-[var(--success-text)]">{reviewMessage}</div>}
+              {reviewMessage && <div className="mt-4 border-l-2 border-[var(--success)] px-3 py-2 workspace-interface-text text-[var(--success-text)]">{reviewMessage}</div>}
 
-              <div className="learning-review-sections mt-3 divide-y divide-border border-y border-border">
+              {(summary.due_mistakes?.length || summary.concept_review_plan?.length || summary.review_queue.length) ? <div className="learning-review-sections mt-3 divide-y divide-border border-b border-border">
                 <ExpandableSection title="优先复习错题" count={summary.due_mistakes?.length || 0} defaultOpen={Boolean(summary.due_mistakes?.length)}>
                 <div className="divide-y divide-border">
                   {summary.due_mistakes?.length ? (
@@ -348,7 +353,7 @@ const LearningPage: React.FC = () => {
                 </ExpandableSection>
 
                 <ExpandableSection title="优先复习概念" count={summary.concept_review_plan?.length || 0} defaultOpen>
-                <div className="learning-concept-grid grid grid-cols-1 gap-x-6 xl:grid-cols-2">
+                <div id="review-concepts" className="learning-concept-grid grid grid-cols-1 gap-x-6 xl:grid-cols-2">
                   {summary.concept_review_plan?.length ? (
                     summary.concept_review_plan.map((item) => (
                       <ConceptReviewCard key={item.name} item={item} onReview={handleConceptReview} reviewing={reviewingConcept === item.name} />
@@ -363,9 +368,9 @@ const LearningPage: React.FC = () => {
                 <div className="divide-y divide-border">
                   {summary.review_queue.length ? (
                     summary.review_queue.map((item) => (
-                      <div key={item.name} className="flex items-center justify-between px-1 py-3 text-sm">
+                      <div key={item.name} className="flex items-center justify-between px-1 py-3 workspace-interface-text">
                         <span className="truncate text-text-primary">{item.name}</span>
-                        <span className="ml-3 text-xs text-text-secondary">{item.reason === 'weak' ? '薄弱' : '遗忘'}</span>
+                        <span className="ml-3 workspace-support-text text-text-secondary">{item.reason === 'weak' ? '薄弱' : '遗忘'}</span>
                       </div>
                     ))
                   ) : (
@@ -373,13 +378,13 @@ const LearningPage: React.FC = () => {
                   )}
                 </div>
                 </ExpandableSection>
-              </div>
+              </div> : null}
             </section>
 
-            <section aria-labelledby="review-reason-title">
+            {(summary.recent_questions?.length || 0) > 0 && <section className="management-section" aria-labelledby="review-reason-title">
               <div className="mb-3">
                 <h3 id="review-reason-title" className="type-section-title text-text-primary">为什么这些内容优先</h3>
-                <p className="mt-1 type-caption text-text-secondary">近期问答、错题关联与遗忘间隔共同决定本次顺序。</p>
+                <p className="mt-1 type-secondary text-text-secondary">近期问答、错题关联与遗忘间隔共同决定本次顺序。</p>
               </div>
               <div className="divide-y divide-border border-y border-border">
                 <ExpandableSection title="近期问题" count={summary.recent_questions?.length || 0}>
@@ -387,7 +392,7 @@ const LearningPage: React.FC = () => {
                     {summary.recent_questions?.length ? (
                       summary.recent_questions.map((item, index) => (
                         <div key={`${item.timestamp}-${index}`} className="space-y-1 py-3">
-                          <p className="text-sm leading-6 text-text-primary">{item.question}</p>
+                          <p className="workspace-interface-text leading-6 text-text-primary">{item.question}</p>
                           <p className="type-caption text-text-secondary">
                             {item.source === 'mistake' ? '来自错题' : '来自问答'}
                             {item.timestamp ? ` · ${item.timestamp.slice(0, 10)}` : ''}
@@ -399,12 +404,12 @@ const LearningPage: React.FC = () => {
                   </div>
                 </ExpandableSection>
               </div>
-            </section>
+            </section>}
 
-            <section aria-labelledby="review-analysis-title">
+            {(summary.top_concepts.length > 0 || summary.mistake_weak_points.length > 0 || summary.daily.length > 0) && <section className="management-section" aria-labelledby="review-analysis-title">
               <div className="mb-3">
                 <h3 id="review-analysis-title" className="type-section-title text-text-primary">补充分析</h3>
-                <p className="mt-1 type-caption text-text-secondary">用于观察长期模式，不改变今天的行动顺序。</p>
+                <p className="mt-1 type-secondary text-text-secondary">用于观察长期模式，不改变今天的行动顺序。</p>
               </div>
               <div className="learning-insights grid grid-cols-1 divide-y divide-border border-y border-border xl:grid-cols-3 xl:divide-x xl:divide-y-0">
                 <Panel title="高频概念">
@@ -431,7 +436,8 @@ const LearningPage: React.FC = () => {
                 onSelectDate={setSelectedActivityDate}
                 />
               </div>
-            </section>
+            </section>}
+            {bookName && <div className="pt-1"><button onClick={startKGEnhancement} disabled={kgJobIsRunning} className="app-secondary-button"><BrainCircuit className="h-4 w-4" />{kgJobIsRunning ? '正在完善知识关联' : '完善知识关联'}</button></div>}
           </div>
         )}
       </div>
@@ -475,7 +481,7 @@ const ActivityHeatmap = ({ daily, selectedDate, onSelectDate }: { daily: DailyDe
   return (
     <section>
       <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-text-primary">
+        <div className="flex items-center gap-2 workspace-interface-text font-medium text-text-primary">
           <CalendarDays className="h-4 w-4 text-accent" /> 最近每日活动
         </div>
         <div className="flex items-center gap-1 text-[11px] text-text-secondary">
@@ -501,28 +507,28 @@ const ActivityHeatmap = ({ daily, selectedDate, onSelectDate }: { daily: DailyDe
         </div>
         <div className="bg-bg-secondary p-3">
           <div className="mb-2 flex items-center justify-between gap-3">
-            <div className="text-sm font-semibold text-text-primary">{currentDate}</div>
-            <div className="text-xs text-text-secondary">{current?.total || 0} 次</div>
+            <div className="workspace-interface-text font-semibold text-text-primary">{currentDate}</div>
+            <div className="workspace-support-text text-text-secondary">{current?.total || 0} 次</div>
           </div>
           {current ? (
             <div className="space-y-3">
-              <p className="text-xs text-text-secondary">问答 {current.qa} · 错题 {current.mistake}</p>
+              <p className="workspace-support-text text-text-secondary">问答 {current.qa} · 错题 {current.mistake}</p>
               {current.subjects.length ? current.subjects.map((item) => (
                 <div key={item.book_name || item.subject} className="space-y-2 border-t border-border pt-3 first:border-t-0 first:pt-0">
-                  <div className="flex items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center justify-between gap-2 workspace-support-text">
                     <span className="truncate font-medium text-text-primary">{item.book_name || item.subject}</span>
                     <span className="flex-shrink-0 text-text-secondary">问答 {item.qa} / 错题 {item.mistake}</span>
                   </div>
-                  <p className="text-xs leading-5 text-text-secondary">
+                  <p className="workspace-support-text leading-5 text-text-secondary">
                     {item.concepts.length
                       ? `涉及 ${item.concepts.map((concept) => `${concept.name}${concept.count > 1 ? ` ×${concept.count}` : ''}`).join('、')}`
                       : '暂无概念明细'}
                   </p>
                 </div>
-              )) : <div className="text-xs text-text-secondary">暂无教材概念明细</div>}
+              )) : <div className="workspace-support-text text-text-secondary">暂无教材概念明细</div>}
             </div>
           ) : (
-            <div className="py-6 text-center text-xs text-text-secondary">这一天暂无记录</div>
+            <div className="py-6 text-center workspace-support-text text-text-secondary">这一天暂无记录</div>
           )}
         </div>
       </div>
@@ -539,39 +545,39 @@ const ConceptReviewCard = ({ item, onReview, reviewing }: { item: ConceptReviewC
         <button type="button" onClick={() => setOpen(!open)} className="min-w-0 flex-1 text-left">
           <div className="flex min-w-0 items-center justify-start gap-2">
             {open ? <ChevronDown className="h-4 w-4 text-accent" /> : <ChevronRight className="h-4 w-4 text-text-secondary" />}
-            <BrainCircuit className={`h-4 w-4 ${item.weak ? 'text-[#9f3f2e]' : 'text-accent'}`} />
-            <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">{item.name}</h3>
+            <BrainCircuit className={`h-4 w-4 ${item.weak ? 'text-[var(--danger-text)]' : 'text-accent'}`} />
+            <h3 className="min-w-0 flex-1 truncate workspace-interface-text font-semibold text-text-primary">{item.name}</h3>
           </div>
-          {item.reasons.length > 0 && <p className="mt-2 pl-6 text-xs leading-5 text-text-secondary">{item.reasons.join('；')}</p>}
+          {item.reasons.length > 0 && <p className="mt-2 pl-6 workspace-support-text leading-5 text-text-secondary">{item.reasons.join('；')}</p>}
         </button>
-        <button disabled={reviewing} onClick={() => onReview(item.name, 4)} className="flex h-8 flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded border border-border px-2.5 py-1 text-xs text-text-primary hover:border-accent hover:text-accent disabled:cursor-wait disabled:opacity-60">
+        <button disabled={reviewing} onClick={() => onReview(item.name, 4)} className="flex h-8 flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded border border-border px-2.5 py-1 workspace-support-text text-text-primary hover:border-accent hover:text-accent disabled:cursor-wait disabled:opacity-60">
           <CheckCircle2 className="h-3.5 w-3.5" /> {reviewing ? '记录中…' : '已复习'}
         </button>
       </div>
 
       {open && (
-        <div className="mt-4 grid gap-4 border-l border-border pl-4 text-sm md:grid-cols-2">
+        <div className="mt-4 grid gap-4 border-l border-border pl-4 workspace-interface-text md:grid-cols-2">
           <MiniBlock icon={BookOpen} title="教材线索">
             {item.textbook_snippets.length ? item.textbook_snippets.map((snippet, index) => (
-              <p key={`${snippet.type}-${index}`} className="text-xs leading-5 text-text-secondary">{snippet.chapter || snippet.text}</p>
-            )) : <p className="text-xs text-text-secondary">暂无章节线索</p>}
+              <p key={`${snippet.type}-${index}`} className="workspace-support-text leading-5 text-text-secondary">{snippet.chapter || snippet.text}</p>
+            )) : <p className="workspace-support-text text-text-secondary">暂无章节线索</p>}
           </MiniBlock>
           <MiniBlock icon={ClipboardList} title="相关错题">
             {item.related_mistakes.length ? (
               <div className="space-y-2">
-                <p className="text-xs leading-5 text-text-secondary">已关联 {item.related_mistakes.length} 道错题，题目内容在错题本中查看。</p>
+                <p className="workspace-support-text leading-5 text-text-secondary">已关联 {item.related_mistakes.length} 道错题，题目内容在错题本中查看。</p>
                 <div className="flex flex-wrap gap-2">
                   {linkedMistakes.map((mistake) => (
-                    <Link key={mistake.id} to={mistakeHref(mistake.id)} className="inline-flex items-center gap-1 rounded border border-border bg-bg-primary px-2 py-1 text-xs text-accent-hover hover:border-accent hover:text-accent">
+                    <Link key={mistake.id} to={mistakeHref(mistake.id)} className="inline-flex items-center gap-1 rounded border border-border bg-bg-primary px-2 py-1 workspace-support-text text-accent-hover hover:border-accent hover:text-accent">
                       {mistake.id} <ExternalLink className="h-3 w-3" />
                     </Link>
                   ))}
-                  <Link to="/mistakes" className="inline-flex items-center gap-1 rounded border border-border bg-bg-primary px-2 py-1 text-xs text-text-primary hover:border-accent hover:text-accent">
+                  <Link to="/mistakes" className="inline-flex items-center gap-1 rounded border border-border bg-bg-primary px-2 py-1 workspace-support-text text-text-primary hover:border-accent hover:text-accent">
                     打开错题本 <ExternalLink className="h-3 w-3" />
                   </Link>
                 </div>
               </div>
-            ) : <p className="text-xs text-text-secondary">暂无关联错题</p>}
+            ) : <p className="workspace-support-text text-text-secondary">暂无关联错题</p>}
           </MiniBlock>
         </div>
       )}
@@ -581,7 +587,7 @@ const ConceptReviewCard = ({ item, onReview, reviewing }: { item: ConceptReviewC
 
 const MiniBlock = ({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) => (
   <div>
-    <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-text-primary"><Icon className="h-3.5 w-3.5 text-accent" />{title}</div>
+    <div className="mb-2 flex items-center gap-1.5 workspace-support-text font-medium text-text-primary"><Icon className="h-3.5 w-3.5 text-accent" />{title}</div>
     <div className="space-y-2">{children}</div>
   </div>
 );
@@ -590,17 +596,17 @@ const MistakePreview = ({ mistake, expanded, onToggle }: { mistake: LearningMist
   <div className="py-3">
     <button type="button" onClick={onToggle} className="flex w-full items-start justify-between gap-3 text-left">
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 text-sm font-medium text-text-primary">
+        <div className="flex items-center gap-2 workspace-interface-text font-medium text-text-primary">
           {expanded ? <ChevronDown className="h-4 w-4 text-accent" /> : <ChevronRight className="h-4 w-4 text-text-secondary" />}
           <span className="truncate">{mistake.source || mistake.subject || mistake.id}</span>
         </div>
-        <div className="mt-1 flex flex-wrap gap-2 text-xs text-text-secondary">
+        <div className="mt-1 flex flex-wrap gap-2 workspace-support-text text-text-secondary">
           {mistake.subject && <span>{mistake.subject}</span>}
           {mistake.chapter && <span>{mistake.chapter}</span>}
           {mistake.next_review && <span>到期 {mistake.next_review}</span>}
         </div>
       </div>
-      <Link to={mistakeHref(mistake.id)} onClick={(e) => e.stopPropagation()} className="inline-flex flex-shrink-0 items-center gap-1 text-xs text-accent-hover hover:text-accent">
+      <Link to={mistakeHref(mistake.id)} onClick={(e) => e.stopPropagation()} className="inline-flex flex-shrink-0 items-center gap-1 workspace-support-text text-accent-hover hover:text-accent">
         打开 <ExternalLink className="h-3 w-3" />
       </Link>
     </button>
@@ -612,13 +618,13 @@ const MistakePreview = ({ mistake, expanded, onToggle }: { mistake: LearningMist
   </div>
 );
 
-const SummaryFact = ({ icon: Icon, label, value, unit, tone = 'normal', help, emphasis = false }: { icon: React.ElementType; label: string; value: number; unit: string; tone?: 'normal' | 'warn' | 'accent'; help?: string; emphasis?: boolean }) => {
+const SummaryFact = ({ icon: Icon, label, value, unit, tone = 'normal', help }: { icon: React.ElementType; label: string; value: number; unit: string; tone?: 'normal' | 'warn' | 'accent'; help?: string }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div className="relative px-0 md:px-5 md:first:pl-0">
+    <div className="relative min-w-0 px-2 first:pl-0 md:px-5 md:first:pl-0">
       <div className="flex items-start justify-between gap-2 sm:gap-3">
-        <div className="flex items-center gap-2 text-xs text-text-secondary">
-          <Icon className={tone === 'warn' ? 'h-4 w-4 text-[#9f3f2e]' : tone === 'accent' ? 'h-4 w-4 text-accent' : 'h-4 w-4'} />
+        <div className="flex items-center gap-2 workspace-support-text text-text-secondary">
+          <Icon className={tone === 'warn' ? 'h-4 w-4 text-[var(--danger-text)]' : tone === 'accent' ? 'h-4 w-4 text-accent' : 'h-4 w-4'} />
           {label}
         </div>
         {help && (
@@ -627,9 +633,9 @@ const SummaryFact = ({ icon: Icon, label, value, unit, tone = 'normal', help, em
           </button>
         )}
       </div>
-      <div className={`mt-2 font-semibold text-text-primary ${emphasis ? 'text-2xl' : 'text-lg'}`}>{value ?? 0}<span className="ml-1 text-sm font-normal text-text-secondary">{unit}</span></div>
+      <div className="mt-2 text-lg font-medium text-text-primary">{value ?? 0}<span className="ml-1 workspace-support-text font-normal text-text-secondary">{unit}</span></div>
       {help && open && (
-        <div className="app-popover-enter absolute right-3 top-9 z-20 w-[min(340px,calc(100vw-88px))] rounded-xl border border-border bg-bg-primary p-3 text-xs">
+        <div className="app-popover-enter absolute right-3 top-9 z-20 w-[min(340px,calc(100vw-88px))] workspace-radius border border-border bg-bg-primary p-3 workspace-support-text">
           <RuleItem title={`${label}的判定`} text={help} />
         </div>
       )}
@@ -645,12 +651,12 @@ const RuleItem = ({ title, text }: { title: string; text: string }) => (
 );
 
 const Header = ({ title, count, open, onToggle }: { title: string; count?: number; open?: boolean; onToggle?: () => void }) => (
-  <button type="button" onClick={onToggle} className="flex w-full items-center justify-between py-3 text-left text-sm font-medium text-text-primary hover:text-accent">
+  <button type="button" onClick={onToggle} className="flex w-full items-center justify-between py-3 text-left workspace-interface-text font-medium text-text-primary hover:text-accent">
     <span className="flex items-center gap-2">
       {open ? <ChevronDown className="h-4 w-4 text-accent" /> : <ChevronRight className="h-4 w-4 text-text-secondary" />}
       {title}
     </span>
-    {typeof count === 'number' && <span className="text-xs font-normal text-text-secondary">{count}</span>}
+    {typeof count === 'number' && <span className="workspace-support-text font-normal text-text-secondary">{count}</span>}
   </button>
 );
 
@@ -666,20 +672,20 @@ const ExpandableSection = ({ title, count, defaultOpen = false, children }: { ti
 
 const Panel = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <section>
-    <div className="px-4 pb-2 pt-4 text-sm font-medium text-text-primary">{title}</div>
+    <div className="px-4 pb-2 pt-4 workspace-interface-text font-medium text-text-primary">{title}</div>
     <div className="space-y-2 px-4 pb-4">{children}</div>
   </section>
 );
 
 const RankRow = ({ name, detail }: { name: string; detail: string }) => (
-  <div className="flex items-center justify-between gap-3 text-sm">
+  <div className="flex items-center justify-between gap-3 workspace-interface-text">
     <span className="truncate text-text-primary">{name}</span>
-    <span className="flex-shrink-0 text-xs text-text-secondary">{detail}</span>
+    <span className="flex-shrink-0 workspace-support-text text-text-secondary">{detail}</span>
   </div>
 );
 
 const Empty = ({ text, compact = false }: { text: string; compact?: boolean }) => (
-  <div className={`text-center text-sm text-text-secondary ${compact ? 'py-3' : 'py-8'}`}>{text}</div>
+  <div className={`text-center workspace-interface-text text-text-secondary ${compact ? 'py-3' : 'py-8'}`}>{text}</div>
 );
 
 export default LearningPage;

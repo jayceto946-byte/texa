@@ -50,6 +50,7 @@ def _log_learning_event(event_type: str, *, book_name: str = "default", record: 
     try:
         identity = resolve_book_identity(book_name)
         get_learning_event_store().append(LearningEvent(
+            **({"id": payload["event_id"]} if payload and payload.get("event_id") else {}),
             event_type=event_type,
             book_id=identity["book_id"],
             book_name=book_name,
@@ -168,6 +169,7 @@ def _mistake_from_exercise(
 def _practice_answer_service(book_name: str = "default") -> PracticeAnswerService:
     bank = _bank(book_name)
     return PracticeAnswerService(
+        reconcile_events=True,
         bank=bank,
         book_name=book_name,
         mistake_book_provider=lambda: get_mistake_book(

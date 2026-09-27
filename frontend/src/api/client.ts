@@ -1,5 +1,5 @@
 import type { AgentPendingAction, AnswerMode, AssistantSource, ConceptCandidate, ExecutionStreamEnvelope, LearningTaskState, SubjectRouteSuggestion, VisualRegion } from '../types';
-import { isExecutionEventV1 } from '../utils/chatActivities';
+import { isExecutionEventV1, isExecutionEventV2 } from '../utils/chatActivities';
 
 const DEFAULT_TIMEOUT_MS = 20000;
 const NON_STREAMING_CHAT_TIMEOUT_MS = 130000;
@@ -178,7 +178,8 @@ function isExecutionStreamBoundary(event: ExecutionStreamEnvelope): boolean {
   const canonical = event.execution_event;
   if (canonical.type === 'final' || canonical.type === 'error') return true;
   return canonical.type === 'state_transition'
-    && canonical.payload.task_status_after === 'waiting_for_input';
+    && ['waiting_for_input', 'waiting_for_confirmation', 'interrupted']
+      .includes(String(canonical.payload.task_status_after || ''));
 }
 
 export function consumeSseLine(line: string, onEvent: (event: ExecutionStreamEnvelope) => void): boolean {
@@ -191,7 +192,9 @@ export function consumeSseLine(line: string, onEvent: (event: ExecutionStreamEnv
   try {
     const event = JSON.parse(payload) as Partial<ExecutionStreamEnvelope> & Record<string, unknown>;
     if (hasRemovedExecutionLifecycleFields(event)) throw new Error('removed lifecycle projection in SSE envelope');
-    if (!isExecutionEventV1(event.execution_event)) throw new Error('missing or invalid ExecutionEvent V1');
+    if (!isExecutionEventV1(event.execution_event) && !isExecutionEventV2(event.execution_event)) {
+      throw new Error('missing or invalid ExecutionEvent');
+    }
     onEvent(event as ExecutionStreamEnvelope);
     return isExecutionStreamBoundary(event as ExecutionStreamEnvelope);
   } catch (err) {

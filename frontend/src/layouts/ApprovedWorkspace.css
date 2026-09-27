@@ -1,0 +1,371 @@
+/* Shared roles extracted from the approved Learning and Textbook workspaces.
+   Palette roles follow the selected theme; mineral carries the approved colors. */
+:root {
+  --workspace-canvas: var(--color-bg-primary);
+  --workspace-secondary: var(--color-bg-secondary);
+  --workspace-dock: var(--color-bg-secondary);
+  --workspace-theme-accent: var(--color-accent);
+  --workspace-theme-text: var(--color-text-primary);
+  --workspace-theme-muted: var(--color-text-secondary);
+  --workspace-theme-meta: var(--color-text-tertiary);
+  --workspace-tray: var(--surface-subtle);
+  --workspace-separator: var(--color-border);
+  --workspace-reading-text: var(--color-text-primary);
+  --workspace-management-title-text: var(--color-text-primary);
+  --workspace-document-title-size: 24px;
+  --workspace-management-title-size: 24px;
+  --workspace-section-title-size: 18px;
+  --workspace-subheading-size: 16px;
+  --workspace-reading-size: 16px;
+  --workspace-interface-size: 13px;
+  --workspace-support-size: 12px;
+  --workspace-meta-size: 11px;
+  --workspace-reading-leading: 1.9;
+  --workspace-interface-leading: 1.5;
+  --workspace-history-leading: 1.6;
+  --workspace-chrome-height: 48px;
+  --workspace-management-gutter: 32px;
+  --workspace-reading-gutter: 40px;
+  --workspace-reading-width: 740px;
+  --workspace-inspector-width: 264px;
+  --workspace-dock-width: 232px;
+  --workspace-control-height: 28px;
+  --workspace-send-height: 30px;
+  --workspace-small-radius: 4px;
+  --workspace-control-radius: 5px;
+  --workspace-menu-radius: 6px;
+}
+
+:root[data-theme="mineral"] {
+  --workspace-canvas: #faf9f6;
+  --workspace-secondary: #f0efeb;
+  --workspace-dock: #e9ebef;
+  --workspace-tray: #f6f5f2;
+  --workspace-separator: #e0dfdb;
+  --workspace-reading-text: #484b52;
+  --workspace-management-title-text: #353941;
+}
+@media (min-width: 920px) {
+  .app-shell:not(.study-desk) .study-navigation {
+    display: flex;
+    position: relative;
+    width: var(--workspace-dock-width);
+    min-width: var(--workspace-dock-width);
+    flex-direction: column;
+    background: var(--workspace-dock);
+    padding-bottom: 48px;
+    color: var(--color-text-primary);
+  }
+  .app-shell:not(.study-desk) .app-rail {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    flex: none;
+    border: 0;
+    background: transparent;
+    padding: 0 12px 16px;
+  }
+  .app-shell:not(.study-desk) .app-rail-mark {
+    width: 100%;
+    height: 64px;
+    justify-content: flex-start;
+    gap: 10px;
+    border: 0;
+    padding-left: 8px;
+  }
+  body:has(.desktop-titlebar-marker.is-macos) .app-shell:not(.study-desk) .app-rail-mark {
+    height: 56px;
+    margin-top: 28px;
+  }
+  .app-shell:not(.study-desk) .study-brand-name {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    color: var(--color-text-primary);
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -.04em;
+  }
+  .app-shell:not(.study-desk) .study-brand-name > span {
+    color: var(--color-text-tertiary);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: normal;
+  }
+  .app-shell:not(.study-desk) .app-rail-primary { margin-top: 0; gap: 3px; }
+  .app-shell:not(.study-desk) .app-rail-link {
+    width: 100%;
+    min-height: 32px;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 11px;
+    border-radius: var(--workspace-control-radius);
+    padding: 0 10px;
+    color: var(--color-text-secondary);
+    font-size: var(--workspace-interface-size);
+  }
+  .app-shell:not(.study-desk) .app-rail-link svg { width: 16px; height: 16px; stroke-width: 1.6; }
+  .app-shell:not(.study-desk) .app-rail-link.is-active {
+    background: var(--accent-muted);
+    color: var(--color-accent);
+  }
+  .app-shell:not(.study-desk) .app-rail-footer {
+    position: absolute;
+    bottom: 10px;
+    left: 12px;
+    width: calc(100% - 24px);
+  }
+}
+
+/* Management and reading primitives are shared by Review, Mistakes, Exercises
+   and the textbook workbench. Domain content stays in each page. */
+.app-shell:not(.study-desk) .management-workspace {
+  background: var(--workspace-canvas);
+}
+.app-shell:not(.study-desk) .management-workspace .app-page-header {
+  min-height: var(--workspace-chrome-height);
+  height: var(--workspace-chrome-height);
+  padding-inline: var(--workspace-management-gutter);
+  background: var(--workspace-canvas);
+}
+.app-shell:not(.study-desk) .management-workspace .app-page-title {
+  font-size: var(--workspace-interface-size);
+  font-weight: 600;
+  line-height: var(--workspace-interface-leading);
+}
+.app-shell:not(.study-desk) .management-page-content {
+  padding: var(--workspace-management-gutter);
+}
+.workspace-management-title {
+  color: var(--workspace-management-title-text);
+  font-size: var(--workspace-management-title-size);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: normal;
+}
+.workspace-interface-text { font-size: var(--workspace-interface-size); line-height: var(--workspace-interface-leading); }
+.workspace-support-text { font-size: var(--workspace-support-size); line-height: var(--workspace-interface-leading); }
+.workspace-meta-text { font-size: var(--workspace-meta-size); line-height: var(--workspace-interface-leading); }
+.workspace-radius { border-radius: var(--workspace-menu-radius); }
+.management-workspace :is(button, a).workspace-radius { border-radius: var(--workspace-control-radius); }
+.workspace-section-heading {
+  color: var(--color-text-primary);
+  font-size: var(--workspace-section-title-size);
+  font-weight: 600;
+  line-height: var(--workspace-interface-leading);
+}
+.workspace-collection-toolbar {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--workspace-separator);
+}
+.workspace-register-row {
+  min-height: 64px;
+  border-bottom: 1px solid var(--workspace-separator);
+}
+.workspace-register { border-top: 1px solid var(--workspace-separator); }
+.workspace-register-row:hover { background: var(--workspace-secondary); }
+.workspace-collection-section { padding: 0; }
+.workspace-form-section {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--workspace-separator);
+  padding: 16px 0;
+}
+.workspace-form-section:first-child { border-top: 0; padding-top: 0; }
+.workspace-candidate-row {
+  border-bottom: 1px solid var(--workspace-separator);
+  padding: 12px 0;
+}
+.workspace-candidate-row:hover { background: var(--workspace-secondary); }
+.workspace-reading-content {
+  max-width: var(--workspace-reading-width);
+  color: var(--workspace-reading-text);
+  font-size: var(--workspace-reading-size);
+  font-weight: 400;
+  line-height: var(--workspace-reading-leading);
+}
+.workspace-reading-content .learning-reading-content {
+  color: var(--workspace-reading-text);
+  font-size: var(--workspace-reading-size);
+  line-height: var(--workspace-reading-leading);
+}
+.workspace-reading-content .markdown-body :is(p, li) {
+  color: var(--workspace-reading-text);
+  font-weight: 400;
+}
+.workspace-reading-content .markdown-body p { margin-bottom: 18px; }
+.workspace-reading-content .markdown-body :is(strong, b) {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+.workspace-reading-content .markdown-body h2 {
+  margin: 30px 0 12px;
+  font-size: var(--workspace-section-title-size);
+  font-weight: 600;
+}
+.workspace-reading-content .markdown-body h3 {
+  margin: 26px 0 10px;
+  font-size: var(--workspace-subheading-size);
+  font-weight: 600;
+}
+.learning-capability-navigation {
+  display: grid;
+  gap: 2px;
+  border-bottom: 1px solid var(--workspace-separator);
+  padding: 8px 12px;
+}
+.learning-capability-action {
+  display: flex;
+  width: 100%;
+  min-height: 32px;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: var(--workspace-control-radius);
+  background: transparent;
+  padding: 0 8px;
+  color: var(--color-text-secondary);
+  font-size: var(--workspace-interface-size);
+  text-align: left;
+}
+.learning-capability-action:hover,
+.learning-capability-action:focus-visible {
+  background: var(--accent-muted);
+  color: var(--color-accent);
+}
+.app-shell:not(.study-desk) .management-workspace :is(.app-primary-button, .app-secondary-button, .app-ghost-button) {
+  min-height: var(--workspace-control-height);
+  border-radius: var(--workspace-control-radius);
+  font-size: var(--workspace-support-size);
+  line-height: var(--workspace-interface-leading);
+}
+.app-shell:not(.study-desk) .management-workspace .app-icon-button {
+  width: var(--workspace-control-height);
+  height: var(--workspace-control-height);
+  min-height: var(--workspace-control-height);
+  border-radius: var(--workspace-control-radius);
+}
+.app-shell:not(.study-desk) .management-workspace :is(.app-tab, .app-segmented-option) {
+  min-height: var(--workspace-control-height);
+  font-size: var(--workspace-support-size);
+}
+.app-shell:not(.study-desk) .management-workspace :is(.app-panel, .settings-form-control, .app-field) {
+  border-radius: var(--workspace-menu-radius);
+}
+
+/* Settings is portaled outside the shell, so it reads the same root roles. */
+.settings-dialog .settings-page-header h3 {
+  font-size: var(--workspace-management-title-size);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: normal;
+}
+.settings-dialog .settings-section-title {
+  font-size: var(--workspace-subheading-size);
+  font-weight: 600;
+  line-height: var(--workspace-interface-leading);
+}
+.settings-dialog .settings-nav-item.is-active { box-shadow: none; }
+.settings-dialog :is(.app-primary-button, .app-secondary-button, .app-ghost-button) {
+  min-height: var(--workspace-control-height);
+  border-radius: var(--workspace-control-radius);
+  font-size: var(--workspace-support-size);
+}
+.settings-dialog :is(.settings-input, .settings-form-control) {
+  border-radius: var(--workspace-menu-radius);
+  font-size: var(--workspace-interface-size);
+}
+.settings-dialog :is(.settings-row-title, .settings-label) { font-size: var(--workspace-interface-size); }
+.settings-dialog .settings-secondary { font-size: var(--workspace-support-size); }
+@media (max-width: 1199px) {
+  .app-shell { --workspace-dock-width: 208px; }
+}
+@media (max-width: 760px) {
+  .app-shell { --workspace-management-gutter: 20px; --workspace-reading-gutter: 22px; }
+  .app-shell:not(.study-desk) .management-workspace .app-page-header {
+    height: auto;
+    min-height: var(--workspace-chrome-height);
+    padding-block: 8px;
+  }
+}
+
+/* One native-safe navigation control on every route. */
+.app-shell[data-navigation="closed"] .study-navigation { display:none !important; }
+.navigation-collapse { position:absolute; top:13px; right:12px; z-index:55; -webkit-app-region:no-drag; }
+.study-navigation { position:relative; }
+.context-sidebar-trigger { top:9px; left:16px; width:30px; height:30px; }
+.app-shell[data-navigation="closed"] :is(.learning-workspace-header,.app-page-header,.goals-header,.library-workspace-header) { padding-left:60px; }
+body:has(.desktop-titlebar-marker.is-macos) .app-shell[data-navigation="closed"] .context-sidebar-trigger { left:108px; }
+body:has(.desktop-titlebar-marker.is-macos) .app-shell[data-navigation="closed"] :is(.learning-workspace-header,.app-page-header,.goals-header,.library-workspace-header) { padding-left:152px; }
+body:has(.desktop-titlebar-marker.is-macos) .navigation-collapse { top:8px; }
+@media(max-width:919px) {
+  .app-shell[data-navigation="open"] .study-navigation { display:flex !important; flex-direction:column; width:232px; min-width:232px; position:absolute; inset:0 auto 0 0; z-index:80; background:var(--workspace-dock); box-shadow:8px 0 24px #0001; }
+  .app-shell[data-navigation="open"] .app-rail { width:100%; height:auto; flex:none; padding:0 12px 16px; }
+  .app-shell[data-navigation="open"] .app-rail-primary { display:flex; flex-direction:column; }
+  .app-shell[data-navigation="open"] .app-rail-link { width:100%; justify-content:flex-start; gap:12px; }
+  .app-shell[data-navigation="open"] .app-rail-link span { display:block; }
+  .app-shell[data-navigation="open"] .app-rail-mark { width:100%; justify-content:flex-start; padding:16px 8px; margin-top:30px; }
+}
+/* A focused preferences window: quiet navigation, roomy content, one scroll. */
+.settings-dialog { width:min(1040px,calc(100vw - 64px)); height:min(760px,calc(100dvh - 64px)); border-radius:14px; overflow:hidden; box-shadow:0 24px 80px #0003; }
+.settings-dialog-header { padding:20px 28px; height:68px; background:var(--workspace-canvas); }
+.settings-dialog-body { grid-template-columns:210px minmax(0,1fr); }
+.settings-sidebar { background:var(--workspace-secondary); padding:24px 16px; }
+.settings-nav-group-label { padding:0 12px; font-size:11px; letter-spacing:.03em; margin-bottom:8px; }
+.settings-nav-item { padding:10px 12px; border-radius:7px; font-size:13px; }
+.settings-nav-item.is-active { background:var(--accent-soft); color:var(--color-accent); font-weight:500; }
+.settings-content-pane { background:var(--workspace-canvas); padding:32px 36px; }
+.settings-page-header h3 { font-size:25px !important; font-weight:600; letter-spacing:-.025em; }
+.settings-page-header p { margin-top:8px; line-height:1.7; }
+.settings-section { border-radius:10px; padding:20px 0; }
+@media(max-width:760px) { .settings-dialog { width:calc(100vw - 24px); height:calc(100dvh - 24px); } .settings-dialog-body { grid-template-columns:150px minmax(0,1fr); } .settings-content-pane { padding:24px 20px; } .settings-sidebar { padding:20px 8px; } }
+/* Goal sessions use a list and a reading workspace, with an explicit intake. */
+.goals-workspace { height:100%; display:flex; flex-direction:column; background:var(--workspace-canvas); }
+.goals-header { min-height:76px; padding:16px 32px; display:flex; align-items:center; justify-content:space-between; gap:20px; border-bottom:1px solid var(--workspace-separator); }
+.goals-header h1 { font-size:19px; font-weight:600; } .goals-header p { margin-top:3px; font-size:12px; color:var(--color-text-tertiary); }
+.goals-body { min-height:0; flex:1; display:grid; grid-template-columns:240px minmax(0,1fr); }
+.goals-index { overflow-y:auto; border-right:1px solid var(--workspace-separator); padding:18px 12px; }
+.goals-tabs { display:flex; gap:4px; padding:0 4px 16px; font-size:12px; }
+.goals-tabs button { padding:6px 10px; border-radius:6px; color:var(--color-text-secondary); }
+.goals-tabs button[aria-pressed="true"] { background:var(--accent-soft); color:var(--color-accent); }
+.goal-list-item { display:flex; align-items:flex-start; gap:10px; text-align:left; width:100%; padding:12px; border-radius:8px; margin-bottom:4px; }
+.goal-list-item svg { flex:none; margin-top:3px; color:var(--color-text-tertiary); }
+.goal-list-item strong { display:block; font-size:13px; line-height:1.6; font-weight:500; overflow-wrap:anywhere; }
+.goal-list-item small { display:block; margin-top:5px; font-size:11px; color:var(--color-text-tertiary); }
+.goal-list-item.selected { background:var(--workspace-secondary); }
+.goal-detail { overflow-y:auto; padding:40px clamp(24px,4vw,56px); }
+.goal-intake { max-width:660px; margin:clamp(12px,5vh,70px) auto 0; }
+.goal-intake-symbol { color:var(--color-accent); margin-bottom:20px; }
+.goal-intake h2,.goal-session h2 { font-size:28px; font-weight:600; letter-spacing:-.03em; line-height:1.4; }
+.goal-intake > p { color:var(--color-text-secondary); font-size:14px; line-height:1.8; margin:16px 0 28px; }
+.goal-intake textarea { width:100%; min-height:150px; padding:18px; border:1px solid var(--color-border); border-radius:10px 10px 0 0; background:var(--workspace-tray); font-size:14px; line-height:1.8; resize:vertical; outline:none; }
+.goal-intake textarea:focus { border-color:var(--color-accent); }
+.goal-intake-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; border:1px solid var(--color-border); border-top:0; border-radius:0 0 10px 10px; margin-top:-6px; margin-bottom:12px; }
+.goal-intake-footer span { font-size:11px; color:var(--color-text-tertiary); }
+.goal-proposal { margin-top:28px; padding:24px; background:var(--workspace-secondary); border-radius:10px; }
+.goal-proposal h3 { font-size:18px; margin:12px 0; } .goal-proposal p,.goal-proposal li { font-size:13px; line-height:1.9; }
+.goal-proposal ul { padding-left:18px; margin:16px 0; list-style:disc; }
+.goal-session { max-width:740px; margin:0 auto; }
+.goal-eyebrow { font-size:12px; color:var(--color-text-tertiary); margin-bottom:14px; }
+.goal-objective { font-size:15px; line-height:1.9; margin:20px 0; white-space:pre-wrap; }
+.goal-criteria { border-left:2px solid var(--color-border); padding:4px 0 4px 18px; margin:24px 0; }
+.goal-criteria h3,.goal-run h3,.goal-schedule h3 { font-size:13px; font-weight:600; margin-bottom:12px; }
+.goal-criteria p { display:flex; align-items:center; gap:10px; font-size:13px; line-height:1.8; margin:6px 0; }
+.goal-criteria svg { flex:none; color:var(--color-text-tertiary); }
+.goal-controls { display:flex; flex-wrap:wrap; gap:8px; margin:24px 0; }
+.goals-muted { font-size:12px; color:var(--color-text-tertiary); line-height:1.8; }
+.goal-error { border-left:3px solid var(--danger); padding:12px 16px; margin-bottom:24px; font-size:13px; line-height:1.8; background:var(--workspace-secondary); }
+.goal-schedule { padding:24px; border:1px solid var(--color-border); border-radius:10px; margin:20px 0; }
+.goal-schedule label { display:flex; flex-direction:column; gap:8px; margin:14px 0; font-size:12px; }
+.goal-schedule p { margin:16px 0; }
+.goal-run { border-top:1px solid var(--color-border); padding-top:28px; margin-top:32px; }
+.goal-events { margin:24px 0; font-size:12px; color:var(--color-text-secondary); } .goal-events li { padding:6px 0; }
+@media(max-width:1024px) { .goals-body { grid-template-columns:200px minmax(0,1fr); } .goal-detail { padding:28px 24px; } }
+@media(max-width:760px) { .goals-header { padding:16px 20px; } .goals-body { display:flex; flex-direction:column; } .goals-index { max-height:180px; flex:none; border-right:0; border-bottom:1px solid var(--workspace-separator); } .goal-detail { flex:1; } .goal-intake { margin:8px 0; } }
+.goals-workspace > .goals-header { flex:0 0 76px; height:76px; }
+.goals-workspace .goal-detail h2 { flex:none; }

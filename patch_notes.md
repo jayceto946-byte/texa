@@ -1,3 +1,11 @@
+# 2026-09-23 - macOS Apple Silicon Desktop Build
+
+- Added native macOS arm64 support to the existing Electron → FastAPI → React desktop path. Windows retains its `.exe`, `venv310/Scripts/python.exe`, NSIS targets, and release scripts. The packaged architecture gate now accepts Windows x64 and macOS arm64; Linux and other architectures remain rejected.
+- Added `scripts/build-desktop-backend-macos.sh` for the existing Python 3.10 ONNX Standard dependency set and PyInstaller `onedir` backend. Added an isolated frozen-runtime smoke mode that checks SQLite, 512-dimensional ONNX embedding, Chroma query, and bundled frontend files. No database schema, index format, API route, or dependency pin was changed.
+- Added unsigned electron-builder macOS arm64 DMG/ZIP targets while keeping the Windows targets and artifact name. The packaged app loads the native backend and bundled ONNX assets from `Contents/Resources`, and writes application data under Electron userData. This build does not configure Developer ID, notarization, or App Store distribution.
+- Verification on native macOS arm64: Python 3.10.21 installed in ignored `.python-runtimes`, `venv310` recreated against it, 147 locked runtime/build packages installed; frontend build passed; desktop syntax check and four runtime tests passed; eight embedding asset tests passed. Development Electron launched the backend and renderer; renderer API requests returned 200. Frozen arm64 backend reached ready health, served the frontend, passed the runtime smoke, and exited through `/api/system/shutdown`. electron-builder produced `Texa-1.0.0-mac-arm64.dmg` and ZIP; the DMG mounted and its copied `.app` launched twice with isolated userData, retained the same SQLite file across restarts, and shut down its backend without an orphan process. A final temporary local DevTools probe confirmed packaged React DOM content and `/api/system/settings`, `/api/system/assets/status`, `/api/books/list`, and `/api/chat/conversations` resource requests; the debug instance also exited cleanly.
+- The existing Windows release workflow was not run on this Mac. Its configuration and build script remain unchanged; the new platform-gate test covers Windows x64 alongside macOS arm64.
+
 # 2026-09-16 - Learning Flow Consolidation
 
 - Reordered first use around the learning outcome: prepare a textbook, configure one answer model, then launch a suggested first question. Onboarding now completes only after a finished answer exposes textbook sources; provider details, endpoint overrides, and split reasoning/vision roles remain available under advanced settings.
@@ -2860,3 +2868,134 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 文本连接测试从 Ollama `/api/tags`/模型列表检查升级为最小文本 completion；视觉连接测试发送有效 base64 PNG，并与 `VisionModelBridge` 共用同一个图片 completion dispatcher。上游拒绝、超时、空 completion shape 和 capability mismatch 均返回具体的文本/图片实际请求失败原因，密钥仍由 API 层脱敏。
 - `kimi-k2.6` 不再继承未证实的 vision capability；Moonshot vision 默认仍为已验证目录项 `kimi-k2.5`。Provider tool-calling capability 未进入 registry，现有受控工具仍是应用层编排，不以模型 catalog 冒充原生 tools transport。
 - 验证：capability/runtime、Ollama 拒绝、native profile/credential 不重写、无 silent fallback、文本/视觉 connectivity success/failure 定向回归 `55 passed`；Python 全量回归 `700 passed`，仅保留 1 条既有 Starlette/httpx2 弃用警告。
+
+## 2026-09-23 macOS arm64 字体、标题栏与管理页层级
+
+- UI 字体由 Vite 处理的 `frontend/src/assets/fonts` 相对 CSS 引用进入 `frontend/dist/assets`，冻结后端随现有 `--add-data frontend/dist:frontend/dist` 收集；保留 HarmonyOS Sans 原始 TTF（许可禁止修改，故不转 WOFF2），并在字体许可清单列明使用。已有 JetBrains Mono 与学习笔记字库继续使用 WOFF2。macOS 增加系统字体 fallback。
+- macOS Electron 使用 `hiddenInset` 原生 traffic lights 和明确位置；Windows 保留 frameless 自绘控制。管理页统一 20/16/14/13/12px 层级、36px 控件、24px 页面边距与区块间距。复习优先展示今日任务；错题收紧录入主辅栏；练习先设置本轮再展示统计；教材将导入设为主操作、状态设为筛选，并让左树只负责导航。
+- 验证：TypeScript/Vite 构建、UI 合同测试 29/29、定向 ESLint、PyInstaller arm64 发布资源校验通过；Vite dev 与冻结 `.app` 后端实际监听本机端口时，首页、CSS、Regular/Medium/Bold 字体 HTTP 均为 200。本地浏览器 652px 宽截图检查了学习、复习、错题录入、练习空状态、教材空分类，并依据截图消除了复习空列表、错题辅助栏窄窗边线与教材空分类横向滚动。离线 Electron zip 与 DMG 生成成功；DMG 只读挂载后确认三套字体均在 `Texa.app/Contents/Resources/backend/backend_server/_internal/frontend/dist/assets`。原生窗口自动化接口对 Texa 和 Chrome 均超时，traffic lights 点击、原生窗口尺寸截图、`.app` 内字体实际渲染和 DevTools Network 面板仍需可用的桌面 UI 会话确认；HTTP 资源请求已排除三套字体 404。
+
+## 2026-09-24 macOS 标题栏布局修正
+
+- 根据 macOS 实机截图移除整套 App Shell 的 36px 下移和横贯窗口的空白标题带。只在产品导航左上角给原生按钮留出 36px 空区，使 Logo 仍落在 64px 标题行内；学习侧栏和管理页标题在同一行内从 x=96px 开始，关闭学习侧栏时的展开按钮与标题各自避开原生按钮。标题行可拖动、交互控件保持不可拖动。选择器只在 `desktop-titlebar-marker.is-macos` 存在时生效；Windows 自绘控件与普通 Web 布局保持原路径，管理页 typography 和结构收敛仍为跨平台共享。
+- 1280×820 macOS Electron `hiddenInset` 预览：导航栏 x=0/y=0、Logo y=36–64、学习侧栏标题行 x=56/y=0、高 64px、管理页标题行 x=56/y=0、高 64px，标题文字均从 x=96px 开始；学习、复习、错题、练习、教材页面均不再被整体下移。预览截图由 Electron `capturePage` 生成，只包含 Web 内容，不包含原生 traffic lights；原生按钮点击仍待桌面 UI 自动化可用时实测。
+- 前端 TypeScript/Vite 重建与 UI 合同测试 29/29 通过。同步新静态资源进入既有 arm64 PyInstaller 后端后重新生成 `.app`、DMG、ZIP；`.app` 内的首页与新 CSS 和 `frontend/dist` 逐字节一致。新 DMG 只读挂载后再次确认其中 `.app` 的 CSS 与 `frontend/dist` 逐字节一致。次日最小窗口 Electron 复测启动超时，因此不将 650px 视图或原生按钮点击列为已验证。
+
+## 2026-09-24 macOS 实机截图复查
+
+- 用户截图指出：上一版只去掉了横向空白带，交通灯仍跨越 56px 导航栏边界；复习零数据仍展示三个 0 值指标，练习的“开始练习”虽不可点击却仍像可用按钮，错题上传区与右侧入口重复。
+- macOS 专属 Shell 将导航栏宽度设为 84px，完整容纳三枚原生按钮；Logo 放在按钮行下方的独立 48px 品牌区域，一级导航从品牌区域后开始。侧栏遮罩和 Inspector 的宽度统一引用导航栏宽度变量。Windows 继续使用 56px 导航栏和既有窗口控件。
+- 复习无待办时隐藏 0 值 KPI，给出继续学习和录入错题入口，避免无数据分析区及无效操作。练习无题时明确禁用主按钮并提供导入题目入口，隐藏全为 0 的统计。错题录入右侧只保留手动录入，已有图片时才出现重新选图。
+- Texa.app 原生窗口经刷新后观察到三枚 traffic lights 完全位于 84px 导航栏范围内，Logo 与导航从其下方开始；复习空状态和练习空状态的操作均在原生窗口可见。前端 TypeScript/Vite 构建与 UI 合同测试 29/29 通过。最终 `.app` 与只读挂载 DMG 内的 CSS 均与 `frontend/dist` 逐字节一致。
+
+## 2026-09-24 学习侧栏展开与管理页标题层级
+
+- 将 macOS 问答标题行的可拖动区限定为标题文字和空白占位，学习上下文展开按钮保持明确的 `no-drag` 命中区，并扩大为 36px；收起后的标题从按钮后开始。此交互修复作用于共享前端，macOS 原生拖动区规则仍仅在 macOS 生效。
+- 问答和复习、错题、练习、教材的页面标题栏统一使用 64px 高度、同一背景/边框、24px 水平内边距和 20px/600 标题。新增 13px/400 的次级说明文字样式；教材右侧分类标题降为 16px/600，避免与页面标题同级。复习空状态合并重复标题，并将刷新移到该区块的次级操作位置。
+- 验证：TypeScript/Vite 构建与 UI 合同测试 29/29 通过；macOS Texa.app 实机以鼠标坐标点击收起后的展开按钮，学习侧栏重新出现。五个页面的最终原生窗口截图保存于 `release/verification/`。`.app`、ZIP、DMG 均重新生成；DMG 只读挂载后，首页与 CSS 与 `frontend/dist` 逐字节一致，三套 HarmonyOS 字体资源均在包内。Windows 专属窗口控制 CSS/JS 未修改；共享标题与 typography 规则会同步应用于 Windows，但本次未在 Windows 机器实测。
+
+## 2026-09-24 UI handoff 第一轮共享系统收敛
+
+- 依据 `docs/ui-design-audit-handoff.md`，将 Texa UI skill 缩为六条原则、代码权威入口和按需阅读的产品对象、学习画布、状态、验收四份参考；旧任务模板、数字清单、形态禁令与实现优先规则已移除。`frontend/README.md` 改为实际开发与设计系统入口。此项规则与文档变更适用于 Windows 和 macOS 共享 UI。
+- 提升五个现有主题的 tertiary 文字颜色，在各主题主背景、次背景和卡片背景上的计算对比度均不低于 4.5:1；同步默认矿物主题 CSS 与 registry，并加入测试。补齐此前未定义的 `--shadow-medium`，统一页面标题和设置标题角色、导航微文字、按钮高度与图标按钮尺寸。全局按压缩放改为色彩反馈，输入焦点保留单套可见 outline；Markdown 多级标题恢复尺寸层级。
+- 练习模式与教材导入来源共用分段控件样式和 `aria-pressed`，错题页共用页签样式与当前态语义。`PageState` 去掉叠套的外层面板，只保留一层状态表面。Electron 启动页改用主应用的中性色、矿物绿、圆角与反馈语言；既有 typed repair 状态和平台窗口控件逻辑保留。
+- UI 合同测试移除固定 `Ask Texa` 文案、控件数量、具体 class 与 `lazy(` 限制，保留教材路由、来源可追溯、错误修复、任务恢复、键盘入口与 typed startup repair 的必要保护；新增状态容器、CSS token 引用和主题对比度检查。
+- 验证：前端 Vitest 25 files / 118 tests、ESLint、TypeScript 和 Vite 生产构建通过；`git diff --check` 通过。Vite 浏览器实看学习空态、练习及导入、错题录入、教材空态与导入、设置健康页，覆盖 720×560 和常规宽度。预览后端不可用，数据页出现 502，因此有数据状态、长中文公式/表格/引用、五个现有主题已在设置页逐一切换并检查选中态与文字层级，再恢复矿物主题；其他页面的非默认主题、有数据状态、长中文公式/表格/引用、macOS 新源码 Electron 原生窗口与 Windows Electron 均未验证；不将浏览器预览视为跨平台验收。
+
+## 2026-09-24 UI handoff 后续共享控件与阅读检查
+
+- 将练习模式和教材导入方式接到同一 `SegmentedControl`，将错题页签接到 `Tabs`；组件使用对应的 radio/tab 语义、单一选中态、方向键及 Home/End 键导航。输入框使用共享 `app-field` 状态样式；清除下拉选择器局部焦点环，避免与全局 outline 叠加。
+- 学习、教材、错题、练习的空态改用同一 `EmptyState`，以 `default`、`inline`、`prompt` 控制场景尺度，保留原本位置和操作。字体文件权重按 Regular、Medium、Bold 分配，避免 600 字重仍被 Medium 文件承担。Electron 启动背景色与主应用共享中性表面相符。
+- 使用临时隔离阅读样本，在 720×560 浏览器视口实看长中文、多级标题、公式、引用和表格，并在 1600×900 读取渲染尺寸；两个视口均未出现页面横向溢出，样本文件已移除。另以临时用户目录和本地健康服务启动源码 macOS Electron，检查学习、复习、错题、练习、教材五个路由及原生窗口；健康服务不提供业务 API，复习显示错误状态，因此不将其当作真实数据验收。未写入学习记录。浏览器实测练习分段控件方向键选中与错题 tab/tabpanel 关联。
+- 验证：前端 TypeScript、ESLint、Vitest 25 files / 119 tests、Vite 生产构建、桌面 runtime 4 tests、`node --check main.cjs`、`git diff --check` 均通过。桌面测试的端口绑定需在允许本机监听的环境中运行。Windows Electron、macOS 最小窗口和真实有数据状态仍待对应环境与隔离数据样本验证；源码检查和浏览器预览不替代这些平台实测。
+# 2026-09-24 学习画布与教材管理视觉探索
+
+- 仅为 `/` 与 `/books` 增加路由限定的 StudyDesk 布局：统一深色导航/上下文、暖白阅读平面、问题与答案层级、章节优先的来源检查器，以及分类进入侧栏的教材清单。保留既有回调、业务状态和信息架构，未推广全局主题。
+- 添加只读 `scripts/visual-preview-server.mjs`，以中文长文、公式、来源、八条会话和混合教材状态验证布局；样例不连接真实存储或模型。对照截图、复现方式与取舍见 `docs/study-desk-visual-proof.md`。
+- 验证：前端 25 files / 119 tests；最终 TypeScript、涉及组件 ESLint、Vite 生产构建与 `git diff --check` 通过。实看 macOS Electron 两页、来源/状态详情，以及浏览器 1280、1024、760px 布局和归档切换。Windows 和真实业务写入未验收；窄桌面教材清单仍需横向滚动。
+# 2026-09-25 两页视觉探索收尾
+
+- 学习与教材侧栏改为深色导航和浅色上下文分区；历史标题允许完整换行，时间独立显示。缩短学习问题标题及上下留白，保留正文阅读尺寸。
+- 窄桌面教材行分层组织信息与操作，移除固定最小清单宽度；1024px 与 760px 实测无横向溢出。宽桌面继续连续列布局，业务回调和其他页面不变。
+- Vite 构建与 diff whitespace 检查通过，macOS Electron 两页已重新实看与截图。前次 119 项业务测试未因本次 CSS 修改重复运行。细节与取舍见 `docs/study-desk-visual-proof.md`。
+# 2026-09-25 两页构图收敛
+
+- 统一侧栏材质，去除学习 chrome 中重复的问题身份；写作托盘缩短初始高度，保持正文独立滚动与底部留白。缩窄并弱化来源检查器。
+- 分类操作归回侧栏，集合工具条对齐主清单；教材行减少重复标签与选中信号。共用 Windows/macOS 路由样式，无新增平台视觉分叉，业务回调未变。
+- macOS Electron 有数据两页与长文末端已截图检查；前端 119 tests、TypeScript、相关 ESLint、生产构建通过。截图与取舍见 `docs/study-desk-visual-proof.md`。紫色左上胶囊确认为系统屏幕共享指示器，未作应用样式修改。
+# 2026-09-25 两页字体层级打磨
+
+- 为 Learning 与 Textbooks 增加局部 24/18/16/13/12/11px 字体尺度，统一标题、阅读正文、界面主体、控件、辅助文字和元数据的字重/行高；教材名称加强，归属与行操作减弱。保留现有构图、密度约束、配色、业务和跨平台共用样式。
+- 运行 Electron 有数据两页，检查原尺寸和 480px 缩略图；截图存于 `artifacts/study-desk/*-type*.png`。Vite 生产构建与 diff whitespace 检查通过；纯 CSS 未重复业务测试，Windows 未实机验证。
+# 2026-09-25 阅读重量与管理标题微调
+
+- 阅读正文保持 16px，普通段落/列表使用 400 字重与柔和深灰，强调保留深色 600 字重，增大章节前距以区分阅读节奏。
+- 教材分类标题独立于文档标题规则，保持 24px / 600，改为 1.25 行高、正常字距和较柔和标题色。侧栏、表格、全局字体系统及业务未改。
+- Electron 已检查两页有数据状态并保存 `*-final-type.png`；生产构建通过，Windows 未实机验证。
+
+# 2026-09-25 已批准双页视觉系统抽取与传播
+
+- 以 `artifacts/study-desk/learning-final-type.png`、`textbooks-final-type.png` 为视觉基准，新增 `ApprovedWorkspace.css`，抽出阅读与管理标题、正文、元数据、画布、dock、托盘、分隔线、控制尺寸和宽度角色。教材分类导航挂载改为通用上下文槽；Learning/Textbook 原有效样式仍由 `StudyDesk.css` 覆盖，保留两页外观与交互。默认矿物主题 registry 与 CSS fallback 同步改为批准色值，保留主题 ID 和存储偏好；其余已保存主题继续使用各自语义颜色。tertiary 文字略深于截图以满足现有 4.5:1 对比度门槛。
+- 复习、错题、练习采用共享管理页 chrome、连续 dock、紧凑控件和 register 行；错题及习题的题干、答案、解析使用共享阅读密度。设置 dialog 使用管理标题、紧凑控件和无边条选中态。扩展只读视觉 fixture，提供复习、错题、习题和健康状态，写请求仍受限。
+- 浏览器实看有数据 Learning/Textbook 1280×820、Textbook 1024×768 与 760×820，后两者 `body.scrollWidth === clientWidth`，教材列表也无横向溢出；实看有数据复习、错题列表/展开详情、习题库与导入表单、设置健康状态。最新样式更改后再次检查习题库、导入和错题列表；切换 tab 后检查稳定帧与可访问选中态一致。760×820 下五条路由均无根页面或工作区横向溢出。教材分类标题计算值为 24px/600/30px，dock 为 232px，管理 chrome 为 48px。最终前端 Vitest 25 files / 119 tests、TypeScript、相关 ESLint、Vite 生产构建和 `git diff --check` 通过。尝试以独立临时用户目录启动源码 macOS Electron，但桌面自动化只连接到另一已运行实例，未将其计为本次源码的视觉验收；Windows Electron 也未实机验证。
+
+# 2026-09-25 学习起点与整列折叠修正
+
+- 根据用户实机截图，将空白学习页的标题、副文案与学习范围入口居中；学习范围从左侧上下文区移至起点，已有对话则可在顶部切换。输入框在空白态增加独立写作高度与工具栏间距；顶部学习标题按管理页相同的界面字级显示。
+- 宽桌面点击左侧折叠按钮时收起完整导航 dock，顶部保留重新打开入口；教材等其他路由不受该折叠规则影响。历史记录、新会话与学习范围回调继续使用原状态流程。
+- 使用隔离的只读样例服务与临时用户目录启动当前源码 Electron，确认窗口加载本次 Vite 端口；另在独立浏览器预览检查居中起点、范围弹层与整列折叠。前端 25 files / 119 tests、TypeScript、相关 ESLint、Vite 构建及 `git diff --check` 通过。Windows Electron 尚未实机验证。
+
+# 2026-09-26 学习侧栏单行操作与能力入口预留
+
+- 将学习标题、新会话和整列折叠排入侧栏同一行，去除独立的新会话区块；在 208px 窄桌面 dock 下保持标题不换行，历史记录更早开始。保留原新会话回调与无障碍名称。
+- 在学习侧栏加入按真实能力注入的导航槽，行样式与现有 dock 共用；未来工具、目标、插件入口可在实际功能和处理流程接入时传入。当前不显示无法操作的占位按钮，也不新增第二套回答入口。
+- 在正在运行的隔离预览中检查普通宽度和 208px dock 的单行布局，修正窄栏标题换行。前端 25 files / 119 tests、TypeScript、相关 ESLint、Vite 生产构建与 `git diff --check` 通过；Windows Electron 本轮未实机验证。
+
+# 2026-09-26 Agent Runtime P0 isolated kernel
+
+- Added a new `agent_runtime` SQLite schema with four tables: `runtime_tasks`, `agent_runs`, `tool_calls`, and `execution_events`. The schema separates a new task from its run attempts, freezes tool arguments and operation keys, keeps cumulative call budget across resume, and stores V1 milestones transactionally with state. This is an isolated new-task store; legacy JSON tasks and production chat still use their existing paths. A future schema version is rejected, and unfinished runs can be explicitly marked interrupted on restart without replaying effects.
+- Extended the existing ToolRegistry with optional canonical Pydantic schemas and permission metadata while preserving legacy `public_dict` and `call`. The only registered P0 Runtime tool is an injected-store `get_recent_progress` wrapper. It reports its bounded query limit and warns that date-window counts may be incomplete. The fixed driver accepts zero or one built-in READ call, rejects other permissions and malformed schema before invoking a handler, and bounds in-flight timed-out threads. No provider API, approval, production route, or desktop startup hook was added.
+- Validation: Python 3.10.21 in `venv310`; `venv310/bin/python -m pytest -q tests/test_agent_runtime_p0.py tests/test_execution_events.py tests/test_execution_model.py tests/test_learning_task_state_machine.py tests/test_execution_outcomes.py tests/test_tool_orchestration.py tests/test_agent_tools.py tests/test_execution_effects.py tests/test_chat_execution_parity.py` passed (138 tests). The new tests cover persistence reopen, rollback, claim and ownership fencing, pause/recovery, schema and permission denial, timeout, in-flight cap, cumulative budget, and V1 event sequence. No real user data, online model, production Electron path, backup/manifest integration, or cross-database write receipt was exercised; those are later-phase gates.
+
+# 2026-09-26 Agent Runtime P1–P4 契约实施中
+
+- 新增 capability 决策包、惰性 local semantic backend、受限 fallback 与脱敏 SQLite trace；chat 的影子/快路径开关默认关闭。SQL Runtime 显式升级至 schema 3，增加累计模型预算、审批、outbox 与 trigger origin。新增受限 native adapter、多步离线 driver、领域写入 receipt 对账、幂等会话投影和 fake source/trigger 合同；没有切换生产聊天权威。
+- 抽出 generator 的公共 prompt/finalize 边界，原 generate_node 复用同一实现；Runtime 可注入已有生成流程，单独计入最终模型预算。增加模型响应期限、全局并发上限和迟到响应隔离；预算耗尽持久化失败，resume request 身份冲突拒绝。
+- Goal schema 1 提供跨会话目标、CAS 修订、证据 unknown/待核验语义、稳定学习事件投影/对账与惰性 REST API。手工修改不能直接写 measured progress/status；修改 objective/scope/criteria 清除旧测量。登记 agent_runtime/routing_traces/goals storage component 版本，未迁移或重放既有用户任务。
+- 前端 SSE 接受正常审批/中断边界；V1/V2 双读验证与回放，schedule 无会话身份，origin 变化不能覆盖同 run。未新增用户界面，未作 Electron 实机恢复验收。详细未完成项见 docs/agent-runtime-implementation-status.md，P1–P4 不标记整体完成。
+- 验证：venv310 Python 3.10 组合回归 104 项、模型能力真实性 7 项通过（Starlette 现有 deprecation warning）；前端 executionLifecycle/client 24 项、TypeScript 与 git diff --check 通过。测试使用临时数据库与 fake adapter，未执行付费模型请求或真实学习数据写入。
+
+## 2026-09-26 — Agent Runtime 后续生产接入与目标上下文
+
+- 接入主聊天 SQL runtime storage locator、任务读取/中断/恢复、审批分流、游标事件回放与启动 recovery/outbox；受功能开关和 verified model profile 双重门槛保护。
+- 教材搜索冻结 UI 资源组和索引版本，复用 production retrieval/EvidencePack 与共享生成/确定性验证；检索前后检查索引版本，防止切换期间混入新版本。
+- 写工具增加作答提交和错题备注更新的领域收据与 revision/CAS，跨库投影使用稳定学习事件 ID；未知写入只允许对账，不自动重放。
+- 新增 Goal 学习上下文面板、多目标选择、完成确认和学习记录选择；目标/范围/标准变更清除旧测量与计划批准。旧学习目标写入走统一 facade。
+- 数据结构：mistake book schema 2 增加 operation receipts；routing traces schema 2 增加不可变人工评审/holdout。runtime schema 3 和 Goal schema 1 纳入 manifest 与既有备份恢复。未触碰用户实际数据库。
+- 验证：80 项新增/相关后端测试、84 项既有聊天/工具/模型回归、121 项前端测试通过；TypeScript、lint、构建和 4 项 Electron runtime 测试通过。临时数据备份恢复通过。
+- 真实 trace 校准、verified tool-calling profile、付费 Answer Eval、完整桌面交互与窄窗口视觉验收仍为发布门槛。默认接管不开启。详见 docs/agent-runtime-implementation-status.md。
+
+## 2026-09-26 — 目标入口、全局侧栏与首次启动重设计
+
+- 目标改为独立 `/goals` 工作区：自然语言描述、模型整理、用户确认保存、显式开始运行；主输入框“更多”增加“设为学习目标”。目标列表集中管理用户目标与定时任务，替代学习 Inspector 中的大表单。
+- 显式 Goal 运行采用同一 SQL runtime、原生工具 adapter、ContextPack/EvidencePack、生成与后置验证；后台有界推进不依赖 SSE 页面存活，写操作仍停在审批门槛。Goal/schedule origin 不伪造 conversation/turn。暂停或修改目标会停止活跃 run，并拒绝旧待确认审批；桌面退出 fence 活跃 Goal run。
+- 本地定时任务支持单次、每 24 小时、每 7 天，持久化在 Goal next_action；仅在后端运行时处理，按到期时间生成稳定 request key，不自动重放未知写操作。模型能力未验证时保留目标并返回明确配置门槛。未调用真实模型或用演示替代线上验证。
+- 首次启动改为独立欢迎、连接模型、进入工作区三步。工作区在本地保存的回答模型及所需凭证配置完成后才挂载；教材可稍后添加。现有已完成引导且配置有效的安装保持直接进入。API Key 不进入浏览器存储或回显。
+- 设置改为偏好窗口，默认打开模型配置；统一内容留白、导航层级、表单和滚动区域。
+- macOS trafficLightPosition y 从 18 调整为 11（上移 7px）；折叠状态为原生红绿灯保留 108px 安全区域，标题相应错开。所有工作区共用侧栏展开/收起控制。
+- 验证：113 项相关后端回归通过，新增 Goal 后台链路测试通过（Goal execution 合计 5 项）；121 项前端测试、TypeScript、eslint、Vite 构建和 Electron main 语法检查通过。欢迎、模型连接、目标和设置在隔离演示服务检查；目标/设置检查 1280、1024、760 窗口宽度。原生 Electron AX 检查持续 timeout，实际红绿灯位置未完成视觉复核。
+
+## 2026-09-27 — 用户授权真实 API 验证
+
+- 使用开发版保存的 Qwen `qwen3.7-plus` 配置，完成真实文本、原生工具、目标整理、有界 Goal Runtime、OpenStax 教材函数图、图像到推理解题及缺失附表阻断测试。Runtime 实际调用 1 次只读工具、3 次模型步骤并 completed；数据全部隔离。
+- 修复 Goal 无可用 profile 验证入口的问题：显式模型连接测试加入无副作用原生工具探针，保存配置/凭证摘要绑定、30 天有效的本地能力记录；变更配置失效，不扩大默认生产接管。记录不包含 API Key，当前实测能力记录已写入开发版。
+- 增加 opt-in `scripts/validate_agent_online.py` 和能力失效/密钥不落盘/失败不授予能力回归。相关后端 58 项通过；真实输出及未覆盖范围见 `docs/validation/agent-online-2026-09-27.md`。
+- 未将真实小样本结果等同于总体 Answer Eval、实际教材检索或原生 Electron 全面验收。未修改用户学习记录或执行真实领域写入。
+
+## 2026-09-27 — agent-runtime-v0 发布基线
+
+- 固定 AgentRun、ToolCall、ToolResult、ExecutionEvent V1/V2、ToolRegistry 的当前契约。机器基线与变更规则位于 `docs/contracts/agent-runtime-v0.json` / `.md`；契约变化必须显式版本化并提供兼容/迁移策略。
+- 增加 SQLite Runtime v1/v2 → v3 升级与连续重复打开测试，核对表结构、版本和已有行不变；Runtime、Goal、routing trace、习题、错题、学习事件、job 七类存储的重复初始化均无差异。仅使用临时数据库，未执行用户数据迁移。
+- 最终检查：Python 3.10 全量 898 项通过；前端 25 文件/121 项通过；TypeScript、eslint、Vite build 与 Electron main/preload/runtime 语法检查通过；Electron runtime 4 项通过（loopback 测试需解除沙箱监听限制）。现有 Starlette/Swig deprecation、Markdown ineffective dynamic import 与 >500 kB chunk 警告仍存在。
+- 发布文件审计检查已跟踪文件和新增文件：实际配置凭证不在源码中，无数据库、凭证文件或开发机绝对路径。路径命中的唯一代码是通用脱敏正则，不是本机路径。原始在线 JSON、学习数据、构建产物与临时数据库保持 Git 忽略；提交审阅后的真实验证摘要。
+- Runtime 真实验证范围：文本、原生工具、目标契约、1 次只读工具/3 次模型步骤、公开图像视觉 IR、图像推理解题、缺失附表输入门槛。未验证生产教材索引/黄金集、20/40/80 轮人工答案评分、真实用户领域写入、实际定时到期执行、Electron 原生停止/断线/恢复全流程、真实 MCP/插件装载或完整桌面安装包。因此 v0 是当前内核及小样本链路基线，默认生产接管保持关闭。

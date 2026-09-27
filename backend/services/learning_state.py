@@ -114,6 +114,14 @@ class LearningStateService:
             book_name=resolved_book_name,
             subject=subject,
         )
+        if (self.progress_root / "goals.db").exists():
+            from backend.services.goals.store import GoalStore
+            goals = GoalStore(self.progress_root / "goals.db").active_for_scope(
+                learner_id=learner, book_name=resolved_book_name)
+            if len(goals) > 1:
+                state["goal_candidates"] = [{"id": item["id"], "title": item["title"]} for item in goals]
+                state["active_goal"] = {}
+                state["next_action"] = {"type": "choose_goal", "target_id": "", "reason_codes": ["multiple_active_goals"]}
         self._write_projection(state)
         return state
 
@@ -200,6 +208,34 @@ class LearningStateService:
         resolved_book_name = identity["book_name"] or _clean_identifier(book_name)
         if not resolved_book_name:
             raise ValueError("book_name is required for a learning operation")
+        if op in {"create_goal", "pause_learning", "complete_goal"}:
+            from backend.services.goals.store import GoalStore
+            from backend.services.goals.service import GoalService
+            goal_path = self.progress_root / "goals.db"
+            if op == "create_goal" or goal_path.exists():
+                goals = GoalService(GoalStore(goal_path), self.event_store)
+                if op == "create_goal":
+                    goal = goals.create(learner_id=learner_id,
+                        goal_id=str(operation.get("goal_id") or ""),
+                        title=str(operation.get("target_name") or operation.get("chapter_name") or "学习目标"),
+                        objective="", scope={"book_name": resolved_book_name,
+                            "book_ids": [identity["book_id"]], "subject": subject,
+                            "chapter_ids": [str(operation.get("chapter_id") or "")],
+                            **{key: operation[key] for key in ("target_type", "target_id", "chapter_name", "unit_name") if key in operation}})
+                    goals.activate(goal["id"], expected_revision=goal["revision"])
+                    return self.get_state(learner_id=learner_id, book_name=resolved_book_name, subject=subject)
+                current = self.get_state(learner_id=learner_id, book_name=resolved_book_name, subject=subject)
+                goal_id = str(operation.get("goal_id") or (current.get("active_goal") or {}).get("goal_id") or "")
+                goal = goals.store.get(goal_id)
+                if goal:
+                    if goal["learner_id"] != learner_id or goal["scope"].get("book_name") != resolved_book_name:
+                        raise ValueError("goal scope changed")
+                    if op == "pause_learning":
+                        goals.pause(goal_id, expected_revision=goal["revision"])
+                    else:
+                        goals.measure(goal_id, expected_revision=goal["revision"],
+                                      evidence_by_criterion={}, user_confirms_completion=True)
+                    return self.get_state(learner_id=learner_id, book_name=resolved_book_name, subject=subject)
         chapter_id = _clean_identifier(operation.get("chapter_id", ""))
         unit_id = _clean_identifier(operation.get("unit_id", ""))
         concepts = _validated_concepts(operation)

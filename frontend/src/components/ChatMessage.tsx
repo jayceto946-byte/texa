@@ -59,7 +59,7 @@ const SourceGroupList: React.FC<{ groups: SourceChapterGroup[]; cited: boolean }
     {groups.map((group) => (
       <section key={group.key}>
         <div className="mb-1 text-[11px] font-semibold leading-5 text-text-primary">
-          {group.bookName} · {group.chapter}
+          <span className="study-source-book">{group.bookName}</span><span className="study-source-separator"> · </span><span>{group.chapter}</span>
         </div>
         <ul className="space-y-1 border-l border-border pl-2.5">
           {group.locations.map((location) => {
@@ -262,6 +262,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
   return (
     <div className={variant === 'document' ? 'min-w-0' : `learning-message ${isUser ? 'is-question' : 'is-answer'}`}>
       <article className={variant === 'document' ? 'min-w-0 text-text-primary' : isUser ? 'learning-question' : 'learning-answer-document'}>
+        {variant === 'message' && <div className="study-turn-heading">
+          <span>{isUser ? '学习问题' : 'TEXA / 解答'}</span>
+          {!isUser && hasStructuredSources && <button type="button" onClick={openSources}><BookOpen className="h-3.5 w-3.5" />查看来源 · {sources.length}</button>}
+        </div>}
         {isUser && questionContent.attachmentName && (
           <div className="learning-query-attachment">
             <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
@@ -332,7 +336,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
           <LearningTaskGate task={learningTask} onResume={onResumeLearningTask} />
         )}
         {!isUser && learningTask?.confirmation_required && (
-          <LearningTaskActions initialTask={learningTask} />
+          <LearningTaskActions initialTask={learningTask} onResume={onResumeInterruptedTask} />
         )}
         {!isUser && learningTask?.terminal && (
           <LearningTaskEffects key={`${learningTask.id}:${learningTask.active_run_id}`} task={learningTask} />

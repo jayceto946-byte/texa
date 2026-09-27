@@ -7,9 +7,11 @@ const labels: Record<string, string> = {
   add_mistake: '加入错题本',
   mark_concept_reviewed: '记录概念复习',
   create_practice_session: '创建练习会话',
+  record_practice_result: '记录作答结果',
+  update_mistake: '更新错题备注',
 };
 
-export default function LearningTaskActions({ initialTask }: { initialTask: LearningTaskState }) {
+export default function LearningTaskActions({ initialTask, onResume }: { initialTask: LearningTaskState; onResume?: (task: LearningTaskState) => void }) {
   const [task, setTask] = useState(initialTask);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -25,6 +27,7 @@ export default function LearningTaskActions({ initialTask }: { initialTask: Lear
       const response = await resolveAgentAction(action.action_id, decision);
       if (response.learning_task) {
         setTask(response.learning_task);
+        if (decision === 'confirm' && response.action.status === 'confirmed' && response.learning_task.resumable) onResume?.(response.learning_task);
       } else {
         setTask((current) => ({
           ...current,
@@ -51,6 +54,7 @@ export default function LearningTaskActions({ initialTask }: { initialTask: Lear
           return (
             <div key={action.action_id || action.type} className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="text-text-primary">{labels[action.type] || action.type}</span>
+              {pending && <pre className="w-full whitespace-pre-wrap break-all text-text-secondary">{JSON.stringify(action.payload, null, 2)}</pre>}
               {pending ? (
                 <span className="flex items-center gap-1.5">
                   <button type="button" disabled={Boolean(busy)} onClick={() => void resolve(action, 'reject')} className="app-secondary-button disabled:opacity-50">

@@ -40,6 +40,13 @@ def _test_openai_compatible(resolved: ResolvedModelRole) -> None:
         extra_body=extra_body or None,
     )
     _validate_completion_response(response, label="文本模型")
+    # Explicit connection testing also probes native tools without domain data.
+    from llm.tool_capability import verify_tool_capability
+    try:
+        verify_tool_capability(resolved, client=client)
+    except Exception as probe_error:
+        import logging
+        logging.getLogger(__name__).info("Tool capability probe unavailable (%s)", type(probe_error).__name__)
 
 
 def _test_ollama(resolved: ResolvedModelRole) -> None:

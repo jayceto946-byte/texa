@@ -23,7 +23,7 @@ const roleMeta: Record<ModelRoleId, { title: string; capability: string }> = {
   vision: { title: '独立视觉模型', capability: 'vision' },
 };
 
-const controlClass = 'settings-form-control';
+const controlClass = 'app-field w-full';
 const fieldRowClass = 'settings-form-row';
 
 export default function ModelSettingsManager({ value, onChange, onActivateProfile, onDeleteProfile, onTestConnection, guided = false }: Props) {

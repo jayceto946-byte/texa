@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MessageSquarePlus, PanelLeftClose } from 'lucide-react';
+import { MessageSquarePlus, PanelLeftClose, type LucideIcon } from 'lucide-react';
 import { get } from '../api/client';
 import type { ChatMessage, ConversationPage } from '../contexts/ChatContext';
 import { mapStoredConversationMessages } from '../utils/conversationMessages';
 import { buildTextbookScopeOptions, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
-import ScopeSelector from './ScopeSelector';
 
 type ConversationSummary = {
   id: string;
@@ -13,6 +12,13 @@ type ConversationSummary = {
   book_name: string;
   updated_at: string;
   message_count: number;
+};
+
+export type LearningCapabilityAction = {
+  id: 'tools' | 'goals' | 'plugins';
+  label: string;
+  icon: LucideIcon;
+  onSelect: () => void;
 };
 
 const BOOKS_CACHE_KEY = 'texa:learning-context:books:v1';
@@ -56,10 +62,9 @@ export default function LearningContextSidebar({
   conversationId,
   refreshKey,
   onClose,
-  onSubjectChange,
-  onBookChange,
   onNewConversation,
   onLoadConversation,
+  capabilityActions = [],
 }: {
   hidden?: boolean;
   subject: string;
@@ -67,14 +72,12 @@ export default function LearningContextSidebar({
   conversationId: string;
   refreshKey: number;
   onClose: () => void;
-  onSubjectChange: (value: string) => void;
-  onBookChange: (value: string) => void;
   onNewConversation: () => void;
   onLoadConversation: (payload: { id: string; messages: ChatMessage[]; subject: string; bookName: string; page: ConversationPage | null }) => void;
+  capabilityActions?: readonly LearningCapabilityAction[];
 }) {
   const [books, setBooks] = useState<TextbookRecord[]>(() => readCache<TextbookRecord[]>(BOOKS_CACHE_KEY) || []);
 
-  const subjectSuggestions = useMemo(() => Array.from(new Set(books.map((book) => book.subject || '').filter(Boolean))), [books]);
   const scopeBooks = useMemo(() => buildTextbookScopeOptions(books), [books]);
   const selectedScope = useMemo(() => scopeBooks.find((item) => scopeContainsBook(item, bookName)), [bookName, scopeBooks]);
 
@@ -165,30 +168,25 @@ export default function LearningContextSidebar({
       <header className="learning-context-header">
         <h1 className="min-w-0 text-[16px] font-semibold text-text-primary">学习</h1>
         <div className="window-drag-region" aria-hidden="true" />
+        <button type="button" onClick={onNewConversation} className="context-new-session" aria-label="新会话">
+          <MessageSquarePlus className="h-4 w-4" />
+          <span>新会话</span>
+        </button>
         <button type="button" onClick={onClose} className="app-icon-button" aria-label="收起学习上下文">
           <PanelLeftClose className="h-4 w-4" />
         </button>
       </header>
 
-      <section className="learning-context-scope" aria-labelledby="learning-scope-title">
-        <div id="learning-scope-title" className="context-section-label">当前学习范围</div>
-        <ScopeSelector
-          subject={subject}
-          bookName={bookName}
-          books={scopeBooks}
-          suggestions={subjectSuggestions}
-          onSubjectChange={onSubjectChange}
-          onBookChange={onBookChange}
-          allowAllSubjects
-          fullWidth
-          width="wide"
-          label="学习范围"
-        />
-        <button type="button" onClick={onNewConversation} className="context-new-session">
-          <MessageSquarePlus className="h-4 w-4" />
-          新会话
-        </button>
-      </section>
+      {capabilityActions.length > 0 && (
+        <nav className="learning-capability-navigation" aria-label="学习能力">
+          {capabilityActions.map(({ id, label, icon: Icon, onSelect }) => (
+            <button key={id} type="button" onClick={onSelect} className="learning-capability-action">
+              <Icon className="h-4 w-4" />
+              <span>{label}</span>
+            </button>
+          ))}
+        </nav>
+      )}
 
       <section className="learning-context-sessions" aria-labelledby="session-list-title">
         <div className="context-session-heading">

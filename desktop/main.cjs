@@ -63,7 +63,8 @@ function projectRoot() {
 }
 
 function packagedBackendPath() {
-  return path.join(process.resourcesPath, 'backend', 'backend_server', 'backend_server.exe');
+  const name = process.platform === 'win32' ? 'backend_server.exe' : 'backend_server';
+  return path.join(process.resourcesPath, 'backend', 'backend_server', name);
 }
 
 function runtimePaths() {
@@ -157,7 +158,8 @@ function backendEnv() {
         ? path.join(process.resourcesPath, 'embedding-runtime', 'bge-small-zh-v1.5', 'onnx-fp32-v1')
         : path.join(projectRoot(), 'assets', 'embedding-runtime', 'bge-small-zh-v1.5', 'onnx-fp32-v1')
     ),
-    TEXA_REQUIRE_WINDOWS_X64: app.isPackaged ? '1' : (process.env.TEXA_REQUIRE_WINDOWS_X64 || '0'),
+    TEXA_REQUIRE_SUPPORTED_ARCH: app.isPackaged ? '1' : (process.env.TEXA_REQUIRE_SUPPORTED_ARCH || '0'),
+    TEXA_REQUIRE_WINDOWS_X64: process.platform === 'win32' && app.isPackaged ? '1' : (process.env.TEXA_REQUIRE_WINDOWS_X64 || '0'),
     RERANKER_MODEL_PATH: process.env.RERANKER_MODEL_PATH || '',
   };
 }
@@ -415,7 +417,9 @@ async function startBackend() {
       return;
     }
 
-    const python = process.env.KAOYAN_PYTHON || path.join(projectRoot(), 'venv310', 'Scripts', 'python.exe');
+    const python = process.env.KAOYAN_PYTHON || (process.platform === 'win32'
+      ? path.join(projectRoot(), 'venv310', 'Scripts', 'python.exe')
+      : path.join(projectRoot(), 'venv310', 'bin', 'python'));
     appendBackendLog(`[main] starting dev backend: ${python}`);
     lastBackendExit = '';
     backendProcess = spawn(
@@ -668,9 +672,11 @@ function createWindow() {
     height: 820,
     minWidth: 720,
     minHeight: 560,
-    ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' } : { frame: false }),
+    ...(process.platform === 'darwin'
+      ? { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 18, y: 11 } }
+      : { frame: false }),
     show: false,
-    backgroundColor: '#f5f5f7',
+    backgroundColor: '#f2f4f1',
     title: 'Texa',
     icon: APP_ICON_PATH,
     webPreferences: {

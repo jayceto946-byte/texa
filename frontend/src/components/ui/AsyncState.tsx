@@ -3,6 +3,26 @@ import { AlertCircle, CheckCircle2, CircleAlert, Info, Loader2 } from 'lucide-re
 
 export type AsyncStateKind = 'loading' | 'empty' | 'error' | 'success' | 'info';
 
+export function EmptyState({ title, description, icon, action, variant = 'default', className = '' }: {
+  title: string;
+  description?: string;
+  icon?: React.ReactNode;
+  action?: React.ReactNode;
+  variant?: 'default' | 'inline' | 'prompt';
+  className?: string;
+}) {
+  return (
+    <section role="status" className={`app-empty-state is-${variant} ${className}`.trim()}>
+      {icon && <span className="app-empty-icon" aria-hidden="true">{icon}</span>}
+      <div className="app-empty-copy">
+        {variant === 'prompt' ? <h1 className="app-empty-title">{title}</h1> : <h3 className="app-empty-title">{title}</h3>}
+        {description && <p className="app-empty-description">{description}</p>}
+      </div>
+      {action && <div className="app-empty-action">{action}</div>}
+    </section>
+  );
+}
+
 const meta = {
   loading: { icon: Loader2, className: 'border-border bg-bg-card text-text-secondary', iconClass: 'animate-spin text-accent' },
   empty: { icon: Info, className: 'border-border bg-bg-card text-text-secondary', iconClass: 'text-text-secondary' },
@@ -37,7 +57,7 @@ export function PageState({ kind, title, description, action }: { kind: AsyncSta
     );
   }
   return (
-    <div role={kind === 'error' ? 'alert' : 'status'} className="app-panel px-5 py-8 text-center">
+    <div className="px-5 py-8">
       <StatusBanner kind={kind} title={title} description={description} action={action} />
     </div>
   );

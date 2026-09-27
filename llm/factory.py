@@ -187,6 +187,7 @@ register_chat_transport(
         Capability.SYSTEM_PROMPT,
         Capability.TOKEN_USAGE,
         Capability.LOCAL,
+        Capability.TOOL_CALLING,
     }),
 )
 register_chat_transport(

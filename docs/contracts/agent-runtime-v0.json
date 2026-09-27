@@ -1,0 +1,265 @@
+{
+  "contract": "texa.agent-runtime/v0",
+  "sqlite_schema": 3,
+  "AgentRun": {
+    "columns": [
+      "id",
+      "task_id",
+      "resume_of_run_id",
+      "root_run_id",
+      "request_key",
+      "request_id",
+      "conversation_id",
+      "turn_id",
+      "status",
+      "owner_token",
+      "revision",
+      "seq_high_water",
+      "checkpoint_json",
+      "output_json",
+      "error_code",
+      "created_at",
+      "updated_at",
+      "ended_at",
+      "trigger_kind",
+      "trigger_id"
+    ],
+    "snapshot_additions": [
+      "checkpoint",
+      "output"
+    ]
+  },
+  "ToolCall": {
+    "columns": [
+      "id",
+      "task_id",
+      "requested_run_id",
+      "executed_run_id",
+      "step_index",
+      "tool_id",
+      "tool_version",
+      "schema_hash",
+      "args_json",
+      "args_hash",
+      "operation_key",
+      "status",
+      "attempt_count",
+      "result_json",
+      "receipt_json",
+      "error_code",
+      "created_at",
+      "updated_at",
+      "permission"
+    ],
+    "snapshot_additions": [
+      "args",
+      "result"
+    ]
+  },
+  "ToolResult": {
+    "fields": [
+      "success",
+      "data",
+      "message",
+      "pending_action",
+      "evidence",
+      "verification",
+      "warnings"
+    ]
+  },
+  "ExecutionEvent": {
+    "v1": {
+      "schema": "texa.execution/v1",
+      "identity_fields": [
+        "conversation_id",
+        "request_id",
+        "run_id",
+        "schema",
+        "seq",
+        "task_id",
+        "turn_id"
+      ],
+      "types": [
+        "error",
+        "final",
+        "output_delta",
+        "progress",
+        "state_transition",
+        "tool_result"
+      ],
+      "terminal_types": [
+        "error",
+        "final"
+      ],
+      "persisted_types": [
+        "error",
+        "final",
+        "state_transition",
+        "tool_result"
+      ],
+      "statuses": [
+        "cancelled",
+        "completed",
+        "failed",
+        "running",
+        "skipped",
+        "started"
+      ],
+      "activity_kinds": [
+        "analysis",
+        "evidence",
+        "generation",
+        "memory",
+        "reasoning",
+        "system",
+        "tool"
+      ],
+      "output_delta_payload_fields": [
+        "replace",
+        "text"
+      ],
+      "reasoning_visibility": "public_summary_only"
+    },
+    "v2_schema": "texa.execution/v2",
+    "required_fields": [
+      "conversation_id",
+      "elapsed_ms",
+      "kind",
+      "label",
+      "operation_id",
+      "payload",
+      "phase",
+      "request_id",
+      "run_id",
+      "schema",
+      "seq",
+      "status",
+      "summary",
+      "task_id",
+      "turn_id",
+      "type"
+    ],
+    "optional_fields": [
+      "duration_ms"
+    ],
+    "v2_additional_fields": [
+      "origin"
+    ]
+  },
+  "ToolRegistry": {
+    "metadata_fields": [
+      "id",
+      "idempotency",
+      "input_schema",
+      "output_schema",
+      "permission",
+      "provenance",
+      "schema_hash",
+      "side_effect",
+      "source",
+      "timeout_ms",
+      "version"
+    ],
+    "reference_fields": [
+      "id",
+      "version",
+      "schema_hash"
+    ],
+    "recent_progress_input": {
+      "additionalProperties": false,
+      "properties": {
+        "book_name": {
+          "default": "",
+          "maxLength": 120,
+          "title": "Book Name",
+          "type": "string"
+        },
+        "subject": {
+          "default": "",
+          "maxLength": 120,
+          "title": "Subject",
+          "type": "string"
+        },
+        "days": {
+          "default": 7,
+          "maximum": 31,
+          "minimum": 1,
+          "title": "Days",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 12,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "RecentProgressInput",
+      "type": "object"
+    },
+    "recent_progress_output": {
+      "additionalProperties": false,
+      "properties": {
+        "book_name": {
+          "title": "Book Name",
+          "type": "string"
+        },
+        "subject": {
+          "title": "Subject",
+          "type": "string"
+        },
+        "range_days": {
+          "title": "Range Days",
+          "type": "integer"
+        },
+        "summary": {
+          "additionalProperties": true,
+          "title": "Summary",
+          "type": "object"
+        },
+        "top_concepts": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Top Concepts",
+          "type": "array"
+        },
+        "recent_events": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Recent Events",
+          "type": "array"
+        },
+        "queried_event_limit": {
+          "title": "Queried Event Limit",
+          "type": "integer"
+        },
+        "window_complete": {
+          "title": "Window Complete",
+          "type": "boolean"
+        },
+        "coverage_note": {
+          "title": "Coverage Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "book_name",
+        "subject",
+        "range_days",
+        "summary",
+        "top_concepts",
+        "recent_events",
+        "queried_event_limit",
+        "window_complete",
+        "coverage_note"
+      ],
+      "title": "RecentProgressOutput",
+      "type": "object"
+    }
+  }
+}

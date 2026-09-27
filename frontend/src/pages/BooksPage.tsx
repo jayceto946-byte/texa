@@ -3,6 +3,7 @@ import { Archive, ArrowLeft, FileText, HelpCircle, Loader2, Upload } from 'lucid
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api/client';
 import ScopeSelector from '../components/ScopeSelector';
+import { SegmentedControl } from '../components/ui/SelectionControls';
 import { ActionableIssue, StatusBanner, TaskStatus } from '../components/ui/AsyncState';
 
 type ImportJob = {
@@ -225,24 +226,22 @@ const BooksPage: React.FC = () => {
         : '无法确认 MinerU 状态';
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-bg-primary">
+    <div className="management-workspace flex h-full flex-col overflow-y-auto bg-bg-primary">
       <header className="app-page-header border-b border-border bg-bg-card">
         <button type="button" onClick={() => navigate('/books')} className="app-icon-button" aria-label="返回教材"><ArrowLeft className="h-4 w-4" /></button>
         <h2 className="app-page-title">导入教材</h2>
         <div className="window-drag-region" aria-hidden="true" />
       </header>
 
-      <div className="mx-auto w-full max-w-6xl space-y-5 p-6">
+      <div className="management-page-content mx-auto w-full max-w-6xl space-y-5">
         <section className="border-y border-border py-4">
           <div className="mb-3 text-sm font-semibold text-text-primary">1. 选择来源</div>
-          <div className="inline-flex rounded-lg border border-border bg-bg-card p-1">
-            <button type="button" onClick={() => setImportMode('pdf')} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm ${importMode === 'pdf' ? 'bg-[var(--accent-soft)] font-medium text-accent' : 'text-text-secondary hover:text-text-primary'}`}>
-              <FileText className="h-4 w-4" />PDF 教材
-            </button>
-            <button type="button" onClick={() => setImportMode('bundle')} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm ${importMode === 'bundle' ? 'bg-[var(--accent-soft)] font-medium text-accent' : 'text-text-secondary hover:text-text-primary'}`}>
-              <Archive className="h-4 w-4" />MinerU 输出包
-            </button>
-          </div>
+          <SegmentedControl
+            label="教材导入来源"
+            value={importMode}
+            options={[{ value: 'pdf', label: 'PDF 教材', icon: <FileText className="h-4 w-4" /> }, { value: 'bundle', label: 'MinerU 输出包', icon: <Archive className="h-4 w-4" /> }]}
+            onChange={setImportMode}
+          />
         </section>
 
         {importMode === 'pdf' ? (
@@ -260,7 +259,7 @@ const BooksPage: React.FC = () => {
               <h3 className="type-section-title text-text-primary">解析参数</h3>
               <label className="block">
                 <span className="mb-1.5 block type-caption text-text-secondary">目录页码范围，可选</span>
-                <input value={tocPages} onChange={(e) => setTocPages(e.target.value)} placeholder="如 1-5" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm outline-none focus:border-accent" />
+                <input value={tocPages} onChange={(e) => setTocPages(e.target.value)} placeholder="如 1-5" className="w-full app-field" />
               </label>
               <label className="block">
                 <span className="mb-1.5 block type-caption text-text-secondary">所属科目</span>

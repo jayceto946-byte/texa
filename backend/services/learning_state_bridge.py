@@ -82,6 +82,10 @@ def bridge_learning_request(
                     state_operations=[{"operation": "clarify_learning_target"}],
                 )
             state = candidates[0]
+            if len(state.get("goal_candidates") or []) > 1:
+                choices = "、".join(item["title"] for item in state["goal_candidates"][:5])
+                return LearningBridgeResult(action="clarify", clarification_message=f"当前教材有多个学习目标：{choices}。请在学习目标中选择要继续的目标。",
+                    state_operations=[{"operation": "clarify_learning_target"}])
             progress = state.get("guided_progress") or {}
             if speech_act == "resume_learning":
                 state = state_service.apply_operation(

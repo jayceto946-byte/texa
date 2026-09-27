@@ -15,7 +15,7 @@ import logging
 import os
 import threading
 
-from backend.api import agent, chat, mistakes, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state
+from backend.api import agent, chat, mistakes, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state, goals
 from backend.security import LocalApiBoundaryMiddleware
 from utils.version import APP_VERSION
 
@@ -75,10 +75,19 @@ async def lifespan(_app: FastAPI):
     effects_worker = ExecutionEffectsWorker(get_learning_task_store())
     _app.state.execution_effects_worker = effects_worker
     effects_worker.start()
+    from backend.services.agent_runtime.lifecycle import start_runtime_recovery
+    runtime_worker = start_runtime_recovery()
+    from backend.services.goals.execution import GoalScheduleWorker
+    goal_schedule_worker = GoalScheduleWorker().start()
     try:
         _start_warmup()
         yield
     finally:
+        goal_schedule_worker.stop()
+        from backend.services.goals.execution import stop_goal_runs
+        stop_goal_runs()
+        if runtime_worker is not None and not runtime_worker.stop():
+            logger.warning("Runtime projection still finishing during shutdown")
         if not effects_worker.stop():
             logger.warning("an in-flight effect step is finishing; subsequent steps are disabled on shutdown")
         try:
@@ -145,6 +154,7 @@ app.include_router(highlights.router, prefix="/api")
 app.include_router(jobs.router, prefix="/api")
 app.include_router(backups.router, prefix="/api")
 app.include_router(learning_state.router, prefix="/api")
+app.include_router(goals.router, prefix="/api")
 app.include_router(figures.router, prefix="/api")
 
 # ── 健康检查 ──────────────────────────────────────────────

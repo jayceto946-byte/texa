@@ -13,7 +13,7 @@ from utils.json_io import atomic_write_json
 
 
 _ACTION_LOCK = threading.RLock()
-_ALLOWED_TYPES = {"add_mistake", "mark_concept_reviewed", "create_practice_session"}
+_ALLOWED_TYPES = {"add_mistake", "mark_concept_reviewed", "create_practice_session", "record_practice_result", "update_mistake"}
 
 
 def _now() -> str:
@@ -22,19 +22,20 @@ def _now() -> str:
 
 class PendingActionStore:
     def __init__(self, root: str | Path | None = None):
-        self.root = Path(root or PROGRESS_PATH) / "pending_actions"
+        self.data_root = Path(root or PROGRESS_PATH)
+        self.root = self.data_root / "pending_actions"
 
     def _path(self, action_id: str) -> Path:
         if not action_id or any(char not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for char in action_id):
             raise ValueError("invalid pending action id")
         return self.root / f"{action_id}.json"
 
-    def create(self, proposal: dict[str, Any], *, context: dict[str, str]) -> dict[str, Any]:
+    def create(self, proposal: dict[str, Any], *, context: dict[str, str], action_id: str = "") -> dict[str, Any]:
         action_type = str(proposal.get("type") or "")
         if action_type not in _ALLOWED_TYPES:
             raise ValueError(f"unsupported pending action type: {action_type}")
         action = {
-            "action_id": f"action_{uuid.uuid4().hex}",
+            "action_id": action_id or f"action_{uuid.uuid4().hex}",
             "type": action_type,
             "payload": dict(proposal.get("payload") or {}),
             "context": {
@@ -49,6 +50,12 @@ class PendingActionStore:
             "created_at": _now(),
             "updated_at": _now(),
         }
+        if action_id:
+            existing = self.get(action_id)
+            if existing:
+                if existing.get("type") != action_type or existing.get("payload") != action["payload"] or existing.get("context") != action["context"]:
+                    raise ValueError("stable pending action id reused with different proposal")
+                return existing
         self.save(action)
         return action
 
@@ -67,6 +74,15 @@ class PendingActionStore:
             atomic_write_json(path, action)
         return action
 
+    def domain_receipt(self, action_id: str) -> dict[str, Any] | None:
+        action = self.get(action_id)
+        if action is None:
+            raise KeyError(action_id)
+        receipt = _read_domain_receipt(action, self.data_root)
+        if receipt is not None:
+            _reconcile_domain_projection(action, self.data_root)
+        return receipt
+
     def reject(self, action_id: str) -> dict[str, Any]:
         with _ACTION_LOCK:
             action = self.get(action_id)
@@ -76,7 +92,7 @@ class PendingActionStore:
                 raise ValueError("confirmed action cannot be rejected")
             if action.get("status") == "rejected":
                 return action
-            receipt = _read_domain_receipt(action)
+            receipt = _read_domain_receipt(action, self.data_root)
             if receipt is not None:
                 action.update(status="confirmed", result=receipt, error="")
                 self.save(action)
@@ -91,12 +107,14 @@ class PendingActionStore:
             if action is None:
                 raise KeyError(action_id)
             if action.get("status") == "confirmed":
+                _reconcile_domain_projection(action, self.data_root)
                 return action
             if action.get("status") == "rejected":
                 raise ValueError("rejected action cannot be confirmed")
             try:
-                receipt = _read_domain_receipt(action)
-                action["result"] = receipt if receipt is not None else _execute(action)
+                receipt = _read_domain_receipt(action, self.data_root)
+                action["result"] = receipt if receipt is not None else _execute(action, self.data_root)
+                _reconcile_domain_projection(action, self.data_root)
                 action["status"] = "confirmed"
                 action["error"] = ""
             except Exception as exc:
@@ -107,7 +125,7 @@ class PendingActionStore:
             return self.save(action)
 
 
-def _read_domain_receipt(action: dict[str, Any]) -> dict[str, Any] | None:
+def _read_domain_receipt(action: dict[str, Any], data_root: str | Path = PROGRESS_PATH) -> dict[str, Any] | None:
     """Read without constructing stores, migrations, or a domain write."""
     import sqlite3
     from utils.path_safety import safe_book_name, safe_child_path
@@ -116,18 +134,37 @@ def _read_domain_receipt(action: dict[str, Any]) -> dict[str, Any] | None:
     book = safe_book_name(payload.get("book_name") or context.get("book_name") or "default")
     operation_id, kind = action["action_id"], action["type"]
     if kind == "mark_concept_reviewed":
-        path = safe_child_path(PROGRESS_PATH, book, "concept_memory.json")
+        path = safe_child_path(data_root, book, "concept_memory.json")
         with get_state_lock(path):
             if not path.is_file():
                 return None
             value = json.loads(path.read_text(encoding="utf-8")).get("review_operations", {}).get(operation_id)
         return {"concept": value} if value is not None else None
+    if kind in {"update_mistake", "record_practice_result"}:
+        prefix = "mistake_book" if kind == "update_mistake" else "exercise_bank"
+        path = safe_child_path(data_root, f"{prefix}_{book}.db")
+        if not path.is_file():
+            return None
+        with sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True) as conn:
+            if kind == "update_mistake":
+                if not conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='mistake_operations'").fetchone():
+                    return None
+                row = conn.execute("SELECT result_json FROM mistake_operations WHERE operation_id=?", (operation_id,)).fetchone()
+                return json.loads(row[0]) if row else None
+            row = conn.execute("SELECT data FROM exercise_practice_sessions WHERE id=?", (payload["session_id"],)).fetchone()
+        result = json.loads(row[0]).get("results", {}).get(payload["exercise_id"]) if row else None
+        if result is None:
+            return None
+        if any(result.get(key, "") != payload.get(key, "").strip() if key != "quality" else result[key] != payload[key]
+               for key in ("user_answer", "quality", "note")):
+            raise ValueError("practice answer arguments differ from the committed result")
+        return {"session_id": payload["session_id"], "exercise_id": payload["exercise_id"], "answer_recorded": True}
     tables = {"add_mistake": ("mistake_book", "mistakes"),
               "create_practice_session": ("exercise_bank", "exercise_practice_sessions")}
     if kind not in tables:
         raise ValueError("unsupported pending action type")
     prefix, table = tables[kind]
-    path = safe_child_path(PROGRESS_PATH, f"{prefix}_{book}.db")
+    path = safe_child_path(data_root, f"{prefix}_{book}.db")
     if not path.is_file():
         return None
     conn = sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)
@@ -142,12 +179,23 @@ def _read_domain_receipt(action: dict[str, Any]) -> dict[str, Any] | None:
             {"session_id": operation_id, "exercise_ids": data["exercise_ids"]})
 
 
-def _execute(action: dict[str, Any]) -> dict[str, Any]:
+def _execute(action: dict[str, Any], data_root: str | Path = PROGRESS_PATH) -> dict[str, Any]:
     action_type = str(action.get("type") or "")
     payload = dict(action.get("payload") or {})
     context = dict(action.get("context") or {})
     operation_id = str(action["action_id"])
     book_name = str(payload.get("book_name") or context.get("book_name") or "default")
+
+    if action_type == "update_mistake":
+        from memory.mistake_book import get_mistake_book
+        return get_mistake_book(book_name, str(data_root)).update_once(payload["mistake_id"],
+            operation_id=operation_id, expected_revision=payload["expected_revision"], changes={"notes": payload["notes"]})
+    if action_type == "record_practice_result":
+        from memory.exercise_bank import get_exercise_bank
+        bank = get_exercise_bank(book_name, str(data_root))
+        bank.record_session_answer_with_status(payload["session_id"], exercise_id=payload["exercise_id"],
+            user_answer=payload["user_answer"], quality=payload["quality"], note=payload.get("note", ""))
+        return _read_domain_receipt(action, data_root)
 
     if action_type == "add_mistake":
         from memory.mistake_book import MistakeRecord, get_mistake_book
@@ -170,7 +218,7 @@ def _execute(action: dict[str, Any]) -> dict[str, Any]:
         )
         if not record.question_text:
             raise ValueError("question_text is required")
-        record_id = get_mistake_book(book_name, str(PROGRESS_PATH)).add_if_absent(record)
+        record_id = get_mistake_book(book_name, str(data_root)).add_if_absent(record)
         return {"mistake_id": record_id}
 
     if action_type == "mark_concept_reviewed":
@@ -190,7 +238,7 @@ def _execute(action: dict[str, Any]) -> dict[str, Any]:
     if action_type == "create_practice_session":
         from memory.exercise_bank import PracticeSession, get_exercise_bank
 
-        bank = get_exercise_bank(book_name, str(PROGRESS_PATH))
+        bank = get_exercise_bank(book_name, str(data_root))
         existing = bank.get_practice_session(operation_id)
         if existing:
             return {"session_id": existing.id, "exercise_ids": existing.exercise_ids}
@@ -208,6 +256,26 @@ def _execute(action: dict[str, Any]) -> dict[str, Any]:
         return {"session_id": session.id, "exercise_ids": valid_ids}
 
     raise ValueError(f"unsupported pending action type: {action_type}")
+
+
+def _reconcile_domain_projection(action: dict, data_root: str | Path) -> None:
+    """Repair a stable learning event after a committed practice answer."""
+    if action["type"] != "record_practice_result":
+        return
+    import hashlib
+    from memory.exercise_bank import get_exercise_bank
+    from memory.learning_events import LearningEvent, get_learning_event_store
+    payload = action["payload"]
+    book = payload["book_name"]
+    bank = get_exercise_bank(book, str(data_root))
+    session = bank.get_practice_session(payload["session_id"])
+    record = bank.get(payload["exercise_id"])
+    result = session.results[payload["exercise_id"]]
+    stable = hashlib.sha256(f"{book}\0{session.id}\0{record.id}".encode()).hexdigest()
+    get_learning_event_store(data_root).append(LearningEvent(id=f"evt_practice_{stable}",
+        event_type="exercise_practiced", book_name=book, subject=record.subject,
+        book_id=record.book_id, chapter_id=record.chapter or "", source_type="exercise", source_id=record.id,
+        payload={"quality": result["quality"], "status": record.status, "session_id": session.id}))
 
 
 _DEFAULT_STORE: PendingActionStore | None = None

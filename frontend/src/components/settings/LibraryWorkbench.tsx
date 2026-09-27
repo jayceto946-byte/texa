@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Archive, BookOpen, CheckCircle2, ChevronDown, ChevronRight, FolderOpen, MoreHorizontal, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { useLocation } from 'react-router-dom';
 import ScopeSelector from '../ScopeSelector';
+import { EmptyState } from '../ui/AsyncState';
 
 export type LibrarySubject = { name: string; children: string[] };
 export type BookReadiness = {
@@ -31,6 +34,15 @@ const belongsTo = (book: LibraryBook, parent: string, child = '') => {
 
 export default function LibraryWorkbench(props: Props) {
   const { subjects, books, selectedSubjectIndex, selectedChildIndex, onSelect } = props;
+  const { pathname } = useLocation();
+  const [navigationHost, setNavigationHost] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 920px)');
+    const update = () => setNavigationHost(pathname === '/books' && media.matches ? document.getElementById('workspace-context-navigation') : null);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, [pathname]);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [listMode, setListMode] = useState<'active' | 'archived'>('active');
   const [renamingCategory, setRenamingCategory] = useState(false);
@@ -63,11 +75,20 @@ export default function LibraryWorkbench(props: Props) {
     setRenamingCategory(false);
   };
 
-  return (
-    <section className="library-manager">
-      <div className="library-workbench">
+  const categoryTree = (
         <aside className="library-tree" aria-label="教材分类">
-          <div className="library-tree-heading"><span>分类</span><button onClick={props.onAddSubject} className="library-tree-add" title="添加学科"><Plus className="h-4 w-4" />添加学科</button></div>
+          <div className="library-tree-heading"><span>分类</span>              {subject && !renamingCategory && <details className="library-category-actions"><summary aria-label="分类操作"><MoreHorizontal className="h-4 w-4" /></summary><div className="study-category-menu">
+                <button disabled={selectedHasBooks} onClick={() => { setRenameDraft(categoryName); setRenamingCategory(true); }} className="app-ghost-button" title={selectedHasBooks ? '请先移出该分类中的教材' : '重命名分类'}><Pencil className="h-3.5 w-3.5" />重命名</button>
+                <button disabled={selectedHasBooks} onClick={() => selectedChildIndex === null ? props.onDeleteSubject(selectedSubjectIndex) : props.onDeleteChild(selectedChildIndex)} className="library-delete-category" title={selectedHasBooks ? '请先移出该分类中的教材' : '删除分类'}><Trash2 className="h-3.5 w-3.5" />删除分类</button>
+              </div></details>}</div>              {renamingCategory ? <div className="library-inline-rename">
+                <input autoFocus value={renameDraft} onChange={(event) => setRenameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') commitCategoryRename(); if (event.key === 'Escape') setRenamingCategory(false); }} aria-label={`${child ? '科目' : '学科'}名称`} />
+                <button onClick={commitCategoryRename} className="app-secondary-button">确定</button>
+                <button onClick={() => setRenamingCategory(false)} className="app-icon-button" aria-label="取消重命名"><X className="h-4 w-4" /></button>
+              </div> : null}
+              <div className="study-classification-tools">
+                <button onClick={props.onAddSubject} className="app-ghost-button"><Plus className="h-4 w-4" />添加学科</button>
+                {subject && <button onClick={() => props.onAddChild(selectedSubjectIndex)} className="app-ghost-button"><Plus className="h-4 w-4" />添加科目</button>}
+              </div>
           <div className="library-tree-list">
             {subjects.map((item, index) => {
               const open = expanded[index] ?? selectedSubjectIndex === index;
@@ -80,37 +101,35 @@ export default function LibraryWorkbench(props: Props) {
                 </div>
                 {open && <div className="library-tree-children">
                   {item.children.map((childName, childIndex) => <button key={`${childName}-${childIndex}`} onClick={() => select(index, childIndex)} className={`library-tree-child ${selectedSubjectIndex === index && selectedChildIndex === childIndex ? 'is-active' : ''}`}><span>{childName}</span><span className="library-tree-count">{activeBooks.filter((book) => belongsTo(book, item.name, childName)).length}</span></button>)}
-                  <button onClick={() => { select(index, null); props.onAddChild(index); }} className="library-tree-child is-add"><Plus className="h-4 w-4" />添加科目</button>
                 </div>}
               </div>;
             })}
             <button onClick={() => select(-1, null)} className={`library-tree-uncategorized ${selectedSubjectIndex < 0 ? 'is-active' : ''}`}><Archive className="h-4 w-4" /><span>未分类</span><span className="library-tree-count">{activeBooks.filter((book) => !(book.subject || '').trim()).length}</span></button>
           </div>
         </aside>
+  );
+
+  return (
+    <section className="library-manager">
+      <div className="library-workbench">
+        {navigationHost ? createPortal(categoryTree, navigationHost) : categoryTree}
 
         <main className="library-content">
           <header className="library-category-header">
             <div className="library-category-identity">
-              {renamingCategory ? <div className="library-inline-rename">
-                <input autoFocus value={renameDraft} onChange={(event) => setRenameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') commitCategoryRename(); if (event.key === 'Escape') setRenamingCategory(false); }} aria-label={`${child ? '科目' : '学科'}名称`} />
-                <button onClick={commitCategoryRename} className="app-secondary-button">确定</button>
-                <button onClick={() => setRenamingCategory(false)} className="app-icon-button" aria-label="取消重命名"><X className="h-4 w-4" /></button>
-              </div> : <div><h3>{categoryName}</h3><p>{currentBooks.length} 本教材{child && subject ? ` · ${subject.name} / ${child}` : ''}</p></div>}
-              {subject && !renamingCategory && <div className="library-category-actions">
-                <button disabled={selectedHasBooks} onClick={() => { setRenameDraft(categoryName); setRenamingCategory(true); }} className="app-ghost-button" title={selectedHasBooks ? '请先移出该分类中的教材' : '重命名分类'}><Pencil className="h-3.5 w-3.5" />重命名</button>
-                <button disabled={selectedHasBooks} onClick={() => selectedChildIndex === null ? props.onDeleteSubject(selectedSubjectIndex) : props.onDeleteChild(selectedChildIndex)} className="library-delete-category" title={selectedHasBooks ? '请先移出该分类中的教材' : '删除分类'}><Trash2 className="h-3.5 w-3.5" />删除分类</button>
-              </div>}
-            </div>
-            <div className="library-header-tools">
-              <div className="library-list-filter" role="group" aria-label="教材状态"><button aria-pressed={listMode === 'active'} onClick={() => setListMode('active')}>活跃 <span>{activeBooks.length}</span></button><button aria-pressed={listMode === 'archived'} onClick={() => setListMode('archived')}>已归档 <span>{archivedBooks.length}</span></button></div>
-              <button onClick={props.onRefresh} className="app-icon-button" title="刷新教材" aria-label="刷新教材"><RefreshCw className="h-4 w-4" /></button>
+              <div><h3>{categoryName}</h3><p>{currentBooks.length} 本教材</p></div>
             </div>
           </header>
+          <div className="library-header-tools library-context-toolbar workspace-collection-toolbar">
+
+              <div className="library-list-filter" role="group" aria-label="教材状态"><button aria-pressed={listMode === 'active'} onClick={() => setListMode('active')}>活跃 <span>{activeBooks.length}</span></button><button aria-pressed={listMode === 'archived'} onClick={() => setListMode('archived')}>已归档 <span>{archivedBooks.length}</span></button></div>
+              <button onClick={props.onRefresh} className="app-icon-button" title="刷新教材" aria-label="刷新教材"><RefreshCw className="h-4 w-4" /></button>
+          </div>
 
           {listMode === 'active' ? <div className="library-book-list">
-            <div className="library-list-columns" aria-hidden="true"><span>教材</span><span>教材状态</span><span>当前学习范围</span><span>使用方式</span><span>操作</span></div>
+            {currentBooks.length > 0 && <div className="library-list-columns" aria-hidden="true"><span>教材</span><span>教材状态</span><span>分类 / 配套教材</span><span>使用方式</span><span>操作</span></div>}
             {currentBooks.map((book) => <BookRow key={book.book_id || book.name} book={book} active={props.currentBookName === book.name} subjects={subjects} reindexing={props.reindexingBook === book.name} onMove={(value) => props.onMoveBook(book.name, value)} onSetRole={(role) => props.onSetRole(book.name, role)} onSetResourceGroup={(group) => props.onSetResourceGroup(book.name, group)} onSwitch={() => props.onSwitchBook(book.name)} onReindex={() => props.onReindexBook(book.name)} onRename={() => props.onRenameBook(book.name, book.display_name || book.name)} onArchive={() => props.onArchiveBook(book.name)} />)}
-            {!currentBooks.length && <div className="library-empty"><BookOpen className="h-5 w-5" /><strong>这里还没有教材</strong><span>移动已有教材到此处，或导入新教材。</span></div>}
+            {!currentBooks.length && <EmptyState className="library-empty" icon={<BookOpen />} title="这里还没有教材" description="移动已有教材到此处，或导入新教材。" />}
           </div> : <ArchivedBookList books={archivedBooks} onRestore={props.onRestoreBook} />}
         </main>
       </div>
@@ -150,20 +169,20 @@ function ReadinessSummary({ book }: { book: LibraryBook }) {
 
 function BookRow({ book, active, subjects, reindexing, onMove, onSetRole, onSetResourceGroup, onSwitch, onReindex, onRename, onArchive }: { book: LibraryBook; active: boolean; subjects: LibrarySubject[]; reindexing: boolean; onMove: (target: string) => void; onSetRole: (role: 'standalone' | 'core' | 'reference') => void; onSetResourceGroup: (group: string) => void; onSwitch: () => void; onReindex: () => void; onRename: () => void; onArchive: () => void }) {
   const role = book.book_role || 'standalone';
-  return <article className="library-book-row">
-    <div className="library-book-identity"><div><h4>{book.display_name || book.name}</h4>{active && <span className="library-current-status">学习中</span>}</div><p>{book.has_pdf ? 'PDF' : '已解析教材'} · {book.chapter_count || 0} 章</p></div>
+  return <article className={`library-book-row workspace-register-row${active ? ' is-current' : ''}`}>
+    <div className="library-book-identity"><BookOpen className="study-book-icon" aria-hidden="true" /><div><h4>{book.display_name || book.name}</h4>{active && <span className="library-current-status">学习中</span>}</div><p>{book.has_pdf ? 'PDF' : '已解析教材'} · {book.chapter_count || 0} 章</p></div>
     <ReadinessSummary book={book} />
     <div className="library-book-scope">
       <div className="library-subject-field"><span>归属</span><ScopeSelector subject={book.subject || ''} subjectTree={subjects} onSubjectChange={onMove} bookMode="hidden" width="normal" label={`${book.display_name || book.name}教材归属`} placeholder="未分类" className="library-subject-selector" /></div>
-      {role === 'standalone' ? <div className="library-resource-group-static"><span>配套教材</span><strong>单独使用</strong></div> : <label><span>配套教材组</span><input defaultValue={book.resource_group || ''} placeholder={book.subject ? `默认：${book.subject}` : '输入组名'} onBlur={(event) => onSetResourceGroup(event.target.value.trim())} /></label>}
+      {role === 'standalone' ? <div className="library-resource-group-static"><span>配套</span><strong>单独使用</strong></div> : <label><span>配套</span><input aria-label={`${book.display_name || book.name}配套教材组`} defaultValue={book.resource_group || ''} placeholder={book.subject ? `默认：${book.subject}` : '输入组名'} onBlur={(event) => onSetResourceGroup(event.target.value.trim())} /></label>}
     </div>
-    <div className="library-role-control" role="group" aria-label={`${book.display_name || book.name}的教材角色`} title={roleGuidance(role)}>{ROLE_OPTIONS.map((option) => <button key={option.value} type="button" aria-pressed={role === option.value} onClick={() => role !== option.value && onSetRole(option.value)}>{option.label}</button>)}</div>
+    <select className="study-role-select" value={role} aria-label={`${book.display_name || book.name}的教材角色`} title={roleGuidance(role)} onChange={(event) => onSetRole(event.target.value as typeof role)}>{ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
     <div className="library-book-actions"><button onClick={onReindex} disabled={reindexing} className="app-secondary-button"><RefreshCw className={`h-4 w-4 ${reindexing ? 'animate-spin' : ''}`} />{reindexing ? '准备中' : '重新准备'}</button>{!active ? <button onClick={onSwitch} className="app-ghost-button">设为学习范围</button> : <span className="library-active-label">当前学习范围</span>}<BookOverflowMenu onRename={onRename} onArchive={onArchive} /></div>
   </article>;
 }
 
 function ArchivedBookList({ books, onRestore }: { books: LibraryBook[]; onRestore: (reference: string) => void }) {
-  if (!books.length) return <div className="library-empty"><Archive className="h-5 w-5" /><strong>没有已归档教材</strong></div>;
+  if (!books.length) return <EmptyState className="library-empty" icon={<Archive />} title="没有已归档教材" />;
   return <div className="library-archive-list">{books.map((book) => <div key={book.book_id || book.name} className="library-archive-row"><div><strong>{book.display_name || book.name}</strong><span>{book.has_pdf ? 'PDF' : 'OCR / Markdown'} · {book.chapter_count || 0} 章</span></div><button onClick={() => onRestore(book.book_id || book.name)} className="app-secondary-button">恢复</button></div>)}</div>;
 }
 

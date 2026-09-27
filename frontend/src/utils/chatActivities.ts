@@ -96,6 +96,21 @@ export function isExecutionEventV1(value: unknown): value is ExecutionEvent {
   return true;
 }
 
+export function isExecutionEventV2(value: unknown): value is ExecutionEvent {
+  if (!value || typeof value !== 'object') return false;
+  const event = value as Record<string, unknown>;
+  if (event.schema !== 'texa.execution/v2') return false;
+  const origin = event.origin as Record<string, unknown> | undefined;
+  if (!origin || typeof origin !== 'object' || Array.isArray(origin) ||
+      Object.keys(origin).some((key) => key !== 'kind' && key !== 'id') ||
+      !['user', 'ui_action', 'goal', 'schedule'].includes(String(origin.kind)) ||
+      typeof origin.id !== 'string' || !origin.id.trim()) return false;
+  if (origin.kind === 'schedule' && (event.conversation_id || event.turn_id)) return false;
+  const legacyShape: Record<string, unknown> = { ...event, schema: 'texa.execution/v1' };
+  delete legacyShape.origin;
+  return isExecutionEventV1(legacyShape);
+}
+
 export function createTransportActivity(): ChatActivity {
   return {
     id: 'transport',
@@ -175,9 +190,12 @@ function startNewRun(current: ExecutionLifecycleState, event: ExecutionEvent): E
 }
 
 export function mergeExecutionLifecycle(current: ExecutionLifecycleState, candidate: unknown): ExecutionLifecycleState {
-  if (!isExecutionEventV1(candidate)) return current;
+  if (!isExecutionEventV1(candidate) && !isExecutionEventV2(candidate)) return current;
   const event = candidate;
   if (current.terminal) return current;
+  if (current.lastEvent && (current.lastEvent.schema !== event.schema ||
+      current.lastEvent.origin?.kind !== event.origin?.kind ||
+      current.lastEvent.origin?.id !== event.origin?.id)) return current;
   let base = current;
 
   if (!current.requestId) {
@@ -242,7 +260,7 @@ export function mergeExecutionLifecycle(current: ExecutionLifecycleState, candid
 export function replayExecutionEvents(events: unknown[], output = '', activeRunId?: string): ExecutionLifecycleState {
   // Persisted milestones are ordered by the server, may span runs, and omit
   // transport deltas. Select the authoritative run before applying its reducer.
-  const valid = events.filter(isExecutionEventV1);
+  const valid = events.filter((event): event is ExecutionEvent => isExecutionEventV1(event) || isExecutionEventV2(event));
   const runId = activeRunId || valid.at(-1)?.run_id;
   const selected = runId ? valid.filter((event) => event.run_id === runId) : valid;
   return selected.reduce(mergeExecutionLifecycle, createExecutionLifecycle(output));

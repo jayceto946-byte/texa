@@ -1,9 +1,11 @@
+import { useNavigate } from 'react-router-dom';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BookMarked, CalendarDays, ImagePlus, Images, Send, Shuffle, Square, X } from 'lucide-react';
+import { BookMarked, CalendarDays, ImagePlus, Images, Send, Shuffle, Square, Target, X } from 'lucide-react';
 import { figureQuestionStream, get, interruptFigureTask, mistakeSolutionStream, post, resumeFigureTaskStream } from '../api/client';
 
 import HighlightRepositoryDialog from '../components/HighlightRepositoryDialog';
 import LearningEmptyWorkspace from '../components/chat/LearningEmptyWorkspace';
+import ScopeSelector from '../components/ScopeSelector';
 import ComposerOverflowMenu from '../components/chat/ComposerOverflowMenu';
 import ChatMessage from '../components/ChatMessage';
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -32,12 +34,8 @@ function firstLine(value = '', maxLength = 48) {
   return line.length > maxLength ? `${line.slice(0, maxLength)}...` : line;
 }
 
-function conversationTitle(value = '') {
-  const withoutAttachment = value.replace(/^📎[^\r\n]*\r?\n(?:\r?\n)+/, '').trim();
-  return firstLine(withoutAttachment || value || '学习会话', 56);
-}
-
 const ChatPage: React.FC = () => {
+  const navigate = useNavigate();
   const [input, setInput] = useState('');
   const [mathExpressions, setMathExpressions] = useState<MathExpression[]>([]);
   const [mathEditRequest, setMathEditRequest] = useState<MathEditRequest | null>(null);
@@ -100,7 +98,11 @@ const ChatPage: React.FC = () => {
     if (suggested) applySuggestion(suggested);
     const onQuestionSelected = (event: Event) => applySuggestion((event as CustomEvent<{ question?: string }>).detail?.question || '');
     window.addEventListener('texa:onboarding-question-selected', onQuestionSelected);
-    return () => window.removeEventListener('texa:onboarding-question-selected', onQuestionSelected);
+    window.addEventListener('texa:compose-question', onQuestionSelected);
+    return () => {
+      window.removeEventListener('texa:onboarding-question-selected', onQuestionSelected);
+      window.removeEventListener('texa:compose-question', onQuestionSelected);
+    };
   }, []);
 
   useEffect(() => {
@@ -209,6 +211,20 @@ const ChatPage: React.FC = () => {
       setBookName(name);
     }
   }, [setBookName, setSubject]);
+
+  const scopeSelector = (
+    <ScopeSelector
+      subject={subject}
+      bookName={bookName}
+      books={scopeBooks}
+      suggestions={Array.from(new Set(books.map((book) => book.subject || '').filter(Boolean)))}
+      onSubjectChange={setSubject}
+      onBookChange={switchBook}
+      allowAllSubjects
+      width="wide"
+      label="选择学习范围"
+    />
+  );
 
   useEffect(() => {
     if (!booksLoaded) return;
@@ -820,8 +836,10 @@ const ChatPage: React.FC = () => {
       >
         <div className="learning-workspace-header">
           <div className="learning-workspace-title min-w-0">
-            <h2>{messages.length ? conversationTitle(messages.find((message) => message.role === 'user')?.content) : '新学习会话'}</h2>
-            <p>{headerScopeLabel}</p>
+            <h2>学习</h2>
+            {messages.length === 0 && !activeFigure
+              ? <p>{headerScopeLabel}</p>
+              : <div className="learning-header-scope-selector">{scopeSelector}</div>}
           </div>
           <div className="window-drag-region" aria-hidden="true" />
         </div>
@@ -843,6 +861,7 @@ const ChatPage: React.FC = () => {
             {messages.length === 0 && !activeFigure && (
               <LearningEmptyWorkspace
                 isLoading={isLoading || Boolean(actionLoading)}
+                scopeSelector={scopeSelector}
               />
             )}
             {messages.map((msg, i) => (
@@ -918,6 +937,7 @@ const ChatPage: React.FC = () => {
                 onKeyDown={handleKeyDown}
                 placeholder={activeFigure ? (visualRegion ? '询问选中区域…' : '询问这幅教材图片…') : mathExpressions.length ? '继续描述问题，点击公式编号可引用…' : '输入问题...'}
                 disabled={isLoading || attachmentLoading}
+                rows={1}
                 className="composer-textarea"
               />
             </div>
@@ -935,6 +955,7 @@ const ChatPage: React.FC = () => {
                 <ComposerOverflowMenu>
                   {(close) => (
                     <>
+                      <button role="menuitem" type="button" onClick={() => { close(); navigate('/goals', { state: { goalDraft: composeMathQuestion(input, mathExpressions) } }); }} className="composer-overflow-item"><Target className="h-3.5 w-3.5" />设为学习目标</button>
                       <button role="menuitem" type="button" onClick={() => { close(); void showReport('daily'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'daily' ? '整理日报' : '学习日报'}</button>
                       <button role="menuitem" type="button" onClick={() => { close(); void showReport('weekly'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'weekly' ? '整理周报' : '学习周报'}</button>
                       <button role="menuitem" type="button" onClick={() => { close(); void pickRandomExercise(); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><Shuffle className="h-3.5 w-3.5" />{actionLoading === 'exercise' ? '抽题中' : '随机抽题'}</button>

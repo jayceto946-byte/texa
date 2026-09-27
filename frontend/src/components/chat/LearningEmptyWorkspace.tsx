@@ -1,12 +1,14 @@
+import { EmptyState } from '../ui/AsyncState';
+import type { ReactNode } from 'react';
+
 export default function LearningEmptyWorkspace({
   isLoading,
+  scopeSelector,
 }: {
   isLoading: boolean;
+  scopeSelector: ReactNode;
 }) {
   return (
-    <section className="learning-empty-workspace" aria-label="开始学习会话">
-      <h1>Ask Texa</h1>
-      <p>{isLoading ? '正在准备当前学习范围' : '输入问题、公式或上传图片'}</p>
-    </section>
+    <EmptyState variant="prompt" title="从一个问题开始" description={isLoading ? '正在准备当前学习范围' : '写下疑问、输入公式，或带来一道题。'} action={scopeSelector} className="learning-empty-workspace" />
   );
 }

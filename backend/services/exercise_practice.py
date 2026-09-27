@@ -49,6 +49,7 @@ class PracticeAnswerService:
     book_name: str
     mistake_factory: MistakeFactory
     log_event: EventLogger
+    reconcile_events: bool = False
 
     def answer_session(
         self,
@@ -101,14 +102,16 @@ class PracticeAnswerService:
                     },
                 )
 
-        if answer_created:
+        if answer_created or self.reconcile_events:
+            stored = session.results[record.id]
             self.log_event(
                 "exercise_practiced",
                 record,
                 {
-                    "quality": quality,
+                    "quality": stored["quality"],
                     "status": record.status,
                     "session_id": session_id,
+                    "event_id": "evt_practice_" + hashlib.sha256(f"{self.book_name}\0{session_id}\0{record.id}".encode()).hexdigest(),
                 },
             )
         return PracticeAnswerResult(

@@ -62,7 +62,8 @@ export type ExecutionEventType = 'progress' | 'state_transition' | 'tool_result'
 export type ExecutionEventStatus = 'started' | 'running' | 'completed' | 'failed' | 'skipped' | 'cancelled';
 
 export interface ExecutionEvent {
-  schema: 'texa.execution/v1';
+  schema: 'texa.execution/v1' | 'texa.execution/v2';
+  origin?: { kind: 'user' | 'ui_action' | 'goal' | 'schedule'; id: string };
   seq: number;
   request_id: string;
   task_id: string;

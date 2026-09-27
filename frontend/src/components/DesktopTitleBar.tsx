@@ -11,7 +11,7 @@ export default function DesktopTitleBar() {
   }, []);
 
   if (!window.kaoyanDesktop?.isElectron) return null;
-  if (window.kaoyanDesktop.platform === 'darwin') return <div className="desktop-titlebar-marker" aria-hidden="true" />;
+  if (window.kaoyanDesktop.platform === 'darwin') return <div className="desktop-titlebar-marker is-macos" aria-hidden="true" />;
 
   return (
     <div className="desktop-titlebar-marker" aria-label="窗口控制">

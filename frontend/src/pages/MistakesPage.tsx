@@ -20,7 +20,8 @@ import {
 import { apiFetch, del, get, IMAGE_RECOGNITION_TIMEOUT_MS, IMAGE_SOLUTION_TIMEOUT_MS, post } from '../api/client';
 import ChatMessage from '../components/ChatMessage';
 import ScopeSelector, { type ScopeBookOption } from '../components/ScopeSelector';
-import { ActionableIssue, StatusBanner } from '../components/ui/AsyncState';
+import { ActionableIssue, EmptyState, StatusBanner } from '../components/ui/AsyncState';
+import { Tabs } from '../components/ui/SelectionControls';
 import { useChatContext } from '../contexts/ChatContext';
 import ProblemImageEditor from '../features/mistakes/components/ProblemImageEditor';
 import { MistakeMetric } from '../features/mistakes/components/MistakePresentation';
@@ -484,16 +485,16 @@ const MistakesPage: React.FC = () => {
   const renderExplanation = () => {
     if (!explanation && !solveLoading) return null;
     return (
-      <section className="space-y-3 rounded-xl border border-border bg-bg-secondary/95 p-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-text-primary">
+      <section className="workspace-form-section">
+        <div className="flex items-center gap-2 workspace-interface-text font-medium text-text-primary">
           <BrainCircuit className="h-4 w-4 text-accent" /> 解题讲解
         </div>
         {solveLoading ? (
-          <div className="flex items-center gap-2 py-6 text-sm text-text-secondary">
+          <div className="flex items-center gap-2 py-6 workspace-interface-text text-text-secondary">
             <Loader2 className="h-4 w-4 animate-spin" /> 正在生成讲解...
           </div>
         ) : (
-          <ChatMessage role="assistant" content={explanation} />
+          <div className="workspace-reading-content"><ChatMessage role="assistant" content={explanation} /></div>
         )}
       </section>
     );
@@ -501,10 +502,10 @@ const MistakesPage: React.FC = () => {
 
   const renderMetadataAndSave = () => {
     return (
-      <section className="space-y-4 rounded-xl border border-border bg-bg-card p-4">
-        <div className="text-sm font-medium text-text-primary">归档信息</div>
+      <section className="workspace-form-section">
+        <div className="workspace-interface-text font-medium text-text-primary">归档信息</div>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          <input placeholder="来源，如 2024 真题 / 教材 P45" value={form.source} onChange={(e) => setField('source', e.target.value)} className="rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none placeholder-text-secondary focus:border-accent" />
+          <input placeholder="来源，如 2024 真题 / 教材 P45" value={form.source} onChange={(e) => setField('source', e.target.value)} className="app-field" />
           <ScopeSelector
             subject={form.subject}
             onSubjectChange={(value) => setField('subject', value)}
@@ -514,18 +515,18 @@ const MistakesPage: React.FC = () => {
             fullWidth
             width="wide"
           />
-          <input placeholder="章节，可选" value={form.chapter} onChange={(e) => setField('chapter', e.target.value)} className="rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none placeholder-text-secondary focus:border-accent" />
-          <input placeholder="知识点标签，逗号分隔" value={form.tags} onChange={(e) => setField('tags', e.target.value)} className="rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none placeholder-text-secondary focus:border-accent md:col-span-2" />
-          <label className="flex items-center gap-3 rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary">
+          <input placeholder="章节，可选" value={form.chapter} onChange={(e) => setField('chapter', e.target.value)} className="app-field" />
+          <input placeholder="知识点标签，逗号分隔" value={form.tags} onChange={(e) => setField('tags', e.target.value)} className="app-field md:col-span-2" />
+          <label className="flex items-center gap-3 workspace-radius border border-border bg-bg-primary px-3 py-2 workspace-interface-text text-text-primary">
             <span className="flex-shrink-0 text-text-secondary">难度 {form.difficulty}</span>
             <input type="range" min={1} max={5} value={form.difficulty} onChange={(e) => setField('difficulty', Number(e.target.value))} className="w-full accent-accent" />
           </label>
         </div>
         <div className="space-y-2">
-          <div className="text-sm font-medium text-text-primary">标记错因</div>
+          <div className="workspace-interface-text font-medium text-text-primary">标记错因</div>
           <div className="flex flex-wrap gap-3">
             {MISTAKE_TYPE_OPTIONS.map((type) => (
-              <label key={type} className="flex cursor-pointer items-center gap-1.5 text-sm text-text-primary">
+              <label key={type} className="flex cursor-pointer items-center gap-1.5 workspace-interface-text text-text-primary">
                 <input type="checkbox" checked={form.mistake_type.includes(type)} onChange={(e) => toggleMistakeType(type, e.target.checked)} className="accent-accent" />
                 {type}
               </label>
@@ -533,17 +534,17 @@ const MistakesPage: React.FC = () => {
           </div>
         </div>
         {savedRecord && (
-          <div className="rounded-lg border border-[#c9d8bd] bg-[#eef5e8] px-3 py-2 text-sm text-[var(--success)]">
+          <div className="workspace-radius border border-[var(--success-border)] bg-[var(--success-bg)] px-3 py-2 workspace-interface-text text-[var(--success)]">
             已保存成功，解答会在“列表”和“今日复习”中随错题一起展开显示。
           </div>
         )}
         <div className="flex justify-end gap-2">
           {savedRecord && (
-            <button onClick={resetForm} className="flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm text-text-primary hover:border-accent">
+            <button onClick={resetForm} className="app-secondary-button">
               <Plus className="h-4 w-4" /> 下一题
             </button>
           )}
-          <button onClick={handleAdd} disabled={!form.question_text.trim()} className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-45">
+          <button onClick={handleAdd} disabled={!form.question_text.trim()} className="app-primary-button disabled:opacity-45">
             <Check className="h-4 w-4" /> {savedRecord ? '再次保存' : '保存错题'}
           </button>
         </div>
@@ -554,41 +555,41 @@ const MistakesPage: React.FC = () => {
   const renderSavedRecordDetail = (record: MistakeRecord, showCorrectAnswer = false) => (
     <div className="mt-4 space-y-4 border-t border-border pt-4">
       <section className="space-y-2">
-        <div className="text-xs font-medium text-text-secondary">LaTeX 题干</div>
-        <div className="rounded-xl border border-border bg-bg-secondary p-3">
+        <div className="workspace-support-text font-medium text-text-secondary">LaTeX 题干</div>
+        <div className="workspace-reading-content py-3">
           <ChatMessage role="assistant" content={record.question_text} linkedConcepts={record.linked_concepts || []} />
         </div>
       </section>
       <section className="space-y-2">
-        <div className="text-xs font-medium text-text-secondary">对应概念</div>
-        <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-bg-secondary p-3">
+        <div className="workspace-support-text font-medium text-text-secondary">对应概念</div>
+        <div className="flex flex-wrap gap-2 py-3">
           {record.linked_concepts?.length ? (
             record.linked_concepts.map((concept) => (
-              <span key={concept.concept_id || concept.name} className="rounded border border-accent/30 bg-accent/10 px-2 py-1 text-xs font-medium text-accent-hover">
+              <span key={concept.concept_id || concept.name} className="rounded border border-accent/30 bg-accent/10 px-2 py-1 workspace-support-text font-medium text-accent-hover">
                 {concept.name}
               </span>
             ))
           ) : (
-            <span className="text-sm text-text-secondary">暂无对应概念</span>
+            <span className="workspace-interface-text text-text-secondary">暂无对应概念</span>
           )}
         </div>
       </section>
       {showCorrectAnswer && (
         <section className="space-y-2">
-          <div className="text-xs font-medium text-text-secondary">正确答案</div>
-          <div className="rounded-xl border border-border bg-bg-secondary p-3">
-            {record.correct_answer ? <ChatMessage role="assistant" content={record.correct_answer} linkedConcepts={record.linked_concepts || []} /> : <div className="text-sm text-text-secondary">暂无正确答案</div>}
+          <div className="workspace-support-text font-medium text-text-secondary">正确答案</div>
+          <div className="workspace-reading-content py-3">
+            {record.correct_answer ? <ChatMessage role="assistant" content={record.correct_answer} linkedConcepts={record.linked_concepts || []} /> : <div className="workspace-interface-text text-text-secondary">暂无正确答案</div>}
           </div>
         </section>
       )}
       <section className="space-y-2">
-        <div className="text-xs font-medium text-text-secondary">已保存解答</div>
-        <div className="rounded-xl border border-border bg-bg-secondary p-3">
-          {record.explanation ? <ChatMessage role="assistant" content={record.explanation} linkedConcepts={record.linked_concepts || []} /> : <div className="text-sm text-text-secondary">暂无已保存解答</div>}
+        <div className="workspace-support-text font-medium text-text-secondary">已保存解答</div>
+        <div className="workspace-reading-content py-3">
+          {record.explanation ? <ChatMessage role="assistant" content={record.explanation} linkedConcepts={record.linked_concepts || []} /> : <div className="workspace-interface-text text-text-secondary">暂无已保存解答</div>}
         </div>
       </section>
       <div className="flex justify-end">
-        <button onClick={() => deleteMistake(record.id)} className="flex items-center gap-1.5 rounded border border-[#e6b2a9] bg-[#fff1ed] px-3 py-1.5 text-xs text-[var(--danger)] hover:border-[var(--danger)]">
+        <button onClick={() => deleteMistake(record.id)} className="flex items-center gap-1.5 rounded border border-[var(--danger-border)] bg-[var(--danger-bg)] px-3 py-1.5 workspace-support-text text-[var(--danger)] hover:border-[var(--danger)]">
           <Trash2 className="h-3.5 w-3.5" /> 删除
         </button>
       </div>
@@ -602,7 +603,7 @@ const MistakesPage: React.FC = () => {
   const nextReviewDate = nextSuggestedReview(reviewSessionResults);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="management-workspace flex h-full flex-col">
       <div className="app-page-header border-b border-border bg-bg-primary">
         <h2 className="app-page-title">错题本</h2>
         <div className="window-drag-region" aria-hidden="true" />
@@ -618,20 +619,23 @@ const MistakesPage: React.FC = () => {
           width="wide"
         />
       </div>
-      <div className="flex items-center border-b border-border bg-bg-secondary px-4">
-        {TABS.map((tab) => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${activeTab === tab ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'}`}>{tab}</button>
-        ))}
-      </div>
+      <Tabs
+        label="错题工作区视图"
+        value={activeTab}
+        options={TABS.map((tab) => ({ value: tab, label: tab }))}
+        onChange={setActiveTab}
+        panelId="mistakes-workspace-panel"
+        className="bg-bg-secondary px-[var(--workspace-gutter)]"
+      />
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div id="mistakes-workspace-panel" role="tabpanel" aria-labelledby={`mistakes-workspace-panel-tab-${TABS.indexOf(activeTab)}`} className="management-page-content flex-1 overflow-y-auto">
         {activeTab === '录入' && (
           <div className="mx-auto max-w-6xl space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-y border-border px-1 py-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-1 pb-3">
               <div className="flex items-center gap-2">
                 {([1, 2, 3] as const).map((step) => (
                   <React.Fragment key={step}>
-                    <button type="button" onClick={() => step < entryStep && setEntryStep(step)} disabled={step > entryStep} className={`flex items-center gap-2 px-2 py-1.5 text-sm ${entryStep === step ? 'font-medium text-accent' : step < entryStep ? 'text-text-primary hover:text-accent' : 'cursor-not-allowed text-text-secondary/55'}`}>
+                    <button type="button" onClick={() => step < entryStep && setEntryStep(step)} disabled={step > entryStep} className={`flex items-center gap-2 px-2 py-1.5 workspace-interface-text ${entryStep === step ? 'font-medium text-accent' : step < entryStep ? 'text-text-primary hover:text-accent' : 'cursor-not-allowed text-text-secondary/55'}`}>
                       <span className={`flex h-5 w-5 items-center justify-center rounded border text-[11px] ${entryStep >= step ? 'border-accent/35 text-accent' : 'border-border'}`}>{step}</span>
                       {step === 1 ? '添加题目' : step === 2 ? '校对内容' : '归因保存'}
                     </button>
@@ -643,23 +647,23 @@ const MistakesPage: React.FC = () => {
             </div>
 
             {entryStep === 1 && (
-              <section className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+              <section className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
                 <button
                   type="button"
                   onClick={() => inputRef.current?.click()}
                   onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
                   onDragLeave={() => setDragActive(false)}
                   onDrop={(e) => { e.preventDefault(); setDragActive(false); const file = e.dataTransfer.files?.[0]; if (file) acceptFile(file); }}
-                  className={`app-panel flex min-h-[190px] w-full flex-col items-center justify-center p-6 text-center ${dragActive ? 'border-accent bg-[var(--accent-softer)]' : 'hover:border-accent/60'}`}
+                  className={`app-panel flex min-h-[160px] w-full flex-col items-center justify-center p-5 text-center ${dragActive ? 'border-accent bg-[var(--accent-softer)]' : 'hover:border-accent/60'}`}
                 >
-                  {imagePreview || rawPreview ? <img src={imagePreview || rawPreview} alt="错题预览" className="max-h-[270px] w-full object-contain" /> : <><ImagePlus className="mb-3 h-9 w-9 text-text-secondary" /><span className="type-section-title text-text-primary">上传错题图片</span><span className="type-caption mt-2 text-text-secondary">拖入图片，或点击调用文件选择与相机。</span></>}
+                  {imagePreview || rawPreview ? <img src={imagePreview || rawPreview} alt="错题预览" className="max-h-[270px] w-full object-contain" /> : <><ImagePlus className="mb-3 h-9 w-9 text-text-secondary" /><span className="type-section-title text-text-primary">上传错题图片</span><span className="type-secondary mt-2 text-text-secondary">拖入图片，或点击调用文件选择与相机。</span></>}
                 </button>
                 <input ref={inputRef} type="file" accept="image/*" capture="environment" onChange={handleFileChange} className="hidden" />
 
-                <div className="app-panel space-y-3 p-5">
-                  <h3 className="type-section-title text-text-primary">{rawFile ? '图片已就绪' : '选择录入方式'}</h3>
-                  <p className="type-caption leading-5 text-text-secondary">{rawFile ? '可调整题目区域，也可以直接识别。' : '拍照识别适合纸面题，识别后需要校对。'}</p>
-                  <button onClick={() => inputRef.current?.click()} className="app-secondary-button w-full"><Camera className="h-4 w-4" />{rawFile ? '重新选择图片' : '选择图片或拍照'}</button>
+                <div className="space-y-3 py-2 lg:border-l lg:border-border lg:pl-4">
+                  <h3 className="type-control text-text-primary">{rawFile ? '图片已就绪' : '其他录入方式'}</h3>
+                  <p className="type-secondary text-text-secondary">{rawFile ? '可调整题目区域，也可以直接识别。' : '拍照识别适合纸面题，识别后需要校对。'}</p>
+                  {rawFile && <button onClick={() => inputRef.current?.click()} className="app-secondary-button w-full"><Camera className="h-4 w-4" />重新选择图片</button>}
                   {rawFile && <button onClick={() => setCropOpen(true)} className="app-secondary-button w-full"><Crop className="h-4 w-4" />调整题目区域</button>}
                   {imageFile && <button onClick={() => uploadForOcr(false)} disabled={ocrLoading || solveLoading} className="app-primary-button w-full disabled:opacity-45">{ocrLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}开始识别</button>}
                   {!rawFile && <button onClick={() => { setField('question_text', ''); setEntryStep(2); }} className="app-secondary-button w-full">手动录入</button>}
@@ -669,29 +673,29 @@ const MistakesPage: React.FC = () => {
             )}
 
             {entryStep === 2 && (
-              <section className="app-panel overflow-hidden">
+              <section className="border-y border-border">
                 <div className="border-b border-border px-5 py-4">
                   <h3 className="type-section-title text-text-primary">校对题目内容</h3>
-                  <p className="type-caption mt-1 text-text-secondary">逐字检查题干、公式和符号；OCR 内容不会被直接当作最终题目。</p>
+                  <p className="type-secondary mt-1 text-text-secondary">逐字检查题干、公式和符号；OCR 内容不会被直接当作最终题目。</p>
                 </div>
                 <div className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
                   <div className="space-y-3">
                     <label className="block type-caption text-text-secondary">题干</label>
-                    <textarea value={form.question_text} onChange={(e) => setField('question_text', e.target.value)} placeholder="粘贴或输入完整题干，公式可使用 LaTeX" className="min-h-[220px] w-full rounded-xl border border-border bg-bg-primary px-3 py-2 type-body text-text-primary outline-none focus:border-accent" />
-                    {form.question_text.trim() && <div className="rounded-xl border border-border bg-bg-secondary p-3"><ChatMessage role="assistant" content={form.question_text} /></div>}
+                    <textarea value={form.question_text} onChange={(e) => setField('question_text', e.target.value)} placeholder="粘贴或输入完整题干，公式可使用 LaTeX" className="min-h-[220px] w-full workspace-radius border border-border bg-bg-primary px-3 py-2 type-body text-text-primary outline-none focus:border-accent" />
+                    {form.question_text.trim() && <div className="workspace-reading-content py-3"><ChatMessage role="assistant" content={form.question_text} /></div>}
                   </div>
                   <div className="space-y-3">
-                    {(imagePreview || rawPreview) && <img src={imagePreview || rawPreview} alt="错题原图对照" className="max-h-[190px] w-full rounded-lg border border-border bg-bg-primary object-contain" />}
+                    {(imagePreview || rawPreview) && <img src={imagePreview || rawPreview} alt="错题原图对照" className="max-h-[190px] w-full workspace-radius border border-border bg-bg-primary object-contain" />}
                     {Boolean(form.visual_ir.visual_type) && (
-                      <div className="rounded-xl border border-accent/25 bg-[var(--accent-softer)] p-3 text-xs text-text-secondary">
+                      <div className="workspace-radius border border-accent/25 bg-[var(--accent-softer)] p-3 workspace-support-text text-text-secondary">
                         <div className="font-medium text-text-primary">视觉解析：{String(form.visual_ir.visual_type)}</div>
                         {Array.isArray(form.visual_ir.uncertainties) && form.visual_ir.uncertainties.length > 0 && (
                           <div className="mt-1.5">请重点核对：{form.visual_ir.uncertainties.map(String).join('；')}</div>
                         )}
                       </div>
                     )}
-                    <textarea placeholder="你的答案，可选" value={form.user_answer} onChange={(e) => setField('user_answer', e.target.value)} className="min-h-[90px] w-full rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm outline-none focus:border-accent" />
-                    <textarea placeholder="正确答案，可选" value={form.correct_answer} onChange={(e) => setField('correct_answer', e.target.value)} className="min-h-[90px] w-full rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm outline-none focus:border-accent" />
+                    <textarea placeholder="你的答案，可选" value={form.user_answer} onChange={(e) => setField('user_answer', e.target.value)} className="min-h-[90px] w-full workspace-radius border border-border bg-bg-primary px-3 py-2 workspace-interface-text outline-none focus:border-accent" />
+                    <textarea placeholder="正确答案，可选" value={form.correct_answer} onChange={(e) => setField('correct_answer', e.target.value)} className="min-h-[90px] w-full workspace-radius border border-border bg-bg-primary px-3 py-2 workspace-interface-text outline-none focus:border-accent" />
                     <button onClick={() => uploadForOcr(true)} disabled={!imageFile || ocrLoading || solveLoading} className="app-secondary-button w-full disabled:opacity-45">{solveLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4" />}根据图片生成讲解</button>
                   </div>
                 </div>
@@ -705,7 +709,7 @@ const MistakesPage: React.FC = () => {
             {entryStep === 3 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div><h3 className="type-section-title text-text-primary">补充归档信息</h3><p className="type-caption mt-1 text-text-secondary">标记来源、知识点和错因，以便后续筛选与间隔复习。</p></div>
+                  <div><h3 className="type-section-title text-text-primary">补充归档信息</h3><p className="type-secondary mt-1 text-text-secondary">标记来源、知识点和错因，以便后续筛选与间隔复习。</p></div>
                   <button onClick={() => setEntryStep(2)} className="app-secondary-button">返回校对</button>
                 </div>
                 {renderExplanation()}
@@ -718,7 +722,7 @@ const MistakesPage: React.FC = () => {
         {activeTab === '列表' && (
           <div className="mx-auto max-w-5xl space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3 text-text-secondary">
-              <div className="flex items-center gap-2"><Search className="h-4 w-4" /><span className="text-sm">共 {records.length} 条错题</span></div>
+              <div className="flex items-center gap-2"><Search className="h-4 w-4" /><span className="workspace-interface-text">共 {records.length} 条错题</span></div>
               <div className="flex flex-wrap items-center gap-2">
                 <ScopeSelector
                   subject={subjectFilter}
@@ -730,29 +734,29 @@ const MistakesPage: React.FC = () => {
                   align="right"
                   width="compact"
                 />
-                {subjectFilter && <button onClick={() => updateSubjectFilter('')} className="rounded-xl border border-border px-3 py-1.5 text-sm hover:border-accent hover:text-text-primary">全部</button>}
-                <button onClick={() => setActiveTab('录入')} className="flex items-center gap-2 rounded-xl border border-border px-3 py-1.5 text-sm hover:border-accent hover:text-text-primary"><Plus className="h-4 w-4" /> 新增</button>
+                {subjectFilter && <button onClick={() => updateSubjectFilter('')} className="app-secondary-button">全部</button>}
+                <button onClick={() => setActiveTab('录入')} className="app-secondary-button"><Plus className="h-4 w-4" /> 新增</button>
               </div>
             </div>
-            <div className="space-y-3">
+            <div className="workspace-register">
               {mistakeList.visibleItems.map((record) => {
                 const expanded = expandedId === record.id;
                 return (
-                  <div key={record.id} className="rounded-xl border border-border bg-bg-card p-4 transition-colors hover:border-accent/50">
+                  <div key={record.id} className="workspace-register-row px-2 py-4">
                     <button type="button" onClick={() => setExpandedId(expanded ? '' : record.id)} className="flex w-full items-start justify-between gap-3 text-left">
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 text-sm font-medium text-text-primary">
+                        <div className="flex items-center gap-2 workspace-interface-text font-medium text-text-primary">
                           {expanded ? <ChevronDown className="h-4 w-4 text-accent" /> : <ChevronRight className="h-4 w-4 text-text-secondary" />}
                           <span className="truncate">{deriveMistakeTitle(record)}</span>
                         </div>
-                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-text-secondary">
+                        <div className="mt-2 flex flex-wrap items-center gap-3 workspace-support-text text-text-secondary">
                           <span>{record.subject || '未分类'}</span>
                           {record.chapter && <span>{record.chapter}</span>}
                           <span>{record.tags.join(', ') || '无标签'}</span>
                           <span className="text-accent">难度 {record.difficulty}</span>
                         </div>
                       </div>
-                      <span className="flex-shrink-0 text-xs text-text-secondary">{record.id}</span>
+                      <span className="flex-shrink-0 workspace-support-text text-text-secondary">{record.id}</span>
                     </button>
                     {expanded && renderSavedRecordDetail(record)}
                   </div>
@@ -760,12 +764,12 @@ const MistakesPage: React.FC = () => {
               })}
               {mistakeList.hasMore && (
                 <div className="flex justify-center pt-1">
-                  <button onClick={mistakeList.showMore} className="rounded-xl border border-border bg-bg-primary px-4 py-2 text-sm text-text-secondary hover:border-accent hover:text-text-primary">
+                  <button onClick={mistakeList.showMore} className="app-secondary-button">
                     加载更多错题（已显示 {mistakeList.visibleCount} / {mistakeList.totalCount}）
                   </button>
                 </div>
               )}
-              {records.length === 0 && <div className="app-panel px-4 py-8 text-center text-text-secondary"><p>还没有错题。</p><button onClick={() => setActiveTab('录入')} className="app-secondary-button mt-3">录入第一道错题</button></div>}
+              {records.length === 0 && <EmptyState title="还没有错题" action={<button onClick={() => setActiveTab('录入')} className="app-secondary-button">录入第一道错题</button>} />}
             </div>
           </div>
         )}
@@ -775,12 +779,12 @@ const MistakesPage: React.FC = () => {
               <div className="flex flex-wrap items-start justify-between gap-5">
                 <div>
                   <div className="flex items-center gap-2 text-text-primary"><BookOpenCheck className="h-5 w-5 text-accent" /><h3 className="type-section-title">今日复习</h3></div>
-                  <p className="mt-2 text-sm text-text-secondary">{dueRecords.length} 项 · 预计 {estimateReviewMinutes(dueRecords.length)} 分钟</p>
-                  <p className="mt-3 text-sm text-text-primary">主要涉及：{reviewConcepts.length ? reviewConcepts.join('、') : '现有记录未标注知识点'}</p>
+                  <p className="mt-2 workspace-interface-text text-text-secondary">{dueRecords.length} 项 · 预计 {estimateReviewMinutes(dueRecords.length)} 分钟</p>
+                  <p className="mt-3 workspace-interface-text text-text-primary">主要涉及：{reviewConcepts.length ? reviewConcepts.join('、') : '现有记录未标注知识点'}</p>
                 </div>
                 {dueRecords.length > 0 && <button type="button" onClick={startReviewSession} className="app-primary-button">开始本次复习 <ArrowRight className="h-4 w-4" /></button>}
               </div>
-              {dueRecords.length === 0 && <p className="mt-4 border-t border-border pt-4 text-sm text-text-secondary">今日没有到期错题，可以继续整理新错题或前往习题库练习。</p>}
+              {dueRecords.length === 0 && <p className="mt-4 border-t border-border pt-4 workspace-interface-text text-text-secondary">今日没有到期错题，可以继续整理新错题或前往习题库练习。</p>}
             </section>}
 
             {currentReviewItem && <section className="app-panel overflow-hidden">
@@ -792,26 +796,26 @@ const MistakesPage: React.FC = () => {
                 <button type="button" onClick={() => setReviewSessionItems([])} className="app-secondary-button">退出本轮</button>
               </div>
               <div className="space-y-5 p-5">
-                <div className="rounded-xl border border-border bg-bg-secondary p-4">
-                  <ChatMessage role="assistant" content={currentReviewItem.question_text} linkedConcepts={currentReviewItem.linked_concepts || []} />
+                <div className="workspace-radius border border-border bg-bg-secondary p-4">
+                  <div className="workspace-reading-content"><ChatMessage role="assistant" content={currentReviewItem.question_text} linkedConcepts={currentReviewItem.linked_concepts || []} /></div>
                 </div>
                 {!reviewFeedbackOpen ? <div className="space-y-3">
                   <label className="block type-caption text-text-secondary" htmlFor="review-session-answer">先独立作答，再查看反馈</label>
-                  <textarea id="review-session-answer" value={reviewAnswer} onChange={(event) => setReviewAnswer(event.target.value)} placeholder="在这里整理你的答案；本轮不会覆盖原错题记录。" className="min-h-[120px] w-full rounded-xl border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none focus:border-accent" />
+                  <textarea id="review-session-answer" value={reviewAnswer} onChange={(event) => setReviewAnswer(event.target.value)} placeholder="在这里整理你的答案；本轮不会覆盖原错题记录。" className="min-h-[120px] w-full workspace-radius border border-border bg-bg-primary px-3 py-2 workspace-interface-text text-text-primary outline-none focus:border-accent" />
                   <div className="flex justify-end"><button type="button" onClick={() => setReviewFeedbackOpen(true)} className="app-primary-button">查看答案与反馈</button></div>
                 </div> : <div className="space-y-4 border-t border-border pt-5">
                   <section>
                     <div className="mb-2 type-caption text-text-secondary">正确答案</div>
-                    <div className="rounded-xl border border-border bg-bg-secondary p-4">{currentReviewItem.correct_answer ? <ChatMessage role="assistant" content={currentReviewItem.correct_answer} linkedConcepts={currentReviewItem.linked_concepts || []} /> : <p className="text-sm text-text-secondary">这道题尚未保存正确答案，请结合已保存讲解判断。</p>}</div>
+                    <div className="workspace-reading-content workspace-radius border border-border bg-bg-secondary p-4">{currentReviewItem.correct_answer ? <ChatMessage role="assistant" content={currentReviewItem.correct_answer} linkedConcepts={currentReviewItem.linked_concepts || []} /> : <p className="workspace-interface-text text-text-secondary">这道题尚未保存正确答案，请结合已保存讲解判断。</p>}</div>
                   </section>
                   {currentReviewItem.explanation && <section>
                     <div className="mb-2 type-caption text-text-secondary">已保存讲解</div>
-                    <div className="rounded-xl border border-border bg-bg-secondary p-4"><ChatMessage role="assistant" content={currentReviewItem.explanation} linkedConcepts={currentReviewItem.linked_concepts || []} /></div>
+                    <div className="workspace-reading-content workspace-radius border border-border bg-bg-secondary p-4"><ChatMessage role="assistant" content={currentReviewItem.explanation} linkedConcepts={currentReviewItem.linked_concepts || []} /></div>
                   </section>}
                   <section>
-                    <div className="mb-2 text-sm font-medium text-text-primary">这次掌握得怎么样？</div>
+                    <div className="mb-2 workspace-interface-text font-medium text-text-primary">这次掌握得怎么样？</div>
                     <div className="flex flex-wrap gap-2">
-                      {[1, 2, 3, 4, 5].map((quality) => <button key={quality} type="button" disabled={reviewSubmitting} onClick={() => submitSessionReview(quality)} className="rounded border border-border bg-bg-primary px-3 py-2 text-xs transition-colors hover:border-accent hover:text-accent disabled:cursor-wait disabled:opacity-50">{quality} {qualityLabels[quality]}</button>)}
+                      {[1, 2, 3, 4, 5].map((quality) => <button key={quality} type="button" disabled={reviewSubmitting} onClick={() => submitSessionReview(quality)} className="rounded border border-border bg-bg-primary px-3 py-2 workspace-support-text transition-colors hover:border-accent hover:text-accent disabled:cursor-wait disabled:opacity-50">{quality} {qualityLabels[quality]}</button>)}
                     </div>
                   </section>
                 </div>}
@@ -820,19 +824,19 @@ const MistakesPage: React.FC = () => {
 
             {reviewSessionComplete && <section className="app-panel p-5">
               <h3 className="type-section-title text-text-primary">本轮复习完成</h3>
-              <p className="mt-2 text-sm text-text-secondary">已连续完成 {reviewSessionResults.length} 项，结果已写入原有复习记录。</p>
+              <p className="mt-2 workspace-interface-text text-text-secondary">已连续完成 {reviewSessionResults.length} 项，结果已写入原有复习记录。</p>
               <div className="mt-5 grid grid-cols-1 divide-y divide-border border-y border-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
                 <MistakeMetric label="已掌握" value={reviewOutcome.mastered} tone="text-[var(--success)]" />
                 <MistakeMetric label="需要再次复习" value={reviewOutcome.revisit} tone="text-text-primary" />
                 <MistakeMetric label="仍然薄弱" value={reviewOutcome.weak} tone="text-[var(--warning-text)]" />
               </div>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-                <p className="text-sm text-text-secondary">下一次建议复习时间：<span className="font-medium text-text-primary">{nextReviewDate || '等待复习计划更新'}</span></p>
+                <p className="workspace-interface-text text-text-secondary">下一次建议复习时间：<span className="font-medium text-text-primary">{nextReviewDate || '等待复习计划更新'}</span></p>
                 <button type="button" onClick={() => { setReviewSessionItems([]); setReviewSessionResults([]); }} className="app-secondary-button">返回今日复习</button>
               </div>
             </section>}
 
-            {reviewMessage && currentReviewItem && <div className="rounded-lg border border-[#c9d8bd] bg-[#eef5e8] px-3 py-2 text-sm text-[var(--success)]">{reviewMessage}</div>}
+            {reviewMessage && currentReviewItem && <div className="workspace-radius border border-[var(--success-border)] bg-[var(--success-bg)] px-3 py-2 workspace-interface-text text-[var(--success)]">{reviewMessage}</div>}
           </div>
         )}
 
@@ -840,7 +844,7 @@ const MistakesPage: React.FC = () => {
           <div className="max-w-3xl space-y-6">
             {pageLoading && <div className="flex items-center justify-center gap-2 py-8 text-text-secondary"><Loader2 className="h-5 w-5 animate-spin" /> 加载统计中...</div>}
             {pageError && <ActionableIssue title="错题统计暂时无法加载" impact="错题列表和复习记录仍然保留，但本页统计可能不完整。" actions={<button type="button" onClick={loadStats} className="app-secondary-button">重新加载</button>} details={pageError} />}
-            {!pageLoading && !pageError && stats && <><div className="grid grid-cols-1 divide-y divide-border border-y border-border bg-bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0"><MistakeMetric label="总错题数" value={stats.total ?? 0} tone="text-text-primary" /><MistakeMetric label="今日待复习" value={stats.due_today ?? 0} tone="text-[var(--danger)]" /><MistakeMetric label="错因类型" value={stats.by_type ? Object.keys(stats.by_type).length : 0} tone="text-text-primary" /></div><div className="border-y border-border bg-bg-card p-4"><h3 className="mb-3 flex items-center gap-2 text-sm font-medium"><TrendingUp className="h-4 w-4 text-accent" /> 薄弱点 TOP 列表</h3><div className="space-y-2">{weakPoints.map((w, i) => <div key={`${w.type}-${w.name}`} className="flex items-center justify-between gap-3 text-sm"><span className="min-w-0 truncate text-text-primary">{i + 1}. <strong>{w.name || '未命名'}</strong><span className="ml-1 text-text-secondary">({w.type || '类型未知'})</span></span><span className="flex-shrink-0 font-medium text-accent">{w.count ?? 0} 次</span></div>)}{weakPoints.length === 0 && <div className="text-sm text-text-secondary">暂无薄弱点数据</div>}</div></div></>}
+            {!pageLoading && !pageError && stats && <><div className="grid grid-cols-1 divide-y divide-border border-y border-border bg-bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0"><MistakeMetric label="总错题数" value={stats.total ?? 0} tone="text-text-primary" /><MistakeMetric label="今日待复习" value={stats.due_today ?? 0} tone="text-[var(--danger)]" /><MistakeMetric label="错因类型" value={stats.by_type ? Object.keys(stats.by_type).length : 0} tone="text-text-primary" /></div><div className="border-y border-border bg-bg-card p-4"><h3 className="mb-3 flex items-center gap-2 workspace-interface-text font-medium"><TrendingUp className="h-4 w-4 text-accent" /> 薄弱点 TOP 列表</h3><div className="space-y-2">{weakPoints.map((w, i) => <div key={`${w.type}-${w.name}`} className="flex items-center justify-between gap-3 workspace-interface-text"><span className="min-w-0 truncate text-text-primary">{i + 1}. <strong>{w.name || '未命名'}</strong><span className="ml-1 text-text-secondary">({w.type || '类型未知'})</span></span><span className="flex-shrink-0 font-medium text-accent">{w.count ?? 0} 次</span></div>)}{weakPoints.length === 0 && <div className="workspace-interface-text text-text-secondary">暂无薄弱点数据</div>}</div></div></>}
             {!pageLoading && !pageError && !stats && <div className="py-12 text-center text-text-secondary">暂无统计数据</div>}
           </div>
         )}

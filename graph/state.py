@@ -87,4 +87,5 @@ class AgentState(TypedDict):
     # === 控制 ===
     error: str
     resume_phase: str
+    direct_answer: bool
     resume_checkpoint_version: int
