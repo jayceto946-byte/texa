@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
   applyTexaTheme,
@@ -60,6 +60,18 @@ describe('Texa appearance themes', () => {
     expect(root.dataset.theme).toBe('clay');
     expect(values.get('--color-accent')).toBe('#8a5142');
     expect(values.get(TEXA_THEME_STORAGE_KEY)).toBe('clay');
+  });
+
+  it('mirrors the selected theme to the desktop startup cache', () => {
+    const setStartupAppearance = vi.fn().mockResolvedValue(true);
+    vi.stubGlobal('window', { kaoyanDesktop: { setStartupAppearance } });
+    try {
+      const root = { dataset: {} as DOMStringMap, style: { setProperty: () => undefined } as unknown as CSSStyleDeclaration };
+      applyTexaTheme('clay', root, { setItem: () => undefined });
+      expect(setStartupAppearance).toHaveBeenCalledWith({ id: 'clay', tokens: TEXA_THEMES.find((theme) => theme.id === 'clay')?.tokens });
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('keeps supporting text legible across the existing themes', () => {

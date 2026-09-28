@@ -6,6 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const os = require('node:os');
 const { findAvailablePort, portFromUrl, resolveUserDataPath } = require('./runtime.cjs');
+const { readStartupAppearance, writeStartupAppearance } = require('./appearance.cjs');
 
 // Keep the pre-Texa userData locations stable. Changing productName/package name
 // without this override would make existing installations appear to lose data.
@@ -16,6 +17,8 @@ app.setPath('userData', resolveUserDataPath({
   appDataPath: app.getPath('appData'),
   isPackaged: app.isPackaged,
 }));
+const STARTUP_APPEARANCE_PATH = path.join(app.getPath('userData'), 'startup-appearance.json');
+let startupAppearance = readStartupAppearance(STARTUP_APPEARANCE_PATH);
 const APP_ICON_PATH = path.join(__dirname, 'assets', 'texa-taskbar.ico');
 
 const BACKEND_URL_OVERRIDE = (process.env.KAOYAN_BACKEND_URL || '').trim();
@@ -676,7 +679,7 @@ function createWindow() {
       ? { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 18, y: 11 } }
       : { frame: false }),
     show: false,
-    backgroundColor: '#f2f4f1',
+    backgroundColor: startupAppearance?.tokens['--color-bg-primary'] || '#faf9f6',
     title: 'Texa',
     icon: APP_ICON_PATH,
     webPreferences: {
@@ -726,6 +729,12 @@ ipcMain.handle('window:toggle-maximize', () => {
   return nextState;
 });
 ipcMain.handle('window:close', () => mainWindow?.close());
+ipcMain.on('appearance:get', (event) => { event.returnValue = startupAppearance; });
+ipcMain.handle('appearance:set', (_event, value) => {
+  const saved = writeStartupAppearance(STARTUP_APPEARANCE_PATH, value);
+  if (saved) startupAppearance = saved;
+  return Boolean(saved);
+});
 ipcMain.handle('app:restart', async () => {
   shuttingDown = true;
   await stopBackend();

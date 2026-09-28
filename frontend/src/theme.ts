@@ -232,6 +232,9 @@ export function applyTexaTheme(
   } catch {
     // The theme still applies for this session when storage is unavailable.
   }
+  if (typeof window !== 'undefined') {
+    void window.kaoyanDesktop?.setStartupAppearance?.({ id: theme.id, tokens: theme.tokens }).catch(() => undefined);
+  }
   return theme.id;
 }
 

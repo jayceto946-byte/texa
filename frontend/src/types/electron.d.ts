@@ -31,6 +31,8 @@ declare global {
     kaoyanDesktop?: {
       isElectron: boolean;
       platform?: 'win32' | 'darwin' | 'linux' | string;
+      getStartupAppearance?: () => { id: string; tokens: Record<string, string> } | null;
+      setStartupAppearance?: (appearance: { id: string; tokens: Record<string, string> }) => Promise<boolean>;
       minimize: () => Promise<void>;
       isMaximized?: () => Promise<boolean>;
       toggleMaximize: () => Promise<boolean>;

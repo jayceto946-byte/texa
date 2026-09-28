@@ -128,3 +128,17 @@ def test_settings_catalog_reports_reasoning_as_the_reasoning_role_requirement():
     ollama = next(item for item in payload["providers"] if item["id"] == "ollama")
     assert "vision" not in ollama["capabilities"]
     assert "vision" not in ollama["default_models"]
+
+
+def test_2026_catalog_distinguishes_text_only_and_image_input_models():
+    for provider, model in (("deepseek", "deepseek-v4-pro"),):
+        assert Capability.VISION not in get_model(provider, model).capabilities
+    for provider, model in (
+        ("deepseek", "deepseek-flash"),
+        ("moonshot", "kimi-k2.6"),
+        ("qwen", "qwen3.8-max"),
+        ("qwen", "qwen3.7-plus"),
+        ("gemini", "gemini-3.8-flash"),
+        ("openai", "gpt-5.6-sol"),
+    ):
+        assert Capability.VISION in get_model(provider, model).capabilities
