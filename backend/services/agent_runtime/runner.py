@@ -12,6 +12,9 @@ from backend.services.agent_runtime.store import RuntimeStore
 from backend.tools.registry import ToolContext, ToolRegistry, ToolResult
 
 
+_TOOL_SLOTS = threading.BoundedSemaphore(2)
+
+
 class FixedRunner:
     def __init__(self, store: RuntimeStore, registry: ToolRegistry, *,
                  allowlist: frozenset[str] = frozenset({"get_recent_progress"}),
@@ -57,6 +60,9 @@ class FixedRunner:
         # Check the bounded worker quota before reserving the operation or launching work.
         if not self._slots.acquire(blocking=False):
             raise RuntimeDenied("tool execution capacity exhausted")
+        if not _TOOL_SLOTS.acquire(blocking=False):
+            self._slots.release()
+            raise RuntimeDenied("process tool execution capacity exhausted")
         started = False
         try:
             snapshot = self.store.request_tool(
@@ -77,6 +83,7 @@ class FixedRunner:
                     results.put(("error", exc))
                 finally:
                     self._slots.release()
+                    _TOOL_SLOTS.release()
 
             thread = threading.Thread(target=invoke, name="texa-p0-read-tool", daemon=True)
             thread.start()
@@ -106,6 +113,7 @@ class FixedRunner:
         finally:
             if not started:
                 self._slots.release()
+                _TOOL_SLOTS.release()
 
     def pause(self, run_id: str, owner: str) -> dict[str, Any]:
         return self.store.close(run_id, owner, outcome="paused", error_code="interrupted")

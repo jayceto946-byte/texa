@@ -558,10 +558,7 @@ def generate_node(state: dict) -> dict:
         elif chapter_summary:
             final += f"\n\n---\n\n## \u7ae0\u8282\u603b\u7ed3\n{chapter_summary}"
     else:
-        try:
-            llm = get_llm(temperature=0.1 if state.get("use_textbook_context", True) else 1)
-        except TypeError:
-            llm = get_llm()
+        llm = get_llm(temperature=0.1 if state.get("use_textbook_context", True) else 1)
         final = llm.invoke(prepare_answer_generation(state)).content
     final = finalize_generated_answer(state, final)
     return {

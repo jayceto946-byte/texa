@@ -76,24 +76,6 @@ def derive_required_outputs(question: str, *, intent: str = "qa", answer_mode: s
     return outputs
 
 
-def _verified_math(tool_context_pack: dict[str, Any] | None) -> bool:
-    for item in (tool_context_pack or {}).get("outputs") or []:
-        if not isinstance(item, dict):
-            continue
-        verification = item.get("verification") or {}
-        if item.get("tool") == "verify_math_result" and verification.get("passed") is True:
-            return True
-    return False
-
-
-def _evidence_text(evidence_items: list[dict[str, Any]] | None) -> str:
-    parts = []
-    for item in evidence_items or []:
-        if isinstance(item, dict):
-            parts.append(str(item.get("text") or item.get("problem_text") or ""))
-    return "\n".join(parts)
-
-
 def _balanced_formula_delimiters(text: str) -> bool:
     return text.count("$$") % 2 == 0 and text.count("\\[") == text.count("\\]") and text.count("\\(") == text.count("\\)")
 
@@ -226,15 +208,8 @@ def verify_answer(
             elif answer_policy == "method_only":
                 passed = "未验证估算" in text or "未作为精确答案" in text
                 check.update(status="degraded" if passed else "failed", reason="用户选择只讲方法，数值不得标为精确答案")
-            elif _verified_math(tool_context_pack):
-                check.update(status="passed", verification="deterministic_math_tool")
             else:
-                evidence_numbers = set(_NUMBER_RE.findall(_evidence_text(evidence_items)))
-                supported = any(value in evidence_numbers for value in numbers)
-                check.update(
-                    status="passed" if supported else "unverified",
-                    reason="" if supported else "数值未经过确定性计算工具或补充证据交叉验证",
-                )
+                check.update(status="unverified", reason="数值缺少与最终结论绑定的核验依据")
         checks.append(check)
 
     failed = [item for item in checks if item.get("status") == "failed"]

@@ -458,7 +458,8 @@ export interface AgentPendingAction {
   action_id?: string;
   type: string;
   payload: Record<string, unknown>;
-  status?: 'pending' | 'confirmed' | 'rejected' | 'failed';
+  status?: 'pending' | 'confirmed' | 'executed' | 'executing' | 'expired' | 'unknown' | 'rejected' | 'failed';
+  allowed_actions?: Array<'confirm' | 'reject'>;
   result?: Record<string, unknown> | null;
   error?: string;
 }

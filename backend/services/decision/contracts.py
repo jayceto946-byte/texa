@@ -45,10 +45,6 @@ class SemanticRouterBackend(Protocol):
     def rank(self, context: DecisionContext, candidates: tuple[DomainCapability, ...]) -> SemanticRanking: ...
 
 
-class FallbackRouterBackend(Protocol):
-    def choose(self, context: DecisionContext, candidates: tuple[DomainCapability, ...]) -> DomainCapability | None: ...
-
-
 @dataclass(frozen=True)
 class DecisionResult:
     mode: Literal["direct_answer", "capability", "clarify", "unsupported"]
@@ -62,16 +58,6 @@ class DecisionResult:
     backend_version: str = "1"
     fallback_used: bool = False
     shadow_only: bool = False
-
-
-@dataclass(frozen=True)
-class DomainCapabilitySpec:
-    id: DomainCapability
-    version: str
-    action_intents: tuple[str, ...] = ()
-    required_context: tuple[str, ...] = ()
-    allowed_permissions: frozenset[str] = frozenset({"READ"})
-    enabled: bool = True
 
 
 @dataclass(frozen=True)

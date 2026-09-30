@@ -1,8 +1,4 @@
-"""Offline bounded P2a driver over the same SQL authority and tool executor.
-
-Production chat binding waits for scoped evidence, outbox projection, and desktop
-recovery gates. This driver deliberately has no HTTP entry point.
-"""
+"""Bounded SQL runtime driver used by Chat and Goal workers."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -59,7 +55,7 @@ class BoundedAgentRunner:
     candidate_tools: tuple[dict, ...]
     model_timeout_seconds: float = 35.0
 
-    def run_offline(self, run_id: str, owner: str, *, context: ToolContext | None = None,
+    def run_bounded(self, run_id: str, owner: str, *, context: ToolContext | None = None,
                     answer_state: dict | None = None,
                     answer_generator: Callable | None = None, write_service=None) -> dict:
         if (answer_state is None) != (answer_generator is None):
@@ -97,6 +93,8 @@ class BoundedAgentRunner:
                                           "tool_id": action.tool_id if action.kind == "call" else "",
                                           "arguments": action.args if action.kind == "call" else {}}])
             if action.kind == "finish":
+                if snapshot["task"].get("required_inputs") or (answer_state or {}).get("required_inputs") or (answer_state or {}).get("missing_inputs"):
+                    return self.store.close(run_id, owner, outcome="failed", error_code="required_input_missing")
                 answer = strip_thinking(action.answer).strip()
                 answer_sources = []
                 required = snapshot["task"].get("required_outputs") or []

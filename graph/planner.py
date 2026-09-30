@@ -211,10 +211,7 @@ def plan_node(state: dict) -> dict:
     # 读取本地分类器 hint（如果有）
     local_hint = state.get("_local_intent_hint", "无")
 
-    try:
-        llm = get_llm(include_response_headers=True, stream_usage=True)
-    except TypeError:  # test doubles and non-ChatOpenAI backends
-        llm = get_llm()
+    llm = get_llm(include_response_headers=True, stream_usage=True)
     prompt_started = time.perf_counter()
     prompt = INTENT_PROMPT.format(
         chapters="\n".join(f"- {c}" for c in chapters) if chapters else "（无章节）",
@@ -227,10 +224,7 @@ def plan_node(state: dict) -> dict:
     token_timer = _PlannerTokenTimer()
     api_started = time.perf_counter()
     planner_trace["api_request_start_ms"] = round((api_started - plan_enter) * 1000, 2)
-    try:
-        response = llm.invoke(prompt, config={"callbacks": [token_timer]})
-    except TypeError:  # narrow compatibility fallback for simple test doubles
-        response = llm.invoke(prompt)
+    response = llm.invoke(prompt, config={"callbacks": [token_timer]})
     api_finished = time.perf_counter()
     planner_trace["api_response_elapsed_ms"] = round((api_finished - api_started) * 1000, 2)
     planner_trace["api_response_end_ms"] = round((api_finished - plan_enter) * 1000, 2)
@@ -250,7 +244,7 @@ def plan_node(state: dict) -> dict:
         fallback_intent = state.get("_local_intent", "qa")
         plan = {
             "intent": fallback_intent,
-            "target_chapters": chapters[:1] if chapters else [],
+            "target_chapters": [],
             "sub_tasks": [],
         }
         planner_trace["parse_fallback"] = True

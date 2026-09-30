@@ -613,13 +613,24 @@ def _prepare_chat_turn(
     conversation_id = resolve_conversation_id_for_scope(req.conversation_id, subject, book_name)
     turn_id = ensure_turn_id(req.turn_id)
     history = load_history(conversation_id)
-    rewritten_question, resolution_trace = _resolve_request_question(
-        req.question, history, conversation_id, book_name=book_name, subject=subject,
-    )
     if resume and resume_task is not None:
-        rewritten_question = str(resume_task.artifacts.get("resolved_query") or rewritten_question)
+        rewritten_question = str(resume_task.artifacts.get("resolved_query") or req.question)
+        resolution_trace = dict(resume_task.artifacts.get("resolution_trace") or {})
         resolution_trace["resolution_action"] = "continue"
         resolution_trace["resolved_query"] = rewritten_question
+    else:
+        rewritten_question, resolution_trace = _resolve_request_question(
+            req.question, history, conversation_id, book_name=book_name, subject=subject,
+        )
+        bridge = resolution_trace.get("learning_bridge") or {}
+        if bridge.get("action") in {"recorded", "handled", "resume"}:
+            from backend.services.learning_state import LearningStateService
+            service = LearningStateService()
+            for index, operation in enumerate(bridge.get("state_operations") or []):
+                state = service.apply_operation(operation, book_name=operation.get("book_name") or book_name,
+                    subject=subject, conversation_id=conversation_id,
+                    source_id="prep_" + uuid.uuid5(uuid.NAMESPACE_URL, f"chat-preparation:{conversation_id}:{turn_id}:{index}:{operation['operation']}").hex)
+                bridge["learning_context"] = service.learning_context_pack(state)
 
     book_name, subject = _scope_from_learning_context(book_name, subject, resolution_trace)
     conversation_id = resolve_conversation_id_for_scope(conversation_id, subject, book_name)
@@ -655,7 +666,7 @@ def _prepare_chat_turn(
         "use_textbook_context": scope_decision.use_textbook_context,
         "scope_reason": scope_decision.reason,
         "answer_mode": scope_decision.answer_mode,
-        "context_versions": current_context_versions(book_name),
+        "context_versions": (resume_task.artifacts.get("context_versions") or {}) if resume and resume_task else current_context_versions(book_name),
     }
 
 
@@ -829,6 +840,8 @@ def _prepared_chat_stream(
     learning_task = get_learning_task_store().claim_run(learning_task, run_id)
     learning_task.artifacts.update({
         "resolved_query": rewritten_question,
+        "resolution_trace": resolution_trace,
+        "context_versions": context_versions,
         "book_name": book_name,
         "subject": subject,
         "target_chapters": target_chapters,
@@ -856,6 +869,9 @@ def _prepared_chat_stream(
                 subject=subject, book_ids=(book_name,) if book_name else (),
                 current_task_status="", resolution_status=str(resolution_trace.get("resolution_action") or "resolved"),
             ))
+            if routing_decision.mode == "direct_answer" and not use_textbook_context and os.getenv("TEXA_AGENT_DIRECT_FAST_PATH", "0") == "1":
+                from dataclasses import replace
+                routing_decision = replace(routing_decision, shadow_only=False)
         except Exception:
             logger.exception("shadow capability routing failed")
 
@@ -898,7 +914,7 @@ def _prepared_chat_stream(
                                     "reason_code": scope_reason})
         if routing_decision is not None:
             emit_runtime_event("decision", **audit_identity,
-                               payload={"route": "shadow_router", "decision_mode": routing_decision.mode,
+                               payload={"route": "shadow_router" if routing_decision.shadow_only else "direct_fast_path", "decision_mode": routing_decision.mode,
                                         "capability": routing_decision.selected_capability or "direct_answer",
                                         "shadow_only": routing_decision.shadow_only})
         if routing_decision is not None:
@@ -1436,11 +1452,6 @@ def _prepared_chat_stream(
                             update_ledger_evidence_support(conversation_id, support_status)
                         except Exception:
                             logger.exception("evidence support persistence failed")
-                    emit_runtime_event("user_outcome", **audit_identity,
-                                       payload={"task_status": completed_task.status,
-                                                "verification_status": str(((event.get("state") or {}).get("answer_verification") or {}).get("status") or "unknown"),
-                                                "message_ref": assistant_message_id} if assistant_message_id else
-                                       {"task_status": completed_task.status})
                 else:
                     observe(event)
                 yield f"data: {json.dumps(_chat_execution_envelope(event), ensure_ascii=False)}\n\n"
@@ -1629,6 +1640,8 @@ def resume_chat_task_stream(task_id: str):
         snapshot = runtime.task_snapshot(task_id) if runtime else None
         if snapshot is None:
             raise HTTPException(404, "runtime task not found")
+        if snapshot["run"]["trigger_kind"] not in {"user", "ui_action"}:
+            raise HTTPException(409, "请从所属目标恢复运行")
         if any(call["permission"] == "LOCAL_WRITE" and call["status"] == "unknown" for call in snapshot["tool_calls"]):
             raise HTTPException(409, "unknown write requires explicit receipt reconciliation")
         owner = uuid.uuid4().hex

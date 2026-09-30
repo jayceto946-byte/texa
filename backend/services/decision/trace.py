@@ -1,4 +1,4 @@
-"""Local, bounded routing traces. Decisions are immutable; outcomes append separately."""
+"""Local, bounded routing diagnostics; existing historical tables remain readable."""
 from __future__ import annotations
 
 import hashlib
@@ -70,14 +70,6 @@ class RoutingTraceStore:
                  hashlib.sha256(text.encode()).hexdigest(),
                  json.dumps(application), json.dumps(decision)))
         return trace_id
-
-    def append_outcome(self, trace_id: str, outcome: dict) -> str:
-        outcome_id = f"routcome_{uuid.uuid4().hex}"
-        safe = {key: outcome[key] for key in ("run_outcome", "verification_status", "selected_tools") if key in outcome}
-        with closing(self._connect()) as conn:
-            conn.execute("INSERT INTO routing_outcomes VALUES (?,?,?,?)",
-                (outcome_id, trace_id, datetime.now(timezone.utc).isoformat(), json.dumps(safe)))
-        return outcome_id
 
     def list(self, *, limit: int = 50, before_id: str = "") -> list[dict]:
         if not 1 <= limit <= 100:

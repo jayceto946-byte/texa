@@ -27,8 +27,8 @@ def test_outbox_retries_same_message_id_after_projection_crash(tmp_path):
             raise OSError("crash after message commit")
         return messages[kwargs["message_id"]]
     projector = RuntimeOutboxProjector(runtime, append)
-    with pytest.raises(OSError):
-        projector.drain_once()
+    assert projector.drain_once() == 0
+    assert runtime.pending_outbox()[0]["attempts"] == 1
     assert len(messages) == 1 and len(runtime.pending_outbox()) == 1
     assert projector.drain_once() == 1
     assert len(messages) == 1 and runtime.pending_outbox() == []

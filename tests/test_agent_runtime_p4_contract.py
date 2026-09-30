@@ -4,7 +4,7 @@ import pytest
 from pydantic import BaseModel, ConfigDict
 
 from backend.services.agent_runtime.contracts import FixedAction, RuntimeDenied
-from backend.services.agent_runtime.extensions import TriggerCommand, TriggerIngress, register_fake_mcp_read_tool
+from tests.runtime_extension_harness import TriggerCommand, TriggerIngress, register_fake_mcp_read_tool
 from backend.services.agent_runtime.runner import FixedRunner
 from backend.services.agent_runtime.store import RuntimeStore
 from backend.services.execution_events import execution_sse_payload, validate_execution_event_sequence

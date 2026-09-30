@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel, ConfigDict, Field
 from backend.services.goals.store import GoalConflict
+from backend.services.goals.service import GOAL_CONTROL_LOCK, goal_contract, controlled
 from backend.services.agent_runtime.contracts import RunCommand, RuntimeConflict, RuntimeDenied
 from backend.services.agent_runtime.locator import runtime_store, public_task
 from backend.services.agent_runtime.chat_binding import build_registry, build_adapter, generate_answer
@@ -14,7 +15,7 @@ from backend.services.agent_runtime.write_service import RuntimeWriteService
 from backend.tools.registry import ToolContext
 
 logger = logging.getLogger(__name__)
-_start_lock = threading.Lock()
+_start_lock = GOAL_CONTROL_LOCK
 _workers_lock = threading.Lock()
 _workers = set()
 
@@ -63,12 +64,12 @@ def launch_worker(store, run_id, owner, registry, adapter):
             return
         _workers.add(run_id)
     def work():
-        snapshot = store.snapshot(run_id)
-        checkpoint = snapshot["run"]["checkpoint"]
-        state = checkpoint["answer_state"]
         try:
+            snapshot = store.snapshot(run_id)
+            checkpoint = snapshot["run"]["checkpoint"]
+            state = checkpoint["answer_state"]
             from backend.services.pending_actions import get_pending_action_store
-            BoundedAgentRunner(store, registry, adapter, tuple(checkpoint["candidates"])).run_offline(
+            BoundedAgentRunner(store, registry, adapter, tuple(checkpoint["candidates"])).run_bounded(
                 run_id, owner, context=ToolContext(book_name=state.get("book_name", ""), subject=state.get("subject", "")),
                 answer_state=state, answer_generator=generate_answer,
                 write_service=RuntimeWriteService(store, registry, get_pending_action_store()))
@@ -84,50 +85,84 @@ def launch_worker(store, run_id, owner, registry, adapter):
         finally:
             with _workers_lock:
                 _workers.discard(run_id)
-    threading.Thread(target=work, name="texa-goal-runtime", daemon=True).start()
+    try:
+        threading.Thread(target=work, name="texa-goal-runtime", daemon=True).start()
+    except BaseException:
+        with _workers_lock:
+            _workers.discard(run_id)
+        store.close(run_id, owner, outcome="paused", error_code="worker_start_failed")
+        raise
 
 
 def start_goal(service, goal_id, *, expected_revision, request_key, scheduled=False):
+    # Registry/adapter preparation performs no model or domain calls.
+    goal = service.store.get(goal_id)
+    if not goal:
+        raise GoalConflict("目标不存在")
+    registry, candidates, frozen = prepare_registry(goal)
+    adapter = build_adapter(registry)
+    if adapter.capabilities().tool_calling != "supported":
+        raise RuntimeDenied("请先配置并验证支持原生工具调用的模型，目标已保留")
     with _start_lock:
-        goal = service.store.get(goal_id)
-        if not goal or goal["revision"] != expected_revision or goal["status"] not in {"draft", "active", "paused"}:
+        current_goal = service.store.get(goal_id)
+        if goal_contract(current_goal) != goal_contract(goal):
             raise GoalConflict("目标已变更，请刷新后重试")
-        registry, candidates, frozen = prepare_registry(goal)
-        adapter = build_adapter(registry)
-        if adapter.capabilities().tool_calling != "supported":
-            raise RuntimeDenied("请先配置并验证支持原生工具调用的模型，目标已保留")
+        goal = current_goal
         store = runtime_store(create=True)
-        links = service.store.links(goal_id)
-        for link in reversed(links):
-            current = store.task_snapshot(link["task_id"])
-            if current and current["task"]["status"] in {"running", "waiting_for_confirmation", "waiting_for_input", "interrupted"}:
-                return public_task(store, current)
+        stable = uuid.uuid5(uuid.NAMESPACE_URL, f"texa-goal:{goal_id}:{request_key}").hex
+        existing = store.task_snapshot(f"rtask_{stable}")
+        # A committed request is looked up before the new-command revision check.
+        if existing:
+            store._validate_goal_run(existing["run"])
+            if goal["status"] != "active":
+                raise GoalConflict("目标已暂停或结束")
+        elif goal["revision"] != expected_revision or goal["status"] not in {"draft", "active"}:
+            raise GoalConflict("目标已变更或暂停，请刷新后重试")
+        if not existing:
+            for link in reversed(service.store.links(goal_id)):
+                candidate = store.task_snapshot(link["task_id"])
+                if not candidate:
+                    continue
+                contract = candidate["run"]["checkpoint"].get("answer_state", {}).get("_goal_contract")
+                if contract == goal_contract(goal) and candidate["task"]["status"] in {"running", "waiting_for_confirmation", "waiting_for_input", "interrupted"}:
+                    existing = candidate
+                    break
         question = goal["objective"] + "\n完成标准：" + "；".join(item.get("description", "") for item in goal["success_criteria"])
         if len(question) > 4000:
             raise ValueError("目标与完成标准过长，请精简后执行")
         if goal["status"] != "active":
             goal = service.activate(goal_id, expected_revision=expected_revision)
-        stable = uuid.uuid5(uuid.NAMESPACE_URL, f"texa-goal:{goal_id}:{request_key}").hex
         from graph.main_graph import build_initial_state
+        from backend.services.answer_verification import derive_required_outputs
         scope = goal.get("scope") or {}
         state = build_initial_state(question, book_name=scope.get("book_name", ""), subject=scope.get("subject", ""),
             use_textbook_context=bool(frozen), answer_mode="textbook_grounded" if frozen else "subject_general" if scope.get("subject") else "global_general")
         state["intent"] = "qa"
+        state["_goal_contract"] = goal_contract(goal)
         if frozen:
             state["_runtime_textbook_scope"] = frozen
-        snapshot = store.create(RunCommand(f"goal_{stable}", f"req_{stable}", f"rtask_{stable}", "", "", question,
+        snapshot = existing or store.create(RunCommand(f"goal_{stable}", f"req_{stable}", f"rtask_{stable}", "", "", question,
             f"owner_{stable}", budget_calls=6, budget_model_calls=8,
+            required_outputs=derive_required_outputs(question, intent="qa", answer_mode=state["answer_mode"]),
             trigger_kind="schedule" if scheduled else "goal", trigger_id=goal_id))
-        run_id = snapshot["run"]["id"]
-        if snapshot["run"]["checkpoint"].get("answer_state"):
-            return public_task(store, snapshot)
-        store.configure_chat(run_id, f"owner_{stable}", state=state, candidates=candidates,
-            request_question=question, book_name=scope.get("book_name", ""), subject=scope.get("subject", ""), delivery="goal")
+        run_id, owner = snapshot["run"]["id"], snapshot["run"]["owner_token"]
+        if not snapshot["run"]["checkpoint"].get("answer_state"):
+            store.configure_chat(run_id, owner, state=state, candidates=candidates,
+                request_question=question, book_name=scope.get("book_name", ""), subject=scope.get("subject", ""), delivery="goal")
         service.store.link(goal_id, task_id=snapshot["task"]["id"], run_id=run_id)
-        launch_worker(store, run_id, f"owner_{stable}", registry, adapter)
+        if snapshot["run"]["status"] == "running":
+            with _workers_lock:
+                registered = run_id in _workers
+            if not registered:
+                if snapshot["consumed_calls"] or snapshot["consumed_model_calls"] or snapshot["run"]["checkpoint"].get("resume_launched"):
+                    store.close(run_id, owner, outcome="paused", error_code="worker_missing_requires_resume")
+                else:
+                    store.mark_resume_launched(run_id, owner)
+                    launch_worker(store, run_id, owner, registry, adapter)
         return public_task(store, store.snapshot(run_id))
 
 
+@controlled
 def resume_goal(service, goal_id, *, task_id, expected_revision, request_key):
     goal = service.store.get(goal_id)
     if not goal or goal["status"] != "active" or goal["revision"] != expected_revision:
@@ -138,6 +173,7 @@ def resume_goal(service, goal_id, *, task_id, expected_revision, request_key):
     snapshot = store.task_snapshot(task_id) if store else None
     if not snapshot:
         raise ValueError("找不到目标运行")
+    store._validate_goal_run(snapshot["run"])
     if any(call["status"] == "unknown" and call["permission"] == "LOCAL_WRITE" for call in snapshot["tool_calls"]):
         raise RuntimeDenied("存在结果未知的写操作，请先对账")
     registry, _, _ = prepare_registry(goal)
@@ -147,9 +183,17 @@ def resume_goal(service, goal_id, *, task_id, expected_revision, request_key):
     stable = uuid.uuid5(uuid.NAMESPACE_URL, f"texa-goal-resume:{goal_id}:{request_key}").hex
     result = store.resume(task_id, expected_revision=snapshot["task_revision"], request_key=f"resume_{stable}",
         request_id=f"req_{stable}", owner_token=f"owner_{stable}", turn_id="")
-    launch_worker(store, result["run"]["id"], f"owner_{stable}", registry, adapter)
     service.store.link(goal_id, task_id=task_id, run_id=result["run"]["id"])
-    return public_task(store, result)
+    if result["run"]["status"] == "running":
+        with _workers_lock:
+            registered = result["run"]["id"] in _workers
+        if not registered:
+            if result["run"]["checkpoint"].get("resume_launched"):
+                store.close(result["run"]["id"], f"owner_{stable}", outcome="paused", error_code="worker_missing_requires_resume")
+            else:
+                store.mark_resume_launched(result["run"]["id"], f"owner_{stable}")
+                launch_worker(store, result["run"]["id"], f"owner_{stable}", registry, adapter)
+    return public_task(store, store.snapshot(result["run"]["id"]))
 
 
 def schedule_goal(service, goal_id, *, expected_revision, due_at, interval_hours):
@@ -172,31 +216,43 @@ class GoalScheduleWorker:
         self.thread = None
     def tick(self, service):
         now = datetime.now(timezone.utc)
-        for goal in service.store.list(learner_id="local_default", limit=100):
-            action = goal.get("next_action") or {}
-            if goal["status"] != "active" or action.get("kind") != "schedule":
-                continue
-            due = datetime.fromisoformat(action["due_at"])
-            if due > now:
-                continue
-            try:
-                task = start_goal(service, goal["id"], expected_revision=goal["revision"], request_key=action["due_at"], scheduled=True)
-                if task["status"] not in {"completed", "degraded", "failed", "cancelled"}:
+        before = ""
+        while True:
+            batch = service.store.list(learner_id="local_default", limit=100, before_id=before)
+            if not batch:
+                break
+            before = batch[-1]["id"]
+            for goal in batch:
+                action = goal.get("next_action") or {}
+                if goal["status"] != "active" or action.get("kind") != "schedule":
                     continue
-                interval = action.get("interval_hours", 0)
-                next_action = {**action, "due_at": (now + timedelta(hours=interval)).isoformat()} if interval else None
-                service.store.update(goal["id"], expected_revision=goal["revision"], changes={"next_action": next_action})
-            except (RuntimeDenied, GoalConflict, RuntimeConflict):
-                continue
-            except Exception:
-                logger.exception("Scheduled goal deferred")
+                try:
+                    due = datetime.fromisoformat(action["due_at"].replace("Z", "+00:00"))
+                    if due > now:
+                        continue
+                    task = start_goal(service, goal["id"], expected_revision=goal["revision"], request_key=action["due_at"], scheduled=True)
+                    if task["status"] not in {"completed", "degraded", "failed", "cancelled"}:
+                        continue
+                    interval = action.get("interval_hours", 0)
+                    next_action = {**action, "due_at": (now + timedelta(hours=interval)).isoformat()} if interval else None
+                    service.store.update(goal["id"], expected_revision=goal["revision"], changes={"next_action": next_action})
+                except Exception as exc:
+                    logger.exception("Scheduled goal %s blocked: %s", goal["id"], type(exc).__name__)
+                    try:
+                        service.store.update(goal["id"], expected_revision=goal["revision"], changes={
+                            "next_action": {**action, "blocked_reason": type(exc).__name__}})
+                    except Exception:
+                        logger.exception("Could not persist scheduled goal block %s", goal["id"])
     def start(self):
         def work():
             from backend.services.goals.store import DEFAULT_GOAL_DB_PATH, GoalStore
             from backend.services.goals.service import GoalService
             while not self.stop_event.is_set():
-                if DEFAULT_GOAL_DB_PATH.exists():
-                    self.tick(GoalService(GoalStore(DEFAULT_GOAL_DB_PATH)))
+                try:
+                    if DEFAULT_GOAL_DB_PATH.exists():
+                        self.tick(GoalService(GoalStore(DEFAULT_GOAL_DB_PATH)))
+                except Exception:
+                    logger.exception("Goal schedule tick failed; worker remains available")
                 self.stop_event.wait(30)
         self.thread = threading.Thread(target=work, name="texa-goal-schedule", daemon=True)
         self.thread.start()

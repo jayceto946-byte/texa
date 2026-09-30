@@ -6,7 +6,7 @@ import { useChatContext } from '../contexts/ChatContext';
 import type { LearningTaskState, AssistantSource } from '../types';
 import type { TextbookRecord } from '../utils/textbookScopes';
 import { buildTextbookScopeOptions } from '../utils/textbookScopes';
-import { goalListState, selectedGoalAfterChange, visibleGoals as filterGoals, type GoalFilter, type GoalListStatus } from '../features/goals/goalViewState';
+import { goalListState, selectedGoalAfterChange, visibleGoals as filterGoals, type GoalFilter, type GoalListStatus, acceptRuntimeSnapshot } from '../features/goals/goalViewState';
 import ScopeSelector from '../components/ScopeSelector';
 import LearningTaskActions from '../components/chat/LearningTaskActions';
 import ChatMessage from '../components/ChatMessage';
@@ -49,16 +49,35 @@ export default function GoalsPage() {
   const listState = goalListState(listStatus, goals.length, visibleGoals.length);
   const active = goals.find((goal) => goal.id === selected);
   const zeroGoals = listState === 'zero';
-  const update = (goal: Goal) => setGoals((current) => [goal, ...current.filter((item) => item.id !== goal.id)]);
+  const pollEpoch = useRef(0);
+  const listEpoch = useRef(0);
+  const actionBusy = useRef(false);
+  const latestRuntime = useRef<LearningTaskState | null>(null);
+  const selectedGoalId = useRef('');
+  const acceptRuntime = (task: LearningTaskState | null) => {
+    if (!acceptRuntimeSnapshot(latestRuntime.current, task)) return;
+    latestRuntime.current = task;
+    setRuntime(task);
+  };
+  const update = (goal: Goal) => setGoals((current) => {
+    const previous = current.find((item) => item.id === goal.id);
+    return previous && previous.revision > goal.revision ? current : [goal, ...current.filter((item) => item.id !== goal.id)];
+  });
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setListStatus('loading');
+    const epoch = ++listEpoch.current;
     try {
       const response = await get('/goals?limit=100');
       if (!response.success || !Array.isArray(response.data)) throw new Error();
-      setGoals(response.data);
+      if (epoch !== listEpoch.current) return;
+      setGoals((current) => response.data.map((goal: Goal) => {
+        const previous = current.find((item) => item.id === goal.id);
+        return previous && previous.revision > goal.revision ? previous : goal;
+      }));
       setListStatus('ready');
     } catch {
+      if (epoch !== listEpoch.current) return;
       if (silent) setActionError('目标列表暂时无法更新，请稍后重试。');
       else setListStatus('error');
     }
@@ -83,25 +102,32 @@ export default function GoalsPage() {
   }, [goals, filter, listStatus]);
   useEffect(() => {
     let cancelled = false;
+    let timer: number | undefined;
+    pollEpoch.current += 1;
+    selectedGoalId.current = selected;
+    latestRuntime.current = null;
     setRuntime(null);
     const poll = async () => {
-      if (!selected || view !== 'detail') return;
+      if (!selected || view !== 'detail' || cancelled) return;
+      const epoch = pollEpoch.current;
+      if (actionBusy.current) { timer = window.setTimeout(() => void poll(), 1500); return; }
       try {
         const response = await get(`/goals/${encodeURIComponent(selected)}/runtime`);
-        if (!cancelled) {
-          setRuntime(response.data || null);
-          if (response.goal) setGoals((current) => current.map((goal) => goal.id === response.goal.id ? response.goal : goal));
+        if (!cancelled && epoch === pollEpoch.current) {
+          acceptRuntime(response.data || null);
+          if (response.goal) setGoals((current) => current.map((goal) => goal.id === response.goal.id && goal.revision <= response.goal.revision ? response.goal : goal));
         }
-      } catch { if (!cancelled) setActionError('运行状态暂不可用，请刷新。'); }
+      } catch { if (!cancelled && epoch === pollEpoch.current) setActionError('运行状态暂不可用，请刷新。'); }
+      if (!cancelled) timer = window.setTimeout(() => void poll(), 1500);
     };
     void poll();
-    const timer = window.setInterval(() => void poll(), 1500);
-    return () => { cancelled = true; window.clearInterval(timer); };
+    return () => { cancelled = true; window.clearTimeout(timer); }; // Each poll completes before the next begins.
   }, [selected, view]);
   const action = async (fn: () => Promise<void>) => {
+    pollEpoch.current += 1; listEpoch.current += 1; actionBusy.current = true;
     setBusy(true); setActionError('');
     try { await fn(); } catch (reason) { setActionError(reason instanceof Error ? reason.message : '操作未完成，请重试。'); }
-    finally { setBusy(false); }
+    finally { pollEpoch.current += 1; listEpoch.current += 1; actionBusy.current = false; setBusy(false); }
   };
   const changeScope = (change: Partial<typeof draftScope>) => {
     setDraftScope((current) => ({...current, ...change}));
@@ -128,14 +154,17 @@ export default function GoalsPage() {
   const run = (resume?: LearningTaskState) => action(async () => {
     if (!active) return;
     const response = await post(`/goals/${active.id}/run`, { expected_revision: active.revision, request_key: crypto.randomUUID(), task_id: resume?.id || '' }, 40000);
-    if (!response.success) throw new Error('目标未开始'); setRuntime(response.data); await load(true);
+    if (!response.success) throw new Error('目标未开始');
+    if (selectedGoalId.current === active.id) acceptRuntime(response.data);
+    await load(true);
   });
   const command = (operation: string) => action(async () => {
     if (!active) return;
     const response = await post(`/goals/${active.id}/commands`, {operation, expected_revision: active.revision,
       ...(operation === 'measure' ? {user_confirms_completion: true} : {})});
     if (!response.success) throw new Error('操作未保存'); update(response.data);
-    if (operation === 'pause' && runtime?.interruptible) setRuntime({...runtime, status: 'interrupted', interruptible: false, resumable: true});
+    const snapshot = await get(`/goals/${active.id}/runtime`);
+    if (selectedGoalId.current === active.id) acceptRuntime(snapshot.data || null);
   });
   const openGoal = (goal: Goal) => {
     setSelected(goal.id); setView('detail'); setMobilePane('workspace'); setScheduleOpen(false); setActionError('');
@@ -183,8 +212,8 @@ export default function GoalsPage() {
             <section className="goal-section"><h3>执行与定时安排</h3><div className="goal-controls">{['draft', 'paused'].includes(active.status) && <button className="app-primary-button" disabled={busy} onClick={() => void command('activate')}><Play size={15} />启用目标</button>}{active.status === 'active' && <><button className="app-primary-button" disabled={busy || runtime?.status === 'running' || runtime?.confirmation_required} onClick={() => void run(runtime?.resumable ? runtime : undefined)}><Play size={15} />{runtime?.resumable ? '继续执行' : '开始执行'}</button><button className="app-secondary-button" disabled={busy} onClick={() => void command('pause')}><Pause size={15} />暂停</button><button className="app-ghost-button" onClick={() => setScheduleOpen(!scheduleOpen)}><CalendarClock size={15} />定时执行</button></>}
               {active.status === 'active' && runtime?.terminal && <button className="app-secondary-button" disabled={busy} onClick={() => {if (window.confirm('你确认这个目标的完成条件已经满足吗？')) void command('measure');}}><Check size={15} />确认目标完成</button>}</div>
               {active.next_action?.kind === 'schedule' && <p className="goals-muted">下次执行：{new Date(active.next_action.due_at).toLocaleString()} · {active.next_action.interval_hours ? `每 ${active.next_action.interval_hours} 小时` : '仅一次'}</p>}
-              {scheduleOpen && <div className="goal-schedule"><h4>安排下一次执行</h4><label>执行时间<input className="app-field" type="datetime-local" value={due} onChange={(event) => setDue(event.target.value)} /></label><label>重复<select className="app-field" value={interval} onChange={(event) => setInterval(Number(event.target.value))}><option value={0}>仅一次</option><option value={24}>每 24 小时</option><option value={168}>每 7 天</option></select></label><p className="goals-muted">仅在 Texa 开启时执行。遇到输入缺失或写入确认会停下来等待你；关闭后错过的执行会在下次启动时处理。</p><button className="app-primary-button" disabled={busy || !due} onClick={() => void action(async () => {const response = await post(`/goals/${active.id}/schedule`, {expected_revision: active.revision, due_at: new Date(due).toISOString(), interval_hours: interval}); if (!response.success) throw new Error('定时未保存'); update(response.data); setScheduleOpen(false);})}>保存定时安排</button>{active.next_action && <button className="app-ghost-button" disabled={busy} onClick={() => void action(async () => {const response = await post(`/goals/${active.id}/schedule`, {expected_revision: active.revision}); if (!response.success) throw new Error('取消定时失败'); update(response.data); setScheduleOpen(false);})}>取消定时</button>}</div>}</section>
-            <section className="goal-run" aria-label="当前任务与结果"><h3>当前任务{runtime ? ` · ${labels[runtime.status] || runtime.status}` : ''}</h3>{!runtime && <p className="goals-muted">尚无当前任务。开始执行后，任务结果和验证状态会显示在这里。</p>}{runtime && <><LearningTaskActions key={`${runtime.id}:${runtime.active_run_id}:${runtime.status}`} initialTask={runtime} onResume={(task) => void run(task)} />{runtime.required_inputs?.map((input, index) => <p key={index} className="goals-muted">{String(input.reason || input.name || '请补充关键输入')}</p>)}{Boolean(runtime.artifacts?.final_answer) && <ChatMessage role="assistant" content={String(runtime.artifacts?.final_answer)} sources={(runtime.artifacts?.evidence_sources || []) as AssistantSource[]} />}<details className="goal-events"><summary>执行记录</summary><ul>{((runtime.artifacts?.execution_events || []) as Array<{seq: number; summary: string}>).map((event) => <li key={event.seq}>{event.summary}</li>)}</ul></details></>}</section>
+              {scheduleOpen && <div className="goal-schedule"><h4>安排下一次执行</h4><label>执行时间<input className="app-field" type="datetime-local" value={due} onChange={(event) => setDue(event.target.value)} /></label><label>重复<select className="app-field" value={interval} onChange={(event) => setInterval(Number(event.target.value))}><option value={0}>仅一次</option><option value={24}>每 24 小时</option><option value={168}>每 7 天</option></select></label><p className="goals-muted">仅在 Texa 开启时执行。遇到写入会等待确认；缺少关键输入时会暂停并等待你补充；关闭后错过的执行会在下次启动时处理。</p><button className="app-primary-button" disabled={busy || !due} onClick={() => void action(async () => {const response = await post(`/goals/${active.id}/schedule`, {expected_revision: active.revision, due_at: new Date(due).toISOString(), interval_hours: interval}); if (!response.success) throw new Error('定时未保存'); update(response.data); setScheduleOpen(false);})}>保存定时安排</button>{active.next_action && <button className="app-ghost-button" disabled={busy} onClick={() => void action(async () => {const response = await post(`/goals/${active.id}/schedule`, {expected_revision: active.revision}); if (!response.success) throw new Error('取消定时失败'); update(response.data); setScheduleOpen(false);})}>取消定时</button>}</div>}</section>
+            <section className="goal-run" aria-label="当前任务与结果"><h3>当前任务{runtime ? ` · ${labels[runtime.status] || runtime.status}` : ''}</h3>{!runtime && <p className="goals-muted">尚无当前任务。开始执行后，任务结果和验证状态会显示在这里。</p>}{runtime && <><LearningTaskActions key={`${runtime.id}:${runtime.active_run_id}:${runtime.status}`} initialTask={runtime} onTaskChange={(task) => { if (selectedGoalId.current === active.id) { pollEpoch.current += 1; acceptRuntime(task); } }} onResume={(task) => { if (selectedGoalId.current === active.id) void run(task); }} />{runtime.required_inputs?.map((input, index) => <p key={index} className="goals-muted">{String(input.reason || input.name || '请补充关键输入')}</p>)}{Boolean(runtime.artifacts?.final_answer) && <ChatMessage role="assistant" content={String(runtime.artifacts?.final_answer)} sources={(runtime.artifacts?.evidence_sources || []) as AssistantSource[]} />}<details className="goal-events"><summary>执行记录</summary><ul>{((runtime.artifacts?.execution_events || []) as Array<{seq: number; summary: string}>).map((event) => <li key={event.seq}>{event.summary}</li>)}</ul></details></>}</section>
           </section> : <div className="goals-filter-empty"><p>暂无已安排定时的目标</p><button className="app-ghost-button" onClick={() => setFilter('all')}>查看全部目标</button></div>}
         </main>
       </div>}

@@ -1,3 +1,13 @@
+# 2026-09-30 - Checkpoint Remediation (Handoff Scope)
+
+- 修复独立复核发现的三个剩余边界：preparation source 与 Goal revision 在同一现有事务保存，事件投影失败或重启后重试仍绑定原 Goal；已准入写入的真实 receipt 可在 Goal 更新/完成后对账，不恢复 run、不重做审批/工具准入、不改 executed_run_id；暂停撤销已确认但尚未准入的审批并留下 interrupted 任务，未发生写入不再投影为 unknown。waiting_for_confirmation 增加 interrupted 合法停止转换；拒绝已准入写入仍被禁止。
+- 复核修复验证：原独立回归从 4 failed / 1 passed 变为 5 passed；保留原 5 项并补充 8 项重启、重复对账、owner/关闭事件流和继续入口检查，13 passed。全后端 963 passed；前端 126 passed，TypeScript/Vite/ESLint 通过；Electron 7 passed（回环端口测试经批准在沙箱外重跑）。此次未重新进行原生 Electron 点击验证，先前独立复核的原生审批/暂停/重启结果不作为此次交错缺陷修复的新验收。无 schema、依赖或索引变动。
+- 按 pre-policy implementation handoff 实施 P0/P1 局部正确性整改：数值假通过、Goal 合同/fence/准入、preparation 幂等、部分初始化、事件投影隔离、SSE snapshot、outbox 公平失败隔离、真实审批状态、最小输出合同、诊断 retention/shadow/版本、调度覆盖与超时实际容量。
+- 无数据库 schema 或索引迁移；新增内容只进入已有 checkpoint/next_action JSON 与现有事件身份。旧 Goal run 缺执行摘要时允许安全停止，拒绝按旧合同恢复；标题/调度和暂停再启用不会使未变的合同失效。保留独立存储、用户 profile、历史、receipt、EvidencePack 与 owner fence。
+- 删除确认无生产消费者的 capability/fallback/outcome 写入口，fake MCP/schedule harness 移入 tests，删除 TypeError 二次调用胶水及 Planner 任意首章 fallback；实际生产 driver 改名 run_bounded。保留 Goal.plan 和 finish.answer 非阻塞 debt，不实施 Deferred。
+- 验证：Python 3.10.21 / 现有 venv310，相关后端 207 passed（新增 36）；前端 26 文件 / 126 passed，TypeScript/Vite/ESLint 通过；Electron runtime 4 passed 与语法检查通过。原生隔离 Electron 验证多 Goal、审批/receipt、暂停、expired/unknown 状态与关闭重开后的持久恢复入口；首次列表加载失效回归已修复。生产托管/安装包升级、全部宽度矩阵、真实模型/教材语义和长期定时未验收。
+- 当前 worktree 从审计基线 d06403e 保留主目录此前未提交改动后实施，未修改主目录与正式学习数据。完整范围映射、故障证据、限定验收及本轮独立 patch：docs/validation/checkpoint-remediation-2026-09-30/README.md。
+
 # 2026-09-30 - Pre-Policy Architecture Audit (No Runtime Changes)
 
 - Audited the current working tree before Runtime Policy data collection; report: `docs/pre-policy-architecture-audit-2026-09-30.md`. Verdict: NO-GO for a trustworthy training checkpoint. Findings distinguish execution defects, outcome/trace semantic gaps, and removable defensive complexity; no production code, schema, model flags, or user data changed in this audit.

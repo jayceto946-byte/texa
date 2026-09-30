@@ -23,3 +23,25 @@ describe('goal collection state', () => {
     expect(selectedGoalAfterChange([], 'plain')).toBe('');
   });
 });
+
+import { acceptRuntimeSnapshot } from './goalViewState';
+
+it('ignores delayed snapshots from an older revision or run after a user action', async () => {
+  const old = {id: 'task', revision: 2, active_run_id: 'old'};
+  let release: (value: typeof old) => void = () => {};
+  const delayed = new Promise<typeof old>((resolve) => { release = resolve; });
+  let current = old;
+  const apply = delayed.then((snapshot) => { if (acceptRuntimeSnapshot(current, snapshot)) current = snapshot; });
+  current = {id: 'task', revision: 3, active_run_id: 'new'};
+  release(old);
+  await apply;
+  expect(current.active_run_id).toBe('new');
+  expect(acceptRuntimeSnapshot(current, {...current, active_run_id: 'old'})).toBe(false);
+  expect(acceptRuntimeSnapshot(current, {...current, revision: 4})).toBe(true);
+});
+
+it('orders distinct tasks by creation time and keeps an already loaded task during empty stale polls', () => {
+  const current = {id: 'new', revision: 1, created_at: '2026-09-30T12:00:00Z'};
+  expect(acceptRuntimeSnapshot(current, {id: 'old', revision: 100, created_at: '2026-09-30T11:00:00Z'})).toBe(false);
+  expect(acceptRuntimeSnapshot(current, null)).toBe(false);
+});

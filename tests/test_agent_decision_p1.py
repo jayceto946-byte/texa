@@ -65,7 +65,6 @@ def test_resolver_only_canonical_and_trace_is_redacted(tmp_path):
     assert [item["id"] for item in candidates.tool_refs] == ["get_recent_progress"]
     trace = RoutingTraceStore(tmp_path / "trace.db")
     trace_id = trace.record(context("最近学习活动"), result)
-    trace.append_outcome(trace_id, {"run_outcome": "completed"})
     with trace._connect() as conn:
         row = conn.execute("SELECT input_hash,decision_json FROM routing_traces").fetchone()
         assert row[0] != "最近学习活动"
