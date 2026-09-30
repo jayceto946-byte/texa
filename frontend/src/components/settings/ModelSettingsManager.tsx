@@ -64,21 +64,6 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
     setTestResults({});
   };
 
-  const changeMode = (mode: 'split' | 'native') => {
-    invalidateTests();
-    if (mode === 'split') {
-      onChange({ ...value, multimodal_mode: mode });
-      return;
-    }
-    onChange({
-      ...value,
-      multimodal_mode: mode,
-      roles: { ...value.roles, reasoning: { ...value.roles.vision, endpoint_id: 'reasoning' } },
-      credentials: { ...value.credentials, reasoning: { ...value.credentials.vision } },
-      endpoints: { ...value.endpoints, reasoning: { ...value.endpoints.vision } },
-    });
-  };
-
   const changeGuidedMode = (mode: 'split' | 'native') => {
     if (mode === value.multimodal_mode) return;
     invalidateTests();
@@ -188,62 +173,10 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
     }
   };
 
-  const renderRoleFields = (role: ModelRoleId, title: string) => {
-    const meta = roleMeta[role];
-    const roleValue = value.roles[role];
-    const credential = value.credentials[role];
-    const requiredCapabilities = value.multimodal_mode === 'native' && role === 'vision' ? ['text', 'vision'] : [meta.capability];
-    const providers = value.providers.filter((item) => requiredCapabilities.every((capability) => item.capabilities.includes(capability)));
-    const models = value.models.filter((item) => item.provider === roleValue.provider && requiredCapabilities.every((capability) => item.capabilities.includes(capability)));
-    const isCustom = roleValue.provider === 'openai_compatible';
-    const acceptsCredential = credential.required || isCustom;
-    const credentialLabel = credential.configured ? '已配置' : isCustom ? '可选' : credential.required ? '未配置' : '无需配置';
-
-    return (
-      <div className="settings-subsection">
-        <h4 className="settings-section-title">{title}</h4>
-        <div className={fieldRowClass}>
-          <span className="settings-label">Provider</span>
-          <ScrollableSelect
-            compact
-            ariaLabel={`${title} Provider`}
-            value={roleValue.provider}
-            options={providers.map((provider) => ({ value: provider.id, label: provider.label }))}
-            onChange={(providerId) => selectProvider(role, providerId)}
-          />
-        </div>
-        <ModelPicker
-          role={role}
-          title={title}
-          model={roleValue.model}
-          displayName={roleValue.display_name || ''}
-          models={models}
-          onChange={(model, displayName) => updateModel(role, model, displayName)}
-        />
-        {isCustom && (
-          <div className={fieldRowClass}>
-            <label htmlFor={`${role}-custom-base-url`} className="settings-label">Base URL</label>
-            <div className="min-w-0">
-              <input id={`${role}-custom-base-url`} value={value.endpoints[role].base_url} onChange={(event) => updateEndpoint(role, event.target.value)} placeholder="https://example.com/v1" className={controlClass} autoComplete="url" spellCheck={false} />
-              <p className="mt-1 settings-secondary">填写 OpenAI-compatible API 地址。</p>
-            </div>
-          </div>
-        )}
-        <div className={fieldRowClass}>
-          <label htmlFor={`${role}-api-key`} className="settings-label">API Key</label>
-          <div className="min-w-0">
-            <input id={`${role}-api-key`} type="password" autoComplete="new-password" value={credential.api_key || ''} disabled={!acceptsCredential} onChange={(event) => updateCredential(role, event.target.value)} placeholder={acceptsCredential ? '留空保留现有密钥' : '无需填写'} className={controlClass} />
-            <p className={`mt-1 settings-secondary ${credential.configured ? 'text-[var(--success)]' : ''}`}>{credentialLabel}</p>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const renderGuidedRole = (role: ModelRoleId, title: string) => {
     const selected = value.roles[role];
     const credential = value.credentials[role];
-    const capabilities = value.multimodal_mode === 'native' && role === 'vision' ? ['text'] : [roleMeta[role].capability];
+    const capabilities = value.multimodal_mode === 'native' && role === 'vision' ? ['text', 'vision'] : [roleMeta[role].capability];
     const providers = value.providers.filter((item) => capabilities.every((capability) => item.capabilities.includes(capability)));
     const models = value.models.filter((item) => item.provider === selected.provider && capabilities.every((capability) => item.capabilities.includes(capability)));
     const knownModel = models.find((item) => item.id === selected.model);
@@ -276,7 +209,7 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
     </div>;
   };
 
-  if (guided) return <div className="settings-model-manager welcome-connection-panel">
+  const connectionEditor = <div className="settings-model-manager welcome-connection-panel">
     <div className="welcome-mode-switch" role="group" aria-label="模型配置方式">
       <button type="button" aria-pressed={value.multimodal_mode === 'native'} className={value.multimodal_mode === 'native' ? 'is-selected' : ''} onClick={() => changeGuidedMode('native')}><strong>单模型</strong><span>一个模型处理文字与图片</span></button>
       <button type="button" aria-pressed={value.multimodal_mode === 'split'} className={value.multimodal_mode === 'split' ? 'is-selected' : ''} onClick={() => changeGuidedMode('split')}><strong>双模型</strong><span>回答和识图分别配置</span></button>
@@ -292,26 +225,23 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
     </section>
   </div>;
 
+  if (guided) return connectionEditor;
+
   return (
     <div className="settings-model-manager">
-      <header className="settings-page-header">
-        <h3>{guided ? '选择回答模型' : '模型配置'}</h3>
-        <p>{guided ? '选择用于回答问题的模型，并填写它需要的凭证。' : '管理 Texa 使用的模型、凭据与连接信息。'}</p>
-      </header>
-
       {!guided && <section aria-labelledby="profile-heading" className="settings-section">
-        <h4 id="profile-heading" className="settings-section-title">模型方案</h4>
+        <h4 id="profile-heading" className="settings-section-title">当前方案与方案管理</h4><p className="settings-secondary">选择其他方案会立即切换并应用。</p>
         <div className={fieldRowClass}>
           <span className="settings-label">方案</span>
           <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
             <ScrollableSelect
               compact
-              ariaLabel="模型方案"
+              ariaLabel="切换并应用模型方案"
               className="min-w-0 flex-1"
               value={profileSelectValue}
               options={[
                 ...(!editingSavedProfile ? [{ value: '__draft__', label: '新方案', description: '未保存' }] : []),
-                ...profiles.map((profile) => ({ value: profile.id, label: profile.name, description: profile.id === value.active_profile_id ? '当前方案' : undefined })),
+                ...profiles.map((profile) => ({ value: profile.id, label: profile.name, description: profile.id === value.active_profile_id ? '当前生效' : undefined })),
               ]}
               onChange={(profileId) => { if (profileId !== '__draft__') onActivateProfile(profileId); }}
             />
@@ -329,86 +259,7 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
         </div>
       </section>}
 
-      <section aria-labelledby="models-heading" className="settings-section">
-        <h4 id="models-heading" className="settings-section-title">{guided ? '回答模型' : '模型'}</h4>
-        {renderRoleFields(reasoningRole, guided ? '回答模型' : '推理模型')}
-
-        {!guided && <div className="settings-subsection">
-          <h4 className="settings-section-title">视觉模型</h4>
-          <div className={fieldRowClass}>
-            <span className="settings-label">处理方式</span>
-            <div className="min-w-0">
-              <ScrollableSelect
-                compact
-                ariaLabel="视觉模型处理方式"
-                value={value.multimodal_mode}
-                options={[
-                  { value: 'native', label: '使用推理模型' },
-                  { value: 'split', label: '使用独立视觉模型' },
-                ]}
-                onChange={(mode) => changeMode(mode as 'split' | 'native')}
-              />
-              <p className="mt-1 settings-secondary">
-                {value.multimodal_mode === 'native' ? '当前模型支持视觉输入时，直接处理图片并生成回复。' : '先由独立视觉模型理解图片，再交给推理模型生成回复。'}
-              </p>
-            </div>
-          </div>
-          {value.multimodal_mode === 'split' && renderRoleFields('vision', '独立视觉模型')}
-        </div>}
-      </section>
-
-      <section aria-labelledby="connection-heading" className={guided ? 'settings-section' : 'settings-section'}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h4 id="connection-heading" className="settings-section-title">{guided ? '高级设置' : '连接'}</h4>
-            <p className="mt-1 settings-secondary">{guided ? '图片模型、API 地址和连接测试按需设置。' : '默认 Base URL 通常无需修改。'}</p>
-          </div>
-          <button type="button" aria-expanded={connectionExpanded} onClick={() => setConnectionsOpen((open) => !open)} className="app-ghost-button">
-            <ChevronDown className={`h-4 w-4 transition-transform ${connectionExpanded ? 'rotate-180' : ''}`} />
-            {connectionExpanded ? '收起高级设置' : '展开高级设置'}
-          </button>
-        </div>
-        {connectionExpanded && (
-          <div className="mt-4 space-y-4">
-            {guided && (
-              <div className="settings-subsection">
-                <h4 className="settings-section-title">图片处理</h4>
-                <div className={fieldRowClass}>
-                  <span className="settings-label">处理方式</span>
-                  <div className="min-w-0">
-                    <ScrollableSelect compact ariaLabel="视觉模型处理方式" value={value.multimodal_mode} options={[{ value: 'native', label: '使用回答模型' }, { value: 'split', label: '使用独立图片模型' }]} onChange={(mode) => changeMode(mode as 'split' | 'native')} />
-                    {value.multimodal_mode === 'split' && <div className="mt-4">{renderRoleFields('vision', '独立图片模型')}</div>}
-                  </div>
-                </div>
-              </div>
-            )}
-            {connectedRoles.map((role) => {
-              const label = value.multimodal_mode === 'native' ? '推理模型' : roleMeta[role].title;
-              const result = testResults[role];
-              return (
-                <div key={role} className="space-y-3">
-                  {value.roles[role].provider !== 'openai_compatible' && (
-                    <div className={fieldRowClass}>
-                      <label htmlFor={`${role}-base-url`} className="settings-label">{label} Base URL</label>
-                      <input id={`${role}-base-url`} value={value.endpoints[role].base_url} onChange={(event) => updateEndpoint(role, event.target.value)} placeholder="https://example.com/v1" className={controlClass} spellCheck={false} />
-                    </div>
-                  )}
-                  <div className={fieldRowClass}>
-                    <span aria-hidden="true" />
-                    <div className="flex min-w-0 flex-wrap items-center gap-3">
-                      <button type="button" onClick={() => void testConnection(role)} disabled={testingRole !== null || !value.roles[role].model.trim()} className="app-secondary-button">
-                        {testingRole === role ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
-                        {testingRole === role ? '测试中' : `测试${label}连接`}
-                      </button>
-                      {result && <span role="status" className={`min-w-0 settings-secondary ${result.success ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>{result.message}</span>}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+      {connectionEditor}
     </div>
   );
 }

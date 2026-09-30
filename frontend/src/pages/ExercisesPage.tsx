@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AlertTriangle, BookOpen, CheckCircle2, ChevronDown, ChevronRight, ClipboardList, Loader2, Pause, Pencil, Play, RotateCcw, Save, Scissors, Search, Shuffle, Upload, X } from 'lucide-react';
 import { apiFetch, del, get, post } from '../api/client';
 import ChatMessage from '../components/ChatMessage';
@@ -147,6 +148,7 @@ const ExercisesPage: React.FC = () => {
     practiceSolutionOpen,
     setPracticeSolutionOpen,
     practiceMessage,
+    candidateId,
     showPracticeMessage,
     sessionLimit,
     setSessionLimit,
@@ -619,12 +621,12 @@ const ExercisesPage: React.FC = () => {
                       <div className="workspace-interface-text font-medium text-text-primary">核对后，你掌握得怎么样？</div>
                     </div>
                     <div className="grid min-w-[360px] grid-cols-3 gap-2 max-sm:min-w-0 max-sm:w-full">
-                      <button onClick={() => submitPractice(1, true)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="workspace-radius border border-[var(--danger-border)] bg-[var(--danger-bg)] px-3 py-2 workspace-support-text font-medium text-[var(--danger)] hover:border-[var(--danger)] disabled:opacity-50">没掌握</button>
+                      <button onClick={() => submitPractice(1)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="workspace-radius border border-[var(--danger-border)] bg-[var(--danger-bg)] px-3 py-2 workspace-support-text font-medium text-[var(--danger)] hover:border-[var(--danger)] disabled:opacity-50">没掌握</button>
                       <button onClick={() => submitPractice(3)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="workspace-radius border border-[var(--warning-border)] bg-[var(--warning-bg)] px-3 py-2 workspace-support-text font-medium text-[var(--warning)] hover:border-[var(--warning)] disabled:opacity-50">基本理解</button>
                       <button onClick={() => submitPractice(5)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="workspace-radius border border-[var(--success-border)] bg-[var(--success-bg)] px-3 py-2 workspace-support-text font-medium text-[var(--success)] hover:border-[var(--success)] disabled:opacity-50">已掌握</button>
                     </div>
                   </footer>}
-                  {practiceMessage && <div className="border-t border-border bg-bg-card px-5 py-3 workspace-support-text text-text-secondary sm:px-6">{practiceMessage}</div>}
+                  {practiceMessage && <div className="border-t border-border bg-bg-card px-5 py-3 workspace-support-text text-text-secondary sm:px-6">{practiceMessage}{candidateId && <Link to="/mistakes?filter=pending" className="ml-3 text-accent underline">确认收录</Link>}</div>}
                 </div>
               ) : practicePool.length === 0 ? (
                 <EmptyState

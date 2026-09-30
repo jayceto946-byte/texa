@@ -395,6 +395,7 @@ def _list_mistake_records(req: MistakeListRequest, mistake_book) -> list[Mistake
             or kw in record.ocr_text.lower()
             or kw in record.explanation.lower()
             or any(kw in tag.lower() for tag in record.tags)
+            or any(kw in kind.lower() for kind in record.mistake_type)
         ]
     return records
 

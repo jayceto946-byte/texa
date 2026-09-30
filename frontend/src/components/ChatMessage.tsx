@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BookOpen, Globe2, GraduationCap, Paperclip, ShieldAlert, ThumbsDown, ThumbsUp } from 'lucide-react';
 import type { AnswerMode, AssistantSource, ChatActivity, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, CitationProvenance, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
 import { useChatContext } from '../contexts/ChatContext';
@@ -157,6 +158,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
   const [feedbackBusy, setFeedbackBusy] = useState(false);
   const [showFeedbackReasons, setShowFeedbackReasons] = useState(false);
   const [feedbackError, setFeedbackError] = useState('');
+  const [captureError, setCaptureError] = useState('');
+  const [captureBusy, setCaptureBusy] = useState(false);
+  const navigate = useNavigate();
   const { bookName, subject, conversationId } = useChatContext();
   const { openInspector } = useInspector();
 
@@ -240,6 +244,22 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
     () => (isUser && variant === 'message' ? splitQuestionAttachment(content) : { attachmentName: '', body: content }),
     [content, isUser, variant],
   );
+  const captureQuestion = async () => {
+    if (captureBusy || !questionContent.body.trim()) return;
+    setCaptureBusy(true);
+    setCaptureError('');
+    const scope = bookName || 'default';
+    try {
+      const result = await post(`/mistakes/drafts?book_name=${encodeURIComponent(scope)}`, { data: {
+        question_text: questionContent.body, subject: subject || '数学', source: '学习会话',
+        source_ref: { type: 'chat', conversation_id: conversationId, turn_id: turnId || '', message_id: messageId || '' },
+        content_complete: false,
+      } });
+      if (!result?.success) throw new Error(result?.message || '无法建立错题草稿');
+      navigate(`/mistakes/intake/${encodeURIComponent(result.data.id)}?book_name=${encodeURIComponent(scope)}`);
+    } catch (error) { setCaptureError(error instanceof Error ? error.message : '无法建立错题草稿'); }
+    finally { setCaptureBusy(false); }
+  };
   const isThinking = !isUser && (
     stage === 'agent'
     || ((stage === 'thinking' || stage === 'plan') && !content.trim())
@@ -298,6 +318,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
         ) : content.trim() ? (
           <MarkdownMessage content={isUser ? questionContent.body : content} linkedConcepts={isUser ? [] : linkedConcepts} onConceptClick={openConcept} citationIds={validIds} />
         ) : null}
+
+        {variant === 'message' && isUser && questionContent.body.trim() && <div className="mt-2"><button type="button" disabled={captureBusy} onClick={() => void captureQuestion()} className="text-xs text-text-secondary hover:text-accent">记录为错题</button>{captureError && <span role="alert" className="ml-2 text-xs text-[var(--danger)]">{captureError}</span>}</div>}
 
         {variant === 'message' && !isUser && stage === 'done' && (modeLabel || hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
           <div className="learning-answer-meta">

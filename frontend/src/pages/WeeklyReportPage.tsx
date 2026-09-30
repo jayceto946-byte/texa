@@ -110,7 +110,7 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
             <button type="button" onClick={() => setShowStats((value) => !value)} className="app-secondary-button">
               {showStats ? '收起学习统计' : '查看学习统计'}
             </button>
-            <Link to="/mistakes?tab=review&session=1" className="app-primary-button">开始复习</Link>
+            <Link to="/learning/review" className="app-primary-button">开始复习</Link>
           </div>
 
           {showStats && <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">

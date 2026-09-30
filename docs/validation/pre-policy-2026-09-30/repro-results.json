@@ -1,0 +1,133 @@
+{
+  "shadow_rule_is_labeled_nonshadow": {
+    "reproduced": true,
+    "selected": "learning.inspect",
+    "shadow_only": false
+  },
+  "unrelated_math_verifies_wrong_answer": {
+    "reproduced": true,
+    "verification": {
+      "status": "passed",
+      "passed": true,
+      "checks": [
+        {
+          "id": "answer",
+          "label": "针对当前问题的回答",
+          "status": "passed",
+          "reason": ""
+        },
+        {
+          "id": "final_numeric_answer",
+          "label": "最终数值及单位",
+          "status": "passed",
+          "verification": "deterministic_math_tool"
+        }
+      ],
+      "failures": [],
+      "unverified": []
+    }
+  },
+  "input_number_verifies_wrong_conclusion": {
+    "reproduced": true,
+    "verification": {
+      "status": "passed",
+      "passed": true,
+      "checks": [
+        {
+          "id": "answer",
+          "label": "针对当前问题的回答",
+          "status": "passed",
+          "reason": ""
+        },
+        {
+          "id": "final_numeric_answer",
+          "label": "最终数值及单位",
+          "status": "passed",
+          "reason": ""
+        }
+      ],
+      "failures": [],
+      "unverified": []
+    }
+  },
+  "empty_contract_empty_answer_passes": {
+    "reproduced": true,
+    "verification": {
+      "status": "passed",
+      "passed": true,
+      "checks": [],
+      "failures": [],
+      "unverified": []
+    }
+  },
+  "goal_criteria_not_in_required_outputs": {
+    "reproduced": true,
+    "goal_criteria": [
+      {
+        "id": "c1",
+        "description": "提供进度证据"
+      }
+    ],
+    "required_outputs": []
+  },
+  "changed_goal_resumes_old_contract": {
+    "reproduced": true,
+    "current_objective": "新目标：学习完全不同内容",
+    "executed_goal": "旧目标：查看学习进度\n完成标准：提供进度证据"
+  },
+  "chat_resume_bypasses_paused_goal": {
+    "reproduced": true,
+    "goal_status": "paused"
+  },
+  "completed_goal_leaves_run_running": {
+    "reproduced": true,
+    "goal_status": "completed"
+  },
+  "goal_link_failure_orphans_retry": {
+    "reproduced": true,
+    "task_status": "running",
+    "links": []
+  },
+  "sse_snapshot_final_commit_race": {
+    "reproduced": true,
+    "error": "'NoneType' object is not subscriptable",
+    "durable_status": "completed",
+    "emitted_count": 1
+  },
+  "outbox_failure_starves_other_sessions": {
+    "reproduced": true,
+    "seen": [
+      "session0",
+      "session0"
+    ],
+    "pending": 2
+  },
+  "pausing_goal_A_marks_goal_B_paused": {
+    "reproduced": true,
+    "projection": {
+      "goal_id": "goal_B",
+      "target_type": "chapter",
+      "target_id": "",
+      "target_name": "goal_B",
+      "status": "paused",
+      "created_at": "2026-09-30T01:42:35.725968+00:00",
+      "updated_at": "2026-09-30T01:42:35.727464+00:00"
+    },
+    "sql_goal_B_status": "active"
+  },
+  "preflight_goal_write_has_no_operation_identity": {
+    "reproduced": true,
+    "goal_count": 2,
+    "statuses": [
+      "active",
+      "active"
+    ]
+  },
+  "rotation_deletes_active_goal_run": {
+    "reproduced": true,
+    "retained_goal_events": 0
+  },
+  "failed_audit_flush_reports_no_failure": {
+    "reproduced": true
+  }
+}

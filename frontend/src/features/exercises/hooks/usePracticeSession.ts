@@ -29,6 +29,7 @@ export function usePracticeSession({
   const [practiceAnswer, setPracticeAnswer] = useState('');
   const [practiceSolutionOpen, setPracticeSolutionOpen] = useState(false);
   const [practiceMessage, setPracticeMessage] = useState('');
+  const [candidateId, setCandidateId] = useState('');
   const [sessionLimit, setSessionLimit] = useState(20);
   const [sessionShuffle, setSessionShuffle] = useState(false);
   const [sessionBusy, setSessionBusy] = useState(false);
@@ -138,17 +139,18 @@ export function usePracticeSession({
         return;
       }
       const updatedRecord = (sessionMode ? res.record : res.data) as ExerciseRecord;
+      setCandidateId(res.candidate_id || '');
       setRecords((current) => current.map((item) => item.id === currentPractice.id ? updatedRecord : item));
       if (sessionMode) {
         const nextSession = res.data as ExercisePracticeSession;
         setPracticeSession(nextSession);
         resetAnswer();
         const summary = nextSession.summary;
-        setPracticeMessage(nextSession.status === 'completed'
+        setPracticeMessage(res.candidate_id ? '本次做错的题目与作答已准备，确认后才会进入错题本。' : nextSession.status === 'completed'
           ? `本轮完成：${summary?.answered || 0} 题，平均自评 ${summary?.average_quality || 0}`
           : res.message || '已记录，进入下一题');
       } else {
-        setPracticeMessage(addToMistake && res.mistake_id ? '已记录练习，并转入错题本' : '已记录练习结果');
+        setPracticeMessage(res.candidate_id ? '本次做错的题目与作答已准备，确认后才会进入错题本。' : addToMistake && res.mistake_id ? '已记录练习，并转入错题本' : '已记录练习结果');
       }
       await refreshOverview();
     } catch (error) {
@@ -192,6 +194,7 @@ export function usePracticeSession({
     practiceSolutionOpen,
     setPracticeSolutionOpen,
     practiceMessage,
+    candidateId,
     showPracticeMessage,
     sessionLimit,
     setSessionLimit,

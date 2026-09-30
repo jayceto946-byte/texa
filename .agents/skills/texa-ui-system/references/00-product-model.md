@@ -14,7 +14,8 @@ Use short, specific Chinese copy. Surface a model or technical detail when it ch
 
 - Learning: ask, read, inspect evidence, continue a session.
 - Library: manage learning material and import it.
-- Review: capture and revisit mistakes and due concepts.
+- Mistakes: capture, correct, attribute, and inspect a mistake record and its redo evidence.
+- Review: schedule and complete due mistakes and concepts; resume the same review session after leaving.
 - Exercises: browse source-backed problems and practice.
 - Settings: configure runtime, models, backup, version, and repair.
 

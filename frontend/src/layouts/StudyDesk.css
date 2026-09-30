@@ -442,3 +442,8 @@
     color: var(--color-accent);
   }
 }
+
+/* All main workspaces use the same compact chrome and page-title scale. */
+.study-desk :is(.learning-workspace-header,.app-page-header) { flex-wrap:nowrap; }
+.study-desk .learning-workspace-header h2,
+.study-desk .management-workspace .app-page-title { color:var(--color-text-primary); font-size:var(--workspace-page-title-size); font-weight:600; line-height:1.3; }

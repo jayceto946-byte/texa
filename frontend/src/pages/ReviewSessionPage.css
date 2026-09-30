@@ -1,0 +1,17 @@
+.review-session-back { display: inline-flex; align-items: center; gap: 8px; color: var(--color-text-secondary); font-size: var(--workspace-interface-size); }
+.review-session-back:hover { color: var(--color-accent); }
+.review-session-body { max-width: var(--workspace-reading-width); margin: 0 auto; color: var(--color-text-primary); }
+.review-session-body h1 { margin: 14px 0; font-size: var(--workspace-document-title-size); font-weight: 600; }
+.review-session-body h2 { margin: 22px 0 12px; font-size: var(--workspace-section-title-size); font-weight: 600; }
+.review-session-body > p { margin: 10px 0 20px; color: var(--color-text-secondary); font-size: var(--workspace-interface-size); }
+.review-session-progress { color: var(--color-text-secondary); font-size: var(--workspace-support-size); }
+.review-session-question { margin: 20px 0; padding: 16px 0; border-block: 1px solid var(--workspace-separator); }
+.review-session-body section { margin: 20px 0; }
+.review-session-body label { display: block; margin-bottom: 8px; font-size: var(--workspace-interface-size); }
+.review-session-answer { width: 100%; min-height: 150px; resize: vertical; }
+.review-session-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.review-session-error { padding: 10px 0; color: var(--danger); }
+.review-session-error button { text-decoration: underline; }
+.review-session-saved-answer { white-space: pre-wrap; color: var(--color-text-secondary); font-size: var(--workspace-interface-size); }
+.review-session-body details { padding: 16px 0; border-bottom: 1px solid var(--workspace-separator); }
+.review-session-body summary { cursor: pointer; font-size: var(--workspace-interface-size); }

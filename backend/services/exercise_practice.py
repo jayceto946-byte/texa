@@ -7,6 +7,7 @@ from typing import Protocol
 
 from memory.exercise_bank import ExerciseBank, ExerciseRecord, PracticeSession
 from memory.mistake_book import MistakeBook, MistakeRecord
+from memory.mistake_lifecycle import MistakeLifecycleStore
 
 
 class MistakeFactory(Protocol):
@@ -38,6 +39,7 @@ class PracticeAnswerResult:
     record: ExerciseRecord
     mistake_id: str = ""
     mistake_error: str = ""
+    candidate_id: str = ""
 
 
 @dataclass
@@ -71,18 +73,27 @@ class PracticeAnswerService:
 
         mistake_id = str(session.results.get(record.id, {}).get("mistake_id") or "")
         mistake_error = ""
+        candidate_id = ""
         if add_to_mistake and not mistake_id:
-            stable_key = f"{self.book_name}\0{session_id}\0{record.id}"
+            stable_key = f"{self.book_name}\0{record.id}"
             stable_mistake_id = (
                 "ps_" + hashlib.sha256(stable_key.encode("utf-8")).hexdigest()[:16]
             )
             try:
-                mistake_id = self.mistake_book_provider().add_if_absent(
+                mistake_book = self.mistake_book_provider()
+                mistake_id = mistake_book.add_if_absent(
                     self.mistake_factory(
                         record,
                         user_answer=user_answer,
                         mistake_id=stable_mistake_id,
                     )
+                )
+                lifecycle = MistakeLifecycleStore(mistake_book.store)
+                lifecycle.link_source(f"exercise:{self.book_name}:{record.id}", mistake_id)
+                lifecycle.append_occurrence_once(
+                    mistake_id, f"practice:{self.book_name}:{session_id}:{record.id}",
+                    answer=user_answer,
+                    source_ref={"type": "exercise_attempt", "exercise_id": record.id, "session_id": session_id},
                 )
                 session = self.bank.attach_practice_session_mistake(
                     session_id,
@@ -101,6 +112,25 @@ class PracticeAnswerService:
                         "session_id": session_id,
                     },
                 )
+        elif quality < 3 and not mistake_id:
+            try:
+                lifecycle = MistakeLifecycleStore(self.mistake_book_provider().store)
+                candidate = lifecycle.create_candidate(
+                    f"practice:{self.book_name}:{session_id}:{record.id}",
+                    {
+                        "question_text": record.question_text, "user_answer": user_answer,
+                        "correct_answer": record.answer, "subject": record.subject,
+                        "chapter": record.chapter, "source": record.source,
+                        "tags": record.tags, "image_path": record.image_path,
+                        "ocr_text": record.ocr_text, "content_complete": True,
+                        "failure_confirmed": True,
+                        "stable_source_key": f"exercise:{self.book_name}:{record.id}",
+                        "source_ref": {"type": "exercise_attempt", "exercise_id": record.id, "session_id": session_id},
+                    },
+                )
+                candidate_id = candidate["id"]
+            except Exception as exc:
+                mistake_error = str(exc)
 
         if answer_created or self.reconcile_events:
             stored = session.results[record.id]
@@ -119,4 +149,5 @@ class PracticeAnswerService:
             record=record,
             mistake_id=mistake_id,
             mistake_error=mistake_error,
+            candidate_id=candidate_id,
         )

@@ -15,7 +15,7 @@ import logging
 import os
 import threading
 
-from backend.api import agent, chat, mistakes, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state, goals
+from backend.api import agent, chat, mistakes, mistake_lifecycle, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state, goals
 from backend.security import LocalApiBoundaryMiddleware
 from utils.version import APP_VERSION
 
@@ -146,6 +146,8 @@ app.add_middleware(LocalApiBoundaryMiddleware)
 # ── API 路由 ──────────────────────────────────────────────
 app.include_router(chat.router, prefix="/api")
 app.include_router(agent.router, prefix="/api")
+app.include_router(mistake_lifecycle.router, prefix="/api")
+app.include_router(mistake_lifecycle.review_router, prefix="/api")
 app.include_router(mistakes.router, prefix="/api")
 app.include_router(books.router, prefix="/api")
 app.include_router(kg.router, prefix="/api")
