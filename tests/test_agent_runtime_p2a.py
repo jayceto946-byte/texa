@@ -35,7 +35,7 @@ def test_two_read_steps_and_verified_finish(tmp_path):
     ])
     runner = BoundedAgentRunner(store, registry, adapter,
                                 ({"id": "get_recent_progress", "version": "1", "schema_hash": metadata["schema_hash"]},))
-    result = runner.run_offline(run_id, "owner", context=ToolContext(book_name="default"))
+    result = runner.run_bounded(run_id, "owner", context=ToolContext(book_name="default"))
     assert result["task"]["status"] == "completed"
     assert result["consumed_calls"] == 2
     assert result["consumed_model_calls"] == 3
@@ -53,7 +53,7 @@ def test_unknown_model_capability_rejected(tmp_path):
     from backend.services.agent_runtime.contracts import RuntimeDenied
     import pytest
     with pytest.raises(RuntimeDenied):
-        BoundedAgentRunner(store, registry, adapter, ()).run_offline(run_id, "owner")
+        BoundedAgentRunner(store, registry, adapter, ()).run_bounded(run_id, "owner")
 
 
 def test_budget_exhaustion_closes_run_and_initial_goal_reaches_adapter(tmp_path):
@@ -69,7 +69,7 @@ def test_budget_exhaustion_closes_run_and_initial_goal_reaches_adapter(tmp_path)
             assert transcript[0] == {"role": "user", "content": "Inspect my progress"}
             return FixedAction("call", tool_id="get_recent_progress", args={})
     result = BoundedAgentRunner(store, registry, Adapter([]),
-        ({"id": "get_recent_progress", "version": "1", "schema_hash": metadata["schema_hash"]},)).run_offline(run_id, "owner")
+        ({"id": "get_recent_progress", "version": "1", "schema_hash": metadata["schema_hash"]},)).run_bounded(run_id, "owner")
     assert result["run"]["status"] == "failed"
     assert result["consumed_model_calls"] == 1
 
@@ -84,7 +84,7 @@ def test_shared_answer_boundary_uses_prompt_and_counts_final_model_call(tmp_path
         prompts.append(messages)
         return "<think>private</think>先理解概念，再回顾例题。"
     result = BoundedAgentRunner(store, ToolRegistry(), FakeAdapter([
-        FixedAction("finish", answer="action response must not become the answer")]), ()).run_offline(
+        FixedAction("finish", answer="action response must not become the answer")]), ()).run_bounded(
             run_id, "owner", answer_state={"user_input": "解释学习方法", "intent": "qa",
                 "use_textbook_context": False, "answer_mode": "global_general"}, answer_generator=generate)
     assert result["task"]["status"] == "completed"
@@ -106,7 +106,7 @@ def test_late_model_result_cannot_publish_after_timeout(tmp_path):
             return FixedAction("finish", answer="late result")
     try:
         result = BoundedAgentRunner(store, ToolRegistry(), SlowAdapter([]), (),
-                                    model_timeout_seconds=.01).run_offline(run_id, "owner")
+                                    model_timeout_seconds=.01).run_bounded(run_id, "owner")
         assert result["run"]["status"] == "failed"
         release.set()
         assert ended.wait(1)

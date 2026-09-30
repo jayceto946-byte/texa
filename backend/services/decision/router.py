@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import re
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from backend.services.decision.contracts import (
-    DecisionContext, DecisionResult, DomainCapability, FallbackRouterBackend,
+    DecisionContext, DecisionResult, DomainCapability,
     SemanticRouterBackend, SemanticRanking,
 )
 
@@ -56,14 +56,15 @@ class CalibrationProfile:
 class DecisionRouter:
     def __init__(self, *, semantic: SemanticRouterBackend | None = None,
                  calibration: CalibrationProfile | None = None,
-                 fallback: FallbackRouterBackend | None = None,
                  shadow: bool = True):
         self.semantic = semantic
         self.calibration = calibration
-        self.fallback = fallback
         self.shadow = shadow
 
     def route(self, context: DecisionContext) -> DecisionResult:
+        return replace(self._route(context), shadow_only=self.shadow)
+
+    def _route(self, context: DecisionContext) -> DecisionResult:
         text = context.resolved_query or context.text
         if context.current_task_status in {"waiting_for_input", "waiting_for_confirmation"} or context.required_inputs:
             return DecisionResult("clarify", reason_codes=("input_gate",), rule_match="task_gate")
@@ -93,14 +94,6 @@ class DecisionRouter:
                 return DecisionResult("capability", selected_capability=selected,
                     semantic_candidates=ranking.candidates, confidence_kind="uncalibrated",
                     backend_id=ranking.backend_id, backend_version=ranking.backend_version)
-        if self.fallback and not self.shadow:
-            try:
-                selected = self.fallback.choose(context, CAPABILITIES)
-            except Exception:
-                selected = None
-            if selected in CAPABILITIES and selected not in _WRITE:
-                return DecisionResult("capability", selected_capability=selected,
-                                      reason_codes=("bounded_fallback",), fallback_used=True)
         return DecisionResult("unsupported", reason_codes=("no_safe_route",),
                               semantic_candidates=ranking.candidates if ranking else (),
                               shadow_only=self.shadow)
@@ -120,8 +113,6 @@ class DecisionRouter:
                               rule_match="explicit", reason_codes=("explicit_ui_action",))
 
     def _rule(self, context: DecisionContext, text: str) -> DecisionResult | None:
-        if context.answer_mode == "subject_mismatch":
-            return DecisionResult("clarify", reason_codes=("subject_mismatch",), rule_match="scope")
         if context.attachments:
             return DecisionResult("unsupported", reason_codes=("attachment_requires_existing_visual_path",), rule_match="attachment")
         if _MISTAKE.search(text):

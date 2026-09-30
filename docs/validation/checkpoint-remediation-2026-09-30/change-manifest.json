@@ -1,0 +1,222 @@
+[
+  {
+    "path": "backend/api/chat.py",
+    "baseline_sha256": "3a6fa85d2a1225f6d675bf0661ff6090c8ab7d0fc5c91fcb2ea9d7f82afc46db",
+    "result_sha256": "9f9bafc414f525771dd0e2bc3c89eef447488ed3d6d91a3174f4f05d633e60b8"
+  },
+  {
+    "path": "backend/services/agent_runtime/chat_binding.py",
+    "baseline_sha256": "c622cdec8e09e20415ece6e357f62ee95c9987f041258e07e50b753c8a70bfa8",
+    "result_sha256": "056f270d81d121bf04c79b448e75ce9abdb675ef1658c2def2dc185b2448d8a6"
+  },
+  {
+    "path": "backend/services/agent_runtime/extensions.py",
+    "baseline_sha256": "44dd439a6e392889a21949749be2830c4c6fce2e1534c12b06ff4865128e344c",
+    "result_sha256": null
+  },
+  {
+    "path": "backend/services/agent_runtime/locator.py",
+    "baseline_sha256": "11672ae55d27b8960d317b040d47d2f3ef2661993a08915fa4cbe253653d74bd",
+    "result_sha256": "6096d968fd72eff87931131f4c8e39734a2ed376734873a220e856e589b40185"
+  },
+  {
+    "path": "backend/services/agent_runtime/multi_step.py",
+    "baseline_sha256": "ee1a2c02bcf04a74476109865f34a4d6eaf71d5a5109bbbed41dca19f30e225c",
+    "result_sha256": "d7e7a3f08bbb5293e540e51dd963f1c939e7a293d03b9b5b7a09fe8d26eda9d5"
+  },
+  {
+    "path": "backend/services/agent_runtime/outbox.py",
+    "baseline_sha256": "87b9c5fe8fc6b4e713c0434519104ab2d9ea06ac82d839477d70dd4aebfca541",
+    "result_sha256": "04e77303187c29a4ac6c0772e9249c9f49b990e72a53d9d67f36e6e56f0599fa"
+  },
+  {
+    "path": "backend/services/agent_runtime/runner.py",
+    "baseline_sha256": "240f7b80aff17bb23b9fe86c18cd1cbf6bfdb1b8731be201b3f3e93ebe9af740",
+    "result_sha256": "69c213e18742ba48611f2a843c781dbafd6e6964bfdadf57646701563c8603d6"
+  },
+  {
+    "path": "backend/services/agent_runtime/store.py",
+    "baseline_sha256": "c7f767ca89fa63192dfcd25a1502bea59c053e8bb8a5a971e29722ac3e96407f",
+    "result_sha256": "144d0f12e49c165f2bf7e1038c4b822064b1bac6a393a2a81559802bcbe1cb53"
+  },
+  {
+    "path": "backend/services/agent_runtime/write_service.py",
+    "baseline_sha256": "4acbc630fb952e8e45391af170bfc50c5ac28173e20afe976d4050449cd24c1f",
+    "result_sha256": "ebe031d2fc4b9baaaf5cd072e3431a132e55e05521237a6e448607df91a1d330"
+  },
+  {
+    "path": "backend/services/answer_verification.py",
+    "baseline_sha256": "1314edbf77d1527b4b6866a75ef421b2c4923448c9bf03abc505de0bc4f8140d",
+    "result_sha256": "6f075fd8464ee27f90dd7c2528d3a4062872df5c25a29356db295a77608d87f5"
+  },
+  {
+    "path": "backend/services/decision/contracts.py",
+    "baseline_sha256": "a4e23feecb9731e2c387b8bbe4f4a0a2622581fef9dcd5cd11feb26568646aa4",
+    "result_sha256": "719febd729c484c934717b099ee0b3d3e27be04fa63413d11947f08edcfde0d3"
+  },
+  {
+    "path": "backend/services/decision/fallback.py",
+    "baseline_sha256": "2b3c99cb76d691f9c57ea4759b8dd4f6665408b5ae8fe433666bb060bda31fbb",
+    "result_sha256": null
+  },
+  {
+    "path": "backend/services/decision/router.py",
+    "baseline_sha256": "67033f10212fca8be8735dad403e4444c5b110fae302f32f48d133312697b96b",
+    "result_sha256": "212bfb27e02021bf2ff4226a1c105ddce42b213f1a27e0c4bdc0a4d6860b2312"
+  },
+  {
+    "path": "backend/services/decision/trace.py",
+    "baseline_sha256": "e66cd171bef680ca7d793efd375208623a497f0c5d45fcdf26ebf23b9dd78220",
+    "result_sha256": "7e65d25161e97aa8073734bfa0df09dacf1830f14625210648d5559e8409bdde"
+  },
+  {
+    "path": "backend/services/goals/execution.py",
+    "baseline_sha256": "6af58b593062501070db7c8e1ba865ea120dfe30fd48915f621468a38d2954b6",
+    "result_sha256": "6f5b677e2b059dd17bcdc7713b01cd85cf2bb1c33ee9a374914a9a511fd7244d"
+  },
+  {
+    "path": "backend/services/goals/service.py",
+    "baseline_sha256": "ab05474b090a9ebfad1de7cfe3cb9cdcfc929356bb637541972b7ebe13cfd55c",
+    "result_sha256": "ddfa44fc39f5c6863f64daf4cefe6c7868a6072aaba2ab9d2bb02adc864d91a0"
+  },
+  {
+    "path": "backend/services/goals/store.py",
+    "baseline_sha256": "22ef3b17ee0f7aa9d05279ed589d88fb60fcb000402338dee3efff6eaaa84054",
+    "result_sha256": "06f7e6300a898fed63aec7407afe0884359148da81482c89a7f1580337d49628"
+  },
+  {
+    "path": "backend/services/learning_state.py",
+    "baseline_sha256": "ad9fa108af389c3ce0112e0b4102086cc84c92db30712701f0cfdd41c9e9c36c",
+    "result_sha256": "b515d4c8a6aa7bd04a46a4d2be83eadb2aad5a7fabb55f000b6321ed26778938"
+  },
+  {
+    "path": "backend/services/learning_state_bridge.py",
+    "baseline_sha256": "41a1d72b23708bbe59ad56a5f715f08035c9881aa4bec49aa1661152c982efad",
+    "result_sha256": "b6a469974fd19a6f4846bc9d1c366b28c6b09b1c227f77604dee123cec4af2e4"
+  },
+  {
+    "path": "backend/services/learning_state_reducer.py",
+    "baseline_sha256": "0e8498f428b82a0516715d57b5b1ef879635813263cdaac78d9ce4420f8f23d7",
+    "result_sha256": "8cef04777949f92ab0e416ea1144a77ba933486681bc758d69de7ec5f04936f8"
+  },
+  {
+    "path": "backend/services/learning_task.py",
+    "baseline_sha256": "bfb882c583db3283e828d3258b492ff836b7f9da5c9d6030cd542fecc80b3e9a",
+    "result_sha256": "9ddfc3e385b2c86a6dba69fcc668e48514920c6cd4c180dfb2b278ecf33072e3"
+  },
+  {
+    "path": "backend/services/runtime_events.py",
+    "baseline_sha256": "792aced8145e54a2b00cd849dde98dd4549f6ad3a457096ea5d560c87ee19e15",
+    "result_sha256": "bd1bb7b79628c1e99cdc7795d0e8268a1c91fb34053386a761848e12b2dd0001"
+  },
+  {
+    "path": "backend/services/tool_orchestration.py",
+    "baseline_sha256": "db9010352dfc3f129393841f6c74f2f7509a9b5580440853263f08c80e91a214",
+    "result_sha256": "f268a800c4f10ea0792d3b7e4411990defb054b8774966e38075efce9cbf0434"
+  },
+  {
+    "path": "frontend/src/components/chat/LearningTaskActions.tsx",
+    "baseline_sha256": "a9a97d4e3247daed299c3fafad024c2e3ae840edd64e343f5acfe05f9478db0d",
+    "result_sha256": "1100d24ee2d407a9dc376c28f91bdec390a9b42c5fd37323a1589b1ada60679a"
+  },
+  {
+    "path": "frontend/src/features/goals/goalViewState.test.ts",
+    "baseline_sha256": "4e8ca758c3ecff3484cc7ba30a7f9aa1156383ea87b073f4a95c5fd660cb33ac",
+    "result_sha256": "c45af2f6787df2999509034453ca1f20f1cca3758dd4653c192b938edb89e3d1"
+  },
+  {
+    "path": "frontend/src/features/goals/goalViewState.ts",
+    "baseline_sha256": "b54e480f803871c398a8fab8cea114fe7fc1121320d85c03cf5126a03a4278fb",
+    "result_sha256": "83618891943446d4a0f6b0a006e007b21e80e9cebe5815d1d02084dee3ae1881"
+  },
+  {
+    "path": "frontend/src/pages/GoalsPage.tsx",
+    "baseline_sha256": "86a4c200bb1d04006adf5e07e74755f5ff93263b75672e6da9880af5936bfe55",
+    "result_sha256": "9a8f327e8eb6e1a4c4bed6227d2dac5b5bf18700407fd61d846756f2d4bf48b7"
+  },
+  {
+    "path": "frontend/src/types/index.ts",
+    "baseline_sha256": "683a668e6d3ec397f539f1240e1f634cf3c4ecf149e83605a9177ab3be9e2c2e",
+    "result_sha256": "053e902b481a924615e4f8c40dc4698245772824288c9b6f63db84ac2a80f3b7"
+  },
+  {
+    "path": "graph/feedback_node.py",
+    "baseline_sha256": "c6fdcb7e0c5a6b2c01f37af7e8db503e1468ec2e8e8af3e2a1aa4ce978e8664e",
+    "result_sha256": "d85f995281f4297b53be848c6047db2e0514dde714405f5e058a57a73b83285f"
+  },
+  {
+    "path": "graph/generator.py",
+    "baseline_sha256": "7046772a0f7e79df1369620fc333c2d86b0570b77ca76936e7f7480e2ef55157",
+    "result_sha256": "18db2e9f6ef1dba0e547e28d49bc7ec19e6174a3180be6431b3741a68c8901c5"
+  },
+  {
+    "path": "graph/planner.py",
+    "baseline_sha256": "d7312bb2262163451dc199dd91c28baed96ff3a235099b22cd587d3fdb752987",
+    "result_sha256": "a6743a2d6c40a0d03b8b36b2fa7a2c5c2a815a5239b9b7e63658ed0df5bd9d9e"
+  },
+  {
+    "path": "memory/learning_events.py",
+    "baseline_sha256": "ba401eccb4559d309978490ff856af324ca0b908c04e948c6b11e634a69cc1a5",
+    "result_sha256": "1b08134e9ae8ee2972fc7d7e43beecfa28f8f33ca5fa82d0519497e310838d33"
+  },
+  {
+    "path": "patch_notes.md",
+    "baseline_sha256": "2056cde28898baac132c1902291b45e1c3d0edfeac55d552a64aea12a0eedb9b",
+    "result_sha256": "4bb71f3be2a268c77d09b2abb03c550c32f2c2abe269686233ff8ed666ac3852"
+  },
+  {
+    "path": "tests/runtime_extension_harness.py",
+    "baseline_sha256": null,
+    "result_sha256": "44dd439a6e392889a21949749be2830c4c6fce2e1534c12b06ff4865128e344c"
+  },
+  {
+    "path": "tests/test_agent_decision_p1.py",
+    "baseline_sha256": "23602ca7bd6bb7b3c78387fd64021e2c3b8a82aac6c14f6c7b0b177a5144b78b",
+    "result_sha256": "3fd9a05ab8d334e548fb4da59c45b1f872232adafee9350e800b26cb6c52b918"
+  },
+  {
+    "path": "tests/test_agent_runtime_p2_recovery.py",
+    "baseline_sha256": "0b8cbcbc741d27cfd5070bb428958ffcb1314e2b4169ca5deae9a55a0b412256",
+    "result_sha256": "2ea5be03104562a215919fb2355e4e0dbef66947a2cdd4ce11fd3d1eb6d1f7ab"
+  },
+  {
+    "path": "tests/test_agent_runtime_p2a.py",
+    "baseline_sha256": "965a7c537acfb1b555bcf1e83d88bc95507529d3a8454751c7a11a165317c8a5",
+    "result_sha256": "7d3735a592729044a0e6c2379ef4cab556392e7e1053a1102a246295133739c6"
+  },
+  {
+    "path": "tests/test_agent_runtime_p4_contract.py",
+    "baseline_sha256": "ec6bbfefa809644ac569a5629cce58649175b826ecfbe9ee1a9a3909e0074de4",
+    "result_sha256": "19bc8181e605769ee806e803375f53307f9d8608702465f3f69542cbd0b06935"
+  },
+  {
+    "path": "tests/test_answer_verification.py",
+    "baseline_sha256": "d9b7b9271bf3033b7b4c89b8b2890c70efb39f4e5314dffa0a222062abfb38ae",
+    "result_sha256": "c06db0f5ac97a14eb230327f8dccc5be2e1946d964d256184ddceba92b49cbcc"
+  },
+  {
+    "path": "tests/test_checkpoint_acceptance_edges.py",
+    "baseline_sha256": null,
+    "result_sha256": "48c7de32ed81a8f337cad79c79fa5e902bc5de59a69f4185af6509984ffd0fa1"
+  },
+  {
+    "path": "tests/test_checkpoint_remediation.py",
+    "baseline_sha256": null,
+    "result_sha256": "804a5f476f324daa6c1a9b44956fb2031ecb5e53d2d2d67f74166cc3d29cc63c"
+  },
+  {
+    "path": "tests/test_feedback_node.py",
+    "baseline_sha256": "a6268c18d434adbe861d242ff2c38339102e58eb47faae0a31cdbd188129b905",
+    "result_sha256": "a2a9a9ea7796e301a6c4064562bfc5cb2817975e5068b99bd6569a15fc9fac09"
+  },
+  {
+    "path": "tests/test_rag_degradation.py",
+    "baseline_sha256": "4050e1b7140ea25b4d5e43ff635c98fd9447cb341b71b0cf1cdd808d7d78ef99",
+    "result_sha256": "5158614939bc673568f8786e37412a87fbb70f76494d81ededc47cd9bbfe0992"
+  },
+  {
+    "path": "tests/test_runtime_events.py",
+    "baseline_sha256": "996b39f868ff33cad586f87fe214c17de709c62db85cd54581cc0163865a77f4",
+    "result_sha256": "ccb65fb23579975f524584710be41c56bd1ab3dfd72a6215489330775721ce6b"
+  }
+]

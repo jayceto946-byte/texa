@@ -2,9 +2,29 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from functools import wraps
+import threading
+import hashlib
+import json
 
 from backend.services.goals.store import GoalConflict, GoalStore
 from memory.learning_events import LearningEvent, LearningEventStore
+
+
+GOAL_CONTROL_LOCK = threading.RLock()
+
+
+def goal_contract(goal):
+    content = {key: goal[key] for key in ("objective", "scope", "success_criteria")}
+    return hashlib.sha256(json.dumps(content, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def controlled(action):
+    @wraps(action)
+    def invoke(*args, **kwargs):
+        with GOAL_CONTROL_LOCK:
+            return action(*args, **kwargs)
+    return invoke
 
 
 class GoalService:
@@ -15,47 +35,53 @@ class GoalService:
     def create(self, **kwargs) -> dict:
         return self.store.create(**kwargs)
 
+    @controlled
     def update(self, goal_id: str, *, expected_revision: int, changes: dict) -> dict:
         if set(changes) - {"title", "objective", "scope", "success_criteria", "target_date", "timezone"}:
             raise ValueError("manual update cannot change lifecycle or measured progress")
         goal = self.store.get(goal_id)
         if not goal:
             raise KeyError(goal_id)
+        if goal["revision"] != expected_revision:
+            raise GoalConflict("goal revision changed")
         changes = {key: value for key, value in changes.items() if goal.get(key) != value}
         if "success_criteria" in changes or "objective" in changes or "scope" in changes:
             criteria = changes.get("success_criteria", goal["success_criteria"])
             changes = {**changes, "progress": {"criterion_results": [], "evidence_refs": [],
                        "measured_at": None, "unknowns": [item.get("id") for item in criteria]},
                        "next_action": None}
-        updated = self.store.update(goal_id, expected_revision=expected_revision, changes=changes)
         if set(changes) & {"objective", "scope", "success_criteria"}:
             self._interrupt_runs(goal_id)
+        updated = self.store.update(goal_id, expected_revision=expected_revision, changes=changes)
         if updated["status"] == "active":
             self._project(updated, "goal_created")
         return updated
 
-    def activate(self, goal_id: str, *, expected_revision: int) -> dict:
+    @controlled
+    def activate(self, goal_id: str, *, expected_revision: int, source_id: str = "") -> dict:
         goal = self.store.get(goal_id)
         if not goal or goal["status"] not in {"draft", "paused"}:
             raise GoalConflict("goal cannot be activated")
         updated = self.store.update(goal_id, expected_revision=expected_revision,
-                                    changes={"status": "active"})
-        self._project(updated, "goal_created")
+                                    changes={"status": "active"}, projection_source_id=source_id)
+        self._project(updated, "goal_created", source_id=source_id)
         return updated
 
-    def pause(self, goal_id: str, *, expected_revision: int) -> dict:
+    @controlled
+    def pause(self, goal_id: str, *, expected_revision: int, source_id: str = "") -> dict:
         goal = self.store.get(goal_id)
-        if not goal or goal["status"] != "active":
+        if not goal or goal["status"] != "active" or goal["revision"] != expected_revision:
             raise GoalConflict("goal is not active")
-        updated = self.store.update(goal_id, expected_revision=expected_revision,
-                                    changes={"status": "paused"})
         self._interrupt_runs(goal_id)
-        self._project(updated, "goal_paused")
+        updated = self.store.update(goal_id, expected_revision=expected_revision,
+                                    changes={"status": "paused"}, projection_source_id=source_id)
+        self._project(updated, "goal_paused", source_id=source_id)
         return updated
 
+    @controlled
     def measure(self, goal_id: str, *, expected_revision: int,
                 evidence_by_criterion: dict[str, list[str]],
-                user_confirms_completion: bool = False) -> dict:
+                user_confirms_completion: bool = False, source_id: str = "") -> dict:
         goal = self.store.get(goal_id)
         if not goal or goal["revision"] != expected_revision:
             raise GoalConflict("goal revision changed")
@@ -74,10 +100,12 @@ class GoalService:
                     "unknowns": unknowns}
         changes = {"progress": progress}
         if user_confirms_completion:
+            self._interrupt_runs(goal_id)
             changes["status"] = "completed"
-        updated = self.store.update(goal_id, expected_revision=expected_revision, changes=changes)
+        updated = self.store.update(goal_id, expected_revision=expected_revision, changes=changes,
+                                    projection_source_id=source_id)
         if updated["status"] == "completed":
-            self._project(updated, "goal_completed")
+            self._project(updated, "goal_completed", source_id=source_id)
         return updated
 
     def _interrupt_runs(self, goal_id):
@@ -86,13 +114,15 @@ class GoalService:
         store = runtime_store()
         if store is None:
             return
-        for link in self.store.links(goal_id):
-            snapshot = store.task_snapshot(link["task_id"])
-            if snapshot and snapshot["task"]["status"] == "waiting_for_confirmation":
+        for task_id in store.goal_tasks(goal_id):
+            snapshot = store.task_snapshot(task_id)
+            if snapshot:
+                calls = {call["id"]: call for call in snapshot["tool_calls"]}
                 for approval in snapshot.get("approvals", []):
-                    if approval["status"] == "pending":
+                    call = calls[approval["call_id"]]
+                    if approval["status"] in {"pending", "confirmed"} and call["status"] == "awaiting_approval":
                         try:
-                            store.reject_approval(approval["call_id"], actor_id="goal_changed")
+                            store.reject_approval(approval["call_id"], actor_id="goal_changed", interrupt_task=True)
                         except RuntimeConflict:
                             pass
             if snapshot and snapshot["run"]["status"] == "running":
@@ -133,7 +163,7 @@ class GoalService:
         return {"capability_id": None, "reason_codes": ["user_review_needed"],
                 "approval_required": False}
 
-    def _project(self, goal: dict, event_type: str) -> None:
+    def _project(self, goal: dict, event_type: str, *, source_id: str = "") -> None:
         if self.events is None:
             return
         scope = goal.get("scope") or {}
@@ -143,7 +173,7 @@ class GoalService:
             book_name=str(scope.get("book_name") or ""),
             book_id=str((scope.get("book_ids") or [""])[0]),
             chapter_id=str((scope.get("chapter_ids") or [""])[0]),
-            subject=str(scope.get("subject") or ""), source_type="goal", source_id=goal["id"],
+            subject=str(scope.get("subject") or ""), source_type="goal", source_id=source_id or goal["id"],
             payload={"goal_id": goal["id"], "target_name": goal["title"],
                      "status": goal["status"], "goal_revision": goal["revision"],
                      **{key: scope[key] for key in ("target_type", "target_id", "chapter_name", "unit_name") if key in scope}})
@@ -162,8 +192,8 @@ class GoalService:
         for goal in revisions:
             status = goal["status"]
             changed = previous_goal is not None and any(goal[key] != previous_goal[key] for key in ("title", "objective", "scope", "success_criteria"))
-            if (status != previous or (status == "active" and changed)) and status in event_types:
-                self._project(goal, event_types[status])
+            if (status != previous or (status == "active" and changed) or goal.get("_projection_source_id")) and status in event_types:
+                self._project(goal, event_types[status], source_id=goal.get("_projection_source_id", ""))
                 count += 1
             previous = status
             previous_goal = goal

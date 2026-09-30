@@ -32,14 +32,14 @@ def test_verification_rejects_missing_required_part_and_invalid_citation():
     assert {item["id"] for item in result["failures"]} >= {"part_2", "citations"}
 
 
-def test_numeric_answer_is_verified_by_matching_supplied_evidence():
+def test_numeric_overlap_alone_is_unverified():
     result = verify_answer(
         "查表得到最终温度为 120°C。",
         required_outputs=[{"id": "final_numeric_answer", "label": "数值", "kind": "numeric", "required": True}],
         evidence_items=[{"text": "E 型热电偶 5mV 对应 120°C"}],
     )
 
-    assert result["status"] == "passed"
+    assert result["status"] == "unverified"
 
 
 def test_method_only_without_numeric_is_valid_degradation():
@@ -63,7 +63,8 @@ def test_required_unit_and_formula_are_enforced_in_final_answer():
         required_outputs=required,
         evidence_items=[{"text": "输出电压为 12 mV"}],
     )
-    assert passed["status"] == "passed"
+    assert passed["status"] == "unverified"
+    assert all(item["status"] == "passed" for item in passed["checks"] if item["id"] in {"formula", "final_unit"})
 
 
 def test_citation_must_support_its_adjacent_claim_when_source_text_is_available():

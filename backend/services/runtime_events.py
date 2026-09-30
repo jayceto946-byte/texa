@@ -1,7 +1,7 @@
-"""RuntimeEvent V1: bounded, content-free decision and execution audit trail.
+"""Best-effort, bounded, content-free diagnostic events.
 
-Diagnostic logs remain in logging/RAG traces. These events are replay inputs, not
-training examples; any later training export needs separate review and consent.
+Flush/drain do not guarantee durable capture. This is neither a complete replay
+log nor training truth; historical configuration values are never synthesized.
 """
 from __future__ import annotations
 
@@ -165,11 +165,24 @@ class RuntimeEventStore:
             ])
             count = conn.execute("SELECT COUNT(*) FROM runtime_events").fetchone()[0]
             if count > _MAX_ROWS:
-                # Rotate complete oldest turns together, preserving the newest turn.
-                oldest = conn.execute("SELECT session_id,turn_id FROM runtime_events GROUP BY session_id,turn_id HAVING SUM(CASE WHEN json_extract(event_json,'$.type') IN ('execution_result','user_outcome','error') THEN 1 ELSE 0 END)>0 ORDER BY MIN(timestamp) LIMIT 1").fetchone()
-                newest = conn.execute("SELECT session_id,turn_id FROM runtime_events ORDER BY timestamp DESC LIMIT 1").fetchone()
-                if oldest and oldest != newest:
-                    conn.execute("DELETE FROM runtime_events WHERE session_id=? AND turn_id=?", oldest)
+                rows = conn.execute("SELECT rowid,event_json FROM runtime_events ORDER BY rowid").fetchall()
+                groups = {}
+                for rowid, raw in rows:
+                    event = json.loads(raw)
+                    key = (event["session_id"], event["turn_id"], event.get("run_id") or event["request_id"])
+                    groups.setdefault(key, []).append((rowid, event))
+                newest = next(reversed(groups))
+                for key, group in groups.items():
+                    last = group[-1][1]
+                    payload = last.get("payload") or {}
+                    terminal = (last["type"] == "execution_result" or
+                        payload.get("task_status_after", payload.get("task_status")) in
+                        {"completed", "degraded", "failed", "cancelled", "interrupted"})
+                    if key != newest and terminal:
+                        conn.executemany("DELETE FROM runtime_events WHERE rowid=?", [(rowid,) for rowid, _ in group])
+                        count -= len(group)
+                        if count <= _MAX_ROWS:
+                            break
 
     def list(self, *, session_id: str, turn_id: str = "", after_event_id: str = "",
              limit: int = 5000) -> list[dict[str, Any]]:
@@ -271,7 +284,7 @@ def emit_best_effort(event_type: str, **kwargs: Any) -> str:
 
 
 def observe_execution_event(event: dict[str, Any]) -> None:
-    """Project the existing SSE protocol onto the unified audit contract."""
+    """Project committed execution metadata for best-effort diagnostics."""
     phase = str(event.get("phase") or "")
     kind = str(event.get("kind") or "")
     event_type = str(event.get("type") or "")
@@ -300,7 +313,7 @@ def observe_execution_event(event: dict[str, Any]) -> None:
     else:
         category = "state_transition"
     safe = {"phase": phase or "system", "status": str(event.get("status") or "running")}
-    for key in ("task_status", "task_status_before", "task_status_after", "error_code", "tool_id", "evidence_count"):
+    for key in ("task_status", "task_status_before", "task_status_after", "error_code", "tool_id", "tool_version", "evidence_count"):
         if key in payload:
             safe[key] = payload[key]
     if "tool" in payload and "tool_id" not in safe:
@@ -322,11 +335,6 @@ def observe_execution_event(event: dict[str, Any]) -> None:
     emit(category, session_id=session_id, turn_id=event.get("turn_id") or "",
          request_id=event.get("request_id") or "", task_id=event.get("task_id") or "",
          run_id=event.get("run_id") or "", payload=safe)
-    if event_type == "final":
-        emit("user_outcome", session_id=session_id, turn_id=event.get("turn_id") or "",
-             request_id=event.get("request_id") or "", task_id=event.get("task_id") or "",
-             run_id=event.get("run_id") or "",
-             payload={"task_status": str(payload.get("task_status") or payload.get("task_status_after") or "completed")})
 
 
 def replay(*, session_id: str, turn_id: str = "", after_event_id: str = "",

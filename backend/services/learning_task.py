@@ -57,7 +57,7 @@ LEARNING_TASK_STATE_CONTRACT = {
     },
     "waiting_for_confirmation": {
         "phase": "paused",
-        "transitions": frozenset({"completed", "degraded", "failed", "cancelled"}),
+        "transitions": frozenset({"completed", "degraded", "failed", "cancelled", "interrupted"}),
         "terminal": False,
         "interruptible": False,
         "resumable": False,

@@ -24,7 +24,7 @@ def test_core_sqlite_stores_have_explicit_schema_versions(tmp_path):
     JobManager(job_path)
 
     assert _user_version(exercise_path) == 1
-    assert _user_version(mistake_path) == 2
+    assert _user_version(mistake_path) == 4
     assert _user_version(event_path) == 2
     assert _user_version(job_path) == 1
 
@@ -106,7 +106,7 @@ def test_all_component_reopens_are_noop(tmp_path):
     from backend.services.decision.trace import RoutingTraceStore
     for index, (factory, version) in enumerate([
         (RuntimeStore, 3), (GoalStore, 1), (RoutingTraceStore, 2),
-        (ExerciseBankStore, 1), (MistakeBookStore, 2), (LearningEventStore, 2), (JobManager, 1),
+        (ExerciseBankStore, 1), (MistakeBookStore, 4), (LearningEventStore, 2), (JobManager, 1),
     ]):
         path = tmp_path / f'component-{index}.db'
         factory(path)

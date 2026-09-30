@@ -1,0 +1,599 @@
+diff --git a/backend/services/agent_runtime/chat_binding.py b/backend/services/agent_runtime/chat_binding.py
+--- a/backend/services/agent_runtime/chat_binding.py
++++ b/backend/services/agent_runtime/chat_binding.py
+@@ -101,7 +101,7 @@
+             actor_id="local_user", args_hash=call["args_hash"], scope=json.loads(approval["scope_json"]),
+             expected_revision=snapshot["task_revision"], resume_request_key=f"approval_{stable}",
+             request_id=f"req_{stable}", owner_token=f"owner_{stable}", turn_id=snapshot["task"]["turn_id"])
+-        if result["run"]["status"] == "running":
++        if call["status"] != "unknown" and result["run"]["status"] == "running" and result["run"]["owner_token"] == f"owner_{stable}":
+             store.close(result["run"]["id"], f"owner_{stable}", outcome="paused", error_code="approval_confirmed")
+         action = pending.get(action_id)
+     snapshot = store.task_snapshot(task_id)
+diff --git a/backend/services/agent_runtime/locator.py b/backend/services/agent_runtime/locator.py
+--- a/backend/services/agent_runtime/locator.py
++++ b/backend/services/agent_runtime/locator.py
+@@ -36,12 +36,12 @@
+             status = "rejected"
+         elif approval["status"] == "pending" and approval["expires_at"] <= now:
+             status = "expired"
+-        elif approval["status"] == "pending" and task["status"] == "waiting_for_confirmation":
++        elif approval["status"] in {"pending", "confirmed"} and call["status"] == "awaiting_approval" and task["status"] in {"waiting_for_confirmation", "interrupted"}:
+             status = "pending"
+         elif call["status"] == "running":
+             status = "executing"
+         else:
+-            status = "unknown"
++            status = "failed"
+         allowed = ["confirm", "reject"] if status == "pending" else ["reject"] if status == "expired" else []
+         actions.append({"action_id": call["id"], "type": types[call["tool_id"]], "payload": call["args"],
+                         "status": status, "allowed_actions": allowed})
+diff --git a/backend/services/agent_runtime/store.py b/backend/services/agent_runtime/store.py
+--- a/backend/services/agent_runtime/store.py
++++ b/backend/services/agent_runtime/store.py
+@@ -499,33 +499,41 @@
+                          (actor_id, _now(), call_id))
+             return dict(conn.execute("SELECT * FROM runtime_approvals WHERE call_id=?", (call_id,)).fetchone())
+ 
+-    def reject_approval(self, call_id: str, *, actor_id: str) -> dict[str, Any]:
++    def reject_approval(self, call_id: str, *, actor_id: str,
++                        interrupt_task: bool = False) -> dict[str, Any]:
+         if not actor_id.strip():
+             raise ValueError("rejecting actor is required")
+         with self._write() as conn:
+             row = conn.execute("SELECT * FROM runtime_approvals WHERE call_id=?", (call_id,)).fetchone()
+             if not row:
+                 raise KeyError(call_id)
+-            if row["status"] == "confirmed":
+-                raise RuntimeConflict("confirmed approval cannot be rejected")
+-            if row["status"] == "pending":
+-                call = conn.execute("SELECT task_id,requested_run_id FROM tool_calls WHERE id=?", (call_id,)).fetchone()
++            if row["status"] in {"pending", "confirmed"}:
++                call = conn.execute("SELECT * FROM tool_calls WHERE id=?", (call_id,)).fetchone()
+                 task = conn.execute("SELECT * FROM runtime_tasks WHERE id=?", (call["task_id"],)).fetchone()
+-                if task["status"] != "waiting_for_confirmation":
++                if call["status"] != "awaiting_approval" or call["executed_run_id"] or call["attempt_count"]:
++                    raise RuntimeConflict("admitted approval cannot be rejected")
++                if task["status"] not in {"waiting_for_confirmation", "running", "interrupted"}:
+                     raise RuntimeConflict("approval task has already advanced")
++                if task["status"] == "running" and not interrupt_task:
++                    raise RuntimeConflict("running task must be stopped before cancellation")
++                stopped_status = "interrupted" if interrupt_task else "cancelled"
+                 conn.execute("UPDATE runtime_approvals SET status='rejected',actor_id=?,revision=revision+1,updated_at=? WHERE call_id=?",
+                              (actor_id, _now(), call_id))
+                 conn.execute("UPDATE tool_calls SET status='denied',updated_at=? WHERE id=?",
+                              (_now(), call_id))
+                 snapshot = json.loads(task["snapshot_json"])
+-                snapshot["status"] = "cancelled"
++                snapshot["status"] = stopped_status
++                snapshot["artifacts"]["active_run_id"] = ""
+                 snapshot["updated_at"] = _now()
+-                conn.execute("UPDATE runtime_tasks SET snapshot_json=?,status='cancelled',revision=revision+1,updated_at=? WHERE id=?",
+-                             (_dump(snapshot), _now(), call["task_id"]))
+-                run = conn.execute("SELECT * FROM agent_runs WHERE id=?", (call["requested_run_id"],)).fetchone()
+-                conn.execute("UPDATE agent_runs SET status='cancelled' WHERE id=?", (run["id"],))
+-                self._event(conn, run, lifecycle="approval.rejected", status="cancelled",
+-                    payload={"task_status_before": "waiting_for_confirmation", "task_status_after": "cancelled"})
++                conn.execute("UPDATE runtime_tasks SET snapshot_json=?,status=?,active_run_id=NULL,revision=revision+1,updated_at=? WHERE id=?",
++                             (_dump(snapshot), stopped_status, _now(), call["task_id"]))
++                run = conn.execute("SELECT * FROM agent_runs WHERE id=?", (task["active_run_id"] or call["requested_run_id"],)).fetchone()
++                conn.execute("UPDATE agent_runs SET status=?,revision=revision+1,ended_at=?,updated_at=? WHERE id=?", ("paused" if interrupt_task else "cancelled", _now(), _now(), run["id"]))
++                # A paused run's event stream is closed. The approval/task rows
++                # carry cancellation facts; only an active run gets a stop event.
++                if run["status"] == "running":
++                    self._event(conn, run, lifecycle="approval.rejected", status="cancelled",
++                        payload={"task_status_before": task["status"], "task_status_after": stopped_status})
+             return dict(conn.execute("SELECT * FROM runtime_approvals WHERE call_id=?", (call_id,)).fetchone())
+ 
+     def start_approved_tool(self, run_id: str, owner: str, call_id: str) -> dict[str, Any]:
+@@ -542,28 +550,39 @@
+                         payload={"tool_call_id": call_id})
+             return self._snapshot(conn, run_id)
+ 
+-    def reconcile_approved_tool(self, run_id: str, owner: str, call_id: str,
+-                                receipt: dict[str, Any]) -> dict[str, Any]:
++    def reconcile_approved_tool(self, task_id: str, call_id: str,
++                                receipt: dict[str, Any], *, args_hash: str,
++                                scope: dict[str, Any]) -> dict[str, Any]:
++        """Record an admitted domain fact without resuming or admitting work."""
+         if not receipt:
+             raise ValueError("domain receipt is required for reconciliation")
+         with self._write() as conn:
+-            run = self._owned(conn, run_id, owner)
+             call = conn.execute("SELECT * FROM tool_calls WHERE id=? AND task_id=?",
+-                                (call_id, run["task_id"])).fetchone()
+-            approval = conn.execute("SELECT status FROM runtime_approvals WHERE call_id=?", (call_id,)).fetchone()
+-            if not call or call["status"] != "unknown" or call["permission"] != "LOCAL_WRITE" or not approval or approval["status"] != "confirmed":
++                                (call_id, task_id)).fetchone()
++            approval = conn.execute("SELECT * FROM runtime_approvals WHERE call_id=?", (call_id,)).fetchone()
++            if not call or call["status"] not in {"unknown", "succeeded"} or call["permission"] != "LOCAL_WRITE" or not approval or approval["status"] != "confirmed" or not call["executed_run_id"] or not call["attempt_count"]:
+                 raise RuntimeConflict("write call is not reconcilable")
++            if call["args_hash"] != args_hash or approval["args_hash"] != args_hash or approval["scope_json"] != _dump(scope):
++                raise RuntimeConflict("receipt arguments or scope changed")
++            latest = conn.execute("SELECT id FROM agent_runs WHERE task_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1", (task_id,)).fetchone()
++            if call["status"] == "succeeded":
++                if json.loads(call["receipt_json"]) != receipt:
++                    raise RuntimeConflict("domain receipt changed")
++                return self._snapshot(conn, latest[0])
++            run_id = call["executed_run_id"]
++            run = conn.execute("SELECT * FROM agent_runs WHERE id=? AND task_id=?", (run_id, task_id)).fetchone()
++            if not run or run["status"] == "running":
++                raise RuntimeConflict("write execution has not been fenced")
+             result = {"success": True, "domain_receipt": receipt, "reconciled": True}
+-            conn.execute("UPDATE tool_calls SET status='succeeded',executed_run_id=?,result_json=?,receipt_json=?,error_code=NULL,updated_at=? WHERE id=?",
+-                         (run_id, _dump(result), _dump(receipt), _now(), call_id))
++            conn.execute("UPDATE tool_calls SET status='succeeded',result_json=?,receipt_json=?,error_code=NULL,updated_at=? WHERE id=?",
++                         (_dump(result), _dump(receipt), _now(), call_id))
+             checkpoint = json.loads(run["checkpoint_json"])
+             checkpoint.setdefault("steps", []).append({"call_id": call_id, "status": "succeeded", "reconciled": True})
+             conn.execute("UPDATE agent_runs SET checkpoint_json=?,revision=revision+1,updated_at=? WHERE id=?",
+                          (_dump(checkpoint), _now(), run_id))
+-            self._event(conn, run, lifecycle="tool.completed", event_type="tool_result",
+-                        status="completed", payload={"tool_call_id": call_id,
+-                                                     "tool_id": call["tool_id"], "reconciled": True})
+-            return self._snapshot(conn, run_id)
++            # Receipt accounting updates the durable call, not the closed run's
++            # lifecycle stream or final output. Its execution owner stays fenced.
++            return self._snapshot(conn, latest[0])
+ 
+     def close(self, run_id: str, owner: str, *, outcome: str,
+               answer: str = "", error_code: str = "",
+diff --git a/backend/services/agent_runtime/write_service.py b/backend/services/agent_runtime/write_service.py
+--- a/backend/services/agent_runtime/write_service.py
++++ b/backend/services/agent_runtime/write_service.py
+@@ -55,10 +55,16 @@
+         snapshot = self.runtime.task_snapshot(task_id)
+         call = next((item for item in snapshot["tool_calls"] if item["id"] == call_id), None) if snapshot else None
+         action = self.pending.get(call_id)
+-        if call is None or action is None or action["payload"] != call["args"]:
++        if call is None or action is None or action["payload"] != call["args"] or action["context"]["learning_task_id"] != task_id or call["args_hash"] != args_hash:
+             raise RuntimeConflict("approval proposal differs from the frozen task call")
+         if call["status"] == "succeeded":
+             return snapshot
++        if call["status"] == "unknown":
++            receipt = self.pending.domain_receipt(call_id)
++            if receipt is None:
++                raise RuntimeConflict("write result is unknown and has no domain receipt")
++            return self.runtime.reconcile_approved_tool(task_id, call_id, receipt,
++                                                        args_hash=args_hash, scope=scope)
+         spec = self.registry.runtime_tool(call["tool_id"])
+         metadata = spec.runtime_metadata()
+         if (metadata["schema_hash"], metadata["version"]) != (call["schema_hash"], call["tool_version"]):
+@@ -77,7 +83,8 @@
+             receipt = self.pending.domain_receipt(call_id)
+             if receipt is None:
+                 raise RuntimeConflict("write result is unknown and has no domain receipt")
+-            return self.runtime.reconcile_approved_tool(run_id, owner_token, call_id, receipt)
++            return self.runtime.reconcile_approved_tool(task_id, call_id, receipt,
++                                                        args_hash=args_hash, scope=scope)
+         if call["status"] == "awaiting_approval":
+             self.runtime.start_approved_tool(run_id, owner_token, call_id)
+         try:
+diff --git a/backend/services/goals/service.py b/backend/services/goals/service.py
+--- a/backend/services/goals/service.py
++++ b/backend/services/goals/service.py
+@@ -63,7 +63,7 @@
+         if not goal or goal["status"] not in {"draft", "paused"}:
+             raise GoalConflict("goal cannot be activated")
+         updated = self.store.update(goal_id, expected_revision=expected_revision,
+-                                    changes={"status": "active"})
++                                    changes={"status": "active"}, projection_source_id=source_id)
+         self._project(updated, "goal_created", source_id=source_id)
+         return updated
+ 
+@@ -74,7 +74,7 @@
+             raise GoalConflict("goal is not active")
+         self._interrupt_runs(goal_id)
+         updated = self.store.update(goal_id, expected_revision=expected_revision,
+-                                    changes={"status": "paused"})
++                                    changes={"status": "paused"}, projection_source_id=source_id)
+         self._project(updated, "goal_paused", source_id=source_id)
+         return updated
+ 
+@@ -102,7 +102,8 @@
+         if user_confirms_completion:
+             self._interrupt_runs(goal_id)
+             changes["status"] = "completed"
+-        updated = self.store.update(goal_id, expected_revision=expected_revision, changes=changes)
++        updated = self.store.update(goal_id, expected_revision=expected_revision, changes=changes,
++                                    projection_source_id=source_id)
+         if updated["status"] == "completed":
+             self._project(updated, "goal_completed", source_id=source_id)
+         return updated
+@@ -115,11 +116,13 @@
+             return
+         for task_id in store.goal_tasks(goal_id):
+             snapshot = store.task_snapshot(task_id)
+-            if snapshot and snapshot["task"]["status"] == "waiting_for_confirmation":
++            if snapshot:
++                calls = {call["id"]: call for call in snapshot["tool_calls"]}
+                 for approval in snapshot.get("approvals", []):
+-                    if approval["status"] == "pending":
++                    call = calls[approval["call_id"]]
++                    if approval["status"] in {"pending", "confirmed"} and call["status"] == "awaiting_approval":
+                         try:
+-                            store.reject_approval(approval["call_id"], actor_id="goal_changed")
++                            store.reject_approval(approval["call_id"], actor_id="goal_changed", interrupt_task=True)
+                         except RuntimeConflict:
+                             pass
+             if snapshot and snapshot["run"]["status"] == "running":
+@@ -189,8 +192,8 @@
+         for goal in revisions:
+             status = goal["status"]
+             changed = previous_goal is not None and any(goal[key] != previous_goal[key] for key in ("title", "objective", "scope", "success_criteria"))
+-            if (status != previous or (status == "active" and changed)) and status in event_types:
+-                self._project(goal, event_types[status])
++            if (status != previous or (status == "active" and changed) or goal.get("_projection_source_id")) and status in event_types:
++                self._project(goal, event_types[status], source_id=goal.get("_projection_source_id", ""))
+                 count += 1
+             previous = status
+             previous_goal = goal
+diff --git a/backend/services/goals/store.py b/backend/services/goals/store.py
+--- a/backend/services/goals/store.py
++++ b/backend/services/goals/store.py
+@@ -128,7 +128,7 @@
+             return [json.loads(row[0]) for row in rows]
+ 
+     def update(self, goal_id: str, *, expected_revision: int,
+-               changes: dict[str, Any]) -> dict:
++               changes: dict[str, Any], projection_source_id: str = "") -> dict:
+         allowed = {"title", "objective", "scope", "success_criteria", "target_date",
+                    "timezone", "status", "progress", "plan", "next_action"}
+         if set(changes) - allowed:
+@@ -159,8 +159,13 @@
+                      goal_id, expected_revision))
+                 if cursor.rowcount != 1:
+                     raise GoalConflict("goal revision changed")
++                # Bind preparation identity to the committed revision, even if
++                # the event projector fails. Keep it out of the current Goal.
++                revision_snapshot = dict(snapshot)
++                if projection_source_id:
++                    revision_snapshot["_projection_source_id"] = projection_source_id
+                 conn.execute("INSERT INTO goal_revisions VALUES (?,?,?,?)",
+-                             (goal_id, snapshot["revision"], _dump(snapshot), snapshot["updated_at"]))
++                             (goal_id, snapshot["revision"], _dump(revision_snapshot), snapshot["updated_at"]))
+                 conn.commit()
+                 return snapshot
+             except BaseException:
+@@ -185,6 +190,12 @@
+             return [json.loads(row[0]) for row in conn.execute(
+                 "SELECT snapshot_json FROM goal_revisions WHERE goal_id=? ORDER BY revision",
+                 (goal_id,))]
++
++    def projected_operation(self, *, learner_id: str, source_id: str) -> dict | None:
++        with closing(self._connect()) as conn:
++            row = conn.execute("SELECT r.snapshot_json FROM goal_revisions r JOIN goals g ON g.id=r.goal_id WHERE g.learner_id=? AND json_extract(r.snapshot_json,'$._projection_source_id')=? LIMIT 1",
++                               (learner_id, source_id)).fetchone()
++            return json.loads(row[0]) if row else None
+ 
+ 
+ def legacy_goal_id(event_id: str) -> str:
+diff --git a/backend/services/learning_state.py b/backend/services/learning_state.py
+--- a/backend/services/learning_state.py
++++ b/backend/services/learning_state.py
+@@ -228,6 +228,10 @@
+             goal_path = self.progress_root / "goals.db"
+             if op == "create_goal" or goal_path.exists():
+                 goals = GoalService(GoalStore(goal_path), self.event_store)
++                committed = goals.store.projected_operation(learner_id=learner_id, source_id=source_id) if source_id else None
++                if committed:
++                    goals.reconcile_projections(committed["id"])
++                    return self.get_state(learner_id=learner_id, book_name=resolved_book_name, subject=subject)
+                 if op == "create_goal":
+                     stable_goal_id = str(operation.get("goal_id") or (f"goal_{uuid.uuid5(uuid.NAMESPACE_URL, source_id).hex}" if source_id else ""))
+                     goal = goals.store.get(stable_goal_id) if stable_goal_id else None
+@@ -253,8 +257,14 @@
+                         if goal["status"] == "active":
+                             goals.pause(goal_id, expected_revision=goal["revision"], source_id=source_id)
+                         elif goal["status"] == "paused":
++                            if source_id:
++                                goal = goals.store.update(goal_id, expected_revision=goal["revision"],
++                                    changes={}, projection_source_id=source_id)
+                             goals._project(goal, "goal_paused", source_id=source_id)
+                     elif goal["status"] == "completed":
++                        if source_id:
++                            goal = goals.store.update(goal_id, expected_revision=goal["revision"],
++                                changes={}, projection_source_id=source_id)
+                         goals._project(goal, "goal_completed", source_id=source_id)
+                     else:
+                         goals.measure(goal_id, expected_revision=goal["revision"],
+diff --git a/backend/services/learning_task.py b/backend/services/learning_task.py
+--- a/backend/services/learning_task.py
++++ b/backend/services/learning_task.py
+@@ -57,7 +57,7 @@
+     },
+     "waiting_for_confirmation": {
+         "phase": "paused",
+-        "transitions": frozenset({"completed", "degraded", "failed", "cancelled"}),
++        "transitions": frozenset({"completed", "degraded", "failed", "cancelled", "interrupted"}),
+         "terminal": False,
+         "interruptible": False,
+         "resumable": False,
+diff --git a/patch_notes.md b/patch_notes.md
+--- a/patch_notes.md
++++ b/patch_notes.md
+@@ -1,5 +1,7 @@
+ # 2026-09-30 - Checkpoint Remediation (Handoff Scope)
+ 
++- 修复独立复核发现的三个剩余边界：preparation source 与 Goal revision 在同一现有事务保存，事件投影失败或重启后重试仍绑定原 Goal；已准入写入的真实 receipt 可在 Goal 更新/完成后对账，不恢复 run、不重做审批/工具准入、不改 executed_run_id；暂停撤销已确认但尚未准入的审批并留下 interrupted 任务，未发生写入不再投影为 unknown。waiting_for_confirmation 增加 interrupted 合法停止转换；拒绝已准入写入仍被禁止。
++- 复核修复验证：原独立回归从 4 failed / 1 passed 变为 5 passed；保留原 5 项并补充 8 项重启、重复对账、owner/关闭事件流和继续入口检查，13 passed。全后端 963 passed；前端 126 passed，TypeScript/Vite/ESLint 通过；Electron 7 passed（回环端口测试经批准在沙箱外重跑）。此次未重新进行原生 Electron 点击验证，先前独立复核的原生审批/暂停/重启结果不作为此次交错缺陷修复的新验收。无 schema、依赖或索引变动。
+ - 按 pre-policy implementation handoff 实施 P0/P1 局部正确性整改：数值假通过、Goal 合同/fence/准入、preparation 幂等、部分初始化、事件投影隔离、SSE snapshot、outbox 公平失败隔离、真实审批状态、最小输出合同、诊断 retention/shadow/版本、调度覆盖与超时实际容量。
+ - 无数据库 schema 或索引迁移；新增内容只进入已有 checkpoint/next_action JSON 与现有事件身份。旧 Goal run 缺执行摘要时允许安全停止，拒绝按旧合同恢复；标题/调度和暂停再启用不会使未变的合同失效。保留独立存储、用户 profile、历史、receipt、EvidencePack 与 owner fence。
+ - 删除确认无生产消费者的 capability/fallback/outcome 写入口，fake MCP/schedule harness 移入 tests，删除 TypeError 二次调用胶水及 Planner 任意首章 fallback；实际生产 driver 改名 run_bounded。保留 Goal.plan 和 finish.answer 非阻塞 debt，不实施 Deferred。
+diff --git a/tests/test_checkpoint_acceptance_edges.py b/tests/test_checkpoint_acceptance_edges.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_checkpoint_acceptance_edges.py
+@@ -0,0 +1,272 @@
++"""Acceptance probes copied unchanged from the 7617 review, plus repair guards."""
++import pytest
++
++from backend.services.agent_runtime import locator, chat_binding
++from backend.services.agent_runtime.contracts import RuntimeConflict
++from backend.services.goals.service import GoalService
++from backend.services.goals.store import GoalStore
++from backend.services.learning_state import LearningStateService
++from memory.learning_events import LearningEventStore
++from tests.test_checkpoint_remediation import goal_run
++
++
++def test_pause_retry_after_projection_failure_does_not_pause_new_goal(tmp_path, monkeypatch):
++    events = LearningEventStore(tmp_path / 'events.db')
++    learning = LearningStateService(progress_root=tmp_path, event_store=events)
++    goals = GoalService(GoalStore(tmp_path / 'goals.db'), events)
++    first = goals.create(learner_id='local_default', title='A', objective='', scope={'book_name': 'book'})
++    goals.activate(first['id'], expected_revision=1)
++    append = events.append
++    def fail_pause(event):
++        if event.event_type == 'goal_paused':
++            raise OSError('projection unavailable after Goal commit')
++        return append(event)
++    monkeypatch.setattr(events, 'append', fail_pause)
++    with pytest.raises(OSError):
++        learning.apply_operation({'operation': 'pause_learning'}, book_name='book', source_id='same-preparation')
++    assert goals.store.get(first['id'])['status'] == 'paused'
++    monkeypatch.setattr(events, 'append', append)
++    second = goals.create(learner_id='local_default', title='B', objective='', scope={'book_name': 'book'})
++    goals.activate(second['id'], expected_revision=1)
++    learning.apply_operation({'operation': 'pause_learning'}, book_name='book', source_id='same-preparation')
++    assert goals.store.get(second['id'])['status'] == 'active', 'Retry of the pause of A must not pause B'
++
++
++@pytest.mark.parametrize('operation', ['update', 'complete'])
++def test_admitted_receipt_remains_reconcilable_after_goal_change(tmp_path, monkeypatch, operation):
++    from backend.services.agent_runtime.write_service import RuntimeWriteService
++    from backend.services.agent_runtime.write_tools import register_receipt_backed_write_tools
++    from backend.services.pending_actions import PendingActionStore
++    from backend.tools.registry import ToolContext, ToolRegistry
++    service, runtime, goal, task, _ = goal_run(tmp_path, monkeypatch)
++    snapshot = runtime.task_snapshot(task['id'])
++    registry = ToolRegistry()
++    register_receipt_backed_write_tools(registry)
++    pending = PendingActionStore(tmp_path / 'pending')
++    writer = RuntimeWriteService(runtime, registry, pending)
++    proposed = writer.propose(snapshot['run']['id'], snapshot['run']['owner_token'], tool_id='save_mistake',
++        args={'book_name': 'math', 'question_text': '2+2?'}, operation_key='save', context=ToolContext(book_name='math'))
++    call = proposed['tool_calls'][0]
++    admit = runtime.start_approved_tool
++    def interleave(*args, **kwargs):
++        result = admit(*args, **kwargs)
++        if operation == 'update':
++            service.update(goal['id'], expected_revision=2, changes={'objective': 'new objective'})
++        else:
++            service.measure(goal['id'], expected_revision=2, evidence_by_criterion={}, user_confirms_completion=True)
++        return result
++    monkeypatch.setattr(runtime, 'start_approved_tool', interleave)
++    with pytest.raises(RuntimeConflict):
++        writer.confirm(task['id'], call['id'], actor_id='user', args_hash=call['args_hash'],
++            scope={'book_name': 'math', 'subject': ''}, expected_revision=proposed['task_revision'],
++            resume_request_key='approve', request_id='request', owner_token='owner2', turn_id='')
++    # Real domain receipt: this was an admitted write and has actually committed.
++    receipt = pending.domain_receipt(call['id'])
++    assert receipt is not None
++    assert runtime.task_snapshot(task['id'])['tool_calls'][0]['status'] == 'unknown'
++    monkeypatch.setattr(runtime, 'start_approved_tool', admit)
++    monkeypatch.setattr(chat_binding, 'runtime_store', lambda: runtime)
++    monkeypatch.setattr(chat_binding, 'build_registry', lambda: registry)
++    chat_binding.resolve_runtime_action(call['id'], 'confirm', pending)
++    result = runtime.task_snapshot(task['id'])
++    assert result['tool_calls'][0]['status'] == 'succeeded'
++    assert result['run']['status'] != 'running'
++    assert pending.domain_receipt(call['id']) == receipt
++
++
++def test_goal_scope_projection_does_not_inherit_other_goal_location(tmp_path):
++    events = LearningEventStore(tmp_path / 'events.db')
++    goals = GoalService(GoalStore(tmp_path / 'goals.db'), events)
++    a = goals.create(learner_id='local_default', title='A', objective='',
++        scope={'book_name':'book', 'chapter_name':'Chapter A', 'target_id':'a'})
++    goals.activate(a['id'], expected_revision=1)
++    b = goals.create(learner_id='local_default', title='B', objective='',
++        scope={'book_name':'book', 'chapter_name':'Chapter B', 'target_id':'b'})
++    goals.activate(b['id'], expected_revision=1)
++    goals.pause(b['id'], expected_revision=2)
++    state = LearningStateService(progress_root=tmp_path, event_store=events).get_state(book_name='book')
++    assert state['active_goal']['goal_id'] == a['id']
++    assert state['active_goal']['chapter_name'] == 'Chapter A'
++
++
++def test_pause_after_approval_before_resume_does_not_leave_fake_unknown(tmp_path, monkeypatch):
++    from backend.services.agent_runtime.write_service import RuntimeWriteService
++    from backend.services.agent_runtime.write_tools import register_receipt_backed_write_tools
++    from backend.services.pending_actions import PendingActionStore
++    from backend.tools.registry import ToolContext, ToolRegistry
++    service, runtime, goal, task, _ = goal_run(tmp_path, monkeypatch)
++    snapshot = runtime.task_snapshot(task['id'])
++    registry = ToolRegistry()
++    register_receipt_backed_write_tools(registry)
++    pending = PendingActionStore(tmp_path / 'pending')
++    writer = RuntimeWriteService(runtime, registry, pending)
++    proposed = writer.propose(snapshot['run']['id'], snapshot['run']['owner_token'], tool_id='save_mistake',
++        args={'book_name': 'math', 'question_text': '2+2?'}, operation_key='save', context=ToolContext(book_name='math'))
++    call = proposed['tool_calls'][0]
++    confirm = runtime.confirm_approval
++    def interleave(*args, **kwargs):
++        result = confirm(*args, **kwargs)
++        service.pause(goal['id'], expected_revision=2)
++        return result
++    monkeypatch.setattr(runtime, 'confirm_approval', interleave)
++    with pytest.raises(RuntimeConflict):
++        writer.confirm(task['id'], call['id'], actor_id='user', args_hash=call['args_hash'],
++            scope={'book_name': 'math', 'subject': ''}, expected_revision=proposed['task_revision'],
++            resume_request_key='approve', request_id='request', owner_token='owner2', turn_id='')
++    assert pending.domain_receipt(call['id']) is None
++    public = locator.public_task(runtime, runtime.task_snapshot(task['id']))
++    from backend.services.goals import execution
++    service.activate(goal['id'], expected_revision=3)
++    restarted = execution.start_goal(service, goal['id'], expected_revision=4, request_key='start-after-reactivate')
++    assert restarted['id'] == task['id']
++    assert restarted['status'] == public['status']
++    assert public['artifacts']['pending_actions'][0]['status'] != 'unknown', 'No write was admitted; this is not an uncertain write'
++    assert public['status'] in {'interrupted', 'cancelled'}, 'Pause must leave a usable stopped state'
++
++
++@pytest.mark.parametrize('operation, event_type', [
++    ('pause_learning', 'goal_paused'), ('complete_goal', 'goal_completed'),
++])
++@pytest.mark.parametrize('already_stopped', [False, True])
++def test_preparation_binding_survives_restart_and_later_goal_revision(tmp_path, monkeypatch, operation, event_type, already_stopped):
++    events = LearningEventStore(tmp_path / 'events.db')
++    goals = GoalService(GoalStore(tmp_path / 'goals.db'), events)
++    a = goals.create(learner_id='local_default', title='A', objective='', scope={'book_name': 'book'})
++    goals.activate(a['id'], expected_revision=1)
++    learning = LearningStateService(progress_root=tmp_path, event_store=events)
++    if already_stopped:
++        learning.apply_operation({'operation': operation}, book_name='book')
++    append = events.append
++    def fail_projection(event):
++        if event.event_type == event_type:
++            raise OSError('projection failed after commit')
++        return append(event)
++    monkeypatch.setattr(events, 'append', fail_projection)
++    with pytest.raises(OSError):
++        learning.apply_operation({'operation': operation}, book_name='book', source_id='preparation')
++    committed = goals.store.projected_operation(learner_id='local_default', source_id='preparation')
++    assert committed['id'] == a['id']
++    # Subsequent updates must not inherit the earlier operation identity.
++    goals.update(a['id'], expected_revision=committed['revision'], changes={'title': 'A renamed'})
++    assert '_projection_source_id' not in goals.store.get(a['id'])
++    assert '_projection_source_id' not in goals.store.revisions(a['id'])[-1]
++    b = goals.create(learner_id='local_default', title='B', objective='', scope={'book_name': 'book'})
++    goals.activate(b['id'], expected_revision=1)
++    restarted_events = LearningEventStore(tmp_path / 'events.db')
++    restarted = LearningStateService(progress_root=tmp_path, event_store=restarted_events)
++    for _ in range(2):
++        restarted.apply_operation({'operation': operation}, book_name='book', source_id='preparation')
++    assert goals.store.get(b['id'])['status'] == 'active'
++    assert goals.store.get(b['id'])['revision'] == 2
++    projected = [event for event in restarted_events.list_recent() if event.source_id == 'preparation']
++    assert len(projected) == 1
++    assert projected[0].id == f"evt_{a['id']}_{committed['revision']}"
++
++
++def _write_proposal(tmp_path, monkeypatch):
++    from backend.services.agent_runtime.write_service import RuntimeWriteService
++    from backend.services.agent_runtime.write_tools import register_receipt_backed_write_tools
++    from backend.services.pending_actions import PendingActionStore
++    from backend.tools.registry import ToolContext, ToolRegistry
++    service, runtime, goal, task, _ = goal_run(tmp_path, monkeypatch)
++    snapshot = runtime.task_snapshot(task['id'])
++    registry = ToolRegistry()
++    register_receipt_backed_write_tools(registry)
++    pending = PendingActionStore(tmp_path / 'pending')
++    writer = RuntimeWriteService(runtime, registry, pending)
++    proposed = writer.propose(snapshot['run']['id'], snapshot['run']['owner_token'], tool_id='save_mistake',
++        args={'book_name': 'math', 'question_text': '2+2?'}, operation_key='save', context=ToolContext(book_name='math'))
++    call = proposed['tool_calls'][0]
++    confirm_args = dict(actor_id='user', args_hash=call['args_hash'], scope={'book_name': 'math', 'subject': ''},
++        expected_revision=proposed['task_revision'], resume_request_key='approve', request_id='request', owner_token='owner2', turn_id='')
++    return service, runtime, goal, task, registry, pending, writer, call, confirm_args
++
++
++def test_receipt_reconciliation_preserves_owner_and_closed_events_after_restart(tmp_path, monkeypatch):
++    from backend.services.agent_runtime.store import RuntimeStore
++    from backend.services.execution_events import validate_execution_event_sequence
++    service, runtime, goal, task, registry, pending, writer, call, kwargs = _write_proposal(tmp_path, monkeypatch)
++    admit = runtime.start_approved_tool
++    def fence(*args, **kw):
++        result = admit(*args, **kw)
++        service.update(goal['id'], expected_revision=2, changes={'objective': 'changed'})
++        return result
++    monkeypatch.setattr(runtime, 'start_approved_tool', fence)
++    with pytest.raises(RuntimeConflict):
++        writer.confirm(task['id'], call['id'], **kwargs)
++    receipt = pending.domain_receipt(call['id'])
++    fenced = runtime.task_snapshot(task['id'])
++    assert fenced['tool_calls'][0]['attempt_count'] == 1
++    restarted = RuntimeStore(runtime.db_path)
++    monkeypatch.setattr(chat_binding, 'runtime_store', lambda: restarted)
++    monkeypatch.setattr(chat_binding, 'build_registry', lambda: registry)
++    monkeypatch.setattr(pending, 'confirm', lambda _: pytest.fail('receipt accounting must not execute'))
++    monkeypatch.setattr(registry, 'runtime_tool', lambda _: pytest.fail('receipt accounting must not re-admit a contract'))
++    for _ in range(2):
++        chat_binding.resolve_runtime_action(call['id'], 'confirm', pending)
++    current = restarted.task_snapshot(task['id'])
++    assert current['run']['id'] == fenced['run']['id']
++    assert current['run']['owner_token'] == fenced['run']['owner_token']
++    assert current['run']['status'] == 'paused'
++    assert current['run']['output'] == fenced['run']['output']
++    assert current['task_revision'] == fenced['task_revision']
++    assert current['tool_calls'][0]['executed_run_id'] == fenced['tool_calls'][0]['executed_run_id']
++    assert current['tool_calls'][0]['attempt_count'] == 1
++    assert current['tool_calls'][0]['result']['domain_receipt'] == receipt
++    assert current['execution_events'] == fenced['execution_events']
++    validate_execution_event_sequence(current['execution_events'])
++
++
++def test_receipt_accounting_does_not_stop_a_later_owner(tmp_path, monkeypatch):
++    service, runtime, goal, task, registry, pending, writer, call, kwargs = _write_proposal(tmp_path, monkeypatch)
++    admit = runtime.start_approved_tool
++    def fence(*args, **kw):
++        result = admit(*args, **kw)
++        service.pause(goal['id'], expected_revision=2)
++        return result
++    monkeypatch.setattr(runtime, 'start_approved_tool', fence)
++    with pytest.raises(RuntimeConflict):
++        writer.confirm(task['id'], call['id'], **kwargs)
++    service.activate(goal['id'], expected_revision=3)
++    current = runtime.task_snapshot(task['id'])
++    newer = runtime.resume(task['id'], expected_revision=current['task_revision'], request_key='later',
++        request_id='later-request', owner_token='later-owner', turn_id='')
++    monkeypatch.setattr(chat_binding, 'runtime_store', lambda: runtime)
++    monkeypatch.setattr(chat_binding, 'build_registry', lambda: registry)
++    monkeypatch.setattr(pending, 'confirm', lambda _: pytest.fail('must not execute'))
++    chat_binding.resolve_runtime_action(call['id'], 'confirm', pending)
++    after = runtime.task_snapshot(task['id'])
++    assert after['run'] == newer['run']
++    assert after['task_revision'] == newer['task_revision']
++    assert after['tool_calls'][0]['executed_run_id'] != newer['run']['id']
++
++
++@pytest.mark.parametrize('boundary', ['confirm_approval', 'resume'])
++def test_unadmitted_confirmation_is_revoked_but_task_can_continue(tmp_path, monkeypatch, boundary):
++    from backend.services.goals import execution
++    service, runtime, goal, task, _, pending, writer, call, kwargs = _write_proposal(tmp_path, monkeypatch)
++    original = getattr(runtime, boundary)
++    def fence(*args, **kw):
++        result = original(*args, **kw)
++        service.pause(goal['id'], expected_revision=2)
++        return result
++    monkeypatch.setattr(runtime, boundary, fence)
++    with pytest.raises(RuntimeConflict):
++        writer.confirm(task['id'], call['id'], **kwargs)
++    monkeypatch.setattr(runtime, boundary, original)
++    current = runtime.task_snapshot(task['id'])
++    assert current['task']['status'] == 'interrupted'
++    assert current['approvals'][0]['status'] == 'rejected'
++    assert current['tool_calls'][0]['status'] == 'denied'
++    assert current['tool_calls'][0]['attempt_count'] == 0
++    assert current['tool_calls'][0]['executed_run_id'] is None
++    assert pending.domain_receipt(call['id']) is None
++    public = locator.public_task(runtime, current)
++    assert public['resumable']
++    assert public['artifacts']['pending_actions'][0]['status'] == 'rejected'
++    service.activate(goal['id'], expected_revision=3)
++    assert execution.start_goal(service, goal['id'], expected_revision=4, request_key='after-pause')['id'] == task['id']
++    assert execution.resume_goal(service, goal['id'], task_id=task['id'], expected_revision=4, request_key='continue')['status'] == 'running'
++    with pytest.raises(RuntimeConflict):
++        writer.confirm(task['id'], call['id'], **kwargs)
++    assert pending.domain_receipt(call['id']) is None

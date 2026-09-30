@@ -84,13 +84,13 @@ def apply_learning_event(state: dict[str, Any], event: LearningEvent) -> dict[st
         }
         progress["status"] = "in_progress"
         _apply_progress_location(progress, event, payload)
-    elif event_type == "goal_paused":
+    elif event_type == "goal_paused" and payload.get("goal_id") == result["active_goal"].get("goal_id") and payload.get("goal_id"):
         if result["active_goal"]:
             result["active_goal"]["status"] = "paused"
             result["active_goal"]["updated_at"] = event.timestamp
         progress["status"] = "paused"
         progress["last_session_id"] = event.conversation_id or progress["last_session_id"]
-    elif event_type in {"goal_completed", "chapter_completed"}:
+    elif event_type in {"goal_completed", "chapter_completed"} and payload.get("goal_id") == result["active_goal"].get("goal_id") and payload.get("goal_id"):
         if result["active_goal"]:
             result["active_goal"]["status"] = "completed"
             result["active_goal"]["updated_at"] = event.timestamp
@@ -98,7 +98,7 @@ def apply_learning_event(state: dict[str, Any], event: LearningEvent) -> dict[st
     elif event_type in {"guided_session_started", "guided_session_resumed", "unit_started"}:
         progress["status"] = "in_progress"
         _apply_progress_location(progress, event, payload)
-        if result["active_goal"]:
+        if payload.get("goal_id") and payload["goal_id"] == result["active_goal"].get("goal_id"):
             result["active_goal"]["status"] = "active"
             result["active_goal"]["updated_at"] = event.timestamp
     elif event_type == "unit_completed":

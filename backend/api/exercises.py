@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import hashlib
 import threading
 from pathlib import Path
 
@@ -29,6 +30,7 @@ from backend.schemas import (
 )
 from config import DATA_DIR, PROGRESS_PATH
 from memory.exercise_bank import ExerciseBank, ExerciseRecord, PracticeSession, get_exercise_bank, question_fingerprint
+from memory.mistake_lifecycle import MistakeLifecycleStore
 from memory.exercise_file_importer import extract_exercise_text
 from memory.exercise_importer import analyze_candidates, attach_answers_by_number, refine_low_confidence_candidates, split_candidate_blocks
 from memory.textbook_exercise_importer import extract_textbook_exercise_text
@@ -153,13 +155,16 @@ def _mistake_from_exercise(
         subject=record.subject,
         chapter=record.chapter,
         tags=record.tags,
-        mistake_type=mistake_type or ["\u601d\u8def\u5361\u4f4f"],
+        mistake_type=mistake_type or [],
         difficulty=record.difficulty,
         image_path=record.image_path,
         ocr_text=record.ocr_text,
         explanation=record.explanation,
         linked_concepts=record.linked_concepts,
         notes=f"\u7531\u4e60\u9898\u5e93\u8f6c\u5165\uff1a{record.id}",
+        content_status="ready",
+        diagnosis_status="confirmed" if mistake_type else "missing",
+        source_ref={"type": "exercise", "exercise_id": record.id},
     )
     if mistake_id:
         mistake.id = mistake_id
@@ -577,6 +582,7 @@ def answer_practice_session(
         "data": session_data,
         "record": record_data,
         "mistake_id": result.mistake_id,
+        "candidate_id": result.candidate_id,
         "message": message,
     }
 
@@ -752,11 +758,26 @@ def practice_exercise(req: ExercisePracticeRequest, book_name: str = "default"):
 
     _log_learning_event("exercise_practiced", book_name=book_name, record=record, payload={"quality": req.quality, "status": record.status, "add_to_mistake": req.add_to_mistake})
     mistake_id = ""
+    candidate_id = ""
     if req.add_to_mistake:
         mb = get_mistake_book(book_name, str(PROGRESS_PATH))
-        mistake_id = mb.add(_mistake_from_exercise(record, user_answer=req.user_answer))
+        stable_id = "ps_" + hashlib.sha256(f"{book_name}\0{record.id}".encode()).hexdigest()[:16]
+        mistake_id = mb.add_if_absent(_mistake_from_exercise(record, user_answer=req.user_answer, mistake_id=stable_id))
+        lifecycle = MistakeLifecycleStore(mb.store)
+        lifecycle.link_source(f"exercise:{book_name}:{record.id}", mistake_id)
+        lifecycle.append_occurrence_once(mistake_id, f"practice-single:{book_name}:{record.id}:{record.practice_count}", answer=req.user_answer, source_ref={"type": "exercise_practice", "exercise_id": record.id})
         _log_learning_event("exercise_to_mistake", book_name=book_name, record=record, payload={"mistake_id": mistake_id, "trigger": "practice"})
-    return {"success": True, "message": "练习结果已记录", "data": _record_to_out(record), "mistake_id": mistake_id}
+    elif req.quality < 3:
+        mb = get_mistake_book(book_name, str(PROGRESS_PATH))
+        candidate = MistakeLifecycleStore(mb.store).create_candidate(f"practice-single:{book_name}:{record.id}:{record.practice_count}", {
+            "question_text": record.question_text, "user_answer": req.user_answer, "correct_answer": record.answer,
+            "subject": record.subject, "chapter": record.chapter, "source": record.source, "tags": record.tags,
+            "image_path": record.image_path, "ocr_text": record.ocr_text, "content_complete": True,
+            "failure_confirmed": True, "stable_source_key": f"exercise:{book_name}:{record.id}",
+            "source_ref": {"type": "exercise_practice", "exercise_id": record.id},
+        })
+        candidate_id = candidate["id"]
+    return {"success": True, "message": "练习结果已记录", "data": _record_to_out(record), "mistake_id": mistake_id, "candidate_id": candidate_id}
 
 
 @router.post("/to-mistake")
@@ -765,7 +786,9 @@ def exercise_to_mistake(req: ExerciseToMistakeRequest, book_name: str = "default
     if not record:
         return {"success": False, "message": "未找到该习题"}
     mb = get_mistake_book(book_name, str(PROGRESS_PATH))
-    mistake_id = mb.add(_mistake_from_exercise(record, user_answer=req.user_answer, mistake_type=req.mistake_type))
+    stable_id = "ps_" + hashlib.sha256(f"{book_name}\0{record.id}".encode()).hexdigest()[:16]
+    mistake_id = mb.add_if_absent(_mistake_from_exercise(record, user_answer=req.user_answer, mistake_type=req.mistake_type, mistake_id=stable_id))
+    MistakeLifecycleStore(mb.store).link_source(f"exercise:{book_name}:{record.id}", mistake_id)
     _log_learning_event("exercise_to_mistake", book_name=book_name, record=record, payload={"mistake_id": mistake_id, "trigger": "manual"})
     record.status = "needs_review"
     _bank(book_name).update(record)

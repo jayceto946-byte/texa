@@ -60,7 +60,7 @@ const ReportCard: React.FC<{ card: ChatReportCard }> = ({ card }) => {
         </div>
 
         <div className="mt-4 flex justify-end">
-          <Link to="/mistakes?tab=review&session=1" className="app-primary-button">开始复习</Link>
+          <Link to="/learning/review" className="app-primary-button">开始复习</Link>
         </div>
       </div>
 

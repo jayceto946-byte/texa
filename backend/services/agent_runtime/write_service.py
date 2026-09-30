@@ -55,10 +55,16 @@ class RuntimeWriteService:
         snapshot = self.runtime.task_snapshot(task_id)
         call = next((item for item in snapshot["tool_calls"] if item["id"] == call_id), None) if snapshot else None
         action = self.pending.get(call_id)
-        if call is None or action is None or action["payload"] != call["args"]:
+        if call is None or action is None or action["payload"] != call["args"] or action["context"]["learning_task_id"] != task_id or call["args_hash"] != args_hash:
             raise RuntimeConflict("approval proposal differs from the frozen task call")
         if call["status"] == "succeeded":
             return snapshot
+        if call["status"] == "unknown":
+            receipt = self.pending.domain_receipt(call_id)
+            if receipt is None:
+                raise RuntimeConflict("write result is unknown and has no domain receipt")
+            return self.runtime.reconcile_approved_tool(task_id, call_id, receipt,
+                                                        args_hash=args_hash, scope=scope)
         spec = self.registry.runtime_tool(call["tool_id"])
         metadata = spec.runtime_metadata()
         if (metadata["schema_hash"], metadata["version"]) != (call["schema_hash"], call["tool_version"]):
@@ -77,7 +83,8 @@ class RuntimeWriteService:
             receipt = self.pending.domain_receipt(call_id)
             if receipt is None:
                 raise RuntimeConflict("write result is unknown and has no domain receipt")
-            return self.runtime.reconcile_approved_tool(run_id, owner_token, call_id, receipt)
+            return self.runtime.reconcile_approved_tool(task_id, call_id, receipt,
+                                                        args_hash=args_hash, scope=scope)
         if call["status"] == "awaiting_approval":
             self.runtime.start_approved_tool(run_id, owner_token, call_id)
         try:

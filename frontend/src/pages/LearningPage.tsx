@@ -1,18 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Activity,
-  AlertTriangle,
   BookOpen,
   BrainCircuit,
   CalendarDays,
-  CheckCircle2,
   ChevronDown,
-  ChevronRight,
   ClipboardList,
   ExternalLink,
-
-  HelpCircle,
   RefreshCw,
 } from 'lucide-react';
 import { get, post } from '../api/client';
@@ -21,6 +15,7 @@ import ScopeSelector, { type ScopeBookOption } from '../components/ScopeSelector
 import { ActionableIssue, PageState, TaskStatus } from '../components/ui/AsyncState';
 import { useChatContext } from '../contexts/ChatContext';
 import type { ConceptCandidate, ReviewHistoryItem } from '../types';
+import './LearningPage.css';
 
 interface LearningMistakeSummary {
   id: string;
@@ -103,7 +98,7 @@ interface LearningSummary {
 }
 
 // Agentic review planning is intentionally hidden until it is integrated into the chat workflow.
-const mistakeHref = (id: string) => `/mistakes?mistake_id=${encodeURIComponent(id)}`;
+const mistakeHref = (id: string, bookName: string) => `/mistakes/${encodeURIComponent(id)}?book_name=${encodeURIComponent(bookName || 'default')}`;
 
 const LearningPage: React.FC = () => {
   const { bookName, setBookName, subject, setSubject } = useChatContext();
@@ -113,8 +108,13 @@ const LearningPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [reviewMessage, setReviewMessage] = useState('');
+  const [reviewError, setReviewError] = useState<{ name: string; text: string } | null>(null);
   const [reviewingConcept, setReviewingConcept] = useState('');
   const [expandedDueId, setExpandedDueId] = useState('');
+  const [expandedConcept, setExpandedConcept] = useState('');
+  const [visibleCount, setVisibleCount] = useState(5);
+  const [showMoreConcepts, setShowMoreConcepts] = useState(false);
+  const firstConceptRef = useRef<HTMLButtonElement>(null);
   const [selectedActivityDate, setSelectedActivityDate] = useState('');
 
   const [kgJob, setKgJob] = useState<{ id: string; status: string; progress?: number; message?: string } | null>(null);
@@ -252,17 +252,18 @@ const LearningPage: React.FC = () => {
 
   const handleConceptReview = async (name: string, quality = 4) => {
     setReviewMessage('');
+    setReviewError(null);
     setReviewingConcept(name);
     try {
       const res = await post(`/kg/concept-review?book_name=${encodeURIComponent(bookName || 'default')}`, { name, quality });
       if (!res?.success) {
-        setReviewMessage(res?.message || '概念复习记录失败');
+        setReviewError({ name, text: res?.message || '概念复习记录失败，请重试。' });
         return;
       }
       await load();
       setReviewMessage(`已记录「${name}」的概念复习，今天不再提醒`);
     } catch (e) {
-      setReviewMessage(e instanceof Error ? e.message : String(e));
+      setReviewError({ name, text: e instanceof Error ? e.message : String(e) });
     } finally {
       setReviewingConcept('');
     }
@@ -270,6 +271,23 @@ const LearningPage: React.FC = () => {
 
   const subjects = summary?.subjects || [];
   const subjectSuggestions = Array.from(new Set([...subjects, ...books.map((book) => book.subject || '').filter(Boolean)]));
+  const dueMistakes = summary?.due_mistakes || [];
+  const recommended = summary?.concept_review_plan || [];
+  const recommendedNames = new Set(recommended.map((item) => item.name));
+  const supplementary = (summary?.review_queue || []).filter((item, index, items) => !recommendedNames.has(item.name) && items.findIndex((candidate) => candidate.name === item.name) === index);
+  const primaryCount = dueMistakes.length + recommended.length;
+  const shownMistakes = dueMistakes.slice(0, visibleCount);
+  const shownConcepts = recommended.slice(0, Math.max(0, visibleCount - dueMistakes.length));
+  const todayKey = toDateKey(new Date());
+  const weekStart = new Date();
+  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setDate(weekStart.getDate() - 6);
+  const activeDays = (summary?.daily || []).filter((item) => item.date >= toDateKey(weekStart) && item.date <= todayKey && item.total > 0).length;
+  const startConcept = () => {
+    setVisibleCount(Math.max(visibleCount, dueMistakes.length + 1));
+    setExpandedConcept(recommended[0].name);
+    window.requestAnimationFrame(() => firstConceptRef.current?.focus());
+  };
 
   return (
     <div className="learning-page management-workspace flex h-full min-w-0 flex-col">
@@ -296,148 +314,68 @@ const LearningPage: React.FC = () => {
       <div className="learning-page-content management-page-content flex-1 overflow-y-auto">
         {loading && <PageState kind="loading" title="正在整理学习情况" description="数据较多时可能需要十几秒。" />}
 
-        {kgJob && <TaskStatus title="完善知识关联" detail={kgJob.message || kgJob.status} progress={kgJob.progress} state={kgJobFailed ? 'error' : kgJob.status === 'completed' ? 'success' : 'loading'} />}
-
         {error && !loading && <ActionableIssue title="暂时无法整理复习计划" impact="今天的薄弱点和待复习顺序可能不完整；错题和学习记录不会丢失。" actions={<button onClick={load} className="app-secondary-button">重新加载</button>} details={error} />}
         {!loading && !error && summary && (
-          <div className="mx-auto max-w-6xl space-y-6">
-            <section className="management-section" aria-labelledby="review-today-title">
-              <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div className="review-page-body">
+            <section className="review-today" aria-labelledby="review-today-title">
+              <div className="review-today-main">
                 <div>
-                <h3 id="review-today-title" className="workspace-section-heading">今天要做什么</h3>
-                <p className="mt-1 type-secondary text-text-secondary">{summary.mistake_stats.due_today > 0 || summary.concept_review_plan?.length ? '先处理到期错题，再复习由近期薄弱记录触发的概念。' : '复习计划会根据到期错题和近期薄弱记录更新。'}</p>
+                  <h3 id="review-today-title" className="workspace-section-heading">今日复习</h3>
+                  <p className="review-today-counts"><strong>{summary.mistake_stats.due_today}</strong> 道到期错题 <span aria-hidden="true">·</span> <strong>{recommended.length}</strong> 个本次推荐概念</p>
+                  <p className="review-today-context">近期薄弱概念 {summary.stats.weak_count} 个 · 近 7 天活跃 {activeDays} 天</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  {summary.mistake_stats.due_today > 0 ? (
-                    <Link to="/mistakes?tab=review" className="app-primary-button">开始本次复习</Link>
-                  ) : summary.concept_review_plan?.length ? (
-                    <a href="#review-concepts" className="app-primary-button">开始本次复习</a>
-                  ) : null}
-                  <button onClick={load} disabled={loading} className="app-ghost-button"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />刷新</button>
+                <div className="review-today-actions">
+                  {summary.mistake_stats.due_today > 0 ? <Link to="/learning/review" className="app-primary-button">开始本次复习</Link>
+                    : recommended.length > 0 ? <button type="button" onClick={startConcept} className="app-primary-button">开始本次复习</button>
+                    : supplementary.length > 0 ? <button type="button" onClick={() => setShowMoreConcepts(true)} className="app-primary-button">查看待复习概念</button>
+                    : <Link to="/" className="app-primary-button">继续学习</Link>}
+                  <span>{summary.mistake_stats.due_today > 0 ? '从到期错题开始' : recommended.length > 0 ? '从首个推荐概念开始' : supplementary.length > 0 ? '查看补充概念' : '今天暂无待复习内容'}</span>
                 </div>
               </div>
-              {summary.mistake_stats.due_today > 0 || summary.concept_review_plan?.length || summary.review_queue.length ? (
-                <div className="review-summary grid grid-cols-3 gap-2 border-b border-border pb-4 md:gap-0 md:divide-x md:divide-border">
-                  <SummaryFact icon={CalendarDays} label="到期错题" value={summary.mistake_stats.due_today} unit="道" tone="accent" help={summary.review_rules?.mistake_due} />
-                  <SummaryFact icon={AlertTriangle} label="近期薄弱概念" value={summary.stats.weak_count} unit="个" tone="warn" help={summary.weak_concepts?.slice(0, 2).map((item) => item.name).join('、') || summary.review_rules?.weak_concepts} />
-                  <SummaryFact icon={Activity} label="近 7 天有学习记录" value={summary.daily.slice(-7).filter((item) => item.total > 0).length} unit="天" help="按有学习记录的天数统计" />
-                </div>
-              ) : (
-                <div className="max-w-xl py-3">
-                  <p className="type-body text-text-primary">今天没有待复习内容。可以继续学习，或录入一道错题，之后会在这里安排复习。</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Link to="/" className="app-primary-button">继续学习</Link>
-                    <Link to="/mistakes" className="app-secondary-button">录入错题</Link>
-                  </div>
-                </div>
-              )}
-
-              {reviewMessage && <div className="mt-4 border-l-2 border-[var(--success)] px-3 py-2 workspace-interface-text text-[var(--success-text)]">{reviewMessage}</div>}
-
-              {(summary.due_mistakes?.length || summary.concept_review_plan?.length || summary.review_queue.length) ? <div className="learning-review-sections mt-3 divide-y divide-border border-b border-border">
-                <ExpandableSection title="优先复习错题" count={summary.due_mistakes?.length || 0} defaultOpen={Boolean(summary.due_mistakes?.length)}>
-                <div className="divide-y divide-border">
-                  {summary.due_mistakes?.length ? (
-                    summary.due_mistakes.map((mistake) => (
-                      <MistakePreview
-                        key={mistake.id}
-                        mistake={mistake}
-                        expanded={expandedDueId === mistake.id}
-                        onToggle={() => setExpandedDueId(expandedDueId === mistake.id ? '' : mistake.id)}
-                      />
-                    ))
-                  ) : (
-                    <Empty text="当前没有到期错题" compact />
-                  )}
-                </div>
-                </ExpandableSection>
-
-                <ExpandableSection title="优先复习概念" count={summary.concept_review_plan?.length || 0} defaultOpen>
-                <div id="review-concepts" className="learning-concept-grid grid grid-cols-1 gap-x-6 xl:grid-cols-2">
-                  {summary.concept_review_plan?.length ? (
-                    summary.concept_review_plan.map((item) => (
-                      <ConceptReviewCard key={item.name} item={item} onReview={handleConceptReview} reviewing={reviewingConcept === item.name} />
-                    ))
-                  ) : (
-                    <div className="xl:col-span-2"><Empty text="暂无需要优先复习的概念" compact /></div>
-                  )}
-                </div>
-                </ExpandableSection>
-
-                <ExpandableSection title="更多待复习概念" count={summary.review_queue.length}>
-                <div className="divide-y divide-border">
-                  {summary.review_queue.length ? (
-                    summary.review_queue.map((item) => (
-                      <div key={item.name} className="flex items-center justify-between px-1 py-3 workspace-interface-text">
-                        <span className="truncate text-text-primary">{item.name}</span>
-                        <span className="ml-3 workspace-support-text text-text-secondary">{item.reason === 'weak' ? '薄弱' : '遗忘'}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <Empty text="暂无待复习概念" compact />
-                  )}
-                </div>
-                </ExpandableSection>
-              </div> : null}
             </section>
 
-            {(summary.recent_questions?.length || 0) > 0 && <section className="management-section" aria-labelledby="review-reason-title">
-              <div className="mb-3">
-                <h3 id="review-reason-title" className="type-section-title text-text-primary">为什么这些内容优先</h3>
-                <p className="mt-1 type-secondary text-text-secondary">近期问答、错题关联与遗忘间隔共同决定本次顺序。</p>
+            <section aria-labelledby="review-queue-title">
+              <div className="review-section-head">
+                <div><h3 id="review-queue-title" className="workspace-section-heading">复习队列</h3>
+                  <p className="review-section-copy">先处理到期错题，概念按当前推荐顺序排列。</p></div>
+                <button onClick={load} disabled={loading} className="app-ghost-button"><RefreshCw className="h-4 w-4" />刷新</button>
               </div>
-              <div className="divide-y divide-border border-y border-border">
-                <ExpandableSection title="近期问题" count={summary.recent_questions?.length || 0}>
-                  <div className="divide-y divide-border">
-                    {summary.recent_questions?.length ? (
-                      summary.recent_questions.map((item, index) => (
-                        <div key={`${item.timestamp}-${index}`} className="space-y-1 py-3">
-                          <p className="workspace-interface-text leading-6 text-text-primary">{item.question}</p>
-                          <p className="type-caption text-text-secondary">
-                            {item.source === 'mistake' ? '来自错题' : '来自问答'}
-                            {item.timestamp ? ` · ${item.timestamp.slice(0, 10)}` : ''}
-                            {item.concepts?.length ? ` · 关联 ${item.concepts.map((concept) => concept.name).join('、')}` : ''}
-                          </p>
-                        </div>
-                      ))
-                    ) : <Empty text="暂无问答记录" compact />}
-                  </div>
-                </ExpandableSection>
+              {reviewMessage && <p role="status" className="review-feedback">{reviewMessage}</p>}
+              <div className="review-list">
+                {primaryCount > 0 ? <>
+                  {shownMistakes.length > 0 && <div className="review-group-label">到期错题 <span>{summary.mistake_stats.due_today} 道{summary.mistake_stats.due_today > dueMistakes.length ? ` · 当前返回 ${dueMistakes.length} 道` : ''}</span></div>}
+                  {shownMistakes.map((mistake, index) => <MistakePreview key={mistake.id} mistake={mistake} bookName={bookName} index={index + 1} first={index === 0} expanded={expandedDueId === mistake.id} onToggle={() => setExpandedDueId(expandedDueId === mistake.id ? '' : mistake.id)} />)}
+                  {shownConcepts.length > 0 && <div className="review-group-label">本次推荐概念 <span>{recommended.length} 个</span></div>}
+                  {shownConcepts.map((item, index) => <ConceptReviewCard key={item.name} item={item} bookName={bookName} index={dueMistakes.length + index + 1} first={dueMistakes.length + index === 0} open={expandedConcept === item.name} onToggle={() => setExpandedConcept(expandedConcept === item.name ? '' : item.name)} onReview={handleConceptReview} reviewing={reviewingConcept === item.name} error={reviewError?.name === item.name ? reviewError.text : ''} buttonRef={index === 0 ? firstConceptRef : undefined} />)}
+                  {visibleCount < primaryCount && <button type="button" className="review-show-more" onClick={() => setVisibleCount((count) => count + 5)}>显示更多 · 当前展示 {Math.min(visibleCount, primaryCount)} / {primaryCount} 条已返回的主要条目</button>}
+                </> : <div className="review-empty">当前没有到期错题或本次推荐概念。{supplementary.length ? '可以查看下方补充概念。' : '继续学习或录入错题后，复习内容会在这里更新。'}</div>}
+                {supplementary.length > 0 && <div className="review-supplementary">
+                  <button type="button" aria-expanded={showMoreConcepts} onClick={() => setShowMoreConcepts(!showMoreConcepts)} className="review-supplementary-toggle">补充待复习概念 <span>{supplementary.length} 个 {showMoreConcepts ? '收起' : '展开'} <ChevronDown className="h-4 w-4" /></span></button>
+                  {showMoreConcepts && supplementary.map((item, index) => <div className="review-row" key={item.name}>
+                    <span className="review-index">{primaryCount + index + 1 < 10 ? `0${primaryCount + index + 1}` : primaryCount + index + 1}</span>
+                    <div className="review-row-content"><strong>{item.name}</strong><p>{item.reason === 'weak' ? '已标记薄弱' : item.reason === 'forgotten' ? '进入遗忘复习队列' : '进入待复习队列'} · 时间信息未提供</p>{reviewError?.name === item.name && <p role="alert" className="review-row-error">{reviewError.text}</p>}</div>
+                    <span className="review-status">待复习</span>
+                    <button type="button" className="review-row-action" onClick={() => handleConceptReview(item.name, 4)} disabled={reviewingConcept === item.name}>{reviewingConcept === item.name ? '记录中…' : '标记已复习'}</button>
+                  </div>)}
+                </div>}
               </div>
-            </section>}
+              <details className="review-rules"><summary>排序依据</summary><p>到期错题先于本次推荐概念；同组保持现有服务端顺序。补充概念单独列出。</p>{summary.review_rules?.concept_due && <p>{summary.review_rules.concept_due}</p>}</details>
+            </section>
 
-            {(summary.top_concepts.length > 0 || summary.mistake_weak_points.length > 0 || summary.daily.length > 0) && <section className="management-section" aria-labelledby="review-analysis-title">
-              <div className="mb-3">
-                <h3 id="review-analysis-title" className="type-section-title text-text-primary">补充分析</h3>
-                <p className="mt-1 type-secondary text-text-secondary">用于观察长期模式，不改变今天的行动顺序。</p>
+            <section className="review-insights" aria-labelledby="review-analysis-title">
+              <h3 id="review-analysis-title" className="workspace-section-heading">学习洞察</h3>
+              <p className="review-section-copy">用于观察学习模式，不改变今天的行动顺序。</p>
+              <div className="review-insight-columns">
+                <InsightList title="高频概念" items={summary.top_concepts.map((item) => ({ name: item.name, detail: `${item.count} 次` }))} empty="暂无高频概念" />
+                <InsightList title="错题相关薄弱点" items={summary.mistake_weak_points.map((item) => ({ name: item.name, detail: `${item.count} 道` }))} empty="暂无错题薄弱点" />
               </div>
-              <div className="learning-insights grid grid-cols-1 divide-y divide-border border-y border-border xl:grid-cols-3 xl:divide-x xl:divide-y-0">
-                <Panel title="高频概念">
-                {summary.top_concepts.length ? (
-                  summary.top_concepts.map((item) => (
-                    <RankRow key={item.name} name={item.name} detail={`${item.count} 次`} />
-                  ))
-                ) : (
-                  <Empty text="暂无高置信概念" compact />
-                )}
-                </Panel>
-                <Panel title="错题相关薄弱点">
-                {summary.mistake_weak_points.length ? (
-                  summary.mistake_weak_points.map((item) => (
-                    <RankRow key={`${item.type}-${item.name}`} name={item.name} detail={`${item.count} 道`} />
-                  ))
-                ) : (
-                  <Empty text="暂无错题薄弱点" compact />
-                )}
-                </Panel>
-                <ActivityHeatmap
-                daily={summary.daily_details || summary.daily.map((item) => ({ ...item, subjects: [] }))}
-                selectedDate={selectedActivityDate}
-                onSelectDate={setSelectedActivityDate}
-                />
+              <div className="review-activity">
+                <ActivityHeatmap daily={summary.daily_details || summary.daily.map((item) => ({ ...item, subjects: [] }))} selectedDate={selectedActivityDate} onSelectDate={setSelectedActivityDate} />
+                {(summary.recent_questions?.length || 0) > 0 && <div className="review-recent-questions"><h4>最近学习问题</h4>{summary.recent_questions?.slice(0, 5).map((item, index) => <div key={`${item.timestamp}-${index}`}><p>{item.question}</p><span>{item.source === 'mistake' ? '来自错题' : '来自问答'}{item.timestamp ? ` · ${item.timestamp.slice(0, 10)}` : ''}</span></div>)}</div>}
               </div>
-            </section>}
-            {bookName && <div className="pt-1"><button onClick={startKGEnhancement} disabled={kgJobIsRunning} className="app-secondary-button"><BrainCircuit className="h-4 w-4" />{kgJobIsRunning ? '正在完善知识关联' : '完善知识关联'}</button></div>}
+              {kgJob && <TaskStatus title="完善知识关联" detail={kgJob.message || kgJob.status} progress={kgJob.progress} state={kgJobFailed ? 'error' : kgJob.status === 'completed' ? 'success' : 'loading'} />}
+              {bookName && <button onClick={startKGEnhancement} disabled={kgJobIsRunning} className="app-secondary-button"><BrainCircuit className="h-4 w-4" />{kgJobIsRunning ? '正在完善知识关联' : '完善知识关联'}</button>}
+            </section>
           </div>
         )}
       </div>
@@ -452,6 +390,11 @@ const toDateKey = (date: Date) => {
   return `${y}-${m}-${d}`;
 };
 
+const daysBetweenDateKeys = (later: string, earlier: string) => {
+  const toUtc = (key: string) => Date.UTC(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, Number(key.slice(8, 10)));
+  return Math.max(0, Math.round((toUtc(later) - toUtc(earlier)) / 86400000));
+};
+
 const heatColor = (total: number) => {
   if (total <= 0) return 'bg-[var(--heat-0-bg)] border-[var(--heat-0-border)]';
   if (total === 1) return 'bg-[var(--heat-1-bg)] border-[var(--heat-1-border)]';
@@ -462,6 +405,7 @@ const heatColor = (total: number) => {
 
 const ActivityHeatmap = ({ daily, selectedDate, onSelectDate }: { daily: DailyDetail[]; selectedDate: string; onSelectDate: (date: string) => void }) => {
   const detailByDate = new Map(daily.map((item) => [item.date, item]));
+  const earliest = daily.length ? daily.reduce((min, item) => item.date < min ? item.date : min, daily[0].date) : '';
   const today = new Date();
   const start = new Date(today);
   start.setHours(0, 0, 0, 0);
@@ -474,7 +418,7 @@ const ActivityHeatmap = ({ daily, selectedDate, onSelectDate }: { daily: DailyDe
       return { key, detail: detailByDate.get(key) };
     })
   ));
-  const latest = daily.find((item) => item.total > 0)?.date || toDateKey(today);
+  const latest = [...daily].sort((a, b) => b.date.localeCompare(a.date)).find((item) => item.total > 0)?.date || toDateKey(today);
   const currentDate = selectedDate || latest;
   const current = detailByDate.get(currentDate);
 
@@ -490,7 +434,7 @@ const ActivityHeatmap = ({ daily, selectedDate, onSelectDate }: { daily: DailyDe
           <span>多</span>
         </div>
       </div>
-      <div className="space-y-4 px-4 pb-4">
+      <div className="review-activity-content px-4 pb-4">
         <div className="overflow-x-auto pb-1">
           <div className="grid w-max grid-flow-col grid-rows-7 gap-1">
             {weeks.flatMap((week) => week.map(({ key, detail }) => (
@@ -498,9 +442,9 @@ const ActivityHeatmap = ({ daily, selectedDate, onSelectDate }: { daily: DailyDe
                 key={key}
                 type="button"
                 onClick={() => onSelectDate(key)}
-                title={`${key}：${detail?.total || 0} 次`}
-                className={`h-3.5 w-3.5 shrink-0 box-border rounded-sm border transition-colors hover:brightness-95 active:translate-y-0 active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent ${heatColor(detail?.total || 0)} ${currentDate === key ? 'ring-2 ring-inset ring-accent' : ''}`}
-                aria-label={`${key} 学习活动 ${detail?.total || 0} 次`}
+                title={`${key}：${!earliest || key < earliest || key > toDateKey(today) ? '数据未覆盖' : `${detail?.total || 0} 次`}`}
+                className={`h-3.5 w-3.5 shrink-0 box-border rounded-sm border transition-colors hover:brightness-95 active:translate-y-0 active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent ${!earliest || key < earliest || key > toDateKey(today) ? 'border-border bg-bg-secondary opacity-40' : heatColor(detail?.total || 0)} ${currentDate === key ? 'ring-2 ring-inset ring-accent' : ''}`}
+                aria-label={`${key} 学习活动 ${!earliest || key < earliest || key > toDateKey(today) ? '数据未覆盖' : `${detail?.total || 0} 次`}`}
               />
             )))}
           </div>
@@ -508,7 +452,7 @@ const ActivityHeatmap = ({ daily, selectedDate, onSelectDate }: { daily: DailyDe
         <div className="bg-bg-secondary p-3">
           <div className="mb-2 flex items-center justify-between gap-3">
             <div className="workspace-interface-text font-semibold text-text-primary">{currentDate}</div>
-            <div className="workspace-support-text text-text-secondary">{current?.total || 0} 次</div>
+            <div className="workspace-support-text text-text-secondary">{!earliest || currentDate < earliest || currentDate > toDateKey(today) ? '数据未覆盖' : `${current?.total || 0} 次`}</div>
           </div>
           {current ? (
             <div className="space-y-3">
@@ -528,164 +472,55 @@ const ActivityHeatmap = ({ daily, selectedDate, onSelectDate }: { daily: DailyDe
               )) : <div className="workspace-support-text text-text-secondary">暂无教材概念明细</div>}
             </div>
           ) : (
-            <div className="py-6 text-center workspace-support-text text-text-secondary">这一天暂无记录</div>
+            <div className="py-6 text-center workspace-support-text text-text-secondary">{!earliest || currentDate < earliest || currentDate > toDateKey(today) ? '该日期未提供数据' : '这一天暂无记录'}</div>
           )}
         </div>
       </div>
     </section>
   );
 };
-const ConceptReviewCard = ({ item, onReview, reviewing }: { item: ConceptReviewCardData; onReview: (name: string, quality?: number) => void; reviewing?: boolean }) => {
-  const [open, setOpen] = useState(false);
-  const linkedMistakes = item.related_mistakes.slice(0, 4);
-
-  return (
-    <article className="concept-review-card border-b border-border py-3 last:border-b-0 sm:py-4">
-      <div className="flex items-start justify-between gap-2 sm:gap-3">
-        <button type="button" onClick={() => setOpen(!open)} className="min-w-0 flex-1 text-left">
-          <div className="flex min-w-0 items-center justify-start gap-2">
-            {open ? <ChevronDown className="h-4 w-4 text-accent" /> : <ChevronRight className="h-4 w-4 text-text-secondary" />}
-            <BrainCircuit className={`h-4 w-4 ${item.weak ? 'text-[var(--danger-text)]' : 'text-accent'}`} />
-            <h3 className="min-w-0 flex-1 truncate workspace-interface-text font-semibold text-text-primary">{item.name}</h3>
-          </div>
-          {item.reasons.length > 0 && <p className="mt-2 pl-6 workspace-support-text leading-5 text-text-secondary">{item.reasons.join('；')}</p>}
-        </button>
-        <button disabled={reviewing} onClick={() => onReview(item.name, 4)} className="flex h-8 flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded border border-border px-2.5 py-1 workspace-support-text text-text-primary hover:border-accent hover:text-accent disabled:cursor-wait disabled:opacity-60">
-          <CheckCircle2 className="h-3.5 w-3.5" /> {reviewing ? '记录中…' : '已复习'}
-        </button>
-      </div>
-
-      {open && (
-        <div className="mt-4 grid gap-4 border-l border-border pl-4 workspace-interface-text md:grid-cols-2">
-          <MiniBlock icon={BookOpen} title="教材线索">
-            {item.textbook_snippets.length ? item.textbook_snippets.map((snippet, index) => (
-              <p key={`${snippet.type}-${index}`} className="workspace-support-text leading-5 text-text-secondary">{snippet.chapter || snippet.text}</p>
-            )) : <p className="workspace-support-text text-text-secondary">暂无章节线索</p>}
-          </MiniBlock>
-          <MiniBlock icon={ClipboardList} title="相关错题">
-            {item.related_mistakes.length ? (
-              <div className="space-y-2">
-                <p className="workspace-support-text leading-5 text-text-secondary">已关联 {item.related_mistakes.length} 道错题，题目内容在错题本中查看。</p>
-                <div className="flex flex-wrap gap-2">
-                  {linkedMistakes.map((mistake) => (
-                    <Link key={mistake.id} to={mistakeHref(mistake.id)} className="inline-flex items-center gap-1 rounded border border-border bg-bg-primary px-2 py-1 workspace-support-text text-accent-hover hover:border-accent hover:text-accent">
-                      {mistake.id} <ExternalLink className="h-3 w-3" />
-                    </Link>
-                  ))}
-                  <Link to="/mistakes" className="inline-flex items-center gap-1 rounded border border-border bg-bg-primary px-2 py-1 workspace-support-text text-text-primary hover:border-accent hover:text-accent">
-                    打开错题本 <ExternalLink className="h-3 w-3" />
-                  </Link>
-                </div>
-              </div>
-            ) : <p className="workspace-support-text text-text-secondary">暂无关联错题</p>}
-          </MiniBlock>
-        </div>
-      )}
-    </article>
-  );
-};
+const ConceptReviewCard = ({ item, bookName, index, first, open, onToggle, onReview, reviewing, error, buttonRef }: { item: ConceptReviewCardData; bookName: string; index: number; first: boolean; open: boolean; onToggle: () => void; onReview: (name: string, quality?: number) => void; reviewing?: boolean; error?: string; buttonRef?: React.Ref<HTMLButtonElement> }) => (
+  <article className="review-row">
+    <span className="review-index">{String(index).padStart(2, '0')}</span>
+    <div className="review-row-content">
+      <button ref={buttonRef} type="button" aria-expanded={open} onClick={onToggle} className="review-row-title">{item.name} <ChevronDown className={open ? 'h-4 w-4 rotate-180' : 'h-4 w-4'} /></button>
+      <p>{first && <span className="review-first">先复习 · </span>}{item.reasons.slice(0, 2).join(' · ') || '当前推荐概念'}</p>
+      <p className="review-row-meta">{!item.reasons.some((reason) => reason.includes('上次复习')) && (item.days_since_review == null ? '暂无复习记录' : `距上次复习 ${item.days_since_review} 天`)}{!item.reasons.some((reason) => reason.includes('累计接触')) && item.exposure_count > 0 && ` · 累计接触 ${item.exposure_count} 次`}</p>
+      {error && <p role="alert" className="review-row-error">{error}</p>}
+      {open && <div className="review-detail">
+        {item.reasons.length > 2 && <p>推荐依据：{item.reasons.join('；')}</p>}
+        <MiniBlock icon={ClipboardList} title="相关近期问题">{item.recent_questions.length ? item.recent_questions.map((question, i) => <p key={i}>{question.question}{question.mistake_id && <Link to={mistakeHref(question.mistake_id, bookName)}>查看错题</Link>}</p>) : <p>暂无直接关联的近期问题</p>}</MiniBlock>
+        <MiniBlock icon={BookOpen} title="教材线索">{item.textbook_snippets.length ? item.textbook_snippets.map((snippet, i) => <p key={i}>{snippet.chapter || snippet.text}</p>) : <p>暂无章节线索</p>}</MiniBlock>
+        <MiniBlock icon={ClipboardList} title="相关错题">{item.related_mistakes.length ? item.related_mistakes.slice(0, 4).map((mistake) => <Link key={mistake.id} to={mistakeHref(mistake.id, bookName)}>{mistake.question_text || '查看错题'} <ExternalLink className="inline h-3 w-3" /></Link>) : <p>暂无关联错题</p>}</MiniBlock>
+      </div>}
+    </div>
+    <span className="review-status">{reviewing ? '记录中…' : '待复习'}</span>
+    <button disabled={reviewing} type="button" onClick={() => onReview(item.name, 4)} className="review-row-action">标记已复习</button>
+  </article>
+);
 
 const MiniBlock = ({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) => (
-  <div>
-    <div className="mb-2 flex items-center gap-1.5 workspace-support-text font-medium text-text-primary"><Icon className="h-3.5 w-3.5 text-accent" />{title}</div>
-    <div className="space-y-2">{children}</div>
-  </div>
+  <div className="review-detail-block"><h4><Icon className="h-4 w-4" />{title}</h4><div>{children}</div></div>
 );
 
-const MistakePreview = ({ mistake, expanded, onToggle }: { mistake: LearningMistakeSummary; expanded: boolean; onToggle: () => void }) => (
-  <div className="py-3">
-    <button type="button" onClick={onToggle} className="flex w-full items-start justify-between gap-3 text-left">
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 workspace-interface-text font-medium text-text-primary">
-          {expanded ? <ChevronDown className="h-4 w-4 text-accent" /> : <ChevronRight className="h-4 w-4 text-text-secondary" />}
-          <span className="truncate">{mistake.source || mistake.subject || mistake.id}</span>
-        </div>
-        <div className="mt-1 flex flex-wrap gap-2 workspace-support-text text-text-secondary">
-          {mistake.subject && <span>{mistake.subject}</span>}
-          {mistake.chapter && <span>{mistake.chapter}</span>}
-          {mistake.next_review && <span>到期 {mistake.next_review}</span>}
-        </div>
-      </div>
-      <Link to={mistakeHref(mistake.id)} onClick={(e) => e.stopPropagation()} className="inline-flex flex-shrink-0 items-center gap-1 workspace-support-text text-accent-hover hover:text-accent">
-        打开 <ExternalLink className="h-3 w-3" />
-      </Link>
-    </button>
-    {expanded && (
-      <div className="mt-3 bg-bg-secondary p-3">
-        <ChatMessage role="assistant" content={mistake.question_text || mistake.id} linkedConcepts={mistake.linked_concepts || []} />
-      </div>
-    )}
-  </div>
-);
-
-const SummaryFact = ({ icon: Icon, label, value, unit, tone = 'normal', help }: { icon: React.ElementType; label: string; value: number; unit: string; tone?: 'normal' | 'warn' | 'accent'; help?: string }) => {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative min-w-0 px-2 first:pl-0 md:px-5 md:first:pl-0">
-      <div className="flex items-start justify-between gap-2 sm:gap-3">
-        <div className="flex items-center gap-2 workspace-support-text text-text-secondary">
-          <Icon className={tone === 'warn' ? 'h-4 w-4 text-[var(--danger-text)]' : tone === 'accent' ? 'h-4 w-4 text-accent' : 'h-4 w-4'} />
-          {label}
-        </div>
-        {help && (
-          <button onClick={() => setOpen(!open)} className="rounded p-0.5 text-text-secondary hover:text-accent" title="复习标准">
-            <HelpCircle className="h-4 w-4" />
-          </button>
-        )}
-      </div>
-      <div className="mt-2 text-lg font-medium text-text-primary">{value ?? 0}<span className="ml-1 workspace-support-text font-normal text-text-secondary">{unit}</span></div>
-      {help && open && (
-        <div className="app-popover-enter absolute right-3 top-9 z-20 w-[min(340px,calc(100vw-88px))] workspace-radius border border-border bg-bg-primary p-3 workspace-support-text">
-          <RuleItem title={`${label}的判定`} text={help} />
-        </div>
-      )}
+const MistakePreview = ({ mistake, bookName, index, first, expanded, onToggle }: { mistake: LearningMistakeSummary; bookName: string; index: number; first: boolean; expanded: boolean; onToggle: () => void }) => {
+  const due = mistake.next_review?.slice(0, 10);
+  const daysLate = due ? daysBetweenDateKeys(toDateKey(new Date()), due) : 0;
+  return <article className="review-row">
+    <span className="review-index">{String(index).padStart(2, '0')}</span>
+    <div className="review-row-content">
+      <button type="button" aria-expanded={expanded} onClick={onToggle} className="review-row-title review-question-title"><span>{mistake.question_text || '题干未提供'}</span><ChevronDown className={expanded ? 'h-4 w-4 rotate-180' : 'h-4 w-4'} /></button>
+      <p>{first && <span className="review-first">先复习 · </span>}{due ? daysLate > 0 ? `已逾期 ${daysLate} 天` : '今天到期' : '待复习'}{mistake.chapter ? ` · ${mistake.chapter}` : mistake.source ? ` · ${mistake.source}` : ''}</p>
+      {expanded && <div className="review-detail review-question-detail"><ChatMessage role="assistant" content={mistake.question_text || '题干未提供'} linkedConcepts={mistake.linked_concepts || []} /></div>}
     </div>
-  );
+    <span className="review-status">待复习</span>
+    <Link to={mistakeHref(mistake.id, bookName)} className="review-row-action">打开 <ExternalLink className="h-3 w-3" /></Link>
+  </article>;
 };
 
-const RuleItem = ({ title, text }: { title: string; text: string }) => (
-  <div className="space-y-1 border-b border-border py-2 last:border-b-0 last:pb-0 first:pt-0">
-    <div className="font-semibold text-text-primary">{title}</div>
-    <p className="leading-5 text-text-secondary">{text}</p>
-  </div>
-);
-
-const Header = ({ title, count, open, onToggle }: { title: string; count?: number; open?: boolean; onToggle?: () => void }) => (
-  <button type="button" onClick={onToggle} className="flex w-full items-center justify-between py-3 text-left workspace-interface-text font-medium text-text-primary hover:text-accent">
-    <span className="flex items-center gap-2">
-      {open ? <ChevronDown className="h-4 w-4 text-accent" /> : <ChevronRight className="h-4 w-4 text-text-secondary" />}
-      {title}
-    </span>
-    {typeof count === 'number' && <span className="workspace-support-text font-normal text-text-secondary">{count}</span>}
-  </button>
-);
-
-const ExpandableSection = ({ title, count, defaultOpen = false, children }: { title: string; count?: number; defaultOpen?: boolean; children: React.ReactNode }) => {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <section>
-      <Header title={title} count={count} open={open} onToggle={() => setOpen(!open)} />
-      {open && <div className="mb-3 ml-6 border-l border-border pl-4">{children}</div>}
-    </section>
-  );
+const InsightList = ({ title, items, empty }: { title: string; items: Array<{ name: string; detail: string }>; empty: string }) => {
+  const [all, setAll] = useState(false);
+  return <section><h4>{title}</h4>{items.length ? <>{items.slice(0, all ? undefined : 5).map((item) => <div className="review-insight-item" key={item.name}><span>{item.name}</span><span>{item.detail}</span></div>)}{items.length > 5 && <button type="button" onClick={() => setAll(!all)} className="review-text-button">{all ? '收起' : '查看全部'}</button>}</> : <p className="review-muted">{empty}</p>}</section>;
 };
-
-const Panel = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section>
-    <div className="px-4 pb-2 pt-4 workspace-interface-text font-medium text-text-primary">{title}</div>
-    <div className="space-y-2 px-4 pb-4">{children}</div>
-  </section>
-);
-
-const RankRow = ({ name, detail }: { name: string; detail: string }) => (
-  <div className="flex items-center justify-between gap-3 workspace-interface-text">
-    <span className="truncate text-text-primary">{name}</span>
-    <span className="flex-shrink-0 workspace-support-text text-text-secondary">{detail}</span>
-  </div>
-);
-
-const Empty = ({ text, compact = false }: { text: string; compact?: boolean }) => (
-  <div className={`text-center workspace-interface-text text-text-secondary ${compact ? 'py-3' : 'py-8'}`}>{text}</div>
-);
 
 export default LearningPage;

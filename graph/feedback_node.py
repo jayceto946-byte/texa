@@ -311,15 +311,9 @@ def _record_concept_memory(state: dict, *, prepared: dict | None = None,
         # 同步路径（graph.invoke）此前未计算过，同样在此完整解析。
         concepts = prepared["concepts"] if prepared is not None else _resolve_final_concepts(state)
         if prepared is None and answer_mode in {"subject_general", "global_general"} and not concepts:
-            try:
-                extracted = memory.extract_concepts(
-                    question,
-                    answer,
-                    subject=subject,
-                    answer_mode=answer_mode,
-                )
-            except TypeError:  # compatibility for older extensions/test doubles
-                extracted = memory.extract_concepts(question, answer)
+            extracted = memory.extract_concepts(
+                question, answer, subject=subject, answer_mode=answer_mode,
+            )
             for item in extracted:
                 if isinstance(item, dict):
                     item.setdefault("source", "general_qa_llm")

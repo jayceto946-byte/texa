@@ -53,6 +53,10 @@ def bridge_learning_request(
     if not speech_act:
         return LearningBridgeResult()
     state_service = service or LearningStateService()
+    proposals = []
+    def preview(operation, **scope):
+        proposals.append({**operation, "book_name": scope["book_name"]})
+        return state_service.get_state(learner_id=learner_id, book_name=scope["book_name"], subject=subject)
     try:
         if speech_act in {"resume_learning", "review_request"}:
             candidates = (
@@ -88,7 +92,7 @@ def bridge_learning_request(
                     state_operations=[{"operation": "clarify_learning_target"}])
             progress = state.get("guided_progress") or {}
             if speech_act == "resume_learning":
-                state = state_service.apply_operation(
+                state = preview(
                     {
                         "operation": "resume_learning",
                         "chapter_id": str(progress.get("chapter_id") or ""),
@@ -118,11 +122,7 @@ def bridge_learning_request(
                 action="resume",
                 resolved_query=rewritten,
                 learning_context=pack,
-                state_operations=[{
-                    "operation": "resume_learning",
-                    "book_name": str(state.get("book_name") or ""),
-                    "target_id": str((pack.get("next_action") or {}).get("target_id") or ""),
-                }],
+                state_operations=proposals,
             )
         if speech_act == "pause_learning":
             candidates = state_service.list_resumable(
@@ -134,7 +134,7 @@ def bridge_learning_request(
                     clarification_message="请先指定要暂停的教材或学习目标。",
                     state_operations=[{"operation": "clarify_learning_target"}],
                 )
-            state = state_service.apply_operation(
+            state = preview(
                 {"operation": "pause_learning"}, learner_id=learner_id,
                 book_name=str(candidates[0].get("book_name") or book_name), subject=subject,
                 conversation_id=conversation_id,
@@ -143,7 +143,7 @@ def bridge_learning_request(
                 action="handled",
                 learning_context=state_service.learning_context_pack(state),
                 clarification_message="已保存当前学习位置。下次可以直接说“继续上次的学习”。",
-                state_operations=[{"operation": "pause_learning"}],
+                state_operations=proposals,
             )
         if speech_act in {"start_learning", "set_learning_goal"}:
             if not book_name:
@@ -163,7 +163,7 @@ def bridge_learning_request(
                 book_name, chapter_reference, progress_root=state_service.progress_root,
             )
             operation_name = "start_learning" if speech_act == "start_learning" else "create_goal"
-            state = state_service.apply_operation(
+            state = preview(
                 {
                     "operation": operation_name,
                     "target_type": "chapter",
@@ -179,14 +179,10 @@ def bridge_learning_request(
                 action="recorded",
                 resolved_query=f"开始学习{chapter['chapter_name']}",
                 learning_context=state_service.learning_context_pack(state),
-                state_operations=[{
-                    "operation": operation_name,
-                    "chapter_id": chapter["chapter_id"],
-                    "chapter_name": chapter["chapter_name"],
-                }],
+                state_operations=proposals,
             )
         if speech_act == "self_report_weakness" and current_topic and book_name:
-            state = state_service.apply_operation(
+            state = preview(
                 {"operation": "record_weakness", "concept_names": [current_topic], "reason": "explicit_user_statement"},
                 learner_id=learner_id, book_name=book_name, subject=subject,
                 conversation_id=conversation_id,
@@ -194,7 +190,7 @@ def bridge_learning_request(
             return LearningBridgeResult(
                 action="recorded",
                 learning_context=state_service.learning_context_pack(state),
-                state_operations=[{"operation": "record_weakness", "concept_names": [current_topic]}],
+                state_operations=proposals,
             )
         return LearningBridgeResult(
             action="candidate",

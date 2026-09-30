@@ -51,21 +51,24 @@ def project_outcomes(store):
         artifacts = task["artifacts"]
         message = append_message(conversation_id, role, answer, **kwargs,
             book_name=artifacts.get("book_name", ""), subject=artifacts.get("subject", ""),
-            learning_task=task, answer_mode=task.get("answer_mode", ""), sources=artifacts.get("evidence_sources", []))
+            learning_task=task, answer_mode=task.get("answer_mode", ""), sources=artifacts.get("evidence_sources", []), context_versions=artifacts.get("context_versions", {}))
         update_learning_task_projection(conversation_id, task_id, task)
         return message
     projected = RuntimeOutboxProjector(store, append).drain_once()
     for item in store.pending_outbox():
         if item["kind"] != "chat_learning_event":
             continue
-        from memory.learning_events import LearningEvent, get_learning_event_store
-        payload = item["payload"]
-        event = LearningEvent(id=f"evt_{item['id']}", event_type="chat_qa",
-            book_name=payload["book_name"], subject=payload["subject"], conversation_id=payload["conversation_id"],
-            source_type="conversation", source_id=payload["request_id"], payload={"storage_backend": "sqlite-runtime"})
-        get_learning_event_store(store.db_path.parent).append(event)
-        store.complete_outbox(item["id"], {"event_id": event.id})
-        projected += 1
+        try:
+            from memory.learning_events import LearningEvent, get_learning_event_store
+            payload = item["payload"]
+            event = LearningEvent(id=f"evt_{item['id']}", event_type="chat_qa",
+                book_name=payload["book_name"], subject=payload["subject"], conversation_id=payload["conversation_id"],
+                source_type="conversation", source_id=payload["request_id"], payload={"storage_backend": "sqlite-runtime"})
+            get_learning_event_store(store.db_path.parent).append(event)
+            store.complete_outbox(item["id"], {"event_id": event.id})
+            projected += 1
+        except Exception as exc:
+            store.fail_outbox(item["id"], exc)
     return projected
 
 
@@ -98,7 +101,7 @@ def resolve_runtime_action(action_id: str, decision: str, pending):
             actor_id="local_user", args_hash=call["args_hash"], scope=json.loads(approval["scope_json"]),
             expected_revision=snapshot["task_revision"], resume_request_key=f"approval_{stable}",
             request_id=f"req_{stable}", owner_token=f"owner_{stable}", turn_id=snapshot["task"]["turn_id"])
-        if result["run"]["status"] == "running":
+        if call["status"] != "unknown" and result["run"]["status"] == "running" and result["run"]["owner_token"] == f"owner_{stable}":
             store.close(result["run"]["id"], f"owner_{stable}", outcome="paused", error_code="approval_confirmed")
         action = pending.get(action_id)
     snapshot = store.task_snapshot(task_id)
@@ -117,7 +120,7 @@ def try_chat_response(req, prepared: dict, request_id: str):
     from backend.services.decision.contracts import DecisionContext
     from backend.services.decision.router import DecisionRouter
     from backend.services.decision.resolver import resolve_candidate_tools
-    decision = DecisionRouter().route(DecisionContext(request_id=request_id, text=req.question,
+    decision = DecisionRouter(shadow=False).route(DecisionContext(request_id=request_id, text=req.question,
         resolved_query=prepared["rewritten_question"], answer_mode=prepared["answer_mode"]))
     writes = {"exercise.create_set", "mistake.manage", "exercise.record_result"}
     allow_write = os.getenv("TEXA_AGENT_RUNTIME_WRITE", "0") == "1"
@@ -150,6 +153,7 @@ def try_chat_response(req, prepared: dict, request_id: str):
         use_textbook_context=prepared["use_textbook_context"], answer_mode=prepared["answer_mode"],
         scope_reason=prepared["scope_reason"], continuity_context=prepared["continuity_context"])
     state["intent"] = "qa"
+    state["context_versions"] = prepared.get("context_versions") or {}
     if scope:
         state["_runtime_textbook_scope"] = scope
     store = runtime_store(create=True)
@@ -204,7 +208,7 @@ def stream_run(store, run_id: str, owner: str, registry=None, adapter=None):
                 book_name=task["artifacts"].get("book_name", ""), subject=task["artifacts"].get("subject", ""))
             from backend.services.pending_actions import get_pending_action_store
             from backend.services.agent_runtime.write_service import RuntimeWriteService
-            BoundedAgentRunner(store, registry, adapter, tuple(checkpoint["candidates"])).run_offline(
+            BoundedAgentRunner(store, registry, adapter, tuple(checkpoint["candidates"])).run_bounded(
                 run_id, owner, context=ToolContext(book_name=task["artifacts"].get("book_name", ""),
                     subject=task["artifacts"].get("subject", ""), conversation_id=task["conversation_id"]),
                 answer_state=checkpoint["answer_state"], answer_generator=generate_answer,
@@ -225,8 +229,7 @@ def stream_run(store, run_id: str, owner: str, registry=None, adapter=None):
         worker.start()
         cursor = 0
         while True:
-            snapshot = store.snapshot(run_id)
-            batch = store.events(run_id, after_seq=cursor)
+            snapshot, batch = store.stream_snapshot(run_id, after_seq=cursor)
             for event in batch:
                 sidecar = {"learning_task": public_task(store, snapshot),
                     "book_name": task["artifacts"].get("book_name", ""),
@@ -241,7 +244,7 @@ def stream_run(store, run_id: str, owner: str, registry=None, adapter=None):
                     sidecar["state"] = {"evidence_sources": snapshot["task"]["artifacts"].get("evidence_sources", [])}
                 yield f"data: {json.dumps(execution_sse_payload(event, sidecar=sidecar), ensure_ascii=False)}\n\n"
                 cursor = event["seq"]
-            if snapshot["run"]["status"] != "running":
+            if snapshot["run"]["status"] != "running" and len(batch) < 100:
                 break
             await asyncio.sleep(.03)
     return OwnedStreamingResponse(events(), on_close=pause, media_type="text/event-stream")

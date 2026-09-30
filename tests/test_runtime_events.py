@@ -86,7 +86,7 @@ def test_rotation_keeps_unfinished_turn_and_storage_validates_schema(tmp_path, m
     monkeypatch.setattr("backend.services.runtime_events._MAX_ROWS", 3)
     store = RuntimeEventStore(tmp_path / "events.db")
     old = make_event("user_input", session_id="s", turn_id="old")
-    finished = make_event("user_outcome", session_id="s", turn_id="old",
+    finished = make_event("execution_result", session_id="s", turn_id="old",
                           parent_event_id=old["event_id"])
     active = make_event("state", session_id="s", turn_id="active")
     next_event = make_event("decision", session_id="s", turn_id="active")

@@ -1,6 +1,9 @@
 """Application service for validated Learning State events and projections."""
 from __future__ import annotations
 
+import uuid
+from backend.services.goals.service import controlled
+
 import re
 import threading
 import json
@@ -122,6 +125,14 @@ class LearningStateService:
                 state["goal_candidates"] = [{"id": item["id"], "title": item["title"]} for item in goals]
                 state["active_goal"] = {}
                 state["next_action"] = {"type": "choose_goal", "target_id": "", "reason_codes": ["multiple_active_goals"]}
+            else:
+                projected = state.get("active_goal") or {}
+                formal = goals[0] if goals else GoalStore(self.progress_root / "goals.db").get(projected.get("goal_id", ""))
+                if formal:
+                    scope = formal["scope"]
+                    state["active_goal"] = {**projected, **scope, "goal_id": formal["id"],
+                        "target_name": formal["title"], "status": formal["status"], "updated_at": formal["updated_at"]}
+                    state["guided_progress"]["status"] = "in_progress" if formal["status"] == "active" else formal["status"]
         self._write_projection(state)
         return state
 
@@ -191,6 +202,7 @@ class LearningStateService:
             reverse=True,
         )
 
+    @controlled
     def apply_operation(
         self,
         operation: dict[str, Any],
@@ -208,21 +220,32 @@ class LearningStateService:
         resolved_book_name = identity["book_name"] or _clean_identifier(book_name)
         if not resolved_book_name:
             raise ValueError("book_name is required for a learning operation")
+        if source_id and self.event_store.has_source(source_id, learner_id=learner_id):
+            return self.get_state(learner_id=learner_id, book_name=resolved_book_name, subject=subject)
         if op in {"create_goal", "pause_learning", "complete_goal"}:
             from backend.services.goals.store import GoalStore
             from backend.services.goals.service import GoalService
             goal_path = self.progress_root / "goals.db"
             if op == "create_goal" or goal_path.exists():
                 goals = GoalService(GoalStore(goal_path), self.event_store)
+                committed = goals.store.projected_operation(learner_id=learner_id, source_id=source_id) if source_id else None
+                if committed:
+                    goals.reconcile_projections(committed["id"])
+                    return self.get_state(learner_id=learner_id, book_name=resolved_book_name, subject=subject)
                 if op == "create_goal":
-                    goal = goals.create(learner_id=learner_id,
-                        goal_id=str(operation.get("goal_id") or ""),
+                    stable_goal_id = str(operation.get("goal_id") or (f"goal_{uuid.uuid5(uuid.NAMESPACE_URL, source_id).hex}" if source_id else ""))
+                    goal = goals.store.get(stable_goal_id) if stable_goal_id else None
+                    goal = goal or goals.create(learner_id=learner_id,
+                        goal_id=stable_goal_id,
                         title=str(operation.get("target_name") or operation.get("chapter_name") or "学习目标"),
                         objective="", scope={"book_name": resolved_book_name,
                             "book_ids": [identity["book_id"]], "subject": subject,
                             "chapter_ids": [str(operation.get("chapter_id") or "")],
                             **{key: operation[key] for key in ("target_type", "target_id", "chapter_name", "unit_name") if key in operation}})
-                    goals.activate(goal["id"], expected_revision=goal["revision"])
+                    if goal["status"] == "draft":
+                        goals.activate(goal["id"], expected_revision=goal["revision"], source_id=source_id)
+                    else:
+                        goals.reconcile_projections(goal["id"])
                     return self.get_state(learner_id=learner_id, book_name=resolved_book_name, subject=subject)
                 current = self.get_state(learner_id=learner_id, book_name=resolved_book_name, subject=subject)
                 goal_id = str(operation.get("goal_id") or (current.get("active_goal") or {}).get("goal_id") or "")
@@ -231,10 +254,21 @@ class LearningStateService:
                     if goal["learner_id"] != learner_id or goal["scope"].get("book_name") != resolved_book_name:
                         raise ValueError("goal scope changed")
                     if op == "pause_learning":
-                        goals.pause(goal_id, expected_revision=goal["revision"])
+                        if goal["status"] == "active":
+                            goals.pause(goal_id, expected_revision=goal["revision"], source_id=source_id)
+                        elif goal["status"] == "paused":
+                            if source_id:
+                                goal = goals.store.update(goal_id, expected_revision=goal["revision"],
+                                    changes={}, projection_source_id=source_id)
+                            goals._project(goal, "goal_paused", source_id=source_id)
+                    elif goal["status"] == "completed":
+                        if source_id:
+                            goal = goals.store.update(goal_id, expected_revision=goal["revision"],
+                                changes={}, projection_source_id=source_id)
+                        goals._project(goal, "goal_completed", source_id=source_id)
                     else:
                         goals.measure(goal_id, expected_revision=goal["revision"],
-                                      evidence_by_criterion={}, user_confirms_completion=True)
+                                      evidence_by_criterion={}, user_confirms_completion=True, source_id=source_id)
                     return self.get_state(learner_id=learner_id, book_name=resolved_book_name, subject=subject)
         chapter_id = _clean_identifier(operation.get("chapter_id", ""))
         unit_id = _clean_identifier(operation.get("unit_id", ""))
@@ -250,6 +284,7 @@ class LearningStateService:
             if key not in {"operation", "concept_names"} and _safe_payload_value(value)
         }
         event = LearningEvent(
+            **({"id": f"evt_{uuid.uuid5(uuid.NAMESPACE_URL, source_id).hex}"} if source_id else {}),
             event_type=_ALLOWED_OPERATIONS[op],
             learner_id=_clean_identifier(learner_id, DEFAULT_LEARNER_ID),
             book_id=identity["book_id"],

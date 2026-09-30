@@ -128,7 +128,7 @@ class GoalStore:
             return [json.loads(row[0]) for row in rows]
 
     def update(self, goal_id: str, *, expected_revision: int,
-               changes: dict[str, Any]) -> dict:
+               changes: dict[str, Any], projection_source_id: str = "") -> dict:
         allowed = {"title", "objective", "scope", "success_criteria", "target_date",
                    "timezone", "status", "progress", "plan", "next_action"}
         if set(changes) - allowed:
@@ -159,8 +159,13 @@ class GoalStore:
                      goal_id, expected_revision))
                 if cursor.rowcount != 1:
                     raise GoalConflict("goal revision changed")
+                # Bind preparation identity to the committed revision, even if
+                # the event projector fails. Keep it out of the current Goal.
+                revision_snapshot = dict(snapshot)
+                if projection_source_id:
+                    revision_snapshot["_projection_source_id"] = projection_source_id
                 conn.execute("INSERT INTO goal_revisions VALUES (?,?,?,?)",
-                             (goal_id, snapshot["revision"], _dump(snapshot), snapshot["updated_at"]))
+                             (goal_id, snapshot["revision"], _dump(revision_snapshot), snapshot["updated_at"]))
                 conn.commit()
                 return snapshot
             except BaseException:
@@ -185,6 +190,12 @@ class GoalStore:
             return [json.loads(row[0]) for row in conn.execute(
                 "SELECT snapshot_json FROM goal_revisions WHERE goal_id=? ORDER BY revision",
                 (goal_id,))]
+
+    def projected_operation(self, *, learner_id: str, source_id: str) -> dict | None:
+        with closing(self._connect()) as conn:
+            row = conn.execute("SELECT r.snapshot_json FROM goal_revisions r JOIN goals g ON g.id=r.goal_id WHERE g.learner_id=? AND json_extract(r.snapshot_json,'$._projection_source_id')=? LIMIT 1",
+                               (learner_id, source_id)).fetchone()
+            return json.loads(row[0]) if row else None
 
 
 def legacy_goal_id(event_id: str) -> str:

@@ -133,7 +133,13 @@ class RuntimeStore:
 
     @contextmanager
     def _write(self) -> Iterator[sqlite3.Connection]:
-        conn = self._connect()
+        from backend.services.goals.service import GOAL_CONTROL_LOCK
+        GOAL_CONTROL_LOCK.acquire()
+        try:
+            conn = self._connect()
+        except BaseException:
+            GOAL_CONTROL_LOCK.release()
+            raise
         pending_audit: list[dict[str, Any]] = []
         self._audit_local.events = pending_audit
         committed = False
@@ -148,6 +154,7 @@ class RuntimeStore:
         finally:
             conn.close()
             del self._audit_local.events
+            GOAL_CONTROL_LOCK.release()
             if committed:
                 from backend.services.runtime_events import observe_execution_event
                 for event in pending_audit:
@@ -218,24 +225,44 @@ class RuntimeStore:
             conn.execute("INSERT INTO runtime_tasks (id,snapshot_json,status,active_run_id,revision,budget_calls,consumed_calls,created_at,updated_at,budget_model_calls) VALUES (?,?,?,?,?,?,?,?,?,?)",
                          (command.task_id, _dump(task), "running", run_id, 1,
                           command.budget_calls, 0, now, now, command.budget_model_calls))
+            checkpoint = {"steps": []}
+            if command.trigger_kind in {"goal", "schedule"} and command.task_id.startswith("rtask_"):
+                from backend.services.goals.store import GoalStore
+                from backend.services.goals.service import goal_contract
+                goal = GoalStore(self.db_path.parent / "goals.db").get(command.trigger_id)
+                if not goal or goal["status"] != "active":
+                    raise RuntimeConflict("goal is not active")
+                checkpoint["goal_contract"] = goal_contract(goal)
             conn.execute("INSERT INTO agent_runs (id,task_id,resume_of_run_id,root_run_id,request_key,request_id,conversation_id,turn_id,status,owner_token,revision,seq_high_water,checkpoint_json,output_json,error_code,created_at,updated_at,ended_at,trigger_kind,trigger_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                          (run_id, command.task_id, None, run_id, command.request_key,
                           command.request_id, command.conversation_id, command.turn_id,
-                          "running", command.owner_token, 1, 0, _dump({"steps": []}),
+                          "running", command.owner_token, 1, 0, _dump(checkpoint),
                           None, None, now, now, None, command.trigger_kind, command.trigger_id))
             run = conn.execute("SELECT * FROM agent_runs WHERE id=?", (run_id,)).fetchone()
             self._event(conn, run, lifecycle="run.created", status="started",
                         payload={"task_status": "running"})
             return self._snapshot(conn, run_id)
 
-    def _owned(self, conn: sqlite3.Connection, run_id: str, owner: str) -> sqlite3.Row:
+    def _owned(self, conn: sqlite3.Connection, run_id: str, owner: str, *, check_goal: bool = True) -> sqlite3.Row:
         run = conn.execute("SELECT * FROM agent_runs WHERE id=?", (run_id,)).fetchone()
         if not run or run["status"] != "running" or run["owner_token"] != owner:
             raise RuntimeConflict("run is no longer owned or active")
         task = conn.execute("SELECT * FROM runtime_tasks WHERE id=?", (run["task_id"],)).fetchone()
         if task["active_run_id"] != run_id:
             raise RuntimeConflict("run is fenced by another active run")
+        if check_goal:
+            self._validate_goal_run(run)
         return run
+
+    def _validate_goal_run(self, run):
+        checkpoint = json.loads(run["checkpoint_json"])
+        if run["trigger_kind"] not in {"goal", "schedule"} or not run["task_id"].startswith("rtask_"):
+            return
+        from backend.services.goals.store import GoalStore
+        from backend.services.goals.service import goal_contract
+        goal = GoalStore(self.db_path.parent / "goals.db").get(run["trigger_id"])
+        if not goal or goal["status"] != "active" or checkpoint.get("goal_contract", checkpoint.get("answer_state", {}).get("_goal_contract")) != goal_contract(goal):
+            raise RuntimeConflict("goal is inactive or its execution contract changed")
 
     def _snapshot(self, conn: sqlite3.Connection, run_id: str) -> dict[str, Any]:
         run = conn.execute("SELECT * FROM agent_runs WHERE id=?", (run_id,)).fetchone()
@@ -244,6 +271,7 @@ class RuntimeStore:
         task = conn.execute("SELECT * FROM runtime_tasks WHERE id=?", (run["task_id"],)).fetchone()
         calls = conn.execute("SELECT * FROM tool_calls WHERE task_id=? ORDER BY created_at,rowid", (run["task_id"],)).fetchall()
         return {"task": json.loads(task["snapshot_json"]), "task_revision": task["revision"],
+                "execution_events": [json.loads(row[0]) for row in conn.execute("SELECT event_json FROM execution_events WHERE run_id=? ORDER BY seq LIMIT 500", (run_id,))],
                 "approvals": [dict(row) for row in conn.execute("SELECT a.* FROM runtime_approvals a JOIN tool_calls c ON c.id=a.call_id WHERE c.task_id=?", (run["task_id"],))],
                 "budget_calls": task["budget_calls"], "consumed_calls": task["consumed_calls"],
                 "budget_model_calls": task["budget_model_calls"], "consumed_model_calls": task["consumed_model_calls"],
@@ -255,12 +283,18 @@ class RuntimeStore:
 
     def snapshot(self, run_id: str) -> dict[str, Any]:
         with closing(self._connect()) as conn:
+            conn.execute("BEGIN")
             return self._snapshot(conn, run_id)
 
     def task_snapshot(self, task_id: str) -> dict[str, Any] | None:
         with closing(self._connect()) as conn:
+            conn.execute("BEGIN")
             row = conn.execute("SELECT id FROM agent_runs WHERE task_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1", (task_id,)).fetchone()
             return self._snapshot(conn, row[0]) if row else None
+
+    def goal_tasks(self, goal_id: str):
+        with closing(self._connect()) as conn:
+            return [row[0] for row in conn.execute("SELECT DISTINCT task_id FROM agent_runs WHERE trigger_kind IN ('goal','schedule') AND trigger_id=?", (goal_id,))]
 
     def configure_chat(self, run_id: str, owner: str, *, state: dict, candidates: tuple[dict, ...],
                        request_question: str, book_name: str, subject: str, delivery: str = "chat") -> dict:
@@ -275,10 +309,20 @@ class RuntimeStore:
             snapshot = json.loads(task[0])
             snapshot["task_type"] = "qa"
             snapshot["answer_mode"] = state.get("answer_mode", "")
-            snapshot["artifacts"].update({"request_question": request_question, "book_name": book_name, "subject": subject})
+            snapshot["artifacts"].update({"request_question": request_question, "book_name": book_name, "subject": subject,
+                "context_versions": state.get("context_versions") or {}})
             conn.execute("UPDATE agent_runs SET checkpoint_json=? WHERE id=?", (_dump(checkpoint), run_id))
             conn.execute("UPDATE runtime_tasks SET snapshot_json=? WHERE id=?", (_dump(snapshot), run["task_id"]))
             return self._snapshot(conn, run_id)
+
+    def stream_snapshot(self, run_id: str, *, after_seq: int = 0):
+        with closing(self._connect()) as conn:
+            conn.execute("BEGIN")
+            snapshot = self._snapshot(conn, run_id)
+            events = [json.loads(row[0]) for row in conn.execute(
+                "SELECT event_json FROM execution_events WHERE run_id=? AND seq>? ORDER BY seq LIMIT 100",
+                (run_id, after_seq))]
+            return snapshot, events
 
     def events(self, run_id: str, *, after_seq: int = 0, limit: int = 100) -> list[dict[str, Any]]:
         if after_seq < 0 or limit < 1 or limit > 500:
@@ -287,6 +331,13 @@ class RuntimeStore:
             return [json.loads(row[0]) for row in conn.execute(
                 "SELECT event_json FROM execution_events WHERE run_id=? AND seq>? ORDER BY seq LIMIT ?",
                 (run_id, after_seq, limit))]
+
+    def mark_resume_launched(self, run_id: str, owner: str):
+        with self._write() as conn:
+            run = self._owned(conn, run_id, owner)
+            checkpoint = json.loads(run["checkpoint_json"])
+            checkpoint["resume_launched"] = True
+            conn.execute("UPDATE agent_runs SET checkpoint_json=? WHERE id=?", (_dump(checkpoint), run_id))
 
     def start_model_step(self, run_id: str, owner: str) -> dict[str, Any]:
         with self._write() as conn:
@@ -435,6 +486,9 @@ class RuntimeStore:
             row = conn.execute("SELECT * FROM runtime_approvals WHERE call_id=?", (call_id,)).fetchone()
             if not row:
                 raise KeyError(call_id)
+            call = conn.execute("SELECT requested_run_id FROM tool_calls WHERE id=?", (call_id,)).fetchone()
+            run = conn.execute("SELECT * FROM agent_runs WHERE id=?", (call[0],)).fetchone()
+            self._validate_goal_run(run)
             if row["args_hash"] != args_hash or row["scope_json"] != _dump(scope):
                 raise RuntimeConflict("approval arguments or scope changed")
             if row["status"] == "confirmed":
@@ -445,33 +499,41 @@ class RuntimeStore:
                          (actor_id, _now(), call_id))
             return dict(conn.execute("SELECT * FROM runtime_approvals WHERE call_id=?", (call_id,)).fetchone())
 
-    def reject_approval(self, call_id: str, *, actor_id: str) -> dict[str, Any]:
+    def reject_approval(self, call_id: str, *, actor_id: str,
+                        interrupt_task: bool = False) -> dict[str, Any]:
         if not actor_id.strip():
             raise ValueError("rejecting actor is required")
         with self._write() as conn:
             row = conn.execute("SELECT * FROM runtime_approvals WHERE call_id=?", (call_id,)).fetchone()
             if not row:
                 raise KeyError(call_id)
-            if row["status"] == "confirmed":
-                raise RuntimeConflict("confirmed approval cannot be rejected")
-            if row["status"] == "pending":
-                call = conn.execute("SELECT task_id,requested_run_id FROM tool_calls WHERE id=?", (call_id,)).fetchone()
+            if row["status"] in {"pending", "confirmed"}:
+                call = conn.execute("SELECT * FROM tool_calls WHERE id=?", (call_id,)).fetchone()
                 task = conn.execute("SELECT * FROM runtime_tasks WHERE id=?", (call["task_id"],)).fetchone()
-                if task["status"] != "waiting_for_confirmation":
+                if call["status"] != "awaiting_approval" or call["executed_run_id"] or call["attempt_count"]:
+                    raise RuntimeConflict("admitted approval cannot be rejected")
+                if task["status"] not in {"waiting_for_confirmation", "running", "interrupted"}:
                     raise RuntimeConflict("approval task has already advanced")
+                if task["status"] == "running" and not interrupt_task:
+                    raise RuntimeConflict("running task must be stopped before cancellation")
+                stopped_status = "interrupted" if interrupt_task else "cancelled"
                 conn.execute("UPDATE runtime_approvals SET status='rejected',actor_id=?,revision=revision+1,updated_at=? WHERE call_id=?",
                              (actor_id, _now(), call_id))
                 conn.execute("UPDATE tool_calls SET status='denied',updated_at=? WHERE id=?",
                              (_now(), call_id))
                 snapshot = json.loads(task["snapshot_json"])
-                snapshot["status"] = "cancelled"
+                snapshot["status"] = stopped_status
+                snapshot["artifacts"]["active_run_id"] = ""
                 snapshot["updated_at"] = _now()
-                conn.execute("UPDATE runtime_tasks SET snapshot_json=?,status='cancelled',revision=revision+1,updated_at=? WHERE id=?",
-                             (_dump(snapshot), _now(), call["task_id"]))
-                run = conn.execute("SELECT * FROM agent_runs WHERE id=?", (call["requested_run_id"],)).fetchone()
-                conn.execute("UPDATE agent_runs SET status='cancelled' WHERE id=?", (run["id"],))
-                self._event(conn, run, lifecycle="approval.rejected", status="cancelled",
-                    payload={"task_status_before": "waiting_for_confirmation", "task_status_after": "cancelled"})
+                conn.execute("UPDATE runtime_tasks SET snapshot_json=?,status=?,active_run_id=NULL,revision=revision+1,updated_at=? WHERE id=?",
+                             (_dump(snapshot), stopped_status, _now(), call["task_id"]))
+                run = conn.execute("SELECT * FROM agent_runs WHERE id=?", (task["active_run_id"] or call["requested_run_id"],)).fetchone()
+                conn.execute("UPDATE agent_runs SET status=?,revision=revision+1,ended_at=?,updated_at=? WHERE id=?", ("paused" if interrupt_task else "cancelled", _now(), _now(), run["id"]))
+                # A paused run's event stream is closed. The approval/task rows
+                # carry cancellation facts; only an active run gets a stop event.
+                if run["status"] == "running":
+                    self._event(conn, run, lifecycle="approval.rejected", status="cancelled",
+                        payload={"task_status_before": task["status"], "task_status_after": stopped_status})
             return dict(conn.execute("SELECT * FROM runtime_approvals WHERE call_id=?", (call_id,)).fetchone())
 
     def start_approved_tool(self, run_id: str, owner: str, call_id: str) -> dict[str, Any]:
@@ -488,28 +550,39 @@ class RuntimeStore:
                         payload={"tool_call_id": call_id})
             return self._snapshot(conn, run_id)
 
-    def reconcile_approved_tool(self, run_id: str, owner: str, call_id: str,
-                                receipt: dict[str, Any]) -> dict[str, Any]:
+    def reconcile_approved_tool(self, task_id: str, call_id: str,
+                                receipt: dict[str, Any], *, args_hash: str,
+                                scope: dict[str, Any]) -> dict[str, Any]:
+        """Record an admitted domain fact without resuming or admitting work."""
         if not receipt:
             raise ValueError("domain receipt is required for reconciliation")
         with self._write() as conn:
-            run = self._owned(conn, run_id, owner)
             call = conn.execute("SELECT * FROM tool_calls WHERE id=? AND task_id=?",
-                                (call_id, run["task_id"])).fetchone()
-            approval = conn.execute("SELECT status FROM runtime_approvals WHERE call_id=?", (call_id,)).fetchone()
-            if not call or call["status"] != "unknown" or call["permission"] != "LOCAL_WRITE" or not approval or approval["status"] != "confirmed":
+                                (call_id, task_id)).fetchone()
+            approval = conn.execute("SELECT * FROM runtime_approvals WHERE call_id=?", (call_id,)).fetchone()
+            if not call or call["status"] not in {"unknown", "succeeded"} or call["permission"] != "LOCAL_WRITE" or not approval or approval["status"] != "confirmed" or not call["executed_run_id"] or not call["attempt_count"]:
                 raise RuntimeConflict("write call is not reconcilable")
+            if call["args_hash"] != args_hash or approval["args_hash"] != args_hash or approval["scope_json"] != _dump(scope):
+                raise RuntimeConflict("receipt arguments or scope changed")
+            latest = conn.execute("SELECT id FROM agent_runs WHERE task_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1", (task_id,)).fetchone()
+            if call["status"] == "succeeded":
+                if json.loads(call["receipt_json"]) != receipt:
+                    raise RuntimeConflict("domain receipt changed")
+                return self._snapshot(conn, latest[0])
+            run_id = call["executed_run_id"]
+            run = conn.execute("SELECT * FROM agent_runs WHERE id=? AND task_id=?", (run_id, task_id)).fetchone()
+            if not run or run["status"] == "running":
+                raise RuntimeConflict("write execution has not been fenced")
             result = {"success": True, "domain_receipt": receipt, "reconciled": True}
-            conn.execute("UPDATE tool_calls SET status='succeeded',executed_run_id=?,result_json=?,receipt_json=?,error_code=NULL,updated_at=? WHERE id=?",
-                         (run_id, _dump(result), _dump(receipt), _now(), call_id))
+            conn.execute("UPDATE tool_calls SET status='succeeded',result_json=?,receipt_json=?,error_code=NULL,updated_at=? WHERE id=?",
+                         (_dump(result), _dump(receipt), _now(), call_id))
             checkpoint = json.loads(run["checkpoint_json"])
             checkpoint.setdefault("steps", []).append({"call_id": call_id, "status": "succeeded", "reconciled": True})
             conn.execute("UPDATE agent_runs SET checkpoint_json=?,revision=revision+1,updated_at=? WHERE id=?",
                          (_dump(checkpoint), _now(), run_id))
-            self._event(conn, run, lifecycle="tool.completed", event_type="tool_result",
-                        status="completed", payload={"tool_call_id": call_id,
-                                                     "tool_id": call["tool_id"], "reconciled": True})
-            return self._snapshot(conn, run_id)
+            # Receipt accounting updates the durable call, not the closed run's
+            # lifecycle stream or final output. Its execution owner stays fenced.
+            return self._snapshot(conn, latest[0])
 
     def close(self, run_id: str, owner: str, *, outcome: str,
               answer: str = "", error_code: str = "",
@@ -525,7 +598,7 @@ class RuntimeStore:
             raise ValueError("invalid P0 outcome")
         task_status, event_type, event_status, lifecycle = mapping[outcome]
         with self._write() as conn:
-            run = self._owned(conn, run_id, owner)
+            run = self._owned(conn, run_id, owner, check_goal=outcome != "paused")
             task = conn.execute("SELECT * FROM runtime_tasks WHERE id=?", (run["task_id"],)).fetchone()
             now = _now()
             snapshot = json.loads(task["snapshot_json"])
@@ -583,9 +656,15 @@ class RuntimeStore:
 
     def pending_outbox(self, *, limit: int = 50) -> list[dict[str, Any]]:
         with closing(self._connect()) as conn:
-            rows = conn.execute("SELECT * FROM runtime_outbox WHERE status='pending' ORDER BY created_at LIMIT ?",
+            rows = conn.execute("SELECT * FROM runtime_outbox WHERE status='pending' ORDER BY attempts,updated_at,id LIMIT ?",
                                 (min(max(limit, 1), 100),)).fetchall()
             return [{**dict(row), "payload": json.loads(row["payload_json"])} for row in rows]
+
+    def fail_outbox(self, outbox_id: str, error: Exception) -> None:
+        logging.getLogger(__name__).error("Outbox %s projection failed: %s", outbox_id, type(error).__name__)
+        with self._write() as conn:
+            conn.execute("UPDATE runtime_outbox SET attempts=attempts+1,receipt_json=?,updated_at=? WHERE id=? AND status='pending'",
+                         (_dump({"error_code": type(error).__name__}), _now(), outbox_id))
 
     def complete_outbox(self, outbox_id: str, receipt: dict[str, Any]) -> None:
         with self._write() as conn:
@@ -607,6 +686,7 @@ class RuntimeStore:
             if old:
                 if (old["task_id"], old["request_id"], old["turn_id"], old["owner_token"]) != (task_id, request_id, turn_id, owner_token):
                     raise RuntimeConflict("resume request identity changed")
+                self._validate_goal_run(old)
                 return self._snapshot(conn, old["id"])
             task = conn.execute("SELECT * FROM runtime_tasks WHERE id=?", (task_id,)).fetchone()
             if not task or task["revision"] != expected_revision or task["status"] not in {"interrupted", "waiting_for_confirmation"}:
@@ -616,11 +696,14 @@ class RuntimeStore:
                 (task_id,)).fetchone():
                 raise RuntimeConflict("approval has not been confirmed")
             prior = conn.execute("SELECT * FROM agent_runs WHERE task_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1", (task_id,)).fetchone()
+            self._validate_goal_run(prior)
             if prior["trigger_kind"] in {"schedule", "goal"} and turn_id:
                 raise ValueError("scheduled resume cannot invent a conversation turn")
             if prior["trigger_kind"] not in {"schedule", "goal"} and not turn_id.strip():
                 raise ValueError("conversation resume requires a turn identity")
             now = _now()
+            checkpoint = json.loads(prior["checkpoint_json"])
+            checkpoint.pop("resume_launched", None)
             run_id = f"arun_{uuid.uuid4().hex}"
             snapshot = json.loads(task["snapshot_json"])
             snapshot["status"] = "running"
@@ -632,7 +715,7 @@ class RuntimeStore:
             conn.execute("INSERT INTO agent_runs (id,task_id,resume_of_run_id,root_run_id,request_key,request_id,conversation_id,turn_id,status,owner_token,revision,seq_high_water,checkpoint_json,output_json,error_code,created_at,updated_at,ended_at,trigger_kind,trigger_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                          (run_id, task_id, prior["id"], prior["root_run_id"], request_key,
                           request_id, prior["conversation_id"], turn_id, "running",
-                          owner_token, 1, 0, prior["checkpoint_json"], None, None,
+                          owner_token, 1, 0, _dump(checkpoint), None, None,
                           now, now, None, prior["trigger_kind"], prior["trigger_id"]))
             run = conn.execute("SELECT * FROM agent_runs WHERE id=?", (run_id,)).fetchone()
             self._event(conn, run, lifecycle="run.resumed", status="started",

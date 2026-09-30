@@ -132,7 +132,36 @@ class MistakeImageStore:
                 handle.write(chunk)
         return self.optimize_for_ocr(raw_path)
 
-    def optimize_for_ocr(self, raw_path: Path) -> Path:
+    def save_draft_attachment(self, file: Any, draft_id: str) -> tuple[Path, Path]:
+        """Keep the original and a conservative OCR work image outside pending TTL."""
+        if not draft_id or any(ch not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for ch in draft_id):
+            raise ValueError("invalid draft id")
+        suffix = Path(file.filename or "image.png").suffix.lower()
+        if suffix not in self.allowed_extensions:
+            raise ValueError("请上传 png/jpg/jpeg/webp/bmp 格式的图片")
+        folder = (self.image_root / "drafts" / draft_id).resolve()
+        if not folder.is_relative_to(self.image_root.resolve()):
+            raise ValueError("invalid draft path")
+        folder.mkdir(parents=True, exist_ok=True)
+        raw_path = folder / f"{uuid.uuid4().hex}_raw{suffix}"
+        size = 0
+        try:
+            with raw_path.open("wb") as handle:
+                while True:
+                    chunk = file.file.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    size += len(chunk)
+                    if size > self.max_image_bytes:
+                        raise ValueError("图片超过大小限制")
+                    handle.write(chunk)
+            work_path = self.optimize_for_ocr(raw_path, preserve_original=True)
+            return raw_path, work_path
+        except Exception:
+            raw_path.unlink(missing_ok=True)
+            raise
+
+    def optimize_for_ocr(self, raw_path: Path, *, preserve_original: bool = False) -> Path:
         optimized_path = raw_path.with_name(
             raw_path.stem.replace("_raw", "") + "_ocr.jpg"
         )
@@ -163,7 +192,8 @@ class MistakeImageStore:
                     quality=self.ocr_jpeg_quality,
                     optimize=True,
                 )
-            raw_path.unlink(missing_ok=True)
+            if not preserve_original:
+                raw_path.unlink(missing_ok=True)
             return optimized_path
         except UnidentifiedImageError as exc:
             logger.warning(

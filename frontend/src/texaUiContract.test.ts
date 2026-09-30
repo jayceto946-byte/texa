@@ -6,6 +6,7 @@ import app from './App.tsx?raw';
 import message from './components/ChatMessage.tsx?raw';
 import chatPage from './pages/ChatPage.tsx?raw';
 import mistakesPage from './pages/MistakesPage.tsx?raw';
+import reviewSessionPage from './pages/ReviewSessionPage.tsx?raw';
 import figureViewer from './features/visual-learning/FigureRegionViewer.tsx?raw';
 import learningContext from './components/LearningContextSidebar.tsx?raw';
 import modelSettings from './components/settings/ModelSettingsManager.tsx?raw';
@@ -58,8 +59,10 @@ describe('Texa product UI contract', () => {
   });
 
   it('keeps review and interrupted learning tasks resumable', () => {
-    expect(mistakesPage).toContain('submitSessionReview');
-    expect(mistakesPage).toContain('查看答案与反馈');
+    expect(app).toContain('path="learning/review/:sessionId"');
+    expect(reviewSessionPage).toContain('get(`/review/sessions/${encodeURIComponent(sessionId)}');
+    expect(reviewSessionPage).toContain('/results${query}');
+    expect(mistakesPage).toContain('现在重做');
     expect(chatPage).toContain('resumeFigureTaskStream');
     expect(chatPage).toContain('interruptFigureTask');
     expect(learningContext).toContain('conversationCacheKey');

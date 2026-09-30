@@ -24,7 +24,7 @@ import { useChat } from '../hooks/useChat';
 import type { ExerciseRecord, FigureArtifact, LearningTaskState, MistakeRecord, VisualRegion } from '../types';
 import { mapStoredConversationMessages } from '../utils/conversationMessages';
 import { createExecutionLifecycle, executionMessageStage, mergeChatActivity, mergeExecutionLifecycle, settleChatActivity } from '../utils/chatActivities';
-import { buildTextbookScopeOptions, findDefaultTextbookScope, formatLearningScopeLabel, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
+import { buildTextbookScopeOptions, findDefaultTextbookScope, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
 import { useInspector } from '../contexts/InspectorContext';
 type ReportMode = 'daily' | 'weekly';
 type ActionMode = ReportMode | 'exercise';
@@ -82,10 +82,6 @@ const ChatPage: React.FC = () => {
   const { openInspector, closeInspector } = useInspector();
   const scopeBooks = useMemo(() => buildTextbookScopeOptions(books), [books]);
   const currentScope = scopeBooks.find((scope) => scopeContainsBook(scope, bookName));
-  const headerScopeLabel = formatLearningScopeLabel(
-    subject,
-    currentScope?.displayName || currentScope?.name || bookName || '通用问答',
-  );
 
   useEffect(() => {
     const applySuggestion = (question: string) => {
@@ -837,11 +833,9 @@ const ChatPage: React.FC = () => {
         <div className="learning-workspace-header">
           <div className="learning-workspace-title min-w-0">
             <h2>学习</h2>
-            {messages.length === 0 && !activeFigure
-              ? <p>{headerScopeLabel}</p>
-              : <div className="learning-header-scope-selector">{scopeSelector}</div>}
           </div>
           <div className="window-drag-region" aria-hidden="true" />
+          {(messages.length > 0 || activeFigure) && <div className="learning-header-scope-selector">{scopeSelector}</div>}
         </div>
 
         <div ref={scrollRef} className="learning-workspace-scroll">

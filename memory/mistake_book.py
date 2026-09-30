@@ -25,6 +25,44 @@ MISTAKE_TYPES = [
 ]
 
 
+def _migrate_mistake_lifecycle_v3(conn: sqlite3.Connection) -> None:
+    """Add append-only mistake facts without rewriting legacy record blobs."""
+    statements = (
+        """CREATE TABLE IF NOT EXISTS mistake_candidates (
+            id TEXT PRIMARY KEY, source_key TEXT NOT NULL UNIQUE,
+            data TEXT NOT NULL, status TEXT NOT NULL, revision INTEGER NOT NULL,
+            linked_mistake_id TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL
+        )""",
+        "CREATE INDEX IF NOT EXISTS idx_mistake_candidates_status ON mistake_candidates(status, created_at)",
+        """CREATE TABLE IF NOT EXISTS mistake_drafts (
+            id TEXT PRIMARY KEY, data TEXT NOT NULL, revision INTEGER NOT NULL,
+            updated_at TEXT NOT NULL
+        )""",
+        """CREATE TABLE IF NOT EXISTS mistake_attempts (
+            id TEXT PRIMARY KEY, mistake_id TEXT NOT NULL, source_key TEXT NOT NULL UNIQUE,
+            kind TEXT NOT NULL, data TEXT NOT NULL, created_at TEXT NOT NULL
+        )""",
+        "CREATE INDEX IF NOT EXISTS idx_mistake_attempts_record ON mistake_attempts(mistake_id, created_at)",
+        """CREATE TABLE IF NOT EXISTS mistake_sources (
+            source_key TEXT PRIMARY KEY, mistake_id TEXT NOT NULL
+        )""",
+        """CREATE TABLE IF NOT EXISTS mistake_review_sessions (
+            id TEXT PRIMARY KEY, data TEXT NOT NULL, revision INTEGER NOT NULL,
+            updated_at TEXT NOT NULL
+        )""",
+    )
+    for statement in statements:
+        conn.execute(statement)
+
+
+def _migrate_mistake_revisions_v4(conn: sqlite3.Connection) -> None:
+    conn.execute("""CREATE TABLE IF NOT EXISTS mistake_revisions (
+        mistake_id TEXT NOT NULL, content_revision INTEGER NOT NULL,
+        data TEXT NOT NULL, changed_at TEXT NOT NULL,
+        PRIMARY KEY (mistake_id, content_revision)
+    )""")
+
+
 @dataclass
 class MistakeRecord:
     """A single mistake entry.
@@ -45,6 +83,7 @@ class MistakeRecord:
     difficulty: int = 3
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     image_path: Optional[str] = None
+    attachments: list[dict] = field(default_factory=list)
     notes: str = ""
     ocr_text: str = ""
     visual_ir: dict = field(default_factory=dict)
@@ -54,6 +93,12 @@ class MistakeRecord:
     sm2: dict = field(default_factory=dict)
     review_history: list[dict] = field(default_factory=list)
     revision: int = 1
+    content_revision: int = 1
+    content_status: str = "legacy_unverified"
+    diagnosis_status: str = "missing"
+    visibility: str = "active"
+    manual_mastered: bool = False
+    source_ref: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -124,8 +169,12 @@ class MistakeBookStore:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_subject ON mistakes(subject)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_next_review ON mistakes(next_review)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_chapter ON mistakes(chapter)")
-            apply_sqlite_migrations(conn, component="mistake_book", current_version=2,
-                migrations={2: lambda db: db.execute("CREATE TABLE IF NOT EXISTS mistake_operations (operation_id TEXT PRIMARY KEY, args_hash TEXT NOT NULL, result_json TEXT NOT NULL)")})
+            apply_sqlite_migrations(conn, component="mistake_book", current_version=4,
+                migrations={
+                    2: lambda db: db.execute("CREATE TABLE IF NOT EXISTS mistake_operations (operation_id TEXT PRIMARY KEY, args_hash TEXT NOT NULL, result_json TEXT NOT NULL)"),
+                    3: _migrate_mistake_lifecycle_v3,
+                    4: _migrate_mistake_revisions_v4,
+                })
             conn.commit()
 
     def _prepare_retry_db_files(self) -> None:
@@ -283,6 +332,7 @@ class MistakeBookStore:
         with self._connect() as conn:
             rows = conn.execute(sql, params).fetchall()
         records = [MistakeRecord.from_dict(json.loads(r[0])) for r in rows]
+        records = [r for r in records if r.visibility == "active" and r.content_status != "needs_correction"]
         return [r for r in records if subject_matches(r.subject, subject)] if subject else records
 
     def get_stats(self, subject: Optional[str] = None) -> dict:

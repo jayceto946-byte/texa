@@ -1,3 +1,32 @@
+# 2026-09-30 - Checkpoint Remediation (Handoff Scope)
+
+- 修复独立复核发现的三个剩余边界：preparation source 与 Goal revision 在同一现有事务保存，事件投影失败或重启后重试仍绑定原 Goal；已准入写入的真实 receipt 可在 Goal 更新/完成后对账，不恢复 run、不重做审批/工具准入、不改 executed_run_id；暂停撤销已确认但尚未准入的审批并留下 interrupted 任务，未发生写入不再投影为 unknown。waiting_for_confirmation 增加 interrupted 合法停止转换；拒绝已准入写入仍被禁止。
+- 复核修复验证：原独立回归从 4 failed / 1 passed 变为 5 passed；保留原 5 项并补充 8 项重启、重复对账、owner/关闭事件流和继续入口检查，13 passed。全后端 963 passed；前端 126 passed，TypeScript/Vite/ESLint 通过；Electron 7 passed（回环端口测试经批准在沙箱外重跑）。此次未重新进行原生 Electron 点击验证，先前独立复核的原生审批/暂停/重启结果不作为此次交错缺陷修复的新验收。无 schema、依赖或索引变动。
+- 按 pre-policy implementation handoff 实施 P0/P1 局部正确性整改：数值假通过、Goal 合同/fence/准入、preparation 幂等、部分初始化、事件投影隔离、SSE snapshot、outbox 公平失败隔离、真实审批状态、最小输出合同、诊断 retention/shadow/版本、调度覆盖与超时实际容量。
+- 无数据库 schema 或索引迁移；新增内容只进入已有 checkpoint/next_action JSON 与现有事件身份。旧 Goal run 缺执行摘要时允许安全停止，拒绝按旧合同恢复；标题/调度和暂停再启用不会使未变的合同失效。保留独立存储、用户 profile、历史、receipt、EvidencePack 与 owner fence。
+- 删除确认无生产消费者的 capability/fallback/outcome 写入口，fake MCP/schedule harness 移入 tests，删除 TypeError 二次调用胶水及 Planner 任意首章 fallback；实际生产 driver 改名 run_bounded。保留 Goal.plan 和 finish.answer 非阻塞 debt，不实施 Deferred。
+- 验证：Python 3.10.21 / 现有 venv310，相关后端 207 passed（新增 36）；前端 26 文件 / 126 passed，TypeScript/Vite/ESLint 通过；Electron runtime 4 passed 与语法检查通过。原生隔离 Electron 验证多 Goal、审批/receipt、暂停、expired/unknown 状态与关闭重开后的持久恢复入口；首次列表加载失效回归已修复。生产托管/安装包升级、全部宽度矩阵、真实模型/教材语义和长期定时未验收。
+- 当前 worktree 从审计基线 d06403e 保留主目录此前未提交改动后实施，未修改主目录与正式学习数据。完整范围映射、故障证据、限定验收及本轮独立 patch：docs/validation/checkpoint-remediation-2026-09-30/README.md。
+
+# 2026-09-30 - Pre-Policy Architecture Audit (No Runtime Changes)
+
+- Audited the current working tree before Runtime Policy data collection; report: `docs/pre-policy-architecture-audit-2026-09-30.md`. Verdict: NO-GO for a trustworthy training checkpoint. Findings distinguish execution defects, outcome/trace semantic gaps, and removable defensive complexity; no production code, schema, model flags, or user data changed in this audit.
+- Added isolated reproduction materials and source fingerprints under `docs/validation/pre-policy-2026-09-30/`. Fifteen assertions reproduce verifier, goal authority, memory projection, SSE consistency, outbox isolation, preparation idempotency, and audit-event gaps. These are defect reproductions using fake models and temporary stores, not correctness passes or online failure-rate measurements.
+- Validation: Python 3.10.21 in `venv310`, 290 targeted backend tests passed in two disjoint batches (176 + 114); frontend 26 files / 124 tests passed; Electron 7 unit tests passed after an approved rerun outside the sandbox for a temporary loopback-port bind. Existing Starlette/Swig deprecation warnings remain. Native Electron workflow/visual checks, real-model Answer Eval, real textbook semantic evaluation, long-running schedules, and production migration rehearsal were not performed.
+
+# 2026-09-28 - Main Workspace Header Alignment
+
+- Unified the six primary workspace headers around the Learning page's 48px chrome height and the previous Goals page's 19px, 600-weight title. Removed header subtitles from Learning and Goals and the redundant textbook count from the Library header; the populated Learning scope selector remains available on the right.
+- Kept route actions and scope selectors in the header. The compact review header stays on one line, and closed-navigation padding leaves room for the sidebar toggle and macOS window controls.
+- Validation: TypeScript/Vite production build, focused ESLint, and git diff whitespace check passed. A temporary local CSS preview rendered the six header structures at 1280×820, 1024×768, and 760×820: all computed to 48px height and 19px titles without horizontal overflow. The 760px macOS closed-sidebar inset was also checked at 152px with no overflow. The temporary preview was removed. Full native Electron interaction was not run for this header pass.
+
+# 2026-09-28 - Review Page Action Queue
+
+- Reworked the review page into a compact today summary, one ordered review queue, and a lower-weight learning insights area. Due mistakes remain ahead of concept recommendations; each group preserves the backend order. Supplementary concepts are deduplicated against recommendations and stay collapsed by default.
+- The summary distinguishes total due mistakes from the returned mistake preview (capped at 50), and distinguishes this run’s recommended concepts from all weak concepts. The first five returned primary entries show without opening a section; more entries load in groups of five. Concept completion still uses the existing review endpoint and quality 4.
+- Each row now exposes its object, actual reason, status, timing or frequency when available, and action. Concept details contain directly related recent questions, mistake links, and textbook chapter clues. Global recent questions moved to insights. Seven-day activity uses actual dates rather than array position; the heatmap labels dates outside the returned coverage as unavailable.
+- Verification: frontend TypeScript/Vite production build and LearningPage ESLint passed; the existing mistake review-session tests passed (2 tests); git diff whitespace check passed. An isolated Electron development launch using temporary user data exited with SIGABRT before a window opened. A local browser preview reached first-run onboarding, which correctly gates the review route until model setup; no credentials were entered. The populated review page could therefore not be visually checked at 1280×820, 1024×768, or 760×820 on this host. No backend API, data schema, review algorithm, or stored learning record changed.
+
 # 2026-09-23 - macOS Apple Silicon Desktop Build
 
 - Added native macOS arm64 support to the existing Electron → FastAPI → React desktop path. Windows retains its `.exe`, `venv310/Scripts/python.exe`, NSIS targets, and release scripts. The packaged architecture gate now accepts Windows x64 and macOS arm64; Linux and other architectures remain rejected.
@@ -3026,6 +3055,40 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 工作区原有主题应用函数在 Electron 中把当前主题的启动页所需 token 缓存到用户数据目录；启动页在绘制前读取，缓存缺失或无效时使用矿物主题默认蓝色。缓存由现有主题表产生，不持久化第二份主题定义；旧安装首次升级启动时可能先看到默认蓝色，工作区加载后即缓存用户已选主题供下次启动使用。缓存文件不含凭证或学习数据。
 - 启动页自定义右侧窗口按钮仅在 Windows/Linux 无框架窗口中显示；macOS 使用左上角原生 traffic lights。Electron 窗口框架配置未改变。
 - 验证：前端 25 文件/122 项测试、TypeScript、全量 ESLint、Vite 构建、Electron 7 项测试及 `git diff --check` 通过。macOS 隔离用户目录的 Electron 实看默认蓝色与缓存陶土主题色，状态灯和进度条均随主题变化，右上角无重复窗口按钮且左上角原生控制可见。Windows 通过平台分支与源码回归检查，未在 Windows 实机启动。启动页代码搜索无遗留旧绿色值或变量；构建保留既有 Markdown 动态导入和大 chunk 警告。
+
+## 2026-09-28 — 目标与任务工作区收敛
+
+- 将目标页整理为同一 Goal 集合与工作区：列表筛选改为“全部目标 / 已安排定时”；明确区分首次读取、读取失败、真实零目标、筛选空态、创建和详情。零目标收起列表列；已有目标自动选中并保留有效选中项；聊天携带的 `goalDraft` 优先进入创建态。新建时可返回详情并保留未保存输入，保存成功后选中新目标并回到全部目标。
+- 创建区改为紧凑的描述、整理、确认保存步骤。空白输入原生禁用；整理失败时才提供“保存为待开始目标”，保存失败保留确认结果。目标范围复用 `ScopeSelector`，由局部草稿维护，变更后清除旧整理结果，不触发聊天会话范围切换。保存仍不自动启用或执行。
+- 详情按目标说明、完成条件、执行与定时安排、当前任务与结果组织；保留原 Goal API、runtime 轮询、请求键、确认和暂停恢复行为。窄模块宽度切换为单面板列表/工作区，返回列表时恢复焦点；列表与详情各自保持滚动容器。局部样式仅修改 `ApprovedWorkspace.css` 的 goals 区域。
+- 验证：TypeScript、全量 ESLint、Vite 构建、前端 26 文件/124 项测试通过（含新增 Goal 集合状态 2 项），`git diff --check` 通过。隔离后端与浏览器实看 1280×820、1024×768、760×820 和 600px，覆盖零目标、已有目标、长标题、侧栏展开/收起、定时筛选空态、空格禁用、未保存草稿保留、范围选择、整理失败恢复保存与窄窗口列表/详情焦点；测试 Goal 仅写入临时数据目录。尝试独立启动 macOS Electron，但原生窗口停在首次设置，未完成目标页及标题栏验收；Windows 与执行中/等待确认/暂停恢复等真实运行态未实机验证。Vite 构建仍有既有 Markdown 动态导入与大 chunk 警告。
+
+## 2026-09-28 — 设置入口与模型连接收敛
+
+- 设置导航收敛为“偏好、模型连接、数据与教材、关于与更新”，高级与诊断固定在底部；偏好仅保留即时保存的主题。备份恢复与 MinerU 解析配置同页，CLI 折叠；备份列表优先显示日期、大小、版本和校验状态，文件名与 SHA-256 留在详情。关于页以 Electron 更新状态决定主操作，分支与提交转入诊断的开发信息。
+- 设置窗口按需加载后端设置，教材工作区才加载教材列表；健康检查仅在设置打开且诊断页可见时轮询。各设置页使用独立反馈。模型连接与首次引导共用模式切换、连接字段和紧邻模型的测试入口；草稿标记、放弃更改、保存中防重提交，以及关闭或切换方案前的未保存确认已加入。连接测试按配置指纹失效，失败反馈不回显底层异常文本。
+- 未新增正文大小和发送快捷键偏好；这两项属于后续独立能力，需分别覆盖学习正文/公式、输入法和数学编辑器。教材工作区仍由现有 `SystemHealth.tsx` 容器装配，当前仅隔离其加载与轮询，后续可在不改变其领域行为的前提下迁出容器。
+- 验证：TypeScript、相关 ESLint、前端 26 文件/124 项测试及 Vite 生产构建通过。隔离临时数据目录启动后端，浏览器实看偏好、模型连接、数据与教材、关于与更新、高级与诊断；模型方案改名会出现未保存状态，放弃更改后恢复。760×820 的双模型面板初次实看列宽仅约 260px，已修正为单列并复测无横向溢出；1024×768、1280×820 为两列约 348px，无横向溢出。关闭草稿时出现确认提示，但浏览器控制随后超时，未验证确认/取消后的最终焦点状态。Electron 原生窗口与 Windows 未实测。构建保留既有 Markdown 动态导入和大 chunk 警告。
+
+## 2026-09-29 — 错题档案页面首轮改造
+
+- 错题本默认进入档案清单；新增按现有记录可验证的“全部 / 未标注错因 / 待复习”筛选、题干搜索、详情阅读页和错误诊断页。详情按题目、当时作答、修正材料与旧复习历史组织，支持鉴权读取原图；纯公式题标题不再剥除公式。
+- 旧 `mistake_id` 和 `tab=review` 链接转入新详情或原复习执行路径；补录与复习执行暂保留原逻辑，未迁移数据库或真实学习数据。诊断只展示现有错因/知识点档案计数，旧 quality 自评不冒充独立重做或掌握证据。
+- 验证：TypeScript、相关 ESLint、Vite 构建、错题 API/存储 24 项测试和 `git diff --check` 通过。尝试浏览器预览时因本地后端未启动而停在首次配置页，未完成错题页面视觉检查；Electron 原生窗口与 Windows 未验证。现有列表 API 只支持 limit，页面采用逐次增加 limit 的加载方式，尚未具备 handoff 所需游标分页、候选/草稿/attempt 合同及新全局复习执行器。
+
+## 2026-09-29 — 错题档案闭环续作
+
+- 将错题候选、可恢复草稿、稳定来源关联、错误事件、独立重做、内容版本快照和复习会话加入错题域。`mistakes.db` 从 v2 增量升至 v4：新增 `mistake_candidates`、`mistake_drafts`、`mistake_attempts`、`mistake_sources`、`mistake_review_sessions`、`mistake_revisions`，不改写旧错题行或旧 `review_history`。未确认候选不入正式队列；内容不完整时不能确认收录。旧 quality 自评保留原样，不算独立掌握证据。
+- 全局复习改为持久会话：保存作答、揭示答案、用户确认结果与同一 SM-2 更新在一个事务中提交，并以操作收据避免重复计数。新错误事件会清除手动掌握标记并重新安排复习。练习自评失败先生成候选，显式收录复用同题稳定引用；聊天的错题入口共享补录草稿。原图存入草稿专用目录，草稿可从补录入口恢复。
+- 错题首页改为游标分页的五种筛选；详情展示题目、当时作答、修正、来源及重做事实；错误诊断只按有效独立重做统计，比较前后窗口时要求同题组覆盖至少 3 题且每窗口至少 5 次作答。旧 `/mistakes?mistake_id=...` 和复习入口保留跳转。
+- 迁移风险与回滚：本轮仅在临时 SQLite 文件验证 v2→v4，未打开或迁移真实学习库。实际启用前应备份对应 `mistakes.db` 及其 WAL/SHM 文件并在应用停止后试运行；若需回滚应用版本，停止应用并恢复整套备份，不尝试降级写入后的 v4 库。新增表属追加式迁移，旧档案 JSON/SM-2 保持可读；上线前仍需在真实数据副本上做 dry-run 和 Electron 验收。
+- 验证：Python 3.10 全量 907 项、前端 Vitest 124 项、TypeScript、相关 ESLint、Vite 构建、桌面运行时 7 项与 `git diff --check` 通过。桌面端口测试首次受沙箱 `EPERM` 阻断，授权本机 loopback 后通过。测试使用隔离临时库；未调用付费模型，也未对真实学习数据执行迁移。使用临时 `KAOYAN_USER_DATA_DIR` 尝试启动开发 Electron：沙箱内 SIGABRT；提权后进程启动，但 UI 检查只看到打包版 Texa 加载窗口及 Electron 默认欢迎页，未能确认开发版错题页已渲染。macOS 页面尺寸验收与 Windows 尚未完成。
+
+## 2026-09-29 — 错题本收口与开发版 Electron 验收
+
+- 按用户要求停止领域扩展，仅修复错题详情页标题将 LaTeX 公式作为原始文本展示的问题，改用现有数学正文渲染组件。未新增数据模型、迁移或业务规则。
+- 用隔离 `KAOYAN_USER_DATA_DIR` 启动当前源码 Electron，经首次配置进入工作区。原生窗口实看并截图：错题首页空态、补录入口、手动补录草稿、保存后的有数据首页与详情、全局复习入口、复习开始页、独立重做、答案揭示、自评及完成页。隔离样例题从补录到复习完成正常；未触碰真实学习数据或调用模型。UI 检查窗口为约 1280×820 逻辑尺寸；1024×768、760×820 和 Windows 实机仍待人工检查。
+- 收口检查：`git diff --check`、TypeScript、相关 ESLint、Vite 构建通过。先前已通过的后端全量 907 项、前端 124 项与桌面运行时 7 项未重复运行。构建仍有现存 Markdown 动态导入及大 chunk 警告。复习队列中的纯文本摘要仍会显示原始 LaTeX 定界符，详页与复习题干公式正常渲染；作为后续视觉优化，不阻碍当前流程。
 # 2026-09-29 - RuntimeEvent V1 audit stream
 
 - Audited conversation events, SSE execution milestones, agent runtime SQLite events, routing traces, RAG traces, and diagnostic logging. Added a common RuntimeEvent V1 contract and async SQLite audit store without changing existing task, conversation, or vector schemas.

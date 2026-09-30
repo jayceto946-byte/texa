@@ -261,6 +261,19 @@ export interface MistakeRecord {
   review_history?: ReviewHistoryItem[];
   next_review?: string;
   interval?: number;
+  revision?: number;
+  content_revision?: number;
+  content_status?: 'legacy_unverified' | 'needs_correction' | 'ready';
+  diagnosis_status?: 'missing' | 'suggested' | 'confirmed' | 'deferred';
+  mastery_status?: 'unresolved' | 'consolidating' | 'mastered';
+  mastery_source?: 'none' | 'manual' | 'redo_evidence';
+  review_status?: 'unscheduled' | 'scheduled' | 'due' | 'suspended';
+  repeat_wrong?: boolean;
+  pending_reason?: string;
+  visibility?: 'active' | 'archived';
+  source_ref?: Record<string, unknown>;
+  attachments?: Array<{ id: string; original_path?: string; filename?: string }>;
+  recent_attempts?: Array<{ id: string; kind: string; answer?: string; result?: string; hint_used?: boolean; judgement_source?: string; created_at: string }>;
 }
 
 export interface MistakeStats {
@@ -445,7 +458,8 @@ export interface AgentPendingAction {
   action_id?: string;
   type: string;
   payload: Record<string, unknown>;
-  status?: 'pending' | 'confirmed' | 'rejected' | 'failed';
+  status?: 'pending' | 'confirmed' | 'executed' | 'executing' | 'expired' | 'unknown' | 'rejected' | 'failed';
+  allowed_actions?: Array<'confirm' | 'reject'>;
   result?: Record<string, unknown> | null;
   error?: string;
 }

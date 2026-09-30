@@ -192,8 +192,13 @@ def select_tool_calls(req: ToolOrchestrationRequest) -> list[dict[str, Any]]:
     return deduped
 
 
+_TOOL_SLOTS = threading.BoundedSemaphore(4)
+
+
 def _run_bounded(action, timeout_seconds: float) -> dict[str, Any]:
     started = time.perf_counter()
+    if not _TOOL_SLOTS.acquire(blocking=False):
+        return {"status": "error", "value": None, "message": "tool execution capacity exhausted", "elapsed_ms": 0}
     result_queue: queue.Queue = queue.Queue(maxsize=1)
 
     def execute() -> None:
@@ -201,8 +206,14 @@ def _run_bounded(action, timeout_seconds: float) -> dict[str, Any]:
             result_queue.put(("complete", action(), ""))
         except Exception as exc:  # pragma: no cover - registry normally contains handler errors
             result_queue.put(("error", None, str(exc)))
+        finally:
+            _TOOL_SLOTS.release()
 
-    threading.Thread(target=execute, name="tool-orchestration-call", daemon=True).start()
+    try:
+        threading.Thread(target=execute, name="tool-orchestration-call", daemon=True).start()
+    except BaseException:
+        _TOOL_SLOTS.release()
+        raise
     try:
         status, value, message = result_queue.get(timeout=max(0.001, timeout_seconds))
     except queue.Empty:
