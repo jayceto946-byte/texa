@@ -160,6 +160,18 @@ def try_chat_response(req, prepared: dict, request_id: str):
         required_outputs=derive_required_outputs(req.question, intent="qa", answer_mode=prepared["answer_mode"]))
     snapshot = store.create(command)
     run_id = snapshot["run"]["id"]
+    from backend.services.runtime_events import emit_best_effort as emit_runtime_event, text_fingerprint
+    audit = {"session_id": prepared["conversation_id"], "turn_id": prepared["turn_id"],
+             "request_id": request_id, "task_id": command.task_id, "run_id": run_id}
+    emit_runtime_event("user_input", **audit,
+                       payload={**text_fingerprint(req.question), "answer_mode": prepared["answer_mode"]})
+    emit_runtime_event("active_goal", **audit,
+                       payload={"goal_ref": command.task_id, "goal_status": "running",
+                                "required_output_count": len(command.required_outputs)})
+    emit_runtime_event("decision", **audit,
+                       payload={"route": "bounded_runtime", "decision_mode": decision.mode,
+                                "capability": decision.selected_capability or "direct_answer",
+                                "shadow_only": decision.shadow_only})
     store.configure_chat(run_id, owner, state=state, candidates=candidates,
         request_question=req.question, book_name=prepared["book_name"], subject=prepared["subject"])
     return stream_run(store, run_id, owner, registry, adapter)

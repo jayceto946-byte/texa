@@ -77,6 +77,8 @@ async def lifespan(_app: FastAPI):
     effects_worker.start()
     from backend.services.agent_runtime.lifecycle import start_runtime_recovery
     runtime_worker = start_runtime_recovery()
+    from backend.services.runtime_events import start_writer, stop_writer
+    start_writer()
     from backend.services.goals.execution import GoalScheduleWorker
     goal_schedule_worker = GoalScheduleWorker().start()
     try:
@@ -90,6 +92,7 @@ async def lifespan(_app: FastAPI):
             logger.warning("Runtime projection still finishing during shutdown")
         if not effects_worker.stop():
             logger.warning("an in-flight effect step is finishing; subsequent steps are disabled on shutdown")
+        stop_writer()
         try:
             from ingestion.vector_store import reset_vector_store
 

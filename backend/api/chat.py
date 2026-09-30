@@ -65,6 +65,7 @@ from backend.services.execution_events import (
     ExecutionEventEmitter,
     execution_sse_payload,
 )
+from backend.services.runtime_events import emit_best_effort as emit_runtime_event, text_fingerprint, safe_reference, replay as replay_runtime_events
 from graph.conversation_context import (
     assemble_conversation_context_pack,
     build_conversation_context_seed,
@@ -734,9 +735,22 @@ def answer_feedback(req: AnswerFeedbackRequest):
             reasons=req.reasons,
             note=req.note,
         )
+        emit_runtime_event("feedback", session_id=req.conversation_id,
+                           turn_id=str(data.get("turn_id") or ""), request_id=str(data.get("request_id") or ""),
+                           payload={"rating": data["rating"], "feedback_reasons": data["reasons"],
+                                    "message_ref": req.message_id})
         return {"success": True, "data": data}
     except ValueError as exc:
         return {"success": False, "message": str(exc)}
+
+
+@router.get("/runtime-events")
+def runtime_event_replay(session_id: str, turn_id: str = "", after_event_id: str = "", limit: int = 5000):
+    try:
+        return replay_runtime_events(session_id=session_id, turn_id=turn_id,
+                                     after_event_id=after_event_id, limit=limit)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
 
 
 @router.post("/log")
@@ -851,6 +865,42 @@ def _prepared_chat_stream(
 
         request_id = _request_id or new_request_id()
         task_store = get_learning_task_store()
+        audit_identity = {"session_id": conversation_id, "turn_id": turn_id,
+                          "request_id": request_id, "task_id": learning_task.id, "run_id": run_id}
+        if not _resume:
+            emit_runtime_event("user_input", **audit_identity,
+                               payload={**text_fingerprint(req.question), "answer_mode": answer_mode,
+                                        "context_turn_count": min(len(history), 1000000)})
+        prior_state = resolution_trace.get("state_before") or {}
+        emit_runtime_event("context", **audit_identity,
+                           payload={"resolved_hash": text_fingerprint(rewritten_question)["input_hash"],
+                                    "topic_hash": text_fingerprint(str(prior_state.get("topic") or ""))["input_hash"],
+                                    "context_turn_refs": [str(ref) for ref in (resolution_trace.get("referenced_turn_ids") or [])[:12]],
+                                    "context_turn_count": min(len(history), 1000000),
+                                    "constraint_count": min(len(prior_state.get("constraints") or []), 1000000),
+                                    "ledger_revision": max(0, min(int(resolution_trace.get("ledger_base_revision") or 0), 1000000)),
+                                    "answer_mode": answer_mode,
+                                    "model_id": safe_reference(context_versions.get("model_name")),
+                                    "provider_id": safe_reference(context_versions.get("model_backend")),
+                                    "prompt_version": safe_reference(context_versions.get("prompt_version")),
+                                    "context_policy_version": safe_reference(context_versions.get("context_policy_version")),
+                                    "retrieval_policy_version": safe_reference(context_versions.get("retrieval_policy_version")),
+                                    "corpus_version": safe_reference(context_versions.get("corpus_version"))})
+        emit_runtime_event("active_goal", **audit_identity,
+                           payload={"goal_ref": learning_task.id, "goal_status": learning_task.status,
+                                    "required_output_count": len(learning_task.required_outputs), "resume": _resume})
+        if _resume:
+            emit_runtime_event("retry", **audit_identity,
+                               payload={"status": "running", "resume": True})
+        emit_runtime_event("decision", **audit_identity,
+                           payload={"route": "legacy_chat", "answer_mode": answer_mode,
+                                    "decision_mode": str(resolution_trace.get("resolution_action") or "continue"),
+                                    "reason_code": scope_reason})
+        if routing_decision is not None:
+            emit_runtime_event("decision", **audit_identity,
+                               payload={"route": "shadow_router", "decision_mode": routing_decision.mode,
+                                        "capability": routing_decision.selected_capability or "direct_answer",
+                                        "shadow_only": routing_decision.shadow_only})
         if routing_decision is not None:
             try:
                 from backend.services.decision.contracts import DecisionContext
@@ -1310,6 +1360,9 @@ def _prepared_chat_stream(
                     suggested_answer_mode = str(event["suggested_answer_mode"])
                 if event.get("stage") == "generate" and not generation_handoff_done:
                     generation_handoff_done = True
+                    emit_runtime_event("model_call", **audit_identity,
+                                       payload={"model_role": "reasoning", "phase": "generation",
+                                                "status": "running"})
                     if reason_active:
                         yield activity_sse({
                             "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
@@ -1336,6 +1389,12 @@ def _prepared_chat_stream(
                     elif event.get("chunk"):
                         assistant_chunks.append(str(event.get("chunk")))
                 if event.get("stage") == "done":
+                    state_refs = event.get("state") or {}
+                    chunk_refs = [str(item.get("chunk_id")) for item in (state_refs.get("evidence_sources") or [])
+                                  if isinstance(item, dict) and item.get("chunk_id")]
+                    emit_runtime_event("retrieval", **audit_identity,
+                                       payload={"chunk_refs": chunk_refs[:32],
+                                                "evidence_count": len(chunk_refs), "status": "completed"})
                     completed_task = _finish_chat_learning_task(
                         learning_task, event.get("state") or {}, run_id=run_id,
                     )
@@ -1377,6 +1436,11 @@ def _prepared_chat_stream(
                             update_ledger_evidence_support(conversation_id, support_status)
                         except Exception:
                             logger.exception("evidence support persistence failed")
+                    emit_runtime_event("user_outcome", **audit_identity,
+                                       payload={"task_status": completed_task.status,
+                                                "verification_status": str(((event.get("state") or {}).get("answer_verification") or {}).get("status") or "unknown"),
+                                                "message_ref": assistant_message_id} if assistant_message_id else
+                                       {"task_status": completed_task.status})
                 else:
                     observe(event)
                 yield f"data: {json.dumps(_chat_execution_envelope(event), ensure_ascii=False)}\n\n"

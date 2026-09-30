@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import time
 import uuid
@@ -13,6 +14,24 @@ from utils.sqlite_migrations import apply_sqlite_migrations
 TRACE_DB_PATH = Path(PROGRESS_PATH) / "rag_traces.db"
 MAX_TRACE_ROWS = 500
 TRACE_SCHEMA_VERSION = 2
+
+_DIAGNOSTIC_REDACTIONS = (
+    (re.compile(r"(?i)\b(?:sk|api[_-]?key|bearer)[-_ :]+[A-Za-z0-9._-]{8,}"), "[credential]"),
+    (re.compile(r"(?i)\b(?:api[_-]?key|token|secret|password)\s*[=:]\s*[^\s,;]+"), "[credential]"),
+    (re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"), "[account]"),
+    (re.compile(r"(?<!\w)(?:[A-Za-z]:\\|/Users/|/home/|/private/|/var/)[^\s,;]+"), "[path]"),
+)
+
+
+def _redact_diagnostic(value):
+    if isinstance(value, dict):
+        return {key: _redact_diagnostic(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_redact_diagnostic(item) for item in value]
+    if isinstance(value, str):
+        for pattern, replacement in _DIAGNOSTIC_REDACTIONS:
+            value = pattern.sub(replacement, value)
+    return value
 
 
 def _migrate_v2(conn: sqlite3.Connection) -> None:
@@ -162,7 +181,8 @@ def save_trace(trace: dict) -> None:
         "source": str(item.get("source") or ""),
         "score": item.get("final_score", item.get("score")),
     } for item in (trace.get("evidence") or [])[:20]]
-    context = _sanitize_context_trace(trace.get("context"))
+    context = _redact_diagnostic(_sanitize_context_trace(trace.get("context")))
+    evidence = _redact_diagnostic(evidence)
     with _connect() as conn:
         conn.execute("""
             INSERT OR REPLACE INTO rag_traces
@@ -172,10 +192,10 @@ def save_trace(trace: dict) -> None:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             trace["request_id"], trace.get("created_at", time.time()), trace.get("conversation_id", ""),
-            trace.get("book_name", ""), str(trace.get("question") or "")[:1000], trace.get("intent", ""),
+            _redact_diagnostic(trace.get("book_name", "")), _redact_diagnostic(str(trace.get("question") or "")[:1000]), trace.get("intent", ""),
             int(bool(trace.get("fast_path"))), trace.get("status", "done"), trace.get("ttft_ms"),
             trace.get("total_ms"), json.dumps(trace.get("timings") or {}, ensure_ascii=False),
-            json.dumps(evidence, ensure_ascii=False), str(trace.get("error") or "")[:2000],
+            json.dumps(evidence, ensure_ascii=False), _redact_diagnostic(str(trace.get("error") or "")[:2000]),
             json.dumps(context, ensure_ascii=False),
         ))
         conn.execute("DELETE FROM rag_traces WHERE request_id IN (SELECT request_id FROM rag_traces ORDER BY created_at DESC LIMIT -1 OFFSET ?)", (MAX_TRACE_ROWS,))

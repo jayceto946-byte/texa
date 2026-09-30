@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
+import threading
 import uuid
 from contextlib import closing, contextmanager
 from datetime import datetime, timezone
@@ -82,6 +84,7 @@ def _migrate_v3(conn: sqlite3.Connection) -> None:
 class RuntimeStore:
     def __init__(self, db_path: str | Path):
         self.db_path = Path(db_path)
+        self._audit_local = threading.local()
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with closing(self._connect()) as conn:
             installed = conn.execute("PRAGMA user_version").fetchone()[0]
@@ -131,15 +134,27 @@ class RuntimeStore:
     @contextmanager
     def _write(self) -> Iterator[sqlite3.Connection]:
         conn = self._connect()
+        pending_audit: list[dict[str, Any]] = []
+        self._audit_local.events = pending_audit
+        committed = False
         try:
             conn.execute("BEGIN IMMEDIATE")
             yield conn
             conn.commit()
+            committed = True
         except BaseException:
             conn.rollback()
             raise
         finally:
             conn.close()
+            del self._audit_local.events
+            if committed:
+                from backend.services.runtime_events import observe_execution_event
+                for event in pending_audit:
+                    try:
+                        observe_execution_event(event)
+                    except Exception:
+                        logging.getLogger(__name__).exception("RuntimeEvent projection failed after commit")
 
     def _event(self, conn: sqlite3.Connection, run: sqlite3.Row, *, lifecycle: str,
                event_type: str = "state_transition", status: str = "running",
@@ -154,12 +169,15 @@ class RuntimeStore:
             request_id=run["request_id"], task_id=run["task_id"], run_id=run["id"],
             conversation_id=run["conversation_id"], turn_id=run["turn_id"],
             start_seq=run["seq_high_water"], persist=persist,
+            audit=False,
             schema=EXECUTION_EVENT_V2_SCHEMA if run["trigger_kind"] in {"schedule", "goal"} else "texa.execution/v1",
             origin={"kind": run["trigger_kind"], "id": run["trigger_id"]} if run["trigger_kind"] in {"schedule", "goal"} else None,
         )
-        return emitter.emit(event_type, phase=lifecycle.split(".")[0], status=status,
+        event = emitter.emit(event_type, phase=lifecycle.split(".")[0], status=status,
                             summary=lifecycle, kind="tool" if lifecycle.startswith("tool.") else "system",
                             payload={"lifecycle": lifecycle, **(payload or {})})
+        self._audit_local.events.append(event)
+        return event
 
     def create(self, command: RunCommand) -> dict[str, Any]:
         if not all((command.request_key, command.request_id, command.task_id,
@@ -326,7 +344,8 @@ class RuntimeStore:
             checkpoint["pending_call_id"] = call_id
             conn.execute("UPDATE agent_runs SET checkpoint_json=?,revision=revision+1,updated_at=? WHERE id=?",
                          (_dump(checkpoint), now, run_id))
-            self._event(conn, run, lifecycle="tool.requested", payload={"tool_call_id": call_id})
+            self._event(conn, run, lifecycle="tool.requested", payload={"tool_call_id": call_id,
+                        "tool_id": tool_id, "tool_version": version})
             return self._snapshot(conn, run_id)
 
     def start_tool(self, run_id: str, owner: str, call_id: str) -> dict[str, Any]:

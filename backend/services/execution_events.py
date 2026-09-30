@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import time
 import math
+import logging
 from dataclasses import dataclass
 from collections.abc import Callable
 from typing import Any
@@ -273,6 +274,7 @@ class ExecutionEventEmitter:
         persist: Callable[[dict[str, Any]], None] | None = None,
         schema: str = EXECUTION_EVENT_SCHEMA,
         origin: dict[str, str] | None = None,
+        audit: bool = True,
     ):
         self.request_id = request_id
         self.task_id = task_id
@@ -282,6 +284,7 @@ class ExecutionEventEmitter:
         self.persist = persist
         self.schema = schema
         self.origin = origin
+        self.audit = audit
         self._seq = max(0, int(start_seq))
         self._started = time.perf_counter()
         self._run_state = ExecutionRunState(seq=self._seq)
@@ -325,6 +328,12 @@ class ExecutionEventEmitter:
         next_state = advance_execution_run(self._run_state, event)
         if self.persist and event_type in PERSISTED_EVENT_TYPES:
             self.persist(event)
+        if self.audit and event_type != "output_delta":
+            try:
+                from backend.services.runtime_events import observe_execution_event
+                observe_execution_event(event)
+            except Exception:
+                logging.getLogger(__name__).exception("RuntimeEvent projection failed")
         self._seq = next_seq
         self._run_state = next_state
         return event

@@ -3026,3 +3026,10 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 工作区原有主题应用函数在 Electron 中把当前主题的启动页所需 token 缓存到用户数据目录；启动页在绘制前读取，缓存缺失或无效时使用矿物主题默认蓝色。缓存由现有主题表产生，不持久化第二份主题定义；旧安装首次升级启动时可能先看到默认蓝色，工作区加载后即缓存用户已选主题供下次启动使用。缓存文件不含凭证或学习数据。
 - 启动页自定义右侧窗口按钮仅在 Windows/Linux 无框架窗口中显示；macOS 使用左上角原生 traffic lights。Electron 窗口框架配置未改变。
 - 验证：前端 25 文件/122 项测试、TypeScript、全量 ESLint、Vite 构建、Electron 7 项测试及 `git diff --check` 通过。macOS 隔离用户目录的 Electron 实看默认蓝色与缓存陶土主题色，状态灯和进度条均随主题变化，右上角无重复窗口按钮且左上角原生控制可见。Windows 通过平台分支与源码回归检查，未在 Windows 实机启动。启动页代码搜索无遗留旧绿色值或变量；构建保留既有 Markdown 动态导入和大 chunk 警告。
+# 2026-09-29 - RuntimeEvent V1 audit stream
+
+- Audited conversation events, SSE execution milestones, agent runtime SQLite events, routing traces, RAG traces, and diagnostic logging. Added a common RuntimeEvent V1 contract and async SQLite audit store without changing existing task, conversation, or vector schemas.
+- Main chat and bounded runtime now project execution milestones into one content-free event vocabulary. Chat adds input fingerprint, active goal, route decision, model phase, chunk references, result, and feedback. `GET /api/chat/runtime-events` replays a turn or session and reconstructs metadata state.
+- Runtime event writes are batched in a bounded background queue; oldest complete turns rotate after 100,000 rows. The allowlisted payload excludes prompts, answers, credentials, paths, tool arguments, and textbook body. The contract and replay limits are documented in `docs/runtime-event-v1.md`.
+- New RAG diagnostic trace writes redact recognizable credentials, email addresses, and absolute local paths in questions, context, evidence, and errors. Existing rows are unchanged.
+- The bounded runtime projects audit events only after its SQLite transaction commits, so rollback does not create phantom history. Validation: 94 focused RuntimeEvent, execution, chat, goal, feedback, RAG trace, and backup tests passed; Python compilation and diff whitespace checks passed. No dependency or existing database migration is required; the new database is created under `PROGRESS_PATH`. Native Electron was not launched for this backend-only change.
