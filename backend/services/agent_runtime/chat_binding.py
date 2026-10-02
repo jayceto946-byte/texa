@@ -139,11 +139,16 @@ def try_chat_response(req, prepared: dict, request_id: str):
         from backend.services.agent_runtime.textbook_tool import freeze_textbook_scope, register_textbook_search_runtime
         scope = freeze_textbook_scope(prepared["book_name"], prepared["subject"])
         register_textbook_search_runtime(registry, scope)
-    adapter = build_adapter(registry)
-    if adapter.capabilities().tool_calling != "supported":
+    baseline = os.getenv("TEXA_RUNTIME_POLICY_V0", "0") == "1" and decision.selected_capability not in writes
+    adapter = None if baseline else build_adapter(registry)
+    if not baseline and adapter.capabilities().tool_calling != "supported":
         return None  # No task has been claimed by SQL yet.
     candidates = resolve_candidate_tools(decision, registry,
         allowed_permissions=frozenset({"READ", "LOCAL_WRITE"}) if allow_write else frozenset({"READ"})).tool_refs
+    if baseline:
+        from backend.services.decision.policy_projection import matched_tool_refs
+        candidates, _ = matched_tool_refs(prepared["rewritten_question"], registry,
+            grounded=prepared["answer_mode"] == "textbook_grounded")
     if not candidates:
         return None
     from graph.main_graph import build_initial_state
@@ -177,15 +182,17 @@ def try_chat_response(req, prepared: dict, request_id: str):
                                 "capability": decision.selected_capability or "direct_answer",
                                 "shadow_only": decision.shadow_only})
     store.configure_chat(run_id, owner, state=state, candidates=candidates,
-        request_question=req.question, book_name=prepared["book_name"], subject=prepared["subject"])
+        request_question=req.question, book_name=prepared["book_name"], subject=prepared["subject"], policy_baseline=baseline)
     return stream_run(store, run_id, owner, registry, adapter)
 
 
 def stream_run(store, run_id: str, owner: str, registry=None, adapter=None):
     registry = registry or build_registry()
-    adapter = adapter or build_adapter(registry)
     initial = store.snapshot(run_id)
     checkpoint = initial["run"]["checkpoint"]
+    baseline = checkpoint.get("policy_baseline") == "texa.runtime-policy/v0"
+    if not baseline:
+        adapter = adapter or build_adapter(registry)
     if checkpoint.get("answer_state", {}).get("_runtime_textbook_scope"):
         from backend.services.agent_runtime.textbook_tool import register_textbook_search_runtime
         try:
@@ -208,7 +215,9 @@ def stream_run(store, run_id: str, owner: str, registry=None, adapter=None):
                 book_name=task["artifacts"].get("book_name", ""), subject=task["artifacts"].get("subject", ""))
             from backend.services.pending_actions import get_pending_action_store
             from backend.services.agent_runtime.write_service import RuntimeWriteService
-            BoundedAgentRunner(store, registry, adapter, tuple(checkpoint["candidates"])).run_bounded(
+            from backend.services.decision.policy import RulePolicyV0
+            BoundedAgentRunner(store, registry, adapter, tuple(checkpoint["candidates"]),
+                policy_selector=RulePolicyV0 if baseline else None).run_bounded(
                 run_id, owner, context=ToolContext(book_name=task["artifacts"].get("book_name", ""),
                     subject=task["artifacts"].get("subject", ""), conversation_id=task["conversation_id"]),
                 answer_state=checkpoint["answer_state"], answer_generator=generate_answer,

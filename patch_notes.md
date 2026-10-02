@@ -1,3 +1,25 @@
+# 2026-10-01 - Dataset V0 Verification Blocker Fixes
+
+- 仅修 Astra 指出的两个 blocker：manifest 三种版本及 digest 改为 fail closed，复用既有批准 baseline source pins，校验格式/必填、固定 source 集合、逐项冻结/实际 SHA256、Runtime/Registry canonical digest。raw dict 与被修改的 model 均重验证，明确错误码退出 selection/diagnostic eligibility；空值、bogus、malformed/all-zero/mismatch 或依据不可用不再授予选择资格。无 wildcard/unknown，不改生产 versioning。
+- 统一 policy_input 为唯一 Policy-facing validation/serialization 实现，direct serializer、evaluator、Rule adapter、teacher invocation/disabled adapter 共用；字段 ownership 与递归结构检查拦截 nested metadata、JSON 字符串/列表/多层编码和 ID 泄漏，损坏输入在排列前拒绝，不过滤普通自然语言中偶然出现的 gold/ambiguity 等词。未修改生产 Runtime/desktop/DB schema，未接 teacher/ModelPolicy/training，未增加固定数据集。
+- 本轮 venv310/Python 3.10.21：新增 82 项回归，Dataset 148 passed，原 266 + 新增合并 348 passed；独立原 baseline 11/11，真实模型调用 0。主多候选 4/6、forced 6/6、排列 controls 独立且报告与原指标精确一致；git diff --check 通过。Electron 未复跑。修复报告/源码摘要/日志在 docs/validation/runtime-policy-evaluation-dataset-v0/blocker-fixes/；原冻结记录保留，人工锁定限制不变，修复后停止。
+
+# 2026-10-01 - Evaluation Dataset V0 Offline Tools
+
+- 沿用已批准 Dataset Spec 的字段、ambiguity、gold policy 与三层指标，新增 evaluation/policy_dataset_v0 的 strict JSON/JSONL serializer、Observation-only 深层副本、冻结依据/参数/范围/标签一致性 validator、独立 adjudication ledger、source-family split/leakage/lock、确定性 hash-order 与两类有限 permutation controls、现有 RulePolicy evaluator、默认禁用 teacher interface、分层报告和最小 CLI。原样本保留，局部 ID 映射/转换版本/hash 显式记账，无执行 authority、真实工具循环或 fallback。
+- Canonical 工具 schema 采用现有三个 V0 model/Registry 的固定快照，避免导入参数 model 时间接加载 config/学习存储；测试核对 snapshot/digest 与原 canonical model 精确一致。无新依赖、数据库、生产/desktop/frontend 修改或数据迁移；本轮保留开始时已有的 Runtime Policy V0 未提交改动。
+- 新增 18 个固定样本/15 个 family 和独立损坏 Observation 拒绝材料，按 Spec 独立写依据，不根据 Rule/teacher 输出反填 gold。fixture_review 可生成草稿 baseline，不能冒充人工 locked gold；2 条语义未定，其余 16 条仍需实际人工或获批准规则才能锁定，默认 --lock 拒绝。未导入真实用户样本或规模化生产数据。
+- 验证：venv310/Python 3.10.21，新增 66 项 deterministic tests；合并既有 Policy/Runtime/backend/checkpoint 回归 266 passed（既有 200），独立原 harness 11/11，git diff --check 通过。默认入口冷进程禁止 credential reads/网络/sqlite3.connect，带模型环境变量仍成功，不导入 config/LLM；真实模型调用 0。Electron 既有 7 项与 smoke 为上一阶段记录，本轮未复跑，因生产/桌面文件未变。
+- 固定 fixture 主多候选 acceptable 4/6、single-correct 2/4、forced 6/6；2 个 candidate failures 整条排除；合法 Runtime-only 2；原始顺序/去排序线索/controls 分开，主分母不重复加权。teacher disabled/not_run、真实 E2E not_evaluated、主 missing-input precision/recall N/A。报告/版本格式/限制与日志见 docs/contracts/runtime-policy-evaluation-dataset-v0.md 与 docs/validation/runtime-policy-evaluation-dataset-v0/README.md。到此停止，不接 teacher、训练或线上 Policy。
+
+# 2026-10-01 - Runtime Policy V0 Deterministic Baseline
+
+- 按第一阶段交接落地 PolicyObservationV0 / Action / Decision / Outcome 与内部 envelope、strict JSON parser、canonical serialization、确定性候选/上一结果投影、深层隔离绑定、PolicyValidator、RulePolicyV0 与有限离线 harness。复用 Router 匹配优先级及 resolver 的 capability→canonical refs，候选生成和选择分开；覆盖实际多候选、forced（Policy 0 次）、空候选、权限/范围/参数/版本/重复调用排除。
+- 只读主聊天接线复用 FixedRunner 与原答案生成/验证/发布链；规则不占模型预算，执行 operation key 不使用模型 step 计数。现有事务复核 owner/active run/revision，stale 不执行/不做旧 run fallback；格式或未知 ID 最多一次规则 fallback，原 rejection/not_started 与 fallback/outcome 分别保留在既有 ExecutionEvent 有限 payload。request_input 仅接 SQL 前原澄清 checkpoint，不伪造 SQL run、不改 approval、receipt、commit/recovery ownership 或数据库 schema。
+- 新接线默认关闭（TEXA_RUNTIME_POLICY_V0 未设置/0）；原 READ/TEXTBOOK/WRITE 开关和主聊天接管范围不变。视觉、teach/summarize、写入/审批、Goal/schedule、插件/MCP 保留原路径。未接 ModelPolicy、未训练/扩大 dataset、未改变正式学习数据、依赖、索引或 schema。Registry 仅增加可选范围复核 hook，复用教材原 scope/index 检查，不改 canonical 工具 schema/hash。
+- 验证：venv310 / Python 3.10.21，新增 Policy、交接指定八组 regression 及受影响 Runtime/任务/验证/聊天/Goal/checkpoint 合并 200 passed（既有 Starlette/Swig 警告）；Electron 7 passed（回环端口测试经自动审批沙箱外运行）。原生 Electron 使用临时 userData/空环境两次启动真实后端，health 正常、未完成 SQL task 恢复 interrupted/resumable、Policy checkpoint 保留、重复重开不新增事件；模型/工具调用 0。未验证生产打包/安装升级，未重新审计 checkpoint。
+- 有限离线 baseline：11/11 场景符合各自标准；候选金标覆盖 21/21、禁止动作泄漏 0、参数绑定错误 0/11；多候选选择 8/8，forced 12/12 单列；格式拒绝 1、fallback 尝试/接受/执行成功各 1，stale/stop 1 独立列示。10 次工具、9 次答案 stub，真实模型 0；不是线上答案质量或训练数据声明。完整合同、报告、轨迹和重现说明：docs/contracts/runtime-policy-v0.md、docs/validation/runtime-policy-v0/README.md。第一阶段到此停止。
+
 # 2026-09-30 - Checkpoint Remediation (Handoff Scope)
 
 - 修复独立复核发现的三个剩余边界：preparation source 与 Goal revision 在同一现有事务保存，事件投影失败或重启后重试仍绑定原 Goal；已准入写入的真实 receipt 可在 Goal 更新/完成后对账，不恢复 run、不重做审批/工具准入、不改 executed_run_id；暂停撤销已确认但尚未准入的审批并留下 interrupted 任务，未发生写入不再投影为 unknown。waiting_for_confirmation 增加 interrupted 合法停止转换；拒绝已准入写入仍被禁止。
@@ -3089,6 +3111,15 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 按用户要求停止领域扩展，仅修复错题详情页标题将 LaTeX 公式作为原始文本展示的问题，改用现有数学正文渲染组件。未新增数据模型、迁移或业务规则。
 - 用隔离 `KAOYAN_USER_DATA_DIR` 启动当前源码 Electron，经首次配置进入工作区。原生窗口实看并截图：错题首页空态、补录入口、手动补录草稿、保存后的有数据首页与详情、全局复习入口、复习开始页、独立重做、答案揭示、自评及完成页。隔离样例题从补录到复习完成正常；未触碰真实学习数据或调用模型。UI 检查窗口为约 1280×820 逻辑尺寸；1024×768、760×820 和 Windows 实机仍待人工检查。
 - 收口检查：`git diff --check`、TypeScript、相关 ESLint、Vite 构建通过。先前已通过的后端全量 907 项、前端 124 项与桌面运行时 7 项未重复运行。构建仍有现存 Markdown 动态导入及大 chunk 警告。复习队列中的纯文本摘要仍会显示原始 LaTeX 定界符，详页与复习题干公式正常渲染；作为后续视觉优化，不阻碍当前流程。
+## 2026-10-02 — Seed Dataset V0 离线生产与裁决工作流
+
+- 新增独立 Seed CLI：18 条 fixture 初步校准、受限 recipe 小批投影、candidate-only 人工审查、盲审材料、人工最终标签导入、显式版本 release 和三方正式比较。沿用冻结 Policy/Dataset V0 与 Runtime/Registry pins；不改生产 Runtime、Electron、依赖、数据库或原始 fixtures。原四个 Dataset CLI 保留为 provisional tooling baseline。
+- 校准去向为 8 single-correct、2 multiple-acceptable、2 candidate-generation-error、2 insufficient-information、1 invalid-sample、3 diagnostic-only。11 条可用可见字段构造 harness 假设重投影；补充 progress-done 摘要不可能、resolved/未定样本候选来源、真实 pre-SQL 空范围及 missing-defect 未匹配 capability 的说明。保留原 18 条，并生成 16 个关联 pending 版本，共 34 samples/15 families，全留 development，不膨胀独立来源数。
+- 生成器使用实际 matcher/resolver/projection/binder 与固定 canonical schema snapshot，工具 handler 不执行。教材分支以固定源码/AST 摘要隔离纯门槛函数，避免加载模型配置；所有新版本均明确为 synthetic/harness，未导入真实用户任务或生产教材索引。fault controls 保留合法投影和注入操作；不自动造 gold。
+- 人工材料冻结 sample/Observation/label 绑定、逐候选理由、盲态、轮次及身份声明；正式确认要求双人盲审，分歧需第三人，标签更新保留同一 source ref 和 main view。Teacher adapter 默认关闭；真实运行需要单独付费/出境授权及冻结配置、零重试 transport，保留首次输出、失败及不完整批次的固定分母。CLI 不隐式配置真实 provider，不读取凭证；本轮没有真实调用或伪造 human 审核。
+- 校准与验证材料在 `docs/validation/runtime-policy-evaluation-dataset-v0/seed-production-v0`，使用说明在 `docs/policy-seed-v0-workflow.md`。正式报告 E=0，Rule N/A、Sol/Luna not_run、E2E not_evaluated；SEED QUALITY HOLD / TRAINING PREP NO-GO。原 4/6 与 forced 6/6 不升级为可信 seed baseline；尚未锁定、开展 100-family 批量生产、训练或生产接入。
+- 验证：Python 3.10 新增 45 项及相关回归共 393 项通过；包含 candidate-only→teacher-before-gold→双审新版本→release→报告的隔离回归、首次失败/预算停止/固定分母、敏感 provider 元数据拒绝持久化、冷启动无配置/凭证/数据库/网络、canonical binder 一致性。compileall 与空白检查通过。未启动 Electron，本轮没有桌面接线改动；真实人工双审、真实 teacher transport、真实教材 provenance 与 E2E 仍待独立验收。
+
 # 2026-09-29 - RuntimeEvent V1 audit stream
 
 - Audited conversation events, SSE execution milestones, agent runtime SQLite events, routing traces, RAG traces, and diagnostic logging. Added a common RuntimeEvent V1 contract and async SQLite audit store without changing existing task, conversation, or vector schemas.

@@ -43,7 +43,7 @@ class FixedRunner:
         return spec, metadata, args
 
     def execute(self, run_id: str, owner: str, action: FixedAction,
-                *, context: ToolContext | None = None) -> dict[str, Any]:
+                *, context: ToolContext | None = None, expected_revisions=None) -> dict[str, Any]:
         if action.kind == "finish":
             return self.store.close(run_id, owner, outcome="completed", answer=action.answer)
         if action.kind != "call":
@@ -53,6 +53,8 @@ class FixedRunner:
             for field in ("book_name", "subject"):
                 if args.get(field) and args[field] != getattr(context, field):
                     raise RuntimeDenied("tool scope differs from the selected learning scope")
+        if spec.runtime_scope_check is not None:
+            spec.runtime_scope_check(context or ToolContext(), args)
         operation_key = action.operation_key.strip()
         if not operation_key or len(operation_key) > 160:
             raise RuntimeDenied("stable operation key required")
@@ -68,7 +70,7 @@ class FixedRunner:
             snapshot = self.store.request_tool(
                 run_id, owner, tool_id=spec.name, version=spec.version,
                 schema_hash=metadata["schema_hash"], args=args,
-                args_hash=args_hash, operation_key=operation_key)
+                args_hash=args_hash, operation_key=operation_key, expected_revisions=expected_revisions)
             matching = [call for call in snapshot["tool_calls"] if call["operation_key"] == operation_key]
             if not matching or matching[0]["requested_run_id"] != run_id or matching[0]["status"] != "requested":
                 raise RuntimeDenied("operation was already executed")

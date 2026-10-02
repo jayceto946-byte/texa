@@ -1,4 +1,5 @@
 import json
+import pytest
 from types import SimpleNamespace
 
 from fastapi import FastAPI
@@ -18,8 +19,10 @@ def prepared():
         "resolution_trace": {}, "continuity_context": {}, "conversation_id": "conv", "turn_id": "turn"}
 
 
-def test_runtime_sse_sql_outcome_transport_delta_and_projection(tmp_path, monkeypatch):
+@pytest.mark.parametrize("baseline", [False, True])
+def test_runtime_sse_sql_outcome_transport_delta_and_projection(tmp_path, monkeypatch, baseline):
     monkeypatch.setenv("TEXA_AGENT_RUNTIME_READ", "1")
+    monkeypatch.setenv("TEXA_RUNTIME_POLICY_V0", "1" if baseline else "0")
     store = RuntimeStore(tmp_path / "runtime.db")
     registry = ToolRegistry()
     register_recent_progress_runtime(registry, LearningEventStore(tmp_path / "events.db"))
@@ -32,7 +35,10 @@ def test_runtime_sse_sql_outcome_transport_delta_and_projection(tmp_path, monkey
             return FixedAction("finish", answer="protocol text")
     monkeypatch.setattr(binding, "runtime_store", lambda **kw: store)
     monkeypatch.setattr(binding, "build_registry", lambda: registry)
-    monkeypatch.setattr(binding, "build_adapter", lambda _: Adapter())
+    def adapter(_):
+        assert not baseline, "baseline must not instantiate a model adapter"
+        return Adapter()
+    monkeypatch.setattr(binding, "build_adapter", adapter)
     monkeypatch.setattr(binding, "generate_answer", lambda _: "本次查询覆盖近期学习记录。")
     import backend.conversation_memory as conversations
     messages = {}
@@ -57,6 +63,7 @@ def test_runtime_sse_sql_outcome_transport_delta_and_projection(tmp_path, monkey
     task_id = events[-1]["task_id"]
     snapshot = store.task_snapshot(task_id)
     assert snapshot["task"]["status"] == "completed"
+    assert snapshot["consumed_model_calls"] == (1 if baseline else 3)
     assert all(e["type"] != "output_delta" for e in store.events(events[-1]["run_id"]))
     binding.project_outcomes(store)
     assert len(messages) == 2

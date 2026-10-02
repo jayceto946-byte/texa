@@ -59,6 +59,7 @@ class ToolSpec:
     side_effect: str = "none"
     source: str = "builtin"
     idempotency: str = "none"
+    runtime_scope_check: Callable[[ToolContext, dict[str, Any]], None] | None = field(default=None, repr=False)
 
     def runtime_metadata(self) -> dict[str, Any]:
         if self.runtime_input is None or self.runtime_output is None:

@@ -1,0 +1,3 @@
+Give separate copies to two actual human reviewers. Keep predictions and proposal labels hidden until each initial review is saved.
+Templates are blank and are not completed human reviews. Review every candidate and frozen source evidence.
+Human identities/independence are accountable declarations; this CLI cannot authenticate them.

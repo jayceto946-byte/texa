@@ -1,0 +1,2341 @@
+{
+  "contract": "texa.runtime-policy/v0",
+  "scope": "finite deterministic fixtures; no online answer quality claim",
+  "metrics": {
+    "candidate_generation": {
+      "observations": 21,
+      "gold_covered": 21,
+      "forbidden_leaks": 0,
+      "binding_checks": 11,
+      "binding_errors": 0,
+      "exclusion_reasons": {
+        "duplicate_or_retry": 11,
+        "answer_evidence_missing": 3
+      }
+    },
+    "selection": {
+      "eligible": 8,
+      "correct": 8,
+      "forced": 12,
+      "forced_correct": 12,
+      "candidate_failures": 0,
+      "accuracy": 1.0
+    },
+    "decision_validity": {
+      "invalid_format": 1,
+      "unknown_action_id": 0,
+      "stale_or_environment_changed": 1
+    },
+    "fallback": {
+      "primary_rejections": 1,
+      "attempts": 1,
+      "accepted": 1,
+      "execution_succeeded": 1
+    },
+    "task_execution": {
+      "fixtures": 11,
+      "passed": 11,
+      "success_rate": 1.0
+    },
+    "overhead": {
+      "policy_calls": 10,
+      "primary_policy_calls": 9,
+      "fallback_policy_calls": 1,
+      "rule_ms": 0.19179299943061778,
+      "tool_calls": 10,
+      "answer_stub_calls": 9,
+      "real_model_calls": 0
+    }
+  },
+  "fixtures": [
+    {
+      "fixture": "ordinary",
+      "passed": true,
+      "task_status": "completed",
+      "policy_calls": 0,
+      "fallback_used": false,
+      "tool_calls": 0,
+      "model_budget_consumed": 1,
+      "observations": [
+        {
+          "envelope": {
+            "observation_id": "obs_c21d35c80f11294f9637910c9645f92edcec45375ca2c6c46aea7f3ec1126095",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "说明学习方法",
+              "context": {
+                "resolved_query": "说明学习方法",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": []
+        }
+      ],
+      "trajectory": [
+        {
+          "observation": {
+            "observation_id": "obs_c21d35c80f11294f9637910c9645f92edcec45375ca2c6c46aea7f3ec1126095",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "说明学习方法",
+              "context": {
+                "resolved_query": "说明学习方法",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_c21d35c80f11294f9637910c9645f92edcec45375ca2c6c46aea7f3ec1126095",
+            "decision_ref": "dec_7c6c19ce9ac9b56c65bfcfb7a7e468160f05141cd46a1b0b27011c2ebb71e9b5",
+            "source": "forced",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.0
+          },
+          "outcome": {
+            "decision_ref": "dec_7c6c19ce9ac9b56c65bfcfb7a7e468160f05141cd46a1b0b27011c2ebb71e9b5",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "answer:arun_371dc90747b64d1b8c12d30919ab151b"
+            ],
+            "continuation": "terminal",
+            "task_status": "completed",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": []
+        }
+      ]
+    },
+    {
+      "fixture": "progress",
+      "passed": true,
+      "task_status": "completed",
+      "policy_calls": 1,
+      "fallback_used": false,
+      "tool_calls": 1,
+      "model_budget_consumed": 1,
+      "observations": [
+        {
+          "envelope": {
+            "observation_id": "obs_0f8a6550577c6495b298feb555683286478a8bb73a3f19cca0ceb30ebde0b297",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "get_recent_progress",
+                    "input": {
+                      "book_name": "",
+                      "days": 7,
+                      "limit": 12,
+                      "subject": "数学"
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": []
+        },
+        {
+          "envelope": {
+            "observation_id": "obs_c03aa349598b805270bc87cd03c5e8d7a3468d6ca6acfc0f1fcd421c6ab9367a",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "get_recent_progress",
+                "status": "succeeded",
+                "summary": "recent_events_count=0;empty_result;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "get_recent_progress"
+            }
+          ]
+        }
+      ],
+      "trajectory": [
+        {
+          "observation": {
+            "observation_id": "obs_0f8a6550577c6495b298feb555683286478a8bb73a3f19cca0ceb30ebde0b297",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "get_recent_progress",
+                    "input": {
+                      "book_name": "",
+                      "days": 7,
+                      "limit": 12,
+                      "subject": "数学"
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_0f8a6550577c6495b298feb555683286478a8bb73a3f19cca0ceb30ebde0b297",
+            "decision_ref": "dec_310e6dc74bfd0689dffa56637aea3e0885329f75807165797ea8e395b70c977d",
+            "source": "rules",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.019790999431279488
+          },
+          "outcome": {
+            "decision_ref": "dec_310e6dc74bfd0689dffa56637aea3e0885329f75807165797ea8e395b70c977d",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "call_89f5d37c4f514e0596fc1e0f340b8978"
+            ],
+            "continuation": "next_observation",
+            "task_status": "running",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": []
+        },
+        {
+          "observation": {
+            "observation_id": "obs_c03aa349598b805270bc87cd03c5e8d7a3468d6ca6acfc0f1fcd421c6ab9367a",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "get_recent_progress",
+                "status": "succeeded",
+                "summary": "recent_events_count=0;empty_result;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_c03aa349598b805270bc87cd03c5e8d7a3468d6ca6acfc0f1fcd421c6ab9367a",
+            "decision_ref": "dec_5be51c42acaad82a458d17c75b5e9c62d3c56a7874aa37d6deb5473426676084",
+            "source": "forced",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.0
+          },
+          "outcome": {
+            "decision_ref": "dec_5be51c42acaad82a458d17c75b5e9c62d3c56a7874aa37d6deb5473426676084",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "answer:arun_367bfba63bcc4878a4612c42193ebf70"
+            ],
+            "continuation": "terminal",
+            "task_status": "completed",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "get_recent_progress"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "exercises",
+      "passed": true,
+      "task_status": "completed",
+      "policy_calls": 1,
+      "fallback_used": false,
+      "tool_calls": 1,
+      "model_budget_consumed": 1,
+      "observations": [
+        {
+          "envelope": {
+            "observation_id": "obs_3c1ca7218a86ee94652c3c52d73b4c6ae770041e02a2cb1b91a99d17643a6474",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库",
+              "context": {
+                "resolved_query": "查询习题库",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "search_exercises",
+                    "input": {
+                      "book_name": "fixture",
+                      "chapter": "",
+                      "limit": 8,
+                      "query": "查询习题库",
+                      "status": "",
+                      "subject": "数学",
+                      "tag": ""
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": []
+        },
+        {
+          "envelope": {
+            "observation_id": "obs_b850253aff893a237831396afe27822dccf0f3ccb63da47266381a07b6e61712",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库",
+              "context": {
+                "resolved_query": "查询习题库",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "search_exercises",
+                "status": "succeeded",
+                "summary": "exercises_count=1;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "search_exercises"
+            }
+          ]
+        }
+      ],
+      "trajectory": [
+        {
+          "observation": {
+            "observation_id": "obs_3c1ca7218a86ee94652c3c52d73b4c6ae770041e02a2cb1b91a99d17643a6474",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库",
+              "context": {
+                "resolved_query": "查询习题库",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "search_exercises",
+                    "input": {
+                      "book_name": "fixture",
+                      "chapter": "",
+                      "limit": 8,
+                      "query": "查询习题库",
+                      "status": "",
+                      "subject": "数学",
+                      "tag": ""
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_3c1ca7218a86ee94652c3c52d73b4c6ae770041e02a2cb1b91a99d17643a6474",
+            "decision_ref": "dec_0f72b57e958eaa18d6597c60a80d4e10c81bd29d26d1f5f9e804d90d0d876546",
+            "source": "rules",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.026624999918567482
+          },
+          "outcome": {
+            "decision_ref": "dec_0f72b57e958eaa18d6597c60a80d4e10c81bd29d26d1f5f9e804d90d0d876546",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "call_c7a7dcc932fb400fa9d08e0d568e5fd7"
+            ],
+            "continuation": "next_observation",
+            "task_status": "running",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": []
+        },
+        {
+          "observation": {
+            "observation_id": "obs_b850253aff893a237831396afe27822dccf0f3ccb63da47266381a07b6e61712",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库",
+              "context": {
+                "resolved_query": "查询习题库",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "search_exercises",
+                "status": "succeeded",
+                "summary": "exercises_count=1;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_b850253aff893a237831396afe27822dccf0f3ccb63da47266381a07b6e61712",
+            "decision_ref": "dec_23644451730a09d00b021a718973fdefd4a7f0aca3e2160c937095cd346cfb77",
+            "source": "forced",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.0
+          },
+          "outcome": {
+            "decision_ref": "dec_23644451730a09d00b021a718973fdefd4a7f0aca3e2160c937095cd346cfb77",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "answer:arun_2cc01ba2736b4ebb952f5de81dd9a42b"
+            ],
+            "continuation": "terminal",
+            "task_status": "completed",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "search_exercises"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "multiple_tools",
+      "passed": true,
+      "task_status": "completed",
+      "policy_calls": 2,
+      "fallback_used": false,
+      "tool_calls": 2,
+      "model_budget_consumed": 1,
+      "observations": [
+        {
+          "envelope": {
+            "observation_id": "obs_fc4ae6d7fcee59bdfced1c3ffb7106817409eb79ed422c4eeed7fefe89a28c1c",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库和最近学习进度",
+              "context": {
+                "resolved_query": "查询习题库和最近学习进度",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "search_exercises",
+                    "input": {
+                      "book_name": "fixture",
+                      "chapter": "",
+                      "limit": 8,
+                      "query": "查询习题库和最近学习进度",
+                      "status": "",
+                      "subject": "数学",
+                      "tag": ""
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "get_recent_progress",
+                    "input": {
+                      "book_name": "fixture",
+                      "days": 7,
+                      "limit": 12,
+                      "subject": "数学"
+                    }
+                  }
+                },
+                {
+                  "id": "a2",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": []
+        },
+        {
+          "envelope": {
+            "observation_id": "obs_074acd87b25bfab64da6de19d3d1dd64f02da18c69517ff2b30b36370f8f22b8",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库和最近学习进度",
+              "context": {
+                "resolved_query": "查询习题库和最近学习进度",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "search_exercises",
+                "status": "succeeded",
+                "summary": "exercises_count=1;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "get_recent_progress",
+                    "input": {
+                      "book_name": "fixture",
+                      "days": 7,
+                      "limit": 12,
+                      "subject": "数学"
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "search_exercises"
+            }
+          ]
+        },
+        {
+          "envelope": {
+            "observation_id": "obs_4612eb401278c72bb1936dcfd854234fa6bf574e3bea235c052a2e5cd2388b32",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库和最近学习进度",
+              "context": {
+                "resolved_query": "查询习题库和最近学习进度",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "get_recent_progress",
+                "status": "succeeded",
+                "summary": "recent_events_count=0;empty_result;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "search_exercises"
+            },
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "get_recent_progress"
+            }
+          ]
+        }
+      ],
+      "trajectory": [
+        {
+          "observation": {
+            "observation_id": "obs_fc4ae6d7fcee59bdfced1c3ffb7106817409eb79ed422c4eeed7fefe89a28c1c",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库和最近学习进度",
+              "context": {
+                "resolved_query": "查询习题库和最近学习进度",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "search_exercises",
+                    "input": {
+                      "book_name": "fixture",
+                      "chapter": "",
+                      "limit": 8,
+                      "query": "查询习题库和最近学习进度",
+                      "status": "",
+                      "subject": "数学",
+                      "tag": ""
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "get_recent_progress",
+                    "input": {
+                      "book_name": "fixture",
+                      "days": 7,
+                      "limit": 12,
+                      "subject": "数学"
+                    }
+                  }
+                },
+                {
+                  "id": "a2",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_fc4ae6d7fcee59bdfced1c3ffb7106817409eb79ed422c4eeed7fefe89a28c1c",
+            "decision_ref": "dec_3aa9ebe362318a1e88e30cb1c85b8ceecb876c107947759050feb0e0ad6c53a6",
+            "source": "rules",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.028374999601510353
+          },
+          "outcome": {
+            "decision_ref": "dec_3aa9ebe362318a1e88e30cb1c85b8ceecb876c107947759050feb0e0ad6c53a6",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "call_3dc556d11dbb45d8bd8cb8f704791ce5"
+            ],
+            "continuation": "next_observation",
+            "task_status": "running",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": []
+        },
+        {
+          "observation": {
+            "observation_id": "obs_074acd87b25bfab64da6de19d3d1dd64f02da18c69517ff2b30b36370f8f22b8",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库和最近学习进度",
+              "context": {
+                "resolved_query": "查询习题库和最近学习进度",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "search_exercises",
+                "status": "succeeded",
+                "summary": "exercises_count=1;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "get_recent_progress",
+                    "input": {
+                      "book_name": "fixture",
+                      "days": 7,
+                      "limit": 12,
+                      "subject": "数学"
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_074acd87b25bfab64da6de19d3d1dd64f02da18c69517ff2b30b36370f8f22b8",
+            "decision_ref": "dec_79ddc5605ef02686f063b71d4ac64a9940d6b8697c3867f7dfe05d394eee63be",
+            "source": "rules",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.024916999791457783
+          },
+          "outcome": {
+            "decision_ref": "dec_79ddc5605ef02686f063b71d4ac64a9940d6b8697c3867f7dfe05d394eee63be",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "call_1751eddf51544b6abafff5e2a9e1fcce"
+            ],
+            "continuation": "next_observation",
+            "task_status": "running",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "search_exercises"
+            }
+          ]
+        },
+        {
+          "observation": {
+            "observation_id": "obs_4612eb401278c72bb1936dcfd854234fa6bf574e3bea235c052a2e5cd2388b32",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库和最近学习进度",
+              "context": {
+                "resolved_query": "查询习题库和最近学习进度",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "get_recent_progress",
+                "status": "succeeded",
+                "summary": "recent_events_count=0;empty_result;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_4612eb401278c72bb1936dcfd854234fa6bf574e3bea235c052a2e5cd2388b32",
+            "decision_ref": "dec_e2d05cb13cc259f575367deb3cebc7557ef0b45ebfe7b021963f879c8e68608c",
+            "source": "forced",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.0
+          },
+          "outcome": {
+            "decision_ref": "dec_e2d05cb13cc259f575367deb3cebc7557ef0b45ebfe7b021963f879c8e68608c",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "answer:arun_1f4dd82b876542378f4a5f11a48ddfd6"
+            ],
+            "continuation": "terminal",
+            "task_status": "completed",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "search_exercises"
+            },
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "get_recent_progress"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "textbook",
+      "passed": true,
+      "task_status": "completed",
+      "policy_calls": 0,
+      "fallback_used": false,
+      "tool_calls": 1,
+      "model_budget_consumed": 1,
+      "observations": [
+        {
+          "envelope": {
+            "observation_id": "obs_3137327d2fda87ea47ab5bc87fae583ae94f728ab6f61b4814a9bd0a16a71d8d",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "教材中的连续定义",
+              "context": {
+                "resolved_query": "教材中的连续定义",
+                "constraints": {
+                  "answer_mode": "textbook_grounded",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "search_textbook",
+                    "input": {
+                      "chapter": "",
+                      "query": "教材中的连续定义"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "exclusions": [
+            {
+              "reason": "answer_evidence_missing"
+            }
+          ]
+        },
+        {
+          "envelope": {
+            "observation_id": "obs_3a12bfaaf269ccb478abd4ae2744fb52eb77af5d4ee418eab28fa454696d958a",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "教材中的连续定义",
+              "context": {
+                "resolved_query": "教材中的连续定义",
+                "constraints": {
+                  "answer_mode": "textbook_grounded",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "search_textbook",
+                "status": "succeeded",
+                "summary": "evidence_items_count=1"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "search_textbook"
+            }
+          ]
+        }
+      ],
+      "trajectory": [
+        {
+          "observation": {
+            "observation_id": "obs_3137327d2fda87ea47ab5bc87fae583ae94f728ab6f61b4814a9bd0a16a71d8d",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "教材中的连续定义",
+              "context": {
+                "resolved_query": "教材中的连续定义",
+                "constraints": {
+                  "answer_mode": "textbook_grounded",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "search_textbook",
+                    "input": {
+                      "chapter": "",
+                      "query": "教材中的连续定义"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_3137327d2fda87ea47ab5bc87fae583ae94f728ab6f61b4814a9bd0a16a71d8d",
+            "decision_ref": "dec_73a18951e3214abf8a9dc3bc041ec7e69d0a65a9931b4f3b9e64930a6d45ef9c",
+            "source": "forced",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.0
+          },
+          "outcome": {
+            "decision_ref": "dec_73a18951e3214abf8a9dc3bc041ec7e69d0a65a9931b4f3b9e64930a6d45ef9c",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "call_fd1a52ab8f4440ce941c4d926e533156"
+            ],
+            "continuation": "next_observation",
+            "task_status": "running",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": [
+            {
+              "reason": "answer_evidence_missing"
+            }
+          ]
+        },
+        {
+          "observation": {
+            "observation_id": "obs_3a12bfaaf269ccb478abd4ae2744fb52eb77af5d4ee418eab28fa454696d958a",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "教材中的连续定义",
+              "context": {
+                "resolved_query": "教材中的连续定义",
+                "constraints": {
+                  "answer_mode": "textbook_grounded",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "search_textbook",
+                "status": "succeeded",
+                "summary": "evidence_items_count=1"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_3a12bfaaf269ccb478abd4ae2744fb52eb77af5d4ee418eab28fa454696d958a",
+            "decision_ref": "dec_5859703e47939eb2de10f8713f6a481366f465e0d15524685e1eb43ef5f59839",
+            "source": "forced",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.0
+          },
+          "outcome": {
+            "decision_ref": "dec_5859703e47939eb2de10f8713f6a481366f465e0d15524685e1eb43ef5f59839",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "answer:arun_80a1ff7c4b6c4752a9233813b296efca"
+            ],
+            "continuation": "terminal",
+            "task_status": "completed",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "search_textbook"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "empty_exercises",
+      "passed": true,
+      "task_status": "completed",
+      "policy_calls": 1,
+      "fallback_used": false,
+      "tool_calls": 1,
+      "model_budget_consumed": 1,
+      "observations": [
+        {
+          "envelope": {
+            "observation_id": "obs_07ad6f8a2762774c5268cccecf79d669ad04982dd9b3b096098928bd12eff466",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库",
+              "context": {
+                "resolved_query": "查询习题库",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "search_exercises",
+                    "input": {
+                      "book_name": "fixture",
+                      "chapter": "",
+                      "limit": 8,
+                      "query": "查询习题库",
+                      "status": "",
+                      "subject": "数学",
+                      "tag": ""
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": []
+        },
+        {
+          "envelope": {
+            "observation_id": "obs_c15295bb56844e606ef934dbfdf1e33aa6f4c263156cda1a13b23b9577dcf17c",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库",
+              "context": {
+                "resolved_query": "查询习题库",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "search_exercises",
+                "status": "succeeded",
+                "summary": "exercises_count=0;empty_result;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "search_exercises"
+            }
+          ]
+        }
+      ],
+      "trajectory": [
+        {
+          "observation": {
+            "observation_id": "obs_07ad6f8a2762774c5268cccecf79d669ad04982dd9b3b096098928bd12eff466",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库",
+              "context": {
+                "resolved_query": "查询习题库",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "search_exercises",
+                    "input": {
+                      "book_name": "fixture",
+                      "chapter": "",
+                      "limit": 8,
+                      "query": "查询习题库",
+                      "status": "",
+                      "subject": "数学",
+                      "tag": ""
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_07ad6f8a2762774c5268cccecf79d669ad04982dd9b3b096098928bd12eff466",
+            "decision_ref": "dec_3f7c4527cf26ee93700c36ed4e7eb8733e407cb4aceed81047299a4d28c8241c",
+            "source": "rules",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.023458999748982023
+          },
+          "outcome": {
+            "decision_ref": "dec_3f7c4527cf26ee93700c36ed4e7eb8733e407cb4aceed81047299a4d28c8241c",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "call_c4f37719f75a498d9750c39952fd0692"
+            ],
+            "continuation": "next_observation",
+            "task_status": "running",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": []
+        },
+        {
+          "observation": {
+            "observation_id": "obs_c15295bb56844e606ef934dbfdf1e33aa6f4c263156cda1a13b23b9577dcf17c",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "查询习题库",
+              "context": {
+                "resolved_query": "查询习题库",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "search_exercises",
+                "status": "succeeded",
+                "summary": "exercises_count=0;empty_result;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_c15295bb56844e606ef934dbfdf1e33aa6f4c263156cda1a13b23b9577dcf17c",
+            "decision_ref": "dec_ba09d2f8f6250852b531afca7f137a745ebbbe6f52ea4f7c6b5bd418dbaa8692",
+            "source": "forced",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.0
+          },
+          "outcome": {
+            "decision_ref": "dec_ba09d2f8f6250852b531afca7f137a745ebbbe6f52ea4f7c6b5bd418dbaa8692",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "answer:arun_57ffce4e36294cdeb3202d522d3e884a"
+            ],
+            "continuation": "terminal",
+            "task_status": "completed",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "search_exercises"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "failed_progress",
+      "passed": true,
+      "task_status": "completed",
+      "policy_calls": 1,
+      "fallback_used": false,
+      "tool_calls": 1,
+      "model_budget_consumed": 1,
+      "observations": [
+        {
+          "envelope": {
+            "observation_id": "obs_6ed9e9a9f757a9e29b9794aa7e00c4f31de047abba61a4b66d216a9903c093aa",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "get_recent_progress",
+                    "input": {
+                      "book_name": "",
+                      "days": 7,
+                      "limit": 12,
+                      "subject": "数学"
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": []
+        },
+        {
+          "envelope": {
+            "observation_id": "obs_202fdeb51d47e1fb936ce902e1831be40a2e018eb8dd5c9b280362506f9b86c7",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "get_recent_progress",
+                "status": "failed",
+                "summary": "execution_failed_or_unknown:tool_failed;recent_events_count=0;empty_result;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "get_recent_progress"
+            }
+          ]
+        }
+      ],
+      "trajectory": [
+        {
+          "observation": {
+            "observation_id": "obs_6ed9e9a9f757a9e29b9794aa7e00c4f31de047abba61a4b66d216a9903c093aa",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "get_recent_progress",
+                    "input": {
+                      "book_name": "",
+                      "days": 7,
+                      "limit": 12,
+                      "subject": "数学"
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_6ed9e9a9f757a9e29b9794aa7e00c4f31de047abba61a4b66d216a9903c093aa",
+            "decision_ref": "dec_0abd0de8e621b4f3f3448819e52386f662b106e37eec2e00d44e41c90c3c9eba",
+            "source": "rules",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.022292000721790828
+          },
+          "outcome": {
+            "decision_ref": "dec_0abd0de8e621b4f3f3448819e52386f662b106e37eec2e00d44e41c90c3c9eba",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "failed",
+            "result_refs": [
+              "call_d7c7cadd5c274ae0bebfb106766e6e9c"
+            ],
+            "continuation": "next_observation",
+            "task_status": "running",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": []
+        },
+        {
+          "observation": {
+            "observation_id": "obs_202fdeb51d47e1fb936ce902e1831be40a2e018eb8dd5c9b280362506f9b86c7",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "get_recent_progress",
+                "status": "failed",
+                "summary": "execution_failed_or_unknown:tool_failed;recent_events_count=0;empty_result;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_202fdeb51d47e1fb936ce902e1831be40a2e018eb8dd5c9b280362506f9b86c7",
+            "decision_ref": "dec_389ba1cb77b5a734eca6cef78f7b461bfebd49d61da9844f46f14717076b4830",
+            "source": "forced",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.0
+          },
+          "outcome": {
+            "decision_ref": "dec_389ba1cb77b5a734eca6cef78f7b461bfebd49d61da9844f46f14717076b4830",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "answer:arun_0822439100494614b90d6ea5af25def2"
+            ],
+            "continuation": "terminal",
+            "task_status": "completed",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "get_recent_progress"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "invalid_fallback",
+      "passed": true,
+      "task_status": "completed",
+      "policy_calls": 2,
+      "fallback_used": true,
+      "tool_calls": 1,
+      "model_budget_consumed": 1,
+      "observations": [
+        {
+          "envelope": {
+            "observation_id": "obs_e49aba501c1691ec923724f8e5222df8d29605bde2a2e76e58f486d307cf5087",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "get_recent_progress",
+                    "input": {
+                      "book_name": "",
+                      "days": 7,
+                      "limit": 12,
+                      "subject": "数学"
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": []
+        },
+        {
+          "envelope": {
+            "observation_id": "obs_b71bac6cbe875799b2921ea374ef2cd7e9516aaf25f8dc4766780e77ae0d41c5",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "get_recent_progress",
+                "status": "succeeded",
+                "summary": "recent_events_count=0;empty_result;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "get_recent_progress"
+            }
+          ]
+        }
+      ],
+      "trajectory": [
+        {
+          "observation": {
+            "observation_id": "obs_e49aba501c1691ec923724f8e5222df8d29605bde2a2e76e58f486d307cf5087",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "get_recent_progress",
+                    "input": {
+                      "book_name": "",
+                      "days": 7,
+                      "limit": 12,
+                      "subject": "数学"
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": null,
+          "decision_output": "{\"action_id\":\"forged\",\"reason\":\"not allowed\"}",
+          "trace": {
+            "observation_id": "obs_e49aba501c1691ec923724f8e5222df8d29605bde2a2e76e58f486d307cf5087",
+            "decision_ref": "dec_a4db41923b7a1f15667e3ecd60a1bb17a45363bd5599be7b2eda5a4d66303ef3",
+            "source": "model_stub",
+            "fallback_of": null,
+            "action_id": null,
+            "validation": {
+              "status": "rejected",
+              "code": "invalid_format"
+            },
+            "duration_ms": 0.010999999176419806
+          },
+          "outcome": {
+            "decision_ref": "dec_a4db41923b7a1f15667e3ecd60a1bb17a45363bd5599be7b2eda5a4d66303ef3",
+            "validation": {
+              "status": "rejected",
+              "code": "invalid_format"
+            },
+            "execution": "not_started",
+            "result_refs": [],
+            "continuation": "next_observation",
+            "task_status": "running",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": []
+        },
+        {
+          "observation": {
+            "observation_id": "obs_e49aba501c1691ec923724f8e5222df8d29605bde2a2e76e58f486d307cf5087",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "get_recent_progress",
+                    "input": {
+                      "book_name": "",
+                      "days": 7,
+                      "limit": 12,
+                      "subject": "数学"
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_e49aba501c1691ec923724f8e5222df8d29605bde2a2e76e58f486d307cf5087",
+            "decision_ref": "dec_a3c096cbb6d43da799350e8052fe3e0877798b0bf44b8e0f5990a1c91e8b613c",
+            "source": "rules",
+            "fallback_of": "dec_a4db41923b7a1f15667e3ecd60a1bb17a45363bd5599be7b2eda5a4d66303ef3",
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.025166999876091722
+          },
+          "outcome": {
+            "decision_ref": "dec_a3c096cbb6d43da799350e8052fe3e0877798b0bf44b8e0f5990a1c91e8b613c",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "call_a1651cdf8eaf4d2f8bc199f40201bf5b"
+            ],
+            "continuation": "next_observation",
+            "task_status": "running",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": []
+        },
+        {
+          "observation": {
+            "observation_id": "obs_b71bac6cbe875799b2921ea374ef2cd7e9516aaf25f8dc4766780e77ae0d41c5",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "get_recent_progress",
+                "status": "succeeded",
+                "summary": "recent_events_count=0;empty_result;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_b71bac6cbe875799b2921ea374ef2cd7e9516aaf25f8dc4766780e77ae0d41c5",
+            "decision_ref": "dec_5f26d805433a2ca07b4fea30d08fa93cb1087b0d6ef8b9e1e7b5694a73b8482e",
+            "source": "forced",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.0
+          },
+          "outcome": {
+            "decision_ref": "dec_5f26d805433a2ca07b4fea30d08fa93cb1087b0d6ef8b9e1e7b5694a73b8482e",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "answer:arun_bb0dc46d697f41c3940f2392de6a05f2"
+            ],
+            "continuation": "terminal",
+            "task_status": "completed",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "get_recent_progress"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "textbook_empty",
+      "passed": true,
+      "task_status": "failed",
+      "policy_calls": 0,
+      "fallback_used": false,
+      "tool_calls": 1,
+      "model_budget_consumed": 0,
+      "observations": [
+        {
+          "envelope": {
+            "observation_id": "obs_1c27edcfa3a29bba6761167c5618a9c5ed8422a00bb488b831ae30e11de9bee6",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "教材中的连续定义",
+              "context": {
+                "resolved_query": "教材中的连续定义",
+                "constraints": {
+                  "answer_mode": "textbook_grounded",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "search_textbook",
+                    "input": {
+                      "chapter": "",
+                      "query": "教材中的连续定义"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "exclusions": [
+            {
+              "reason": "answer_evidence_missing"
+            }
+          ]
+        },
+        {
+          "envelope": {
+            "observation_id": "obs_d38da77f150819e86661bae8665ba36f4c346d015a507d7f23f7c7d3d2cbddb1",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "教材中的连续定义",
+              "context": {
+                "resolved_query": "教材中的连续定义",
+                "constraints": {
+                  "answer_mode": "textbook_grounded",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "search_textbook",
+                "status": "failed",
+                "summary": "execution_failed_or_unknown:tool_failed;evidence_items_count=0;empty_result;evidence_insufficient"
+              },
+              "missing_inputs": [],
+              "admissible_actions": []
+            }
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "search_textbook"
+            },
+            {
+              "reason": "answer_evidence_missing"
+            }
+          ]
+        }
+      ],
+      "trajectory": [
+        {
+          "observation": {
+            "observation_id": "obs_1c27edcfa3a29bba6761167c5618a9c5ed8422a00bb488b831ae30e11de9bee6",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "教材中的连续定义",
+              "context": {
+                "resolved_query": "教材中的连续定义",
+                "constraints": {
+                  "answer_mode": "textbook_grounded",
+                  "book_name": "fixture",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "search_textbook",
+                    "input": {
+                      "chapter": "",
+                      "query": "教材中的连续定义"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_1c27edcfa3a29bba6761167c5618a9c5ed8422a00bb488b831ae30e11de9bee6",
+            "decision_ref": "dec_7e873710850af74c0446ea17d1b0dc47133a280b3f28226697a22fc728255118",
+            "source": "forced",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.0
+          },
+          "outcome": {
+            "decision_ref": "dec_7e873710850af74c0446ea17d1b0dc47133a280b3f28226697a22fc728255118",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "failed",
+            "result_refs": [
+              "call_f9687a339f774b56b67ac3e04802b025"
+            ],
+            "continuation": "next_observation",
+            "task_status": "running",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": [
+            {
+              "reason": "answer_evidence_missing"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "blocking_input",
+      "passed": true,
+      "task_status": "waiting_for_input",
+      "observation": {
+        "observation_id": "obs_c5051e1fff0b040fefd7f4794058135d21c052d73db608d3e2c4d02a80fd3cca",
+        "policy_contract_version": "texa.runtime-policy/v0",
+        "payload": {
+          "request": "说明附表数据",
+          "context": {
+            "resolved_query": "说明附表数据",
+            "constraints": {
+              "book_name": "",
+              "subject": ""
+            }
+          },
+          "missing_inputs": [
+            {
+              "blocking": true,
+              "name": "附表",
+              "status": "missing",
+              "type": "clarification"
+            }
+          ],
+          "admissible_actions": [
+            {
+              "id": "a0",
+              "kind": "request_input",
+              "args": {}
+            }
+          ]
+        }
+      },
+      "decision": {
+        "action_id": "a0"
+      },
+      "trace": {
+        "observation_id": "obs_c5051e1fff0b040fefd7f4794058135d21c052d73db608d3e2c4d02a80fd3cca",
+        "decision_ref": "dec_a83b77728275acefdc453dd0a73d53640742541c5981a4d56e4dbeac2c4b17ed",
+        "source": "forced",
+        "fallback_of": null,
+        "action_id": "a0",
+        "validation": {
+          "status": "accepted",
+          "code": "accepted"
+        },
+        "duration_ms": 0.0,
+        "policy_contract_version": "texa.runtime-policy/v0",
+        "outcome": {
+          "decision_ref": "dec_a83b77728275acefdc453dd0a73d53640742541c5981a4d56e4dbeac2c4b17ed",
+          "validation": {
+            "status": "accepted",
+            "code": "accepted"
+          },
+          "execution": "succeeded",
+          "result_refs": [],
+          "continuation": "waiting",
+          "task_status": "waiting_for_input",
+          "user_feedback": "unknown",
+          "goal_completion": "unknown"
+        }
+      },
+      "policy_calls": 0
+    },
+    {
+      "fixture": "stale_stop_resume",
+      "passed": true,
+      "old_run_policy_writes": 0,
+      "fallback_attempts": 0,
+      "task_status": "completed",
+      "trajectory": [
+        {
+          "observation": {
+            "observation_id": "obs_5e4c63a564a330730615934ffc965a71ec344bc2d0256d668739dcc308845040",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "call_tool",
+                  "args": {
+                    "tool_id": "get_recent_progress",
+                    "input": {
+                      "book_name": "",
+                      "days": 7,
+                      "limit": 12,
+                      "subject": "数学"
+                    }
+                  }
+                },
+                {
+                  "id": "a1",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_5e4c63a564a330730615934ffc965a71ec344bc2d0256d668739dcc308845040",
+            "decision_ref": "dec_53fa73219ea942f86b52c68ef239b0c356a887f7e1d42a8fb822297aaefdb891",
+            "source": "rules",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.021167000340938102
+          },
+          "outcome": {
+            "decision_ref": "dec_53fa73219ea942f86b52c68ef239b0c356a887f7e1d42a8fb822297aaefdb891",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "call_2d9ed1289e494290921e843be0bd3aa3"
+            ],
+            "continuation": "next_observation",
+            "task_status": "running",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": []
+        },
+        {
+          "observation": {
+            "observation_id": "obs_7a9b0825d92987dc8a07b4ad17914a626a5fbef774385aa0e76242b90b05d396",
+            "policy_contract_version": "texa.runtime-policy/v0",
+            "payload": {
+              "request": "最近学习进度如何",
+              "context": {
+                "resolved_query": "最近学习进度如何",
+                "constraints": {
+                  "answer_mode": "global_general",
+                  "book_name": "",
+                  "subject": "数学"
+                }
+              },
+              "previous_result": {
+                "action_kind": "call_tool",
+                "tool_id": "get_recent_progress",
+                "status": "succeeded",
+                "summary": "recent_events_count=0;empty_result;coverage_incomplete"
+              },
+              "missing_inputs": [],
+              "admissible_actions": [
+                {
+                  "id": "a0",
+                  "kind": "generate_answer",
+                  "args": {}
+                }
+              ]
+            }
+          },
+          "decision": {
+            "action_id": "a0"
+          },
+          "decision_output": "{\"action_id\":\"a0\"}",
+          "trace": {
+            "observation_id": "obs_7a9b0825d92987dc8a07b4ad17914a626a5fbef774385aa0e76242b90b05d396",
+            "decision_ref": "dec_617ab3c164c6a7eb4c2aa2f2208b44903585c8ed4fba6abcf2ea971bfd59a066",
+            "source": "forced",
+            "fallback_of": null,
+            "action_id": "a0",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "duration_ms": 0.0
+          },
+          "outcome": {
+            "decision_ref": "dec_617ab3c164c6a7eb4c2aa2f2208b44903585c8ed4fba6abcf2ea971bfd59a066",
+            "validation": {
+              "status": "accepted",
+              "code": "accepted"
+            },
+            "execution": "succeeded",
+            "result_refs": [
+              "answer:arun_4210eb6bdfbe4441bcfc2e794a2ecab1"
+            ],
+            "continuation": "terminal",
+            "task_status": "completed",
+            "user_feedback": "unknown",
+            "goal_completion": "unknown"
+          },
+          "exclusions": [
+            {
+              "reason": "duplicate_or_retry",
+              "tool_id": "get_recent_progress"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -115,20 +115,28 @@ class DecisionRouter:
     def _rule(self, context: DecisionContext, text: str) -> DecisionResult | None:
         if context.attachments:
             return DecisionResult("unsupported", reason_codes=("attachment_requires_existing_visual_path",), rule_match="attachment")
-        if _MISTAKE.search(text):
-            cap = "mistake.manage" if _WRITE_VERB.search(text) else "mistake.search_related"
-            return DecisionResult("capability", selected_capability=cap, rule_match="mistake")
-        if re.search(r"(?:记录|提交|保存).{0,12}(?:作答|练习答案|练习成绩)", text):
-            return DecisionResult("capability", selected_capability="exercise.record_result", rule_match="practice_result")
-        if _EXERCISE.search(text):
-            cap = "exercise.create_set" if _WRITE_VERB.search(text) else "exercise.inspect"
-            return DecisionResult("capability", selected_capability=cap, rule_match="exercise")
-        if _LEARNING.search(text):
-            return DecisionResult("capability", selected_capability="learning.inspect", rule_match="learning")
-        if context.answer_mode == "textbook_grounded" or _TEXTBOOK.search(text):
-            return DecisionResult("capability", selected_capability="textbook.search", rule_match="textbook")
-        if _MATH.search(text):
-            return DecisionResult("capability", selected_capability="math.verify", rule_match="math")
+        matches = matching_capabilities(text, textbook_grounded=context.answer_mode == "textbook_grounded")
+        if matches:
+            capability, rule_match = matches[0]
+            return DecisionResult("capability", selected_capability=capability, rule_match=rule_match)
         if context.answer_mode in {"global_general", "subject_general"} and not _WRITE_VERB.search(text):
             return DecisionResult("direct_answer", reason_codes=("general_no_tool",), rule_match="general")
         return None
+
+
+def matching_capabilities(text: str, *, textbook_grounded: bool = False) -> tuple[tuple[str, str], ...]:
+    """All deterministic matches in Router priority order; no semantic ranking."""
+    matches = []
+    if _MISTAKE.search(text):
+        matches.append(("mistake.manage" if _WRITE_VERB.search(text) else "mistake.search_related", "mistake"))
+    if re.search(r"(?:记录|提交|保存).{0,12}(?:作答|练习答案|练习成绩)", text):
+        matches.append(("exercise.record_result", "practice_result"))
+    if _EXERCISE.search(text):
+        matches.append(("exercise.create_set" if _WRITE_VERB.search(text) else "exercise.inspect", "exercise"))
+    if _LEARNING.search(text):
+        matches.append(("learning.inspect", "learning"))
+    if textbook_grounded or _TEXTBOOK.search(text):
+        matches.append(("textbook.search", "textbook"))
+    if _MATH.search(text):
+        matches.append(("math.verify", "math"))
+    return tuple(matches)

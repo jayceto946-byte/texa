@@ -33,13 +33,17 @@ def freeze_textbook_scope(book_name: str, subject: str) -> dict:
 
 
 def register_textbook_search_runtime(registry: ToolRegistry, scope: dict, *, retrieve=None, versions=None):
-    def handler(context, args):
+    def scope_check(context, args):
         if context.book_name != scope["book_name"] or context.subject != scope["subject"]:
             raise RuntimeDenied("textbook scope changed")
         from backend.services.context_versions import current_context_versions
         version_reader = versions or (lambda name: current_context_versions(name)["corpus_version"])
         if any(version_reader(name) != version for name, version in scope["index_versions"].items()):
             raise RuntimeDenied("textbook index version changed; start a new task")
+    def handler(context, args):
+        scope_check(context, args)
+        from backend.services.context_versions import current_context_versions
+        version_reader = versions or (lambda name: current_context_versions(name)["corpus_version"])
         from graph.retrieval_node import retrieve_node
         from graph.evidence_pack import build_evidence_pack
         from graph.intent_classifier import classify_intent_local
@@ -68,4 +72,4 @@ def register_textbook_search_runtime(registry: ToolRegistry, scope: dict, *, ret
         parameters=TextbookSearchInput.model_json_schema(), read_only=True, handler=handler,
         runtime_input=TextbookSearchInput, runtime_output=TextbookSearchOutput, permission="READ",
         side_effect="derived_cache", source="builtin", provenance="scoped_production_evidence_pack",
-        idempotency="read_retryable", timeout_seconds=8))
+        idempotency="read_retryable", timeout_seconds=8, runtime_scope_check=scope_check))

@@ -297,8 +297,10 @@ class RuntimeStore:
             return [row[0] for row in conn.execute("SELECT DISTINCT task_id FROM agent_runs WHERE trigger_kind IN ('goal','schedule') AND trigger_id=?", (goal_id,))]
 
     def configure_chat(self, run_id: str, owner: str, *, state: dict, candidates: tuple[dict, ...],
-                       request_question: str, book_name: str, subject: str, delivery: str = "chat") -> dict:
+                       request_question: str, book_name: str, subject: str, delivery: str = "chat", policy_baseline: bool = False) -> dict:
         config = {"answer_state": state, "candidates": candidates, "delivery": delivery}
+        if policy_baseline:
+            config["policy_baseline"] = "texa.runtime-policy/v0"
         if len(_dump(config)) > 64000:
             raise ValueError("chat context exceeds checkpoint budget")
         with self._write() as conn:
@@ -339,10 +341,35 @@ class RuntimeStore:
             checkpoint["resume_launched"] = True
             conn.execute("UPDATE agent_runs SET checkpoint_json=? WHERE id=?", (_dump(checkpoint), run_id))
 
-    def start_model_step(self, run_id: str, owner: str) -> dict[str, Any]:
+    @staticmethod
+    def _check_policy_revisions(run, task, expected):
+        if expected is not None and (task["revision"], run["revision"]) != expected:
+            raise RuntimeConflict("Policy execution snapshot changed")
+
+    def record_policy_attempt(self, run_id, owner, metadata, *, expected_task_revision,
+                              expected_run_revision, outcome=None):
+        """Existing event storage, fenced before recording even a rejection."""
+        with self._write() as conn:
+            run = self._owned(conn, run_id, owner)
+            task = conn.execute("SELECT revision FROM runtime_tasks WHERE id=?", (run["task_id"],)).fetchone()
+            if task[0] != expected_task_revision or run["revision"] != expected_run_revision:
+                raise RuntimeConflict("Policy snapshot revision changed")
+            prior = conn.execute("SELECT event_json FROM execution_events WHERE run_id=?", (run_id,)).fetchall()
+            if any(json.loads(row[0])["payload"].get("policy_decision", {}).get("decision_ref") == metadata["decision_ref"] for row in prior):
+                raise RuntimeConflict("Policy attempt already submitted")
+            self._event(conn, run, lifecycle="policy.decision", payload={"policy_decision": metadata,
+                **({"policy_outcome": outcome} if outcome is not None else {})})
+
+    def record_policy_outcome(self, run_id, owner, outcome):
+        with self._write() as conn:
+            run = self._owned(conn, run_id, owner)
+            self._event(conn, run, lifecycle="policy.outcome", payload={"policy_outcome": outcome})
+
+    def start_model_step(self, run_id: str, owner: str, *, expected_revisions=None) -> dict[str, Any]:
         with self._write() as conn:
             run = self._owned(conn, run_id, owner)
             task = conn.execute("SELECT * FROM runtime_tasks WHERE id=?", (run["task_id"],)).fetchone()
+            self._check_policy_revisions(run, task, expected_revisions)
             if task["consumed_model_calls"] >= task["budget_model_calls"]:
                 raise RuntimeConflict("task model budget exhausted")
             conn.execute("UPDATE runtime_tasks SET consumed_model_calls=consumed_model_calls+1,revision=revision+1,updated_at=? WHERE id=?",
@@ -367,7 +394,7 @@ class RuntimeStore:
     def request_tool(self, run_id: str, owner: str, *, tool_id: str,
                      version: str, schema_hash: str, args: dict[str, Any],
                      args_hash: str, operation_key: str,
-                     permission: str = "READ") -> dict[str, Any]:
+                     permission: str = "READ", expected_revisions=None) -> dict[str, Any]:
         if not operation_key or len(operation_key) > 160 or len(_dump(args)) > 16000:
             raise ValueError("tool request exceeds P0 size budget")
         if permission not in {"READ", "LOCAL_WRITE"}:
@@ -375,6 +402,7 @@ class RuntimeStore:
         with self._write() as conn:
             run = self._owned(conn, run_id, owner)
             task = conn.execute("SELECT * FROM runtime_tasks WHERE id=?", (run["task_id"],)).fetchone()
+            self._check_policy_revisions(run, task, expected_revisions)
             prior = conn.execute("SELECT * FROM tool_calls WHERE task_id=? AND operation_key=?",
                                  (run["task_id"], operation_key)).fetchone()
             if prior:
@@ -586,7 +614,8 @@ class RuntimeStore:
 
     def close(self, run_id: str, owner: str, *, outcome: str,
               answer: str = "", error_code: str = "",
-              verification: dict[str, Any] | None = None, sources: list[dict] | None = None) -> dict[str, Any]:
+              verification: dict[str, Any] | None = None, sources: list[dict] | None = None,
+              policy_outcome: dict | None = None) -> dict[str, Any]:
         if len(answer) > 64000:
             raise ValueError("answer exceeds P0 size budget")
         mapping = {"completed": ("completed", "final", "completed", "run.completed"),
@@ -634,6 +663,8 @@ class RuntimeStore:
                 # Answer text lives in the outcome, not a persisted delta payload.
                 conn.execute("UPDATE agent_runs SET seq_high_water=seq_high_water+1 WHERE id=?", (run_id,))
                 run = conn.execute("SELECT * FROM agent_runs WHERE id=?", (run_id,)).fetchone()
+            if policy_outcome is not None:
+                payload["policy_outcome"] = policy_outcome
             if error_code:
                 payload["error_code"] = error_code
             self._event(conn, run, lifecycle=lifecycle, event_type=event_type,

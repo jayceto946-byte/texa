@@ -165,6 +165,7 @@ def _finish_chat_learning_task(
     *,
     waiting_reason: str = "",
     run_id: str = "",
+    policy_request_id: str = "",
 ) -> LearningTask:
     store = get_learning_task_store()
     if waiting_reason:
@@ -173,6 +174,9 @@ def _finish_chat_learning_task(
             "affects": ["answer_scope"], "blocking": True, "status": "missing",
         }]
         task.verification = {"status": "waiting_for_input", "passed": False, "checks": []}
+        if policy_request_id and os.getenv("TEXA_RUNTIME_POLICY_V0", "0") == "1":
+            from backend.services.decision.policy_gate import input_gate_trace
+            task.artifacts["policy_gate"] = input_gate_trace(task, policy_request_id)
         checkpoint = store.prepare_checkpoint_for_run if run_id else store.checkpoint
         args = (task, run_id, "waiting_for_input") if run_id else (task, "waiting_for_input")
         return checkpoint(*args, status="waiting_for_input", detail=waiting_reason)
@@ -1302,7 +1306,7 @@ def _prepared_chat_stream(
                 }
                 waiting_reason = clarification if resolution_trace.get("resolution_action") == "clarify" else ""
                 completed_task = _finish_chat_learning_task(
-                    learning_task, final_state, waiting_reason=waiting_reason, run_id=run_id,
+                    learning_task, final_state, waiting_reason=waiting_reason, run_id=run_id, policy_request_id=request_id,
                 )
                 if (
                     is_resumable_task_status(completed_task.status)
@@ -1838,7 +1842,7 @@ def chat_ask(req: ChatRequest):
         raise HTTPException(status_code=409, detail="stale execution run")
     waiting_reason = str(result.get("final_output") or "") if resolution_trace.get("resolution_action") == "clarify" else ""
     try:
-        learning_task = _finish_chat_learning_task(learning_task, result, waiting_reason=waiting_reason, run_id=run_id)
+        learning_task = _finish_chat_learning_task(learning_task, result, waiting_reason=waiting_reason, run_id=run_id, policy_request_id=request_id)
     except ValueError as exc:
         raise HTTPException(status_code=409, detail="stale execution run") from exc
     result["learning_task"] = learning_task.to_dict(public=True)

@@ -1,0 +1,28 @@
+{
+  "scope": "native Electron development entry, temporary userData, no real model or user records",
+  "launches": [
+    {
+      "launch": 1,
+      "backend_health": "ok",
+      "instance_matches": true,
+      "task_status": "interrupted",
+      "resumable": true,
+      "baseline": "texa.runtime-policy/v0",
+      "tools": 0,
+      "models": 0,
+      "events": 2
+    },
+    {
+      "launch": 2,
+      "backend_health": "ok",
+      "instance_matches": true,
+      "task_status": "interrupted",
+      "resumable": true,
+      "baseline": "texa.runtime-policy/v0",
+      "tools": 0,
+      "models": 0,
+      "events": 2
+    }
+  ],
+  "passed": true
+}
