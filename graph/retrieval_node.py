@@ -487,6 +487,8 @@ def _list_group_neighbors(anchor: dict, expanded: list[dict]) -> list[dict]:
     """Keep a list header with the first explanation/formula for each named member."""
     anchor_id = str(anchor.get("chunk_id") or "")
     chapter = str(anchor.get("chapter") or "")
+    book = str(anchor.get("book_name") or "")
+    expanded = [item for item in expanded if not book or str(item.get("book_name") or "") == book]
     members = _method_members(str(anchor.get("text") or anchor.get("content") or ""))
     selected: list[dict] = []
     anchor_item = next((dict(item) for item in expanded if str(item.get("chunk_id") or "") == anchor_id), dict(anchor))
@@ -504,26 +506,33 @@ def _list_group_neighbors(anchor: dict, expanded: list[dict]) -> list[dict]:
             r"(?:包括|分为|分别为|主要有|有以下|如下(?:(?:[一二三四五六七八九十\d]+个)|几|各)?(?:项|点|种|类|方面|步骤|阶段))",
             re.sub(r"\s+", "", anchor_text),
         )) and not _contains_enumeration_member(anchor_text)
+        member_candidates = [
+            item for item in expanded
+            if str(item.get("chunk_id") or "") != anchor_id
+            and (not chapter or str(item.get("chapter") or "") == chapter)
+            and str(item.get("block_type") or "") != "formula"
+            and (not list_introduction or int(item.get("chunk_index") or 0) > anchor_index)
+            and (
+                _is_enumeration_member_title(str(item.get("section_title") or ""))
+                or _contains_enumeration_member(str(item.get("text") or item.get("content") or ""))
+            )
+        ]
+
+        same_section_members = [
+            item for item in member_candidates
+            if not section_title or str(item.get("section_title") or "") == section_title
+        ]
+
+        if same_section_members:
+            member_candidates = same_section_members
+        elif anchor_path:
+            member_candidates = [
+                item for item in member_candidates
+                if tuple(str(value) for value in (item.get("section_path") or [])[:-1]) == anchor_path
+            ]
+
         generic_members = sorted(
-            (
-                item for item in expanded
-                if str(item.get("chunk_id") or "") != anchor_id
-                and (not chapter or str(item.get("chapter") or "") == chapter)
-                and str(item.get("block_type") or "") != "formula"
-                and (not list_introduction or int(item.get("chunk_index") or 0) > anchor_index)
-                and (
-                    not section_title
-                    or str(item.get("section_title") or "") == section_title
-                    or (
-                        anchor_path
-                        and tuple(str(value) for value in (item.get("section_path") or [])[:-1]) == anchor_path
-                    )
-                )
-                and (
-                    _is_enumeration_member_title(str(item.get("section_title") or ""))
-                    or _contains_enumeration_member(str(item.get("text") or item.get("content") or ""))
-                )
-            ),
+            member_candidates,
             key=lambda item: (
                 abs(int(item.get("chunk_index") or 0) - anchor_index),
                 int(item.get("chunk_index") or 999999),
@@ -769,6 +778,7 @@ def _retrieve_node(
     vector_results: list[dict] = []
     lexical_results: list[dict] = []
     neighbor_results: list[dict] = []
+    trusted_list_ids: set[str] = set()
     teaching_unit_request = _needs_teaching_unit_context(user_input, intent)
     table_request = _is_table_query(user_input)
     example_label = _explicit_example_label(user_input)
@@ -834,6 +844,9 @@ def _retrieve_node(
             vector_succeeded = vector_succeeded or fallback_succeeded
             retrieval_errors.extend(fallback_failures)
         for item in candidate_lexical + candidate_vectors:
+            # List identity is assigned by this run's bounded assembler only.
+            for key in ("list_group_order", "list_group_part", "is_list_neighbor"):
+                item.pop(key, None)
             item["retrieval_scope"] = lexical_scope
         lexical_results.extend(candidate_lexical)
         vector_results.extend(candidate_vectors)
@@ -890,9 +903,20 @@ def _retrieve_node(
         )
         if list_anchor:
             candidate_neighbors = _list_group_neighbors(list_anchor[0], candidate_neighbors)
+            group_text = "\n".join(
+                f"{item.get('section_title', '')}\n{item.get('text') or item.get('content') or ''}"
+                for item in candidate_neighbors
+            )
+            if _supports_query_literals(user_input, group_text):
+                trusted_list_ids.update(str(item.get("chunk_id") or "") for item in candidate_neighbors)
+            else:
+                candidate_neighbors = []
         elif teaching_anchors:
             candidate_neighbors = _teaching_unit_neighbors(teaching_anchors, candidate_neighbors)
         for item in candidate_neighbors:
+            if not list_anchor:
+                item.pop("list_group_order", None)
+                item.pop("list_group_part", None)
             item["is_list_neighbor"] = bool(list_anchor)
             if example_anchors:
                 item_index = int(item.get("chunk_index", -1))
@@ -1050,9 +1074,12 @@ def _retrieve_node(
         }
         for item in retrieval_debug_items
         if item.get("text")
-        and _supports_query_literals(
-            user_input,
-            f"{item.get('section_title', '')}\n{item.get('text', '')}\n{item.get('table_anchor_text', '')}",
+        and (
+            (item.get("list_group_order") is not None and str(item.get("chunk_id") or "") in trusted_list_ids)
+            or _supports_query_literals(
+                user_input,
+                f"{item.get('section_title', '')}\n{item.get('text', '')}\n{item.get('table_anchor_text', '')}",
+            )
         )
         and (
             item.get("is_direct_hit")
