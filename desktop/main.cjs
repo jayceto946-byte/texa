@@ -7,6 +7,19 @@ const crypto = require('node:crypto');
 const os = require('node:os');
 const { findAvailablePort, portFromUrl, resolveUserDataPath } = require('./runtime.cjs');
 const { readStartupAppearance, writeStartupAppearance } = require('./appearance.cjs');
+const { createClosePreparation } = require('./window-close.cjs');
+const { readSetupComplete, writeSetupComplete } = require('./setup-state.cjs');
+const closePreparation = createClosePreparation();
+let allowWindowClose = false;
+
+async function prepareWindowClose() {
+  const ready = await closePreparation.prepare(mainWindow?.webContents);
+  if (!ready) {
+    mainWindow?.webContents.send('window:close-aborted');
+    mainWindow?.show();
+  }
+  return ready;
+}
 
 // Keep the pre-Texa userData locations stable. Changing productName/package name
 // without this override would make existing installations appear to lose data.
@@ -18,6 +31,7 @@ app.setPath('userData', resolveUserDataPath({
   isPackaged: app.isPackaged,
 }));
 const STARTUP_APPEARANCE_PATH = path.join(app.getPath('userData'), 'startup-appearance.json');
+const SETUP_COMPLETE_PATH = path.join(app.getPath('userData'), 'setup-complete.json');
 let startupAppearance = readStartupAppearance(STARTUP_APPEARANCE_PATH);
 const APP_ICON_PATH = path.join(__dirname, 'assets', 'texa-taskbar.ico');
 
@@ -670,6 +684,7 @@ async function repairEmbeddingRuntime() {
 }
 
 function createWindow() {
+  allowWindowClose = false;
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 820,
@@ -691,6 +706,16 @@ function createWindow() {
   });
 
   mainWindow.once('ready-to-show', () => mainWindow?.show());
+  mainWindow.on('close', (event) => {
+    if (allowQuit || allowWindowClose) return;
+    event.preventDefault();
+    void prepareWindowClose().then((ready) => {
+      if (ready && mainWindow && !mainWindow.isDestroyed()) {
+        allowWindowClose = true;
+        mainWindow.close();
+      }
+    });
+  });
   mainWindow.on('maximize', () => mainWindow?.webContents.send('window:maximized-changed', true));
   mainWindow.on('unmaximize', () => mainWindow?.webContents.send('window:maximized-changed', false));
   mainWindow.loadFile(path.join(__dirname, 'loading.html'));
@@ -729,6 +754,11 @@ ipcMain.handle('window:toggle-maximize', () => {
   return nextState;
 });
 ipcMain.handle('window:close', () => mainWindow?.close());
+ipcMain.on('window:prepared-close', (event, nonce, ready) => {
+  closePreparation.acknowledge(event.sender.id, nonce, ready === true);
+});
+ipcMain.handle('setup:get-complete', (event) => event.sender === mainWindow?.webContents && readSetupComplete(SETUP_COMPLETE_PATH));
+ipcMain.handle('setup:set-complete', (event) => event.sender === mainWindow?.webContents && writeSetupComplete(SETUP_COMPLETE_PATH));
 ipcMain.on('appearance:get', (event) => { event.returnValue = startupAppearance; });
 ipcMain.handle('appearance:set', (_event, value) => {
   const saved = writeStartupAppearance(STARTUP_APPEARANCE_PATH, value);
@@ -736,6 +766,7 @@ ipcMain.handle('appearance:set', (_event, value) => {
   return Boolean(saved);
 });
 ipcMain.handle('app:restart', async () => {
+  if (!await prepareWindowClose()) return false;
   shuttingDown = true;
   await stopBackend();
   allowQuit = true;
@@ -798,6 +829,7 @@ ipcMain.handle('updates:install', async () => {
   if (updateState.status !== 'downloaded') {
     return emitUpdateState({ status: 'error', message: '更新尚未下载完成，无法安装。' });
   }
+  if (!await prepareWindowClose()) return emitUpdateState({ status: 'downloaded', message: '草稿尚未保存，请先处理未保存修改。' });
   shuttingDown = true;
   await stopBackend();
   allowQuit = true;
@@ -821,10 +853,12 @@ if (hasSingleInstanceLock) {
 }
 
 app.on('before-quit', (event) => {
-  shuttingDown = true;
   if (allowQuit) return;
   event.preventDefault();
-  void stopBackend().finally(() => {
+  void prepareWindowClose().then(async (ready) => {
+    if (!ready) return;
+    shuttingDown = true;
+    await stopBackend();
     allowQuit = true;
     app.quit();
   });

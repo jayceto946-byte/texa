@@ -31,12 +31,15 @@ declare global {
     kaoyanDesktop?: {
       isElectron: boolean;
       platform?: 'win32' | 'darwin' | 'linux' | string;
+      getSetupComplete?: () => Promise<boolean>;
+      setSetupComplete?: () => Promise<boolean>;
       getStartupAppearance?: () => { id: string; tokens: Record<string, string> } | null;
       setStartupAppearance?: (appearance: { id: string; tokens: Record<string, string> }) => Promise<boolean>;
       minimize: () => Promise<void>;
       isMaximized?: () => Promise<boolean>;
       toggleMaximize: () => Promise<boolean>;
       close: () => Promise<void>;
+      onPrepareClose?: (handler: (aborted?: boolean) => Promise<boolean>) => () => void;
       onMaximizedChange?: (handler: (isMaximized: boolean) => void) => () => void;
       restart?: () => Promise<boolean>;
       retryStartup?: () => Promise<{ ready: boolean; message?: string }>;

@@ -59,7 +59,11 @@ export default function FirstRunGuide({ children }: { children: ReactNode }) {
       const models = response.data.models as ModelSettingsValue;
       setDraft(models); setSaved(configured(models));
       // The completion flag never contains credentials.
-      setComplete(configured(models) && (localStorage.getItem(KEY) === '1' || localStorage.getItem('kaoyan:onboarding-complete:v2') === '1'));
+      const legacyComplete = localStorage.getItem(KEY) === '1' || localStorage.getItem('kaoyan:onboarding-complete:v2') === '1';
+      const desktop = window.kaoyanDesktop;
+      const desktopComplete = await desktop?.getSetupComplete?.();
+      if (configured(models) && legacyComplete && !desktopComplete) await desktop?.setSetupComplete?.();
+      setComplete(configured(models) && Boolean(desktopComplete || legacyComplete));
     } catch { setError('本地服务暂不可用。请重试，或检查桌面端的服务状态。'); }
     finally { setLoading(false); }
   };
@@ -87,6 +91,15 @@ export default function FirstRunGuide({ children }: { children: ReactNode }) {
     } catch { return { success: false, message: '连接失败，请检查配置后重试' }; }
   };
   const nativeModel = draft?.models.find((model) => model.provider === draft.roles.vision.provider && model.id === draft.roles.vision.model);
+  const finish = async () => {
+    if (!saved || busy) return;
+    setBusy(true); setError('');
+    try {
+      if (window.kaoyanDesktop?.setSetupComplete && !await window.kaoyanDesktop.setSetupComplete()) throw new Error('无法保存首次配置完成状态，请重试。');
+      localStorage.setItem(KEY, '1'); setComplete(true);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : '保存失败，请重试'); }
+    finally { setBusy(false); }
+  };
   const nativeProvider = draft?.providers.find((provider) => provider.id === draft.roles.vision.provider);
   const nativeUnsupported = draft?.multimodal_mode === 'native' && (!nativeProvider?.capabilities.includes('vision') || (nativeModel && !nativeModel.capabilities.includes('vision')));
   if (complete) return children;
@@ -98,7 +111,7 @@ export default function FirstRunGuide({ children }: { children: ReactNode }) {
         onActivateProfile={async (id) => { try { const response = await post(`/system/settings/model-profiles/${encodeURIComponent(id)}/activate`, {}); if (!response.success) throw new Error(); await load(); } catch { setError('切换方案失败，请重试'); } }}
         onDeleteProfile={async (id) => { try { const response = await del(`/system/settings/model-profiles/${encodeURIComponent(id)}`); if (!response.success) throw new Error(); await load(); } catch { setError('删除方案失败，请重试'); } }} />}
         <div className="welcome-actions"><button className="app-primary-button welcome-primary" onClick={() => void save()} disabled={busy || loading || !draft || phase !== 'idle' || nativeUnsupported}>{busy ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}保存并继续</button><button className="app-ghost-button" onClick={() => navigate(0)} disabled={busy || phase !== 'idle'}><ArrowLeft size={16} />返回</button></div></>}
-      {step === 2 && <><div className="welcome-leading"><span className="welcome-ready" role="img" aria-label="配置已保存"><Check size={15} /></span></div><h1 ref={headingRef} tabIndex={-1}>学习工作区已就绪</h1><p className="welcome-lead">从一个问题开始，教材和复习记录可以随时加入。</p><div className="welcome-final-actions"><button className="app-primary-button welcome-primary" disabled={!saved || phase !== 'idle'} onClick={() => { localStorage.setItem(KEY, '1'); setComplete(true); }}>进入学习工作区 <ArrowRight size={16} /></button><button className="app-ghost-button" onClick={() => navigate(1)} disabled={phase !== 'idle'}>返回模型配置</button></div></>}
+      {step === 2 && <><div className="welcome-leading"><span className="welcome-ready" role="img" aria-label="配置已保存"><Check size={15} /></span></div><h1 ref={headingRef} tabIndex={-1}>学习工作区已就绪</h1><p className="welcome-lead">从一个问题开始，教材和复习记录可以随时加入。</p><div className="welcome-final-actions"><button className="app-primary-button welcome-primary" disabled={!saved || busy || phase !== 'idle'} onClick={() => void finish()}>进入学习工作区 <ArrowRight size={16} /></button><button className="app-ghost-button" onClick={() => navigate(1)} disabled={busy || phase !== 'idle'}>返回模型配置</button></div></>}
       {loading && <p role="status" className="welcome-note">正在读取本地配置…</p>}{error && <div role="alert" className="welcome-error"><p>{error}</p><button className="app-secondary-button" onClick={() => void load()}>重新读取配置</button></div>}
     </div></main><footer className="welcome-footer">Texa · 为每一次理解，留下积累</footer>
   </div>;

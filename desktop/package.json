@@ -36,6 +36,8 @@
       "preload.cjs",
       "runtime.cjs",
       "appearance.cjs",
+      "window-close.cjs",
+      "setup-state.cjs",
       "loading.html",
       "assets/**/*",
       "update-config.json",
