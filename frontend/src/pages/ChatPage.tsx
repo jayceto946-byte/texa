@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BookMarked, CalendarDays, ImagePlus, Images, Send, Shuffle, Square, Target, X } from 'lucide-react';
 import { figureQuestionStream, get, interruptFigureTask, mistakeSolutionStream, post, resumeFigureTaskStream } from '../api/client';
@@ -26,6 +26,13 @@ import { mapStoredConversationMessages } from '../utils/conversationMessages';
 import { createExecutionLifecycle, executionMessageStage, mergeChatActivity, mergeExecutionLifecycle, settleChatActivity } from '../utils/chatActivities';
 import { buildTextbookScopeOptions, findDefaultTextbookScope, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
 import { useInspector } from '../contexts/InspectorContext';
+import { ChatMistakeSourcesContext, useChatMistakeSources } from '../features/mistakes/hooks/useChatMistakeSources';
+import { useNoteCommand } from '../features/notes/NoteCommandContext';
+import OverflowMenu from '../components/ui/OverflowMenu';
+import { noteReturnPath } from '../features/notes/navigation';
+import { useConversationManagement } from '../features/conversations/useConversationManagement';
+import BlockingTasks from '../features/conversations/BlockingTasks';
+import '../features/conversations/conversations.css';
 type ReportMode = 'daily' | 'weekly';
 type ActionMode = ReportMode | 'exercise';
 
@@ -35,7 +42,9 @@ function firstLine(value = '', maxLength = 48) {
 }
 
 const ChatPage: React.FC = () => {
+  const openNote = useNoteCommand();
   const navigate = useNavigate();
+  const location = useLocation();
   const [input, setInput] = useState('');
   const [mathExpressions, setMathExpressions] = useState<MathExpression[]>([]);
   const [mathEditRequest, setMathEditRequest] = useState<MathEditRequest | null>(null);
@@ -67,7 +76,39 @@ const ChatPage: React.FC = () => {
     updateMessageByTaskId,
     historyPage,
     prependConversationMessages,
+    loadConversation,
   } = useChatContext();
+  const conversation = useConversationManagement(conversationId, location.pathname === '/');
+  const inTrash = conversation.management?.state === 'trashed';
+  const [sourceNavigationError, setSourceNavigationError] = useState('');
+  const [nextAfterSeq, setNextAfterSeq] = useState<number | null>(null);
+  const targetMessageRef = useRef<string | null>(null);
+  const loadedLocatorRef = useRef('');
+  useEffect(() => {
+    if (location.pathname !== '/') return;
+    const params = new URLSearchParams(location.search);
+    const sourceConversation = params.get('conversation_id');
+    const sourceMessage = params.get('message_id');
+    if (!sourceConversation || loadedLocatorRef.current === location.search) return;
+    if (isLoading) { setSourceNavigationError('当前回答正在进行，请先停止或等待结束后查看原消息。'); return; }
+    let active = true;
+    const path = sourceMessage
+      ? `/chat/conversations/${encodeURIComponent(sourceConversation)}/messages/${encodeURIComponent(sourceMessage)}/context`
+      : `/chat/conversations/${encodeURIComponent(sourceConversation)}?limit=40`;
+    void get(path).then(response => {
+      if (!active) return;
+      if (!response.success) throw new Error(response.message || '来源会话不可用');
+      const data = response.data;
+      loadedLocatorRef.current = location.search;
+      targetMessageRef.current = sourceMessage;
+      setNextAfterSeq(sourceMessage ? data.page.next_after_seq : null);
+      loadConversation(data.conversation_id || data.id, mapStoredConversationMessages(data.messages), {
+        subject: data.subject, bookName: data.book_name, page: data.page,
+      });
+      setSourceNavigationError('');
+    }).catch(e => { if (active) setSourceNavigationError(e.message); });
+    return () => { active = false; };
+  }, [location.pathname, location.search, isLoading, loadConversation]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const preserveHistoryScrollRef = useRef<{ height: number; top: number } | null>(null);
@@ -108,10 +149,10 @@ const ChatPage: React.FC = () => {
   }, [messages]);
 
   useEffect(() => {
-    const focusComposer = () => textareaRef.current?.focus();
+    const focusComposer = () => { if (location.pathname === '/') textareaRef.current?.focus(); };
     window.addEventListener('texa:focus-composer', focusComposer);
     return () => window.removeEventListener('texa:focus-composer', focusComposer);
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     const loadBooks = async () => {
@@ -133,6 +174,15 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
+    if (targetMessageRef.current) {
+      const target = Array.from(container.querySelectorAll<HTMLElement>('[data-message-id]')).find(el => el.dataset.messageId === targetMessageRef.current);
+      if (target) {
+        target.scrollIntoView({ block: 'center' });
+        target.focus({ preventScroll: true });
+        targetMessageRef.current = null;
+        return;
+      }
+    }
     const preserved = preserveHistoryScrollRef.current;
     if (preserved) {
       preserveHistoryScrollRef.current = null;
@@ -470,7 +520,7 @@ const ChatPage: React.FC = () => {
     action: 'provide_input' | 'method_only' | 'resume',
     file?: File,
   ) => {
-    if (attachmentLoading || !(action === 'resume' ? task.resumable : task.input_action_required)) return;
+    if (inTrash || attachmentLoading || !(action === 'resume' ? task.resumable : task.input_action_required)) return;
     activeVisualTaskRef.current = task;
     setAttachmentLoading(true);
     updateMessageByTaskId(task.id, (message) => ({
@@ -682,7 +732,7 @@ const ChatPage: React.FC = () => {
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     const question = composeMathQuestion(input, mathExpressions);
-    if ((!question && !attachmentFile && !selectedMistakeId && !activeFigure) || isLoading || attachmentLoading) return;
+    if (inTrash || (!question && !attachmentFile && !selectedMistakeId && !activeFigure) || isLoading || attachmentLoading) return;
     if (activeFigure) {
       submitFigureQuestion(question);
       return;
@@ -824,6 +874,7 @@ const ChatPage: React.FC = () => {
     setHighlightDialogOpen(true);
   };
 
+  const mistakeSources = useChatMistakeSources(conversationId, bookName || 'default', messages, location.pathname === '/');
   return (
     <div className="relative flex h-full min-w-0 bg-bg-primary">
       <div
@@ -835,11 +886,21 @@ const ChatPage: React.FC = () => {
             <h2>学习</h2>
           </div>
           <div className="window-drag-region" aria-hidden="true" />
+          {messages.length > 0 && <div className="current-session-menu"><OverflowMenu label="当前会话的更多操作">{close => <>
+            {!inTrash && <button role="menuitem" disabled={!conversation.management || conversation.busy} onClick={() => { close(); void conversation.change(conversation.management?.pinned ? 'unpin' : 'pin'); }}>{conversation.management?.pinned ? '取消置顶' : '置顶'}</button>}
+            {!inTrash && <button role="menuitem" onClick={() => { close(); openNote({ conversationId, title: messages.find(m => m.role === 'user')?.content.slice(0, 80), busy: isLoading || attachmentLoading }); }}>整理为笔记</button>}
+            <button role="menuitem" disabled={!conversation.management || conversation.busy} onClick={() => { close(); void conversation.change(conversation.management?.state === 'active' ? 'archive' : 'restore'); }}>{conversation.management?.state === 'active' ? '归档' : '恢复'}</button>
+            {!inTrash && <button role="menuitem" disabled={!conversation.management || conversation.busy} onClick={() => { close(); void conversation.change('trash'); }}>移入回收站</button>}
+          </>}</OverflowMenu></div>}
+          {noteReturnPath(location.search) && <Link className="app-ghost-button" to={noteReturnPath(location.search)!}>返回笔记</Link>}
           {(messages.length > 0 || activeFigure) && <div className="learning-header-scope-selector">{scopeSelector}</div>}
         </div>
 
         <div ref={scrollRef} className="learning-workspace-scroll">
           <div className="learning-document-column">
+            {conversation.management?.state !== 'active' && conversation.management && <div className="conversation-state" role="status"><span>{inTrash ? '此会话在回收站，恢复后可继续学习。' : '此会话已归档。'}</span><button className="app-secondary-button" disabled={conversation.busy} onClick={() => void conversation.change('restore')}>恢复会话</button></div>}
+            {conversation.error && <div className="conversation-state" role="alert"><span>{conversation.error}</span><button className="app-ghost-button" onClick={conversation.reload}>重新读取</button>{conversation.tasks.length > 0 && <BlockingTasks tasks={conversation.tasks} onChanged={conversation.reload}/>}</div>}
+            {sourceNavigationError && <p role="alert" className="note-warning">{sourceNavigationError}</p>}
             {historyPage?.has_more && (
               <div className="flex justify-center pb-2">
                 <button
@@ -858,11 +919,24 @@ const ChatPage: React.FC = () => {
                 scopeSelector={scopeSelector}
               />
             )}
-            {messages.map((msg, i) => (
+            <ChatMistakeSourcesContext.Provider value={mistakeSources}>{messages.map((msg, i) => (
               <ErrorBoundary key={msg.id || `${msg.turnId || 'message'}-${i}`}>
-                <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => sendMessage(question, { answerMode: 'global_general' })} onRequestSuggestedAnswer={(question, answerMode) => sendMessage(question, { answerMode })} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} learningTask={msg.learningTask} citationProvenance={msg.citationProvenance} onResumeLearningTask={resumeLearningTask} onResumeInterruptedTask={resumeInterruptedTask} />
+                <div data-message-id={msg.id} tabIndex={-1}>
+                <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => { if (!inTrash) sendMessage(question, { answerMode: 'global_general' }); }} onRequestSuggestedAnswer={(question, answerMode) => { if (!inTrash) sendMessage(question, { answerMode }); }} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} learningTask={msg.learningTask} citationProvenance={msg.citationProvenance} onResumeLearningTask={resumeLearningTask} onResumeInterruptedTask={resumeInterruptedTask} />
+                </div>
               </ErrorBoundary>
-            ))}
+            ))}</ChatMistakeSourcesContext.Provider>
+            {nextAfterSeq !== null && <button className="app-ghost-button" disabled={historyLoading} onClick={async () => {
+              setHistoryLoading(true);
+              try {
+                const response = await get(`/chat/conversations/${encodeURIComponent(conversationId)}/messages-after?after_seq=${nextAfterSeq}`);
+                const page = response.data;
+                const existing = new Set(messages.map(m => m.id));
+                loadConversation(conversationId, [...messages, ...mapStoredConversationMessages(page.messages).filter(m => !existing.has(m.id))], { subject, bookName, page: historyPage });
+                setNextAfterSeq(page.has_more ? page.next_after_seq : null);
+              } catch (e) { setSourceNavigationError(e instanceof Error ? e.message : '读取失败'); }
+              finally { setHistoryLoading(false); }
+            }}>加载后续消息</button>}
             {activeFigure && figureWorkspaceExpanded && (
               <FigureRegionViewer
                 figure={activeFigure}
@@ -886,7 +960,7 @@ const ChatPage: React.FC = () => {
               )) : <div className="px-3 py-5 text-center text-sm text-text-secondary">当前范围没有可用的历史错题</div>}
             </div>
           )}
-          <form onSubmit={handleSubmit} className="composer-surface">
+          <form onSubmit={handleSubmit} className="composer-surface"><fieldset disabled={inTrash} className="conversation-composer-fields">
             <input ref={attachmentInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" className="hidden" onChange={(event) => selectAttachment(event.target.files?.[0])} />
             {activeFigure && !figureWorkspaceExpanded && (
               <FigureContextAttachment
@@ -969,7 +1043,7 @@ const ChatPage: React.FC = () => {
                 </button>
               )}
             </div>
-          </form>
+          </fieldset></form>
         </div>
       </div>
       <HighlightRepositoryDialog

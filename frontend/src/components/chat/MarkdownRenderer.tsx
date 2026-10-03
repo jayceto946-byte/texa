@@ -165,7 +165,8 @@ export const MarkdownMessage: React.FC<{
   linkedConcepts: ConceptCandidate[];
   onConceptClick: (concept: ConceptCandidate) => void;
   citationIds?: Set<string>;
-}> = ({ content, linkedConcepts, onConceptClick, citationIds }) => {
+  disableRemoteMedia?: boolean;
+}> = ({ content, linkedConcepts, onConceptClick, citationIds, disableRemoteMedia = false }) => {
   const cleanContent = React.useMemo(() => {
     const withoutRefs = content
       .replace(/\u3010\u6765\u6e90\uff1a(.+?)\u3011/g, '')
@@ -184,7 +185,11 @@ export const MarkdownMessage: React.FC<{
   }, [linkedConcepts]);
 
   const markdownComponents = {
+    ...(disableRemoteMedia ? {
+      img({ alt }: { alt?: string }) { return <span className="text-text-secondary">[图片未随笔记保存：{alt || '来源图片'}]</span>; },
+    } : {}),
     a({ href, children }: { href?: string; children?: React.ReactNode }) {
+      if (disableRemoteMedia && href && !/^https?:\/\//i.test(href) && !href.startsWith('#')) return <span>{children}</span>;
       if (href?.startsWith('#concept-')) {
         const name = decodeURIComponent(href.replace('#concept-', ''));
         const concept = conceptByName.get(name);

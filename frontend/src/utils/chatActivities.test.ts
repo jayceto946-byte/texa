@@ -13,6 +13,21 @@ function event(overrides: Partial<ExecutionEvent> = {}): ExecutionEvent {
 }
 
 describe('chat activity projection', () => {
+  it('uses run wall time instead of summing overlapping phases', () => {
+    expect(activityDuration([
+      { id: 'a', kind: 'tool', label: '检索', status: 'completed', duration_ms: 4000, elapsed_ms: 5000 },
+      { id: 'b', kind: 'reasoning', label: '组织', status: 'completed', duration_ms: 3000, elapsed_ms: 6000 },
+      { id: 'c', kind: 'system', label: '完成', status: 'completed', elapsed_ms: 7000, meta: { total_elapsed_ms: 7100 } },
+    ])).toBe(7100);
+  });
+
+  it('retains public details when a later progress update omits them', () => {
+    const initial = mergeChatActivity([], { id: 'tool', kind: 'tool', label: '工具', status: 'active', seq: 1,
+      meta: { input_preview: { query: '极限' }, result_preview: '找到题目' } });
+    const next = mergeChatActivity(initial, { id: 'tool', kind: 'tool', label: '工具', status: 'completed', seq: 2,
+      meta: { success: true } });
+    expect(next[0].meta).toEqual({ input_preview: { query: '极限' }, result_preview: '找到题目', success: true });
+  });
   it('shows a truthful transport state before the first backend event', () => {
     const initial = createTransportActivity();
     const connected = mergeExecutionLifecycle(createExecutionLifecycle('', [initial]), event({ operation_id: 'context',

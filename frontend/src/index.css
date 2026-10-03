@@ -2704,15 +2704,6 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .learning-workspace-header {
   font-weight: var(--weight-semibold);
 }
 
-.execution-trace {
-  margin-bottom: 16px;
-}
-
-.execution-trace.is-terminal {
-  margin-top: 12px;
-  margin-bottom: 0;
-}
-
 .figure-region-workspace {
   width: 100%;
   margin: 0 0 28px;

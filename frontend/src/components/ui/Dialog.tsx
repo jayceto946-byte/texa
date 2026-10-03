@@ -18,6 +18,7 @@ const focusableSelector = [
   'input:not([disabled])',
   'select:not([disabled])',
   'textarea:not([disabled])',
+  'summary',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
@@ -77,7 +78,7 @@ export default function Dialog({
       window.cancelAnimationFrame(focusDialog);
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = previousOverflow;
-      window.requestAnimationFrame(() => returnFocusRef.current?.focus());
+      window.requestAnimationFrame(() => { const target = returnFocusRef.current; if (target?.isConnected && !target.closest('[hidden]')) target.focus(); });
     };
   }, [onClose, open]);
 

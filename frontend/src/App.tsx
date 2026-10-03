@@ -5,6 +5,9 @@ import DesktopTitleBar from './components/DesktopTitleBar';
 import FirstRunGuide from './components/FirstRunGuide';
 import { InspectorProvider } from './contexts/InspectorContext';
 import GoalsPage from './pages/GoalsPage';
+import NotesPage from './pages/NotesPage';
+import NoteDetailPage from './pages/NoteDetailPage';
+import NoteDraftPage from './pages/NoteDraftPage';
 import ChatPage from './pages/ChatPage';
 import MistakesPage from './pages/MistakesPage';
 import { MistakeDetailPage, MistakeDiagnosisPage } from './pages/MistakesPage';
@@ -28,6 +31,9 @@ function App() {
             <Route path="/" element={<MainLayout />}>
               <Route index element={<ChatPage />} />
               <Route path="goals" element={<GoalsPage />} />
+              <Route path="notes" element={<NotesPage />} />
+              <Route path="notes/drafts/:draftId" element={<NoteDraftPage />} />
+              <Route path="notes/:noteId" element={<NoteDetailPage />} />
               <Route path="mistakes" element={<MistakesPage />} />
               <Route path="mistakes/diagnosis" element={<MistakeDiagnosisPage />} />
               <Route path="mistakes/intake" element={<MistakeIntakePage />} />

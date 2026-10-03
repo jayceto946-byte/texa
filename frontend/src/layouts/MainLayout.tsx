@@ -9,8 +9,11 @@ import LearningContextSidebar from '../components/LearningContextSidebar';
 import ContextInspector from '../components/ui/ContextInspector';
 import { useInspector } from '../contexts/InspectorContext';
 import SettingsDialog from '../components/settings/SettingsDialog';
+import NotePreflight from '../features/notes/NotePreflight';
+import { NoteCommandContext, type NoteCommandTarget } from '../features/notes/NoteCommandContext';
 import './ApprovedWorkspace.css';
 import './StudyDesk.css';
+import { flushRetainedEditor, unsavedNotePath } from '../features/notes/autosave';
 
 function layoutSnapshot() {
   const width = typeof window === 'undefined' ? 1280 : window.innerWidth || 1280;
@@ -23,7 +26,9 @@ function layoutSnapshot() {
 function PersistentRouteOutlet() {
   const location = useLocation();
   const outlet = useOutlet();
-  const routeKey = location.pathname;
+  // Notes share one cache slot. Replacing a detail unmounts its poller/editor;
+  // its serial autosaver flushes and retains any failed local edits in memory.
+  const routeKey = location.pathname.startsWith('/notes') ? '/notes-workspace' : location.pathname;
   const routeSignature = `${location.pathname}${location.search}${location.hash}`;
   const [cachedOutlets, setCachedOutlets] = useState(() => new Map([
     [routeKey, { signature: routeSignature, outlet }],
@@ -55,7 +60,26 @@ function PersistentRouteOutlet() {
 }
 
 const MainLayout: React.FC = () => {
+  const [noteTarget, setNoteTarget] = useState<NoteCommandTarget | null>(null);
+  const closeNote = useCallback(() => setNoteTarget(null), []);
   const navigate = useNavigate();
+  useEffect(() => {
+    // A failed autosave retained after Back navigation must also survive quit.
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      const path = unsavedNotePath();
+      if (!path) return;
+      event.preventDefault(); event.returnValue = '';
+      void flushRetainedEditor(false, false).then(ready => { if (!ready) navigate(path); });
+    };
+    const unsubscribe = window.kaoyanDesktop?.onPrepareClose?.(async aborted => {
+      const path = unsavedNotePath();
+      const ready = await flushRetainedEditor(aborted);
+      if (!ready && path && !aborted) navigate(path);
+      return ready;
+    });
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => { window.removeEventListener('beforeunload', beforeUnload); unsubscribe?.(); };
+  }, [navigate]);
   const location = useLocation();
   const initialLayout = layoutSnapshot();
   const [compactLayout, setCompactLayout] = useState(initialLayout.compact);
@@ -157,7 +181,7 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div
+    <NoteCommandContext.Provider value={setNoteTarget}><div
       data-layout={compactLayout ? 'compact' : 'desktop'}
       data-navigation={contextOpen ? 'open' : 'closed'}
       data-context={isLearningWorkspace && contextOpen ? 'open' : 'closed'}
@@ -173,7 +197,7 @@ const MainLayout: React.FC = () => {
           subject={subject}
           bookName={bookName}
           conversationId={conversationId}
-          refreshKey={messages.length}
+          refreshKey={`${messages.length}:${messages.at(-1)?.stage || ''}:${messages.at(-1)?.id || ''}`}
           onClose={() => setContextOpen(false)}
           onNewConversation={startNewConversation}
           onLoadConversation={loadExistingConversation}
@@ -218,7 +242,8 @@ const MainLayout: React.FC = () => {
         <ContextInspector />
       </div>
       {settingsMounted && <SettingsDialog open={settingsOpen} onClose={closeSettings} />}
-    </div>
+      {noteTarget && <NotePreflight key={noteTarget.conversationId} {...noteTarget} onClose={closeNote} />}
+    </div></NoteCommandContext.Provider>
   );
 };
 

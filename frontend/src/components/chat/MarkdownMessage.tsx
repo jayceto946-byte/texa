@@ -7,6 +7,7 @@ type MarkdownMessageProps = {
   linkedConcepts?: ConceptCandidate[];
   onConceptClick?: (concept: ConceptCandidate) => void;
   citationIds?: Set<string>;
+  disableRemoteMedia?: boolean;
 };
 
 const SimpleMarkdownRenderer = lazy(() =>
@@ -17,18 +18,18 @@ const MarkdownRenderer = lazy(() =>
   import('./MarkdownRenderer').then((module) => ({ default: module.MarkdownMessage })),
 );
 
-const PlainMarkdownFallback: React.FC<SimpleMarkdownProps> = ({ content }) => (
-  <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-text-primary">{content}</div>
+const MarkdownLoadingFallback: React.FC = () => (
+  <div aria-busy="true" className="min-h-6 text-xs leading-relaxed text-text-secondary">正在加载内容…</div>
 );
 
 export const SimpleMarkdown: React.FC<SimpleMarkdownProps> = ({ content }) => (
-  <Suspense fallback={<PlainMarkdownFallback content={content} />}>
+  <Suspense fallback={<MarkdownLoadingFallback />}>
     <SimpleMarkdownRenderer content={content} />
   </Suspense>
 );
 
-export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, linkedConcepts = [], onConceptClick = () => undefined, citationIds }) => (
-  <Suspense fallback={<PlainMarkdownFallback content={content} />}>
-    <MarkdownRenderer content={content} linkedConcepts={linkedConcepts} onConceptClick={onConceptClick} citationIds={citationIds} />
+export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, linkedConcepts = [], onConceptClick = () => undefined, citationIds, disableRemoteMedia }) => (
+  <Suspense fallback={<MarkdownLoadingFallback />}>
+    <MarkdownRenderer content={content} linkedConcepts={linkedConcepts} onConceptClick={onConceptClick} citationIds={citationIds} disableRemoteMedia={disableRemoteMedia} />
   </Suspense>
 );

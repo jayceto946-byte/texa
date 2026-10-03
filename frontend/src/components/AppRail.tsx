@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, ClipboardList, GraduationCap, MessageSquare, Settings, PanelLeftClose, Target } from 'lucide-react';
+import { BarChart3, BookOpen, ClipboardList, GraduationCap, MessageSquare, Settings, PanelLeftClose, Target, NotebookPen } from 'lucide-react';
 import type { RefObject } from 'react';
 import { NavLink } from 'react-router-dom';
 
@@ -6,6 +6,7 @@ const primaryItems = [
   { to: '/', icon: MessageSquare, label: '学习' },
   { to: '/goals', icon: Target, label: '目标与任务' },
   { to: '/learning', icon: BarChart3, label: '复习' },
+  { to: '/notes', icon: NotebookPen, label: '笔记' },
   { to: '/mistakes', icon: GraduationCap, label: '错题' },
   { to: '/exercises', icon: ClipboardList, label: '练习' },
   { to: '/books', icon: BookOpen, label: '教材' },

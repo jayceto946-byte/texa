@@ -8,7 +8,6 @@ import chatPage from './pages/ChatPage.tsx?raw';
 import mistakesPage from './pages/MistakesPage.tsx?raw';
 import reviewSessionPage from './pages/ReviewSessionPage.tsx?raw';
 import figureViewer from './features/visual-learning/FigureRegionViewer.tsx?raw';
-import learningContext from './components/LearningContextSidebar.tsx?raw';
 import modelSettings from './components/settings/ModelSettingsManager.tsx?raw';
 import asyncState from './components/ui/AsyncState.tsx?raw';
 import { EmptyState, PageState } from './components/ui/AsyncState';
@@ -65,7 +64,6 @@ describe('Texa product UI contract', () => {
     expect(mistakesPage).toContain('现在重做');
     expect(chatPage).toContain('resumeFigureTaskStream');
     expect(chatPage).toContain('interruptFigureTask');
-    expect(learningContext).toContain('conversationCacheKey');
   });
 
   it('keeps the composer usable with keyboard and attachment controls', () => {

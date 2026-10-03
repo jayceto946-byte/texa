@@ -132,7 +132,7 @@ export function mergeChatActivity(current: ChatActivity[] = [], incoming?: ChatA
   const currentSeq = current[index].seq;
   const incomingSeq = incoming.seq;
   if (currentSeq !== undefined && (incomingSeq === undefined || currentSeq >= incomingSeq)) return current;
-  return current.map((item, itemIndex) => itemIndex === index ? { ...item, ...incoming } : item);
+  return current.map((item, itemIndex) => itemIndex === index ? { ...item, ...incoming, meta: { ...item.meta, ...incoming.meta } } : item);
 }
 
 function eventActivity(event: ExecutionEvent): ChatActivity {
@@ -294,5 +294,8 @@ export function completedActivityCount(activities: ChatActivity[] = []): number 
 }
 
 export function activityDuration(activities: ChatActivity[] = []): number {
+  // elapsed_ms is run wall time. Phase durations overlap and must not be added.
+  const elapsed = Math.max(0, ...activities.flatMap((item) => [Number(item.elapsed_ms) || 0, Number(item.meta?.total_elapsed_ms) || 0]));
+  if (elapsed > 0) return elapsed;
   return activities.reduce((total, item) => total + (Number(item.duration_ms) || 0), 0);
 }

@@ -1,0 +1,49 @@
+.execution-trace { margin: 0 0 18px; color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+.execution-trace button { cursor: pointer; }
+.execution-trace svg { width: 14px; height: 14px; flex: 0 0 14px; }
+.execution-trace-toggle { width: 100%; display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 3px 0; text-align: left; border-radius: 4px; }
+.execution-trace-toggle:hover .execution-title, .execution-detail-heading button:hover { color: var(--text-primary); }
+.execution-trace button:focus-visible, .execution-trace summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.execution-title { font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
+.is-running .execution-title { color: var(--text-primary); }
+.execution-time { flex-shrink: 0; color: var(--color-text-tertiary); font-size: 11px; font-variant-numeric: tabular-nums; }
+.execution-toggle-label { margin-left: auto; color: var(--color-text-tertiary); white-space: nowrap; font-size: 11px; }
+.execution-disclosure { color: var(--color-text-tertiary); transition: transform 150ms ease; }
+.execution-disclosure.is-open, .execution-source[open] > summary > .execution-disclosure { transform: rotate(90deg); }
+.execution-live-preview { margin-left: 22px; padding: 2px 0 4px; font-size: 11px; color: var(--color-text-tertiary); }
+.execution-live-preview p { margin: 0 0 5px; }
+.execution-live-preview > div { display: flex; align-items: center; gap: 7px; padding: 2px 0; }
+.execution-live-preview small { margin-left: 4px; font-size: 10px; }
+.execution-trace-body { margin: 6px 0 0 6px; padding: 4px 0 2px 16px; border-left: 1px solid var(--border); }
+.execution-public-note { margin: 0 0 12px; color: var(--color-text-tertiary); font-size: 11px; }
+.execution-steps { margin: 0; padding: 0; list-style: none; }
+.execution-step { padding: 0 0 15px; }
+.execution-step-heading { display: flex; align-items: center; gap: 7px; }
+.execution-step-heading > span { color: var(--text-primary); font-size: 12px; font-weight: 500; overflow-wrap: anywhere; }
+.execution-step-heading > small { margin-left: auto; flex-shrink: 0; color: var(--color-text-tertiary); font-size: 10px; font-variant-numeric: tabular-nums; }
+.execution-step-detail { margin: 4px 0 0 21px; overflow-wrap: anywhere; font-size: 11px; }
+.execution-step-detail p { margin: 4px 0; white-space: pre-wrap; }
+.execution-step-detail dl { display: grid; grid-template-columns: max-content minmax(0,1fr); gap: 3px 12px; margin: 7px 0; }
+.execution-step-detail dt { color: var(--color-text-tertiary); }
+.execution-step-detail dd { margin: 0; white-space: pre-wrap; }
+.execution-tool-result { border-left: 2px solid var(--border); padding-left: 10px; margin-top: 8px; }
+.execution-tool-result > span, .execution-muted { color: var(--color-text-tertiary); }
+.execution-warning { color: var(--warning); }
+.execution-evidence { margin: 9px 0; }
+.execution-detail-heading { display: flex; flex-wrap: wrap; gap: 5px 12px; align-items: center; margin-bottom: 5px; font-size: 11px; }
+.execution-detail-heading button { color: var(--color-text-tertiary); }
+.execution-source { border-top: 1px solid var(--border); }
+.execution-source > summary { display: flex; align-items: flex-start; gap: 7px; padding: 7px 0; cursor: pointer; list-style: none; }
+.execution-source > summary::-webkit-details-marker { display: none; }
+.execution-source > summary > svg { margin-top: 3px; }
+.execution-source > summary > span { min-width: 0; flex: 1; }
+.execution-source strong { display: block; color: var(--text-secondary); font-size: 11px; font-weight: 500; }
+.execution-source small { display: block; color: var(--color-text-tertiary); font-size: 10px; }
+.execution-source-text { padding: 0 0 10px 21px; }
+.execution-source-text p { margin: 0 0 6px; white-space: pre-wrap; }
+.execution-trace .execution-source-text .learning-reading-content { font-size: 11px; line-height: 1.7; }
+.execution-trace .execution-source-text .markdown-body :is(p, li) { font-size: inherit; line-height: inherit; margin-bottom: 6px; }
+.execution-trace .execution-source-text .markdown-body :is(h1, h2, h3) { font-size: 12px; margin: 8px 0 5px; }
+.execution-trace .execution-source-text .katex-display { margin: 8px 0; overflow-x: auto; }
+@media (max-width: 800px) { .execution-step-heading { flex-wrap: wrap; } .execution-step-heading > small { margin-left: 21px; } .execution-step-detail { margin-left: 21px; } }
+@media (prefers-reduced-motion: reduce) { .execution-disclosure { transition: none; } .execution-trace .animate-spin { animation: none; } }
