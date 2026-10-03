@@ -37,7 +37,7 @@ function ReviewSessionStart() {
       navigate(`/learning/review/${encodeURIComponent(result.data.id)}?book_name=${encodeURIComponent(bookName || 'default')}`, { replace: true });
     } catch (cause) { setError(cause instanceof Error ? cause.message : '无法创建复习会话'); setStarting(false); }
   };
-  return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><Link to="/learning" className="review-session-back"><ArrowLeft className="h-4 w-4" />返回复习</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body"><h1>本次错题复习</h1>{loading ? <p role="status">正在读取到期错题…</p> : <p>当前范围有 {items.length} 道到期错题。开始后题目顺序固定，退出后可继续同一会话。</p>}{error && <p role="alert" className="review-session-error">{error}</p>}{!loading && items.length > 0 && <button type="button" onClick={start} disabled={starting} className="app-primary-button">{starting && <Loader2 className="h-4 w-4 animate-spin" />}开始复习</button>}{!loading && items.length === 0 && <Link to="/mistakes" className="app-secondary-button">查看错题档案</Link>}</div></main></div>;
+  return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题复习</h1><Link to="/learning" className="review-session-back"><ArrowLeft className="h-4 w-4" />返回复习</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body"><h1>本次错题复习</h1>{loading ? <p role="status">正在读取到期错题…</p> : <p>当前范围有 {items.length} 道到期错题。开始后题目顺序固定，退出后可继续同一会话。</p>}{error && <p role="alert" className="review-session-error">{error}</p>}{!loading && items.length > 0 && <button type="button" onClick={start} disabled={starting} className="app-primary-button">{starting && <Loader2 className="h-4 w-4 animate-spin" />}开始复习</button>}{!loading && items.length === 0 && <Link to="/mistakes" className="app-secondary-button">查看错题档案</Link>}</div></main></div>;
 }
 
 function ReviewSessionRun({ sessionId }: { sessionId: string }) {
@@ -102,7 +102,7 @@ function ReviewSessionRun({ sessionId }: { sessionId: string }) {
     } catch (cause) { setError(cause instanceof Error ? cause.message : '记录复习结果失败'); }
     finally { setBusy(false); }
   };
-  return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><button type="button" className="review-session-back" onClick={() => navigate('/learning')}><ArrowLeft className="h-4 w-4" />返回复习</button></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body">
+  return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题复习</h1><button type="button" className="review-session-back" onClick={() => navigate('/learning')}><ArrowLeft className="h-4 w-4" />返回复习</button></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body">
     {loading && <p role="status">正在恢复复习会话…</p>}
     {error && <p role="alert" className="review-session-error">{error} <button type="button" onClick={() => load()}>重试读取</button></p>}
     {session && <><p className="review-session-progress">第 {Math.min(session.index + 1, session.items.length)} / {session.items.length} 题</p>{session.current_item ? <>

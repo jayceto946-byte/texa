@@ -24,7 +24,7 @@
   --workspace-interface-leading: 1.5;
   --workspace-history-leading: 1.6;
   --workspace-chrome-height: 48px;
-  --workspace-page-title-size: 19px;
+  --workspace-page-title-size: 16px;
   --workspace-management-gutter: 32px;
   --workspace-reading-gutter: 40px;
   --workspace-reading-width: 740px;
@@ -131,6 +131,29 @@
   padding-block: 0;
   padding-inline: var(--workspace-management-gutter);
   background: var(--workspace-canvas);
+}
+/* The page header stays the same size across routes and content states. */
+.app-shell :is(.app-page-header, .learning-workspace-header, .goals-header) {
+  box-sizing: border-box;
+  height: var(--workspace-chrome-height);
+  min-height: var(--workspace-chrome-height);
+  flex: 0 0 var(--workspace-chrome-height);
+  align-items: center;
+  flex-wrap: nowrap;
+  padding-block: 0;
+  border-bottom: 1px solid var(--workspace-separator);
+}
+.app-shell :is(.app-page-header, .learning-workspace-header, .goals-header) > :is(h1, h2),
+.app-shell .app-page-title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--workspace-page-title-size);
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .app-shell:not(.study-desk) .management-workspace .app-page-title {
   font-size: var(--workspace-page-title-size);
@@ -404,8 +427,9 @@ body:has(.desktop-titlebar-marker.is-macos) .navigation-collapse { top:8px; }
 .app-shell:not(.study-desk)[data-navigation="closed"] .management-workspace .app-page-header { padding-left:60px; }
 body:has(.desktop-titlebar-marker.is-macos) .app-shell:not(.study-desk)[data-navigation="closed"] .management-workspace .app-page-header { padding-left:152px; }
 /* Settings: one content scroller and a quieter task navigation. */
-.settings-dialog { width:min(960px,calc(100vw - 32px)); height:min(680px,calc(100dvh - 32px)); }
-.settings-dialog-header { height:56px; padding:0 20px; }
+.settings-dialog { width:min(960px,calc(100vw - 32px)); height:min(680px,calc(100dvh - 32px)); grid-template-rows:var(--workspace-chrome-height) minmax(0,1fr); }
+.settings-dialog-header { box-sizing:border-box; height:var(--workspace-chrome-height); padding:0 20px; border-bottom:1px solid var(--workspace-separator); }
+.settings-dialog-header .app-page-title { font-size:var(--workspace-page-title-size); font-weight:600; line-height:1.3; }
 .settings-dialog-body { grid-template-columns:176px minmax(0,1fr); }
 .settings-sidebar { padding:20px 10px; }
 .settings-sidebar-groups { display:flex; flex-direction:column; height:100%; gap:16px; }
@@ -432,3 +456,20 @@ body:has(.desktop-titlebar-marker.is-macos) .app-shell:not(.study-desk)[data-nav
   .settings-sidebar-groups .settings-nav-items { width:auto; display:grid; }
   .settings-nav-item { width:100%; white-space:normal; }
 }
+
+/* Keep page commands outside the Windows native control hit area. */
+body:has(.desktop-titlebar-marker:not(.is-macos)) .app-shell :is(.app-page-header,.learning-workspace-header,.goals-header,.library-workspace-header) {
+  padding-right: calc(var(--workspace-management-gutter) + var(--window-controls-inset));
+}
+
+/* Selection belongs to learning material; chrome keeps native control behavior. */
+:is(.study-navigation,.app-rail,.learning-context-sidebar,.app-page-header,.learning-workspace-header,.library-workspace-header,.goals-header,.note-page-header,.note-list-controls,.note-tabs,.note-toolbar,.goal-controls,.review-today-actions,.review-section-head,.study-turn-heading,.learning-answer-meta,.execution-trace-toggle,.settings-sidebar,.settings-dialog-header,.composer-tool-button,.workspace-overflow-menu,button,label,summary) { user-select:none; -webkit-user-select:none; }
+:is(.markdown-body,.workspace-reading-content,.note-reading,.note-document-title,.note-abstract,.note-source-inspector,.execution-source-text,.execution-tool-result,.goal-objective,.note-warning,.app-issue-details,pre,input,textarea,[contenteditable=true],math-field) { user-select:text; -webkit-user-select:text; }
+.workspace-overflow-menu { position:fixed; z-index:120; width:200px; max-height:calc(100dvh - 24px); overflow-y:auto; padding:4px; border:1px solid var(--workspace-separator); border-radius:var(--workspace-menu-radius); background:var(--workspace-canvas); box-shadow:0 8px 24px #0002; font:var(--workspace-interface-size)/1.5 var(--font-app); }
+.workspace-overflow-menu [role=menuitem] { display:block; text-align:left; width:100%; padding:8px 10px; border-radius:var(--workspace-control-radius); color:var(--color-text-primary); }
+.workspace-overflow-menu [role=menuitem]:is(:hover,:focus-visible) { background:var(--workspace-secondary); outline:2px solid var(--color-accent); outline-offset:-2px; }
+.workspace-overflow-menu [role=menuitem]:disabled { color:var(--color-text-tertiary); }
+.question-more-menu { margin-left:auto; }
+.question-more-menu .workspace-overflow-trigger { opacity:0; }
+.learning-question:is(:hover,:focus-within) .question-more-menu .workspace-overflow-trigger,.question-more-menu .workspace-overflow-trigger[aria-expanded=true] { opacity:1; }
+@media(max-width:760px),(hover:none) { .question-more-menu .workspace-overflow-trigger { opacity:1; } }

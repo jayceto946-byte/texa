@@ -145,7 +145,15 @@ const HighlightPage: React.FC = () => {
     target.scrollIntoView({ block: 'start', behavior: 'auto' });
   }, []);
   return (
-    <div ref={scrollRef} className="h-full overflow-y-auto bg-bg-primary px-5 py-5">
+    <div className="management-workspace flex h-full min-w-0 flex-col">
+      <header className="app-page-header window-drag-region">
+        <h1 className="app-page-title">章节重点</h1>
+        <div className="flex shrink-0 items-center gap-2">
+          <button type="button" onClick={() => window.print()} className="app-secondary-button"><Printer className="h-3.5 w-3.5" />打印</button>
+          {staticHtmlUrl && <a href={staticHtmlAsset.url || undefined} target="_blank" rel="noreferrer" aria-disabled={!staticHtmlAsset.url} title={staticHtmlAsset.error || undefined} className={`app-secondary-button ${staticHtmlAsset.url ? '' : 'pointer-events-none opacity-55'}`}>{staticHtmlAsset.loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />} {staticHtmlAsset.error ? 'HTML 加载失败' : '静态 HTML'}</a>}
+        </div>
+      </header>
+      <div ref={scrollRef} className="management-page-content min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="h-fit border border-border bg-bg-card p-4 lg:sticky lg:top-5">
           <div className="mb-3 text-sm font-semibold text-text-primary">目录</div>
@@ -159,7 +167,7 @@ const HighlightPage: React.FC = () => {
         </aside>
 
         <main className="min-w-0">
-          <header className="border-b border-border pb-4">
+          <div className="border-b border-border pb-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <h1 className="text-xl font-semibold text-text-primary">{title}</h1>
@@ -169,14 +177,8 @@ const HighlightPage: React.FC = () => {
                 </div>
                 {localPath && <div className="mt-1 break-all text-xs text-text-secondary">本地文件：{localPath}</div>}
               </div>
-              <div className="flex flex-wrap gap-2">
-                <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 py-2 text-xs text-text-primary hover:border-accent/50 hover:text-accent">
-                  <Printer className="h-3.5 w-3.5" /> 打印
-                </button>
-                {staticHtmlUrl && <a href={staticHtmlAsset.url || undefined} target="_blank" rel="noreferrer" aria-disabled={!staticHtmlAsset.url} title={staticHtmlAsset.error || undefined} className={`inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 py-2 text-xs text-text-primary hover:border-accent/50 hover:text-accent ${staticHtmlAsset.url ? '' : 'pointer-events-none opacity-55'}`}>{staticHtmlAsset.loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />} {staticHtmlAsset.error ? 'HTML 加载失败' : '静态 HTML'}</a>}
-              </div>
             </div>
-          </header>
+          </div>
 
           {loading && <div className="mt-8 flex items-center gap-2 text-sm text-text-secondary"><Loader2 className="h-4 w-4 animate-spin" />正在加载本地重点...</div>}
           {!loading && error && <div className="mt-8 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
@@ -190,6 +192,7 @@ const HighlightPage: React.FC = () => {
             </article>
           )}
         </main>
+      </div>
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
+import ManualExerciseDialog from '../features/exercises/ManualExerciseDialog';
+import '../features/notes/notes.css';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, BookOpen, CheckCircle2, ChevronDown, ChevronRight, ClipboardList, Loader2, Pause, Pencil, Play, RotateCcw, Save, Scissors, Search, Shuffle, Upload, X } from 'lucide-react';
 import { apiFetch, del, get, post } from '../api/client';
 import ChatMessage from '../components/ChatMessage';
 import ScopeSelector from '../components/ScopeSelector';
-import { EmptyState } from '../components/ui/AsyncState';
 import { SegmentedControl } from '../components/ui/SelectionControls';
 import { useChatContext } from '../contexts/ChatContext';
 import {
@@ -47,6 +48,7 @@ function candidateToExercise(candidate: ExerciseCandidate) {
 const ExercisesPage: React.FC = () => {
   const { bookName, setBookName, subject, setSubject } = useChatContext();
   const [books, setBooks] = useState<BookInfo[]>([]);
+  const [manualOpen, setManualOpen] = useState(false);
   const [workspaceMode, setWorkspaceMode] = useState<'practice' | 'bank' | 'import'>('practice');
   const [targetName, setTargetName] = useState(bookName || '');
   const [targetSubject, setTargetSubject] = useState(subject || '\u6570\u5b66');
@@ -402,6 +404,7 @@ const ExercisesPage: React.FC = () => {
   };
   return (
     <div className="management-workspace flex h-full flex-col">
+      {manualOpen && <ManualExerciseDialog scope={activeName} subject={targetSubject} onClose={() => setManualOpen(false)} onSaved={() => { void load(); }}/>}
       <div className="app-page-header border-b border-border bg-bg-primary">
         <h2 className="app-page-title">练习</h2>
         <div className="window-drag-region" aria-hidden="true" />
@@ -523,7 +526,7 @@ const ExercisesPage: React.FC = () => {
             )}
             <section className={`${workspaceMode === 'practice' ? 'block' : 'hidden'} overflow-hidden border-y border-border bg-bg-card`}>
               <header className="border-b border-border px-5 py-3 sm:px-6">
-                <h3 className="type-section-title text-text-primary">设置本次练习</h3>
+                <h3 className="type-section-title text-text-primary">{practicePool.length || practiceSession ? '设置本次练习' : '准备题库'}</h3>
               </header>
 
               {practiceSession && ['active', 'paused'].includes(practiceSession.status) ? (
@@ -550,12 +553,13 @@ const ExercisesPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="border-b border-border px-5 py-5 sm:px-6">
-                  <h4 className="type-control text-text-primary">练习范围</h4>
+                  {practicePool.length > 0 ? <><h4 className="type-control text-text-primary">{[searchKw, statusFilter].filter(Boolean).length ? `当前筛选范围 · ${[searchKw, statusFilter].filter(Boolean).join(' / ')}` : '当前题库'}</h4>
                   <div className="mt-3 flex flex-wrap items-center gap-3">
                     <label className="flex items-center gap-2 workspace-interface-text text-text-secondary">题数<input type="number" min="1" max="200" value={sessionLimit} onChange={(e) => setSessionLimit(Math.max(1, Math.min(200, Number(e.target.value) || 1)))} className="h-9 w-16 app-field" /></label>
                     <button onClick={() => setSessionShuffle((value) => !value)} className={`flex h-9 items-center gap-1.5 workspace-radius border px-3 workspace-interface-text ${sessionShuffle ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-bg-card text-text-primary'}`}><Shuffle className="h-3.5 w-3.5" />{sessionShuffle ? '随机顺序' : '优先复习'}</button>
                     <button onClick={startConfiguredPractice} disabled={sessionBusy || practicePool.length === 0} className="app-primary-button disabled:cursor-not-allowed disabled:opacity-45">{sessionBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}开始练习</button>
                   </div>
+                  </> : <div><p className="workspace-interface-text text-text-secondary">当前没有可练习的题目。先导入教材题、Word/PDF，或手动录入并校对。</p><div className="mt-3 flex gap-2"><button className="app-primary-button" onClick={() => setWorkspaceMode('import')}>导入习题</button><button className="app-secondary-button" onClick={() => setManualOpen(true)}>手动录入</button></div></div>}
                   {practiceSession?.status === 'completed' && <p className="mt-3 workspace-support-text text-text-secondary">上轮完成 {practiceSession.summary.answered} 题，平均自评 {practiceSession.summary.average_quality}</p>}
                 </div>
               )}
@@ -628,13 +632,6 @@ const ExercisesPage: React.FC = () => {
                   </footer>}
                   {practiceMessage && <div className="border-t border-border bg-bg-card px-5 py-3 workspace-support-text text-text-secondary sm:px-6">{practiceMessage}{candidateId && <Link to="/mistakes?filter=pending" className="ml-3 text-accent underline">确认收录</Link>}</div>}
                 </div>
-              ) : practicePool.length === 0 ? (
-                <EmptyState
-                  variant="inline"
-                  title="暂无可练习习题"
-                  description="从 Word、PDF 或教材导入并校对题目后，即可开始练习。"
-                  action={<button type="button" onClick={() => setWorkspaceMode('import')} className="app-secondary-button">导入题目</button>}
-                />
               ) : null}
             </section>
             <div className={`${workspaceMode === 'import' || !stats?.total ? 'hidden' : 'flex'} flex-wrap items-center gap-x-5 gap-y-1 border-t border-border px-1 py-3 type-caption text-text-secondary`}>

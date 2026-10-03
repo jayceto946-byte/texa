@@ -102,6 +102,8 @@ const mistakeHref = (id: string, bookName: string) => `/mistakes/${encodeURIComp
 
 const LearningPage: React.FC = () => {
   const { bookName, setBookName, subject, setSubject } = useChatContext();
+  const [activeReview, setActiveReview] = useState<{ id: string; index: number; items: string[] } | null>(null);
+  const [activeReviewError, setActiveReviewError] = useState('');
   const [books, setBooks] = useState<ScopeBookOption[]>([]);
   const [summary, setSummary] = useState<LearningSummary | null>(null);
   const [subjectFilter, setSubjectFilter] = useState(subject || '');
@@ -160,6 +162,16 @@ const LearningPage: React.FC = () => {
   useEffect(() => {
     setSubjectFilter(subject || '');
   }, [subject]);
+
+  useEffect(() => {
+    let alive = true;
+    setActiveReview(null); setActiveReviewError('');
+    void get(`/review/sessions?book_name=${encodeURIComponent(bookName || 'default')}&subject=${encodeURIComponent(subjectFilter)}`).then(result => {
+      if (!result.success) throw new Error(result.message || '读取未完成复习失败');
+      if (alive) setActiveReview(result.data);
+    }).catch(e => { if (alive) setActiveReviewError(e instanceof Error ? e.message : '未完成复习暂不可用'); });
+    return () => { alive = false; };
+  }, [bookName, subjectFilter, loading]);
 
   const switchBook = async (name: string) => {
     if (!name) {
@@ -317,6 +329,8 @@ const LearningPage: React.FC = () => {
         {error && !loading && <ActionableIssue title="暂时无法整理复习计划" impact="今天的薄弱点和待复习顺序可能不完整；错题和学习记录不会丢失。" actions={<button onClick={load} className="app-secondary-button">重新加载</button>} details={error} />}
         {!loading && !error && summary && (
           <div className="review-page-body">
+            {activeReview && <section className="review-today"><div className="review-today-main"><div><h3 className="workspace-section-heading">继续本次复习</h3><p className="review-section-copy">已完成 {activeReview.index} / {activeReview.items.length} 道，作答草稿保留。</p></div><Link className="app-primary-button" to={`/learning/review/${encodeURIComponent(activeReview.id)}?book_name=${encodeURIComponent(bookName || 'default')}`}>继续复习</Link></div></section>}
+            {activeReviewError && <p className="review-feedback" role="status">未完成复习暂不可用：{activeReviewError}</p>}
             <section className="review-today" aria-labelledby="review-today-title">
               <div className="review-today-main">
                 <div>
@@ -325,11 +339,11 @@ const LearningPage: React.FC = () => {
                   <p className="review-today-context">近期薄弱概念 {summary.stats.weak_count} 个 · 近 7 天活跃 {activeDays} 天</p>
                 </div>
                 <div className="review-today-actions">
-                  {summary.mistake_stats.due_today > 0 ? <Link to="/learning/review" className="app-primary-button">开始本次复习</Link>
+                  {activeReview ? null : summary.mistake_stats.due_today > 0 ? <Link to="/learning/review" className="app-primary-button">开始本次复习</Link>
                     : recommended.length > 0 ? <button type="button" onClick={startConcept} className="app-primary-button">开始本次复习</button>
                     : supplementary.length > 0 ? <button type="button" onClick={() => setShowMoreConcepts(true)} className="app-primary-button">查看待复习概念</button>
                     : <Link to="/" className="app-primary-button">继续学习</Link>}
-                  <span>{summary.mistake_stats.due_today > 0 ? '从到期错题开始' : recommended.length > 0 ? '从首个推荐概念开始' : supplementary.length > 0 ? '查看补充概念' : '今天暂无待复习内容'}</span>
+                  <span>{activeReview ? '可继续上方复习会话' : summary.mistake_stats.due_today > 0 ? '从到期错题开始' : recommended.length > 0 ? '从首个推荐概念开始' : supplementary.length > 0 ? '查看补充概念' : '今天暂无待复习内容'}</span>
                 </div>
               </div>
             </section>
@@ -348,7 +362,7 @@ const LearningPage: React.FC = () => {
                   {shownConcepts.length > 0 && <div className="review-group-label">本次推荐概念 <span>{recommended.length} 个</span></div>}
                   {shownConcepts.map((item, index) => <ConceptReviewCard key={item.name} item={item} bookName={bookName} index={dueMistakes.length + index + 1} first={dueMistakes.length + index === 0} open={expandedConcept === item.name} onToggle={() => setExpandedConcept(expandedConcept === item.name ? '' : item.name)} onReview={handleConceptReview} reviewing={reviewingConcept === item.name} error={reviewError?.name === item.name ? reviewError.text : ''} buttonRef={index === 0 ? firstConceptRef : undefined} />)}
                   {visibleCount < primaryCount && <button type="button" className="review-show-more" onClick={() => setVisibleCount((count) => count + 5)}>显示更多 · 当前展示 {Math.min(visibleCount, primaryCount)} / {primaryCount} 条已返回的主要条目</button>}
-                </> : <div className="review-empty">当前没有到期错题或本次推荐概念。{supplementary.length ? '可以查看下方补充概念。' : '继续学习或录入错题后，复习内容会在这里更新。'}</div>}
+                </> : null}
                 {supplementary.length > 0 && <div className="review-supplementary">
                   <button type="button" aria-expanded={showMoreConcepts} onClick={() => setShowMoreConcepts(!showMoreConcepts)} className="review-supplementary-toggle">补充待复习概念 <span>{supplementary.length} 个 {showMoreConcepts ? '收起' : '展开'} <ChevronDown className="h-4 w-4" /></span></button>
                   {showMoreConcepts && supplementary.map((item, index) => <div className="review-row" key={item.name}>
@@ -362,8 +376,7 @@ const LearningPage: React.FC = () => {
               <details className="review-rules"><summary>排序依据</summary><p>到期错题先于本次推荐概念；同组保持现有服务端顺序。补充概念单独列出。</p>{summary.review_rules?.concept_due && <p>{summary.review_rules.concept_due}</p>}</details>
             </section>
 
-            <section className="review-insights" aria-labelledby="review-analysis-title">
-              <h3 id="review-analysis-title" className="workspace-section-heading">学习洞察</h3>
+            <details className="review-insights"><summary className="workspace-section-heading">学习洞察与活动记录</summary>
               <p className="review-section-copy">用于观察学习模式，不改变今天的行动顺序。</p>
               <div className="review-insight-columns">
                 <InsightList title="高频概念" items={summary.top_concepts.map((item) => ({ name: item.name, detail: `${item.count} 次` }))} empty="暂无高频概念" />
@@ -375,7 +388,7 @@ const LearningPage: React.FC = () => {
               </div>
               {kgJob && <TaskStatus title="完善知识关联" detail={kgJob.message || kgJob.status} progress={kgJob.progress} state={kgJobFailed ? 'error' : kgJob.status === 'completed' ? 'success' : 'loading'} />}
               {bookName && <button onClick={startKGEnhancement} disabled={kgJobIsRunning} className="app-secondary-button"><BrainCircuit className="h-4 w-4" />{kgJobIsRunning ? '正在完善知识关联' : '完善知识关联'}</button>}
-            </section>
+            </details>
           </div>
         )}
       </div>

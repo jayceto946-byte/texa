@@ -226,14 +226,13 @@ const BooksPage: React.FC = () => {
         : '无法确认 MinerU 状态';
 
   return (
-    <div className="management-workspace flex h-full flex-col overflow-y-auto bg-bg-primary">
-      <header className="app-page-header border-b border-border bg-bg-card">
-        <button type="button" onClick={() => navigate('/books')} className="app-icon-button" aria-label="返回教材"><ArrowLeft className="h-4 w-4" /></button>
+    <div className="management-workspace flex h-full min-w-0 flex-col bg-bg-primary">
+      <header className="app-page-header window-drag-region border-b border-border bg-bg-card">
         <h2 className="app-page-title">导入教材</h2>
-        <div className="window-drag-region" aria-hidden="true" />
+        <button type="button" onClick={() => navigate('/books')} className="app-ghost-button"><ArrowLeft className="h-4 w-4" />返回教材</button>
       </header>
 
-      <div className="management-page-content mx-auto w-full max-w-6xl space-y-5">
+      <div className="min-h-0 flex-1 overflow-y-auto"><div className="management-page-content mx-auto w-full max-w-6xl space-y-5">
         <section className="border-y border-border py-4">
           <div className="mb-3 text-sm font-semibold text-text-primary">1. 选择来源</div>
           <SegmentedControl
@@ -351,6 +350,7 @@ const BooksPage: React.FC = () => {
           <details className="border-b border-border px-4 py-3 type-caption text-text-secondary"><summary className="cursor-pointer">详细信息</summary><p className="mt-2">{stageLabels[job.stage] || job.stage} · {job.message}</p></details>
           {isDone && <div className="flex justify-end"><button type="button" onClick={() => navigate('/books')} className="app-primary-button">查看教材状态</button></div>}
         </>}
+      </div>
       </div>
     </div>
   );

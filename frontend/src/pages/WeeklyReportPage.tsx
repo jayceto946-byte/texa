@@ -57,21 +57,22 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
   const nextStep = report?.suggestions?.[0] || '先完成一次问答或错题复习，再回来查看建议。';
 
   return (
-    <div className={compact ? 'space-y-4' : 'h-full overflow-y-auto bg-bg-primary p-6'}>
-      <div className="flex items-center justify-between gap-3">
+    <div className={compact ? 'space-y-4' : 'management-workspace flex h-full min-w-0 flex-col'}>
+      <header className={compact ? 'flex items-center justify-between gap-3' : 'app-page-header window-drag-region'}>
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-bg-card">
+          {compact && <div className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-bg-card">
             <BarChart3 className="h-5 w-5 text-accent" />
-          </div>
+          </div>}
           <div>
-            <h2 className="text-sm font-semibold text-text-primary">{title}</h2>
+            <h2 className={compact ? 'text-sm font-semibold text-text-primary' : 'app-page-title'}>{title}</h2>
           </div>
         </div>
-        <button onClick={loadReport} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-bg-card px-3 py-2 text-sm hover:bg-bg-primary disabled:opacity-50">
+        <button onClick={loadReport} disabled={loading} className="app-secondary-button">
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           刷新
         </button>
-      </div>
+      </header>
+      <div className={compact ? 'space-y-4' : 'management-page-content min-h-0 flex-1 space-y-4 overflow-y-auto'}>
 
       {loading && !report && (
         <div className="flex items-center justify-center gap-2 rounded-md border border-border bg-bg-card py-8 text-sm text-text-secondary">
@@ -135,6 +136,7 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
           </section>
         </>
       )}
+      </div>
     </div>
   );
 };

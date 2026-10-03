@@ -10,9 +10,9 @@
 
 .study-desk .learning-workspace-header,
 .study-desk .app-page-header {
-  height: 48px;
-  min-height: 48px;
-  padding: 0 28px;
+  height: var(--workspace-chrome-height);
+  min-height: var(--workspace-chrome-height);
+  padding: 0 var(--workspace-management-gutter);
   background: var(--workspace-canvas);
 }
 .study-desk .learning-workspace-header h2,
