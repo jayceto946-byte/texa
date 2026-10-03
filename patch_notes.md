@@ -1,3 +1,46 @@
+# 2026-10-03 - Unified Desktop Headers
+
+- 按用户要求将共享页头统一为 48px / 1px 下边框，标题由 19px 缩小到 16px（3px）；学习与管理页面标题内距统一，设置弹窗沿用同一高度与字号。补齐周报、章节重点、错题/复习子页面与笔记加载/失败/终态页头，教材导入改为内容滚动、页头固定。
+- 重新启动实际 macOS Electron 并逐页核对七个主页面、导入、现有草稿及设置窗口，保留原生截图。隔离预览 19 场景 × 三尺寸 × 两平台标记共114项，另19项最终默认宽度复查、6项笔记状态、3项设置检查；142条记录均48px/16px/1px，无横向溢出及页头控件越界。Windows为浏览器标记模拟，未做原生Windows或安装包验证。
+- 前端31文件/140项通过，TypeScript、变更文件ESLint、Vite构建及git diff --check通过，既有分块提示保留。已更新frontend/dist并重开Electron，旧构建备份在/private/tmp/texa-frontend-dist-before-header-20261003。无依赖或数据迁移、付费模型调用及正式学习资产写入；完整记录：docs/header-unification-validation-2026-10-03.md。
+
+# 2026-10-03 - Natural Session Note Prompt v4
+
+- 按用户要求简化笔记提示为 session-note-article-v4：以对话为主线，允许适度补充背景、解释、类比、例子或基础推导；去掉只可改写、禁止补充以及“用户确认/模型推测”强制标签，围绕主题生成自然文章。仍不编造教材出处或用户经历。
+- 配套放宽生成合同：document-only 输出有效，旧 coverage 输出兼容；后台按段落引用补充映射，不要求逐消息覆盖。生成补充块允许无消息引用，内部为 generated/supplemented；合法来源归属和结构检查保留，校验标记为 note-structure-v2，不提升数学验证状态。无新依赖、数据库迁移、前端改动或额外模型/工具路径；历史笔记不自动改写。
+- 验证：venv310/Python 3.10 临时 DATA_DIR/PROGRESS_PATH 隔离回归 81 passed、1 条既有 Starlette 弃用警告，git diff --check 通过。覆盖补充公式、无覆盖报告、主题合并、长对话多批、保存及冻结素材保留、非法教材引用拒绝。未运行付费模型或重新做无变化的布局验收；现有桌面后端重开后，新笔记使用 v4。完整提示与验证：docs/session-note-article-v4-2026-10-03.md。
+
+# 2026-10-03 - Approved Conversation Management and Note Reading Follow-up
+
+- 用户明确批准 S6，并要求去掉笔记的防御性审计展示。移除草稿/正式笔记/列表的检查计数、标题警示、逐块来源与感叹号、编辑来源勾选；显式保存不再附加警告确认门槛。保留内部冻结来源、quality、结构校验、revision CAS 与幂等回执，保存不提升数学验证状态。提示改为 session-note-article-v3，要求围绕学习主题生成连贯文章，无真实付费生成验收。
+- 会话权威 SQLite 增加 navigation v1 独立管理/schema/operation receipt 三表，按需原子初始化，不改原消息、Ledger 或数据库原 user_version。支持持久置顶、归档、可恢复回收站及范围分页，管理 CAS/回执/目录代次游标保证一致性；旧无扩展库兼容。没有永久删除、资产级联或 Goal 合并。
+- 归档/回收站与任务准入共用既有单进程栅栏，真实未完成任务阻止管理动作；用户明确结束停止/等待任务后更新旧消息投影。保留输出、附件和已提交领域回执；未知写入阻止取消。图片/教材图题覆盖回收站 HTTP 及 canonical SSE 竞态。备份恢复验证管理版本/状态并保留独立笔记；回退保留扩展表，旧代码不理解新管理准入，不视为完整产品回退。
+- 验证：venv310/Python 3.10.21 主代理联合回归 258 passed；Sol 最终临时 DATA_DIR/PROGRESS_PATH 隔离复跑 250 passed（范围重叠，不相加）；前端 31 files / 140 passed；TypeScript、变更文件 ESLint、Vite build、git diff --check 通过。独立原生 macOS Electron 点击直接保存，浏览器管理闭环/未完成任务门槛、12 个尺寸/平台标记布局场景通过。未做原生 Windows、付费模型、安装包或多后端进程验收；全量会话/任务扫描的规模性能仍有限。
+- 前期既有测试 audit observer 曾写入 data/progress/runtime_events.db 诊断事件，未删除该库；没有修改真实会话、错题、笔记资产。最终复跑已隔离，新增管理测试禁 observer。
+- 已更新仓库 frontend/dist，保留旧 hash 资源并备份原构建于 /private/tmp/texa-frontend-dist-before-followup-20261003；未强制重启用户桌面，关闭并重开从本仓库启动的 Texa 后生效，未重制安装包。完整说明与截图：docs/desktop-ui-refactor-followup-2026-10-03.md。
+
+# 2026-10-03 - Desktop UI Refactor, Stage One
+
+- 根据五图审查和 Astra 方案，由 GPT-6.1 Sol 实施主要 UI 改动；Sol 中途额度受限，主代理继续复核、修正并验收。笔记全链路接共享 48px 页头和阅读排版，默认按实际内容、高级设置折叠，逐块来源转为侧边 inspector；历史三点菜单与单一预检 controller 消除重复入口，问题菜单按持久状态提供录入/继续/查看错题。
+- 错题来源查询与并发复用基于现有表和稳定消息身份，兼容旧 source_ref、完整来源扫描与分批 turn 读取；复习增加现有表上的只读未完成入口。调整 Goal/复习/练习/错题层级及空状态，保留正式保存、warning hash、CAS、幂等和人工校对门槛。没有 schema、依赖、模型或正式学习数据迁移。
+- 主代理修复复核中的预览 CSS 顺序、页头 flex、重复空题库、录入焦点、来源切换、原始 Markdown 冷加载、生成终态/取消确认及 Windows 窗口控件避让。应用壳不可选择，阅读/输入仍可选择；不全局拦截 Ctrl/Cmd+A。
+- 验证：venv310/Python 3.10.21 相关后端 80 passed；当前合并前端 30 files / 137 passed；TypeScript、变更文件 ESLint、Vite 隔离输出构建、git diff --check 通过。原生 macOS 隔离 Electron 1280×820 检查草稿、来源、警告门槛、导航及 Cmd+A；浏览器七页三尺寸两平台标记共42项布局无横向溢出、页头48px、Windows控件区域无交叠。原生 Windows、打包升级、真实付费生成质量及完整业务状态矩阵未验收；未覆盖用户正在运行的 dist。
+- 审查、Astra 方案及实施验收：docs/desktop-ui-audit-astra-handoff-2026-10-03.md、docs/desktop-ui-refactor-astra-plan-2026-10-03.md、docs/desktop-ui-refactor-sol-implementation-2026-10-03.md。持久会话置顶/归档/可恢复删除仅形成具体提案，待用户批准；小模型和 Goal 持续对话未上线。
+
+# 2026-10-03 - Inspectable Learning Execution Trace
+
+- 学习回答使用同一个上方执行区，运行时展示当前操作、最近完成步骤及实时耗时；完成/停止/失败后自动收起，展开保留实际范围、回答要求、教材段落与工具回执。清除旧底部执行区和终态样式，保留键盘展开、主题和三档桌面宽度行为。
+- 通过现有 ExecutionEvent payload 持久化有界教材预览、最终 EvidencePack 选中证据、白名单工具输入/结果及校验状态；召回与最终证据分开标注，旧历史缺少预览明确披露，不回查当前索引补造。教材+chunk 身份匹配，隐藏 thinking 与未知凭证字段不进入公开详情；预览沿用 Markdown/LaTeX 并关闭远程媒体。
+- 总耗时改为本轮 elapsed/total，避免阶段重叠相加；Runtime 事务 emitter 从 run 创建时间计时，工具 call_id 合并为同一步，后续进度保留已有详情。无依赖、数据库、索引格式变更或正式学习数据迁移。
+- 验证：venv310/Python 3.10，相关后端 73 passed；前端 136 passed；变更文件 ESLint、git diff --check 通过。原生 macOS Electron 实际桌面入口 + 隔离样例检查完整学习页与组件在 1280×820、1024×768、760×820 的执行/收起/展开、键盘、段落、工具结果、停止/失败/待核验状态，无水平溢出。未调用真实模型，未测试 Windows 或打包升级。
+- TypeScript/Vite 构建通过（既有分块警告保留）。期间曾遇到工作区并行修改的 ExercisesPage.tsx 类型错误，末次复查已通过，本次未修改该页面。完整记录与截图：docs/validation/execution-trace-2026-10-03/README.md。
+
+# 2026-10-03 - Desktop UI Audit and Astra Handoff
+
+- Consolidated five user screenshots with a read-only macOS Electron review of chat, note draft/library, paused Goal, review activity, mistake empty state, and exercise empty state. Recorded 15 additional findings with visual/source/inference evidence separated in `docs/desktop-ui-audit-astra-handoff-2026-10-03.md`; preserved the five reference images under `artifacts/desktop-ui-audit-2026-10-03/`.
+- Requested a macro refactor plan from GPT-6 Astra before implementation by GPT-6.1 Sol. The audit preserves frozen note provenance, warning acknowledgement, revision/operation semantics, learning data, and content selection/copying. Persistent conversation management, future small-model focus selection, and Goal/chat integration require separate contracts rather than UI-only placeholders.
+- Audit only: no production API/schema/dependency changes, paid model calls, note publication, Goal execution, or user data deletion. Native Windows, packaged release, and narrow-window acceptance were not performed in this audit.
+
 # 2026-10-01 - Dataset V0 Verification Blocker Fixes
 
 - 仅修 Astra 指出的两个 blocker：manifest 三种版本及 digest 改为 fail closed，复用既有批准 baseline source pins，校验格式/必填、固定 source 集合、逐项冻结/实际 SHA256、Runtime/Registry canonical digest。raw dict 与被修改的 model 均重验证，明确错误码退出 selection/diagnostic eligibility；空值、bogus、malformed/all-zero/mismatch 或依据不可用不再授予选择资格。无 wildcard/unknown，不改生产 versioning。
@@ -3127,6 +3170,28 @@ The detailed historical notes for this period were damaged by mojibake before th
 - Runtime event writes are batched in a bounded background queue; oldest complete turns rotate after 100,000 rows. The allowlisted payload excludes prompts, answers, credentials, paths, tool arguments, and textbook body. The contract and replay limits are documented in `docs/runtime-event-v1.md`.
 - New RAG diagnostic trace writes redact recognizable credentials, email addresses, and absolute local paths in questions, context, evidence, and errors. Existing rows are unchanged.
 - The bounded runtime projects audit events only after its SQLite transaction commits, so rollback does not create phantom history. Validation: 94 focused RuntimeEvent, execution, chat, goal, feedback, RAG trace, and backup tests passed; Python compilation and diff whitespace checks passed. No dependency or existing database migration is required; the new database is created under `PROGRESS_PATH`. Native Electron was not launched for this backend-only change.
+
+## 2026-10-02 — Session → Note P0 核心工程实现
+
+- 按 Astra handoff 新增独立笔记资产、冻结来源包、块级引用、版本化章节、草稿编辑/明确保存、不可变版本与归档恢复。新增 `PROGRESS_PATH/session_notes.db` schema 1 六表与 manifest 组件，首次访问创建独立库；不迁移旧会话/错题/Goal/教材数据。备份复用 SQLite snapshot，恢复前验证 Notes 引用完整性；旧备份可无 Notes 组件。回退应用应保留完整备份及新库，不降级写入。
+- 生成复用模型角色工厂与 JobManager，有界 8+1 调用、单次 90 秒/总计 600 秒、零自动重试；候选持久化 → complete CAS → 草稿发布，取消与完成竞态、重启补发布及中断有独立离线回归。未增加模型调用工具或开放 Agent Loop，未把保存/阅读转换为 Memory、Goal、错题、掌握度或 SM-2 更新。
+- 前端新增笔记入口、预检选区、列表/详情/草稿、逐块数学编辑和冻结来源 Inspector；历史消息支持 ID 定点与前后分页。串行 CAS 自动保存、警告 acknowledgement、失败复制/重读恢复与动态路由有界缓存已接线。Electron 关闭/退出/更新/后端重启在停止后端前等待草稿保存握手，失败保留窗口；新握手模块纳入打包文件。
+- 验证：Python 3.10 Notes 与相关回归 102 项、前端 28 文件/133 项、TypeScript、全量 ESLint、Vite 构建、desktop 11 项、语法/空白检查通过。20/40/80 轮及 5200 消息来源、故障注入、备份恢复使用临时库；12 份六类 synthetic/offline 夹具仅作来源/警告检查，人工语义审阅未运行。未调用真实付费模型、未迁移真实学习数据。
+- 实际 Electron 仅完成改动前的有数据学习页/公式矩阵基线；Mac 随后锁定阻止新 Notes 验收，三个尺寸完整流程、Windows 与发布包仍待验收。构建保留既有 Markdown 动态导入和大 chunk 警告。详细实现、数据影响与待验收清单见 `docs/session-note-p0-implementation.md`；不宣称 P0 全部验收通过。
+
+## 2026-10-03 — Session → Note P0 续验收
+
+- macOS 原生 Electron 在 1280×820、1024×768、760×820 实看长标题、公式、矩阵与表格；隔离数据完成预检、生成替身、自动保存、警告确认、同来源多笔记、归档恢复、历史版本、超过近期窗口的来源定点跳转与返回。保存故障阻止退出并保留当前文字，修复后可重试；确认活跃 Job 后中断隔离后端，重启为 interrupted，不自动重跑。
+- 修正来源返回目标校验、错误提示分类、scope 排除轮次预检往返误报及取消/中断文案。首次配置完成标志新增用户目录 setup-complete.json 原子持久化，避免动态端口重启重复引导；只存版本与布尔标志，不含凭证，旧 localStorage 标志兼容迁入，IPC 验证主窗口 sender。新增模块进入打包清单；不修改依赖或数据库 schema。
+- 真实 macOS arm64 发布候选包后端启动、离线阅读/编辑/自动保存/revision 5 提交通过。DMG checksum 与 ZIP 全文件 CRC 通过，ASAR 六个桌面模块与源码一致；DMG/ZIP 另保留于 artifacts/session-note-p0-acceptance/release-macos-arm64。沿用未签名/未公证配置，未安装、发布或验证升级器；Windows 无可用主机。
+- 用户授权后完成 qwen3.7-plus 12 次真实调用，零自动重试，仅发送 12 份合成会话，未发送真实学习记录或保存凭证。结构/引用合同 12/12 通过；代理审阅 10 份未发现目标项缺失、1 份纠错归因/展开需裁决、1 份新增来源外“两列”性质。首次输出与证据保留；人工签审仍 not_run，不以合同通过代替语义质量，P0 未全部放行。
+- 验证：Python 3.10 相关后端 109 项、前端 29 文件/134 项、desktop 14 项，TypeScript、全量 ESLint、Vite、Python/Node 语法检查及 diff 空白检查通过。全部写入隔离目录，未迁移真实学习数据。完整报告见 docs/session-note-p0-acceptance-report.md，模型证据见 artifacts/session-note-p0-acceptance/real-model-2026-10-02。
+
+## 2026-10-03 — 笔记整理来源边界与纠错归因
+
+- 按用户指定的第 1、2 项收紧生成 system prompt，版本改为 session-note-structure-v2。允许重组、指代补全、LaTeX 规范与不新增步骤的等价表达；禁止凭常识增加来源未讨论的性质、例子、结论或检验步骤。明确“交换两行”不得扩展为“两行或两列”，“可以求导检验”不意味着代做检验。
+- 用户明确确认的错因须以“用户确认”标注并引用确认消息；助手推测须标为“模型推测，未经用户确认”，不得从错误自行断言错因或泛化为长期弱点。规则统一用于抽取与合并，要求压缩后保留条件、归因及未决状态。
+- 验证：现有 Notes 离线 42 项测试通过，Python 语法与 diff 空白检查通过。新 system prompt 为 2208 UTF-8 字节，在已有 2400 预算预留内。未新增真实模型调用、未改变 schema/依赖、未改写首次输出或已有笔记；v2 语义效果尚未真实模型复验，先前候选包仍为 v1，未重新打包。
 
 ## 2026-10-03 — MinerU 4 原生输出与索引发布收口
 

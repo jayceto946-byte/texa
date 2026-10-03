@@ -48,7 +48,7 @@ texa/
 ├── ingestion/                  # Canonical Document IR、来源适配、切块与索引发布
 ├── llm/                        # Provider/Model registry、角色配置、连接与客户端工厂
 ├── knowledge/                  # 知识图谱、概念记忆、关键词与章节重点
-├── memory/                     # 习题、错题、学习事件、反馈与间隔复习
+├── memory/                     # 习题、错题、独立笔记、学习事件、反馈与间隔复习
 ├── evaluation/                 # Context、RAG、工具与任务生命周期发布评测
 ├── agents/                     # 兼容/辅助封装，不是独立自主 Agent 产品入口
 ├── scripts/                    # 构建、索引、评测、发布与维护脚本
@@ -77,6 +77,7 @@ texa/
 - 停止、断开和恢复必须保持同一 task/turn 的幂等语义。只有后端确认中断后前端才显示恢复入口；旧 run 的迟到事件不得覆盖新 run，完成投影不得重复写入用户问题。
 - 最终答案必须经过确定性后置验证，至少检查 required outputs、引用合法性以及数值/公式/单位的可验证支持。验证失败或无法确定时进入 `degraded` / `unverified` 并向用户披露；验证门槛不是模型答案准确率证明。
 - 完整会话消息以 append-only event log 持久化；单会话 JSON 只保留最近窗口兼容投影。历史读取必须使用游标分页，不能通过裁剪持久层来控制 prompt 或前端内存。
+- 会话置顶、归档与回收站状态保存在会话 SQLite 的独立元数据与幂等回执中，不混入消息事件。回收站仅可恢复删除，不级联删除笔记、错题或独立 Goal；恢复前不得准入新问答。归档/回收站与任务准入共用现有运行栅栏，未完成任务需由用户继续或明确结束，不因管理操作自动取消。
 - Resolver 读取近期消息窗口 + Session Ledger；完整历史仅用于 Ledger 缺失/陈旧时重建，不能直接塞入回答 prompt。Ledger 必须保留 topic stack、实体 first/last mentioned turn、assistant artifacts、comparison/constraint state 与 active evidence 的有界投影。
 - Resolver 的行为边界是 `resolved_query + speech_act + state_operations`。澄清时不得推进会话状态；实体纠正和明确的新对象优先于旧 topic、代词与继承约束。
 - 回答生成统一使用 `ConversationContextPack`，只包含当前 topic/问题维度、有效约束、最多 2 个相关历史 turn、被引用 artifact、必要 topic 摘要和 evidence continuity。不得把完整历史直接放入回答 prompt；独立问题不得继承历史 turn。
@@ -126,6 +127,14 @@ texa/
 - 复习调度使用 SM-2 或兼容的间隔重复策略。
 - 错题讲解可注入教材 RAG 上下文；通用题目可退化为纯 LLM 讲解。
 - OCR 录入必须允许用户编辑识别结果，不能把 OCR 输出视为可信最终题干。
+
+### 学习会话笔记
+
+- SessionNote 是独立学习资产，Session 仅为来源；只由用户主动整理并明确保存。草稿自动保存不提交正式笔记，正式版本不可变，修改/归档通过 revision CAS 和幂等回执提交。
+- 笔记来源按完整 turn 从会话权威 SQLite 同一事务冻结，保留正文、hash、证据命名空间和版本化章节锚点。不得把最近消息窗口、Ledger 或有上限的完整历史助手函数当作全部来源；旧片段缺失保留 unknown，不从当前索引冒充补齐。
+- 生成复用模型角色工厂和 JobManager，固定有界抽取/组织，不调用工具；以对话为主要素材，允许围绕原主题适度补充背景、解释、例子或基础推导，补充段落不必绑定原消息，不伪造教材来源或用户经历。完成回执与候选 hash 匹配后才可发布草稿。重启不自动付费重跑，用户主动保存不提升内部数学验证状态；笔记默认呈现连贯文章，不显示逐块来源、核实徽标或数学校验免责声明，也不要求额外勾选来源警告才能保存。
+- Notes 库位于 PROGRESS_PATH/session_notes.db，与会话、错题、Goal 独立；备份保留来源及历史版本。阅读、编辑不要求模型/向量库在线，保存和浏览不自动写 Memory、Goal、错题、掌握度或 SM-2。
+- 人工编辑保留来源并降级对齐，新增块允许 user_added；教材分类关联不成为事实证据。章节引用按教材及 IR/heading 版本定位，不用标题或序号静默重绑。
 
 ### 知识记忆
 

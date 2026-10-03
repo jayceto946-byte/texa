@@ -1,0 +1,47 @@
+{
+  "scope": "Real Electron desktop main entry, isolated fixture component, no model/storage calls",
+  "reports": [
+    {
+      "width": 1280,
+      "height": 820,
+      "viewport": 1280,
+      "overflow": false,
+      "preview": "含有未知多元函数及其偏导数的方程，称为偏微分方程。方程中最高阶偏导数的阶数，称为该方程的阶。\n例如 u_x + u_y = 0 是一阶偏微分方程。（界面样例，非真实教材引文）",
+      "tool": "返回结果result: 2*x",
+      "time": "12 秒",
+      "above": true
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "viewport": 1024,
+      "overflow": false,
+      "preview": "含有未知多元函数及其偏导数的方程，称为偏微分方程。方程中最高阶偏导数的阶数，称为该方程的阶。\n例如 u_x + u_y = 0 是一阶偏微分方程。（界面样例，非真实教材引文）",
+      "tool": "返回结果result: 2*x",
+      "time": "12 秒",
+      "above": true
+    },
+    {
+      "width": 760,
+      "height": 820,
+      "viewport": 760,
+      "overflow": false,
+      "preview": "含有未知多元函数及其偏导数的方程，称为偏微分方程。方程中最高阶偏导数的阶数，称为该方程的阶。\n例如 u_x + u_y = 0 是一阶偏微分方程。（界面样例，非真实教材引文）",
+      "tool": "返回结果result: 2*x",
+      "time": "12 秒",
+      "above": true
+    },
+    {
+      "state": "error",
+      "title": "回答中断"
+    },
+    {
+      "state": "stopped",
+      "title": "已停止"
+    },
+    {
+      "state": "degraded",
+      "title": "回答待核验"
+    }
+  ]
+}
