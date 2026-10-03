@@ -1,0 +1,202 @@
+{
+  "adapter": "mineru-structured-content-v1",
+  "producer": {
+    "name": "mineru",
+    "version": "4.0.8"
+  },
+  "fingerprint": "53dfd8207fcfdf27abecf48c0231edd366454358ab33d2b5bdec2af4d961772b",
+  "block_types": {
+    "paragraph": 3442,
+    "heading": 270,
+    "figure": 663,
+    "formula": 522,
+    "table": 28
+  },
+  "chunk_types": {
+    "paragraph": 1268,
+    "figure": 663,
+    "formula": 522,
+    "table": 36
+  },
+  "indexed_chunks": 1826,
+  "chapter_titles": [
+    "Native isolated full corpus",
+    "第1章 绪论",
+    "第2章 传感器的功能材料及加工工艺",
+    "第3章 温敏传感器",
+    "第4章 力敏传感器",
+    "第5章 磁敏传感器",
+    "第6章 光敏传感器",
+    "第7章 声敏传感器",
+    "第8章 气敏传感器",
+    "第9章 湿敏传感器",
+    "第10章 生物传感器",
+    "第11章 传感器的信号处理",
+    "第12章 传感器的智能化和网络化"
+  ],
+  "report": {
+    "errors": 0,
+    "warnings": 5529
+  },
+  "excluded": {
+    "header": 345,
+    "doc_title": 3,
+    "footer": 12,
+    "page_number": 344,
+    "index": 8
+  },
+  "figures_ready": 663,
+  "original_visuals_ready": 550,
+  "manifest": {
+    "book_name": "Native isolated full corpus",
+    "schema_version": 6,
+    "index_version": "4497a92056459a81",
+    "provenance_schema": "texa.provenance/v1",
+    "canonical_hash": "53dfd8207fcfdf27abecf48c0231edd366454358ab33d2b5bdec2af4d961772b",
+    "content_fingerprint": "4497a92056459a814b6fb90c9a9f141534154b93400ffb6697b6f06f7393b0c8",
+    "status": "ready",
+    "vector_ready": true,
+    "lexical_ready": true,
+    "source_fallback_active": false,
+    "chunk_count": 1826,
+    "catalog_chunk_count": 2489,
+    "lexical_chunk_count": 1826,
+    "chapter_collection_count": 13,
+    "aggregate_collection": "bookb9698d77d02e4497a920567eeb",
+    "release_quality": {
+      "cases": 24,
+      "recall_at_k": 1.0,
+      "mrr": 1.0,
+      "point_recall": 1.0,
+      "specialty_gates": {
+        "formula": {
+          "status": "passed",
+          "passed": true,
+          "source_units": 512,
+          "required_cases": 3,
+          "cases": 8,
+          "coverage_passed": true,
+          "recall_at_k": 1.0,
+          "point_recall": 1.0,
+          "mrr": 1.0,
+          "thresholds": {
+            "min_recall": 1.0,
+            "min_point_recall": 1.0,
+            "max_required_cases": 3
+          }
+        },
+        "list": {
+          "status": "passed",
+          "passed": true,
+          "source_units": 185,
+          "required_cases": 3,
+          "cases": 8,
+          "coverage_passed": true,
+          "recall_at_k": 1.0,
+          "point_recall": 1.0,
+          "mrr": 1.0,
+          "thresholds": {
+            "min_recall": 1.0,
+            "min_point_recall": 1.0,
+            "max_required_cases": 3
+          }
+        },
+        "example": {
+          "status": "not_applicable",
+          "passed": true,
+          "source_units": 0,
+          "required_cases": 0,
+          "cases": 0,
+          "recall_at_k": 1.0,
+          "point_recall": 1.0,
+          "thresholds": {
+            "min_recall": 1.0,
+            "min_point_recall": 1.0,
+            "max_required_cases": 3
+          }
+        },
+        "table": {
+          "status": "passed",
+          "passed": true,
+          "source_units": 27,
+          "required_cases": 3,
+          "cases": 8,
+          "coverage_passed": true,
+          "recall_at_k": 1.0,
+          "point_recall": 1.0,
+          "mrr": 1.0,
+          "thresholds": {
+            "min_recall": 1.0,
+            "min_point_recall": 1.0,
+            "max_required_cases": 3
+          }
+        }
+      },
+      "generated_probe_cases": 24,
+      "status": "passed"
+    },
+    "release_gate_mode": "production_hybrid_retrieval_and_evidence_pack",
+    "activated_at": "2026-10-03T23:43:42+0800",
+    "versions": [
+      {
+        "index_version": "4497a92056459a81",
+        "provenance_schema": "texa.provenance/v1",
+        "canonical_hash": "53dfd8207fcfdf27abecf48c0231edd366454358ab33d2b5bdec2af4d961772b",
+        "collections": [
+          "bk1803c1931a9a8e4497a920567eeb",
+          "bk1a3c8cf24491ee4497a920567eeb",
+          "bkc23c960c7609c64497a920567eeb",
+          "bk8f7b1ced65c0c64497a920567eeb",
+          "bkaab496c3b4e4014497a920567eeb",
+          "bkdc25bc73ccaab94497a920567eeb",
+          "bk14312d7fc895a64497a920567eeb",
+          "bkba14af6122a5ca4497a920567eeb",
+          "bkf21a33dc835fd04497a920567eeb",
+          "bk871693e44da4f04497a920567eeb",
+          "bka0a62a1a4410334497a920567eeb",
+          "bk29099dab6e8bde4497a920567eeb",
+          "bk734e95477b390e4497a920567eeb",
+          "bookb9698d77d02e4497a920567eeb"
+        ],
+        "lexical_path": "_lexical_versions/Native isolated full corpus/4497a92056459a81.json",
+        "activated_at": "2026-10-03T23:43:42+0800",
+        "chunk_count": 1826,
+        "catalog_chunk_count": 2489,
+        "canonical_snapshot": "canonical_versions/53dfd8207fcfdf27abecf48c0231edd366454358ab33d2b5bdec2af4d961772b",
+        "canonical_progress_root": "/private/tmp/texa-mineru-native-integration/data/progress"
+      },
+      {
+        "index_version": "8f0c12526d4bd515",
+        "collections": [
+          "bk1803c1931a9a8e8f0c12526db760",
+          "bk5f0d4d44e13a918f0c12526db760",
+          "bkd3a4be6255955a8f0c12526db760",
+          "bkb1c8987504d3668f0c12526db760",
+          "bk88d2e416bf821a8f0c12526db760",
+          "bk1a3c8cf24491ee8f0c12526db760",
+          "bkc23c960c7609c68f0c12526db760",
+          "bk8f7b1ced65c0c68f0c12526db760",
+          "bkaab496c3b4e4018f0c12526db760",
+          "bkdc25bc73ccaab98f0c12526db760",
+          "bk14312d7fc895a68f0c12526db760",
+          "bkba14af6122a5ca8f0c12526db760",
+          "bkf21a33dc835fd08f0c12526db760",
+          "bk871693e44da4f08f0c12526db760",
+          "bka0a62a1a4410338f0c12526db760",
+          "bk29099dab6e8bde8f0c12526db760",
+          "bk734e95477b390e8f0c12526db760",
+          "bookb9698d77d02e8f0c12526db760"
+        ],
+        "lexical_path": "_lexical_versions/Native isolated full corpus/8f0c12526d4bd515.json",
+        "activated_at": "2026-10-03T23:24:08+0800",
+        "chunk_count": 1824,
+        "catalog_chunk_count": 2487,
+        "canonical_hash": "b359592271a54385434c5ac7f45219162c22b65dc498d31cae465359a0f7bbbf",
+        "canonical_snapshot": "canonical_versions/b359592271a54385434c5ac7f45219162c22b65dc498d31cae465359a0f7bbbf",
+        "canonical_progress_root": "/private/tmp/texa-mineru-native-integration/data/progress"
+      }
+    ],
+    "canonical_snapshot": "canonical_versions/53dfd8207fcfdf27abecf48c0231edd366454358ab33d2b5bdec2af4d961772b",
+    "canonical_progress_root": "/private/tmp/texa-mineru-native-integration/data/progress"
+  }
+}

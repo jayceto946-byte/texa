@@ -3127,3 +3127,13 @@ The detailed historical notes for this period were damaged by mojibake before th
 - Runtime event writes are batched in a bounded background queue; oldest complete turns rotate after 100,000 rows. The allowlisted payload excludes prompts, answers, credentials, paths, tool arguments, and textbook body. The contract and replay limits are documented in `docs/runtime-event-v1.md`.
 - New RAG diagnostic trace writes redact recognizable credentials, email addresses, and absolute local paths in questions, context, evidence, and errors. Existing rows are unchanged.
 - The bounded runtime projects audit events only after its SQLite transaction commits, so rollback does not create phantom history. Validation: 94 focused RuntimeEvent, execution, chat, goal, feedback, RAG trace, and backup tests passed; Python compilation and diff whitespace checks passed. No dependency or existing database migration is required; the new database is created under `PROGRESS_PATH`. Native Electron was not launched for this backend-only change.
+
+## 2026-10-03 — MinerU 4 原生输出与索引发布收口
+
+- 迁入两处 list retrieval 修复并独立提交；保留 sibling fallback 和普通 literal gate，补组级型号校验及错误型号、其他书/节、伪造列表标记的负向回归。16 个固定失败片段仅作为检索回归，不是 OCR 黄金集。
+- 新增 structured_content native adapter，external/API/CLI/全文读取共用来源选择和 Canonical 章节投影；处理通用编号、局部枚举、公式单份表示、HTML/Markdown 表格、captionless figures、原始页/块索引与 normalized bbox。保留旧格式；损坏 native、未知主版本与多文档歧义明确诊断。
+- Canonical 顶层 schema 保持 1，增加可选 source_metadata / original_visual_asset v1；公式、表格原图使用受控路径和不可变 SHA 文件名，维持结构化检索身份。旧 figure 字段和 materialization 入口兼容，旧资产不删除。修复 reload 丢弃空白表头列造成的列位与 hash 变化。
+- Canonical/报告/probes/crops 先写隔离 candidate，再在现有 index publication 边界内与 lexical/map/manifest 一致提交；加入读 snapshot、失败/取消/可捕获中断恢复、幂等 retry 和带 Canonical 证据的 retained rollback。旧 IR/manifest 不匹配不补造关联。新增的是 per-book retained snapshot，未迁移数据库或全局数据布局；backup/restore 覆盖新资产。
+- 固定归档 native 实测：4925 blocks（3442 paragraph、270 heading、663 figure、522 formula、28 table），1826 文本 chunks，663 figure 和 550 original crops ready，IR 0 errors。较 bridge 多保留 14 个原始标题片段；table 218 行、36 chunks 与基线一致。新增索引 fingerprint/manifest/分 specialty 质量已保存，formula/list/table 各 8 个真实本地生产 retrieval + EvidencePack gate 通过，阈值未改；example=0 明确缺覆盖，不当作 OCR 金标或模型准确率。
+- 验证使用 Python 3.10 venv310、隔离目录和本地 ONNX；完整离线 1313 项、桌面 14 项、前端 31 文件/140 项、TypeScript/Vite 构建通过。Electron 独立 userData 托管 API 实测 ZIP → job → 章节 → 13 个原图成功，34 chunks，has_pdf=false、extract_concepts=false。native GUI 自动化无法定位独立进程，点击上传未验收；进程硬终止/掉电和跨进程原子恢复未验收，因此未宣布全部 bridge 退役/生产同名更新条件放行。没有 OCR、付费模型、依赖重装或生产数据改写。
+- 详细实施、数量差异、兼容影响与验证证据见 docs/mineru-native-implementation-2026-10-03.md 和 docs/validation/mineru-native-2026-10-03/。

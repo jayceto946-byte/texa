@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "runtime": "Electron dev with hosted FastAPI backend",
+  "job_stages": [
+    "extract",
+    "indexing",
+    "completed"
+  ],
+  "result": {
+    "chapter_count": 2,
+    "concept_extraction_warning": "",
+    "concept_job_id": "",
+    "has_pdf": false,
+    "indexed_chunks": 34,
+    "name": "Native_desktop_isolated",
+    "output_dir": "/private/tmp/texa-mineru-native-desktop-smoke-user2/mineru_output/Native_desktop_isolated/hybrid_auto_external",
+    "subject": "",
+    "used_mineru": true
+  },
+  "chapters_read": {
+    "name": "Native_desktop_isolated",
+    "subject": "",
+    "chapter_count": 2,
+    "chapters": [
+      {
+        "title": "Native_desktop_isolated",
+        "page": 14,
+        "end_page": 14,
+        "subsections": []
+      },
+      {
+        "title": "1.3.1 传感器的静态特性",
+        "page": 14,
+        "end_page": 18,
+        "subsections": []
+      }
+    ]
+  },
+  "asset_count": 13,
+  "gui": "separate Electron process launched and served frontend; native automation resolves preexisting process, GUI upload not exercised"
+}
