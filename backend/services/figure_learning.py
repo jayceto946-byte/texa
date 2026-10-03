@@ -97,6 +97,9 @@ class _FigureBookCacheEntry:
     chunk_order: dict[str, int] | None = None
 
 
+from ingestion.index_snapshot import read_snapshot
+
+
 class FigureLearningService:
     _cache_lock = threading.RLock()
     _book_cache: "OrderedDict[tuple[str, str], _FigureBookCacheEntry]" = OrderedDict()
@@ -113,6 +116,7 @@ class FigureLearningService:
         index_version = str(load_index_manifest(book_name).get("index_version") or "")
         return stat.st_mtime_ns, stat.st_size, index_version
 
+    @read_snapshot
     def _cache_entry(self, book_name: str) -> _FigureBookCacheEntry:
         name = str(book_name or "").strip()
         if not name:
@@ -148,6 +152,7 @@ class FigureLearningService:
                 self._book_cache.popitem(last=False)
             return entry
 
+    @read_snapshot
     def _ensure_chunk_index(self, entry: _FigureBookCacheEntry) -> None:
         if entry.chunks is not None:
             return

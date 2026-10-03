@@ -591,6 +591,12 @@ def activate_retained_index_version(vs, book_name: str, version: str) -> dict:
             "activated_at": activated_at,
             "versions": ordered_versions,
         }
+        from ingestion.document_publication import retained_publication
+        canonical_publication = retained_publication(normalized, target)
+        if current_manifest.get("canonical_snapshot") and canonical_publication is None:
+            raise RuntimeError("retained version has no Canonical snapshot; rebuild instead of mixing versions")
+        if canonical_publication is not None:
+            new_manifest.update(canonical_publication.record())
 
         collection_names = vs._client.list_collections()
         require_scoped_vector_snapshot(
@@ -606,11 +612,15 @@ def activate_retained_index_version(vs, book_name: str, version: str) -> dict:
 
         with index_publication():
             try:
+                if canonical_publication is not None:
+                    canonical_publication.publish()
                 _atomic_write_bytes(lexical_target, target_lexical.read_bytes())
                 atomic_write_json(vs._map_file, new_map)
                 vs._map = new_map
                 atomic_write_json(manifest_path(normalized), new_manifest)
-            except Exception:
+            except BaseException:
+                if canonical_publication is not None:
+                    canonical_publication.restore()
                 atomic_write_json(vs._map_file, old_map)
                 vs._map = old_map
                 atomic_write_json(manifest_path(normalized), old_manifest)
@@ -639,6 +649,8 @@ def build_and_activate_book_index(
     *,
     acceptance_probes: list[dict] | None = None,
     specialty_inventory: dict[str, int] | None = None,
+    canonical_publication=None,
+    before_publish=None,
 ) -> dict:
     """Build new assets off to the side, validate them, then switch active mappings."""
     normalized = safe_book_name(book_name)
@@ -697,6 +709,8 @@ def build_and_activate_book_index(
     if len(canonical_hashes) != 1:
         raise ValueError("index catalog must reference exactly one Canonical IR fingerprint")
     canonical_hash = canonical_hashes.pop()
+    if canonical_publication is not None and canonical_publication.canonical_hash != canonical_hash:
+        raise ValueError("candidate index and Canonical fingerprints differ")
     build_id = f"{version[:10]}{uuid.uuid4().hex[:6]}"
     staged_entries: dict[str, dict] = {}
     staged_names: list[str] = []
@@ -801,6 +815,7 @@ def build_and_activate_book_index(
                 "activated_at": activated_at,
                 "chunk_count": len(retrieval_chunks),
                 "catalog_chunk_count": len(chunks),
+                **(canonical_publication.record() if canonical_publication is not None else {}),
             }]
             if previous_record is not None:
                 candidate_records.append(previous_record)
@@ -853,6 +868,7 @@ def build_and_activate_book_index(
                 "release_gate_mode": "production_hybrid_retrieval_and_evidence_pack",
                 "activated_at": activated_at,
                 "versions": versions,
+                **(canonical_publication.record() if canonical_publication is not None else {}),
             }
             collection_names = vs._client.list_collections()
             require_scoped_vector_snapshot(
@@ -867,15 +883,32 @@ def build_and_activate_book_index(
             )
             with index_publication():
                 try:
+                    if before_publish is not None:
+                        before_publish()
+                    if canonical_publication is not None:
+                        canonical_publication.publish()
+                        if previous_record is not None:
+                            previous_canonical = canonical_publication.previous_record()
+                            # A legacy/mismatched active IR is not proof of
+                            # which document produced a retained index.
+                            if (previous_canonical.get("canonical_hash")
+                                    and previous_canonical["canonical_hash"] == old_manifest.get("canonical_hash")):
+                                previous_record.update(previous_canonical)
                     os.replace(lexical_stage, lexical_target)
                     atomic_write_json(vs._map_file, new_map)
                     vs._map = new_map
                     for key in [key for key in vs._stores if key.startswith(f"{normalized}\0")]:
                         vs._stores.pop(key, None)
                     atomic_write_json(manifest_path(normalized), manifest)
-                except Exception:
+                except BaseException:
+                    if canonical_publication is not None:
+                        canonical_publication.restore()
                     atomic_write_json(vs._map_file, old_map)
                     vs._map = old_map
+                    if old_manifest:
+                        atomic_write_json(manifest_path(normalized), old_manifest)
+                    else:
+                        manifest_path(normalized).unlink(missing_ok=True)
                     if old_lexical is None:
                         lexical_target.unlink(missing_ok=True)
                     else:

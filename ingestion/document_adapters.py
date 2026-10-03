@@ -78,7 +78,7 @@ class PdfTextAdapter:
 
 
 class MinerUAdapter:
-    """Adapt MinerU content-list, middle JSON, or Markdown output without re-OCR."""
+    """Adapt native structured content and legacy outputs without re-OCR."""
 
     @staticmethod
     def from_chapters(
@@ -135,12 +135,41 @@ class MinerUAdapter:
         )
 
     @classmethod
+    def from_structured_content(cls, payload: dict, *, book_name: str,
+                                source_file: str = "structured_content.json",
+                                source_root: str | Path | None = None,
+                                source_base: str | Path | None = None) -> CanonicalBook:
+        from ingestion.mineru_structured import from_structured_content
+        return from_structured_content(
+            payload, book_name=book_name, source_file=source_file,
+            source_root=Path(source_root) if source_root is not None else None,
+            source_base=Path(source_base) if source_base is not None else None,
+        )
+
+    @classmethod
     def from_output_dir(cls, output_dir: str | Path, *, book_name: str) -> CanonicalBook:
         """Read the same MinerU formats already accepted by ``mineru_importer``."""
         root = Path(output_dir)
+        middle_diagnostics = []
+        for middle_path in root.rglob("*middle*.json"):
+            if middle_path.name.endswith("_middle_chunks.json"):
+                continue
+            try:
+                middle_payload = _read_json(middle_path)
+            except (OSError, UnicodeError, ValueError):
+                continue
+            if isinstance(middle_payload, dict) and "pages" in middle_payload and "pdf_info" not in middle_payload:
+                middle_diagnostics.append(
+                    f"Unsupported newer middle format in {middle_path.name}; use structured_content.json."
+                )
         selected = _select_mineru_json(root)
         if selected is not None:
             source_format, source_path, payload = selected
+            if source_format == "structured":
+                return cls.from_structured_content(
+                    payload, book_name=book_name, source_file=source_path.relative_to(root).as_posix(),
+                    source_root=root, source_base=source_path.parent,
+                )
             if source_format == "content-list-v1":
                 return cls.from_content_list(
                     payload, book_name=book_name, source_file=source_path.name,
@@ -163,6 +192,8 @@ class MinerUAdapter:
                 )
         markdown_paths = sorted(root.rglob("*.md"), key=lambda path: str(path).lower())
         if markdown_paths:
+            if len(markdown_paths) != 1:
+                raise ValueError("Ambiguous MinerU output: multiple Markdown documents; select one document directory")
             builder = _BlockBuilder(book_name, source_kind="mineru", source_file="")
             for markdown_path in markdown_paths:
                 try:
@@ -171,13 +202,13 @@ class MinerUAdapter:
                 except OSError:
                     continue
             builder.source_files = [path.name for path in markdown_paths]
-            return builder.book(parser_version="mineru-markdown-v1")
+            return builder.book(parser_version="mineru-markdown-v1", warnings=middle_diagnostics)
         return CanonicalBook(
             book_name=book_name,
             source_kind="mineru",
             parser_version="mineru-empty-v1",
             blocks=[],
-            warnings=["No MinerU content-list, middle JSON, or Markdown file was found."],
+            warnings=[*middle_diagnostics, "No supported MinerU structured/content-list/legacy middle/Markdown source was found."],
         )
 
 
@@ -187,71 +218,11 @@ def materialize_figure_assets(
     source_root: str | Path,
     progress_root: str | Path,
 ) -> CanonicalBook:
-    """Copy MinerU figure files into the book's stable Canonical asset area.
-
-    The persisted reference is always relative to the per-book progress
-    directory. Missing or invalid source images degrade the individual figure
-    without blocking otherwise usable textbook text.
-    """
-    source_directory = Path(source_root).resolve()
-    document_path, _report_path = canonical_paths(book.book_name, progress_root=progress_root)
-    figures_directory = document_path.parent / "figures"
-
-    for block in book.blocks:
-        if block.block_type != "figure":
-            continue
-        attributes = block.attributes
-        attributes["figure_id"] = block.block_id
-        attributes["caption"] = str(attributes.get("caption") or block.text or "").strip()
-        attributes["page_idx"] = block.page_start - 1 if block.page_start is not None else None
-        attributes["page_bbox"] = list(block.bbox) if block.bbox else []
-        attributes.setdefault("bbox_space", "page")
-        attributes.setdefault("bbox_format", "xyxy")
-        attributes.setdefault("bbox_units", "mineru_source_units")
-
-        source_relpath = str(attributes.get("source_asset_relpath") or "").strip()
-        source_path = _controlled_source_path(source_directory, source_relpath)
-        existing = sorted(figures_directory.glob(f"{block.block_id}.*")) if figures_directory.exists() else []
-        if source_path is None and existing:
-            source_path = existing[0]
-        if source_path is None:
-            attributes.update({
-                "asset_relpath": "", "asset_status": "missing",
-                "image_width": 0, "image_height": 0, "content_hash": "",
-            })
-            _append_review_status(block, "missing_figure_asset")
-            _append_book_warning(book, f"Figure asset missing: {block.block_id} ({source_relpath or 'no path'})")
-            continue
-
-        try:
-            width, height, suffix = _inspect_figure_image(source_path)
-            content_hash = _sha256_file(source_path)
-        except (OSError, ValueError) as exc:
-            attributes.update({
-                "asset_relpath": "", "asset_status": "invalid",
-                "image_width": 0, "image_height": 0, "content_hash": "",
-            })
-            _append_review_status(block, "invalid_figure_asset")
-            _append_book_warning(book, f"Figure asset invalid: {block.block_id} ({exc})")
-            continue
-
-        figures_directory.mkdir(parents=True, exist_ok=True)
-        target = figures_directory / f"{block.block_id}{suffix}"
-        if source_path.resolve() != target.resolve():
-            current_hash = _sha256_file(target) if target.is_file() else ""
-            if current_hash != content_hash:
-                _atomic_copy(source_path, target)
-        for stale in existing:
-            if stale.resolve() != target.resolve():
-                stale.unlink(missing_ok=True)
-        attributes.update({
-            "asset_relpath": f"figures/{target.name}",
-            "asset_status": "ready",
-            "image_width": width,
-            "image_height": height,
-            "content_hash": content_hash,
-        })
-    return book
+    """Compatibility entry point for existing figure callers."""
+    from ingestion.document_assets import materialize_document_assets
+    return materialize_document_assets(
+        book, source_root=source_root, progress_root=progress_root, figures_only=True,
+    )
 
 
 class OcrAdapter:
@@ -493,7 +464,7 @@ def _append_mineru_item(
         page_idx = _zero_based_index(item.get("page_idx"))
         page = page_idx + 1 if page_idx is not None else fallback_page
     bbox = _bbox(item.get("bbox"))
-    confidence = _float_or_none(item.get("confidence") or item.get("score"))
+    confidence = _float_or_none(item.get("confidence", item.get("score")))
     level = _heading_level(item.get("text_level") or item.get("level"))
     if raw_type in {"title", "heading"} or (raw_type == "text" and level is not None):
         builder.heading(
@@ -747,12 +718,13 @@ def _inspect_figure_image(path: Path) -> tuple[int, int, str]:
         with Image.open(path) as image:
             width, height = image.size
             image_format = str(image.format or "").upper()
-    except UnidentifiedImageError as exc:
+            image.verify()
+    except (UnidentifiedImageError, Image.DecompressionBombError, SyntaxError) as exc:
         raise ValueError("file is not a supported image") from exc
     if width < 1 or height < 1:
         raise ValueError("image dimensions must be positive")
-    suffix = suffixes.get(image_format) or path.suffix.lower()
-    if not re.fullmatch(r"\.[a-z0-9]{2,5}", suffix):
+    suffix = suffixes.get(image_format)
+    if suffix is None:
         raise ValueError("image extension is unsupported")
     return int(width), int(height), suffix
 
@@ -987,16 +959,39 @@ def _mineru_page_count(items: Iterable[dict[str, Any]]) -> int | None:
 
 
 def _select_mineru_json(root: Path) -> tuple[str, Path, Any] | None:
-    """Select a supported MinerU JSON deterministically by payload shape.
-
-    Flat content-list v1 is preferred because it is the established Texa text
-    ingestion contract. Page-array v2 is next, then middle JSON. File-system
-    traversal order never affects the result.
-    """
+    """Prefer native structured content, then v1/v2 content lists and old middle."""
     candidates: list[tuple[int, str, str, Path, Any]] = []
     parse_errors: list[tuple[Path, Exception]] = []
+    structured_paths = sorted(root.rglob("*structured_content*.json"))
+    if structured_paths:
+        if len(structured_paths) != 1:
+            raise ValueError("Ambiguous MinerU output: multiple structured documents; select one document directory")
+        from ingestion.mineru_structured import validate_structured
+        path = structured_paths[0]
+        try:
+            payload = _read_json(path)
+            validate_structured(payload)
+        except (OSError, UnicodeError, ValueError) as exc:
+            raise ValueError(f"Invalid native MinerU input {path.name}: {exc}") from exc
+        for other in root.rglob("*.json"):
+            name = other.name.casefold().replace("-", "_")
+            if other.parent == path.parent or name.endswith("_middle_chunks.json"):
+                continue
+            if "content_list" not in name and "middle" not in name:
+                continue
+            try:
+                legacy = _read_json(other)
+            except (OSError, UnicodeError, ValueError):
+                continue
+            if _content_list_format(legacy) or (isinstance(legacy, dict) and isinstance(legacy.get("pdf_info"), list)):
+                raise ValueError("Ambiguous MinerU output: native and legacy documents in different directories")
+        if any(markdown.parent != path.parent for markdown in root.rglob("*.md")):
+            raise ValueError("Ambiguous MinerU output: native and Markdown documents in different directories")
+        return "structured", path, payload
     for path in sorted(root.rglob("*.json"), key=lambda item: item.as_posix().casefold()):
         name = path.name.casefold().replace("-", "_")
+        if name.endswith("_middle_chunks.json"):
+            continue
         if "content_list" in name:
             try:
                 payload = _read_json(path)
@@ -1021,6 +1016,12 @@ def _select_mineru_json(root: Path) -> tuple[str, Path, Any] | None:
             path, exc = parse_errors[0]
             raise ValueError(f"unable to read MinerU JSON: {path}") from exc
         return None
+    if len({candidate[3].parent for candidate in candidates}) > 1:
+        raise ValueError("Ambiguous MinerU output: multiple document directories")
+    best_rank = min(candidate[0] for candidate in candidates)
+    preferred = [candidate for candidate in candidates if candidate[0] == best_rank]
+    if len({json.dumps(candidate[4], sort_keys=True, ensure_ascii=False) for candidate in preferred}) > 1:
+        raise ValueError("Ambiguous MinerU output: multiple preferred JSON sources")
     _rank, _key, source_format, path, payload = min(candidates, key=lambda item: (item[0], item[1]))
     return source_format, path, payload
 

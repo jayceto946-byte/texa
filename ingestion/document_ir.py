@@ -172,7 +172,10 @@ class DocumentBlock:
             ocr_confidence=_optional_float(value.get("ocr_confidence")),
             review_status=str(value.get("review_status") or ""),
             table_title=str(value.get("table_title") or ""),
-            table_header=_string_list(value.get("table_header")),
+            # Empty header cells carry column positions; dropping them changes
+            # both table semantics and the persisted Canonical fingerprint.
+            table_header=[str(cell).strip() for cell in value.get("table_header", [])]
+            if isinstance(value.get("table_header"), list) else [],
             table_rows=_string_matrix(value.get("table_rows")),
             attributes=dict(value.get("attributes") or {}) if isinstance(value.get("attributes"), dict) else {},
         )
@@ -189,6 +192,7 @@ class CanonicalBook:
     warnings: list[str] = field(default_factory=list)
     source_page_count: int | None = None
     schema_version: int = DOCUMENT_IR_SCHEMA_VERSION
+    source_metadata: dict[str, Any] = field(default_factory=dict)
 
     def header_dict(self) -> dict[str, Any]:
         return {
@@ -199,6 +203,7 @@ class CanonicalBook:
             "parser_version": self.parser_version,
             "warnings": list(self.warnings),
             "source_page_count": self.source_page_count,
+            **({"source_metadata": self.source_metadata} if self.source_metadata else {}),
         }
 
 
@@ -229,6 +234,7 @@ class IngestionReport:
     schema_version: int
     block_count: int
     issues: list[IngestionIssue] = field(default_factory=list)
+    source_metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def valid(self) -> bool:
@@ -244,6 +250,7 @@ class IngestionReport:
             "valid": self.valid,
             "summary": {"errors": errors, "warnings": warnings},
             "issues": [issue.to_dict() for issue in self.issues],
+            **({"source_metadata": self.source_metadata} if self.source_metadata else {}),
         }
 
 
@@ -327,6 +334,13 @@ def validate_canonical_book(book: CanonicalBook) -> IngestionReport:
                 issues.append(_issue("warning", "table_without_header", "table has no table_header", block_id))
             if not block.table_rows:
                 issues.append(_issue("warning", "table_without_rows", "table has no table_rows", block_id))
+        from ingestion.document_assets import visual_asset_errors
+        for code in visual_asset_errors(block):
+            issues.append(_issue("error", code, "original visual asset contract is invalid", block_id))
+        original_visual = block.attributes.get("original_visual_asset")
+        if isinstance(original_visual, dict) and original_visual.get("status") in {"missing", "invalid"}:
+            status = original_visual["status"]
+            issues.append(_issue("warning", f"original_visual_asset_{status}", f"original visual asset is {status}", block_id))
         if block.block_type == "figure":
             attributes = block.attributes or {}
             figure_id = str(attributes.get("figure_id") or "").strip()
@@ -412,6 +426,7 @@ def validate_canonical_book(book: CanonicalBook) -> IngestionReport:
         schema_version=book.schema_version,
         block_count=len(book.blocks),
         issues=issues,
+        source_metadata=book.source_metadata,
     )
 
 
@@ -454,6 +469,14 @@ def load_canonical_book(
     *,
     progress_root: str | Path = PROGRESS_PATH,
 ) -> CanonicalBook:
+    from ingestion.index_snapshot import index_read_snapshot
+    with index_read_snapshot():
+        return _load_canonical_book(book_name, progress_root=progress_root)
+
+
+def _load_canonical_book(
+    book_name: str, *, progress_root: str | Path = PROGRESS_PATH,
+) -> CanonicalBook:
     """Load a persisted CanonicalBook; reject malformed or incompatible files."""
     document_path, _ = canonical_paths(book_name, progress_root=progress_root)
     try:
@@ -488,6 +511,7 @@ def load_canonical_book(
         if isinstance(header.get("warnings"), list) else [],
         source_page_count=_optional_int(header.get("source_page_count")),
         schema_version=int(header.get("schema_version") or DOCUMENT_IR_SCHEMA_VERSION),
+        source_metadata=dict(header.get("source_metadata") or {}),
     )
 
 

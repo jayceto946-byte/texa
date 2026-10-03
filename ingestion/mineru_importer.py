@@ -1,15 +1,17 @@
 """Textbook import helpers backed by MinerU output.
 
-The preferred path is MinerU 3.x API -> content/middle JSON -> chapters ->
-chapter vector stores. If MinerU is unavailable, callers can explicitly fall
+The preferred path is MinerU output -> Canonical IR -> chapters and staged
+vector/lexical publication. If MinerU is unavailable, callers can explicitly fall
 back to local TOC parsing, but the result is marked as non-OCR.
 """
 from __future__ import annotations
 
 import json
+import logging
 import re
 import shlex
 import subprocess
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
@@ -17,8 +19,9 @@ from typing import Any, Callable
 import config
 from ingestion.chapter_splitter import ChapterSplitter
 from ingestion.chunk_roles import assign_chunk_roles, load_kg_chunk_roles, role_distribution
-from ingestion.document_adapters import MinerUAdapter, PdfTextAdapter, materialize_figure_assets
-from ingestion.document_ir import CanonicalBook, persist_canonical_book, validate_canonical_book
+from ingestion.document_adapters import MinerUAdapter, PdfTextAdapter
+from ingestion.document_assets import materialize_document_assets
+from ingestion.document_ir import CanonicalBook, persist_canonical_book, validate_canonical_book, canonical_retrieval_paths
 from ingestion.lexical_index import write_book_index
 from ingestion.index_pipeline import build_and_activate_book_index
 from ingestion.acceptance_probes import generate_acceptance_probes, persist_acceptance_probes
@@ -82,6 +85,7 @@ def import_textbook_local(
     indexed = build_index_from_chapters(
         book_name, chapters, output_dir,
         canonical_book=canonical_book, canonical_progress_root=config.PROGRESS_PATH,
+        before_publish=(lambda: on_progress("publish", "Publishing validated textbook assets", 95)) if on_progress else None,
     )
     return BookImportResult(
         book_name=book_name,
@@ -111,16 +115,17 @@ def import_textbook_from_mineru_output(
 
     if on_progress:
         on_progress("structure", "Reading external OCR output", 35)
-    chapters = chapters_from_mineru_output(output_dir, book_name)
+    canonical_book = MinerUAdapter.from_output_dir(output_dir, book_name=book_name)
+    chapters = chapters_from_canonical(canonical_book)
     if not chapters:
-        raise RuntimeError("No usable content_list, middle JSON, or markdown content found in OCR output")
+        raise RuntimeError("No usable structured_content, content_list, middle JSON, or Markdown in OCR output")
 
     if on_progress:
         on_progress("indexing", "Building local chapter vector index", 70)
-    canonical_book = _canonical_mineru_book(output_dir, chapters, book_name)
     indexed = build_index_from_chapters(
         book_name, chapters, output_dir,
         canonical_book=canonical_book, canonical_progress_root=config.PROGRESS_PATH,
+        before_publish=(lambda: on_progress("publish", "Publishing validated textbook assets", 95)) if on_progress else None,
     )
     return BookImportResult(
         book_name=book_name,
@@ -160,22 +165,20 @@ def _import_with_mineru(pdf_path: Path, book_name: str, on_progress: ProgressCal
 
     if on_progress:
         on_progress("structure", "整理章节和正文块", 70)
-    chapters = chapters_from_mineru_output(output_dir, book_name)
+    canonical_book = MinerUAdapter.from_output_dir(output_dir, book_name=book_name)
+    chapters = chapters_from_canonical(canonical_book)
     used_mineru_output = bool(chapters)
     if not chapters:
         chapters = _parse_chapters_locally(pdf_path, book_name, "")
 
     if on_progress:
         on_progress("indexing", "写入章节向量索引", 84)
-    canonical_book = (
-        _canonical_mineru_book(output_dir, chapters, book_name)
-        if used_mineru_output else PdfTextAdapter.from_chapters(
-            chapters, book_name=book_name, source_file=pdf_path.name,
-        )
-    )
+    if not used_mineru_output:
+        canonical_book = PdfTextAdapter.from_chapters(chapters, book_name=book_name, source_file=pdf_path.name)
     indexed = build_index_from_chapters(
         book_name, chapters, output_dir,
         canonical_book=canonical_book, canonical_progress_root=config.PROGRESS_PATH,
+        before_publish=(lambda: on_progress("publish", "Publishing validated textbook assets", 95)) if on_progress else None,
     )
 
     return BookImportResult(
@@ -201,15 +204,16 @@ def _import_with_mineru_cli(pdf_path: Path, book_name: str, on_progress: Progres
         raise RuntimeError(err[-1000:])
     if on_progress:
         on_progress("structure", "整理章节和正文块", 70)
-    chapters = chapters_from_mineru_output(output_dir, book_name)
+    canonical_book = MinerUAdapter.from_output_dir(output_dir, book_name=book_name)
+    chapters = chapters_from_canonical(canonical_book)
     if not chapters:
-        raise RuntimeError("MinerU CLI 未生成可识别的 content_list/middle 输出")
+        raise RuntimeError("MinerU CLI 未生成可识别的 structured_content/content_list/middle 输出")
     if on_progress:
         on_progress("indexing", "写入章节向量索引", 84)
-    canonical_book = _canonical_mineru_book(output_dir, chapters, book_name)
     indexed = build_index_from_chapters(
         book_name, chapters, output_dir,
         canonical_book=canonical_book, canonical_progress_root=config.PROGRESS_PATH,
+        before_publish=(lambda: on_progress("publish", "Publishing validated textbook assets", 95)) if on_progress else None,
     )
     return BookImportResult(
         book_name=book_name,
@@ -240,42 +244,27 @@ def _canonical_mineru_book(output_dir: Path, chapters: list[dict], book_name: st
     return MinerUAdapter.from_chapters(chapters, book_name=book_name, source_file=Path(output_dir).name)
 
 
+def chapters_from_canonical(book: CanonicalBook) -> list[dict]:
+    """Project chapter metadata and body from the exact IR that will be indexed."""
+    paths = canonical_retrieval_paths(book.blocks)
+    grouped: dict[str, dict] = {}
+    for block in book.blocks:
+        title = (paths.get(block.block_id) or [book.book_name])[0]
+        chapter = grouped.setdefault(title, _new_chapter(title, block.page_start or 1))
+        chapter['end_page'] = max(chapter.get('end_page', 0), block.page_end or block.page_start or 0)
+        if block.text and block.block_type != 'figure':
+            chapter['text'] += ('\n\n' if chapter['text'] else '') + block.text
+    return _clean_chapters(list(grouped.values()))
+
+
 def chapters_from_mineru_output(output_dir: Path, book_name: str) -> list[dict]:
-    content = _load_first_json(output_dir, ["*content_list*.json", "*content-list*.json"])
-    if isinstance(content, list):
-        chapters = _chapters_from_content_list(content, book_name)
-        if chapters:
-            return chapters
-
-    middle = _load_first_json(output_dir, ["*middle*.json"])
-    if isinstance(middle, dict):
-        chapters = _chapters_from_middle_json(middle, book_name)
-        if chapters:
-            return chapters
-
-    chapters = _chapters_from_markdown_output(output_dir, book_name)
-    if chapters:
-        return chapters
-    return []
+    return chapters_from_canonical(MinerUAdapter.from_output_dir(output_dir, book_name=book_name))
 
 
 def extract_text_from_mineru_output(output_dir: Path) -> str:
-    content = _load_first_json(output_dir, ["*content_list*.json", "*content-list*.json"])
-    if isinstance(content, list):
-        return _normalize_text("\n\n".join(_item_text(item) for item in content if _item_text(item)))
-    middle = _load_first_json(output_dir, ["*middle*.json"])
-    if isinstance(middle, dict):
-        parts: list[str] = []
-        for page in middle.get("pdf_info", []) or []:
-            for block in page.get("para_blocks", []) or []:
-                text = _collect_block_text(block)
-                if text:
-                    parts.append(text)
-        return _normalize_text("\n\n".join(parts))
-    markdowns = list(output_dir.rglob("*.md"))
-    if markdowns:
-        return _normalize_text("\n\n".join(path.read_text(encoding="utf-8", errors="ignore") for path in markdowns))
-    return ""
+    book = MinerUAdapter.from_output_dir(output_dir, book_name=Path(output_dir).name)
+    return _normalize_text('\n\n'.join(block.text for block in book.blocks
+                                       if block.text and block.block_type != 'figure'))
 
 
 
@@ -473,6 +462,29 @@ def build_index_from_chapters(
     *,
     canonical_book: CanonicalBook | None = None,
     canonical_progress_root: str | Path | None = None,
+    before_publish=None,
+) -> int:
+    """Stage Canonical, reports and assets before touching active readers."""
+    if canonical_progress_root is None:
+        return _build_index_candidate(book_name, chapters, output_dir,
+                                      canonical_book=canonical_book, before_publish=before_publish)
+    with tempfile.TemporaryDirectory(prefix='texa-canonical-candidate-') as temporary:
+        return _build_index_candidate(
+            book_name, chapters, output_dir, canonical_book=canonical_book,
+            canonical_progress_root=Path(temporary), active_progress_root=Path(canonical_progress_root),
+            before_publish=before_publish,
+        )
+
+
+def _build_index_candidate(
+    book_name: str,
+    chapters: list[dict],
+    output_dir: Path,
+    *,
+    canonical_book: CanonicalBook | None = None,
+    canonical_progress_root: str | Path | None = None,
+    active_progress_root: Path | None = None,
+    before_publish=None,
 ) -> int:
     """Build every textbook index from the canonical Document IR contract.
 
@@ -497,7 +509,7 @@ def build_index_from_chapters(
             source_file=str(Path(output_dir).name),
         )
     if canonical_progress_root is not None:
-        materialize_figure_assets(
+        materialize_document_assets(
             canonical_book, source_root=output_dir, progress_root=canonical_progress_root,
         )
     report = validate_canonical_book(canonical_book)
@@ -560,10 +572,11 @@ def build_index_from_chapters(
         if chunk_id in roles_by_chunk_id:
             chunk["role"] = roles_by_chunk_id[chunk_id]
 
-    if all_chunks:
-        (output_dir / f"{book_name}_middle_chunks.json").write_text(
-            json.dumps(all_chunks, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+    publication = None
+    if active_progress_root is not None:
+        from ingestion.document_publication import CanonicalPublication
+        publication = CanonicalPublication(book_name, candidate_root=Path(canonical_progress_root),
+                                           progress_root=active_progress_root)
     if indexable_chunks:
         if hasattr(vs, "_client") and hasattr(vs, "_map_file"):
             manifest = build_and_activate_book_index(
@@ -572,6 +585,8 @@ def build_index_from_chapters(
                 all_chunks,
                 acceptance_probes=probe_report["cases"],
                 specialty_inventory=probe_report["inventory"],
+                canonical_publication=publication,
+                before_publish=before_publish,
             )
             if int(manifest.get("chunk_count", 0)) != len(indexable_chunks):
                 raise RuntimeError("activated textbook index failed manifest validation")
@@ -588,6 +603,25 @@ def build_index_from_chapters(
                 raise RuntimeError(
                     f"textbook index validation failed: expected={len(indexable_chunks)}, actual={stats.get('chunk_count', 0)}"
                 )
+            if publication is not None:
+                from ingestion.index_snapshot import index_publication
+                with index_publication():
+                    try:
+                        if before_publish is not None:
+                            before_publish()
+                        publication.publish()
+                    except BaseException:
+                        publication.restore()
+                        raise
+    if all_chunks:
+        # This is a diagnostic projection, never an active source or recovery
+        # snapshot. Its failure after a successful publication must not turn
+        # that committed import into a failed job with cleanup semantics.
+        from utils.json_io import atomic_write_json
+        try:
+            atomic_write_json(output_dir / f"{book_name}_middle_chunks.json", all_chunks)
+        except OSError:
+            logging.getLogger(__name__).warning("Derived MinerU chunk diagnostic could not be saved")
     return len(indexable_chunks)
 
 def _normalize_text(text: str) -> str:
