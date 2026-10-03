@@ -11,6 +11,7 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
 from backend.services.mistake_lifecycle import project_mistake
+from backend.services.mistake_chat_sources import MistakeChatSourceService
 from backend.api.mistakes import _image_store, _ocr_image_with_kimi
 from backend.api import mistakes as legacy_mistakes
 from memory.mistake_book import MistakeRecord
@@ -348,6 +349,38 @@ def dismiss_candidate(candidate_id: str, req: CandidateDecision, book_name: str 
         raise _error(exc) from exc
 
 
+class ChatSourceQuery(BaseModel):
+    conversation_id: str = Field(min_length=1, max_length=240)
+    message_ids: list[str] = Field(default_factory=list, max_length=500)
+    turn_ids: list[str] = Field(default_factory=list, max_length=500)
+
+
+class ChatSourceCapture(BaseModel):
+    conversation_id: str = Field(min_length=1, max_length=240)
+    message_id: str = Field(min_length=1, max_length=240)
+    turn_id: str = Field(default="", max_length=240)
+    data: dict
+
+
+@router.post("/chat-sources/query")
+def query_chat_sources(req: ChatSourceQuery, book_name: str = "default"):
+    try:
+        return {"success": True, "data": MistakeChatSourceService(_store(book_name)).lookup(req.conversation_id, req.message_ids, req.turn_ids)}
+    except ValueError as exc:
+        raise _error(exc) from exc
+
+
+@router.post("/chat-sources/capture")
+def capture_chat_source(req: ChatSourceCapture, book_name: str = "default"):
+    data = _clean_draft_data(req.data)
+    if not str(data.get("question_text") or "").strip():
+        raise HTTPException(status_code=422, detail="question is required")
+    try:
+        return {"success": True, "data": MistakeChatSourceService(_store(book_name)).capture(req.conversation_id, req.message_id, req.turn_id, data)}
+    except ValueError as exc:
+        raise _error(exc) from exc
+
+
 @router.post("/drafts")
 def create_draft(req: DraftCreate, book_name: str = "default"):
     return {"success": True, "data": _store(book_name).create_draft(_clean_draft_data(req.data))}
@@ -525,6 +558,11 @@ def create_review_session(req: SessionCreate):
         return {"success": True, "data": _store(req.book_name).create_review_session(req.mistake_ids, scope=req.book_name)}
     except ValueError as exc:
         raise _error(exc) from exc
+
+
+@review_router.get("")
+def active_review_session(book_name: str = "default", subject: str = ""):
+    return {"success": True, "data": _store(book_name).find_incomplete_review_session(subject=subject)}
 
 
 @review_router.get("/{session_id}")

@@ -12,7 +12,7 @@ import threading
 import time
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from backend.conversation_memory import (
     append_message,
@@ -31,7 +31,8 @@ from backend.conversation_memory import (
     update_learning_task_projection,
 )
 from backend.schemas import ChatRequest, ConversationScopeRequest, ConversationSplitTurnRequest, SubjectRoutingFeedbackRequest
-from backend.schemas import AnswerFeedbackRequest
+from backend.schemas import AnswerFeedbackRequest, ConversationManagementRequest, ConversationTaskCancelRequest
+from backend.services.conversation_management import ConversationManagementService, ConversationManagementError, assert_conversation_writable
 from backend.services.answer_feedback import record_answer_feedback
 from backend.services.context_versions import current_context_versions
 from backend.services.session_context import build_resolution_trace
@@ -65,13 +66,18 @@ from backend.services.execution_events import (
     ExecutionEventEmitter,
     execution_sse_payload,
 )
+from backend.services.execution_details import evidence_details
 from backend.services.runtime_events import emit_best_effort as emit_runtime_event, text_fingerprint, safe_reference, replay as replay_runtime_events
 from graph.conversation_context import (
     assemble_conversation_context_pack,
     build_conversation_context_seed,
 )
 
-router = APIRouter(prefix="/chat", tags=["chat"])
+from fastapi.responses import JSONResponse
+from backend.api.conversation_protocol import ConversationManagementRoute
+
+
+router = APIRouter(prefix="/chat", tags=["chat"], route_class=ConversationManagementRoute)
 logger = logging.getLogger(__name__)
 
 _TOOL_ACTIVITY_LABELS = {
@@ -272,6 +278,8 @@ def _activity_for_chat_event(event: dict) -> dict | None:
             "status": "completed",
             "detail": f"已定位到：{'、'.join(chapters[:3])}" if chapters else "已识别问题意图与回答范围",
             "duration_ms": duration_ms,
+            "meta": {"intent": str(event.get("intent") or ""), "chapters": chapters[:6],
+                     "answer_mode": str(event.get("answer_mode") or "")},
         }
     if stage == "retrieve":
         ordinary = event.get("use_textbook_context") is False or event.get("retrieval_status") == "ordinary_qa"
@@ -284,6 +292,7 @@ def _activity_for_chat_event(event: dict) -> dict | None:
                 "本题不需要教材证据" if ordinary else f"已整理 {count} 条相关教材内容"
             )),
             "duration_ms": duration_ms,
+            "meta": dict(event.get("execution_details") or {}),
         }
     if stage == "chapter":
         return {
@@ -302,10 +311,15 @@ def _activity_for_chat_event(event: dict) -> dict | None:
     if stage == "done":
         state = event.get("state") or {}
         concepts = state.get("linked_concepts") or []
+        verified = (state.get("answer_verification") or {}).get("status") == "passed"
         return {
-            "id": "memory", "kind": "memory", "label": "关联学习记录",
-            "status": "completed" if concepts else "skipped",
-            "detail": f"已关联 {len(concepts)} 个核心概念；学习记录在后台更新" if concepts else "本轮没有可靠的概念标签",
+            "id": "finalize", "kind": "analysis", "label": "检查答案与完成记录",
+            "status": "completed",
+            "detail": ("答案通过发布门槛" if verified else "答案未通过或尚无法完成核验")
+                      + (f"；已关联 {len(concepts)} 个概念" if concepts else ""),
+            "meta": {**evidence_details(state, final=True),
+                     "verification_status": str((state.get("answer_verification") or {}).get("status") or "unknown"),
+                     "total_elapsed_ms": (event.get("timings") or {}).get("total", 0)},
         }
     if stage == "error":
         return {
@@ -681,9 +695,32 @@ def _safe_record_subject_feedback(source: str, target: str, action: str) -> None
     except Exception:
         logger.exception("subject routing feedback persistence failed")
 
+def _management_result(action):
+    from fastapi.responses import JSONResponse
+    try:
+        return {"success": True, "data": action()}
+    except ConversationManagementError as exc:
+        return JSONResponse(status_code=exc.status, content={"success": False, "code": exc.code, "message": str(exc), **exc.details})
+
+
 @router.get("/conversations")
-def conversations(subject: str = "", book_name: str = "", limit: int = 80):
-    return {"success": True, "data": list_conversations(subject=subject, book_name=book_name, limit=limit)}
+def conversations(subject: str = "", book_name: str = "", limit: int = 80, view: str | None = None,
+                  cursor: str = "", book_names: list[str] | None = Query(default=None)):
+    def read():
+        page = ConversationManagementService().page(subject=subject, book_name=book_name,
+            book_names=book_names, limit=limit, view=view or "active", cursor=cursor)
+        return page if view is not None else page["items"]
+    return _management_result(read)
+
+
+@router.get("/conversations/{conversation_id}/management")
+def conversation_management(conversation_id: str):
+    return _management_result(lambda: ConversationManagementService().get(conversation_id))
+
+
+@router.post("/conversations/{conversation_id}/management")
+def change_conversation_management(conversation_id: str, payload: ConversationManagementRequest):
+    return _management_result(lambda: ConversationManagementService().change(conversation_id, **payload.model_dump()))
 
 
 @router.get("/conversations/{conversation_id}")
@@ -691,7 +728,8 @@ def conversation_detail(conversation_id: str, limit: int = 40, before_seq: int |
     conversation_id = ensure_conversation_id(conversation_id)
     return {
         "success": True,
-        "data": get_conversation(conversation_id, limit=limit, before_seq=before_seq),
+        "data": {**get_conversation(conversation_id, limit=limit, before_seq=before_seq),
+                 "management": ConversationManagementService().get(conversation_id)},
     }
 
 
@@ -700,6 +738,26 @@ def conversation_messages(conversation_id: str, limit: int = 40, before_seq: int
     conversation_id = ensure_conversation_id(conversation_id)
     data = get_conversation(conversation_id, limit=limit, before_seq=before_seq)
     return {"success": True, "data": {"messages": data["messages"], "page": data["page"]}}
+
+
+@router.get("/conversations/{conversation_id}/messages/{message_id}/context")
+def message_context(conversation_id: str, message_id: str):
+    from backend.conversation_memory import resolve_message_context
+    from memory.session_notes import NoteError
+    from fastapi.responses import JSONResponse
+    try:
+        data = resolve_message_context(conversation_id, message_id)
+        if data["status"] == "unavailable":
+            raise NoteError("not_found", "原消息已不可用，请查看笔记保存的来源", 404)
+        return {"success": True, "data": data}
+    except NoteError as exc:
+        return JSONResponse(status_code=exc.status, content={"success": False, "code": exc.code, "message": str(exc)})
+
+
+@router.get("/conversations/{conversation_id}/messages-after")
+def message_context_after(conversation_id: str, after_seq: int, limit: int = 40):
+    from backend.conversation_memory import load_message_page_after
+    return {"success": True, "data": load_message_page_after(conversation_id, after_seq, limit=limit)}
 
 
 @router.patch("/conversations/{conversation_id}/scope")
@@ -1115,6 +1173,7 @@ def _prepared_chat_stream(
                             for key in (
                                 "tool", "args_summary", "timeout_seconds", "success", "required_outputs",
                                 "satisfied_required_outputs", "missing_required_outputs", "followup",
+                                "input_preview", "result_preview", "provenance", "warnings", "verification_passed",
                             )
                             if value.get(key) is not None
                         },
@@ -1370,6 +1429,7 @@ def _prepared_chat_stream(
                     return
                 checkpoint_state = event.pop("checkpoint_state", None)
                 if isinstance(checkpoint_state, dict):
+                    event["execution_details"] = evidence_details(checkpoint_state)
                     learning_task.artifacts["resume_state"] = checkpoint_state
                     learning_task.artifacts["resume_stage"] = "retrieve"
                     get_learning_task_store().save_for_run(learning_task, run_id)
@@ -1387,6 +1447,7 @@ def _prepared_chat_stream(
                         yield activity_sse({
                             "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
                             "status": "completed", "detail": "已形成可展示的回答路径",
+                            "meta": {"required_outputs": [{"label": item.get("label"), "kind": item.get("kind")} for item in learning_task.required_outputs[:12]]},
                             "duration_ms": round((time.perf_counter() - (reason_started_at or time.perf_counter())) * 1000, 2),
                         })
                     else:
@@ -1398,6 +1459,7 @@ def _prepared_chat_stream(
                         yield activity_sse({
                             "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
                             "status": "completed", "detail": "已形成可展示的回答路径",
+                            "meta": {"required_outputs": [{"label": item.get("label"), "kind": item.get("kind")} for item in learning_task.required_outputs[:12]]},
                         })
                 event["conversation_id"] = conversation_id
                 event["turn_id"] = turn_id
@@ -1632,6 +1694,12 @@ def _chat_stream(
 
 @router.post("/stream")
 def chat_stream(req: ChatRequest):
+    try:
+        from backend.services.goals.service import GOAL_CONTROL_LOCK
+        with GOAL_CONTROL_LOCK:
+            assert_conversation_writable(req.conversation_id)
+    except ConversationManagementError as exc:
+        return JSONResponse(status_code=exc.status, content={"success": False, "code": exc.code, "message": str(exc), **exc.details})
     return _chat_stream(req)
 
 
@@ -1678,6 +1746,16 @@ def resume_chat_task_stream(task_id: str):
         answer_mode=task.answer_mode or "auto",
     )
     return _chat_stream(request, _learning_task=task, _resume=True, _run_id=run_id)
+
+
+@router.post("/tasks/{task_id}/cancel")
+def cancel_chat_task(task_id: str, payload: ConversationTaskCancelRequest):
+    result = _management_result(lambda: ConversationManagementService().cancel_task(task_id, **payload.model_dump()))
+    if isinstance(result, dict):
+        result['learning_task'] = result['data']
+        task = result['data']
+        update_learning_task_projection(task.get('conversation_id', ''), task_id, task)
+    return result
 
 
 @router.post("/tasks/{task_id}/interrupt")

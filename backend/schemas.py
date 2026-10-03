@@ -1,7 +1,7 @@
 """Pydantic request/response models for the FastAPI backend."""
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Literal
 
 from pydantic import BaseModel, Field
 
@@ -30,6 +30,18 @@ class FigureQuestionRequest(BaseModel):
     subject: str = Field(default="", max_length=100)
     conversation_id: str = Field(default="", max_length=100)
     turn_id: str = Field(default="", max_length=100)
+
+
+class ConversationManagementRequest(BaseModel):
+    action: Literal["pin", "unpin", "archive", "restore", "trash"]
+    operation_id: str = Field(min_length=1, max_length=120)
+    expected_revision: int = Field(ge=0)
+
+
+class ConversationTaskCancelRequest(BaseModel):
+    operation_id: str = Field(min_length=1, max_length=120)
+    expected_run_id: str = Field(min_length=1, max_length=100)
+    expected_revision: int | None = Field(default=None, ge=0)
 
 
 class ConversationScopeRequest(BaseModel):

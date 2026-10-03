@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import threading
 import time
 import uuid
 from pathlib import Path
@@ -12,7 +11,9 @@ from config import PROGRESS_PATH
 from utils.json_io import atomic_write_json
 
 
-_ACTION_LOCK = threading.RLock()
+from backend.services.goals.service import GOAL_CONTROL_LOCK
+
+_ACTION_LOCK = GOAL_CONTROL_LOCK
 _ALLOWED_TYPES = {"add_mistake", "mark_concept_reviewed", "create_practice_session", "record_practice_result", "update_mistake"}
 
 
@@ -113,6 +114,23 @@ class PendingActionStore:
                 raise ValueError("rejected action cannot be confirmed")
             try:
                 receipt = _read_domain_receipt(action, self.data_root)
+                if receipt is None:
+                    context = action.get("context") or {}
+                    task_id = context.get("learning_task_id")
+                    if task_id:
+                        if task_id.startswith("rtask_"):
+                            path = self.data_root / "agent_runtime.db"
+                            if path.exists():
+                                import sqlite3
+                                with sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True) as conn:
+                                    row = conn.execute("SELECT status FROM runtime_tasks WHERE id=?", (task_id,)).fetchone()
+                                if row and row[0] == "cancelled":
+                                    raise ValueError("task was explicitly cancelled")
+                        else:
+                            from backend.services.learning_task import LearningTaskStore
+                            task = LearningTaskStore(self.data_root).get(task_id)
+                            if task and task.status == "cancelled":
+                                raise ValueError("task was explicitly cancelled")
                 action["result"] = receipt if receipt is not None else _execute(action, self.data_root)
                 _reconcile_domain_projection(action, self.data_root)
                 action["status"] = "confirmed"

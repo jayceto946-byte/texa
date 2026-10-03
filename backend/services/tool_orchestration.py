@@ -11,6 +11,7 @@ from typing import Any, Callable
 
 from backend.tools.registry import ToolContext, ToolResult, get_tool_registry
 from backend.services.pending_actions import get_pending_action_store
+from backend.services.execution_details import tool_details
 
 
 DEFAULT_TOOL_TIMEOUT_SECONDS = 8.0
@@ -307,6 +308,7 @@ def execute_read_only_tools(
                     "status": "started",
                     "args_summary": {"keys": sorted(str(key) for key in (call.get("args") or {}).keys())[:12]},
                     "timeout_seconds": round(timeout, 3),
+                    **tool_details(call.get("args") or {}, provenance=getattr(spec, "provenance", "")),
                 })
             except Exception:
                 pass
@@ -350,6 +352,7 @@ def execute_read_only_tools(
                     "satisfied_required_outputs": satisfied,
                     "missing_required_outputs": missing,
                     "followup": call["tool"] == "verify_math_result",
+                    **tool_details(call.get("args") or {}, result_dict, provenance=getattr(spec, "provenance", "")),
                 })
             except Exception:
                 pass

@@ -15,7 +15,7 @@ import logging
 import os
 import threading
 
-from backend.api import agent, chat, mistakes, mistake_lifecycle, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state, goals
+from backend.api import agent, chat, mistakes, mistake_lifecycle, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state, goals, notes
 from backend.security import LocalApiBoundaryMiddleware
 from utils.version import APP_VERSION
 
@@ -108,6 +108,9 @@ def _recover_jobs() -> None:
         interrupted = get_job_manager().mark_running_interrupted()
         if interrupted:
             logger.info("marked %s unfinished jobs interrupted", interrupted)
+        from backend.services.session_notes.service import get_notes_service
+        from backend.services.session_notes.jobs import reconcile
+        reconcile(get_notes_service())
     except Exception:
         logger.exception("startup job recovery failed")
 
@@ -161,6 +164,7 @@ app.include_router(backups.router, prefix="/api")
 app.include_router(learning_state.router, prefix="/api")
 app.include_router(goals.router, prefix="/api")
 app.include_router(figures.router, prefix="/api")
+app.include_router(notes.router, prefix="/api")
 
 # ── 健康检查 ──────────────────────────────────────────────
 @app.get("/health")

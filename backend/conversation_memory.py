@@ -9,6 +9,7 @@ import time
 import threading
 import uuid
 from pathlib import Path
+from backend.services.goals.service import GOAL_CONTROL_LOCK
 
 from config import PROGRESS_PATH
 from utils.json_io import atomic_write_json
@@ -435,6 +436,9 @@ def resolve_conversation_id_for_scope(
 ) -> str:
     """Keep one persisted conversation bound to one exact retrieval scope."""
     conversation_id = ensure_conversation_id(conversation_id)
+    from backend.services.conversation_management import assert_conversation_writable
+    with GOAL_CONTROL_LOCK:
+        assert_conversation_writable(conversation_id)
     with _connect_events() as conn:
         _ensure_event_projection(conn, conversation_id)
         exists = conn.execute(
@@ -486,7 +490,10 @@ def append_message(
 ) -> dict:
     subject = normalize_subject_value(subject)
     now = time.strftime("%Y-%m-%dT%H:%M:%S")
-    with _conversation_lock(conversation_id):
+    with GOAL_CONTROL_LOCK, _conversation_lock(conversation_id):
+        if role == "user":
+            from backend.services.conversation_management import assert_conversation_writable
+            assert_conversation_writable(conversation_id)
         item = {
             "id": ensure_message_id(message_id),
             "turn_id": ensure_turn_id(turn_id),
@@ -592,6 +599,8 @@ def _update_projected_message(
         if not row:
             return False
         item = json.loads(str(row["payload_json"]))
+        if all(item.get(key) == value for key, value in updates.items()):
+            return True
         item.update(updates)
         conn.execute(
             "UPDATE conversation_messages SET turn_id = ?, role = ?, subject = ?, "
@@ -671,17 +680,17 @@ def update_learning_task_projection(
                 return False
             return _update_projected_message(conversation_id, message_id, updates={"learning_task": learning_task},
                                              event_type="message_learning_task_updated")
-    page = load_message_page(conversation_id, limit=20)
-    for item in reversed(page.get("messages") or []):
-        task_ref = item.get("learning_task") if isinstance(item, dict) else None
-        if item.get("role") == "assistant" and isinstance(task_ref, dict) and task_ref.get("id") == task_id:
-            with _conversation_lock(conversation_id):
-                return _update_projected_message(
-                    conversation_id,
-                    str(item.get("id") or ""),
-                    updates={"learning_task": learning_task},
-                    event_type="message_learning_task_updated",
-                )
+    with _connect_events() as conn:
+        _ensure_event_projection(conn, conversation_id)
+        row = conn.execute(
+            "SELECT message_id FROM conversation_messages WHERE conversation_id=? AND role='assistant' "
+            "AND json_extract(payload_json, '$.learning_task.id')=? ORDER BY seq DESC LIMIT 1",
+            (conversation_id, task_id),
+        ).fetchone()
+    if row:
+        with _conversation_lock(conversation_id):
+            return _update_projected_message(conversation_id, str(row[0]),
+                updates={"learning_task": learning_task}, event_type="message_learning_task_updated")
     return False
 
 
@@ -901,39 +910,35 @@ def get_conversation(
         )
 
 
-def list_conversations(subject: str = "", book_name: str = "", limit: int = 80) -> list[dict]:
+def conversation_catalog(subject: str = "", book_name: str = "", book_names: list[str] | None = None) -> list[dict]:
+    """Complete summary catalog, without loading every conversation's message window."""
     CONV_DIR.mkdir(parents=True, exist_ok=True)
-    legacy_ids = {path.stem for path in CONV_DIR.glob("*.json")}
     with _connect_events() as conn:
-        for conversation_id in legacy_ids:
-            _ensure_event_projection(conn, conversation_id)
-        conversation_ids = [
-            str(row[0]) for row in conn.execute(
-                "SELECT DISTINCT conversation_id FROM conversation_messages"
-            )
-        ]
-        snapshots = [
-            _conversation_snapshot(conn, conversation_id) for conversation_id in conversation_ids
-        ]
-    items: list[dict] = []
-    for item in snapshots:
-        if subject and not subject_matches(item.get("subject", ""), subject):
-            continue
-        if book_name and item.get("book_name") != book_name:
-            continue
-        if not item.get("messages"):
-            continue
-        items.append({
-            "id": item["id"],
-            "title": item["title"],
-            "subject": item.get("subject", ""),
-            "book_name": item.get("book_name", ""),
-            "created_at": item.get("created_at", ""),
-            "updated_at": item.get("updated_at", ""),
-            "message_count": int(item.get("message_count") or 0),
-        })
-    items.sort(key=lambda item: item.get("updated_at") or "", reverse=True)
-    return items[: max(1, min(limit, 200))]
+        for path in CONV_DIR.glob("*.json"):
+            _ensure_event_projection(conn, path.stem)
+        items = []
+        for row in conn.execute("SELECT conversation_id,MIN(created_at),MAX(created_at),COUNT(*) FROM conversation_messages GROUP BY conversation_id"):
+            cid = row[0]
+            stored_subject, stored_book = _authoritative_scope(conn, cid)
+            if subject and not subject_matches(stored_subject, subject):
+                continue
+            if book_name and stored_book != book_name:
+                continue
+            if book_names and stored_book not in book_names:
+                continue
+            scope_sql, scope_params = _projection_scope_clause(conn, cid, stored_subject, stored_book)
+            values = (cid, *scope_params)
+            metadata = conn.execute("SELECT MIN(created_at),MAX(created_at),COUNT(*) FROM conversation_messages WHERE conversation_id=?" + scope_sql, values).fetchone()
+            first = conn.execute("SELECT payload_json FROM conversation_messages WHERE conversation_id=? AND role='user'" + scope_sql + " ORDER BY seq LIMIT 1", values).fetchone()
+            items.append({"id": cid, "title": _conversation_title([json.loads(first[0])] if first else []),
+                          "subject": stored_subject, "book_name": stored_book,
+                          "created_at": metadata[0] or "", "updated_at": metadata[1] or "", "message_count": metadata[2]})
+    return items
+
+
+def list_conversations(subject: str = "", book_name: str = "", limit: int = 80) -> list[dict]:
+    from backend.services.conversation_management import ConversationManagementService
+    return ConversationManagementService().page(subject=subject, book_name=book_name, limit=limit)["items"]
 
 
 def _conversation_title(messages: list[dict]) -> str:
@@ -960,3 +965,133 @@ def rewrite_followup(question: str, history: list[dict], book_name: str = "", su
 def _strip_internal_references(text: str) -> str:
     text = re.sub(r"\s*/\s*[a-f0-9]{12,64}(?=\s*\])", "", text, flags=re.I)
     return re.sub(r"\s+", " ", text).strip()
+
+
+def capture_note_selection(conversation_id: str, *, turn_ids: list[str] | None = None,
+                           through_seq: int | None = None, max_bytes: int = 8 * 1024 * 1024) -> dict:
+    """Materialize a bounded selection in ONE SQLite snapshot, never the JSON window.
+
+    Initial legacy import is committed before the read transaction. All pages,
+    scope and watermark below see the same database version.
+    """
+    from memory.session_notes import NoteError, fingerprint, now
+    if not isinstance(conversation_id, str) or not re.fullmatch(r"[\w.-]{1,80}", conversation_id) or conversation_id in {".", ".."}:
+        raise NoteError("invalid_selection", "会话编号无效", 400)
+    with _connect_events() as conn:
+        _ensure_event_projection(conn, conversation_id)
+        conn.commit()
+        conn.execute("BEGIN")
+        last = conn.execute("SELECT MAX(seq) FROM conversation_messages WHERE conversation_id=?", (conversation_id,)).fetchone()[0]
+        if last is None:
+            raise NoteError("not_found", "会话不存在或没有消息", 404)
+        cutoff = int(last) if through_seq is None else through_seq
+        if type(cutoff) is not int or cutoff < 1 or cutoff > last:
+            raise NoteError("invalid_selection", "截止范围无效", 400)
+        # A cutoff may only end a complete turn, never half a question/answer.
+        if conn.execute("SELECT 1 FROM conversation_messages a JOIN conversation_messages b ON a.conversation_id=b.conversation_id AND a.turn_id=b.turn_id WHERE a.conversation_id=? AND a.seq<=? AND b.seq>? LIMIT 1", (conversation_id, cutoff, cutoff)).fetchone():
+            raise NoteError("invalid_selection", "必须选择完整轮次", 400)
+        subject, book_name = _authoritative_scope(conn, conversation_id)
+        scope_sql, _ = _projection_scope_clause(conn, conversation_id, subject, book_name)
+        watermark = conn.execute("SELECT COALESCE(MAX(event_id),0) FROM conversation_events WHERE conversation_id=?", (conversation_id,)).fetchone()[0]
+        requested = set(turn_ids) if turn_ids is not None else None
+        if requested is not None and (not requested or len(requested) != len(turn_ids) or any(not isinstance(t, str) for t in requested)):
+            raise NoteError("invalid_selection", "轮次选择为空或重复", 400)
+        messages, excluded, found, selected_turns = [], [], set(), []
+        after, size = 0, 0
+        while True:
+            rows = conn.execute("SELECT * FROM conversation_messages WHERE conversation_id=? AND seq>? AND seq<=? ORDER BY seq LIMIT 200", (conversation_id, after, cutoff)).fetchall()
+            if not rows:
+                break
+            for row in rows:
+                after = row["seq"]
+                if requested is not None and row["turn_id"] not in requested:
+                    continue
+                if row["turn_id"] not in found:
+                    selected_turns.append(row["turn_id"])
+                found.add(row["turn_id"])
+                item = json.loads(row["payload_json"])
+                if scope_sql and (normalize_subject_value(row["subject"]) != subject or row["book_name"] != book_name):
+                    excluded.append({"message_id": row["message_id"], "turn_id": row["turn_id"], "reason": "outside_current_scope"})
+                else:
+                    # Only answer-relevant persisted fields; diagnostic metadata is not source content.
+                    fields = ("id", "turn_id", "role", "content", "created_at", "subject", "book_name", "sources", "answer_mode", "delivery_status", "evidence_support_status", "learning_task", "citation_provenance")
+                    item = {key: item[key] for key in fields if key in item}
+                    item["seq"] = row["seq"]
+                    size += len(json.dumps(item, ensure_ascii=False).encode("utf-8"))
+                    messages.append(item)
+                if size + len(json.dumps(excluded).encode()) > max_bytes:
+                    raise NoteError("needs_range_selection", "来源超过 8 MiB，请选择较小的完整轮次范围")
+        if requested is not None and requested != found:
+            raise NoteError("invalid_selection", "选区包含不存在的轮次", 400)
+        if not messages:
+            raise NoteError("no_learning_content", "当前范围没有可整理的消息")
+        return {"conversation_id": conversation_id, "title_snapshot": _conversation_title(messages),
+                "subject": subject, "book_name": book_name, "captured_at": now(), "watermark": watermark,
+                # Retain excluded turns too: replaying this selection must produce
+                # the same exclusion manifest and preflight fingerprint.
+                "selection": {"conversation_id": conversation_id, "turn_ids": selected_turns, "through_seq": cutoff},
+                "messages": messages, "excluded": excluded,
+                "input_hash": fingerprint({"messages": messages, "excluded": excluded, "subject": subject, "book_name": book_name})}
+
+
+def resolve_message_context(conversation_id: str, message_id: str, *, radius: int = 10) -> dict:
+    """Resolve only recorded turn moves, with a bounded chain and exact message ID."""
+    from memory.session_notes import NoteError
+    if not re.fullmatch(r"[\w.-]{1,80}", conversation_id) or conversation_id in {".", ".."} or not re.fullmatch(r"[\w.-]{1,100}", message_id):
+        raise NoteError("invalid_selection", "消息定位无效", 400)
+    original, visited = conversation_id, set()
+    with _connect_events() as conn:
+        _ensure_event_projection(conn, conversation_id)
+        conn.commit()
+        conn.execute("BEGIN")
+        for _ in range(8):
+            if conversation_id in visited:
+                break
+            visited.add(conversation_id)
+            row = conn.execute("SELECT * FROM conversation_messages WHERE conversation_id=? AND message_id=?", (conversation_id, message_id)).fetchone()
+            if row:
+                r = max(1, min(radius, 30))
+                rows = conn.execute("SELECT seq,payload_json FROM conversation_messages WHERE conversation_id=? AND seq BETWEEN ? AND ? ORDER BY seq", (conversation_id, row["seq"]-r, row["seq"]+r)).fetchall()
+                low, high = rows[0]["seq"], rows[-1]["seq"]
+                total = conn.execute("SELECT COUNT(*) FROM conversation_messages WHERE conversation_id=?", (conversation_id,)).fetchone()[0]
+                return {"conversation_id": conversation_id, "status": "moved" if conversation_id != original else "current", "target": json.loads(row["payload_json"]), "messages": [json.loads(x["payload_json"]) for x in rows], "subject": row["subject"], "book_name": row["book_name"], "page": {"total": total, "has_more": bool(conn.execute("SELECT 1 FROM conversation_messages WHERE conversation_id=? AND seq<? LIMIT 1", (conversation_id, low)).fetchone()), "next_before_seq": low, "next_after_seq": high}}
+            moves = conn.execute("SELECT payload_json FROM conversation_events WHERE conversation_id=? AND event_type='turn_split_out' ORDER BY event_id DESC", (conversation_id,)).fetchall()
+            target = next((p.get("target_conversation_id") for p in (json.loads(x[0]) for x in moves) if message_id in p.get("message_ids", [])), None)
+            if not target:
+                break
+            conversation_id = target
+    return {"conversation_id": original, "status": "unavailable", "target": None, "messages": []}
+
+
+def load_message_page_after(conversation_id: str, after_seq: int, *, limit: int = 40) -> dict:
+    """Forward pagination for an exact historical message window."""
+    from memory.session_notes import NoteError
+    if not re.fullmatch(r"[\w.-]{1,80}", conversation_id) or conversation_id in {".", ".."}:
+        raise NoteError("invalid_selection", "会话编号无效", 400)
+    size = max(1, min(limit, 200))
+    with _connect_events() as conn:
+        rows = conn.execute("SELECT seq,payload_json FROM conversation_messages WHERE conversation_id=? AND seq>? ORDER BY seq LIMIT ?", (conversation_id, after_seq, size+1)).fetchall()
+        selected = rows[:size]
+        return {"messages": [json.loads(row["payload_json"]) for row in selected], "has_more": len(rows)>size, "next_after_seq": selected[-1]["seq"] if selected else None}
+
+
+def list_note_turns(conversation_id: str, *, before_seq: int | None = None, limit: int = 40) -> dict:
+    """A paged range picker which remains available even when a full note is over budget."""
+    from memory.session_notes import NoteError
+    if not re.fullmatch(r"[\w.-]{1,80}", conversation_id) or conversation_id in {".", ".."}:
+        raise NoteError("invalid_selection", "会话编号无效", 400)
+    size = max(1, min(limit, 100))
+    with _connect_events() as conn:
+        _ensure_event_projection(conn, conversation_id)
+        conn.commit()
+        conn.execute("BEGIN")
+        subject, book = _authoritative_scope(conn, conversation_id)
+        scope_sql, scope_params = _projection_scope_clause(conn, conversation_id, subject, book)
+        rows = conn.execute(
+            "SELECT turn_id, MIN(seq) first_seq, MAX(seq) last_seq, COUNT(*) message_count, "
+            "MAX(CASE WHEN role='user' THEN substr(json_extract(payload_json,'$.content'),1,100) ELSE '' END) label "
+            "FROM conversation_messages WHERE conversation_id=?" + scope_sql +
+            " GROUP BY turn_id HAVING MAX(seq)<? ORDER BY MAX(seq) DESC LIMIT ?",
+            (conversation_id, *scope_params, before_seq or 2**63-1, size+1),
+        ).fetchall()
+        return {"items": [dict(row) for row in rows[:size]], "next_cursor": rows[size-1]["last_seq"] if len(rows)>size else None}

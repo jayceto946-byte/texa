@@ -38,7 +38,10 @@ from utils.citation_protocol import sanitize_citation_protocol
 from utils.latex_sanitizer import sanitize_latex
 
 
-router = APIRouter(tags=["visual-learning"])
+from backend.api.conversation_protocol import ConversationManagementRoute, require_writable_conversation, guarded_conversation_events
+from backend.services.conversation_management import ConversationManagementError
+
+router = APIRouter(tags=["visual-learning"], route_class=ConversationManagementRoute)
 logger = logging.getLogger(__name__)
 
 
@@ -55,6 +58,8 @@ def _sse(payload: dict) -> str:
 
 
 def _http_error(exc: Exception) -> HTTPException:
+    if isinstance(exc, ConversationManagementError):
+        raise exc
     if isinstance(exc, FigureIndexOutOfDateError):
         return HTTPException(status_code=409, detail=str(exc))
     if isinstance(exc, KeyError):
@@ -510,13 +515,14 @@ def _figure_stream(
             )
 
     return OwnedStreamingResponse(
-        events(), on_close=lambda: close_task_run(_task_store(), owned_task[0], active_run_id), media_type="text/event-stream",
+        guarded_conversation_events(events(), request_id=request_id), on_close=lambda: close_task_run(_task_store(), owned_task[0], active_run_id), media_type="text/event-stream",
         headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
     )
 
 
 @router.post("/visual-learning/figure-stream")
 def answer_figure_question(req: FigureQuestionRequest):
+    require_writable_conversation(req.conversation_id)
     return _figure_stream(req)
 
 

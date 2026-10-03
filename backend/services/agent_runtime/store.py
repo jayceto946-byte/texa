@@ -14,6 +14,7 @@ from typing import Any, Iterator
 from config import PROGRESS_PATH
 from backend.services.agent_runtime.contracts import RunCommand, RuntimeConflict
 from backend.services.execution_events import ExecutionEventEmitter, EXECUTION_EVENT_V2_SCHEMA, validate_execution_event
+from backend.services.execution_details import tool_details
 from utils.sqlite_migrations import apply_sqlite_migrations
 
 SCHEMA_VERSION = 3
@@ -167,6 +168,8 @@ class RuntimeStore:
                event_type: str = "state_transition", status: str = "running",
                payload: dict[str, Any] | None = None) -> dict[str, Any]:
         def persist(event: dict[str, Any]) -> None:
+            # This emitter is recreated per transaction; measure the actual run.
+            event["elapsed_ms"] = round(max(0, (datetime.now(timezone.utc) - datetime.fromisoformat(run["created_at"])).total_seconds() * 1000), 2)
             validate_execution_event(event, require_persisted_identity=True)
             conn.execute("INSERT INTO execution_events VALUES (?,?,?,?,?)",
                          (run["id"], event["seq"], run["task_id"], _dump(event), _now()))
@@ -180,8 +183,18 @@ class RuntimeStore:
             schema=EXECUTION_EVENT_V2_SCHEMA if run["trigger_kind"] in {"schedule", "goal"} else "texa.execution/v1",
             origin={"kind": run["trigger_kind"], "id": run["trigger_id"]} if run["trigger_kind"] in {"schedule", "goal"} else None,
         )
+        tool_name = str((payload or {}).get("tool_id") or "")
+        if lifecycle.startswith("tool.") and not tool_name and (payload or {}).get("tool_call_id"):
+            call = conn.execute("SELECT tool_id FROM tool_calls WHERE id=?", (payload["tool_call_id"],)).fetchone()
+            tool_name = call["tool_id"] if call else ""
+        summary = ({"tool.requested": "已准备工具输入", "tool.started": "正在执行工具",
+                    "tool.completed": "工具已返回结果", "tool.failed": "工具执行失败"}.get(lifecycle)
+                   or {"run.created": "开始处理学习任务", "run.completed": "回答处理结束",
+                       "run.paused": "任务等待继续", "run.failed": "任务执行失败"}.get(lifecycle) or lifecycle)
         event = emitter.emit(event_type, phase=lifecycle.split(".")[0], status=status,
-                            summary=lifecycle, kind="tool" if lifecycle.startswith("tool.") else "system",
+                            operation_id=f"tool:{payload['tool_call_id']}" if tool_name else lifecycle,
+                            label=f"使用工具 · {tool_name}" if tool_name else summary,
+                            summary=summary, kind="tool" if lifecycle.startswith("tool.") else "system",
                             payload={"lifecycle": lifecycle, **(payload or {})})
         self._audit_local.events.append(event)
         return event
@@ -211,6 +224,8 @@ class RuntimeStore:
                     (command.conversation_id, command.turn_id, command.trigger_kind, command.trigger_id)):
                     raise RuntimeConflict("request key reused with a changed command")
                 return snapshot
+            from backend.services.conversation_management import assert_conversation_writable
+            assert_conversation_writable(command.conversation_id, progress_root=self.db_path.parent)
             existing = conn.execute("SELECT id FROM runtime_tasks WHERE id=?", (command.task_id,)).fetchone()
             if existing:
                 raise RuntimeConflict("task already exists; use resume")
@@ -424,7 +439,7 @@ class RuntimeStore:
             conn.execute("UPDATE agent_runs SET checkpoint_json=?,revision=revision+1,updated_at=? WHERE id=?",
                          (_dump(checkpoint), now, run_id))
             self._event(conn, run, lifecycle="tool.requested", payload={"tool_call_id": call_id,
-                        "tool_id": tool_id, "tool_version": version})
+                        "tool_id": tool_id, "tool_version": version, **tool_details(args)})
             return self._snapshot(conn, run_id)
 
     def start_tool(self, run_id: str, owner: str, call_id: str) -> dict[str, Any]:
@@ -471,7 +486,8 @@ class RuntimeStore:
             self._event(conn, run, lifecycle="tool.failed" if error_code else "tool.completed",
                         event_type="tool_result", status="failed" if error_code else "completed",
                         payload={"tool_call_id": call_id, "tool_id": call["tool_id"],
-                                 "tool_status": status})
+                                 "tool_status": status,
+                                 **tool_details(json.loads(call["args_json"]), result)})
             return self._snapshot(conn, run_id)
 
     def await_approval(self, run_id: str, owner: str, call_id: str, *,
@@ -667,6 +683,8 @@ class RuntimeStore:
                 payload["policy_outcome"] = policy_outcome
             if error_code:
                 payload["error_code"] = error_code
+            if verification:
+                payload["verification_status"] = str(verification.get("status") or "unknown")
             self._event(conn, run, lifecycle=lifecycle, event_type=event_type,
                         status=event_status, payload=payload)
             if outcome in {"completed", "degraded"} and run["conversation_id"]:
@@ -728,6 +746,8 @@ class RuntimeStore:
                 raise RuntimeConflict("approval has not been confirmed")
             prior = conn.execute("SELECT * FROM agent_runs WHERE task_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1", (task_id,)).fetchone()
             self._validate_goal_run(prior)
+            from backend.services.conversation_management import assert_conversation_writable
+            assert_conversation_writable(prior["conversation_id"], progress_root=self.db_path.parent)
             if prior["trigger_kind"] in {"schedule", "goal"} and turn_id:
                 raise ValueError("scheduled resume cannot invent a conversation turn")
             if prior["trigger_kind"] not in {"schedule", "goal"} and not turn_id.strip():
@@ -752,6 +772,43 @@ class RuntimeStore:
             self._event(conn, run, lifecycle="run.resumed", status="started",
                         payload={"task_status": "running", "resume_of_run_id": prior["id"]})
             return self._snapshot(conn, run_id)
+
+    def cancel_task(self, task_id: str, *, expected_revision: int, expected_run_id: str, operation_id: str) -> dict:
+        """Explicitly abandon a stopped run; never erase output or permit unknown writes."""
+        from backend.services.conversation_management import ConversationManagementError
+        from backend.services.agent_runtime.locator import public_task
+        with self._write() as conn:
+            task = conn.execute("SELECT * FROM runtime_tasks WHERE id=?", (task_id,)).fetchone()
+            run = conn.execute("SELECT * FROM agent_runs WHERE task_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1", (task_id,)).fetchone()
+            if not task or not run:
+                raise ConversationManagementError('task_not_found', '任务不存在。', 404)
+            if not run['conversation_id']:
+                raise ConversationManagementError('task_conflict', '此入口只能结束会话任务。')
+            if run['id'] != expected_run_id:
+                raise ConversationManagementError('task_conflict', '任务运行已变化，请重新读取。')
+            # Cross-database receipt recovery: a committed cancellation can be replayed.
+            stored_snapshot = json.loads(task['snapshot_json'])
+            last_checkpoint = (stored_snapshot.get('checkpoints') or [{}])[-1]
+            if task['status'] == 'cancelled' and task['revision'] == expected_revision + 1 and last_checkpoint.get('operation_id') == operation_id:
+                return public_task(self, self._snapshot(conn, run['id']))
+            if task['revision'] != expected_revision:
+                raise ConversationManagementError('revision_conflict', '任务状态已变化，请重新读取。')
+            if task['status'] == 'running':
+                raise ConversationManagementError('task_running', '请先停止运行，再结束任务。')
+            if task['status'] not in {'interrupted', 'waiting_for_confirmation', 'waiting_for_input'}:
+                raise ConversationManagementError('task_conflict', '当前任务不需要结束。')
+            if conn.execute("SELECT 1 FROM tool_calls WHERE task_id=? AND permission='LOCAL_WRITE' AND status='unknown' LIMIT 1", (task_id,)).fetchone():
+                raise ConversationManagementError('unknown_write', '写入结果尚未核对，不能结束任务。')
+            now = _now()
+            snapshot = json.loads(task['snapshot_json'])
+            snapshot.update(status='cancelled', updated_at=now)
+            snapshot['artifacts']['active_run_id'] = ''
+            snapshot['checkpoints'].append({'stage': 'user_cancelled', 'status': 'cancelled', 'at': now, 'operation_id': operation_id})
+            conn.execute("UPDATE runtime_tasks SET snapshot_json=?,status='cancelled',active_run_id=NULL,revision=revision+1,updated_at=? WHERE id=?", (_dump(snapshot), now, task_id))
+            conn.execute("UPDATE agent_runs SET status='cancelled',owner_token='',revision=revision+1,updated_at=? WHERE id=?", (now, run['id']))
+            conn.execute("UPDATE runtime_approvals SET status='rejected',actor_id='user_cancelled',revision=revision+1,updated_at=? WHERE call_id IN (SELECT id FROM tool_calls WHERE task_id=?) AND status IN ('pending','confirmed')", (now, task_id))
+            conn.execute("UPDATE tool_calls SET status='failed',error_code='user_cancelled',updated_at=? WHERE task_id=? AND status IN ('requested','awaiting_approval')", (now, task_id))
+            return public_task(self, self._snapshot(conn, run['id']))
 
     def recover_unfinished(self) -> int:
         with self._write() as conn:

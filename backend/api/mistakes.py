@@ -55,7 +55,9 @@ from utils.subject_catalog import normalize_subject_value
 from utils.thinking_filter import ThinkingFilter, strip_thinking
 from backend.services.learning_state import resolve_book_identity
 
-router = APIRouter(prefix="/mistakes", tags=["mistakes"])
+from backend.api.conversation_protocol import ConversationManagementRoute, require_writable_conversation
+
+router = APIRouter(prefix="/mistakes", tags=["mistakes"], route_class=ConversationManagementRoute)
 
 ALLOWED_IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
 MAX_IMAGE_BYTES = 20 * 1024 * 1024
@@ -471,6 +473,7 @@ def solve_mistake_image(
     conversation_id: str = Form(""),
     turn_id: str = Form(""),
 ):
+    require_writable_conversation(conversation_id)
     image_path: Path | None = None
     store = get_learning_task_store()
     task = None
@@ -804,6 +807,7 @@ def solve_mistake_image_stream(
     turn_id: str = Form(""),
 ):
     """Run one image solution as a canonical, task-owned execution stream."""
+    require_writable_conversation(conversation_id)
     request_id = new_request_id()
     run_id = f"run_{uuid.uuid4().hex}"
     resolved_conversation_id = ensure_conversation_id(conversation_id)

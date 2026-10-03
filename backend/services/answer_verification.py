@@ -227,7 +227,8 @@ def verify_answer(
 
 def verification_notice(result: dict[str, Any]) -> str:
     if result.get("status") == "failed":
-        labels = [str(item.get("id") or "") for item in result.get("failures") or []]
+        labels_by_id = {"formula": "公式或推导关系未通过检查", "numeric": "数值未通过检查", "unit": "单位未通过检查", "required_outputs": "必要结论或步骤缺失", "citations": "引用未通过检查"}
+        labels = [labels_by_id.get(str(item.get("id") or ""), str(item.get("reason") or "必要内容需要核对")) for item in result.get("failures") or []]
         return f"> 回答验收未通过：{', '.join(labels)}。本轮结果未标记为完整答案。"
     if result.get("status") == "unverified":
         return "> 数值核对：当前数值未通过确定性计算工具或独立证据验证，请将其视为未验证估算。"

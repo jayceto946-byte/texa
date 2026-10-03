@@ -962,3 +962,39 @@ def test_chat_stream_exposes_and_persists_explicit_grounding_fallback(monkeypatc
     assert events[-1]["suggested_answer_mode"] == "subject_general"
     assistant_save = next(item for item in saved if item.get("answer_mode"))
     assert assistant_save["suggested_answer_mode"] == "subject_general"
+
+
+def test_chat_execution_persists_retrieval_previews_and_final_selected_evidence(monkeypatch, tmp_path):
+    import backend.api.chat as chat_api
+    import backend.rag_trace as rag_trace
+    import graph.main_graph as main_graph
+
+    store = LearningTaskStore(tmp_path)
+    monkeypatch.setattr(chat_api, "get_learning_task_store", lambda: store)
+    monkeypatch.setattr(chat_api, "_prepare_chat_turn", lambda *args, **kwargs: _prepared_chat_turn())
+    monkeypatch.setattr(chat_api, "select_tool_calls", lambda _request: [])
+    monkeypatch.setattr(chat_api, "append_message", lambda *args, **kwargs: {"id": "message"})
+    monkeypatch.setattr(chat_api, "_safe_save_resolution_ledger", lambda *args: None)
+    monkeypatch.setattr(chat_api, "_safe_record_assistant_ledger", lambda *args: None)
+    monkeypatch.setattr(rag_trace, "save_trace", lambda _payload: None)
+    recalled = [{"chunk_id": f"c{i}", "book_name": "教材", "text": f"段落{i}", "page_idx": i} for i in range(2)]
+    selected = [{**recalled[1], "id": "E1", "chars": 3}]
+
+    def stream(**kwargs):
+        yield {"stage": "plan", "intent": "definition", "chapters": ["定义"]}
+        yield {"stage": "retrieve", "content_count": 1, "checkpoint_state": {"evidence_items": recalled}}
+        yield {"stage": "generate", "chunk": "answer", "done": False}
+        yield {"stage": "generate", "done": True, "evidence_sources": selected}
+        yield {"stage": "done", "state": {"final_output": "answer", "evidence_items": recalled,
+            "evidence_sources": selected, "answer_verification": {"status": "passed", "passed": True}}}
+
+    monkeypatch.setattr(main_graph, "run_graph_stream", stream)
+    response = TestClient(app).post("/api/chat/stream", json={"question": "question"})
+    events = [item["execution_event"] for item in _stream_events(response)]
+    retrieved = next(item for item in events if item["phase"] == "retrieval")
+    final = next(item for item in events if item["type"] == "final")
+    assert retrieved["payload"]["evidence_count"] == 2
+    assert final["payload"]["evidence_count"] == 1
+    assert final["payload"]["evidence_previews"][0]["chunk_id"] == "c1"
+    persisted = store.get(final["task_id"]).artifacts["execution_events"]
+    assert next(item for item in persisted if item["type"] == "final")["payload"] == final["payload"]

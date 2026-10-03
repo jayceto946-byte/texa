@@ -1,0 +1,1 @@
+"""Session → Note application capability."""

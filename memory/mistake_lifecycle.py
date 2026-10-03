@@ -148,6 +148,59 @@ class MistakeLifecycleStore:
                     conn.execute("UPDATE mistakes SET data=?,next_review=? WHERE id=?", (json.dumps(current.to_dict(), ensure_ascii=False), current.sm2.get("next_review"), record_id))
             return self._save_receipt(conn, operation_id, args, {"candidate_id": candidate_id, "status": "accepted", "mistake_id": record_id})
 
+    @staticmethod
+    def _chat_identity(source_ref: dict) -> tuple[str, str] | None:
+        if source_ref.get("type") != "chat":
+            return None
+        conversation = str(source_ref.get("conversation_id") or "").strip()
+        message = str(source_ref.get("message_id") or "").strip()
+        return (conversation, message) if conversation and message else None
+
+    def _chat_links(self, conn: sqlite3.Connection, refs: list[dict]) -> dict:
+        """Read the complete source namespace, including legacy source_ref records.
+
+        Do not derive completeness from a UI list's bounded draft page. Existing
+        duplicates are left intact; prefer a formal record, then oldest draft.
+        """
+        identities = {self._chat_identity(ref) for ref in refs}
+        result = {}
+        for row in conn.execute("SELECT id,data FROM mistakes ORDER BY created_at,id"):
+            data = json.loads(row[1])
+            identity = self._chat_identity(data.get("source_ref") or {})
+            if identity in identities and identity is not None and identity not in result:
+                result[identity] = {"status": "recorded", "mistake_id": row[0], "visibility": data.get("visibility", "active")}
+        for row in conn.execute("""SELECT d.id,d.data,c.status,c.linked_mistake_id,m.data
+                FROM mistake_drafts d LEFT JOIN mistake_candidates c ON c.source_key='manual:' || d.id
+                LEFT JOIN mistakes m ON m.id=c.linked_mistake_id ORDER BY d.updated_at,d.id"""):
+            data = json.loads(row[1])
+            identity = self._chat_identity(data.get("source_ref") or {})
+            if identity not in identities or identity is None or identity in result:
+                continue
+            if row[2] == "accepted" and row[3] and row[4]:
+                result[identity] = {"status": "recorded", "mistake_id": row[3], "visibility": json.loads(row[4]).get("visibility", "active")}
+            elif row[2] != "accepted":
+                result[identity] = {"status": "draft", "draft_id": row[0]}
+        return result
+
+    def lookup_chat_sources(self, refs: list[dict]) -> list[dict]:
+        with self.store._connect() as conn:
+            links = self._chat_links(conn, refs)
+        return [{"message_id": ref["message_id"], **links.get(self._chat_identity(ref), {"status": "unrecorded"})} for ref in refs]
+
+    def get_or_create_chat_draft(self, data: dict, stable_source_key: str) -> dict:
+        identity = self._chat_identity(data.get("source_ref") or {})
+        if identity is None:
+            raise ValueError("chat capture requires a persisted conversation and message identity")
+        with self.store._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            existing = self._chat_links(conn, [data["source_ref"]]).get(identity)
+            if existing:
+                return existing
+            draft_id, now = "md_" + uuid.uuid4().hex[:24], _now()
+            payload = {**data, "stable_source_key": stable_source_key}
+            conn.execute("INSERT INTO mistake_drafts VALUES (?,?,?,?)", (draft_id, json.dumps(payload, ensure_ascii=False), 1, now))
+            return {"status": "draft", "draft_id": draft_id}
+
     def create_draft(self, data: dict) -> dict:
         draft_id = "md_" + uuid.uuid4().hex[:24]
         now = _now()
@@ -279,6 +332,20 @@ class MistakeLifecycleStore:
             data = {"scope": scope, "items": mistake_ids, "index": 0, "results": {}, "current_answer": "", "revealed": False, "created_at": now}
             conn.execute("INSERT INTO mistake_review_sessions VALUES (?,?,?,?)", (session_id, json.dumps(data, ensure_ascii=False), 1, now))
         return {"id": session_id, **data, "revision": 1}
+
+    def find_incomplete_review_session(self, *, subject: str = "") -> dict | None:
+        from utils.subject_catalog import subject_matches
+        with self.store._connect() as conn:
+            for row in conn.execute("SELECT id,data,revision,updated_at FROM mistake_review_sessions ORDER BY updated_at DESC,id DESC"):
+                data = json.loads(row[1])
+                if data.get("index", 0) >= len(data.get("items") or []):
+                    continue
+                if subject:
+                    records = [conn.execute("SELECT data FROM mistakes WHERE id=?", (rid,)).fetchone() for rid in data["items"]]
+                    if any(record is None or not subject_matches(str(json.loads(record[0]).get("subject") or ""), subject) for record in records):
+                        continue
+                return {"id": row[0], **data, "revision": row[2], "updated_at": row[3]}
+        return None
 
     def get_review_session(self, session_id: str) -> dict | None:
         with self.store._connect() as conn:

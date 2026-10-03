@@ -181,6 +181,31 @@ class JobManager:
             return job
         raise RuntimeError(f"job cannot complete from status: {job.get('status')}")
 
+    def claim_queued_job(self, job_id: str) -> bool:
+        """Claim a worker without reviving cancelled/interrupted attempts."""
+        stamp = _now()
+        with self._connect() as conn, self._lock:
+            cur = conn.execute(
+                "UPDATE jobs SET status='running', started_at=?, updated_at=? "
+                "WHERE id=? AND status='queued'", (stamp, stamp, job_id),
+            )
+            conn.commit()
+        return bool(cur.rowcount)
+
+    def fail_or_cancel_job(self, job_id: str, *, error: str, message: str) -> dict[str, Any]:
+        """Failure respects cancellation and never changes a terminal receipt."""
+        stamp = _now()
+        with self._connect() as conn, self._lock:
+            conn.execute(
+                "UPDATE jobs SET status=CASE WHEN status='cancelling' THEN 'cancelled' ELSE 'failed' END, "
+                "stage=CASE WHEN status='cancelling' THEN 'cancelled' ELSE 'failed' END, "
+                "error=?, message=?, updated_at=?, completed_at=? "
+                "WHERE id=? AND status IN ('queued','running','cancelling')",
+                (error, message, stamp, stamp, job_id),
+            )
+            conn.commit()
+        return self.get_job(job_id) or {"id": job_id}
+
     def request_cancel(self, job_id: str, message: str = "Cancellation requested") -> dict[str, Any]:
         now = _now()
         with self._connect() as conn, self._lock:
