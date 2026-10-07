@@ -1,0 +1,47 @@
+{
+  "repo": "mlx-community/Qwen3-0.6B-8bit",
+  "revision": "11de96878523501bcaa86104e3c186de07ff9068",
+  "created_at": "2026-10-06T15:51:09.535869+00:00",
+  "case_ids": [
+    "TRB0-0001",
+    "TRB0-0002",
+    "TRB0-0005",
+    "TRB0-0006",
+    "TRB0-0007",
+    "TRB0-0008",
+    "TRB0-0029",
+    "TRB0-0030",
+    "TRB0-0037",
+    "TRB0-0038",
+    "TRB0-0061",
+    "TRB0-0062",
+    "TRB0-0067",
+    "TRB0-0068",
+    "TRB0-0069",
+    "TRB0-0070",
+    "TRB0-0071",
+    "TRB0-0072",
+    "TRB0-0079",
+    "TRB0-0080"
+  ],
+  "planned_smoke": 3,
+  "planned_policy": 60,
+  "no_full_benchmark": true,
+  "freeze_sha256": "30a2730fa3def4c6d2b05de21b5733b78cd90ebab53a1ebd0ecf70d10342f7b4",
+  "prompt": "exact unchanged subset of existing exposed-dev permutation jobs",
+  "generation": {
+    "greedy": true,
+    "temperature": 0,
+    "batch": 1,
+    "retry": false,
+    "self_correction": false,
+    "constrained_decoding": false,
+    "max_new_tokens": 128,
+    "thinking": false
+  },
+  "jobs_sha256": {
+    "A": "24978d8bd6869369c22f7c0375cccbce06c9d6dc83662761255a2d18a2f33d70",
+    "B": "c2c8888ff96e7aab34a90c9c35f1d27bebf409a1f225d1b7f165f914eaea8efa",
+    "C": "2bfaab36f1e1bb4a3bb1eb9245f88d6c52e833afb9f42507bf4b1992ac4a2319"
+  }
+}

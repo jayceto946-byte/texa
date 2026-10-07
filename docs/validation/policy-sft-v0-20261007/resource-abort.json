@@ -1,0 +1,18 @@
+{
+  "status": "resource_aborted",
+  "observed_pressure_level": 4,
+  "pressure_name": "critical",
+  "observed_swap_total_mib": 4096.0,
+  "observed_swap_used_mib": 3566.06,
+  "observed_swap_free_mib": 529.94,
+  "last_completed_microstep": 1161,
+  "optimizer_updates": 145,
+  "all_completed_microsteps_finite": true,
+  "worker_pid": 14870,
+  "worker_exit_code": -15,
+  "action": "SIGTERM at critical pressure; stop, no retry",
+  "recorded_at": 1791363533.9406269,
+  "system_scope_note": "pressure and swap are system-wide; no assertion that training is the sole contributor",
+  "hidden_inference_count": 0,
+  "reason": "resource anomaly: macOS memory pressure critical (kern.memorystatus_vm_pressure_level=4); worker SIGTERM; no retry or configuration reduction"
+}

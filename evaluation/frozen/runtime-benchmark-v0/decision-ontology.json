@@ -1,0 +1,699 @@
+{
+  "version": "actual-texa-runtime/v0",
+  "basis": "working_tree_source_manifest",
+  "surfaces": [
+    {
+      "id": "policy_action_selection",
+      "source": [
+        "backend/services/decision/policy_contracts.py",
+        "backend/services/decision/policy_projection.py",
+        "backend/services/decision/policy.py"
+      ],
+      "input_contract": "PolicyObservationV0: request/context/previous_result/missing_inputs/admissible_actions",
+      "candidate_outputs": {
+        "wire": [
+          "action_id"
+        ],
+        "candidate_kinds": [
+          "generate_answer",
+          "call_tool",
+          "request_input"
+        ]
+      },
+      "valid_states_actions": {
+        "wire": [
+          "action_id"
+        ],
+        "candidate_kinds": [
+          "generate_answer",
+          "call_tool",
+          "request_input"
+        ]
+      },
+      "invariants": [
+        "frozen observation identity",
+        "only current candidate IDs",
+        "tool args immutable",
+        "no goal status in decision",
+        "zero/singleton never invoke model"
+      ],
+      "fallback": [
+        "invalid_format/unknown_action_id: one RulePolicy fallback",
+        "stale: reject without execute/retry",
+        "zero: handled by Runtime"
+      ],
+      "critical_failures": [
+        "stale execution",
+        "out-of-scope execution",
+        "unauthorized write accepted"
+      ],
+      "small_model_suitability": "适合受限多候选选择，能力尚未实测",
+      "remain_deterministic": [
+        "candidate generation",
+        "scope",
+        "arguments",
+        "freshness",
+        "budget",
+        "fallback"
+      ],
+      "benchmark_coverage": {
+        "task": "policy_select",
+        "n": 80,
+        "limitations": "read progress/exercises vs answer; no live provider; not all takeover paths"
+      }
+    },
+    {
+      "id": "question_understanding",
+      "source": [
+        "graph/question_understanding.py",
+        "backend/services/question_understanding.py"
+      ],
+      "input_contract": "question + rule {intent,intent_locked,method,reference_fallback} + candidate_references",
+      "candidate_outputs": {
+        "action": [
+          "continue",
+          "clarify"
+        ],
+        "intent": "schemas/enums.json.question_intents",
+        "dimensions": "schemas/enums.json.question_dimensions",
+        "entity_spans": "0..3 literal current spans",
+        "reference_id": "empty or bounded ID"
+      },
+      "valid_states_actions": {
+        "action": [
+          "continue",
+          "clarify"
+        ],
+        "intent": "schemas/enums.json.question_intents",
+        "dimensions": "schemas/enums.json.question_dimensions",
+        "entity_spans": "0..3 literal current spans",
+        "reference_id": "empty or bounded ID"
+      },
+      "invariants": [
+        "five fields only",
+        "current spans or reference, mutually exclusive",
+        "clarify only unresolved",
+        "locked intent wins"
+      ],
+      "fallback": [
+        "off: rules",
+        "shadow: no applied semantic change",
+        "timeout/rejection: rules"
+      ],
+      "critical_failures": "wrong object/reference corrupts subsequent resolution",
+      "small_model_suitability": "适合局部指代/维度；受生产gate限制",
+      "remain_deterministic": [
+        "gate",
+        "span validation",
+        "locked rules",
+        "scope"
+      ],
+      "benchmark_coverage": {
+        "task": "question_understanding",
+        "n": 60,
+        "gate_eligible": 41,
+        "upstream_conflicts": [
+          "TRB0-0145",
+          "TRB0-0169"
+        ]
+      }
+    },
+    {
+      "id": "semantic_reference_legacy",
+      "source": [
+        "backend/services/semantic_resolver.py"
+      ],
+      "input_contract": "question + bounded candidate VALUES",
+      "candidate_outputs": {
+        "operation": [
+          "resolve_reference",
+          "clarify"
+        ]
+      },
+      "valid_states_actions": {
+        "operation": [
+          "resolve_reference",
+          "clarify"
+        ]
+      },
+      "invariants": [
+        "exactly one operation",
+        "reference value in normalized candidates",
+        "default off"
+      ],
+      "fallback": [
+        "unresolved stays clarification on failure"
+      ],
+      "critical_failures": "false certainty selects wrong conversation object",
+      "small_model_suitability": "适合接口实验，不能当主链全覆盖",
+      "remain_deterministic": [
+        "candidate construction",
+        "gate",
+        "validation"
+      ],
+      "benchmark_coverage": {
+        "task": "reference_resolve",
+        "n": 20,
+        "surface": "interface unit, no production gate assertion"
+      }
+    },
+    {
+      "id": "goal_transform",
+      "source": [
+        "backend/services/goals/execution.py"
+      ],
+      "input_contract": "explicit text 1..2000",
+      "candidate_outputs": {
+        "title": "1..200 chars",
+        "objective": "1..2000 chars",
+        "success_criteria": "1..6 descriptions, 1..500 chars each"
+      },
+      "valid_states_actions": {
+        "title": "1..200 chars",
+        "objective": "1..2000 chars",
+        "success_criteria": "1..6 descriptions, 1..500 chars each"
+      },
+      "invariants": [
+        "only GoalSummary fields",
+        "criterion IDs added by service",
+        "no state/scopes invented"
+      ],
+      "fallback": [
+        "validation/model failure: no summary write"
+      ],
+      "critical_failures": "invented goal or lost user constraints",
+      "small_model_suitability": "适合受限抽取整理，不授权持久状态改变",
+      "remain_deterministic": [
+        "schema",
+        "IDs",
+        "create/activate authority"
+      ],
+      "benchmark_coverage": {
+        "task": "goal_summary",
+        "n": 40,
+        "profile": "extractive_goal/v0"
+      }
+    },
+    {
+      "id": "route_capability",
+      "source": [
+        "backend/services/decision/contracts.py",
+        "backend/services/decision/router.py",
+        "backend/services/decision/resolver.py"
+      ],
+      "input_contract": "DecisionContext",
+      "candidate_outputs": {
+        "mode": [
+          "direct_answer",
+          "capability",
+          "clarify",
+          "unsupported"
+        ],
+        "capabilities": [
+          "textbook.search",
+          "textbook.read",
+          "mistake.search_related",
+          "mistake.manage",
+          "learning.inspect",
+          "exercise.inspect",
+          "exercise.create_set",
+          "exercise.record_result",
+          "review.manage",
+          "math.verify"
+        ]
+      },
+      "valid_states_actions": {
+        "mode": [
+          "direct_answer",
+          "capability",
+          "clarify",
+          "unsupported"
+        ],
+        "capabilities": [
+          "textbook.search",
+          "textbook.read",
+          "mistake.search_related",
+          "mistake.manage",
+          "learning.inspect",
+          "exercise.inspect",
+          "exercise.create_set",
+          "exercise.record_result",
+          "review.manage",
+          "math.verify"
+        ]
+      },
+      "invariants": [
+        "catalog membership does not guarantee canonical mapping",
+        "input/scope/attachments gates first"
+      ],
+      "fallback": [
+        "rules/shadow; semantic calibrated only when configured"
+      ],
+      "critical_failures": "claiming unsupported capability is executable or bypassing scope",
+      "small_model_suitability": "当前regex/optional embedding prototype，不替换为自创Policy字段",
+      "remain_deterministic": [
+        "explicit route gates",
+        "scope",
+        "capability resolution"
+      ],
+      "benchmark_coverage": {
+        "task": "route_contract",
+        "n": 30,
+        "semantic_authority": false
+      }
+    },
+    {
+      "id": "retrieval_continuity",
+      "source": [
+        "graph/retrieval_policy.py",
+        "backend/services/evidence_continuity.py",
+        "graph/retrieval_node.py"
+      ],
+      "input_contract": "Runtime state including scope/evidence/support/topic/facet",
+      "candidate_outputs": [
+        "none",
+        "reuse",
+        "delta",
+        "full"
+      ],
+      "valid_states_actions": [
+        "none",
+        "reuse",
+        "delta",
+        "full"
+      ],
+      "invariants": [
+        "proposal != hydrated execution",
+        "scope/version/topic continuity",
+        "history not textbook evidence"
+      ],
+      "fallback": [
+        "invalidated -> full",
+        "reuse hydration failure -> full"
+      ],
+      "critical_failures": "using old/foreign/unhydrated evidence as current",
+      "small_model_suitability": "暂不交小模型最终决定，可未来仅作建议",
+      "remain_deterministic": [
+        "scope/fingerprint/hydration",
+        "existing action rule"
+      ],
+      "benchmark_coverage": {
+        "task": "retrieval_contract",
+        "n": 30,
+        "not_nl": true
+      }
+    },
+    {
+      "id": "context_selection",
+      "source": [
+        "backend/services/session_context.py",
+        "backend/services/session_ledger.py",
+        "graph/conversation_context.py"
+      ],
+      "input_contract": "bounded trace/state/history + current evidence pack",
+      "candidate_outputs": {
+        "production": "ConversationContextPack/seed; no retain/drop action enum",
+        "state_ops": [
+          "clarify",
+          "replace_constraint",
+          "correct_entity",
+          "keep_previous_intent",
+          "return_to_topic",
+          "select_artifact",
+          "set_topic",
+          "add_constraint"
+        ]
+      },
+      "valid_states_actions": {
+        "production": "ConversationContextPack/seed; no retain/drop action enum",
+        "state_ops": [
+          "clarify",
+          "replace_constraint",
+          "correct_entity",
+          "keep_previous_intent",
+          "return_to_topic",
+          "select_artifact",
+          "set_topic",
+          "add_constraint"
+        ]
+      },
+      "invariants": [
+        "max2 generation turns",
+        "current query precedence",
+        "history treated quoted data",
+        "current evidence IDs authoritative"
+      ],
+      "fallback": [
+        "rules; no semantic change on clarify",
+        "drop summary before truncation"
+      ],
+      "critical_failures": "stale constraints or objects override current request",
+      "small_model_suitability": "当前deterministic；future relevance ranking不能伪装已接入",
+      "remain_deterministic": [
+        "history limits",
+        "evidence reference mapping",
+        "projection/CAS"
+      ],
+      "benchmark_coverage": {
+        "task": "context_contract",
+        "n": 20,
+        "layer": "off seed only"
+      }
+    },
+    {
+      "id": "goal_lifecycle",
+      "source": [
+        "backend/services/goals/store.py",
+        "backend/services/goals/service.py",
+        "backend/services/goals/execution.py"
+      ],
+      "input_contract": "explicit command + Goal + expected_revision",
+      "candidate_outputs": {
+        "states": [
+          "draft",
+          "active",
+          "paused",
+          "completed",
+          "cancelled"
+        ],
+        "service_methods": [
+          "create",
+          "update",
+          "activate",
+          "pause",
+          "measure",
+          "get_next_action"
+        ],
+        "schedule_intervals_hours": [
+          0,
+          24,
+          168
+        ]
+      },
+      "valid_states_actions": {
+        "states": [
+          "draft",
+          "active",
+          "paused",
+          "completed",
+          "cancelled"
+        ],
+        "service_methods": [
+          "create",
+          "update",
+          "activate",
+          "pause",
+          "measure",
+          "get_next_action"
+        ],
+        "schedule_intervals_hours": [
+          0,
+          24,
+          168
+        ]
+      },
+      "invariants": [
+        "activate draft/paused",
+        "pause active",
+        "completed requires user confirmation in measure",
+        "task completion != goal completion",
+        "goal contract fencing"
+      ],
+      "fallback": [
+        "revision/stale/invalid state rejects",
+        "evidence -> evidence_present_unverified"
+      ],
+      "critical_failures": "unconfirmed completion or activation; old run commits after scope update",
+      "small_model_suitability": "不交模型状态权",
+      "remain_deterministic": [
+        "all transitions",
+        "scheduling",
+        "CAS/fencing"
+      ],
+      "benchmark_coverage": {
+        "task": "goal_lifecycle_control",
+        "n": 10,
+        "command_already_decoded": true
+      }
+    },
+    {
+      "id": "learning_bridge",
+      "source": [
+        "backend/services/learning_state_bridge.py"
+      ],
+      "input_contract": "resolved learning speech act + known scopes + existing resumable goals",
+      "candidate_outputs": [
+        "create_goal",
+        "start_learning",
+        "resume_learning",
+        "pause_learning",
+        "record_weakness"
+      ],
+      "valid_states_actions": [
+        "create_goal",
+        "start_learning",
+        "resume_learning",
+        "pause_learning",
+        "record_weakness"
+      ],
+      "invariants": [
+        "preview separate from commit",
+        "ambiguous scope/goal clarify",
+        "separate from GoalService state enum"
+      ],
+      "fallback": [
+        "clarify unavailable/ambiguous scope"
+      ],
+      "critical_failures": "wrong goal resumed or implicit preview committed",
+      "small_model_suitability": "保持deterministic，可另评估NL提案",
+      "remain_deterministic": [
+        "scope",
+        "commit",
+        "goal identity"
+      ],
+      "benchmark_coverage": {
+        "n": 0,
+        "audited_not_scored": true
+      }
+    },
+    {
+      "id": "native_tools_provider",
+      "source": [
+        "llm/agent_adapter.py",
+        "backend/services/agent_runtime/runner.py",
+        "backend/services/agent_runtime/write_service.py"
+      ],
+      "input_contract": "verified provider capabilities + frozen ToolRefs + bounded transcript",
+      "candidate_outputs": [
+        "FixedAction finish",
+        "FixedAction call with name/args"
+      ],
+      "valid_states_actions": [
+        "FixedAction finish",
+        "FixedAction call with name/args"
+      ],
+      "invariants": [
+        "native verified support",
+        "one call no parallel",
+        "frozen allowed schema",
+        "write approval receipt",
+        "unknown write not blindly retry"
+      ],
+      "fallback": [
+        "no verified native support -> no takeover/activation",
+        "bounded error paths"
+      ],
+      "critical_failures": "unapproved write or replay side effect",
+      "small_model_suitability": "V0不评估自由参数生成",
+      "remain_deterministic": [
+        "provider contract",
+        "approval",
+        "idempotency",
+        "receipt"
+      ],
+      "benchmark_coverage": {
+        "n": 0,
+        "covered_by_repo_tests": true
+      }
+    },
+    {
+      "id": "planner",
+      "source": [
+        "graph/planner.py"
+      ],
+      "input_contract": "resolved query + rule intent + authorized chapter candidates",
+      "candidate_outputs": [
+        "intent",
+        "target_chapters",
+        "confidence",
+        "sub_tasks"
+      ],
+      "valid_states_actions": [
+        "intent",
+        "target_chapters",
+        "confidence",
+        "sub_tasks"
+      ],
+      "invariants": [
+        "strong-rule locks",
+        "chapter clamp",
+        "not a strict action taxonomy for sub_tasks"
+      ],
+      "fallback": [
+        "fastpath/rule state on invalid plan"
+      ],
+      "critical_failures": "cross-scope chapters or treating free plan as executable tool authority",
+      "small_model_suitability": "已有LLM表面，但开放子任务不适合本版0.8闭集评分",
+      "remain_deterministic": [
+        "scope/chapter filters"
+      ],
+      "benchmark_coverage": {
+        "n": 0,
+        "deferred_reason": "subtask schema not strict executable contract"
+      }
+    },
+    {
+      "id": "asset_state",
+      "source": [
+        "backend/services/pending_actions.py",
+        "backend/services/mistake_lifecycle.py",
+        "backend/services/conversation_management.py",
+        "backend/services/session_notes/generation.py"
+      ],
+      "input_contract": "tool proposals / explicit UI commands / durable facts",
+      "candidate_outputs": {
+        "pending_types": [
+          "add_mistake",
+          "mark_concept_reviewed",
+          "create_practice_session",
+          "record_practice_result",
+          "update_mistake"
+        ],
+        "conversation_actions": [
+          "pin",
+          "unpin",
+          "archive",
+          "restore",
+          "trash"
+        ],
+        "note": "article-v5 generation then explicit save"
+      },
+      "valid_states_actions": {
+        "pending_types": [
+          "add_mistake",
+          "mark_concept_reviewed",
+          "create_practice_session",
+          "record_practice_result",
+          "update_mistake"
+        ],
+        "conversation_actions": [
+          "pin",
+          "unpin",
+          "archive",
+          "restore",
+          "trash"
+        ],
+        "note": "article-v5 generation then explicit save"
+      },
+      "invariants": [
+        "pending != committed",
+        "receipt based idempotency",
+        "mastery by confirmed/deterministic redo",
+        "busy conversation cannot archive/trash"
+      ],
+      "fallback": [
+        "reject stale/invalid/unsupported",
+        "reconcile receipt"
+      ],
+      "critical_failures": "wrong record changed, automatic mastery or data deletion",
+      "small_model_suitability": "选择可研究；正文质量不测",
+      "remain_deterministic": [
+        "confirmation",
+        "revision",
+        "save/delete",
+        "mastery"
+      ],
+      "benchmark_coverage": {
+        "n": 0,
+        "audited_not_scored": true
+      }
+    },
+    {
+      "id": "execution_validation_event",
+      "source": [
+        "backend/services/agent_runtime/store.py",
+        "backend/services/execution_events.py",
+        "backend/services/runtime_events.py",
+        "backend/services/decision/policy.py"
+      ],
+      "input_contract": "task/run/owner/revision + tool/verification facts + decision_ref",
+      "candidate_outputs": {
+        "task_states": [
+          "running",
+          "interrupted",
+          "waiting_for_input",
+          "waiting_for_confirmation",
+          "completed",
+          "degraded",
+          "failed",
+          "cancelled"
+        ],
+        "policy_validation": [
+          "accepted",
+          "invalid_format",
+          "unknown_action_id",
+          "stale_observation"
+        ],
+        "outcome": "PolicyOutcomeV0"
+      },
+      "valid_states_actions": {
+        "task_states": [
+          "running",
+          "interrupted",
+          "waiting_for_input",
+          "waiting_for_confirmation",
+          "completed",
+          "degraded",
+          "failed",
+          "cancelled"
+        ],
+        "policy_validation": [
+          "accepted",
+          "invalid_format",
+          "unknown_action_id",
+          "stale_observation"
+        ],
+        "outcome": "PolicyOutcomeV0"
+      },
+      "invariants": [
+        "no executed rejected decision",
+        "decision_outcome linkage uses stable ref",
+        "best-effort RuntimeEvent is not full gold",
+        "terminal != semantic correctness"
+      ],
+      "fallback": [
+        "stale reject",
+        "one RulePolicy fallback for eligible validation errors",
+        "unknown write receipt reconciliation"
+      ],
+      "critical_failures": "stale execution or false success promoted to goal completion",
+      "small_model_suitability": "不适合模型权威判定",
+      "remain_deterministic": [
+        "all execution state",
+        "events",
+        "budget",
+        "validation"
+      ],
+      "benchmark_coverage": {
+        "task": "decision_guard_control",
+        "n": 10
+      }
+    }
+  ],
+  "future_only_excluded": [
+    "ContextPackV1",
+    "FinalEvidencePackV1",
+    "shared H7 PolicyLM task union",
+    "model-owned Goal SWITCH/KEEP/COMPLETE"
+  ]
+}

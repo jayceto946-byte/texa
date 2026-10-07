@@ -1,0 +1,1900 @@
+{
+  "parser_version": "semantic-recoverability/v0.1",
+  "human_adjudicated": false,
+  "semantic_test_locked": false,
+  "screening": {
+    "secondary_semantic": {
+      "N": 39,
+      "S": 0,
+      "F": 0,
+      "T": 0,
+      "U": 39,
+      "official_strict_accuracy": 0.0,
+      "official_exact_count": 0,
+      "official_exact_accuracy": 0.0,
+      "recoverable_semantic_count": 0,
+      "recoverable_semantic_accuracy": 0.0,
+      "format_only_failure_rate": 0.0,
+      "true_semantic_failure_rate": 0.0,
+      "unresolved_failure_rate": 1.0,
+      "format_failures": 39,
+      "schema_failures": 0,
+      "contract_failures": 0,
+      "missing_predictions": 0,
+      "severity": {
+        "S2": 39
+      },
+      "critical_count": 0,
+      "complete_pairs": 18,
+      "pair_both_correct": 0,
+      "by_task": {
+        "question_understanding": {
+          "N": 19,
+          "S": 0,
+          "F": 0,
+          "T": 0,
+          "U": 19,
+          "official_strict_accuracy": 0.0,
+          "official_exact_count": 0,
+          "official_exact_accuracy": 0.0,
+          "recoverable_semantic_count": 0,
+          "recoverable_semantic_accuracy": 0.0,
+          "format_only_failure_rate": 0.0,
+          "true_semantic_failure_rate": 0.0,
+          "unresolved_failure_rate": 1.0,
+          "format_failures": 19,
+          "schema_failures": 0,
+          "contract_failures": 0,
+          "missing_predictions": 0,
+          "severity": {
+            "S2": 19
+          },
+          "critical_count": 0,
+          "complete_pairs": 8,
+          "pair_both_correct": 0
+        },
+        "reference_resolve": {
+          "N": 20,
+          "S": 0,
+          "F": 0,
+          "T": 0,
+          "U": 20,
+          "official_strict_accuracy": 0.0,
+          "official_exact_count": 0,
+          "official_exact_accuracy": 0.0,
+          "recoverable_semantic_count": 0,
+          "recoverable_semantic_accuracy": 0.0,
+          "format_only_failure_rate": 0.0,
+          "true_semantic_failure_rate": 0.0,
+          "unresolved_failure_rate": 1.0,
+          "format_failures": 20,
+          "schema_failures": 0,
+          "contract_failures": 0,
+          "missing_predictions": 0,
+          "severity": {
+            "S2": 20
+          },
+          "critical_count": 0,
+          "complete_pairs": 10,
+          "pair_both_correct": 0
+        }
+      },
+      "task_macro_strict": 0.0,
+      "by_split": {
+        "train": {
+          "N": 21,
+          "S": 0,
+          "F": 0,
+          "T": 0,
+          "U": 21,
+          "official_strict_accuracy": 0.0,
+          "official_exact_count": 0,
+          "official_exact_accuracy": 0.0,
+          "recoverable_semantic_count": 0,
+          "recoverable_semantic_accuracy": 0.0,
+          "format_only_failure_rate": 0.0,
+          "true_semantic_failure_rate": 0.0,
+          "unresolved_failure_rate": 1.0,
+          "format_failures": 21,
+          "schema_failures": 0,
+          "contract_failures": 0,
+          "missing_predictions": 0,
+          "severity": {
+            "S2": 21
+          },
+          "critical_count": 0,
+          "complete_pairs": 9,
+          "pair_both_correct": 0
+        },
+        "dev": {
+          "N": 8,
+          "S": 0,
+          "F": 0,
+          "T": 0,
+          "U": 8,
+          "official_strict_accuracy": 0.0,
+          "official_exact_count": 0,
+          "official_exact_accuracy": 0.0,
+          "recoverable_semantic_count": 0,
+          "recoverable_semantic_accuracy": 0.0,
+          "format_only_failure_rate": 0.0,
+          "true_semantic_failure_rate": 0.0,
+          "unresolved_failure_rate": 1.0,
+          "format_failures": 8,
+          "schema_failures": 0,
+          "contract_failures": 0,
+          "missing_predictions": 0,
+          "severity": {
+            "S2": 8
+          },
+          "critical_count": 0,
+          "complete_pairs": 4,
+          "pair_both_correct": 0
+        },
+        "test": {
+          "N": 6,
+          "S": 0,
+          "F": 0,
+          "T": 0,
+          "U": 6,
+          "official_strict_accuracy": 0.0,
+          "official_exact_count": 0,
+          "official_exact_accuracy": 0.0,
+          "recoverable_semantic_count": 0,
+          "recoverable_semantic_accuracy": 0.0,
+          "format_only_failure_rate": 0.0,
+          "true_semantic_failure_rate": 0.0,
+          "unresolved_failure_rate": 1.0,
+          "format_failures": 6,
+          "schema_failures": 0,
+          "contract_failures": 0,
+          "missing_predictions": 0,
+          "severity": {
+            "S2": 6
+          },
+          "critical_count": 0,
+          "complete_pairs": 3,
+          "pair_both_correct": 0
+        },
+        "hidden_test": {
+          "N": 4,
+          "S": 0,
+          "F": 0,
+          "T": 0,
+          "U": 4,
+          "official_strict_accuracy": 0.0,
+          "official_exact_count": 0,
+          "official_exact_accuracy": 0.0,
+          "recoverable_semantic_count": 0,
+          "recoverable_semantic_accuracy": 0.0,
+          "format_only_failure_rate": 0.0,
+          "true_semantic_failure_rate": 0.0,
+          "unresolved_failure_rate": 1.0,
+          "format_failures": 4,
+          "schema_failures": 0,
+          "contract_failures": 0,
+          "missing_predictions": 0,
+          "severity": {
+            "S2": 4
+          },
+          "critical_count": 0,
+          "complete_pairs": 2,
+          "pair_both_correct": 0
+        }
+      }
+    },
+    "semantic_all": {
+      "N": 39,
+      "S": 0,
+      "F": 0,
+      "T": 0,
+      "U": 39,
+      "official_strict_accuracy": 0.0,
+      "official_exact_count": 0,
+      "official_exact_accuracy": 0.0,
+      "recoverable_semantic_count": 0,
+      "recoverable_semantic_accuracy": 0.0,
+      "format_only_failure_rate": 0.0,
+      "true_semantic_failure_rate": 0.0,
+      "unresolved_failure_rate": 1.0,
+      "format_failures": 39,
+      "schema_failures": 0,
+      "contract_failures": 0,
+      "missing_predictions": 0,
+      "severity": {
+        "S2": 39
+      },
+      "critical_count": 0,
+      "complete_pairs": 18,
+      "pair_both_correct": 0,
+      "by_task": {
+        "question_understanding": {
+          "N": 19,
+          "S": 0,
+          "F": 0,
+          "T": 0,
+          "U": 19,
+          "official_strict_accuracy": 0.0,
+          "official_exact_count": 0,
+          "official_exact_accuracy": 0.0,
+          "recoverable_semantic_count": 0,
+          "recoverable_semantic_accuracy": 0.0,
+          "format_only_failure_rate": 0.0,
+          "true_semantic_failure_rate": 0.0,
+          "unresolved_failure_rate": 1.0,
+          "format_failures": 19,
+          "schema_failures": 0,
+          "contract_failures": 0,
+          "missing_predictions": 0,
+          "severity": {
+            "S2": 19
+          },
+          "critical_count": 0,
+          "complete_pairs": 8,
+          "pair_both_correct": 0
+        },
+        "reference_resolve": {
+          "N": 20,
+          "S": 0,
+          "F": 0,
+          "T": 0,
+          "U": 20,
+          "official_strict_accuracy": 0.0,
+          "official_exact_count": 0,
+          "official_exact_accuracy": 0.0,
+          "recoverable_semantic_count": 0,
+          "recoverable_semantic_accuracy": 0.0,
+          "format_only_failure_rate": 0.0,
+          "true_semantic_failure_rate": 0.0,
+          "unresolved_failure_rate": 1.0,
+          "format_failures": 20,
+          "schema_failures": 0,
+          "contract_failures": 0,
+          "missing_predictions": 0,
+          "severity": {
+            "S2": 20
+          },
+          "critical_count": 0,
+          "complete_pairs": 10,
+          "pair_both_correct": 0
+        }
+      },
+      "task_macro_strict": 0.0,
+      "by_split": {
+        "train": {
+          "N": 21,
+          "S": 0,
+          "F": 0,
+          "T": 0,
+          "U": 21,
+          "official_strict_accuracy": 0.0,
+          "official_exact_count": 0,
+          "official_exact_accuracy": 0.0,
+          "recoverable_semantic_count": 0,
+          "recoverable_semantic_accuracy": 0.0,
+          "format_only_failure_rate": 0.0,
+          "true_semantic_failure_rate": 0.0,
+          "unresolved_failure_rate": 1.0,
+          "format_failures": 21,
+          "schema_failures": 0,
+          "contract_failures": 0,
+          "missing_predictions": 0,
+          "severity": {
+            "S2": 21
+          },
+          "critical_count": 0,
+          "complete_pairs": 9,
+          "pair_both_correct": 0
+        },
+        "dev": {
+          "N": 8,
+          "S": 0,
+          "F": 0,
+          "T": 0,
+          "U": 8,
+          "official_strict_accuracy": 0.0,
+          "official_exact_count": 0,
+          "official_exact_accuracy": 0.0,
+          "recoverable_semantic_count": 0,
+          "recoverable_semantic_accuracy": 0.0,
+          "format_only_failure_rate": 0.0,
+          "true_semantic_failure_rate": 0.0,
+          "unresolved_failure_rate": 1.0,
+          "format_failures": 8,
+          "schema_failures": 0,
+          "contract_failures": 0,
+          "missing_predictions": 0,
+          "severity": {
+            "S2": 8
+          },
+          "critical_count": 0,
+          "complete_pairs": 4,
+          "pair_both_correct": 0
+        },
+        "test": {
+          "N": 6,
+          "S": 0,
+          "F": 0,
+          "T": 0,
+          "U": 6,
+          "official_strict_accuracy": 0.0,
+          "official_exact_count": 0,
+          "official_exact_accuracy": 0.0,
+          "recoverable_semantic_count": 0,
+          "recoverable_semantic_accuracy": 0.0,
+          "format_only_failure_rate": 0.0,
+          "true_semantic_failure_rate": 0.0,
+          "unresolved_failure_rate": 1.0,
+          "format_failures": 6,
+          "schema_failures": 0,
+          "contract_failures": 0,
+          "missing_predictions": 0,
+          "severity": {
+            "S2": 6
+          },
+          "critical_count": 0,
+          "complete_pairs": 3,
+          "pair_both_correct": 0
+        },
+        "hidden_test": {
+          "N": 4,
+          "S": 0,
+          "F": 0,
+          "T": 0,
+          "U": 4,
+          "official_strict_accuracy": 0.0,
+          "official_exact_count": 0,
+          "official_exact_accuracy": 0.0,
+          "recoverable_semantic_count": 0,
+          "recoverable_semantic_accuracy": 0.0,
+          "format_only_failure_rate": 0.0,
+          "true_semantic_failure_rate": 0.0,
+          "unresolved_failure_rate": 1.0,
+          "format_failures": 4,
+          "schema_failures": 0,
+          "contract_failures": 0,
+          "missing_predictions": 0,
+          "severity": {
+            "S2": 4
+          },
+          "critical_count": 0,
+          "complete_pairs": 2,
+          "pair_both_correct": 0
+        }
+      }
+    }
+  },
+  "taxonomy": {
+    "invalid_json:Expecting value: line 1 column 1 (char 0)": 39
+  },
+  "performance": {
+    "successful_latency_n": 39,
+    "p50_ms": 4226.273915999627,
+    "p95_ms": 4360.553749998871,
+    "percentile_method": "nearest-rank ceil(p*n)",
+    "tail_sample_insufficient": false,
+    "token_rate_n": 39,
+    "generated_tokens_per_request_second": 32.082808051966225,
+    "token_rate_reason": null,
+    "failed_requests": [],
+    "warmup_excluded": true,
+    "includes_prefill": true
+  },
+  "cases": [
+    {
+      "id": "TRB0-0123",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"definition\", \"dimensions\": [], \"entity_spans\": {\"end\": 1}, \"reference_id\": \"r0\"}",
+        "source_range": [
+          8,
+          121
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              121
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0123",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-01",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:{'end': 1} is not of type 'array'",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0124",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"definition\", \"dimensions\": [], \"entity_spans\": [{\"start\": 12, \"end\": 17}, {\"start\": 22, \"end\": 26}], \"reference_id\": \"r0\"}",
+        "source_range": [
+          8,
+          163
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              163
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0124",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-01",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": true,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:invalid_span",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0132",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"derivation\", \"dimensions\": [], \"entity_spans\": [{\"start\": 1, \"end\": 4}, {\"start\": 5, \"end\": 8}]}",
+        "source_range": [
+          8,
+          137
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              137
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0132",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-05",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'reference_id' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0145",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"derivation\", \"dimensions\": [], \"entity_spans\": [{\"start\": 12, \"end\": 23}]}",
+        "source_range": [
+          8,
+          115
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              115
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0145",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-12",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'reference_id' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0146",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"derivation\", \"dimensions\": [], \"entity_spans\": [{\"start\": 12, \"end\": 23}]}",
+        "source_range": [
+          8,
+          115
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              115
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0146",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-12",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'reference_id' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0151",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"definition\", \"dimensions\": [], \"entity_spans\": [{\"start\": 12, \"end\": 17}, {\"start\": 22, \"end\": 26}], \"reference_id\": \"r0\"}",
+        "source_range": [
+          8,
+          163
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              163
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0151",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-15",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": true,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:invalid_span",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0152",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"definition\", \"dimensions\": [], \"entity_spans\": [{\"start\": 12, \"end\": 17}, {\"start\": 22, \"end\": 26}], \"reference_id\": \"r0\"}",
+        "source_range": [
+          8,
+          163
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              163
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0152",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-15",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": true,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:invalid_span",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0158",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"calculation\", \"dimensions\": [], \"entity_spans\": [{\"start\": 12, \"end\": 16}, {\"start\": 17, \"end\": 22}]}",
+        "source_range": [
+          8,
+          142
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              142
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0158",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-18",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'reference_id' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0168",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"continue\", \"intent\": \"calculation\", \"dimensions\": [], \"entity_spans\": [{\"start\": 1, \"end\": 3}], \"reference_id\": \"r0\"}",
+        "source_range": [
+          8,
+          137
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              137
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0168",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-23",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": true,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:invalid_reference",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0169",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"continue\", \"intent\": \"calculation\", \"dimensions\": [], \"entity_spans\": {\"end\": 1}, \"reference_id\": \"r0\"}",
+        "source_range": [
+          8,
+          123
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              123
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0169",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-24",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:{'end': 1} is not of type 'array'",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0170",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"continue\", \"dimensions\": [], \"entity_spans\": {\"end\": 1}, \"reference_id\": \"r0\", \"intent\": \"calculation\", \"intent_locked\": true, \"method\": \"identity\"}",
+        "source_range": [
+          8,
+          168
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              168
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0170",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-24",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:{'end': 1} is not of type 'array'",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0171",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"definition\", \"dimensions\": [], \"entity_spans\": [{\"start\": 1, \"end\": 3}], \"reference_id\": \"r0\"}",
+        "source_range": [
+          8,
+          135
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              135
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0171",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-25",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": true,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:invalid_reference",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0172",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"dimensions\": [], \"entity_spans\": [{\"start\": 0, \"end\": 5}]}",
+        "source_range": [
+          8,
+          89
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              89
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0172",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-25",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'intent' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0173",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"plan\", \"dimensions\": [], \"entity_spans\": {\"end\": 1}, \"reference_id\": \"r0\"}",
+        "source_range": [
+          8,
+          115
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              115
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0173",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-26",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:{'end': 1} is not of type 'array'",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0174",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"qa\", \"dimensions\": [], \"entity_spans\": {\"end\": 1}, \"reference_id\": \"r0\"}",
+        "source_range": [
+          8,
+          113
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              113
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0174",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-26",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:{'end': 1} is not of type 'array'",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0177",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"continue\", \"intent\": \"qa\", \"dimensions\": [], \"entity_spans\": [{\"start\": 12, \"end\": 23}, {\"start\": 25, \"end\": 35}]}",
+        "source_range": [
+          8,
+          134
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              134
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0177",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-28",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'reference_id' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0178",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"continue\", \"intent\": \"qa\", \"dimensions\": [], \"entity_spans\": [{\"start\": 12, \"end\": 23}, {\"start\": 25, \"end\": 35}]}",
+        "source_range": [
+          8,
+          134
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              134
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0178",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-28",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'reference_id' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0179",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"definition\", \"dimensions\": [], \"entity_spans\": [{\"start\": 12, \"end\": 16}, {\"start\": 17, \"end\": 22}], \"reference_id\": \"r0\"}",
+        "source_range": [
+          8,
+          163
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              163
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0179",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-29",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": true,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:invalid_span",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0180",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"action\": \"clarify\", \"intent\": \"definition\", \"dimensions\": [], \"entity_spans\": [{\"start\": 12, \"end\": 16}, {\"start\": 17, \"end\": 22}], \"reference_id\": \"r0\"}",
+        "source_range": [
+          8,
+          163
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              163
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0180",
+        "task": "question_understanding",
+        "track": "semantic",
+        "pair_id": "U-29",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": true,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:invalid_span",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0181",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0181",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-00",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0182",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0182",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-00",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0183",
+      "bucket": "U",
+      "recovery": {
+        "status": "damaged_json_container",
+        "extracted_text": null,
+        "source_range": null,
+        "transform_log": []
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0183",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-01",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "missing_prediction"
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0184",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0184",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-01",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0185",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0185",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-02",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0186",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0186",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-02",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0187",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0187",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-03",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0188",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0188",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-03",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0189",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0189",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-04",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0190",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0190",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-04",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0191",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0191",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-05",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0192",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0192",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-05",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0193",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0193",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-06",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0194",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0194",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-06",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0195",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0195",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-07",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0196",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0196",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-07",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0197",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0197",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-08",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0198",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0198",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-08",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0199",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0199",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-09",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    },
+    {
+      "id": "TRB0-0200",
+      "bucket": "U",
+      "recovery": {
+        "status": "unique_payload",
+        "extracted_text": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"description\":\"Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants.\",\"properties\":{\"state_operations\":{\"items\":{\"oneOf\":[{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"clarify\"]}},\"required\":[\"operation\"],\"type\":\"object\"},{\"additionalProperties\":false,\"properties\":{\"operation\":{\"enum\":[\"resolve_reference\"]},\"value\":{\"type\":\"string\"}},\"required\":[\"operation\",\"value\"],\"type\":\"object\"}]},\"maxItems\":1,\"minItems\":1,\"type\":\"array\"}},\"required\":[\"state_operations\"],\"type\":\"object\"}",
+        "source_range": [
+          8,
+          638
+        ],
+        "transform_log": [
+          {
+            "operation": "extract_unique_outer_payload",
+            "range": [
+              8,
+              638
+            ]
+          }
+        ]
+      },
+      "diagnostic_result": {
+        "id": "TRB0-0200",
+        "task": "reference_resolve",
+        "track": "semantic",
+        "pair_id": "SR-09",
+        "exact": false,
+        "structured_match": false,
+        "schema_valid": false,
+        "executable": false,
+        "severity": "S2",
+        "critical_failure": false,
+        "reason": "contract_rejected:'state_operations' is a required property",
+        "attempted_authority_escalation": false
+      },
+      "field_differences": null,
+      "tags": [
+        "invalid_json:Expecting value: line 1 column 1 (char 0)"
+      ]
+    }
+  ],
+  "training_value": {
+    "judgment": "insufficient_evidence",
+    "basis": "primary strict/task macro, U and official critical counts; exploratory 80% reference",
+    "primary_evidence": null,
+    "limitations": "Author-frozen synthetic closed profiles; no primary textbook tool or historical-reference coverage; no training/production permission."
+  }
+}

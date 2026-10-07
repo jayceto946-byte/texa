@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "action_id": {
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Action Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "action_id"
+  ],
+  "title": "PolicyDecisionV0",
+  "type": "object",
+  "description": "Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants."
+}

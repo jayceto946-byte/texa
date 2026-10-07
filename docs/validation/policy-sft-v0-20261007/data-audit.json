@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "seeds": 960,
+  "instances": 3840,
+  "families": 80,
+  "family_seed_split_leakage": false,
+  "schema_gold_maps_permutation_payloads_valid": true,
+  "counterfactual_conditioned_gold_balanced": true,
+  "topic_label_shortcut_guard_passed": true,
+  "independent_human_adjudication": false,
+  "corrected_data_training_steps": 0
+}

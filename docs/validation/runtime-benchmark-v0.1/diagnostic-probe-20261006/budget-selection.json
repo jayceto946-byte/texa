@@ -1,0 +1,81 @@
+{
+  "diagnostic_only": true,
+  "policy": "only finish=length in each condition; all current raw reused; no normal-stop expansion",
+  "jobs": [
+    {
+      "source_arm": "original",
+      "id": "TRB0-0121",
+      "budget": 768
+    },
+    {
+      "source_arm": "original",
+      "id": "TRB0-0125",
+      "budget": 768
+    },
+    {
+      "source_arm": "original",
+      "id": "TRB0-0127",
+      "budget": 768
+    },
+    {
+      "source_arm": "original",
+      "id": "TRB0-0139",
+      "budget": 768
+    },
+    {
+      "source_arm": "original",
+      "id": "TRB0-0150",
+      "budget": 768
+    },
+    {
+      "source_arm": "original",
+      "id": "TRB0-0153",
+      "budget": 768
+    },
+    {
+      "source_arm": "original",
+      "id": "TRB0-0155",
+      "budget": 768
+    },
+    {
+      "source_arm": "original",
+      "id": "TRB0-0169",
+      "budget": 768
+    },
+    {
+      "source_arm": "original",
+      "id": "TRB0-0170",
+      "budget": 768
+    },
+    {
+      "source_arm": "original",
+      "id": "TRB0-0174",
+      "budget": 768
+    },
+    {
+      "source_arm": "original",
+      "id": "TRB0-0176",
+      "budget": 768
+    },
+    {
+      "source_arm": "A",
+      "id": "TRB0-0106",
+      "budget": 768
+    },
+    {
+      "source_arm": "B",
+      "id": "TRB0-0082",
+      "budget": 768
+    },
+    {
+      "source_arm": "B",
+      "id": "TRB0-0105",
+      "budget": 768
+    },
+    {
+      "source_arm": "B",
+      "id": "TRB0-0106",
+      "budget": 768
+    }
+  ]
+}

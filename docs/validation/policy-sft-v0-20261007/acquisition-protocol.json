@@ -1,0 +1,33 @@
+{
+  "user_authorized_continuation": "2026-10-07",
+  "dataset_freeze_sha256": "33f40846ebeecb0c52204ea646262153d615e96ab747799676a4003376891394",
+  "training_config_sha256": "be535f18063b71b61ab885b6b6435d1f696f3b01ab4c08347026d5cebd2b0405",
+  "sequence": [
+    "raw_dev_baseline_once",
+    "formal_config_smoke_5_microsteps_no_updates",
+    "fresh_adapter_full_epoch",
+    "dev_only_selection",
+    "train_replay",
+    "hidden_once"
+  ],
+  "selection": [
+    "semantic_accuracy",
+    "permutation_consistency",
+    "binary_consistency",
+    "negation_correction_accuracy",
+    "lowest_position_id_share_deviation",
+    "earliest_step_tie"
+  ],
+  "four_permutation_consistency": "alias of existing frozen permutation_consistency metric",
+  "padding": "fixed384 tokens, loss masked after original length; no truncation; native compiled stateful accumulation",
+  "stop": "OOM/nonfinite/shape/tokenizer/resource errors; no hyperparameter reduction, no quality early-stop",
+  "no_hidden_baseline": true,
+  "unchanged_gates": {
+    "semantic_accuracy": 0.85,
+    "permutation_consistency": 0.9,
+    "binary_consistency": 0.9,
+    "negation_correction_accuracy": 0.8,
+    "max_position_id_distribution_deviation": 0.1
+  },
+  "metadata_exception": "macOS .DS_Store only; scientific benchmark files remain pinned"
+}

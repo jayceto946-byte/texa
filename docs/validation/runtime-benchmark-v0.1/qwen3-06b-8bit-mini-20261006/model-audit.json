@@ -1,0 +1,116 @@
+{
+  "repo": "mlx-community/Qwen3-0.6B-8bit",
+  "revision": "11de96878523501bcaa86104e3c186de07ff9068",
+  "local_path": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/snapshots/11de96878523501bcaa86104e3c186de07ff9068",
+  "config": {
+    "architectures": [
+      "Qwen3ForCausalLM"
+    ],
+    "attention_bias": false,
+    "attention_dropout": 0.0,
+    "bos_token_id": 151643,
+    "eos_token_id": 151645,
+    "head_dim": 128,
+    "hidden_act": "silu",
+    "hidden_size": 1024,
+    "initializer_range": 0.02,
+    "intermediate_size": 3072,
+    "max_position_embeddings": 40960,
+    "max_window_layers": 28,
+    "model_type": "qwen3",
+    "num_attention_heads": 16,
+    "num_hidden_layers": 28,
+    "num_key_value_heads": 8,
+    "quantization": {
+      "group_size": 64,
+      "bits": 8
+    },
+    "quantization_config": {
+      "group_size": 64,
+      "bits": 8
+    },
+    "rms_norm_eps": 1e-06,
+    "rope_scaling": null,
+    "rope_theta": 1000000,
+    "sliding_window": null,
+    "tie_word_embeddings": true,
+    "torch_dtype": "bfloat16",
+    "transformers_version": "4.51.0",
+    "use_cache": true,
+    "use_sliding_window": false,
+    "vocab_size": 151936
+  },
+  "parameter_count": 596049920,
+  "parameter_count_method": "reconstruct packed U32 8bit weight elements x4; exclude scales/biases; tied lm_head not separately exported",
+  "post_trained_source": "Qwen/Qwen3-0.6B",
+  "not_base_attestation": "MLX revision README declares exact upstream post-trained source; native thinking/nonthinking template matches official Qwen card",
+  "upstream_card": "https://huggingface.co/Qwen/Qwen3-0.6B",
+  "weight_dtypes": {
+    "BF16": 507,
+    "U32": 197
+  },
+  "tokenizer_class": "Qwen2Tokenizer",
+  "chat_template": "{%- if tools %}\n    {{- '<|im_start|>system\\n' }}\n    {%- if messages[0].role == 'system' %}\n        {{- messages[0].content + '\\n\\n' }}\n    {%- endif %}\n    {{- \"# Tools\\n\\nYou may call one or more functions to assist with the user query.\\n\\nYou are provided with function signatures within <tools></tools> XML tags:\\n<tools>\" }}\n    {%- for tool in tools %}\n        {{- \"\\n\" }}\n        {{- tool | tojson }}\n    {%- endfor %}\n    {{- \"\\n</tools>\\n\\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\\n<tool_call>\\n{\\\"name\\\": <function-name>, \\\"arguments\\\": <args-json-object>}\\n</tool_call><|im_end|>\\n\" }}\n{%- else %}\n    {%- if messages[0].role == 'system' %}\n        {{- '<|im_start|>system\\n' + messages[0].content + '<|im_end|>\\n' }}\n    {%- endif %}\n{%- endif %}\n{%- set ns = namespace(multi_step_tool=true, last_query_index=messages|length - 1) %}\n{%- for message in messages[::-1] %}\n    {%- set index = (messages|length - 1) - loop.index0 %}\n    {%- set tool_start = \"<tool_response>\" %}\n    {%- set tool_start_length = tool_start|length %}\n    {%- set start_of_message = message.content[:tool_start_length] %}\n    {%- set tool_end = \"</tool_response>\" %}\n    {%- set tool_end_length = tool_end|length %}\n    {%- set start_pos = (message.content|length) - tool_end_length %}\n    {%- if start_pos < 0 %}\n        {%- set start_pos = 0 %}\n    {%- endif %}\n    {%- set end_of_message = message.content[start_pos:] %}\n    {%- if ns.multi_step_tool and message.role == \"user\" and not(start_of_message == tool_start and end_of_message == tool_end) %}\n        {%- set ns.multi_step_tool = false %}\n        {%- set ns.last_query_index = index %}\n    {%- endif %}\n{%- endfor %}\n{%- for message in messages %}\n    {%- if (message.role == \"user\") or (message.role == \"system\" and not loop.first) %}\n        {{- '<|im_start|>' + message.role + '\\n' + message.content + '<|im_end|>' + '\\n' }}\n    {%- elif message.role == \"assistant\" %}\n        {%- set content = message.content %}\n        {%- set reasoning_content = '' %}\n        {%- if message.reasoning_content is defined and message.reasoning_content is not none %}\n            {%- set reasoning_content = message.reasoning_content %}\n        {%- else %}\n            {%- if '</think>' in message.content %}\n                {%- set content = (message.content.split('</think>')|last).lstrip('\\n') %}\n        {%- set reasoning_content = (message.content.split('</think>')|first).rstrip('\\n') %}\n        {%- set reasoning_content = (reasoning_content.split('<think>')|last).lstrip('\\n') %}\n            {%- endif %}\n        {%- endif %}\n        {%- if loop.index0 > ns.last_query_index %}\n            {%- if loop.last or (not loop.last and reasoning_content) %}\n                {{- '<|im_start|>' + message.role + '\\n<think>\\n' + reasoning_content.strip('\\n') + '\\n</think>\\n\\n' + content.lstrip('\\n') }}\n            {%- else %}\n                {{- '<|im_start|>' + message.role + '\\n' + content }}\n            {%- endif %}\n        {%- else %}\n            {{- '<|im_start|>' + message.role + '\\n' + content }}\n        {%- endif %}\n        {%- if message.tool_calls %}\n            {%- for tool_call in message.tool_calls %}\n                {%- if (loop.first and content) or (not loop.first) %}\n                    {{- '\\n' }}\n                {%- endif %}\n                {%- if tool_call.function %}\n                    {%- set tool_call = tool_call.function %}\n                {%- endif %}\n                {{- '<tool_call>\\n{\"name\": \"' }}\n                {{- tool_call.name }}\n                {{- '\", \"arguments\": ' }}\n                {%- if tool_call.arguments is string %}\n                    {{- tool_call.arguments }}\n                {%- else %}\n                    {{- tool_call.arguments | tojson }}\n                {%- endif %}\n                {{- '}\\n</tool_call>' }}\n            {%- endfor %}\n        {%- endif %}\n        {{- '<|im_end|>\\n' }}\n    {%- elif message.role == \"tool\" %}\n        {%- if loop.first or (messages[loop.index0 - 1].role != \"tool\") %}\n            {{- '<|im_start|>user' }}\n        {%- endif %}\n        {{- '\\n<tool_response>\\n' }}\n        {{- message.content }}\n        {{- '\\n</tool_response>' }}\n        {%- if loop.last or (messages[loop.index0 + 1].role != \"tool\") %}\n            {{- '<|im_end|>\\n' }}\n        {%- endif %}\n    {%- endif %}\n{%- endfor %}\n{%- if add_generation_prompt %}\n    {{- '<|im_start|>assistant\\n' }}\n    {%- if enable_thinking is defined and enable_thinking is false %}\n        {{- '<think>\\n\\n</think>\\n\\n' }}\n    {%- endif %}\n{%- endif %}",
+  "chat_template_sha256": "5595e8741bb5500f9d395e05a0aefe6ca1e8d54c5dd8b98bcf7760d895fdc6e6",
+  "allocated_disk_bytes": 649412608,
+  "snapshot_logical_bytes": 649378984,
+  "cache_path": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit",
+  "no_duplicate_weights": true,
+  "files": {
+    "model.safetensors": {
+      "bytes": 633442994,
+      "sha256": "3ad5c96e0a476d4eee48e9f525d0ee0a3f1830b3e5b8e17b441de0661e921397",
+      "resolved_blob": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/blobs/3ad5c96e0a476d4eee48e9f525d0ee0a3f1830b3e5b8e17b441de0661e921397"
+    },
+    "added_tokens.json": {
+      "bytes": 707,
+      "sha256": "c0284b582e14987fbd3d5a2cb2bd139084371ed9acbae488829a1c900833c680",
+      "resolved_blob": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/blobs/b54f9135e44c1e81047e8d05cb027af8bc039eed"
+    },
+    "tokenizer_config.json": {
+      "bytes": 10219,
+      "sha256": "8e7dd4250db58b2a29792562d727b2715dc0fe79a94b446caa4c07db39eceba6",
+      "resolved_blob": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/blobs/06bac65b43d75058ff7ad1e0b44f61291c4e722d"
+    },
+    "special_tokens_map.json": {
+      "bytes": 613,
+      "sha256": "76862e765266b85aa9459767e33cbaf13970f327a0e88d1c65846c2ddd3a1ecd",
+      "resolved_blob": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/blobs/ac23c0aaa2434523c494330aeb79c58395378103"
+    },
+    "config.json": {
+      "bytes": 937,
+      "sha256": "9f387dcb1bf045cadb34a36e67569abd73c00e5322603df2b19d0c0f8cc9d240",
+      "resolved_blob": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/blobs/6790810e32e68085b86697a5bf84e5294c9309cd"
+    },
+    "tokenizer.json": {
+      "bytes": 11422654,
+      "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+      "resolved_blob": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/blobs/aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+    },
+    "README.md": {
+      "bytes": 873,
+      "sha256": "e8705156651d14c30e4b8ad5fb70383ed404b8f60d5206122cc1ccfe6b40d5f6",
+      "resolved_blob": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/blobs/b4a4868ab6462d498bee82d1aee1fa2ff0a75877"
+    },
+    "merges.txt": {
+      "bytes": 1671853,
+      "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+      "resolved_blob": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/blobs/31349551d90c7606f325fe0f11bbb8bd5fa0d7c7"
+    },
+    ".gitattributes": {
+      "bytes": 1570,
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "resolved_blob": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/blobs/52373fe24473b1aa44333d318f578ae6bf04b49b"
+    },
+    "vocab.json": {
+      "bytes": 2776833,
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "resolved_blob": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/blobs/4783fe10ac3adce15ac8f358ef5462739852c569"
+    },
+    "model.safetensors.index.json": {
+      "bytes": 49731,
+      "sha256": "45addf7779cdbd5af18d92f9f7b79c188f6ebbf32cff7b4ae7dbe68a91340ebc",
+      "resolved_blob": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/blobs/d0649e26187eeca4af10d340e347a4d73a514275"
+    }
+  }
+}

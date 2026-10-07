@@ -1,0 +1,35 @@
+{
+  "version": "Policy-SFT-V0",
+  "seed": 1807,
+  "model_path": "/Users/jichengqian/.lmstudio/models/lmstudio-community/Qwen3.5-0.8B-MLX-8bit",
+  "epochs": 1,
+  "effective_batch": 8,
+  "dev_eval_every_microsteps": 448,
+  "prompt": "exact existing simplified Policy prompt; unchanged across training/evaluation",
+  "gates": {
+    "semantic_accuracy": 0.85,
+    "permutation_consistency": 0.9,
+    "binary_consistency": 0.9,
+    "negation_correction_accuracy": 0.8,
+    "max_position_id_distribution_deviation": 0.1
+  },
+  "hidden_use": "once, after dev selection; never baseline/tuning",
+  "split_unit": "entire category/surface template family, all 12 topics and permutations together",
+  "decode": {
+    "temperature": 0,
+    "max_tokens": 64,
+    "enable_thinking": false
+  },
+  "checkpoint_selection": "max dev semantic_accuracy, then consistency, then earliest step",
+  "gold_provenance": "counterfactual deterministic synthetic recipes; no LLM labeling or benchmark gold copied",
+  "no_action_supported": false,
+  "request_input": "forced singleton only, separate controls",
+  "smoke_selection": "5 longest train instances from distinct seeds, deterministic",
+  "bias_gate": "within each candidate-count stratum, maximum absolute predicted-versus-gold position/ID share deviation <= 0.10; invalid outputs retain denominator",
+  "metrics_definition": {
+    "permutation_consistency": "all 4 valid predictions map to the same semantic candidate per seed",
+    "binary_consistency": "same definition on 2-candidate seeds",
+    "three_variant_all_correct": "A/B/C all semantically correct per seed; D separately contributes to 4-variant metrics"
+  },
+  "limit": "synthetic unseen-template/topic combinations, not independent human/production generalization"
+}

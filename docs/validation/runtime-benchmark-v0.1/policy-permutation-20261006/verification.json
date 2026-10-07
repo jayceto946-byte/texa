@@ -1,0 +1,9 @@
+{
+  "diagnostic_only": true,
+  "raw_records": 240,
+  "independent_pair_accounting": true,
+  "transition_totals": true,
+  "stable_cases_all_middle_position": true,
+  "report_links_and_80_rows": true,
+  "protected_files_unchanged": true
+}

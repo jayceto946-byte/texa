@@ -1,0 +1,18 @@
+{
+  "exit_code": 1,
+  "files": [
+    "tests/test_runtime_policy_v0.py",
+    "tests/test_question_understanding.py",
+    "tests/test_conversation_context_pack.py",
+    "tests/test_goal_execution.py",
+    "tests/test_agent_goals_p3.py",
+    "tests/test_learning_task_state_machine.py",
+    "tests/test_mistake_lifecycle.py",
+    "tests/test_agent_runtime_p2_write_service.py",
+    "tests/test_agent_runtime_p2_recovery.py",
+    "tests/test_policy_dataset_v0.py"
+  ],
+  "python": "3.10.21 (main, Sep  1 2026, 14:06:09) [Clang 22.1.3 ]",
+  "network": "denied",
+  "data": "ephemeral roots"
+}

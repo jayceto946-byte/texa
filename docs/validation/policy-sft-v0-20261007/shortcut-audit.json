@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "topic_bounds": {
+    "train": {
+      "topic_only_label_majority_upper_bound": 0.36607142857142855,
+      "note": "pre-training structural label audit, not model evaluation"
+    },
+    "dev": {
+      "topic_only_label_majority_upper_bound": 0.3888888888888889,
+      "note": "pre-training structural label audit, not model evaluation"
+    },
+    "hidden": {
+      "topic_only_label_majority_upper_bound": 0.4027777777777778,
+      "note": "pre-training structural label audit, not model evaluation"
+    }
+  },
+  "family_topic_candidate_set_conditioned_gold_balanced": true,
+  "counterfactual_pairs_and_triples": true
+}

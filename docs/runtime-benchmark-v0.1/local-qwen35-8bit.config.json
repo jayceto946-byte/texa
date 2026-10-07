@@ -1,0 +1,13 @@
+{
+  "model_id": "lmstudio-community/Qwen3.5-0.8B-MLX-8bit",
+  "model_path": "/Users/jichengqian/.lmstudio/models/lmstudio-community/Qwen3.5-0.8B-MLX-8bit",
+  "inference_python": "/Users/jichengqian/.lmstudio/extensions/backends/vendor/_amphibian/app-mlx-generate-mac14-arm64@34/bin/python",
+  "required_versions": {"mlx": "0.32.0", "mlx-lm": "0.31.3", "transformers": "5.14.1"},
+  "seed": 0,
+  "template": {"enable_thinking": false},
+  "max_new_tokens": {"policy_select": 128, "goal_summary": 384, "question_understanding": 384, "reference_resolve": 256},
+  "tuned_on_v0": false,
+  "v0_failure_exposed": false,
+  "texa_trained": false,
+  "running_alone": false
+}

@@ -1,0 +1,65 @@
+[
+  {
+    "task": "policy_select",
+    "input_schema": "policy_select.input.schema.json",
+    "output_schema": "policy_select.output.schema.json",
+    "track": "semantic",
+    "output_namespace": "actual_model_contract"
+  },
+  {
+    "task": "goal_summary",
+    "input_schema": "goal_summary.input.schema.json",
+    "output_schema": "goal_summary.output.schema.json",
+    "track": "semantic",
+    "output_namespace": "actual_model_contract"
+  },
+  {
+    "task": "question_understanding",
+    "input_schema": "question_understanding.input.schema.json",
+    "output_schema": "question_understanding.output.schema.json",
+    "track": "semantic",
+    "output_namespace": "actual_model_contract"
+  },
+  {
+    "task": "reference_resolve",
+    "input_schema": "reference_resolve.input.schema.json",
+    "output_schema": "reference_resolve.output.schema.json",
+    "track": "semantic",
+    "output_namespace": "actual_model_contract"
+  },
+  {
+    "task": "route_contract",
+    "input_schema": "route_contract.input.schema.json",
+    "output_schema": "route_contract.output.schema.json",
+    "track": "deterministic_control",
+    "output_namespace": "benchmark_diagnostic_projection_not_production_IR"
+  },
+  {
+    "task": "retrieval_contract",
+    "input_schema": "retrieval_contract.input.schema.json",
+    "output_schema": "retrieval_contract.output.schema.json",
+    "track": "deterministic_control",
+    "output_namespace": "benchmark_diagnostic_projection_not_production_IR"
+  },
+  {
+    "task": "context_contract",
+    "input_schema": "context_contract.input.schema.json",
+    "output_schema": "context_contract.output.schema.json",
+    "track": "deterministic_control",
+    "output_namespace": "benchmark_diagnostic_projection_not_production_IR"
+  },
+  {
+    "task": "goal_lifecycle_control",
+    "input_schema": "goal_lifecycle_control.input.schema.json",
+    "output_schema": "goal_lifecycle_control.output.schema.json",
+    "track": "deterministic_control",
+    "output_namespace": "benchmark_diagnostic_projection_not_production_IR"
+  },
+  {
+    "task": "decision_guard_control",
+    "input_schema": "decision_guard_control.input.schema.json",
+    "output_schema": "decision_guard_control.output.schema.json",
+    "track": "deterministic_control",
+    "output_namespace": "benchmark_diagnostic_projection_not_production_IR"
+  }
+]

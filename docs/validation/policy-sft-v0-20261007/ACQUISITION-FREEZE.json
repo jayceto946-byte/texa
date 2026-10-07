@@ -1,0 +1,6 @@
+{
+  "sha256": {
+    "scripts/policy_sft_v0_acquisition.py": "0aea239d6dd1928cdbee51c9ee75677e297725280fb0de311946cf0eb3937635",
+    "docs/validation/policy-sft-v0-20261007/acquisition-protocol.json": "84b3e42ba9579379e73055fbcc111d506400bf1f0b251a4dbfed15566b64b658"
+  }
+}

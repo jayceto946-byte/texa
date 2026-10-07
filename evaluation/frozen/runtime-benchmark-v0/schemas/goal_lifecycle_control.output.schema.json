@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "accepted": {
+          "enum": [
+            true
+          ]
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "active",
+            "paused",
+            "completed",
+            "cancelled"
+          ]
+        },
+        "revision_delta": {
+          "type": "integer"
+        },
+        "plan_version": {
+          "type": "integer"
+        },
+        "criterion_statuses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "accepted",
+        "status",
+        "revision_delta",
+        "plan_version",
+        "criterion_statuses"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "accepted": {
+          "enum": [
+            false
+          ]
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "active",
+            "paused",
+            "completed",
+            "cancelled"
+          ]
+        },
+        "revision_delta": {
+          "type": "integer"
+        },
+        "error_type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "accepted",
+        "status",
+        "revision_delta",
+        "error_type"
+      ],
+      "additionalProperties": false
+    }
+  ],
+  "description": "Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants."
+}

@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "data_prompt_split_gold_gates_config_unchanged": true,
+  "existing_scientific_benchmark_files_unchanged": true,
+  "dataset_freeze_sha256": "33f40846ebeecb0c52204ea646262153d615e96ab747799676a4003376891394",
+  "training_config_sha256": "be535f18063b71b61ab885b6b6435d1f696f3b01ab4c08347026d5cebd2b0405",
+  "acquisition_status": "failed"
+}

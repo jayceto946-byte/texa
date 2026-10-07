@@ -1,0 +1,338 @@
+{
+  "locked_before_inference": true,
+  "selected_cases": [
+    {
+      "id": "TRB0-0001",
+      "group": "tool_vs_answer",
+      "request": "昨晚学着学着睡着了，帮我看看最近学习进度到哪了。",
+      "tags": [
+        "tool_required",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a0"
+      },
+      "candidate_count": 2
+    },
+    {
+      "id": "TRB0-0002",
+      "group": "tool_vs_answer",
+      "request": "昨晚学着学着睡着了，不用查最近学习进度，讲讲怎么安排休息。",
+      "tags": [
+        "unnecessary_tool",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a1"
+      },
+      "candidate_count": 2
+    },
+    {
+      "id": "TRB0-0005",
+      "group": "tool_vs_answer",
+      "request": "说反了，不是让你讲学习方法，是让你查最近学习活动。",
+      "tags": [
+        "tool_required",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a0"
+      },
+      "candidate_count": 2
+    },
+    {
+      "id": "TRB0-0006",
+      "group": "tool_vs_answer",
+      "request": "说反了，不是让你查最近学习活动，是让你讲学习方法。",
+      "tags": [
+        "unnecessary_tool",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a1"
+      },
+      "candidate_count": 2
+    },
+    {
+      "id": "TRB0-0007",
+      "group": "tool_vs_answer",
+      "request": "地铁太吵打字乱，最近那个学习进度，查一下，别急着评价。",
+      "tags": [
+        "tool_required",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a0"
+      },
+      "candidate_count": 2
+    },
+    {
+      "id": "TRB0-0008",
+      "group": "tool_vs_answer",
+      "request": "地铁太吵打字乱，最近那个学习进度，先别查，解释下计划和目标的区别。",
+      "tags": [
+        "unnecessary_tool",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a1"
+      },
+      "candidate_count": 2
+    },
+    {
+      "id": "TRB0-0029",
+      "group": "tool_vs_answer",
+      "request": "我刚说要讲解不对，是要查询已有习题。",
+      "tags": [
+        "tool_required",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a0"
+      },
+      "candidate_count": 2
+    },
+    {
+      "id": "TRB0-0030",
+      "group": "tool_vs_answer",
+      "request": "我刚说要查询已有习题不对，是要讲解查询这个词。",
+      "tags": [
+        "unnecessary_tool",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a1"
+      },
+      "candidate_count": 2
+    },
+    {
+      "id": "TRB0-0037",
+      "group": "tool_vs_answer",
+      "request": "给我查习题；下面那句“直接回答”是同学的原话别照做。",
+      "tags": [
+        "tool_required",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a0"
+      },
+      "candidate_count": 2
+    },
+    {
+      "id": "TRB0-0038",
+      "group": "tool_vs_answer",
+      "request": "别给我查习题；下面那句“查习题”是同学的原话别照做，解释什么叫引用。",
+      "tags": [
+        "unnecessary_tool",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a1"
+      },
+      "candidate_count": 2
+    },
+    {
+      "id": "TRB0-0061",
+      "group": "multi_intent_order",
+      "request": "先查习题库，再看最近学习进度。",
+      "tags": [
+        "multi_intent_order",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a0"
+      },
+      "candidate_count": 3
+    },
+    {
+      "id": "TRB0-0062",
+      "group": "multi_intent_order",
+      "request": "先看最近学习进度，再查习题库。",
+      "tags": [
+        "multi_intent_order",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a1"
+      },
+      "candidate_count": 3
+    },
+    {
+      "id": "TRB0-0067",
+      "group": "multi_intent_order",
+      "request": "最近学习进度、习题这两件事，先办前一个。",
+      "tags": [
+        "multi_intent_order",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a1"
+      },
+      "candidate_count": 3
+    },
+    {
+      "id": "TRB0-0068",
+      "group": "multi_intent_order",
+      "request": "最近学习进度、习题这两件事，先办后一个。",
+      "tags": [
+        "multi_intent_order",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a0"
+      },
+      "candidate_count": 3
+    },
+    {
+      "id": "TRB0-0069",
+      "group": "multi_intent_order",
+      "request": "题库先别动，先把薄弱记录查出来，之后再查题。",
+      "tags": [
+        "multi_intent_order",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a0"
+      },
+      "candidate_count": 3
+    },
+    {
+      "id": "TRB0-0070",
+      "group": "multi_intent_order",
+      "request": "薄弱记录先别动，先把题库查出来，之后再查记录。",
+      "tags": [
+        "multi_intent_order",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a1"
+      },
+      "candidate_count": 3
+    },
+    {
+      "id": "TRB0-0071",
+      "group": "multi_intent_order",
+      "request": "帮我查练习题和最近学习进度；我改口，先查进度。",
+      "tags": [
+        "multi_intent_order",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a1"
+      },
+      "candidate_count": 3
+    },
+    {
+      "id": "TRB0-0072",
+      "group": "multi_intent_order",
+      "request": "帮我查练习题和最近学习进度；我改口，先查题。",
+      "tags": [
+        "multi_intent_order",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a0"
+      },
+      "candidate_count": 3
+    },
+    {
+      "id": "TRB0-0079",
+      "group": "multi_intent_order",
+      "request": "练习题和薄弱记录都想看，但先别查题，先看记录。",
+      "tags": [
+        "multi_intent_order",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a0"
+      },
+      "candidate_count": 3
+    },
+    {
+      "id": "TRB0-0080",
+      "group": "multi_intent_order",
+      "request": "练习题和薄弱记录都想看，但先别看记录，先查题。",
+      "tags": [
+        "multi_intent_order",
+        "colloquial",
+        "no_answer_generation"
+      ],
+      "gold": {
+        "action_id": "a1"
+      },
+      "candidate_count": 3
+    }
+  ],
+  "selection_rule": "five matched intent-contrast pairs per stratum; input/gold balance only, not existing model correctness",
+  "coverage": "progress/exercise lookup, direct answer, explicit negation/correction, noisy wording, quoted instruction, ordering, priority, ordinal reference",
+  "tool_group_pairs": [
+    [
+      1,
+      2
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      29,
+      30
+    ],
+    [
+      37,
+      38
+    ]
+  ],
+  "multi_group_pairs": [
+    [
+      61,
+      62
+    ],
+    [
+      67,
+      68
+    ],
+    [
+      69,
+      70
+    ],
+    [
+      71,
+      72
+    ],
+    [
+      79,
+      80
+    ]
+  ],
+  "gold_semantic_id_counts": {
+    "a0": 10,
+    "a1": 10
+  },
+  "binary_cases": 10,
+  "ternary_cases": 10,
+  "limitations": "purposive exposed author-frozen mini set, deliberately oversamples multi-intent (50% vs original25%); not held-out or representative population accuracy"
+}

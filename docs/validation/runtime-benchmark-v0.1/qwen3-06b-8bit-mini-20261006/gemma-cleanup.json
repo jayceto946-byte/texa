@@ -1,0 +1,21 @@
+{
+  "repo": "mlx-community/gemma-3-1b-it-8bit",
+  "cache_path": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--gemma-3-1b-it-8bit",
+  "verified_revision": "7b963136f21d05ca8b367c93a9c47a7944ad281a",
+  "identity_verified": true,
+  "sha256_verified": [
+    "README.md",
+    "config.json",
+    "model.safetensors"
+  ],
+  "allocated_bytes_before": 1422770176,
+  "logical_bytes_before": 1422736898,
+  "free_bytes_before": 109641564160,
+  "delete_scope": "exact repo cache folder only; all experiment artifacts retained",
+  "status": "deleted",
+  "exists_after": false,
+  "allocated_bytes_after": 0,
+  "released_allocated_bytes": 1422770176,
+  "free_bytes_after": 111064535040,
+  "observed_volume_free_delta_bytes": 1422970880
+}

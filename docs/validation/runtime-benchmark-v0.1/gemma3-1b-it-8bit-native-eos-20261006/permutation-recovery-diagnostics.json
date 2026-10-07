@@ -1,0 +1,4945 @@
+{
+  "diagnostic_only": true,
+  "changes_official_score": false,
+  "extraction": "existing semantic-recoverability/v0.1, no repairs, unique outer payload only",
+  "arms": {
+    "A": {
+      "N": 80,
+      "correct": 38,
+      "valid": 76,
+      "ids": {
+        "a0": 75,
+        "a1": 1,
+        "a2": 0
+      },
+      "positions": {
+        "1": 75,
+        "2": 1,
+        "3": 0
+      }
+    },
+    "B": {
+      "N": 80,
+      "correct": 37,
+      "valid": 80,
+      "ids": {
+        "a0": 64,
+        "a1": 14,
+        "a2": 2
+      },
+      "positions": {
+        "1": 2,
+        "2": 72,
+        "3": 6
+      }
+    },
+    "C": {
+      "N": 80,
+      "correct": 42,
+      "valid": 79,
+      "ids": {
+        "a0": 47,
+        "a1": 32,
+        "a2": 0
+      },
+      "positions": {
+        "1": 32,
+        "2": 47,
+        "3": 0
+      }
+    }
+  },
+  "three_stable": 16,
+  "binary_stable": 10,
+  "all_correct": 9,
+  "cases": {
+    "TRB0-0001": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0002": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0003": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0004": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0005": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0006": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0007": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0008": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0009": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0010": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0011": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0012": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0013": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0014": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0015": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0016": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0017": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0018": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0019": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0020": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0021": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0022": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0023": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0024": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0025": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a2",
+        "semantic_id": "a2",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a2\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0026": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0027": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0028": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": null,
+        "semantic_id": null,
+        "position": null,
+        "valid": false,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\",\"kind\":\"generate_answer\"}",
+          "source_range": [
+            8,
+            51
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                51
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0029": {
+      "A": {
+        "local_id": null,
+        "semantic_id": null,
+        "position": null,
+        "valid": false,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\",\"kind\":\"generate_answer\"}",
+          "source_range": [
+            8,
+            51
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                51
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0030": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0031": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0032": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0033": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0034": {
+      "A": {
+        "local_id": null,
+        "semantic_id": null,
+        "position": null,
+        "valid": false,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\",\"kind\":\"generate_answer\"}",
+          "source_range": [
+            8,
+            51
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                51
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0035": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0036": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0037": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0038": {
+      "A": {
+        "local_id": null,
+        "semantic_id": null,
+        "position": null,
+        "valid": false,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\",\"kind\":\"generate_answer\"}",
+          "source_range": [
+            8,
+            51
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                51
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0039": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0040": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0041": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0042": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0043": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0044": {
+      "A": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0045": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0046": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0047": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0048": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0049": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0050": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0051": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0052": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0053": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0054": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0055": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0056": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0057": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0058": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0059": {
+      "A": {
+        "local_id": null,
+        "semantic_id": null,
+        "position": null,
+        "valid": false,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\",\"kind\":\"generate_answer\"}",
+          "source_range": [
+            8,
+            51
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                51
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0060": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a0",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0061": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0062": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0063": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0064": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0065": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0066": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 3,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      }
+    },
+    "TRB0-0067": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 3,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0068": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0069": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0070": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0071": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0072": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0073": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 3,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0074": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 3,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0075": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0076": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a2",
+        "semantic_id": "a2",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "whole_json",
+          "extracted_text": "{\"action_id\":\"a2\"}",
+          "source_range": [
+            0,
+            18
+          ],
+          "transform_log": []
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0077": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 3,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0078": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 3,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0079": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TRB0-0080": {
+      "A": {
+        "local_id": "a0",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a0\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "B": {
+        "local_id": "a1",
+        "semantic_id": "a1",
+        "position": 2,
+        "valid": true,
+        "correct": true,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      },
+      "C": {
+        "local_id": "a1",
+        "semantic_id": "a0",
+        "position": 1,
+        "valid": true,
+        "correct": false,
+        "recovery": {
+          "status": "unique_payload",
+          "extracted_text": "{\"action_id\":\"a1\"}",
+          "source_range": [
+            8,
+            26
+          ],
+          "transform_log": [
+            {
+              "operation": "extract_unique_outer_payload",
+              "range": [
+                8,
+                26
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

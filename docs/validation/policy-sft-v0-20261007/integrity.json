@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "experiment_freeze_unchanged": true,
+  "legacy_benchmark_unchanged": true,
+  "data_anomaly_stopped": true,
+  "corrected_dataset_training_steps": 0,
+  "hidden_inference_count": 0
+}

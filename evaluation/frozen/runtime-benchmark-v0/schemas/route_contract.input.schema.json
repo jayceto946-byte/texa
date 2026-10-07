@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "type": "object",
+      "properties": {
+        "answer_mode": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "resolved_query": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "answer_mode",
+        "request_id",
+        "resolved_query",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "answer_mode": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "required_inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "resolved_query": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "answer_mode",
+        "request_id",
+        "required_inputs",
+        "resolved_query",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "answer_mode": {
+          "type": "string"
+        },
+        "attachments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "resolved_query": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "answer_mode",
+        "attachments",
+        "request_id",
+        "resolved_query",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "answer_mode": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "resolution_status": {
+          "type": "string"
+        },
+        "resolved_query": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "answer_mode",
+        "request_id",
+        "resolution_status",
+        "resolved_query",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "answer_mode": {
+          "type": "string"
+        },
+        "current_task_status": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "resolved_query": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "answer_mode",
+        "current_task_status",
+        "request_id",
+        "resolved_query",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "answer_mode": {
+          "type": "string"
+        },
+        "explicit_action": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "resolved_query": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "answer_mode",
+        "explicit_action",
+        "request_id",
+        "resolved_query",
+        "text"
+      ],
+      "additionalProperties": false
+    }
+  ],
+  "description": "Benchmark V0 input envelope; dictionary shapes from frozen fixtures. Production open-ended domain fields remain governed by source validators."
+}

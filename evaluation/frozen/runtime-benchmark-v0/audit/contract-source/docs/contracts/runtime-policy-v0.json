@@ -1,0 +1,633 @@
+{
+  "version": "texa.runtime-policy/v0",
+  "contracts": {
+    "PolicyObservationV0": {
+      "$defs": {
+        "CallToolArgsV0": {
+          "additionalProperties": false,
+          "properties": {
+            "tool_id": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Tool Id",
+              "type": "string"
+            },
+            "input": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Input",
+              "type": "object"
+            }
+          },
+          "required": [
+            "tool_id",
+            "input"
+          ],
+          "title": "CallToolArgsV0",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PolicyActionV0": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Id",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "generate_answer",
+                "call_tool",
+                "request_input"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "args": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CallToolArgsV0"
+                },
+                {
+                  "additionalProperties": {
+                    "$ref": "#/$defs/JsonValue"
+                  },
+                  "type": "object"
+                }
+              ],
+              "title": "Args"
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "args"
+          ],
+          "title": "PolicyActionV0",
+          "type": "object"
+        },
+        "PolicyContextV0": {
+          "additionalProperties": false,
+          "properties": {
+            "resolved_query": {
+              "maxLength": 2000,
+              "title": "Resolved Query",
+              "type": "string"
+            },
+            "goal": {
+              "anyOf": [
+                {
+                  "maxLength": 2000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Goal"
+            },
+            "constraints": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Constraints",
+              "type": "object"
+            }
+          },
+          "required": [
+            "resolved_query",
+            "constraints"
+          ],
+          "title": "PolicyContextV0",
+          "type": "object"
+        },
+        "PreviousResultV0": {
+          "additionalProperties": false,
+          "properties": {
+            "action_kind": {
+              "enum": [
+                "generate_answer",
+                "call_tool",
+                "request_input"
+              ],
+              "title": "Action Kind",
+              "type": "string"
+            },
+            "tool_id": {
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tool Id"
+            },
+            "status": {
+              "enum": [
+                "succeeded",
+                "failed",
+                "unknown"
+              ],
+              "title": "Status",
+              "type": "string"
+            },
+            "summary": {
+              "maxLength": 600,
+              "title": "Summary",
+              "type": "string"
+            }
+          },
+          "required": [
+            "action_kind",
+            "status",
+            "summary"
+          ],
+          "title": "PreviousResultV0",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "request": {
+          "maxLength": 2000,
+          "title": "Request",
+          "type": "string"
+        },
+        "context": {
+          "$ref": "#/$defs/PolicyContextV0"
+        },
+        "previous_result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PreviousResultV0"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "missing_inputs": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "maxItems": 20,
+          "title": "Missing Inputs",
+          "type": "array"
+        },
+        "admissible_actions": {
+          "items": {
+            "$ref": "#/$defs/PolicyActionV0"
+          },
+          "maxItems": 4,
+          "title": "Admissible Actions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "request",
+        "context",
+        "missing_inputs",
+        "admissible_actions"
+      ],
+      "title": "PolicyObservationV0",
+      "type": "object"
+    },
+    "PolicyActionV0": {
+      "$defs": {
+        "CallToolArgsV0": {
+          "additionalProperties": false,
+          "properties": {
+            "tool_id": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Tool Id",
+              "type": "string"
+            },
+            "input": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Input",
+              "type": "object"
+            }
+          },
+          "required": [
+            "tool_id",
+            "input"
+          ],
+          "title": "CallToolArgsV0",
+          "type": "object"
+        },
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "generate_answer",
+            "call_tool",
+            "request_input"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "args": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CallToolArgsV0"
+            },
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "Args"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "args"
+      ],
+      "title": "PolicyActionV0",
+      "type": "object"
+    },
+    "PolicyDecisionV0": {
+      "additionalProperties": false,
+      "properties": {
+        "action_id": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Action Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action_id"
+      ],
+      "title": "PolicyDecisionV0",
+      "type": "object"
+    },
+    "PolicyOutcomeV0": {
+      "$defs": {
+        "PolicyValidationV0": {
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "enum": [
+                "accepted",
+                "rejected"
+              ],
+              "title": "Status",
+              "type": "string"
+            },
+            "code": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Code",
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "code"
+          ],
+          "title": "PolicyValidationV0",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "decision_ref": {
+          "minLength": 1,
+          "title": "Decision Ref",
+          "type": "string"
+        },
+        "validation": {
+          "$ref": "#/$defs/PolicyValidationV0"
+        },
+        "execution": {
+          "enum": [
+            "not_started",
+            "succeeded",
+            "failed",
+            "unknown"
+          ],
+          "title": "Execution",
+          "type": "string"
+        },
+        "result_refs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Result Refs",
+          "type": "array"
+        },
+        "continuation": {
+          "enum": [
+            "next_observation",
+            "waiting",
+            "terminal"
+          ],
+          "title": "Continuation",
+          "type": "string"
+        },
+        "task_status": {
+          "enum": [
+            "pending",
+            "running",
+            "interrupted",
+            "waiting_for_input",
+            "waiting_for_confirmation",
+            "completed",
+            "degraded",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Task Status",
+          "type": "string"
+        },
+        "user_feedback": {
+          "default": "unknown",
+          "enum": [
+            "positive",
+            "negative",
+            "unknown"
+          ],
+          "title": "User Feedback",
+          "type": "string"
+        },
+        "goal_completion": {
+          "default": "unknown",
+          "enum": [
+            "met",
+            "not_met",
+            "unknown"
+          ],
+          "title": "Goal Completion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision_ref",
+        "validation",
+        "execution",
+        "continuation",
+        "task_status"
+      ],
+      "title": "PolicyOutcomeV0",
+      "type": "object"
+    },
+    "PolicyObservationEnvelope": {
+      "$defs": {
+        "CallToolArgsV0": {
+          "additionalProperties": false,
+          "properties": {
+            "tool_id": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Tool Id",
+              "type": "string"
+            },
+            "input": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Input",
+              "type": "object"
+            }
+          },
+          "required": [
+            "tool_id",
+            "input"
+          ],
+          "title": "CallToolArgsV0",
+          "type": "object"
+        },
+        "JsonValue": {},
+        "PolicyActionV0": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Id",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "generate_answer",
+                "call_tool",
+                "request_input"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "args": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CallToolArgsV0"
+                },
+                {
+                  "additionalProperties": {
+                    "$ref": "#/$defs/JsonValue"
+                  },
+                  "type": "object"
+                }
+              ],
+              "title": "Args"
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "args"
+          ],
+          "title": "PolicyActionV0",
+          "type": "object"
+        },
+        "PolicyContextV0": {
+          "additionalProperties": false,
+          "properties": {
+            "resolved_query": {
+              "maxLength": 2000,
+              "title": "Resolved Query",
+              "type": "string"
+            },
+            "goal": {
+              "anyOf": [
+                {
+                  "maxLength": 2000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Goal"
+            },
+            "constraints": {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "title": "Constraints",
+              "type": "object"
+            }
+          },
+          "required": [
+            "resolved_query",
+            "constraints"
+          ],
+          "title": "PolicyContextV0",
+          "type": "object"
+        },
+        "PolicyObservationV0": {
+          "additionalProperties": false,
+          "properties": {
+            "request": {
+              "maxLength": 2000,
+              "title": "Request",
+              "type": "string"
+            },
+            "context": {
+              "$ref": "#/$defs/PolicyContextV0"
+            },
+            "previous_result": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/PreviousResultV0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "missing_inputs": {
+              "items": {
+                "additionalProperties": {
+                  "$ref": "#/$defs/JsonValue"
+                },
+                "type": "object"
+              },
+              "maxItems": 20,
+              "title": "Missing Inputs",
+              "type": "array"
+            },
+            "admissible_actions": {
+              "items": {
+                "$ref": "#/$defs/PolicyActionV0"
+              },
+              "maxItems": 4,
+              "title": "Admissible Actions",
+              "type": "array"
+            }
+          },
+          "required": [
+            "request",
+            "context",
+            "missing_inputs",
+            "admissible_actions"
+          ],
+          "title": "PolicyObservationV0",
+          "type": "object"
+        },
+        "PreviousResultV0": {
+          "additionalProperties": false,
+          "properties": {
+            "action_kind": {
+              "enum": [
+                "generate_answer",
+                "call_tool",
+                "request_input"
+              ],
+              "title": "Action Kind",
+              "type": "string"
+            },
+            "tool_id": {
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tool Id"
+            },
+            "status": {
+              "enum": [
+                "succeeded",
+                "failed",
+                "unknown"
+              ],
+              "title": "Status",
+              "type": "string"
+            },
+            "summary": {
+              "maxLength": 600,
+              "title": "Summary",
+              "type": "string"
+            }
+          },
+          "required": [
+            "action_kind",
+            "status",
+            "summary"
+          ],
+          "title": "PreviousResultV0",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "observation_id": {
+          "minLength": 1,
+          "title": "Observation Id",
+          "type": "string"
+        },
+        "policy_contract_version": {
+          "const": "texa.runtime-policy/v0",
+          "default": "texa.runtime-policy/v0",
+          "title": "Policy Contract Version",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/PolicyObservationV0"
+        }
+      },
+      "required": [
+        "observation_id",
+        "payload"
+      ],
+      "title": "PolicyObservationEnvelope",
+      "type": "object"
+    }
+  }
+}

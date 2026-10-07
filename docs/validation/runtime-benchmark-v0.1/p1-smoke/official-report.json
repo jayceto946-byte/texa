@@ -1,0 +1,36 @@
+{
+  "scoring_version": "runtime-benchmark-v0/1",
+  "no_llm_judge": true,
+  "semantic_test_locked": false,
+  "by_track": {},
+  "by_task": {},
+  "primary_semantic_without_upstream_conflicts": {
+    "n": 0,
+    "exact_match": null,
+    "structured_match": null,
+    "schema_validity": null,
+    "executability": null,
+    "severity": {},
+    "critical_failure_rate": null,
+    "complete_pairs": 0,
+    "pair_both_correct": 0
+  },
+  "upstream_locked_conflicts": [],
+  "understanding_free_intent": {
+    "n": 0,
+    "exact_match": null,
+    "structured_match": null,
+    "schema_validity": null,
+    "executability": null,
+    "severity": {},
+    "critical_failure_rate": null,
+    "complete_pairs": 0,
+    "pair_both_correct": 0
+  },
+  "goal_metric_means": {},
+  "goal_compression_valid_outputs": {
+    "n": 0,
+    "mean": null
+  },
+  "results": []
+}

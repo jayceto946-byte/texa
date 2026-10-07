@@ -1,0 +1,2253 @@
+{
+  "qwen3_06b": {
+    "diagnostic_recovery": false,
+    "arms": {
+      "A": {
+        "N": 20,
+        "semantic_correct": 9,
+        "contract_valid": 20,
+        "positions": {
+          "1": 4,
+          "2": 9,
+          "3": 7
+        },
+        "ids": {
+          "a0": 4,
+          "a1": 9,
+          "a2": 7
+        },
+        "strata": {
+          "tool_vs_answer": {
+            "N": 10,
+            "correct": 7
+          },
+          "multi_intent_order": {
+            "N": 10,
+            "correct": 2
+          }
+        }
+      },
+      "B": {
+        "N": 20,
+        "semantic_correct": 10,
+        "contract_valid": 20,
+        "positions": {
+          "1": 0,
+          "2": 14,
+          "3": 6
+        },
+        "ids": {
+          "a0": 16,
+          "a1": 4,
+          "a2": 0
+        },
+        "strata": {
+          "tool_vs_answer": {
+            "N": 10,
+            "correct": 5
+          },
+          "multi_intent_order": {
+            "N": 10,
+            "correct": 5
+          }
+        }
+      },
+      "C": {
+        "N": 20,
+        "semantic_correct": 11,
+        "contract_valid": 20,
+        "positions": {
+          "1": 11,
+          "2": 6,
+          "3": 3
+        },
+        "ids": {
+          "a0": 4,
+          "a1": 11,
+          "a2": 5
+        },
+        "strata": {
+          "tool_vs_answer": {
+            "N": 10,
+            "correct": 6
+          },
+          "multi_intent_order": {
+            "N": 10,
+            "correct": 5
+          }
+        }
+      }
+    },
+    "three_variant_consistency": 7,
+    "three_variant_all_correct": 5,
+    "binary_consistency": 4,
+    "binary_N": 10,
+    "pairwise_consistency": {
+      "AB": 7,
+      "AC": 11,
+      "BC": 15
+    },
+    "paired_cases": {
+      "TRB0-0001": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a0"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a1"
+        }
+      },
+      "TRB0-0002": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a1"
+        }
+      },
+      "TRB0-0005": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a1"
+        }
+      },
+      "TRB0-0006": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a1"
+        }
+      },
+      "TRB0-0007": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a0"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a1"
+        }
+      },
+      "TRB0-0008": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a1"
+        }
+      },
+      "TRB0-0029": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a0"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a1"
+        }
+      },
+      "TRB0-0030": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a0"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a1"
+        }
+      },
+      "TRB0-0037": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a1"
+        }
+      },
+      "TRB0-0038": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0061": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a2",
+          "position": 3,
+          "local_id": "a2"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 3,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a1"
+        }
+      },
+      "TRB0-0062": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a2",
+          "position": 3,
+          "local_id": "a2"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 3,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0067": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a2",
+          "position": 3,
+          "local_id": "a2"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 3,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a2",
+          "position": 3,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0068": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a2",
+          "position": 3,
+          "local_id": "a2"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 3,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a2",
+          "position": 3,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0069": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0070": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0071": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a2",
+          "position": 3,
+          "local_id": "a2"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 3,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a2",
+          "position": 3,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0072": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a2",
+          "position": 3,
+          "local_id": "a2"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 3,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a1"
+        }
+      },
+      "TRB0-0079": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a2",
+          "position": 3,
+          "local_id": "a2"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0080": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      }
+    }
+  },
+  "qwen35_08b_paired": {
+    "diagnostic_recovery": false,
+    "arms": {
+      "A": {
+        "N": 20,
+        "semantic_correct": 11,
+        "contract_valid": 20,
+        "positions": {
+          "1": 1,
+          "2": 18,
+          "3": 1
+        },
+        "ids": {
+          "a0": 1,
+          "a1": 18,
+          "a2": 1
+        },
+        "strata": {
+          "tool_vs_answer": {
+            "N": 10,
+            "correct": 6
+          },
+          "multi_intent_order": {
+            "N": 10,
+            "correct": 5
+          }
+        }
+      },
+      "B": {
+        "N": 20,
+        "semantic_correct": 10,
+        "contract_valid": 20,
+        "positions": {
+          "1": 0,
+          "2": 18,
+          "3": 2
+        },
+        "ids": {
+          "a0": 12,
+          "a1": 8,
+          "a2": 0
+        },
+        "strata": {
+          "tool_vs_answer": {
+            "N": 10,
+            "correct": 5
+          },
+          "multi_intent_order": {
+            "N": 10,
+            "correct": 5
+          }
+        }
+      },
+      "C": {
+        "N": 20,
+        "semantic_correct": 10,
+        "contract_valid": 20,
+        "positions": {
+          "1": 0,
+          "2": 20,
+          "3": 0
+        },
+        "ids": {
+          "a0": 10,
+          "a1": 0,
+          "a2": 10
+        },
+        "strata": {
+          "tool_vs_answer": {
+            "N": 10,
+            "correct": 5
+          },
+          "multi_intent_order": {
+            "N": 10,
+            "correct": 5
+          }
+        }
+      }
+    },
+    "three_variant_consistency": 8,
+    "three_variant_all_correct": 4,
+    "binary_consistency": 0,
+    "binary_N": 10,
+    "pairwise_consistency": {
+      "AB": 9,
+      "AC": 18,
+      "BC": 8
+    },
+    "paired_cases": {
+      "TRB0-0001": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0002": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0005": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 1,
+          "local_id": "a0"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0006": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0007": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0008": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0029": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0030": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0037": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0038": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 2,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a0"
+        }
+      },
+      "TRB0-0061": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0062": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0067": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0068": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0069": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0070": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0071": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0072": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0079": {
+        "A": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a2",
+          "position": 3,
+          "local_id": "a2"
+        },
+        "B": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a0",
+          "position": 3,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      },
+      "TRB0-0080": {
+        "A": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a1"
+        },
+        "B": {
+          "valid": true,
+          "correct": false,
+          "semantic_id": "a0",
+          "position": 3,
+          "local_id": "a0"
+        },
+        "C": {
+          "valid": true,
+          "correct": true,
+          "semantic_id": "a1",
+          "position": 2,
+          "local_id": "a2"
+        }
+      }
+    }
+  },
+  "recovery_diagnostic": {
+    "qwen3_06b": {
+      "diagnostic_recovery": true,
+      "arms": {
+        "A": {
+          "N": 20,
+          "semantic_correct": 9,
+          "contract_valid": 20,
+          "positions": {
+            "1": 4,
+            "2": 9,
+            "3": 7
+          },
+          "ids": {
+            "a0": 4,
+            "a1": 9,
+            "a2": 7
+          },
+          "strata": {
+            "tool_vs_answer": {
+              "N": 10,
+              "correct": 7
+            },
+            "multi_intent_order": {
+              "N": 10,
+              "correct": 2
+            }
+          }
+        },
+        "B": {
+          "N": 20,
+          "semantic_correct": 10,
+          "contract_valid": 20,
+          "positions": {
+            "1": 0,
+            "2": 14,
+            "3": 6
+          },
+          "ids": {
+            "a0": 16,
+            "a1": 4,
+            "a2": 0
+          },
+          "strata": {
+            "tool_vs_answer": {
+              "N": 10,
+              "correct": 5
+            },
+            "multi_intent_order": {
+              "N": 10,
+              "correct": 5
+            }
+          }
+        },
+        "C": {
+          "N": 20,
+          "semantic_correct": 11,
+          "contract_valid": 20,
+          "positions": {
+            "1": 11,
+            "2": 6,
+            "3": 3
+          },
+          "ids": {
+            "a0": 4,
+            "a1": 11,
+            "a2": 5
+          },
+          "strata": {
+            "tool_vs_answer": {
+              "N": 10,
+              "correct": 6
+            },
+            "multi_intent_order": {
+              "N": 10,
+              "correct": 5
+            }
+          }
+        }
+      },
+      "three_variant_consistency": 7,
+      "three_variant_all_correct": 5,
+      "binary_consistency": 4,
+      "binary_N": 10,
+      "pairwise_consistency": {
+        "AB": 7,
+        "AC": 11,
+        "BC": 15
+      },
+      "paired_cases": {
+        "TRB0-0001": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a0"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a1"
+          }
+        },
+        "TRB0-0002": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a1"
+          }
+        },
+        "TRB0-0005": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a1"
+          }
+        },
+        "TRB0-0006": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a1"
+          }
+        },
+        "TRB0-0007": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a0"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a1"
+          }
+        },
+        "TRB0-0008": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a1"
+          }
+        },
+        "TRB0-0029": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a0"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a1"
+          }
+        },
+        "TRB0-0030": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a0"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a1"
+          }
+        },
+        "TRB0-0037": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a1"
+          }
+        },
+        "TRB0-0038": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0061": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a2",
+            "position": 3,
+            "local_id": "a2"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 3,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a1"
+          }
+        },
+        "TRB0-0062": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a2",
+            "position": 3,
+            "local_id": "a2"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 3,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0067": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a2",
+            "position": 3,
+            "local_id": "a2"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 3,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a2",
+            "position": 3,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0068": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a2",
+            "position": 3,
+            "local_id": "a2"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 3,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a2",
+            "position": 3,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0069": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0070": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0071": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a2",
+            "position": 3,
+            "local_id": "a2"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 3,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a2",
+            "position": 3,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0072": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a2",
+            "position": 3,
+            "local_id": "a2"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 3,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a1"
+          }
+        },
+        "TRB0-0079": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a2",
+            "position": 3,
+            "local_id": "a2"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0080": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        }
+      }
+    },
+    "qwen35_08b": {
+      "diagnostic_recovery": true,
+      "arms": {
+        "A": {
+          "N": 20,
+          "semantic_correct": 11,
+          "contract_valid": 20,
+          "positions": {
+            "1": 1,
+            "2": 18,
+            "3": 1
+          },
+          "ids": {
+            "a0": 1,
+            "a1": 18,
+            "a2": 1
+          },
+          "strata": {
+            "tool_vs_answer": {
+              "N": 10,
+              "correct": 6
+            },
+            "multi_intent_order": {
+              "N": 10,
+              "correct": 5
+            }
+          }
+        },
+        "B": {
+          "N": 20,
+          "semantic_correct": 10,
+          "contract_valid": 20,
+          "positions": {
+            "1": 0,
+            "2": 18,
+            "3": 2
+          },
+          "ids": {
+            "a0": 12,
+            "a1": 8,
+            "a2": 0
+          },
+          "strata": {
+            "tool_vs_answer": {
+              "N": 10,
+              "correct": 5
+            },
+            "multi_intent_order": {
+              "N": 10,
+              "correct": 5
+            }
+          }
+        },
+        "C": {
+          "N": 20,
+          "semantic_correct": 10,
+          "contract_valid": 20,
+          "positions": {
+            "1": 0,
+            "2": 20,
+            "3": 0
+          },
+          "ids": {
+            "a0": 10,
+            "a1": 0,
+            "a2": 10
+          },
+          "strata": {
+            "tool_vs_answer": {
+              "N": 10,
+              "correct": 5
+            },
+            "multi_intent_order": {
+              "N": 10,
+              "correct": 5
+            }
+          }
+        }
+      },
+      "three_variant_consistency": 8,
+      "three_variant_all_correct": 4,
+      "binary_consistency": 0,
+      "binary_N": 10,
+      "pairwise_consistency": {
+        "AB": 9,
+        "AC": 18,
+        "BC": 8
+      },
+      "paired_cases": {
+        "TRB0-0001": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0002": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0005": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 1,
+            "local_id": "a0"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0006": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0007": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0008": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0029": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0030": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0037": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0038": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 2,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a0"
+          }
+        },
+        "TRB0-0061": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0062": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0067": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0068": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0069": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0070": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0071": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0072": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0079": {
+          "A": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a2",
+            "position": 3,
+            "local_id": "a2"
+          },
+          "B": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a0",
+            "position": 3,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        },
+        "TRB0-0080": {
+          "A": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a1"
+          },
+          "B": {
+            "valid": true,
+            "correct": false,
+            "semantic_id": "a0",
+            "position": 3,
+            "local_id": "a0"
+          },
+          "C": {
+            "valid": true,
+            "correct": true,
+            "semantic_id": "a1",
+            "position": 2,
+            "local_id": "a2"
+          }
+        }
+      }
+    }
+  },
+  "performance": {
+    "qwen3_06b": {
+      "successful_latency_n": 60,
+      "p50_ms": 441.4398339995387,
+      "p95_ms": 513.678749999599,
+      "percentile_method": "nearest-rank ceil(p*n)",
+      "tail_sample_insufficient": false,
+      "token_rate_n": 60,
+      "generated_tokens_per_request_second": 17.778070954627903,
+      "token_rate_reason": null,
+      "failed_requests": [],
+      "warmup_excluded": true,
+      "includes_prefill": true
+    },
+    "qwen35_08b_same_60_cases": {
+      "successful_latency_n": 60,
+      "p50_ms": 635.7797080017917,
+      "p95_ms": 718.0197500001668,
+      "percentile_method": "nearest-rank ceil(p*n)",
+      "tail_sample_insufficient": false,
+      "token_rate_n": 60,
+      "generated_tokens_per_request_second": 12.700063300437488,
+      "token_rate_reason": null,
+      "failed_requests": [],
+      "warmup_excluded": true,
+      "includes_prefill": true
+    }
+  },
+  "paired_outcomes": {
+    "A": {
+      "both_correct": 6,
+      "qwen3_only": 3,
+      "qwen35_only": 5
+    },
+    "B": {
+      "both_correct": 6,
+      "qwen3_only": 4,
+      "qwen35_only": 4
+    },
+    "C": {
+      "both_correct": 4,
+      "qwen3_only": 7,
+      "qwen35_only": 6
+    }
+  }
+}

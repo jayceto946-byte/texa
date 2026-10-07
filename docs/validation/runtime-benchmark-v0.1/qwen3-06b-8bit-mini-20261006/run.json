@@ -1,0 +1,172 @@
+{
+  "status": "complete",
+  "purpose": "policy_foundation_mini_screening",
+  "started_at": "2026-10-06T15:51:21.316477+00:00",
+  "experiment": {
+    "repo": "mlx-community/Qwen3-0.6B-8bit",
+    "revision": "11de96878523501bcaa86104e3c186de07ff9068",
+    "created_at": "2026-10-06T15:51:09.535869+00:00",
+    "case_ids": [
+      "TRB0-0001",
+      "TRB0-0002",
+      "TRB0-0005",
+      "TRB0-0006",
+      "TRB0-0007",
+      "TRB0-0008",
+      "TRB0-0029",
+      "TRB0-0030",
+      "TRB0-0037",
+      "TRB0-0038",
+      "TRB0-0061",
+      "TRB0-0062",
+      "TRB0-0067",
+      "TRB0-0068",
+      "TRB0-0069",
+      "TRB0-0070",
+      "TRB0-0071",
+      "TRB0-0072",
+      "TRB0-0079",
+      "TRB0-0080"
+    ],
+    "planned_smoke": 3,
+    "planned_policy": 60,
+    "no_full_benchmark": true,
+    "freeze_sha256": "30a2730fa3def4c6d2b05de21b5733b78cd90ebab53a1ebd0ecf70d10342f7b4",
+    "prompt": "exact unchanged subset of existing exposed-dev permutation jobs",
+    "generation": {
+      "greedy": true,
+      "temperature": 0,
+      "batch": 1,
+      "retry": false,
+      "self_correction": false,
+      "constrained_decoding": false,
+      "max_new_tokens": 128,
+      "thinking": false
+    },
+    "jobs_sha256": {
+      "A": "24978d8bd6869369c22f7c0375cccbce06c9d6dc83662761255a2d18a2f33d70",
+      "B": "c2c8888ff96e7aab34a90c9c35f1d27bebf409a1f225d1b7f165f914eaea8efa",
+      "C": "2bfaab36f1e1bb4a3bb1eb9245f88d6c52e833afb9f42507bf4b1992ac4a2319"
+    }
+  },
+  "completed_requests": 60,
+  "config": {
+    "model_id": "mlx-community/Qwen3-0.6B-8bit",
+    "model_path": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/snapshots/11de96878523501bcaa86104e3c186de07ff9068",
+    "inference_python": "/Users/jichengqian/.lmstudio/extensions/backends/vendor/_amphibian/app-mlx-generate-mac14-arm64@34/bin/python",
+    "required_versions": {
+      "mlx": "0.32.0",
+      "mlx-lm": "0.31.3",
+      "transformers": "5.14.1"
+    },
+    "seed": 0,
+    "template": {
+      "enable_thinking": false
+    },
+    "max_new_tokens": {
+      "policy_select": 128,
+      "goal_summary": 384,
+      "question_understanding": 384,
+      "reference_resolve": 256
+    },
+    "tuned_on_v0": false,
+    "v0_failure_exposed": true,
+    "texa_trained": false,
+    "running_alone": false
+  },
+  "model": {
+    "local_path": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--Qwen3-0.6B-8bit/snapshots/11de96878523501bcaa86104e3c186de07ff9068",
+    "model_type": "qwen3",
+    "architectures": [
+      "Qwen3ForCausalLM"
+    ],
+    "text_config_identity": {
+      "hidden_size": 1024,
+      "num_hidden_layers": 28,
+      "vocab_size": 151936,
+      "intermediate_size": 3072
+    },
+    "quantization": {
+      "group_size": 64,
+      "bits": 8
+    },
+    "declared_weight_dtype": "bfloat16",
+    "revision": null,
+    "revision_reason": "local LM Studio snapshot has no verified revision",
+    "identity_basis": "config architecture/size plus loaded quantized modules; no upstream revision attestation",
+    "model_id": "mlx-community/Qwen3-0.6B-8bit",
+    "verified_quantized_modules": 197,
+    "weight_dtypes": [
+      "mlx.core.bfloat16",
+      "mlx.core.uint32"
+    ],
+    "load_ms": 492.17154199868673,
+    "seed": 0,
+    "seed_supported": true,
+    "template_settings": {
+      "enable_thinking": false,
+      "add_generation_prompt": true,
+      "tokenize": false
+    },
+    "libraries": {
+      "mlx": "0.32.0",
+      "mlx-lm": "0.31.3",
+      "transformers": "5.14.1"
+    },
+    "device": {
+      "platform": "macOS-26.5.1-arm64-arm-64bit",
+      "machine": "arm64",
+      "hardware_model": "Mac17,5",
+      "physical_memory_bytes": 8589934592,
+      "mlx": {
+        "device_name": "Apple A18 Pro",
+        "max_recommended_working_set_size": 5726633984,
+        "memory_size": 8589934592,
+        "architecture": "applegpu_g17p",
+        "max_buffer_length": 4294967296,
+        "resource_limit": 499000
+      }
+    },
+    "python": "3.11.9 (main, Aug 14 2024, 04:17:21) [Clang 18.1.8 ]",
+    "generated_token_counting": "mlx-lm stream generation_tokens, includes EOS on stop",
+    "synchronization_api": "mlx.core.synchronize after stream completion",
+    "load_surface": "mlx-lm native qwen3 text",
+    "thinking_setting_supported": true,
+    "thinking_setting": false,
+    "eos_token_ids": [
+      151645
+    ],
+    "chat_template": "{%- if tools %}\n    {{- '<|im_start|>system\\n' }}\n    {%- if messages[0].role == 'system' %}\n        {{- messages[0].content + '\\n\\n' }}\n    {%- endif %}\n    {{- \"# Tools\\n\\nYou may call one or more functions to assist with the user query.\\n\\nYou are provided with function signatures within <tools></tools> XML tags:\\n<tools>\" }}\n    {%- for tool in tools %}\n        {{- \"\\n\" }}\n        {{- tool | tojson }}\n    {%- endfor %}\n    {{- \"\\n</tools>\\n\\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\\n<tool_call>\\n{\\\"name\\\": <function-name>, \\\"arguments\\\": <args-json-object>}\\n</tool_call><|im_end|>\\n\" }}\n{%- else %}\n    {%- if messages[0].role == 'system' %}\n        {{- '<|im_start|>system\\n' + messages[0].content + '<|im_end|>\\n' }}\n    {%- endif %}\n{%- endif %}\n{%- set ns = namespace(multi_step_tool=true, last_query_index=messages|length - 1) %}\n{%- for message in messages[::-1] %}\n    {%- set index = (messages|length - 1) - loop.index0 %}\n    {%- set tool_start = \"<tool_response>\" %}\n    {%- set tool_start_length = tool_start|length %}\n    {%- set start_of_message = message.content[:tool_start_length] %}\n    {%- set tool_end = \"</tool_response>\" %}\n    {%- set tool_end_length = tool_end|length %}\n    {%- set start_pos = (message.content|length) - tool_end_length %}\n    {%- if start_pos < 0 %}\n        {%- set start_pos = 0 %}\n    {%- endif %}\n    {%- set end_of_message = message.content[start_pos:] %}\n    {%- if ns.multi_step_tool and message.role == \"user\" and not(start_of_message == tool_start and end_of_message == tool_end) %}\n        {%- set ns.multi_step_tool = false %}\n        {%- set ns.last_query_index = index %}\n    {%- endif %}\n{%- endfor %}\n{%- for message in messages %}\n    {%- if (message.role == \"user\") or (message.role == \"system\" and not loop.first) %}\n        {{- '<|im_start|>' + message.role + '\\n' + message.content + '<|im_end|>' + '\\n' }}\n    {%- elif message.role == \"assistant\" %}\n        {%- set content = message.content %}\n        {%- set reasoning_content = '' %}\n        {%- if message.reasoning_content is defined and message.reasoning_content is not none %}\n            {%- set reasoning_content = message.reasoning_content %}\n        {%- else %}\n            {%- if '</think>' in message.content %}\n                {%- set content = (message.content.split('</think>')|last).lstrip('\\n') %}\n        {%- set reasoning_content = (message.content.split('</think>')|first).rstrip('\\n') %}\n        {%- set reasoning_content = (reasoning_content.split('<think>')|last).lstrip('\\n') %}\n            {%- endif %}\n        {%- endif %}\n        {%- if loop.index0 > ns.last_query_index %}\n            {%- if loop.last or (not loop.last and reasoning_content) %}\n                {{- '<|im_start|>' + message.role + '\\n<think>\\n' + reasoning_content.strip('\\n') + '\\n</think>\\n\\n' + content.lstrip('\\n') }}\n            {%- else %}\n                {{- '<|im_start|>' + message.role + '\\n' + content }}\n            {%- endif %}\n        {%- else %}\n            {{- '<|im_start|>' + message.role + '\\n' + content }}\n        {%- endif %}\n        {%- if message.tool_calls %}\n            {%- for tool_call in message.tool_calls %}\n                {%- if (loop.first and content) or (not loop.first) %}\n                    {{- '\\n' }}\n                {%- endif %}\n                {%- if tool_call.function %}\n                    {%- set tool_call = tool_call.function %}\n                {%- endif %}\n                {{- '<tool_call>\\n{\"name\": \"' }}\n                {{- tool_call.name }}\n                {{- '\", \"arguments\": ' }}\n                {%- if tool_call.arguments is string %}\n                    {{- tool_call.arguments }}\n                {%- else %}\n                    {{- tool_call.arguments | tojson }}\n                {%- endif %}\n                {{- '}\\n</tool_call>' }}\n            {%- endfor %}\n        {%- endif %}\n        {{- '<|im_end|>\\n' }}\n    {%- elif message.role == \"tool\" %}\n        {%- if loop.first or (messages[loop.index0 - 1].role != \"tool\") %}\n            {{- '<|im_start|>user' }}\n        {%- endif %}\n        {{- '\\n<tool_response>\\n' }}\n        {{- message.content }}\n        {{- '\\n</tool_response>' }}\n        {%- if loop.last or (messages[loop.index0 + 1].role != \"tool\") %}\n            {{- '<|im_end|>\\n' }}\n        {%- endif %}\n    {%- endif %}\n{%- endfor %}\n{%- if add_generation_prompt %}\n    {{- '<|im_start|>assistant\\n' }}\n    {%- if enable_thinking is defined and enable_thinking is false %}\n        {{- '<think>\\n\\n</think>\\n\\n' }}\n    {%- endif %}\n{%- endif %}",
+    "chat_template_sha256": "5595e8741bb5500f9d395e05a0aefe6ca1e8d54c5dd8b98bcf7760d895fdc6e6",
+    "tokenizer_class": "TokenizerWrapper",
+    "model_class": "mlx_lm.models.qwen3.Model"
+  },
+  "memory": {
+    "peak_process_rss": {
+      "bytes": 1226915840,
+      "api": "resource.getrusage(RUSAGE_SELF).ru_maxrss",
+      "scope": "inference process lifetime, includes load and warmup"
+    },
+    "peak_mlx_allocator": {
+      "bytes": 837388436,
+      "reason": null,
+      "api": "mlx.core.get_peak_memory",
+      "scope": "run includes load and warmup"
+    },
+    "peaks_are_not_additive": true
+  },
+  "protected_files": 175,
+  "protected_unchanged": true,
+  "finished_at": "2026-10-06T15:51:58.322645+00:00",
+  "download_revision": "11de96878523501bcaa86104e3c186de07ff9068",
+  "model_audit": "model-audit.json",
+  "selection": "selection.json",
+  "results": "results.jsonl",
+  "failures": "failures.jsonl",
+  "metrics": "metrics.json",
+  "report": "Qwen3-0.6B-8bit-Mini-Screening.md",
+  "decision": "stop_after_mini_no_expansion",
+  "total_generations": 63,
+  "training": false,
+  "prompt_tuning": false
+}

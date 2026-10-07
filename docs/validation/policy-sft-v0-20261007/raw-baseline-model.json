@@ -1,0 +1,11 @@
+{
+  "path": "/Users/jichengqian/.lmstudio/models/lmstudio-community/Qwen3.5-0.8B-MLX-8bit",
+  "loaded_quantized_modules": 187,
+  "no_adapter_loaded": true,
+  "libraries": {
+    "mlx": "0.32.0",
+    "mlx-lm": "0.31.3",
+    "transformers": "5.14.1"
+  },
+  "model_config_sha256": "be287fbd6f3549b1ca08a61d69833e48f72d884a0957084f4cbc7b5e3eac23db"
+}

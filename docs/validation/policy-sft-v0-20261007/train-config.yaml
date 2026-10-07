@@ -1,0 +1,40 @@
+model: /Users/jichengqian/.lmstudio/models/lmstudio-community/Qwen3.5-0.8B-MLX-8bit
+fine_tune_type: lora
+batch_size: 1
+max_seq_length: 384
+grad_checkpoint: true
+mask_prompt: true
+seed: 1807
+optimizer: adam
+data: /Users/jichengqian/Documents/ChatGPT/texa/docs/validation/policy-sft-v0-20261007
+train: true
+report_to: null
+drop_last: false
+num_layers: 8
+lora_parameters:
+  rank: 8
+  scale: 16.0
+  dropout: 0.0
+  keys:
+  - mlp.gate_proj
+  - mlp.up_proj
+  - mlp.down_proj
+  - self_attn.q_proj
+  - self_attn.k_proj
+  - self_attn.v_proj
+  - self_attn.o_proj
+  - linear_attn.in_proj_qkv
+  - linear_attn.in_proj_z
+  - linear_attn.in_proj_a
+  - linear_attn.in_proj_b
+  - linear_attn.out_proj
+learning_rate: 5.0e-05
+iters: 2688
+grad_accumulation_steps: 8
+steps_per_eval: 448
+save_every: 448
+adapter_path: /Users/jichengqian/Documents/ChatGPT/texa/docs/validation/policy-sft-v0-20261007/checkpoints
+epochs: 1
+scale_semantics: MLX directly multiplies BA by scale, not alpha/r
+execution: custom instrumented loop using mlx-lm default_loss and grad_checkpoint;
+  iters=microsteps

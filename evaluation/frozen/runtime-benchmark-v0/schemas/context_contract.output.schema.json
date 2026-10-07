@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "resolution_action": {
+      "type": "string"
+    },
+    "speech_act": {
+      "type": "string"
+    },
+    "resolved_query": {
+      "type": "string"
+    },
+    "state_operations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "current_topic": {
+      "type": "string"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "turn_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "resolution_action",
+    "speech_act",
+    "resolved_query",
+    "state_operations",
+    "current_topic",
+    "constraints",
+    "turn_ids"
+  ],
+  "additionalProperties": false,
+  "description": "Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants."
+}

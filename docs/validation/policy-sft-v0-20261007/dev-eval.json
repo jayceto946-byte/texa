@@ -1,0 +1,6 @@
+{
+  "status": "not_run",
+  "accuracy": null,
+  "reason": "train-only data anomaly stopped initial experiment; corrected data frozen, no automatic second run",
+  "hidden_model_inference_count": 0
+}

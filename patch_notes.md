@@ -3202,3 +3202,13 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 固定归档 native 实测：4925 blocks（3442 paragraph、270 heading、663 figure、522 formula、28 table），1826 文本 chunks，663 figure 和 550 original crops ready，IR 0 errors。较 bridge 多保留 14 个原始标题片段；table 218 行、36 chunks 与基线一致。新增索引 fingerprint/manifest/分 specialty 质量已保存，formula/list/table 各 8 个真实本地生产 retrieval + EvidencePack gate 通过，阈值未改；example=0 明确缺覆盖，不当作 OCR 金标或模型准确率。
 - 验证使用 Python 3.10 venv310、隔离目录和本地 ONNX；完整离线 1313 项、桌面 14 项、前端 31 文件/140 项、TypeScript/Vite 构建通过。Electron 独立 userData 托管 API 实测 ZIP → job → 章节 → 13 个原图成功，34 chunks，has_pdf=false、extract_concepts=false。native GUI 自动化无法定位独立进程，点击上传未验收；进程硬终止/掉电和跨进程原子恢复未验收，因此未宣布全部 bridge 退役/生产同名更新条件放行。没有 OCR、付费模型、依赖重装或生产数据改写。
 - 详细实施、数量差异、兼容影响与验证证据见 docs/mineru-native-implementation-2026-10-03.md 和 docs/validation/mineru-native-2026-10-03/。
+
+
+## 2026-10-07 — Policy-SFT-V0 非模型 Windows 迁移包
+
+- 纳入三份 SFT freeze、960 seeds / 3840 instances、冻结训练/Dev/Hidden及metadata、原始生成/acquisition/evaluation/reporting源码、协议/配置/审计、Mac Raw Dev与step448/896结果及resource-abort/Final Report。冻结语义与原始hash未改。
+- 将仓库外 Runtime Benchmark V0 原包（271 pins、300 cases、gold/scorer/prompts/schemas/splits及contract-source）原样收进evaluation/frozen，保留既有baseline raw/reports。Benchmark与训练资产隔离，只在最终adapter冻结后作downstream validation。
+- 离线Harness默认使用repo内冻结包，不依赖Mac source_release；resource仅在MLX内存测量时导入。增加显式本机adapter_path及artifact hashes、ModelAdapter注入的downstream记录。未实现CUDA backend或改变gold/scorer/prompt/cases。
+- 新增WINDOWS-CUDA-HANDOFF、HANDOFF-MANIFEST、标准库完整性入口、路径投影工具、离线参考requirements及.gitattributes字节保真。ignore排除权重/adapter/optimizer/venv/cache/临时状态；保留Mac源码绝对路径作为冻结出处，Windows运行不使用这些入口。
+- 验证：三份SFT冻结与全部271 benchmark pins匹配；Train/Dev/Hidden为672/144/144 seeds、2688/576/576 instances；只导出Git tree迁移资产到空目录后完整性与30项离线Harness测试通过，5项downstream相关测试未执行。未进行训练、模型下载、Hidden推理或Windows GPU验收。
+- 迁移清单542个hash资产约45 MB，最大8.4 MB，无新模型/真实密钥。仓库既有94,847,144字节embedding ONNX不属于迁移清单，保留桌面端依赖，说明提供blob:none+sparse clone。旧冻结文本中已有空白lint提示不作清理，以免改变hash。

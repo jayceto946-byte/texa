@@ -98,3 +98,32 @@ desktop/sample_data_three_books/**
 
 # Raw online validation outputs stay local; publish reviewed notes only.
 docs/validation/*.json
+
+# Non-model Policy experiment handoff: artifacts stay local.
+.DS_Store
+*.pyo
+*.pid
+*.lock
+.hf_cache/
+.huggingface/
+.cache/huggingface/
+.lmstudio/
+.mlx_cache/
+site-packages/
+*.safetensors
+*.gguf
+*.ggml
+*.pt
+*.pth
+*.ckpt
+*.npz
+**/acquisition-checkpoints/
+**/checkpoints/
+**/optimizer-state*/
+**/adapter_model.bin
+**/acquisition-*-monitor.json
+**/acquisition-*-started.json
+policy-sft-runs/
+docs/validation/policy-sft-v0-20261007-invalid-topic-label/
+docs/validation/policy-sft-v0-20261007/*-console.log
+docs/validation/runtime-benchmark-v0.1/**/*.log

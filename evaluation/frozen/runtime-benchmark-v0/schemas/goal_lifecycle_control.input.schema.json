@@ -1,0 +1,550 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "type": "object",
+      "properties": {
+        "arguments": {
+          "type": "object",
+          "properties": {},
+          "required": [],
+          "additionalProperties": false
+        },
+        "command": {
+          "type": "string"
+        },
+        "goal": {
+          "type": "object",
+          "properties": {
+            "next_action": {
+              "type": "null"
+            },
+            "objective": {
+              "type": "string"
+            },
+            "plan": {
+              "type": "object",
+              "properties": {
+                "approved_revision": {
+                  "type": "null"
+                },
+                "bounded_steps": {
+                  "type": "array",
+                  "items": {}
+                },
+                "version": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "approved_revision",
+                "bounded_steps",
+                "version"
+              ],
+              "additionalProperties": false
+            },
+            "progress": {
+              "type": "object",
+              "properties": {
+                "criterion_results": {
+                  "type": "array",
+                  "items": {}
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "items": {}
+                },
+                "measured_at": {
+                  "type": "null"
+                },
+                "unknowns": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "criterion_results",
+                "evidence_refs",
+                "measured_at",
+                "unknowns"
+              ],
+              "additionalProperties": false
+            },
+            "revision": {
+              "type": "integer"
+            },
+            "scope": {
+              "type": "object",
+              "properties": {},
+              "required": [],
+              "additionalProperties": false
+            },
+            "status": {
+              "type": "string"
+            },
+            "success_criteria": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "description",
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "next_action",
+            "objective",
+            "plan",
+            "progress",
+            "revision",
+            "scope",
+            "status",
+            "success_criteria",
+            "title"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "arguments",
+        "command",
+        "goal"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "user_confirms_completion": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "user_confirms_completion"
+          ],
+          "additionalProperties": false
+        },
+        "command": {
+          "type": "string"
+        },
+        "goal": {
+          "type": "object",
+          "properties": {
+            "next_action": {
+              "type": "null"
+            },
+            "objective": {
+              "type": "string"
+            },
+            "plan": {
+              "type": "object",
+              "properties": {
+                "approved_revision": {
+                  "type": "null"
+                },
+                "bounded_steps": {
+                  "type": "array",
+                  "items": {}
+                },
+                "version": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "approved_revision",
+                "bounded_steps",
+                "version"
+              ],
+              "additionalProperties": false
+            },
+            "progress": {
+              "type": "object",
+              "properties": {
+                "criterion_results": {
+                  "type": "array",
+                  "items": {}
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "items": {}
+                },
+                "measured_at": {
+                  "type": "null"
+                },
+                "unknowns": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "criterion_results",
+                "evidence_refs",
+                "measured_at",
+                "unknowns"
+              ],
+              "additionalProperties": false
+            },
+            "revision": {
+              "type": "integer"
+            },
+            "scope": {
+              "type": "object",
+              "properties": {},
+              "required": [],
+              "additionalProperties": false
+            },
+            "status": {
+              "type": "string"
+            },
+            "success_criteria": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "description",
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "next_action",
+            "objective",
+            "plan",
+            "progress",
+            "revision",
+            "scope",
+            "status",
+            "success_criteria",
+            "title"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "arguments",
+        "command",
+        "goal"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "changes": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "title"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "changes"
+          ],
+          "additionalProperties": false
+        },
+        "command": {
+          "type": "string"
+        },
+        "goal": {
+          "type": "object",
+          "properties": {
+            "next_action": {
+              "type": "null"
+            },
+            "objective": {
+              "type": "string"
+            },
+            "plan": {
+              "type": "object",
+              "properties": {
+                "approved_revision": {
+                  "type": "null"
+                },
+                "bounded_steps": {
+                  "type": "array",
+                  "items": {}
+                },
+                "version": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "approved_revision",
+                "bounded_steps",
+                "version"
+              ],
+              "additionalProperties": false
+            },
+            "progress": {
+              "type": "object",
+              "properties": {
+                "criterion_results": {
+                  "type": "array",
+                  "items": {}
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "items": {}
+                },
+                "measured_at": {
+                  "type": "null"
+                },
+                "unknowns": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "criterion_results",
+                "evidence_refs",
+                "measured_at",
+                "unknowns"
+              ],
+              "additionalProperties": false
+            },
+            "revision": {
+              "type": "integer"
+            },
+            "scope": {
+              "type": "object",
+              "properties": {},
+              "required": [],
+              "additionalProperties": false
+            },
+            "status": {
+              "type": "string"
+            },
+            "success_criteria": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "description",
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "next_action",
+            "objective",
+            "plan",
+            "progress",
+            "revision",
+            "scope",
+            "status",
+            "success_criteria",
+            "title"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "arguments",
+        "command",
+        "goal"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "changes": {
+              "type": "object",
+              "properties": {
+                "objective": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "objective"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "changes"
+          ],
+          "additionalProperties": false
+        },
+        "command": {
+          "type": "string"
+        },
+        "goal": {
+          "type": "object",
+          "properties": {
+            "next_action": {
+              "type": "null"
+            },
+            "objective": {
+              "type": "string"
+            },
+            "plan": {
+              "type": "object",
+              "properties": {
+                "approved_revision": {
+                  "type": "null"
+                },
+                "bounded_steps": {
+                  "type": "array",
+                  "items": {}
+                },
+                "version": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "approved_revision",
+                "bounded_steps",
+                "version"
+              ],
+              "additionalProperties": false
+            },
+            "progress": {
+              "type": "object",
+              "properties": {
+                "criterion_results": {
+                  "type": "array",
+                  "items": {}
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "items": {}
+                },
+                "measured_at": {
+                  "type": "null"
+                },
+                "unknowns": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "criterion_results",
+                "evidence_refs",
+                "measured_at",
+                "unknowns"
+              ],
+              "additionalProperties": false
+            },
+            "revision": {
+              "type": "integer"
+            },
+            "scope": {
+              "type": "object",
+              "properties": {},
+              "required": [],
+              "additionalProperties": false
+            },
+            "status": {
+              "type": "string"
+            },
+            "success_criteria": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "description",
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "next_action",
+            "objective",
+            "plan",
+            "progress",
+            "revision",
+            "scope",
+            "status",
+            "success_criteria",
+            "title"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "arguments",
+        "command",
+        "goal"
+      ],
+      "additionalProperties": false
+    }
+  ],
+  "description": "Benchmark V0 input envelope; dictionary shapes from frozen fixtures. Production open-ended domain fields remain governed by source validators."
+}

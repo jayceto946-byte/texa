@@ -1,0 +1,54 @@
+{
+  "gemma_permutation": {
+    "successful_latency_n": 240,
+    "p50_ms": 918.0467909991421,
+    "p95_ms": 1079.1955829990911,
+    "percentile_method": "nearest-rank ceil(p*n)",
+    "tail_sample_insufficient": false,
+    "token_rate_n": 240,
+    "generated_tokens_per_request_second": 12.375923893122133,
+    "token_rate_reason": null,
+    "failed_requests": [],
+    "warmup_excluded": true,
+    "includes_prefill": true
+  },
+  "qwen_permutation": {
+    "successful_latency_n": 240,
+    "p50_ms": 619.4567080001434,
+    "p95_ms": 712.6332499992714,
+    "percentile_method": "nearest-rank ceil(p*n)",
+    "tail_sample_insufficient": false,
+    "token_rate_n": 240,
+    "generated_tokens_per_request_second": 12.858225161476831,
+    "token_rate_reason": null,
+    "failed_requests": [],
+    "warmup_excluded": true,
+    "includes_prefill": true
+  },
+  "gemma_semantic": {
+    "successful_latency_n": 200,
+    "p50_ms": 2636.502624998684,
+    "p95_ms": 5565.4249579984025,
+    "percentile_method": "nearest-rank ceil(p*n)",
+    "tail_sample_insufficient": false,
+    "token_rate_n": 200,
+    "generated_tokens_per_request_second": 29.87372386355693,
+    "token_rate_reason": null,
+    "failed_requests": [],
+    "warmup_excluded": true,
+    "includes_prefill": true
+  },
+  "qwen_semantic": {
+    "successful_latency_n": 200,
+    "p50_ms": 971.5510839996568,
+    "p95_ms": 7871.458042000086,
+    "percentile_method": "nearest-rank ceil(p*n)",
+    "tail_sample_insufficient": false,
+    "token_rate_n": 200,
+    "generated_tokens_per_request_second": 37.30224032842037,
+    "token_rate_reason": null,
+    "failed_requests": [],
+    "warmup_excluded": true,
+    "includes_prefill": true
+  }
+}

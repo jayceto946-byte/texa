@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "harness_tests": "33 passed",
+  "protected_files": 175,
+  "gemma_cache_deleted": true,
+  "gemma_artifacts_unchanged": true,
+  "smoke_generations": 3,
+  "policy_generations": 60,
+  "failures": 30,
+  "operational_errors": 0,
+  "missing": 0,
+  "expanded_benchmark": false
+}

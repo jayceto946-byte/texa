@@ -1,0 +1,83 @@
+{
+  "status": "not_run",
+  "placeholder": true,
+  "dataset": "corrected counterfactual Policy-SFT-V0",
+  "reason": "initial data run invalidated by train-only shortcut audit; no second training run this turn",
+  "historical_smoke_source": "/Users/jichengqian/Documents/ChatGPT/texa/docs/validation/policy-sft-v0-20261007-invalid-topic-label/memory-smoke.json",
+  "historical_smoke_status": "passed",
+  "historical_steps": [
+    {
+      "step": 1,
+      "loss": 2.0520832538604736,
+      "gradients_finite": true,
+      "parameters_optimizer_finite": true,
+      "wall_seconds": 4.469692707999911,
+      "supervised_tokens": 12,
+      "rss_bytes": 97402880,
+      "max_rss_bytes": 811810816,
+      "mlx_active_bytes": 803819244,
+      "mlx_cache_bytes": 3363409099,
+      "mlx_peak_bytes": 3605216150,
+      "unified_memory_note": "MLX GPU allocations share physical memory with RSS; do not sum them"
+    },
+    {
+      "step": 2,
+      "loss": 2.0729167461395264,
+      "gradients_finite": true,
+      "parameters_optimizer_finite": true,
+      "wall_seconds": 3.3220001670001693,
+      "supervised_tokens": 12,
+      "rss_bytes": 104726528,
+      "max_rss_bytes": 811810816,
+      "mlx_active_bytes": 803819756,
+      "mlx_cache_bytes": 3412368083,
+      "mlx_peak_bytes": 3613430230,
+      "unified_memory_note": "MLX GPU allocations share physical memory with RSS; do not sum them"
+    },
+    {
+      "step": 3,
+      "loss": 1.9166666269302368,
+      "gradients_finite": true,
+      "parameters_optimizer_finite": true,
+      "wall_seconds": 3.360270582999874,
+      "supervised_tokens": 12,
+      "rss_bytes": 106758144,
+      "max_rss_bytes": 811810816,
+      "mlx_active_bytes": 803819244,
+      "mlx_cache_bytes": 3434388691,
+      "mlx_peak_bytes": 3614156670,
+      "unified_memory_note": "MLX GPU allocations share physical memory with RSS; do not sum them"
+    },
+    {
+      "step": 4,
+      "loss": 1.9375,
+      "gradients_finite": true,
+      "parameters_optimizer_finite": true,
+      "wall_seconds": 3.31383945799962,
+      "supervised_tokens": 12,
+      "rss_bytes": 104792064,
+      "max_rss_bytes": 811810816,
+      "mlx_active_bytes": 803819756,
+      "mlx_cache_bytes": 3435600595,
+      "mlx_peak_bytes": 3614353832,
+      "unified_memory_note": "MLX GPU allocations share physical memory with RSS; do not sum them"
+    },
+    {
+      "step": 5,
+      "loss": 1.7083333730697632,
+      "gradients_finite": true,
+      "parameters_optimizer_finite": true,
+      "wall_seconds": 3.2681705830000283,
+      "supervised_tokens": 12,
+      "rss_bytes": 103432192,
+      "max_rss_bytes": 811810816,
+      "mlx_active_bytes": 803819244,
+      "mlx_cache_bytes": 3435601107,
+      "mlx_peak_bytes": 3614353832,
+      "unified_memory_note": "MLX GPU allocations share physical memory with RSS; do not sum them"
+    }
+  ],
+  "historical_physical_unified_memory_bytes": 8589934592,
+  "historical_measurement_is_not_current_dataset_smoke": true,
+  "reuse_smoke_weights": false
+}

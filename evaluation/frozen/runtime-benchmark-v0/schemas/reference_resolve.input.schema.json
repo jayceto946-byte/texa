@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "type": "object",
+      "properties": {
+        "candidate_references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "question": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_references",
+        "question"
+      ],
+      "additionalProperties": false
+    }
+  ],
+  "description": "Benchmark V0 input envelope; dictionary shapes from frozen fixtures. Production open-ended domain fields remain governed by source validators."
+}

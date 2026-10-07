@@ -1,0 +1,109 @@
+{
+  "trainable_parameters": 1803776,
+  "trainable_tensors": 124,
+  "targets": [
+    {
+      "layer_index": 16,
+      "modules": [
+        "mlp.up_proj",
+        "mlp.down_proj",
+        "mlp.gate_proj",
+        "linear_attn.out_proj",
+        "linear_attn.in_proj_a",
+        "linear_attn.in_proj_b",
+        "linear_attn.in_proj_z",
+        "linear_attn.in_proj_qkv"
+      ]
+    },
+    {
+      "layer_index": 17,
+      "modules": [
+        "mlp.up_proj",
+        "mlp.down_proj",
+        "mlp.gate_proj",
+        "linear_attn.out_proj",
+        "linear_attn.in_proj_a",
+        "linear_attn.in_proj_b",
+        "linear_attn.in_proj_z",
+        "linear_attn.in_proj_qkv"
+      ]
+    },
+    {
+      "layer_index": 18,
+      "modules": [
+        "mlp.up_proj",
+        "mlp.down_proj",
+        "mlp.gate_proj",
+        "linear_attn.out_proj",
+        "linear_attn.in_proj_a",
+        "linear_attn.in_proj_b",
+        "linear_attn.in_proj_z",
+        "linear_attn.in_proj_qkv"
+      ]
+    },
+    {
+      "layer_index": 19,
+      "modules": [
+        "mlp.up_proj",
+        "mlp.down_proj",
+        "mlp.gate_proj",
+        "self_attn.o_proj",
+        "self_attn.v_proj",
+        "self_attn.k_proj",
+        "self_attn.q_proj"
+      ]
+    },
+    {
+      "layer_index": 20,
+      "modules": [
+        "mlp.up_proj",
+        "mlp.down_proj",
+        "mlp.gate_proj",
+        "linear_attn.out_proj",
+        "linear_attn.in_proj_a",
+        "linear_attn.in_proj_b",
+        "linear_attn.in_proj_z",
+        "linear_attn.in_proj_qkv"
+      ]
+    },
+    {
+      "layer_index": 21,
+      "modules": [
+        "mlp.up_proj",
+        "mlp.down_proj",
+        "mlp.gate_proj",
+        "linear_attn.out_proj",
+        "linear_attn.in_proj_a",
+        "linear_attn.in_proj_b",
+        "linear_attn.in_proj_z",
+        "linear_attn.in_proj_qkv"
+      ]
+    },
+    {
+      "layer_index": 22,
+      "modules": [
+        "mlp.up_proj",
+        "mlp.down_proj",
+        "mlp.gate_proj",
+        "linear_attn.out_proj",
+        "linear_attn.in_proj_a",
+        "linear_attn.in_proj_b",
+        "linear_attn.in_proj_z",
+        "linear_attn.in_proj_qkv"
+      ]
+    },
+    {
+      "layer_index": 23,
+      "modules": [
+        "mlp.up_proj",
+        "mlp.down_proj",
+        "mlp.gate_proj",
+        "self_attn.o_proj",
+        "self_attn.v_proj",
+        "self_attn.k_proj",
+        "self_attn.q_proj"
+      ]
+    }
+  ],
+  "quantized_modules": 187
+}

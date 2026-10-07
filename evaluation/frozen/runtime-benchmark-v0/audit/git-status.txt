@@ -1,0 +1,104 @@
+ M .env.example
+ M AGENTS.md
+ M backend/api/books.py
+ M backend/api/chat.py
+ M backend/api/exercises.py
+ M backend/api/figures.py
+ M backend/rag_trace.py
+ M backend/services/agent_runtime/chat_binding.py
+ M backend/services/answer_verification.py
+ M backend/services/book_chapters.py
+ M backend/services/context_versions.py
+ M backend/services/decision/contracts.py
+ M backend/services/decision/policy.py
+ M backend/services/decision/policy_projection.py
+ M backend/services/decision/router.py
+ M backend/services/figure_learning.py
+ M backend/services/resolver_reference.py
+ M backend/services/session_context.py
+ M backend/services/session_notes/generation.py
+ M backend/services/session_notes/jobs.py
+ M backend/services/session_notes/validation.py
+ M backend/services/tool_orchestration.py
+ M desktop/main.cjs
+ M frontend/src/components/settings/LibraryWorkbench.tsx
+ M frontend/src/features/exercises/hooks/useExerciseAnswerJob.ts
+ M frontend/src/features/notes/DraftWorkspace.tsx
+ M frontend/src/hooks/useAuthenticatedBlobUrl.ts
+ M frontend/src/pages/BooksPage.tsx
+ M frontend/src/pages/ExercisesPage.tsx
+ M frontend/src/types/index.ts
+ M graph/chapter_subgraph.py
+ M graph/evidence_pack.py
+ M graph/generator.py
+ M graph/main_graph.py
+ M graph/planner.py
+ M graph/retrieval_node.py
+ M graph/state.py
+ M graph/teaching_prompts.py
+ M ingestion/acceptance_probes.py
+ M ingestion/chapter_splitter.py
+ M ingestion/document_adapters.py
+ M ingestion/document_ir.py
+ M ingestion/document_publication.py
+ M ingestion/lexical_index.py
+ M ingestion/mineru_importer.py
+ M ingestion/mineru_structured.py
+ M knowledge/chapter_highlight_source.py
+ M knowledge/chapter_highlight_types.py
+ M llm/configuration.py
+ M memory/session_notes.py
+ M memory/textbook_exercise_importer.py
+ M patch_notes.md
+ M tests/test_answer_verification.py
+ M tests/test_conversation_followup.py
+ M tests/test_evidence_pack.py
+ M tests/test_exercise_bank.py
+ M tests/test_figure_learning.py
+ M tests/test_mineru_structured_content.py
+ M tests/test_minimal_teaching_prompt.py
+ M tests/test_rag_trace.py
+ M tests/test_session_notes.py
+ M tests/test_textbook_retrieval_policy.py
+?? .DS_Store
+?? backend/services/exercise_answers.py
+?? backend/services/figure_audit.py
+?? backend/services/question_understanding.py
+?? docs/astra-business-chain-audit-handoff-2026-10-05.md
+?? docs/business-chain-audit-2026-10-05.md
+?? docs/business-chain-execution-runbook-2026-10-05.md
+?? docs/business-chain-repair-2026-10-05.md
+?? docs/business-chain-validation-matrix-2026-10-05.md
+?? docs/chat-refusal-diagnosis-2026-10-04.md
+?? docs/chat-refusal-fix-2026-10-04.md
+?? docs/question-understanding-interface-2026-10-04.md
+?? docs/semantic-runtime-evidence-context-design-2026-10-05.md
+?? docs/texa-development-handoff-2026-10-06.md
+?? docs/textbook-abc-repair-validation-2026-10-04.md
+?? docs/textbook-abc-root-cause-and-repair-plan-2026-10-04.md
+?? docs/textbook-defg-root-cause-and-repair-plan-2026-10-04.md
+?? docs/textbook-end-to-end-validation-checklist-2026-10-04.md
+?? docs/textbook-figure-audit-mechanism-2026-10-04.md
+?? docs/textbook-figure-split-audit-2026-10-04.md
+?? docs/textbook-validation-workbook.html
+?? docs/validation/business-chain-audit-2026-10-05/
+?? docs/validation/business-chain-repair-2026-10-05/
+?? docs/validation/chat-refusal-fix-2026-10-04/
+?? docs/validation/question-understanding-interface-2026-10-04/
+?? docs/validation/textbook-abc-2026-10-04/
+?? docs/validation/textbook-defg-2026-10-04/
+?? frontend/src/features/exercises/hooks/useTextbookImportOutline.ts
+?? frontend/src/features/textbooks/
+?? frontend/src/ui-refactor-preview.tsx
+?? frontend/ui-refactor-preview.html
+?? graph/question_understanding.py
+?? ingestion/document_workflows.py
+?? ingestion/figure_audit.py
+?? ingestion/figure_layout.py
+?? scripts/audit_textbook_figure_splits.py
+?? scripts/audit_textbook_figures.py
+?? scripts/repair_textbook_figure_layout.py
+?? tests/test_figure_audit.py
+?? tests/test_question_understanding.py
+?? tests/test_sensor_refusal_regressions.py
+?? tests/test_textbook_workflow_repairs.py

@@ -1,0 +1,111 @@
+{
+  "$defs": {
+    "PolicyValidationV0": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "accepted",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "code": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "code"
+      ],
+      "title": "PolicyValidationV0",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "decision_ref": {
+      "minLength": 1,
+      "title": "Decision Ref",
+      "type": "string"
+    },
+    "validation": {
+      "$ref": "#/$defs/PolicyValidationV0"
+    },
+    "execution": {
+      "enum": [
+        "not_started",
+        "succeeded",
+        "failed",
+        "unknown"
+      ],
+      "title": "Execution",
+      "type": "string"
+    },
+    "result_refs": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Result Refs",
+      "type": "array"
+    },
+    "continuation": {
+      "enum": [
+        "next_observation",
+        "waiting",
+        "terminal"
+      ],
+      "title": "Continuation",
+      "type": "string"
+    },
+    "task_status": {
+      "enum": [
+        "pending",
+        "running",
+        "interrupted",
+        "waiting_for_input",
+        "waiting_for_confirmation",
+        "completed",
+        "degraded",
+        "failed",
+        "cancelled"
+      ],
+      "title": "Task Status",
+      "type": "string"
+    },
+    "user_feedback": {
+      "default": "unknown",
+      "enum": [
+        "positive",
+        "negative",
+        "unknown"
+      ],
+      "title": "User Feedback",
+      "type": "string"
+    },
+    "goal_completion": {
+      "default": "unknown",
+      "enum": [
+        "met",
+        "not_met",
+        "unknown"
+      ],
+      "title": "Goal Completion",
+      "type": "string"
+    }
+  },
+  "required": [
+    "decision_ref",
+    "validation",
+    "execution",
+    "continuation",
+    "task_status"
+  ],
+  "title": "PolicyOutcomeV0",
+  "type": "object"
+}
