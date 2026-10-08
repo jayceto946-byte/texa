@@ -98,7 +98,13 @@ def _source_texts(
 def _citation_semantically_supported(answer: str, source_id: str, source_text: str) -> bool:
     marker = f"[[cite:{source_id}]]"
     position = answer.upper().find(marker.upper())
-    claim = answer[max(0, position - 220):position] if position >= 0 else ""
+    prefix = answer[:position] if position >= 0 else ""
+    # A contiguous citation group refers to one claim. Earlier markers in the
+    # group are annotations, not sentence boundaries. Do not cross newlines or
+    # remove an intervening claim: each source must still support that claim.
+    prefix = re.sub(r"(?:[ \t]*\[\[cite:E[\w-]+\]\])+[ \t]*$", "", prefix, flags=re.I)
+    claim = prefix[-220:]
+    claim = re.split(r"[。！？\n]|\[\[cite:E[\w-]+\]\]", claim.rstrip(" 。！？\n"))[-1]
     def terms(value: str) -> set[str]:
         chinese = "".join(re.findall(r"[\u4e00-\u9fff]", value))
         grams = {chinese[index:index + 2] for index in range(max(0, len(chinese) - 1))}

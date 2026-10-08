@@ -47,6 +47,8 @@ declare global {
       getBackendStatus?: () => Promise<DesktopBackendStatus>;
       openWebFallback?: () => Promise<void>;
       openBackendLog?: () => Promise<string>;
+      getRemoteS0Status?: () => Promise<{ ready: boolean; target: string; instanceId: string; command: string }>;
+      copyRemoteS0Token?: () => Promise<boolean>;
       getRemoteCaptureStatus?: () => Promise<RemoteCaptureStatus>;
       setRemoteCaptureEnabled?: (enabled: boolean) => Promise<RemoteCaptureStatus>;
       getUpdateStatus?: () => Promise<DesktopUpdateStatus>;

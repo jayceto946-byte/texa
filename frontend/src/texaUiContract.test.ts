@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import app from './App.tsx?raw';
+import app from './Workspace.tsx?raw';
 import message from './components/ChatMessage.tsx?raw';
 import chatPage from './pages/ChatPage.tsx?raw';
 import mistakesPage from './pages/MistakesPage.tsx?raw';

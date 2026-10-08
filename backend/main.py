@@ -17,6 +17,8 @@ import threading
 
 from backend.api import agent, chat, mistakes, mistake_lifecycle, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state, goals, notes
 from backend.security import LocalApiBoundaryMiddleware
+from backend.static_assets import StaticAssetCompression
+from backend.remote_reads import RemoteReadOptimization
 from utils.version import APP_VERSION
 
 logger = logging.getLogger(__name__)
@@ -144,6 +146,7 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["Deprecation"],
 )
+app.add_middleware(RemoteReadOptimization)
 app.add_middleware(LocalApiBoundaryMiddleware)
 
 # ── API 路由 ──────────────────────────────────────────────
@@ -267,7 +270,7 @@ def _warmup():
 # 如果 frontend/dist 存在，挂载为静态文件服务
 _dist_path = Path(__file__).parent.parent / "frontend" / "dist"
 if _dist_path.exists():
-    app.mount("/", SPAStaticFiles(directory=str(_dist_path), html=True), name="static")
+    app.mount("/", StaticAssetCompression(SPAStaticFiles(directory=str(_dist_path), html=True)), name="static")
 
 
 if __name__ == "__main__":

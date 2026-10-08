@@ -1,3 +1,4 @@
+import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import type { AnswerMode, AssistantSource, ChatActivity, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, CitationProvenance, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
 
@@ -66,8 +67,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [bookName, setBookName] = useState('');
-  const [subject, setSubject] = useState(() => window.localStorage.getItem('kaoyan_subject') || '数学');
-  const [conversationId, setConversationId] = useState(() => window.localStorage.getItem('kaoyan_conversation_id') || createConversationId());
+  const [subject, setSubject] = useState(() => readBrowserStorage('localStorage', 'kaoyan_subject') || '数学');
+  const [conversationId, setConversationId] = useState(() => readBrowserStorage('localStorage', 'kaoyan_conversation_id') || createConversationId());
   const [historyPage, setHistoryPage] = useState<ConversationPage | null>(null);
   const activeChatAbortRef = useRef<(() => void) | null>(null);
 
@@ -83,7 +84,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const persistConversationId = useCallback((next: string) => {
     setConversationId(next);
-    window.localStorage.setItem('kaoyan_conversation_id', next);
+    writeBrowserStorage('localStorage', 'kaoyan_conversation_id', next);
   }, []);
 
   const resetConversationForScopeChange = useCallback(() => {
@@ -97,7 +98,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const persistSubject = useCallback((next: string) => {
     if (next === subject) return;
     setSubject(next);
-    window.localStorage.setItem('kaoyan_subject', next);
+    writeBrowserStorage('localStorage', 'kaoyan_subject', next);
     resetConversationForScopeChange();
   }, [resetConversationForScopeChange, subject]);
 
@@ -120,7 +121,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (nextBookName) setBookName(nextBookName);
     if (nextSubject) {
       setSubject(nextSubject);
-      window.localStorage.setItem('kaoyan_subject', nextSubject);
+      writeBrowserStorage('localStorage', 'kaoyan_subject', nextSubject);
     }
   }, []);
 
@@ -132,7 +133,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setHistoryPage(meta.page || null);
     if (meta.subject !== undefined) {
       setSubject(meta.subject);
-      window.localStorage.setItem('kaoyan_subject', meta.subject);
+      writeBrowserStorage('localStorage', 'kaoyan_subject', meta.subject);
     }
     if (meta.bookName !== undefined) setBookName(meta.bookName);
   }, [cancelActiveChat, persistConversationId]);

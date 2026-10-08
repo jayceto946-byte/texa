@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const net = require('node:net');
 const path = require('node:path');
 const test = require('node:test');
-const { findAvailablePort, portFromUrl, resolveUserDataPath } = require('./runtime.cjs');
+const { backendIdentityMatches, findAvailablePort, portFromUrl, resolveUserDataPath } = require('./runtime.cjs');
 
 test('Texa branding preserves the existing desktop identity and userData paths', () => {
   const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
@@ -44,4 +44,11 @@ test('findAvailablePort releases a bindable loopback port', async () => {
     server.once('error', reject);
     server.listen(port, '127.0.0.1', () => server.close(resolve));
   });
+});
+
+test('desktop never treats an older healthy process as its own backend', () => {
+  assert.equal(backendIdentityMatches({ instance_id: 'old-instance' }, 'new-instance'), false);
+  assert.equal(backendIdentityMatches({}, 'new-instance'), false);
+  assert.equal(backendIdentityMatches({ instance_id: 'current-instance' }, 'current-instance'), true);
+  assert.equal(backendIdentityMatches({ instance_id: 'manual-backend' }, 'desktop-instance', true), true);
 });

@@ -56,6 +56,7 @@ export default function LearningContextSidebar({
   refreshKey,
   onClose,
   onNewConversation,
+  onSelectCurrentConversation,
   onLoadConversation,
   capabilityActions = [],
 }: {
@@ -66,6 +67,7 @@ export default function LearningContextSidebar({
   refreshKey: number | string;
   onClose: () => void;
   onNewConversation: () => void;
+  onSelectCurrentConversation: () => void;
   onLoadConversation: (payload: { id: string; messages: ChatMessage[]; subject: string; bookName: string; page: ConversationPage | null }) => void;
   capabilityActions?: readonly LearningCapabilityAction[];
 }) {
@@ -99,6 +101,11 @@ export default function LearningContextSidebar({
   const [blockingTasks, setBlockingTasks] = useState<BlockingConversationTask[]>([]);
   const [undo, setUndo] = useState<{ id: string; action: ConversationAction; revision: number } | null>(null);
   const requestGeneration = useRef(0);
+  const previousQuery = useRef<string | null>(null);
+  const selectionGeneration = useRef(0);
+  const selectionRequest = useRef<AbortController | null>(null);
+  const [openingId, setOpeningId] = useState('');
+  useEffect(() => () => { selectionRequest.current?.abort(); }, []);
   const pendingOperation = useRef<{ key: string; id: string } | null>(null);
 
   const sessionScopeLabel = (item: ConversationSummary) => {
@@ -139,17 +146,21 @@ export default function LearningContextSidebar({
   useEffect(() => {
     const controller = new AbortController();
     ++requestGeneration.current;
-    setConversations([]); setNextCursor(null); setLoading(true); setMoreLoading(false); setError('');
+    if (previousQuery.current !== query) {
+      setConversations([]); setNextCursor(null);
+    }
+    previousQuery.current = query;
+    setLoading(true); setMoreLoading(false); setError('');
     void conversationApi.list(query, controller.signal).then(page => {
       if (controller.signal.aborted) return;
       setConversations(page.items); setNextCursor(page.next_cursor);
     }).catch(e => { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : '读取会话失败'); })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [conversationId, query, refreshKey, retry]);
+  }, [query, refreshKey, retry]);
 
   const loadMore = async () => {
-    if (!nextCursor || moreLoading) return;
+    if (!nextCursor || moreLoading || loading) return;
     const generation = requestGeneration.current;
     const params = new URLSearchParams(query); params.set('cursor', nextCursor);
     setMoreLoading(true); setError('');
@@ -185,21 +196,42 @@ export default function LearningContextSidebar({
     } finally { setBusy(false); }
   };
 
+  const cancelSelection = () => {
+    ++selectionGeneration.current;
+    selectionRequest.current?.abort();
+    selectionRequest.current = null;
+    setOpeningId('');
+  };
+
   const loadConversation = async (id: string) => {
-    try {
-    const res = await get(`/chat/conversations/${encodeURIComponent(id)}?limit=40`, 20000);
-    if (!res?.success || !res.data) throw new Error(res?.message || '无法打开会话');
-    const storedBookName = res.data.book_name || '';
-    const logicalScope = scopeBooks.find((item) => scopeContainsBook(item, storedBookName));
-    onLoadConversation({
-      id: res.data.id,
-      messages: mapStoredConversationMessages(res.data.messages || []),
-      subject: logicalScope?.subject || res.data.subject || '',
-      bookName: storedBookName,
-      page: res.data.page || null,
-    });
+    cancelSelection();
+    if (id === conversationId) { onSelectCurrentConversation(); return; }
+    const generation = selectionGeneration.current;
+    const controller = new AbortController();
+    selectionRequest.current = controller;
+    setOpeningId(id);
     setError('');
-    } catch (e) { setError(e instanceof Error ? e.message : '无法打开会话'); }
+    try {
+      const res = await get(`/chat/conversations/${encodeURIComponent(id)}?limit=40`, 20000, controller.signal);
+      if (generation !== selectionGeneration.current) return;
+      if (!res?.success || !res.data) throw new Error(res?.message || '无法打开会话');
+      const storedBookName = res.data.book_name || '';
+      const logicalScope = scopeBooks.find((item) => scopeContainsBook(item, storedBookName));
+      onLoadConversation({
+        id: res.data.id,
+        messages: mapStoredConversationMessages(res.data.messages || []),
+        subject: logicalScope?.subject || res.data.subject || '',
+        bookName: storedBookName,
+        page: res.data.page || null,
+      });
+    } catch (e) {
+      if (generation === selectionGeneration.current && !controller.signal.aborted) setError(e instanceof Error ? e.message : '无法打开会话');
+    } finally {
+      if (generation === selectionGeneration.current) {
+        selectionRequest.current = null;
+        setOpeningId('');
+      }
+    }
   };
 
   return (
@@ -207,7 +239,7 @@ export default function LearningContextSidebar({
       <header className="learning-context-header">
         <h1 className="min-w-0 text-[16px] font-semibold text-text-primary">学习</h1>
         <div className="window-drag-region" aria-hidden="true" />
-        <button type="button" onClick={onNewConversation} className="context-new-session" aria-label="新会话">
+        <button type="button" onClick={() => { cancelSelection(); onNewConversation(); }} className="context-new-session" aria-label="新会话">
           <MessageSquarePlus className="h-4 w-4" />
           <span>新会话</span>
         </button>
@@ -237,7 +269,7 @@ export default function LearningContextSidebar({
           {error && <div className="context-session-error" role="alert"><p>{error}</p><button className="app-ghost-button" onClick={() => setRetry(v => v + 1)}>重新读取</button>{blockedConversation && <button className="app-ghost-button" onClick={() => void loadConversation(blockedConversation)}>查看未完成任务</button>}</div>}
           {blockingTasks.length > 0 && <BlockingTasks tasks={blockingTasks} onChanged={() => { setBlockingTasks([]); setBlockedConversation(''); setError(''); setNotice('任务已结束，可以重新选择会话操作'); setRetry(v => v + 1); }}/>}
           {notice && <p role="status" className="conversation-notice">{notice}{undo && <button className="app-ghost-button" disabled={busy} onClick={() => void manage(undo.id, { state: view, pinned: false, revision: undo.revision }, undo.action, true)}>撤销</button>}</p>}
-          {loading && <p className="context-session-empty" role="status">正在读取会话…</p>}
+          {loading && conversations.length === 0 && <p className="context-session-empty" role="status">正在读取会话…</p>}
           {!error && !loading && conversations.length === 0 && <p className="context-session-empty">当前范围暂无会话</p>}
           {conversations.map((item) => {
             const active = item.id === conversationId;
@@ -247,10 +279,12 @@ export default function LearningContextSidebar({
                 type="button"
                 onClick={() => void loadConversation(item.id)}
                 className={`context-session-row ${active ? 'is-active' : ''}`}
+                disabled={openingId === item.id}
+                aria-busy={openingId === item.id || undefined}
                 aria-current={active ? 'page' : undefined}
               >
                 <span className="context-session-title" title={item.title}>{item.management.pinned && <Pin size={12} aria-label="已置顶" className="conversation-pin"/>}{item.title}</span>
-                <span className="context-session-time">{relativeTime(item.updated_at)}</span>
+                <span className="context-session-time">{openingId === item.id ? '读取中…' : relativeTime(item.updated_at)}</span>
                 {scopeLabel && <span className="context-session-scope">{scopeLabel}</span>}
               </button><OverflowMenu label={`${item.title}的更多操作`}>{close => <>
                 {view !== 'trashed' && <button role="menuitem" disabled={busy} onClick={() => { close(); void manage(item.id, item.management, item.management.pinned ? 'unpin' : 'pin'); }}>{item.management.pinned ? '取消置顶' : '置顶'}</button>}
@@ -260,7 +294,7 @@ export default function LearningContextSidebar({
               </>}</OverflowMenu></div>
             );
           })}
-          {nextCursor && <button className="app-ghost-button conversation-load-more" disabled={moreLoading} onClick={() => void loadMore()}>{moreLoading ? '正在读取…' : '加载更多会话'}</button>}
+          {nextCursor && <button className="app-ghost-button conversation-load-more" disabled={moreLoading || loading} onClick={() => void loadMore()}>{moreLoading ? '正在读取…' : '加载更多会话'}</button>}
         </div>
       </section>
     </aside>

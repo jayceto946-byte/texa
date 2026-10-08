@@ -1,11 +1,10 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, clipboard } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const os = require('node:os');
-const { findAvailablePort, portFromUrl, resolveUserDataPath } = require('./runtime.cjs');
+const { backendIdentityMatches, findAvailablePort, portFromUrl, resolveUserDataPath } = require('./runtime.cjs');
 const { readStartupAppearance, writeStartupAppearance } = require('./appearance.cjs');
 const { createClosePreparation } = require('./window-close.cjs');
 const { readSetupComplete, writeSetupComplete } = require('./setup-state.cjs');
@@ -97,51 +96,10 @@ function runtimePaths() {
   };
 }
 
-function remoteCaptureSettingsPath() {
-  return path.join(runtimePaths().userData, 'remote-capture.json');
-}
-
-function readRemoteCaptureSettings() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(remoteCaptureSettingsPath(), 'utf8'));
-    return { enabled: parsed?.enabled === true };
-  } catch {
-    return { enabled: false };
-  }
-}
-
-function writeRemoteCaptureSettings(enabled) {
-  const settingsPath = remoteCaptureSettingsPath();
-  fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
-  fs.writeFileSync(settingsPath, JSON.stringify({ enabled: Boolean(enabled) }, null, 2), 'utf8');
-}
-
-function lanAddresses() {
-  const addresses = [];
-  for (const entries of Object.values(os.networkInterfaces())) {
-    for (const entry of entries || []) {
-      if (entry.family !== 'IPv4' || entry.internal) continue;
-      if (!addresses.includes(entry.address)) addresses.push(entry.address);
-    }
-  }
-  return addresses;
-}
-
 function remoteCaptureStatus(extra = {}) {
-  const enabled = readRemoteCaptureSettings().enabled;
-  const urls = enabled
-    ? lanAddresses().map((address) => `http://${address}:${backendPort}/capture#capture_token=${encodeURIComponent(CAPTURE_TOKEN)}`)
-    : [];
-  return {
-    enabled,
-    urls,
-    port: backendPort,
-    ready: Boolean(backendProcess && backendProcess.exitCode === null),
-    message: enabled
-      ? (urls.length ? '\u624b\u673a\u91c7\u96c6\u5165\u53e3\u5df2\u5728\u5f53\u524d\u5c40\u57df\u7f51\u5f00\u653e\u3002' : '\u5df2\u5f00\u653e\uff0c\u4f46\u6ca1\u6709\u627e\u5230\u53ef\u7528\u7684\u5c40\u57df\u7f51 IPv4 \u5730\u5740\u3002')
-      : '\u624b\u673a\u91c7\u96c6\u5165\u53e3\u5f53\u524d\u5173\u95ed\u3002',
-    ...extra,
-  };
+  return { enabled: false, urls: [], port: backendPort, ready: false,
+    message: 'LAN 采集入口已停用；请使用 Tailscale Serve 连接现有学习页面。', ...extra };
+
 }
 
 function appendBackendLog(message) {
@@ -162,7 +120,7 @@ function backendEnv() {
     KAOYAN_REQUIRE_API_TOKEN: '1',
     KAOYAN_INSTANCE_ID: INSTANCE_ID,
     KAOYAN_CAPTURE_TOKEN: CAPTURE_TOKEN,
-    KAOYAN_BACKEND_HOST: readRemoteCaptureSettings().enabled ? '0.0.0.0' : '127.0.0.1',
+    KAOYAN_BACKEND_HOST: '127.0.0.1',
     DATA_DIR: paths.dataDir,
     ENV_PATH: paths.envPath,
     MINERU_OUTPUT_PATH: paths.mineruOutputPath,
@@ -356,7 +314,7 @@ async function requestBackendShutdown() {
 
 async function prepareBackendEndpoint() {
   if (!USE_DYNAMIC_BACKEND_PORT) return;
-  const host = readRemoteCaptureSettings().enabled ? '0.0.0.0' : '127.0.0.1';
+  const host = '127.0.0.1';
   backendPort = await findAvailablePort(host);
   backendUrl = `http://127.0.0.1:${backendPort}`;
   appendBackendLog(`[main] allocated backend endpoint ${backendUrl} (bind host ${host})`);
@@ -425,11 +383,22 @@ async function startBackend() {
       return;
     }
 
-    // Dev mode: if a healthy backend already answers on the configured port
-    // (e.g. started manually by the developer), adopt it instead of spawning a
-    // second instance that would fail to bind the same port.
-    if (await probeExistingBackend()) {
-      appendBackendLog(`[main] dev: adopting existing backend at ${backendUrl} (spawn skipped).`);
+    // A healthy process on the port may belong to an older desktop token.
+    // Never present it as this desktop's ready/configured backend.
+    const existing = await probeExistingBackend();
+    if (existing) {
+      if (!backendIdentityMatches(existing, INSTANCE_ID)) {
+        sendStartupError(`端口 ${backendPort} 被另一后端实例占用。请完整退出旧 Texa / 本地后端后重试；不会接管旧实例或覆盖配置。`);
+        return;
+      }
+      const authorized = await fetchWithTimeout(`${backendUrl}/api/system/remote-ready`, 2500, {
+        headers: { 'X-Kaoyan-Token': API_TOKEN },
+      });
+      if (!authorized.ok) {
+        sendStartupError('端口上的后端与当前桌面访问令牌不匹配，请完整退出旧服务后重试。');
+        return;
+      }
+      appendBackendLog(`[main] dev: using explicitly matching backend at ${backendUrl} (spawn skipped).`);
       lastBackendExit = '';
       return;
     }
@@ -467,7 +436,7 @@ async function waitForBackend(timeoutMs = 60000) {
       const res = await fetchWithTimeout(`${backendUrl}/health`);
       if (res.ok) {
         const health = await res.json();
-        const identityMatches = SKIP_BACKEND || !app.isPackaged || health?.instance_id === INSTANCE_ID;
+        const identityMatches = backendIdentityMatches(health, INSTANCE_ID, SKIP_BACKEND);
         if (identityMatches) {
           const warmup = health?.warmup || {};
           if (warmup.status === 'ready') return true;
@@ -521,11 +490,11 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchWithTimeout(url, timeoutMs = 2500) {
+async function fetchWithTimeout(url, timeoutMs = 2500, init = {}) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    return await fetch(url, { signal: ctrl.signal });
+    return await fetch(url, { ...init, signal: ctrl.signal });
   } finally {
     clearTimeout(timer);
   }
@@ -534,9 +503,9 @@ async function fetchWithTimeout(url, timeoutMs = 2500) {
 async function probeExistingBackend(timeoutMs = 2500) {
   try {
     const res = await fetchWithTimeout(`${backendUrl}/health`, timeoutMs);
-    return res.ok;
+    return res.ok ? await res.json() : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -789,28 +758,18 @@ ipcMain.handle('startup:open-log', async () => {
 ipcMain.handle('updates:status', () => updateState);
 ipcMain.handle('backend:status', () => emitBackendState({}));
 ipcMain.handle('remote-capture:status', () => remoteCaptureStatus());
-ipcMain.handle('remote-capture:set-enabled', async (_event, enabled) => {
-  writeRemoteCaptureSettings(enabled);
-  restartingBackend = true;
-  try {
-    await stopBackend();
-    backendStartError = null;
-    lastBackendExit = '';
-    await startBackend();
-    const ready = await waitForBackend(30000);
-    if (ready) {
-      emitBackendState({ status: 'ready', message: '本地服务已重启', attempt: 0, canRetry: false });
-      await loadAppUrl(desktopAppUrl(FRONTEND_DEV_URL || backendUrl));
-    }
-    return remoteCaptureStatus({
-      ready,
-      message: ready
-        ? (enabled ? '\u624b\u673a\u91c7\u96c6\u5165\u53e3\u5df2\u5f00\u542f\u3002' : '\u624b\u673a\u91c7\u96c6\u5165\u53e3\u5df2\u5173\u95ed\u3002')
-        : '\u540e\u7aef\u91cd\u542f\u5931\u8d25\uff0c\u8bf7\u67e5\u770b\u540e\u7aef\u65e5\u5fd7\u3002',
-    });
-  } finally {
-    restartingBackend = false;
-  }
+ipcMain.handle('remote-capture:set-enabled', () => remoteCaptureStatus());
+// This IPC is available only to the local desktop renderer, never through HTTP.
+ipcMain.handle('remote-s0:status', (event) => {
+  if (event.sender !== mainWindow?.webContents) throw new Error('Access denied');
+  const ready = !SKIP_BACKEND && backendState.status === 'ready' && Boolean(backendProcess);
+  return { ready, target: backendUrl, instanceId: INSTANCE_ID,
+    command: `tailscale serve --bg --https=443 http://127.0.0.1:${backendPort}` };
+});
+ipcMain.handle('remote-s0:copy-token', (event) => {
+  if (event.sender !== mainWindow?.webContents || SKIP_BACKEND || backendState.status !== 'ready') return false;
+  clipboard.writeText(API_TOKEN);
+  return true;
 });
 
 
@@ -846,6 +805,7 @@ if (hasSingleInstanceLock) {
   });
 
   app.whenReady().then(async () => {
+    appendBackendLog(`[main] runtime: isPackaged=${app.isPackaged}; appPath=${app.getAppPath()}; frontend=${FRONTEND_DEV_URL || (app.isPackaged ? 'bundled backend assets' : path.join(projectRoot(), 'frontend', 'dist'))}`);
     await startBackend();
     configureUpdater();
     createWindow();

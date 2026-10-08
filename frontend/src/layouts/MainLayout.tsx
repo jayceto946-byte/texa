@@ -89,8 +89,15 @@ const MainLayout: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsMounted, setSettingsMounted] = useState(false);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
-  const { bookName, subject, conversationId, messages, newConversation, loadConversation } = useChatContext();
+  const { bookName, subject, conversationId, isLoading, newConversation, loadConversation } = useChatContext();
   const { inspector, closeInspector } = useInspector();
+  const [historyRevision, setHistoryRevision] = useState(0);
+  const wasGenerating = useRef(isLoading);
+  useEffect(() => {
+    // Navigation changes the displayed messages, but does not mutate history.
+    if (wasGenerating.current && !isLoading) setHistoryRevision(value => value + 1);
+    wasGenerating.current = isLoading;
+  }, [isLoading]);
 
   const isLearningWorkspace = location.pathname === '/';
   const isStudyDesk = isLearningWorkspace || location.pathname === '/books';
@@ -197,9 +204,10 @@ const MainLayout: React.FC = () => {
           subject={subject}
           bookName={bookName}
           conversationId={conversationId}
-          refreshKey={`${messages.length}:${messages.at(-1)?.stage || ''}:${messages.at(-1)?.id || ''}`}
+          refreshKey={historyRevision}
           onClose={() => setContextOpen(false)}
           onNewConversation={startNewConversation}
+          onSelectCurrentConversation={() => { if (contextOverlay) setContextOpen(false); navigate('/'); }}
           onLoadConversation={loadExistingConversation}
           capabilityActions={[]}
         />

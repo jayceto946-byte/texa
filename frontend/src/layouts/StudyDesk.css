@@ -447,3 +447,51 @@
 .study-desk :is(.learning-workspace-header,.app-page-header) { flex-wrap:nowrap; }
 .study-desk .learning-workspace-header h2,
 .study-desk .management-workspace .app-page-title { color:var(--color-text-primary); font-size:var(--workspace-page-title-size); font-weight:600; line-height:1.3; }
+
+/* The narrow navigation is one drawer; history must participate in its flow. */
+@media (max-width: 919px) {
+  .app-shell[data-navigation="open"] .study-navigation {
+    width: min(320px, calc(100vw - 32px));
+    min-width: 0;
+    overflow: hidden;
+  }
+  .app-shell[data-navigation="open"] .learning-context-sidebar {
+    position: static;
+    inset: auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 0;
+    box-shadow: none;
+  }
+  .app-shell[data-navigation="open"] .app-rail { padding: 0 12px 8px; min-height: 0; }
+  .app-shell[data-navigation="open"] .app-rail-mark { height: 44px; margin: 0; padding: 8px; }
+  .app-shell[data-navigation="open"] .app-rail-primary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+  .app-shell[data-navigation="open"] .app-rail-link { height: auto; min-height: 36px; flex-direction: row; gap: 8px; padding: 8px; }
+  .app-shell[data-navigation="open"] .app-rail-link svg { flex-shrink: 0; }
+  .app-shell[data-navigation="open"] .app-rail-link span { white-space: normal; overflow-wrap: anywhere; }
+  .app-shell[data-navigation="open"] .app-rail-footer { position: static; margin-top: 4px; }
+  .app-shell .context-session-title { white-space: normal; overflow-wrap: anywhere; }
+}
+
+@media (max-width: 760px) {
+  .app-shell :is(.learning-workspace-header, .app-page-header, .goals-header, .library-workspace-header) {
+    height: auto;
+    min-height: 48px;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .app-shell :is(.app-page-title, .learning-workspace-header h2, .goals-header h1) {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  /* Choose scope before starting; keep the phone answer view for reading. */
+  .app-shell .learning-header-scope-selector { display: none; }
+  .study-desk .learning-message.is-question { margin-bottom: 12px; padding-bottom: 10px; }
+  .study-desk .learning-question .markdown-body > :last-child { margin-bottom: 0; }
+  .app-shell .composer-toolbar, .app-shell .composer-tools { flex-wrap: wrap; }
+}

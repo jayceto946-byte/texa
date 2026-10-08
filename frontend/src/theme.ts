@@ -210,9 +210,9 @@ export function isTexaThemeId(value: string | null | undefined): value is TexaTh
   return TEXA_THEMES.some((theme) => theme.id === value);
 }
 
-export function readStoredTexaTheme(storage: Pick<Storage, 'getItem'> = window.localStorage): TexaThemeId {
+export function readStoredTexaTheme(storage?: Pick<Storage, 'getItem'>): TexaThemeId {
   try {
-    const value = storage.getItem(TEXA_THEME_STORAGE_KEY);
+    const value = (storage || window.localStorage).getItem(TEXA_THEME_STORAGE_KEY);
     return isTexaThemeId(value) ? value : DEFAULT_TEXA_THEME;
   } catch {
     return DEFAULT_TEXA_THEME;
@@ -222,13 +222,13 @@ export function readStoredTexaTheme(storage: Pick<Storage, 'getItem'> = window.l
 export function applyTexaTheme(
   id: TexaThemeId,
   root: Pick<HTMLElement, 'dataset' | 'style'> = document.documentElement,
-  storage: Pick<Storage, 'setItem'> = window.localStorage,
+  storage?: Pick<Storage, 'setItem'>,
 ) {
   const theme = TEXA_THEMES.find((candidate) => candidate.id === id) || TEXA_THEMES[0];
   root.dataset.theme = theme.id;
   for (const [token, value] of Object.entries(theme.tokens)) root.style.setProperty(token, value);
   try {
-    storage.setItem(TEXA_THEME_STORAGE_KEY, theme.id);
+    (storage || window.localStorage).setItem(TEXA_THEME_STORAGE_KEY, theme.id);
   } catch {
     // The theme still applies for this session when storage is unavailable.
   }

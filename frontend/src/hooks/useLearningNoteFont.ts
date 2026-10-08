@@ -5,6 +5,7 @@ const NOTE_FONT_STYLESHEET_ID = 'lxgw-wenkai-screen-stylesheet';
 
 export function useLearningNoteFont() {
   useEffect(() => {
+    if (document.documentElement.dataset.texaRemote === 'true') return;
     if (document.getElementById(NOTE_FONT_STYLESHEET_ID)) return;
     const link = document.createElement('link');
     link.id = NOTE_FONT_STYLESHEET_ID;

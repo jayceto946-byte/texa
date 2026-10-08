@@ -1,0 +1,8 @@
+{
+  "port": 58815,
+  "isolated_data": true,
+  "page": 200,
+  "missing_token": 401,
+  "wrong_token": 401,
+  "after_exit": "unreachable"
+}

@@ -77,6 +77,33 @@ def test_citation_must_support_its_adjacent_claim_when_source_text_is_available(
     assert result["checks"][0]["unsupported_ids"] == ["E1"]
 
 
+def test_adjacent_citations_each_verify_the_shared_claim():
+    sources = [{"id": "E1", "text": "弹性元件把压力转换为应变。"},
+               {"id": "E2", "text": "电阻应变片把应变转换为电阻变化。"},
+               {"id": "E3", "text": "应变式电阻传感器组合使用弹性元件和应变片。"}]
+    required = [{"id": "citations", "kind": "citation", "required": True}]
+    for separator in ("", " ", "\t"):
+        answer = "弹性元件把压力转换为应变，应变片再把应变转换为电阻变化。" + separator.join(
+            f"[[cite:{item['id']}]]" for item in sources)
+        assert verify_answer(answer, required_outputs=required, sources=sources)["status"] == "passed"
+    # Membership in a group must not excuse an unrelated or absent source.
+    sources[1]["text"] = "霍尔效应由磁场引起。"
+    result = verify_answer(answer, required_outputs=required, sources=sources)
+    assert result["checks"][0]["unsupported_ids"] == ["E2"]
+    assert verify_answer(answer + "[[cite:E99]]", required_outputs=required,
+                         sources=sources)["status"] == "failed"
+
+
+def test_citation_group_does_not_inherit_across_another_claim_or_paragraph():
+    required = [{"id": "citations", "kind": "citation", "required": True}]
+    sources = [{"id": "E1", "text": "电阻应变片把应变转换为电阻变化。"},
+               {"id": "E2", "text": "电阻应变片把应变转换为电阻变化。"}]
+    for suffix in ("\n\n[[cite:E2]]", "霍尔效应由磁场引起。[[cite:E2]]"):
+        result = verify_answer("应变片将应变转换为电阻变化。[[cite:E1]]" + suffix,
+                               required_outputs=required, sources=sources)
+        assert result["checks"][0]["unsupported_ids"] == ["E2"]
+
+
 def test_formula_only_source_can_support_an_equivalent_formula_citation():
     result = verify_answer(
         r"线圈电感满足 $L=N^2/R_{\mathrm m}$。[[cite:E1]]",

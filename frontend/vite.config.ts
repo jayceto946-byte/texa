@@ -7,7 +7,12 @@ const backendTarget = process.env.VITE_BACKEND_TARGET
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), {
+    name: 'texa-startup-build-id',
+    transformIndexHtml(html) {
+      return html.replace('__TEXA_BUILD_ID__', new Date().toISOString());
+    },
+  }],
   server: {
     port: 5173,
     proxy: {
@@ -18,15 +23,14 @@ export default defineConfig({
     },
   },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return undefined
-          if (id.includes('mathlive')) return 'vendor-mathlive'
-          if (id.includes('react') || id.includes('scheduler')) return 'vendor-react'
-          if (id.includes('react-markdown') || id.includes('remark-') || id.includes('rehype-') || id.includes('unified') || id.includes('katex')) return 'vendor-markdown'
-          if (id.includes('lucide-react')) return 'vendor-icons'
-          return 'vendor'
+        codeSplitting: {
+          groups: [
+            // Capture React first so feature chunks cannot absorb its runtime.
+            { name: 'vendor-react', test: /node_modules[\\/](?:react|react-dom|scheduler)[\\/]/, priority: 30 },
+            { name: 'vendor-icons', test: /node_modules[\\/]lucide-react[\\/]/, priority: 20 },
+          ],
         },
       },
     },

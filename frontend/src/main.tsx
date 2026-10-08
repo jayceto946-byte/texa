@@ -1,14 +1,11 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import '@fontsource/jetbrains-mono/latin-400.css'
-import './index.css'
-import App from './App.tsx'
-import { initializeTexaTheme } from './theme'
+import { isRemoteBrowser } from './api/client';
 
-initializeTexaTheme()
+// Mark remote before dynamic CSS loads, avoiding large desktop font downloads.
+if (isRemoteBrowser()) document.documentElement.dataset.texaRemote = 'true';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+window.texaStartup?.mark('entry-loaded');
+
+// Keep app module evaluation inside a caught import, after the HTML guard.
+void import('./bootstrap').then(({ bootApp }) => bootApp()).catch((error: unknown) => {
+  window.texaStartup?.fail('module-init', error);
+});

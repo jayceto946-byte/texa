@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
-import { get, post, del } from '../api/client';
+import { get, post, del, isRemoteBrowser } from '../api/client';
 import ModelSettingsManager from './settings/ModelSettingsManager';
 import type { ModelRoleId, ModelSettingsValue } from './settings/ModelSettingsForm';
 import './Welcome.css';
@@ -52,6 +52,7 @@ export default function FirstRunGuide({ children }: { children: ReactNode }) {
   };
 
   const load = async () => {
+    if (isRemoteBrowser()) { setComplete(true); setLoading(false); return; }
     setLoading(true); setError('');
     try {
       const response = await get('/system/settings', 20000);

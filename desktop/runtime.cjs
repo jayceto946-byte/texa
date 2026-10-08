@@ -19,6 +19,10 @@ function portFromUrl(value) {
   }
 }
 
+function backendIdentityMatches(health, expectedInstanceId, skipBackend = false) {
+  return skipBackend || Boolean(expectedInstanceId && health?.instance_id === expectedInstanceId);
+}
+
 function findAvailablePort(host = '127.0.0.1') {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -36,4 +40,4 @@ function findAvailablePort(host = '127.0.0.1') {
   });
 }
 
-module.exports = { findAvailablePort, portFromUrl, resolveUserDataPath };
+module.exports = { backendIdentityMatches, findAvailablePort, portFromUrl, resolveUserDataPath };

@@ -3212,3 +3212,46 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 新增WINDOWS-CUDA-HANDOFF、HANDOFF-MANIFEST、标准库完整性入口、路径投影工具、离线参考requirements及.gitattributes字节保真。ignore排除权重/adapter/optimizer/venv/cache/临时状态；保留Mac源码绝对路径作为冻结出处，Windows运行不使用这些入口。
 - 验证：三份SFT冻结与全部271 benchmark pins匹配；Train/Dev/Hidden为672/144/144 seeds、2688/576/576 instances；只导出Git tree迁移资产到空目录后完整性与30项离线Harness测试通过，5项downstream相关测试未执行。未进行训练、模型下载、Hidden推理或Windows GPU验收。
 - 迁移清单542个hash资产约45 MB，最大8.4 MB，无新模型/真实密钥。仓库既有94,847,144字节embedding ONNX不属于迁移清单，保留桌面端依赖，说明提供blob:none+sparse clone。旧冻结文本中已有空白lint提示不作清理，以免改变hash。
+
+## 2026-10-08 — Mobile Remote S0 接入验证
+
+- 桌面托管后端与动态端口固定 loopback，停用旧 LAN 采集开关；提供当前 Serve 目标和显式复制临时管理 token，不自动安装/配置 Tailscale，不使用 Funnel。
+- 手机 HTTPS 连接门槛复用桌面配置就绪状态；远程 API 强制同源，忽略桌面 loopback bootstrap，token 限当前浏览器会话；401 回连接入口，文字 SSE 离线/异常不报告成功。
+- 无数据库/索引/Runtime 迁移，无新拍照、错题、笔记或移动布局。既有未提交改动保留。
+- Python 43 passed；前端接入/SSE 17 passed；桌面 14 passed；TypeScript、Vite 构建、新增文件 lint 通过。macOS 隔离 Electron 实际启动：动态 loopback 页面 200、缺失/错误 token 401，退出后不可达。真实手机、tailnet ACL、校园网、已有教材真实模型问答尚未实测，不能视为验收通过。
+- 操作与边界见 `docs/mobile-remote-s0-guide.md`，改动清单/结果见 `docs/validation/mobile-remote-s0/results.md`。
+
+## 2026-10-08 — Mobile Remote S0 Android 启动故障诊断
+
+- 增加 HTML 启动状态与脱敏资源/模块/React异常、超时提示，caught App bootstrap 与根错误边界；build、Chrome主版本、Storage状态、启动阶段、React挂载状态和同源静态资源探测，不显示token/错误正文/URL参数，不上传日志。
+- 复现并修复 theme default argument、token bootstrap、Session与主聊天初始化在Storage getter被拒绝时抛错的缺陷；token仅回退当前页面内存，仍通过鉴权header，不关闭API边界。
+- 真机Chrome154报告Storage正常、stylesheet加载失败；进一步探测主CSS收到200/text/css但正文10秒未完成，入口尚未运行。Mac同源资源200/MIME/完整长度正常，不能将Mac结果等同Android验收。
+- 当前静态资源未压缩已验证；仅为 `/assets` JS/CSS加入现有Starlette gzip，保留Range/HEAD与API/SSE行为。隔离Electron主CSS传输110060→19233字节、KaTeX CSS28835→7954字节，解压与构建一致。已在用户原59999端口启动生效，不改Serve或系统代理。
+- 修复开发版按health盲目接管旧后端及跳过instance_id检查的问题。固定端口重启时旧孤立后端token与新桌面不匹配，已从日志/进程身份确认；加入身份与复用鉴权检查。正常退出已确认的旧项目实例并用原数据目录/端口恢复桌面，配置、教材和Session接口200，未重置数据。
+- 前端156 passed，后端48 passed，桌面15 passed；TypeScript/build/相关lint通过。Android重新进入工作区与真实问答仍待用户复测，底层传输原因尚未完全确认。详细证据见 `docs/validation/mobile-remote-s0/android-startup/results.md`。
+
+## 2026-10-08 — Mobile Remote S0 启动性能减重
+
+- 将原连接页与工作区加载边界分开，鉴权后lazy载入Workspace；路由和设置内容按需加载，保留原providers、路由缓存及业务流程。使用原lazy Markdown入口，避免公式组件静态导入拖入首屏。
+- 修复宽泛vendor分组拉入Markdown/KaTeX共享依赖的问题，明确React优先分组；连接页只加载基础主题/控件CSS，工作区样式后置。远程使用系统字体，避免约24 MB桌面中文字体和笔记字体CSS，Electron字体不变。无依赖变更。
+- 修改前HTML预加载819920字节（gzip235282，尚未包含后续工作区），修改后连接页完整依赖231662字节（gzip73640）；连接CSS12342字节。用户Redmi实测反馈“连接页面几乎秒出现”，无精确计时，工作区问答未签收。
+- 前端160 passed、后端51 passed、桌面15 passed，TypeScript/build/相关lint通过。隔离Electron配置接口200、无token浏览器401。测试实例62066已关闭；测试窗口造成配置丢失误解后，核对原59999及原配置保持不变，并唤回原桌面窗口；手机401需复制原实例token，未重置模型配置。
+- 简单手机壳记录为S0验收后事项，本次不开发S1/原生壳/PWA缓存。详情与体积证据见 `docs/validation/mobile-remote-s0/startup-performance/results.md`。
+- 后续Session超时：远程跳过桌面首次设置模块，hashed静态JS/CSS启用immutable，三个有限只读JSON端点压缩并加脱敏耗时/字节统计；SSE/写操作保持原路。有限JSON正文纳入原20秒deadline，超时区分响应头/正文，不自动重试。原桌面托管后端自动恢复59999且保留token，桌面聊天/配置正常；Session服务侧90.9ms/941字节，手机完整接收与问答待复测。
+
+
+## 2026-10-08 — Mobile Remote S0 历史刷新与窄屏重叠修复
+
+- Redmi用户已确认问答页、历史和会话可打开；约1秒首次切换仍需分析网络/正文/渲染，不承诺远程毫秒级。
+- 移除打开旧会话触发的历史列表重读，刷新中的列表保留；当前会话不重复请求，手机关闭抽屉、桌面保留侧栏；补选择取消与迟到响应保护。
+- 393宽夹具确认功能栏与fixed历史栏重叠；窄屏恢复同一抽屉正常流，功能链接两列，长标题/页头/输入工具换行。桌面断点规则保持。
+- 有限会话详情GET加入既有压缩/脱敏Server-Timing；鉴权、SSE、写路径不变。原Electron沿用原配置自动恢复到59999，没有启动第二个Texa；无效token实测401。
+- 前端160、后端相关46、Electron15项通过，tsc/build/lint/diff检查通过。393/760/1024/1280夹具视觉与请求计数验证通过；Android本轮布局/耗时、真实教材流式问答与引用仍待复测。详见docs/validation/mobile-remote-s0/history-layout/results.md。
+
+
+## 2026-10-08 — Mobile Remote S0 阅读页与连续引用验收误判
+
+- 用户Redmi提供真实教材问答正文/引用与失败提示。保存任务只有E3、E5判不支持，均为连续引用组第二项；前一个引用被错误当作分句边界，导致后项取空结论。
+- 最小修复同一行连续引用共同匹配结论，各来源仍单独校验；新增正向及无效编号/不相关来源/跨段落/新结论负向回归。不修改Runtime或历史任务状态，不隐藏真实失败。
+- 保存检索快照重建9个E-id/chunk_id与当时来源完全一致；保存正文离线重放从failed变passed，不调用LLM、不修改数据，不冒充人工事实验收。
+- ≤760px阅读页隐藏教材框（新会话选择保留），缩小标题下留白约28px，桌面样式保留。393/760/1024/1280夹具检查通过；Python65、前端160、Electron15项通过，tsc/build/diff通过。Android新版本与新回答仍待复测。详细记录：docs/validation/mobile-remote-s0/citation-reading/results.md。

@@ -14,6 +14,8 @@ ipcRenderer.on('window:close-aborted', () => {
 
 contextBridge.exposeInMainWorld('kaoyanDesktop', {
   isElectron: true,
+  getRemoteS0Status: () => ipcRenderer.invoke('remote-s0:status'),
+  copyRemoteS0Token: () => ipcRenderer.invoke('remote-s0:copy-token'),
   platform: process.platform,
   getSetupComplete: () => ipcRenderer.invoke('setup:get-complete'),
   setSetupComplete: () => ipcRenderer.invoke('setup:set-complete'),

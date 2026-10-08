@@ -127,6 +127,13 @@
   --accent: var(--color-accent);
 }
 
+/* Remote access uses installed fonts; desktop typography stays unchanged. */
+:root[data-texa-remote="true"] {
+  --font-app: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, monospace;
+  --font-note: system-ui, sans-serif;
+}
+
 * {
   box-sizing: border-box;
 }

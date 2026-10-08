@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 
-import { SimpleMarkdown } from '../../components/chat/MarkdownRenderer';
+import { SimpleMarkdown } from '../../components/chat/MarkdownMessage';
 import {
   buildMatrixLatex,
   createMatrixCells,

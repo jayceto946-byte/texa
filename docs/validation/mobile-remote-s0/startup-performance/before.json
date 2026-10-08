@@ -1,0 +1,46 @@
+{
+  "initial": [
+    {
+      "asset": "/assets/index-DXnf0HvY.js",
+      "bytes": 1441,
+      "gzipBytes": 754
+    },
+    {
+      "asset": "/assets/rolldown-runtime-QTnfLwEv.js",
+      "bytes": 694,
+      "gzipBytes": 423
+    },
+    {
+      "asset": "/assets/vendor-B3qTWK_r.js",
+      "bytes": 160228,
+      "gzipBytes": 47277
+    },
+    {
+      "asset": "/assets/vendor-markdown-DtmZv00P.js",
+      "bytes": 265088,
+      "gzipBytes": 78607
+    },
+    {
+      "asset": "/assets/vendor-react-Xf0_PAmd.js",
+      "bytes": 253331,
+      "gzipBytes": 80834
+    },
+    {
+      "asset": "/assets/vendor-CiSzzDMR.css",
+      "bytes": 243,
+      "gzipBytes": 173
+    },
+    {
+      "asset": "/assets/vendor-markdown-CYlHEDRF.css",
+      "bytes": 28835,
+      "gzipBytes": 7954
+    },
+    {
+      "asset": "/assets/index-Dfy-zSwV.css",
+      "bytes": 110060,
+      "gzipBytes": 19260
+    }
+  ],
+  "totalBytes": 819920,
+  "totalGzipBytes": 235282
+}

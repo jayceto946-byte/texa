@@ -5,9 +5,114 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Texa：围绕教材、习题、错题和复习记录构建的本地优先学习工作台。" />
+    <meta name="texa-build" content="__TEXA_BUILD_ID__" />
     <title>Texa</title>
   </head>
   <body>
+    <section id="texa-startup" role="status" style="margin:32px auto;padding:24px;max-width:640px;font:16px/1.6 system-ui,sans-serif;color:#25272d;background:#faf9f6;border:1px solid #ddd;border-radius:12px;overflow-wrap:anywhere">
+      <h1 style="font-size:24px">Texa 正在启动</h1>
+      <p id="texa-startup-message">正在加载学习工作区。若长时间停留在这里，请检查静态资源加载。</p>
+      <pre id="texa-startup-report" style="white-space:pre-wrap;font-size:13px"></pre>
+      <button type="button" onclick="window.location.reload()">重新加载</button>
+      <noscript><p>浏览器未启用 JavaScript，无法启动 Texa。</p></noscript>
+    </section>
+    <script>
+      // Runs before React/module evaluation, uses no app CSS or modern syntax.
+      (function () {
+        var panel = document.getElementById('texa-startup');
+        var message = document.getElementById('texa-startup-message');
+        var report = document.getElementById('texa-startup-report');
+        var ready = false;
+        var failed = false;
+        var failureStage = '';
+        var phase = 'html';
+        var failureReport = '';
+        var probeReport = '';
+        function draw() {
+          report.textContent = environment + '\nphase=' + phase + '\nappMounted=' + ready + failureReport + probeReport;
+        }
+        function probe(filename) {
+          if (!filename || !window.fetch || !window.AbortController) return;
+          var controller = new window.AbortController();
+          var probeTimer = setTimeout(function () { controller.abort(); }, 10000);
+          probeReport = '\nprobe=pending'; draw();
+          // Public static asset only, same origin, no API token or cookies.
+          window.fetch('/assets/' + filename, { cache: 'no-store', credentials: 'omit', signal: controller.signal })
+            .then(function (response) {
+              var mime = (response.headers.get('content-type') || '').split(';')[0];
+              var allowed = ['text/css', 'text/javascript', 'application/javascript', 'text/html', 'application/octet-stream'];
+              var encoding = response.headers.get('content-encoding') || 'identity';
+              probeReport = '\nprobeStatus=' + response.status + '\nprobeType=' + (allowed.indexOf(mime) >= 0 ? mime : 'other') + '\nprobeEncoding=' + (['gzip', 'br', 'identity'].indexOf(encoding) >= 0 ? encoding : 'other');
+              return response.arrayBuffer();
+            }).then(function (body) {
+              probeReport += '\nprobeBytes=' + body.byteLength;
+            }).catch(function (error) {
+              if (probeReport === '\nprobe=pending') probeReport = '';
+              probeReport += '\nprobeError=' + (error && error.name === 'AbortError' ? 'timeout' : 'network-or-body-read');
+            }).then(function () { clearTimeout(probeTimer); draw(); });
+        }
+        var build = document.querySelector('meta[name="texa-build"]').content;
+        var chrome = /(?:Chrome|Chromium)\/(\d+)/.exec(navigator.userAgent);
+        function storage(kind) {
+          try {
+            var key = 'texa:startup-probe';
+            window[kind].setItem(key, '1');
+            window[kind].removeItem(key);
+            return 'ok';
+          } catch (_) { return 'blocked'; }
+        }
+        var environment = 'build=' + build + '\nchrome=' + (chrome ? chrome[1] : 'unknown')
+          + '\nsecure=' + (window.isSecureContext === true)
+          + '\nlocalStorage=' + storage('localStorage') + '\nsessionStorage=' + storage('sessionStorage');
+        function asset(value) {
+          // Only a build asset basename; never URL/query/hash/token/message/stack.
+          var match = /\/assets\/([A-Za-z0-9_.-]+\.(?:js|css))(?:[?#]|$)/.exec(value || '');
+          return match ? match[1] : '';
+        }
+        function fail(stage, error, resource) {
+          if (failed) return;
+          failed = true;
+          failureStage = stage;
+          clearTimeout(timer);
+          var names = ['Error', 'TypeError', 'SyntaxError', 'ReferenceError', 'SecurityError', 'QuotaExceededError', 'ChunkLoadError'];
+          var name = error && names.indexOf(error.name) >= 0 ? error.name : 'unknown';
+          var codes = ['module-init', 'react-render', 'script-error', 'unhandled-rejection', 'asset-load', 'startup-timeout'];
+          var code = codes.indexOf(stage) >= 0 ? stage : 'startup-error';
+          panel.hidden = false;
+          panel.setAttribute('role', 'alert');
+          panel.querySelector('h1').textContent = 'Texa 启动失败';
+          message.textContent = '页面未能完成启动。请重新加载；若仍失败，请提供下方诊断信息。诊断不包含访问令牌。';
+          failureReport = '\nstage=' + code + '\nerror=' + name + '\nasset=' + asset(resource);
+          draw();
+          if (code === 'asset-load') probe(asset(resource));
+        }
+        var timer = setTimeout(function () { if (!ready && !failed) fail('startup-timeout'); }, 20000);
+        window.texaStartup = {
+          mark: function (value) {
+            if (['entry-loaded', 'theme-start', 'theme-applied'].indexOf(value) >= 0) phase = value;
+            draw();
+          },
+          ready: function () {
+            ready = true;
+            phase = 'react-mounted';
+            draw();
+            clearTimeout(timer);
+            if (!failed || failureStage === 'startup-timeout') { panel.hidden = true; failed = false; }
+          },
+          fail: fail
+        };
+        draw();
+        window.addEventListener('error', function (event) {
+          var target = event.target;
+          if (target && (target.tagName === 'SCRIPT' || (target.tagName === 'LINK' && target.rel === 'stylesheet'))) {
+            fail('asset-load', null, target.src || target.href);
+          } else if (event.error || event.message) {
+            fail('script-error', event.error, event.filename);
+          }
+        }, true);
+        window.addEventListener('unhandledrejection', function (event) { fail('unhandled-rejection', event.reason); });
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1,0 +1,18 @@
+[
+  {
+    "asset": "index-Dfy-zSwV.css",
+    "status": 200,
+    "encoding": "gzip",
+    "wireBytes": 19233,
+    "decodedBytes": 110060,
+    "matchesBuild": true
+  },
+  {
+    "asset": "vendor-markdown-CYlHEDRF.css",
+    "status": 200,
+    "encoding": "gzip",
+    "wireBytes": 7954,
+    "decodedBytes": 28835,
+    "matchesBuild": true
+  }
+]

@@ -1,3 +1,4 @@
+import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BookMarked, CalendarDays, ImagePlus, Images, Send, Shuffle, Square, Target, X } from 'lucide-react';
@@ -127,11 +128,11 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     const applySuggestion = (question: string) => {
       if (!question) return;
-      window.localStorage.removeItem('texa:onboarding-first-question');
+      writeBrowserStorage('localStorage', 'texa:onboarding-first-question', null);
       setInput(question);
       window.setTimeout(() => textareaRef.current?.focus(), 0);
     };
-    const suggested = window.localStorage.getItem('texa:onboarding-first-question');
+    const suggested = readBrowserStorage('localStorage', 'texa:onboarding-first-question');
     if (suggested) applySuggestion(suggested);
     const onQuestionSelected = (event: Event) => applySuggestion((event as CustomEvent<{ question?: string }>).detail?.question || '');
     window.addEventListener('texa:onboarding-question-selected', onQuestionSelected);
@@ -143,7 +144,7 @@ const ChatPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (window.localStorage.getItem('texa:onboarding-awaiting-source') !== '1') return;
+    if (readBrowserStorage('localStorage', 'texa:onboarding-awaiting-source') !== '1') return;
     const hasSourcedAnswer = messages.some((message) => message.role === 'assistant' && message.stage === 'done' && (message.sources?.length || message.sourceChapters?.length));
     if (hasSourcedAnswer) window.dispatchEvent(new Event('texa:onboarding-sourced-answer'));
   }, [messages]);

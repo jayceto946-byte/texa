@@ -7,6 +7,7 @@ import { useChatContext } from '../contexts/ChatContext';
 import type { SystemHealthStatus } from '../types';
 import LibraryWorkbench, { type LibraryBook } from './settings/LibraryWorkbench';
 import DataSafety from './settings/DataSafety';
+import MobileRemoteS0 from './settings/MobileRemoteS0';
 import AppearanceSettings from './settings/AppearanceSettings';
 import type { ModelSettingsValue } from './settings/ModelSettingsForm';
 import ModelSettingsManager from './settings/ModelSettingsManager';
@@ -457,6 +458,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
       <main className="settings-content-pane">
         {pageMessage && <div className="mb-5"><StatusBanner kind={feedbackKind(pageMessage)} title={pageMessage} /></div>}
 
+        {tab === 'about' && <MobileRemoteS0 />}
         {tab === 'diagnostics' && (
           <section className="settings-page">
             <SettingsPageHeader title="高级与诊断" description="检查本地服务与数据组件的运行状态。" />

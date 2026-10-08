@@ -1,0 +1,44 @@
+{
+  "criticalConnectionAssets": [
+    {
+      "asset": "assets/bootstrap-BE3RDBwJ.css",
+      "bytes": 12342,
+      "gzipBytes": 3410
+    },
+    {
+      "asset": "assets/bootstrap-CY2A1YnN.js",
+      "bytes": 4082,
+      "gzipBytes": 2128
+    },
+    {
+      "asset": "assets/index-CmMp0srp.js",
+      "bytes": 19210,
+      "gzipBytes": 6877
+    },
+    {
+      "asset": "assets/rolldown-runtime-QTnfLwEv.js",
+      "bytes": 694,
+      "gzipBytes": 423
+    },
+    {
+      "asset": "assets/theme-CT8zBBhJ.js",
+      "bytes": 5690,
+      "gzipBytes": 1872
+    },
+    {
+      "asset": "assets/vendor-react-OHCfv3pu.js",
+      "bytes": 189644,
+      "gzipBytes": 58930
+    }
+  ],
+  "totalBytes": 231662,
+  "totalGzipBytes": 73640,
+  "modules": [
+    "_rolldown-runtime-QTnfLwEv.js",
+    "_theme-CT8zBBhJ.js",
+    "_vendor-react-OHCfv3pu.js",
+    "index.html",
+    "src/bootstrap.tsx"
+  ],
+  "workspaceExcludesDesktopSetup": true
+}

@@ -306,6 +306,20 @@ def _write_subject_tree(tree: list[dict]) -> list[dict]:
     return write_subject_tree(tree)
 
 
+@router.get("/remote-ready")
+def remote_ready():
+    """Authenticated, read-only readiness; no profiles or credentials returned."""
+    models = profiles_payload()
+    reasoning = models.get("roles", {}).get("reasoning", {})
+    credential = models.get("credentials", {}).get("reasoning", {})
+    return {"success": True, "data": {
+        "token_required": os.getenv("KAOYAN_REQUIRE_API_TOKEN", "0") == "1",
+        "ready": bool(reasoning.get("model") and (
+            not credential.get("required") or credential.get("configured")
+        )),
+    }}
+
+
 @router.get("/settings")
 def get_settings():
     return {

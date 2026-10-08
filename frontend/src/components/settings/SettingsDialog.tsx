@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
-import { useCallback, useRef } from 'react';
+import { lazy, Suspense, useCallback, useRef } from 'react';
 import Dialog from '../ui/Dialog';
-import SettingsPage from '../SystemHealth';
+const SettingsPage = lazy(() => import('../SystemHealth'));
 
 type SettingsDialogProps = {
   open: boolean;
@@ -30,7 +30,9 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           <X className="h-[18px] w-[18px]" />
         </button>
       </header>
-      <SettingsPage open={open} onModelDirtyChange={setModelDirty} />
+      <Suspense fallback={<div role="status">正在加载设置…</div>}>
+        <SettingsPage open={open} onModelDirtyChange={setModelDirty} />
+      </Suspense>
     </Dialog>
   );
 }

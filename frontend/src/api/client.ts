@@ -1,3 +1,4 @@
+import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import type { AgentPendingAction, AnswerMode, AssistantSource, ConceptCandidate, ExecutionStreamEnvelope, LearningTaskState, SubjectRouteSuggestion, VisualRegion } from '../types';
 import { isExecutionEventV1, isExecutionEventV2 } from '../utils/chatActivities';
 
@@ -7,6 +8,18 @@ export const IMAGE_SOLUTION_TIMEOUT_MS = 6 * 60 * 1000;
 export const IMAGE_RECOGNITION_TIMEOUT_MS = 3 * 60 * 1000;
 const API_TOKEN_KEY = 'kaoyan_api_token';
 const DESKTOP_API_BASE_KEY = 'kaoyan_desktop_api_base';
+let volatileConnectionToken = '';
+
+export function isRemoteBrowser(): boolean {
+  if (typeof window === 'undefined' || !window.location || window.kaoyanDesktop?.isElectron) return false;
+  return !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+}
+
+export function setConnectionToken(token: string): void {
+  volatileConnectionToken = token.trim();
+  writeBrowserStorage(isRemoteBrowser() ? 'sessionStorage' : 'localStorage', API_TOKEN_KEY, volatileConnectionToken || null);
+}
+
 
 function bootstrapDesktopLaunch(): string {
   if (typeof window === 'undefined') return '';
@@ -14,12 +27,19 @@ function bootstrapDesktopLaunch(): string {
   const params = new URLSearchParams(hash);
   const token = (params.get('access_token') || params.get('capture_token'))?.trim();
   const apiBase = params.get('api_base')?.trim() || '';
-  if (token) window.localStorage.setItem(API_TOKEN_KEY, token);
-  if (apiBase) window.sessionStorage.setItem(DESKTOP_API_BASE_KEY, apiBase);
+  if (isRemoteBrowser()) {
+    // A desktop launch URL must never direct a phone to its own loopback or
+    // send the management credential to a supplied cross-origin API.
+    writeBrowserStorage('sessionStorage', DESKTOP_API_BASE_KEY, null);
+    writeBrowserStorage('localStorage', API_TOKEN_KEY, null);
+  }
+  if (token) setConnectionToken(token);
+  if (apiBase && !isRemoteBrowser()) writeBrowserStorage('sessionStorage', DESKTOP_API_BASE_KEY, apiBase);
   if (token || apiBase) {
     window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
   }
-  return apiBase || window.sessionStorage.getItem(DESKTOP_API_BASE_KEY)?.trim() || '';
+  if (isRemoteBrowser()) return '/api';
+  return apiBase || readBrowserStorage('sessionStorage', DESKTOP_API_BASE_KEY)?.trim() || '';
 }
 
 const API_BASE = normalizeApiBase(bootstrapDesktopLaunch() || import.meta.env.VITE_API_BASE_URL || '/api');
@@ -27,13 +47,17 @@ const API_BASE = normalizeApiBase(bootstrapDesktopLaunch() || import.meta.env.VI
 function authHeaders(initial?: HeadersInit): Headers {
   const headers = new Headers(initial);
   if (typeof window !== 'undefined') {
-    const token = window.localStorage.getItem(API_TOKEN_KEY)?.trim();
+    const token = volatileConnectionToken || readBrowserStorage(isRemoteBrowser() ? 'sessionStorage' : 'localStorage', API_TOKEN_KEY)?.trim();
     if (token) headers.set('X-Kaoyan-Token', token);
   }
   return headers;
 }
 
 async function responseError(response: Response, fallback: string): Promise<Error> {
+  if (response.status === 401 && typeof window !== 'undefined' && isRemoteBrowser()) {
+    setConnectionToken('');
+    window.dispatchEvent(new Event('texa:connection-unauthorized'));
+  }
   const payload = await response.clone().json().catch(() => null);
   const message = payload?.message || payload?.detail || `${fallback}: ${response.status}`;
   return new Error(message);
@@ -69,6 +93,7 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
   const ctrl = new AbortController();
   let timedOut = false;
   let abortedBySource = false;
+  let responseStatus = 0;
   const timer = window.setTimeout(() => {
     timedOut = true;
     ctrl.abort(new DOMException(`请求超过 ${Math.ceil(timeoutMs / 1000)} 秒`, 'TimeoutError'));
@@ -81,11 +106,29 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
   if (sourceSignal?.aborted) abortFromSource();
   else sourceSignal?.addEventListener('abort', abortFromSource, { once: true });
   try {
-    return await fetch(input, { ...init, headers: authHeaders(init.headers), signal: ctrl.signal });
+    const response = await fetch(input, { ...init, headers: authHeaders(init.headers), signal: ctrl.signal });
+    responseStatus = response.status;
+    // Keep finite JSON body reads within the same deadline as the headers.
+    // SSE, blobs and other response types retain their existing streaming path.
+    if (response.body && response.headers.get('content-type')?.includes('application/json')) {
+      let abortRead: (() => void) | undefined;
+      try {
+        const aborted = new Promise<never>((_, reject) => {
+          abortRead = () => reject(ctrl.signal.reason);
+          if (ctrl.signal.aborted) abortRead();
+          else ctrl.signal.addEventListener('abort', abortRead, { once: true });
+        });
+        const bytes = await Promise.race([response.arrayBuffer(), aborted]);
+        return new Response(bytes, { status: response.status, statusText: response.statusText, headers: response.headers });
+      } finally {
+        if (abortRead) ctrl.signal.removeEventListener('abort', abortRead);
+      }
+    }
+    return response;
   } catch (error) {
     if (timedOut) {
       throw new Error(
-        `请求处理超时（${Math.ceil(timeoutMs / 1000)} 秒）。图片识别或模型服务响应较慢，请重试。`,
+        `请求处理超时（${Math.ceil(timeoutMs / 1000)} 秒，${responseStatus ? `读取响应正文，HTTP ${responseStatus}` : '等待响应头'}）。请检查网络连接及桌面服务后重试。`,
         { cause: error },
       );
     }
@@ -116,8 +159,8 @@ export async function getAuthenticatedText(path: string, signal?: AbortSignal, t
   return res.text();
 }
 
-export async function get(path: string, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<any> {
-  const res = await fetchWithTimeout(apiUrl(path), {}, timeoutMs);
+export async function get(path: string, timeoutMs = DEFAULT_TIMEOUT_MS, signal?: AbortSignal): Promise<any> {
+  const res = await fetchWithTimeout(apiUrl(path), { signal }, timeoutMs);
   if (!res.ok) throw await responseError(res, `GET ${path} failed`);
   return res.json();
 }
@@ -237,6 +280,9 @@ export function chatStream(
   answerMode: AnswerMode = 'auto',
 ): () => void {
   const ctrl = new AbortController();
+  let disconnected = false;
+  const offline = () => { disconnected = true; ctrl.abort(); };
+  if (isRemoteBrowser()) window.addEventListener('offline', offline);
 
   (async () => {
     try {
@@ -269,13 +315,20 @@ export function chatStream(
         throw new Error('stream ended without terminal event');
       }
     } catch (err) {
+      if (disconnected) {
+        onError?.(new Error('网络已断开，回答尚未确认完成。请恢复连接后重新读取会话和任务状态；不要直接重复提交。'));
+        return;
+      }
       if (err instanceof DOMException && err.name === 'AbortError') return;
       if (err instanceof Error && err.name === 'AbortError') return;
-      if (onError && err instanceof Error) onError(err);
+      if (onError && err instanceof Error) onError(err instanceof TypeError && isRemoteBrowser()
+        ? new Error('连接已中断。请检查 Tailscale 和 Texa Desktop，重新读取会话确认任务状态。', { cause: err }) : err);
+    } finally {
+      if (isRemoteBrowser()) window.removeEventListener('offline', offline);
     }
   })();
 
-  return () => ctrl.abort();
+  return () => { ctrl.abort(); if (isRemoteBrowser()) window.removeEventListener('offline', offline); };
 }
 
 export function figureQuestionStream(

@@ -1,0 +1,249 @@
+/* Shared theme and basic controls for the connection gate, without workspace CSS or fonts. */
+:root {
+  --color-bg-primary: #faf9f6;
+  --color-bg-secondary: #f0efeb;
+  --color-bg-card: #ffffff;
+  --color-text-primary: #25272d;
+  --color-text-secondary: #686b74;
+  --color-text-tertiary: #686d77;
+  --color-accent: #435dc5;
+  --color-accent-hover: #324ba9;
+  --color-border: #e0dfdb;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 12px;
+}
+
+:root {
+  --surface-raised: #ffffff;
+  --surface-muted: #f0efeb;
+  --surface-subtle: #f3f2ef;
+  --surface-black: #29312d;
+  --surface-tile: #e5e9e4;
+  --text-muted: #737d76;
+  --accent-muted: #e7ebfa;
+  --accent-soft: #edf0fb;
+  --accent-softer: #f4f5fc;
+  --success: #2f6b4f;
+  --success-text: #2f6b4f;
+  --success-bg: #edf6f0;
+  --success-border: #bfd4c6;
+  --warning: #8a651c;
+  --warning-text: #8a651c;
+  --warning-bg: #fff7de;
+  --warning-border: #dec98b;
+  --danger: #b42318;
+  --danger-text: #b42318;
+  --danger-bg: #fff1ed;
+  --danger-border: #e6b2a9;
+  --info: #435dc5;
+  --scrollbar-thumb: #c8cec9;
+  --scrollbar-thumb-hover: #9da69f;
+  --heat-0-bg: #f0f2ef;
+  --heat-0-border: #dfe4df;
+  --heat-1-bg: #dce9e2;
+  --heat-1-border: #c3d9cc;
+  --heat-2-bg: #a9c9b9;
+  --heat-2-border: #86b29d;
+  --heat-3-bg: #5f927f;
+  --heat-3-border: #497766;
+  --heat-4-bg: #35695a;
+  --heat-4-border: #285448;
+  --shadow-soft: none;
+  --shadow-tight: none;
+  --shadow-medium: 0 8px 24px rgba(35, 40, 37, 0.12);
+  --font-app: "HarmonyOS Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+  --font-math: "STIX Two Math", "Cambria Math", "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  --font-note: "LXGW WenKai Screen", "KaiTi", serif;
+  --text-hero: 30px;
+  --text-title: 20px;
+  --text-section: 16px;
+  --text-body: 14px;
+  --text-small: 13px;
+  --text-caption: 12px;
+  --text-micro: 11px;
+  --leading-tight: 1.24;
+  --leading-normal: 1.45;
+  --leading-reading: 1.62;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --motion-fast: 90ms;
+  --motion-base: 170ms;
+  --motion-slow: 200ms;
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --workspace-gutter: 24px;
+  --workspace-section-gap: 24px;
+  --control-height: 36px;
+  --icon-size: 16px;
+  --radius-small: 4px;
+  --radius-compact: 6px;
+  --radius-medium: 8px;
+  --radius-large: 12px;
+  --app-header-height: 64px;
+  --learning-canvas-width: 920px;
+  --learning-prose-width: 800px;
+  --scrollbar-size: 9px;
+  --border: var(--color-border);
+  --bg-primary: var(--color-bg-primary);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --accent: var(--color-accent);
+}
+
+/* Remote access uses installed fonts; desktop typography stays unchanged. */
+:root[data-texa-remote="true"] {
+  --font-app: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, monospace;
+  --font-note: system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-bg-primary);
+}
+
+body {
+  min-width: 320px;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  margin: 0;
+  font-family: var(--font-app);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-variant-numeric: proportional-nums;
+}
+
+code,
+pre,
+kbd,
+samp,
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.learning-note {
+  font-family: var(--font-note);
+  font-synthesis: none;
+  line-height: 1.75;
+}
+
+.tabular-nums,
+time,
+[data-numeric="true"] {
+  font-variant-numeric: tabular-nums;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  letter-spacing: 0;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 72%, white);
+  outline-offset: 2px;
+}
+
+input,
+textarea,
+select {
+  color: var(--color-text-primary);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+select,
+input,
+textarea {
+  box-shadow: none;
+}
+
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+  outline: none;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  border-color: var(--color-accent);
+}
+
+
+.app-field,
+.settings-input,
+.settings-form-control {
+  min-height: var(--control-height);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-bg-card);
+  padding: 6px 10px;
+  color: var(--color-text-primary);
+  font-size: var(--text-body);
+}
+
+
+.app-primary-button,
+.app-secondary-button {
+  display: inline-flex;
+  min-height: var(--control-height);
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-medium);
+  padding: 0 14px;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+}
+
+.app-primary-button {
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: white;
+}
+
+.app-primary-button:hover {
+  border-color: var(--color-accent-hover);
+  background: var(--color-accent-hover);
+}
+
+.app-primary-button:active:not(:disabled) { background: var(--color-accent-hover); }
+.app-secondary-button:active:not(:disabled),
+.app-ghost-button:active:not(:disabled) { background: var(--accent-muted); }
+:is(.app-primary-button, .app-secondary-button, .app-ghost-button, .app-icon-button):disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
