@@ -1,3 +1,4 @@
+import { streamFailure, streamPresentation } from '../features/chat/streamPresentation';
 import { useCallback, useEffect, useRef } from 'react';
 import { chatAsk, chatStream, interruptChatTask, resumeChatTaskStream } from '../api/client';
 import { useChatContext } from '../contexts/ChatContext';
@@ -62,7 +63,7 @@ export function useChat() {
         setActiveChatAbort(null);
         updateLastMessage((last) => last.role === 'assistant' ? {
           ...last,
-          content: `出错了：${message}`,
+          ...streamFailure(streamContentRef.current, last.content, message),
           stage: 'error',
           activities: (last.activities || []).map((activity) => activity.status === 'active'
             ? { ...activity, status: 'failed' as const, detail: message }
@@ -143,9 +144,7 @@ export function useChat() {
             next.learningTask = event.state?.learning_task || event.learning_task || next.learningTask;
             next.activities = lifecycle.activities;
             next.stage = executionMessageStage(lifecycle, next.learningTask);
-            next.content = lifecycle.terminalType === 'error'
-              ? `出错了：${lifecycle.errorMessage || '后端生成失败'}`
-              : lifecycle.hasOutput ? lifecycle.output : last.content;
+            Object.assign(next, streamPresentation(lifecycle, last.content));
             next.sourceChapters = sourceChaptersRef.current;
             next.sources = (event.state?.evidence_sources || next.sources || []).slice(0, 12);
             next.linkedConcepts = linkedConceptsRef.current;
@@ -235,9 +234,7 @@ export function useChat() {
         const eventTask = event.state?.learning_task || event.learning_task || message.learningTask;
         return {
           ...message,
-          content: lifecycle.terminalType === 'error'
-            ? `出错了：${lifecycle.errorMessage || '恢复失败'}`
-            : lifecycle.hasOutput ? lifecycle.output : message.content,
+          ...streamPresentation(lifecycle, message.content),
           stage: executionMessageStage(lifecycle, eventTask),
           learningTask: eventTask,
           sources: event.state?.evidence_sources || message.sources,

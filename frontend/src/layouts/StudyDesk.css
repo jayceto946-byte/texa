@@ -477,6 +477,7 @@
 @media (max-width: 760px) {
   .app-shell :is(.learning-workspace-header, .app-page-header, .goals-header, .library-workspace-header) {
     height: auto;
+    flex: 0 0 auto;
     min-height: 48px;
     flex-wrap: wrap;
     gap: 8px;
@@ -489,11 +490,22 @@
     white-space: normal;
     overflow-wrap: anywhere;
   }
-  /* Choose scope before starting; keep the phone answer view for reading. */
-  .app-shell .learning-header-scope-selector { display: none; }
+  .app-shell .learning-header-scope-selector { display: block; position: static; max-width: 100%; }
+  .app-shell .learning-header-scope-selector > div { width: auto; max-width: 100%; }
+  .app-shell .learning-header-scope-selector > div > button { min-height: 44px; max-width: 100%; }
+  .study-desk .composer-surface .composer-textarea,
+  .study-desk .composer-surface .composer-textarea:focus { font-size: 16px; min-height: 44px; }
+  .app-shell :is(.composer-tool-button, .composer-send) { min-width: 44px; min-height: 44px; height: auto; }
+  .app-shell[data-layout="compact"] .composer-tool-button { width: 44px; min-width: 44px; height: 44px; }
+  .app-shell[data-layout="compact"] .chat-composer form .chat-image-upload-button { width: 44px; min-width: 44px; }
   .study-desk .learning-message.is-question { margin-bottom: 12px; padding-bottom: 10px; }
   .study-desk .learning-question .markdown-body > :last-child { margin-bottom: 0; }
   .app-shell .composer-toolbar, .app-shell .composer-tools { flex-wrap: wrap; }
+}
+
+.reading-return-latest { align-self: center; margin: 4px 0; min-height: 36px; }
+@media (max-width: 760px) {
+  .reading-return-latest { min-height: 44px; }
 }
 
 /* Photo questions are reading content, rather than document titles. */

@@ -99,3 +99,7 @@
 - 当前只读ping三次经DERP lax，438/444/428ms；未得到直连。正在询问两端是否仍处于同一普通Wi-Fi；不能沿用此前直连79ms结论。客户端空闲时status的Relay字段本身不足以证明活跃中继，本结论依据实际ping。
 - 其他中继路线已核对Tailscale官方文档：Peer Relay可由tailnet中UDP可达的第三台常在线机器承担，参与端至少1.86，需要管理员配置relay grant；也可自建DERP。官方在频繁DERP性能不满足时优先建议Peer Relay。官方DERP自动选择，无Texa内线路选择。仅说明可行选项，未部署服务器、改ACL/端口/Serve/鉴权；用户原S1网络范围保持。来源：https://tailscale.com/docs/features/peer-relay 和 https://tailscale.com/docs/reference/derp-servers 。
 - Python141、前端174/37文件、TypeScript、相关ESLint及Vite通过。原桌面已载入预览后端，原数据/59999/配对保留，HTML已核对当前构建。已请用户仅刷新重读原题预览及标题，不重拍或调用模型。图片真机结果与错题/笔记真实保存仍待回报。
+
+## 2026-10-09 S2 开始时的真机验收补录
+
+S2 实施中向用户询问：手机是否仍可访问原 Tailscale 地址，图片预览、错题正式保存、笔记正式保存是否已成功。用户回复“都能”。据此将这四项补录为用户真机确认可用；不再重复开发已有 S1 功能。此次回复未提供截图、同一领域 ID/revision、逐步操作数或 DERP 性能记录，因此不升级为本轮独立实测或跨端同 ID 对照。S2 已重跑相应来源/完整答案/错题/Notes 合同，详细测量与限制见 [S2 第一批验收](../mobile-remote-s2/README.md)。

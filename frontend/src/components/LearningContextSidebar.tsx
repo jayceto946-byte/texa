@@ -1,3 +1,4 @@
+import { getBookList } from '../features/books/bookList';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MessageSquarePlus, PanelLeftClose, Pin, type LucideIcon } from 'lucide-react';
 import { get } from '../api/client';
@@ -17,26 +18,6 @@ export type LearningCapabilityAction = {
   icon: LucideIcon;
   onSelect: () => void;
 };
-
-const BOOKS_CACHE_KEY = 'texa:learning-context:books:v1';
-
-function readCache<T>(key: string): T | null {
-  try {
-    const cached = JSON.parse(window.localStorage.getItem(key) || 'null');
-    if (!cached || !Array.isArray(cached.value)) return null;
-    return cached.value as T;
-  } catch {
-    return null;
-  }
-}
-
-function writeCache<T>(key: string, value: T) {
-  try {
-    window.localStorage.setItem(key, JSON.stringify({ savedAt: Date.now(), value }));
-  } catch {
-    // The in-memory state remains authoritative when device storage is unavailable.
-  }
-}
 
 function relativeTime(value = '') {
   if (!value) return '';
@@ -75,7 +56,7 @@ export default function LearningContextSidebar({
   const { isLoading } = useChatContext();
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
-  const [books, setBooks] = useState<TextbookRecord[]>(() => readCache<TextbookRecord[]>(BOOKS_CACHE_KEY) || []);
+  const [books, setBooks] = useState<TextbookRecord[]>([]);
 
   const scopeBooks = useMemo(() => buildTextbookScopeOptions(books), [books]);
   const selectedScope = useMemo(() => scopeBooks.find((item) => scopeContainsBook(item, bookName)), [bookName, scopeBooks]);
@@ -119,11 +100,10 @@ export default function LearningContextSidebar({
 
   const loadBooks = useCallback(async () => {
     try {
-      const res = await get('/books/list', 20000);
+      const res = await getBookList();
       if (res?.success) {
         const nextBooks = res.data || [];
         setBooks(nextBooks);
-        writeCache(BOOKS_CACHE_KEY, nextBooks);
       }
     } catch {
       // Keep the last successful snapshot visible while the backend recovers.

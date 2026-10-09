@@ -1,3 +1,4 @@
+import { getBookList } from '../features/books/bookList';
 import { useLocation } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarClock, Check, Circle, Loader2, Pause, Play, Plus, ArrowLeft } from 'lucide-react';
@@ -85,7 +86,7 @@ export default function GoalsPage() {
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
     let cancelled = false;
-    get('/books/list').then((response) => { if (!cancelled && response?.success) setBooks(response.data || []); }).catch(() => {});
+    getBookList().then((response) => { if (!cancelled && response?.success) setBooks(response.data || []); }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
   useEffect(() => {

@@ -28,8 +28,14 @@ export const SimpleMarkdown: React.FC<SimpleMarkdownProps> = ({ content }) => (
   </Suspense>
 );
 
-export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, linkedConcepts = [], onConceptClick = () => undefined, citationIds, disableRemoteMedia }) => (
+export const MarkdownMessage: React.FC<MarkdownMessageProps> = React.memo(({ content, linkedConcepts = [], onConceptClick = () => undefined, citationIds, disableRemoteMedia }: MarkdownMessageProps) => (
   <Suspense fallback={<MarkdownLoadingFallback />}>
     <MarkdownRenderer content={content} linkedConcepts={linkedConcepts} onConceptClick={onConceptClick} citationIds={citationIds} disableRemoteMedia={disableRemoteMedia} />
   </Suspense>
-);
+), (previous, next) => previous.content === next.content
+  && (previous.linkedConcepts === next.linkedConcepts || (!previous.linkedConcepts?.length && !next.linkedConcepts?.length))
+  && previous.onConceptClick === next.onConceptClick
+  && previous.disableRemoteMedia === next.disableRemoteMedia
+  && (previous.citationIds === next.citationIds || Boolean(previous.citationIds && next.citationIds
+    && previous.citationIds.size === next.citationIds.size
+    && [...previous.citationIds].every(id => next.citationIds!.has(id)))));

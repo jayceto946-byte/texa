@@ -1,3 +1,4 @@
+import { getBookList } from '../features/books/bookList';
 import ManualExerciseDialog from '../features/exercises/ManualExerciseDialog';
 import '../features/notes/notes.css';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -123,10 +124,10 @@ const ExercisesPage: React.FC = () => {
 
   const loadBooks = useCallback(async () => {
     try {
-      const res = await get('/books/list');
+      const res = await getBookList();
       if (res?.success) setBooks(res.data || []);
     } catch {
-      setBooks([]);
+      // Keep the successful snapshot when a read is superseded or unavailable.
     }
   }, []);
 

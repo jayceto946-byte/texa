@@ -1,3 +1,6 @@
+import { streamFailure, streamPresentation } from '../features/chat/streamPresentation';
+import { useReadingScroll } from '../features/chat/useReadingScroll';
+import { getBookList } from '../features/books/bookList';
 import { imageUploadError } from '../features/mistakes/imageProcessing';
 import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -89,7 +92,7 @@ const ChatPage: React.FC = () => {
   const inTrash = conversation.management?.state === 'trashed';
   const [sourceNavigationError, setSourceNavigationError] = useState('');
   const [nextAfterSeq, setNextAfterSeq] = useState<number | null>(null);
-  const targetMessageRef = useRef<string | null>(null);
+  const { scrollRef, targetMessageRef, preserveHistoryScrollRef, following, onScroll, scrollToLatest } = useReadingScroll(messages, conversationId, location.pathname === '/');
   const loadedLocatorRef = useRef('');
   useEffect(() => {
     if (location.pathname !== '/') return;
@@ -115,10 +118,8 @@ const ChatPage: React.FC = () => {
       setSourceNavigationError('');
     }).catch(e => { if (active) setSourceNavigationError(e.message); });
     return () => { active = false; };
-  }, [location.pathname, location.search, isLoading, loadConversation]);
+  }, [location.pathname, location.search, isLoading, loadConversation, targetMessageRef]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const preserveHistoryScrollRef = useRef<{ height: number; top: number } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [attachmentError, setAttachmentError] = useState('');
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -166,10 +167,10 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     const loadBooks = async () => {
       try {
-        const res = await get('/books/list');
+        const res = await getBookList();
         if (res?.success) setBooks(res.data || []);
       } catch {
-        setBooks([]);
+        // Keep a successful directory visible; a superseded read can fail late.
       } finally {
         setBooksLoaded(true);
       }
@@ -179,27 +180,6 @@ const ChatPage: React.FC = () => {
     loadBooks();
     return () => window.removeEventListener('books:changed', onChanged);
   }, []);
-
-  useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-    if (targetMessageRef.current) {
-      const target = Array.from(container.querySelectorAll<HTMLElement>('[data-message-id]')).find(el => el.dataset.messageId === targetMessageRef.current);
-      if (target) {
-        target.scrollIntoView({ block: 'center' });
-        target.focus({ preventScroll: true });
-        targetMessageRef.current = null;
-        return;
-      }
-    }
-    const preserved = preserveHistoryScrollRef.current;
-    if (preserved) {
-      preserveHistoryScrollRef.current = null;
-      container.scrollTop = preserved.top + (container.scrollHeight - preserved.height);
-      return;
-    }
-    container.scrollTop = container.scrollHeight;
-  }, [messages]);
 
   const loadEarlierMessages = async () => {
     const beforeSeq = historyPage?.next_before_seq;
@@ -416,11 +396,7 @@ const ChatPage: React.FC = () => {
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
         id: event.result?.message_id || last.id,
-        content: lifecycle.terminalType === 'error'
-          ? (lifecycle.errorCode === 'figure_index_out_of_date'
-            ? `教材图片索引已过期：${lifecycle.errorMessage || '请重新导入教材后再试'}`
-            : `教材图片问答失败：${lifecycle.errorMessage || '未知错误'}`)
-          : lifecycle.hasOutput ? lifecycle.output : last.content,
+        ...streamPresentation(lifecycle, last.content),
         stage: executionMessageStage(lifecycle, eventTask || last.learningTask),
         answerMode: 'visual_grounded',
         sources: event.result?.sources || last.sources,
@@ -447,7 +423,7 @@ const ChatPage: React.FC = () => {
       setAttachmentLoading(false);
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
-        content: `教材图片问答失败：${error.message}`,
+        ...streamFailure(visualPartialOutputRef.current, last.content, error.message),
         stage: 'error',
         activities: mergeChatActivity(last.activities, {
           id: 'figure-request', kind: 'system', label: 'Figure 问答中断', status: 'failed', detail: error.message,
@@ -511,9 +487,7 @@ const ChatPage: React.FC = () => {
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
         id: event.result?.message_id || last.id,
-        content: lifecycle.terminalType === 'error'
-          ? `图片处理失败：${lifecycle.errorMessage || '未知错误'}`
-          : lifecycle.hasOutput ? lifecycle.output : last.content,
+        ...streamPresentation(lifecycle, last.content),
         stage: executionMessageStage(lifecycle, eventTask || last.learningTask),
         activities: lifecycle.activities,
         linkedConcepts: event.result?.linked_concepts || last.linkedConcepts,
@@ -536,7 +510,7 @@ const ChatPage: React.FC = () => {
       visualAbortRef.current = null;
       setAttachmentLoading(false);
       updateLastMessage((last) => last.role === 'assistant' ? {
-        ...last, content: `图片处理失败：${error.message}`, stage: 'error',
+        ...last, ...streamFailure(visualPartialOutputRef.current, last.content, error.message), stage: 'error',
         activities: settleChatActivity(last.activities, 'upload', 'failed', error.message),
       } : last);
     }, (loaded, total) => {
@@ -584,9 +558,7 @@ const ChatPage: React.FC = () => {
             return {
               ...message,
               id: event.result?.message_id || message.id,
-              content: lifecycle.terminalType === 'error'
-                ? `图片处理失败：${lifecycle.errorMessage || '恢复失败'}`
-                : lifecycle.hasOutput ? lifecycle.output : message.content,
+              ...streamPresentation(lifecycle, message.content),
               stage: executionMessageStage(lifecycle, eventTask || message.learningTask),
               activities: lifecycle.activities,
               linkedConcepts: event.result?.linked_concepts || message.linkedConcepts,
@@ -647,11 +619,7 @@ const ChatPage: React.FC = () => {
       updateMessageByTaskId(task.id, (message) => ({
         ...message,
         id: event.result?.message_id || message.id,
-        content: lifecycle.terminalType === 'error'
-          ? (lifecycle.errorCode === 'figure_index_out_of_date'
-            ? `教材图片索引已过期：${lifecycle.errorMessage || '请重新导入教材后再试'}`
-            : `教材图片问答失败：${lifecycle.errorMessage || '恢复失败'}`)
-          : lifecycle.hasOutput ? lifecycle.output : message.content,
+        ...streamPresentation(lifecycle, message.content),
         stage: executionMessageStage(lifecycle, eventTask || message.learningTask),
         sources: event.result?.sources || message.sources,
         citationProvenance: event.result?.citation_provenance || message.citationProvenance,
@@ -931,7 +899,7 @@ const ChatPage: React.FC = () => {
           {(messages.length > 0 || activeFigure) && <div className="learning-header-scope-selector">{scopeSelector}</div>}
         </div>
 
-        <div ref={scrollRef} className="learning-workspace-scroll">
+        <div ref={scrollRef} className="learning-workspace-scroll" onScroll={onScroll}>
           <div className="learning-document-column">
             {conversation.management?.state !== 'active' && conversation.management && <div className="conversation-state" role="status"><span>{inTrash ? '此会话在回收站，恢复后可继续学习。' : '此会话已归档。'}</span><button className="app-secondary-button" disabled={conversation.busy} onClick={() => void conversation.change('restore')}>恢复会话</button></div>}
             {conversation.error && <div className="conversation-state" role="alert"><span>{conversation.error}</span><button className="app-ghost-button" onClick={conversation.reload}>重新读取</button>{conversation.tasks.length > 0 && <BlockingTasks tasks={conversation.tasks} onChanged={conversation.reload}/>}</div>}
@@ -957,7 +925,7 @@ const ChatPage: React.FC = () => {
             <ChatMistakeSourcesContext.Provider value={mistakeSources}>{messages.map((msg, i) => (
               <ErrorBoundary key={msg.id || `${msg.turnId || 'message'}-${i}`}>
                 <div data-message-id={msg.id} tabIndex={-1}>
-                <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => { if (!inTrash) sendMessage(question, { answerMode: 'global_general' }); }} onRequestSuggestedAnswer={(question, answerMode) => { if (!inTrash) sendMessage(question, { answerMode }); }} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} learningTask={msg.learningTask} citationProvenance={msg.citationProvenance} onResumeLearningTask={resumeLearningTask} onResumeInterruptedTask={resumeInterruptedTask} />
+                <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} streamError={msg.streamError} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => { if (!inTrash) sendMessage(question, { answerMode: 'global_general' }); }} onRequestSuggestedAnswer={(question, answerMode) => { if (!inTrash) sendMessage(question, { answerMode }); }} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} learningTask={msg.learningTask} citationProvenance={msg.citationProvenance} onResumeLearningTask={resumeLearningTask} onResumeInterruptedTask={resumeInterruptedTask} />
                 </div>
               </ErrorBoundary>
             ))}</ChatMistakeSourcesContext.Provider>
@@ -983,6 +951,8 @@ const ChatPage: React.FC = () => {
             )}
           </div>
         </div>
+
+        {!following && messages.length > 0 && <button type="button" className="reading-return-latest app-secondary-button" onClick={scrollToLatest}>回到最新回答</button>}
 
         <div className="chat-composer">
           {mistakePickerOpen && (

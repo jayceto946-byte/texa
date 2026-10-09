@@ -1,3 +1,4 @@
+import { getBookList } from '../features/books/bookList';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -140,17 +141,15 @@ const LearningPage: React.FC = () => {
 
   useEffect(() => {
     let cancelled = false;
-    get('/books/list')
+    getBookList()
       .then((res) => {
         if (!cancelled && res?.success) setBooks(res.data || []);
       })
-      .catch(() => {
-        if (!cancelled) setBooks([]);
-      });
+      .catch(() => { /* Keep the last successful directory. */ });
     const onChanged = () => {
-      get('/books/list')
-        .then((res) => setBooks(res?.success ? res.data || [] : []))
-        .catch(() => setBooks([]));
+      getBookList()
+        .then((res) => { if (!cancelled && res.success) setBooks(res.data); })
+        .catch(() => { /* A superseded read must not erase fresh data. */ });
     };
     window.addEventListener('books:changed', onChanged);
     return () => {

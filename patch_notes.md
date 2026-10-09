@@ -1,3 +1,11 @@
+# 2026-10-09 - Mobile Remote S2 第一批体验与性能优化
+
+- 基于移动分支52cc1f5建立独立codex/mobile-s2-first-batch checkpoint；保护其他worktree与已合并共享修复，未改Runtime所有权、Submission、Policy/Agent、协议或网络配置。
+- 共享教材目录内存成功快照、single-flight与凭证/目录失效，移除无过期持久目录；正文错误保留partial；抽取贴底阅读hook，手机范围可见、16px输入及44px主要操作；确认重渲染成本后复用稳定Markdown/KaTeX。PDF仍显式完整下载，未冒称按页传输。
+- 5冷/20热、400ms/5Mbps的100消息合成夹具：目录2请求→1；热切换p50 1476→885ms、p95 2012→901ms；冷可读p50 6488→6275ms，未宣布SLO达成。上翻120px不再被拉到92009px，错误后的20片段正文保留。Harmony基线已0请求；已有gzip/lazy/图片压缩/SSE合并不计新成果。
+- Python93、前端180、Electron15项通过，TypeScript/相关ESLint/Vite通过；原生Electron100条Markdown/800个数学节点、IME0误提交、目录失效1请求。补录S1用户真机确认，不重复开发保存闭环。
+- 增加可选?texa_perf=1匿名性能导出；本工作区静态构建已更新。原59999当前无响应，真实DERP前后对照尚未取得；受控浏览器数据不等于真实中继改善。无依赖/数据库格式变更。完整证据：[S2第一批验收](docs/validation/mobile-remote-s2/README.md)、[性能对照](docs/validation/mobile-remote-s2/performance.md)。
+
 # 2026-10-08 - 当前未提交工作树的整体验收抽检与开发端退出修复
 
 - 在隔离数据副本上执行 Python 全量、前端全量、桌面测试、真实 Chroma/ONNX/词法检索、原生 macOS Electron 页面和后端冻结包检查。结果为 Python 1393 passed / 56 failed、前端 140 passed、后端冻结候选校验 PASS；原生开发端可完成首次配置与教材/习题候选查看。最终证据出现材料分类问题被标 `supported` 却未包含两类材料的假阳性，当前工作树不得视为整体验收通过。

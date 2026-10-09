@@ -17,10 +17,10 @@ export default function FigurePageInspector({ figure }: { figure: FigureArtifact
       {image.url && <img src={image.url} alt={figure.caption || `教材 Figure ${figure.figure_id}`} />}
       {figure.pdf_url && (
         <button type="button" className="app-secondary-button" onClick={() => setShowPdf((value) => !value)}>
-          {showPdf ? '收起教材页' : `打开教材第 ${figure.page || '?'} 页`}
+          {showPdf ? '收起教材 PDF' : `加载完整 PDF · 定位第 ${figure.page || '?'} 页`}
         </button>
       )}
-      {showPdf && pdf.loading && <div className="figure-source-status">正在读取教材 PDF…</div>}
+      {showPdf && pdf.loading && <div className="figure-source-status">正在下载完整教材 PDF，大文件在中继网络下可能较慢…</div>}
       {showPdf && pdf.error && <div className="figure-source-status is-error">{pdf.error}</div>}
       {showPdf && pdf.url && <iframe title="教材 PDF 来源页" src={`${pdf.url}#page=${Math.max(1, figure.page || 1)}`} />}
     </div>

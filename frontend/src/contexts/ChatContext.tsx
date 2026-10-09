@@ -9,6 +9,7 @@ export interface ChatMessage {
   requestId?: string;
   content: string;
   stage?: string;
+  streamError?: string;
   activities?: ChatActivity[];
   sourceChapters?: string[];
   sources?: AssistantSource[];

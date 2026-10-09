@@ -1,3 +1,4 @@
+import { getBookList } from '../features/books/bookList';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BookOpen, ClipboardList, ImagePlus, Loader2, Search } from 'lucide-react';
@@ -53,7 +54,7 @@ function useMistakeScope() {
   const [books, setBooks] = useState<ScopeBookOption[]>([]);
   useEffect(() => {
     let active = true;
-    get('/books/list').then((result) => {
+    getBookList().then((result) => {
       if (active && result?.success) setBooks(result.data || []);
     }).catch(() => undefined);
     return () => { active = false; };

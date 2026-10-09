@@ -9,6 +9,12 @@ export const IMAGE_RECOGNITION_TIMEOUT_MS = 3 * 60 * 1000;
 const API_TOKEN_KEY = 'kaoyan_api_token';
 const DESKTOP_API_BASE_KEY = 'kaoyan_desktop_api_base';
 let volatileConnectionToken = '';
+const connectionListeners = new Set<() => void>();
+
+export function onConnectionChange(listener: () => void) {
+  connectionListeners.add(listener);
+  return () => connectionListeners.delete(listener);
+}
 
 export function isRemoteBrowser(): boolean {
   if (typeof window === 'undefined' || !window.location || window.kaoyanDesktop?.isElectron) return false;
@@ -18,6 +24,7 @@ export function isRemoteBrowser(): boolean {
 export function setConnectionToken(token: string): void {
   volatileConnectionToken = token.trim();
   writeBrowserStorage(isRemoteBrowser() ? 'sessionStorage' : 'localStorage', API_TOKEN_KEY, volatileConnectionToken || null);
+  connectionListeners.forEach(listener => listener());
 }
 
 

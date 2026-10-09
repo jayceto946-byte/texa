@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Globe2, GraduationCap, Paperclip, ShieldAlert, ThumbsDown, ThumbsUp } from 'lucide-react';
 import type { AnswerMode, AssistantSource, ChatActivity, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, CitationProvenance, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
@@ -33,6 +33,7 @@ interface ChatMessageProps {
   answerFeedback?: { rating: 'helpful' | 'unhelpful'; reasons?: string[]; updated_at?: string };
   variant?: 'message' | 'document';
   stage?: string;
+  streamError?: string;
   activities?: ChatActivity[];
   linkedConcepts?: ConceptCandidate[];
   sources?: AssistantSource[];
@@ -72,12 +73,12 @@ const FigureSourceDetail = ({ source }: { source: AssistantSource }) => {
           <h3>{source.caption || source.label || '教材 Figure'}</h3>
           <p>{typeof source.page_idx === 'number' && source.page_idx >= 0 ? `p.${source.page_idx + 1}` : '未标页'} · {(source.section_path || []).join(' › ') || source.book_name}</p>
         </div>
-        {source.pdf_url && <button type="button" onClick={() => setShowPdf((value) => !value)}>{showPdf ? '收起教材页' : '打开教材页'}</button>}
+        {source.pdf_url && <button type="button" onClick={() => setShowPdf((value) => !value)}>{showPdf ? '收起教材 PDF' : '加载完整 PDF · 定位来源页'}</button>}
       </div>
       {image.loading && <div className="figure-source-status">正在读取 Figure…</div>}
       {image.error && <div className="figure-source-status is-error">{image.error}</div>}
       {image.url && <img src={image.url} alt={source.caption || source.label || '教材 Figure'} />}
-      {showPdf && pdf.loading && <div className="figure-source-status">正在读取教材 PDF…</div>}
+      {showPdf && pdf.loading && <div className="figure-source-status">正在下载完整教材 PDF，大文件在中继网络下可能较慢…</div>}
       {showPdf && pdf.error && <div className="figure-source-status is-error">{pdf.error}</div>}
       {showPdf && pdf.url && <iframe title="教材 PDF 来源页" src={`${pdf.url}#page=${Math.max(1, Number(source.page_idx ?? 0) + 1)}`} />}
     </section>
@@ -127,7 +128,10 @@ const feedbackReasons = [
   ['irrelevant_or_repetitive', '答非所问或重复'],
 ] as const;
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, learningTask, citationProvenance, onResumeLearningTask, onResumeInterruptedTask }) => {
+const EMPTY_CONCEPTS: ConceptCandidate[] = [];
+const EMPTY_SOURCES: AssistantSource[] = [];
+
+const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, streamError, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = EMPTY_CONCEPTS, sources = EMPTY_SOURCES, sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, learningTask, citationProvenance, onResumeLearningTask, onResumeInterruptedTask }) => {
   const isVisualQuestion = role === 'user' && learningTask?.task_type === 'visual_qa';
   const imagePath = isVisualQuestion ? String(learningTask.artifacts?.image_url || `/api/mistakes/tasks/${learningTask.id}/image`) : '';
   const [showVisualImage, setShowVisualImage] = useState(false);
@@ -214,14 +218,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
     });
   };
 
-  const openConcept = (concept: ConceptCandidate) => {
+  const openConcept = useCallback((concept: ConceptCandidate) => {
     openInspector({
       kind: 'concept',
       title: concept.name,
       subtitle: '概念',
       content: <ConceptPopover concept={concept} bookName={bookName} />,
     });
-  };
+  }, [openInspector, bookName]);
 
   const isUser = role === 'user';
   const questionContent = useMemo(
@@ -302,14 +306,17 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
             <span className="text-sm">{stage === 'agent' ? content || '正在调用学习工具…' : '思考中...'}</span>
           </div>
         ) : !isUser && stage === 'error' ? (
-          <ActionableIssue
-            title="这次回答没有完成"
-            impact="当前问题还没有可用答案；会话、教材范围和已经保存的学习记录不会受影响。"
-            actions={<button type="button" onClick={() => window.dispatchEvent(new Event('texa:focus-composer'))} className="app-secondary-button">回到输入框重试</button>}
-            details={content.replace(/^(出错了|图片处理失败)[：:]\s*/, '') || '未收到可用的错误说明'}
-          />
+          <>
+            {streamError && content.trim() && <MarkdownMessage content={readableVerificationNotice(content)} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} />}
+            <ActionableIssue
+              title="这次回答没有完成"
+              impact={streamError && content.trim() ? '已保留收到的部分回答，尚未完成。重新打开本会话可核对桌面保存的结果。' : '尚未收到可用答案。重新打开本会话可核对桌面状态。'}
+              actions={<button type="button" onClick={() => window.dispatchEvent(new Event('texa:focus-composer'))} className="app-secondary-button">回到输入框</button>}
+              details={streamError || content.replace(/^(出错了|图片处理失败)[：:]\s*/, '') || '未收到可用的错误说明'}
+            />
+          </>
         ) : content.trim() ? (
-          <MarkdownMessage content={isUser ? questionContent.body : readableVerificationNotice(content)} linkedConcepts={isUser ? [] : linkedConcepts} onConceptClick={openConcept} citationIds={validIds} />
+          <MarkdownMessage content={isUser ? questionContent.body : readableVerificationNotice(content)} linkedConcepts={isUser ? EMPTY_CONCEPTS : linkedConcepts} onConceptClick={openConcept} citationIds={validIds} />
         ) : null}
 
         {captureError && <p role="alert" className="text-xs text-[var(--danger)]">{captureError}</p>}
