@@ -32,7 +32,8 @@ class _Service:
 
     def evidence_sources(self, _context):
         return [
-            {"id": "E1", "figure_id": "figure-1", "book_name": "传感器测试", "page_idx": 0},
+            {"id": "E1", "figure_id": "figure-1", "book_name": "传感器测试", "page_idx": 0,
+             "caption": "传感器包含敏感元件和转换元件。"},
             {"id": "E2", "block_id": "block-1", "chunk_id": "chunk-1", "text": "转换元件把被测量转换为电信号。"},
         ]
 

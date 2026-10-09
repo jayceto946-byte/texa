@@ -373,10 +373,8 @@ def query_chat_sources(req: ChatSourceQuery, book_name: str = "default"):
 @router.post("/chat-sources/capture")
 def capture_chat_source(req: ChatSourceCapture, book_name: str = "default"):
     data = _clean_draft_data(req.data)
-    if not str(data.get("question_text") or "").strip():
-        raise HTTPException(status_code=422, detail="question is required")
     try:
-        return {"success": True, "data": MistakeChatSourceService(_store(book_name)).capture(req.conversation_id, req.message_id, req.turn_id, data)}
+        return {"success": True, "data": MistakeChatSourceService(_store(book_name), image_store=_image_store).capture(req.conversation_id, req.message_id, req.turn_id, data)}
     except ValueError as exc:
         raise _error(exc) from exc
 
@@ -484,6 +482,8 @@ def save_draft(draft_id: str, req: DraftSave, book_name: str = "default"):
     if attachments and not snapshot.get("image_path"):
         snapshot["image_path"] = attachments[0]["original_path"]
     candidate = store.create_candidate(f"manual:{draft_id}", snapshot)
+    if candidate["status"] == "accepted" and candidate.get("linked_mistake_id"):
+        return {"success": True, "data": {"candidate_id": candidate["id"], "status": "accepted", "mistake_id": candidate["linked_mistake_id"]}}
     try:
         receipt = store.resolve_candidate(candidate["id"], accept=True, expected_revision=candidate["revision"], operation_id=req.operation_id)
     except ValueError as exc:

@@ -52,6 +52,7 @@ interface ChatContextType {
   newConversation: () => void;
   addMessage: (msg: ChatMessage) => void;
   updateLastMessage: (updater: (msg: ChatMessage) => ChatMessage) => void;
+  updateMessageByTurnId: (turnId: string, updater: (msg: ChatMessage) => ChatMessage) => void;
   updateMessageByTaskId: (taskId: string, updater: (msg: ChatMessage) => ChatMessage) => void;
   setLoading: (loading: boolean) => void;
   clearMessages: () => void;
@@ -135,7 +136,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSubject(meta.subject);
       writeBrowserStorage('localStorage', 'kaoyan_subject', meta.subject);
     }
-    if (meta.bookName !== undefined) setBookName(meta.bookName);
+    // "default" is the persistence namespace for questions without a textbook.
+    if (meta.bookName !== undefined) setBookName(meta.bookName === 'default' ? '' : meta.bookName);
   }, [cancelActiveChat, persistConversationId]);
 
   const prependConversationMessages = useCallback((olderMessages: ChatMessage[], page: ConversationPage) => {
@@ -158,6 +160,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       newMsgs[newMsgs.length - 1] = updater(newMsgs[newMsgs.length - 1]);
       return newMsgs;
     });
+  }, []);
+
+  const updateMessageByTurnId = useCallback((turnId: string, updater: (msg: ChatMessage) => ChatMessage) => {
+    setMessages(current => current.map(message => message.turnId === turnId ? updater(message) : message));
   }, []);
 
   const updateMessageByTaskId = useCallback((taskId: string, updater: (msg: ChatMessage) => ChatMessage) => {
@@ -193,10 +199,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addMessage,
       updateLastMessage,
       updateMessageByTaskId,
+      updateMessageByTurnId,
       setLoading: setIsLoading,
       clearMessages,
     }),
-    [messages, isLoading, bookName, subject, conversationId, historyPage, persistBookName, persistSubject, persistConversationId, syncRecoveredScope, setActiveChatAbort, cancelActiveChat, loadConversation, prependConversationMessages, newConversation, addMessage, updateLastMessage, updateMessageByTaskId, clearMessages]
+    [messages, isLoading, bookName, subject, conversationId, historyPage, persistBookName, persistSubject, persistConversationId, syncRecoveredScope, setActiveChatAbort, cancelActiveChat, loadConversation, prependConversationMessages, newConversation, addMessage, updateLastMessage, updateMessageByTaskId, updateMessageByTurnId, clearMessages]
   );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

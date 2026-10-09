@@ -116,7 +116,7 @@ class MistakeLifecycleStore:
                     source=str(data.get("source") or ""), source_ref=dict(data.get("source_ref") or {}),
                     chapter=str(data.get("chapter") or "") or None,
                     tags=list(data.get("tags") or []), mistake_type=list(data.get("mistake_type") or []),
-                    notes=str(data.get("notes") or ""),
+                    notes=str(data.get("notes") or ""), explanation=str(data.get("explanation") or ""),
                     image_path=data.get("image_path"), ocr_text=str(data.get("ocr_text") or ""),
                     attachments=list(data.get("attachments") or []),
                     visual_ir=dict(data.get("visual_ir") or {}),
@@ -187,7 +187,7 @@ class MistakeLifecycleStore:
             links = self._chat_links(conn, refs)
         return [{"message_id": ref["message_id"], **links.get(self._chat_identity(ref), {"status": "unrecorded"})} for ref in refs]
 
-    def get_or_create_chat_draft(self, data: dict, stable_source_key: str) -> dict:
+    def get_or_create_chat_draft(self, data: dict, stable_source_key: str, *, prepare=None) -> dict:
         identity = self._chat_identity(data.get("source_ref") or {})
         if identity is None:
             raise ValueError("chat capture requires a persisted conversation and message identity")
@@ -197,7 +197,7 @@ class MistakeLifecycleStore:
             if existing:
                 return existing
             draft_id, now = "md_" + uuid.uuid4().hex[:24], _now()
-            payload = {**data, "stable_source_key": stable_source_key}
+            payload = {**data, **(prepare(draft_id) if prepare else {}), "stable_source_key": stable_source_key}
             conn.execute("INSERT INTO mistake_drafts VALUES (?,?,?,?)", (draft_id, json.dumps(payload, ensure_ascii=False), 1, now))
             return {"status": "draft", "draft_id": draft_id}
 
@@ -226,6 +226,9 @@ class MistakeLifecycleStore:
             row = conn.execute("SELECT data,revision FROM mistake_drafts WHERE id=?", (draft_id,)).fetchone()
             if not row:
                 raise ValueError("draft not found")
+            saved = conn.execute("SELECT linked_mistake_id FROM mistake_candidates WHERE source_key=? AND status='accepted'", ("manual:" + draft_id,)).fetchone()
+            if saved:
+                raise ValueError("该草稿已保存为正式错题，请打开错题记录编辑")
             if row[1] != expected_revision:
                 raise ValueError("draft revision changed")
             updated = {**json.loads(row[0]), **data}

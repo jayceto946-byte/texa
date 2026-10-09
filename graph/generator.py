@@ -7,6 +7,7 @@ from config import get_llm
 from graph.conversation_context import prepare_conversation_context
 from graph.evidence_pack import build_evidence_pack
 from graph.teaching_prompts import (
+    GENERAL_TEACHING_PROMPT,
     LEGACY_TEACHING_PROMPT_VERSION,
     MINIMAL_TEACHING_PROMPT,
     REFINED_TEACHING_PROMPT,
@@ -178,6 +179,29 @@ def scope_boundary_message(state: dict) -> str:
     return f"当前本地资料无法确认这个问题属于“{current_subject}”。为避免把可能的跨学科内容混入当前学习记录，本轮暂不直接作答；如需继续，可以选择“跨学科通用回答”。"
 
 
+def _prepare_evidence_pack(state: dict) -> dict:
+    from graph.retrieval_node import _assess_evidence_support
+    pack = build_evidence_pack(state.get("evidence_items") or [], intent=str(state.get("intent") or "qa"))
+    state["evidence_sources"] = pack["items"]
+    # Runtime only: never attach clipped source text to UI source metadata.
+    state["verification_evidence"] = pack["verification_items"]
+    if state.get("evidence_gate_applied"):
+        from graph.question_understanding import retrieval_dimensions
+        previous = state.get("evidence_support") or {}
+        dimensions = retrieval_dimensions(state.get("question_understanding"))
+        support = _assess_evidence_support(
+            f"{state.get('user_input') or ''} {dimensions}".strip(), pack["verification_items"],
+            matched_concepts=previous.get("topic_terms") or state.get("matched_concepts") or [],
+            intent=str(state.get("intent") or "qa"),
+        )
+        support["missing_focus_terms"] = [term for term in support.get("focus_terms", [])
+                                          if term not in support.get("matched_focus_terms", [])]
+        support["lost_focus_terms"] = [term for term in previous.get("matched_focus_terms", [])
+                                       if term not in support.get("matched_focus_terms", [])]
+        state["evidence_support"] = support
+    return pack
+
+
 def finalize_answer_verification(
     state: dict,
     answer: str,
@@ -186,6 +210,8 @@ def finalize_answer_verification(
     answer_policy: str = "exact",
 ) -> str:
     """Run deterministic postconditions and disclose non-passing results."""
+    if _answer_mode(state) == "textbook_grounded" and "verification_evidence" not in state:
+        _prepare_evidence_pack(state)
     required_outputs = list(state.get("required_outputs") or [])
     if not required_outputs:
         required_outputs = derive_required_outputs(
@@ -200,9 +226,18 @@ def finalize_answer_verification(
         sources=state.get("evidence_sources") or [],
         citation_trace=citation_trace or state.get("citation_trace") or {},
         tool_context_pack=state.get("tool_context_pack") or {},
-        evidence_items=state.get("evidence_items") or [],
+        evidence_items=state.get("verification_evidence") or [],
         answer_policy=answer_policy,
+        question=str(state.get("user_input") or ""),
     )
+    support = state.get("evidence_support") or {}
+    missing = support.get("missing_focus_terms") or []
+    if state.get("evidence_gate_applied") and (missing or support.get("status") in {"insufficient", "unavailable"}):
+        check = {"id": "evidence_coverage", "label": "最终证据要点覆盖", "status": "failed",
+                 "reason": "最终证据缺少所问要点", "missing_focus_terms": missing}
+        result["checks"].append(check)
+        result["failures"].append({"id": check["id"], "reason": check["reason"]})
+        result.update(status="failed", passed=False)
     state["answer_verification"] = result
     notice = verification_notice(result)
     if notice and notice not in answer:
@@ -314,11 +349,7 @@ def _build_generate_prompt(state: dict) -> str:
             state, prompt, assembly_mode=mode, query_text=user_input,
             history_text=history_text, tool_text=tool_text,
         )
-    evidence_pack = build_evidence_pack(
-        state.get("evidence_items") or [],
-        intent=intent,
-    )
-    state["evidence_sources"] = evidence_pack["items"]
+    evidence_pack = _prepare_evidence_pack(state)
     evidence_text = evidence_pack["text"]
     conversation_text, _conversation_pack = prepare_conversation_context(
         state, evidence_pack,
@@ -430,11 +461,7 @@ def _build_compact_generate_messages(
     evidence_pack = None
     evidence_text = ""
     if mode == "textbook_grounded":
-        evidence_pack = build_evidence_pack(
-            state.get("evidence_items") or [],
-            intent=intent,
-        )
-        state["evidence_sources"] = evidence_pack["items"]
+        evidence_pack = _prepare_evidence_pack(state)
         evidence_text = str(evidence_pack.get("text") or "")
     conversation_text, _conversation_pack = prepare_conversation_context(
         state, evidence_pack,
@@ -444,6 +471,15 @@ def _build_compact_generate_messages(
         f"## 用户问题\n{user_input}",
         f"## 当前学习上下文\n{conversation_text or '(none)'}",
     ]
+    if mode in {"subject_general", "global_general"}:
+        system_prompt = GENERAL_TEACHING_PROMPT
+        if mode == "subject_general":
+            system_prompt += (
+                "\n只在当前学科范围内回答；问题超出该范围时简要说明，并提示用户选择跨学科通用回答。"
+            )
+            sections.insert(0, f"## 当前学科\n{state.get('subject') or '当前学科'}")
+        else:
+            system_prompt += "\n用户已选择跨学科通用回答，允许跨学科解释。"
     if mode == "textbook_grounded":
         sections.append(f"## 教材证据\n{evidence_text or '(no selected evidence)'}")
         if include_citation_protocol:
@@ -570,4 +606,5 @@ def generate_node(state: dict) -> dict:
         "evidence_sources": state.get("evidence_sources") or [],
         "required_outputs": state.get("required_outputs") or [],
         "answer_verification": state.get("answer_verification") or {},
+        "evidence_support": state.get("evidence_support") or {},
     }

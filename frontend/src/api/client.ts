@@ -89,7 +89,7 @@ function authenticatedResourceUrl(value: string): string {
   return apiUrl(trimmed);
 }
 
-async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS, finiteBody = false) {
   const ctrl = new AbortController();
   let timedOut = false;
   let abortedBySource = false;
@@ -108,9 +108,9 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
   try {
     const response = await fetch(input, { ...init, headers: authHeaders(init.headers), signal: ctrl.signal });
     responseStatus = response.status;
-    // Keep finite JSON body reads within the same deadline as the headers.
-    // SSE, blobs and other response types retain their existing streaming path.
-    if (response.body && response.headers.get('content-type')?.includes('application/json')) {
+    // Finite asset reads must finish before releasing the timer and cancellation.
+    // SSE callers keep their streaming path.
+    if (response.body && (finiteBody || response.headers.get('content-type')?.includes('application/json'))) {
       let abortRead: (() => void) | undefined;
       try {
         const aborted = new Promise<never>((_, reject) => {
@@ -148,13 +148,13 @@ export async function apiFetch(path: string, init: RequestInit = {}, timeoutMs =
 }
 
 export async function getAuthenticatedBlob(path: string, signal?: AbortSignal, timeoutMs = 60000): Promise<Blob> {
-  const res = await fetchWithTimeout(authenticatedResourceUrl(path), { signal }, timeoutMs);
+  const res = await fetchWithTimeout(authenticatedResourceUrl(path), { signal }, timeoutMs, true);
   if (!res.ok) throw await responseError(res, `GET ${path} failed`);
   return res.blob();
 }
 
 export async function getAuthenticatedText(path: string, signal?: AbortSignal, timeoutMs = 60000): Promise<string> {
-  const res = await fetchWithTimeout(authenticatedResourceUrl(path), { signal }, timeoutMs);
+  const res = await fetchWithTimeout(authenticatedResourceUrl(path), { signal }, timeoutMs, true);
   if (!res.ok) throw await responseError(res, `GET ${path} failed`);
   return res.text();
 }
@@ -479,11 +479,71 @@ export async function interruptChatTask(
   });
 }
 
+// Multipart photos use the same endpoint and SSE parser, with browser upload progress.
+function imageMultipartStream(
+  url: string, payload: FormData, signal: AbortSignal,
+  onEvent: (event: ExecutionStreamEnvelope) => void,
+  onUpload?: (loaded: number, total: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    let offset = 0;
+    let buffer = '';
+    let boundary = false;
+    let settled = false;
+    let uploadComplete = false;
+    const cleanup = () => signal.removeEventListener('abort', abort);
+    const fail = (error: Error) => {
+      if (settled) return;
+      settled = true; cleanup(); reject(error);
+    };
+    const abort = () => {
+      xhr.abort();
+      fail(new Error(signal.reason?.name === 'TimeoutError'
+        ? (uploadComplete ? '图片讲解超时，请查看会话与任务状态' : '照片上传超时，桌面尚未确认接收，请检查网络或降低相机分辨率')
+        : '图片请求已取消'));
+    };
+    const consume = () => {
+      const next = xhr.responseText.slice(offset);
+      offset = xhr.responseText.length;
+      const parsed = consumeSseChunk(next, buffer, onEvent);
+      buffer = parsed.buffer;
+      boundary ||= parsed.sawBoundaryEvent;
+    };
+    xhr.open('POST', url);
+    authHeaders().forEach((value, key) => xhr.setRequestHeader(key, value));
+    xhr.upload.onprogress = event => onUpload?.(event.loaded, event.lengthComputable ? event.total : 0);
+    xhr.upload.onload = () => { uploadComplete = true; onUpload?.(1, 1); };
+    xhr.onprogress = () => {
+      if (settled || xhr.status < 200 || xhr.status >= 300) return;
+      try { consume(); } catch (error) { fail(error instanceof Error ? error : new Error(String(error))); xhr.abort(); }
+    };
+    xhr.onerror = () => fail(new Error(uploadComplete ? '照片已上传，但图片解答连接中断，请查看会话状态' : '照片上传失败，请检查手机与桌面网络连接'));
+    xhr.onload = async () => {
+      if (settled) return;
+      if (xhr.status < 200 || xhr.status >= 300) {
+        fail(await responseError(new Response(xhr.responseText, { status: xhr.status || 502 }), '图片上传失败'));
+        return;
+      }
+      try {
+        consume();
+        boundary = flushSseBuffer(buffer, onEvent) || boundary;
+        if (!boundary) throw new Error('图片讲解流未返回 canonical 结束边界');
+        settled = true; cleanup(); resolve();
+      } catch (error) { fail(error instanceof Error ? error : new Error(String(error))); }
+    };
+    signal.addEventListener('abort', abort, { once: true });
+    if (signal.aborted) abort();
+    else xhr.send(payload);
+  });
+}
+
 export function mistakeSolutionStream(
   path: '/mistakes/solve-image-stream' | '/mistakes/solve-cached-stream' | `/mistakes/visual-tasks/${string}/resume-stream`,
   payload: FormData | Record<string, unknown>,
   onEvent: (event: ExecutionStreamEnvelope) => void,
   onError?: (error: Error) => void,
+  onUpload?: (loaded: number, total: number) => void,
 ): () => void {
   const controller = new AbortController();
   const timer = window.setTimeout(() => {
@@ -493,6 +553,10 @@ export function mistakeSolutionStream(
   (async () => {
     try {
       const isForm = payload instanceof FormData;
+      if (isForm && typeof XMLHttpRequest !== 'undefined') {
+        await imageMultipartStream(apiUrl(path), payload, controller.signal, onEvent, onUpload);
+        return;
+      }
       const response = await fetch(apiUrl(path), {
         method: 'POST',
         headers: authHeaders(isForm ? undefined : { 'Content-Type': 'application/json' }),
@@ -515,7 +579,7 @@ export function mistakeSolutionStream(
       if (!sawBoundaryEvent && !controller.signal.aborted) throw new Error('图片讲解流未返回 canonical 结束边界');
     } catch (error) {
       if (controller.signal.aborted) {
-        if (controller.signal.reason?.name === 'TimeoutError') onError?.(new Error('图片讲解超时，请稍后重试', { cause: error }));
+        if (controller.signal.reason?.name === 'TimeoutError') onError?.(error instanceof Error ? error : new Error('图片讲解超时，请查看会话状态', { cause: error }));
         return;
       }
       onError?.(error instanceof Error ? error : new Error(String(error)));

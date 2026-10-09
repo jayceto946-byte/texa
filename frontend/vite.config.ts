@@ -23,6 +23,8 @@ export default defineConfig({
     },
   },
   build: {
+    // Keep hashed modules referenced by phones already using the previous shell.
+    emptyOutDir: false,
     rolldownOptions: {
       output: {
         codeSplitting: {

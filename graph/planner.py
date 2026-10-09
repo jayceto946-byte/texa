@@ -150,6 +150,14 @@ def plan_node(state: dict) -> dict:
         }
 
     local_result = classify_intent_local(user_input)
+    from graph.question_understanding import interpretation_hint
+    interpretation = interpretation_hint(state.get("question_understanding"))
+    if interpretation and not local_result.get("intent_locked"):
+        # A validated hint supplies routing intent, never invented chapters or
+        # conditions. Complex requests retain the normal chapter Planner.
+        local_result = {**local_result, "intent": interpretation["intent"],
+                        "hint": f"问题理解接口：{interpretation}",
+                        "intent_locked": True, "is_simple": False}
     local_intent = str(local_result.get("intent") or "qa")
     state["_local_intent"] = local_intent
     state["_local_intent_hint"] = str(local_result.get("hint") or "")
@@ -239,7 +247,9 @@ def plan_node(state: dict) -> dict:
 
     try:
         plan = json.loads(result)
-    except json.JSONDecodeError:
+        if not isinstance(plan, dict):
+            raise ValueError("planner_object_required")
+    except (ValueError, TypeError):
         # 降级：如果本地有分类结果，直接用它
         fallback_intent = state.get("_local_intent", "qa")
         plan = {
@@ -254,17 +264,32 @@ def plan_node(state: dict) -> dict:
     if state.get("_local_intent_locked"):
         intent = state.get("_local_intent", intent) or intent
         planner_trace["intent_locked"] = True
-    target_chapters = plan.get("target_chapters", [])
+    authorized = list(state.get("target_chapters") or [])
+    allowed = authorized or chapters
+    proposed = plan.get("target_chapters", [])
+    valid_scope = isinstance(proposed, list) and all(isinstance(ch, str) and ch in allowed for ch in proposed)
+    if not valid_scope:
+        planner_trace["scope_fallback"] = "invalid_or_out_of_scope_chapters"
+    target_chapters = list(dict.fromkeys(proposed)) if valid_scope and proposed else list(authorized or chapters)
     sub_tasks = plan.get("sub_tasks", [])
 
     # 如果 planner 没指定章节，用向量检索找
-    if not target_chapters and chapters:
+    if not authorized and valid_scope and not proposed and chapters:
         chapter_fallback_started = time.perf_counter()
         target_chapters, chapter_failures = _find_relevant_chapters(
             user_input, chapters, vs, book_name=state.get("book_name", ""),
         )
         retrieval_errors.extend(chapter_failures)
+        if any(ch not in chapters for ch in target_chapters):
+            planner_trace["scope_fallback"] = "invalid_retrieved_chapter"
+        target_chapters = [ch for ch in target_chapters if ch in chapters] or list(chapters)
         planner_trace["chapter_fallback_ms"] = round((time.perf_counter() - chapter_fallback_started) * 1000, 2)
+
+    # Planner tasks cannot carry a second, broader chapter scope.
+    if not isinstance(sub_tasks, list):
+        sub_tasks = []
+    sub_tasks = [task for task in sub_tasks if isinstance(task, dict) and
+                 (not task.get("chapter") or task["chapter"] in target_chapters)]
 
     # 为 teach/summarize 意图构建分步任务
     if intent in ("teach", "summarize") and not sub_tasks and target_chapters:

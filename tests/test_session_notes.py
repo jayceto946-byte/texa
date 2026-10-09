@@ -232,7 +232,7 @@ def test_article_supplement_without_coverage_can_be_saved(service, link_conversa
     note = service.detail(saved["note_id"])
     assert note["blocks"][1] == example
     assert note["quality"]["semantic_review"] == "not_checked"
-    assert note["generation"]["prompt_version"] == "session-note-article-v4"
+    assert note["generation"]["prompt_version"] == "session-note-article-v5"
     assert service.store.get("note_source_snapshots", receipt["snapshot_id"]) == frozen
 
 
@@ -566,3 +566,52 @@ def test_representative_fixtures_snapshot_and_traceability_only(service, case):
         assert {'missing_required_input', 'source_unverified', 'image_input_not_owned'} <= reasons
     if case['id'] == 'review-historical':
         assert 'historical_evidence_text_unknown' in reasons
+
+
+def test_note_json_latex_escape_contract_and_safe_reason():
+    import json
+    from backend.services.session_notes.generation import decode_result
+    from backend.services.session_notes.validation import validate_document
+    from memory.session_notes import NoteError
+    snapshot = {"sources": [], "evidence": [], "chapter_refs": []}
+    doc = {"document": {"title": "公式", "blocks": [{"block_id": "b1", "type": "equation", "data": {"latex": r"\frac{a}{b}"}}]}}
+    good = json.dumps(doc)
+    validate_document(decode_result(good)["document"], snapshot, generated=True)
+    multiline = json.loads(good)
+    multiline["document"]["blocks"][0]["data"]["latex"] = "x +\r\n\ty"
+    validate_document(multiline["document"], snapshot, generated=True)
+    bad = good.replace(r"\\frac", r"\frac")
+    with pytest.raises(NoteError) as error:
+        validate_document(decode_result(bad)["document"], snapshot, generated=True)
+    assert error.value.reason == "invalid_latex_escape"
+    assert error.value.path == "document.blocks[0].data.latex"
+    with pytest.raises(NoteError) as error:
+        decode_result('{"document":')
+    assert error.value.reason == "json_syntax"
+
+
+def test_visual_turn_text_enters_note_generation_edit_and_idempotent_save(service):
+    from backend.services.visual_session_assets import visual_session_text
+    from backend.services.multimodal_bridge import VisualProblemIR
+    ir = VisualProblemIR(problem_text=r'求 $\int_0^1 x^2\,dx$。', formulas=[r'\int_0^1 x^2\,dx'], options=['1/3'], visual_summary='定积分计算题')
+    text = visual_session_text({'question': '请讲解图片题', 'visual_ir': ir.to_dict()})
+    cm.append_message('session', 'user', text, turn_id='photo', learning_task={'id': 'photo-task', 'task_type': 'visual_qa', 'status': 'completed'})
+    answer = r'原函数为 $x^3/3$，代入上下限得到 $1/3$。'
+    cm.append_message('session', 'assistant', answer, turn_id='photo')
+    _, snapshot = service.preflight({'conversation_id': 'session', 'turn_ids': ['photo']})
+    assert [s['content'] for s in snapshot['sources']] == [text, answer]
+    draft, _, _ = ready(service, 'photo-generation')
+    assert any(ir.problem_text in b.get('data', {}).get('markdown', '') for b in draft['content']['blocks'])
+    content = {k: copy.deepcopy(v) for k, v in draft['content'].items() if k != 'quality'}
+    content['title'] = '手机编辑后的定积分笔记'
+    content['blocks'].append({'block_id': 'phone-edit', 'type': 'paragraph', 'data': {'markdown': '手机补充：先求原函数，再代入上下限。'}})
+    edited = service.patch_draft(draft['id'], draft['draft_revision'], content)
+    result, req = save(service, edited, 'phone-save')
+    assert service.save(edited['id'], req) == result
+    note = service.detail(result['note_id'])
+    assert note['title'] == content['title']
+    assert note['blocks'][-1]['data']['markdown'] == content['blocks'][-1]['data']['markdown']
+    # Reopen the same desktop database: no mobile-side replica or second formal record.
+    reopened = SessionNoteService(SessionNoteStore(service.store.path), chapters=Chapters())
+    assert reopened.detail(result['note_id'])['title'] == content['title']
+    assert len(service.store.list()['items']) == 1

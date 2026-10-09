@@ -12,7 +12,7 @@ from typing import Any
 
 
 _CITATION_RE = re.compile(r"\[\[cite:(E[\w-]+)\]\]", re.I)
-_NUMBER_RE = re.compile(r"(?<![\w])[-+]?\d+(?:\.\d+)?(?:\s*(?:°C|℃|%|V|mV|A|mA|Ω|Pa|kPa|MPa|Hz|mm|cm|m|s))?")
+_NUMBER_RE = re.compile(r"(?<![A-Za-z0-9_.])[-+]?\d+(?:\.\d+)?(?:\s*(?:°C|℃|%|V|mV|A|mA|Ω|Pa|kPa|MPa|Hz|mm|cm|m|s))?")
 _UNIT_RE = re.compile(r"(?<![A-Za-z])(?:°C|℃|K|mV|V|mA|A|kΩ|MΩ|Ω|kPa|MPa|Pa|kHz|MHz|Hz|mm|cm|km|m|ms|s)(?![A-Za-z])")
 _FORMULA_RE = re.compile(r"\$\$.*?\$\$|\\\[.*?\\\]|\\\(.*?\\\)|\$[^$\n]+\$", re.S)
 _PART_RE = re.compile(r"(?:第\s*(\d+)\s*问|[（(](\d+)[）)])")
@@ -24,6 +24,12 @@ _STOP_ANCHORS = {
 
 def _anchors(text: str) -> list[str]:
     normalized = re.sub(r"^(?:请|写出|给出|说明|分析|计算|求出?|回答|判断)+", "", str(text or "").strip())
+    from graph.retrieval_node import _FOCUS_TERM_ALIASES
+    dimensions = [canonical for canonical, aliases in _FOCUS_TERM_ALIASES.items()
+                  if any(alias in normalized for alias in aliases)]
+    dimensions = [value for value in dimensions if not any(value != other and value in other for other in dimensions)]
+    if dimensions:
+        return dimensions
     candidates = re.findall(r"[\u4e00-\u9fff]{2,12}|[A-Za-z][A-Za-z0-9_]{1,15}", normalized)
     result: list[str] = []
     for value in candidates:
@@ -51,6 +57,16 @@ def derive_required_outputs(question: str, *, intent: str = "qa", answer_mode: s
             "anchors": _anchors(segment),
             "required": True,
         })
+    # Unnumbered requests still have independent deliverables.
+    if not matches:
+        segments = re.split(r"[、；;]|(?:以及|并且|并说明)", text)
+        if len(segments) > 1:
+            segments = [part for segment in segments for part in re.split(r"和|与", segment)]
+            for index, segment in enumerate(segments):
+                anchors = _anchors(segment.strip(" ，,。"))
+                if anchors:
+                    outputs.append({"id": f"item_{index + 1}", "label": segment[:80],
+                                    "kind": "question_part", "anchors": anchors, "required": True})
     numeric_requested = intent == "calculation" or bool(re.search(
         r"计算|求值|数值|多少|结果为|反查|求出|最终.{0,8}(?:温度|电势|电压|电流|概率)", text,
     ))
@@ -73,11 +89,15 @@ def derive_required_outputs(question: str, *, intent: str = "qa", answer_mode: s
         outputs.append({
             "id": "citations", "label": "教材结论的本轮来源", "kind": "citation", "required": True,
         })
+    elif answer_mode in {"subject_general", "global_general"}:
+        outputs.append({
+            "id": "answer_mode", "label": "通用模式的回答范围", "kind": "general_answer", "required": True,
+        })
     return outputs
 
 
 def _balanced_formula_delimiters(text: str) -> bool:
-    return text.count("$$") % 2 == 0 and text.count("\\[") == text.count("\\]") and text.count("\\(") == text.count("\\)")
+    return text.count("$$") % 2 == 0 and len(re.findall(r"(?<!\\)\$", text.replace("$$", ""))) % 2 == 0 and text.count("\\[") == text.count("\\]") and text.count("\\(") == text.count("\\)")
 
 
 def _source_texts(
@@ -89,15 +109,15 @@ def _source_texts(
         if not isinstance(item, dict):
             continue
         source_id = str(item.get("id") or item.get("evidence_id") or "").upper()
-        content = str(item.get("text") or item.get("content") or item.get("problem_text") or "")
+        content = str(item.get("text") or item.get("content") or item.get("problem_text") or item.get("caption") or "")
         if source_id and content:
             result[source_id] = content
     return result
 
 
-def _citation_semantically_supported(answer: str, source_id: str, source_text: str) -> bool:
+def _citation_semantically_supported(answer: str, source_id: str, source_text: str, position: int | None = None) -> bool:
     marker = f"[[cite:{source_id}]]"
-    position = answer.upper().find(marker.upper())
+    position = answer.upper().find(marker.upper()) if position is None else position
     prefix = answer[:position] if position >= 0 else ""
     # A contiguous citation group refers to one claim. Earlier markers in the
     # group are annotations, not sentence boundaries. Do not cross newlines or
@@ -115,30 +135,90 @@ def _citation_semantically_supported(answer: str, source_id: str, source_text: s
     if len(claim_terms & source_terms) >= 2:
         return True
 
-    # Formula-only Canonical blocks have few or no Chinese bigrams. Compare
-    # mathematical identifiers so an equivalent adjacent formula can still be
-    # verified without weakening prose citations.
-    ignored_commands = {
-        "begin", "end", "array", "mathrm", "mathfrak", "mathbf", "boldsymbol",
-        "text", "tag", "left", "right", "frac", "dfrac", "sqrt", "cdot",
-    }
-
-    def formula_symbols(value: str) -> set[str]:
-        symbols = {
-            command.casefold()
-            for command in re.findall(r"\\([A-Za-z]+)", value)
-            if command.casefold() not in ignored_commands
-        }
-        symbols.update(item.casefold() for item in re.findall(r"(?<![A-Za-z\\])[A-Za-z](?![A-Za-z])", value))
-        symbols.update(re.findall(r"\d+", value))
-        symbols.update(re.findall(r"[Α-Ωα-ω]", value))
-        return symbols
-
     if _FORMULA_RE.search(source_text) and _FORMULA_RE.search(claim):
-        source_symbols = formula_symbols(source_text)
-        claim_symbols = formula_symbols(claim)
-        required_overlap = min(4, max(2, len(source_symbols) // 2))
-        return len(source_symbols & claim_symbols) >= required_overlap
+        return _formula_support(claim, source_text) == "passed"
+    return False
+
+
+def _compact_formula(value: str) -> str:
+    value = re.sub(r"\\tag\{[^}]*\}", "", value)
+    value = re.sub(r"[\s$]", "", value).replace(r"\(", "").replace(r"\)", "").replace(r"\[", "").replace(r"\]", "").replace(r"\mathrm", "").replace(r"\left", "").replace(r"\right", "")
+    if not re.search(r"\\(?:frac|dfrac|sqrt|begin|end)", value):
+        # Atomic braces are formatting; compound groups and command arguments
+        # carry mathematical structure and must remain distinct.
+        while re.search(r"\{[A-Za-z0-9]+\}", value):
+            value = re.sub(r"\{([A-Za-z0-9]+)\}", r"\1", value)
+    return value
+
+
+def _formula_support(answer: str, evidence: str) -> str:
+    """Exact formulas or bounded elementary equalities; other math stays unverified."""
+    formulas = _FORMULA_RE.findall(answer)
+    source_formulas = _FORMULA_RE.findall(evidence)
+    if not formulas or not source_formulas:
+        return "unverified"
+    statuses = []
+    for formula in formulas:
+        compact = _compact_formula(formula)
+        if any(compact == _compact_formula(source) for source in source_formulas):
+            statuses.append("passed")
+            continue
+        comparable = []
+        # Only scalar, one-letter equalities. Do not send arbitrary LaTeX to a parser.
+        if re.fullmatch(r"[A-Za-z0-9=+*/().^\-]+", compact) and compact.count("=") == 1:
+            for source in source_formulas:
+                other = _compact_formula(source)
+                if (not re.fullmatch(r"[A-Za-z0-9=+*/().^\-]+", other) or other.count("=") != 1
+                        or set(re.findall(r"[A-Za-z]", compact)) != set(re.findall(r"[A-Za-z]", other))):
+                    continue
+                from backend.tools.math_tools import parse_restricted_expression, RestrictedMathError
+                import sympy as sp
+                names = sorted(set(re.findall(r"[A-Za-z]", compact)))
+                if len(names) > 7:
+                    continue
+                mapping = dict(zip(names, ("x", "y", "z", "t", "a", "b", "c")))
+                def residual(value):
+                    left, right = value.split("=")
+                    def parse(term):
+                        term = re.sub(r"(?<=[A-Za-z])(?=[A-Za-z(])", "*", term)
+                        term = re.sub(r"[A-Za-z]", lambda m: mapping[m[0]], term)
+                        return parse_restricted_expression(term)
+                    return parse(left) - parse(right)
+                try:
+                    actual, expected = residual(compact), residual(other)
+                    ratio = sp.cancel(actual / expected)
+                    comparable.append(bool(ratio.is_number and ratio.is_finite and ratio != 0))
+                except (RestrictedMathError, ValueError, TypeError, ZeroDivisionError):
+                    continue
+        statuses.append("passed" if any(comparable) else "failed" if comparable else "unverified")
+    return "failed" if "failed" in statuses else "unverified" if "unverified" in statuses else "passed"
+
+
+
+def _verified_numeric_conclusion(answer: str, question: str, pack: dict) -> bool:
+    # A successful receipt alone says nothing about this question. Consume only
+    # closed expressions explicitly requested here and their matching verifier.
+    outputs = pack.get("outputs") or []
+    for item in outputs:
+        data = item.get("data") or {}
+        if item.get("tool") != "symbolic_math" or not item.get("success") or data.get("operation") != "calculate":
+            continue
+        expression = str(data.get("expression") or "")
+        if not expression or not re.search(r"(?<![A-Za-z0-9.+*/^\-])" + re.escape(re.sub(r"\s", "", expression)) + r"(?![A-Za-z0-9.+*/^\-])", re.sub(r"\s", "", question)):
+            continue
+        request = data.get("verification_request") or {}
+        bound = any(receipt.get("tool") == "verify_math_result" and receipt.get("success")
+                    and receipt.get("verification", {}).get("passed") is True
+                    and receipt.get("args") == request for receipt in outputs)
+        if not bound:
+            continue
+        conclusion = re.split(r"[。\n]", answer.strip(" 。\n"))[-1]
+        numbers = _NUMBER_RE.findall(conclusion)
+        numeric = (data.get("result") or {}).get("numeric")
+        if len(numbers) == 1 and isinstance(numeric, (int, float)):
+            raw = re.match(r"[-+]?\d+(?:\.\d+)?", numbers[0].strip())
+            if raw and float(raw[0]) == numeric:
+                return True
     return False
 
 
@@ -151,6 +231,7 @@ def verify_answer(
     tool_context_pack: dict[str, Any] | None = None,
     evidence_items: list[dict[str, Any]] | None = None,
     answer_policy: str = "exact",
+    question: str = "",
 ) -> dict[str, Any]:
     text = str(answer or "").strip()
     checks: list[dict[str, Any]] = []
@@ -161,25 +242,39 @@ def verify_answer(
         check = {"id": str(output.get("id") or kind), "label": str(output.get("label") or kind)}
         if kind == "content":
             check.update(status="passed" if len(text) >= 4 else "failed", reason="" if len(text) >= 4 else "回答正文为空或过短")
+        elif kind == "general_answer":
+            # Detect the specific mode violation, not legitimate requests for
+            # missing problem conditions or out-of-subject explanations.
+            refusal = bool(re.search(
+                r"(?:未提供|缺少|没有|不足|未检索到).{0,15}教材(?:证据|内容).{0,45}(?:无法|不能)",
+                text.split("\n\n", 1)[0],
+            ))
+            # A source caveat followed by a general explanation is allowed.
+            if re.search(r"但(?:是)?|不过|一般(?:而言|来说)|通常", text):
+                refusal = False
+            check.update(status="failed" if refusal else "passed", reason="通用模式仍因缺少教材证据拒答" if refusal else "")
         elif kind == "question_part":
             anchors = [str(item) for item in output.get("anchors") or []]
             matched = [item for item in anchors if item and item in text]
-            passed = not anchors or bool(matched)
+            passed = not anchors or len(matched) == len(anchors)
             check.update(status="passed" if passed else "failed", matched=matched, reason="" if passed else "未找到该分项的核心对象")
         elif kind == "citation":
             valid_ids = {str(item.get("id") or "").upper() for item in (sources or []) if isinstance(item, dict)}
             cited_ids = {item.upper() for item in _CITATION_RE.findall(text)}
             invalid_removed = int((citation_trace or {}).get("invalid_ids_removed") or 0)
             if not valid_ids:
-                check.update(status="not_applicable", reason="本轮没有可引用的结构化来源")
+                check.update(status="failed", reason="本轮没有可引用的结构化来源")
             else:
                 matched_ids = cited_ids & valid_ids
                 source_texts = _source_texts(sources, evidence_items)
-                unsupported = [
-                    source_id for source_id in matched_ids
-                    if source_id in source_texts and not _citation_semantically_supported(text, source_id, source_texts[source_id])
-                ]
-                passed = bool(matched_ids) and invalid_removed == 0 and not unsupported
+                unsupported = sorted({
+                    match.group(1).upper() for match in _CITATION_RE.finditer(text)
+                    if match.group(1).upper() in matched_ids and (
+                        match.group(1).upper() not in source_texts or
+                        not _citation_semantically_supported(text, match.group(1).upper(),
+                                                            source_texts[match.group(1).upper()], match.start()))
+                })
+                passed = bool(matched_ids) and not (cited_ids - valid_ids) and invalid_removed == 0 and not unsupported
                 check.update(
                     status="passed" if passed else "failed",
                     cited_ids=sorted(cited_ids),
@@ -190,9 +285,10 @@ def verify_answer(
             formulas = _FORMULA_RE.findall(text)
             passed = bool(formulas) and _balanced_formula_delimiters(text)
             check.update(
-                status="passed" if passed else "failed",
+                status=_formula_support(text, "\n".join(_source_texts(sources, evidence_items).values())) if passed else "failed",
+                structure_status="passed" if passed else "failed",
                 formula_count=len(formulas),
-                reason="" if passed else "问题要求公式或推导关系，但回答缺少完整的 LaTeX 公式",
+                reason="公式结构完整；等价性仅在可核验范围内检查" if passed else "问题要求公式或推导关系，但回答缺少完整的 LaTeX 公式",
             )
         elif kind == "unit":
             expected = [str(item) for item in output.get("expected_units") or []]
@@ -215,9 +311,14 @@ def verify_answer(
                 passed = "未验证估算" in text or "未作为精确答案" in text
                 check.update(status="degraded" if passed else "failed", reason="用户选择只讲方法，数值不得标为精确答案")
             else:
-                check.update(status="unverified", reason="数值缺少与最终结论绑定的核验依据")
+                verified = _verified_numeric_conclusion(text, question, tool_context_pack or {})
+                check.update(status="passed" if verified else "unverified", reason="" if verified else "数值缺少与最终结论绑定的核验依据")
         checks.append(check)
 
+    if _FORMULA_RE.search(text) and not any(item["id"] == "formula" for item in checks):
+        math_status = _formula_support(text, "\n".join(_source_texts(sources, evidence_items).values()))
+        checks.append({"id": "formula", "label": "回答公式的核验依据", "status": math_status,
+                       "reason": "公式尚无等价性核验依据" if math_status == "unverified" else ""})
     failed = [item for item in checks if item.get("status") == "failed"]
     unverified = [item for item in checks if item.get("status") == "unverified"]
     degraded = [item for item in checks if item.get("status") == "degraded"]
@@ -237,5 +338,5 @@ def verification_notice(result: dict[str, Any]) -> str:
         labels = [labels_by_id.get(str(item.get("id") or ""), str(item.get("reason") or "必要内容需要核对")) for item in result.get("failures") or []]
         return f"> 回答验收未通过：{', '.join(labels)}。本轮结果未标记为完整答案。"
     if result.get("status") == "unverified":
-        return "> 数值核对：当前数值未通过确定性计算工具或独立证据验证，请将其视为未验证估算。"
+        return "> 回答核对：部分公式或数值尚无确定性核验依据，本轮结果未标记为完整答案。"
     return ""

@@ -205,6 +205,24 @@ def test_resolution_trace_requests_clarification_for_missing_ordinal():
     assert trace["clarification_message"]
 
 
+@pytest.mark.parametrize("history", [[], _history(["解释霍尔效应。"])])
+def test_same_sentence_pronoun_uses_explicit_object_before_history(history):
+    question = "电阻式传感器，它有两种材料，这两种材料构成的不同种类的传感器各有什么特点？适用于哪种场景"
+    resolved, trace = resolve_followup_with_trace(question, history)
+    assert resolved == question
+    assert trace["resolution_action"] == "continue"
+    assert trace["method"] == "deterministic_local_reference"
+    assert trace["is_followup"] is False
+    assert trace["state_after"]["topic"] == "电阻式传感器"
+    assert trace["referenced_turn_ids"] == []
+
+
+@pytest.mark.parametrize("question", ["它有两种材料，有什么特点？", "电阻式传感器，它和前面那个有什么区别？"])
+def test_local_reference_does_not_invent_missing_historical_object(question):
+    _, trace = resolve_followup_with_trace(question, [])
+    assert trace["resolution_action"] == "clarify"
+
+
 def test_resolver_v2_rephrase_keeps_topic_and_previous_intent():
     history = _history(["什么是压阻效应？"])
 

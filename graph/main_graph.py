@@ -236,6 +236,7 @@ def build_initial_state(
         "previous_subject": str(continuity.get("previous_subject") or ""),
         "conversation_context_seed": dict(continuity.get("conversation_context_seed") or {}),
         "conversation_context_pack": {},
+        "question_understanding": dict(continuity.get("question_understanding") or {}),
         "learning_context_pack": dict(continuity.get("learning_context_pack") or {}),
         "tool_context_pack": dict(continuity.get("tool_context_pack") or {}),
         "learning_task": dict(continuity.get("learning_task") or {}),

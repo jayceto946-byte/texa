@@ -1,6 +1,7 @@
 """Small, bounded request traces for diagnosing local RAG latency and ranking."""
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sqlite3
@@ -136,6 +137,12 @@ def _sanitize_context_trace(value: dict | None) -> dict:
             )[:300] if isinstance(resolution.get("semantic_resolver"), dict) else "",
             "state_before": _bounded_state(resolution.get("state_before")),
             "state_after": _bounded_state(resolution.get("state_after")),
+            "question_understanding": {
+                key: value for key, value in (resolution.get("question_understanding_trace") or {}).items()
+                if key in {"version", "mode", "attempted", "accepted", "reason", "elapsed_ms",
+                           "intent", "dimension_count", "entity_count"}
+                and isinstance(value, (str, int, float, bool))
+            },
         },
         "conversation_context": {
             "budget": int(conversation.get("budget") or 0),
@@ -173,6 +180,11 @@ def _sanitize_context_trace(value: dict | None) -> dict:
     }
 
 
+def _text_identity(value) -> str:
+    text = str(value or "")
+    return json.dumps({"chars": len(text), "sha256": hashlib.sha256(text.encode()).hexdigest()}, separators=(",", ":")) if text else ""
+
+
 def save_trace(trace: dict) -> None:
     evidence = [{
         "chunk_id": str(item.get("chunk_id") or ""),
@@ -182,6 +194,25 @@ def save_trace(trace: dict) -> None:
         "score": item.get("final_score", item.get("score")),
     } for item in (trace.get("evidence") or [])[:20]]
     context = _redact_diagnostic(_sanitize_context_trace(trace.get("context")))
+    resolution = context.get("resolution", {})
+    for key in ("raw_query", "resolved_query", "referenced_entity"):
+        resolution[key] = _text_identity(resolution.get(key))
+    resolution["referenced_entities"] = [_text_identity(value) for value in resolution.get("referenced_entities", [])]
+    for operation in resolution.get("state_operations", []):
+        for key in ("value", "old_value", "new_value"):
+            if key in operation:
+                operation[key] = _text_identity(operation[key])
+    for key in ("state_before", "state_after"):
+        resolution[key] = {"identity": _text_identity(json.dumps(resolution.get(key, {}), ensure_ascii=False))}
+    resolution["semantic_error"] = "resolver_failed" if resolution.get("semantic_error") else ""
+    conversation = context.get("conversation_context", {})
+    for key in ("current_topic",):
+        conversation[key] = _text_identity(conversation.get(key))
+    conversation["constraints"] = [_text_identity(value) for value in conversation.get("constraints", [])]
+    if "retrieval" in context:
+        context["retrieval"]["query"] = _text_identity(context["retrieval"].get("query"))
+    if context.get("retrieval", {}).get("error"):
+        context["retrieval"]["error"] = "retrieval_failed"
     evidence = _redact_diagnostic(evidence)
     with _connect() as conn:
         conn.execute("""
@@ -192,10 +223,10 @@ def save_trace(trace: dict) -> None:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             trace["request_id"], trace.get("created_at", time.time()), trace.get("conversation_id", ""),
-            _redact_diagnostic(trace.get("book_name", "")), _redact_diagnostic(str(trace.get("question") or "")[:1000]), trace.get("intent", ""),
+            _redact_diagnostic(trace.get("book_name", "")), _text_identity(trace.get("question")), trace.get("intent", ""),
             int(bool(trace.get("fast_path"))), trace.get("status", "done"), trace.get("ttft_ms"),
             trace.get("total_ms"), json.dumps(trace.get("timings") or {}, ensure_ascii=False),
-            json.dumps(evidence, ensure_ascii=False), _redact_diagnostic(str(trace.get("error") or "")[:2000]),
+            json.dumps(evidence, ensure_ascii=False), "request_failed" if trace.get("error") else "",
             json.dumps(context, ensure_ascii=False),
         ))
         conn.execute("DELETE FROM rag_traces WHERE request_id IN (SELECT request_id FROM rag_traces ORDER BY created_at DESC LIMIT -1 OFFSET ?)", (MAX_TRACE_ROWS,))

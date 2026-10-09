@@ -547,7 +547,13 @@ def append_message(
                     and str(existing.get("delivery_status") or "complete") in {"partial", "error", "waiting"}
                     and delivery_status == "complete"
                 )
-                if can_complete_partial:
+                update_visual_input = (
+                    role == "user" and isinstance(learning_task, dict)
+                    and learning_task.get("task_type") == "visual_qa"
+                    and (existing.get("learning_task") or {}).get("id") == learning_task.get("id")
+                    and (existing.get("content") != content or existing.get("learning_task") != learning_task)
+                )
+                if can_complete_partial or update_visual_input:
                     item["id"] = str(existing_row["message_id"])
                     item["created_at"] = str(existing.get("created_at") or now)
                     conn.execute(
@@ -562,7 +568,7 @@ def append_message(
                         ),
                     )
                     _append_event(
-                        conn, conversation_id, "partial_message_completed", item,
+                        conn, conversation_id, "visual_input_updated" if update_visual_input else "partial_message_completed", item,
                         message_id=item["id"], created_at=now,
                     )
                 else:

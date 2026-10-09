@@ -8,7 +8,7 @@ from typing import Any
 
 from ingestion.document_ir import CanonicalBook, canonical_chapter_title
 
-ADAPTER_VERSION = 'mineru-structured-content-v1'
+ADAPTER_VERSION = 'mineru-structured-content-v3'
 _EXCLUDED = {'header', 'footer', 'page_number', 'index', 'doc_title'}
 _KNOWN = {'text', 'paragraph_title', 'equation', 'table', 'image', 'chart', 'ref_text', *_EXCLUDED}
 _SECTION = re.compile(r'^(\d+(?:\s*\.\s*\d+){1,5})(?:\s+|(?=[^\d.]))(.+)$')
@@ -60,6 +60,9 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
     document_titles = []
     for source_page_index, page in enumerate(payload['pages']):
         page_idx = page['page_idx']
+        printed_labels = [str(item.get('content', '')).strip() for item in page['blocks']
+                          if item.get('type') == 'page_number']
+        printed_page = page.get('page_number') or (printed_labels[0] if len(printed_labels) == 1 else None)
         for source_block_index, raw in enumerate(page['blocks']):
             typ = raw['type']
             counts[typ] += 1
@@ -75,8 +78,9 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
                 producer=payload['metadata']['producer'], adapter_version=ADAPTER_VERSION,
                 bbox_space='page', bbox_format='xyxy', bbox_units='normalized',
             )
-            if 'page_number' in page:
-                attrs['printed_page_number'] = page['page_number']
+            if printed_page is not None:
+                attrs['printed_page_number'] = printed_page
+                attrs['printed_page_source'] = 'page.page_number' if page.get('page_number') else 'page_number_block'
             bbox = _bbox(raw.get('bbox'))
             confidence = _float_or_none(raw.get('confidence'))
             chapter = canonical_chapter_title(text) if typ == 'paragraph_title' else ''
@@ -113,7 +117,11 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
             if isinstance(image_source, dict):
                 image_source = image_source.get('path') or image_source.get('image_path') or ''
             source_relpath = _native_asset_path(str(image_source), source_root, source_base)
-            attrs.update(captions=captions, footnotes=footnotes)
+            from ingestion.figure_layout import normalized_box
+            attrs.update(captions=captions, footnotes=footnotes,
+                         visual_captions=[dict(text=_nested_text(c.get('content')), bbox=list(c['bbox']))
+                                          for c in [*raw.get('captions', []), *raw.get('footnotes', [])] if isinstance(c, dict)
+                                          and normalized_box(c.get('bbox'))])
             if typ in {'image', 'chart'}:
                 _append_mineru_item(builder, dict(type='image', image_caption=captions, image_footnote=footnotes,
                     img_path=image_source, page_idx=page_idx, bbox=bbox, confidence=confidence),
@@ -159,7 +167,52 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
                                 input_format='structured_content', input_counts=dict(counts),
                                 excluded_counts=dict(excluded), document_titles=document_titles,
                                 heading_policy='numbered-first; local enumeration remains paragraph; unnumbered bounded to numbered parent')
+    from ingestion.document_workflows import annotate_learning_units
+    annotate_learning_units(book)
     return book
+
+
+def build_caption_projection(book: CanonicalBook, payload: dict) -> dict:
+    """Adapt existing source coordinates without reparsing or rewriting the IR."""
+    from ingestion.figure_layout import LAYOUT_SCHEMA, LAYOUT_VERSION, normalized_box, caption_nodes
+    from ingestion.document_ir import canonical_book_fingerprint
+    from ingestion.document_adapters import _nested_text
+    validate_structured(payload)
+    figures = [b for b in book.blocks if b.block_type == 'figure']
+    identities = {}
+    for block in figures:
+        key = block.page_start, tuple(block.bbox or [])
+        if key in identities:
+            raise ValueError('Canonical 同页图片坐标不唯一，不能自动关联')
+        identities[key] = block
+    nodes = caption_nodes(book)
+    matched = set()
+    for page in payload['pages']:
+        for raw in page['blocks']:
+            if raw['type'] not in {'image', 'chart'}:
+                continue
+            block = identities.get((page['page_idx']+1, tuple(raw.get('bbox') or [])))
+            if block is None:
+                raise ValueError('原始输出图片与当前 Canonical 不一致，不能安装关联')
+            matched.add(block.block_id)
+            raw_captions = raw.get('captions')
+            if raw_captions is None:
+                # Native middle keeps captions as children. Its indices are
+                # not equivalent to collapsed structured block indices.
+                raw_captions = [node for node in raw.get('content') or []
+                                if isinstance(node, dict) and node.get('type') in {
+                                    'image_caption', 'image_footnote', 'chart_caption', 'chart_footnote'}]
+            else:
+                raw_captions = [*raw_captions, *raw.get('footnotes', [])]
+            for caption in raw_captions:
+                if isinstance(caption, dict) and normalized_box(caption.get('bbox')):
+                    nodes.append(dict(source_block_id=block.block_id, page=block.page_start,
+                                      text=_nested_text(caption.get('content')), bbox=list(caption['bbox'])))
+    if matched != {b.block_id for b in figures}:
+        raise ValueError('原始输出没有覆盖当前 Canonical 的全部图片')
+    unique = {(n['page'], tuple(n['bbox']), n['text']): n for n in nodes}
+    return dict(schema=LAYOUT_SCHEMA, layout_version=LAYOUT_VERSION, book_name=book.book_name,
+                canonical_hash=canonical_book_fingerprint(book), caption_nodes=list(unique.values()))
 
 
 def _native_asset_path(value: str, root: Path | None, base: Path | None) -> str:

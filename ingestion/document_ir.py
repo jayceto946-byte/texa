@@ -402,6 +402,10 @@ def validate_canonical_book(book: CanonicalBook) -> IngestionReport:
                 body_without_paths += 1
 
     _validate_heading_paths(heading_paths, issues)
+    from ingestion.document_workflows import content_review_signals
+    for block in book.blocks:
+        for code in content_review_signals(block):
+            issues.append(_issue('warning', code, 'OCR content requires source-page review', block.block_id))
     if not usable_body_blocks:
         if body_without_paths:
             issues.append(_issue(
@@ -456,6 +460,14 @@ def persist_canonical_book(
     _atomic_write_text(
         document_path,
         "".join(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in records),
+    )
+    # All source adapters share this intake boundary. The audit is diagnostic
+    # and hash-bound, never a claim that OCR/crops passed semantic review.
+    from ingestion.figure_audit import AUDIT_FILENAME, audit_figures
+    figure_audit = audit_figures(book, asset_root=document_path.parent)
+    _atomic_write_text(
+        document_path.parent / AUDIT_FILENAME,
+        json.dumps(figure_audit, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
     )
     _atomic_write_text(
         report_path,

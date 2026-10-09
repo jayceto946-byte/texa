@@ -50,6 +50,17 @@ def source(tmp_path):
     return output
 
 
+def test_native_caption_and_footnote_coordinates_survive_as_neutral_nodes():
+    sample = payload()
+    figure = sample['pages'][1]['blocks'][4]
+    figure.update(captions=[dict(content='图 2.15 工艺流程', bbox=[.2,.81,.7,.83])],
+                  footnotes=[dict(content='(d) 曝光', bbox=[.3,.8,.4,.81])])
+    book = MinerUAdapter.from_structured_content(sample, book_name='coordinates')
+    block = next(b for b in book.blocks if b.block_type == 'figure' and b.bbox)
+    assert block.attributes['visual_captions'] == [dict(text='图 2.15 工艺流程', bbox=[.2,.81,.7,.83]),
+                                                 dict(text='(d) 曝光', bbox=[.3,.8,.4,.81])]
+
+
 def test_native_mapping_hierarchy_formula_and_provenance(tmp_path):
     output = source(tmp_path)
     book = MinerUAdapter.from_output_dir(output, book_name='demo')
@@ -78,7 +89,7 @@ def test_native_mapping_hierarchy_formula_and_provenance(tmp_path):
 def test_native_preferred_and_invalid_native_is_not_silently_bridged(tmp_path):
     output = source(tmp_path)
     (output / 'texa_content_list_v1.json').write_text(json.dumps([dict(type='text', text='bridge should not win')]))
-    assert MinerUAdapter.from_output_dir(output, book_name='demo').parser_version == 'mineru-structured-content-v1'
+    assert MinerUAdapter.from_output_dir(output, book_name='demo').parser_version == 'mineru-structured-content-v3'
     (output / 'structured_content.json').write_text('{')
     with pytest.raises(ValueError, match='Invalid native'):
         MinerUAdapter.from_output_dir(output, book_name='demo')
@@ -148,7 +159,7 @@ def test_formal_structured_only_importer(monkeypatch, tmp_path):
     assert result.used_mineru and result.indexed_chunks > 0
     assert result.chapters == mineru_importer.chapters_from_mineru_output(output, 'demo')
     assert 'bridge' not in mineru_importer.extract_text_from_mineru_output(output)
-    assert result.canonical_book.parser_version == 'mineru-structured-content-v1'
+    assert result.canonical_book.parser_version == 'mineru-structured-content-v3'
 
 
 def test_html_table_rows_and_sentence_title_are_preserved_as_body():

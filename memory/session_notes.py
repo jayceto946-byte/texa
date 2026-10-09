@@ -16,7 +16,8 @@ SCHEMA_VERSION = 1
 
 
 class NoteError(ValueError):
-    def __init__(self, code: str, message: str, status: int = 422):
+    def __init__(self, code: str, message: str, status: int = 422, *, reason: str = "", path: str = ""):
+        self.reason, self.path = reason, path
         super().__init__(message)
         self.code, self.status = code, status
 

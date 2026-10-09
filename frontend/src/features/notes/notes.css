@@ -60,3 +60,11 @@
 @media(max-width:1024px) { .note-header-state { display:none; } .note-page-header { gap:8px; } }
 @media(max-width:760px) { .note-save-status { max-width:60px; white-space:normal; font-size:10px; } .note-page-header { padding-right:12px; }.note-page-header .note-actions { gap:3px; }.note-page-header .note-actions :is(button,a) { padding-inline:6px; }.note-fields-row { flex-direction:column; gap:0; }.note-filters { grid-template-columns:1fr; }.note-document { padding-right:20px; }.context-session-entry>.workspace-overflow-trigger { opacity:1; } }
 @media(hover:none) { .context-session-entry>.workspace-overflow-trigger { opacity:1; } }
+
+@media(max-width:600px) {
+  .notes-workspace .note-page-header { height:auto; min-height:var(--workspace-chrome-height); flex-basis:auto; flex-wrap:wrap; padding-block:8px; }
+  .note-page-header .note-actions { flex-wrap:wrap; white-space:normal; }
+  .note-fields :is(input:not([type=checkbox]),textarea,select) { font-size:16px; }
+  .note-edit-block { padding:12px; }
+  .note-document { padding-bottom:calc(70px + env(safe-area-inset-bottom)); }
+}

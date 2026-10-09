@@ -83,10 +83,16 @@ def _title_match_quality(query: str, title: str) -> float:
     return min(1.0, overlap + (0.45 if phrase else 0.0) + (0.55 if core_match else 0.0))
 
 
+def _normalized_enumeration_counts(text: str) -> str:
+    """Normalize equivalent list counts, without rewriting the stored corpus."""
+    return re.sub(r"([一二两三四五六七八九十\d]+)(?:大)?类", r"\1种", text).replace("二种", "两种")
+
+
 def _enumeration_match_quality(query: str, content: str) -> float:
-    if not any(marker in query for marker in ("哪些", "几种", "几个", "多少种", "四个", "七种", "列举", "分别")):
+    query = _normalized_enumeration_counts(query)
+    if not any(marker in query for marker in ("哪些", "几种", "几个", "多少种", "两种", "三种", "四种", "四个", "七种", "列举", "分别")):
         return 0.0
-    compact = re.sub(r"\s+", "", content or "")
+    compact = _normalized_enumeration_counts(re.sub(r"\s+", "", content or ""))
     count_match = any(
         marker in query and marker in compact
         for marker in ("两种", "三种", "四种", "四个", "五种", "六种", "七种", "八种")
@@ -264,9 +270,9 @@ def search_rows(rows: list[dict], query: str, *, k: int = 20, chapters: list[str
         explicit_counts = (
             "两种", "三种", "四种", "四个", "五种", "六种", "七种", "八种",
         )
-        requested_counts = [marker for marker in explicit_counts if marker in query]
+        requested_counts = [marker for marker in explicit_counts if marker in _normalized_enumeration_counts(query)]
         if requested_counts and not any(
-            marker in re.sub(r"\s+", "", str(rows[idx].get("content") or ""))
+            marker in _normalized_enumeration_counts(re.sub(r"\s+", "", str(rows[idx].get("content") or "")))
             for marker in requested_counts
         ):
             # A generic section introduction can match every topic token while

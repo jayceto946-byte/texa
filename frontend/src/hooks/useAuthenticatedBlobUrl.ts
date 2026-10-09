@@ -32,7 +32,7 @@ async function authenticatedHtmlBlob(path: string, signal: AbortSignal, childUrl
   return new Blob([`<!doctype html>\n${documentNode.documentElement.outerHTML}`], { type: 'text/html;charset=utf-8' });
 }
 
-export function useAuthenticatedBlobUrl(path: string, kind: 'binary' | 'html' = 'binary', reloadKey = 0): AuthenticatedBlobState {
+export function useAuthenticatedBlobUrl(path: string, kind: 'binary' | 'html' | 'pdf' = 'binary', reloadKey = 0): AuthenticatedBlobState {
   const [state, setState] = useState<AuthenticatedBlobState>({ url: '', loading: false, error: '' });
 
   useEffect(() => {
@@ -52,6 +52,7 @@ export function useAuthenticatedBlobUrl(path: string, kind: 'binary' | 'html' = 
       : getAuthenticatedBlob(path, controller.signal);
     void loadBlob.then((blob) => {
       if (!active) return;
+      if (kind === 'pdf' && blob.type.split(';')[0] !== 'application/pdf') throw new Error('教材来源没有返回可预览的 PDF');
       if (typeof URL.createObjectURL !== 'function') throw new Error('当前环境不支持本地资源预览');
       objectUrl = URL.createObjectURL(blob);
       setState({ url: objectUrl, loading: false, error: '' });

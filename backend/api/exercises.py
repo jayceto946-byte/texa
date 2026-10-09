@@ -33,7 +33,7 @@ from memory.exercise_bank import ExerciseBank, ExerciseRecord, PracticeSession, 
 from memory.mistake_lifecycle import MistakeLifecycleStore
 from memory.exercise_file_importer import extract_exercise_text
 from memory.exercise_importer import analyze_candidates, attach_answers_by_number, refine_low_confidence_candidates, split_candidate_blocks
-from memory.textbook_exercise_importer import extract_textbook_exercise_text
+from memory.textbook_exercise_importer import extract_textbook_exercise_text, analyze_learning_unit_candidates
 from memory.mistake_book import MistakeRecord, get_mistake_book
 from memory.learning_events import LearningEvent, concept_names, get_learning_event_store
 from utils.latex_sanitizer import sanitize_latex
@@ -46,6 +46,7 @@ router = APIRouter(prefix="/exercises", tags=["exercises"])
 UPLOAD_DIR = DATA_DIR / "uploads" / "exercises"
 EXERCISE_ANSWER_JOB_TYPE = "exercise_answer"
 _answer_job_lock = threading.Lock()
+_answer_job_creation_lock = threading.Lock()
 
 
 def _log_learning_event(event_type: str, *, book_name: str = "default", record: ExerciseRecord | None = None, source_type: str = "exercise", source_id: str = "", payload: dict | None = None) -> None:
@@ -365,10 +366,10 @@ def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: s
         if not extracted.text.strip():
             return {
                 "success": False,
-                "message": "未从教材中提取到可切分文本。请确认章节/页码范围，或先用 MinerU/OCR 导入扫描版教材。",
+                "message": "所选范围未识别到完整题目，请调整章节、物理页范围或抽取类型。" if extracted.provider == 'canonical-learning-units' else "未从教材中提取到可切分文本。请确认章节/页码范围，或先用 MinerU/OCR 导入扫描版教材。",
                 "extract": extracted.to_dict(),
             }
-        if not extracted.chapter.strip():
+        if not extracted.chapter.strip() and not extracted.units:
             return {
                 "success": False,
                 "message": "无法确定候选题所属章节。请缩小到单个章节的页码范围，或手动填写章节后重试。",
@@ -381,13 +382,15 @@ def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: s
         if extracted.page_start:
             page_label = f" p{extracted.page_start}" if not extracted.page_end or extracted.page_end == extracted.page_start else f" p{extracted.page_start}-{extracted.page_end}"
         source = f"{effective_book} / {chapter or '教材抽题'}{page_label}"
-        candidates = analyze_candidates(
-            split_candidate_blocks(extracted.text, limit=req.limit),
-            source=source,
-            subject=effective_subject,
-            chapter=chapter,
-            limit=req.limit,
-        )
+        if extracted.units:
+            candidates = analyze_learning_unit_candidates(
+                extracted.units, book_name=effective_book, subject=effective_subject, limit=req.limit,
+            )
+        else:
+            candidates = analyze_candidates(
+                split_candidate_blocks(extracted.text, limit=req.limit), source=source,
+                subject=effective_subject, chapter=chapter, limit=req.limit,
+            )
         if req.use_llm:
             candidates = refine_low_confidence_candidates(candidates, max_items=req.llm_max_items)
         data = _candidate_outputs(candidates, effective_book)
@@ -617,52 +620,10 @@ def generate_exercise_answer(req: ExerciseAnswerGenerateRequest, book_name: str 
     if not record:
         return {"success": False, "message": "未找到该习题"}
     try:
-        from config import get_llm
-        from graph.generator import _build_generate_prompt, grounded_failure_message, has_textbook_evidence
-        from graph.main_graph import build_initial_state
-        from graph.retrieval_node import retrieve_node
-
-        effective_book = book_name
-        target_chapters = [record.chapter] if record.chapter else []
-        prompt_question = (
-            "请为下列习题生成可核对的标准答案。先给结论，再给必要步骤、公式条件和易错点；"
-            "只使用检索到的教材证据，不足之处明确说明。\n\n题目：\n" + record.question_text
-        )
-        state = build_initial_state(
-            user_input=record.question_text,
-            book_name=effective_book,
-            subject=record.subject,
-            target_chapters=target_chapters,
-            use_textbook_context=True,
-        )
-        state["intent"] = "application"
-        state.update(retrieve_node(state))
-        if not has_textbook_evidence(state):
-            return {"success": False, "message": grounded_failure_message(state), "retrieval_status": state.get("retrieval_status", "unavailable")}
-        state["user_input"] = prompt_question
-        draft = get_llm(temperature=0.1).invoke(_build_generate_prompt(state)).content
-        draft = sanitize_latex(strip_thinking(str(draft or "").strip()))
-        if not draft:
-            return {"success": False, "message": "模型未生成有效答案"}
-        return {
-            "success": True,
-            "data": {
-                "answer": draft,
-                "evidence_count": len(state.get("evidence_items", [])),
-                "sources": [
-                    {
-                        "chapter": item.get("chapter", ""),
-                        "section_title": item.get("section_title", ""),
-                        "page_idx": item.get("page_idx", -1),
-                        "book_role": item.get("book_role", ""),
-                    }
-                    for item in state.get("evidence_items", [])[:6]
-                ],
-            },
-            "message": "已生成教材 RAG 答案草稿，请检查修改后保存",
-        }
-    except Exception as exc:
-        return {"success": False, "message": f"生成标准答案失败：{exc}"}
+        from backend.services.exercise_answers import generate_answer
+        return generate_answer(record, book_name=book_name)
+    except Exception:
+        return {"success": False, "message": "生成标准答案失败，请检查模型连接后重试", "reason": "exercise_answer_generation_failed"}
 
 
 def _find_exercise_answer_job(exercise_id: str, book_name: str) -> dict | None:
@@ -686,35 +647,39 @@ def _run_exercise_answer_job(job_id: str) -> None:
             )
             if not response.get("success"):
                 message = str(response.get("message") or "标准答案生成失败")
-                jobs.update_job(job_id, status="failed", stage="failed", progress=100, message=message, error=message)
+                jobs.update_job(job_id, status="failed", stage=response.get("delivery_status") or "failed", progress=100,
+                                message=message, error=response.get("reason") or response.get("delivery_status") or "generation_failed",
+                                result=response.get("data") or {})
                 return
             jobs.update_job(
                 job_id,
                 status="completed",
-                stage="completed",
+                stage=response.get("delivery_status") or "completed",
                 progress=100,
                 message=str(response.get("message") or "标准答案草稿已生成"),
                 result=response.get("data") or {},
             )
-        except Exception as exc:
-            jobs.update_job(job_id, status="failed", stage="failed", progress=100, message=f"标准答案生成失败：{exc}", error=str(exc))
+        except Exception:
+            jobs.update_job(job_id, status="failed", stage="failed", progress=100,
+                            message="标准答案生成失败，请检查模型连接后重试", error="exercise_answer_generation_failed")
 
 
 @router.post("/answer/jobs")
 def create_exercise_answer_job(req: ExerciseAnswerGenerateRequest, book_name: str = "default"):
     if not _bank(book_name).get(req.id):
         return {"success": False, "message": "未找到该习题"}
-    active = _find_exercise_answer_job(req.id, book_name)
-    if active and active.get("status") in {"queued", "running"}:
-        return {"success": True, "message": "标准答案正在后台生成", "job_id": active["id"], "data": active}
-    job = get_job_manager().create_job(
-        EXERCISE_ANSWER_JOB_TYPE,
-        {"exercise_id": req.id, "book_name": book_name},
-        status="queued",
-        stage="queued",
-        progress=0,
-        message="已加入标准答案生成队列",
-    )
+    with _answer_job_creation_lock:
+        active = _find_exercise_answer_job(req.id, book_name)
+        if active and active.get("status") in {"queued", "running"}:
+            return {"success": True, "message": "标准答案正在后台生成", "job_id": active["id"], "data": active}
+        job = get_job_manager().create_job(
+            EXERCISE_ANSWER_JOB_TYPE,
+            {"exercise_id": req.id, "book_name": book_name},
+            status="queued",
+            stage="queued",
+            progress=0,
+            message="已加入标准答案生成队列",
+        )
     threading.Thread(target=_run_exercise_answer_job, args=(job["id"],), daemon=True).start()
     return {"success": True, "message": "标准答案已转入后台生成", "job_id": job["id"], "data": job}
 

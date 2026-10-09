@@ -113,8 +113,7 @@ def prepare_chapter_subgraph(state: dict):
     Returns:
         (content, chapter, book_name, executor, futures)
     """
-    from graph.evidence_pack import build_evidence_pack
-    from graph.generator import has_textbook_evidence
+    from graph.generator import _prepare_evidence_pack, has_textbook_evidence
 
     if state.get("use_textbook_context", True) and not has_textbook_evidence(state):
         return "（无内容）", "", str(state.get("book_name") or ""), None, {}
@@ -123,11 +122,7 @@ def prepare_chapter_subgraph(state: dict):
     chapter = str(target[0]) if target else ""
     intent = state.get("intent", "teach")
     book_name = state.get("book_name", "default")
-    evidence_pack = build_evidence_pack(
-        state.get("evidence_items") or [],
-        intent=intent,
-    )
-    state["evidence_sources"] = evidence_pack["items"]
+    evidence_pack = _prepare_evidence_pack(state)
     content = str(evidence_pack.get("text") or "")
     if not chapter and evidence_pack["items"]:
         chapter = str(evidence_pack["items"][0].get("chapter") or "")
@@ -236,4 +231,5 @@ def chapter_subgraph_run(state: dict) -> dict:
         "conversation_context_pack": state.get("conversation_context_pack") or {},
         "context_budget": state.get("context_budget") or {},
         "evidence_sources": state.get("evidence_sources") or [],
+        "evidence_support": state.get("evidence_support") or {},
     }

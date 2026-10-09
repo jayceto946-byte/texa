@@ -266,6 +266,7 @@ class LearningTask:
             artifacts = value.get("artifacts") or {}
             value["artifacts"] = {
                 "visual_ir": artifacts.get("visual_ir") or {},
+                "image_url": f"/api/mistakes/tasks/{self.id}/image" if self.task_type == "visual_qa" and artifacts.get("image_path") else "",
                 "supplement_count": len(artifacts.get("supplemental_visual_irs") or []),
                 "completed_derivation": _bounded_text(artifacts.get("completed_derivation"), 4000),
                 "pending_actions": list(artifacts.get("pending_actions") or [])[:10],

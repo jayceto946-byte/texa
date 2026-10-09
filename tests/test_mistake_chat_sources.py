@@ -9,7 +9,9 @@ from memory.mistake_lifecycle import MistakeLifecycleStore
 
 def service(tmp_path, scope='default'):
     store = MistakeBookStore(tmp_path / f'mistake_book_{scope}.db')
-    return MistakeChatSourceService(MistakeLifecycleStore(store))
+    return MistakeChatSourceService(MistakeLifecycleStore(store), message_reader=lambda conv, mid: {
+        "id": mid, "role": "user", "turn_id": "turn", "content": "求极限"
+    })
 
 
 def test_concurrent_capture_reuses_one_draft_and_formal_record_after_review(tmp_path):
@@ -76,6 +78,7 @@ def test_turn_lookup_resolves_all_fresh_questions_from_authoritative_storage(tmp
         cm.append_message('conversation', 'assistant', f'回答 {i}', turn_id=tid)
         expected[tid] = user['id']
     source = service(tmp_path)
+    source.message_reader = cm.get_message
     states = source.lookup('conversation', [], [*expected, 'not-persisted'])
     assert {s['turn_id']: s['message_id'] for s in states if s['status'] == 'unrecorded'} == expected
     assert states[-1] == {'turn_id': 'not-persisted', 'message_id': '', 'status': 'pending'}

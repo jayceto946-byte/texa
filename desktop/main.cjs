@@ -12,10 +12,11 @@ const closePreparation = createClosePreparation();
 let allowWindowClose = false;
 
 async function prepareWindowClose() {
-  const ready = await closePreparation.prepare(mainWindow?.webContents);
-  if (!ready) {
-    mainWindow?.webContents.send('window:close-aborted');
-    mainWindow?.show();
+  const contents = mainWindow && !mainWindow.isDestroyed() ? mainWindow.webContents : null;
+  const ready = await closePreparation.prepare(contents);
+  if (!ready && mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('window:close-aborted');
+    mainWindow.show();
   }
   return ready;
 }

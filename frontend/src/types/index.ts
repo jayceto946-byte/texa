@@ -291,6 +291,7 @@ export interface WeakPoint {
 }
 
 export interface BookInfo {
+  has_pdf?: boolean;
   name: string;
   book_id?: string;
   displayName?: string;

@@ -76,7 +76,7 @@ _SUPPORT_META_PHRASES = (
     "其他两个", "另外两个", "分别是", "不是",
 )
 _SUPPORT_FILLER_PHRASES = (
-    "基本思想是什么", "是什么意思", "表示什么", "代表什么", "如何定义", "怎么定义", "有哪些", "有什么", "是什么",
+    "什么是", "啥是", "基本思想是什么", "是什么意思", "表示什么", "代表什么", "如何定义", "怎么定义", "有哪些", "有什么", "是什么",
     "为什么", "怎么样", "怎么", "如何", "是否", "能否", "适合吗",
     "的主要", "主要", "讲一下", "介绍一下", "说明一下",
     "请分析", "请解释", "请说明", "简述", "列出", "给出", "比较", "适合", "吗", "呢",
@@ -102,13 +102,19 @@ _FOCUS_TERM_ALIASES: dict[str, tuple[str, ...]] = {
     "近似成立条件": ("近似成立条件", "近似条件"),
     "基本公式": ("基本公式",),
     "具体公式": ("具体公式", "计算公式", "公式"),
+    "动态响应": ("动态响应",),
     "频率响应": ("频率响应", "频响"),
     "灵敏度": ("灵敏度",),
+    "微分方程": ("微分方程", "运动方程"),
+    "固有频率": ("固有频率", "自然频率"),
+    "阻尼比": ("阻尼比",),
+    "阶跃响应": ("阶跃响应",),
     "优缺点": ("优缺点",),
     "优点": ("优点",),
     "缺点": ("缺点",),
     "特点": ("特点",),
-    "分类": ("分类", "分为"),
+    "应用场景": ("应用场景", "适用场景", "场景"),
+    "分类": ("分类", "分为", "分成", "种类", "类型"),
     "取值范围": ("取值范围", "范围"),
     "条件": ("成立条件", "条件"),
     "关系": ("之间的联系", "相互联系", "联系", "之间的关系", "关系"),
@@ -160,7 +166,11 @@ def _is_table_query(query: str) -> bool:
 
 
 def _is_enumeration_query(query: str, intent: str, *, table_request: bool = False) -> bool:
-    if table_request or intent not in {"factual_recall", "formula"}:
+    if table_request:
+        return False
+    if re.search(r"[两二三四五六七八九十\d]+(?:种|类)材料", str(query or "")):
+        return True
+    if intent not in {"factual_recall", "formula"}:
         return False
     compact = re.sub(r"\s+", "", str(query or ""))
     if any(marker in compact for marker in (
@@ -169,7 +179,7 @@ def _is_enumeration_query(query: str, intent: str, *, table_request: bool = Fals
         "哪几个阶段", "哪四个阶段", "几个阶段",
     )):
         return True
-    return bool(re.search(r"哪[一二三四五六七八九十\d]+(?:类|种|项|个|方面|步骤|方法|阶段)", compact))
+    return bool(re.search(r"哪[一二两三四五六七八九十\d]+(?:类|种|项|个|方面|步骤|方法|阶段)", compact))
 
 
 def _normalized_table_title(value: str) -> str:
@@ -391,7 +401,7 @@ def _chapter_contents_from_evidence(items: list[dict]) -> dict[str, list[str]]:
     return result
 
 
-def _select_enumeration_anchor(items: list[dict], query: str = "") -> dict | None:
+def _select_enumeration_anchor(items: list[dict], query: str = "", *, query_topics: list[str] | None = None) -> dict | None:
     """Choose the semantic list header instead of the first generic method hit."""
     query_parts = re.split(r"[?？]", str(query or ""), maxsplit=1)
     hint_tokens = set(tokenize(query_parts[1])) if len(query_parts) == 2 else set()
@@ -407,9 +417,11 @@ def _select_enumeration_anchor(items: list[dict], query: str = "") -> dict | Non
         return any(marker in haystack for marker in query_markers)
 
     query_markers = [
-        marker for marker in ("特点", "优点", "缺点", "不足", "方法", "分类", "类型", "步骤", "阶段", "作用")
+        marker for marker in ("特点", "优点", "缺点", "不足", "方法", "分类", "种类", "类型", "步骤", "阶段", "作用")
         if marker in str(query or "")
     ]
+    if re.search(r"[两二三四五六七八九十\d]+(?:种|类)材料", str(query or "")) or any(marker in str(query or "") for marker in ("分类", "分为", "分成", "类型", "种类")):
+        query_markers.extend(["分类", "种类", "类型", "分为"])
     candidates = [
         item for item in items
         if float(item.get("enumeration_match_quality") or 0.0) >= 0.25
@@ -422,14 +434,14 @@ def _select_enumeration_anchor(items: list[dict], query: str = "") -> dict | Non
     ]
     if not candidates:
         return None
-    inferred_topics, _focus = _extract_query_focus(query, [])
+    inferred_topics, _focus = _extract_query_focus(query, query_topics or [])
     if inferred_topics:
         topic_candidates = [
             item for item in candidates
             if any(
-                topic in _normalized_support_text(
-                    f"{item.get('section_title', '')}\n{item.get('text') or item.get('content') or ''}"
-                )
+                _topic_term_matches(topic, _normalized_support_text(
+                    f"{' / '.join(item.get('section_path') or [])}\n{item.get('section_title', '')}\n{item.get('text') or item.get('content') or ''}"
+                ))
                 for topic in inferred_topics
             )
         ]
@@ -439,6 +451,11 @@ def _select_enumeration_anchor(items: list[dict], query: str = "") -> dict | Non
     if non_toc_candidates:
         candidates = non_toc_candidates
     return max(candidates, key=lambda item: (
+        # A requested classification is better anchored by its classification
+        # heading than by an application paragraph that merely says “类型”.
+        int(any(marker in query_markers for marker in ("分类", "种类", "类型")) and any(
+            marker in str(item.get("section_title") or "") for marker in ("分类", "种类", "类型")
+        )),
         3.0 * hint_coverage(item)
         + (2.0 if marker_match(item) else 0.0)
         + 2.0 * float(item.get("title_match_quality") or 0.0)
@@ -481,6 +498,46 @@ def _method_members(text: str) -> list[str]:
         if name and name not in members:
             members.append(name)
     return members[:10]
+
+
+def _classification_members(text: str) -> list[str]:
+    match = re.search(r"分为([^。；;\n]{2,80}?)[两二三](?:大)?类", text)
+    if not match:
+        return []
+    names = [value.strip() for value in re.split(r"和|及|、", match.group(1))]
+    return names if 2 <= len(names) <= 3 and all(2 <= len(name) <= 20 for name in names) else []
+
+
+def _classification_member_neighbors(anchor: dict, candidates: list[dict], members: list[str]) -> list[dict]:
+    """Bound explanations to explicitly named types in the same IR parent."""
+    result = []
+    parent = tuple(anchor.get("section_path", [])[:-1])
+    if not parent:
+        return result
+    for order, member in enumerate(members, 1):
+        def matches(item: dict) -> bool:
+            title = str(item.get("section_title") or "")
+            named = member in title
+            if member.endswith("应变片"):
+                named = named or bool(re.search(re.escape(member[:-3]) + r"(?:电阻)?应变片", title))
+            return bool(
+                named and str(item.get("book_name") or "") == str(anchor.get("book_name") or "")
+                and item.get("chapter") == anchor.get("chapter")
+                and tuple(item.get("section_path", [])[:-1]) == parent
+                and not item.get("retrieval_excluded")
+                and not _is_formula_item(item)
+            )
+        selected = sorted(
+            {str(item.get("chunk_id")): item for item in reversed(candidates) if item.get("chunk_id") and matches(item)}.values(),
+            key=lambda item: (
+                -sum(_focus_coverage(dimension, str(item.get("text") or item.get("content") or ""))
+                     for dimension in ("特点", "应用场景")),
+                int(item.get("retrieval_rank") or 999999),
+            ),
+        )[:2]
+        for item in selected:
+            result.append({**item, "is_list_neighbor": True, "list_group_order": order, "list_group_part": "member"})
+    return result
 
 
 def _list_group_neighbors(anchor: dict, expanded: list[dict]) -> list[dict]:
@@ -659,6 +716,15 @@ def _retrieve_node(
     primary_book = str(primary_resource.get("book_name") or book_name)
     intent = state.get("intent", "qa")
     retrieval_query = _retrieval_query_for_intent(user_input, intent)
+    from graph.question_understanding import retrieval_dimensions, interpretation_hint, interpretation_entities
+    dimension_terms = retrieval_dimensions(state.get("question_understanding"))
+    interpreted_dimensions = interpretation_hint(state.get("question_understanding")).get("dimensions", [])
+    query_topics = interpretation_entities(state.get("question_understanding"), user_input)
+    if not query_topics:
+        query_topics, _ = _extract_query_focus(user_input)
+    support_query = f"{user_input} {dimension_terms}" if dimension_terms else user_input
+    if dimension_terms:
+        retrieval_query = f"{retrieval_query} {dimension_terms}"
     retrieval_action = decide_retrieval_action(state)
 
     if not state.get("use_textbook_context", True):
@@ -782,7 +848,7 @@ def _retrieve_node(
     teaching_unit_request = _needs_teaching_unit_context(user_input, intent)
     table_request = _is_table_query(user_input)
     example_label = _explicit_example_label(user_input)
-    enumeration_request = _is_enumeration_query(user_input, intent, table_request=table_request)
+    enumeration_request = _is_enumeration_query(user_input, intent, table_request=table_request) or "classification" in interpreted_dimensions
     for resource in retrieval_resources:
         candidate_book = str(resource.get("book_name") or "")
         is_primary = bool(resource.get("is_primary"))
@@ -803,6 +869,26 @@ def _retrieve_node(
         except Exception as exc:
             candidate_lexical = []
             retrieval_errors.append(f"lexical:{candidate_book}:{exc}")
+        if query_topics and ("classification" in interpreted_dimensions or re.search(r"[两二三四五六七八九十\d]+(?:种|类)材料", user_input)):
+            # One bounded facet lookup prevents speech fillers and simultaneous
+            # features/application terms from burying the requested type list.
+            # All object words are literal question spans, with the same scope.
+            facet_query = " ".join(query_topics) + " 分类 种类"
+            if "材料" in user_input:
+                facet_query += " 材料"
+            try:
+                facet_items = (lexical_search or search_book)(
+                    candidate_book, facet_query, k=8, chapters=scoped_chapters,
+                )
+                candidate_lexical = list({
+                    str(item.get("chunk_id") or ""): item
+                    for item in [*facet_items, *candidate_lexical]
+                }.values())
+                if not lexical_succeeded:
+                    lexical_succeeded = True
+                    successful_retrieval_backends += 1
+            except Exception as exc:
+                retrieval_errors.append(f"lexical_understanding_facet:{candidate_book}:{exc}")
         fallback_chapters = list(dict.fromkeys(
             str(item.get("chapter") or "") for item in candidate_lexical if item.get("chapter")
         ))[:12]
@@ -855,7 +941,7 @@ def _retrieve_node(
             # A chapter-title hit often outranks the actual "特点/方法" list
             # header.  Expanding around that chapter hit walks arbitrary chunks
             # and can evict the consecutive list members from the final pack.
-            semantic_anchor = _select_enumeration_anchor(candidate_lexical, user_input)
+            semantic_anchor = _select_enumeration_anchor(candidate_lexical, support_query, query_topics=query_topics)
             if semantic_anchor is not None:
                 list_anchor = [semantic_anchor]
             elif float(candidate_lexical[0].get("title_match_quality") or 0.0) >= 0.5:
@@ -869,7 +955,7 @@ def _retrieve_node(
         teaching_anchors: list[dict] = []
         if teaching_unit_request and is_primary:
             seen_anchor_ids: set[str] = set()
-            topic_terms, _focus_terms = _extract_query_focus(user_input, matched_concepts)
+            topic_terms, _focus_terms = _extract_query_focus(user_input, [*matched_concepts, *query_topics])
             vector_teaching_anchors = []
             for anchor in candidate_vectors[:8]:
                 anchor_text = f"{anchor.get('section_title', '')}\n{anchor.get('text', '')}"
@@ -903,6 +989,24 @@ def _retrieve_node(
         )
         if list_anchor:
             candidate_neighbors = _list_group_neighbors(list_anchor[0], candidate_neighbors)
+            members = _classification_members(str(list_anchor[0].get("text") or list_anchor[0].get("content") or ""))
+            if members and "材料" in user_input and (
+                any(word in user_input for word in ("特点", "场景", "区别", "比较"))
+                or any(item in interpreted_dimensions for item in ("features", "scenarios", "comparison"))
+            ):
+                # Recover each named type beyond a short adjacency window.
+                # These reads stay in the same book/chapter/IR parent and do
+                # not authorize facts absent from the resulting EvidencePack.
+                member_candidates = []
+                for member in members:
+                    try:
+                        member_candidates.extend((lexical_search or search_book)(
+                            candidate_book, f"{member} 特点 应用", k=6,
+                            chapters=[str(list_anchor[0].get("chapter") or "")],
+                        ))
+                    except Exception as exc:
+                        retrieval_errors.append(f"lexical_classification:{candidate_book}:{exc}")
+                candidate_neighbors.extend(_classification_member_neighbors(list_anchor[0], member_candidates, members))
             group_text = "\n".join(
                 f"{item.get('section_title', '')}\n{item.get('text') or item.get('content') or ''}"
                 for item in candidate_neighbors
@@ -991,6 +1095,7 @@ def _retrieve_node(
         include_metadata=True,
         query=user_input,
         intent=intent,
+        enumeration_request=enumeration_request,
     )
 
     kg_path: list[str] = []
@@ -1108,9 +1213,9 @@ def _retrieve_node(
         ]
 
     evidence_support = _assess_evidence_support(
-        user_input,
+        support_query,
         candidate_evidence,
-        matched_concepts=matched_concepts,
+        matched_concepts=[*matched_concepts, *query_topics],
         intent=intent,
     )
     evidence_items = candidate_evidence if evidence_support["status"] in {"supported", "partial"} else []
@@ -1150,10 +1255,18 @@ def _retrieve_node(
         "dropped_evidence_ids": [],
     }
 def _supports_query_literals(query: str, text: str) -> bool:
-    """Require exact years, identifiers and Latin tokens when the query has them."""
-    literals = [token.lower() for token in re.findall(r"[A-Za-z]+\d*|\d{2,}", query or "")]
-    lowered = (text or "").lower()
-    return all(token in lowered for token in literals)
+    """Match named models, rather than user-supplied numeric conditions.
+
+    Method evidence need not repeat question numbers, units or parameters.
+    Alphanumeric model names remain exact tokens (PT100 is not PT1000).
+    """
+    models = re.findall(r"(?<![A-Za-z0-9_])[A-Za-z]{2,}(?:[-_][A-Za-z]+)*[-_]?\d+[A-Za-z0-9_-]*(?![A-Za-z0-9_])", query or "")
+    assigned = set(re.findall(r"([A-Za-z][A-Za-z0-9_]*)\s*=\s*[-+]?\d", query or ""))
+    models = [model for model in models if model not in assigned]
+    models.extend(re.findall(r"型号(?:为|是)?\s*([A-Za-z][-A-Za-z0-9_]*)", query or ""))
+    return all(re.search(r"(?<![A-Za-z0-9_])" + re.escape(model) + r"(?![A-Za-z0-9_])", text or "", re.I)
+               for model in models)
+
 
 
 
@@ -1166,7 +1279,12 @@ def _topic_term_matches(topic: str, normalized_text: str) -> bool:
     if topic in normalized_text:
         return True
     compact_topic = topic.replace("的", "")
-    return len(compact_topic) >= 4 and compact_topic in normalized_text.replace("的", "")
+    if len(compact_topic) >= 4 and compact_topic in normalized_text.replace("的", ""):
+        return True
+    # Sensor headings vary between “电阻式传感器” and
+    # “应变式电阻传感器”. Match that spelling variation, keeping the
+    # electrical principle (电阻/电容/压电/etc.) intact.
+    return topic.endswith("传感器") and topic.replace("式", "") in normalized_text.replace("式", "")
 
 
 def _dedupe_preserving_order(values: list[str]) -> list[str]:
@@ -1179,11 +1297,24 @@ def _dedupe_preserving_order(values: list[str]) -> list[str]:
     return result
 
 
+def _anchors_for_focus(segment: str) -> list[str]:
+    return [value for value in re.findall(r"[A-Za-z][A-Za-z0-9_-]*|[一-鿿]{2,}", segment)
+            if value not in _SUPPORT_FILLER_PHRASES]
+
+
 def _extract_query_focus(query: str, matched_concepts: list[str] | None = None) -> tuple[list[str], list[str]]:
     """Separate the known textbook topic from the fact the user actually asks for."""
     cleaned = str(query or "").lower()
+    # Supplied values are calculation inputs, not facts to repeat in every hit.
+    cleaned = re.sub(r"[a-z][a-z0-9_]*\s*=\s*[-+]?\d+(?:\.\d+)?\s*(?:mv|kv|ma|pa|kpa|mpa|khz|hz|mm|cm|ms|v|a|m|s|ω|℃|°c|%)?", " ", cleaned)
+    cleaned = re.sub(r"(?:^|[，,、])\s*(?:已知|求出|求)\s*", " ", cleaned)
+    cleaned = re.sub(r"^\s*\d+[.．、]\s*(?=[A-Za-z一-鿿])", "", cleaned)
+    cleaned = re.sub(r"^\s*(?:(?:请问|请|解释一下|解释|讲一下|介绍一下|什么是|啥是)\s*)+", "", cleaned)
+    cleaned = re.sub(r"^什么是\s*", "", cleaned)
     for phrase in _SUPPORT_META_PHRASES:
         cleaned = cleaned.replace(phrase, " ")
+    # Discourse prepositions are not part of the named object (e.g. 根据传感器).
+    cleaned = re.sub(r"^\s*(?:(?:请|请问)\s*)?(?:根据|按照|关于|针对|对于)\s*", "", cleaned)
     normalized_query = _normalized_support_text(cleaned)
 
     topics = [
@@ -1199,7 +1330,7 @@ def _extract_query_focus(query: str, matched_concepts: list[str] | None = None) 
     ]
     if not any(topic not in _GENERIC_TOPIC_TERMS for topic in topics):
         inferred_topic = re.match(
-            r"(?P<topic>[一-鿿]{1,6}传感器)(?:的|在|未来|是否|能否|有|是|$)",
+            r"(?P<topic>[一-鿿]{1,6}传感器)(?:的|在|未来|是否|能否|可以|分|有|是|它|其|[两二三四五六七八九十\d]+(?:种|类)|$)",
             normalized_query,
         )
         if inferred_topic:
@@ -1229,7 +1360,17 @@ def _extract_query_focus(query: str, matched_concepts: list[str] | None = None) 
                 continue
             result.append(canonical)
             occupied.append(span)
-        return topics, result
+        # Preserve additional named deliverables in an enumeration even when
+        # another item already matched the known dimension vocabulary.
+        for segment in re.split(r"[、；;]", cleaned)[1:]:
+            segment = re.sub(r"^(?:和|与|以及|并|说明|写出|给出)+", "", segment.strip())
+            segment = re.sub(r"[？?。！!]+$", "", segment).strip()
+            if (segment and not any(_normalized_support_text(alias) in _normalized_support_text(segment)
+                                    for aliases in _FOCUS_TERM_ALIASES.values() for alias in aliases)):
+                result.extend(_anchors_for_focus(segment))
+        result.extend(re.findall(r"(?<!\d)\d{4}年", cleaned))
+        result.extend(re.findall(r"[两二三四五六七八九十\d]+(?:种|类)材料", cleaned))
+        return topics, _dedupe_preserving_order(result)
 
     residual = normalized_query
     for topic in residual_topics:
@@ -1252,7 +1393,7 @@ def _focus_coverage(phrase: str, text: str, role: str = "") -> float:
     text = _normalized_support_text(raw_text)
     if not phrase:
         return 1.0
-    if phrase in text:
+    if phrase in text and not re.fullmatch(r"[两二三四五六七八九十\d]+(?:种|类)材料", phrase):
         return 1.0
     aliases = _FOCUS_TERM_ALIASES.get(phrase, ())
     if any(_normalized_support_text(alias) in text for alias in aliases):
@@ -1260,6 +1401,16 @@ def _focus_coverage(phrase: str, text: str, role: str = "") -> float:
     requested_counts = {"两个": 2, "三个": 3, "四个": 4, "五个": 5, "六个": 6, "七个": 7}
     if phrase in requested_counts and len(_method_members(raw_text)) >= requested_counts[phrase]:
         return 1.0
+    material_count = re.fullmatch(r"([两二三四五六七八九十\d]+)(?:种|类)材料", phrase)
+    if material_count:
+        count = {"两": 2, "二": 2, "三": 3, "四": 4}.get(material_count[1])
+        if count is None:
+            count = int(material_count[1]) if material_count[1].isdigit() else 0
+        return 1.0 if count and len(_classification_members(raw_text)) == count else 0.0
+    if phrase == "应用场景" and any(marker in text for marker in ("用于", "适用", "应用于", "用来")):
+        return 0.8
+    if phrase == "特点" and any(marker in text for marker in ("优点", "缺点", "性能", "稳定性", "灵敏度高")):
+        return 0.8
     if phrase in {"基本公式", "具体公式"} and role in {"formula", "derivation"}:
         return 0.8
     if phrase == "近似成立条件" and role in {"formula", "derivation", "proof"}:
@@ -1320,6 +1471,7 @@ def _assess_evidence_support(
     item_support = []
     for item in evidence_items:
         text = (
+            f"{' / '.join(item.get('section_path') or [])}\n"
             f"{item.get('section_title', '')}\n"
             f"{item.get('table_anchor_text', '')}\n"
             f"{item.get('text', '')}"
@@ -1330,6 +1482,10 @@ def _assess_evidence_support(
             or all(topic in _GENERIC_TOPIC_TERMS for topic in topics)
             or any(_topic_term_matches(topic, normalized_text) for topic in topics)
         )
+        # Location metadata can bind the topic, but cannot supply a missing fact
+        # in the final, clipped generator evidence.
+        if re.fullmatch(r"E\d+", str(item.get("id") or "")):
+            text = str(item.get("text") or "")
         item_support.append((item, text, topic_match))
     focus_coverages = {
         phrase: max((
@@ -1338,6 +1494,18 @@ def _assess_evidence_support(
         ), default=0.0)
         for phrase in focus
     }
+    material_focus = next((phrase for phrase in focus if re.fullmatch(r"[两二三四五六七八九十\d]+(?:种|类)材料", phrase)), "")
+    if material_focus:
+        groups = [_classification_members(text) for _item, text, topic_match in item_support
+                  if topic_match and _focus_coverage(material_focus, text) == 1.0]
+        members = next((group for group in groups if group), [])
+        for dimension in ("特点", "应用场景"):
+            if dimension in focus:
+                focus_coverages[dimension] = min((max((
+                    _focus_coverage(dimension, str(item.get("text") or ""), str(item.get("role") or ""))
+                    for item, _text, topic_match in item_support
+                    if topic_match and _normalized_support_text(member).replace("电阻", "") in _normalized_support_text(str(item.get("text") or "")).replace("电阻", "")
+                ), default=0.0) for member in members), default=0.0)
     if _relationship_supported(focus, topics, item_support):
         for phrase in ("关系", "区别"):
             if phrase in focus:
@@ -1368,6 +1536,11 @@ def _assess_evidence_support(
         status, reason = "insufficient", "topic_matched_but_question_focus_missing"
 
     return {
+        "fact_evidence": {phrase: [str(item.get("id") or item.get("chunk_id") or "")
+                                 for item, text, topic_match in item_support
+                                 if topic_match and focus_coverages[phrase] >= 0.6
+                                 and _focus_coverage(phrase, text, str(item.get("role") or "")) >= 0.6]
+                          for phrase in focus},
         "status": status,
         "reason": reason,
         "topic_terms": topics,
@@ -1612,6 +1785,7 @@ def _merge_and_rerank(
     include_metadata: bool = False,
     query: str = "",
     intent: str = "qa",
+    enumeration_request: bool = False,
 ):
     """Fuse KG, dense and BM25 ranks, then apply query-aware local reranking."""
     fused = {}
@@ -1743,7 +1917,7 @@ def _merge_and_rerank(
     rerank_meta = reranker_status()
 
     table_query = _is_table_query(query)
-    enumeration_query = _is_enumeration_query(query, intent, table_request=table_query)
+    enumeration_query = enumeration_request or _is_enumeration_query(query, intent, table_request=table_query)
     example_query = bool(_explicit_example_label(query))
     formula_query = intent == "formula"
     if table_query:

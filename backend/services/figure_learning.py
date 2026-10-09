@@ -3,17 +3,21 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 import tempfile
+import re
 import threading
 from typing import Any, Iterator
 import unicodedata
 from urllib.parse import quote
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageDraw
 
 from config import PROGRESS_PATH
+from ingestion.figure_layout import (
+    FigureLayout, LAYOUT_FILENAME, SUBCAPTION, load_caption_projection, project_figure_layout,
+)
 from ingestion.document_ir import (
     CanonicalBook,
     DocumentBlock,
@@ -31,6 +35,10 @@ MAX_FIGURE_PIXELS = 60_000_000
 MIN_REGION_FRACTION = 0.005
 MIN_REGION_PIXELS = 8
 MAX_CACHED_FIGURE_BOOKS = 8
+
+
+class FigureInputRequiredError(ValueError):
+    """A complete figure input is unavailable; do not call a model."""
 
 
 class FigureIndexOutOfDateError(RuntimeError):
@@ -85,12 +93,14 @@ class FigureContextPackage:
 
 @dataclass
 class _FigureBookCacheEntry:
-    signature: tuple[int, int, str]
+    signature: tuple[int, int, str, int, int]
     canonical_hash: str
     index_version: str
     book: CanonicalBook
     block_positions: dict[str, int]
     figures: list[tuple[int, DocumentBlock]]
+    groups: dict[str, list[DocumentBlock]] = field(default_factory=dict)
+    layout: FigureLayout = field(default_factory=FigureLayout)
     chunks: list[dict[str, Any]] | None = None
     chunks_by_id: dict[str, dict[str, Any]] | None = None
     block_chunk_ids: dict[str, list[str]] | None = None
@@ -110,11 +120,14 @@ class FigureLearningService:
     def _cache_key(self, book_name: str) -> tuple[str, str]:
         return str(self.progress_root.resolve()), book_name
 
-    def _source_signature(self, book_name: str) -> tuple[int, int, str]:
+    def _source_signature(self, book_name: str) -> tuple[int, int, str, int, int]:
         document_path, _report_path = canonical_paths(book_name, progress_root=self.progress_root)
         stat = document_path.stat()
         index_version = str(load_index_manifest(book_name).get("index_version") or "")
-        return stat.st_mtime_ns, stat.st_size, index_version
+        layout_path = document_path.parent / LAYOUT_FILENAME
+        layout_stat = layout_path.stat() if layout_path.exists() else None
+        return (stat.st_mtime_ns, stat.st_size, index_version,
+                layout_stat.st_mtime_ns if layout_stat else 0, layout_stat.st_size if layout_stat else 0)
 
     @read_snapshot
     def _cache_entry(self, book_name: str) -> _FigureBookCacheEntry:
@@ -138,6 +151,15 @@ class FigureLearningService:
             figures = [
                 (index, block) for index, block in enumerate(book.blocks) if block.block_type == "figure"
             ]
+            try:
+                # A new Canonical candidate owns its caption coordinates. An
+                # old, optional projection must not poison a later reimport.
+                owns_coordinates = bool(figures) and all('visual_captions' in block.attributes
+                                                         for _index, block in figures)
+                nodes = None if owns_coordinates else load_caption_projection(book, document_path.parent / LAYOUT_FILENAME)
+                layout = project_figure_layout(book, nodes)
+            except (OSError, ValueError) as exc:
+                raise FigureIndexOutOfDateError(f'figure_layout_out_of_date: {exc}') from exc
             entry = _FigureBookCacheEntry(
                 signature=signature,
                 canonical_hash=canonical_hash,
@@ -145,6 +167,7 @@ class FigureLearningService:
                 book=book,
                 block_positions=block_positions,
                 figures=figures,
+                groups=layout.groups, layout=layout,
             )
             self._book_cache[key] = entry
             self._book_cache.move_to_end(key)
@@ -241,7 +264,10 @@ class FigureLearningService:
         terms = [term for term in needle.split() if term]
         ranked: list[tuple[int, int, dict[str, Any]]] = []
         for index, block in entry.figures:
-            payload = self._figure_payload(book, block)
+            members = entry.groups.get(block.block_id)
+            if members and block.block_id != members[-1].block_id:
+                continue
+            payload = self._figure_payload(book, block, entry.groups.get(block.block_id), entry.layout.details.get(block.block_id))
             if not needle:
                 ranked.append((0, index, payload))
                 continue
@@ -280,7 +306,7 @@ class FigureLearningService:
         if position is not None:
             block = book.blocks[position]
             if block.block_type == "figure":
-                return book, block, self._figure_payload(book, block)
+                return book, block, self._figure_payload(book, block, entry.groups.get(block.block_id), entry.layout.details.get(block.block_id))
         raise KeyError(f"Figure not found: {target}")
 
     def asset_path(self, book_name: str, figure_id: str) -> Path:
@@ -313,18 +339,25 @@ class FigureLearningService:
         entry = self._cache_entry(book_name)
         self._ensure_chunk_index(entry)
         book, figure, payload = self.get_figure(book_name, figure_id)
-        figure_chunk_ids = list((entry.block_chunk_ids or {}).get(figure.block_id) or [])
-        figure_row = (entry.chunks_by_id or {}).get(figure_chunk_ids[0], {}) if figure_chunk_ids else {}
+        members = entry.groups.get(figure.block_id) or [figure]
+        member_ids = [member.block_id for member in members]
+        caption_ids = list(payload.get('caption_source_block_ids') or [])
+        evidence_ids = list(dict.fromkeys([*member_ids, *caption_ids]))
+        figure_chunk_ids = list(dict.fromkeys(chunk_id for member_id in evidence_ids
+                                            for chunk_id in (entry.block_chunk_ids or {}).get(member_id, [])))
+        figure_rows = [(entry.chunks_by_id or {}).get(chunk_id, {}) for chunk_id in figure_chunk_ids]
         payload = {
             **payload,
             "provenance_schema": PROVENANCE_SCHEMA_VERSION,
             "index_version": entry.index_version,
             "canonical_hash": entry.canonical_hash,
             "chunk_ids": figure_chunk_ids,
-            "source_block_ids": list(figure_row.get("source_block_ids") or [figure.block_id]),
-            "source_locations": list(figure_row.get("source_locations") or []),
+            "image_source_block_ids": member_ids,
+            "source_block_ids": list(dict.fromkeys(evidence_ids + [block_id for row in figure_rows for block_id in row.get("source_block_ids", [])])),
+            "source_locations": [location for row in figure_rows for location in row.get("source_locations", [])],
         }
-        figure_index = entry.block_positions[figure.block_id]
+        figure_index = min(entry.block_positions[member_id] for member_id in member_ids)
+        figure_end_index = max(entry.block_positions[member_id] for member_id in member_ids)
         before: list[DocumentBlock] = []
         after: list[DocumentBlock] = []
         for block in reversed(book.blocks[:figure_index]):
@@ -333,7 +366,7 @@ class FigureLearningService:
             if len(before) >= neighbor_count:
                 break
         before.reverse()
-        for block in book.blocks[figure_index + 1:]:
+        for block in book.blocks[figure_end_index + 1:]:
             if self._nearby_text_candidate(block, figure):
                 after.append(block)
             if len(after) >= neighbor_count:
@@ -369,7 +402,7 @@ class FigureLearningService:
                 "bbox": list(source_row.get("bbox") or []),
             })
 
-        source_ids = {figure.block_id, *(item["block_id"] for item in nearby)}
+        source_ids = {*member_ids, *(item["block_id"] for item in nearby)}
         related_chunk_ids = sorted(
             {
                 chunk_id
@@ -433,13 +466,121 @@ class FigureLearningService:
         return sources
 
     @contextmanager
+    def complete_figure_asset(self, book_name: str, figure_id: str) -> Iterator[Path]:
+        """Expose a bounded composite of confirmed subfigures, retaining raw crops."""
+        entry = self._cache_entry(book_name)
+        members = entry.groups.get(figure_id)
+        detail = entry.layout.details.get(figure_id) or {}
+        if detail.get('status') == 'ambiguous':
+            raise FigureInputRequiredError('当前图片的图题或组合关系不明确，请补充完整原图或来源页')
+        if not members:
+            _book, block, _payload = self.get_figure(book_name, figure_id)
+            if detail.get('status') != 'single' and re.match(r'^\s*[（(][b-h][）)]', block.text, re.I):
+                raise FigureInputRequiredError("当前来源仅包含后续子图，请补充包含全部子图的原图或来源页")
+            try:
+                source = self.asset_path(book_name, figure_id)
+            except FileNotFoundError as exc:
+                raise FigureInputRequiredError("教材图片资产缺失，请补充原图或来源页") from exc
+            yield source
+            return
+        images = []
+        temp_path = None
+        try:
+            for member in members:
+                try:
+                    source = self.asset_path(book_name, member.block_id)
+                except FileNotFoundError as exc:
+                    raise FigureInputRequiredError("组合图的子图资产缺失，请补充完整原图或来源页") from exc
+                with Image.open(source) as opened:
+                    if opened.width * opened.height > MAX_FIGURE_PIXELS:
+                        raise ValueError("Figure 像素数量超过安全限制")
+                    image = ImageOps.exif_transpose(opened).convert("RGB")
+                    if not detail.get('bounds'):
+                        image.thumbnail((1600 // len(members), 1200))
+                    images.append(image)
+            if detail.get('bounds'):
+                canvas = self._page_layout_canvas(members, images, detail)
+            else:
+                width = sum(image.width for image in images) + 16 * (len(images) + 1)
+                height = max(image.height for image in images) + 48
+                canvas = Image.new("RGB", (width, height), "white")
+                draw = ImageDraw.Draw(canvas)
+                left = 16
+                for index, image in enumerate(images):
+                    # Legacy groups were explicitly a/b/...; do not apply this
+                    # enumeration to a grid whose logical panels span crops.
+                    draw.text((left, 8), f"({chr(97 + index)})", fill="black")
+                    canvas.paste(image, (left, 32))
+                    left += image.width + 16
+            with tempfile.NamedTemporaryFile(prefix="texa-figure-group-", suffix=".png", delete=False) as temp:
+                temp_path = Path(temp.name)
+            canvas.save(temp_path, format="PNG")
+            canvas.close()
+            yield temp_path
+        finally:
+            for image in images:
+                image.close()
+            if temp_path is not None:
+                temp_path.unlink(missing_ok=True)
+
+    @staticmethod
+    def _page_layout_canvas(members, images, detail):
+        from statistics import median
+        from PIL import ImageFont
+        from ingestion.figure_layout import NUMBER
+        child_nodes = [n for n in detail['caption_sources'] if not NUMBER.match(n['text'])]
+        boxes = [b.bbox for b in members] + [n['bbox'] for n in child_nodes]
+        bounds = [min(b[0] for b in boxes), min(b[1] for b in boxes),
+                  max(b[2] for b in boxes), max(b[3] for b in boxes)]
+        sx = median(i.width/(b.bbox[2]-b.bbox[0]) for b, i in zip(members, images))
+        sy = median(i.height/(b.bbox[3]-b.bbox[1]) for b, i in zip(members, images))
+        scale = min(1, 2400/((bounds[2]-bounds[0])*sx+32), 2400/((bounds[3]-bounds[1])*sy+32))
+        sx, sy = sx*scale, sy*scale
+        canvas = Image.new('RGB', (round((bounds[2]-bounds[0])*sx)+32,
+                                   round((bounds[3]-bounds[1])*sy)+32), 'white')
+        for member, image in zip(members, images):
+            b = member.bbox
+            resized = image.resize((max(1, round((b[2]-b[0])*sx)), max(1, round((b[3]-b[1])*sy))), Image.Resampling.LANCZOS)
+            canvas.paste(resized, (round((b[0]-bounds[0])*sx)+16, round((b[1]-bounds[1])*sy)+16))
+            resized.close()
+        draw = ImageDraw.Draw(canvas)
+        import sys
+        runtime_root = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[2]))
+        fonts = list((runtime_root / 'frontend' / 'dist' / 'assets').glob('HarmonyOS_Sans_SC_Regular*.ttf'))
+        for node in child_nodes:
+            b = node['bbox']
+            if any(m.bbox[0] <= b[0] and m.bbox[1] <= b[1]
+                   and m.bbox[2] >= b[2] and m.bbox[3] >= b[3] for m in members):
+                continue  # This label is already inside the original pixels.
+            match = SUBCAPTION.match(node['text'])
+            label = f"({match.group(1)})" if match else node['text']
+            size = max(12, min(30, round((b[3]-b[1])*sy)))
+            # The same bundled font used by the desktop frontend is already
+            # shipped. Missing fonts leave the annotation in caption context.
+            if match:
+                font = ImageFont.load_default(size=size)
+            elif fonts and not re.search(r'[$\\\n]', label):
+                font = ImageFont.truetype(str(fonts[0]), size=size)
+            else:
+                continue
+            x = round(((b[0]+b[2])/2-bounds[0])*sx)+16
+            y = round((b[1]-bounds[1])*sy)+16
+            draw.text((x, y), label, fill='black', font=font, anchor='mt')
+        return canvas
+
+    @contextmanager
     def cropped_region(
         self,
         book_name: str,
         figure_id: str,
         bbox: NormalizedBBox,
     ) -> Iterator[tuple[Path, dict[str, Any]]]:
-        source = self.asset_path(book_name, figure_id)
+        with self.complete_figure_asset(book_name, figure_id) as source:
+            with self._crop_asset(source, bbox) as result:
+                yield result
+
+    @contextmanager
+    def _crop_asset(self, source: Path, bbox: NormalizedBBox):
         temp_path: Path | None = None
         try:
             with Image.open(source) as opened:
@@ -495,10 +636,11 @@ class FigureLearningService:
     def _normalize_search_text(value: Any) -> str:
         return " ".join(unicodedata.normalize("NFKC", str(value or "")).casefold().split())
 
-    def _figure_payload(self, book: CanonicalBook, block: DocumentBlock) -> dict[str, Any]:
+    def _figure_payload(self, book: CanonicalBook, block: DocumentBlock, members: list[DocumentBlock] | None = None,
+                        layout_detail: dict | None = None) -> dict[str, Any]:
         attributes = block.attributes or {}
         caption = attributes.get("caption") if "caption" in attributes else block.text
-        return {
+        payload = {
             "figure_id": block.block_id,
             "book_name": book.book_name,
             "caption": str(caption or "").strip(),
@@ -520,3 +662,29 @@ class FigureLearningService:
             "image_url": f"/api/books/{quote(book.book_name, safe='')}/figures/{quote(block.block_id, safe='')}/image",
             "pdf_url": f"/api/books/{quote(book.book_name, safe='')}/source-pdf",
         }
+        if members:
+            payload.update(
+                caption="\n".join(member.text for member in members),
+                source_text="\n".join(member.text for member in members),
+                image_url=f"/api/books/{quote(book.book_name, safe='')}/figures/{quote(block.block_id, safe='')}/group-image",
+                image_width=0, image_height=0, page_bbox=[], content_hash="", group_status="complete",
+                members=[dict(figure_id=member.block_id, caption=member.text, page_bbox=list(member.bbox or []),
+                              content_hash=str(member.attributes.get('content_hash') or ''),
+                              image_url=f"/api/books/{quote(book.book_name, safe='')}/figures/{quote(member.block_id, safe='')}/image")
+                         for member in members],
+            )
+        if layout_detail:
+            payload.update(layout_status=layout_detail['status'], layout_version=layout_detail.get('version', ''),
+                           caption_sources=list(layout_detail.get('caption_sources') or []),
+                           caption_source_block_ids=list(dict.fromkeys(n['source_block_id'] for n in layout_detail.get('caption_sources') or [])))
+            if layout_detail.get('caption'):
+                payload.update(caption=layout_detail['caption'], source_text=layout_detail['caption'],
+                               original_source_text=block.text, figure_number=layout_detail['figure_number'])
+            if members:
+                payload['group_status'] = layout_detail['status']
+                for member in payload['members']:
+                    member['original_caption'] = member['caption']
+                    member['caption'] = layout_detail.get('member_captions', {}).get(member['figure_id'], '')
+            if layout_detail['status'] == 'ambiguous':
+                payload['caption'] += '\n组合关系待补充原页'
+        return payload

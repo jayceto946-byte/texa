@@ -309,10 +309,15 @@ def test_visual_terminal_stays_delivered_when_domain_write_fails(isolated, monke
     monkeypatch.setattr(mistakes, "_iter_visual_solution_chunks", lambda *_a, **_k: iter(["answer"]))
     monkeypatch.setattr(mistakes, "_link_mistake_concepts", lambda *_a, **_k: [])
     monkeypatch.setattr(mistakes, "_verify_visual_answer", lambda answer, **_: (answer, {"passed": True, "status": "passed"}))
+    # Upload validation now decodes image bytes before the domain write path.
+    # Keep this failure-injection test focused on a committed answer's effects.
+    from PIL import Image
+    image_bytes = io.BytesIO()
+    Image.new("RGB", (8, 8), "white").save(image_bytes, format="PNG")
     with monkeypatch.context() as mp:
         mp.setattr(effects, "_apply", lambda *_: (_ for _ in ()).throw(OSError("disk full")))
         response = TestClient(app).post("/api/mistakes/solve-image-stream",
-                    files={"file": ("image.png", b"test", "image/png")}, data={"import_to_mistakes": "true"})
+                    files={"file": ("image.png", image_bytes.getvalue(), "image/png")}, data={"import_to_mistakes": "true"})
     rows = [json.loads(line[6:]) for line in response.text.splitlines() if line.startswith("data: ")]
     final = rows[-1]
     assert final["execution_event"]["type"] == "final"

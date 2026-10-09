@@ -78,7 +78,9 @@ function IntakeDraft({ draftId }: { draftId: string }) {
     return () => { active = false; };
   }, [draftId, query]);
   const change = <K extends keyof Form>(key: K, value: Form[K]) => {
-    setForm((current) => { const next = { ...current, [key]: value }; formRef.current = next; return next; });
+    const next = { ...formRef.current, [key]: value };
+    formRef.current = next;
+    setForm(next);
     changeCounter.current += 1;
     setDirty(true);
     setStatus('草稿尚未保存');

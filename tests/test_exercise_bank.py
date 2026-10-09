@@ -356,3 +356,23 @@ def test_practice_answer_without_mistake_does_not_initialize_mistake_book(monkey
     assert response["success"] is True
     assert response["data"]["status"] == "completed"
     assert response["mistake_id"] == ""
+
+
+def test_exercise_missing_table_and_transport_error_do_not_succeed(monkeypatch):
+    from types import SimpleNamespace
+    from backend.schemas import ExerciseAnswerGenerateRequest
+    record = SimpleNamespace(question_text="根据附表计算输出电压", chapter="第一章", subject="专业课")
+    monkeypatch.setattr(exercises, "_bank", lambda book_name: SimpleNamespace(get=lambda id: record))
+    monkeypatch.setattr("backend.services.exercise_answers.retrieve_node", lambda state: {"evidence_items": [{"text": "输出电压计算方法"}]})
+    response = exercises.generate_exercise_answer(ExerciseAnswerGenerateRequest(id="synthetic"), "test")
+    assert not response["success"]
+    assert response["delivery_status"] == "waiting_for_input"
+    assert response["data"]["required_inputs"][0]["blocking"]
+    assert response["data"]["learning_task"]["status"] == "waiting_for_input"
+    assert response["data"]["learning_task"]["conversation_id"] == ""
+    def fail(*args, **kwargs):
+        raise RuntimeError("SYNTHETIC_PRIVATE_MARKER")
+    monkeypatch.setattr("backend.services.exercise_answers.generate_answer", fail)
+    response = exercises.generate_exercise_answer(ExerciseAnswerGenerateRequest(id="synthetic"), "test")
+    assert "SYNTHETIC_PRIVATE_MARKER" not in str(response)
+    assert not response["success"]

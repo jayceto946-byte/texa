@@ -74,7 +74,7 @@ export function GenerationWorkspace({ draft, reload }: {
     const terminal = Boolean(draft.recovery_error) || (draft.job && ['failed', 'cancelled', 'interrupted'].includes(draft.job.status));
     const status = draft.job?.status;
     const heading = status === 'cancelled' ? '生成已取消' : status === 'interrupted' ? '生成已中断' : terminal ? '生成未完成' : status === 'cancelling' ? '正在停止' : status === 'queued' ? '等待开始整理' : '正在整理学习内容';
-    const message = draft.recovery_error ? '保存的生成结果未通过发布检查，请重试或手动整理。' : status === 'cancelling' ? '正在取消生成，停止后可从保存的来源重试或手动整理。' : status === 'interrupted' ? '生成已中断，来源已保留；不会自动重跑模型。' : status === 'cancelled' ? '生成已停止，来源已保留；可重试或手动整理。' : status === 'failed' ? '这次整理未能完成，来源已保留；可重试或手动整理。' : status === 'queued' ? '任务正在等待处理，可返回会话继续学习。' : draft.job?.message || '正在准备会话内容…';
+    const message = draft.recovery_error ? '保存的生成结果未通过发布检查，请重试或手动整理。' : status === 'cancelling' ? '正在取消生成，停止后可从保存的来源重试或手动整理。' : status === 'interrupted' ? '生成已中断，来源已保留；不会自动重跑模型。' : status === 'cancelled' ? '生成已停止，来源已保留；可重试或手动整理。' : status === 'failed' ? draft.job?.message || '这次整理未能完成，来源已保留；可重试或手动整理。' : status === 'queued' ? '任务正在等待处理，可返回会话继续学习。' : draft.job?.message || '正在准备会话内容…';
     const action = async (kind: 'cancel' | 'retry' | 'manual' | 'discard') => {
         setBusy(true);
         setError('');

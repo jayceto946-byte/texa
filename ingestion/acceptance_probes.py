@@ -5,6 +5,7 @@ are not human goldens and must not be used to claim OCR or textbook truth.
 """
 from __future__ import annotations
 
+from dataclasses import replace
 import hashlib
 import json
 import os
@@ -46,10 +47,19 @@ def generate_acceptance_probes(
         if block.block_type == "table":
             table_groups.setdefault(tuple(retrieval_paths.get(block.block_id, block.section_path)), []).append(index)
     table_contexts = _table_contexts(book.blocks, table_groups)
+    from ingestion.document_workflows import learning_units
+    units = {unit.unit_id: unit for unit in learning_units(book) if unit.kind == 'example'}
 
     for block_index, block in enumerate(book.blocks):
-        for specialty, question, points in _block_probes(block):
-            usable_points = _unique([point for point in points if _usable_anchor(point, block.text)])
+        unit = units.get(block.block_id)
+        probe_block = block
+        if unit:
+            probe_block = replace(block, block_type='example', text=unit.text)
+        # Continuation blocks are one source example, not separate examples.
+        if block.attributes.get('example_id') and block.attributes['example_id'] != block.block_id:
+            probe_block = replace(block, block_type='paragraph') if block.block_type == 'example' else block
+        for specialty, question, points in _block_probes(probe_block):
+            usable_points = _unique([point for point in points if _usable_anchor(point, probe_block.text)])
             if not question or not usable_points:
                 continue
             key = (specialty, question, tuple(usable_points))
@@ -75,6 +85,8 @@ def generate_acceptance_probes(
                 "provenance": {
                     "source": "canonical_document_ir",
                     "block_id": block.block_id,
+                    "source_block_ids": [member.block_id for member in units[block.block_id].blocks]
+                        if specialty == 'example' and block.block_id in units else [block.block_id],
                     "block_type": block.block_type,
                     "section_path": list(block.section_path),
                     "page_start": block.page_start,
@@ -213,6 +225,8 @@ def generate_acceptance_probes(
         for specialty in SPECIALTIES
         for case in _spread(candidates[specialty], limit)
     ]
+    # Count source starts even if a malformed/empty unit cannot generate a probe.
+    source_inventory['example'] = max(source_inventory['example'], len(units))
     return {
         "schema_version": PROBE_SCHEMA_VERSION,
         "book_name": book.book_name,
@@ -275,8 +289,9 @@ def _block_probes(block: DocumentBlock):
     if len(list_items) >= 2 and _has_list_context(text):
         yield "list", _list_probe_question(section, list_items), list_items[:3]
 
-    if block.block_type == "example" or re.match(r"^(?:例题|例\s*\d+|示例)", text):
-        label = _first_match(r"(?:例题\s*[\d.-]*|例\s*\d+(?:[.-]\d+)*|示例\s*\d*)", text)
+    from ingestion.document_workflows import example_label
+    if block.block_type == "example" or example_label(text):
+        label = example_label(text)
         anchors = _example_anchors(text, label)
         # Use the source stem itself: generic wording such as “解题要点” can
         # be rejected by the production literal-support gate before the
@@ -381,7 +396,8 @@ def _example_anchors(text: str, label: str) -> list[str]:
     if label:
         anchors.append(label)
     stem = re.split(r"(?:\n|解\s*[：:]|答案\s*[：:]|证明\s*[：:])", text, maxsplit=1)[0]
-    stem = re.sub(r"^(?:例题|例\s*\d+(?:[.-]\d+)*|示例)\s*[\d.-]*\s*", "", stem).strip(" ：:")
+    from ingestion.document_workflows import EXAMPLE_START
+    stem = EXAMPLE_START.sub('', stem, count=1).strip(" ：:")
     if stem:
         anchors.append(_source_anchor(text, stem))
     solution = re.search(r"(?:解|答案|证明)\s*[：:]\s*(.{4,100})", text, flags=re.DOTALL)

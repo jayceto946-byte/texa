@@ -127,6 +127,7 @@ def _chat_execution_envelope(event: dict) -> dict:
 def _main_tool_request(
     question: str, book_name: str, subject: str, conversation_id: str,
     learning_task_id: str = "",
+    question_understanding: dict | None = None,
 ) -> ToolOrchestrationRequest:
     return ToolOrchestrationRequest(
         question=question,
@@ -136,6 +137,7 @@ def _main_tool_request(
         max_tools=6,
         include_textbook_tool=False,
         learning_task_id=learning_task_id,
+        question_understanding=question_understanding,
     )
 
 
@@ -237,10 +239,12 @@ def _prepare_main_tool_context(
     question: str, book_name: str, subject: str, conversation_id: str,
     learning_task_id: str = "",
     on_event=None,
+    question_understanding: dict | None = None,
 ) -> dict:
     try:
         return execute_read_only_tools(_main_tool_request(
             question, book_name, subject, conversation_id, learning_task_id,
+            question_understanding=question_understanding,
         ), on_event=on_event)
     except Exception as exc:
         logger.exception("main chat tool orchestration failed")
@@ -408,10 +412,14 @@ def _resolve_request_question(
 ) -> tuple[str, dict]:
     try:
         ledger = get_or_rebuild_session_ledger(conversation_id, history)
-        trace = build_resolution_trace(
-            question, history, initial_state=ledger.get("state") or {},
-        )
-        trace["ledger_base_revision"] = int(ledger.get("last_seq") or 0)
+    except Exception:
+        logger.exception("session ledger unavailable; using bounded recent history")
+        ledger = None
+    trace = build_resolution_trace(
+        question, history, initial_state=(ledger.get("state") or {}) if ledger else None,
+    )
+    trace["ledger_base_revision"] = int((ledger or {}).get("last_seq") or 0)
+    try:
         bridge = bridge_learning_request(
             question,
             str(trace.get("speech_act") or ""),
@@ -436,11 +444,11 @@ def _resolve_request_question(
             trace["resolved_query"] = bridge.resolved_query
         return str(trace.get("resolved_query") or question), trace
     except Exception:
-        logger.exception("session ledger resolution failed; falling back to recent history")
-        rewritten = rewrite_followup(
-            question, history, book_name=book_name, subject=subject,
-        )
-        return rewritten, build_resolution_trace(question, history, rewritten)
+        # A later bridge failure must not repeat upstream interpretation or
+        # invoke the answer model to rewrite an already resolved question.
+        logger.exception("learning bridge unavailable; preserving resolution")
+        trace["learning_bridge"] = {"action": "none", "error": "bridge_unavailable"}
+        return str(trace.get("resolved_query") or question), trace
 
 
 def _conversation_context_seed(
@@ -661,6 +669,7 @@ def _prepare_chat_turn(
         conversation_id, history, resolution_trace,
     )
     continuity_context["learning_context_pack"] = _learning_context_for_graph(resolution_trace)
+    continuity_context["question_understanding"] = dict(resolution_trace.get("question_understanding") or {})
     subject_suggestion = _safe_subject_suggestion(rewritten_question, subject, book_name)
     scope_decision = decide_answer_scope(
         req.question,
@@ -930,6 +939,7 @@ def _prepared_chat_stream(
                 resolved_query=rewritten_question, answer_mode=answer_mode,
                 subject=subject, book_ids=(book_name,) if book_name else (),
                 current_task_status="", resolution_status=str(resolution_trace.get("resolution_action") or "resolved"),
+                question_understanding=resolution_trace.get("question_understanding") or {},
             ))
             if routing_decision.mode == "direct_answer" and not use_textbook_context and os.getenv("TEXA_AGENT_DIRECT_FAST_PATH", "0") == "1":
                 from dataclasses import replace
@@ -987,6 +997,7 @@ def _prepared_chat_stream(
                     request_id=request_id, text=req.question, resolved_query=rewritten_question,
                     answer_mode=answer_mode, subject=subject,
                     book_ids=(book_name,) if book_name else (),
+                    question_understanding=resolution_trace.get("question_understanding") or {},
                 ), routing_decision, task_id=learning_task.id)
             except Exception:
                 logger.exception("shadow routing trace persistence failed")
@@ -1117,6 +1128,7 @@ def _prepared_chat_stream(
                         conversation_id,
                         learning_task.id,
                         on_event=on_tool_event,
+                        question_understanding=resolution_trace.get("question_understanding"),
                     )
                     event_queue.put(("done", result))
                 except Exception as exc:  # pragma: no cover - service already degrades safely
@@ -1383,7 +1395,8 @@ def _prepared_chat_stream(
                 planned_tools = []
                 continuity_context["direct_answer"] = True
             else:
-                tool_request = _main_tool_request(rewritten_question, book_name, subject, conversation_id)
+                tool_request = _main_tool_request(rewritten_question, book_name, subject, conversation_id,
+                                                 question_understanding=resolution_trace.get("question_understanding"))
                 planned_tools = select_tool_calls(tool_request)
             if planned_tools and answer_mode != "subject_mismatch":
                 yield activity_sse({
@@ -1889,6 +1902,7 @@ def chat_ask(req: ChatRequest):
             if answer_mode != "subject_mismatch":
                 tool_run = _prepare_main_tool_context(
                     rewritten_question, book_name, subject, conversation_id, learning_task.id,
+                    question_understanding=resolution_trace.get("question_understanding"),
                 )
                 learning_task = _attach_pending_actions(learning_task, tool_run, run_id=run_id)
                 continuity_context["learning_task"] = learning_task.to_dict()

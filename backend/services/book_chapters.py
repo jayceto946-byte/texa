@@ -146,6 +146,7 @@ def format_chapter(chapter: dict) -> dict:
         "end_page": chapter.get("end_page"),
         "subsections": [
             {
+                **{key: subsection[key] for key in ('heading_block_id', 'parent_heading_block_id', 'level', 'section_path', 'page_kind', 'printed_page') if key in subsection},
                 "title": subsection.get("title", ""),
                 "page": subsection.get("page", subsection.get("page_number")),
                 "end_page": subsection.get("end_page"),

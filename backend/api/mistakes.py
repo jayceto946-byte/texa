@@ -18,6 +18,7 @@ from backend.conversation_memory import ensure_conversation_id, ensure_turn_id, 
 from backend.rag_trace import new_request_id
 from backend.services.execution_events import ExecutionEventEmitter, execution_sse_payload
 from backend.services.mistake_images import MistakeImageStore
+from backend.services.visual_session_assets import visual_session_text
 from backend.services.execution_effects import recover_task_effects, visual_effect, visual_effect_result
 from backend.services.multimodal_bridge import KimiVisionBridge, VisualProblemIR, build_solution_prompt
 from backend.services.learning_task import (
@@ -592,7 +593,8 @@ def _visual_task_emitter(*, store, task, run_id: str, request_id: str, task_prov
             scope = {"book_name": str(artifacts.get("book_name") or "default"),
                      "subject": str(artifacts.get("subject") or ""), "request_id": request_id}
             messages = [
-                {"role": "user", "text": str(artifacts.get("question") or current_task.goal), **scope},
+                {"role": "user", "text": visual_session_text(artifacts, current_task.goal),
+                 "learning_task": current_task.to_dict(public=True), **scope},
                 {"role": "assistant", "text": content, "linked_concepts": artifacts.get("linked_concepts") or [],
                  "delivery_status": "waiting" if input_gate else "error" if event["type"] == "error" else "complete", **scope},
             ]
@@ -661,6 +663,7 @@ def _create_visual_learning_task(
     turn_id: str = "",
     run_id: str,
     vision_pending: bool = False,
+    original_path: Path | None = None,
 ):
     task = store.create(
         task_type="visual_qa",
@@ -692,6 +695,10 @@ def _create_visual_learning_task(
     )
     retained = _image_store.retain_for_task(image_path, task.id)
     task.artifacts["image_path"] = str(retained)
+    if original_path is not None:
+        task.artifacts["original_image_path"] = str(_image_store.retain_for_task(original_path, task.id, original=True))
+        _image_store.delete(original_path)
+        _image_store.delete(image_path)
     return store.save_for_run(task, run_id)
 
 
@@ -739,6 +746,17 @@ def _stream_solution_events(
     )
     chunks: list[str] = []
     first_visible_chunk = True
+    pending_text = ""
+    last_output_at = step_started
+
+    def output_event(text):
+        return emit_sse(
+            "output_delta", phase="generation", status="running",
+            summary="正在逐步输出正式讲解", operation_id="generate",
+            label="生成答案", kind="generation",
+            payload={"text": text, "replace": False},
+        )
+
     with owned_provider_events(lambda: _iter_visual_solution_chunks(
         visual_ir,
         user_question=user_question,
@@ -750,10 +768,15 @@ def _stream_solution_events(
     )) as provider_events:
         for event_type, chunk in provider_events:
             if event_type == "progress":
+                if pending_text:
+                    yield output_event(pending_text)
+                    pending_text = ""
+                    last_output_at = time.perf_counter()
                 yield emit_sse("progress", phase="reasoning", status="running",
                                summary="模型仍在处理当前问题", operation_id="reason",
                                label=reason_label, kind="reasoning")
                 continue
+            emit_first_chunk = first_visible_chunk
             if first_visible_chunk:
                 first_visible_chunk = False
                 yield emit_sse(
@@ -763,13 +786,16 @@ def _stream_solution_events(
                     duration_ms=round((time.perf_counter() - step_started) * 1000, 2),
                 )
             chunks.append(chunk)
-            yield emit_sse(
-                "output_delta", phase="generation", status="running",
-                summary="正在逐步输出正式讲解", operation_id="generate",
-                label="生成答案", kind="generation",
-                payload={"text": str(chunk or ""), "replace": False},
-            )
+            pending_text += str(chunk or "")
+            # Keep the first text immediate; batch token-sized deltas to avoid
+            # hundreds of small SSE frames over a slow mobile relay.
+            if emit_first_chunk or len(pending_text) >= 96 or time.perf_counter() - last_output_at >= 0.25:
+                yield output_event(pending_text)
+                pending_text = ""
+                last_output_at = time.perf_counter()
 
+    if pending_text:
+        yield output_event(pending_text)
     if first_visible_chunk:
         yield emit_sse(
             "progress", phase="reasoning", status="completed",
@@ -797,6 +823,7 @@ def _stream_solution_events(
 @router.post("/solve-image-stream")
 def solve_mistake_image_stream(
     file: UploadFile = File(...),
+    original_file: UploadFile | None = File(None),
     user_answer: str = Form(""),
     subject: str = Form(""),
     tags: str = Form(""),
@@ -818,6 +845,7 @@ def solve_mistake_image_stream(
     def events():
         nonlocal task
         image_path: Path | None = None
+        original_path: Path | None = None
         emitter = None
         started = time.perf_counter()
 
@@ -860,7 +888,7 @@ def solve_mistake_image_stream(
 
         try:
             step_started = time.perf_counter()
-            image_path = _image_store.save_upload(file)
+            original_path, image_path = _image_store.save_visual_upload(file, original_file)
             task = _create_visual_learning_task(
                 store=store,
                 visual_ir=VisualProblemIR(problem_text=question),
@@ -875,6 +903,7 @@ def solve_mistake_image_stream(
                 turn_id=resolved_turn_id,
                 run_id=run_id,
                 vision_pending=True,
+                original_path=original_path,
             )
             image_path = Path(task.artifacts["image_path"])
             emitter = _visual_task_emitter(
@@ -1033,7 +1062,9 @@ def solve_mistake_image_stream(
         except Exception as exc:
             if task is not None and not store.run_is_active(task.id, run_id):
                 return
-            _image_store.delete(image_path)
+            if task is None:
+                _image_store.delete(image_path)
+                _image_store.delete(original_path)
             if task is not None and emitter is not None:
                 task = store.prepare_checkpoint_for_run(
                     task, run_id, "failed", status="failed", detail=str(exc),
@@ -1650,3 +1681,19 @@ def explain_mistake(req: MistakeExplainRequest, book_name: str = "default"):
         return {"success": True, "explanation": sanitized, "data": _record_to_out(record) if record else None}
     except Exception as e:
         return {"success": False, "message": f"讲解失败: {e}"}
+
+
+@router.get("/tasks/{task_id}/image")
+def get_visual_task_image(task_id: str, preview: bool = False):
+    task = get_learning_task_store().get(task_id)
+    if task is None or task.task_type != "visual_qa":
+        raise HTTPException(status_code=404, detail="图片任务不存在")
+    path = Path(task.artifacts.get("original_image_path") or task.artifacts.get("image_path") or "").resolve()
+    if not path.is_relative_to(_image_store.image_root.resolve()) or not path.is_file():
+        raise HTTPException(status_code=404, detail="原图不存在")
+    if preview:
+        try:
+            path = _image_store.preview_image(path)
+        except (OSError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail="题目图片预览无法生成，请读取原尺寸图片") from exc
+    return FileResponse(path)

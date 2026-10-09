@@ -1,3 +1,4 @@
+import { imageUploadError } from '../features/mistakes/imageProcessing';
 import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -42,6 +43,8 @@ function firstLine(value = '', maxLength = 48) {
   return line.length > maxLength ? `${line.slice(0, maxLength)}...` : line;
 }
 
+const CHAT_IMAGE_CROP = { x: 0, y: 0, w: 100, h: 100 };
+
 const ChatPage: React.FC = () => {
   const openNote = useNoteCommand();
   const navigate = useNavigate();
@@ -55,6 +58,8 @@ const ChatPage: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<ActionMode | null>(null);
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
   const [rawAttachmentFile, setRawAttachmentFile] = useState<File | null>(null);
+  const [uploadOriginalFile, setUploadOriginalFile] = useState<File | null>(null);
+  const [attachmentUploadSummary, setAttachmentUploadSummary] = useState('');
   const [attachmentPreview, setAttachmentPreview] = useState('');
   const [attachmentEditorOpen, setAttachmentEditorOpen] = useState(false);
   const [importAttachment, setImportAttachment] = useState(false);
@@ -75,6 +80,7 @@ const ChatPage: React.FC = () => {
     addMessage,
     updateLastMessage,
     updateMessageByTaskId,
+    updateMessageByTurnId,
     historyPage,
     prependConversationMessages,
     loadConversation,
@@ -114,6 +120,8 @@ const ChatPage: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const preserveHistoryScrollRef = useRef<{ height: number; top: number } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [attachmentError, setAttachmentError] = useState('');
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const visualAbortRef = useRef<(() => void) | null>(null);
   const activeVisualTaskRef = useRef<LearningTaskState | null>(null);
@@ -243,19 +251,19 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  const switchBook = useCallback(async (name: string) => {
+  const switchBook = useCallback(async (name: string, canApply: () => boolean = () => true) => {
     if (!name) {
       setBookName('');
       return;
     }
     try {
       const res = await get(`/books/switch/${encodeURIComponent(name)}`);
-      if (res?.success) {
+      if (res?.success && canApply()) {
         setBookName(res.data.name);
         if (res.data.subject) setSubject(res.data.subject);
       }
     } catch {
-      setBookName(name);
+      if (canApply()) setBookName(name);
     }
   }, [setBookName, setSubject]);
 
@@ -274,19 +282,24 @@ const ChatPage: React.FC = () => {
   );
 
   useEffect(() => {
-    if (!booksLoaded) return;
+    // Background textbook discovery must never reset a restored or active Session.
+    if (!booksLoaded || isLoading || messages.length > 0 || historyPage !== null) return;
     if (bookName) {
       if (!scopeBooks.some((scope) => scopeContainsBook(scope, bookName))) setBookName('');
       return;
     }
     const target = findDefaultTextbookScope(scopeBooks, subject);
-    if (target) void switchBook(target.name);
-  }, [bookName, booksLoaded, scopeBooks, setBookName, subject, switchBook]);
+    let cancelled = false;
+    if (target) void switchBook(target.name, () => !cancelled);
+    return () => { cancelled = true; };
+  }, [bookName, booksLoaded, scopeBooks, setBookName, subject, switchBook, isLoading, messages.length, historyPage]);
 
   const clearAttachment = () => {
     if (attachmentPreview) URL.revokeObjectURL(attachmentPreview);
     setAttachmentFile(null);
     setRawAttachmentFile(null);
+    setUploadOriginalFile(null);
+    setAttachmentUploadSummary('');
     setAttachmentPreview('');
     setAttachmentEditorOpen(false);
     if (attachmentInputRef.current) attachmentInputRef.current.value = '';
@@ -294,7 +307,9 @@ const ChatPage: React.FC = () => {
 
   const selectAttachment = (file?: File) => {
     if (!file) return;
-    if (!file.type.startsWith('image/')) return;
+    const error = imageUploadError(file);
+    setAttachmentError(error);
+    if (error) return;
     clearAttachment();
     setSelectedMistakeId('');
     setActiveFigure(null);
@@ -310,9 +325,12 @@ const ChatPage: React.FC = () => {
     setFigureWorkspaceExpanded(false);
   }, [bookName]);
 
-  const applyAttachmentProcessing = (processed: { file: File; preview: string }) => {
+  const applyAttachmentProcessing = (processed: { file: File; preview: string; originalFile?: File; originalSize?: number }) => {
     if (attachmentPreview) URL.revokeObjectURL(attachmentPreview);
     setAttachmentFile(processed.file);
+    setUploadOriginalFile(processed.originalFile || rawAttachmentFile);
+    const total = processed.file.size + (processed.originalFile?.size || rawAttachmentFile?.size || 0);
+    setAttachmentUploadSummary(`待上传 ${(total / 1024 / 1024).toFixed(1)} MB（完整画面 + 裁剪图）${processed.originalFile && processed.originalSize && processed.originalFile.size < processed.originalSize ? `，原照片 ${(processed.originalSize / 1024 / 1024).toFixed(1)} MB 已压缩` : ''}`);
     setAttachmentPreview(processed.preview);
     setAttachmentEditorOpen(false);
   };
@@ -448,12 +466,13 @@ const ChatPage: React.FC = () => {
       : `从历史错题讲解：${firstLine(cachedMistakes.find((item) => item.id === selectedMistakeId)?.question_text || '')}\n\n${question || '请重新讲解这道错题'}`;
     const turnId = `turn_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
     addMessage({ role: 'user', content: label, turnId });
-    addMessage({ role: 'assistant', content: '', stage: 'thinking', activities: [], turnId });
+    addMessage({ role: 'assistant', content: '', stage: 'thinking', activities: attachmentFile ? [{ id: 'upload', kind: 'tool', label: '上传题目照片', status: 'active', detail: `正在上传原图与处理图（${((((uploadOriginalFile || rawAttachmentFile)?.size || 0) + attachmentFile.size) / 1024 / 1024).toFixed(1)} MB），桌面接收后开始识图。` }] : [], turnId });
     let payload: FormData | Record<string, unknown>;
     let path: '/mistakes/solve-image-stream' | '/mistakes/solve-cached-stream';
     if (attachmentFile) {
       const form = new FormData();
       form.append('file', attachmentFile);
+      if (uploadOriginalFile || rawAttachmentFile) form.append('original_file', (uploadOriginalFile || rawAttachmentFile)!);
       form.append('question', question || '请完整讲解这道题');
       form.append('subject', subject);
       form.append('book_name', bookName || 'default');
@@ -480,7 +499,14 @@ const ChatPage: React.FC = () => {
       if (merged === lifecycle) return;
       lifecycle = merged;
       const eventTask = event.learning_task || event.result?.learning_task;
-      if (eventTask) activeVisualTaskRef.current = eventTask;
+      if (eventTask) {
+        activeVisualTaskRef.current = eventTask;
+        const ir = eventTask.artifacts?.visual_ir as { problem_text?: string } | undefined;
+        updateMessageByTurnId(turnId, message => message.role === 'user' ? {
+          ...message, learningTask: eventTask,
+          content: ir?.problem_text ? `${label}\n\n图片题干（识别文本，请校对）：\n${ir.problem_text}` : message.content,
+        } : message);
+      }
       visualPartialOutputRef.current = lifecycle.output;
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
@@ -511,7 +537,15 @@ const ChatPage: React.FC = () => {
       setAttachmentLoading(false);
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last, content: `图片处理失败：${error.message}`, stage: 'error',
-        activities: mergeChatActivity(last.activities, { id: 'request', kind: 'system', label: '请求中断', status: 'failed', detail: error.message }),
+        activities: settleChatActivity(last.activities, 'upload', 'failed', error.message),
+      } : last);
+    }, (loaded, total) => {
+      const complete = total > 0 && loaded >= total;
+      updateLastMessage(last => last.role === 'assistant' && !last.learningTask ? {
+        ...last, activities: mergeChatActivity(last.activities, {
+          id: 'upload', kind: 'tool', label: complete ? '等待桌面接收照片' : '上传题目照片', status: 'active',
+          detail: complete ? '照片已发出，等待桌面确认并开始识图。' : total > 0 ? `正在上传：${Math.round(loaded / total * 100)}%（${(total / 1024 / 1024).toFixed(1)} MB）` : `已发送 ${(loaded / 1024 / 1024).toFixed(1)} MB`,
+        }),
       } : last);
     });
   };
@@ -756,7 +790,7 @@ const ChatPage: React.FC = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
       e.preventDefault();
       handleSubmit();
     }
@@ -962,6 +996,8 @@ const ChatPage: React.FC = () => {
             </div>
           )}
           <form onSubmit={handleSubmit} className="composer-surface"><fieldset disabled={inTrash} className="conversation-composer-fields">
+            <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png" capture="environment" className="hidden" onChange={(event) => { selectAttachment(event.target.files?.[0]); event.target.value = ''; }} />
+            {attachmentError && <p role="alert" className="text-sm text-red-500">{attachmentError}</p>}
             <input ref={attachmentInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" className="hidden" onChange={(event) => selectAttachment(event.target.files?.[0])} />
             {activeFigure && !figureWorkspaceExpanded && (
               <FigureContextAttachment
@@ -988,6 +1024,7 @@ const ChatPage: React.FC = () => {
                       解答后导入错题本
                     </label>
                   )}
+                  {attachmentUploadSummary && <p className="mt-1 text-xs text-text-secondary">{attachmentUploadSummary}</p>}
                 </div>
                 <button type="button" aria-label="移除附件" onClick={() => { clearAttachment(); setSelectedMistakeId(''); }} className="app-icon-button"><X className="h-4 w-4" /></button>
               </div>
@@ -1012,6 +1049,7 @@ const ChatPage: React.FC = () => {
             </div>
             <div className="composer-toolbar">
               <div className="composer-tools" role="toolbar" aria-label="问题输入工具">
+                <button type="button" disabled={isLoading || attachmentLoading} aria-label="拍照提问" onClick={() => cameraInputRef.current?.click()} className="composer-tool-button"><ImagePlus className="h-4 w-4" /><span>拍照</span></button>
                 <button type="button" disabled={isLoading || attachmentLoading} aria-label="上传题目图片" title="上传题目图片" onClick={() => attachmentInputRef.current?.click()} className="composer-tool-button chat-image-upload-button"><ImagePlus className="h-4 w-4" /><span>图片</span></button>
                 <button type="button" disabled={isLoading || attachmentLoading || !bookName} aria-label="选择教材图片" title={bookName ? '选择教材图片' : '请先选择教材'} onClick={openFigureCatalog} className={`composer-tool-button ${activeFigure ? 'is-active' : ''}`}><Images className="h-4 w-4" /><span>教材图</span></button>
                 <button type="button" disabled={isLoading || attachmentLoading} aria-label="选择历史错题" title="选择历史错题" onClick={() => void loadCachedMistakes()} className="composer-tool-button"><BookMarked className="h-4 w-4" /><span>错题</span></button>
@@ -1054,7 +1092,7 @@ const ChatPage: React.FC = () => {
 
         onClose={() => setHighlightDialogOpen(false)}
       />
-      <ProblemImageEditor
+      <ProblemImageEditor initialCrop={CHAT_IMAGE_CROP} compressUpload
         file={rawAttachmentFile}
         open={attachmentEditorOpen}
         title="裁剪并增强题目图片"

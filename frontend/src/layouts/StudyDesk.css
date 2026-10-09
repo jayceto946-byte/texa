@@ -495,3 +495,21 @@
   .study-desk .learning-question .markdown-body > :last-child { margin-bottom: 0; }
   .app-shell .composer-toolbar, .app-shell .composer-tools { flex-wrap: wrap; }
 }
+
+/* Photo questions are reading content, rather than document titles. */
+.study-desk .learning-question.is-visual-question .markdown-body {
+  font-size: var(--workspace-reading-size); font-weight: 400; line-height: 1.7; letter-spacing: 0;
+}
+.study-desk .learning-question.is-visual-question .markdown-body > :first-child {
+  font-size: 18px; font-weight: 600; line-height: 1.6; margin-bottom: 12px;
+}
+.study-desk .learning-message, .study-desk .learning-answer-document { min-width: 0; max-width: 100%; }
+.study-desk .markdown-body .katex-display {
+  max-width: 100%; overflow-x: auto; overflow-y: hidden; padding-block: .3em;
+}
+.study-desk .markdown-body .katex-display > .katex { display: block; width: max-content; min-width: 100%; }
+@media (max-width: 760px) {
+  .study-desk .learning-question .markdown-body { font-size: 16px; line-height: 1.7; }
+  .study-desk .markdown-body .katex-display { scrollbar-width: none; }
+  .study-desk .markdown-body .katex-display::-webkit-scrollbar { height: 0; }
+}

@@ -10,7 +10,7 @@ import zipfile
 from pathlib import Path
 from urllib.parse import quote
 
-from fastapi import APIRouter, File, Form, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
@@ -183,7 +183,9 @@ def _load_raw_chapters(name: str) -> list[dict]:
 def _load_chapters(name: str) -> list[dict]:
     path = safe_child_path(PROGRESS_PATH, safe_book_name(name), "_chapters.json")
     data = _book_read_cache.read_json(path, [])
-    return _normalize_loaded_chapters(data if isinstance(data, list) else [])
+    from ingestion.document_workflows import enrich_chapters, load_workflow_book
+    chapters = _normalize_loaded_chapters(data if isinstance(data, list) else [])
+    return enrich_chapters(chapters, load_workflow_book(name, progress_root=Path(PROGRESS_PATH), vector_root=Path(VECTOR_DB_PATH)))
 
 def _normalize_loaded_chapters(chapters: list[dict]) -> list[dict]:
     if not looks_like_external_ocr_chunk_titles(chapters):
@@ -489,6 +491,14 @@ def get_current_book():
     chapters = _book_state.get("chapters", [])
     return {"success": True, "data": {"name": name, "subject": _book_subject(name), "chapter_count": len(chapters), "chapters": [format_chapter(c) for c in chapters]}}
 
+@router.get("/{book_name}/chapters")
+def get_book_chapters(book_name: str):
+    name = _resolve_book_reference(book_name)
+    if not name:
+        raise HTTPException(status_code=404, detail="教材不存在")
+    return {"success": True, "data": [format_chapter(chapter) for chapter in _load_chapters(name)]}
+
+
 def _source_pdf_path(book_name: str) -> Path | None:
     safe = safe_book_name(book_name)
     candidates: list[Path] = []
@@ -526,12 +536,33 @@ def source_pdf(book_name: str):
     name = _resolve_book_reference(book_name, include_archived=True)
     pdf_path = _source_pdf_path(name) if name else None
     if not pdf_path:
-        return {"success": False, "message": "未找到该教材对应的 origin.pdf 或源 PDF"}
+        raise HTTPException(status_code=404, detail="该教材没有源 PDF，可使用已有教材章节和图片来源")
     return FileResponse(
         pdf_path,
         media_type="application/pdf",
         headers={"Content-Disposition": f"inline; filename*=UTF-8''{quote(pdf_path.name)}"},
     )
+
+
+@router.get("/{book_name}/figure-audit")
+def figure_audit(book_name: str, offset: int = Query(0, ge=0),
+                 limit: int = Query(100, ge=1, le=500), category: str = ""):
+    from backend.services.figure_audit import textbook_figure_audit
+    if category not in {"", "error", "suspect", "unverifiable"}:
+        raise HTTPException(status_code=422, detail="未知审核类别")
+    name = _resolve_book_reference(book_name, include_archived=True)
+    if not name:
+        raise HTTPException(status_code=404, detail="教材不存在")
+    try:
+        report = textbook_figure_audit(name, progress_root=Path(PROGRESS_PATH), vector_root=Path(VECTOR_DB_PATH))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    findings = [f for f in report['findings'] if not category or f['category'] == category]
+    report.pop('repair_proposals')  # The CLI retains the complete candidate report.
+    report.update(findings=findings[offset:offset+limit], total_findings=len(findings), offset=offset, limit=limit)
+    return {"success": True, "data": report}
 
 
 @router.patch("/{book_name}")

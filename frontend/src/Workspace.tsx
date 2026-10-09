@@ -1,7 +1,8 @@
 import '@fontsource/jetbrains-mono/latin-400.css';
 import './index.css';
-import { lazy, Suspense, type ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ChatProvider } from './contexts/ChatContext';
 import MainLayout from './layouts/MainLayout';
 import DesktopTitleBar from './components/DesktopTitleBar';
@@ -27,7 +28,27 @@ const WeeklyReportPage = lazy(() => import('./pages/WeeklyReportPage'));
 const SettingsPage = lazy(() => import('./components/SystemHealth'));
 
 function loadingPage(page: ReactNode) {
-  return <Suspense fallback={<div role="status" style={{ padding: 24 }}>正在加载页面…</div>}>{page}</Suspense>;
+  return <PageSlot>{page}</PageSlot>;
+}
+
+function PageLoading() {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSlow(true), 20000);
+    return () => window.clearTimeout(timer);
+  }, []);
+  return <div role="status" style={{ padding: 24 }}>
+    <p>{slow ? '页面文件下载较慢，请检查手机与桌面的连接。' : '正在加载页面…'}</p>
+    {slow && <button type="button" className="app-secondary-button" onClick={() => window.location.reload()}>刷新并重新读取页面</button>}
+  </div>;
+}
+
+function PageSlot({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  return <ErrorBoundary resetKey={location.pathname} fallback={<div role="alert" style={{ padding: 24 }}>
+    <p>页面文件未能加载，桌面更新后请刷新以读取当前版本。</p>
+    <button type="button" className="app-secondary-button" onClick={() => window.location.reload()}>刷新页面</button>
+  </div>}><Suspense fallback={<PageLoading />}>{children}</Suspense></ErrorBoundary>;
 }
 
 function FirstRunGate({ children }: { children: ReactNode }) {

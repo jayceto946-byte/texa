@@ -23,6 +23,7 @@ import { useInspector } from '../contexts/InspectorContext';
 import { readableVerificationNotice } from '../utils/verificationNotice';
 import OverflowMenu from './ui/OverflowMenu';
 import { ChatMistakeSourcesContext } from '../features/mistakes/hooks/useChatMistakeSources';
+import { readableVisualQuestion } from '../utils/visualQuestion';
 import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 
 interface ChatMessageProps {
@@ -127,6 +128,12 @@ const feedbackReasons = [
 ] as const;
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, learningTask, citationProvenance, onResumeLearningTask, onResumeInterruptedTask }) => {
+  const isVisualQuestion = role === 'user' && learningTask?.task_type === 'visual_qa';
+  const imagePath = isVisualQuestion ? String(learningTask.artifacts?.image_url || `/api/mistakes/tasks/${learningTask.id}/image`) : '';
+  const [showVisualImage, setShowVisualImage] = useState(false);
+  const [originalImage, setOriginalImage] = useState(false);
+  const [imageRetry, setImageRetry] = useState(0);
+  const visualImage = useAuthenticatedBlobUrl(showVisualImage ? originalImage ? imagePath : `${imagePath}${imagePath.includes('?') ? '&' : '?'}preview=true` : '', 'binary', imageRetry);
   const [scopeResolved, setScopeResolved] = useState(false);
   const [feedback, setFeedback] = useState(answerFeedback);
   const [feedbackBusy, setFeedbackBusy] = useState(false);
@@ -218,8 +225,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
 
   const isUser = role === 'user';
   const questionContent = useMemo(
-    () => (isUser && variant === 'message' ? splitQuestionAttachment(content) : { attachmentName: '', body: content }),
-    [content, isUser, variant],
+    () => (isUser && variant === 'message' ? splitQuestionAttachment(isVisualQuestion ? readableVisualQuestion(content) : content) : { attachmentName: '', body: content }),
+    [content, isUser, isVisualQuestion, variant],
   );
   const captureQuestion = async () => {
     if (captureBusy || !questionContent.body.trim() || !captureMessageId || captureSources.loading || captureSources.error) return;
@@ -248,7 +255,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
   const modeLabel = answerMode === 'textbook_grounded'
     ? '基于教材'
     : answerMode === 'visual_grounded'
-      ? '基于教材图'
+      ? '基于图片'
     : answerMode === 'subject_general'
       ? '学科通用'
     : answerMode === 'global_general'
@@ -259,7 +266,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
 
   return (
     <div className={variant === 'document' ? 'min-w-0' : `learning-message ${isUser ? 'is-question' : 'is-answer'}`}>
-      <article className={variant === 'document' ? 'min-w-0 text-text-primary' : isUser ? 'learning-question' : 'learning-answer-document'}>
+      {isVisualQuestion && <div className="mb-3 text-sm">
+        <button type="button" aria-expanded={showVisualImage} onClick={() => setShowVisualImage(value => !value)}>{showVisualImage ? '收起完整题目图片' : '查看完整题目图片'}</button>
+        {showVisualImage && <div className="mt-2"><button type="button" onClick={() => setOriginalImage(value => !value)}>{originalImage ? '返回轻量预览' : '读取原尺寸图片'}</button><span className="ml-2 text-text-secondary">{originalImage ? '原尺寸图片' : '完整画面预览'}</span></div>}
+        {showVisualImage && visualImage.loading && <p role="status">{originalImage ? '正在读取原尺寸图片…' : '正在读取完整画面预览…'}</p>}
+        {showVisualImage && visualImage.error && <p role="alert">图片读取失败：{visualImage.error} <button type="button" onClick={() => setImageRetry(value => value + 1)}>重试读取图片</button></p>}
+        {showVisualImage && visualImage.url && <img src={visualImage.url} alt="完整题目图片" className="max-h-96 max-w-full object-contain" />}
+      </div>}
+      <article className={variant === 'document' ? 'min-w-0 text-text-primary' : isUser ? `learning-question${isVisualQuestion ? ' is-visual-question' : ''}` : 'learning-answer-document'}>
         {variant === 'message' && <div className="study-turn-heading">
           <span>{isUser ? '学习问题' : 'TEXA / 解答'}</span>
           {isUser && questionContent.body.trim() && <div className="question-more-menu"><OverflowMenu label="问题的更多操作">{close => <><button role="menuitem" disabled={!captureMessageId || captureBusy || captureSources.loading || Boolean(captureSources.error)} onClick={() => { close(); void captureQuestion(); }}>{!captureMessageId ? '等待问题保存后录入' : captureSources.loading ? '正在读取错题状态…' : captureSources.error ? '错题状态暂不可用' : captureState?.status === 'recorded' ? '已记录 · 查看错题' : captureState?.status === 'draft' ? '继续整理错题' : '记录为错题'}</button>{captureSources.error && <button role="menuitem" onClick={() => { close(); captureSources.refresh(); }}>重试读取错题状态</button>}</>}</OverflowMenu></div>}

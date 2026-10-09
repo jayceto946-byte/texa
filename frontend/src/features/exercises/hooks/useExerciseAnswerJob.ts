@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { get, post } from '../../../api/client';
 import type { ExerciseRecord } from '../../../types';
 
@@ -15,6 +15,10 @@ export function useExerciseAnswerJob({
   onMessage,
   onRecordSaved,
 }: UseExerciseAnswerJobOptions) {
+  const selection = useRef('');
+  useEffect(() => {
+    selection.current = `${bookQuery}:${exercise?.id || ''}`;
+  }, [bookQuery, exercise?.id]);
   const [answerDraft, setAnswerDraft] = useState('');
   const [answerBusy, setAnswerBusy] = useState(false);
   const [answerJobId, setAnswerJobId] = useState('');
@@ -36,7 +40,7 @@ export function useExerciseAnswerJob({
           onMessage(job.message || '标准答案正在后台生成');
         } else if (job.status === 'completed' && !exercise.answer && job.result?.answer) {
           setAnswerDraft(job.result.answer);
-          onMessage('解析已生成');
+          onMessage(job.message || '答案草稿已生成，请检查后保存');
         }
       })
       .catch(() => undefined);
@@ -86,10 +90,12 @@ export function useExerciseAnswerJob({
 
   const generateStandardAnswer = useCallback(async () => {
     if (!exercise || answerBusy) return;
+    const requestedSelection = selection.current;
     setAnswerBusy(true);
     onMessage('正在创建后台答案任务');
     try {
       const res = await post('/exercises/answer/jobs' + bookQuery, { id: exercise.id }, 20000);
+      if (selection.current !== requestedSelection) return;
       if (!res?.success) {
         onMessage(res?.message || '生成标准答案失败');
         setAnswerBusy(false);
@@ -104,6 +110,7 @@ export function useExerciseAnswerJob({
       setAnswerJobId(jobId);
       onMessage(res.message || '标准答案已转入后台生成');
     } catch (error) {
+      if (selection.current !== requestedSelection) return;
       onMessage(error instanceof Error ? error.message : String(error));
       setAnswerBusy(false);
     }
@@ -111,6 +118,7 @@ export function useExerciseAnswerJob({
 
   const saveStandardAnswer = useCallback(async () => {
     if (!exercise || !answerDraft.trim()) return;
+    const requestedSelection = selection.current;
     setAnswerBusy(true);
     onMessage('');
     try {
@@ -119,6 +127,7 @@ export function useExerciseAnswerJob({
         answer: answerDraft,
         explanation: exercise.explanation || '',
       });
+      if (selection.current !== requestedSelection) return;
       if (!res?.success || !res.data?.id) {
         onMessage(res?.message || '保存标准答案失败');
         return;
@@ -126,9 +135,10 @@ export function useExerciseAnswerJob({
       onRecordSaved(res.data as ExerciseRecord);
       onMessage('标准答案已保存');
     } catch (error) {
+      if (selection.current !== requestedSelection) return;
       onMessage(error instanceof Error ? error.message : String(error));
     } finally {
-      setAnswerBusy(false);
+      if (selection.current === requestedSelection) setAnswerBusy(false);
     }
   }, [answerDraft, bookQuery, exercise, onMessage, onRecordSaved]);
 

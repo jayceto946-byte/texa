@@ -1,6 +1,7 @@
 import io
 import json
 from pathlib import Path
+from PIL import Image
 import pytest
 
 from fastapi.testclient import TestClient
@@ -44,6 +45,12 @@ def test_mistakes_api_add_persists_explanation(monkeypatch, tmp_path):
     list_res = client.post("/api/mistakes/list", json={"limit": 10}).json()
     assert list_res["success"] is True
     assert list_res["data"][0]["explanation"] == "保存的解答 $x+1$"
+
+
+def _image_bytes():
+    buffer = io.BytesIO()
+    Image.new("RGB", (24, 32), "white").save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 def _stream_events(response) -> list[dict]:
@@ -167,7 +174,7 @@ def test_image_solution_stream_uses_canonical_events_and_completes(monkeypatch, 
     client = TestClient(app)
     response = client.post(
         "/api/mistakes/solve-image-stream",
-        files={"file": ("problem.png", b"image", "image/png")},
+        files={"file": ("problem.png", _image_bytes(), "image/png")},
         data={
             "question": "为什么？",
             "subject": "电路",
@@ -217,7 +224,7 @@ def test_image_solution_waits_for_blocking_required_input(monkeypatch, tmp_path)
 
     response = TestClient(app).post(
         "/api/mistakes/solve-image-stream",
-        files={"file": ("problem.png", b"image", "image/png")},
+        files={"file": ("problem.png", _image_bytes(), "image/png")},
         data={"question": "计算第 4 问", "conversation_id": "conv-gate", "turn_id": "turn-gate"},
     )
     events = _stream_events(response)
@@ -266,7 +273,7 @@ def test_visual_task_resume_parses_only_supplement_and_completes(monkeypatch, tm
 
     response = TestClient(app).post(
         f"/api/mistakes/visual-tasks/{task.id}/resume-stream",
-        files={"file": ("table.png", b"table", "image/png")},
+        files={"file": ("table.png", _image_bytes(), "image/png")},
         data={"action": "provide_input"},
     )
     events = _stream_events(response)
@@ -360,7 +367,7 @@ def test_visual_task_input_parse_failure_returns_to_waiting_without_terminal_eve
 
     response = TestClient(app).post(
         f"/api/mistakes/visual-tasks/{task.id}/resume-stream",
-        files={"file": ("table.png", b"table", "image/png")},
+        files={"file": ("table.png", _image_bytes(), "image/png")},
         data={"action": "provide_input"},
     )
     events = _stream_events(response)
@@ -386,7 +393,7 @@ def test_image_solution_failure_emits_matching_error_terminal(monkeypatch, tmp_p
 
     response = TestClient(app).post(
         "/api/mistakes/solve-image-stream",
-        files={"file": ("problem.png", b"image", "image/png")},
+        files={"file": ("problem.png", _image_bytes(), "image/png")},
         data={"conversation_id": "conv-failed", "turn_id": "turn-failed"},
     )
     events = _stream_events(response)
@@ -425,7 +432,7 @@ def test_stale_input_resume_cannot_write_or_emit_terminal(monkeypatch, tmp_path)
 
     response = TestClient(app).post(
         f"/api/mistakes/visual-tasks/{task.id}/resume-stream",
-        files={"file": ("table.png", b"table", "image/png")},
+        files={"file": ("table.png", _image_bytes(), "image/png")},
         data={"action": "provide_input"},
     )
     events = _stream_events(response)
@@ -465,7 +472,7 @@ def test_superseded_image_run_cannot_import_generated_mistake(monkeypatch, tmp_p
 
     response = TestClient(app).post(
         "/api/mistakes/solve-image-stream",
-        files={"file": ("problem.png", b"image", "image/png")},
+        files={"file": ("problem.png", _image_bytes(), "image/png")},
         data={
             "question": "为什么？",
             "import_to_mistakes": "true",
@@ -601,7 +608,7 @@ def test_visual_answer_survives_lost_client_and_projection_receipt(monkeypatch, 
     project = task_store.project_outcome
     monkeypatch.setattr(task_store, "project_outcome", lambda *_a, **_k: (_ for _ in ()).throw(OSError("SQLite unavailable")))
     response = TestClient(app).post("/api/mistakes/solve-image-stream",
-        files={"file": ("problem.png", b"image", "image/png")},
+        files={"file": ("problem.png", _image_bytes(), "image/png")},
         data={"question": "讲解原题", "conversation_id": "recover-visual", "turn_id": "turn"})
     events = _stream_events(response)
     assert events[-1]["result"]["persistence_error"]
@@ -612,7 +619,7 @@ def test_visual_answer_survives_lost_client_and_projection_receipt(monkeypatch, 
     task_store.recover_unfinished()
     project(task.id)
     messages = cm.load_full_history("recover-visual")
-    assert [(m["role"], m["content"]) for m in messages] == [("user", "讲解原题"), ("assistant", "正式讲解")]
+    assert [(m["role"], m["content"]) for m in messages] == [("user", "讲解原题\n\n图片题干（识别文本，请校对）：\n原题"), ("assistant", "正式讲解")]
     assert messages[-1]["learning_task"]["status"] == "completed"
 
 
@@ -623,7 +630,7 @@ def test_visual_gate_and_resume_share_one_durable_assistant_message(monkeypatch,
         visual_ir=VisualProblemIR(problem_text="原题", required_inputs=[{"name": "附表", "blocking": True}]))
     client = TestClient(app)
     response = client.post("/api/mistakes/solve-image-stream",
-        files={"file": ("problem.png", b"image", "image/png")},
+        files={"file": ("problem.png", _image_bytes(), "image/png")},
         data={"conversation_id": "visual-gate", "turn_id": "turn", "question": "原题"})
     task_id = _stream_events(response)[-1]["execution_event"]["task_id"]
     before = cm.load_full_history("visual-gate")
@@ -634,3 +641,56 @@ def test_visual_gate_and_resume_share_one_durable_assistant_message(monkeypatch,
     after = cm.load_full_history("visual-gate")
     assert len(after) == 2 and after[-1]["id"] == before[-1]["id"]
     assert after[-1]["delivery_status"] == "complete"
+
+
+def test_visual_stream_batches_tiny_tokens_without_losing_answer_or_tail(monkeypatch):
+    from contextlib import contextmanager
+
+    text = "完整题干和解题步骤。" * 180 + "最后答案 $x=2$。"
+
+    @contextmanager
+    def token_events(_factory):
+        yield iter(("item", char) for char in text)
+
+    monkeypatch.setattr(mistakes, "owned_provider_events", token_events)
+    monkeypatch.setattr(mistakes.time, "perf_counter", lambda: 1.0)
+    stream = mistakes._stream_solution_events(
+        VisualProblemIR(problem_text="题目"), user_question="讲解", user_answer="",
+        subject="数学", tags="", reason_label="组织解答", reason_detail="处理中",
+        emit_sse=lambda event_type, **values: {"type": event_type, **values},
+    )
+    events = []
+    while True:
+        try:
+            events.append(next(stream))
+        except StopIteration as completed:
+            answer = completed.value
+            break
+    deltas = [e for e in events if e["type"] == "output_delta"]
+    assert deltas[0]["payload"]["text"] == text[0]  # first visible text is immediate
+    visible = ""
+    for event in deltas:
+        visible = event["payload"]["text"] if event["payload"]["replace"] else visible + event["payload"]["text"]
+    assert visible == answer == text
+    assert len(deltas) < len(text) // 10
+    assert events[-1]["status"] == "completed"
+
+
+def test_visual_stream_flushes_pending_text_before_provider_heartbeat(monkeypatch):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def token_events(_factory):
+        yield iter([("item", "第一段"), ("item", "剩余"), ("progress", {}), ("item", "正文")])
+
+    monkeypatch.setattr(mistakes, "owned_provider_events", token_events)
+    monkeypatch.setattr(mistakes.time, "perf_counter", lambda: 1.0)
+    events = list(mistakes._stream_solution_events(
+        VisualProblemIR(problem_text="题目"), user_question="讲解", user_answer="",
+        subject="数学", tags="", reason_label="组织解答", reason_detail="处理中",
+        emit_sse=lambda event_type, **values: {"type": event_type, **values},
+    ))
+    deltas = [e["payload"]["text"] for e in events if e["type"] == "output_delta"]
+    assert deltas == ["第一段", "剩余", "正文"]
+    heartbeat = next(i for i, e in enumerate(events) if e.get("status") == "running" and e["type"] == "progress")
+    assert events[heartbeat - 1]["payload"]["text"] == "剩余"

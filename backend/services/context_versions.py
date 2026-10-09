@@ -23,6 +23,7 @@ def current_context_versions(book_name: str = "") -> dict[str, Any]:
     from graph.conversation_context import CONVERSATION_CONTEXT_POLICY_VERSION
     from graph.teaching_prompts import active_teaching_prompt_version
     from graph.retrieval_policy import RETRIEVAL_POLICY_VERSION
+    from graph.question_understanding import VERSION as UNDERSTANDING_VERSION
     from ingestion.index_pipeline import load_index_manifest
 
     manifest = load_index_manifest(book_name) if book_name else {}
@@ -34,6 +35,7 @@ def current_context_versions(book_name: str = "") -> dict[str, Any]:
         "prompt_version": active_teaching_prompt_version(),
         "context_policy_version": CONVERSATION_CONTEXT_POLICY_VERSION,
         "retrieval_policy_version": RETRIEVAL_POLICY_VERSION,
+        "question_understanding_version": UNDERSTANDING_VERSION,
         "corpus_version": corpus_version,
         "corpus_schema": int(manifest.get("schema_version") or 0),
     }

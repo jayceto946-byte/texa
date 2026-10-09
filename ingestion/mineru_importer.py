@@ -254,7 +254,8 @@ def chapters_from_canonical(book: CanonicalBook) -> list[dict]:
         chapter['end_page'] = max(chapter.get('end_page', 0), block.page_end or block.page_start or 0)
         if block.text and block.block_type != 'figure':
             chapter['text'] += ('\n\n' if chapter['text'] else '') + block.text
-    return _clean_chapters(list(grouped.values()))
+    from ingestion.document_workflows import enrich_chapters
+    return enrich_chapters(_clean_chapters(list(grouped.values())), book)
 
 
 def chapters_from_mineru_output(output_dir: Path, book_name: str) -> list[dict]:
@@ -584,7 +585,8 @@ def _build_index_candidate(
                 [(title, group) for title, group, _roles in chapter_groups],
                 all_chunks,
                 acceptance_probes=probe_report["cases"],
-                specialty_inventory=probe_report["inventory"],
+                specialty_inventory={name: max(count, probe_report['source_inventory'].get(name, 0))
+                                     for name, count in probe_report['inventory'].items()},
                 canonical_publication=publication,
                 before_publish=before_publish,
             )

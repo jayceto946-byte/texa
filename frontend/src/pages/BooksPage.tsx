@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Archive, ArrowLeft, FileText, HelpCircle, Loader2, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api/client';
+import { useOptionalConceptJob } from '../features/textbooks/hooks/useOptionalConceptJob';
 import ScopeSelector from '../components/ScopeSelector';
 import { SegmentedControl } from '../components/ui/SelectionControls';
 import { ActionableIssue, StatusBanner, TaskStatus } from '../components/ui/AsyncState';
@@ -90,6 +91,7 @@ const BooksPage: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [job, setJob] = useState<ImportJob | null>(null);
   const [error, setError] = useState('');
+  const conceptJob = useOptionalConceptJob(job?.result?.concept_job_id || '');
   const inputRef = useRef<HTMLInputElement>(null);
   const outputInputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<number | null>(null);
@@ -348,6 +350,9 @@ const BooksPage: React.FC = () => {
             state={isFailed ? 'error' : isDone ? 'success' : 'loading'}
           />
           <details className="border-b border-border px-4 py-3 type-caption text-text-secondary"><summary className="cursor-pointer">详细信息</summary><p className="mt-2">{stageLabels[job.stage] || job.stage} · {job.message}</p></details>
+          {isDone && <p role="status" className="type-caption text-text-secondary">
+            {job.result?.concept_extraction_warning ? '教材已导入完成；概念抽取未能启动，可稍后手动重试。' : !job.result?.concept_job_id ? '概念抽取未启用。' : conceptJob.error || (conceptJob.status === 'completed' ? '概念抽取已完成。' : ['failed', 'cancelled', 'interrupted'].includes(conceptJob.status) ? '概念抽取未完成；教材内容和检索索引仍可使用，可稍后手动重试。' : '教材已导入完成；概念抽取仍在处理中。')}
+          </p>}
           {isDone && <div className="flex justify-end"><button type="button" onClick={() => navigate('/books')} className="app-primary-button">查看教材状态</button></div>}
         </>}
       </div>

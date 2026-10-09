@@ -11,6 +11,10 @@ from ingestion.document_adapters import _atomic_copy
 
 _DOCUMENT_FILES = ('canonical_document.jsonl', 'ingestion_report.json',
                    'acceptance_probes.generated.jsonl', 'acceptance_probes.generated.report.json')
+# Derived audits can change when rules/assets change without changing the IR.
+# Publish/restore them with the candidate, but do not make them immutable IR
+# snapshot contents. Retained rollback can regenerate the audit via the API.
+_PUBLICATION_FILES = (*_DOCUMENT_FILES, 'figure_audit.json')
 
 
 class CanonicalPublication:
@@ -60,7 +64,7 @@ class CanonicalPublication:
         """Caller must own index_publication; readers cannot observe these writes."""
         self.active_dir.mkdir(parents=True, exist_ok=True)
         self.old_files = {name: (self.active_dir / name).read_bytes() if (self.active_dir / name).is_file() else None
-                          for name in _DOCUMENT_FILES}
+                          for name in _PUBLICATION_FILES}
         if self.old_files['canonical_document.jsonl'] is not None:
             # Read directly while owning the publication lock (no nested snapshot).
             from ingestion.document_ir import _load_canonical_book
@@ -82,7 +86,7 @@ class CanonicalPublication:
                     _atomic_copy(source, target)
                     self.created_files.append(target)
         self.started = True
-        for name in _DOCUMENT_FILES:
+        for name in _PUBLICATION_FILES:
             source = self.candidate_dir / name
             if source.is_file():
                 _atomic_copy(source, controlled_target(self.active_dir, name))

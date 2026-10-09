@@ -28,6 +28,7 @@ class AgentState(TypedDict):
     previous_subject: str
     conversation_context_seed: dict
     conversation_context_pack: dict
+    question_understanding: dict  # validated hints, original input remains authoritative
     learning_context_pack: dict
     tool_context_pack: dict  # bounded read-only results prepared by backend orchestration
     learning_task: dict

@@ -65,6 +65,7 @@ class ToolOrchestrationRequest:
     include_textbook_tool: bool = False
     learning_task_id: str = ""
     max_followup_rounds: int = 1
+    question_understanding: dict | None = None
 
 
 def _contains_any(text: str, terms: list[str]) -> bool:
@@ -153,6 +154,10 @@ def select_tool_calls(req: ToolOrchestrationRequest) -> list[dict[str, Any]]:
     wants_progress = bool(req.book_name) and _contains_any(lowered, progress_terms)
     wants_examples = bool(req.book_name) and _contains_any(lowered, example_terms)
     wants_exercises = bool(req.book_name) and _contains_any(lowered, exercise_terms + practice_terms)
+    from graph.question_understanding import interpretation_hint
+    hint = interpretation_hint(req.question_understanding)
+    if req.book_name and hint and (hint["intent"] == "quiz" or "exercises" in hint["dimensions"]):
+        wants_exercises = True
     wants_practice = bool(req.book_name) and _contains_any(lowered, practice_terms)
     wants_concepts = bool(req.book_name) and _contains_any(lowered, concept_terms)
 
@@ -235,6 +240,7 @@ def _compact_result(item: dict[str, Any]) -> dict[str, Any]:
         "tool": item.get("tool"), "success": bool(result.get("success")),
         "message": str(result.get("message") or "")[:300], "data": data,
         "verification": result.get("verification") or {},
+        "args": (item.get("args") or {}) if item.get("tool") in {"symbolic_math", "verify_math_result"} else {},
         "warnings": list(result.get("warnings") or [])[:5],
         "pending_action": result.get("pending_action"),
         "required_outputs": list(item.get("required_outputs") or []),

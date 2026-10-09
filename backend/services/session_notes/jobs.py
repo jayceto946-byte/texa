@@ -45,7 +45,20 @@ def start_generation(service, receipt, *, generator=generate, threaded=True):
         except Exception as exc:
             # Never persist transport errors containing endpoints, keys or prompt text.
             code = exc.code if isinstance(exc, NoteError) else "generation_failed"
-            jobs.fail_or_cancel_job(job_id, error=code, message="生成未完成；可从保存的来源重试或手动整理")
+            if isinstance(exc, NoteError):
+                jobs.update_job(job_id, result={"diagnostic": {"phase": "note_generate", "reason": exc.reason or code, "path": exc.path, **getattr(exc, "generation_metadata", {})}})
+            reason = exc.reason if isinstance(exc, NoteError) else ""
+            message = {
+                "invalid_latex_escape": "模型返回的公式转义已损坏，未发布草稿",
+                "json_syntax": "模型返回的笔记 JSON 格式无效，未发布草稿",
+                "output_truncated": "模型输出被截断，未发布草稿",
+                "output_too_large": "模型输出超过笔记长度限制，未发布草稿",
+                "content_type": "模型未返回可用的笔记文字，未发布草稿",
+                "invalid_source_ref": "模型引用了选区之外的来源，未发布草稿",
+                "generation_timeout": "笔记整理超时，未发布草稿",
+                "model_unavailable": "回答模型尚未配置，未开始整理",
+            }.get(reason or code, "模型返回的笔记结构不符合格式要求，未发布草稿" if code == "invalid_document" else "笔记整理未完成")
+            jobs.fail_or_cancel_job(job_id, error=code, message=message + "；来源已保留，可重试或手动整理")
         finally:
             # A completed-but-unpublished candidate remains recoverable.
             service.store.release_generation(draft_id)

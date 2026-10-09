@@ -111,10 +111,11 @@ def build_evidence_pack(
     candidates, per_chapter_limit = _selected_candidates(evidence_items, intent)
     seen_ids: set[str] = set()
     seen_texts: set[str] = set()
-    chapter_counts: dict[str, int] = {}
+    chapter_counts: dict[tuple[str, str, str], int] = {}
     lines: list[str] = []
     included: list[dict] = []
     used = 0
+    verification_items: list[dict] = []
 
     for item in candidates:
         text = str(item.get("text") or "")
@@ -127,7 +128,8 @@ def build_evidence_pack(
         if normalized in seen_texts:
             continue
         chapter = str(item.get("chapter") or "")
-        if chapter_counts.get(chapter, 0) >= per_chapter_limit:
+        chapter_key = (str(item.get("book_id") or item.get("book_name") or ""), str(item.get("index_version") or ""), chapter)
+        if chapter_counts.get(chapter_key, 0) >= per_chapter_limit:
             continue
 
         label = _source_label(item)
@@ -138,6 +140,7 @@ def build_evidence_pack(
         if remaining <= 120:
             break
         clipped = text[: min(MAX_ITEM_CHARS, remaining)]
+        verification_items.append({**item, "id": evidence_id, "text": clipped, "table_anchor_text": ""})
         line = f"[{evidence_id}]\n{clipped}"
         lines.append(line)
         used += len(line) + separator_cost
@@ -171,11 +174,12 @@ def build_evidence_pack(
         if chunk_id:
             seen_ids.add(chunk_id)
         seen_texts.add(normalized)
-        chapter_counts[chapter] = chapter_counts.get(chapter, 0) + 1
+        chapter_counts[chapter_key] = chapter_counts.get(chapter_key, 0) + 1
 
     return {
         "text": "\n\n---\n\n".join(lines),
         "items": included,
+        "verification_items": verification_items,
         "char_count": used,
         "candidate_count": len(candidates),
         "dropped_count": max(0, len(candidates) - len(included)),

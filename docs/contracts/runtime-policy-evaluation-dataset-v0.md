@@ -341,3 +341,10 @@ Rule 多候选只接 Observation 副本；零候选只记录 Runtime route，单
 报告按 data quality、candidate generation、selection、forced/Runtime-only、ordering、teacher、E2E 分开；百分比同时有 numerator/denominator，零分母 value=null、display=N/A。main 为唯一主分母，original/controls 不重复加权。报告显示原始/去排序线索的位置分布和 acceptable 状态变化，不宣称统计独立。teacher 缺失不计 accuracy/disagreement；缺 E2E 明确 not_evaluated。独立 ExecutionRecord 仅通过模块 API 接收已执行且有独立验收依据的任务；task 按 ref 去重，offline_stub 显式单列。原 rejected/fallback attempted/accepted/executed 与任务验收分开，不由 completed 或事件缺失推断。
 
 固定 fixtures 为 18 个样本/15 个 family，含 2 个候选故障注入、2 个信息不足、2 个合法零候选；损坏 Observation 另存 `invalid-sample.json` 用于拒绝测试。未生成大规模数据，未导入用户记录，未接 teacher/ModelPolicy/训练。位置 controls 只应用三个指定 family。真实答案模型及 E2E 不可由这些示例评估。
+
+
+## 2026-10-08 V0.1 源码基准切换
+
+当前默认源码基准已在用户要求审阅后切换至 `runtime-source/v0.1`，审阅及版本身份见 [V0.1 报告](../validation/runtime-policy-evaluation-dataset-v0_1/README.md)。本文此前固定八项 pins/旧默认路径的描述保留为 V0 历史；当前以 `evaluation/policy_dataset_v0/baseline.py` 的十一项 Runtime 源码加 canonical-tools pins、V0.1 source-manifest 及 `evaluation/fixtures/policy_dataset_v0_1` 为准。
+
+V0 JSON/action_id/label policy 格式未改变；输入 manifest 仍不能自行批准新源码，源码漂移仍拒绝。旧 gold/样本文件和 V0 pins/manifest 未覆盖，新版 source 审阅不提升 fixture 为人工 locked gold，也不启用付费或线上模型。

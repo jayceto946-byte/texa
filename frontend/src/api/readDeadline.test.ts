@@ -27,3 +27,38 @@ it('keeps JSON and an SSE response readable without buffering the stream', async
   expect(new TextDecoder().decode((await reader.read()).value)).toBe('data: first\n\n');
   await reader.cancel();
 });
+
+it('times out an image body that stalls after successful response headers', async () => {
+  browser();
+  let controller!: ReadableStreamDefaultController<Uint8Array>;
+  const body = new ReadableStream<Uint8Array>({ start(value) { controller = value; } });
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body, { headers: { 'Content-Type': 'image/jpeg' } })));
+  const { getAuthenticatedBlob } = await import('./client');
+  try {
+    await expect(getAuthenticatedBlob('/api/mistakes/tasks/photo/image', undefined, 10)).rejects.toThrow('读取响应正文，HTTP 200');
+  } finally { controller.close(); }
+});
+
+it('cancels an image body download when its view is closed', async () => {
+  browser();
+  let controller!: ReadableStreamDefaultController<Uint8Array>;
+  const body = new ReadableStream<Uint8Array>({ start(value) { controller = value; } });
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body, { headers: { 'Content-Type': 'image/jpeg' } })));
+  const { getAuthenticatedBlob } = await import('./client');
+  const abort = new AbortController();
+  const pending = getAuthenticatedBlob('/api/mistakes/tasks/photo/image', abort.signal);
+  const rejected = expect(pending).rejects.toThrow('请求已取消');
+  await Promise.resolve();
+  abort.abort();
+  try { await rejected; } finally { controller.close(); }
+});
+
+it('preserves image bytes and MIME type through the finite body deadline', async () => {
+  browser();
+  const bytes = new Uint8Array([255, 216, 255, 217]);
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(bytes, { headers: { 'Content-Type': 'image/jpeg' } })));
+  const { getAuthenticatedBlob } = await import('./client');
+  const blob = await getAuthenticatedBlob('/api/mistakes/tasks/photo/image');
+  expect(blob.type).toBe('image/jpeg');
+  expect(new Uint8Array(await blob.arrayBuffer())).toEqual(bytes);
+});

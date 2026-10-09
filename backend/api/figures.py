@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from backend.services.owned_stream import OwnedStreamingResponse, close_task_run, owned_provider_events
 
-from contextlib import nullcontext
+from contextlib import nullcontext, ExitStack
 import json
 import logging
 from pathlib import Path
@@ -12,7 +12,7 @@ from urllib.parse import quote
 import uuid
 
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
 from backend.conversation_memory import append_message, ensure_turn_id, resolve_conversation_id_for_scope
 from backend.rag_trace import new_request_id
@@ -21,6 +21,7 @@ from backend.services.answer_verification import derive_required_outputs, verifi
 from backend.services.execution_events import ExecutionEventEmitter, execution_sse_payload
 from backend.services.figure_learning import (
     FigureIndexOutOfDateError,
+    FigureInputRequiredError,
     FigureLearningService,
     NormalizedBBox,
 )
@@ -152,6 +153,15 @@ def get_book_figure_image(book_name: str, figure_id: str):
     )
 
 
+@router.get("/books/{book_name}/figures/{figure_id}/group-image")
+def get_book_figure_group_image(book_name: str, figure_id: str):
+    try:
+        with _service().complete_figure_asset(book_name, figure_id) as image:
+            return Response(image.read_bytes(), media_type="image/png")
+    except Exception as exc:
+        raise _http_error(exc) from exc
+
+
 def _figure_stream(
     req: FigureQuestionRequest,
     *,
@@ -279,6 +289,7 @@ def _figure_stream(
             envelope = execution_sse_payload(execution_event, sidecar=extra)
             return _sse(envelope)
 
+        assets = ExitStack()
         try:
             yield emit_sse(
                 "progress",
@@ -292,7 +303,7 @@ def _figure_stream(
             )
             context = service.build_context(req.book_name, req.figure_id)
             figure = context.figure
-            full_image = service.asset_path(req.book_name, req.figure_id)
+            full_image = assets.enter_context(service.complete_figure_asset(req.book_name, req.figure_id))
             sources = service.evidence_sources(context)
             task.artifacts.update({
                 "page": figure.get("page"),
@@ -475,11 +486,15 @@ def _figure_stream(
         except Exception as exc:
             if not store.run_is_active(task.id, active_run_id):
                 return
-            task.verification = {"status": "failed", "passed": False, "checks": []}
+            input_required = isinstance(exc, FigureInputRequiredError)
+            failure_status = "waiting_for_input" if input_required else "failed"
+            task.verification = {"status": "missing_input" if input_required else "failed", "passed": False, "checks": []}
+            if input_required:
+                task.required_inputs = [{"type": "image", "name": "完整教材图片", "reason": str(exc), "affects": ["figure_answer"], "blocking": True, "status": "missing"}]
             task = store.prepare_checkpoint_for_run(
-                task, active_run_id, "failed", status="failed", detail=str(exc),
+                task, active_run_id, failure_status, status=failure_status, detail=str(exc),
             )
-            if task.status != "failed":
+            if task.status != failure_status:
                 return
             persistence_error = ""
             outcome_messages = [
@@ -490,9 +505,10 @@ def _figure_stream(
             ]
             http_status = _http_error(exc).status_code
             error_code = (
-                "figure_index_out_of_date"
-                if isinstance(exc, FigureIndexOutOfDateError)
-                else "figure_execution_failed"
+                "figure_input_required" if input_required else (
+                    "figure_index_out_of_date" if isinstance(exc, FigureIndexOutOfDateError)
+                    else "figure_execution_failed"
+                )
             )
             yield emit_sse(
                 "error",
@@ -513,6 +529,9 @@ def _figure_stream(
                     **({"persistence_error": persistence_error} if persistence_error else {}),
                 },
             )
+
+        finally:
+            assets.close()
 
     return OwnedStreamingResponse(
         guarded_conversation_events(events(), request_id=request_id), on_close=lambda: close_task_run(_task_store(), owned_task[0], active_run_id), media_type="text/event-stream",

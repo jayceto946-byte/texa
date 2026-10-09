@@ -56,3 +56,57 @@ describe('canonical execution SSE parser', () => {
     },
   );
 });
+
+describe('photo multipart transport', () => {
+  it.each(['complete', 'missing-boundary', 'upload-error', 'answer-error', 'http-error', 'timeout'])(
+    'handles %s without resending the photo', async scenario => {
+      const { mistakeSolutionStream, setConnectionToken, IMAGE_SOLUTION_TIMEOUT_MS } = await import('./client');
+      vi.useFakeTimers();
+      const headers: Record<string, string> = {};
+      class FakeXhr {
+        static latest: FakeXhr;
+        upload = { onprogress: null as null | ((event: { loaded: number; total: number; lengthComputable: boolean }) => void), onload: null as null | (() => void) };
+        responseText = '';
+        status = 200;
+        onprogress: null | (() => void) = null;
+        onload: null | (() => void) = null;
+        onerror: null | (() => void) = null;
+        open = vi.fn(); send = vi.fn(); abort = vi.fn();
+        setRequestHeader(key: string, value: string) { headers[key] = value; }
+        constructor() { FakeXhr.latest = this; }
+      }
+      vi.stubGlobal('XMLHttpRequest', FakeXhr);
+      vi.stubGlobal('window', { setTimeout, clearTimeout, localStorage: { getItem: () => null, setItem: vi.fn(), removeItem: vi.fn() } });
+      setConnectionToken('test-photo-token');
+      const onEvent = vi.fn(), onError = vi.fn(), onUpload = vi.fn();
+      try {
+        const payload = new FormData();
+        payload.append('file', new Blob(['photo']), 'photo.jpg');
+        mistakeSolutionStream('/mistakes/solve-image-stream', payload, onEvent, onError, onUpload);
+        expect(FakeXhr.latest.send).toHaveBeenCalledExactlyOnceWith(payload);
+        expect(headers['x-kaoyan-token']).toBe('test-photo-token');
+        expect(headers['content-type']).toBeUndefined();
+        FakeXhr.latest.upload.onprogress?.({ loaded: 5, total: 10, lengthComputable: true });
+        expect(onUpload).toHaveBeenCalledWith(5, 10);
+        if (scenario === 'upload-error') FakeXhr.latest.onerror?.();
+        else if (scenario === 'timeout') await vi.advanceTimersByTimeAsync(IMAGE_SOLUTION_TIMEOUT_MS);
+        else {
+          FakeXhr.latest.upload.onload?.();
+          if (scenario === 'answer-error') FakeXhr.latest.onerror?.();
+          else {
+            FakeXhr.latest.status = scenario === 'http-error' ? 413 : 200;
+            FakeXhr.latest.responseText = scenario === 'http-error' ? JSON.stringify({ detail: '图片过大' }) : scenario === 'complete' ? `data: ${JSON.stringify({ execution_event: event() })}\n\n` : '';
+            FakeXhr.latest.onprogress?.();
+            await FakeXhr.latest.onload?.();
+          }
+        }
+        await vi.waitFor(() => scenario === 'complete' ? expect(onEvent).toHaveBeenCalledOnce() : expect(onError).toHaveBeenCalledOnce());
+        if (scenario === 'complete') expect(onError).not.toHaveBeenCalled();
+        else expect(onError.mock.calls[0][0].message).toContain({
+          'missing-boundary': '结束边界', 'upload-error': '照片上传失败', 'answer-error': '照片已上传', 'http-error': '图片过大', timeout: '照片上传超时',
+        }[scenario]!);
+        expect(FakeXhr.latest.send).toHaveBeenCalledOnce();
+      } finally { setConnectionToken(''); vi.useRealTimers(); vi.unstubAllGlobals(); }
+    },
+  );
+});

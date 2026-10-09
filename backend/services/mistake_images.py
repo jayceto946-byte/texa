@@ -79,15 +79,15 @@ class MistakeImageStore:
         shutil.move(str(source), str(destination))
         return str(destination), True
 
-    def retain_for_task(self, path: str | Path, task_id: str) -> Path:
+    def retain_for_task(self, path: str | Path, task_id: str, *, original: bool = False) -> Path:
         """Copy once to a stable task path; never move the recoverable input."""
         if not task_id or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in task_id):
             raise ValueError("invalid image task id")
         root = self.image_root.resolve()
         source = Path(path).resolve()
-        if not source.is_relative_to(root) or source.suffix.lower() not in self.allowed_extensions:
+        if not source.is_relative_to(root) or source.suffix.lower() not in self.allowed_extensions | {".jpg"}:
             raise ValueError("图片路径不在错题图片目录内")
-        destination = (root / "tasks" / task_id / ("input" + source.suffix.lower())).resolve()
+        destination = (root / "tasks" / task_id / (("original" if original else "input") + source.suffix.lower())).resolve()
         if not destination.is_relative_to(root):
             raise ValueError("invalid retained image path")
         if destination.is_file() and destination.stat().st_size > 0:
@@ -101,6 +101,27 @@ class MistakeImageStore:
                 shutil.copyfileobj(src, dst)
                 dst.flush()
                 os.fsync(dst.fileno())
+            os.replace(temporary, destination)
+        finally:
+            temporary.unlink(missing_ok=True)
+        return destination
+
+    def preview_image(self, path: Path) -> Path:
+        """Cache a full-frame display derivative without changing the source asset."""
+        source = path.resolve()
+        if not source.is_relative_to(self.image_root.resolve()) or not source.is_file():
+            raise ValueError("图片路径不在错题图片目录内")
+        destination = source.with_name(source.stem + "_preview.jpg")
+        if destination.is_file() and destination.stat().st_mtime >= source.stat().st_mtime:
+            return destination
+        from PIL import Image, ImageOps
+        self.validate_image(source)
+        temporary = destination.with_name(f".{destination.name}.{uuid.uuid4().hex}.tmp")
+        try:
+            with Image.open(source) as image:
+                image = ImageOps.exif_transpose(image).convert("RGB")
+                image.thumbnail((1280, 1280), Image.Resampling.LANCZOS)
+                image.save(temporary, format="JPEG", quality=78, optimize=True)
             os.replace(temporary, destination)
         finally:
             temporary.unlink(missing_ok=True)
@@ -132,7 +153,7 @@ class MistakeImageStore:
                 handle.write(chunk)
         return self.optimize_for_ocr(raw_path)
 
-    def save_draft_attachment(self, file: Any, draft_id: str) -> tuple[Path, Path]:
+    def save_draft_attachment(self, file: Any, draft_id: str, *, strict: bool = False) -> tuple[Path, Path]:
         """Keep the original and a conservative OCR work image outside pending TTL."""
         if not draft_id or any(ch not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for ch in draft_id):
             raise ValueError("invalid draft id")
@@ -155,10 +176,39 @@ class MistakeImageStore:
                     if size > self.max_image_bytes:
                         raise ValueError("图片超过大小限制")
                     handle.write(chunk)
+            if strict:
+                self.validate_image(raw_path)
             work_path = self.optimize_for_ocr(raw_path, preserve_original=True)
             return raw_path, work_path
         except Exception:
             raw_path.unlink(missing_ok=True)
+            raise
+
+    def validate_image(self, path: Path) -> None:
+        from PIL import Image, UnidentifiedImageError
+        try:
+            with Image.open(path) as image:
+                if image.width * image.height > 40_000_000:
+                    raise ValueError("图片像素过大，请选择不超过 4000 万像素的照片")
+                image.verify()
+        except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
+            raise ValueError("图片无法读取，请转换为 JPEG、PNG 或 WebP 后重试") from exc
+
+    def save_visual_upload(self, file: Any, original_file: Any = None) -> tuple[Path, Path]:
+        """Preserve unmodified bytes and a separate, validated reasoning image."""
+        folder_id = "upload_" + uuid.uuid4().hex
+        original = work = None
+        try:
+            original, work = self.save_draft_attachment(file, folder_id, strict=True)
+            if original_file is not None:
+                source, unused = self.save_draft_attachment(original_file, folder_id, strict=True)
+                if unused != source:
+                    self.delete(unused)
+                self.delete(original)
+                original = source
+            return original, work
+        except Exception:
+            shutil.rmtree(self.image_root / "drafts" / folder_id, ignore_errors=True)
             raise
 
     def optimize_for_ocr(self, raw_path: Path, *, preserve_original: bool = False) -> Path:

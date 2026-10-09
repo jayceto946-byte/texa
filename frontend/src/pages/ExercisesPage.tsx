@@ -15,6 +15,7 @@ import {
 } from '../features/exercises/components/ExercisePresentation';
 import { useVisibleList } from '../hooks/useVisibleList';
 import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
+import { useTextbookImportOutline } from '../features/exercises/hooks/useTextbookImportOutline';
 import { useExerciseAnswerJob } from '../features/exercises/hooks/useExerciseAnswerJob';
 import { useExerciseImportCandidates } from '../features/exercises/hooks/useExerciseImportCandidates';
 import { usePracticeSession } from '../features/exercises/hooks/usePracticeSession';
@@ -76,8 +77,10 @@ const ExercisesPage: React.FC = () => {
   const [textbookPageEnd, setTextbookPageEnd] = useState('');
   const [pdfOpen, setPdfOpen] = useState(false);
   const [pdfPage, setPdfPage] = useState('1');
-  const sourcePdfPath = activeName && activeName !== 'default' ? `/api/books/${encodeURIComponent(activeName)}/source-pdf` : '';
-  const sourcePdfAsset = useAuthenticatedBlobUrl(pdfOpen ? sourcePdfPath : '');
+  const textbookOutline = useTextbookImportOutline(activeName);
+  const hasSourcePdf = books.find((book) => book.name === activeName || book.book_id === activeName)?.has_pdf === true;
+  const sourcePdfPath = hasSourcePdf ? `/api/books/${encodeURIComponent(activeName)}/source-pdf` : '';
+  const sourcePdfAsset = useAuthenticatedBlobUrl(pdfOpen ? sourcePdfPath : '', 'pdf');
   const [textbookSourceMode, setTextbookSourceMode] = useState('exercise_sections');
   const [useLlmRepair, setUseLlmRepair] = useState(false);
   const [extractedPreview, setExtractedPreview] = useState('');
@@ -109,6 +112,13 @@ const ExercisesPage: React.FC = () => {
 
 
   const recordList = useVisibleList(records, 30, `${activeName}|${targetSubject}|${statusFilter}|${searchKw}`);
+  useEffect(() => {
+    setTextbookChapter('');
+    setTextbookPageStart('');
+    setTextbookPageEnd('');
+    setPdfOpen(false);
+  }, [activeName]);
+
   const candidateList = useVisibleList(filteredCandidates, 20, `${activeName}|${importFile?.name || ''}|${textbookChapter}|${textbookPageStart}|${textbookPageEnd}|${importSummary.total}|${candidateFilter}`);
 
   const loadBooks = useCallback(async () => {
@@ -251,8 +261,7 @@ const ExercisesPage: React.FC = () => {
       }
     }
     resetImportPreview();
-    setPdfPage(textbookPageStart || '1');
-    setPdfOpen(true);
+    setPdfOpen(false);
   };
 
   const updateTargetSubject = (value: string) => {
@@ -444,15 +453,27 @@ const ExercisesPage: React.FC = () => {
                   <BookOpen className="h-4 w-4 text-accent" /> 弹窗打开教材 PDF 并选择页码
                 </button>
               )}
+              {!hasSourcePdf && <p className="workspace-support-text text-text-secondary">从已导入教材内容抽取，无需源 PDF。页码按文件物理页计数。</p>}
+              {textbookOutline.error && <p role="status" className="workspace-support-text text-text-secondary">{textbookOutline.error}</p>}
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
-                <input placeholder="章节名/章节序号，可留空" value={textbookChapter} onChange={(e) => setTextbookChapter(e.target.value)} className="app-field" />
+                {textbookOutline.chapters.length > 0 ? (
+                  <select aria-label="教材章节" value={textbookChapter} onChange={(e) => setTextbookChapter(e.target.value)} className="app-field">
+                    <option value="">全部章节（保留每题来源）</option>
+                    {textbookOutline.chapters.map((chapter) => (
+                      <optgroup key={chapter.title} label={chapter.title}>
+                        <option value={chapter.title}>{chapter.title}</option>
+                        {(chapter.subsections || []).map((section) => <option key={section.heading_block_id || `${section.title}:${section.page}`} value={section.heading_block_id ? `heading:${section.heading_block_id}` : section.title}>{'　'.repeat(Math.max(1, (section.level || 2) - 1))}{section.title}</option>)}
+                      </optgroup>
+                    ))}
+                  </select>
+                ) : <input aria-label="教材章节" placeholder="章节名/章节序号，可留空" value={textbookChapter} onChange={(e) => setTextbookChapter(e.target.value)} className="app-field" />}
                 <select value={textbookSourceMode} onChange={(e) => setTextbookSourceMode(e.target.value)} className="workspace-radius border border-border bg-bg-primary px-3 py-2 workspace-interface-text outline-none focus:border-accent">
                   <option value="exercise_sections">习题页优先</option>
                   <option value="examples">章节例题</option>
                   <option value="all_pages">整页文本</option>
                 </select>
-                <input type="number" min="1" placeholder="起始页" value={textbookPageStart} onChange={(e) => setTextbookPageStart(e.target.value)} onBlur={() => { if (textbookPageStart) { setPdfPage(textbookPageStart); setPdfOpen(true); } }} className="app-field" />
-                <input type="number" min="1" placeholder="结束页" value={textbookPageEnd} onChange={(e) => setTextbookPageEnd(e.target.value)} className="app-field" />
+                <input type="number" min="1" aria-label="起始物理页" placeholder="起始物理页" value={textbookPageStart} onChange={(e) => setTextbookPageStart(e.target.value)} className="app-field" />
+                <input type="number" min="1" aria-label="结束物理页" placeholder="结束物理页" value={textbookPageEnd} onChange={(e) => setTextbookPageEnd(e.target.value)} className="app-field" />
               </div>
               <button onClick={analyzeTextbookExercises} disabled={importing || !activeName || activeName === 'default'} className="flex w-full items-center justify-center gap-2 workspace-radius bg-accent px-3 py-2 workspace-interface-text font-medium text-white hover:bg-accent-hover disabled:opacity-50">
                 {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} 抽取教材候选题

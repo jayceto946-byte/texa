@@ -1,0 +1,47 @@
+{
+  "baseline_version": "runtime-source/v0.1",
+  "status": "reviewed_active",
+  "authorization": "User requested review and use of the new baseline on 2026-10-08",
+  "review_kind": "Codex source/contract review; not human gold adjudication",
+  "old_runtime_version": "sha256:aead87f0f65b76f4c6cfc49ff099761cf34cd7ac8fc6307d19a2b0ad6a94c3c6",
+  "runtime_version": "sha256:d6b75d38d73aa04d157bde32b7a7602e20073c35c8438fb90c1d3d984b8d834a",
+  "registry_version": "sha256:468a8259856e03d4f63f8e478eebf058467dd05395fae044de2d20aa95ec7013",
+  "runtime_sources": [
+    "backend/services/agent_runtime/exercise_tool.py",
+    "backend/services/agent_runtime/progress_tool.py",
+    "backend/services/agent_runtime/textbook_tool.py",
+    "backend/services/decision/policy.py",
+    "backend/services/decision/policy_contracts.py",
+    "backend/services/decision/policy_projection.py",
+    "backend/services/decision/router.py",
+    "backend/tools/registry.py",
+    "backend/services/decision/contracts.py",
+    "backend/services/decision/resolver.py",
+    "graph/question_understanding.py"
+  ],
+  "source_digests": {
+    "backend/services/agent_runtime/exercise_tool.py": "e5cab32d6e2d77257dab968965d6ef3c92d69879f2eb96c1db64eb8dc9545d03",
+    "backend/services/agent_runtime/progress_tool.py": "ddbbf8a6865cdcd8affb17a4bd18a46426becd27b6ccd6903d42515e573ff588",
+    "backend/services/agent_runtime/textbook_tool.py": "3d322e50ecbbb71d4227054829e5d2d7e1ab65914595fd04eb3060e6c80fe067",
+    "backend/services/decision/policy.py": "e2f7234622eeae719a42407b6b34e0d406a9ce9bd7c1336c81dfe9ef58c42c21",
+    "backend/services/decision/policy_contracts.py": "e7df5f29f05342cddfe0ef72cb671c9ac0e4f4f5405555831422288f4e655554",
+    "backend/services/decision/policy_projection.py": "313a5794441d2c069f278dc5340d1e0486ed75c4959e2b8a0174d76807018637",
+    "backend/services/decision/router.py": "072ab13330c7e6790596cfe775a8bdd78389b9fce17e5bf76720cb1566009af1",
+    "backend/tools/registry.py": "4146fa627e41da314e5b5920dbd3d9dd6e24eb9df9871624337f18feeb2de776",
+    "backend/services/decision/contracts.py": "d735055ba01d472f25a26f8e9597d0249239b02f67929f976f77ecd173703dd4",
+    "backend/services/decision/resolver.py": "9c5862e5bd55ea9efab2f5b83304011ca8df6513a66bcfe6d03315b412980ee1",
+    "graph/question_understanding.py": "dfe03ddb6965397b4392000bb6d2ac14bd1649c858552532d8a824033fe4c763",
+    "evaluation/policy_dataset_v0/canonical-tools-v0.json": "bfd9d7cc7bfc0eb8e139112991bc78833b05444b0f070c709b27f1cdf46b4318"
+  },
+  "retained_corpus_sha256": {
+    "review-basis.md": "c69ea4aa36278a4b342a8e282f532afc5aacca29413bfaa79c5c9b002d87f51a",
+    "invalid-sample.json": "0a4d5845eae774fc0dadad3d2888e467f710954982145b73eabcfeaf8f659fb6",
+    "evidence-files.json": "f179f49794250df03686e8eb90daed63a9eab126dbb3385c99b49238717808da",
+    "samples.jsonl": "1b1011b0d376ae9d347179f8c6005a0dbba36609ac179c4c3515c5d33c9b0782",
+    "adjudications.jsonl": "c688319fa123338c3727cba021cd7446eceb6f703fe48eeb6922023c97398492"
+  },
+  "old_manifest_sha256": "b67918dc07e2570ef207bdc4005c594ce930faf3cc8bcbd7e9e0cb7c00d4c2f1",
+  "old_source_manifest_sha256": "6ba788f3100785e86632a84be77ff7f1ee3ef603a0a816aa3dfebd24c57b3f0a",
+  "gold_changed": false,
+  "locked_gold_approved": false
+}

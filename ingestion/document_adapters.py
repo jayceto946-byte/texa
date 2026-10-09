@@ -620,7 +620,8 @@ def _block_type(raw_type: str) -> str:
 
 def _labeled_learning_block_type(text: str) -> str:
     compact = str(text or "").strip()
-    if re.match(r"^(?:例题|例\s*\d+|示例)\s*[：:、.]?", compact):
+    from ingestion.document_workflows import example_label
+    if example_label(compact):
         return "example"
     if re.match(r"^(?:习题|练习|作业题|问题)\s*\d*\s*[：:、.]?", compact):
         return "exercise"

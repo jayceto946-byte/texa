@@ -121,7 +121,8 @@ def try_chat_response(req, prepared: dict, request_id: str):
     from backend.services.decision.router import DecisionRouter
     from backend.services.decision.resolver import resolve_candidate_tools
     decision = DecisionRouter(shadow=False).route(DecisionContext(request_id=request_id, text=req.question,
-        resolved_query=prepared["rewritten_question"], answer_mode=prepared["answer_mode"]))
+        resolved_query=prepared["rewritten_question"], answer_mode=prepared["answer_mode"],
+        question_understanding=prepared["resolution_trace"].get("question_understanding") or {}))
     writes = {"exercise.create_set", "mistake.manage", "exercise.record_result"}
     allow_write = os.getenv("TEXA_AGENT_RUNTIME_WRITE", "0") == "1"
     if decision.selected_capability not in {"learning.inspect", "exercise.inspect"} | (writes if allow_write else set()) | ({"textbook.search"} if allow_textbook else set()):
@@ -134,7 +135,9 @@ def try_chat_response(req, prepared: dict, request_id: str):
     scope = None
     if decision.selected_capability == "textbook.search":
         from graph.intent_classifier import classify_intent_local
-        if classify_intent_local(prepared["rewritten_question"]).get("intent") in {"teach", "summarize"}:
+        from graph.question_understanding import interpretation_hint
+        hint = interpretation_hint(prepared["resolution_trace"].get("question_understanding"))
+        if classify_intent_local(prepared["rewritten_question"]).get("intent") in {"teach", "summarize"} or hint.get("intent") in {"teach", "summarize"}:
             return None
         from backend.services.agent_runtime.textbook_tool import freeze_textbook_scope, register_textbook_search_runtime
         scope = freeze_textbook_scope(prepared["book_name"], prepared["subject"])
@@ -148,7 +151,8 @@ def try_chat_response(req, prepared: dict, request_id: str):
     if baseline:
         from backend.services.decision.policy_projection import matched_tool_refs
         candidates, _ = matched_tool_refs(prepared["rewritten_question"], registry,
-            grounded=prepared["answer_mode"] == "textbook_grounded")
+            grounded=prepared["answer_mode"] == "textbook_grounded",
+            understanding=prepared["resolution_trace"].get("question_understanding"))
     if not candidates:
         return None
     from graph.main_graph import build_initial_state
