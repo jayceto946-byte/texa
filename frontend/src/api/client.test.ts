@@ -76,7 +76,7 @@ describe('photo multipart transport', () => {
         constructor() { FakeXhr.latest = this; }
       }
       vi.stubGlobal('XMLHttpRequest', FakeXhr);
-      vi.stubGlobal('window', { setTimeout, clearTimeout, localStorage: { getItem: () => null, setItem: vi.fn(), removeItem: vi.fn() } });
+      vi.stubGlobal('window', { setTimeout, clearTimeout, location: { search: scenario === 'complete' ? '?texa_perf=1' : '', hostname: 'localhost', origin: 'http://localhost' }, localStorage: { getItem: () => null, setItem: vi.fn(), removeItem: vi.fn() } });
       setConnectionToken('test-photo-token');
       const onEvent = vi.fn(), onError = vi.fn(), onUpload = vi.fn();
       try {
@@ -106,6 +106,12 @@ describe('photo multipart transport', () => {
           'missing-boundary': '结束边界', 'upload-error': '照片上传失败', 'answer-error': '照片已上传', 'http-error': '图片过大', timeout: '照片上传超时',
         }[scenario]!);
         expect(FakeXhr.latest.send).toHaveBeenCalledOnce();
+        if (scenario === 'complete') {
+          const { performanceRecords } = await import('../utils/performanceMetrics');
+          const metrics = performanceRecords();
+          expect(metrics.at(-1)).toMatchObject({ kind: 'photo-stream', uploadBytes: 5, outcome: 'ok', status: 200 });
+          expect(JSON.stringify(metrics)).not.toContain('test-photo-token');
+        }
       } finally { setConnectionToken(''); vi.useRealTimers(); vi.unstubAllGlobals(); }
     },
   );

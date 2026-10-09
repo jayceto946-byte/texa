@@ -147,15 +147,23 @@ try {
         await page.screenshot({ path: resolve(dirname(output), `reading-${width}.png`) });
       }
       if (process.env.TEXA_BENCH_DIAGNOSTICS === '1') {
+        await page.setViewportSize({ width: 390, height: 844 });
         await page.goto('https://texa.test:18429/?texa_perf=1', { waitUntil: 'domcontentloaded' });
         await page.locator('.composer-textarea').waitFor();
+        await page.getByRole('button', { name: '展开侧栏', exact: true }).click();
+        await page.locator('.context-session-row').first().click();
+        await page.waitForFunction(() => document.querySelectorAll('.markdown-body').length >= 100);
+        await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+        await page.locator('.composer-textarea').fill('S2 diagnostic fixture');
+        await page.getByRole('button', { name: '发送问题', exact: true }).click();
+        await page.getByText('回答尚未完成', { exact: false }).last().waitFor();
         const downloadPromise = page.waitForEvent('download');
         await page.getByRole('button', { name: '导出仅含耗时与尺寸的性能记录', exact: true }).click();
         const download = await downloadPromise;
         const target = resolve(dirname(output), 'diagnostics.json');
         await download.saveAs(target);
         const exported = readFileSync(target, 'utf8');
-        results.diagnostics = { validJson: Boolean(JSON.parse(exported).resources), privatePathsAbsent: !/\/api\/|visual-session|fixture-message|kaoyan_api_token/.test(exported) };
+        results.diagnostics = { validJson: Boolean(JSON.parse(exported).resources), schema: JSON.parse(exported).schema, metricKinds: [...new Set((JSON.parse(exported).metrics || []).map(m => m.kind))], privatePathsAbsent: !/\/api\/|visual-session|fixture-message|kaoyan_api_token/.test(exported) };
       }
     }
     await context.close();

@@ -47,3 +47,13 @@ def test_phone_cannot_treat_unconfigured_desktop_as_ready(client, monkeypatch):
 def test_insecure_development_start_is_not_remote_ready(client, monkeypatch):
     monkeypatch.setenv('KAOYAN_REQUIRE_API_TOKEN', '0')
     assert not client.get('/api/system/remote-ready').json()['data']['token_required']
+
+
+def test_opt_in_runtime_identity_remains_authenticated_and_content_free(client):
+    assert client.get('/api/system/remote-ready?performance=1').status_code == 401
+    data = client.get('/api/system/remote-ready?performance=1', headers={'X-Kaoyan-Token': 's0-test-secret'}).json()['data']
+    assert data['ready'] is True
+    identity = data['runtime_build']
+    assert set(identity) == {'source_at_import', 'served_frontend'}
+    assert set(identity['served_frontend']) == {'build', 'shell_sha256'}
+    assert 's0-test-secret' not in str(identity)

@@ -12,6 +12,16 @@ _LABELS = {
     '/api/system/remote-ready': 'connection-ready',
 }
 _logger = logging.getLogger('uvicorn.error')
+_TIMED = [
+    (re.compile(r'^/api/jobs(?:/[^/]+)?$'), 'job-read'),
+    (re.compile(r'^/api/system/health$'), 'system-health'),
+    (re.compile(r'^/api/books/[^/]+/chapter-highlights(?:/[^/]+(?:/html)?)?$'), 'chapter-highlight'),
+    (re.compile(r'^/api/notes(?:/[^/]+)*$'), 'notes-read'),
+    (re.compile(r'^/api/chat/conversations/[^/]+/(?:messages|messages-after|message-context|management)$'), 'session-page'),
+    (re.compile(r'^/api/books/[^/]+/(?:source-pdf|pdf)$'), 'textbook-pdf'),
+    (re.compile(r'^/api/books/[^/]+/(?:figures(?:/[^/]+(?:/(?:image|group-image))?)?|chapters)$'), 'citation-read'),
+    (re.compile(r'^/api/mistakes/(?:[^/]+|tasks/[^/]+|visual-tasks/[^/]+|drafts/[^/]+)/(?:image|attachments/[^/]+)$'), 'image-read'),
+]
 _DETAIL = re.compile(r'^/api/chat/conversations/[^/]+$')
 
 
@@ -22,7 +32,8 @@ class RemoteReadOptimization:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         path = scope.get('path', '')
-        label = _LABELS.get(path) or ('session-detail' if _DETAIL.fullmatch(path) else None)
+        compressed_label = _LABELS.get(path) or ('session-detail' if _DETAIL.fullmatch(path) else None)
+        label = compressed_label or next((name for pattern, name in _TIMED if pattern.fullmatch(path)), None)
         if scope['type'] != 'http' or scope.get('method') != 'GET' or not label:
             await self.app(scope, receive, send)
             return
@@ -39,14 +50,16 @@ class RemoteReadOptimization:
                 message = dict(message)
                 message['headers'] = list(message.get('headers', [])) + [
                     (b'server-timing', f'texa_read;dur={header_ms:.1f}'.encode('ascii')),
-                    (b'cache-control', b'no-store'),
                 ]
+                if compressed_label:
+                    message['headers'].append((b'cache-control', b'no-store'))
             if message['type'] == 'http.response.body':
                 size += len(message.get('body', b''))
             await send(message)
             if message['type'] == 'http.response.body' and not message.get('more_body', False):
                 # Labels and numbers only: no query, identity, credential or content.
-                _logger.info('S0 read %s status=%d app_header_ms=%.1f wire_bytes=%d',
-                             label, status, header_ms, size)
+                _logger.info('%s read %s status=%d app_header_ms=%.1f response_body_bytes=%d',
+                             'S0' if compressed_label else 'S2', label, status, header_ms, size)
 
-        await self.compressed(scope, receive, timed_send)
+        # Timing-only for new finite routes: preserve existing compression, ranges and cache headers.
+        await (self.compressed if compressed_label else self.app)(scope, receive, timed_send)

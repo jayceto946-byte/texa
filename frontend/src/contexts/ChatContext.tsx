@@ -1,3 +1,4 @@
+import { beginSessionRender } from '../utils/performanceMetrics';
 import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import type { AnswerMode, AssistantSource, ChatActivity, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, CitationProvenance, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
@@ -131,6 +132,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     cancelActiveChat();
     persistConversationId(id);
     setIsLoading(false);
+    beginSessionRender(nextMessages.length);
     setMessages(nextMessages);
     setHistoryPage(meta.page || null);
     if (meta.subject !== undefined) {

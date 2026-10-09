@@ -1,3 +1,4 @@
+import { beginMetric, resourceCategory, performanceEnabled } from '../utils/performanceMetrics';
 import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import type { AgentPendingAction, AnswerMode, AssistantSource, ConceptCandidate, ExecutionStreamEnvelope, LearningTaskState, SubjectRouteSuggestion, VisualRegion } from '../types';
 import { isExecutionEventV1, isExecutionEventV2 } from '../utils/chatActivities';
@@ -97,6 +98,9 @@ function authenticatedResourceUrl(value: string): string {
 }
 
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS, finiteBody = false) {
+  const metric = beginMetric('finite-request', resourceCategory(new URL(String(input), window.location?.origin || 'http://localhost').pathname));
+  const started = performanceEnabled() ? performance.now() : 0;
+  let headersMs = 0;
   const ctrl = new AbortController();
   let timedOut = false;
   let abortedBySource = false;
@@ -115,6 +119,7 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
   try {
     const response = await fetch(input, { ...init, headers: authHeaders(init.headers), signal: ctrl.signal });
     responseStatus = response.status;
+    headersMs = performanceEnabled() ? performance.now() - started : 0;
     // Finite asset reads must finish before releasing the timer and cancellation.
     // SSE callers keep their streaming path.
     if (response.body && (finiteBody || response.headers.get('content-type')?.includes('application/json'))) {
@@ -126,13 +131,16 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
           else ctrl.signal.addEventListener('abort', abortRead, { once: true });
         });
         const bytes = await Promise.race([response.arrayBuffer(), aborted]);
+        metric(response.ok ? 'ok' : 'error', { headersMs, bodyMs: performanceEnabled() ? performance.now() - started - headersMs : 0, decodedBytes: bytes.byteLength, status: response.status });
         return new Response(bytes, { status: response.status, statusText: response.statusText, headers: response.headers });
       } finally {
         if (abortRead) ctrl.signal.removeEventListener('abort', abortRead);
       }
     }
+    metric(response.ok ? 'ok' : 'error', { headersMs, status: response.status });
     return response;
   } catch (error) {
+    metric(abortedBySource ? 'cancelled' : 'error', { headersMs, status: responseStatus });
     if (timedOut) {
       throw new Error(
         `请求处理超时（${Math.ceil(timeoutMs / 1000)} 秒，${responseStatus ? `读取响应正文，HTTP ${responseStatus}` : '等待响应头'}）。请检查网络连接及桌面服务后重试。`,
@@ -286,6 +294,11 @@ export function chatStream(
   onError?: (err: Error) => void,
   answerMode: AnswerMode = 'auto',
 ): () => void {
+  const metric = beginMetric('text-stream', 'chat');
+  const started = performanceEnabled() ? performance.now() : 0;
+  let headersMs = 0;
+  let firstChunkMs: number | undefined;
+  let decodedBytes = 0;
   const ctrl = new AbortController();
   let disconnected = false;
   const offline = () => { disconnected = true; ctrl.abort(); };
@@ -300,6 +313,7 @@ export function chatStream(
         signal: ctrl.signal,
       });
 
+      headersMs = performanceEnabled() ? performance.now() - started : 0;
       if (!res.ok || !res.body) throw await responseError(res, 'SSE failed');
 
       const reader = res.body.getReader();
@@ -310,6 +324,7 @@ export function chatStream(
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+        if (performanceEnabled()) { firstChunkMs ??= performance.now() - started; decodedBytes += value.byteLength; }
         const parsed = consumeSseChunk(decoder.decode(value, { stream: true }), buffer, onEvent);
         buffer = parsed.buffer;
         sawBoundaryEvent = parsed.sawBoundaryEvent || sawBoundaryEvent;
@@ -321,7 +336,9 @@ export function chatStream(
       if (!sawBoundaryEvent && !ctrl.signal.aborted) {
         throw new Error('stream ended without terminal event');
       }
+      metric('ok', { headersMs, firstChunkMs, decodedBytes });
     } catch (err) {
+      metric(ctrl.signal.aborted ? 'cancelled' : 'error', { headersMs, firstChunkMs, decodedBytes });
       if (disconnected) {
         onError?.(new Error('网络已断开，回答尚未确认完成。请恢复连接后重新读取会话和任务状态；不要直接重复提交。'));
         return;
@@ -493,6 +510,12 @@ function imageMultipartStream(
   onUpload?: (loaded: number, total: number) => void,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
+    const metric = beginMetric('photo-stream', 'image');
+    const started = performanceEnabled() ? performance.now() : 0;
+    let uploadBytes = 0;
+    let uploadMs: number | undefined;
+    let headersMs: number | undefined;
+    let firstChunkMs: number | undefined;
     const xhr = new XMLHttpRequest();
     let offset = 0;
     let buffer = '';
@@ -502,6 +525,7 @@ function imageMultipartStream(
     const cleanup = () => signal.removeEventListener('abort', abort);
     const fail = (error: Error) => {
       if (settled) return;
+      metric(signal.aborted ? 'cancelled' : 'error', { uploadBytes, uploadMs, headersMs, firstChunkMs, status: xhr.status });
       settled = true; cleanup(); reject(error);
     };
     const abort = () => {
@@ -519,10 +543,12 @@ function imageMultipartStream(
     };
     xhr.open('POST', url);
     authHeaders().forEach((value, key) => xhr.setRequestHeader(key, value));
-    xhr.upload.onprogress = event => onUpload?.(event.loaded, event.lengthComputable ? event.total : 0);
-    xhr.upload.onload = () => { uploadComplete = true; onUpload?.(1, 1); };
+    xhr.upload.onprogress = event => { uploadBytes = event.loaded; onUpload?.(event.loaded, event.lengthComputable ? event.total : 0); };
+    xhr.onreadystatechange = () => { if (xhr.readyState >= 2 && performanceEnabled()) headersMs ??= performance.now() - started; };
+    xhr.upload.onload = event => { uploadBytes = event?.loaded || uploadBytes; uploadMs = performanceEnabled() ? performance.now() - started : 0; uploadComplete = true; onUpload?.(1, 1); };
     xhr.onprogress = () => {
       if (settled || xhr.status < 200 || xhr.status >= 300) return;
+      if (performanceEnabled()) firstChunkMs ??= performance.now() - started;
       try { consume(); } catch (error) { fail(error instanceof Error ? error : new Error(String(error))); xhr.abort(); }
     };
     xhr.onerror = () => fail(new Error(uploadComplete ? '照片已上传，但图片解答连接中断，请查看会话状态' : '照片上传失败，请检查手机与桌面网络连接'));
@@ -536,6 +562,7 @@ function imageMultipartStream(
         consume();
         boundary = flushSseBuffer(buffer, onEvent) || boundary;
         if (!boundary) throw new Error('图片讲解流未返回 canonical 结束边界');
+        metric('ok', { uploadBytes, uploadMs, headersMs, firstChunkMs, status: xhr.status });
         settled = true; cleanup(); resolve();
       } catch (error) { fail(error instanceof Error ? error : new Error(String(error))); }
     };

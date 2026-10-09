@@ -9,6 +9,7 @@ from typing import Literal
 from fastapi import APIRouter, Request
 
 from config import PROGRESS_PATH, VECTOR_DB_PATH
+from backend.runtime_identity import runtime_build_identity
 from backend.rag_trace import TRACE_DB_PATH, list_traces
 
 router = APIRouter(prefix="/system", tags=["system"])
@@ -307,12 +308,13 @@ def _write_subject_tree(tree: list[dict]) -> list[dict]:
 
 
 @router.get("/remote-ready")
-def remote_ready():
+def remote_ready(performance: bool = False):
     """Authenticated, read-only readiness; no profiles or credentials returned."""
     models = profiles_payload()
     reasoning = models.get("roles", {}).get("reasoning", {})
     credential = models.get("credentials", {}).get("reasoning", {})
     return {"success": True, "data": {
+        **({"runtime_build": runtime_build_identity()} if performance else {}),
         "token_required": os.getenv("KAOYAN_REQUIRE_API_TOKEN", "0") == "1",
         "ready": bool(reasoning.get("model") and (
             not credential.get("required") or credential.get("configured")

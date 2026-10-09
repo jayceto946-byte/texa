@@ -84,3 +84,37 @@ def test_conversation_body_compression_preserves_auth_and_excludes_subroutes(mon
     assert 'test-only-secret' not in caplog.text
     assert '教材正文' not in caplog.text
     assert 'content-encoding' not in client.get('/api/chat/conversations/private-identity/messages-after', headers=headers).headers
+
+
+def test_s2_timing_preserves_finite_bytes_range_cache_and_auth(monkeypatch, caplog):
+    from starlette.responses import Response
+    monkeypatch.setenv('KAOYAN_REQUIRE_API_TOKEN', '1')
+    monkeypatch.setenv('KAOYAN_API_TOKEN', 'test-only-secret')
+    app = FastAPI()
+    app.add_middleware(RemoteReadOptimization)
+    app.add_middleware(LocalApiBoundaryMiddleware)
+    payload = b'%PDF-original-formula-and-image' * 100
+
+    @app.get('/api/books/{identity}/source-pdf')
+    def pdf(identity: str):
+        return Response(payload, status_code=206, media_type='application/pdf', headers={'Content-Range': 'bytes 0-2999/9000', 'Cache-Control': 'private'})
+
+    @app.get('/api/notes/{identity}')
+    def note(identity: str):
+        return {'revision': 4, 'content': 'private-note-content'}
+
+    client = TestClient(app)
+    assert client.get('/api/books/private-book/source-pdf').status_code == 401
+    headers = {'X-Kaoyan-Token': 'test-only-secret', 'Accept-Encoding': 'gzip', 'Range': 'bytes=0-2999'}
+    caplog.set_level(logging.INFO, logger='uvicorn.error')
+    response = client.get('/api/books/private-book/source-pdf', headers=headers)
+    assert response.status_code == 206
+    assert response.content == payload
+    assert response.headers['content-range'] == 'bytes 0-2999/9000'
+    assert response.headers['cache-control'] == 'private'
+    assert 'content-encoding' not in response.headers
+    assert 'server-timing' in response.headers
+    response = client.get('/api/notes/private-note', headers=headers)
+    assert response.json()['revision'] == 4
+    assert 'server-timing' in response.headers
+    assert all(value not in caplog.text for value in ['private-book', 'private-note', 'private-note-content', 'test-only-secret'])

@@ -1,3 +1,4 @@
+import { beginMetric, resourceCategory } from '../utils/performanceMetrics';
 import { useEffect, useState } from 'react';
 import { getAuthenticatedBlob, getAuthenticatedText } from '../api/client';
 
@@ -41,6 +42,7 @@ export function useAuthenticatedBlobUrl(path: string, kind: 'binary' | 'html' | 
       return;
     }
 
+    const metric = beginMetric('asset-preview', resourceCategory(new URL(path.startsWith('/api/') ? path : `/api${path}`, window.location.origin).pathname));
     const controller = new AbortController();
     let objectUrl = '';
     const childUrls: string[] = [];
@@ -55,14 +57,17 @@ export function useAuthenticatedBlobUrl(path: string, kind: 'binary' | 'html' | 
       if (kind === 'pdf' && blob.type.split(';')[0] !== 'application/pdf') throw new Error('教材来源没有返回可预览的 PDF');
       if (typeof URL.createObjectURL !== 'function') throw new Error('当前环境不支持本地资源预览');
       objectUrl = URL.createObjectURL(blob);
+      metric('ok', { decodedBytes: blob.size });
       setState({ url: objectUrl, loading: false, error: '' });
     }).catch((error) => {
+      metric(controller.signal.aborted ? 'cancelled' : 'error');
       if (!active || controller.signal.aborted) return;
       childUrls.splice(0).forEach((url) => URL.revokeObjectURL(url));
       setState({ url: '', loading: false, error: error instanceof Error ? error.message : String(error) });
     });
 
     return () => {
+      metric('cancelled');
       active = false;
       controller.abort();
       if (objectUrl) URL.revokeObjectURL(objectUrl);

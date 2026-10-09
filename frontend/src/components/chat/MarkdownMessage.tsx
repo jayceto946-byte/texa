@@ -19,7 +19,7 @@ const MarkdownRenderer = lazy(() =>
 );
 
 const MarkdownLoadingFallback: React.FC = () => (
-  <div aria-busy="true" className="min-h-6 text-xs leading-relaxed text-text-secondary">正在加载内容…</div>
+  <div data-texa-markdown-loading="true" aria-busy="true" className="min-h-6 text-xs leading-relaxed text-text-secondary">正在加载内容…</div>
 );
 
 export const SimpleMarkdown: React.FC<SimpleMarkdownProps> = ({ content }) => (

@@ -1,3 +1,4 @@
+import { finishSessionRender } from '../utils/performanceMetrics';
 import { streamFailure, streamPresentation } from '../features/chat/streamPresentation';
 import { useReadingScroll } from '../features/chat/useReadingScroll';
 import { getBookList } from '../features/books/bookList';
@@ -94,6 +95,8 @@ const ChatPage: React.FC = () => {
   const [nextAfterSeq, setNextAfterSeq] = useState<number | null>(null);
   const { scrollRef, targetMessageRef, preserveHistoryScrollRef, following, onScroll, scrollToLatest } = useReadingScroll(messages, conversationId, location.pathname === '/');
   const loadedLocatorRef = useRef('');
+  useEffect(() => { finishSessionRender(); }, [messages]);
+
   useEffect(() => {
     if (location.pathname !== '/') return;
     const params = new URLSearchParams(location.search);

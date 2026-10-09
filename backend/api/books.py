@@ -187,6 +187,18 @@ def _load_chapters(name: str) -> list[dict]:
     chapters = _normalize_loaded_chapters(data if isinstance(data, list) else [])
     return enrich_chapters(chapters, load_workflow_book(name, progress_root=Path(PROGRESS_PATH), vector_root=Path(VECTOR_DB_PATH)))
 
+def _chapter_count(name: str) -> int:
+    normalized = safe_book_name(name)
+    from ingestion.document_ir import CANONICAL_DOCUMENT_FILENAME
+    return _book_read_cache.chapter_count(
+        (
+            Path(PROGRESS_PATH) / normalized / '_chapters.json',
+            Path(PROGRESS_PATH) / normalized / CANONICAL_DOCUMENT_FILENAME,
+            Path(VECTOR_DB_PATH) / '_index_manifests' / f'{normalized}.json',
+        ),
+        lambda: len(_load_chapters(normalized)),
+    )
+
 def _normalize_loaded_chapters(chapters: list[dict]) -> list[dict]:
     if not looks_like_external_ocr_chunk_titles(chapters):
         return chapters
@@ -426,7 +438,7 @@ def list_books(include_archived: bool = False):
             "resource_group": str(meta.get("resource_group", "")),
             "subject": str(meta.get("subject", "")).strip(),
             "has_pdf": bool(pdf_path or _source_pdf_path(name)),
-            "chapter_count": len(_load_chapters(name)),
+            "chapter_count": _chapter_count(name),
             "index_status": index_status,
             "readiness": readiness,
         })

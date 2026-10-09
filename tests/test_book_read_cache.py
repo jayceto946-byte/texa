@@ -93,3 +93,72 @@ def test_json_cache_refreshes_after_same_size_overwrite(tmp_path):
     path.write_text('{"value":"two"}', encoding="utf-8")
 
     assert cache.read_json(path, {}) == {"value": "two"}
+
+
+
+def test_chapter_count_cache_preserves_content_versions_even_for_large_same_stamp_edits(tmp_path):
+    import os
+    import pytest
+    paths = tuple(tmp_path / name for name in ('chapters.json', 'canonical.jsonl', 'manifest.json'))
+    for path in paths:
+        path.write_bytes(b'a' * (1024 * 1024 + 1))
+    cache = BookReadCache()
+    calls = 0
+
+    def validated_count():
+        nonlocal calls
+        calls += 1
+        if paths[1].read_bytes().startswith(b'b'):
+            raise ValueError('Canonical/manifest mismatch')
+        return 13
+
+    assert cache.chapter_count(paths, validated_count) == 13
+    assert cache.chapter_count(paths, validated_count) == 13
+    assert calls == 1
+    stamp = paths[1].stat()
+    paths[1].write_bytes(b'b' * stamp.st_size)
+    os.utime(paths[1], ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+    with pytest.raises(ValueError):
+        cache.chapter_count(paths, validated_count)
+    with pytest.raises(ValueError):
+        cache.chapter_count(paths, validated_count)
+    assert calls == 3
+    paths[1].write_bytes(b'a' * stamp.st_size)
+    assert cache.chapter_count(paths, validated_count) == 13
+    paths[2].write_bytes(b'new manifest')
+    assert cache.chapter_count(paths, validated_count) == 13
+    assert calls == 5
+    cache.clear()
+    assert cache.chapter_count(paths, validated_count) == 13
+    assert calls == 6
+
+
+def test_chapter_count_cache_does_not_publish_a_changing_dependency_snapshot(tmp_path):
+    path = tmp_path / 'chapters.json'
+    path.write_text('before')
+    cache = BookReadCache()
+    calls = 0
+
+    def loader():
+        nonlocal calls
+        calls += 1
+        path.write_text(str(calls))
+        return 0
+
+    assert cache.chapter_count((path,), loader) == 0
+    assert cache.chapter_count((path,), loader) == 0
+    assert calls == 2
+
+
+def test_count_miss_discards_stale_large_json_projection(tmp_path):
+    import os
+    path = tmp_path / 'chapters.json'
+    padding = 'x' * (1024 * 1024 + 1)
+    path.write_text(json.dumps({'count': 1, 'padding': padding}))
+    cache = BookReadCache()
+    loader = lambda: cache.read_json(path, {})['count']
+    assert cache.chapter_count((path,), loader) == 1
+    stamp = path.stat()
+    path.write_text(json.dumps({'count': 2, 'padding': padding}))
+    os.utime(path, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+    assert cache.chapter_count((path,), loader) == 2
