@@ -4,7 +4,7 @@
 
 ## Resume position
 
-第一轮系统盘点、独立审计、第一批整改与回归完成；质量门槛未全部关闭。整改checkpoint：35107fc。报告与证据checkpoint见Git下一条QA提交。恢复时先读QA-FINAL-REPORT、QA-ISSUES和accepted-pages.json，不需要重新阅读全部日志/图片。
+第一轮系统盘点、独立审计、第一批整改与回归完成；质量门槛未全部关闭。整改checkpoint：35107fc。报告与证据checkpoint：1b16502。恢复时先读QA-FINAL-REPORT、QA-ISSUES和accepted-pages.json，不需要重新阅读全部日志/图片。
 
 ## Safety / ownership
 
@@ -36,6 +36,8 @@
 
 ## Local fixtures / cleanup
 
-自己的审计服务绑定18041，数据/tmp/texa-full-qa-live；截图服务18039/18040由脚本自行释放。Electron测试窗口已关闭。最终验收后关闭审计后端；不停止任何用户服务。测试临时学习资产保留供证据复查，不进入产品数据目录。
+自己的审计服务绑定18041，数据/tmp/texa-full-qa-live；截图服务18039/18040由脚本自行释放。Electron测试窗口已关闭。最终验收后已关闭自己的18041审计后端；不停止任何用户服务。测试临时学习资产保留供证据复查，不进入产品数据目录。
 
 S3 gate结论：未清关；详细结果/风险/命令见QA-FINAL-REPORT.md和RUN-QA.md。
+
+Final workspace verification：git status与initial-git-status相同的既有Mobile S2修改保留，本次所有整改/证据已提交；patch_notes仅原有11行仍未提交。本次无合并、reset或推送。
