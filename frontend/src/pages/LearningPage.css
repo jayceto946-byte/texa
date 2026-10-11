@@ -21,7 +21,11 @@
 .review-row-content > strong,.review-row-title { color: var(--color-text-primary); font-size: 14px; font-weight: 600; line-height: 1.5; }
 .review-row-title { display: flex; align-items: flex-start; gap: 6px; width: 100%; text-align: left; }
 .review-row-title svg { margin-top: 2px; flex: none; color: var(--color-text-secondary); }
-.review-question-title span { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
+.review-question-summary { min-width: 0; flex: 1; display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
+.review-question-summary .markdown-body,.review-question-preview .markdown-body { font-size: inherit; font-weight: inherit; line-height: inherit; }
+.review-question-summary .markdown-body p,.review-question-preview .markdown-body p { margin: 0; }
+.review-question-summary .katex-display,.review-question-preview .katex-display { max-width: 100%; margin: 0; overflow-x: auto; overflow-y: hidden; }
+.review-question-preview { min-width: 0; font-size: 13px; overflow-wrap: anywhere; }
 .review-row-content > p { margin-top: 2px; color: var(--color-text-secondary); font-size: 13px; line-height: 1.5; }
 .review-row-content > .review-row-meta { font-size: 12px; }
 .review-row-content > .review-row-error { margin-top: 5px; color: var(--danger-text); font-size: 12px; }
@@ -58,8 +62,13 @@
 .review-recent-questions { padding-top: 16px; border-top: 1px solid var(--workspace-separator); }
 .review-recent-questions > div { padding: 6px 0; border-bottom: 1px solid var(--workspace-separator); }
 .review-recent-questions p { color: var(--color-text-primary); font-size: 13px; overflow-wrap: anywhere; }
-.review-recent-questions span { color: var(--color-text-secondary); font-size: 12px; }
+.review-recent-questions > div > span { color: var(--color-text-secondary); font-size: 12px; }
 @media (max-width: 1050px) { .learning-page .learning-page-content { padding: 20px; } }
+@media (max-width: 600px) {
+  .app-shell .learning-page-header > .app-page-title { flex: none; white-space: nowrap; }
+  .app-shell .learning-page-header > .app-secondary-button { flex: none; white-space: nowrap; }
+  .app-shell .learning-page .learning-page-header > div:last-child { flex: 0 1 260px; min-width: 0; }
+}
 @media (max-width: 760px) {
   .learning-page .learning-page-content { padding: 16px; }
   .review-today-main { align-items: flex-start; flex-direction: column; gap: 12px; }

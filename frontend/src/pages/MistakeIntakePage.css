@@ -7,7 +7,11 @@
 .mistakes-intake-draft-list li { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--workspace-separator); font-size: var(--workspace-interface-size); }
 .mistakes-intake-draft-list a { min-width: 0; overflow-wrap: anywhere; color: var(--color-text-primary); }
 .mistakes-intake-draft-list a:hover { color: var(--color-accent); }
-.mistakes-intake-draft-list span { flex: none; color: var(--color-text-secondary); }
+.mistakes-intake-draft-list li > span { flex: none; color: var(--color-text-secondary); }
+.mistakes-intake-draft-title { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.mistakes-intake-draft-title .markdown-body { font-size: inherit; font-weight: inherit; line-height: inherit; }
+.mistakes-intake-draft-title .markdown-body p { margin: 0; color: inherit; font-size: inherit; line-height: inherit; }
+.mistakes-intake-draft-title .katex-display { max-width: 100%; margin: 0; overflow-x: auto; overflow-y: hidden; }
 .mistakes-intake-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
 .mistakes-intake-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
 .mistakes-intake-images, .mistakes-intake-editor { min-width: 0; }
@@ -29,4 +33,8 @@
 .mistakes-intake-warning { color: var(--warning-text) !important; }
 .mistakes-intake-error { color: var(--danger) !important; }
 @media (max-width: 920px) { .mistakes-intake-layout { grid-template-columns: 1fr; }.mistakes-intake-images { position: static; }.mistakes-intake-image { max-height: 320px; } }
-@media (max-width: 600px) { .mistakes-intake-metadata { grid-template-columns: 1fr; } }
+@media (max-width: 600px) {
+  .mistakes-intake-metadata { grid-template-columns: 1fr; }
+  .app-shell .mistakes-intake-workspace > .app-page-header > .app-page-title { flex: none; white-space: nowrap; }
+  .mistakes-intake-workspace > .app-page-header > .mistakes-back { flex: none; white-space: nowrap; }
+}

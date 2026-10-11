@@ -1,3 +1,4 @@
+import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart3, BookOpen, ClipboardCheck, HelpCircle, Loader2, RefreshCw } from 'lucide-react';
@@ -129,7 +130,7 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
               {(report?.recent_questions || []).length ? report!.recent_questions.map((item, idx) => (
                 <div key={`${item.time}-${idx}`} className="rounded-md bg-bg-primary px-3 py-2 text-sm">
                   <div className="mb-1 text-xs text-text-secondary">{item.time}</div>
-                  <div>{item.question}</div>
+                  <div className="[&_.markdown-body]:text-sm [&_.markdown-body_p]:m-0 [&_.katex-display]:overflow-x-auto"><SimpleMarkdown content={item.question}/></div>
                 </div>
               )) : <div className="text-sm text-text-secondary">暂无问答记录</div>}
             </div>

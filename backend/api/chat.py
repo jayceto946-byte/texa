@@ -80,6 +80,13 @@ from backend.api.conversation_protocol import ConversationManagementRoute
 router = APIRouter(prefix="/chat", tags=["chat"], route_class=ConversationManagementRoute)
 logger = logging.getLogger(__name__)
 
+
+def _safe_chat_error(exc: Exception) -> str:
+    # Reuse the diagnostic redactor before errors enter SSE or task storage.
+    from backend.rag_trace import _redact_diagnostic
+    return _redact_diagnostic(str(exc))[:500]
+
+
 _TOOL_ACTIVITY_LABELS = {
     "symbolic_math": "执行确定性计算",
     "verify_math_result": "核对计算结果",
@@ -1592,18 +1599,20 @@ def _prepared_chat_stream(
                 last_stage = "interrupted"
                 logger.info("stale chat stream failure ignored", extra={"request_id": request_id})
                 return
-            logger.exception("chat stream failed", extra={"request_id": request_id})
+            safe_error = _safe_chat_error(exc)
+            logger.error("chat stream failed (%s): %s", type(exc).__name__, safe_error,
+                         extra={"request_id": request_id})
             pending_actions = list(learning_task.artifacts.get("pending_actions") or [])
             failure_status = "waiting_for_confirmation" if pending_actions else "failed"
             failed_task = get_learning_task_store().prepare_checkpoint_for_run(
-                learning_task, run_id, "generation_failed", status=failure_status, detail=str(exc),
+                learning_task, run_id, "generation_failed", status=failure_status, detail=safe_error,
             )
             if str(failed_task.artifacts.get("active_run_id") or "") != run_id:
                 disconnected = True
                 last_stage = "interrupted"
                 return
             event = {
-                "stage": "error", "message": str(exc), "done": True,
+                "stage": "error", "message": safe_error, "done": True,
                 "conversation_id": conversation_id, "turn_id": turn_id,
                 "learning_task": failed_task.to_dict(public=True),
             }
@@ -1682,10 +1691,11 @@ def _chat_stream(
                 "error",
                 phase="context",
                 status="failed",
-                summary=str(exc),
+                summary=_safe_chat_error(exc),
                 operation_id="context",
                 label="读取会话上下文",
                 kind="system",
+                payload={"error_code": "context_preparation_failed", "error_type": type(exc).__name__},
             )
             yield f"data: {json.dumps(execution_sse_payload(failed), ensure_ascii=False)}\n\n"
 
@@ -1924,7 +1934,7 @@ def chat_ask(req: ChatRequest):
         if not store.run_is_active(learning_task.id, run_id):
             raise HTTPException(status_code=409, detail="stale execution run") from exc
         failure_status = "waiting_for_confirmation" if learning_task.artifacts.get("pending_actions") else "failed"
-        learning_task = store.prepare_checkpoint_for_run(learning_task, run_id, "generation_failed", status=failure_status, detail=str(exc))
+        learning_task = store.prepare_checkpoint_for_run(learning_task, run_id, "generation_failed", status=failure_status, detail=_safe_chat_error(exc))
         failure = ExecutionEventEmitter(request_id=request_id, task_id=learning_task.id, run_id=run_id,
             conversation_id=conversation_id, turn_id=turn_id).emit("error", phase="error", status="failed",
             summary="generation failed", payload={"task_status": failure_status})

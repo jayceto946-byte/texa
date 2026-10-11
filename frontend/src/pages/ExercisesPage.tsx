@@ -416,10 +416,12 @@ const ExercisesPage: React.FC = () => {
     <div className="management-workspace flex h-full flex-col">
       {manualOpen && <ManualExerciseDialog scope={activeName} subject={targetSubject} onClose={() => setManualOpen(false)} onSaved={() => { void load(); }}/>}
       <div className="app-page-header border-b border-border bg-bg-primary">
-        <h2 className="app-page-title">练习</h2>
+        <h2 className="app-page-title shrink-0 whitespace-nowrap">练习</h2>
         <div className="window-drag-region" aria-hidden="true" />
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <button className="app-secondary-button shrink-0 whitespace-nowrap" onClick={() => setManualOpen(true)}>手动录入</button>
           <SegmentedControl
+            className="shrink-0 whitespace-nowrap"
             label="练习工作区视图"
             value={workspaceMode}
             options={[{ value: 'practice', label: '练习' }, { value: 'bank', label: '题库' }, { value: 'import', label: '导入' }]}
@@ -581,7 +583,7 @@ const ExercisesPage: React.FC = () => {
                     <button onClick={() => setSessionShuffle((value) => !value)} className={`flex h-9 items-center gap-1.5 workspace-radius border px-3 workspace-interface-text ${sessionShuffle ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-bg-card text-text-primary'}`}><Shuffle className="h-3.5 w-3.5" />{sessionShuffle ? '随机顺序' : '优先复习'}</button>
                     <button onClick={startConfiguredPractice} disabled={sessionBusy || practicePool.length === 0} className="app-primary-button disabled:cursor-not-allowed disabled:opacity-45">{sessionBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}开始练习</button>
                   </div>
-                  </> : <div><p className="workspace-interface-text text-text-secondary">当前没有可练习的题目。先导入教材题、Word/PDF，或手动录入并校对。</p><div className="mt-3 flex gap-2"><button className="app-primary-button" onClick={() => setWorkspaceMode('import')}>导入习题</button><button className="app-secondary-button" onClick={() => setManualOpen(true)}>手动录入</button></div></div>}
+                  </> : <div><p className="workspace-interface-text text-text-secondary">当前没有可练习的题目。先导入教材题、Word/PDF，或手动录入并校对。</p><div className="mt-3 flex gap-2"><button className="app-primary-button" onClick={() => setWorkspaceMode('import')}>导入习题</button></div></div>}
                   {practiceSession?.status === 'completed' && <p className="mt-3 workspace-support-text text-text-secondary">上轮完成 {practiceSession.summary.answered} 题，平均自评 {practiceSession.summary.average_quality}</p>}
                 </div>
               )}

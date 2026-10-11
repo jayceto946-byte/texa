@@ -15,20 +15,26 @@ function ReviewSessionStart() {
   const navigate = useNavigate();
   const [items, setItems] = useState<MistakeRecord[]>([]);
   const [error, setError] = useState('');
+  const [readError, setReadError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setReadError('');
+    setError('');
+    setItems([]);
     const query = new URLSearchParams({ book_name: bookName || 'default', subject });
     get(`/mistakes/due?${query}`).then((result) => {
       if (!active) return;
       if (result?.success) setItems(result.data || []);
-      else setError(result?.message || '无法读取到期错题');
-    }).catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : '无法读取到期错题'); }).finally(() => { if (active) setLoading(false); });
+      else setReadError(result?.message || '无法读取到期错题');
+    }).catch((cause) => { if (active) setReadError(cause instanceof Error ? cause.message : '无法读取到期错题'); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [bookName, subject]);
+  }, [bookName, subject, reloadKey]);
   const start = async () => {
-    if (starting || !items.length) return;
+    if (starting || loading || readError || !items.length) return;
     setStarting(true);
     setError('');
     try {
@@ -37,7 +43,7 @@ function ReviewSessionStart() {
       navigate(`/learning/review/${encodeURIComponent(result.data.id)}?book_name=${encodeURIComponent(bookName || 'default')}`, { replace: true });
     } catch (cause) { setError(cause instanceof Error ? cause.message : '无法创建复习会话'); setStarting(false); }
   };
-  return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题复习</h1><Link to="/learning" className="review-session-back"><ArrowLeft className="h-4 w-4" />返回复习</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body"><h1>本次错题复习</h1>{loading ? <p role="status">正在读取到期错题…</p> : <p>当前范围有 {items.length} 道到期错题。开始后题目顺序固定，退出后可继续同一会话。</p>}{error && <p role="alert" className="review-session-error">{error}</p>}{!loading && items.length > 0 && <button type="button" onClick={start} disabled={starting} className="app-primary-button">{starting && <Loader2 className="h-4 w-4 animate-spin" />}开始复习</button>}{!loading && items.length === 0 && <Link to="/mistakes" className="app-secondary-button">查看错题档案</Link>}</div></main></div>;
+  return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题复习</h1><Link to="/learning" className="review-session-back"><ArrowLeft className="h-4 w-4" />返回复习</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body"><h1>本次错题复习</h1>{loading ? <p role="status">正在读取到期错题…</p> : !readError && <p>当前范围有 {items.length} 道到期错题。开始后题目顺序固定，退出后可继续同一会话。</p>}{readError && <div role="alert" className="review-session-error"><p>{readError}</p><button type="button" className="app-secondary-button" onClick={() => setReloadKey(key => key + 1)}>重试读取</button></div>}{error && <p role="alert" className="review-session-error">{error}</p>}{!loading && !readError && items.length > 0 && <button type="button" onClick={start} disabled={starting} className="app-primary-button">{starting && <Loader2 className="h-4 w-4 animate-spin" />}开始复习</button>}{!loading && !readError && items.length === 0 && <Link to="/mistakes" className="app-secondary-button">查看错题档案</Link>}</div></main></div>;
 }
 
 function ReviewSessionRun({ sessionId }: { sessionId: string }) {

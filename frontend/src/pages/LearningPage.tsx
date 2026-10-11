@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { get, post } from '../api/client';
 import ChatMessage from '../components/ChatMessage';
+import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
 import ScopeSelector, { type ScopeBookOption } from '../components/ScopeSelector';
 import { ActionableIssue, PageState, TaskStatus } from '../components/ui/AsyncState';
 import { useChatContext } from '../contexts/ChatContext';
@@ -383,7 +384,7 @@ const LearningPage: React.FC = () => {
               </div>
               <div className="review-activity">
                 <ActivityHeatmap daily={summary.daily_details || summary.daily.map((item) => ({ ...item, subjects: [] }))} selectedDate={selectedActivityDate} onSelectDate={setSelectedActivityDate} />
-                {(summary.recent_questions?.length || 0) > 0 && <div className="review-recent-questions"><h4>最近学习问题</h4>{summary.recent_questions?.slice(0, 5).map((item, index) => <div key={`${item.timestamp}-${index}`}><p>{item.question}</p><span>{item.source === 'mistake' ? '来自错题' : '来自问答'}{item.timestamp ? ` · ${item.timestamp.slice(0, 10)}` : ''}</span></div>)}</div>}
+                {(summary.recent_questions?.length || 0) > 0 && <div className="review-recent-questions"><h4>最近学习问题</h4>{summary.recent_questions?.slice(0, 5).map((item, index) => <div key={`${item.timestamp}-${index}`}><div className="review-question-preview"><SimpleMarkdown content={item.question} /></div><span>{item.source === 'mistake' ? '来自错题' : '来自问答'}{item.timestamp ? ` · ${item.timestamp.slice(0, 10)}` : ''}</span></div>)}</div>}
               </div>
               {kgJob && <TaskStatus title="完善知识关联" detail={kgJob.message || kgJob.status} progress={kgJob.progress} state={kgJobFailed ? 'error' : kgJob.status === 'completed' ? 'success' : 'loading'} />}
               {bookName && <button onClick={startKGEnhancement} disabled={kgJobIsRunning} className="app-secondary-button"><BrainCircuit className="h-4 w-4" />{kgJobIsRunning ? '正在完善知识关联' : '完善知识关联'}</button>}
@@ -501,9 +502,9 @@ const ConceptReviewCard = ({ item, bookName, index, first, open, onToggle, onRev
       {error && <p role="alert" className="review-row-error">{error}</p>}
       {open && <div className="review-detail">
         {item.reasons.length > 2 && <p>推荐依据：{item.reasons.join('；')}</p>}
-        <MiniBlock icon={ClipboardList} title="相关近期问题">{item.recent_questions.length ? item.recent_questions.map((question, i) => <p key={i}>{question.question}{question.mistake_id && <Link to={mistakeHref(question.mistake_id, bookName)}>查看错题</Link>}</p>) : <p>暂无直接关联的近期问题</p>}</MiniBlock>
+        <MiniBlock icon={ClipboardList} title="相关近期问题">{item.recent_questions.length ? item.recent_questions.map((question, i) => <div key={i} className="review-question-preview"><SimpleMarkdown content={question.question} />{question.mistake_id && <Link to={mistakeHref(question.mistake_id, bookName)}>查看错题</Link>}</div>) : <p>暂无直接关联的近期问题</p>}</MiniBlock>
         <MiniBlock icon={BookOpen} title="教材线索">{item.textbook_snippets.length ? item.textbook_snippets.map((snippet, i) => <p key={i}>{snippet.chapter || snippet.text}</p>) : <p>暂无章节线索</p>}</MiniBlock>
-        <MiniBlock icon={ClipboardList} title="相关错题">{item.related_mistakes.length ? item.related_mistakes.slice(0, 4).map((mistake) => <Link key={mistake.id} to={mistakeHref(mistake.id, bookName)}>{mistake.question_text || '查看错题'} <ExternalLink className="inline h-3 w-3" /></Link>) : <p>暂无关联错题</p>}</MiniBlock>
+        <MiniBlock icon={ClipboardList} title="相关错题">{item.related_mistakes.length ? item.related_mistakes.slice(0, 4).map((mistake) => <Link className="review-question-preview" key={mistake.id} to={mistakeHref(mistake.id, bookName)}><SimpleMarkdown content={mistake.question_text || '查看错题'} /><ExternalLink className="inline h-3 w-3" /></Link>) : <p>暂无关联错题</p>}</MiniBlock>
       </div>}
     </div>
     <span className="review-status">{reviewing ? '记录中…' : '待复习'}</span>
@@ -521,7 +522,7 @@ const MistakePreview = ({ mistake, bookName, index, first, expanded, onToggle }:
   return <article className="review-row">
     <span className="review-index">{String(index).padStart(2, '0')}</span>
     <div className="review-row-content">
-      <button type="button" aria-expanded={expanded} onClick={onToggle} className="review-row-title review-question-title"><span>{mistake.question_text || '题干未提供'}</span><ChevronDown className={expanded ? 'h-4 w-4 rotate-180' : 'h-4 w-4'} /></button>
+      <button type="button" aria-expanded={expanded} onClick={onToggle} className="review-row-title review-question-title"><div className="review-question-summary"><SimpleMarkdown content={mistake.question_text || '题干未提供'} /></div><ChevronDown className={expanded ? 'h-4 w-4 rotate-180' : 'h-4 w-4'} /></button>
       <p>{first && <span className="review-first">先复习 · </span>}{due ? daysLate > 0 ? `已逾期 ${daysLate} 天` : '今天到期' : '待复习'}{mistake.chapter ? ` · ${mistake.chapter}` : mistake.source ? ` · ${mistake.source}` : ''}</p>
       {expanded && <div className="review-detail review-question-detail"><ChatMessage role="assistant" content={mistake.question_text || '题干未提供'} linkedConcepts={mistake.linked_concepts || []} /></div>}
     </div>

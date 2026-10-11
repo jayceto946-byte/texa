@@ -67,3 +67,8 @@
   .mistakes-row-end { justify-content: space-between; width: 100%; }
   .mistakes-row-status { max-width: none; text-align: left; }
 }
+@media (max-width: 600px) {
+  .app-shell .mistakes-workspace > .app-page-header > .app-page-title { flex: none; white-space: nowrap; }
+  .app-shell .mistakes-workspace > .app-page-header > div:last-child { flex: 0 1 260px; min-width: 0; }
+  .mistakes-workspace > .app-page-header > .mistakes-back { flex: none; white-space: nowrap; }
+}
