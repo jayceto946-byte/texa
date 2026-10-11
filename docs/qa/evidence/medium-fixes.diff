@@ -1,0 +1,135 @@
+diff --git a/frontend/src/pages/LearningPage.css b/frontend/src/pages/LearningPage.css
+index 419c2d2..5ba9b6b 100644
+--- a/frontend/src/pages/LearningPage.css
++++ b/frontend/src/pages/LearningPage.css
+@@ -21,7 +21,11 @@
+ .review-row-content > strong,.review-row-title { color: var(--color-text-primary); font-size: 14px; font-weight: 600; line-height: 1.5; }
+ .review-row-title { display: flex; align-items: flex-start; gap: 6px; width: 100%; text-align: left; }
+ .review-row-title svg { margin-top: 2px; flex: none; color: var(--color-text-secondary); }
+-.review-question-title span { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
++.review-question-summary { min-width: 0; flex: 1; display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
++.review-question-summary .markdown-body,.review-question-preview .markdown-body { font-size: inherit; font-weight: inherit; line-height: inherit; }
++.review-question-summary .markdown-body p,.review-question-preview .markdown-body p { margin: 0; }
++.review-question-summary .katex-display,.review-question-preview .katex-display { max-width: 100%; margin: 0; overflow-x: auto; overflow-y: hidden; }
++.review-question-preview { min-width: 0; font-size: 13px; overflow-wrap: anywhere; }
+ .review-row-content > p { margin-top: 2px; color: var(--color-text-secondary); font-size: 13px; line-height: 1.5; }
+ .review-row-content > .review-row-meta { font-size: 12px; }
+ .review-row-content > .review-row-error { margin-top: 5px; color: var(--danger-text); font-size: 12px; }
+@@ -58,8 +62,13 @@
+ .review-recent-questions { padding-top: 16px; border-top: 1px solid var(--workspace-separator); }
+ .review-recent-questions > div { padding: 6px 0; border-bottom: 1px solid var(--workspace-separator); }
+ .review-recent-questions p { color: var(--color-text-primary); font-size: 13px; overflow-wrap: anywhere; }
+-.review-recent-questions span { color: var(--color-text-secondary); font-size: 12px; }
++.review-recent-questions > div > span { color: var(--color-text-secondary); font-size: 12px; }
+ @media (max-width: 1050px) { .learning-page .learning-page-content { padding: 20px; } }
++@media (max-width: 600px) {
++  .app-shell .learning-page-header > .app-page-title { flex: none; white-space: nowrap; }
++  .app-shell .learning-page-header > .app-secondary-button { flex: none; white-space: nowrap; }
++  .app-shell .learning-page .learning-page-header > div:last-child { flex: 0 1 260px; min-width: 0; }
++}
+ @media (max-width: 760px) {
+   .learning-page .learning-page-content { padding: 16px; }
+   .review-today-main { align-items: flex-start; flex-direction: column; gap: 12px; }
+diff --git a/frontend/src/pages/LearningPage.tsx b/frontend/src/pages/LearningPage.tsx
+index 6612dea..d519b45 100644
+--- a/frontend/src/pages/LearningPage.tsx
++++ b/frontend/src/pages/LearningPage.tsx
+@@ -12,6 +12,7 @@ import {
+ } from 'lucide-react';
+ import { get, post } from '../api/client';
+ import ChatMessage from '../components/ChatMessage';
++import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
+ import ScopeSelector, { type ScopeBookOption } from '../components/ScopeSelector';
+ import { ActionableIssue, PageState, TaskStatus } from '../components/ui/AsyncState';
+ import { useChatContext } from '../contexts/ChatContext';
+@@ -383,7 +384,7 @@ const LearningPage: React.FC = () => {
+               </div>
+               <div className="review-activity">
+                 <ActivityHeatmap daily={summary.daily_details || summary.daily.map((item) => ({ ...item, subjects: [] }))} selectedDate={selectedActivityDate} onSelectDate={setSelectedActivityDate} />
+-                {(summary.recent_questions?.length || 0) > 0 && <div className="review-recent-questions"><h4>最近学习问题</h4>{summary.recent_questions?.slice(0, 5).map((item, index) => <div key={`${item.timestamp}-${index}`}><p>{item.question}</p><span>{item.source === 'mistake' ? '来自错题' : '来自问答'}{item.timestamp ? ` · ${item.timestamp.slice(0, 10)}` : ''}</span></div>)}</div>}
++                {(summary.recent_questions?.length || 0) > 0 && <div className="review-recent-questions"><h4>最近学习问题</h4>{summary.recent_questions?.slice(0, 5).map((item, index) => <div key={`${item.timestamp}-${index}`}><div className="review-question-preview"><SimpleMarkdown content={item.question} /></div><span>{item.source === 'mistake' ? '来自错题' : '来自问答'}{item.timestamp ? ` · ${item.timestamp.slice(0, 10)}` : ''}</span></div>)}</div>}
+               </div>
+               {kgJob && <TaskStatus title="完善知识关联" detail={kgJob.message || kgJob.status} progress={kgJob.progress} state={kgJobFailed ? 'error' : kgJob.status === 'completed' ? 'success' : 'loading'} />}
+               {bookName && <button onClick={startKGEnhancement} disabled={kgJobIsRunning} className="app-secondary-button"><BrainCircuit className="h-4 w-4" />{kgJobIsRunning ? '正在完善知识关联' : '完善知识关联'}</button>}
+@@ -501,9 +502,9 @@ const ConceptReviewCard = ({ item, bookName, index, first, open, onToggle, onRev
+       {error && <p role="alert" className="review-row-error">{error}</p>}
+       {open && <div className="review-detail">
+         {item.reasons.length > 2 && <p>推荐依据：{item.reasons.join('；')}</p>}
+-        <MiniBlock icon={ClipboardList} title="相关近期问题">{item.recent_questions.length ? item.recent_questions.map((question, i) => <p key={i}>{question.question}{question.mistake_id && <Link to={mistakeHref(question.mistake_id, bookName)}>查看错题</Link>}</p>) : <p>暂无直接关联的近期问题</p>}</MiniBlock>
++        <MiniBlock icon={ClipboardList} title="相关近期问题">{item.recent_questions.length ? item.recent_questions.map((question, i) => <div key={i} className="review-question-preview"><SimpleMarkdown content={question.question} />{question.mistake_id && <Link to={mistakeHref(question.mistake_id, bookName)}>查看错题</Link>}</div>) : <p>暂无直接关联的近期问题</p>}</MiniBlock>
+         <MiniBlock icon={BookOpen} title="教材线索">{item.textbook_snippets.length ? item.textbook_snippets.map((snippet, i) => <p key={i}>{snippet.chapter || snippet.text}</p>) : <p>暂无章节线索</p>}</MiniBlock>
+-        <MiniBlock icon={ClipboardList} title="相关错题">{item.related_mistakes.length ? item.related_mistakes.slice(0, 4).map((mistake) => <Link key={mistake.id} to={mistakeHref(mistake.id, bookName)}>{mistake.question_text || '查看错题'} <ExternalLink className="inline h-3 w-3" /></Link>) : <p>暂无关联错题</p>}</MiniBlock>
++        <MiniBlock icon={ClipboardList} title="相关错题">{item.related_mistakes.length ? item.related_mistakes.slice(0, 4).map((mistake) => <Link className="review-question-preview" key={mistake.id} to={mistakeHref(mistake.id, bookName)}><SimpleMarkdown content={mistake.question_text || '查看错题'} /><ExternalLink className="inline h-3 w-3" /></Link>) : <p>暂无关联错题</p>}</MiniBlock>
+       </div>}
+     </div>
+     <span className="review-status">{reviewing ? '记录中…' : '待复习'}</span>
+@@ -521,7 +522,7 @@ const MistakePreview = ({ mistake, bookName, index, first, expanded, onToggle }:
+   return <article className="review-row">
+     <span className="review-index">{String(index).padStart(2, '0')}</span>
+     <div className="review-row-content">
+-      <button type="button" aria-expanded={expanded} onClick={onToggle} className="review-row-title review-question-title"><span>{mistake.question_text || '题干未提供'}</span><ChevronDown className={expanded ? 'h-4 w-4 rotate-180' : 'h-4 w-4'} /></button>
++      <button type="button" aria-expanded={expanded} onClick={onToggle} className="review-row-title review-question-title"><div className="review-question-summary"><SimpleMarkdown content={mistake.question_text || '题干未提供'} /></div><ChevronDown className={expanded ? 'h-4 w-4 rotate-180' : 'h-4 w-4'} /></button>
+       <p>{first && <span className="review-first">先复习 · </span>}{due ? daysLate > 0 ? `已逾期 ${daysLate} 天` : '今天到期' : '待复习'}{mistake.chapter ? ` · ${mistake.chapter}` : mistake.source ? ` · ${mistake.source}` : ''}</p>
+       {expanded && <div className="review-detail review-question-detail"><ChatMessage role="assistant" content={mistake.question_text || '题干未提供'} linkedConcepts={mistake.linked_concepts || []} /></div>}
+     </div>
+diff --git a/frontend/src/pages/MistakeIntakePage.css b/frontend/src/pages/MistakeIntakePage.css
+index baeef25..ab85354 100644
+--- a/frontend/src/pages/MistakeIntakePage.css
++++ b/frontend/src/pages/MistakeIntakePage.css
+@@ -7,7 +7,11 @@
+ .mistakes-intake-draft-list li { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--workspace-separator); font-size: var(--workspace-interface-size); }
+ .mistakes-intake-draft-list a { min-width: 0; overflow-wrap: anywhere; color: var(--color-text-primary); }
+ .mistakes-intake-draft-list a:hover { color: var(--color-accent); }
+-.mistakes-intake-draft-list span { flex: none; color: var(--color-text-secondary); }
++.mistakes-intake-draft-list li > span { flex: none; color: var(--color-text-secondary); }
++.mistakes-intake-draft-title { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
++.mistakes-intake-draft-title .markdown-body { font-size: inherit; font-weight: inherit; line-height: inherit; }
++.mistakes-intake-draft-title .markdown-body p { margin: 0; color: inherit; font-size: inherit; line-height: inherit; }
++.mistakes-intake-draft-title .katex-display { max-width: 100%; margin: 0; overflow-x: auto; overflow-y: hidden; }
+ .mistakes-intake-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
+ .mistakes-intake-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
+ .mistakes-intake-images, .mistakes-intake-editor { min-width: 0; }
+@@ -29,4 +33,8 @@
+ .mistakes-intake-warning { color: var(--warning-text) !important; }
+ .mistakes-intake-error { color: var(--danger) !important; }
+ @media (max-width: 920px) { .mistakes-intake-layout { grid-template-columns: 1fr; }.mistakes-intake-images { position: static; }.mistakes-intake-image { max-height: 320px; } }
+-@media (max-width: 600px) { .mistakes-intake-metadata { grid-template-columns: 1fr; } }
++@media (max-width: 600px) {
++  .mistakes-intake-metadata { grid-template-columns: 1fr; }
++  .app-shell .mistakes-intake-workspace > .app-page-header > .app-page-title { flex: none; white-space: nowrap; }
++  .mistakes-intake-workspace > .app-page-header > .mistakes-back { flex: none; white-space: nowrap; }
++}
+diff --git a/frontend/src/pages/MistakeIntakePage.tsx b/frontend/src/pages/MistakeIntakePage.tsx
+index 14a96d6..de18230 100644
+--- a/frontend/src/pages/MistakeIntakePage.tsx
++++ b/frontend/src/pages/MistakeIntakePage.tsx
+@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
+ import { ArrowLeft, ImagePlus, Loader2 } from 'lucide-react';
+ import { apiFetch, get, patch, post, IMAGE_RECOGNITION_TIMEOUT_MS } from '../api/client';
+ import ChatMessage from '../components/ChatMessage';
++import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
+ import { useChatContext } from '../contexts/ChatContext';
+ import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
+ import './MistakeIntakePage.css';
+@@ -41,7 +42,7 @@ function IntakeChoice() {
+       navigate(`/mistakes/intake/${encodeURIComponent(result.data.id)}?book_name=${encodeURIComponent(scope)}${kind === 'image' ? '&mode=image' : ''}`);
+     } catch (cause) { setError(cause instanceof Error ? cause.message : '无法创建草稿'); setBusy(false); }
+   };
+-  return <div className="management-workspace mistakes-intake-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题录入</h1><Link className="mistakes-back" to="/mistakes"><ArrowLeft className="h-4 w-4" />返回错题档案</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="mistakes-intake-body"><h1>补录错题</h1><p>可以从图片识别后校对，也可以直接手动输入。草稿会保存在本地。</p><div className="mistakes-intake-choices"><button type="button" disabled={busy} onClick={() => begin('image')} className="app-secondary-button"><ImagePlus className="h-4 w-4" />从图片开始</button><button type="button" disabled={busy} onClick={() => begin('manual')} className="app-primary-button">手动输入</button></div>{error && <p role="alert" className="mistakes-intake-error">{error}</p>}{drafts.length > 0 && <section><h2>继续草稿</h2><ol className="mistakes-intake-draft-list">{drafts.map((draft) => <li key={draft.id}><Link to={`/mistakes/intake/${encodeURIComponent(draft.id)}?book_name=${encodeURIComponent(scope)}`}>{draft.question_text?.trim().slice(0, 70) || (draft.attachments?.length ? `图片错题 · ${draft.attachments.length} 张` : '未命名草稿')}</Link><span>{new Date(draft.updated_at).toLocaleDateString('zh-CN')}</span></li>)}</ol></section>}</div></main></div>;
++  return <div className="management-workspace mistakes-intake-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题录入</h1><Link className="mistakes-back" to="/mistakes"><ArrowLeft className="h-4 w-4" />返回错题档案</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="mistakes-intake-body"><h1>补录错题</h1><p>可以从图片识别后校对，也可以直接手动输入。草稿会保存在本地。</p><div className="mistakes-intake-choices"><button type="button" disabled={busy} onClick={() => begin('image')} className="app-secondary-button"><ImagePlus className="h-4 w-4" />从图片开始</button><button type="button" disabled={busy} onClick={() => begin('manual')} className="app-primary-button">手动输入</button></div>{error && <p role="alert" className="mistakes-intake-error">{error}</p>}{drafts.length > 0 && <section><h2>继续草稿</h2><ol className="mistakes-intake-draft-list">{drafts.map((draft) => <li key={draft.id}><Link to={`/mistakes/intake/${encodeURIComponent(draft.id)}?book_name=${encodeURIComponent(scope)}`}><div className="mistakes-intake-draft-title"><SimpleMarkdown content={draft.question_text?.trim() || (draft.attachments?.length ? `图片错题 · ${draft.attachments.length} 张` : '未命名草稿')} /></div></Link><span>{new Date(draft.updated_at).toLocaleDateString('zh-CN')}</span></li>)}</ol></section>}</div></main></div>;
+ }
+ 
+ function IntakeDraft({ draftId }: { draftId: string }) {
+diff --git a/frontend/src/pages/MistakesPage.css b/frontend/src/pages/MistakesPage.css
+index 394e6fb..a93fdaf 100644
+--- a/frontend/src/pages/MistakesPage.css
++++ b/frontend/src/pages/MistakesPage.css
+@@ -67,3 +67,8 @@
+   .mistakes-row-end { justify-content: space-between; width: 100%; }
+   .mistakes-row-status { max-width: none; text-align: left; }
+ }
++@media (max-width: 600px) {
++  .app-shell .mistakes-workspace > .app-page-header > .app-page-title { flex: none; white-space: nowrap; }
++  .app-shell .mistakes-workspace > .app-page-header > div:last-child { flex: 0 1 260px; min-width: 0; }
++  .mistakes-workspace > .app-page-header > .mistakes-back { flex: none; white-space: nowrap; }
++}

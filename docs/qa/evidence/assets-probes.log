@@ -1,0 +1,5 @@
+REPRO REPORT_SCOPE: math report counts English exercise/mistake {'qa_count': 0, 'new_mistakes': 1, 'reviewed_mistakes': 0, 'new_exercises': 1, 'practiced_exercises': 0, 'concept_exposures': 0}
+REPRO REPORT_DAYS: range_days=100 but start limited to31 2026-09-10
+REPRO REPORT_HISTORY: 25 authoritative questions, weekly count 20
+REPRO LEGACY_PRACTICE_PARTIAL: two failed requests commit practice_count 2
+FIXTURE_SQLITE_INTEGRITY {"checked": 176, "failures": []}

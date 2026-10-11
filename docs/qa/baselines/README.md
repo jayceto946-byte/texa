@@ -1,0 +1,1 @@
+Lead Sol reviewed all eight rendered images on 2026-10-11 after U1/U2/U5 fixes. Synthetic fixtures; mineral theme, four fixed viewports. These are a narrow regression baseline, not blanket approval of all Texa UI. Re-run qa-pages with TEXA_QA_ROUTES=learning,exercises and compare with qa-visual-compare. Never auto-update baselines to hide failures.

@@ -1,0 +1,104 @@
+[
+  {
+    "case": "draft→saved mistake",
+    "id": "m_a496b54524ee46f9bfc0",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "review reveal→self grade→complete→refresh",
+    "id": "mrs_2e56a165410a49e1ae95fceb",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "manual exercise validation→save→refresh",
+    "id": "a548c33f",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "draft→saved mistake",
+    "id": "m_bb51ea86a7384805bbed",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "review reveal→self grade→complete→refresh",
+    "id": "mrs_74a1c546cd5f466d8556d6c5",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "manual exercise validation→save→refresh",
+    "id": "2241dcb5",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "database": "progress/session_notes.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/learning_events.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/exercise_bank_default.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/runtime_events.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/mistake_book_default.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/conversations/_conversation_events.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  }
+]

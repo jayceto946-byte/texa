@@ -12,7 +12,16 @@ for item in results['checks']:
         response=json.load(urllib.request.urlopen('http://127.0.0.1:18041'+endpoint));data=response['data']
         assert response['success'] and data['id']==expected
         if 'complete' in item['case']:assert data['index']==len(data['items']) and data['results']
-        out.append({'case':item['case'],'id':expected,'status':'PASS'})
+        db_path=root/'progress'/('exercise_bank_default.db' if item['case'].startswith('manual exercise') else 'mistake_book_default.db')
+        table='exercises' if item['case'].startswith('manual exercise') else 'mistake_review_sessions' if 'complete' in item['case'] else 'mistakes'
+        db=sqlite3.connect(f'file:{db_path}?mode=ro',uri=True)
+        rows=db.execute(f'SELECT data FROM {table} WHERE id=?',(expected,)).fetchall();db.close()
+        assert len(rows)==1
+        persisted=json.loads(rows[0][0]);assert persisted.get('id',expected)==expected
+        if 'complete' in item['case']:assert persisted['results']==data['results'] and persisted['index']==len(persisted['items'])
+        if item['case']=='draft→saved mistake':assert persisted['question_text']==data['question_text'] and len(persisted['review_history'])==1
+        if item['case'].startswith('manual exercise'):assert persisted['question_text']==data['question_text']
+        out.append({'case':item['case'],'id':expected,'status':'PASS','sqlite_rows':1,'api_matches_authority':True})
     except Exception as error:out.append({'case':item['case'],'id':expected,'status':'FAIL','error':str(error)})
 for path in root.rglob('*.db'):
     db=sqlite3.connect(f'file:{path}?mode=ro',uri=True)

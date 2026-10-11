@@ -1,0 +1,418 @@
+{
+  "started": "2026-10-11T08:03:53.092Z",
+  "checks": [
+    {
+      "name": "chat",
+      "path": "/",
+      "width": 390,
+      "state": "populated",
+      "title": "从一个问题开始",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "goals",
+      "path": "/goals",
+      "width": 390,
+      "state": "populated",
+      "title": "目标与任务",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "notes",
+      "path": "/notes",
+      "width": 390,
+      "state": "populated",
+      "title": "笔记",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "note",
+      "path": "/notes/qa-note",
+      "width": 390,
+      "state": "populated",
+      "title": "笔记",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "draft",
+      "path": "/notes/drafts/qa-draft",
+      "width": 390,
+      "state": "populated",
+      "title": "笔记草稿",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "mistakes",
+      "path": "/mistakes",
+      "width": 390,
+      "state": "populated",
+      "title": "错题",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "diagnosis",
+      "path": "/mistakes/diagnosis",
+      "width": 390,
+      "state": "populated",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": [
+        "页面文件未能加载，桌面更新后请刷新以读取当前版本。刷新页面"
+      ]
+    },
+    {
+      "name": "intake",
+      "path": "/mistakes/intake",
+      "width": 390,
+      "state": "populated",
+      "title": "错题录入",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "intake-draft",
+      "path": "/mistakes/intake/qa-intake",
+      "width": 390,
+      "state": "populated",
+      "title": "错题录入",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "mistake",
+      "path": "/mistakes/visual-mistake-1",
+      "width": 390,
+      "state": "populated",
+      "title": "错题详情",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "exercises",
+      "path": "/exercises",
+      "width": 390,
+      "state": "populated",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "learning",
+      "path": "/learning",
+      "width": 390,
+      "state": "populated",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "review-start",
+      "path": "/learning/review",
+      "width": 390,
+      "state": "populated",
+      "title": "错题复习",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "review",
+      "path": "/learning/review/qa-review",
+      "width": 390,
+      "state": "populated",
+      "title": "错题复习",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "weekly",
+      "path": "/weekly",
+      "width": 390,
+      "state": "populated",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "books",
+      "path": "/books",
+      "width": 390,
+      "state": "populated",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "book-import",
+      "path": "/books/import",
+      "width": 390,
+      "state": "populated",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "highlights",
+      "path": "/highlights?book_name=qa-book&chapter_id=qa-chapter",
+      "width": 390,
+      "state": "populated",
+      "title": "章节重点",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "settings",
+      "path": "/settings",
+      "width": 390,
+      "state": "populated",
+      "title": "从一个问题开始",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "goals",
+      "path": "/goals",
+      "width": 390,
+      "state": "empty",
+      "title": "目标与任务",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "notes",
+      "path": "/notes",
+      "width": 390,
+      "state": "empty",
+      "title": "笔记",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "mistakes",
+      "path": "/mistakes",
+      "width": 390,
+      "state": "empty",
+      "title": "错题",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "intake",
+      "path": "/mistakes/intake",
+      "width": 390,
+      "state": "empty",
+      "title": "错题录入",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "review-start",
+      "path": "/learning/review",
+      "width": 390,
+      "state": "empty",
+      "title": "错题复习",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "weekly",
+      "path": "/weekly",
+      "width": 390,
+      "state": "empty",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "book-import",
+      "path": "/books/import",
+      "width": 390,
+      "state": "empty",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "goals",
+      "path": "/goals",
+      "width": 390,
+      "state": "loading",
+      "title": "目标与任务",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "notes",
+      "path": "/notes",
+      "width": 390,
+      "state": "loading",
+      "title": "笔记",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "mistakes",
+      "path": "/mistakes",
+      "width": 390,
+      "state": "loading",
+      "title": "错题",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "intake",
+      "path": "/mistakes/intake",
+      "width": 390,
+      "state": "loading",
+      "title": "错题录入",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "review-start",
+      "path": "/learning/review",
+      "width": 390,
+      "state": "loading",
+      "title": "错题复习",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "weekly",
+      "path": "/weekly",
+      "width": 390,
+      "state": "loading",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "book-import",
+      "path": "/books/import",
+      "width": 390,
+      "state": "loading",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "goals",
+      "path": "/goals",
+      "width": 390,
+      "state": "error",
+      "title": "目标与任务",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": [
+        "目标暂时无法读取请检查连接后重试。重试读取"
+      ]
+    },
+    {
+      "name": "notes",
+      "path": "/notes",
+      "width": 390,
+      "state": "error",
+      "title": "笔记",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": [
+        "QA fixture：服务暂不可用，请重试重新读取"
+      ]
+    },
+    {
+      "name": "mistakes",
+      "path": "/mistakes",
+      "width": 390,
+      "state": "error",
+      "title": "错题",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": [
+        "错题档案暂时无法加载请重试读取本地记录。重新加载"
+      ]
+    },
+    {
+      "name": "intake",
+      "path": "/mistakes/intake",
+      "width": 390,
+      "state": "error",
+      "title": "错题录入",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": [
+        "草稿列表暂时无法读取，仍可新建草稿。"
+      ]
+    },
+    {
+      "name": "review-start",
+      "path": "/learning/review",
+      "width": 390,
+      "state": "error",
+      "title": "错题复习",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": [
+        "QA fixture：服务暂不可用，请重试"
+      ]
+    },
+    {
+      "name": "weekly",
+      "path": "/weekly",
+      "width": 390,
+      "state": "error",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": [
+        "学习周报暂时无法整理本次学习记录不会丢失，但现在无法生成学习结论和复习建议。重新整理详细信息QA fixture：服务暂不可用，请重试"
+      ]
+    },
+    {
+      "name": "book-import",
+      "path": "/books/import",
+      "width": 390,
+      "state": "error",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    }
+  ],
+  "errors": [
+    {
+      "harness": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: '逐块编辑', exact: true })\u001b[22m\n"
+    }
+  ],
+  "unhandled": [
+    "GET /api/system/settings/subjects",
+    "GET /api/exercises/answer/jobs/latest",
+    "GET /api/review/sessions",
+    "GET /api/books/import-capabilities"
+  ]
+}

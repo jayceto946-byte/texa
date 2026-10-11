@@ -1,0 +1,3 @@
+PASS normal repeated close: producer.close called once
+Observed first close exception: injected task checkpoint write failure
+REPRODUCED R1: producer.close calls=0 after two aclose calls; response.closed=True

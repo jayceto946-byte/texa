@@ -10,4 +10,4 @@ try{app=await _electron.launch({executablePath:resolve('desktop/node_modules/ele
  await page.getByRole('button',{name:'设置',exact:true}).click();await page.getByRole('dialog').waitFor();await page.getByText('主题色',{exact:true}).waitFor();await page.screenshot({path:resolve(out,'settings.png')});
  await page.keyboard.press('Escape');await page.getByRole('dialog').waitFor({state:'hidden'});result.checks.push({case:'navigation→settings→Escape',status:'PASS'});
  await app.close();app=null;result.checks.push({case:'graceful shell close',status:'PASS'});
-}catch(e){result.errors.push(String(e));if(page){result.body=await page.locator('body').innerText();await page.screenshot({path:resolve(out,'failure.png')});}process.exitCode=1;}finally{await app?.close();writeFileSync(resolve(out,'results.json'),JSON.stringify(result,null,2));}
+}catch(e){result.errors.push(String(e));if(page){result.body=await page.locator('body').innerText();await page.screenshot({path:resolve(out,'failure.png')});}process.exitCode=1;}finally{await app?.close();if(result.checks.some(x=>x.status!=='PASS'))process.exitCode=1;writeFileSync(resolve(out,'results.json'),JSON.stringify(result,null,2));}

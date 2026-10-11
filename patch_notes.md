@@ -3479,3 +3479,14 @@ Android 普通 Wi-Fi 对照出现解答闪现后回到空问答。隔离浏览�
 - 修复一处测试夹具不一致：图片上传新增真实解码校验后，execution effects 故障注入测试的伪 PNG 无法进入目标路径；改用真实 PNG，保留已提交答案、pending effect、恢复恰好一次的原断言。未放松生产校验。
 - 隔离离线 Python 3.10 全量 1492 passed，前端 174 passed，Electron 15 passed；TypeScript、全量 ESLint、临时目录 Vite 构建通过。首轮 Python 1 failed/1491 passed 的日志保留；未触碰真实数据、当前 frontend/dist 或调用模型。Android 图片、正式错题/笔记闭环及 Windows 验收仍待完成。
 - 在临时 checkpoint/macbook-20261009 上建立可追溯检查点，再创建 feature/mobile-remote 并独立推送；详见 GIT-BRANCH-ISOLATION-REPORT.md。
+
+
+## 2026-10-11 — Full-System QA 第一阶段整改
+
+- 代码驱动盘点18渲染路由/19检查入口、15跨功能模块与205 API handler；检查清单、根因问题、进度及阶段报告位于docs/qa。
+- 修复SSE清理异常跳过producer关闭和错误/检查点凭证泄露；周报改读SQLite权威消息历史，统一subject与days范围。
+- 旧直接练习附属写失败返回明确partial/unconfirmed，不误导用户重试整个已保存练习；持久幂等风险仍未关闭，未修改schema。
+- 修复学习摘要公式渲染、紧凑header换行、笔记/复习失败误报空态与缺少重试；恢复已有题库的手动录入入口。
+- 1532后端、191前端、15Desktop单元通过；types/lint/build通过。真实隔离FastAPI/SQLite两视口10旅程检查通过，重启后权威行/复习结果与API一致，6DB完整性通过；macOS Electron壳3检查通过。
+- 自动页面Fixture覆盖119有效状态并实际读取截图；8张审阅后基准重复比较通过。已有Pytest/Vitest/Playwright/Electron依赖复用，增加分层Smoke/API/UI/数据检查脚本。
+- 未触碰用户学习数据、付费模型或冻结评测；真实Android/Tailscale/Windows正式包和真实教材模型仍需验收，尚未达到S3产品化清关条件。整改checkpoint35107fc。
