@@ -1,3 +1,11 @@
+# 2026-10-11 - Mobile S2-A2 远程性能验证与最小资源优化
+
+- 基于dd91fee，独立代码checkpoint585b03c。手机导出确认10月9日前后端构建一致；同轮实际DERP(sfo)探针RTT406/394/901ms，早期手机样本链路未确认，不将受控CDP当真DERP。
+- 对已证实的教材列表重复章节校验增加成功结果、完整依赖hash校验的有界章节数缓存；真实教材同进程热中位271.305→2.929ms，手机新版服务端49.7ms，但端到端仍1067.2ms，链路等待仍主导。笔记旧样本服务端6–15ms、手机1000–1517ms，新版无笔记样本，不宣称改善。
+- opt-in诊断v2.1补有限请求/渲染/图片上传/Blob/引用分类、传输正文与构建身份；修复刷新后同Session ID空正文跳过读取。保留权威分页、鉴权、版本引用、CAS与桌面合同，不引入数据库或Runtime/Policy/网络架构变更。
+- Python92、前端184、Electron合同15通过；最终隔离类型检查、lint及构建通过。额外诊断流式夹具等待错误提示超时，保留未通过状态；完整交付结果见报告。10月11日并行网络诊断文件和dist保留，不纳入本checkpoint。
+- S1图片预览/正式错题/正式笔记用户均确认成功，具体回执未绑定；手机文字/拍照/引用PDF性能及真实冷启动仍待补验。报告：[S2-A2 performance](docs/validation/mobile-remote-s2-a2/performance.md)。
+
 # 2026-10-09 - Mobile Remote S2 第一批体验与性能优化
 
 - 基于移动分支52cc1f5建立独立codex/mobile-s2-first-batch checkpoint；保护其他worktree与已合并共享修复，未改Runtime所有权、Submission、Policy/Agent、协议或网络配置。

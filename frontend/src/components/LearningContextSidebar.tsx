@@ -53,7 +53,7 @@ export default function LearningContextSidebar({
   capabilityActions?: readonly LearningCapabilityAction[];
 }) {
   const openNote = useNoteCommand();
-  const { isLoading } = useChatContext();
+  const { isLoading, messages } = useChatContext();
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const [books, setBooks] = useState<TextbookRecord[]>([]);
@@ -185,7 +185,8 @@ export default function LearningContextSidebar({
 
   const loadConversation = async (id: string) => {
     cancelSelection();
-    if (id === conversationId) { onSelectCurrentConversation(); return; }
+    // Reload restores the selected ID, but not its authoritative message window.
+    if (id === conversationId && (isLoading || messages.length > 0)) { onSelectCurrentConversation(); return; }
     const generation = selectionGeneration.current;
     const controller = new AbortController();
     selectionRequest.current = controller;
