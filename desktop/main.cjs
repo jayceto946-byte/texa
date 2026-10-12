@@ -711,7 +711,26 @@ function createWindow() {
       if (/^https?:\/\//i.test(url)) void shell.openExternal(url);
     }
   });
-  mainWindow.webContents.on('did-finish-load', () => emitBackendState({}));
+  mainWindow.webContents.on('did-finish-load', () => {
+    emitBackendState({});
+    // Refresh the native surface after macOS full-screen navigation. A paint
+    // invalidation alone does not recover the stale surface; resizing the
+    // content view does, without changing the window's full-screen state.
+    if (process.platform === 'darwin' && mainWindow?.isFullScreen()) {
+      const window = mainWindow;
+      const view = window.contentView.children.find(child => child.webContents === window.webContents);
+      if (view) {
+        const bounds = view.getBounds();
+        view.setBounds({ ...bounds, width: Math.max(1, bounds.width - 1) });
+        setImmediate(() => {
+          if (!window.isDestroyed()) {
+            const [width, height] = window.getContentSize();
+            view.setBounds({ x: 0, y: 0, width, height });
+          }
+        });
+      }
+    }
+  });
 
   void openAppWhenBackendReady();
 }
