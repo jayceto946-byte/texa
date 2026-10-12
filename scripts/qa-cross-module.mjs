@@ -101,6 +101,43 @@ await check('notes-generated-read-edit-save',async()=>{
  await page.getByRole('button',{name:'保存笔记',exact:true}).click();await page.waitForURL(/\/notes\/(?!drafts)[^/?]+/);
  await page.reload();await page.getByText('自主订正：可导是连续的充分条件。',{exact:false}).waitFor();await shot('1280-note-saved');
 });
+await check('exercise-answer-job-failure-retry-read-save',async()=>{
+ const priorSession=(await api('/exercises/practice-sessions/active')).data;
+ const exercise=(await api('/exercises/add','POST',{question_text:'QA-ANSWER-FAIL '+mark+' 求 $x^3$ 的导数。',subject:'数学',explanation:'先写 $f(x)=x^3$，再用幂函数求导法则。\n\n'+('完整解析：确认变量、指数及定义域。\n\n'.repeat(20)),origin_type:'manual'})).data;
+ await page.goto(base+'/exercises');await page.getByRole('radio',{name:'题库',exact:true}).click();
+ await page.getByPlaceholder('搜索题干/答案/解析/标签').fill(mark);await page.getByPlaceholder('搜索题干/答案/解析/标签').press('Enter');
+ await page.locator('.workspace-register-row').filter({hasText:mark}).getByRole('button').first().click();await page.getByRole('button',{name:'设为当前练习',exact:true}).click();
+ if(await page.getByRole('button',{name:'手动录入',exact:true}).count())throw Error('maintenance entry mixed into active practice');
+ await page.getByLabel('你的作答',{exact:true}).fill('$3x^2$');await page.getByRole('button',{name:'查看参考答案',exact:true}).click();
+ if(await page.getByLabel('答案草稿',{exact:true}).isVisible())throw Error('reference answer defaults to editor');
+ await page.getByText('维护题库答案',{exact:true}).click();
+ let submissions=0;const track=req=>{if(req.method()==='POST'&&req.url().includes('/exercises/answer/jobs'))submissions++;};page.on('request',track);
+ const pollPattern='**/api/exercises/answer/jobs/*';let failPoll=true;
+ await page.route(pollPattern,async route=>{if(route.request().method()==='GET'&&!route.request().url().endsWith('/latest')&&failPoll){failPoll=false;await route.fulfill({status:503,json:{success:false,message:'QA polling unavailable'}});}else await route.continue();});
+ await page.getByRole('button',{name:'基于教材生成草稿',exact:true}).evaluate(el=>{for(let i=0;i<8;i++)el.click();});
+ await page.getByRole('button',{name:'正在生成…',exact:true}).waitFor();await shot('1280-exercise-answer-running');await page.getByText('连接中断，后台任务可能仍在执行；正在重新读取状态。',{exact:true}).waitFor();await shot('1280-exercise-poll-unavailable');
+ await page.getByText('合成任务首次生成失败，可重试',{exact:true}).waitFor();await page.unroute(pollPattern);if(submissions!==1)throw Error('double generation submitted '+submissions+' jobs');await shot('1280-exercise-answer-failed');
+ await page.getByRole('button',{name:'重试生成答案',exact:true}).click();
+ await page.getByText('答案草稿已生成，可阅读或编辑，保存后才写入题库。',{exact:true}).waitFor();
+ await page.getByText('维护题库答案',{exact:true}).click();
+ for(const width of [1280,1024,760]){await page.setViewportSize({width,height:820});await page.getByText('标准答案',{exact:true}).scrollIntoViewIfNeeded();await shot(width+'-exercise-reference');}
+ await page.setViewportSize({width:1280,height:820});await page.getByText('维护题库答案',{exact:true}).click();await page.getByRole('button',{name:'保存到题库',exact:true}).click();await page.getByText('标准答案已保存',{exact:true}).waitFor();
+ const saved=(await api('/exercises/list','POST',{search_kw:mark})).data.find(item=>item.id===exercise.id);if(!saved?.answer.includes('幂函数求导'))throw Error('generated draft was not saved');
+ await page.getByText('核对后，你掌握得怎么样？',{exact:true}).scrollIntoViewIfNeeded();await shot('1280-exercise-analysis-feedback');
+ const beforeGrade=(await api('/exercises/list','POST',{search_kw:mark})).data.find(item=>item.id===exercise.id);if(beforeGrade.practice_count!==0)throw Error('viewing answer recorded practice');
+ await page.getByRole('button',{name:'已掌握',exact:true}).click();await page.getByText('已记录练习结果',{exact:true}).waitFor();
+ const graded=(await api('/exercises/list','POST',{search_kw:mark})).data.find(item=>item.id===exercise.id);if(graded.practice_count!==1)throw Error('self grade did not record one attempt');
+ const preserved=(await api('/exercises/practice-sessions/active')).data;if(priorSession&&preserved?.id!==priorSession.id)throw Error('single practice replaced previous continuous session');
+ await page.getByRole('button',{name:'返回练习设置',exact:true}).click();
+ if(priorSession)await page.getByRole('button',{name:'结束本轮',exact:true}).click();
+ const started=page.waitForResponse(response=>response.request().method()==='POST'&&new URL(response.url()).pathname==='/api/exercises/practice-sessions');
+ await page.getByRole('button',{name:'开始练习',exact:true}).click();const session=(await (await started).json()).data;
+ if(session.summary.total!==1||session.filters.search_kw!==mark)throw Error('continuous practice ignored visible search scope');
+ await page.getByText('连续练习进行中',{exact:true}).waitFor();await shot('1280-exercise-continuous-filtered');
+ await page.getByRole('button',{name:'暂停',exact:true}).click();await page.getByRole('button',{name:'继续',exact:true}).waitFor();
+
+ page.off('request',track);
+});
 if(electronMode)await check('macos-fullscreen-insets',async()=>{
  await page.goto(base+'/goals');await page.getByRole('heading',{name:'目标与任务',exact:true}).waitFor();
  await browser.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setFullScreen(true));

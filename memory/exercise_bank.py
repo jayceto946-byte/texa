@@ -717,6 +717,7 @@ class ExerciseBank:
     def create_practice_session(
         self,
         *,
+        search_kw: str = "",
         subject: str = "",
         chapter: str = "",
         tag: str = "",
@@ -724,12 +725,8 @@ class ExerciseBank:
         limit: int = 20,
         shuffle: bool = False,
     ) -> PracticeSession:
-        previous = self.store.get_active_session()
-        if previous:
-            previous.status = "replaced"
-            previous.completed_at = datetime.now().isoformat()
-            self.store.save_session(previous)
         records = self.list_all(
+            search_kw=search_kw,
             subject=subject or None,
             chapter=chapter or None,
             tag=tag or None,
@@ -744,9 +741,14 @@ class ExerciseBank:
             random.Random(seed).shuffle(selected)
         if not selected:
             raise ValueError("当前筛选范围内没有可练习习题")
+        previous = self.store.get_active_session()
+        if previous:
+            previous.status = "replaced"
+            previous.completed_at = datetime.now().isoformat()
+            self.store.save_session(previous)
         session = PracticeSession(
             exercise_ids=[record.id for record in selected],
-            filters={"subject": subject, "chapter": chapter, "tag": tag, "status": status},
+            filters={"search_kw": search_kw, "subject": subject, "chapter": chapter, "tag": tag, "status": status},
             shuffle=shuffle,
             seed=seed,
         )

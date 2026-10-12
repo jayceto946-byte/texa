@@ -1,4 +1,4 @@
-﻿import { useCallback, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import { useCallback, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { post } from '../../../api/client';
 import type { ExercisePracticeSession, ExerciseRecord } from '../../../types';
 
@@ -14,6 +14,8 @@ interface UsePracticeSessionOptions {
   bookQuery: string;
   targetSubject: string;
   statusFilter: string;
+  searchKw: string;
+  singlePracticeActive: boolean;
   refreshOverview: () => Promise<void>;
 }
 
@@ -25,6 +27,8 @@ export function usePracticeSession({
   bookQuery,
   targetSubject,
   statusFilter,
+  searchKw,
+  singlePracticeActive,
   refreshOverview,
 }: UsePracticeSessionOptions) {
   const [practiceId, setPracticeId] = useState('');
@@ -49,12 +53,12 @@ export function usePracticeSession({
   }, [records]);
 
   const currentPractice = useMemo(() => {
-    if (practiceSession && ['active', 'paused', 'completed'].includes(practiceSession.status)) {
+    if (!singlePracticeActive && practiceSession && ['active', 'paused', 'completed'].includes(practiceSession.status)) {
       return practiceSession.current_exercise || null;
     }
     if (practiceId) return records.find((item) => item.id === practiceId) || null;
     return practicePool.find((item) => item.status !== 'mastered') || practicePool[0] || null;
-  }, [practiceId, practicePool, practiceSession, records]);
+  }, [practiceId, practicePool, practiceSession, records, singlePracticeActive]);
 
   const resetAnswer = useCallback(() => {
     setPracticeAnswer('');
@@ -68,6 +72,7 @@ export function usePracticeSession({
       const res = await post(`/exercises/practice-sessions${bookQuery}`, {
         subject: targetSubject,
         status: statusFilter,
+        search_kw: searchKw,
         limit: sessionLimit,
         shuffle: sessionShuffle,
       });
@@ -83,7 +88,7 @@ export function usePracticeSession({
     } finally {
       setSessionBusy(false);
     }
-  }, [bookQuery, resetAnswer, sessionLimit, sessionShuffle, setPracticeSession, statusFilter, targetSubject]);
+  }, [bookQuery, resetAnswer, sessionLimit, sessionShuffle, setPracticeSession, statusFilter, targetSubject, searchKw]);
 
   const changePracticeSessionStatus = useCallback(async (action: SessionAction) => {
     if (!practiceSession) return;
@@ -116,14 +121,14 @@ export function usePracticeSession({
 
   const submitPractice = useCallback(async (quality: number, addToMistake = false, recover = false) => {
     if (!currentPractice || submitting.current) return;
-    if (practiceSession && practiceSession.status !== 'active') {
+    if (!singlePracticeActive && practiceSession && practiceSession.status !== 'active') {
       setPracticeMessage('请先继续当前练习会话');
       return;
     }
     submitting.current = true;
     setSessionBusy(true);
     try {
-      const sessionMode = Boolean(practiceSession);
+      const sessionMode = Boolean(practiceSession) && !singlePracticeActive;
       const path = sessionMode
         ? `/exercises/practice-sessions/${encodeURIComponent(practiceSession!.id)}/answer${bookQuery}`
         : `/exercises/practice${bookQuery}`;
@@ -167,7 +172,7 @@ export function usePracticeSession({
       submitting.current = false;
       setSessionBusy(false);
     }
-  }, [bookQuery, currentPractice, practiceAnswer, practiceSession, refreshOverview, resetAnswer, setPracticeSession, setRecords]);
+  }, [bookQuery, currentPractice, practiceAnswer, practiceSession, refreshOverview, resetAnswer, setPracticeSession, setRecords, singlePracticeActive]);
 
   const sendPracticeToMistake = useCallback(async () => {
     if (!currentPractice) return;
@@ -196,7 +201,7 @@ export function usePracticeSession({
   }, [practiceId, resetAnswer]);
 
   return {
-    pendingDirectAnswer: !practiceSession && currentPractice ? pendingDirectPractice(bookQuery, currentPractice.id) : null,
+    pendingDirectAnswer: (singlePracticeActive || !practiceSession) && currentPractice ? pendingDirectPractice(bookQuery, currentPractice.id) : null,
     practicePool,
     currentPractice,
     practiceAnswer,

@@ -65,6 +65,19 @@ if os.environ.get('TEXA_QA_WORKFLOWS') == '1':
         yield {'stage':'generate','chunk':'','done':True}
         yield {'stage':'done','state':{'final_output':answer},'enriched':False}
     qa_graph.run_graph_stream=fixture_stream
+    from backend.api import exercises as qa_exercises
+    answer_attempts={}
+    original_answer=qa_exercises.generate_exercise_answer
+    def fixture_answer(req, book_name='default'):
+        record=qa_exercises._bank(book_name).get(req.id)
+        if not record or not record.question_text.startswith('QA-ANSWER-'):
+            return original_answer(req,book_name)
+        time.sleep(2)
+        answer_attempts[req.id]=answer_attempts.get(req.id,0)+1
+        if 'FAIL' in record.question_text and answer_attempts[req.id]==1:
+            return {'success':False,'message':'合成任务首次生成失败，可重试','reason':'qa_failure'}
+        return {'success':True,'message':'合成答案草稿完成','data':{'answer':'$f\\prime(x)=3x^2$。\n\n'+('幂函数求导：降低一次幂并乘以原来的指数。\n\n'*24),'evidence_count':0}}
+    qa_exercises.generate_exercise_answer=fixture_answer
     from backend.services.goals import execution as goal_execution
     from backend.services.agent_runtime.contracts import ModelCapabilities, FixedAction
     class FixtureGoalAdapter:

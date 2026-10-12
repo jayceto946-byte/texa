@@ -345,6 +345,7 @@ class ExerciseImportRollbackRequest(BaseModel):
 
 
 class ExercisePracticeSessionCreateRequest(BaseModel):
+    search_kw: str = ""
     subject: str = ""
     chapter: str = ""
     tag: str = ""

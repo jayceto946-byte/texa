@@ -514,6 +514,7 @@ def create_practice_session(req: ExercisePracticeSessionCreateRequest, book_name
     bank = _bank(book_name)
     try:
         session = bank.create_practice_session(
+            search_kw=req.search_kw,
             subject=req.subject,
             chapter=req.chapter,
             tag=req.tag,

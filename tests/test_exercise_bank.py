@@ -376,3 +376,22 @@ def test_exercise_missing_table_and_transport_error_do_not_succeed(monkeypatch):
     response = exercises.generate_exercise_answer(ExerciseAnswerGenerateRequest(id="synthetic"), "test")
     assert "SYNTHETIC_PRIVATE_MARKER" not in str(response)
     assert not response["success"]
+
+
+def test_practice_search_scope_matches_visible_filter_and_empty_scope_keeps_active(tmp_path, monkeypatch):
+    from backend.schemas import ExercisePracticeSessionCreateRequest
+    bank = ExerciseBank(tmp_path / "search-practice.db")
+    matched = ExerciseRecord(question_text="求极限", subject="数学")
+    other = ExerciseRecord(question_text="求导数", subject="数学")
+    bank.add(matched)
+    bank.add(other)
+    monkeypatch.setattr(exercises, "_bank", lambda _scope: bank)
+    created = exercises.create_practice_session(ExercisePracticeSessionCreateRequest(subject="数学", search_kw="极限"))
+    assert created["success"] is True
+    session = bank.get_active_practice_session()
+    assert session.exercise_ids == [matched.id]
+    assert session.filters["search_kw"] == "极限"
+    failed = exercises.create_practice_session(ExercisePracticeSessionCreateRequest(subject="数学", search_kw="不存在"))
+    assert failed["success"] is False
+    assert bank.get_active_practice_session().id == session.id
+    assert bank.get_practice_session(session.id).status == "active"

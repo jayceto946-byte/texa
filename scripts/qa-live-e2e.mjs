@@ -252,7 +252,7 @@ try {
   await page.getByRole('heading',{name:'本次复习完成',exact:true}).waitFor();await page.screenshot({path:resolve(out,`${width}-review-complete.png`)});
   await page.reload();await page.getByRole('heading',{name:'本次复习完成',exact:true}).waitFor();
   results.checks.push({width,case:'review reveal→self grade→complete→refresh',status:'PASS',url:reviewUrl});
-  await page.goto('http://127.0.0.1:18041/exercises');await page.getByRole('button',{name:'手动录入',exact:true}).click();
+  await page.goto('http://127.0.0.1:18041/exercises');await page.getByRole('radio',{name:'题库',exact:true}).click();await page.getByRole('button',{name:'手动录入',exact:true}).click();
   const save=page.getByRole('button',{name:'保存到题库',exact:true});if(!await save.isDisabled())throw Error('unchecked input save enabled');
   await page.getByLabel('完整题干',{exact:true}).fill(`QA-${runId}-${width} 求 $x^3$ 的导数。`);await page.getByLabel('参考答案（可选）',{exact:true}).fill('$3x^2$');
   await page.getByLabel('题干与关键条件已经核对完整').check();await save.click();await page.getByRole('dialog').waitFor({state:'hidden'});
@@ -395,7 +395,7 @@ try {
    const reloadedGoal=await (await context.request.get(`http://127.0.0.1:18041/api/goals/${goal.id}`)).json();
    if(reloadedGoal.data.status!=='paused')throw Error('paused goal lost on refresh');
    results.checks.push({width,case:'goal proposal→confirm→activate→run→cross-page→pause fence→refresh',status:'PASS',id:goal.id,task_id:runtimeBefore.data.id});
-   await page.screenshot({path:resolve(out,`${width}-goal-paused.png`)});
+   await page.getByRole('heading',{name:'目标与任务',exact:true}).waitFor();await page.getByRole('button',{name:'启用目标',exact:true}).waitFor();await page.screenshot({path:resolve(out,`${width}-goal-paused.png`)});
   }
   if(!electronMode) await context.close();
  }
