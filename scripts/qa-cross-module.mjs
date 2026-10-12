@@ -38,7 +38,7 @@ await check('goal-double-resume',async()=>{
  if(duplicate.active_run_id!==second.active_run_id)throw Error('backend created another run');
  await page.locator('.goal-events summary').click();
  if(/run\.resumed|model\.started|Runtime/.test(await page.locator('.goal-events').innerText()))throw Error('raw lifecycle visible');
- await shot('1280-goal-running');
+ await page.getByText('暂停目标会停止当前执行和后续安排，已取得的结果保留。',{exact:true}).waitFor();await shot('1280-goal-running');
  await page.goto(base+'/notes');const across=(await api('/goals/'+goal.id+'/runtime')).data;if(across.id!==first.id)throw Error('cross-page task identity changed');
 });
 await check('chat-selection-composer-mistakes',async()=>{
@@ -120,7 +120,7 @@ await check('exercise-answer-job-failure-retry-read-save',async()=>{
  await page.getByRole('button',{name:'重试生成答案',exact:true}).click();
  await page.getByText('答案草稿已生成，可阅读或编辑，保存后才写入题库。',{exact:true}).waitFor();
  await page.getByText('维护题库答案',{exact:true}).click();
- for(const width of [1280,1024,760]){await page.setViewportSize({width,height:820});await page.getByText('标准答案',{exact:true}).scrollIntoViewIfNeeded();await shot(width+'-exercise-reference');}
+ for(const width of [1280,1024,760]){await page.setViewportSize({width,height:820});await page.getByRole('heading',{name:/参考答案/}).scrollIntoViewIfNeeded();await shot(width+'-exercise-reference');}
  await page.setViewportSize({width:1280,height:820});await page.getByText('维护题库答案',{exact:true}).click();await page.getByRole('button',{name:'保存到题库',exact:true}).click();await page.getByText('标准答案已保存',{exact:true}).waitFor();
  const saved=(await api('/exercises/list','POST',{search_kw:mark})).data.find(item=>item.id===exercise.id);if(!saved?.answer.includes('幂函数求导'))throw Error('generated draft was not saved');
  await page.getByText('核对后，你掌握得怎么样？',{exact:true}).scrollIntoViewIfNeeded();await shot('1280-exercise-analysis-feedback');

@@ -615,7 +615,7 @@ const ExercisesPage: React.FC = () => {
                         <section className="min-w-0 workspace-radius border border-border bg-bg-secondary/55 p-4">
                           <div className="flex items-center justify-between gap-3">
                             <div>
-                              <h4 className="workspace-interface-text font-semibold text-text-primary">标准答案</h4>
+                              <h4 className="workspace-interface-text font-semibold text-text-primary">{answerStatus === 'completed' ? '参考答案草稿' : '参考答案'}</h4>
                               <p className="mt-0.5 workspace-support-text text-text-secondary">参考答案用于核对本次作答。</p>
                             </div>
                             <BookOpen className="h-4 w-4 text-accent" />
