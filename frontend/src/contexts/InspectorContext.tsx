@@ -23,7 +23,7 @@ export function InspectorProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!inspector) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeInspector();
+      if (event.key === 'Escape' && !event.defaultPrevented) closeInspector();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);

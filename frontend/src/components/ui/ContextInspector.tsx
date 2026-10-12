@@ -1,36 +1,36 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { useInspector } from '../../contexts/InspectorContext';
+import Dialog from './Dialog';
 
 export default function ContextInspector() {
   const { inspector, closeInspector } = useInspector();
   const panelRef = useRef<HTMLElement | null>(null);
-
-  // 点击面板外区域关闭（捕获阶段，与其他菜单/浮层模式一致）。
+  const [narrow, setNarrow] = useState(() => window.matchMedia('(max-width: 919.98px)').matches);
   useEffect(() => {
-    if (!inspector) return;
-    const dismissOutside = (event: PointerEvent) => {
-      if (!window.matchMedia('(max-width: 919.98px)').matches) return;
-      if (!panelRef.current?.contains(event.target as Node)) closeInspector();
+    const media = window.matchMedia('(max-width: 919.98px)');
+    const change = () => setNarrow(media.matches);
+    media.addEventListener('change', change);
+    return () => media.removeEventListener('change', change);
+  }, []);
+  const open = Boolean(inspector);
+  useEffect(() => {
+    if (!open || narrow) return;
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const frame = requestAnimationFrame(() => panelRef.current?.querySelector<HTMLButtonElement>('button')?.focus());
+    return () => {
+      cancelAnimationFrame(frame);
+      requestAnimationFrame(() => { if (trigger?.isConnected && !trigger.closest('[hidden]')) trigger.focus(); });
     };
-    document.addEventListener('pointerdown', dismissOutside, true);
-    return () => document.removeEventListener('pointerdown', dismissOutside, true);
-  }, [closeInspector, inspector]);
-
+  }, [open, narrow]);
   if (!inspector) return null;
-
-  return (
-    <aside ref={panelRef} className="context-inspector" aria-label={`${inspector.title}详情`}>
-      <header className="context-inspector-header">
-        <div className="min-w-0 flex-1">
-          {inspector.subtitle && <div className="type-micro text-text-secondary">{inspector.subtitle}</div>}
-          <h2 className="mt-0.5 truncate text-[15px] font-semibold text-text-primary">{inspector.title}</h2>
-        </div>
-        <button type="button" onClick={closeInspector} className="app-icon-button context-inspector-close" aria-label="关闭详情面板">
-          <X className="h-4 w-4" />
-        </button>
-      </header>
-      <div className="context-inspector-body">{inspector.content}</div>
-    </aside>
-  );
+  const content = <><header className="context-inspector-header">
+    <div className="min-w-0 flex-1">
+      {inspector.subtitle && <div className="type-micro text-text-secondary">{inspector.subtitle}</div>}
+      <h2 className="mt-0.5 truncate text-[15px] font-semibold text-text-primary">{inspector.title}</h2>
+    </div>
+    <button type="button" onClick={closeInspector} className="app-icon-button context-inspector-close" aria-label="关闭详情面板"><X className="h-4 w-4" /></button>
+  </header><div className="context-inspector-body">{inspector.content}</div></>;
+  return narrow ? <Dialog open title={`${inspector.title}详情`} onClose={closeInspector} dismissOnBackdrop className="context-inspector-modal">{content}</Dialog>
+    : <aside ref={panelRef} className="context-inspector" aria-label={`${inspector.title}详情`}>{content}</aside>;
 }

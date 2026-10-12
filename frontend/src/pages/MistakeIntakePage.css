@@ -38,3 +38,8 @@
   .app-shell .mistakes-intake-workspace > .app-page-header > .app-page-title { flex: none; white-space: nowrap; }
   .mistakes-intake-workspace > .app-page-header > .mistakes-back { flex: none; white-space: nowrap; }
 }
+
+.mistakes-intake-layout.no-images { grid-template-columns: minmax(0, 1fr); }
+.mistakes-intake-layout.no-images .mistakes-intake-images { position: static; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-bottom: 16px; border-bottom: 1px solid var(--workspace-separator); }
+.mistakes-intake-layout.no-images .mistakes-intake-images h2 { margin: 0; font-size: var(--workspace-interface-size); }
+.mistakes-intake-layout.no-images .mistakes-intake-images p { font-size: var(--workspace-support-size); margin: 0; }

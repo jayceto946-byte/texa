@@ -3,8 +3,10 @@ import ManualExerciseDialog from '../features/exercises/ManualExerciseDialog';
 import '../features/notes/notes.css';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, BookOpen, CheckCircle2, ChevronDown, ChevronRight, ClipboardList, Loader2, Pause, Pencil, Play, RotateCcw, Save, Scissors, Search, Shuffle, Upload, X } from 'lucide-react';
+import { AlertTriangle, BookOpen, ChevronDown, ChevronRight, ClipboardList, Loader2, Pause, Pencil, Play, Save, Scissors, Search, Shuffle, Upload, X } from 'lucide-react';
 import { apiFetch, del, get, post } from '../api/client';
+import { WorkspaceActionBar } from '../components/ui/WorkspaceActionBar';
+import { SimpleMarkdown } from '../components/chat/MarkdownRenderer';
 import ChatMessage from '../components/ChatMessage';
 import ScopeSelector from '../components/ScopeSelector';
 import { SegmentedControl } from '../components/ui/SelectionControls';
@@ -84,6 +86,7 @@ const ExercisesPage: React.FC = () => {
   const sourcePdfAsset = useAuthenticatedBlobUrl(pdfOpen ? sourcePdfPath : '', 'pdf');
   const [textbookSourceMode, setTextbookSourceMode] = useState('exercise_sections');
   const [useLlmRepair, setUseLlmRepair] = useState(false);
+  const [reviewPreparationOpen, setReviewPreparationOpen] = useState(false);
   const [extractedPreview, setExtractedPreview] = useState('');
   const [lastImportBatch, setLastImportBatch] = useState<ExerciseImportBatch | null>(null);
   const searchKwRef = useRef(searchKw);
@@ -172,6 +175,7 @@ const ExercisesPage: React.FC = () => {
     changePracticeSessionStatus,
     selectPractice,
     submitPractice,
+    pendingDirectAnswer,
 
     clearDeletedPractice,
   } = usePracticeSession({
@@ -296,6 +300,7 @@ const ExercisesPage: React.FC = () => {
       }
       const next = data.data || [];
       replaceCandidates(next);
+      setReviewPreparationOpen(false);
       setExtractedPreview(data.extract?.text || '');
       const warnings = data.extract?.warnings?.length ? `；${data.extract.warnings.join('；')}` : '';
       const paired = answerFile ? `；答案匹配 ${data.summary?.paired_answers || 0}/${next.length}` : '';
@@ -334,6 +339,7 @@ const ExercisesPage: React.FC = () => {
       }
       const next = res.data || [];
       replaceCandidates(next);
+      setReviewPreparationOpen(false);
       setExtractedPreview(res.extract?.text || '');
       const warnings = res.extract?.warnings?.length ? `（${res.extract.warnings.join('；')}）` : '';
       setMessage(`${res.message || `已从教材抽取 ${next.length} 道候选题`}${warnings}`);
@@ -429,9 +435,10 @@ const ExercisesPage: React.FC = () => {
           />
       </div>
       </div>
-      <div className={`grid min-h-0 flex-1 grid-cols-1 overflow-hidden ${workspaceMode === 'import' ? 'lg:grid-cols-[380px_minmax(0,1fr)] 2xl:grid-cols-[400px_minmax(0,1fr)]' : ''}`}>
-        <aside className={`${workspaceMode === 'import' ? 'block' : 'hidden'} overflow-y-auto border-b border-border bg-bg-secondary/95 p-4 lg:border-b-0 lg:border-r`}>
+      <div className={`grid min-h-0 flex-1 grid-cols-1 overflow-hidden ${workspaceMode === 'import' && (!candidates.length || reviewPreparationOpen) ? 'lg:grid-cols-[380px_minmax(0,1fr)] 2xl:grid-cols-[400px_minmax(0,1fr)]' : ''}`}>
+        <aside className={`${workspaceMode === 'import' && (!candidates.length || reviewPreparationOpen) ? 'block' : 'hidden'} overflow-y-auto border-b border-border bg-bg-secondary/95 p-4 lg:border-b-0 lg:border-r`}>
           <div className="space-y-4">
+            {candidates.length > 0 && <button className="app-secondary-button" onClick={() => setReviewPreparationOpen(false)}>返回校对</button>}
             <section className="workspace-form-section">
               <div>
                 <div className="workspace-interface-text font-medium text-text-primary">选择范围</div>
@@ -513,29 +520,10 @@ const ExercisesPage: React.FC = () => {
               {message && <div className="rounded border border-border bg-bg-primary px-3 py-2 workspace-support-text text-text-secondary">{message}</div>}
             </section>
 
-            {workspaceMode === 'import' && candidates.length > 0 && (
-              <section className="workspace-form-section">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="workspace-interface-text font-medium text-text-primary">候选题确认</div>
-                    <div className="mt-1 workspace-support-text text-text-secondary">{importSummary.total} 道 · {importSummary.issues} 道异常 · {importSummary.duplicates} 道重复</div>
-                  </div>
-                  <button onClick={selectAllCandidates} className="rounded border border-border px-2.5 py-1 workspace-support-text hover:border-accent">全选</button>
-                </div>
-                <button onClick={importSelected} disabled={importing || selectedIds.size === 0} className="flex w-full items-center justify-center gap-2 workspace-radius bg-accent px-3 py-2 workspace-interface-text font-medium text-white hover:bg-accent-hover disabled:opacity-50"><CheckCircle2 className="h-4 w-4" /> 导入选中 {selectedIds.size}</button>
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={mergeSelectedCandidates} disabled={selectedIds.size < 2} className="workspace-radius border border-border px-3 py-2 workspace-support-text hover:border-accent disabled:opacity-50">合并选中</button>
-                  <button onClick={clearCandidateSelection} disabled={selectedIds.size === 0} className="workspace-radius border border-border px-3 py-2 workspace-support-text hover:border-accent disabled:opacity-50">取消选择</button>
-                </div>
-              </section>
-            )}
-                {lastImportBatch?.status === 'active' && <button onClick={rollbackLastImport} className="flex w-full items-center justify-center gap-2 workspace-radius border border-[var(--warning-border)] bg-[var(--warning-bg)] px-3 py-2 workspace-support-text text-[var(--warning)] hover:border-[var(--warning)]">
-                  <RotateCcw className="h-3.5 w-3.5" /> 回滚最近导入（{lastImportBatch.exercise_ids.length} 题）
-                </button>}
           </div>
         </aside>
 
-        <main className="management-page-content overflow-y-auto">
+        <main className={`management-page-content overflow-y-auto ${workspaceMode === 'import' && reviewPreparationOpen ? 'hidden lg:block' : ''}`}>
           <div className={`mx-auto w-full space-y-5 ${workspaceMode === 'practice' ? 'max-w-[1180px]' : ''}`}>
             {workspaceMode === 'import' && candidates.length === 0 && (
               <section className="border-t border-border px-1 py-6">
@@ -654,6 +642,7 @@ const ExercisesPage: React.FC = () => {
                       <button onClick={() => submitPractice(5)} disabled={sessionBusy || practiceSession?.status === 'paused'} className="workspace-radius border border-[var(--success-border)] bg-[var(--success-bg)] px-3 py-2 workspace-support-text font-medium text-[var(--success)] hover:border-[var(--success)] disabled:opacity-50">已掌握</button>
                     </div>
                   </footer>}
+                  {pendingDirectAnswer && <div className="border-t border-border px-5 py-3 sm:px-6"><button disabled={sessionBusy} className="app-secondary-button" onClick={() => submitPractice(pendingDirectAnswer.quality, pendingDirectAnswer.add_to_mistake, true)}>恢复未确认作答</button></div>}
                   {practiceMessage && <div className="border-t border-border bg-bg-card px-5 py-3 workspace-support-text text-text-secondary sm:px-6">{practiceMessage}{candidateId && <Link to="/mistakes?filter=pending" className="ml-3 text-accent underline">确认收录</Link>}</div>}
                 </div>
               ) : null}
@@ -668,9 +657,16 @@ const ExercisesPage: React.FC = () => {
             {workspaceMode === 'import' && candidates.length > 0 && (
               <section className="workspace-form-section">
                 <div className="flex items-center justify-between">
-                  <h3 className="workspace-interface-text font-semibold text-text-primary">待确认候选题</h3>
+                  <h3 className="workspace-interface-text font-semibold text-text-primary">校对候选题</h3>
                   <span className="workspace-support-text text-text-secondary">{selectedIds.size} / {candidates.length} 已选</span>
                 </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button onClick={selectAllCandidates} className="app-secondary-button">全选</button>
+                  <button onClick={mergeSelectedCandidates} disabled={selectedIds.size < 2} className="app-secondary-button">合并选中</button>
+                  <button onClick={clearCandidateSelection} disabled={selectedIds.size === 0} className="app-secondary-button">取消选择</button>
+                  <button onClick={() => setReviewPreparationOpen(v => !v)} className="app-secondary-button">{reviewPreparationOpen ? '收起来源与原文' : '查看来源与原文'}</button>
+                </div>
+                <p className="workspace-support-text text-text-secondary">解析置信度仅供参考。请校对题干、答案和来源；选中后明确导入才写入题库。</p>
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => setCandidateFilter('all')} className={`workspace-radius border px-3 py-1 workspace-support-text ${candidateFilter === 'all' ? 'border-accent bg-accent/10 text-accent' : 'border-border'}`}>全部 {candidates.length}</button>
                   <button onClick={() => setCandidateFilter('issues')} className={`workspace-radius border px-3 py-1 workspace-support-text ${candidateFilter === 'issues' ? 'border-accent bg-accent/10 text-accent' : 'border-border'}`}>异常 {importSummary.issues}</button>
@@ -680,12 +676,12 @@ const ExercisesPage: React.FC = () => {
                   {candidateList.visibleItems.map((candidate) => (
                     <article key={candidate.id} className={`workspace-candidate-row ${(candidate.validation_issues || []).length ? 'text-[var(--warning-text)]' : ''}`}>
                       <div className="flex items-start gap-3">
-                        <input type="checkbox" checked={selectedIds.has(candidate.id)} onChange={() => toggleCandidate(candidate.id)} className="mt-1 h-4 w-4 accent-accent" />
+                        <input aria-label={`选择候选题 ${candidate.id}`} type="checkbox" checked={selectedIds.has(candidate.id)} onChange={() => toggleCandidate(candidate.id)} className="mt-1 h-4 w-4 accent-accent" />
                         <div className="min-w-0 flex-1 space-y-3">
                           <div className="flex flex-wrap items-center gap-2 workspace-support-text">
                             <span className="rounded border border-border px-2 py-0.5 text-text-secondary">{candidate.suggested_type || '未定题型'}</span>
                             <span className="rounded border border-border px-2 py-0.5 text-text-secondary">难度 {candidate.difficulty}</span>
-                            <span className={`rounded border px-2 py-0.5 ${candidate.needs_llm ? 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning)]' : 'border-[var(--success-border)] bg-[var(--success-bg)] text-[var(--success)]'}`}>置信度 {Math.round(candidate.confidence * 100)}%</span>
+                            <span className={`rounded border px-2 py-0.5 ${candidate.needs_llm ? 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning)]' : 'border-[var(--success-border)] bg-[var(--success-bg)] text-[var(--success)]'}`}>解析置信度 {Math.round(candidate.confidence * 100)}%</span>
                             <button onClick={() => setEditingCandidateId(editingCandidateId === candidate.id ? '' : candidate.id)} className="ml-auto flex items-center gap-1 rounded border border-border px-2 py-0.5 hover:border-accent"><Pencil className="h-3 w-3" />{editingCandidateId === candidate.id ? '收起' : '编辑'}</button>
                             <button onClick={() => splitCandidate(candidate)} className="flex items-center gap-1 rounded border border-border px-2 py-0.5 hover:border-accent"><Scissors className="h-3 w-3" />拆分</button>
                           </div>
@@ -693,20 +689,20 @@ const ExercisesPage: React.FC = () => {
                           {candidate.duplicate_of && <div className="workspace-support-text text-[var(--warning)]">重复于题库记录 {candidate.duplicate_of}，默认导入时会跳过。</div>}
                           {editingCandidateId === candidate.id ? (
                             <div className="space-y-2 workspace-radius border border-border bg-bg-secondary p-3">
-                              <textarea value={candidate.question_text} onChange={(e) => updateCandidate(candidate.id, { question_text: e.target.value, duplicate_of: '' })} className="min-h-32 w-full workspace-radius border border-border bg-bg-primary p-2 workspace-interface-text" />
+                              <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">题干</span><textarea aria-label="候选题题干" value={candidate.question_text} onChange={(e) => updateCandidate(candidate.id, { question_text: e.target.value, duplicate_of: '' })} className="min-h-32 w-full workspace-radius border border-border bg-bg-primary p-2 workspace-interface-text" /></label>
                               <div className="grid gap-2 sm:grid-cols-3">
-                                <input value={candidate.suggested_type} onChange={(e) => updateCandidate(candidate.id, { suggested_type: e.target.value })} placeholder="题型" className="app-field is-compact" />
-                                <input type="number" min="1" max="5" value={candidate.difficulty} onChange={(e) => updateCandidate(candidate.id, { difficulty: Math.max(1, Math.min(5, Number(e.target.value) || 3)) })} className="app-field is-compact" />
-                                <input value={candidate.tags.join(', ')} onChange={(e) => updateCandidate(candidate.id, { tags: e.target.value.split(',').map((item) => item.trim()).filter(Boolean) })} placeholder="知识点标签" className="app-field is-compact" />
+                                <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">题型</span><input value={candidate.suggested_type} onChange={(e) => updateCandidate(candidate.id, { suggested_type: e.target.value })} placeholder="题型" className="app-field is-compact" /></label>
+                                <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">难度（1–5）</span><input type="number" min="1" max="5" value={candidate.difficulty} onChange={(e) => updateCandidate(candidate.id, { difficulty: Math.max(1, Math.min(5, Number(e.target.value) || 3)) })} className="app-field is-compact" /></label>
+                                <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">知识点标签</span><input value={candidate.tags.join(', ')} onChange={(e) => updateCandidate(candidate.id, { tags: e.target.value.split(',').map((item) => item.trim()).filter(Boolean) })} placeholder="知识点标签" className="app-field is-compact" /></label>
                               </div>
-                              <textarea value={candidate.answer} onChange={(e) => updateCandidate(candidate.id, { answer: e.target.value })} placeholder="标准答案（可留空）" className="min-h-20 w-full workspace-radius border border-border bg-bg-primary p-2 workspace-support-text" />
-                              <textarea value={candidate.explanation} onChange={(e) => updateCandidate(candidate.id, { explanation: e.target.value })} placeholder="解析（可留空）" className="min-h-20 w-full workspace-radius border border-border bg-bg-primary p-2 workspace-support-text" />
+                              <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">标准答案</span><textarea value={candidate.answer} onChange={(e) => updateCandidate(candidate.id, { answer: e.target.value })} placeholder="标准答案（可留空）" className="min-h-20 w-full workspace-radius border border-border bg-bg-primary p-2 workspace-support-text" /></label>
+                              <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">解析</span><textarea value={candidate.explanation} onChange={(e) => updateCandidate(candidate.id, { explanation: e.target.value })} placeholder="解析（可留空）" className="min-h-20 w-full workspace-radius border border-border bg-bg-primary p-2 workspace-support-text" /></label>
                               <div className="grid gap-2 sm:grid-cols-2">
-                                <input value={candidate.source} onChange={(e) => updateCandidate(candidate.id, { source: e.target.value })} placeholder="来源" className="app-field is-compact" />
-                                <input value={candidate.chapter} onChange={(e) => updateCandidate(candidate.id, { chapter: e.target.value })} placeholder="章节" className="app-field is-compact" />
+                                <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">来源</span><input value={candidate.source} onChange={(e) => updateCandidate(candidate.id, { source: e.target.value })} placeholder="来源" className="app-field is-compact" /></label>
+                                <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">章节</span><input value={candidate.chapter} onChange={(e) => updateCandidate(candidate.id, { chapter: e.target.value })} placeholder="章节" className="app-field is-compact" /></label>
                               </div>
                             </div>
-                          ) : <p className="line-clamp-4 whitespace-pre-wrap workspace-interface-text text-text-primary">{candidate.question_text}</p>}
+                          ) : <div className="workspace-interface-text text-text-primary"><SimpleMarkdown content={candidate.question_text} /></div>}
                           <div className="flex flex-wrap gap-2 workspace-support-text text-text-secondary">
                             {(candidate.tags.length ? candidate.tags : ['未识别知识点']).map((tag) => <span key={tag} className="rounded bg-bg-secondary px-2 py-0.5">{tag}</span>)}
                           </div>
@@ -774,7 +770,9 @@ const ExercisesPage: React.FC = () => {
         <div className="app-overlay-enter fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="教材 PDF 选页">
           <div className="app-dialog-enter workspace-radius flex h-[64vh] w-[min(900px,92vw)] flex-col overflow-hidden border border-border bg-bg-card shadow-2xl">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-              <div><div className="workspace-interface-text font-semibold text-text-primary">{activeName} · PDF 选页</div><div className="workspace-support-text text-text-secondary">输入 PDF 页码后预览；“用作起始页”会回填抽题范围。</div></div>
+              <div><div className="workspace-interface-text font-semibold text-text-primary">{activeName} · PDF 选页</div>
+
+<div className="workspace-support-text text-text-secondary">输入 PDF 页码后预览；“用作起始页”会回填抽题范围。</div></div>
               <div className="flex items-center gap-2">
                 <input type="number" min="1" value={pdfPage} onChange={(e) => setPdfPage(e.target.value)} className="w-24 app-field" />
                 <button onClick={() => setPdfPage((value) => String(Math.max(1, Number(value || 1) - 1)))} className="workspace-radius border border-border px-2.5 py-1.5 workspace-support-text hover:border-accent">上一页</button>
@@ -790,6 +788,11 @@ const ExercisesPage: React.FC = () => {
         </div>
       )}
       </div>
+      {workspaceMode === 'import' && (candidates.length > 0 || lastImportBatch?.status === 'active') && <WorkspaceActionBar status={`${candidates.length} 道候选 · ${selectedIds.size} 道选中${message ? ` · ${message}` : ''}`}>
+        {lastImportBatch?.status === 'active' && <button className="app-secondary-button" onClick={rollbackLastImport}>回滚最近导入（{lastImportBatch.exercise_ids.length} 题）</button>}
+        {reviewPreparationOpen && <button className="app-secondary-button" onClick={() => setReviewPreparationOpen(false)}>返回校对</button>}
+        {candidates.length > 0 && <button className="app-primary-button" disabled={importing || !selectedIds.size || reviewPreparationOpen} onClick={importSelected}>导入选中 {selectedIds.size} 题</button>}
+      </WorkspaceActionBar>}
     </div>
   );
 };

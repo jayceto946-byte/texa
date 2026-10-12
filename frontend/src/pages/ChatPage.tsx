@@ -293,11 +293,6 @@ const ChatPage: React.FC = () => {
     const error = imageUploadError(file);
     setAttachmentError(error);
     if (error) return;
-    clearAttachment();
-    setSelectedMistakeId('');
-    setActiveFigure(null);
-    setVisualRegion(null);
-    setFigureWorkspaceExpanded(false);
     setRawAttachmentFile(file);
     setAttachmentEditorOpen(true);
   };
@@ -309,6 +304,10 @@ const ChatPage: React.FC = () => {
   }, [bookName]);
 
   const applyAttachmentProcessing = (processed: { file: File; preview: string; originalFile?: File; originalSize?: number }) => {
+    setSelectedMistakeId('');
+    setActiveFigure(null);
+    setVisualRegion(null);
+    setFigureWorkspaceExpanded(false);
     if (attachmentPreview) URL.revokeObjectURL(attachmentPreview);
     setAttachmentFile(processed.file);
     setUploadOriginalFile(processed.originalFile || rawAttachmentFile);
@@ -971,7 +970,7 @@ const ChatPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="composer-surface"><fieldset disabled={inTrash} className="conversation-composer-fields">
             <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png" capture="environment" className="hidden" onChange={(event) => { selectAttachment(event.target.files?.[0]); event.target.value = ''; }} />
             {attachmentError && <p role="alert" className="text-sm text-red-500">{attachmentError}</p>}
-            <input ref={attachmentInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" className="hidden" onChange={(event) => selectAttachment(event.target.files?.[0])} />
+            <input ref={attachmentInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" className="hidden" onChange={(event) => { selectAttachment(event.target.files?.[0]); event.target.value = ''; }} />
             {activeFigure && !figureWorkspaceExpanded && (
               <FigureContextAttachment
                 figure={activeFigure}

@@ -203,6 +203,26 @@
   padding: 16px 0;
 }
 .workspace-form-section:first-child { border-top: 0; padding-top: 0; }
+
+.workspace-action-bar {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+  padding: 12px var(--workspace-management-gutter);
+  border-top: 1px solid var(--workspace-separator);
+  background: var(--color-bg-card);
+}
+.workspace-action-status { min-width: 0; flex: 1 1 180px; font-size: var(--workspace-support-size); color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.workspace-action-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.workspace-back-control { display: inline-flex; flex: none; align-items: center; gap: 6px; white-space: nowrap; }
+@media (max-width: 600px) {
+  .workspace-action-bar { padding: 10px 16px; }
+  .workspace-action-controls { width: 100%; }
+  .workspace-action-controls > button { flex: 1; justify-content: center; }
+}
 .workspace-candidate-row {
   border-bottom: 1px solid var(--workspace-separator);
   padding: 12px 0;
@@ -376,7 +396,7 @@ body:has(.desktop-titlebar-marker.is-macos) .navigation-collapse { top:8px; }
 .goals-filter-empty button { margin-top:10px; }
 .goals-filter-empty-list button { display:none; }
 .goal-intake { max-width:640px; }
-.goal-intake h2,.goal-session h2 { font-size:var(--workspace-section-title-size); font-weight:600; line-height:1.4; overflow-wrap:anywhere; }
+.goal-intake h2,.goal-session h2 { font-size:var(--workspace-management-title-size); font-weight:600; line-height:1.4; overflow-wrap:anywhere; }
 .goal-intake > p:not(.goal-eyebrow):not(.goal-objective):not(.goals-muted) { color:var(--color-text-secondary); font-size:13px; line-height:1.5; margin:8px 0 24px; }
 .goal-intake textarea { width:100%; min-height:112px; padding:12px; border:1px solid var(--color-border); border-radius:8px; background:var(--workspace-tray); font-size:13px; line-height:1.5; resize:vertical; outline:none; }
 .goal-intake textarea:focus { border-color:var(--color-accent); }
@@ -473,3 +493,48 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .app-shell :is(.app-page-heade
 .question-more-menu .workspace-overflow-trigger { opacity:0; }
 .learning-question:is(:hover,:focus-within) .question-more-menu .workspace-overflow-trigger,.question-more-menu .workspace-overflow-trigger[aria-expanded=true] { opacity:1; }
 @media(max-width:760px),(hover:none) { .question-more-menu .workspace-overflow-trigger { opacity:1; } }
+
+/* Keep the mobile diagnostics readable without changing other settings tabs. */
+.network-settings-back { display:none; }
+@media (max-width:480px) {
+  .settings-dialog-body.is-network-diagnostics { grid-template-columns:minmax(0,1fr); }
+  .is-network-diagnostics > .settings-sidebar { display:none; }
+  .is-network-diagnostics .network-settings-back { display:inline-flex; min-height:44px; }
+  .is-network-diagnostics .settings-section button { min-height:44px; }
+}
+
+/* One shared narrow settings navigation; preserve mounted fields on return. */
+.settings-mobile-back { display:none; }
+@media (max-width:480px) {
+  .settings-dialog-body { grid-template-columns:minmax(0,1fr); }
+  .settings-dialog-body.is-mobile-content > .settings-sidebar,
+  .settings-dialog-body.is-mobile-navigation > .settings-content-pane { display:none; }
+  .settings-mobile-back { display:inline-flex; min-height:44px; margin-bottom:16px; }
+  .settings-dialog-body.is-mobile-navigation > .settings-sidebar { border-right:0; }
+}
+
+@media (max-width:480px) {
+  .settings-dialog .appearance-theme-description { white-space:normal; overflow:visible; text-overflow:clip; }
+}
+
+/* Editing overlays share a scrollable body and an always reachable action region. */
+.problem-image-dialog {
+  width: min(1180px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.problem-image-dialog > header, .problem-image-dialog > footer { flex-shrink: 0; }
+.problem-image-body { min-height: 0; overflow-y: auto; padding: 16px; }
+.context-inspector-modal {
+  width: min(520px, calc(100vw - 24px));
+  height: min(740px, calc(100dvh - 24px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.context-inspector-modal .context-inspector-header { flex-shrink: 0; }
+.context-inspector-modal .context-inspector-body { min-height: 0; flex: 1; }
+.problem-image-header { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--color-border); }
+.problem-image-header .app-page-title { margin: 0; font-size: 18px; }

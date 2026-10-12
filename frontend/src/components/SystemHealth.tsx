@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, BookOpen, CheckCircle2, CircleX, RefreshCw, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { del, get, patch, post } from '../api/client';
@@ -8,6 +8,7 @@ import type { SystemHealthStatus } from '../types';
 import LibraryWorkbench, { type LibraryBook } from './settings/LibraryWorkbench';
 import DataSafety from './settings/DataSafety';
 import MobileRemoteS0 from './settings/MobileRemoteS0';
+import NetworkDiagnostics from './settings/NetworkDiagnostics';
 import AppearanceSettings from './settings/AppearanceSettings';
 import type { ModelSettingsValue } from './settings/ModelSettingsForm';
 import ModelSettingsManager from './settings/ModelSettingsManager';
@@ -61,6 +62,17 @@ function bookBelongsTo(book: ManagedBook, parent: string, child = '') {
 const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onModelDirtyChange?: (dirty: boolean) => void }> = ({ standaloneTab, open = true, onModelDirtyChange }) => {
   const { bookName, setBookName, setSubject } = useChatContext();
   const [tab, setTab] = useState<Tab>(standaloneTab || 'preferences');
+  const [mobilePane, setMobilePane] = useState<'navigation' | 'content'>('content');
+  const mobileBack = useRef<HTMLButtonElement>(null);
+  const settingsBody = useRef<HTMLDivElement>(null);
+  const selectSettingsTab = (nextTab: Tab) => {
+    setTab(nextTab); setMobilePane('content');
+    if (window.matchMedia('(max-width:480px)').matches) requestAnimationFrame(() => mobileBack.current?.focus());
+  };
+  const showSettingsNavigation = () => {
+    setMobilePane('navigation');
+    requestAnimationFrame(() => settingsBody.current?.querySelector<HTMLButtonElement>('.settings-nav-item.is-active')?.focus());
+  };
   const { health, loading, loadHealth } = useSystemHealth(bookName, open && !standaloneTab && tab === 'diagnostics');
   const navigate = useNavigate();
   const [version, setVersion] = useState<any>(null);
@@ -453,15 +465,17 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
   }
 
   return (
-    <div className="settings-dialog-body">
-      <SettingsSidebar tab={tab} onTabChange={(nextTab) => { setTab(nextTab); }} />
+    <div ref={settingsBody} className={`settings-dialog-body is-mobile-${mobilePane}`}>
+      <SettingsSidebar tab={tab} onTabChange={selectSettingsTab} />
       <main className="settings-content-pane">
+        <button ref={mobileBack} type="button" className="app-secondary-button settings-mobile-back" onClick={showSettingsNavigation}>返回设置</button>
         {pageMessage && <div className="mb-5"><StatusBanner kind={feedbackKind(pageMessage)} title={pageMessage} /></div>}
 
         {tab === 'about' && <MobileRemoteS0 />}
         {tab === 'diagnostics' && (
           <section className="settings-page">
             <SettingsPageHeader title="高级与诊断" description="检查本地服务与数据组件的运行状态。" />
+            <NetworkDiagnostics active={open && tab === 'diagnostics'} />
             {loading && !health && <PageState kind="loading" title="正在检查系统状态" />}
             <section className="settings-section" aria-labelledby="health-status-heading">
               <div className="settings-section-header">
