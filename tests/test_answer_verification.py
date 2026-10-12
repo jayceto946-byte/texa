@@ -183,3 +183,18 @@ def test_figure_caption_is_citable_but_asset_metadata_cannot_support_a_claim():
                          sources=[{"id": "E1", "figure_id": "fig-1"}])["status"] == "failed"
     assert verify_answer("半导体应变片用于微小应变测量。[[cite:E1]]", required_outputs=required,
                          sources=[caption])["status"] == "failed"
+
+
+def test_fallback_verification_is_shared_by_task_and_final_execution_event(tmp_path, monkeypatch):
+    from backend.api.chat import _finish_chat_learning_task, _activity_for_chat_event
+    from backend.services.learning_task import LearningTaskStore
+    store = LearningTaskStore(tmp_path / "tasks")
+    task = store.create(task_type="qa", goal="可导与连续的关系", required_outputs=derive_required_outputs("可导与连续的关系", answer_mode="subject_general"))
+    monkeypatch.setattr("backend.api.chat.get_learning_task_store", lambda: store)
+    state = {"final_output": "可导推出连续，连续未必可导。"}
+    finished = _finish_chat_learning_task(task, state)
+    assert finished.verification["status"] == "passed"
+    assert state["answer_verification"] == finished.verification
+    activity = _activity_for_chat_event({"stage": "done", "state": state})
+    assert activity["meta"]["verification_status"] == "passed"
+    assert activity["detail"] == "答案通过发布门槛"

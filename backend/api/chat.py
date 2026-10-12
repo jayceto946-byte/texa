@@ -202,6 +202,7 @@ def _finish_chat_learning_task(
             sources=state.get("evidence_sources") or [], citation_trace=state.get("citation_trace") or {},
             tool_context_pack=state.get("tool_context_pack") or {}, evidence_items=state.get("evidence_items") or [],
         )
+    state["answer_verification"] = verification
     task.verification = verification
     task.required_outputs = list(state.get("required_outputs") or task.required_outputs)
     task.artifacts.update({
