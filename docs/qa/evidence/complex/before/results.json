@@ -1,0 +1,234 @@
+{
+  "environment": "Chrome real API",
+  "model": "offline fixture only",
+  "checks": [
+    {
+      "width": 1280,
+      "case": "note autosave503→navigation blocked→local text retained→retry saved",
+      "status": "PASS",
+      "draft_id": "draft_ba9ca6993e064982ac76178aebf54a45"
+    },
+    {
+      "width": 1280,
+      "case": "note draft CAS409→copy local edits→reload authority→edit and autosave",
+      "status": "PASS",
+      "draft_id": "draft_ba9ca6993e064982ac76178aebf54a45"
+    },
+    {
+      "width": 1280,
+      "case": "notes-recovery",
+      "status": "FAIL",
+      "error": "Error: formal conflict panel misleading after reload"
+    },
+    {
+      "width": 1280,
+      "case": "real Word+answer extraction→unconfirmed candidates→merge/split→human correction→select→batch import→rollback",
+      "status": "PASS",
+      "batch_id": "1d6f240b-40d"
+    },
+    {
+      "width": 1280,
+      "case": "real text PDF→original comparison→two candidates; no automatic bank writes",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "chat image→rotate/process/compress→attach preview→remove; no model call",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "chat-image",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('裁剪并增强题目图片', { exact: true }) to be hidden\u001b[22m\n\u001b[2m    10 × locator resolved to visible <div class=\"flex items-center gap-2 text-sm font-medium text-text-primary\">…</div>\u001b[22m\n"
+    },
+    {
+      "width": 1280,
+      "case": "persisted source metadata→inspector→Escape→reopen→route switch closes",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "notes-recovery",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: '笔记', exact: true })\u001b[22m\n"
+    },
+    {
+      "width": 760,
+      "case": "real Word+answer extraction→unconfirmed candidates→merge/split→human correction→select→batch import→rollback",
+      "status": "PASS",
+      "batch_id": "7f655369-593"
+    },
+    {
+      "width": 760,
+      "case": "real text PDF→original comparison→two candidates; no automatic bank writes",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "chat image→rotate/process/compress→attach preview→remove; no model call",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "chat-image",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('裁剪并增强题目图片', { exact: true }) to be hidden\u001b[22m\n\u001b[2m    10 × locator resolved to visible <div class=\"flex items-center gap-2 text-sm font-medium text-text-primary\">…</div>\u001b[22m\n"
+    },
+    {
+      "width": 760,
+      "case": "chat-sources",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: '笔记', exact: true })\u001b[22m\n"
+    }
+  ],
+  "errors": [
+    "1280 notes-recovery: Error: formal conflict panel misleading after reload",
+    "1280 chat-image: TimeoutError: locator.waitFor: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('裁剪并增强题目图片', { exact: true }) to be hidden\u001b[22m\n\u001b[2m    10 × locator resolved to visible <div class=\"flex items-center gap-2 text-sm font-medium text-text-primary\">…</div>\u001b[22m\n",
+    "760 notes-recovery: TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: '笔记', exact: true })\u001b[22m\n",
+    "760 chat-image: TimeoutError: locator.waitFor: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('裁剪并增强题目图片', { exact: true }) to be hidden\u001b[22m\n\u001b[2m    10 × locator resolved to visible <div class=\"flex items-center gap-2 text-sm font-medium text-text-primary\">…</div>\u001b[22m\n",
+    "760 chat-sources: TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: '笔记', exact: true })\u001b[22m\n"
+  ],
+  "requests": [
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_ba9ca6993e064982ac76178aebf54a45"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_ba9ca6993e064982ac76178aebf54a45"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_ba9ca6993e064982ac76178aebf54a45"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_ba9ca6993e064982ac76178aebf54a45"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_ba9ca6993e064982ac76178aebf54a45"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_ba9ca6993e064982ac76178aebf54a45/save"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_eecc34f9e64042aa98b0912c56f9988e"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_eecc34f9e64042aa98b0912c56f9988e/save"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/batch-add"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/import-batches/rollback"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_b49db8d50db5406599e164344cd4e4d2"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_b49db8d50db5406599e164344cd4e4d2"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/batch-add"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/import-batches/rollback"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    }
+  ]
+}

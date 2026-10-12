@@ -1,5 +1,5 @@
 """Disposable real API server for browser E2E; never load production config/data.
-Only the main app startup warmup is stubbed; business APIs/store behavior is real.
+Startup/config metadata are synthetic. Optional workflow mode substitutes only model/parser inputs; Runtime, JobManager and stores stay real.
 """
 from pathlib import Path
 import os,sys
@@ -29,5 +29,69 @@ def local_connect(sock,address):
     if isinstance(address,tuple) and address[0] not in {'127.0.0.1','localhost','::1'}:raise RuntimeError('QA forbids external connections')
     return _connect(sock,address)
 socket.socket.connect=local_connect
+# Optional deterministic workflow inputs. Runtime, jobs and stores stay real.
+if os.environ.get('TEXA_QA_WORKFLOWS') == '1':
+    import time
+    from backend.api import books
+    original_import=books.import_textbook
+    def fixture_import(pdf_path, book_name, **kwargs):
+        if pdf_path.name.startswith('QA-CANCEL-') or pdf_path.name.startswith('QA-FAIL-'):
+            for _ in range(100 if pdf_path.name.startswith('QA-CANCEL-') else 2):
+                time.sleep(0.1)
+                kwargs['on_progress']('qa_fixture','QA offline import checkpoint',10)
+            raise RuntimeError('QA intentional offline import failure')
+        return original_import(pdf_path,book_name,**kwargs)
+    books.import_textbook=fixture_import
+    from backend.api import notes
+    from backend.services.session_notes.jobs import start_generation
+    def fail_note(snapshot, **kwargs):
+        raise RuntimeError('QA intentional offline generation failure')
+    notes.start_generation=lambda service,receipt:start_generation(service,receipt,generator=fail_note)
+    import graph.main_graph as qa_graph
+    def fixture_stream(**kwargs):
+        yield {'stage':'plan','intent':'qa','chapters':[],'fast_path':False}
+        answer='离线夹具：可导推出连续，连续未必可导。'
+        for chunk in answer:
+            time.sleep(0.15)
+            yield {'stage':'generate','chunk':chunk,'done':False}
+        yield {'stage':'generate','chunk':'','done':True}
+        yield {'stage':'done','state':{'final_output':answer},'enriched':False}
+    qa_graph.run_graph_stream=fixture_stream
+    from backend.services.goals import execution as goal_execution
+    from backend.services.agent_runtime.contracts import ModelCapabilities, FixedAction
+    class FixtureGoalAdapter:
+        def capabilities(self):
+            return ModelCapabilities(tool_calling='supported')
+        def next_action(self, transcript, candidates):
+            time.sleep(3)
+            return FixedAction('call', tool_id='get_recent_progress', args={}) if len(transcript)==1 else FixedAction('finish', answer='QA protocol')
+    goal_execution.build_adapter=lambda registry:FixtureGoalAdapter()
+    goal_execution.generate_answer=lambda state:'离线夹具：近期学习记录已读取，仅验证执行流程。'
+    original_summary=goal_execution.summarize_goal
+    def fixture_summary(text, **kwargs):
+        import json
+        return original_summary(text,generator=lambda messages:json.dumps({'title':text[:80],'objective':text,'success_criteria':[{'description':'读取近期学习记录'}]},ensure_ascii=False))
+    goal_execution.summarize_goal=fixture_summary
+if os.environ.get('TEXA_QA_COMPLEX') == '1':
+    # Small, authored files exercise the real extraction pipeline without OCR/LLM.
+    import zipfile
+    import fitz
+    from xml.sax.saxutils import escape
+    assets=qa_root/'assets';assets.mkdir(exist_ok=True)
+    for name, lines in {
+        'questions.docx':['1. 求函数 f(x)=x^2 的导数。','2. 求函数 g(x)=x^3 的导数。'],
+        'answers.docx':['1. 答案：2x','2. 答案：3x^2'],
+    }.items():
+        with zipfile.ZipFile(assets/name,'w') as archive:
+            archive.writestr('word/document.xml','<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+''.join('<w:p><w:r><w:t>'+escape(line)+'</w:t></w:r></w:p>' for line in lines)+'</w:body></w:document>')
+    pdf=fitz.open();page=pdf.new_page(width=600,height=360)
+    page.insert_text((40,65),'1. Find the derivative of h(x)=x^4.',fontsize=18)
+    page.insert_text((40,125),'2. Evaluate the integral of 2x from 0 to 1.',fontsize=18)
+    pdf.save(assets/'questions.pdf');page.get_pixmap().save(assets/'question.png');pdf.close()
+    if not (qa_root/'source-seeded.flag').exists():
+        from backend.conversation_memory import append_message
+        append_message('qa-source-inspector','user','请说明可导与连续的关系。',subject='数学',turn_id='qa-source-turn')
+        append_message('qa-source-inspector','assistant','离线来源夹具：可导推出连续，连续未必可导。[1]',subject='数学',turn_id='qa-source-turn',sources=[{'id':'E1','book_name':'QA 合成教材','chapter':'第一章 函数与极限','section_path':['第一章 函数与极限','可导与连续'],'page_idx':12,'chunk_id':'qa-source-chunk'}])
+        (qa_root/'source-seeded.flag').touch()
 import uvicorn
 uvicorn.run(main.app,host='127.0.0.1',port=18041,log_level='warning')

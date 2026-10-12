@@ -1,8 +1,12 @@
 # Texa QA Inventory
 
+**本轮执行更新**：A4 已修复并通过故障/重试回归；浏览器22项与实际Electron11项离线闭环通过。全路由视觉初筛与首批 Astra 共同问题整改已完成，完整范围和未验收项见 [P0/P1 执行记录](P0-P1-EXECUTION-2026-10-11.md)。下文首轮统计保留历史范围。
+
 2026-10-11 · code baseline branch `codex/mobile-s2-a2` · offline audit, no real learning data or paid model calls.
 
 ## Status semantics and evidence
+
+后续执行优先级见 [P0/P1 整改策略](QA-REMEDIATION-STRATEGY.md)，精选视觉素材见 [Visual Review Board](VISUAL-REVIEW-BOARD.md)。历史 rendering PASS 保留其快照范围；新一轮全页面审美验收需要 Sol 初筛、Astra 关键设计决策及抽查，不能仅凭历史截图/像素比较关闭。真实 Tailscale 设备与正式安装包生命周期延后。
 
 PASS=executed at named layer; FAIL=confirmed defect; FIXED=repair+regression; BLOCKED=environment/external dependency; NOT_TESTED=unexecuted. Static discovery never means PASS. Baseline tests passing does not validate probabilistic model correctness. See [issues](QA-ISSUES.md), [progress](QA-PROGRESS.md), [API index](API-ENDPOINTS.md) (205 handlers, AST evidence includes hidden/legacy routes), [frontend inventory](frontend-inventory.md), [runtime](runtime-data-audit.md), [assets](assets-workflows-audit.md), [platform](platform-audit.md).
 
@@ -93,3 +97,7 @@ Themeidentity mineral/graphite/clay/notebook/codex is real; no invented dark the
 |goals/books/import/highlights/chat|PASS rendered fixture states listed in manifest|Deterministic backend contracts PASS; paid model execution/current production index E2E BLOCKED; every menu/import lifecycle browser NOT_TESTED|
 
 15 cross-cutting modules plus19 entry chains are inventoried;205 API handlers are discovered statically, not205 endpoint E2E passes. No total test count is an all-system acceptance claim.
+
+## 2026-10-12 复杂交互补验（覆盖旧NOT_TESTED中的指定子状态）
+
+本批按用户选择补验笔记冲突恢复、习题候选导入、聊天附件与来源浮层；[详细记录](COMPLEX-INTERACTIONS-2026-10-12.md)、[VRB-02](VISUAL-REVIEW-BOARD.md)。笔记503/草稿CAS/正式CAS/复制与读取失败/已归档恢复；真实Word+答案及textPDF候选提取、合并/拆分/校对/对照/确认入库/回滚；图片裁剪/旋转/增强/附件替换取消/Escape；来源宽屏并排、窄屏模态与焦点/输入保留均通过。四宽52项、Electron13项；Astra3次14图，补标签与正文捕获时机后有限关闭。历史表和119渲染检查保留为历史，不代表新代码全部状态自动通过；动态导入进度、其他复杂浮层及真实模型/OCR仍单独验收。

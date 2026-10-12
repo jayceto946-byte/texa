@@ -1,6 +1,6 @@
 /** macOS real shell smoke with disposable userData and external fixture backend. */
 import {createRequire} from 'node:module';import{mkdirSync,writeFileSync}from'node:fs';import{resolve}from'node:path';
-const {_electron}=createRequire(import.meta.url)('playwright');const out=resolve('docs/qa/evidence/electron');mkdirSync(out,{recursive:true});
+const {_electron}=createRequire(import.meta.url)('playwright');const out=resolve(process.env.TEXA_QA_ELECTRON_OUT || 'docs/qa/evidence/electron');mkdirSync(out,{recursive:true});
 const userData='/tmp/texa-full-qa-electron';mkdirSync(userData,{recursive:true});writeFileSync(resolve(userData,'setup-complete.json'),JSON.stringify({version:3,complete:true}));
 let app,page;const result={fixture:true,checks:[],errors:[]};
 try{app=await _electron.launch({executablePath:resolve('desktop/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron'),args:[resolve('desktop')],env:{...process.env,KAOYAN_USER_DATA_DIR:userData,KAOYAN_SKIP_BACKEND:'1',KAOYAN_BACKEND_URL:'http://127.0.0.1:18041',KAOYAN_FRONTEND_DEV_URL:'http://127.0.0.1:18041'}});

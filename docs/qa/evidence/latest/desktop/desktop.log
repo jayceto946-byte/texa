@@ -1,0 +1,23 @@
+✔ startup appearance caches the existing theme tokens without storing unrelated data (1.136ms)
+✔ startup appearance rejects invalid theme IDs and unsafe or incomplete colors (0.078333ms)
+✔ startup window controls are exposed for Windows and hidden by default on macOS (0.756292ms)
+✔ Texa branding preserves the existing desktop identity and userData paths (0.883166ms)
+✔ userData keeps the legacy default and accepts an explicit isolated override (0.084583ms)
+✔ portFromUrl resolves explicit and default HTTP ports (0.09575ms)
+✔ findAvailablePort releases a bindable loopback port (5.120958ms)
+✔ desktop never treats an older healthy process as its own backend (0.067583ms)
+✔ desktop completion survives restart independently of the backend origin (2.000416ms)
+✔ corrupt, old and non-boolean flags do not complete setup (1.251875ms)
+✔ an unwritable completion target reports failure (0.910458ms)
+✔ close waits for its renderer and coalesces concurrent close/quit (0.542625ms)
+✔ failed draft flush vetoes closure without stopping backend (0.076459ms)
+✔ unresponsive renderer times out safely and stale acknowledgements do not revive it (4.647417ms)
+✔ startup without a window can quit and send failure vetoes safely (0.3175ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.429083

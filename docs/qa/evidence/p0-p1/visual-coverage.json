@@ -1,0 +1,617 @@
+{
+  "routes": 19,
+  "normal_views": 76,
+  "astra_calls": 3,
+  "astra_images": 15,
+  "snapshots": [
+    {
+      "route": "/?conversation_id=visual-session-0",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-chat.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/goals",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages-final/1280-goals.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/notes",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-notes.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/notes/qa-note",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-note.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/notes/drafts/qa-draft",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-draft.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-mistakes.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/diagnosis",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-diagnosis.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/intake",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-intake.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/intake/qa-intake",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages-final/1280-intake-draft.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/visual-mistake-1",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-mistake.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/exercises",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-exercises.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/learning",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-learning.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/learning/review",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-review-start.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/learning/review/qa-review",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-review.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/weekly",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-weekly.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/books",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-books.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/books/import",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages-accepted/1280-book-import.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/highlights?book_name=qa-book&chapter_id=qa-chapter",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages/1280-highlights.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/settings",
+      "view": 1280,
+      "image": "docs/qa/evidence/p0-p1/pages-accepted/1280-settings.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/?conversation_id=visual-session-0",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-chat.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/goals",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages-final/1024-goals.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/notes",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-notes.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/notes/qa-note",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-note.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/notes/drafts/qa-draft",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-draft.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-mistakes.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/diagnosis",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-diagnosis.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/intake",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-intake.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/intake/qa-intake",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages-final/1024-intake-draft.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/visual-mistake-1",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-mistake.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/exercises",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-exercises.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/learning",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-learning.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/learning/review",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-review-start.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/learning/review/qa-review",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-review.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/weekly",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-weekly.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/books",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-books.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/books/import",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages-accepted/1024-book-import.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/highlights?book_name=qa-book&chapter_id=qa-chapter",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages/1024-highlights.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/settings",
+      "view": 1024,
+      "image": "docs/qa/evidence/p0-p1/pages-accepted/1024-settings.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/?conversation_id=visual-session-0",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-chat.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/goals",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages-final/760-goals.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/notes",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-notes.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/notes/qa-note",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-note.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/notes/drafts/qa-draft",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-draft.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-mistakes.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/diagnosis",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-diagnosis.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/intake",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-intake.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/intake/qa-intake",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages-final/760-intake-draft.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/visual-mistake-1",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-mistake.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/exercises",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-exercises.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/learning",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-learning.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/learning/review",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-review-start.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/learning/review/qa-review",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-review.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/weekly",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-weekly.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/books",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-books.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/books/import",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages-accepted/760-book-import.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/highlights?book_name=qa-book&chapter_id=qa-chapter",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages/760-highlights.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/settings",
+      "view": 760,
+      "image": "docs/qa/evidence/p0-p1/pages-accepted/760-settings.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/?conversation_id=visual-session-0",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-chat.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/goals",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages-final/390-goals.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/notes",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-notes.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/notes/qa-note",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-note.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/notes/drafts/qa-draft",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-draft.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-mistakes.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/diagnosis",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-diagnosis.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/intake",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-intake.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/intake/qa-intake",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages-final/390-intake-draft.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/mistakes/visual-mistake-1",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-mistake.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/exercises",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-exercises.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/learning",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-learning.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/learning/review",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-review-start.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/learning/review/qa-review",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-review.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/weekly",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-weekly.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/books",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-books.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/books/import",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages-accepted/390-book-import.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/highlights?book_name=qa-book&chapter_id=qa-chapter",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages/390-highlights.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    },
+    {
+      "route": "/settings",
+      "view": 390,
+      "image": "docs/qa/evidence/p0-p1/pages-accepted/390-settings.png",
+      "sol_review": "contact-sheet triage; uncertain samples inspected at original size",
+      "render": "PASS",
+      "aesthetic": "shared principles applied; Astra sampled, not independent per-page approval"
+    }
+  ],
+  "remaining": "Inventory complex and error substates retain named acceptance boundaries"
+}

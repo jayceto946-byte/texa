@@ -6,6 +6,17 @@
 - Python92、前端184、Electron合同15通过；最终隔离类型检查、lint及构建通过。额外诊断流式夹具等待错误提示超时，保留未通过状态；完整交付结果见报告。10月11日并行网络诊断文件和dist保留，不纳入本checkpoint。
 - S1图片预览/正式错题/正式笔记用户均确认成功，具体回执未绑定；手机文字/拍照/引用PDF性能及真实冷启动仍待补验。报告：[S2-A2 performance](docs/validation/mobile-remote-s2-a2/performance.md)。
 
+# 2026-10-11 - Mobile S2 网络路径诊断与有界恢复探测
+
+- 用户报告锁屏后于15:23复测：被动status为Unknown，首次及后续三次回复全部Direct（45/40/42ms），随后status确认Direct，未观察到DERP回退；不能据此证明全程保持或长期深度休眠通过。证据：Network S2目录locked-retest-20261011T072302Z.json。
+
+- 用户重新连接手机 Tailscale 后于15:21复测：DERP(lax)1662ms、923ms→Direct41ms，随后status确认Direct；Home DERP仍为lax。复现直连升级，但不据单条Direct样本宣称稳态或锁屏保持。脱敏证据保存至Network S2验收目录。
+
+- 增加按需 Tailscale ConnectionMonitor 与鉴权诊断 API；区分 Home DERP 和近期活动传输路径，Direct/Peer Relay/DERP/Connecting/Offline/Unknown、带来源/时间的 RTT、64项进程内记录与既有 RuntimeEvent 变化事件。不扩展数据库/依赖、不修改 Serve/Tailnet/防火墙。
+- 设置“高级与诊断”提供简洁连接信息和展开的底层状态；默认 Auto 无主动 Ping，浏览器会话可选恢复时 Prefer Direct（最多3次探测、10秒预算、60秒冷却），失败仍允许中继；不伪造区域/强制路径切换。390px诊断页全宽并保留返回分类。
+- 一次真实探测观察到 DERP(sfo)1167ms→Direct43ms，随后被动 status确认Direct；约7分钟后被动 status为控制面Offline，未记录手机锁屏/网络状态，不能归因或宣布锁屏保持通过。未追加持续Ping。
+- Python相关85、前端全量191、Electron合同15通过，TypeScript/相关ESLint/Vite通过；四尺寸Chrome夹具无溢出，Direct结果和不可用状态通过。真实中继SSE、校园网及锁屏5/30分钟仍待集中实机验收。未重启/部署正在运行的Desktop。证据与清单：[Network S2验收](docs/validation/mobile-network-s2/README.md)。
+
 # 2026-10-09 - Mobile Remote S2 第一批体验与性能优化
 
 - 基于移动分支52cc1f5建立独立codex/mobile-s2-first-batch checkpoint；保护其他worktree与已合并共享修复，未改Runtime所有权、Submission、Policy/Agent、协议或网络配置。
@@ -3490,3 +3501,24 @@ Android 普通 Wi-Fi 对照出现解答闪现后回到空问答。隔离浏览�
 - 1532后端、191前端、15Desktop单元通过；types/lint/build通过。真实隔离FastAPI/SQLite两视口10旅程检查通过，重启后权威行/复习结果与API一致，6DB完整性通过；macOS Electron壳3检查通过。
 - 自动页面Fixture覆盖119有效状态并实际读取截图；8张审阅后基准重复比较通过。已有Pytest/Vitest/Playwright/Electron依赖复用，增加分层Smoke/API/UI/数据检查脚本。
 - 未触碰用户学习数据、付费模型或冻结评测；真实Android/Tailscale/Windows正式包和真实教材模型仍需验收，尚未达到S3产品化清关条件。整改checkpoint35107fc。
+# 2026-10-11 - QA 后续 P0/P1 整改策略调整
+
+- P0 优先核心学习闭环 E2E 与 A4 稳定操作身份/持久回执/跨库一致性整改；保留历史缺陷严重度及 FAIL contained，不将 partial 视为完整修复。
+- P1 覆盖全部页面及子状态/浮层；Sol 负责自动截图、初筛和归类，Astra 直接读取分域精选截图，决定跨页面设计原则/组件模式并抽查整改及少量 Sol 合格页面。复用现有 Inventory、截图、测试，新增文档素材索引，不新增审计基础设施。
+- 真实 Tailscale 设备与正式安装包生命周期延后，Electron 开发端核心流程仍优先。仅调整文档策略，未执行新 E2E/视觉验收、调用 Astra、迁移数据或修改产品代码；现有未提交工作保留。
+- 策略入口：docs/qa/QA-REMEDIATION-STRATEGY.md；素材索引：docs/qa/VISUAL-REVIEW-BOARD.md。验证：本地 Markdown 链接存在性与 diff 空白检查。
+
+
+## 2026-10-11 · P0/P1 实施与视觉决策
+
+- A4直接练习新增发送前持久operation_id，既有history JSON内主写/回执事务，secondary/event稳定键及显式partial恢复，冻结请求/来源，防陈旧编辑覆盖。没有表结构迁移；旧POST客户端缺operation_id将拒绝写入，当前聊天卡/题库同步支持。
+- 根据Astra跨页决策统一正常布局行动区、无图录入、返回/标题角色、Goal启用/任务运行语义；抽查发现并修复窄屏设置侧栏压宽与导入父子标题，补字段/焦点/Tab验证。教材增加真实Job取消入口。
+- 复用QA脚本扩展闭环、Electron与重启核对；后端1540、前端195、桌面15、类型/lint/build通过，浏览器22与Electron11离线流程通过。Astra3调用15原图，有限关闭范围与未验收项详见docs/qa/P0-P1-EXECUTION-2026-10-11.md。
+- 一次未隔离测试误写11条测试学习事件，已披露并获用户明确同意后按测试资产ID+时间精确清理，保留196条其他记录和/tmp备份；后续全部写入测试经隔离入口。真实模型/教材质量、Tailscale设备与正式包生命周期未登记通过。
+
+## 2026-10-12 · 复杂交互 QA 整改
+
+- 笔记区分存储失败、草稿CAS与正式版本冲突；恢复先复制修改，再读权威草稿或新建最新revision编辑草稿，已归档只阅读；禁用失效正式保存，恢复期间冻结字段，旧草稿保留且不自动合并。无数据库结构或迁移变更。
+- 候选题准备/校对分阶段，来源原文可返回且保留编辑/选中；正常布局页底唯一导入动作，公式阅读复用SimpleMarkdown，八类编辑字段补持续可见label。警告和解析置信度保留，不等于人工验收。
+- 图片裁剪及窄屏来源复用Dialog焦点/inert/Escape；桌面来源仍并排非模态。取消替换保留旧附件，同文件可再选择，异步图片处理取消后不提交。
+- 复用QA脚本新增可选complex模式，/tmp隔离真实API/SQLite及Word/textPDF提取；浏览器52项、Electron13项，相关后端125/前端195/桌面15及类型/lint/build通过。Astra3次14图，有限关闭范围和实际证据见docs/qa/COMPLEX-INTERACTIONS-2026-10-12.md。未执行真实Tailscale、正式包生命周期或付费模型/OCR。

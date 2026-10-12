@@ -36,6 +36,8 @@ const server = createServer(async (req,res) => {
    if (p === '/api/chat/conversations') {const value=await (await fetch(`http://127.0.0.1:${fixturePort}${req.url}`)).json();data={items:value.data.map(x=>({...x,management:{state:'active',pinned:false,revision:0}})),next_cursor:null,has_more:false};}
    else if (p.endsWith('/management')) data={state:'active',pinned:false,revision:0};
    else if (p === '/api/system/settings/subjects') data={subjects:[{name:'数学',children:['高数','线代','概率论']}]};
+   else if (p === '/api/system/backups') data=[];
+   else if (p === '/api/system/network-diagnostics') data={observation:{path:'unknown',source:'qa-fixture',sampled_at:time,error_code:'qa_no_real_device'},changed_at:time,last_probe:null,history:[],samples:[],target_selected:false,probe_cooldown_seconds:0};
    else if (p === '/api/review/sessions') data=null;
    else if (p === '/api/exercises/answer/jobs/latest') data=null;
    else if (p === '/api/books/import-capabilities') data={mineru:{available:false,message:'QA fixture无外部OCR'},external_output:{available:true},pdf:{available:true}};
@@ -112,6 +114,31 @@ try {
  await page.getByRole('button',{name:'草稿',exact:true}).click();await page.getByRole('link',{name:note.title}).click();await page.getByRole('button',{name:'阅读预览',exact:true}).click();await page.getByRole('button',{name:'逐块编辑',exact:true}).click();await capture(page,'interaction-note-edit');results.interactions.push('notes tab→draft→edit');
  await page.goto('http://127.0.0.1:18040/settings');await page.waitForLoadState('networkidle');await page.waitForTimeout(200);
  for(const label of ['偏好','模型连接','数据与教材','关于与更新','高级与诊断']){const button=page.getByRole('button',{name:label,exact:true});if(await button.count()){await button.click();await page.waitForTimeout(250);await capture(page,`interaction-settings-${label}`);results.interactions.push(`settings ${label}`);}}
+ // Narrow shared settings navigation: focus and unsaved field survive returning.
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('http://127.0.0.1:18040/settings');await page.waitForLoadState('networkidle');
+ await capture(page,'390-settings-content');
+ await page.getByRole('button',{name:'返回设置',exact:true}).click();
+ await page.waitForFunction(()=>document.activeElement?.textContent==='偏好');
+ await capture(page,'390-settings-navigation');
+ await page.getByRole('button',{name:'数据与教材',exact:true}).click();
+ await page.waitForFunction(()=>document.activeElement?.textContent==='返回设置');
+ const parserUrl=page.getByPlaceholder('http://127.0.0.1:9001',{exact:true});await parserUrl.fill('http://127.0.0.1:9001/qa-unsaved');
+ await capture(page,'390-settings-data');
+ await page.getByRole('button',{name:'返回设置',exact:true}).click();await page.getByRole('button',{name:'数据与教材',exact:true}).click();
+ if(await parserUrl.inputValue()!=='http://127.0.0.1:9001/qa-unsaved')throw Error('unsaved settings lost on return');
+ await page.getByRole('button',{name:'返回设置',exact:true}).click();await page.getByRole('button',{name:'模型连接',exact:true}).click();await page.waitForLoadState('networkidle');
+ await capture(page,'390-settings-models');
+ await page.keyboard.press('Tab');if(await page.locator('.settings-sidebar button:focus').count())throw Error('hidden navigation captures focus');
+ await page.getByRole('button',{name:'关闭设置',exact:true}).click();await page.getByRole('dialog').waitFor({state:'hidden'});
+ await page.setViewportSize({width:760,height:820});await page.goto('http://127.0.0.1:18040/books/import');await page.waitForLoadState('networkidle');
+ await page.locator('input[type=file]').first().setInputFiles({name:'考研数学学习资料_长教材名称与完整章节目录_解析参数与导入取消验收.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4\nQA')});
+ await page.locator('.management-page-content').evaluate(el=>el.parentElement.scrollTop=el.parentElement.scrollHeight);
+ await capture(page,'760-import-long-scroll-end');
+ await page.goto('http://127.0.0.1:18040/settings');await page.waitForLoadState('networkidle');
+ await page.keyboard.press('Tab');
+ results.interactions.push('390 settings navigation→detail focus→unsaved fields preserved→keyboard');
+ await page.getByRole('button',{name:'关闭设置',exact:true}).click();await page.getByRole('dialog').waitFor({state:'hidden'});
  await context.close();
  if(results.checks.some(x=>x.status==='FAIL'||x.bodyWidth>x.viewport) || results.errors.some(x=>x.error))throw Error('page render/overflow checks failed');
 } catch(e){results.errors.push({harness:String(e)});process.exitCode=1;}
