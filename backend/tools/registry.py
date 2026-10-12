@@ -16,6 +16,8 @@ class ToolContext:
     book_name: str = ""
     subject: str = ""
     conversation_id: str = ""
+    cancelled: Callable[[], bool] | None = field(default=None, repr=False)
+    timeout_seconds: float = 5.0
 
 
 @dataclass
@@ -60,6 +62,7 @@ class ToolSpec:
     source: str = "builtin"
     idempotency: str = "none"
     runtime_scope_check: Callable[[ToolContext, dict[str, Any]], None] | None = field(default=None, repr=False)
+    execution_mode: str = "thread"
 
     def runtime_metadata(self) -> dict[str, Any]:
         if self.runtime_input is None or self.runtime_output is None:

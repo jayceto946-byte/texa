@@ -1,3 +1,9 @@
+# 2026-10-12 - Real Tool Calling CP2 数学合同与隔离执行
+
+- symbolic_math/verify_math_result复用现有ToolSpec，新增canonical Pydantic输入输出、limit、变量假设、结构化错误，修复复数解序列化、科学计数法和小数精确值。结果保留独立工具来源，不生成教材E-id。
+- 数学handler迁移为spawn独立进程；受限AST、输入输出预算、Unix CPU/内存限制与跨平台wall deadline；超时/取消terminate并join，必要时kill再join。Windows未实机验收，内存限制依赖平台resource支持。
+- 新增12项数学运算/非法输入回归；结合后续连接改动的当前工作区77项相关测试通过。无依赖安装或数据库schema迁移，生产模型未调用。
+
 # 2026-10-12 - Real Tool Calling CP1 现状审计
 
 - 审计主聊天、Provider、Registry、SQL Runtime、Gate/Final EvidencePack、Answer Verification、SSE与前端过程展示。已有symbolic_math真执行，但默认主教学链为规则选择+工具文本注入；数学缺canonical schema及Runtime入口，原生调用ID/ToolMessage丢失，Runtime回答在结束后完整输出，/ask尚未共享原生循环。
