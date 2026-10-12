@@ -71,8 +71,20 @@ await check('chat-process-continuity',async()=>{
  await trace.locator('.execution-trace-body').waitFor();
  if(await trace.locator('.execution-trace-toggle').getAttribute('aria-expanded')!=='true')throw Error('process collapsed on completion');
  if(await trace.locator('.execution-live-preview').count())throw Error('redundant recent steps remain');
+ if((await trace.innerText()).includes('综合证据与知识推理'))throw Error('synthetic reasoning phase remains');
+ if(await trace.locator('.execution-step.is-completed').filter({hasText:'检索教材上下文'}).count())throw Error('unobserved retrieval shown completed');
  if(await trace.locator('.execution-step.is-pending').count())throw Error('planned-only steps remain');
  await shot('1280-chat-process');
+});
+await check('review-assets-explicit-record',async()=>{
+ const pattern='**/api/kg/learning-summary?**';
+ await page.route(pattern,async route=>{const response=await route.fetch();const value=await response.json();value.data.due_mistakes=[];value.data.mistake_stats.due_today=0;value.data.concept_review_plan=[{name:'QA 可导与连续',priority:1,reasons:['已标记薄弱'],exposure_count:3,days_since_review:null,recent_questions:[{question:'为什么可导推出连续？',source:'qa',timestamp:''}],related_mistakes:[],textbook_snippets:[{type:'definition',chapter:'合成教材线索',text:'由 $f(x)-f(0)=x \\cdot \\frac{f(x)-f(0)}{x}$ 理解连续性。'}]}];await route.fulfill({response,json:value});});
+ let writes=0;const track=req=>{if(req.method()==='POST'&&req.url().includes('/kg/concept-review'))writes++;};page.on('request',track);
+ await page.goto(base+'/learning');await page.getByRole('button',{name:'QA 可导与连续',exact:false}).click();
+ await page.locator('.review-detail .katex').first().waitFor();if(writes!==0)throw Error('opening concept wrote review');
+ for(const width of [1280,1024,760]){await page.setViewportSize({width,height:820});await shot(width+'-review-assets');}
+ await page.getByRole('button',{name:'记录本次复习',exact:true}).first().click();await page.getByText('已记录「QA 可导与连续」的概念复习，今天不再提醒',{exact:true}).waitFor();
+ if(writes!==1)throw Error('explicit review wrote '+writes+' times');page.off('request',track);await page.unroute(pattern);await page.setViewportSize({width:1280,height:820});
 });
 if(electronMode)await check('macos-fullscreen-insets',async()=>{
  await page.goto(base+'/goals');await page.getByRole('heading',{name:'目标与任务',exact:true}).waitFor();

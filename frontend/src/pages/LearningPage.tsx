@@ -290,11 +290,6 @@ const LearningPage: React.FC = () => {
   const primaryCount = dueMistakes.length + recommended.length;
   const shownMistakes = dueMistakes.slice(0, visibleCount);
   const shownConcepts = recommended.slice(0, Math.max(0, visibleCount - dueMistakes.length));
-  const todayKey = toDateKey(new Date());
-  const weekStart = new Date();
-  weekStart.setHours(0, 0, 0, 0);
-  weekStart.setDate(weekStart.getDate() - 6);
-  const activeDays = (summary?.daily || []).filter((item) => item.date >= toDateKey(weekStart) && item.date <= todayKey && item.total > 0).length;
   const startConcept = () => {
     setVisibleCount(Math.max(visibleCount, dueMistakes.length + 1));
     setExpandedConcept(recommended[0].name);
@@ -304,8 +299,7 @@ const LearningPage: React.FC = () => {
   return (
     <div className="learning-page management-workspace flex h-full min-w-0 flex-col">
       <div className="app-page-header learning-page-header border-b border-border bg-bg-primary">
-        <h2 className="app-page-title">复习计划</h2>
-        <Link className="app-secondary-button" to="/goals">目标与任务</Link>
+        <h2 className="app-page-title">复习</h2>
         <div className="window-drag-region" aria-hidden="true" />
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           <ScopeSelector
@@ -329,21 +323,20 @@ const LearningPage: React.FC = () => {
         {error && !loading && <ActionableIssue title="暂时无法整理复习计划" impact="今天的薄弱点和待复习顺序可能不完整；错题和学习记录不会丢失。" actions={<button onClick={load} className="app-secondary-button">重新加载</button>} details={error} />}
         {!loading && !error && summary && (
           <div className="review-page-body">
-            {activeReview && <section className="review-today"><div className="review-today-main"><div><h3 className="workspace-section-heading">继续本次复习</h3><p className="review-section-copy">已完成 {activeReview.index} / {activeReview.items.length} 道，作答草稿保留。</p></div><Link className="app-primary-button" to={`/learning/review/${encodeURIComponent(activeReview.id)}?book_name=${encodeURIComponent(bookName || 'default')}`}>继续复习</Link></div></section>}
             {activeReviewError && <p className="review-feedback" role="status">未完成复习暂不可用：{activeReviewError}</p>}
             <section className="review-today" aria-labelledby="review-today-title">
               <div className="review-today-main">
                 <div>
-                  <h3 id="review-today-title" className="workspace-section-heading">今日复习</h3>
+                  <h3 id="review-today-title" className="workspace-section-heading">{activeReview ? '继续本次复习' : '今日复习'}</h3>
                   <p className="review-today-counts"><strong>{summary.mistake_stats.due_today}</strong> 道到期错题 <span aria-hidden="true">·</span> <strong>{recommended.length}</strong> 个本次推荐概念</p>
-                  <p className="review-today-context">近期薄弱概念 {summary.stats.weak_count} 个 · 近 7 天活跃 {activeDays} 天</p>
+                  {activeReview && <p className="review-section-copy">已完成 {activeReview.index} / {activeReview.items.length} 道，作答草稿保留。</p>}
                 </div>
                 <div className="review-today-actions">
-                  {activeReview ? null : summary.mistake_stats.due_today > 0 ? <Link to="/learning/review" className="app-primary-button">开始本次复习</Link>
+                  {activeReview ? <Link className="app-primary-button" to={`/learning/review/${encodeURIComponent(activeReview.id)}?book_name=${encodeURIComponent(bookName || 'default')}`}>继续复习</Link> : summary.mistake_stats.due_today > 0 ? <Link to="/learning/review" className="app-primary-button">开始本次复习</Link>
                     : recommended.length > 0 ? <button type="button" onClick={startConcept} className="app-primary-button">开始本次复习</button>
                     : supplementary.length > 0 ? <button type="button" onClick={() => setShowMoreConcepts(true)} className="app-primary-button">查看待复习概念</button>
                     : <Link to="/" className="app-primary-button">继续学习</Link>}
-                  <span>{activeReview ? '可继续上方复习会话' : summary.mistake_stats.due_today > 0 ? '从到期错题开始' : recommended.length > 0 ? '从首个推荐概念开始' : supplementary.length > 0 ? '查看补充概念' : '今天暂无待复习内容'}</span>
+
                 </div>
               </div>
             </section>
@@ -351,7 +344,7 @@ const LearningPage: React.FC = () => {
             <section aria-labelledby="review-queue-title">
               <div className="review-section-head">
                 <div><h3 id="review-queue-title" className="workspace-section-heading">复习队列</h3>
-                  <p className="review-section-copy">先处理到期错题，概念按当前推荐顺序排列。</p></div>
+                  </div>
                 <button onClick={load} disabled={loading} className="app-ghost-button"><RefreshCw className="h-4 w-4" />刷新</button>
               </div>
               {reviewMessage && <p role="status" className="review-feedback">{reviewMessage}</p>}
@@ -367,19 +360,18 @@ const LearningPage: React.FC = () => {
                   <button type="button" aria-expanded={showMoreConcepts} onClick={() => setShowMoreConcepts(!showMoreConcepts)} className="review-supplementary-toggle">补充待复习概念 <span>{supplementary.length} 个 {showMoreConcepts ? '收起' : '展开'} <ChevronDown className="h-4 w-4" /></span></button>
                   {showMoreConcepts && supplementary.map((item, index) => <div className="review-row" key={item.name}>
                     <span className="review-index">{primaryCount + index + 1 < 10 ? `0${primaryCount + index + 1}` : primaryCount + index + 1}</span>
-                    <div className="review-row-content"><strong>{item.name}</strong><p>{item.reason === 'weak' ? '已标记薄弱' : item.reason === 'forgotten' ? '进入遗忘复习队列' : '进入待复习队列'} · 时间信息未提供</p>{reviewError?.name === item.name && <p role="alert" className="review-row-error">{reviewError.text}</p>}</div>
-                    <span className="review-status">待复习</span>
-                    <button type="button" className="review-row-action" onClick={() => handleConceptReview(item.name, 4)} disabled={reviewingConcept === item.name}>{reviewingConcept === item.name ? '记录中…' : '标记已复习'}</button>
+                    <div className="review-row-content"><strong>{item.name}</strong><p>{item.reason === 'weak' ? '已标记薄弱' : item.reason === 'forgotten' ? '进入遗忘复习队列' : '进入待复习队列'}</p>{reviewError?.name === item.name && <p role="alert" className="review-row-error">{reviewError.text}</p>}</div>
+                    <button type="button" className="review-row-action" onClick={() => handleConceptReview(item.name, 4)} disabled={reviewingConcept === item.name}>{reviewingConcept === item.name ? '记录中…' : '记录本次复习'}</button>
                   </div>)}
                 </div>}
               </div>
               <details className="review-rules"><summary>排序依据</summary><p>到期错题先于本次推荐概念；同组保持现有服务端顺序。补充概念单独列出。</p>{summary.review_rules?.concept_due && <p>{summary.review_rules.concept_due}</p>}</details>
             </section>
 
-            <details className="review-insights"><summary className="workspace-section-heading">学习洞察与活动记录</summary>
-              <p className="review-section-copy">用于观察学习模式，不改变今天的行动顺序。</p>
+            <details className="review-insights"><summary className="workspace-section-heading">学习记录</summary>
+              
               <div className="review-insight-columns">
-                <InsightList title="高频概念" items={summary.top_concepts.map((item) => ({ name: item.name, detail: `${item.count} 次` }))} empty="暂无高频概念" />
+                <InsightList title="近期常见概念" items={summary.top_concepts.map((item) => ({ name: item.name, detail: `${item.count} 次` }))} empty="暂无高频概念" />
                 <InsightList title="错题相关薄弱点" items={summary.mistake_weak_points.map((item) => ({ name: item.name, detail: `${item.count} 道` }))} empty="暂无错题薄弱点" />
               </div>
               <div className="review-activity">
@@ -498,17 +490,17 @@ const ConceptReviewCard = ({ item, bookName, index, first, open, onToggle, onRev
     <div className="review-row-content">
       <button ref={buttonRef} type="button" aria-expanded={open} onClick={onToggle} className="review-row-title">{item.name} <ChevronDown className={open ? 'h-4 w-4 rotate-180' : 'h-4 w-4'} /></button>
       <p>{first && <span className="review-first">先复习 · </span>}{item.reasons.slice(0, 2).join(' · ') || '当前推荐概念'}</p>
-      <p className="review-row-meta">{!item.reasons.some((reason) => reason.includes('上次复习')) && (item.days_since_review == null ? '暂无复习记录' : `距上次复习 ${item.days_since_review} 天`)}{!item.reasons.some((reason) => reason.includes('累计接触')) && item.exposure_count > 0 && ` · 累计接触 ${item.exposure_count} 次`}</p>
+      {open && <p className="review-row-meta">{!item.reasons.some((reason) => reason.includes('上次复习')) && (item.days_since_review == null ? '暂无复习记录' : `距上次复习 ${item.days_since_review} 天`)}{!item.reasons.some((reason) => reason.includes('累计接触')) && item.exposure_count > 0 && ` · 累计接触 ${item.exposure_count} 次`}</p>}
       {error && <p role="alert" className="review-row-error">{error}</p>}
       {open && <div className="review-detail">
         {item.reasons.length > 2 && <p>推荐依据：{item.reasons.join('；')}</p>}
-        <MiniBlock icon={ClipboardList} title="相关近期问题">{item.recent_questions.length ? item.recent_questions.map((question, i) => <div key={i} className="review-question-preview"><SimpleMarkdown content={question.question} />{question.mistake_id && <Link to={mistakeHref(question.mistake_id, bookName)}>查看错题</Link>}</div>) : <p>暂无直接关联的近期问题</p>}</MiniBlock>
-        <MiniBlock icon={BookOpen} title="教材线索">{item.textbook_snippets.length ? item.textbook_snippets.map((snippet, i) => <p key={i}>{snippet.chapter || snippet.text}</p>) : <p>暂无章节线索</p>}</MiniBlock>
-        <MiniBlock icon={ClipboardList} title="相关错题">{item.related_mistakes.length ? item.related_mistakes.slice(0, 4).map((mistake) => <Link className="review-question-preview" key={mistake.id} to={mistakeHref(mistake.id, bookName)}><SimpleMarkdown content={mistake.question_text || '查看错题'} /><ExternalLink className="inline h-3 w-3" /></Link>) : <p>暂无关联错题</p>}</MiniBlock>
+        {item.recent_questions.length > 0 && <MiniBlock icon={ClipboardList} title="相关近期问题">{item.recent_questions.length ? item.recent_questions.map((question, i) => <div key={i} className="review-question-preview"><SimpleMarkdown content={question.question} />{question.mistake_id && <Link to={mistakeHref(question.mistake_id, bookName)}>查看错题</Link>}</div>) : null}</MiniBlock>}
+        {item.textbook_snippets.length > 0 && <MiniBlock icon={BookOpen} title="教材线索">{item.textbook_snippets.length ? item.textbook_snippets.map((snippet, i) => <div key={i}>{snippet.chapter && <p className="review-muted">{snippet.chapter}</p>}<SimpleMarkdown content={snippet.text} /></div>) : null}</MiniBlock>}
+        {item.related_mistakes.length > 0 && <MiniBlock icon={ClipboardList} title="相关错题">{item.related_mistakes.length ? item.related_mistakes.slice(0, 4).map((mistake) => <Link className="review-question-preview" key={mistake.id} to={mistakeHref(mistake.id, bookName)}><SimpleMarkdown content={mistake.question_text || '查看错题'} /><ExternalLink className="inline h-3 w-3" /></Link>) : null}</MiniBlock>}
+        <div className="review-detail-actions"><Link className="app-secondary-button" to="/">回到学习继续理解</Link><button disabled={reviewing} type="button" onClick={() => onReview(item.name, 4)} className="app-secondary-button">{reviewing ? '记录中…' : '记录本次复习'}</button></div>
       </div>}
     </div>
-    <span className="review-status">{reviewing ? '记录中…' : '待复习'}</span>
-    <button disabled={reviewing} type="button" onClick={() => onReview(item.name, 4)} className="review-row-action">标记已复习</button>
+    <button type="button" aria-expanded={open} onClick={onToggle} className="review-row-action">{open ? '收起' : '开始复习'}</button>
   </article>
 );
 
@@ -526,8 +518,7 @@ const MistakePreview = ({ mistake, bookName, index, first, expanded, onToggle }:
       <p>{first && <span className="review-first">先复习 · </span>}{due ? daysLate > 0 ? `已逾期 ${daysLate} 天` : '今天到期' : '待复习'}{mistake.chapter ? ` · ${mistake.chapter}` : mistake.source ? ` · ${mistake.source}` : ''}</p>
       {expanded && <div className="review-detail review-question-detail"><ChatMessage role="assistant" content={mistake.question_text || '题干未提供'} linkedConcepts={mistake.linked_concepts || []} /></div>}
     </div>
-    <span className="review-status">待复习</span>
-    <Link to={mistakeHref(mistake.id, bookName)} className="review-row-action">打开 <ExternalLink className="h-3 w-3" /></Link>
+    <Link to={mistakeHref(mistake.id, bookName)} className="review-row-action">查看错题 <ExternalLink className="h-3 w-3" /></Link>
   </article>;
 };
 

@@ -151,3 +151,18 @@ def test_mastery_requires_two_spaced_due_independent_redos_after_last_failure():
     assert project_mistake(record, [redo(1), redo(5), redo(8)])["mastery_status"] == "mastered"
     assert project_mistake(record, [redo(1), redo(8, due=False)])["mastery_status"] == "consolidating"
     assert project_mistake(record, [redo(1), redo(8), redo(9, "wrong")])["mastery_status"] == "unresolved"
+
+
+def test_similar_independent_records_remain_distinct_but_one_id_cannot_repeat(tmp_path):
+    from memory.mistake_book import MistakeRecord
+    store = MistakeBookStore(tmp_path / "similar.db")
+    for rid, source in (("record-a", "教材例题"), ("record-b", "独立练习")):
+        store.add(MistakeRecord(id=rid, question_text="求同一道极限", source=source,
+                               sm2={"next_review":"2020-01-01", "interval":1}))
+    due = store.get_due()
+    assert {item.id for item in due} == {"record-a", "record-b"}
+    lifecycle = MistakeLifecycleStore(store)
+    session = lifecycle.create_review_session([item.id for item in due], scope="default")
+    assert len(session["items"]) == 2
+    with pytest.raises(ValueError, match="unique"):
+        lifecycle.create_review_session(["record-a", "record-a"], scope="default")

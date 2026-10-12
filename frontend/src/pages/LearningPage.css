@@ -14,7 +14,7 @@
 .review-list { border: 1px solid var(--workspace-separator); border-radius: 6px; overflow: hidden; }
 .review-group-label { display: flex; gap: 10px; align-items: baseline; padding: 8px 16px; background: var(--workspace-secondary); color: var(--color-text-primary); font-size: 12px; font-weight: 600; }
 .review-group-label span { color: var(--color-text-secondary); font-weight: 400; }
-.review-row { display: grid; grid-template-columns: 28px minmax(0,1fr) auto auto; align-items: start; gap: 10px; min-height: 72px; padding: 10px 16px; border-top: 1px solid var(--workspace-separator); }
+.review-row { display: grid; grid-template-columns: 28px minmax(0,1fr) auto; align-items: start; gap: 10px; min-height: 72px; padding: 10px 16px; border-top: 1px solid var(--workspace-separator); }
 .review-group-label + .review-row { border-top: 0; }
 .review-index { padding-top: 3px; color: var(--color-text-tertiary); font-size: 12px; font-variant-numeric: tabular-nums; }
 .review-row-content { min-width: 0; }
@@ -76,3 +76,5 @@
   .review-row-action { grid-column: 2 / -1; justify-self: start; }
   .review-activity-content,.review-insight-columns { grid-template-columns: 1fr; gap: 14px; }
 }
+
+.review-detail-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
