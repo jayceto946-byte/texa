@@ -10,6 +10,7 @@ from fastapi import APIRouter, File, Form, UploadFile
 
 from backend.job_manager import get_job_manager
 from backend.services.exercise_practice import PracticeAnswerService
+from backend.services.direct_practice import DirectPracticeResult, DirectPracticeService
 from backend.schemas import (
     ExerciseAddRequest,
     ExerciseAnalyzeRequest,
@@ -49,7 +50,7 @@ _answer_job_lock = threading.Lock()
 _answer_job_creation_lock = threading.Lock()
 
 
-def _log_learning_event(event_type: str, *, book_name: str = "default", record: ExerciseRecord | None = None, source_type: str = "exercise", source_id: str = "", payload: dict | None = None) -> None:
+def _log_learning_event(event_type: str, *, book_name: str = "default", record: ExerciseRecord | None = None, source_type: str = "exercise", source_id: str = "", payload: dict | None = None, raise_errors: bool = False) -> None:
     try:
         identity = resolve_book_identity(book_name)
         get_learning_event_store().append(LearningEvent(
@@ -65,6 +66,8 @@ def _log_learning_event(event_type: str, *, book_name: str = "default", record: 
             payload=payload or {},
         ))
     except Exception as exc:
+        if raise_errors:
+            raise
         print(f"[LearningEvent] exercise event failed: {exc}", flush=True)
 
 
@@ -714,52 +717,48 @@ def save_exercise_answer(req: ExerciseAnswerSaveRequest, book_name: str = "defau
     return {"success": True, "message": "标准答案已保存", "data": _record_to_out(record)}
 
 
+def _direct_practice_service(book_name: str) -> DirectPracticeService:
+    return DirectPracticeService(
+        bank=_bank(book_name), book_name=book_name,
+        mistake_book_provider=lambda: get_mistake_book(book_name, str(PROGRESS_PATH)),
+        mistake_factory=_mistake_from_exercise,
+        log_event=lambda event_type, record, payload: _log_learning_event(
+            event_type, book_name=book_name, record=record, payload=payload, raise_errors=True),
+    )
+
+
+def _direct_practice_payload(result) -> dict:
+    receipt = result.receipt
+    partial = receipt["completion_status"] != "complete"
+    warning = "练习结果已保存，错题关联或学习记录尚未确认。请重试本次操作以恢复记录；不会重复计入作答。"
+    return {
+        "success": True, "message": warning if partial else "练习结果已记录",
+        "data": _record_to_out(result.record), "operation_id": receipt["operation_id"],
+        "mistake_id": receipt["mistake_id"], "candidate_id": receipt["candidate_id"],
+        "completion_status": receipt["completion_status"], "practice_saved": True,
+        "linkage_status": receipt["linkage_status"], "retryable": partial,
+        **({"warning": warning} if partial else {}),
+    }
+
+
 @router.post("/practice")
 def practice_exercise(req: ExercisePracticeRequest, book_name: str = "default"):
-    bank = _bank(book_name)
-    record = bank.record_practice(req.id, user_answer=req.user_answer, quality=req.quality, add_note=req.note)
-    if not record:
-        return {"success": False, "message": "未找到该习题"}
-
-    _log_learning_event("exercise_practiced", book_name=book_name, record=record, payload={"quality": req.quality, "status": record.status, "add_to_mistake": req.add_to_mistake})
-    mistake_id = ""
-    candidate_id = ""
-    linkage_unconfirmed = False
     try:
-        if req.add_to_mistake:
-            mb = get_mistake_book(book_name, str(PROGRESS_PATH))
-            stable_id = "ps_" + hashlib.sha256(f"{book_name}\0{record.id}".encode()).hexdigest()[:16]
-            mistake_id = mb.add_if_absent(_mistake_from_exercise(record, user_answer=req.user_answer, mistake_id=stable_id))
-            lifecycle = MistakeLifecycleStore(mb.store)
-            lifecycle.link_source(f"exercise:{book_name}:{record.id}", mistake_id)
-            lifecycle.append_occurrence_once(mistake_id, f"practice-single:{book_name}:{record.id}:{record.practice_count}", answer=req.user_answer, source_ref={"type": "exercise_practice", "exercise_id": record.id})
-            _log_learning_event("exercise_to_mistake", book_name=book_name, record=record, payload={"mistake_id": mistake_id, "trigger": "practice"})
-        elif req.quality < 3:
-            mb = get_mistake_book(book_name, str(PROGRESS_PATH))
-            candidate = MistakeLifecycleStore(mb.store).create_candidate(f"practice-single:{book_name}:{record.id}:{record.practice_count}", {
-                "question_text": record.question_text, "user_answer": req.user_answer, "correct_answer": record.answer,
-                "subject": record.subject, "chapter": record.chapter, "source": record.source, "tags": record.tags,
-                "image_path": record.image_path, "ocr_text": record.ocr_text, "content_complete": True,
-                "failure_confirmed": True, "stable_source_key": f"exercise:{book_name}:{record.id}",
-                "source_ref": {"type": "exercise_practice", "exercise_id": record.id},
-            })
-            candidate_id = candidate["id"]
-    except Exception:
-        # The practice record is already durable. Optional mistake/candidate writes
-        # may also have committed before the failure, so their state is unknown here.
-        linkage_unconfirmed = True
+        result = _direct_practice_service(book_name).answer(
+            req.id, req.operation_id, user_answer=req.user_answer, quality=req.quality,
+            note=req.note, add_to_mistake=req.add_to_mistake)
+    except ValueError as exc:
+        return {"success": False, "message": str(exc)}
+    return _direct_practice_payload(result)
 
-    result = {"success": True, "message": "练习结果已记录", "data": _record_to_out(record), "mistake_id": mistake_id, "candidate_id": candidate_id}
-    if linkage_unconfirmed:
-        warning = "练习结果已保存，但错题关联结果尚未确认（关联记录可能已写入）。请先检查错题/候选列表；不要重复提交整次练习来修复关联。"
-        result.update({
-            "message": warning,
-            "completion_status": "partial",
-            "practice_saved": True,
-            "linkage_status": "unconfirmed",
-            "warning": warning,
-        })
-    return result
+
+@router.get("/practice/{exercise_id}/operations/{operation_id}")
+def get_direct_practice_receipt(exercise_id: str, operation_id: str, book_name: str = "default"):
+    try:
+        record, receipt = _bank(book_name).store.direct_receipt(exercise_id, operation_id)
+    except ValueError as exc:
+        return {"success": False, "message": str(exc)}
+    return _direct_practice_payload(DirectPracticeResult(record, receipt))
 
 
 @router.post("/to-mistake")

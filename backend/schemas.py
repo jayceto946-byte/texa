@@ -277,6 +277,7 @@ class ExerciseFromMistakeRequest(BaseModel):
 
 class ExercisePracticeRequest(BaseModel):
     id: str
+    operation_id: str = Field(default="", max_length=128, pattern=r"^[A-Za-z0-9_-]*$")
     user_answer: str = ""
     quality: int = Field(default=0, ge=0, le=5)
     note: str = ""

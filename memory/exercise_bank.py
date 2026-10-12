@@ -119,6 +119,66 @@ class ExerciseBankStore:
         conn.execute("PRAGMA synchronous = NORMAL")
         return conn
 
+    def record_direct_answer(self, rid: str, operation_id: str, payload: dict) -> tuple[ExerciseRecord, dict]:
+        """Commit an attempt and its receipt together in the existing history JSON.
+
+        Identity is scoped to this bank and exercise. Old history remains readable.
+        No secondary storage is touched while holding the primary transaction.
+        """
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT data FROM exercises WHERE id=?", (rid,)).fetchone()
+            if not row:
+                raise ValueError("未找到该习题")
+            record = ExerciseRecord.from_dict(json.loads(row[0]))
+            for attempt in record.practice_history:
+                if attempt.get("operation_id") == operation_id:
+                    if attempt.get("request") != payload:
+                        raise ValueError("本次操作身份已绑定其他作答，请先恢复原作答")
+                    return record, dict(attempt)
+            now = datetime.now().isoformat()
+            attempt = {
+                "date": now, "quality": payload["quality"],
+                "user_answer": payload["user_answer"], "note": payload["note"],
+                "operation_id": operation_id, "request": payload,
+                "completion_status": "partial", "linkage_status": "unconfirmed",
+                "mistake_id": "", "candidate_id": "",
+                "source_snapshot": {k: v for k, v in record.to_dict().items() if k != "practice_history"},
+            }
+            record.practice_history.append(attempt)
+            record.practice_count += 1
+            record.last_practiced = now
+            record.updated_at = now
+            record.status = "mastered" if payload["quality"] >= 4 else "practicing" if payload["quality"] >= 3 else "needs_review"
+            conn.execute("UPDATE exercises SET data=?, updated_at=?, status=? WHERE id=?",
+                         (json.dumps(record.to_dict(), ensure_ascii=False), now, record.status, rid))
+            return record, dict(attempt)
+
+    def direct_receipt(self, rid: str, operation_id: str) -> tuple[ExerciseRecord, dict]:
+        record = self.get(rid)
+        if not record:
+            raise ValueError("未找到该习题")
+        for attempt in record.practice_history:
+            if attempt.get("operation_id") == operation_id:
+                return record, dict(attempt)
+        raise ValueError("未找到本次作答回执")
+
+    def complete_direct_answer(self, rid: str, operation_id: str, *, mistake_id: str, candidate_id: str) -> tuple[ExerciseRecord, dict]:
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT data FROM exercises WHERE id=?", (rid,)).fetchone()
+            if not row:
+                raise ValueError("未找到该习题")
+            record = ExerciseRecord.from_dict(json.loads(row[0]))
+            for attempt in record.practice_history:
+                if attempt.get("operation_id") == operation_id:
+                    attempt.update(completion_status="complete", linkage_status="confirmed",
+                                   mistake_id=mistake_id, candidate_id=candidate_id)
+                    conn.execute("UPDATE exercises SET data=? WHERE id=?",
+                                 (json.dumps(record.to_dict(), ensure_ascii=False), rid))
+                    return record, dict(attempt)
+            raise ValueError("未找到本次作答回执")
+
     def _init_db(self):
         try:
             self._init_db_once()
@@ -325,6 +385,23 @@ class ExerciseBankStore:
     def update(self, record: ExerciseRecord):
         record.updated_at = datetime.now().isoformat()
         with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT data FROM exercises WHERE id=?", (record.id,)).fetchone()
+            if row:
+                stored = ExerciseRecord.from_dict(json.loads(row[0]))
+                if any(a.get("operation_id") for a in stored.practice_history):
+                    # Content edits must not erase a concurrent committed receipt.
+                    if (record.last_practiced or "") < (stored.last_practiced or ""):
+                        record.status = stored.status
+                    history = list(stored.practice_history)
+                    for attempt in record.practice_history:
+                        if not attempt.get("operation_id") and attempt not in history:
+                            history.append(attempt)
+                    baseline = max(stored.practice_count - len(stored.practice_history),
+                                   record.practice_count - len(record.practice_history), 0)
+                    record.practice_history = history
+                    record.practice_count = baseline + len(history)
+                    record.last_practiced = max((a["date"] for a in history), default=stored.last_practiced)
             conn.execute(
                 """
                 UPDATE exercises

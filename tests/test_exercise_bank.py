@@ -78,7 +78,7 @@ def test_exercises_api_add_list_status_practice_and_import_mistake(monkeypatch, 
 
     practice_res = client.post(
         "/api/exercises/practice",
-        json={"id": exercise_id, "user_answer": "不会", "quality": 1, "add_to_mistake": True},
+        json={"id": exercise_id, "operation_id": "test-direct", "user_answer": "不会", "quality": 1, "add_to_mistake": True},
     ).json()
     assert practice_res["success"] is True
     assert practice_res["data"]["status"] == "needs_review"

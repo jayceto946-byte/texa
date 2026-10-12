@@ -1,35 +1,48 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Loader2, Shuffle } from 'lucide-react';
 import type { ChatExerciseCard } from '../../types';
 import { post } from '../../api/client';
 import { SimpleMarkdown } from './MarkdownMessage';
+import { prepareDirectPractice, completeDirectPractice, pendingDirectPractice } from '../../features/exercises/directPractice';
 
 const ExerciseCard: React.FC<{ card: ChatExerciseCard; bookName: string }> = ({ card, bookName }) => {
   const [answerOpen, setAnswerOpen] = useState(false);
   const [practiceLoading, setPracticeLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const submitting = useRef(false);
   const record = card.record;
   const bookQuery = bookName ? `?book_name=${encodeURIComponent(bookName)}` : '';
+  const pending = pendingDirectPractice(bookQuery, record.id);
 
-  const submitPractice = async (quality: number, addToMistake = false) => {
+  const submitPractice = async (quality: number, addToMistake = false, recover = false) => {
+    if (submitting.current) return;
+    submitting.current = true;
     setPracticeLoading(true);
     setMessage('');
     try {
-      const res = await post(`/exercises/practice${bookQuery}`, {
+      const operation = recover ? pendingDirectPractice(bookQuery, record.id) : prepareDirectPractice(bookQuery, {
         id: record.id,
         user_answer: '',
         quality,
         add_to_mistake: addToMistake,
       });
+      if (!operation) return;
+      const res = await post(`/exercises/practice${bookQuery}`, operation);
       if (!res?.success) {
         setMessage(res?.message || '练习记录失败');
         return;
       }
-      setMessage(addToMistake && res.mistake_id ? '已记录为做错，并转入错题本。' : '已记录本次练习结果。');
+      if (res.completion_status !== 'complete') {
+        setMessage(res.warning || '作答已保存，关联尚未确认；请点击相同自评重试。');
+      } else {
+        completeDirectPractice(bookQuery, operation);
+        setMessage(operation.add_to_mistake && res.mistake_id ? '已记录为做错，并转入错题本。' : '已记录本次练习结果。');
+      }
       window.dispatchEvent(new Event('exercises:changed'));
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
     } finally {
+      submitting.current = false;
       setPracticeLoading(false);
     }
   };
@@ -53,6 +66,7 @@ const ExerciseCard: React.FC<{ card: ChatExerciseCard; bookName: string }> = ({ 
           <SimpleMarkdown content={record.question_text} />
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
+          {pending && <button type="button" disabled={practiceLoading} onClick={() => submitPractice(pending.quality, pending.add_to_mistake, true)} className="app-secondary-button">恢复未确认作答</button>}
           <button type="button" onClick={() => setAnswerOpen((open) => !open)} className="rounded-lg border border-border bg-bg-card px-3 py-1.5 text-xs text-text-primary hover:border-accent/50 hover:text-accent">
             {answerOpen ? '收起答案解析' : '查看答案解析'}
           </button>

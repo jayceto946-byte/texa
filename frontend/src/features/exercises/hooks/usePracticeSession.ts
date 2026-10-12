@@ -1,6 +1,8 @@
-﻿import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
+﻿import { useCallback, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { post } from '../../../api/client';
 import type { ExercisePracticeSession, ExerciseRecord } from '../../../types';
+
+import { prepareDirectPractice, completeDirectPractice, pendingDirectPractice } from '../directPractice';
 
 type SessionAction = 'pause' | 'resume' | 'abandon';
 
@@ -33,6 +35,7 @@ export function usePracticeSession({
   const [sessionLimit, setSessionLimit] = useState(20);
   const [sessionShuffle, setSessionShuffle] = useState(false);
   const [sessionBusy, setSessionBusy] = useState(false);
+  const submitting = useRef(false);
 
   const showPracticeMessage = useCallback((message: string) => {
     setPracticeMessage(message);
@@ -111,29 +114,29 @@ export function usePracticeSession({
     setPracticeMessage('');
   }, [currentPractice?.id, practicePool, resetAnswer]);
 
-  const submitPractice = useCallback(async (quality: number, addToMistake = false) => {
-    if (!currentPractice) return;
+  const submitPractice = useCallback(async (quality: number, addToMistake = false, recover = false) => {
+    if (!currentPractice || submitting.current) return;
     if (practiceSession && practiceSession.status !== 'active') {
       setPracticeMessage('请先继续当前练习会话');
       return;
     }
+    submitting.current = true;
     setSessionBusy(true);
     try {
       const sessionMode = Boolean(practiceSession);
       const path = sessionMode
         ? `/exercises/practice-sessions/${encodeURIComponent(practiceSession!.id)}/answer${bookQuery}`
         : `/exercises/practice${bookQuery}`;
+      const operation = sessionMode ? null : recover ? pendingDirectPractice(bookQuery, currentPractice.id) : prepareDirectPractice(bookQuery, {
+        id: currentPractice.id, user_answer: practiceAnswer, quality, add_to_mistake: addToMistake,
+      });
+      if (!sessionMode && !operation) return;
       const res = await post(path, sessionMode ? {
         exercise_id: currentPractice.id,
         user_answer: practiceAnswer,
         quality,
         add_to_mistake: addToMistake,
-      } : {
-        id: currentPractice.id,
-        user_answer: practiceAnswer,
-        quality,
-        add_to_mistake: addToMistake,
-      });
+      } : operation);
       if (!res?.success) {
         setPracticeMessage(res?.message || '练习记录失败');
         return;
@@ -150,12 +153,18 @@ export function usePracticeSession({
           ? `本轮完成：${summary?.answered || 0} 题，平均自评 ${summary?.average_quality || 0}`
           : res.message || '已记录，进入下一题');
       } else {
-        setPracticeMessage(res.candidate_id ? '本次做错的题目与作答已准备，确认后才会进入错题本。' : addToMistake && res.mistake_id ? '已记录练习，并转入错题本' : '已记录练习结果');
+        if (res.completion_status !== 'complete') {
+          setPracticeMessage(res.warning || '作答已保存，关联尚未确认；请使用原答案和相同自评重试。');
+        } else {
+          completeDirectPractice(bookQuery, operation!);
+          setPracticeMessage(res.candidate_id ? '本次做错的题目与作答已准备，确认后才会进入错题本。' : addToMistake && res.mistake_id ? '已记录练习，并转入错题本' : '已记录练习结果');
+        }
       }
       await refreshOverview();
     } catch (error) {
       setPracticeMessage(error instanceof Error ? error.message : String(error));
     } finally {
+      submitting.current = false;
       setSessionBusy(false);
     }
   }, [bookQuery, currentPractice, practiceAnswer, practiceSession, refreshOverview, resetAnswer, setPracticeSession, setRecords]);
@@ -187,6 +196,7 @@ export function usePracticeSession({
   }, [practiceId, resetAnswer]);
 
   return {
+    pendingDirectAnswer: !practiceSession && currentPractice ? pendingDirectPractice(bookQuery, currentPractice.id) : null,
     practicePool,
     currentPractice,
     practiceAnswer,
