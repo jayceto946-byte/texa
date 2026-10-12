@@ -1,0 +1,27 @@
+{
+  "environment": "macOS Electron development shell",
+  "model": "offline fixture",
+  "checks": [
+    {
+      "name": "goal-double-resume",
+      "status": "PASS"
+    },
+    {
+      "name": "chat-selection-composer-mistakes",
+      "status": "PASS"
+    },
+    {
+      "name": "chat-process-continuity",
+      "status": "PASS"
+    },
+    {
+      "name": "review-assets-explicit-record",
+      "status": "PASS"
+    },
+    {
+      "name": "macos-fullscreen-insets",
+      "status": "PASS"
+    }
+  ],
+  "errors": []
+}

@@ -2,6 +2,8 @@
 
 本轮以原有工作区及其checkpoint `c53e78b` 为基线；既有移动网络、候选校对、笔记冲突、图片裁剪及来源 Inspector 改动保留。26项按用户条目拆分登记，不能把源码修改等同于实际验收。UI/自动化运行使用隔离合成资料；正式错题库仅进行只读聚合诊断（0条）。另按用户明确授权发送4类合成题，尝试8次外部模型调用，全部鉴权失败。
 
+本轮交付：**21项已修复、4项部分完成（01/07/18/21）、1项暂缓（16）**。真实模型Teaching Prompt比较未获有效答案；不得据此宣称教学效果提升。
+
 基线构建 `/tmp/texa-cross-module-before`；原图位于 [before](evidence/cross-module/before)。浏览器素材使用现有 qa-pages 工具；合成状态不能证明真实模型质量。Astra集中设计已冻结，见设计规范。
 
 |ID|问题|代码/组件|状态|根因与验证|
@@ -52,9 +54,9 @@
 集中规范见 [Astra设计](CROSS-MODULE-ASTRA-DESIGN-2026-10-12.md)。已实施紧凑连续过程条、完成条件与当前任务层级、复习资产展开后明确行动、生成笔记直接阅读、练习单列与可见范围。复用既有Runtime、Notes CAS、SM-2与候选导入服务，没有数据库/索引迁移。
 
 - 不新增全局计时器、悬浮任务球或第二套任务系统。Astra判断现有导航足以支持当前使用场景，新增常驻组件的学习收益尚无证据。
-- 答案维护保留在练习阅读区的次要折叠入口，未额外构建题库专属编辑状态；生成状态与阅读默认模式已独立。属于工程实施偏差，尚未获得最终Astra复核。
+- 答案维护保留在练习阅读区的次要折叠入口，未额外构建题库专属编辑状态；生成状态与阅读默认模式已独立。属于工程实施偏差，Astra最终复核接受，不要求新状态机。
 - 独立空白自主笔记无现有合法来源合同。手动整理、自由编辑、保存与恢复已有能力通过，但完全无会话记录入口未新增。
-- 最终针对性Astra复核已提交精选前后原图；agent因模型用量限制在开始复核前失败。此轮最终Astra视觉复核为**未完成**，不能以Sol自行截图检查替代声称Astra已批准。
+- 最终Astra复核首次因用量限制中断，恢复后直接读取24张原图，并复验2张修正图。要求的“参考答案草稿”标题及可见暂停影响已落实，M1/M2关闭，本批有限通过。详见 [Astra视觉复核](CROSS-MODULE-ASTRA-VISUAL-REVIEW-2026-10-12.md)；不替代功能、全部Goal状态或真实模型质量验收。
 
 Teaching Prompt采用问题类型、理解障碍与教材上下文适配，不规定固定回答模板。代表集 [cases](../../evaluation/fixtures/teaching-ux/cases.json) 覆盖概念/推导/应用/追问纠错；[比较脚本](../../scripts/teaching-ux-compare.py)限制4题×前后2版本=8次，已按授权尝试，结果全为AuthenticationError。准确性、可理解性、冗余与教学效果均**未获真实答案验证**。不重试超出预算，不声称提升。
 
@@ -73,3 +75,32 @@ Teaching Prompt采用问题类型、理解障碍与教材上下文适配，不�
 深层Electron回归 [13项结果](evidence/cross-module/deep-electron/results.json) 复验笔记503/CAS/归档、复制失败、候选合并拆分与校对、Word/文本PDF导入及回滚、图片附件、来源Inspector与阅读器；真实数据库/文件操作均位于/tmp，不触碰正式学习记录。
 
 剩余风险：未验证真实模型答案与线上“待核验”频率；原重复错题现场缺失；移动相机未实测；独立空白笔记未实施；目标待输入/待确认专属Electron交互和生产桌面打包/升级未覆盖。Vite保留原有mathlive大chunk提示，本轮不重构依赖。所有已修复状态以列明的验证范围为准。
+
+## 最终自动化结果与Git checkpoint
+
+|层级|结果|证据|
+|---|---|---|
+|Python 3.10完整后端|1544通过，6条现有依赖弃用warning|[日志](evidence/latest/backend/backend.log)|
+|前端Vitest|199通过|[日志](evidence/latest/frontend/frontend.log)|
+|桌面Node测试|15通过；沙盒socket测试需外层许可|[日志](evidence/latest/desktop/desktop.log)|
+|类型/lint/生产构建|全部通过；保留mathlive chunk提示|[构建日志](evidence/cross-module/final-build.log)|
+|最终Electron|7组主路径通过，0 pageerror|[结果](evidence/cross-module/final-electron/results.json)|
+|深层Electron|13项通过|[结果](evidence/cross-module/deep-electron/results.json)|
+|页面矩阵|119项；0横向溢出、0未处理路由、0失败；11条console为主动注入的503|[结果](evidence/cross-module/after/results.json)|
+|Teaching Prompt真实比较|8次均AuthenticationError，未得有效答案|[脱敏结果](evidence/cross-module/teaching-comparison.json)|
+|Astra视觉复核|26次原图读取，本批有限通过；两项必须修改关闭|[复核](CROSS-MODULE-ASTRA-VISUAL-REVIEW-2026-10-12.md)|
+
+分支 `codex/cross-module-remediation`，基线 `c53e78b`。模块checkpoint：
+
+|模块|commit|
+|---|---|
+|目标P0/桌面全屏|`cde805e`|
+|问答/引用/Prompt|`831eb51`|
+|过程真实性追加|`e9b731d`|
+|复习|`662aa73`|
+|笔记|`bb6b158`|
+|练习|`d6c8d43`|
+|最终核验映射|`10c8724`|
+|Astra要求两处修正|`f04f2c1`|
+
+页面矩阵在最终文案小修正之前采集；这两处运行态文案通过最终Electron原图、交互和Astra最小复验补验。构建与当前源码身份记录于 [manifest](evidence/cross-module/manifest.json)。未推送或创建PR，未改正式学习数据、模型配置或依赖。
