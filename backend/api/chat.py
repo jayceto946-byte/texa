@@ -1827,6 +1827,10 @@ def chat_ask(req: ChatRequest):
     request_id = new_request_id()
     started = time.perf_counter()
     prepared = _prepare_chat_turn(req)
+    from backend.services.agent_runtime.chat_binding import try_chat_response
+    runtime_response = try_chat_response(req, prepared, request_id, streaming=False)
+    if runtime_response is not None:
+        return runtime_response
     book_name = prepared["book_name"]
     subject = prepared["subject"]
     conversation_id = prepared["conversation_id"]

@@ -7,6 +7,10 @@ import os
 import shutil
 import sqlite3
 import sys
+if __name__ == "__main__":
+    # Divert PyInstaller multiprocessing workers before server/data initialization.
+    import multiprocessing
+    multiprocessing.freeze_support()
 import tempfile
 import time
 from pathlib import Path

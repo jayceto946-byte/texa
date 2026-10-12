@@ -28,6 +28,7 @@ class FixedAction:
     tool_id: str = ""
     args: dict[str, Any] = field(default_factory=dict)
     operation_key: str = ""
+    model_tool_call_id: str = ""
 
 
 @dataclass(frozen=True)

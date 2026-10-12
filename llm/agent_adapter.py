@@ -16,11 +16,17 @@ class NativeToolAdapter:
         self.resolved = resolved
         self.registry = registry
         self.model_factory = model_factory or build_chat_model
+        self.allow_native_attempt = False
 
     def capabilities(self) -> ModelCapabilities:
         from llm.tool_capability import has_verified_tool_capability
         if has_verified_tool_capability(self.resolved):
             return ModelCapabilities(tool_calling="supported", streaming="unknown")
+        if self.allow_native_attempt and self.resolved.credential_configured:
+            from llm.factory import transport_capabilities
+            if Capability.TOOL_CALLING in transport_capabilities(self.resolved.provider.transport):
+                return ModelCapabilities(tool_calling="supported", streaming="supported",
+                    contract_version="native-transport-attempt/v1")
         if self.resolved.options.get("tool_calling_verified") is not True:
             return ModelCapabilities()
         try:
@@ -28,6 +34,11 @@ class NativeToolAdapter:
         except ValueError:
             return ModelCapabilities()
         return ModelCapabilities(tool_calling="supported", streaming="unknown")
+
+    def run_native(self, runner, run_id, owner, **kwargs):
+        from backend.services.agent_runtime.native_loop import run_native_loop
+        model = self.model_factory(self.resolved, 0.0, request_timeout=30, max_retries=0)
+        return run_native_loop(runner, model, run_id, owner, **kwargs)
 
     def next_action(self, transcript: list[dict], candidate_tools: tuple[dict, ...]) -> FixedAction:
         if self.capabilities().tool_calling != "supported":

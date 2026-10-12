@@ -98,7 +98,7 @@ class RestrictedMathError(ValueError):
 
 
 def _normalize_expression(value: Any) -> str:
-    text = str(value or "").strip()
+    text = ("" if value is None else str(value)).strip()
     if not text:
         raise RestrictedMathError("expression is required")
     if len(text) > _MAX_EXPRESSION_CHARS:
@@ -128,7 +128,13 @@ def _expression_from_ast(node: ast.AST) -> sp.Expr:
             raise RestrictedMathError("only numeric constants are allowed")
         if not math.isfinite(float(node.value)) or abs(float(node.value)) > 1e12:
             raise RestrictedMathError("numeric constant is out of range")
-        return sp.Integer(node.value) if isinstance(node.value, int) else sp.Rational(str(node.value))
+        literal = getattr(node, "_math_literal", str(node.value)).replace("_", "")
+        if not re.fullmatch(r"(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?", literal):
+            raise RestrictedMathError("unsupported numeric literal")
+        scale = re.search(r"[eE]([+-]?\d+)$", literal)
+        if scale and abs(int(scale.group(1))) > 300:
+            raise RestrictedMathError("numeric scale is out of range")
+        return sp.Rational(literal)
     if isinstance(node, ast.Name):
         if node.id in _SYMBOLS:
             assumption = _ASSUMPTIONS.get().get(node.id)
@@ -171,6 +177,9 @@ def parse_restricted_expression(value: Any) -> sp.Expr:
         raise RestrictedMathError("expression syntax is invalid") from exc
     if sum(1 for _ in ast.walk(tree)) > _MAX_AST_NODES:
         raise RestrictedMathError("expression is too complex")
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant):
+            node._math_literal = ast.get_source_segment(text, node)
     return _expression_from_ast(tree)
 
 
@@ -195,6 +204,8 @@ def _serialized_result(value: Any) -> dict[str, Any]:
     if not expression.free_symbols and expression.is_finite is not False:
         try:
             numeric = float(sp.N(expression, 15))
+            if not math.isfinite(numeric) or (numeric == 0 and expression != 0):
+                numeric = None
         except (TypeError, ValueError, OverflowError):
             numeric = None
     return {"exact": str(expression), "latex": sp.latex(expression), "numeric": numeric}

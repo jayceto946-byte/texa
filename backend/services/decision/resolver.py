@@ -5,6 +5,7 @@ from backend.services.decision.contracts import CandidateToolSet, DecisionResult
 from backend.tools.registry import ToolRegistry
 
 _CAPABILITY_TO_TOOLS = {
+    "math.verify": ("symbolic_math", "verify_math_result"),
     "textbook.search": ("search_textbook",),
     "learning.inspect": ("get_recent_progress",),
     "exercise.inspect": ("search_exercises",),

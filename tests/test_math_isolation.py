@@ -5,10 +5,13 @@ from backend.tools.registry import ToolContext, get_tool_registry
 @pytest.mark.parametrize("args,exact", [
     ({"operation": "calculate", "expression": "0.1+0.2"}, "3/10"),
     ({"operation": "calculate", "expression": "1e-3"}, "1/1000"),
+    ({"operation": "calculate", "expression": "0.12345678901234567890"}, "1234567890123456789/10000000000000000000"),
     ({"operation": "simplify", "expression": "sqrt(x^2)", "assumptions": {"x": "positive"}}, "x"),
     ({"operation": "differentiate", "expression": "x^3"}, "3*x**2"),
     ({"operation": "integrate", "expression": "x^2", "lower": "0", "upper": "1"}, "1/3"),
+    ({"operation": "integrate", "expression": "x^2", "lower": 0, "upper": 1}, "1/3"),
     ({"operation": "limit", "expression": "sin(x)/x", "point": "0"}, "1"),
+    ({"operation": "limit", "expression": "sin(x)/x", "point": 0}, "1"),
     ({"operation": "solve", "expression": "x^2+1"}, ["-I", "I"]),
 ])
 def test_supported_operations_are_exact_and_canonical(args, exact):

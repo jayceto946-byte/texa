@@ -195,6 +195,45 @@ def _formula_support(answer: str, evidence: str) -> str:
 
 
 
+def _math_text(value: str) -> str:
+    return re.sub(r"\s", "", str(value)).replace("**", "^").replace("×", "*").replace("÷", "/").replace("−", "-")
+
+
+def _verified_math_conclusion(answer: str, question: str, pack: dict) -> bool:
+    from backend.services.tool_orchestration import _math_tool_call
+    expected = _math_tool_call(question)
+    if not expected:
+        return False  # Unsupported answer bindings stay unverified, never guess.
+    requested = expected["args"]
+    outputs = pack.get("outputs") or []
+    for item in outputs:
+        data = item.get("data") or {}
+        if item.get("tool") != "symbolic_math" or not item.get("success") or data.get("assumptions"):
+            continue
+        if data.get("operation") != requested.get("operation") or _math_text(data.get("expression", "")) != _math_text(requested.get("expression", "")):
+            continue
+        if data.get("variable", "x") != requested.get("variable", "x") or data.get("status") != "computed":
+            continue
+        actual = item.get("args") or {}
+        if any(_math_text(actual.get(key, "")) != _math_text(requested[key]) for key in ("lower", "upper", "right") if key in requested):
+            continue
+        request = data.get("verification_request") or {}
+        verified = any(receipt.get("tool") == "verify_math_result" and receipt.get("success")
+            and receipt.get("verification", {}).get("passed") is True
+            and all((receipt.get("args") or {}).get(key) == value for key, value in request.items()) for receipt in outputs)
+        if not verified:
+            continue
+        if requested["operation"] == "calculate":
+            return _verified_numeric_conclusion(answer, question, pack)
+        if requested["operation"] == "solve":
+            continue  # Substitution checks do not prove solution-set completeness.
+        expected_latex = _compact_formula((data.get("result") or {}).get("latex", ""))
+        formulas = _FORMULA_RE.findall(answer)
+        if expected_latex and any(_compact_formula(formula).split("=")[-1] == expected_latex for formula in formulas):
+            return True
+    return False
+
+
 def _verified_numeric_conclusion(answer: str, question: str, pack: dict) -> bool:
     # A successful receipt alone says nothing about this question. Consume only
     # closed expressions explicitly requested here and their matching verifier.
@@ -204,12 +243,12 @@ def _verified_numeric_conclusion(answer: str, question: str, pack: dict) -> bool
         if item.get("tool") != "symbolic_math" or not item.get("success") or data.get("operation") != "calculate":
             continue
         expression = str(data.get("expression") or "")
-        if not expression or not re.search(r"(?<![A-Za-z0-9.+*/^\-])" + re.escape(re.sub(r"\s", "", expression)) + r"(?![A-Za-z0-9.+*/^\-])", re.sub(r"\s", "", question)):
+        if not expression or not re.search(r"(?<![A-Za-z0-9.+*/^\-])" + re.escape(_math_text(expression)) + r"(?![A-Za-z0-9.+*/^\-])", _math_text(question)):
             continue
         request = data.get("verification_request") or {}
         bound = any(receipt.get("tool") == "verify_math_result" and receipt.get("success")
                     and receipt.get("verification", {}).get("passed") is True
-                    and receipt.get("args") == request for receipt in outputs)
+                    and all((receipt.get("args") or {}).get(key) == value for key, value in request.items()) for receipt in outputs)
         if not bound:
             continue
         conclusion = re.split(r"[。\n]", answer.strip(" 。\n"))[-1]
@@ -217,8 +256,14 @@ def _verified_numeric_conclusion(answer: str, question: str, pack: dict) -> bool
         numeric = (data.get("result") or {}).get("numeric")
         if len(numbers) == 1 and isinstance(numeric, (int, float)):
             raw = re.match(r"[-+]?\d+(?:\.\d+)?", numbers[0].strip())
-            if raw and float(raw[0]) == numeric:
-                return True
+            if raw:
+                from fractions import Fraction
+                exact = str((data.get("result") or {}).get("exact") or "")
+                try:
+                    if len(raw[0]) <= 320 and len(exact) <= 700 and Fraction(raw[0]) == Fraction(exact):
+                        return True
+                except (ValueError, ZeroDivisionError, OverflowError):
+                    pass
     return False
 
 
@@ -301,6 +346,9 @@ def verify_answer(
                 found_units=found,
                 reason="" if passed else "最终结论缺少题目要求的单位或使用了不同单位",
             )
+        elif kind == "math_support":
+            supported = _verified_math_conclusion(text, question, tool_context_pack or {})
+            check.update(status="passed" if supported else "unverified", reason="" if supported else "数学结论缺少与题目、运算及结果绑定的核验依据")
         elif kind == "numeric":
             numbers = [value.strip() for value in _NUMBER_RE.findall(text)]
             if answer_policy == "method_only" and not numbers:

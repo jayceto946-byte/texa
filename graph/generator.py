@@ -210,7 +210,7 @@ def finalize_answer_verification(
     answer_policy: str = "exact",
 ) -> str:
     """Run deterministic postconditions and disclose non-passing results."""
-    if _answer_mode(state) == "textbook_grounded" and "verification_evidence" not in state:
+    if _answer_mode(state) == "textbook_grounded" and state.get("support_type") != "explicit_math_only" and "verification_evidence" not in state:
         _prepare_evidence_pack(state)
     required_outputs = list(state.get("required_outputs") or [])
     if not required_outputs:
@@ -538,6 +538,12 @@ def _format_quiz_appendix(state: dict) -> str:
 
 def prepare_answer_generation(state: dict):
     """Shared ContextPack/EvidencePack prompt boundary for answer adapters."""
+    if state.get("support_type") == "explicit_math_only":
+        local = {**state, "answer_mode": "global_general", "use_textbook_context": False}
+        messages = _build_generate_messages(local)
+        state["context_budget"] = local.get("context_budget") or {}
+        messages[0].content += "\n本轮仅执行用户完整给出的数学运算。计算结果不是教材来源；不要引用教材或补充缺失条件。可自主使用列出的受限数学工具，必要时继续计算或核验，也可直接回答。工具失败必须披露，不得宣称已验证。"
+        return messages
     return _build_generate_messages(state)
 
 

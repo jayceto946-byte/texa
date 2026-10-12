@@ -190,10 +190,11 @@ class RuntimeStore:
         summary = ({"tool.requested": "已准备工具输入", "tool.started": "正在执行工具",
                     "tool.completed": "工具已返回结果", "tool.failed": "工具执行失败"}.get(lifecycle)
                    or {"run.created": "开始处理学习任务", "run.completed": "回答处理结束",
-                       "run.paused": "任务等待继续", "run.failed": "任务执行失败"}.get(lifecycle) or lifecycle)
+                       "run.paused": "任务等待继续", "run.failed": "任务执行失败",
+                       "model.started": "正在生成回答", "model.completed": "本轮生成结束"}.get(lifecycle) or lifecycle)
         event = emitter.emit(event_type, phase=lifecycle.split(".")[0], status=status,
                             operation_id=f"tool:{payload['tool_call_id']}" if tool_name else lifecycle,
-                            label=f"使用工具 · {tool_name}" if tool_name else summary,
+                            label="正在计算" if tool_name in {"symbolic_math", "verify_math_result"} else f"使用工具 · {tool_name}" if tool_name else summary,
                             summary=summary, kind="tool" if lifecycle.startswith("tool.") else "system",
                             payload={"lifecycle": lifecycle, **(payload or {})})
         self._audit_local.events.append(event)
@@ -327,7 +328,8 @@ class RuntimeStore:
             snapshot["task_type"] = "qa"
             snapshot["answer_mode"] = state.get("answer_mode", "")
             snapshot["artifacts"].update({"request_question": request_question, "book_name": book_name, "subject": subject,
-                "context_versions": state.get("context_versions") or {}})
+                "context_versions": state.get("context_versions") or {},
+                "support_type": state.get("support_type", ""), "native_loop": state.get("native_loop", False)})
             conn.execute("UPDATE agent_runs SET checkpoint_json=? WHERE id=?", (_dump(checkpoint), run_id))
             conn.execute("UPDATE runtime_tasks SET snapshot_json=? WHERE id=?", (_dump(snapshot), run["task_id"]))
             return self._snapshot(conn, run_id)
@@ -389,7 +391,8 @@ class RuntimeStore:
                 raise RuntimeConflict("task model budget exhausted")
             conn.execute("UPDATE runtime_tasks SET consumed_model_calls=consumed_model_calls+1,revision=revision+1,updated_at=? WHERE id=?",
                          (_now(), run["task_id"]))
-            self._event(conn, run, lifecycle="model.started", status="started")
+            self._event(conn, run, lifecycle="model.started", status="started",
+                payload={"model_call_id": f"{run_id}:model:{task['consumed_model_calls'] + 1}"})
             return self._snapshot(conn, run_id)
 
     def complete_model_step(self, run_id: str, owner: str, *, action_kind: str,
@@ -406,10 +409,36 @@ class RuntimeStore:
             self._event(conn, run, lifecycle="model.completed", status="completed")
             return self._snapshot(conn, run_id)
 
+    def save_native_messages(self, run_id: str, owner: str, messages: list[dict]) -> dict:
+        # Bound the whole protocol, never truncate into orphan ToolMessages.
+        if len(messages) > 24 or len(_dump(messages)) > 64000:
+            raise ValueError("native message checkpoint exceeds budget")
+        with self._write() as conn:
+            run = self._owned(conn, run_id, owner)
+            checkpoint = json.loads(run["checkpoint_json"])
+            checkpoint["native_messages"] = messages
+            conn.execute("UPDATE agent_runs SET checkpoint_json=?,revision=revision+1 WHERE id=?",
+                         (_dump(checkpoint), run_id))
+            return self._snapshot(conn, run_id)
+
+    def output_delta(self, run_id: str, owner: str, text: str, *, replace: bool = False) -> dict:
+        # Transport-only sequence reservation; authoritative final text is in close().
+        with self._write() as conn:
+            run = self._owned(conn, run_id, owner)
+            emitter = ExecutionEventEmitter(request_id=run["request_id"], task_id=run["task_id"],
+                run_id=run_id, conversation_id=run["conversation_id"], turn_id=run["turn_id"],
+                start_seq=run["seq_high_water"], audit=False)
+            event = emitter.emit("output_delta", phase="generate", status="running",
+                operation_id="answer", label="正在回答", kind="generation",
+                summary="正在生成回答",
+                payload={"text": text, "replace": replace})
+            conn.execute("UPDATE agent_runs SET seq_high_water=? WHERE id=?", (event["seq"], run_id))
+            return event
+
     def request_tool(self, run_id: str, owner: str, *, tool_id: str,
                      version: str, schema_hash: str, args: dict[str, Any],
                      args_hash: str, operation_key: str,
-                     permission: str = "READ", expected_revisions=None) -> dict[str, Any]:
+                     permission: str = "READ", expected_revisions=None, model_tool_call_id: str = "") -> dict[str, Any]:
         if not operation_key or len(operation_key) > 160 or len(_dump(args)) > 16000:
             raise ValueError("tool request exceeds P0 size budget")
         if permission not in {"READ", "LOCAL_WRITE"}:
@@ -439,7 +468,8 @@ class RuntimeStore:
             conn.execute("UPDATE agent_runs SET checkpoint_json=?,revision=revision+1,updated_at=? WHERE id=?",
                          (_dump(checkpoint), now, run_id))
             self._event(conn, run, lifecycle="tool.requested", payload={"tool_call_id": call_id,
-                        "tool_id": tool_id, "tool_version": version, **tool_details(args)})
+                        "tool_id": tool_id, "tool_version": version, "model_tool_call_id": model_tool_call_id,
+                        "model_call_id": f"{run_id}:model:{task['consumed_model_calls']}", **tool_details(args)})
             return self._snapshot(conn, run_id)
 
     def start_tool(self, run_id: str, owner: str, call_id: str) -> dict[str, Any]:

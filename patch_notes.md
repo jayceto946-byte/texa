@@ -1,3 +1,11 @@
+# 2026-10-12 - Real Tool Calling CP3 原生循环与统一问答执行
+
+- 数学native loop使用现有LangChain create_agent，middleware委托FixedRunner/RuntimeStore；仅数学候选启用，不接管教材/其他READ及写操作，不建立第二套Run权威。保留完整标准AIMessage/tool_call_id/ToolMessage，原生消息有界保存，不按字符串摘要继续模型。
+- 同Run最多5模型步骤/3工具（SQL总上限8/6），单模型deadline不超过35秒、native run120秒、每轮4096输出token、展示文字64000字符；流式参数由真实LangChain消息聚合，工具错误回传模型，结果后续行为由模型选择。修复跨线程contextvars继承，实际模型增量可在Run结束前到达SSE；/ask与/stream共享execute_run，不再另调回答模型。
+- Astra定点审查后冻结explicit_math_only纯计算例外，保留原教材模式/范围；教材或混合问题保持原Gate。数学结果不生成E-id，最终math_support及独立后置验证无绑定依据即unverified；不相关运算、未知数学、解集完整性或公式依据不足不冒称验证通过。
+- 恢复先读取SQL终态回执，缺回执才补interrupted ToolMessage；拒绝重复provider调用ID。数学超时/取消回收子进程，模型停止在下一实际chunk检查Run fence；请求仍受transport timeout约束。加入PyInstaller freeze_support入口，无依赖或DB schema迁移。
+- 当前关键回归100项通过，新增原生链/恢复/流式针对性22项通过；非旧Policy固定身份3文件范围1370项通过。全量首次1526通过、48失败，均为旧批准源码摘要失效；保留旧金标/批准pins，不绕过门槛，不能宣称全量发布评测通过。
+
 # 2026-10-12 - Real Tool Calling CP2 数学合同与隔离执行
 
 - symbolic_math/verify_math_result复用现有ToolSpec，新增canonical Pydantic输入输出、limit、变量假设、结构化错误，修复复数解序列化、科学计数法和小数精确值。结果保留独立工具来源，不生成教材E-id。

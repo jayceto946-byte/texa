@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import queue
 import threading
+import contextvars
 from typing import Callable, Protocol
 
 from backend.services.agent_runtime.contracts import FixedAction, ModelCapabilities, RuntimeDenied, RuntimeConflict
@@ -20,9 +21,10 @@ def _bounded_model_call(action: Callable, timeout: float):
     if not _MODEL_SLOTS.acquire(blocking=False):
         raise RuntimeDenied("model worker capacity exhausted")
     results = queue.Queue(maxsize=1)
+    call_context = contextvars.copy_context()
     def invoke():
         try:
-            results.put((True, action()))
+            results.put((True, call_context.run(action)))
         except BaseException as exc:
             results.put((False, exc))
         finally:
@@ -58,6 +60,7 @@ class BoundedAgentRunner:
     policy_source: str = "rules"
     policy_capture: Callable | None = None
     policy_observe: Callable | None = None
+    on_output: Callable | None = None
 
     def run_bounded(self, run_id: str, owner: str, *, context: ToolContext | None = None,
                     answer_state: dict | None = None,
@@ -74,6 +77,9 @@ class BoundedAgentRunner:
         capabilities = self.adapter.capabilities()
         if capabilities.tool_calling != "supported":
             raise RuntimeDenied("model adapter has no verified tool-calling capability")
+        if hasattr(self.adapter, "run_native") and {ref["id"] for ref in self.candidate_tools} <= {"symbolic_math", "verify_math_result"}:
+            return self.adapter.run_native(self, run_id, owner, context=context or ToolContext(),
+                answer_state=answer_state, write_service=write_service)
         allowed = frozenset(str(item["id"]) for item in self.candidate_tools)
         tool_runner = FixedRunner(self.store, self.registry, allowlist=allowed)
         while True:
@@ -139,7 +145,7 @@ class BoundedAgentRunner:
             result = dict(item["result"] or {})
             if result.get("domain_receipt"):
                 result["data"] = result["domain_receipt"]
-            tool_outputs.append({"tool": item["tool_id"], "result": result})
+            tool_outputs.append({"tool": item["tool_id"], "args": item["args"], "result": result})
         tool_pack = build_tool_context_pack(tool_outputs)
         if answer_state is not None:
             from graph.generator import (prepare_answer_generation,

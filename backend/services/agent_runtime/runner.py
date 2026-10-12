@@ -5,6 +5,7 @@ import hashlib
 import json
 import queue
 import threading
+from dataclasses import replace
 from typing import Any
 
 from backend.services.agent_runtime.contracts import FixedAction, RunCommand, RuntimeDenied
@@ -70,12 +71,31 @@ class FixedRunner:
             snapshot = self.store.request_tool(
                 run_id, owner, tool_id=spec.name, version=spec.version,
                 schema_hash=metadata["schema_hash"], args=args,
-                args_hash=args_hash, operation_key=operation_key, expected_revisions=expected_revisions)
+                args_hash=args_hash, operation_key=operation_key, expected_revisions=expected_revisions,
+                model_tool_call_id=action.model_tool_call_id)
             matching = [call for call in snapshot["tool_calls"] if call["operation_key"] == operation_key]
             if not matching or matching[0]["requested_run_id"] != run_id or matching[0]["status"] != "requested":
                 raise RuntimeDenied("operation was already executed")
             call_id = matching[0]["id"]
             self.store.start_tool(run_id, owner, call_id)
+            if spec.execution_mode == "isolated":
+                try:
+                    local_context = replace(context or ToolContext(), timeout_seconds=spec.timeout_seconds,
+                        cancelled=lambda: self.store.snapshot(run_id)["run"]["status"] != "running")
+                    result = spec.handler(local_context, args)
+                    if not result.success:
+                        return self.store.finish_tool(run_id, owner, call_id, result.to_dict(),
+                            error_code=(result.data or {}).get("error_code", "tool_failed"))
+                    output = spec.runtime_output.model_validate(result.data).model_dump()
+                    return self.store.finish_tool(run_id, owner, call_id, {**result.to_dict(), "data": output})
+                except RuntimeDenied:
+                    raise
+                except Exception:
+                    if self.store.snapshot(run_id)["run"]["status"] != "running":
+                        from backend.services.agent_runtime.contracts import RuntimeConflict
+                        raise RuntimeConflict("run stopped during computation")
+                    return self.store.finish_tool(run_id, owner, call_id,
+                        {"success": False, "message": "计算结果无效"}, error_code="output_schema")
             results: queue.Queue[tuple[str, Any]] = queue.Queue(maxsize=1)
 
             def invoke() -> None:
