@@ -86,6 +86,21 @@ await check('review-assets-explicit-record',async()=>{
  await page.getByRole('button',{name:'记录本次复习',exact:true}).first().click();await page.getByText('已记录「QA 可导与连续」的概念复习，今天不再提醒',{exact:true}).waitFor();
  if(writes!==1)throw Error('explicit review wrote '+writes+' times');page.off('request',track);await page.unroute(pattern);await page.setViewportSize({width:1280,height:820});
 });
+await check('notes-generated-read-edit-save',async()=>{
+ const id='qa-readable-'+mark;
+ await api('/chat/log','POST',{conversation_id:id,turn_id:'note-turn',subject:'数学',messages:[{role:'user',content:'可导与连续有什么关系？'},{role:'assistant',content:'可导推出连续，连续未必可导。\n\n$f(x)=|x|$ 是反例。'}]});
+ const pre=(await api('/notes/preflight','POST',{selection:{conversation_id:id}})).data;
+ const gen=(await api('/notes/generations','POST',{selection:pre.selection,preflight_fingerprint:pre.fingerprint,operation_id:mark+'-note'})).data;
+ await page.goto(base+'/notes/drafts/'+gen.draft_id);
+ await page.getByRole('heading',{name:'对话整理笔记',exact:true}).waitFor();
+ if(await page.getByLabel('第 1 块正文',{exact:true}).count())throw Error('generation defaults to block editor');
+ await page.locator('.note-document .katex').first().waitFor();await shot('1280-note-generated-read');
+ await page.getByRole('button',{name:'编辑笔记',exact:true}).click();
+ const body=page.getByLabel('第 1 块正文',{exact:true});await body.fill('自主订正：可导是连续的充分条件。$f(x)=|x|$ 连续但不可导。');
+ await page.getByText('草稿已保存',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'保存笔记',exact:true}).click();await page.waitForURL(/\/notes\/(?!drafts)[^/?]+/);
+ await page.reload();await page.getByText('自主订正：可导是连续的充分条件。',{exact:false}).waitFor();await shot('1280-note-saved');
+});
 if(electronMode)await check('macos-fullscreen-insets',async()=>{
  await page.goto(base+'/goals');await page.getByRole('heading',{name:'目标与任务',exact:true}).waitFor();
  await browser.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setFullScreen(true));

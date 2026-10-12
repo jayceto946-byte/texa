@@ -2,7 +2,7 @@
 
 本轮以当前未提交工作区为基线；既有移动网络、候选校对、笔记冲突、图片裁剪及来源 Inspector 改动保留。26项按用户条目拆分登记，不能把源码修改等同于实际验收。所有运行使用隔离合成资料，不访问正式学习数据或外部模型。
 
-基线构建 `/tmp/texa-cross-module-before`；原图位于 [before](evidence/cross-module/before)。浏览器素材使用现有 qa-pages 工具；合成状态不能证明真实模型质量。Astra集中设计中。
+基线构建 `/tmp/texa-cross-module-before`；原图位于 [before](evidence/cross-module/before)。浏览器素材使用现有 qa-pages 工具；合成状态不能证明真实模型质量。Astra集中设计已冻结，见设计规范。
 
 |ID|问题|代码/组件|状态|根因与验证|
 |---|---|---|---|---|
@@ -23,12 +23,12 @@
 |15|目标信息层级和控制|GoalsPage|已修复|完成条件默认可见、本次任务包含执行控制；Electron运行态截图已读|
 |16|跨页目标入口/计时价值|Workspace; GoalsPage|暂缓|Astra评估决定不新增计时器/全局任务中心，复用现有导航|
 |17|目标/task/Session/定时关系|GoalsPage|已修复|保留同Runtime/task，跨页读取同task；定时说明本地后端运行|
-|18|相似错题重复入队|review服务; mistake store|未完成|区分重复ID和合法独立记录|
-|19|复习文字对齐层级|LearningPage; ReviewSessionPage|未完成|Astra集中设计|
-|20|复习资产行动价值|LearningPage|未完成|Astra先评估收益与复杂度|
-|21|自动整理/自主记录区分|NotesPage; DraftWorkspace|未完成|保持独立资产和明确保存|
-|22|生成成功直接阅读|NoteDraftPage; DraftWorkspace|未完成|generation已默认preview；检查实际类型及流程|
-|23|自主编辑保存/恢复再编辑|DraftWorkspace; NotePage|未完成|复用已有CAS及失败保留|
+|18|相似错题重复入队|memory/mistake_lifecycle.py; tests/test_mistake_lifecycle.py|部分完成|33项回归含重复ID拒绝、相同题干不同来源保留；本机正式库0条，原现场未验证，未合并数据|
+|19|复习文字对齐层级|frontend/src/pages/LearningPage.tsx; LearningPage.css|已修复|合并今日/恢复入口、移除重复状态；Electron三种宽度截图检查通过|
+|20|复习资产行动价值|frontend/src/pages/LearningPage.tsx|已修复|展开真实教材片段/近期问题，不自动写复习；明确记录1次POST，学习记录折叠；无新增指标系统|
+|21|自动整理/自主记录区分|frontend/src/features/notes/DraftWorkspace.tsx; NotesPage.tsx|部分完成|生成与手动/编辑模式明确；独立空白记录缺少来源合同，本轮暂不伪造来源或迁移|
+|22|生成成功直接阅读|DraftWorkspace.tsx; NotePreflight.tsx; backend/services/session_notes/jobs.py|已修复|生成成功默认直接阅读，入口消除审阅要求；Electron真实发布/KaTeX/编辑/保存/刷新通过|
+|23|自主编辑保存/恢复再编辑|DraftWorkspace.tsx; useNoteEditor.ts; 原有CAS恢复|已修复|保留已有编辑/自动保存/冲突恢复；47项后端通过，Electron生成转编辑保存刷新通过；深层冲突UI后续总回归|
 |24|标准答案异步状态/重试|useExerciseAnswerJob; ExercisesPage|未完成|轮询重叠、错误未明确、状态仅间接文案|
 |25|答案解析长文公式|ExercisesPage|未完成|双列和文本编辑区压缩阅读|
 |26|练习抽题布局/维护分离|ExercisesPage; ExerciseCard|未完成|Astra集中设计|
@@ -40,3 +40,7 @@
 目标模块阶段验收：后端10项、桌面15项通过；Electron 3类检查通过（目标重复恢复/聊天复验/macOS全屏），[结果](evidence/cross-module/goals-electron/results.json)。动态截图已直接读取；待输入、待确认等视觉状态将在最终扩展检查补齐，不以运行态截图冒充全部状态。Astra规范：[集中设计](CROSS-MODULE-ASTRA-DESIGN-2026-10-12.md)。
 
 问答checkpoint：后端55项、前端198项（新增状态映射检查）、类型/lint/build通过；Electron4类检查通过，目标/全屏同步回归。Prompt合成代表集已建立并按授权调用8次，全部AuthenticationError，无真实答案/质量结论。[脱敏结果](evidence/cross-module/teaching-comparison.json)。
+
+复习checkpoint `662aa73`（问答追加 `e9b731d`）：后端33项、前端199项通过；Electron5类通过，[结果](evidence/cross-module/review-electron/results.json)。复习资料视觉使用合成summary，提交使用真实API/SQLite；1280/1024/760截图已读取检查。后端删除无独立执行的reason步骤，前端未收到阶段完成回执标为跳过；Electron确认未显示假推理或假检索完成。
+
+笔记阶段：47项后端、类型/lint/build通过；Electron6类全部通过，[结果](evidence/cross-module/notes-electron/results.json)。生成输入为合成资料，冻结来源、JobManager、草稿发布、明确保存和刷新均走真实API/SQLite；不证明真实模型文章质量。

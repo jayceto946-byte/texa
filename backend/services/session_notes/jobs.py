@@ -37,7 +37,7 @@ def start_generation(service, receipt, *, generator=generate, threaded=True):
             document = generator(snapshot, check_cancel=lambda: jobs.raise_if_cancelled(job_id), progress=progress, structure_hint=draft.get("structure_hint", "auto"))
             jobs.raise_if_cancelled(job_id)
             candidate_hash = service.store.candidate(draft_id, document)
-            completed = jobs.complete_job(job_id, result={"draft_id": draft_id, "candidate_hash": candidate_hash}, message="草稿已生成，请审阅并保存")
+            completed = jobs.complete_job(job_id, result={"draft_id": draft_id, "candidate_hash": candidate_hash}, message="笔记已整理，可阅读或编辑后保存")
             service.store.publish_candidate(draft_id, completed)
             service.audit("note_validate", draft_id, "editable", (draft_id, receipt["snapshot_id"]))
         except JobCancelled:

@@ -111,7 +111,7 @@ try {
  }
  const context=await browser.newContext({viewport:{width:1280,height:820}});await context.addInitScript(()=>localStorage.setItem('texa:setup-complete:v3','1'));const page=await context.newPage();page.on('console',message=>{if(message.type()==='error')results.errors.push({console:message.text()});});
  await page.goto('http://127.0.0.1:18040/notes');await page.waitForLoadState('networkidle');await page.getByRole('button',{name:'筛选',exact:true}).click();await capture(page,'interaction-notes-filters');results.interactions.push('notes filter expand');
- await page.getByRole('button',{name:'草稿',exact:true}).click();await page.getByRole('link',{name:note.title}).click();await page.getByRole('button',{name:'阅读预览',exact:true}).click();await page.getByRole('button',{name:'逐块编辑',exact:true}).click();await capture(page,'interaction-note-edit');results.interactions.push('notes tab→draft→edit');
+ await page.getByRole('button',{name:'草稿',exact:true}).click();await page.getByRole('link',{name:note.title}).click();await page.getByRole('button',{name:'阅读预览',exact:true}).click();await page.getByRole('button',{name:'编辑笔记',exact:true}).click();await capture(page,'interaction-note-edit');results.interactions.push('notes tab→draft→edit');
  await page.goto('http://127.0.0.1:18040/settings');await page.waitForLoadState('networkidle');await page.waitForTimeout(200);
  for(const label of ['偏好','模型连接','数据与教材','关于与更新','高级与诊断']){const button=page.getByRole('button',{name:label,exact:true});if(await button.count()){await button.click();await page.waitForTimeout(250);await capture(page,`interaction-settings-${label}`);results.interactions.push(`settings ${label}`);}}
  // Narrow shared settings navigation: focus and unsaved field survive returning.

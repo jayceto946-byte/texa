@@ -45,6 +45,14 @@ if os.environ.get('TEXA_QA_WORKFLOWS') == '1':
     from backend.api import notes
     from backend.services.session_notes.jobs import start_generation
     def fail_note(snapshot, **kwargs):
+        if str(snapshot.get('conversation_id') or '').startswith('qa-readable-'):
+            from backend.services.session_notes.generation import generate
+            import json
+            def call(payload, **options):
+                sources=payload.get('messages') or [{'source_ref_id':entry['source_ref_id'],'content':'可导推出连续，连续未必可导。$|x|$ 是反例。'} for result in payload.get('extractions',[]) for entry in result['coverage']]
+                blocks=[{'block_id':f'b{n}','type':'paragraph','role':'concept','data':{'markdown':source['content']},'source_ref_ids':[source['source_ref_id']],'evidence_ref_ids':[]} for n,source in enumerate(sources)]
+                return json.dumps({'document':{'title':'可导与连续 · 对话整理','blocks':blocks},'coverage':[{'source_ref_id':source['source_ref_id'],'block_ids':[f'b{n}'],'disposition':'included'} for n,source in enumerate(sources)]},ensure_ascii=False)
+            return generate(snapshot,call=call,**kwargs)
         raise RuntimeError('QA intentional offline generation failure')
     notes.start_generation=lambda service,receipt:start_generation(service,receipt,generator=fail_note)
     import graph.main_graph as qa_graph
