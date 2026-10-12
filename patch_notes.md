@@ -1,3 +1,10 @@
+# 2026-10-12 - Real Tool Calling CP1 现状审计
+
+- 审计主聊天、Provider、Registry、SQL Runtime、Gate/Final EvidencePack、Answer Verification、SSE与前端过程展示。已有symbolic_math真执行，但默认主教学链为规则选择+工具文本注入；数学缺canonical schema及Runtime入口，原生调用ID/ToolMessage丢失，Runtime回答在结束后完整输出，/ask尚未共享原生循环。
+- 新增5项免费审计探针，使用真实LangChain BaseChatModel接口，经NativeToolAdapter/BoundedAgentRunner复现同Run两次本地工具与三轮模型响应；确认数据回传文本，同时明确原生消息合同未通过。未修改生产链、数据、依赖、模型配置或Gate。
+- venv310 Python3.10.21下两批相关测试54+114=168通过，只有依赖弃用警告；git diff --check通过。未调用付费模型，未做Electron工具循环实测。
+- 交付TEXA-TOOL-CALLING-AUDIT.md与docs/qa/TOOL-CALLING-PHASE1-REPORT.md；本Checkpoint仅Phase1，不宣称Phase2–5原生数学闭环验收完成。后续优先复用现有Runtime并验证LangChain循环委托；教材Gate差异及线程无法中止SymPy作为局部设计/资源控制问题记录。
+
 # 2026-10-12 - macOS 全屏刷新空白修复
 
 - 在正式 Electron 开发端复现：全屏打开已有多重积分长回答，再从原生 View 菜单 Reload，窗口持续空白。现场 DOM 仍有内容、页面高度为 1024，控制台没有应用异常；退出全屏立即恢复且没有再次导航。故障定位到 macOS 原生内容视图/绘制表面同步，而非模型鉴权或回答内容。具体 Electron/Chromium 内部缺陷未单独定位。
