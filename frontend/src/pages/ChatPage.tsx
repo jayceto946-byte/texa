@@ -2,6 +2,7 @@ import { finishSessionRender } from '../utils/performanceMetrics';
 import { streamFailure, streamPresentation } from '../features/chat/streamPresentation';
 import { useReadingScroll } from '../features/chat/useReadingScroll';
 import { getBookList } from '../features/books/bookList';
+import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
 import { imageUploadError } from '../features/mistakes/imageProcessing';
 import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -125,6 +126,8 @@ const ChatPage: React.FC = () => {
   const [historyLoading, setHistoryLoading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [attachmentError, setAttachmentError] = useState('');
+  const mistakePickerRef = useRef<HTMLDivElement>(null);
+  const mistakePickerButtonRef = useRef<HTMLButtonElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const visualAbortRef = useRef<(() => void) | null>(null);
@@ -753,11 +756,48 @@ const ChatPage: React.FC = () => {
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
   };
 
-  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-    e.target.style.height = 'auto';
-    e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
-  };
+  useEffect(() => {
+    const field = textareaRef.current;
+    if (!field) return;
+    const resize = () => {
+      field.style.height = 'auto';
+      field.style.height = Math.min(field.scrollHeight, Math.min(240, window.innerHeight * 0.3)) + 'px';
+    };
+    resize();
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, [input]);
+
+  useEffect(() => {
+    const quote = (event: Event) => {
+      if (location.pathname !== '/' || inTrash) return;
+      const text = (event as CustomEvent<{ text: string }>).detail?.text;
+      if (!text?.trim()) return;
+      const quotation = text.split('\n').map(line => `> ${line}`).join('\n');
+      setInput(current => `${current}${current.trim() ? '\n\n' : ''}引用回答：\n${quotation}\n\n`);
+      requestAnimationFrame(() => textareaRef.current?.focus({ preventScroll: true }));
+    };
+    window.addEventListener('texa:quote-answer', quote);
+    return () => window.removeEventListener('texa:quote-answer', quote);
+  }, [location.pathname, inTrash]);
+
+  useEffect(() => {
+    if (!mistakePickerOpen) return;
+    const outside = (event: PointerEvent) => {
+      if (!mistakePickerRef.current?.contains(event.target as Node) && !mistakePickerButtonRef.current?.contains(event.target as Node)) setMistakePickerOpen(false);
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setMistakePickerOpen(false);
+      mistakePickerButtonRef.current?.focus();
+    };
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
+  }, [mistakePickerOpen]);
+
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
@@ -925,7 +965,7 @@ const ChatPage: React.FC = () => {
               />
             )}
             <ChatMistakeSourcesContext.Provider value={mistakeSources}>{messages.map((msg, i) => (
-              <ErrorBoundary key={msg.id || `${msg.turnId || 'message'}-${i}`}>
+              <ErrorBoundary key={msg.turnId ? `${msg.turnId}:${msg.role}` : msg.id || `message-${i}`}>
                 <div data-message-id={msg.id} tabIndex={-1}>
                 <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} streamError={msg.streamError} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => { if (!inTrash) sendMessage(question, { answerMode: 'global_general' }); }} onRequestSuggestedAnswer={(question, answerMode) => { if (!inTrash) sendMessage(question, { answerMode }); }} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} learningTask={msg.learningTask} citationProvenance={msg.citationProvenance} onResumeLearningTask={resumeLearningTask} onResumeInterruptedTask={resumeInterruptedTask} />
                 </div>
@@ -958,10 +998,10 @@ const ChatPage: React.FC = () => {
 
         <div className="chat-composer">
           {mistakePickerOpen && (
-            <div className="composer-popover max-h-52 overflow-y-auto p-2">
+            <div ref={mistakePickerRef} className="composer-popover max-h-80 overflow-y-auto p-2" aria-label="历史错题">
               {cachedMistakes.length ? cachedMistakes.map((mistake) => (
                 <button key={mistake.id} type="button" onClick={() => { clearAttachment(); setActiveFigure(null); setVisualRegion(null); setSelectedMistakeId(mistake.id); setMistakePickerOpen(false); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-bg-secondary">
-                  <div className="truncate text-sm text-text-primary">{firstLine(mistake.question_text || mistake.ocr_text || '未命名错题', 80)}</div>
+                  <div className="text-sm text-text-primary"><SimpleMarkdown content={mistake.question_text || mistake.ocr_text || '未命名错题'} /></div>
                   <div className="mt-0.5 text-xs text-text-secondary">{mistake.subject || '未分类'} · {(mistake.tags || []).join('、') || '无标签'}</div>
                 </button>
               )) : <div className="px-3 py-5 text-center text-sm text-text-secondary">当前范围没有可用的历史错题</div>}
@@ -1021,10 +1061,10 @@ const ChatPage: React.FC = () => {
             </div>
             <div className="composer-toolbar">
               <div className="composer-tools" role="toolbar" aria-label="问题输入工具">
-                <button type="button" disabled={isLoading || attachmentLoading} aria-label="拍照提问" onClick={() => cameraInputRef.current?.click()} className="composer-tool-button"><ImagePlus className="h-4 w-4" /><span>拍照</span></button>
+                {!window.kaoyanDesktop?.isElectron && window.matchMedia('(pointer: coarse)').matches && <button type="button" disabled={isLoading || attachmentLoading} aria-label="拍照提问" onClick={() => cameraInputRef.current?.click()} className="composer-tool-button"><ImagePlus className="h-4 w-4" /><span>拍照</span></button>}
                 <button type="button" disabled={isLoading || attachmentLoading} aria-label="上传题目图片" title="上传题目图片" onClick={() => attachmentInputRef.current?.click()} className="composer-tool-button chat-image-upload-button"><ImagePlus className="h-4 w-4" /><span>图片</span></button>
                 <button type="button" disabled={isLoading || attachmentLoading || !bookName} aria-label="选择教材图片" title={bookName ? '选择教材图片' : '请先选择教材'} onClick={openFigureCatalog} className={`composer-tool-button ${activeFigure ? 'is-active' : ''}`}><Images className="h-4 w-4" /><span>教材图</span></button>
-                <button type="button" disabled={isLoading || attachmentLoading} aria-label="选择历史错题" title="选择历史错题" onClick={() => void loadCachedMistakes()} className="composer-tool-button"><BookMarked className="h-4 w-4" /><span>错题</span></button>
+                <button ref={mistakePickerButtonRef} type="button" aria-expanded={mistakePickerOpen} disabled={isLoading || attachmentLoading} aria-label="选择历史错题" title="选择历史错题" onClick={() => void loadCachedMistakes()} className="composer-tool-button"><BookMarked className="h-4 w-4" /><span>错题</span></button>
                 <VisualMathInputPopover
                   disabled={isLoading || attachmentLoading}
                   editRequest={mathEditRequest}

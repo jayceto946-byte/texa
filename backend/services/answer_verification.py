@@ -336,7 +336,7 @@ def verification_notice(result: dict[str, Any]) -> str:
     if result.get("status") == "failed":
         labels_by_id = {"formula": "公式或推导关系未通过检查", "numeric": "数值未通过检查", "unit": "单位未通过检查", "required_outputs": "必要结论或步骤缺失", "citations": "引用未通过检查"}
         labels = [labels_by_id.get(str(item.get("id") or ""), str(item.get("reason") or "必要内容需要核对")) for item in result.get("failures") or []]
-        return f"> 回答验收未通过：{', '.join(labels)}。本轮结果未标记为完整答案。"
+        return f"> 回答验收未通过：{', '.join(labels)}。这些结论仍需核对。"
     if result.get("status") == "unverified":
-        return "> 回答核对：部分公式或数值尚无确定性核验依据，本轮结果未标记为完整答案。"
+        return "> 回答核对：部分公式或数值尚无确定性核验依据，请核对后使用。"
     return ""

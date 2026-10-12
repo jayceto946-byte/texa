@@ -1,15 +1,12 @@
 import React, { useEffect, useId, useState } from 'react';
-import { BookOpen, BrainCircuit, Check, ChevronRight, Circle, Database, Image, Loader2, MessageSquareText, Wrench, X, Pause, AlertCircle } from 'lucide-react';
+import { BookOpen, Check, ChevronRight, Circle, Loader2, X, Pause, AlertCircle } from 'lucide-react';
 
-import type { ActivityKind, AssistantSource, ChatActivity } from '../../types';
+import type { AssistantSource, ChatActivity } from '../../types';
 import { activityDuration } from '../../utils/chatActivities';
+import { answerVerificationLabel } from '../../utils/answerVerification';
 import { MarkdownMessage } from './MarkdownMessage';
 import './ExecutionTrace.css';
 
-const icons: Record<ActivityKind, React.ComponentType<{ className?: string }>> = {
-  analysis: BrainCircuit, tool: Wrench, evidence: BookOpen, reasoning: BrainCircuit,
-  generation: MessageSquareText, memory: Database, system: Image,
-};
 const statusLabels = { active: '进行中', completed: '完成', failed: '失败', skipped: '跳过', pending: '等待' };
 const inputLabels: Record<string, string> = {
   query: '查询', book_name: '教材', subject: '学科', chapter: '章节', operation: '运算',
@@ -77,20 +74,20 @@ function ActivityDetails({ item, onInspectSources }: { item: ChatActivity; onIns
     {warnings.length > 0 && <p className="execution-warning">{warnings.join('；')}</p>}
     {uncertainties.length > 0 && <p className="execution-warning">识别不确定项：{uncertainties.join('；')}</p>}
     {evidence.length > 0 && <EvidenceList items={evidence} count={Number(meta.evidence_count) || evidence.length} scope={stringValue(meta.evidence_scope)} onInspectSources={onInspectSources} />}
-    {typeof meta.verification_status === 'string' && <p>回答校验：{meta.verification_status === 'passed' ? '通过发布门槛' : '未通过或尚无法核验'}</p>}
+    {typeof meta.verification_status === 'string' && <p>回答校验：{answerVerificationLabel({status: meta.verification_status}, [])}</p>}
   </div>;
 }
 
-const ExecutionTrace: React.FC<{ activities: ChatActivity[]; stage?: string; sources?: AssistantSource[]; taskStatus?: string; onInspectSources?: () => void }> = ({ activities, stage, sources = [], taskStatus, onInspectSources }) => {
+const ExecutionTrace: React.FC<{ activities: ChatActivity[]; stage?: string; sources?: AssistantSource[]; taskStatus?: string; verification?: Record<string, unknown>; onInspectSources?: () => void }> = ({ activities, stage, sources = [], taskStatus, verification, onInspectSources }) => {
   const terminal = ['done', 'error', 'stopped', 'waiting_for_input', 'waiting_for_confirmation'].includes(stage || '');
   const [expanded, setExpanded] = useState(false);
   const detailId = useId();
-  useEffect(() => { setExpanded(false); }, [terminal]);
   // The reducer retains operation insertion order; completion seq must not reorder work.
-  const visible = activities.filter((item) => item.id !== 'transport' && item.id !== 'execute' && item.event_type !== 'output_delta');
-  const active = [...activities].reverse().find((item) => item.status === 'active');
+  const visible = activities.filter((item) => item.id !== 'transport' && item.id !== 'execute' && item.event_type !== 'output_delta' && item.status !== 'pending');
+  const active = [...visible].reverse().find((item) => item.status === 'active');
   const failed = visible.some((item) => item.status === 'failed');
-  const degraded = taskStatus === 'degraded';
+  const completion = answerVerificationLabel(verification, activities, taskStatus);
+  const degraded = taskStatus === 'degraded' || completion !== '处理完成';
   const duration = activityDuration(activities);
   const [clock, setClock] = useState({ baseline: 0, delta: 0 });
   useEffect(() => {
@@ -102,12 +99,11 @@ const ExecutionTrace: React.FC<{ activities: ChatActivity[]; stage?: string; sou
   const displayedDuration = duration + (!terminal && clock.baseline === duration ? clock.delta : 0);
   const hasEvidence = visible.some((item) => Array.isArray(item.meta?.evidence_previews) && item.meta.evidence_previews.length > 0);
   const title = terminal
-    ? stage === 'stopped' ? '已停止' : stage === 'error' ? '回答中断' : stage === 'waiting_for_input' ? '等待补充输入' : taskStatus === 'waiting_for_confirmation' ? '等待确认' : degraded ? '回答待核验' : failed ? '处理结束 · 有步骤失败' : '已完成'
+    ? stage === 'stopped' ? '已停止' : stage === 'error' ? '回答中断' : stage === 'waiting_for_input' ? '等待补充输入' : taskStatus === 'waiting_for_confirmation' ? '等待确认' : failed ? '处理结束 · 有步骤失败' : completion
     : active?.label || '正在处理';
   const HeaderIcon = !terminal ? Loader2 : stage === 'stopped' ? Pause : stage === 'error' ? X : degraded || failed || stage === 'waiting_for_input' ? AlertCircle : Check;
-  const recent = visible.filter((item) => item.status !== 'active' && item.id !== active?.id).slice(-2);
 
-  if (!activities.length) return null;
+  if (!visible.length) return null;
   return <section className={`execution-trace ${terminal ? 'is-terminal' : 'is-running'}`} aria-label="任务执行过程">
     <button type="button" className="execution-trace-toggle" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded} aria-controls={detailId}>
       <HeaderIcon className={!terminal ? 'animate-spin text-accent' : stage === 'error' ? 'text-[var(--danger)]' : degraded || failed ? 'text-[var(--warning)]' : 'text-text-secondary'} />
@@ -116,18 +112,12 @@ const ExecutionTrace: React.FC<{ activities: ChatActivity[]; stage?: string; sou
       <span className="execution-toggle-label">{expanded ? '收起过程' : '查看过程'}</span>
       <ChevronRight className={`execution-disclosure ${expanded ? 'is-open' : ''}`} />
     </button>
-    {!terminal && !expanded && <div className="execution-live-preview">
-      {active?.detail && <p>{active.detail}</p>}
-      {recent.map((item) => <div key={item.id}><StatusIcon status={item.status} /><span>{item.label}</span>{item.duration_ms !== undefined && <small>{durationLabel(item.duration_ms)}</small>}</div>)}
-    </div>}
     {expanded && <div id={detailId} className="execution-trace-body">
-      <p className="execution-public-note">处理摘要、教材证据与工具回执</p>
       <ol className="execution-steps">
         {visible.map((item) => {
-          const Icon = icons[item.kind];
           return <li key={item.id} className={`execution-step is-${item.status}`}>
-            <div className="execution-step-heading"><StatusIcon status={item.status} /><Icon /><span>{item.label}</span><small>{statusLabels[item.status]}{item.duration_ms !== undefined ? ` · ${durationLabel(item.duration_ms)}` : ''}</small></div>
-            <ActivityDetails item={item} onInspectSources={onInspectSources} />
+            <div className="execution-step-heading"><StatusIcon status={item.status} /><span>{item.label}</span><small>{statusLabels[item.status]}{item.duration_ms !== undefined ? ` · ${durationLabel(item.duration_ms)}` : ''}</small></div>
+            <details className="execution-step-inspection"><summary>查看详情</summary><ActivityDetails item={item} onInspectSources={onInspectSources} /></details>
           </li>;
         })}
       </ol>

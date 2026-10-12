@@ -47,3 +47,15 @@
 .execution-trace .execution-source-text .katex-display { margin: 8px 0; overflow-x: auto; }
 @media (max-width: 800px) { .execution-step-heading { flex-wrap: wrap; } .execution-step-heading > small { margin-left: 21px; } .execution-step-detail { margin-left: 21px; } }
 @media (prefers-reduced-motion: reduce) { .execution-disclosure { transition: none; } .execution-trace .animate-spin { animation: none; } }
+
+/* Keep the process in one stable row; details remain available on demand. */
+.execution-trace { font-size: 13px; margin-bottom: 14px; }
+.execution-trace-toggle { min-height: 36px; transition: color 150ms ease, opacity 150ms ease; }
+.execution-toggle-label, .execution-time { font-size: 12px; }
+.execution-step-heading > span { font-size: 13px; }
+.execution-step-heading > small, .execution-step-detail, .execution-detail-heading { font-size: 12px; }
+.execution-step-inspection { margin: 4px 0 0 21px; }
+.execution-step-inspection > summary { cursor: pointer; color: var(--color-text-secondary); font-size: 12px; }
+.execution-step-detail { margin-left: 0; }
+.execution-trace .execution-source-text .learning-reading-content { font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { .execution-trace-toggle { transition: none; } }

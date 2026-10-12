@@ -3531,3 +3531,12 @@ Android 普通 Wi-Fi 对照出现解答闪现后回到空问答。隔离浏览�
 - macOS监听真实全屏进出，保留平台身份并按状态取消红绿灯预留；退出恢复留白。共享样式顺带准备多行输入高度，聊天逻辑另行checkpoint。
 - 隔离SQLite测试10项、desktop15项通过；macOS Electron开发壳连续12次点击只提交1次、同task恢复1个新run、跨页不丢task及进出全屏通过。证据 docs/qa/evidence/cross-module/goals-electron。未验正式安装包/Windows。
 - 本轮原有未提交工作区已由既有checkpoint c53e78b等提交；本checkpoint仅本轮增量，不迁移数据/依赖。
+
+
+## 2026-10-12 跨模块整改：问答 checkpoint
+
+- 回答选区可添加引用到输入草稿，保留现有输入且不自动发送；错题选择使用LaTeX渲染、外部点击关闭与Esc焦点返回。桌面隐藏HTML capture重复入口。
+- 过程条改稳定单行摘要、按需真实详情，完成不重置展开。实际Electron发现最终message_id替换React key导致组件重建，改用稳定turn+role身份。正文累积/Runtime合同保持。
+- 移除subject_general冗余标签、点赞点踩入口；区分真实验收失败、缺确定性依据和未完成检查。检索Gate不等同答案验证，不降低发布门槛；提示移除“未标记完整”的机械文案。
+- Astra教学策略落入refined/general prompt：按卡点/理解程度解释，必要例子及边界，不固定结构，版本refined-v2-2026-10-12。55项相关后端、前端198项、类型/lint/build通过；Electron4类增量及此前目标/全屏回归通过。
+- 用户已授权仅合成题最多8次真实调用；Qwen3.7 Plus全部鉴权失败，没有可比较答案，未宣称教学效果提升。脱敏结果和4类rubric位于cross-module证据与evaluation/fixtures/teaching-ux。

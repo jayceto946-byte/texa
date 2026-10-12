@@ -6,16 +6,16 @@
 
 |ID|问题|代码/组件|状态|根因与验证|
 |---|---|---|---|---|
-|01|Gate放行但待核验/未完整|graph/generator.py; backend/services/answer_verification.py; ExecutionTrace|未完成|检索Gate与最终答案验证是不同门槛，需逐类诊断|
-|02|无实际意义的执行步骤|ExecutionTrace; chatActivities|未完成|核对持久execution事件与展示|
-|03|选中文字添加到对话|ChatMessage; ChatPage|未完成|需引用原文并保留输入草稿|
-|04|移除学科通用标签|ChatMessage|未完成|仅移除冗余标签，不改变回答模式|
-|05|移除点赞点踩入口|ChatMessage|未完成|保留已有数据及后端兼容|
-|06|输入框高度自适应|ChatPage; composer样式|未完成|键入/程序引用/多轮清空/尺寸变化|
-|07|桌面拍照功能|ChatPage|未完成|HTML capture不保证桌面相机能力|
-|08|错题展开LaTeX|ChatPage|未完成|候选题干当前按纯文本显示|
-|09|错题展开外部关闭|ChatPage|未完成|候选浮层需pointer dismissal|
-|10|错题展开Esc|ChatPage|未完成|键盘关闭及焦点返回|
+|01|Gate放行但待核验/未完整|graph/generator.py; backend/services/answer_verification.py; ExecutionTrace|部分完成|部分完成：确认Gate与答案核验不同；55项合同测试通过，失败/无依据/未检查展示分开。保留真实unverified；真实模型8次均鉴权失败|
+|02|无实际意义的执行步骤|ExecutionTrace; chatActivities|已修复|稳定摘要+按需真实详情；过滤pending占位，完成不折叠；发现message_id换key重建，改稳定turn身份，Electron流式验收通过|
+|03|选中文字添加到对话|ChatMessage; ChatPage|已修复|选区引用追加原输入，不自动发送；Electron保留原草稿通过|
+|04|移除学科通用标签|ChatMessage|已修复|仅移除subject_general标签；模式与显式放宽动作保留|
+|05|移除点赞点踩入口|ChatMessage|已修复|删除点赞点踩UI，历史数据/API保持兼容；Electron无入口|
+|06|输入框高度自适应|ChatPage; composer样式|已修复|响应input与窗口变化统一高度，修正StudyDesk128px覆盖；Electron长文增长/短文收缩通过|
+|07|桌面拍照功能|ChatPage|部分完成|桌面及精确指针浏览器隐藏HTML拍照入口，保留图片上传；移动粗指针保留capture入口（移动相机未实测）|
+|08|错题展开LaTeX|ChatPage|已修复|错题选择展开采用现有Markdown/KaTeX；Electron公式可见|
+|09|错题展开外部关闭|ChatPage|已修复|pointerdown外部关闭；不影响触发按钮和内部选择，Electron通过|
+|10|错题展开Esc|ChatPage|已修复|Esc关闭并返回触发焦点，Electron通过|
 |11|P0连续继续执行|GoalsPage; goals/execution.py|已修复|同步actionBusy准入 + 后端重复恢复返回同run；SQLite10项通过，Electron连续12次点击1次POST且同task新run|
 |12|原始Runtime Event|GoalsPage|已修复|使用受控状态映射，原事件留在Runtime诊断；Electron展开确认无raw lifecycle|
 |13|英文异常|GoalsPage; goal API|已修复|中文业务提示保留，英文异常映射；runtimePresentation回归|
@@ -38,3 +38,5 @@
 各模块完成后记录实际检查、Git身份及前后图；后续共享改动回归此前模块。Teaching Prompt比较须覆盖概念、推导、应用、追问纠错；无真实模型比较不得宣布教学效果提升。
 
 目标模块阶段验收：后端10项、桌面15项通过；Electron 3类检查通过（目标重复恢复/聊天复验/macOS全屏），[结果](evidence/cross-module/goals-electron/results.json)。动态截图已直接读取；待输入、待确认等视觉状态将在最终扩展检查补齐，不以运行态截图冒充全部状态。Astra规范：[集中设计](CROSS-MODULE-ASTRA-DESIGN-2026-10-12.md)。
+
+问答checkpoint：后端55项、前端198项（新增状态映射检查）、类型/lint/build通过；Electron4类检查通过，目标/全屏同步回归。Prompt合成代表集已建立并按授权调用8次，全部AuthenticationError，无真实答案/质量结论。[脱敏结果](evidence/cross-module/teaching-comparison.json)。

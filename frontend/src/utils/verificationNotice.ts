@@ -5,6 +5,6 @@ const checkLabels: Record<string, string> = {
 export function readableVerificationNotice(content: string): string {
   return content.replace(/(^|\n)> 回答验收未通过：([a-z_, ]+)。本轮结果未标记为完整答案。(?=\n|$)/g, (whole, prefix: string, ids: string) => {
     const labels = ids.split(',').map(id => checkLabels[id.trim()]);
-    return labels.every(Boolean) ? `${prefix}> 回答验收未通过：${labels.join('，')}。本轮结果未标记为完整答案。` : whole;
-  });
+    return labels.every(Boolean) ? `${prefix}> 回答验收未通过：${labels.join('，')}。这些结论仍需核对。` : whole;
+  }).replace(/(^|\n)> 回答核对：部分公式或数值尚无确定性核验依据，本轮结果未标记为完整答案。(?=\n|$)/g, '$1> 回答核对：部分公式或数值尚无确定性核验依据，请核对后使用。');
 }
