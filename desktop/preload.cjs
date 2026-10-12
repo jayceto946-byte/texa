@@ -22,6 +22,12 @@ contextBridge.exposeInMainWorld('kaoyanDesktop', {
   getStartupAppearance: () => ipcRenderer.sendSync('appearance:get'),
   setStartupAppearance: (appearance) => ipcRenderer.invoke('appearance:set', appearance),
   minimize: () => ipcRenderer.invoke('window:minimize'),
+  isFullScreen: () => ipcRenderer.invoke('window:is-fullscreen'),
+  onFullScreenChange: (handler) => {
+    const listener = (_event, fullScreen) => handler(Boolean(fullScreen));
+    ipcRenderer.on('window:fullscreen-changed', listener);
+    return () => ipcRenderer.removeListener('window:fullscreen-changed', listener);
+  },
   isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
   toggleMaximize: () => ipcRenderer.invoke('window:toggle-maximize'),
   close: () => ipcRenderer.invoke('window:close'),

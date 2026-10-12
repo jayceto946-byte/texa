@@ -3522,3 +3522,12 @@ Android 普通 Wi-Fi 对照出现解答闪现后回到空问答。隔离浏览�
 - 候选题准备/校对分阶段，来源原文可返回且保留编辑/选中；正常布局页底唯一导入动作，公式阅读复用SimpleMarkdown，八类编辑字段补持续可见label。警告和解析置信度保留，不等于人工验收。
 - 图片裁剪及窄屏来源复用Dialog焦点/inert/Escape；桌面来源仍并排非模态。取消替换保留旧附件，同文件可再选择，异步图片处理取消后不提交。
 - 复用QA脚本新增可选complex模式，/tmp隔离真实API/SQLite及Word/textPDF提取；浏览器52项、Electron13项，相关后端125/前端195/桌面15及类型/lint/build通过。Astra3次14图，有限关闭范围和实际证据见docs/qa/COMPLEX-INTERACTIONS-2026-10-12.md。未执行真实Tailscale、正式包生命周期或付费模型/OCR。
+
+
+## 2026-10-12 跨模块整改：目标与桌面 checkpoint
+
+- 修复目标 action 同步互斥缺口及重复恢复请求：相同任务已运行时返回权威快照，不创建另一run。保留Goal控制锁、任务合同及存储schema。
+- 目标完成条件默认可见，执行控制归入本次任务，状态映射不直接显示raw Runtime lifecycle/英文异常。原事件保留诊断。
+- macOS监听真实全屏进出，保留平台身份并按状态取消红绿灯预留；退出恢复留白。共享样式顺带准备多行输入高度，聊天逻辑另行checkpoint。
+- 隔离SQLite测试10项、desktop15项通过；macOS Electron开发壳连续12次点击只提交1次、同task恢复1个新run、跨页不丢task及进出全屏通过。证据 docs/qa/evidence/cross-module/goals-electron。未验正式安装包/Windows。
+- 本轮原有未提交工作区已由既有checkpoint c53e78b等提交；本checkpoint仅本轮增量，不迁移数据/依赖。

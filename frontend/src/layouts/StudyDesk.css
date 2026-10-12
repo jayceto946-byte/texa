@@ -141,7 +141,7 @@
   }
   .study-desk .app-rail { position: static; width: 100%; min-width: 0; height: auto; padding: 0 12px 16px; border: 0; background: #303541; flex: none; }
   .study-desk .app-rail-mark { justify-content: flex-start; width: 100%; height: 64px; border: 0; gap: 10px; padding-left: 8px; }
-  body:has(.desktop-titlebar-marker.is-macos) .study-desk .app-rail-mark { margin-top: 28px; height: 56px; }
+  body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .study-desk .app-rail-mark { margin-top: 28px; height: 56px; }
   .study-desk .app-rail-logo-icon img { filter: brightness(0) invert(1); opacity: .9; }
   .study-desk .study-brand-name { display: flex; align-items: baseline; gap: 10px; color: #f3f4f7; font-size: 19px; font-weight: 600; letter-spacing: -.04em; }
   .study-desk .study-brand-name > span { font-size: 10px; color: #a0a6b8; font-weight: 400; letter-spacing: 0; }
@@ -222,7 +222,7 @@
 .study-desk .composer-surface { border-radius: 5px; background: var(--workspace-tray); border-color: #deded9; box-shadow: none; }
 .study-desk .composer-surface:focus-within { box-shadow: none; border-color: #8b98c5; }
 .study-desk .composer-surface .composer-textarea,
-.study-desk .composer-surface .composer-textarea:focus { min-height: 32px; max-height: 128px; padding: 7px 12px 3px; font-size: 14px; }
+.study-desk .composer-surface .composer-textarea:focus { min-height: 52px; max-height: min(240px, 30vh); padding: 7px 12px 3px; font-size: 14px; }
 .study-desk .composer-toolbar { padding: 0 6px 5px; }
 .study-desk .composer-send { background: #435dc5; border-radius: 4px; }
 .study-desk .composer-send.is-stopping { background: #435dc5; color: #fff; }

@@ -17,7 +17,7 @@
 .welcome-brand-group { min-width: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
 .welcome-brand-group img { width: 20px; height: 20px; object-fit: contain; }
 .welcome-step { margin-left: auto; color: var(--color-text-tertiary); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-body:has(.desktop-titlebar-marker.is-macos) .welcome-brand { padding-left: 108px; }
+body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .welcome-brand { padding-left: 108px; }
 body:has(.desktop-titlebar-marker:not(.is-macos)) .welcome-brand { padding-right: calc(var(--window-controls-inset, 138px) + 16px); }
 body:has(.welcome-screen) .desktop-titlebar-marker:not(.is-macos) { z-index: 1001; }
 .welcome-main { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }

@@ -174,6 +174,10 @@ def resume_goal(service, goal_id, *, task_id, expected_revision, request_key):
     if not snapshot:
         raise ValueError("找不到目标运行")
     store._validate_goal_run(snapshot["run"])
+    # A duplicate UI submission may carry a different key. The active run is
+    # authoritative; returning it must not create or relaunch another worker.
+    if snapshot["task"]["status"] == "running":
+        return public_task(store, snapshot)
     if any(call["status"] == "unknown" and call["permission"] == "LOCAL_WRITE" for call in snapshot["tool_calls"]):
         raise RuntimeDenied("存在结果未知的写操作，请先对账")
     registry, _, _ = prepare_registry(goal)

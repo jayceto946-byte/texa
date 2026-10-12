@@ -2090,22 +2090,22 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) {
 }
 
 /* Keep all native macOS controls inside the rail's first row. */
-body:has(.desktop-titlebar-marker.is-macos) .app-shell {
+body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell {
   --app-rail-width: 84px;
 }
 
-body:has(.desktop-titlebar-marker.is-macos) .app-rail,
-body:has(.desktop-titlebar-marker.is-macos) :is(.learning-context-header, .app-page-header) {
+body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-rail,
+body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) :is(.learning-context-header, .app-page-header) {
   app-region: drag;
   -webkit-app-region: drag;
 }
 
-body:has(.desktop-titlebar-marker.is-macos) .learning-workspace-title {
+body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .learning-workspace-title {
   app-region: drag;
   -webkit-app-region: drag;
 }
 
-body:has(.desktop-titlebar-marker.is-macos) .app-rail-mark {
+body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-rail-mark {
   height: 48px;
   margin-top: 40px;
 }

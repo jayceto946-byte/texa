@@ -686,6 +686,8 @@ function createWindow() {
       }
     });
   });
+  mainWindow.on('enter-full-screen', () => mainWindow?.webContents.send('window:fullscreen-changed', true));
+  mainWindow.on('leave-full-screen', () => mainWindow?.webContents.send('window:fullscreen-changed', false));
   mainWindow.on('maximize', () => mainWindow?.webContents.send('window:maximized-changed', true));
   mainWindow.on('unmaximize', () => mainWindow?.webContents.send('window:maximized-changed', false));
   mainWindow.loadFile(path.join(__dirname, 'loading.html'));
@@ -715,6 +717,7 @@ function createWindow() {
 }
 
 ipcMain.handle('window:minimize', () => mainWindow?.minimize());
+ipcMain.handle('window:is-fullscreen', () => mainWindow?.isFullScreen() ?? false);
 ipcMain.handle('window:is-maximized', () => mainWindow?.isMaximized() ?? false);
 ipcMain.handle('window:toggle-maximize', () => {
   if (!mainWindow) return false;

@@ -112,3 +112,25 @@ def test_goal_background_worker_advances_tools_and_publishes_verified_outcome(tm
     assert service.store.get(goal['id'])['status'] == 'active'
     assert snapshot['run']['output']['answer'] != 'protocol'
     assert not runtime.pending_outbox()
+
+
+def test_goal_resume_double_click_returns_authoritative_running_task(tmp_path, monkeypatch):
+    service, runtime, launches = setup(tmp_path, monkeypatch)
+    goal = service.create(learner_id='local_default', title='学习进度', objective='查看学习进度')
+    first = execution.start_goal(service, goal['id'], expected_revision=1, request_key='start')
+    runtime.close(first['active_run_id'], launches[0][2], outcome='paused')
+    execution._workers.clear()
+    def launch(store, run_id, owner, registry, adapter):
+        launches.append((store, run_id, owner, registry, adapter))
+        execution._workers.add(run_id)
+    monkeypatch.setattr(execution, 'launch_worker', launch)
+    try:
+        resumed = execution.resume_goal(service, goal['id'], task_id=first['id'], expected_revision=2, request_key='resume-1')
+        repeated = execution.resume_goal(service, goal['id'], task_id=first['id'], expected_revision=2, request_key='resume-2')
+        assert resumed['active_run_id'] == repeated['active_run_id'] != first['active_run_id']
+        assert resumed['id'] == repeated['id'] == first['id']
+        assert len(launches) == 2
+        assert len(service.store.links(goal['id'])) == 2
+        assert repeated['status'] == 'running'
+    finally:
+        execution._workers.clear()

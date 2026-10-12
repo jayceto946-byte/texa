@@ -36,6 +36,8 @@ declare global {
       getStartupAppearance?: () => { id: string; tokens: Record<string, string> } | null;
       setStartupAppearance?: (appearance: { id: string; tokens: Record<string, string> }) => Promise<boolean>;
       minimize: () => Promise<void>;
+      isFullScreen?: () => Promise<boolean>;
+      onFullScreenChange?: (handler: (fullScreen: boolean) => void) => () => void;
       isMaximized?: () => Promise<boolean>;
       toggleMaximize: () => Promise<boolean>;
       close: () => Promise<void>;
