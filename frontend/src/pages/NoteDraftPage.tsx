@@ -1,3 +1,4 @@
+import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import { Link, useParams } from 'react-router-dom';
 import { useDraftWorkspace } from '../features/notes/hooks/useDraftWorkspace';
 import { DraftEditor, GenerationWorkspace } from '../features/notes/DraftWorkspace';
@@ -15,7 +16,7 @@ export default function NoteDraftPage() {
     if (error)
         return <DraftState><p role="alert">{error}</p><button className="app-secondary-button" onClick={() => void reload()}>重新读取</button></DraftState>;
     if (!draft)
-        return <DraftState><p role="status">正在读取草稿…</p></DraftState>;
+        return <DraftState><WorkspaceSkeleton label="正在读取草稿" header={false} reading /></DraftState>;
     if (draft.status === 'published')
         return <DraftState><p>草稿已保存成笔记。</p><Link className="app-primary-button" to={`/notes/${draft.published_note_id}`}>打开笔记</Link></DraftState>;
     if (draft.status === 'discarded')

@@ -1,0 +1,18 @@
+.workspace-skeleton { width: 100%; min-width: 0; overflow: hidden; }
+.workspace-skeleton-header { height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--border, #e5e5e5); }
+.workspace-skeleton-content { padding: 28px 32px; max-width: 1040px; margin: 0 auto; }
+.skeleton-shape { display: block; border-radius: 3px; background: var(--border, #e5e5e5); animation: workspace-skeleton-pulse 1.6s ease-in-out infinite; }
+.skeleton-title { width: 96px; height: 22px; }
+.skeleton-action { width: 76px; height: 28px; }
+.skeleton-subtitle { width: 30%; height: 14px; margin-bottom: 28px; }
+.workspace-skeleton-row { padding: 18px 0; border-bottom: 1px solid var(--border, #e5e5e5); }
+.skeleton-line { width: 72%; height: 14px; margin-bottom: 12px; }
+.skeleton-line.is-short { width: 44%; height: 12px; margin-bottom: 0; }
+.workspace-skeleton.is-reading .workspace-skeleton-content { max-width: 800px; }
+.workspace-skeleton.is-reading .workspace-skeleton-row { border: 0; padding: 18px 0 26px; }
+.workspace-skeleton.is-reading .skeleton-line { width: 100%; }
+.workspace-skeleton.is-reading .skeleton-line.is-short { width: 80%; margin-bottom: 12px; }
+.markdown-loading-skeleton { min-height: 40px; padding-block: 6px; }
+@keyframes workspace-skeleton-pulse { 0%, 100% { opacity: .35; } 50% { opacity: .65; } }
+@media (max-width: 760px) { .workspace-skeleton-header { padding-inline: 20px; } .workspace-skeleton-content { padding: 24px 20px; } }
+@media (prefers-reduced-motion: reduce) { .skeleton-shape { animation: none; opacity: .5; } }

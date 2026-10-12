@@ -9,11 +9,24 @@
     <title>Texa</title>
   </head>
   <body>
-    <section id="texa-startup" role="status" style="margin:32px auto;padding:24px;max-width:640px;font:16px/1.6 system-ui,sans-serif;color:#25272d;background:#faf9f6;border:1px solid #ddd;border-radius:12px;overflow-wrap:anywhere">
-      <h1 style="font-size:24px">Texa 正在启动</h1>
-      <p id="texa-startup-message">正在加载学习工作区。若长时间停留在这里，请检查静态资源加载。</p>
-      <pre id="texa-startup-report" style="white-space:pre-wrap;font-size:13px"></pre>
-      <button type="button" onclick="window.location.reload()">重新加载</button>
+    <style>
+      #texa-startup { position: fixed; inset: 0; background: #faf9f6; color: #25272d; font: 16px/1.6 system-ui,sans-serif; }
+      .startup-bar { height: 72px; border-bottom: 1px solid #e0dfdb; }
+      .startup-shapes { max-width: 1040px; margin: auto; padding: 28px 32px; }
+      .startup-shape { height: 14px; width: 72%; margin: 24px 0; border-radius: 3px; background: #e0dfdb; animation: startup-pulse 1.6s ease-in-out infinite; }
+      .startup-shape.short { width: 44%; }
+      #texa-startup-diagnostics { margin: 32px auto; padding: 24px; max-width: 640px; overflow-wrap: anywhere; }
+      @keyframes startup-pulse { 0%,100% { opacity:.35; } 50% { opacity:.65; } }
+      @media (prefers-reduced-motion: reduce) { .startup-shape { animation: none; opacity:.5; } }
+    </style>
+    <section id="texa-startup" role="status" aria-label="正在启动 Texa" aria-busy="true">
+      <div id="texa-startup-skeleton" aria-hidden="true"><div class="startup-bar"></div><div class="startup-shapes"><div class="startup-shape short"></div><div class="startup-shape"></div><div class="startup-shape short"></div><div class="startup-shape"></div><div class="startup-shape short"></div></div></div>
+      <div id="texa-startup-diagnostics" hidden>
+        <h1 style="font-size:24px">Texa 正在启动</h1>
+        <p id="texa-startup-message">正在加载学习工作区。</p>
+        <pre id="texa-startup-report" style="white-space:pre-wrap;font-size:13px"></pre>
+        <button type="button" onclick="window.location.reload()">重新加载</button>
+      </div>
       <noscript><p>浏览器未启用 JavaScript，无法启动 Texa。</p></noscript>
     </section>
     <script>
@@ -79,6 +92,9 @@
           var codes = ['module-init', 'react-render', 'script-error', 'unhandled-rejection', 'asset-load', 'startup-timeout'];
           var code = codes.indexOf(stage) >= 0 ? stage : 'startup-error';
           panel.hidden = false;
+          panel.setAttribute('aria-busy', 'false');
+          document.getElementById('texa-startup-skeleton').hidden = true;
+          document.getElementById('texa-startup-diagnostics').hidden = false;
           panel.setAttribute('role', 'alert');
           panel.querySelector('h1').textContent = 'Texa 启动失败';
           message.textContent = '页面未能完成启动。请重新加载；若仍失败，请提供下方诊断信息。诊断不包含访问令牌。';

@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertCircle, CheckCircle2, CircleAlert, Info, Loader2 } from 'lucide-react';
+import WorkspaceSkeleton from './WorkspaceSkeleton';
 
 export type AsyncStateKind = 'loading' | 'empty' | 'error' | 'success' | 'info';
 
@@ -48,13 +49,7 @@ export function StatusBanner({ kind = 'info', title, description, action }: { ki
 
 export function PageState({ kind, title, description, action }: { kind: AsyncStateKind; title: string; description?: string; action?: React.ReactNode }) {
   if (kind === 'loading') {
-    return (
-      <div role="status" aria-label={title} className="app-panel space-y-3 p-5">
-        <div className="h-4 w-32 animate-pulse rounded bg-border/70" />
-        <div className="h-3 w-full max-w-md animate-pulse rounded bg-border/45" />
-        <div className="h-3 w-3/4 max-w-sm animate-pulse rounded bg-border/45" />
-      </div>
-    );
+    return <WorkspaceSkeleton label={title} header={false} />;
   }
   return (
     <div className="px-5 py-8">

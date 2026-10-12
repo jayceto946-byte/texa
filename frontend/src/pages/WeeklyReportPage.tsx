@@ -1,7 +1,8 @@
+import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, BookOpen, ClipboardCheck, HelpCircle, Loader2, RefreshCw } from 'lucide-react';
+import { BarChart3, BookOpen, ClipboardCheck, HelpCircle, RefreshCw } from 'lucide-react';
 import { get } from '../api/client';
 import { ActionableIssue } from '../components/ui/AsyncState';
 import { useChatContext } from '../contexts/ChatContext';
@@ -76,10 +77,7 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
       <div className={compact ? 'space-y-4' : 'management-page-content min-h-0 flex-1 space-y-4 overflow-y-auto'}>
 
       {loading && !report && (
-        <div className="flex items-center justify-center gap-2 rounded-md border border-border bg-bg-card py-8 text-sm text-text-secondary">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          正在整理{title}
-        </div>
+        <WorkspaceSkeleton label={`正在整理${title}`} header={false} reading />
       )}
 
       {error && <ActionableIssue

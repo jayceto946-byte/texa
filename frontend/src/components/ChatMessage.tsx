@@ -20,7 +20,7 @@ import LearningTaskActions from './chat/LearningTaskActions';
 import LearningTaskResume from './chat/LearningTaskResume';
 import LearningTaskEffects from './chat/LearningTaskEffects';
 import { useInspector } from '../contexts/InspectorContext';
-import { readableVerificationNotice } from '../utils/verificationNotice';
+import { separateVerificationNotice } from '../utils/verificationNotice';
 import AnswerSelection from './chat/AnswerSelection';
 import OverflowMenu from './ui/OverflowMenu';
 import { ChatMistakeSourcesContext } from '../features/mistakes/hooks/useChatMistakeSources';
@@ -196,6 +196,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
   }, [openInspector, bookName]);
 
   const isUser = role === 'user';
+  const answerPresentation = useMemo(() => separateVerificationNotice(content), [content]);
+  const hasExecutionTrace = activities.some(item => item.id !== 'transport' && item.id !== 'execute' && item.event_type !== 'output_delta' && item.status !== 'pending');
   const questionContent = useMemo(
     () => (isUser && variant === 'message' ? splitQuestionAttachment(isVisualQuestion ? readableVisualQuestion(content) : content) : { attachmentName: '', body: content }),
     [content, isUser, isVisualQuestion, variant],
@@ -258,7 +260,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
           </div>
         )}
 
-        {!isUser && activities.length > 0 && <ExecutionTrace activities={activities} stage={stage} sources={sources} taskStatus={learningTask?.status} verification={learningTask?.verification} onInspectSources={openSources} />}
+        {!isUser && hasExecutionTrace && <ExecutionTrace activities={activities} stage={stage} sources={sources} taskStatus={learningTask?.status} verification={learningTask?.verification || (answerPresentation.notice ? {status: 'unverified'} : undefined)} onInspectSources={openSources} />}
+        {!isUser && answerPresentation.notice && !hasExecutionTrace && <details className="answer-verification-detail"><summary>公式或数值需要核对</summary><p>{answerPresentation.notice}</p></details>}
 
         {reportCard ? (
           <ReportCard card={reportCard} />
@@ -275,7 +278,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
           </div>
         ) : !isUser && stage === 'error' ? (
           <>
-            {streamError && content.trim() && <MarkdownMessage content={readableVerificationNotice(content)} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} />}
+            {streamError && content.trim() && <MarkdownMessage content={answerPresentation.body} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} />}
             <ActionableIssue
               title="这次回答没有完成"
               impact={streamError && content.trim() ? '已保留收到的部分回答，尚未完成。重新打开本会话可核对桌面保存的结果。' : '尚未收到可用答案。重新打开本会话可核对桌面状态。'}
@@ -284,7 +287,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
             />
           </>
         ) : content.trim() ? (
-          isUser ? <MarkdownMessage content={questionContent.body} /> : <AnswerSelection><MarkdownMessage content={readableVerificationNotice(content)} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} /></AnswerSelection>
+          isUser ? <MarkdownMessage content={questionContent.body} /> : <AnswerSelection><MarkdownMessage content={answerPresentation.body} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} /></AnswerSelection>
         ) : null}
 
         {captureError && <p role="alert" className="text-xs text-[var(--danger)]">{captureError}</p>}

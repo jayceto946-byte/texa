@@ -1,3 +1,4 @@
+import WorkspaceSkeleton from '../ui/WorkspaceSkeleton';
 import { X } from 'lucide-react';
 import { lazy, Suspense, useCallback, useRef } from 'react';
 import Dialog from '../ui/Dialog';
@@ -30,7 +31,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           <X className="h-[18px] w-[18px]" />
         </button>
       </header>
-      <Suspense fallback={<div role="status">正在加载设置…</div>}>
+      <Suspense fallback={<WorkspaceSkeleton label="正在读取设置" header={false} />}>
         <SettingsPage open={open} onModelDirtyChange={setModelDirty} />
       </Suspense>
     </Dialog>

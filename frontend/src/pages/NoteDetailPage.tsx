@@ -1,3 +1,4 @@
+import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useNoteScroll } from '../features/notes/hooks/useNoteScroll';
 import { useNoteDetail } from '../features/notes/hooks/useNoteDetail';
@@ -10,7 +11,7 @@ export default function NoteDetailPage() {
     const { note, error, busy, history, historyCursor, edit, status, revisions } = useNoteDetail(noteId, revision);
     const { ref: scrollRef, onScroll: rememberScroll } = useNoteScroll(`${noteId}:${revision || 'current'}`, Boolean(note));
     if (!note)
-        return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><h1>笔记</h1><Link className="app-ghost-button" to="/notes">笔记列表</Link></header><div className="management-page-content"><p role={error ? 'alert' : 'status'}>{error || '正在读取笔记…'}</p></div></div>;
+        return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><h1>笔记</h1><Link className="app-ghost-button" to="/notes">笔记列表</Link></header><div className="management-page-content"><>{error ? <p role="alert">{error}</p> : <WorkspaceSkeleton label="正在读取笔记" header={false} reading />}</></div></div>;
     return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><h1>笔记</h1><span className="note-header-state">{revision ? `历史版本 ${revision} · 只读` : `已保存 · 版本 ${note.revision}`} {note.status === 'archived' ? '· 已归档' : ''}</span><div className="note-actions"><Link className="app-ghost-button" to="/notes">笔记列表</Link>{!revision && <><button className="app-primary-button" disabled={busy || note.status !== 'active'} onClick={() => void edit()}>编辑</button><button className="app-secondary-button" disabled={busy} onClick={() => void status()}>{note.status === 'active' ? '归档' : '恢复'}</button></>}{revision && <Link className="app-secondary-button" to={`/notes/${note.id}`}>当前版本</Link>}</div></header><div className="note-scroll" ref={scrollRef} onScroll={rememberScroll}><article className="note-document">
     <h1 className="note-document-title">{note.title}</h1>{error && <p role="alert" className="note-warning">{error}</p>}
     {note.abstract && <p className="note-abstract">{note.abstract}</p>}

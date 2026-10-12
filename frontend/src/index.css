@@ -2120,7 +2120,17 @@ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-rail-mark {
 .persistent-route-panel:not([hidden]) {
   display: flex;
   flex-direction: column;
+  animation: workspace-page-enter 160ms ease-out;
 }
+
+@keyframes workspace-page-enter { from { opacity: .7; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .persistent-route-panel:not([hidden]) { animation: none; }
+}
+
+.answer-verification-detail { margin: 8px 0 20px; color: var(--color-text-secondary); font-size: 12px; line-height: 1.6; }
+.answer-verification-detail summary { cursor: pointer; color: var(--warning); }
+.answer-verification-detail p { margin: 8px 0 0; }
 
 .window-drag-region {
   min-width: 24px;

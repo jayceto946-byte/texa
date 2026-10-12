@@ -5,6 +5,7 @@ import { expect, it, vi } from 'vitest';
 function guard(fetchMock?: typeof fetch) {
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const script = html.match(/<script>\s*([\s\S]*?)<\/script>/)![1];
+  const skeleton = { hidden: false }; const diagnostics = { hidden: true };
   const report = { textContent: '' }; const message = { textContent: '' };
   const panel = { hidden: false, setAttribute: vi.fn(), querySelector: () => ({ textContent: '' }) };
   const listeners: Record<string, (event: any) => void> = {};
@@ -14,19 +15,21 @@ function guard(fetchMock?: typeof fetch) {
   Object.defineProperty(win, 'sessionStorage', { get() { throw new Error('secret-token'); } });
   let timeout: () => void = () => {};
   runInNewContext(script, { window: win, navigator: { userAgent: 'Chrome/154.0.8037.57' },
-    document: { getElementById: (id: string) => id === 'texa-startup' ? panel : id === 'texa-startup-report' ? report : message,
+    document: { getElementById: (id: string) => id === 'texa-startup' ? panel : id === 'texa-startup-report' ? report : id === 'texa-startup-skeleton' ? skeleton : id === 'texa-startup-diagnostics' ? diagnostics : message,
       querySelector: () => ({ content: 'test-build' }) },
     setTimeout: (callback: () => void) => { timeout = callback; return 1; }, clearTimeout: vi.fn() });
-  return { win, listeners, report, panel, timeout };
+  return { win, listeners, report, panel, timeout, skeleton, diagnostics };
 }
 it('remains visible before JS/React is ready and hides on a committed mount', () => {
   const g = guard(); expect(g.report.textContent).toContain('chrome=154');
   expect(g.report.textContent).toContain('sessionStorage=blocked');
+  expect(g.skeleton.hidden).toBe(false); expect(g.diagnostics.hidden).toBe(true);
   expect(g.panel.hidden).toBe(false); g.win.texaStartup.ready(); expect(g.panel.hidden).toBe(true);
 });
 it('reports script resource failures without URL secrets and preserves the first failure', () => {
   const g = guard(); g.listeners.error({ target: { tagName: 'SCRIPT', src: 'https://host/assets/app-123.js?token=secret-token#access_token=secret-token' } });
   g.win.texaStartup.fail('module-init', new Error('secret-token'));
+  expect(g.skeleton.hidden).toBe(true); expect(g.diagnostics.hidden).toBe(false);
   expect(g.report.textContent).toContain('stage=asset-load');
   expect(g.report.textContent).toContain('asset=app-123.js');
   expect(g.report.textContent).not.toContain('secret-token');

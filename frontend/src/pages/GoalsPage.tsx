@@ -1,3 +1,4 @@
+import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import { getBookList } from '../features/books/bookList';
 import { useLocation } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -186,7 +187,7 @@ export default function GoalsPage() {
     <header className="goals-header window-drag-region"><h1>目标与任务</h1>
       {listStatus === 'ready' && goals.length > 0 && view === 'detail' && <button className="app-secondary-button" onClick={showCreate}><Plus size={16} />新目标</button>}
     </header>
-    {listStatus === 'loading' ? <div className="goals-page-state" role="status">正在读取目标…</div>
+    {listStatus === 'loading' ? <WorkspaceSkeleton label="正在读取目标" header={false} />
       : listStatus === 'error' ? <div className="goals-page-state" role="alert"><h2>目标暂时无法读取</h2><p>请检查连接后重试。</p><button className="app-secondary-button" onClick={() => void load()}>重试读取</button></div>
       : <div className={`goals-body ${mobilePane === 'list' ? 'goals-show-list' : 'goals-show-workspace'}`}>
         {zeroGoals ? <div className="goals-zero-count">目标 · 0</div> : <aside className="goals-index" aria-label="目标列表">

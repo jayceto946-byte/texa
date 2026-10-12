@@ -10,6 +10,7 @@ import { isRemoteBrowser } from './api/client';
 import { installNetworkRecovery } from './api/networkDiagnostics';
 const FirstRunGuide = lazy(() => import('./components/FirstRunGuide'));
 import { InspectorProvider } from './contexts/InspectorContext';
+import WorkspaceSkeleton from './components/ui/WorkspaceSkeleton';
 
 const GoalsPage = lazy(() => import('./pages/GoalsPage'));
 const NotesPage = lazy(() => import('./pages/NotesPage'));
@@ -38,10 +39,10 @@ function PageLoading() {
     const timer = window.setTimeout(() => setSlow(true), 20000);
     return () => window.clearTimeout(timer);
   }, []);
-  return <div role="status" style={{ padding: 24 }}>
-    <p>{slow ? '页面文件下载较慢，请检查手机与桌面的连接。' : '正在加载页面…'}</p>
-    {slow && <button type="button" className="app-secondary-button" onClick={() => window.location.reload()}>刷新并重新读取页面</button>}
-  </div>;
+  return <>
+    <WorkspaceSkeleton />
+    {slow && <div role="status" className="px-6 py-3 text-text-secondary"><p>页面文件下载较慢，请检查手机与桌面的连接。</p><button type="button" className="app-secondary-button" onClick={() => window.location.reload()}>刷新并重新读取页面</button></div>}
+  </>;
 }
 
 function PageSlot({ children }: { children: ReactNode }) {
@@ -55,7 +56,7 @@ function PageSlot({ children }: { children: ReactNode }) {
 function FirstRunGate({ children }: { children: ReactNode }) {
   // The authenticated remote gate has already verified desktop configuration.
   if (isRemoteBrowser()) return children;
-  return <Suspense fallback={<div role="status" style={{ padding: 24 }}>正在读取本地配置…</div>}>
+  return <Suspense fallback={<WorkspaceSkeleton label="正在读取本地配置" />}>
     <FirstRunGuide>{children}</FirstRunGuide>
   </Suspense>;
 }

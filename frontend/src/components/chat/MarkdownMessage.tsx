@@ -19,7 +19,10 @@ const MarkdownRenderer = lazy(() =>
 );
 
 const MarkdownLoadingFallback: React.FC = () => (
-  <div data-texa-markdown-loading="true" aria-busy="true" className="min-h-6 text-xs leading-relaxed text-text-secondary">正在加载内容…</div>
+  <div data-texa-markdown-loading="true" role="status" aria-label="正在准备正文" aria-busy="true" className="markdown-loading-skeleton">
+    <span className="skeleton-shape skeleton-line" aria-hidden="true" />
+    <span className="skeleton-shape skeleton-line is-short" aria-hidden="true" />
+  </div>
 );
 
 export const SimpleMarkdown: React.FC<SimpleMarkdownProps> = ({ content }) => (

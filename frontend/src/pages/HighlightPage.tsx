@@ -1,3 +1,4 @@
+import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ExternalLink, Loader2, Printer } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
@@ -180,7 +181,7 @@ const HighlightPage: React.FC = () => {
             </div>
           </div>
 
-          {loading && <div className="mt-8 flex items-center gap-2 text-sm text-text-secondary"><Loader2 className="h-4 w-4 animate-spin" />正在加载本地重点...</div>}
+          {loading && <WorkspaceSkeleton label="正在读取本地重点" header={false} reading />}
           {!loading && error && <div className="mt-8 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
           {!loading && !error && (
             <article className="mt-5 border border-border bg-bg-card px-5 py-4 shadow-sm">
