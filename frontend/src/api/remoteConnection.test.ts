@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest';
+import type { ExecutionStreamEnvelope } from '../types';
 
 function storage() {
   const values = new Map<string, string>();
@@ -57,4 +58,32 @@ it('marks a browser offline event as failure and removes its listener', async ()
   expect(error.message).toContain('回答尚未确认完成');
   expect(onEvent).not.toHaveBeenCalled();
   expect(win.removeEventListener).toHaveBeenCalledWith('offline', expect.any(Function));
+});
+
+it('preserves fragmented delayed SSE, Chinese text and Session identity without replaying the question', async () => {
+  browser();
+  const base = { schema: 'texa.execution/v1', request_id: 'req-network', task_id: 'task-network', run_id: 'run-network', conversation_id: 'conv-network', turn_id: 'turn-network', operation_id: 'answer', phase: 'generation', status: 'running', summary: '生成中', label: '生成回答', kind: 'generation', elapsed_ms: 1 };
+  const envelopes = [
+    { execution_event: { ...base, seq: 1, type: 'output_delta', payload: { text: '保持会话与公式 $x^2$。', replace: false } } },
+    { execution_event: { ...base, seq: 2, type: 'final', phase: 'final', status: 'completed', payload: { task_status: 'completed' } } },
+  ];
+  const bytes = new TextEncoder().encode(envelopes.map(event => `data: ${JSON.stringify(event)}\n\n`).join(''));
+  const body = new ReadableStream<Uint8Array>({ async start(controller) {
+    // Small delayed fragments emulate transport chunking, not a measured DERP link.
+    for (let i = 0; i < bytes.length; i += 17) {
+      controller.enqueue(bytes.slice(i, i + 17));
+      await new Promise(resolve => setTimeout(resolve, 1));
+    }
+    controller.close();
+  } });
+  const fetchMock = vi.fn().mockResolvedValue(new Response(body, { headers: { 'Content-Type': 'text/event-stream' } }));
+  vi.stubGlobal('fetch', fetchMock);
+  const { chatStream } = await import('./client'); const received: ExecutionStreamEnvelope[] = [];
+  await new Promise<void>((resolve, reject) => chatStream('question', '', '', 'conv-network', 'turn-network', event => {
+    received.push(event); if (event.execution_event.type === 'final') resolve();
+  }, reject));
+  expect(received).toHaveLength(2);
+  expect(received[0].execution_event.payload.text).toBe('保持会话与公式 $x^2$。');
+  expect(received.every(event => event.execution_event.conversation_id === 'conv-network')).toBe(true);
+  expect(fetchMock).toHaveBeenCalledOnce();
 });

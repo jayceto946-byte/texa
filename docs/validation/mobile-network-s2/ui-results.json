@@ -1,0 +1,34 @@
+{
+  "fixture": true,
+  "errors": [],
+  "sizes": [
+    {
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "probes": 1,
+      "unavailableHandled": true
+    },
+    {
+      "width": 760,
+      "height": 820,
+      "overflow": false,
+      "probes": 1,
+      "unavailableHandled": true
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "overflow": false,
+      "probes": 1,
+      "unavailableHandled": true
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "overflow": false,
+      "probes": 1,
+      "unavailableHandled": true
+    }
+  ]
+}

@@ -6,7 +6,7 @@ import asyncio
 from pathlib import Path
 from typing import Literal
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 
 from config import PROGRESS_PATH, VECTOR_DB_PATH
 from backend.runtime_identity import runtime_build_identity
@@ -502,3 +502,17 @@ def run_update():
         "success": False,
         "message": "自动更新通道尚未启用。桌面打包完成后可接入安装包更新或 git 更新策略。",
     }
+
+
+@router.get('/network-diagnostics')
+async def network_diagnostics(response: Response):
+    response.headers['Cache-Control'] = 'no-store'
+    from backend.services.network_diagnostics import monitor
+    return {'success': True, 'data': await monitor.observe()}
+
+
+@router.post('/network-diagnostics/probe')
+async def network_probe(response: Response):
+    response.headers['Cache-Control'] = 'no-store'
+    from backend.services.network_diagnostics import monitor
+    return {'success': True, 'data': await monitor.probe()}

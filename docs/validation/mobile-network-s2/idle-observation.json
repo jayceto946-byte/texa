@@ -1,0 +1,26 @@
+{
+  "observation": {
+    "path": "offline",
+    "source": "tailscale_status",
+    "sampled_at": "2026-10-11T07:15:37.240763+00:00",
+    "home_derp": "sfo",
+    "derp_region": null,
+    "error_code": null
+  },
+  "changed_at": "2026-10-11T07:15:37.240763+00:00",
+  "last_probe": null,
+  "history": [
+    {
+      "path": "offline",
+      "source": "tailscale_status",
+      "sampled_at": "2026-10-11T07:15:37.240763+00:00",
+      "home_derp": "sfo",
+      "derp_region": null,
+      "error_code": null,
+      "previous_path": null
+    }
+  ],
+  "samples": [],
+  "probe_cooldown_seconds": 0,
+  "target_selected": true
+}

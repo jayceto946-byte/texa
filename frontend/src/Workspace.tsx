@@ -7,6 +7,7 @@ import { ChatProvider } from './contexts/ChatContext';
 import MainLayout from './layouts/MainLayout';
 import DesktopTitleBar from './components/DesktopTitleBar';
 import { isRemoteBrowser } from './api/client';
+import { installNetworkRecovery } from './api/networkDiagnostics';
 const FirstRunGuide = lazy(() => import('./components/FirstRunGuide'));
 import { InspectorProvider } from './contexts/InspectorContext';
 
@@ -60,6 +61,7 @@ function FirstRunGate({ children }: { children: ReactNode }) {
 }
 
 function Workspace() {
+  useEffect(() => { if (isRemoteBrowser()) return installNetworkRecovery(); }, []);
   return (
     <ChatProvider>
       <InspectorProvider>
