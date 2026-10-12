@@ -168,7 +168,7 @@ function connectedActivities(current: ChatActivity[]): ChatActivity[] {
 
 function terminalActivities(current: ChatActivity[], terminalType: 'final' | 'error', summary: string): ChatActivity[] {
   return current.map((item) => item.status === 'active'
-    ? { ...item, status: terminalType === 'final' ? 'completed' as const : 'failed' as const, detail: terminalType === 'final' ? item.detail : summary }
+    ? { ...item, status: terminalType === 'final' ? 'skipped' as const : 'failed' as const, detail: terminalType === 'final' ? '未收到独立完成记录' : summary }
     : item);
 }
 

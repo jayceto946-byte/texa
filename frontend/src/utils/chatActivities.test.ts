@@ -40,6 +40,12 @@ describe('chat activity projection', () => {
     expect(connected.activities[1]).toMatchObject({ id: 'context', elapsed_ms: 12 });
   });
 
+  it('does not claim unfinished work completed when the answer ends', () => {
+    const started = mergeExecutionLifecycle(createExecutionLifecycle(), event({ operation_id: 'retrieve', kind: 'tool' }));
+    const ended = mergeExecutionLifecycle(started, event({ seq: 2, operation_id: 'finalize', type: 'final', status: 'completed' }));
+    expect(ended.activities[0]).toMatchObject({ status: 'skipped', detail: '未收到独立完成记录' });
+  });
+
   it('updates an existing activity without reordering it', () => {
     const started = mergeChatActivity([], { id: 'vision', kind: 'tool', label: '识别图片', status: 'active' });
     const completed = mergeChatActivity(started, { id: 'vision', kind: 'tool', label: '识别图片', status: 'completed', duration_ms: 1200 });

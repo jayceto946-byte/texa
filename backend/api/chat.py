@@ -1067,9 +1067,6 @@ def _prepared_chat_stream(
         assistant_message: dict | None = None
         suggested_answer_mode = ""
         disconnected = False
-        reason_active = False
-        reason_started_at: float | None = None
-        evidence_active = False
         generation_handoff_done = False
 
         def execution_sse(
@@ -1463,24 +1460,6 @@ def _prepared_chat_stream(
                     emit_runtime_event("model_call", **audit_identity,
                                        payload={"model_role": "reasoning", "phase": "generation",
                                                 "status": "running"})
-                    if reason_active:
-                        yield activity_sse({
-                            "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
-                            "status": "completed", "detail": "已形成可展示的回答路径",
-                            "meta": {"required_outputs": [{"label": item.get("label"), "kind": item.get("kind")} for item in learning_task.required_outputs[:12]]},
-                            "duration_ms": round((time.perf_counter() - (reason_started_at or time.perf_counter())) * 1000, 2),
-                        })
-                    else:
-                        if evidence_active:
-                            yield activity_sse({
-                                "id": "evidence", "kind": "evidence", "label": "整理教材证据",
-                                "status": "skipped", "detail": "无需额外展开章节内容",
-                            })
-                        yield activity_sse({
-                            "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
-                            "status": "completed", "detail": "已形成可展示的回答路径",
-                            "meta": {"required_outputs": [{"label": item.get("label"), "kind": item.get("kind")} for item in learning_task.required_outputs[:12]]},
-                        })
                 event["conversation_id"] = conversation_id
                 event["turn_id"] = turn_id
                 if event.get("stage") == "generate":
@@ -1541,37 +1520,18 @@ def _prepared_chat_stream(
                 else:
                     observe(event)
                 yield f"data: {json.dumps(_chat_execution_envelope(event), ensure_ascii=False)}\n\n"
-                if event.get("stage") == "plan":
+                if event.get("stage") == "plan" and use_textbook_context:
                     yield activity_sse({
                         "id": "retrieve", "kind": "tool", "label": "检索教材上下文",
                         "status": "active", "detail": "正在定位相关章节、定义、公式与例题",
                     })
-                elif event.get("stage") == "retrieve":
-                    has_chapter_step = (
-                        bool(event.get("use_textbook_context", True))
-                        and intent in {"teach", "summarize"}
-                        and int(event.get("content_count") or 0) > 0
-                    )
-                    if has_chapter_step:
-                        evidence_active = True
-                        yield activity_sse({
-                            "id": "evidence", "kind": "evidence", "label": "整理教材证据",
-                            "status": "active", "detail": "正在准备章节内容与可引用依据",
-                        })
-                    else:
-                        reason_active = True
-                        reason_started_at = time.perf_counter()
-                        yield activity_sse({
-                            "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
-                            "status": "active", "detail": "正在基于问题与已取得证据组织回答",
-                        })
-                elif event.get("stage") == "chapter":
-                    evidence_active = False
-                    reason_active = True
-                    reason_started_at = time.perf_counter()
+                elif event.get("stage") == "retrieve" and (
+                    use_textbook_context and intent in {"teach", "summarize"}
+                    and int(event.get("content_count") or 0) > 0
+                ):
                     yield activity_sse({
-                        "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
-                        "status": "active", "detail": "正在基于章节证据组织讲解结构",
+                        "id": "evidence", "kind": "evidence", "label": "整理教材证据",
+                        "status": "active", "detail": "正在准备章节内容与可引用依据",
                     })
         except GeneratorExit:
             disconnected = True
