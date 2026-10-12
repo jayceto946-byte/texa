@@ -12,6 +12,7 @@ export class DraftAutosaver {
     content: NoteContent;
     state: SaveState = 'saved';
     error = '';
+    errorCode = '';
     closing = false;
     setClosing(value: boolean) { this.closing = value; this.onChange(); }
     private epoch = 0;
@@ -36,6 +37,7 @@ export class DraftAutosaver {
         this.epoch = 0;
         this.savedEpoch = 0;
         this.error = '';
+        this.errorCode = '';
         this.state = 'saved';
         this.onChange();
     }
@@ -44,6 +46,7 @@ export class DraftAutosaver {
         this.epoch += 1;
         this.state = 'dirty';
         this.error = '';
+        this.errorCode = '';
         if (this.timer)
             clearTimeout(this.timer);
         this.timer = setTimeout(() => { void this.flush().catch(() => { }); }, 800);
@@ -72,12 +75,14 @@ export class DraftAutosaver {
                 catch (error) {
                     this.state = 'error';
                     this.error = error instanceof Error ? error.message : '草稿保存失败';
+                    this.errorCode = error && typeof error === 'object' && 'code' in error ? String(error.code) : '';
                     this.onChange();
                     throw error;
                 }
             }
             this.state = 'saved';
             this.error = '';
+        this.errorCode = '';
             this.onChange();
         };
         this.pending = work().finally(() => { this.pending = null; });
