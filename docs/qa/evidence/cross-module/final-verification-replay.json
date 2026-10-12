@@ -1,0 +1,335 @@
+{
+  "scope": "Offline replay of 3 genuinely generated answers through production Final EvidencePack/verification/task/done-event helpers. Synthetic evidence; fault injection explicitly marked. No full SSE, actual index, ordinary QA generation or Electron model acceptance. No new model calls.",
+  "checks": [
+    {
+      "case": "concept",
+      "mode": "before",
+      "variant": "original_real_answer",
+      "gate_allowed": false,
+      "verification": {
+        "status": "failed",
+        "passed": false,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          },
+          {
+            "id": "formula",
+            "label": "回答公式的核验依据",
+            "status": "unverified",
+            "reason": "公式尚无等价性核验依据"
+          },
+          {
+            "id": "evidence_coverage",
+            "label": "最终证据要点覆盖",
+            "status": "failed",
+            "reason": "最终证据缺少所问要点",
+            "missing_focus_terms": [
+              "我记住了可导一定连续但不懂",
+              "用通俗的话解释必要时给一个很短的例子"
+            ]
+          }
+        ],
+        "failures": [
+          {
+            "id": "evidence_coverage",
+            "reason": "最终证据缺少所问要点"
+          }
+        ],
+        "unverified": [
+          {
+            "id": "formula",
+            "reason": "公式尚无等价性核验依据"
+          }
+        ]
+      },
+      "task_status": "degraded",
+      "event_verification_status": "failed",
+      "projection_matches": true
+    },
+    {
+      "case": "concept",
+      "mode": "after",
+      "variant": "original_real_answer",
+      "gate_allowed": false,
+      "verification": {
+        "status": "failed",
+        "passed": false,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          },
+          {
+            "id": "formula",
+            "label": "回答公式的核验依据",
+            "status": "unverified",
+            "reason": "公式尚无等价性核验依据"
+          },
+          {
+            "id": "evidence_coverage",
+            "label": "最终证据要点覆盖",
+            "status": "failed",
+            "reason": "最终证据缺少所问要点",
+            "missing_focus_terms": [
+              "我记住了可导一定连续但不懂",
+              "用通俗的话解释必要时给一个很短的例子"
+            ]
+          }
+        ],
+        "failures": [
+          {
+            "id": "evidence_coverage",
+            "reason": "最终证据缺少所问要点"
+          }
+        ],
+        "unverified": [
+          {
+            "id": "formula",
+            "reason": "公式尚无等价性核验依据"
+          }
+        ]
+      },
+      "task_status": "degraded",
+      "event_verification_status": "failed",
+      "projection_matches": true
+    },
+    {
+      "case": "concept",
+      "mode": "after",
+      "variant": "invalid_citation_fault_injection",
+      "gate_allowed": false,
+      "verification": {
+        "status": "failed",
+        "passed": false,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "failed",
+            "cited_ids": [
+              "E1"
+            ],
+            "unsupported_ids": [],
+            "reason": "回答缺少有效的本轮教材引用、引用与相邻结论不相符，或生成了无效编号"
+          },
+          {
+            "id": "formula",
+            "label": "回答公式的核验依据",
+            "status": "unverified",
+            "reason": "公式尚无等价性核验依据"
+          },
+          {
+            "id": "evidence_coverage",
+            "label": "最终证据要点覆盖",
+            "status": "failed",
+            "reason": "最终证据缺少所问要点",
+            "missing_focus_terms": [
+              "我记住了可导一定连续但不懂",
+              "用通俗的话解释必要时给一个很短的例子"
+            ]
+          }
+        ],
+        "failures": [
+          {
+            "id": "citations",
+            "reason": "回答缺少有效的本轮教材引用、引用与相邻结论不相符，或生成了无效编号"
+          },
+          {
+            "id": "evidence_coverage",
+            "reason": "最终证据缺少所问要点"
+          }
+        ],
+        "unverified": [
+          {
+            "id": "formula",
+            "reason": "公式尚无等价性核验依据"
+          }
+        ]
+      },
+      "task_status": "degraded",
+      "event_verification_status": "failed",
+      "projection_matches": true
+    },
+    {
+      "case": "derivation",
+      "mode": "before",
+      "variant": "original_real_answer",
+      "gate_allowed": false,
+      "verification": {
+        "status": "failed",
+        "passed": false,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "formula",
+            "label": "所需公式或推导关系",
+            "status": "unverified",
+            "structure_status": "passed",
+            "formula_count": 27,
+            "reason": "公式结构完整；等价性仅在可核验范围内检查"
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "failed",
+            "cited_ids": [
+              "E1"
+            ],
+            "unsupported_ids": [
+              "E1"
+            ],
+            "reason": "回答缺少有效的本轮教材引用、引用与相邻结论不相符，或生成了无效编号"
+          },
+          {
+            "id": "evidence_coverage",
+            "label": "最终证据要点覆盖",
+            "status": "failed",
+            "reason": "最终证据缺少所问要点",
+            "missing_focus_terms": [
+              "具体公式"
+            ]
+          }
+        ],
+        "failures": [
+          {
+            "id": "citations",
+            "reason": "回答缺少有效的本轮教材引用、引用与相邻结论不相符，或生成了无效编号"
+          },
+          {
+            "id": "evidence_coverage",
+            "reason": "最终证据缺少所问要点"
+          }
+        ],
+        "unverified": [
+          {
+            "id": "formula",
+            "reason": "公式结构完整；等价性仅在可核验范围内检查"
+          }
+        ]
+      },
+      "task_status": "degraded",
+      "event_verification_status": "failed",
+      "projection_matches": true
+    },
+    {
+      "case": "concept",
+      "mode": "after",
+      "variant": "shorter_question_replay_control_not_new_generation",
+      "question": "可导与连续的关系",
+      "gate_allowed": false,
+      "evidence_support": {
+        "fact_evidence": {
+          "关系": []
+        },
+        "status": "insufficient",
+        "reason": "topic_matched_but_question_focus_missing",
+        "topic_terms": [],
+        "focus_terms": [
+          "关系"
+        ],
+        "matched_focus_terms": [],
+        "best_focus_coverage": 0.0,
+        "best_query_coverage": 0.0,
+        "topic_focus_same_evidence": false,
+        "missing_focus_terms": [
+          "关系"
+        ],
+        "lost_focus_terms": []
+      },
+      "verification": {
+        "status": "failed",
+        "passed": false,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "citations",
+            "label": "教材结论的本轮来源",
+            "status": "passed",
+            "cited_ids": [
+              "E1"
+            ],
+            "unsupported_ids": [],
+            "reason": ""
+          },
+          {
+            "id": "formula",
+            "label": "回答公式的核验依据",
+            "status": "unverified",
+            "reason": "公式尚无等价性核验依据"
+          },
+          {
+            "id": "evidence_coverage",
+            "label": "最终证据要点覆盖",
+            "status": "failed",
+            "reason": "最终证据缺少所问要点",
+            "missing_focus_terms": [
+              "关系"
+            ]
+          }
+        ],
+        "failures": [
+          {
+            "id": "evidence_coverage",
+            "reason": "最终证据缺少所问要点"
+          }
+        ],
+        "unverified": [
+          {
+            "id": "formula",
+            "reason": "公式尚无等价性核验依据"
+          }
+        ]
+      },
+      "task_status": "degraded",
+      "event_verification_status": "failed",
+      "projection_matches": true
+    }
+  ],
+  "no_evidence_gate": {
+    "allowed": false,
+    "response": "当前导入教材中未检索到足够的直接证据，因此不使用模型自身知识补齐答案。你可以改用“学科通用回答”，或换一种更具体的问法。",
+    "model_calls": 0
+  }
+}

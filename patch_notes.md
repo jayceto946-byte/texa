@@ -3560,3 +3560,12 @@ Android 普通 Wi-Fi 对照出现解答闪现后回到空问答。隔离浏览�
 - 28项针对性后端、Electron7组主路径与13项深层流程通过。Astra复核恢复后读取24张原图并复验2张，两项必须修改关闭，本批有限通过。真实Teaching Prompt8次调用均鉴权失败，质量未验证。
 
 - 最终发布事件复用LearningTask的兜底核验结果，修复核验已执行却在done活动里显示unknown的状态分歧；新增确定性回归。最终完整后端1544、前端199、桌面15、类型/lint/build通过，119页面检查无溢出/未处理请求，Electron7组主路径+13项深层回归通过。详见docs/qa/CROSS-MODULE-REMEDIATION-2026-10-12.md。
+
+
+## 2026-10-12 跨模块最终归档与有限真实模型验收
+
+- 核对8个Checkpoint及c53e78b祖先链；干净分支通过GitHub SSH 443安全推送，未force push或合并其他分支。
+- Teaching比较脚本新增显式env文件与独立输出、缺凭据预检、每次2000输出token/5000 UTF-8输入字节上限、失败即停及usage记录，保留原8次AuthenticationError证据。未修改凭据、模型角色配置、数据结构或依赖。
+- 默认CLI未加载Electron开发目录凭据；显式ENV_PATH后，正式客户端免费models.list鉴权成功。本轮5次生成尝试中3次成功、2次APIConnectionError；第二次失败按授权停止。仅概念题形成完整前后对照，其他教学与真实QA/SSE验收未完成。
+- 已有真实回答在隔离LearningTaskStore回放：核验与done事件一致；合成证据Gate误取表达方式为focus及公式/引用支持保守判定登记P1，不修改发布门槛。非完整生产检索或Electron验收。
+- Python3.10脚本语法、CLI参数和git diff --check通过；无共享生产代码修改，未重复全量自动化。详情见docs/qa/CROSS-MODULE-FINAL-HANDOFF.md。

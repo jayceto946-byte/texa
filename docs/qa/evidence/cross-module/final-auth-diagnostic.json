@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-12",
+  "default_shell": {
+    "env_path_explicit": false,
+    "provider": "qwen",
+    "model": "qwen3.7-plus",
+    "credential_present": false
+  },
+  "electron_development": {
+    "env_file": "Library/Application Support/kaoyan-assistant-desktop/.env",
+    "provider": "qwen",
+    "model": "qwen3.7-plus",
+    "credential_present": true
+  },
+  "factory": "config.get_llm -> resolve_model_role -> llm.factory -> ChatOpenAI",
+  "free_diagnostics": {
+    "curl_https_status": 404,
+    "unauthenticated_httpx_models_status": 401,
+    "production_client_models_list_authenticated": true,
+    "model_count": 175
+  },
+  "new_generation_attempts": 5,
+  "successful_answers": 3,
+  "failed_attempts": 2,
+  "failure_types": [
+    "APIConnectionError",
+    "APIConnectionError"
+  ],
+  "stopped_on_failure": true,
+  "provider_billing_usage_known": {
+    "input_tokens": 1267,
+    "output_tokens": 5473,
+    "list_price_estimate_cny": 0.046318
+  },
+  "billing_caveat": "Failed requests have no usage receipt; estimate is not an invoice. No extra paid retries after second stop.",
+  "pricing_source": "https://help.aliyun.com/zh/model-studio/qwen3-7-plus",
+  "pricing_cny_per_million": {
+    "input": 2,
+    "output": 8
+  },
+  "maximum_authorized": {
+    "calls": 12,
+    "input_tokens": 60000,
+    "output_tokens": 24000,
+    "cny": 5
+  },
+  "remaining_calls_not_run": 7
+}
