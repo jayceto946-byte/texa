@@ -1,0 +1,37 @@
+{
+  "authorization": "user 授权 after single Stokes / 3 requests / ¥0.60 proposal",
+  "requests": [
+    {
+      "index": 1,
+      "input_bytes": 5972,
+      "reserved_cny": 0.143096,
+      "status": "returned",
+      "usage": {
+        "input_tokens": 1705,
+        "output_tokens": 1707,
+        "total_tokens": 3412,
+        "reasoning_tokens": 1628
+      },
+      "estimated_cost_cny": 0.017066
+    },
+    {
+      "index": 2,
+      "input_bytes": 6693,
+      "reserved_cny": 0.144538,
+      "status": "returned",
+      "usage": {
+        "input_tokens": 1893,
+        "output_tokens": 2742,
+        "total_tokens": 4635,
+        "reasoning_tokens": 1549
+      },
+      "estimated_cost_cny": 0.025722
+    }
+  ],
+  "input_bytes": 12665,
+  "reserved_or_used_cny": 0.04278799999999999,
+  "max_requests": 3,
+  "max_input_bytes": 75000,
+  "max_output_tokens": 49182,
+  "cost_cap_cny": 0.6
+}

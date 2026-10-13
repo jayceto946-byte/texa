@@ -1,0 +1,42 @@
+{
+  "requests": [
+    {
+      "request": 1,
+      "send_to_headers_s": 1.375666,
+      "headers_to_sdk_delta_s": 0.016669,
+      "sdk_to_reasoning_s": 0.003174,
+      "reasoning_window_s": 27.644796,
+      "adapter_to_public_s": 29.940872,
+      "send_to_public_s": 29.046036,
+      "send_to_end_s": 30.347648,
+      "adapter_to_end_s": 31.242484,
+      "output_per_send_to_end_second": 56.248,
+      "output_per_adapter_second": 54.637,
+      "max_sdk_gap_s": 0.2543180000000011,
+      "max_reasoning_gap_s": 0.2543180000000011
+    },
+    {
+      "request": 2,
+      "send_to_headers_s": 1.320208,
+      "headers_to_sdk_delta_s": 0.001582,
+      "sdk_to_reasoning_s": 0.002572,
+      "reasoning_window_s": 26.346713,
+      "adapter_to_public_s": 28.867572,
+      "send_to_public_s": 27.772843,
+      "send_to_end_s": 48.03766,
+      "adapter_to_end_s": 49.132389,
+      "output_per_send_to_end_second": 57.08,
+      "output_per_adapter_second": 55.808,
+      "max_sdk_gap_s": 1.0758160000000008,
+      "max_reasoning_gap_s": 1.0758160000000008
+    }
+  ],
+  "total_reasoning_window_s": 53.991509,
+  "total_adapter_s": 80.37487300000001,
+  "new_paid_requests": 2,
+  "estimated_cost_cny": 0.042788,
+  "quality_note": "first tool failed due experiment harness multiprocessing entry guard, no paid rerun; second model saw failure and completed; not a whole-run speed comparison",
+  "harness_final_sha256": "0701508368b2e315227204c224a5b792f0fabf15393db318739d3c6603bbe452",
+  "harness_at_launch_sha256": null,
+  "harness_at_launch_note": "Launch runner lacked multiprocessing main guard. Added guard after child failure, no remote replay. Final artifact also requires explicit --authorized flag."
+}

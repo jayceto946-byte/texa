@@ -1,0 +1,56 @@
+[
+  {
+    "request_index": 1,
+    "times_ms": {
+      "T0": 894.836,
+      "T1": 2270.502,
+      "T2": 2287.171,
+      "T3": 2290.345,
+      "T4": 29935.141,
+      "T5": 29940.872,
+      "T6": 31242.484
+    },
+    "sdk_delta_count": 461,
+    "reasoning_delta_count": 440,
+    "public_delta_count": 7,
+    "max_sdk_gap_ms": 254.31800000000112,
+    "max_reasoning_gap_ms": 254.31800000000112,
+    "usage": {
+      "prompt_tokens": 1705,
+      "completion_tokens": 1707,
+      "total_tokens": 3412,
+      "reasoning_tokens": 1628
+    },
+    "finish_reason": "tool_calls",
+    "http_status": 200,
+    "complete_consumption": true,
+    "termination": "tool_handoff"
+  },
+  {
+    "request_index": 2,
+    "times_ms": {
+      "T0": 1094.729,
+      "T1": 2414.937,
+      "T2": 2416.519,
+      "T3": 2419.091,
+      "T4": 28765.804,
+      "T5": 28867.572,
+      "T6": 49132.389
+    },
+    "sdk_delta_count": 747,
+    "reasoning_delta_count": 424,
+    "public_delta_count": 319,
+    "max_sdk_gap_ms": 1075.8160000000007,
+    "max_reasoning_gap_ms": 1075.8160000000007,
+    "usage": {
+      "prompt_tokens": 1893,
+      "completion_tokens": 2742,
+      "total_tokens": 4635,
+      "reasoning_tokens": 1549
+    },
+    "finish_reason": "stop",
+    "http_status": 200,
+    "complete_consumption": true,
+    "termination": "completed"
+  }
+]
