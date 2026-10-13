@@ -61,14 +61,18 @@ class BoundedAgentRunner:
     policy_capture: Callable | None = None
     policy_observe: Callable | None = None
     on_output: Callable | None = None
+    run_timeout_seconds: float = 120.0
 
     def run_bounded(self, run_id: str, owner: str, *, context: ToolContext | None = None,
                     answer_state: dict | None = None,
                     answer_generator: Callable | None = None, write_service=None) -> dict:
         if (answer_state is None) != (answer_generator is None):
             raise ValueError("shared answer state and generator must be supplied together")
-        if not 0 < self.model_timeout_seconds <= 35:
+        native_math = hasattr(self.adapter, "run_native") and {ref["id"] for ref in self.candidate_tools} <= {"symbolic_math", "verify_math_result"}
+        if not 0 < self.model_timeout_seconds <= (300 if native_math else 35):
             raise ValueError("invalid model deadline")
+        if not 0 < self.run_timeout_seconds <= 600:
+            raise ValueError("invalid run deadline")
         if self.policy_selector is not None:
             if answer_state is None:
                 raise ValueError("Policy baseline requires the shared answer chain")

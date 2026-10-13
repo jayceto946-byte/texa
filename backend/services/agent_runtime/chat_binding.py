@@ -189,6 +189,12 @@ def try_chat_response(req, prepared: dict, request_id: str, *, streaming=True):
         scope_reason=prepared["scope_reason"], continuity_context=prepared["continuity_context"])
     state["intent"] = "qa"
     state["native_loop"] = math_route and hasattr(adapter, "run_native")
+    if state["native_loop"]:
+        # Freeze reasoning deadlines with this Run so recovery keeps its budget.
+        state["_native_limits"] = {
+            "model_timeout_seconds": float(os.getenv("TEXA_NATIVE_MODEL_TIMEOUT", "180")),
+            "run_timeout_seconds": float(os.getenv("TEXA_NATIVE_RUN_TIMEOUT", "600")),
+        }
     if pure_math:
         state.update(support_type="explicit_math_only", evidence_support={"status": "not_applicable", "reason": "explicit_math_only"})
     state["context_versions"] = prepared.get("context_versions") or {}
@@ -315,7 +321,10 @@ def execute_run(store, run_id, owner, registry, adapter, *, on_output=None):
         from backend.services.pending_actions import get_pending_action_store
         from backend.services.agent_runtime.write_service import RuntimeWriteService
         from backend.services.decision.policy import RulePolicyV0
+        native_limits = checkpoint["answer_state"].get("_native_limits") or {}
         BoundedAgentRunner(store, registry, adapter, tuple(checkpoint["candidates"]),
+            model_timeout_seconds=native_limits.get("model_timeout_seconds", 35),
+            run_timeout_seconds=native_limits.get("run_timeout_seconds", 120),
             policy_selector=RulePolicyV0 if baseline else None, on_output=on_output).run_bounded(
             run_id, owner, context=ToolContext(book_name=task["artifacts"].get("book_name", ""),
                 subject=task["artifacts"].get("subject", ""), conversation_id=task["conversation_id"]),

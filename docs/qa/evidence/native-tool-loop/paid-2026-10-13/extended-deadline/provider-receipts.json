@@ -1,0 +1,196 @@
+{
+  "authorization": "user 2026-10-13: three difficult exam problems and one no-tool comparison, screenshots and metrics",
+  "model": "qwen3.7-plus",
+  "remote_attempts": 8,
+  "input_bytes": 42209,
+  "cost_cap_cny": 1,
+  "max_calls": 16,
+  "max_completion_tokens": 16384,
+  "prior_attempts": 2,
+  "prior_reserved_or_used_cny": 0.06341,
+  "price_cny_per_million": {
+    "input": 2,
+    "output": 8
+  },
+  "pricing_source": "https://help.aliyun.com/zh/model-studio/qwen3-7-plus",
+  "reserved_or_used_cny": 0.24213999999999997,
+  "calls": [
+    {
+      "index": 1,
+      "input_bytes": 4977,
+      "reserved_cny": 0.14110599999999998,
+      "status": "returned",
+      "started_at": "2026-10-13T01:17:00.785175+00:00",
+      "mode": "tools_available",
+      "usage": {
+        "input_tokens": 1518,
+        "output_tokens": 2530,
+        "total_tokens": 4048,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 2348
+        }
+      },
+      "ended_at": "2026-10-13T01:17:46.444518+00:00",
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.023276
+    },
+    {
+      "index": 2,
+      "input_bytes": 5946,
+      "reserved_cny": 0.143044,
+      "status": "returned",
+      "started_at": "2026-10-13T01:17:46.797154+00:00",
+      "mode": "tools_available",
+      "usage": {
+        "input_tokens": 1839,
+        "output_tokens": 3595,
+        "total_tokens": 5434,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 1940
+        }
+      },
+      "ended_at": "2026-10-13T01:18:49.911711+00:00",
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.032438
+    },
+    {
+      "index": 3,
+      "input_bytes": 4895,
+      "reserved_cny": 0.14094199999999998,
+      "status": "returned",
+      "started_at": "2026-10-13T01:18:51.037926+00:00",
+      "mode": "tools_available",
+      "usage": {
+        "input_tokens": 1495,
+        "output_tokens": 3267,
+        "total_tokens": 4762,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 3162
+        }
+      },
+      "ended_at": "2026-10-13T01:19:48.498285+00:00",
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.029126
+    },
+    {
+      "index": 4,
+      "input_bytes": 5869,
+      "reserved_cny": 0.14289,
+      "status": "returned",
+      "started_at": "2026-10-13T01:19:48.927841+00:00",
+      "mode": "tools_available",
+      "usage": {
+        "input_tokens": 1802,
+        "output_tokens": 1239,
+        "total_tokens": 3041,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 1188
+        }
+      },
+      "ended_at": "2026-10-13T01:20:11.844805+00:00",
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.013516
+    },
+    {
+      "index": 5,
+      "input_bytes": 6817,
+      "reserved_cny": 0.144786,
+      "status": "returned",
+      "started_at": "2026-10-13T01:20:12.217275+00:00",
+      "mode": "tools_available",
+      "usage": {
+        "input_tokens": 2087,
+        "output_tokens": 6283,
+        "total_tokens": 8370,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 5337
+        }
+      },
+      "ended_at": "2026-10-13T01:22:01.220918+00:00",
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.054438
+    },
+    {
+      "index": 6,
+      "input_bytes": 5039,
+      "reserved_cny": 0.14123,
+      "status": "returned",
+      "started_at": "2026-10-13T01:22:02.188655+00:00",
+      "mode": "tools_available",
+      "usage": {
+        "input_tokens": 1547,
+        "output_tokens": 1326,
+        "total_tokens": 2873,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 1039
+        }
+      },
+      "ended_at": "2026-10-13T01:22:28.707962+00:00",
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.013702
+    },
+    {
+      "index": 7,
+      "input_bytes": 6036,
+      "reserved_cny": 0.143224,
+      "status": "returned",
+      "started_at": "2026-10-13T01:22:29.048653+00:00",
+      "mode": "tools_available",
+      "usage": {
+        "input_tokens": 1870,
+        "output_tokens": 1405,
+        "total_tokens": 3275,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 737
+        }
+      },
+      "ended_at": "2026-10-13T01:22:54.632242+00:00",
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.01498
+    },
+    {
+      "index": 8,
+      "input_bytes": 2630,
+      "reserved_cny": 0.13641199999999998,
+      "status": "returned",
+      "started_at": "2026-10-13T01:22:55.159062+00:00",
+      "mode": "no_tools",
+      "usage": {
+        "input_tokens": 628,
+        "output_tokens": 7426,
+        "total_tokens": 8054,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 6153
+        }
+      },
+      "ended_at": "2026-10-13T01:25:03.580838+00:00",
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.060664
+    }
+  ],
+  "errors": []
+}

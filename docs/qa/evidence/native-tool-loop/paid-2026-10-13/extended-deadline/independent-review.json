@@ -1,0 +1,130 @@
+{
+  "q1-extrema": {
+    "points": 6,
+    "max_points": 6,
+    "correct_complete": true,
+    "criteria": [
+      {
+        "item": "偏导与切平面 x+y+z=3",
+        "passed": true
+      },
+      {
+        "item": "投影三角域 x>=0,y>=0,x+y<=3",
+        "passed": true
+      },
+      {
+        "item": "内部驻点(4/3,4/3)与值17/27",
+        "passed": true
+      },
+      {
+        "item": "两条坐标轴边界及77/27",
+        "passed": true
+      },
+      {
+        "item": "斜边驻点(3/2,3/2)与值3/4",
+        "passed": true
+      },
+      {
+        "item": "最大21与最小17/27及取值点",
+        "passed": true
+      }
+    ]
+  },
+  "q2-stokes": {
+    "points": 5,
+    "max_points": 6,
+    "correct_complete": false,
+    "criteria": [
+      {
+        "item": "球心与半径",
+        "passed": false,
+        "expected": "球心(1,0,0)，半径1",
+        "observed": "错误写成(x-1)^2+y^2+z^2=2，半径sqrt(2)"
+      },
+      {
+        "item": "方向与法向(-2,0,1)/sqrt(5)",
+        "passed": true
+      },
+      {
+        "item": "投影椭圆及半轴2/5、2/sqrt(5)",
+        "passed": true
+      },
+      {
+        "item": "旋度三分量",
+        "passed": true
+      },
+      {
+        "item": "曲面面积元与被积函数恒为1",
+        "passed": true
+      },
+      {
+        "item": "最终积分4sqrt(5)pi/25",
+        "passed": true
+      }
+    ]
+  },
+  "q3-estimation": {
+    "points": 5,
+    "max_points": 6,
+    "correct_complete": false,
+    "criteria": [
+      {
+        "item": "最大次序统计量CDF与密度的推导",
+        "passed": false,
+        "expected": "F(x)=(x/theta)^n,0<x<theta；导出density",
+        "observed": "最终独立答案直接使用密度，没有推导CDF；部分正确公式曾在工具前模型消息出现"
+      },
+      {
+        "item": "均值 n*theta/(n+1)",
+        "passed": true
+      },
+      {
+        "item": "二阶矩 n*theta^2/(n+2)",
+        "passed": true
+      },
+      {
+        "item": "无偏c=(n+1)/n",
+        "passed": true
+      },
+      {
+        "item": "均方误差二次式与最优c=(n+2)/(n+1)",
+        "passed": true
+      },
+      {
+        "item": "最小MSE theta^2/(n+1)^2",
+        "passed": true
+      }
+    ]
+  },
+  "q4-no-tools": {
+    "points": 3,
+    "max_points": 6,
+    "correct_complete": false,
+    "criteria": [
+      {
+        "item": "矩阵A",
+        "passed": true
+      },
+      {
+        "item": "特征值与特征向量",
+        "passed": true
+      },
+      {
+        "item": "P、P逆与对角化",
+        "passed": true
+      },
+      {
+        "item": "完整A^n表达式",
+        "passed": false
+      },
+      {
+        "item": "完整x_n、y_n、z_n",
+        "passed": false
+      },
+      {
+        "item": "n=0边界",
+        "passed": false
+      }
+    ]
+  }
+}

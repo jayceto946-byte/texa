@@ -1,0 +1,11 @@
+[
+  {
+    "id": "q4-no-tools",
+    "topic": "三维线性递推与矩阵幂（无工具对照）",
+    "source": "https://edu.xaiu.edu.cn/__local/2/44/D5/335CC768F01FC88CDE7A9F247F4_7E8D3961_4C7E6.pdf",
+    "year": 2024,
+    "exam": "数学一",
+    "question": "计算并解答：已知数列 $\\{x_n\\},\\{y_n\\},\\{z_n\\}$ 满足 $x_0=-1,y_0=0,z_0=2$，且对 $n\\ge1$，$$x_n=-2x_{n-1}+2z_{n-1},\\quad y_n=-2y_{n-1}-2z_{n-1},\\quad z_n=-6x_{n-1}-3y_{n-1}+3z_{n-1}.$$ 记 $\\alpha_n=(x_n,y_n,z_n)^T$。写出满足 $\\alpha_n=A\\alpha_{n-1}$ 的矩阵 $A$，并求 $A^n$ 及 $x_n,y_n,z_n$，说明推导过程及 $n=0$ 的情况。",
+    "transcription": "核对大学公开PDF图像；追加n=0边界要求；本题从实际Provider payload删除全部工具schema并将SQL工具预算设0"
+  }
+]

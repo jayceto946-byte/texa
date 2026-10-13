@@ -1,0 +1,57 @@
+{
+  "authorization": "user 2026-10-13: three difficult exam problems, screenshots",
+  "model": "qwen3.7-plus",
+  "remote_attempts": 2,
+  "input_bytes": 9872,
+  "cost_cap_cny": 1,
+  "max_calls": 15,
+  "max_completion_tokens": 16384,
+  "price_cny_per_million": {
+    "input": 2,
+    "output": 8
+  },
+  "pricing_source": "https://help.aliyun.com/zh/model-studio/qwen3-7-plus",
+  "reserved_or_used_cny": 0.06341,
+  "calls": [
+    {
+      "index": 1,
+      "input_bytes": 4977,
+      "reserved_cny": 0.14110599999999998,
+      "status": "returned",
+      "usage": {
+        "input_tokens": 1495,
+        "output_tokens": 2876,
+        "total_tokens": 4371,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 2820
+        }
+      },
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.025998
+    },
+    {
+      "index": 2,
+      "input_bytes": 4895,
+      "reserved_cny": 0.14094199999999998,
+      "status": "returned",
+      "usage": {
+        "input_tokens": 1518,
+        "output_tokens": 4297,
+        "total_tokens": 5815,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 2915
+        }
+      },
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.037412
+    }
+  ],
+  "errors": [],
+  "late_usage_attribution_note": "First instrumentation assigned late receipts to the most recent pending request. Per-question attribution is unreliable; only the combined usage and cost are used. Later batches correlate by worker thread."
+}

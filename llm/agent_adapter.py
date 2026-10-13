@@ -37,7 +37,7 @@ class NativeToolAdapter:
 
     def run_native(self, runner, run_id, owner, **kwargs):
         from backend.services.agent_runtime.native_loop import run_native_loop
-        model = self.model_factory(self.resolved, 0.0, request_timeout=30, max_retries=0)
+        model = self.model_factory(self.resolved, 0.0, request_timeout=min(300, runner.model_timeout_seconds), max_retries=0)
         return run_native_loop(runner, model, run_id, owner, **kwargs)
 
     def next_action(self, transcript: list[dict], candidate_tools: tuple[dict, ...]) -> FixedAction:

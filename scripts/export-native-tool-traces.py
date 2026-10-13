@@ -9,6 +9,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--qa-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=Path("docs/qa/evidence/native-tool-loop/runtime-traces.json"))
+    parser.add_argument("--model-label", default="controlled LangChain interface; no remote calls")
     args = parser.parse_args()
     root = args.qa_root.resolve()
     if not root.is_relative_to(Path("/private/tmp")):
@@ -26,12 +27,13 @@ def main():
             snapshot = json.loads(task["snapshot_json"])
             runs.append({"run_id": row["id"], "task_id": row["task_id"], "session_id": row["conversation_id"],
                 "turn_id": row["turn_id"], "question": snapshot["goal"], "run_status": row["status"], "task_status": task["status"],
+                "created_at": row["created_at"], "updated_at": row["updated_at"],
                 "model_calls": task["consumed_model_calls"], "tool_calls": calls,
                 "native_messages": checkpoint.get("native_messages", []),
                 "answer": json.loads(row["output_json"]) if row["output_json"] else None,
                 "events": [json.loads(event[0]) for event in conn.execute("SELECT event_json FROM execution_events WHERE run_id=? ORDER BY seq", (row["id"],))]})
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps({"model": "controlled LangChain interface; no remote calls", "math": "real isolated SymPy", "runs": runs}, ensure_ascii=False, indent=2))
+    args.output.write_text(json.dumps({"model": args.model_label, "math": "real isolated SymPy", "runs": runs}, ensure_ascii=False, indent=2))
     print(json.dumps([{"question": run["question"], "run_id": run["run_id"], "models": run["model_calls"], "tools": len(run["tool_calls"]), "status": run["task_status"]} for run in runs], ensure_ascii=False))
 
 

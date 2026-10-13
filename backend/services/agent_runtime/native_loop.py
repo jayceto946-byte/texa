@@ -70,7 +70,7 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
     store.save_native_messages(run_id, owner, _protocol(messages))
     latest_messages = list(messages)
     tool_failed = any(c["status"] in {"failed", "unknown"} for c in initial["tool_calls"])
-    deadline = time.monotonic() + 120.0
+    deadline = time.monotonic() + runner.run_timeout_seconds
 
     def active():
         snapshot = store.snapshot(run_id)
@@ -99,7 +99,12 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
                 active()
                 raise RuntimeDenied("model_budget_exhausted") from exc
             settings = {**request.model_settings, "parallel_tool_calls": False, "max_tokens": 4096}
-            request = request.override(model=request.model.with_config(callbacks=[RunFenceCallback()]), model_settings=settings)
+            # bind_tools may discard RunnableBinding config; constructor callbacks
+            # survive tool binding. Copy the cached client rather than mutating it.
+            callbacks = getattr(request.model, "callbacks", None)
+            callbacks = getattr(callbacks, "handlers", callbacks) or []
+            fenced_model = request.model.model_copy(update={"callbacks": [*callbacks, RunFenceCallback()]})
+            request = request.override(model=fenced_model, model_settings=settings)
             response = _bounded_model_call(lambda: handler(request),
                                            min(runner.model_timeout_seconds, max(.001, deadline - time.monotonic())))
             active()
@@ -213,8 +218,12 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
         if snapshot["run"]["status"] != "running":
             return snapshot
         code = str(exc) if isinstance(exc, RuntimeDenied) else "native_loop_failed"
+        code = {"model response deadline exceeded": "model_deadline_exceeded",
+                "model worker capacity exhausted": "model_worker_capacity_exhausted",
+                "model adapter failed": "model_adapter_failed"}.get(code, code)
         if code not in {"model_budget_exhausted", "tool_budget_exhausted", "invalid_native_response",
                 "unauthorized_native_call", "duplicate_native_call_id", "answer_evidence_missing", "tool_step_denied",
-                "answer_scope_changed", "missing_final_answer", "run_deadline_exceeded", "output_budget_exhausted"}:
+                "answer_scope_changed", "missing_final_answer", "run_deadline_exceeded", "output_budget_exhausted",
+                "model_deadline_exceeded", "model_worker_capacity_exhausted", "model_adapter_failed"}:
             code = "native_loop_failed"
         return store.close(run_id, owner, outcome="failed", error_code=code)

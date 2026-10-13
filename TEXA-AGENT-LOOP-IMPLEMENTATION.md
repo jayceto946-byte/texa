@@ -7,7 +7,8 @@
 - CP1 `09d512c`：现状审计，见 [审计报告](TEXA-TOOL-CALLING-AUDIT.md)。
 - CP2 `08cf3fc`：数学 canonical schema、limit、假设、精确值及隔离进程。
 - CP3 `6c418db`：LangChain 原生循环、统一问答执行、SSE、纯数学边界、验证与恢复。
-- CP4：前端完成折叠、实际 Electron 证据、模型开始/完成身份配对及最终归档；提交号见 Git 当前提交。
+- CP4 `cd36765`：前端完成折叠、实际 Electron 证据、模型开始/完成身份配对及最终归档。
+- CP5：2026-10-13 授权真实模型三题与无工具对照、截图与指标；有界推理等待、恢复预算冻结及取消回调修复，见[真实验收报告](docs/qa/REAL-NATIVE-MATH-ACCEPTANCE-2026-10-13.md)。
 
 复用 ToolRegistry / ToolSpec、symbolic_math / verify_math_result、FixedRunner、RuntimeStore、LearningTask 投影、ContextPack、Final EvidencePack、prepare/finalize、Answer Verification 与 ExecutionEvent。没有新 Agent 产品页、第二套工具 registry、第二套持久 Run 状态、小模型依赖或通用插件平台。无数据库 schema 迁移、依赖安装、教材索引和用户数据修改。
 
@@ -53,7 +54,7 @@ delta 为瞬态传输数据；序号在 SQL 预留，耐久执行里程碑和最
 
 ## 边界、失败与恢复
 
-- 聊天数学 Run 默认最多 5 个模型步骤、3 个工具步骤；SQL 总限制仍是 8 / 6。请求不再额外调用回答模型。单模型 deadline ≤35 秒（客户端 timeout 30 秒、无自动重试）；Run wall budget 120 秒，每轮最多 4096 输出 token，展示文字总上限 64000 字符。
+- 聊天数学 Run 默认最多 5 个模型步骤、3 个工具步骤；SQL 总限制仍是 8 / 6。请求不再额外调用回答模型。CP5 经真实复杂题超时证据，将新 native 数学 Run 的模型等待设为默认 180 秒、Run 600 秒，可配置且分别硬上限 300 / 600 秒，预算在 checkpoint 冻结。旧 checkpoint 与兼容路径保留旧值。每轮默认最多 4096 回答 token，展示文字总上限 64000 字符；授权 QA 使用额外的 16384 combined token 额度（含思考），没有静默替换生产角色配置。
 - AST 白名单，不执行模型 Python。表达式 300 字符 / 120 AST 节点，参数与结果大小有界。SymPy spawn worker 使用 Unix CPU / 地址空间限制及跨平台 wall deadline；超时/取消 terminate、join，必要时 kill、join 后释放并发槽。
 - 已验证超时/取消后无子进程残留。模型在下一真实 chunk 由 Run fence callback 中止迭代；等待网络首包时仍依赖 transport deadline，无法保证服务商立即终止远端计费。
 - 参数不符合 canonical schema：生成预算内的 failed 工具回执，并以原生 ToolMessage 反馈模型；未知工具、并行调用、重复 ID、损坏参数协议、模型/工具预算耗尽等终止为 failed。
@@ -106,4 +107,4 @@ LLM #3 → 结果是 1024。
 
 仅数学 native 路径本轮交付；其他能力仍是旧兼容路径。最终数学验证覆盖保守、解集完整性未知、Windows 资源限制/正式冻结包、真实供应商原生参数流与取消均需进一步验收。
 
-本轮远程付费调用 **0 次**。若授权后进行真实验收，另行采用一题、最多 3 次模型调用 / 2 次工具、每轮 ≤1024 输出 token、总输入预算 ≤36000 UTF-8 字节，费用上限建议人民币 1 元；启动前核对实际模型定价并预检最大费用，无法守住上限则不启动，不在失败后扩增调用或自动重试。
+截至 CP4，远程付费调用 **0 次**。2026-10-13 用户授权并扩大为三道复杂题与一道无工具对照，取消先前建议的保守 token 额度。真实验收累计 11 次请求（含保留的超时）、58,222 tokens，估价 ¥0.367214，低于 ¥1 上限；完整结果、缺项、错误与截图见 CP5 报告。第二题完成真实三模型两工具循环，但教学答案仍有半径错误；第三题的工具前推导被 replace 清除、最终未重述，不能宣称教学完整性全部验收通过。后续不自动追加付费调用。

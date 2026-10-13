@@ -219,9 +219,13 @@ def test_math_chat_ingress_uses_same_runtime_and_does_not_call_legacy_generator(
     monkeypatch.setattr(binding, "generate_answer", lambda _: pytest.fail("legacy generator called"))
     monkeypatch.setattr(binding, "project_outcomes", lambda _: None)
     monkeypatch.setattr(conversation, "append_message", lambda *a, **k: {})
+    monkeypatch.setenv("TEXA_NATIVE_MODEL_TIMEOUT", "80")
+    monkeypatch.setenv("TEXA_NATIVE_RUN_TIMEOUT", "200")
     response = binding.try_chat_response(SimpleNamespace(question="计算 2^10"),
         {**prepared(), "rewritten_question": "计算 2^10", "use_textbook_context": True,
             "answer_mode": "textbook_grounded", "scope_reason": "book_selected"}, "ingress", streaming=streaming)
+    monkeypatch.setenv("TEXA_NATIVE_MODEL_TIMEOUT", "150")
+    monkeypatch.setenv("TEXA_NATIVE_RUN_TIMEOUT", "500")
     if streaming:
         async def consume():
             values = [json.loads(data[6:]) async for data in response.body_iterator]
@@ -233,6 +237,8 @@ def test_math_chat_ingress_uses_same_runtime_and_does_not_call_legacy_generator(
         assert response["content"] == "结果是 1024。"
         task_id = response["learning_task"]["id"]
     snapshot = store.task_snapshot(task_id)
+    assert snapshot["run"]["checkpoint"]["answer_state"]["_native_limits"] == {
+        "model_timeout_seconds": 80, "run_timeout_seconds": 200}
     assert snapshot["consumed_model_calls"] == 3
     assert snapshot["consumed_calls"] == 2
     assert snapshot["task"]["answer_mode"] == "textbook_grounded"
@@ -275,5 +281,50 @@ def test_model_timeout_never_publishes_late_answer(tmp_path):
     runner.model_timeout_seconds = .02
     result = runner.run_bounded(run, "owner", context=ToolContext())
     assert result["run"]["status"] == "failed"
+    assert result["run"]["error_code"] == "model_deadline_exceeded"
     time.sleep(.3)
     assert store.snapshot(run)["run"]["output"] is None
+
+
+def test_native_reasoning_deadline_is_configurable_but_bounded(tmp_path):
+    store, run, model, runner, state = setup_run(tmp_path, SUCCESS)
+    runner.model_timeout_seconds = 180
+    runner.run_timeout_seconds = 600
+    result = runner.run_bounded(run, "owner", context=ToolContext(), answer_state=state,
+        answer_generator=lambda _: pytest.fail("native must not call another generator"))
+    assert result["run"]["status"] == "completed"
+    assert result["consumed_model_calls"] == 3
+    assert result["consumed_calls"] == 2
+
+
+def test_cancel_fence_survives_model_tool_binding_and_stops_token_iteration(tmp_path):
+    class ManyChunksModel(ScriptedMathModel):
+        tokens: list = Field(default_factory=list)
+        def _stream(self, messages, **kwargs):
+            self.received.append(messages)
+            for index in range(30):
+                time.sleep(.02)
+                self.tokens.append(index)
+                yield ChatGenerationChunk(message=AIMessageChunk(content="结果是1024。"))
+    store, run, old, runner, state = setup_run(tmp_path, [])
+    model = ManyChunksModel(responses=[])
+    runner.adapter = model_adapter(model, runner.registry)
+    def stop(text, replace):
+        if text and store.snapshot(run)["run"]["status"] == "running":
+            store.close(run, "owner", outcome="paused", error_code="user_stop")
+    runner.on_output = stop
+    result = runner.run_bounded(run, "owner", context=ToolContext())
+    assert result["run"]["status"] == "paused"
+    time.sleep(.15)
+    assert len(model.tokens) < 10, "cancel must stop actual iteration, not just hide late text"
+    assert store.snapshot(run)["run"]["output"] is None
+
+
+@pytest.mark.parametrize("model_timeout,run_timeout", [(0,120),(301,120),(35,0),(35,601)])
+def test_native_deadline_rejects_unbounded_configuration(tmp_path, model_timeout, run_timeout):
+    store, run, model, runner, state = setup_run(tmp_path, SUCCESS)
+    runner.model_timeout_seconds = model_timeout
+    runner.run_timeout_seconds = run_timeout
+    with pytest.raises(ValueError, match="deadline"):
+        runner.run_bounded(run, "owner", context=ToolContext())
+    assert store.snapshot(run)["consumed_model_calls"] == 0

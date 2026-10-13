@@ -1,3 +1,12 @@
+# 2026-10-13 - Real Tool Calling CP5 授权真实模型、四题指标与截图
+
+- 用户授权三道复杂考研题与一道无工具对照；真实Qwen3.7 Plus、现有LangChain create_agent/SQL Runtime/隔离SymPy/Electron/SSE执行。第二题实际三模型两工具，254条正文增量；对照实际不向Provider提供工具定义，SQL工具预算0。仅公开题面及隔离合成会话，没有生产学习数据出境。
+- 工具题分别109.569/190.236/52.486秒，9482/16173/6148 tokens；无工具完成130.776秒、8179 tokens。独立六项评分6/6、5/6、5/6、6/6：积分半径表述错误、统计最终答案丢失工具前CDF推导，均如实扣分。最终主要结果正确不等同Runtime verified；所有task保留degraded/unverified或failed核验状态。
+- 保留35秒初次失败、120秒无工具超时及迟到回执，总共11次实际请求/58222 tokens，忽略缓存优惠估价0.367214元，低于1元授权上限。QA仅本进程采用16384 combined token额度、预检费用和请求次数，零自动网络重试。初次夹具迟到usage单题归属不可靠，仅用合计，后续按worker thread关联。
+- 真实证据暴露等待过短：新native数学Run默认模型180秒/Run600秒，可配置且硬上限300/600，checkpoint冻结；旧checkpoint与非数学兼容路径保留原预算。Run fence迁到复制模型的constructor callbacks，避免bind_tools丢配置；新增实际token迭代停止回归、模型超时/容量/适配器错误代码，不新增Run权威或依赖。
+- 交付docs/qa/REAL-NATIVE-MATH-ACCEPTANCE-2026-10-13.md，四题开始/过程/完成截图、原生ID/SSE/SQL回执及逐项评分。无工具完成视口停中段，另只读恢复补末尾截图，未新增付费。复杂长矩阵横向滚动、theta白名单说明、最终完整推导及required-output anchor误判仍待修复，不调整Gate刷绿。
+- 数学/原生/SSE/恢复/验证相关93项通过；明确排除三个旧Policy冻结源码身份文件后1379项通过，不宣称全量旧发布基线通过。未修改历史金标/批准pins、凭据、数据结构或依赖；QA服务与窗口已关闭。
+
 # 2026-10-13 - Real Tool Calling CP4 Electron 验收与交付归档
 
 - 原生数学执行过程完成后自动折叠，答案独立保留且过程仍可打开；模型开始/完成事件关联同一model_call_id，输出增量使用Run真实耗时。最终修复科学计数法、0边界与解集完整性警告；未修改启动生产行为，仅更新陈旧的loading测试断言。
