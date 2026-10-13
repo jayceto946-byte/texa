@@ -193,7 +193,7 @@ class RuntimeStore:
                        "run.paused": "任务等待继续", "run.failed": "任务执行失败",
                        "model.started": "正在生成回答", "model.completed": "本轮生成结束"}.get(lifecycle) or lifecycle)
         event = emitter.emit(event_type, phase=lifecycle.split(".")[0], status=status,
-                            operation_id=f"tool:{payload['tool_call_id']}" if tool_name else lifecycle,
+                            operation_id=f"tool:{payload['tool_call_id']}" if tool_name else f"model:{payload['model_call_id']}" if (payload or {}).get("model_call_id") else lifecycle,
                             label="正在计算" if tool_name in {"symbolic_math", "verify_math_result"} else f"使用工具 · {tool_name}" if tool_name else summary,
                             summary=summary, kind="tool" if lifecycle.startswith("tool.") else "system",
                             payload={"lifecycle": lifecycle, **(payload or {})})
@@ -406,7 +406,9 @@ class RuntimeStore:
             checkpoint["last_action_kind"] = action_kind
             conn.execute("UPDATE agent_runs SET checkpoint_json=?,revision=revision+1,updated_at=? WHERE id=?",
                          (_dump(checkpoint), _now(), run_id))
-            self._event(conn, run, lifecycle="model.completed", status="completed")
+            task = conn.execute("SELECT consumed_model_calls FROM runtime_tasks WHERE id=?", (run["task_id"],)).fetchone()
+            self._event(conn, run, lifecycle="model.completed", status="completed",
+                payload={"model_call_id": f"{run_id}:model:{task['consumed_model_calls']}"})
             return self._snapshot(conn, run_id)
 
     def save_native_messages(self, run_id: str, owner: str, messages: list[dict]) -> dict:
@@ -432,6 +434,7 @@ class RuntimeStore:
                 operation_id="answer", label="正在回答", kind="generation",
                 summary="正在生成回答",
                 payload={"text": text, "replace": replace})
+            event["elapsed_ms"] = round(max(0, (datetime.now(timezone.utc) - datetime.fromisoformat(run["created_at"])).total_seconds() * 1000), 2)
             conn.execute("UPDATE agent_runs SET seq_high_water=? WHERE id=?", (event["seq"], run_id))
             return event
 

@@ -106,7 +106,7 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
             ai = response.result[-1]
             if not isinstance(ai, AIMessage) or ai.invalid_tool_calls or len(ai.tool_calls) > 1:
                 raise RuntimeDenied("invalid_native_response")
-            if any(not call.get("id") or len(call["id"]) > 160 or call["name"] not in refs for call in ai.tool_calls):
+            if any(not call.get("id") or len(call["id"]) > 128 or call["name"] not in refs for call in ai.tool_calls):
                 raise RuntimeDenied("unauthorized_native_call")
             if any(call["id"] in completed_ids for call in ai.tool_calls):
                 raise RuntimeDenied("duplicate_native_call_id")

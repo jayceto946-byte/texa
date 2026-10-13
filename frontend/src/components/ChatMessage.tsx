@@ -260,7 +260,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
           </div>
         )}
 
-        {!isUser && hasExecutionTrace && <ExecutionTrace activities={activities} stage={stage} sources={sources} taskStatus={learningTask?.status} verification={learningTask?.verification || (answerPresentation.notice ? {status: 'unverified'} : undefined)} onInspectSources={openSources} />}
+        {!isUser && hasExecutionTrace && <ExecutionTrace activities={activities} stage={stage} sources={sources} taskStatus={learningTask?.status} verification={learningTask?.verification || (answerPresentation.notice ? {status: 'unverified'} : undefined)} collapseOnComplete={learningTask?.artifacts?.native_loop === true} onInspectSources={openSources} />}
         {!isUser && answerPresentation.notice && !hasExecutionTrace && <details className="answer-verification-detail"><summary>公式或数值需要核对</summary><p>{answerPresentation.notice}</p></details>}
 
         {reportCard ? (

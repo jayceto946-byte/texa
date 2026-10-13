@@ -1,3 +1,10 @@
+# 2026-10-13 - Real Tool Calling CP4 Electron 验收与交付归档
+
+- 原生数学执行过程完成后自动折叠，答案独立保留且过程仍可打开；模型开始/完成事件关联同一model_call_id，输出增量使用Run真实耗时。最终修复科学计数法、0边界与解集完整性警告；未修改启动生产行为，仅更新陈旧的loading测试断言。
+- 隔离QA使用受控LangChain模型与真实SymPy/FastAPI/SQLite/SSE/Electron开发壳，8项现场检查通过：两工具三轮模型、完成折叠、1280/1024/760布局、工具失败披露、真实积分取消、刷新历史恢复与preload。完整消息/回执/事件及截图保存于docs/qa/evidence/native-tool-loop；没有访问生产学习数据。
+- 最终相关后端111项通过；归档前数学隔离/原生循环/答案验证47项再次通过。前端202项、类型/lint/build及桌面15项通过。首次全量1526通过/48旧Policy源码身份失效保留，不修改批准pins或金标，未宣称全量发布通过。
+- 交付TEXA-AGENT-LOOP-IMPLEMENTATION.md并关联历史审计。Astra两轮定点问题已修复测试；最后关闭确认因账户额度未完成，不宣称最终签核。Windows正式安装包、真实供应商参数流及保守数学验证覆盖列为遗留；付费模型调用0次，另列最多3调用/2工具、建议1元上限待授权方案。
+
 # 2026-10-12 - Real Tool Calling CP3 原生循环与统一问答执行
 
 - 数学native loop使用现有LangChain create_agent，middleware委托FixedRunner/RuntimeStore；仅数学候选启用，不接管教材/其他READ及写操作，不建立第二套Run权威。保留完整标准AIMessage/tool_call_id/ToolMessage，原生消息有界保存，不按字符串摘要继续模型。

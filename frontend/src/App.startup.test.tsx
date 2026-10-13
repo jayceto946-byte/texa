@@ -25,7 +25,7 @@ it('shows the remote connection gate without importing the authenticated workspa
 it('opens the workspace on desktop with a visible loading state', async () => {
   state.remote = false;
   const { default: App } = await import('./App');
-  expect(renderToString(createElement(App))).toContain('正在加载学习工作区');
+  expect(renderToString(createElement(App))).toContain('正在准备学习工作区');
   await vi.waitFor(() => expect(state.workspaceLoaded).toHaveBeenCalledOnce());
   expect(renderToString(createElement(App))).toContain('workspace-ready');
 });

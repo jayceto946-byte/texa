@@ -289,6 +289,8 @@ def _symbolic_math(_context: ToolContext, args: dict[str, Any]) -> ToolResult:
         if isinstance(result, sp.Expr) and result.has(sp.nan, sp.zoo):
             raise RestrictedMathError("result is undefined")
         warnings = ["symbolic result remained unevaluated"] if payload["status"] == "unevaluated" else []
+        if operation == "solve":
+            warnings.append("返回候选解；代入校验不证明解集完整性或全部定义域条件")
         return ToolResult(True, data=payload, message="确定性计算完成", warnings=warnings)
     except (RestrictedMathError, TypeError, ValueError, ZeroDivisionError) as exc:
         return ToolResult(False, message=str(exc))

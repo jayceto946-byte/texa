@@ -2,6 +2,8 @@
 
 日期：2026-10-12。范围：现状审计与无费用复现；未实施 Phase 2–5，未调用远程模型，未改模型配置、用户数据、依赖或 Gate。
 
+后续实施已记录在 [数学原生 Agent Loop 实现报告](TEXA-AGENT-LOOP-IMPLEMENTATION.md)。以下保留 CP1 的历史审计结论，不当作当前实现状态。
+
 ## 结论与 Checkpoint
 
 **CP1：审计完成。现有工具是真执行，现有 Runtime 能做有界多步执行，但主教学模型的原生数学工具闭环尚未接通。** 应修复现有连接与消息合同，复用 RuntimeStore、工具协议、ContextPack/EvidencePack、后置验证和 ExecutionEvent，无需另建 Agent 框架。

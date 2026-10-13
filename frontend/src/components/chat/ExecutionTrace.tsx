@@ -78,9 +78,10 @@ function ActivityDetails({ item, onInspectSources }: { item: ChatActivity; onIns
   </div>;
 }
 
-const ExecutionTrace: React.FC<{ activities: ChatActivity[]; stage?: string; sources?: AssistantSource[]; taskStatus?: string; verification?: Record<string, unknown>; onInspectSources?: () => void }> = ({ activities, stage, sources = [], taskStatus, verification, onInspectSources }) => {
+const ExecutionTrace: React.FC<{ activities: ChatActivity[]; stage?: string; sources?: AssistantSource[]; taskStatus?: string; verification?: Record<string, unknown>; collapseOnComplete?: boolean; onInspectSources?: () => void }> = ({ activities, stage, sources = [], taskStatus, verification, collapseOnComplete = false, onInspectSources }) => {
   const terminal = ['done', 'error', 'stopped', 'waiting_for_input', 'waiting_for_confirmation'].includes(stage || '');
-  const [expanded, setExpanded] = useState(false);
+  const [disclosure, setDisclosure] = useState({ open: false, terminal: false });
+  const expanded = disclosure.open && (!collapseOnComplete || !terminal || disclosure.terminal);
   const detailId = useId();
   // The reducer retains operation insertion order; completion seq must not reorder work.
   const visible = activities.filter((item) => item.id !== 'transport' && item.id !== 'execute' && item.event_type !== 'output_delta' && item.status !== 'pending');
@@ -105,7 +106,7 @@ const ExecutionTrace: React.FC<{ activities: ChatActivity[]; stage?: string; sou
 
   if (!visible.length) return null;
   return <section className={`execution-trace ${terminal ? 'is-terminal' : 'is-running'}`} aria-label="任务执行过程">
-    <button type="button" className="execution-trace-toggle" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded} aria-controls={detailId}>
+    <button type="button" className="execution-trace-toggle" onClick={() => setDisclosure({ open: !expanded, terminal })} aria-expanded={expanded} aria-controls={detailId}>
       <HeaderIcon className={!terminal ? 'animate-spin text-accent' : stage === 'error' ? 'text-[var(--danger)]' : degraded || failed ? 'text-[var(--warning)]' : 'text-text-secondary'} />
       <span className="execution-title" role="status" aria-live="polite">{title}</span>
       {displayedDuration > 0 && <span className="execution-time">{durationLabel(displayedDuration)}</span>}

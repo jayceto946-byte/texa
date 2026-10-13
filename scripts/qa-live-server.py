@@ -115,4 +115,28 @@ if os.environ.get('TEXA_QA_COMPLEX') == '1':
         append_message('qa-source-inspector','assistant','离线来源夹具：可导推出连续，连续未必可导。[1]',subject='数学',turn_id='qa-source-turn',sources=[{'id':'E1','book_name':'QA 合成教材','chapter':'第一章 函数与极限','section_path':['第一章 函数与极限','可导与连续'],'page_idx':12,'chunk_id':'qa-source-chunk'}])
         (qa_root/'source-seeded.flag').touch()
 import uvicorn
-uvicorn.run(main.app,host='127.0.0.1',port=18041,log_level='warning')
+if os.environ.get('TEXA_QA_NATIVE_MATH') == '1':
+    # Model responses only are controlled. Math, Runtime, SSE and storage stay real.
+    from backend.services.agent_runtime import chat_binding as native_binding
+    from tests.test_native_math_loop import ScriptedMathModel, model_adapter, SUCCESS, call
+    from langchain_core.messages import ToolMessage, HumanMessage
+    class QAAdaptiveModel(ScriptedMathModel):
+        def _response(self, messages):
+            prompt = " ".join(m.content for m in messages if isinstance(m, HumanMessage))
+            import re
+            question = re.search(r"## 用户问题\s*\n([^\n]+)", prompt)
+            prompt = question.group(1) if question else prompt
+            if "计算 1/0" in prompt:
+                self.responses = [call("symbolic_math", {"operation": "calculate", "expression": "1/0"}, "failure-1"),
+                    {"content": "计算失败：除数不能为零，不能提供精确结果。"}]
+            elif "计算 7" in prompt:
+                self.responses = [{"content": "结果是 7。"}]
+            elif "sin(x^x)" in prompt:
+                self.responses = [call("symbolic_math", {"operation": "integrate", "expression": "sin(x^x)"}, "slow-1"),
+                    {"content": "本次积分未能在预算内完成，暂不提供精确结果。"}]
+            return super()._response(messages)
+    def controlled_adapter(registry):
+        return model_adapter(QAAdaptiveModel(responses=SUCCESS, delays=.7), registry)
+    native_binding.build_adapter=controlled_adapter
+if __name__ == '__main__':
+    uvicorn.run(main.app,host='127.0.0.1',port=18041,log_level='warning')
