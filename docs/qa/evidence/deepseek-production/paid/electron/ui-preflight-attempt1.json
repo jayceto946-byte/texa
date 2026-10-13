@@ -1,0 +1,41 @@
+{
+  "environment": "actual macOS Electron and real Providers via formal Chat API",
+  "cases": [
+    {
+      "id": "S1",
+      "status": "failed",
+      "started_at": "2026-10-13T12:16:22.017Z",
+      "answers": [],
+      "error": "TimeoutError: locator.click: Timeout 25000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /传感器原理及应用/ })\u001b[22m\n",
+      "ended_at": "2026-10-13T12:16:47.422Z"
+    },
+    {
+      "id": "S5",
+      "status": "failed",
+      "started_at": "2026-10-13T12:16:47.566Z",
+      "answers": [],
+      "error": "TimeoutError: locator.click: Timeout 25000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /通用 QA/ })\u001b[22m\n",
+      "ended_at": "2026-10-13T12:17:12.954Z"
+    },
+    {
+      "id": "S6",
+      "status": "failed",
+      "started_at": "2026-10-13T12:17:13.078Z",
+      "answers": [],
+      "error": "TimeoutError: locator.click: Timeout 25000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /通用 QA/ })\u001b[22m\n",
+      "ended_at": "2026-10-13T12:17:38.450Z"
+    },
+    {
+      "id": "cancel",
+      "status": "failed",
+      "started_at": "2026-10-13T12:17:38.611Z",
+      "answers": [],
+      "error": "Error: locator.click: Application exited\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /通用 QA/ })\u001b[22m\n",
+      "ended_at": "2026-10-13T12:17:57.783Z"
+    }
+  ],
+  "errors": [
+    "Error: page.screenshot: Target page, context or browser has been closed"
+  ],
+  "sse": []
+}

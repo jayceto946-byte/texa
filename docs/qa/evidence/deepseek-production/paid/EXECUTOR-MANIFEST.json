@@ -1,0 +1,14 @@
+{
+  "source_manifest": "../SOURCE-MANIFEST.json",
+  "executor_sha256": {
+    "scripts/qa-deepseek-production-paid.py": "2455beda32539db1128ff892fd87beef3de86c22415fdd52ccf36ccabda86974",
+    "scripts/qa-deepseek-production-paid-electron.cjs": "c470599a7749b31c4455d02dea7b55360bb79f417fd54d82e98fec04dd16ef3c",
+    "tests/test_deepseek_paid_budget.py": "624f5f79e47f255168f14800686e19cc949df8e1bd3e92ad25df08bb0f330468"
+  },
+  "free_budget_tests": "6 passed",
+  "price_sources": [
+    "https://api-docs.deepseek.com/quick_start/pricing/",
+    "https://help.aliyun.com/zh/model-studio/model-pricing"
+  ],
+  "reservation_rates": "approved unchanged conservative peak/list pricing"
+}

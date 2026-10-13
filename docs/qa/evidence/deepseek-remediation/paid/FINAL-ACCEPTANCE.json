@@ -1,0 +1,62 @@
+{
+  "case": "S1",
+  "acceptance": "LIVE-VERIFIED",
+  "run_id": "arun_99eef420161045c19b584b57e7a13b58",
+  "conversation_id": "conv_1791898994241_b0fb8c33",
+  "run_status": "completed",
+  "task_status": "degraded",
+  "verification_status": "unverified",
+  "verification_failures": [],
+  "requests": {
+    "deepseek": 1,
+    "qwen": 0,
+    "retries": 0
+  },
+  "metrics": {
+    "input_tokens": 3018,
+    "reasoning_tokens": 3849,
+    "final_content_tokens": 488,
+    "total_output_tokens": 4337,
+    "all_tokens": 7355,
+    "finish_reason": "stop",
+    "wire_output_limit": 8192,
+    "first_meaningful_output_ms_from_sql_run": 28808.62,
+    "first_public_ms_from_provider": 27186.8,
+    "provider_elapsed_ms": 30012.92,
+    "total_run_time_ms": 31520.98
+  },
+  "cost": {
+    "tariff_band": "offpeak",
+    "estimated_usd": 0.0026409479999999997,
+    "hard_cap_usd": 0.03,
+    "reserved_usd": 0.0196728,
+    "supplier_invoice": false
+  },
+  "consistency": {
+    "raw_equals_sql": true,
+    "task_equals_sql": true,
+    "outbox_equals_sql": true,
+    "sse_equals_sql": true,
+    "sse_task_equals_sql": true,
+    "verification_sidecar_equal": true,
+    "ui_discloses_unverified": true,
+    "no_disclosure_in_body": true,
+    "ui_meaningful_final_answer": true
+  },
+  "effective_source_unchanged": true,
+  "ui_diagnostics": {
+    "page_or_network_errors": [],
+    "cleanup_abort_callsite_count": 6,
+    "explanation": "Harness records every AbortController cleanup call during profile/scope/navigation. No requestfailed/pageerror, stream completed, SQL terminal completed."
+  },
+  "limitations": [
+    "One frozen sample does not establish statistical output budget stability.",
+    "488 final_content_tokens is completion minus reasoning, possible protocol overhead included.",
+    "Runtime semantic obligations remain unverified; independent release evidence review does not upgrade task verification.",
+    "UI raw bytes asserted at SSE boundary; desktop renders Markdown, LaTeX and citation markers."
+  ],
+  "release_verdict": "PASS",
+  "release_scope": "Frozen acceptance contracts; Flash optional, Qwen default; S5/S6 historical LIVE plus post-fix FREE replay, not new live provider requests",
+  "golden_review": "S1-EVIDENCE-REVIEW.md",
+  "historical_credential_risk": "Cannot exclude previous synced/backed-up copies; recommend rotating exposed keys."
+}

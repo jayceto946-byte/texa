@@ -1,0 +1,31 @@
+{
+  "head": "f91633673c40cf9c353e49804e2584b64f3131cc",
+  "branch": "codex/cross-module-remediation",
+  "identity": "Current effective working tree; includes existing user changes",
+  "files": {
+    "backend/services/answer_verification.py": "283f57fde286d2ca29df64d21c05deb1baf3cc484cbeeda3970e6cd8ce804535",
+    "graph/generator.py": "e3f68c3e0f1ef0c1507e8b7d0a2454e4ec68e540abeec6ccc2410a8fb70d4470",
+    "backend/services/agent_runtime/native_loop.py": "ef8119a4b044ec2b511308fde982c5ce5a7d53c672b724ec0b59cb25201ffea2",
+    "backend/services/agent_runtime/multi_step.py": "84052dc96824b2eaaad88c3b2493226d695a63776afabb6b63d68e23f5974086",
+    "backend/services/agent_runtime/store.py": "990bd17b8496538a5f1fea8f5945287cbdba77289152b9d5e0390bd6c33ecd57",
+    "backend/services/agent_runtime/chat_binding.py": "3534585e400a214d8c2ce8156c0c71181928c68a54771fa2eb849696e9d64711",
+    "backend/api/chat.py": "ae659af028688a4cc79b6b6c72eb03fa7b680574253bc430eb6cd873d54b6275",
+    "llm/deepseek_chat.py": "bebb2febbec9808cd40eaa7dcda4b670289a60b63cc941adc3f2a10af6b35639",
+    "llm/agent_adapter.py": "305e5322129b1bc6fa86427cf063ce4fa3a56938f5fea5f1ebb5286f65cf70ce",
+    "llm/factory.py": "c9bd360bfdae04149e4bf36362f613ccd93e8f906ed89b57ca808d80100294c0",
+    "llm/registry.py": "1f75b9fb06210494a5998fe9d6e2c9a618dbd0136878c87b25ddf2342514a5f2",
+    "frontend/src/components/ChatMessage.tsx": "65c8018e0c29ee150a7761094529f6fa4579eeab97cbd6d31b54485b02f1c99b",
+    "frontend/src/components/chat/MarkdownMessage.tsx": "ed586e45bf28e9447bd640123b4371892cc0b3fec70de698fc5a1f27b926676b",
+    "frontend/src/components/chat/MarkdownRenderer.tsx": "d7076e66550c7077033c0b0a67e6f11e9707f48e277514105b99bad9b75f614d",
+    "frontend/src/components/chat/ExecutionTrace.tsx": "fabc316fb30d2843ebf6887c7613b39ae03e88ee3fe60717689419cfc1aaa729",
+    "frontend/src/pages/ChatPage.tsx": "dc5eba8fd1c96a312e0ee810f8f42987cb2bf36a730e4fcb643b8da07afdc0d0",
+    "frontend/src/utils/answerVerification.ts": "4fa5c53d5e3e5938b8165157c68d44245659dd15c63fe6ba52f93f7e6155571c",
+    "scripts/qa-deepseek-production-paid.py": "cf0ce90a35516ca9c05e1529660a5d0f18cd7b7d9a105494522bd966c6db7fa0",
+    "scripts/qa-deepseek-remediation-paid.py": "b15d2d848bdf2428ef9345fafe9bb4ee8e8472a1172f89f33a709849dd86fc41",
+    "scripts/qa-deepseek-remediation-server.py": "b454c10cbe8d0ad237f488e21a8dc3c2021388ed37de500b95a0fd36cdeae59e",
+    "scripts/qa-deepseek-remediation-electron.cjs": "9d406875e3341f580a281cecc2612c4e125c6b644cccd443e5324d55cf9aebf5",
+    "tests/test_runtime_validation_remediation.py": "8dc2536f9233978c31ea1a1f28587a2b1ae87fb83b8fa2d3573a34ae69321810",
+    "tests/test_deepseek_paid_budget.py": "7fae92d83480be04cdf515cb31abe80fc94d4f6c50d308d1b5eb265aa12597d6",
+    "tests/test_deepseek_production.py": "84fba78d846940c35b40c331bed1218acd71288e2bcf88aa3fed4761ccfefa23"
+  }
+}

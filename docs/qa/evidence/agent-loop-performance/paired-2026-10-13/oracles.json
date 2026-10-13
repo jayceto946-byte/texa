@@ -1,0 +1,12 @@
+{
+  "integral": "-2 + E",
+  "antiderivative_derivative_residual": "0",
+  "curl": [
+    "-2*x**2 + x*z",
+    "6*x*y - 3*y*z",
+    "-2*x*z + z**2"
+  ],
+  "stokes_density": "1",
+  "projection_equation": "5*x**2 - 6*x + y**2 + 1",
+  "stokes_result": "4*sqrt(5)*pi/25"
+}

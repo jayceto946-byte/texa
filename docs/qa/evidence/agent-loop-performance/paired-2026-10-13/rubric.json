@@ -1,0 +1,37 @@
+{
+  "method": "Independent offline mathematics review of final answer only; stage text cannot repair missing final output. Each item scores 0/1. Key error stops later planned cases of affected arm; no extra review model.",
+  "concept": [
+    "可导推出连续，局部点条件清楚",
+    "连续不推出可导",
+    "有效反例如 |x| 在0",
+    "左右导数或差商证明不可导"
+  ],
+  "integral": [
+    "第一次分部积分正确",
+    "第二次分部积分或完整等价推导正确",
+    "原函数 e^x(x^2-2x+2)",
+    "上下限代入得到 e-2",
+    "独立导数/等价核验正确"
+  ],
+  "stokes": [
+    "球面中心(1,0,0)、半径1，无错误展开",
+    "curl=(-2*x^2+x*z,6*x*y-3*y*z,-2*x*z+z^2)",
+    "平面 z=2x-1，向上方向与给定逆时针一致",
+    "投影5(x-3/5)^2+y^2<=4/5",
+    "完整曲面/投影积分推导，积分等于面积",
+    "精确结果4*sqrt(5)*pi/25"
+  ],
+  "proof": [
+    "f=ln(1+t) 在[0,x]连续",
+    "在(0,x)可导",
+    "中值定理 c in(0,x) 得 ln(1+x)=x/(1+c)",
+    "c>0且x>0推出严格小于x"
+  ],
+  "key_error_policy": "wrong main result, invalid required derivation or contradictory domain/orientation is critical; literal gate false positive alone is not mathematical failure",
+  "sympy_oracles": {
+    "integral": "E-2",
+    "integral_antiderivative": "exp(x)*(x**2-2*x+2)",
+    "stokes": "4*sqrt(5)*pi/25",
+    "stokes_density": "1"
+  }
+}

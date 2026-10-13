@@ -1,0 +1,7 @@
+{
+  "case": "stokes-B",
+  "source": "QA readonly backend startup recovery fenced CLI-owned active run",
+  "no_retry": true,
+  "scope": "isolated /private/tmp QA only, no production data",
+  "excluded_from_latency_quality_comparison": true
+}

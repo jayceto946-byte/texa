@@ -1,0 +1,10 @@
+{
+  "scope": "Post-live current tracked/nonignored untracked plus isolated QA SQL/profile/env/wal/shm; exact credential comparison in RAM only",
+  "credential_count": 2,
+  "repository_files_scanned": 3512,
+  "qa_files_scanned": 14,
+  "exact_matches": [],
+  "qa_matches": [],
+  "historical_copies_excluded": false,
+  "recommendation": "Rotate prior exposed DeepSeek/Qwen keys; cleanup cannot exclude historical sync/backups/snapshots."
+}

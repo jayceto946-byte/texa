@@ -1,0 +1,56 @@
+{
+  "measurement": "offline paired microbenchmark; no provider requests; not end-to-end speedup",
+  "snapshot_before": {
+    "median_ms_per_operation": 0.4231075000279816,
+    "rounds_ms": [
+      0.47120499999437016,
+      0.4231075000279816,
+      0.36958416996640153,
+      0.39344000004348345,
+      0.408200410020072,
+      0.4489066699898103,
+      0.451186249993043
+    ],
+    "iterations_per_round": 100
+  },
+  "fence_after": {
+    "median_ms_per_operation": 0.32534291000047233,
+    "rounds_ms": [
+      0.3476041699468624,
+      0.33609375001105946,
+      0.32761082999059,
+      0.32534291000047233,
+      0.3170066700113239,
+      0.3187420900212601,
+      0.324039580009412
+    ],
+    "iterations_per_round": 100
+  },
+  "calculate_before": {
+    "median_ms_per_operation": 2.490372900138027,
+    "rounds_ms": [
+      5.146204150150879,
+      2.3420291996444575,
+      2.39919164996536,
+      2.490372900138027,
+      3.3075708499382017,
+      2.5151416499284096,
+      2.3846874999435386
+    ],
+    "iterations_per_round": 20
+  },
+  "calculate_after": {
+    "median_ms_per_operation": 1.4056312498723855,
+    "rounds_ms": [
+      1.3597583001683233,
+      1.4230916498490842,
+      1.3774687497061677,
+      1.4015791501151398,
+      1.4056312498723855,
+      1.4388749998033745,
+      1.4184957999532344
+    ],
+    "iterations_per_round": 20
+  },
+  "limits": "snapshot fixture contains ~32KB public content; math timing excludes worker spawn and validation"
+}

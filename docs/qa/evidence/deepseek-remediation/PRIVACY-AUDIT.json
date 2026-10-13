@@ -1,0 +1,13 @@
+{
+  "credential_values_compared_only_in_ram": 2,
+  "git_worktree_files_scanned": 3497,
+  "exact_matches": [],
+  "qa_files_scanned": 108,
+  "qa_matches": [],
+  "synthetic_pattern_matches_classified": [
+    "docs/qa/runtime-data-audit.md",
+    "tests/test_runtime_stream_cleanup_errors.py"
+  ],
+  "historical_copies_not_proven_absent": true,
+  "values_or_credential_hashes_saved": false
+}

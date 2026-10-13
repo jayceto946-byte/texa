@@ -1,0 +1,676 @@
+{
+  "runs_started": [
+    "concept-A",
+    "concept-B",
+    "concept-C",
+    "concept-D",
+    "integral-B",
+    "integral-C",
+    "integral-D",
+    "integral-A",
+    "stokes-D",
+    "stokes-A",
+    "stokes-B",
+    "proof-D",
+    "proof-A",
+    "proof-B"
+  ],
+  "requests": [
+    {
+      "index": 1,
+      "case": "concept-A",
+      "started_at": "2026-10-13T02:28:11.342202+00:00",
+      "input_bytes": 5819,
+      "reserved_cny": 0.14279,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 3274.38,
+      "http_status": 200,
+      "first_chunk_ms": 3291.77,
+      "first_public_ms": 8361.73,
+      "ended_at": "2026-10-13T02:28:31.429258+00:00",
+      "request_ms": 20086.97,
+      "usage": {
+        "input_tokens": 1622,
+        "output_tokens": 988,
+        "total_tokens": 2610,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 291
+        }
+      },
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.011148
+    },
+    {
+      "index": 2,
+      "case": "concept-B",
+      "started_at": "2026-10-13T02:29:01.889085+00:00",
+      "input_bytes": 5842,
+      "reserved_cny": 0.142836,
+      "status": "error",
+      "extra_body": {
+        "enable_thinking": true,
+        "thinking_budget": 4096
+      },
+      "tool_choice": "auto",
+      "error_type": "APIConnectionError",
+      "ended_at": "2026-10-13T02:29:32.401955+00:00"
+    },
+    {
+      "index": 3,
+      "case": "concept-C",
+      "started_at": "2026-10-13T02:29:49.240326+00:00",
+      "input_bytes": 5820,
+      "reserved_cny": 0.142792,
+      "status": "error",
+      "extra_body": {
+        "enable_thinking": false
+      },
+      "tool_choice": "auto",
+      "error_type": "APIConnectionError",
+      "ended_at": "2026-10-13T02:29:54.250477+00:00"
+    },
+    {
+      "index": 4,
+      "case": "concept-D",
+      "started_at": "2026-10-13T02:30:31.659669+00:00",
+      "input_bytes": 3024,
+      "reserved_cny": 0.1372,
+      "status": "error",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tool_choice": null,
+      "error_type": "APIConnectionError",
+      "ended_at": "2026-10-13T02:31:02.311999+00:00"
+    },
+    {
+      "index": 5,
+      "case": "integral-B",
+      "started_at": "2026-10-13T02:32:17.648590+00:00",
+      "input_bytes": 5819,
+      "reserved_cny": 0.14279,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true,
+        "thinking_budget": 4096
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 2205.82,
+      "http_status": 200,
+      "first_chunk_ms": 2219.5,
+      "first_public_ms": 5514.07,
+      "ended_at": "2026-10-13T02:32:25.079959+00:00",
+      "request_ms": 7431.34,
+      "usage": {
+        "input_tokens": 1625,
+        "output_tokens": 285,
+        "total_tokens": 1910,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 191
+        }
+      },
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.00553
+    },
+    {
+      "index": 6,
+      "case": "integral-B",
+      "started_at": "2026-10-13T02:32:25.474855+00:00",
+      "input_bytes": 6907,
+      "reserved_cny": 0.14496599999999998,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true,
+        "thinking_budget": 4096
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 1932.65,
+      "http_status": 200,
+      "first_chunk_ms": 1935.6,
+      "ended_at": "2026-10-13T02:32:34.472859+00:00",
+      "request_ms": 8998.03,
+      "usage": {
+        "input_tokens": 1955,
+        "output_tokens": 414,
+        "total_tokens": 2369,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 311
+        }
+      },
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.007222
+    },
+    {
+      "index": 7,
+      "case": "integral-B",
+      "started_at": "2026-10-13T02:32:34.855768+00:00",
+      "input_bytes": 7764,
+      "reserved_cny": 0.14667999999999998,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true,
+        "thinking_budget": 4096
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 2310.95,
+      "http_status": 200,
+      "first_chunk_ms": 2313.78,
+      "first_public_ms": 3770.4,
+      "ended_at": "2026-10-13T02:32:40.147242+00:00",
+      "request_ms": 5291.47,
+      "usage": {
+        "input_tokens": 2204,
+        "output_tokens": 172,
+        "total_tokens": 2376,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 76
+        }
+      },
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.005784
+    },
+    {
+      "index": 8,
+      "case": "integral-B",
+      "started_at": "2026-10-13T02:32:40.420486+00:00",
+      "input_bytes": 8607,
+      "reserved_cny": 0.148366,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true,
+        "thinking_budget": 4096
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 2065.56,
+      "http_status": 200,
+      "first_chunk_ms": 2068.79,
+      "first_public_ms": 2274.99,
+      "ended_at": "2026-10-13T02:32:49.540989+00:00",
+      "request_ms": 9120.46,
+      "usage": {
+        "input_tokens": 2444,
+        "output_tokens": 430,
+        "total_tokens": 2874,
+        "input_token_details": {
+          "cache_read": 1664
+        },
+        "output_token_details": {
+          "reasoning": 17
+        }
+      },
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.008328
+    },
+    {
+      "index": 9,
+      "case": "integral-C",
+      "started_at": "2026-10-13T02:33:04.714979+00:00",
+      "input_bytes": 5797,
+      "reserved_cny": 0.14274599999999998,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": false
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 2707.26,
+      "http_status": 200,
+      "first_chunk_ms": 2729.26,
+      "first_public_ms": 2732.52,
+      "ended_at": "2026-10-13T02:33:18.503222+00:00",
+      "request_ms": 13801.26,
+      "usage": {
+        "input_tokens": 1627,
+        "output_tokens": 655,
+        "total_tokens": 2282,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {}
+      },
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.008494
+    },
+    {
+      "index": 10,
+      "case": "integral-C",
+      "started_at": "2026-10-13T02:33:18.885981+00:00",
+      "input_bytes": 7970,
+      "reserved_cny": 0.147092,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": false
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 2727.17,
+      "http_status": 200,
+      "first_chunk_ms": 2730.87,
+      "first_public_ms": 2733.39,
+      "ended_at": "2026-10-13T02:33:26.200069+00:00",
+      "request_ms": 7317.42,
+      "usage": {
+        "input_tokens": 2434,
+        "output_tokens": 271,
+        "total_tokens": 2705,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {}
+      },
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.007036
+    },
+    {
+      "index": 11,
+      "case": "integral-C",
+      "started_at": "2026-10-13T02:33:26.495558+00:00",
+      "input_bytes": 9463,
+      "reserved_cny": 0.150078,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": false
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 3691.11,
+      "http_status": 200,
+      "first_chunk_ms": 3694.23,
+      "first_public_ms": 3696.6,
+      "ended_at": "2026-10-13T02:33:31.240799+00:00",
+      "request_ms": 4746.67,
+      "usage": {
+        "input_tokens": 2945,
+        "output_tokens": 63,
+        "total_tokens": 3008,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {}
+      },
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.006394
+    },
+    {
+      "index": 12,
+      "case": "integral-D",
+      "started_at": "2026-10-13T02:33:56.984685+00:00",
+      "input_bytes": 3001,
+      "reserved_cny": 0.137154,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tool_choice": null,
+      "response_headers_ms": 2042.72,
+      "http_status": 200,
+      "first_chunk_ms": 2058.9,
+      "first_public_ms": 25203.4,
+      "ended_at": "2026-10-13T02:34:32.328251+00:00",
+      "request_ms": 35344.2,
+      "usage": {
+        "input_tokens": 593,
+        "output_tokens": 1964,
+        "total_tokens": 2557,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 1363
+        }
+      },
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.016898
+    },
+    {
+      "index": 13,
+      "case": "integral-A",
+      "started_at": "2026-10-13T02:34:47.340280+00:00",
+      "input_bytes": 5796,
+      "reserved_cny": 0.14274399999999998,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 1950.12,
+      "http_status": 200,
+      "first_chunk_ms": 1968.13,
+      "first_public_ms": 8328.66,
+      "ended_at": "2026-10-13T02:34:56.869119+00:00",
+      "request_ms": 9528.85,
+      "usage": {
+        "input_tokens": 1625,
+        "output_tokens": 448,
+        "total_tokens": 2073,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 371
+        }
+      },
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.006834
+    },
+    {
+      "index": 14,
+      "case": "integral-A",
+      "started_at": "2026-10-13T02:34:57.265308+00:00",
+      "input_bytes": 6904,
+      "reserved_cny": 0.14495999999999998,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 2514.12,
+      "http_status": 200,
+      "first_chunk_ms": 2519.94,
+      "ended_at": "2026-10-13T02:35:02.983642+00:00",
+      "request_ms": 5718.35,
+      "usage": {
+        "input_tokens": 1955,
+        "output_tokens": 210,
+        "total_tokens": 2165,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 106
+        }
+      },
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.00559
+    },
+    {
+      "index": 15,
+      "case": "integral-A",
+      "started_at": "2026-10-13T02:35:03.288972+00:00",
+      "input_bytes": 7739,
+      "reserved_cny": 0.14662999999999998,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 2167.77,
+      "http_status": 200,
+      "first_chunk_ms": 2171.11,
+      "first_public_ms": 8535.85,
+      "ended_at": "2026-10-13T02:35:18.918565+00:00",
+      "request_ms": 15629.6,
+      "usage": {
+        "input_tokens": 2204,
+        "output_tokens": 792,
+        "total_tokens": 2996,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 369
+        }
+      },
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.010744
+    },
+    {
+      "index": 16,
+      "case": "stokes-D",
+      "started_at": "2026-10-13T02:35:34.314799+00:00",
+      "input_bytes": 3177,
+      "reserved_cny": 0.137506,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tool_choice": null,
+      "response_headers_ms": 2251.43,
+      "http_status": 200,
+      "first_chunk_ms": 2271.77,
+      "first_public_ms": 74026.55,
+      "ended_at": "2026-10-13T02:37:09.859377+00:00",
+      "request_ms": 95544.43,
+      "usage": {
+        "input_tokens": 673,
+        "output_tokens": 5489,
+        "total_tokens": 6162,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 4219
+        }
+      },
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.045258
+    },
+    {
+      "index": 17,
+      "case": "stokes-A",
+      "started_at": "2026-10-13T02:37:48.642566+00:00",
+      "input_bytes": 5972,
+      "reserved_cny": 0.143096,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 1947.69,
+      "http_status": 200,
+      "first_chunk_ms": 1971.34,
+      "first_public_ms": 55859.38,
+      "ended_at": "2026-10-13T02:38:46.851830+00:00",
+      "request_ms": 58209.19,
+      "usage": {
+        "input_tokens": 1705,
+        "output_tokens": 3295,
+        "total_tokens": 5000,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 3163
+        }
+      },
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.02977
+    },
+    {
+      "index": 18,
+      "case": "stokes-A",
+      "started_at": "2026-10-13T02:38:47.280001+00:00",
+      "input_bytes": 7065,
+      "reserved_cny": 0.145282,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 2935.48,
+      "http_status": 200,
+      "first_chunk_ms": 2940.96,
+      "first_public_ms": 43135.56,
+      "ended_at": "2026-10-13T02:39:43.773629+00:00",
+      "request_ms": 56493.56,
+      "usage": {
+        "input_tokens": 2036,
+        "output_tokens": 3152,
+        "total_tokens": 5188,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 2361
+        }
+      },
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.029288
+    },
+    {
+      "index": 19,
+      "case": "stokes-B",
+      "started_at": "2026-10-13T02:40:30.037113+00:00",
+      "input_bytes": 5995,
+      "reserved_cny": 0.143142,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true,
+        "thinking_budget": 4096
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 2422.16,
+      "http_status": 200,
+      "first_chunk_ms": 2433.95,
+      "first_public_ms": 46363.88,
+      "ended_at": "2026-10-13T02:41:17.488540+00:00",
+      "request_ms": 47451.37,
+      "usage": {
+        "input_tokens": 1705,
+        "output_tokens": 2644,
+        "total_tokens": 4349,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 2577
+        }
+      },
+      "finish_reason": "tool_calls",
+      "estimated_cost_cny": 0.024562
+    },
+    {
+      "index": 20,
+      "case": "stokes-B",
+      "started_at": "2026-10-13T02:41:17.876384+00:00",
+      "input_bytes": 7052,
+      "reserved_cny": 0.145256,
+      "status": "error",
+      "extra_body": {
+        "enable_thinking": true,
+        "thinking_budget": 4096
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 2071.19,
+      "http_status": 200,
+      "first_chunk_ms": 2079.65,
+      "first_public_ms": 37974.96,
+      "error_type": "RuntimeConflict",
+      "cause_types": [
+        {
+          "type": "RuntimeConflict"
+        }
+      ],
+      "ended_at": "2026-10-13T02:42:05.235578+00:00"
+    },
+    {
+      "index": 21,
+      "case": "proof-D",
+      "started_at": "2026-10-13T02:43:00.592329+00:00",
+      "input_bytes": 3029,
+      "reserved_cny": 0.13721,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tool_choice": null,
+      "response_headers_ms": 1777.14,
+      "http_status": 200,
+      "first_chunk_ms": 1786.41,
+      "first_public_ms": 19413.5,
+      "ended_at": "2026-10-13T02:43:28.311078+00:00",
+      "request_ms": 27718.72,
+      "usage": {
+        "input_tokens": 602,
+        "output_tokens": 1525,
+        "total_tokens": 2127,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 1026
+        }
+      },
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.013404
+    },
+    {
+      "index": 22,
+      "case": "proof-A",
+      "started_at": "2026-10-13T02:43:44.451051+00:00",
+      "input_bytes": 5824,
+      "reserved_cny": 0.14279999999999998,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 1846.01,
+      "http_status": 200,
+      "first_chunk_ms": 1865.44,
+      "first_public_ms": 8649.11,
+      "ended_at": "2026-10-13T02:44:01.181649+00:00",
+      "request_ms": 16730.58,
+      "usage": {
+        "input_tokens": 1634,
+        "output_tokens": 864,
+        "total_tokens": 2498,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 395
+        }
+      },
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.01018
+    },
+    {
+      "index": 23,
+      "case": "proof-B",
+      "started_at": "2026-10-13T02:44:35.152749+00:00",
+      "input_bytes": 5847,
+      "reserved_cny": 0.142846,
+      "status": "returned",
+      "extra_body": {
+        "enable_thinking": true,
+        "thinking_budget": 4096
+      },
+      "tool_choice": "auto",
+      "response_headers_ms": 2074.01,
+      "http_status": 200,
+      "first_chunk_ms": 2084.22,
+      "first_public_ms": 8737.88,
+      "ended_at": "2026-10-13T02:44:51.832607+00:00",
+      "request_ms": 16679.85,
+      "usage": {
+        "input_tokens": 1634,
+        "output_tokens": 864,
+        "total_tokens": 2498,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 395
+        }
+      },
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.01018
+    }
+  ],
+  "input_bytes": 140233,
+  "reserved_or_used_cny": 0.8307280000000001
+}

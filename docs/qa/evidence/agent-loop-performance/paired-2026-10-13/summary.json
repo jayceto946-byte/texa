@@ -1,0 +1,653 @@
+{
+  "cases": [
+    {
+      "id": "concept-A",
+      "status": "degraded",
+      "error": null,
+      "model_envelope_seconds": 20.12147,
+      "tool_seconds": 0.0,
+      "runtime_profile": [
+        {
+          "context_build_ms": 0.03,
+          "initial_checkpoint_ms": 0.7,
+          "verification_ms": 3.92
+        }
+      ],
+      "prompt_hash": "b39d5234500383763e0ca91d5f824215824007d6d61238e561bee6d7c8e2db47",
+      "total_seconds": 20.40022,
+      "first_public_seconds": 8.644770000000001,
+      "first_final_seconds": 8.644770000000001,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "failed_tools": 0,
+      "usage": {
+        "input_tokens": 1622,
+        "output_tokens": 988,
+        "total_tokens": 2610
+      },
+      "reasoning_tokens": 291,
+      "public_tool_preambles": 0,
+      "review": {
+        "points": 4,
+        "max_points": 4,
+        "complete_correct": true,
+        "critical_error": false,
+        "notes": "证明与左右导数正确；“附近光滑”仅作直观措辞，不能理解为邻域C1保证"
+      },
+      "max_receive_gap_seconds": 8.391800000000002,
+      "tools": []
+    },
+    {
+      "id": "concept-B",
+      "status": "failed",
+      "error": "model_adapter_failed",
+      "model_envelope_seconds": 0.0,
+      "tool_seconds": 0.0,
+      "runtime_profile": [],
+      "prompt_hash": "b39d5234500383763e0ca91d5f824215824007d6d61238e561bee6d7c8e2db47",
+      "total_seconds": 30.820220000000003,
+      "first_public_seconds": null,
+      "first_final_seconds": null,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "failed_tools": 0,
+      "usage": null,
+      "reasoning_tokens": null,
+      "public_tool_preambles": 0,
+      "review": {
+        "complete_correct": false,
+        "reviewable": false,
+        "notes": "APIConnectionError，无最终答案"
+      },
+      "max_receive_gap_seconds": 30.54786,
+      "tools": []
+    },
+    {
+      "id": "concept-C",
+      "status": "failed",
+      "error": "model_adapter_failed",
+      "model_envelope_seconds": 0.0,
+      "tool_seconds": 0.0,
+      "runtime_profile": [],
+      "prompt_hash": "b39d5234500383763e0ca91d5f824215824007d6d61238e561bee6d7c8e2db47",
+      "total_seconds": 5.31742,
+      "first_public_seconds": null,
+      "first_final_seconds": null,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "failed_tools": 0,
+      "usage": null,
+      "reasoning_tokens": null,
+      "public_tool_preambles": 0,
+      "review": {
+        "complete_correct": false,
+        "reviewable": false,
+        "notes": "APIConnectionError，无最终答案"
+      },
+      "max_receive_gap_seconds": 5.02572,
+      "tools": []
+    },
+    {
+      "id": "concept-D",
+      "status": "failed",
+      "error": "model_adapter_failed",
+      "model_envelope_seconds": 0.0,
+      "tool_seconds": 0.0,
+      "runtime_profile": [],
+      "prompt_hash": "b39d5234500383763e0ca91d5f824215824007d6d61238e561bee6d7c8e2db47",
+      "total_seconds": 30.981189999999998,
+      "first_public_seconds": null,
+      "first_final_seconds": null,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "failed_tools": 0,
+      "usage": null,
+      "reasoning_tokens": null,
+      "public_tool_preambles": 0,
+      "review": {
+        "complete_correct": false,
+        "reviewable": false,
+        "notes": "APIConnectionError，无最终答案"
+      },
+      "max_receive_gap_seconds": 30.690600000000003,
+      "tools": []
+    },
+    {
+      "id": "integral-B",
+      "status": "degraded",
+      "error": null,
+      "model_envelope_seconds": 30.92546,
+      "tool_seconds": 0.9306499999999988,
+      "runtime_profile": [
+        {
+          "context_build_ms": 0.03,
+          "initial_checkpoint_ms": 0.91,
+          "tool_return_ms": 4.0,
+          "verification_ms": 3.48
+        }
+      ],
+      "prompt_hash": "14054284871666bf8b64a1bd7202175c3c4f4480937a42ca538e917f7d1493b6",
+      "total_seconds": 32.22248,
+      "first_public_seconds": 5.79185,
+      "first_final_seconds": 25.33624,
+      "model_calls": 4,
+      "tool_calls": 3,
+      "failed_tools": 1,
+      "usage": {
+        "input_tokens": 8228,
+        "output_tokens": 1301,
+        "total_tokens": 9529
+      },
+      "reasoning_tokens": 595,
+      "public_tool_preambles": 2,
+      "review": {
+        "points": 5,
+        "max_points": 5,
+        "complete_correct": true,
+        "critical_error": false,
+        "notes": "最终分部积分、e-2、正确原函数与校验完整。第二个校验误用exp(x)-2失败，模型改为正确原函数后恢复；中间阶段不补计最终交付"
+      },
+      "max_receive_gap_seconds": 9.033859999999999,
+      "tools": [
+        {
+          "tool": "symbolic_math",
+          "args": {
+            "assumptions": {},
+            "direction": "+-",
+            "expression": "x^2 * exp(x)",
+            "lower": "0",
+            "operation": "integrate",
+            "point": null,
+            "right": "0",
+            "upper": "1",
+            "variable": "x"
+          },
+          "status": "succeeded"
+        },
+        {
+          "tool": "verify_math_result",
+          "args": {
+            "assumptions": {},
+            "candidate": "exp(x) - 2",
+            "candidates": [],
+            "direction": "+-",
+            "kind": "definite_integral",
+            "left": "",
+            "lower": "0",
+            "original": "x^2 * exp(x)",
+            "point": null,
+            "right": "",
+            "upper": "1",
+            "variable": "x"
+          },
+          "status": "failed"
+        },
+        {
+          "tool": "verify_math_result",
+          "args": {
+            "assumptions": {},
+            "candidate": "exp(x)*(x^2 - 2*x + 2)",
+            "candidates": [],
+            "direction": "+-",
+            "kind": "antiderivative",
+            "left": "",
+            "lower": null,
+            "original": "x^2 * exp(x)",
+            "point": null,
+            "right": "",
+            "upper": null,
+            "variable": "x"
+          },
+          "status": "succeeded"
+        }
+      ]
+    },
+    {
+      "id": "integral-C",
+      "status": "degraded",
+      "error": null,
+      "model_envelope_seconds": 25.91504,
+      "tool_seconds": 0.6017600000000002,
+      "runtime_profile": [
+        {
+          "context_build_ms": 0.03,
+          "initial_checkpoint_ms": 0.82,
+          "tool_return_ms": 2.61,
+          "verification_ms": 2.14
+        }
+      ],
+      "prompt_hash": "14054284871666bf8b64a1bd7202175c3c4f4480937a42ca538e917f7d1493b6",
+      "total_seconds": 26.860259999999997,
+      "first_public_seconds": 3.03763,
+      "first_final_seconds": 25.808490000000003,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "failed_tools": 1,
+      "usage": {
+        "input_tokens": 7006,
+        "output_tokens": 989,
+        "total_tokens": 7995
+      },
+      "reasoning_tokens": 0,
+      "public_tool_preambles": 2,
+      "review": {
+        "points": 1,
+        "max_points": 5,
+        "complete_correct": false,
+        "main_result_correct": true,
+        "critical_error": true,
+        "notes": "最终独立答案仅给e-2，完整分部积分和导数核验只在阶段正文；不满足最终独立完整要求。停止后续C条件，不重试"
+      },
+      "max_receive_gap_seconds": 3.7378300000000015,
+      "tools": [
+        {
+          "tool": "verify_math_result",
+          "args": {
+            "assumptions": {},
+            "candidate": "exp(x)*(x**2 - 2*x + 2)",
+            "candidates": [],
+            "direction": "+-",
+            "kind": "derivative",
+            "left": "",
+            "lower": null,
+            "original": "x**2*exp(x)",
+            "point": null,
+            "right": "",
+            "upper": null,
+            "variable": "x"
+          },
+          "status": "failed"
+        },
+        {
+          "tool": "symbolic_math",
+          "args": {
+            "assumptions": {},
+            "direction": "+-",
+            "expression": "x**2*exp(x)",
+            "lower": "0",
+            "operation": "integrate",
+            "point": null,
+            "right": "0",
+            "upper": "1",
+            "variable": "x"
+          },
+          "status": "succeeded"
+        }
+      ]
+    },
+    {
+      "id": "integral-D",
+      "status": "degraded",
+      "error": null,
+      "model_envelope_seconds": 35.36725,
+      "tool_seconds": 0.0,
+      "runtime_profile": [
+        {
+          "context_build_ms": 0.03,
+          "initial_checkpoint_ms": 0.83,
+          "verification_ms": 1.85
+        }
+      ],
+      "prompt_hash": "14054284871666bf8b64a1bd7202175c3c4f4480937a42ca538e917f7d1493b6",
+      "total_seconds": 35.664519999999996,
+      "first_public_seconds": 25.47895,
+      "first_final_seconds": 25.47895,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "failed_tools": 0,
+      "usage": {
+        "input_tokens": 593,
+        "output_tokens": 1964,
+        "total_tokens": 2557
+      },
+      "reasoning_tokens": 1363,
+      "public_tool_preambles": 0,
+      "review": {
+        "points": 5,
+        "max_points": 5,
+        "complete_correct": true,
+        "critical_error": false,
+        "notes": "独立最终答案覆盖两次分部积分、原函数、e-2及完整导数核验；未调用工具。"
+      },
+      "max_receive_gap_seconds": 25.22231,
+      "tools": []
+    },
+    {
+      "id": "integral-A",
+      "status": "degraded",
+      "error": null,
+      "model_envelope_seconds": 30.95517,
+      "tool_seconds": 0.6194099999999999,
+      "runtime_profile": [
+        {
+          "context_build_ms": 0.03,
+          "initial_checkpoint_ms": 0.79,
+          "tool_return_ms": 2.35,
+          "verification_ms": 3.25
+        }
+      ],
+      "prompt_hash": "14054284871666bf8b64a1bd7202175c3c4f4480937a42ca538e917f7d1493b6",
+      "total_seconds": 31.912650000000003,
+      "first_public_seconds": 8.624540000000001,
+      "first_final_seconds": 24.77057,
+      "model_calls": 3,
+      "tool_calls": 2,
+      "failed_tools": 0,
+      "usage": {
+        "input_tokens": 5784,
+        "output_tokens": 1450,
+        "total_tokens": 7234
+      },
+      "reasoning_tokens": 846,
+      "public_tool_preambles": 1,
+      "review": {
+        "points": 5,
+        "max_points": 5,
+        "complete_correct": true,
+        "critical_error": false,
+        "notes": "数学推导与定积分核验正确；声称工具已验证不定积分求导不符合回执，第一工具只给verification_request，实际独立verify只有definite_integral。记录教学来源准确性风险，不把pending request当已验证。",
+        "provenance_correct": false
+      },
+      "max_receive_gap_seconds": 8.543539999999998,
+      "tools": [
+        {
+          "tool": "symbolic_math",
+          "args": {
+            "assumptions": {},
+            "direction": "+-",
+            "expression": "x^2 * exp(x)",
+            "lower": null,
+            "operation": "integrate",
+            "point": null,
+            "right": "0",
+            "upper": null,
+            "variable": "x"
+          },
+          "status": "succeeded"
+        },
+        {
+          "tool": "verify_math_result",
+          "args": {
+            "assumptions": {},
+            "candidate": "exp(1) - 2",
+            "candidates": [],
+            "direction": "+-",
+            "kind": "definite_integral",
+            "left": "",
+            "lower": "0",
+            "original": "x^2 * exp(x)",
+            "point": null,
+            "right": "",
+            "upper": "1",
+            "variable": "x"
+          },
+          "status": "succeeded"
+        }
+      ]
+    },
+    {
+      "id": "stokes-C",
+      "status": "skipped_quality"
+    },
+    {
+      "id": "stokes-D",
+      "status": "degraded",
+      "error": null,
+      "model_envelope_seconds": 95.56976,
+      "tool_seconds": 0.0,
+      "runtime_profile": [
+        {
+          "context_build_ms": 0.03,
+          "initial_checkpoint_ms": 0.77,
+          "verification_ms": 5.04
+        }
+      ],
+      "prompt_hash": "f113eb311bbd4a513b57588631ed75c9fa81f1202ef5d4c31c12fc1181ae6738",
+      "total_seconds": 95.90808,
+      "first_public_seconds": 74.28641999999999,
+      "first_final_seconds": 74.28641999999999,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "failed_tools": 0,
+      "usage": {
+        "input_tokens": 673,
+        "output_tokens": 5489,
+        "total_tokens": 6162
+      },
+      "reasoning_tokens": 4219,
+      "public_tool_preambles": 0,
+      "review": {
+        "points": 5,
+        "max_points": 6,
+        "complete_correct": true,
+        "critical_error": false,
+        "notes": "方向、旋度、投影、恒1积分与最终值完整正确；没有单独陈述球面中心/半径，因此附加半径探针记未展示（非题面要求，不判答案交付失败），没有旧样本的错误球面展开。"
+      },
+      "max_receive_gap_seconds": 74.05783,
+      "tools": []
+    },
+    {
+      "id": "stokes-A",
+      "status": "degraded",
+      "error": null,
+      "model_envelope_seconds": 114.7638,
+      "tool_seconds": 0.38395000000000434,
+      "runtime_profile": [
+        {
+          "context_build_ms": 0.03,
+          "initial_checkpoint_ms": 0.71,
+          "tool_return_ms": 1.31,
+          "verification_ms": 5.23
+        }
+      ],
+      "prompt_hash": "f113eb311bbd4a513b57588631ed75c9fa81f1202ef5d4c31c12fc1181ae6738",
+      "total_seconds": 115.47466,
+      "first_public_seconds": 56.14507,
+      "first_final_seconds": 102.05998,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "failed_tools": 0,
+      "usage": {
+        "input_tokens": 3741,
+        "output_tokens": 6447,
+        "total_tokens": 10188
+      },
+      "reasoning_tokens": 5524,
+      "public_tool_preambles": 1,
+      "review": {
+        "points": 6,
+        "max_points": 6,
+        "complete_correct": true,
+        "critical_error": false,
+        "notes": "球面正确配方半径1，方向/旋度/投影半轴/被积函数恒1与积分值均正确。仅一次工具factor本轮未重复面积化简。投影使用边界等式描述，但圆盘片及面积积分明确其内部。"
+      },
+      "max_receive_gap_seconds": 55.88165,
+      "tools": [
+        {
+          "tool": "symbolic_math",
+          "args": {
+            "assumptions": {},
+            "direction": "+-",
+            "expression": "4*x**2 - 4*x*z + z**2",
+            "lower": null,
+            "operation": "simplify",
+            "point": null,
+            "right": "0",
+            "upper": null,
+            "variable": "x"
+          },
+          "status": "succeeded"
+        }
+      ]
+    },
+    {
+      "id": "stokes-B",
+      "status": "interrupted",
+      "error": "recovery_required",
+      "model_envelope_seconds": 47.48688,
+      "tool_seconds": 0.3469300000000003,
+      "runtime_profile": [],
+      "prompt_hash": "f113eb311bbd4a513b57588631ed75c9fa81f1202ef5d4c31c12fc1181ae6738",
+      "total_seconds": 95.47206,
+      "first_public_seconds": 46.661339999999996,
+      "first_final_seconds": null,
+      "model_calls": 2,
+      "tool_calls": 1,
+      "failed_tools": 0,
+      "usage": null,
+      "reasoning_tokens": null,
+      "public_tool_preambles": 1,
+      "review": {
+        "complete_correct": false,
+        "reviewable": false,
+        "exclude_paired_latency": true,
+        "notes": "harness错误：同一隔离QA数据库启动展示backend触发startup recovery，fence正在运行的B。无独立最终答案；不归因低预算配置，按不重试预案不重跑。"
+      },
+      "max_receive_gap_seconds": 46.409479999999995,
+      "tools": [
+        {
+          "tool": "symbolic_math",
+          "args": {
+            "assumptions": {},
+            "direction": "+-",
+            "expression": "pi * (2/5) * (2/sqrt(5))",
+            "lower": null,
+            "operation": "calculate",
+            "point": null,
+            "right": "0",
+            "upper": null,
+            "variable": "x"
+          },
+          "status": "succeeded"
+        }
+      ]
+    },
+    {
+      "id": "proof-D",
+      "status": "degraded",
+      "error": null,
+      "model_envelope_seconds": 27.740479999999998,
+      "tool_seconds": 0.0,
+      "runtime_profile": [
+        {
+          "context_build_ms": 0.03,
+          "initial_checkpoint_ms": 0.66,
+          "verification_ms": 4.32
+        }
+      ],
+      "prompt_hash": "4ddfc5601788b36e985190c36b52e61a6544354d7180f7e9473531841998cde6",
+      "total_seconds": 28.048389999999998,
+      "first_public_seconds": 19.704439999999998,
+      "first_final_seconds": 19.704439999999998,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "failed_tools": 0,
+      "usage": {
+        "input_tokens": 602,
+        "output_tokens": 1525,
+        "total_tokens": 2127
+      },
+      "reasoning_tokens": 1026,
+      "public_tool_preambles": 0,
+      "review": {
+        "points": 4,
+        "max_points": 4,
+        "complete_correct": true,
+        "critical_error": false,
+        "notes": "条件、MVT、xi in(0,x)和严格性完整正确；最后称xi为中点措辞不精确（应为中值点），不影响此前存在点的证明，但记教学表述风险。"
+      },
+      "max_receive_gap_seconds": 19.44903,
+      "tools": []
+    },
+    {
+      "id": "proof-A",
+      "status": "degraded",
+      "error": null,
+      "model_envelope_seconds": 16.764290000000003,
+      "tool_seconds": 0.0,
+      "runtime_profile": [
+        {
+          "context_build_ms": 0.03,
+          "initial_checkpoint_ms": 0.77,
+          "verification_ms": 4.17
+        }
+      ],
+      "prompt_hash": "4ddfc5601788b36e985190c36b52e61a6544354d7180f7e9473531841998cde6",
+      "total_seconds": 17.065330000000003,
+      "first_public_seconds": 8.933219999999999,
+      "first_final_seconds": 8.933219999999999,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "failed_tools": 0,
+      "usage": {
+        "input_tokens": 1634,
+        "output_tokens": 864,
+        "total_tokens": 2498
+      },
+      "reasoning_tokens": 395,
+      "public_tool_preambles": 0,
+      "review": {
+        "points": 4,
+        "max_points": 4,
+        "complete_correct": true,
+        "critical_error": false,
+        "notes": "MVT条件、存在点、代入和严格性完整正确；模型自主直接回答，1模型/0工具。"
+      },
+      "max_receive_gap_seconds": 8.67419,
+      "tools": []
+    },
+    {
+      "id": "proof-B",
+      "status": "degraded",
+      "error": null,
+      "model_envelope_seconds": 16.71105,
+      "tool_seconds": 0.0,
+      "runtime_profile": [
+        {
+          "context_build_ms": 0.03,
+          "initial_checkpoint_ms": 0.82,
+          "verification_ms": 3.81
+        }
+      ],
+      "prompt_hash": "4ddfc5601788b36e985190c36b52e61a6544354d7180f7e9473531841998cde6",
+      "total_seconds": 17.00614,
+      "first_public_seconds": 9.01528,
+      "first_final_seconds": 9.01528,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "failed_tools": 0,
+      "usage": {
+        "input_tokens": 1634,
+        "output_tokens": 864,
+        "total_tokens": 2498
+      },
+      "reasoning_tokens": 395,
+      "public_tool_preambles": 0,
+      "review": {
+        "points": 4,
+        "max_points": 4,
+        "complete_correct": true,
+        "critical_error": false,
+        "notes": "完整正确；最终正文与proof-A逐字一致，output tokens及reasoning tokens均一致，4096上限未约束本题推理。"
+      },
+      "max_receive_gap_seconds": 8.756720000000001,
+      "tools": []
+    },
+    {
+      "id": "proof-C",
+      "status": "skipped_quality"
+    }
+  ],
+  "requests": 23,
+  "attempted_runs": 14,
+  "actual_receipt_cost_cny": 0.26264400000000004,
+  "unknown_usage_reserved_cny": 0.568084,
+  "reserved_or_used_cny": 0.8307280000000001,
+  "input_bytes": 140233,
+  "actual_tokens_returned": 57747,
+  "limitations": [
+    "one sample per question/condition; missing network cases and safety-stopped arms retained",
+    "stream_run consumer timing, not browser rendering; no API routing/retrieval experiment",
+    "review is independent offline mathematics, not another model call or Runtime verified flag"
+  ]
+}

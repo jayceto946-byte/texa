@@ -1,0 +1,13 @@
+{
+  "environment": "actual macOS Electron and real Providers via formal Chat API",
+  "cases": {
+    "omitted_large_payload": true,
+    "items": 5
+  },
+  "errors": [],
+  "raw_recording": {
+    "path": "docs/qa/evidence/deepseek-production/paid/electron/paid-attempt1.json",
+    "sha256": "40adf3012eb5459d1f88956a1b542605f7240d97f90a818a5dddaf0d573f6831",
+    "local_only": true
+  }
+}

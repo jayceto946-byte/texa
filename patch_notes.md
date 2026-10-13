@@ -1,3 +1,10 @@
+# 2026-10-13 - 原生数学工具阶段公开文字防丢失
+
+- 工具边界移除空正文 replace；保留普通公开 content，阶段推导从当前 human 之后的原生检查点恢复，过滤 thinking 且排除旧题、ToolMessage 与供应商私有字段。最终权威正文区分阶段记录与最后解答，流式/非流式/恢复共享此逻辑。
+- 新增公开交付提示，要求最终独立重述必要前置推导。最后答案仍独立通过原有验证；阶段记录不补足 required outputs，未经独立核验的阶段内容保守保持 unverified/degraded。64000 字符上限保持。没有更改数据库 schema、依赖、预算、工具权限或 Gate。
+- Python3.10 四个相关测试文件 68 passed，新增五项覆盖工具前文字/最终SSE替换/恢复/隐私/缺项仍失败；git diff --check通过。保存验收第三题的公开消息离线回放，真实本地工具仍失败，CDF被保留、空replace为0，最后独立解答缺CDF仍验收失败。无新付费模型调用，不等同新的模型质量或Electron实机验收。
+- 真实阶段进度文字与块定向replace架构仍为后续方案；本修复只防止内容删除，不保证数秒内出现公开计划，也未修复theta合同、球面半径推导错误、anchor误判或矩阵排版。当前持久化正文带标明未核验的阶段记录；后续应拆分interim_records/final_answer并校准复制、笔记、错题来源。
+
 # 2026-10-13 - Real Tool Calling CP5 授权真实模型、四题指标与截图
 
 - 用户授权三道复杂考研题与一道无工具对照；真实Qwen3.7 Plus、现有LangChain create_agent/SQL Runtime/隔离SymPy/Electron/SSE执行。第二题实际三模型两工具，254条正文增量；对照实际不向Provider提供工具定义，SQL工具预算0。仅公开题面及隔离合成会话，没有生产学习数据出境。
@@ -3621,3 +3628,89 @@ Android 普通 Wi-Fi 对照出现解答闪现后回到空问答。隔离浏览�
 - 默认CLI未加载Electron开发目录凭据；显式ENV_PATH后，正式客户端免费models.list鉴权成功。本轮5次生成尝试中3次成功、2次APIConnectionError；第二次失败按授权停止。仅概念题形成完整前后对照，其他教学与真实QA/SSE验收未完成。
 - 已有真实回答在隔离LearningTaskStore回放：核验与done事件一致；合成证据Gate误取表达方式为focus及公式/引用支持保守判定登记P1，不修改发布门槛。非完整生产检索或Electron验收。
 - Python3.10脚本语法、CLI参数和git diff --check通过；无共享生产代码修改，未重复全量自动化。详情见docs/qa/CROSS-MODULE-FINAL-HANDOFF.md。
+
+## 2026-10-13 Agent Loop latency profiling 与零请求进度
+
+- 复用付费验收 SQL/Provider/SSE 证据，新增免费离线时间线脚本与 `TEXA-AGENT-LOOP-PERFORMANCE-REPORT.md`。完成 Run 的模型区间占约 99.3%–99.7%，明确包括网络/SDK，旧首 Chunk 与网络细分保持 unknown；失败 Run 按终态截尾，迟到 usage 不伪造成功。
+- Native Chunk 栅栏读取 status/owner 而非完整 snapshot，保持每 Chunk 取消检查；计算/化简序列化不重复 simplify，增加 raw 结果并说明 exact 已简化及符号白名单。无解析语言/预算/数据库结构/依赖迁移。
+- 原 ExecutionEvent 附加数值白名单 performance（首 Chunk/公开内容、请求与 checkpoint、context/tool-return/validation、usage）；native 请求同一流 usage 末块。无额外模型请求或私密 reasoning 持久化。
+- ExecutionTrace 按真实事件呈现分析/计算/继续解答/正文生成，180ms 渐显、reduced-motion、真实计时与完成折叠。保留此前中间公开内容/最终独立验证修复。macOS 真 Electron + 隔离真实 API/SQL/SymPy/SSE 验收通过；模型与长等待受控，只证明 UX 合同。截图见 docs/qa/evidence/agent-loop-performance/electron。
+- 局部同条件 7 组微基准：SQL fence 0.423→0.325 ms；Stokes calculate 内核 2.490→1.406 ms。不能推断真实端到端提速。真实低思考/无思考/auto 工具/无工具配对实验设计已写入报告，16 Run、最多64请求、费用硬上限¥10，待本轮明确授权；本轮付费调用0。
+- Checkpoint 回归：数学/native/最终验证/SQL/SSE/恢复/直接路由 **101 passed**；LLM 角色、工厂与能力 **27 passed**；前端 **203 passed**、ESLint、TypeScript、生产构建通过；桌面 runtime/main **5 passed**（沙箱内临时端口 EPERM 后，在批准的本地运行下通过）。既有大 bundle 警告保留，未扩大重构。
+
+### 2026-10-13 — Agent Loop 授权配对实验与真实答案回放
+
+- 在已告知 4 题×4 条件、最多 64 请求/1,449,216 Token/¥10 预算后，用户以“执行”授权。新增有发送前费用/Token/字节预留、单进程锁、逐 case 不重试的隔离实验脚本；不改变生产 Provider 默认、Runtime 预算或验证门槛。
+- 实际 14 Run、23 远程请求，回报 33,222 输入+24,525 输出 Token（推理 17,231），费用估算 ¥0.262644，缺 usage 预留 ¥0.568084，保守合计 ¥0.830728。未追加或替换失败样本；非思考积分最终缺推导后停止剩余两个 C 条件。
+- 默认 auto 概念/证明 1 模型/0 工具；积分 3/2，Stokes 2/1。低预算回报推理均未触及 4096，无稳定提速证据。积分 A 数学完整但声称工具已做原函数求导核验与回执不符，独立记录来源风险。小样本不证明真实正确率不退化。
+- 3 个概念条件 APIConnectionError。Stokes B 因在其活动期间误启动共用 QA 数据库的展示后端、触发 startup recovery fence 而中断；记录 harness-interruption.json，排除速度/质量比较，不归因模型、不重试，已返回 usage 与缺失回执预留均计入预算。
+- 全部付费实验结束后实际 macOS Electron 只读侧栏加载 3 个真实持久化答案，阻止非 GET API；阶段/最终分离、过程折叠与公式渲染通过，提供阶段及最终截图。首次仅设置会话 ID 未加载正文，修正为真实侧栏点击后验收通过。没有付费 UI 重跑，不把回放当实时网络/绘制性能证据。
+- 完整结果见 TEXA-AGENT-LOOP-PERFORMANCE-REPORT.md 与 docs/qa/evidence/agent-loop-performance/paired-2026-10-13/。实验期间生产代码 SHA256 身份一致；脚本编译、回执计数、同题 prompt hash 与 git diff --check 通过。此前免费阶段后端101、Provider27、前端203、desktop5回归及受控 Electron 进度验收通过。无 main 合并或数据/依赖迁移。
+
+
+### 2026-10-13 — Qwen3.7 Plus / DeepSeek V4.1 Flash 受控实验离线准备
+
+- 从已提交 f916336 导出隔离源码快照；冻结七场景、教学 Prompt、rubric、独立数学 oracle、原始教材图和源资产 hash。保留工作区已有未提交改动，不写用户数据，不改生产默认模型。
+- 审计官方 Thinking/tool calling、总输出额度、Streaming/usage和实时计费；实验内存转录保留DeepSeek私有推理，公开材料不保存私有字段；生产checkpoint合同保持不变。
+- 最多28次模型请求，任务总输出16,384 tokens，硬预算预案¥2.00与$0.30；未获确认，付费请求0。六项离线预检通过；真实API协议预检和独立Sol盲评尚未运行。
+- S2使用OpenStax生物电子教材锚点（纸书页码未知）；S7为原图独立多模态测试，不冒称Electron集成验收。详见 experiments/qwen37-dsv41-20261013/TEXA-QWEN-DSV41-COMPARISON.md。
+
+### 2026-10-13 — Qwen3.7 Plus / DeepSeek V4.1 Flash 配对执行与独立盲评
+
+- 用户批准冻结实验最多28请求及¥2.00/$0.30预算。实际14任务、19请求，无重试；两边各完成5/7，四个失败全部保留。独立新Sol空上下文仅读取匿名包，七题原评分按字节保留后才解除映射。
+- 共同完成S1/S2/S3/S7盲评质量Qwen84.0/Flash94.5；总时间152.57s/111.97s，Flash降低26.6%，S7反而更慢。Flash同题官方费率估算成本按今日参考汇率为Qwen2.60倍，没有降费证据；非统计显著结论。
+- 全实验已知usage费用Qwen¥0.08710944、Flash$0.032972736，未知usage预留¥0.284688/$0.0207678；无实际结算账单。原币硬上限与token预算均未突破。
+- 披露Harness预检gate误把最终续答零thinking当失败，修正使用已有回执、不重新付费预检；S5-B此前未发送，后于S7首次发送，记录排序偏差。S5-B工具验证异常前未保留完整原生调用结构，不能归因模型；复杂工具可靠性未证明。
+- S4-Qwen流中断、S5-Qwen与S6-Flash连接失败，区别于模型内容错误；Qwen原图解释有实质接触电势机制错误。S3一般级数rubric与题面差异提交人工裁决，用户认可冻结rubric要求，原分不修改。
+- 六项离线协议合同与两项mock/隔离worker检查通过，独立SymPy公式/数值和S6三行93码点机械核验完成。不改生产默认、main、数据或Agent权威合同；不建议直接替换主模型。最终报告及五类交付见experiments/qwen37-dsv41-20261013/。
+
+## 2026-10-13 — Model Comparison Phase 2 免费准备
+
+- 新建 `experiments/qwen37-dsv41-phase2-20261013/`，原样冻结第一轮 S4/S5/S6、教学 Prompt、模型配置与工具合同；引用 committed `f916336` checkpoint，不纳入当前未提交生产改动。
+- 仅修复隔离 Harness：验证前保存工具结构、安全参数摘要和具体失败；串行处理多次原生调用、严格关联 ToolMessage；私有 reasoning仅RAM；无新增Thinking最终轮合法；区分Provider/协议/预算/Harness故障，保存流中断公开片段及已知usage；macOS硬期限与spawn清理免费验证。
+- Python 3.10.21运行33项Mock/离线回归全部通过，含真实隔离S5积分/校验；S4/S5/S6独立SymPy Oracle完成。正式入口未授权时在凭证读取与网络之前拒绝；第二轮付费请求0。
+- 保全第一轮原始报告、14 Run、19 receipts、Sol评分与失败；新增Manifest/逐文件代码hash、官方价格与硬上限提案（最多6 Run/16请求，Qwen¥1.25、Flash$0.20）。等待用户明确预算授权；没有修改生产默认、数据库、索引或合并main。
+
+## 2026-10-13 — Model Comparison Phase 2 授权执行与独立盲评
+
+- 用户回复“授权”后按冻结Manifest执行S4/S5/S6共6 Run、13请求，零重试/新增付费预检；全部技术交付完成，无C/D/E故障。Qwen S5一次B类非法schema参数保留并续答恢复；最终验证范围夸大由匿名评审扣分。
+- 全新上下文Sol只读匿名包；原评分先字节级锁定再解盲：S4 Qwen80/Flash92、S5 82/92、S6 100/100。均分87.33/94.67；累计完整时间215.77/69.06秒，Flash缩短68.0%。每格一次，不能推断长期稳定性。
+- Flash S5三个原生调用全部合法成功、两请求完成，正确利用校验残差0；Provider仍在parallel_tool_calls=false时返回多调用，Harness按原ID串行执行并披露适配边界。双方S6三行/180码点通过。双方推导遗漏按原Rubric保留，不降低要求。
+- 真实usage费率估算Qwen¥0.0814048、Flash$0.012941844，低于¥1.25/$0.20授权硬上限，未取得供应商结算账单。推理是输出子集，未重复计费。
+- 决策A：值得推进生产兼容性验证；没有改生产默认、Runtime或正式用户数据，没有合并main。保留第一轮14原Run并追加本轮6 Run，综合20 Run/32 receipts，不择优拼接。最终hash核对第一轮原件、冻结Harness、Manifest、匿名包与原评分均通过。
+- 交付：experiments/qwen37-dsv41-phase2-20261013/TEXA-QWEN-DSV41-PHASE2-REPORT.md、MODEL-COMPARISON-RESULTS.json、TWO-WAVE-COMPARISON.json、逐Run收据/工具记录、匿名包、独立Sol评分、Oracle、33项免费回归及最终完整性记录。
+
+## 2026-10-13 — DeepSeek V4.1 Flash 正式协议兼容候选
+
+- 在当前未提交 Agent Loop 修复上局部实施，保全原差异，不 reset/stash、合并 main 或覆盖冻结实验。Qwen3.7 Plus 默认不变，无依赖升级、SQL schema 迁移、用户 profile 或教材索引修改。
+- DeepSeek 专属 ChatOpenAI 子类在 callbacks 前截获原生 reasoning_content；每 Run 仅 RAM 保存并原样回传。退出/取消/超时关闭并清空，迟到线程不能回填；私有内容不进公开消息、SSE、SQL、笔记、ContextPack 或日志。映射 max_tokens、缓存 usage，拒绝截断/缺字段，SDK 错误固定码脱敏。
+- Astra 首次定点审查有条件认可。全图单线程建议实测造成 streaming 死锁，按必要二审实际反馈撤回，改成局部 Condition 串行门；整批 ID/权限/schema 检查、每项 FixedRunner/SQL 预算/收据、checkpoint 后放行，致命错误停止排队项。Astra 补充文档因账户额度未完成，Sol 如实整理实际反馈。
+- DeepSeek 普通教学、教材问答、数学接入同一 Native Loop/SQL。教材用既有固定 search_textbook 准备 EvidencePack，范围/索引/schema 冻结、已完成收据不重放；章节准备不调用模型，chapter 先于正文。没有扩展数学工具或写权限，Qwen 和非数学资产动作保留现有入口。
+- Checkpoint 增加非私有协议身份。模型变更/旧无身份助手历史/私有状态丢失在模型与工具前明确终止；已成功工具不重复执行。DeepSeek 暂停后含助手历史不能无损续答，用户重新发起，未伪造完整恢复。会话刷新只读投影 SQL 暂停任务恢复入口，不写合成历史或笔记来源。
+- venv310/Python3.10.21 最终相关后端250项通过（DeepSeek专项38项）；前端类型/构建、SSE10项、桌面15项通过。真实macOS Electron + Mock Provider 验证模型选择、普通教学、多工具、停止、刷新和明确恢复失败，两个工具 attempt_count 均1。教材真实索引/Electron及真实Provider验收仍Pending，不以Mock替代。
+- 缺 npm 时备用 pnpm 曾触发安装检查并移动现有包，已停止、全部原位恢复并清理本次缓存，无 package/lock 改动。后续直接运行现有 Node 工具。
+- 当前 CONDITIONAL，仅开发候选。冻结拟付费清单 S1/S5/S6/取消/Qwen冒烟，最多DeepSeek10 + Qwen1请求，总token421888，硬上限$0.20/¥0.25，零自动重试；本轮付费请求0，等待明确预算授权。交付 TEXA-DEEPSEEK-PRODUCTION-COMPATIBILITY.md 与 docs/qa/evidence/deepseek-production/。
+
+## 2026-10-13 — DeepSeek 正式 Runtime 授权验收与 CONDITIONAL 结算
+
+- 用户“授权”批准冻结 S1/S5/S6/取消/Qwen 清单及 $0.20/¥0.25 预算。隔离用户数据，复用冻结 Canonical/真实 active index 与本地 ONNX dense/lexical 检索；真实模型请求只能通过网络前次数/Token/费用/端点/模型门禁，SDK重试0。
+- 正式 macOS Electron/Chat API/Registry/Adapter/Runtime/FixedRunner/SQL/SSE 实际 DeepSeek7 + Qwen1 次。S5 同助手消息三个调用，积分、数值、定积分核验成功，原生ID逐一匹配，续答 reasoning_content 只在 RAM/wire。取消后两个工具 attempt_count=1，刷新恢复明确 provider_protocol_state_lost，新增模型/工具0，无重放。
+- S1 UI阶段的多次中断均工具/模型0；公开调用栈定位到过期教材切换回调重复设置范围。ChatPage 局部请求序号与最新范围比较修复竞态，TypeScript/Vite通过；修复后真实 S1完成检索及模型返回，但硬编码4096总输出全部耗于Thinking，明确 provider_output_truncated，未发布伪答案。
+- 已将 DeepSeek 原生总输出上限封装为8192，显式较小设置优先；Qwen/其他仍4096。验收后76项免费回归通过（DeepSeek39/预算与凭证隔离7/原生数学30），无依赖/SQL schema迁移。S1次数已耗尽，修正后的真实验收Pending，未追加付费重试。
+- S5数学结果正确且真实工具残差0，但 RequiredOutputs字面对象检查误判，保持failed/degraded。S6模型正文3行/93码点，Runtime附加失败提示后5行/163码点，最终严格格式FAIL；未通过放宽验证取得PASS。Qwen默认冒烟正常流式完成，公式无独立依据保持unverified。
+- 已知Token22507；DeepSeek已知费用估算$0.006760572，取消未知usage保留$0.0147576，Qwen估算¥0.009876，均非供应商账单。付费材料/SQL/profile无真实密钥，SQL原生消息/SSE无reasoning_content字段；最终扫描发现既有profile保存器在QA .env写入临时凭证副本，已删除凭证项并设0600，复扫0匹配。QA写入器过滤密钥且有真实env writer回归，用户原始凭证未修改。付费服务停止。
+- 最终CONDITIONAL，限受限测试/开发环境。正式发布阻塞：S1修正后真实教材答案/引用验收、共享RequiredOutputs与严格格式提示发布合同。完整报告 TEXA-DEEPSEEK-PRODUCTION-COMPATIBILITY.md，权威结果 paid/FINAL-ACCEPTANCE.json；历史脚本completed只表示交互结束，不能当验收PASS。初始/修复/最终源码身份分别保留，未合并main或更改真实用户profile、默认Qwen与学习数据。
+
+# 2026-10-13 — DeepSeek 发布验证 P0 修复与回放
+
+- 保留当前未提交 Runtime／Provider 工作；RequiredOutputs 将明确格式、精度、工具事实、内容 presence 与未知语义分开。旧自然语言 anchors 读取时兼容重分类，精度绑定本题独立收据；真实闭式／原函数／推导缺失仍失败，语义未知不伪造 verified，无额外 LLM 请求。
+- 共享生成器及两条 Runtime 发布分支不再向正文追加验证说明。严格格式不合并阶段文字；阶段公开 checkpoint 与 unverified 语义保留。Electron 对行数／前缀合同保留 soft newline，核验文案覆盖语义未知，不改普通回答渲染。
+- 核对 DeepSeek8192／Qwen4096 wire 与显式更小额度；stop但无公开正文拒绝成功提交，新增安全数字 usage／finish 枚举。未增 SQL schema、token调度或依赖。
+- Python3.10相关161项、前端11项、TypeScript/Vite通过。实际macOS Electron Mock Provider回放S5三工具与S6两轮、三尺寸通过；S6最终SQL/SSE/DOM逻辑3行93码点，状态独立可见。修复后S5精度／工具检查passed、整体推导仍unverified。
+- QA真实profile保存路径免费验证凭证不落盘，当前材料无真实凭证精确匹配；历史临时env副本不能排除同步／备份，仍建议轮换。新最小S1预算1次／8192输出／40960总预留／US$0.03，等待新授权，零新付费请求。
+- 报告TEXA-DEEPSEEK-RELEASE-READINESS.md及docs/qa/evidence/deepseek-remediation。判定CONDITIONAL，新S1真实证据Pending；无Astra新审查、提交或合并。
+
+
+### 2026-10-13 — 授权后 DeepSeek S1 教材验收
+
+用户明确授权冻结单请求计划后，经实际 Electron→生产教材检索→DeepSeek→SQL/SSE 完成 S1。wire8192，输入3018、输出4337（推理3849、正文488），finish_reason=stop；有意义输出28.809秒、run31.521秒，非峰费用估算US$0.002640948，1请求／0重试／Qwen0。静态与准静态解释、任务及引用通过人工最终可见EvidencePack复核；原文与SQL task/run/outbox/SSE一致，unverified状态独立披露，未升级task的语义验证。S5/S6没有新增请求，保持历史LIVE+修复后FREE回放。冻结源码hash未变，付费进程已退出。最终可选模型准入PASS，Qwen默认及用户profile不变，无提交或合并。历史凭证副本仍无法排除，继续建议轮换。证据和边界见TEXA-DEEPSEEK-RELEASE-READINESS.md及docs/qa/evidence/deepseek-remediation/paid/。

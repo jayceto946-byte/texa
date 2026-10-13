@@ -1,0 +1,56 @@
+{
+  "environment": "actual macOS Electron and real Providers via formal Chat API",
+  "cases": [
+    {
+      "id": "S1",
+      "status": "failed",
+      "started_at": "2026-10-13T12:33:27.697Z",
+      "answers": [],
+      "error": "Error: page.waitForResponse: Target page, context or browser has been closed",
+      "ended_at": "2026-10-13T12:34:30.780Z"
+    }
+  ],
+  "errors": [
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/ChatPage-xczT6N6c.js:17:20708\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109279)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/Workspace-CL2QFs7r.js:2:4884\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/ChatPage-xczT6N6c.js:17:20708\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109279)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/Workspace-CL2QFs7r.js:2:4884\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/ChatPage-xczT6N6c.js:17:20708\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109279)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/index-6fQ5yxpY.js:4:1374\n    at http://127.0.0.1:18041/assets/ChatPage-xczT6N6c.js:17:17938\n    at http://127.0.0.1:18041/assets/ChatContext-B5DLPrT2.js:1:676\n    at http://127.0.0.1:18041/assets/ChatContext-B5DLPrT2.js:1:788\n    at http://127.0.0.1:18041/assets/ChatContext-B5DLPrT2.js:1:951\n    at http://127.0.0.1:18041/assets/ChatPage-xczT6N6c.js:17:25739"
+    },
+    {
+      "url": "http://127.0.0.1:18041/api/chat/stream",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/ChatPage-xczT6N6c.js:17:20708\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109279)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/Workspace-CL2QFs7r.js:2:4884\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at AbortSignal.g (http://127.0.0.1:18041/assets/index-6fQ5yxpY.js:2:13120)\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:187)\n    at http://127.0.0.1:18041/assets/Workspace-CL2QFs7r.js:2:4884\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "url": "http://127.0.0.1:18041/api/chat/conversations?limit=40&view=active&subject=%E4%B8%93%E4%B8%9A%E8%AF%BE&book_name=%E4%BC%A0%E6%84%9F%E5%99%A8%E5%8E%9F%E7%90%86%E5%8F%8A%E5%BA%94%E7%94%A8",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    "Error: page.screenshot: Target page, context or browser has been closed"
+  ],
+  "sse": []
+}

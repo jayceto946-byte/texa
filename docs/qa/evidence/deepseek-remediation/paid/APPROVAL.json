@@ -1,0 +1,8 @@
+{
+  "approved": true,
+  "plan_sha256": "5e08c6d39ec70de06571a07c1180b0592c9df10316eb007edb592e305c3085f5",
+  "authorization": "User explicitly replied 授权 to frozen one-request S1 plan",
+  "recorded_at": "2026-10-13T13:42:28.340366+00:00",
+  "requests": 1,
+  "automatic_retries": 0
+}

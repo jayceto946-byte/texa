@@ -121,6 +121,13 @@ if os.environ.get('TEXA_QA_NATIVE_MATH') == '1':
     from tests.test_native_math_loop import ScriptedMathModel, model_adapter, SUCCESS, call
     from langchain_core.messages import ToolMessage, HumanMessage
     class QAAdaptiveModel(ScriptedMathModel):
+        def _stream(self, messages, **kwargs):
+            if os.environ.get('TEXA_QA_PROGRESS_DELAYS') == '1':
+                import time
+                slow = any('计算 7' in str(m.content) for m in messages if isinstance(m, HumanMessage))
+                time.sleep(15 if slow else 1.2)
+            yield from super()._stream(messages, **kwargs)
+
         def _response(self, messages):
             prompt = " ".join(m.content for m in messages if isinstance(m, HumanMessage))
             import re

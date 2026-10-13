@@ -1,0 +1,40 @@
+[
+  {
+    "index": 1,
+    "model": "deepseek-flash",
+    "case": "S1",
+    "started_at": "2026-10-13T13:43:16.227069+00:00",
+    "input_bytes_upper": 16379,
+    "input_cap": 32768,
+    "output_cap": 8192,
+    "currency": "USD",
+    "reserved_cost": 0.0196728,
+    "status": "returned",
+    "wire_roles": [
+      "system",
+      "system",
+      "user"
+    ],
+    "tool_reply_ids": [],
+    "assistant_reasoning_present": [],
+    "assistant_tool_ids": [],
+    "tools_offered": [],
+    "http_status": 200,
+    "headers_ms": 659.33,
+    "first_chunk_ms": 677.28,
+    "first_public_ms": 27186.8,
+    "usage": {
+      "input_tokens": 3018,
+      "output_tokens": 4337,
+      "total_tokens": 7355,
+      "reasoning_tokens": 3849,
+      "final_content_tokens": 488,
+      "cached_input_tokens": 2816
+    },
+    "elapsed_ms": 30012.92,
+    "ended_at": "2026-10-13T13:43:46.240807+00:00",
+    "finish_reason": "stop",
+    "tariff_band": "offpeak",
+    "estimated_cost": 0.0026409479999999997
+  }
+]

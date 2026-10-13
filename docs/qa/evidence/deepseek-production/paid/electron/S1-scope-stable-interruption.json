@@ -1,0 +1,17 @@
+{
+  "environment": "actual macOS Electron and real Providers via formal Chat API",
+  "cases": [
+    {
+      "id": "S1",
+      "status": "failed",
+      "started_at": "2026-10-13T12:25:02.557Z",
+      "answers": [],
+      "error": "Error: Target page, context or browser has been closed",
+      "ended_at": "2026-10-13T12:30:02.537Z"
+    }
+  ],
+  "errors": [
+    "Error: page.screenshot: Target page, context or browser has been closed"
+  ],
+  "sse": []
+}

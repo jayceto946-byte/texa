@@ -1,0 +1,483 @@
+[
+  {
+    "run_id": "arun_a5559c5fb1084fcfadb715df4c612697",
+    "question": "计算并解答：已知函数 $f(x,y)=x^3+y^3-(x+y)^2+3$，设 $T$ 是曲面 $z=f(x,y)$ 在点 $(1,1,1)$ 处的切平面，$D$ 为 $T$ 与三个坐标平面所围成的有界区域在 $xOy$ 平面上的投影。\n(1) 求切平面 $T$ 的方程；\n(2) 求 $f(x,y)$ 在 $D$ 上的最大值与最小值，说明内部驻点和各边界的比较过程。",
+    "total_ms": 109569.27,
+    "model_envelope_ms": 108835.41,
+    "model_envelope_censored": false,
+    "tool_ms": 304.12,
+    "other_application_ms": 429.74,
+    "first_public_run_ms": 81521.27,
+    "first_progress_run_ms": 1.46,
+    "longest_server_event_gap_ms": 45702.98,
+    "ui_wall_seconds": 110.511,
+    "model_requests": [
+      {
+        "request_start_ms": 422.06,
+        "request_end_ms": 46081.41,
+        "first_chunk_ms": null,
+        "first_public_ms": null,
+        "usage": {
+          "input_tokens": 1518,
+          "output_tokens": 2530,
+          "total_tokens": 4048,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "reasoning": 2348
+          }
+        },
+        "finish_reason": "tool_calls",
+        "first_public_server_elapsed_ms": null
+      },
+      {
+        "request_start_ms": 46434.04,
+        "request_end_ms": 109548.6,
+        "first_chunk_ms": null,
+        "first_public_ms": null,
+        "usage": {
+          "input_tokens": 1839,
+          "output_tokens": 3595,
+          "total_tokens": 5434,
+          "input_token_details": {
+            "cache_read": 1152
+          },
+          "output_token_details": {
+            "reasoning": 1940
+          }
+        },
+        "finish_reason": "stop",
+        "first_public_server_elapsed_ms": 81521.27
+      }
+    ],
+    "milestones": [
+      {
+        "elapsed_ms": 1.46,
+        "lifecycle": "run.created",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 388.64,
+        "lifecycle": "model.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 46091.62,
+        "lifecycle": "model.completed",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 46111.4,
+        "lifecycle": "tool.requested",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 46113.0,
+        "lifecycle": "tool.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 46417.12,
+        "lifecycle": "tool.completed",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 46422.37,
+        "lifecycle": "model.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 109554.8,
+        "lifecycle": "model.completed",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 109569.9,
+        "lifecycle": "run.completed",
+        "performance": null
+      }
+    ],
+    "limitations": [
+      "server event creation times, not browser receive/paint times",
+      "model envelope includes provider wait, network, SDK and callback processing",
+      "first chunk and individual network phases absent in historical captures",
+      "post-terminal outbox persistence not measured by run total"
+    ]
+  },
+  {
+    "run_id": "arun_44e029ffe88c4fd1a9233f4c4d6c8f6e",
+    "question": "计算并解答：有向曲线 $L$ 为球面 $x^2+y^2+z^2=2x$ 与平面 $2x-z-1=0$ 的交线，从 $z$ 轴正向往 $z$ 轴负向看为逆时针方向。计算曲线积分\n$$\\oint_L (6xyz-yz^2)\\,dx+2x^2z\\,dy+xyz\\,dz.$$\n说明方向、所选曲面和投影区域。",
+    "total_ms": 190236.07,
+    "model_envelope_ms": 189446.87,
+    "model_envelope_censored": false,
+    "tool_ms": 714.67,
+    "other_application_ms": 74.53,
+    "first_public_run_ms": 174244.91,
+    "first_progress_run_ms": 0.27,
+    "longest_server_event_gap_ms": 93038.99,
+    "ui_wall_seconds": 190.705,
+    "model_requests": [
+      {
+        "request_start_ms": 36.79,
+        "request_end_ms": 57497.15,
+        "first_chunk_ms": null,
+        "first_public_ms": null,
+        "usage": {
+          "input_tokens": 1495,
+          "output_tokens": 3267,
+          "total_tokens": 4762,
+          "input_token_details": {
+            "cache_read": 1152
+          },
+          "output_token_details": {
+            "reasoning": 3162
+          }
+        },
+        "finish_reason": "tool_calls",
+        "first_public_server_elapsed_ms": null
+      },
+      {
+        "request_start_ms": 57926.7,
+        "request_end_ms": 80843.67,
+        "first_chunk_ms": null,
+        "first_public_ms": null,
+        "usage": {
+          "input_tokens": 1802,
+          "output_tokens": 1239,
+          "total_tokens": 3041,
+          "input_token_details": {
+            "cache_read": 1152
+          },
+          "output_token_details": {
+            "reasoning": 1188
+          }
+        },
+        "finish_reason": "tool_calls",
+        "first_public_server_elapsed_ms": null
+      },
+      {
+        "request_start_ms": 81216.14,
+        "request_end_ms": 190219.78,
+        "first_chunk_ms": null,
+        "first_public_ms": null,
+        "usage": {
+          "input_tokens": 2087,
+          "output_tokens": 6283,
+          "total_tokens": 8370,
+          "input_token_details": {
+            "cache_read": 1152
+          },
+          "output_token_details": {
+            "reasoning": 5337
+          }
+        },
+        "finish_reason": "stop",
+        "first_public_server_elapsed_ms": 174244.91
+      }
+    ],
+    "milestones": [
+      {
+        "elapsed_ms": 0.27,
+        "lifecycle": "run.created",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 19.57,
+        "lifecycle": "model.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 57507.82,
+        "lifecycle": "model.completed",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 57523.77,
+        "lifecycle": "tool.requested",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 57525.08,
+        "lifecycle": "tool.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 57909.08,
+        "lifecycle": "tool.completed",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 57914.1,
+        "lifecycle": "model.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 80853.01,
+        "lifecycle": "model.completed",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 80868.52,
+        "lifecycle": "tool.requested",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 80870.43,
+        "lifecycle": "tool.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 81201.1,
+        "lifecycle": "tool.completed",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 81205.92,
+        "lifecycle": "model.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 190225.63,
+        "lifecycle": "model.completed",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 190237.23,
+        "lifecycle": "run.completed",
+        "performance": null
+      }
+    ],
+    "limitations": [
+      "server event creation times, not browser receive/paint times",
+      "model envelope includes provider wait, network, SDK and callback processing",
+      "first chunk and individual network phases absent in historical captures",
+      "post-terminal outbox persistence not measured by run total"
+    ]
+  },
+  {
+    "run_id": "arun_453262a6d4b24284b4ee3a7c332af4fe",
+    "question": "计算并解答：总体 $X$ 服从区间 $(0,\\theta)$ 上的均匀分布，其中 $\\theta>0$ 未知，$X_1,\\ldots,X_n$ 为来自该总体的简单随机样本，$n\\ge1$，记 $X_{(n)}=\\max\\{X_1,\\ldots,X_n\\}$，$T_c=cX_{(n)}$。\n(1) 求 $c$，使 $T_c$ 是 $\\theta$ 的无偏估计；\n(2) 记 $h(c)=E[(T_c-\\theta)^2]$，求使 $h(c)$ 最小的 $c$ 及最小均方误差。请推导分布和所需矩。",
+    "total_ms": 52486.31,
+    "model_envelope_ms": 52143.07,
+    "model_envelope_censored": false,
+    "tool_ms": 295.43,
+    "other_application_ms": 47.81,
+    "first_public_run_ms": 21767.15,
+    "first_progress_run_ms": 0.42,
+    "longest_server_event_gap_ms": 21750.87,
+    "ui_wall_seconds": 52.576,
+    "model_requests": [
+      {
+        "request_start_ms": 35.51,
+        "request_end_ms": 26554.81,
+        "first_chunk_ms": null,
+        "first_public_ms": null,
+        "usage": {
+          "input_tokens": 1547,
+          "output_tokens": 1326,
+          "total_tokens": 2873,
+          "input_token_details": {
+            "cache_read": 1152
+          },
+          "output_token_details": {
+            "reasoning": 1039
+          }
+        },
+        "finish_reason": "tool_calls",
+        "first_public_server_elapsed_ms": 21767.15
+      },
+      {
+        "request_start_ms": 26895.5,
+        "request_end_ms": 52479.09,
+        "first_chunk_ms": null,
+        "first_public_ms": null,
+        "usage": {
+          "input_tokens": 1870,
+          "output_tokens": 1405,
+          "total_tokens": 3275,
+          "input_token_details": {
+            "cache_read": 1152
+          },
+          "output_token_details": {
+            "reasoning": 737
+          }
+        },
+        "finish_reason": "stop",
+        "first_public_server_elapsed_ms": 41239.61
+      }
+    ],
+    "milestones": [
+      {
+        "elapsed_ms": 0.42,
+        "lifecycle": "run.created",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 16.28,
+        "lifecycle": "model.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 26561.56,
+        "lifecycle": "model.completed",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 26579.47,
+        "lifecycle": "tool.requested",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 26582.54,
+        "lifecycle": "tool.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 26877.97,
+        "lifecycle": "tool.failed",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 26883.76,
+        "lifecycle": "model.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 52481.55,
+        "lifecycle": "model.completed",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 52486.49,
+        "lifecycle": "run.completed",
+        "performance": null
+      }
+    ],
+    "limitations": [
+      "server event creation times, not browser receive/paint times",
+      "model envelope includes provider wait, network, SDK and callback processing",
+      "first chunk and individual network phases absent in historical captures",
+      "post-terminal outbox persistence not measured by run total"
+    ]
+  },
+  {
+    "run_id": "arun_01ecf094874c45ac8362586d4688f640",
+    "question": "计算并解答：已知数列 $\\{x_n\\},\\{y_n\\},\\{z_n\\}$ 满足 $x_0=-1,y_0=0,z_0=2$，且对 $n\\ge1$，$$x_n=-2x_{n-1}+2z_{n-1},\\quad y_n=-2y_{n-1}-2z_{n-1},\\quad z_n=-6x_{n-1}-3y_{n-1}+3z_{n-1}.$$ 记 $\\alpha_n=(x_n,y_n,z_n)^T$。写出满足 $\\alpha_n=A\\alpha_{n-1}$ 的矩阵 $A$，并求 $A^n$ 及 $x_n,y_n,z_n$，说明推导过程及 $n=0$ 的情况。",
+    "total_ms": 120038.83,
+    "model_envelope_ms": 120012.92,
+    "model_envelope_censored": true,
+    "tool_ms": 0,
+    "other_application_ms": 25.91,
+    "first_public_run_ms": 106892.46,
+    "first_progress_run_ms": 0.22,
+    "longest_server_event_gap_ms": 106866.55,
+    "ui_wall_seconds": 120.163,
+    "model_requests": [
+      {
+        "request_start_ms": 38.2,
+        "request_end_ms": 128459.97,
+        "first_chunk_ms": null,
+        "first_public_ms": null,
+        "usage": {
+          "input_tokens": 628,
+          "output_tokens": 7426,
+          "total_tokens": 8054,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "reasoning": 6153
+          }
+        },
+        "finish_reason": "stop",
+        "first_public_server_elapsed_ms": 106892.46
+      }
+    ],
+    "milestones": [
+      {
+        "elapsed_ms": 0.22,
+        "lifecycle": "run.created",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 25.91,
+        "lifecycle": "model.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 120039.0,
+        "lifecycle": "run.failed",
+        "performance": null
+      }
+    ],
+    "limitations": [
+      "server event creation times, not browser receive/paint times",
+      "model envelope includes provider wait, network, SDK and callback processing",
+      "first chunk and individual network phases absent in historical captures",
+      "post-terminal outbox persistence not measured by run total"
+    ]
+  },
+  {
+    "run_id": "arun_63666a4536da4a0b96c61ea266664f82",
+    "question": "计算并解答：已知数列 $\\{x_n\\},\\{y_n\\},\\{z_n\\}$ 满足 $x_0=-1,y_0=0,z_0=2$，且对 $n\\ge1$，$$x_n=-2x_{n-1}+2z_{n-1},\\quad y_n=-2y_{n-1}-2z_{n-1},\\quad z_n=-6x_{n-1}-3y_{n-1}+3z_{n-1}.$$ 记 $\\alpha_n=(x_n,y_n,z_n)^T$。写出满足 $\\alpha_n=A\\alpha_{n-1}$ 的矩阵 $A$，并求 $A^n$ 及 $x_n,y_n,z_n$，说明推导过程及 $n=0$ 的情况。",
+    "total_ms": 130775.95,
+    "model_envelope_ms": 130366.85,
+    "model_envelope_censored": false,
+    "tool_ms": 0,
+    "other_application_ms": 409.1,
+    "first_public_run_ms": 108491.55,
+    "first_progress_run_ms": 0.34,
+    "longest_server_event_gap_ms": 108099.96,
+    "ui_wall_seconds": 131.561,
+    "model_requests": [
+      {
+        "request_start_ms": 430.98,
+        "request_end_ms": 130750.78,
+        "first_chunk_ms": null,
+        "first_public_ms": null,
+        "usage": {
+          "input_tokens": 628,
+          "output_tokens": 7551,
+          "total_tokens": 8179,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "reasoning": 6237
+          }
+        },
+        "finish_reason": "stop",
+        "first_public_server_elapsed_ms": 108491.55
+      }
+    ],
+    "milestones": [
+      {
+        "elapsed_ms": 0.34,
+        "lifecycle": "run.created",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 391.59,
+        "lifecycle": "model.started",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 130758.44,
+        "lifecycle": "model.completed",
+        "performance": null
+      },
+      {
+        "elapsed_ms": 130777.42,
+        "lifecycle": "run.completed",
+        "performance": null
+      }
+    ],
+    "limitations": [
+      "server event creation times, not browser receive/paint times",
+      "model envelope includes provider wait, network, SDK and callback processing",
+      "first chunk and individual network phases absent in historical captures",
+      "post-terminal outbox persistence not measured by run total"
+    ]
+  }
+]
