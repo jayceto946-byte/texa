@@ -8,6 +8,8 @@ tool or supplied evidence verified them.
 from __future__ import annotations
 
 import re
+import json
+import math
 from typing import Any
 
 
@@ -40,6 +42,19 @@ def _anchors(text: str) -> list[str]:
     return result[:6]
 
 
+def _coverage_anchors(segment: str) -> list[str]:
+    from graph.retrieval_node import _FOCUS_TERM_ALIASES
+    if re.search(r"格式|码点|字符|Markdown|JSON|(?:不|禁止)使用|开头|前缀|后缀|有效数字|小数位|公式符号", segment, re.I):
+        return []
+    anchors = [a for a in _anchors(segment) if a in _FOCUS_TERM_ALIASES]
+    # Short explicit subject nouns are presence obligations; directives about
+    # style, precision or provenance are not objects of a textbook answer.
+    subject = re.fullmatch(r"(?:说明|解释|写出|列出)\s*([\u4e00-\u9fff]{2,10}(?:误差|原因|定义|原函数))\s*[。；;]?", segment.strip())
+    if subject:
+        anchors.append(subject[1])
+    return list(dict.fromkeys(anchors))
+
+
 def derive_required_outputs(question: str, *, intent: str = "qa", answer_mode: str = "") -> list[dict[str, Any]]:
     text = str(question or "").strip()
     outputs: list[dict[str, Any]] = [{
@@ -54,19 +69,33 @@ def derive_required_outputs(question: str, *, intent: str = "qa", answer_mode: s
             "id": f"part_{part_number}",
             "label": f"第 {part_number} 问：{segment[:80] or '作答'}",
             "kind": "question_part",
-            "anchors": _anchors(segment),
+            "anchors": _coverage_anchors(segment),
             "required": True,
         })
-    # Unnumbered requests still have independent deliverables.
+    # Only known curriculum dimensions have lexical *coverage* probes. Free
+    # natural language remains a semantic obligation, never a literal assertion.
     if not matches:
         segments = re.split(r"[、；;]|(?:以及|并且|并说明)", text)
         if len(segments) > 1:
             segments = [part for segment in segments for part in re.split(r"和|与", segment)]
             for index, segment in enumerate(segments):
-                anchors = _anchors(segment.strip(" ，,。"))
-                if anchors:
-                    outputs.append({"id": f"item_{index + 1}", "label": segment[:80],
-                                    "kind": "question_part", "anchors": anchors, "required": True})
+                anchors = _coverage_anchors(segment)
+                outputs.append({"id": f"item_{index + 1}", "label": segment[:80],
+                                "kind": "question_part" if anchors else "semantic",
+                                "anchors": anchors, "required": True})
+    outputs.extend(_format_requirements(text))
+    precision = re.search(r"(?:至少|不少于)\s*(\d+)\s*位有效数字", text)
+    if precision:
+        outputs.append({"id": "precision", "kind": "precision", "digits": int(precision[1]),
+                        "label": "数值有效数字", "required": True})
+    if re.search(r"(?:独立|工具).{0,8}(?:校验|核验|验证)", text):
+        outputs.append({"id": "tool_verification", "kind": "tool_verification", "required": True})
+    if re.search(r"闭式(?:结果|表达式)|精确表达式", text):
+        outputs.append({"id": "closed_form", "kind": "closed_form", "required": True})
+    if re.search(r"(?:推导|证明|步骤)", text):
+        outputs.append({"id": "derivation_structure", "kind": "derivation", "required": True})
+    if re.search(r"原函数|不定积分", text):
+        outputs.append({"id": "antiderivative", "kind": "antiderivative", "required": True})
     numeric_requested = intent == "calculation" or bool(re.search(
         r"计算|求值|数值|多少|结果为|反查|求出|最终.{0,8}(?:温度|电势|电压|电流|概率)", text,
     ))
@@ -81,7 +110,7 @@ def derive_required_outputs(question: str, *, intent: str = "qa", answer_mode: s
             "id": "final_unit", "label": "最终结果的单位", "kind": "unit",
             "expected_units": expected_units[-3:], "required": True,
         })
-    if bool(re.search(r"公式|关系式|表达式|方程|推导|证明|列式", text)):
+    if bool(re.search(r"公式(?!符号)|关系式|表达式|方程|推导|证明|列式", text)):
         outputs.append({
             "id": "formula", "label": "所需公式或推导关系", "kind": "formula", "required": True,
         })
@@ -93,7 +122,171 @@ def derive_required_outputs(question: str, *, intent: str = "qa", answer_mode: s
         outputs.append({
             "id": "answer_mode", "label": "通用模式的回答范围", "kind": "general_answer", "required": True,
         })
+    # Numbered natural-language parts have the same boundary as unnumbered ones.
+    for output in outputs:
+        if output["kind"] == "question_part":
+            if not output["anchors"]:
+                output["kind"] = "semantic"
     return outputs
+
+
+def _format_requirements(text: str) -> list[dict]:
+    requirements = []
+    count = re.search(r"(?:只输出|严格|恰好|仅输出)\s*([一二三四五六七八九十]|\d+)\s*行", text)
+    if count:
+        n = int(count[1]) if count[1].isdigit() else "一二三四五六七八九十".index(count[1]) + 1
+        requirements.append({"id": "line_count", "kind": "format", "format": "lines", "value": n})
+    length = re.search(r"(?:不超过|最多|上限为?)\s*(\d+)\s*(?:个Unicode码点|个字符|字)", text, re.I)
+    if length:
+        requirements.append({"id": "length", "kind": "format", "format": "length", "value": int(length[1]),
+                             "exclude_newlines": "不含换行" in text})
+    prefix = re.search(r"依次以(.+?)开头", text)
+    if prefix:
+        values = re.findall(r"[“\"]([^”\"]+)[”\"]", prefix[1])
+        if values:
+            requirements.append({"id": "prefixes", "kind": "format", "format": "prefixes", "value": values})
+    if re.search(r"(?:只|仅).{0,5}(?:输出|返回).{0,5}JSON", text, re.I):
+        requirements.append({"id": "json", "kind": "format", "format": "json"})
+    if re.search(r"(?:用|使用|输出|返回)\s*Markdown\s*表格", text, re.I):
+        requirements.append({"id": "table", "kind": "format", "format": "table"})
+    if re.search(r"纯文本|不使用Markdown", text, re.I):
+        requirements.append({"id": "plain_text", "kind": "format", "format": "plain"})
+    literal = re.search(r"(?:必须包含|原样输出)[“\"]([^”\"]+)[”\"]", text)
+    if literal:
+        requirements.append({"id": "literal", "kind": "literal", "value": literal[1]})
+    return requirements
+
+
+def _check_format(text: str, output: dict) -> bool:
+    fmt, value = output.get("format"), output.get("value")
+    if fmt == "lines":
+        return len(text.splitlines()) == value
+    if fmt == "length":
+        return len(text.replace("\n", "").replace("\r", "") if output.get("exclude_newlines") else text) <= value
+    if fmt == "prefixes":
+        lines = text.splitlines()
+        return len(lines) == len(value) and all(line.startswith(prefix) for line, prefix in zip(lines, value))
+    if fmt == "json":
+        try:
+            json.loads(text, parse_constant=lambda value: (_ for _ in ()).throw(ValueError("non-JSON constant")))
+            return True
+        except (ValueError, TypeError):
+            return False
+    if fmt == "table":
+        lines = text.splitlines()
+        if len(lines) < 3:
+            return False
+        cells = [line.strip().strip("|").split("|") for line in lines]
+        return len(cells[0]) >= 2 and all(len(row) == len(cells[0]) for row in cells) and all(
+            re.fullmatch(r"\s*:?-{3,}:?\s*", cell) for cell in cells[1])
+    if fmt == "plain":
+        return not bool(re.search(r"(?m)^\s*(?:[-*+] |\d+[.)] |#{1,6} |```)|\*\*", text))
+    return False
+
+
+def _requested_math(question: str) -> dict | None:
+    from backend.services.tool_orchestration import _math_tool_call
+    expected = _math_tool_call(question)
+    if expected:
+        return expected["args"]
+    # A bounded conventional Unicode integral notation; unsupported notation
+    # remains unknown. Never infer a request from the tool output itself.
+    normalized = question.translate(str.maketrans({**dict(zip("₀₁₂₃₄₅₆₇₈₉", "0123456789")),
+        **{char: "^" + str(index) for index, char in enumerate("⁰¹²³⁴⁵⁶⁷⁸⁹")}}))
+    # Superscript upper bound follows the lower bound, rather than a power.
+    normalized = re.sub(r"∫(\d)\^(\d)", r"∫\1\2", normalized)
+    match = re.search(r"∫([0-9])([0-9])\s*([A-Za-z0-9+*/^(). \-]+)\s*d([xyzt])", normalized)
+    if match:
+        expression = re.sub(r"\s+(?=[A-Za-z(])", "*", match[3].strip())
+        return {"operation": "integrate", "expression": expression, "lower": match[1], "upper": match[2], "variable": match[4]}
+    return None
+
+
+def _same_expression(left: str, right: str) -> bool:
+    from backend.tools.math_tools import parse_restricted_expression, RestrictedMathError
+    try:
+        return bool((parse_restricted_expression(left) - parse_restricted_expression(right)).simplify() == 0)
+    except (RestrictedMathError, ValueError, TypeError):
+        return False
+
+
+def _bound_numeric_reference(question: str, pack: dict) -> tuple[float, list[str]] | None:
+    requested = _requested_math(question)
+    if not requested or requested["operation"] not in {"calculate", "integrate"}:
+        return None
+    if requested["operation"] == "integrate" and not all(k in requested for k in ("lower", "upper")):
+        return None
+    outputs = pack.get("outputs") or []
+    for item in outputs:
+        data, args = item.get("data") or {}, item.get("args") or {}
+        if item.get("tool") != "symbolic_math" or not item.get("success") or data.get("assumptions"):
+            continue
+        if data.get("operation") != requested["operation"] or not _same_expression(data.get("expression", ""), requested["expression"]):
+            continue
+        if data.get("variable", "x") != requested.get("variable", "x") or any(
+                not _same_expression(str(args.get(k, "")), requested[k]) for k in ("lower", "upper") if k in requested):
+            continue
+        for receipt in outputs:
+            r = receipt.get("args") or {}
+            if receipt.get("tool") != "verify_math_result" or not receipt.get("success") or receipt.get("verification", {}).get("passed") is not True or r.get("assumptions"):
+                continue
+            vr = data.get("verification_request") or {}
+            # Bind the actual verification to operation, source, limits and result;
+            # equivalent candidate spellings are allowed, unrelated success is not.
+            if not vr or r.get("kind") != vr.get("kind"):
+                continue
+            keys = [k for k in vr if k not in {"assumptions", "candidate", "right"}]
+            if any(r.get(k) != vr[k] for k in keys):
+                continue
+            result_key = "candidate" if "candidate" in vr else "right"
+            if not _same_expression(str(r.get(result_key, "")), str(vr.get(result_key, ""))):
+                continue
+            numeric = (data.get("result") or {}).get("numeric")
+            if isinstance(numeric, (int, float)) and math.isfinite(numeric):
+                return float(numeric), ["symbolic_math", "verify_math_result", str(r.get("kind"))]
+    return None
+
+
+def _numeric_candidates(text: str, question: str = "") -> list[str]:
+    # Read decimal result fields, not arbitrary intermediate quantities. The
+    # supported surfaces are scalar formula outputs, named task results and
+    # explicit numeric conclusion labels. Ambiguous prose stays unverified.
+    number = r"[-+]?\d+\.\d+(?:[eE][-+]?\d+)?"
+    target = re.search(r"\b([A-Za-z])\s*=", question)
+    values = []
+    for formula in _FORMULA_RE.findall(text):
+        value = _compact_formula(formula).replace(r"\boxed{", "").replace("}", "")
+        value = value.replace(r"\ldots", "").rstrip(".")
+        if re.fullmatch(number, value):
+            values.append(value)
+        elif target:
+            match = re.fullmatch(re.escape(target[1]) + "=(" + number + ")", value)
+            if match:
+                values.append(match[1])
+    values.extend(re.findall(r"(?:最终结果|结果|数值)(?:为|是|：|:)\s*(" + number + ")", text))
+    if re.fullmatch(number + r"[。.]?", text.strip()):
+        values.append(text.strip().rstrip("。"))
+    return list(dict.fromkeys(values))
+
+
+def _precision_status(text: str, question: str, pack: dict, digits: int) -> tuple[str, dict]:
+    reference = _bound_numeric_reference(question, pack)
+    candidates = _numeric_candidates(text, question)
+    if not candidates:
+        return "failed", {"reason": "缺少可检查的十进制数值输出", "evidence": []}
+    if not reference:
+        return "unverified", {"reason": "数值未绑定本题及成功的独立数学收据", "evidence": []}
+    expected, evidence = reference
+    details = []
+    for raw in candidates:
+        mantissa = raw.lower().split("e")[0].lstrip("+-").replace(".", "").lstrip("0")
+        n = len(mantissa)
+        exponent = math.floor(math.log10(abs(expected))) if expected else 0
+        tolerance = .5 * 10 ** (exponent - min(n, digits) + 1)
+        details.append({"value": raw, "digits": n, "matches": abs(float(raw) - expected) <= tolerance + abs(expected)*1e-14})
+    passed = any(d["digits"] >= digits and d["matches"] for d in details) and all(d["matches"] for d in details)
+    return "passed" if passed else "failed", {"reason": "与本题独立核验结果及舍入精度比较" if passed else "数值错误或有效数字不足",
+                                               "evidence": evidence, "candidates": details}
 
 
 def _balanced_formula_delimiters(text: str) -> bool:
@@ -280,7 +473,14 @@ def verify_answer(
 ) -> dict[str, Any]:
     text = str(answer or "").strip()
     checks: list[dict[str, Any]] = []
-    for output in required_outputs or []:
+    outputs = list(required_outputs or [])
+    # Old checkpoints may carry the former natural-language anchor contract.
+    # Reclassify those probes at read time without rewriting persisted tasks.
+    structural_kinds = {"format", "literal", "precision", "tool_verification", "antiderivative", "closed_form", "derivation"}
+    existing_ids = {item.get("id") for item in outputs}
+    if question:
+        outputs.extend(item for item in derive_required_outputs(question) if item["kind"] in structural_kinds and item["id"] not in existing_ids)
+    for output in outputs:
         if not output.get("required", True):
             continue
         kind = str(output.get("kind") or "content")
@@ -299,10 +499,45 @@ def verify_answer(
                 refusal = False
             check.update(status="failed" if refusal else "passed", reason="通用模式仍因缺少教材证据拒答" if refusal else "")
         elif kind == "question_part":
-            anchors = [str(item) for item in output.get("anchors") or []]
-            matched = [item for item in anchors if item and item in text]
-            passed = not anchors or len(matched) == len(anchors)
-            check.update(status="passed" if passed else "failed", matched=matched, reason="" if passed else "未找到该分项的核心对象")
+            from graph.retrieval_node import _FOCUS_TERM_ALIASES
+            anchors = [str(item) for item in output.get("anchors") or [] if
+                       str(item) in _FOCUS_TERM_ALIASES or re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,15}", str(item)) or
+                       re.fullmatch(r"[\u4e00-\u9fff]{2,10}(?:误差|原因|定义|原函数)", str(item))]
+            matched = [item for item in anchors if any(alias in text for alias in _FOCUS_TERM_ALIASES.get(item, (item,)))]
+            covered = bool(anchors) and len(matched) == len(anchors)
+            check.update(status="unverified" if covered or not anchors else "failed", matched=matched,
+                         evidence=["answer coverage probe"],
+                         reason="仅确认对象出现，内容完整性与正确性未核验" if covered or not anchors else "未找到该分项的核心对象")
+        elif kind == "semantic":
+            check.update(status="unverified", evidence=[], reason="自然语言内容义务保留，无法确定性核验语义完整性")
+        elif kind == "literal":
+            ok = bool(output.get("value")) and output["value"] in text
+            check.update(status="passed" if ok else "failed", evidence=["answer literal"], reason="明确文本要求匹配" if ok else "缺少明确要求的文本")
+        elif kind == "format":
+            ok = _check_format(text, output)
+            check.update(status="passed" if ok else "failed", evidence=["answer format"], reason=f"检查 {output.get('format')}，约束 {output.get('value')}")
+        elif kind == "precision":
+            status, details = _precision_status(text, question, tool_context_pack or {}, min(100, max(1, int(output.get("digits", 6)))))
+            check.update(status=status, **details)
+        elif kind == "tool_verification":
+            reference = _bound_numeric_reference(question, tool_context_pack or {})
+            check.update(status="passed" if reference else "unverified", evidence=reference[1] if reference else [],
+                         reason="本题计算与独立核验收据已绑定" if reference else "没有可绑定本题结论的独立核验收据")
+        elif kind == "closed_form":
+            candidates = [_compact_formula(formula).split("=")[-1] for formula in _FORMULA_RE.findall(text)]
+            present = any(not re.search(r"\\int|\bdx\b", value) and re.search(r"\\(?:frac|ln|log|sqrt)|[A-Za-z].*[+*/^]|[+*/^].*[A-Za-z]", value)
+                          for value in candidates)
+            check.update(status="unverified" if present else "failed", evidence=["answer symbolic result structure"],
+                         reason="闭式结构存在，表达式等价性尚未绑定核验" if present else "明确要求闭式结果，但没有符号结果结构")
+        elif kind == "derivation":
+            formulas = _FORMULA_RE.findall(text)
+            present = len(formulas) >= 2 and sum(formula.count("=") for formula in formulas) >= 2
+            check.update(status="unverified" if present else "failed", evidence=["answer formula sequence"],
+                         reason="推导关系存在，教学完整性与逐步正确性未核验" if present else "明确要求推导，但缺少可复现的公式关系序列")
+        elif kind == "antiderivative":
+            present = bool(re.search(r"[+＋]\s*C\b", text)) and bool(_FORMULA_RE.search(text))
+            check.update(status="unverified" if present else "failed", evidence=["answer structure"],
+                         reason="原函数结构存在，尚未逐式求导核验" if present else "缺少完整原函数及积分常数")
         elif kind == "citation":
             valid_ids = {str(item.get("id") or "").upper() for item in (sources or []) if isinstance(item, dict)}
             cited_ids = {item.upper() for item in _CITATION_RE.findall(text)}
@@ -361,6 +596,8 @@ def verify_answer(
             else:
                 verified = _verified_numeric_conclusion(text, question, tool_context_pack or {})
                 check.update(status="passed" if verified else "unverified", reason="" if verified else "数值缺少与最终结论绑定的核验依据")
+        else:
+            check.update(status="unverified", reason="不支持的验证项类型", evidence=[])
         checks.append(check)
 
     if _FORMULA_RE.search(text) and not any(item["id"] == "formula" for item in checks):

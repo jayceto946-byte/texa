@@ -127,7 +127,9 @@ def _register_builtins() -> None:
             "extra_body": {"reasoning_effort": "high", "thinking": {"type": "enabled"}},
         }),
         ModelSpec("deepseek", "deepseek-v4-flash", "DeepSeek V4 Flash", openai_compatible | {Capability.REASONING}),
-        ModelSpec("deepseek", "deepseek-flash", "DeepSeek Flash（文图输入）", openai_compatible | {Capability.REASONING, Capability.VISION}),
+        ModelSpec("deepseek", "deepseek-flash", "DeepSeek V4.1 Flash（文图输入）", openai_compatible | {Capability.REASONING, Capability.VISION}, {
+            "extra_body": {"thinking": {"type": "enabled"}, "reasoning_effort": "high"},
+        }),
         ModelSpec("moonshot", "kimi-k2.6", "Kimi K2.6", openai_compatible | {Capability.REASONING, Capability.VISION}),
         ModelSpec("moonshot", "kimi-k2.5", "Kimi K2.5", openai_compatible | {Capability.REASONING, Capability.VISION}, {
             "extra_body": {"thinking": {"type": "disabled"}},

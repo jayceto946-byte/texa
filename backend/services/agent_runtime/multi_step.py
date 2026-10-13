@@ -10,7 +10,7 @@ from typing import Callable, Protocol
 from backend.services.agent_runtime.contracts import FixedAction, ModelCapabilities, RuntimeDenied, RuntimeConflict
 from backend.services.agent_runtime.runner import FixedRunner
 from backend.services.agent_runtime.store import RuntimeStore
-from backend.services.answer_verification import verify_answer, verification_notice
+from backend.services.answer_verification import verify_answer
 from backend.tools.registry import ToolContext, ToolRegistry
 from utils.thinking_filter import strip_thinking
 
@@ -194,8 +194,6 @@ class BoundedAgentRunner:
         if policy_context is not None and not self._policy_scope_valid(answer_state, policy_context):
             return self._close_answer(policy_attempt, run_id, owner, outcome="failed", error_code="answer_scope_changed")
         outcome = "completed" if verification["status"] == "passed" else "degraded"
-        if outcome == "degraded" and verification_notice(verification) not in answer:
-            answer = f"{answer}\n\n{verification_notice(verification)}".strip()
         return self._close_answer(policy_attempt, run_id, owner, outcome=outcome,
                                 answer=answer, verification=verification, sources=answer_sources)
 

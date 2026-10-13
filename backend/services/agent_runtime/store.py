@@ -191,7 +191,15 @@ class RuntimeStore:
                     "tool.completed": "工具已返回结果", "tool.failed": "工具执行失败"}.get(lifecycle)
                    or {"run.created": "开始处理学习任务", "run.completed": "回答处理结束",
                        "run.paused": "任务等待继续", "run.failed": "任务执行失败",
+                       "runtime.profile": "执行耗时已记录",
                        "model.started": "正在生成回答", "model.completed": "本轮生成结束"}.get(lifecycle) or lifecycle)
+        if lifecycle == "run.failed":
+            summary = {
+                "provider_protocol_state_lost": "本次模型续答状态已丢失，请重新发起问题；已执行工具记录保留。",
+                "native_protocol_identity_missing": "旧任务缺少模型身份，无法安全继续；请重新发起问题。",
+                "native_model_changed": "模型配置已改变，无法继续旧任务；请重新发起问题。",
+                "provider_output_truncated": "模型输出达到额度，回答未完成；请重新发起问题。",
+            }.get((payload or {}).get("error_code"), summary)
         event = emitter.emit(event_type, phase=lifecycle.split(".")[0], status=status,
                             operation_id=f"tool:{payload['tool_call_id']}" if tool_name else f"model:{payload['model_call_id']}" if (payload or {}).get("model_call_id") else lifecycle,
                             label="正在计算" if tool_name in {"symbolic_math", "verify_math_result"} else f"使用工具 · {tool_name}" if tool_name else summary,
@@ -302,11 +310,35 @@ class RuntimeStore:
             conn.execute("BEGIN")
             return self._snapshot(conn, run_id)
 
+    def assert_run_active(self, run_id: str, owner: str) -> None:
+        """Chunk fence: read authority without decoding history or tool receipts."""
+        with closing(self._connect()) as conn:
+            row = conn.execute("SELECT status,owner_token FROM agent_runs WHERE id=?", (run_id,)).fetchone()
+            if row is None or row["status"] != "running" or row["owner_token"] != owner:
+                raise RuntimeConflict("run stopped")
+
     def task_snapshot(self, task_id: str) -> dict[str, Any] | None:
         with closing(self._connect()) as conn:
             conn.execute("BEGIN")
             row = conn.execute("SELECT id FROM agent_runs WHERE task_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1", (task_id,)).fetchone()
             return self._snapshot(conn, row[0]) if row else None
+
+    def turn_snapshots(self, conversation_id: str, turn_ids: list[str]) -> list[dict]:
+        """Bounded read projection for turns already visible in a message page."""
+        turns = list(dict.fromkeys(turn_ids))
+        if len(turns) > 200:
+            raise ValueError("runtime turn projection exceeds message page budget")
+        if not turns:
+            return []
+        with closing(self._connect()) as conn:
+            conn.execute("BEGIN")
+            rows = conn.execute(
+                "SELECT r.id FROM agent_runs r WHERE r.conversation_id=? AND r.turn_id IN ("
+                + ",".join("?" for _ in turns) + ") AND NOT EXISTS (SELECT 1 FROM agent_runs n "
+                "WHERE n.task_id=r.task_id AND (n.created_at>r.created_at OR "
+                "(n.created_at=r.created_at AND n.rowid>r.rowid)))",
+                (conversation_id, *turns)).fetchall()
+            return [self._snapshot(conn, row[0]) for row in rows]
 
     def goal_tasks(self, goal_id: str):
         with closing(self._connect()) as conn:
@@ -396,7 +428,15 @@ class RuntimeStore:
             return self._snapshot(conn, run_id)
 
     def complete_model_step(self, run_id: str, owner: str, *, action_kind: str,
-                            transcript: list[dict]) -> dict[str, Any]:
+                            transcript: list[dict], performance: dict | None = None) -> dict[str, Any]:
+        allowed = {"handler_ms", "first_chunk_ms", "first_public_ms", "checkpoint_ms",
+                   "input_tokens", "output_tokens", "total_tokens", "reasoning_tokens", "cached_input_tokens",
+                   "output_token_limit", "final_content_tokens", "non_reasoning_output_tokens"}
+        finish_reason = (performance or {}).get("finish_reason")
+        performance = {k: v for k, v in (performance or {}).items()
+                       if k in allowed and isinstance(v, (int, float)) and 0 <= v < 1e9}
+        if finish_reason in {"stop", "length", "tool_calls", "content_filter", "unknown"}:
+            performance["finish_reason"] = finish_reason
         if len(transcript) > 24 or len(_dump(transcript)) > 64000:
             raise ValueError("model transcript exceeds bounded checkpoint")
         with self._write() as conn:
@@ -408,16 +448,34 @@ class RuntimeStore:
                          (_dump(checkpoint), _now(), run_id))
             task = conn.execute("SELECT consumed_model_calls FROM runtime_tasks WHERE id=?", (run["task_id"],)).fetchone()
             self._event(conn, run, lifecycle="model.completed", status="completed",
-                payload={"model_call_id": f"{run_id}:model:{task['consumed_model_calls']}"})
+                payload={"model_call_id": f"{run_id}:model:{task['consumed_model_calls']}",
+                         **({"performance": performance} if performance else {})})
             return self._snapshot(conn, run_id)
 
-    def save_native_messages(self, run_id: str, owner: str, messages: list[dict]) -> dict:
+    def record_performance(self, run_id: str, owner: str, timings: dict) -> None:
+        # Numeric timing metadata only, on the existing event stream.
+        allowed = {"context_build_ms", "initial_checkpoint_ms", "verification_ms", "tool_return_ms"}
+        clean = {k: round(v, 2) for k, v in timings.items()
+                 if k in allowed and isinstance(v, (int, float)) and 0 <= v < 3600000}
+        with self._write() as conn:
+            run = self._owned(conn, run_id, owner)
+            self._event(conn, run, lifecycle="runtime.profile", status="completed", payload={"performance": clean})
+
+    def save_native_messages(self, run_id: str, owner: str, messages: list[dict], *, protocol_identity: dict | None = None) -> dict:
         # Bound the whole protocol, never truncate into orphan ToolMessages.
         if len(messages) > 24 or len(_dump(messages)) > 64000:
             raise ValueError("native message checkpoint exceeds budget")
         with self._write() as conn:
             run = self._owned(conn, run_id, owner)
             checkpoint = json.loads(run["checkpoint_json"])
+            if protocol_identity is not None:
+                if set(protocol_identity) != {"provider", "model", "wire_digest"} or any(
+                    not isinstance(v, str) or not v or len(v) > 256 for v in protocol_identity.values()):
+                    raise ValueError("invalid native protocol identity")
+                prior = checkpoint.get("native_protocol_identity")
+                if prior is not None and prior != protocol_identity:
+                    raise RuntimeConflict("native protocol identity changed")
+                checkpoint["native_protocol_identity"] = protocol_identity
             checkpoint["native_messages"] = messages
             conn.execute("UPDATE agent_runs SET checkpoint_json=?,revision=revision+1 WHERE id=?",
                          (_dump(checkpoint), run_id))

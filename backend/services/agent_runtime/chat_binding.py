@@ -16,6 +16,7 @@ from backend.services.agent_runtime.outbox import RuntimeOutboxProjector
 from backend.services.execution_events import execution_sse_payload
 from backend.services.owned_stream import OwnedStreamingResponse
 from backend.tools.registry import ToolContext, ToolRegistry
+from llm.agent_adapter import model_requires_native_transcript
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,48 @@ def build_adapter(registry):
     from config import get_model_role_config
     from llm.agent_adapter import NativeToolAdapter
     return NativeToolAdapter(get_model_role_config(), registry)
+
+
+def overlay_runtime_delivery(data: dict, *, store=None) -> dict:
+    """Expose SQL-owned interrupted delivery without inventing message events.
+
+    The page cursor/count still refers to the authoritative conversation log.
+    A final outbox message replaces this read-only view using the same ID.
+    """
+    messages = data.get("messages") or []
+    turns = [m["turn_id"] for m in messages if m.get("role") == "user" and m.get("turn_id")]
+    if not turns:
+        return data
+    try:
+        store = store or runtime_store()
+        if store is None:
+            return data
+        snapshots = store.turn_snapshots(data["id"], turns)
+    except Exception:
+        logger.warning("Runtime delivery projection unavailable")
+        return {**data, "runtime_projection_error": "unavailable"}
+    existing = {m.get("id") for m in messages}
+    assistants = {m.get("turn_id") for m in messages if m.get("role") == "assistant"}
+    projected = {}
+    for snapshot in snapshots:
+        task = public_task(store, snapshot)
+        turn = task["turn_id"]
+        identity = f"msg_{task['id']}"
+        if identity in existing or turn in assistants:
+            continue
+        final = snapshot["run"].get("output") or {}
+        error_events = [e for e in snapshot["execution_events"] if e["type"] == "error"]
+        text = final.get("answer") or (error_events[-1]["summary"] if error_events else
+            "本次解答已暂停。" if task["resumable"] else "本次解答尚未完成。")
+        projected[turn] = {"id": identity, "turn_id": turn, "role": "assistant", "content": text,
+            "request_id": snapshot["run"]["request_id"], "learning_task": task,
+            "answer_mode": task.get("answer_mode", ""), "runtime_delivery_projection": True}
+    visible = []
+    for message in messages:
+        visible.append(message)
+        if message.get("role") == "user" and message.get("turn_id") in projected:
+            visible.append(projected.pop(message["turn_id"]))
+    return {**data, "messages": visible}
 
 
 def generate_answer(messages):
@@ -127,9 +170,12 @@ def try_chat_response(req, prepared: dict, request_id: str, *, streaming=True):
     from backend.services.agent_runtime.math_support import explicit_math_only
     pure_math = explicit_math_only(req.question, prepared["rewritten_question"],
         scope_reason=prepared.get("scope_reason", ""), attachments=bool(getattr(req, "images", None)))
+    if getattr(req, "images", None):
+        return None
+    native_answer = model_requires_native_transcript()
     # Preserve the existing visual, textbook, clarification and required-input gates.
     allow_textbook = os.getenv("TEXA_AGENT_RUNTIME_TEXTBOOK", "0") == "1"
-    if prepared["answer_mode"] not in {"global_general", "subject_general", "textbook_grounded"} or (prepared["use_textbook_context"] and not allow_textbook and not pure_math):
+    if prepared["answer_mode"] not in {"global_general", "subject_general", "textbook_grounded"} or (prepared["use_textbook_context"] and not allow_textbook and not pure_math and not native_answer):
         return None
     if prepared["resolution_trace"].get("resolution_action") in {"clarify", "respond"}:
         return None
@@ -145,41 +191,43 @@ def try_chat_response(req, prepared: dict, request_id: str, *, streaming=True):
     math_route = decision.selected_capability == "math.verify"
     if math_route and os.getenv("TEXA_AGENT_RUNTIME_MATH", "1") != "1":
         return None
-    if not math_route and os.getenv("TEXA_AGENT_RUNTIME_READ", "0") != "1":
+    if not math_route and not native_answer and os.getenv("TEXA_AGENT_RUNTIME_READ", "0") != "1":
         return None
     writes = {"exercise.create_set", "mistake.manage", "exercise.record_result"}
     allow_write = os.getenv("TEXA_AGENT_RUNTIME_WRITE", "0") == "1"
-    if decision.selected_capability not in {"learning.inspect", "exercise.inspect", "math.verify"} | (writes if allow_write else set()) | ({"textbook.search"} if allow_textbook else set()):
+    answer_route = native_answer and decision.selected_capability in {"", "textbook.search", "textbook.read"} and not math_route
+    if not answer_route and decision.selected_capability not in {"learning.inspect", "exercise.inspect", "math.verify"} | (writes if allow_write else set()) | ({"textbook.search"} if allow_textbook else set()):
         return None
     if decision.selected_capability in writes and not prepared["book_name"]:
         return None
     if decision.selected_capability == "exercise.inspect" and not prepared["book_name"]:
         return None
-    registry = build_math_registry() if math_route else build_registry()
+    registry = build_math_registry() if math_route or answer_route else build_registry()
     scope = None
-    if decision.selected_capability == "textbook.search":
+    native_evidence = native_answer and prepared["use_textbook_context"] and not pure_math and (answer_route or math_route)
+    if decision.selected_capability == "textbook.search" or native_evidence:
         from graph.intent_classifier import classify_intent_local
         from graph.question_understanding import interpretation_hint
         hint = interpretation_hint(prepared["resolution_trace"].get("question_understanding"))
-        if classify_intent_local(prepared["rewritten_question"]).get("intent") in {"teach", "summarize"} or hint.get("intent") in {"teach", "summarize"}:
+        if not native_evidence and (classify_intent_local(prepared["rewritten_question"]).get("intent") in {"teach", "summarize"} or hint.get("intent") in {"teach", "summarize"}):
             return None
         from backend.services.agent_runtime.textbook_tool import freeze_textbook_scope, register_textbook_search_runtime
         scope = freeze_textbook_scope(prepared["book_name"], prepared["subject"])
         register_textbook_search_runtime(registry, scope)
-    baseline = os.getenv("TEXA_RUNTIME_POLICY_V0", "0") == "1" and decision.selected_capability not in writes and not math_route
+    baseline = os.getenv("TEXA_RUNTIME_POLICY_V0", "0") == "1" and decision.selected_capability not in writes and not math_route and not answer_route
     adapter = None if baseline else build_adapter(registry)
-    if math_route and hasattr(adapter, "allow_native_attempt"):
+    if (math_route or answer_route) and hasattr(adapter, "allow_native_attempt"):
         adapter.allow_native_attempt = True
     if not baseline and adapter.capabilities().tool_calling != "supported":
         return None  # No task has been claimed by SQL yet.
-    candidates = resolve_candidate_tools(decision, registry,
+    candidates = () if answer_route else resolve_candidate_tools(decision, registry,
         allowed_permissions=frozenset({"READ", "LOCAL_WRITE"}) if allow_write else frozenset({"READ"})).tool_refs
     if baseline:
         from backend.services.decision.policy_projection import matched_tool_refs
         candidates, _ = matched_tool_refs(prepared["rewritten_question"], registry,
             grounded=prepared["answer_mode"] == "textbook_grounded",
             understanding=prepared["resolution_trace"].get("question_understanding"))
-    if not candidates:
+    if not candidates and not answer_route:
         return None
     from graph.main_graph import build_initial_state
     from backend.services.answer_verification import derive_required_outputs
@@ -187,8 +235,12 @@ def try_chat_response(req, prepared: dict, request_id: str, *, streaming=True):
         subject=prepared["subject"], conversation_id=prepared["conversation_id"],
         use_textbook_context=prepared["use_textbook_context"], answer_mode=prepared["answer_mode"],
         scope_reason=prepared["scope_reason"], continuity_context=prepared["continuity_context"])
+    state["target_chapters"] = prepared.get("target_chapters") or []
     state["intent"] = "qa"
-    state["native_loop"] = math_route and hasattr(adapter, "run_native")
+    if answer_route:
+        from graph.intent_classifier import classify_intent_local
+        state["intent"] = classify_intent_local(prepared["rewritten_question"]).get("intent", "qa")
+    state["native_loop"] = (math_route or answer_route) and hasattr(adapter, "run_native")
     if state["native_loop"]:
         # Freeze reasoning deadlines with this Run so recovery keeps its budget.
         state["_native_limits"] = {
@@ -201,9 +253,12 @@ def try_chat_response(req, prepared: dict, request_id: str, *, streaming=True):
     state["_resolution_trace"] = prepared["resolution_trace"]
     if scope:
         state["_runtime_textbook_scope"] = scope
+        if native_evidence:
+            metadata = registry.runtime_tool("search_textbook").runtime_metadata()
+            state["_native_preparation_ref"] = {key: metadata[key] for key in ("id", "version", "schema_hash")}
     store = runtime_store(create=True)
     owner = uuid.uuid4().hex
-    required = derive_required_outputs(req.question, intent="qa", answer_mode=prepared["answer_mode"])
+    required = derive_required_outputs(req.question, intent=state["intent"], answer_mode=prepared["answer_mode"])
     if pure_math:
         required = [output for output in required if output["kind"] != "citation"]
         required.append({"id": "math_support", "kind": "math_support", "label": "与题目及最终结论绑定的计算核验", "required": True})
@@ -248,7 +303,7 @@ def stream_run(store, run_id: str, owner: str, registry=None, adapter=None):
     baseline = checkpoint.get("policy_baseline") == "texa.runtime-policy/v0"
     if not baseline:
         adapter = adapter or build_adapter(registry)
-        if hasattr(adapter, "allow_native_attempt") and any(ref["id"] == "symbolic_math" for ref in checkpoint["candidates"]):
+        if hasattr(adapter, "allow_native_attempt") and checkpoint.get("answer_state", {}).get("native_loop"):
             adapter.allow_native_attempt = True
     if checkpoint.get("answer_state", {}).get("_runtime_textbook_scope"):
         from backend.services.agent_runtime.textbook_tool import register_textbook_search_runtime
@@ -289,6 +344,11 @@ def stream_run(store, run_id: str, owner: str, registry=None, adapter=None):
                 sidecar = {"learning_task": public_task(store, snapshot),
                     "book_name": task["artifacts"].get("book_name", ""),
                     "answer_mode": task.get("answer_mode", "")}
+                if (checkpoint.get("answer_state", {}).get("_native_preparation_ref") and
+                        checkpoint["answer_state"].get("intent") in {"teach", "summarize"} and
+                        event.get("payload", {}).get("lifecycle") == "tool.completed"):
+                    # Existing chapter delivery precedes all public model text.
+                    yield f"data: {json.dumps({'stage': 'chapter', 'has_teaching': True, 'request_id': initial['run']['request_id'], **sidecar}, ensure_ascii=False)}\n\n"
                 if event["type"] == "final":
                     delta = {**event, "seq": event["seq"] - 1, "type": "output_delta",
                         "phase": "generate", "kind": "generation", "status": "running",

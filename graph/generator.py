@@ -19,7 +19,6 @@ from utils.latex_sanitizer import sanitize_latex
 from utils.citation_protocol import sanitize_citation_protocol
 from backend.services.answer_verification import (
     derive_required_outputs,
-    verification_notice,
     verify_answer,
 )
 from utils.thinking_filter import strip_thinking
@@ -209,7 +208,7 @@ def finalize_answer_verification(
     citation_trace: dict | None = None,
     answer_policy: str = "exact",
 ) -> str:
-    """Run deterministic postconditions and disclose non-passing results."""
+    """Run postconditions; disclose results via verification metadata, not prose."""
     if _answer_mode(state) == "textbook_grounded" and state.get("support_type") != "explicit_math_only" and "verification_evidence" not in state:
         _prepare_evidence_pack(state)
     required_outputs = list(state.get("required_outputs") or [])
@@ -239,9 +238,6 @@ def finalize_answer_verification(
         result["failures"].append({"id": check["id"], "reason": check["reason"]})
         result.update(status="failed", passed=False)
     state["answer_verification"] = result
-    notice = verification_notice(result)
-    if notice and notice not in answer:
-        return answer.rstrip() + "\n\n" + notice
     return answer
 
 

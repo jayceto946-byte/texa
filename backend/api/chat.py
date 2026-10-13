@@ -743,9 +743,10 @@ def change_conversation_management(conversation_id: str, payload: ConversationMa
 @router.get("/conversations/{conversation_id}")
 def conversation_detail(conversation_id: str, limit: int = 40, before_seq: int | None = None):
     conversation_id = ensure_conversation_id(conversation_id)
+    from backend.services.agent_runtime.chat_binding import overlay_runtime_delivery
     return {
         "success": True,
-        "data": {**get_conversation(conversation_id, limit=limit, before_seq=before_seq),
+        "data": {**overlay_runtime_delivery(get_conversation(conversation_id, limit=limit, before_seq=before_seq)),
                  "management": ConversationManagementService().get(conversation_id)},
     }
 
@@ -753,7 +754,8 @@ def conversation_detail(conversation_id: str, limit: int = 40, before_seq: int |
 @router.get("/conversations/{conversation_id}/messages")
 def conversation_messages(conversation_id: str, limit: int = 40, before_seq: int | None = None):
     conversation_id = ensure_conversation_id(conversation_id)
-    data = get_conversation(conversation_id, limit=limit, before_seq=before_seq)
+    from backend.services.agent_runtime.chat_binding import overlay_runtime_delivery
+    data = overlay_runtime_delivery(get_conversation(conversation_id, limit=limit, before_seq=before_seq))
     return {"success": True, "data": {"messages": data["messages"], "page": data["page"]}}
 
 

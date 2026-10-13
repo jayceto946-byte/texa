@@ -41,12 +41,14 @@ class ScriptedMathModel(BaseChatModel):
         response = self._response(messages)
         calls = response.get("tool_calls") or []
         if calls:
-            call = calls[0]
-            args = json.dumps(call["args"])
-            for index, part in enumerate([args[:len(args)//2], args[len(args)//2:]]):
-                yield ChatGenerationChunk(message=AIMessageChunk(content="", tool_call_chunks=[{
-                    "name": call["name"] if index == 0 else None, "id": call["id"] if index == 0 else None,
-                    "args": part, "index": 0}]))
+            if response.get("content"):
+                yield ChatGenerationChunk(message=AIMessageChunk(content=response["content"]))
+            for call_index, tool_call in enumerate(calls):
+                args = json.dumps(tool_call["args"])
+                for index, part in enumerate([args[:len(args)//2], args[len(args)//2:]]):
+                    yield ChatGenerationChunk(message=AIMessageChunk(content="", tool_call_chunks=[{
+                        "name": tool_call["name"] if index == 0 else None, "id": tool_call["id"] if index == 0 else None,
+                        "args": part, "index": call_index}]))
         else:
             for part in [response["content"][:3], response["content"][3:]]:
                 time.sleep(self.delays)
@@ -83,6 +85,84 @@ def setup_run(tmp_path, responses, *, budget_calls=3, budget_model_calls=4, on_o
 SUCCESS = [call("symbolic_math", {"operation": "calculate", "expression": "2^10"}, "calc-1"),
     call("verify_math_result", {"kind": "equivalence", "left": "2^10", "right": "1024"}, "verify-2"),
     {"content": "结果是 1024。"}]
+
+
+def test_tool_boundary_preserves_public_derivation_and_final_verification(tmp_path):
+    deltas = []
+    responses = [{**SUCCESS[0], "content": "CDF 推导：F_M(x)=F(x)^n。"}, SUCCESS[-1]]
+    store, run, model, runner, state = setup_run(tmp_path, responses,
+        on_output=lambda text, replace: deltas.append((text, replace)))
+    state["required_outputs"] = []
+    result = runner.run_bounded(run, "owner", context=ToolContext(), answer_state=state, answer_generator=lambda _: pytest.fail("no extra generation"))
+    assert not any(replace for _, replace in deltas)
+    assert "CDF 推导" in "".join(text for text, _ in deltas)
+    answer = result["run"]["output"]["answer"]
+    assert "CDF 推导" in answer and "## 最终解答" in answer and "结果是 1024。" in answer
+    assert result["task"]["verification"]["status"] == "unverified"
+    assert any(x["id"] == "interim_delivery" for x in result["task"]["verification"]["unverified"])
+    from backend.services.agent_runtime.native_loop import PUBLIC_DELIVERY_INSTRUCTION
+    assert any(m.content == PUBLIC_DELIVERY_INSTRUCTION for m in model.received[1])
+
+
+def test_public_interim_is_not_credited_as_complete_final_answer(tmp_path):
+    from backend.services.agent_runtime.contracts import RunCommand
+    store, run, model, runner, state = setup_run(tmp_path,
+        [{**SUCCESS[0], "content": "CDF 推导已经完成。"}, SUCCESS[-1]])
+    # The final required-output check must not pass on an earlier draft anchor.
+    run = store.create(RunCommand("request2", "request2", "rtask_math2", "session", "turn2", "计算 2^10", "owner",
+        budget_calls=3, budget_model_calls=4,
+        required_outputs=[{"id": "distribution", "kind": "question_part", "anchors": ["CDF"], "required": True}]))["run"]["id"]
+    result = runner.run_bounded(run, "owner", context=ToolContext(), answer_state=state, answer_generator=lambda _: pytest.fail("no extra generation"))
+    assert result["task"]["verification"]["status"] == "failed"
+    assert any(x["id"] == "distribution" for x in result["task"]["verification"]["failures"])
+    assert "CDF" in result["run"]["output"]["answer"]
+
+
+def test_public_interim_excludes_previous_turn_and_private_reasoning():
+    from backend.services.agent_runtime.native_loop import _public_interim_text
+    from langchain_core.messages import HumanMessage
+    before = AIMessage(**{**SUCCESS[0], "content": "旧题推导"})
+    current = AIMessage(**{**SUCCESS[0], "content": "<think>隐藏推理</think>公开 CDF 推导",
+        "additional_kwargs": {"reasoning_content": "供应商隐藏推理"}})
+    assert _public_interim_text([before, HumanMessage(content="新题"), current,
+        ToolMessage(content="工具内部回执", tool_call_id="calc-1"), AIMessage(content="最终正文")]) == "公开 CDF 推导"
+
+
+def test_resumed_public_interim_survives_final_delivery(tmp_path):
+    from langchain_core.messages import HumanMessage, messages_to_dict
+    store, run, model, runner, state = setup_run(tmp_path, [SUCCESS[-1]])
+    pending = AIMessage(**{**SUCCESS[0], "content": "恢复前的 CDF 推导。"})
+    store.save_native_messages(run, "owner", messages_to_dict([HumanMessage(content="计算 2^10"), pending]), protocol_identity=runner.adapter.protocol_identity())
+    store.close(run, "owner", outcome="paused", error_code="interrupted")
+    paused = store.snapshot(run)
+    resumed = store.resume("rtask_math", expected_revision=paused["task_revision"], request_key="resume",
+        request_id="resume", owner_token="new-owner", turn_id="turn")
+    result = runner.run_bounded(resumed["run"]["id"], "new-owner", context=ToolContext(), answer_state=state, answer_generator=lambda _: pytest.fail("no extra generation"))
+    assert "恢复前的 CDF 推导。" in result["run"]["output"]["answer"]
+    assert result["consumed_calls"] == 0
+
+
+def test_sse_final_replacement_preserves_tool_preamble(tmp_path, monkeypatch):
+    import asyncio
+    import backend.conversation_memory as conversation
+    from backend.services.agent_runtime import chat_binding as binding
+    responses = [{**SUCCESS[0], "content": "CDF 推导：F_M(x)=F(x)^n。"}, SUCCESS[-1]]
+    store, run, model, runner, state = setup_run(tmp_path, responses)
+    state["native_loop"] = True
+    store.configure_chat(run, "owner", state=state, candidates=runner.candidate_tools,
+        request_question="计算 2^10", book_name="", subject="数学")
+    monkeypatch.setattr(conversation, "append_message", lambda *a, **k: {})
+    monkeypatch.setattr(binding, "project_outcomes", lambda _: None)
+    async def check():
+        response = binding.stream_run(store, run, "owner", runner.registry, runner.adapter)
+        events = [json.loads(data[6:])["execution_event"] async for data in response.body_iterator]
+        await response.aclose()
+        replacements = [e for e in events if e["type"] == "output_delta" and e["payload"]["replace"]]
+        assert len(replacements) == 1
+        assert "CDF 推导" in replacements[0]["payload"]["text"]
+        assert replacements[0]["payload"]["text"] == store.snapshot(run)["run"]["output"]["answer"]
+        assert events[-1]["type"] == "final"
+    asyncio.run(check())
 
 
 def test_two_real_sympy_calls_three_model_rounds_and_streaming(tmp_path):
@@ -159,7 +239,7 @@ def test_native_messages_resume_after_interrupted_tool(tmp_path):
     store, run, model, runner, state = setup_run(tmp_path, SUCCESS)
     from langchain_core.messages import HumanMessage, messages_to_dict
     pending = AIMessage(**SUCCESS[0])
-    store.save_native_messages(run, "owner", messages_to_dict([HumanMessage(content="计算 2^10"), pending]))
+    store.save_native_messages(run, "owner", messages_to_dict([HumanMessage(content="计算 2^10"), pending]), protocol_identity=runner.adapter.protocol_identity())
     store.close(run, "owner", outcome="paused", error_code="interrupted")
     paused = store.snapshot(run)
     new = store.resume("rtask_math", expected_revision=paused["task_revision"], request_key="resume",
@@ -259,7 +339,7 @@ def test_resume_prefers_committed_sql_receipt_and_rejects_repeated_id(tmp_path):
     from backend.services.agent_runtime.runner import FixedRunner
     from backend.services.agent_runtime.contracts import FixedAction
     store, run, model, runner, state = setup_run(tmp_path, SUCCESS)
-    store.save_native_messages(run, "owner", messages_to_dict([HumanMessage(content="计算 2^10"), AIMessage(**SUCCESS[0])]))
+    store.save_native_messages(run, "owner", messages_to_dict([HumanMessage(content="计算 2^10"), AIMessage(**SUCCESS[0])]), protocol_identity=runner.adapter.protocol_identity())
     FixedRunner(store, runner.registry, allowlist=frozenset({"symbolic_math"})).execute(run, "owner",
         FixedAction("call", tool_id="symbolic_math", args=SUCCESS[0]["tool_calls"][0]["args"], operation_key="native-1-calc-1"), context=ToolContext())
     store.close(run, "owner", outcome="paused", error_code="interrupted")
@@ -328,3 +408,35 @@ def test_native_deadline_rejects_unbounded_configuration(tmp_path, model_timeout
     with pytest.raises(ValueError, match="deadline"):
         runner.run_bounded(run, "owner", context=ToolContext())
     assert store.snapshot(run)["consumed_model_calls"] == 0
+
+
+def test_profile_metadata_and_chunk_fence_do_not_read_full_snapshot(tmp_path, monkeypatch):
+    store, run, model, runner, state = setup_run(tmp_path, [SUCCESS[-1]])
+    # Reading the authority is independent of decoding messages/receipts/events.
+    original = store._snapshot
+    reads = []
+    def counted(*args):
+        reads.append(1)
+        return original(*args)
+    monkeypatch.setattr(store, '_snapshot', counted)
+    store.assert_run_active(run, 'owner')
+    assert not reads
+    result = runner.run_bounded(run, 'owner', context=ToolContext(), answer_state=state, answer_generator=lambda _: pytest.fail('extra request'))
+    completed = next(e for e in result['execution_events'] if e['payload'].get('lifecycle') == 'model.completed')
+    perf = completed['payload']['performance']
+    assert perf['handler_ms'] >= perf['first_chunk_ms'] >= 0
+    assert perf['first_public_ms'] >= perf['first_chunk_ms']
+    assert 'input_tokens' not in perf  # Missing usage is unknown, never zero.
+    profile = next(e for e in result['execution_events'] if e['payload'].get('lifecycle') == 'runtime.profile')
+    assert profile['payload']['performance']['verification_ms'] >= 0
+    with pytest.raises(Exception, match='run stopped'):
+        store.assert_run_active(run, 'owner')
+
+
+def test_performance_payload_cannot_persist_provider_text(tmp_path):
+    store, run, _, _, _ = setup_run(tmp_path, [SUCCESS[-1]])
+    store.start_model_step(run, 'owner')
+    store.complete_model_step(run, 'owner', action_kind='finish', transcript=[],
+        performance={'first_chunk_ms': 10, 'reasoning_content': 'private', 'input_tokens': -1, 'handler_ms': float('nan')})
+    event = store.events(run)[-1]
+    assert event['payload']['performance'] == {'first_chunk_ms': 10}

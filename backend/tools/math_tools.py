@@ -191,15 +191,16 @@ def _variable(value: Any) -> sp.Symbol:
     return sp.Symbol(name, **{assumption: True}) if assumption else _SYMBOLS[name]
 
 
-def _serialized_result(value: Any) -> dict[str, Any]:
+def _serialized_result(value: Any, *, simplified: bool = False, raw: Any = None) -> dict[str, Any]:
     if isinstance(value, (list, tuple, set)):
         values = list(value)
         return {
+            "raw": [str(item) for item in values],
             "exact": [str(item) for item in values],
             "latex": [sp.latex(item) for item in values],
             "numeric": [_serialized_result(item)["numeric"] for item in values],
         }
-    expression = sp.simplify(value)
+    expression = value if simplified else sp.simplify(value)
     numeric = None
     if not expression.free_symbols and expression.is_finite is not False:
         try:
@@ -208,7 +209,7 @@ def _serialized_result(value: Any) -> dict[str, Any]:
                 numeric = None
         except (TypeError, ValueError, OverflowError):
             numeric = None
-    return {"exact": str(expression), "latex": sp.latex(expression), "numeric": numeric}
+    return {"raw": str(value if raw is None else raw), "exact": str(expression), "latex": sp.latex(expression), "numeric": numeric}
 
 
 def _symbolic_math(_context: ToolContext, args: dict[str, Any]) -> ToolResult:
@@ -280,7 +281,8 @@ def _symbolic_math(_context: ToolContext, args: dict[str, Any]) -> ToolResult:
             "operation": operation,
             "expression": expression_text,
             "variable": str(variable),
-            "result": _serialized_result(result),
+            "result": _serialized_result(result, simplified=operation in {"calculate", "simplify"},
+                                         raw=expression if operation in {"calculate", "simplify"} else result),
             "verification_request": verification_request,
             "assumptions": dict(_ASSUMPTIONS.get()),
             "status": "unevaluated" if isinstance(result, sp.Expr) and result.has(sp.Integral, sp.Limit) else "computed",
@@ -369,7 +371,12 @@ def register_math_tools(registry: ToolRegistry) -> None:
     }
     registry.register(ToolSpec(
         name="symbolic_math",
-        description="Compute a restricted numeric or symbolic expression without executing arbitrary code.",
+        description=("Compute a restricted numeric or symbolic expression without executing arbitrary code. "
+            "Returns raw operation result, already simplified exact form, LaTeX and numeric approximation. "
+            "Do not call simplify again just to rewrite the returned exact value; use it directly. "
+            "Allowed symbols: x,y,z,t,n,a,b,c; rename other parameters explicitly and state the mapping. "
+            "Allowed functions: sin,cos,tan,asin,acos,atan,exp,log,ln,sqrt,abs. "
+            "Use further calls when needed for a new calculation or verification."),
         parameters={
             "type": "object",
             "required": ["operation", "expression"],

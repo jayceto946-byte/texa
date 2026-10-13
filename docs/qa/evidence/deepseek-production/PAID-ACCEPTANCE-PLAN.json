@@ -1,0 +1,100 @@
+{
+  "status": "Pending; not authorized or executed",
+  "model": "deepseek-flash",
+  "default_model": "qwen3.7-plus",
+  "scope": "formal Chat API and Electron; no standalone harness substitute",
+  "cases": [
+    {
+      "id": "S1",
+      "requests": 1,
+      "output_cap": 8192,
+      "description": "frozen real textbook concept; actual scoped production retrieval, Native Loop, FixedRunner, SQL, SSE and Electron; no direct evidence injection",
+      "questions": [
+        "依据证据解释：压电式测力传感器为什么不适合真正的静态测量？为什么教材又说大时间常数电荷放大器能测准静态力？解释二者是否矛盾，并给一个适合的测量任务。不要补充证据里没有的定量截止频率；结论附教材引用。"
+      ],
+      "source_manifest": "experiments/qwen37-dsv41-20261013/EXPERIMENT-MANIFEST.json",
+      "source_manifest_sha256": "2be6570426bf33a85b3aacdce1e0cfac5e2b0c644a98575410fa067b3aca2dbf"
+    },
+    {
+      "id": "S5",
+      "requests": 5,
+      "output_cap_per_request": 4096,
+      "description": "frozen integral through native tools, FixedRunner, SQL, SSE and Electron",
+      "questions": [
+        "求 J=∫₀¹ x² ln(1+x) dx。给出可复现的分部积分与多项式除法步骤、闭式结果和至少6位有效数字。可自主决定何时使用所提供的受限数学工具，但请对关键结果进行独立校验；明确区分自己推导与实际工具已验证的结论。"
+      ],
+      "source_manifest": "experiments/qwen37-dsv41-phase2-20261013/EXPERIMENT-MANIFEST.json",
+      "source_manifest_sha256": "dd856fe009d6aac547691ffd8555e53a40b9a49ecde3b7c287a64459136b1ad1"
+    },
+    {
+      "id": "S6",
+      "requests": 2,
+      "output_cap_per_request": 8192,
+      "description": "frozen two-turn correction and strict three-line answer through selected model",
+      "questions": [
+        "解释实函数在一点可导与连续之间的关系，用 f(x)=|x| 在0点作例子。",
+        "我理解为：既然 |x| 在0连续，左右导数就都等于0，所以它也可导，对吗？请纠正。第二轮只输出三行，依次以“结论：”“反例：”“原因：”开头。总长度不超过180个Unicode码点（含标点、空格、公式符号，不含换行），不使用Markdown列表或代码块；必须写出左右导数数值。"
+      ],
+      "source_manifest": "experiments/qwen37-dsv41-phase2-20261013/EXPERIMENT-MANIFEST.json",
+      "source_manifest_sha256": "dd856fe009d6aac547691ffd8555e53a40b9a49ecde3b7c287a64459136b1ad1"
+    },
+    {
+      "id": "cancel",
+      "requests": 2,
+      "description": "cancel during native continuation; resume must fail explicitly with zero additional requests if private state lost",
+      "output_cap_per_request": 4096,
+      "question": "计算 7，并使用工具核验结果。"
+    },
+    {
+      "id": "qwen-smoke",
+      "requests": 1,
+      "output_cap": 8192,
+      "description": "one default-model regression; no benchmark ranking",
+      "question": "简要说明可导与连续的关系。"
+    }
+  ],
+  "caps": {
+    "deepseek_requests": 10,
+    "qwen_requests": 1,
+    "per_request_input_tokens": 32768,
+    "deepseek_input_tokens": 327680,
+    "deepseek_output_tokens_including_reasoning": 53248,
+    "qwen_input_tokens": 32768,
+    "qwen_output_tokens_including_reasoning": 8192,
+    "total_tokens": 421888,
+    "cost_usd": 0.2,
+    "cost_cny": 0.25,
+    "automatic_retries": 0
+  },
+  "price_source": "https://api-docs.deepseek.com/quick_start/pricing/",
+  "conservative_rates": {
+    "DeepSeek_USD_per_million": {
+      "input": 0.3,
+      "output_including_reasoning": 1.2
+    },
+    "Qwen_CNY_per_million_reservation": {
+      "input": 2,
+      "output_including_reasoning": 8
+    }
+  },
+  "conservative_cost_estimates": {
+    "DeepSeek_USD": 0.1622016,
+    "Qwen_CNY": 0.131072
+  },
+  "preconditions": [
+    "explicit human approval for this frozen test and currency/token/request budget",
+    "isolate user data; reuse frozen Canonical source without changing active user index",
+    "recheck price and credentials without logging secrets",
+    "freeze code/input identities; enforce request/token/currency caps before network; unknown usage retains reservation",
+    "free preflight must confirm original Canonical/index version availability; if unavailable, block S1 without substituting a prepared EvidencePack"
+  ],
+  "metrics": [
+    "actual requests",
+    "first meaningful public text time",
+    "whole task time",
+    "input/cache/output/reasoning counts",
+    "tool receipts/failures",
+    "usage-based currency estimates (not supplier bill)",
+    "final verification status"
+  ]
+}

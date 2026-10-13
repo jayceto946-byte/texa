@@ -1,0 +1,82 @@
+{
+  "status": "PENDING — requires new explicit approval; not executed",
+  "date": "2026-10-13 Asia/Shanghai",
+  "scope": "One frozen S1 production textbook answer via Electron/API/native/real retrieval/SQL/SSE. S5/S6 use reliable historical public-response offline replay. No benchmark, no prompt changes.",
+  "cases": [
+    {
+      "id": "S1",
+      "requests": 1,
+      "output_cap": 8192,
+      "description": "frozen real textbook concept; actual scoped production retrieval, Native Loop, FixedRunner, SQL, SSE and Electron; no direct evidence injection",
+      "questions": [
+        "依据证据解释：压电式测力传感器为什么不适合真正的静态测量？为什么教材又说大时间常数电荷放大器能测准静态力？解释二者是否矛盾，并给一个适合的测量任务。不要补充证据里没有的定量截止频率；结论附教材引用。"
+      ],
+      "source_manifest": "experiments/qwen37-dsv41-20261013/EXPERIMENT-MANIFEST.json",
+      "source_manifest_sha256": "2be6570426bf33a85b3aacdce1e0cfac5e2b0c644a98575410fa067b3aca2dbf"
+    }
+  ],
+  "caps": {
+    "deepseek_requests": 1,
+    "qwen_requests": 0,
+    "per_request_input_tokens": 32768,
+    "deepseek_output_tokens_including_reasoning": 8192,
+    "total_tokens": 40960,
+    "cost_usd": 0.03,
+    "cost_cny": 0,
+    "automatic_retries": 0
+  },
+  "official_prices_checked": "2026-10-13",
+  "official_prices": {
+    "DeepSeek_USD_per_million": {
+      "input_cache_miss_peak": 0.3,
+      "input_cache_hit_peak": 0.006,
+      "output_peak": 1.2,
+      "input_cache_miss_offpeak": 0.15,
+      "input_cache_hit_offpeak": 0.003,
+      "output_offpeak": 0.6,
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/"
+    },
+    "Qwen_CNY_per_million": {
+      "input_list": 2,
+      "output_thinking_and_content_list": 8,
+      "input_promotional": 1.6,
+      "output_promotional": 6.4,
+      "applicable_input_tier": "<=256K; Beijing endpoint",
+      "planned_requests": 0,
+      "source": "https://help.aliyun.com/zh/model-studio/model-pricing"
+    }
+  },
+  "cost_estimates": {
+    "S1_previous_input_3018_output_cap_8192_peak_USD": 0.0107358,
+    "fully_reserved_32768_input_8192_output_peak_USD": 0.0196608,
+    "gate_reservation_including_10_token_margin_USD": 0.0196728,
+    "Qwen_CNY": 0
+  },
+  "code_identity": {
+    "head": "f91633673c40cf9c353e49804e2584b64f3131cc",
+    "effective_source": "SOURCE-MANIFEST.json; current working tree, not HEAD alone",
+    "source_manifest_sha256": "e5d9854756e35631cf6cd183777625c0209b53a7ea3c16fdc914159d577eea8f"
+  },
+  "preconditions": [
+    "New approval bound to this plan SHA256; prior S1 allowance already spent and cannot be reused",
+    "Check effective source SHA256 before request; if source changes, re-freeze identity before approval",
+    "Reuse isolated prior frozen Canonical/index c8b6947edb7858f2 schema6; compare frozen source manifest and real retrieval preflight; if unavailable block, never substitute EvidencePack",
+    "Only S1 selected; max_retries=0; pre-network request/token/USD caps; unknown usage retains full reservation and prohibits retry",
+    "No model verification request; golden textbook conclusions reviewed against final visible EvidencePack"
+  ],
+  "contracts": [
+    "8192 wire max_tokens actually applied; Thinking and final content share the allowance",
+    "Nonempty complete final answer, finish_reason not length; no invented content on zero public output",
+    "Static vs quasi-static explanation, large time constant, noncontradiction, suitable measurement task, legal supported citations; no invented quantitative cutoff",
+    "SQL/outbox/SSE/Electron body and separate verification status agree; semantic unknown remains disclosed"
+  ],
+  "metrics": [
+    "Reasoning Tokens",
+    "Final Content Tokens (completion minus reasoning; final non-tool response, protocol overhead may be included)",
+    "Total Output Tokens (reasoning is a subset, never added twice)",
+    "Finish Reason",
+    "First Meaningful Output (>=6 public characters with sentence punctuation/newline; SSE timing, not DOM paint)",
+    "Total Run Time"
+  ],
+  "limitation": "One S1 demonstrates that sample completing at8192; cannot claim statistical stability."
+}
