@@ -237,19 +237,24 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  const bookSwitchSequenceRef = useRef(0);
+  const currentScopeRef = useRef({ bookName, subject });
+  currentScopeRef.current = { bookName, subject };
   const switchBook = useCallback(async (name: string, canApply: () => boolean = () => true) => {
+    const sequence = ++bookSwitchSequenceRef.current;
+    const canCommit = () => sequence === bookSwitchSequenceRef.current && canApply();
     if (!name) {
-      setBookName('');
+      if (currentScopeRef.current.bookName) setBookName('');
       return;
     }
     try {
       const res = await get(`/books/switch/${encodeURIComponent(name)}`);
-      if (res?.success && canApply()) {
-        setBookName(res.data.name);
-        if (res.data.subject) setSubject(res.data.subject);
+      if (res?.success && canCommit()) {
+        if (currentScopeRef.current.bookName !== res.data.name) setBookName(res.data.name);
+        if (res.data.subject && currentScopeRef.current.subject !== res.data.subject) setSubject(res.data.subject);
       }
     } catch {
-      if (canApply()) setBookName(name);
+      if (canCommit() && currentScopeRef.current.bookName !== name) setBookName(name);
     }
   }, [setBookName, setSubject]);
 

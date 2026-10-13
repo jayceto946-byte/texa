@@ -2,7 +2,7 @@ import React, { useEffect, useId, useState } from 'react';
 import { BookOpen, Check, ChevronRight, Circle, Loader2, X, Pause, AlertCircle } from 'lucide-react';
 
 import type { AssistantSource, ChatActivity } from '../../types';
-import { activityDuration } from '../../utils/chatActivities';
+import { activityDuration, executionProgressTitle } from '../../utils/chatActivities';
 import { answerVerificationLabel } from '../../utils/answerVerification';
 import { MarkdownMessage } from './MarkdownMessage';
 import './ExecutionTrace.css';
@@ -84,8 +84,7 @@ const ExecutionTrace: React.FC<{ activities: ChatActivity[]; stage?: string; sou
   const expanded = disclosure.open && (!collapseOnComplete || !terminal || disclosure.terminal);
   const detailId = useId();
   // The reducer retains operation insertion order; completion seq must not reorder work.
-  const visible = activities.filter((item) => item.id !== 'transport' && item.id !== 'execute' && item.event_type !== 'output_delta' && item.status !== 'pending');
-  const active = [...visible].reverse().find((item) => item.status === 'active');
+  const visible = activities.filter((item) => item.id !== 'transport' && item.id !== 'execute' && item.meta?.lifecycle !== 'runtime.profile' && item.event_type !== 'output_delta' && item.status !== 'pending');
   const failed = visible.some((item) => item.status === 'failed');
   const completion = answerVerificationLabel(verification, activities, taskStatus);
   const degraded = taskStatus === 'degraded' || completion !== '处理完成';
@@ -101,14 +100,14 @@ const ExecutionTrace: React.FC<{ activities: ChatActivity[]; stage?: string; sou
   const hasEvidence = visible.some((item) => Array.isArray(item.meta?.evidence_previews) && item.meta.evidence_previews.length > 0);
   const title = terminal
     ? stage === 'stopped' ? '已停止' : stage === 'error' ? '回答中断' : stage === 'waiting_for_input' ? '等待补充输入' : taskStatus === 'waiting_for_confirmation' ? '等待确认' : failed ? '处理结束 · 有步骤失败' : completion
-    : active?.label || '正在处理';
+    : executionProgressTitle(activities, stage) || '正在处理';
   const HeaderIcon = !terminal ? Loader2 : stage === 'stopped' ? Pause : stage === 'error' ? X : degraded || failed || stage === 'waiting_for_input' ? AlertCircle : Check;
 
   if (!visible.length) return null;
   return <section className={`execution-trace ${terminal ? 'is-terminal' : 'is-running'}`} aria-label="任务执行过程">
     <button type="button" className="execution-trace-toggle" onClick={() => setDisclosure({ open: !expanded, terminal })} aria-expanded={expanded} aria-controls={detailId}>
       <HeaderIcon className={!terminal ? 'animate-spin text-accent' : stage === 'error' ? 'text-[var(--danger)]' : degraded || failed ? 'text-[var(--warning)]' : 'text-text-secondary'} />
-      <span className="execution-title" role="status" aria-live="polite">{title}</span>
+      <span className="execution-title" role="status" aria-live="polite"><span key={title} className="execution-title-transition">{title}</span></span>
       {displayedDuration > 0 && <span className="execution-time">{durationLabel(displayedDuration)}</span>}
       <span className="execution-toggle-label">{expanded ? '收起过程' : '查看过程'}</span>
       <ChevronRight className={`execution-disclosure ${expanded ? 'is-open' : ''}`} />

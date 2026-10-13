@@ -94,3 +94,21 @@ describe('chat activity projection', () => {
     expect(unsequencedLocalUpdate[0]).toMatchObject({ status: 'completed', detail: '计算完成', seq: 4 });
   });
 });
+
+describe('event-driven compact progress', () => {
+  it('uses milestones for analysis, calculation, continuation and public output', async () => {
+    const { executionProgressTitle } = await import('./chatActivities');
+    let state = mergeExecutionLifecycle(createExecutionLifecycle(), event({operation_id: 'model:1', seq: 1, payload: {lifecycle: 'model.started'}}));
+    expect(executionProgressTitle(state.activities)).toBe('正在分析题目');
+    state = mergeExecutionLifecycle(state, event({operation_id: 'tool:1', seq: 2, kind: 'tool', label: '正在计算', payload: {lifecycle: 'tool.started'}}));
+    expect(executionProgressTitle(state.activities)).toBe('正在计算');
+    state = mergeExecutionLifecycle(state, event({operation_id: 'tool:1', seq: 3, kind: 'tool', status: 'failed', payload: {lifecycle: 'tool.failed'}}));
+    state = mergeExecutionLifecycle(state, event({operation_id: 'model:2', seq: 4, payload: {lifecycle: 'model.started'}}));
+    expect(executionProgressTitle(state.activities)).toBe('正在继续解答');
+    state = mergeExecutionLifecycle(state, event({operation_id: 'output', seq: 5, type: 'output_delta', payload: {text: '公开内容', replace: false}}));
+    expect(executionProgressTitle(state.activities)).toBe('正在生成回答');
+    expect(state.output).toBe('公开内容');
+    state = mergeExecutionLifecycle(state, event({operation_id: 'model:3', seq: 6, payload: {lifecycle: 'model.started'}}));
+    expect(executionProgressTitle(state.activities)).toBe('正在继续解答');
+  });
+});

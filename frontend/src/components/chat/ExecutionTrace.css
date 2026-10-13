@@ -59,3 +59,7 @@
 .execution-step-detail { margin-left: 0; }
 .execution-trace .execution-source-text .learning-reading-content { font-size: 13px; }
 @media (prefers-reduced-motion: reduce) { .execution-trace-toggle { transition: none; } }
+
+.execution-title-transition { display: inline-block; animation: execution-title-appear 180ms ease-out; }
+@keyframes execution-title-appear { from { opacity: .35; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .execution-title-transition { animation: none; } }

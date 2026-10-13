@@ -278,7 +278,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
           </div>
         ) : !isUser && stage === 'error' ? (
           <>
-            {streamError && content.trim() && <MarkdownMessage content={answerPresentation.body} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} />}
+            {streamError && content.trim() && <MarkdownMessage content={answerPresentation.body} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} preserveLineBreaks={learningTask?.required_outputs.some(output => output.kind === 'format' && ['lines', 'prefixes'].includes(String(output.format)))} />}
             <ActionableIssue
               title="这次回答没有完成"
               impact={streamError && content.trim() ? '已保留收到的部分回答，尚未完成。重新打开本会话可核对桌面保存的结果。' : '尚未收到可用答案。重新打开本会话可核对桌面状态。'}
@@ -287,7 +287,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
             />
           </>
         ) : content.trim() ? (
-          isUser ? <MarkdownMessage content={questionContent.body} /> : <AnswerSelection><MarkdownMessage content={answerPresentation.body} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} /></AnswerSelection>
+          isUser ? <MarkdownMessage content={questionContent.body} /> : <AnswerSelection><MarkdownMessage content={answerPresentation.body} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} preserveLineBreaks={learningTask?.required_outputs.some(output => output.kind === 'format' && ['lines', 'prefixes'].includes(String(output.format)))} /></AnswerSelection>
         ) : null}
 
         {captureError && <p role="alert" className="text-xs text-[var(--danger)]">{captureError}</p>}

@@ -166,7 +166,8 @@ export const MarkdownMessage: React.FC<{
   onConceptClick: (concept: ConceptCandidate) => void;
   citationIds?: Set<string>;
   disableRemoteMedia?: boolean;
-}> = ({ content, linkedConcepts, onConceptClick, citationIds, disableRemoteMedia = false }) => {
+  preserveLineBreaks?: boolean;
+}> = ({ content, linkedConcepts, onConceptClick, citationIds, disableRemoteMedia = false, preserveLineBreaks = false }) => {
   const cleanContent = React.useMemo(() => {
     const withoutRefs = content
       .replace(/\u3010\u6765\u6e90\uff1a(.+?)\u3011/g, '')
@@ -260,7 +261,7 @@ export const MarkdownMessage: React.FC<{
   };
 
   return (
-    <div className="markdown-body learning-reading-content break-words">
+    <div className="markdown-body learning-reading-content break-words" style={preserveLineBreaks ? { whiteSpace: 'pre-line' } : undefined} data-preserve-line-breaks={preserveLineBreaks || undefined}>
       {contentBlocks.map((block, index) => {
         const key = blockKey(block, index);
         return (

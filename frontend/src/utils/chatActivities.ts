@@ -299,3 +299,19 @@ export function activityDuration(activities: ChatActivity[] = []): number {
   if (elapsed > 0) return elapsed;
   return activities.reduce((total, item) => total + (Number(item.duration_ms) || 0), 0);
 }
+
+/** Real milestones only; never infer hidden model reasoning from elapsed time. */
+export function executionProgressTitle(activities: ChatActivity[], stage?: string): string | undefined {
+  const latest = [...activities].filter(item => typeof item.seq === 'number')
+    .sort((a, b) => (b.seq || 0) - (a.seq || 0))[0];
+  if (latest?.event_type === 'output_delta') return '正在生成回答';
+  const active = [...activities].reverse().find(item => item.status === 'active' && item.id !== 'transport');
+  const lifecycle = active?.meta?.lifecycle;
+  if (active?.kind === 'tool' && lifecycle === 'tool.started' &&
+      (active.label === '正在计算' || ['symbolic_math', 'verify_math_result'].includes(String(active.meta?.tool_id)))) return '正在计算';
+  if (lifecycle === 'model.started') {
+    const priorTool = activities.some(item => item.kind === 'tool' && ['completed', 'failed'].includes(item.status));
+    return priorTool ? '正在继续解答' : '正在分析题目';
+  }
+  return active?.label || (stage === 'generate' ? '正在生成回答' : undefined);
+}
