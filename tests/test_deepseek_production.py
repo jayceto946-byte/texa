@@ -305,6 +305,7 @@ def test_private_capacity_limit_fails_without_truncating_replay():
 
 def test_restart_recovery_retains_receipt_and_never_reexecutes(tmp_path):
     import subprocess
+    import sys
     from backend.services.agent_runtime.runner import FixedRunner
     from backend.services.agent_runtime.contracts import FixedAction
     store, run, runner, state, requests = wire_run(tmp_path, [completion()])
@@ -314,7 +315,7 @@ def test_restart_recovery_retains_receipt_and_never_reexecutes(tmp_path):
         FixedAction('call', tool_id='symbolic_math', args=SUCCESS[0]['tool_calls'][0]['args'],
             operation_key='native-1-calc-1'), context=ToolContext())
     script = 'from backend.services.agent_runtime.store import RuntimeStore; import sys; assert RuntimeStore(sys.argv[1]).recover_unfinished()==1'
-    subprocess.run(['venv310/bin/python', '-c', script, str(store.db_path)], check=True, timeout=10)
+    subprocess.run([sys.executable, '-c', script, str(store.db_path)], check=True, timeout=10)
     old = store.snapshot(run)
     resumed = store.resume('rtask_math', expected_revision=old['task_revision'], request_key='resume',
         request_id='resume', owner_token='owner', turn_id='turn')
