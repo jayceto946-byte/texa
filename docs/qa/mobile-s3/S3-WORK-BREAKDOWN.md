@@ -1,22 +1,13 @@
-# S3 Work Breakdown（未实施）
+# S3 Work Breakdown（综合版，未实施）
 
-主报告第7节是批次合同。总参考11–17工程日，不含设备等待；接口缺口独立评估，不自动扩Runtime。
+范围、实现合同与退出门槛以[综合实施方案](../../../TEXA-MOBILE-S3-IMPLEMENTATION-PLAN.md)为准。已合并Redmi反馈，timer正式纳入设计范围；本表替换旧四批+B-T追加列表。
 
-|工作|模块|输出/可审阅内容|依赖/验收|估算|
+|批次|修改模块|核心工作|问题映射/依赖|估算|
 |---|---|---|---|---|
-|B1.1能力核对|books chapters/highlights/PDF/Figure公开接口|可用章节和阅读入口清单；无内容时明确状态|无需付费生成；先确认原能力|0.5–1日|
-|B1.2上下文往返|LibraryWorkbench/Highlight/chat navigation|书/章/锚点/来源返回；深链上级；不新增索引|A01/A02；传递真实scope，不只标题|2.5–4日|
-|B2.1手机输入|ChatPage/composer tools|附件文字菜单、发送停止固定位置|B1接线确定；A03/A04|1日|
-|B2.2编辑操作|note feature toolbar/shared UI|返回+标题+正式保存，草稿状态行|A02/A13，不改CAS|1日|
-|B2.3命中区与校准|mobile shared CSS|44px无重叠、轻视觉；章节/错题顺带去重|A03/A05/A15；desktop不变|1–2日|
-|B3.1故障证据|existing real API harness|首ack丢失/中断失败/旧run/双端确切复现|不能凭猜测改权威合同|1–2日|
-|B3.2显示对账|chat feature hook/API客户端|foreground coalesced read、显式重读、generation fence|A06–A11；不自动POST|2–3日|
-|B4.1真实手机|Android现有浏览器/Tailscale|完整学习+键盘+公式+后台/切网脱敏记录|B1–B3；A01–A16|1–2日+设备窗口|
-|B4.2最终收敛|既有tests/QA/Electron|P0/P1关闭账本、RC判定与剩余限制|lint/type/build/Python/Desktop，三桌面宽度|1日|
+|B1 真机阻断/基础布局|MainLayout/AppRail/Sidebar、ScopeSelector、Chat header、Markdown/mathText/CSS、LibraryWorkbench、Goal服务/投影|统一顶栏、历史优先抽屉、画布宽度/公式、教材主滚动、旧Goal409与lint|M3-17–22、09/11/08；先复现再改，不绕恢复栅栏|4–6日|
+|B2 核心闭环/操作|教材章节/来源往返、chat navigation、composer、notes toolbar/locator、mobile controls|本章提问回原位置、附件归并、固定发送停止、笔记草稿/正式保存分层、44px命中区|M3-01–04、10/12/13/16、18；依赖B1骨架|3–5日|
+|B3 学习任务/番茄|Goal/focus领域服务+hooks、任务工作区、FocusBar、既有goals.db增量合同|任务内容/时长确认；开始暂停切换/手动完成；单活动计时/回执CAS；迁移/备份/回滚|用户新增；先具体数据合同审核，再获准迁移；依赖B1/B2|合同1–2日；实现条件性4–6日，冻结后重估|
+|B4 可靠性|chat/focus reconcile、API客户端、现有真实SQL QA|foreground有界对账、首ack丢失、停止失败、迟到run、双端、结果未知|M3-05–07，14先测；故障测试可提前，接线依赖B2/B3|3–5日|
+|B5 真机/RC|现有QA与Electron、人工Redmi/平板步骤|22项必需矩阵，键盘/安全区/公式首尾、锁屏切网、双端、桌面/迁移回归|M3-15、A01–A22；依赖B1–B4|2–3日+设备窗口|
 
-先保留任务与状态合同，再处理局部视觉。P2只随相关改动顺带；没有证据时不立新reader、底部栏或同步项目。Phase0–4方案完成后暂停，以上均等待实施批准。
-
-
-## 真机反馈修订
-
-B1增加顶栏/侧栏/教材主滚动和scope各页面尺寸适配；B2长公式手机/平板canvas；B3旧Goal恢复409；新增B-T番茄任务/计时小控件的原型与最小持久化合同评审（1–2工程日设计，实施待核对）；B4真机新增门槛。原11–17日不包含新timer，不能当扩展后承诺。详见[实机修订](REAL-DEVICE-REVIEW-AND-S3-REVISION.md)。
+合计条件性17–27工程日；不是日期承诺，原11–17日估算失效。数据/付费/真机门槛缺失时明确停在对应步骤，不扩成同步平台或开放Agent。普通布局与交互由Sol实施；复杂设计取舍先整理具体截图再定点审查，不为流程反复调用Astra。

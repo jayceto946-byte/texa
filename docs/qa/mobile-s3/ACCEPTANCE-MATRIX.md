@@ -1,5 +1,7 @@
 # Acceptance Matrix
 
+当前实施范围与顺序：[综合实施方案](../../../TEXA-MOBILE-S3-IMPLEMENTATION-PLAN.md)。A01–A22及真机门槛纳入统一验收，仍无整体PASS。
+
 当前无S3整体PASS。每项记录build/runtime、设备/浏览器、时刻、脱敏identity、截图/回执；不能凭总体通过率跳过必需项。
 
 |ID|门槛|场景|步骤|预期|当前证据|环境|

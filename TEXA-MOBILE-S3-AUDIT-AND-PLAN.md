@@ -1,5 +1,7 @@
 # Texa Mobile S3 — Audit and Plan
 
+当前实施入口：[综合实施方案](TEXA-MOBILE-S3-IMPLEMENTATION-PLAN.md)。该方案已合并Redmi验收与番茄任务需求；此文保留历史审计事实和证据，旧批次取舍以综合方案为准。
+
 2026-10-14（Asia/Shanghai）。负责人：Sol；产品设计审查：指定 gpt-6-astra agent，一次调用。
 
 **本轮交付审计与待批准方案，没有实施 S3 产品改造。当前不具备宣布 Mobile V1.0 RC 的证据。** 现有阅读、笔记、错题与受控执行基础应保留；主要收敛点是教材往返、窄屏输入与编辑操作、可信恢复。没有本轮已证实的数据损坏或重复工具执行 P0；未验证的断网/双端场景也不能记为通过。
@@ -154,18 +156,11 @@ SQL Runtime task/run/ExecutionEvent 为执行权威；ChatContext 是显示投�
 
 采纳：保留文章流/来源检查/错题先作答/设置单列；P1集中教材往返、输入栏、笔记顶栏、实际触控区。Astra把抽屉七域从Sol候选P1下调P2，明确不新增底部导航；章节双框、日期元信息P2顺带处理。公式末端先实测，不可访问才升P1。可靠性不能由截图宣布事故或通过。行高等规则是候选，先在真机与既有阅读身份对照。
 
-## 7. S3 实施批次（等待批准，D）
+## 7. 当前实施批次（统一入口，尚未实施）
 
-估算为1名执行工程师的工程日，不含用户真机等待/外部网络不可用；发现新的API权威缺口需另行估算和审批，不能隐含在UI改造内。按模块分工避免反复改同一组件。
+以 [TEXA-MOBILE-S3-IMPLEMENTATION-PLAN.md](TEXA-MOBILE-S3-IMPLEMENTATION-PLAN.md) 第6节为准。已替换原四批及B-T追加方案：B1真机阻断/基础布局 → B2核心学习闭环 → B3学习任务与番茄（先数据合同评审） → B4可靠性 → B5真机/RC。
 
-| 批次 | 范围、模块、体验变化 | 退出/回归 | 工作量 / 依赖 |
-|---|---|---|---|
-| B1 核心连续性 | M3-01；LibraryWorkbench/SystemHealth、HighlightPage、chat feature navigation与现有note locator。教材行学习入口，章节身份/提问/回书锚点，来源会话返回；不建全新PDF renderer | 真正从教材列表完成规定链路，同book/chapter/section/version/位置；deep link稳定上级；范围不能只改标题。回归desktop教材管理、聊天scope、note冻结来源 | 3–5日；先核对现有章节阅读能力。若仅highlight不存在，原PDF/现有片段给明确选择，不伪称教材全文 |
-| B2 手机操作与视觉 | M3-02/03/04/08；ChatPage工具栏、note editor toolbar、shared mobile CSS/UI。附件菜单、稳定发送、44px触控、草稿/正式保存分层；顺带M3-10/12/13 | 360/390/430、touch camera present、长名/正文、生成/停止、编辑/失败/保存底部；lint/type/build。回归Electron三宽度与五主题关键页 | 3–4日；B1先冻结页面返回入口，之后一次集中调顶栏；不重排全桌面 |
-| B3 可信恢复 | M3-05/06/07；chat lifecycle/reconcile hook、已有API客户端/服务边界、待确认显示。foreground按需合并读取，显式对账，禁止POST自动重发；稳定run/generation防覆盖 | 7态准确、首ack故障注入、停止失败、迟到run、双端权威、单工具执行；验证pending不伪成功。任何Runtime架构改变停在独立提案 | 3–5日；可先设计故障测试，B1/B2稳定后接入；共用ChatPage只负责接线 |
-| B4 真机与RC回归 | M3-09/15；现有QA脚本、人工记录、Android/Tailscale；修复已批准P0/P1 | Acceptance Matrix全部必需项通过；真机键盘/公式末端/网络恢复，Electron正常；更新证据账本 | 2–3日+用户设备窗口；依赖B1–B3 |
-
-总参考11–17工程日，不是交付日期承诺。P2仅在相关页面顺带收敛，M3-14须先测量，M3-16内部checkpoint文案可顺带映射中文；独立移动首页、底部栏、全站重画不纳入。详细 [Work Breakdown](docs/qa/mobile-s3/S3-WORK-BREAKDOWN.md)。
+总条件性参考17–27工程日，包含timer合同核对及条件性实现，不含设备等待；原11–17日不再作为当前范围估算。B3数据库迁移必须另提供具体方案并获同意；当前没有执行迁移或产品开发。
 
 ## 8. 测试计划与当前结果
 
