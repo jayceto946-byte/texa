@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-14 Asia/Shanghai",
+  "merge_commit": "6a5f50ca44e28d6738e36215c06982c56744811d",
+  "parents": [
+    "898bec3ae520fe06d0b5ac486752499760091bac",
+    "b12671bdfe2653cd5a79c93173419cfbd4e06233"
+  ],
+  "tree_matches_source_checkpoint": true,
+  "postmerge_tests": {
+    "backend": 438,
+    "frontend": 203,
+    "desktop": 15,
+    "typescript": "passed",
+    "vite": "passed"
+  },
+  "paid_requests": 0,
+  "other_worktrees_preserved": true
+}

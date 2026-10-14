@@ -3730,3 +3730,10 @@ Android 普通 Wi-Fi 对照出现解答闪现后回到空问答。隔离浏览�
 - V0.1属于离线Policy数据集/seed/规则选择评测的批准源码身份，无生产启动接线。修复默认入口混用生产代码和历史pins的问题：固定校验原source快照，以独立私有模块名执行原Registry/Resolver/Matcher/Projection/RulePolicy/wire合同；不替换生产imports、不改旧hash/快照/gold。
 - 教材Evidence helper保持原AST hash并单独冻结同一纯函数；原Projection无需AST改写或读取当前模型栈。缓存装载仍验证所有pins，损坏快照/自签版本/非法路径和原锁定门槛保持拒绝。
 - 已有冻结与当前功能专项297 passed；新增对照、生产函数污染隔离、缓存后损坏拒绝和helper漂移测试。完整免费回归、主分支整合及合并后检查以TEXA-RUNTIME-MAIN-INTEGRATION.md续记为准。无依赖、SQL schema或用户配置迁移，无付费模型请求。
+
+## 2026-10-14 — Runtime Main 整合完成
+
+- b12671b完成历史V0.1源码执行边界修复；必要全量免费回归1670 passed / 0 failed，旧source-manifest/source/gold不变，冻结漂移拒绝仍有效。
+- 正常merge6a5f50c将已审计开发Checkpoint整合至实际主分支master并正常推送；无冲突，merge树与b12671b完全一致。其他分支/worktree保留，无强推或历史改写。
+- 合并后438后端、203前端、15桌面测试与TypeScript/Vite通过；Qwen默认/DeepSeek可选，QA凭证过滤修复进入Main，历史凭证仍建议用户轮换。未发起付费模型调用。
+- TEXA-RUNTIME-MAIN-INTEGRATION.md更新为MERGED，附版本边界审计与合并后证据。稳定Runtime基线已就绪，Mobile S3及RC完整发布验收不在本轮开发范围。
