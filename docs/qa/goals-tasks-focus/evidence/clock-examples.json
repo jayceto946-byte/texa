@@ -1,0 +1,128 @@
+{
+  "fixture": "injected monotonic and UTC, temporary SQLite",
+  "25_plus_18_total_ms": 2580000,
+  "overdue_running_snapshot": {
+    "runtime_id": "e26adfe00de647c7904c6f6559f193be",
+    "next_task": null,
+    "revision": 7,
+    "snapshot_sequence": 21,
+    "server_time": 1700000000.0,
+    "tasks": [
+      {
+        "id": "focus_c4bcdc3655aa4634b00e6d14c8c318db",
+        "goal_id": "goal_5f46946782824798aa93dd0ceeff140e",
+        "title": "定义",
+        "content": "阅读定义",
+        "duration_seconds": 1500,
+        "elapsed_seconds": 2580.0,
+        "status": "pending",
+        "revision": 1,
+        "position": 1,
+        "criterion_ids": [],
+        "completed_at": null,
+        "deleted_at": null,
+        "legacy_elapsed_ms": 0,
+        "goal_title": "学习偏导",
+        "goal_status": "active",
+        "goal_revision": 2,
+        "active_ms": 2580000
+      }
+    ],
+    "next_offset": null,
+    "current_task": {
+      "id": "focus_c4bcdc3655aa4634b00e6d14c8c318db",
+      "goal_id": "goal_5f46946782824798aa93dd0ceeff140e",
+      "title": "定义",
+      "content": "阅读定义",
+      "duration_seconds": 1500,
+      "elapsed_seconds": 4200.0,
+      "status": "pending",
+      "revision": 1,
+      "position": 1,
+      "criterion_ids": [],
+      "completed_at": null,
+      "deleted_at": null,
+      "legacy_elapsed_ms": 0,
+      "goal_title": "学习偏导",
+      "goal_status": "active",
+      "goal_revision": 2,
+      "active_ms": 4200000
+    },
+    "current_session": {
+      "id": "focus_session_bb5b8a875e2a438f84b24853b22c9c99",
+      "task_id": "focus_c4bcdc3655aa4634b00e6d14c8c318db",
+      "mode": "countdown",
+      "target_seconds": 1500,
+      "status": "running",
+      "started_at": 1700000000.0,
+      "ended_at": null,
+      "end_reason": "",
+      "active_ms": 1620000,
+      "revision": 1,
+      "confirmed_active_ms": 0
+    },
+    "status": "running",
+    "reason": "",
+    "checkpoint_at": 1700000000.0,
+    "active_ms": 1620000,
+    "remaining_seconds": 0,
+    "overtime_seconds": 120.0,
+    "goal_stats": [
+      {
+        "goal_id": "goal_5f46946782824798aa93dd0ceeff140e",
+        "task_count": 1,
+        "completed_count": 0,
+        "active_ms": 4200000
+      }
+    ],
+    "page_offset": 0
+  },
+  "three_sessions": [
+    {
+      "id": "focus_session_bb5b8a875e2a438f84b24853b22c9c99",
+      "task_id": "focus_c4bcdc3655aa4634b00e6d14c8c318db",
+      "mode": "countdown",
+      "target_seconds": 1500,
+      "status": "ended",
+      "started_at": 1700000000.0,
+      "ended_at": 1700000000.0,
+      "end_reason": "task_completed",
+      "active_ms": 1620000,
+      "revision": 4,
+      "title": "定义",
+      "goal_id": "goal_5f46946782824798aa93dd0ceeff140e",
+      "deleted_at": null
+    },
+    {
+      "id": "focus_session_211d569d6db5401c8f15686b99cc5908",
+      "task_id": "focus_c4bcdc3655aa4634b00e6d14c8c318db",
+      "mode": "countdown",
+      "target_seconds": 1500,
+      "status": "ended",
+      "started_at": 1700000000.0,
+      "ended_at": 1700000000.0,
+      "end_reason": "user_ended",
+      "active_ms": 1080000,
+      "revision": 4,
+      "title": "定义",
+      "goal_id": "goal_5f46946782824798aa93dd0ceeff140e",
+      "deleted_at": null
+    },
+    {
+      "id": "focus_session_f5db703779954e21ba61707a0643fb84",
+      "task_id": "focus_c4bcdc3655aa4634b00e6d14c8c318db",
+      "mode": "countdown",
+      "target_seconds": 1500,
+      "status": "ended",
+      "started_at": 1700000000.0,
+      "ended_at": 1700000000.0,
+      "end_reason": "user_ended",
+      "active_ms": 1500000,
+      "revision": 4,
+      "title": "定义",
+      "goal_id": "goal_5f46946782824798aa93dd0ceeff140e",
+      "deleted_at": null
+    }
+  ],
+  "goal_unchanged": true
+}

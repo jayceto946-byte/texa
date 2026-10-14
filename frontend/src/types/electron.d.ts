@@ -43,6 +43,7 @@ declare global {
       isMaximized?: () => Promise<boolean>;
       toggleMaximize: () => Promise<boolean>;
       close: () => Promise<void>;
+      onFocusPower?: (handler: (state: 'suspend' | 'resume') => void) => () => void;
       onPrepareClose?: (handler: (aborted?: boolean) => Promise<boolean>) => () => void;
       onMaximizedChange?: (handler: (isMaximized: boolean) => void) => () => void;
       restart?: () => Promise<boolean>;

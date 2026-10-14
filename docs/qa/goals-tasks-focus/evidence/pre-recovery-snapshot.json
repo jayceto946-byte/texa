@@ -1,0 +1,264 @@
+{
+  "focus": {
+    "runtime_id": "6b4aa8362c58499a92e30cb3d407b79e",
+    "next_task": {
+      "id": "focus_304074812727444eb70eee706f3aaba0",
+      "goal_id": "goal-qa",
+      "title": "阅读教材指定章节并整理一个反例",
+      "content": "",
+      "duration_seconds": 1500,
+      "elapsed_seconds": 0.0,
+      "status": "pending",
+      "revision": 1,
+      "position": 2,
+      "criterion_ids": [],
+      "completed_at": null,
+      "deleted_at": null,
+      "legacy_elapsed_ms": 0,
+      "goal_title": "学习偏导数",
+      "goal_status": "active",
+      "goal_revision": 2,
+      "active_ms": 0
+    },
+    "revision": 13,
+    "snapshot_sequence": 8,
+    "server_time": 1791978037.222732,
+    "tasks": [
+      {
+        "id": "focus_ba6d851abeb54e008ba6485d7a2a5359",
+        "goal_id": "goal-qa",
+        "title": "整理偏导数定义与几何意义",
+        "content": "",
+        "duration_seconds": 1500,
+        "elapsed_seconds": 324.283,
+        "status": "pending",
+        "revision": 1,
+        "position": 1,
+        "criterion_ids": [],
+        "completed_at": null,
+        "deleted_at": null,
+        "legacy_elapsed_ms": 0,
+        "goal_title": "学习偏导数",
+        "goal_status": "active",
+        "goal_revision": 2,
+        "active_ms": 324283
+      },
+      {
+        "id": "focus_304074812727444eb70eee706f3aaba0",
+        "goal_id": "goal-qa",
+        "title": "阅读教材指定章节并整理一个反例",
+        "content": "",
+        "duration_seconds": 1500,
+        "elapsed_seconds": 0.0,
+        "status": "pending",
+        "revision": 1,
+        "position": 2,
+        "criterion_ids": [],
+        "completed_at": null,
+        "deleted_at": null,
+        "legacy_elapsed_ms": 0,
+        "goal_title": "学习偏导数",
+        "goal_status": "active",
+        "goal_revision": 2,
+        "active_ms": 0
+      },
+      {
+        "id": "focus_4024aec71c7b465fb52f16f789f85fb2",
+        "goal_id": "goal-qa",
+        "title": "独立完成已选例题并核对步骤",
+        "content": "",
+        "duration_seconds": 1500,
+        "elapsed_seconds": 0.0,
+        "status": "pending",
+        "revision": 1,
+        "position": 3,
+        "criterion_ids": [],
+        "completed_at": null,
+        "deleted_at": null,
+        "legacy_elapsed_ms": 0,
+        "goal_title": "学习偏导数",
+        "goal_status": "active",
+        "goal_revision": 2,
+        "active_ms": 0
+      },
+      {
+        "id": "focus_ef56596f19384fb7a03993e520fc1940",
+        "goal_id": "goal-qa",
+        "title": "整理容易混淆的概念",
+        "content": "",
+        "duration_seconds": 1500,
+        "elapsed_seconds": 0.0,
+        "status": "pending",
+        "revision": 1,
+        "position": 4,
+        "criterion_ids": [],
+        "completed_at": null,
+        "deleted_at": null,
+        "legacy_elapsed_ms": 0,
+        "goal_title": "学习偏导数",
+        "goal_status": "active",
+        "goal_revision": 2,
+        "active_ms": 0
+      },
+      {
+        "id": "focus_f147259adc894ba9b5a456399464b9ee",
+        "goal_id": "goal-qa",
+        "title": "回顾单变量求导规则",
+        "content": "",
+        "duration_seconds": 1500,
+        "elapsed_seconds": 0.0,
+        "status": "completed",
+        "revision": 2,
+        "position": 5,
+        "criterion_ids": [],
+        "completed_at": 1791967993.648816,
+        "deleted_at": null,
+        "legacy_elapsed_ms": 0,
+        "goal_title": "学习偏导数",
+        "goal_status": "active",
+        "goal_revision": 2,
+        "active_ms": 0
+      },
+      {
+        "id": "focus_5e0f0bb4171c4c8483c15a11c980d4c7",
+        "goal_id": "goal-qa",
+        "title": "记录一道典型题的解法",
+        "content": "",
+        "duration_seconds": 1500,
+        "elapsed_seconds": 0.0,
+        "status": "completed",
+        "revision": 2,
+        "position": 6,
+        "criterion_ids": [],
+        "completed_at": 1791967993.650334,
+        "deleted_at": null,
+        "legacy_elapsed_ms": 0,
+        "goal_title": "学习偏导数",
+        "goal_status": "active",
+        "goal_revision": 2,
+        "active_ms": 0
+      }
+    ],
+    "next_offset": null,
+    "current_task": {
+      "id": "focus_ba6d851abeb54e008ba6485d7a2a5359",
+      "goal_id": "goal-qa",
+      "title": "整理偏导数定义与几何意义",
+      "content": "",
+      "duration_seconds": 1500,
+      "elapsed_seconds": 324.283,
+      "status": "pending",
+      "revision": 1,
+      "position": 1,
+      "criterion_ids": [],
+      "completed_at": null,
+      "deleted_at": null,
+      "legacy_elapsed_ms": 0,
+      "goal_title": "学习偏导数",
+      "goal_status": "active",
+      "goal_revision": 2,
+      "active_ms": 324283
+    },
+    "current_session": {
+      "id": "focus_session_c78f2646611148e49d620c04b6b1c647",
+      "task_id": "focus_ba6d851abeb54e008ba6485d7a2a5359",
+      "mode": "countdown",
+      "target_seconds": 1500,
+      "status": "paused",
+      "started_at": 1791977044.832478,
+      "ended_at": null,
+      "end_reason": "interrupted",
+      "active_ms": 324283,
+      "revision": 15,
+      "confirmed_active_ms": 324283
+    },
+    "status": "paused",
+    "reason": "interrupted",
+    "checkpoint_at": 1791977380.584327,
+    "active_ms": 324283,
+    "remaining_seconds": 1175.717,
+    "overtime_seconds": 0,
+    "goal_stats": [
+      {
+        "goal_id": "goal-qa",
+        "task_count": 6,
+        "completed_count": 2,
+        "active_ms": 324283
+      }
+    ]
+  },
+  "history": {
+    "sessions": [
+      {
+        "id": "focus_session_c78f2646611148e49d620c04b6b1c647",
+        "task_id": "focus_ba6d851abeb54e008ba6485d7a2a5359",
+        "mode": "countdown",
+        "target_seconds": 1500,
+        "status": "paused",
+        "started_at": 1791977044.832478,
+        "ended_at": null,
+        "end_reason": "interrupted",
+        "active_ms": 324283,
+        "revision": 15,
+        "title": "整理偏导数定义与几何意义",
+        "goal_id": "goal-qa",
+        "deleted_at": null
+      }
+    ],
+    "next_offset": null,
+    "daily_totals": [
+      {
+        "date": "2026-10-14",
+        "active_ms": 324283
+      }
+    ],
+    "timezone": "UTC"
+  },
+  "goals": [
+    {
+      "created_at": "2026-10-14T08:53:13.634038+00:00",
+      "id": "goal-qa",
+      "learner_id": "local_default",
+      "next_action": null,
+      "objective": "掌握概念、计算及基础应用",
+      "plan": {
+        "approved_revision": null,
+        "bounded_steps": [],
+        "version": 0
+      },
+      "progress": {
+        "criterion_results": [],
+        "evidence_refs": [],
+        "measured_at": null,
+        "unknowns": [
+          "c1",
+          "c2",
+          "c3"
+        ]
+      },
+      "revision": 2,
+      "scope": {
+        "subject": "数学/高数"
+      },
+      "status": "active",
+      "success_criteria": [
+        {
+          "description": "理解偏导数定义，能够说明几何意义",
+          "id": "c1"
+        },
+        {
+          "description": "掌握基础计算方法",
+          "id": "c2"
+        },
+        {
+          "description": "独立完成典型题",
+          "id": "c3"
+        }
+      ],
+      "target_date": null,
+      "timezone": null,
+      "title": "学习偏导数",
+      "updated_at": "2026-10-14T08:53:13.635451+00:00"
+    }
+  ]
+}

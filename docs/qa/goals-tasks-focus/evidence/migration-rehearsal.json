@@ -1,0 +1,36 @@
+{
+  "source_schema": 2,
+  "target_schema": 3,
+  "integrity": "ok",
+  "foreign_keys": [],
+  "preserved_tables": {
+    "goals": {
+      "before": 1,
+      "after": 1,
+      "rows_equal": true
+    },
+    "goal_revisions": {
+      "before": 1,
+      "after": 1,
+      "rows_equal": true
+    },
+    "goal_run_links": {
+      "before": 1,
+      "after": 1,
+      "rows_equal": true
+    },
+    "focus_receipts": {
+      "before": 1,
+      "after": 1,
+      "rows_equal": true
+    }
+  },
+  "legacy_task": [
+    "old-task",
+    7,
+    20.5,
+    20500,
+    "pending"
+  ],
+  "backup_integrity": "ok"
+}

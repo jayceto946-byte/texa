@@ -45,3 +45,10 @@ it('orders distinct tasks by creation time and keeps an already loaded task duri
   expect(acceptRuntimeSnapshot(current, {id: 'old', revision: 100, created_at: '2026-09-30T11:00:00Z'})).toBe(false);
   expect(acceptRuntimeSnapshot(current, null)).toBe(false);
 });
+
+it('separates draft/active, completed and shelved/cancelled goals',()=>{
+  const items=['draft','active','paused','completed','cancelled'].map(status=>({id:status,status}));
+  expect(visibleGoals(items,'active').map(item=>item.id)).toEqual(['draft','active']);
+  expect(visibleGoals(items,'completed').map(item=>item.id)).toEqual(['completed']);
+  expect(visibleGoals(items,'paused').map(item=>item.id)).toEqual(['paused','cancelled']);
+});

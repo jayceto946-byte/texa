@@ -41,6 +41,10 @@ def _validate_content(snapshot: dict) -> None:
         raise ValueError("invalid goal scope")
 
 
+def validate_goal_changes(goal: dict, changes: dict) -> None:
+    _validate_content({**goal, **changes})
+
+
 class GoalConflict(RuntimeError):
     pass
 
@@ -51,7 +55,7 @@ class GoalStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with closing(self._connect()) as conn:
             version = conn.execute("PRAGMA user_version").fetchone()[0]
-            if version > 2:
+            if version > 3:
                 raise RuntimeError("goal schema is newer than supported")
             if version == 0:
                 conn.execute("BEGIN IMMEDIATE")

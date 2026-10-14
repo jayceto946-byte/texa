@@ -1,0 +1,21 @@
+✔ power bridge exposes only suspend/resume and unsubscribes without duplication (5.250334ms)
+✔ failed note preparation still runs focus preparation and vetoes window closure (3.474583ms)
+✔ aborted close notifies handlers without silently restarting a focus run (0.542625ms)
+✔ one click uses actual port; restart follows changed port; disable removes owned mapping (3.354167ms)
+✔ unrelated root handler remains untouched (2.545042ms)
+✔ never enables or edits Funnel (1.078417ms)
+✔ existing exact target can be adopted after device rename (0.828ms)
+✔ not ready and nonlocal backend never mutate Tailscale (1.23625ms)
+✔ missing Tailscale returns actionable state without commands (0.546084ms)
+✔ close waits for its renderer and coalesces concurrent close/quit (2.309042ms)
+✔ failed draft flush vetoes closure without stopping backend (0.425166ms)
+✔ unresponsive renderer times out safely and stale acknowledgements do not revive it (5.440875ms)
+✔ startup without a window can quit and send failure vetoes safely (0.191ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.212166

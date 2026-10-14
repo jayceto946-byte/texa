@@ -1,0 +1,8 @@
+
+ RUN  v4.1.9 /private/tmp/texa-goals-focus-stage/frontend
+
+
+ Test Files  7 passed (7)
+      Tests  38 passed (38)
+   Start at  20:45:41
+   Duration  394ms (transform 316ms, setup 0ms, import 432ms, tests 162ms, environment 1ms)

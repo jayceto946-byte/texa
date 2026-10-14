@@ -1,0 +1,22 @@
+{
+  "scope": "goal-qa only; later QA manual goal session excluded",
+  "scenario": "stopwatch complete reply delayed 8s; UI deadline 6s; renderer refresh then original operation receipt reconciled",
+  "before_ids": [
+    "focus_session_52c91fbbeb7e4745a82683eca10ff9fd",
+    "focus_session_6fa656852056483585c51e040b37e0f4",
+    "focus_session_c78f2646611148e49d620c04b6b1c647"
+  ],
+  "after_ids": [
+    "focus_session_52c91fbbeb7e4745a82683eca10ff9fd",
+    "focus_session_6fa656852056483585c51e040b37e0f4",
+    "focus_session_c78f2646611148e49d620c04b6b1c647"
+  ],
+  "same_session_count": true,
+  "same_session_ids": true,
+  "ended_after": [
+    "focus_session_52c91fbbeb7e4745a82683eca10ff9fd",
+    "focus_session_6fa656852056483585c51e040b37e0f4",
+    "focus_session_c78f2646611148e49d620c04b6b1c647"
+  ],
+  "native_pending_screenshot": "760-pending-final.jpg"
+}

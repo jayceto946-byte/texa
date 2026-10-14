@@ -1,3 +1,5 @@
+import FocusController from '../features/focus/FocusController';
+import { useFocus } from '../features/focus/FocusContext';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import { AlertTriangle, FileText, Loader2, PanelLeftOpen, RotateCw } from 'lucide-react';
@@ -15,6 +17,7 @@ import './ApprovedWorkspace.css';
 import './StudyDesk.css';
 import './MobileConvergence.css';
 import './DesktopRefinement.css';
+import '../features/focus/focus.css';
 import { flushRetainedEditor, unsavedNotePath } from '../features/notes/autosave';
 
 function layoutSnapshot() {
@@ -72,6 +75,9 @@ const MainLayout: React.FC = () => {
   const [noteTarget, setNoteTarget] = useState<NoteCommandTarget | null>(null);
   const closeNote = useCallback(() => setNoteTarget(null), []);
   const navigate = useNavigate();
+  const focus = useFocus();
+  const focusRef = useRef(focus);
+  useEffect(()=>{focusRef.current = focus;},[focus]);
   useEffect(() => {
     // A failed autosave retained after Back navigation must also survive quit.
     const beforeUnload = (event: BeforeUnloadEvent) => {
@@ -82,9 +88,15 @@ const MainLayout: React.FC = () => {
     };
     const unsubscribe = window.kaoyanDesktop?.onPrepareClose?.(async aborted => {
       const path = unsavedNotePath();
+      let focusReady = true;
+      if (!aborted) {
+        const controller = focusRef.current;
+        if (controller.pending || controller.busy) focusReady = false;
+        else if (controller.data?.status === 'running') focusReady = await controller.command({operation:'pause',reason:'shutdown'});
+      }
       const ready = await flushRetainedEditor(aborted);
       if (!ready && path && !aborted) navigate(path);
-      return ready;
+      return ready && focusReady;
     });
     window.addEventListener('beforeunload', beforeUnload);
     return () => { window.removeEventListener('beforeunload', beforeUnload); unsubscribe?.(); };
@@ -255,6 +267,7 @@ const MainLayout: React.FC = () => {
           <div className="app-route-stage">
             <PersistentRouteOutlet />
           </div>
+          <FocusController />
         </main>
         <ContextInspector />
       </div>

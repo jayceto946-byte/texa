@@ -64,7 +64,7 @@ def get_goal(goal_id: str, service: GoalService = Depends(get_goal_service)):
         goal = service.store.get(goal_id)
         if goal is None:
             raise KeyError(goal_id)
-        return {**goal, "next_action": service.get_next_action(goal_id),
+        return {**goal, "schedule": goal.get("next_action"), "next_action": service.get_next_action(goal_id),
                 "run_links": service.store.links(goal_id)}
     return _invoke(read)
 

@@ -1,40 +1,11 @@
 import { createContext, useContext } from 'react';
-export type FocusTask = {
-    id: string;
-    goal_id: string;
-    title: string;
-    content: string;
-    duration_seconds: number;
-    elapsed_seconds: number;
-    status: string;
-    revision: number;
-};
-export type FocusSnapshot = {
-    revision: number;
-    tasks: FocusTask[];
-    current_task: FocusTask | null;
-    status: string;
-    remaining_seconds: number;
-    server_time: number;
-};
-export type FocusCommand = {
-    operation: 'create' | 'start' | 'switch' | 'pause' | 'finish' | 'complete';
-    goal_id?: string;
-    task_id?: string;
-    title?: string;
-    content?: string;
-    duration_seconds?: number;
-};
-export const FocusContext = createContext<{
-    data: FocusSnapshot | null;
-    busy: boolean;
-    error: string;
-    pending: boolean;
-    remaining: number;
-    refresh: () => Promise<void>;
-    command: (value: FocusCommand) => Promise<void>;
-    reconcile: () => Promise<void>;
-} | null>(null);
-export function useFocus() { const value = useContext(FocusContext); if (!value)
-    throw new Error('Focus provider missing'); return value; }
-export function focusTime(seconds: number) { const value = Math.max(0, Math.ceil(seconds)); return `${String(Math.floor(value / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`; }
+export type FocusMode = 'countdown' | 'stopwatch';
+export type FocusTask = { id: string; goal_id: string; goal_title: string; goal_status: string; goal_revision: number; title: string; content: string; duration_seconds: number; elapsed_seconds: number; active_ms: number; legacy_elapsed_ms: number; status: string; revision: number; position: number; criterion_ids: string[] };
+export type FocusSession = { id: string; task_id: string; mode: FocusMode; target_seconds: number | null; status: string; active_ms: number; confirmed_active_ms: number; started_at: number; ended_at: number | null; end_reason: string };
+export type GoalFocusStats = { goal_id: string; task_count: number; completed_count: number; active_ms: number };
+export type FocusSnapshot = { revision: number; runtime_id: string; snapshot_sequence: number; tasks: FocusTask[]; next_offset: number | null; current_task: FocusTask | null; next_task: FocusTask | null; current_session: FocusSession | null; status: string; reason: string; checkpoint_at: number | null; active_ms: number; remaining_seconds: number | null; overtime_seconds: number; server_time: number; goal_stats: GoalFocusStats[] };
+export type FocusCommand = { operation: 'create' | 'create_batch' | 'update' | 'reorder' | 'select' | 'start' | 'switch' | 'pause' | 'finish' | 'complete' | 'reopen' | 'delete' | 'acknowledge'; goal_id?: string; task_id?: string; title?: string; content?: string; duration_seconds?: number; mode?: FocusMode; criterion_ids?: string[]; task_ids?: string[]; tasks?: Array<{title: string; criterion_ids?: string[]}>; expected_goal_revision?: number; start_after_switch?: boolean; reason?: 'suspend' | 'shutdown' };
+export const FocusContext = createContext<{ data: FocusSnapshot | null; busy: boolean; error: string; pending: boolean; elapsed: number; remaining: number | null; refresh: () => Promise<FocusSnapshot | null>; command: (value: FocusCommand) => Promise<boolean>; reconcile: () => Promise<void>; setupTask: FocusTask | null; prepareStart: (task: FocusTask | null) => void; startTask: (task: FocusTask, mode: FocusMode, minutes: number) => Promise<boolean>; selectTask: (task: FocusTask) => Promise<boolean>; } | null>(null);
+export function useFocus() { const value = useContext(FocusContext); if (!value) throw new Error('Focus provider missing'); return value; }
+export function focusTime(seconds: number) { const value = Math.max(0, Math.floor(seconds)); const h = Math.floor(value/3600); return `${h ? `${h}:` : ''}${String(Math.floor(value/60)%60).padStart(2,'0')}:${String(value%60).padStart(2,'0')}`; }
+export function focusDuration(ms: number) { const minutes = Math.floor(ms/60000); if(ms>0 && minutes===0)return '不到1分'; return `${minutes >= 60 ? `${Math.floor(minutes/60)}小时 ` : ''}${minutes%60}分`; }

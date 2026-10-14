@@ -7,7 +7,7 @@ import threading
 import hashlib
 import json
 
-from backend.services.goals.store import GoalConflict, GoalStore
+from backend.services.goals.store import GoalConflict, GoalStore, validate_goal_changes
 from memory.learning_events import LearningEvent, LearningEventStore
 
 
@@ -32,6 +32,23 @@ class GoalService:
         self.store = store
         self.events = events
 
+    def _settle_focus(self, goal_id, reason):
+        from backend.services.goals.focus import existing_focus_store
+        focus = existing_focus_store(self.store.db_path)
+        return focus.settle_goal(goal_id, reason) if focus else False
+
+    def _commit_after_focus(self, goal_id, *, expected_revision, changes, focus_reason, failure_label, source_id=""):
+        ended = self._settle_focus(goal_id, focus_reason) if focus_reason else False
+        try:
+            if focus_reason:
+                self._interrupt_runs(goal_id)
+            return self.store.update(goal_id, expected_revision=expected_revision, changes=changes,
+                                     projection_source_id=source_id)
+        except Exception as exc:
+            if ended:
+                raise GoalConflict(f"专注已结束，目标尚未{failure_label}。请刷新目标状态后重试，时间记录已保留。") from exc
+            raise
+
     def create(self, **kwargs) -> dict:
         return self.store.create(**kwargs)
 
@@ -50,9 +67,10 @@ class GoalService:
             changes = {**changes, "progress": {"criterion_results": [], "evidence_refs": [],
                        "measured_at": None, "unknowns": [item.get("id") for item in criteria]},
                        "next_action": None}
-        if set(changes) & {"objective", "scope", "success_criteria"}:
-            self._interrupt_runs(goal_id)
-        updated = self.store.update(goal_id, expected_revision=expected_revision, changes=changes)
+        validate_goal_changes(goal, changes)
+        updated = self._commit_after_focus(goal_id, expected_revision=expected_revision, changes=changes,
+            focus_reason="goal_changed" if set(changes) & {"objective", "scope", "success_criteria"} else "",
+            failure_label="更新")
         if updated["status"] == "active":
             self._project(updated, "goal_created")
         return updated
@@ -72,9 +90,8 @@ class GoalService:
         goal = self.store.get(goal_id)
         if not goal or goal["status"] != "active" or goal["revision"] != expected_revision:
             raise GoalConflict("goal is not active")
-        self._interrupt_runs(goal_id)
-        updated = self.store.update(goal_id, expected_revision=expected_revision,
-                                    changes={"status": "paused"}, projection_source_id=source_id)
+        updated = self._commit_after_focus(goal_id, expected_revision=expected_revision,
+            changes={"status": "paused"}, focus_reason="goal_paused", failure_label="搁置", source_id=source_id)
         self._project(updated, "goal_paused", source_id=source_id)
         return updated
 
@@ -100,10 +117,9 @@ class GoalService:
                     "unknowns": unknowns}
         changes = {"progress": progress}
         if user_confirms_completion:
-            self._interrupt_runs(goal_id)
             changes["status"] = "completed"
-        updated = self.store.update(goal_id, expected_revision=expected_revision, changes=changes,
-                                    projection_source_id=source_id)
+        updated = self._commit_after_focus(goal_id, expected_revision=expected_revision, changes=changes,
+            focus_reason="goal_completed" if user_confirms_completion else "", failure_label="完成确认", source_id=source_id)
         if updated["status"] == "completed":
             self._project(updated, "goal_completed", source_id=source_id)
         return updated

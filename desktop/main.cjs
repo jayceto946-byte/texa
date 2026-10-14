@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, clipboard } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, clipboard, powerMonitor } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
@@ -845,6 +845,9 @@ if (hasSingleInstanceLock) {
   });
 
   app.whenReady().then(async () => {
+    for (const state of ['suspend','resume']) powerMonitor.on(state, () => {
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('focus:power', state);
+    });
     appendBackendLog(`[main] runtime: isPackaged=${app.isPackaged}; appPath=${app.getAppPath()}; frontend=${FRONTEND_DEV_URL || (app.isPackaged ? 'bundled backend assets' : path.join(projectRoot(), 'frontend', 'dist'))}`);
     await startBackend();
     configureUpdater();

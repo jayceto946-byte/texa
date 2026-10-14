@@ -1,5 +1,4 @@
 import {useConversationReconcile} from '../features/chat/useConversationReconcile';
-import FocusBar from '../features/focus/FocusBar';
 import { finishSessionRender } from '../utils/performanceMetrics';
 import { streamFailure, streamPresentation } from '../features/chat/streamPresentation';
 import { useReadingScroll } from '../features/chat/useReadingScroll';
@@ -949,7 +948,7 @@ const ChatPage: React.FC = () => {
           {(messages.length > 0 || activeFigure) && <div className="learning-header-scope-selector">{scopeSelector}</div>}
         </div>
 
-        <FocusBar/>{reconcileError && <div role="alert" className="conversation-state"><span>{reconcileError}</span><button type="button" onClick={()=>window.dispatchEvent(new Event('texa:reload-session'))}>重新读取会话</button></div>}<div ref={scrollRef} className="learning-workspace-scroll" onScroll={onScroll}>
+        {reconcileError && <div role="alert" className="conversation-state"><span>{reconcileError}</span><button type="button" onClick={()=>window.dispatchEvent(new Event('texa:reload-session'))}>重新读取会话</button></div>}<div ref={scrollRef} className="learning-workspace-scroll" onScroll={onScroll}>
           <div className="learning-document-column">
             {conversation.management?.state !== 'active' && conversation.management && <div className="conversation-state" role="status"><span>{inTrash ? '此会话在回收站，恢复后可继续学习。' : '此会话已归档。'}</span><button className="app-secondary-button" disabled={conversation.busy} onClick={() => void conversation.change('restore')}>恢复会话</button></div>}
             {conversation.error && <div className="conversation-state" role="alert"><span>{conversation.error}</span><button className="app-ghost-button" onClick={conversation.reload}>重新读取</button>{conversation.tasks.length > 0 && <BlockingTasks tasks={conversation.tasks} onChanged={conversation.reload}/>}</div>}
