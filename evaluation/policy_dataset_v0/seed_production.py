@@ -7,54 +7,31 @@ projections, not evidence that a synthetic state occurred in production.
 from __future__ import annotations
 
 import copy
-import ast
 import hashlib
 from pathlib import Path
-from .baseline import DEFAULT_DATASET
+from .baseline import DEFAULT_DATASET, FROZEN_SOURCE_ROOT
 from typing import Literal
 from pydantic import Field
 
-from backend.services.decision.policy_contracts import StrictV0, canonical_json, PolicyObservationV0
-from backend.services.decision.policy_projection import matched_tool_refs, project_observation, digest
-from backend.tools.registry import ToolContext, ToolRegistry, ToolSpec
+from .frozen_contracts import StrictV0, canonical_json, PolicyObservationV0
+from .frozen_projection import matched_tool_refs, project_observation, digest
+from .frozen_registry import ToolContext, ToolRegistry, ToolSpec
+from .frozen_runtime import frozen_module, EVIDENCE_FUNCTION_HASH
 from .contracts import EvaluationSampleV0, SourceV0, ActionJudgmentV0
 from .serialization import observation_hash, policy_input, strict_loads, write_samples
 from .validation import validate_manifest, validate_bound_args, canonical_tool_metadata
 from .splits import assign_splits, write_manifest
 
 VERSION = "seed-production/v0"
-EVIDENCE_FUNCTION_HASH = "cdf2ce44cd54939b3f770c16f981bcf57b64463496c801947064bd950efbd270"
 
 
 def _import_free_projection():
-    """Run the pinned production function without importing the model stack.
-
-    The only removed node is its local import of has_textbook_evidence; that
-    exact pure function is loaded from reviewed source instead. No binder/gate
-    logic is replaced. Fail closed on either source pin changing.
-    """
-    from .validation import validate_manifest
-    root = Path(__file__).resolve().parents[2]
+    """Load the original projection with only approved offline dependencies."""
     baseline = strict_loads((DEFAULT_DATASET / "manifest.json").read_text())
     _, errors = validate_manifest(baseline)
     if errors:
         raise ValueError(",".join(errors))
-    generator = ast.parse((root / "graph/generator.py").read_text())
-    helper = next(n for n in generator.body if isinstance(n, ast.FunctionDef) and n.name == "has_textbook_evidence")
-    if hashlib.sha256(ast.dump(helper, include_attributes=False).encode()).hexdigest() != EVIDENCE_FUNCTION_HASH:
-        raise ValueError("reviewed evidence helper changed")
-    globals_ = dict(project_observation.__globals__)
-    exec(compile(ast.Module(body=[helper], type_ignores=[]), "<pinned evidence helper>", "exec"), globals_)
-    module = ast.parse((root / "backend/services/decision/policy_projection.py").read_text())
-    function = next(n for n in module.body if isinstance(n, ast.FunctionDef) and n.name == "project_observation")
-    class RemoveModelImport(ast.NodeTransformer):
-        def visit_ImportFrom(self, node):
-            if node.module == "graph.generator" and len(node.names) == 1 and node.names[0].name == "has_textbook_evidence":
-                return ast.copy_location(ast.Pass(), node)
-            return node
-    function = RemoveModelImport().visit(function)
-    exec(compile(ast.fix_missing_locations(ast.Module(body=[function], type_ignores=[])), "<pinned offline projection>", "exec"), globals_)
-    return globals_["project_observation"]
+    return frozen_module("backend.services.decision.policy_projection").project_observation
 
 
 class PriorCallV0(StrictV0):
@@ -113,7 +90,7 @@ class _SnapshotSchema:
 
 
 def offline_registry(recipe):
-    snapshot = strict_loads(Path(__file__).with_name("canonical-tools-v0.json").read_text())
+    snapshot = strict_loads((FROZEN_SOURCE_ROOT / "evaluation/policy_dataset_v0/canonical-tools-v0.json").read_text())
     registry = ToolRegistry()
     def no_execution(*_):
         raise RuntimeError("offline generation cannot execute tools")
@@ -130,6 +107,7 @@ def offline_registry(recipe):
 
 def project_recipe(recipe: SeedRecipeV0):
     recipe = SeedRecipeV0.model_validate(recipe.model_dump())
+    projection = _import_free_projection()  # Check all frozen bytes before any projection.
     if recipe.goal and not recipe.goal_origin_ref:
         raise ValueError("goal requires a frozen origin ref")
     if len({c.tool_id for c in recipe.prior_calls}) != len(recipe.prior_calls):
@@ -171,14 +149,13 @@ def project_recipe(recipe: SeedRecipeV0):
         raise ValueError("pre-SQL gate requires missing inputs")
     if gate and (recipe.prior_calls or recipe.goal):
         raise ValueError("pre-SQL gate has no SQL calls or goal context")
-    projection = _import_free_projection() if grounded else project_observation
     frozen = projection(request=recipe.request, resolved_query=recipe.resolved_query,
         registry=ToolRegistry() if gate else registry,
         context=ToolContext() if gate else ToolContext(recipe.book_name, recipe.subject),
         identity={"position": recipe.position}, candidate_tools=() if gate else refs,
         snapshot=None if gate else snapshot, answer_state=None if gate else state,
         missing_inputs=recipe.missing_inputs, gate=gate, goal=recipe.goal)
-    observation = policy_input(frozen.envelope.payload)
+    observation = policy_input(frozen.envelope.payload.model_dump())
     trace = {"version": VERSION, "recipe": recipe.model_dump(), "recipe_hash": digest(recipe.model_dump()),
         "scope": "harness", "production_entry_verified": False,
         "evidence_helper_hash": EVIDENCE_FUNCTION_HASH if grounded else None,

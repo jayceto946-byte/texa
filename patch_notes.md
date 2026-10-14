@@ -3723,3 +3723,10 @@ Android 普通 Wi-Fi 对照出现解答闪现后回到空问答。隔离浏览�
 - 正常推送开发 Checkpoint；状态 BLOCKED，未合并 master，主分支保持898bec3。详细结果、源码漂移、历史证据等级、安全和 Mobile S3 交接见 TEXA-RUNTIME-MAIN-INTEGRATION.md。
 - 两把真实凭证当前文件与新增历史 blob 精确扫描零命中；QA writer过滤修复进入开发分支，尚未进入Main。历史 local.env 风险仍需用户轮换当时 DeepSeek/Qwen 密钥。
 - 无关实验及两份冗余大型原始Electron记录原地保留并本地排除，路径/大小/hash记录可恢复；本轮没有付费请求、Benchmark、移动端开发或其他worktree清理。
+
+## 2026-10-14 — Policy V0.1 历史源码执行边界修复
+
+- 追溯确认生产 Registry 在08cf3fc新增取消/超时/执行模式兼容字段，Resolver在6c418db新增两个READ数学工具；这些是有意的当前Runtime能力，不回滚有效生产实现。
+- V0.1属于离线Policy数据集/seed/规则选择评测的批准源码身份，无生产启动接线。修复默认入口混用生产代码和历史pins的问题：固定校验原source快照，以独立私有模块名执行原Registry/Resolver/Matcher/Projection/RulePolicy/wire合同；不替换生产imports、不改旧hash/快照/gold。
+- 教材Evidence helper保持原AST hash并单独冻结同一纯函数；原Projection无需AST改写或读取当前模型栈。缓存装载仍验证所有pins，损坏快照/自签版本/非法路径和原锁定门槛保持拒绝。
+- 已有冻结与当前功能专项297 passed；新增对照、生产函数污染隔离、缓存后损坏拒绝和helper漂移测试。完整免费回归、主分支整合及合并后检查以TEXA-RUNTIME-MAIN-INTEGRATION.md续记为准。无依赖、SQL schema或用户配置迁移，无付费模型请求。

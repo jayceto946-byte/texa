@@ -1,8 +1,8 @@
 """One original prediction per view. Never execute, repair or fall back."""
 from __future__ import annotations
 
-from backend.services.decision.policy import RulePolicyV0
-from backend.services.decision.policy_contracts import canonical_json, parse_decision
+from .frozen_runtime import frozen_module
+from .frozen_contracts import canonical_json, parse_decision
 from .contracts import PredictionV0
 from .serialization import policy_input, permute_sample, validate_sample_schema, invoke_policy
 from .validation import validate_sample
@@ -10,7 +10,8 @@ from .teacher_adapter import DisabledTeacherV0, NotRun
 
 
 def rule_policy_adapter(observation):
-    return invoke_policy(RulePolicyV0, observation)
+    rule = frozen_module("backend.services.decision.policy").RulePolicyV0
+    return invoke_policy(rule, observation)
 
 
 def evaluate(sample, *, selector=rule_policy_adapter, selector_name="rule", view="main", seed="dataset-v0"):
@@ -46,7 +47,7 @@ def evaluate(sample, *, selector=rule_policy_adapter, selector_name="rule", view
     except (ValueError, TypeError):
         raw = "<non-JSON output>"
     try:
-        decision = parse_decision(value)
+        decision = parse_decision(raw)
     except (ValueError, TypeError):
         return PredictionV0(**result, status="invalid_format", raw_output=raw, validation="rejected_format")
     if decision.action_id not in ids:

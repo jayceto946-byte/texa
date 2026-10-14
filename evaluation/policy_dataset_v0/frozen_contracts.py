@@ -1,0 +1,8 @@
+"""Wire types from the approved V0.1 snapshot, independent of live Runtime types."""
+from .frozen_runtime import frozen_module
+
+
+def __getattr__(name):
+    if name.startswith("__"):
+        raise AttributeError(name)
+    return getattr(frozen_module("backend.services.decision.policy_contracts"), name)

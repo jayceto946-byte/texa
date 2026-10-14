@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal, Protocol
 from pydantic import Field
-from backend.services.decision.policy_contracts import StrictV0, canonical_json, PolicyObservationV0
+from .frozen_contracts import StrictV0, canonical_json, PolicyObservationV0
 from .contracts import PredictionV0
 from .serialization import permute_sample, serialize_policy_input, strict_loads, policy_input
 from .evaluator import evaluate
@@ -122,7 +122,7 @@ def run_batch(plan, inputs, transports, authorization, output, *, run_id):
     """No retry/repair/fallback. Persist each first response before the next call."""
     from .contracts import TransformV0
     from .evaluator import rule_policy_adapter
-    from backend.services.decision.policy_contracts import parse_decision
+    from .frozen_contracts import parse_decision
     from .seed_report import assert_public_artifact
     plan = strict_loads(canonical_json(plan))
     inputs = strict_loads(canonical_json(inputs))

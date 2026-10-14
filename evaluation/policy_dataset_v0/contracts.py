@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 from pydantic import Field
-from backend.services.decision.policy_contracts import StrictV0, PolicyObservationV0
+from .frozen_contracts import StrictV0, PolicyObservationV0
 
 DATASET_VERSION = "texa.policy-dataset/v0"
 LABEL_POLICY_VERSION = "evaluation-spec/v0"

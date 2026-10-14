@@ -52,3 +52,13 @@ venv310/bin/python -m evaluation.policy_dataset_v0.seed calibrate --output /path
 日志在 `validation/`，CLI 实际输出在 `validation/default-report/`。source/hash 损坏、缺批准文件、冷启动不得读凭证/连数据库/联网、首失败保留与锁定 gate 等原回归没有放松。
 
 本次只关闭 K02。教材原页/人工、多书/Windows、L2/L3、升级恢复及完整学习纵向链仍待验收，**整体发布仍为 NO-GO**。之前生成的桌面候选不因本次评测通过自动变成正式发布版本。
+
+## 2026-10-14 — 历史执行边界
+
+后续正式 Runtime 的数学能力扩展已使生产 Resolver/Registry 有意偏离上述源码版本。V0.1 是离线数据集、seed 投影与选择评测的批准身份，不是要求整个生产仓库永久保持这些字节的启动合同。旧 source-manifest、冻结 source、样本和金标不修改、不重新签发。
+
+现有 `evaluation.policy_dataset_v0` 入口校验本目录 `source/`，并在独立私有 Python 模块名下执行这些经过 hash 校验的原始决策源码：Registry、Resolver、Matcher、Projection、RulePolicy、问题理解提示及 wire contracts。生产模块不被替换；当前生产继续由正常功能、权限/预算/取消与恢复回归验收。冻结评测不能证明当前生产树仍具有 V0.1 身份，报告明确标注 historical snapshot。
+
+每次装载重新校验固定的十二项源码/canonical pins，缓存不绕过漂移拒绝；禁止从输入选择路径或回退到当前应用模块。教材 Evidence helper 保留原已有 AST hash，单独保存同一纯函数，避免导入当前模型栈；原生产 Projection 的函数正文不改写。源快照缺失/损坏、输入自行重算 hash、旧 V0 manifest、canonical schema 损坏及语义/锁定集门槛仍拒绝。
+
+这一调整由用户于2026-10-14明确要求追溯并修复版本边界；不是批准新生产 Policy 基准、模型、样本或 gold。新增生产状态/能力要建立新版本评测时仍需独立版本与审阅，不能挂靠历史 V0.1 的通过结果。

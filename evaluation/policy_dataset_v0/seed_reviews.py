@@ -6,7 +6,7 @@ import hashlib
 from pathlib import Path
 from typing import Literal
 from pydantic import Field
-from backend.services.decision.policy_contracts import StrictV0, canonical_json
+from .frozen_contracts import StrictV0, canonical_json
 from .contracts import ActionJudgmentV0, LabelSourceV0, FrozenReviewV0
 from .labels import label_hash, record_adjudication
 from .serialization import action_hash, observation_hash, strict_loads

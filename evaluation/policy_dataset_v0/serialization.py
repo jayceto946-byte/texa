@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import json
 import re
+from pydantic import BaseModel
 from pathlib import Path
-from backend.services.decision.policy_contracts import PolicyObservationV0, canonical_json
-from backend.services.decision.policy_projection import digest
+from .frozen_contracts import PolicyObservationV0, canonical_json
+from .frozen_projection import digest
 from .contracts import EvaluationSampleV0, TransformV0, DatasetManifestV0, PredictionV0
 
 
@@ -108,7 +109,7 @@ def policy_input(value) -> PolicyObservationV0:
     if isinstance(value, EvaluationSampleV0) or isinstance(value, dict) and "observation" in value:
         observation = validate_sample_schema(value).observation
     else:
-        observation = PolicyObservationV0.model_validate(value.model_dump() if isinstance(value, PolicyObservationV0) else value)
+        observation = PolicyObservationV0.model_validate(value.model_dump() if isinstance(value, BaseModel) else value)
     observation = PolicyObservationV0.model_validate_json(observation.canonical_json())
     # Top-level and context ownership are already enforced by the wire models.
     # Only recursively inspect their values, not those legal model field names.

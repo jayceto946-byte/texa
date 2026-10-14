@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib
 from collections import Counter
 from pathlib import Path
-from backend.services.decision.policy_contracts import canonical_json
+from .frozen_contracts import canonical_json
 from .labels import label_hash
 from .seed_production import SeedRecipeV0, PriorCallV0, project_recipe, generate_sample, load_dataset, write_bundle
 from .splits import assign_splits

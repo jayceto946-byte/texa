@@ -348,3 +348,7 @@ Rule 多候选只接 Observation 副本；零候选只记录 Runtime route，单
 当前默认源码基准已在用户要求审阅后切换至 `runtime-source/v0.1`，审阅及版本身份见 [V0.1 报告](../validation/runtime-policy-evaluation-dataset-v0_1/README.md)。本文此前固定八项 pins/旧默认路径的描述保留为 V0 历史；当前以 `evaluation/policy_dataset_v0/baseline.py` 的十一项 Runtime 源码加 canonical-tools pins、V0.1 source-manifest 及 `evaluation/fixtures/policy_dataset_v0_1` 为准。
 
 V0 JSON/action_id/label policy 格式未改变；输入 manifest 仍不能自行批准新源码，源码漂移仍拒绝。旧 gold/样本文件和 V0 pins/manifest 未覆盖，新版 source 审阅不提升 fixture 为人工 locked gold，也不启用付费或线上模型。
+
+### 2026-10-14 — 冻结源码与当前生产的边界
+
+后续 Runtime 数学工具改变了生产 Resolver 与 Registry，历史源码 V0.1 不再表示当前生产身份。`evaluation.policy_dataset_v0` 的默认固定基准仍为已批准 V0.1，但现在针对 `docs/validation/runtime-policy-evaluation-dataset-v0_1/source/` 原始字节校验并隔离执行。旧 hash、样本、gold与漂移拒绝保留；报告显式标为历史快照，不能用于声明当前生产或新样本已获 V0.1 准入。当前功能接受独立 Runtime 生产回归，新增生产评测需新的版本审阅。详见 V0.1 README 的“历史执行边界”。

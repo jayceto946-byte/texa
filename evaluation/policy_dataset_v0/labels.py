@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from typing import Literal
-from backend.services.decision.policy_contracts import StrictV0
-from backend.services.decision.policy_projection import digest
+from .frozen_contracts import StrictV0
+from .frozen_projection import digest
 from .contracts import LabelSourceV0, EvaluationSampleV0
 
 

@@ -12,7 +12,7 @@ from .serialization import permute_sample, strict_loads
 from .splits import groups, leakage_checks, sample_fingerprint
 from .seed_production import verify_trace
 from .seed_reviews import verify_final_review, bound_review_statistics
-from backend.services.decision.policy_contracts import canonical_json
+from .frozen_contracts import canonical_json
 
 
 def assert_public_artifact(value):
@@ -248,6 +248,7 @@ def compare_seed(samples, predictions, qualities, splits, *, manifest, traces, r
     report = {"version": "seed-comparison/v0", "binding": {"dataset_hash": hashlib.sha256(canonical_json({s.sample_id: sample_fingerprint(s) for s in samples}).encode()).hexdigest(),
         "split_hash": hashlib.sha256(canonical_json(splits.model_dump()).encode()).hexdigest(),
         "label_hashes": {s.sample_id: label_hash(s) for s in samples}, "runtime_version": manifest.runtime_version,
+        "source_execution": "historical reviewed runtime-source/v0.1 snapshot; not current production",
         "registry_version": manifest.registry_version, "teacher_run_id": teacher_run.get("run_id") if teacher_run else None},
         "data_quality": {**base["data_quality"], "independent_groups": len(set(grouped.values())),
             "source_types": dict(Counter(s.source.type for s in samples)),

@@ -4,7 +4,7 @@ from __future__ import annotations
 from collections import Counter
 from typing import Literal
 from pydantic import Field
-from backend.services.decision.policy_contracts import StrictV0, parse_decision
+from .frozen_contracts import StrictV0, parse_decision
 from .evaluator import original_action_id
 from .splits import leakage_checks
 from .serialization import permute_sample
@@ -182,6 +182,7 @@ def generate_report(samples, predictions, qualities, split_manifest, *, executio
         **{field: sum(getattr(r, field) for r in executions) for field in (
             "original_rejected", "fallback_attempted", "fallback_accepted", "fallback_executed")}}
     return {"format_version": "policy-dataset-report/v0", "scope": "finite offline fixtures; no online answer-quality claim",
+        "source_execution": "historical reviewed runtime-source/v0.1 snapshot; not current production",
         "data_quality": {"samples": len(samples), "families": len({s.source.source_family_id for s in samples}),
             "splits": dict(split_counts), "ambiguity": dict(Counter(s.ambiguity_status for s in samples)),
             "family_splits": dict(Counter(split_manifest.assignments[f] for f in {s.source.source_family_id for s in samples})),

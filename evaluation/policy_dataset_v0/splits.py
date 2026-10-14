@@ -5,8 +5,8 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Literal
 import re
-from backend.services.decision.policy_contracts import StrictV0, canonical_json
-from backend.services.decision.policy_projection import digest
+from .frozen_contracts import StrictV0, canonical_json
+from .frozen_projection import digest
 from .contracts import Split
 from .serialization import action_hash
 from .labels import label_hash

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Protocol
-from backend.services.decision.policy_contracts import PolicyObservationV0
+from .frozen_contracts import PolicyObservationV0
 from .serialization import policy_input, invoke_policy
 
 

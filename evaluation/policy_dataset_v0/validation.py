@@ -6,13 +6,14 @@ import hashlib
 import re
 from pathlib import Path
 from pydantic import ValidationError
-from backend.services.decision.policy_projection import digest
+from .frozen_projection import digest
 from .contracts import DatasetManifestV0
 from .serialization import validate_sample_schema, action_hash, policy_input, PolicyInputRejected, strict_loads
 from .labels import adjudicated
 
 from .baseline import (
     APPROVED_RUNTIME_VERSION, APPROVED_REGISTRY_VERSION, APPROVED_SOURCE_MANIFEST,
+    FROZEN_SOURCE_ROOT,
     RUNTIME_SOURCES as _RUNTIME_SOURCES, SOURCE_PATHS as _SOURCE_PATHS,
 )
 
@@ -33,10 +34,11 @@ class QualityV0:
 
 
 def validate_manifest(value):
-    """Check declared versions against the approved baseline AND actual local bytes.
+    """Check declared versions against the approved historical snapshot bytes.
 
     Read the fixed reviewed V0.1 source-manifest artifact; never trust sample-supplied paths
-    or let a caller's recomputed version approve a changed source tree.
+    or let a caller's recomputed version approve a changed snapshot. This is
+    not a claim that the current production tree still has the V0.1 identity.
     """
     try:
         manifest = DatasetManifestV0.model_validate(value.model_dump() if isinstance(value, DatasetManifestV0) else value)
@@ -54,7 +56,7 @@ def validate_manifest(value):
         errors.append("manifest_registry_version_mismatch")
     if set(manifest.source_digests) != set(_SOURCE_PATHS):
         errors.append("manifest_source_digest_set_mismatch")
-    root = Path(__file__).resolve().parents[2]
+    root = FROZEN_SOURCE_ROOT
     try:
         approved = strict_loads(APPROVED_SOURCE_MANIFEST.read_text())
         pins = {path: approved[path] for path in _SOURCE_PATHS}
@@ -87,7 +89,7 @@ def validate_manifest(value):
 
 def _canonical_tool(tool_id):
     from .serialization import strict_loads
-    snapshot = strict_loads(Path(__file__).with_name("canonical-tools-v0.json").read_text())
+    snapshot = strict_loads((FROZEN_SOURCE_ROOT / "evaluation/policy_dataset_v0/canonical-tools-v0.json").read_text())
     if tool_id not in snapshot:
         raise ValueError("unsupported_v0_tool")
     return snapshot[tool_id]

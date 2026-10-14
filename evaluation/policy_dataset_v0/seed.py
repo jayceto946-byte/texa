@@ -5,7 +5,7 @@ import argparse
 import hashlib
 from pathlib import Path
 from .baseline import DEFAULT_DATASET
-from backend.services.decision.policy_contracts import canonical_json
+from .frozen_contracts import canonical_json
 from .serialization import strict_loads, read_samples
 from .seed_production import load_dataset, produce, write_bundle, verify_trace
 from .seed_calibration import calibrate

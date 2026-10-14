@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 from .baseline import DEFAULT_DATASET
-from backend.services.decision.policy_contracts import canonical_json
+from .frozen_contracts import canonical_json
 from .serialization import read_samples, write_samples, strict_loads
 from .labels import AdjudicationRecordV0
 from .validation import validate_sample, validate_manifest

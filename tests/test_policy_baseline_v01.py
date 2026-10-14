@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from evaluation.policy_dataset_v0.baseline import (
-    APPROVED_RUNTIME_VERSION, DEFAULT_DATASET, REPO_ROOT, RUNTIME_SOURCES,
+    APPROVED_RUNTIME_VERSION, DEFAULT_DATASET, REPO_ROOT, RUNTIME_SOURCES, FROZEN_SOURCE_ROOT,
 )
 from evaluation.policy_dataset_v0.validation import validate_manifest
 
@@ -38,7 +38,7 @@ def test_new_transitive_dependencies_are_pinned_and_fail_on_drift(source, monkey
     original = Path.read_bytes
     def altered(path):
         raw = original(path)
-        return raw + b"drift" if path == REPO_ROOT / source else raw
+        return raw + b"drift" if path == FROZEN_SOURCE_ROOT / source else raw
     monkeypatch.setattr(Path, "read_bytes", altered)
     manifest = json.loads((DEFAULT_DATASET / "manifest.json").read_text())
     assert "source_content_digest_mismatch" in validate_manifest(manifest)[1]
