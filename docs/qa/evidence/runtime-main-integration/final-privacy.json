@@ -1,0 +1,7 @@
+{
+  "scope": "final tracked and nonignored untracked immediately before audit commit",
+  "credential_count": 2,
+  "files_scanned": 3210,
+  "exact_matches": [],
+  "secret_values_or_hashes_saved": false
+}

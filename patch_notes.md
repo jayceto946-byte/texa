@@ -3714,3 +3714,12 @@ Android 普通 Wi-Fi 对照出现解答闪现后回到空问答。隔离浏览�
 ### 2026-10-13 — 授权后 DeepSeek S1 教材验收
 
 用户明确授权冻结单请求计划后，经实际 Electron→生产教材检索→DeepSeek→SQL/SSE 完成 S1。wire8192，输入3018、输出4337（推理3849、正文488），finish_reason=stop；有意义输出28.809秒、run31.521秒，非峰费用估算US$0.002640948，1请求／0重试／Qwen0。静态与准静态解释、任务及引用通过人工最终可见EvidencePack复核；原文与SQL task/run/outbox/SSE一致，unverified状态独立披露，未升级task的语义验证。S5/S6没有新增请求，保持历史LIVE+修复后FREE回放。冻结源码hash未变，付费进程已退出。最终可选模型准入PASS，Qwen默认及用户profile不变，无提交或合并。历史凭证副本仍无法排除，继续建议轮换。证据和边界见TEXA-DEEPSEEK-RELEASE-READINESS.md及docs/qa/evidence/deepseek-remediation/paid/。
+
+## 2026-10-13 — Runtime 最终集成审计 / 安全 Checkpoint
+
+- 收尾 Runtime/DeepSeek/RequiredOutputs 与 Electron 改动并按耦合代码、UI、QA 证据拆分提交；Qwen3.7 Plus 默认、DeepSeek Flash 可选。没有依赖升级、SQL schema 迁移或用户配置更改。
+- 生命周期验收探针改用明确 literal 缺失，保留 failed 断言；恢复子进程测试使用当前 Python 3.10 解释器，独立导出不依赖仓库内 venv 路径。
+- 免费关键后端314 passed，前端203 passed，桌面壳15 passed，TypeScript/Vite及三尺寸 macOS Electron Mock HTTP 回放通过；全量修复后1616 passed / 48 failed，剩余为此前 Resolver/Registry 已偏离批准 Policy V0.1 源码 pins，未改旧 hash 或降低门槛。
+- 正常推送开发 Checkpoint；状态 BLOCKED，未合并 master，主分支保持898bec3。详细结果、源码漂移、历史证据等级、安全和 Mobile S3 交接见 TEXA-RUNTIME-MAIN-INTEGRATION.md。
+- 两把真实凭证当前文件与新增历史 blob 精确扫描零命中；QA writer过滤修复进入开发分支，尚未进入Main。历史 local.env 风险仍需用户轮换当时 DeepSeek/Qwen 密钥。
+- 无关实验及两份冗余大型原始Electron记录原地保留并本地排除，路径/大小/hash记录可恢复；本轮没有付费请求、Benchmark、移动端开发或其他worktree清理。

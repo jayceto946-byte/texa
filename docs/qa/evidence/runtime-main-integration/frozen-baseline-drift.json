@@ -1,0 +1,16 @@
+[
+  {
+    "path": "backend/services/decision/resolver.py",
+    "approved_sha256": "9c5862e5bd55ea9efab2f5b83304011ca8df6513a66bcfe6d03315b412980ee1",
+    "initial_HEAD_sha256": "c7ea32eda0091e022688557818b6aff6c58d496adf1af5ec2fdf551622969d53",
+    "current_sha256": "c7ea32eda0091e022688557818b6aff6c58d496adf1af5ec2fdf551622969d53",
+    "preexisting_at_f916336": true
+  },
+  {
+    "path": "backend/tools/registry.py",
+    "approved_sha256": "4146fa627e41da314e5b5920dbd3d9dd6e24eb9df9871624337f18feeb2de776",
+    "initial_HEAD_sha256": "1ac3295760f11afa68abaad025362224a684e7992dea0d7a715a0e310391d675",
+    "current_sha256": "1ac3295760f11afa68abaad025362224a684e7992dea0d7a715a0e310391d675",
+    "preexisting_at_f916336": true
+  }
+]
