@@ -45,9 +45,7 @@ export default function AppRail({ mobile, onOpenSettings, settingsButtonRef, onC
         <span className="study-brand-name">Texa<span>学习工作区</span></span>
       </NavLink>
 
-      <details key={mobile ? "mobile" : "desktop"} className="navigation-domains" open={mobile ? undefined : true}>
-        <summary>功能与设置</summary>
-      <nav className="app-rail-primary" aria-label="主要功能">
+      {mobile ? <details className="navigation-domains"><summary>功能与设置</summary>      <nav className="app-rail-primary" aria-label="主要功能">
         {primaryItems.map((item) => <RailLink key={item.to} {...item} />)}
       </nav>
 
@@ -57,7 +55,17 @@ export default function AppRail({ mobile, onOpenSettings, settingsButtonRef, onC
           <span>设置</span>
         </button>
       </nav>
-      </details>
+</details> : <>      <nav className="app-rail-primary" aria-label="主要功能">
+        {primaryItems.map((item) => <RailLink key={item.to} {...item} />)}
+      </nav>
+
+      <nav className="app-rail-footer" aria-label="应用设置">
+        <button ref={settingsButtonRef} type="button" onClick={onOpenSettings} className="app-rail-link" aria-label="设置" title="设置" aria-haspopup="dialog">
+          <Settings className="h-[18px] w-[18px]" />
+          <span>设置</span>
+        </button>
+      </nav>
+</>}
     </aside>
   );
 }

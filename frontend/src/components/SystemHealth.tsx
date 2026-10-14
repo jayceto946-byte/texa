@@ -16,7 +16,7 @@ import { PageState, StatusBanner, type AsyncStateKind } from './ui/AsyncState';
 
 type SubjectNode = { name: string; children: string[] };
 type ManagedBook = LibraryBook & { size?: number };
-type Tab = 'diagnostics' | 'about' | 'data' | 'subjects' | 'models' | 'preferences';
+type Tab = 'diagnostics' | 'about' | 'data' | 'subjects' | 'models' | 'preferences' | 'remote';
 
 const statusMeta: Record<SystemHealthStatus, { label: string; icon: typeof CheckCircle2; iconClass: string; className: string }> = {
   healthy: { label: '系统正常', icon: CheckCircle2, iconClass: 'text-[var(--success)]', className: 'status-success' },
@@ -41,6 +41,7 @@ function feedbackKind(message: string): AsyncStateKind {
 const SETTINGS_ITEMS: Array<{ id: Tab; label: string }> = [
   { id: 'preferences', label: '偏好' },
   { id: 'models', label: '模型连接' },
+  { id: 'remote', label: '手机连接' },
   { id: 'data', label: '数据与教材' },
   { id: 'about', label: '关于与更新' },
 ];
@@ -471,7 +472,6 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
         <button ref={mobileBack} type="button" className="app-secondary-button settings-mobile-back" onClick={showSettingsNavigation}>返回设置</button>
         {pageMessage && <div className="mb-5"><StatusBanner kind={feedbackKind(pageMessage)} title={pageMessage} /></div>}
 
-        {tab === 'about' && <MobileRemoteS0 />}
         {tab === 'diagnostics' && (
           <section className="settings-page">
             <SettingsPageHeader title="高级与诊断" description="检查本地服务与数据组件的运行状态。" />
@@ -546,6 +546,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
         </section>}
 
 
+        {tab === 'remote' && <section className="settings-page remote-connection-page"><SettingsPageHeader title="手机连接" description="从手机继续使用这台电脑的学习工作区。" /><MobileRemoteS0 /></section>}
         {tab === 'preferences' && <section className="settings-page"><SettingsPageHeader title="偏好" description="调整当前设备的阅读外观。" /><AppearanceSettings /></section>}
 
         {tab === 'models' && (
@@ -566,7 +567,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
 const SettingsSidebar = ({ tab, onTabChange }: { tab: Tab; onTabChange: (tab: Tab) => void }) => (
   <aside className="settings-sidebar" aria-label="设置分类">
     <div className="settings-sidebar-groups">
-      <div className="settings-nav-items">{SETTINGS_ITEMS.map((item) => (
+      <div className="settings-nav-items">{SETTINGS_ITEMS.filter(item => item.id !== 'remote' || window.kaoyanDesktop?.isElectron).map((item) => (
         <button type="button" key={item.id} onClick={() => onTabChange(item.id)} className={`settings-nav-item ${tab === item.id ? 'is-active' : ''}`} aria-current={tab === item.id ? 'page' : undefined}>{item.label}</button>
       ))}</div>
       <button type="button" onClick={() => onTabChange('diagnostics')} className={`settings-nav-item settings-nav-diagnostics ${tab === 'diagnostics' ? 'is-active' : ''}`} aria-current={tab === 'diagnostics' ? 'page' : undefined}>高级与诊断</button>

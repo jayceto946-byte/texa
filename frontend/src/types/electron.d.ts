@@ -16,6 +16,8 @@ type RemoteCaptureStatus = {
   message: string;
 };
 
+export type DesktopRemoteConnection = { ready: boolean; enabled: boolean; url: string; message: string; target: string };
+
 export type DesktopBackendStatus = {
   status: 'starting' | 'ready' | 'recovering' | 'failed' | 'stopped';
   message: string;
@@ -49,7 +51,9 @@ declare global {
       getBackendStatus?: () => Promise<DesktopBackendStatus>;
       openWebFallback?: () => Promise<void>;
       openBackendLog?: () => Promise<string>;
-      getRemoteS0Status?: () => Promise<{ ready: boolean; target: string; instanceId: string; command: string }>;
+      getRemoteS0Status?: () => Promise<DesktopRemoteConnection>;
+      setRemoteConnectionEnabled?: (enabled: boolean) => Promise<DesktopRemoteConnection>;
+      copyRemoteConnectionUrl?: () => Promise<boolean>;
       copyRemoteS0Token?: () => Promise<boolean>;
       getRemoteCaptureStatus?: () => Promise<RemoteCaptureStatus>;
       setRemoteCaptureEnabled?: (enabled: boolean) => Promise<RemoteCaptureStatus>;

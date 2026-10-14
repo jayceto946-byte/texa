@@ -14,6 +14,7 @@ import { NoteCommandContext, type NoteCommandTarget } from '../features/notes/No
 import './ApprovedWorkspace.css';
 import './StudyDesk.css';
 import './MobileConvergence.css';
+import './DesktopRefinement.css';
 import { flushRetainedEditor, unsavedNotePath } from '../features/notes/autosave';
 
 function layoutSnapshot() {
@@ -27,6 +28,12 @@ function layoutSnapshot() {
 function PersistentRouteOutlet() {
   const location = useLocation();
   const outlet = useOutlet();
+  const panelRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const animation = panelRef.current?.animate?.([{opacity:0.65,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}], {duration:170,easing:'cubic-bezier(.2,.7,.2,1)'});
+    return () => animation?.cancel();
+  }, [location.pathname, location.search, location.hash]);
   // Notes share one cache slot. Replacing a detail unmounts its poller/editor;
   // its serial autosaver flushes and retains any failed local edits in memory.
   const routeKey = location.pathname.startsWith('/notes') ? '/notes-workspace' : location.pathname;
@@ -50,6 +57,7 @@ function PersistentRouteOutlet() {
     return (
       <section
         key={key}
+        ref={active ? panelRef : undefined}
         className="persistent-route-panel"
         hidden={!active}
         aria-hidden={!active || undefined}

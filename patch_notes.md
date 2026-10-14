@@ -1,3 +1,9 @@
+# 2026-10-14 — Desktop Candidate 收敛与一键手机连接
+
+- 修复手机details容器污染桌面导航；目标/番茄任务重做视觉层级，完成条件与模型辅助收敛；缓存页切换/弹窗轻量动效遵循reduced-motion，不增加其他学习功能。
+- 手机连接成为与模型连接并列的独立设置项，移除裸命令/S0/固定端口，Electron本地IPC一键配置Tailscale Serve、复制地址/临时配对码，后端ready后恢复动态映射；保护其他服务和Funnel边界。远程模块已加入打包清单，无依赖/数据库变更。
+- 用户确认设备名改texa，新地址https://texa.tailb31d35.ts.net/；实际Electron按钮及动态端口58364→58676自动恢复通过，网页200。类型/lint/build、前端203、桌面21、四视口18检查通过；Windows与Redmi仍待实机签收。详见docs/qa/mobile-s3/desktop-refinement/REPORT.md。
+
 # 2026-10-14 — Mobile S3 Candidate implementation
 
 - 按最终授权仅新增番茄任务，其余精简适配：手机共线顶栏/历史优先侧栏/输入附件归并、手机和平板KaTeX安全排版、教材主滚动、笔记header/触控、旧Goal合同409能力投影与既有回前台读取。无新增阅读器/导航体系/学习工作流。
