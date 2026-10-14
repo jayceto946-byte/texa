@@ -281,3 +281,14 @@ def stop_goal_runs():
                 store.close(run_id, snapshot['run']['owner_token'], outcome='paused', error_code='desktop_shutdown')
             except RuntimeConflict:
                 pass
+
+
+def project_goal_runtime(store, snapshot, goal):
+    """Read-only capabilities; legacy/mismatched contracts never become resumable."""
+    task = public_task(store, snapshot)
+    checkpoint = snapshot["run"]["checkpoint"]
+    frozen = checkpoint.get("goal_contract", checkpoint.get("answer_state", {}).get("_goal_contract"))
+    if task.get("resumable") and (goal["status"] != "active" or frozen != goal_contract(goal)):
+        task["resumable"] = False
+        task["resume_block_reason"] = "旧任务无法按当前目标继续，已有结果保留。请核对目标后重新开始。"
+    return task

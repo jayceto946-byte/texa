@@ -1,3 +1,10 @@
+# 2026-10-14 — Mobile S3 Candidate implementation
+
+- 按最终授权仅新增番茄任务，其余精简适配：手机共线顶栏/历史优先侧栏/输入附件归并、手机和平板KaTeX安全排版、教材主滚动、笔记header/触控、旧Goal合同409能力投影与既有回前台读取。无新增阅读器/导航体系/学习工作流。
+- 专注状态复用goals.db，schema1→2增量focus_tasks/state/receipts，迁移前一致备份；CAS与同operation回执防双端重复，计时不自动执行/完成/写掌握。新增长期边界写入AGENTS.md，未改模型/Runtime架构。
+- 79相关Python、203前端、15桌面合同、11真实API流程通过；TypeScript/lint/build通过；Electron3项；手机长display公式/画布在7视口验收，KaTeX原子节点换行不改数学源码。真机键盘/后台弱网、真平板和全部native SQL chat故障组合未签收。
+- 无活跃运行时正常切换同一59999端口候选，Serve网页HTTP200/后端ready；生产Goal库升级前后1条原记录hash不变，备份1份。手机需按新临时token重新配对。完整边界与证据：docs/qa/mobile-s3/implementation/IMPLEMENTATION-REPORT.md。
+
 # 2026-10-14 — Mobile S3 综合实施方案（未实施）
 
 - 合并初审、Astra判断、Redmi五项实机反馈及番茄任务新需求，建立唯一实施入口 TEXA-MOBILE-S3-IMPLEMENTATION-PLAN.md；统一B1真机阻断、B2学习闭环、B3番茄任务、B4可靠性、B5真机RC，替换旧四批+B-T。

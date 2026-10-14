@@ -1,0 +1,41 @@
+{
+  "user_action": "Redmi airplane mode network reset, then Tailscale enabled and Texa webpage refreshed",
+  "backend_state": "Running",
+  "before": {
+    "sampled_at": "2026-10-14T10:48:15.415059+08:00",
+    "path": "derp",
+    "online": true,
+    "active": true,
+    "direct_endpoint_present": false,
+    "peer_relay_present": false,
+    "relay_region": "nue"
+  },
+  "samples": [
+    {
+      "path": "derp",
+      "region": "DERP(nue)",
+      "rtt_ms": 449.0
+    },
+    {
+      "path": "derp",
+      "region": "DERP(nue)",
+      "rtt_ms": 404.0
+    },
+    {
+      "path": "derp",
+      "region": "DERP(nue)",
+      "rtt_ms": 429.0
+    }
+  ],
+  "probe_exit": 0,
+  "after": {
+    "sampled_at": "2026-10-14T10:48:19.786685+08:00",
+    "path": "derp",
+    "online": true,
+    "active": true,
+    "direct_endpoint_present": false,
+    "peer_relay_present": false,
+    "relay_region": "nue"
+  },
+  "note": "bounded probe may trigger NAT traversal; no configuration changed; unparsed attempts not counted as loss"
+}

@@ -1,0 +1,169 @@
+{
+  "checks": [
+    "task create→start→cross-page→lost pause response→receipt exactly once",
+    "pause survives reload→explicit completion leaves Goal unchanged",
+    {
+      "width": 360,
+      "metrics": {
+        "viewport": 360,
+        "body": 360,
+        "canvas": 351,
+        "canvasScroll": 351,
+        "math": [
+          {
+            "width": 335,
+            "scroll": 549,
+            "height": 59,
+            "bases": 6
+          },
+          {
+            "width": 335,
+            "scroll": 617,
+            "height": 61,
+            "bases": 6
+          }
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "metrics": {
+        "viewport": 390,
+        "body": 390,
+        "canvas": 381,
+        "canvasScroll": 381,
+        "math": [
+          {
+            "width": 365,
+            "scroll": 549,
+            "height": 59,
+            "bases": 6
+          },
+          {
+            "width": 365,
+            "scroll": 617,
+            "height": 61,
+            "bases": 6
+          }
+        ]
+      }
+    },
+    {
+      "width": 430,
+      "metrics": {
+        "viewport": 430,
+        "body": 430,
+        "canvas": 421,
+        "canvasScroll": 421,
+        "math": [
+          {
+            "width": 405,
+            "scroll": 549,
+            "height": 59,
+            "bases": 6
+          },
+          {
+            "width": 405,
+            "scroll": 617,
+            "height": 61,
+            "bases": 6
+          }
+        ]
+      }
+    },
+    {
+      "width": 768,
+      "metrics": {
+        "viewport": 768,
+        "body": 768,
+        "canvas": 759,
+        "canvasScroll": 759,
+        "math": [
+          {
+            "width": 715,
+            "scroll": 715,
+            "height": 59,
+            "bases": 6
+          },
+          {
+            "width": 715,
+            "scroll": 715,
+            "height": 61,
+            "bases": 6
+          }
+        ]
+      }
+    },
+    {
+      "width": 820,
+      "metrics": {
+        "viewport": 820,
+        "body": 820,
+        "canvas": 811,
+        "canvasScroll": 811,
+        "math": [
+          {
+            "width": 740,
+            "scroll": 740,
+            "height": 59,
+            "bases": 6
+          },
+          {
+            "width": 740,
+            "scroll": 740,
+            "height": 61,
+            "bases": 6
+          }
+        ]
+      }
+    },
+    {
+      "width": 1024,
+      "metrics": {
+        "viewport": 1024,
+        "body": 1024,
+        "canvas": 807,
+        "canvasScroll": 807,
+        "math": [
+          {
+            "width": 740,
+            "scroll": 740,
+            "height": 58,
+            "bases": 6
+          },
+          {
+            "width": 740,
+            "scroll": 740,
+            "height": 60,
+            "bases": 6
+          }
+        ]
+      }
+    },
+    {
+      "width": 1280,
+      "metrics": {
+        "viewport": 1280,
+        "body": 1280,
+        "canvas": 1039,
+        "canvasScroll": 1039,
+        "math": [
+          {
+            "width": 740,
+            "scroll": 740,
+            "height": 58,
+            "bases": 6
+          },
+          {
+            "width": 740,
+            "scroll": 740,
+            "height": 60,
+            "bases": 6
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "fixture": "real API/SQL; no paid model"
+}

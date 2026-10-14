@@ -15,7 +15,7 @@ import logging
 import os
 import threading
 
-from backend.api import agent, chat, mistakes, mistake_lifecycle, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state, goals, notes
+from backend.api import agent, chat, mistakes, mistake_lifecycle, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state, goals, notes, focus
 from backend.security import LocalApiBoundaryMiddleware
 from backend.static_assets import StaticAssetCompression
 from backend.remote_reads import RemoteReadOptimization
@@ -166,6 +166,7 @@ app.include_router(jobs.router, prefix="/api")
 app.include_router(backups.router, prefix="/api")
 app.include_router(learning_state.router, prefix="/api")
 app.include_router(goals.router, prefix="/api")
+app.include_router(focus.router, prefix="/api")
 app.include_router(figures.router, prefix="/api")
 app.include_router(notes.router, prefix="/api")
 

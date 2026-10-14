@@ -302,7 +302,7 @@ const LearningPage: React.FC = () => {
         <h2 className="app-page-title">复习</h2>
         <div className="window-drag-region" aria-hidden="true" />
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
-          <ScopeSelector
+          <ScopeSelector size="compact"
             subject={subjectFilter}
             bookName={bookName}
             books={books}

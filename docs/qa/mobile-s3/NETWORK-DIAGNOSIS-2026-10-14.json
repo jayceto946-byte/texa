@@ -1,0 +1,50 @@
+{
+  "sampled_at": "2026-10-14T10:39:56.931267+08:00",
+  "probe_exit": 0,
+  "before": {
+    "online": true,
+    "active": false,
+    "direct_endpoint_present": false,
+    "peer_relay_present": false,
+    "relay_region": "lax"
+  },
+  "samples": [
+    {
+      "path": "derp",
+      "region": "DERP(lax)",
+      "rtt_ms": 1335.0
+    },
+    {
+      "path": "derp",
+      "region": "DERP(lax)",
+      "rtt_ms": 561.0
+    }
+  ],
+  "after": {
+    "online": true,
+    "active": true,
+    "direct_endpoint_present": false,
+    "peer_relay_present": false,
+    "relay_region": "lax"
+  },
+  "note": "probe can trigger NAT traversal; no settings modified",
+  "mac_netcheck": {
+    "UDP": true,
+    "IPv4": true,
+    "IPv6": true,
+    "MappingVariesByDestIP": false,
+    "UPnP": false,
+    "PMP": false,
+    "PCP": false,
+    "PreferredDERP": 2,
+    "CaptivePortal": false,
+    "OSHasIPv6": true
+  },
+  "mac_firewall": {
+    "enabled": false,
+    "block_all": false,
+    "stealth": false
+  },
+  "user_context": "Redmi current network differs: cellular or other Wi-Fi; screen state unspecified",
+  "conclusion": "Mac general UDP/NAT diagnostics healthy. Phone network or post-network-change discovery is a plausible cause, not established attribution. Need phone-side netcheck or controlled network comparison. Current bounded probe still DERP."
+}

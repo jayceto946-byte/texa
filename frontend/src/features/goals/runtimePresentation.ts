@@ -18,6 +18,8 @@ export function goalEventText(event: Pick<ExecutionEvent, 'type' | 'phase' | 'st
 
 export function goalErrorText(reason: unknown): string {
   const message = reason instanceof Error ? reason.message : '';
+  if (/goal is inactive|execution contract changed/.test(message)) return '旧任务与当前目标不一致，无法继续。已有结果保留，请刷新状态并核对目标。';
+  if (/goal revision changed/.test(message)) return '目标已在其他页面更新，请刷新状态后再操作。';
   // Keep known Chinese service guidance. Technical identifiers and English
   // exceptions remain in the API/runtime diagnostic records.
   return /[\u4e00-\u9fff]/.test(message) && !/Runtime|Traceback|Error:|Exception|request_key|task cannot|HTTP\s*\d/i.test(message)

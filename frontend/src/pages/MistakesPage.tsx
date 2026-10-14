@@ -163,7 +163,7 @@ export function MistakeCollectionPage() {
     <header className="app-page-header border-b border-border bg-bg-primary">
       <h1 className="app-page-title">错题</h1>
       <div className="window-drag-region" aria-hidden="true" />
-      <ScopeSelector subject={subject} bookName={bookName} books={books} suggestions={books.map((book) => book.subject || '').filter(Boolean)} onSubjectChange={setSubject} onBookChange={switchBook} allowAllSubjects align="right" width="wide" />
+      <ScopeSelector size="compact" subject={subject} bookName={bookName} books={books} suggestions={books.map((book) => book.subject || '').filter(Boolean)} onSubjectChange={setSubject} onBookChange={switchBook} allowAllSubjects align="right" width="wide" />
     </header>
     <main className="management-page-content flex-1 overflow-y-auto">
       <div className="mistakes-collection">

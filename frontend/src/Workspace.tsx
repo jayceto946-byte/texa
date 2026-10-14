@@ -9,6 +9,7 @@ import DesktopTitleBar from './components/DesktopTitleBar';
 import { isRemoteBrowser } from './api/client';
 import { installNetworkRecovery } from './api/networkDiagnostics';
 const FirstRunGuide = lazy(() => import('./components/FirstRunGuide'));
+import FocusProvider from './features/focus/FocusProvider';
 import { InspectorProvider } from './contexts/InspectorContext';
 import WorkspaceSkeleton from './components/ui/WorkspaceSkeleton';
 
@@ -65,7 +66,7 @@ function Workspace() {
   useEffect(() => { if (isRemoteBrowser()) return installNetworkRecovery(); }, []);
   return (
     <ChatProvider>
-      <InspectorProvider>
+      <FocusProvider><InspectorProvider>
         <DesktopTitleBar />
         <BrowserRouter>
           <FirstRunGate>
@@ -96,7 +97,7 @@ function Workspace() {
           </Routes>
           </FirstRunGate>
         </BrowserRouter>
-      </InspectorProvider>
+      </InspectorProvider></FocusProvider>
     </ChatProvider>
   );
 }

@@ -1,3 +1,4 @@
+import FocusPanel from '../features/focus/FocusPanel';
 import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import { getBookList } from '../features/books/bookList';
 import { useLocation } from 'react-router-dom';
@@ -26,6 +27,7 @@ const labels: Record<string, string> = { completed: '已完成', paused: '已暂
 
 export default function GoalsPage() {
   const location = useLocation();
+  const routeActive = location.pathname === '/goals';
   const { bookName, subject } = useChatContext();
   const incomingDraft = (location.state as {goalDraft?: string} | null)?.goalDraft;
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -113,7 +115,8 @@ export default function GoalsPage() {
     latestRuntime.current = null;
     setRuntime(null);
     const poll = async () => {
-      if (!selected || view !== 'detail' || cancelled) return;
+      if (!routeActive || !selected || view !== 'detail' || cancelled) return;
+      if (document.visibilityState !== 'visible') { timer=window.setTimeout(()=>void poll(),5000); return; }
       const epoch = pollEpoch.current;
       if (actionBusy.current) { timer = window.setTimeout(() => void poll(), 1500); return; }
       try {
@@ -127,7 +130,7 @@ export default function GoalsPage() {
     };
     void poll();
     return () => { cancelled = true; window.clearTimeout(timer); }; // Each poll completes before the next begins.
-  }, [selected, view]);
+  }, [selected, view, routeActive]);
   const action = async (fn: () => Promise<void>) => {
     if (actionBusy.current) return;
     pollEpoch.current += 1; listEpoch.current += 1; actionBusy.current = true;
@@ -159,6 +162,7 @@ export default function GoalsPage() {
   });
   const run = (resume?: LearningTaskState) => action(async () => {
     if (!active) return;
+    if (!resume && runtime?.resume_block_reason && !window.confirm("旧任务不能继续，已有结果保留。按当前目标开始一次新的执行吗？")) return;
     const response = await post(`/goals/${active.id}/run`, { expected_revision: active.revision, request_key: crypto.randomUUID(), task_id: resume?.id || '' }, 40000);
     if (!response.success) throw new Error('目标未开始');
     if (selectedGoalId.current === active.id) acceptRuntime(response.data);
@@ -202,7 +206,7 @@ export default function GoalsPage() {
             {step === 'edit' ? <><h2>新建目标</h2><p>描述目标和完成条件，整理后确认保存。</p>
               <textarea aria-label="描述学习目标" placeholder="描述学习目标……" value={text} maxLength={2000} onChange={(event) => {setText(event.target.value); setProposal(null); setIntakeFailed(false); setActionError('');}} disabled={busy} />
               {actionError && <div role="alert" className="goal-error">{actionError}</div>}
-              <div className="goal-intake-footer"><ScopeSelector subject={draftScope.subject} bookName={draftScope.bookName} books={scopeBooks} suggestions={books.map((book) => book.subject || '').filter(Boolean)} onSubjectChange={(value) => changeScope({subject: value})} onBookChange={(value) => changeScope({bookName: value})} label="目标范围" emptyBookLabel="不限教材" width="compact" disabled={busy} />
+              <div className="goal-intake-footer"><ScopeSelector size="form" subject={draftScope.subject} bookName={draftScope.bookName} books={scopeBooks} suggestions={books.map((book) => book.subject || '').filter(Boolean)} onSubjectChange={(value) => changeScope({subject: value})} onBookChange={(value) => changeScope({bookName: value})} label="目标范围" emptyBookLabel="不限教材" width="compact" disabled={busy} />
                 <button className="app-primary-button" disabled={busy || !text.trim()} onClick={() => void summarize()}>{busy && !intakeFailed ? <Loader2 className="animate-spin" size={16} /> : null}{busy ? '正在整理…' : intakeFailed ? '重新整理' : '整理目标'}</button></div>
               {intakeFailed && <div className="goal-intake-recovery"><p className="goals-muted">整理暂不可用。也可以先保存为待开始目标，稍后再启用。</p><button className="app-ghost-button" disabled={busy || !text.trim()} onClick={() => void create(true)}>保存为待开始目标</button></div>}
             </> : <><p className="goal-eyebrow">确认目标</p><h2>{proposal?.title}</h2>{actionError && <div role="alert" className="goal-error">{actionError}</div>}<p className="goal-objective">{proposal?.objective}</p>
@@ -214,7 +218,7 @@ export default function GoalsPage() {
             <button ref={listReturnButton} className="goal-list-return app-ghost-button" onClick={showList}><ArrowLeft size={15} />目标列表</button>
             <div className="goal-eyebrow">{goalLabels[active.status] || active.status} · {active.scope.subject || '全部学科'} · {active.scope.book_name || '不限教材'}</div><h2>{active.title}</h2>
             <section className="goal-overview"><p className="goal-objective">{active.objective}</p><div className="goal-criteria"><h3>完成条件</h3>{active.success_criteria.length ? active.success_criteria.map((item) => <p key={item.id}><Circle size={12} />{item.description}</p>) : <p className="goals-muted">尚未设置完成条件，请依据实际学习结果确认目标是否完成。</p>}</div></section>
-            <section className="goal-run" aria-label="当前任务与结果"><h3>本次任务{runtime ? ` · ${labels[runtime.status] || runtime.status}` : ''}</h3>            <div className="goal-execution-controls"><div className="goal-controls">{['draft', 'paused'].includes(active.status) && <button className="app-primary-button" disabled={busy} onClick={() => void command('activate')}><Play size={15} />启用目标</button>}{active.status === 'active' && <><button className="app-primary-button" disabled={busy || runtime?.status === 'running' || runtime?.confirmation_required || runtime?.input_action_required} onClick={() => void run(runtime?.resumable ? runtime : undefined)}><Play size={15} />{busy ? '正在提交…' : runtime?.status === 'running' ? '正在执行' : runtime?.confirmation_required ? '等待确认' : runtime?.input_action_required ? '等待补充输入' : runtime?.resumable ? '继续执行' : '开始执行'}</button><button className="app-secondary-button" title="暂停后续安排并停止当前运行，已取得的结果保留" aria-describedby={runtime?.status === 'running' ? 'goal-pause-impact' : undefined} disabled={busy} onClick={() => void command('pause')}><Pause size={15} />暂停目标</button><button className="app-ghost-button" onClick={() => setScheduleOpen(!scheduleOpen)}><CalendarClock size={15} />定时执行</button></>}
+            <FocusPanel goalId={active.id} criteria={active.success_criteria}/><section className="goal-run" aria-label="当前任务与结果"><h3>本次任务{runtime ? ` · ${labels[runtime.status] || runtime.status}` : ''}</h3>            {runtime?.resume_block_reason && <p role="status" className="goals-muted">{runtime.resume_block_reason}</p>}<div className="goal-execution-controls"><div className="goal-controls">{['draft', 'paused'].includes(active.status) && <button className="app-primary-button" disabled={busy} onClick={() => void command('activate')}><Play size={15} />启用目标</button>}{active.status === 'active' && <><button className="app-primary-button" disabled={busy || runtime?.status === 'running' || runtime?.confirmation_required || runtime?.input_action_required} onClick={() => void run(runtime?.resumable ? runtime : undefined)}><Play size={15} />{busy ? '正在提交…' : runtime?.status === 'running' ? '正在执行' : runtime?.confirmation_required ? '等待确认' : runtime?.input_action_required ? '等待补充输入' : runtime?.resumable ? '继续执行' : '开始执行'}</button><button className="app-secondary-button" title="暂停后续安排并停止当前运行，已取得的结果保留" aria-describedby={runtime?.status === 'running' ? 'goal-pause-impact' : undefined} disabled={busy} onClick={() => void command('pause')}><Pause size={15} />暂停目标</button><button className="app-ghost-button" onClick={() => setScheduleOpen(!scheduleOpen)}><CalendarClock size={15} />定时执行</button></>}
               {active.status === 'active' && runtime?.terminal && <button className="app-secondary-button" disabled={busy} onClick={() => {if (window.confirm('你确认这个目标的完成条件已经满足吗？')) void command('measure');}}><Check size={15} />确认目标完成</button>}</div>
               {active.status === 'active' && runtime?.status === 'running' && <p id="goal-pause-impact" className="goals-muted">暂停目标会停止当前执行和后续安排，已取得的结果保留。</p>}
               {active.next_action?.kind === 'schedule' && <p className="goals-muted">下次执行：{new Date(active.next_action.due_at).toLocaleString()} · {active.next_action.interval_hours ? `每 ${active.next_action.interval_hours} 小时` : '仅一次'}</p>}

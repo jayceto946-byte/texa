@@ -1,0 +1,47 @@
+
+==================================== ERRORS ====================================
+_______________ ERROR collecting tests/test_mobile_remote_s1.py ________________
+../../../../Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/pathlib.py:1175: in mkdir
+    self._accessor.mkdir(self, mode)
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/jichengqian/.codex/worktrees/mobile-s3/texa/data/progress'
+
+During handling of the above exception, another exception occurred:
+tests/test_mobile_remote_s1.py:14: in <module>
+    from backend.main import app
+backend/main.py:18: in <module>
+    from backend.api import agent, chat, mistakes, mistake_lifecycle, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state, goals, notes, focus
+backend/api/books.py:70: in <module>
+    _job_manager = get_job_manager()
+backend/job_manager.py:398: in get_job_manager
+    _job_manager = JobManager()
+backend/job_manager.py:37: in __init__
+    self._init_db()
+backend/job_manager.py:304: in _init_db
+    self.db_path.parent.mkdir(parents=True, exist_ok=True)
+../../../../Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/pathlib.py:1179: in mkdir
+    self.parent.mkdir(parents=True, exist_ok=True)
+../../../../Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/pathlib.py:1175: in mkdir
+    self._accessor.mkdir(self, mode)
+E   PermissionError: [Errno 1] Operation not permitted: '/Users/jichengqian/.codex/worktrees/mobile-s3/texa/data'
+=============================== warnings summary ===============================
+venv310/lib/python3.10/site-packages/starlette/testclient.py:53
+  /Users/jichengqian/.codex/worktrees/mobile-s3/texa/venv310/lib/python3.10/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/test_mobile_remote_s1.py - PermissionError: [Errno 1] Operation n...
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+6 warnings, 1 error in 2.16s
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute

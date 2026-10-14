@@ -2,9 +2,11 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 
 export default function ComposerOverflowMenu({
-  children,
+  children, label = '更多', className = '',
 }: {
   children: (close: () => void) => ReactNode;
+  label?: string;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -34,18 +36,18 @@ export default function ComposerOverflowMenu({
   const close = () => setOpen(false);
 
   return (
-    <div ref={rootRef} className="chat-more-actions relative">
+    <div ref={rootRef} className={`chat-more-actions relative ${className}`}>
       <button
         ref={triggerRef}
         type="button"
         className={`composer-tool-button composer-more-trigger ${open ? 'is-active' : ''}`}
-        aria-label="更多"
+        aria-label={label}
         aria-haspopup="menu"
         aria-expanded={open}
-        title="更多"
+        title={label}
         onClick={() => setOpen((value) => !value)}
       >
-        <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+        <MoreHorizontal className="h-4 w-4" aria-hidden="true" /><span>{label}</span>
       </button>
       {open && (
         <div className="composer-overflow-menu" role="menu" aria-label="更多学习操作">

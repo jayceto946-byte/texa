@@ -1,0 +1,384 @@
+vite v8.0.16 building client environment for production...
+[2K
+transforming...✓ 2181 modules transformed.
+rendering chunks...
+computing gzip size...
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Size3-Regular-CTq5MqoE.woff                   4.42 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2                  4.92 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Size2-Regular-Dy4dx90m.woff2                  5.20 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Size1-Regular-mCD8mA8B.woff2                  5.46 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Size4-Regular-BF-4gkZK.woff                   5.98 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Size2-Regular-oD1tc_U0.woff                   6.18 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Size1-Regular-C195tn64.woff                   6.49 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2            6.90 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2               6.91 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Size3-Regular-DgpXs0kz.ttf                    7.58 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff             7.65 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff                7.71 kB
+../../../../../../tmp/texa-s3-implementation-dist/index.html                                                 7.83 kB │ gzip:   3.10 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Script-Regular-D3wIWfF6.woff2                 9.64 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2             10.34 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Size4-Regular-DWFBv043.ttf                   10.36 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Script-Regular-D5yQViql.woff                 10.58 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/230-w9CML3M4.woff2                                 11.24 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/232-OBzeHe5d.woff2                                 11.28 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2               11.31 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2                  11.34 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Size2-Regular-B7gKUWhC.ttf                   11.50 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/228-ahVBnW79.woff2                                 11.80 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2              12.02 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2                12.21 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/227-EDHGPMJ9.woff2                                 12.22 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Size1-Regular-Dbsnue_I.ttf                   12.22 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff              12.31 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf             12.34 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf                12.36 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/214-BHIV925P.woff2                                 12.45 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/208-D0nO5P27.woff2                                 12.70 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/200-CqAGgYrI.woff2                                 12.73 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/210-DvAp8_NW.woff2                                 12.86 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/202-C3NTKOgJ.woff2                                 12.93 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/234-ChCg9gpI.woff2                                 13.09 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/212-aOyd0Uwa.woff2                                 13.17 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff                13.20 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/218-CyL2gV5X.woff2                                 13.29 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Fraktur-Bold-BsDP51OF.woff                   13.29 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/225-BeKF3WQh.woff2                                 13.31 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/235-BRpsx2L1.woff2                                 13.43 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2            13.56 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/219-DBEt9qwa.woff2                                 14.08 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_SansSerif-Italic-DN2j7dab.woff               14.11 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/216-AyKOwAo2.woff2                                 14.17 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff                 14.40 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/215-Cmj8jpQT.woff2                                 14.52 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/206-CZHpFq3R.woff2                                 14.70 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/201-DhabYDsH.woff2                                 14.80 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/221-4m156V_T.woff2                                 14.86 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/198-CziPYmKK.woff2                                 14.90 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/237-0AEyeMyO.woff2                                 14.98 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/224-DRI5OIG0.woff2                                 15.15 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/217-B3l5wKVt.woff2                                 15.29 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/231-Bl9ste_l.woff2                                 15.54 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/222-BQMCb9_l.woff2                                 15.74 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/220-DDO4heXu.woff2                                 15.78 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/226-BoRnc4B9.woff2                                 15.83 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/236-nFJ8kiox.woff2                                 15.91 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/211-Btg6YbXl.woff2                                 16.02 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff             16.02 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/204-6-8G8fYv.woff2                                 16.31 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2               16.40 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Math-Italic-t53AETM-.woff2                   16.44 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/199-DRXSe6y5.woff2                                 16.45 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/1-CXh_ANkA.woff2                                   16.47 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/213-Dx-12sro.woff2                                 16.64 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Script-Regular-C5JkGWo-.ttf                  16.64 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2               16.78 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Main-Italic-NWA7e6Wa.woff2                   16.98 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/233-GsO0pKS4.woff2                                 17.10 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/203-LtGJ1uL9.woff2                                 17.25 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/223-BLX9-it4.woff2                                 17.26 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/207-BxOD7GWW.woff2                                 17.48 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/205-D4F3Kntf.woff2                                 18.18 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff                18.66 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Math-Italic-DA0__PXp.woff                    18.74 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Main-BoldItalic-SpSLRI95.woff                19.41 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/209-B3Tf_VMY.woff2                                 19.42 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf               19.43 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Fraktur-Regular-CB_wures.ttf                 19.57 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf                    19.58 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Main-Italic-BMLOBm91.woff                    19.67 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/243-C6tJHiEs.woff2                                 19.92 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/229-DAXCp2iO.woff2                                 20.20 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/jetbrains-mono-latin-400-normal-V6pRDFza.woff2     21.16 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/238-Bv9eg1qF.woff2                                 21.41 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf                22.36 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf                  24.50 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Main-Bold-Cx986IdX.woff2                     25.32 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/63-CevCMFAB.woff2                                  26.16 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Main-Regular-B22Nviop.woff2                  26.27 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/2-CicGmxMR.woff2                                   27.39 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/jetbrains-mono-latin-400-normal-6-qcROiO.woff      27.49 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf              27.55 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/37-BKfyicje.woff2                                  27.64 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_AMS-Regular-BQhdFMY1.woff2                   28.07 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/55-DLA_c6xW.woff2                                  28.35 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Main-Bold-Jm3AIy58.woff                      29.91 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Main-Regular-Dr94JaBh.woff                   30.77 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/60-Bh7Vxtv0.woff2                                  31.16 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf                 31.19 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Math-Italic-flOr_0UB.ttf                     31.30 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/59-Cw_viX5t.woff2                                  32.60 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/58-DXv66bSf.woff2                                  32.62 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/57-DXdm0b9y.woff2                                  32.82 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf                 32.96 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/61-K6aXY2B3.woff2                                  33.10 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_AMS-Regular-DMm9YOAa.woff                    33.51 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Main-Italic-3WenGoN9.ttf                     33.58 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/62-Dzh3byH-.woff2                                  33.88 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/24-Dp6pZ6j8.woff2                                  39.35 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/70-f9xZrBKr.woff2                                  44.23 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/67-Az9rgk_i.woff2                                  50.48 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/193-yurN0do-.woff2                                 51.27 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Main-Bold-waoOVXN0.ttf                       51.33 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/191-DPf1mYan.woff2                                 51.73 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/196-xD5F7-EB.woff2                                 52.58 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/194-fCowGTaw.woff2                                 52.63 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_Main-Regular-ypZvNtVU.ttf                    53.58 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/192-BMroOwGp.woff2                                 53.73 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/56-DLPzncy1.woff2                                  53.88 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/190-C0YFEq9h.woff2                                 54.35 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/197-BIYu70dc.woff2                                 55.53 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/173-DdqG4K7e.woff2                                 55.86 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/188-CmorV7Fi.woff2                                 55.96 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/0-BWR-rTUq.woff2                                   55.99 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/187-CWGl4GsG.woff2                                 56.26 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/119-CsZVn6mo.woff2                                 56.56 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/177-B5x46a2G.woff2                                 56.59 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/68-BorldhOQ.woff2                                  56.59 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/179-Bpf4guf_.woff2                                 56.70 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/189-DBxJ4OEk.woff2                                 56.82 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/178-BRuP-DQ_.woff2                                 56.84 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/122-CjrkfwaT.woff2                                 58.05 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/156-PF6xGu_G.woff2                                 58.07 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/181-ZvZodJjs.woff2                                 58.36 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/195-BjtabkvR.woff2                                 58.60 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/120-BnAIKaxk.woff2                                 58.63 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/182-CcmTdyXM.woff2                                 58.73 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/162-C048TQbS.woff2                                 59.05 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/165-BPFkb_pJ.woff2                                 59.15 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/171-sEHuDnPc.woff2                                 59.18 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/186-CtS3vG7Y.woff2                                 59.26 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/166-B0Ecle9O.woff2                                 59.42 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/163-CuAWDs-8.woff2                                 59.51 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/158-Y79OGZzX.woff2                                 59.56 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/53-Ct5dKeMi.woff2                                  59.62 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/155-CsExSB5d.woff2                                 59.77 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/157-Duuam-7w.woff2                                 59.81 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/51-Bz5CK1Oy.woff2                                  60.10 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/184-akuAsxEi.woff2                                 60.12 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/54-HgfwP3C1.woff2                                  60.40 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/134-CAY4zdBE.woff2                                 60.46 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/48-zalP9mDs.woff2                                  60.55 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/174--Y6bL8FC.woff2                                 60.59 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/52-BMmbb-2_.woff2                                  60.59 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/183-D15jruvI.woff2                                 60.69 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/141-DLQsslcc.woff2                                 60.79 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/176-DTWfp6E6.woff2                                 60.79 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/47-De7gO1wc.woff2                                  60.82 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/46-D3PZRYOa.woff2                                  60.85 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/50-DOdk8aTw.woff2                                  61.04 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/172-Ds9gaj-7.woff2                                 61.33 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/49-s8sIt8-Z.woff2                                  61.36 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/160-CqLdV59N.woff2                                 61.36 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/164-BHQvoNuS.woff2                                 61.48 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/153-DMn1oe6K.woff2                                 61.63 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/69-CpAEOGXi.woff2                                  61.63 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/117-Czg6fkBC.woff2                                 61.84 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/154-UT4mqKQB.woff2                                 61.94 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/38-DCgBvxjq.woff2                                  62.00 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/175-DaeaYgyR.woff2                                 62.00 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/180-B7IlV5_q.woff2                                 62.08 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/116-VLTYlucl.woff2                                 62.08 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/44-a9jQyjcJ.woff2                                  62.10 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/161-DqpzvPmd.woff2                                 62.12 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/41-BBIshlle.woff2                                  62.18 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/45-Cq0PhpLm.woff2                                  62.23 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/110-Cr_D8pSn.woff2                                 62.27 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/168-Cg451S0Z.woff2                                 62.32 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/40-BqFSj4r9.woff2                                  62.46 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/42-Cnibfi0l.woff2                                  62.52 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/43-BKZlUydT.woff2                                  62.60 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/242-XAp4GAaF.woff2                                 62.63 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/151-ChkZ2fR0.woff2                                 62.70 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/21-BpHxpYqU.woff2                                  62.71 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/22-DOQV5_AP.woff2                                  62.88 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/130-lnJmJhYq.woff2                                 62.91 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/149-CnZ6gToP.woff2                                 63.06 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/39-CvxogQR9.woff2                                  63.18 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/20-CBixM4rJ.woff2                                  63.28 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/167-DI-JsnzZ.woff2                                 63.32 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/146-B9Kkmliw.woff2                                 63.36 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/170-BW-faGDL.woff2                                 63.39 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/17-BPz2ZZaw.woff2                                  63.43 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/169-Cads5g01.woff2                                 63.44 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/112-BTa80OO7.woff2                                 63.45 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/KaTeX_AMS-Regular-DRggAlZN.ttf                     63.63 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/12-Df5z4C4Y.woff2                                  63.64 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/16-lNEEHdRu.woff2                                  63.77 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/10-D_POVnkx.woff2                                  63.85 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/36-1yRk3wky.woff2                                  63.90 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/18-ytoraawg.woff2                                  63.99 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/15-Cs0RRXJw.woff2                                  64.00 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/148-BO5TZoCu.woff2                                 64.02 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/23-DD9QQsT1.woff2                                  64.04 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/121-CxYM53Mu.woff2                                 64.04 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/33-C1ebhhuv.woff2                                  64.07 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/106-LOKN3_XO.woff2                                 64.07 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/150-DAHNkxCD.woff2                                 64.12 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/145-DInIBoNW.woff2                                 64.14 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/35-CZEjxR9_.woff2                                  64.21 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/34-Bz0-8p2r.woff2                                  64.27 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/147-CFyGMvC2.woff2                                 64.37 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/129-Dy-1utIC.woff2                                 64.47 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/31-WA9T-mSC.woff2                                  64.50 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/32-CIef6L9E.woff2                                  64.52 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/7-CiHXEPuC.woff2                                   64.52 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/9-BK0fQ3P1.woff2                                   64.56 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/159-CA8yBwz9.woff2                                 64.57 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/19-BsWIPnVM.woff2                                  64.59 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/14-qE-Obhyr.woff2                                  64.63 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/132-D9tMemf-.woff2                                 64.76 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/142-B5OFcYDe.woff2                                 64.84 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/128-DTbq99qe.woff2                                 64.86 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/137-DVKU58c0.woff2                                 65.02 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/8-BFLPTsSy.woff2                                   65.13 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/30-C5_nNpvA.woff2                                  65.16 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/109-BgqUN-7S.woff2                                 65.17 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/140-CcM4cvUD.woff2                                 65.18 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/13-BAVBFXU8.woff2                                  65.35 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/143-DKuMckyM.woff2                                 65.46 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/144-BUXPDq9V.woff2                                 65.64 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/118-BNz98HLH.woff2                                 65.68 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/5-BI-qxrF_.woff2                                   65.69 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/4-BQOZrpFz.woff2                                   65.70 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/11-BYXgLmGz.woff2                                  65.75 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/185-DtPl5z64.woff2                                 65.82 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/28-VGk2T1w8.woff2                                  66.21 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/6-_lH7FoYA.woff2                                   66.21 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/131-B25ZssGs.woff2                                 66.28 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/114-Dm3X4jGI.woff2                                 66.42 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/135-DqOhdELB.woff2                                 66.60 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/136-DzQomy-C.woff2                                 66.77 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/27-CJcF3fkV.woff2                                  66.78 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/139-CeAW4pxz.woff2                                 66.94 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/102-DxUUsUhk.woff2                                 66.99 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/29-CIAHM3Fn.woff2                                  67.03 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/108-BaO1PC4c.woff2                                 67.23 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/25-XyClQ_zR.woff2                                  67.24 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/107-CdwwnR39.woff2                                 67.30 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/152-CC5_Owhs.woff2                                 67.64 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/3-BKOpnGlR.woff2                                   67.93 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/127-DPbwlaRM.woff2                                 68.19 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/26-C3qWDv_w.woff2                                  68.26 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/133-BugrTAt2.woff2                                 68.43 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/113-C94NSclj.woff2                                 68.45 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/126-DkT5pStS.woff2                                 68.81 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/125-DRYJvdiY.woff2                                 68.91 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/95-BSwIBwYI.woff2                                  69.27 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/115-Coz_rQyG.woff2                                 69.46 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/111-BHe5aSyq.woff2                                 69.76 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/138-Dj1HmflL.woff2                                 70.01 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/105-yMIQfyDU.woff2                                 70.59 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/88-DWvsLAmE.woff2                                  71.14 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/104-BrXm5IeA.woff2                                 71.21 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/97-C4c3RIFz.woff2                                  71.36 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/72-DRFX5H7r.woff2                                  71.46 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/78-DQJHD3KI.woff2                                  71.66 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/76-FA6LlW8s.woff2                                  72.16 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/98-Cwd2zGgj.woff2                                  72.21 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/94-DJKCWKkj.woff2                                  72.25 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/124-Ds6FnAUp.woff2                                 72.50 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/103-CmIGUW-u.woff2                                 72.56 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/85-kb08U_6N.woff2                                  72.60 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/241-x5nwrP4h.woff2                                 72.67 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/99-DuvQj98O.woff2                                  72.84 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/84-BAIfa3dI.woff2                                  73.19 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/93-Bbejtdld.woff2                                  73.22 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/240-sTNbzcHD.woff2                                 73.60 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/101-DNer3BNG.woff2                                 73.93 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/91-s6QB71nt.woff2                                  74.26 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/239-CO5wEIoB.woff2                                 74.42 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/74-DEpS0TIz.woff2                                  74.54 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/83-Ddjfre4p.woff2                                  74.56 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/82-bUrYQEVs.woff2                                  74.85 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/123-DTOIEj0z.woff2                                 74.98 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/89-C7Vp5jsq.woff2                                  75.37 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/73-3n82xPZN.woff2                                  76.42 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/92-vucpQR06.woff2                                  76.57 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/96-Bi_W4A8n.woff2                                  77.28 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/79-CxpFgbTv.woff2                                  77.36 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/71-CF2sB0up.woff2                                  77.37 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/80-DW5jXgob.woff2                                  77.91 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/86-CqPoSPaR.woff2                                  78.34 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/75-DEhHC3_K.woff2                                  78.67 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/81-tQHUqUiM.woff2                                  79.94 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/90-CtUI4lKr.woff2                                  82.80 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/100-BtjSZOOg.woff2                                 82.89 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/87-zKKaJRsR.woff2                                  83.44 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/77-Br5KA7Su.woff2                                  85.47 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/HarmonyOS_Sans_SC_Bold-DTtO5jJ5.ttf             8,158.99 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/HarmonyOS_Sans_SC_Medium-C0JYcCxp.ttf           8,227.31 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/HarmonyOS_Sans_SC_Regular-DdsgBYS9.ttf          8,261.12 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/conversationMessages-B9qAi20a.css                   1.19 kB │ gzip:   0.45 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/WorkspaceSkeleton-Btn2PSzl.css                      1.42 kB │ gzip:   0.54 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/ReviewSessionPage-D8g4422h.css                      1.53 kB │ gzip:   0.48 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/MistakeIntakePage-Ctfn9Agu.css                      4.17 kB │ gzip:   1.11 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/ChatMessage-07QMeNHt.css                            4.95 kB │ gzip:   1.28 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/MistakesPage-Dkx9Yei1.css                           6.69 kB │ gzip:   1.45 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/LearningPage-DPwLrk-A.css                           7.06 kB │ gzip:   1.64 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/MathFieldEditor-BnjoTxG4.css                        8.00 kB │ gzip:   4.20 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/bootstrap-CwRn6TEa.css                             12.36 kB │ gzip:   3.41 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/katex-CYlHEDRF.css                                 28.83 kB │ gzip:   7.92 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/Workspace-BUbBNB1P.css                            184.16 kB │ gzip:  31.05 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/result-BA3Sfntl.css                               212.65 kB │ gzip:  75.31 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/WorkspaceActionBar-N1Swl2dj.js                      0.32 kB │ gzip:   0.20 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/FocusContext-DqmWDMes.js                            0.39 kB │ gzip:   0.27 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/useLearningNoteFont-BiFm5O5h.js                     0.42 kB │ gzip:   0.30 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/bookList-DNH2uhyF.js                                0.66 kB │ gzip:   0.48 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/rolldown-runtime-QTnfLwEv.js                        0.69 kB │ gzip:   0.42 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/InspectorContext-CzyVpgh4.js                        0.72 kB │ gzip:   0.43 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/ErrorBoundary-BfvGZlBb.js                           0.84 kB │ gzip:   0.55 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/SelectionControls-D4mrkFe4.js                       0.89 kB │ gzip:   0.54 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/WorkspaceSkeleton-h5Q5blWM.js                       0.95 kB │ gzip:   0.40 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/api-C85x97sm.js                                     0.95 kB │ gzip:   0.58 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/networkDiagnostics-7C28CyBP.js                      1.23 kB │ gzip:   0.59 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/textbookScopes-8Q0criQS.js                          1.23 kB │ gzip:   0.66 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/useAuthenticatedBlobUrl-IBlPSoxX.js                 1.90 kB │ gzip:   1.09 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/mobilePerformance-CTSc4EnP.js                       1.91 kB │ gzip:   1.12 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/MarkdownMessage-DBJ2L5f2.js                         2.01 kB │ gzip:   0.85 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/autosave-B-l5a-DQ.js                                2.05 kB │ gzip:   0.87 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/OverflowMenu-DJRcqUSF.js                            2.11 kB │ gzip:   0.97 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/FocusBar-DYPMtYA-.js                                2.17 kB │ gzip:   0.98 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/MathFieldEditor-CZ6bVDZt.js                         2.28 kB │ gzip:   1.15 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/Dialog-DaUujRlB.js                                  2.30 kB │ gzip:   1.07 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/citations-CirjbeGp.js                               2.44 kB │ gzip:   1.09 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/ChatContext-Dyzgm9SQ.js                             2.46 kB │ gzip:   1.08 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/NoteBlocks-w8MQEYQk.js                              3.28 kB │ gzip:   1.32 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/conversationMessages-D0YvFvXB.js                    3.57 kB │ gzip:   1.78 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/AsyncState-CAMiyQfv.js                              4.08 kB │ gzip:   1.28 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/bootstrap-BABoG2wF.js                               4.32 kB │ gzip:   2.25 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/NoteDetailPage-BPe03k-Y.js                          4.92 kB │ gzip:   1.93 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/MarkdownRenderer-ChLljoZC.js                        5.31 kB │ gzip:   2.31 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/theme-CT8zBBhJ.js                                   5.69 kB │ gzip:   1.88 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/WeeklyReportPage-CdIzbYBE.js                        5.79 kB │ gzip:   2.21 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/HighlightPage-DUa5Pn0N.js                           5.97 kB │ gzip:   2.77 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/FirstRunGuide-DRebgVIU.js                           7.09 kB │ gzip:   2.81 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/NotesPage-C1hr36jU.js                               7.21 kB │ gzip:   2.81 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/ReviewSessionPage-D2TToXu8.js                       8.13 kB │ gzip:   2.78 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/ScopeSelector-CQqVqgOR.js                           8.31 kB │ gzip:   3.31 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/MistakeIntakePage-DICym6R-.js                      13.14 kB │ gzip:   4.31 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/NoteDraftPage-DPK0e3-F.js                          13.30 kB │ gzip:   4.65 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/BooksPage-CC9bfS-Z.js                              15.85 kB │ gzip:   5.43 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/ModelSettingsManager-DlLPNtub.js                   15.95 kB │ gzip:   5.41 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/vendor-icons-t4hRfn37.js                           17.41 kB │ gzip:   5.87 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/GoalsPage-CIq_Q7in.js                              19.57 kB │ gzip:   6.71 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/LearningPage-CZs9aXBc.js                           20.31 kB │ gzip:   6.82 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/index-C_1nGO1z.js                                  26.14 kB │ gzip:   9.40 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/MistakesPage-COD8sFaS.js                           27.27 kB │ gzip:   7.92 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/Workspace-BZjnPTEZ.js                              35.78 kB │ gzip:  11.41 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/katex.min-CjOPEIgs.js                              38.09 kB │ gzip:  11.44 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/chunk-6CSD65Y2-BrYa4pMu.js                         41.01 kB │ gzip:  14.57 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/ChatMessage-Qmzg8kE-.js                            50.21 kB │ gzip:  15.27 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/SystemHealth-BctpzkXt.js                           53.03 kB │ gzip:  16.68 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/ExercisesPage--HXfD90F.js                          56.66 kB │ gzip:  15.12 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/ChatPage-CrFKL1SD.js                               99.74 kB │ gzip:  30.08 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/vendor-react-OHCfv3pu.js                          189.64 kB │ gzip:  59.61 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/mathText-DgMsessI.js                              392.72 kB │ gzip: 118.58 kB
+../../../../../../tmp/texa-s3-implementation-dist/assets/mathlive.min-06Mezn5F.js                          801.13 kB │ gzip: 219.32 kB
+
+✓ built in 1.36s
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.

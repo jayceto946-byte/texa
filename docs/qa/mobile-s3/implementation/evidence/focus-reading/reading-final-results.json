@@ -1,0 +1,149 @@
+[
+  {
+    "viewport": 360,
+    "canvas": {
+      "w": 351,
+      "scroll": 351
+    },
+    "math": [
+      {
+        "w": 335,
+        "scroll": 335,
+        "h": 104,
+        "bases": 6
+      },
+      {
+        "w": 335,
+        "scroll": 335,
+        "h": 142,
+        "bases": 6
+      }
+    ]
+  },
+  {
+    "viewport": 390,
+    "canvas": {
+      "w": 381,
+      "scroll": 381
+    },
+    "math": [
+      {
+        "w": 365,
+        "scroll": 365,
+        "h": 104,
+        "bases": 6
+      },
+      {
+        "w": 365,
+        "scroll": 365,
+        "h": 142,
+        "bases": 6
+      }
+    ]
+  },
+  {
+    "viewport": 430,
+    "canvas": {
+      "w": 421,
+      "scroll": 421
+    },
+    "math": [
+      {
+        "w": 405,
+        "scroll": 405,
+        "h": 104,
+        "bases": 6
+      },
+      {
+        "w": 405,
+        "scroll": 405,
+        "h": 103,
+        "bases": 6
+      }
+    ]
+  },
+  {
+    "viewport": 768,
+    "canvas": {
+      "w": 759,
+      "scroll": 759
+    },
+    "math": [
+      {
+        "w": 715,
+        "scroll": 715,
+        "h": 59,
+        "bases": 6
+      },
+      {
+        "w": 715,
+        "scroll": 715,
+        "h": 61,
+        "bases": 6
+      }
+    ]
+  },
+  {
+    "viewport": 820,
+    "canvas": {
+      "w": 811,
+      "scroll": 811
+    },
+    "math": [
+      {
+        "w": 740,
+        "scroll": 740,
+        "h": 59,
+        "bases": 6
+      },
+      {
+        "w": 740,
+        "scroll": 740,
+        "h": 61,
+        "bases": 6
+      }
+    ]
+  },
+  {
+    "viewport": 1024,
+    "canvas": {
+      "w": 807,
+      "scroll": 807
+    },
+    "math": [
+      {
+        "w": 740,
+        "scroll": 740,
+        "h": 58,
+        "bases": 6
+      },
+      {
+        "w": 740,
+        "scroll": 740,
+        "h": 60,
+        "bases": 6
+      }
+    ]
+  },
+  {
+    "viewport": 1280,
+    "canvas": {
+      "w": 1039,
+      "scroll": 1039
+    },
+    "math": [
+      {
+        "w": 740,
+        "scroll": 740,
+        "h": 58,
+        "bases": 6
+      },
+      {
+        "w": 740,
+        "scroll": 740,
+        "h": 60,
+        "bases": 6
+      }
+    ]
+  }
+]

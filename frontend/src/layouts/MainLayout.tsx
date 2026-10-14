@@ -13,6 +13,7 @@ import NotePreflight from '../features/notes/NotePreflight';
 import { NoteCommandContext, type NoteCommandTarget } from '../features/notes/NoteCommandContext';
 import './ApprovedWorkspace.css';
 import './StudyDesk.css';
+import './MobileConvergence.css';
 import { flushRetainedEditor, unsavedNotePath } from '../features/notes/autosave';
 
 function layoutSnapshot() {
@@ -197,7 +198,7 @@ const MainLayout: React.FC = () => {
       className={`app-shell${isStudyDesk ? ' study-desk' : ''}${isLearningWorkspace ? ' learning-route' : ''}`}
     >
       <div className="study-navigation">
-        <AppRail onCollapse={() => setContextOpen(false)} onOpenSettings={openSettings} settingsButtonRef={settingsButtonRef} />
+        <AppRail mobile={contextOverlay} onCollapse={() => setContextOpen(false)} onOpenSettings={openSettings} settingsButtonRef={settingsButtonRef} />
 
         <LearningContextSidebar
           hidden={!isLearningWorkspace || !contextOpen}

@@ -51,7 +51,7 @@ class GoalStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with closing(self._connect()) as conn:
             version = conn.execute("PRAGMA user_version").fetchone()[0]
-            if version > 1:
+            if version > 2:
                 raise RuntimeError("goal schema is newer than supported")
             if version == 0:
                 conn.execute("BEGIN IMMEDIATE")
