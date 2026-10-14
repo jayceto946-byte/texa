@@ -1,0 +1,19 @@
+{
+  "base": "f999e7282b59780f295eb7b5b54fa76913f9eb66",
+  "branch": "feature/mobile-s3",
+  "date": "2026-10-14",
+  "paid_calls": 0,
+  "android_current_verified": false,
+  "production_changes": false,
+  "page_checks": 119,
+  "focused_screenshots": 58,
+  "focused_metrics": 29,
+  "vitest": 203,
+  "pytest_related": 92,
+  "desktop_node": 15,
+  "native_electron_smoke": 3,
+  "real_api_current_label": 11,
+  "lint": "FAIL ChatPage.tsx:242 react-hooks/refs",
+  "astra_model": "gpt-6-astra",
+  "astra_calls": 1
+}

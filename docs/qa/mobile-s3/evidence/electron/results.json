@@ -1,0 +1,18 @@
+{
+  "fixture": true,
+  "checks": [
+    {
+      "case": "actual Electron preload/workspace",
+      "status": "PASS"
+    },
+    {
+      "case": "navigation→settings→Escape",
+      "status": "PASS"
+    },
+    {
+      "case": "graceful shell close",
+      "status": "PASS"
+    }
+  ],
+  "errors": []
+}

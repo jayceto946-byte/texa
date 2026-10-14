@@ -1,0 +1,17 @@
+Issue ID,Page,State,Screenshot,Priority,Nature,Evidence,Observed Problem,User Impact,Root Cause Hypothesis,Batch
+M3-01,教材/章节,populated,pages/390-books.png;pages/390-highlights.png,P1,功能/交互,R/C,维护领先，缺本章提问及位置返回,学生反复找书章节，规定闭环断开,Library管理职责沿用；Highlight未接上下文往返,B1
+M3-02,聊天输入,touch360,focused/360-chat-bottom.png,P1,交互,R,六工具含相似图片入口，发送另起行移左,输入区占高、主操作位置不稳定,工具toolbar flex wrap未按手机优先级归并,B2
+M3-03,笔记编辑,edit390,focused/390-note-editor.png,P1,交互/视觉,R,顶栏标题截断、保存换行、草稿状态挤压,辨识正式保存/草稿困难,桌面同一行全部动作迁入窄屏,B2
+M3-04,全域控件,touch390,focused/390-note-editor.png;pages/390-review.png,P1,触控,R DOM,保存62×28、排序/删除28×28、多处操作28高,误触或需精细点按,shared 28px desktop control未统一mobile hitbox,B2
+M3-05,Session恢复,foreground/双端,NO_SCREENSHOT_CODE_AUDIT,P1,Reliability,C/U,恢复事件只查网络；同会话有消息时不重读,可能显示另一端修改前的旧任务投影,无foreground Session/task reconcile hook,B3
+M3-06,请求确认,pre-ack断流,NO_SCREENSHOT_CODE_AUDIT,P1,验收风险/API,C/U,首次task确认前客户端未知taskID，request_key为服务端requestID,结果未知时可能人工重复发问；未复现重复工具,持久化待确认身份/查询合同待核对,B3
+M3-07,取消/失败,interrupt failed/offline,evidence/live-recovery-current-label/390-chat-interrupted.png,P1,Reliability,C/R/U,正常中断恢复已通过；失败只提示重开读状态,用户可能把局部停止误认已取消,中断失败缺就地只读对账；7态组合未跑,B3
+M3-08,ChatPage,lint,NO_SCREENSHOT_ENGINEERING_LOG,P1,工程,R,render写currentScopeRef触发react-hooks/refs,工程发布门槛失败；不能据此认定数据事故,scope ref同步位于render第242行,B2
+M3-09,公式/表格,overflow360,focused/360-chat-bottom.png,P2（不可达升P1）,阅读可访问性,R/C/U,长公式右端不在首视野；局部横滚源码存在,可能读不到等号末端,溢出提示与触摸末端验证不足,B4/B2
+M3-10,章节重点,populated,pages/390-highlights.png,P2,视觉/IA,R,目录大框置身份之前；正文又框、打印突出,学生先看导航装饰再找章节,桌面目录列stack而非手机章节优先,B1顺带
+M3-11,抽屉/返回,open,focused/390-navigation-history.png,P2,导航,R,业务域与历史可扫描；上下文返回弱,跨资产返回多余开抽屉,全局域入口代替局部位置导航,B1顺带
+M3-12,错题详情,populated,pages/390-mistake.png,P2,视觉/内容,R,顶部题干摘要与正文重复,首屏重复阅读挤掉作答反馈,摘要身份与正文相同素材,B2顺带
+M3-13,章节元信息,populated,pages/390-highlights.png,P2/待核真数据,视觉,C/R/U,bookName和ISO时间直接显示，qa-book为合成值,来源难识别、时间阅读成本,内部参数直接用于显示；真实书名需核对,B1顺带
+M3-14,PDF资源,open/reopen,NO_SCREENSHOT_CODE_AUDIT,P2测量先行,资源,C/U,完整鉴权blob后iframe，无共享资源缓存,大书中继下载成本待量化,useAuthenticatedBlobUrl每次创建/销毁,不自动纳入
+M3-15,Android/Tailscale,keyboard/background/offline,NO_REAL_DEVICE_EVIDENCE,P1验收门槛,验收,U,无本轮真机键盘/安全区/锁屏切网双端证据,不能判RC可用,当前工具无连接Android自动化,B4
+M3-16,聊天恢复提示,interrupted,live-recovery-current-label/390-chat-interrupted.png,P2,文案,R,普通文案出现checkpoint user_stopped,内部术语增加理解成本,checkpoint code直接显示,B3顺带

@@ -1,0 +1,38 @@
+✔ startup appearance caches the existing theme tokens without storing unrelated data (2.812333ms)
+✔ startup appearance rejects invalid theme IDs and unsafe or incomplete colors (0.203458ms)
+✔ startup window controls are exposed for Windows and hidden by default on macOS (0.299833ms)
+✔ Texa branding preserves the existing desktop identity and userData paths (2.191875ms)
+✔ userData keeps the legacy default and accepts an explicit isolated override (0.10825ms)
+✔ portFromUrl resolves explicit and default HTTP ports (1.011625ms)
+✖ findAvailablePort releases a bindable loopback port (9.147625ms)
+✔ desktop never treats an older healthy process as its own backend (0.152166ms)
+✔ desktop completion survives restart independently of the backend origin (2.98325ms)
+✔ corrupt, old and non-boolean flags do not complete setup (1.158375ms)
+✔ an unwritable completion target reports failure (0.513834ms)
+✔ close waits for its renderer and coalesces concurrent close/quit (0.922208ms)
+✔ failed draft flush vetoes closure without stopping backend (0.080792ms)
+✔ unresponsive renderer times out safely and stale acknowledgements do not revive it (6.021625ms)
+✔ startup without a window can quit and send failure vetoes safely (0.118167ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 14
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 83.738125
+
+✖ failing tests:
+
+test at desktop/runtime.test.cjs:38:1
+✖ findAvailablePort releases a bindable loopback port (9.147625ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at node:net:2448:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
