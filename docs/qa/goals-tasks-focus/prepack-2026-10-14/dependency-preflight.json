@@ -1,0 +1,11 @@
+{
+  "python": "3.10.21",
+  "installed_distribution_count": 150,
+  "dependency_conflicts": [],
+  "packaging_modules": {
+    "PyInstaller": true,
+    "onnxruntime": true,
+    "tokenizers": true,
+    "tzdata": false
+  }
+}

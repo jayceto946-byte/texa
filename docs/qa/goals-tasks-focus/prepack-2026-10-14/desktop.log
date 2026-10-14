@@ -1,0 +1,32 @@
+✔ startup appearance caches the existing theme tokens without storing unrelated data (3.213542ms)
+✔ startup appearance rejects invalid theme IDs and unsafe or incomplete colors (0.333958ms)
+✔ startup window controls are exposed for Windows and hidden by default on macOS (0.532417ms)
+✔ power bridge exposes only suspend/resume and unsubscribes without duplication (2.560375ms)
+✔ failed note preparation still runs focus preparation and vetoes window closure (4.398041ms)
+✔ aborted close notifies handlers without silently restarting a focus run (2.27ms)
+✔ one click uses actual port; restart follows changed port; disable removes owned mapping (2.44375ms)
+✔ unrelated root handler remains untouched (1.478333ms)
+✔ never enables or edits Funnel (0.393959ms)
+✔ existing exact target can be adopted after device rename (0.734875ms)
+✔ not ready and nonlocal backend never mutate Tailscale (1.468625ms)
+✔ missing Tailscale returns actionable state without commands (0.451458ms)
+✔ Texa branding preserves the existing desktop identity and userData paths (1.640167ms)
+✔ userData keeps the legacy default and accepts an explicit isolated override (1.538084ms)
+✔ portFromUrl resolves explicit and default HTTP ports (0.249708ms)
+✔ findAvailablePort releases a bindable loopback port (8.02575ms)
+✔ desktop never treats an older healthy process as its own backend (0.096875ms)
+✔ desktop completion survives restart independently of the backend origin (2.289958ms)
+✔ corrupt, old and non-boolean flags do not complete setup (1.439666ms)
+✔ an unwritable completion target reports failure (0.795375ms)
+✔ close waits for its renderer and coalesces concurrent close/quit (0.900375ms)
+✔ failed draft flush vetoes closure without stopping backend (0.097833ms)
+✔ unresponsive renderer times out safely and stale acknowledgements do not revive it (5.662875ms)
+✔ startup without a window can quit and send failure vetoes safely (0.121084ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 110.824125

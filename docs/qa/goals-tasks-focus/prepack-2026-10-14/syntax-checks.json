@@ -1,0 +1,152 @@
+[
+  {
+    "file": "desktop/appearance.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "desktop/appearance.test.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "desktop/focus-power.test.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "desktop/main.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "desktop/preload.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "desktop/remote-connection.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "desktop/remote-connection.test.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "desktop/runtime.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "desktop/runtime.test.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "desktop/setup-state.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "desktop/setup-state.test.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "desktop/window-close.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "desktop/window-close.test.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/pack-desktop-macos-offline.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/qa-deepseek-production-electron.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/qa-deepseek-production-paid-electron.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/qa-deepseek-remediation-electron.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/qa-deepseek-remediation-paid-electron.cjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/mobile-network-s2-smoke.mjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/mobile-s2-performance.mjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/qa-cross-module.mjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/qa-electron.mjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/qa-live-e2e.mjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/qa-native-tool-electron.mjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/qa-pages.mjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/qa-paid-latency-restored.mjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/qa-paid-native-electron.mjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/qa-performance-electron.mjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/visual-preview-server.mjs",
+    "exit_code": 0,
+    "error": ""
+  },
+  {
+    "file": "scripts/build-desktop-backend-macos.sh",
+    "exit_code": 0,
+    "error": ""
+  }
+]

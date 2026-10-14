@@ -1,0 +1,57 @@
+........................................................................ [  4%]
+........................................................................ [  8%]
+........................................................................ [ 12%]
+........................................................................ [ 17%]
+........................................................................ [ 21%]
+........................................................................ [ 25%]
+........................................................................ [ 29%]
+........................................................................ [ 34%]
+........................................................................ [ 38%]
+........................................................................ [ 42%]
+........................................................................ [ 46%]
+........................................................................ [ 51%]
+........................................................................ [ 55%]
+........................................................................ [ 59%]
+........................................................................ [ 63%]
+........................................................................ [ 68%]
+........................................................................ [ 72%]
+........................................................................ [ 76%]
+........................................................................ [ 81%]
+........................................................................ [ 85%]
+...................................................................F.... [ 89%]
+........................................................................ [ 93%]
+........................................................................ [ 98%]
+................................                                         [100%]
+=================================== FAILURES ===================================
+____________ test_client_side_routes_fall_back_to_react_entrypoint _____________
+
+    def test_client_side_routes_fall_back_to_react_entrypoint():
+        client = TestClient(app)
+
+        response = client.get("/settings")
+
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests/test_spa_fallback.py:11: AssertionError
+=============================== warnings summary ===============================
+../../../Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/starlette/testclient.py:53
+  /Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_spa_fallback.py::test_client_side_routes_fall_back_to_react_entrypoint
+1 failed, 1687 passed, 6 warnings in 41.16s

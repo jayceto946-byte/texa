@@ -1,3 +1,9 @@
+# 2026-10-14 - Goals / Focus 打包前全量检查
+
+- 本地实现提交 8003dae，codex/goals-tasks-focus；在干净同提交临时检出执行全量检查，Python 3.10 后端1688、前端214、桌面24项通过（共1926），完整types/lint/build与30文件语法通过。首次SPA测试因缺frontend/dist失败，补同提交产物后完整后端复跑通过；首次结果保留。
+- 26个release依赖pin匹配、已安装依赖无冲突、ONNX资源完整hash通过；无凭证、真实模型调用、正式库迁移或打包。Windows缺可分发时区数据、公开release缺LICENSE、包后验证及既有未测实机项明确保留。详见docs/qa/goals-tasks-focus/prepack-2026-10-14/REPORT.md。
+- 推送当前GitHub remote被自动审批阻止，等待用户确认具体目的地；打包按用户要求等待另一次授权。
+
 # 2026-10-14 - Goals / Tasks / Focus 重设计候选实现
 
 - 基于 feature/mobile-s3 af861ba 的已有 Focus 实现，在独立 goals-tasks-focus 工作区增量修改，保留手机连接、桌面导航、Goal/Runtime、CAS 与回执。主 master 的既有未提交文档未覆盖。本次仍为隔离候选，未发布、未升级真实学习库。

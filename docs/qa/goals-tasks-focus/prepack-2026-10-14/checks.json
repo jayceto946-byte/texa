@@ -1,0 +1,29 @@
+{
+  "tested_commit": "8003dae",
+  "python": "3.10.21",
+  "backend": {
+    "passed": 1688,
+    "warnings": 6,
+    "first_run_failure": "SPA assets absent; same-commit frontend build created then entire backend suite repeated"
+  },
+  "frontend": {
+    "files": 48,
+    "passed": 214
+  },
+  "desktop": {
+    "passed": 24
+  },
+  "automated_tests_total": 1926,
+  "typecheck": "PASS",
+  "full_eslint": "PASS",
+  "frontend_production_build": "PASS",
+  "syntax_checks": 30,
+  "version_consistency": "1.0.0",
+  "python_release_pins": 26,
+  "release_pin_mismatches": 0,
+  "installed_dependency_conflicts": 0,
+  "embedding_asset_hashes": "PASS",
+  "packaging_executed": false,
+  "production_migration_executed": false,
+  "remote_push": "blocked pending explicit destination authorization"
+}
