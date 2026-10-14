@@ -1,3 +1,9 @@
+# 2026-10-14 — Mobile S3 Redmi真机审计修订（未实施）
+
+- 接收5张Redmi实机反馈，新增M3-17–22：导航控件共线、会话操作去重与scope呈现、手机/平板公式canvas、教材主滚动、旧Goal409、历史优先抽屉；提升原长公式/侧栏问题优先级。保留浏览器与真机证据边界。
+- 只读定位Goal继续失败：旧run paused/goal_changed且冻结goal_contract缺失；恢复POST409、状态GET200。没有重试付费模型、修改运行或绕过栅栏。
+- 用户新增番茄任务和聊天可展开计时控件需求，纳入设计修订；旧timer排除不再适用。计时、用户任务完成与Runtime分别呈现；持久化/迁移合同评审后另获实施确认。本轮未修改产品或数据结构。
+
 # 2026-10-14 — Mobile S3 audit and plan（未实施）
 
 - Fetch 后核对 master/origin/master=f999e72；S0/S1/S2 分支均为祖先。独立 feature/mobile-s3 worktree 保留审计材料；其他分支与旧 worktree 未覆盖或清理。

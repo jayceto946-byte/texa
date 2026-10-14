@@ -15,5 +15,10 @@
   "real_api_current_label": 11,
   "lint": "FAIL ChatPage.tsx:242 react-hooks/refs",
   "astra_model": "gpt-6-astra",
-  "astra_calls": 1
+  "astra_calls": 1,
+  "real_device_user_screenshots": 5,
+  "issue_count_revised": 22,
+  "timer_design_requested": true,
+  "timer_implemented": false,
+  "android_visual_feedback_received": true
 }

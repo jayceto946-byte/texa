@@ -213,3 +213,15 @@
 |[evidence/pages/retry-review-start.png](evidence/pages/retry-review-start.png)|R-fixture|NO|captured; unreviewed|4d17ffd787596972872c0e0189ff535c383971353f5b3c82edd362d57bf2069b|
 
 Astra实际读取：review/01–08八组PNG，保留原宽度；review/brief.md只是说明，不代替图片。Sol常规44手机图通过s3-sheet1–8，focused58图通过focused-sheet1–10，另桌面两图及API恢复三图/旧失败图。未查看其他宽度全部图片，不宣称全量视觉签收。
+
+## 用户提供Redmi真机截图（2026-10-14）
+
+5张均由Sol直接读取；不是Playwright生成。包含用户反馈的真实横向拖动/主体滑动体验。完整Android发布验收仍未通过。
+
+|File|证据|SHA256|
+|---|---|---|
+|[real-device/phone-01.png](real-device/phone-01.png)|Android真实截图/用户反馈|00a4cdae8bd8b804e0eac3f686502b029f1935d8d1943d70c479799d533d6d96|
+|[real-device/phone-02.jpg](real-device/phone-02.jpg)|Android真实截图/用户反馈|a54b1979c395cadf3af29ad46e81b75b25498e06575ceaec11497878fa959cdf|
+|[real-device/phone-03.jpg](real-device/phone-03.jpg)|Android真实截图/用户反馈|eb65cfab795174fc3bf13e4ad89964932b373518d4ec53b0a9cfa0dea1fd32db|
+|[real-device/phone-04.jpg](real-device/phone-04.jpg)|Android真实截图/用户反馈|04d77b6cd56a4ea0437249786ab9a3958f4014b568f08cf8dd0a79d07d058a98|
+|[real-device/phone-05.jpg](real-device/phone-05.jpg)|Android真实截图/用户反馈|afc6539182016051d7ed5c8789f29172e3d9601fd6de12354d8c1567824cf875|

@@ -7,11 +7,17 @@ M3-05,Session恢复,foreground/双端,NO_SCREENSHOT_CODE_AUDIT,P1,Reliability,C/
 M3-06,请求确认,pre-ack断流,NO_SCREENSHOT_CODE_AUDIT,P1,验收风险/API,C/U,首次task确认前客户端未知taskID，request_key为服务端requestID,结果未知时可能人工重复发问；未复现重复工具,持久化待确认身份/查询合同待核对,B3
 M3-07,取消/失败,interrupt failed/offline,evidence/live-recovery-current-label/390-chat-interrupted.png,P1,Reliability,C/R/U,正常中断恢复已通过；失败只提示重开读状态,用户可能把局部停止误认已取消,中断失败缺就地只读对账；7态组合未跑,B3
 M3-08,ChatPage,lint,NO_SCREENSHOT_ENGINEERING_LOG,P1,工程,R,render写currentScopeRef触发react-hooks/refs,工程发布门槛失败；不能据此认定数据事故,scope ref同步位于render第242行,B2
-M3-09,公式/表格,overflow360,focused/360-chat-bottom.png,P2（不可达升P1）,阅读可访问性,R/C/U,长公式右端不在首视野；局部横滚源码存在,可能读不到等号末端,溢出提示与触摸末端验证不足,B4/B2
+M3-09,公式/表格,overflow360,focused/360-chat-bottom.png,P1（Redmi真机反馈修订）,阅读可访问性,R/C/U,长公式右端不在首视野；局部横滚源码存在,可能读不到等号末端,溢出提示与触摸末端验证不足,B4/B2
 M3-10,章节重点,populated,pages/390-highlights.png,P2,视觉/IA,R,目录大框置身份之前；正文又框、打印突出,学生先看导航装饰再找章节,桌面目录列stack而非手机章节优先,B1顺带
-M3-11,抽屉/返回,open,focused/390-navigation-history.png,P2,导航,R,业务域与历史可扫描；上下文返回弱,跨资产返回多余开抽屉,全局域入口代替局部位置导航,B1顺带
+M3-11,抽屉/返回,open,focused/390-navigation-history.png,P1（Redmi真机反馈修订）,导航,R,业务域与历史可扫描；上下文返回弱,跨资产返回多余开抽屉,全局域入口代替局部位置导航,B1顺带
 M3-12,错题详情,populated,pages/390-mistake.png,P2,视觉/内容,R,顶部题干摘要与正文重复,首屏重复阅读挤掉作答反馈,摘要身份与正文相同素材,B2顺带
 M3-13,章节元信息,populated,pages/390-highlights.png,P2/待核真数据,视觉,C/R/U,bookName和ISO时间直接显示，qa-book为合成值,来源难识别、时间阅读成本,内部参数直接用于显示；真实书名需核对,B1顺带
 M3-14,PDF资源,open/reopen,NO_SCREENSHOT_CODE_AUDIT,P2测量先行,资源,C/U,完整鉴权blob后iframe，无共享资源缓存,大书中继下载成本待量化,useAuthenticatedBlobUrl每次创建/销毁,不自动纳入
 M3-15,Android/Tailscale,keyboard/background/offline,NO_REAL_DEVICE_EVIDENCE,P1验收门槛,验收,U,无本轮真机键盘/安全区/锁屏切网双端证据,不能判RC可用,当前工具无连接Android自动化,B4
 M3-16,聊天恢复提示,interrupted,live-recovery-current-label/390-chat-interrupted.png,P2,文案,R,普通文案出现checkpoint user_stopped,内部术语增加理解成本,checkpoint code直接显示,B3顺带
+M3-17,全域顶栏/抽屉,closed/open,real-device/phone-01.png;real-device/phone-05.jpg,P1,真机交互/状态,R-user/C,导航按钮不共线/重复关闭,页面identity不稳定,绝对top对auto-height,B1
+M3-18,聊天顶栏,populated,real-device/phone-01.png,P1,真机交互/状态,R-user/C,重复会话menu与scope常驻,空间占用与语义混淆,header/history菜单重复,B1
+M3-19,阅读画布,长公式横拖,real-device/phone-02.jpg,P1,真机交互/状态,R-user/C,正文整体横移,推导/正文左端不可见,inline math溢出传导待DOM核对,B2
+M3-20,教材,分类+空态,real-device/phone-03.jpg,P1,真机交互/状态,R-user/C,分类可滑主体无法拖（用户报告）,学习列表主区不自然,flex剩余高度约束候选；空态非必需滚动,B1
+M3-21,Goal,旧run继续409,real-device/phone-04.jpg,P1,真机交互/状态,R-user/C,旧合同缺失仍显示继续,核心功能阻断/错误指向模型,goal_changed/缺goal_contract；fence正确拒绝,B3
+M3-22,导航历史,drawer,real-device/phone-05.jpg,P1,真机交互/状态,R-user/C,历史/新对话受功能入口挤压,用户主要入口弱,业务入口占高/双收起,B1

@@ -161,3 +161,8 @@ Screenshot：[live-recovery-current-label/390-chat-interrupted.png](evidence/liv
 Observed Problem：普通文案出现checkpoint user_stopped。User Impact：内部术语增加理解成本。
 
 Root Cause Hypothesis：checkpoint code直接显示。批次：B3顺带。
+
+
+## Redmi 真机追加 M3-17–22（P1）
+
+完整Page/State/Screenshot/Observed/UserImpact/根因与验收见 [实机修订](REAL-DEVICE-REVIEW-AND-S3-REVISION.md)。M3-09长公式及M3-11导航从原P2提升P1。旧问题标签仅作初审历史。
