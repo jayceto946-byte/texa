@@ -1,0 +1,189 @@
+{
+  "environment": "macOS Electron development shell",
+  "model": "offline fixture only",
+  "checks": [
+    {
+      "width": 1280,
+      "case": "note autosave503→navigation blocked→local text retained→retry saved",
+      "status": "PASS",
+      "draft_id": "draft_1fe26f6ded3c499e802bea8436bfa3f8"
+    },
+    {
+      "width": 1280,
+      "case": "note draft CAS409→copy local edits→reload authority→edit and autosave",
+      "status": "PASS",
+      "draft_id": "draft_1fe26f6ded3c499e802bea8436bfa3f8"
+    },
+    {
+      "width": 1280,
+      "case": "formal recovery clipboard/read failure preserves text and disables stale publish",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "archived formal authority→copy and read only; retained draft unchanged",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "note formal revision CAS conflict→no overwrite→copy/recovery",
+      "status": "PASS",
+      "note_id": "note_265c2d1cfff446a5a3623f7c8bbef968",
+      "draft_id": "draft_14164e20d0a348dd81cc25d01bf85957"
+    },
+    {
+      "width": 1280,
+      "case": "candidate source comparison switch preserves edits/selection; import footer reachable",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "real Word+answer extraction→unconfirmed candidates→merge/split→human correction→select→batch import→rollback",
+      "status": "PASS",
+      "batch_id": "f229227c-8b0"
+    },
+    {
+      "width": 1280,
+      "case": "real text PDF→original comparison→two candidates; no automatic bank writes",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "crop focus trap/inert/keyboard enhancement; cancelled replacement retains existing attachment",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "chat image→rotate/process/compress→attach preview→remove; no model call",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "image editor Escape→cancel→focus returns",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "source keyboard boundary→Escape→trigger focus and composer draft preserved",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "persisted source metadata→inspector→Escape→reopen→route switch closes",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_1fe26f6ded3c499e802bea8436bfa3f8"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_1fe26f6ded3c499e802bea8436bfa3f8"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_1fe26f6ded3c499e802bea8436bfa3f8"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_1fe26f6ded3c499e802bea8436bfa3f8"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_1fe26f6ded3c499e802bea8436bfa3f8"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_1fe26f6ded3c499e802bea8436bfa3f8/save"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_14164e20d0a348dd81cc25d01bf85957"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_14164e20d0a348dd81cc25d01bf85957/save"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_ec2244cdca014b678d847e0582ba5dcf"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_ec2244cdca014b678d847e0582ba5dcf/save"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_9a0f569c788b4a7fad1d03c301effe32"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_9a0f569c788b4a7fad1d03c301effe32/save"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/batch-add"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/import-batches/rollback"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    }
+  ]
+}

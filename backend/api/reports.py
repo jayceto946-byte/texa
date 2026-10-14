@@ -11,17 +11,14 @@ from fastapi import APIRouter
 from config import PROGRESS_PATH
 from memory.exercise_bank import get_exercise_bank
 from memory.mistake_book import get_mistake_book
+from backend.services.learning_reports import conversation_statistics, parse_activity_time
+from utils.subject_catalog import subject_matches
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
 def _parse_dt(value: str) -> datetime | None:
-    if not value:
-        return None
-    try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00")).replace(tzinfo=None)
-    except Exception:
-        return None
+    return parse_activity_time(value)
 
 
 def _since_days(days: int) -> datetime:
@@ -30,10 +27,11 @@ def _since_days(days: int) -> datetime:
 
 @router.get("/weekly")
 def weekly_report(book_name: str = "default", subject: str = "", days: int = 7):
-    start = _since_days(max(1, min(days, 31)))
+    days = max(1, min(days, 31))
+    start = _since_days(days)
     book = book_name or "default"
 
-    mistakes = get_mistake_book(book, str(PROGRESS_PATH)).list_all(limit=10000)
+    mistakes = get_mistake_book(book, str(PROGRESS_PATH)).list_all(subject=subject or None, limit=10000)
     week_mistakes = [m for m in mistakes if (_parse_dt(m.created_at) or datetime.min) >= start]
     reviewed_mistakes = []
     for m in mistakes:
@@ -44,7 +42,7 @@ def weekly_report(book_name: str = "default", subject: str = "", days: int = 7):
                 break
 
     bank = get_exercise_bank(book, str(PROGRESS_PATH))
-    exercises = bank.list_all(limit=10000)
+    exercises = bank.list_all(subject=subject or None, limit=10000)
     week_exercises = [e for e in exercises if (_parse_dt(e.created_at) or datetime.min) >= start]
     practiced = []
     for e in exercises:
@@ -55,7 +53,7 @@ def weekly_report(book_name: str = "default", subject: str = "", days: int = 7):
                 break
 
     conversations, qa_count = _conversation_stats(start, book, subject)
-    concept_stats = _concept_stats(start, book)
+    concept_stats = _concept_stats(start, book, subject)
 
     weak_counter = Counter()
     for m in week_mistakes:
@@ -103,31 +101,10 @@ def weekly_report(book_name: str = "default", subject: str = "", days: int = 7):
 
 
 def _conversation_stats(start: datetime, book_name: str, subject: str) -> tuple[list[dict], int]:
-    conv_dir = Path(PROGRESS_PATH) / "conversations"
-    if not conv_dir.exists():
-        return [], 0
-    questions: list[dict] = []
-    for path in conv_dir.glob("*.json"):
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-        except Exception:
-            continue
-        for msg in data.get("messages", []):
-            if msg.get("role") != "user":
-                continue
-            t = _parse_dt(str(msg.get("created_at", "")))
-            if not t or t < start:
-                continue
-            if book_name not in {"", "default"} and msg.get("book_name") not in {book_name, "default", ""}:
-                continue
-            if subject and msg.get("subject") not in {subject, ""}:
-                continue
-            questions.append({"time": t.isoformat(timespec="minutes"), "question": str(msg.get("content", ""))[:160]})
-    questions.sort(key=lambda x: x["time"])
-    return questions, len(questions)
+    return conversation_statistics(start, book_name, subject)
 
 
-def _concept_stats(start: datetime, book_name: str) -> dict:
+def _concept_stats(start: datetime, book_name: str, subject: str = "") -> dict:
     path = Path(PROGRESS_PATH) / book_name / "concept_memory.json"
     if not path.exists():
         return {"exposure_count": 0, "top_concepts": []}
@@ -138,6 +115,8 @@ def _concept_stats(start: datetime, book_name: str) -> dict:
     counter = Counter()
     exposure_count = 0
     for item in data.get("exposures", []) or []:
+        if subject and not subject_matches(item.get("subject", ""), subject):
+            continue
         t = _parse_dt(str(item.get("timestamp", "")))
         if t and t >= start:
             name = str(item.get("concept", "")).strip()

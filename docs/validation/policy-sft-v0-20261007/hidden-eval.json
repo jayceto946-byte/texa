@@ -1,0 +1,14 @@
+{
+  "status": "not_run",
+  "accuracy": null,
+  "reason": "resource-aborted epoch; no final Dev-best checkpoint selected",
+  "hidden_model_inference_count": 0,
+  "gates": {
+    "semantic_accuracy": 0.85,
+    "permutation_consistency": 0.9,
+    "binary_consistency": 0.9,
+    "negation_correction_accuracy": 0.8,
+    "max_position_id_distribution_deviation": 0.1
+  },
+  "hidden_inference_count": 0
+}

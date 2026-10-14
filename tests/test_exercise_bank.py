@@ -78,7 +78,7 @@ def test_exercises_api_add_list_status_practice_and_import_mistake(monkeypatch, 
 
     practice_res = client.post(
         "/api/exercises/practice",
-        json={"id": exercise_id, "user_answer": "不会", "quality": 1, "add_to_mistake": True},
+        json={"id": exercise_id, "operation_id": "test-direct", "user_answer": "不会", "quality": 1, "add_to_mistake": True},
     ).json()
     assert practice_res["success"] is True
     assert practice_res["data"]["status"] == "needs_review"
@@ -356,3 +356,42 @@ def test_practice_answer_without_mistake_does_not_initialize_mistake_book(monkey
     assert response["success"] is True
     assert response["data"]["status"] == "completed"
     assert response["mistake_id"] == ""
+
+
+def test_exercise_missing_table_and_transport_error_do_not_succeed(monkeypatch):
+    from types import SimpleNamespace
+    from backend.schemas import ExerciseAnswerGenerateRequest
+    record = SimpleNamespace(question_text="根据附表计算输出电压", chapter="第一章", subject="专业课")
+    monkeypatch.setattr(exercises, "_bank", lambda book_name: SimpleNamespace(get=lambda id: record))
+    monkeypatch.setattr("backend.services.exercise_answers.retrieve_node", lambda state: {"evidence_items": [{"text": "输出电压计算方法"}]})
+    response = exercises.generate_exercise_answer(ExerciseAnswerGenerateRequest(id="synthetic"), "test")
+    assert not response["success"]
+    assert response["delivery_status"] == "waiting_for_input"
+    assert response["data"]["required_inputs"][0]["blocking"]
+    assert response["data"]["learning_task"]["status"] == "waiting_for_input"
+    assert response["data"]["learning_task"]["conversation_id"] == ""
+    def fail(*args, **kwargs):
+        raise RuntimeError("SYNTHETIC_PRIVATE_MARKER")
+    monkeypatch.setattr("backend.services.exercise_answers.generate_answer", fail)
+    response = exercises.generate_exercise_answer(ExerciseAnswerGenerateRequest(id="synthetic"), "test")
+    assert "SYNTHETIC_PRIVATE_MARKER" not in str(response)
+    assert not response["success"]
+
+
+def test_practice_search_scope_matches_visible_filter_and_empty_scope_keeps_active(tmp_path, monkeypatch):
+    from backend.schemas import ExercisePracticeSessionCreateRequest
+    bank = ExerciseBank(tmp_path / "search-practice.db")
+    matched = ExerciseRecord(question_text="求极限", subject="数学")
+    other = ExerciseRecord(question_text="求导数", subject="数学")
+    bank.add(matched)
+    bank.add(other)
+    monkeypatch.setattr(exercises, "_bank", lambda _scope: bank)
+    created = exercises.create_practice_session(ExercisePracticeSessionCreateRequest(subject="数学", search_kw="极限"))
+    assert created["success"] is True
+    session = bank.get_active_practice_session()
+    assert session.exercise_ids == [matched.id]
+    assert session.filters["search_kw"] == "极限"
+    failed = exercises.create_practice_session(ExercisePracticeSessionCreateRequest(subject="数学", search_kw="不存在"))
+    assert failed["success"] is False
+    assert bank.get_active_practice_session().id == session.id
+    assert bank.get_practice_session(session.id).status == "active"

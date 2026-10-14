@@ -163,3 +163,19 @@ def test_cross_chapter_questions_preserve_three_items_from_each_chapter():
         "chapter-2",
         "chapter-3",
     }
+
+
+def test_final_pack_coverage_and_book_scoped_chapter_limit():
+    from graph.generator import finalize_answer_verification
+    long = {**_item("tail", "第一章", "电阻式传感器。" + "背景内容。" * 400 + "灵敏度是输出变化与输入变化之比。"), "is_direct_hit": True}
+    state = {"user_input": "电阻式传感器的灵敏度是什么？", "intent": "definition", "evidence_gate_applied": True,
+             "evidence_items": [long], "evidence_support": {"status": "supported", "matched_focus_terms": ["灵敏度"]}}
+    _build_generate_prompt(state)
+    assert state["evidence_support"]["lost_focus_terms"] == ["灵敏度"]
+    finalize_answer_verification(state, "灵敏度是输出变化与输入变化之比。[[cite:E1]]")
+    assert state["answer_verification"]["status"] == "failed"
+    pack = build_evidence_pack([_item(f"{book}-{n}", "第一章", f"{book} fact {n}", book_name=book)
+                                for book in ("A", "B") for n in range(4)], intent="definition")
+    assert len(pack["items"]) == 8
+    assert all("text" not in item for item in pack["items"])
+    assert all(item["text"] in pack["text"] for item in pack["verification_items"])

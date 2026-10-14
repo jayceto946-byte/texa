@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 
-import { SimpleMarkdown } from '../../components/chat/MarkdownRenderer';
+import { SimpleMarkdown } from '../../components/chat/MarkdownMessage';
 import type { MathExpression } from './types';
 
 interface MathExpressionListProps {

@@ -1,0 +1,133 @@
+{
+  "N": 576,
+  "seeds": 144,
+  "semantic_accuracy": 0.8454861111111112,
+  "permutation_consistency": 0.8055555555555556,
+  "binary_consistency": 0.9166666666666666,
+  "three_variant_all_correct": 0.7847222222222222,
+  "four_variant_all_correct": 0.7430555555555556,
+  "valid_rate": 1.0,
+  "strata": {
+    "tool_vs_answer": {
+      "N": 96,
+      "accuracy": 0.7291666666666666
+    },
+    "multi_intent": {
+      "N": 48,
+      "accuracy": 0.5833333333333334
+    },
+    "negation": {
+      "N": 96,
+      "accuracy": 0.7708333333333334
+    },
+    "correction": {
+      "N": 48,
+      "accuracy": 0.9166666666666666
+    },
+    "noisy_wording": {
+      "N": 96,
+      "accuracy": 0.9479166666666666
+    },
+    "existing_vs_knowledge": {
+      "N": 48,
+      "accuracy": 1.0
+    },
+    "tool_distinction": {
+      "N": 96,
+      "accuracy": 0.875
+    },
+    "quoted_statement": {
+      "N": 48,
+      "accuracy": 1.0
+    }
+  },
+  "negation_correction_accuracy": 0.8194444444444444,
+  "tool_vs_answer_accuracy": 0.7291666666666666,
+  "multi_intent_accuracy": 0.5833333333333334,
+  "bias": {
+    "2": {
+      "N": 288,
+      "predicted_position": {
+        "2": 139,
+        "1": 149
+      },
+      "predicted_action_id": {
+        "a1": 143,
+        "a0": 145
+      },
+      "gold_position": {
+        "1": 144,
+        "2": 144
+      },
+      "gold_action_id": {
+        "a0": 144,
+        "a1": 144
+      },
+      "maximum_share_deviation": 0.01736111111111116
+    },
+    "3": {
+      "N": 288,
+      "predicted_position": {
+        "1": 107,
+        "3": 80,
+        "2": 101
+      },
+      "predicted_action_id": {
+        "a0": 102,
+        "a2": 90,
+        "a1": 96
+      },
+      "gold_position": {
+        "1": 96,
+        "3": 96,
+        "2": 96
+      },
+      "gold_action_id": {
+        "a0": 96,
+        "a1": 96,
+        "a2": 96
+      },
+      "maximum_share_deviation": 0.055555555555555525
+    }
+  },
+  "max_position_id_distribution_deviation": 0.055555555555555525,
+  "status": "complete",
+  "four_permutation_consistency": 0.8055555555555556,
+  "contract_validity": 1.0,
+  "metric_note": "frozen permutation_consistency already means all four valid semantic choices agree",
+  "fixed_layout_A_accuracy": 0.8402777777777778,
+  "position_distribution": {
+    "2": {
+      "2": 139,
+      "1": 149
+    },
+    "3": {
+      "1": 107,
+      "3": 80,
+      "2": 101
+    }
+  },
+  "action_id_distribution": {
+    "2": {
+      "a1": 143,
+      "a0": 145
+    },
+    "3": {
+      "a0": 102,
+      "a2": 90,
+      "a1": 96
+    }
+  },
+  "paired_raw_comparison": {
+    "N": 576,
+    "counts": {
+      "both_wrong": 52,
+      "both_correct": 298,
+      "raw_only_correct": 37,
+      "trained_only_correct": 189
+    },
+    "semantic_accuracy_delta": 0.26388888888888895,
+    "four_permutation_consistency_delta": 0.6875,
+    "binary_consistency_delta": 0.7083333333333333
+  }
+}

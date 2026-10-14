@@ -1,0 +1,149 @@
+{
+  "goal_summary": {
+    "N": 40,
+    "json_valid": 40,
+    "schema_valid": 0,
+    "contract_valid": 0,
+    "complete_semantic_match": 0,
+    "field_complete_match": 0,
+    "fields": {
+      "objective": {
+        "correct": 0,
+        "N": 40
+      },
+      "success_criteria": {
+        "correct": 0,
+        "N": 40
+      },
+      "title": {
+        "correct": 1,
+        "N": 40
+      }
+    },
+    "field_accuracy_micro": 0.008333333333333333,
+    "field_denominator": 120,
+    "length_count": 0,
+    "truncation_rate_finish_length": 0.0,
+    "invented_field_cases": 39,
+    "unsupported_value_cases": 39,
+    "goal_profile_needs_review": 0,
+    "constraints_retention": {
+      "hit": 0,
+      "total": 70,
+      "rate": 0.0
+    },
+    "negative_retention": {
+      "hit": 0,
+      "total": 42,
+      "rate": 0.0
+    },
+    "objective_atoms_retention": {
+      "hit": 1,
+      "total": 110,
+      "rate": 0.00909090909090909
+    },
+    "criteria_atoms_retention": {
+      "hit": 0,
+      "total": 48,
+      "rate": 0.0
+    }
+  },
+  "policy_select": {
+    "N": 80,
+    "json_valid": 80,
+    "schema_valid": 80,
+    "contract_valid": 80,
+    "complete_semantic_match": 40,
+    "field_complete_match": 40,
+    "fields": {
+      "action_id": {
+        "correct": 40,
+        "N": 80
+      }
+    },
+    "field_accuracy_micro": 0.5,
+    "field_denominator": 80,
+    "length_count": 0,
+    "truncation_rate_finish_length": 0.0,
+    "invented_field_cases": 0,
+    "unsupported_value_cases": 0,
+    "goal_profile_needs_review": 0,
+    "constraints_retention": {
+      "hit": 0,
+      "total": 0,
+      "rate": null
+    },
+    "negative_retention": {
+      "hit": 0,
+      "total": 0,
+      "rate": null
+    },
+    "objective_atoms_retention": {
+      "hit": 0,
+      "total": 0,
+      "rate": null
+    },
+    "criteria_atoms_retention": {
+      "hit": 0,
+      "total": 0,
+      "rate": null
+    }
+  },
+  "question_understanding": {
+    "N": 60,
+    "json_valid": 48,
+    "schema_valid": 5,
+    "contract_valid": 0,
+    "complete_semantic_match": 0,
+    "field_complete_match": 0,
+    "fields": {
+      "action": {
+        "correct": 0,
+        "N": 60
+      },
+      "dimensions": {
+        "correct": 9,
+        "N": 60
+      },
+      "entity_spans": {
+        "correct": 0,
+        "N": 60
+      },
+      "intent": {
+        "correct": 2,
+        "N": 60
+      },
+      "reference_id": {
+        "correct": 0,
+        "N": 60
+      }
+    },
+    "field_accuracy_micro": 0.03666666666666667,
+    "field_denominator": 300,
+    "length_count": 11,
+    "truncation_rate_finish_length": 0.18333333333333332,
+    "invented_field_cases": 0,
+    "unsupported_value_cases": 48,
+    "goal_profile_needs_review": 0,
+    "constraints_retention": {
+      "hit": 0,
+      "total": 0,
+      "rate": null
+    },
+    "negative_retention": {
+      "hit": 0,
+      "total": 0,
+      "rate": null
+    },
+    "objective_atoms_retention": {
+      "hit": 0,
+      "total": 0,
+      "rate": null
+    },
+    "criteria_atoms_retention": {
+      "hit": 0,
+      "total": 0,
+      "rate": null
+    }
+  }
+}

@@ -96,6 +96,21 @@ export function isExecutionEventV1(value: unknown): value is ExecutionEvent {
   return true;
 }
 
+export function isExecutionEventV2(value: unknown): value is ExecutionEvent {
+  if (!value || typeof value !== 'object') return false;
+  const event = value as Record<string, unknown>;
+  if (event.schema !== 'texa.execution/v2') return false;
+  const origin = event.origin as Record<string, unknown> | undefined;
+  if (!origin || typeof origin !== 'object' || Array.isArray(origin) ||
+      Object.keys(origin).some((key) => key !== 'kind' && key !== 'id') ||
+      !['user', 'ui_action', 'goal', 'schedule'].includes(String(origin.kind)) ||
+      typeof origin.id !== 'string' || !origin.id.trim()) return false;
+  if (origin.kind === 'schedule' && (event.conversation_id || event.turn_id)) return false;
+  const legacyShape: Record<string, unknown> = { ...event, schema: 'texa.execution/v1' };
+  delete legacyShape.origin;
+  return isExecutionEventV1(legacyShape);
+}
+
 export function createTransportActivity(): ChatActivity {
   return {
     id: 'transport',
@@ -117,7 +132,7 @@ export function mergeChatActivity(current: ChatActivity[] = [], incoming?: ChatA
   const currentSeq = current[index].seq;
   const incomingSeq = incoming.seq;
   if (currentSeq !== undefined && (incomingSeq === undefined || currentSeq >= incomingSeq)) return current;
-  return current.map((item, itemIndex) => itemIndex === index ? { ...item, ...incoming } : item);
+  return current.map((item, itemIndex) => itemIndex === index ? { ...item, ...incoming, meta: { ...item.meta, ...incoming.meta } } : item);
 }
 
 function eventActivity(event: ExecutionEvent): ChatActivity {
@@ -153,7 +168,7 @@ function connectedActivities(current: ChatActivity[]): ChatActivity[] {
 
 function terminalActivities(current: ChatActivity[], terminalType: 'final' | 'error', summary: string): ChatActivity[] {
   return current.map((item) => item.status === 'active'
-    ? { ...item, status: terminalType === 'final' ? 'completed' as const : 'failed' as const, detail: terminalType === 'final' ? item.detail : summary }
+    ? { ...item, status: terminalType === 'final' ? 'skipped' as const : 'failed' as const, detail: terminalType === 'final' ? '未收到独立完成记录' : summary }
     : item);
 }
 
@@ -175,9 +190,12 @@ function startNewRun(current: ExecutionLifecycleState, event: ExecutionEvent): E
 }
 
 export function mergeExecutionLifecycle(current: ExecutionLifecycleState, candidate: unknown): ExecutionLifecycleState {
-  if (!isExecutionEventV1(candidate)) return current;
+  if (!isExecutionEventV1(candidate) && !isExecutionEventV2(candidate)) return current;
   const event = candidate;
   if (current.terminal) return current;
+  if (current.lastEvent && (current.lastEvent.schema !== event.schema ||
+      current.lastEvent.origin?.kind !== event.origin?.kind ||
+      current.lastEvent.origin?.id !== event.origin?.id)) return current;
   let base = current;
 
   if (!current.requestId) {
@@ -242,7 +260,7 @@ export function mergeExecutionLifecycle(current: ExecutionLifecycleState, candid
 export function replayExecutionEvents(events: unknown[], output = '', activeRunId?: string): ExecutionLifecycleState {
   // Persisted milestones are ordered by the server, may span runs, and omit
   // transport deltas. Select the authoritative run before applying its reducer.
-  const valid = events.filter(isExecutionEventV1);
+  const valid = events.filter((event): event is ExecutionEvent => isExecutionEventV1(event) || isExecutionEventV2(event));
   const runId = activeRunId || valid.at(-1)?.run_id;
   const selected = runId ? valid.filter((event) => event.run_id === runId) : valid;
   return selected.reduce(mergeExecutionLifecycle, createExecutionLifecycle(output));
@@ -276,5 +294,24 @@ export function completedActivityCount(activities: ChatActivity[] = []): number 
 }
 
 export function activityDuration(activities: ChatActivity[] = []): number {
+  // elapsed_ms is run wall time. Phase durations overlap and must not be added.
+  const elapsed = Math.max(0, ...activities.flatMap((item) => [Number(item.elapsed_ms) || 0, Number(item.meta?.total_elapsed_ms) || 0]));
+  if (elapsed > 0) return elapsed;
   return activities.reduce((total, item) => total + (Number(item.duration_ms) || 0), 0);
+}
+
+/** Real milestones only; never infer hidden model reasoning from elapsed time. */
+export function executionProgressTitle(activities: ChatActivity[], stage?: string): string | undefined {
+  const latest = [...activities].filter(item => typeof item.seq === 'number')
+    .sort((a, b) => (b.seq || 0) - (a.seq || 0))[0];
+  if (latest?.event_type === 'output_delta') return '正在生成回答';
+  const active = [...activities].reverse().find(item => item.status === 'active' && item.id !== 'transport');
+  const lifecycle = active?.meta?.lifecycle;
+  if (active?.kind === 'tool' && lifecycle === 'tool.started' &&
+      (active.label === '正在计算' || ['symbolic_math', 'verify_math_result'].includes(String(active.meta?.tool_id)))) return '正在计算';
+  if (lifecycle === 'model.started') {
+    const priorTool = activities.some(item => item.kind === 'tool' && ['completed', 'failed'].includes(item.status));
+    return priorTool ? '正在继续解答' : '正在分析题目';
+  }
+  return active?.label || (stage === 'generate' ? '正在生成回答' : undefined);
 }

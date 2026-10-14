@@ -1,0 +1,178 @@
+{
+  "before": {
+    "observation": {
+      "path": "unknown",
+      "source": "tailscale_status",
+      "sampled_at": "2026-10-11T07:21:44.025878+00:00",
+      "home_derp": "lax",
+      "derp_region": null,
+      "error_code": null
+    },
+    "changed_at": "2026-10-11T07:21:44.025878+00:00",
+    "last_probe": null,
+    "history": [
+      {
+        "path": "unknown",
+        "source": "tailscale_status",
+        "sampled_at": "2026-10-11T07:21:44.025878+00:00",
+        "home_derp": "lax",
+        "derp_region": null,
+        "error_code": null,
+        "previous_path": null
+      }
+    ],
+    "samples": [],
+    "probe_cooldown_seconds": 0,
+    "target_selected": true
+  },
+  "probe": {
+    "observation": {
+      "path": "direct",
+      "rtt_ms": 41.0,
+      "derp_region": null,
+      "source": "tailscale_ping_disco",
+      "sampled_at": "2026-10-11T07:21:49.747750+00:00",
+      "home_derp": "lax",
+      "error_code": null
+    },
+    "changed_at": "2026-10-11T07:21:49.747750+00:00",
+    "last_probe": {
+      "path": "direct",
+      "rtt_ms": 41.0,
+      "derp_region": null,
+      "source": "tailscale_ping_disco",
+      "sampled_at": "2026-10-11T07:21:49.747750+00:00"
+    },
+    "history": [
+      {
+        "path": "unknown",
+        "source": "tailscale_status",
+        "sampled_at": "2026-10-11T07:21:44.025878+00:00",
+        "home_derp": "lax",
+        "derp_region": null,
+        "error_code": null,
+        "previous_path": null
+      },
+      {
+        "path": "derp",
+        "rtt_ms": 1662.0,
+        "derp_region": "lax",
+        "source": "tailscale_ping_disco",
+        "sampled_at": "2026-10-11T07:21:49.747380+00:00",
+        "home_derp": "lax",
+        "error_code": null,
+        "previous_path": "unknown"
+      },
+      {
+        "path": "direct",
+        "rtt_ms": 41.0,
+        "derp_region": null,
+        "source": "tailscale_ping_disco",
+        "sampled_at": "2026-10-11T07:21:49.747750+00:00",
+        "home_derp": "lax",
+        "error_code": null,
+        "previous_path": "derp"
+      }
+    ],
+    "samples": [
+      {
+        "path": "derp",
+        "rtt_ms": 1662.0,
+        "derp_region": "lax",
+        "source": "tailscale_ping_disco",
+        "sampled_at": "2026-10-11T07:21:49.747380+00:00"
+      },
+      {
+        "path": "derp",
+        "rtt_ms": 923.0,
+        "derp_region": "lax",
+        "source": "tailscale_ping_disco",
+        "sampled_at": "2026-10-11T07:21:49.747413+00:00"
+      },
+      {
+        "path": "direct",
+        "rtt_ms": 41.0,
+        "derp_region": null,
+        "source": "tailscale_ping_disco",
+        "sampled_at": "2026-10-11T07:21:49.747750+00:00"
+      }
+    ],
+    "probe_cooldown_seconds": 54,
+    "target_selected": true,
+    "probe_result": "direct_observed"
+  },
+  "after": {
+    "observation": {
+      "path": "direct",
+      "source": "tailscale_status",
+      "sampled_at": "2026-10-11T07:21:49.807495+00:00",
+      "home_derp": "lax",
+      "derp_region": null,
+      "error_code": null
+    },
+    "changed_at": "2026-10-11T07:21:49.747750+00:00",
+    "last_probe": {
+      "path": "direct",
+      "rtt_ms": 41.0,
+      "derp_region": null,
+      "source": "tailscale_ping_disco",
+      "sampled_at": "2026-10-11T07:21:49.747750+00:00"
+    },
+    "history": [
+      {
+        "path": "unknown",
+        "source": "tailscale_status",
+        "sampled_at": "2026-10-11T07:21:44.025878+00:00",
+        "home_derp": "lax",
+        "derp_region": null,
+        "error_code": null,
+        "previous_path": null
+      },
+      {
+        "path": "derp",
+        "rtt_ms": 1662.0,
+        "derp_region": "lax",
+        "source": "tailscale_ping_disco",
+        "sampled_at": "2026-10-11T07:21:49.747380+00:00",
+        "home_derp": "lax",
+        "error_code": null,
+        "previous_path": "unknown"
+      },
+      {
+        "path": "direct",
+        "rtt_ms": 41.0,
+        "derp_region": null,
+        "source": "tailscale_ping_disco",
+        "sampled_at": "2026-10-11T07:21:49.747750+00:00",
+        "home_derp": "lax",
+        "error_code": null,
+        "previous_path": "derp"
+      }
+    ],
+    "samples": [
+      {
+        "path": "derp",
+        "rtt_ms": 1662.0,
+        "derp_region": "lax",
+        "source": "tailscale_ping_disco",
+        "sampled_at": "2026-10-11T07:21:49.747380+00:00"
+      },
+      {
+        "path": "derp",
+        "rtt_ms": 923.0,
+        "derp_region": "lax",
+        "source": "tailscale_ping_disco",
+        "sampled_at": "2026-10-11T07:21:49.747413+00:00"
+      },
+      {
+        "path": "direct",
+        "rtt_ms": 41.0,
+        "derp_region": null,
+        "source": "tailscale_ping_disco",
+        "sampled_at": "2026-10-11T07:21:49.747750+00:00"
+      }
+    ],
+    "probe_cooldown_seconds": 54,
+    "target_selected": true
+  }
+}

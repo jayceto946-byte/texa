@@ -1,0 +1,651 @@
+{
+  "environment": "Chrome real API",
+  "model": "offline fixture only",
+  "checks": [
+    {
+      "width": 1280,
+      "case": "manual draft save→refresh→restore",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/mistakes/intake/md_355e557bef534e4c82fc9c00?book_name=default"
+    },
+    {
+      "width": 1280,
+      "case": "draft→saved mistake",
+      "status": "PASS",
+      "id": "m_08e7d243a60c4341a39e"
+    },
+    {
+      "width": 1280,
+      "case": "review answer save→refresh→restore",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/learning/review/mrs_920099daba6c4b6984ba9ccb?book_name=default"
+    },
+    {
+      "width": 1280,
+      "case": "review reveal→self grade→complete→refresh",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/learning/review/mrs_920099daba6c4b6984ba9ccb?book_name=default"
+    },
+    {
+      "width": 1280,
+      "case": "manual exercise validation→save→refresh",
+      "status": "PASS",
+      "id": "c54bbf6d"
+    },
+    {
+      "width": 1280,
+      "case": "direct attempt lost response→reload→recover once",
+      "status": "PASS",
+      "id": "c54bbf6d",
+      "operation_id": "42d06d60-7dd4-42ea-9196-c09a8b2f1092",
+      "candidate_id": "mc_13403f1d2c9ed25b8b649687"
+    },
+    {
+      "width": 1280,
+      "case": "direct exercise→human candidate correction→explicit mistake acceptance→review complete",
+      "status": "PASS",
+      "candidate_id": "mc_13403f1d2c9ed25b8b649687",
+      "mistake_id": "m_c9259be65a5b45e5b6dc"
+    },
+    {
+      "width": 1280,
+      "case": "note frozen source→failed generation→manual edit→cross-page autosave→explicit publish→refresh",
+      "status": "PASS",
+      "id": "note_1c185e2875ff49ce869de0ed82fed566",
+      "conversation_id": "qa-note-1791725960183-1280"
+    },
+    {
+      "width": 1280,
+      "case": "chat stream→interrupt confirmed→resume same task→one user question",
+      "status": "PASS",
+      "id": "task_e5c07f85a1974ed1aa5e719d14168a4a",
+      "status_after_resume": "completed"
+    },
+    {
+      "width": 1280,
+      "case": "import file→real job→cancel acknowledged→failure→retry available; no book published",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "goal proposal→confirm→activate→run→cross-page→pause fence→refresh",
+      "status": "PASS",
+      "id": "goal_fddbf19146ec4844b409110753b94019",
+      "task_id": "rtask_8cd5b55a9f735256a2c6a497a24c20a0"
+    },
+    {
+      "width": 390,
+      "case": "manual draft save→refresh→restore",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/mistakes/intake/md_bc7bb5fa12a24a47ac66e0ca?book_name=default"
+    },
+    {
+      "width": 390,
+      "case": "draft→saved mistake",
+      "status": "PASS",
+      "id": "m_78d5b936b8c749449986"
+    },
+    {
+      "width": 390,
+      "case": "review answer save→refresh→restore",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/learning/review/mrs_93edbc1d85754af6b0726e33?book_name=default"
+    },
+    {
+      "width": 390,
+      "case": "review reveal→self grade→complete→refresh",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/learning/review/mrs_93edbc1d85754af6b0726e33?book_name=default"
+    },
+    {
+      "width": 390,
+      "case": "manual exercise validation→save→refresh",
+      "status": "PASS",
+      "id": "a4cdd260"
+    },
+    {
+      "width": 390,
+      "case": "direct attempt lost response→reload→recover once",
+      "status": "PASS",
+      "id": "a4cdd260",
+      "operation_id": "1ce665cc-05ea-422d-9845-384f623e7173",
+      "candidate_id": "mc_0d8b376f7c9d816ba07f9700"
+    },
+    {
+      "width": 390,
+      "case": "direct exercise→human candidate correction→explicit mistake acceptance→review complete",
+      "status": "PASS",
+      "candidate_id": "mc_0d8b376f7c9d816ba07f9700",
+      "mistake_id": "m_ddeeb55c3f7540f8b5bb"
+    },
+    {
+      "width": 390,
+      "case": "note frozen source→failed generation→manual edit→cross-page autosave→explicit publish→refresh",
+      "status": "PASS",
+      "id": "note_c81803a55263432aad58e453c30afea2",
+      "conversation_id": "qa-note-1791725960183-390"
+    },
+    {
+      "width": 390,
+      "case": "chat stream→interrupt confirmed→resume same task→one user question",
+      "status": "PASS",
+      "id": "task_577f154cfd96484cb40e11fa6dcb7156",
+      "status_after_resume": "completed"
+    },
+    {
+      "width": 390,
+      "case": "import file→real job→cancel acknowledged→failure→retry available; no book published",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "goal proposal→confirm→activate→run→cross-page→pause fence→refresh",
+      "status": "PASS",
+      "id": "goal_11e7cb8d275d449aaddd335afb05ef02",
+      "task_id": "rtask_d887cd1e5035559ead4019502891b992"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/drafts"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/mistakes/drafts/md_355e557bef534e4c82fc9c00"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/drafts/md_355e557bef534e4c82fc9c00/save"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/review/sessions"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_920099daba6c4b6984ba9ccb"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_920099daba6c4b6984ba9ccb"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/review/sessions/mrs_920099daba6c4b6984ba9ccb/results"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/add"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/practice"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/practice"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/query"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/mistakes/candidates/mc_13403f1d2c9ed25b8b649687"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/candidates/mc_13403f1d2c9ed25b8b649687/accept"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/review/sessions"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_f05d5f9a08bf41db8231532b"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_f05d5f9a08bf41db8231532b"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/review/sessions/mrs_f05d5f9a08bf41db8231532b/results"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_da3479c4b5da4f0588605f80a902ba52"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_da3479c4b5da4f0588605f80a902ba52/save"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/chat/stream"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/chat/tasks/task_e5c07f85a1974ed1aa5e719d14168a4a/interrupt"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/chat/tasks/task_e5c07f85a1974ed1aa5e719d14168a4a/resume-stream"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/books/import-job"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/jobs/7dd7f8af20eb4836bb4a2237c59c2bcc/cancel"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/books/import-job"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/goals/intake/summarize"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/goals"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/goals/goal_fddbf19146ec4844b409110753b94019/commands"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/goals/goal_fddbf19146ec4844b409110753b94019/run"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/goals/goal_fddbf19146ec4844b409110753b94019/commands"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/drafts"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/mistakes/drafts/md_bc7bb5fa12a24a47ac66e0ca"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/drafts/md_bc7bb5fa12a24a47ac66e0ca/save"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/review/sessions"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_93edbc1d85754af6b0726e33"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_93edbc1d85754af6b0726e33"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/review/sessions/mrs_93edbc1d85754af6b0726e33/results"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/add"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/practice"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/practice"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/query"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/mistakes/candidates/mc_0d8b376f7c9d816ba07f9700"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/candidates/mc_0d8b376f7c9d816ba07f9700/accept"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/review/sessions"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_1c1f623745b049c5876c0962"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_1c1f623745b049c5876c0962"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/review/sessions/mrs_1c1f623745b049c5876c0962/results"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_f33f233ffae44ea8b66c22d9973d354f"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_f33f233ffae44ea8b66c22d9973d354f/save"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/chat/stream"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/chat/tasks/task_577f154cfd96484cb40e11fa6dcb7156/interrupt"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/chat/tasks/task_577f154cfd96484cb40e11fa6dcb7156/resume-stream"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/books/import-job"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/jobs/7bb2eae529244456a4b1def50fdcfb74/cancel"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/books/import-job"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/goals/intake/summarize"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/goals"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/goals/goal_11e7cb8d275d449aaddd335afb05ef02/commands"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/goals/goal_11e7cb8d275d449aaddd335afb05ef02/run"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/goals/goal_11e7cb8d275d449aaddd335afb05ef02/commands"
+    }
+  ]
+}

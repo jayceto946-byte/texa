@@ -1,0 +1,12 @@
+{
+  "baselineCommit": "52cc1f5",
+  "branch": "codex/mobile-s2-first-batch",
+  "timezone": "Asia/Shanghai",
+  "date": "2026-10-09",
+  "fixtureNetwork": "Chrome CDP 400ms latency / 5Mbps down / 1Mbps up, HTTP/1.1 localhost HTTPS; not DERP",
+  "testedBuildSha256": "9ebee23bb3f77531d3509ae74e9698bf13da6041ca2d3709d818db8a983368f0",
+  "localDistSha256": "9ebee23bb3f77531d3509ae74e9698bf13da6041ca2d3709d818db8a983368f0",
+  "livePort59999": "connection_refused",
+  "realDerpBeforeAfter": "not_measured",
+  "testedArtifact": "frontend/dist (same artifact as delivered)"
+}

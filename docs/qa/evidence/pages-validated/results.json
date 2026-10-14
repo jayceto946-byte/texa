@@ -1,0 +1,695 @@
+{
+  "fixture": true,
+  "started": "2026-10-11T12:24:30.332Z",
+  "routes": 2,
+  "checks": [
+    {
+      "name": "exercises",
+      "path": "/exercises",
+      "width": 1280,
+      "state": "populated",
+      "status": "PASS",
+      "bodyWidth": 1280,
+      "viewport": 1280,
+      "alerts": []
+    },
+    {
+      "name": "learning",
+      "path": "/learning",
+      "width": 1280,
+      "state": "populated",
+      "status": "PASS",
+      "bodyWidth": 1280,
+      "viewport": 1280,
+      "alerts": []
+    },
+    {
+      "name": "exercises",
+      "path": "/exercises",
+      "width": 1024,
+      "state": "populated",
+      "status": "PASS",
+      "bodyWidth": 1024,
+      "viewport": 1024,
+      "alerts": []
+    },
+    {
+      "name": "learning",
+      "path": "/learning",
+      "width": 1024,
+      "state": "populated",
+      "status": "PASS",
+      "bodyWidth": 1024,
+      "viewport": 1024,
+      "alerts": []
+    },
+    {
+      "name": "exercises",
+      "path": "/exercises",
+      "width": 760,
+      "state": "populated",
+      "status": "PASS",
+      "bodyWidth": 760,
+      "viewport": 760,
+      "alerts": []
+    },
+    {
+      "name": "learning",
+      "path": "/learning",
+      "width": 760,
+      "state": "populated",
+      "status": "PASS",
+      "bodyWidth": 760,
+      "viewport": 760,
+      "alerts": []
+    },
+    {
+      "name": "exercises",
+      "path": "/exercises",
+      "width": 390,
+      "state": "populated",
+      "status": "PASS",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "learning",
+      "path": "/learning",
+      "width": 390,
+      "state": "populated",
+      "status": "PASS",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "learning",
+      "path": "/learning",
+      "width": 1280,
+      "state": "graphite",
+      "status": "PASS",
+      "bodyWidth": 1280,
+      "viewport": 1280,
+      "alerts": []
+    },
+    {
+      "name": "learning",
+      "path": "/learning",
+      "width": 1280,
+      "state": "clay",
+      "status": "PASS",
+      "bodyWidth": 1280,
+      "viewport": 1280,
+      "alerts": []
+    },
+    {
+      "name": "learning",
+      "path": "/learning",
+      "width": 1280,
+      "state": "notebook",
+      "status": "PASS",
+      "bodyWidth": 1280,
+      "viewport": 1280,
+      "alerts": []
+    },
+    {
+      "name": "learning",
+      "path": "/learning",
+      "width": 1280,
+      "state": "codex",
+      "status": "PASS",
+      "bodyWidth": 1280,
+      "viewport": 1280,
+      "alerts": []
+    }
+  ],
+  "interactions": [
+    "notes filter expand",
+    "notes tab→draft→edit",
+    "settings 偏好",
+    "settings 模型连接",
+    "settings 数据与教材",
+    "settings 关于与更新",
+    "settings 高级与诊断"
+  ],
+  "unhandled": [
+    "GET /api/system/backups",
+    "GET /api/system/network-diagnostics"
+  ],
+  "errors": [
+    {
+      "console": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "console": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "requests": [
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/exercises/answer/jobs/latest"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/kg/learning-summary"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/exercises/answer/jobs/latest"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/kg/learning-summary"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/exercises/answer/jobs/latest"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/kg/learning-summary"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/exercises/answer/jobs/latest"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/kg/learning-summary"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/kg/learning-summary"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/kg/learning-summary"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/kg/learning-summary"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/kg/learning-summary"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/review/sessions"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/filters"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/drafts/qa-draft"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791721499460_edcce3d3/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791721500114_8a08d36e/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/backups"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/version"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/network-diagnostics"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/health"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/version"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "authorization": "user 2026-10-13: three difficult exam problems and one no-tool comparison, screenshots and metrics",
+  "model": "qwen3.7-plus",
+  "remote_attempts": 1,
+  "input_bytes": 2630,
+  "cost_cap_cny": 1,
+  "max_calls": 16,
+  "max_completion_tokens": 16384,
+  "prior_attempts": 10,
+  "prior_reserved_or_used_cny": 0.30555,
+  "price_cny_per_million": {
+    "input": 2,
+    "output": 8
+  },
+  "pricing_source": "https://help.aliyun.com/zh/model-studio/qwen3-7-plus",
+  "reserved_or_used_cny": 0.061664,
+  "calls": [
+    {
+      "index": 1,
+      "input_bytes": 2630,
+      "reserved_cny": 0.13641199999999998,
+      "status": "returned",
+      "started_at": "2026-10-13T01:27:54.121755+00:00",
+      "mode": "no_tools",
+      "usage": {
+        "input_tokens": 628,
+        "output_tokens": 7551,
+        "total_tokens": 8179,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 6237
+        }
+      },
+      "ended_at": "2026-10-13T01:30:04.441558+00:00",
+      "finish_reason": "stop",
+      "estimated_cost_cny": 0.061664
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,26 @@
+{
+  "git_head": "9c0a0770bb8535317bd72fccf5ccdd1720402331",
+  "tracked_worktree_diff_sha256": "b835f27a55a0e1bec7b6561f997f7ddc7497aa9c47bb567f0c317b0e9231f8dd",
+  "note": "Includes preserved Mobile S2 local changes; tests and captures identify their stated build/snapshot scope. Final backend stale-status protection verified by full backend regression; static visuals unchanged.",
+  "suites": [
+    {
+      "suite": "extended-e2e",
+      "checks": 22,
+      "status": "PASS"
+    },
+    {
+      "suite": "electron-final",
+      "checks": 11,
+      "status": "PASS"
+    }
+  ],
+  "astra": {
+    "calls": 3,
+    "images": 15
+  },
+  "files": {
+    "backend/services/direct_practice.py": "9e2ee11498c124fd0485ed497e073376f817c5d18180daa779d009b8bb667922",
+    "frontend/src/features/exercises/directPractice.ts": "8d768d828fd6c95595af2a4aa2c48de8a22a252e29ae8513ddbe7434d175fa33",
+    "frontend/src/components/ui/WorkspaceActionBar.tsx": "3e23556378daa89611dd15d826528ac20698d2d0f6a88417a855ba116377a6a5"
+  }
+}

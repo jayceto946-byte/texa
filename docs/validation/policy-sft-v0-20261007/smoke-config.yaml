@@ -1,0 +1,25 @@
+model: /Users/jichengqian/.lmstudio/models/lmstudio-community/Qwen3.5-0.8B-MLX-8bit
+fine_tune_type: lora
+batch_size: 1
+max_seq_length: 384
+grad_checkpoint: true
+mask_prompt: true
+seed: 1807
+optimizer: adam
+data: /Users/jichengqian/Documents/ChatGPT/texa/docs/validation/policy-sft-v0-20261007
+train: true
+report_to: null
+drop_last: false
+num_layers: 4
+lora_parameters:
+  rank: 4
+  scale: 8.0
+  dropout: 0.0
+  keys:
+  - mlp.gate_proj
+  - mlp.up_proj
+  - mlp.down_proj
+learning_rate: 1.0e-05
+iters: 5
+grad_accumulation_steps: 1
+adapter_path: /Users/jichengqian/Documents/ChatGPT/texa/docs/validation/policy-sft-v0-20261007/smoke-adapter

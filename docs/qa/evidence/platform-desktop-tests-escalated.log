@@ -1,0 +1,11 @@
+Command: /Users/jichengqian/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node --test *.test.cjs
+Working directory: desktop/
+Execution: require_escalated, read-only test run to allow the test fixture to bind 127.0.0.1
+
+ℹ tests 15
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 98.945625

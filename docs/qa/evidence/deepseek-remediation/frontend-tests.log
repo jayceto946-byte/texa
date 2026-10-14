@@ -1,0 +1,9 @@
+
+ RUN  v4.1.9 /Users/jichengqian/Documents/ChatGPT/texa/frontend
+
+
+ Test Files  2 passed (2)
+      Tests  11 passed (11)
+   Start at  21:14:44
+   Duration  194ms (transform 58ms, setup 0ms, import 75ms, tests 8ms, environment 0ms)
+

@@ -1,0 +1,11 @@
+[
+  {"id":"ordinary", "request":"说明学习方法", "book_name":"", "grounded":false, "sequence":["generate_answer"], "task_status":"completed"},
+  {"id":"progress", "request":"最近学习进度如何", "book_name":"", "grounded":false, "sequence":["tool:get_recent_progress","generate_answer"], "task_status":"completed"},
+  {"id":"exercises", "request":"查询习题库", "book_name":"fixture", "grounded":false, "sequence":["tool:search_exercises","generate_answer"], "task_status":"completed"},
+  {"id":"multiple_tools", "request":"查询习题库和最近学习进度", "book_name":"fixture", "grounded":false, "sequence":["tool:search_exercises","tool:get_recent_progress","generate_answer"], "task_status":"completed"},
+  {"id":"textbook", "request":"教材中的连续定义", "book_name":"fixture", "grounded":true, "sequence":["tool:search_textbook","generate_answer"], "task_status":"completed"},
+  {"id":"empty_exercises", "request":"查询习题库", "book_name":"fixture", "grounded":false, "empty":true, "sequence":["tool:search_exercises","generate_answer"], "task_status":"completed"},
+  {"id":"failed_progress", "request":"最近学习进度如何", "book_name":"", "grounded":false, "failed":true, "sequence":["tool:get_recent_progress","generate_answer"], "task_status":"completed"},
+  {"id":"invalid_fallback", "request":"最近学习进度如何", "book_name":"", "grounded":false, "invalid":true, "sequence":["tool:get_recent_progress","generate_answer"], "task_status":"completed"},
+  {"id":"textbook_empty", "request":"教材中的连续定义", "book_name":"fixture", "grounded":true, "empty":true, "sequence":["tool:search_textbook"], "task_status":"failed"}
+]

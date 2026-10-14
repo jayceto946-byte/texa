@@ -134,6 +134,9 @@ def _openai_compatible_chat(
             kwargs["http_socket_options"] = ()
         if extra_body:
             kwargs["extra_body"] = extra_body
+        if resolved.provider.provider_id == "deepseek":
+            from llm.deepseek_chat import DeepSeekChatOpenAI
+            return DeepSeekChatOpenAI(**kwargs)
         return ChatOpenAI(**kwargs)
 
     return _cached(key, create)
@@ -187,6 +190,7 @@ register_chat_transport(
         Capability.SYSTEM_PROMPT,
         Capability.TOKEN_USAGE,
         Capability.LOCAL,
+        Capability.TOOL_CALLING,
     }),
 )
 register_chat_transport(

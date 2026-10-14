@@ -1,0 +1,1 @@
+"""Conversation-independent Goal foundation."""

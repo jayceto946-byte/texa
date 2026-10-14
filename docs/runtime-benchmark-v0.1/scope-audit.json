@@ -1,0 +1,338 @@
+{
+  "python": "3.10.21 (main, Sep  1 2026, 14:06:09) [Clang 22.1.3 ]",
+  "freeze_files_verified": 271,
+  "source_files_compared": 216,
+  "source_drift": [],
+  "counts": {
+    "primary_semantic": 161,
+    "secondary_semantic": 39,
+    "deterministic_control": 100
+  },
+  "by_split": {
+    "train": {
+      "primary_semantic": 77,
+      "secondary_semantic": 21,
+      "deterministic_control": 52
+    },
+    "dev": {
+      "primary_semantic": 32,
+      "secondary_semantic": 8,
+      "deterministic_control": 20
+    },
+    "test": {
+      "primary_semantic": 36,
+      "secondary_semantic": 6,
+      "deterministic_control": 18
+    },
+    "hidden_test": {
+      "primary_semantic": 16,
+      "secondary_semantic": 4,
+      "deterministic_control": 10
+    }
+  },
+  "understanding_gate_rechecks": [
+    {
+      "id": "TRB0-0121",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0122",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0123",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0124",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0125",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0126",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0127",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0128",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0129",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0130",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0131",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0132",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0133",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0134",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0135",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0136",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0137",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0138",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0139",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0140",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0141",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0142",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0143",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0144",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0145",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0146",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0147",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0148",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0149",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0150",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0151",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0152",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0153",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0154",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0155",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0156",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0157",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0158",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0159",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0160",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0161",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0162",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0163",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0164",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0165",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0166",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0167",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0168",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0169",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0170",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0171",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0172",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0173",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0174",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0175",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0176",
+      "gate_eligible": true,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0177",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0178",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0179",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    },
+    {
+      "id": "TRB0-0180",
+      "gate_eligible": false,
+      "request_matches_current_code": true
+    }
+  ],
+  "human_adjudicated": false,
+  "independent_model_gold_review": "not_performed_in_this_revision",
+  "model_inference_run": false
+}

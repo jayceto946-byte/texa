@@ -7,6 +7,8 @@ type MarkdownMessageProps = {
   linkedConcepts?: ConceptCandidate[];
   onConceptClick?: (concept: ConceptCandidate) => void;
   citationIds?: Set<string>;
+  disableRemoteMedia?: boolean;
+  preserveLineBreaks?: boolean;
 };
 
 const SimpleMarkdownRenderer = lazy(() =>
@@ -17,18 +19,28 @@ const MarkdownRenderer = lazy(() =>
   import('./MarkdownRenderer').then((module) => ({ default: module.MarkdownMessage })),
 );
 
-const PlainMarkdownFallback: React.FC<SimpleMarkdownProps> = ({ content }) => (
-  <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-text-primary">{content}</div>
+const MarkdownLoadingFallback: React.FC = () => (
+  <div data-texa-markdown-loading="true" role="status" aria-label="正在准备正文" aria-busy="true" className="markdown-loading-skeleton">
+    <span className="skeleton-shape skeleton-line" aria-hidden="true" />
+    <span className="skeleton-shape skeleton-line is-short" aria-hidden="true" />
+  </div>
 );
 
 export const SimpleMarkdown: React.FC<SimpleMarkdownProps> = ({ content }) => (
-  <Suspense fallback={<PlainMarkdownFallback content={content} />}>
+  <Suspense fallback={<MarkdownLoadingFallback />}>
     <SimpleMarkdownRenderer content={content} />
   </Suspense>
 );
 
-export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, linkedConcepts = [], onConceptClick = () => undefined, citationIds }) => (
-  <Suspense fallback={<PlainMarkdownFallback content={content} />}>
-    <MarkdownRenderer content={content} linkedConcepts={linkedConcepts} onConceptClick={onConceptClick} citationIds={citationIds} />
+export const MarkdownMessage: React.FC<MarkdownMessageProps> = React.memo(({ content, linkedConcepts = [], onConceptClick = () => undefined, citationIds, disableRemoteMedia, preserveLineBreaks }: MarkdownMessageProps) => (
+  <Suspense fallback={<MarkdownLoadingFallback />}>
+    <MarkdownRenderer content={content} linkedConcepts={linkedConcepts} onConceptClick={onConceptClick} citationIds={citationIds} disableRemoteMedia={disableRemoteMedia} preserveLineBreaks={preserveLineBreaks} />
   </Suspense>
-);
+), (previous, next) => previous.content === next.content
+  && (previous.linkedConcepts === next.linkedConcepts || (!previous.linkedConcepts?.length && !next.linkedConcepts?.length))
+  && previous.onConceptClick === next.onConceptClick
+  && previous.disableRemoteMedia === next.disableRemoteMedia
+  && previous.preserveLineBreaks === next.preserveLineBreaks
+  && (previous.citationIds === next.citationIds || Boolean(previous.citationIds && next.citationIds
+    && previous.citationIds.size === next.citationIds.size
+    && [...previous.citationIds].every(id => next.citationIds!.has(id)))));

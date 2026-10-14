@@ -1,0 +1,29 @@
+{
+  "environment": "actual macOS Electron and real Providers via formal Chat API",
+  "cases": [
+    {
+      "id": "S1",
+      "status": "failed",
+      "started_at": "2026-10-13T12:31:25.073Z",
+      "answers": [],
+      "error": "Error: page.waitForResponse: Target page, context or browser has been closed",
+      "ended_at": "2026-10-13T12:32:31.778Z"
+    }
+  ],
+  "errors": [
+    {
+      "url": "http://127.0.0.1:18041/api/chat/stream",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "http://127.0.0.1:18041/api/chat/conversations?limit=40&view=active&subject=%E4%B8%93%E4%B8%9A%E8%AF%BE&book_name=%E4%BC%A0%E6%84%9F%E5%99%A8%E5%8E%9F%E7%90%86%E5%8F%8A%E5%BA%94%E7%94%A8",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    "Error: page.screenshot: Target page, context or browser has been closed"
+  ],
+  "sse": []
+}

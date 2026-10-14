@@ -132,6 +132,7 @@ export default function ScopeSelector({
   placeholder = '选择科目',
   allowAllSubjects = false,
   bookMode = 'optional',
+  emptyBookLabel,
   placement = 'bottom',
   align = 'left',
   width = 'normal',
@@ -150,6 +151,7 @@ export default function ScopeSelector({
   placeholder?: string;
   allowAllSubjects?: boolean;
   bookMode?: BookMode;
+  emptyBookLabel?: string;
   placement?: Placement;
   align?: 'left' | 'right';
   width?: Width;
@@ -257,7 +259,7 @@ export default function ScopeSelector({
     ? (activeSubject ? subjectLabel(activeSubject) : placeholder)
     : formatLearningScopeLabel(
         activeSubject || '全部学科',
-        currentBook?.displayName || currentBook?.name || (visibleBooks.length ? '选择教材' : '通用 QA'),
+        currentBook?.displayName || currentBook?.name || emptyBookLabel || (visibleBooks.length ? '选择教材' : '通用 QA'),
       );
 
   const selectSubject = (nextSubject: string) => {
@@ -339,7 +341,7 @@ export default function ScopeSelector({
                   <OptionButton active={!bookName} onClick={() => selectBook('')}>
                     <span className="flex min-w-0 items-center gap-2">
                       <BookOpen className="h-3.5 w-3.5 flex-shrink-0 text-accent" />
-                      <span className="truncate">通用 QA</span>
+                      <span className="truncate">{emptyBookLabel || '通用 QA'}</span>
                     </span>
                   </OptionButton>
                 )}

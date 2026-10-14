@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "all_frozen_scientific_inputs_unchanged": true,
+  "formal_microsteps": 1161,
+  "optimizer_updates": 145,
+  "dev_checkpoint_steps": [
+    448,
+    896
+  ],
+  "raw_dev_instances": 576,
+  "hidden_runs": 0,
+  "train_replay_runs": 0,
+  "final_checkpoint_selection": null,
+  "stop_reason": "critical system memory pressure",
+  "artifacts": {
+    "raw-dev-baseline.json": "0e17838e01019cc9d400c8e4535dd54c32060fd05e8d9456d36878d968b0829d",
+    "corrected-memory-smoke.json": "e21212a324e993a4882312afaddc27c3897c05fabb51c871f14660e424015a60",
+    "train-log.jsonl": "cf75050c0d7734963abba7c0fe8533716c46b9660a8d73d0f468023257fbee13",
+    "checkpoint-dev-evals.json": "f7d6f38ee39f227a82cf542cad24e99d2a7333b5294f15766de2b83c74194120",
+    "train-replay.json": "19005cea86342566ed0de4f76c04e49e6b31bafc7d5a9c21fdd716cfd09f055f",
+    "hidden-eval.json": "a9242fce14e73c84a3deb9ea76c76c7d978ae1c5605e1af9adedbda3c6e7a4da",
+    "Policy-SFT-V0-Final-Report.md": "2b3766c31387c77b3d1ecdba41f96a930166e1a0c94ab25a9a9efaccb2f3014a"
+  }
+}

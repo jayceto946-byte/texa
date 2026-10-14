@@ -158,6 +158,11 @@ class LearningEventStore:
             conn.commit()
         return event.id
 
+    def has_source(self, source_id: str, *, learner_id: str) -> bool:
+        with self._connect() as conn:
+            return conn.execute("SELECT 1 FROM learning_events WHERE source_id=? AND learner_id=? LIMIT 1",
+                                (_clean_identifier(source_id), _clean_identifier(learner_id, "local_default"))).fetchone() is not None
+
     def list_recent(
         self,
         *,

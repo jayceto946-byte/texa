@@ -1,0 +1,405 @@
+{
+  "schema_version": 1,
+  "status": "human_semantic_review_pending",
+  "cases": [
+    {
+      "id": "concept-direction",
+      "structure_hint": "concept",
+      "title": "连续与可导的方向",
+      "origin": "synthetic/offline",
+      "messages": [
+        {
+          "role": "user",
+          "content": "连续是否一定可导？",
+          "turn_id": "concept-direction-0"
+        },
+        {
+          "role": "assistant",
+          "content": "可导必连续；连续不一定可导。$f(x)=|x|$ 在 $x=0$ 连续，但左右导数分别为 $-1$ 与 $1$，故不可导。",
+          "turn_id": "concept-direction-0"
+        },
+        {
+          "role": "user",
+          "content": "这个结论适用于哪个点？",
+          "turn_id": "concept-direction-1"
+        },
+        {
+          "role": "assistant",
+          "content": "这里讨论的是函数在同一点的连续性和可导性，反例的点为 $x=0$。",
+          "turn_id": "concept-direction-1"
+        }
+      ],
+      "review_checks": [
+        "同一点条件",
+        "可导推出连续",
+        "绝对值零点反例"
+      ],
+      "human_review": "not_run",
+      "content_tendency": "concept"
+    },
+    {
+      "id": "concept-matrix",
+      "structure_hint": "concept",
+      "title": "可逆矩阵条件",
+      "origin": "synthetic/offline",
+      "messages": [
+        {
+          "role": "user",
+          "content": "方阵什么时候可逆？",
+          "turn_id": "concept-matrix-0"
+        },
+        {
+          "role": "assistant",
+          "content": "对 $n$ 阶方阵 $A$，$A$ 可逆等价于 $\\det A\\ne0$，也等价于 $\\operatorname{rank}A=n$。这些条件只针对方阵。",
+          "turn_id": "concept-matrix-0"
+        },
+        {
+          "role": "user",
+          "content": "非方阵能直接用行列式判定吗？",
+          "turn_id": "concept-matrix-1"
+        },
+        {
+          "role": "assistant",
+          "content": "不能直接套用这个方阵判据；本会话未讨论非方阵的广义逆。",
+          "turn_id": "concept-matrix-1"
+        }
+      ],
+      "review_checks": [
+        "方阵限制",
+        "行列式非零",
+        "非方阵问题未展开"
+      ],
+      "human_review": "not_run",
+      "content_tendency": "concept"
+    },
+    {
+      "id": "derivation-product",
+      "structure_hint": "derivation",
+      "title": "乘积求导推导",
+      "origin": "synthetic/offline",
+      "messages": [
+        {
+          "role": "user",
+          "content": "推导两个函数乘积的导数。",
+          "turn_id": "derivation-product-0"
+        },
+        {
+          "role": "assistant",
+          "content": "设 $u,v$ 在 $x$ 可导。差商分解为 $u(x+h)\\frac{v(x+h)-v(x)}h+v(x)\\frac{u(x+h)-u(x)}h$。可导蕴含连续，取极限得 $(uv)\\prime=u v\\prime+v u\\prime$。",
+          "turn_id": "derivation-product-0"
+        }
+      ],
+      "review_checks": [
+        "可导前提",
+        "差商分解",
+        "连续性用于取极限"
+      ],
+      "human_review": "not_run",
+      "content_tendency": "derivation"
+    },
+    {
+      "id": "derivation-integral",
+      "structure_hint": "derivation",
+      "title": "分部积分的条件和边界",
+      "origin": "synthetic/offline",
+      "messages": [
+        {
+          "role": "user",
+          "content": "从乘积求导推出分部积分。",
+          "turn_id": "derivation-integral-0"
+        },
+        {
+          "role": "assistant",
+          "content": "设 $u,v$ 在 $[a,b]$ 上连续可微。由 $(uv)\\prime=u\\prime v+uv\\prime$ 积分可得 $\\int_a^b u v\\prime\\,dx=[uv]_a^b-\\int_a^b u\\prime v\\,dx$。",
+          "turn_id": "derivation-integral-0"
+        },
+        {
+          "role": "user",
+          "content": "端点项能省略吗？",
+          "turn_id": "derivation-integral-1"
+        },
+        {
+          "role": "assistant",
+          "content": "一般不能；只有已知 $[uv]_a^b=0$ 等相应条件时才能省略。",
+          "turn_id": "derivation-integral-1"
+        }
+      ],
+      "review_checks": [
+        "连续可微条件",
+        "积分区间",
+        "端点项不能无条件省略"
+      ],
+      "human_review": "not_run",
+      "content_tendency": "derivation"
+    },
+    {
+      "id": "problem-linear-system",
+      "structure_hint": "problem",
+      "title": "已知矩阵的求解步骤",
+      "origin": "synthetic/offline",
+      "messages": [
+        {
+          "role": "user",
+          "content": "求解 $\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}\\binom{x}{y}=\\binom{3}{1}$。",
+          "turn_id": "problem-linear-system-0"
+        },
+        {
+          "role": "assistant",
+          "content": "方程为 $x+y=3$，$x-y=1$。相加得到 $2x=4$，故 $x=2$，代入得 $y=1$。检验：$2+1=3$，$2-1=1$。",
+          "turn_id": "problem-linear-system-0"
+        }
+      ],
+      "review_checks": [
+        "完整题干",
+        "相加步骤",
+        "代入检验"
+      ],
+      "human_review": "not_run",
+      "content_tendency": "problem"
+    },
+    {
+      "id": "problem-missing-figure",
+      "structure_hint": "problem",
+      "title": "缺少附图的图片题",
+      "origin": "synthetic/offline",
+      "messages": [
+        {
+          "role": "user",
+          "content": "📎 请根据附图求阴影面积。",
+          "turn_id": "problem-missing-figure-0"
+        },
+        {
+          "role": "assistant",
+          "content": "缺少附图及边界数据，当前不能确定阴影区域。请提供可读附图或边界表达式，暂不计算精确面积。",
+          "turn_id": "problem-missing-figure-0",
+          "evidence_support_status": "unverified",
+          "learning_task": {
+            "status": "waiting_for_input",
+            "required_inputs": [
+              {
+                "kind": "image",
+                "label": "附图",
+                "status": "missing"
+              }
+            ]
+          }
+        }
+      ],
+      "review_checks": [
+        "缺图门槛",
+        "保持未决",
+        "不得新增面积结果"
+      ],
+      "human_review": "not_run",
+      "content_tendency": "problem"
+    },
+    {
+      "id": "comparison-series",
+      "structure_hint": "comparison",
+      "title": "级数两种收敛的辨析",
+      "origin": "synthetic/offline",
+      "messages": [
+        {
+          "role": "user",
+          "content": "绝对收敛与条件收敛有什么不同？",
+          "turn_id": "comparison-series-0"
+        },
+        {
+          "role": "assistant",
+          "content": "$\\sum a_n$ 绝对收敛指 $\\sum |a_n|$ 收敛；条件收敛指 $\\sum a_n$ 收敛而 $\\sum |a_n|$ 发散。绝对收敛推出收敛。",
+          "turn_id": "comparison-series-0"
+        },
+        {
+          "role": "user",
+          "content": "给出已经讨论的反例。",
+          "turn_id": "comparison-series-1"
+        },
+        {
+          "role": "assistant",
+          "content": "交错调和级数 $\\sum_{n=1}^\\infty (-1)^{n-1}/n$ 收敛，但调和级数发散，因此是条件收敛。",
+          "turn_id": "comparison-series-1"
+        }
+      ],
+      "review_checks": [
+        "定义比较",
+        "交错调和反例",
+        "不能反向推出绝对收敛"
+      ],
+      "human_review": "not_run",
+      "content_tendency": "comparison"
+    },
+    {
+      "id": "comparison-table",
+      "structure_hint": "comparison",
+      "title": "极限与函数值的比较表",
+      "origin": "synthetic/offline",
+      "messages": [
+        {
+          "role": "user",
+          "content": "区分函数极限与该点函数值。",
+          "turn_id": "comparison-table-0"
+        },
+        {
+          "role": "assistant",
+          "content": "| 比较项 | 极限 | 函数值 |\n|---|---|---|\n| 依赖 | 邻近点变化 | 该点定义 |\n| 连续时 | 等于函数值 | 等于极限 |\n讨论的是有限极限存在的情形。",
+          "turn_id": "comparison-table-0"
+        },
+        {
+          "role": "user",
+          "content": "函数在该点没定义时还可能有极限吗？",
+          "turn_id": "comparison-table-1"
+        },
+        {
+          "role": "assistant",
+          "content": "可能。如 $f(x)=x$ 定义在 $x\\ne0$，$\\lim_{x\\to0}f(x)=0$，但 $f(0)$ 未定义。",
+          "turn_id": "comparison-table-1"
+        }
+      ],
+      "review_checks": [
+        "有限极限限定",
+        "完整比较表",
+        "无定义点的例子"
+      ],
+      "human_review": "not_run",
+      "content_tendency": "comparison"
+    },
+    {
+      "id": "correction-sign",
+      "structure_hint": "auto",
+      "title": "积分符号的订正",
+      "origin": "synthetic/offline",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我算出 $\\int\\sin x\\,dx=\\cos x+C$。",
+          "turn_id": "correction-sign-0"
+        },
+        {
+          "role": "assistant",
+          "content": "这个符号错误：$\\frac d{dx}\\cos x=-\\sin x$，所以应为 $-\\cos x+C$。",
+          "turn_id": "correction-sign-0"
+        },
+        {
+          "role": "user",
+          "content": "我确认是漏写了负号。",
+          "turn_id": "correction-sign-1"
+        },
+        {
+          "role": "assistant",
+          "content": "保留你的确认：漏写负号。可以对结果求导检验，但本次记录不意味着其他题也有相同错因。",
+          "turn_id": "correction-sign-1"
+        }
+      ],
+      "review_checks": [
+        "错误尝试标注",
+        "正确结果",
+        "用户确认与模型推断区分"
+      ],
+      "human_review": "not_run",
+      "content_tendency": "correction"
+    },
+    {
+      "id": "correction-determinant",
+      "structure_hint": "auto",
+      "title": "交换行的错误订正",
+      "origin": "synthetic/offline",
+      "messages": [
+        {
+          "role": "user",
+          "content": "交换两行后行列式不变吗？",
+          "turn_id": "correction-determinant-0"
+        },
+        {
+          "role": "assistant",
+          "content": "先前若这样表述则不正确；交换两行会使行列式变号。",
+          "turn_id": "correction-determinant-0"
+        },
+        {
+          "role": "user",
+          "content": "请用 $\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}$ 检查。",
+          "turn_id": "correction-determinant-1"
+        },
+        {
+          "role": "assistant",
+          "content": "原行列式为 $4-6=-2$；交换两行后为 $6-4=2$，符号相反。",
+          "turn_id": "correction-determinant-1"
+        }
+      ],
+      "review_checks": [
+        "订正关系",
+        "交换行变号",
+        "原矩阵和计算均保留"
+      ],
+      "human_review": "not_run",
+      "content_tendency": "correction"
+    },
+    {
+      "id": "review-mixed",
+      "structure_hint": "review",
+      "title": "跨主题的混合复习",
+      "origin": "synthetic/offline",
+      "messages": [
+        {
+          "role": "user",
+          "content": "复习导数与矩阵的两个结论。",
+          "turn_id": "review-mixed-0"
+        },
+        {
+          "role": "assistant",
+          "content": "导数部分：在同一点可导必连续。矩阵部分：方阵可逆当且仅当行列式非零。两个结论各有独立适用条件。",
+          "turn_id": "review-mixed-0"
+        },
+        {
+          "role": "user",
+          "content": "还要补哪部分？",
+          "turn_id": "review-mixed-1"
+        },
+        {
+          "role": "assistant",
+          "content": "本次没有讨论积分方法或矩阵特征值，不能称为整章完整笔记。",
+          "turn_id": "review-mixed-1"
+        }
+      ],
+      "review_checks": [
+        "分主题组织",
+        "各自条件",
+        "不可声称整章覆盖"
+      ],
+      "human_review": "not_run",
+      "content_tendency": "review"
+    },
+    {
+      "id": "review-historical",
+      "structure_hint": "review",
+      "title": "历史教材片段缺失",
+      "origin": "synthetic/offline",
+      "messages": [
+        {
+          "role": "user",
+          "content": "复习教材中关于连续性的旧回答。",
+          "turn_id": "review-historical-0"
+        },
+        {
+          "role": "assistant",
+          "content": "旧回答记录为：可导推出连续；其教材引用的支持片段未保存，应回教材核查，不能把来源链接当成结论已被逐句验证。",
+          "turn_id": "review-historical-0",
+          "sources": [
+            {
+              "id": "E1",
+              "book_name": "已删除的旧教材",
+              "chunk_id": "old-chunk",
+              "canonical_hash": "old-version"
+            }
+          ]
+        }
+      ],
+      "review_checks": [
+        "片段缺失为unknown",
+        "不抓当前教材冒充旧证据",
+        "保留待核实"
+      ],
+      "human_review": "not_run",
+      "content_tendency": "review"
+    }
+  ]
+}

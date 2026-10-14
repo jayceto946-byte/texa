@@ -1,0 +1,121 @@
+{
+  "N": 576,
+  "seeds": 144,
+  "semantic_accuracy": 0.5815972222222222,
+  "permutation_consistency": 0.11805555555555555,
+  "binary_consistency": 0.20833333333333334,
+  "three_variant_all_correct": 0.1388888888888889,
+  "four_variant_all_correct": 0.11805555555555555,
+  "valid_rate": 1.0,
+  "strata": {
+    "tool_vs_answer": {
+      "N": 96,
+      "accuracy": 0.46875
+    },
+    "multi_intent": {
+      "N": 48,
+      "accuracy": 0.4791666666666667
+    },
+    "negation": {
+      "N": 96,
+      "accuracy": 0.59375
+    },
+    "correction": {
+      "N": 48,
+      "accuracy": 0.5416666666666666
+    },
+    "noisy_wording": {
+      "N": 96,
+      "accuracy": 0.6041666666666666
+    },
+    "existing_vs_knowledge": {
+      "N": 48,
+      "accuracy": 0.5625
+    },
+    "tool_distinction": {
+      "N": 96,
+      "accuracy": 0.6979166666666666
+    },
+    "quoted_statement": {
+      "N": 48,
+      "accuracy": 0.6666666666666666
+    }
+  },
+  "negation_correction_accuracy": 0.5763888888888888,
+  "tool_vs_answer_accuracy": 0.46875,
+  "multi_intent_accuracy": 0.4791666666666667,
+  "bias": {
+    "2": {
+      "N": 288,
+      "predicted_position": {
+        "2": 236,
+        "1": 52
+      },
+      "predicted_action_id": {
+        "a1": 124,
+        "a0": 164
+      },
+      "gold_position": {
+        "1": 144,
+        "2": 144
+      },
+      "gold_action_id": {
+        "a0": 144,
+        "a1": 144
+      },
+      "maximum_share_deviation": 0.3194444444444444
+    },
+    "3": {
+      "N": 288,
+      "predicted_position": {
+        "2": 209,
+        "3": 67,
+        "1": 12
+      },
+      "predicted_action_id": {
+        "a1": 86,
+        "a0": 120,
+        "a2": 82
+      },
+      "gold_position": {
+        "1": 96,
+        "3": 96,
+        "2": 96
+      },
+      "gold_action_id": {
+        "a0": 96,
+        "a1": 96,
+        "a2": 96
+      },
+      "maximum_share_deviation": 0.3923611111111111
+    }
+  },
+  "max_position_id_distribution_deviation": 0.3923611111111111,
+  "status": "complete",
+  "four_permutation_consistency": 0.11805555555555555,
+  "contract_validity": 1.0,
+  "metric_note": "frozen permutation_consistency already means all four valid semantic choices agree",
+  "fixed_layout_A_accuracy": 0.4930555555555556,
+  "position_distribution": {
+    "2": {
+      "2": 236,
+      "1": 52
+    },
+    "3": {
+      "2": 209,
+      "3": 67,
+      "1": 12
+    }
+  },
+  "action_id_distribution": {
+    "2": {
+      "a1": 124,
+      "a0": 164
+    },
+    "3": {
+      "a1": 86,
+      "a0": 120,
+      "a2": 82
+    }
+  }
+}

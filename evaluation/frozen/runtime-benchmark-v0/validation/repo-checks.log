@@ -1,0 +1,203 @@
+........................................................................ [ 26%]
+..................................................................FFFFFF [ 53%]
+F......F............FFFF.FF..FFFFFF..................................... [ 80%]
+.....................................................                    [100%]
+=================================== FAILURES ===================================
+_________________ test_boolean_validity_is_not_a_quality_gate __________________
+tests/test_policy_dataset_v0.py:144: in test_boolean_validity_is_not_a_quality_gate
+    assert_reason(q, "frozen_candidate_basis")
+tests/test_policy_dataset_v0.py:51: in assert_reason
+    assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E   AssertionError: assert 'frozen_candidate_basis' in (([] + ['source_content_digest_mismatch']) + [])
+E    +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E    +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E    +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+_____________________ test_frozen_basis_is_checked[scope] ______________________
+tests/test_policy_dataset_v0.py:174: in test_frozen_basis_is_checked
+    assert_reason(validate_sample(sample, manifest=manifest, records=records, evidence=evidence), expected)
+tests/test_policy_dataset_v0.py:51: in assert_reason
+    assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E   AssertionError: assert 'scope_binding' in (([] + ['source_content_digest_mismatch']) + [])
+E    +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E    +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E    +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+_____________________ test_frozen_basis_is_checked[schema] _____________________
+tests/test_policy_dataset_v0.py:174: in test_frozen_basis_is_checked
+    assert_reason(validate_sample(sample, manifest=manifest, records=records, evidence=evidence), expected)
+tests/test_policy_dataset_v0.py:51: in assert_reason
+    assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E   AssertionError: assert 'registry_version_or_schema' in (([] + ['source_content_digest_mismatch']) + [])
+E    +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E    +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E    +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+____________________ test_frozen_basis_is_checked[evidence] ____________________
+tests/test_policy_dataset_v0.py:174: in test_frozen_basis_is_checked
+    assert_reason(validate_sample(sample, manifest=manifest, records=records, evidence=evidence), expected)
+tests/test_policy_dataset_v0.py:51: in assert_reason
+    assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E   AssertionError: assert 'unavailable_or_changed_evidence' in (([] + ['source_content_digest_mismatch']) + [])
+E    +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E    +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E    +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+_____________________ test_frozen_basis_is_checked[query] ______________________
+tests/test_policy_dataset_v0.py:174: in test_frozen_basis_is_checked
+    assert_reason(validate_sample(sample, manifest=manifest, records=records, evidence=evidence), expected)
+tests/test_policy_dataset_v0.py:51: in assert_reason
+    assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E   AssertionError: assert 'invalid_bound_args' in (([] + ['source_content_digest_mismatch']) + [])
+E    +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E    +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E    +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+_____________________ test_frozen_basis_is_checked[label] ______________________
+tests/test_policy_dataset_v0.py:174: in test_frozen_basis_is_checked
+    assert_reason(validate_sample(sample, manifest=manifest, records=records, evidence=evidence), expected)
+tests/test_policy_dataset_v0.py:51: in assert_reason
+    assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E   AssertionError: assert 'semantic_adjudication' in (([] + ['source_content_digest_mismatch']) + [])
+E    +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E    +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E    +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+__________________ test_diagnostic_tracks_and_lock_semantics ___________________
+tests/test_policy_dataset_v0.py:181: in test_diagnostic_tracks_and_lock_semantics
+    assert q.diagnostic_eligible and not q.selection_eligible
+E   AssertionError: assert (False)
+E    +  where False = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).diagnostic_eligible
+_________ test_lock_requires_approved_review_and_separate_adjudication _________
+tests/test_policy_dataset_v0.py:282: in test_lock_requires_approved_review_and_separate_adjudication
+    assert q.selection_eligible
+E   AssertionError: assert False
+E    +  where False = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=True).selection_eligible
+___________________ test_hand_calculated_report_denominators ___________________
+tests/test_policy_dataset_v0.py:373: in test_hand_calculated_report_denominators
+    assert selection["acceptable_accuracy"] == rate(4, 6)
+E   AssertionError: assert {'denominator...'value': None} == {'denominator...6666666666666}
+E     
+E     Differing items:
+E     {'denominator': 0} != {'denominator': 6}
+E     {'value': None} != {'value': 0.6666666666666666}
+E     {'display': 'N/A'} != {'display': '4/6'}
+E     {'numerator': 0} != {'numerator': 4}
+E     Use -v to get more diff
+_____ test_multi_acceptable_permutation_does_not_make_harmful_disagreement _____
+tests/test_policy_dataset_v0.py:402: in test_multi_acceptable_permutation_does_not_make_harmful_disagreement
+    assert report["policy_selection"]["acceptable_accuracy"] == rate(1, 1)
+E   AssertionError: assert {'denominator...'value': None} == {'denominator... 'value': 1.0}
+E     
+E     Differing items:
+E     {'denominator': 0} != {'denominator': 1}
+E     {'value': None} != {'value': 1.0}
+E     {'display': 'N/A'} != {'display': '1/1'}
+E     {'numerator': 0} != {'numerator': 1}
+E     Use -v to get more diff
+____________ test_fake_invalid_counts_and_not_repaired[bad output] _____________
+tests/test_policy_dataset_v0.py:411: in test_fake_invalid_counts_and_not_repaired
+    assert report["teacher_comparison"]["accuracy"]["acceptable_accuracy"] == rate(0, 6)
+E   AssertionError: assert {'denominator...'value': None} == {'denominator... 'value': 0.0}
+E     
+E     Omitting 1 identical items, use -vv to show
+E     Differing items:
+E     {'denominator': 0} != {'denominator': 6}
+E     {'value': None} != {'value': 0.0}
+E     {'display': 'N/A'} != {'display': '0/6'}
+E     Use -v to get more diff
+______ test_fake_invalid_counts_and_not_repaired[{"action_id":"unknown"}] ______
+tests/test_policy_dataset_v0.py:411: in test_fake_invalid_counts_and_not_repaired
+    assert report["teacher_comparison"]["accuracy"]["acceptable_accuracy"] == rate(0, 6)
+E   AssertionError: assert {'denominator...'value': None} == {'denominator... 'value': 0.0}
+E     
+E     Omitting 1 identical items, use -vv to show
+E     Differing items:
+E     {'denominator': 0} != {'denominator': 6}
+E     {'value': None} != {'value': 0.0}
+E     {'display': 'N/A'} != {'display': '0/6'}
+E     Use -v to get more diff
+_______ test_e2e_original_failure_fallback_and_task_success_are_separate _______
+tests/test_policy_dataset_v0.py:447: in test_e2e_original_failure_fallback_and_task_success_are_separate
+    assert failed_report["policy_selection"]["invalid_rate"] == rate(1, 6)
+E   AssertionError: assert {'denominator...'value': None} == {'denominator...6666666666666}
+E     
+E     Differing items:
+E     {'denominator': 0} != {'denominator': 6}
+E     {'value': None} != {'value': 0.16666666666666666}
+E     {'display': 'N/A'} != {'display': '1/6'}
+E     {'numerator': 0} != {'numerator': 1}
+E     Use -v to get more diff
+__________ test_nullable_candidate_review_and_declared_invalid_source __________
+tests/test_policy_dataset_v0.py:460: in test_nullable_candidate_review_and_declared_invalid_source
+    assert_reason(quality(sample, dataset), "projection_version_mismatch")
+tests/test_policy_dataset_v0.py:51: in assert_reason
+    assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E   AssertionError: assert 'projection_version_mismatch' in (([] + ['source_content_digest_mismatch']) + [])
+E    +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E    +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E    +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+________ test_cli_confined_output_no_network_and_reproducible[validate] ________
+tests/test_policy_dataset_v0.py:486: in test_cli_confined_output_no_network_and_reproducible
+    assert main([operation, "--dataset", str(ROOT), "--output", str(first), "--control-family", "multi"]) == 0
+evaluation/policy_dataset_v0/__main__.py:27: in main
+    raise ValueError(",".join(errors))
+E   ValueError: source_content_digest_mismatch
+_________ test_cli_confined_output_no_network_and_reproducible[split] __________
+tests/test_policy_dataset_v0.py:486: in test_cli_confined_output_no_network_and_reproducible
+    assert main([operation, "--dataset", str(ROOT), "--output", str(first), "--control-family", "multi"]) == 0
+evaluation/policy_dataset_v0/__main__.py:27: in main
+    raise ValueError(",".join(errors))
+E   ValueError: source_content_digest_mismatch
+________ test_cli_confined_output_no_network_and_reproducible[evaluate] ________
+tests/test_policy_dataset_v0.py:486: in test_cli_confined_output_no_network_and_reproducible
+    assert main([operation, "--dataset", str(ROOT), "--output", str(first), "--control-family", "multi"]) == 0
+evaluation/policy_dataset_v0/__main__.py:27: in main
+    raise ValueError(",".join(errors))
+E   ValueError: source_content_digest_mismatch
+_________ test_cli_confined_output_no_network_and_reproducible[report] _________
+tests/test_policy_dataset_v0.py:486: in test_cli_confined_output_no_network_and_reproducible
+    assert main([operation, "--dataset", str(ROOT), "--output", str(first), "--control-family", "multi"]) == 0
+evaluation/policy_dataset_v0/__main__.py:27: in main
+    raise ValueError(",".join(errors))
+E   ValueError: source_content_digest_mismatch
+___________ test_cli_lock_rejects_fixture_authority_and_path_escape ____________
+tests/test_policy_dataset_v0.py:496: in test_cli_lock_rejects_fixture_authority_and_path_escape
+    main(["report", "--dataset", str(ROOT), "--output", str(tmp_path / "locked"), "--lock"])
+evaluation/policy_dataset_v0/__main__.py:27: in main
+    raise ValueError(",".join(errors))
+E   ValueError: source_content_digest_mismatch
+
+During handling of the above exception, another exception occurred:
+tests/test_policy_dataset_v0.py:495: in test_cli_lock_rejects_fixture_authority_and_path_escape
+    with pytest.raises(ValueError, match="quality gate"):
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'quality gate'
+E     Actual message: 'source_content_digest_mismatch'
+__________ test_cold_cli_does_not_import_config_read_keys_or_connect ___________
+tests/test_policy_dataset_v0.py:533: in test_cold_cli_does_not_import_config_read_keys_or_connect
+    assert result.returncode == 0, result.stderr
+E   AssertionError: Traceback (most recent call last):
+E       File "<string>", line 16, in <module>
+E       File "/Users/jichengqian/Documents/ChatGPT/texa/evaluation/policy_dataset_v0/__main__.py", line 27, in main
+E         raise ValueError(",".join(errors))
+E     ValueError: source_content_digest_mismatch
+E     
+E   assert 1 == 0
+E    +  where 1 = CompletedProcess(args=['/Users/jichengqian/Documents/ChatGPT/texa/venv310/bin/python', '-c', '\nimport os, socket, sql.../__main__.py", line 27, in main\n    raise ValueError(",".join(errors))\nValueError: source_content_digest_mismatch\n').returncode
+=========================== short test summary info ============================
+FAILED tests/test_policy_dataset_v0.py::test_boolean_validity_is_not_a_quality_gate
+FAILED tests/test_policy_dataset_v0.py::test_frozen_basis_is_checked[scope]
+FAILED tests/test_policy_dataset_v0.py::test_frozen_basis_is_checked[schema]
+FAILED tests/test_policy_dataset_v0.py::test_frozen_basis_is_checked[evidence]
+FAILED tests/test_policy_dataset_v0.py::test_frozen_basis_is_checked[query]
+FAILED tests/test_policy_dataset_v0.py::test_frozen_basis_is_checked[label]
+FAILED tests/test_policy_dataset_v0.py::test_diagnostic_tracks_and_lock_semantics
+FAILED tests/test_policy_dataset_v0.py::test_lock_requires_approved_review_and_separate_adjudication
+FAILED tests/test_policy_dataset_v0.py::test_hand_calculated_report_denominators
+FAILED tests/test_policy_dataset_v0.py::test_multi_acceptable_permutation_does_not_make_harmful_disagreement
+FAILED tests/test_policy_dataset_v0.py::test_fake_invalid_counts_and_not_repaired[bad output]
+FAILED tests/test_policy_dataset_v0.py::test_fake_invalid_counts_and_not_repaired[{"action_id":"unknown"}]
+FAILED tests/test_policy_dataset_v0.py::test_e2e_original_failure_fallback_and_task_success_are_separate
+FAILED tests/test_policy_dataset_v0.py::test_nullable_candidate_review_and_declared_invalid_source
+FAILED tests/test_policy_dataset_v0.py::test_cli_confined_output_no_network_and_reproducible[validate]
+FAILED tests/test_policy_dataset_v0.py::test_cli_confined_output_no_network_and_reproducible[split]
+FAILED tests/test_policy_dataset_v0.py::test_cli_confined_output_no_network_and_reproducible[evaluate]
+FAILED tests/test_policy_dataset_v0.py::test_cli_confined_output_no_network_and_reproducible[report]
+FAILED tests/test_policy_dataset_v0.py::test_cli_lock_rejects_fixture_authority_and_path_escape
+FAILED tests/test_policy_dataset_v0.py::test_cold_cli_does_not_import_config_read_keys_or_connect
+20 failed, 249 passed in 2.95s

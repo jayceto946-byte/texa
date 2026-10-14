@@ -1,0 +1,12 @@
+{
+  "results": 440,
+  "failures": 376,
+  "phase_counts": {
+    "permutation": 240,
+    "semantic": 200
+  },
+  "protected_unchanged": true,
+  "harness_tests": "32 passed",
+  "missing": 0,
+  "operational_errors": 0
+}

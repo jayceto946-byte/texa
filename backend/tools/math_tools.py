@@ -8,7 +8,9 @@ from __future__ import annotations
 import ast
 import math
 import re
-from typing import Any
+from typing import Any, Literal
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+import contextvars
 
 import sympy as sp
 
@@ -16,7 +18,7 @@ from backend.tools.registry import ToolContext, ToolRegistry, ToolResult, ToolSp
 
 
 _SYMBOLS = {name: sp.Symbol(name) for name in ("x", "y", "z", "t", "n", "a", "b", "c")}
-_CONSTANTS = {"pi": sp.pi, "e": sp.E, "E": sp.E}
+_CONSTANTS = {"pi": sp.pi, "e": sp.E, "E": sp.E, "I": sp.I, "oo": sp.oo}
 _FUNCTIONS = {
     "sin": sp.sin,
     "cos": sp.cos,
@@ -32,6 +34,63 @@ _FUNCTIONS = {
 }
 _MAX_EXPRESSION_CHARS = 300
 _MAX_AST_NODES = 120
+_ASSUMPTIONS = contextvars.ContextVar("math_assumptions", default={})
+
+
+class MathInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    operation: Literal["calculate", "simplify", "differentiate", "integrate", "solve", "limit"]
+    expression: str = Field(min_length=1, max_length=300)
+    variable: Literal["x", "y", "z", "t", "n", "a", "b", "c"] = "x"
+    right: str = Field(default="0", max_length=300)
+    lower: str | int | float | None = None
+    upper: str | int | float | None = None
+    point: str | int | float | None = None
+    direction: Literal["+", "-", "+-"] = "+-"
+    assumptions: dict[str, Literal["real", "positive", "integer", "nonnegative"]] = Field(default_factory=dict, max_length=8)
+
+    @model_validator(mode="after")
+    def bounded_assumptions(self):
+        if any(name not in _SYMBOLS for name in self.assumptions):
+            raise ValueError("unsupported assumption symbol")
+        if any(isinstance(v, str) and len(v) > 300 for v in (self.lower, self.upper, self.point)):
+            raise ValueError("bound exceeds expression budget")
+        return self
+
+
+class MathOutput(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    operation: str
+    expression: str
+    variable: str
+    assumptions: dict[str, str]
+    result: dict[str, Any]
+    verification_request: dict[str, Any]
+    status: Literal["computed", "unevaluated"]
+
+
+class MathVerifyInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    kind: Literal["equivalence", "derivative", "antiderivative", "definite_integral", "solutions", "limit"]
+    variable: Literal["x", "y", "z", "t", "n", "a", "b", "c"] = "x"
+    left: str = Field(default="", max_length=300)
+    right: str = Field(default="", max_length=300)
+    original: str = Field(default="", max_length=300)
+    candidate: str = Field(default="", max_length=300)
+    candidates: list[str] = Field(default_factory=list, max_length=12)
+    lower: str | int | float | None = None
+    upper: str | int | float | None = None
+    point: str | int | float | None = None
+    direction: Literal["+", "-", "+-"] = "+-"
+    assumptions: dict[str, Literal["real", "positive", "integer", "nonnegative"]] = Field(default_factory=dict)
+
+
+class MathVerifyOutput(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    status: str
+    method: str
+    passed: bool
+    residuals: list[str]
 
 
 class RestrictedMathError(ValueError):
@@ -39,7 +98,7 @@ class RestrictedMathError(ValueError):
 
 
 def _normalize_expression(value: Any) -> str:
-    text = str(value or "").strip()
+    text = ("" if value is None else str(value)).strip()
     if not text:
         raise RestrictedMathError("expression is required")
     if len(text) > _MAX_EXPRESSION_CHARS:
@@ -55,8 +114,8 @@ def _normalize_expression(value: Any) -> str:
     )
     # Accept ordinary textbook forms such as 2x and 3(x+1), while keeping the
     # grammar explicit and bounded.
-    text = re.sub(r"(?<=\d)(?=[a-zA-Z(])", "*", text)
-    text = re.sub(r"(?<=[a-zA-Z)])(?=\d)", "*", text)
+    text = re.sub(r"(?<=\d)(?=[a-zA-Z(])(?![eE][+-]?\d)", "*", text)
+    text = re.sub(r"(?<=[a-df-zA-DF-Z)])(?=\d)", "*", text)
     text = re.sub(r"(?<=\))(?=[a-zA-Z(])", "*", text)
     return text
 
@@ -69,10 +128,17 @@ def _expression_from_ast(node: ast.AST) -> sp.Expr:
             raise RestrictedMathError("only numeric constants are allowed")
         if not math.isfinite(float(node.value)) or abs(float(node.value)) > 1e12:
             raise RestrictedMathError("numeric constant is out of range")
-        return sp.Integer(node.value) if isinstance(node.value, int) else sp.Float(str(node.value))
+        literal = getattr(node, "_math_literal", str(node.value)).replace("_", "")
+        if not re.fullmatch(r"(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?", literal):
+            raise RestrictedMathError("unsupported numeric literal")
+        scale = re.search(r"[eE]([+-]?\d+)$", literal)
+        if scale and abs(int(scale.group(1))) > 300:
+            raise RestrictedMathError("numeric scale is out of range")
+        return sp.Rational(literal)
     if isinstance(node, ast.Name):
         if node.id in _SYMBOLS:
-            return _SYMBOLS[node.id]
+            assumption = _ASSUMPTIONS.get().get(node.id)
+            return sp.Symbol(node.id, **{assumption: True}) if assumption else _SYMBOLS[node.id]
         if node.id in _CONSTANTS:
             return _CONSTANTS[node.id]
         raise RestrictedMathError(f"unsupported symbol: {node.id}")
@@ -111,6 +177,9 @@ def parse_restricted_expression(value: Any) -> sp.Expr:
         raise RestrictedMathError("expression syntax is invalid") from exc
     if sum(1 for _ in ast.walk(tree)) > _MAX_AST_NODES:
         raise RestrictedMathError("expression is too complex")
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant):
+            node._math_literal = ast.get_source_segment(text, node)
     return _expression_from_ast(tree)
 
 
@@ -118,28 +187,32 @@ def _variable(value: Any) -> sp.Symbol:
     name = str(value or "x").strip()
     if name not in _SYMBOLS:
         raise RestrictedMathError(f"unsupported variable: {name}")
-    return _SYMBOLS[name]
+    assumption = _ASSUMPTIONS.get().get(name)
+    return sp.Symbol(name, **{assumption: True}) if assumption else _SYMBOLS[name]
 
 
-def _serialized_result(value: Any) -> dict[str, Any]:
+def _serialized_result(value: Any, *, simplified: bool = False, raw: Any = None) -> dict[str, Any]:
     if isinstance(value, (list, tuple, set)):
         values = list(value)
         return {
+            "raw": [str(item) for item in values],
             "exact": [str(item) for item in values],
             "latex": [sp.latex(item) for item in values],
-            "numeric": [float(sp.N(item)) if not getattr(item, "free_symbols", set()) else None for item in values],
+            "numeric": [_serialized_result(item)["numeric"] for item in values],
         }
-    expression = sp.simplify(value)
+    expression = value if simplified else sp.simplify(value)
     numeric = None
     if not expression.free_symbols and expression.is_finite is not False:
         try:
             numeric = float(sp.N(expression, 15))
+            if not math.isfinite(numeric) or (numeric == 0 and expression != 0):
+                numeric = None
         except (TypeError, ValueError, OverflowError):
             numeric = None
-    return {"exact": str(expression), "latex": sp.latex(expression), "numeric": numeric}
+    return {"raw": str(value if raw is None else raw), "exact": str(expression), "latex": sp.latex(expression), "numeric": numeric}
 
 
-def symbolic_math(_context: ToolContext, args: dict[str, Any]) -> ToolResult:
+def _symbolic_math(_context: ToolContext, args: dict[str, Any]) -> ToolResult:
     try:
         operation = str(args.get("operation") or "calculate").strip().lower()
         expression_text = str(args.get("expression") or "")
@@ -191,6 +264,16 @@ def symbolic_math(_context: ToolContext, args: dict[str, Any]) -> ToolResult:
                 "kind": "solutions", "left": expression_text, "right": right_text,
                 "candidates": [str(item) for item in result], "variable": str(variable),
             }
+        elif operation == "limit":
+            if args.get("point") is None:
+                raise RestrictedMathError("limit point is required")
+            point = sp.oo if args["point"] in ("oo", "inf") else -sp.oo if args["point"] == "-oo" else parse_restricted_expression(args["point"])
+            if point.free_symbols:
+                raise RestrictedMathError("limit point must be closed")
+            result = sp.limit(expression, variable, point, dir=args.get("direction", "+-"))
+            verification_request = {"kind": "limit", "original": expression_text,
+                "candidate": str(result), "variable": str(variable), "point": args["point"],
+                "direction": args.get("direction", "+-")}
         else:
             return ToolResult(False, message=f"unsupported operation: {operation}")
 
@@ -198,16 +281,24 @@ def symbolic_math(_context: ToolContext, args: dict[str, Any]) -> ToolResult:
             "operation": operation,
             "expression": expression_text,
             "variable": str(variable),
-            "result": _serialized_result(result),
+            "result": _serialized_result(result, simplified=operation in {"calculate", "simplify"},
+                                         raw=expression if operation in {"calculate", "simplify"} else result),
             "verification_request": verification_request,
+            "assumptions": dict(_ASSUMPTIONS.get()),
+            "status": "unevaluated" if isinstance(result, sp.Expr) and result.has(sp.Integral, sp.Limit) else "computed",
         }
-        warnings = [] if result is not sp.Integral else ["symbolic result remained unevaluated"]
+        verification_request["assumptions"] = dict(_ASSUMPTIONS.get())
+        if isinstance(result, sp.Expr) and result.has(sp.nan, sp.zoo):
+            raise RestrictedMathError("result is undefined")
+        warnings = ["symbolic result remained unevaluated"] if payload["status"] == "unevaluated" else []
+        if operation == "solve":
+            warnings.append("返回候选解；代入校验不证明解集完整性或全部定义域条件")
         return ToolResult(True, data=payload, message="确定性计算完成", warnings=warnings)
     except (RestrictedMathError, TypeError, ValueError, ZeroDivisionError) as exc:
         return ToolResult(False, message=str(exc))
 
 
-def verify_math_result(_context: ToolContext, args: dict[str, Any]) -> ToolResult:
+def _verify_math_result(_context: ToolContext, args: dict[str, Any]) -> ToolResult:
     try:
         kind = str(args.get("kind") or "equivalence")
         variable = _variable(args.get("variable"))
@@ -243,6 +334,10 @@ def verify_math_result(_context: ToolContext, args: dict[str, Any]) -> ToolResul
                 residuals = [sp.Integer(1)]
             else:
                 residuals = [sp.simplify((left - right).subs(variable, parse_restricted_expression(item))) for item in candidates]
+        elif kind == "limit":
+            point = sp.oo if args["point"] in ("oo", "inf") else -sp.oo if args["point"] == "-oo" else parse_restricted_expression(args["point"])
+            residuals = [sp.simplify(sp.limit(parse_restricted_expression(args["original"]), variable,
+                point, dir=args.get("direction", "+-")) - parse_restricted_expression(args["candidate"]))]
         else:
             return ToolResult(False, message=f"unsupported verification kind: {kind}")
 
@@ -258,6 +353,16 @@ def verify_math_result(_context: ToolContext, args: dict[str, Any]) -> ToolResul
         return ToolResult(False, message=str(exc), verification={"status": "error", "passed": False})
 
 
+def symbolic_math(context: ToolContext, args: dict[str, Any]) -> ToolResult:
+    from backend.tools.math_worker import execute_math
+    return execute_math("symbolic_math", args, context)
+
+
+def verify_math_result(context: ToolContext, args: dict[str, Any]) -> ToolResult:
+    from backend.tools.math_worker import execute_math
+    return execute_math("verify_math_result", args, context)
+
+
 def register_math_tools(registry: ToolRegistry) -> None:
     common_result = {
         "type": "object",
@@ -266,7 +371,12 @@ def register_math_tools(registry: ToolRegistry) -> None:
     }
     registry.register(ToolSpec(
         name="symbolic_math",
-        description="Compute a restricted numeric or symbolic expression without executing arbitrary code.",
+        description=("Compute a restricted numeric or symbolic expression without executing arbitrary code. "
+            "Returns raw operation result, already simplified exact form, LaTeX and numeric approximation. "
+            "Do not call simplify again just to rewrite the returned exact value; use it directly. "
+            "Allowed symbols: x,y,z,t,n,a,b,c; rename other parameters explicitly and state the mapping. "
+            "Allowed functions: sin,cos,tan,asin,acos,atan,exp,log,ln,sqrt,abs. "
+            "Use further calls when needed for a new calculation or verification."),
         parameters={
             "type": "object",
             "required": ["operation", "expression"],
@@ -287,6 +397,7 @@ def register_math_tools(registry: ToolRegistry) -> None:
         version="1",
         provenance="sympy-1.14/restricted-ast",
         handler=symbolic_math,
+        runtime_input=MathInput, runtime_output=MathOutput, execution_mode="isolated",
     ))
     registry.register(ToolSpec(
         name="verify_math_result",
@@ -311,4 +422,7 @@ def register_math_tools(registry: ToolRegistry) -> None:
         version="1",
         provenance="sympy-1.14/restricted-ast",
         handler=verify_math_result,
+        runtime_input=MathVerifyInput, runtime_output=MathVerifyOutput, execution_mode="isolated",
     ))
+    for name in ("symbolic_math", "verify_math_result"):
+        registry.get(name).parameters = registry.get(name).runtime_input.model_json_schema()

@@ -1,0 +1,887 @@
+{
+  "scope": "draft semantic gold comparison; not model accuracy",
+  "count": 80,
+  "correct": 39,
+  "results": [
+    {
+      "id": "TRB0-0001",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0002",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0003",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0004",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0005",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0006",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0007",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0008",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0009",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0010",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0011",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0012",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0013",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0014",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0015",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0016",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0017",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0018",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0019",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0020",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0021",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0022",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0023",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0024",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0025",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0026",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0027",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0028",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0029",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0030",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0031",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0032",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0033",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0034",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0035",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0036",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0037",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0038",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0039",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0040",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0041",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0042",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0043",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0044",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0045",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0046",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0047",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0048",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0049",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0050",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0051",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0052",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0053",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0054",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0055",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0056",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0057",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0058",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0059",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0060",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0061",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0062",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0063",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0064",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0065",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0066",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0067",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0068",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0069",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0070",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0071",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0072",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0073",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0074",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0075",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0076",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0077",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0078",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0079",
+      "gold": {
+        "action_id": "a0"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": true,
+      "main_eligible": true
+    },
+    {
+      "id": "TRB0-0080",
+      "gold": {
+        "action_id": "a1"
+      },
+      "prediction": {
+        "action_id": "a0"
+      },
+      "correct": false,
+      "main_eligible": true
+    }
+  ]
+}

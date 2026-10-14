@@ -1,11 +1,25 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, clipboard } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const os = require('node:os');
-const { findAvailablePort, portFromUrl, resolveUserDataPath } = require('./runtime.cjs');
+const { backendIdentityMatches, findAvailablePort, portFromUrl, resolveUserDataPath } = require('./runtime.cjs');
+const { readStartupAppearance, writeStartupAppearance } = require('./appearance.cjs');
+const { createClosePreparation } = require('./window-close.cjs');
+const { readSetupComplete, writeSetupComplete } = require('./setup-state.cjs');
+const closePreparation = createClosePreparation();
+let allowWindowClose = false;
+
+async function prepareWindowClose() {
+  const contents = mainWindow && !mainWindow.isDestroyed() ? mainWindow.webContents : null;
+  const ready = await closePreparation.prepare(contents);
+  if (!ready && mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('window:close-aborted');
+    mainWindow.show();
+  }
+  return ready;
+}
 
 // Keep the pre-Texa userData locations stable. Changing productName/package name
 // without this override would make existing installations appear to lose data.
@@ -16,6 +30,9 @@ app.setPath('userData', resolveUserDataPath({
   appDataPath: app.getPath('appData'),
   isPackaged: app.isPackaged,
 }));
+const STARTUP_APPEARANCE_PATH = path.join(app.getPath('userData'), 'startup-appearance.json');
+const SETUP_COMPLETE_PATH = path.join(app.getPath('userData'), 'setup-complete.json');
+let startupAppearance = readStartupAppearance(STARTUP_APPEARANCE_PATH);
 const APP_ICON_PATH = path.join(__dirname, 'assets', 'texa-taskbar.ico');
 
 const BACKEND_URL_OVERRIDE = (process.env.KAOYAN_BACKEND_URL || '').trim();
@@ -63,7 +80,8 @@ function projectRoot() {
 }
 
 function packagedBackendPath() {
-  return path.join(process.resourcesPath, 'backend', 'backend_server', 'backend_server.exe');
+  const name = process.platform === 'win32' ? 'backend_server.exe' : 'backend_server';
+  return path.join(process.resourcesPath, 'backend', 'backend_server', name);
 }
 
 function runtimePaths() {
@@ -79,51 +97,10 @@ function runtimePaths() {
   };
 }
 
-function remoteCaptureSettingsPath() {
-  return path.join(runtimePaths().userData, 'remote-capture.json');
-}
-
-function readRemoteCaptureSettings() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(remoteCaptureSettingsPath(), 'utf8'));
-    return { enabled: parsed?.enabled === true };
-  } catch {
-    return { enabled: false };
-  }
-}
-
-function writeRemoteCaptureSettings(enabled) {
-  const settingsPath = remoteCaptureSettingsPath();
-  fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
-  fs.writeFileSync(settingsPath, JSON.stringify({ enabled: Boolean(enabled) }, null, 2), 'utf8');
-}
-
-function lanAddresses() {
-  const addresses = [];
-  for (const entries of Object.values(os.networkInterfaces())) {
-    for (const entry of entries || []) {
-      if (entry.family !== 'IPv4' || entry.internal) continue;
-      if (!addresses.includes(entry.address)) addresses.push(entry.address);
-    }
-  }
-  return addresses;
-}
-
 function remoteCaptureStatus(extra = {}) {
-  const enabled = readRemoteCaptureSettings().enabled;
-  const urls = enabled
-    ? lanAddresses().map((address) => `http://${address}:${backendPort}/capture#capture_token=${encodeURIComponent(CAPTURE_TOKEN)}`)
-    : [];
-  return {
-    enabled,
-    urls,
-    port: backendPort,
-    ready: Boolean(backendProcess && backendProcess.exitCode === null),
-    message: enabled
-      ? (urls.length ? '\u624b\u673a\u91c7\u96c6\u5165\u53e3\u5df2\u5728\u5f53\u524d\u5c40\u57df\u7f51\u5f00\u653e\u3002' : '\u5df2\u5f00\u653e\uff0c\u4f46\u6ca1\u6709\u627e\u5230\u53ef\u7528\u7684\u5c40\u57df\u7f51 IPv4 \u5730\u5740\u3002')
-      : '\u624b\u673a\u91c7\u96c6\u5165\u53e3\u5f53\u524d\u5173\u95ed\u3002',
-    ...extra,
-  };
+  return { enabled: false, urls: [], port: backendPort, ready: false,
+    message: 'LAN 采集入口已停用；请使用 Tailscale Serve 连接现有学习页面。', ...extra };
+
 }
 
 function appendBackendLog(message) {
@@ -144,7 +121,7 @@ function backendEnv() {
     KAOYAN_REQUIRE_API_TOKEN: '1',
     KAOYAN_INSTANCE_ID: INSTANCE_ID,
     KAOYAN_CAPTURE_TOKEN: CAPTURE_TOKEN,
-    KAOYAN_BACKEND_HOST: readRemoteCaptureSettings().enabled ? '0.0.0.0' : '127.0.0.1',
+    KAOYAN_BACKEND_HOST: '127.0.0.1',
     DATA_DIR: paths.dataDir,
     ENV_PATH: paths.envPath,
     MINERU_OUTPUT_PATH: paths.mineruOutputPath,
@@ -157,7 +134,8 @@ function backendEnv() {
         ? path.join(process.resourcesPath, 'embedding-runtime', 'bge-small-zh-v1.5', 'onnx-fp32-v1')
         : path.join(projectRoot(), 'assets', 'embedding-runtime', 'bge-small-zh-v1.5', 'onnx-fp32-v1')
     ),
-    TEXA_REQUIRE_WINDOWS_X64: app.isPackaged ? '1' : (process.env.TEXA_REQUIRE_WINDOWS_X64 || '0'),
+    TEXA_REQUIRE_SUPPORTED_ARCH: app.isPackaged ? '1' : (process.env.TEXA_REQUIRE_SUPPORTED_ARCH || '0'),
+    TEXA_REQUIRE_WINDOWS_X64: process.platform === 'win32' && app.isPackaged ? '1' : (process.env.TEXA_REQUIRE_WINDOWS_X64 || '0'),
     RERANKER_MODEL_PATH: process.env.RERANKER_MODEL_PATH || '',
   };
 }
@@ -337,7 +315,7 @@ async function requestBackendShutdown() {
 
 async function prepareBackendEndpoint() {
   if (!USE_DYNAMIC_BACKEND_PORT) return;
-  const host = readRemoteCaptureSettings().enabled ? '0.0.0.0' : '127.0.0.1';
+  const host = '127.0.0.1';
   backendPort = await findAvailablePort(host);
   backendUrl = `http://127.0.0.1:${backendPort}`;
   appendBackendLog(`[main] allocated backend endpoint ${backendUrl} (bind host ${host})`);
@@ -406,16 +384,29 @@ async function startBackend() {
       return;
     }
 
-    // Dev mode: if a healthy backend already answers on the configured port
-    // (e.g. started manually by the developer), adopt it instead of spawning a
-    // second instance that would fail to bind the same port.
-    if (await probeExistingBackend()) {
-      appendBackendLog(`[main] dev: adopting existing backend at ${backendUrl} (spawn skipped).`);
+    // A healthy process on the port may belong to an older desktop token.
+    // Never present it as this desktop's ready/configured backend.
+    const existing = await probeExistingBackend();
+    if (existing) {
+      if (!backendIdentityMatches(existing, INSTANCE_ID)) {
+        sendStartupError(`端口 ${backendPort} 被另一后端实例占用。请完整退出旧 Texa / 本地后端后重试；不会接管旧实例或覆盖配置。`);
+        return;
+      }
+      const authorized = await fetchWithTimeout(`${backendUrl}/api/system/remote-ready`, 2500, {
+        headers: { 'X-Kaoyan-Token': API_TOKEN },
+      });
+      if (!authorized.ok) {
+        sendStartupError('端口上的后端与当前桌面访问令牌不匹配，请完整退出旧服务后重试。');
+        return;
+      }
+      appendBackendLog(`[main] dev: using explicitly matching backend at ${backendUrl} (spawn skipped).`);
       lastBackendExit = '';
       return;
     }
 
-    const python = process.env.KAOYAN_PYTHON || path.join(projectRoot(), 'venv310', 'Scripts', 'python.exe');
+    const python = process.env.KAOYAN_PYTHON || (process.platform === 'win32'
+      ? path.join(projectRoot(), 'venv310', 'Scripts', 'python.exe')
+      : path.join(projectRoot(), 'venv310', 'bin', 'python'));
     appendBackendLog(`[main] starting dev backend: ${python}`);
     lastBackendExit = '';
     backendProcess = spawn(
@@ -446,7 +437,7 @@ async function waitForBackend(timeoutMs = 60000) {
       const res = await fetchWithTimeout(`${backendUrl}/health`);
       if (res.ok) {
         const health = await res.json();
-        const identityMatches = SKIP_BACKEND || !app.isPackaged || health?.instance_id === INSTANCE_ID;
+        const identityMatches = backendIdentityMatches(health, INSTANCE_ID, SKIP_BACKEND);
         if (identityMatches) {
           const warmup = health?.warmup || {};
           if (warmup.status === 'ready') return true;
@@ -500,11 +491,11 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchWithTimeout(url, timeoutMs = 2500) {
+async function fetchWithTimeout(url, timeoutMs = 2500, init = {}) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    return await fetch(url, { signal: ctrl.signal });
+    return await fetch(url, { ...init, signal: ctrl.signal });
   } finally {
     clearTimeout(timer);
   }
@@ -513,9 +504,9 @@ async function fetchWithTimeout(url, timeoutMs = 2500) {
 async function probeExistingBackend(timeoutMs = 2500) {
   try {
     const res = await fetchWithTimeout(`${backendUrl}/health`, timeoutMs);
-    return res.ok;
+    return res.ok ? await res.json() : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -663,14 +654,17 @@ async function repairEmbeddingRuntime() {
 }
 
 function createWindow() {
+  allowWindowClose = false;
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 820,
     minWidth: 720,
     minHeight: 560,
-    ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' } : { frame: false }),
+    ...(process.platform === 'darwin'
+      ? { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 18, y: 11 } }
+      : { frame: false }),
     show: false,
-    backgroundColor: '#f5f5f7',
+    backgroundColor: startupAppearance?.tokens['--color-bg-primary'] || '#faf9f6',
     title: 'Texa',
     icon: APP_ICON_PATH,
     webPreferences: {
@@ -682,6 +676,18 @@ function createWindow() {
   });
 
   mainWindow.once('ready-to-show', () => mainWindow?.show());
+  mainWindow.on('close', (event) => {
+    if (allowQuit || allowWindowClose) return;
+    event.preventDefault();
+    void prepareWindowClose().then((ready) => {
+      if (ready && mainWindow && !mainWindow.isDestroyed()) {
+        allowWindowClose = true;
+        mainWindow.close();
+      }
+    });
+  });
+  mainWindow.on('enter-full-screen', () => mainWindow?.webContents.send('window:fullscreen-changed', true));
+  mainWindow.on('leave-full-screen', () => mainWindow?.webContents.send('window:fullscreen-changed', false));
   mainWindow.on('maximize', () => mainWindow?.webContents.send('window:maximized-changed', true));
   mainWindow.on('unmaximize', () => mainWindow?.webContents.send('window:maximized-changed', false));
   mainWindow.loadFile(path.join(__dirname, 'loading.html'));
@@ -705,12 +711,32 @@ function createWindow() {
       if (/^https?:\/\//i.test(url)) void shell.openExternal(url);
     }
   });
-  mainWindow.webContents.on('did-finish-load', () => emitBackendState({}));
+  mainWindow.webContents.on('did-finish-load', () => {
+    emitBackendState({});
+    // Refresh the native surface after macOS full-screen navigation. A paint
+    // invalidation alone does not recover the stale surface; resizing the
+    // content view does, without changing the window's full-screen state.
+    if (process.platform === 'darwin' && mainWindow?.isFullScreen()) {
+      const window = mainWindow;
+      const view = window.contentView.children.find(child => child.webContents === window.webContents);
+      if (view) {
+        const bounds = view.getBounds();
+        view.setBounds({ ...bounds, width: Math.max(1, bounds.width - 1) });
+        setImmediate(() => {
+          if (!window.isDestroyed()) {
+            const [width, height] = window.getContentSize();
+            view.setBounds({ x: 0, y: 0, width, height });
+          }
+        });
+      }
+    }
+  });
 
   void openAppWhenBackendReady();
 }
 
 ipcMain.handle('window:minimize', () => mainWindow?.minimize());
+ipcMain.handle('window:is-fullscreen', () => mainWindow?.isFullScreen() ?? false);
 ipcMain.handle('window:is-maximized', () => mainWindow?.isMaximized() ?? false);
 ipcMain.handle('window:toggle-maximize', () => {
   if (!mainWindow) return false;
@@ -720,7 +746,19 @@ ipcMain.handle('window:toggle-maximize', () => {
   return nextState;
 });
 ipcMain.handle('window:close', () => mainWindow?.close());
+ipcMain.on('window:prepared-close', (event, nonce, ready) => {
+  closePreparation.acknowledge(event.sender.id, nonce, ready === true);
+});
+ipcMain.handle('setup:get-complete', (event) => event.sender === mainWindow?.webContents && readSetupComplete(SETUP_COMPLETE_PATH));
+ipcMain.handle('setup:set-complete', (event) => event.sender === mainWindow?.webContents && writeSetupComplete(SETUP_COMPLETE_PATH));
+ipcMain.on('appearance:get', (event) => { event.returnValue = startupAppearance; });
+ipcMain.handle('appearance:set', (_event, value) => {
+  const saved = writeStartupAppearance(STARTUP_APPEARANCE_PATH, value);
+  if (saved) startupAppearance = saved;
+  return Boolean(saved);
+});
 ipcMain.handle('app:restart', async () => {
+  if (!await prepareWindowClose()) return false;
   shuttingDown = true;
   await stopBackend();
   allowQuit = true;
@@ -743,28 +781,18 @@ ipcMain.handle('startup:open-log', async () => {
 ipcMain.handle('updates:status', () => updateState);
 ipcMain.handle('backend:status', () => emitBackendState({}));
 ipcMain.handle('remote-capture:status', () => remoteCaptureStatus());
-ipcMain.handle('remote-capture:set-enabled', async (_event, enabled) => {
-  writeRemoteCaptureSettings(enabled);
-  restartingBackend = true;
-  try {
-    await stopBackend();
-    backendStartError = null;
-    lastBackendExit = '';
-    await startBackend();
-    const ready = await waitForBackend(30000);
-    if (ready) {
-      emitBackendState({ status: 'ready', message: '本地服务已重启', attempt: 0, canRetry: false });
-      await loadAppUrl(desktopAppUrl(FRONTEND_DEV_URL || backendUrl));
-    }
-    return remoteCaptureStatus({
-      ready,
-      message: ready
-        ? (enabled ? '\u624b\u673a\u91c7\u96c6\u5165\u53e3\u5df2\u5f00\u542f\u3002' : '\u624b\u673a\u91c7\u96c6\u5165\u53e3\u5df2\u5173\u95ed\u3002')
-        : '\u540e\u7aef\u91cd\u542f\u5931\u8d25\uff0c\u8bf7\u67e5\u770b\u540e\u7aef\u65e5\u5fd7\u3002',
-    });
-  } finally {
-    restartingBackend = false;
-  }
+ipcMain.handle('remote-capture:set-enabled', () => remoteCaptureStatus());
+// This IPC is available only to the local desktop renderer, never through HTTP.
+ipcMain.handle('remote-s0:status', (event) => {
+  if (event.sender !== mainWindow?.webContents) throw new Error('Access denied');
+  const ready = !SKIP_BACKEND && backendState.status === 'ready' && Boolean(backendProcess);
+  return { ready, target: backendUrl, instanceId: INSTANCE_ID,
+    command: `tailscale serve --bg --https=443 http://127.0.0.1:${backendPort}` };
+});
+ipcMain.handle('remote-s0:copy-token', (event) => {
+  if (event.sender !== mainWindow?.webContents || SKIP_BACKEND || backendState.status !== 'ready') return false;
+  clipboard.writeText(API_TOKEN);
+  return true;
 });
 
 
@@ -783,6 +811,7 @@ ipcMain.handle('updates:install', async () => {
   if (updateState.status !== 'downloaded') {
     return emitUpdateState({ status: 'error', message: '更新尚未下载完成，无法安装。' });
   }
+  if (!await prepareWindowClose()) return emitUpdateState({ status: 'downloaded', message: '草稿尚未保存，请先处理未保存修改。' });
   shuttingDown = true;
   await stopBackend();
   allowQuit = true;
@@ -799,6 +828,7 @@ if (hasSingleInstanceLock) {
   });
 
   app.whenReady().then(async () => {
+    appendBackendLog(`[main] runtime: isPackaged=${app.isPackaged}; appPath=${app.getAppPath()}; frontend=${FRONTEND_DEV_URL || (app.isPackaged ? 'bundled backend assets' : path.join(projectRoot(), 'frontend', 'dist'))}`);
     await startBackend();
     configureUpdater();
     createWindow();
@@ -806,10 +836,12 @@ if (hasSingleInstanceLock) {
 }
 
 app.on('before-quit', (event) => {
-  shuttingDown = true;
   if (allowQuit) return;
   event.preventDefault();
-  void stopBackend().finally(() => {
+  void prepareWindowClose().then(async (ready) => {
+    if (!ready) return;
+    shuttingDown = true;
+    await stopBackend();
     allowQuit = true;
     app.quit();
   });

@@ -114,11 +114,10 @@ export default function DataSafety() {
           <article key={item.name} className="settings-row px-0">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="break-all settings-row-title">{item.name}</div>
-                <div className="mt-1 settings-secondary">
-                  {item.created_at ? new Date(item.created_at).toLocaleString() : '时间未知'} · {formatBytes(item.size)} · {item.file_count || 0} 个文件 · v{item.app_version || '未知'}
-                </div>
-                <div className="mt-1 font-mono settings-secondary">{item.valid ? `SHA-256 ${item.sha256?.slice(0, 16)}…` : `校验失败：${item.error || '未知错误'}`}</div>
+                <div className="settings-row-title">{item.created_at ? new Date(item.created_at).toLocaleString() : '时间未知'} · {item.valid ? '校验通过' : '校验失败'}</div>
+                <div className="mt-1 settings-secondary">{formatBytes(item.size)} · v{item.app_version || '未知'} · {item.file_count || 0} 个文件</div>
+                {!item.valid && <div className="mt-1 settings-secondary">{item.error || '未知错误'}</div>}
+                <details className="mt-2 settings-secondary"><summary className="cursor-pointer">备份详情</summary><div className="mt-1 break-all">文件：{item.name}</div>{item.sha256 && <div className="break-all font-mono">SHA-256：{item.sha256}</div>}</details>
               </div>
               <button type="button" onClick={() => restore(item)} disabled={!item.valid || Boolean(busy)} className="app-secondary-button disabled:opacity-50">
                 {busy === item.name ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}合并恢复

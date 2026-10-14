@@ -1,0 +1,6 @@
+{
+  "deleted_test_events": 11,
+  "retained_events": 196,
+  "only_exact_test_ids_removed": true,
+  "backup": "/tmp/texa-before-test-event-cleanup.db"
+}

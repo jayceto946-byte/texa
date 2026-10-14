@@ -1,0 +1,42 @@
+[
+  {
+    "file": "1024-exercises.png",
+    "status": "PASS",
+    "changed_pixel_ratio": 0.0
+  },
+  {
+    "file": "1024-learning.png",
+    "status": "PASS",
+    "changed_pixel_ratio": 0.0
+  },
+  {
+    "file": "1280-exercises.png",
+    "status": "PASS",
+    "changed_pixel_ratio": 0.0
+  },
+  {
+    "file": "1280-learning.png",
+    "status": "PASS",
+    "changed_pixel_ratio": 0.0
+  },
+  {
+    "file": "390-exercises.png",
+    "status": "PASS",
+    "changed_pixel_ratio": 0.0
+  },
+  {
+    "file": "390-learning.png",
+    "status": "PASS",
+    "changed_pixel_ratio": 0.0
+  },
+  {
+    "file": "760-exercises.png",
+    "status": "PASS",
+    "changed_pixel_ratio": 0.0
+  },
+  {
+    "file": "760-learning.png",
+    "status": "PASS",
+    "changed_pixel_ratio": 0.0
+  }
+]

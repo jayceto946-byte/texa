@@ -1,0 +1,61 @@
+{
+  "scope": "current tracked and nonignored untracked; credential exact comparison in RAM; QA temp stores",
+  "files_scanned": 3522,
+  "credential_count": 2,
+  "exact_matches": [],
+  "generic_key_pattern_files": [
+    "docs/qa/runtime-data-audit.md",
+    "docs/validation/runtime-policy-evaluation-dataset-v0_1/source/tests/test_policy_dataset_v0.py",
+    "evaluation/frozen/runtime-benchmark-v0/audit/contract-source/tests/test_policy_dataset_v0.py",
+    "tests/test_policy_dataset_v0.py",
+    "tests/test_runtime_stream_cleanup_errors.py"
+  ],
+  "large_files_over_2MB": [
+    {
+      "path": "docs/qa/evidence/deepseek-production/paid/electron/paid-attempt1.json",
+      "bytes": 11673753
+    },
+    {
+      "path": "docs/qa/evidence/deepseek-remediation/paid/electron/results.json",
+      "bytes": 19720470
+    },
+    {
+      "path": "experiments/qwen37-dsv41-20261013/audit/checkpoint.tar",
+      "bytes": 2816000
+    },
+    {
+      "path": "assets/embedding-runtime/bge-small-zh-v1.5/onnx-fp32-v1/model.onnx",
+      "bytes": 94847144
+    },
+    {
+      "path": "docs/qa/evidence/native-tool-loop/paid-2026-10-13/extended-deadline/electron-results.json",
+      "bytes": 14949338
+    },
+    {
+      "path": "docs/qa/evidence/native-tool-loop/paid-2026-10-13/no-tool-completed/electron-results.json",
+      "bytes": 2290932
+    },
+    {
+      "path": "docs/validation/policy-sft-v0-20261007/train-metadata.jsonl",
+      "bytes": 8414476
+    },
+    {
+      "path": "docs/validation/policy-sft-v0-20261007/train.jsonl",
+      "bytes": 4314200
+    },
+    {
+      "path": "frontend/src/assets/fonts/HarmonyOS_Sans_SC_Bold.ttf",
+      "bytes": 8158996
+    },
+    {
+      "path": "frontend/src/assets/fonts/HarmonyOS_Sans_SC_Medium.ttf",
+      "bytes": 8227312
+    },
+    {
+      "path": "frontend/src/assets/fonts/HarmonyOS_Sans_SC_Regular.ttf",
+      "bytes": 8261128
+    }
+  ],
+  "private_data_paths": [],
+  "qa_exact_matches": []
+}

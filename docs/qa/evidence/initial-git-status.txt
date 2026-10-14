@@ -1,0 +1,15 @@
+ M backend/api/system.py
+ M frontend/src/Workspace.tsx
+ M frontend/src/api/remoteConnection.test.ts
+ M frontend/src/components/SystemHealth.tsx
+ M frontend/src/layouts/ApprovedWorkspace.css
+ M patch_notes.md
+?? Texa-Mobile-S2-Experience-Performance-Design.md
+?? backend/services/network_diagnostics.py
+?? docs/validation/mobile-network-s2/
+?? frontend/docs/
+?? frontend/src/api/networkDiagnostics.test.ts
+?? frontend/src/api/networkDiagnostics.ts
+?? frontend/src/components/settings/NetworkDiagnostics.tsx
+?? scripts/mobile-network-s2-smoke.mjs
+?? tests/test_network_diagnostics.py

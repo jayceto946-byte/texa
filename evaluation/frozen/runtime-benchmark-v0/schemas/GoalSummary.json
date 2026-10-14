@@ -1,0 +1,51 @@
+{
+  "$defs": {
+    "Criterion": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "title": "Criterion",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "title": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "objective": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Objective",
+      "type": "string"
+    },
+    "success_criteria": {
+      "items": {
+        "$ref": "#/$defs/Criterion"
+      },
+      "maxItems": 6,
+      "minItems": 1,
+      "title": "Success Criteria",
+      "type": "array"
+    }
+  },
+  "required": [
+    "title",
+    "objective",
+    "success_criteria"
+  ],
+  "title": "GoalSummary",
+  "type": "object"
+}

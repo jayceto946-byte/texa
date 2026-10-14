@@ -1,0 +1,84 @@
+{
+  "environment": "actual macOS Electron and real Providers via formal Chat API",
+  "cases": [
+    {
+      "id": "S1",
+      "status": "interaction_finished",
+      "started_at": "2026-10-13T13:43:13.269Z",
+      "answers": [
+        [
+          "不矛盾，关键是把“真正静态力”和“准静态力”分开。\n压电式测力传感器靠压电元件受力产生电荷来实现力电转换；但压电材料产生的电荷量是一定的，只有当电荷无泄漏时才能保存，而实际连接中漏电不可避免。因此，若被测力真正恒定不变，电荷没有补充，就会逐渐泄漏，传感器无法长期保持对应输出，所以压电式传感器不能用于静态测量。相反，在交变力作用下，电荷可以不断补充，能给测量回路提供一定电流，因此它只适用于动态测量。¹\n从测量回路时间常数看，教材指出：当 ωτ≫1\\omega\\tau \\gg 1ωτ≫1 时，传感器输出电压与作用力角频率 ω\\omegaω 无关，一般取 ωτ≫3\\omega\\tau \\gg 3ωτ≫3 即可近似看作无关；当 ωτ<3\\omega\\tau < 3ωτ<3，即被测作用力变化缓慢、测量回路时间常数也不大时，会造成灵敏度降低。² 而电荷放大器的 RfCfR_f C_fRf​Cf​ 时间常数可做得很大，因此其低频下限可低达准静态范围。³ 所以，采用大时间常数电荷放大器时，教材说可以测量准静态力。¹\n这里的“准静态”仍不是“真正静态”。大时间常数只是让测量回路漏电相对更慢、低频下限更低，使变化很缓慢的力在有限测量时间内可以近似测出；它不能消除漏电，也不能让恒定不变的力长期保持电荷。因此，“不能测真正静态力”和“大时间常数电荷放大器可测准静态力”并不冲突：前者针对长期恒定、无电荷补充的静态力，后者针对缓慢变化、可近似静态处理的力。¹²³\n适合的测量任务是金属加工切削力测量。压电陶瓷元件自振频率高，特别适合测量变化剧烈的载荷；切削力通过刀具传给压电传感器，传感器将切削力转换为电信号，记录电信号变化即可测得切削力的变化。⁴ 这类动态或瞬态力测量，正符合压电式测力传感器动态特性好、适合动态测量的特点。¹⁴"
+        ]
+      ],
+      "ended_at": "2026-10-13T13:43:46.762Z",
+      "ui_text": [
+        "TEXA / 解答查看来源 · 10部分内容尚未验证，需要核对32 秒查看过程不矛盾，关键是把“真正静态力”和“准静态力”分开。\n压电式测力传感器靠压电元件受力产生电荷来实现力电转换；但压电材料产生的电荷量是一定的，只有当电荷无泄漏时才能保存，而实际连接中漏电不可避免。因此，若被测力真正恒定不变，电荷没有补充，就会逐渐泄漏，传感器无法长期保持对应输出，所以压电式传感器不能用于静态测量。相反，在交变力作用下，电荷可以不断补充，能给测量回路提供一定电流，因此它只适用于动态测量。¹\n从测量回路时间常数看，教材指出：当 ωτ≫1\\omega\\tau \\gg 1ωτ≫1 时，传感器输出电压与作用力角频率 ω\\omegaω 无关，一般取 ωτ≫3\\omega\\tau \\gg 3ωτ≫3 即可近似看作无关；当 ωτ<3\\omega\\tau < 3ωτ<3，即被测作用力变化缓慢、测量回路时间常数也不大时，会造成灵敏度降低。² 而电荷放大器的 RfCfR_f C_fRf​Cf​ 时间常数可做得很大，因此其低频下限可低达准静态范围。³ 所以，采用大时间常数电荷放大器时，教材说可以测量准静态力。¹\n这里的“准静态”仍不是“真正静态”。大时间常数只是让测量回路漏电相对更慢、低频下限更低，使变化很缓慢的力在有限测量时间内可以近似测出；它不能消除漏电，也不能让恒定不变的力长期保持电荷。因此，“不能测真正静态力”和“大时间常数电荷放大器可测准静态力”并不冲突：前者针对长期恒定、无电荷补充的静态力，后者针对缓慢变化、可近似静态处理的力。¹²³\n适合的测量任务是金属加工切削力测量。压电陶瓷元件自振频率高，特别适合测量变化剧烈的载荷；切削力通过刀具传给压电传感器，传感器将切削力转换为电信号，记录电信号变化即可测得切削力的变化。⁴ 这类动态或瞬态力测量，正符合压电式测力传感器动态特性好、适合动态测量的特点。¹⁴基于教材来源 10"
+      ],
+      "runtime_status": [
+        {
+          "index": 1,
+          "model": "deepseek-flash",
+          "case": "S1",
+          "started_at": "2026-10-13T13:43:16.227069+00:00",
+          "input_bytes_upper": 16379,
+          "input_cap": 32768,
+          "output_cap": 8192,
+          "currency": "USD",
+          "reserved_cost": 0.0196728,
+          "status": "returned",
+          "wire_roles": [
+            "system",
+            "system",
+            "user"
+          ],
+          "tool_reply_ids": [],
+          "assistant_reasoning_present": [],
+          "assistant_tool_ids": [],
+          "tools_offered": [],
+          "http_status": 200,
+          "headers_ms": 659.33,
+          "first_chunk_ms": 677.28,
+          "first_public_ms": 27186.8,
+          "usage": {
+            "input_tokens": 3018,
+            "output_tokens": 4337,
+            "total_tokens": 7355,
+            "reasoning_tokens": 3849,
+            "final_content_tokens": 488,
+            "cached_input_tokens": 2816
+          },
+          "elapsed_ms": 30012.92,
+          "ended_at": "2026-10-13T13:43:46.240807+00:00",
+          "finish_reason": "stop",
+          "tariff_band": "offpeak",
+          "estimated_cost": 0.0026409479999999997
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/ChatPage-DpV4JIrS.js:17:20708\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109279)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/Workspace-RscFhaJj.js:2:4884\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/ChatPage-DpV4JIrS.js:17:20708\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109279)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/Workspace-RscFhaJj.js:2:4884\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/ChatPage-DpV4JIrS.js:17:20708\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109279)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    },
+    {
+      "abort_stack": "Error: abort callsite\n    at AbortController.abort (eval at evaluate (:311:30), <anonymous>:1:136)\n    at http://127.0.0.1:18041/assets/Workspace-RscFhaJj.js:2:4884\n    at Kc (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:91948)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109087)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)\n    at Fl (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:108997)\n    at Il (http://127.0.0.1:18041/assets/vendor-react-OHCfv3pu.js:8:109299)"
+    }
+  ],
+  "raw_recording": {
+    "path": "docs/qa/evidence/deepseek-remediation/paid/electron/results.json",
+    "sha256": "e5a9e1082a35721eff11ad53831ffa171b36658363585ae949a6020d6bde59fe",
+    "local_only": true
+  }
+}

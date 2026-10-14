@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "action": {
+      "enum": [
+        "continue",
+        "clarify"
+      ]
+    },
+    "intent": {
+      "enum": [
+        "application",
+        "calculation",
+        "comparison",
+        "cross_chapter",
+        "definition",
+        "derivation",
+        "factual_recall",
+        "formula",
+        "plan",
+        "property",
+        "qa",
+        "quiz",
+        "summarize",
+        "teach"
+      ]
+    },
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "calculation",
+          "classification",
+          "comparison",
+          "definition",
+          "derivation",
+          "examples",
+          "exercises",
+          "features",
+          "formula",
+          "principle",
+          "scenarios"
+        ]
+      },
+      "maxItems": 4,
+      "uniqueItems": true
+    },
+    "entity_spans": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "integer"
+          },
+          "end": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 3
+    },
+    "reference_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action",
+    "intent",
+    "dimensions",
+    "entity_spans",
+    "reference_id"
+  ],
+  "additionalProperties": false,
+  "description": "Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants."
+}

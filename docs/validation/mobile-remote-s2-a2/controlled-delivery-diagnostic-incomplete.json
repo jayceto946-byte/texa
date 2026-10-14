@@ -1,0 +1,3158 @@
+{
+  "fixture": true,
+  "network": {
+    "latencyMs": 400,
+    "downBytesPerSec": 625000,
+    "upBytesPerSec": 125000
+  },
+  "cold": [
+    {
+      "canvasMs": 6503.29999999702,
+      "font": "system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "paint": [
+        {
+          "name": "first-paint",
+          "startTime": 492
+        },
+        {
+          "name": "first-contentful-paint",
+          "startTime": 492
+        }
+      ],
+      "longTasks": [
+        340
+      ],
+      "resources": [
+        {
+          "name": "/assets/index-BS1Fzk8E.js",
+          "requestStart": 456.6000000089407,
+          "responseStart": 459,
+          "responseEnd": 878.2000000029802,
+          "ttfbMs": 2.3999999910593033,
+          "transferMs": 419.20000000298023,
+          "encodedBytes": 9061,
+          "wireBytes": 9361,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bootstrap-DN7txrMF.js",
+          "requestStart": 882.5,
+          "responseStart": 884.2999999970198,
+          "responseEnd": 1292,
+          "ttfbMs": 1.7999999970197678,
+          "transferMs": 407.70000000298023,
+          "encodedBytes": 2193,
+          "wireBytes": 2493,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/rolldown-runtime-QTnfLwEv.js",
+          "requestStart": 893.1000000089407,
+          "responseStart": 895.1000000089407,
+          "responseEnd": 1298.2000000029802,
+          "ttfbMs": 2,
+          "transferMs": 403.09999999403954,
+          "encodedBytes": 422,
+          "wireBytes": 722,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bootstrap-BE3RDBwJ.css",
+          "requestStart": 892.6000000089407,
+          "responseStart": 893.9000000059605,
+          "responseEnd": 1310.4000000059605,
+          "ttfbMs": 1.2999999970197678,
+          "transferMs": 416.5,
+          "encodedBytes": 3404,
+          "wireBytes": 3704,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/theme-CT8zBBhJ.js",
+          "requestStart": 896.7000000029802,
+          "responseStart": 902.4000000059605,
+          "responseEnd": 1312.9000000059605,
+          "ttfbMs": 5.700000002980232,
+          "transferMs": 410.5,
+          "encodedBytes": 1880,
+          "wireBytes": 2180,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/vendor-react-OHCfv3pu.js",
+          "requestStart": 894.6000000089407,
+          "responseStart": 901.2999999970198,
+          "responseEnd": 1404,
+          "ttfbMs": 6.699999988079071,
+          "transferMs": 502.70000000298023,
+          "encodedBytes": 58940,
+          "wireBytes": 59240,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/favicon.svg",
+          "requestStart": 1324.9000000059605,
+          "responseStart": 1326.2999999970198,
+          "responseEnd": 1744.7000000029802,
+          "ttfbMs": 1.3999999910593033,
+          "transferMs": 418.40000000596046,
+          "encodedBytes": 9522,
+          "wireBytes": 9822,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/brand/texa-mark.svg",
+          "requestStart": 1419.7999999970198,
+          "responseStart": 1420.7000000029802,
+          "responseEnd": 1823.9000000059605,
+          "ttfbMs": 0.9000000059604645,
+          "transferMs": 403.20000000298023,
+          "encodedBytes": 1183,
+          "wireBytes": 1483,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/system/remote-ready",
+          "requestStart": 1423.2999999970198,
+          "responseStart": 1423.7999999970198,
+          "responseEnd": 1826.7000000029802,
+          "ttfbMs": 0.5,
+          "transferMs": 402.90000000596046,
+          "encodedBytes": 60,
+          "wireBytes": 360,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Workspace-z-N_pkzx.js",
+          "requestStart": 1832,
+          "responseStart": 1848,
+          "responseEnd": 2284.7000000029802,
+          "ttfbMs": 16,
+          "transferMs": 436.70000000298023,
+          "encodedBytes": 9994,
+          "wireBytes": 10294,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/vendor-icons-oP8vZ_kG.js",
+          "requestStart": 1832.4000000059605,
+          "responseStart": 1851.1000000089407,
+          "responseEnd": 2275.2000000029802,
+          "ttfbMs": 18.700000002980232,
+          "transferMs": 424.09999999403954,
+          "encodedBytes": 6207,
+          "wireBytes": 6507,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ErrorBoundary-BfvGZlBb.js",
+          "requestStart": 1833.1000000089407,
+          "responseStart": 1862.2000000029802,
+          "responseEnd": 2246.5,
+          "ttfbMs": 29.099999994039536,
+          "transferMs": 384.29999999701977,
+          "encodedBytes": 556,
+          "wireBytes": 856,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Dialog-DfzuFnGa.js",
+          "requestStart": 1833.5,
+          "responseStart": 1862.7000000029802,
+          "responseEnd": 2248.9000000059605,
+          "ttfbMs": 29.200000002980232,
+          "transferMs": 386.20000000298023,
+          "encodedBytes": 977,
+          "wireBytes": 1277,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/chunk-6CSD65Y2-BVJknAi7.js",
+          "requestStart": 1832.7000000029802,
+          "responseStart": 1861.2000000029802,
+          "responseEnd": 2296.7000000029802,
+          "ttfbMs": 28.5,
+          "transferMs": 435.5,
+          "encodedBytes": 14446,
+          "wireBytes": 14746,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatContext-BYcjdvQ8.js",
+          "requestStart": 2248.9000000059605,
+          "responseStart": 2250.6000000089407,
+          "responseEnd": 2656.9000000059605,
+          "ttfbMs": 1.7000000029802322,
+          "transferMs": 406.29999999701977,
+          "encodedBytes": 1074,
+          "wireBytes": 1374,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/OverflowMenu-CnpE-q5f.js",
+          "requestStart": 2688.6000000089407,
+          "responseStart": 2690.6000000089407,
+          "responseEnd": 3090.7999999970198,
+          "ttfbMs": 2,
+          "transferMs": 400.19999998807907,
+          "encodedBytes": 978,
+          "wireBytes": 1278,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/InspectorContext-Bd-7IlXd.js",
+          "requestStart": 2275.4000000059605,
+          "responseStart": 2276.2000000029802,
+          "responseEnd": 2678.6000000089407,
+          "ttfbMs": 0.7999999970197678,
+          "transferMs": 402.40000000596046,
+          "encodedBytes": 426,
+          "wireBytes": 726,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bookList-dlb1tNaM.js",
+          "requestStart": 2285,
+          "responseStart": 2285.7000000029802,
+          "responseEnd": 2688.2000000029802,
+          "ttfbMs": 0.7000000029802322,
+          "transferMs": 402.5,
+          "encodedBytes": 482,
+          "wireBytes": 782,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/conversationMessages-B9qAi20a.css",
+          "requestStart": 1890,
+          "responseStart": 1914.2999999970198,
+          "responseEnd": 2294.4000000059605,
+          "ttfbMs": 24.299999997019768,
+          "transferMs": 380.1000000089407,
+          "encodedBytes": 458,
+          "wireBytes": 758,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/api-Dbq2rAIR.js",
+          "requestStart": 2296.7999999970198,
+          "responseStart": 2297.4000000059605,
+          "responseEnd": 2702.5,
+          "ttfbMs": 0.6000000089406967,
+          "transferMs": 405.09999999403954,
+          "encodedBytes": 592,
+          "wireBytes": 892,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/conversationMessages-uaDRHpLx.js",
+          "requestStart": 2294.5,
+          "responseStart": 2295.2000000029802,
+          "responseEnd": 2705,
+          "ttfbMs": 0.7000000029802322,
+          "transferMs": 409.79999999701977,
+          "encodedBytes": 1785,
+          "wireBytes": 2085,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/autosave-BcSnM71G.js",
+          "requestStart": 2657.2000000029802,
+          "responseStart": 2658.6000000089407,
+          "responseEnd": 3062.5,
+          "ttfbMs": 1.4000000059604645,
+          "transferMs": 403.8999999910593,
+          "encodedBytes": 822,
+          "wireBytes": 1122,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/textbookScopes-8Q0criQS.js",
+          "requestStart": 2678.9000000059605,
+          "responseStart": 2682.5,
+          "responseEnd": 3084,
+          "ttfbMs": 3.5999999940395355,
+          "transferMs": 401.5,
+          "encodedBytes": 661,
+          "wireBytes": 961,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Workspace-DPzwcRq7.css",
+          "requestStart": 2246.7000000029802,
+          "responseStart": 2250.1000000089407,
+          "responseEnd": 2714.5,
+          "ttfbMs": 3.4000000059604645,
+          "transferMs": 464.3999999910593,
+          "encodedBytes": 28891,
+          "wireBytes": 29191,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatPage-CtPLBEXs.js",
+          "requestStart": 3103.1000000089407,
+          "responseStart": 3107.1000000089407,
+          "responseEnd": 3636,
+          "ttfbMs": 4,
+          "transferMs": 528.8999999910593,
+          "encodedBytes": 28786,
+          "wireBytes": 29086,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MathFieldEditor-BStVCjv4.js",
+          "requestStart": 3103.1000000089407,
+          "responseStart": 3107.6000000089407,
+          "responseEnd": 3511.6000000089407,
+          "ttfbMs": 4.5,
+          "transferMs": 404,
+          "encodedBytes": 1151,
+          "wireBytes": 1451,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/useLearningNoteFont-BiFm5O5h.js",
+          "requestStart": 3104,
+          "responseStart": 3119.4000000059605,
+          "responseEnd": 3520.9000000059605,
+          "ttfbMs": 15.400000005960464,
+          "transferMs": 401.5,
+          "encodedBytes": 305,
+          "wireBytes": 605,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MathFieldEditor-BnjoTxG4.css",
+          "requestStart": 3103.2999999970198,
+          "responseStart": 3108.5,
+          "responseEnd": 3535.2000000029802,
+          "ttfbMs": 5.200000002980232,
+          "transferMs": 426.70000000298023,
+          "encodedBytes": 4207,
+          "wireBytes": 4507,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatMessage-DUdPoRCj.js",
+          "requestStart": 3103.6000000089407,
+          "responseStart": 3110.2000000029802,
+          "responseEnd": 3588,
+          "ttfbMs": 6.5999999940395355,
+          "transferMs": 477.79999999701977,
+          "encodedBytes": 14627,
+          "wireBytes": 14927,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/mathText-DgMsessI.js",
+          "requestStart": 3103.9000000059605,
+          "responseStart": 3119,
+          "responseEnd": 3779.7999999970198,
+          "ttfbMs": 15.099999994039536,
+          "transferMs": 660.7999999970198,
+          "encodedBytes": 117589,
+          "wireBytes": 117889,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MarkdownMessage-DyL0vymQ.js",
+          "requestStart": 3521.2000000029802,
+          "responseStart": 3522.5,
+          "responseEnd": 3924,
+          "ttfbMs": 1.2999999970197678,
+          "transferMs": 401.5,
+          "encodedBytes": 799,
+          "wireBytes": 1099,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/AsyncState-DcNhhgDg.js",
+          "requestStart": 3535.6000000089407,
+          "responseStart": 3537,
+          "responseEnd": 3943,
+          "ttfbMs": 1.3999999910593033,
+          "transferMs": 406,
+          "encodedBytes": 1327,
+          "wireBytes": 1627,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/useAuthenticatedBlobUrl-DwZyYy8h.js",
+          "requestStart": 3588.2000000029802,
+          "responseStart": 3589.2999999970198,
+          "responseEnd": 3993.6000000089407,
+          "ttfbMs": 1.0999999940395355,
+          "transferMs": 404.30000001192093,
+          "encodedBytes": 1091,
+          "wireBytes": 1391,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/citations-CirjbeGp.js",
+          "requestStart": 3636.1000000089407,
+          "responseStart": 3637.2999999970198,
+          "responseEnd": 4041.2000000029802,
+          "ttfbMs": 1.199999988079071,
+          "transferMs": 403.90000000596046,
+          "encodedBytes": 1096,
+          "wireBytes": 1396,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatMessage-JrNOeJOj.css",
+          "requestStart": 3512.1000000089407,
+          "responseStart": 3514.2000000029802,
+          "responseEnd": 3916.7000000029802,
+          "ttfbMs": 2.0999999940395355,
+          "transferMs": 402.5,
+          "encodedBytes": 1129,
+          "wireBytes": 1429,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ScopeSelector-D8bkq_7n.js",
+          "requestStart": 3780.9000000059605,
+          "responseStart": 3782.5,
+          "responseEnd": 4190.4000000059605,
+          "ttfbMs": 1.5999999940395355,
+          "transferMs": 407.90000000596046,
+          "encodedBytes": 3290,
+          "wireBytes": 3590,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/books/list",
+          "requestStart": 3916.9000000059605,
+          "responseStart": 3956.9000000059605,
+          "responseEnd": 4322.5,
+          "ttfbMs": 40,
+          "transferMs": 365.59999999403954,
+          "encodedBytes": 620,
+          "wireBytes": 920,
+          "appHeaderMs": 38.7
+        },
+        {
+          "name": "/api/chat/conversations",
+          "requestStart": 3924.4000000059605,
+          "responseStart": 3958.2999999970198,
+          "responseEnd": 4327.20000000298,
+          "ttfbMs": 33.8999999910593,
+          "transferMs": 368.90000000596046,
+          "encodedBytes": 584,
+          "wireBytes": 884,
+          "appHeaderMs": 26.9
+        },
+        {
+          "name": "/api/system/settings/subjects",
+          "requestStart": 4217.79999999702,
+          "responseStart": 4221.29999999702,
+          "responseEnd": 4622.5,
+          "ttfbMs": 3.5,
+          "transferMs": 401.20000000298023,
+          "encodedBytes": 55,
+          "wireBytes": 355,
+          "appHeaderMs": 3
+        },
+        {
+          "name": "/api/chat/conversations/conv_1791703534053_ec93c45c/management",
+          "requestStart": 4218,
+          "responseStart": 4221.600000008941,
+          "responseEnd": 4625.100000008941,
+          "ttfbMs": 3.6000000089406967,
+          "transferMs": 403.5,
+          "encodedBytes": 70,
+          "wireBytes": 370,
+          "appHeaderMs": 2.5
+        },
+        {
+          "name": "/api/chat/conversations/visual-session-0",
+          "requestStart": 4842.70000000298,
+          "responseStart": 4845.4000000059605,
+          "responseEnd": 5253.600000008941,
+          "ttfbMs": 2.7000000029802322,
+          "transferMs": 408.20000000298023,
+          "encodedBytes": 3767,
+          "wireBytes": 4067,
+          "appHeaderMs": 2.1
+        },
+        {
+          "name": "/assets/MarkdownRenderer-DTYnE0v_.js",
+          "requestStart": 5263,
+          "responseStart": 5264.600000008941,
+          "responseEnd": 5676,
+          "ttfbMs": 1.6000000089406967,
+          "transferMs": 411.3999999910593,
+          "encodedBytes": 2241,
+          "wireBytes": 2541,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/katex.min-CjOPEIgs.js",
+          "requestStart": 5263.4000000059605,
+          "responseStart": 5267.4000000059605,
+          "responseEnd": 5711.9000000059605,
+          "ttfbMs": 4,
+          "transferMs": 444.5,
+          "encodedBytes": 11340,
+          "wireBytes": 11640,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/katex-CYlHEDRF.css",
+          "requestStart": 5264,
+          "responseStart": 5269.4000000059605,
+          "responseEnd": 5706.79999999702,
+          "ttfbMs": 5.4000000059604645,
+          "transferMs": 437.3999999910593,
+          "encodedBytes": 7942,
+          "wireBytes": 8242,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/chat/conversations",
+          "requestStart": 5287.9000000059605,
+          "responseStart": 5292.4000000059605,
+          "responseEnd": 5695.20000000298,
+          "ttfbMs": 4.5,
+          "transferMs": 402.79999999701977,
+          "encodedBytes": 584,
+          "wireBytes": 884,
+          "appHeaderMs": 3.6
+        },
+        {
+          "name": "/api/system/settings/subjects",
+          "requestStart": 5288.100000008941,
+          "responseStart": 5293.20000000298,
+          "responseEnd": 5697.29999999702,
+          "ttfbMs": 5.0999999940395355,
+          "transferMs": 404.09999999403954,
+          "encodedBytes": 55,
+          "wireBytes": 355,
+          "appHeaderMs": 4.1
+        },
+        {
+          "name": "/api/chat/conversations/visual-session-0/management",
+          "requestStart": 5288.70000000298,
+          "responseStart": 5293.79999999702,
+          "responseEnd": 5700,
+          "ttfbMs": 5.0999999940395355,
+          "transferMs": 406.20000000298023,
+          "encodedBytes": 70,
+          "wireBytes": 370,
+          "appHeaderMs": 4.5
+        },
+        {
+          "name": "/api/mistakes/chat-sources/query",
+          "requestStart": 5676.100000008941,
+          "responseStart": 5685.4000000059605,
+          "responseEnd": 6109.100000008941,
+          "ttfbMs": 9.299999997019768,
+          "transferMs": 423.70000000298023,
+          "encodedBytes": 65,
+          "wireBytes": 365,
+          "appHeaderMs": 2
+        }
+      ]
+    },
+    {
+      "canvasMs": 6345.5,
+      "font": "system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "paint": [
+        {
+          "name": "first-paint",
+          "startTime": 464
+        },
+        {
+          "name": "first-contentful-paint",
+          "startTime": 464
+        }
+      ],
+      "longTasks": [
+        310
+      ],
+      "resources": [
+        {
+          "name": "/assets/index-BS1Fzk8E.js",
+          "requestStart": 433.79999999701977,
+          "responseStart": 435.79999999701977,
+          "responseEnd": 854.4000000059605,
+          "ttfbMs": 2,
+          "transferMs": 418.6000000089407,
+          "encodedBytes": 9061,
+          "wireBytes": 9361,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bootstrap-DN7txrMF.js",
+          "requestStart": 859.5,
+          "responseStart": 864.2000000029802,
+          "responseEnd": 1267.4000000059605,
+          "ttfbMs": 4.700000002980232,
+          "transferMs": 403.20000000298023,
+          "encodedBytes": 2193,
+          "wireBytes": 2493,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/rolldown-runtime-QTnfLwEv.js",
+          "requestStart": 880.2000000029802,
+          "responseStart": 883.2999999970198,
+          "responseEnd": 1286.4000000059605,
+          "ttfbMs": 3.0999999940395355,
+          "transferMs": 403.1000000089407,
+          "encodedBytes": 422,
+          "wireBytes": 722,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/vendor-react-OHCfv3pu.js",
+          "requestStart": 882.9000000059605,
+          "responseStart": 889.9000000059605,
+          "responseEnd": 1392,
+          "ttfbMs": 7,
+          "transferMs": 502.09999999403954,
+          "encodedBytes": 58940,
+          "wireBytes": 59240,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/theme-CT8zBBhJ.js",
+          "requestStart": 884.5,
+          "responseStart": 890.7000000029802,
+          "responseEnd": 1301.5999999940395,
+          "ttfbMs": 6.200000002980232,
+          "transferMs": 410.8999999910593,
+          "encodedBytes": 1880,
+          "wireBytes": 2180,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bootstrap-BE3RDBwJ.css",
+          "requestStart": 879.2999999970198,
+          "responseStart": 882,
+          "responseEnd": 1298.2999999970198,
+          "ttfbMs": 2.7000000029802322,
+          "transferMs": 416.29999999701977,
+          "encodedBytes": 3404,
+          "wireBytes": 3704,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/favicon.svg",
+          "requestStart": 1309.5,
+          "responseStart": 1311.0999999940395,
+          "responseEnd": 1730.5,
+          "ttfbMs": 1.5999999940395355,
+          "transferMs": 419.40000000596046,
+          "encodedBytes": 9522,
+          "wireBytes": 9822,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/brand/texa-mark.svg",
+          "requestStart": 1417.7999999970198,
+          "responseStart": 1420.5,
+          "responseEnd": 1824.7999999970198,
+          "ttfbMs": 2.7000000029802322,
+          "transferMs": 404.29999999701977,
+          "encodedBytes": 1183,
+          "wireBytes": 1483,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/system/remote-ready",
+          "requestStart": 1418.9000000059605,
+          "responseStart": 1421.2000000029802,
+          "responseEnd": 1827,
+          "ttfbMs": 2.2999999970197678,
+          "transferMs": 405.79999999701977,
+          "encodedBytes": 60,
+          "wireBytes": 360,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Workspace-z-N_pkzx.js",
+          "requestStart": 1835.5999999940395,
+          "responseStart": 1840.7999999970198,
+          "responseEnd": 2289.7000000029802,
+          "ttfbMs": 5.200000002980232,
+          "transferMs": 448.90000000596046,
+          "encodedBytes": 9994,
+          "wireBytes": 10294,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/vendor-icons-oP8vZ_kG.js",
+          "requestStart": 1835.7000000029802,
+          "responseStart": 1842,
+          "responseEnd": 2280.4000000059605,
+          "ttfbMs": 6.299999997019768,
+          "transferMs": 438.40000000596046,
+          "encodedBytes": 6207,
+          "wireBytes": 6507,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/chunk-6CSD65Y2-BVJknAi7.js",
+          "requestStart": 1836.0999999940395,
+          "responseStart": 1845.0999999940395,
+          "responseEnd": 2299.4000000059605,
+          "ttfbMs": 9,
+          "transferMs": 454.30000001192093,
+          "encodedBytes": 14446,
+          "wireBytes": 14746,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ErrorBoundary-BfvGZlBb.js",
+          "requestStart": 1836.7000000029802,
+          "responseStart": 1846.2000000029802,
+          "responseEnd": 2249.9000000059605,
+          "ttfbMs": 9.5,
+          "transferMs": 403.70000000298023,
+          "encodedBytes": 556,
+          "wireBytes": 856,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Dialog-DfzuFnGa.js",
+          "requestStart": 1837.2000000029802,
+          "responseStart": 1847,
+          "responseEnd": 2251.5,
+          "ttfbMs": 9.799999997019768,
+          "transferMs": 404.5,
+          "encodedBytes": 977,
+          "wireBytes": 1277,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/OverflowMenu-CnpE-q5f.js",
+          "requestStart": 2251.7999999970198,
+          "responseStart": 2260.2999999970198,
+          "responseEnd": 2657.7999999970198,
+          "ttfbMs": 8.5,
+          "transferMs": 397.5,
+          "encodedBytes": 978,
+          "wireBytes": 1278,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatContext-BYcjdvQ8.js",
+          "requestStart": 2261.0999999940395,
+          "responseStart": 2263.0999999940395,
+          "responseEnd": 2664.2999999970198,
+          "ttfbMs": 2,
+          "transferMs": 401.20000000298023,
+          "encodedBytes": 1074,
+          "wireBytes": 1374,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/InspectorContext-Bd-7IlXd.js",
+          "requestStart": 2281,
+          "responseStart": 2284.7999999970198,
+          "responseEnd": 2686.0999999940395,
+          "ttfbMs": 3.7999999970197678,
+          "transferMs": 401.29999999701977,
+          "encodedBytes": 426,
+          "wireBytes": 726,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bookList-dlb1tNaM.js",
+          "requestStart": 2290.0999999940395,
+          "responseStart": 2292.2999999970198,
+          "responseEnd": 2693.2999999970198,
+          "ttfbMs": 2.2000000029802322,
+          "transferMs": 401,
+          "encodedBytes": 482,
+          "wireBytes": 782,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/conversationMessages-uaDRHpLx.js",
+          "requestStart": 2299.7999999970198,
+          "responseStart": 2301.9000000059605,
+          "responseEnd": 2707.5999999940395,
+          "ttfbMs": 2.1000000089406967,
+          "transferMs": 405.69999998807907,
+          "encodedBytes": 1785,
+          "wireBytes": 2085,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/conversationMessages-B9qAi20a.css",
+          "requestStart": 1850.5999999940395,
+          "responseStart": 1851.2000000029802,
+          "responseEnd": 2260.7999999970198,
+          "ttfbMs": 0.6000000089406967,
+          "transferMs": 409.59999999403954,
+          "encodedBytes": 458,
+          "wireBytes": 758,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/api-Dbq2rAIR.js",
+          "requestStart": 2658.2000000029802,
+          "responseStart": 2659.4000000059605,
+          "responseEnd": 3065.7999999970198,
+          "ttfbMs": 1.2000000029802322,
+          "transferMs": 406.3999999910593,
+          "encodedBytes": 592,
+          "wireBytes": 892,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/autosave-BcSnM71G.js",
+          "requestStart": 2664.5,
+          "responseStart": 2665.5999999940395,
+          "responseEnd": 3068,
+          "ttfbMs": 1.0999999940395355,
+          "transferMs": 402.40000000596046,
+          "encodedBytes": 822,
+          "wireBytes": 1122,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Workspace-DPzwcRq7.css",
+          "requestStart": 2250.2000000029802,
+          "responseStart": 2259,
+          "responseEnd": 2714.7999999970198,
+          "ttfbMs": 8.799999997019768,
+          "transferMs": 455.79999999701977,
+          "encodedBytes": 28891,
+          "wireBytes": 29191,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/textbookScopes-8Q0criQS.js",
+          "requestStart": 2686.2999999970198,
+          "responseStart": 2687.5999999940395,
+          "responseEnd": 3091.9000000059605,
+          "ttfbMs": 1.2999999970197678,
+          "transferMs": 404.30000001192093,
+          "encodedBytes": 661,
+          "wireBytes": 961,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatPage-CtPLBEXs.js",
+          "requestStart": 3114.2000000029802,
+          "responseStart": 3119.7000000029802,
+          "responseEnd": 3645.7000000029802,
+          "ttfbMs": 5.5,
+          "transferMs": 526,
+          "encodedBytes": 28786,
+          "wireBytes": 29086,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MathFieldEditor-BStVCjv4.js",
+          "requestStart": 3114.2999999970198,
+          "responseStart": 3120.4000000059605,
+          "responseEnd": 3522.4000000059605,
+          "ttfbMs": 6.100000008940697,
+          "transferMs": 402,
+          "encodedBytes": 1151,
+          "wireBytes": 1451,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MathFieldEditor-BnjoTxG4.css",
+          "requestStart": 3114.7999999970198,
+          "responseStart": 3121,
+          "responseEnd": 3545,
+          "ttfbMs": 6.200000002980232,
+          "transferMs": 424,
+          "encodedBytes": 4207,
+          "wireBytes": 4507,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatMessage-DUdPoRCj.js",
+          "requestStart": 3115.5,
+          "responseStart": 3123.5,
+          "responseEnd": 3597.9000000059605,
+          "ttfbMs": 8,
+          "transferMs": 474.40000000596046,
+          "encodedBytes": 14627,
+          "wireBytes": 14927,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/useLearningNoteFont-BiFm5O5h.js",
+          "requestStart": 3116.0999999940395,
+          "responseStart": 3134.4000000059605,
+          "responseEnd": 3531.2000000029802,
+          "ttfbMs": 18.30000001192093,
+          "transferMs": 396.79999999701977,
+          "encodedBytes": 305,
+          "wireBytes": 605,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/mathText-DgMsessI.js",
+          "requestStart": 3115.7999999970198,
+          "responseStart": 3134,
+          "responseEnd": 3789.9000000059605,
+          "ttfbMs": 18.200000002980232,
+          "transferMs": 655.9000000059605,
+          "encodedBytes": 117589,
+          "wireBytes": 117889,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MarkdownMessage-DyL0vymQ.js",
+          "requestStart": 3531.5,
+          "responseStart": 3533.2999999970198,
+          "responseEnd": 3934.0999999940395,
+          "ttfbMs": 1.7999999970197678,
+          "transferMs": 400.79999999701977,
+          "encodedBytes": 799,
+          "wireBytes": 1099,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/AsyncState-DcNhhgDg.js",
+          "requestStart": 3545.2999999970198,
+          "responseStart": 3548,
+          "responseEnd": 3951,
+          "ttfbMs": 2.7000000029802322,
+          "transferMs": 403,
+          "encodedBytes": 1327,
+          "wireBytes": 1627,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/useAuthenticatedBlobUrl-DwZyYy8h.js",
+          "requestStart": 3598.5,
+          "responseStart": 3600.7000000029802,
+          "responseEnd": 4006.2000000029802,
+          "ttfbMs": 2.2000000029802322,
+          "transferMs": 405.5,
+          "encodedBytes": 1091,
+          "wireBytes": 1391,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/citations-CirjbeGp.js",
+          "requestStart": 3646.2000000029802,
+          "responseStart": 3648.5,
+          "responseEnd": 4051.9000000059605,
+          "ttfbMs": 2.2999999970197678,
+          "transferMs": 403.40000000596046,
+          "encodedBytes": 1096,
+          "wireBytes": 1396,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatMessage-JrNOeJOj.css",
+          "requestStart": 3523,
+          "responseStart": 3527.7000000029802,
+          "responseEnd": 3927,
+          "ttfbMs": 4.700000002980232,
+          "transferMs": 399.29999999701977,
+          "encodedBytes": 1129,
+          "wireBytes": 1429,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ScopeSelector-D8bkq_7n.js",
+          "requestStart": 3790.7999999970198,
+          "responseStart": 3794.5999999940395,
+          "responseEnd": 4202.79999999702,
+          "ttfbMs": 3.7999999970197678,
+          "transferMs": 408.20000000298023,
+          "encodedBytes": 3290,
+          "wireBytes": 3590,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/books/list",
+          "requestStart": 3927.4000000059605,
+          "responseStart": 3937.7000000029802,
+          "responseEnd": 4329.5,
+          "ttfbMs": 10.299999997019768,
+          "transferMs": 391.79999999701977,
+          "encodedBytes": 620,
+          "wireBytes": 920,
+          "appHeaderMs": 8.3
+        },
+        {
+          "name": "/api/chat/conversations",
+          "requestStart": 3935.2000000029802,
+          "responseStart": 3939.0999999940395,
+          "responseEnd": 4339.79999999702,
+          "ttfbMs": 3.8999999910593033,
+          "transferMs": 400.70000000298023,
+          "encodedBytes": 584,
+          "wireBytes": 884,
+          "appHeaderMs": 3
+        },
+        {
+          "name": "/api/system/settings/subjects",
+          "requestStart": 4234.70000000298,
+          "responseStart": 4237.70000000298,
+          "responseEnd": 4642.0999999940395,
+          "ttfbMs": 3,
+          "transferMs": 404.3999999910593,
+          "encodedBytes": 55,
+          "wireBytes": 355,
+          "appHeaderMs": 2.2
+        },
+        {
+          "name": "/api/chat/conversations/conv_1791703546168_4819a54e/management",
+          "requestStart": 4234.79999999702,
+          "responseStart": 4238.20000000298,
+          "responseEnd": 4644.79999999702,
+          "ttfbMs": 3.4000000059604645,
+          "transferMs": 406.59999999403954,
+          "encodedBytes": 70,
+          "wireBytes": 370,
+          "appHeaderMs": 2.2
+        },
+        {
+          "name": "/api/chat/conversations/visual-session-0",
+          "requestStart": 4814.70000000298,
+          "responseStart": 4817,
+          "responseEnd": 5222.79999999702,
+          "ttfbMs": 2.2999999970197678,
+          "transferMs": 405.79999999701977,
+          "encodedBytes": 3767,
+          "wireBytes": 4067,
+          "appHeaderMs": 1.3
+        },
+        {
+          "name": "/assets/MarkdownRenderer-DTYnE0v_.js",
+          "requestStart": 5227,
+          "responseStart": 5229.20000000298,
+          "responseEnd": 5640.20000000298,
+          "ttfbMs": 2.2000000029802322,
+          "transferMs": 411,
+          "encodedBytes": 2241,
+          "wireBytes": 2541,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/katex-CYlHEDRF.css",
+          "requestStart": 5227.4000000059605,
+          "responseStart": 5233.5,
+          "responseEnd": 5671.20000000298,
+          "ttfbMs": 6.0999999940395355,
+          "transferMs": 437.70000000298023,
+          "encodedBytes": 7942,
+          "wireBytes": 8242,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/katex.min-CjOPEIgs.js",
+          "requestStart": 5227.0999999940395,
+          "responseStart": 5232.5,
+          "responseEnd": 5676.0999999940395,
+          "ttfbMs": 5.4000000059604645,
+          "transferMs": 443.59999999403954,
+          "encodedBytes": 11340,
+          "wireBytes": 11640,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/chat/conversations",
+          "requestStart": 5244,
+          "responseStart": 5246.5,
+          "responseEnd": 5650.0999999940395,
+          "ttfbMs": 2.5,
+          "transferMs": 403.59999999403954,
+          "encodedBytes": 584,
+          "wireBytes": 884,
+          "appHeaderMs": 2
+        },
+        {
+          "name": "/api/system/settings/subjects",
+          "requestStart": 5244,
+          "responseStart": 5247.4000000059605,
+          "responseEnd": 5652.70000000298,
+          "ttfbMs": 3.4000000059604645,
+          "transferMs": 405.29999999701977,
+          "encodedBytes": 55,
+          "wireBytes": 355,
+          "appHeaderMs": 2.5
+        },
+        {
+          "name": "/api/chat/conversations/visual-session-0/management",
+          "requestStart": 5244.0999999940395,
+          "responseStart": 5247.5999999940395,
+          "responseEnd": 5654.5999999940395,
+          "ttfbMs": 3.5,
+          "transferMs": 407,
+          "encodedBytes": 70,
+          "wireBytes": 370,
+          "appHeaderMs": 2.5
+        },
+        {
+          "name": "/api/mistakes/chat-sources/query",
+          "requestStart": 5640.4000000059605,
+          "responseStart": 5649.9000000059605,
+          "responseEnd": 6055.0999999940395,
+          "ttfbMs": 9.5,
+          "transferMs": 405.19999998807907,
+          "encodedBytes": 65,
+          "wireBytes": 365,
+          "appHeaderMs": 2.7
+        }
+      ]
+    },
+    {
+      "canvasMs": 6292,
+      "font": "system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "paint": [
+        {
+          "name": "first-paint",
+          "startTime": 460
+        },
+        {
+          "name": "first-contentful-paint",
+          "startTime": 460
+        }
+      ],
+      "longTasks": [
+        261
+      ],
+      "resources": [
+        {
+          "name": "/assets/index-BS1Fzk8E.js",
+          "requestStart": 430.20000000298023,
+          "responseStart": 432.90000000596046,
+          "responseEnd": 847.9000000059605,
+          "ttfbMs": 2.7000000029802322,
+          "transferMs": 415,
+          "encodedBytes": 9061,
+          "wireBytes": 9361,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bootstrap-DN7txrMF.js",
+          "requestStart": 855.9000000059605,
+          "responseStart": 863.2999999970198,
+          "responseEnd": 1266,
+          "ttfbMs": 7.399999991059303,
+          "transferMs": 402.70000000298023,
+          "encodedBytes": 2193,
+          "wireBytes": 2493,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/rolldown-runtime-QTnfLwEv.js",
+          "requestStart": 873.2999999970198,
+          "responseStart": 883.1000000089407,
+          "responseEnd": 1278.7000000029802,
+          "ttfbMs": 9.800000011920929,
+          "transferMs": 395.59999999403954,
+          "encodedBytes": 422,
+          "wireBytes": 722,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/theme-CT8zBBhJ.js",
+          "requestStart": 884.2000000029802,
+          "responseStart": 884.7999999970198,
+          "responseEnd": 1295.7000000029802,
+          "ttfbMs": 0.5999999940395355,
+          "transferMs": 410.90000000596046,
+          "encodedBytes": 1880,
+          "wireBytes": 2180,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/vendor-react-OHCfv3pu.js",
+          "requestStart": 876.1000000089407,
+          "responseStart": 882.6000000089407,
+          "responseEnd": 1382.9000000059605,
+          "ttfbMs": 6.5,
+          "transferMs": 500.29999999701977,
+          "encodedBytes": 58940,
+          "wireBytes": 59240,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bootstrap-BE3RDBwJ.css",
+          "requestStart": 871.9000000059605,
+          "responseStart": 874.2999999970198,
+          "responseEnd": 1285.1000000089407,
+          "ttfbMs": 2.3999999910593033,
+          "transferMs": 410.80000001192093,
+          "encodedBytes": 3404,
+          "wireBytes": 3704,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/favicon.svg",
+          "requestStart": 1301.6000000089407,
+          "responseStart": 1303.7000000029802,
+          "responseEnd": 1721.6000000089407,
+          "ttfbMs": 2.0999999940395355,
+          "transferMs": 417.90000000596046,
+          "encodedBytes": 9522,
+          "wireBytes": 9822,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/brand/texa-mark.svg",
+          "requestStart": 1409.5,
+          "responseStart": 1410.7000000029802,
+          "responseEnd": 1818.1000000089407,
+          "ttfbMs": 1.2000000029802322,
+          "transferMs": 407.40000000596046,
+          "encodedBytes": 1183,
+          "wireBytes": 1483,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/system/remote-ready",
+          "requestStart": 1418.6000000089407,
+          "responseStart": 1418.9000000059605,
+          "responseEnd": 1822.9000000059605,
+          "ttfbMs": 0.29999999701976776,
+          "transferMs": 404,
+          "encodedBytes": 60,
+          "wireBytes": 360,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Workspace-z-N_pkzx.js",
+          "requestStart": 1831,
+          "responseStart": 1835,
+          "responseEnd": 2283.2000000029802,
+          "ttfbMs": 4,
+          "transferMs": 448.20000000298023,
+          "encodedBytes": 9994,
+          "wireBytes": 10294,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/vendor-icons-oP8vZ_kG.js",
+          "requestStart": 1831.2999999970198,
+          "responseStart": 1836.5,
+          "responseEnd": 2273.5,
+          "ttfbMs": 5.200000002980232,
+          "transferMs": 437,
+          "encodedBytes": 6207,
+          "wireBytes": 6507,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/chunk-6CSD65Y2-BVJknAi7.js",
+          "requestStart": 1832.2000000029802,
+          "responseStart": 1839.2000000029802,
+          "responseEnd": 2292.7999999970198,
+          "ttfbMs": 7,
+          "transferMs": 453.59999999403954,
+          "encodedBytes": 14446,
+          "wireBytes": 14746,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ErrorBoundary-BfvGZlBb.js",
+          "requestStart": 1832.6000000089407,
+          "responseStart": 1839.9000000059605,
+          "responseEnd": 2243.2999999970198,
+          "ttfbMs": 7.299999997019768,
+          "transferMs": 403.3999999910593,
+          "encodedBytes": 556,
+          "wireBytes": 856,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Dialog-DfzuFnGa.js",
+          "requestStart": 1833,
+          "responseStart": 1840.7000000029802,
+          "responseEnd": 2246.1000000089407,
+          "ttfbMs": 7.700000002980232,
+          "transferMs": 405.40000000596046,
+          "encodedBytes": 977,
+          "wireBytes": 1277,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/OverflowMenu-CnpE-q5f.js",
+          "requestStart": 2246.5,
+          "responseStart": 2255.7000000029802,
+          "responseEnd": 2651.2000000029802,
+          "ttfbMs": 9.200000002980232,
+          "transferMs": 395.5,
+          "encodedBytes": 978,
+          "wireBytes": 1278,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatContext-BYcjdvQ8.js",
+          "requestStart": 2254.7999999970198,
+          "responseStart": 2257.4000000059605,
+          "responseEnd": 2660.2999999970198,
+          "ttfbMs": 2.6000000089406967,
+          "transferMs": 402.8999999910593,
+          "encodedBytes": 1074,
+          "wireBytes": 1374,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/InspectorContext-Bd-7IlXd.js",
+          "requestStart": 2273.9000000059605,
+          "responseStart": 2276.1000000089407,
+          "responseEnd": 2676.9000000059605,
+          "ttfbMs": 2.2000000029802322,
+          "transferMs": 400.79999999701977,
+          "encodedBytes": 426,
+          "wireBytes": 726,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bookList-dlb1tNaM.js",
+          "requestStart": 2283.5,
+          "responseStart": 2285,
+          "responseEnd": 2686.5,
+          "ttfbMs": 1.5,
+          "transferMs": 401.5,
+          "encodedBytes": 482,
+          "wireBytes": 782,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/conversationMessages-uaDRHpLx.js",
+          "requestStart": 2293.6000000089407,
+          "responseStart": 2295.7999999970198,
+          "responseEnd": 2703.2000000029802,
+          "ttfbMs": 2.199999988079071,
+          "transferMs": 407.40000000596046,
+          "encodedBytes": 1785,
+          "wireBytes": 2085,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/conversationMessages-B9qAi20a.css",
+          "requestStart": 1846.5,
+          "responseStart": 1847.2999999970198,
+          "responseEnd": 2254.4000000059605,
+          "ttfbMs": 0.7999999970197678,
+          "transferMs": 407.1000000089407,
+          "encodedBytes": 458,
+          "wireBytes": 758,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/api-Dbq2rAIR.js",
+          "requestStart": 2651.9000000059605,
+          "responseStart": 2654,
+          "responseEnd": 3058.2999999970198,
+          "ttfbMs": 2.0999999940395355,
+          "transferMs": 404.29999999701977,
+          "encodedBytes": 592,
+          "wireBytes": 892,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/autosave-BcSnM71G.js",
+          "requestStart": 2660.7999999970198,
+          "responseStart": 2662.5,
+          "responseEnd": 3062.9000000059605,
+          "ttfbMs": 1.7000000029802322,
+          "transferMs": 400.40000000596046,
+          "encodedBytes": 822,
+          "wireBytes": 1122,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/textbookScopes-8Q0criQS.js",
+          "requestStart": 2677.9000000059605,
+          "responseStart": 2680,
+          "responseEnd": 3082.7000000029802,
+          "ttfbMs": 2.0999999940395355,
+          "transferMs": 402.70000000298023,
+          "encodedBytes": 661,
+          "wireBytes": 961,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Workspace-DPzwcRq7.css",
+          "requestStart": 2243.9000000059605,
+          "responseStart": 2254,
+          "responseEnd": 2707.6000000089407,
+          "ttfbMs": 10.099999994039536,
+          "transferMs": 453.6000000089407,
+          "encodedBytes": 28891,
+          "wireBytes": 29191,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatPage-CtPLBEXs.js",
+          "requestStart": 3100.6000000089407,
+          "responseStart": 3105.4000000059605,
+          "responseEnd": 3634.4000000059605,
+          "ttfbMs": 4.799999997019768,
+          "transferMs": 529,
+          "encodedBytes": 28786,
+          "wireBytes": 29086,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MathFieldEditor-BStVCjv4.js",
+          "requestStart": 3100.7000000029802,
+          "responseStart": 3106.2000000029802,
+          "responseEnd": 3510.9000000059605,
+          "ttfbMs": 5.5,
+          "transferMs": 404.70000000298023,
+          "encodedBytes": 1151,
+          "wireBytes": 1451,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MathFieldEditor-BnjoTxG4.css",
+          "requestStart": 3101.1000000089407,
+          "responseStart": 3106.9000000059605,
+          "responseEnd": 3533.5,
+          "ttfbMs": 5.799999997019768,
+          "transferMs": 426.59999999403954,
+          "encodedBytes": 4207,
+          "wireBytes": 4507,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatMessage-DUdPoRCj.js",
+          "requestStart": 3101.5,
+          "responseStart": 3108.7000000029802,
+          "responseEnd": 3586,
+          "ttfbMs": 7.200000002980232,
+          "transferMs": 477.29999999701977,
+          "encodedBytes": 14627,
+          "wireBytes": 14927,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/mathText-DgMsessI.js",
+          "requestStart": 3102.2000000029802,
+          "responseStart": 3120.1000000089407,
+          "responseEnd": 3778.4000000059605,
+          "ttfbMs": 17.900000005960464,
+          "transferMs": 658.2999999970198,
+          "encodedBytes": 117589,
+          "wireBytes": 117889,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/useLearningNoteFont-BiFm5O5h.js",
+          "requestStart": 3102.6000000089407,
+          "responseStart": 3120.4000000059605,
+          "responseEnd": 3519.6000000089407,
+          "ttfbMs": 17.799999997019768,
+          "transferMs": 399.20000000298023,
+          "encodedBytes": 305,
+          "wireBytes": 605,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MarkdownMessage-DyL0vymQ.js",
+          "requestStart": 3520,
+          "responseStart": 3521.5,
+          "responseEnd": 3922.2999999970198,
+          "ttfbMs": 1.5,
+          "transferMs": 400.79999999701977,
+          "encodedBytes": 799,
+          "wireBytes": 1099,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/AsyncState-DcNhhgDg.js",
+          "requestStart": 3533.9000000059605,
+          "responseStart": 3536.2000000029802,
+          "responseEnd": 3939.9000000059605,
+          "ttfbMs": 2.2999999970197678,
+          "transferMs": 403.70000000298023,
+          "encodedBytes": 1327,
+          "wireBytes": 1627,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/useAuthenticatedBlobUrl-DwZyYy8h.js",
+          "requestStart": 3586.7000000029802,
+          "responseStart": 3589.4000000059605,
+          "responseEnd": 3995,
+          "ttfbMs": 2.7000000029802322,
+          "transferMs": 405.59999999403954,
+          "encodedBytes": 1091,
+          "wireBytes": 1391,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatMessage-JrNOeJOj.css",
+          "requestStart": 3511.6000000089407,
+          "responseStart": 3515.7000000029802,
+          "responseEnd": 3917.7000000029802,
+          "ttfbMs": 4.0999999940395355,
+          "transferMs": 402,
+          "encodedBytes": 1129,
+          "wireBytes": 1429,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/citations-CirjbeGp.js",
+          "requestStart": 3635,
+          "responseStart": 3639.7999999970198,
+          "responseEnd": 4043.4000000059605,
+          "ttfbMs": 4.799999997019768,
+          "transferMs": 403.6000000089407,
+          "encodedBytes": 1096,
+          "wireBytes": 1396,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ScopeSelector-D8bkq_7n.js",
+          "requestStart": 3779.1000000089407,
+          "responseStart": 3781.9000000059605,
+          "responseEnd": 4188.70000000298,
+          "ttfbMs": 2.7999999970197678,
+          "transferMs": 406.79999999701977,
+          "encodedBytes": 3290,
+          "wireBytes": 3590,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/books/list",
+          "requestStart": 3918.2999999970198,
+          "responseStart": 3927.9000000059605,
+          "responseEnd": 4323.100000008941,
+          "ttfbMs": 9.600000008940697,
+          "transferMs": 395.20000000298023,
+          "encodedBytes": 620,
+          "wireBytes": 920,
+          "appHeaderMs": 7.2
+        },
+        {
+          "name": "/api/chat/conversations",
+          "requestStart": 3922.6000000089407,
+          "responseStart": 3928.7999999970198,
+          "responseEnd": 4326,
+          "ttfbMs": 6.199999988079071,
+          "transferMs": 397.20000000298023,
+          "encodedBytes": 584,
+          "wireBytes": 884,
+          "appHeaderMs": 4.8
+        },
+        {
+          "name": "/api/system/settings/subjects",
+          "requestStart": 4219.9000000059605,
+          "responseStart": 4223.600000008941,
+          "responseEnd": 4628.70000000298,
+          "ttfbMs": 3.7000000029802322,
+          "transferMs": 405.09999999403954,
+          "encodedBytes": 55,
+          "wireBytes": 355,
+          "appHeaderMs": 3.1
+        },
+        {
+          "name": "/api/chat/conversations/conv_1791703557074_16479160/management",
+          "requestStart": 4220,
+          "responseStart": 4224,
+          "responseEnd": 4630.79999999702,
+          "ttfbMs": 4,
+          "transferMs": 406.79999999701977,
+          "encodedBytes": 70,
+          "wireBytes": 370,
+          "appHeaderMs": 2.4
+        },
+        {
+          "name": "/api/chat/conversations/visual-session-0",
+          "requestStart": 4809.70000000298,
+          "responseStart": 4812.100000008941,
+          "responseEnd": 5218.600000008941,
+          "ttfbMs": 2.4000000059604645,
+          "transferMs": 406.5,
+          "encodedBytes": 3767,
+          "wireBytes": 4067,
+          "appHeaderMs": 1.5
+        },
+        {
+          "name": "/assets/MarkdownRenderer-DTYnE0v_.js",
+          "requestStart": 5232.70000000298,
+          "responseStart": 5236.29999999702,
+          "responseEnd": 5643.100000008941,
+          "ttfbMs": 3.5999999940395355,
+          "transferMs": 406.80000001192093,
+          "encodedBytes": 2241,
+          "wireBytes": 2541,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/katex.min-CjOPEIgs.js",
+          "requestStart": 5232.79999999702,
+          "responseStart": 5240.4000000059605,
+          "responseEnd": 5678.600000008941,
+          "ttfbMs": 7.600000008940697,
+          "transferMs": 438.20000000298023,
+          "encodedBytes": 11340,
+          "wireBytes": 11640,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/katex-CYlHEDRF.css",
+          "requestStart": 5233,
+          "responseStart": 5241.79999999702,
+          "responseEnd": 5673.9000000059605,
+          "ttfbMs": 8.799999997019768,
+          "transferMs": 432.1000000089407,
+          "encodedBytes": 7942,
+          "wireBytes": 8242,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/chat/conversations",
+          "requestStart": 5259.20000000298,
+          "responseStart": 5261.9000000059605,
+          "responseEnd": 5664.70000000298,
+          "ttfbMs": 2.7000000029802322,
+          "transferMs": 402.79999999701977,
+          "encodedBytes": 584,
+          "wireBytes": 884,
+          "appHeaderMs": 1.9
+        },
+        {
+          "name": "/api/system/settings/subjects",
+          "requestStart": 5259.600000008941,
+          "responseStart": 5263.100000008941,
+          "responseEnd": 5669.5,
+          "ttfbMs": 3.5,
+          "transferMs": 406.3999999910593,
+          "encodedBytes": 55,
+          "wireBytes": 355,
+          "appHeaderMs": 2.7
+        },
+        {
+          "name": "/api/chat/conversations/visual-session-0/management",
+          "requestStart": 5260.29999999702,
+          "responseStart": 5262.79999999702,
+          "responseEnd": 5671.70000000298,
+          "ttfbMs": 2.5,
+          "transferMs": 408.90000000596046,
+          "encodedBytes": 70,
+          "wireBytes": 370,
+          "appHeaderMs": 2
+        },
+        {
+          "name": "/api/mistakes/chat-sources/query",
+          "requestStart": 5643.20000000298,
+          "responseStart": 5650.20000000298,
+          "responseEnd": 6055.600000008941,
+          "ttfbMs": 7,
+          "transferMs": 405.40000000596046,
+          "encodedBytes": 65,
+          "wireBytes": 365,
+          "appHeaderMs": 2.1
+        }
+      ]
+    },
+    {
+      "canvasMs": 6266.899999991059,
+      "font": "system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "paint": [
+        {
+          "name": "first-paint",
+          "startTime": 440
+        },
+        {
+          "name": "first-contentful-paint",
+          "startTime": 440
+        }
+      ],
+      "longTasks": [
+        261
+      ],
+      "resources": [
+        {
+          "name": "/assets/index-BS1Fzk8E.js",
+          "requestStart": 416.59999999403954,
+          "responseStart": 417.8999999910593,
+          "responseEnd": 839.3999999910593,
+          "ttfbMs": 1.2999999970197678,
+          "transferMs": 421.5,
+          "encodedBytes": 9061,
+          "wireBytes": 9361,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bootstrap-DN7txrMF.js",
+          "requestStart": 846.1999999880791,
+          "responseStart": 848.5999999940395,
+          "responseEnd": 1255.0999999940395,
+          "ttfbMs": 2.4000000059604645,
+          "transferMs": 406.5,
+          "encodedBytes": 2193,
+          "wireBytes": 2493,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/rolldown-runtime-QTnfLwEv.js",
+          "requestStart": 861.6999999880791,
+          "responseStart": 864.5999999940395,
+          "responseEnd": 1266.5,
+          "ttfbMs": 2.9000000059604645,
+          "transferMs": 401.90000000596046,
+          "encodedBytes": 422,
+          "wireBytes": 722,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/vendor-react-OHCfv3pu.js",
+          "requestStart": 864.0999999940395,
+          "responseStart": 873.2999999970198,
+          "responseEnd": 1371.7999999970198,
+          "ttfbMs": 9.200000002980232,
+          "transferMs": 498.5,
+          "encodedBytes": 58940,
+          "wireBytes": 59240,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/theme-CT8zBBhJ.js",
+          "requestStart": 865.6999999880791,
+          "responseStart": 866.5,
+          "responseEnd": 1280.5,
+          "ttfbMs": 0.800000011920929,
+          "transferMs": 414,
+          "encodedBytes": 1880,
+          "wireBytes": 2180,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bootstrap-BE3RDBwJ.css",
+          "requestStart": 860.5,
+          "responseStart": 862.8999999910593,
+          "responseEnd": 1276.0999999940395,
+          "ttfbMs": 2.3999999910593033,
+          "transferMs": 413.20000000298023,
+          "encodedBytes": 3404,
+          "wireBytes": 3704,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/favicon.svg",
+          "requestStart": 1289.699999988079,
+          "responseStart": 1290.8999999910593,
+          "responseEnd": 1710.3999999910593,
+          "ttfbMs": 1.2000000029802322,
+          "transferMs": 419.5,
+          "encodedBytes": 9522,
+          "wireBytes": 9822,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/brand/texa-mark.svg",
+          "requestStart": 1396,
+          "responseStart": 1397.199999988079,
+          "responseEnd": 1799.5,
+          "ttfbMs": 1.199999988079071,
+          "transferMs": 402.30000001192093,
+          "encodedBytes": 1183,
+          "wireBytes": 1483,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/system/remote-ready",
+          "requestStart": 1396.5999999940395,
+          "responseStart": 1397.5,
+          "responseEnd": 1803.2999999970198,
+          "ttfbMs": 0.9000000059604645,
+          "transferMs": 405.79999999701977,
+          "encodedBytes": 60,
+          "wireBytes": 360,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Workspace-z-N_pkzx.js",
+          "requestStart": 1810.0999999940395,
+          "responseStart": 1814.199999988079,
+          "responseEnd": 2262,
+          "ttfbMs": 4.0999999940395355,
+          "transferMs": 447.80000001192093,
+          "encodedBytes": 9994,
+          "wireBytes": 10294,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/vendor-icons-oP8vZ_kG.js",
+          "requestStart": 1810.199999988079,
+          "responseStart": 1815.7999999970198,
+          "responseEnd": 2252.699999988079,
+          "ttfbMs": 5.600000008940697,
+          "transferMs": 436.8999999910593,
+          "encodedBytes": 6207,
+          "wireBytes": 6507,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/chunk-6CSD65Y2-BVJknAi7.js",
+          "requestStart": 1810.5,
+          "responseStart": 1817.5999999940395,
+          "responseEnd": 2271.699999988079,
+          "ttfbMs": 7.0999999940395355,
+          "transferMs": 454.09999999403954,
+          "encodedBytes": 14446,
+          "wireBytes": 14746,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ErrorBoundary-BfvGZlBb.js",
+          "requestStart": 1810.699999988079,
+          "responseStart": 1818.0999999940395,
+          "responseEnd": 2221.7999999970198,
+          "ttfbMs": 7.4000000059604645,
+          "transferMs": 403.70000000298023,
+          "encodedBytes": 556,
+          "wireBytes": 856,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Dialog-DfzuFnGa.js",
+          "requestStart": 1810.8999999910593,
+          "responseStart": 1818.8999999910593,
+          "responseEnd": 2224.199999988079,
+          "ttfbMs": 8,
+          "transferMs": 405.29999999701977,
+          "encodedBytes": 977,
+          "wireBytes": 1277,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/OverflowMenu-CnpE-q5f.js",
+          "requestStart": 2224.3999999910593,
+          "responseStart": 2227.8999999910593,
+          "responseEnd": 2628.0999999940395,
+          "ttfbMs": 3.5,
+          "transferMs": 400.20000000298023,
+          "encodedBytes": 978,
+          "wireBytes": 1278,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatContext-BYcjdvQ8.js",
+          "requestStart": 2233.5999999940395,
+          "responseStart": 2234.3999999910593,
+          "responseEnd": 2636.7999999970198,
+          "ttfbMs": 0.7999999970197678,
+          "transferMs": 402.40000000596046,
+          "encodedBytes": 1074,
+          "wireBytes": 1374,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/InspectorContext-Bd-7IlXd.js",
+          "requestStart": 2252.8999999910593,
+          "responseStart": 2253.5999999940395,
+          "responseEnd": 2656.5,
+          "ttfbMs": 0.7000000029802322,
+          "transferMs": 402.90000000596046,
+          "encodedBytes": 426,
+          "wireBytes": 726,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bookList-dlb1tNaM.js",
+          "requestStart": 2262.0999999940395,
+          "responseStart": 2262.7999999970198,
+          "responseEnd": 2666,
+          "ttfbMs": 0.7000000029802322,
+          "transferMs": 403.20000000298023,
+          "encodedBytes": 482,
+          "wireBytes": 782,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/conversationMessages-uaDRHpLx.js",
+          "requestStart": 2271.8999999910593,
+          "responseStart": 2272.699999988079,
+          "responseEnd": 2679.8999999910593,
+          "ttfbMs": 0.7999999970197678,
+          "transferMs": 407.20000000298023,
+          "encodedBytes": 1785,
+          "wireBytes": 2085,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/conversationMessages-B9qAi20a.css",
+          "requestStart": 1825.199999988079,
+          "responseStart": 1825.8999999910593,
+          "responseEnd": 2233.5,
+          "ttfbMs": 0.7000000029802322,
+          "transferMs": 407.6000000089407,
+          "encodedBytes": 458,
+          "wireBytes": 758,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/api-Dbq2rAIR.js",
+          "requestStart": 2628.5,
+          "responseStart": 2633.199999988079,
+          "responseEnd": 3032.7999999970198,
+          "ttfbMs": 4.699999988079071,
+          "transferMs": 399.6000000089407,
+          "encodedBytes": 592,
+          "wireBytes": 892,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/autosave-BcSnM71G.js",
+          "requestStart": 2637.2999999970198,
+          "responseStart": 2639.8999999910593,
+          "responseEnd": 3042.7999999970198,
+          "ttfbMs": 2.5999999940395355,
+          "transferMs": 402.90000000596046,
+          "encodedBytes": 822,
+          "wireBytes": 1122,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Workspace-DPzwcRq7.css",
+          "requestStart": 2222.0999999940395,
+          "responseStart": 2227.3999999910593,
+          "responseEnd": 2684.7999999970198,
+          "ttfbMs": 5.299999997019768,
+          "transferMs": 457.40000000596046,
+          "encodedBytes": 28891,
+          "wireBytes": 29191,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/textbookScopes-8Q0criQS.js",
+          "requestStart": 2656.7999999970198,
+          "responseStart": 2658.8999999910593,
+          "responseEnd": 3064,
+          "ttfbMs": 2.0999999940395355,
+          "transferMs": 405.1000000089407,
+          "encodedBytes": 661,
+          "wireBytes": 961,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MathFieldEditor-BStVCjv4.js",
+          "requestStart": 3084.199999988079,
+          "responseStart": 3093.5999999940395,
+          "responseEnd": 3493.8999999910593,
+          "ttfbMs": 9.400000005960464,
+          "transferMs": 400.29999999701977,
+          "encodedBytes": 1151,
+          "wireBytes": 1451,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatPage-CtPLBEXs.js",
+          "requestStart": 3084,
+          "responseStart": 3093,
+          "responseEnd": 3618.5,
+          "ttfbMs": 9,
+          "transferMs": 525.5,
+          "encodedBytes": 28786,
+          "wireBytes": 29086,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MathFieldEditor-BnjoTxG4.css",
+          "requestStart": 3084.699999988079,
+          "responseStart": 3094.699999988079,
+          "responseEnd": 3517.5999999940395,
+          "ttfbMs": 10,
+          "transferMs": 422.90000000596046,
+          "encodedBytes": 4207,
+          "wireBytes": 4507,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatMessage-DUdPoRCj.js",
+          "requestStart": 3085.0999999940395,
+          "responseStart": 3096.199999988079,
+          "responseEnd": 3570.199999988079,
+          "ttfbMs": 11.099999994039536,
+          "transferMs": 474,
+          "encodedBytes": 14627,
+          "wireBytes": 14927,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/useLearningNoteFont-BiFm5O5h.js",
+          "requestStart": 3085.5999999940395,
+          "responseStart": 3107.2999999970198,
+          "responseEnd": 3503.2999999970198,
+          "ttfbMs": 21.700000002980232,
+          "transferMs": 396,
+          "encodedBytes": 305,
+          "wireBytes": 605,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/mathText-DgMsessI.js",
+          "requestStart": 3085.3999999910593,
+          "responseStart": 3106.7999999970198,
+          "responseEnd": 3762.5,
+          "ttfbMs": 21.400000005960464,
+          "transferMs": 655.7000000029802,
+          "encodedBytes": 117589,
+          "wireBytes": 117889,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MarkdownMessage-DyL0vymQ.js",
+          "requestStart": 3503.5,
+          "responseStart": 3504.699999988079,
+          "responseEnd": 3906.5,
+          "ttfbMs": 1.199999988079071,
+          "transferMs": 401.80000001192093,
+          "encodedBytes": 799,
+          "wireBytes": 1099,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/AsyncState-DcNhhgDg.js",
+          "requestStart": 3518,
+          "responseStart": 3519.5999999940395,
+          "responseEnd": 3928.699999988079,
+          "ttfbMs": 1.5999999940395355,
+          "transferMs": 409.09999999403954,
+          "encodedBytes": 1327,
+          "wireBytes": 1627,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/useAuthenticatedBlobUrl-DwZyYy8h.js",
+          "requestStart": 3570.7999999970198,
+          "responseStart": 3574.2999999970198,
+          "responseEnd": 3976.199999988079,
+          "ttfbMs": 3.5,
+          "transferMs": 401.8999999910593,
+          "encodedBytes": 1091,
+          "wireBytes": 1391,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/citations-CirjbeGp.js",
+          "requestStart": 3619.0999999940395,
+          "responseStart": 3629,
+          "responseEnd": 4023.8999999910593,
+          "ttfbMs": 9.900000005960464,
+          "transferMs": 394.8999999910593,
+          "encodedBytes": 1096,
+          "wireBytes": 1396,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatMessage-JrNOeJOj.css",
+          "requestStart": 3494.199999988079,
+          "responseStart": 3496,
+          "responseEnd": 3902.199999988079,
+          "ttfbMs": 1.800000011920929,
+          "transferMs": 406.19999998807907,
+          "encodedBytes": 1129,
+          "wireBytes": 1429,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ScopeSelector-D8bkq_7n.js",
+          "requestStart": 3763,
+          "responseStart": 3767,
+          "responseEnd": 4173.29999999702,
+          "ttfbMs": 4,
+          "transferMs": 406.29999999701977,
+          "encodedBytes": 3290,
+          "wireBytes": 3590,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/books/list",
+          "requestStart": 3902.8999999910593,
+          "responseStart": 3917.2999999970198,
+          "responseEnd": 4307.199999988079,
+          "ttfbMs": 14.400000005960464,
+          "transferMs": 389.8999999910593,
+          "encodedBytes": 620,
+          "wireBytes": 920,
+          "appHeaderMs": 8.3
+        },
+        {
+          "name": "/api/chat/conversations",
+          "requestStart": 3907.3999999910593,
+          "responseStart": 3918.0999999940395,
+          "responseEnd": 4309.5,
+          "ttfbMs": 10.700000002980232,
+          "transferMs": 391.40000000596046,
+          "encodedBytes": 584,
+          "wireBytes": 884,
+          "appHeaderMs": 6.3
+        },
+        {
+          "name": "/api/system/settings/subjects",
+          "requestStart": 4203.899999991059,
+          "responseStart": 4207.5999999940395,
+          "responseEnd": 4607.5999999940395,
+          "ttfbMs": 3.7000000029802322,
+          "transferMs": 400,
+          "encodedBytes": 55,
+          "wireBytes": 355,
+          "appHeaderMs": 2.9
+        },
+        {
+          "name": "/api/chat/conversations/conv_1791703567962_41abdc5d/management",
+          "requestStart": 4204.0999999940395,
+          "responseStart": 4208.29999999702,
+          "responseEnd": 4610.0999999940395,
+          "ttfbMs": 4.200000002980232,
+          "transferMs": 401.79999999701977,
+          "encodedBytes": 70,
+          "wireBytes": 370,
+          "appHeaderMs": 2.3
+        },
+        {
+          "name": "/api/chat/conversations/visual-session-0",
+          "requestStart": 4786.79999999702,
+          "responseStart": 4789.5,
+          "responseEnd": 5197.699999988079,
+          "ttfbMs": 2.7000000029802322,
+          "transferMs": 408.19999998807907,
+          "encodedBytes": 3767,
+          "wireBytes": 4067,
+          "appHeaderMs": 1.9
+        },
+        {
+          "name": "/assets/MarkdownRenderer-DTYnE0v_.js",
+          "requestStart": 5212.399999991059,
+          "responseStart": 5217.29999999702,
+          "responseEnd": 5624.899999991059,
+          "ttfbMs": 4.9000000059604645,
+          "transferMs": 407.59999999403954,
+          "encodedBytes": 2241,
+          "wireBytes": 2541,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/katex.min-CjOPEIgs.js",
+          "requestStart": 5212.5,
+          "responseStart": 5220.699999988079,
+          "responseEnd": 5660.699999988079,
+          "ttfbMs": 8.199999988079071,
+          "transferMs": 440,
+          "encodedBytes": 11340,
+          "wireBytes": 11640,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/katex-CYlHEDRF.css",
+          "requestStart": 5212.699999988079,
+          "responseStart": 5223,
+          "responseEnd": 5655.79999999702,
+          "ttfbMs": 10.300000011920929,
+          "transferMs": 432.79999999701977,
+          "encodedBytes": 7942,
+          "wireBytes": 8242,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/chat/conversations",
+          "requestStart": 5240.699999988079,
+          "responseStart": 5243.199999988079,
+          "responseEnd": 5646.5999999940395,
+          "ttfbMs": 2.5,
+          "transferMs": 403.40000000596046,
+          "encodedBytes": 584,
+          "wireBytes": 884,
+          "appHeaderMs": 1.9
+        },
+        {
+          "name": "/api/system/settings/subjects",
+          "requestStart": 5240.79999999702,
+          "responseStart": 5243.5999999940395,
+          "responseEnd": 5649.29999999702,
+          "ttfbMs": 2.7999999970197678,
+          "transferMs": 405.70000000298023,
+          "encodedBytes": 55,
+          "wireBytes": 355,
+          "appHeaderMs": 2.1
+        },
+        {
+          "name": "/api/chat/conversations/visual-session-0/management",
+          "requestStart": 5241.0999999940395,
+          "responseStart": 5243.899999991059,
+          "responseEnd": 5651.29999999702,
+          "ttfbMs": 2.7999999970197678,
+          "transferMs": 407.40000000596046,
+          "encodedBytes": 70,
+          "wireBytes": 370,
+          "appHeaderMs": 2.1
+        },
+        {
+          "name": "/api/mistakes/chat-sources/query",
+          "requestStart": 5625.29999999702,
+          "responseStart": 5636.79999999702,
+          "responseEnd": 6039.699999988079,
+          "ttfbMs": 11.5,
+          "transferMs": 402.8999999910593,
+          "encodedBytes": 65,
+          "wireBytes": 365,
+          "appHeaderMs": 2.8
+        }
+      ]
+    },
+    {
+      "canvasMs": 5839.0999999940395,
+      "font": "system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "paint": [
+        {
+          "name": "first-paint",
+          "startTime": 456
+        },
+        {
+          "name": "first-contentful-paint",
+          "startTime": 456
+        }
+      ],
+      "longTasks": [
+        269
+      ],
+      "resources": [
+        {
+          "name": "/assets/index-BS1Fzk8E.js",
+          "requestStart": 428,
+          "responseStart": 430.5,
+          "responseEnd": 850.5,
+          "ttfbMs": 2.5,
+          "transferMs": 420,
+          "encodedBytes": 9061,
+          "wireBytes": 9361,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bootstrap-DN7txrMF.js",
+          "requestStart": 853.8999999910593,
+          "responseStart": 854.8999999910593,
+          "responseEnd": 1270.0999999940395,
+          "ttfbMs": 1,
+          "transferMs": 415.20000000298023,
+          "encodedBytes": 2193,
+          "wireBytes": 2493,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/rolldown-runtime-QTnfLwEv.js",
+          "requestStart": 857.7999999970198,
+          "responseStart": 858.5999999940395,
+          "responseEnd": 1263.2999999970198,
+          "ttfbMs": 0.7999999970197678,
+          "transferMs": 404.70000000298023,
+          "encodedBytes": 422,
+          "wireBytes": 722,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/theme-CT8zBBhJ.js",
+          "requestStart": 864.2000000029802,
+          "responseStart": 864.7000000029802,
+          "responseEnd": 1280.2000000029802,
+          "ttfbMs": 0.5,
+          "transferMs": 415.5,
+          "encodedBytes": 1880,
+          "wireBytes": 2180,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bootstrap-BE3RDBwJ.css",
+          "requestStart": 859.3999999910593,
+          "responseStart": 864.0999999940395,
+          "responseEnd": 1284.5999999940395,
+          "ttfbMs": 4.700000002980232,
+          "transferMs": 420.5,
+          "encodedBytes": 3404,
+          "wireBytes": 3704,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/vendor-react-OHCfv3pu.js",
+          "requestStart": 858.2999999970198,
+          "responseStart": 863.2999999970198,
+          "responseEnd": 1373.8999999910593,
+          "ttfbMs": 5,
+          "transferMs": 510.59999999403954,
+          "encodedBytes": 58940,
+          "wireBytes": 59240,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/favicon.svg",
+          "requestStart": 1293.3999999910593,
+          "responseStart": 1294.5,
+          "responseEnd": 1712.0999999940395,
+          "ttfbMs": 1.1000000089406967,
+          "transferMs": 417.59999999403954,
+          "encodedBytes": 9522,
+          "wireBytes": 9822,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/brand/texa-mark.svg",
+          "requestStart": 1395.7999999970198,
+          "responseStart": 1396.8999999910593,
+          "responseEnd": 1800.8999999910593,
+          "ttfbMs": 1.0999999940395355,
+          "transferMs": 404,
+          "encodedBytes": 1183,
+          "wireBytes": 1483,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/system/remote-ready",
+          "requestStart": 1397,
+          "responseStart": 1397.2000000029802,
+          "responseEnd": 1804,
+          "ttfbMs": 0.20000000298023224,
+          "transferMs": 406.79999999701977,
+          "encodedBytes": 60,
+          "wireBytes": 360,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Workspace-z-N_pkzx.js",
+          "requestStart": 1808.2999999970198,
+          "responseStart": 1810.7999999970198,
+          "responseEnd": 2258.7999999970198,
+          "ttfbMs": 2.5,
+          "transferMs": 448,
+          "encodedBytes": 9994,
+          "wireBytes": 10294,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/vendor-icons-oP8vZ_kG.js",
+          "requestStart": 1808.3999999910593,
+          "responseStart": 1811.7000000029802,
+          "responseEnd": 2249.7999999970198,
+          "ttfbMs": 3.300000011920929,
+          "transferMs": 438.09999999403954,
+          "encodedBytes": 6207,
+          "wireBytes": 6507,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/chunk-6CSD65Y2-BVJknAi7.js",
+          "requestStart": 1808.5999999940395,
+          "responseStart": 1813.2000000029802,
+          "responseEnd": 2269.2000000029802,
+          "ttfbMs": 4.600000008940697,
+          "transferMs": 456,
+          "encodedBytes": 14446,
+          "wireBytes": 14746,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ErrorBoundary-BfvGZlBb.js",
+          "requestStart": 1808.7999999970198,
+          "responseStart": 1813.3999999910593,
+          "responseEnd": 2218.5,
+          "ttfbMs": 4.5999999940395355,
+          "transferMs": 405.1000000089407,
+          "encodedBytes": 556,
+          "wireBytes": 856,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Dialog-DfzuFnGa.js",
+          "requestStart": 1809,
+          "responseStart": 1813.7999999970198,
+          "responseEnd": 2221.5,
+          "ttfbMs": 4.799999997019768,
+          "transferMs": 407.70000000298023,
+          "encodedBytes": 977,
+          "wireBytes": 1277,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/OverflowMenu-CnpE-q5f.js",
+          "requestStart": 2222,
+          "responseStart": 2232.8999999910593,
+          "responseEnd": 2627.2000000029802,
+          "ttfbMs": 10.899999991059303,
+          "transferMs": 394.30000001192093,
+          "encodedBytes": 978,
+          "wireBytes": 1278,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatContext-BYcjdvQ8.js",
+          "requestStart": 2231.5,
+          "responseStart": 2234.3999999910593,
+          "responseEnd": 2637.2000000029802,
+          "ttfbMs": 2.8999999910593033,
+          "transferMs": 402.80000001192093,
+          "encodedBytes": 1074,
+          "wireBytes": 1374,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/InspectorContext-Bd-7IlXd.js",
+          "requestStart": 2250.2000000029802,
+          "responseStart": 2252.5999999940395,
+          "responseEnd": 2653.5999999940395,
+          "ttfbMs": 2.3999999910593033,
+          "transferMs": 401,
+          "encodedBytes": 426,
+          "wireBytes": 726,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/bookList-dlb1tNaM.js",
+          "requestStart": 2259.2999999970198,
+          "responseStart": 2260.3999999910593,
+          "responseEnd": 2663.7000000029802,
+          "ttfbMs": 1.0999999940395355,
+          "transferMs": 403.30000001192093,
+          "encodedBytes": 482,
+          "wireBytes": 782,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/conversationMessages-B9qAi20a.css",
+          "requestStart": 1816.8999999910593,
+          "responseStart": 1817.2999999970198,
+          "responseEnd": 2231.0999999940395,
+          "ttfbMs": 0.4000000059604645,
+          "transferMs": 413.79999999701977,
+          "encodedBytes": 458,
+          "wireBytes": 758,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/conversationMessages-uaDRHpLx.js",
+          "requestStart": 2270,
+          "responseStart": 2272.0999999940395,
+          "responseEnd": 2676.7999999970198,
+          "ttfbMs": 2.0999999940395355,
+          "transferMs": 404.70000000298023,
+          "encodedBytes": 1785,
+          "wireBytes": 2085,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/api-Dbq2rAIR.js",
+          "requestStart": 2627.8999999910593,
+          "responseStart": 2630.2999999970198,
+          "responseEnd": 3032.7999999970198,
+          "ttfbMs": 2.4000000059604645,
+          "transferMs": 402.5,
+          "encodedBytes": 592,
+          "wireBytes": 892,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/Workspace-DPzwcRq7.css",
+          "requestStart": 2218.7999999970198,
+          "responseStart": 2230.5999999940395,
+          "responseEnd": 2683.8999999910593,
+          "ttfbMs": 11.799999997019768,
+          "transferMs": 453.29999999701977,
+          "encodedBytes": 28891,
+          "wireBytes": 29191,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/autosave-BcSnM71G.js",
+          "requestStart": 2637.5999999940395,
+          "responseStart": 2640.2000000029802,
+          "responseEnd": 3042,
+          "ttfbMs": 2.6000000089406967,
+          "transferMs": 401.79999999701977,
+          "encodedBytes": 822,
+          "wireBytes": 1122,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/textbookScopes-8Q0criQS.js",
+          "requestStart": 2654.2999999970198,
+          "responseStart": 2657.0999999940395,
+          "responseEnd": 3059.0999999940395,
+          "ttfbMs": 2.7999999970197678,
+          "transferMs": 402,
+          "encodedBytes": 661,
+          "wireBytes": 961,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatPage-CtPLBEXs.js",
+          "requestStart": 3080.5999999940395,
+          "responseStart": 3085.2999999970198,
+          "responseEnd": 3615.2000000029802,
+          "ttfbMs": 4.700000002980232,
+          "transferMs": 529.9000000059605,
+          "encodedBytes": 28786,
+          "wireBytes": 29086,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MathFieldEditor-BStVCjv4.js",
+          "requestStart": 3080.7999999970198,
+          "responseStart": 3086,
+          "responseEnd": 3492,
+          "ttfbMs": 5.200000002980232,
+          "transferMs": 406,
+          "encodedBytes": 1151,
+          "wireBytes": 1451,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MathFieldEditor-BnjoTxG4.css",
+          "requestStart": 3081.3999999910593,
+          "responseStart": 3086.7999999970198,
+          "responseEnd": 3514.7000000029802,
+          "ttfbMs": 5.4000000059604645,
+          "transferMs": 427.90000000596046,
+          "encodedBytes": 4207,
+          "wireBytes": 4507,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatMessage-DUdPoRCj.js",
+          "requestStart": 3081.5999999940395,
+          "responseStart": 3088.2000000029802,
+          "responseEnd": 3567.5,
+          "ttfbMs": 6.600000008940697,
+          "transferMs": 479.29999999701977,
+          "encodedBytes": 14627,
+          "wireBytes": 14927,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/mathText-DgMsessI.js",
+          "requestStart": 3081.8999999910593,
+          "responseStart": 3099.5,
+          "responseEnd": 3759.3999999910593,
+          "ttfbMs": 17.600000008940697,
+          "transferMs": 659.8999999910593,
+          "encodedBytes": 117589,
+          "wireBytes": 117889,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/useLearningNoteFont-BiFm5O5h.js",
+          "requestStart": 3082,
+          "responseStart": 3100.0999999940395,
+          "responseEnd": 3500.5999999940395,
+          "ttfbMs": 18.099999994039536,
+          "transferMs": 400.5,
+          "encodedBytes": 305,
+          "wireBytes": 605,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/MarkdownMessage-DyL0vymQ.js",
+          "requestStart": 3500.8999999910593,
+          "responseStart": 3504.2000000029802,
+          "responseEnd": 3904.0999999940395,
+          "ttfbMs": 3.300000011920929,
+          "transferMs": 399.8999999910593,
+          "encodedBytes": 799,
+          "wireBytes": 1099,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/AsyncState-DcNhhgDg.js",
+          "requestStart": 3515.2000000029802,
+          "responseStart": 3516.5,
+          "responseEnd": 3923,
+          "ttfbMs": 1.2999999970197678,
+          "transferMs": 406.5,
+          "encodedBytes": 1327,
+          "wireBytes": 1627,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/useAuthenticatedBlobUrl-DwZyYy8h.js",
+          "requestStart": 3568.0999999940395,
+          "responseStart": 3572.5999999940395,
+          "responseEnd": 3972.7000000029802,
+          "ttfbMs": 4.5,
+          "transferMs": 400.1000000089407,
+          "encodedBytes": 1091,
+          "wireBytes": 1391,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/citations-CirjbeGp.js",
+          "requestStart": 3616,
+          "responseStart": 3617.7000000029802,
+          "responseEnd": 4023.7000000029802,
+          "ttfbMs": 1.7000000029802322,
+          "transferMs": 406,
+          "encodedBytes": 1096,
+          "wireBytes": 1396,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ChatMessage-JrNOeJOj.css",
+          "requestStart": 3493.2000000029802,
+          "responseStart": 3501.0999999940395,
+          "responseEnd": 3896.2999999970198,
+          "ttfbMs": 7.899999991059303,
+          "transferMs": 395.20000000298023,
+          "encodedBytes": 1129,
+          "wireBytes": 1429,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/ScopeSelector-D8bkq_7n.js",
+          "requestStart": 3760.0999999940395,
+          "responseStart": 3762.0999999940395,
+          "responseEnd": 4166.899999991059,
+          "ttfbMs": 2,
+          "transferMs": 404.79999999701977,
+          "encodedBytes": 3290,
+          "wireBytes": 3590,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/books/list",
+          "requestStart": 3896.7999999970198,
+          "responseStart": 3902.7999999970198,
+          "responseEnd": 4299.0999999940395,
+          "ttfbMs": 6,
+          "transferMs": 396.29999999701977,
+          "encodedBytes": 620,
+          "wireBytes": 920,
+          "appHeaderMs": 4
+        },
+        {
+          "name": "/api/chat/conversations",
+          "requestStart": 3904.5999999940395,
+          "responseStart": 3907.7000000029802,
+          "responseEnd": 4306.20000000298,
+          "ttfbMs": 3.1000000089406967,
+          "transferMs": 398.5,
+          "encodedBytes": 584,
+          "wireBytes": 884,
+          "appHeaderMs": 2.3
+        },
+        {
+          "name": "/api/system/settings/subjects",
+          "requestStart": 4185,
+          "responseStart": 4188.20000000298,
+          "responseEnd": 4589.79999999702,
+          "ttfbMs": 3.2000000029802322,
+          "transferMs": 401.59999999403954,
+          "encodedBytes": 55,
+          "wireBytes": 355,
+          "appHeaderMs": 2.7
+        },
+        {
+          "name": "/api/chat/conversations/conv_1791703578747_005fccca/management",
+          "requestStart": 4185.0999999940395,
+          "responseStart": 4188.399999991059,
+          "responseEnd": 4593.399999991059,
+          "ttfbMs": 3.2999999970197678,
+          "transferMs": 405,
+          "encodedBytes": 70,
+          "wireBytes": 370,
+          "appHeaderMs": 2.5
+        },
+        {
+          "name": "/api/chat/conversations/visual-session-0",
+          "requestStart": 4342.29999999702,
+          "responseStart": 4345.79999999702,
+          "responseEnd": 4750.70000000298,
+          "ttfbMs": 3.5,
+          "transferMs": 404.90000000596046,
+          "encodedBytes": 3767,
+          "wireBytes": 4067,
+          "appHeaderMs": 2.4
+        },
+        {
+          "name": "/assets/MarkdownRenderer-DTYnE0v_.js",
+          "requestStart": 4764.899999991059,
+          "responseStart": 4768,
+          "responseEnd": 5175.399999991059,
+          "ttfbMs": 3.1000000089406967,
+          "transferMs": 407.3999999910593,
+          "encodedBytes": 2241,
+          "wireBytes": 2541,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/katex.min-CjOPEIgs.js",
+          "requestStart": 4765,
+          "responseStart": 4769.5999999940395,
+          "responseEnd": 5211.399999991059,
+          "ttfbMs": 4.5999999940395355,
+          "transferMs": 441.79999999701977,
+          "encodedBytes": 11340,
+          "wireBytes": 11640,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/assets/katex-CYlHEDRF.css",
+          "requestStart": 4765.5999999940395,
+          "responseStart": 4772.79999999702,
+          "responseEnd": 5206.0999999940395,
+          "ttfbMs": 7.200000002980232,
+          "transferMs": 433.29999999701977,
+          "encodedBytes": 7942,
+          "wireBytes": 8242,
+          "appHeaderMs": null
+        },
+        {
+          "name": "/api/chat/conversations",
+          "requestStart": 4792.79999999702,
+          "responseStart": 4795.20000000298,
+          "responseEnd": 5199.29999999702,
+          "ttfbMs": 2.4000000059604645,
+          "transferMs": 404.09999999403954,
+          "encodedBytes": 584,
+          "wireBytes": 884,
+          "appHeaderMs": 1.7
+        },
+        {
+          "name": "/api/system/settings/subjects",
+          "requestStart": 4793.0999999940395,
+          "responseStart": 4795.5999999940395,
+          "responseEnd": 5202.20000000298,
+          "ttfbMs": 2.5,
+          "transferMs": 406.6000000089407,
+          "encodedBytes": 55,
+          "wireBytes": 355,
+          "appHeaderMs": 2.1
+        },
+        {
+          "name": "/api/chat/conversations/visual-session-0/management",
+          "requestStart": 4793.79999999702,
+          "responseStart": 4796,
+          "responseEnd": 5204.70000000298,
+          "ttfbMs": 2.2000000029802322,
+          "transferMs": 408.70000000298023,
+          "encodedBytes": 70,
+          "wireBytes": 370,
+          "appHeaderMs": 2
+        },
+        {
+          "name": "/api/mistakes/chat-sources/query",
+          "requestStart": 5175.5999999940395,
+          "responseStart": 5182.5,
+          "responseEnd": 5590.5999999940395,
+          "ttfbMs": 6.9000000059604645,
+          "transferMs": 408.09999999403954,
+          "encodedBytes": 65,
+          "wireBytes": 365,
+          "appHeaderMs": 2.3
+        }
+      ]
+    }
+  ],
+  "warm": [
+    {
+      "clickToReadableMs": 687.7000000029802,
+      "requestToBodyMs": 410.19999998807907,
+      "bodyToReadableMs": 276.70000000298023,
+      "appHeaderMs": 3.7,
+      "encodedBytes": 3769
+    },
+    {
+      "clickToReadableMs": 874.1999999880791,
+      "requestToBodyMs": 411.09999999403954,
+      "bodyToReadableMs": 462.5,
+      "appHeaderMs": 1.9,
+      "encodedBytes": 3767
+    },
+    {
+      "clickToReadableMs": 860.2000000029802,
+      "requestToBodyMs": 410.40000000596046,
+      "bodyToReadableMs": 449,
+      "appHeaderMs": 2.4,
+      "encodedBytes": 3769
+    },
+    {
+      "clickToReadableMs": 870.5999999940395,
+      "requestToBodyMs": 410,
+      "bodyToReadableMs": 459.70000000298023,
+      "appHeaderMs": 2.6,
+      "encodedBytes": 3767
+    },
+    {
+      "clickToReadableMs": 587.9000000059605,
+      "requestToBodyMs": 412.70000000298023,
+      "bodyToReadableMs": 174.6000000089407,
+      "appHeaderMs": 3.1,
+      "encodedBytes": 3769
+    },
+    {
+      "clickToReadableMs": 854.2000000029802,
+      "requestToBodyMs": 416.09999999403954,
+      "bodyToReadableMs": 437.30000001192093,
+      "appHeaderMs": 1.9,
+      "encodedBytes": 3767
+    },
+    {
+      "clickToReadableMs": 871.3999999910593,
+      "requestToBodyMs": 407,
+      "bodyToReadableMs": 463.3999999910593,
+      "appHeaderMs": 2.6,
+      "encodedBytes": 3769
+    },
+    {
+      "clickToReadableMs": 887.4000000059605,
+      "requestToBodyMs": 411.5,
+      "bodyToReadableMs": 472.5,
+      "appHeaderMs": 1.9,
+      "encodedBytes": 3767
+    },
+    {
+      "clickToReadableMs": 588.6000000089407,
+      "requestToBodyMs": 409.09999999403954,
+      "bodyToReadableMs": 178.90000000596046,
+      "appHeaderMs": 10,
+      "encodedBytes": 3769
+    },
+    {
+      "clickToReadableMs": 885.0999999940395,
+      "requestToBodyMs": 415.40000000596046,
+      "bodyToReadableMs": 468.79999999701977,
+      "appHeaderMs": 2.4,
+      "encodedBytes": 3767
+    },
+    {
+      "clickToReadableMs": 873,
+      "requestToBodyMs": 409.5,
+      "bodyToReadableMs": 462.79999999701977,
+      "appHeaderMs": 1.8,
+      "encodedBytes": 3769
+    },
+    {
+      "clickToReadableMs": 888.4000000059605,
+      "requestToBodyMs": 408.1000000089407,
+      "bodyToReadableMs": 479.5,
+      "appHeaderMs": 2.3,
+      "encodedBytes": 3767
+    },
+    {
+      "clickToReadableMs": 572.3999999910593,
+      "requestToBodyMs": 411,
+      "bodyToReadableMs": 160.8999999910593,
+      "appHeaderMs": 2.4,
+      "encodedBytes": 3769
+    },
+    {
+      "clickToReadableMs": 871.4000000059605,
+      "requestToBodyMs": 412.3999999910593,
+      "bodyToReadableMs": 458.40000000596046,
+      "appHeaderMs": 2,
+      "encodedBytes": 3767
+    },
+    {
+      "clickToReadableMs": 888.2999999970198,
+      "requestToBodyMs": 410.5,
+      "bodyToReadableMs": 477.19999998807907,
+      "appHeaderMs": 1.9,
+      "encodedBytes": 3769
+    },
+    {
+      "clickToReadableMs": 873,
+      "requestToBodyMs": 408.09999999403954,
+      "bodyToReadableMs": 464.20000000298023,
+      "appHeaderMs": 1.9,
+      "encodedBytes": 3767
+    },
+    {
+      "clickToReadableMs": 606.3000000119209,
+      "requestToBodyMs": 412.40000000596046,
+      "bodyToReadableMs": 193.20000000298023,
+      "appHeaderMs": 2.1,
+      "encodedBytes": 3769
+    },
+    {
+      "clickToReadableMs": 890.2000000029802,
+      "requestToBodyMs": 411.5,
+      "bodyToReadableMs": 478,
+      "appHeaderMs": 2,
+      "encodedBytes": 3767
+    },
+    {
+      "clickToReadableMs": 890.7999999970198,
+      "requestToBodyMs": 410.79999999701977,
+      "bodyToReadableMs": 479.20000000298023,
+      "appHeaderMs": 2,
+      "encodedBytes": 3769
+    },
+    {
+      "clickToReadableMs": 913.1000000089407,
+      "requestToBodyMs": 409.8999999910593,
+      "bodyToReadableMs": 502.1000000089407,
+      "appHeaderMs": 3.2,
+      "encodedBytes": 3767
+    }
+  ],
+  "errors": [],
+  "stream": {
+    "initialTop": 120,
+    "finalTop": 120,
+    "partialVisible": true,
+    "errorVisible": true
+  },
+  "sourceReturn": {
+    "beforeTop": 120,
+    "afterTop": 120
+  },
+  "layouts": [
+    {
+      "width": 375,
+      "bodyWidth": 375,
+      "inputFontPx": "16px",
+      "scopeVisible": true,
+      "controls": [
+        {
+          "label": "拍照提问",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "上传题目图片",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "选择教材图片",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "选择历史错题",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "打开数学符号面板",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "更多",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "发送问题",
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "bodyWidth": 390,
+      "inputFontPx": "16px",
+      "scopeVisible": true,
+      "controls": [
+        {
+          "label": "拍照提问",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "上传题目图片",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "选择教材图片",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "选择历史错题",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "打开数学符号面板",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "更多",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "发送问题",
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "bodyWidth": 430,
+      "inputFontPx": "16px",
+      "scopeVisible": true,
+      "controls": [
+        {
+          "label": "拍照提问",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "上传题目图片",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "选择教材图片",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "选择历史错题",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "打开数学符号面板",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "更多",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "发送问题",
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 760,
+      "bodyWidth": 760,
+      "inputFontPx": "16px",
+      "scopeVisible": true,
+      "controls": [
+        {
+          "label": "拍照提问",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "上传题目图片",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "选择教材图片",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "选择历史错题",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "打开数学符号面板",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "更多",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "label": "发送问题",
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "bodyWidth": 1024,
+      "inputFontPx": "14px",
+      "scopeVisible": true,
+      "controls": [
+        {
+          "label": "拍照提问",
+          "width": 64,
+          "height": 28
+        },
+        {
+          "label": "上传题目图片",
+          "width": 64,
+          "height": 28
+        },
+        {
+          "label": "选择教材图片",
+          "width": 76,
+          "height": 28
+        },
+        {
+          "label": "选择历史错题",
+          "width": 64,
+          "height": 28
+        },
+        {
+          "label": "打开数学符号面板",
+          "width": 64,
+          "height": 28
+        },
+        {
+          "label": "更多",
+          "width": 34,
+          "height": 28
+        },
+        {
+          "label": "发送问题",
+          "width": 30,
+          "height": 30
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "bodyWidth": 1280,
+      "inputFontPx": "14px",
+      "scopeVisible": true,
+      "controls": [
+        {
+          "label": "拍照提问",
+          "width": 64,
+          "height": 28
+        },
+        {
+          "label": "上传题目图片",
+          "width": 64,
+          "height": 28
+        },
+        {
+          "label": "选择教材图片",
+          "width": 76,
+          "height": 28
+        },
+        {
+          "label": "选择历史错题",
+          "width": 64,
+          "height": 28
+        },
+        {
+          "label": "打开数学符号面板",
+          "width": 64,
+          "height": 28
+        },
+        {
+          "label": "更多",
+          "width": 34,
+          "height": 28
+        },
+        {
+          "label": "发送问题",
+          "width": 30,
+          "height": 30
+        }
+      ]
+    }
+  ]
+}

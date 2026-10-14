@@ -1,0 +1,177 @@
+{
+  "checks": [
+    {
+      "width": 1280,
+      "case": "manual draft save→refresh→restore",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/mistakes/intake/md_1fba46a4c47749148d77482f?book_name=default"
+    },
+    {
+      "width": 1280,
+      "case": "draft→saved mistake",
+      "status": "PASS",
+      "id": "m_e097dc83f1f348c69de8"
+    },
+    {
+      "width": 1280,
+      "case": "review answer save→refresh→restore",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/learning/review/mrs_0f475334d0aa43d4b4205401?book_name=default"
+    },
+    {
+      "width": 1280,
+      "case": "review reveal→self grade→complete→refresh",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/learning/review/mrs_0f475334d0aa43d4b4205401?book_name=default"
+    },
+    {
+      "width": 1280,
+      "case": "manual exercise validation→save→refresh",
+      "status": "PASS",
+      "id": "39b82b72"
+    },
+    {
+      "width": 390,
+      "case": "manual draft save→refresh→restore",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/mistakes/intake/md_f3b189e7ab0c4edb9fb367d5?book_name=default"
+    },
+    {
+      "width": 390,
+      "case": "draft→saved mistake",
+      "status": "PASS",
+      "id": "m_96bc70c9942d4612a6c6"
+    },
+    {
+      "width": 390,
+      "case": "review answer save→refresh→restore",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/learning/review/mrs_34462686107e4dd5820ababc?book_name=default"
+    },
+    {
+      "width": 390,
+      "case": "review reveal→self grade→complete→refresh",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/learning/review/mrs_34462686107e4dd5820ababc?book_name=default"
+    },
+    {
+      "width": 390,
+      "case": "manual exercise validation→save→refresh",
+      "status": "PASS",
+      "id": "6e5d9ea8"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/drafts"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/mistakes/drafts/md_1fba46a4c47749148d77482f"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/drafts/md_1fba46a4c47749148d77482f/save"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/review/sessions"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_0f475334d0aa43d4b4205401"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_0f475334d0aa43d4b4205401"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/review/sessions/mrs_0f475334d0aa43d4b4205401/results"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/add"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/drafts"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/mistakes/drafts/md_f3b189e7ab0c4edb9fb367d5"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/drafts/md_f3b189e7ab0c4edb9fb367d5/save"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/review/sessions"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_34462686107e4dd5820ababc"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_34462686107e4dd5820ababc"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/review/sessions/mrs_34462686107e4dd5820ababc/results"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/add"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    }
+  ]
+}

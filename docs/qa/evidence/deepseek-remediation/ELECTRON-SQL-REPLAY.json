@@ -1,0 +1,339 @@
+[
+  {
+    "run_id": "arun_e323ae922d154e34b884ccd863576e5c",
+    "kind": "S5",
+    "lines": 95,
+    "codepoints_excluding_newline": 1033,
+    "verification": {
+      "checks": [
+        {
+          "id": "answer",
+          "label": "针对当前问题的回答",
+          "reason": "",
+          "status": "passed"
+        },
+        {
+          "evidence": [],
+          "id": "item_1",
+          "label": "求 J=∫₀¹ x² ln(1+x) dx。给出可复现的分部积分",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+          "status": "unverified"
+        },
+        {
+          "evidence": [],
+          "id": "item_2",
+          "label": "多项式除法步骤",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+          "status": "unverified"
+        },
+        {
+          "evidence": [],
+          "id": "item_3",
+          "label": "闭式结果",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+          "status": "unverified"
+        },
+        {
+          "evidence": [],
+          "id": "item_4",
+          "label": "至少6位有效数字。可自主决定何时使用所提供的受限数学工具，但请对关键结果进行独立校验",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+          "status": "unverified"
+        },
+        {
+          "evidence": [],
+          "id": "item_5",
+          "label": "明确区分自己推导",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+          "status": "unverified"
+        },
+        {
+          "evidence": [],
+          "id": "item_6",
+          "label": "实际工具已验证的结论。",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+          "status": "unverified"
+        },
+        {
+          "candidates": [
+            {
+              "digits": 16,
+              "matches": true,
+              "value": "0.1843203425955191"
+            },
+            {
+              "digits": 6,
+              "matches": true,
+              "value": "0.184320"
+            },
+            {
+              "digits": 10,
+              "matches": true,
+              "value": "0.1843203426"
+            }
+          ],
+          "evidence": [
+            "symbolic_math",
+            "verify_math_result",
+            "definite_integral"
+          ],
+          "id": "precision",
+          "label": "数值有效数字",
+          "reason": "与本题独立核验结果及舍入精度比较",
+          "status": "passed"
+        },
+        {
+          "evidence": [
+            "symbolic_math",
+            "verify_math_result",
+            "definite_integral"
+          ],
+          "id": "tool_verification",
+          "label": "tool_verification",
+          "reason": "本题计算与独立核验收据已绑定",
+          "status": "passed"
+        },
+        {
+          "evidence": [
+            "answer symbolic result structure"
+          ],
+          "id": "closed_form",
+          "label": "closed_form",
+          "reason": "闭式结构存在，表达式等价性尚未绑定核验",
+          "status": "unverified"
+        },
+        {
+          "evidence": [
+            "answer formula sequence"
+          ],
+          "id": "derivation_structure",
+          "label": "derivation",
+          "reason": "推导关系存在，教学完整性与逐步正确性未核验",
+          "status": "unverified"
+        },
+        {
+          "formula_count": 18,
+          "id": "formula",
+          "label": "所需公式或推导关系",
+          "reason": "公式结构完整；等价性仅在可核验范围内检查",
+          "status": "unverified",
+          "structure_status": "passed"
+        },
+        {
+          "id": "answer_mode",
+          "label": "通用模式的回答范围",
+          "reason": "",
+          "status": "passed"
+        }
+      ],
+      "failures": [],
+      "passed": false,
+      "status": "unverified",
+      "unverified": [
+        {
+          "id": "item_1",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+        },
+        {
+          "id": "item_2",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+        },
+        {
+          "id": "item_3",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+        },
+        {
+          "id": "item_4",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+        },
+        {
+          "id": "item_5",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+        },
+        {
+          "id": "item_6",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+        },
+        {
+          "id": "closed_form",
+          "reason": "闭式结构存在，表达式等价性尚未绑定核验"
+        },
+        {
+          "id": "derivation_structure",
+          "reason": "推导关系存在，教学完整性与逐步正确性未核验"
+        },
+        {
+          "id": "formula",
+          "reason": "公式结构完整；等价性仅在可核验范围内检查"
+        }
+      ]
+    },
+    "SQL_task_answer_equal": true
+  },
+  {
+    "run_id": "arun_dd4372cc167d48419c8dd061d60d4d89",
+    "kind": "S6.turn2",
+    "lines": 3,
+    "codepoints_excluding_newline": 93,
+    "verification": {
+      "checks": [
+        {
+          "id": "answer",
+          "label": "针对当前问题的回答",
+          "reason": "",
+          "status": "passed"
+        },
+        {
+          "evidence": [],
+          "id": "item_1",
+          "label": "我理解为：既然 |x| 在0连续，左右导数就都等于0，所以它也可导，对吗？请纠正。第二轮只输出三行，依次以“结论：”“反例：”“原因：”开头。总长度不超过180",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+          "status": "unverified"
+        },
+        {
+          "evidence": [],
+          "id": "item_2",
+          "label": "空格",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+          "status": "unverified"
+        },
+        {
+          "evidence": [],
+          "id": "item_3",
+          "label": "公式符号，不含换行），不使用Markdown列表或代码块",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+          "status": "unverified"
+        },
+        {
+          "evidence": [],
+          "id": "item_4",
+          "label": "必须写出左右导数数值。",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+          "status": "unverified"
+        },
+        {
+          "evidence": [
+            "answer format"
+          ],
+          "id": "line_count",
+          "label": "format",
+          "reason": "检查 lines，约束 3",
+          "status": "passed"
+        },
+        {
+          "evidence": [
+            "answer format"
+          ],
+          "id": "length",
+          "label": "format",
+          "reason": "检查 length，约束 180",
+          "status": "passed"
+        },
+        {
+          "evidence": [
+            "answer format"
+          ],
+          "id": "prefixes",
+          "label": "format",
+          "reason": "检查 prefixes，约束 ['结论：', '反例：', '原因：']",
+          "status": "passed"
+        },
+        {
+          "evidence": [
+            "answer format"
+          ],
+          "id": "plain_text",
+          "label": "format",
+          "reason": "检查 plain，约束 None",
+          "status": "passed"
+        },
+        {
+          "id": "final_numeric_answer",
+          "label": "最终数值及单位",
+          "reason": "数值缺少与最终结论绑定的核验依据",
+          "status": "unverified"
+        },
+        {
+          "id": "answer_mode",
+          "label": "通用模式的回答范围",
+          "reason": "",
+          "status": "passed"
+        },
+        {
+          "id": "formula",
+          "label": "回答公式的核验依据",
+          "reason": "公式尚无等价性核验依据",
+          "status": "unverified"
+        }
+      ],
+      "failures": [],
+      "passed": false,
+      "status": "unverified",
+      "unverified": [
+        {
+          "id": "item_1",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+        },
+        {
+          "id": "item_2",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+        },
+        {
+          "id": "item_3",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+        },
+        {
+          "id": "item_4",
+          "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+        },
+        {
+          "id": "final_numeric_answer",
+          "reason": "数值缺少与最终结论绑定的核验依据"
+        },
+        {
+          "id": "formula",
+          "reason": "公式尚无等价性核验依据"
+        }
+      ]
+    },
+    "SQL_task_answer_equal": true
+  },
+  {
+    "run_id": "arun_019c21c667fc484c8223076e44b3df01",
+    "kind": "S6.turn1",
+    "lines": 64,
+    "codepoints_excluding_newline": 834,
+    "verification": {
+      "checks": [
+        {
+          "id": "answer",
+          "label": "针对当前问题的回答",
+          "reason": "",
+          "status": "passed"
+        },
+        {
+          "id": "answer_mode",
+          "label": "通用模式的回答范围",
+          "reason": "",
+          "status": "passed"
+        },
+        {
+          "id": "formula",
+          "label": "回答公式的核验依据",
+          "reason": "公式尚无等价性核验依据",
+          "status": "unverified"
+        }
+      ],
+      "failures": [],
+      "passed": false,
+      "status": "unverified",
+      "unverified": [
+        {
+          "id": "formula",
+          "reason": "公式尚无等价性核验依据"
+        }
+      ]
+    },
+    "SQL_task_answer_equal": true
+  }
+]

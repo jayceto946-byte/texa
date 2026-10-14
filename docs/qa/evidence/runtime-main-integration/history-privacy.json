@@ -1,0 +1,6 @@
+{
+  "scope": "newly reachable objects origin/master..initial HEAD; exact current Qwen and DeepSeek credentials in RAM only",
+  "blobs_scanned": 2131,
+  "matches": [],
+  "credential_count": 2
+}

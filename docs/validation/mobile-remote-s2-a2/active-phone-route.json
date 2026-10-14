@@ -1,0 +1,22 @@
+{
+  "state": "Running",
+  "android_peers": 1,
+  "ping_exit": 0,
+  "samples": [
+    {
+      "path": "DERP(sfo)",
+      "rttMs": 406.0
+    },
+    {
+      "path": "DERP(sfo)",
+      "rttMs": 394.0
+    },
+    {
+      "path": "DERP(sfo)",
+      "rttMs": 901.0
+    }
+  ],
+  "timeout": false,
+  "health": "ok",
+  "warmup": "ready"
+}

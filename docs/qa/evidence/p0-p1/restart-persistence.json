@@ -1,0 +1,182 @@
+[
+  {
+    "case": "draft→saved mistake",
+    "id": "m_08e7d243a60c4341a39e",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "review reveal→self grade→complete→refresh",
+    "id": "mrs_920099daba6c4b6984ba9ccb",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "manual exercise validation→save→refresh",
+    "id": "c54bbf6d",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "draft→saved mistake",
+    "id": "m_78d5b936b8c749449986",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "review reveal→self grade→complete→refresh",
+    "id": "mrs_93edbc1d85754af6b0726e33",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "manual exercise validation→save→refresh",
+    "id": "a4cdd260",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "direct attempt lost response→reload→recover once",
+    "id": "c54bbf6d",
+    "status": "PASS",
+    "restart_authority": true
+  },
+  {
+    "case": "note frozen source→failed generation→manual edit→cross-page autosave→explicit publish→refresh",
+    "id": "note_1c185e2875ff49ce869de0ed82fed566",
+    "status": "PASS",
+    "restart_authority": true
+  },
+  {
+    "case": "chat stream→interrupt confirmed→resume same task→one user question",
+    "id": "task_e5c07f85a1974ed1aa5e719d14168a4a",
+    "status": "PASS",
+    "restart_authority": true
+  },
+  {
+    "case": "goal proposal→confirm→activate→run→cross-page→pause fence→refresh",
+    "id": "goal_fddbf19146ec4844b409110753b94019",
+    "status": "PASS",
+    "restart_authority": true
+  },
+  {
+    "case": "direct attempt lost response→reload→recover once",
+    "id": "a4cdd260",
+    "status": "PASS",
+    "restart_authority": true
+  },
+  {
+    "case": "note frozen source→failed generation→manual edit→cross-page autosave→explicit publish→refresh",
+    "id": "note_c81803a55263432aad58e453c30afea2",
+    "status": "PASS",
+    "restart_authority": true
+  },
+  {
+    "case": "chat stream→interrupt confirmed→resume same task→one user question",
+    "id": "task_577f154cfd96484cb40e11fa6dcb7156",
+    "status": "PASS",
+    "restart_authority": true
+  },
+  {
+    "case": "goal proposal→confirm→activate→run→cross-page→pause fence→refresh",
+    "id": "goal_11e7cb8d275d449aaddd335afb05ef02",
+    "status": "PASS",
+    "restart_authority": true
+  },
+  {
+    "database": "progress/session_notes.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/learning_events.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/rag_traces.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/agent_runtime.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/exercise_bank_default.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/runtime_events.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/goals.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/mistake_book_default.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/conversations/_conversation_events.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  }
+]

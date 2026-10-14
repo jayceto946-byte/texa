@@ -2,6 +2,7 @@ import { Copy, Minus, Square, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export default function DesktopTitleBar() {
+  const [fullScreen, setFullScreen] = useState(false);
   const [maximized, setMaximized] = useState(false);
 
   useEffect(() => {
@@ -10,8 +11,18 @@ export default function DesktopTitleBar() {
     return window.kaoyanDesktop.onMaximizedChange?.(setMaximized);
   }, []);
 
+  useEffect(() => {
+    const desktop = window.kaoyanDesktop;
+    if (!desktop?.isElectron) return;
+    let alive = true;
+    let receivedEvent = false;
+    const remove = desktop.onFullScreenChange?.((value) => { receivedEvent = true; setFullScreen(value); });
+    void desktop.isFullScreen?.().then((value) => { if (alive && !receivedEvent) setFullScreen(value); }).catch(() => undefined);
+    return () => { alive = false; remove?.(); };
+  }, []);
+
   if (!window.kaoyanDesktop?.isElectron) return null;
-  if (window.kaoyanDesktop.platform === 'darwin') return <div className="desktop-titlebar-marker" aria-hidden="true" />;
+  if (window.kaoyanDesktop.platform === 'darwin') return <div className={`desktop-titlebar-marker is-macos${fullScreen ? ' is-fullscreen' : ''}`} aria-hidden="true" />;
 
   return (
     <div className="desktop-titlebar-marker" aria-label="窗口控制">

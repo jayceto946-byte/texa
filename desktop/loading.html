@@ -4,18 +4,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Texa</title>
+    <script>
+      const startupDesktop = window.kaoyanDesktop;
+      document.documentElement.dataset.platform = startupDesktop?.platform || '';
+      try {
+        const appearance = startupDesktop?.getStartupAppearance?.();
+        for (const [token, value] of Object.entries(appearance?.tokens || {})) {
+          document.documentElement.style.setProperty(token, value);
+        }
+      } catch {
+        // The default Texa accent below remains available during early startup.
+      }
+    </script>
     <style>
       * { box-sizing: border-box; }
       :root {
-        --bg: #f5f5f7;
-        --panel-strong: rgba(255, 255, 255, 0.86);
-        --text: #1d1d1f;
-        --muted: #6e6e73;
-        --line: rgba(0, 0, 0, 0.10);
-        --accent: #0066cc;
-        --accent-soft: #7bb8ff;
+        --color-bg-primary: #faf9f6;
+        --color-bg-card: #ffffff;
+        --color-text-primary: #25272d;
+        --color-text-secondary: #686b74;
+        --color-border: #e0dfdb;
+        --color-accent: #435dc5;
+        --color-accent-hover: #324ba9;
+        --accent-soft: #edf0fb;
         --danger: #b42318;
-        --radius-panel: 16px;
+        --radius-panel: 12px;
         --radius-control: 8px;
       }
       html, body { min-height: 100%; }
@@ -25,23 +38,10 @@
         display: grid;
         place-items: center;
         overflow: hidden;
-        background:
-          radial-gradient(circle at 50% 0%, rgba(255,255,255,0.96), rgba(255,255,255,0.28) 36%, transparent 62%),
-          linear-gradient(180deg, #fbfbfd 0%, var(--bg) 48%, #ececf0 100%);
-        color: var(--text);
-        font-family: "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+        background: var(--color-bg-primary);
+        color: var(--color-text-primary);
+        font-family: "HarmonyOS Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
         -webkit-font-smoothing: antialiased;
-      }
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        background:
-          linear-gradient(115deg, rgba(255,255,255,0.36), transparent 34%, rgba(255,255,255,0.24) 68%, transparent),
-          radial-gradient(circle at 18% 24%, rgba(0,102,204,0.08), transparent 24%),
-          radial-gradient(circle at 82% 76%, rgba(0,0,0,0.045), transparent 28%);
-        filter: blur(0.2px);
-        pointer-events: none;
       }
       body.is-leaving .stage {
         animation: stage-out 220ms cubic-bezier(.35,0,.2,1) both;
@@ -54,22 +54,11 @@
       .shell {
         position: relative;
         overflow: hidden;
-        border: 1px solid rgba(255,255,255,0.72);
+        border: 1px solid var(--color-border);
         border-radius: var(--radius-panel);
-        background: linear-gradient(145deg, rgba(255,255,255,0.78), rgba(255,255,255,0.46));
+        background: var(--color-bg-card);
         padding: 42px 36px 32px;
-        box-shadow:
-          inset 0 1px 0 rgba(255,255,255,0.86),
-          0 24px 90px rgba(0,0,0,0.12);
-        backdrop-filter: blur(28px) saturate(180%);
-        -webkit-backdrop-filter: blur(28px) saturate(180%);
-      }
-      .shell::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(90deg, rgba(255,255,255,0.48), transparent 42%, rgba(255,255,255,0.22));
-        pointer-events: none;
+        box-shadow: 0 8px 24px rgba(35,40,37,0.08);
       }
       .content {
         position: relative;
@@ -105,7 +94,7 @@
         justify-content: center;
         gap: 10px;
         margin-top: 26px;
-        color: var(--muted);
+        color: var(--color-text-secondary);
         font-size: 13px;
       }
       .pulse {
@@ -113,8 +102,8 @@
         height: 9px;
         flex: 0 0 auto;
         border-radius: 999px;
-        background: var(--accent);
-        box-shadow: 0 0 0 0 rgba(0,102,204,0.28);
+        background: var(--color-accent);
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 28%, transparent);
         animation: pulse 1.45s ease-out infinite;
       }
       .bar {
@@ -131,7 +120,7 @@
         inset: 0 auto 0 0;
         width: 42%;
         border-radius: inherit;
-        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
         animation: load 1.2s cubic-bezier(.45,0,.2,1) infinite;
       }
       .details {
@@ -157,35 +146,37 @@
       }
       button {
         min-height: 36px;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        background: rgba(255,255,255,0.72);
-        color: var(--text);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-control);
+        background: var(--color-bg-card);
+        color: var(--color-text-primary);
         cursor: pointer;
         font: inherit;
         padding: 8px 14px;
-        transition: transform 140ms ease, border-color 160ms ease, background-color 160ms ease;
+        transition: border-color 160ms ease, background-color 160ms ease;
       }
-      button:hover { border-color: rgba(0,102,204,0.34); background: rgba(255,255,255,0.92); }
-      button:active { transform: scale(0.97); }
-      button.primary { border-color: transparent; background: #171719; color: #fff; }
+      button:hover { border-color: var(--color-accent); background: var(--accent-soft); }
+      button:active { background: var(--accent-soft); }
+      button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+      button.primary { border-color: var(--color-accent); background: var(--color-accent); color: #fff; }
+      button.primary:hover, button.primary:active { background: var(--color-accent-hover); }
       button:disabled { cursor: wait; opacity: 0.62; }
       .error .pulse { background: var(--danger); animation: none; box-shadow: none; }
       .error .bar::before { animation: none; width: 100%; background: var(--danger); }
       .error .details { display: block; }
       .error .actions { display: flex; }
       @keyframes stage-in {
-        from { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(10px); }
-        to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
       }
       @keyframes stage-out {
-        from { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-        to { opacity: 0; transform: translateY(-10px) scale(.985); filter: blur(8px); }
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-8px); }
       }
       @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(0,102,204,0.28); }
-        70% { box-shadow: 0 0 0 12px rgba(0,102,204,0); }
-        100% { box-shadow: 0 0 0 0 rgba(0,102,204,0); }
+        0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 28%, transparent); }
+        70% { box-shadow: 0 0 0 12px transparent; }
+        100% { box-shadow: 0 0 0 0 transparent; }
       }
       @keyframes load {
         from { transform: translateX(-110%); }
@@ -203,10 +194,12 @@
         position: fixed;
         inset: 0 0 auto auto;
         z-index: 10001;
-        display: flex;
+        display: none;
         app-region: no-drag;
         -webkit-app-region: no-drag;
       }
+      html[data-platform="win32"] .loading-window-controls,
+      html[data-platform="linux"] .loading-window-controls { display: flex; }
       .loading-window-button {
         display: grid;
         width: 46px;
@@ -230,9 +223,6 @@
       @media (prefers-reduced-motion: reduce) {
         .stage, body.is-leaving .stage, .pulse, .bar::before { animation: none; }
         .loading-window-button { transition: none; }
-      }
-      @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-        .shell { background: var(--panel-strong); }
       }
     </style>
   </head>
@@ -369,8 +359,8 @@
         const friendlyFailures = {
           MODEL_MISSING: '嵌入模型缺失，可以尝试修复运行资源。',
           MODEL_CORRUPT_OR_INCOMPATIBLE: '嵌入模型已损坏或版本不兼容，可以尝试修复。',
-          ORT_IMPORT_FAILURE: 'ONNX Runtime 无法加载，请重新安装当前 Windows x64 版本。',
-          UNSUPPORTED_ARCHITECTURE: '当前系统架构不受支持，Texa Standard 需要 Windows x64。',
+          ORT_IMPORT_FAILURE: 'ONNX Runtime 无法加载，请重新安装适用于当前系统架构的版本。',
+          UNSUPPORTED_ARCHITECTURE: '当前系统架构不受支持，Texa Standard 支持 Windows x64 和 macOS arm64。',
           TOKENIZER_MISMATCH: '分词器资源与模型版本不匹配，可以尝试修复。',
           ASSET_REPAIR_FAILED: '运行资源修复失败，请检查网络后重试或查看诊断日志。',
         };

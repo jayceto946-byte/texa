@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "CallToolArgsV0": {
+      "additionalProperties": false,
+      "properties": {
+        "tool_id": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Tool Id",
+          "type": "string"
+        },
+        "input": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Input",
+          "type": "object"
+        }
+      },
+      "required": [
+        "tool_id",
+        "input"
+      ],
+      "title": "CallToolArgsV0",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "PolicyActionV0": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "generate_answer",
+            "call_tool",
+            "request_input"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "args": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CallToolArgsV0"
+            },
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            }
+          ],
+          "title": "Args"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "args"
+      ],
+      "title": "PolicyActionV0",
+      "type": "object"
+    },
+    "PolicyContextV0": {
+      "additionalProperties": false,
+      "properties": {
+        "resolved_query": {
+          "maxLength": 2000,
+          "title": "Resolved Query",
+          "type": "string"
+        },
+        "goal": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Goal"
+        },
+        "constraints": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Constraints",
+          "type": "object"
+        }
+      },
+      "required": [
+        "resolved_query",
+        "constraints"
+      ],
+      "title": "PolicyContextV0",
+      "type": "object"
+    },
+    "PreviousResultV0": {
+      "additionalProperties": false,
+      "properties": {
+        "action_kind": {
+          "enum": [
+            "generate_answer",
+            "call_tool",
+            "request_input"
+          ],
+          "title": "Action Kind",
+          "type": "string"
+        },
+        "tool_id": {
+          "anyOf": [
+            {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Id"
+        },
+        "status": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 600,
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action_kind",
+        "status",
+        "summary"
+      ],
+      "title": "PreviousResultV0",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "request": {
+      "maxLength": 2000,
+      "title": "Request",
+      "type": "string"
+    },
+    "context": {
+      "$ref": "#/$defs/PolicyContextV0"
+    },
+    "previous_result": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PreviousResultV0"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "missing_inputs": {
+      "items": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "type": "object"
+      },
+      "maxItems": 20,
+      "title": "Missing Inputs",
+      "type": "array"
+    },
+    "admissible_actions": {
+      "items": {
+        "$ref": "#/$defs/PolicyActionV0"
+      },
+      "maxItems": 4,
+      "title": "Admissible Actions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "request",
+    "context",
+    "missing_inputs",
+    "admissible_actions"
+  ],
+  "title": "PolicyObservationV0",
+  "type": "object",
+  "description": "Benchmark V0 input envelope; dictionary shapes from frozen fixtures. Production open-ended domain fields remain governed by source validators."
+}

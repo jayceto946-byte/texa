@@ -6,9 +6,10 @@ import asyncio
 from pathlib import Path
 from typing import Literal
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 
 from config import PROGRESS_PATH, VECTOR_DB_PATH
+from backend.runtime_identity import runtime_build_identity
 from backend.rag_trace import TRACE_DB_PATH, list_traces
 
 router = APIRouter(prefix="/system", tags=["system"])
@@ -306,6 +307,21 @@ def _write_subject_tree(tree: list[dict]) -> list[dict]:
     return write_subject_tree(tree)
 
 
+@router.get("/remote-ready")
+def remote_ready(performance: bool = False):
+    """Authenticated, read-only readiness; no profiles or credentials returned."""
+    models = profiles_payload()
+    reasoning = models.get("roles", {}).get("reasoning", {})
+    credential = models.get("credentials", {}).get("reasoning", {})
+    return {"success": True, "data": {
+        **({"runtime_build": runtime_build_identity()} if performance else {}),
+        "token_required": os.getenv("KAOYAN_REQUIRE_API_TOKEN", "0") == "1",
+        "ready": bool(reasoning.get("model") and (
+            not credential.get("required") or credential.get("configured")
+        )),
+    }}
+
+
 @router.get("/settings")
 def get_settings():
     return {
@@ -486,3 +502,17 @@ def run_update():
         "success": False,
         "message": "自动更新通道尚未启用。桌面打包完成后可接入安装包更新或 git 更新策略。",
     }
+
+
+@router.get('/network-diagnostics')
+async def network_diagnostics(response: Response):
+    response.headers['Cache-Control'] = 'no-store'
+    from backend.services.network_diagnostics import monitor
+    return {'success': True, 'data': await monitor.observe()}
+
+
+@router.post('/network-diagnostics/probe')
+async def network_probe(response: Response):
+    response.headers['Cache-Control'] = 'no-store'
+    from backend.services.network_diagnostics import monitor
+    return {'success': True, 'data': await monitor.probe()}

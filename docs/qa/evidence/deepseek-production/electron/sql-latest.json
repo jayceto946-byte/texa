@@ -1,0 +1,48 @@
+[
+  {
+    "id": "arun_f986f80a190c4c61a987c4c4ffc6b141",
+    "status": "failed",
+    "error_code": "provider_protocol_state_lost",
+    "tools": []
+  },
+  {
+    "id": "arun_3bd3490e74a24cdaa2bc26692b4fcc51",
+    "status": "paused",
+    "error_code": "user_stopped",
+    "tools": [
+      {
+        "tool_id": "symbolic_math",
+        "status": "succeeded",
+        "attempt_count": 1
+      },
+      {
+        "tool_id": "verify_math_result",
+        "status": "succeeded",
+        "attempt_count": 1
+      }
+    ]
+  },
+  {
+    "id": "arun_a02b850a7a68449299573d202c12b856",
+    "status": "completed",
+    "error_code": null,
+    "tools": []
+  },
+  {
+    "id": "arun_6950ce12e8d84c21a5992b48ab198bbf",
+    "status": "completed",
+    "error_code": null,
+    "tools": [
+      {
+        "tool_id": "symbolic_math",
+        "status": "succeeded",
+        "attempt_count": 1
+      },
+      {
+        "tool_id": "verify_math_result",
+        "status": "succeeded",
+        "attempt_count": 1
+      }
+    ]
+  }
+]

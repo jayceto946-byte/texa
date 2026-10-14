@@ -1,9 +1,18 @@
+import { finishSessionRender } from '../utils/performanceMetrics';
+import { streamFailure, streamPresentation } from '../features/chat/streamPresentation';
+import { useReadingScroll } from '../features/chat/useReadingScroll';
+import { getBookList } from '../features/books/bookList';
+import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
+import { imageUploadError } from '../features/mistakes/imageProcessing';
+import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BookMarked, CalendarDays, ImagePlus, Images, Send, Shuffle, Square, X } from 'lucide-react';
+import { BookMarked, CalendarDays, ImagePlus, Images, Send, Shuffle, Square, Target, X } from 'lucide-react';
 import { figureQuestionStream, get, interruptFigureTask, mistakeSolutionStream, post, resumeFigureTaskStream } from '../api/client';
 
 import HighlightRepositoryDialog from '../components/HighlightRepositoryDialog';
 import LearningEmptyWorkspace from '../components/chat/LearningEmptyWorkspace';
+import ScopeSelector from '../components/ScopeSelector';
 import ComposerOverflowMenu from '../components/chat/ComposerOverflowMenu';
 import ChatMessage from '../components/ChatMessage';
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -22,8 +31,15 @@ import { useChat } from '../hooks/useChat';
 import type { ExerciseRecord, FigureArtifact, LearningTaskState, MistakeRecord, VisualRegion } from '../types';
 import { mapStoredConversationMessages } from '../utils/conversationMessages';
 import { createExecutionLifecycle, executionMessageStage, mergeChatActivity, mergeExecutionLifecycle, settleChatActivity } from '../utils/chatActivities';
-import { buildTextbookScopeOptions, findDefaultTextbookScope, formatLearningScopeLabel, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
+import { buildTextbookScopeOptions, findDefaultTextbookScope, scopeContainsBook, type TextbookRecord } from '../utils/textbookScopes';
 import { useInspector } from '../contexts/InspectorContext';
+import { ChatMistakeSourcesContext, useChatMistakeSources } from '../features/mistakes/hooks/useChatMistakeSources';
+import { useNoteCommand } from '../features/notes/NoteCommandContext';
+import OverflowMenu from '../components/ui/OverflowMenu';
+import { noteReturnPath } from '../features/notes/navigation';
+import { useConversationManagement } from '../features/conversations/useConversationManagement';
+import BlockingTasks from '../features/conversations/BlockingTasks';
+import '../features/conversations/conversations.css';
 type ReportMode = 'daily' | 'weekly';
 type ActionMode = ReportMode | 'exercise';
 
@@ -32,12 +48,12 @@ function firstLine(value = '', maxLength = 48) {
   return line.length > maxLength ? `${line.slice(0, maxLength)}...` : line;
 }
 
-function conversationTitle(value = '') {
-  const withoutAttachment = value.replace(/^📎[^\r\n]*\r?\n(?:\r?\n)+/, '').trim();
-  return firstLine(withoutAttachment || value || '学习会话', 56);
-}
+const CHAT_IMAGE_CROP = { x: 0, y: 0, w: 100, h: 100 };
 
 const ChatPage: React.FC = () => {
+  const openNote = useNoteCommand();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [input, setInput] = useState('');
   const [mathExpressions, setMathExpressions] = useState<MathExpression[]>([]);
   const [mathEditRequest, setMathEditRequest] = useState<MathEditRequest | null>(null);
@@ -47,6 +63,8 @@ const ChatPage: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<ActionMode | null>(null);
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
   const [rawAttachmentFile, setRawAttachmentFile] = useState<File | null>(null);
+  const [uploadOriginalFile, setUploadOriginalFile] = useState<File | null>(null);
+  const [attachmentUploadSummary, setAttachmentUploadSummary] = useState('');
   const [attachmentPreview, setAttachmentPreview] = useState('');
   const [attachmentEditorOpen, setAttachmentEditorOpen] = useState(false);
   const [importAttachment, setImportAttachment] = useState(false);
@@ -67,13 +85,50 @@ const ChatPage: React.FC = () => {
     addMessage,
     updateLastMessage,
     updateMessageByTaskId,
+    updateMessageByTurnId,
     historyPage,
     prependConversationMessages,
+    loadConversation,
   } = useChatContext();
+  const conversation = useConversationManagement(conversationId, location.pathname === '/');
+  const inTrash = conversation.management?.state === 'trashed';
+  const [sourceNavigationError, setSourceNavigationError] = useState('');
+  const [nextAfterSeq, setNextAfterSeq] = useState<number | null>(null);
+  const { scrollRef, targetMessageRef, preserveHistoryScrollRef, following, onScroll, scrollToLatest } = useReadingScroll(messages, conversationId, location.pathname === '/');
+  const loadedLocatorRef = useRef('');
+  useEffect(() => { finishSessionRender(); }, [messages]);
+
+  useEffect(() => {
+    if (location.pathname !== '/') return;
+    const params = new URLSearchParams(location.search);
+    const sourceConversation = params.get('conversation_id');
+    const sourceMessage = params.get('message_id');
+    if (!sourceConversation || loadedLocatorRef.current === location.search) return;
+    if (isLoading) { setSourceNavigationError('当前回答正在进行，请先停止或等待结束后查看原消息。'); return; }
+    let active = true;
+    const path = sourceMessage
+      ? `/chat/conversations/${encodeURIComponent(sourceConversation)}/messages/${encodeURIComponent(sourceMessage)}/context`
+      : `/chat/conversations/${encodeURIComponent(sourceConversation)}?limit=40`;
+    void get(path).then(response => {
+      if (!active) return;
+      if (!response.success) throw new Error(response.message || '来源会话不可用');
+      const data = response.data;
+      loadedLocatorRef.current = location.search;
+      targetMessageRef.current = sourceMessage;
+      setNextAfterSeq(sourceMessage ? data.page.next_after_seq : null);
+      loadConversation(data.conversation_id || data.id, mapStoredConversationMessages(data.messages), {
+        subject: data.subject, bookName: data.book_name, page: data.page,
+      });
+      setSourceNavigationError('');
+    }).catch(e => { if (active) setSourceNavigationError(e.message); });
+    return () => { active = false; };
+  }, [location.pathname, location.search, isLoading, loadConversation, targetMessageRef]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const preserveHistoryScrollRef = useRef<{ height: number; top: number } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [attachmentError, setAttachmentError] = useState('');
+  const mistakePickerRef = useRef<HTMLDivElement>(null);
+  const mistakePickerButtonRef = useRef<HTMLButtonElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const visualAbortRef = useRef<(() => void) | null>(null);
   const activeVisualTaskRef = useRef<LearningTaskState | null>(null);
@@ -84,44 +139,44 @@ const ChatPage: React.FC = () => {
   const { openInspector, closeInspector } = useInspector();
   const scopeBooks = useMemo(() => buildTextbookScopeOptions(books), [books]);
   const currentScope = scopeBooks.find((scope) => scopeContainsBook(scope, bookName));
-  const headerScopeLabel = formatLearningScopeLabel(
-    subject,
-    currentScope?.displayName || currentScope?.name || bookName || '通用问答',
-  );
 
   useEffect(() => {
     const applySuggestion = (question: string) => {
       if (!question) return;
-      window.localStorage.removeItem('texa:onboarding-first-question');
+      writeBrowserStorage('localStorage', 'texa:onboarding-first-question', null);
       setInput(question);
       window.setTimeout(() => textareaRef.current?.focus(), 0);
     };
-    const suggested = window.localStorage.getItem('texa:onboarding-first-question');
+    const suggested = readBrowserStorage('localStorage', 'texa:onboarding-first-question');
     if (suggested) applySuggestion(suggested);
     const onQuestionSelected = (event: Event) => applySuggestion((event as CustomEvent<{ question?: string }>).detail?.question || '');
     window.addEventListener('texa:onboarding-question-selected', onQuestionSelected);
-    return () => window.removeEventListener('texa:onboarding-question-selected', onQuestionSelected);
+    window.addEventListener('texa:compose-question', onQuestionSelected);
+    return () => {
+      window.removeEventListener('texa:onboarding-question-selected', onQuestionSelected);
+      window.removeEventListener('texa:compose-question', onQuestionSelected);
+    };
   }, []);
 
   useEffect(() => {
-    if (window.localStorage.getItem('texa:onboarding-awaiting-source') !== '1') return;
+    if (readBrowserStorage('localStorage', 'texa:onboarding-awaiting-source') !== '1') return;
     const hasSourcedAnswer = messages.some((message) => message.role === 'assistant' && message.stage === 'done' && (message.sources?.length || message.sourceChapters?.length));
     if (hasSourcedAnswer) window.dispatchEvent(new Event('texa:onboarding-sourced-answer'));
   }, [messages]);
 
   useEffect(() => {
-    const focusComposer = () => textareaRef.current?.focus();
+    const focusComposer = () => { if (location.pathname === '/') textareaRef.current?.focus(); };
     window.addEventListener('texa:focus-composer', focusComposer);
     return () => window.removeEventListener('texa:focus-composer', focusComposer);
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     const loadBooks = async () => {
       try {
-        const res = await get('/books/list');
+        const res = await getBookList();
         if (res?.success) setBooks(res.data || []);
       } catch {
-        setBooks([]);
+        // Keep a successful directory visible; a superseded read can fail late.
       } finally {
         setBooksLoaded(true);
       }
@@ -131,18 +186,6 @@ const ChatPage: React.FC = () => {
     loadBooks();
     return () => window.removeEventListener('books:changed', onChanged);
   }, []);
-
-  useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-    const preserved = preserveHistoryScrollRef.current;
-    if (preserved) {
-      preserveHistoryScrollRef.current = null;
-      container.scrollTop = preserved.top + (container.scrollHeight - preserved.height);
-      return;
-    }
-    container.scrollTop = container.scrollHeight;
-  }, [messages]);
 
   const loadEarlierMessages = async () => {
     const beforeSeq = historyPage?.next_before_seq;
@@ -194,36 +237,60 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  const switchBook = useCallback(async (name: string) => {
+  const bookSwitchSequenceRef = useRef(0);
+  const currentScopeRef = useRef({ bookName, subject });
+  currentScopeRef.current = { bookName, subject };
+  const switchBook = useCallback(async (name: string, canApply: () => boolean = () => true) => {
+    const sequence = ++bookSwitchSequenceRef.current;
+    const canCommit = () => sequence === bookSwitchSequenceRef.current && canApply();
     if (!name) {
-      setBookName('');
+      if (currentScopeRef.current.bookName) setBookName('');
       return;
     }
     try {
       const res = await get(`/books/switch/${encodeURIComponent(name)}`);
-      if (res?.success) {
-        setBookName(res.data.name);
-        if (res.data.subject) setSubject(res.data.subject);
+      if (res?.success && canCommit()) {
+        if (currentScopeRef.current.bookName !== res.data.name) setBookName(res.data.name);
+        if (res.data.subject && currentScopeRef.current.subject !== res.data.subject) setSubject(res.data.subject);
       }
     } catch {
-      setBookName(name);
+      if (canCommit() && currentScopeRef.current.bookName !== name) setBookName(name);
     }
   }, [setBookName, setSubject]);
 
+  const scopeSelector = (
+    <ScopeSelector
+      subject={subject}
+      bookName={bookName}
+      books={scopeBooks}
+      suggestions={Array.from(new Set(books.map((book) => book.subject || '').filter(Boolean)))}
+      onSubjectChange={setSubject}
+      onBookChange={switchBook}
+      allowAllSubjects
+      width="wide"
+      label="选择学习范围"
+    />
+  );
+
   useEffect(() => {
-    if (!booksLoaded) return;
+    // Background textbook discovery must never reset a restored or active Session.
+    if (!booksLoaded || isLoading || messages.length > 0 || historyPage !== null) return;
     if (bookName) {
       if (!scopeBooks.some((scope) => scopeContainsBook(scope, bookName))) setBookName('');
       return;
     }
     const target = findDefaultTextbookScope(scopeBooks, subject);
-    if (target) void switchBook(target.name);
-  }, [bookName, booksLoaded, scopeBooks, setBookName, subject, switchBook]);
+    let cancelled = false;
+    if (target) void switchBook(target.name, () => !cancelled);
+    return () => { cancelled = true; };
+  }, [bookName, booksLoaded, scopeBooks, setBookName, subject, switchBook, isLoading, messages.length, historyPage]);
 
   const clearAttachment = () => {
     if (attachmentPreview) URL.revokeObjectURL(attachmentPreview);
     setAttachmentFile(null);
     setRawAttachmentFile(null);
+    setUploadOriginalFile(null);
+    setAttachmentUploadSummary('');
     setAttachmentPreview('');
     setAttachmentEditorOpen(false);
     if (attachmentInputRef.current) attachmentInputRef.current.value = '';
@@ -231,12 +298,9 @@ const ChatPage: React.FC = () => {
 
   const selectAttachment = (file?: File) => {
     if (!file) return;
-    if (!file.type.startsWith('image/')) return;
-    clearAttachment();
-    setSelectedMistakeId('');
-    setActiveFigure(null);
-    setVisualRegion(null);
-    setFigureWorkspaceExpanded(false);
+    const error = imageUploadError(file);
+    setAttachmentError(error);
+    if (error) return;
     setRawAttachmentFile(file);
     setAttachmentEditorOpen(true);
   };
@@ -247,9 +311,16 @@ const ChatPage: React.FC = () => {
     setFigureWorkspaceExpanded(false);
   }, [bookName]);
 
-  const applyAttachmentProcessing = (processed: { file: File; preview: string }) => {
+  const applyAttachmentProcessing = (processed: { file: File; preview: string; originalFile?: File; originalSize?: number }) => {
+    setSelectedMistakeId('');
+    setActiveFigure(null);
+    setVisualRegion(null);
+    setFigureWorkspaceExpanded(false);
     if (attachmentPreview) URL.revokeObjectURL(attachmentPreview);
     setAttachmentFile(processed.file);
+    setUploadOriginalFile(processed.originalFile || rawAttachmentFile);
+    const total = processed.file.size + (processed.originalFile?.size || rawAttachmentFile?.size || 0);
+    setAttachmentUploadSummary(`待上传 ${(total / 1024 / 1024).toFixed(1)} MB（完整画面 + 裁剪图）${processed.originalFile && processed.originalSize && processed.originalFile.size < processed.originalSize ? `，原照片 ${(processed.originalSize / 1024 / 1024).toFixed(1)} MB 已压缩` : ''}`);
     setAttachmentPreview(processed.preview);
     setAttachmentEditorOpen(false);
   };
@@ -335,11 +406,7 @@ const ChatPage: React.FC = () => {
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
         id: event.result?.message_id || last.id,
-        content: lifecycle.terminalType === 'error'
-          ? (lifecycle.errorCode === 'figure_index_out_of_date'
-            ? `教材图片索引已过期：${lifecycle.errorMessage || '请重新导入教材后再试'}`
-            : `教材图片问答失败：${lifecycle.errorMessage || '未知错误'}`)
-          : lifecycle.hasOutput ? lifecycle.output : last.content,
+        ...streamPresentation(lifecycle, last.content),
         stage: executionMessageStage(lifecycle, eventTask || last.learningTask),
         answerMode: 'visual_grounded',
         sources: event.result?.sources || last.sources,
@@ -366,7 +433,7 @@ const ChatPage: React.FC = () => {
       setAttachmentLoading(false);
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
-        content: `教材图片问答失败：${error.message}`,
+        ...streamFailure(visualPartialOutputRef.current, last.content, error.message),
         stage: 'error',
         activities: mergeChatActivity(last.activities, {
           id: 'figure-request', kind: 'system', label: 'Figure 问答中断', status: 'failed', detail: error.message,
@@ -385,12 +452,13 @@ const ChatPage: React.FC = () => {
       : `从历史错题讲解：${firstLine(cachedMistakes.find((item) => item.id === selectedMistakeId)?.question_text || '')}\n\n${question || '请重新讲解这道错题'}`;
     const turnId = `turn_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
     addMessage({ role: 'user', content: label, turnId });
-    addMessage({ role: 'assistant', content: '', stage: 'thinking', activities: [], turnId });
+    addMessage({ role: 'assistant', content: '', stage: 'thinking', activities: attachmentFile ? [{ id: 'upload', kind: 'tool', label: '上传题目照片', status: 'active', detail: `正在上传原图与处理图（${((((uploadOriginalFile || rawAttachmentFile)?.size || 0) + attachmentFile.size) / 1024 / 1024).toFixed(1)} MB），桌面接收后开始识图。` }] : [], turnId });
     let payload: FormData | Record<string, unknown>;
     let path: '/mistakes/solve-image-stream' | '/mistakes/solve-cached-stream';
     if (attachmentFile) {
       const form = new FormData();
       form.append('file', attachmentFile);
+      if (uploadOriginalFile || rawAttachmentFile) form.append('original_file', (uploadOriginalFile || rawAttachmentFile)!);
       form.append('question', question || '请完整讲解这道题');
       form.append('subject', subject);
       form.append('book_name', bookName || 'default');
@@ -417,14 +485,19 @@ const ChatPage: React.FC = () => {
       if (merged === lifecycle) return;
       lifecycle = merged;
       const eventTask = event.learning_task || event.result?.learning_task;
-      if (eventTask) activeVisualTaskRef.current = eventTask;
+      if (eventTask) {
+        activeVisualTaskRef.current = eventTask;
+        const ir = eventTask.artifacts?.visual_ir as { problem_text?: string } | undefined;
+        updateMessageByTurnId(turnId, message => message.role === 'user' ? {
+          ...message, learningTask: eventTask,
+          content: ir?.problem_text ? `${label}\n\n图片题干（识别文本，请校对）：\n${ir.problem_text}` : message.content,
+        } : message);
+      }
       visualPartialOutputRef.current = lifecycle.output;
       updateLastMessage((last) => last.role === 'assistant' ? {
         ...last,
         id: event.result?.message_id || last.id,
-        content: lifecycle.terminalType === 'error'
-          ? `图片处理失败：${lifecycle.errorMessage || '未知错误'}`
-          : lifecycle.hasOutput ? lifecycle.output : last.content,
+        ...streamPresentation(lifecycle, last.content),
         stage: executionMessageStage(lifecycle, eventTask || last.learningTask),
         activities: lifecycle.activities,
         linkedConcepts: event.result?.linked_concepts || last.linkedConcepts,
@@ -447,8 +520,16 @@ const ChatPage: React.FC = () => {
       visualAbortRef.current = null;
       setAttachmentLoading(false);
       updateLastMessage((last) => last.role === 'assistant' ? {
-        ...last, content: `图片处理失败：${error.message}`, stage: 'error',
-        activities: mergeChatActivity(last.activities, { id: 'request', kind: 'system', label: '请求中断', status: 'failed', detail: error.message }),
+        ...last, ...streamFailure(visualPartialOutputRef.current, last.content, error.message), stage: 'error',
+        activities: settleChatActivity(last.activities, 'upload', 'failed', error.message),
+      } : last);
+    }, (loaded, total) => {
+      const complete = total > 0 && loaded >= total;
+      updateLastMessage(last => last.role === 'assistant' && !last.learningTask ? {
+        ...last, activities: mergeChatActivity(last.activities, {
+          id: 'upload', kind: 'tool', label: complete ? '等待桌面接收照片' : '上传题目照片', status: 'active',
+          detail: complete ? '照片已发出，等待桌面确认并开始识图。' : total > 0 ? `正在上传：${Math.round(loaded / total * 100)}%（${(total / 1024 / 1024).toFixed(1)} MB）` : `已发送 ${(loaded / 1024 / 1024).toFixed(1)} MB`,
+        }),
       } : last);
     });
   };
@@ -458,7 +539,7 @@ const ChatPage: React.FC = () => {
     action: 'provide_input' | 'method_only' | 'resume',
     file?: File,
   ) => {
-    if (attachmentLoading || !(action === 'resume' ? task.resumable : task.input_action_required)) return;
+    if (inTrash || attachmentLoading || !(action === 'resume' ? task.resumable : task.input_action_required)) return;
     activeVisualTaskRef.current = task;
     setAttachmentLoading(true);
     updateMessageByTaskId(task.id, (message) => ({
@@ -487,9 +568,7 @@ const ChatPage: React.FC = () => {
             return {
               ...message,
               id: event.result?.message_id || message.id,
-              content: lifecycle.terminalType === 'error'
-                ? `图片处理失败：${lifecycle.errorMessage || '恢复失败'}`
-                : lifecycle.hasOutput ? lifecycle.output : message.content,
+              ...streamPresentation(lifecycle, message.content),
               stage: executionMessageStage(lifecycle, eventTask || message.learningTask),
               activities: lifecycle.activities,
               linkedConcepts: event.result?.linked_concepts || message.linkedConcepts,
@@ -550,11 +629,7 @@ const ChatPage: React.FC = () => {
       updateMessageByTaskId(task.id, (message) => ({
         ...message,
         id: event.result?.message_id || message.id,
-        content: lifecycle.terminalType === 'error'
-          ? (lifecycle.errorCode === 'figure_index_out_of_date'
-            ? `教材图片索引已过期：${lifecycle.errorMessage || '请重新导入教材后再试'}`
-            : `教材图片问答失败：${lifecycle.errorMessage || '恢复失败'}`)
-          : lifecycle.hasOutput ? lifecycle.output : message.content,
+        ...streamPresentation(lifecycle, message.content),
         stage: executionMessageStage(lifecycle, eventTask || message.learningTask),
         sources: event.result?.sources || message.sources,
         citationProvenance: event.result?.citation_provenance || message.citationProvenance,
@@ -670,7 +745,7 @@ const ChatPage: React.FC = () => {
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     const question = composeMathQuestion(input, mathExpressions);
-    if ((!question && !attachmentFile && !selectedMistakeId && !activeFigure) || isLoading || attachmentLoading) return;
+    if (inTrash || (!question && !attachmentFile && !selectedMistakeId && !activeFigure) || isLoading || attachmentLoading) return;
     if (activeFigure) {
       submitFigureQuestion(question);
       return;
@@ -686,14 +761,51 @@ const ChatPage: React.FC = () => {
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
   };
 
-  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-    e.target.style.height = 'auto';
-    e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
-  };
+  useEffect(() => {
+    const field = textareaRef.current;
+    if (!field) return;
+    const resize = () => {
+      field.style.height = 'auto';
+      field.style.height = Math.min(field.scrollHeight, Math.min(240, window.innerHeight * 0.3)) + 'px';
+    };
+    resize();
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, [input]);
+
+  useEffect(() => {
+    const quote = (event: Event) => {
+      if (location.pathname !== '/' || inTrash) return;
+      const text = (event as CustomEvent<{ text: string }>).detail?.text;
+      if (!text?.trim()) return;
+      const quotation = text.split('\n').map(line => `> ${line}`).join('\n');
+      setInput(current => `${current}${current.trim() ? '\n\n' : ''}引用回答：\n${quotation}\n\n`);
+      requestAnimationFrame(() => textareaRef.current?.focus({ preventScroll: true }));
+    };
+    window.addEventListener('texa:quote-answer', quote);
+    return () => window.removeEventListener('texa:quote-answer', quote);
+  }, [location.pathname, inTrash]);
+
+  useEffect(() => {
+    if (!mistakePickerOpen) return;
+    const outside = (event: PointerEvent) => {
+      if (!mistakePickerRef.current?.contains(event.target as Node) && !mistakePickerButtonRef.current?.contains(event.target as Node)) setMistakePickerOpen(false);
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setMistakePickerOpen(false);
+      mistakePickerButtonRef.current?.focus();
+    };
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
+  }, [mistakePickerOpen]);
+
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
       e.preventDefault();
       handleSubmit();
     }
@@ -812,6 +924,7 @@ const ChatPage: React.FC = () => {
     setHighlightDialogOpen(true);
   };
 
+  const mistakeSources = useChatMistakeSources(conversationId, bookName || 'default', messages, location.pathname === '/');
   return (
     <div className="relative flex h-full min-w-0 bg-bg-primary">
       <div
@@ -820,14 +933,24 @@ const ChatPage: React.FC = () => {
       >
         <div className="learning-workspace-header">
           <div className="learning-workspace-title min-w-0">
-            <h2>{messages.length ? conversationTitle(messages.find((message) => message.role === 'user')?.content) : '新学习会话'}</h2>
-            <p>{headerScopeLabel}</p>
+            <h2>学习</h2>
           </div>
           <div className="window-drag-region" aria-hidden="true" />
+          {messages.length > 0 && <div className="current-session-menu"><OverflowMenu label="当前会话的更多操作">{close => <>
+            {!inTrash && <button role="menuitem" disabled={!conversation.management || conversation.busy} onClick={() => { close(); void conversation.change(conversation.management?.pinned ? 'unpin' : 'pin'); }}>{conversation.management?.pinned ? '取消置顶' : '置顶'}</button>}
+            {!inTrash && <button role="menuitem" onClick={() => { close(); openNote({ conversationId, title: messages.find(m => m.role === 'user')?.content.slice(0, 80), busy: isLoading || attachmentLoading }); }}>整理为笔记</button>}
+            <button role="menuitem" disabled={!conversation.management || conversation.busy} onClick={() => { close(); void conversation.change(conversation.management?.state === 'active' ? 'archive' : 'restore'); }}>{conversation.management?.state === 'active' ? '归档' : '恢复'}</button>
+            {!inTrash && <button role="menuitem" disabled={!conversation.management || conversation.busy} onClick={() => { close(); void conversation.change('trash'); }}>移入回收站</button>}
+          </>}</OverflowMenu></div>}
+          {noteReturnPath(location.search) && <Link className="app-ghost-button" to={noteReturnPath(location.search)!}>返回笔记</Link>}
+          {(messages.length > 0 || activeFigure) && <div className="learning-header-scope-selector">{scopeSelector}</div>}
         </div>
 
-        <div ref={scrollRef} className="learning-workspace-scroll">
+        <div ref={scrollRef} className="learning-workspace-scroll" onScroll={onScroll}>
           <div className="learning-document-column">
+            {conversation.management?.state !== 'active' && conversation.management && <div className="conversation-state" role="status"><span>{inTrash ? '此会话在回收站，恢复后可继续学习。' : '此会话已归档。'}</span><button className="app-secondary-button" disabled={conversation.busy} onClick={() => void conversation.change('restore')}>恢复会话</button></div>}
+            {conversation.error && <div className="conversation-state" role="alert"><span>{conversation.error}</span><button className="app-ghost-button" onClick={conversation.reload}>重新读取</button>{conversation.tasks.length > 0 && <BlockingTasks tasks={conversation.tasks} onChanged={conversation.reload}/>}</div>}
+            {sourceNavigationError && <p role="alert" className="note-warning">{sourceNavigationError}</p>}
             {historyPage?.has_more && (
               <div className="flex justify-center pb-2">
                 <button
@@ -843,13 +966,27 @@ const ChatPage: React.FC = () => {
             {messages.length === 0 && !activeFigure && (
               <LearningEmptyWorkspace
                 isLoading={isLoading || Boolean(actionLoading)}
+                scopeSelector={scopeSelector}
               />
             )}
-            {messages.map((msg, i) => (
-              <ErrorBoundary key={msg.id || `${msg.turnId || 'message'}-${i}`}>
-                <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => sendMessage(question, { answerMode: 'global_general' })} onRequestSuggestedAnswer={(question, answerMode) => sendMessage(question, { answerMode })} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} learningTask={msg.learningTask} citationProvenance={msg.citationProvenance} onResumeLearningTask={resumeLearningTask} onResumeInterruptedTask={resumeInterruptedTask} />
+            <ChatMistakeSourcesContext.Provider value={mistakeSources}>{messages.map((msg, i) => (
+              <ErrorBoundary key={msg.turnId ? `${msg.turnId}:${msg.role}` : msg.id || `message-${i}`}>
+                <div data-message-id={msg.id} tabIndex={-1}>
+                <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} streamError={msg.streamError} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => { if (!inTrash) sendMessage(question, { answerMode: 'global_general' }); }} onRequestSuggestedAnswer={(question, answerMode) => { if (!inTrash) sendMessage(question, { answerMode }); }} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} learningTask={msg.learningTask} citationProvenance={msg.citationProvenance} onResumeLearningTask={resumeLearningTask} onResumeInterruptedTask={resumeInterruptedTask} />
+                </div>
               </ErrorBoundary>
-            ))}
+            ))}</ChatMistakeSourcesContext.Provider>
+            {nextAfterSeq !== null && <button className="app-ghost-button" disabled={historyLoading} onClick={async () => {
+              setHistoryLoading(true);
+              try {
+                const response = await get(`/chat/conversations/${encodeURIComponent(conversationId)}/messages-after?after_seq=${nextAfterSeq}`);
+                const page = response.data;
+                const existing = new Set(messages.map(m => m.id));
+                loadConversation(conversationId, [...messages, ...mapStoredConversationMessages(page.messages).filter(m => !existing.has(m.id))], { subject, bookName, page: historyPage });
+                setNextAfterSeq(page.has_more ? page.next_after_seq : null);
+              } catch (e) { setSourceNavigationError(e instanceof Error ? e.message : '读取失败'); }
+              finally { setHistoryLoading(false); }
+            }}>加载后续消息</button>}
             {activeFigure && figureWorkspaceExpanded && (
               <FigureRegionViewer
                 figure={activeFigure}
@@ -862,19 +999,23 @@ const ChatPage: React.FC = () => {
           </div>
         </div>
 
+        {!following && messages.length > 0 && <button type="button" className="reading-return-latest app-secondary-button" onClick={scrollToLatest}>回到最新回答</button>}
+
         <div className="chat-composer">
           {mistakePickerOpen && (
-            <div className="composer-popover max-h-52 overflow-y-auto p-2">
+            <div ref={mistakePickerRef} className="composer-popover max-h-80 overflow-y-auto p-2" aria-label="历史错题">
               {cachedMistakes.length ? cachedMistakes.map((mistake) => (
                 <button key={mistake.id} type="button" onClick={() => { clearAttachment(); setActiveFigure(null); setVisualRegion(null); setSelectedMistakeId(mistake.id); setMistakePickerOpen(false); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-bg-secondary">
-                  <div className="truncate text-sm text-text-primary">{firstLine(mistake.question_text || mistake.ocr_text || '未命名错题', 80)}</div>
+                  <div className="text-sm text-text-primary"><SimpleMarkdown content={mistake.question_text || mistake.ocr_text || '未命名错题'} /></div>
                   <div className="mt-0.5 text-xs text-text-secondary">{mistake.subject || '未分类'} · {(mistake.tags || []).join('、') || '无标签'}</div>
                 </button>
               )) : <div className="px-3 py-5 text-center text-sm text-text-secondary">当前范围没有可用的历史错题</div>}
             </div>
           )}
-          <form onSubmit={handleSubmit} className="composer-surface">
-            <input ref={attachmentInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" className="hidden" onChange={(event) => selectAttachment(event.target.files?.[0])} />
+          <form onSubmit={handleSubmit} className="composer-surface"><fieldset disabled={inTrash} className="conversation-composer-fields">
+            <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png" capture="environment" className="hidden" onChange={(event) => { selectAttachment(event.target.files?.[0]); event.target.value = ''; }} />
+            {attachmentError && <p role="alert" className="text-sm text-red-500">{attachmentError}</p>}
+            <input ref={attachmentInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" className="hidden" onChange={(event) => { selectAttachment(event.target.files?.[0]); event.target.value = ''; }} />
             {activeFigure && !figureWorkspaceExpanded && (
               <FigureContextAttachment
                 figure={activeFigure}
@@ -900,6 +1041,7 @@ const ChatPage: React.FC = () => {
                       解答后导入错题本
                     </label>
                   )}
+                  {attachmentUploadSummary && <p className="mt-1 text-xs text-text-secondary">{attachmentUploadSummary}</p>}
                 </div>
                 <button type="button" aria-label="移除附件" onClick={() => { clearAttachment(); setSelectedMistakeId(''); }} className="app-icon-button"><X className="h-4 w-4" /></button>
               </div>
@@ -918,14 +1060,16 @@ const ChatPage: React.FC = () => {
                 onKeyDown={handleKeyDown}
                 placeholder={activeFigure ? (visualRegion ? '询问选中区域…' : '询问这幅教材图片…') : mathExpressions.length ? '继续描述问题，点击公式编号可引用…' : '输入问题...'}
                 disabled={isLoading || attachmentLoading}
+                rows={1}
                 className="composer-textarea"
               />
             </div>
             <div className="composer-toolbar">
               <div className="composer-tools" role="toolbar" aria-label="问题输入工具">
+                {!window.kaoyanDesktop?.isElectron && window.matchMedia('(pointer: coarse)').matches && <button type="button" disabled={isLoading || attachmentLoading} aria-label="拍照提问" onClick={() => cameraInputRef.current?.click()} className="composer-tool-button"><ImagePlus className="h-4 w-4" /><span>拍照</span></button>}
                 <button type="button" disabled={isLoading || attachmentLoading} aria-label="上传题目图片" title="上传题目图片" onClick={() => attachmentInputRef.current?.click()} className="composer-tool-button chat-image-upload-button"><ImagePlus className="h-4 w-4" /><span>图片</span></button>
                 <button type="button" disabled={isLoading || attachmentLoading || !bookName} aria-label="选择教材图片" title={bookName ? '选择教材图片' : '请先选择教材'} onClick={openFigureCatalog} className={`composer-tool-button ${activeFigure ? 'is-active' : ''}`}><Images className="h-4 w-4" /><span>教材图</span></button>
-                <button type="button" disabled={isLoading || attachmentLoading} aria-label="选择历史错题" title="选择历史错题" onClick={() => void loadCachedMistakes()} className="composer-tool-button"><BookMarked className="h-4 w-4" /><span>错题</span></button>
+                <button ref={mistakePickerButtonRef} type="button" aria-expanded={mistakePickerOpen} disabled={isLoading || attachmentLoading} aria-label="选择历史错题" title="选择历史错题" onClick={() => void loadCachedMistakes()} className="composer-tool-button"><BookMarked className="h-4 w-4" /><span>错题</span></button>
                 <VisualMathInputPopover
                   disabled={isLoading || attachmentLoading}
                   editRequest={mathEditRequest}
@@ -935,6 +1079,7 @@ const ChatPage: React.FC = () => {
                 <ComposerOverflowMenu>
                   {(close) => (
                     <>
+                      <button role="menuitem" type="button" onClick={() => { close(); navigate('/goals', { state: { goalDraft: composeMathQuestion(input, mathExpressions) } }); }} className="composer-overflow-item"><Target className="h-3.5 w-3.5" />设为学习目标</button>
                       <button role="menuitem" type="button" onClick={() => { close(); void showReport('daily'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'daily' ? '整理日报' : '学习日报'}</button>
                       <button role="menuitem" type="button" onClick={() => { close(); void showReport('weekly'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'weekly' ? '整理周报' : '学习周报'}</button>
                       <button role="menuitem" type="button" onClick={() => { close(); void pickRandomExercise(); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><Shuffle className="h-3.5 w-3.5" />{actionLoading === 'exercise' ? '抽题中' : '随机抽题'}</button>
@@ -954,7 +1099,7 @@ const ChatPage: React.FC = () => {
                 </button>
               )}
             </div>
-          </form>
+          </fieldset></form>
         </div>
       </div>
       <HighlightRepositoryDialog
@@ -964,7 +1109,7 @@ const ChatPage: React.FC = () => {
 
         onClose={() => setHighlightDialogOpen(false)}
       />
-      <ProblemImageEditor
+      <ProblemImageEditor initialCrop={CHAT_IMAGE_CROP} compressUpload
         file={rawAttachmentFile}
         open={attachmentEditorOpen}
         title="裁剪并增强题目图片"

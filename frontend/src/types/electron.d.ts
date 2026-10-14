@@ -31,10 +31,17 @@ declare global {
     kaoyanDesktop?: {
       isElectron: boolean;
       platform?: 'win32' | 'darwin' | 'linux' | string;
+      getSetupComplete?: () => Promise<boolean>;
+      setSetupComplete?: () => Promise<boolean>;
+      getStartupAppearance?: () => { id: string; tokens: Record<string, string> } | null;
+      setStartupAppearance?: (appearance: { id: string; tokens: Record<string, string> }) => Promise<boolean>;
       minimize: () => Promise<void>;
+      isFullScreen?: () => Promise<boolean>;
+      onFullScreenChange?: (handler: (fullScreen: boolean) => void) => () => void;
       isMaximized?: () => Promise<boolean>;
       toggleMaximize: () => Promise<boolean>;
       close: () => Promise<void>;
+      onPrepareClose?: (handler: (aborted?: boolean) => Promise<boolean>) => () => void;
       onMaximizedChange?: (handler: (isMaximized: boolean) => void) => () => void;
       restart?: () => Promise<boolean>;
       retryStartup?: () => Promise<{ ready: boolean; message?: string }>;
@@ -42,6 +49,8 @@ declare global {
       getBackendStatus?: () => Promise<DesktopBackendStatus>;
       openWebFallback?: () => Promise<void>;
       openBackendLog?: () => Promise<string>;
+      getRemoteS0Status?: () => Promise<{ ready: boolean; target: string; instanceId: string; command: string }>;
+      copyRemoteS0Token?: () => Promise<boolean>;
       getRemoteCaptureStatus?: () => Promise<RemoteCaptureStatus>;
       setRemoteCaptureEnabled?: (enabled: boolean) => Promise<RemoteCaptureStatus>;
       getUpdateStatus?: () => Promise<DesktopUpdateStatus>;

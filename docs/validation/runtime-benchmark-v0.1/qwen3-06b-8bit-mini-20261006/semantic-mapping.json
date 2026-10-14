@@ -1,0 +1,790 @@
+{
+  "variants": {
+    "A": {
+      "TRB0-0001": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0002": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0005": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0006": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0007": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0008": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0029": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0030": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0037": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0038": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0061": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2,
+          "a2": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0062": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2,
+          "a2": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0067": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2,
+          "a2": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0068": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2,
+          "a2": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0069": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2,
+          "a2": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0070": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2,
+          "a2": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0071": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2,
+          "a2": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0072": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2,
+          "a2": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0079": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2,
+          "a2": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0080": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a0": 1,
+          "a1": 2,
+          "a2": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      }
+    },
+    "B": {
+      "TRB0-0001": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0002": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0005": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0006": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0007": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0008": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0029": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0030": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0037": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0038": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0061": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a2": 1,
+          "a1": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0062": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a2": 1,
+          "a1": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0067": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a2": 1,
+          "a1": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0068": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a2": 1,
+          "a1": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0069": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a2": 1,
+          "a1": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0070": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a2": 1,
+          "a1": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0071": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a2": 1,
+          "a1": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0072": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a2": 1,
+          "a1": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0079": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a2": 1,
+          "a1": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0080": {
+        "local_to_semantic": {
+          "a0": "a0",
+          "a1": "a1",
+          "a2": "a2"
+        },
+        "local_to_position": {
+          "a2": 1,
+          "a1": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a1"
+      }
+    },
+    "C": {
+      "TRB0-0001": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a0": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0002": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a0": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0005": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a0": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0006": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a0": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0007": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a0": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0008": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a0": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0029": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a0": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0030": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a0": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0037": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a0": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0038": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a0": "a1"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a0": 2
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a0"
+      },
+      "TRB0-0061": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a2": "a1",
+          "a0": "a2"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a2": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0062": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a2": "a1",
+          "a0": "a2"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a2": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a2"
+      },
+      "TRB0-0067": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a2": "a1",
+          "a0": "a2"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a2": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a2"
+      },
+      "TRB0-0068": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a2": "a1",
+          "a0": "a2"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a2": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0069": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a2": "a1",
+          "a0": "a2"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a2": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0070": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a2": "a1",
+          "a0": "a2"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a2": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a2"
+      },
+      "TRB0-0071": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a2": "a1",
+          "a0": "a2"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a2": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a2"
+      },
+      "TRB0-0072": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a2": "a1",
+          "a0": "a2"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a2": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0079": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a2": "a1",
+          "a0": "a2"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a2": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a0",
+        "variant_gold_id": "a1"
+      },
+      "TRB0-0080": {
+        "local_to_semantic": {
+          "a1": "a0",
+          "a2": "a1",
+          "a0": "a2"
+        },
+        "local_to_position": {
+          "a1": 1,
+          "a2": 2,
+          "a0": 3
+        },
+        "gold_semantic": "a1",
+        "variant_gold_id": "a2"
+      }
+    }
+  }
+}

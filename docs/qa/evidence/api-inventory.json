@@ -1,0 +1,3436 @@
+[
+  {
+    "method": "GET",
+    "path": "/agent/tools",
+    "file": "backend/api/agent.py",
+    "line": 194,
+    "handler": "list_agent_tools",
+    "calls": [
+      "get_tool_registry",
+      "registry.list_tools",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/agent/tools/call",
+    "file": "backend/api/agent.py",
+    "line": 200,
+    "handler": "call_agent_tool",
+    "calls": [
+      "ToolContext",
+      "get_tool_registry",
+      "registry.call",
+      "result.to_dict",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/agent/read-only",
+    "file": "backend/api/agent.py",
+    "line": 226,
+    "handler": "run_read_only_agent",
+    "calls": [
+      "ToolOrchestrationRequest",
+      "_run_bounded",
+      "_synthesize_answer",
+      "_usage_classification",
+      "bool",
+      "execute_read_only_tools",
+      "get_tool_registry",
+      "item['result'].get",
+      "len",
+      "logger.info",
+      "max",
+      "min",
+      "round",
+      "router.post",
+      "str",
+      "sum",
+      "summarize_learning_evidence",
+      "time.perf_counter"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/agent/actions/{action_id}/confirm",
+    "file": "backend/api/agent.py",
+    "line": 317,
+    "handler": "confirm_agent_action",
+    "calls": [
+      "HTTPException",
+      "_settle_linked_learning_task",
+      "get_pending_action_store",
+      "is_runtime_task",
+      "pending.confirm",
+      "pending.get",
+      "proposal['context'].get",
+      "resolve_runtime_action",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/agent/actions/{action_id}/reject",
+    "file": "backend/api/agent.py",
+    "line": 338,
+    "handler": "reject_agent_action",
+    "calls": [
+      "HTTPException",
+      "_settle_linked_learning_task",
+      "get_pending_action_store",
+      "is_runtime_task",
+      "pending.get",
+      "pending.reject",
+      "proposal['context'].get",
+      "resolve_runtime_action",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/assets/status",
+    "file": "backend/api/assets.py",
+    "line": 166,
+    "handler": "assets_status",
+    "calls": [
+      "_embedding_status",
+      "_read_manifest",
+      "_vector_status",
+      "router.get",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/assets/download/embedding",
+    "file": "backend/api/assets.py",
+    "line": 185,
+    "handler": "download_embedding",
+    "calls": [
+      "repair_embedding",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/assets/repair/embedding",
+    "file": "backend/api/assets.py",
+    "line": 191,
+    "handler": "repair_embedding",
+    "calls": [
+      "classify_embedding_error",
+      "diagnosed.as_dict",
+      "embedding_asset_status",
+      "exc.as_dict",
+      "get_embeddings",
+      "repair_embedding_assets",
+      "reset_embeddings",
+      "reset_vector_store",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/assets/download/vector-bundle",
+    "file": "backend/api/assets.py",
+    "line": 221,
+    "handler": "download_vector_bundle",
+    "calls": [
+      "Path",
+      "VECTOR_BUNDLE_SHA256.lower",
+      "_download_file",
+      "_now",
+      "_read_manifest",
+      "_safe_extract",
+      "_vector_status",
+      "_write_manifest",
+      "archive.unlink",
+      "digest.lower",
+      "int",
+      "item.exists",
+      "manifest.setdefault",
+      "next",
+      "print",
+      "require_scoped_vector_snapshot",
+      "reset_vector_store",
+      "router.post",
+      "shutil.copytree",
+      "shutil.move",
+      "shutil.rmtree",
+      "staging.exists",
+      "str",
+      "time.time",
+      "urlparse",
+      "vector_target.exists",
+      "vector_target.with_name"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/system/backups",
+    "file": "backend/api/backups.py",
+    "line": 13,
+    "handler": "backups_list",
+    "calls": [
+      "list_backups",
+      "restore_status",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/system/backups",
+    "file": "backend/api/backups.py",
+    "line": 21,
+    "handler": "backups_create",
+    "calls": [
+      "bool",
+      "create_backup",
+      "payload.get",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/system/backups/{backup_name}/restore",
+    "file": "backend/api/backups.py",
+    "line": 31,
+    "handler": "backups_restore",
+    "calls": [
+      "router.post",
+      "schedule_restore"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/list",
+    "file": "backend/api/books.py",
+    "line": 415,
+    "handler": "list_books",
+    "calls": [
+      "_book_pdf_path",
+      "_chapter_count",
+      "_ensure_book_identity",
+      "_fast_book_index_stats",
+      "_known_book_names",
+      "_source_pdf_path",
+      "bool",
+      "data.append",
+      "derive_book_readiness",
+      "float",
+      "meta.get",
+      "pdf_path.stat",
+      "router.get",
+      "str",
+      "str(meta.get('subject', '')).strip"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/import-capabilities",
+    "file": "backend/api/books.py",
+    "line": 449,
+    "handler": "import_capabilities",
+    "calls": [
+      "inspect_mineru_runtime",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/books/{book_name}/reindex",
+    "file": "backend/api/books.py",
+    "line": 466,
+    "handler": "reindex_book",
+    "calls": [
+      "_load_raw_chapters",
+      "_resolve_book_reference",
+      "_write_book_meta",
+      "build_index_from_chapters",
+      "get_vector_store",
+      "get_vector_store().get_book_index_stats",
+      "load_canonical_book",
+      "router.post",
+      "safe_child_path"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/current",
+    "file": "backend/api/books.py",
+    "line": 499,
+    "handler": "get_current_book",
+    "calls": [
+      "_book_state.get",
+      "_book_subject",
+      "format_chapter",
+      "len",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/{book_name}/chapters",
+    "file": "backend/api/books.py",
+    "line": 507,
+    "handler": "get_book_chapters",
+    "calls": [
+      "HTTPException",
+      "_load_chapters",
+      "_resolve_book_reference",
+      "format_chapter",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/{book_name}/source-pdf",
+    "file": "backend/api/books.py",
+    "line": 547,
+    "handler": "source_pdf",
+    "calls": [
+      "FileResponse",
+      "HTTPException",
+      "_resolve_book_reference",
+      "_source_pdf_path",
+      "quote",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/{book_name}/figure-audit",
+    "file": "backend/api/books.py",
+    "line": 560,
+    "handler": "figure_audit",
+    "calls": [
+      "HTTPException",
+      "Path",
+      "Query",
+      "_resolve_book_reference",
+      "len",
+      "report.pop",
+      "report.update",
+      "router.get",
+      "str",
+      "textbook_figure_audit"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/books/{book_name}",
+    "file": "backend/api/books.py",
+    "line": 581,
+    "handler": "update_book",
+    "calls": [
+      "_book_pdf_path",
+      "_ensure_book_identity",
+      "_lifecycle.rename_display",
+      "_load_chapters",
+      "_read_book_meta",
+      "_resolve_book_reference",
+      "_source_pdf_path",
+      "_write_book_meta",
+      "bool",
+      "float",
+      "len",
+      "max",
+      "meta.get",
+      "min",
+      "normalize_subject_value",
+      "pdf_path.stat",
+      "req.book_role.strip",
+      "req.book_role.strip().lower",
+      "req.resource_group.strip",
+      "router.patch",
+      "str",
+      "str(meta.get('subject', '')).strip"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/books/{book_name}",
+    "file": "backend/api/books.py",
+    "line": 636,
+    "handler": "archive_book",
+    "calls": [
+      "_book_state.get",
+      "_lifecycle.archive",
+      "_resolve_book_reference",
+      "router.delete"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/books/{book_name}/restore",
+    "file": "backend/api/books.py",
+    "line": 653,
+    "handler": "restore_book",
+    "calls": [
+      "_lifecycle.restore",
+      "_resolve_book_reference",
+      "router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/{book_name}/lifecycle-preview",
+    "file": "backend/api/books.py",
+    "line": 666,
+    "handler": "lifecycle_preview",
+    "calls": [
+      "_lifecycle.preview_purge",
+      "router.get"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/books/{book_name}/purge",
+    "file": "backend/api/books.py",
+    "line": 674,
+    "handler": "purge_book",
+    "calls": [
+      "_book_state.get",
+      "_book_state.update",
+      "_lifecycle.purge",
+      "result.get",
+      "router.delete",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/switch/{book_name}",
+    "file": "backend/api/books.py",
+    "line": 684,
+    "handler": "switch_book",
+    "calls": [
+      "PDFParser",
+      "_book_pdf_path",
+      "_book_subject",
+      "_ensure_book_identity",
+      "_load_chapters",
+      "_resolve_book_reference",
+      "_save_chapters",
+      "_set_current_book",
+      "format_chapter",
+      "len",
+      "parser.close",
+      "parser.extract_chapters",
+      "pdf_path.exists",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/books/import-job",
+    "file": "backend/api/books.py",
+    "line": 844,
+    "handler": "create_import_job",
+    "calls": [
+      "(parse_method or '').strip",
+      "(parse_method or '').strip().lower",
+      "File",
+      "Form",
+      "_job_manager.create_job",
+      "_save_upload",
+      "normalize_subject_value",
+      "router.post",
+      "str",
+      "thread.start",
+      "threading.Thread"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/books/import",
+    "file": "backend/api/books.py",
+    "line": 888,
+    "handler": "import_book",
+    "calls": [
+      "File",
+      "Form",
+      "create_import_job",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/books/import-mineru-output",
+    "file": "backend/api/books.py",
+    "line": 903,
+    "handler": "import_mineru_output",
+    "calls": [
+      "File",
+      "Form",
+      "_job_manager.create_job",
+      "_save_output_upload",
+      "_unique_new_book_name",
+      "normalize_subject_value",
+      "router.post",
+      "str",
+      "thread.start",
+      "threading.Thread"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/import-jobs/{job_id}",
+    "file": "backend/api/books.py",
+    "line": 936,
+    "handler": "get_import_job",
+    "calls": [
+      "_read_job",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/books/import-local",
+    "file": "backend/api/books.py",
+    "line": 944,
+    "handler": "import_book_local",
+    "calls": [
+      "File",
+      "Form",
+      "_book_subject",
+      "_cleanup_new_book_import",
+      "_promote_uploaded_pdf",
+      "_save_chapters",
+      "_save_upload",
+      "_set_current_book",
+      "_start_optional_concept_extraction",
+      "_write_book_meta",
+      "concept_job.get",
+      "import_textbook_local",
+      "len",
+      "normalize_subject_value",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/books/preread/start",
+    "file": "backend/api/books.py",
+    "line": 993,
+    "handler": "start_pre_read",
+    "calls": [
+      "Path",
+      "_book_state.get",
+      "_start_pre_read",
+      "len",
+      "router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/preread/status",
+    "file": "backend/api/books.py",
+    "line": 1006,
+    "handler": "pre_read_status",
+    "calls": [
+      "PreReadStatusOut",
+      "_book_state.get",
+      "router.get",
+      "status.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/chat/conversations",
+    "file": "backend/api/chat.py",
+    "line": 716,
+    "handler": "conversations",
+    "calls": [
+      "ConversationManagementService",
+      "ConversationManagementService().page",
+      "Query",
+      "_management_result",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/chat/conversations/{conversation_id}/management",
+    "file": "backend/api/chat.py",
+    "line": 726,
+    "handler": "conversation_management",
+    "calls": [
+      "ConversationManagementService",
+      "ConversationManagementService().get",
+      "_management_result",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/chat/conversations/{conversation_id}/management",
+    "file": "backend/api/chat.py",
+    "line": 731,
+    "handler": "change_conversation_management",
+    "calls": [
+      "ConversationManagementService",
+      "ConversationManagementService().change",
+      "_management_result",
+      "payload.model_dump",
+      "router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/chat/conversations/{conversation_id}",
+    "file": "backend/api/chat.py",
+    "line": 736,
+    "handler": "conversation_detail",
+    "calls": [
+      "ConversationManagementService",
+      "ConversationManagementService().get",
+      "ensure_conversation_id",
+      "get_conversation",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/chat/conversations/{conversation_id}/messages",
+    "file": "backend/api/chat.py",
+    "line": 746,
+    "handler": "conversation_messages",
+    "calls": [
+      "ensure_conversation_id",
+      "get_conversation",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/chat/conversations/{conversation_id}/messages/{message_id}/context",
+    "file": "backend/api/chat.py",
+    "line": 753,
+    "handler": "message_context",
+    "calls": [
+      "JSONResponse",
+      "NoteError",
+      "resolve_message_context",
+      "router.get",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/chat/conversations/{conversation_id}/messages-after",
+    "file": "backend/api/chat.py",
+    "line": 767,
+    "handler": "message_context_after",
+    "calls": [
+      "load_message_page_after",
+      "router.get"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/chat/conversations/{conversation_id}/scope",
+    "file": "backend/api/chat.py",
+    "line": 773,
+    "handler": "update_conversation_scope",
+    "calls": [
+      "_safe_record_subject_feedback",
+      "reclassify_conversation",
+      "router.patch",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/chat/conversations/{conversation_id}/split-turn",
+    "file": "backend/api/chat.py",
+    "line": 783,
+    "handler": "split_conversation_turn",
+    "calls": [
+      "_safe_record_subject_feedback",
+      "router.post",
+      "split_turn_to_conversation",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/chat/subject-routing/feedback",
+    "file": "backend/api/chat.py",
+    "line": 798,
+    "handler": "subject_routing_feedback",
+    "calls": [
+      "record_subject_routing_feedback",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/chat/feedback",
+    "file": "backend/api/chat.py",
+    "line": 811,
+    "handler": "answer_feedback",
+    "calls": [
+      "data.get",
+      "emit_runtime_event",
+      "record_answer_feedback",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/chat/runtime-events",
+    "file": "backend/api/chat.py",
+    "line": 830,
+    "handler": "runtime_event_replay",
+    "calls": [
+      "HTTPException",
+      "replay_runtime_events",
+      "router.get",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/chat/log",
+    "file": "backend/api/chat.py",
+    "line": 839,
+    "handler": "log_conversation_messages",
+    "calls": [
+      "append_message",
+      "ensure_turn_id",
+      "isinstance",
+      "item.get",
+      "payload.get",
+      "resolve_conversation_id_for_scope",
+      "router.post",
+      "str",
+      "str(item.get('content') or '').strip",
+      "str(payload.get('book_name') or '').strip",
+      "str(payload.get('subject') or '').strip"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/chat/stream",
+    "file": "backend/api/chat.py",
+    "line": 1709,
+    "handler": "chat_stream",
+    "calls": [
+      "JSONResponse",
+      "_chat_stream",
+      "assert_conversation_writable",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/chat/tasks/{task_id}/resume-stream",
+    "file": "backend/api/chat.py",
+    "line": 1720,
+    "handler": "resume_chat_task_stream",
+    "calls": [
+      "ChatRequest",
+      "HTTPException",
+      "_chat_stream",
+      "any",
+      "artifacts.get",
+      "get_learning_task_store",
+      "is_runtime_task",
+      "list",
+      "resume_learning_task",
+      "router.post",
+      "runtime.resume",
+      "runtime.task_snapshot",
+      "runtime_store",
+      "store.get",
+      "str",
+      "stream_run",
+      "uuid.uuid4"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/chat/tasks/{task_id}/cancel",
+    "file": "backend/api/chat.py",
+    "line": 1765,
+    "handler": "cancel_chat_task",
+    "calls": [
+      "ConversationManagementService",
+      "ConversationManagementService().cancel_task",
+      "_management_result",
+      "isinstance",
+      "payload.model_dump",
+      "router.post",
+      "task.get",
+      "update_learning_task_projection"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/chat/tasks/{task_id}/interrupt",
+    "file": "backend/api/chat.py",
+    "line": 1775,
+    "handler": "interrupt_chat_task",
+    "calls": [
+      "(payload or {}).get",
+      "HTTPException",
+      "body.get",
+      "get_learning_task_store",
+      "interrupt_learning_task",
+      "is_interruptible_task_status",
+      "is_runtime_task",
+      "public_task",
+      "router.post",
+      "runtime.close",
+      "runtime.task_snapshot",
+      "runtime_store",
+      "store.get",
+      "str",
+      "task.artifacts.get",
+      "task.to_dict",
+      "update_learning_task_projection"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/chat/tasks/{task_id}/events",
+    "file": "backend/api/chat.py",
+    "line": 1813,
+    "handler": "get_chat_runtime_events",
+    "calls": [
+      "HTTPException",
+      "is_runtime_task",
+      "router.get",
+      "runtime_store",
+      "store.events",
+      "store.snapshot"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/chat/tasks/{task_id}",
+    "file": "backend/api/chat.py",
+    "line": 1833,
+    "handler": "get_chat_learning_task",
+    "calls": [
+      "HTTPException",
+      "get_learning_task_store",
+      "get_learning_task_store().get",
+      "is_runtime_task",
+      "public_task",
+      "router.get",
+      "runtime.task_snapshot",
+      "runtime_store",
+      "task.to_dict"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/chat/ask",
+    "file": "backend/api/chat.py",
+    "line": 1852,
+    "handler": "chat_ask",
+    "calls": [
+      "(assistant_message or {}).get",
+      "(result.get('evidence_support') or {}).get",
+      "ExecutionEventEmitter",
+      "ExecutionEventEmitter(request_id=request_id, task_id=learning_task.id, run_id=run_id, conversation_id=conversation_id, turn_id=turn_id).emit",
+      "HTTPException",
+      "_attach_pending_actions",
+      "_clarification_result",
+      "_context_trace_payload",
+      "_finish_chat_learning_task",
+      "_persisted_evidence_sources",
+      "_prepare_chat_turn",
+      "_prepare_main_tool_context",
+      "_safe_record_assistant_ledger",
+      "_safe_save_resolution_ledger",
+      "_start_chat_learning_task",
+      "append_message",
+      "chat_effects",
+      "content.strip",
+      "continuity_context.get",
+      "dict",
+      "get_learning_task_store",
+      "learning_task.artifacts.get",
+      "learning_task.artifacts.update",
+      "learning_task.to_dict",
+      "logger.exception",
+      "new_request_id",
+      "resolution_trace.get",
+      "result.get",
+      "result.get('chapter_contents', {}).items",
+      "round",
+      "router.post",
+      "run_graph",
+      "save_trace",
+      "store.claim_run",
+      "store.commit_outcome",
+      "store.prepare_checkpoint_for_run",
+      "store.project_outcome",
+      "store.run_is_active",
+      "store.save_for_run",
+      "str",
+      "time.perf_counter",
+      "tool_run.get",
+      "uuid.uuid4"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/add",
+    "file": "backend/api/exercises.py",
+    "line": 227,
+    "handler": "add_exercise",
+    "calls": [
+      "_bank",
+      "_bank(book_name).add",
+      "_log_learning_event",
+      "_record_from_request",
+      "_record_to_out",
+      "req.question_text.strip",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/list",
+    "file": "backend/api/exercises.py",
+    "line": 251,
+    "handler": "list_exercises",
+    "calls": [
+      "_bank",
+      "_list_exercise_records",
+      "_record_to_out",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/overview",
+    "file": "backend/api/exercises.py",
+    "line": 257,
+    "handler": "get_exercise_overview",
+    "calls": [
+      "_bank",
+      "_list_exercise_records",
+      "_practice_session_data",
+      "_record_to_out",
+      "bank.get_active_practice_session",
+      "bank.stats",
+      "print",
+      "router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/exercises/stats",
+    "file": "backend/api/exercises.py",
+    "line": 286,
+    "handler": "get_exercise_stats",
+    "calls": [
+      "_bank",
+      "_bank(book_name).stats",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/upload-analyze",
+    "file": "backend/api/exercises.py",
+    "line": 295,
+    "handler": "upload_and_analyze_exercises",
+    "calls": [
+      "File",
+      "Form",
+      "_candidate_outputs",
+      "_save_upload",
+      "analyze_candidates",
+      "answer_extracted.text.strip",
+      "answer_extracted.to_dict",
+      "attach_answers_by_number",
+      "chapter.strip",
+      "extract_exercise_text",
+      "extracted.text.strip",
+      "extracted.to_dict",
+      "len",
+      "normalize_subject_value",
+      "refine_low_confidence_candidates",
+      "router.post",
+      "source.strip",
+      "split_candidate_blocks",
+      "str",
+      "sum"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/textbook-analyze",
+    "file": "backend/api/exercises.py",
+    "line": 356,
+    "handler": "analyze_textbook_exercises",
+    "calls": [
+      "_candidate_outputs",
+      "analyze_candidates",
+      "analyze_learning_unit_candidates",
+      "extract_textbook_exercise_text",
+      "extracted.chapter.strip",
+      "extracted.text.strip",
+      "extracted.to_dict",
+      "len",
+      "normalize_subject_value",
+      "refine_low_confidence_candidates",
+      "req.book_name.strip",
+      "req.chapter.strip",
+      "req.source_mode.strip",
+      "router.post",
+      "split_candidate_blocks",
+      "sum"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/analyze-candidates",
+    "file": "backend/api/exercises.py",
+    "line": 416,
+    "handler": "analyze_exercise_candidates",
+    "calls": [
+      "_candidate_outputs",
+      "analyze_candidates",
+      "len",
+      "normalize_subject_value",
+      "refine_low_confidence_candidates",
+      "req.chapter.strip",
+      "req.source.strip",
+      "router.post",
+      "split_candidate_blocks",
+      "sum"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/batch-add",
+    "file": "backend/api/exercises.py",
+    "line": 451,
+    "handler": "batch_add_exercises",
+    "calls": [
+      "_bank",
+      "_log_learning_event",
+      "_record_from_request",
+      "_record_to_out",
+      "bank.add_batch",
+      "bank.get",
+      "batch.get",
+      "item.question_text.strip",
+      "len",
+      "router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/exercises/import-batches",
+    "file": "backend/api/exercises.py",
+    "line": 483,
+    "handler": "list_import_batches",
+    "calls": [
+      "_bank",
+      "_bank(book_name).list_import_batches",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/import-batches/rollback",
+    "file": "backend/api/exercises.py",
+    "line": 488,
+    "handler": "rollback_import_batch",
+    "calls": [
+      "_bank",
+      "_bank(book_name).rollback_import_batch",
+      "batch.get",
+      "len",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/status",
+    "file": "backend/api/exercises.py",
+    "line": 500,
+    "handler": "update_exercise_status",
+    "calls": [
+      "_bank",
+      "_bank(book_name).get",
+      "_bank(book_name).update",
+      "_record_to_out",
+      "req.status.strip",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/practice-sessions",
+    "file": "backend/api/exercises.py",
+    "line": 510,
+    "handler": "create_practice_session",
+    "calls": [
+      "_bank",
+      "_practice_session_data",
+      "bank.create_practice_session",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/exercises/practice-sessions/active",
+    "file": "backend/api/exercises.py",
+    "line": 531,
+    "handler": "get_active_practice_session",
+    "calls": [
+      "_bank",
+      "_practice_session_data",
+      "bank.get_active_practice_session",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/exercises/practice-sessions/{session_id}",
+    "file": "backend/api/exercises.py",
+    "line": 541,
+    "handler": "get_practice_session",
+    "calls": [
+      "_bank",
+      "_practice_session_data",
+      "bank.get_practice_session",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/practice-sessions/{session_id}/answer",
+    "file": "backend/api/exercises.py",
+    "line": 550,
+    "handler": "answer_practice_session",
+    "calls": [
+      "_practice_answer_service",
+      "_practice_session_data",
+      "_record_to_out",
+      "_record_to_out(result.record).model_dump",
+      "practice.answer_session",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/practice-sessions/{session_id}/pause",
+    "file": "backend/api/exercises.py",
+    "line": 603,
+    "handler": "pause_practice_session",
+    "calls": [
+      "_change_practice_session_status",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/practice-sessions/{session_id}/resume",
+    "file": "backend/api/exercises.py",
+    "line": 608,
+    "handler": "resume_practice_session",
+    "calls": [
+      "_change_practice_session_status",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/practice-sessions/{session_id}/abandon",
+    "file": "backend/api/exercises.py",
+    "line": 613,
+    "handler": "abandon_practice_session",
+    "calls": [
+      "_change_practice_session_status",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/answer/generate",
+    "file": "backend/api/exercises.py",
+    "line": 617,
+    "handler": "generate_exercise_answer",
+    "calls": [
+      "_bank",
+      "_bank(book_name).get",
+      "generate_answer",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/answer/jobs",
+    "file": "backend/api/exercises.py",
+    "line": 668,
+    "handler": "create_exercise_answer_job",
+    "calls": [
+      "_bank",
+      "_bank(book_name).get",
+      "_find_exercise_answer_job",
+      "active.get",
+      "get_job_manager",
+      "get_job_manager().create_job",
+      "router.post",
+      "threading.Thread",
+      "threading.Thread(target=_run_exercise_answer_job, args=(job['id'],), daemon=True).start"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/exercises/answer/jobs/latest",
+    "file": "backend/api/exercises.py",
+    "line": 688,
+    "handler": "latest_exercise_answer_job",
+    "calls": [
+      "_find_exercise_answer_job",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/exercises/answer/jobs/{job_id}",
+    "file": "backend/api/exercises.py",
+    "line": 694,
+    "handler": "get_exercise_answer_job",
+    "calls": [
+      "get_job_manager",
+      "get_job_manager().get_job",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/answer/save",
+    "file": "backend/api/exercises.py",
+    "line": 702,
+    "handler": "save_exercise_answer",
+    "calls": [
+      "_bank",
+      "_bank(book_name).get",
+      "_bank(book_name).update",
+      "_log_learning_event",
+      "_record_to_out",
+      "req.answer.strip",
+      "req.explanation.strip",
+      "router.post",
+      "sanitize_latex",
+      "strip_thinking"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/practice",
+    "file": "backend/api/exercises.py",
+    "line": 718,
+    "handler": "practice_exercise",
+    "calls": [
+      "MistakeLifecycleStore",
+      "MistakeLifecycleStore(mb.store).create_candidate",
+      "_bank",
+      "_log_learning_event",
+      "_mistake_from_exercise",
+      "_record_to_out",
+      "bank.record_practice",
+      "f'{book_name}\\x00{record.id}'.encode",
+      "get_mistake_book",
+      "hashlib.sha256",
+      "hashlib.sha256(f'{book_name}\\x00{record.id}'.encode()).hexdigest",
+      "lifecycle.append_occurrence_once",
+      "lifecycle.link_source",
+      "mb.add_if_absent",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/to-mistake",
+    "file": "backend/api/exercises.py",
+    "line": 749,
+    "handler": "exercise_to_mistake",
+    "calls": [
+      "MistakeLifecycleStore",
+      "MistakeLifecycleStore(mb.store).link_source",
+      "_bank",
+      "_bank(book_name).get",
+      "_bank(book_name).update",
+      "_log_learning_event",
+      "_mistake_from_exercise",
+      "_record_to_out",
+      "f'{book_name}\\x00{record.id}'.encode",
+      "get_mistake_book",
+      "hashlib.sha256",
+      "hashlib.sha256(f'{book_name}\\x00{record.id}'.encode()).hexdigest",
+      "mb.add_if_absent",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/exercises/from-mistake",
+    "file": "backend/api/exercises.py",
+    "line": 764,
+    "handler": "add_from_mistake",
+    "calls": [
+      "ExerciseRecord",
+      "_bank",
+      "_log_learning_event",
+      "_record_to_out",
+      "bank.add",
+      "bank.find_by_origin",
+      "get_mistake_book",
+      "mb.get",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/exercises/{exercise_id}",
+    "file": "backend/api/exercises.py",
+    "line": 798,
+    "handler": "get_exercise_detail",
+    "calls": [
+      "_bank",
+      "_bank(book_name).get",
+      "_record_to_out",
+      "router.get"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/exercises/{exercise_id}",
+    "file": "backend/api/exercises.py",
+    "line": 806,
+    "handler": "delete_exercise",
+    "calls": [
+      "_bank",
+      "_bank(book_name).delete",
+      "router.delete"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/{book_name}/figures",
+    "file": "backend/api/figures.py",
+    "line": 114,
+    "handler": "list_book_figures",
+    "calls": [
+      "Query",
+      "_http_error",
+      "_service",
+      "_service().list_figures",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/{book_name}/figures/{figure_id}",
+    "file": "backend/api/figures.py",
+    "line": 129,
+    "handler": "get_book_figure",
+    "calls": [
+      "_http_error",
+      "_service",
+      "context.to_dict",
+      "router.get",
+      "service.build_context",
+      "service.get_figure"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/{book_name}/figures/{figure_id}/image",
+    "file": "backend/api/figures.py",
+    "line": 140,
+    "handler": "get_book_figure_image",
+    "calls": [
+      "FileResponse",
+      "_http_error",
+      "_service",
+      "_service().asset_path",
+      "media_types.get",
+      "path.suffix.lower",
+      "quote",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/{book_name}/figures/{figure_id}/group-image",
+    "file": "backend/api/figures.py",
+    "line": 157,
+    "handler": "get_book_figure_group_image",
+    "calls": [
+      "Response",
+      "_http_error",
+      "_service",
+      "_service().complete_figure_asset",
+      "image.read_bytes",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/visual-learning/figure-stream",
+    "file": "backend/api/figures.py",
+    "line": 543,
+    "handler": "answer_figure_question",
+    "calls": [
+      "_figure_stream",
+      "require_writable_conversation",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/visual-learning/tasks/{task_id}/interrupt",
+    "file": "backend/api/figures.py",
+    "line": 549,
+    "handler": "interrupt_figure_task",
+    "calls": [
+      "HTTPException",
+      "_display_question",
+      "_service",
+      "_service().build_context",
+      "_service().evidence_sources",
+      "_task_store",
+      "append_message",
+      "data.get",
+      "interrupt_learning_task",
+      "is_resumable_task_status",
+      "router.post",
+      "store.get",
+      "str",
+      "str(task.artifacts.get('partial_output') or '').strip",
+      "task.artifacts.get",
+      "task.to_dict"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/visual-learning/tasks/{task_id}/resume-stream",
+    "file": "backend/api/figures.py",
+    "line": 588,
+    "handler": "resume_figure_task_stream",
+    "calls": [
+      "FigureQuestionRequest",
+      "HTTPException",
+      "_figure_stream",
+      "_http_error",
+      "_task_store",
+      "resume_learning_task",
+      "router.post",
+      "store.get",
+      "str",
+      "task.artifacts.get",
+      "uuid.uuid4"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/goals",
+    "file": "backend/api/goals.py",
+    "line": 51,
+    "handler": "list_goals",
+    "calls": [
+      "Depends",
+      "Query",
+      "_invoke",
+      "router.get",
+      "service.store.list"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/goals",
+    "file": "backend/api/goals.py",
+    "line": 57,
+    "handler": "create_goal",
+    "calls": [
+      "Depends",
+      "_invoke",
+      "req.model_dump",
+      "router.post",
+      "service.create"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/goals/{goal_id}",
+    "file": "backend/api/goals.py",
+    "line": 62,
+    "handler": "get_goal",
+    "calls": [
+      "Depends",
+      "KeyError",
+      "_invoke",
+      "router.get",
+      "service.get_next_action",
+      "service.store.get",
+      "service.store.links"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/goals/{goal_id}/evidence",
+    "file": "backend/api/goals.py",
+    "line": 73,
+    "handler": "goal_evidence",
+    "calls": [
+      "Depends",
+      "_invoke",
+      "router.get",
+      "service.evidence_candidates"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/goals/{goal_id}/commands",
+    "file": "backend/api/goals.py",
+    "line": 78,
+    "handler": "apply_goal_command",
+    "calls": [
+      "Depends",
+      "KeyError",
+      "ValueError",
+      "_invoke",
+      "getattr",
+      "getattr(service, req.operation)",
+      "router.post",
+      "service.measure",
+      "service.store.get",
+      "service.update"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/goals/intake/summarize",
+    "file": "backend/api/goals.py",
+    "line": 105,
+    "handler": "summarize_intake",
+    "calls": [
+      "HTTPException",
+      "router.post",
+      "summarize_goal"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/goals/{goal_id}/run",
+    "file": "backend/api/goals.py",
+    "line": 122,
+    "handler": "run_goal",
+    "calls": [
+      "Depends",
+      "HTTPException",
+      "resume_goal",
+      "router.post",
+      "start_goal",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/goals/{goal_id}/runtime",
+    "file": "backend/api/goals.py",
+    "line": 135,
+    "handler": "goal_runtime",
+    "calls": [
+      "Depends",
+      "HTTPException",
+      "public_task",
+      "router.get",
+      "runtime_store",
+      "service.store.get",
+      "service.store.links",
+      "store.task_snapshot"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/goals/{goal_id}/schedule",
+    "file": "backend/api/goals.py",
+    "line": 153,
+    "handler": "goal_schedule",
+    "calls": [
+      "Depends",
+      "_invoke",
+      "router.post",
+      "schedule_goal",
+      "service.store.update"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/{book_name}/chapter-highlights",
+    "file": "backend/api/highlights.py",
+    "line": 18,
+    "handler": "list_chapter_highlights",
+    "calls": [
+      "_jobs.reconcile_book",
+      "_service.list_chapters",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/{book_name}/chapter-highlights/{chapter_id}/html",
+    "file": "backend/api/highlights.py",
+    "line": 25,
+    "handler": "view_chapter_highlight_html",
+    "calls": [
+      "(item or {}).get",
+      "(item or {}).get('artifacts', {}).get",
+      "FileResponse",
+      "HTTPException",
+      "Path",
+      "_service.get_highlight",
+      "html_path.exists",
+      "html_path.is_file",
+      "router.get",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/{book_name}/chapter-highlights/{chapter_id}",
+    "file": "backend/api/highlights.py",
+    "line": 34,
+    "handler": "get_chapter_highlight",
+    "calls": [
+      "_service.get_highlight",
+      "router.get"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/books/{book_name}/chapter-highlights/{chapter_id}",
+    "file": "backend/api/highlights.py",
+    "line": 42,
+    "handler": "delete_chapter_highlight",
+    "calls": [
+      "_service.delete_highlight",
+      "result.get",
+      "router.delete"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/books/{book_name}/chapter-highlights/{chapter_id}/jobs",
+    "file": "backend/api/highlights.py",
+    "line": 53,
+    "handler": "create_chapter_highlight_job",
+    "calls": [
+      "_jobs.create_job",
+      "_service.validate_scope",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/chapter-highlight-jobs/{job_id}",
+    "file": "backend/api/highlights.py",
+    "line": 67,
+    "handler": "get_chapter_highlight_job",
+    "calls": [
+      "_jobs.read_job",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/books/{book_name}/chapter-highlights/assets/{asset_path:path}",
+    "file": "backend/api/highlights.py",
+    "line": 75,
+    "handler": "get_chapter_highlight_asset",
+    "calls": [
+      "(output_dir / asset_path).resolve",
+      "FileResponse",
+      "HTTPException",
+      "_service._find_mineru_output_dir",
+      "output_dir.resolve",
+      "router.get",
+      "str",
+      "target.exists",
+      "target.is_file",
+      "target.relative_to"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/jobs",
+    "file": "backend/api/jobs.py",
+    "line": 12,
+    "handler": "list_jobs",
+    "calls": [
+      "get_job_manager",
+      "get_job_manager().list_jobs",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/jobs/{job_id}",
+    "file": "backend/api/jobs.py",
+    "line": 18,
+    "handler": "get_job",
+    "calls": [
+      "get_job_manager",
+      "get_job_manager().get_job",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/jobs/{job_id}/cancel",
+    "file": "backend/api/jobs.py",
+    "line": 26,
+    "handler": "cancel_job",
+    "calls": [
+      "get_job_manager",
+      "get_job_manager().request_cancel",
+      "router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/kg/enhance/estimate",
+    "file": "backend/api/kg.py",
+    "line": 38,
+    "handler": "get_enhancement_estimate",
+    "calls": [
+      "estimate_enhancement",
+      "router.get",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/kg/enhance",
+    "file": "backend/api/kg.py",
+    "line": 48,
+    "handler": "start_enhancement",
+    "calls": [
+      "router.post",
+      "start_kg_enhancement_job",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/kg/enhance/jobs/{job_id}",
+    "file": "backend/api/kg.py",
+    "line": 66,
+    "handler": "get_enhancement_job",
+    "calls": [
+      "get_job_manager",
+      "get_job_manager().get_job",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/kg/graph",
+    "file": "backend/api/kg.py",
+    "line": 77,
+    "handler": "get_kg_graph",
+    "calls": [
+      "KGGraphOut",
+      "_kg_html_path",
+      "get_kg",
+      "html_path.exists",
+      "html_path.read_text",
+      "kg.graph",
+      "len",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/kg/refresh",
+    "file": "backend/api/kg.py",
+    "line": 118,
+    "handler": "refresh_kg",
+    "calls": [
+      "KGRefreshOut",
+      "KGVisualizer",
+      "_kg_html_path",
+      "get_kg",
+      "html_path.exists",
+      "html_path.unlink",
+      "kg.graph",
+      "len",
+      "router.post",
+      "viz.enrich_definitions",
+      "viz.generate_html",
+      "viz.save_html"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/kg/concept-wiki",
+    "file": "backend/api/kg.py",
+    "line": 164,
+    "handler": "get_concept_wiki",
+    "calls": [
+      "get_kg",
+      "kg.get_concept_wiki",
+      "router.get",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/kg/learning-summary",
+    "file": "backend/api/kg.py",
+    "line": 514,
+    "handler": "get_learning_summary",
+    "calls": [
+      "_compute_learning_summary",
+      "_learning_summary_cache.get_or_compute",
+      "_learning_summary_dependencies",
+      "bool",
+      "int",
+      "result.get",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/kg/concept-review",
+    "file": "backend/api/kg.py",
+    "line": 524,
+    "handler": "mark_concept_review",
+    "calls": [
+      "ConceptMemory",
+      "ConceptMemory(memory_book).mark_reviewed",
+      "LearningEvent",
+      "_learning_summary_cache.clear",
+      "get_learning_event_store",
+      "get_learning_event_store().append",
+      "int",
+      "payload.get",
+      "print",
+      "resolve_book_identity",
+      "router.post",
+      "str",
+      "str(payload.get('name', '')).strip"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/kg/open-browser",
+    "file": "backend/api/kg.py",
+    "line": 557,
+    "handler": "open_kg_browser",
+    "calls": [
+      "_kg_html_path",
+      "html_path.as_uri",
+      "html_path.exists",
+      "router.get",
+      "webbrowser.open"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/learning-state",
+    "file": "backend/api/learning_state.py",
+    "line": 14,
+    "handler": "get_learning_state",
+    "calls": [
+      "HTTPException",
+      "LearningStateService",
+      "router.get",
+      "service.get_state",
+      "service.list_resumable"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/learning-state/operations",
+    "file": "backend/api/learning_state.py",
+    "line": 33,
+    "handler": "apply_learning_state_operation",
+    "calls": [
+      "HTTPException",
+      "LearningStateService",
+      "LearningStateService().apply_operation",
+      "operation.pop",
+      "req.model_dump",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions/query",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 153,
+    "handler": "query_mistakes",
+    "calls": [
+      "HTTPException",
+      "MistakeRecord.from_dict",
+      "_cursor_decode",
+      "_cursor_encode",
+      "_store",
+      "any",
+      "conn.execute",
+      "conn.execute(sql, params).fetchall",
+      "items.append",
+      "json.loads",
+      "len",
+      "params.extend",
+      "project_mistake",
+      "record.sm2.get",
+      "record.to_dict",
+      "req.search.strip",
+      "req.search.strip().lower",
+      "router.post",
+      "store.list_attempts",
+      "store.store._connect",
+      "subject_matches",
+      "text.lower"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/diagnosis",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 205,
+    "handler": "diagnose_mistakes",
+    "calls": [
+      "MistakeRecord.from_dict",
+      "_store",
+      "actions.append",
+      "attempts.get",
+      "attempts.items",
+      "attempts.setdefault",
+      "attempts.setdefault(rid, []).append",
+      "conn.execute",
+      "created.replace",
+      "datetime.fromisoformat",
+      "datetime.now",
+      "group['mistake_ids'].append",
+      "groups.setdefault",
+      "groups.values",
+      "json.loads",
+      "len",
+      "now.date",
+      "now.date().isoformat",
+      "prior_start.date",
+      "prior_start.date().isoformat",
+      "project_mistake",
+      "reason_groups.setdefault",
+      "reason_groups.values",
+      "recent_start.date",
+      "recent_start.date().isoformat",
+      "records.items",
+      "records.values",
+      "router.get",
+      "row.get",
+      "row.get('answer', '').strip",
+      "row['created_at'].replace",
+      "selected.append",
+      "sorted",
+      "store.store._connect",
+      "subject_matches",
+      "sum",
+      "timedelta",
+      "window_rows"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/counts",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 273,
+    "handler": "count_mistakes",
+    "calls": [
+      "MistakeRecord.from_dict",
+      "_store",
+      "any",
+      "bool",
+      "conn.execute",
+      "conn.execute('SELECT id,data FROM mistakes').fetchall",
+      "json.loads",
+      "project_mistake",
+      "router.get",
+      "search.strip",
+      "search.strip().lower",
+      "store.list_attempts",
+      "store.store._connect",
+      "subject_matches",
+      "value.lower"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/due",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 295,
+    "handler": "get_due_mistakes",
+    "calls": [
+      "legacy_mistakes.get_due_mistakes",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/stats",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 300,
+    "handler": "get_legacy_stats",
+    "calls": [
+      "legacy_mistakes.get_stats",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/weak-points",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 305,
+    "handler": "get_legacy_weak_points",
+    "calls": [
+      "legacy_mistakes.get_weak_points",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions/candidates",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 310,
+    "handler": "create_candidate",
+    "calls": [
+      "HTTPException",
+      "_clean_draft_data",
+      "_error",
+      "_store",
+      "_store(book_name).create_candidate",
+      "json.dumps",
+      "len",
+      "req.snapshot.items",
+      "router.post",
+      "set"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/candidates",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 322,
+    "handler": "list_candidates",
+    "calls": [
+      "_store",
+      "_store(book_name).list_candidates",
+      "max",
+      "min",
+      "router.get",
+      "row.get",
+      "str",
+      "subject_matches"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/review/sessions/candidates/{candidate_id}",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 328,
+    "handler": "update_candidate",
+    "calls": [
+      "_clean_draft_data",
+      "_error",
+      "_store",
+      "_store(book_name).update_candidate",
+      "router.patch"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions/candidates/{candidate_id}/accept",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 337,
+    "handler": "accept_candidate",
+    "calls": [
+      "_error",
+      "_store",
+      "_store(book_name).resolve_candidate",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions/candidates/{candidate_id}/dismiss",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 345,
+    "handler": "dismiss_candidate",
+    "calls": [
+      "_error",
+      "_store",
+      "_store(book_name).resolve_candidate",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions/chat-sources/query",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 366,
+    "handler": "query_chat_sources",
+    "calls": [
+      "MistakeChatSourceService",
+      "MistakeChatSourceService(_store(book_name)).lookup",
+      "_error",
+      "_store",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions/chat-sources/capture",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 374,
+    "handler": "capture_chat_source",
+    "calls": [
+      "MistakeChatSourceService",
+      "MistakeChatSourceService(_store(book_name), image_store=_image_store).capture",
+      "_clean_draft_data",
+      "_error",
+      "_store",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions/drafts",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 383,
+    "handler": "create_draft",
+    "calls": [
+      "_clean_draft_data",
+      "_store",
+      "_store(book_name).create_draft",
+      "router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/drafts",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 388,
+    "handler": "list_drafts",
+    "calls": [
+      "_store",
+      "_store(book_name).list_drafts",
+      "max",
+      "min",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/drafts/{draft_id}",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 393,
+    "handler": "get_draft",
+    "calls": [
+      "HTTPException",
+      "_store",
+      "_store(book_name).get_draft",
+      "router.get"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/review/sessions/drafts/{draft_id}",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 401,
+    "handler": "update_draft",
+    "calls": [
+      "_clean_draft_data",
+      "_error",
+      "_store",
+      "_store(book_name).update_draft",
+      "router.patch"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions/drafts/{draft_id}/attachments",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 416,
+    "handler": "add_draft_attachment",
+    "calls": [
+      "File",
+      "Form",
+      "HTTPException",
+      "_error",
+      "_image_store.delete",
+      "_image_store.save_draft_attachment",
+      "_store",
+      "draft.get",
+      "router.post",
+      "store.get_draft",
+      "store.update_draft",
+      "str",
+      "uuid.uuid4"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/drafts/{draft_id}/attachments/{attachment_id}",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 438,
+    "handler": "get_draft_attachment",
+    "calls": [
+      "(_image_store.image_root / 'drafts' / draft_id).resolve",
+      "FileResponse",
+      "HTTPException",
+      "Path",
+      "Path(attachment['original_path']).resolve",
+      "_draft_attachment",
+      "_store",
+      "_store(book_name).get_draft",
+      "path.is_file",
+      "path.is_relative_to",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions/drafts/{draft_id}/recognize",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 451,
+    "handler": "recognize_draft",
+    "calls": [
+      "(_image_store.image_root / 'drafts' / draft_id).resolve",
+      "HTTPException",
+      "Path",
+      "Path(attachment['work_path']).resolve",
+      "_draft_attachment",
+      "_ocr_image_with_kimi",
+      "_store",
+      "_store(book_name).get_draft",
+      "path.is_file",
+      "path.is_relative_to",
+      "router.post",
+      "type",
+      "visual.to_dict"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions/drafts/{draft_id}/save",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 471,
+    "handler": "save_draft",
+    "calls": [
+      "HTTPException",
+      "_error",
+      "_store",
+      "candidate.get",
+      "draft.get",
+      "draft.get('question_text', '').strip",
+      "draft.items",
+      "router.post",
+      "snapshot.get",
+      "store.create_candidate",
+      "store.get_draft",
+      "store.resolve_candidate"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/{mistake_id}/attempts",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 495,
+    "handler": "get_attempts",
+    "calls": [
+      "HTTPException",
+      "MistakeLifecycleStore",
+      "MistakeLifecycleStore(book.store).list_attempts",
+      "_mb",
+      "book.get",
+      "len",
+      "max",
+      "min",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/{mistake_id}/attachments/{attachment_id}",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 504,
+    "handler": "get_mistake_attachment",
+    "calls": [
+      "FileResponse",
+      "HTTPException",
+      "Path",
+      "Path(attachment['original_path']).resolve",
+      "_image_store.image_root.resolve",
+      "_mb",
+      "_mb(book_name).get",
+      "item.get",
+      "next",
+      "path.is_file",
+      "path.is_relative_to",
+      "router.get"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/review/sessions/{mistake_id}",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 518,
+    "handler": "patch_mistake",
+    "calls": [
+      "_error",
+      "_store",
+      "_store(book_name).change_record",
+      "router.patch"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions/{mistake_id}/actions",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 526,
+    "handler": "act_on_mistake",
+    "calls": [
+      "HTTPException",
+      "_error",
+      "_store",
+      "_store(book_name).change_record",
+      "router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/{mistake_id}",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 544,
+    "handler": "get_mistake_detail",
+    "calls": [
+      "HTTPException",
+      "MistakeLifecycleStore",
+      "MistakeLifecycleStore(book.store).list_attempts",
+      "_mb",
+      "book.get",
+      "len",
+      "project_mistake",
+      "record.sm2.get",
+      "record.to_dict",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 556,
+    "handler": "create_review_session",
+    "calls": [
+      "_error",
+      "_store",
+      "_store(req.book_name).create_review_session",
+      "review_router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 564,
+    "handler": "active_review_session",
+    "calls": [
+      "_store",
+      "_store(book_name).find_incomplete_review_session",
+      "review_router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/review/sessions/{session_id}",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 569,
+    "handler": "get_review_session",
+    "calls": [
+      "HTTPException",
+      "_mb",
+      "_mb(book_name).get",
+      "_store",
+      "_store(book_name).get_review_session",
+      "len",
+      "review_router.get"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/review/sessions/{session_id}",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 585,
+    "handler": "update_review_session",
+    "calls": [
+      "_error",
+      "_store",
+      "_store(book_name).update_review_draft",
+      "review_router.patch"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/review/sessions/{session_id}/results",
+    "file": "backend/api/mistake_lifecycle.py",
+    "line": 593,
+    "handler": "submit_review_result",
+    "calls": [
+      "_error",
+      "_store",
+      "_store(book_name).submit_review_result",
+      "review_router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/add",
+    "file": "backend/api/mistakes.py",
+    "line": 366,
+    "handler": "add_mistake",
+    "calls": [
+      "_image_store.commit_pending",
+      "_image_store.delete",
+      "_log_learning_event",
+      "_mb",
+      "_mb(book_name).add",
+      "_persist_mistake_concepts",
+      "_record_from_request",
+      "_record_to_out",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/list",
+    "file": "backend/api/mistakes.py",
+    "line": 407,
+    "handler": "list_mistakes",
+    "calls": [
+      "_list_mistake_records",
+      "_mb",
+      "_record_to_out",
+      "router.post"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/overview",
+    "file": "backend/api/mistakes.py",
+    "line": 413,
+    "handler": "get_mistake_overview",
+    "calls": [
+      "_list_mistake_records",
+      "_mb",
+      "_record_to_out",
+      "mistake_book.get_due",
+      "print",
+      "router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/mistakes/due",
+    "file": "backend/api/mistakes.py",
+    "line": 434,
+    "handler": "get_due_mistakes",
+    "calls": [
+      "_mb",
+      "_mb(book_name).get_due",
+      "_record_to_out",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/recognize-image",
+    "file": "backend/api/mistakes.py",
+    "line": 440,
+    "handler": "recognize_mistake_image",
+    "calls": [
+      "File",
+      "_image_store.delete",
+      "_image_store.save_upload",
+      "_ocr_image_with_kimi",
+      "image_path.name.endswith",
+      "router.post",
+      "str",
+      "visual_ir.to_dict"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/solve-image",
+    "file": "backend/api/mistakes.py",
+    "line": 466,
+    "handler": "solve_mistake_image",
+    "calls": [
+      "File",
+      "Form",
+      "MistakeRecord",
+      "Path",
+      "_create_visual_learning_task",
+      "_image_store.delete",
+      "_image_store.save_upload",
+      "_link_mistake_concepts",
+      "_ocr_image_with_kimi",
+      "_solve_visual_ir",
+      "_tags_from_text",
+      "_verify_visual_answer",
+      "_visual_task_emitter",
+      "answer_verification.get",
+      "blocking_required_inputs",
+      "close_task_run",
+      "current.artifacts.get",
+      "current.to_dict",
+      "emitter.emit",
+      "ensure_conversation_id",
+      "ensure_turn_id",
+      "get_learning_task_store",
+      "getattr",
+      "image_path.name.endswith",
+      "new_request_id",
+      "normalize_subject_value",
+      "require_writable_conversation",
+      "router.post",
+      "store.get",
+      "store.prepare_checkpoint_for_run",
+      "store.run_is_active",
+      "str",
+      "task.artifacts.update",
+      "task.to_dict",
+      "uuid.uuid4",
+      "visual_effect",
+      "visual_ir.to_dict"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/solve-image-stream",
+    "file": "backend/api/mistakes.py",
+    "line": 824,
+    "handler": "solve_mistake_image_stream",
+    "calls": [
+      "(extra or {}).get",
+      "ExecutionEventEmitter",
+      "File",
+      "Form",
+      "MistakeRecord",
+      "OwnedStreamingResponse",
+      "Path",
+      "RuntimeError",
+      "ValueError",
+      "VisualProblemIR",
+      "_create_visual_learning_task",
+      "_execution_event_sse",
+      "_image_store.delete",
+      "_image_store.save_visual_upload",
+      "_link_mistake_concepts",
+      "_ocr_image_with_kimi",
+      "_stream_solution_events",
+      "_tags_from_text",
+      "_verify_visual_answer",
+      "_visual_task_emitter",
+      "answer_verification.get",
+      "blocking_required_inputs",
+      "close_task_run",
+      "dict",
+      "emit_sse",
+      "emitter.emit",
+      "ensure_conversation_id",
+      "ensure_turn_id",
+      "events",
+      "get_learning_task_store",
+      "getattr",
+      "len",
+      "new_request_id",
+      "normalize_subject_value",
+      "request_emitter.emit",
+      "require_writable_conversation",
+      "round",
+      "router.post",
+      "store.prepare_checkpoint_for_run",
+      "store.run_is_active",
+      "store.save_for_run",
+      "str",
+      "task.to_dict",
+      "time.perf_counter",
+      "uuid.uuid4",
+      "visual_effect",
+      "visual_ir.to_dict"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/visual-tasks/{task_id}/interrupt",
+    "file": "backend/api/mistakes.py",
+    "line": 1096,
+    "handler": "interrupt_visual_learning_task",
+    "calls": [
+      "HTTPException",
+      "body.get",
+      "get_learning_task_store",
+      "interrupt_learning_task",
+      "is_interruptible_task_status",
+      "router.post",
+      "store.get",
+      "str",
+      "task.artifacts.get",
+      "task.to_dict",
+      "update_learning_task_projection"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/visual-tasks/{task_id}/resume-stream",
+    "file": "backend/api/mistakes.py",
+    "line": 1114,
+    "handler": "resume_visual_learning_task",
+    "calls": [
+      "', '.join",
+      "(extra or {}).get",
+      "File",
+      "Form",
+      "HTTPException",
+      "MistakeRecord",
+      "OwnedStreamingResponse",
+      "Path",
+      "RuntimeError",
+      "ValueError",
+      "VisualProblemIR.from_dict",
+      "_execution_event_sse",
+      "_image_store.delete",
+      "_image_store.retain_for_task",
+      "_image_store.save_upload",
+      "_link_mistake_concepts",
+      "_ocr_image_with_kimi",
+      "_stream_solution_events",
+      "_tags_from_text",
+      "_verify_visual_answer",
+      "_visual_task_emitter",
+      "answer_verification.get",
+      "artifacts.get",
+      "artifacts.update",
+      "blocking_required_inputs",
+      "bool",
+      "close_task_run",
+      "dict",
+      "emit_sse",
+      "emitter.emit",
+      "events",
+      "explanation.rstrip",
+      "get_learning_task_store",
+      "getattr",
+      "is_resumable_task_status",
+      "is_terminal_task_status",
+      "isinstance",
+      "item.get",
+      "item.to_dict",
+      "mark_required_inputs",
+      "new_request_id",
+      "normalize_subject_value",
+      "original_ir.to_dict",
+      "resume_learning_task",
+      "router.post",
+      "store.checkpoint_for_run",
+      "store.get",
+      "store.prepare_checkpoint_for_run",
+      "store.run_is_active",
+      "store.save_for_run",
+      "str",
+      "str(action or '').strip",
+      "str(action or '').strip().lower",
+      "supplemental_irs.append",
+      "task.artifacts.get",
+      "task.to_dict",
+      "task_requires_input_action",
+      "uuid.uuid4",
+      "visual_effect"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/solve-cached",
+    "file": "backend/api/mistakes.py",
+    "line": 1430,
+    "handler": "solve_cached_mistake",
+    "calls": [
+      "', '.join",
+      "VisualProblemIR",
+      "VisualProblemIR.from_dict",
+      "_link_mistake_concepts",
+      "_mb",
+      "_mb(book_name).get",
+      "_mb(book_name).update",
+      "_solve_visual_ir",
+      "router.post",
+      "visual_ir.to_dict"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/solve-cached-stream",
+    "file": "backend/api/mistakes.py",
+    "line": 1463,
+    "handler": "solve_cached_mistake_stream",
+    "calls": [
+      "', '.join",
+      "ExecutionEventEmitter",
+      "StreamingResponse",
+      "VisualProblemIR",
+      "VisualProblemIR.from_dict",
+      "_execution_event_sse",
+      "_link_mistake_concepts",
+      "_mb",
+      "_mb(book_name).get",
+      "_mb(book_name).update",
+      "_stream_solution_events",
+      "bool",
+      "emit_sse",
+      "emitter.emit",
+      "events",
+      "len",
+      "new_request_id",
+      "router.post",
+      "str",
+      "visual_ir.to_dict"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/solve-text",
+    "file": "backend/api/mistakes.py",
+    "line": 1558,
+    "handler": "solve_mistake_text",
+    "calls": [
+      "VisualProblemIR.from_dict",
+      "_solve_ocr_text",
+      "_solve_visual_ir",
+      "req.question_text.strip",
+      "req.subject.strip",
+      "req.tags.strip",
+      "req.user_answer.strip",
+      "router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/mistakes/stats",
+    "file": "backend/api/mistakes.py",
+    "line": 1575,
+    "handler": "get_stats",
+    "calls": [
+      "MistakeStatsOut",
+      "_mb",
+      "_mb(book_name).get_stats",
+      "router.get",
+      "stats.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/mistakes/weak-points",
+    "file": "backend/api/mistakes.py",
+    "line": 1587,
+    "handler": "get_weak_points",
+    "calls": [
+      "WeakPointOut",
+      "_mb",
+      "_mb(book_name).get_weak_points",
+      "router.get"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/mistakes/{mistake_id}/image",
+    "file": "backend/api/mistakes.py",
+    "line": 1594,
+    "handler": "get_mistake_image",
+    "calls": [
+      "(Path(IMAGES_PATH) / 'mistakes').resolve",
+      "FileResponse",
+      "HTTPException",
+      "Path",
+      "Path(record.image_path).resolve",
+      "_mb",
+      "_mb(book_name).get",
+      "image_path.exists",
+      "image_path.relative_to",
+      "router.get",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/mistakes/{mistake_id}",
+    "file": "backend/api/mistakes.py",
+    "line": 1609,
+    "handler": "get_mistake_detail",
+    "calls": [
+      "_mb",
+      "_mb(book_name).get",
+      "_record_to_out",
+      "router.get"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/mistakes/{mistake_id}",
+    "file": "backend/api/mistakes.py",
+    "line": 1616,
+    "handler": "delete_mistake",
+    "calls": [
+      "_image_store.delete",
+      "_mb",
+      "mistake_book.delete",
+      "mistake_book.get",
+      "router.delete"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/review",
+    "file": "backend/api/mistakes.py",
+    "line": 1625,
+    "handler": "review_mistake",
+    "calls": [
+      "_log_learning_event",
+      "_mb",
+      "_mb(book_name).review",
+      "_record_to_out",
+      "router.post",
+      "str",
+      "updated.sm2.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/mistakes/explain",
+    "file": "backend/api/mistakes.py",
+    "line": 1646,
+    "handler": "explain_mistake",
+    "calls": [
+      "'\\n'.join",
+      "(req.book_name or book_name or '').strip",
+      "_log_learning_event",
+      "_mb",
+      "_record_mistake_concepts",
+      "_record_to_out",
+      "bool",
+      "get_llm",
+      "get_safe_vector_store",
+      "llm.invoke",
+      "mb.explain",
+      "mb.get",
+      "mb.update",
+      "outcome.items.items",
+      "router.post",
+      "sanitize_latex",
+      "strip_thinking",
+      "texts.append",
+      "vs.search_all"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/mistakes/tasks/{task_id}/image",
+    "file": "backend/api/mistakes.py",
+    "line": 1687,
+    "handler": "get_visual_task_image",
+    "calls": [
+      "FileResponse",
+      "HTTPException",
+      "Path",
+      "Path(task.artifacts.get('original_image_path') or task.artifacts.get('image_path') or '').resolve",
+      "_image_store.image_root.resolve",
+      "_image_store.preview_image",
+      "get_learning_task_store",
+      "get_learning_task_store().get",
+      "path.is_file",
+      "path.is_relative_to",
+      "router.get",
+      "task.artifacts.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/notes/preflight",
+    "file": "backend/api/notes.py",
+    "line": 36,
+    "handler": "preflight",
+    "calls": [
+      "Depends",
+      "req.selection.model_dump",
+      "result",
+      "router.post",
+      "service.preflight"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/notes/turns",
+    "file": "backend/api/notes.py",
+    "line": 42,
+    "handler": "turn_ranges",
+    "calls": [
+      "list_note_turns",
+      "result",
+      "router.get",
+      "safe_text"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/notes/chapters",
+    "file": "backend/api/notes.py",
+    "line": 51,
+    "handler": "chapter_options",
+    "calls": [
+      "Depends",
+      "result",
+      "router.get",
+      "service.chapters.options"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/notes/generations",
+    "file": "backend/api/notes.py",
+    "line": 56,
+    "handler": "generation",
+    "calls": [
+      "Depends",
+      "NoteError",
+      "req.model_dump",
+      "result",
+      "router.post",
+      "service.request_generation",
+      "start_generation"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/notes/drafts",
+    "file": "backend/api/notes.py",
+    "line": 65,
+    "handler": "drafts",
+    "calls": [
+      "Depends",
+      "result",
+      "router.get",
+      "service.list_drafts"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/notes/drafts",
+    "file": "backend/api/notes.py",
+    "line": 70,
+    "handler": "create_draft",
+    "calls": [
+      "Depends",
+      "NoteError",
+      "req.model_dump",
+      "result",
+      "router.post",
+      "service.create_draft"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/notes/drafts/{draft_id}",
+    "file": "backend/api/notes.py",
+    "line": 77,
+    "handler": "draft",
+    "calls": [
+      "Depends",
+      "result",
+      "router.get",
+      "service.draft"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/notes/drafts/{draft_id}",
+    "file": "backend/api/notes.py",
+    "line": 82,
+    "handler": "patch_draft",
+    "calls": [
+      "Depends",
+      "result",
+      "router.patch",
+      "service.patch_draft"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/notes/drafts/{draft_id}/discard",
+    "file": "backend/api/notes.py",
+    "line": 87,
+    "handler": "discard",
+    "calls": [
+      "Depends",
+      "result",
+      "router.post",
+      "service.discard"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/notes/drafts/{draft_id}/save",
+    "file": "backend/api/notes.py",
+    "line": 92,
+    "handler": "save",
+    "calls": [
+      "Depends",
+      "req.model_dump",
+      "result",
+      "router.post",
+      "service.save"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/notes/drafts/{draft_id}/sources/{source_ref_id}",
+    "file": "backend/api/notes.py",
+    "line": 99,
+    "handler": "draft_source",
+    "calls": [
+      "Depends",
+      "result",
+      "router.get",
+      "service.source"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/notes",
+    "file": "backend/api/notes.py",
+    "line": 104,
+    "handler": "notes",
+    "calls": [
+      "Depends",
+      "result",
+      "router.get",
+      "service.store.list"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/notes/filters",
+    "file": "backend/api/notes.py",
+    "line": 109,
+    "handler": "filter_options",
+    "calls": [
+      "Depends",
+      "result",
+      "router.get",
+      "service.store.filter_options"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/notes/{note_id}",
+    "file": "backend/api/notes.py",
+    "line": 114,
+    "handler": "note",
+    "calls": [
+      "Depends",
+      "result",
+      "router.get",
+      "service.detail"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/notes/{note_id}/revisions",
+    "file": "backend/api/notes.py",
+    "line": 119,
+    "handler": "revisions",
+    "calls": [
+      "Depends",
+      "result",
+      "router.get",
+      "service.store.revisions"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/notes/{note_id}/revisions/{revision}",
+    "file": "backend/api/notes.py",
+    "line": 124,
+    "handler": "revision",
+    "calls": [
+      "Depends",
+      "result",
+      "router.get",
+      "service.detail"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/notes/{note_id}/status",
+    "file": "backend/api/notes.py",
+    "line": 129,
+    "handler": "status",
+    "calls": [
+      "Depends",
+      "req.model_dump",
+      "result",
+      "router.patch",
+      "service.status"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/notes/{note_id}/sources/{source_ref_id}",
+    "file": "backend/api/notes.py",
+    "line": 134,
+    "handler": "source",
+    "calls": [
+      "Depends",
+      "result",
+      "router.get",
+      "service.source"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/reports/weekly",
+    "file": "backend/api/reports.py",
+    "line": 32,
+    "handler": "weekly_report",
+    "calls": [
+      "Counter",
+      "_concept_stats",
+      "_conversation_stats",
+      "_parse_dt",
+      "_since_days",
+      "bank.list_all",
+      "concept.get",
+      "datetime.now",
+      "datetime.now().date",
+      "datetime.now().date().isoformat",
+      "get_exercise_bank",
+      "get_mistake_book",
+      "get_mistake_book(book, str(PROGRESS_PATH)).list_all",
+      "item.get",
+      "len",
+      "max",
+      "min",
+      "practiced.append",
+      "reviewed_mistakes.append",
+      "router.get",
+      "start.date",
+      "start.date().isoformat",
+      "str",
+      "str(concept.get('name', '')).strip",
+      "suggestions.append",
+      "weak_counter.most_common"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/system/rag-traces",
+    "file": "backend/api/system.py",
+    "line": 151,
+    "handler": "rag_traces",
+    "calls": [
+      "list_traces",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/system/vector-store/reload",
+    "file": "backend/api/system.py",
+    "line": 156,
+    "handler": "reload_vector_store",
+    "calls": [
+      "_check_vector_store",
+      "_component",
+      "reset_vector_store",
+      "router.post",
+      "status.get",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/system/health",
+    "file": "backend/api/system.py",
+    "line": 172,
+    "handler": "system_health",
+    "calls": [
+      "Path",
+      "_check_embedding_runtime",
+      "_check_runtime_config",
+      "_check_sqlite",
+      "_check_vector_store",
+      "components.values",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/system/shutdown",
+    "file": "backend/api/system.py",
+    "line": 192,
+    "handler": "graceful_shutdown",
+    "calls": [
+      "asyncio.create_task",
+      "asyncio.sleep",
+      "get_job_manager",
+      "getattr",
+      "job.get",
+      "manager.list_jobs",
+      "manager.request_cancel",
+      "router.post",
+      "stop_after_response",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/system/remote-ready",
+    "file": "backend/api/system.py",
+    "line": 311,
+    "handler": "remote_ready",
+    "calls": [
+      "bool",
+      "credential.get",
+      "models.get",
+      "models.get('credentials', {}).get",
+      "models.get('roles', {}).get",
+      "os.getenv",
+      "profiles_payload",
+      "reasoning.get",
+      "router.get",
+      "runtime_build_identity"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/system/settings",
+    "file": "backend/api/system.py",
+    "line": 326,
+    "handler": "get_settings",
+    "calls": [
+      "_env_status",
+      "_read_subject_tree",
+      "profiles_payload",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/system/settings/env",
+    "file": "backend/api/system.py",
+    "line": 338,
+    "handler": "save_env_settings",
+    "calls": [
+      "_apply_runtime_env",
+      "_env_status",
+      "_write_env_values",
+      "payload.get",
+      "router.post",
+      "str",
+      "str(payload.get(key) or '').strip"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/system/settings/models",
+    "file": "backend/api/system.py",
+    "line": 353,
+    "handler": "save_model_settings",
+    "calls": [
+      "_apply_runtime_env",
+      "_write_env_values",
+      "clear_model_cache",
+      "model_settings_env_values",
+      "profiles_payload",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/system/settings/models/test",
+    "file": "backend/api/system.py",
+    "line": 370,
+    "handler": "test_model_connection",
+    "calls": [
+      "credentials.values",
+      "isinstance",
+      "item.get",
+      "message.replace",
+      "payload.get",
+      "router.post",
+      "settings.get",
+      "str",
+      "str(exc).strip",
+      "test_model_settings_connection"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/system/settings/model-profiles",
+    "file": "backend/api/system.py",
+    "line": 395,
+    "handler": "save_model_profile",
+    "calls": [
+      "_apply_runtime_env",
+      "_write_env_values",
+      "bool",
+      "clear_model_cache",
+      "isinstance",
+      "key.startswith",
+      "payload.get",
+      "profiles_payload",
+      "router.post",
+      "save_profile",
+      "str",
+      "values.items"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/system/settings/model-profiles/{profile_id}/activate",
+    "file": "backend/api/system.py",
+    "line": 413,
+    "handler": "activate_model_profile",
+    "calls": [
+      "_apply_runtime_env",
+      "_write_env_values",
+      "activate_profile",
+      "clear_model_cache",
+      "profiles_payload",
+      "router.post",
+      "str"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/system/settings/model-profiles/{profile_id}",
+    "file": "backend/api/system.py",
+    "line": 425,
+    "handler": "remove_model_profile",
+    "calls": [
+      "delete_profile",
+      "os.getenv",
+      "profiles_payload",
+      "router.delete",
+      "str"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/system/settings/subjects",
+    "file": "backend/api/system.py",
+    "line": 436,
+    "handler": "get_subjects",
+    "calls": [
+      "_read_subject_tree",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/system/settings/subjects",
+    "file": "backend/api/system.py",
+    "line": 463,
+    "handler": "save_subjects",
+    "calls": [
+      "'、'.join",
+      "_catalog_values",
+      "_subject_values_in_use",
+      "_write_subject_tree",
+      "clean_subject_tree",
+      "isinstance",
+      "payload.get",
+      "router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/system/version",
+    "file": "backend/api/system.py",
+    "line": 478,
+    "handler": "version_info",
+    "calls": [
+      "datetime.now",
+      "datetime.now().isoformat",
+      "router.get",
+      "str",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], cwd=str(BASE_DIR), text=True, stderr=subprocess.DEVNULL).strip",
+      "subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], cwd=str(BASE_DIR), text=True, stderr=subprocess.DEVNULL).strip"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/system/update",
+    "file": "backend/api/system.py",
+    "line": 500,
+    "handler": "run_update",
+    "calls": [
+      "router.post"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/system/network-diagnostics",
+    "file": "backend/api/system.py",
+    "line": 508,
+    "handler": "network_diagnostics",
+    "calls": [
+      "monitor.observe",
+      "router.get"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/system/network-diagnostics/probe",
+    "file": "backend/api/system.py",
+    "line": 515,
+    "handler": "network_probe",
+    "calls": [
+      "monitor.probe",
+      "router.post"
+    ]
+  }
+]

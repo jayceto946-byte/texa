@@ -197,7 +197,8 @@ class ChapterSplitter:
                 "artifact_only": not bool(str(block.text or "").strip()),
                 "retrieval_excluded": True,
             }
-        parent_id = self._stable_id(book_name, block.block_type, self._logical_parent_key(block))
+        unit_kind = 'example' if figure_attributes.get('example_id') else ('exercise' if figure_attributes.get('exercise_id') else block.block_type)
+        parent_id = self._stable_id(book_name, unit_kind, self._logical_parent_key(block))
         self._append_chunk(
             rows, [block], content, book_name=book_name, block_type=block.block_type,
             parent_id=parent_id, parent_content=content, child_index=0,
@@ -206,7 +207,8 @@ class ChapterSplitter:
 
     def _emit_table(self, rows: list[dict], block: DocumentBlock, *, book_name: str) -> None:
         rendered = self._render_table(block)
-        parent_id = self._stable_id(book_name, "table", self._logical_parent_key(block))
+        unit_kind = 'example' if block.attributes.get('example_id') else ('exercise' if block.attributes.get('exercise_id') else 'table')
+        parent_id = self._stable_id(book_name, unit_kind, self._logical_parent_key(block))
         segments = self._split_table_rows(block, rendered)
         for child_index, (content, table_rows) in enumerate(segments):
             self._append_chunk(

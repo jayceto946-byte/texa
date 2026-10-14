@@ -1,0 +1,187 @@
+{
+  "authorization": "user 执行 after 16-run/64-request/1,449,216-token/¥10 proposal",
+  "model": "qwen3.7-plus",
+  "endpoint_host": "dashscope.aliyuncs.com",
+  "temperature": 0,
+  "max_completion_tokens": 16384,
+  "model_timeout": 180,
+  "run_timeout": 600,
+  "limits": {
+    "runs": 16,
+    "requests": 64,
+    "input_bytes": 400000,
+    "output_tokens": 1049216,
+    "cost_cny": 10,
+    "per_request_input_bytes": 256000,
+    "input_price": 2,
+    "output_price": 8
+  },
+  "context": "empty frozen textbook/ConversationContextPack; synthetic full questions; no user textbook/history",
+  "scope": "controlled availability comparison via real chat_binding.stream_run, not API routing/retrieval acceptance",
+  "cases": [
+    {
+      "id": "concept-A",
+      "question_id": "concept",
+      "question": "解释函数在一点可导与连续的关系，给出连续但不可导的反例，并说明反例为何不可导。",
+      "arm": "A",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tools": true
+    },
+    {
+      "id": "concept-B",
+      "question_id": "concept",
+      "question": "解释函数在一点可导与连续的关系，给出连续但不可导的反例，并说明反例为何不可导。",
+      "arm": "B",
+      "extra_body": {
+        "enable_thinking": true,
+        "thinking_budget": 4096
+      },
+      "tools": true
+    },
+    {
+      "id": "concept-C",
+      "question_id": "concept",
+      "question": "解释函数在一点可导与连续的关系，给出连续但不可导的反例，并说明反例为何不可导。",
+      "arm": "C",
+      "extra_body": {
+        "enable_thinking": false
+      },
+      "tools": true
+    },
+    {
+      "id": "concept-D",
+      "question_id": "concept",
+      "question": "解释函数在一点可导与连续的关系，给出连续但不可导的反例，并说明反例为何不可导。",
+      "arm": "D",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tools": false
+    },
+    {
+      "id": "integral-B",
+      "question_id": "integral",
+      "question": "计算定积分 $\\int_0^1 x^2 e^x\\,dx$，给出完整的分部积分推导并核验结果。",
+      "arm": "B",
+      "extra_body": {
+        "enable_thinking": true,
+        "thinking_budget": 4096
+      },
+      "tools": true
+    },
+    {
+      "id": "integral-C",
+      "question_id": "integral",
+      "question": "计算定积分 $\\int_0^1 x^2 e^x\\,dx$，给出完整的分部积分推导并核验结果。",
+      "arm": "C",
+      "extra_body": {
+        "enable_thinking": false
+      },
+      "tools": true
+    },
+    {
+      "id": "integral-D",
+      "question_id": "integral",
+      "question": "计算定积分 $\\int_0^1 x^2 e^x\\,dx$，给出完整的分部积分推导并核验结果。",
+      "arm": "D",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tools": false
+    },
+    {
+      "id": "integral-A",
+      "question_id": "integral",
+      "question": "计算定积分 $\\int_0^1 x^2 e^x\\,dx$，给出完整的分部积分推导并核验结果。",
+      "arm": "A",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tools": true
+    },
+    {
+      "id": "stokes-C",
+      "question_id": "stokes",
+      "question": "计算并解答：有向曲线 $L$ 为球面 $x^2+y^2+z^2=2x$ 与平面 $2x-z-1=0$ 的交线，从 $z$ 轴正向往 $z$ 轴负向看为逆时针方向。计算曲线积分\n$$\\oint_L (6xyz-yz^2)\\,dx+2x^2z\\,dy+xyz\\,dz.$$\n说明方向、所选曲面和投影区域。",
+      "arm": "C",
+      "extra_body": {
+        "enable_thinking": false
+      },
+      "tools": true
+    },
+    {
+      "id": "stokes-D",
+      "question_id": "stokes",
+      "question": "计算并解答：有向曲线 $L$ 为球面 $x^2+y^2+z^2=2x$ 与平面 $2x-z-1=0$ 的交线，从 $z$ 轴正向往 $z$ 轴负向看为逆时针方向。计算曲线积分\n$$\\oint_L (6xyz-yz^2)\\,dx+2x^2z\\,dy+xyz\\,dz.$$\n说明方向、所选曲面和投影区域。",
+      "arm": "D",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tools": false
+    },
+    {
+      "id": "stokes-A",
+      "question_id": "stokes",
+      "question": "计算并解答：有向曲线 $L$ 为球面 $x^2+y^2+z^2=2x$ 与平面 $2x-z-1=0$ 的交线，从 $z$ 轴正向往 $z$ 轴负向看为逆时针方向。计算曲线积分\n$$\\oint_L (6xyz-yz^2)\\,dx+2x^2z\\,dy+xyz\\,dz.$$\n说明方向、所选曲面和投影区域。",
+      "arm": "A",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tools": true
+    },
+    {
+      "id": "stokes-B",
+      "question_id": "stokes",
+      "question": "计算并解答：有向曲线 $L$ 为球面 $x^2+y^2+z^2=2x$ 与平面 $2x-z-1=0$ 的交线，从 $z$ 轴正向往 $z$ 轴负向看为逆时针方向。计算曲线积分\n$$\\oint_L (6xyz-yz^2)\\,dx+2x^2z\\,dy+xyz\\,dz.$$\n说明方向、所选曲面和投影区域。",
+      "arm": "B",
+      "extra_body": {
+        "enable_thinking": true,
+        "thinking_budget": 4096
+      },
+      "tools": true
+    },
+    {
+      "id": "proof-D",
+      "question_id": "proof",
+      "question": "用中值定理证明：当 $x>0$ 时，$\\ln(1+x)<x$。说明中值定理的适用条件，以及不等式为何严格。",
+      "arm": "D",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tools": false
+    },
+    {
+      "id": "proof-A",
+      "question_id": "proof",
+      "question": "用中值定理证明：当 $x>0$ 时，$\\ln(1+x)<x$。说明中值定理的适用条件，以及不等式为何严格。",
+      "arm": "A",
+      "extra_body": {
+        "enable_thinking": true
+      },
+      "tools": true
+    },
+    {
+      "id": "proof-B",
+      "question_id": "proof",
+      "question": "用中值定理证明：当 $x>0$ 时，$\\ln(1+x)<x$。说明中值定理的适用条件，以及不等式为何严格。",
+      "arm": "B",
+      "extra_body": {
+        "enable_thinking": true,
+        "thinking_budget": 4096
+      },
+      "tools": true
+    },
+    {
+      "id": "proof-C",
+      "question_id": "proof",
+      "question": "用中值定理证明：当 $x>0$ 时，$\\ln(1+x)<x$。说明中值定理的适用条件，以及不等式为何严格。",
+      "arm": "C",
+      "extra_body": {
+        "enable_thinking": false
+      },
+      "tools": true
+    }
+  ]
+}

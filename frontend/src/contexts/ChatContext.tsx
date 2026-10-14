@@ -1,3 +1,5 @@
+import { beginSessionRender } from '../utils/performanceMetrics';
+import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import type { AnswerMode, AssistantSource, ChatActivity, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, CitationProvenance, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
 
@@ -8,6 +10,7 @@ export interface ChatMessage {
   requestId?: string;
   content: string;
   stage?: string;
+  streamError?: string;
   activities?: ChatActivity[];
   sourceChapters?: string[];
   sources?: AssistantSource[];
@@ -51,6 +54,7 @@ interface ChatContextType {
   newConversation: () => void;
   addMessage: (msg: ChatMessage) => void;
   updateLastMessage: (updater: (msg: ChatMessage) => ChatMessage) => void;
+  updateMessageByTurnId: (turnId: string, updater: (msg: ChatMessage) => ChatMessage) => void;
   updateMessageByTaskId: (taskId: string, updater: (msg: ChatMessage) => ChatMessage) => void;
   setLoading: (loading: boolean) => void;
   clearMessages: () => void;
@@ -66,8 +70,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [bookName, setBookName] = useState('');
-  const [subject, setSubject] = useState(() => window.localStorage.getItem('kaoyan_subject') || '数学');
-  const [conversationId, setConversationId] = useState(() => window.localStorage.getItem('kaoyan_conversation_id') || createConversationId());
+  const [subject, setSubject] = useState(() => readBrowserStorage('localStorage', 'kaoyan_subject') || '数学');
+  const [conversationId, setConversationId] = useState(() => readBrowserStorage('localStorage', 'kaoyan_conversation_id') || createConversationId());
   const [historyPage, setHistoryPage] = useState<ConversationPage | null>(null);
   const activeChatAbortRef = useRef<(() => void) | null>(null);
 
@@ -83,7 +87,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const persistConversationId = useCallback((next: string) => {
     setConversationId(next);
-    window.localStorage.setItem('kaoyan_conversation_id', next);
+    writeBrowserStorage('localStorage', 'kaoyan_conversation_id', next);
   }, []);
 
   const resetConversationForScopeChange = useCallback(() => {
@@ -97,7 +101,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const persistSubject = useCallback((next: string) => {
     if (next === subject) return;
     setSubject(next);
-    window.localStorage.setItem('kaoyan_subject', next);
+    writeBrowserStorage('localStorage', 'kaoyan_subject', next);
     resetConversationForScopeChange();
   }, [resetConversationForScopeChange, subject]);
 
@@ -120,7 +124,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (nextBookName) setBookName(nextBookName);
     if (nextSubject) {
       setSubject(nextSubject);
-      window.localStorage.setItem('kaoyan_subject', nextSubject);
+      writeBrowserStorage('localStorage', 'kaoyan_subject', nextSubject);
     }
   }, []);
 
@@ -128,13 +132,15 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     cancelActiveChat();
     persistConversationId(id);
     setIsLoading(false);
+    beginSessionRender(nextMessages.length);
     setMessages(nextMessages);
     setHistoryPage(meta.page || null);
     if (meta.subject !== undefined) {
       setSubject(meta.subject);
-      window.localStorage.setItem('kaoyan_subject', meta.subject);
+      writeBrowserStorage('localStorage', 'kaoyan_subject', meta.subject);
     }
-    if (meta.bookName !== undefined) setBookName(meta.bookName);
+    // "default" is the persistence namespace for questions without a textbook.
+    if (meta.bookName !== undefined) setBookName(meta.bookName === 'default' ? '' : meta.bookName);
   }, [cancelActiveChat, persistConversationId]);
 
   const prependConversationMessages = useCallback((olderMessages: ChatMessage[], page: ConversationPage) => {
@@ -157,6 +163,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       newMsgs[newMsgs.length - 1] = updater(newMsgs[newMsgs.length - 1]);
       return newMsgs;
     });
+  }, []);
+
+  const updateMessageByTurnId = useCallback((turnId: string, updater: (msg: ChatMessage) => ChatMessage) => {
+    setMessages(current => current.map(message => message.turnId === turnId ? updater(message) : message));
   }, []);
 
   const updateMessageByTaskId = useCallback((taskId: string, updater: (msg: ChatMessage) => ChatMessage) => {
@@ -192,10 +202,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addMessage,
       updateLastMessage,
       updateMessageByTaskId,
+      updateMessageByTurnId,
       setLoading: setIsLoading,
       clearMessages,
     }),
-    [messages, isLoading, bookName, subject, conversationId, historyPage, persistBookName, persistSubject, persistConversationId, syncRecoveredScope, setActiveChatAbort, cancelActiveChat, loadConversation, prependConversationMessages, newConversation, addMessage, updateLastMessage, updateMessageByTaskId, clearMessages]
+    [messages, isLoading, bookName, subject, conversationId, historyPage, persistBookName, persistSubject, persistConversationId, syncRecoveredScope, setActiveChatAbort, cancelActiveChat, loadConversation, prependConversationMessages, newConversation, addMessage, updateLastMessage, updateMessageByTaskId, updateMessageByTurnId, clearMessages]
   );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

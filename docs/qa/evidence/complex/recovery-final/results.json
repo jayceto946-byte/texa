@@ -1,0 +1,189 @@
+{
+  "environment": "Chrome real API",
+  "model": "offline fixture only",
+  "checks": [
+    {
+      "width": 1280,
+      "case": "note autosave503→navigation blocked→local text retained→retry saved",
+      "status": "PASS",
+      "draft_id": "draft_385eba8cca9444bca5ef6d6abd23812f"
+    },
+    {
+      "width": 1280,
+      "case": "note draft CAS409→copy local edits→reload authority→edit and autosave",
+      "status": "PASS",
+      "draft_id": "draft_385eba8cca9444bca5ef6d6abd23812f"
+    },
+    {
+      "width": 1280,
+      "case": "formal recovery clipboard/read failure preserves text and disables stale publish",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "archived formal authority→copy and read only; retained draft unchanged",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "note formal revision CAS conflict→no overwrite→copy/recovery",
+      "status": "PASS",
+      "note_id": "note_260780f012624d31a0d6af15f3d6567b",
+      "draft_id": "draft_ed50199fb34c4400a605588de999ccaf"
+    },
+    {
+      "width": 1280,
+      "case": "candidate source comparison switch preserves edits/selection; import footer reachable",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "real Word+answer extraction→unconfirmed candidates→merge/split→human correction→select→batch import→rollback",
+      "status": "PASS",
+      "batch_id": "8ce5afeb-ce4"
+    },
+    {
+      "width": 1280,
+      "case": "real text PDF→original comparison→two candidates; no automatic bank writes",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "crop focus trap/inert/keyboard enhancement; cancelled replacement retains existing attachment",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "chat image→rotate/process/compress→attach preview→remove; no model call",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "image editor Escape→cancel→focus returns",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "source keyboard boundary→Escape→trigger focus and composer draft preserved",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "persisted source metadata→inspector→Escape→reopen→route switch closes",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_385eba8cca9444bca5ef6d6abd23812f"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_385eba8cca9444bca5ef6d6abd23812f"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_385eba8cca9444bca5ef6d6abd23812f"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_385eba8cca9444bca5ef6d6abd23812f"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_385eba8cca9444bca5ef6d6abd23812f"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_385eba8cca9444bca5ef6d6abd23812f/save"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_ed50199fb34c4400a605588de999ccaf"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_ed50199fb34c4400a605588de999ccaf/save"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_67eea895f4b646b2868e5623efceab8a"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_67eea895f4b646b2868e5623efceab8a/save"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_38976cb5330a4ea6bc7b429575d4aab1"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_38976cb5330a4ea6bc7b429575d4aab1/save"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/batch-add"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/import-batches/rollback"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    }
+  ]
+}

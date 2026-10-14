@@ -1,0 +1,40 @@
+........................................................................ [  4%]
+........................................................................ [  9%]
+........................................................................ [ 14%]
+........................................................................ [ 19%]
+........................................................................ [ 23%]
+........................................................................ [ 28%]
+........................................................................ [ 33%]
+........................................................................ [ 38%]
+........................................................................ [ 42%]
+........................................................................ [ 47%]
+........................................................................ [ 52%]
+........................................................................ [ 57%]
+........................................................................ [ 62%]
+........................................................................ [ 66%]
+........................................................................ [ 71%]
+........................................................................ [ 76%]
+........................................................................ [ 81%]
+........................................................................ [ 85%]
+........................................................................ [ 90%]
+........................................................................ [ 95%]
+.....................................................................    [100%]
+=============================== warnings summary ===============================
+venv310/lib/python3.10/site-packages/starlette/testclient.py:53
+  /Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1509 passed, 6 warnings in 39.81s
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute

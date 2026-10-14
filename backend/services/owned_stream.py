@@ -35,20 +35,32 @@ class OwnedStreamingResponse(StreamingResponse):
             return
         self.closed = True
         with anyio.CancelScope(shield=True):
-            if self.on_close:
-                await anyio.to_thread.run_sync(self.on_close)
+            fence_error = None
             try:
-                async_close = getattr(self.producer, "aclose", None)
-                if async_close:
-                    await async_close()
-                else:
-                    close = getattr(self.producer, "close", None)
-                    if close:
-                        await anyio.to_thread.run_sync(close)
-            except ValueError as exc:
-                # A provider next() may still be running. Its owner closes it
-                # on return; the task fence above already prevents late output.
-                if "generator already executing" not in str(exc):
+                if self.on_close:
+                    await anyio.to_thread.run_sync(self.on_close)
+            except BaseException as exc:
+                fence_error = exc
+                raise
+            finally:
+                try:
+                    async_close = getattr(self.producer, "aclose", None)
+                    if async_close:
+                        await async_close()
+                    else:
+                        close = getattr(self.producer, "close", None)
+                        if close:
+                            await anyio.to_thread.run_sync(close)
+                except ValueError as exc:
+                    # A provider next() may still be running. Its owner closes
+                    # it on return; an established fence prevents late output.
+                    if "generator already executing" not in str(exc):
+                        if fence_error is not None:
+                            raise fence_error from exc
+                        raise
+                except BaseException as exc:
+                    if fence_error is not None:
+                        raise fence_error from exc
                     raise
 
     async def __call__(self, scope, receive, send):

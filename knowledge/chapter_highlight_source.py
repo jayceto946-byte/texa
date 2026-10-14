@@ -15,6 +15,32 @@ from .chapter_highlight_types import ChapterHighlightError, ChapterRef, SectionR
 class ChapterHighlightSourceMixin:
     """Loads OCR output, chapter metadata, sections, images, and source hashes."""
 
+    def _workflow_chapters(self, book_name: str) -> list[dict]:
+        from ingestion.document_workflows import enrich_chapters, load_workflow_book
+        data = self._read_json(self.book_dir(book_name) / '_chapters.json')
+        return enrich_chapters(data if isinstance(data, list) else [],
+                               load_workflow_book(book_name, progress_root=self.progress_path))
+
+    def _sections_from_canonical(self, book_name: str, chapter: ChapterRef) -> list[dict]:
+        from ingestion.document_workflows import load_workflow_book
+        from ingestion.document_ir import canonical_retrieval_paths, canonical_chapter_title
+        book = load_workflow_book(book_name, progress_root=self.progress_path)
+        if book is None:
+            return []
+        paths = canonical_retrieval_paths(book.blocks)
+        target = canonical_chapter_title(chapter.title) or chapter.title
+        chunks = []
+        for block in book.blocks:
+            path = paths.get(block.block_id) or [book_name]
+            if path[0] != target or block.block_type in {'heading', 'figure'} or not block.text.strip():
+                continue
+            chunks.append(dict(chunk_id=f'canonical:{block.block_id}', block_id=block.block_id,
+                               text=block.text, page=block.page_start,
+                               role=block.attributes.get('semantic_role', ''),
+                               source_ref=f'{block.source_file} / p{block.page_start}',
+                               source_section_title=path[-1]))
+        return [dict(title=chapter.title, chunks=chunks)] if chunks else []
+
     def build_source_package(self, book_name: str, chapter_id: str, section_id: str | None = None) -> dict:
         chapter = self._find_chapter_ref(book_name, chapter_id)
         if not chapter:
@@ -25,7 +51,9 @@ class ChapterHighlightSourceMixin:
         content_items = self._load_first_json(output_dir, ["*content_list*.json", "*content-list*.json"]) if output_dir else None
         native_chunks = self._load_first_json(output_dir, ["*middle_chunks*.json"]) if output_dir else None
 
-        raw_sections = self._sections_from_chunks(native_chunks, chapter, subsection_refs)
+        raw_sections = self._sections_from_canonical(book_name, chapter)
+        if not raw_sections:
+            raw_sections = self._sections_from_chunks(native_chunks, chapter, subsection_refs)
         if not raw_sections:
             raw_sections = self._sections_from_saved_chapters(book_name, chapter)
         if not raw_sections and isinstance(content_items, list):
@@ -64,7 +92,7 @@ class ChapterHighlightSourceMixin:
         return source
 
     def _load_chapter_refs(self, book_name: str) -> list[ChapterRef]:
-        data = self._read_json(self.book_dir(book_name) / "_chapters.json")
+        data = self._workflow_chapters(book_name)
         if not isinstance(data, list):
             return []
         refs: list[ChapterRef] = []
@@ -78,7 +106,7 @@ class ChapterHighlightSourceMixin:
         return refs
 
     def _load_chapter_record(self, book_name: str, chapter: ChapterRef) -> dict:
-        data = self._read_json(self.book_dir(book_name) / "_chapters.json")
+        data = self._workflow_chapters(book_name)
         if isinstance(data, list) and 0 <= chapter.index < len(data) and isinstance(data[chapter.index], dict):
             return data[chapter.index]
         return {}
@@ -89,7 +117,7 @@ class ChapterHighlightSourceMixin:
         if not isinstance(raw_sections, list):
             return []
         refs: list[SectionRef] = []
-        cleaned: list[tuple[str, int]] = []
+        cleaned: list[tuple[str, int, dict]] = []
         for item in raw_sections:
             if not isinstance(item, dict):
                 continue
@@ -100,20 +128,22 @@ class ChapterHighlightSourceMixin:
                 page = int(item.get("page", item.get("page_number", chapter.page)) or chapter.page)
             except Exception:
                 page = chapter.page
-            cleaned.append((title, page))
+            cleaned.append((title, page, item))
 
-        for index, (title, page) in enumerate(cleaned):
+        for index, (title, page, item) in enumerate(cleaned):
             next_page = cleaned[index + 1][1] if index + 1 < len(cleaned) else None
-            end_page = chapter.end_page or page
-            if next_page and next_page > page:
+            end_page = item.get('end_page') or chapter.end_page or page
+            if not item.get('end_page') and next_page and next_page > page:
                 end_page = next_page - 1
             refs.append(SectionRef(
-                id=f"section_{index + 1:03d}",
+                id=f"heading_{item['heading_block_id']}" if item.get('heading_block_id') else f"section_{index + 1:03d}",
                 index=index,
                 title=title,
                 page=page,
                 end_page=end_page,
                 is_auxiliary=self._is_auxiliary_section(title),
+                heading_block_id=item.get('heading_block_id', ''), level=item.get('level', 2),
+                source_block_ids=list(item.get('source_block_ids') or []),
             ))
         return refs
 
@@ -210,6 +240,8 @@ class ChapterHighlightSourceMixin:
             "page": section.page,
             "end_page": section.end_page,
             "is_auxiliary": section.is_auxiliary,
+            "level": section.level,
+            "heading_block_id": section.heading_block_id,
         }
 
     def _apply_scope(
@@ -240,6 +272,9 @@ class ChapterHighlightSourceMixin:
             return [section], [], scope
 
         content_refs = [section for section in subsection_refs if not section.is_auxiliary]
+        if content_refs and any(section.heading_block_id for section in content_refs):
+            level = min(section.level for section in content_refs)
+            content_refs = [section for section in content_refs if section.level == level]
         if content_refs:
             scoped_sections = [self._section_from_page_range(raw_sections, section) for section in content_refs]
             scoped_sections = [section for section in scoped_sections if section.get("chunks")]
@@ -292,7 +327,9 @@ class ChapterHighlightSourceMixin:
                     page = int(chunk.get("page") or 0)
                 except Exception:
                     page = 0
-                if section_ref.page <= page <= end_page:
+                in_scope = (chunk.get('block_id') in section_ref.source_block_ids
+                            if section_ref.source_block_ids else section_ref.page <= page <= end_page)
+                if in_scope:
                     copied = dict(chunk)
                     copied.setdefault("source_section_title", source_section.get("title", ""))
                     chunks.append(copied)
@@ -692,4 +729,3 @@ class ChapterHighlightSourceMixin:
                 except Exception:
                     continue
         return None
-

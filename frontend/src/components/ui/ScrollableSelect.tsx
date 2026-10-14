@@ -138,7 +138,7 @@ export default function ScrollableSelect({ ariaLabel, value, options, onChange, 
           event.preventDefault();
           setOpen(true);
         }}
-        className={`app-scrollable-select-trigger flex w-full items-center gap-2 rounded-md border border-border bg-bg-card px-3 text-left type-control text-text-primary outline-none hover:border-accent/45 focus:border-accent focus:ring-2 focus:ring-[var(--accent-soft)] ${compact ? 'is-compact' : 'min-h-10'}`}
+        className={`app-scrollable-select-trigger flex w-full items-center gap-2 rounded-md border border-border bg-bg-card px-3 text-left type-control text-text-primary hover:border-accent/45 ${compact ? 'is-compact' : 'min-h-10'}`}
       >
         <span className="min-w-0 flex-1 truncate">
           <span>{selected?.label || value || placeholder}</span>

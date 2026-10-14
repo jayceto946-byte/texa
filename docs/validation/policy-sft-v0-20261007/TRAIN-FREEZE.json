@@ -1,0 +1,11 @@
+{
+  "sha256": {
+    "tokenizer-stats.json": "ae4ad3e5a3a440dfe4e4fc1dfbc7dd2074ee713ee32f36e158eea1e32aa3748a",
+    "token-lengths.jsonl": "91a19bea1cbc8aba5ab8c11c24b77094778261941b1a4f36f84b35aa92460011",
+    "smoke-config.yaml": "f44dcfb980e84f1c193d02177d7fb2526401d76ba23da5bcf93af051672e6fe9",
+    "train-config.yaml": "be535f18063b71b61ab885b6b6435d1f696f3b01ab4c08347026d5cebd2b0405",
+    "../../../scripts/policy_sft_v0.py": "39b124ae981aa36e40d3d46a26cd34e4d984516c5a5626b3c7404441c380fa44",
+    "../../../scripts/run_policy_sft_phase.py": "32ecc50bf5f4400dc0b3cecc42e3a2d30e6a52417fbdf3efc12387bfa0f39063",
+    "../../../scripts/report_policy_sft_v0.py": "d099f61ea490ada176748be08b94f965437afa8a8a6857d068c61ac60b31112f"
+  }
+}

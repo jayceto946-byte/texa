@@ -6,12 +6,13 @@ from backend.services.owned_stream import OwnedStreamingResponse, prepare_owned_
 import asyncio
 import json
 import logging
+import os
 import queue
 import threading
 import time
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from backend.conversation_memory import (
     append_message,
@@ -30,7 +31,8 @@ from backend.conversation_memory import (
     update_learning_task_projection,
 )
 from backend.schemas import ChatRequest, ConversationScopeRequest, ConversationSplitTurnRequest, SubjectRoutingFeedbackRequest
-from backend.schemas import AnswerFeedbackRequest
+from backend.schemas import AnswerFeedbackRequest, ConversationManagementRequest, ConversationTaskCancelRequest
+from backend.services.conversation_management import ConversationManagementService, ConversationManagementError, assert_conversation_writable
 from backend.services.answer_feedback import record_answer_feedback
 from backend.services.context_versions import current_context_versions
 from backend.services.session_context import build_resolution_trace
@@ -64,13 +66,26 @@ from backend.services.execution_events import (
     ExecutionEventEmitter,
     execution_sse_payload,
 )
+from backend.services.execution_details import evidence_details
+from backend.services.runtime_events import emit_best_effort as emit_runtime_event, text_fingerprint, safe_reference, replay as replay_runtime_events
 from graph.conversation_context import (
     assemble_conversation_context_pack,
     build_conversation_context_seed,
 )
 
-router = APIRouter(prefix="/chat", tags=["chat"])
+from fastapi.responses import JSONResponse
+from backend.api.conversation_protocol import ConversationManagementRoute
+
+
+router = APIRouter(prefix="/chat", tags=["chat"], route_class=ConversationManagementRoute)
 logger = logging.getLogger(__name__)
+
+
+def _safe_chat_error(exc: Exception) -> str:
+    # Reuse the diagnostic redactor before errors enter SSE or task storage.
+    from backend.rag_trace import _redact_diagnostic
+    return _redact_diagnostic(str(exc))[:500]
+
 
 _TOOL_ACTIVITY_LABELS = {
     "symbolic_math": "执行确定性计算",
@@ -119,6 +134,7 @@ def _chat_execution_envelope(event: dict) -> dict:
 def _main_tool_request(
     question: str, book_name: str, subject: str, conversation_id: str,
     learning_task_id: str = "",
+    question_understanding: dict | None = None,
 ) -> ToolOrchestrationRequest:
     return ToolOrchestrationRequest(
         question=question,
@@ -128,6 +144,7 @@ def _main_tool_request(
         max_tools=6,
         include_textbook_tool=False,
         learning_task_id=learning_task_id,
+        question_understanding=question_understanding,
     )
 
 
@@ -163,6 +180,7 @@ def _finish_chat_learning_task(
     *,
     waiting_reason: str = "",
     run_id: str = "",
+    policy_request_id: str = "",
 ) -> LearningTask:
     store = get_learning_task_store()
     if waiting_reason:
@@ -171,6 +189,9 @@ def _finish_chat_learning_task(
             "affects": ["answer_scope"], "blocking": True, "status": "missing",
         }]
         task.verification = {"status": "waiting_for_input", "passed": False, "checks": []}
+        if policy_request_id and os.getenv("TEXA_RUNTIME_POLICY_V0", "0") == "1":
+            from backend.services.decision.policy_gate import input_gate_trace
+            task.artifacts["policy_gate"] = input_gate_trace(task, policy_request_id)
         checkpoint = store.prepare_checkpoint_for_run if run_id else store.checkpoint
         args = (task, run_id, "waiting_for_input") if run_id else (task, "waiting_for_input")
         return checkpoint(*args, status="waiting_for_input", detail=waiting_reason)
@@ -181,6 +202,7 @@ def _finish_chat_learning_task(
             sources=state.get("evidence_sources") or [], citation_trace=state.get("citation_trace") or {},
             tool_context_pack=state.get("tool_context_pack") or {}, evidence_items=state.get("evidence_items") or [],
         )
+    state["answer_verification"] = verification
     task.verification = verification
     task.required_outputs = list(state.get("required_outputs") or task.required_outputs)
     task.artifacts.update({
@@ -225,10 +247,12 @@ def _prepare_main_tool_context(
     question: str, book_name: str, subject: str, conversation_id: str,
     learning_task_id: str = "",
     on_event=None,
+    question_understanding: dict | None = None,
 ) -> dict:
     try:
         return execute_read_only_tools(_main_tool_request(
             question, book_name, subject, conversation_id, learning_task_id,
+            question_understanding=question_understanding,
         ), on_event=on_event)
     except Exception as exc:
         logger.exception("main chat tool orchestration failed")
@@ -266,6 +290,8 @@ def _activity_for_chat_event(event: dict) -> dict | None:
             "status": "completed",
             "detail": f"已定位到：{'、'.join(chapters[:3])}" if chapters else "已识别问题意图与回答范围",
             "duration_ms": duration_ms,
+            "meta": {"intent": str(event.get("intent") or ""), "chapters": chapters[:6],
+                     "answer_mode": str(event.get("answer_mode") or "")},
         }
     if stage == "retrieve":
         ordinary = event.get("use_textbook_context") is False or event.get("retrieval_status") == "ordinary_qa"
@@ -278,6 +304,7 @@ def _activity_for_chat_event(event: dict) -> dict | None:
                 "本题不需要教材证据" if ordinary else f"已整理 {count} 条相关教材内容"
             )),
             "duration_ms": duration_ms,
+            "meta": dict(event.get("execution_details") or {}),
         }
     if stage == "chapter":
         return {
@@ -296,10 +323,15 @@ def _activity_for_chat_event(event: dict) -> dict | None:
     if stage == "done":
         state = event.get("state") or {}
         concepts = state.get("linked_concepts") or []
+        verified = (state.get("answer_verification") or {}).get("status") == "passed"
         return {
-            "id": "memory", "kind": "memory", "label": "关联学习记录",
-            "status": "completed" if concepts else "skipped",
-            "detail": f"已关联 {len(concepts)} 个核心概念；学习记录在后台更新" if concepts else "本轮没有可靠的概念标签",
+            "id": "finalize", "kind": "analysis", "label": "检查答案与完成记录",
+            "status": "completed",
+            "detail": ("答案通过发布门槛" if verified else "答案未通过或尚无法完成核验")
+                      + (f"；已关联 {len(concepts)} 个概念" if concepts else ""),
+            "meta": {**evidence_details(state, final=True),
+                     "verification_status": str((state.get("answer_verification") or {}).get("status") or "unknown"),
+                     "total_elapsed_ms": (event.get("timings") or {}).get("total", 0)},
         }
     if stage == "error":
         return {
@@ -388,10 +420,14 @@ def _resolve_request_question(
 ) -> tuple[str, dict]:
     try:
         ledger = get_or_rebuild_session_ledger(conversation_id, history)
-        trace = build_resolution_trace(
-            question, history, initial_state=ledger.get("state") or {},
-        )
-        trace["ledger_base_revision"] = int(ledger.get("last_seq") or 0)
+    except Exception:
+        logger.exception("session ledger unavailable; using bounded recent history")
+        ledger = None
+    trace = build_resolution_trace(
+        question, history, initial_state=(ledger.get("state") or {}) if ledger else None,
+    )
+    trace["ledger_base_revision"] = int((ledger or {}).get("last_seq") or 0)
+    try:
         bridge = bridge_learning_request(
             question,
             str(trace.get("speech_act") or ""),
@@ -416,11 +452,11 @@ def _resolve_request_question(
             trace["resolved_query"] = bridge.resolved_query
         return str(trace.get("resolved_query") or question), trace
     except Exception:
-        logger.exception("session ledger resolution failed; falling back to recent history")
-        rewritten = rewrite_followup(
-            question, history, book_name=book_name, subject=subject,
-        )
-        return rewritten, build_resolution_trace(question, history, rewritten)
+        # A later bridge failure must not repeat upstream interpretation or
+        # invoke the answer model to rewrite an already resolved question.
+        logger.exception("learning bridge unavailable; preserving resolution")
+        trace["learning_bridge"] = {"action": "none", "error": "bridge_unavailable"}
+        return str(trace.get("resolved_query") or question), trace
 
 
 def _conversation_context_seed(
@@ -611,13 +647,24 @@ def _prepare_chat_turn(
     conversation_id = resolve_conversation_id_for_scope(req.conversation_id, subject, book_name)
     turn_id = ensure_turn_id(req.turn_id)
     history = load_history(conversation_id)
-    rewritten_question, resolution_trace = _resolve_request_question(
-        req.question, history, conversation_id, book_name=book_name, subject=subject,
-    )
     if resume and resume_task is not None:
-        rewritten_question = str(resume_task.artifacts.get("resolved_query") or rewritten_question)
+        rewritten_question = str(resume_task.artifacts.get("resolved_query") or req.question)
+        resolution_trace = dict(resume_task.artifacts.get("resolution_trace") or {})
         resolution_trace["resolution_action"] = "continue"
         resolution_trace["resolved_query"] = rewritten_question
+    else:
+        rewritten_question, resolution_trace = _resolve_request_question(
+            req.question, history, conversation_id, book_name=book_name, subject=subject,
+        )
+        bridge = resolution_trace.get("learning_bridge") or {}
+        if bridge.get("action") in {"recorded", "handled", "resume"}:
+            from backend.services.learning_state import LearningStateService
+            service = LearningStateService()
+            for index, operation in enumerate(bridge.get("state_operations") or []):
+                state = service.apply_operation(operation, book_name=operation.get("book_name") or book_name,
+                    subject=subject, conversation_id=conversation_id,
+                    source_id="prep_" + uuid.uuid5(uuid.NAMESPACE_URL, f"chat-preparation:{conversation_id}:{turn_id}:{index}:{operation['operation']}").hex)
+                bridge["learning_context"] = service.learning_context_pack(state)
 
     book_name, subject = _scope_from_learning_context(book_name, subject, resolution_trace)
     conversation_id = resolve_conversation_id_for_scope(conversation_id, subject, book_name)
@@ -630,6 +677,7 @@ def _prepare_chat_turn(
         conversation_id, history, resolution_trace,
     )
     continuity_context["learning_context_pack"] = _learning_context_for_graph(resolution_trace)
+    continuity_context["question_understanding"] = dict(resolution_trace.get("question_understanding") or {})
     subject_suggestion = _safe_subject_suggestion(rewritten_question, subject, book_name)
     scope_decision = decide_answer_scope(
         req.question,
@@ -653,7 +701,7 @@ def _prepare_chat_turn(
         "use_textbook_context": scope_decision.use_textbook_context,
         "scope_reason": scope_decision.reason,
         "answer_mode": scope_decision.answer_mode,
-        "context_versions": current_context_versions(book_name),
+        "context_versions": (resume_task.artifacts.get("context_versions") or {}) if resume and resume_task else current_context_versions(book_name),
     }
 
 
@@ -664,25 +712,71 @@ def _safe_record_subject_feedback(source: str, target: str, action: str) -> None
     except Exception:
         logger.exception("subject routing feedback persistence failed")
 
+def _management_result(action):
+    from fastapi.responses import JSONResponse
+    try:
+        return {"success": True, "data": action()}
+    except ConversationManagementError as exc:
+        return JSONResponse(status_code=exc.status, content={"success": False, "code": exc.code, "message": str(exc), **exc.details})
+
+
 @router.get("/conversations")
-def conversations(subject: str = "", book_name: str = "", limit: int = 80):
-    return {"success": True, "data": list_conversations(subject=subject, book_name=book_name, limit=limit)}
+def conversations(subject: str = "", book_name: str = "", limit: int = 80, view: str | None = None,
+                  cursor: str = "", book_names: list[str] | None = Query(default=None)):
+    def read():
+        page = ConversationManagementService().page(subject=subject, book_name=book_name,
+            book_names=book_names, limit=limit, view=view or "active", cursor=cursor)
+        return page if view is not None else page["items"]
+    return _management_result(read)
+
+
+@router.get("/conversations/{conversation_id}/management")
+def conversation_management(conversation_id: str):
+    return _management_result(lambda: ConversationManagementService().get(conversation_id))
+
+
+@router.post("/conversations/{conversation_id}/management")
+def change_conversation_management(conversation_id: str, payload: ConversationManagementRequest):
+    return _management_result(lambda: ConversationManagementService().change(conversation_id, **payload.model_dump()))
 
 
 @router.get("/conversations/{conversation_id}")
 def conversation_detail(conversation_id: str, limit: int = 40, before_seq: int | None = None):
     conversation_id = ensure_conversation_id(conversation_id)
+    from backend.services.agent_runtime.chat_binding import overlay_runtime_delivery
     return {
         "success": True,
-        "data": get_conversation(conversation_id, limit=limit, before_seq=before_seq),
+        "data": {**overlay_runtime_delivery(get_conversation(conversation_id, limit=limit, before_seq=before_seq)),
+                 "management": ConversationManagementService().get(conversation_id)},
     }
 
 
 @router.get("/conversations/{conversation_id}/messages")
 def conversation_messages(conversation_id: str, limit: int = 40, before_seq: int | None = None):
     conversation_id = ensure_conversation_id(conversation_id)
-    data = get_conversation(conversation_id, limit=limit, before_seq=before_seq)
+    from backend.services.agent_runtime.chat_binding import overlay_runtime_delivery
+    data = overlay_runtime_delivery(get_conversation(conversation_id, limit=limit, before_seq=before_seq))
     return {"success": True, "data": {"messages": data["messages"], "page": data["page"]}}
+
+
+@router.get("/conversations/{conversation_id}/messages/{message_id}/context")
+def message_context(conversation_id: str, message_id: str):
+    from backend.conversation_memory import resolve_message_context
+    from memory.session_notes import NoteError
+    from fastapi.responses import JSONResponse
+    try:
+        data = resolve_message_context(conversation_id, message_id)
+        if data["status"] == "unavailable":
+            raise NoteError("not_found", "原消息已不可用，请查看笔记保存的来源", 404)
+        return {"success": True, "data": data}
+    except NoteError as exc:
+        return JSONResponse(status_code=exc.status, content={"success": False, "code": exc.code, "message": str(exc)})
+
+
+@router.get("/conversations/{conversation_id}/messages-after")
+def message_context_after(conversation_id: str, after_seq: int, limit: int = 40):
+    from backend.conversation_memory import load_message_page_after
+    return {"success": True, "data": load_message_page_after(conversation_id, after_seq, limit=limit)}
 
 
 @router.patch("/conversations/{conversation_id}/scope")
@@ -733,9 +827,22 @@ def answer_feedback(req: AnswerFeedbackRequest):
             reasons=req.reasons,
             note=req.note,
         )
+        emit_runtime_event("feedback", session_id=req.conversation_id,
+                           turn_id=str(data.get("turn_id") or ""), request_id=str(data.get("request_id") or ""),
+                           payload={"rating": data["rating"], "feedback_reasons": data["reasons"],
+                                    "message_ref": req.message_id})
         return {"success": True, "data": data}
     except ValueError as exc:
         return {"success": False, "message": str(exc)}
+
+
+@router.get("/runtime-events")
+def runtime_event_replay(session_id: str, turn_id: str = "", after_event_id: str = "", limit: int = 5000):
+    try:
+        return replay_runtime_events(session_id=session_id, turn_id=turn_id,
+                                     after_event_id=after_event_id, limit=limit)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
 
 
 @router.post("/log")
@@ -782,6 +889,11 @@ def _prepared_chat_stream(
     from graph.main_graph import run_graph_stream
 
     prepared = _prepare_chat_turn(req, resume_task=_learning_task, resume=_resume)
+    if not _resume and _learning_task is None:
+        from backend.services.agent_runtime.chat_binding import try_chat_response
+        runtime_response = try_chat_response(req, prepared, _request_id or f"req_{uuid.uuid4().hex}")
+        if runtime_response is not None:
+            return runtime_response
     book_name = prepared["book_name"]
     subject = prepared["subject"]
     conversation_id = prepared["conversation_id"]
@@ -809,6 +921,8 @@ def _prepared_chat_stream(
     learning_task = get_learning_task_store().claim_run(learning_task, run_id)
     learning_task.artifacts.update({
         "resolved_query": rewritten_question,
+        "resolution_trace": resolution_trace,
+        "context_versions": context_versions,
         "book_name": book_name,
         "subject": subject,
         "target_chapters": target_chapters,
@@ -820,12 +934,83 @@ def _prepared_chat_stream(
     continuity_context["learning_task"] = learning_task.to_dict()
     continuity_context["required_outputs"] = learning_task.required_outputs
 
+    routing_decision = None
+    if os.getenv("TEXA_AGENT_ROUTER_SHADOW", "0") == "1" or os.getenv("TEXA_AGENT_DIRECT_FAST_PATH", "0") == "1":
+        try:
+            from backend.services.decision.contracts import DecisionContext
+            from backend.services.decision.router import DecisionRouter
+            semantic = None
+            if os.getenv("TEXA_AGENT_ROUTER_SEMANTIC_SHADOW", "0") == "1":
+                from backend.services.decision.semantic import LocalPrototypeBackend
+                from config import get_embeddings
+                semantic = LocalPrototypeBackend(get_embeddings, backend_version="local-v1")
+            routing_decision = DecisionRouter(semantic=semantic, shadow=True).route(DecisionContext(
+                request_id=_request_id or run_id, text=req.question,
+                resolved_query=rewritten_question, answer_mode=answer_mode,
+                subject=subject, book_ids=(book_name,) if book_name else (),
+                current_task_status="", resolution_status=str(resolution_trace.get("resolution_action") or "resolved"),
+                question_understanding=resolution_trace.get("question_understanding") or {},
+            ))
+            if routing_decision.mode == "direct_answer" and not use_textbook_context and os.getenv("TEXA_AGENT_DIRECT_FAST_PATH", "0") == "1":
+                from dataclasses import replace
+                routing_decision = replace(routing_decision, shadow_only=False)
+        except Exception:
+            logger.exception("shadow capability routing failed")
+
     def event_generator():
         nonlocal learning_task
         from backend.rag_trace import new_request_id, save_trace
 
         request_id = _request_id or new_request_id()
         task_store = get_learning_task_store()
+        audit_identity = {"session_id": conversation_id, "turn_id": turn_id,
+                          "request_id": request_id, "task_id": learning_task.id, "run_id": run_id}
+        if not _resume:
+            emit_runtime_event("user_input", **audit_identity,
+                               payload={**text_fingerprint(req.question), "answer_mode": answer_mode,
+                                        "context_turn_count": min(len(history), 1000000)})
+        prior_state = resolution_trace.get("state_before") or {}
+        emit_runtime_event("context", **audit_identity,
+                           payload={"resolved_hash": text_fingerprint(rewritten_question)["input_hash"],
+                                    "topic_hash": text_fingerprint(str(prior_state.get("topic") or ""))["input_hash"],
+                                    "context_turn_refs": [str(ref) for ref in (resolution_trace.get("referenced_turn_ids") or [])[:12]],
+                                    "context_turn_count": min(len(history), 1000000),
+                                    "constraint_count": min(len(prior_state.get("constraints") or []), 1000000),
+                                    "ledger_revision": max(0, min(int(resolution_trace.get("ledger_base_revision") or 0), 1000000)),
+                                    "answer_mode": answer_mode,
+                                    "model_id": safe_reference(context_versions.get("model_name")),
+                                    "provider_id": safe_reference(context_versions.get("model_backend")),
+                                    "prompt_version": safe_reference(context_versions.get("prompt_version")),
+                                    "context_policy_version": safe_reference(context_versions.get("context_policy_version")),
+                                    "retrieval_policy_version": safe_reference(context_versions.get("retrieval_policy_version")),
+                                    "corpus_version": safe_reference(context_versions.get("corpus_version"))})
+        emit_runtime_event("active_goal", **audit_identity,
+                           payload={"goal_ref": learning_task.id, "goal_status": learning_task.status,
+                                    "required_output_count": len(learning_task.required_outputs), "resume": _resume})
+        if _resume:
+            emit_runtime_event("retry", **audit_identity,
+                               payload={"status": "running", "resume": True})
+        emit_runtime_event("decision", **audit_identity,
+                           payload={"route": "legacy_chat", "answer_mode": answer_mode,
+                                    "decision_mode": str(resolution_trace.get("resolution_action") or "continue"),
+                                    "reason_code": scope_reason})
+        if routing_decision is not None:
+            emit_runtime_event("decision", **audit_identity,
+                               payload={"route": "shadow_router" if routing_decision.shadow_only else "direct_fast_path", "decision_mode": routing_decision.mode,
+                                        "capability": routing_decision.selected_capability or "direct_answer",
+                                        "shadow_only": routing_decision.shadow_only})
+        if routing_decision is not None:
+            try:
+                from backend.services.decision.contracts import DecisionContext
+                from backend.services.decision.trace import RoutingTraceStore, DEFAULT_ROUTING_DB_PATH
+                RoutingTraceStore(DEFAULT_ROUTING_DB_PATH).record(DecisionContext(
+                    request_id=request_id, text=req.question, resolved_query=rewritten_question,
+                    answer_mode=answer_mode, subject=subject,
+                    book_ids=(book_name,) if book_name else (),
+                    question_understanding=resolution_trace.get("question_understanding") or {},
+                ), routing_decision, task_id=learning_task.id)
+            except Exception:
+                logger.exception("shadow routing trace persistence failed")
         def persist_execution_event(event: dict) -> None:
             if event.get("type") in {"final", "error"}:
                 content = "".join(assistant_chunks)
@@ -885,9 +1070,6 @@ def _prepared_chat_stream(
         assistant_message: dict | None = None
         suggested_answer_mode = ""
         disconnected = False
-        reason_active = False
-        reason_started_at: float | None = None
-        evidence_active = False
         generation_handoff_done = False
 
         def execution_sse(
@@ -953,6 +1135,7 @@ def _prepared_chat_stream(
                         conversation_id,
                         learning_task.id,
                         on_event=on_tool_event,
+                        question_understanding=resolution_trace.get("question_understanding"),
                     )
                     event_queue.put(("done", result))
                 except Exception as exc:  # pragma: no cover - service already degrades safely
@@ -1009,6 +1192,7 @@ def _prepared_chat_stream(
                             for key in (
                                 "tool", "args_summary", "timeout_seconds", "success", "required_outputs",
                                 "satisfied_required_outputs", "missing_required_outputs", "followup",
+                                "input_preview", "result_preview", "provenance", "warnings", "verification_passed",
                             )
                             if value.get(key) is not None
                         },
@@ -1200,7 +1384,7 @@ def _prepared_chat_stream(
                 }
                 waiting_reason = clarification if resolution_trace.get("resolution_action") == "clarify" else ""
                 completed_task = _finish_chat_learning_task(
-                    learning_task, final_state, waiting_reason=waiting_reason, run_id=run_id,
+                    learning_task, final_state, waiting_reason=waiting_reason, run_id=run_id, policy_request_id=request_id,
                 )
                 if (
                     is_resumable_task_status(completed_task.status)
@@ -1212,10 +1396,15 @@ def _prepared_chat_stream(
                 observe(done_event)
                 yield f"data: {json.dumps(_chat_execution_envelope(done_event), ensure_ascii=False)}\n\n"
                 return
-            tool_request = _main_tool_request(
-                rewritten_question, book_name, subject, conversation_id,
-            )
-            planned_tools = select_tool_calls(tool_request)
+            direct = (routing_decision is not None and routing_decision.mode == "direct_answer"
+                      and not use_textbook_context and os.getenv("TEXA_AGENT_DIRECT_FAST_PATH", "0") == "1")
+            if direct:
+                planned_tools = []
+                continuity_context["direct_answer"] = True
+            else:
+                tool_request = _main_tool_request(rewritten_question, book_name, subject, conversation_id,
+                                                 question_understanding=resolution_trace.get("question_understanding"))
+                planned_tools = select_tool_calls(tool_request)
             if planned_tools and answer_mode != "subject_mismatch":
                 yield activity_sse({
                     "id": "tools", "kind": "tool", "label": "使用学习工具",
@@ -1260,6 +1449,7 @@ def _prepared_chat_stream(
                     return
                 checkpoint_state = event.pop("checkpoint_state", None)
                 if isinstance(checkpoint_state, dict):
+                    event["execution_details"] = evidence_details(checkpoint_state)
                     learning_task.artifacts["resume_state"] = checkpoint_state
                     learning_task.artifacts["resume_stage"] = "retrieve"
                     get_learning_task_store().save_for_run(learning_task, run_id)
@@ -1270,22 +1460,9 @@ def _prepared_chat_stream(
                     suggested_answer_mode = str(event["suggested_answer_mode"])
                 if event.get("stage") == "generate" and not generation_handoff_done:
                     generation_handoff_done = True
-                    if reason_active:
-                        yield activity_sse({
-                            "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
-                            "status": "completed", "detail": "已形成可展示的回答路径",
-                            "duration_ms": round((time.perf_counter() - (reason_started_at or time.perf_counter())) * 1000, 2),
-                        })
-                    else:
-                        if evidence_active:
-                            yield activity_sse({
-                                "id": "evidence", "kind": "evidence", "label": "整理教材证据",
-                                "status": "skipped", "detail": "无需额外展开章节内容",
-                            })
-                        yield activity_sse({
-                            "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
-                            "status": "completed", "detail": "已形成可展示的回答路径",
-                        })
+                    emit_runtime_event("model_call", **audit_identity,
+                                       payload={"model_role": "reasoning", "phase": "generation",
+                                                "status": "running"})
                 event["conversation_id"] = conversation_id
                 event["turn_id"] = turn_id
                 if event.get("stage") == "generate":
@@ -1296,6 +1473,12 @@ def _prepared_chat_stream(
                     elif event.get("chunk"):
                         assistant_chunks.append(str(event.get("chunk")))
                 if event.get("stage") == "done":
+                    state_refs = event.get("state") or {}
+                    chunk_refs = [str(item.get("chunk_id")) for item in (state_refs.get("evidence_sources") or [])
+                                  if isinstance(item, dict) and item.get("chunk_id")]
+                    emit_runtime_event("retrieval", **audit_identity,
+                                       payload={"chunk_refs": chunk_refs[:32],
+                                                "evidence_count": len(chunk_refs), "status": "completed"})
                     completed_task = _finish_chat_learning_task(
                         learning_task, event.get("state") or {}, run_id=run_id,
                     )
@@ -1340,37 +1523,18 @@ def _prepared_chat_stream(
                 else:
                     observe(event)
                 yield f"data: {json.dumps(_chat_execution_envelope(event), ensure_ascii=False)}\n\n"
-                if event.get("stage") == "plan":
+                if event.get("stage") == "plan" and use_textbook_context:
                     yield activity_sse({
                         "id": "retrieve", "kind": "tool", "label": "检索教材上下文",
                         "status": "active", "detail": "正在定位相关章节、定义、公式与例题",
                     })
-                elif event.get("stage") == "retrieve":
-                    has_chapter_step = (
-                        bool(event.get("use_textbook_context", True))
-                        and intent in {"teach", "summarize"}
-                        and int(event.get("content_count") or 0) > 0
-                    )
-                    if has_chapter_step:
-                        evidence_active = True
-                        yield activity_sse({
-                            "id": "evidence", "kind": "evidence", "label": "整理教材证据",
-                            "status": "active", "detail": "正在准备章节内容与可引用依据",
-                        })
-                    else:
-                        reason_active = True
-                        reason_started_at = time.perf_counter()
-                        yield activity_sse({
-                            "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
-                            "status": "active", "detail": "正在基于问题与已取得证据组织回答",
-                        })
-                elif event.get("stage") == "chapter":
-                    evidence_active = False
-                    reason_active = True
-                    reason_started_at = time.perf_counter()
+                elif event.get("stage") == "retrieve" and (
+                    use_textbook_context and intent in {"teach", "summarize"}
+                    and int(event.get("content_count") or 0) > 0
+                ):
                     yield activity_sse({
-                        "id": "reason", "kind": "reasoning", "label": "综合证据与知识推理",
-                        "status": "active", "detail": "正在基于章节证据组织讲解结构",
+                        "id": "evidence", "kind": "evidence", "label": "整理教材证据",
+                        "status": "active", "detail": "正在准备章节内容与可引用依据",
                     })
         except GeneratorExit:
             disconnected = True
@@ -1398,18 +1562,20 @@ def _prepared_chat_stream(
                 last_stage = "interrupted"
                 logger.info("stale chat stream failure ignored", extra={"request_id": request_id})
                 return
-            logger.exception("chat stream failed", extra={"request_id": request_id})
+            safe_error = _safe_chat_error(exc)
+            logger.error("chat stream failed (%s): %s", type(exc).__name__, safe_error,
+                         extra={"request_id": request_id})
             pending_actions = list(learning_task.artifacts.get("pending_actions") or [])
             failure_status = "waiting_for_confirmation" if pending_actions else "failed"
             failed_task = get_learning_task_store().prepare_checkpoint_for_run(
-                learning_task, run_id, "generation_failed", status=failure_status, detail=str(exc),
+                learning_task, run_id, "generation_failed", status=failure_status, detail=safe_error,
             )
             if str(failed_task.artifacts.get("active_run_id") or "") != run_id:
                 disconnected = True
                 last_stage = "interrupted"
                 return
             event = {
-                "stage": "error", "message": str(exc), "done": True,
+                "stage": "error", "message": safe_error, "done": True,
                 "conversation_id": conversation_id, "turn_id": turn_id,
                 "learning_task": failed_task.to_dict(public=True),
             }
@@ -1488,10 +1654,11 @@ def _chat_stream(
                 "error",
                 phase="context",
                 status="failed",
-                summary=str(exc),
+                summary=_safe_chat_error(exc),
                 operation_id="context",
                 label="读取会话上下文",
                 kind="system",
+                payload={"error_code": "context_preparation_failed", "error_type": type(exc).__name__},
             )
             yield f"data: {json.dumps(execution_sse_payload(failed), ensure_ascii=False)}\n\n"
 
@@ -1513,11 +1680,38 @@ def _chat_stream(
 
 @router.post("/stream")
 def chat_stream(req: ChatRequest):
+    try:
+        from backend.services.goals.service import GOAL_CONTROL_LOCK
+        with GOAL_CONTROL_LOCK:
+            assert_conversation_writable(req.conversation_id)
+    except ConversationManagementError as exc:
+        return JSONResponse(status_code=exc.status, content={"success": False, "code": exc.code, "message": str(exc), **exc.details})
     return _chat_stream(req)
 
 
 @router.post("/tasks/{task_id}/resume-stream")
 def resume_chat_task_stream(task_id: str):
+    from backend.services.agent_runtime.locator import is_runtime_task, runtime_store
+    if is_runtime_task(task_id):
+        from backend.services.agent_runtime.chat_binding import stream_run
+        runtime = runtime_store()
+        snapshot = runtime.task_snapshot(task_id) if runtime else None
+        if snapshot is None:
+            raise HTTPException(404, "runtime task not found")
+        if snapshot["run"]["trigger_kind"] not in {"user", "ui_action"}:
+            raise HTTPException(409, "请从所属目标恢复运行")
+        if any(call["permission"] == "LOCAL_WRITE" and call["status"] == "unknown" for call in snapshot["tool_calls"]):
+            raise HTTPException(409, "unknown write requires explicit receipt reconciliation")
+        owner = uuid.uuid4().hex
+        try:
+            resumed = runtime.resume(task_id, expected_revision=snapshot["task_revision"],
+                request_key=f"resume_{uuid.uuid4().hex}", request_id=f"req_{uuid.uuid4().hex}",
+                owner_token=owner, turn_id=snapshot["task"]["turn_id"])
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return stream_run(runtime, resumed["run"]["id"], owner)
     store = get_learning_task_store()
     task = store.get(task_id)
     if task is None or task.task_type != "qa":
@@ -1540,9 +1734,34 @@ def resume_chat_task_stream(task_id: str):
     return _chat_stream(request, _learning_task=task, _resume=True, _run_id=run_id)
 
 
+@router.post("/tasks/{task_id}/cancel")
+def cancel_chat_task(task_id: str, payload: ConversationTaskCancelRequest):
+    result = _management_result(lambda: ConversationManagementService().cancel_task(task_id, **payload.model_dump()))
+    if isinstance(result, dict):
+        result['learning_task'] = result['data']
+        task = result['data']
+        update_learning_task_projection(task.get('conversation_id', ''), task_id, task)
+    return result
+
+
 @router.post("/tasks/{task_id}/interrupt")
 def interrupt_chat_task(task_id: str, payload: dict | None = None):
     """Acknowledge a user stop before the UI exposes the resume action."""
+    from backend.services.agent_runtime.locator import is_runtime_task, runtime_store, public_task
+    if is_runtime_task(task_id):
+        runtime = runtime_store()
+        snapshot = runtime.task_snapshot(task_id) if runtime else None
+        if snapshot is None:
+            raise HTTPException(404, "runtime task not found")
+        if (payload or {}).get("run_id") != snapshot["run"]["id"]:
+            raise HTTPException(409, "interrupt requires current run_id")
+        if snapshot["run"]["status"] == "running":
+            try:
+                snapshot = runtime.close(snapshot["run"]["id"], snapshot["run"]["owner_token"],
+                    outcome="paused", error_code="user_stopped")
+            except RuntimeError as exc:
+                raise HTTPException(409, str(exc)) from exc
+        return {"success": True, "learning_task": public_task(runtime, snapshot)}
     store = get_learning_task_store()
     task = store.get(task_id)
     if task is None or task.task_type != "qa":
@@ -1563,9 +1782,36 @@ def interrupt_chat_task(task_id: str, payload: dict | None = None):
     return {"success": True, "learning_task": public_task}
 
 
+@router.get("/tasks/{task_id}/events")
+def get_chat_runtime_events(task_id: str, run_id: str, after_seq: int = 0, limit: int = 100):
+    """Cursor replay of one owned run; ephemeral output deltas are not persisted."""
+    from backend.services.agent_runtime.locator import is_runtime_task, runtime_store
+    if not is_runtime_task(task_id):
+        raise HTTPException(400, "event replay requires a runtime task")
+    if after_seq < 0 or not 1 <= limit <= 500:
+        raise HTTPException(400, "invalid event cursor")
+    store = runtime_store()
+    try:
+        snapshot = store.snapshot(run_id) if store else None
+    except KeyError:
+        snapshot = None
+    if snapshot is None or snapshot["task"]["id"] != task_id:
+        raise HTTPException(404, "runtime run not found")
+    events = store.events(run_id, after_seq=after_seq, limit=limit)
+    return {"success": True, "events": events,
+            "next_seq": events[-1]["seq"] if events else after_seq}
+
+
 @router.get("/tasks/{task_id}")
 def get_chat_learning_task(task_id: str):
     """Read current task/effect status without executing or resuming any work."""
+    from backend.services.agent_runtime.locator import is_runtime_task, runtime_store, public_task
+    if is_runtime_task(task_id):
+        runtime = runtime_store()
+        snapshot = runtime.task_snapshot(task_id) if runtime else None
+        if snapshot is None:
+            raise HTTPException(404, "runtime task not found")
+        return {"success": True, "learning_task": public_task(runtime, snapshot)}
     try:
         task = get_learning_task_store().get(task_id)
     except ValueError as exc:
@@ -1583,6 +1829,10 @@ def chat_ask(req: ChatRequest):
     request_id = new_request_id()
     started = time.perf_counter()
     prepared = _prepare_chat_turn(req)
+    from backend.services.agent_runtime.chat_binding import try_chat_response
+    runtime_response = try_chat_response(req, prepared, request_id, streaming=False)
+    if runtime_response is not None:
+        return runtime_response
     book_name = prepared["book_name"]
     subject = prepared["subject"]
     conversation_id = prepared["conversation_id"]
@@ -1629,6 +1879,7 @@ def chat_ask(req: ChatRequest):
             if answer_mode != "subject_mismatch":
                 tool_run = _prepare_main_tool_context(
                     rewritten_question, book_name, subject, conversation_id, learning_task.id,
+                    question_understanding=resolution_trace.get("question_understanding"),
                 )
                 learning_task = _attach_pending_actions(learning_task, tool_run, run_id=run_id)
                 continuity_context["learning_task"] = learning_task.to_dict()
@@ -1650,7 +1901,7 @@ def chat_ask(req: ChatRequest):
         if not store.run_is_active(learning_task.id, run_id):
             raise HTTPException(status_code=409, detail="stale execution run") from exc
         failure_status = "waiting_for_confirmation" if learning_task.artifacts.get("pending_actions") else "failed"
-        learning_task = store.prepare_checkpoint_for_run(learning_task, run_id, "generation_failed", status=failure_status, detail=str(exc))
+        learning_task = store.prepare_checkpoint_for_run(learning_task, run_id, "generation_failed", status=failure_status, detail=_safe_chat_error(exc))
         failure = ExecutionEventEmitter(request_id=request_id, task_id=learning_task.id, run_id=run_id,
             conversation_id=conversation_id, turn_id=turn_id).emit("error", phase="error", status="failed",
             summary="generation failed", payload={"task_status": failure_status})
@@ -1660,7 +1911,7 @@ def chat_ask(req: ChatRequest):
         raise HTTPException(status_code=409, detail="stale execution run")
     waiting_reason = str(result.get("final_output") or "") if resolution_trace.get("resolution_action") == "clarify" else ""
     try:
-        learning_task = _finish_chat_learning_task(learning_task, result, waiting_reason=waiting_reason, run_id=run_id)
+        learning_task = _finish_chat_learning_task(learning_task, result, waiting_reason=waiting_reason, run_id=run_id, policy_request_id=request_id)
     except ValueError as exc:
         raise HTTPException(status_code=409, detail="stale execution run") from exc
     result["learning_task"] = learning_task.to_dict(public=True)

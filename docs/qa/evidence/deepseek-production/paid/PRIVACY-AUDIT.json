@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-13T12:45:01.150449+00:00",
+  "credential_values_scanned_in_ram_only": 2,
+  "artifact_files_scanned": 25,
+  "credential_matches": [],
+  "no_credential_hash_or_value_saved": true,
+  "reasoning_content_sql_or_sse_key_audit": "see FINAL-ACCEPTANCE.json; false",
+  "actual_hidden_text_not_collected": true,
+  "qa_sql_and_profile_files_scanned": 10,
+  "qa_credential_matches": [
+    "/private/tmp/texa-deepseek-production-paid/local.env"
+  ],
+  "remediation": "Ordinary profile writer copied inherited keys into isolated local.env. Removed only QA credential entries, set mode 0600; user original credentials untouched. QA executor now filters credential keys before original writer. No claim of physical disk zeroization.",
+  "qa_credential_matches_after_cleanup": [],
+  "qa_env_mode": "0o600",
+  "remediation_verified_at": "2026-10-13T12:49:28.528363+00:00",
+  "free_qa_credential_writer_test": "passed; see free-post-acceptance-regression.log"
+}

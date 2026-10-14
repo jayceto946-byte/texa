@@ -1,0 +1,21 @@
+........................................................................ [ 34%]
+........................................................................ [ 68%]
+.................................................................        [100%]
+=============================== warnings summary ===============================
+venv310/lib/python3.10/site-packages/starlette/testclient.py:53
+  /Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+tests/test_runtime_stream_cleanup_errors.py::test_generation_error_is_redacted_before_task_persistence[False]
+tests/test_runtime_stream_cleanup_errors.py::test_generation_error_is_redacted_before_task_persistence[False]
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+tests/test_runtime_stream_cleanup_errors.py::test_generation_error_is_redacted_before_task_persistence[False]
+tests/test_runtime_stream_cleanup_errors.py::test_generation_error_is_redacted_before_task_persistence[False]
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+tests/test_runtime_stream_cleanup_errors.py::test_generation_error_is_redacted_before_task_persistence[False]
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+209 passed, 6 warnings in 14.38s

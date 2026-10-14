@@ -1,0 +1,39 @@
+{
+  "source": "585b03c frontend plus Sidebar empty-window guard; independent temporary build, excludes parallel network work",
+  "ui_benchmark_exit": 0,
+  "typescript_exit": 0,
+  "sidebar_lint_exit": 0,
+  "vite_build_exit": 0,
+  "additional_diagnostic_flow": "failed: timeout waiting for fixture error text after reloading/reading 100 messages; not passed",
+  "same_id_reload_reads_100_messages": "passed before later diagnostic-flow timeout",
+  "errors": [],
+  "stream": {
+    "initialTop": 120,
+    "finalTop": 120,
+    "partialVisible": true,
+    "errorVisible": true
+  },
+  "electron": {
+    "isElectron": true,
+    "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+    "messageCount": 100,
+    "renderedMarkdownCount": 100,
+    "renderedMathCount": 800,
+    "bodyWidth": 1280,
+    "viewport": 1280,
+    "imeSubmissions": 0,
+    "bookReadsOnInvalidation": 1
+  },
+  "diagnostic_schema_tests": "184 frontend tests (2026-10-09), not real upload/DERP acceptance",
+  "cold": {
+    "n": 5,
+    "medianMs": 6351.7,
+    "p95Ms": 6532.3
+  },
+  "warm": {
+    "n": 20,
+    "medianMs": 868.7,
+    "p95Ms": 890
+  },
+  "isolated_shell_sha256": "cdc1108f59153bd48427c2d25dccac58261bf4ac95597ad11dfebf05c9bc55ba"
+}

@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Texa · 教材全链路验证</title>
+<style>
+:root{--bg:#faf9f6;--surface:#fffefa;--dock:#e9ebef;--line:#dedfdc;--text:#353941;--muted:#626772;--accent:#4758ba;--soft:#eef0fa;--green:#28614c;--red:#a33d36;--amber:#865d24;--radius:6px}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:82px}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea,select{font:inherit;color:inherit}button,a,summary,input,select,textarea{outline-offset:3px}button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent)}button{cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:6px 12px;line-height:1.5}button:hover{background:#f0f1f5}button.primary{background:var(--accent);border-color:var(--accent);color:white}button.primary:hover{background:#394aa3}button.quiet{background:transparent}button.danger{color:var(--red)}button:disabled{opacity:.5;cursor:default}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}h1,h2,h3,p{margin:0}h1{font-size:26px;letter-spacing:-.035em;line-height:1.3}h2{font-size:19px;line-height:1.4}h3{font-size:15px}small,.hint{font-size:12px;color:var(--muted)}[hidden]{display:none!important}.shell{display:grid;grid-template-columns:226px minmax(0,1fr);min-height:100vh}.sidebar{background:var(--dock);border-right:1px solid var(--line);padding:26px 18px;position:sticky;top:0;height:100vh;overflow:auto}.brand{font-size:22px;font-weight:650;letter-spacing:-.04em;display:flex;align-items:center;gap:10px}.brandmark{width:24px;height:28px;border-left:6px solid var(--accent);border-right:6px solid var(--accent);transform:skewY(-10deg)}.sidetitle{margin:4px 0 28px;color:var(--muted);font-size:12px}.sidebar nav{display:grid;gap:6px}.navlink{display:flex;gap:9px;align-items:flex-start;color:var(--text);padding:9px 8px;border-radius:5px;font-size:13px}.navlink:hover{background:#dde1ed;text-decoration:none}.navletter{color:var(--accent);font-weight:650}.navname{flex:1}.navcount{color:var(--muted);font-size:11px;padding-top:2px;white-space:nowrap}.sidefoot{margin-top:28px;padding-top:18px;border-top:1px solid #d2d6de;font-size:12px;color:var(--muted)}.sidefoot p+p{margin-top:9px}.workspace{min-width:0}.topbar{position:sticky;top:0;z-index:10;background:rgba(250,249,246,.98);border-bottom:1px solid var(--line);padding:12px 28px;display:flex;gap:16px;justify-content:space-between;align-items:center;flex-wrap:wrap}.toplabel{font-weight:600;font-size:13px}.topactions{display:flex;gap:7px;flex-wrap:wrap}.content{max-width:1120px;margin:0 auto;padding:32px 36px 60px}.hero{display:flex;gap:20px;align-items:center;justify-content:space-between;margin-bottom:22px}.hero p{color:var(--muted);margin-top:10px;max-width:690px}.tag{font-size:11px;display:inline-block;white-space:nowrap;border:1px solid var(--line);border-radius:4px;padding:2px 7px;color:var(--muted);background:var(--surface)}.notice{padding:13px 16px;background:#f0f1f6;border-left:3px solid var(--accent);border-radius:0 5px 5px 0;font-size:13px;margin-bottom:22px}.notice strong{font-weight:600}.overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-block:1px solid var(--line);padding:15px 0;margin-bottom:12px}.metric{padding:0 16px;border-right:1px solid var(--line)}.metric:first-child{padding-left:0}.metric:last-child{border:0}.metric .number{font-size:25px;font-weight:600;line-height:1.3}.metric p{font-size:12px;color:var(--muted)}.metric.fail .number{color:var(--red)}.metric.pass .number{color:var(--green)}.progressbar{height:5px;background:#e7e8ed;border-radius:3px;overflow:hidden;margin-bottom:10px}.progressbar>div{height:100%;background:var(--accent);transition:width .2s}.savebar{display:flex;gap:10px;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:24px}.savebar .warning{color:var(--red)}details.settings{border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin-bottom:22px;background:var(--surface)}summary{cursor:pointer}details.settings>summary{font-weight:600}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;margin-top:14px}label.field{display:grid;gap:5px;font-size:12px;font-weight:500;min-width:0}.span2{grid-column:1/-1}input[type=text],input[type=date],input[type=number],textarea,select{width:100%;min-width:0;border:1px solid #cdd0d6;border-radius:5px;background:white;padding:8px 10px;font-size:13px;line-height:1.6}textarea{resize:vertical;min-height:84px}input::placeholder,textarea::placeholder{color:#858992}input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;flex:none;margin-top:3px}.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:end;margin:28px 0 18px;flex-wrap:wrap}.toolbar label{min-width:175px}.toolbar small{display:block;margin-top:4px}.phase{margin-top:28px;scroll-margin-top:85px}.phaseheading{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px}.phaseheading h2{font-size:18px}.phaseno{color:var(--accent);margin-right:9px}.phaseintro{color:var(--muted);font-size:12px;margin-top:-5px;margin-bottom:14px}.step{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);margin-bottom:10px;scroll-margin-top:90px;overflow:hidden}.step>summary{list-style:none;display:flex;gap:12px;padding:16px;align-items:flex-start}.step>summary::-webkit-details-marker{display:none}.step>summary::after{content:'＋';margin-left:auto;color:var(--muted);font-size:19px;line-height:1.3}.step[open]>summary::after{content:'−'}.stepnum{font-size:12px;font-weight:600;color:var(--muted);padding-top:3px;width:24px;flex:none}.stephead{min-width:0;flex:1}.steptitle{font-weight:600;font-size:15px;line-height:1.5}.stepcaption{font-size:12px;color:var(--muted);margin-top:3px}.badge{display:inline-block;white-space:nowrap;font-size:11px;line-height:1.7;padding:2px 8px;border-radius:4px;background:#f0f1f3;color:#626772;border:1px solid #e0e2e7}.badge[data-status=passed]{color:var(--green);background:#edf5f0;border-color:#d2e4d9}.badge[data-status=failed]{color:var(--red);background:#fbefed;border-color:#e9d0cb}.badge[data-status=blocked]{color:var(--amber);background:#faf4e7;border-color:#e8dbbb}.badge[data-status=running]{color:var(--accent);background:var(--soft);border-color:#d9def5}.stepbody{padding:0 18px 18px 52px;border-top:1px solid transparent}.instructions{margin:0 0 15px;padding-left:20px;font-size:13px}.instructions li{padding:3px 0}.checktitle{font-size:12px;font-weight:600;margin-bottom:7px}.criteria{display:grid;gap:7px;padding:12px 14px;border:1px solid var(--line);border-radius:5px;background:#f8f8f5;margin-bottom:12px}.check{display:flex;gap:9px;align-items:flex-start;font-size:13px;font-weight:400}.example{padding:10px 12px;border-left:2px solid #cbd1e9;background:#f4f5fa;margin:10px 0 15px;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}.special{padding:9px 11px;background:#f7f2e8;color:#6b542c;font-size:12px;border-radius:4px;margin-bottom:12px}.feedbackgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}.statusrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}.validation{color:var(--red);font-size:12px;margin:8px 0}.stepfooter{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:13px}.sectionpanel{border-top:1px solid var(--line);padding-top:26px;margin-top:34px}.sectionpanel>p{color:var(--muted);font-size:13px;margin:8px 0 16px}.sectionhead{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.cases{display:grid;gap:12px;margin-top:16px}.case{border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:16px}.caseheader{display:flex;justify-content:space-between;align-items:center;gap:10px}.empty{padding:20px;border:1px dashed #cfd2dc;border-radius:6px;color:var(--muted);font-size:13px;text-align:center}.reportsummary{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}.reportlist{display:grid;gap:8px}.reportitem{display:flex;gap:12px;padding:11px 13px;border:1px solid var(--line);border-radius:5px;font-size:13px;align-items:flex-start;background:var(--surface)}.reportitem .reporttext{flex:1;min-width:0;overflow-wrap:anywhere}.reportitem p{color:var(--muted);font-size:12px;white-space:pre-wrap;margin-top:4px}.reportitem button{flex:none;font-size:12px}.bottomactions{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}.toast{position:fixed;bottom:24px;right:24px;max-width:min(430px,calc(100vw - 48px));background:#353941;color:white;border-radius:6px;padding:12px 16px;z-index:30;box-shadow:0 4px 22px #0002;font-size:13px}.footer{margin-top:28px;border-top:1px solid var(--line);padding-top:18px;font-size:12px;color:var(--muted)}.field.mobilejump{display:none}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;overflow-wrap:anywhere}button.small{font-size:12px;padding:5px 9px}.legend{font-size:12px;color:var(--muted);margin-bottom:16px}.sectionpanel details{margin-top:12px}.sectionpanel details summary{font-size:13px;font-weight:600}.sectionpanel details p{font-size:13px;margin-top:9px;white-space:pre-wrap}noscript{display:block;background:#fff0e8;padding:24px}
+@media(max-width:1060px){.shell{grid-template-columns:196px minmax(0,1fr)}.sidebar{padding-inline:13px}.content{padding:26px 24px 50px}.topbar{padding-inline:24px}.hero{align-items:flex-start}.hero .tag{display:none}.stepbody{padding-left:18px}.stepcaption{line-height:1.5}}
+@media(max-width:800px){.shell{display:block}.sidebar{display:none}.content{padding:24px 20px 40px}.topbar{padding:10px 20px;gap:8px}.toplabel{display:none}.topactions{width:100%}.topactions button{flex:1}.hero h1{font-size:24px}.field.mobilejump{display:grid;margin-bottom:18px}.formgrid,.feedbackgrid{grid-template-columns:1fr}.span2{grid-column:auto}.metric{padding-inline:10px}.metric .number{font-size:22px}.step>summary{padding:14px 12px;gap:8px}.stepnum{width:22px}.badge{font-size:10px;padding:2px 5px}.stepcaption{font-size:11px}.savebar{flex-wrap:wrap}.reportitem{flex-wrap:wrap}.reportitem button{margin-left:auto}}
+@media(max-width:480px){.statusrow{grid-template-columns:1fr}.topactions button{font-size:12px;padding-inline:6px}.metric p{font-size:11px}.stepfooter{align-items:flex-start}.stepfooter small{max-width:65%}.step>summary{flex-wrap:wrap}.step>summary>.badge{margin-left:30px}.step>summary::after{position:absolute;right:14px}.step{position:relative}.stephead{padding-right:12px}.overview{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.metric:nth-child(2){border:0}.metric:nth-child(3){padding-left:0}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.progressbar>div{transition:none}}
+@media print{.sidebar,.topbar,.toolbar,.mobilejump,.bottomactions,.stepfooter,button,.toast{display:none!important}.shell{display:block}.content{padding:0;max-width:none}.stepbody{display:block!important}.step{break-inside:avoid}.step>summary::after{display:none}.settings>.formgrid{display:grid!important}.phase{margin-top:20px}.sectionpanel{break-before:auto}body{background:white;font-size:12px}textarea{min-height:65px}}
+</style>
+</head>
+<body>
+<noscript>请使用启用 JavaScript 的浏览器打开此文件，才能勾选、保存进度和导出反馈。</noscript>
+<div class="shell">
+<aside class="sidebar" aria-label="验证阶段导航">
+ <div class="brand"><span class="brandmark" aria-hidden="true"></span>Texa</div>
+ <p class="sidetitle">教材验证 · 本地记录</p>
+ <nav id="phaseNav"></nav>
+ <div class="sidefoot"><p>按顺序操作，逐项打勾。先记录实际结果，再决定是否通过。</p><p>需要协助的步骤可标记受阻，继续后面的检查。</p><p><a href="#casesSection">追加真实问题用例</a></p><p><a href="#reportSection">整理与导出反馈 →</a></p></div>
+</aside>
+<div class="workspace">
+ <header class="topbar"><span class="toplabel">教材全链路验证</span><div class="topactions"><button id="resumeBtn" class="primary">继续下一项</button><button id="jsonBtn">导出 JSON</button><button id="mdBtn">导出 Markdown</button><button id="importBtn">恢复记录</button></div></header>
+ <main class="content">
+  <div class="hero"><div><h1>从导入，到真正用起来。</h1><p>一份可以边操作边填写的教材验证记录。每步写明怎么做、检查什么，以及遇到问题时该留下什么。</p></div><span class="tag">独立 HTML · 无需联网</span></div>
+  <div class="notice"><strong>这次从客户端导入开始。</strong>复用服务器已完成的 OCR 输出，不再执行 OCR。此前隔离目录的验收不等于当前客户端已有教材；本页也不会自动操作 Texa 或调用模型。</div>
+  <div class="overview" aria-label="验证进度"><div class="metric"><div class="number" id="decidedCount">0 / 0</div><p>已记录结论</p></div><div class="metric pass"><div class="number" id="passedCount">0</div><p>通过</p></div><div class="metric fail"><div class="number" id="problemCount">0</div><p>失败 / 受阻</p></div><div class="metric"><div class="number" id="pendingCount">0</div><p>待验证 / 进行中</p></div></div>
+  <div class="progressbar" role="progressbar" aria-label="已记录结论的步骤比例" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progressFill" style="width:0"></div></div>
+  <div class="savebar"><span id="saveState" role="status">正在读取本地记录…</span><span>只保存在本浏览器；换电脑前请导出 JSON。</span></div>
+  <details class="settings"><summary>本轮环境与教材记录 · 点击填写</summary><p class="hint" style="margin-top:7px">不知道的字段可留空。运行方式、版本和教材名称越清楚，后续越容易复现问题。</p><div id="metaFields" class="formgrid"></div></details>
+  <label class="field mobilejump">跳转阶段<select id="phaseJump"><option value="">选择验证阶段</option></select></label>
+  <div class="toolbar"><div><h2>按顺序检查</h2><small>勾选验收点后选择结论。未执行的项目请保持待验证，或填写不适用的原因。</small></div><label class="field">显示范围<select id="filter"><option value="all">全部步骤</option><option value="pending">待验证 / 进行中</option><option value="issues">有问题 / 受阻 / 有备注</option><option value="passed">已通过</option></select></label></div>
+  <p class="legend">“需要工程协助”项可先记录受阻；“副本操作”项只在测试数据副本中执行。通过是你的验收结论，不会由页面自动推断。</p>
+  <div id="steps"></div><div id="noSteps" class="empty" hidden>当前筛选下没有步骤。切回“全部步骤”继续查看。</div>
+  <section id="casesSection" class="sectionpanel">
+   <div class="sectionhead"><h2>追加真实问题用例</h2><button id="addCase" class="primary">＋ 记录一个问题</button></div>
+   <p>每个问题单独记录，避免把整章或多本书的结果混为一项。主教材建议先做 30–50 个真实问题，覆盖主要章节；其他教材也要检查各主要章节和特有结构。</p>
+   <details><summary>如何选样本、判断回答是否正确？</summary><p>先从原文选取定义、列表、公式、表格、例题及跨页内容，写好正确章节与必要要点，再提问。题目类型覆盖定义、列举、比较、原理、推导、应用、跨章节及负向问题。回答正确性由你对照原文判断；自动校验通过或引用存在，都不能单独证明答案正确。每个样本分别记录证据、答案和引用的结果。</p></details>
+   <div id="cases" class="cases"></div>
+  </section>
+  <section id="reportSection" class="sectionpanel">
+   <div class="sectionhead"><h2>整理反馈</h2><button id="copyBtn">复制反馈摘要</button></div>
+   <p>导出的报告包含环境、全部步骤和问题用例，保留待验证、不适用及首次失败的描述。把 JSON 或 Markdown 文件发给我，就能按编号定位和修复。</p>
+   <div id="reportSummary" class="reportsummary"></div><div id="reportList" class="reportlist"></div>
+   <label class="field" style="margin-top:18px">本轮补充说明<textarea id="generalNotes" rows="3" placeholder="例如：先只验了传感器教材；某些高级检查需要协助；修复后复测仍有问题。"></textarea></label>
+   <div class="bottomactions"><button id="jsonBottom" class="primary">下载完整 JSON</button><button id="mdBottom">下载 Markdown</button><button id="printBtn">打印 / 保存 PDF</button><button id="resetBtn" class="quiet danger">清空本轮记录</button></div>
+  </section>
+  <footer class="footer">清单版本 2026-10-04 · 未填写即未验证。严重公式错误、引用错绑、跨书检索、重复写入或数据丢失应记录为失败。dev 环境的通过不代表安装包、Windows 或掉电恢复已经验收。</footer>
+ </main>
+</div>
+</div>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+<div id="toast" class="toast" role="status" hidden></div>
+<script>
+'use strict';
+const VERSION='2026-10-04.v1', STORAGE='texa.textbook.validation.'+VERSION;
+const STATUS={pending:'待验证',running:'进行中',passed:'通过',failed:'失败',blocked:'受阻',na:'不适用'};
+const SEVERITY={unassessed:'待判断',blocking:'阻断使用 / 数据风险',major:'主要功能异常',minor:'显示 / 操作问题',content:'教材内容质量',none:'未发现问题'};
+const FACETS={pending:'未检查',passed:'正确',failed:'不正确',na:'不适用'};
+const phases=[
+ {id:'A',title:'准备与客户端导入',intro:'解压服务器归档，准备原始输出 ZIP，通过客户端正式导入。'},
+ {id:'B',title:'教材、目录与索引',intro:'确认当前客户端使用的就是这份教材，再检查正文与结构。'},
+ {id:'C',title:'检索证据与范围',intro:'检查找到了什么、有没有漏项或跨书。工程检查与桌面现象分别记录。'},
+ {id:'D',title:'问答、讲解与引用',intro:'对照真实教材核对回答。模型阶段会按你的配置调用服务。'},
+ {id:'E',title:'多轮与任务恢复',intro:'追问、纠正、切题、缺输入，以及停止后继续。'},
+ {id:'F',title:'笔记、练习与复习',intro:'把教材使用串成学习闭环，检查资产保存与来源。'},
+ {id:'G',title:'持久化、恢复与反馈',intro:'验证重开后的状态；高级故障检查用副本；整理可复现的问题。'}
+];
+const S=(id,phase,title,caption,actions,checks,extra={})=>({id,phase,title,caption,actions,checks,...extra});
+const steps=[
+ S('A01','A','记录环境，准备独立验收会话','先确定当前客户端和本轮测试范围。',
+ ['打开 Texa，记录版本及运行方式（开发版 / 安装包）；在上方填入教材名称、系统和模型。','建一个名称带“教材验收”的新会话；后续测试笔记和错题也加验收标记。','确认已有学习数据有备份；不知道数据目录或版本时留空，记录需要协助。'],
+ ['客户端正常打开，无启动错误。','本轮教材、运行方式和独立会话已记录。','已有数据已备份，或确认本次是无旧数据的首次使用。']),
+ S('A02','A','解压服务器完整归档','使用 Downloads 中的原件，只取 OCR 输出。',
+ ['在 Finder 找到 /Users/jichengqian/Downloads/texa-mineru-handoff.tar.gz，解压到独立目录。','进入 outputs/CGQ，确认有 structured_content.json、markdown.md 和 images 文件夹。','保留原始文件名与相对目录；不要复制服务器 patch、数据库或测试目录到客户端。'],
+ ['CGQ 输出目录存在，structured_content.json 非空。','images 文件夹及原文件名保留。','归档原件保留，没有覆盖仓库或客户端数据。'],{example:'应找到：outputs/CGQ/structured_content.json\n以及：outputs/CGQ/markdown.md、outputs/CGQ/images/\n原归档 SHA-256：09c6f3bbd9f442f72f6d7554575a476cca6eabab4f9d2134a1160a5b5f974b21（可由工程协助校验）'}),
+ S('A03','A','把 CGQ 文件夹压成 ZIP','客户端“MinerU 输出包”接收 .zip。',
+ ['在 Finder 右键 CGQ 文件夹，选择“压缩”。不要把整个服务器归档重新打包。','将 ZIP 命名为 传感器原理及应用.zip；名称会用于初始教材名。','打开 ZIP 或查看压缩包目录，确认 JSON、Markdown 与 images 的相对关系未改变。'],
+ ['得到 .zip 文件，而不是改扩展名的 .tar.gz。','ZIP 包含 CGQ 的完整原始输出及图片。','未混入其他书或服务器数据库。']),
+ S('A04','A','从客户端导入 MinerU 输出包','复用已完成的 OCR，只整理内容并建立本地索引。',
+ ['在客户端进入“教材”中的“导入教材”，选择“MinerU 输出包”。','点击“选择输出 zip”，选传感器原理及应用.zip，设置正确分类。','第一轮不要勾选“导入后提取教材概念索引”；点击“导入输出包”。','等待解压、索引和完成；如报错，记录完整错误、进度阶段及等待时间，不连续重复导入。'],
+ ['选择的是 MinerU 输出包入口。','进度最终显示导入成功，无报错。','没有重新提交 OCR，也没有意外启动概念抽取。']),
+ S('A05','A','确认教材入库并重开客户端','从“导入成功”走到“当前桌面可用”。',
+ ['返回教材库，找到这本书，记录名称、分类和可用状态。','设为当前学习范围，进入学习页确认当前教材。','正常关闭客户端后重新打开，再查看教材及当前范围。'],
+ ['书只出现一次，名称与分类正确。','可以选择该书作为学习范围。','重开后教材仍可见、可选择，没有重新导入提示。']),
+ S('B01','B','核对首、中、末章节与页码','每本教材都做，记录实际检查了哪些章节。',
+ ['打开目录，检查第一章、中间章、最后一章及各自小节顺序。','核对原文至少一个跨页位置；页码有偏移时分别记物理页与印刷页。','确认前言或目录等前置材料没有被误当作正文第一章。'],
+ ['抽查章/节的顺序和范围与原文一致。','跨页内容及页码可追溯。','前置材料与正文能区分。'],{example:'CGQ 既有验收为 12 个正文章、243 个编号节；含前置材料的业务投影为 13 项。这个数量用于核对，不要求所有教材都是同样数量。'}),
+ S('B02','B','核对索引、Canonical 与教材版本','需要工程协助；页面没有这些字段时不要猜。',
+ ['在教材详情记录可见索引状态；若未显示版本，把情况记录下来。','请工程只读核对当前数据根、book ID、Canonical fingerprint、active index、manifest 和 lexical 快照。','检查该书的 chunk 数、collection 与图片路径；无需为了检查再建索引。'],
+ ['当前桌面的教材身份和数据根已确认。','Canonical、manifest 与 active index 对应同一版本。','正文索引非空，无失联 collection 或资产路径。'],{mode:'需要工程协助',special:'此前 1826 chunks 与指纹是隔离完整语料验收结果，不能直接复制成当前客户端的检查结果。先标受阻并记录可见信息即可。'}),
+ S('B03','B','抽查定义、列表、公式和表格','检查真实内容，不只看“导入完成”。',
+ ['从原文选首/中/末章各一处定义或段落；选一个长列表、一条复杂公式和一张表格。','通过现有章节阅读或回答引用查看对应内容；没有阅读入口时记录这个限制。','核对列表成员、公式符号/上下标/单位、表头列、数值、注释与必要条件。'],
+ ['定义与条件未发生决定性缺失。','列表及公式结构、符号、单位正确。','表格列、数值和注释保留。'],{special:'发现 OCR 文字或数值错误时，记录原文位置、正确内容与识别结果，问题类型选“教材内容质量”；不需要重跑整本 OCR。'}),
+ S('B04','B','检查教材图与现有来源入口','原始公式/表格 crop 目前没有新增独立查看入口。',
+ ['使用已有图列表或引用入口打开教材图，抽查不同章节的三张图。','检查图片是否完整、编号/标题与原文是否对应。','有原 PDF 时检查现有原文跳转；没有 PDF 时检查可用的片段和图来源。'],
+ ['已有 figure 入口的图片可加载，无破图。','图编号、标题、章节与来源对应。','实际可用来源可访问；没有 PDF 时已明确记录。'],{special:'不要求点击未实现的公式/表格 crop UI；也不把 crop 已保存等同于模型已看过这些图。没有适用入口时标不适用并说明。'}),
+ S('B05','B','选真实例题，检查题干和解答完整性','此前 CGQ 的 example 探针为 0，本项需要补验。',
+ ['从书中挑选至少三道确实存在的例题，包含一处长题干或跨页题。','核对题干、已知条件、附图/表、答案和解题过程，记录页码。','若教材没有例题标记，选完整计算题或应用实例，说明选择依据。'],
+ ['样本确实来自这本教材，不是模型临时生成。','题干、附带条件及解答没有关键截断。','所有样本及原文位置已记录。']),
+ S('C01','C','检查真实检索与最终证据','需要工程协助；最终证据比候选命中更重要。',
+ ['从上述内容准备包含定义、公式、列表和表格的查询，写下必须出现的原文要点。','请工程读取当前教材真实索引，运行不调用回答模型的混合检索与最终 EvidencePack 检查。','记录每类用例结果及缺失点；不能用“初始候选有命中”代替最终证据完整。'],
+ ['检查使用当前客户端的真实教材索引。','必要事实进入最终 EvidencePack。','保留类别结果，未降低既有门槛以获得通过。'],{mode:'需要工程协助',special:'这不是让你在客户端找一个不存在的“离线检索”按钮。可先受阻，导出后由工程补证据。'}),
+ S('C02','C','验证完整列表与精确型号','检查两个 P0 修复在真实教材上的效果。',
+ ['从书中选一个同小节长列表，再选一个型号仅出现在首项或单个成员中的列表。','在限定该书/章节的会话中询问“列出该型号/概念在本节的全部特点”，逐项对照原文。','追加一个错误型号；记录是否混入同章其他小节内容。工程侧另核验 order=0 与组装来源。'],
+ ['同小节合法成员完整，无不相关小节混入。','型号只在部分成员出现时，其他合法成员仍保留。','错误型号不获得同一组的无条件豁免。'],{example:'使用原文中确实存在的 MAC / NK-Humirel 段落时，把型号、章节及完整预期成员先记录到用例表。不要凭示例猜测教材里的答案。'}),
+ S('C03','C','验证限定章节与多教材边界','其他教材尚未导入时，多书部分可标不适用。',
+ ['限定一章问章内问题，再问该章之外才有答案的问题。','有多本教材时，对同名概念分别选不同教材提问，并切换学习范围。','检查答案引用是否越过本轮书/章边界；每本书至少独立做一次。'],
+ ['章内问题使用预期章节。','找不到时明确说明不足，不静默扩大范围。','多书对照未发生串书；只有一本时已说明多书未覆盖。']),
+ S('C04','C','验证不存在的对象和错误前提','负向结果同样要记录，不以“回答很流畅”判通过。',
+ ['问一个书中不存在的型号/术语，或把原理的前提故意说反。','先注明原文为什么不能支持该说法。','观察软件是纠正、说明无证据还是编造来源，并保存原始回答。'],
+ ['没有编造教材定义、页码或型号属性。','错误前提被指出或以不确定性明确处理。','引用能支持陈述，或如实说明没有教材证据。']),
+ S('D01','D','确认模型配置，准备人工预期','开始真实问答前，先确定调用范围。',
+ ['在客户端确认回答模型、视觉模型与连接可用；上方记录模型名称，不填密钥。','按自己的模型服务配置确认愿意支付本轮调用并发送必要教材片段；记录预算/范围。','先写原文页码、必要要点和禁止混入内容，再提交问题；逐题追加到下方用例。'],
+ ['模型角色与本轮调用范围已记录。','你已确认这轮实际模型调用及必要片段发送。','样本有原文依据和预期要点。'],{special:'本页面不会发起任何模型请求。不要在问题描述、截图或导出文件中填写 API key。'}),
+ S('D02','D','验证定义、列举、比较和原理','至少每种类型一个问题，分布于不同章节。',
+ ['选一个定义、完整列举、两个相近概念的比较，以及一个工作原理问题。','在当前教材范围逐题提交，保留首次回答。','逐点对照原文，检查遗漏、条件、跨书知识和错误表述；每题记录证据/答案/引用三个结果。'],
+ ['四类问题均有真实样本。','必要要点、适用条件与区别准确。','结论来自本轮证据，未编造教材事实。'],{example:'可改写为：什么是【原文概念】？请列出本节全部【特点】。\n比较【概念 A】与【概念 B】，说明条件。\n依据本书解释【装置】的工作原理。'}),
+ S('D03','D','验证推导、应用计算和跨章问题','对照公式、条件与单位，不能只看最终数值。',
+ ['选一段真实推导、一题有明确数值的应用题、一个需要关联两章的问题。','核对推导步骤、符号定义、适用条件、代入和单位。','如输入缺参数或附表，先记录缺输入表现，再补充后核对；计算工具结果也要核对。'],
+ ['公式/数值/单位和关键步骤正确。','跨章关联可追溯，未省略决定性条件。','缺关键输入时没有伪造精确结果。']),
+ S('D04','D','验证章节讲解、总结与长内容显示','检查生成顺序和内容呈现。',
+ ['选择一章发起讲解或总结，观察阶段提示到正文的顺序。','在生成中滚动查看，确认正文不被“检索中”等占位覆盖。','选含长公式、矩阵、表格或嵌套列表的回答，检查换行、滚动和渲染。'],
+ ['章节准备提示先于正文，正文不被后续阶段覆盖。','讲解覆盖章节主线、条件及典型内容。','公式、矩阵、表格和列表可读，无关键截断。']),
+ S('D05','D','逐条点击引用，核对支持关系','引用存在和引用正确是两件事。',
+ ['选三条不同类型的回答，逐个点击教材引用。','对照书名、章节、片段和原文，检查引用是否真的支持该句结论。','检查多引用、长列表及引用返回后阅读位置；没有 PDF 不要求 PDF 跳转。'],
+ ['引用目标可打开，定位到正确书和片段。','来源内容支持对应结论，没有伪造引用。','旧引用与当前范围没有错误重绑。']),
+ S('D06','D','检查执行详情与验证状态','查看实际做了什么，不把校验标记当准确率。',
+ ['展开一条成功回答的执行详情，查看检索、工具、阶段和验证信息。','再查看失败或证据不足的记录，核对是否明确降级。','记录 request/task ID（如果可见）、耗时和错误，区分模型答案与工具输出。'],
+ ['执行详情与本次操作对应。','失败、缺证据或未验证状态未被显示为正常通过。','工具结果没有冒充完整教材证据或最终答案。']),
+ S('E01','E','验证追问、纠正与独立新问题','使用同一验收会话逐步操作。',
+ ['问 A 概念后追问“它的适用条件呢”，再要求与 B 比较。','明确纠正“我说的是 B，不是 A”，观察下一次解析。','提出完全独立的问题或切换教材，检查是否错误继承旧对象/约束。'],
+ ['代词与比较对象解析正确。','用户纠正优先于旧主题。','独立问题和切书未继承无效旧约束。']),
+ S('E02','E','验证 20 / 40 / 80 轮长会话','分三个检查点，不用一个总分替代。',
+ ['在可控预算内逐步累积会话，混合追问、纠正、澄清、独立问题和引用之前的表格/回答。','分别在 20、40、80 轮记录对象解析、证据范围和答案正确性。','未达到的轮数写明未覆盖；预算不足时标受阻，不直接通过。'],
+ ['20 轮检查点与分类型结果已记录。','40 轮检查点与分类型结果已记录。','80 轮检查点与分类型结果已记录，无明显跨书漂移。'],{special:'长会话较耗时且会调用模型，可以单独安排。下方用例注明轮次，出现首次错误时保留前后必要上下文。'}),
+ S('E03','E','验证缺图、附表和参数的输入门槛','选一题确实需要额外输入才能确定答案。',
+ ['提交缺少关键图片、附表或参数的题目，不在文本里暗示完整答案。','观察是否请求补充或明确无法确定。','补齐真实输入后继续同一任务；核对答案与输入对应。'],
+ ['缺决定性输入时等待补充或明确降级。','没有从缺失信息中伪造精确结论。','补充后任务继续，答案使用了补充信息。']),
+ S('E04','E','验证停止、恢复与模型失败','先用正常停止；断连测试记录具体操作。',
+ ['在长回答生成中点击停止，等后端确认中断后再恢复。','检查是否重复写入用户问题、重复回答或旧内容覆盖恢复后的回答。','用可恢复方式测试模型断连/错误；重新连接后观察恢复入口与结果。'],
+ ['停止和恢复状态明确，同一任务可追溯。','无重复投影或旧 run 覆盖新结果。','错误显示可读且可恢复，没有无限加载。']),
+ S('F01','F','从完整问答整理学习笔记','先生成草稿，再人工编辑和明确保存。',
+ ['选含多轮问答和教材引用的会话，发起整理笔记。','检查草稿是否包含早期内容、主题和必要公式；编辑一段，等待草稿保存。','明确保存为正式笔记，检查来源和保存结果；不要反复点击生成。'],
+ ['草稿来源覆盖所选完整 turn，而非只有最后一条回答。','编辑后草稿保存，正式保存有明确结果。','正文连贯、来源保留，不伪造教材引用。']),
+ S('F02','F','重开笔记，检查版本和来源定位','检查草稿与正式版本的边界。',
+ ['关闭客户端再重开，分别查看草稿和正式笔记。','编辑正式笔记并保存新版本，核对旧版本仍可追溯。','从笔记返回会话/教材来源；检查没有自动创建错题、Goal 或掌握度记录。'],
+ ['重开后内容未丢失，版本与编辑一致。','来源定位正确；重复保存不重复建资产。','没有意外写入其他学习状态。']),
+ S('F03','F','录入真实习题并作答','选书中真实题目，人工校对后进入习题库。',
+ ['从 B05 的真实题目选一题，通过现有人工录入/候选校对流程录入。','核对题干、答案、解析、来源、章节和概念，使用验收标记。','开启一次练习并作答，记录答题结果；退出再返回检查练习记录。'],
+ ['人工校对后的题干/答案/来源完整。','练习作答和结果正确关联同一道题。','重开后记录存在，未完成练习可按现有流程继续。']),
+ S('F04','F','转错题并完成一次复习','验证题目—作答—错因—复习的连接。',
+ ['将测试作答转成错题，填写用户答案、正确答案、错因及教材来源。','从错题查看教材解释，核对所用学习范围。','执行一次复习并记录结果，离开再返回；若尚未到期，记录当前调度结果，不改系统时间制造到期。'],
+ ['错题与原题/作答/来源对应。','错因、复习结果和调度状态持久化。','重复操作不重复建记录，未完成复习可恢复。']),
+ S('F05','F','检查概念、关联错题与知识记忆','仅检查已有数据，不自动启动额外概念抽取。',
+ ['在已有概念入口查看出现位置、教材关联和相关错题。','检查记忆/到期入口显示实际记录，不把“看过”自动当掌握。','若这本新书未做概念抽取，确认空状态明确且主聊天仍可用。'],
+ ['已有概念能定位正确来源，或明确无数据。','缺 KG/记忆不阻断教材问答。','没有为了验收意外启动付费抽取。']),
+ S('G01','G','检查会话管理与资产独立性','仅使用验收会话做管理操作。',
+ ['切换会话，置顶/取消置顶、归档/恢复；对测试会话执行回收站和恢复。','有未完成任务时观察是否要求继续或明确结束，不应偷偷取消任务。','查看该会话产生的笔记、错题等独立资产是否仍存在。'],
+ ['会话管理状态重开后保持，恢复不重复。','未完成任务的操作限制正确。','独立笔记/错题不被级联删除。']),
+ S('G02','G','检查重启后的教材与学习资产','一次完整正常退出，核对全部测试记录。',
+ ['记录测试教材、会话、笔记、习题、错题和复习的名称或 ID。','正常关闭并重开客户端，逐个查看并打开引用/图片。','若关闭时有未保存草稿，检查自动保存或明确阻止关闭；保存失败时不应直接丢失。'],
+ ['教材、会话、笔记、题目与复习记录均保留。','图及来源重开后仍可读。','关闭保存提示与实际结果一致，没有静默丢草稿。']),
+ S('G03','G','在副本检查回退、归档与备份恢复','需要工程协助；不在当前正式库注入故障。',
+ ['请工程准备数据副本并记录版本，验证章节 collection 不可读时的同书回退。','在副本验证教材归档/恢复及备份恢复，核对旧引用、Canonical 和索引一致性。','若要放行安装包，另在真实安装包验证资源路径与离线嵌入。硬终止/掉电、Windows 未执行则明确未覆盖。'],
+ ['故障时退回同书，不扩大教材/学科范围。','恢复后版本、学习资产和图片关系一致。','dev、安装包和未覆盖的平台/故障分别记录。'],{mode:'副本操作 · 需要工程协助',special:'不要删除正式 collection、覆盖生产索引或直接替换客户端数据库。先受阻并导出，后续由工程在副本验证。'}),
+ S('G04','G','整理问题，导出本轮反馈','把观察变成可以复现和修复的记录。',
+ ['检查每个失败/受阻项是否有操作、预期、实际、教材位置、问题等级及必要截图名。','为未适用或未覆盖项目填写原因；保留首次失败描述，复测结果追加说明。','先点击“导出 JSON”保存记录；确认本步后再导出一次，以包含最终勾选状态。可同时导出 Markdown，将文件和必要截图反馈给我。'],
+ ['问题条目可复现，未包含密钥或完整教材。','未验证项和不适用原因没有被掩盖。','已下载结构化报告，能对应步骤与用例编号。'])
+];
+const metaDefinitions=[['batch','记录批次','text','例如：CGQ 首轮桌面验收'],['date','验证日期','date',''],['tester','记录人（可选）','text',''],['books','教材范围','text','例如：传感器原理及应用'],['os','操作系统','text','例如：macOS 版本'],['runtime','客户端运行方式 / 版本','text','例如：开发版 / 安装包；版本号'],['commit','代码版本（知道时填写）','text','例如：d36767f'],['dataRoot','客户端数据目录（知道时填写）','text','不知道可留空，不填密钥'],['model','回答 / 视觉模型','text','分别填写；未使用的角色说明'],['index','教材 ID / 索引 / Canonical 版本','text','不知道可留空，后续工程补充'],['budget','模型调用范围 / 预算','text','例如：先做 10 题；长会话另安排'],['scope','本轮限制 / 未覆盖范围','text','例如：只测 macOS 开发版、单本教材']];
+const idMap=new Map(steps.map(s=>[s.id,s]));
+const defaultResult=s=>({status:'pending',checks:s.checks.map(()=>false),severity:'unassessed',input:'',issue:'',evidence:'',updatedAt:''});
+const dateCN=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const readableTime=value=>new Date(value).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'});
+const fresh=()=>({schemaVersion:1,checklistVersion:VERSION,createdAt:new Date().toISOString(),updatedAt:'',meta:{batch:'CGQ 首轮桌面验收',date:dateCN(),books:'传感器原理及应用'},results:Object.fromEntries(steps.map(s=>[s.id,defaultResult(s)])),cases:[],generalNotes:''});
+let state=fresh(),storageAvailable=true,toastTimer,saveTimer;
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const options=(map,current)=>Object.entries(map).map(([k,v])=>`<option value="${esc(k)}" ${k===current?'selected':''}>${esc(v)}</option>`).join('');
+const textLimit=v=>typeof v==='string'?v.slice(0,100000):'';
+function normalize(raw){
+ if(!raw||raw.schemaVersion!==1||raw.checklistVersion!==VERSION||!raw.results||!Array.isArray(raw.cases))throw Error('这不是本版清单的 JSON 记录，请选择本页导出的文件。');
+ const out=fresh();out.createdAt=textLimit(raw.createdAt)||out.createdAt;out.updatedAt=textLimit(raw.updatedAt);
+ for(const [key]of metaDefinitions)if(typeof raw.meta?.[key]==='string')out.meta[key]=textLimit(raw.meta[key]);
+ for(const s of steps){const r=raw.results[s.id];if(!r)continue;const d=out.results[s.id];d.status=Object.hasOwn(STATUS,r.status)?r.status:'pending';d.checks=s.checks.map((_,i)=>r.checks?.[i]===true);d.severity=Object.hasOwn(SEVERITY,r.severity)?r.severity:'unassessed';for(const k of ['input','issue','evidence','updatedAt'])d[k]=textLimit(r[k]);if(d.status==='passed'&&!d.checks.every(Boolean))d.status='running';}
+ if(raw.cases.length>500)throw Error('记录超过 500 个问题用例，请拆成不同验收批次。');
+ const seen=new Set();out.cases=raw.cases.map((c,i)=>{if(!c||typeof c!=='object')throw Error('用例格式不正确。');let id=/^q-[\w-]+$/.test(c.id)?c.id:'q-import-'+i;if(seen.has(id))id='q-import-'+i+'-'+Math.random().toString(36).slice(2,8);seen.add(id);const v=newCase(id);for(const k of ['book','chapter','category','query','expected','actual','issue','evidence','updatedAt'])v[k]=textLimit(c[k]);v.status=Object.hasOwn(STATUS,c.status)?c.status:'pending';v.severity=Object.hasOwn(SEVERITY,c.severity)?c.severity:'unassessed';for(const k of ['retrieval','answer','citation'])v[k]=Object.hasOwn(FACETS,c[k])?c[k]:'pending';if(v.status==='passed'&&!caseCanPass(v))v.status='running';return v;});out.generalNotes=textLimit(raw.generalNotes);return out;
+}
+let storageLoadError='';
+try{const saved=localStorage.getItem(STORAGE);if(saved)state=normalize(JSON.parse(saved));}catch(e){storageAvailable=false;storageLoadError='本地记录无法读取：'+e.message+'。请恢复 JSON，或导出后继续。';}
+function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,4500);}
+function save(){
+ clearTimeout(saveTimer);state.updatedAt=new Date().toISOString();
+ try{if(storageLoadError)throw Error(storageLoadError);localStorage.setItem(STORAGE,JSON.stringify(state));storageAvailable=true;$('saveState').className='';$('saveState').textContent='已保存到本浏览器 · '+new Date(state.updatedAt).toLocaleTimeString('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+ catch(e){storageAvailable=false;$('saveState').className='warning';$('saveState').textContent='本地保存不可用，请立即导出 JSON 保留本轮记录。';}
+}
+function queueSave(){clearTimeout(saveTimer);$('saveState').textContent='正在保存…';saveTimer=setTimeout(save,250);}
+function stamp(r){r.updatedAt=new Date().toISOString();}
+function newCase(id='q-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)){return{id,book:state?.meta?.books||'传感器原理及应用',chapter:'',category:'定义',query:'',expected:'',actual:'',status:'pending',severity:'unassessed',retrieval:'pending',answer:'pending',citation:'pending',issue:'',evidence:'',updatedAt:''};}
+function caseCanPass(c){return !!c.query.trim()&&!!c.expected.trim()&&!!c.actual.trim()&&c.answer==='passed'&&['retrieval','citation'].every(k=>['passed','na'].includes(c[k]));}
+function renderMeta(){
+ $('metaFields').innerHTML=metaDefinitions.map(([key,label,type,placeholder])=>`<label class="field">${esc(label)}<input type="${type}" data-meta="${key}" value="${esc(state.meta[key]||'')}" placeholder="${esc(placeholder)}"></label>`).join('');$('generalNotes').value=state.generalNotes;
+}
+function renderSteps(){
+ $('phaseNav').innerHTML=phases.map(p=>`<a href="#phase-${p.id}" class="navlink"><span class="navletter">${p.id}</span><span class="navname">${esc(p.title)}</span><span class="navcount" id="count-${p.id}"></span></a>`).join('');
+ $('phaseJump').innerHTML='<option value="">选择验证阶段</option>'+phases.map(p=>`<option value="${p.id}">${p.id} · ${esc(p.title)}</option>`).join('');
+ $('steps').innerHTML=phases.map(p=>`<section class="phase" id="phase-${p.id}"><div class="phaseheading"><h2><span class="phaseno">${p.id}</span>${esc(p.title)}</h2><small id="phaseCount-${p.id}"></small></div><p class="phaseintro">${esc(p.intro)}</p>${steps.filter(s=>s.phase===p.id).map(s=>{const r=state.results[s.id],n=steps.indexOf(s)+1;return`<details class="step" id="step-${s.id}" data-step="${s.id}" ${n===1?'open':''}><summary><span class="stepnum">${String(n).padStart(2,'0')}</span><div class="stephead"><div class="steptitle">${esc(s.title)}</div><div class="stepcaption">${esc(s.id)} · ${esc(s.mode||'客户端 / 本地操作')} · ${esc(s.caption)}</div></div><span class="badge" data-badge="${s.id}" data-status="${r.status}">${STATUS[r.status]}</span></summary><div class="stepbody"><ol class="instructions">${s.actions.map(a=>`<li>${esc(a)}</li>`).join('')}</ol>${s.example?`<div class="example">${esc(s.example)}</div>`:''}${s.special?`<div class="special">${esc(s.special)}</div>`:''}<p class="checktitle">逐项检查 · 实际确认后再打勾</p><div class="criteria">${s.checks.map((c,i)=>`<label class="check"><input type="checkbox" data-check="${i}" ${r.checks[i]?'checked':''}><span>${esc(c)}</span></label>`).join('')}</div><div class="statusrow"><label class="field">本步结论<select data-key="status">${options(STATUS,r.status)}</select></label><label class="field">问题等级<select data-key="severity">${options(SEVERITY,r.severity)}</select></label></div><div class="validation" data-validation hidden></div><div class="feedbackgrid"><label class="field">测试位置 / 输入 / 原文依据<textarea rows="3" data-key="input" placeholder="教材、章节、页码、问题原文、选择的模型或任务 ID。">${esc(r.input)}</textarea></label><label class="field">出现的问题 / 预期与实际 / 未覆盖原因<textarea rows="3" data-key="issue" placeholder="怎么操作 → 预期是什么 → 实际发生什么；能否重现。通过时也可填写观察。">${esc(r.issue)}</textarea></label><label class="field span2">截图 / 日志 / 证据位置<input type="text" data-key="evidence" value="${esc(r.evidence)}" placeholder="填写截图文件名、日志片段或来源位置；截图另行发给我，本页不上传文件。"></label></div><div class="stepfooter"><small data-time>${r.updatedAt?'记录更新：'+esc(readableTime(r.updatedAt)):'尚未记录本步结果'}</small><button class="small" data-next="${s.id}">下一步 →</button></div></div></details>`;}).join('')}</section>`).join('');
+}
+function renderCases(){
+ if(!state.cases.length){$('cases').innerHTML='<div class="empty">还没有问题用例。点击“记录一个问题”，逐题保存原文依据与回答结果。</div>';return;}
+ $('cases').innerHTML=state.cases.map((c,i)=>`<article class="case" id="case-${c.id}" data-case="${c.id}"><div class="caseheader"><h3>Q${String(i+1).padStart(3,'0')} · 真实问题记录</h3><button class="small danger" data-remove-case="${c.id}">删除本用例</button></div><div class="formgrid"><label class="field">教材<input type="text" data-case-key="book" value="${esc(c.book)}"></label><label class="field">章 / 节 / 页码 / 轮次<input type="text" data-case-key="chapter" value="${esc(c.chapter)}" placeholder="例如：第 3 章；第 20 轮"></label><label class="field">问题类型<select data-case-key="category">${options(Object.fromEntries(['定义','列举','比较','原理','推导','应用计算','跨章节','例题','负向问题','多轮追问','其他'].map(v=>[v,v])),c.category)}</select></label><label class="field">用例结论<select data-case-key="status">${options(STATUS,c.status)}</select></label><label class="field span2">发送给软件的问题<textarea rows="2" data-case-key="query" placeholder="保留原始问题，避免复述改变条件。">${esc(c.query)}</textarea></label><label class="field">预期要点 / 原文依据<textarea data-case-key="expected" placeholder="原文位置、必须覆盖的点、不能混入的内容。">${esc(c.expected)}</textarea></label><label class="field">首次实际回答 / 关键片段<textarea data-case-key="actual" placeholder="粘贴原始输出或关键错误片段；不要手工纠正后再记录。">${esc(c.actual)}</textarea></label><label class="field">检索证据<select data-case-key="retrieval">${options(FACETS,c.retrieval)}</select></label><label class="field">答案正确性<select data-case-key="answer">${options(FACETS,c.answer)}</select></label><label class="field">引用支持关系<select data-case-key="citation">${options(FACETS,c.citation)}</select></label><label class="field">问题等级<select data-case-key="severity">${options(SEVERITY,c.severity)}</select></label><label class="field span2">问题 / 复现步骤 / 不适用原因<textarea data-case-key="issue" placeholder="例如：第 4 个列表成员丢失；引用来自另一章；尚未检查最终 EvidencePack。">${esc(c.issue)}</textarea></label><label class="field span2">证据位置 / request 或 task ID<input type="text" data-case-key="evidence" value="${esc(c.evidence)}" placeholder="截图文件名、会话位置、请求 ID、耗时等。"></label></div><p class="validation" data-case-validation hidden></p></article>`).join('');
+}
+function isDecided(r){return ['passed','failed','blocked','na'].includes(r.status);}
+function counts(){const all=Object.values(state.results);return{total:all.length,decided:all.filter(isDecided).length,passed:all.filter(r=>r.status==='passed').length,failed:all.filter(r=>r.status==='failed').length,blocked:all.filter(r=>r.status==='blocked').length,na:all.filter(r=>r.status==='na').length,pending:all.filter(r=>['pending','running'].includes(r.status)).length};}
+function updateOverview(){
+ const c=counts();$('decidedCount').textContent=`${c.decided} / ${c.total}`;$('passedCount').textContent=c.passed;$('problemCount').textContent=c.failed+c.blocked;$('pendingCount').textContent=c.pending;const pct=Math.round(c.decided/c.total*100);$('progressFill').style.width=pct+'%';document.querySelector('[role=progressbar]').setAttribute('aria-valuenow',pct);
+ for(const p of phases){const group=steps.filter(s=>s.phase===p.id),done=group.filter(s=>isDecided(state.results[s.id])).length;$('count-'+p.id).textContent=done+'/'+group.length;$('phaseCount-'+p.id).textContent=`${done} / ${group.length} 已记录结论`;}
+ applyFilter();renderReport();
+}
+function applyFilter(){
+ const f=$('filter').value;let visible=0;
+ for(const s of steps){const r=state.results[s.id];const show=f==='all'||(f==='pending'&&['pending','running'].includes(r.status))||(f==='issues'&&(['failed','blocked'].includes(r.status)||r.issue.trim()))||(f==='passed'&&r.status==='passed');$('step-'+s.id).hidden=!show;if(show)visible++;}
+ for(const p of phases)$('phase-'+p.id).hidden=steps.filter(s=>s.phase===p.id).every(s=>$('step-'+s.id).hidden);$('noSteps').hidden=visible!==0;
+}
+function renderReport(){
+ const c=counts();const qBad=state.cases.filter(v=>['failed','blocked'].includes(v.status)).length;
+ $('reportSummary').innerHTML=`<span class="tag">步骤：通过 ${c.passed} / ${c.total}</span><span class="tag">失败 ${c.failed} · 受阻 ${c.blocked}</span><span class="tag">不适用 ${c.na} · 未完成 ${c.pending}</span><span class="tag">问题用例 ${state.cases.length} · 失败/受阻 ${qBad}</span>`;
+ const rows=steps.filter(s=>{const r=state.results[s.id];return ['failed','blocked','na'].includes(r.status)||r.issue.trim();}).map(s=>{const r=state.results[s.id];return`<div class="reportitem"><span class="badge" data-status="${r.status}">${STATUS[r.status]}</span><div class="reporttext"><strong>${esc(s.id)} · ${esc(s.title)}</strong><p>${esc(r.issue||'尚未填写问题或原因，请补充。')}</p></div><button data-jump="${s.id}" class="small">去补充</button></div>`;});
+ for(let i=0;i<state.cases.length;i++){const q=state.cases[i];if(['failed','blocked','na'].includes(q.status)||q.issue.trim())rows.push(`<div class="reportitem"><span class="badge" data-status="${q.status}">${STATUS[q.status]}</span><div class="reporttext"><strong>Q${String(i+1).padStart(3,'0')} · ${esc(q.query||'未填写问题')}</strong><p>${esc(q.issue||'尚未填写问题或原因，请补充。')}</p></div><button data-jump-case="${q.id}" class="small">去补充</button></div>`);}
+ $('reportList').innerHTML=rows.length?rows.join(''):'<div class="empty">目前没有问题条目；这不表示已通过。完成验证后，失败、受阻和备注会汇总到这里。</div>';
+}
+function syncStep(id){const r=state.results[id],card=$('step-'+id),badge=card.querySelector('[data-badge]');badge.textContent=STATUS[r.status];badge.dataset.status=r.status;card.querySelector('[data-key=status]').value=r.status;card.querySelector('[data-time]').textContent='记录更新：'+readableTime(r.updatedAt);updateOverview();}
+function jump(id){$('filter').value='all';applyFilter();const el=$('step-'+id);if(!el)return;el.open=true;el.scrollIntoView({block:'start'});el.querySelector('summary').focus({preventScroll:true});}
+function fullReport(){save();const c=counts();return{...structuredClone(state),reportType:'texa-textbook-validation',exportedAt:new Date().toISOString(),summary:{...c,questionCases:state.cases.length,casePassed:state.cases.filter(v=>v.status==='passed').length,caseFailed:state.cases.filter(v=>v.status==='failed').length,caseBlocked:state.cases.filter(v=>v.status==='blocked').length,coverageClaim:'仅记录填写者的逐项验收结论；未验证项不视为通过。'},stepDetails:steps.map((s,i)=>({number:i+1,id:s.id,phase:s.phase,title:s.title,mode:s.mode||'客户端 / 本地操作',instructions:s.actions,acceptance:s.checks.map((label,j)=>({label,checked:state.results[s.id].checks[j]})),...state.results[s.id]}))};}
+function markdown(){const r=fullReport(),c=r.summary;let out=`# Texa 教材全链路验证反馈\n\n清单版本：${VERSION}\n导出时间：${r.exportedAt}\n\n`;out+='## 本轮环境\n\n';for(const [key,label]of metaDefinitions)out+=`- ${label}：${state.meta[key]||'未填写'}\n`;out+=`\n## 结果概览\n\n步骤 ${c.total} 项：通过 ${c.passed}，失败 ${c.failed}，受阻 ${c.blocked}，不适用 ${c.na}，未完成 ${c.pending}。\n问题用例 ${c.questionCases} 个：通过 ${c.casePassed}，失败 ${c.caseFailed}，受阻 ${c.caseBlocked}。\n未验证项不视为通过。\n\n## 全部步骤\n\n`;
+ for(const s of steps){const v=state.results[s.id];out+=`### ${s.id} ${s.title} — ${STATUS[v.status]}\n\n问题等级：${SEVERITY[v.severity]}\n\n`;s.checks.forEach((label,i)=>out+=`- [${v.checks[i]?'x':' '}] ${label}\n`);out+=`\n测试输入 / 原文依据：\n${v.input||'未填写'}\n\n问题 / 预期与实际 / 未覆盖原因：\n${v.issue||'未填写'}\n\n证据位置：${v.evidence||'未填写'}\n\n`;}
+ out+='## 真实问题用例\n\n';if(!state.cases.length)out+='未记录问题用例。\n\n';state.cases.forEach((q,i)=>{out+=`### Q${String(i+1).padStart(3,'0')} — ${STATUS[q.status]}\n\n教材：${q.book||'未填'}\n章节/页码/轮次：${q.chapter||'未填'}\n类型：${q.category}\n检索证据：${FACETS[q.retrieval]}；答案：${FACETS[q.answer]}；引用：${FACETS[q.citation]}\n问题等级：${SEVERITY[q.severity]}\n\n问题：\n${q.query||'未填'}\n\n预期 / 原文依据：\n${q.expected||'未填'}\n\n首次实际回答：\n${q.actual||'未填'}\n\n问题与复现：\n${q.issue||'未填'}\n\n证据：${q.evidence||'未填'}\n\n`;});out+=`## 补充说明\n\n${state.generalNotes||'未填写'}\n`;return out;}
+function download(format){const json=format==='json';const content=json?JSON.stringify(fullReport(),null,2):markdown();const blob=new Blob([content],{type:json?'application/json;charset=utf-8':'text/markdown;charset=utf-8'});const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=`Texa-教材验证-${state.meta.date||dateCN()}.${json?'json':'md'}`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('已发起下载。请保留导出文件，截图按记录的文件名另行提供。');}
+function renderAll(){renderMeta();renderSteps();renderCases();updateOverview();}
+$('metaFields').addEventListener('input',e=>{const k=e.target.dataset.meta;if(k){state.meta[k]=e.target.value;queueSave();}});
+$('generalNotes').addEventListener('input',e=>{state.generalNotes=e.target.value;queueSave();});
+$('steps').addEventListener('input',e=>{const card=e.target.closest('[data-step]');if(!card)return;const r=state.results[card.dataset.step],key=e.target.dataset.key;if(key&&['input','issue','evidence'].includes(key)){r[key]=e.target.value;stamp(r);queueSave();renderReport();}});
+$('steps').addEventListener('change',e=>{
+ const card=e.target.closest('[data-step]');if(!card)return;const id=card.dataset.step,r=state.results[id],warning=card.querySelector('[data-validation]');warning.hidden=true;
+ if(e.target.dataset.check!==undefined){r.checks[Number(e.target.dataset.check)]=e.target.checked;if(r.status==='passed'&&!r.checks.every(Boolean)){r.status='running';toast('验收点已取消勾选，本步回到“进行中”。');}}
+ const key=e.target.dataset.key;if(key==='status'){const value=e.target.value;if(value==='passed'&&!r.checks.every(Boolean)){e.target.value=r.status;warning.textContent='请先实际确认并勾选全部验收点，再选择通过。';warning.hidden=false;return;}r.status=value;if(['failed','blocked','na'].includes(value)&&!r.issue.trim()){warning.textContent='请在下方填写问题、受阻原因或不适用原因，便于后续处理。';warning.hidden=false;}}
+ else if(key==='severity')r.severity=e.target.value;stamp(r);save();syncStep(id);
+});
+$('steps').addEventListener('click',e=>{const b=e.target.closest('[data-next]');if(b){const i=steps.findIndex(s=>s.id===b.dataset.next);if(i<steps.length-1)jump(steps[i+1].id);else $('reportSection').scrollIntoView();}});
+$('filter').addEventListener('change',applyFilter);
+$('resumeBtn').addEventListener('click',()=>{const s=steps.find(s=>['pending','running'].includes(state.results[s.id].status));if(s)jump(s.id);else{$('reportSection').scrollIntoView();toast('每项已有结论。请检查失败、受阻和不适用记录。');}});
+$('phaseJump').addEventListener('change',e=>{if(e.target.value)jump(steps.find(s=>s.phase===e.target.value).id);});
+$('phaseNav').addEventListener('click',e=>{const a=e.target.closest('a');if(a){e.preventDefault();const phase=a.getAttribute('href').split('-')[1];jump(steps.find(s=>s.phase===phase).id);}});
+$('addCase').addEventListener('click',()=>{if(state.cases.length>=500){toast('本轮最多记录 500 个用例，请导出后开始新批次。');return;}const c=newCase();state.cases.push(c);save();renderCases();updateOverview();const card=$('case-'+c.id);card.scrollIntoView({block:'center'});card.querySelector('[data-case-key=query]').focus({preventScroll:true});});
+$('cases').addEventListener('input',e=>{const card=e.target.closest('[data-case]'),key=e.target.dataset.caseKey;if(!card||!key||e.target.tagName==='SELECT')return;const c=state.cases.find(c=>c.id===card.dataset.case);c[key]=e.target.value;stamp(c);if(c.status==='passed'&&!caseCanPass(c)){c.status='running';card.querySelector('[data-case-key=status]').value='running';}queueSave();renderReport();});
+$('cases').addEventListener('change',e=>{const card=e.target.closest('[data-case]'),key=e.target.dataset.caseKey;if(!card||!key||e.target.tagName!=='SELECT')return;const c=state.cases.find(c=>c.id===card.dataset.case),warn=card.querySelector('[data-case-validation]');warn.hidden=true;
+ if(key==='status'&&e.target.value==='passed'&&!caseCanPass(c)){e.target.value=c.status;warn.textContent='通过前请填写问题、预期和实际回答，确认答案正确；检索与引用需确认正确或说明不适用。';warn.hidden=false;return;}c[key]=e.target.value;if(c.status==='passed'&&!caseCanPass(c)){c.status='running';card.querySelector('[data-case-key=status]').value='running';}if(['failed','blocked','na'].includes(c.status)&&!c.issue.trim()){warn.textContent='请填写问题或不适用原因。';warn.hidden=false;}stamp(c);save();renderReport();});
+$('cases').addEventListener('click',e=>{const b=e.target.closest('[data-remove-case]');if(b&&confirm('删除这个问题用例？其他记录会保留。')){state.cases=state.cases.filter(c=>c.id!==b.dataset.removeCase);save();renderCases();renderReport();}});
+$('reportList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.jump)jump(b.dataset.jump);if(b.dataset.jumpCase)$('case-'+b.dataset.jumpCase)?.scrollIntoView({block:'center'});});
+for(const id of ['jsonBtn','jsonBottom'])$(id).addEventListener('click',()=>download('json'));
+for(const id of ['mdBtn','mdBottom'])$(id).addEventListener('click',()=>download('md'));
+$('copyBtn').addEventListener('click',async()=>{const text=markdown();try{await navigator.clipboard.writeText(text);toast('完整反馈已复制，可粘贴到聊天中。');}catch{const area=document.createElement('textarea');area.value=text;area.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.append(area);area.select();let ok=false;try{ok=document.execCommand('copy');}catch{}area.remove();toast(ok?'完整反馈已复制。':'复制不可用，请使用导出 Markdown。');}});
+$('importBtn').addEventListener('click',()=>$('importFile').click());
+$('importFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>20*1024*1024)throw Error('文件超过 20 MB，请选择本页导出的 JSON。');const next=normalize(JSON.parse(await file.text()));if(!confirm('恢复这个 JSON 将替换当前页面的本轮记录。需要保留当前内容时，请先取消并导出。继续吗？'))return;clearTimeout(saveTimer);state=next;storageLoadError='';renderAll();save();toast('记录已恢复，全部状态与问题已载入。');}catch(err){toast('恢复失败：'+err.message);}finally{e.target.value='';}});
+$('resetBtn').addEventListener('click',()=>{if(confirm('清空当前批次的所有勾选、问题和用例？建议先导出 JSON。')){clearTimeout(saveTimer);state=fresh();storageLoadError='';renderAll();save();toast('已开始新的空白记录。');}});
+$('printBtn').addEventListener('click',()=>{const details=[...document.querySelectorAll('details')],before=details.map(d=>d.open);details.forEach(d=>d.open=true);const filter=$('filter').value;$('filter').value='all';applyFilter();const areas=[...document.querySelectorAll('textarea')],sizes=areas.map(a=>a.style.height);areas.forEach(a=>a.style.height=a.scrollHeight+8+'px');const restore=()=>{details.forEach((d,i)=>d.open=before[i]);areas.forEach((a,i)=>a.style.height=sizes[i]);$('filter').value=filter;applyFilter();window.removeEventListener('afterprint',restore);};window.addEventListener('afterprint',restore);window.print();});
+window.addEventListener('pagehide',save);
+renderAll();
+if(storageLoadError){$('saveState').textContent=storageLoadError;$('saveState').className='warning';}else if(state.updatedAt){$('saveState').textContent='已恢复本浏览器的记录 · '+readableTime(state.updatedAt);}else{try{localStorage.setItem(STORAGE,JSON.stringify(state));$('saveState').textContent='本地自动保存已就绪 · 尚未开始验证';}catch{$('saveState').textContent='本地保存不可用，请通过导出 JSON 保留记录。';$('saveState').className='warning';}}
+</script>
+</body>
+</html>

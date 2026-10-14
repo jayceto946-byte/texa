@@ -1,7 +1,28 @@
 import React from 'react';
 import { AlertCircle, CheckCircle2, CircleAlert, Info, Loader2 } from 'lucide-react';
+import WorkspaceSkeleton from './WorkspaceSkeleton';
 
 export type AsyncStateKind = 'loading' | 'empty' | 'error' | 'success' | 'info';
+
+export function EmptyState({ title, description, icon, action, variant = 'default', className = '' }: {
+  title: string;
+  description?: string;
+  icon?: React.ReactNode;
+  action?: React.ReactNode;
+  variant?: 'default' | 'inline' | 'prompt';
+  className?: string;
+}) {
+  return (
+    <section role="status" className={`app-empty-state is-${variant} ${className}`.trim()}>
+      {icon && <span className="app-empty-icon" aria-hidden="true">{icon}</span>}
+      <div className="app-empty-copy">
+        {variant === 'prompt' ? <h1 className="app-empty-title">{title}</h1> : <h3 className="app-empty-title">{title}</h3>}
+        {description && <p className="app-empty-description">{description}</p>}
+      </div>
+      {action && <div className="app-empty-action">{action}</div>}
+    </section>
+  );
+}
 
 const meta = {
   loading: { icon: Loader2, className: 'border-border bg-bg-card text-text-secondary', iconClass: 'animate-spin text-accent' },
@@ -28,16 +49,10 @@ export function StatusBanner({ kind = 'info', title, description, action }: { ki
 
 export function PageState({ kind, title, description, action }: { kind: AsyncStateKind; title: string; description?: string; action?: React.ReactNode }) {
   if (kind === 'loading') {
-    return (
-      <div role="status" aria-label={title} className="app-panel space-y-3 p-5">
-        <div className="h-4 w-32 animate-pulse rounded bg-border/70" />
-        <div className="h-3 w-full max-w-md animate-pulse rounded bg-border/45" />
-        <div className="h-3 w-3/4 max-w-sm animate-pulse rounded bg-border/45" />
-      </div>
-    );
+    return <WorkspaceSkeleton label={title} header={false} />;
   }
   return (
-    <div role={kind === 'error' ? 'alert' : 'status'} className="app-panel px-5 py-8 text-center">
+    <div className="px-5 py-8">
       <StatusBanner kind={kind} title={title} description={description} action={action} />
     </div>
   );

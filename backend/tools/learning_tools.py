@@ -401,7 +401,7 @@ def get_weak_concepts(context: ToolContext, args: dict[str, Any]) -> ToolResult:
     })
 
 
-def search_exercises(context: ToolContext, args: dict[str, Any]) -> ToolResult:
+def search_exercises(context: ToolContext, args: dict[str, Any], *, exercise_bank=None) -> ToolResult:
     """Search exercise assets without leaking solutions into the planning step."""
     query = str(args.get("query") or "").strip()
     book_name = str(args.get("book_name") or context.book_name or "default").strip()
@@ -411,7 +411,7 @@ def search_exercises(context: ToolContext, args: dict[str, Any]) -> ToolResult:
     status = str(args.get("status") or "").strip()
     limit = _as_int(args.get("limit"), 8, high=30)
 
-    bank = get_exercise_bank(book_name, str(PROGRESS_PATH))
+    bank = exercise_bank or get_exercise_bank(book_name, str(PROGRESS_PATH))
     records = bank.list_all(
         subject=subject or None,
         chapter=chapter or None,
@@ -475,14 +475,14 @@ def search_exercises(context: ToolContext, args: dict[str, Any]) -> ToolResult:
     })
 
 
-def get_recent_progress(context: ToolContext, args: dict[str, Any]) -> ToolResult:
+def get_recent_progress(context: ToolContext, args: dict[str, Any], *, event_store=None) -> ToolResult:
     """Summarize the append-only learning event timeline for a bounded period."""
     book_name = str(args.get("book_name") or context.book_name or "default").strip()
     subject = str(args.get("subject") or context.subject or "").strip()
     days = _as_int(args.get("days"), 7, high=31)
     limit = _as_int(args.get("limit"), 12, high=50)
     cutoff = datetime.now() - timedelta(days=days)
-    events = get_learning_event_store().list_recent(
+    events = (event_store or get_learning_event_store()).list_recent(
         book_name=book_name,
         subject=subject,
         limit=max(200, limit * 10),

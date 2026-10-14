@@ -1,0 +1,160 @@
+........................................................................ [ 34%]
+........................................................................ [ 69%]
+...........................................F..............F.....         [100%]
+=================================== FAILURES ===================================
+____________ test_teachers_and_rule_receive_identical_frozen_bytes _____________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-0/test_teachers_and_rule_receive0')
+
+    def test_teachers_and_rule_receive_identical_frozen_bytes(tmp_path):
+        sample, manifest, splits, traces, bindings, qualities, plan, inputs = prepared()
+        sol, luna = FakeTransport(), FakeTransport()
+        predictions, run = run_batch(plan, inputs, {"sol": sol, "luna": luna}, authorization(plan), tmp_path / "run", run_id="test-run")
+        assert run["status"] == "complete" and run["calls"] == 2
+        assert len(sol.calls) == len(luna.calls) == 1
+        assert sol.calls[0]["observation_json"] == luna.calls[0]["observation_json"] == inputs[0]["input_json"]
+        assert sol.calls[0]["prompt"] == luna.calls[0]["prompt"]
+        report = compare_seed([sample], predictions, qualities, splits, manifest=manifest, traces=traces, review_bindings=bindings,
+            teacher_run=run, response_logs=[strict_loads(line) for line in (tmp_path / "run/responses.jsonl").read_text().splitlines()])
+>       assert all(report["policies"][role]["acceptable_accuracy"]["value"] == 1 for role in ("rule", "sol", "luna"))
+E       assert False
+E        +  where False = all(<generator object test_teachers_and_rule_receive_identical_frozen_bytes.<locals>.<genexpr> at 0x10d714820>)
+
+tests/test_policy_seed_v0.py:283: AssertionError
+___ test_teacher_predictions_survive_blind_gold_version_without_view_changes ___
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-0/test_teacher_predictions_survi0')
+
+    def test_teacher_predictions_survive_blind_gold_version_without_view_changes(tmp_path):
+        sample, trace = generate_sample(recipe())
+        manifest = blank_manifest()
+        content = canonical_json(trace).encode()
+        evidence = {sample.source.ref: content}
+        manifest.evidence_digests = {sample.source.ref: hashlib.sha256(content).hexdigest()}
+        candidate = human_review(sample, reviewer="candidate-human")
+        reviewed, manifest, evidence, trace = confirm_candidates(sample, candidate, new_sample_id="candidate-reviewed@v1",
+            manifest=manifest, evidence=evidence, trace=trace)
+        assert reviewed.acceptable_action_ids is None and reviewed.label_source == []
+        splits = assign_splits([reviewed], seed="seed-v0")
+        from evaluation.policy_dataset_v0.validation import validate_sample
+        q = validate_sample(reviewed, manifest=manifest, records=[], evidence=evidence, locked=True)
+        assert q.candidate_reviewed and not q.semantic_adjudicated
+        plan, inputs = prepare_batch([reviewed], manifest, splits, {reviewed.sample_id: trace}, {reviewed.sample_id: q}, seed=splits.seed, configs=configs())
+        sol, luna = FakeTransport(), FakeTransport()
+        predictions, run = run_batch(plan, inputs, {"sol": sol, "luna": luna}, authorization(plan), tmp_path / "run", run_id="pre-gold-run")
+        reviews = [human_review(reviewed), human_review(reviewed, reviewer="human-B")]
+        gold, manifest, evidence, record, trace, binding = finalize_sample(reviewed, reviews, reviews[0],
+            new_sample_id="final-gold@v2", manifest=manifest, evidence=evidence, trace=trace)
+        assert gold.source.ref == sample.source.ref and gold.source.related_refs == sample.source.related_refs
+        assert inputs[0]["input_json"] == permute_sample(gold, seed=splits.seed)[0].observation.canonical_json()
+        qualities = formal_qualities([gold], manifest, [record], evidence, {gold.sample_id: trace}, {gold.sample_id: binding})
+        final_split = assign_splits([gold], seed=splits.seed, previous=splits)
+        final_split = lock_manifest([gold], final_split, qualities)
+        # Fresh Rule uses final gold version; teacher responses remain bound to the pre-gold ID.
+        rule = [p for p in evaluate_views([gold], seed=splits.seed) if p.selector == "rule"]
+        incoming = rule + [p for p in predictions if p.selector in {"sol", "luna"}]
+        logs = [strict_loads(line) for line in (tmp_path / "run/responses.jsonl").read_text().splitlines()]
+>       report = compare_seed([gold], incoming, qualities, final_split, manifest=manifest, traces={gold.sample_id: trace},
+            review_bindings={gold.sample_id: binding}, teacher_run=run, response_logs=logs, evidence=evidence)
+
+tests/test_policy_seed_v0.py:396: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+samples = [EvaluationSampleV0(sample_id='final-gold@v2', observation=PolicyObservationV0(request='查询最近学习进度', context=PolicyConte...a6dc97d10a7dfe9b9df4', 'human-review/b245f226e51489d921b4f8d659df2dd644e61ca77121e1ef16383ae8e4488099'], hard_tags=[])]
+predictions = [PredictionV0(sample_id='final-gold@v2', observation_hash='c676c72cb790b85ec8c3f6b401bf897c22f042db8106361fd4169c8061e...69c8061e08a83', action_mapping={'a1': 'a0', 'a0': 'a1'}, original_order=['a0', 'a1'], transformed_order=['a0', 'a1']))]
+qualities = {'final-gold@v2': QualityV0(machine_errors=[], frozen_errors=[], unverified=[], selection_eligible=True, diagnostic_eligible=False, candidate_reviewed=True, semantic_adjudicated=True, locked_checked=True)}
+splits = SplitManifestV0(version='family-split/v0', seed='seed-v0', ratios=[0.5, 0.25, 0.25], assignments={'independent-progres...d@v2': '08b0a24eaaf517bc688e2eecc7ce0a13b3946da7706b5c7df1aab64d76c2f8dd'}, near_duplicate_resolutions={}, locked=True)
+
+    def compare_seed(samples, predictions, qualities, splits, *, manifest, traces, review_bindings,
+                     teacher_run=None, response_logs=(), review_stats=None, evidence=None):
+        # An unbound summary can be displayed as a provisional process note, but
+        # cannot authorize the training-preparation gate.
+        bound_stats = bound_review_statistics(samples, review_bindings, evidence) if evidence is not None else None
+        gate_review_stats = bound_stats
+        review_stats = bound_stats or review_stats
+        raw_predictions = predictions
+        # Gold-only versions are linked explicitly; first responses/logs stay unchanged.
+        # Rebind a copy only after proving that the canonical main view is identical.
+        remapping = {}
+        for sample in samples:
+            binding = review_bindings.get(sample.sample_id)
+            if binding and binding["base_sample_id"] != sample.sample_id:
+                base_id = binding["base_sample_id"]
+                if base_id in remapping:
+                    raise ValueError("multiple gold versions for one teacher decision point")
+                remapping[base_id] = sample
+        rebound = []
+        for prediction in predictions:
+            target = remapping.get(prediction.sample_id) if prediction.selector in {"sol", "luna"} else None
+            if target is None:
+                rebound.append(prediction)
+                continue
+            if teacher_run and teacher_run["label_hashes"].get(prediction.sample_id) != review_bindings[target.sample_id]["base_label_hash"]:
+                raise ValueError("pre-adjudication teacher label binding mismatch")
+            viewed, transform = permute_sample(target, seed=prediction.transform.seed, mode=prediction.transform.mode)
+            old_transform = prediction.transform.model_copy(update={"original_sample_id": target.sample_id})
+            if old_transform != transform or prediction.observation_hash != viewed.observation_hash:
+                raise ValueError("adjudication changed the frozen teacher view")
+            rebound.append(prediction.model_copy(update={"sample_id": target.sample_id, "transform": transform}))
+        predictions = rebound
+        # Reuse strict raw-output/membership/transform validation; main Rule must be complete.
+        base = generate_report(samples, predictions, qualities, splits)
+        grouped = groups(samples)
+        eligible = [s for s in samples if qualities[s.sample_id].selection_eligible
+                    and len(s.observation.admissible_actions) >= 2 and s.source.type != "fault_injection"]
+        lookup = {role: {p.sample_id: p for p in predictions if p.selector == role and p.view == "main"}
+                  for role in ("rule", "sol", "luna")}
+        enabled = {"rule": True, "sol": bool(teacher_run and teacher_run.get("enabled")), "luna": bool(teacher_run and teacher_run.get("enabled"))}
+        if any(p.selector in {"sol", "luna"} and p.status != "disabled/not_run" for p in predictions) and not teacher_run:
+            raise ValueError("teacher predictions require a bound run manifest")
+        if teacher_run:
+            expected_dataset = hashlib.sha256(canonical_json({s.sample_id: sample_fingerprint(s) for s in samples}).encode()).hexdigest()
+            expected_split = hashlib.sha256(canonical_json(splits.model_dump()).encode()).hexdigest()
+            exact_release = teacher_run.get("dataset_hash") == expected_dataset and teacher_run.get("split_hash") == expected_split
+            if not exact_release:
+                for sample in samples:
+                    if qualities[sample.sample_id].selection_eligible:
+                        binding = review_bindings.get(sample.sample_id)
+                        current_label_matches = teacher_run["label_hashes"].get(sample.sample_id) == label_hash(sample)
+                        if not current_label_matches and (not binding or teacher_run["label_hashes"].get(binding["base_sample_id"]) != binding["base_label_hash"]):
+                            raise ValueError("teacher run dataset/split mismatch")
+                if any(teacher_run.get("family_assignments", {}).get(s.source.source_family_id) != splits.assignments[s.source.source_family_id] for s in samples):
+                    raise ValueError("teacher run family split changed after adjudication")
+            if (teacher_run.get("runtime_version"), teacher_run.get("registry_version")) != (manifest.runtime_version, manifest.registry_version):
+                raise ValueError("teacher run pins mismatch")
+            scheduled = [(k["sample_id"], k["selector"]) for k in teacher_run["scheduled"]]
+            completed = [(k["sample_id"], k["selector"]) for k in teacher_run["completed"]]
+            if len(set(scheduled)) != len(scheduled) or len(set(completed)) != len(completed) or not set(completed) <= set(scheduled):
+                raise ValueError("teacher schedule/completion mismatch")
+            actual = {(p.sample_id, p.selector) for p in raw_predictions if p.selector in {"sol", "luna"} and p.view == "main"}
+            if actual != {key for key in completed if key[1] != "rule"}:
+                raise ValueError("teacher prediction completion mismatch")
+            expected_missing = set(scheduled) - set(completed)
+            if {(k["sample_id"], k["selector"]) for k in teacher_run["missing"]} != expected_missing:
+                raise ValueError("teacher missing list mismatch")
+            if teacher_run["status"] == "complete" and expected_missing:
+                raise ValueError("incomplete batch cannot claim completion")
+            if teacher_run["seed"] != splits.seed:
+                raise ValueError("teacher main view seed differs from split release")
+            for role in ("sol", "luna"):
+                for sample in samples:
+                    pred = lookup[role].get(sample.sample_id)
+                    if pred:
+                        _, transform = permute_sample(sample, seed=teacher_run["seed"])
+                        if pred.transform != transform:
+                            raise ValueError("teacher main view mismatch")
+            logs = {(log["sample_id"], log["selector"]): log for log in response_logs}
+            if response_logs and (len(logs) != len(response_logs) or set(logs) != set(completed)):
+                raise ValueError("first-response log completion mismatch")
+            for (sample_id, role), log in logs.items():
+                target_id = remapping[sample_id].sample_id if sample_id in remapping else sample_id
+                pred = lookup[role].get(target_id)
+                if pred is None or log["raw_output"] != pred.raw_output or not log["first_response"]:
+>                   raise ValueError("first-response raw output mismatch")
+E                   ValueError: first-response raw output mismatch
+
+evaluation/policy_dataset_v0/seed_report.py:199: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_policy_seed_v0.py::test_teachers_and_rule_receive_identical_frozen_bytes
+FAILED tests/test_policy_seed_v0.py::test_teacher_predictions_survive_blind_gold_version_without_view_changes
+2 failed, 206 passed in 5.02s

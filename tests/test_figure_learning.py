@@ -260,7 +260,7 @@ def test_figure_api_lists_serves_and_streams_grounded_source(monkeypatch, tmp_pa
 
     class FakeBridge:
         def iter_figure_answer(self, *_args, **_kwargs):
-            yield "这是局部结构。 [[cite:E1]]"
+            yield "这是结构示意图。 [[cite:E1]]"
 
     monkeypatch.setattr(figures, "VisionModelBridge", FakeBridge)
     client = TestClient(app)
@@ -616,7 +616,7 @@ def test_figure_task_interrupt_and_resume_reuses_saved_figure_context(monkeypatc
 
     class FakeBridge:
         def iter_figure_answer(self, *_args, **_kwargs):
-            yield "恢复后回答 [[cite:E1]]"
+            yield "恢复后显示结构示意图。 [[cite:E1]]"
 
     monkeypatch.setattr(figures, "VisionModelBridge", FakeBridge)
     task = store.create(
@@ -698,3 +698,207 @@ def test_visual_learning_acceptance_requires_active_index_for_provenance_step(tm
         "reason": "figure_index_out_of_date: active schema-6 provenance index required",
     }
     assert result.report["online_model_called"] is False
+
+
+def _grouped_figure_book(tmp_path):
+    book, image_path = _figure_book(tmp_path)
+    first = book.blocks[2]
+    first.text = '(a)'
+    first.bbox = [.1, .1, .45, .3]
+    first.attributes.update(caption='(a)', page_bbox=first.bbox, bbox_units='normalized')
+    second = DocumentBlock('figure-2', 'figure', '(b)\n图 1.21 频率响应', list(first.section_path), 2, 2,
+        bbox=[.5, .1, .9, .3], source_kind='mineru', source_file=first.source_file,
+        attributes={**first.attributes, 'figure_id': 'figure-2', 'caption': '(b)\n图 1.21 频率响应', 'asset_relpath': 'figures/figure-2.png'})
+    Image.new('RGB', (150, 80), 'blue').save(image_path.parent / 'figure-2.png')
+    book.blocks.insert(3, second)
+    persist_canonical_book(book, progress_root=tmp_path)
+    _activate_figure_index(book)
+    return book
+
+
+def test_grouped_subfigures_share_display_vision_crop_and_provenance(tmp_path):
+    book = _grouped_figure_book(tmp_path)
+    service = FigureLearningService(tmp_path)
+    listed = service.list_figures(book.book_name)
+    assert listed['total'] == 1
+    item = listed['items'][0]
+    assert item['figure_id'] == 'figure-2' and item['image_url'].endswith('/group-image')
+    assert item['page_bbox'] == [] and len(item['members']) == 2
+    context = service.build_context(book.book_name, 'figure-2')
+    assert set(context.figure['source_block_ids']) >= {'figure-1', 'figure-2'}
+    with service.complete_figure_asset(book.book_name, 'figure-2') as path:
+        with Image.open(path) as image:
+            size = image.size
+            assert size[0] > 350 and image.getpixel((232, 40)) == (0, 0, 255)
+        composite_path = path
+    assert not composite_path.exists()
+    with service.cropped_region(book.book_name, 'figure-2', NormalizedBBox.from_values([.5, 0, 1, 1])) as (path, metadata):
+        assert metadata['image_width'] == size[0] and metadata['image_height'] == size[1]
+    # Existing links continue to return the original member asset.
+    assert service.asset_path(book.book_name, 'figure-2').name == 'figure-2.png'
+
+
+def test_different_pages_are_not_grouped_and_missing_member_requires_input(tmp_path):
+    from backend.services.figure_learning import FigureInputRequiredError
+    book = _grouped_figure_book(tmp_path)
+    book.blocks[3].page_start = book.blocks[3].page_end = 3
+    persist_canonical_book(book, progress_root=tmp_path)
+    _activate_figure_index(book)
+    service = FigureLearningService(tmp_path)
+    assert service.list_figures(book.book_name)['total'] == 2
+    with pytest.raises(FigureInputRequiredError, match='全部子图'):
+        with service.complete_figure_asset(book.book_name, 'figure-2'):
+            pytest.fail('An isolated b crop must not masquerade as the whole figure')
+
+
+def test_missing_group_asset_gates_stream_before_any_model(monkeypatch, tmp_path):
+    from backend.api import figures
+    book = _grouped_figure_book(tmp_path)
+    (tmp_path / book.book_name / 'figures' / 'figure-2.png').unlink()
+    store = LearningTaskStore(tmp_path / 'tasks')
+    monkeypatch.setattr(figures, '_service', lambda: FigureLearningService(tmp_path))
+    monkeypatch.setattr(figures, '_task_store', lambda: store)
+    monkeypatch.setattr(figures, 'append_message', lambda *_a, **_k: {'id': 'missing-input-message'})
+    monkeypatch.setattr(figures, 'VisionModelBridge', lambda: pytest.fail('No model call with missing figure input'))
+    response = TestClient(app).post('/api/visual-learning/figure-stream', json={
+        'book_name': book.book_name, 'figure_id': 'figure-2', 'question': '解释整张频率响应图',
+        'conversation_id': 'conv-missing-figure', 'turn_id': 'turn-missing-figure',
+    })
+    payloads = _stream_payloads(response)
+    terminal = next(item for item in payloads if item['execution_event']['type'] == 'error')
+    assert terminal['execution_event']['payload']['error_code'] == 'figure_input_required'
+    assert terminal['learning_task']['status'] == 'waiting_for_input'
+    assert terminal['learning_task']['required_inputs'][0]['status'] == 'missing'
+
+
+def _geometry_book(tmp_path, boxes, nodes):
+    from ingestion.figure_layout import LAYOUT_SCHEMA, LAYOUT_FILENAME
+    book, image_path = _figure_book(tmp_path)
+    prototype = book.blocks[2]
+    colors = ['red', 'blue', 'green', 'yellow']
+    members = []
+    for index, bbox in enumerate(boxes):
+        bid = f'panel-{index}'
+        path = image_path.parent / f'{bid}.png'
+        Image.new('RGB', (160, 100), colors[index % len(colors)]).save(path)
+        members.append(DocumentBlock(bid, 'figure', '', list(prototype.section_path), 2, 2,
+                                     bbox=bbox, source_kind='mineru', source_file='source.json',
+                                     attributes={**prototype.attributes, 'figure_id': bid,
+                                                 'caption': '', 'bbox_units': 'normalized', 'page_bbox': bbox,
+                                                 'asset_relpath': f'figures/{bid}.png',
+                                                 'content_hash': hashlib.sha256(path.read_bytes()).hexdigest()}))
+    book.blocks[2:3] = members
+    persist_canonical_book(book, progress_root=tmp_path)
+    _activate_figure_index(book)
+    projection = dict(schema=LAYOUT_SCHEMA, book_name=book.book_name,
+                      canonical_hash=canonical_book_fingerprint(book), caption_nodes=nodes)
+    (tmp_path / book.book_name / LAYOUT_FILENAME).write_text(json.dumps(projection))
+    return book, projection
+
+
+def test_geometry_repairs_misassigned_labels_preserves_grid_and_region(tmp_path):
+    boxes = [[.1,.1,.35,.25], [.55,.1,.8,.25], [.1,.4,.35,.55], [.55,.4,.8,.55]]
+    nodes = [dict(source_block_id='panel-3', page=2, text=f'({label})', bbox=bbox)
+             for label, bbox in zip('abcd', [[.2,.26,.23,.28], [.65,.26,.68,.28],
+                                            [.2,.56,.23,.58], [.65,.56,.68,.58]])]
+    nodes.append(dict(source_block_id='panel-3', page=2, text='图 11.27 四格电路', bbox=[.2,.6,.7,.62]))
+    book, _projection = _geometry_book(tmp_path, boxes, nodes)
+    service = FigureLearningService(tmp_path)
+    items = service.list_figures(book.book_name)['items']
+    assert len(items) == 1 and len(items[0]['members']) == 4
+    assert [m['caption'] for m in items[0]['members']] == ['(a)', '(b)', '(c)', '(d)']
+    assert items[0]['layout_status'] == 'assembled'
+    assert '(a)\n(b)\n(c)\n(d)' in items[0]['caption']
+    context = service.build_context(book.book_name, 'panel-1')
+    assert context.figure['image_source_block_ids'] == ['panel-0', 'panel-1', 'panel-2', 'panel-3']
+    with service.complete_figure_asset(book.book_name, 'panel-1') as path:
+        with Image.open(path) as image:
+            width, height = image.size
+            assert image.getpixel((50,50)) == (255,0,0)
+            assert image.getpixel((width-50,50)) == (0,0,255)
+            assert image.getpixel((50,height-70)) == (0,128,0)
+            assert image.getpixel((width-50,height-70)) == (255,255,0)
+    with service.cropped_region(book.book_name, 'panel-1', NormalizedBBox.from_values([.5,.5,1,1])) as (path, _meta):
+        with Image.open(path) as region:
+            assert region.getpixel((region.width//2,region.height//2)) == (255,255,0)
+
+
+def test_nearby_numbered_diagrams_separate_with_caption_source_provenance(tmp_path):
+    boxes = [[.05,.1,.2,.25], [.25,.1,.4,.25], [.65,.1,.85,.25]]
+    # Both public captions were erroneously attached to the right-hand crop.
+    nodes = [dict(source_block_id='panel-2', page=2, text='图 5.17 左侧组合', bbox=[.05,.28,.4,.3]),
+             dict(source_block_id='panel-2', page=2, text='图 5.18 右侧独立', bbox=[.65,.28,.9,.3])]
+    book, _projection = _geometry_book(tmp_path, boxes, nodes)
+    service = FigureLearningService(tmp_path)
+    listed = service.list_figures(book.book_name)
+    assert listed['total'] == 2
+    left = service.get_figure(book.book_name, 'panel-0')[2]
+    right = service.get_figure(book.book_name, 'panel-2')[2]
+    assert left['figure_number'] == '5.17' and len(left['members']) == 2
+    assert right['figure_number'] == '5.18' and 'members' not in right
+    context = service.build_context(book.book_name, 'panel-0')
+    assert context.figure['image_source_block_ids'] == ['panel-0','panel-1']
+    assert set(context.figure['source_block_ids']) == {'panel-0','panel-1','panel-2'}
+    assert context.figure['caption_source_block_ids'] == ['panel-2']
+
+
+def test_caption_projection_cache_refresh_and_stale_hash_fail_closed(tmp_path):
+    from ingestion.figure_layout import LAYOUT_FILENAME
+    boxes = [[.1,.1,.4,.25], [.6,.1,.9,.25]]
+    nodes = [dict(source_block_id='panel-1', page=2, text='图 1.1 组合', bbox=[.3,.28,.7,.3])]
+    book, projection = _geometry_book(tmp_path, boxes, nodes)
+    service = FigureLearningService(tmp_path)
+    assert service.list_figures(book.book_name)['total'] == 1
+    target = tmp_path / book.book_name / LAYOUT_FILENAME
+    projection['caption_nodes'] = [dict(source_block_id='panel-1', page=2, text='图 1.1 左图', bbox=[.1,.28,.4,.3]),
+                                  dict(source_block_id='panel-1', page=2, text='图 1.2 右图', bbox=[.6,.28,.9,.3])]
+    target.write_text(json.dumps(projection))
+    assert service.list_figures(book.book_name)['total'] == 2
+    projection['canonical_hash'] = '0'*64
+    target.write_text(json.dumps(projection))
+    with pytest.raises(FigureIndexOutOfDateError, match='Canonical'):
+        service.list_figures(book.book_name)
+
+
+def test_caption_tie_requires_input_without_hiding_independent_image(tmp_path):
+    from backend.services.figure_learning import FigureInputRequiredError
+    boxes = [[.4,.1,.6,.25]]
+    nodes = [dict(source_block_id='panel-0', page=2, text='图 1.1 左图题', bbox=[.1,.28,.4,.3]),
+             dict(source_block_id='panel-0', page=2, text='图 1.2 右图题', bbox=[.6,.28,.9,.3])]
+    book, _projection = _geometry_book(tmp_path, boxes, nodes)
+    service = FigureLearningService(tmp_path)
+    assert service.list_figures(book.book_name)['items'][0]['layout_status'] == 'ambiguous'
+    with pytest.raises(FigureInputRequiredError, match='组合关系'):
+        with service.complete_figure_asset(book.book_name, 'panel-0'):
+            pytest.fail('No model image can be fabricated across ambiguous anchors')
+
+
+def test_new_canonical_coordinates_take_precedence_over_old_projection(tmp_path):
+    boxes = [[.1,.1,.4,.25], [.6,.1,.9,.25]]
+    nodes = [dict(source_block_id='panel-1', page=2, text='图 1.1 旧组合', bbox=[.3,.28,.7,.3])]
+    book, _projection = _geometry_book(tmp_path, boxes, nodes)
+    # Reimport persists a new source-neutral Canonical, while the optional
+    # old sidecar can remain for rollback. It cannot override the new source.
+    members = [b for b in book.blocks if b.block_type == 'figure']
+    for member, number in zip(members, ['1.2','1.3']):
+        member.attributes['visual_captions'] = [dict(text=f'图 {number} 新独立图',
+                                                     bbox=[member.bbox[0],.28,member.bbox[2],.3])]
+    persist_canonical_book(book, progress_root=tmp_path)
+    _activate_figure_index(book, version='new-coordinate-index')
+    items = FigureLearningService(tmp_path).list_figures(book.book_name)['items']
+    assert len(items) == 2 and {i['figure_number'] for i in items} == {'1.2','1.3'}
+
+
+def test_source_annotation_outside_crop_is_kept_in_caption_and_composite(tmp_path):
+    boxes = [[.1,.1,.35,.25], [.55,.1,.8,.25]]
+    nodes = [dict(source_block_id='panel-1', page=2, text='图 2.15 工艺', bbox=[.2,.3,.7,.32]),
+             dict(source_block_id='panel-1', page=2, text='mask', bbox=[.8,.12,.9,.14])]
+    book, _projection = _geometry_book(tmp_path, boxes, nodes)
+    service = FigureLearningService(tmp_path)
+    figure = service.get_figure(book.book_name, 'panel-1')[2]
+    assert figure['caption'] == '图 2.15 工艺\nmask'
+    assert any(node['text']=='mask' for node in figure['caption_sources'])
+    with service.complete_figure_asset(book.book_name, 'panel-1') as path:
+        with Image.open(path) as image:
+            # Native crop pixels end at x=.8; known annotation extends to .9.
+            assert image.width > 480

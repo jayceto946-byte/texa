@@ -1,0 +1,33 @@
+{
+  "q4-no-tools": {
+    "points": 6,
+    "max_points": 6,
+    "correct_complete": true,
+    "criteria": [
+      {
+        "item": "矩阵A",
+        "passed": true
+      },
+      {
+        "item": "特征值0,-2,1与对应特征向量",
+        "passed": true
+      },
+      {
+        "item": "P及P逆与A=P*diag*P逆",
+        "passed": true
+      },
+      {
+        "item": "n>=1的完整A^n",
+        "passed": true
+      },
+      {
+        "item": "x_n=8+(-2)^n,y_n=-8-2*(-2)^n,z_n=12",
+        "passed": true
+      },
+      {
+        "item": "A^0=I及初值单独列出",
+        "passed": true
+      }
+    ]
+  }
+}

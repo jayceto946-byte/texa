@@ -1,0 +1,18 @@
+{
+  "repo": "mlx-community/gemma-3-1b-it-8bit",
+  "revision": "7b963136f21d05ca8b367c93a9c47a7944ad281a",
+  "policy_prompt_version": "exposed-dev-minimal-existing-fields/2026-10-06/1",
+  "policy_requests": 240,
+  "semantic_requests": 200,
+  "gate": "stop if any arm selects a single position or ID >=95% of all 80 planned cases",
+  "greedy": true,
+  "temperature": 0,
+  "batch": 1,
+  "retry": false,
+  "self_correction": false,
+  "best_of": false,
+  "thinking": "not_applicable",
+  "prompt_tuning": false,
+  "freeze_sha256": "30a2730fa3def4c6d2b05de21b5733b78cd90ebab53a1ebd0ecf70d10342f7b4",
+  "comparison": "permutation uses unchanged existing diagnostic prompts; full semantic uses unchanged official frozen prompts"
+}

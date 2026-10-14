@@ -1,0 +1,18 @@
+{
+  "authorized": "user 2026-10-12 synthetic questions only, at most 8 paid calls",
+  "scope": "synthetic evidence; no production conversation, textbook, tool or learning records",
+  "attempted_calls": 1,
+  "answers": [],
+  "errors": [
+    {
+      "case": "concept",
+      "mode": "before",
+      "error_type": "APIConnectionError"
+    }
+  ],
+  "baseline_ref": "c53e78b",
+  "after_version": "refined-teaching-v2-2026-10-12",
+  "model": "qwen3.7-plus",
+  "output_token_limit_per_call": 2000,
+  "explicit_env_file": true
+}

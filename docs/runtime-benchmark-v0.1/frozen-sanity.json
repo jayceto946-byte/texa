@@ -1,0 +1,23 @@
+{
+  "cases_valid": 300,
+  "groups": 124,
+  "split_counts": {
+    "train": 150,
+    "dev": 60,
+    "test": 60,
+    "hidden_test": 30
+  },
+  "scorer_mutation_checks": [
+    "duplicate keys rejected",
+    "fences rejected",
+    "unknown action cannot execute",
+    "omission stays in denominator",
+    "extra authority field rejected",
+    "negation reversal critical",
+    "invented goal completion critical",
+    "lossless reordering",
+    "span out of input rejected",
+    "ambiguous reference invented certainty"
+  ],
+  "gold_round_trip": "300/300; evaluator self-test only, not model accuracy"
+}

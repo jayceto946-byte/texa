@@ -15,6 +15,9 @@ class Capability(str, Enum):
     SYSTEM_PROMPT = "system_prompt"
     TOKEN_USAGE = "token_usage"
     LOCAL = "local"
+    TOOL_CALLING = "tool_calling"
+    STRUCTURED_OUTPUT = "structured_output"
+    PARALLEL_TOOL_CALLS = "parallel_tool_calls"
 
 
 class ModelRole(str, Enum):

@@ -1,0 +1,61 @@
+{
+  "checks": [
+    {
+      "id": "answer",
+      "label": "针对当前问题的回答",
+      "reason": "",
+      "status": "passed"
+    },
+    {
+      "evidence": [
+        "answer coverage probe"
+      ],
+      "id": "item_1",
+      "label": "依据证据解释：压电式测力传感器为什么不适合真正的静态测量？为什么教材又说大时间常数电荷放大器能测准静态力？解释二者是否矛盾，并给一个适合的测量任务。不要补充证据",
+      "matched": [
+        "静态测量能力"
+      ],
+      "reason": "仅确认对象出现，内容完整性与正确性未核验",
+      "status": "unverified"
+    },
+    {
+      "evidence": [],
+      "id": "item_2",
+      "label": "结论附教材引用。",
+      "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+      "status": "unverified"
+    },
+    {
+      "cited_ids": [
+        "E1",
+        "E5",
+        "E6",
+        "E9"
+      ],
+      "id": "citations",
+      "label": "教材结论的本轮来源",
+      "reason": "",
+      "status": "passed",
+      "unsupported_ids": []
+    },
+    {
+      "id": "formula",
+      "label": "回答公式的核验依据",
+      "reason": "",
+      "status": "passed"
+    }
+  ],
+  "failures": [],
+  "passed": false,
+  "status": "unverified",
+  "unverified": [
+    {
+      "id": "item_1",
+      "reason": "仅确认对象出现，内容完整性与正确性未核验"
+    },
+    {
+      "id": "item_2",
+      "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+    }
+  ]
+}

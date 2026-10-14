@@ -2,3 +2,32 @@
 # Preserve their exact bytes on every platform; line-ending conversion would
 # invalidate the manifest and break startup/repair verification.
 assets/embedding-runtime/** -text
+
+# Frozen hashes must survive Windows core.autocrlf. Preserve bytes in migration assets.
+/evaluation/frozen/runtime-benchmark-v0/** -text
+/evaluation/runtime_benchmark/** -text
+/docs/runtime-benchmark-v0.1/** -text
+/docs/validation/runtime-benchmark-v0.1/** -text
+/docs/validation/policy-sft-v0-20261007/** -text
+/scripts/policy_sft_v0*.py -text
+/scripts/run_policy_sft_phase.py -text
+/scripts/report_policy_sft_v0*.py -text
+/scripts/diagnose_runtime_08b.py -text
+/scripts/probe_policy_permutation.py -text
+/scripts/runtime_08b_probe_analysis.py -text
+/scripts/policy_sft_handoff.py -text
+/scripts/texa_bench.py -text
+/tests/test_runtime_benchmark_harness.py -text
+/backend/services/decision/policy_contracts.py -text
+/scripts/screen_gemma_runtime.py -text
+/scripts/screen_qwen3_mini.py -text
+/scripts/report_gemma_runtime.py -text
+/scripts/report_qwen3_mini.py -text
+/scripts/diagnose_gemma_recovery.py -text
+
+/.gitignore -text
+/.gitattributes -text
+/backend/__init__.py -text
+/backend/services/__init__.py -text
+/backend/services/decision/__init__.py -text
+/evaluation/__init__.py -text

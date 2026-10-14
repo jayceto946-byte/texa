@@ -77,7 +77,7 @@ def classify_embedding_error(exc: Exception, *, stage: str = "embedding_load") -
     else:
         code = "MODEL_CORRUPT_OR_INCOMPATIBLE"
     recoverable = code != "UNSUPPORTED_ARCHITECTURE"
-    action = "repair_embedding_runtime" if recoverable else "install_supported_windows_x64_release"
+    action = "repair_embedding_runtime" if recoverable else "install_supported_release"
     return EmbeddingRuntimeError(
         code,
         text,

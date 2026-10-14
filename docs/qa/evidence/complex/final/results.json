@@ -1,0 +1,729 @@
+{
+  "environment": "Chrome real API",
+  "model": "offline fixture only",
+  "checks": [
+    {
+      "width": 1280,
+      "case": "note autosave503→navigation blocked→local text retained→retry saved",
+      "status": "PASS",
+      "draft_id": "draft_9d95e79026a04856b4ce908520f4b4b8"
+    },
+    {
+      "width": 1280,
+      "case": "note draft CAS409→copy local edits→reload authority→edit and autosave",
+      "status": "PASS",
+      "draft_id": "draft_9d95e79026a04856b4ce908520f4b4b8"
+    },
+    {
+      "width": 1280,
+      "case": "formal recovery clipboard/read failure preserves text and disables stale publish",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "archived formal authority→copy and read only; retained draft unchanged",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "note formal revision CAS conflict→no overwrite→copy/recovery",
+      "status": "PASS",
+      "note_id": "note_b7fee769deee4aa29bb122c222a298c9",
+      "draft_id": "draft_a7d38030c7bf4ed0871cdd458ef70293"
+    },
+    {
+      "width": 1280,
+      "case": "candidate source comparison switch preserves edits/selection; import footer reachable",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "real Word+answer extraction→unconfirmed candidates→merge/split→human correction→select→batch import→rollback",
+      "status": "PASS",
+      "batch_id": "b485e5af-5ce"
+    },
+    {
+      "width": 1280,
+      "case": "real text PDF→original comparison→two candidates; no automatic bank writes",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "crop focus trap/inert/keyboard enhancement; cancelled replacement retains existing attachment",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "chat image→rotate/process/compress→attach preview→remove; no model call",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "image editor Escape→cancel→focus returns",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "source keyboard boundary→Escape→trigger focus and composer draft preserved",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "persisted source metadata→inspector→Escape→reopen→route switch closes",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "note autosave503→navigation blocked→local text retained→retry saved",
+      "status": "PASS",
+      "draft_id": "draft_3d78595717b64c0a95d6ab4723b16c2a"
+    },
+    {
+      "width": 1024,
+      "case": "note draft CAS409→copy local edits→reload authority→edit and autosave",
+      "status": "PASS",
+      "draft_id": "draft_3d78595717b64c0a95d6ab4723b16c2a"
+    },
+    {
+      "width": 1024,
+      "case": "formal recovery clipboard/read failure preserves text and disables stale publish",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "archived formal authority→copy and read only; retained draft unchanged",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "note formal revision CAS conflict→no overwrite→copy/recovery",
+      "status": "PASS",
+      "note_id": "note_6f36804649944810b4703eb8ee431ea0",
+      "draft_id": "draft_f24a0ae356344127bd3f6c2bc9198257"
+    },
+    {
+      "width": 1024,
+      "case": "candidate source comparison switch preserves edits/selection; import footer reachable",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "real Word+answer extraction→unconfirmed candidates→merge/split→human correction→select→batch import→rollback",
+      "status": "PASS",
+      "batch_id": "085ae8bd-16a"
+    },
+    {
+      "width": 1024,
+      "case": "real text PDF→original comparison→two candidates; no automatic bank writes",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "crop focus trap/inert/keyboard enhancement; cancelled replacement retains existing attachment",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "chat image→rotate/process/compress→attach preview→remove; no model call",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "image editor Escape→cancel→focus returns",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "source keyboard boundary→Escape→trigger focus and composer draft preserved",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "persisted source metadata→inspector→Escape→reopen→route switch closes",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "note autosave503→navigation blocked→local text retained→retry saved",
+      "status": "PASS",
+      "draft_id": "draft_f738a6a6841949798c505eb5e1c5f08a"
+    },
+    {
+      "width": 760,
+      "case": "note draft CAS409→copy local edits→reload authority→edit and autosave",
+      "status": "PASS",
+      "draft_id": "draft_f738a6a6841949798c505eb5e1c5f08a"
+    },
+    {
+      "width": 760,
+      "case": "formal recovery clipboard/read failure preserves text and disables stale publish",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "archived formal authority→copy and read only; retained draft unchanged",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "note formal revision CAS conflict→no overwrite→copy/recovery",
+      "status": "PASS",
+      "note_id": "note_dd7f3135c43b4d1e9911d10c2af2a8dd",
+      "draft_id": "draft_5c362e293add47f08653ca39499769fb"
+    },
+    {
+      "width": 760,
+      "case": "candidate source comparison switch preserves edits/selection; import footer reachable",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "real Word+answer extraction→unconfirmed candidates→merge/split→human correction→select→batch import→rollback",
+      "status": "PASS",
+      "batch_id": "e8ba65f2-945"
+    },
+    {
+      "width": 760,
+      "case": "real text PDF→original comparison→two candidates; no automatic bank writes",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "crop focus trap/inert/keyboard enhancement; cancelled replacement retains existing attachment",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "chat image→rotate/process/compress→attach preview→remove; no model call",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "image editor Escape→cancel→focus returns",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "source keyboard boundary→Escape→trigger focus and composer draft preserved",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "persisted source metadata→inspector→Escape→reopen→route switch closes",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "note autosave503→navigation blocked→local text retained→retry saved",
+      "status": "PASS",
+      "draft_id": "draft_18214ed0f5b847d2ad45c350d8da42c2"
+    },
+    {
+      "width": 390,
+      "case": "note draft CAS409→copy local edits→reload authority→edit and autosave",
+      "status": "PASS",
+      "draft_id": "draft_18214ed0f5b847d2ad45c350d8da42c2"
+    },
+    {
+      "width": 390,
+      "case": "formal recovery clipboard/read failure preserves text and disables stale publish",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "archived formal authority→copy and read only; retained draft unchanged",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "note formal revision CAS conflict→no overwrite→copy/recovery",
+      "status": "PASS",
+      "note_id": "note_05ce3d6d2b3b41378ef6fad0ba9c4d03",
+      "draft_id": "draft_1033bedfbf8147ffb21991737793904e"
+    },
+    {
+      "width": 390,
+      "case": "candidate source comparison switch preserves edits/selection; import footer reachable",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "real Word+answer extraction→unconfirmed candidates→merge/split→human correction→select→batch import→rollback",
+      "status": "PASS",
+      "batch_id": "f16d999e-820"
+    },
+    {
+      "width": 390,
+      "case": "real text PDF→original comparison→two candidates; no automatic bank writes",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "crop focus trap/inert/keyboard enhancement; cancelled replacement retains existing attachment",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "chat image→rotate/process/compress→attach preview→remove; no model call",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "image editor Escape→cancel→focus returns",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "source keyboard boundary→Escape→trigger focus and composer draft preserved",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "persisted source metadata→inspector→Escape→reopen→route switch closes",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_9d95e79026a04856b4ce908520f4b4b8"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_9d95e79026a04856b4ce908520f4b4b8"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_9d95e79026a04856b4ce908520f4b4b8"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_9d95e79026a04856b4ce908520f4b4b8"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_9d95e79026a04856b4ce908520f4b4b8"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_9d95e79026a04856b4ce908520f4b4b8/save"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_a7d38030c7bf4ed0871cdd458ef70293"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_a7d38030c7bf4ed0871cdd458ef70293/save"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_5274f0c2d304420996b03ce9032091c1"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_5274f0c2d304420996b03ce9032091c1/save"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_9d71fa4a77514ac2932a05d70d87af8f"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_9d71fa4a77514ac2932a05d70d87af8f/save"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/batch-add"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/import-batches/rollback"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_3d78595717b64c0a95d6ab4723b16c2a"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_3d78595717b64c0a95d6ab4723b16c2a"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_3d78595717b64c0a95d6ab4723b16c2a"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_3d78595717b64c0a95d6ab4723b16c2a"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_3d78595717b64c0a95d6ab4723b16c2a"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_3d78595717b64c0a95d6ab4723b16c2a/save"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_f24a0ae356344127bd3f6c2bc9198257"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_f24a0ae356344127bd3f6c2bc9198257/save"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_f735ea9f40dc497bb5ee6c2540f94254"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_f735ea9f40dc497bb5ee6c2540f94254/save"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_47d259ca1ebd4a728f4d0e93594264f4"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_47d259ca1ebd4a728f4d0e93594264f4/save"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/batch-add"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/import-batches/rollback"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_f738a6a6841949798c505eb5e1c5f08a"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_f738a6a6841949798c505eb5e1c5f08a"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_f738a6a6841949798c505eb5e1c5f08a"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_f738a6a6841949798c505eb5e1c5f08a"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_f738a6a6841949798c505eb5e1c5f08a"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_f738a6a6841949798c505eb5e1c5f08a/save"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_5c362e293add47f08653ca39499769fb"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_5c362e293add47f08653ca39499769fb/save"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_9347b332f60b4612b1452f964b44b0d3"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_9347b332f60b4612b1452f964b44b0d3/save"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_39b6ce04d1aa40b98bd5c636caf2710c"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_39b6ce04d1aa40b98bd5c636caf2710c/save"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/batch-add"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/import-batches/rollback"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_18214ed0f5b847d2ad45c350d8da42c2"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_18214ed0f5b847d2ad45c350d8da42c2"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_18214ed0f5b847d2ad45c350d8da42c2"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_18214ed0f5b847d2ad45c350d8da42c2"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_18214ed0f5b847d2ad45c350d8da42c2"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_18214ed0f5b847d2ad45c350d8da42c2/save"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_1033bedfbf8147ffb21991737793904e"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_1033bedfbf8147ffb21991737793904e/save"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_0623db64dfbd49ea9c958182a7c7cc1e"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_0623db64dfbd49ea9c958182a7c7cc1e/save"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_4b63d75fa2344b489e47ede5e5582f25"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_4b63d75fa2344b489e47ede5e5582f25/save"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/batch-add"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/import-batches/rollback"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    }
+  ]
+}

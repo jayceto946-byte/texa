@@ -1,0 +1,137 @@
+[
+  {
+    "case": "draft→saved mistake",
+    "id": "m_6a54a116750e4103b8b4",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "review reveal→self grade→complete→refresh",
+    "id": "mrs_7eefabfa4e5b472b9fc57213",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "manual exercise validation→save→refresh",
+    "id": "dacefac3",
+    "status": "PASS",
+    "sqlite_rows": 1,
+    "api_matches_authority": true
+  },
+  {
+    "case": "direct attempt lost response→reload→recover once",
+    "id": "dacefac3",
+    "status": "PASS",
+    "restart_authority": true
+  },
+  {
+    "case": "note frozen source→failed generation→manual edit→cross-page autosave→explicit publish→refresh",
+    "id": "note_c3c380fc4b7640f69425a092eedb9091",
+    "status": "PASS",
+    "restart_authority": true
+  },
+  {
+    "case": "chat stream→interrupt confirmed→resume same task→one user question",
+    "id": "task_6472fdd39d5d432682b436295cf7fbca",
+    "status": "PASS",
+    "restart_authority": true
+  },
+  {
+    "case": "goal proposal→confirm→activate→run→cross-page→pause fence→refresh",
+    "id": "goal_e9a94e059f9444c2a7fcdf1d528e9c62",
+    "status": "PASS",
+    "restart_authority": true
+  },
+  {
+    "database": "progress/session_notes.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/learning_events.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/rag_traces.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/agent_runtime.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/exercise_bank_default.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/runtime_events.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/goals.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/mistake_book_default.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  },
+  {
+    "database": "progress/conversations/_conversation_events.db",
+    "status": "PASS",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": []
+  }
+]

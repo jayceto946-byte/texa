@@ -1,0 +1,207 @@
+{
+  "policy_select": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "action_id": {
+        "maxLength": 80,
+        "minLength": 1,
+        "title": "Action Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "action_id"
+    ],
+    "title": "PolicyDecisionV0",
+    "type": "object",
+    "description": "Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants."
+  },
+  "goal_summary": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+      "Criterion": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          }
+        },
+        "required": [
+          "description"
+        ],
+        "title": "Criterion",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "title": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Title",
+        "type": "string"
+      },
+      "objective": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "title": "Objective",
+        "type": "string"
+      },
+      "success_criteria": {
+        "items": {
+          "$ref": "#/$defs/Criterion"
+        },
+        "maxItems": 6,
+        "minItems": 1,
+        "title": "Success Criteria",
+        "type": "array"
+      }
+    },
+    "required": [
+      "title",
+      "objective",
+      "success_criteria"
+    ],
+    "title": "GoalSummary",
+    "type": "object",
+    "description": "Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants."
+  },
+  "question_understanding": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "action": {
+        "enum": [
+          "continue",
+          "clarify"
+        ]
+      },
+      "intent": {
+        "enum": [
+          "application",
+          "calculation",
+          "comparison",
+          "cross_chapter",
+          "definition",
+          "derivation",
+          "factual_recall",
+          "formula",
+          "plan",
+          "property",
+          "qa",
+          "quiz",
+          "summarize",
+          "teach"
+        ]
+      },
+      "dimensions": {
+        "type": "array",
+        "items": {
+          "enum": [
+            "calculation",
+            "classification",
+            "comparison",
+            "definition",
+            "derivation",
+            "examples",
+            "exercises",
+            "features",
+            "formula",
+            "principle",
+            "scenarios"
+          ]
+        },
+        "maxItems": 4,
+        "uniqueItems": true
+      },
+      "entity_spans": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "start": {
+              "type": "integer"
+            },
+            "end": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "start",
+            "end"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 3
+      },
+      "reference_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "action",
+      "intent",
+      "dimensions",
+      "entity_spans",
+      "reference_id"
+    ],
+    "additionalProperties": false,
+    "description": "Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants."
+  },
+  "reference_resolve": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "state_operations": {
+        "type": "array",
+        "items": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "operation": {
+                  "enum": [
+                    "clarify"
+                  ]
+                }
+              },
+              "required": [
+                "operation"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "operation": {
+                  "enum": [
+                    "resolve_reference"
+                  ]
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "operation",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "minItems": 1,
+        "maxItems": 1
+      }
+    },
+    "required": [
+      "state_operations"
+    ],
+    "additionalProperties": false,
+    "description": "Strict benchmark wire profile. See Spec for runtime parser tolerances and cross-field invariants."
+  }
+}

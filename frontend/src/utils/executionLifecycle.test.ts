@@ -5,6 +5,7 @@ import {
   createExecutionLifecycle,
   executionMessageStage,
   isExecutionEventV1,
+  isExecutionEventV2,
   mergeExecutionLifecycle,
   replayExecutionEvents,
 } from './chatActivities';
@@ -30,6 +31,27 @@ function fixture(overrides: Partial<ExecutionEvent> = {}): ExecutionEvent {
     ...overrides,
   };
 }
+
+describe('V2 origin contract', () => {
+  it('accepts schedule events without fabricating conversation identities', () => {
+    const event = fixture({ schema: 'texa.execution/v2', conversation_id: '', turn_id: '',
+      origin: { kind: 'schedule', id: 'trigger-1' } });
+    expect(isExecutionEventV2(event)).toBe(true);
+    expect(isExecutionEventV1(event)).toBe(false);
+    expect(isExecutionEventV2({ ...event, conversation_id: 'invented' })).toBe(false);
+    const replayed = replayExecutionEvents([event, { ...event, seq: 2 }]);
+    expect(replayed.lastSeq).toBe(2);
+    expect(replayed.conversationId).toBe('');
+    expect(mergeExecutionLifecycle(replayed, { ...event, seq: 3,
+      origin: { kind: 'schedule', id: 'another-trigger' } }).lastSeq).toBe(2);
+  });
+  it('rejects missing or malformed origin', () => {
+    const event = fixture({ schema: 'texa.execution/v2' });
+    expect(isExecutionEventV2(event)).toBe(false);
+    expect(isExecutionEventV2({ ...event, origin: { kind: 'user', id: ' ' } })).toBe(false);
+    expect(isExecutionEventV2({ ...event, origin: { kind: 'user', id: 'u', secret: 'x' } })).toBe(false);
+  });
+});
 
 function task(overrides: Partial<LearningTaskState> = {}): LearningTaskState {
   return {

@@ -1,3 +1,289 @@
+# 2026-10-13 - 原生数学工具阶段公开文字防丢失
+
+- 工具边界移除空正文 replace；保留普通公开 content，阶段推导从当前 human 之后的原生检查点恢复，过滤 thinking 且排除旧题、ToolMessage 与供应商私有字段。最终权威正文区分阶段记录与最后解答，流式/非流式/恢复共享此逻辑。
+- 新增公开交付提示，要求最终独立重述必要前置推导。最后答案仍独立通过原有验证；阶段记录不补足 required outputs，未经独立核验的阶段内容保守保持 unverified/degraded。64000 字符上限保持。没有更改数据库 schema、依赖、预算、工具权限或 Gate。
+- Python3.10 四个相关测试文件 68 passed，新增五项覆盖工具前文字/最终SSE替换/恢复/隐私/缺项仍失败；git diff --check通过。保存验收第三题的公开消息离线回放，真实本地工具仍失败，CDF被保留、空replace为0，最后独立解答缺CDF仍验收失败。无新付费模型调用，不等同新的模型质量或Electron实机验收。
+- 真实阶段进度文字与块定向replace架构仍为后续方案；本修复只防止内容删除，不保证数秒内出现公开计划，也未修复theta合同、球面半径推导错误、anchor误判或矩阵排版。当前持久化正文带标明未核验的阶段记录；后续应拆分interim_records/final_answer并校准复制、笔记、错题来源。
+
+# 2026-10-13 - Real Tool Calling CP5 授权真实模型、四题指标与截图
+
+- 用户授权三道复杂考研题与一道无工具对照；真实Qwen3.7 Plus、现有LangChain create_agent/SQL Runtime/隔离SymPy/Electron/SSE执行。第二题实际三模型两工具，254条正文增量；对照实际不向Provider提供工具定义，SQL工具预算0。仅公开题面及隔离合成会话，没有生产学习数据出境。
+- 工具题分别109.569/190.236/52.486秒，9482/16173/6148 tokens；无工具完成130.776秒、8179 tokens。独立六项评分6/6、5/6、5/6、6/6：积分半径表述错误、统计最终答案丢失工具前CDF推导，均如实扣分。最终主要结果正确不等同Runtime verified；所有task保留degraded/unverified或failed核验状态。
+- 保留35秒初次失败、120秒无工具超时及迟到回执，总共11次实际请求/58222 tokens，忽略缓存优惠估价0.367214元，低于1元授权上限。QA仅本进程采用16384 combined token额度、预检费用和请求次数，零自动网络重试。初次夹具迟到usage单题归属不可靠，仅用合计，后续按worker thread关联。
+- 真实证据暴露等待过短：新native数学Run默认模型180秒/Run600秒，可配置且硬上限300/600，checkpoint冻结；旧checkpoint与非数学兼容路径保留原预算。Run fence迁到复制模型的constructor callbacks，避免bind_tools丢配置；新增实际token迭代停止回归、模型超时/容量/适配器错误代码，不新增Run权威或依赖。
+- 交付docs/qa/REAL-NATIVE-MATH-ACCEPTANCE-2026-10-13.md，四题开始/过程/完成截图、原生ID/SSE/SQL回执及逐项评分。无工具完成视口停中段，另只读恢复补末尾截图，未新增付费。复杂长矩阵横向滚动、theta白名单说明、最终完整推导及required-output anchor误判仍待修复，不调整Gate刷绿。
+- 数学/原生/SSE/恢复/验证相关93项通过；明确排除三个旧Policy冻结源码身份文件后1379项通过，不宣称全量旧发布基线通过。未修改历史金标/批准pins、凭据、数据结构或依赖；QA服务与窗口已关闭。
+
+# 2026-10-13 - Real Tool Calling CP4 Electron 验收与交付归档
+
+- 原生数学执行过程完成后自动折叠，答案独立保留且过程仍可打开；模型开始/完成事件关联同一model_call_id，输出增量使用Run真实耗时。最终修复科学计数法、0边界与解集完整性警告；未修改启动生产行为，仅更新陈旧的loading测试断言。
+- 隔离QA使用受控LangChain模型与真实SymPy/FastAPI/SQLite/SSE/Electron开发壳，8项现场检查通过：两工具三轮模型、完成折叠、1280/1024/760布局、工具失败披露、真实积分取消、刷新历史恢复与preload。完整消息/回执/事件及截图保存于docs/qa/evidence/native-tool-loop；没有访问生产学习数据。
+- 最终相关后端111项通过；归档前数学隔离/原生循环/答案验证47项再次通过。前端202项、类型/lint/build及桌面15项通过。首次全量1526通过/48旧Policy源码身份失效保留，不修改批准pins或金标，未宣称全量发布通过。
+- 交付TEXA-AGENT-LOOP-IMPLEMENTATION.md并关联历史审计。Astra两轮定点问题已修复测试；最后关闭确认因账户额度未完成，不宣称最终签核。Windows正式安装包、真实供应商参数流及保守数学验证覆盖列为遗留；付费模型调用0次，另列最多3调用/2工具、建议1元上限待授权方案。
+
+# 2026-10-12 - Real Tool Calling CP3 原生循环与统一问答执行
+
+- 数学native loop使用现有LangChain create_agent，middleware委托FixedRunner/RuntimeStore；仅数学候选启用，不接管教材/其他READ及写操作，不建立第二套Run权威。保留完整标准AIMessage/tool_call_id/ToolMessage，原生消息有界保存，不按字符串摘要继续模型。
+- 同Run最多5模型步骤/3工具（SQL总上限8/6），单模型deadline不超过35秒、native run120秒、每轮4096输出token、展示文字64000字符；流式参数由真实LangChain消息聚合，工具错误回传模型，结果后续行为由模型选择。修复跨线程contextvars继承，实际模型增量可在Run结束前到达SSE；/ask与/stream共享execute_run，不再另调回答模型。
+- Astra定点审查后冻结explicit_math_only纯计算例外，保留原教材模式/范围；教材或混合问题保持原Gate。数学结果不生成E-id，最终math_support及独立后置验证无绑定依据即unverified；不相关运算、未知数学、解集完整性或公式依据不足不冒称验证通过。
+- 恢复先读取SQL终态回执，缺回执才补interrupted ToolMessage；拒绝重复provider调用ID。数学超时/取消回收子进程，模型停止在下一实际chunk检查Run fence；请求仍受transport timeout约束。加入PyInstaller freeze_support入口，无依赖或DB schema迁移。
+- 当前关键回归100项通过，新增原生链/恢复/流式针对性22项通过；非旧Policy固定身份3文件范围1370项通过。全量首次1526通过、48失败，均为旧批准源码摘要失效；保留旧金标/批准pins，不绕过门槛，不能宣称全量发布评测通过。
+
+# 2026-10-12 - Real Tool Calling CP2 数学合同与隔离执行
+
+- symbolic_math/verify_math_result复用现有ToolSpec，新增canonical Pydantic输入输出、limit、变量假设、结构化错误，修复复数解序列化、科学计数法和小数精确值。结果保留独立工具来源，不生成教材E-id。
+- 数学handler迁移为spawn独立进程；受限AST、输入输出预算、Unix CPU/内存限制与跨平台wall deadline；超时/取消terminate并join，必要时kill再join。Windows未实机验收，内存限制依赖平台resource支持。
+- 新增12项数学运算/非法输入回归；结合后续连接改动的当前工作区77项相关测试通过。无依赖安装或数据库schema迁移，生产模型未调用。
+
+# 2026-10-12 - Real Tool Calling CP1 现状审计
+
+- 审计主聊天、Provider、Registry、SQL Runtime、Gate/Final EvidencePack、Answer Verification、SSE与前端过程展示。已有symbolic_math真执行，但默认主教学链为规则选择+工具文本注入；数学缺canonical schema及Runtime入口，原生调用ID/ToolMessage丢失，Runtime回答在结束后完整输出，/ask尚未共享原生循环。
+- 新增5项免费审计探针，使用真实LangChain BaseChatModel接口，经NativeToolAdapter/BoundedAgentRunner复现同Run两次本地工具与三轮模型响应；确认数据回传文本，同时明确原生消息合同未通过。未修改生产链、数据、依赖、模型配置或Gate。
+- venv310 Python3.10.21下两批相关测试54+114=168通过，只有依赖弃用警告；git diff --check通过。未调用付费模型，未做Electron工具循环实测。
+- 交付TEXA-TOOL-CALLING-AUDIT.md与docs/qa/TOOL-CALLING-PHASE1-REPORT.md；本Checkpoint仅Phase1，不宣称Phase2–5原生数学闭环验收完成。后续优先复用现有Runtime并验证LangChain循环委托；教材Gate差异及线程无法中止SymPy作为局部设计/资源控制问题记录。
+
+# 2026-10-12 - macOS 全屏刷新空白修复
+
+- 在正式 Electron 开发端复现：全屏打开已有多重积分长回答，再从原生 View 菜单 Reload，窗口持续空白。现场 DOM 仍有内容、页面高度为 1024，控制台没有应用异常；退出全屏立即恢复且没有再次导航。故障定位到 macOS 原生内容视图/绘制表面同步，而非模型鉴权或回答内容。具体 Electron/Chromium 内部缺陷未单独定位。
+- 单纯 `webContents.invalidate()` 请求重绘未解决强制刷新；最终只在 macOS 全屏 `did-finish-load` 后对既有 WebContentsView 缩小 1px，并在下一主进程事件循环同步回当前内容尺寸，促使原生绘制表面更新。保持全屏状态，不重建窗口、不重启后端、不修改学习数据或凭据，Windows 路径不变。
+- 修复后实机通过：全屏长回答普通刷新、全屏长回答强制刷新、全屏目标页强制刷新、退出全屏后的目标页普通刷新，页面及导航恢复可用。此前的“原因未确定”记录已由本次复现与验证补充；本机验证不等同跨平台发布认证。
+- `node --check desktop/main.cjs`、`git diff --check` 通过。桌面 15 项回归中仅端口测试初次因沙箱 localhost 绑定 EPERM 失败；该文件授权在允许绑定的环境重跑 5/5，通过其余 10/10。没有新增模型调用，没有重跑前后端全量测试。
+
+# 2026-10-12 - 回答核验提示与页面加载体验收尾
+
+- 回答正文只分离系统追加的精确末尾“回答核对”未核验提示，统一由既有执行记录呈现；没有执行记录的历史回答保留可展开提示。核验失败、未知诊断、正文引用和代码样例保持可见，后端 verification/Gate 与持久化正文未改变。
+- 复用已有路由驻留与 React 导航，为路由懒加载、列表/详情读取、Markdown 和设置懒加载增加共享骨架屏；切页加入 160ms 淡入，尊重 reduced-motion。启动 HTML 正常加载只呈现骨架屏，失败/20秒超时仍保留脱敏诊断和重试。
+- 相关 Vitest 7 文件 30 项、TypeScript、ESLint 与 Vite 生产构建通过。构建仍有已有的大 chunk 提示。未重复后端全量测试，未新增真实模型请求。
+- macOS 本机临时 API/合成数据隔离验收：六模块导航后聊天草稿保留，延迟 JS/API 读取能显示骨架屏；1280×820、1024×768、760×820 无横向溢出，历史提示展开可读。Windows 和真实手机未验收。
+- 正式 Electron 窗口刷新时出现空白，控制台未发现应用错误；重启本轮桌面进程后恢复，确认真实历史两条回答不再出现正文大块提示，仍显示真实“公式或数值需要核对”，目标页往返保持会话。刷新空白的具体原因未确定，不能声明窗口热刷新可靠性通过；正式学习数据与凭据未修改。
+
+# 2026-10-11 - Mobile S2-A2 远程性能验证与最小资源优化
+
+- 基于dd91fee，独立代码checkpoint585b03c。手机导出确认10月9日前后端构建一致；同轮实际DERP(sfo)探针RTT406/394/901ms，早期手机样本链路未确认，不将受控CDP当真DERP。
+- 对已证实的教材列表重复章节校验增加成功结果、完整依赖hash校验的有界章节数缓存；真实教材同进程热中位271.305→2.929ms，手机新版服务端49.7ms，但端到端仍1067.2ms，链路等待仍主导。笔记旧样本服务端6–15ms、手机1000–1517ms，新版无笔记样本，不宣称改善。
+- opt-in诊断v2.1补有限请求/渲染/图片上传/Blob/引用分类、传输正文与构建身份；修复刷新后同Session ID空正文跳过读取。保留权威分页、鉴权、版本引用、CAS与桌面合同，不引入数据库或Runtime/Policy/网络架构变更。
+- Python92、前端184、Electron合同15通过；最终隔离类型检查、lint及构建通过。额外诊断流式夹具等待错误提示超时，保留未通过状态；完整交付结果见报告。10月11日并行网络诊断文件和dist保留，不纳入本checkpoint。
+- S1图片预览/正式错题/正式笔记用户均确认成功，具体回执未绑定；手机文字/拍照/引用PDF性能及真实冷启动仍待补验。报告：[S2-A2 performance](docs/validation/mobile-remote-s2-a2/performance.md)。
+
+# 2026-10-11 - Mobile S2 网络路径诊断与有界恢复探测
+
+- 用户报告锁屏后于15:23复测：被动status为Unknown，首次及后续三次回复全部Direct（45/40/42ms），随后status确认Direct，未观察到DERP回退；不能据此证明全程保持或长期深度休眠通过。证据：Network S2目录locked-retest-20261011T072302Z.json。
+
+- 用户重新连接手机 Tailscale 后于15:21复测：DERP(lax)1662ms、923ms→Direct41ms，随后status确认Direct；Home DERP仍为lax。复现直连升级，但不据单条Direct样本宣称稳态或锁屏保持。脱敏证据保存至Network S2验收目录。
+
+- 增加按需 Tailscale ConnectionMonitor 与鉴权诊断 API；区分 Home DERP 和近期活动传输路径，Direct/Peer Relay/DERP/Connecting/Offline/Unknown、带来源/时间的 RTT、64项进程内记录与既有 RuntimeEvent 变化事件。不扩展数据库/依赖、不修改 Serve/Tailnet/防火墙。
+- 设置“高级与诊断”提供简洁连接信息和展开的底层状态；默认 Auto 无主动 Ping，浏览器会话可选恢复时 Prefer Direct（最多3次探测、10秒预算、60秒冷却），失败仍允许中继；不伪造区域/强制路径切换。390px诊断页全宽并保留返回分类。
+- 一次真实探测观察到 DERP(sfo)1167ms→Direct43ms，随后被动 status确认Direct；约7分钟后被动 status为控制面Offline，未记录手机锁屏/网络状态，不能归因或宣布锁屏保持通过。未追加持续Ping。
+- Python相关85、前端全量191、Electron合同15通过，TypeScript/相关ESLint/Vite通过；四尺寸Chrome夹具无溢出，Direct结果和不可用状态通过。真实中继SSE、校园网及锁屏5/30分钟仍待集中实机验收。未重启/部署正在运行的Desktop。证据与清单：[Network S2验收](docs/validation/mobile-network-s2/README.md)。
+
+# 2026-10-09 - Mobile Remote S2 第一批体验与性能优化
+
+- 基于移动分支52cc1f5建立独立codex/mobile-s2-first-batch checkpoint；保护其他worktree与已合并共享修复，未改Runtime所有权、Submission、Policy/Agent、协议或网络配置。
+- 共享教材目录内存成功快照、single-flight与凭证/目录失效，移除无过期持久目录；正文错误保留partial；抽取贴底阅读hook，手机范围可见、16px输入及44px主要操作；确认重渲染成本后复用稳定Markdown/KaTeX。PDF仍显式完整下载，未冒称按页传输。
+- 5冷/20热、400ms/5Mbps的100消息合成夹具：目录2请求→1；热切换p50 1476→885ms、p95 2012→901ms；冷可读p50 6488→6275ms，未宣布SLO达成。上翻120px不再被拉到92009px，错误后的20片段正文保留。Harmony基线已0请求；已有gzip/lazy/图片压缩/SSE合并不计新成果。
+- Python93、前端180、Electron15项通过，TypeScript/相关ESLint/Vite通过；原生Electron100条Markdown/800个数学节点、IME0误提交、目录失效1请求。补录S1用户真机确认，不重复开发保存闭环。
+- 增加可选?texa_perf=1匿名性能导出；本工作区静态构建已更新。原59999当前无响应，真实DERP前后对照尚未取得；受控浏览器数据不等于真实中继改善。无依赖/数据库格式变更。完整证据：[S2第一批验收](docs/validation/mobile-remote-s2/README.md)、[性能对照](docs/validation/mobile-remote-s2/performance.md)。
+
+# 2026-10-08 - 当前未提交工作树的整体验收抽检与开发端退出修复
+
+- 在隔离数据副本上执行 Python 全量、前端全量、桌面测试、真实 Chroma/ONNX/词法检索、原生 macOS Electron 页面和后端冻结包检查。结果为 Python 1393 passed / 56 failed、前端 140 passed、后端冻结候选校验 PASS；原生开发端可完成首次配置与教材/习题候选查看。最终证据出现材料分类问题被标 `supported` 却未包含两类材料的假阳性，当前工作树不得视为整体验收通过。
+- 原生关闭时复现已销毁窗口仍被读取/发送的 `Object has been destroyed`。`desktop/main.cjs` 在异步退出准备前后检查窗口销毁状态；新隔离实例退出代码 0，后端 `/api/system/shutdown` 返回 200 且完成关闭，相关 8 项桌面单测通过。变更仅涉及开发/桌面退出保护，无数据结构或依赖变化。
+- 当前 macOS 安装候选未完成：Electron 下载遇 DNS 不可用，改用本地 Electron 后因缺可调用 npm 停止。未用旧安装包替代，也未修改正式数据、索引或凭证。用户随后授权按矩阵运行付费真实模型验收，但 L1 证据假阳性触发矩阵停止条件，L2 尚未发请求、未产生费用；独立人工源校、第二真书、Windows 及完整学习闭环保持未验收。详细范围、结果和证据：[整体验收记录](docs/validation/full-acceptance-2026-10-08.md)。
+
+# 2026-10-07 - 冻结修正版 Policy-SFT-V0 task-acquisition 实跑（资源异常停止）
+
+- 保持修正版 split/prompt/gold/scorer、目标、rank8/scale16/lr5e-5/后8层及全部模块、384长度、batch1×accum8和Hidden gate不变；原有科学基准文件hash核验通过。新增独立执行协议/runner，不改Runtime或Goal/Understanding/Reference，不下载或切模型。
+- 当前未训练Qwen3.5-0.8B-MLX-8bit唯一完整Raw Dev基线576条：accuracy58.16%、四排列一致11.81%、binary20.83%、最大分层位置/ID份额偏差39.24pp、合同合法100%。正式配置5microsteps smoke通过，0optimizer update；所有loss/gradient/adapter/初始化Adam状态finite，MLX peak3.442GiB、RSS high-water1.173GiB。
+- 另起干净adapter正式训练，完成1161/2688microsteps、145/336updates，全部已完成步骤finite。step448/896分别完整Dev评估：accuracy74.13%/84.55%、四排列一致40.97%/80.56%、binary54.17%/91.67%、最大偏差21.88/5.56pp。step896相对Raw accuracy+26.39pp，否定/纠正81.94%，tool/answer72.92%，multi-intent58.33%，尚未形成完整task-acquisition结论。
+- 整机8GiB出现critical内存压力level4，swap约3.482GiB/4GiB；按用户资源异常停止条件SIGTERM worker（退出−15），没有按质量early-stop或缩配置/重试。正式MLX peak3.444GiB，worker RSS高水位1.920GiB，不相加；单步p50/max10.718/37.987s。停止后系统压力恢复normal level1；系统swap不能全归因于训练。
+- 保留两个checkpoint和全部raw/log；未以半轮结果选正式Dev-best，Train replay及Hidden均not_run（零Hidden推理），gap未知，Hidden gate NOT EVALUATED。部分family隔离Dev学习曲线支持可学习性，不能证明容量足够、捷径彻底消失或生产泛化。交付七个要求文件及资源停止证据，未测指标null，入口：[最终报告](docs/validation/policy-sft-v0-20261007/Policy-SFT-V0-Final-Report.md)。
+
+# 2026-10-07 - Policy-SFT-V0 feasibility experiment
+
+- 按用户授权仅运行 Policy semantic candidate selection，复用既有 Qwen3.5-0.8B-MLX-8bit / mlx-lm 0.31.3 / mlx 0.32.0。未下载模型、安装依赖、切换 Base、修改 Runtime 或原 Benchmark gold/scorer；实验隔离在 `docs/validation/policy-sft-v0-20261007/`。
+- 新增 960 个合成 semantic seeds、80 个措辞模板家族，每 seed 四个顺序/ID变体，Train/Dev/Hidden 为 672/144/144 seed（2688/576/576 实例），整个模板家族不跨 split。二/三候选 gold 位置及 ID 严格分层平衡；Dev/Hidden 联合分布也严格平衡，Train 三候选联合格子差至多1。3840条输入schema、排列payload不变、标签映射、严格JSON及split审计通过。标签为确定性合成配方，非独立人工金标，模板槽位泛化限制见 Spec。
+- 保留原简化 Policy system prompt，不做 prompt tuning；隐藏集在训练前以 SHA256 冻结，未用于配置或原始模型对照。生产 blocking input 的 request_input 为 Runtime forced singleton，另存12个控制fixture，不虚构多候选澄清/no_action。
+- 修正后的完整token长度 Train p50/p90/p95/p99/max=340/357/358/365/371；Dev=340/354/358/363/363；Hidden=338.5/355/357/363/363。上限384由真实最大值取整得到，0截断，candidate/gold及原生masking/generation prefix对齐通过。
+- 一次5步smoke（末4层MLP/rank4/batch1/checkpoint）真实反向通过；loss/grad/adapter/optimizer均finite，MLX peak 3.366 GiB、rusage高水位RSS0.756 GiB，每步3.27–4.47秒。共享内存与RSS不相加，不以smoke loss评能力。准备/审计使用venv310/Python3.10，MLX worker复用既有已授权LM Studio Python3.11。
+- 固定正式配置为末8层实际MLP及两类attention投影、rank8、MLX直接scale16、lr5e-5、物理batch1×梯度累积8、1epoch（2688 microsteps / 336 updates），实际LoRA参数1,803,776。初版数据的原始模型Dev对照57.64%/四排列consistency8.33%/binary12.50%已归档，不作为修正数据的基线。
+- 后续Train-only审计发现初版生成器使topic与gold绑定，topic-majority无需理解请求即可达91.67%。因此主动停止初版正式训练（58 microsteps / 7 updates），无checkpoint、无Hidden推理、无OOM/NaN/Inf。完整证据/旧代码保存在同级 `policy-sft-v0-20261007-invalid-topic-label/`。停止原因是数据异常，不是模型容量或GPU失败。
+- 当前V0已修正为同主题/同措辞家族/同候选集合下成对/三组不同有效请求，条件组gold均衡；topic-only上界Train36.61%，训练前结构审计通过。重新冻结数据和统计，没有据Hidden模型结果改动，没有自动开启第二次训练或缩配置。当前memory-smoke/dev/hidden明确not_run并关联旧物理smoke测量，train-log保留停止/重建事件；Train/Dev/Hidden准确率及gap为空，唯一报告 `Policy-SFT-V0-Report.md` 不宣称任务能力成功。
+
+# 2026-10-06 - Policy Candidate Permutation Diagnostic
+
+- 仅80个原Policy case运行A原样/B反转数组/C local ID置换，共240次首答；全部diagnostic_only，逐字复用前轮简化Policy系统提示，模型/量化/解码/128预算保持不变。独立run位于 `docs/validation/runtime-benchmark-v0.1/policy-permutation-20261006/`，唯一报告 `docs/runtime-benchmark-v0.1/Policy-Permutation-Probe.md`；未改Harness、Runtime、gold、frozen benchmark、旧raw或正式成绩。
+- A/B/C semantic correct分别45/80、40/80、41/80，全部严格JSON/候选合法且stop。A ID偏好a1×68；B a0×63/a1×17；C a0×58/a2×22，80次全部选第二位置，强烈支持位置偏好而非固定a1。旧frozen提示79次a1与本轮简化提示不同，因果归因保留此限制。
+- A-B/A-C/B-C同语义21/68/17，同位置71/68/75；三者同语义15题、同正确8题，全为三候选中间位置，两候选58题无三者同语义/同正确。稳定正确不能独立证明语义理解；不把8/80称去偏准确率，暂不建议据此启动Policy SFT/LoRA。
+- 独立核对240 raw、语义映射、转移矩阵与80例报告；前轮20个简化Policy raw逐字复现20/20；74个既有baseline/diagnostic文件hash未变、271个冻结文件和case/input/gold身份通过。无retry、自我修正、训练、Rule仲裁、ensemble、新case或生产接入。
+
+# 2026-10-06 - Runtime 0.8B Exposed Dev Diagnostic Probes
+
+- 按用户授权新增一次性诊断脚本，复用现有本地MLX adapter，未扩建Harness接口或修改Runtime。独立目录 `docs/validation/runtime-benchmark-v0.1/diagnostic-probe-20261006/` 保存exposed/diagnostic_only配置、逐条raw、原生解码能力与字段分析；唯一阅读报告为 `docs/runtime-benchmark-v0.1/Runtime-0.8B-Diagnostic-Probe.md`。
+- A保留原input/gold/既有输出字段，省略Schema提示，运行40 Goal、41 primary Understanding和20定向Policy；B用已有mlx-vlm 0.6.5/llguidance 1.7.6解码同样任务。完整Understanding Schema在编译阶段因uniqueItems不支持失败、0token，保留错误且未重试答案；另设原生JSON-only条件41条，不宣称其为完整Schema解码。无安装、下载、模型变化、LoRA、训练导出或生产接入。
+- Goal A合同合法39/40，B为37/40，完整语义交付均0/40；A title23/40、检查项4/40，限制原文保留26/70、否定/独占9/42；26条复制无关格式示例产物。Understanding A JSON合法41/41、Schema合法30/41但合同及完整匹配0/41，intent12/41、dimensions7/41、实体/动作0；留空reference不能证明历史指代能力。JSON-only条件未恢复完整交付。out-of-profile/unsupported值不一律称已证实幻觉，字面保留分数是下界。
+- 同20条Policy原12/20、A15/20、B14/20，不替代正式40/80。原40错例主类28工具/直接回答边界、11顺序、1相反顺序表述需复核；21否定/纠正和6指代/上下文为可重叠线索，40认知根因均needs_review。Frozen Rule始终a0、Qwen 79次a1，overlap-correct0/Qwen-only40/Rule-only39/both-wrong1；oracle79/80不是可部署ensemble结果。
+- D仅扩大finish=length条件：原11 Understanding（8primary/3secondary）、A新增1 Goal、B新增3 Goal；384→768后15个条件仍全部length、0完整JSON/语义匹配。未对正常stop扩预算，不继续4倍预算或调prompt。本轮解释合同负担、示例污染、槽位偏好与持续重复；不将0完整交付外推为理论语义能力为零，未建立全面SFT/LoRA投入依据。
+- 运行前后48个原baseline记录/配置SHA256一致，271冻结文件及case/input/gold hashes校验通过；各条件实际模型/量化/库版本/模板与baseline相同；budget rendered prompt与current逐项一致；metric自检含missing分母、gold字段/限制、80题互补与40错例主类总数。原raw、official成绩、gold/scorer/prompt version保持不变，所有新指标仅诊断。
+
+# 2026-10-06 - Minimal Runtime Benchmark Harness V0.1 and Local 8bit Screening
+
+- 新增独立 `evaluation/runtime_benchmark/` 与 `scripts/texa_bench.py`：sanity/run/replay、frozen PromptBuilder、ModelAdapter/MLX/FakeAdapter、先落盘 raw 的顺序首答、原 frozen scorer 薄封装、保守唯一 JSON 恢复、S/F/T/U、task/tier/split/官方 severity 汇总、性能与 failure corpus。FREEZE 在导入冻结代码前校验，拒绝重复/未知/重叠 ID、控制集混入 semantic、配置不一致及损坏 JSONL；无重试、修复抬分、resume 或训练导出。
+- 不修改 Texa Runtime、生产模型角色、依赖、数据库或教材索引。定位并复用 LM Studio 本地 `Qwen3.5-0.8B-MLX-8bit` snapshot；config 及 187 个实际量化模块核实 8bit/group_size=64/affine。revision 不可核验则 null；记录 uint32/bfloat16/float32 与文本加载排除视觉权重的边界。用户确认后复用既有 LM Studio Python 3.11.9/MLX 0.32.0/MLX-LM 0.31.3/Transformers 5.14.1，仅模型 adapter 在子进程运行；评分仍为 venv310/Python 3.10.21，未下载模型或安装/重装环境。Metal 访问需沙箱外执行。
+- P0 原271文件 freeze、300-case schema/gold round-trip、10 mutation及四split/all frozen CLI/API一致性通过；31项harness回归通过。独立合成P1合法但动作错误，原结果保留；未据此或正式中途错例调prompt/config。P2 161/P3 39均complete，每题一次生成，0工程失败/缺失；原raw/token/time在离线合并中逐项保留，100 controls未用于模型baseline。
+- 首次 untouched internal screening：primary strict/exact/recoverable=40/161（24.84%），task macro=16.67%；Policy 40/80，Goal 0/40、Understanding 0/41；secondary 0/39，semantic_all 40/200（20%）。S/F/T/U=40/0/40/120，官方S0=40/S2=160/critical=0。103 schema失败、5 contract拒绝、12 invalid JSON；U不得表述为已证实语义错误。训练价值为insufficient_evidence，不以低分触发重跑或调参。
+- Apple A18 Pro/Mac17,5/8GiB：200成功请求p50=0.972s、p95=7.871s，含prefill的generated_tokens/request-second=37.30；P2/P3 load=1.319s/1.527s，最大MLX allocator peak约1.16GB、最大process RSS约0.85GB，各自含load/warmup且不可相加。未保证单独运行，不等于Electron/Chroma/embedding共存验收。未做LoRA、生产接入或独立gold语义review。
+- 结果与用法：`docs/runtime-benchmark-v0.1/Harness-Usage.md`、`Screening-Results-2026-10-06.md`；权威报告在 `docs/validation/runtime-benchmark-v0.1/p3-semantic-all-verified/`。首次replay汇总曾继承primary请求数，已修正为200并在新目录离线复核，原模型首答未覆盖。未来使用V0错例调优需显式exposure/tuned与新held-out版本。
+
+# 2026-10-06 - Runtime Benchmark V0.1 Scope and Measurement Correction
+
+- 新增 docs/runtime-benchmark-v0.1/ 的 Spec、Minimal Harness Plan 与 Change Log；保留原冻结数据、gold、scorer 和 raw 首答合同，将 200 semantic 明确分为 161 primary / 39 secondary，100 deterministic control 不参与 foundation 主判断。
+- 定义独立 semantic recoverability、format-only / true semantic / unresolved 归因与首次 untouched semantic_all 使用规则；标明教材工具与真实历史 reference 的 primary coverage gaps。Harness 计划收缩为 P0–P3，取消当前不必要的模型hash、隔离、恢复及平台设施要求。
+- venv310/Python 3.10.21：271冻结文件校验、300-case schema/gold round-trip、10项原scorer mutation检查通过；216来源文件一致（文档修改前），60条understanding请求与gate重算一致。分类唯一ID、计数与文档链接检查通过。
+- 仅交付文档和分类/核验记录，未实现推理Harness或recoverability parser，未跑Qwen、独立模型gold review、LoRA或Electron；不宣称模型已达标或gold已独立裁决。无业务代码、依赖、数据结构或正式索引变更。
+
+# 2026-10-06 - Unified Development Goals and Handoff
+
+- 合并语义/证据/上下文详细设计与宏观架构讨论，新增 `docs/texa-development-handoff-2026-10-06.md`，按 H0–H10 明确优先级、远近、依赖、验收、回滚与暂缓范围，并对照旧 M0–M6 阶段。
+- 同步 AGENTS.md 的未来目标：以学习资产和领域流程为主干，近期先做最终证据/发布合同、执行权威与真实闭环，再完善局部连续性；中期推进资产关联、学习动作工具和 PolicyLM 分 task 接入。保留桌面优先、教材质量、图片题、错题复习与长期写入安全边界。
+- 交接纳入已有业务链路修复记录，明确局部修复及隔离回归不等于完整目标架构或真实业务验收；接手先核对当前差距，不重复实现已有共享服务。
+- 本轮仅修改文档与未来目标，未改业务源码、依赖、模型配置、数据库、正式索引或运行端；未重跑业务测试、真实模型及 Electron 验收。文档差异和本地引用检查单独验证，不提升既有发布状态。
+
+# 2026-10-04 - Rules-first Question Understanding Interface
+
+- 保留正则、指代和意图规则优先，新增默认 off 的问题理解适配器：在最终澄清前校验当前原文实体区间/有界历史候选 ID、白名单意图与维度；shadow 不改变状态，fallback 仅补充未解决输入。句内对象/旧指代冲突可由适配器处理，比较对象保持下一轮规则可解析，澄清不写 Ledger。
+- 独立 LLM_UNDERSTANDING 配置复用 Provider registry/factory，支持实际服务提供的任意兼容模型 ID，不借用回答模型/凭据，不新增必需启动角色或依赖。配置示例在 .env.example，正式环境/profile 未修改；当前没有真实小模型接入、下载、付费调用或数据出境。
+- 理解契约贯穿主问答/SSE、Planner、检索、只读工具及 Runtime/Policy 候选生成。分类维度采用同范围一次有界 facet 召回并贯穿 rerank/EvidencePack；口语特点/场景维度可读取教材中明确列出的材料成员说明。所有教材、关键输入、写确认、schema 和执行预算门槛继续有效；恢复和 bridge 局部故障不重复理解调用。
+- Python 3.10 / venv310：376 项回归通过（新增41项接口测试）。真实2489-chunk教材快照的三题规则回归及一题模拟理解口语变体进入最终 EvidencePack，均 supported；不是线上小模型/回答准确率评测。旧冻结 Policy 数据集20项因3个路由源码哈希变化失败，原6个 fixture 和批准基线均保留，未绕过校验，需新版本重新评审。详见 docs/question-understanding-interface-2026-10-04.md 与同名 validation 目录。
+
+# 2026-10-04 - Sensor Chat Refusal Fix
+
+- 修复 refined/minimal 在显式通用模式下仍禁止模型知识的提示词契约（版本 v2）、题内“对象，它…”指代被误作历史引用，以及“根据传感器”的支持度主题污染。
+- 补齐“哪两种”和“两大类/两种”的列举/词法规则，相关候选优先分类标题；材料特点问题从明确分类成员有界读取同书、同章、同 IR 父节点说明，保留原支持度/数量/字符门槛及局部失败路径。通用模式教材缺证据拒答不再仅凭正文长度记为通过。
+- venv310 Python 3.10：256项回归通过；Electron 壳14项（端口项沙箱外单独重跑通过）及语法检查通过。现有2489-chunk真实教材词法快照绑定生产检索/EvidencePack的三题离线检查通过，未调用模型、未写正式教材/索引/学习数据；线上模型答案尚未验收。详见 docs/chat-refusal-fix-2026-10-04.md。
+
+# 2026-10-04 - Read-only Textbook Figure Split Audit
+
+- 新增离线只读审计工具，以图号、子图标签、正文引用与空间邻接筛选组合图候选，并读取已有 MinerU 中间坐标检查子图标签的归属；不调用模型、不改变生产分组/教材 IR/索引。跨导出格式以物理页与精确 bbox 匹配身份，避免误用不同语义的 source_block_index。
+- 真实传感器教材 663 个图片块，现有 39 组覆盖 107 块；82 个起始标签块未覆盖。筛出 56 个版面候选（14 优先/42 普通）及 11 处标签归属坐标候选，集合有重叠，不作为确认错误数；图 1.6、2.15、11.27、11.29、11.53 等具备可定位结构信号。
+- 数据副本扫描及计数/身份一致性验证通过。无原页覆盖、裁剪像素正确性或完整召回保证；没有新付费 OCR/视觉请求或正式数据修改。报告：docs/textbook-figure-split-audit-2026-10-04.md。
+
+# 2026-10-04 - Textbook Workflows Repaired and Current Development Runtime Verified
+
+- 修复 Canonical 到三级目录/重点范围/抽题范围的共享投影，按 heading ID 和来源 block 范围保留同页边界；旧教材只读补全，不迁移正式索引或学习资产。
+- 统一括号例题与完整学习单元识别，保留题干/解答/公式/表格及小问，修复重复目录扫描和跨章候选归属；新候选 chunk 共用学习单元 parent，native parser 升至 mineru-structured-content-v2，保留印刷页来源，例题探针加入源清点门槛。旧 IR 和 active manifest 保持不变，后续重建走既有 staged publication。
+- Figure 服务派生保守组合图，保留原子图 URL，列表/显示/视觉输入/裁剪使用同一成员组合与 provenance；缺成员先进入 waiting_for_input。无 PDF 教材隐藏练习 PDF 入口、取消页码失焦弹窗，缺 PDF 返回 404 且预览校验 MIME。正文导入与可选概念任务状态分开，OCR 重复/拒识信号只记录 warning。
+- 用户指出旧入口后，验证已改为当前仓库 Electron 开发入口：日志 isPackaged=false、当前 desktop/main.cjs、venv310/Python 3.10.21、新构建 frontend/dist；独立 Texa Dev Validation runtime 用桌面数据副本，最终端口 58127。原生页面实际看到三级目录、16 道第 1 章习题候选及图 1.21 的 a/b 组合。
+- 后端相关回归 97 passed，最终受影响 2 组复验 20 passed、Figure 组复验 22 passed（重叠）；前端 28 passed、桌面 14 passed，TypeScript/变更文件 ESLint/Vite build/diff check 通过。真实教材只读提取全书14/第1章6道例题，源/生成例题清点均14。原生检查1280×820、1024×820、760×820；未确认精确1024×768、Windows、安装包或付费模型答案质量。
+- 无依赖/数据库迁移、正式教材/活跃索引写入或付费模型/OCR调用。OCR 原页人工核对、正式候选索引发布与 C02–C04 真实答案验收仍未完成；记录：docs/textbook-abc-repair-validation-2026-10-04.md。
+
+# 2026-10-04 - Textbook A/B/C Root Cause Audit
+
+- 调取实际 macOS Electron 数据根的日志、Canonical、活跃索引/探针与任务数据库副本，核对本轮传感器教材验收。确认目录投影缺少小节、组合图未关联、无 PDF 入口误展示、括号例题识别/完整单元缺失、兼容文件重复扫描及例题覆盖假阴性；另发现概念抽取请求实际启用后断流失败，以及源端可疑 OCR 文本进入活跃索引。
+- 给出按工作包实施的修复和验收方案；C01 受阻原因没有历史请求/预期证据，不将其猜测为检索故障。报告：docs/textbook-abc-root-cause-and-repair-plan-2026-10-04.md；最小证据与现有回归日志：docs/validation/textbook-abc-2026-10-04/。
+- venv310/Python 3.10.21，临时数据根的五组相关现有回归 57 passed、6 条既有弃用警告；真实教材只读抽题复现半题与三次重复读取。仅诊断和方案，无业务源码修复、正式数据/索引写入、依赖或数据库迁移、模型调用。
+
+# 2026-10-03 - Unified Desktop Headers
+
+- 按用户要求将共享页头统一为 48px / 1px 下边框，标题由 19px 缩小到 16px（3px）；学习与管理页面标题内距统一，设置弹窗沿用同一高度与字号。补齐周报、章节重点、错题/复习子页面与笔记加载/失败/终态页头，教材导入改为内容滚动、页头固定。
+- 重新启动实际 macOS Electron 并逐页核对七个主页面、导入、现有草稿及设置窗口，保留原生截图。隔离预览 19 场景 × 三尺寸 × 两平台标记共114项，另19项最终默认宽度复查、6项笔记状态、3项设置检查；142条记录均48px/16px/1px，无横向溢出及页头控件越界。Windows为浏览器标记模拟，未做原生Windows或安装包验证。
+- 前端31文件/140项通过，TypeScript、变更文件ESLint、Vite构建及git diff --check通过，既有分块提示保留。已更新frontend/dist并重开Electron，旧构建备份在/private/tmp/texa-frontend-dist-before-header-20261003。无依赖或数据迁移、付费模型调用及正式学习资产写入；完整记录：docs/header-unification-validation-2026-10-03.md。
+
+# 2026-10-03 - Natural Session Note Prompt v4
+
+- 按用户要求简化笔记提示为 session-note-article-v4：以对话为主线，允许适度补充背景、解释、类比、例子或基础推导；去掉只可改写、禁止补充以及“用户确认/模型推测”强制标签，围绕主题生成自然文章。仍不编造教材出处或用户经历。
+- 配套放宽生成合同：document-only 输出有效，旧 coverage 输出兼容；后台按段落引用补充映射，不要求逐消息覆盖。生成补充块允许无消息引用，内部为 generated/supplemented；合法来源归属和结构检查保留，校验标记为 note-structure-v2，不提升数学验证状态。无新依赖、数据库迁移、前端改动或额外模型/工具路径；历史笔记不自动改写。
+- 验证：venv310/Python 3.10 临时 DATA_DIR/PROGRESS_PATH 隔离回归 81 passed、1 条既有 Starlette 弃用警告，git diff --check 通过。覆盖补充公式、无覆盖报告、主题合并、长对话多批、保存及冻结素材保留、非法教材引用拒绝。未运行付费模型或重新做无变化的布局验收；现有桌面后端重开后，新笔记使用 v4。完整提示与验证：docs/session-note-article-v4-2026-10-03.md。
+
+# 2026-10-03 - Approved Conversation Management and Note Reading Follow-up
+
+- 用户明确批准 S6，并要求去掉笔记的防御性审计展示。移除草稿/正式笔记/列表的检查计数、标题警示、逐块来源与感叹号、编辑来源勾选；显式保存不再附加警告确认门槛。保留内部冻结来源、quality、结构校验、revision CAS 与幂等回执，保存不提升数学验证状态。提示改为 session-note-article-v3，要求围绕学习主题生成连贯文章，无真实付费生成验收。
+- 会话权威 SQLite 增加 navigation v1 独立管理/schema/operation receipt 三表，按需原子初始化，不改原消息、Ledger 或数据库原 user_version。支持持久置顶、归档、可恢复回收站及范围分页，管理 CAS/回执/目录代次游标保证一致性；旧无扩展库兼容。没有永久删除、资产级联或 Goal 合并。
+- 归档/回收站与任务准入共用既有单进程栅栏，真实未完成任务阻止管理动作；用户明确结束停止/等待任务后更新旧消息投影。保留输出、附件和已提交领域回执；未知写入阻止取消。图片/教材图题覆盖回收站 HTTP 及 canonical SSE 竞态。备份恢复验证管理版本/状态并保留独立笔记；回退保留扩展表，旧代码不理解新管理准入，不视为完整产品回退。
+- 验证：venv310/Python 3.10.21 主代理联合回归 258 passed；Sol 最终临时 DATA_DIR/PROGRESS_PATH 隔离复跑 250 passed（范围重叠，不相加）；前端 31 files / 140 passed；TypeScript、变更文件 ESLint、Vite build、git diff --check 通过。独立原生 macOS Electron 点击直接保存，浏览器管理闭环/未完成任务门槛、12 个尺寸/平台标记布局场景通过。未做原生 Windows、付费模型、安装包或多后端进程验收；全量会话/任务扫描的规模性能仍有限。
+- 前期既有测试 audit observer 曾写入 data/progress/runtime_events.db 诊断事件，未删除该库；没有修改真实会话、错题、笔记资产。最终复跑已隔离，新增管理测试禁 observer。
+- 已更新仓库 frontend/dist，保留旧 hash 资源并备份原构建于 /private/tmp/texa-frontend-dist-before-followup-20261003；未强制重启用户桌面，关闭并重开从本仓库启动的 Texa 后生效，未重制安装包。完整说明与截图：docs/desktop-ui-refactor-followup-2026-10-03.md。
+
+# 2026-10-03 - Desktop UI Refactor, Stage One
+
+- 根据五图审查和 Astra 方案，由 GPT-6.1 Sol 实施主要 UI 改动；Sol 中途额度受限，主代理继续复核、修正并验收。笔记全链路接共享 48px 页头和阅读排版，默认按实际内容、高级设置折叠，逐块来源转为侧边 inspector；历史三点菜单与单一预检 controller 消除重复入口，问题菜单按持久状态提供录入/继续/查看错题。
+- 错题来源查询与并发复用基于现有表和稳定消息身份，兼容旧 source_ref、完整来源扫描与分批 turn 读取；复习增加现有表上的只读未完成入口。调整 Goal/复习/练习/错题层级及空状态，保留正式保存、warning hash、CAS、幂等和人工校对门槛。没有 schema、依赖、模型或正式学习数据迁移。
+- 主代理修复复核中的预览 CSS 顺序、页头 flex、重复空题库、录入焦点、来源切换、原始 Markdown 冷加载、生成终态/取消确认及 Windows 窗口控件避让。应用壳不可选择，阅读/输入仍可选择；不全局拦截 Ctrl/Cmd+A。
+- 验证：venv310/Python 3.10.21 相关后端 80 passed；当前合并前端 30 files / 137 passed；TypeScript、变更文件 ESLint、Vite 隔离输出构建、git diff --check 通过。原生 macOS 隔离 Electron 1280×820 检查草稿、来源、警告门槛、导航及 Cmd+A；浏览器七页三尺寸两平台标记共42项布局无横向溢出、页头48px、Windows控件区域无交叠。原生 Windows、打包升级、真实付费生成质量及完整业务状态矩阵未验收；未覆盖用户正在运行的 dist。
+- 审查、Astra 方案及实施验收：docs/desktop-ui-audit-astra-handoff-2026-10-03.md、docs/desktop-ui-refactor-astra-plan-2026-10-03.md、docs/desktop-ui-refactor-sol-implementation-2026-10-03.md。持久会话置顶/归档/可恢复删除仅形成具体提案，待用户批准；小模型和 Goal 持续对话未上线。
+
+# 2026-10-03 - Inspectable Learning Execution Trace
+
+- 学习回答使用同一个上方执行区，运行时展示当前操作、最近完成步骤及实时耗时；完成/停止/失败后自动收起，展开保留实际范围、回答要求、教材段落与工具回执。清除旧底部执行区和终态样式，保留键盘展开、主题和三档桌面宽度行为。
+- 通过现有 ExecutionEvent payload 持久化有界教材预览、最终 EvidencePack 选中证据、白名单工具输入/结果及校验状态；召回与最终证据分开标注，旧历史缺少预览明确披露，不回查当前索引补造。教材+chunk 身份匹配，隐藏 thinking 与未知凭证字段不进入公开详情；预览沿用 Markdown/LaTeX 并关闭远程媒体。
+- 总耗时改为本轮 elapsed/total，避免阶段重叠相加；Runtime 事务 emitter 从 run 创建时间计时，工具 call_id 合并为同一步，后续进度保留已有详情。无依赖、数据库、索引格式变更或正式学习数据迁移。
+- 验证：venv310/Python 3.10，相关后端 73 passed；前端 136 passed；变更文件 ESLint、git diff --check 通过。原生 macOS Electron 实际桌面入口 + 隔离样例检查完整学习页与组件在 1280×820、1024×768、760×820 的执行/收起/展开、键盘、段落、工具结果、停止/失败/待核验状态，无水平溢出。未调用真实模型，未测试 Windows 或打包升级。
+- TypeScript/Vite 构建通过（既有分块警告保留）。期间曾遇到工作区并行修改的 ExercisesPage.tsx 类型错误，末次复查已通过，本次未修改该页面。完整记录与截图：docs/validation/execution-trace-2026-10-03/README.md。
+
+# 2026-10-03 - Desktop UI Audit and Astra Handoff
+
+- Consolidated five user screenshots with a read-only macOS Electron review of chat, note draft/library, paused Goal, review activity, mistake empty state, and exercise empty state. Recorded 15 additional findings with visual/source/inference evidence separated in `docs/desktop-ui-audit-astra-handoff-2026-10-03.md`; preserved the five reference images under `artifacts/desktop-ui-audit-2026-10-03/`.
+- Requested a macro refactor plan from GPT-6 Astra before implementation by GPT-6.1 Sol. The audit preserves frozen note provenance, warning acknowledgement, revision/operation semantics, learning data, and content selection/copying. Persistent conversation management, future small-model focus selection, and Goal/chat integration require separate contracts rather than UI-only placeholders.
+- Audit only: no production API/schema/dependency changes, paid model calls, note publication, Goal execution, or user data deletion. Native Windows, packaged release, and narrow-window acceptance were not performed in this audit.
+
+# 2026-10-01 - Dataset V0 Verification Blocker Fixes
+
+- 仅修 Astra 指出的两个 blocker：manifest 三种版本及 digest 改为 fail closed，复用既有批准 baseline source pins，校验格式/必填、固定 source 集合、逐项冻结/实际 SHA256、Runtime/Registry canonical digest。raw dict 与被修改的 model 均重验证，明确错误码退出 selection/diagnostic eligibility；空值、bogus、malformed/all-zero/mismatch 或依据不可用不再授予选择资格。无 wildcard/unknown，不改生产 versioning。
+- 统一 policy_input 为唯一 Policy-facing validation/serialization 实现，direct serializer、evaluator、Rule adapter、teacher invocation/disabled adapter 共用；字段 ownership 与递归结构检查拦截 nested metadata、JSON 字符串/列表/多层编码和 ID 泄漏，损坏输入在排列前拒绝，不过滤普通自然语言中偶然出现的 gold/ambiguity 等词。未修改生产 Runtime/desktop/DB schema，未接 teacher/ModelPolicy/training，未增加固定数据集。
+- 本轮 venv310/Python 3.10.21：新增 82 项回归，Dataset 148 passed，原 266 + 新增合并 348 passed；独立原 baseline 11/11，真实模型调用 0。主多候选 4/6、forced 6/6、排列 controls 独立且报告与原指标精确一致；git diff --check 通过。Electron 未复跑。修复报告/源码摘要/日志在 docs/validation/runtime-policy-evaluation-dataset-v0/blocker-fixes/；原冻结记录保留，人工锁定限制不变，修复后停止。
+
+# 2026-10-01 - Evaluation Dataset V0 Offline Tools
+
+- 沿用已批准 Dataset Spec 的字段、ambiguity、gold policy 与三层指标，新增 evaluation/policy_dataset_v0 的 strict JSON/JSONL serializer、Observation-only 深层副本、冻结依据/参数/范围/标签一致性 validator、独立 adjudication ledger、source-family split/leakage/lock、确定性 hash-order 与两类有限 permutation controls、现有 RulePolicy evaluator、默认禁用 teacher interface、分层报告和最小 CLI。原样本保留，局部 ID 映射/转换版本/hash 显式记账，无执行 authority、真实工具循环或 fallback。
+- Canonical 工具 schema 采用现有三个 V0 model/Registry 的固定快照，避免导入参数 model 时间接加载 config/学习存储；测试核对 snapshot/digest 与原 canonical model 精确一致。无新依赖、数据库、生产/desktop/frontend 修改或数据迁移；本轮保留开始时已有的 Runtime Policy V0 未提交改动。
+- 新增 18 个固定样本/15 个 family 和独立损坏 Observation 拒绝材料，按 Spec 独立写依据，不根据 Rule/teacher 输出反填 gold。fixture_review 可生成草稿 baseline，不能冒充人工 locked gold；2 条语义未定，其余 16 条仍需实际人工或获批准规则才能锁定，默认 --lock 拒绝。未导入真实用户样本或规模化生产数据。
+- 验证：venv310/Python 3.10.21，新增 66 项 deterministic tests；合并既有 Policy/Runtime/backend/checkpoint 回归 266 passed（既有 200），独立原 harness 11/11，git diff --check 通过。默认入口冷进程禁止 credential reads/网络/sqlite3.connect，带模型环境变量仍成功，不导入 config/LLM；真实模型调用 0。Electron 既有 7 项与 smoke 为上一阶段记录，本轮未复跑，因生产/桌面文件未变。
+- 固定 fixture 主多候选 acceptable 4/6、single-correct 2/4、forced 6/6；2 个 candidate failures 整条排除；合法 Runtime-only 2；原始顺序/去排序线索/controls 分开，主分母不重复加权。teacher disabled/not_run、真实 E2E not_evaluated、主 missing-input precision/recall N/A。报告/版本格式/限制与日志见 docs/contracts/runtime-policy-evaluation-dataset-v0.md 与 docs/validation/runtime-policy-evaluation-dataset-v0/README.md。到此停止，不接 teacher、训练或线上 Policy。
+
+# 2026-10-01 - Runtime Policy V0 Deterministic Baseline
+
+- 按第一阶段交接落地 PolicyObservationV0 / Action / Decision / Outcome 与内部 envelope、strict JSON parser、canonical serialization、确定性候选/上一结果投影、深层隔离绑定、PolicyValidator、RulePolicyV0 与有限离线 harness。复用 Router 匹配优先级及 resolver 的 capability→canonical refs，候选生成和选择分开；覆盖实际多候选、forced（Policy 0 次）、空候选、权限/范围/参数/版本/重复调用排除。
+- 只读主聊天接线复用 FixedRunner 与原答案生成/验证/发布链；规则不占模型预算，执行 operation key 不使用模型 step 计数。现有事务复核 owner/active run/revision，stale 不执行/不做旧 run fallback；格式或未知 ID 最多一次规则 fallback，原 rejection/not_started 与 fallback/outcome 分别保留在既有 ExecutionEvent 有限 payload。request_input 仅接 SQL 前原澄清 checkpoint，不伪造 SQL run、不改 approval、receipt、commit/recovery ownership 或数据库 schema。
+- 新接线默认关闭（TEXA_RUNTIME_POLICY_V0 未设置/0）；原 READ/TEXTBOOK/WRITE 开关和主聊天接管范围不变。视觉、teach/summarize、写入/审批、Goal/schedule、插件/MCP 保留原路径。未接 ModelPolicy、未训练/扩大 dataset、未改变正式学习数据、依赖、索引或 schema。Registry 仅增加可选范围复核 hook，复用教材原 scope/index 检查，不改 canonical 工具 schema/hash。
+- 验证：venv310 / Python 3.10.21，新增 Policy、交接指定八组 regression 及受影响 Runtime/任务/验证/聊天/Goal/checkpoint 合并 200 passed（既有 Starlette/Swig 警告）；Electron 7 passed（回环端口测试经自动审批沙箱外运行）。原生 Electron 使用临时 userData/空环境两次启动真实后端，health 正常、未完成 SQL task 恢复 interrupted/resumable、Policy checkpoint 保留、重复重开不新增事件；模型/工具调用 0。未验证生产打包/安装升级，未重新审计 checkpoint。
+- 有限离线 baseline：11/11 场景符合各自标准；候选金标覆盖 21/21、禁止动作泄漏 0、参数绑定错误 0/11；多候选选择 8/8，forced 12/12 单列；格式拒绝 1、fallback 尝试/接受/执行成功各 1，stale/stop 1 独立列示。10 次工具、9 次答案 stub，真实模型 0；不是线上答案质量或训练数据声明。完整合同、报告、轨迹和重现说明：docs/contracts/runtime-policy-v0.md、docs/validation/runtime-policy-v0/README.md。第一阶段到此停止。
+
+# 2026-09-30 - Checkpoint Remediation (Handoff Scope)
+
+- 修复独立复核发现的三个剩余边界：preparation source 与 Goal revision 在同一现有事务保存，事件投影失败或重启后重试仍绑定原 Goal；已准入写入的真实 receipt 可在 Goal 更新/完成后对账，不恢复 run、不重做审批/工具准入、不改 executed_run_id；暂停撤销已确认但尚未准入的审批并留下 interrupted 任务，未发生写入不再投影为 unknown。waiting_for_confirmation 增加 interrupted 合法停止转换；拒绝已准入写入仍被禁止。
+- 复核修复验证：原独立回归从 4 failed / 1 passed 变为 5 passed；保留原 5 项并补充 8 项重启、重复对账、owner/关闭事件流和继续入口检查，13 passed。全后端 963 passed；前端 126 passed，TypeScript/Vite/ESLint 通过；Electron 7 passed（回环端口测试经批准在沙箱外重跑）。此次未重新进行原生 Electron 点击验证，先前独立复核的原生审批/暂停/重启结果不作为此次交错缺陷修复的新验收。无 schema、依赖或索引变动。
+- 按 pre-policy implementation handoff 实施 P0/P1 局部正确性整改：数值假通过、Goal 合同/fence/准入、preparation 幂等、部分初始化、事件投影隔离、SSE snapshot、outbox 公平失败隔离、真实审批状态、最小输出合同、诊断 retention/shadow/版本、调度覆盖与超时实际容量。
+- 无数据库 schema 或索引迁移；新增内容只进入已有 checkpoint/next_action JSON 与现有事件身份。旧 Goal run 缺执行摘要时允许安全停止，拒绝按旧合同恢复；标题/调度和暂停再启用不会使未变的合同失效。保留独立存储、用户 profile、历史、receipt、EvidencePack 与 owner fence。
+- 删除确认无生产消费者的 capability/fallback/outcome 写入口，fake MCP/schedule harness 移入 tests，删除 TypeError 二次调用胶水及 Planner 任意首章 fallback；实际生产 driver 改名 run_bounded。保留 Goal.plan 和 finish.answer 非阻塞 debt，不实施 Deferred。
+- 验证：Python 3.10.21 / 现有 venv310，相关后端 207 passed（新增 36）；前端 26 文件 / 126 passed，TypeScript/Vite/ESLint 通过；Electron runtime 4 passed 与语法检查通过。原生隔离 Electron 验证多 Goal、审批/receipt、暂停、expired/unknown 状态与关闭重开后的持久恢复入口；首次列表加载失效回归已修复。生产托管/安装包升级、全部宽度矩阵、真实模型/教材语义和长期定时未验收。
+- 当前 worktree 从审计基线 d06403e 保留主目录此前未提交改动后实施，未修改主目录与正式学习数据。完整范围映射、故障证据、限定验收及本轮独立 patch：docs/validation/checkpoint-remediation-2026-09-30/README.md。
+
+# 2026-09-30 - Pre-Policy Architecture Audit (No Runtime Changes)
+
+- Audited the current working tree before Runtime Policy data collection; report: `docs/pre-policy-architecture-audit-2026-09-30.md`. Verdict: NO-GO for a trustworthy training checkpoint. Findings distinguish execution defects, outcome/trace semantic gaps, and removable defensive complexity; no production code, schema, model flags, or user data changed in this audit.
+- Added isolated reproduction materials and source fingerprints under `docs/validation/pre-policy-2026-09-30/`. Fifteen assertions reproduce verifier, goal authority, memory projection, SSE consistency, outbox isolation, preparation idempotency, and audit-event gaps. These are defect reproductions using fake models and temporary stores, not correctness passes or online failure-rate measurements.
+- Validation: Python 3.10.21 in `venv310`, 290 targeted backend tests passed in two disjoint batches (176 + 114); frontend 26 files / 124 tests passed; Electron 7 unit tests passed after an approved rerun outside the sandbox for a temporary loopback-port bind. Existing Starlette/Swig deprecation warnings remain. Native Electron workflow/visual checks, real-model Answer Eval, real textbook semantic evaluation, long-running schedules, and production migration rehearsal were not performed.
+
+# 2026-09-28 - Main Workspace Header Alignment
+
+- Unified the six primary workspace headers around the Learning page's 48px chrome height and the previous Goals page's 19px, 600-weight title. Removed header subtitles from Learning and Goals and the redundant textbook count from the Library header; the populated Learning scope selector remains available on the right.
+- Kept route actions and scope selectors in the header. The compact review header stays on one line, and closed-navigation padding leaves room for the sidebar toggle and macOS window controls.
+- Validation: TypeScript/Vite production build, focused ESLint, and git diff whitespace check passed. A temporary local CSS preview rendered the six header structures at 1280×820, 1024×768, and 760×820: all computed to 48px height and 19px titles without horizontal overflow. The 760px macOS closed-sidebar inset was also checked at 152px with no overflow. The temporary preview was removed. Full native Electron interaction was not run for this header pass.
+
+# 2026-09-28 - Review Page Action Queue
+
+- Reworked the review page into a compact today summary, one ordered review queue, and a lower-weight learning insights area. Due mistakes remain ahead of concept recommendations; each group preserves the backend order. Supplementary concepts are deduplicated against recommendations and stay collapsed by default.
+- The summary distinguishes total due mistakes from the returned mistake preview (capped at 50), and distinguishes this run’s recommended concepts from all weak concepts. The first five returned primary entries show without opening a section; more entries load in groups of five. Concept completion still uses the existing review endpoint and quality 4.
+- Each row now exposes its object, actual reason, status, timing or frequency when available, and action. Concept details contain directly related recent questions, mistake links, and textbook chapter clues. Global recent questions moved to insights. Seven-day activity uses actual dates rather than array position; the heatmap labels dates outside the returned coverage as unavailable.
+- Verification: frontend TypeScript/Vite production build and LearningPage ESLint passed; the existing mistake review-session tests passed (2 tests); git diff whitespace check passed. An isolated Electron development launch using temporary user data exited with SIGABRT before a window opened. A local browser preview reached first-run onboarding, which correctly gates the review route until model setup; no credentials were entered. The populated review page could therefore not be visually checked at 1280×820, 1024×768, or 760×820 on this host. No backend API, data schema, review algorithm, or stored learning record changed.
+
+# 2026-09-23 - macOS Apple Silicon Desktop Build
+
+- Added native macOS arm64 support to the existing Electron → FastAPI → React desktop path. Windows retains its `.exe`, `venv310/Scripts/python.exe`, NSIS targets, and release scripts. The packaged architecture gate now accepts Windows x64 and macOS arm64; Linux and other architectures remain rejected.
+- Added `scripts/build-desktop-backend-macos.sh` for the existing Python 3.10 ONNX Standard dependency set and PyInstaller `onedir` backend. Added an isolated frozen-runtime smoke mode that checks SQLite, 512-dimensional ONNX embedding, Chroma query, and bundled frontend files. No database schema, index format, API route, or dependency pin was changed.
+- Added unsigned electron-builder macOS arm64 DMG/ZIP targets while keeping the Windows targets and artifact name. The packaged app loads the native backend and bundled ONNX assets from `Contents/Resources`, and writes application data under Electron userData. This build does not configure Developer ID, notarization, or App Store distribution.
+- Verification on native macOS arm64: Python 3.10.21 installed in ignored `.python-runtimes`, `venv310` recreated against it, 147 locked runtime/build packages installed; frontend build passed; desktop syntax check and four runtime tests passed; eight embedding asset tests passed. Development Electron launched the backend and renderer; renderer API requests returned 200. Frozen arm64 backend reached ready health, served the frontend, passed the runtime smoke, and exited through `/api/system/shutdown`. electron-builder produced `Texa-1.0.0-mac-arm64.dmg` and ZIP; the DMG mounted and its copied `.app` launched twice with isolated userData, retained the same SQLite file across restarts, and shut down its backend without an orphan process. A final temporary local DevTools probe confirmed packaged React DOM content and `/api/system/settings`, `/api/system/assets/status`, `/api/books/list`, and `/api/chat/conversations` resource requests; the debug instance also exited cleanly.
+- The existing Windows release workflow was not run on this Mac. Its configuration and build script remain unchanged; the new platform-gate test covers Windows x64 alongside macOS arm64.
+
 # 2026-09-16 - Learning Flow Consolidation
 
 - Reordered first use around the learning outcome: prepare a textbook, configure one answer model, then launch a suggested first question. Onboarding now completes only after a finished answer exposes textbook sources; provider details, endpoint overrides, and split reasoning/vision roles remain available under advanced settings.
@@ -2860,3 +3146,587 @@ The detailed historical notes for this period were damaged by mojibake before th
 - 文本连接测试从 Ollama `/api/tags`/模型列表检查升级为最小文本 completion；视觉连接测试发送有效 base64 PNG，并与 `VisionModelBridge` 共用同一个图片 completion dispatcher。上游拒绝、超时、空 completion shape 和 capability mismatch 均返回具体的文本/图片实际请求失败原因，密钥仍由 API 层脱敏。
 - `kimi-k2.6` 不再继承未证实的 vision capability；Moonshot vision 默认仍为已验证目录项 `kimi-k2.5`。Provider tool-calling capability 未进入 registry，现有受控工具仍是应用层编排，不以模型 catalog 冒充原生 tools transport。
 - 验证：capability/runtime、Ollama 拒绝、native profile/credential 不重写、无 silent fallback、文本/视觉 connectivity success/failure 定向回归 `55 passed`；Python 全量回归 `700 passed`，仅保留 1 条既有 Starlette/httpx2 弃用警告。
+
+## 2026-09-23 macOS arm64 字体、标题栏与管理页层级
+
+- UI 字体由 Vite 处理的 `frontend/src/assets/fonts` 相对 CSS 引用进入 `frontend/dist/assets`，冻结后端随现有 `--add-data frontend/dist:frontend/dist` 收集；保留 HarmonyOS Sans 原始 TTF（许可禁止修改，故不转 WOFF2），并在字体许可清单列明使用。已有 JetBrains Mono 与学习笔记字库继续使用 WOFF2。macOS 增加系统字体 fallback。
+- macOS Electron 使用 `hiddenInset` 原生 traffic lights 和明确位置；Windows 保留 frameless 自绘控制。管理页统一 20/16/14/13/12px 层级、36px 控件、24px 页面边距与区块间距。复习优先展示今日任务；错题收紧录入主辅栏；练习先设置本轮再展示统计；教材将导入设为主操作、状态设为筛选，并让左树只负责导航。
+- 验证：TypeScript/Vite 构建、UI 合同测试 29/29、定向 ESLint、PyInstaller arm64 发布资源校验通过；Vite dev 与冻结 `.app` 后端实际监听本机端口时，首页、CSS、Regular/Medium/Bold 字体 HTTP 均为 200。本地浏览器 652px 宽截图检查了学习、复习、错题录入、练习空状态、教材空分类，并依据截图消除了复习空列表、错题辅助栏窄窗边线与教材空分类横向滚动。离线 Electron zip 与 DMG 生成成功；DMG 只读挂载后确认三套字体均在 `Texa.app/Contents/Resources/backend/backend_server/_internal/frontend/dist/assets`。原生窗口自动化接口对 Texa 和 Chrome 均超时，traffic lights 点击、原生窗口尺寸截图、`.app` 内字体实际渲染和 DevTools Network 面板仍需可用的桌面 UI 会话确认；HTTP 资源请求已排除三套字体 404。
+
+## 2026-09-24 macOS 标题栏布局修正
+
+- 根据 macOS 实机截图移除整套 App Shell 的 36px 下移和横贯窗口的空白标题带。只在产品导航左上角给原生按钮留出 36px 空区，使 Logo 仍落在 64px 标题行内；学习侧栏和管理页标题在同一行内从 x=96px 开始，关闭学习侧栏时的展开按钮与标题各自避开原生按钮。标题行可拖动、交互控件保持不可拖动。选择器只在 `desktop-titlebar-marker.is-macos` 存在时生效；Windows 自绘控件与普通 Web 布局保持原路径，管理页 typography 和结构收敛仍为跨平台共享。
+- 1280×820 macOS Electron `hiddenInset` 预览：导航栏 x=0/y=0、Logo y=36–64、学习侧栏标题行 x=56/y=0、高 64px、管理页标题行 x=56/y=0、高 64px，标题文字均从 x=96px 开始；学习、复习、错题、练习、教材页面均不再被整体下移。预览截图由 Electron `capturePage` 生成，只包含 Web 内容，不包含原生 traffic lights；原生按钮点击仍待桌面 UI 自动化可用时实测。
+- 前端 TypeScript/Vite 重建与 UI 合同测试 29/29 通过。同步新静态资源进入既有 arm64 PyInstaller 后端后重新生成 `.app`、DMG、ZIP；`.app` 内的首页与新 CSS 和 `frontend/dist` 逐字节一致。新 DMG 只读挂载后再次确认其中 `.app` 的 CSS 与 `frontend/dist` 逐字节一致。次日最小窗口 Electron 复测启动超时，因此不将 650px 视图或原生按钮点击列为已验证。
+
+## 2026-09-24 macOS 实机截图复查
+
+- 用户截图指出：上一版只去掉了横向空白带，交通灯仍跨越 56px 导航栏边界；复习零数据仍展示三个 0 值指标，练习的“开始练习”虽不可点击却仍像可用按钮，错题上传区与右侧入口重复。
+- macOS 专属 Shell 将导航栏宽度设为 84px，完整容纳三枚原生按钮；Logo 放在按钮行下方的独立 48px 品牌区域，一级导航从品牌区域后开始。侧栏遮罩和 Inspector 的宽度统一引用导航栏宽度变量。Windows 继续使用 56px 导航栏和既有窗口控件。
+- 复习无待办时隐藏 0 值 KPI，给出继续学习和录入错题入口，避免无数据分析区及无效操作。练习无题时明确禁用主按钮并提供导入题目入口，隐藏全为 0 的统计。错题录入右侧只保留手动录入，已有图片时才出现重新选图。
+- Texa.app 原生窗口经刷新后观察到三枚 traffic lights 完全位于 84px 导航栏范围内，Logo 与导航从其下方开始；复习空状态和练习空状态的操作均在原生窗口可见。前端 TypeScript/Vite 构建与 UI 合同测试 29/29 通过。最终 `.app` 与只读挂载 DMG 内的 CSS 均与 `frontend/dist` 逐字节一致。
+
+## 2026-09-24 学习侧栏展开与管理页标题层级
+
+- 将 macOS 问答标题行的可拖动区限定为标题文字和空白占位，学习上下文展开按钮保持明确的 `no-drag` 命中区，并扩大为 36px；收起后的标题从按钮后开始。此交互修复作用于共享前端，macOS 原生拖动区规则仍仅在 macOS 生效。
+- 问答和复习、错题、练习、教材的页面标题栏统一使用 64px 高度、同一背景/边框、24px 水平内边距和 20px/600 标题。新增 13px/400 的次级说明文字样式；教材右侧分类标题降为 16px/600，避免与页面标题同级。复习空状态合并重复标题，并将刷新移到该区块的次级操作位置。
+- 验证：TypeScript/Vite 构建与 UI 合同测试 29/29 通过；macOS Texa.app 实机以鼠标坐标点击收起后的展开按钮，学习侧栏重新出现。五个页面的最终原生窗口截图保存于 `release/verification/`。`.app`、ZIP、DMG 均重新生成；DMG 只读挂载后，首页与 CSS 与 `frontend/dist` 逐字节一致，三套 HarmonyOS 字体资源均在包内。Windows 专属窗口控制 CSS/JS 未修改；共享标题与 typography 规则会同步应用于 Windows，但本次未在 Windows 机器实测。
+
+## 2026-09-24 UI handoff 第一轮共享系统收敛
+
+- 依据 `docs/ui-design-audit-handoff.md`，将 Texa UI skill 缩为六条原则、代码权威入口和按需阅读的产品对象、学习画布、状态、验收四份参考；旧任务模板、数字清单、形态禁令与实现优先规则已移除。`frontend/README.md` 改为实际开发与设计系统入口。此项规则与文档变更适用于 Windows 和 macOS 共享 UI。
+- 提升五个现有主题的 tertiary 文字颜色，在各主题主背景、次背景和卡片背景上的计算对比度均不低于 4.5:1；同步默认矿物主题 CSS 与 registry，并加入测试。补齐此前未定义的 `--shadow-medium`，统一页面标题和设置标题角色、导航微文字、按钮高度与图标按钮尺寸。全局按压缩放改为色彩反馈，输入焦点保留单套可见 outline；Markdown 多级标题恢复尺寸层级。
+- 练习模式与教材导入来源共用分段控件样式和 `aria-pressed`，错题页共用页签样式与当前态语义。`PageState` 去掉叠套的外层面板，只保留一层状态表面。Electron 启动页改用主应用的中性色、矿物绿、圆角与反馈语言；既有 typed repair 状态和平台窗口控件逻辑保留。
+- UI 合同测试移除固定 `Ask Texa` 文案、控件数量、具体 class 与 `lazy(` 限制，保留教材路由、来源可追溯、错误修复、任务恢复、键盘入口与 typed startup repair 的必要保护；新增状态容器、CSS token 引用和主题对比度检查。
+- 验证：前端 Vitest 25 files / 118 tests、ESLint、TypeScript 和 Vite 生产构建通过；`git diff --check` 通过。Vite 浏览器实看学习空态、练习及导入、错题录入、教材空态与导入、设置健康页，覆盖 720×560 和常规宽度。预览后端不可用，数据页出现 502，因此有数据状态、长中文公式/表格/引用、五个现有主题已在设置页逐一切换并检查选中态与文字层级，再恢复矿物主题；其他页面的非默认主题、有数据状态、长中文公式/表格/引用、macOS 新源码 Electron 原生窗口与 Windows Electron 均未验证；不将浏览器预览视为跨平台验收。
+
+## 2026-09-24 UI handoff 后续共享控件与阅读检查
+
+- 将练习模式和教材导入方式接到同一 `SegmentedControl`，将错题页签接到 `Tabs`；组件使用对应的 radio/tab 语义、单一选中态、方向键及 Home/End 键导航。输入框使用共享 `app-field` 状态样式；清除下拉选择器局部焦点环，避免与全局 outline 叠加。
+- 学习、教材、错题、练习的空态改用同一 `EmptyState`，以 `default`、`inline`、`prompt` 控制场景尺度，保留原本位置和操作。字体文件权重按 Regular、Medium、Bold 分配，避免 600 字重仍被 Medium 文件承担。Electron 启动背景色与主应用共享中性表面相符。
+- 使用临时隔离阅读样本，在 720×560 浏览器视口实看长中文、多级标题、公式、引用和表格，并在 1600×900 读取渲染尺寸；两个视口均未出现页面横向溢出，样本文件已移除。另以临时用户目录和本地健康服务启动源码 macOS Electron，检查学习、复习、错题、练习、教材五个路由及原生窗口；健康服务不提供业务 API，复习显示错误状态，因此不将其当作真实数据验收。未写入学习记录。浏览器实测练习分段控件方向键选中与错题 tab/tabpanel 关联。
+- 验证：前端 TypeScript、ESLint、Vitest 25 files / 119 tests、Vite 生产构建、桌面 runtime 4 tests、`node --check main.cjs`、`git diff --check` 均通过。桌面测试的端口绑定需在允许本机监听的环境中运行。Windows Electron、macOS 最小窗口和真实有数据状态仍待对应环境与隔离数据样本验证；源码检查和浏览器预览不替代这些平台实测。
+# 2026-09-24 学习画布与教材管理视觉探索
+
+- 仅为 `/` 与 `/books` 增加路由限定的 StudyDesk 布局：统一深色导航/上下文、暖白阅读平面、问题与答案层级、章节优先的来源检查器，以及分类进入侧栏的教材清单。保留既有回调、业务状态和信息架构，未推广全局主题。
+- 添加只读 `scripts/visual-preview-server.mjs`，以中文长文、公式、来源、八条会话和混合教材状态验证布局；样例不连接真实存储或模型。对照截图、复现方式与取舍见 `docs/study-desk-visual-proof.md`。
+- 验证：前端 25 files / 119 tests；最终 TypeScript、涉及组件 ESLint、Vite 生产构建与 `git diff --check` 通过。实看 macOS Electron 两页、来源/状态详情，以及浏览器 1280、1024、760px 布局和归档切换。Windows 和真实业务写入未验收；窄桌面教材清单仍需横向滚动。
+# 2026-09-25 两页视觉探索收尾
+
+- 学习与教材侧栏改为深色导航和浅色上下文分区；历史标题允许完整换行，时间独立显示。缩短学习问题标题及上下留白，保留正文阅读尺寸。
+- 窄桌面教材行分层组织信息与操作，移除固定最小清单宽度；1024px 与 760px 实测无横向溢出。宽桌面继续连续列布局，业务回调和其他页面不变。
+- Vite 构建与 diff whitespace 检查通过，macOS Electron 两页已重新实看与截图。前次 119 项业务测试未因本次 CSS 修改重复运行。细节与取舍见 `docs/study-desk-visual-proof.md`。
+# 2026-09-25 两页构图收敛
+
+- 统一侧栏材质，去除学习 chrome 中重复的问题身份；写作托盘缩短初始高度，保持正文独立滚动与底部留白。缩窄并弱化来源检查器。
+- 分类操作归回侧栏，集合工具条对齐主清单；教材行减少重复标签与选中信号。共用 Windows/macOS 路由样式，无新增平台视觉分叉，业务回调未变。
+- macOS Electron 有数据两页与长文末端已截图检查；前端 119 tests、TypeScript、相关 ESLint、生产构建通过。截图与取舍见 `docs/study-desk-visual-proof.md`。紫色左上胶囊确认为系统屏幕共享指示器，未作应用样式修改。
+# 2026-09-25 两页字体层级打磨
+
+- 为 Learning 与 Textbooks 增加局部 24/18/16/13/12/11px 字体尺度，统一标题、阅读正文、界面主体、控件、辅助文字和元数据的字重/行高；教材名称加强，归属与行操作减弱。保留现有构图、密度约束、配色、业务和跨平台共用样式。
+- 运行 Electron 有数据两页，检查原尺寸和 480px 缩略图；截图存于 `artifacts/study-desk/*-type*.png`。Vite 生产构建与 diff whitespace 检查通过；纯 CSS 未重复业务测试，Windows 未实机验证。
+# 2026-09-25 阅读重量与管理标题微调
+
+- 阅读正文保持 16px，普通段落/列表使用 400 字重与柔和深灰，强调保留深色 600 字重，增大章节前距以区分阅读节奏。
+- 教材分类标题独立于文档标题规则，保持 24px / 600，改为 1.25 行高、正常字距和较柔和标题色。侧栏、表格、全局字体系统及业务未改。
+- Electron 已检查两页有数据状态并保存 `*-final-type.png`；生产构建通过，Windows 未实机验证。
+
+# 2026-09-25 已批准双页视觉系统抽取与传播
+
+- 以 `artifacts/study-desk/learning-final-type.png`、`textbooks-final-type.png` 为视觉基准，新增 `ApprovedWorkspace.css`，抽出阅读与管理标题、正文、元数据、画布、dock、托盘、分隔线、控制尺寸和宽度角色。教材分类导航挂载改为通用上下文槽；Learning/Textbook 原有效样式仍由 `StudyDesk.css` 覆盖，保留两页外观与交互。默认矿物主题 registry 与 CSS fallback 同步改为批准色值，保留主题 ID 和存储偏好；其余已保存主题继续使用各自语义颜色。tertiary 文字略深于截图以满足现有 4.5:1 对比度门槛。
+- 复习、错题、练习采用共享管理页 chrome、连续 dock、紧凑控件和 register 行；错题及习题的题干、答案、解析使用共享阅读密度。设置 dialog 使用管理标题、紧凑控件和无边条选中态。扩展只读视觉 fixture，提供复习、错题、习题和健康状态，写请求仍受限。
+- 浏览器实看有数据 Learning/Textbook 1280×820、Textbook 1024×768 与 760×820，后两者 `body.scrollWidth === clientWidth`，教材列表也无横向溢出；实看有数据复习、错题列表/展开详情、习题库与导入表单、设置健康状态。最新样式更改后再次检查习题库、导入和错题列表；切换 tab 后检查稳定帧与可访问选中态一致。760×820 下五条路由均无根页面或工作区横向溢出。教材分类标题计算值为 24px/600/30px，dock 为 232px，管理 chrome 为 48px。最终前端 Vitest 25 files / 119 tests、TypeScript、相关 ESLint、Vite 生产构建和 `git diff --check` 通过。尝试以独立临时用户目录启动源码 macOS Electron，但桌面自动化只连接到另一已运行实例，未将其计为本次源码的视觉验收；Windows Electron 也未实机验证。
+
+# 2026-09-25 学习起点与整列折叠修正
+
+- 根据用户实机截图，将空白学习页的标题、副文案与学习范围入口居中；学习范围从左侧上下文区移至起点，已有对话则可在顶部切换。输入框在空白态增加独立写作高度与工具栏间距；顶部学习标题按管理页相同的界面字级显示。
+- 宽桌面点击左侧折叠按钮时收起完整导航 dock，顶部保留重新打开入口；教材等其他路由不受该折叠规则影响。历史记录、新会话与学习范围回调继续使用原状态流程。
+- 使用隔离的只读样例服务与临时用户目录启动当前源码 Electron，确认窗口加载本次 Vite 端口；另在独立浏览器预览检查居中起点、范围弹层与整列折叠。前端 25 files / 119 tests、TypeScript、相关 ESLint、Vite 构建及 `git diff --check` 通过。Windows Electron 尚未实机验证。
+
+# 2026-09-26 学习侧栏单行操作与能力入口预留
+
+- 将学习标题、新会话和整列折叠排入侧栏同一行，去除独立的新会话区块；在 208px 窄桌面 dock 下保持标题不换行，历史记录更早开始。保留原新会话回调与无障碍名称。
+- 在学习侧栏加入按真实能力注入的导航槽，行样式与现有 dock 共用；未来工具、目标、插件入口可在实际功能和处理流程接入时传入。当前不显示无法操作的占位按钮，也不新增第二套回答入口。
+- 在正在运行的隔离预览中检查普通宽度和 208px dock 的单行布局，修正窄栏标题换行。前端 25 files / 119 tests、TypeScript、相关 ESLint、Vite 生产构建与 `git diff --check` 通过；Windows Electron 本轮未实机验证。
+
+# 2026-09-26 Agent Runtime P0 isolated kernel
+
+- Added a new `agent_runtime` SQLite schema with four tables: `runtime_tasks`, `agent_runs`, `tool_calls`, and `execution_events`. The schema separates a new task from its run attempts, freezes tool arguments and operation keys, keeps cumulative call budget across resume, and stores V1 milestones transactionally with state. This is an isolated new-task store; legacy JSON tasks and production chat still use their existing paths. A future schema version is rejected, and unfinished runs can be explicitly marked interrupted on restart without replaying effects.
+- Extended the existing ToolRegistry with optional canonical Pydantic schemas and permission metadata while preserving legacy `public_dict` and `call`. The only registered P0 Runtime tool is an injected-store `get_recent_progress` wrapper. It reports its bounded query limit and warns that date-window counts may be incomplete. The fixed driver accepts zero or one built-in READ call, rejects other permissions and malformed schema before invoking a handler, and bounds in-flight timed-out threads. No provider API, approval, production route, or desktop startup hook was added.
+- Validation: Python 3.10.21 in `venv310`; `venv310/bin/python -m pytest -q tests/test_agent_runtime_p0.py tests/test_execution_events.py tests/test_execution_model.py tests/test_learning_task_state_machine.py tests/test_execution_outcomes.py tests/test_tool_orchestration.py tests/test_agent_tools.py tests/test_execution_effects.py tests/test_chat_execution_parity.py` passed (138 tests). The new tests cover persistence reopen, rollback, claim and ownership fencing, pause/recovery, schema and permission denial, timeout, in-flight cap, cumulative budget, and V1 event sequence. No real user data, online model, production Electron path, backup/manifest integration, or cross-database write receipt was exercised; those are later-phase gates.
+
+# 2026-09-26 Agent Runtime P1–P4 契约实施中
+
+- 新增 capability 决策包、惰性 local semantic backend、受限 fallback 与脱敏 SQLite trace；chat 的影子/快路径开关默认关闭。SQL Runtime 显式升级至 schema 3，增加累计模型预算、审批、outbox 与 trigger origin。新增受限 native adapter、多步离线 driver、领域写入 receipt 对账、幂等会话投影和 fake source/trigger 合同；没有切换生产聊天权威。
+- 抽出 generator 的公共 prompt/finalize 边界，原 generate_node 复用同一实现；Runtime 可注入已有生成流程，单独计入最终模型预算。增加模型响应期限、全局并发上限和迟到响应隔离；预算耗尽持久化失败，resume request 身份冲突拒绝。
+- Goal schema 1 提供跨会话目标、CAS 修订、证据 unknown/待核验语义、稳定学习事件投影/对账与惰性 REST API。手工修改不能直接写 measured progress/status；修改 objective/scope/criteria 清除旧测量。登记 agent_runtime/routing_traces/goals storage component 版本，未迁移或重放既有用户任务。
+- 前端 SSE 接受正常审批/中断边界；V1/V2 双读验证与回放，schedule 无会话身份，origin 变化不能覆盖同 run。未新增用户界面，未作 Electron 实机恢复验收。详细未完成项见 docs/agent-runtime-implementation-status.md，P1–P4 不标记整体完成。
+- 验证：venv310 Python 3.10 组合回归 104 项、模型能力真实性 7 项通过（Starlette 现有 deprecation warning）；前端 executionLifecycle/client 24 项、TypeScript 与 git diff --check 通过。测试使用临时数据库与 fake adapter，未执行付费模型请求或真实学习数据写入。
+
+## 2026-09-26 — Agent Runtime 后续生产接入与目标上下文
+
+- 接入主聊天 SQL runtime storage locator、任务读取/中断/恢复、审批分流、游标事件回放与启动 recovery/outbox；受功能开关和 verified model profile 双重门槛保护。
+- 教材搜索冻结 UI 资源组和索引版本，复用 production retrieval/EvidencePack 与共享生成/确定性验证；检索前后检查索引版本，防止切换期间混入新版本。
+- 写工具增加作答提交和错题备注更新的领域收据与 revision/CAS，跨库投影使用稳定学习事件 ID；未知写入只允许对账，不自动重放。
+- 新增 Goal 学习上下文面板、多目标选择、完成确认和学习记录选择；目标/范围/标准变更清除旧测量与计划批准。旧学习目标写入走统一 facade。
+- 数据结构：mistake book schema 2 增加 operation receipts；routing traces schema 2 增加不可变人工评审/holdout。runtime schema 3 和 Goal schema 1 纳入 manifest 与既有备份恢复。未触碰用户实际数据库。
+- 验证：80 项新增/相关后端测试、84 项既有聊天/工具/模型回归、121 项前端测试通过；TypeScript、lint、构建和 4 项 Electron runtime 测试通过。临时数据备份恢复通过。
+- 真实 trace 校准、verified tool-calling profile、付费 Answer Eval、完整桌面交互与窄窗口视觉验收仍为发布门槛。默认接管不开启。详见 docs/agent-runtime-implementation-status.md。
+
+## 2026-09-26 — 目标入口、全局侧栏与首次启动重设计
+
+- 目标改为独立 `/goals` 工作区：自然语言描述、模型整理、用户确认保存、显式开始运行；主输入框“更多”增加“设为学习目标”。目标列表集中管理用户目标与定时任务，替代学习 Inspector 中的大表单。
+- 显式 Goal 运行采用同一 SQL runtime、原生工具 adapter、ContextPack/EvidencePack、生成与后置验证；后台有界推进不依赖 SSE 页面存活，写操作仍停在审批门槛。Goal/schedule origin 不伪造 conversation/turn。暂停或修改目标会停止活跃 run，并拒绝旧待确认审批；桌面退出 fence 活跃 Goal run。
+- 本地定时任务支持单次、每 24 小时、每 7 天，持久化在 Goal next_action；仅在后端运行时处理，按到期时间生成稳定 request key，不自动重放未知写操作。模型能力未验证时保留目标并返回明确配置门槛。未调用真实模型或用演示替代线上验证。
+- 首次启动改为独立欢迎、连接模型、进入工作区三步。工作区在本地保存的回答模型及所需凭证配置完成后才挂载；教材可稍后添加。现有已完成引导且配置有效的安装保持直接进入。API Key 不进入浏览器存储或回显。
+- 设置改为偏好窗口，默认打开模型配置；统一内容留白、导航层级、表单和滚动区域。
+- macOS trafficLightPosition y 从 18 调整为 11（上移 7px）；折叠状态为原生红绿灯保留 108px 安全区域，标题相应错开。所有工作区共用侧栏展开/收起控制。
+- 验证：113 项相关后端回归通过，新增 Goal 后台链路测试通过（Goal execution 合计 5 项）；121 项前端测试、TypeScript、eslint、Vite 构建和 Electron main 语法检查通过。欢迎、模型连接、目标和设置在隔离演示服务检查；目标/设置检查 1280、1024、760 窗口宽度。原生 Electron AX 检查持续 timeout，实际红绿灯位置未完成视觉复核。
+
+## 2026-09-27 — 用户授权真实 API 验证
+
+- 使用开发版保存的 Qwen `qwen3.7-plus` 配置，完成真实文本、原生工具、目标整理、有界 Goal Runtime、OpenStax 教材函数图、图像到推理解题及缺失附表阻断测试。Runtime 实际调用 1 次只读工具、3 次模型步骤并 completed；数据全部隔离。
+- 修复 Goal 无可用 profile 验证入口的问题：显式模型连接测试加入无副作用原生工具探针，保存配置/凭证摘要绑定、30 天有效的本地能力记录；变更配置失效，不扩大默认生产接管。记录不包含 API Key，当前实测能力记录已写入开发版。
+- 增加 opt-in `scripts/validate_agent_online.py` 和能力失效/密钥不落盘/失败不授予能力回归。相关后端 58 项通过；真实输出及未覆盖范围见 `docs/validation/agent-online-2026-09-27.md`。
+- 未将真实小样本结果等同于总体 Answer Eval、实际教材检索或原生 Electron 全面验收。未修改用户学习记录或执行真实领域写入。
+
+## 2026-09-27 — agent-runtime-v0 发布基线
+
+- 固定 AgentRun、ToolCall、ToolResult、ExecutionEvent V1/V2、ToolRegistry 的当前契约。机器基线与变更规则位于 `docs/contracts/agent-runtime-v0.json` / `.md`；契约变化必须显式版本化并提供兼容/迁移策略。
+- 增加 SQLite Runtime v1/v2 → v3 升级与连续重复打开测试，核对表结构、版本和已有行不变；Runtime、Goal、routing trace、习题、错题、学习事件、job 七类存储的重复初始化均无差异。仅使用临时数据库，未执行用户数据迁移。
+- 最终检查：Python 3.10 全量 898 项通过；前端 25 文件/121 项通过；TypeScript、eslint、Vite build 与 Electron main/preload/runtime 语法检查通过；Electron runtime 4 项通过（loopback 测试需解除沙箱监听限制）。现有 Starlette/Swig deprecation、Markdown ineffective dynamic import 与 >500 kB chunk 警告仍存在。
+- 发布文件审计检查已跟踪文件和新增文件：实际配置凭证不在源码中，无数据库、凭证文件或开发机绝对路径。路径命中的唯一代码是通用脱敏正则，不是本机路径。原始在线 JSON、学习数据、构建产物与临时数据库保持 Git 忽略；提交审阅后的真实验证摘要。
+- Runtime 真实验证范围：文本、原生工具、目标契约、1 次只读工具/3 次模型步骤、公开图像视觉 IR、图像推理解题、缺失附表输入门槛。未验证生产教材索引/黄金集、20/40/80 轮人工答案评分、真实用户领域写入、实际定时到期执行、Electron 原生停止/断线/恢复全流程、真实 MCP/插件装载或完整桌面安装包。因此 v0 是当前内核及小样本链路基线，默认生产接管保持关闭。
+
+## 2026-09-28 — 首次启动布局与连接面板收敛
+
+- 首次启动改为固定 40px 标题栏、独立滚动 main 与固定品牌 footer；三页共用 600px 左对齐内容列和前导槽位。欢迎页改用连续竖线的三项摘要，完成页只显示小型配置成功标记。macOS 标题栏保留原生控制安全区；Windows 窗口按钮置于引导遮罩之上，未改 Electron 窗口配置。
+- guided 模型配置使用专用单列连接面板，沿用已有 Provider/Model/凭证/端点更新与保存流程；当前服务商为主信息，连接检查直接可见，图片方式、独立视觉模型和普通 Base URL 放入高级配置。自定义服务 Base URL、Model ID 直接显示；免密服务不显示禁用输入框。测试状态按当前配置指纹匹配，配置变更和迟到结果不能显示为当前连接结果，保存不要求测试成功。
+- 页面容器增加 140ms 退出、220ms 进入的方向动画；减少动态效果偏好直接切页，切换锁避免重复导航，完成后聚焦新页标题。设置页非 guided 输出与主工作区样式未改。
+- 验证：前端 25 文件/121 项测试、TypeScript、全量 ESLint、Vite 生产构建、`git diff --check` 通过。隔离本地后端与浏览器预览实看 1280×820、1024×768、760×820；760 宽内容列为 600px、无页面横向溢出，展开高级配置时只有 main 滚动且 footer 固定，超长自定义模型名也未造成横向溢出。实看免密服务、自定义服务必需字段、连接失败文案、键盘展开和免测试保存进入完成页。当前源码 Electron 已用隔离用户目录启动，但自动化连接到另一已运行窗口，未将浏览器结果计作 Electron 原生窗口视觉验收；Windows、既有凭证及 reduced-motion 系统实机尚未检查。构建仍有既有 Markdown 动态导入与大 chunk 警告。
+
+## 2026-09-28 — 首次启动问候、模型模式与识图能力
+
+- 欢迎页改为“为学习而准备”，增加直接问候和学习场景说明。连接页服务商改用简短品牌名、全宽选择器；单模型（同一模型处理文字和图片）与双模型（回答、识图分别配置）改为页面顶部的显式切换，识图模型不再藏于高级配置。设置页原有布局路径仍保留。
+- 按官方型号文档核对当前 Texa 可用的 2026 模型，修正 DeepSeek Pro/Flash、Qwen、Kimi、Gemini、OpenAI 的文本与图片输入能力。具体范围和来源见 `docs/model-modality-catalog-2026.md`。已知纯文本模型选入单模型模式时显示不支持多模态并阻止继续；未知自定义模型明确标为未确认，允许显式测试。
+- 识图测试沿用现有本地连接测试入口，改为发送随机八色带图片并核对颜色顺序，避免文本模型仅返回任意文字就被判为识图成功。测试不写入学习数据，也不是模型全面识图质量认证；可能发生一次小额供应商调用。未增加保存前必须测试成功的门槛。
+- 验证：相关后端 34 项、前端 25 文件/121 项、TypeScript、全量 ESLint、Vite 构建及 `git diff --check` 通过。隔离本地后端浏览器实看欢迎页、760×820 双模型/单模型切换、全宽选择器，以及 DeepSeek V4 Pro 在单模型模式下的提示、禁用识图测试与禁用保存。该预览不等同于 Electron 原生窗口实测；未用真实付费模型运行新的识图探针。构建仍有既有 Markdown 动态导入与大 chunk 警告。
+
+## 2026-09-28 — 双模型并列与选择框高度修正
+
+- 双模型模式下，回答模型与识图模型两组设置在首次启动页改为左右并列，保留顶部的单/双模型切换；仅极窄窗口（620px 以下）退回单列。两个模型角色继续使用原有配置和测试逻辑，设置页不受影响。
+- 首次启动页的服务商与模型选择框点击区增至 44px 高；同一面板中的输入框也对齐 44px，不改全局控件 token。
+- 验证：前端 25 文件/121 项测试、TypeScript、全量 ESLint、Vite 构建及 `git diff --check` 通过。隔离本地后端的浏览器实看 1280×820 与 760×820 双列；760×820 实测两列宽约 288px、选择框高 44px、页面无横向溢出。1024×768 实测选择框高 44px、只有 main 滚动、footer 固定。尚未重新进行 Electron 原生窗口视觉复核；构建保留既有 Markdown 动态导入和大 chunk 警告。
+
+## 2026-09-28 — 桌面启动页主题与窗口控件修正
+
+- `desktop/loading.html` 移除旧绿色强调色与旧主题变量，改用 Texa 现有语义 token；状态灯、脉冲环、进度条和操作按钮随当前 accent 变化。未改变启动页布局、Logo、文案、进度动画或加载逻辑。错误态仍使用独立的 danger 色。
+- 工作区原有主题应用函数在 Electron 中把当前主题的启动页所需 token 缓存到用户数据目录；启动页在绘制前读取，缓存缺失或无效时使用矿物主题默认蓝色。缓存由现有主题表产生，不持久化第二份主题定义；旧安装首次升级启动时可能先看到默认蓝色，工作区加载后即缓存用户已选主题供下次启动使用。缓存文件不含凭证或学习数据。
+- 启动页自定义右侧窗口按钮仅在 Windows/Linux 无框架窗口中显示；macOS 使用左上角原生 traffic lights。Electron 窗口框架配置未改变。
+- 验证：前端 25 文件/122 项测试、TypeScript、全量 ESLint、Vite 构建、Electron 7 项测试及 `git diff --check` 通过。macOS 隔离用户目录的 Electron 实看默认蓝色与缓存陶土主题色，状态灯和进度条均随主题变化，右上角无重复窗口按钮且左上角原生控制可见。Windows 通过平台分支与源码回归检查，未在 Windows 实机启动。启动页代码搜索无遗留旧绿色值或变量；构建保留既有 Markdown 动态导入和大 chunk 警告。
+
+## 2026-09-28 — 目标与任务工作区收敛
+
+- 将目标页整理为同一 Goal 集合与工作区：列表筛选改为“全部目标 / 已安排定时”；明确区分首次读取、读取失败、真实零目标、筛选空态、创建和详情。零目标收起列表列；已有目标自动选中并保留有效选中项；聊天携带的 `goalDraft` 优先进入创建态。新建时可返回详情并保留未保存输入，保存成功后选中新目标并回到全部目标。
+- 创建区改为紧凑的描述、整理、确认保存步骤。空白输入原生禁用；整理失败时才提供“保存为待开始目标”，保存失败保留确认结果。目标范围复用 `ScopeSelector`，由局部草稿维护，变更后清除旧整理结果，不触发聊天会话范围切换。保存仍不自动启用或执行。
+- 详情按目标说明、完成条件、执行与定时安排、当前任务与结果组织；保留原 Goal API、runtime 轮询、请求键、确认和暂停恢复行为。窄模块宽度切换为单面板列表/工作区，返回列表时恢复焦点；列表与详情各自保持滚动容器。局部样式仅修改 `ApprovedWorkspace.css` 的 goals 区域。
+- 验证：TypeScript、全量 ESLint、Vite 构建、前端 26 文件/124 项测试通过（含新增 Goal 集合状态 2 项），`git diff --check` 通过。隔离后端与浏览器实看 1280×820、1024×768、760×820 和 600px，覆盖零目标、已有目标、长标题、侧栏展开/收起、定时筛选空态、空格禁用、未保存草稿保留、范围选择、整理失败恢复保存与窄窗口列表/详情焦点；测试 Goal 仅写入临时数据目录。尝试独立启动 macOS Electron，但原生窗口停在首次设置，未完成目标页及标题栏验收；Windows 与执行中/等待确认/暂停恢复等真实运行态未实机验证。Vite 构建仍有既有 Markdown 动态导入与大 chunk 警告。
+
+## 2026-09-28 — 设置入口与模型连接收敛
+
+- 设置导航收敛为“偏好、模型连接、数据与教材、关于与更新”，高级与诊断固定在底部；偏好仅保留即时保存的主题。备份恢复与 MinerU 解析配置同页，CLI 折叠；备份列表优先显示日期、大小、版本和校验状态，文件名与 SHA-256 留在详情。关于页以 Electron 更新状态决定主操作，分支与提交转入诊断的开发信息。
+- 设置窗口按需加载后端设置，教材工作区才加载教材列表；健康检查仅在设置打开且诊断页可见时轮询。各设置页使用独立反馈。模型连接与首次引导共用模式切换、连接字段和紧邻模型的测试入口；草稿标记、放弃更改、保存中防重提交，以及关闭或切换方案前的未保存确认已加入。连接测试按配置指纹失效，失败反馈不回显底层异常文本。
+- 未新增正文大小和发送快捷键偏好；这两项属于后续独立能力，需分别覆盖学习正文/公式、输入法和数学编辑器。教材工作区仍由现有 `SystemHealth.tsx` 容器装配，当前仅隔离其加载与轮询，后续可在不改变其领域行为的前提下迁出容器。
+- 验证：TypeScript、相关 ESLint、前端 26 文件/124 项测试及 Vite 生产构建通过。隔离临时数据目录启动后端，浏览器实看偏好、模型连接、数据与教材、关于与更新、高级与诊断；模型方案改名会出现未保存状态，放弃更改后恢复。760×820 的双模型面板初次实看列宽仅约 260px，已修正为单列并复测无横向溢出；1024×768、1280×820 为两列约 348px，无横向溢出。关闭草稿时出现确认提示，但浏览器控制随后超时，未验证确认/取消后的最终焦点状态。Electron 原生窗口与 Windows 未实测。构建保留既有 Markdown 动态导入和大 chunk 警告。
+
+## 2026-09-29 — 错题档案页面首轮改造
+
+- 错题本默认进入档案清单；新增按现有记录可验证的“全部 / 未标注错因 / 待复习”筛选、题干搜索、详情阅读页和错误诊断页。详情按题目、当时作答、修正材料与旧复习历史组织，支持鉴权读取原图；纯公式题标题不再剥除公式。
+- 旧 `mistake_id` 和 `tab=review` 链接转入新详情或原复习执行路径；补录与复习执行暂保留原逻辑，未迁移数据库或真实学习数据。诊断只展示现有错因/知识点档案计数，旧 quality 自评不冒充独立重做或掌握证据。
+- 验证：TypeScript、相关 ESLint、Vite 构建、错题 API/存储 24 项测试和 `git diff --check` 通过。尝试浏览器预览时因本地后端未启动而停在首次配置页，未完成错题页面视觉检查；Electron 原生窗口与 Windows 未验证。现有列表 API 只支持 limit，页面采用逐次增加 limit 的加载方式，尚未具备 handoff 所需游标分页、候选/草稿/attempt 合同及新全局复习执行器。
+
+## 2026-09-29 — 错题档案闭环续作
+
+- 将错题候选、可恢复草稿、稳定来源关联、错误事件、独立重做、内容版本快照和复习会话加入错题域。`mistakes.db` 从 v2 增量升至 v4：新增 `mistake_candidates`、`mistake_drafts`、`mistake_attempts`、`mistake_sources`、`mistake_review_sessions`、`mistake_revisions`，不改写旧错题行或旧 `review_history`。未确认候选不入正式队列；内容不完整时不能确认收录。旧 quality 自评保留原样，不算独立掌握证据。
+- 全局复习改为持久会话：保存作答、揭示答案、用户确认结果与同一 SM-2 更新在一个事务中提交，并以操作收据避免重复计数。新错误事件会清除手动掌握标记并重新安排复习。练习自评失败先生成候选，显式收录复用同题稳定引用；聊天的错题入口共享补录草稿。原图存入草稿专用目录，草稿可从补录入口恢复。
+- 错题首页改为游标分页的五种筛选；详情展示题目、当时作答、修正、来源及重做事实；错误诊断只按有效独立重做统计，比较前后窗口时要求同题组覆盖至少 3 题且每窗口至少 5 次作答。旧 `/mistakes?mistake_id=...` 和复习入口保留跳转。
+- 迁移风险与回滚：本轮仅在临时 SQLite 文件验证 v2→v4，未打开或迁移真实学习库。实际启用前应备份对应 `mistakes.db` 及其 WAL/SHM 文件并在应用停止后试运行；若需回滚应用版本，停止应用并恢复整套备份，不尝试降级写入后的 v4 库。新增表属追加式迁移，旧档案 JSON/SM-2 保持可读；上线前仍需在真实数据副本上做 dry-run 和 Electron 验收。
+- 验证：Python 3.10 全量 907 项、前端 Vitest 124 项、TypeScript、相关 ESLint、Vite 构建、桌面运行时 7 项与 `git diff --check` 通过。桌面端口测试首次受沙箱 `EPERM` 阻断，授权本机 loopback 后通过。测试使用隔离临时库；未调用付费模型，也未对真实学习数据执行迁移。使用临时 `KAOYAN_USER_DATA_DIR` 尝试启动开发 Electron：沙箱内 SIGABRT；提权后进程启动，但 UI 检查只看到打包版 Texa 加载窗口及 Electron 默认欢迎页，未能确认开发版错题页已渲染。macOS 页面尺寸验收与 Windows 尚未完成。
+
+## 2026-09-29 — 错题本收口与开发版 Electron 验收
+
+- 按用户要求停止领域扩展，仅修复错题详情页标题将 LaTeX 公式作为原始文本展示的问题，改用现有数学正文渲染组件。未新增数据模型、迁移或业务规则。
+- 用隔离 `KAOYAN_USER_DATA_DIR` 启动当前源码 Electron，经首次配置进入工作区。原生窗口实看并截图：错题首页空态、补录入口、手动补录草稿、保存后的有数据首页与详情、全局复习入口、复习开始页、独立重做、答案揭示、自评及完成页。隔离样例题从补录到复习完成正常；未触碰真实学习数据或调用模型。UI 检查窗口为约 1280×820 逻辑尺寸；1024×768、760×820 和 Windows 实机仍待人工检查。
+- 收口检查：`git diff --check`、TypeScript、相关 ESLint、Vite 构建通过。先前已通过的后端全量 907 项、前端 124 项与桌面运行时 7 项未重复运行。构建仍有现存 Markdown 动态导入及大 chunk 警告。复习队列中的纯文本摘要仍会显示原始 LaTeX 定界符，详页与复习题干公式正常渲染；作为后续视觉优化，不阻碍当前流程。
+## 2026-10-02 — Seed Dataset V0 离线生产与裁决工作流
+
+- 新增独立 Seed CLI：18 条 fixture 初步校准、受限 recipe 小批投影、candidate-only 人工审查、盲审材料、人工最终标签导入、显式版本 release 和三方正式比较。沿用冻结 Policy/Dataset V0 与 Runtime/Registry pins；不改生产 Runtime、Electron、依赖、数据库或原始 fixtures。原四个 Dataset CLI 保留为 provisional tooling baseline。
+- 校准去向为 8 single-correct、2 multiple-acceptable、2 candidate-generation-error、2 insufficient-information、1 invalid-sample、3 diagnostic-only。11 条可用可见字段构造 harness 假设重投影；补充 progress-done 摘要不可能、resolved/未定样本候选来源、真实 pre-SQL 空范围及 missing-defect 未匹配 capability 的说明。保留原 18 条，并生成 16 个关联 pending 版本，共 34 samples/15 families，全留 development，不膨胀独立来源数。
+- 生成器使用实际 matcher/resolver/projection/binder 与固定 canonical schema snapshot，工具 handler 不执行。教材分支以固定源码/AST 摘要隔离纯门槛函数，避免加载模型配置；所有新版本均明确为 synthetic/harness，未导入真实用户任务或生产教材索引。fault controls 保留合法投影和注入操作；不自动造 gold。
+- 人工材料冻结 sample/Observation/label 绑定、逐候选理由、盲态、轮次及身份声明；正式确认要求双人盲审，分歧需第三人，标签更新保留同一 source ref 和 main view。Teacher adapter 默认关闭；真实运行需要单独付费/出境授权及冻结配置、零重试 transport，保留首次输出、失败及不完整批次的固定分母。CLI 不隐式配置真实 provider，不读取凭证；本轮没有真实调用或伪造 human 审核。
+- 校准与验证材料在 `docs/validation/runtime-policy-evaluation-dataset-v0/seed-production-v0`，使用说明在 `docs/policy-seed-v0-workflow.md`。正式报告 E=0，Rule N/A、Sol/Luna not_run、E2E not_evaluated；SEED QUALITY HOLD / TRAINING PREP NO-GO。原 4/6 与 forced 6/6 不升级为可信 seed baseline；尚未锁定、开展 100-family 批量生产、训练或生产接入。
+- 验证：Python 3.10 新增 45 项及相关回归共 393 项通过；包含 candidate-only→teacher-before-gold→双审新版本→release→报告的隔离回归、首次失败/预算停止/固定分母、敏感 provider 元数据拒绝持久化、冷启动无配置/凭证/数据库/网络、canonical binder 一致性。compileall 与空白检查通过。未启动 Electron，本轮没有桌面接线改动；真实人工双审、真实 teacher transport、真实教材 provenance 与 E2E 仍待独立验收。
+
+# 2026-09-29 - RuntimeEvent V1 audit stream
+
+- Audited conversation events, SSE execution milestones, agent runtime SQLite events, routing traces, RAG traces, and diagnostic logging. Added a common RuntimeEvent V1 contract and async SQLite audit store without changing existing task, conversation, or vector schemas.
+- Main chat and bounded runtime now project execution milestones into one content-free event vocabulary. Chat adds input fingerprint, active goal, route decision, model phase, chunk references, result, and feedback. `GET /api/chat/runtime-events` replays a turn or session and reconstructs metadata state.
+- Runtime event writes are batched in a bounded background queue; oldest complete turns rotate after 100,000 rows. The allowlisted payload excludes prompts, answers, credentials, paths, tool arguments, and textbook body. The contract and replay limits are documented in `docs/runtime-event-v1.md`.
+- New RAG diagnostic trace writes redact recognizable credentials, email addresses, and absolute local paths in questions, context, evidence, and errors. Existing rows are unchanged.
+- The bounded runtime projects audit events only after its SQLite transaction commits, so rollback does not create phantom history. Validation: 94 focused RuntimeEvent, execution, chat, goal, feedback, RAG trace, and backup tests passed; Python compilation and diff whitespace checks passed. No dependency or existing database migration is required; the new database is created under `PROGRESS_PATH`. Native Electron was not launched for this backend-only change.
+
+## 2026-10-02 — Session → Note P0 核心工程实现
+
+- 按 Astra handoff 新增独立笔记资产、冻结来源包、块级引用、版本化章节、草稿编辑/明确保存、不可变版本与归档恢复。新增 `PROGRESS_PATH/session_notes.db` schema 1 六表与 manifest 组件，首次访问创建独立库；不迁移旧会话/错题/Goal/教材数据。备份复用 SQLite snapshot，恢复前验证 Notes 引用完整性；旧备份可无 Notes 组件。回退应用应保留完整备份及新库，不降级写入。
+- 生成复用模型角色工厂与 JobManager，有界 8+1 调用、单次 90 秒/总计 600 秒、零自动重试；候选持久化 → complete CAS → 草稿发布，取消与完成竞态、重启补发布及中断有独立离线回归。未增加模型调用工具或开放 Agent Loop，未把保存/阅读转换为 Memory、Goal、错题、掌握度或 SM-2 更新。
+- 前端新增笔记入口、预检选区、列表/详情/草稿、逐块数学编辑和冻结来源 Inspector；历史消息支持 ID 定点与前后分页。串行 CAS 自动保存、警告 acknowledgement、失败复制/重读恢复与动态路由有界缓存已接线。Electron 关闭/退出/更新/后端重启在停止后端前等待草稿保存握手，失败保留窗口；新握手模块纳入打包文件。
+- 验证：Python 3.10 Notes 与相关回归 102 项、前端 28 文件/133 项、TypeScript、全量 ESLint、Vite 构建、desktop 11 项、语法/空白检查通过。20/40/80 轮及 5200 消息来源、故障注入、备份恢复使用临时库；12 份六类 synthetic/offline 夹具仅作来源/警告检查，人工语义审阅未运行。未调用真实付费模型、未迁移真实学习数据。
+- 实际 Electron 仅完成改动前的有数据学习页/公式矩阵基线；Mac 随后锁定阻止新 Notes 验收，三个尺寸完整流程、Windows 与发布包仍待验收。构建保留既有 Markdown 动态导入和大 chunk 警告。详细实现、数据影响与待验收清单见 `docs/session-note-p0-implementation.md`；不宣称 P0 全部验收通过。
+
+## 2026-10-03 — Session → Note P0 续验收
+
+- macOS 原生 Electron 在 1280×820、1024×768、760×820 实看长标题、公式、矩阵与表格；隔离数据完成预检、生成替身、自动保存、警告确认、同来源多笔记、归档恢复、历史版本、超过近期窗口的来源定点跳转与返回。保存故障阻止退出并保留当前文字，修复后可重试；确认活跃 Job 后中断隔离后端，重启为 interrupted，不自动重跑。
+- 修正来源返回目标校验、错误提示分类、scope 排除轮次预检往返误报及取消/中断文案。首次配置完成标志新增用户目录 setup-complete.json 原子持久化，避免动态端口重启重复引导；只存版本与布尔标志，不含凭证，旧 localStorage 标志兼容迁入，IPC 验证主窗口 sender。新增模块进入打包清单；不修改依赖或数据库 schema。
+- 真实 macOS arm64 发布候选包后端启动、离线阅读/编辑/自动保存/revision 5 提交通过。DMG checksum 与 ZIP 全文件 CRC 通过，ASAR 六个桌面模块与源码一致；DMG/ZIP 另保留于 artifacts/session-note-p0-acceptance/release-macos-arm64。沿用未签名/未公证配置，未安装、发布或验证升级器；Windows 无可用主机。
+- 用户授权后完成 qwen3.7-plus 12 次真实调用，零自动重试，仅发送 12 份合成会话，未发送真实学习记录或保存凭证。结构/引用合同 12/12 通过；代理审阅 10 份未发现目标项缺失、1 份纠错归因/展开需裁决、1 份新增来源外“两列”性质。首次输出与证据保留；人工签审仍 not_run，不以合同通过代替语义质量，P0 未全部放行。
+- 验证：Python 3.10 相关后端 109 项、前端 29 文件/134 项、desktop 14 项，TypeScript、全量 ESLint、Vite、Python/Node 语法检查及 diff 空白检查通过。全部写入隔离目录，未迁移真实学习数据。完整报告见 docs/session-note-p0-acceptance-report.md，模型证据见 artifacts/session-note-p0-acceptance/real-model-2026-10-02。
+
+## 2026-10-03 — 笔记整理来源边界与纠错归因
+
+- 按用户指定的第 1、2 项收紧生成 system prompt，版本改为 session-note-structure-v2。允许重组、指代补全、LaTeX 规范与不新增步骤的等价表达；禁止凭常识增加来源未讨论的性质、例子、结论或检验步骤。明确“交换两行”不得扩展为“两行或两列”，“可以求导检验”不意味着代做检验。
+- 用户明确确认的错因须以“用户确认”标注并引用确认消息；助手推测须标为“模型推测，未经用户确认”，不得从错误自行断言错因或泛化为长期弱点。规则统一用于抽取与合并，要求压缩后保留条件、归因及未决状态。
+- 验证：现有 Notes 离线 42 项测试通过，Python 语法与 diff 空白检查通过。新 system prompt 为 2208 UTF-8 字节，在已有 2400 预算预留内。未新增真实模型调用、未改变 schema/依赖、未改写首次输出或已有笔记；v2 语义效果尚未真实模型复验，先前候选包仍为 v1，未重新打包。
+
+## 2026-10-03 — MinerU 4 原生输出与索引发布收口
+
+- 迁入两处 list retrieval 修复并独立提交；保留 sibling fallback 和普通 literal gate，补组级型号校验及错误型号、其他书/节、伪造列表标记的负向回归。16 个固定失败片段仅作为检索回归，不是 OCR 黄金集。
+- 新增 structured_content native adapter，external/API/CLI/全文读取共用来源选择和 Canonical 章节投影；处理通用编号、局部枚举、公式单份表示、HTML/Markdown 表格、captionless figures、原始页/块索引与 normalized bbox。保留旧格式；损坏 native、未知主版本与多文档歧义明确诊断。
+- Canonical 顶层 schema 保持 1，增加可选 source_metadata / original_visual_asset v1；公式、表格原图使用受控路径和不可变 SHA 文件名，维持结构化检索身份。旧 figure 字段和 materialization 入口兼容，旧资产不删除。修复 reload 丢弃空白表头列造成的列位与 hash 变化。
+- Canonical/报告/probes/crops 先写隔离 candidate，再在现有 index publication 边界内与 lexical/map/manifest 一致提交；加入读 snapshot、失败/取消/可捕获中断恢复、幂等 retry 和带 Canonical 证据的 retained rollback。旧 IR/manifest 不匹配不补造关联。新增的是 per-book retained snapshot，未迁移数据库或全局数据布局；backup/restore 覆盖新资产。
+- 固定归档 native 实测：4925 blocks（3442 paragraph、270 heading、663 figure、522 formula、28 table），1826 文本 chunks，663 figure 和 550 original crops ready，IR 0 errors。较 bridge 多保留 14 个原始标题片段；table 218 行、36 chunks 与基线一致。新增索引 fingerprint/manifest/分 specialty 质量已保存，formula/list/table 各 8 个真实本地生产 retrieval + EvidencePack gate 通过，阈值未改；example=0 明确缺覆盖，不当作 OCR 金标或模型准确率。
+- 验证使用 Python 3.10 venv310、隔离目录和本地 ONNX；完整离线 1313 项、桌面 14 项、前端 31 文件/140 项、TypeScript/Vite 构建通过。Electron 独立 userData 托管 API 实测 ZIP → job → 章节 → 13 个原图成功，34 chunks，has_pdf=false、extract_concepts=false。native GUI 自动化无法定位独立进程，点击上传未验收；进程硬终止/掉电和跨进程原子恢复未验收，因此未宣布全部 bridge 退役/生产同名更新条件放行。没有 OCR、付费模型、依赖重装或生产数据改写。
+- 详细实施、数量差异、兼容影响与验证证据见 docs/mineru-native-implementation-2026-10-03.md 和 docs/validation/mineru-native-2026-10-03/。
+
+## 2026-10-04 — 教材图片可复用审核与修复候选验收
+
+- 将图片审核与临时组合展示分开：所有 Canonical 来源保存时生成 hash/规则版本绑定的 figure_audit.json；旧教材支持单本/多本/全部重审及同版本问题差异。报告保存规则、物理页、来源 ID、坐标/文本证据，区分确定性结构错误、疑似信号和证据不足。未增加 OCR/模型调用或依赖。
+- 新增只读分页审核接口与教材操作菜单“审核图片”，可筛选、重审、分页和查看原始裁片。保留标签可能位于原图像素内的判断边界。图题正文污染不得再作为归组公共锚点；优化按页检查，避免对每个候选扫描全书正文。
+- 修复候选安装前增加独立资产/来源审核和裁片覆盖、身份、分组一致性、页码/章节边界验收。结构失败拒绝安装，结构通过不提升 quality_status=unverified，不因拼图成功关闭疑似问题。派生关联仍可回退，原图不改写。
+- 派生审核报告随 staged candidate 发布/失败恢复，独立于不可变 IR 快照内容，可随规则重算；没有数据库、依赖、Canonical schema 或索引格式迁移。原始 IR、active manifest、lexical 文件 SHA-256 未变化，本轮未再安装真实数据修复候选。
+- 真实教材只读：663 裁片/资产哈希通过，747 节点、703 获 IR 文本支持；162 条疑似信号和 1 条全书原页比较未完成记录。88 组合候选覆盖 240 裁片，511 展示条目恰好覆盖 663 原裁片，结构通过，语义仍未验证。信号可能重复或误报，当前只有一本真实 Canonical 教材，不将合成跨来源回归当作多书准确率。
+- 验证：Python 3.10 相关 78 + 32 项、前端既有 140 项、TypeScript、改动文件 ESLint、Vite 构建与空白检查通过。macOS Electron 当前源码 isPackaged=false，隔离数据实看加载、分类、空结果、裁片、分页和 1280×820 / 1024×768 / 760×820；隔离派生 hash 故障返回 409，逐字节恢复后重审成功。Windows、发布包、完整原页像素对比和 OCR 语义正确性未验收。
+- 使用方式、边界与证据见 docs/textbook-figure-audit-mechanism-2026-10-04.md。
+# 2026-10-04 - Sensor Chat Refusal Diagnosis (Read-only)
+
+- 核对桌面端三题四次请求的 RAG trace、权威会话消息与 LearningTask 执行事件：第一题 partial 后模型报告证据缺失；第二题教材模式 support gate 拒答，显式学科通用后仍受 refined 教材提示词限制；第三题题内“它”被误判成无历史指代，进入 waiting_for_input。
+- 只读规则复现确认“根据传感器”错误主题抽取、题内先行词识别缺口与 subject_general 的固定教材系统提示词；同版本索引存在金属/半导体应变片材料分类，但未进入第一题证据。历史门槛完整评分未持久化，主题匹配对照不作为历史精确重放。
+- 未改业务代码/门槛/用户数据/索引，未调用付费模型。详见 docs/chat-refusal-diagnosis-2026-10-04.md。
+
+## 2026-10-04 — D/E/F/G 教材验收诊断与修复方案
+
+- 核对用户验收清单、桌面数据库临时副本和现有源码：D02 在 refined v2 下仍由证据门槛拒答；F01 同一冻结来源三次失败均为 invalid_document，现有诊断未保留具体解析/结构错误；F03 同一习题两次因教材证据不足失败。
+- 真实2489条词法快照接生产 retrieve_node/EvidencePack，不调用模型：前置“什么是”被误纳入主题，后置同义定义问句可通过；习题题号16被误作为必需数值，仅去掉题首编号后证据0→4。修正题号后焦点仅包含灵敏度，仍缺多项解题输出覆盖，未视为完整解答成功。
+- 制定分包方案：定义句式/实体边界、习题编号语义投影、笔记错误分类与输出合同、逐项解题验证、E的20/40/80轮与恢复矩阵、F资产闭环及G既有通过项回归。E未验证、F04/F05受阻不自行认定根因；G首次通过不扩大为跨平台放行。
+- Python3.10 venv310隔离六组相关既有回归106项通过，6条既有弃用警告。未修改业务源码、正式索引或学习数据，未执行真实模型调用或桌面重新提问。详见 docs/textbook-defg-root-cause-and-repair-plan-2026-10-04.md 与 docs/validation/textbook-defg-2026-10-04/。
+
+## 2026-10-05 — 业务全链路独立审计与执行合同
+
+- 以当前未提交工作树审计，补充合成生产函数见证：D02主题污染、题号误过滤及型号子串误匹配、复杂Planner覆盖指定章节、最终Pack裁剪丢支持点、E-id与正文未接通导致引用检查跳过、错误公式仍passed、习题缺输入但非空草稿success、Notes JSON合法转义导致LaTeX控制字符静默损坏。历史F01精确结构原因、C04以及F05受阻原因仍保留未知，不据此编造历史归因。
+- 只读核对桌面磁盘manifest仍为c8b6947edb7858f2，例题门槛仍为零探针not_applicable；没有初始化正式Chroma、打开正式学习数据库或切换索引。运行进程/当前包身份、真实模型与原生Electron新一轮验收均未执行。
+- Python3.10.21隔离既有回归：core148、assets66、runtime78通过；Policy128通过/20失败，失败仍由冻结源码digest门槛阻断。合计420通过/20失败不代表业务闭环通过；未改金标或approved hash，未调用付费模型。
+- 新增审计报告、52组业务验证矩阵、W0–W6执行手册及可重跑离线见证；给出层级门槛、人工审阅、模型发送/预算待授权方案、停止条件与回滚方法。入口：docs/business-chain-audit-2026-10-05.md。本轮只新增文档/审计脚本和本记录，未修业务代码、迁移数据或修改依赖。
+
+## 2026-10-05 — Astra 业务链路审计修复
+
+- 修复 Planner 覆盖明确章节范围、定义问法焦点污染、题号/给定参数误过滤与型号前缀混淆；原题和参数输出合同保留。
+- EvidencePack 增加仅供运行时使用的裁剪正文映射，按教材/版本/章节计数；主生成/章节生成对最终证据重新核对要点。后置验证逐次检查引用，缺正文不通过，分开公式结构与数学支持；仅消费本题明确表达式绑定的计算/核验收据。
+- 习题答案编排收进 exercise_answers 应用服务，复用主聊天生成和验证，记录带习题 origin 的 LearningTask；缺关键附件进入 waiting_for_input，草稿保留核验状态与最终来源。Job 查重/创建串行化，异常固定映射，切题后的旧响应不覆盖新题。正式保存仍需点击。
+- Notes article-v5 增加统一长度与 JSON-LaTeX 合同，拒绝损坏转义，保留普通空白；结构先验校验、reason/path 和可用的生成元数据保留，固定失败原因对用户可见。没有自动修 JSON 或增加模型重试。
+- 新 RAG Trace 不再存问题/Resolver/检索正文及原异常，改存 hash/长度与固定失败码；历史日志不删除。没有数据库迁移、依赖变更或正式索引更新。
+- 验证：Python 3.10 临时根/断网关键回归 281 passed，新增7个集中测试；前端140 passed、修改文件lint/TypeScript/隔离Vite构建通过；桌面语法通过、13项通过/1项本地监听EPERM受阻。Policy原冻结门槛128 passed/20 failed保留，另完成27个首轮候选对比，off/shadow与批准源码一致，fallback差异待人工审阅。
+- 限制与版本记录：[业务链路修复记录](docs/business-chain-repair-2026-10-05.md)。真书候选/正式激活、付费模型、原生Electron/安装包与Windows未验收，不将代码修复表述为真实学习全闭环放行。
+
+## 2026-10-06 — Gemma 3 1B IT 8bit Runtime foundation 横向筛选
+
+- 下载 `mlx-community/gemma-3-1b-it-8bit` revision `7b963136f21d05ca8b367c93a9c47a7944ad281a` 到单一HF缓存；公开仓库可访问，无凭证、无权限绕过。实际gemma3_text / Gemma3ForCausalLM、8bit/group64，量化模块与权重dtype实测；约999.9M唯一参数，导出embedding/lm_head重复张量单独记录。
+- ModelAdapter最小泛化Qwen/Gemma架构校验，记录原生template、EOS和实际模型类。转换仓库缺少generation_config导致IT原生end_of_turn未停止；中断无效尝试并保存raw，只在tokenizer层补原生终止符[1,106]，新独立run重新验证。未调整prompt、gold/scorer/task definitions/Runtime，未改Qwen任何结果、依赖或学习数据。
+- 3任务smoke + 240次原A/B/C probe + 161 primary/39 secondary完成；semantic_all仅离线replay。有效正式440次generation零操作错误；32项Harness测试通过，271个冻结pinned文件及99个额外保护文件核验。
+- permutation strict正确A/B/C=18/19/27（各80），三变体稳定10/80；原保守parser诊断恢复后38/37/42，稳定16/80 vs Qwen15/80，双候选稳定10/58 vs0/58。但A可判定答案75/76选a0，ID shortcut仍明显。
+- 原frozen prompt正式strict 0/200 vs Qwen40/200；保守恢复仅11个Policy完整匹配。Goal/Understanding完整匹配均0；Understanding诊断字段micro17.67% vs3.67%，不等于完整合同可靠。严格与恢复指标分离，不把围栏恢复替换官方成绩。
+- 完整200例p50=2.637s/p95=5.565s、request-inclusive29.87tok/s；MLX峰值1522.08MiB vs Qwen1109.49MiB，RSS峰值1281.47MiB vs811.36MiB。单模型可完成，无Electron/Chroma/embedding共存验收，不宣布整体端侧envelope通过。
+- 结论：不支持优先用Gemma替换Qwen作为Runtime训练foundation；未训练/LoRA/生产启用。报告及四个交付文件位于 `docs/validation/runtime-benchmark-v0.1/gemma3-1b-it-8bit-native-eos-20261006/`；无效尝试保存在相邻 `gemma3-1b-it-8bit-20261006/`。
+
+## 2026-10-06 — Qwen3-0.6B 8bit Mini foundation screening
+
+- 按用户明确授权，先核验Gemma缓存repo、架构、README/config/权重SHA256，再仅删除 `~/.cache/huggingface/hub/models--mlx-community--gemma-3-1b-it-8bit`，释放allocated空间1,422,770,176 bytes（约1.325GiB）。Gemma报告、raw、run、全部有效/无效实验产物保留，清理收据单独保存。
+- 下载固定 `mlx-community/Qwen3-0.6B-8bit` revision `11de96878523501bcaa86104e3c186de07ff9068` 至单一HF缓存；Qwen3ForCausalLM/qwen3、596,049,920参数、hidden1024/layers28、8bit/group64，实际197个量化模块验证通过。来源为post-trained Qwen/Qwen3-0.6B；无Base/4bit/GGUF或重复副本，缓存约619.33MiB。
+- 仅在ModelAdapter新增Qwen3-0.6B架构校验与加载元数据，原生enable_thinking=false、EOS=<|im_end|>，未修停止符、改prompt、改Runtime/gold/scorer。评分保持Python3.10，推理复用原LM Studio MLX环境，不改依赖。
+- 推理前固定20例：tool/direct-answer与multi-intent各10，gold a0/a1各10；10 binary +10 ternary，覆盖否定/改口/噪声/查询/引用/顺序。只运行3任务smoke +60次原A/B/C probe；不存在完整80/200运行分支。
+- 同病例paired结果：Qwen3 A/B/C正确9/10/11（各20），Qwen3.5为11/10/10；合同均60/60合法。三变体一致7/20 vs8/20；全正确5/20 vs4/20；binary一致4/10 vs0/10、ternary一致3/10 vs8/10。Qwen3不再C恒选第二位，但B仍16/20选a0、14/20选第二位，整体没有更可靠prior证据。
+- 同60请求latency：Qwen3 p50/p95=0.441/0.514s，Qwen3.5=0.636/0.718s；request-inclusive17.78 vs12.70tok/s。load0.492 vs1.425s；MLX峰值798.60 vs1015.54MiB，RSS1170.08 vs824.42MiB。peak口径为60次vs旧240次进程生命周期，非同期交错，不做Electron/Chroma共存或挑选更佳复测。
+- 验证33项Harness测试通过，175个基线/产物保护文件SHA256相同；60次正式generation零missing/操作错误/重试。报告：[Qwen3-0.6B-8bit-Mini-Screening](docs/validation/runtime-benchmark-v0.1/qwen3-06b-8bit-mini-20261006/Qwen3-0.6B-8bit-Mini-Screening.md)。结论：到mini停止，不优先扩大80 Policy/200 semantic，不训练/LoRA/调prompt。
+
+
+## 2026-10-07 — Policy-SFT-V0 非模型 Windows 迁移包
+
+- 纳入三份 SFT freeze、960 seeds / 3840 instances、冻结训练/Dev/Hidden及metadata、原始生成/acquisition/evaluation/reporting源码、协议/配置/审计、Mac Raw Dev与step448/896结果及resource-abort/Final Report。冻结语义与原始hash未改。
+- 将仓库外 Runtime Benchmark V0 原包（271 pins、300 cases、gold/scorer/prompts/schemas/splits及contract-source）原样收进evaluation/frozen，保留既有baseline raw/reports。Benchmark与训练资产隔离，只在最终adapter冻结后作downstream validation。
+- 离线Harness默认使用repo内冻结包，不依赖Mac source_release；resource仅在MLX内存测量时导入。增加显式本机adapter_path及artifact hashes、ModelAdapter注入的downstream记录。未实现CUDA backend或改变gold/scorer/prompt/cases。
+- 新增WINDOWS-CUDA-HANDOFF、HANDOFF-MANIFEST、标准库完整性入口、路径投影工具、离线参考requirements及.gitattributes字节保真。ignore排除权重/adapter/optimizer/venv/cache/临时状态；保留Mac源码绝对路径作为冻结出处，Windows运行不使用这些入口。
+- 验证：三份SFT冻结与全部271 benchmark pins匹配；Train/Dev/Hidden为672/144/144 seeds、2688/576/576 instances；只导出Git tree迁移资产到空目录后完整性与30项离线Harness测试通过，5项downstream相关测试未执行。未进行训练、模型下载、Hidden推理或Windows GPU验收。
+- 迁移清单542个hash资产约45 MB，最大8.4 MB，无新模型/真实密钥。仓库既有94,847,144字节embedding ONNX不属于迁移清单，保留桌面端依赖，说明提供blob:none+sparse clone。旧冻结文本中已有空白lint提示不作清理，以免改变hash。
+
+
+## 2026-10-08 已知问题修复复验
+
+- 修复材料问题遗漏主题、数量及场景交付项导致的最终 EvidencePack 假阳性；比较意图补同书材料分类召回，各材料特点/场景分别检查，标题不替代最终截断正文。真实传感器索引副本恢复两类材料，仍缺完整说明时明确 partial。
+- 修复 DEMO-X1 一类带字母段连字符型号的 literal gate；保留精确型号与计算输入边界。图片引用校验纳入图注文本，元数据和不相关图注仍不能验证结论；占位图片答复测试改为有来源支持的正文。枚举评分测试按真实结构信号 0.85 校正，不提高 supported 门槛。
+- 新增离线 macOS 打包入口，使用本地 Electron/已安装依赖 traversal；不重装依赖、不改 package/lockfile。当前后端重新冻结且发布内容校验 PASS；ZIP/DMG 已生成、DMG 校验有效，候选空 profile 原生启动和退出码 0 复验通过。正式升级恢复未签收。
+- Python 3.10.21 隔离全量 1407 passed/47 failed，剩余为 Policy 冻结源码漂移；K03 的 9 项失败已消除。之后新增图注边界回归，相关文件 12 passed。旧 Policy gold/hash 未改，三文件差异及 V0.1 审阅候选留档，27 个 off/shadow/fallback 比较完成。
+- 原页/独立人工/多书/Windows 条件及 L2/L3 仍待验收，模型请求 0、费用 0；发布仍为 NO-GO。详情与候选 hash：[修复复验](docs/validation/known-issues-repair-2026-10-08/README.md)。
+
+
+## 2026-10-08 Policy 源码基准 V0.1 审阅与默认切换
+
+- 按用户“审阅新版基准，以新版为主”要求完成源码/合同审阅：有界理解提示仅增加只读习题候选，Runtime 输入/预算/范围/重复调用/权限门槛保留；确认 off/shadow 行为兼容，accepted fallback 可改变查询优先级。
+- 新增独立 V0.1 source-manifest、源码快照及数据目录；Runtime pins 从八项扩为十一项，纳入理解合同、DecisionContext 和工具绑定器。CLI/seed/projection 默认使用新版，旧版 gold/样本/pins/manifest 原样保留，旧输入不能在当前源码下冒充有效基准。无学习资产或数据库迁移。
+- V0 JSON 协议与 provisional 标签状态未改变；源码基准审阅不授予人工 locked gold 或模型生产启用。
+- Python 3.10.21 隔离离线全量 **1470 passed/0 failed**，271 项相关回归与 15 项新增边界控制通过；默认 CLI report 18 samples/locked=false/真实模型调用 0。K02 关闭，L2/L3/原页/人工及纵向恢复仍待验收。
+- 审阅、hash 和实际日志：[V0.1 报告](docs/validation/runtime-policy-evaluation-dataset-v0_1/README.md)。
+
+## 2026-10-08 — Mobile Remote S0 接入验证
+
+- 桌面托管后端与动态端口固定 loopback，停用旧 LAN 采集开关；提供当前 Serve 目标和显式复制临时管理 token，不自动安装/配置 Tailscale，不使用 Funnel。
+- 手机 HTTPS 连接门槛复用桌面配置就绪状态；远程 API 强制同源，忽略桌面 loopback bootstrap，token 限当前浏览器会话；401 回连接入口，文字 SSE 离线/异常不报告成功。
+- 无数据库/索引/Runtime 迁移，无新拍照、错题、笔记或移动布局。既有未提交改动保留。
+- Python 43 passed；前端接入/SSE 17 passed；桌面 14 passed；TypeScript、Vite 构建、新增文件 lint 通过。macOS 隔离 Electron 实际启动：动态 loopback 页面 200、缺失/错误 token 401，退出后不可达。真实手机、tailnet ACL、校园网、已有教材真实模型问答尚未实测，不能视为验收通过。
+- 操作与边界见 `docs/mobile-remote-s0-guide.md`，改动清单/结果见 `docs/validation/mobile-remote-s0/results.md`。
+
+## 2026-10-08 — Mobile Remote S0 Android 启动故障诊断
+
+- 增加 HTML 启动状态与脱敏资源/模块/React异常、超时提示，caught App bootstrap 与根错误边界；build、Chrome主版本、Storage状态、启动阶段、React挂载状态和同源静态资源探测，不显示token/错误正文/URL参数，不上传日志。
+- 复现并修复 theme default argument、token bootstrap、Session与主聊天初始化在Storage getter被拒绝时抛错的缺陷；token仅回退当前页面内存，仍通过鉴权header，不关闭API边界。
+- 真机Chrome154报告Storage正常、stylesheet加载失败；进一步探测主CSS收到200/text/css但正文10秒未完成，入口尚未运行。Mac同源资源200/MIME/完整长度正常，不能将Mac结果等同Android验收。
+- 当前静态资源未压缩已验证；仅为 `/assets` JS/CSS加入现有Starlette gzip，保留Range/HEAD与API/SSE行为。隔离Electron主CSS传输110060→19233字节、KaTeX CSS28835→7954字节，解压与构建一致。已在用户原59999端口启动生效，不改Serve或系统代理。
+- 修复开发版按health盲目接管旧后端及跳过instance_id检查的问题。固定端口重启时旧孤立后端token与新桌面不匹配，已从日志/进程身份确认；加入身份与复用鉴权检查。正常退出已确认的旧项目实例并用原数据目录/端口恢复桌面，配置、教材和Session接口200，未重置数据。
+- 前端156 passed，后端48 passed，桌面15 passed；TypeScript/build/相关lint通过。Android重新进入工作区与真实问答仍待用户复测，底层传输原因尚未完全确认。详细证据见 `docs/validation/mobile-remote-s0/android-startup/results.md`。
+
+## 2026-10-08 — Mobile Remote S0 启动性能减重
+
+- 将原连接页与工作区加载边界分开，鉴权后lazy载入Workspace；路由和设置内容按需加载，保留原providers、路由缓存及业务流程。使用原lazy Markdown入口，避免公式组件静态导入拖入首屏。
+- 修复宽泛vendor分组拉入Markdown/KaTeX共享依赖的问题，明确React优先分组；连接页只加载基础主题/控件CSS，工作区样式后置。远程使用系统字体，避免约24 MB桌面中文字体和笔记字体CSS，Electron字体不变。无依赖变更。
+- 修改前HTML预加载819920字节（gzip235282，尚未包含后续工作区），修改后连接页完整依赖231662字节（gzip73640）；连接CSS12342字节。用户Redmi实测反馈“连接页面几乎秒出现”，无精确计时，工作区问答未签收。
+- 前端160 passed、后端51 passed、桌面15 passed，TypeScript/build/相关lint通过。隔离Electron配置接口200、无token浏览器401。测试实例62066已关闭；测试窗口造成配置丢失误解后，核对原59999及原配置保持不变，并唤回原桌面窗口；手机401需复制原实例token，未重置模型配置。
+- 简单手机壳记录为S0验收后事项，本次不开发S1/原生壳/PWA缓存。详情与体积证据见 `docs/validation/mobile-remote-s0/startup-performance/results.md`。
+- 后续Session超时：远程跳过桌面首次设置模块，hashed静态JS/CSS启用immutable，三个有限只读JSON端点压缩并加脱敏耗时/字节统计；SSE/写操作保持原路。有限JSON正文纳入原20秒deadline，超时区分响应头/正文，不自动重试。原桌面托管后端自动恢复59999且保留token，桌面聊天/配置正常；Session服务侧90.9ms/941字节，手机完整接收与问答待复测。
+
+
+## 2026-10-08 — Mobile Remote S0 历史刷新与窄屏重叠修复
+
+- Redmi用户已确认问答页、历史和会话可打开；约1秒首次切换仍需分析网络/正文/渲染，不承诺远程毫秒级。
+- 移除打开旧会话触发的历史列表重读，刷新中的列表保留；当前会话不重复请求，手机关闭抽屉、桌面保留侧栏；补选择取消与迟到响应保护。
+- 393宽夹具确认功能栏与fixed历史栏重叠；窄屏恢复同一抽屉正常流，功能链接两列，长标题/页头/输入工具换行。桌面断点规则保持。
+- 有限会话详情GET加入既有压缩/脱敏Server-Timing；鉴权、SSE、写路径不变。原Electron沿用原配置自动恢复到59999，没有启动第二个Texa；无效token实测401。
+- 前端160、后端相关46、Electron15项通过，tsc/build/lint/diff检查通过。393/760/1024/1280夹具视觉与请求计数验证通过；Android本轮布局/耗时、真实教材流式问答与引用仍待复测。详见docs/validation/mobile-remote-s0/history-layout/results.md。
+
+
+## 2026-10-08 — Mobile Remote S0 阅读页与连续引用验收误判
+
+- 用户Redmi提供真实教材问答正文/引用与失败提示。保存任务只有E3、E5判不支持，均为连续引用组第二项；前一个引用被错误当作分句边界，导致后项取空结论。
+- 最小修复同一行连续引用共同匹配结论，各来源仍单独校验；新增正向及无效编号/不相关来源/跨段落/新结论负向回归。不修改Runtime或历史任务状态，不隐藏真实失败。
+- 保存检索快照重建9个E-id/chunk_id与当时来源完全一致；保存正文离线重放从failed变passed，不调用LLM、不修改数据，不冒充人工事实验收。
+- ≤760px阅读页隐藏教材框（新会话选择保留），缩小标题下留白约28px，桌面样式保留。393/760/1024/1280夹具检查通过；Python65、前端160、Electron15项通过，tsc/build/diff通过。Android新版本与新回答仍待复测。详细记录：docs/validation/mobile-remote-s0/citation-reading/results.md。
+
+## 2026-10-09 — Mobile Remote S1 学习业务闭环（真机待验收）
+
+- 基线 `9b04c87`，保留工作区既有未提交修改。沿用 S0 Tailscale Remote 和桌面唯一数据权威；不改鉴权、联合图片教材 RAG、Policy Router/Runtime 决策，不开展 S2。
+- 图片流保留原始照片及独立工作图，修正工作图 EXIF 方向并校验实际解码/体积/像素；手机增加相机、旋转、预览和格式错误指引，IME 选词 Enter 不误发送。
+- 完整视觉文字、原图读取入口与 task/turn 关联进入 Session；服务端 Session→错题草稿继承完整问题、视觉结构、附件与回答，仍须用户校对和显式保存；重复保存复用同一正式错题。Notes 复用既有整 turn 冻结，图片文字进入生成素材而无需模型重读照片。
+- Python 3.10 所选回归 140 passed；前端 169 passed；Electron 15 passed；TS/Vite 构建与改动文件 lint 通过。原用户目录开发桌面已在 59999 拉起并保留原配对身份，health/教材/Session 接口正常；未改 Serve。
+- Android Chrome 首轮相机/裁剪可用，但选框边界不好操作、发送只有“思考中”，桌面未发现对应图片任务；闭环失败。修正裁剪 stage 与图片边界、增大并内置手柄、限制遮罩；沿用原图片接口和 SSE 协议增加上传进度、分阶段错误提示，不自动重发。已刷新原桌面后端并保持端口/配对，Android 第二轮仍反馈相同问题；59999/Tailscale 实际返回资源与新构建逐字节匹配，正在核对手机地址及发送流程，原因未确定；照片→错题→笔记→双端同数据暂不声明通过。记录与脚本：`docs/validation/mobile-remote-s1/results.md`。
+
+- 用户后续确认能看到正在上传，主要阻塞是速度。只读探测确认手机经 DERP LAX 中继，3 次延迟约 396–1049 ms（非吞吐量测量）。按明确要求加入完整帧/裁剪图上传前压缩，9.8 MB 本机浏览器测试图合计上传约 0.8 MB；大照片存完整画面有损副本，不再承诺相机原件字节保真。手机复测仍待，未改 S0 网络。
+
+- Android 后续确认 8 MB→约 1 MB 压缩生效，但解答等候与历史等待响应头 20 秒超时仍阻塞验收。保存任务约 67 秒已生成 1732 字回答（识图约 15.5 秒）；本机该会话读取约 10 ms，手机仍走 DERP LAX，不将本机正常误报为真机通过。合并图片 SSE 正文碎片，首段立即输出且全文/末尾不丢；简单题提示默认一种方法，保留必要推导。Python 140 项通过，已载入原桌面，真机改善待验，未改模型 profile/验证状态/网络。
+
+### Mobile Remote S1：修复读取图片历史后被自动清空（2026-10-09）
+
+Android 普通 Wi-Fi 对照出现解答闪现后回到空问答。隔离浏览器复现为图片 Session 的 `default` 存储命名空间误当教材，后台无效范围修正触发新会话并清空正文。恢复时将该命名空间映射为无教材；已有消息/历史页/运行中的会话不接受自动教材切换，取消迟到自动选择响应。保留用户显式范围选择行为与历史持久化数据。浏览器 390/1280 宽度桩数据回放通过；前端 169 测试、相关 ESLint、TypeScript、Vite 通过。桌面与既有 Tailscale 入口构建逐字节一致。Android 刷新重读尚待用户确认，S1 完整闭环未宣布通过。
+
+### Mobile Remote S1：真机呈现与页面加载后续修复（2026-10-09）
+
+用户确认解答可见，但图片入口缺失、OCR结构数组暴露、题干大字、公式容器滚动条及各资产页面卡加载。图片入口改为立即可见、按需读取并显示加载/失败/重试；新Session题干冻结为可读正文，VisualProblemIR独立保留，旧Session只转换前端呈现，未迁移或覆盖记录。手机问题字号16px，公式自身横向滚动并抑制纵向滚动条。前端构建保留旧哈希模块以兼容已打开页面，路由加载失败与超过20秒均提供明确提示/刷新。隔离浏览器390px题干/长公式与教材、错题、笔记、目标lazy页面检查通过；原HTTPS入口47个当前JS模块均可达且匹配构建，既有完整图片返回正确JPEG。Python141、前端171、TypeScript/ESLint/Vite通过。Android全部项目复测及错题/笔记真实闭环仍待确认，不能声明S1通过。详见mobile-remote-s1结果记录。
+
+### Mobile Remote S1：图片正文deadline与完整画面预览（2026-10-09）
+
+真机已确认教材、错题、笔记、目标页面可打开；完整图片仍长期读取。修复有限资源请求在响应头之后提前取消deadline/源取消监听的漏洞，图片与文本正文纳入60秒deadline，SSE不变。任务图片同一鉴权接口增加preview=true，按需缓存1280/JPEG78完整画面预览，原尺寸仍独立可读。实际题目1,027,626字节→138,891字节预览，原尺寸哈希未变。恢复问题首段18px半粗体、长OCR正文16px。Python141/前端174及构建通过，浏览器桩图解码与切换通过；Android图片复测、错题和笔记真实保存未通过/待验收。只读当前手机路径为DERP lax；仅研究官方Peer Relay/自建DERP选项，未扩大网络范围。
+
+
+## 2026-10-09 — Git 审计与 MacBook 开发分支隔离
+
+- 补全浅克隆历史并核验远端；公共祖先为 master 的 898bec3，已同步的本机进度为 9b04c87。保留共享 Runtime/教材修复、V0.1 审阅基准及 Mobile Remote S1；不按同一作者信息臆断 Windows 归属，不改写原有提交。
+- 先保存全部待提交文件、Index、Reflog 安全引用和完整 history.bundle；原始诊断日志、教材数据投影和开发预览留在本机，通过本地 info/exclude 排除，不删除文件。
+- 修复一处测试夹具不一致：图片上传新增真实解码校验后，execution effects 故障注入测试的伪 PNG 无法进入目标路径；改用真实 PNG，保留已提交答案、pending effect、恢复恰好一次的原断言。未放松生产校验。
+- 隔离离线 Python 3.10 全量 1492 passed，前端 174 passed，Electron 15 passed；TypeScript、全量 ESLint、临时目录 Vite 构建通过。首轮 Python 1 failed/1491 passed 的日志保留；未触碰真实数据、当前 frontend/dist 或调用模型。Android 图片、正式错题/笔记闭环及 Windows 验收仍待完成。
+- 在临时 checkpoint/macbook-20261009 上建立可追溯检查点，再创建 feature/mobile-remote 并独立推送；详见 GIT-BRANCH-ISOLATION-REPORT.md。
+
+
+## 2026-10-11 — Full-System QA 第一阶段整改
+
+- 代码驱动盘点18渲染路由/19检查入口、15跨功能模块与205 API handler；检查清单、根因问题、进度及阶段报告位于docs/qa。
+- 修复SSE清理异常跳过producer关闭和错误/检查点凭证泄露；周报改读SQLite权威消息历史，统一subject与days范围。
+- 旧直接练习附属写失败返回明确partial/unconfirmed，不误导用户重试整个已保存练习；持久幂等风险仍未关闭，未修改schema。
+- 修复学习摘要公式渲染、紧凑header换行、笔记/复习失败误报空态与缺少重试；恢复已有题库的手动录入入口。
+- 1532后端、191前端、15Desktop单元通过；types/lint/build通过。真实隔离FastAPI/SQLite两视口10旅程检查通过，重启后权威行/复习结果与API一致，6DB完整性通过；macOS Electron壳3检查通过。
+- 自动页面Fixture覆盖119有效状态并实际读取截图；8张审阅后基准重复比较通过。已有Pytest/Vitest/Playwright/Electron依赖复用，增加分层Smoke/API/UI/数据检查脚本。
+- 未触碰用户学习数据、付费模型或冻结评测；真实Android/Tailscale/Windows正式包和真实教材模型仍需验收，尚未达到S3产品化清关条件。整改checkpoint35107fc。
+# 2026-10-11 - QA 后续 P0/P1 整改策略调整
+
+- P0 优先核心学习闭环 E2E 与 A4 稳定操作身份/持久回执/跨库一致性整改；保留历史缺陷严重度及 FAIL contained，不将 partial 视为完整修复。
+- P1 覆盖全部页面及子状态/浮层；Sol 负责自动截图、初筛和归类，Astra 直接读取分域精选截图，决定跨页面设计原则/组件模式并抽查整改及少量 Sol 合格页面。复用现有 Inventory、截图、测试，新增文档素材索引，不新增审计基础设施。
+- 真实 Tailscale 设备与正式安装包生命周期延后，Electron 开发端核心流程仍优先。仅调整文档策略，未执行新 E2E/视觉验收、调用 Astra、迁移数据或修改产品代码；现有未提交工作保留。
+- 策略入口：docs/qa/QA-REMEDIATION-STRATEGY.md；素材索引：docs/qa/VISUAL-REVIEW-BOARD.md。验证：本地 Markdown 链接存在性与 diff 空白检查。
+
+
+## 2026-10-11 · P0/P1 实施与视觉决策
+
+- A4直接练习新增发送前持久operation_id，既有history JSON内主写/回执事务，secondary/event稳定键及显式partial恢复，冻结请求/来源，防陈旧编辑覆盖。没有表结构迁移；旧POST客户端缺operation_id将拒绝写入，当前聊天卡/题库同步支持。
+- 根据Astra跨页决策统一正常布局行动区、无图录入、返回/标题角色、Goal启用/任务运行语义；抽查发现并修复窄屏设置侧栏压宽与导入父子标题，补字段/焦点/Tab验证。教材增加真实Job取消入口。
+- 复用QA脚本扩展闭环、Electron与重启核对；后端1540、前端195、桌面15、类型/lint/build通过，浏览器22与Electron11离线流程通过。Astra3调用15原图，有限关闭范围与未验收项详见docs/qa/P0-P1-EXECUTION-2026-10-11.md。
+- 一次未隔离测试误写11条测试学习事件，已披露并获用户明确同意后按测试资产ID+时间精确清理，保留196条其他记录和/tmp备份；后续全部写入测试经隔离入口。真实模型/教材质量、Tailscale设备与正式包生命周期未登记通过。
+
+## 2026-10-12 · 复杂交互 QA 整改
+
+- 笔记区分存储失败、草稿CAS与正式版本冲突；恢复先复制修改，再读权威草稿或新建最新revision编辑草稿，已归档只阅读；禁用失效正式保存，恢复期间冻结字段，旧草稿保留且不自动合并。无数据库结构或迁移变更。
+- 候选题准备/校对分阶段，来源原文可返回且保留编辑/选中；正常布局页底唯一导入动作，公式阅读复用SimpleMarkdown，八类编辑字段补持续可见label。警告和解析置信度保留，不等于人工验收。
+- 图片裁剪及窄屏来源复用Dialog焦点/inert/Escape；桌面来源仍并排非模态。取消替换保留旧附件，同文件可再选择，异步图片处理取消后不提交。
+- 复用QA脚本新增可选complex模式，/tmp隔离真实API/SQLite及Word/textPDF提取；浏览器52项、Electron13项，相关后端125/前端195/桌面15及类型/lint/build通过。Astra3次14图，有限关闭范围和实际证据见docs/qa/COMPLEX-INTERACTIONS-2026-10-12.md。未执行真实Tailscale、正式包生命周期或付费模型/OCR。
+
+
+## 2026-10-12 跨模块整改：目标与桌面 checkpoint
+
+- 修复目标 action 同步互斥缺口及重复恢复请求：相同任务已运行时返回权威快照，不创建另一run。保留Goal控制锁、任务合同及存储schema。
+- 目标完成条件默认可见，执行控制归入本次任务，状态映射不直接显示raw Runtime lifecycle/英文异常。原事件保留诊断。
+- macOS监听真实全屏进出，保留平台身份并按状态取消红绿灯预留；退出恢复留白。共享样式顺带准备多行输入高度，聊天逻辑另行checkpoint。
+- 隔离SQLite测试10项、desktop15项通过；macOS Electron开发壳连续12次点击只提交1次、同task恢复1个新run、跨页不丢task及进出全屏通过。证据 docs/qa/evidence/cross-module/goals-electron。未验正式安装包/Windows。
+- 本轮原有未提交工作区已由既有checkpoint c53e78b等提交；本checkpoint仅本轮增量，不迁移数据/依赖。
+
+
+## 2026-10-12 跨模块整改：问答 checkpoint
+
+- 回答选区可添加引用到输入草稿，保留现有输入且不自动发送；错题选择使用LaTeX渲染、外部点击关闭与Esc焦点返回。桌面隐藏HTML capture重复入口。
+- 过程条改稳定单行摘要、按需真实详情，完成不重置展开。实际Electron发现最终message_id替换React key导致组件重建，改用稳定turn+role身份。正文累积/Runtime合同保持。
+- 移除subject_general冗余标签、点赞点踩入口；区分真实验收失败、缺确定性依据和未完成检查。检索Gate不等同答案验证，不降低发布门槛；提示移除“未标记完整”的机械文案。
+- Astra教学策略落入refined/general prompt：按卡点/理解程度解释，必要例子及边界，不固定结构，版本refined-v2-2026-10-12。55项相关后端、前端198项、类型/lint/build通过；Electron4类增量及此前目标/全屏回归通过。
+- 用户已授权仅合成题最多8次真实调用；Qwen3.7 Plus全部鉴权失败，没有可比较答案，未宣称教学效果提升。脱敏结果和4类rubric位于cross-module证据与evaluation/fixtures/teaching-ux。
+
+### Cross-module · 复习与执行过程实证（2026-10-12）
+
+- 删除聊天流中没有独立调用的“综合证据与知识推理”活动；终止投影不再将未收到完成事件的活动标成成功。199项前端、33项后端及Electron回归通过。
+- 复习合并今日与继续入口，概念展开提供教材片段和相关问题，明确记录后才写入复习。1280/1024/760视觉检查通过。相同题干不同来源保留；正式库为空，用户报告的重复现场未复现。无数据迁移。
+
+### Cross-module · 笔记阅读与整理（2026-10-12）
+
+- 对话整理成功默认直接阅读，生成入口与后台提示不再要求先审阅草稿；生成、手动整理及正式笔记编辑保留不同标题。明确保存、CAS与失败保留合同不变。47项后端、构建检查及Electron生成—阅读—编辑—保存—刷新通过。
+- 独立无会话空白笔记缺少现有来源合同，本轮未通过伪造来源新增入口，无数据库迁移。
+
+### Cross-module · 练习阅读、后台答案与抽题范围（2026-10-12）
+
+- 参考答案与解析单列阅读（最大800px）；答案维护为次要折叠入口，手动录入只在题库/导入或空库显示。查看参考不冒称提交，自评才记录。
+- 后台答案状态直接显示；轮询不重叠，断连保留后台任务并重读，失败可重试，重复点击只创建一个任务，生成完成不自动写题库。读取恢复期间禁用编辑，避免迟到结果覆盖手改。
+- 连续抽题新增可选search_kw合同，与可见搜索筛选一致；旧请求默认空值兼容。search_kw保存在既有filters JSON，无schema迁移。空结果不替换已有会话；单题模式不被暂停连续会话覆盖。
+- 本次范围/当前加载数量/题数上限与顺序明确，已知2题默认2题；作答页移除题库总体指标；导入字段保留可见标签和真实模型角色说明。
+- 28项针对性后端、Electron7组主路径与13项深层流程通过。Astra复核恢复后读取24张原图并复验2张，两项必须修改关闭，本批有限通过。真实Teaching Prompt8次调用均鉴权失败，质量未验证。
+
+- 最终发布事件复用LearningTask的兜底核验结果，修复核验已执行却在done活动里显示unknown的状态分歧；新增确定性回归。最终完整后端1544、前端199、桌面15、类型/lint/build通过，119页面检查无溢出/未处理请求，Electron7组主路径+13项深层回归通过。详见docs/qa/CROSS-MODULE-REMEDIATION-2026-10-12.md。
+
+
+## 2026-10-12 跨模块最终归档与有限真实模型验收
+
+- 核对8个Checkpoint及c53e78b祖先链；干净分支通过GitHub SSH 443安全推送，未force push或合并其他分支。
+- Teaching比较脚本新增显式env文件与独立输出、缺凭据预检、每次2000输出token/5000 UTF-8输入字节上限、失败即停及usage记录，保留原8次AuthenticationError证据。未修改凭据、模型角色配置、数据结构或依赖。
+- 默认CLI未加载Electron开发目录凭据；显式ENV_PATH后，正式客户端免费models.list鉴权成功。本轮5次生成尝试中3次成功、2次APIConnectionError；第二次失败按授权停止。仅概念题形成完整前后对照，其他教学与真实QA/SSE验收未完成。
+- 已有真实回答在隔离LearningTaskStore回放：核验与done事件一致；合成证据Gate误取表达方式为focus及公式/引用支持保守判定登记P1，不修改发布门槛。非完整生产检索或Electron验收。
+- Python3.10脚本语法、CLI参数和git diff --check通过；无共享生产代码修改，未重复全量自动化。详情见docs/qa/CROSS-MODULE-FINAL-HANDOFF.md。
+
+## 2026-10-13 Agent Loop latency profiling 与零请求进度
+
+- 复用付费验收 SQL/Provider/SSE 证据，新增免费离线时间线脚本与 `TEXA-AGENT-LOOP-PERFORMANCE-REPORT.md`。完成 Run 的模型区间占约 99.3%–99.7%，明确包括网络/SDK，旧首 Chunk 与网络细分保持 unknown；失败 Run 按终态截尾，迟到 usage 不伪造成功。
+- Native Chunk 栅栏读取 status/owner 而非完整 snapshot，保持每 Chunk 取消检查；计算/化简序列化不重复 simplify，增加 raw 结果并说明 exact 已简化及符号白名单。无解析语言/预算/数据库结构/依赖迁移。
+- 原 ExecutionEvent 附加数值白名单 performance（首 Chunk/公开内容、请求与 checkpoint、context/tool-return/validation、usage）；native 请求同一流 usage 末块。无额外模型请求或私密 reasoning 持久化。
+- ExecutionTrace 按真实事件呈现分析/计算/继续解答/正文生成，180ms 渐显、reduced-motion、真实计时与完成折叠。保留此前中间公开内容/最终独立验证修复。macOS 真 Electron + 隔离真实 API/SQL/SymPy/SSE 验收通过；模型与长等待受控，只证明 UX 合同。截图见 docs/qa/evidence/agent-loop-performance/electron。
+- 局部同条件 7 组微基准：SQL fence 0.423→0.325 ms；Stokes calculate 内核 2.490→1.406 ms。不能推断真实端到端提速。真实低思考/无思考/auto 工具/无工具配对实验设计已写入报告，16 Run、最多64请求、费用硬上限¥10，待本轮明确授权；本轮付费调用0。
+- Checkpoint 回归：数学/native/最终验证/SQL/SSE/恢复/直接路由 **101 passed**；LLM 角色、工厂与能力 **27 passed**；前端 **203 passed**、ESLint、TypeScript、生产构建通过；桌面 runtime/main **5 passed**（沙箱内临时端口 EPERM 后，在批准的本地运行下通过）。既有大 bundle 警告保留，未扩大重构。
+
+### 2026-10-13 — Agent Loop 授权配对实验与真实答案回放
+
+- 在已告知 4 题×4 条件、最多 64 请求/1,449,216 Token/¥10 预算后，用户以“执行”授权。新增有发送前费用/Token/字节预留、单进程锁、逐 case 不重试的隔离实验脚本；不改变生产 Provider 默认、Runtime 预算或验证门槛。
+- 实际 14 Run、23 远程请求，回报 33,222 输入+24,525 输出 Token（推理 17,231），费用估算 ¥0.262644，缺 usage 预留 ¥0.568084，保守合计 ¥0.830728。未追加或替换失败样本；非思考积分最终缺推导后停止剩余两个 C 条件。
+- 默认 auto 概念/证明 1 模型/0 工具；积分 3/2，Stokes 2/1。低预算回报推理均未触及 4096，无稳定提速证据。积分 A 数学完整但声称工具已做原函数求导核验与回执不符，独立记录来源风险。小样本不证明真实正确率不退化。
+- 3 个概念条件 APIConnectionError。Stokes B 因在其活动期间误启动共用 QA 数据库的展示后端、触发 startup recovery fence 而中断；记录 harness-interruption.json，排除速度/质量比较，不归因模型、不重试，已返回 usage 与缺失回执预留均计入预算。
+- 全部付费实验结束后实际 macOS Electron 只读侧栏加载 3 个真实持久化答案，阻止非 GET API；阶段/最终分离、过程折叠与公式渲染通过，提供阶段及最终截图。首次仅设置会话 ID 未加载正文，修正为真实侧栏点击后验收通过。没有付费 UI 重跑，不把回放当实时网络/绘制性能证据。
+- 完整结果见 TEXA-AGENT-LOOP-PERFORMANCE-REPORT.md 与 docs/qa/evidence/agent-loop-performance/paired-2026-10-13/。实验期间生产代码 SHA256 身份一致；脚本编译、回执计数、同题 prompt hash 与 git diff --check 通过。此前免费阶段后端101、Provider27、前端203、desktop5回归及受控 Electron 进度验收通过。无 main 合并或数据/依赖迁移。
+
+
+### 2026-10-13 — Qwen3.7 Plus / DeepSeek V4.1 Flash 受控实验离线准备
+
+- 从已提交 f916336 导出隔离源码快照；冻结七场景、教学 Prompt、rubric、独立数学 oracle、原始教材图和源资产 hash。保留工作区已有未提交改动，不写用户数据，不改生产默认模型。
+- 审计官方 Thinking/tool calling、总输出额度、Streaming/usage和实时计费；实验内存转录保留DeepSeek私有推理，公开材料不保存私有字段；生产checkpoint合同保持不变。
+- 最多28次模型请求，任务总输出16,384 tokens，硬预算预案¥2.00与$0.30；未获确认，付费请求0。六项离线预检通过；真实API协议预检和独立Sol盲评尚未运行。
+- S2使用OpenStax生物电子教材锚点（纸书页码未知）；S7为原图独立多模态测试，不冒称Electron集成验收。详见 experiments/qwen37-dsv41-20261013/TEXA-QWEN-DSV41-COMPARISON.md。
+
+### 2026-10-13 — Qwen3.7 Plus / DeepSeek V4.1 Flash 配对执行与独立盲评
+
+- 用户批准冻结实验最多28请求及¥2.00/$0.30预算。实际14任务、19请求，无重试；两边各完成5/7，四个失败全部保留。独立新Sol空上下文仅读取匿名包，七题原评分按字节保留后才解除映射。
+- 共同完成S1/S2/S3/S7盲评质量Qwen84.0/Flash94.5；总时间152.57s/111.97s，Flash降低26.6%，S7反而更慢。Flash同题官方费率估算成本按今日参考汇率为Qwen2.60倍，没有降费证据；非统计显著结论。
+- 全实验已知usage费用Qwen¥0.08710944、Flash$0.032972736，未知usage预留¥0.284688/$0.0207678；无实际结算账单。原币硬上限与token预算均未突破。
+- 披露Harness预检gate误把最终续答零thinking当失败，修正使用已有回执、不重新付费预检；S5-B此前未发送，后于S7首次发送，记录排序偏差。S5-B工具验证异常前未保留完整原生调用结构，不能归因模型；复杂工具可靠性未证明。
+- S4-Qwen流中断、S5-Qwen与S6-Flash连接失败，区别于模型内容错误；Qwen原图解释有实质接触电势机制错误。S3一般级数rubric与题面差异提交人工裁决，用户认可冻结rubric要求，原分不修改。
+- 六项离线协议合同与两项mock/隔离worker检查通过，独立SymPy公式/数值和S6三行93码点机械核验完成。不改生产默认、main、数据或Agent权威合同；不建议直接替换主模型。最终报告及五类交付见experiments/qwen37-dsv41-20261013/。
+
+## 2026-10-13 — Model Comparison Phase 2 免费准备
+
+- 新建 `experiments/qwen37-dsv41-phase2-20261013/`，原样冻结第一轮 S4/S5/S6、教学 Prompt、模型配置与工具合同；引用 committed `f916336` checkpoint，不纳入当前未提交生产改动。
+- 仅修复隔离 Harness：验证前保存工具结构、安全参数摘要和具体失败；串行处理多次原生调用、严格关联 ToolMessage；私有 reasoning仅RAM；无新增Thinking最终轮合法；区分Provider/协议/预算/Harness故障，保存流中断公开片段及已知usage；macOS硬期限与spawn清理免费验证。
+- Python 3.10.21运行33项Mock/离线回归全部通过，含真实隔离S5积分/校验；S4/S5/S6独立SymPy Oracle完成。正式入口未授权时在凭证读取与网络之前拒绝；第二轮付费请求0。
+- 保全第一轮原始报告、14 Run、19 receipts、Sol评分与失败；新增Manifest/逐文件代码hash、官方价格与硬上限提案（最多6 Run/16请求，Qwen¥1.25、Flash$0.20）。等待用户明确预算授权；没有修改生产默认、数据库、索引或合并main。
+
+## 2026-10-13 — Model Comparison Phase 2 授权执行与独立盲评
+
+- 用户回复“授权”后按冻结Manifest执行S4/S5/S6共6 Run、13请求，零重试/新增付费预检；全部技术交付完成，无C/D/E故障。Qwen S5一次B类非法schema参数保留并续答恢复；最终验证范围夸大由匿名评审扣分。
+- 全新上下文Sol只读匿名包；原评分先字节级锁定再解盲：S4 Qwen80/Flash92、S5 82/92、S6 100/100。均分87.33/94.67；累计完整时间215.77/69.06秒，Flash缩短68.0%。每格一次，不能推断长期稳定性。
+- Flash S5三个原生调用全部合法成功、两请求完成，正确利用校验残差0；Provider仍在parallel_tool_calls=false时返回多调用，Harness按原ID串行执行并披露适配边界。双方S6三行/180码点通过。双方推导遗漏按原Rubric保留，不降低要求。
+- 真实usage费率估算Qwen¥0.0814048、Flash$0.012941844，低于¥1.25/$0.20授权硬上限，未取得供应商结算账单。推理是输出子集，未重复计费。
+- 决策A：值得推进生产兼容性验证；没有改生产默认、Runtime或正式用户数据，没有合并main。保留第一轮14原Run并追加本轮6 Run，综合20 Run/32 receipts，不择优拼接。最终hash核对第一轮原件、冻结Harness、Manifest、匿名包与原评分均通过。
+- 交付：experiments/qwen37-dsv41-phase2-20261013/TEXA-QWEN-DSV41-PHASE2-REPORT.md、MODEL-COMPARISON-RESULTS.json、TWO-WAVE-COMPARISON.json、逐Run收据/工具记录、匿名包、独立Sol评分、Oracle、33项免费回归及最终完整性记录。
+
+## 2026-10-13 — DeepSeek V4.1 Flash 正式协议兼容候选
+
+- 在当前未提交 Agent Loop 修复上局部实施，保全原差异，不 reset/stash、合并 main 或覆盖冻结实验。Qwen3.7 Plus 默认不变，无依赖升级、SQL schema 迁移、用户 profile 或教材索引修改。
+- DeepSeek 专属 ChatOpenAI 子类在 callbacks 前截获原生 reasoning_content；每 Run 仅 RAM 保存并原样回传。退出/取消/超时关闭并清空，迟到线程不能回填；私有内容不进公开消息、SSE、SQL、笔记、ContextPack 或日志。映射 max_tokens、缓存 usage，拒绝截断/缺字段，SDK 错误固定码脱敏。
+- Astra 首次定点审查有条件认可。全图单线程建议实测造成 streaming 死锁，按必要二审实际反馈撤回，改成局部 Condition 串行门；整批 ID/权限/schema 检查、每项 FixedRunner/SQL 预算/收据、checkpoint 后放行，致命错误停止排队项。Astra 补充文档因账户额度未完成，Sol 如实整理实际反馈。
+- DeepSeek 普通教学、教材问答、数学接入同一 Native Loop/SQL。教材用既有固定 search_textbook 准备 EvidencePack，范围/索引/schema 冻结、已完成收据不重放；章节准备不调用模型，chapter 先于正文。没有扩展数学工具或写权限，Qwen 和非数学资产动作保留现有入口。
+- Checkpoint 增加非私有协议身份。模型变更/旧无身份助手历史/私有状态丢失在模型与工具前明确终止；已成功工具不重复执行。DeepSeek 暂停后含助手历史不能无损续答，用户重新发起，未伪造完整恢复。会话刷新只读投影 SQL 暂停任务恢复入口，不写合成历史或笔记来源。
+- venv310/Python3.10.21 最终相关后端250项通过（DeepSeek专项38项）；前端类型/构建、SSE10项、桌面15项通过。真实macOS Electron + Mock Provider 验证模型选择、普通教学、多工具、停止、刷新和明确恢复失败，两个工具 attempt_count 均1。教材真实索引/Electron及真实Provider验收仍Pending，不以Mock替代。
+- 缺 npm 时备用 pnpm 曾触发安装检查并移动现有包，已停止、全部原位恢复并清理本次缓存，无 package/lock 改动。后续直接运行现有 Node 工具。
+- 当前 CONDITIONAL，仅开发候选。冻结拟付费清单 S1/S5/S6/取消/Qwen冒烟，最多DeepSeek10 + Qwen1请求，总token421888，硬上限$0.20/¥0.25，零自动重试；本轮付费请求0，等待明确预算授权。交付 TEXA-DEEPSEEK-PRODUCTION-COMPATIBILITY.md 与 docs/qa/evidence/deepseek-production/。
+
+## 2026-10-13 — DeepSeek 正式 Runtime 授权验收与 CONDITIONAL 结算
+
+- 用户“授权”批准冻结 S1/S5/S6/取消/Qwen 清单及 $0.20/¥0.25 预算。隔离用户数据，复用冻结 Canonical/真实 active index 与本地 ONNX dense/lexical 检索；真实模型请求只能通过网络前次数/Token/费用/端点/模型门禁，SDK重试0。
+- 正式 macOS Electron/Chat API/Registry/Adapter/Runtime/FixedRunner/SQL/SSE 实际 DeepSeek7 + Qwen1 次。S5 同助手消息三个调用，积分、数值、定积分核验成功，原生ID逐一匹配，续答 reasoning_content 只在 RAM/wire。取消后两个工具 attempt_count=1，刷新恢复明确 provider_protocol_state_lost，新增模型/工具0，无重放。
+- S1 UI阶段的多次中断均工具/模型0；公开调用栈定位到过期教材切换回调重复设置范围。ChatPage 局部请求序号与最新范围比较修复竞态，TypeScript/Vite通过；修复后真实 S1完成检索及模型返回，但硬编码4096总输出全部耗于Thinking，明确 provider_output_truncated，未发布伪答案。
+- 已将 DeepSeek 原生总输出上限封装为8192，显式较小设置优先；Qwen/其他仍4096。验收后76项免费回归通过（DeepSeek39/预算与凭证隔离7/原生数学30），无依赖/SQL schema迁移。S1次数已耗尽，修正后的真实验收Pending，未追加付费重试。
+- S5数学结果正确且真实工具残差0，但 RequiredOutputs字面对象检查误判，保持failed/degraded。S6模型正文3行/93码点，Runtime附加失败提示后5行/163码点，最终严格格式FAIL；未通过放宽验证取得PASS。Qwen默认冒烟正常流式完成，公式无独立依据保持unverified。
+- 已知Token22507；DeepSeek已知费用估算$0.006760572，取消未知usage保留$0.0147576，Qwen估算¥0.009876，均非供应商账单。付费材料/SQL/profile无真实密钥，SQL原生消息/SSE无reasoning_content字段；最终扫描发现既有profile保存器在QA .env写入临时凭证副本，已删除凭证项并设0600，复扫0匹配。QA写入器过滤密钥且有真实env writer回归，用户原始凭证未修改。付费服务停止。
+- 最终CONDITIONAL，限受限测试/开发环境。正式发布阻塞：S1修正后真实教材答案/引用验收、共享RequiredOutputs与严格格式提示发布合同。完整报告 TEXA-DEEPSEEK-PRODUCTION-COMPATIBILITY.md，权威结果 paid/FINAL-ACCEPTANCE.json；历史脚本completed只表示交互结束，不能当验收PASS。初始/修复/最终源码身份分别保留，未合并main或更改真实用户profile、默认Qwen与学习数据。
+
+# 2026-10-13 — DeepSeek 发布验证 P0 修复与回放
+
+- 保留当前未提交 Runtime／Provider 工作；RequiredOutputs 将明确格式、精度、工具事实、内容 presence 与未知语义分开。旧自然语言 anchors 读取时兼容重分类，精度绑定本题独立收据；真实闭式／原函数／推导缺失仍失败，语义未知不伪造 verified，无额外 LLM 请求。
+- 共享生成器及两条 Runtime 发布分支不再向正文追加验证说明。严格格式不合并阶段文字；阶段公开 checkpoint 与 unverified 语义保留。Electron 对行数／前缀合同保留 soft newline，核验文案覆盖语义未知，不改普通回答渲染。
+- 核对 DeepSeek8192／Qwen4096 wire 与显式更小额度；stop但无公开正文拒绝成功提交，新增安全数字 usage／finish 枚举。未增 SQL schema、token调度或依赖。
+- Python3.10相关161项、前端11项、TypeScript/Vite通过。实际macOS Electron Mock Provider回放S5三工具与S6两轮、三尺寸通过；S6最终SQL/SSE/DOM逻辑3行93码点，状态独立可见。修复后S5精度／工具检查passed、整体推导仍unverified。
+- QA真实profile保存路径免费验证凭证不落盘，当前材料无真实凭证精确匹配；历史临时env副本不能排除同步／备份，仍建议轮换。新最小S1预算1次／8192输出／40960总预留／US$0.03，等待新授权，零新付费请求。
+- 报告TEXA-DEEPSEEK-RELEASE-READINESS.md及docs/qa/evidence/deepseek-remediation。判定CONDITIONAL，新S1真实证据Pending；无Astra新审查、提交或合并。
+
+
+### 2026-10-13 — 授权后 DeepSeek S1 教材验收
+
+用户明确授权冻结单请求计划后，经实际 Electron→生产教材检索→DeepSeek→SQL/SSE 完成 S1。wire8192，输入3018、输出4337（推理3849、正文488），finish_reason=stop；有意义输出28.809秒、run31.521秒，非峰费用估算US$0.002640948，1请求／0重试／Qwen0。静态与准静态解释、任务及引用通过人工最终可见EvidencePack复核；原文与SQL task/run/outbox/SSE一致，unverified状态独立披露，未升级task的语义验证。S5/S6没有新增请求，保持历史LIVE+修复后FREE回放。冻结源码hash未变，付费进程已退出。最终可选模型准入PASS，Qwen默认及用户profile不变，无提交或合并。历史凭证副本仍无法排除，继续建议轮换。证据和边界见TEXA-DEEPSEEK-RELEASE-READINESS.md及docs/qa/evidence/deepseek-remediation/paid/。
+
+## 2026-10-13 — Runtime 最终集成审计 / 安全 Checkpoint
+
+- 收尾 Runtime/DeepSeek/RequiredOutputs 与 Electron 改动并按耦合代码、UI、QA 证据拆分提交；Qwen3.7 Plus 默认、DeepSeek Flash 可选。没有依赖升级、SQL schema 迁移或用户配置更改。
+- 生命周期验收探针改用明确 literal 缺失，保留 failed 断言；恢复子进程测试使用当前 Python 3.10 解释器，独立导出不依赖仓库内 venv 路径。
+- 免费关键后端314 passed，前端203 passed，桌面壳15 passed，TypeScript/Vite及三尺寸 macOS Electron Mock HTTP 回放通过；全量修复后1616 passed / 48 failed，剩余为此前 Resolver/Registry 已偏离批准 Policy V0.1 源码 pins，未改旧 hash 或降低门槛。
+- 正常推送开发 Checkpoint；状态 BLOCKED，未合并 master，主分支保持898bec3。详细结果、源码漂移、历史证据等级、安全和 Mobile S3 交接见 TEXA-RUNTIME-MAIN-INTEGRATION.md。
+- 两把真实凭证当前文件与新增历史 blob 精确扫描零命中；QA writer过滤修复进入开发分支，尚未进入Main。历史 local.env 风险仍需用户轮换当时 DeepSeek/Qwen 密钥。
+- 无关实验及两份冗余大型原始Electron记录原地保留并本地排除，路径/大小/hash记录可恢复；本轮没有付费请求、Benchmark、移动端开发或其他worktree清理。
+
+## 2026-10-14 — Policy V0.1 历史源码执行边界修复
+
+- 追溯确认生产 Registry 在08cf3fc新增取消/超时/执行模式兼容字段，Resolver在6c418db新增两个READ数学工具；这些是有意的当前Runtime能力，不回滚有效生产实现。
+- V0.1属于离线Policy数据集/seed/规则选择评测的批准源码身份，无生产启动接线。修复默认入口混用生产代码和历史pins的问题：固定校验原source快照，以独立私有模块名执行原Registry/Resolver/Matcher/Projection/RulePolicy/wire合同；不替换生产imports、不改旧hash/快照/gold。
+- 教材Evidence helper保持原AST hash并单独冻结同一纯函数；原Projection无需AST改写或读取当前模型栈。缓存装载仍验证所有pins，损坏快照/自签版本/非法路径和原锁定门槛保持拒绝。
+- 已有冻结与当前功能专项297 passed；新增对照、生产函数污染隔离、缓存后损坏拒绝和helper漂移测试。完整免费回归、主分支整合及合并后检查以TEXA-RUNTIME-MAIN-INTEGRATION.md续记为准。无依赖、SQL schema或用户配置迁移，无付费模型请求。

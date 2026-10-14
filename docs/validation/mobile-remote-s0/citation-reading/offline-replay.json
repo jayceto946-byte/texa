@@ -1,0 +1,71 @@
+{
+  "source_mapping_equal": true,
+  "source_count": 9,
+  "before": {
+    "status": "failed",
+    "passed": false,
+    "checks": [
+      {
+        "id": "answer",
+        "label": "针对当前问题的回答",
+        "status": "passed",
+        "reason": ""
+      },
+      {
+        "id": "citations",
+        "label": "教材结论的本轮来源",
+        "status": "failed",
+        "cited_ids": [
+          "E1",
+          "E3",
+          "E4",
+          "E5",
+          "E7",
+          "E8"
+        ],
+        "unsupported_ids": [
+          "E3",
+          "E5"
+        ],
+        "reason": "回答缺少有效的本轮教材引用、引用与相邻结论不相符，或生成了无效编号"
+      }
+    ],
+    "failures": [
+      {
+        "id": "citations",
+        "reason": "回答缺少有效的本轮教材引用、引用与相邻结论不相符，或生成了无效编号"
+      }
+    ],
+    "unverified": []
+  },
+  "after": {
+    "status": "passed",
+    "passed": true,
+    "checks": [
+      {
+        "id": "answer",
+        "label": "针对当前问题的回答",
+        "status": "passed",
+        "reason": ""
+      },
+      {
+        "id": "citations",
+        "label": "教材结论的本轮来源",
+        "status": "passed",
+        "cited_ids": [
+          "E1",
+          "E3",
+          "E4",
+          "E5",
+          "E7",
+          "E8"
+        ],
+        "unsupported_ids": [],
+        "reason": ""
+      }
+    ],
+    "failures": [],
+    "unverified": []
+  },
+  "method": "Offline replay of saved answer and rebuilt matching final EvidencePack; no model call or data mutation."
+}

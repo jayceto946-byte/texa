@@ -1,5 +1,6 @@
 import backend.rag_trace as trace
 import sqlite3
+import json
 
 
 def test_rag_trace_round_trip(monkeypatch, tmp_path):
@@ -8,6 +9,7 @@ def test_rag_trace_round_trip(monkeypatch, tmp_path):
         "request_id": "req-1",
         "book_name": "demo",
         "question": "what is x",
+        "error": "SYNTHETIC_PRIVATE_MARKER",
         "intent": "definition",
         "fast_path": True,
         "status": "done",
@@ -19,6 +21,9 @@ def test_rag_trace_round_trip(monkeypatch, tmp_path):
 
     rows = trace.list_traces()
     assert rows[0]["request_id"] == "req-1"
+    assert "what is x" not in rows[0]["question"]
+    assert "SYNTHETIC_PRIVATE_MARKER" not in str(rows)
+    assert rows[0]["error"] == "request_failed"
     assert rows[0]["fast_path"] is True
     assert rows[0]["timings"]["retrieve"] == 50.0
     assert rows[0]["evidence"] == [{
@@ -108,15 +113,14 @@ def test_context_trace_v2_round_trip_is_bounded(monkeypatch, tmp_path):
     row = trace.list_traces()[0]
     context = row["context"]
     assert context["version"] == 2
-    assert context["resolution"]["resolved_query"] == "拉格朗日中值定理的成立条件是什么？"
+    assert json.loads(context["resolution"]["resolved_query"])["chars"] == len("拉格朗日中值定理的成立条件是什么？")
     assert context["resolution"]["resolution_action"] == "continue"
     assert context["resolution"]["speech_act"] == "followup"
-    assert context["resolution"]["state_operations"] == [
-        {"operation": "set_topic", "value": "拉格朗日中值定理"},
-    ]
-    assert context["resolution"]["state_before"]["topic"] == "拉格朗日中值定理"
+    assert context["resolution"]["state_operations"][0]["operation"] == "set_topic"
+    assert "拉格朗日" not in json.dumps(context, ensure_ascii=False)
+    assert "identity" in context["resolution"]["state_before"]
     assert context["resolution"]["semantic_attempted"] is True
-    assert context["resolution"]["semantic_error"] == "timeout"
+    assert context["resolution"]["semantic_error"] == "resolver_failed"
     assert context["retrieval"]["new_evidence_ids"] == ["chunk-1"]
     assert context["conversation_context"]["turn_ids"] == ["turn-1"]
     assert context["conversation_context"]["new_evidence_refs"] == ["E1"]

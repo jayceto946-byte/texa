@@ -1,0 +1,52 @@
+{
+  "method": "offline independent SymPy and explicit boundary enumeration; never sent to tested model",
+  "q1": {
+    "gradient": [
+      "3*x**2 - 2*x - 2*y",
+      "-2*x + 3*y**2 - 2*y"
+    ],
+    "tangent_gradient": [
+      "-1",
+      "-1"
+    ],
+    "candidate_values": {
+      "(0, 0)": "3",
+      "(3, 0)": "21",
+      "(0, 3)": "21",
+      "(2/3, 0)": "77/27",
+      "(0, 2/3)": "77/27",
+      "(3/2, 3/2)": "3/4",
+      "(4/3, 4/3)": "17/27"
+    }
+  },
+  "q2": {
+    "sphere_rearrangement_residual": "0",
+    "radius": "1",
+    "curl": [
+      "-2*x**2 + x*z",
+      "6*x*y - 3*y*z",
+      "-2*x*z + z**2"
+    ],
+    "projected_integrand": "1",
+    "answer": "4*sqrt(5)*pi/25"
+  },
+  "q3": {
+    "mean": "n*theta/(n + 1)",
+    "second_moment": "n*theta**2/(n + 2)",
+    "unbiased_c": "(n + 1)/n",
+    "mse": "theta**2*(c**2*n**2 + c**2*n - 2*c*n**2 - 4*c*n + n**2 + 3*n + 2)/((n + 1)*(n + 2))",
+    "optimal_c": "(n + 2)/(n + 1)",
+    "minimum_mse": "theta**2/(n + 1)**2"
+  },
+  "q4": {
+    "eigenvalues": [
+      "1",
+      "-2",
+      "0"
+    ],
+    "An_for_n_positive": "Matrix([[-(-2)**n - 4, -(-2)**n - 2, 2], [2*(-2)**n + 4, 2*(-2)**n + 2, -2], [-6, -3, 3]])",
+    "model_matrix_residual_zero": true,
+    "vector_for_n_positive": "Matrix([[(-2)**n + 8], [-2*(-2)**n - 8], [12]])",
+    "A0": "Matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])"
+  }
+}

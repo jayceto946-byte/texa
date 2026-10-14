@@ -1,0 +1,325 @@
+[
+  {
+    "index": 1,
+    "model": "deepseek-flash",
+    "case": "S5",
+    "started_at": "2026-10-13T12:18:08.025732+00:00",
+    "input_bytes_upper": 7849,
+    "input_cap": 32768,
+    "output_cap": 4096,
+    "currency": "USD",
+    "reserved_cost": 0.0147576,
+    "status": "returned",
+    "wire_roles": [
+      "system",
+      "system",
+      "user"
+    ],
+    "tool_reply_ids": [],
+    "assistant_reasoning_present": [],
+    "assistant_tool_ids": [],
+    "tools_offered": [
+      "symbolic_math",
+      "verify_math_result"
+    ],
+    "http_status": 200,
+    "headers_ms": 521.02,
+    "first_chunk_ms": 527.48,
+    "usage": {
+      "input_tokens": 1680,
+      "output_tokens": 1023,
+      "total_tokens": 2703,
+      "reasoning_tokens": 721,
+      "cached_input_tokens": 0
+    },
+    "elapsed_ms": 5106.45,
+    "ended_at": "2026-10-13T12:18:13.132276+00:00",
+    "finish_reason": "tool_calls",
+    "tariff_band": "offpeak",
+    "estimated_cost": 0.0008657999999999999
+  },
+  {
+    "index": 2,
+    "model": "deepseek-flash",
+    "case": "S5",
+    "started_at": "2026-10-13T12:18:13.975319+00:00",
+    "input_bytes_upper": 12756,
+    "input_cap": 32768,
+    "output_cap": 4096,
+    "currency": "USD",
+    "reserved_cost": 0.0147576,
+    "status": "returned",
+    "wire_roles": [
+      "system",
+      "system",
+      "user",
+      "assistant",
+      "tool",
+      "tool",
+      "tool"
+    ],
+    "tool_reply_ids": [
+      "call_00_Mq6JYKrduXt4xhQHWvxY9371",
+      "call_01_wXzG0dH61GmIY1tU923c5730",
+      "call_02_t7Bh5xQuV548Qea1FUT23773"
+    ],
+    "assistant_reasoning_present": [
+      true
+    ],
+    "assistant_tool_ids": [
+      [
+        "call_00_Mq6JYKrduXt4xhQHWvxY9371",
+        "call_01_wXzG0dH61GmIY1tU923c5730",
+        "call_02_t7Bh5xQuV548Qea1FUT23773"
+      ]
+    ],
+    "tools_offered": [
+      "symbolic_math",
+      "verify_math_result"
+    ],
+    "http_status": 200,
+    "headers_ms": 488.16,
+    "first_chunk_ms": 495.74,
+    "first_public_ms": 7038.37,
+    "usage": {
+      "input_tokens": 3353,
+      "output_tokens": 1858,
+      "total_tokens": 5211,
+      "reasoning_tokens": 1276,
+      "cached_input_tokens": 2688
+    },
+    "elapsed_ms": 9356.67,
+    "ended_at": "2026-10-13T12:18:23.332143+00:00",
+    "finish_reason": "stop",
+    "tariff_band": "offpeak",
+    "estimated_cost": 0.0012226140000000001
+  },
+  {
+    "index": 3,
+    "model": "deepseek-flash",
+    "case": "S6",
+    "started_at": "2026-10-13T12:18:24.329806+00:00",
+    "input_bytes_upper": 4922,
+    "input_cap": 32768,
+    "output_cap": 4096,
+    "currency": "USD",
+    "reserved_cost": 0.0147576,
+    "status": "returned",
+    "wire_roles": [
+      "system",
+      "system",
+      "user"
+    ],
+    "tool_reply_ids": [],
+    "assistant_reasoning_present": [],
+    "assistant_tool_ids": [],
+    "tools_offered": [],
+    "http_status": 200,
+    "headers_ms": 527.97,
+    "first_chunk_ms": 529.06,
+    "first_public_ms": 4091.38,
+    "usage": {
+      "input_tokens": 574,
+      "output_tokens": 1005,
+      "total_tokens": 1579,
+      "reasoning_tokens": 456,
+      "cached_input_tokens": 0
+    },
+    "elapsed_ms": 6150.72,
+    "ended_at": "2026-10-13T12:18:30.480623+00:00",
+    "finish_reason": "stop",
+    "tariff_band": "offpeak",
+    "estimated_cost": 0.0006891
+  },
+  {
+    "index": 4,
+    "model": "deepseek-flash",
+    "case": "S6",
+    "started_at": "2026-10-13T12:18:30.800268+00:00",
+    "input_bytes_upper": 6966,
+    "input_cap": 32768,
+    "output_cap": 4096,
+    "currency": "USD",
+    "reserved_cost": 0.0147576,
+    "status": "returned",
+    "wire_roles": [
+      "system",
+      "system",
+      "user"
+    ],
+    "tool_reply_ids": [],
+    "assistant_reasoning_present": [],
+    "assistant_tool_ids": [],
+    "tools_offered": [],
+    "http_status": 200,
+    "headers_ms": 464.27,
+    "first_chunk_ms": 468.08,
+    "first_public_ms": 5305.75,
+    "usage": {
+      "input_tokens": 1249,
+      "output_tokens": 1025,
+      "total_tokens": 2274,
+      "reasoning_tokens": 954,
+      "cached_input_tokens": 256
+    },
+    "elapsed_ms": 5563.73,
+    "ended_at": "2026-10-13T12:18:36.364089+00:00",
+    "finish_reason": "stop",
+    "tariff_band": "offpeak",
+    "estimated_cost": 0.000764718
+  },
+  {
+    "index": 5,
+    "model": "deepseek-flash",
+    "case": "cancel",
+    "started_at": "2026-10-13T12:18:37.451225+00:00",
+    "input_bytes_upper": 7621,
+    "input_cap": 32768,
+    "output_cap": 4096,
+    "currency": "USD",
+    "reserved_cost": 0.0147576,
+    "status": "returned",
+    "wire_roles": [
+      "system",
+      "system",
+      "user"
+    ],
+    "tool_reply_ids": [],
+    "assistant_reasoning_present": [],
+    "assistant_tool_ids": [],
+    "tools_offered": [
+      "symbolic_math",
+      "verify_math_result"
+    ],
+    "http_status": 200,
+    "headers_ms": 447.41,
+    "first_chunk_ms": 449.84,
+    "first_public_ms": 2167.38,
+    "usage": {
+      "input_tokens": 1628,
+      "output_tokens": 420,
+      "total_tokens": 2048,
+      "reasoning_tokens": 223,
+      "cached_input_tokens": 1280
+    },
+    "elapsed_ms": 3047.42,
+    "ended_at": "2026-10-13T12:18:40.498714+00:00",
+    "finish_reason": "tool_calls",
+    "tariff_band": "offpeak",
+    "estimated_cost": 0.00030804
+  },
+  {
+    "index": 6,
+    "model": "deepseek-flash",
+    "case": "cancel",
+    "started_at": "2026-10-13T12:18:40.972088+00:00",
+    "input_bytes_upper": 10467,
+    "input_cap": 32768,
+    "output_cap": 4096,
+    "currency": "USD",
+    "reserved_cost": 0.0147576,
+    "status": "error",
+    "wire_roles": [
+      "system",
+      "system",
+      "user",
+      "assistant",
+      "tool",
+      "tool"
+    ],
+    "tool_reply_ids": [
+      "call_00_GTufgwWOIGiD4fqgWp5a9688",
+      "call_01_PM1nNyy7dfU1EKfgK7896622"
+    ],
+    "assistant_reasoning_present": [
+      true
+    ],
+    "assistant_tool_ids": [
+      [
+        "call_00_GTufgwWOIGiD4fqgWp5a9688",
+        "call_01_PM1nNyy7dfU1EKfgK7896622"
+      ]
+    ],
+    "tools_offered": [
+      "symbolic_math",
+      "verify_math_result"
+    ],
+    "http_status": 200,
+    "headers_ms": 587.3,
+    "first_chunk_ms": 589.47,
+    "error_type": "RuntimeConflict",
+    "ended_at": "2026-10-13T12:18:41.563102+00:00"
+  },
+  {
+    "index": 7,
+    "model": "qwen3.7-plus",
+    "case": "qwen-smoke",
+    "started_at": "2026-10-13T12:18:44.276089+00:00",
+    "input_bytes_upper": 4378,
+    "input_cap": 32768,
+    "output_cap": 8192,
+    "currency": "CNY",
+    "reserved_cost": 0.131152,
+    "status": "returned",
+    "wire_roles": [
+      "system",
+      "user"
+    ],
+    "tool_reply_ids": [],
+    "assistant_reasoning_present": [],
+    "assistant_tool_ids": [],
+    "tools_offered": [],
+    "http_status": 200,
+    "headers_ms": 3154.04,
+    "first_chunk_ms": 3156.19,
+    "first_public_ms": 16961.99,
+    "usage": {
+      "input_tokens": 458,
+      "output_tokens": 1120,
+      "total_tokens": 1578,
+      "reasoning_tokens": 809,
+      "cached_input_tokens": 0
+    },
+    "elapsed_ms": 22187.5,
+    "ended_at": "2026-10-13T12:19:06.463944+00:00",
+    "finish_reason": "stop",
+    "tariff_band": "undiscounted_list",
+    "estimated_cost": 0.009876
+  },
+  {
+    "index": 8,
+    "model": "deepseek-flash",
+    "case": "S1",
+    "started_at": "2026-10-13T12:35:13.499876+00:00",
+    "input_bytes_upper": 16379,
+    "input_cap": 32768,
+    "output_cap": 4096,
+    "currency": "USD",
+    "reserved_cost": 0.0147576,
+    "status": "returned",
+    "wire_roles": [
+      "system",
+      "system",
+      "user"
+    ],
+    "tool_reply_ids": [],
+    "assistant_reasoning_present": [],
+    "assistant_tool_ids": [],
+    "tools_offered": [],
+    "http_status": 200,
+    "headers_ms": 727.03,
+    "first_chunk_ms": 818.45,
+    "usage": {
+      "input_tokens": 3018,
+      "output_tokens": 4096,
+      "total_tokens": 7114,
+      "reasoning_tokens": 4096,
+      "cached_input_tokens": 0
+    },
+    "elapsed_ms": 28380.12,
+    "ended_at": "2026-10-13T12:35:41.880601+00:00",
+    "finish_reason": "length",
+    "tariff_band": "offpeak",
+    "estimated_cost": 0.0029102999999999998
+  }
+]

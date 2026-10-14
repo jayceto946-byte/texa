@@ -1,0 +1,79 @@
+{
+  "authorized": "user 2026-10-12 synthetic questions only, at most 8 paid calls",
+  "scope": "synthetic evidence; no production conversation, textbook, tool or learning records",
+  "attempted_calls": 4,
+  "answers": [
+    {
+      "case": "concept",
+      "mode": "before",
+      "answer": "**可导一定连续**的本质是：有限的变化率限制了函数值的突变。\n\n根据教材，在一点可导意味着该点差商存在有限极限 [[cite:E1]]。函数增量 $\\Delta y$ 等于差商乘以自变量增量 $\\Delta x$，即 $\\Delta y = \\frac{\\Delta y}{\\Delta x} \\cdot \\Delta x$。当自变量增量 $\\Delta x \\to 0$ 时，由于差商 $\\frac{\\Delta y}{\\Delta x}$ 存在有限极限，其乘积 $\\Delta y$ 必然趋于零 [[cite:E1]]。函数增量趋于零即代表函数在该点连续。\n\n**通俗解释**：\n“可导”意味着函数在这一点的“变化速度”（差商）是一个确定的有限值。既然速度是有限的，当自变量的变化量（$\\Delta x$）变得极小并趋于 0 时，函数值的变化量（$\\Delta y$）自然也会跟着变得极小并趋于 0。函数值没有发生跳跃或断开，这就是“连续”。\n\n[补充例题] 假设函数在某点可导，且导数（差商的极限）为 2。当自变量增量 $\\Delta x = 0.01$ 时，函数增量 $\\Delta y \\approx 2 \\times 0.01 = 0.02$。当 $\\Delta x$ 缩小到 $0.001$ 时，$\\Delta y$ 缩小到约 $0.002$。随着 $\\Delta x \\to 0$，$\\Delta y$ 也必然 $\\to 0$，因此该点连续。\n\n**注意**：连续未必可导。例如绝对值函数在零点连续，但其左右导数分别为 -1 和 1，导致在该点不可导 [[cite:E1]]。",
+      "seconds": 35.77,
+      "characters": 697,
+      "oracle": "可导推出连续，增量=差商×Δx；有限极限×趋零=趋零；不能声称连续推出可导。",
+      "rubric": "是否连接直觉与有限差商，不只复述定义；是否必要才举例；引用可追溯。",
+      "usage": {
+        "input_tokens": 383,
+        "output_tokens": 1985,
+        "total_tokens": 2368,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 1586
+        }
+      }
+    },
+    {
+      "case": "concept",
+      "mode": "after",
+      "answer": "**通俗解释**\n“可导”意味着函数在这一点的“变化率（差商）”存在一个有限的极限 [[cite:E1]]。\n同时，函数的变化量（增量）等于“变化率”乘以“自变量的变化量” [[cite:E1]]。\n当自变量的变化量趋于0时，一个有限的变化率乘以一个趋于0的变化量，结果必然趋于0 [[cite:E1]]。\n函数的变化量趋于0，意味着函数值没有发生瞬间跳跃，即在该点连续 [[cite:E1]]。\n\n**类比说明**\n把函数想象成你开车的位置，自变量是时间，函数值是位置。\n“可导”意味着你的“瞬时速度（变化率）”是一个确定的有限值（如 60 km/h）。“连续”意味着你的位置不会发生瞬间跳跃（不瞬移）。\n当你只经过无限短的时间（自变量增量趋于0）时，移动的距离（函数增量）等于“速度 × 时间”。因为速度是有限的，时间趋于0，距离必然趋于0。距离变化为0，说明位置没有瞬间跳跃，即位置是连续的。\n\n**补充说明**\n反过来，连续未必可导。例如绝对值函数 $f(x)=|x|$ 在 $x=0$ 处，位置没有跳跃（连续），但左右两边的变化率（左右导数）分别为 -1 和 1，不相等，因此不可导 [[cite:E1]]。",
+      "seconds": 31.22,
+      "characters": 509,
+      "oracle": "可导推出连续，增量=差商×Δx；有限极限×趋零=趋零；不能声称连续推出可导。",
+      "rubric": "是否连接直觉与有限差商，不只复述定义；是否必要才举例；引用可追溯。",
+      "usage": {
+        "input_tokens": 486,
+        "output_tokens": 1628,
+        "total_tokens": 2114,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 1318
+        }
+      }
+    },
+    {
+      "case": "derivation",
+      "mode": "before",
+      "answer": "设函数 $f$ 和 $g$ 在 $x$ 处可导。根据导数定义，乘积 $fg$ 在 $x$ 处的导数为：\n$(fg)' = \\lim_{h \\to 0} \\frac{f(x+h)g(x+h) - f(x)g(x)}{h}$\n\n**关键加减项的选择与拆分**\n为了在分子中构造出 $f$ 和 $g$ 各自的差商以利用可导条件，需要添加并减去中间项 $f(x)g(x+h)$ [[cite:E1]]。这样选择的原因在于：\n1. 能够分别提取出 $f$ 的增量 $[f(x+h)-f(x)]$ 和 $g$ 的增量 $[g(x+h)-g(x)]$，从而凑出导数定义的形式。\n2. 第一项中保留 $g(x+h)$ 而非 $g(x)$，是为了在后续取极限时，利用 $g$ 的连续性将其平滑转化为 $g(x)$。\n\n将分子拆分并重组：\n$f(x+h)g(x+h) - f(x)g(x) = [f(x+h) - f(x)]g(x+h) + f(x)[g(x+h) - g(x)]$ [[cite:E1]]。\n\n**取极限推导**\n将拆分后的式子代入导数定义式，并除以 $h$：\n$(fg)' = \\lim_{h \\to 0} \\left[ \\frac{f(x+h)-f(x)}{h}g(x+h) + f(x)\\frac{g(x+h)-g(x)}{h} \\right]$\n\n由于 $f$ 和 $g$ 在 $x$ 处可导，则它们均在 $x$ 处连续 [[cite:E1]]。由连续性可知 $\\lim_{h \\to 0} g(x+h) = g(x)$。\n分别对两项取极限：\n$(fg)' = f'(x)g(x) + f(x)g'(x)$ [[cite:E1]]。\n\n即乘积求导公式为 $(fg)' = f'g + fg'$。",
+      "seconds": 33.55,
+      "characters": 750,
+      "oracle": "可导前提，正确分拆差商、g连续、两项极限，不能漏项；说明加减f(x)g(x+h)的作用。",
+      "rubric": "数学变形准确，解释关键选择，不以类比替代证明，不机械增加定义/总结。",
+      "usage": {
+        "input_tokens": 398,
+        "output_tokens": 1860,
+        "total_tokens": 2258,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 1390
+        }
+      }
+    }
+  ],
+  "errors": [
+    {
+      "case": "derivation",
+      "mode": "after",
+      "error_type": "APIConnectionError"
+    }
+  ],
+  "baseline_ref": "c53e78b",
+  "after_version": "refined-teaching-v2-2026-10-12",
+  "model": "qwen3.7-plus",
+  "output_token_limit_per_call": 2000,
+  "explicit_env_file": true
+}

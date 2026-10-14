@@ -1,5 +1,7 @@
+import { beginMetric, resourceCategory, performanceEnabled } from '../utils/performanceMetrics';
+import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import type { AgentPendingAction, AnswerMode, AssistantSource, ConceptCandidate, ExecutionStreamEnvelope, LearningTaskState, SubjectRouteSuggestion, VisualRegion } from '../types';
-import { isExecutionEventV1 } from '../utils/chatActivities';
+import { isExecutionEventV1, isExecutionEventV2 } from '../utils/chatActivities';
 
 const DEFAULT_TIMEOUT_MS = 20000;
 const NON_STREAMING_CHAT_TIMEOUT_MS = 130000;
@@ -7,6 +9,25 @@ export const IMAGE_SOLUTION_TIMEOUT_MS = 6 * 60 * 1000;
 export const IMAGE_RECOGNITION_TIMEOUT_MS = 3 * 60 * 1000;
 const API_TOKEN_KEY = 'kaoyan_api_token';
 const DESKTOP_API_BASE_KEY = 'kaoyan_desktop_api_base';
+let volatileConnectionToken = '';
+const connectionListeners = new Set<() => void>();
+
+export function onConnectionChange(listener: () => void) {
+  connectionListeners.add(listener);
+  return () => connectionListeners.delete(listener);
+}
+
+export function isRemoteBrowser(): boolean {
+  if (typeof window === 'undefined' || !window.location || window.kaoyanDesktop?.isElectron) return false;
+  return !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+}
+
+export function setConnectionToken(token: string): void {
+  volatileConnectionToken = token.trim();
+  writeBrowserStorage(isRemoteBrowser() ? 'sessionStorage' : 'localStorage', API_TOKEN_KEY, volatileConnectionToken || null);
+  connectionListeners.forEach(listener => listener());
+}
+
 
 function bootstrapDesktopLaunch(): string {
   if (typeof window === 'undefined') return '';
@@ -14,12 +35,19 @@ function bootstrapDesktopLaunch(): string {
   const params = new URLSearchParams(hash);
   const token = (params.get('access_token') || params.get('capture_token'))?.trim();
   const apiBase = params.get('api_base')?.trim() || '';
-  if (token) window.localStorage.setItem(API_TOKEN_KEY, token);
-  if (apiBase) window.sessionStorage.setItem(DESKTOP_API_BASE_KEY, apiBase);
+  if (isRemoteBrowser()) {
+    // A desktop launch URL must never direct a phone to its own loopback or
+    // send the management credential to a supplied cross-origin API.
+    writeBrowserStorage('sessionStorage', DESKTOP_API_BASE_KEY, null);
+    writeBrowserStorage('localStorage', API_TOKEN_KEY, null);
+  }
+  if (token) setConnectionToken(token);
+  if (apiBase && !isRemoteBrowser()) writeBrowserStorage('sessionStorage', DESKTOP_API_BASE_KEY, apiBase);
   if (token || apiBase) {
     window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
   }
-  return apiBase || window.sessionStorage.getItem(DESKTOP_API_BASE_KEY)?.trim() || '';
+  if (isRemoteBrowser()) return '/api';
+  return apiBase || readBrowserStorage('sessionStorage', DESKTOP_API_BASE_KEY)?.trim() || '';
 }
 
 const API_BASE = normalizeApiBase(bootstrapDesktopLaunch() || import.meta.env.VITE_API_BASE_URL || '/api');
@@ -27,13 +55,17 @@ const API_BASE = normalizeApiBase(bootstrapDesktopLaunch() || import.meta.env.VI
 function authHeaders(initial?: HeadersInit): Headers {
   const headers = new Headers(initial);
   if (typeof window !== 'undefined') {
-    const token = window.localStorage.getItem(API_TOKEN_KEY)?.trim();
+    const token = volatileConnectionToken || readBrowserStorage(isRemoteBrowser() ? 'sessionStorage' : 'localStorage', API_TOKEN_KEY)?.trim();
     if (token) headers.set('X-Kaoyan-Token', token);
   }
   return headers;
 }
 
 async function responseError(response: Response, fallback: string): Promise<Error> {
+  if (response.status === 401 && typeof window !== 'undefined' && isRemoteBrowser()) {
+    setConnectionToken('');
+    window.dispatchEvent(new Event('texa:connection-unauthorized'));
+  }
   const payload = await response.clone().json().catch(() => null);
   const message = payload?.message || payload?.detail || `${fallback}: ${response.status}`;
   return new Error(message);
@@ -65,10 +97,14 @@ function authenticatedResourceUrl(value: string): string {
   return apiUrl(trimmed);
 }
 
-async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS, finiteBody = false) {
+  const metric = beginMetric('finite-request', resourceCategory(new URL(String(input), window.location?.origin || 'http://localhost').pathname));
+  const started = performanceEnabled() ? performance.now() : 0;
+  let headersMs = 0;
   const ctrl = new AbortController();
   let timedOut = false;
   let abortedBySource = false;
+  let responseStatus = 0;
   const timer = window.setTimeout(() => {
     timedOut = true;
     ctrl.abort(new DOMException(`请求超过 ${Math.ceil(timeoutMs / 1000)} 秒`, 'TimeoutError'));
@@ -81,11 +117,33 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
   if (sourceSignal?.aborted) abortFromSource();
   else sourceSignal?.addEventListener('abort', abortFromSource, { once: true });
   try {
-    return await fetch(input, { ...init, headers: authHeaders(init.headers), signal: ctrl.signal });
+    const response = await fetch(input, { ...init, headers: authHeaders(init.headers), signal: ctrl.signal });
+    responseStatus = response.status;
+    headersMs = performanceEnabled() ? performance.now() - started : 0;
+    // Finite asset reads must finish before releasing the timer and cancellation.
+    // SSE callers keep their streaming path.
+    if (response.body && (finiteBody || response.headers.get('content-type')?.includes('application/json'))) {
+      let abortRead: (() => void) | undefined;
+      try {
+        const aborted = new Promise<never>((_, reject) => {
+          abortRead = () => reject(ctrl.signal.reason);
+          if (ctrl.signal.aborted) abortRead();
+          else ctrl.signal.addEventListener('abort', abortRead, { once: true });
+        });
+        const bytes = await Promise.race([response.arrayBuffer(), aborted]);
+        metric(response.ok ? 'ok' : 'error', { headersMs, bodyMs: performanceEnabled() ? performance.now() - started - headersMs : 0, decodedBytes: bytes.byteLength, status: response.status });
+        return new Response(bytes, { status: response.status, statusText: response.statusText, headers: response.headers });
+      } finally {
+        if (abortRead) ctrl.signal.removeEventListener('abort', abortRead);
+      }
+    }
+    metric(response.ok ? 'ok' : 'error', { headersMs, status: response.status });
+    return response;
   } catch (error) {
+    metric(abortedBySource ? 'cancelled' : 'error', { headersMs, status: responseStatus });
     if (timedOut) {
       throw new Error(
-        `请求处理超时（${Math.ceil(timeoutMs / 1000)} 秒）。图片识别或模型服务响应较慢，请重试。`,
+        `请求处理超时（${Math.ceil(timeoutMs / 1000)} 秒，${responseStatus ? `读取响应正文，HTTP ${responseStatus}` : '等待响应头'}）。请检查网络连接及桌面服务后重试。`,
         { cause: error },
       );
     }
@@ -105,19 +163,19 @@ export async function apiFetch(path: string, init: RequestInit = {}, timeoutMs =
 }
 
 export async function getAuthenticatedBlob(path: string, signal?: AbortSignal, timeoutMs = 60000): Promise<Blob> {
-  const res = await fetchWithTimeout(authenticatedResourceUrl(path), { signal }, timeoutMs);
+  const res = await fetchWithTimeout(authenticatedResourceUrl(path), { signal }, timeoutMs, true);
   if (!res.ok) throw await responseError(res, `GET ${path} failed`);
   return res.blob();
 }
 
 export async function getAuthenticatedText(path: string, signal?: AbortSignal, timeoutMs = 60000): Promise<string> {
-  const res = await fetchWithTimeout(authenticatedResourceUrl(path), { signal }, timeoutMs);
+  const res = await fetchWithTimeout(authenticatedResourceUrl(path), { signal }, timeoutMs, true);
   if (!res.ok) throw await responseError(res, `GET ${path} failed`);
   return res.text();
 }
 
-export async function get(path: string, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<any> {
-  const res = await fetchWithTimeout(apiUrl(path), {}, timeoutMs);
+export async function get(path: string, timeoutMs = DEFAULT_TIMEOUT_MS, signal?: AbortSignal): Promise<any> {
+  const res = await fetchWithTimeout(apiUrl(path), { signal }, timeoutMs);
   if (!res.ok) throw await responseError(res, `GET ${path} failed`);
   return res.json();
 }
@@ -178,7 +236,8 @@ function isExecutionStreamBoundary(event: ExecutionStreamEnvelope): boolean {
   const canonical = event.execution_event;
   if (canonical.type === 'final' || canonical.type === 'error') return true;
   return canonical.type === 'state_transition'
-    && canonical.payload.task_status_after === 'waiting_for_input';
+    && ['waiting_for_input', 'waiting_for_confirmation', 'interrupted']
+      .includes(String(canonical.payload.task_status_after || ''));
 }
 
 export function consumeSseLine(line: string, onEvent: (event: ExecutionStreamEnvelope) => void): boolean {
@@ -191,7 +250,9 @@ export function consumeSseLine(line: string, onEvent: (event: ExecutionStreamEnv
   try {
     const event = JSON.parse(payload) as Partial<ExecutionStreamEnvelope> & Record<string, unknown>;
     if (hasRemovedExecutionLifecycleFields(event)) throw new Error('removed lifecycle projection in SSE envelope');
-    if (!isExecutionEventV1(event.execution_event)) throw new Error('missing or invalid ExecutionEvent V1');
+    if (!isExecutionEventV1(event.execution_event) && !isExecutionEventV2(event.execution_event)) {
+      throw new Error('missing or invalid ExecutionEvent');
+    }
     onEvent(event as ExecutionStreamEnvelope);
     return isExecutionStreamBoundary(event as ExecutionStreamEnvelope);
   } catch (err) {
@@ -233,7 +294,15 @@ export function chatStream(
   onError?: (err: Error) => void,
   answerMode: AnswerMode = 'auto',
 ): () => void {
+  const metric = beginMetric('text-stream', 'chat');
+  const started = performanceEnabled() ? performance.now() : 0;
+  let headersMs = 0;
+  let firstChunkMs: number | undefined;
+  let decodedBytes = 0;
   const ctrl = new AbortController();
+  let disconnected = false;
+  const offline = () => { disconnected = true; ctrl.abort(); };
+  if (isRemoteBrowser()) window.addEventListener('offline', offline);
 
   (async () => {
     try {
@@ -244,6 +313,7 @@ export function chatStream(
         signal: ctrl.signal,
       });
 
+      headersMs = performanceEnabled() ? performance.now() - started : 0;
       if (!res.ok || !res.body) throw await responseError(res, 'SSE failed');
 
       const reader = res.body.getReader();
@@ -254,6 +324,7 @@ export function chatStream(
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+        if (performanceEnabled()) { firstChunkMs ??= performance.now() - started; decodedBytes += value.byteLength; }
         const parsed = consumeSseChunk(decoder.decode(value, { stream: true }), buffer, onEvent);
         buffer = parsed.buffer;
         sawBoundaryEvent = parsed.sawBoundaryEvent || sawBoundaryEvent;
@@ -265,14 +336,23 @@ export function chatStream(
       if (!sawBoundaryEvent && !ctrl.signal.aborted) {
         throw new Error('stream ended without terminal event');
       }
+      metric('ok', { headersMs, firstChunkMs, decodedBytes });
     } catch (err) {
+      metric(ctrl.signal.aborted ? 'cancelled' : 'error', { headersMs, firstChunkMs, decodedBytes });
+      if (disconnected) {
+        onError?.(new Error('网络已断开，回答尚未确认完成。请恢复连接后重新读取会话和任务状态；不要直接重复提交。'));
+        return;
+      }
       if (err instanceof DOMException && err.name === 'AbortError') return;
       if (err instanceof Error && err.name === 'AbortError') return;
-      if (onError && err instanceof Error) onError(err);
+      if (onError && err instanceof Error) onError(err instanceof TypeError && isRemoteBrowser()
+        ? new Error('连接已中断。请检查 Tailscale 和 Texa Desktop，重新读取会话确认任务状态。', { cause: err }) : err);
+    } finally {
+      if (isRemoteBrowser()) window.removeEventListener('offline', offline);
     }
   })();
 
-  return () => ctrl.abort();
+  return () => { ctrl.abort(); if (isRemoteBrowser()) window.removeEventListener('offline', offline); };
 }
 
 export function figureQuestionStream(
@@ -423,11 +503,81 @@ export async function interruptChatTask(
   });
 }
 
+// Multipart photos use the same endpoint and SSE parser, with browser upload progress.
+function imageMultipartStream(
+  url: string, payload: FormData, signal: AbortSignal,
+  onEvent: (event: ExecutionStreamEnvelope) => void,
+  onUpload?: (loaded: number, total: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const metric = beginMetric('photo-stream', 'image');
+    const started = performanceEnabled() ? performance.now() : 0;
+    let uploadBytes = 0;
+    let uploadMs: number | undefined;
+    let headersMs: number | undefined;
+    let firstChunkMs: number | undefined;
+    const xhr = new XMLHttpRequest();
+    let offset = 0;
+    let buffer = '';
+    let boundary = false;
+    let settled = false;
+    let uploadComplete = false;
+    const cleanup = () => signal.removeEventListener('abort', abort);
+    const fail = (error: Error) => {
+      if (settled) return;
+      metric(signal.aborted ? 'cancelled' : 'error', { uploadBytes, uploadMs, headersMs, firstChunkMs, status: xhr.status });
+      settled = true; cleanup(); reject(error);
+    };
+    const abort = () => {
+      xhr.abort();
+      fail(new Error(signal.reason?.name === 'TimeoutError'
+        ? (uploadComplete ? '图片讲解超时，请查看会话与任务状态' : '照片上传超时，桌面尚未确认接收，请检查网络或降低相机分辨率')
+        : '图片请求已取消'));
+    };
+    const consume = () => {
+      const next = xhr.responseText.slice(offset);
+      offset = xhr.responseText.length;
+      const parsed = consumeSseChunk(next, buffer, onEvent);
+      buffer = parsed.buffer;
+      boundary ||= parsed.sawBoundaryEvent;
+    };
+    xhr.open('POST', url);
+    authHeaders().forEach((value, key) => xhr.setRequestHeader(key, value));
+    xhr.upload.onprogress = event => { uploadBytes = event.loaded; onUpload?.(event.loaded, event.lengthComputable ? event.total : 0); };
+    xhr.onreadystatechange = () => { if (xhr.readyState >= 2 && performanceEnabled()) headersMs ??= performance.now() - started; };
+    xhr.upload.onload = event => { uploadBytes = event?.loaded || uploadBytes; uploadMs = performanceEnabled() ? performance.now() - started : 0; uploadComplete = true; onUpload?.(1, 1); };
+    xhr.onprogress = () => {
+      if (settled || xhr.status < 200 || xhr.status >= 300) return;
+      if (performanceEnabled()) firstChunkMs ??= performance.now() - started;
+      try { consume(); } catch (error) { fail(error instanceof Error ? error : new Error(String(error))); xhr.abort(); }
+    };
+    xhr.onerror = () => fail(new Error(uploadComplete ? '照片已上传，但图片解答连接中断，请查看会话状态' : '照片上传失败，请检查手机与桌面网络连接'));
+    xhr.onload = async () => {
+      if (settled) return;
+      if (xhr.status < 200 || xhr.status >= 300) {
+        fail(await responseError(new Response(xhr.responseText, { status: xhr.status || 502 }), '图片上传失败'));
+        return;
+      }
+      try {
+        consume();
+        boundary = flushSseBuffer(buffer, onEvent) || boundary;
+        if (!boundary) throw new Error('图片讲解流未返回 canonical 结束边界');
+        metric('ok', { uploadBytes, uploadMs, headersMs, firstChunkMs, status: xhr.status });
+        settled = true; cleanup(); resolve();
+      } catch (error) { fail(error instanceof Error ? error : new Error(String(error))); }
+    };
+    signal.addEventListener('abort', abort, { once: true });
+    if (signal.aborted) abort();
+    else xhr.send(payload);
+  });
+}
+
 export function mistakeSolutionStream(
   path: '/mistakes/solve-image-stream' | '/mistakes/solve-cached-stream' | `/mistakes/visual-tasks/${string}/resume-stream`,
   payload: FormData | Record<string, unknown>,
   onEvent: (event: ExecutionStreamEnvelope) => void,
   onError?: (error: Error) => void,
+  onUpload?: (loaded: number, total: number) => void,
 ): () => void {
   const controller = new AbortController();
   const timer = window.setTimeout(() => {
@@ -437,6 +587,10 @@ export function mistakeSolutionStream(
   (async () => {
     try {
       const isForm = payload instanceof FormData;
+      if (isForm && typeof XMLHttpRequest !== 'undefined') {
+        await imageMultipartStream(apiUrl(path), payload, controller.signal, onEvent, onUpload);
+        return;
+      }
       const response = await fetch(apiUrl(path), {
         method: 'POST',
         headers: authHeaders(isForm ? undefined : { 'Content-Type': 'application/json' }),
@@ -459,7 +613,7 @@ export function mistakeSolutionStream(
       if (!sawBoundaryEvent && !controller.signal.aborted) throw new Error('图片讲解流未返回 canonical 结束边界');
     } catch (error) {
       if (controller.signal.aborted) {
-        if (controller.signal.reason?.name === 'TimeoutError') onError?.(new Error('图片讲解超时，请稍后重试', { cause: error }));
+        if (controller.signal.reason?.name === 'TimeoutError') onError?.(error instanceof Error ? error : new Error('图片讲解超时，请查看会话状态', { cause: error }));
         return;
       }
       onError?.(error instanceof Error ? error : new Error(String(error)));

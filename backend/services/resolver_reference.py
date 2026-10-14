@@ -6,6 +6,18 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 
+def local_anaphora_topic(question: str) -> str:
+    """A singular pronoun may refer to an explicit noun in this same sentence."""
+    if re.search(r"前者|后者|前面|上面|刚才|上述|第[一二三四五六七八九十\d]+个", question):
+        return ""
+    match = re.match(
+        r"^(?P<topic>[\u4e00-\u9fffA-Za-z0-9_]{1,24}?(?:传感器|效应|定理|方法|算法|模型|公式|电阻))"
+        r"[，,]\s*(?:它(?!们)|其(?!他|中|次)|这个|那个)",
+        question.strip(),
+    )
+    return match.group("topic") if match else ""
+
+
 @dataclass(frozen=True)
 class ReferenceResolverHooks:
     match_artifact: Callable[[str, list[dict[str, Any]]], dict[str, Any] | None]
@@ -45,7 +57,9 @@ def observe_reference_resolution(
         r"第[一二三四五六七八九十\d]+(?:个公式|个|道题|部分|行|步)", question,
     )
 
-    if rephrased:
+    if local_anaphora_topic(question):
+        method, confidence, is_followup = "deterministic_local_reference", 1.0, False
+    elif rephrased:
         method, confidence, is_followup = "deterministic_rephrase", 0.98, True
         referenced_entities = [state.topic] if state.topic else []
     elif artifact:

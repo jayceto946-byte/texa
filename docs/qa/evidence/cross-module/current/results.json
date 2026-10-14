@@ -1,0 +1,16 @@
+{
+  "environment": "Chrome",
+  "model": "offline fixture",
+  "checks": [
+    {
+      "name": "goal-double-resume",
+      "status": "PASS"
+    },
+    {
+      "name": "chat-selection-composer-mistakes",
+      "status": "FAIL",
+      "error": "Error: composer height 128"
+    }
+  ],
+  "errors": []
+}

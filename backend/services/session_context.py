@@ -12,6 +12,7 @@ from backend.services.assistant_artifacts import (
 )
 from backend.services.resolver_reference import (
     ReferenceResolverHooks,
+    local_anaphora_topic,
     observe_reference_resolution,
 )
 from backend.services.resolver_state_operations import derive_state_operations
@@ -113,6 +114,9 @@ def _has_anaphora(question: str) -> bool:
 
 def _extract_topic(text: str) -> str:
     """Extract a standalone entity/topic; task-only fragments return empty."""
+    local_topic = local_anaphora_topic(text)
+    if local_topic:
+        return local_topic
     cleaned = _clean_query(text)
     if _has_anaphora(cleaned):
         return ""
@@ -591,6 +595,9 @@ def _rephrase_followup(question: str, state: SessionContextState) -> str:
 
 def _resolve_with_state(question: str, state: SessionContextState) -> str:
     question = question.strip()
+    if local_anaphora_topic(question):
+        # This explicit object takes precedence over a previous session topic.
+        return question
     rephrased = _rephrase_followup(question, state)
     if rephrased:
         return rephrased
@@ -835,8 +842,10 @@ def build_resolution_trace(
     initial_state: dict[str, Any] | SessionContextState | None = None,
     semantic_model_runner: Any | None = None,
     semantic_enabled: bool | None = None,
+    understanding_model_runner: Any | None = None,
+    understanding_mode: str | None = None,
 ) -> dict[str, Any]:
-    """Build bounded resolver telemetry without changing the resolution path."""
+    """Resolve by rules first, with optional bounded interpretation before gates."""
     raw_query = question.strip()
     state_before = (
         session_state_from_dict(asdict(initial_state) if isinstance(initial_state, SessionContextState) else initial_state)
@@ -855,16 +864,47 @@ def build_resolution_trace(
         resolved = str(resolved_query).strip()
 
     observation = _resolution_observation(raw_query, history, state_before, resolved)
-    if not has_context and raw_query and not observation.get("is_followup"):
+    if not has_context and raw_query and not observation.get("is_followup") and not local_anaphora_topic(raw_query):
         observation.update({
             "method": "identity_no_history",
             "confidence": 1.0,
             "is_followup": False,
         })
 
+    from backend.services.question_understanding import understand_question
+
+    understanding, understanding_trace = understand_question(
+        raw_query, state_before, observation,
+        mode=understanding_mode, model_runner=understanding_model_runner,
+    )
+    if understanding:
+        if understanding["action"] == "clarify":
+            observation["method"] = "understanding_clarification"
+        elif understanding["reference"]:
+            target = understanding["reference"]
+            resolved = _replace_anaphora(raw_query, target)
+            if resolved == raw_query:
+                resolved = f"关于{target}，{raw_query}"
+            record = next((item for item in reversed(state_before.entity_records)
+                           if item.get("name") == target), {})
+            observation.update({
+                "method": "understanding_reference", "is_followup": True,
+                "referenced_entity": target, "referenced_entities": [target],
+                "referenced_turn_ids": [record["last_turn_id"]] if record.get("last_turn_id") else _referenced_turn_ids(history, [target]),
+            })
+        elif understanding["entities"]:
+            # An explicit current object overrides inherited topics. Keep all
+            # original conditions and numbers; the adapter cannot rewrite query.
+            resolved = raw_query
+            observation.update({
+                "method": "understanding_current_question", "is_followup": False,
+                "referenced_entity": "", "referenced_entities": [], "referenced_turn_ids": [],
+            })
+        observation.update({"confidence": 0.7, "confidence_kind": "uncalibrated_strength"})
+
     semantic_error = ""
     semantic_operation: dict[str, str] | None = None
-    if should_attempt_semantic_resolution(observation, enabled=semantic_enabled):
+    if not (understanding_trace["attempted"] and understanding_trace["mode"] == "fallback") and should_attempt_semantic_resolution(observation, enabled=semantic_enabled):
         try:
             semantic = run_semantic_resolver(
                 raw_query, state_before, model_runner=semantic_model_runner,
@@ -899,11 +939,28 @@ def build_resolution_trace(
 
     should_clarify = observation.get("method") in {
         "unresolved_reference", "incomplete_ordinal_resolution", "semantic_clarification",
+        "understanding_clarification",
     }
     learning_speech_act = apply_learning_speech_act(raw_query, "")
     state_after = session_state_from_dict(asdict(state_before))
     if resolved and not should_clarify and not learning_speech_act:
         _advance_state(state_after, resolved)
+        if understanding and understanding["entities"]:
+            current_frame = _comparison_frame(raw_query, SessionContextState())
+            if not current_frame or set(current_frame.get("entities") or []) != set(understanding["entities"]):
+                state_after.frame = {}
+                state_after.constraints = []
+                if understanding["intent"] == "comparison" and len(understanding["entities"]) >= 2:
+                    state_after.frame = {"kind": "comparison", "entities": list(understanding["entities"]), "goal": "比较"}
+                    state_after.entity_groups = [*state_after.entity_groups, {
+                        "kind": "comparison", "entities": list(understanding["entities"]), "turn_id": "",
+                    }][-50:]
+            state_after.topic = "和".join(understanding["entities"])
+            for entity in understanding["entities"]:
+                _append_entity(state_after, entity, "")
+            _push_topic(state_after, state_after.topic)
+        if understanding:
+            state_after.intent = understanding["intent"]
     clarification_message = (
         "我还不能确定你指的是哪个对象。请补充对象名称，或说明你指的是上一条回答中的哪一项。"
         if should_clarify else ""
@@ -928,8 +985,12 @@ def build_resolution_trace(
             "attempted": bool(semantic_operation or semantic_error),
             "error": semantic_error,
         },
+        "question_understanding": understanding,
+        "question_understanding_trace": understanding_trace,
         **observation,
     }
+    if understanding:
+        trace["resolution_changed"] = resolved != raw_query
     return trace
 
 

@@ -1,0 +1,41 @@
+ M backend/api/chat.py
+ M backend/services/agent_runtime/chat_binding.py
+ M backend/services/agent_runtime/multi_step.py
+ M backend/services/agent_runtime/native_loop.py
+ M backend/services/agent_runtime/store.py
+ M backend/services/answer_verification.py
+ M backend/tools/math_tools.py
+ M frontend/src/components/chat/ExecutionTrace.css
+ M frontend/src/components/chat/ExecutionTrace.tsx
+ M frontend/src/pages/ChatPage.tsx
+ M frontend/src/utils/chatActivities.test.ts
+ M frontend/src/utils/chatActivities.ts
+ M graph/generator.py
+ M llm/agent_adapter.py
+ M llm/factory.py
+ M llm/registry.py
+ M patch_notes.md
+ M scripts/qa-live-server.py
+ M tests/test_math_isolation.py
+ M tests/test_native_math_loop.py
+?? TEXA-AGENT-LOOP-PERFORMANCE-REPORT.md
+?? TEXA-DEEPSEEK-PRODUCTION-COMPATIBILITY.md
+?? docs/qa/evidence/agent-loop-performance/
+?? docs/qa/evidence/deepseek-production/
+?? docs/qa/evidence/deepseek-remediation/
+?? experiments/
+?? llm/deepseek_chat.py
+?? node_modules/
+?? scripts/benchmark-native-overhead.py
+?? scripts/profile-native-loop.py
+?? scripts/qa-deepseek-production-electron.cjs
+?? scripts/qa-deepseek-production-paid-electron.cjs
+?? scripts/qa-deepseek-production-paid.py
+?? scripts/qa-deepseek-production-server.py
+?? scripts/qa-paid-latency-restored.mjs
+?? scripts/qa-performance-electron.mjs
+?? scripts/run-paid-latency-case.py
+?? scripts/summarize-paid-latency.py
+?? tests/test_deepseek_paid_budget.py
+?? tests/test_deepseek_production.py
+?? tests/test_runtime_validation_remediation.py

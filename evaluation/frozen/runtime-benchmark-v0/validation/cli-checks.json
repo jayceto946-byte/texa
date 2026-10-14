@@ -1,0 +1,21 @@
+{
+  "dev_gold_round_trip": 60,
+  "not_model_accuracy": true,
+  "cli_checks": [
+    {
+      "name": "empty",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "duplicate",
+      "passed": true,
+      "exit_code": 1
+    },
+    {
+      "name": "wrong_split",
+      "passed": true,
+      "exit_code": 1
+    }
+  ]
+}

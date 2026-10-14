@@ -1,0 +1,646 @@
+{
+  "environment": "Chrome real API",
+  "model": "offline fixture only",
+  "checks": [
+    {
+      "width": 1280,
+      "case": "note autosave503→navigation blocked→local text retained→retry saved",
+      "status": "PASS",
+      "draft_id": "draft_d841e60a640445ff9b85b6edcd3db19e"
+    },
+    {
+      "width": 1280,
+      "case": "note draft CAS409→copy local edits→reload authority→edit and autosave",
+      "status": "PASS",
+      "draft_id": "draft_d841e60a640445ff9b85b6edcd3db19e"
+    },
+    {
+      "width": 1280,
+      "case": "formal recovery clipboard/read failure preserves text and disables stale publish",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "note formal revision CAS conflict→no overwrite→copy/recovery",
+      "status": "PASS",
+      "note_id": "note_72cb8892299044a88664e3d939fcc74f",
+      "draft_id": "draft_99cd414eb7554baf9d31ca3e6c736e36"
+    },
+    {
+      "width": 1280,
+      "case": "candidate source comparison switch preserves edits/selection; import footer reachable",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "real Word+answer extraction→unconfirmed candidates→merge/split→human correction→select→batch import→rollback",
+      "status": "PASS",
+      "batch_id": "f0bacb21-96e"
+    },
+    {
+      "width": 1280,
+      "case": "real text PDF→original comparison→two candidates; no automatic bank writes",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "chat-image",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: '裁剪并增强题目图片', exact: true }) to be visible\u001b[22m\n"
+    },
+    {
+      "width": 1280,
+      "case": "source keyboard boundary→Escape→trigger focus and composer draft preserved",
+      "status": "PASS"
+    },
+    {
+      "width": 1280,
+      "case": "persisted source metadata→inspector→Escape→reopen→route switch closes",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "note autosave503→navigation blocked→local text retained→retry saved",
+      "status": "PASS",
+      "draft_id": "draft_6c87c4d652a34cae8d7d68144764b9e2"
+    },
+    {
+      "width": 1024,
+      "case": "note draft CAS409→copy local edits→reload authority→edit and autosave",
+      "status": "PASS",
+      "draft_id": "draft_6c87c4d652a34cae8d7d68144764b9e2"
+    },
+    {
+      "width": 1024,
+      "case": "formal recovery clipboard/read failure preserves text and disables stale publish",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "note formal revision CAS conflict→no overwrite→copy/recovery",
+      "status": "PASS",
+      "note_id": "note_d517324f55ef4f68aa0d81cf3d2e947d",
+      "draft_id": "draft_bec03a1123544ad5a6088c228d4ae881"
+    },
+    {
+      "width": 1024,
+      "case": "candidate source comparison switch preserves edits/selection; import footer reachable",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "real Word+answer extraction→unconfirmed candidates→merge/split→human correction→select→batch import→rollback",
+      "status": "PASS",
+      "batch_id": "b9d256d8-fd2"
+    },
+    {
+      "width": 1024,
+      "case": "real text PDF→original comparison→two candidates; no automatic bank writes",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "chat-image",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: '裁剪并增强题目图片', exact: true }) to be visible\u001b[22m\n"
+    },
+    {
+      "width": 1024,
+      "case": "source keyboard boundary→Escape→trigger focus and composer draft preserved",
+      "status": "PASS"
+    },
+    {
+      "width": 1024,
+      "case": "persisted source metadata→inspector→Escape→reopen→route switch closes",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "note autosave503→navigation blocked→local text retained→retry saved",
+      "status": "PASS",
+      "draft_id": "draft_bbfb26170a914553b6d03482587c9970"
+    },
+    {
+      "width": 760,
+      "case": "note draft CAS409→copy local edits→reload authority→edit and autosave",
+      "status": "PASS",
+      "draft_id": "draft_bbfb26170a914553b6d03482587c9970"
+    },
+    {
+      "width": 760,
+      "case": "formal recovery clipboard/read failure preserves text and disables stale publish",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "note formal revision CAS conflict→no overwrite→copy/recovery",
+      "status": "PASS",
+      "note_id": "note_f7ad561aaa46445c850b20b849a6b8e6",
+      "draft_id": "draft_5a9c298419a14809b839cbd58fa0bf00"
+    },
+    {
+      "width": 760,
+      "case": "candidate source comparison switch preserves edits/selection; import footer reachable",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "real Word+answer extraction→unconfirmed candidates→merge/split→human correction→select→batch import→rollback",
+      "status": "PASS",
+      "batch_id": "44cc1263-e28"
+    },
+    {
+      "width": 760,
+      "case": "real text PDF→original comparison→two candidates; no automatic bank writes",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "chat-image",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: '裁剪并增强题目图片', exact: true }) to be visible\u001b[22m\n"
+    },
+    {
+      "width": 760,
+      "case": "source keyboard boundary→Escape→trigger focus and composer draft preserved",
+      "status": "PASS"
+    },
+    {
+      "width": 760,
+      "case": "persisted source metadata→inspector→Escape→reopen→route switch closes",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "note autosave503→navigation blocked→local text retained→retry saved",
+      "status": "PASS",
+      "draft_id": "draft_8d77015ac6d443efb89876e5f8a4a7a6"
+    },
+    {
+      "width": 390,
+      "case": "note draft CAS409→copy local edits→reload authority→edit and autosave",
+      "status": "PASS",
+      "draft_id": "draft_8d77015ac6d443efb89876e5f8a4a7a6"
+    },
+    {
+      "width": 390,
+      "case": "formal recovery clipboard/read failure preserves text and disables stale publish",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "note formal revision CAS conflict→no overwrite→copy/recovery",
+      "status": "PASS",
+      "note_id": "note_db7019c830124630af1e2baa252758a4",
+      "draft_id": "draft_cb19654d68a847768d5e24699a952b72"
+    },
+    {
+      "width": 390,
+      "case": "candidate source comparison switch preserves edits/selection; import footer reachable",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "real Word+answer extraction→unconfirmed candidates→merge/split→human correction→select→batch import→rollback",
+      "status": "PASS",
+      "batch_id": "ba4c110e-e1b"
+    },
+    {
+      "width": 390,
+      "case": "real text PDF→original comparison→two candidates; no automatic bank writes",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "crop focus trap/inert/keyboard enhancement; cancelled replacement retains existing attachment",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "chat image→rotate/process/compress→attach preview→remove; no model call",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "image editor Escape→cancel→focus returns",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "source keyboard boundary→Escape→trigger focus and composer draft preserved",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "case": "persisted source metadata→inspector→Escape→reopen→route switch closes",
+      "status": "PASS"
+    }
+  ],
+  "errors": [
+    "1280 chat-image: TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: '裁剪并增强题目图片', exact: true }) to be visible\u001b[22m\n",
+    "1024 chat-image: TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: '裁剪并增强题目图片', exact: true }) to be visible\u001b[22m\n",
+    "760 chat-image: TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: '裁剪并增强题目图片', exact: true }) to be visible\u001b[22m\n"
+  ],
+  "requests": [
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_d841e60a640445ff9b85b6edcd3db19e"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_d841e60a640445ff9b85b6edcd3db19e"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_d841e60a640445ff9b85b6edcd3db19e"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_d841e60a640445ff9b85b6edcd3db19e"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_d841e60a640445ff9b85b6edcd3db19e"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_d841e60a640445ff9b85b6edcd3db19e/save"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_99cd414eb7554baf9d31ca3e6c736e36"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_99cd414eb7554baf9d31ca3e6c736e36/save"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1280,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_ba826be3d64f43cf997781604af55051"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_ba826be3d64f43cf997781604af55051/save"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/batch-add"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/import-batches/rollback"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1280,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_6c87c4d652a34cae8d7d68144764b9e2"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_6c87c4d652a34cae8d7d68144764b9e2"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_6c87c4d652a34cae8d7d68144764b9e2"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_6c87c4d652a34cae8d7d68144764b9e2"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_6c87c4d652a34cae8d7d68144764b9e2"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_6c87c4d652a34cae8d7d68144764b9e2/save"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_bec03a1123544ad5a6088c228d4ae881"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_bec03a1123544ad5a6088c228d4ae881/save"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 1024,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_65a0ef1028af46108a605f8af3b97740"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_65a0ef1028af46108a605f8af3b97740/save"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/batch-add"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/import-batches/rollback"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 1024,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_bbfb26170a914553b6d03482587c9970"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_bbfb26170a914553b6d03482587c9970"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_bbfb26170a914553b6d03482587c9970"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_bbfb26170a914553b6d03482587c9970"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_bbfb26170a914553b6d03482587c9970"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_bbfb26170a914553b6d03482587c9970/save"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_5a9c298419a14809b839cbd58fa0bf00"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_5a9c298419a14809b839cbd58fa0bf00/save"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 760,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_5216a2dba2164692a37cbb6c0540754b"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_5216a2dba2164692a37cbb6c0540754b/save"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/batch-add"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/import-batches/rollback"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 760,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_8d77015ac6d443efb89876e5f8a4a7a6"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_8d77015ac6d443efb89876e5f8a4a7a6"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_8d77015ac6d443efb89876e5f8a4a7a6"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_8d77015ac6d443efb89876e5f8a4a7a6"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_8d77015ac6d443efb89876e5f8a4a7a6"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_8d77015ac6d443efb89876e5f8a4a7a6/save"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_cb19654d68a847768d5e24699a952b72"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_cb19654d68a847768d5e24699a952b72/save"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_39cac1a2871049518cd804a686b2a076"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_39cac1a2871049518cd804a686b2a076/save"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/batch-add"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/import-batches/rollback"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/upload-analyze"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    }
+  ]
+}

@@ -1,0 +1,3487 @@
+{
+  "verdict": "CONDITIONAL",
+  "at": "2026-10-13T12:40:26.483680+00:00",
+  "metrics_basis": "Provider numeric usage/callback timing and formal Runtime SQL/SSE; no invoice or DOM paint timestamp. Meaningful segment = first public clause with at least six characters and sentence punctuation or newline. Timing starts at SQL run creation.",
+  "requests": {
+    "deepseek-flash": {
+      "count": 7,
+      "complete_usage_count": 6,
+      "known_usage": {
+        "input_tokens": 11502,
+        "output_tokens": 9427,
+        "reasoning_tokens": 7726,
+        "cached_input_tokens": 4224,
+        "total_tokens": 20929
+      }
+    },
+    "qwen3.7-plus": {
+      "count": 1,
+      "complete_usage_count": 1,
+      "known_usage": {
+        "input_tokens": 458,
+        "output_tokens": 1120,
+        "reasoning_tokens": 809,
+        "cached_input_tokens": 0,
+        "total_tokens": 1578
+      }
+    }
+  },
+  "costs": {
+    "USD": {
+      "known_usage_estimate": 0.006760571999999999,
+      "unknown_usage_reserved": 0.0147576,
+      "all_requests_reservation": 0.10330319999999998,
+      "is_supplier_invoice": false
+    },
+    "CNY": {
+      "known_usage_estimate": 0.009876,
+      "unknown_usage_reserved": 0,
+      "all_requests_reservation": 0.131152,
+      "is_supplier_invoice": false
+    }
+  },
+  "cases": [
+    {
+      "case": "S5",
+      "run_id": "arun_cac1f87fef1f48dda282c73de6590089",
+      "conversation_id": "conv_1791893887504_9ef9b9ae",
+      "run_status": "completed",
+      "task_status": "degraded",
+      "error_code": null,
+      "model_steps": 2,
+      "tools": [
+        {
+          "tool_id": "symbolic_math",
+          "status": "succeeded",
+          "attempt_count": 1,
+          "error_code": null,
+          "operation_key": "native-1-call_00_Mq6JYKrduXt4xhQHWvxY9371",
+          "args": {
+            "assumptions": {},
+            "direction": "+-",
+            "expression": "x^2*ln(1+x)",
+            "lower": "0",
+            "operation": "integrate",
+            "point": null,
+            "right": "0",
+            "upper": "1",
+            "variable": "x"
+          },
+          "result": {
+            "data": {
+              "assumptions": {},
+              "expression": "x^2*ln(1+x)",
+              "operation": "integrate",
+              "result": {
+                "exact": "-5/18 + 2*log(2)/3",
+                "latex": "- \\frac{5}{18} + \\frac{2 \\log{\\left(2 \\right)}}{3}",
+                "numeric": 0.1843203425955191,
+                "raw": "-5/18 + 2*log(2)/3"
+              },
+              "status": "computed",
+              "variable": "x",
+              "verification_request": {
+                "assumptions": {},
+                "candidate": "-5/18 + 2*log(2)/3",
+                "kind": "definite_integral",
+                "lower": "0",
+                "original": "x^2*ln(1+x)",
+                "upper": "1",
+                "variable": "x"
+              }
+            },
+            "evidence": [],
+            "message": "确定性计算完成",
+            "pending_action": null,
+            "success": true,
+            "verification": {},
+            "warnings": []
+          },
+          "receipt": {}
+        },
+        {
+          "tool_id": "symbolic_math",
+          "status": "succeeded",
+          "attempt_count": 1,
+          "error_code": null,
+          "operation_key": "native-1-call_01_wXzG0dH61GmIY1tU923c5730",
+          "args": {
+            "assumptions": {},
+            "direction": "+-",
+            "expression": "(2/3)*ln(2)-5/18",
+            "lower": null,
+            "operation": "calculate",
+            "point": null,
+            "right": "0",
+            "upper": null,
+            "variable": "x"
+          },
+          "result": {
+            "data": {
+              "assumptions": {},
+              "expression": "(2/3)*ln(2)-5/18",
+              "operation": "calculate",
+              "result": {
+                "exact": "-5/18 + 2*log(2)/3",
+                "latex": "- \\frac{5}{18} + \\frac{2 \\log{\\left(2 \\right)}}{3}",
+                "numeric": 0.1843203425955191,
+                "raw": "-5/18 + 2*log(2)/3"
+              },
+              "status": "computed",
+              "variable": "x",
+              "verification_request": {
+                "assumptions": {},
+                "kind": "equivalence",
+                "left": "(2/3)*ln(2)-5/18",
+                "right": "-5/18 + 2*log(2)/3"
+              }
+            },
+            "evidence": [],
+            "message": "确定性计算完成",
+            "pending_action": null,
+            "success": true,
+            "verification": {},
+            "warnings": []
+          },
+          "receipt": {}
+        },
+        {
+          "tool_id": "verify_math_result",
+          "status": "succeeded",
+          "attempt_count": 1,
+          "error_code": null,
+          "operation_key": "native-1-call_02_t7Bh5xQuV548Qea1FUT23773",
+          "args": {
+            "assumptions": {},
+            "candidate": "(2/3)*ln(2)-5/18",
+            "candidates": [],
+            "direction": "+-",
+            "kind": "definite_integral",
+            "left": "",
+            "lower": "0",
+            "original": "x^2*ln(1+x)",
+            "point": null,
+            "right": "",
+            "upper": "1",
+            "variable": "x"
+          },
+          "result": {
+            "data": {
+              "method": "definite_integral",
+              "passed": true,
+              "residuals": [
+                "0"
+              ],
+              "status": "verified"
+            },
+            "evidence": [],
+            "message": "结果校验完成",
+            "pending_action": null,
+            "success": true,
+            "verification": {
+              "method": "definite_integral",
+              "passed": true,
+              "residuals": [
+                "0"
+              ],
+              "status": "verified"
+            },
+            "warnings": []
+          },
+          "receipt": {}
+        }
+      ],
+      "run_elapsed_ms": 15618.97,
+      "final_public_answer": "手工推导如下。\n\n$$\nJ=\\int_0^1 x^2\\ln(1+x)\\,dx\n$$\n\n**1. 分部积分**\n\n取\n$$\nu=\\ln(1+x),\\qquad dv=x^2\\,dx\n$$\n则\n$$\ndu=\\frac{dx}{1+x},\\qquad v=\\frac{x^3}{3}.\n$$\n于是\n$$\nJ=\\left[\\frac{x^3}{3}\\ln(1+x)\\right]_0^1\n-\\frac13\\int_0^1\\frac{x^3}{1+x}\\,dx\n=\\frac13\\ln 2-\\frac13 I,\n$$\n其中\n$$\nI=\\int_0^1\\frac{x^3}{1+x}\\,dx.\n$$\n\n**2. 多项式除法**\n\n$$\nx^3=(x+1)(x^2-x+1)-1,\n$$\n所以\n$$\n\\frac{x^3}{1+x}=x^2-x+1-\\frac1{1+x}.\n$$\n因此\n$$\n\\begin{aligned}\nI\n&=\\int_0^1\\left(x^2-x+1-\\frac1{1+x}\\right)dx\\\\\n&=\\left[\\frac{x^3}{3}-\\frac{x^2}{2}+x-\\ln(1+x)\\right]_0^1\\\\\n&=\\frac13-\\frac12+1-\\ln2\\\\\n&=\\frac56-\\ln2.\n\\end{aligned}\n$$\n\n**3. 代回求 $J$**\n\n$$\n\\begin{aligned}\nJ\n&=\\frac13\\ln2-\\frac13\\left(\\frac56-\\ln2\\right)\\\\\n&=\\frac13\\ln2-\\frac5{18}+\\frac13\\ln2\\\\\n&=\\frac23\\ln2-\\frac5{18}.\n\\end{aligned}\n$$\n\n所以闭式结果为\n\n$$\n\\boxed{J=\\frac23\\ln2-\\frac5{18}}\n$$\n\n数值为\n\n$$\nJ=0.1843203425955191\\ldots\n$$\n\n至少 6 位有效数字：\n\n$$\n\\boxed{0.184320}\n$$\n\n若多取几位，也可写为 $0.1843203426$。\n\n**独立工具校验**\n\n实际调用符号积分工具，返回精确结果\n\n$$\n-\\frac5{18}+\\frac23\\log 2,\n$$\n\n数值为\n\n$$\n0.1843203425955191.\n$$\n\n再用定积分校验工具验证 $\\int_0^1 x^2\\ln(1+x)\\,dx=(2/3)\\ln2-5/18$，返回状态为 `verified`，残差为 $0$。\n\n以上闭式结论中，分部积分和多项式除法步骤是手工推导；数值与定积分一致性由实际工具校验确认，二者结果一致。\n\n> 回答验收未通过：未找到该分项的核心对象, 未找到该分项的核心对象, 未找到该分项的核心对象。这些结论仍需核对。",
+      "raw_final_public_model_answer": "手工推导如下。\n\n\\[\nJ=\\int_0^1 x^2\\ln(1+x)\\,dx\n\\]\n\n**1. 分部积分**\n\n取\n\\[\nu=\\ln(1+x),\\qquad dv=x^2\\,dx\n\\]\n则\n\\[\ndu=\\frac{dx}{1+x},\\qquad v=\\frac{x^3}{3}.\n\\]\n于是\n\\[\nJ=\\left[\\frac{x^3}{3}\\ln(1+x)\\right]_0^1\n-\\frac13\\int_0^1\\frac{x^3}{1+x}\\,dx\n=\\frac13\\ln 2-\\frac13 I,\n\\]\n其中\n\\[\nI=\\int_0^1\\frac{x^3}{1+x}\\,dx.\n\\]\n\n**2. 多项式除法**\n\n\\[\nx^3=(x+1)(x^2-x+1)-1,\n\\]\n所以\n\\[\n\\frac{x^3}{1+x}=x^2-x+1-\\frac1{1+x}.\n\\]\n因此\n\\[\n\\begin{aligned}\nI\n&=\\int_0^1\\left(x^2-x+1-\\frac1{1+x}\\right)dx\\\\\n&=\\left[\\frac{x^3}{3}-\\frac{x^2}{2}+x-\\ln(1+x)\\right]_0^1\\\\\n&=\\frac13-\\frac12+1-\\ln2\\\\\n&=\\frac56-\\ln2.\n\\end{aligned}\n\\]\n\n**3. 代回求 \\(J\\)**\n\n\\[\n\\begin{aligned}\nJ\n&=\\frac13\\ln2-\\frac13\\left(\\frac56-\\ln2\\right)\\\\\n&=\\frac13\\ln2-\\frac5{18}+\\frac13\\ln2\\\\\n&=\\frac23\\ln2-\\frac5{18}.\n\\end{aligned}\n\\]\n\n所以闭式结果为\n\n\\[\n\\boxed{J=\\frac23\\ln2-\\frac5{18}}\n\\]\n\n数值为\n\n\\[\nJ=0.1843203425955191\\ldots\n\\]\n\n至少 6 位有效数字：\n\n\\[\n\\boxed{0.184320}\n\\]\n\n若多取几位，也可写为 \\(0.1843203426\\)。\n\n**独立工具校验**\n\n实际调用符号积分工具，返回精确结果\n\n\\[\n-\\frac5{18}+\\frac23\\log 2,\n\\]\n\n数值为\n\n\\[\n0.1843203425955191.\n\\]\n\n再用定积分校验工具验证 \\(\\int_0^1 x^2\\ln(1+x)\\,dx=(2/3)\\ln2-5/18\\)，返回状态为 `verified`，残差为 \\(0\\)。\n\n以上闭式结论中，分部积分和多项式除法步骤是手工推导；数值与定积分一致性由实际工具校验确认，二者结果一致。",
+      "verification": {
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "reason": "",
+            "status": "passed"
+          },
+          {
+            "id": "item_1",
+            "label": "求 J=∫₀¹ x² ln(1+x) dx。给出可复现的分部积分",
+            "matched": [
+              "ln",
+              "dx"
+            ],
+            "reason": "",
+            "status": "passed"
+          },
+          {
+            "id": "item_2",
+            "label": "多项式除法步骤",
+            "matched": [
+              "多项式除法步骤"
+            ],
+            "reason": "",
+            "status": "passed"
+          },
+          {
+            "id": "item_4",
+            "label": "至少6位有效数字。可自主决定何时使用所提供的受限数学工具，但请对关键结果进行独立校验",
+            "matched": [
+              "至少",
+              "位有效数字"
+            ],
+            "reason": "未找到该分项的核心对象",
+            "status": "failed"
+          },
+          {
+            "id": "item_5",
+            "label": "明确区分自己推导",
+            "matched": [],
+            "reason": "未找到该分项的核心对象",
+            "status": "failed"
+          },
+          {
+            "id": "item_6",
+            "label": "实际工具已验证的结论。",
+            "matched": [],
+            "reason": "未找到该分项的核心对象",
+            "status": "failed"
+          },
+          {
+            "formula_count": 18,
+            "id": "formula",
+            "label": "所需公式或推导关系",
+            "reason": "公式结构完整；等价性仅在可核验范围内检查",
+            "status": "unverified",
+            "structure_status": "passed"
+          },
+          {
+            "id": "answer_mode",
+            "label": "通用模式的回答范围",
+            "reason": "",
+            "status": "passed"
+          }
+        ],
+        "failures": [
+          {
+            "id": "item_4",
+            "reason": "未找到该分项的核心对象"
+          },
+          {
+            "id": "item_5",
+            "reason": "未找到该分项的核心对象"
+          },
+          {
+            "id": "item_6",
+            "reason": "未找到该分项的核心对象"
+          }
+        ],
+        "passed": false,
+        "status": "failed",
+        "unverified": [
+          {
+            "id": "formula",
+            "reason": "公式结构完整；等价性仅在可核验范围内检查"
+          }
+        ]
+      },
+      "public_timing": {
+        "first_nonempty_public_delta_ms": 13291.96,
+        "first_readable_clause_ms": 13349.5,
+        "dom_paint_time_ms": null
+      },
+      "independent_oracle": {
+        "closed_form": "(2/3)*ln(2)-5/18",
+        "numeric": 0.18432034259551905,
+        "tool_receipts_verified": true,
+        "native_same_message_call_count": 3,
+        "wire_id_matching": true
+      }
+    },
+    {
+      "case": "S6.turn1",
+      "run_id": "arun_9b5d9db56aa44b0bbd78a8b221923122",
+      "conversation_id": "conv_1791893903841_dfe9a72b",
+      "run_status": "completed",
+      "task_status": "degraded",
+      "error_code": null,
+      "model_steps": 1,
+      "tools": [],
+      "run_elapsed_ms": 6184.06,
+      "final_public_answer": "若 $f$ 在 $x_0$ 点可导，则它一定在 $x_0$ 点连续；但反过来不成立：在一点连续不一定可导。\n\n**可导必连续**\n\n若\n$$\nf'(x_0)=\\lim_{x\\to x_0}\\frac{f(x)-f(x_0)}{x-x_0}\n$$\n存在且有限，则\n$$\nf(x)-f(x_0)\n=\\frac{f(x)-f(x_0)}{x-x_0}(x-x_0).\n$$\n当 $x\\to x_0$ 时，右端第一因子趋于 $f'(x_0)$，第二因子趋于 $0$，所以\n$$\n\\lim_{x\\to x_0}\\bigl(f(x)-f(x_0)\\bigr)=0,\n$$\n即\n$$\n\\lim_{x\\to x_0}f(x)=f(x_0).\n$$\n因此 $f$ 在 $x_0$ 点连续。\n\n**连续不一定可导：$f(x)=|x|$ 在 $x_0=0$**\n\n先看连续：\n$$\n\\lim_{x\\to 0}|x|=0=|0|,\n$$\n所以 $f(x)=|x|$ 在 $0$ 点连续。\n\n再看可导性。差商为\n$$\n\\frac{f(x)-f(0)}{x-0}\n=\\frac{|x|}{x}.\n$$\n当 $x>0$ 时，\n$$\n\\frac{|x|}{x}=1;\n$$\n当 $x<0$ 时，\n$$\n\\frac{|x|}{x}=-1.\n$$\n因此\n$$\n\\lim_{x\\to 0^+}\\frac{|x|}{x}=1,\\qquad\n\\lim_{x\\to 0^-}\\frac{|x|}{x}=-1.\n$$\n左右极限不相等，所以差商在 $0$ 点的极限不存在，$f(x)=|x|$ 在 $0$ 点不可导。\n\n几何上，$y=|x|$ 在原点处是一个“尖角”：右侧斜率为 $1$，左侧斜率为 $-1$，没有唯一的切线斜率。\n\n所以关系可概括为：\n\n$$\n\\text{在一点可导}\\ \\Longrightarrow\\ \\text{在一点连续},\n$$\n但\n$$\n\\text{在一点连续}\\ \\not\\Longrightarrow\\ \\text{在一点可导}.\n$$\n\n$f(x)=|x|$ 在 $0$ 点正是“连续但不可导”的典型例子。\n\n> 回答核对：部分公式或数值尚无确定性核验依据，请核对后使用。",
+      "raw_final_public_model_answer": "若 \\(f\\) 在 \\(x_0\\) 点可导，则它一定在 \\(x_0\\) 点连续；但反过来不成立：在一点连续不一定可导。\n\n**可导必连续**\n\n若\n\\[\nf'(x_0)=\\lim_{x\\to x_0}\\frac{f(x)-f(x_0)}{x-x_0}\n\\]\n存在且有限，则\n\\[\nf(x)-f(x_0)\n=\\frac{f(x)-f(x_0)}{x-x_0}(x-x_0).\n\\]\n当 \\(x\\to x_0\\) 时，右端第一因子趋于 \\(f'(x_0)\\)，第二因子趋于 \\(0\\)，所以\n\\[\n\\lim_{x\\to x_0}\\bigl(f(x)-f(x_0)\\bigr)=0,\n\\]\n即\n\\[\n\\lim_{x\\to x_0}f(x)=f(x_0).\n\\]\n因此 \\(f\\) 在 \\(x_0\\) 点连续。\n\n**连续不一定可导：\\(f(x)=|x|\\) 在 \\(x_0=0\\)**\n\n先看连续：\n\\[\n\\lim_{x\\to 0}|x|=0=|0|,\n\\]\n所以 \\(f(x)=|x|\\) 在 \\(0\\) 点连续。\n\n再看可导性。差商为\n\\[\n\\frac{f(x)-f(0)}{x-0}\n=\\frac{|x|}{x}.\n\\]\n当 \\(x>0\\) 时，\n\\[\n\\frac{|x|}{x}=1;\n\\]\n当 \\(x<0\\) 时，\n\\[\n\\frac{|x|}{x}=-1.\n\\]\n因此\n\\[\n\\lim_{x\\to 0^+}\\frac{|x|}{x}=1,\\qquad\n\\lim_{x\\to 0^-}\\frac{|x|}{x}=-1.\n\\]\n左右极限不相等，所以差商在 \\(0\\) 点的极限不存在，\\(f(x)=|x|\\) 在 \\(0\\) 点不可导。\n\n几何上，\\(y=|x|\\) 在原点处是一个“尖角”：右侧斜率为 \\(1\\)，左侧斜率为 \\(-1\\)，没有唯一的切线斜率。\n\n所以关系可概括为：\n\n\\[\n\\text{在一点可导}\\ \\Longrightarrow\\ \\text{在一点连续},\n\\]\n但\n\\[\n\\text{在一点连续}\\ \\not\\Longrightarrow\\ \\text{在一点可导}.\n\\]\n\n\\(f(x)=|x|\\) 在 \\(0\\) 点正是“连续但不可导”的典型例子。",
+      "verification": {
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "reason": "",
+            "status": "passed"
+          },
+          {
+            "id": "answer_mode",
+            "label": "通用模式的回答范围",
+            "reason": "",
+            "status": "passed"
+          },
+          {
+            "id": "formula",
+            "label": "回答公式的核验依据",
+            "reason": "公式尚无等价性核验依据",
+            "status": "unverified"
+          }
+        ],
+        "failures": [],
+        "passed": false,
+        "status": "unverified",
+        "unverified": [
+          {
+            "id": "formula",
+            "reason": "公式尚无等价性核验依据"
+          }
+        ]
+      },
+      "public_timing": {
+        "first_nonempty_public_delta_ms": 4117.78,
+        "first_readable_clause_ms": 4321.53,
+        "dom_paint_time_ms": null
+      }
+    },
+    {
+      "case": "S6.turn2",
+      "run_id": "arun_ffa1f7f7b69d4ae6b03c5507f4e1f7a2",
+      "conversation_id": "conv_1791893903841_dfe9a72b",
+      "run_status": "completed",
+      "task_status": "degraded",
+      "error_code": null,
+      "model_steps": 1,
+      "tools": [],
+      "run_elapsed_ms": 5591.49,
+      "final_public_answer": "结论：不对，连续不保证左右导数为0，更不保证可导。\n反例：$f(x)=|x|$ 在0连续，但左导数$-1$、右导数$1$。\n原因：左右导数不等，差商极限不存在，所以0点不可导；可导才必连续。\n\n> 回答验收未通过：未找到该分项的核心对象, 未找到该分项的核心对象, 未找到该分项的核心对象, 未找到该分项的核心对象。这些结论仍需核对。",
+      "raw_final_public_model_answer": "结论：不对，连续不保证左右导数为0，更不保证可导。\n反例：$f(x)=|x|$ 在0连续，但左导数$-1$、右导数$1$。\n原因：左右导数不等，差商极限不存在，所以0点不可导；可导才必连续。",
+      "verification": {
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "reason": "",
+            "status": "passed"
+          },
+          {
+            "id": "item_1",
+            "label": "我理解为：既然 |x| 在0连续，左右导数就都等于0，所以它也可导，对吗？请纠正。第二轮只输出三行，依次以“结论：”“反例：”“原因：”开头。总长度不超过180",
+            "matched": [
+              "连续"
+            ],
+            "reason": "未找到该分项的核心对象",
+            "status": "failed"
+          },
+          {
+            "id": "item_2",
+            "label": "空格",
+            "matched": [],
+            "reason": "未找到该分项的核心对象",
+            "status": "failed"
+          },
+          {
+            "id": "item_3",
+            "label": "公式符号，不含换行），不使用Markdown列表或代码块",
+            "matched": [],
+            "reason": "未找到该分项的核心对象",
+            "status": "failed"
+          },
+          {
+            "id": "item_4",
+            "label": "必须写出左右导数数值。",
+            "matched": [],
+            "reason": "未找到该分项的核心对象",
+            "status": "failed"
+          },
+          {
+            "id": "final_numeric_answer",
+            "label": "最终数值及单位",
+            "reason": "数值缺少与最终结论绑定的核验依据",
+            "status": "unverified"
+          },
+          {
+            "formula_count": 3,
+            "id": "formula",
+            "label": "所需公式或推导关系",
+            "reason": "公式结构完整；等价性仅在可核验范围内检查",
+            "status": "unverified",
+            "structure_status": "passed"
+          },
+          {
+            "id": "answer_mode",
+            "label": "通用模式的回答范围",
+            "reason": "",
+            "status": "passed"
+          }
+        ],
+        "failures": [
+          {
+            "id": "item_1",
+            "reason": "未找到该分项的核心对象"
+          },
+          {
+            "id": "item_2",
+            "reason": "未找到该分项的核心对象"
+          },
+          {
+            "id": "item_3",
+            "reason": "未找到该分项的核心对象"
+          },
+          {
+            "id": "item_4",
+            "reason": "未找到该分项的核心对象"
+          }
+        ],
+        "passed": false,
+        "status": "failed",
+        "unverified": [
+          {
+            "id": "final_numeric_answer",
+            "reason": "数值缺少与最终结论绑定的核验依据"
+          },
+          {
+            "id": "formula",
+            "reason": "公式结构完整；等价性仅在可核验范围内检查"
+          }
+        ]
+      },
+      "public_timing": {
+        "first_nonempty_public_delta_ms": 5331.04,
+        "first_readable_clause_ms": 5392.81,
+        "dom_paint_time_ms": null
+      },
+      "strict_format": {
+        "raw_model": {
+          "lines": 3,
+          "codepoints_excluding_newlines": 93,
+          "three_prefixes": true,
+          "limit_180": true
+        },
+        "final_public": {
+          "lines": 5,
+          "codepoints_excluding_newlines": 163,
+          "three_prefixes": false,
+          "limit_180": true
+        }
+      }
+    },
+    {
+      "case": "cancel",
+      "run_id": "arun_14b0c3aa85e74570b86c7ad03e045ee5",
+      "conversation_id": "conv_1791893916913_150498f2",
+      "run_status": "paused",
+      "task_status": "failed",
+      "error_code": "user_stopped",
+      "model_steps": 2,
+      "tools": [
+        {
+          "tool_id": "symbolic_math",
+          "status": "succeeded",
+          "attempt_count": 1,
+          "error_code": null,
+          "operation_key": "native-1-call_00_GTufgwWOIGiD4fqgWp5a9688",
+          "args": {
+            "assumptions": {},
+            "direction": "+-",
+            "expression": "7",
+            "lower": null,
+            "operation": "calculate",
+            "point": null,
+            "right": "0",
+            "upper": null,
+            "variable": "x"
+          },
+          "result": {
+            "data": {
+              "assumptions": {},
+              "expression": "7",
+              "operation": "calculate",
+              "result": {
+                "exact": "7",
+                "latex": "7",
+                "numeric": 7.0,
+                "raw": "7"
+              },
+              "status": "computed",
+              "variable": "x",
+              "verification_request": {
+                "assumptions": {},
+                "kind": "equivalence",
+                "left": "7",
+                "right": "7"
+              }
+            },
+            "evidence": [],
+            "message": "确定性计算完成",
+            "pending_action": null,
+            "success": true,
+            "verification": {},
+            "warnings": []
+          },
+          "receipt": {}
+        },
+        {
+          "tool_id": "verify_math_result",
+          "status": "succeeded",
+          "attempt_count": 1,
+          "error_code": null,
+          "operation_key": "native-1-call_01_PM1nNyy7dfU1EKfgK7896622",
+          "args": {
+            "assumptions": {},
+            "candidate": "",
+            "candidates": [],
+            "direction": "+-",
+            "kind": "equivalence",
+            "left": "7",
+            "lower": null,
+            "original": "",
+            "point": null,
+            "right": "7",
+            "upper": null,
+            "variable": "x"
+          },
+          "result": {
+            "data": {
+              "method": "equivalence",
+              "passed": true,
+              "residuals": [
+                "0"
+              ],
+              "status": "verified"
+            },
+            "evidence": [],
+            "message": "结果校验完成",
+            "pending_action": null,
+            "success": true,
+            "verification": {
+              "method": "equivalence",
+              "passed": true,
+              "residuals": [
+                "0"
+              ],
+              "status": "verified"
+            },
+            "warnings": []
+          },
+          "receipt": {}
+        }
+      ],
+      "run_elapsed_ms": 3867.75,
+      "final_public_answer": "",
+      "raw_final_public_model_answer": "这个请求本身信息不足：`7` 已经是一个确定的常数，没有运算对象或运算符号，无法判断你想算的是“7 的某个函数”（如 \\(\\sqrt7\\)、\\(7!\\)、\\(\\ln 7\\)）还是别的。我先按字面把 `7` 当作表达式求值并核验，同时也把可能的意思留给你确认。",
+      "verification": {},
+      "public_timing": {
+        "first_nonempty_public_delta_ms": null,
+        "first_readable_clause_ms": null,
+        "dom_paint_time_ms": null
+      }
+    },
+    {
+      "case": "cancel.resume",
+      "run_id": "arun_21f596b8d51f4e46823f3ed60392b7d7",
+      "conversation_id": "conv_1791893916913_150498f2",
+      "run_status": "failed",
+      "task_status": "failed",
+      "error_code": "provider_protocol_state_lost",
+      "model_steps": 2,
+      "tools": [
+        {
+          "tool_id": "symbolic_math",
+          "status": "succeeded",
+          "attempt_count": 1,
+          "error_code": null,
+          "operation_key": "native-1-call_00_GTufgwWOIGiD4fqgWp5a9688",
+          "args": {
+            "assumptions": {},
+            "direction": "+-",
+            "expression": "7",
+            "lower": null,
+            "operation": "calculate",
+            "point": null,
+            "right": "0",
+            "upper": null,
+            "variable": "x"
+          },
+          "result": {
+            "data": {
+              "assumptions": {},
+              "expression": "7",
+              "operation": "calculate",
+              "result": {
+                "exact": "7",
+                "latex": "7",
+                "numeric": 7.0,
+                "raw": "7"
+              },
+              "status": "computed",
+              "variable": "x",
+              "verification_request": {
+                "assumptions": {},
+                "kind": "equivalence",
+                "left": "7",
+                "right": "7"
+              }
+            },
+            "evidence": [],
+            "message": "确定性计算完成",
+            "pending_action": null,
+            "success": true,
+            "verification": {},
+            "warnings": []
+          },
+          "receipt": {}
+        },
+        {
+          "tool_id": "verify_math_result",
+          "status": "succeeded",
+          "attempt_count": 1,
+          "error_code": null,
+          "operation_key": "native-1-call_01_PM1nNyy7dfU1EKfgK7896622",
+          "args": {
+            "assumptions": {},
+            "candidate": "",
+            "candidates": [],
+            "direction": "+-",
+            "kind": "equivalence",
+            "left": "7",
+            "lower": null,
+            "original": "",
+            "point": null,
+            "right": "7",
+            "upper": null,
+            "variable": "x"
+          },
+          "result": {
+            "data": {
+              "method": "equivalence",
+              "passed": true,
+              "residuals": [
+                "0"
+              ],
+              "status": "verified"
+            },
+            "evidence": [],
+            "message": "结果校验完成",
+            "pending_action": null,
+            "success": true,
+            "verification": {
+              "method": "equivalence",
+              "passed": true,
+              "residuals": [
+                "0"
+              ],
+              "status": "verified"
+            },
+            "warnings": []
+          },
+          "receipt": {}
+        }
+      ],
+      "run_elapsed_ms": 14.52,
+      "final_public_answer": "",
+      "raw_final_public_model_answer": "这个请求本身信息不足：`7` 已经是一个确定的常数，没有运算对象或运算符号，无法判断你想算的是“7 的某个函数”（如 \\(\\sqrt7\\)、\\(7!\\)、\\(\\ln 7\\)）还是别的。我先按字面把 `7` 当作表达式求值并核验，同时也把可能的意思留给你确认。",
+      "verification": {},
+      "public_timing": {
+        "first_nonempty_public_delta_ms": null,
+        "first_readable_clause_ms": null,
+        "dom_paint_time_ms": null
+      }
+    },
+    {
+      "case": "S1",
+      "run_id": "arun_41847b36a52342a09247bdcdf7274ec7",
+      "conversation_id": "conv_1791894912800_0ce916d6",
+      "run_status": "failed",
+      "task_status": "failed",
+      "error_code": "provider_output_truncated",
+      "model_steps": 1,
+      "tools": [
+        {
+          "tool_id": "search_textbook",
+          "status": "succeeded",
+          "attempt_count": 1,
+          "error_code": null,
+          "operation_key": "native-answer-evidence/v1",
+          "args": {
+            "chapter": "",
+            "query": "依据证据解释：压电式测力传感器为什么不适合真正的静态测量？为什么教材又说大时间常数电荷放大器能测准静态力？解释二者是否矛盾，并给一个适合的测量任务。不要补充证据里没有的定量截止频率；结论附教材引用。"
+          },
+          "result": {
+            "data": {
+              "evidence_items": [
+                {
+                  "bbox": [],
+                  "block_type": "paragraph",
+                  "book_name": "传感器原理及应用",
+                  "book_role": "",
+                  "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                  "chapter": "第4章 力敏传感器",
+                  "chunk_id": "86092d22060351363a32",
+                  "chunk_index": 798,
+                  "example_neighbor_direction": null,
+                  "example_neighbor_distance": null,
+                  "figure_id": null,
+                  "fusion_sources": [
+                    "dense",
+                    "bm25"
+                  ],
+                  "index_version": "c8b6947edb7858f2",
+                  "is_direct_hit": true,
+                  "is_example_anchor": false,
+                  "is_example_neighbor": false,
+                  "is_list_neighbor": false,
+                  "is_selected_book": true,
+                  "is_table_direct_hit": false,
+                  "is_table_neighbor": false,
+                  "is_teaching_anchor": false,
+                  "is_teaching_neighbor": false,
+                  "list_group_order": null,
+                  "list_group_part": "",
+                  "page_end": 106,
+                  "page_idx": 104,
+                  "page_start": 105,
+                  "provenance_schema": "texa.provenance/v1",
+                  "query_coverage": 0.271605,
+                  "rag_priority": 1.0,
+                  "retrieval_scope": "same_book",
+                  "role": "derivation",
+                  "score": 0.241182,
+                  "section_chunk_index": 0,
+                  "section_path": [
+                    "第4章 力敏传感器",
+                    "4.2 压电式力传感器",
+                    "4.2.3 压电式传感器的应用举例"
+                  ],
+                  "section_title": "4.2.3 压电式传感器的应用举例",
+                  "source": "index",
+                  "source_block_ids": [
+                    "e8546709e8935d7f0f1e",
+                    "bf4b231d1475d46e8ae8",
+                    "31ef30762227e36a43db",
+                    "9767b0cbf974b6883141",
+                    "069801303e637bbb22f6"
+                  ],
+                  "source_file": "structured_content.json",
+                  "source_kind": "mineru",
+                  "source_locations": [
+                    {
+                      "bbox": [
+                        0.03,
+                        0.678,
+                        0.933,
+                        0.718
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "e8546709e8935d7f0f1e",
+                      "page_end": 105,
+                      "page_start": 105,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.075,
+                        0.726,
+                        0.287,
+                        0.745
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "bf4b231d1475d46e8ae8",
+                      "page_end": 105,
+                      "page_start": 105,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.031,
+                        0.756,
+                        0.934,
+                        0.838
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "31ef30762227e36a43db",
+                      "page_end": 105,
+                      "page_start": 105,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.03,
+                        0.84,
+                        0.934,
+                        0.923
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "9767b0cbf974b6883141",
+                      "page_end": 105,
+                      "page_start": 105,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.05,
+                        0.08,
+                        0.948,
+                        0.121
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "069801303e637bbb22f6",
+                      "page_end": 106,
+                      "page_start": 106,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    }
+                  ],
+                  "table_anchor_chunk_id": "",
+                  "table_anchor_order": null,
+                  "table_anchor_text": "",
+                  "table_header": [],
+                  "table_neighbor_distance": null,
+                  "table_rows": [],
+                  "table_title": null,
+                  "teaching_anchor_order": null,
+                  "teaching_neighbor_distance": null,
+                  "text": "从上述的介绍可以看出，压电元件是一种典型的力敏感元件，可用来测量最终能转换为力的多种物理量，如用来测量力和加速度。其中主要因素有横向灵敏度、环境温度、环境湿度。\n\n1. 压电式测力传感器\n\n压电式测力传感器是利用压电元件直接实现力电转换的传感器，在拉、压场合，通常较多采用双片或多片石英晶片作为压电元件。它刚度大，测量范围宽，线性及稳定性高，动态特性好。当采用大时间常数的电荷放大器时，可测量准静态力。压电式测力传感器按测力状态分为单向、双向和三向传感器，它们在结构上基本一样。\n\n压电式测力传感器是利用压电材料所具有的压电效应所制成的。压电式测力传感器的基本结构如图4.30所示。由于压电材料的电荷量是一定的，因此在连接时要特别注意，避免漏电。压电效应是压电传感器的主要工作原理，压电传感器不能用于静态测量，由于外力作用在压电元件上产生的电荷只有在无泄漏的情况下才能保存，这实际上是不可能的，因此压电式传感器不能用于静态测量。压电元\n\n件在交变力的作用下，电荷可以不断补充，可以供给测量回路以一定的电流，因此只适用于动态测量。所以这决定了压电传感器只能够测量动态的压力。"
+                },
+                {
+                  "bbox": [
+                    0.042,
+                    0.274,
+                    0.945,
+                    0.713
+                  ],
+                  "block_type": "paragraph",
+                  "book_name": "传感器原理及应用",
+                  "book_role": "",
+                  "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                  "chapter": "第1章 绪论",
+                  "chunk_id": "ba043f726a7931099974",
+                  "chunk_index": 197,
+                  "example_neighbor_direction": null,
+                  "example_neighbor_distance": null,
+                  "figure_id": null,
+                  "fusion_sources": [
+                    "dense",
+                    "bm25"
+                  ],
+                  "index_version": "c8b6947edb7858f2",
+                  "is_direct_hit": true,
+                  "is_example_anchor": false,
+                  "is_example_neighbor": false,
+                  "is_list_neighbor": false,
+                  "is_selected_book": true,
+                  "is_table_direct_hit": false,
+                  "is_table_neighbor": false,
+                  "is_teaching_anchor": false,
+                  "is_teaching_neighbor": false,
+                  "list_group_order": null,
+                  "list_group_part": "",
+                  "page_end": 31,
+                  "page_idx": 30,
+                  "page_start": 31,
+                  "provenance_schema": "texa.provenance/v1",
+                  "query_coverage": 0.17284,
+                  "rag_priority": 1.0,
+                  "retrieval_scope": "same_book",
+                  "role": "derivation",
+                  "score": 0.229095,
+                  "section_chunk_index": 0,
+                  "section_path": [
+                    "第1章 绪论",
+                    "1.4 传感器的标定",
+                    "1.4.1 传感器的静态特性标定"
+                  ],
+                  "section_title": "1.4.1 传感器的静态特性标定",
+                  "source": "index",
+                  "source_block_ids": [
+                    "e6e5d1e5fd46409fc1f5",
+                    "31e50f164ee6f3918f66",
+                    "66ade953e6d54bc399eb",
+                    "0904ec1c4046545bd161",
+                    "99863c2fad1e5659a4b3",
+                    "33a3a9aba63434cb8359",
+                    "4bcb71d62ec9862cc555",
+                    "a944bc2368a5e99735c0"
+                  ],
+                  "source_file": "structured_content.json",
+                  "source_kind": "mineru",
+                  "source_locations": [
+                    {
+                      "bbox": [
+                        0.042,
+                        0.274,
+                        0.945,
+                        0.357
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "e6e5d1e5fd46409fc1f5",
+                      "page_end": 31,
+                      "page_start": 31,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.087,
+                        0.359,
+                        0.651,
+                        0.377
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "31e50f164ee6f3918f66",
+                      "page_end": 31,
+                      "page_start": 31,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.044,
+                        0.379,
+                        0.945,
+                        0.439
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "66ade953e6d54bc399eb",
+                      "page_end": 31,
+                      "page_start": 31,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.087,
+                        0.442,
+                        0.336,
+                        0.46
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "0904ec1c4046545bd161",
+                      "page_end": 31,
+                      "page_start": 31,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.044,
+                        0.464,
+                        0.522,
+                        0.566
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "99863c2fad1e5659a4b3",
+                      "page_end": 31,
+                      "page_start": 31,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.045,
+                        0.569,
+                        0.523,
+                        0.628
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "33a3a9aba63434cb8359",
+                      "page_end": 31,
+                      "page_start": 31,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.046,
+                        0.631,
+                        0.523,
+                        0.692
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "4bcb71d62ec9862cc555",
+                      "page_end": 31,
+                      "page_start": 31,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.087,
+                        0.694,
+                        0.523,
+                        0.713
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "a944bc2368a5e99735c0",
+                      "page_end": 31,
+                      "page_start": 31,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    }
+                  ],
+                  "table_anchor_chunk_id": "",
+                  "table_anchor_order": null,
+                  "table_anchor_text": "",
+                  "table_header": [],
+                  "table_neighbor_distance": null,
+                  "table_rows": [],
+                  "table_title": null,
+                  "teaching_anchor_order": null,
+                  "teaching_neighbor_distance": null,
+                  "text": "传感器的静态标定主要是检验、测试传感器的静态特性指标，如静态灵敏度、非线性、迟滞、重复性等。静态特性标定的标准是在静态标准条件下进行的。静态标定条件是指没有加速度、振动、冲击（除非这些量本身就是被测物理量），环境温度一般为 $(20\\pm5)$ ℃，相对湿度不大于85%，大气压力为 $(101.3\\pm8)$ kPa时的情况。\n\n下面以应变式压力传感器为例，讨论传感器的静态特性的标定。\n\n应变式压力传感器安装在静重式标准活塞式压力计的接头上，如图 1.25 所示，传感器配接静态标准电荷放大器及显示仪。标定过程可采用加载法和卸载法。下面以加载法为例说明标定过程的步骤。\n\n① 将传感器、仪器连接好。\n\n② 将传感器全量程(测量范围)分成若干等分点,用砝码加载,施加载荷时要尽量做到均匀加载,不要引起冲击。记录仪显示传感器在某一点的输出最大值并保持一定的时间,然后记录下来。依次一点一点地加载至满量程,并记录标定传感器的输出值。\n\n③ 按上述过程，对传感器进行多次反复循环测试，将得到输出/输入测试数据组，用表格列出或画成曲线。\n\n④ 对数据进行必要的处理，根据处理结果就可以得到传感器的灵敏度、线性度、重复性、迟滞等静态特性指标。\n\n对于不同原理的压力传感器，静态标定的方法与"
+                },
+                {
+                  "bbox": [
+                    0.056,
+                    0.306,
+                    0.959,
+                    0.422
+                  ],
+                  "block_type": "paragraph",
+                  "book_name": "传感器原理及应用",
+                  "book_role": "",
+                  "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                  "chapter": "第4章 力敏传感器",
+                  "chunk_id": "1be878ee689cbe58f073",
+                  "chunk_index": 800,
+                  "example_neighbor_direction": null,
+                  "example_neighbor_distance": null,
+                  "figure_id": null,
+                  "fusion_sources": [
+                    "dense",
+                    "bm25"
+                  ],
+                  "index_version": "c8b6947edb7858f2",
+                  "is_direct_hit": true,
+                  "is_example_anchor": false,
+                  "is_example_neighbor": false,
+                  "is_list_neighbor": false,
+                  "is_selected_book": true,
+                  "is_table_direct_hit": false,
+                  "is_table_neighbor": false,
+                  "is_teaching_anchor": false,
+                  "is_teaching_neighbor": false,
+                  "list_group_order": null,
+                  "list_group_part": "",
+                  "page_end": 106,
+                  "page_idx": 105,
+                  "page_start": 106,
+                  "provenance_schema": "texa.provenance/v1",
+                  "query_coverage": 0.123457,
+                  "rag_priority": 1.0,
+                  "retrieval_scope": "same_book",
+                  "role": "property",
+                  "score": 0.228846,
+                  "section_chunk_index": 2,
+                  "section_path": [
+                    "第4章 力敏传感器",
+                    "4.2 压电式力传感器",
+                    "4.2.3 压电式传感器的应用举例"
+                  ],
+                  "section_title": "4.2.3 压电式传感器的应用举例",
+                  "source": "bm25",
+                  "source_block_ids": [
+                    "bd032b041f736a370580",
+                    "150883e5d1addf6957b4",
+                    "3ebdda0813ff43093a89"
+                  ],
+                  "source_file": "structured_content.json",
+                  "source_kind": "mineru",
+                  "source_locations": [
+                    {
+                      "bbox": [
+                        0.056,
+                        0.306,
+                        0.946,
+                        0.346
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "bd032b041f736a370580",
+                      "page_end": 106,
+                      "page_start": 106,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.098,
+                        0.353,
+                        0.336,
+                        0.372
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "150883e5d1addf6957b4",
+                      "page_end": 106,
+                      "page_start": 106,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.057,
+                        0.383,
+                        0.959,
+                        0.422
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "3ebdda0813ff43093a89",
+                      "page_end": 106,
+                      "page_start": 106,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    }
+                  ],
+                  "table_anchor_chunk_id": "",
+                  "table_anchor_order": null,
+                  "table_anchor_text": "",
+                  "table_header": [],
+                  "table_neighbor_distance": null,
+                  "table_rows": [],
+                  "table_title": null,
+                  "teaching_anchor_order": null,
+                  "teaching_neighbor_distance": null,
+                  "text": "压电式测力传感器的优点是有自生信号，输出信号大，有较高的频率响应，体积小，结构坚固。其缺点是只能用于动能测量，需要特殊电缆，在受到突然振动或过大压力时，自我恢复较慢。\n\n2. 压电式加速度传感器\n\n压电式加速度传感器又称压电加速度计，也属于惯性式传感器。压电式加速度传感器主要用于振动冲击测量，它具有量程大、频带宽、安装简单、适用于各种恶劣环境、体积小、重量轻等特点，被"
+                },
+                {
+                  "bbox": [
+                    0.071,
+                    0.397,
+                    0.973,
+                    0.522
+                  ],
+                  "block_type": "paragraph",
+                  "book_name": "传感器原理及应用",
+                  "book_role": "",
+                  "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                  "chapter": "第4章 力敏传感器",
+                  "chunk_id": "e985783d31fb3f45284f",
+                  "chunk_index": 727,
+                  "example_neighbor_direction": null,
+                  "example_neighbor_distance": null,
+                  "figure_id": null,
+                  "fusion_sources": [
+                    "bm25"
+                  ],
+                  "index_version": "c8b6947edb7858f2",
+                  "is_direct_hit": true,
+                  "is_example_anchor": false,
+                  "is_example_neighbor": false,
+                  "is_list_neighbor": false,
+                  "is_selected_book": true,
+                  "is_table_direct_hit": false,
+                  "is_table_neighbor": false,
+                  "is_teaching_anchor": false,
+                  "is_teaching_neighbor": false,
+                  "list_group_order": null,
+                  "list_group_part": "",
+                  "page_end": 98,
+                  "page_idx": 97,
+                  "page_start": 98,
+                  "provenance_schema": "texa.provenance/v1",
+                  "query_coverage": 0.08642,
+                  "rag_priority": 1.0,
+                  "retrieval_scope": "same_book",
+                  "role": "derivation",
+                  "score": 0.219839,
+                  "section_chunk_index": 0,
+                  "section_path": [
+                    "第4章 力敏传感器",
+                    "4.2 压电式力传感器"
+                  ],
+                  "section_title": "4.2 压电式力传感器",
+                  "source": "bm25",
+                  "source_block_ids": [
+                    "5155e93e24a25c2936f5",
+                    "312c1886c4f03ae24a81"
+                  ],
+                  "source_file": "structured_content.json",
+                  "source_kind": "mineru",
+                  "source_locations": [
+                    {
+                      "bbox": [
+                        0.071,
+                        0.397,
+                        0.973,
+                        0.479
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "5155e93e24a25c2936f5",
+                      "page_end": 98,
+                      "page_start": 98,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.071,
+                        0.481,
+                        0.973,
+                        0.522
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "312c1886c4f03ae24a81",
+                      "page_end": 98,
+                      "page_start": 98,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    }
+                  ],
+                  "table_anchor_chunk_id": "",
+                  "table_anchor_order": null,
+                  "table_anchor_text": "",
+                  "table_header": [],
+                  "table_neighbor_distance": null,
+                  "table_rows": [],
+                  "table_title": null,
+                  "teaching_anchor_order": null,
+                  "teaching_neighbor_distance": null,
+                  "text": "压电式力传感器是以压电材料的压电效应为工作原理，将力的变化转换为电信号输出，从而实现非电量信号检测的一种传感器。由于压电效应具有自发电和可逆性，因此压电器件是一种典型的双向无源传感器件。基于这一特性，压电器件已被广泛应用于超声、通信、宇航、雷达和引爆等领域，并与激光、红外、微波等技术相结合，成为发展新技术和高科技的重要器件。\n\n另外，压电式力传感器具有体积小、重量轻、结构简单、工作可靠和灵敏度高等优点，被广泛应用于力、压力、振动、加速度等非电量信号的测量。"
+                },
+                {
+                  "bbox": [
+                    0.024,
+                    0.648,
+                    0.925,
+                    0.733
+                  ],
+                  "block_type": "paragraph",
+                  "book_name": "传感器原理及应用",
+                  "book_role": "",
+                  "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                  "chapter": "第4章 力敏传感器",
+                  "chunk_id": "0f21bab405f7f5947f15",
+                  "chunk_index": 777,
+                  "example_neighbor_direction": null,
+                  "example_neighbor_distance": null,
+                  "figure_id": null,
+                  "fusion_sources": [
+                    "dense",
+                    "bm25"
+                  ],
+                  "index_version": "c8b6947edb7858f2",
+                  "is_direct_hit": true,
+                  "is_example_anchor": false,
+                  "is_example_neighbor": false,
+                  "is_list_neighbor": false,
+                  "is_selected_book": true,
+                  "is_table_direct_hit": false,
+                  "is_table_neighbor": false,
+                  "is_teaching_anchor": false,
+                  "is_teaching_neighbor": false,
+                  "list_group_order": null,
+                  "list_group_part": "",
+                  "page_end": 103,
+                  "page_idx": 102,
+                  "page_start": 103,
+                  "provenance_schema": "texa.provenance/v1",
+                  "query_coverage": 0.148148,
+                  "rag_priority": 1.0,
+                  "retrieval_scope": "same_book",
+                  "role": "formula",
+                  "score": 0.219283,
+                  "section_chunk_index": 27,
+                  "section_path": [
+                    "第4章 力敏传感器",
+                    "4.2 压电式力传感器",
+                    "4.2.2 压电传感器的等效电路与测量线路"
+                  ],
+                  "section_title": "4.2.2 压电传感器的等效电路与测量线路",
+                  "source": "index",
+                  "source_block_ids": [
+                    "53bb063b2120f155160b"
+                  ],
+                  "source_file": "structured_content.json",
+                  "source_kind": "mineru",
+                  "source_locations": [
+                    {
+                      "bbox": [
+                        0.024,
+                        0.648,
+                        0.925,
+                        0.733
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "53bb063b2120f155160b",
+                      "page_end": 103,
+                      "page_start": 103,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    }
+                  ],
+                  "table_anchor_chunk_id": "",
+                  "table_anchor_order": null,
+                  "table_anchor_text": "",
+                  "table_header": [],
+                  "table_neighbor_distance": null,
+                  "table_rows": [],
+                  "table_title": null,
+                  "teaching_anchor_order": null,
+                  "teaching_neighbor_distance": null,
+                  "text": "式（4.37）表明，当 $\\omega \\tau \\gg 1$ 时，传感器输出电压 $U_{\\mathrm{sm}}$ 与作用力的角频率 $\\omega$ 无关，一般取 $\\omega \\tau \\gg 3$ 即可近似看作 $U_{\\mathrm{sm}}$ 与 $\\omega$ 无关，即测量回路时间常数 $\\tau$ 一定时，压电式传感器高频响应很好。当 $\\omega \\tau < 3$ ，即被测作用力变化缓慢，测量回路时间常数也不大时，会造成传感器的灵敏度降低。下限截止频率 $\\omega_{\\mathrm{L}}$ 与时间常数 $\\tau$ 应满足"
+                },
+                {
+                  "bbox": [
+                    0.03,
+                    0.117,
+                    0.931,
+                    0.251
+                  ],
+                  "block_type": "paragraph",
+                  "book_name": "传感器原理及应用",
+                  "book_role": "",
+                  "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                  "chapter": "第4章 力敏传感器",
+                  "chunk_id": "834daa5dbae7ea8746e3",
+                  "chunk_index": 793,
+                  "example_neighbor_direction": null,
+                  "example_neighbor_distance": null,
+                  "figure_id": null,
+                  "fusion_sources": [
+                    "dense",
+                    "bm25"
+                  ],
+                  "index_version": "c8b6947edb7858f2",
+                  "is_direct_hit": true,
+                  "is_example_anchor": false,
+                  "is_example_neighbor": false,
+                  "is_list_neighbor": false,
+                  "is_selected_book": true,
+                  "is_table_direct_hit": false,
+                  "is_table_neighbor": false,
+                  "is_teaching_anchor": false,
+                  "is_teaching_neighbor": false,
+                  "list_group_order": null,
+                  "list_group_part": "",
+                  "page_end": 105,
+                  "page_idx": 104,
+                  "page_start": 105,
+                  "provenance_schema": "texa.provenance/v1",
+                  "query_coverage": 0.160494,
+                  "rag_priority": 1.0,
+                  "retrieval_scope": "same_book",
+                  "role": "derivation",
+                  "score": 0.218338,
+                  "section_chunk_index": 43,
+                  "section_path": [
+                    "第4章 力敏传感器",
+                    "4.2 压电式力传感器",
+                    "4.2.2 压电传感器的等效电路与测量线路"
+                  ],
+                  "section_title": "4.2.2 压电传感器的等效电路与测量线路",
+                  "source": "bm25",
+                  "source_block_ids": [
+                    "f803f3ce6ba772083ebc",
+                    "a408e6a2dfb29475b999",
+                    "cf0b92282094acf2299c"
+                  ],
+                  "source_file": "structured_content.json",
+                  "source_kind": "mineru",
+                  "source_locations": [
+                    {
+                      "bbox": [
+                        0.033,
+                        0.117,
+                        0.93,
+                        0.161
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "f803f3ce6ba772083ebc",
+                      "page_end": 105,
+                      "page_start": 105,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.071,
+                        0.165,
+                        0.928,
+                        0.183
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "a408e6a2dfb29475b999",
+                      "page_end": 105,
+                      "page_start": 105,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.03,
+                        0.183,
+                        0.931,
+                        0.251
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "cf0b92282094acf2299c",
+                      "page_end": 105,
+                      "page_start": 105,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    }
+                  ],
+                  "table_anchor_chunk_id": "",
+                  "table_anchor_order": null,
+                  "table_anchor_text": "",
+                  "table_header": [],
+                  "table_neighbor_distance": null,
+                  "table_rows": [],
+                  "table_title": null,
+                  "teaching_anchor_order": null,
+                  "teaching_neighbor_distance": null,
+                  "text": "它与电缆电容无关。由于运算放大器的时间常数 $R_{\\mathrm{f}}C_{\\mathrm{f}}$ 可做得很大，因此电荷放大器的低频下限 $f_{\\mathrm{L}}$ 可低达 $10^{-1} \\sim 10^{-4}$ （准静态）。\n\n由此可见，电荷放大器较之电压放大器的优点是突出的，缺点是线路较复杂，调整困难，成本较高。\n\n【例】如图4.29所示的电荷放大器电路，已知 $C_{\\mathrm{a}} = 100\\mathrm{pF}$，$R_{\\mathrm{a}} = \\infty$，$C_{\\mathrm{f}} = 10\\mathrm{pF}$。若考虑引线分布电容 $C_{\\mathrm{c}}$ 的影响，当 $A = 10^{4}$ 时，要求输出信号衰减小于 $1\\%$。求使用 $90\\mathrm{pF / m}$ 的电缆，其最大允许长度为多少？"
+                },
+                {
+                  "bbox": [
+                    0.051,
+                    0.253,
+                    0.953,
+                    0.669
+                  ],
+                  "block_type": "paragraph",
+                  "book_name": "传感器原理及应用",
+                  "book_role": "",
+                  "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                  "chapter": "第1章 绪论",
+                  "chunk_id": "be887523bd21d4d97245",
+                  "chunk_index": 30,
+                  "example_neighbor_direction": null,
+                  "example_neighbor_distance": null,
+                  "figure_id": null,
+                  "fusion_sources": [
+                    "dense",
+                    "bm25"
+                  ],
+                  "index_version": "c8b6947edb7858f2",
+                  "is_direct_hit": true,
+                  "is_example_anchor": false,
+                  "is_example_neighbor": false,
+                  "is_list_neighbor": false,
+                  "is_selected_book": true,
+                  "is_table_direct_hit": false,
+                  "is_table_neighbor": false,
+                  "is_teaching_anchor": false,
+                  "is_teaching_neighbor": false,
+                  "list_group_order": null,
+                  "list_group_part": "",
+                  "page_end": 14,
+                  "page_idx": 13,
+                  "page_start": 14,
+                  "provenance_schema": "texa.provenance/v1",
+                  "query_coverage": 0.08642,
+                  "rag_priority": 1.0,
+                  "retrieval_scope": "same_book",
+                  "role": "derivation",
+                  "score": 0.214286,
+                  "section_chunk_index": 0,
+                  "section_path": [
+                    "第1章 绪论",
+                    "1.3 传感器的基本特性",
+                    "1.3.1 传感器的静态特性"
+                  ],
+                  "section_title": "1.3.1 传感器的静态特性",
+                  "source": "bm25",
+                  "source_block_ids": [
+                    "e8dc5f053048b2ac485b",
+                    "fe407475b5b18db4fb9f",
+                    "6c82a19c640ccc8fa873",
+                    "894cf39e612b8e7694dc",
+                    "00794dc3a345e55bcc3c",
+                    "f5841e2350bb652ce752"
+                  ],
+                  "source_file": "structured_content.json",
+                  "source_kind": "mineru",
+                  "source_locations": [
+                    {
+                      "bbox": [
+                        0.051,
+                        0.253,
+                        0.95,
+                        0.334
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "e8dc5f053048b2ac485b",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.051,
+                        0.337,
+                        0.95,
+                        0.419
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "fe407475b5b18db4fb9f",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.098,
+                        0.421,
+                        0.315,
+                        0.439
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "6c82a19c640ccc8fa873",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.095,
+                        0.45,
+                        0.488,
+                        0.469
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "894cf39e612b8e7694dc",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.053,
+                        0.482,
+                        0.953,
+                        0.586
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "00794dc3a345e55bcc3c",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.053,
+                        0.588,
+                        0.953,
+                        0.669
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "f5841e2350bb652ce752",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    }
+                  ],
+                  "table_anchor_chunk_id": "",
+                  "table_anchor_order": null,
+                  "table_anchor_text": "",
+                  "table_header": [],
+                  "table_neighbor_distance": null,
+                  "table_rows": [],
+                  "table_title": null,
+                  "teaching_anchor_order": null,
+                  "teaching_neighbor_distance": null,
+                  "text": "假设房间里有一个温度计，且其读数显示的温度为 $20^{\\circ}C$ 。不必关心房间的真实温度是 $19.5^{\\circ}C$ 还是 $20.5^{\\circ}C$ ，而且人们的身体也不能区分 $0.5^{\\circ}C$ 这样小的温度变化，因此不准确度在 $\\pm0.5^{\\circ}C$ 范围内的温度计完全够用。如果必须测量某些化学过程的温度，那么 $0.5^{\\circ}C$ 的温度变化就可能会对反应的速率甚至产品的过程产生明显的作用，此时的测量不准确度就必须远低于 $\\pm0.5^{\\circ}C$ 。\n\n测量准确度是在特定应用中选择传感器时需要考虑的因素，需要考虑的其他因素包括灵敏度、线性度及对环境温度变化的反应。这些因素统称为传感器的静态特性，它们会在特定传感器的数据表中给出。特别需要注意的是传感器特性值，仅在特定的校准条件下适用。在其他条件下使用传感器时，需对特性做某些补偿。\n\n下面介绍各种静态特性。\n\n1. 准确度和不准确度（测量的不确定度）\n\n传感器的准确度（Accuracy）衡量的是传感器的示值与真值的接近程度。真值是指被测量在一定条件下客观存在的、实际具备的量值。真值是不可确切获知的，实际测量中常用“约定真值”和“相对真值”。约定真值是用约定的办法确定的真值，如砝码的质量。相对真值是指具有更高精度等级的计量器的测量值。示值是由传感器给出的量值，也称测量值或测量结果。准确度是测量结果中系统误差与随机误差的综合，表示测量结果与真值的一致程度，由于真值未知，因此准确度是个定性的概念。"
+                },
+                {
+                  "bbox": [
+                    0.051,
+                    0.253,
+                    0.953,
+                    0.669
+                  ],
+                  "block_type": "paragraph",
+                  "book_name": "传感器原理及应用",
+                  "book_role": "",
+                  "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                  "chapter": "第1章 绪论",
+                  "chunk_id": "44240a132ac7c693fdc4",
+                  "chunk_index": 31,
+                  "example_neighbor_direction": null,
+                  "example_neighbor_distance": null,
+                  "figure_id": null,
+                  "fusion_sources": [
+                    "dense",
+                    "bm25"
+                  ],
+                  "index_version": "c8b6947edb7858f2",
+                  "is_direct_hit": true,
+                  "is_example_anchor": false,
+                  "is_example_neighbor": false,
+                  "is_list_neighbor": false,
+                  "is_selected_book": true,
+                  "is_table_direct_hit": false,
+                  "is_table_neighbor": false,
+                  "is_teaching_anchor": false,
+                  "is_teaching_neighbor": false,
+                  "list_group_order": null,
+                  "list_group_part": "",
+                  "page_end": 14,
+                  "page_idx": 13,
+                  "page_start": 14,
+                  "provenance_schema": "texa.provenance/v1",
+                  "query_coverage": 0.08642,
+                  "rag_priority": 1.0,
+                  "retrieval_scope": "same_book",
+                  "role": "reference",
+                  "score": 0.208811,
+                  "section_chunk_index": 1,
+                  "section_path": [
+                    "第1章 绪论",
+                    "1.3 传感器的基本特性",
+                    "1.3.1 传感器的静态特性"
+                  ],
+                  "section_title": "1.3.1 传感器的静态特性",
+                  "source": "bm25",
+                  "source_block_ids": [
+                    "e8dc5f053048b2ac485b",
+                    "fe407475b5b18db4fb9f",
+                    "6c82a19c640ccc8fa873",
+                    "894cf39e612b8e7694dc",
+                    "00794dc3a345e55bcc3c",
+                    "f5841e2350bb652ce752"
+                  ],
+                  "source_file": "structured_content.json",
+                  "source_kind": "mineru",
+                  "source_locations": [
+                    {
+                      "bbox": [
+                        0.051,
+                        0.253,
+                        0.95,
+                        0.334
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "e8dc5f053048b2ac485b",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.051,
+                        0.337,
+                        0.95,
+                        0.419
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "fe407475b5b18db4fb9f",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.098,
+                        0.421,
+                        0.315,
+                        0.439
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "6c82a19c640ccc8fa873",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.095,
+                        0.45,
+                        0.488,
+                        0.469
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "894cf39e612b8e7694dc",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.053,
+                        0.482,
+                        0.953,
+                        0.586
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "00794dc3a345e55bcc3c",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.053,
+                        0.588,
+                        0.953,
+                        0.669
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "f5841e2350bb652ce752",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    }
+                  ],
+                  "table_anchor_chunk_id": "",
+                  "table_anchor_order": null,
+                  "table_anchor_text": "",
+                  "table_header": [],
+                  "table_neighbor_distance": null,
+                  "table_rows": [],
+                  "table_title": null,
+                  "teaching_anchor_order": null,
+                  "teaching_neighbor_distance": null,
+                  "text": "在实践中，更常引用的是一个传感器的不准确度（Inaccuracy）或测量不确定度而非准确度。不准确度或测量的不确定度是指其中一个读数可能是错误的程度，经常被引述为传感器满量程 $(Y_{\\mathrm{FS}})$ 读数的百分比。传感器测量的不准确度表示测量结果不能肯定的程度，或者表征测量结果分散性的一个参数。它只涉及测量值，是可以量化的，且经常由被测量算术平均值的标准差、相关量的标准不准确度等联合表示。"
+                },
+                {
+                  "bbox": [],
+                  "block_type": "paragraph",
+                  "book_name": "传感器原理及应用",
+                  "book_role": "",
+                  "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                  "chapter": "第4章 力敏传感器",
+                  "chunk_id": "81fb33cf185c9bca39ea",
+                  "chunk_index": 804,
+                  "example_neighbor_direction": null,
+                  "example_neighbor_distance": null,
+                  "figure_id": null,
+                  "fusion_sources": [
+                    "bm25"
+                  ],
+                  "index_version": "c8b6947edb7858f2",
+                  "is_direct_hit": true,
+                  "is_example_anchor": false,
+                  "is_example_neighbor": false,
+                  "is_list_neighbor": false,
+                  "is_selected_book": true,
+                  "is_table_direct_hit": false,
+                  "is_table_neighbor": false,
+                  "is_teaching_anchor": false,
+                  "is_teaching_neighbor": false,
+                  "list_group_order": null,
+                  "list_group_part": "",
+                  "page_end": 107,
+                  "page_idx": 105,
+                  "page_start": 106,
+                  "provenance_schema": "texa.provenance/v1",
+                  "query_coverage": 0.148148,
+                  "rag_priority": 1.0,
+                  "retrieval_scope": "same_book",
+                  "role": "formula",
+                  "score": 0.208303,
+                  "section_chunk_index": 6,
+                  "section_path": [
+                    "第4章 力敏传感器",
+                    "4.2 压电式力传感器",
+                    "4.2.3 压电式传感器的应用举例"
+                  ],
+                  "section_title": "4.2.3 压电式传感器的应用举例",
+                  "source": "bm25",
+                  "source_block_ids": [
+                    "745842dcfe041af8aad7",
+                    "b9536b22f46134e1d428",
+                    "f4a5d4bc0d993180585c",
+                    "f14f2cf0d5f49cd3db7a",
+                    "16bbf5206c4ad78342ee",
+                    "a9c0a13dcacedb724248"
+                  ],
+                  "source_file": "structured_content.json",
+                  "source_kind": "mineru",
+                  "source_locations": [
+                    {
+                      "bbox": [
+                        0.059,
+                        0.892,
+                        0.961,
+                        0.932
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "745842dcfe041af8aad7",
+                      "page_end": 106,
+                      "page_start": 106,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.016,
+                        0.076,
+                        0.916,
+                        0.116
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "b9536b22f46134e1d428",
+                      "page_end": 107,
+                      "page_start": 107,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.058,
+                        0.125,
+                        0.357,
+                        0.143
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "f4a5d4bc0d993180585c",
+                      "page_end": 107,
+                      "page_start": 107,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.017,
+                        0.155,
+                        0.521,
+                        0.194
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "f14f2cf0d5f49cd3db7a",
+                      "page_end": 107,
+                      "page_start": 107,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.016,
+                        0.197,
+                        0.521,
+                        0.236
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "16bbf5206c4ad78342ee",
+                      "page_end": 107,
+                      "page_start": 107,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.016,
+                        0.238,
+                        0.523,
+                        0.404
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "a9c0a13dcacedb724248",
+                      "page_end": 107,
+                      "page_start": 107,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    }
+                  ],
+                  "table_anchor_chunk_id": "",
+                  "table_anchor_order": null,
+                  "table_anchor_text": "",
+                  "table_header": [],
+                  "table_neighbor_distance": null,
+                  "table_rows": [],
+                  "table_title": null,
+                  "teaching_anchor_order": null,
+                  "teaching_neighbor_distance": null,
+                  "text": "随着电子技术的发展，目前大部分压电式加速度计在壳体内都集成有放大器，由它来完成阻抗变换的功能。这类内装集成放大器的加速度计可使用长电缆而无衰减，并可直接与大多数通用的仪表、\n\n计算机等连接。一般采用二线制，即用两根电缆给传感器供 2～10A 的恒流电源，而输出信号也由这两根电缆输出，大大方便了现场的接线。\n\n3. 压电式金属加工切削力测量\n\n图 4.32 所示为利用压电陶瓷传感器测量刀具切削力的示意图。\n\n切削力是金属切削时，刀具切入工件，使被加工材料发生变形并成为切削所需的力。\n\n切削力的来源:测力仪的测量原理是利用切削力作用在测力仪的弹性元件上所产生的变形，或者作用在压电晶体上产生的电荷经过转换处理后，读出 $F_{z}$ 、 $F_{x}$ 和 $F_{y}$ 的值。由于压电陶瓷元件的自振频率高，特别适合测量变化剧烈的载荷。图中压电传感器位于车刀前部的下方，当进行切削加工时，切削力通过刀具传给压电传感器，压电传感器将切削力转换为电信号输出，记录下电信号的变化即可测得切削力的变化。"
+                },
+                {
+                  "bbox": [],
+                  "block_type": "paragraph",
+                  "book_name": "传感器原理及应用",
+                  "book_role": "",
+                  "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                  "chapter": "第1章 绪论",
+                  "chunk_id": "445b4c972b5387fa3d78",
+                  "chunk_index": 32,
+                  "example_neighbor_direction": null,
+                  "example_neighbor_distance": null,
+                  "figure_id": null,
+                  "fusion_sources": [
+                    "dense",
+                    "bm25"
+                  ],
+                  "index_version": "c8b6947edb7858f2",
+                  "is_direct_hit": true,
+                  "is_example_anchor": false,
+                  "is_example_neighbor": false,
+                  "is_list_neighbor": false,
+                  "is_selected_book": true,
+                  "is_table_direct_hit": false,
+                  "is_table_neighbor": false,
+                  "is_teaching_anchor": false,
+                  "is_teaching_neighbor": false,
+                  "list_group_order": null,
+                  "list_group_part": "",
+                  "page_end": 15,
+                  "page_idx": 13,
+                  "page_start": 14,
+                  "provenance_schema": "texa.provenance/v1",
+                  "query_coverage": 0.111111,
+                  "rag_priority": 1.0,
+                  "retrieval_scope": "same_book",
+                  "role": "derivation",
+                  "score": 0.19114,
+                  "section_chunk_index": 2,
+                  "section_path": [
+                    "第1章 绪论",
+                    "1.3 传感器的基本特性",
+                    "1.3.1 传感器的静态特性"
+                  ],
+                  "section_title": "1.3.1 传感器的静态特性",
+                  "source": "bm25",
+                  "source_block_ids": [
+                    "e3409b5e288f3fce9a69",
+                    "1d4bb621ade704532cf1",
+                    "3e3e4f67c745d62f74f9",
+                    "b2889696c2d5bde16696",
+                    "ec2f82d990f04e699ac8",
+                    "5cb7a757cfc449e13b85",
+                    "39ff70d0484ce41e136a"
+                  ],
+                  "source_file": "structured_content.json",
+                  "source_kind": "mineru",
+                  "source_locations": [
+                    {
+                      "bbox": [
+                        0.053,
+                        0.671,
+                        0.953,
+                        0.754
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "e3409b5e288f3fce9a69",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.054,
+                        0.757,
+                        0.953,
+                        0.817
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "1d4bb621ade704532cf1",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.055,
+                        0.822,
+                        0.948,
+                        0.862
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "3e3e4f67c745d62f74f9",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.055,
+                        0.865,
+                        0.953,
+                        0.927
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "b2889696c2d5bde16696",
+                      "page_end": 14,
+                      "page_start": 14,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.088,
+                        0.073,
+                        0.314,
+                        0.092
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "ec2f82d990f04e699ac8",
+                      "page_end": 15,
+                      "page_start": 15,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.046,
+                        0.104,
+                        0.948,
+                        0.185
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "5cb7a757cfc449e13b85",
+                      "page_end": 15,
+                      "page_start": 15,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    },
+                    {
+                      "bbox": [
+                        0.047,
+                        0.188,
+                        0.95,
+                        0.291
+                      ],
+                      "bbox_format": "xyxy",
+                      "bbox_space": "page",
+                      "bbox_units": "normalized",
+                      "block_id": "39ff70d0484ce41e136a",
+                      "page_end": 15,
+                      "page_start": 15,
+                      "source_file": "structured_content.json",
+                      "source_kind": "mineru"
+                    }
+                  ],
+                  "table_anchor_chunk_id": "",
+                  "table_anchor_order": null,
+                  "table_anchor_text": "",
+                  "table_header": [],
+                  "table_neighbor_distance": null,
+                  "table_rows": [],
+                  "table_title": null,
+                  "teaching_anchor_order": null,
+                  "teaching_neighbor_distance": null,
+                  "text": "由于传感器的最大测量误差通常与传感器满量程的读数相关，若测量值远小于满量程读数，这样意味着放大了可能的测量误差。因此，需要选择量程和测量对象测量值相近的传感器，进而减少传感器的测量误差，这是传感器系统的一项重要设计规则。例如，一个压力测量预期值为0～1MPa的测控系统，应该选择0～1Mpa的传感器，而不应使用测量范围为0～10MPa的传感器。\n\n【例 1.1】一个压力传感器的测量范围为 0～10MPa，其满量程读数误差为±1%。(a)该传感器的最大测量误差的预期是什么？(b)如果该压力计测量1MPa的压力，那么可能的测量误差表示为输出读数的百分比是多少？\n\n解:任何传感器读数的最大测量误差的预期是满量程读数的1.0%，该特定传感器的满量程是10MPa，因此最大可能的误差是 $1.0\\%\\times10=0.1MPa$ 。\n\n最大测量误差是一个定值，它仅与传感器的满量程读数有关，而与该传感器实际测量的量的大小无关。在这种情况下，正如之前计算出的那样，最大测量误差的大小为0.1MPa。因此，在测量1MPa的压力时，最大可能的误差为0.1MPa，因此其测量误差是10%。\n\n2. 精度/重复性/再现性\n\n精度（Precision）是描述传感器自由度随机误差的一个术语，如果用高精度传感器测得的大量读数的值相同，那么这些读数的传播会非常小。精度往往会与准确度相混淆。精度高并不意味着准确度高。高精度的传感器可能准确度低。高精度传感器中的低准确度通常是由测量过程中的偏差引起的，而偏差可通过重校校准来消除。"
+                }
+              ],
+              "evidence_support": {
+                "best_focus_coverage": 1.0,
+                "best_query_coverage": 0.271605,
+                "fact_evidence": {
+                  "引用": [
+                    "44240a132ac7c693fdc4"
+                  ],
+                  "结论附": [],
+                  "静态测量能力": [
+                    "86092d22060351363a32",
+                    "ba043f726a7931099974",
+                    "834daa5dbae7ea8746e3",
+                    "be887523bd21d4d97245",
+                    "44240a132ac7c693fdc4",
+                    "445b4c972b5387fa3d78"
+                  ]
+                },
+                "focus_terms": [
+                  "静态测量能力",
+                  "结论附",
+                  "引用"
+                ],
+                "matched_focus_terms": [
+                  "静态测量能力",
+                  "引用"
+                ],
+                "reason": "question_focus_partially_supported",
+                "status": "partial",
+                "topic_focus_same_evidence": false,
+                "topic_terms": []
+              },
+              "query_scope": {
+                "book_name": "传感器原理及应用",
+                "id": "c9b565ffac6be34f317346e9863328a20c411fecc64e54965bb467562e4dd2b2",
+                "index_versions": {
+                  "传感器原理及应用": "c8b6947edb7858f2"
+                },
+                "resources": [
+                  {
+                    "book_name": "传感器原理及应用",
+                    "is_primary": true,
+                    "is_selected": true,
+                    "priority": 1.0,
+                    "resource_group": "",
+                    "role": ""
+                  }
+                ],
+                "scope_policy": "ui-resource-group/v1",
+                "subject": "专业课"
+              },
+              "retrieval_status": "ok"
+            },
+            "evidence": [
+              {
+                "bbox": [],
+                "book_id": "",
+                "book_name": "传感器原理及应用",
+                "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                "chapter": "第4章 力敏传感器",
+                "chars": 486,
+                "chunk_id": "86092d22060351363a32",
+                "chunk_index": 798,
+                "content_fingerprint": "9bd5bf6de9fd2aeceec4b267",
+                "corpus_version": "",
+                "figure_id": "",
+                "heading_level": 3,
+                "id": "E1",
+                "index_version": "c8b6947edb7858f2",
+                "label": "传感器原理及应用·第4章 力敏传感器 / 4.2 压电式力传感器 / 4.2.3 压电式传感器的应用举例 / p.105",
+                "page_end": 106,
+                "page_idx": 104,
+                "page_start": 105,
+                "provenance_schema": "texa.provenance/v1",
+                "section_path": [
+                  "第4章 力敏传感器",
+                  "4.2 压电式力传感器",
+                  "4.2.3 压电式传感器的应用举例"
+                ],
+                "section_title": "4.2.3 压电式传感器的应用举例",
+                "source_block_ids": [
+                  "e8546709e8935d7f0f1e",
+                  "bf4b231d1475d46e8ae8",
+                  "31ef30762227e36a43db",
+                  "9767b0cbf974b6883141",
+                  "069801303e637bbb22f6"
+                ],
+                "source_file": "structured_content.json",
+                "source_kind": "mineru",
+                "source_locations": [
+                  {
+                    "bbox": [
+                      0.03,
+                      0.678,
+                      0.933,
+                      0.718
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "e8546709e8935d7f0f1e",
+                    "page_end": 105,
+                    "page_start": 105,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.075,
+                      0.726,
+                      0.287,
+                      0.745
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "bf4b231d1475d46e8ae8",
+                    "page_end": 105,
+                    "page_start": 105,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.031,
+                      0.756,
+                      0.934,
+                      0.838
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "31ef30762227e36a43db",
+                    "page_end": 105,
+                    "page_start": 105,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.03,
+                      0.84,
+                      0.934,
+                      0.923
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "9767b0cbf974b6883141",
+                    "page_end": 105,
+                    "page_start": 105,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.05,
+                      0.08,
+                      0.948,
+                      0.121
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "069801303e637bbb22f6",
+                    "page_end": 106,
+                    "page_start": 106,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  }
+                ]
+              },
+              {
+                "bbox": [
+                  0.042,
+                  0.274,
+                  0.945,
+                  0.713
+                ],
+                "book_id": "",
+                "book_name": "传感器原理及应用",
+                "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                "chapter": "第1章 绪论",
+                "chars": 540,
+                "chunk_id": "ba043f726a7931099974",
+                "chunk_index": 197,
+                "content_fingerprint": "c4d5ec2956fc95832686dc7d",
+                "corpus_version": "",
+                "figure_id": "",
+                "heading_level": 3,
+                "id": "E2",
+                "index_version": "c8b6947edb7858f2",
+                "label": "传感器原理及应用·第1章 绪论 / 1.4 传感器的标定 / 1.4.1 传感器的静态特性标定 / p.31",
+                "page_end": 31,
+                "page_idx": 30,
+                "page_start": 31,
+                "provenance_schema": "texa.provenance/v1",
+                "section_path": [
+                  "第1章 绪论",
+                  "1.4 传感器的标定",
+                  "1.4.1 传感器的静态特性标定"
+                ],
+                "section_title": "1.4.1 传感器的静态特性标定",
+                "source_block_ids": [
+                  "e6e5d1e5fd46409fc1f5",
+                  "31e50f164ee6f3918f66",
+                  "66ade953e6d54bc399eb",
+                  "0904ec1c4046545bd161",
+                  "99863c2fad1e5659a4b3",
+                  "33a3a9aba63434cb8359",
+                  "4bcb71d62ec9862cc555",
+                  "a944bc2368a5e99735c0"
+                ],
+                "source_file": "structured_content.json",
+                "source_kind": "mineru",
+                "source_locations": [
+                  {
+                    "bbox": [
+                      0.042,
+                      0.274,
+                      0.945,
+                      0.357
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "e6e5d1e5fd46409fc1f5",
+                    "page_end": 31,
+                    "page_start": 31,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.087,
+                      0.359,
+                      0.651,
+                      0.377
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "31e50f164ee6f3918f66",
+                    "page_end": 31,
+                    "page_start": 31,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.044,
+                      0.379,
+                      0.945,
+                      0.439
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "66ade953e6d54bc399eb",
+                    "page_end": 31,
+                    "page_start": 31,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.087,
+                      0.442,
+                      0.336,
+                      0.46
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "0904ec1c4046545bd161",
+                    "page_end": 31,
+                    "page_start": 31,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.044,
+                      0.464,
+                      0.522,
+                      0.566
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "99863c2fad1e5659a4b3",
+                    "page_end": 31,
+                    "page_start": 31,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.045,
+                      0.569,
+                      0.523,
+                      0.628
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "33a3a9aba63434cb8359",
+                    "page_end": 31,
+                    "page_start": 31,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.046,
+                      0.631,
+                      0.523,
+                      0.692
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "4bcb71d62ec9862cc555",
+                    "page_end": 31,
+                    "page_start": 31,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.087,
+                      0.694,
+                      0.523,
+                      0.713
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "a944bc2368a5e99735c0",
+                    "page_end": 31,
+                    "page_start": 31,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  }
+                ]
+              },
+              {
+                "bbox": [
+                  0.056,
+                  0.306,
+                  0.959,
+                  0.422
+                ],
+                "book_id": "",
+                "book_name": "传感器原理及应用",
+                "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                "chapter": "第4章 力敏传感器",
+                "chars": 185,
+                "chunk_id": "1be878ee689cbe58f073",
+                "chunk_index": 800,
+                "content_fingerprint": "2ed54b784212f18d6b8a5447",
+                "corpus_version": "",
+                "figure_id": "",
+                "heading_level": 3,
+                "id": "E3",
+                "index_version": "c8b6947edb7858f2",
+                "label": "传感器原理及应用·第4章 力敏传感器 / 4.2 压电式力传感器 / 4.2.3 压电式传感器的应用举例 / p.106",
+                "page_end": 106,
+                "page_idx": 105,
+                "page_start": 106,
+                "provenance_schema": "texa.provenance/v1",
+                "section_path": [
+                  "第4章 力敏传感器",
+                  "4.2 压电式力传感器",
+                  "4.2.3 压电式传感器的应用举例"
+                ],
+                "section_title": "4.2.3 压电式传感器的应用举例",
+                "source_block_ids": [
+                  "bd032b041f736a370580",
+                  "150883e5d1addf6957b4",
+                  "3ebdda0813ff43093a89"
+                ],
+                "source_file": "structured_content.json",
+                "source_kind": "mineru",
+                "source_locations": [
+                  {
+                    "bbox": [
+                      0.056,
+                      0.306,
+                      0.946,
+                      0.346
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "bd032b041f736a370580",
+                    "page_end": 106,
+                    "page_start": 106,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.098,
+                      0.353,
+                      0.336,
+                      0.372
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "150883e5d1addf6957b4",
+                    "page_end": 106,
+                    "page_start": 106,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.057,
+                      0.383,
+                      0.959,
+                      0.422
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "3ebdda0813ff43093a89",
+                    "page_end": 106,
+                    "page_start": 106,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  }
+                ]
+              },
+              {
+                "bbox": [
+                  0.071,
+                  0.397,
+                  0.973,
+                  0.522
+                ],
+                "book_id": "",
+                "book_name": "传感器原理及应用",
+                "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                "chapter": "第4章 力敏传感器",
+                "chars": 230,
+                "chunk_id": "e985783d31fb3f45284f",
+                "chunk_index": 727,
+                "content_fingerprint": "65ade43ad795db014f119832",
+                "corpus_version": "",
+                "figure_id": "",
+                "heading_level": 2,
+                "id": "E4",
+                "index_version": "c8b6947edb7858f2",
+                "label": "传感器原理及应用·第4章 力敏传感器 / 4.2 压电式力传感器 / p.98",
+                "page_end": 98,
+                "page_idx": 97,
+                "page_start": 98,
+                "provenance_schema": "texa.provenance/v1",
+                "section_path": [
+                  "第4章 力敏传感器",
+                  "4.2 压电式力传感器"
+                ],
+                "section_title": "4.2 压电式力传感器",
+                "source_block_ids": [
+                  "5155e93e24a25c2936f5",
+                  "312c1886c4f03ae24a81"
+                ],
+                "source_file": "structured_content.json",
+                "source_kind": "mineru",
+                "source_locations": [
+                  {
+                    "bbox": [
+                      0.071,
+                      0.397,
+                      0.973,
+                      0.479
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "5155e93e24a25c2936f5",
+                    "page_end": 98,
+                    "page_start": 98,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.071,
+                      0.481,
+                      0.973,
+                      0.522
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "312c1886c4f03ae24a81",
+                    "page_end": 98,
+                    "page_start": 98,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  }
+                ]
+              },
+              {
+                "bbox": [
+                  0.024,
+                  0.648,
+                  0.925,
+                  0.733
+                ],
+                "book_id": "",
+                "book_name": "传感器原理及应用",
+                "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                "chapter": "第4章 力敏传感器",
+                "chars": 281,
+                "chunk_id": "0f21bab405f7f5947f15",
+                "chunk_index": 777,
+                "content_fingerprint": "e165181513d9005f0d994c86",
+                "corpus_version": "",
+                "figure_id": "",
+                "heading_level": 3,
+                "id": "E5",
+                "index_version": "c8b6947edb7858f2",
+                "label": "传感器原理及应用·第4章 力敏传感器 / 4.2 压电式力传感器 / 4.2.2 压电传感器的等效电路与测量线路 / p.103",
+                "page_end": 103,
+                "page_idx": 102,
+                "page_start": 103,
+                "provenance_schema": "texa.provenance/v1",
+                "section_path": [
+                  "第4章 力敏传感器",
+                  "4.2 压电式力传感器",
+                  "4.2.2 压电传感器的等效电路与测量线路"
+                ],
+                "section_title": "4.2.2 压电传感器的等效电路与测量线路",
+                "source_block_ids": [
+                  "53bb063b2120f155160b"
+                ],
+                "source_file": "structured_content.json",
+                "source_kind": "mineru",
+                "source_locations": [
+                  {
+                    "bbox": [
+                      0.024,
+                      0.648,
+                      0.925,
+                      0.733
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "53bb063b2120f155160b",
+                    "page_end": 103,
+                    "page_start": 103,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  }
+                ]
+              },
+              {
+                "bbox": [
+                  0.03,
+                  0.117,
+                  0.931,
+                  0.251
+                ],
+                "book_id": "",
+                "book_name": "传感器原理及应用",
+                "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                "chapter": "第4章 力敏传感器",
+                "chars": 390,
+                "chunk_id": "834daa5dbae7ea8746e3",
+                "chunk_index": 793,
+                "content_fingerprint": "5dcddb26cf645f6e055f3195",
+                "corpus_version": "",
+                "figure_id": "",
+                "heading_level": 3,
+                "id": "E6",
+                "index_version": "c8b6947edb7858f2",
+                "label": "传感器原理及应用·第4章 力敏传感器 / 4.2 压电式力传感器 / 4.2.2 压电传感器的等效电路与测量线路 / p.105",
+                "page_end": 105,
+                "page_idx": 104,
+                "page_start": 105,
+                "provenance_schema": "texa.provenance/v1",
+                "section_path": [
+                  "第4章 力敏传感器",
+                  "4.2 压电式力传感器",
+                  "4.2.2 压电传感器的等效电路与测量线路"
+                ],
+                "section_title": "4.2.2 压电传感器的等效电路与测量线路",
+                "source_block_ids": [
+                  "f803f3ce6ba772083ebc",
+                  "a408e6a2dfb29475b999",
+                  "cf0b92282094acf2299c"
+                ],
+                "source_file": "structured_content.json",
+                "source_kind": "mineru",
+                "source_locations": [
+                  {
+                    "bbox": [
+                      0.033,
+                      0.117,
+                      0.93,
+                      0.161
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "f803f3ce6ba772083ebc",
+                    "page_end": 105,
+                    "page_start": 105,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.071,
+                      0.165,
+                      0.928,
+                      0.183
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "a408e6a2dfb29475b999",
+                    "page_end": 105,
+                    "page_start": 105,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.03,
+                      0.183,
+                      0.931,
+                      0.251
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "cf0b92282094acf2299c",
+                    "page_end": 105,
+                    "page_start": 105,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  }
+                ]
+              },
+              {
+                "bbox": [
+                  0.051,
+                  0.253,
+                  0.953,
+                  0.669
+                ],
+                "book_id": "",
+                "book_name": "传感器原理及应用",
+                "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                "chapter": "第1章 绪论",
+                "chars": 663,
+                "chunk_id": "be887523bd21d4d97245",
+                "chunk_index": 30,
+                "content_fingerprint": "1bb4d0f6fa0e12a58b881638",
+                "corpus_version": "",
+                "figure_id": "",
+                "heading_level": 3,
+                "id": "E7",
+                "index_version": "c8b6947edb7858f2",
+                "label": "传感器原理及应用·第1章 绪论 / 1.3 传感器的基本特性 / 1.3.1 传感器的静态特性 / p.14",
+                "page_end": 14,
+                "page_idx": 13,
+                "page_start": 14,
+                "provenance_schema": "texa.provenance/v1",
+                "section_path": [
+                  "第1章 绪论",
+                  "1.3 传感器的基本特性",
+                  "1.3.1 传感器的静态特性"
+                ],
+                "section_title": "1.3.1 传感器的静态特性",
+                "source_block_ids": [
+                  "e8dc5f053048b2ac485b",
+                  "fe407475b5b18db4fb9f",
+                  "6c82a19c640ccc8fa873",
+                  "894cf39e612b8e7694dc",
+                  "00794dc3a345e55bcc3c",
+                  "f5841e2350bb652ce752"
+                ],
+                "source_file": "structured_content.json",
+                "source_kind": "mineru",
+                "source_locations": [
+                  {
+                    "bbox": [
+                      0.051,
+                      0.253,
+                      0.95,
+                      0.334
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "e8dc5f053048b2ac485b",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.051,
+                      0.337,
+                      0.95,
+                      0.419
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "fe407475b5b18db4fb9f",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.098,
+                      0.421,
+                      0.315,
+                      0.439
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "6c82a19c640ccc8fa873",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.095,
+                      0.45,
+                      0.488,
+                      0.469
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "894cf39e612b8e7694dc",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.053,
+                      0.482,
+                      0.953,
+                      0.586
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "00794dc3a345e55bcc3c",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.053,
+                      0.588,
+                      0.953,
+                      0.669
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "f5841e2350bb652ce752",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  }
+                ]
+              },
+              {
+                "bbox": [
+                  0.051,
+                  0.253,
+                  0.953,
+                  0.669
+                ],
+                "book_id": "",
+                "book_name": "传感器原理及应用",
+                "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                "chapter": "第1章 绪论",
+                "chars": 204,
+                "chunk_id": "44240a132ac7c693fdc4",
+                "chunk_index": 31,
+                "content_fingerprint": "12876072b0878fbbc397fb7b",
+                "corpus_version": "",
+                "figure_id": "",
+                "heading_level": 3,
+                "id": "E8",
+                "index_version": "c8b6947edb7858f2",
+                "label": "传感器原理及应用·第1章 绪论 / 1.3 传感器的基本特性 / 1.3.1 传感器的静态特性 / p.14",
+                "page_end": 14,
+                "page_idx": 13,
+                "page_start": 14,
+                "provenance_schema": "texa.provenance/v1",
+                "section_path": [
+                  "第1章 绪论",
+                  "1.3 传感器的基本特性",
+                  "1.3.1 传感器的静态特性"
+                ],
+                "section_title": "1.3.1 传感器的静态特性",
+                "source_block_ids": [
+                  "e8dc5f053048b2ac485b",
+                  "fe407475b5b18db4fb9f",
+                  "6c82a19c640ccc8fa873",
+                  "894cf39e612b8e7694dc",
+                  "00794dc3a345e55bcc3c",
+                  "f5841e2350bb652ce752"
+                ],
+                "source_file": "structured_content.json",
+                "source_kind": "mineru",
+                "source_locations": [
+                  {
+                    "bbox": [
+                      0.051,
+                      0.253,
+                      0.95,
+                      0.334
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "e8dc5f053048b2ac485b",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.051,
+                      0.337,
+                      0.95,
+                      0.419
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "fe407475b5b18db4fb9f",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.098,
+                      0.421,
+                      0.315,
+                      0.439
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "6c82a19c640ccc8fa873",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.095,
+                      0.45,
+                      0.488,
+                      0.469
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "894cf39e612b8e7694dc",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.053,
+                      0.482,
+                      0.953,
+                      0.586
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "00794dc3a345e55bcc3c",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.053,
+                      0.588,
+                      0.953,
+                      0.669
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "f5841e2350bb652ce752",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  }
+                ]
+              },
+              {
+                "bbox": [],
+                "book_id": "",
+                "book_name": "传感器原理及应用",
+                "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                "chapter": "第4章 力敏传感器",
+                "chars": 449,
+                "chunk_id": "81fb33cf185c9bca39ea",
+                "chunk_index": 804,
+                "content_fingerprint": "1f32d4403b0d3347a09a055f",
+                "corpus_version": "",
+                "figure_id": "",
+                "heading_level": 3,
+                "id": "E9",
+                "index_version": "c8b6947edb7858f2",
+                "label": "传感器原理及应用·第4章 力敏传感器 / 4.2 压电式力传感器 / 4.2.3 压电式传感器的应用举例 / p.106",
+                "page_end": 107,
+                "page_idx": 105,
+                "page_start": 106,
+                "provenance_schema": "texa.provenance/v1",
+                "section_path": [
+                  "第4章 力敏传感器",
+                  "4.2 压电式力传感器",
+                  "4.2.3 压电式传感器的应用举例"
+                ],
+                "section_title": "4.2.3 压电式传感器的应用举例",
+                "source_block_ids": [
+                  "745842dcfe041af8aad7",
+                  "b9536b22f46134e1d428",
+                  "f4a5d4bc0d993180585c",
+                  "f14f2cf0d5f49cd3db7a",
+                  "16bbf5206c4ad78342ee",
+                  "a9c0a13dcacedb724248"
+                ],
+                "source_file": "structured_content.json",
+                "source_kind": "mineru",
+                "source_locations": [
+                  {
+                    "bbox": [
+                      0.059,
+                      0.892,
+                      0.961,
+                      0.932
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "745842dcfe041af8aad7",
+                    "page_end": 106,
+                    "page_start": 106,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.016,
+                      0.076,
+                      0.916,
+                      0.116
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "b9536b22f46134e1d428",
+                    "page_end": 107,
+                    "page_start": 107,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.058,
+                      0.125,
+                      0.357,
+                      0.143
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "f4a5d4bc0d993180585c",
+                    "page_end": 107,
+                    "page_start": 107,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.017,
+                      0.155,
+                      0.521,
+                      0.194
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "f14f2cf0d5f49cd3db7a",
+                    "page_end": 107,
+                    "page_start": 107,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.016,
+                      0.197,
+                      0.521,
+                      0.236
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "16bbf5206c4ad78342ee",
+                    "page_end": 107,
+                    "page_start": 107,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.016,
+                      0.238,
+                      0.523,
+                      0.404
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "a9c0a13dcacedb724248",
+                    "page_end": 107,
+                    "page_start": 107,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  }
+                ]
+              },
+              {
+                "bbox": [],
+                "book_id": "",
+                "book_name": "传感器原理及应用",
+                "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+                "chapter": "第1章 绪论",
+                "chars": 655,
+                "chunk_id": "445b4c972b5387fa3d78",
+                "chunk_index": 32,
+                "content_fingerprint": "d505254b0d976cadc1aa108a",
+                "corpus_version": "",
+                "figure_id": "",
+                "heading_level": 3,
+                "id": "E10",
+                "index_version": "c8b6947edb7858f2",
+                "label": "传感器原理及应用·第1章 绪论 / 1.3 传感器的基本特性 / 1.3.1 传感器的静态特性 / p.14",
+                "page_end": 15,
+                "page_idx": 13,
+                "page_start": 14,
+                "provenance_schema": "texa.provenance/v1",
+                "section_path": [
+                  "第1章 绪论",
+                  "1.3 传感器的基本特性",
+                  "1.3.1 传感器的静态特性"
+                ],
+                "section_title": "1.3.1 传感器的静态特性",
+                "source_block_ids": [
+                  "e3409b5e288f3fce9a69",
+                  "1d4bb621ade704532cf1",
+                  "3e3e4f67c745d62f74f9",
+                  "b2889696c2d5bde16696",
+                  "ec2f82d990f04e699ac8",
+                  "5cb7a757cfc449e13b85",
+                  "39ff70d0484ce41e136a"
+                ],
+                "source_file": "structured_content.json",
+                "source_kind": "mineru",
+                "source_locations": [
+                  {
+                    "bbox": [
+                      0.053,
+                      0.671,
+                      0.953,
+                      0.754
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "e3409b5e288f3fce9a69",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.054,
+                      0.757,
+                      0.953,
+                      0.817
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "1d4bb621ade704532cf1",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.055,
+                      0.822,
+                      0.948,
+                      0.862
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "3e3e4f67c745d62f74f9",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.055,
+                      0.865,
+                      0.953,
+                      0.927
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "b2889696c2d5bde16696",
+                    "page_end": 14,
+                    "page_start": 14,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.088,
+                      0.073,
+                      0.314,
+                      0.092
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "ec2f82d990f04e699ac8",
+                    "page_end": 15,
+                    "page_start": 15,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.046,
+                      0.104,
+                      0.948,
+                      0.185
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "5cb7a757cfc449e13b85",
+                    "page_end": 15,
+                    "page_start": 15,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  },
+                  {
+                    "bbox": [
+                      0.047,
+                      0.188,
+                      0.95,
+                      0.291
+                    ],
+                    "bbox_format": "xyxy",
+                    "bbox_space": "page",
+                    "bbox_units": "normalized",
+                    "block_id": "39ff70d0484ce41e136a",
+                    "page_end": 15,
+                    "page_start": 15,
+                    "source_file": "structured_content.json",
+                    "source_kind": "mineru"
+                  }
+                ]
+              }
+            ],
+            "message": "Scoped production EvidencePack",
+            "pending_action": null,
+            "success": true,
+            "verification": {},
+            "warnings": []
+          },
+          "receipt": {}
+        }
+      ],
+      "run_elapsed_ms": 28916.94,
+      "final_public_answer": "",
+      "raw_final_public_model_answer": "",
+      "verification": {},
+      "public_timing": {
+        "first_nonempty_public_delta_ms": null,
+        "first_readable_clause_ms": null,
+        "dom_paint_time_ms": null
+      }
+    },
+    {
+      "case": "qwen-smoke",
+      "answer": "**可导是连续的充分不必要条件**，即可导必连续，但连续不一定可导。\n\n1. **可导必连续**：若函数 $f(x)$ 在 $x_0$ 处可导，即极限 $\\lim_{\\Delta x \\to 0} \\frac{\\Delta y}{\\Delta x} = f'(x_0)$ 存在。根据极限运算法则，$\\lim_{\\Delta x \\to 0} \\Delta y = \\lim_{\\Delta x \\to 0} \\left( \\frac{\\Delta y}{\\Delta x} \\cdot \\Delta x \\right) = f'(x_0) \\cdot 0 = 0$，这正好满足函数在 $x_0$ 处连续的定义。直觉上，如果曲线在某点存在唯一的切线（可导），它在该点必然是连通的。\n2. **连续不一定可导**：连续只保证函数图像在该点没有断开，但不保证图像平滑。例如绝对值函数 $f(x) = |x|$ 在 $x=0$ 处连续，但在该点形成一个“尖角”，其左导数为 $-1$，右导数为 $1$，左右导数不相等，因此不可导。\n\n简言之，**可导的条件比连续更严格**：连续描述的是图像“不断开”，而可导描述的是图像“不仅不断开，还要平滑无尖角”。\n\n> 回答核对：部分公式或数值尚无确定性核验依据，请核对后使用。",
+      "verification": {
+        "status": "unverified",
+        "passed": false,
+        "checks": [
+          {
+            "id": "answer",
+            "label": "针对当前问题的回答",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "answer_mode",
+            "label": "通用模式的回答范围",
+            "status": "passed",
+            "reason": ""
+          },
+          {
+            "id": "formula",
+            "label": "回答公式的核验依据",
+            "status": "unverified",
+            "reason": "公式尚无等价性核验依据"
+          }
+        ],
+        "failures": [],
+        "unverified": [
+          {
+            "id": "formula",
+            "reason": "公式尚无等价性核验依据"
+          }
+        ]
+      },
+      "public_timing": {
+        "first_nonempty_public_delta_ms": 17023.56,
+        "first_readable_clause_ms": 17343.32,
+        "dom_paint_time_ms": null
+      },
+      "run_elapsed_ms": 22249.25
+    }
+  ],
+  "zero_request_ui_interruptions": [
+    {
+      "run_id": "arun_b6709431409345b1bd2c5c322a1b26de",
+      "error_code": "transport_closed",
+      "tools": 0,
+      "model_steps": 0
+    },
+    {
+      "run_id": "arun_4f6cd4d67eb34c1ba47c20d64f5129f5",
+      "error_code": "transport_closed",
+      "tools": 0,
+      "model_steps": 0
+    },
+    {
+      "run_id": "arun_a92f635ea5e44a23a3ebba074e7f8352",
+      "error_code": "transport_closed",
+      "tools": 0,
+      "model_steps": 0
+    },
+    {
+      "run_id": "arun_fb56ee98838b48d1894aef515134e3c8",
+      "error_code": "transport_closed",
+      "tools": 0,
+      "model_steps": 0
+    },
+    {
+      "run_id": "arun_c9ae680520d940b285d094bf68ec8592",
+      "error_code": "transport_closed",
+      "tools": 0,
+      "model_steps": 0
+    },
+    {
+      "run_id": "arun_e7c70f4a454244c19e03924041e577bc",
+      "error_code": "transport_closed",
+      "tools": 0,
+      "model_steps": 0
+    }
+  ],
+  "private_key_audit": {
+    "sql_native_messages_have_reasoning_content": false,
+    "SSE_has_reasoning_content_key": false,
+    "limitations": "Actual hidden text was intentionally never captured for retrospective equality comparison; Mock canary tests verify exact non-leakage."
+  }
+}

@@ -305,6 +305,10 @@ def apply_pending_restore() -> dict | None:
         with tempfile.TemporaryDirectory(prefix="restore_", dir=str(BACKUP_ROOT)) as temp_name:
             extracted = Path(temp_name) / "extracted"
             manifest = _extract_checked(archive_path, extracted)
+            from memory.session_notes import validate_notes_database
+            validate_notes_database(extracted / "data" / "progress" / "session_notes.db")
+            from backend.services.conversation_management import validate_management_database
+            validate_management_database(extracted / "data" / "progress" / "conversations" / "_conversation_events.db")
             restored_vector_root = extracted / "data" / "vector_db"
             if "data/vector_db" in manifest["included"] and any(
                 (restored_vector_root / name).exists()

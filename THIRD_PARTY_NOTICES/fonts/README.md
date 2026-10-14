@@ -2,6 +2,14 @@
 
 The frontend self-hosts the following fonts for offline Electron use.
 
+## HarmonyOS Sans SC
+
+- Usage: Texa application interface, including Chinese, Latin, and numbers.
+- Bundled form: unmodified Regular, Medium, and Bold font files.
+- Copyright: Copyright 2021 Huawei Device Co., Ltd.
+- License: HarmonyOS Sans Fonts License Agreement in `HarmonyOS_Sans_LICENSE.txt`.
+- Notice: Texa uses HarmonyOS Sans Fonts. The font files are included only as part of Texa.
+
 ## JetBrains Mono
 
 - Usage: code blocks, inline code, identifiers, and other monospaced content.

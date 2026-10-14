@@ -1,0 +1,14 @@
+{
+  "canonical_frozen_blocks_match": [
+    true,
+    true,
+    true
+  ],
+  "original_source_sha256": {
+    "data/progress/传感器原理及应用/canonical_document.jsonl": "5bcef61474112840c4513441ba13f81e05d535c1599819a86f7fa30ebd305b2e",
+    "data/vector_db/_index_manifests/传感器原理及应用.json": "8ccb50fac1bd165a741f1f30c6d5f74e9a80006ce66c3431834dcdaab28ae268",
+    "data/vector_db/_chapter_map.json": "47be776f711b6478133ea861f4598d4d7ad162c2cc5ab8e9cda9851a8ae336f4"
+  },
+  "isolated_copy": "/private/tmp/texa-deepseek-production-paid",
+  "network_calls": 0
+}

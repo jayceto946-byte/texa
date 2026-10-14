@@ -110,3 +110,18 @@ def test_role_change_and_reference_only_group_resolve_without_reindex(monkeypatc
     )
     changed = resource_groups.resolve_retrieval_resources("book-b", "course-a")
     assert next(item for item in changed if item["is_primary"])["book_name"] == "book-a"
+
+
+def test_planner_cannot_expand_explicit_scope(monkeypatch):
+    import json
+    from types import SimpleNamespace
+    from graph.planner import plan_node
+    monkeypatch.setattr("graph.intent_classifier.classify_intent_local", lambda q: {"intent": "comparison", "is_simple": False})
+    monkeypatch.setattr("graph.intent_classifier.is_fast_path_eligible", lambda *a: False)
+    monkeypatch.setattr("graph.safe_retrieval.get_safe_vector_store", lambda: (SimpleNamespace(get_chapter_names=lambda **kw: ["第一章", "第二章"]), ""))
+    for proposed in (["第二章"], ["未知章"], [], "第一章", ["第一章"]):
+        response = {"intent": "comparison", "target_chapters": proposed, "sub_tasks": [{"chapter": "第二章"}]}
+        monkeypatch.setattr("graph.planner.get_llm", lambda **kw: SimpleNamespace(invoke=lambda *a, **kw: SimpleNamespace(content=json.dumps(response))))
+        result = plan_node({"user_input": "比较两种传感器原理和特点", "book_name": "test", "target_chapters": ["第一章"]})
+        assert result["target_chapters"] == ["第一章"]
+        assert not result["sub_tasks"]

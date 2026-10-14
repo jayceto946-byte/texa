@@ -77,7 +77,9 @@ def evaluate_learning_task_lifecycle() -> list[dict[str, Any]]:
 
         failed = verify_answer(
             "只有解释，没有结果。",
-            required_outputs=[{"id": "part_2", "kind": "question_part", "anchors": ["温度补偿"], "required": True}],
+            # Use an explicit, deterministically checkable obligation. Natural
+            # language coverage is intentionally unverified, not a literal gate.
+            required_outputs=[{"id": "part_2", "kind": "literal", "value": "温度补偿", "required": True}],
         )
         cases.append(_case(
             "failed_contract_is_not_complete",

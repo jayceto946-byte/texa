@@ -32,6 +32,7 @@ class BookReadCache:
         self._lock = threading.RLock()
         self._json: dict[str, tuple[FileSignature | None, Any]] = {}
         self._pdfs: dict[str, tuple[FileSignature | None, tuple[Path, ...]]] = {}
+        self._chapter_counts: dict[tuple[str, ...], tuple[tuple, int]] = {}
         self._index: dict[
             tuple[str, str, str, tuple[str, ...]],
             tuple[tuple[FileSignature | None, ...], dict],
@@ -42,6 +43,7 @@ class BookReadCache:
             self._json.clear()
             self._pdfs.clear()
             self._index.clear()
+            self._chapter_counts.clear()
 
     def read_json(self, path: Path, default: Any) -> Any:
         key = str(path.resolve())
@@ -100,3 +102,42 @@ class BookReadCache:
         with self._lock:
             self._index[key] = (signatures, deepcopy(value))
         return deepcopy(value)
+
+    def chapter_count(self, dependencies: tuple[Path, ...], loader: Callable[[], int]) -> int:
+        """Cache only successful validated counts; hash every byte of version dependencies.
+
+        Large Canonical files are intentionally not covered by the small-file signature
+        shortcut: same-size/timestamp edits must still invoke the version validator.
+        """
+        def signatures():
+            result = []
+            for path in dependencies:
+                try:
+                    stat = path.stat()
+                except FileNotFoundError:
+                    result.append(None)
+                    continue
+                digest = hashlib.sha256()
+                with path.open('rb') as source:
+                    for block in iter(lambda: source.read(65536), b''):
+                        digest.update(block)
+                result.append((stat.st_mtime_ns, stat.st_size, digest.digest()))
+            return tuple(result)
+
+        key = tuple(str(path.resolve()) for path in dependencies)
+        before = signatures()
+        with self._lock:
+            cached = self._chapter_counts.get(key)
+            if cached and cached[0] == before:
+                return cached[1]
+            # Discard a stale JSON projection even after a same-stamp large edit.
+            for path_key in key:
+                self._json.pop(path_key, None)
+        count = loader()  # Preserve normalization, Canonical/active-manifest validation and errors.
+        after = signatures()
+        if before == after:
+            with self._lock:
+                self._chapter_counts[key] = (after, count)
+                if len(self._chapter_counts) > 64:
+                    del self._chapter_counts[next(iter(self._chapter_counts))]
+        return count

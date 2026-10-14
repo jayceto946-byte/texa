@@ -28,6 +28,34 @@ def credential_env_name(credential_id: str) -> str:
     return f"LLM_CREDENTIAL_{safe_id}_API_KEY"
 
 
+def resolve_understanding_model(env: Mapping[str, str] | None = None) -> ResolvedModelRole | None:
+    """Optional independent text model; never fall back to the answer model.
+
+    Reuse the registered reasoning transport, without adding a required startup role.
+    Credentials and endpoints come only from this adapter's explicit configuration.
+    """
+    source = env if env is not None else os.environ
+    prefix = "LLM_UNDERSTANDING"
+    provider_id = _first(source, (f"{prefix}_PROVIDER",))
+    model = _first(source, (f"{prefix}_MODEL",))
+    if not provider_id or not model:
+        return None
+    provider = get_provider(provider_id)
+    endpoint = _first(source, (f"{prefix}_BASE_URL",)) or provider.default_endpoint
+    credential_id = _first(source, (f"{prefix}_CREDENTIAL_ID",))
+    api_key = _first(source, (credential_env_name(credential_id),)) if credential_id else _first(source, (f"{prefix}_API_KEY",))
+    if not endpoint.startswith(("http://", "https://")):
+        raise ValueError("understanding_endpoint_invalid")
+    model_spec = get_model(provider.provider_id, model)
+    resolved = ResolvedModelRole(
+        role=ModelRole.REASONING, provider=provider, model=model, endpoint=endpoint,
+        api_key=api_key,
+        options=dict(model_spec.options) if model_spec else dict(provider.role_options.get(ModelRole.REASONING, {})),
+    )
+    ensure_runtime_support(resolved, required_capability_for_role(ModelRole.REASONING))
+    return resolved
+
+
 def _first(env: Mapping[str, str], names: tuple[str, ...]) -> str:
     for name in names:
         value = str(env.get(name, "") or "").strip()

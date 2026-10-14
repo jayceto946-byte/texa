@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { get } from '../api/client';
 import type { SystemHealthResponse } from '../types';
 
-export function useSystemHealth(bookName = '') {
+export function useSystemHealth(bookName = '', active = true) {
   const [health, setHealth] = useState<SystemHealthResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const requestId = useRef(0);
@@ -24,10 +24,11 @@ export function useSystemHealth(bookName = '') {
   }, [bookName]);
 
   useEffect(() => {
+    if (!active) return;
     loadHealth();
     const timer = window.setInterval(loadHealth, 30_000);
     return () => window.clearInterval(timer);
-  }, [loadHealth]);
+  }, [active, loadHealth]);
 
   return { health, loading, loadHealth };
 }

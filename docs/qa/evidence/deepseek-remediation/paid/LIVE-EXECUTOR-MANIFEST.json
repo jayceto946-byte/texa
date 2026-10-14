@@ -1,0 +1,5 @@
+{
+  "harness": "scripts/qa-deepseek-remediation-paid-electron.cjs",
+  "sha256": "348a47425f084c6ea88435b99b54be8bc19c5ec01b810042bd98de11eb9d747a",
+  "scope": "UI harness restricted to approved frozen S1 only; provider/runtime source unchanged"
+}

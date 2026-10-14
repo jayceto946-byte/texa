@@ -1,0 +1,63 @@
+
+ RUN  v4.1.9 /Users/jichengqian/Documents/ChatGPT/texa
+
+✔ Texa branding preserves the existing desktop identity and userData paths (1.864ms)
+✔ userData keeps the legacy default and accepts an explicit isolated override (2.462792ms)
+✔ portFromUrl resolves explicit and default HTTP ports (0.187333ms)
+✖ findAvailablePort releases a bindable loopback port (7.855125ms)
+✔ desktop never treats an older healthy process as its own backend (0.170041ms)
+ ❯ desktop/runtime.test.cjs (0 test)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22.044042
+✔ startup appearance caches the existing theme tokens without storing unrelated data (2.19425ms)
+✔ startup appearance rejects invalid theme IDs and unsafe or incomplete colors (1.371542ms)
+✔ startup window controls are exposed for Windows and hidden by default on macOS (0.280542ms)
+ ❯ desktop/appearance.test.cjs (0 test)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14.795709
+✔ close waits for its renderer and coalesces concurrent close/quit (1.827917ms)
+✔ failed draft flush vetoes closure without stopping backend (1.379875ms)
+ ❯ desktop/window-close.test.cjs (0 test)
+✔ unresponsive renderer times out safely and stale acknowledgements do not revive it (5.417709ms)
+✔ startup without a window can quit and send failure vetoes safely (0.217791ms)
+✔ desktop completion survives restart independently of the backend origin (5.854917ms)
+✔ corrupt, old and non-boolean flags do not complete setup (1.360834ms)
+✔ an unwritable completion target reports failure (1.543167ms)
+ ❯ desktop/setup-state.test.cjs (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  desktop/appearance.test.cjs [ desktop/appearance.test.cjs ]
+Error: No test suite found in file /Users/jichengqian/Documents/ChatGPT/texa/desktop/appearance.test.cjs
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  desktop/runtime.test.cjs [ desktop/runtime.test.cjs ]
+Error: No test suite found in file /Users/jichengqian/Documents/ChatGPT/texa/desktop/runtime.test.cjs
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  desktop/setup-state.test.cjs [ desktop/setup-state.test.cjs ]
+Error: No test suite found in file /Users/jichengqian/Documents/ChatGPT/texa/desktop/setup-state.test.cjs
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  desktop/window-close.test.cjs [ desktop/window-close.test.cjs ]
+Error: No test suite found in file /Users/jichengqian/Documents/ChatGPT/texa/desktop/window-close.test.cjs
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  4 failed | 45 passed (49)
+      Tests  203 passed (203)
+   Start at  21:59:36
+   Duration  2.57s (transform 1.56s, setup 0ms, import 2.96s, tests 1.02s, environment 5ms)
+

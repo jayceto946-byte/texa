@@ -94,7 +94,8 @@ def test_bm25_complete_enumeration_survives_generic_section_intro():
     ]
     result = search_rows(rows, "发现系统误差的七种方法有哪些？", k=1)
     assert result[0]["chunk_id"] == "list"
-    assert result[0]["enumeration_match_quality"] == 1.0
+    # A declared count plus structure is a ranking signal, not proof of seven members.
+    assert result[0]["enumeration_match_quality"] == 0.85
 
 
 def test_standard_deviation_method_group_outranks_unrelated_four_method_hit():

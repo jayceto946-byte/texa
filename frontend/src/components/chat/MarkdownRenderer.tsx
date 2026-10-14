@@ -165,7 +165,9 @@ export const MarkdownMessage: React.FC<{
   linkedConcepts: ConceptCandidate[];
   onConceptClick: (concept: ConceptCandidate) => void;
   citationIds?: Set<string>;
-}> = ({ content, linkedConcepts, onConceptClick, citationIds }) => {
+  disableRemoteMedia?: boolean;
+  preserveLineBreaks?: boolean;
+}> = ({ content, linkedConcepts, onConceptClick, citationIds, disableRemoteMedia = false, preserveLineBreaks = false }) => {
   const cleanContent = React.useMemo(() => {
     const withoutRefs = content
       .replace(/\u3010\u6765\u6e90\uff1a(.+?)\u3011/g, '')
@@ -184,7 +186,11 @@ export const MarkdownMessage: React.FC<{
   }, [linkedConcepts]);
 
   const markdownComponents = {
+    ...(disableRemoteMedia ? {
+      img({ alt }: { alt?: string }) { return <span className="text-text-secondary">[图片未随笔记保存：{alt || '来源图片'}]</span>; },
+    } : {}),
     a({ href, children }: { href?: string; children?: React.ReactNode }) {
+      if (disableRemoteMedia && href && !/^https?:\/\//i.test(href) && !href.startsWith('#')) return <span>{children}</span>;
       if (href?.startsWith('#concept-')) {
         const name = decodeURIComponent(href.replace('#concept-', ''));
         const concept = conceptByName.get(name);
@@ -255,7 +261,7 @@ export const MarkdownMessage: React.FC<{
   };
 
   return (
-    <div className="markdown-body learning-reading-content break-words">
+    <div className="markdown-body learning-reading-content break-words" style={preserveLineBreaks ? { whiteSpace: 'pre-line' } : undefined} data-preserve-line-breaks={preserveLineBreaks || undefined}>
       {contentBlocks.map((block, index) => {
         const key = blockKey(block, index);
         return (

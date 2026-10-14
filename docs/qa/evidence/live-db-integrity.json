@@ -1,0 +1,95 @@
+[
+  {
+    "path": "/tmp/texa-full-qa-live/progress/session_notes.db",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": [],
+    "tables": {
+      "session_notes": 0,
+      "note_revisions": 0,
+      "note_drafts": 0,
+      "note_source_snapshots": 0,
+      "note_relations": 0,
+      "note_operations": 0
+    }
+  },
+  {
+    "path": "/tmp/texa-full-qa-live/progress/learning_events.db",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": [],
+    "tables": {
+      "learning_events": 3
+    }
+  },
+  {
+    "path": "/tmp/texa-full-qa-live/progress/exercise_bank_default.db",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": [],
+    "tables": {
+      "exercises": 3,
+      "exercise_import_batches": 0,
+      "exercise_practice_sessions": 0
+    }
+  },
+  {
+    "path": "/tmp/texa-full-qa-live/progress/runtime_events.db",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": [],
+    "tables": {
+      "runtime_events": 0
+    }
+  },
+  {
+    "path": "/tmp/texa-full-qa-live/progress/mistake_book_default.db",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": [],
+    "tables": {
+      "mistakes": 4,
+      "mistake_operations": 8,
+      "mistake_candidates": 4,
+      "mistake_drafts": 8,
+      "mistake_attempts": 4,
+      "mistake_sources": 4,
+      "mistake_review_sessions": 4,
+      "mistake_revisions": 0
+    }
+  },
+  {
+    "path": "/tmp/texa-full-qa-live/progress/conversations/_conversation_events.db",
+    "integrity": [
+      [
+        "ok"
+      ]
+    ],
+    "foreign_keys": [],
+    "tables": {
+      "conversation_events": 0,
+      "sqlite_sequence": 0,
+      "conversation_messages": 0,
+      "conversation_imports": 0,
+      "conversation_ledgers": 0,
+      "conversation_management_schema": 1,
+      "conversation_management": 0,
+      "conversation_management_operations": 0
+    }
+  }
+]

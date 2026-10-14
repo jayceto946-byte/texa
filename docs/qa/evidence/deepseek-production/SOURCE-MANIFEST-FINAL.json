@@ -1,0 +1,29 @@
+{
+  "base_head": "f91633673c40cf9c353e49804e2584b64f3131cc",
+  "scope": "Final dirty workspace candidate after paid acceptance; initial paid source manifest is preserved. Output allowance correction was only freely tested, not revalidated against paid S1.",
+  "python": "3.10.21",
+  "langchain": "1.3.2",
+  "langchain_openai": "1.2.2",
+  "langchain_core": "1.4.0",
+  "langgraph": "1.2.2",
+  "sha256": {
+    "llm/deepseek_chat.py": "bebb2febbec9808cd40eaa7dcda4b670289a60b63cc941adc3f2a10af6b35639",
+    "llm/agent_adapter.py": "305e5322129b1bc6fa86427cf063ce4fa3a56938f5fea5f1ebb5286f65cf70ce",
+    "llm/factory.py": "c9bd360bfdae04149e4bf36362f613ccd93e8f906ed89b57ca808d80100294c0",
+    "llm/registry.py": "1f75b9fb06210494a5998fe9d6e2c9a618dbd0136878c87b25ddf2342514a5f2",
+    "backend/services/agent_runtime/native_loop.py": "3a7bf0e4e6b176850a2fc41347e84f2ea25274a5c56f6ffca9d2f2a1787c7a7e",
+    "backend/services/agent_runtime/store.py": "c3d86c8bc465eead2a2260ced37499d0c0931be8dfde5dd29dd7186d479b4461",
+    "backend/services/agent_runtime/chat_binding.py": "3534585e400a214d8c2ce8156c0c71181928c68a54771fa2eb849696e9d64711",
+    "backend/api/chat.py": "ae659af028688a4cc79b6b6c72eb03fa7b680574253bc430eb6cd873d54b6275",
+    "tests/test_deepseek_production.py": "84fba78d846940c35b40c331bed1218acd71288e2bcf88aa3fed4761ccfefa23",
+    "tests/test_native_math_loop.py": "22c267878c50f0b3597695f66c1410d766ef4d2c37fe9b32893085e1c2bc6fd5",
+    "scripts/qa-deepseek-production-server.py": "7ecc0a9d932e47a8ea8fc20db4689260764fc18e8e05487d65680f9f99b97944",
+    "scripts/qa-deepseek-production-electron.cjs": "18cb037b9858eb44e87535498ed0c149cdbeea7b09ba460e9e6f68828251fd97",
+    "TEXA-DEEPSEEK-PRODUCTION-COMPATIBILITY.md": "44f619aa37b9ec280056ce33f39fa9ab4988a3ea382089914f4ca12a9c442669",
+    "frontend/src/pages/ChatPage.tsx": "dc5eba8fd1c96a312e0ee810f8f42987cb2bf36a730e4fcb643b8da07afdc0d0",
+    "scripts/qa-deepseek-production-paid.py": "dce6aa1a1aad701125f69427e3b931264a9f936ecece58b1c090e214ef372219",
+    "scripts/qa-deepseek-production-paid-electron.cjs": "b83ebdfd31f3513803fc11c8799c7b9f0b9d74bee37caaab63cb34ac4529f6b1",
+    "tests/test_deepseek_paid_budget.py": "e9643445a5f50448985c34fd0c904641ceb7d038bc2c64a801c3e6ec56c47953"
+  },
+  "at": "2026-10-13T12:49:28.526251+00:00"
+}

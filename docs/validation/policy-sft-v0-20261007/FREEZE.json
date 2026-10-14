@@ -1,0 +1,19 @@
+{
+  "version": "Policy-SFT-V0",
+  "frozen_before_training": true,
+  "sha256": {
+    "dev-metadata.jsonl": "f6045c26bc6843ba40ceffff1be01e544088f9df3c5e3a88db061068c4f901cb",
+    "train.jsonl": "693257c8462ba7311648f90809801d788744f06dc75b0b0cad0271181964e30f",
+    "balance.json": "2e7d03c05414709464dd97690651599b6f2a7a5757a1438cccfc85a6fab16234",
+    "system-prompt.txt": "ae9f4ff79c0c516293cb08647dfbc78a7a4beceb8ff47ba98898622f7d2f4137",
+    "hidden.jsonl": "0a54bf605caec81e3aed3af824e648cd4e0e2aef727efb1fd750871d1481fe69",
+    "shortcut-audit.json": "bb839faefa09db1a630732ffc46f9110e7cdd2414031c843b9d3a8b6d3e4650d",
+    "seeds.jsonl": "0f7e3294529c4137751f44813f3403c45f77b5bbf266a0aa61c105b821fcf568",
+    "experiment.json": "c98d0b3fdc6b2e5680abdf38fcd02072dfe382dd500b7bd3b1a9a4056d569fa4",
+    "hidden-metadata.jsonl": "a75529a471c3b4e3b30f45aa25a6166711d18012cac876777a93eb2d8c3fc266",
+    "runtime-gate-controls.jsonl": "4d887b3d44adda44041b457947c7aac7d6f5a6755493bf79adec1fc518a7cd8f",
+    "valid.jsonl": "8e727c49e7b1e5f142cb072fc4d2076fa040bca223a85955a2650258791b9734",
+    "train-metadata.jsonl": "8820240e9b7aa15f173a064c4318bdc936e3cafbe9268da7d171d7f8f77d3eb3",
+    "Policy-SFT-V0-Spec.md": "5cd7689114ca837a88412cae6867699b955ccf81686170313522a582ce8d6ffd"
+  }
+}

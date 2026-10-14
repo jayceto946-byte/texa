@@ -1,0 +1,146 @@
+{
+  "cases": [
+    {
+      "id": "q1-extrema",
+      "topic": "多元函数、切平面与闭区域最值",
+      "run_id": "arun_a5559c5fb1084fcfadb715df4c612697",
+      "runtime_seconds": 109.569,
+      "ui_wall_seconds": 110.511,
+      "model_calls": 2,
+      "remote_attempts": 2,
+      "tool_calls": 1,
+      "tool_statuses": [
+        "succeeded"
+      ],
+      "tokens": {
+        "input_tokens": 3357,
+        "output_tokens": 6125,
+        "total_tokens": 9482
+      },
+      "token_measurement": "provider usage including reasoning",
+      "estimated_cost_cny": 0.055714,
+      "runtime_task_status": "degraded",
+      "runtime_verification": "failed",
+      "review_points": 6,
+      "review_max_points": 6,
+      "review_percent": 100.0,
+      "mathematically_correct_complete": true,
+      "review_method": "independent mathematical checks, not Runtime verified flag",
+      "screenshots": [
+        "q1-extrema-start.png",
+        "q1-extrema-working.png",
+        "q1-extrema-progress.png",
+        "q1-extrema-answer-progress.png",
+        "q1-extrema-complete.png"
+      ]
+    },
+    {
+      "id": "q2-stokes",
+      "topic": "球面与平面交线上的空间曲线积分",
+      "run_id": "arun_44e029ffe88c4fd1a9233f4c4d6c8f6e",
+      "runtime_seconds": 190.236,
+      "ui_wall_seconds": 190.705,
+      "model_calls": 3,
+      "remote_attempts": 3,
+      "tool_calls": 2,
+      "tool_statuses": [
+        "succeeded",
+        "succeeded"
+      ],
+      "tokens": {
+        "input_tokens": 5384,
+        "output_tokens": 10789,
+        "total_tokens": 16173
+      },
+      "token_measurement": "provider usage including reasoning",
+      "estimated_cost_cny": 0.09708,
+      "runtime_task_status": "degraded",
+      "runtime_verification": "failed",
+      "review_points": 5,
+      "review_max_points": 6,
+      "review_percent": 83.33333333333333,
+      "mathematically_correct_complete": false,
+      "review_method": "independent mathematical checks, not Runtime verified flag",
+      "screenshots": [
+        "q2-stokes-start.png",
+        "q2-stokes-working.png",
+        "q2-stokes-progress.png",
+        "q2-stokes-answer-progress.png",
+        "q2-stokes-complete.png"
+      ]
+    },
+    {
+      "id": "q3-estimation",
+      "topic": "次序统计量、无偏估计与均方误差优化",
+      "run_id": "arun_453262a6d4b24284b4ee3a7c332af4fe",
+      "runtime_seconds": 52.486,
+      "ui_wall_seconds": 52.576,
+      "model_calls": 2,
+      "remote_attempts": 2,
+      "tool_calls": 1,
+      "tool_statuses": [
+        "failed"
+      ],
+      "tokens": {
+        "input_tokens": 3417,
+        "output_tokens": 2731,
+        "total_tokens": 6148
+      },
+      "token_measurement": "provider usage including reasoning",
+      "estimated_cost_cny": 0.028682,
+      "runtime_task_status": "degraded",
+      "runtime_verification": "failed",
+      "review_points": 5,
+      "review_max_points": 6,
+      "review_percent": 83.33333333333333,
+      "mathematically_correct_complete": false,
+      "review_method": "independent mathematical checks, not Runtime verified flag",
+      "screenshots": [
+        "q3-estimation-start.png",
+        "q3-estimation-working.png",
+        "q3-estimation-progress.png",
+        "q3-estimation-answer-progress.png",
+        "q3-estimation-complete.png"
+      ]
+    },
+    {
+      "id": "q4-no-tools",
+      "topic": "三维线性递推与矩阵幂（无工具对照）",
+      "run_id": "arun_01ecf094874c45ac8362586d4688f640",
+      "runtime_seconds": 120.039,
+      "ui_wall_seconds": 120.163,
+      "model_calls": 1,
+      "remote_attempts": 1,
+      "tool_calls": 0,
+      "tool_statuses": [],
+      "tokens": {
+        "input_tokens": 628,
+        "output_tokens": 7426,
+        "total_tokens": 8054
+      },
+      "token_measurement": "provider usage including reasoning",
+      "estimated_cost_cny": 0.060664,
+      "runtime_task_status": "failed",
+      "runtime_verification": null,
+      "review_points": 3,
+      "review_max_points": 6,
+      "review_percent": 50.0,
+      "mathematically_correct_complete": false,
+      "review_method": "independent mathematical checks, not Runtime verified flag",
+      "screenshots": [
+        "q4-no-tools-start.png",
+        "q4-no-tools-working.png",
+        "q4-no-tools-progress.png",
+        "q4-no-tools-answer-progress.png",
+        "q4-no-tools-complete.png"
+      ]
+    }
+  ],
+  "cost_cny_including_first_failed_batch": 0.30555,
+  "remote_attempts_including_first_failed_batch": 10,
+  "limitations": [
+    "3 tool-enabled items versus 1 different no-tool item; not a paired causal study",
+    "first 35-second batch retained separately, individual late usage attribution unavailable",
+    "prices omit cache discounts; estimated cost is not an invoice"
+  ]
+}

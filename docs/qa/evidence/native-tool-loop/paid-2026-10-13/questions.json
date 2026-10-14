@@ -1,0 +1,29 @@
+[
+  {
+    "id": "q1-extrema",
+    "topic": "多元函数、切平面与闭区域最值",
+    "question": "计算并解答：已知函数 $f(x,y)=x^3+y^3-(x+y)^2+3$，设 $T$ 是曲面 $z=f(x,y)$ 在点 $(1,1,1)$ 处的切平面，$D$ 为 $T$ 与三个坐标平面所围成的有界区域在 $xOy$ 平面上的投影。\n(1) 求切平面 $T$ 的方程；\n(2) 求 $f(x,y)$ 在 $D$ 上的最大值与最小值，说明内部驻点和各边界的比较过程。",
+    "source": "https://edu.xaiu.edu.cn/__local/2/44/D5/335CC768F01FC88CDE7A9F247F4_7E8D3961_4C7E6.pdf",
+    "year": 2024,
+    "exam": "数学一",
+    "transcription": "核对大学公开PDF图像；合并其拆分小问；说明过程及最小MSE为测试附加交付项"
+  },
+  {
+    "id": "q2-stokes",
+    "topic": "球面与平面交线上的空间曲线积分",
+    "question": "计算并解答：有向曲线 $L$ 为球面 $x^2+y^2+z^2=2x$ 与平面 $2x-z-1=0$ 的交线，从 $z$ 轴正向往 $z$ 轴负向看为逆时针方向。计算曲线积分\n$$\\oint_L (6xyz-yz^2)\\,dx+2x^2z\\,dy+xyz\\,dz.$$\n说明方向、所选曲面和投影区域。",
+    "source": "https://edu.xaiu.edu.cn/__local/2/44/D5/335CC768F01FC88CDE7A9F247F4_7E8D3961_4C7E6.pdf",
+    "year": 2024,
+    "exam": "数学一",
+    "transcription": "核对大学公开PDF图像；合并其拆分小问；说明过程及最小MSE为测试附加交付项"
+  },
+  {
+    "id": "q3-estimation",
+    "topic": "次序统计量、无偏估计与均方误差优化",
+    "question": "计算并解答：总体 $X$ 服从区间 $(0,\\theta)$ 上的均匀分布，其中 $\\theta>0$ 未知，$X_1,\\ldots,X_n$ 为来自该总体的简单随机样本，$n\\ge1$，记 $X_{(n)}=\\max\\{X_1,\\ldots,X_n\\}$，$T_c=cX_{(n)}$。\n(1) 求 $c$，使 $T_c$ 是 $\\theta$ 的无偏估计；\n(2) 记 $h(c)=E[(T_c-\\theta)^2]$，求使 $h(c)$ 最小的 $c$ 及最小均方误差。请推导分布和所需矩。",
+    "source": "https://edu.xaiu.edu.cn/__local/2/44/D5/335CC768F01FC88CDE7A9F247F4_7E8D3961_4C7E6.pdf",
+    "year": 2024,
+    "exam": "数学一",
+    "transcription": "核对大学公开PDF图像；合并其拆分小问；说明过程及最小MSE为测试附加交付项"
+  }
+]

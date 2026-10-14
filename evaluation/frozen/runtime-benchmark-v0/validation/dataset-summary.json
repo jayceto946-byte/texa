@@ -1,0 +1,32 @@
+{
+  "cases": 300,
+  "tasks": {
+    "policy_select": 80,
+    "goal_summary": 40,
+    "question_understanding": 60,
+    "reference_resolve": 20,
+    "route_contract": 30,
+    "retrieval_contract": 30,
+    "context_contract": 20,
+    "goal_lifecycle_control": 10,
+    "decision_guard_control": 10
+  },
+  "splits": {
+    "train": 150,
+    "dev": 60,
+    "test": 60,
+    "hidden_test": 30
+  },
+  "tracks": {
+    "semantic": 200,
+    "deterministic_control": 100
+  },
+  "pairs": 150,
+  "contrast_gold_changed": 143,
+  "policy_multi": 80,
+  "understanding_gate_eligible": 41,
+  "understanding_rule_override_ids": [
+    "TRB0-0145",
+    "TRB0-0169"
+  ]
+}

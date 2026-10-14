@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Archive, ArrowLeft, FileText, HelpCircle, Loader2, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api/client';
+import { useOptionalConceptJob } from '../features/textbooks/hooks/useOptionalConceptJob';
 import ScopeSelector from '../components/ScopeSelector';
+import { SegmentedControl } from '../components/ui/SelectionControls';
+import { WorkspaceActionBar } from '../components/ui/WorkspaceActionBar';
 import { ActionableIssue, StatusBanner, TaskStatus } from '../components/ui/AsyncState';
 
 type ImportJob = {
@@ -89,6 +92,8 @@ const BooksPage: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [job, setJob] = useState<ImportJob | null>(null);
   const [error, setError] = useState('');
+  const [cancelBusy, setCancelBusy] = useState(false);
+  const conceptJob = useOptionalConceptJob(job?.result?.concept_job_id || '');
   const inputRef = useRef<HTMLInputElement>(null);
   const outputInputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<number | null>(null);
@@ -145,6 +150,7 @@ const BooksPage: React.FC = () => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploading) return;
     const nextFile = e.target.files?.[0] || null;
     setFile(nextFile);
     setJob(null);
@@ -152,6 +158,7 @@ const BooksPage: React.FC = () => {
   };
 
   const handleOutputFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploading) return;
     const nextFile = e.target.files?.[0] || null;
     setOutputFile(nextFile);
     setJob(null);
@@ -224,32 +231,43 @@ const BooksPage: React.FC = () => {
         ? 'MinerU CLI 当前不可执行'
         : '无法确认 MinerU 状态';
 
+  const cancelImport = async () => {
+    if (!job || cancelBusy) return;
+    setCancelBusy(true);
+    try {
+      const response = await apiFetch(`/jobs/${encodeURIComponent(job.id)}/cancel`, { method: 'POST' });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || '取消请求尚未确认，请重试。');
+      setJob((current) => current?.id === job.id ? { ...current, ...result.data } : current);
+      pollJob(job.id);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : '取消请求尚未确认，请重试。');
+    } finally { setCancelBusy(false); }
+  };
+
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-bg-primary">
-      <header className="app-page-header border-b border-border bg-bg-card">
-        <button type="button" onClick={() => navigate('/books')} className="app-icon-button" aria-label="返回教材"><ArrowLeft className="h-4 w-4" /></button>
+    <div className="management-workspace flex h-full min-w-0 flex-col bg-bg-primary">
+      <header className="app-page-header window-drag-region border-b border-border bg-bg-card">
         <h2 className="app-page-title">导入教材</h2>
-        <div className="window-drag-region" aria-hidden="true" />
+        <button type="button" onClick={() => navigate('/books')} className="app-ghost-button"><ArrowLeft className="h-4 w-4" />返回教材</button>
       </header>
 
-      <div className="mx-auto w-full max-w-6xl space-y-5 p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto"><div className="management-page-content mx-auto w-full max-w-6xl space-y-5">
         <section className="border-y border-border py-4">
-          <div className="mb-3 text-sm font-semibold text-text-primary">1. 选择来源</div>
-          <div className="inline-flex rounded-lg border border-border bg-bg-card p-1">
-            <button type="button" onClick={() => setImportMode('pdf')} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm ${importMode === 'pdf' ? 'bg-[var(--accent-soft)] font-medium text-accent' : 'text-text-secondary hover:text-text-primary'}`}>
-              <FileText className="h-4 w-4" />PDF 教材
-            </button>
-            <button type="button" onClick={() => setImportMode('bundle')} className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm ${importMode === 'bundle' ? 'bg-[var(--accent-soft)] font-medium text-accent' : 'text-text-secondary hover:text-text-primary'}`}>
-              <Archive className="h-4 w-4" />MinerU 输出包
-            </button>
-          </div>
+          <div className="mb-3 text-[18px] font-semibold text-text-primary">1. 选择来源</div>
+          <SegmentedControl
+            label="教材导入来源"
+            value={importMode}
+            options={[{ value: 'pdf', label: 'PDF 教材', icon: <FileText className="h-4 w-4" /> }, { value: 'bundle', label: 'MinerU 输出包', icon: <Archive className="h-4 w-4" /> }]}
+            onChange={(mode) => { if (!uploading) setImportMode(mode); }}
+          />
         </section>
 
         {importMode === 'pdf' ? (
           <section>
-            <h3 className="mb-3 text-sm font-semibold text-text-primary">2. 选择文件并设置参数</h3>
+            <h3 className="mb-3 text-[18px] font-semibold text-text-primary">2. 选择文件并设置参数</h3>
             <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-            <button type="button" onClick={() => inputRef.current?.click()} className="app-panel flex min-h-[190px] w-full flex-col items-center justify-center p-8 text-center hover:border-accent/60 hover:bg-[var(--accent-softer)]">
+            <button type="button" disabled={uploading} onClick={() => inputRef.current?.click()} className="app-panel flex min-h-[190px] w-full flex-col items-center justify-center p-8 text-center hover:border-accent/60 hover:bg-[var(--accent-softer)]">
               <Upload className="mb-4 h-9 w-9 text-accent" />
               <span className="type-section-title text-text-primary">{file ? file.name : '选择 PDF 教材'}</span>
               <span className="type-caption mt-2 text-text-secondary">点击选择本地 PDF 文件</span>
@@ -257,10 +275,10 @@ const BooksPage: React.FC = () => {
             <input ref={inputRef} type="file" accept=".pdf,application/pdf" onChange={handleFileChange} className="hidden" />
 
             <div className="app-panel space-y-4 p-5">
-              <h3 className="type-section-title text-text-primary">解析参数</h3>
+              <h3 className="text-[16px] font-semibold text-text-primary">解析参数</h3>
               <label className="block">
                 <span className="mb-1.5 block type-caption text-text-secondary">目录页码范围，可选</span>
-                <input value={tocPages} onChange={(e) => setTocPages(e.target.value)} placeholder="如 1-5" className="w-full rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm outline-none focus:border-accent" />
+                <input value={tocPages} onChange={(e) => setTocPages(e.target.value)} placeholder="如 1-5" className="w-full app-field" />
               </label>
               <label className="block">
                 <span className="mb-1.5 block type-caption text-text-secondary">所属科目</span>
@@ -291,7 +309,7 @@ const BooksPage: React.FC = () => {
                     <div className="border-l-2 border-[var(--warning)] pl-3">
                       <p className="type-caption text-[var(--warning-text)]">{mineruUnavailableText}，当前已选择本地文本提取。</p>
                       <p className="mt-1 type-caption text-text-secondary">扫描版或复杂版面教材请先完成外部解析，再导入输出包。</p>
-                      <button type="button" onClick={() => setImportMode('bundle')} className="mt-2 text-xs font-medium text-accent hover:underline">转到 MinerU 输出包</button>
+                      <button type="button" disabled={uploading} onClick={() => setImportMode('bundle')} className="mt-2 text-xs font-medium text-accent hover:underline">转到 MinerU 输出包</button>
                     </div>
                   ) : (
                     <p className="type-caption text-[var(--success)]">MinerU {mineru.mode === 'api' ? 'API' : 'CLI'} 可用。</p>
@@ -306,25 +324,20 @@ const BooksPage: React.FC = () => {
                   description={'\u6559\u6750\u539f\u6587\u548c\u68c0\u7d22\u7d22\u5f15\u4f1a\u5148\u8fdb\u5165\u53ef\u7528\u72b6\u6001\uff1b\u968f\u540e\u5f02\u6b65\u628a\u7b5b\u9009\u540e\u7684\u6559\u6750\u7247\u6bb5\u53d1\u9001\u7ed9\u5df2\u914d\u7f6e\u7684\u5916\u90e8 LLM\uff0c\u7528\u4e8e\u5efa\u7acb\u6982\u5ff5\u3001\u5173\u7cfb\u548c\u51fa\u73b0\u4f4d\u7f6e\u3002\u8fc7\u7a0b\u53ef\u80fd\u8f83\u957f\uff0c\u4e0d\u963b\u585e\u6559\u6750\u95ee\u7b54\u3002'}
                 />
               </div>
-              {!file && <p className="type-caption text-text-secondary">请先选择 PDF 文件。</p>}
-              {file && !subject.trim() && <p className="type-caption text-[var(--warning-text)]">请选择所属科目。</p>}
-              <button onClick={handleUpload} disabled={!file || !subject.trim() || uploading} className="app-primary-button w-full disabled:cursor-not-allowed disabled:opacity-50">
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}{uploading ? '正在启动' : '开始导入'}
-              </button>
             </div>
             </div>
           </section>
         ) : (
           <section>
-            <h3 className="mb-3 text-sm font-semibold text-text-primary">2. 选择已解析文件</h3>
+            <h3 className="mb-3 text-[18px] font-semibold text-text-primary">2. 选择已解析文件</h3>
             <div className="app-panel grid gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div>
-              <h3 className="type-section-title text-text-primary">导入已解析结果</h3>
+              <h3 className="text-[16px] font-semibold text-text-primary">导入已解析结果</h3>
               <p className="type-body mt-2 max-w-2xl text-text-secondary">输出包应包含 Markdown、content_list 或 middle JSON，以及引用的图片资源。系统只整理章节并建立本地索引，不会再次执行 OCR。</p>
               <StatusBanner kind="info" title="适用于外部 MinerU 或 GPU 解析结果" description="请确认 zip 内保留原有目录结构。" />
             </div>
             <div className="space-y-3">
-              <button type="button" onClick={() => outputInputRef.current?.click()} className="app-secondary-button min-h-[72px] w-full"><Upload className="h-4 w-4" />{outputFile ? outputFile.name : '选择输出 zip'}</button>
+              <button type="button" disabled={uploading} onClick={() => outputInputRef.current?.click()} className="app-secondary-button min-h-[72px] w-full"><Upload className="h-4 w-4" />{outputFile ? outputFile.name : '选择输出 zip'}</button>
               <input ref={outputInputRef} type="file" accept=".zip,application/zip" onChange={handleOutputFileChange} className="hidden" />
               <div className="flex items-start gap-2 rounded-lg border border-border bg-bg-primary p-3 text-sm text-text-primary">
                 <input id="bundle-extract-concepts" type="checkbox" checked={extractConcepts} onChange={(e) => setExtractConcepts(e.target.checked)} className="mt-0.5 accent-accent" />
@@ -334,8 +347,6 @@ const BooksPage: React.FC = () => {
                   description={'\u6559\u6750\u539f\u6587\u548c\u68c0\u7d22\u7d22\u5f15\u4f1a\u5148\u8fdb\u5165\u53ef\u7528\u72b6\u6001\uff1b\u968f\u540e\u5f02\u6b65\u628a\u7b5b\u9009\u540e\u7684\u6559\u6750\u7247\u6bb5\u53d1\u9001\u7ed9\u5df2\u914d\u7f6e\u7684\u5916\u90e8 LLM\uff0c\u7528\u4e8e\u5efa\u7acb\u6982\u5ff5\u3001\u5173\u7cfb\u548c\u51fa\u73b0\u4f4d\u7f6e\u3002\u8fc7\u7a0b\u53ef\u80fd\u8f83\u957f\uff0c\u4e0d\u963b\u585e\u6559\u6750\u95ee\u7b54\u3002'}
                 />
               </div>
-              {!outputFile && <p className="type-caption text-text-secondary">请先选择 zip 输出包。</p>}
-              <button onClick={handleOutputUpload} disabled={!outputFile || uploading} className="app-primary-button w-full disabled:cursor-not-allowed disabled:opacity-50">{uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}{uploading ? '正在启动' : '导入输出包'}</button>
             </div>
             </div>
           </section>
@@ -344,15 +355,25 @@ const BooksPage: React.FC = () => {
         {error && <ActionableIssue title="教材没有导入成功" impact="这本教材暂时不能用于回答；已有教材和当前学习范围不受影响。" actions={<><button type="button" onClick={() => setError('')} className="app-secondary-button">重新选择文件</button><button type="button" onClick={() => navigate('/books')} className="app-secondary-button">返回教材</button></>} details={error} />}
         {job && <>
           <TaskStatus
-            title={isDone ? `${job.book_name || '教材'}已可用于学习` : isFailed ? `${job.book_name || '教材'}没有准备完成` : `正在准备${job.book_name ? `《${job.book_name}》` : '教材'}`}
-            detail={isDone ? `已整理 ${job.result?.chapter_count || 0} 章内容。现在可以设为当前学习范围并开始提问。` : isFailed ? '这本教材暂时不能用于回答。请查看详细信息后重试。' : '正在整理教材内容，完成后即可用于有来源的回答。'}
+            title={job.status === 'cancelled' ? '教材导入已取消' : job.status === 'cancelling' ? '正在取消教材导入' : isDone ? `${job.book_name || '教材'}已可用于学习` : isFailed ? `${job.book_name || '教材'}没有准备完成` : `正在准备${job.book_name ? `《${job.book_name}》` : '教材'}`}
+            detail={job.status === 'cancelling' ? '取消请求已收到，等待后台停止确认。' : job.status === 'cancelled' ? '本次导入已停止，可重新选择材料；已有教材仍保留。' : isDone ? `已整理 ${job.result?.chapter_count || 0} 章内容。现在可以设为当前学习范围并开始提问。` : isFailed ? '这本教材暂时不能用于回答。请查看详细信息后重试。' : '正在整理教材内容，完成后即可用于有来源的回答。'}
             progress={progress}
             state={isFailed ? 'error' : isDone ? 'success' : 'loading'}
           />
           <details className="border-b border-border px-4 py-3 type-caption text-text-secondary"><summary className="cursor-pointer">详细信息</summary><p className="mt-2">{stageLabels[job.stage] || job.stage} · {job.message}</p></details>
+          {isDone && <p role="status" className="type-caption text-text-secondary">
+            {job.result?.concept_extraction_warning ? '教材已导入完成；概念抽取未能启动，可稍后手动重试。' : !job.result?.concept_job_id ? '概念抽取未启用。' : conceptJob.error || (conceptJob.status === 'completed' ? '概念抽取已完成。' : ['failed', 'cancelled', 'interrupted'].includes(conceptJob.status) ? '概念抽取未完成；教材内容和检索索引仍可使用，可稍后手动重试。' : '教材已导入完成；概念抽取仍在处理中。')}
+          </p>}
           {isDone && <div className="flex justify-end"><button type="button" onClick={() => navigate('/books')} className="app-primary-button">查看教材状态</button></div>}
         </>}
       </div>
+      </div>
+      <WorkspaceActionBar status={job?.status === 'cancelling' ? '取消请求已收到，等待停止确认。' : uploading ? job ? '正在准备教材…' : '正在启动导入…' : error ? '导入未成功，请在上方查看详情并重试。' : importMode === 'pdf' ? !file ? '请先选择 PDF 文件。' : !subject.trim() ? '请选择所属科目。' : `准备导入 ${file.name}` : !outputFile ? '请先选择 zip 输出包。' : `准备导入 ${outputFile.name}`}>
+        {job && ['queued', 'running', 'cancelling'].includes(job.status) && <button className="app-secondary-button" disabled={cancelBusy || job.status === 'cancelling'} onClick={() => void cancelImport()}>{cancelBusy || job.status === 'cancelling' ? '正在取消…' : '取消导入'}</button>}
+        <button onClick={importMode === 'pdf' ? handleUpload : handleOutputUpload} disabled={uploading || (importMode === 'pdf' ? !file || !subject.trim() : !outputFile)} className="app-primary-button disabled:cursor-not-allowed disabled:opacity-50">
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}{uploading ? job ? '导入进行中' : '正在启动' : importMode === 'pdf' ? '开始导入' : '导入输出包'}
+        </button>
+      </WorkspaceActionBar>
     </div>
   );
 };

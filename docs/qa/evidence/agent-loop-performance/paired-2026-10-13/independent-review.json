@@ -1,0 +1,95 @@
+{
+  "concept-A": {
+    "points": 4,
+    "max_points": 4,
+    "complete_correct": true,
+    "critical_error": false,
+    "notes": "证明与左右导数正确；“附近光滑”仅作直观措辞，不能理解为邻域C1保证"
+  },
+  "concept-B": {
+    "complete_correct": false,
+    "reviewable": false,
+    "notes": "APIConnectionError，无最终答案"
+  },
+  "concept-C": {
+    "complete_correct": false,
+    "reviewable": false,
+    "notes": "APIConnectionError，无最终答案"
+  },
+  "concept-D": {
+    "complete_correct": false,
+    "reviewable": false,
+    "notes": "APIConnectionError，无最终答案"
+  },
+  "integral-B": {
+    "points": 5,
+    "max_points": 5,
+    "complete_correct": true,
+    "critical_error": false,
+    "notes": "最终分部积分、e-2、正确原函数与校验完整。第二个校验误用exp(x)-2失败，模型改为正确原函数后恢复；中间阶段不补计最终交付"
+  },
+  "integral-C": {
+    "points": 1,
+    "max_points": 5,
+    "complete_correct": false,
+    "main_result_correct": true,
+    "critical_error": true,
+    "notes": "最终独立答案仅给e-2，完整分部积分和导数核验只在阶段正文；不满足最终独立完整要求。停止后续C条件，不重试"
+  },
+  "integral-D": {
+    "points": 5,
+    "max_points": 5,
+    "complete_correct": true,
+    "critical_error": false,
+    "notes": "独立最终答案覆盖两次分部积分、原函数、e-2及完整导数核验；未调用工具。"
+  },
+  "integral-A": {
+    "points": 5,
+    "max_points": 5,
+    "complete_correct": true,
+    "critical_error": false,
+    "notes": "数学推导与定积分核验正确；声称工具已验证不定积分求导不符合回执，第一工具只给verification_request，实际独立verify只有definite_integral。记录教学来源准确性风险，不把pending request当已验证。",
+    "provenance_correct": false
+  },
+  "stokes-D": {
+    "points": 5,
+    "max_points": 6,
+    "complete_correct": true,
+    "critical_error": false,
+    "notes": "方向、旋度、投影、恒1积分与最终值完整正确；没有单独陈述球面中心/半径，因此附加半径探针记未展示（非题面要求，不判答案交付失败），没有旧样本的错误球面展开。"
+  },
+  "stokes-A": {
+    "points": 6,
+    "max_points": 6,
+    "complete_correct": true,
+    "critical_error": false,
+    "notes": "球面正确配方半径1，方向/旋度/投影半轴/被积函数恒1与积分值均正确。仅一次工具factor本轮未重复面积化简。投影使用边界等式描述，但圆盘片及面积积分明确其内部。"
+  },
+  "stokes-B": {
+    "complete_correct": false,
+    "reviewable": false,
+    "exclude_paired_latency": true,
+    "notes": "harness错误：同一隔离QA数据库启动展示backend触发startup recovery，fence正在运行的B。无独立最终答案；不归因低预算配置，按不重试预案不重跑。"
+  },
+  "proof-D": {
+    "points": 4,
+    "max_points": 4,
+    "complete_correct": true,
+    "critical_error": false,
+    "notes": "条件、MVT、xi in(0,x)和严格性完整正确；最后称xi为中点措辞不精确（应为中值点），不影响此前存在点的证明，但记教学表述风险。"
+  },
+  "proof-A": {
+    "points": 4,
+    "max_points": 4,
+    "complete_correct": true,
+    "critical_error": false,
+    "notes": "MVT条件、存在点、代入和严格性完整正确；模型自主直接回答，1模型/0工具。"
+  },
+  "proof-B": {
+    "points": 4,
+    "max_points": 4,
+    "complete_correct": true,
+    "critical_error": false,
+    "notes": "完整正确；最终正文与proof-A逐字一致，output tokens及reasoning tokens均一致，4096上限未约束本题推理。"
+  }
+}

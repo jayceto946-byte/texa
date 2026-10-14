@@ -1,0 +1,944 @@
+{
+  "environment": "macOS actual Electron development shell",
+  "model": "controlled; artificial 1.2/15 second waits; not speed evidence",
+  "checks": [
+    "four truthful progress states, immediate public stream, final collapsed",
+    "tool failure visible",
+    "long silence keeps actual state/time, stop acknowledged",
+    "reload works after interruption"
+  ],
+  "errors": [],
+  "sse": [
+    [
+      {
+        "schema": "texa.execution/v1",
+        "seq": 1,
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "task_id": "",
+        "run_id": "",
+        "conversation_id": "",
+        "turn_id": "",
+        "operation_id": "context",
+        "type": "progress",
+        "phase": "context",
+        "status": "started",
+        "summary": "正在读取会话上下文并确认学习范围",
+        "label": "读取会话上下文",
+        "kind": "analysis",
+        "elapsed_ms": 0.04,
+        "payload": {}
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 0.48,
+        "kind": "system",
+        "label": "开始处理学习任务",
+        "operation_id": "run.created",
+        "payload": {
+          "lifecycle": "run.created",
+          "task_status": "running"
+        },
+        "phase": "run",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 1,
+        "status": "started",
+        "summary": "开始处理学习任务",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 21.33,
+        "kind": "system",
+        "label": "正在生成回答",
+        "operation_id": "model:arun_2788f925ff034c27aa72312c82559fc1:model:1",
+        "payload": {
+          "lifecycle": "model.started",
+          "model_call_id": "arun_2788f925ff034c27aa72312c82559fc1:model:1"
+        },
+        "phase": "model",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 2,
+        "status": "started",
+        "summary": "正在生成回答",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 1235.91,
+        "kind": "system",
+        "label": "本轮生成结束",
+        "operation_id": "model:arun_2788f925ff034c27aa72312c82559fc1:model:1",
+        "payload": {
+          "lifecycle": "model.completed",
+          "model_call_id": "arun_2788f925ff034c27aa72312c82559fc1:model:1",
+          "performance": {
+            "checkpoint_ms": 2.41,
+            "first_chunk_ms": 1206.93,
+            "handler_ms": 1209.93
+          }
+        },
+        "phase": "model",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 3,
+        "status": "completed",
+        "summary": "本轮生成结束",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 1249.03,
+        "kind": "tool",
+        "label": "正在计算",
+        "operation_id": "tool:call_f47e8261b8a44a7ea3cc4b2e6428df25",
+        "payload": {
+          "input_preview": {
+            "expression": "2^10",
+            "operation": "calculate",
+            "right": "0",
+            "variable": "x"
+          },
+          "lifecycle": "tool.requested",
+          "model_call_id": "arun_2788f925ff034c27aa72312c82559fc1:model:1",
+          "model_tool_call_id": "calc-1",
+          "tool_call_id": "call_f47e8261b8a44a7ea3cc4b2e6428df25",
+          "tool_id": "symbolic_math",
+          "tool_version": "1"
+        },
+        "phase": "tool",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 4,
+        "status": "running",
+        "summary": "已准备工具输入",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 1251.8,
+        "kind": "tool",
+        "label": "正在计算",
+        "operation_id": "tool:call_f47e8261b8a44a7ea3cc4b2e6428df25",
+        "payload": {
+          "lifecycle": "tool.started",
+          "tool_call_id": "call_f47e8261b8a44a7ea3cc4b2e6428df25"
+        },
+        "phase": "tool",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 5,
+        "status": "started",
+        "summary": "正在执行工具",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 2741.59,
+        "kind": "tool",
+        "label": "正在计算",
+        "operation_id": "tool:call_f47e8261b8a44a7ea3cc4b2e6428df25",
+        "payload": {
+          "input_preview": {
+            "expression": "2^10",
+            "operation": "calculate",
+            "right": "0",
+            "variable": "x"
+          },
+          "lifecycle": "tool.completed",
+          "result_preview": "确定性计算完成",
+          "tool_call_id": "call_f47e8261b8a44a7ea3cc4b2e6428df25",
+          "tool_id": "symbolic_math",
+          "tool_status": "succeeded",
+          "warnings": []
+        },
+        "phase": "tool",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 6,
+        "status": "completed",
+        "summary": "工具已返回结果",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "tool_result"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 2747.91,
+        "kind": "system",
+        "label": "正在生成回答",
+        "operation_id": "model:arun_2788f925ff034c27aa72312c82559fc1:model:2",
+        "payload": {
+          "lifecycle": "model.started",
+          "model_call_id": "arun_2788f925ff034c27aa72312c82559fc1:model:2"
+        },
+        "phase": "model",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 7,
+        "status": "started",
+        "summary": "正在生成回答",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 3977.48,
+        "kind": "system",
+        "label": "本轮生成结束",
+        "operation_id": "model:arun_2788f925ff034c27aa72312c82559fc1:model:2",
+        "payload": {
+          "lifecycle": "model.completed",
+          "model_call_id": "arun_2788f925ff034c27aa72312c82559fc1:model:2",
+          "performance": {
+            "checkpoint_ms": 5.35,
+            "first_chunk_ms": 1207.64,
+            "handler_ms": 1220.3
+          }
+        },
+        "phase": "model",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 8,
+        "status": "completed",
+        "summary": "本轮生成结束",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 3995.71,
+        "kind": "tool",
+        "label": "正在计算",
+        "operation_id": "tool:call_dc89072641ce464cbf40489c148fa528",
+        "payload": {
+          "input_preview": {
+            "candidate": "",
+            "kind": "equivalence",
+            "left": "2^10",
+            "original": "",
+            "right": "1024",
+            "variable": "x"
+          },
+          "lifecycle": "tool.requested",
+          "model_call_id": "arun_2788f925ff034c27aa72312c82559fc1:model:2",
+          "model_tool_call_id": "verify-2",
+          "tool_call_id": "call_dc89072641ce464cbf40489c148fa528",
+          "tool_id": "verify_math_result",
+          "tool_version": "1"
+        },
+        "phase": "tool",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 9,
+        "status": "running",
+        "summary": "已准备工具输入",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 3998.38,
+        "kind": "tool",
+        "label": "正在计算",
+        "operation_id": "tool:call_dc89072641ce464cbf40489c148fa528",
+        "payload": {
+          "lifecycle": "tool.started",
+          "tool_call_id": "call_dc89072641ce464cbf40489c148fa528"
+        },
+        "phase": "tool",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 10,
+        "status": "started",
+        "summary": "正在执行工具",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 5024.72,
+        "kind": "tool",
+        "label": "正在计算",
+        "operation_id": "tool:call_dc89072641ce464cbf40489c148fa528",
+        "payload": {
+          "input_preview": {
+            "candidate": "",
+            "kind": "equivalence",
+            "left": "2^10",
+            "original": "",
+            "right": "1024",
+            "variable": "x"
+          },
+          "lifecycle": "tool.completed",
+          "result_preview": "passed: True",
+          "tool_call_id": "call_dc89072641ce464cbf40489c148fa528",
+          "tool_id": "verify_math_result",
+          "tool_status": "succeeded",
+          "verification_passed": true,
+          "warnings": []
+        },
+        "phase": "tool",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 11,
+        "status": "completed",
+        "summary": "工具已返回结果",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "tool_result"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 5030.26,
+        "kind": "system",
+        "label": "正在生成回答",
+        "operation_id": "model:arun_2788f925ff034c27aa72312c82559fc1:model:3",
+        "payload": {
+          "lifecycle": "model.started",
+          "model_call_id": "arun_2788f925ff034c27aa72312c82559fc1:model:3"
+        },
+        "phase": "model",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 12,
+        "status": "started",
+        "summary": "正在生成回答",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "state_transition"
+      },
+      {
+        "schema": "texa.execution/v1",
+        "seq": 13,
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "operation_id": "answer",
+        "type": "output_delta",
+        "phase": "generate",
+        "status": "running",
+        "summary": "正在生成回答",
+        "label": "正在回答",
+        "kind": "generation",
+        "elapsed_ms": 6951.25,
+        "payload": {
+          "text": "结果是",
+          "replace": false
+        }
+      },
+      {
+        "schema": "texa.execution/v1",
+        "seq": 14,
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "operation_id": "answer",
+        "type": "output_delta",
+        "phase": "generate",
+        "status": "running",
+        "summary": "正在生成回答",
+        "label": "正在回答",
+        "kind": "generation",
+        "elapsed_ms": 7660.43,
+        "payload": {
+          "text": " 1024。",
+          "replace": false
+        }
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 7675.1,
+        "kind": "system",
+        "label": "本轮生成结束",
+        "operation_id": "model:arun_2788f925ff034c27aa72312c82559fc1:model:3",
+        "payload": {
+          "lifecycle": "model.completed",
+          "model_call_id": "arun_2788f925ff034c27aa72312c82559fc1:model:3",
+          "performance": {
+            "checkpoint_ms": 13.47,
+            "first_chunk_ms": 1912.28,
+            "first_public_ms": 1912.34,
+            "handler_ms": 2625.45
+          }
+        },
+        "phase": "model",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 15,
+        "status": "completed",
+        "summary": "本轮生成结束",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 7687.2,
+        "kind": "system",
+        "label": "runtime.profile",
+        "operation_id": "runtime.profile",
+        "payload": {
+          "lifecycle": "runtime.profile",
+          "performance": {
+            "context_build_ms": 0.2,
+            "initial_checkpoint_ms": 0.83,
+            "tool_return_ms": 3.89,
+            "verification_ms": 1.05
+          }
+        },
+        "phase": "runtime",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 16,
+        "status": "completed",
+        "summary": "runtime.profile",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 7689.88,
+        "kind": "generation",
+        "label": "回答处理结束",
+        "operation_id": "run.completed",
+        "payload": {
+          "text": "结果是 1024。",
+          "replace": true
+        },
+        "phase": "generate",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 17,
+        "status": "running",
+        "summary": "回答处理结束",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "output_delta"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 7689.88,
+        "kind": "system",
+        "label": "回答处理结束",
+        "operation_id": "run.completed",
+        "payload": {
+          "lifecycle": "run.completed",
+          "task_status": "completed",
+          "verification_status": "passed"
+        },
+        "phase": "run",
+        "request_id": "f6da11d420344fb4bd6a3282aef58725",
+        "run_id": "arun_2788f925ff034c27aa72312c82559fc1",
+        "schema": "texa.execution/v1",
+        "seq": 18,
+        "status": "completed",
+        "summary": "回答处理结束",
+        "task_id": "rtask_084b403b251342a3a0cb5c8e043b2d5e",
+        "turn_id": "turn_1791858248239_f6151301",
+        "type": "final"
+      }
+    ],
+    [
+      {
+        "schema": "texa.execution/v1",
+        "seq": 1,
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "task_id": "",
+        "run_id": "",
+        "conversation_id": "",
+        "turn_id": "",
+        "operation_id": "context",
+        "type": "progress",
+        "phase": "context",
+        "status": "started",
+        "summary": "正在读取会话上下文并确认学习范围",
+        "label": "读取会话上下文",
+        "kind": "analysis",
+        "elapsed_ms": 0.02,
+        "payload": {}
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 0.27,
+        "kind": "system",
+        "label": "开始处理学习任务",
+        "operation_id": "run.created",
+        "payload": {
+          "lifecycle": "run.created",
+          "task_status": "running"
+        },
+        "phase": "run",
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "schema": "texa.execution/v1",
+        "seq": 1,
+        "status": "started",
+        "summary": "开始处理学习任务",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 23.36,
+        "kind": "system",
+        "label": "正在生成回答",
+        "operation_id": "model:arun_a5e0df6f3b4543748af05195c9e665d2:model:1",
+        "payload": {
+          "lifecycle": "model.started",
+          "model_call_id": "arun_a5e0df6f3b4543748af05195c9e665d2:model:1"
+        },
+        "phase": "model",
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "schema": "texa.execution/v1",
+        "seq": 2,
+        "status": "started",
+        "summary": "正在生成回答",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 1233.06,
+        "kind": "system",
+        "label": "本轮生成结束",
+        "operation_id": "model:arun_a5e0df6f3b4543748af05195c9e665d2:model:1",
+        "payload": {
+          "lifecycle": "model.completed",
+          "model_call_id": "arun_a5e0df6f3b4543748af05195c9e665d2:model:1",
+          "performance": {
+            "checkpoint_ms": 1.02,
+            "first_chunk_ms": 1205.51,
+            "handler_ms": 1207.11
+          }
+        },
+        "phase": "model",
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "schema": "texa.execution/v1",
+        "seq": 3,
+        "status": "completed",
+        "summary": "本轮生成结束",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 1239.22,
+        "kind": "tool",
+        "label": "正在计算",
+        "operation_id": "tool:call_e428bc99121641aa83c364dedd4e804b",
+        "payload": {
+          "input_preview": {
+            "expression": "1/0",
+            "operation": "calculate",
+            "right": "0",
+            "variable": "x"
+          },
+          "lifecycle": "tool.requested",
+          "model_call_id": "arun_a5e0df6f3b4543748af05195c9e665d2:model:1",
+          "model_tool_call_id": "failure-1",
+          "tool_call_id": "call_e428bc99121641aa83c364dedd4e804b",
+          "tool_id": "symbolic_math",
+          "tool_version": "1"
+        },
+        "phase": "tool",
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "schema": "texa.execution/v1",
+        "seq": 4,
+        "status": "running",
+        "summary": "已准备工具输入",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 1240.32,
+        "kind": "tool",
+        "label": "正在计算",
+        "operation_id": "tool:call_e428bc99121641aa83c364dedd4e804b",
+        "payload": {
+          "lifecycle": "tool.started",
+          "tool_call_id": "call_e428bc99121641aa83c364dedd4e804b"
+        },
+        "phase": "tool",
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "schema": "texa.execution/v1",
+        "seq": 5,
+        "status": "started",
+        "summary": "正在执行工具",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 2398.26,
+        "kind": "tool",
+        "label": "正在计算",
+        "operation_id": "tool:call_e428bc99121641aa83c364dedd4e804b",
+        "payload": {
+          "input_preview": {
+            "expression": "1/0",
+            "operation": "calculate",
+            "right": "0",
+            "variable": "x"
+          },
+          "lifecycle": "tool.failed",
+          "result_preview": "result is undefined",
+          "tool_call_id": "call_e428bc99121641aa83c364dedd4e804b",
+          "tool_id": "symbolic_math",
+          "tool_status": "failed",
+          "warnings": []
+        },
+        "phase": "tool",
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "schema": "texa.execution/v1",
+        "seq": 6,
+        "status": "failed",
+        "summary": "工具执行失败",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "type": "tool_result"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 2403.43,
+        "kind": "system",
+        "label": "正在生成回答",
+        "operation_id": "model:arun_a5e0df6f3b4543748af05195c9e665d2:model:2",
+        "payload": {
+          "lifecycle": "model.started",
+          "model_call_id": "arun_a5e0df6f3b4543748af05195c9e665d2:model:2"
+        },
+        "phase": "model",
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "schema": "texa.execution/v1",
+        "seq": 7,
+        "status": "started",
+        "summary": "正在生成回答",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "type": "state_transition"
+      },
+      {
+        "schema": "texa.execution/v1",
+        "seq": 8,
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "operation_id": "answer",
+        "type": "output_delta",
+        "phase": "generate",
+        "status": "running",
+        "summary": "正在生成回答",
+        "label": "正在回答",
+        "kind": "generation",
+        "elapsed_ms": 4325.18,
+        "payload": {
+          "text": "计算失",
+          "replace": false
+        }
+      },
+      {
+        "schema": "texa.execution/v1",
+        "seq": 9,
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "operation_id": "answer",
+        "type": "output_delta",
+        "phase": "generate",
+        "status": "running",
+        "summary": "正在生成回答",
+        "label": "正在回答",
+        "kind": "generation",
+        "elapsed_ms": 5033.93,
+        "payload": {
+          "text": "败：除数不能为零，不能提供精确结果。",
+          "replace": false
+        }
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 5044.16,
+        "kind": "system",
+        "label": "本轮生成结束",
+        "operation_id": "model:arun_a5e0df6f3b4543748af05195c9e665d2:model:2",
+        "payload": {
+          "lifecycle": "model.completed",
+          "model_call_id": "arun_a5e0df6f3b4543748af05195c9e665d2:model:2",
+          "performance": {
+            "checkpoint_ms": 7.46,
+            "first_chunk_ms": 1913.71,
+            "first_public_ms": 1913.82,
+            "handler_ms": 2626.54
+          }
+        },
+        "phase": "model",
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "schema": "texa.execution/v1",
+        "seq": 10,
+        "status": "completed",
+        "summary": "本轮生成结束",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 5051.5,
+        "kind": "system",
+        "label": "runtime.profile",
+        "operation_id": "runtime.profile",
+        "payload": {
+          "lifecycle": "runtime.profile",
+          "performance": {
+            "context_build_ms": 0.08,
+            "initial_checkpoint_ms": 0.74,
+            "tool_return_ms": 1.57,
+            "verification_ms": 0.55
+          }
+        },
+        "phase": "runtime",
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "schema": "texa.execution/v1",
+        "seq": 11,
+        "status": "completed",
+        "summary": "runtime.profile",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "type": "state_transition"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 5054.54,
+        "kind": "generation",
+        "label": "回答处理结束",
+        "operation_id": "run.completed",
+        "payload": {
+          "text": "计算失败：除数不能为零，不能提供精确结果。\n\n> 回答验收未通过：问题要求数值结果，但回答中未找到数值。这些结论仍需核对。",
+          "replace": true
+        },
+        "phase": "generate",
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "schema": "texa.execution/v1",
+        "seq": 12,
+        "status": "running",
+        "summary": "回答处理结束",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "type": "output_delta"
+      },
+      {
+        "conversation_id": "conv_1791858247462_27ed511e",
+        "elapsed_ms": 5054.54,
+        "kind": "system",
+        "label": "回答处理结束",
+        "operation_id": "run.completed",
+        "payload": {
+          "lifecycle": "run.completed",
+          "task_status": "degraded",
+          "verification_status": "failed"
+        },
+        "phase": "run",
+        "request_id": "1a93ba5d2a434da1b260d18300ef53bb",
+        "run_id": "arun_a5e0df6f3b4543748af05195c9e665d2",
+        "schema": "texa.execution/v1",
+        "seq": 13,
+        "status": "completed",
+        "summary": "回答处理结束",
+        "task_id": "rtask_872de39b9cf94210ab11b22fea6a1b8b",
+        "turn_id": "turn_1791858256668_db1bd215",
+        "type": "final"
+      }
+    ]
+  ],
+  "browser_delivery": [
+    {
+      "headers_ms": 12.300000004470348,
+      "reads": [
+        {
+          "received_ms": 16.700000002980232,
+          "bytes": 427
+        },
+        {
+          "received_ms": 49.20000000298023,
+          "bytes": 2944
+        },
+        {
+          "received_ms": 81.40000000596046,
+          "bytes": 3656
+        },
+        {
+          "received_ms": 1313.6000000014901,
+          "bytes": 12052
+        },
+        {
+          "received_ms": 1313.8000000044703,
+          "bytes": 5839
+        },
+        {
+          "received_ms": 2810.8000000044703,
+          "bytes": 14861
+        },
+        {
+          "received_ms": 4056.4000000059605,
+          "bytes": 19513
+        },
+        {
+          "received_ms": 4056.5,
+          "bytes": 9555
+        },
+        {
+          "received_ms": 5076.80000000447,
+          "bytes": 22451
+        },
+        {
+          "received_ms": 7004.70000000298,
+          "bytes": 11001
+        },
+        {
+          "received_ms": 7717.80000000447,
+          "bytes": 11000
+        },
+        {
+          "received_ms": 7750.60000000149,
+          "bytes": 13802
+        },
+        {
+          "received_ms": 7750.9000000059605,
+          "bytes": 13699
+        },
+        {
+          "received_ms": 7751,
+          "bytes": 584
+        },
+        {
+          "received_ms": 7756.5,
+          "bytes": 13721
+        }
+      ],
+      "closed_ms": 7756.5
+    },
+    {
+      "headers_ms": 13.200000002980232,
+      "reads": [
+        {
+          "received_ms": 13.5,
+          "bytes": 427
+        },
+        {
+          "received_ms": 32.5,
+          "bytes": 2942
+        },
+        {
+          "received_ms": 64.30000000447035,
+          "bytes": 3654
+        },
+        {
+          "received_ms": 1276.7000000029802,
+          "bytes": 12056
+        },
+        {
+          "received_ms": 1278.5,
+          "bytes": 5841
+        },
+        {
+          "received_ms": 2451.60000000149,
+          "bytes": 14818
+        },
+        {
+          "received_ms": 4382.80000000447,
+          "bytes": 7218
+        },
+        {
+          "received_ms": 5079,
+          "bytes": 8027
+        },
+        {
+          "received_ms": 5079.20000000298,
+          "bytes": 8210
+        },
+        {
+          "received_ms": 5111.80000000447,
+          "bytes": 11391
+        },
+        {
+          "received_ms": 5118.20000000298,
+          "bytes": 10667
+        }
+      ],
+      "closed_ms": 5118.20000000298
+    },
+    {
+      "headers_ms": 13.899999998509884,
+      "reads": [
+        {
+          "received_ms": 14.200000002980232,
+          "bytes": 427
+        },
+        {
+          "received_ms": 27.399999998509884,
+          "bytes": 2938
+        },
+        {
+          "received_ms": 58.399999998509884,
+          "bytes": 3650
+        }
+      ],
+      "interrupted": true
+    }
+  ]
+}

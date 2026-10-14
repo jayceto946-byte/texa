@@ -1,0 +1,6 @@
+# Offline harness/contract validation only; CUDA/MLX training deliberately absent.
+# Python 3.10; run with -X utf8 (also PYTHONUTF8=1 for subprocesses).
+jsonschema==4.26.0
+pydantic==2.13.4
+PyYAML==6.0.3
+pytest==9.0.3

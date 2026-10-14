@@ -1,0 +1,7 @@
+{
+  "at": "2026-10-13T12:35:06.133933+00:00",
+  "file": "frontend/src/pages/ChatPage.tsx",
+  "sha256": "dc5eba8fd1c96a312e0ee810f8f42987cb2bf36a730e4fcb643b8da07afdc0d0",
+  "reason": "Older concurrent book-switch response used stale setter and aborted chat. Ignore superseded requests and compare latest rendered scope before setters. No provider request sent for S1 prior to this fix.",
+  "validation": "TypeScript -b and Vite build passed; forthcoming real Electron S1 validates runtime behavior."
+}

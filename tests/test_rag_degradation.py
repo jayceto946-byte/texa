@@ -48,7 +48,7 @@ def _use_fast_path(monkeypatch):
 
     monkeypatch.setattr(intent_module, "classify_intent_local", lambda text: {"intent": "definition", "hint": "local"})
     monkeypatch.setattr(intent_module, "is_fast_path_eligible", lambda text, result: True)
-    monkeypatch.setattr(config, "get_llm", lambda: DummyLLM())
+    monkeypatch.setattr(config, "get_llm", lambda **kwargs: DummyLLM())
     monkeypatch.setattr(feedback_module, "feedback_node", lambda state: {})
 
 

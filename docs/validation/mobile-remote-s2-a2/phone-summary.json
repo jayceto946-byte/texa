@@ -1,0 +1,176 @@
+{
+  "phone-startup-before.json": {
+    "viewport": {
+      "width": 394,
+      "height": 703
+    },
+    "elapsedMs": 3798.199999809265,
+    "navigation": [
+      {
+        "type": "navigate",
+        "totalMs": 1326.6999998092651,
+        "dnsMs": 0,
+        "connectMs": 0,
+        "tlsMs": 0,
+        "requestToHeadersMs": 952.3000001907349,
+        "headersToBodyMs": 333.69999980926514,
+        "wireBytes": 6949,
+        "encodedBytes": 6649,
+        "decodedBytes": 6649
+      }
+    ],
+    "categories": {
+      "javascript": {
+        "requests": 29,
+        "encodedBodyBytes": 282398,
+        "browserTransferSize": 1535,
+        "networkRequests": 1,
+        "cachedOrLocalRequests": 28
+      },
+      "stylesheet": {
+        "requests": 5,
+        "encodedBodyBytes": 38068,
+        "browserTransferSize": 0,
+        "networkRequests": 0,
+        "cachedOrLocalRequests": 5
+      },
+      "other-resource": {
+        "requests": 1,
+        "encodedBodyBytes": 0,
+        "browserTransferSize": 300,
+        "networkRequests": 1,
+        "cachedOrLocalRequests": 0
+      },
+      "other-api": {
+        "requests": 3,
+        "encodedBodyBytes": 809,
+        "browserTransferSize": 1709,
+        "networkRequests": 3,
+        "cachedOrLocalRequests": 0
+      },
+      "book-list": {
+        "requests": 1,
+        "encodedBodyBytes": 540,
+        "browserTransferSize": 840,
+        "networkRequests": 1,
+        "cachedOrLocalRequests": 0
+      },
+      "chat": {
+        "requests": 1,
+        "encodedBodyBytes": 543,
+        "browserTransferSize": 843,
+        "networkRequests": 1,
+        "cachedOrLocalRequests": 0
+      },
+      "session-read": {
+        "requests": 1,
+        "encodedBodyBytes": 108,
+        "browserTransferSize": 408,
+        "networkRequests": 1,
+        "cachedOrLocalRequests": 0
+      }
+    },
+    "sessionRender": [],
+    "failedRequestCounts": {}
+  },
+  "phone-reading-before.json": {
+    "viewport": {
+      "width": 394,
+      "height": 703
+    },
+    "elapsedMs": 73951.5,
+    "navigation": [
+      {
+        "type": "navigate",
+        "totalMs": 798.4000000953674,
+        "dnsMs": 0,
+        "connectMs": 0,
+        "tlsMs": 0,
+        "requestToHeadersMs": 764.0999999046326,
+        "headersToBodyMs": 5.700000286102295,
+        "wireBytes": 300,
+        "encodedBytes": 6649,
+        "decodedBytes": 6649
+      }
+    ],
+    "categories": {
+      "javascript": {
+        "requests": 36,
+        "encodedBodyBytes": 315994,
+        "browserTransferSize": 7293,
+        "networkRequests": 1,
+        "cachedOrLocalRequests": 35
+      },
+      "stylesheet": {
+        "requests": 7,
+        "encodedBodyBytes": 47505,
+        "browserTransferSize": 0,
+        "networkRequests": 0,
+        "cachedOrLocalRequests": 7
+      },
+      "other-resource": {
+        "requests": 1,
+        "encodedBodyBytes": 1183,
+        "browserTransferSize": 300,
+        "networkRequests": 1,
+        "cachedOrLocalRequests": 0
+      },
+      "other-api": {
+        "requests": 41,
+        "encodedBodyBytes": 256934,
+        "browserTransferSize": 268634,
+        "networkRequests": 39,
+        "cachedOrLocalRequests": 0
+      },
+      "book-list": {
+        "requests": 1,
+        "encodedBodyBytes": 540,
+        "browserTransferSize": 840,
+        "networkRequests": 1,
+        "cachedOrLocalRequests": 0
+      },
+      "chat": {
+        "requests": 3,
+        "encodedBodyBytes": 2465,
+        "browserTransferSize": 3365,
+        "networkRequests": 3,
+        "cachedOrLocalRequests": 0
+      },
+      "session-read": {
+        "requests": 8,
+        "encodedBodyBytes": 2595,
+        "browserTransferSize": 4695,
+        "networkRequests": 7,
+        "cachedOrLocalRequests": 0
+      },
+      "notes": {
+        "requests": 4,
+        "encodedBodyBytes": 14966,
+        "browserTransferSize": 16166,
+        "networkRequests": 4,
+        "cachedOrLocalRequests": 0
+      },
+      "other-font": {
+        "requests": 2,
+        "encodedBodyBytes": 42712,
+        "browserTransferSize": 600,
+        "networkRequests": 2,
+        "cachedOrLocalRequests": 0
+      }
+    },
+    "sessionRender": [
+      {
+        "kind": "session-render",
+        "category": "session-read",
+        "startMs": 7591.699999809265,
+        "totalMs": 359.2000002861023,
+        "outcome": "ok",
+        "messages": 2
+      }
+    ],
+    "failedRequestCounts": {
+      "error": 3,
+      "cancelled": 1
+    }
+  }
+}

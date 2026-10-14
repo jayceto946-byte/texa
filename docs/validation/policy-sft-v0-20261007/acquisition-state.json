@@ -1,0 +1,368 @@
+{
+  "status": "failed",
+  "config": {
+    "model": "/Users/jichengqian/.lmstudio/models/lmstudio-community/Qwen3.5-0.8B-MLX-8bit",
+    "fine_tune_type": "lora",
+    "batch_size": 1,
+    "max_seq_length": 384,
+    "grad_checkpoint": true,
+    "mask_prompt": true,
+    "seed": 1807,
+    "optimizer": "adam",
+    "data": "/Users/jichengqian/Documents/ChatGPT/texa/docs/validation/policy-sft-v0-20261007",
+    "train": true,
+    "report_to": null,
+    "drop_last": false,
+    "num_layers": 8,
+    "lora_parameters": {
+      "rank": 8,
+      "scale": 16.0,
+      "dropout": 0.0,
+      "keys": [
+        "mlp.gate_proj",
+        "mlp.up_proj",
+        "mlp.down_proj",
+        "self_attn.q_proj",
+        "self_attn.k_proj",
+        "self_attn.v_proj",
+        "self_attn.o_proj",
+        "linear_attn.in_proj_qkv",
+        "linear_attn.in_proj_z",
+        "linear_attn.in_proj_a",
+        "linear_attn.in_proj_b",
+        "linear_attn.out_proj"
+      ]
+    },
+    "learning_rate": 5e-05,
+    "iters": 2688,
+    "grad_accumulation_steps": 8,
+    "steps_per_eval": 448,
+    "save_every": 448,
+    "adapter_path": "/Users/jichengqian/Documents/ChatGPT/texa/docs/validation/policy-sft-v0-20261007/checkpoints",
+    "epochs": 1,
+    "scale_semantics": "MLX directly multiplies BA by scale, not alpha/r",
+    "execution": "custom instrumented loop using mlx-lm default_loss and grad_checkpoint; iters=microsteps"
+  },
+  "microsteps_completed": 1161,
+  "optimizer_updates": 145,
+  "checkpoints": [
+    {
+      "microstep": 448,
+      "optimizer_updates": 56,
+      "path": "/Users/jichengqian/Documents/ChatGPT/texa/docs/validation/policy-sft-v0-20261007/acquisition-checkpoints/step-0448",
+      "adapter_sha256": "80464d6c6d38771cae078f3eceb5acb6e634c623eb301b1777de9b1b09cd0ff0",
+      "train_loss_epoch_mean": 0.0774147732549214,
+      "train_loss_window_mean": 0.0774147732549214,
+      "metrics": {
+        "N": 576,
+        "seeds": 144,
+        "semantic_accuracy": 0.7413194444444444,
+        "permutation_consistency": 0.4097222222222222,
+        "binary_consistency": 0.5416666666666666,
+        "three_variant_all_correct": 0.4791666666666667,
+        "four_variant_all_correct": 0.4097222222222222,
+        "valid_rate": 1.0,
+        "strata": {
+          "tool_vs_answer": {
+            "N": 96,
+            "accuracy": 0.6354166666666666
+          },
+          "multi_intent": {
+            "N": 48,
+            "accuracy": 0.6041666666666666
+          },
+          "negation": {
+            "N": 96,
+            "accuracy": 0.65625
+          },
+          "correction": {
+            "N": 48,
+            "accuracy": 0.7708333333333334
+          },
+          "noisy_wording": {
+            "N": 96,
+            "accuracy": 0.7916666666666666
+          },
+          "existing_vs_knowledge": {
+            "N": 48,
+            "accuracy": 0.8541666666666666
+          },
+          "tool_distinction": {
+            "N": 96,
+            "accuracy": 0.8020833333333334
+          },
+          "quoted_statement": {
+            "N": 48,
+            "accuracy": 0.8958333333333334
+          }
+        },
+        "negation_correction_accuracy": 0.6944444444444444,
+        "tool_vs_answer_accuracy": 0.6354166666666666,
+        "multi_intent_accuracy": 0.6041666666666666,
+        "bias": {
+          "2": {
+            "N": 288,
+            "predicted_position": {
+              "1": 178,
+              "2": 110
+            },
+            "predicted_action_id": {
+              "a0": 172,
+              "a1": 116
+            },
+            "gold_position": {
+              "1": 144,
+              "2": 144
+            },
+            "gold_action_id": {
+              "a0": 144,
+              "a1": 144
+            },
+            "maximum_share_deviation": 0.11805555555555558
+          },
+          "3": {
+            "N": 288,
+            "predicted_position": {
+              "1": 127,
+              "3": 82,
+              "2": 79
+            },
+            "predicted_action_id": {
+              "a0": 102,
+              "a2": 153,
+              "a1": 33
+            },
+            "gold_position": {
+              "1": 96,
+              "3": 96,
+              "2": 96
+            },
+            "gold_action_id": {
+              "a0": 96,
+              "a1": 96,
+              "a2": 96
+            },
+            "maximum_share_deviation": 0.21875
+          }
+        },
+        "max_position_id_distribution_deviation": 0.21875,
+        "status": "complete",
+        "four_permutation_consistency": 0.4097222222222222,
+        "contract_validity": 1.0,
+        "metric_note": "frozen permutation_consistency already means all four valid semantic choices agree",
+        "fixed_layout_A_accuracy": 0.7361111111111112,
+        "position_distribution": {
+          "2": {
+            "1": 178,
+            "2": 110
+          },
+          "3": {
+            "1": 127,
+            "3": 82,
+            "2": 79
+          }
+        },
+        "action_id_distribution": {
+          "2": {
+            "a0": 172,
+            "a1": 116
+          },
+          "3": {
+            "a0": 102,
+            "a2": 153,
+            "a1": 33
+          }
+        },
+        "paired_raw_comparison": {
+          "N": 576,
+          "counts": {
+            "trained_only_correct": 193,
+            "both_correct": 234,
+            "raw_only_correct": 101,
+            "both_wrong": 48
+          },
+          "semantic_accuracy_delta": 0.1597222222222222,
+          "four_permutation_consistency_delta": 0.29166666666666663,
+          "binary_consistency_delta": 0.33333333333333326
+        }
+      }
+    },
+    {
+      "microstep": 896,
+      "optimizer_updates": 112,
+      "path": "/Users/jichengqian/Documents/ChatGPT/texa/docs/validation/policy-sft-v0-20261007/acquisition-checkpoints/step-0896",
+      "adapter_sha256": "626b5c317091aabc35c9bf8cd2b0310407b953f11ff12e9a189b1b53f17b5073",
+      "train_loss_epoch_mean": 0.057452313747489825,
+      "train_loss_window_mean": 0.037489854240058254,
+      "metrics": {
+        "N": 576,
+        "seeds": 144,
+        "semantic_accuracy": 0.8454861111111112,
+        "permutation_consistency": 0.8055555555555556,
+        "binary_consistency": 0.9166666666666666,
+        "three_variant_all_correct": 0.7847222222222222,
+        "four_variant_all_correct": 0.7430555555555556,
+        "valid_rate": 1.0,
+        "strata": {
+          "tool_vs_answer": {
+            "N": 96,
+            "accuracy": 0.7291666666666666
+          },
+          "multi_intent": {
+            "N": 48,
+            "accuracy": 0.5833333333333334
+          },
+          "negation": {
+            "N": 96,
+            "accuracy": 0.7708333333333334
+          },
+          "correction": {
+            "N": 48,
+            "accuracy": 0.9166666666666666
+          },
+          "noisy_wording": {
+            "N": 96,
+            "accuracy": 0.9479166666666666
+          },
+          "existing_vs_knowledge": {
+            "N": 48,
+            "accuracy": 1.0
+          },
+          "tool_distinction": {
+            "N": 96,
+            "accuracy": 0.875
+          },
+          "quoted_statement": {
+            "N": 48,
+            "accuracy": 1.0
+          }
+        },
+        "negation_correction_accuracy": 0.8194444444444444,
+        "tool_vs_answer_accuracy": 0.7291666666666666,
+        "multi_intent_accuracy": 0.5833333333333334,
+        "bias": {
+          "2": {
+            "N": 288,
+            "predicted_position": {
+              "2": 139,
+              "1": 149
+            },
+            "predicted_action_id": {
+              "a1": 143,
+              "a0": 145
+            },
+            "gold_position": {
+              "1": 144,
+              "2": 144
+            },
+            "gold_action_id": {
+              "a0": 144,
+              "a1": 144
+            },
+            "maximum_share_deviation": 0.01736111111111116
+          },
+          "3": {
+            "N": 288,
+            "predicted_position": {
+              "1": 107,
+              "3": 80,
+              "2": 101
+            },
+            "predicted_action_id": {
+              "a0": 102,
+              "a2": 90,
+              "a1": 96
+            },
+            "gold_position": {
+              "1": 96,
+              "3": 96,
+              "2": 96
+            },
+            "gold_action_id": {
+              "a0": 96,
+              "a1": 96,
+              "a2": 96
+            },
+            "maximum_share_deviation": 0.055555555555555525
+          }
+        },
+        "max_position_id_distribution_deviation": 0.055555555555555525,
+        "status": "complete",
+        "four_permutation_consistency": 0.8055555555555556,
+        "contract_validity": 1.0,
+        "metric_note": "frozen permutation_consistency already means all four valid semantic choices agree",
+        "fixed_layout_A_accuracy": 0.8402777777777778,
+        "position_distribution": {
+          "2": {
+            "2": 139,
+            "1": 149
+          },
+          "3": {
+            "1": 107,
+            "3": 80,
+            "2": 101
+          }
+        },
+        "action_id_distribution": {
+          "2": {
+            "a1": 143,
+            "a0": 145
+          },
+          "3": {
+            "a0": 102,
+            "a2": 90,
+            "a1": 96
+          }
+        },
+        "paired_raw_comparison": {
+          "N": 576,
+          "counts": {
+            "both_wrong": 52,
+            "both_correct": 298,
+            "raw_only_correct": 37,
+            "trained_only_correct": 189
+          },
+          "semantic_accuracy_delta": 0.26388888888888895,
+          "four_permutation_consistency_delta": 0.6875,
+          "binary_consistency_delta": 0.7083333333333333
+        }
+      }
+    }
+  ],
+  "fresh_adapter": true,
+  "hidden_inference_count": 0,
+  "started_at": 1791347611.014216,
+  "process_exit_code": -15,
+  "process_monitor": {
+    "phase": "train",
+    "pid": 14870,
+    "status": "failed",
+    "started_at": 1791347610.780082,
+    "rss_peak_bytes": 1975009280,
+    "samples": 50556,
+    "last_rss_bytes": 19677184,
+    "exit_code": -15,
+    "elapsed_seconds": 15890.976226091385
+  },
+  "no_retry": true,
+  "error": "resource anomaly: macOS memory pressure critical (kern.memorystatus_vm_pressure_level=4); worker SIGTERM; no retry or configuration reduction",
+  "resource_abort": {
+    "status": "resource_aborted",
+    "observed_pressure_level": 4,
+    "pressure_name": "critical",
+    "observed_swap_total_mib": 4096.0,
+    "observed_swap_used_mib": 3566.06,
+    "observed_swap_free_mib": 529.94,
+    "last_completed_microstep": 1161,
+    "optimizer_updates": 145,
+    "all_completed_microsteps_finite": true,
+    "worker_pid": 14870,
+    "worker_exit_code": -15,
+    "action": "SIGTERM at critical pressure; stop, no retry",
+    "recorded_at": 1791363533.9406269,
+    "system_scope_note": "pressure and swap are system-wide; no assertion that training is the sole contributor",
+    "hidden_inference_count": 0,
+    "reason": "resource anomaly: macOS memory pressure critical (kern.memorystatus_vm_pressure_level=4); worker SIGTERM; no retry or configuration reduction"
+  },
+  "ended_at": 1791363533.940913
+}

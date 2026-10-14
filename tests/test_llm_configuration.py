@@ -75,13 +75,14 @@ def test_custom_openai_compatible_role_accepts_model_and_endpoint():
 def test_role_capability_is_validated():
     payload = model_settings_payload({})
     payload["roles"]["vision"]["provider"] = "deepseek"
+    payload["roles"]["vision"]["model"] = "deepseek-v4-pro"
 
     try:
         model_settings_env_values(payload)
     except ValueError as exc:
         assert "不支持vision角色" in str(exc)
     else:
-        raise AssertionError("vision role accepted a text-only provider")
+        raise AssertionError("vision role accepted a text-only model")
 
 
 def test_catalog_includes_current_provider_models_and_keeps_compatibility_aliases():

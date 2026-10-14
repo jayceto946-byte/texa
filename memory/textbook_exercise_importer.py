@@ -21,6 +21,7 @@ class ExtractedTextbookExerciseText:
     page_end: int | None = None
     chunk_count: int = 0
     warnings: list[str] = field(default_factory=list)
+    units: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -32,6 +33,7 @@ class ExtractedTextbookExerciseText:
             "page_end": self.page_end,
             "chunk_count": self.chunk_count,
             "warnings": self.warnings,
+            "units": self.units,
         }
 
 
@@ -56,6 +58,53 @@ def extract_textbook_exercise_text(
     chapter_record = _find_chapter(chapters, chapter)
     resolved_chapter = str(chapter_record.get("title") or chapter or "").strip() if chapter_record else chapter.strip()
     resolved_start, resolved_end = _resolve_page_range(chapter_record, page_start, page_end)
+    from ingestion.document_workflows import load_workflow_book, learning_units, canonical_outline
+    from ingestion.document_ir import canonical_retrieval_paths, canonical_chapter_title
+    canonical = load_workflow_book(clean_book, progress_root=Path(PROGRESS_PATH))
+    if canonical is not None:
+        paths = canonical_retrieval_paths(canonical.blocks)
+        scope_ids = None
+        if chapter.startswith('heading:'):
+            heading_id = chapter.split(':', 1)[1]
+            section = next((section for record in canonical_outline(canonical) for section in record['subsections']
+                            if section['heading_block_id'] == heading_id), None)
+            if section is None:
+                raise ValueError('所选教材小节已不存在，请重新选择范围')
+            scope_ids = set(section['source_block_ids'])
+            resolved_chapter = section['section_path'][0]
+            resolved_start = resolved_start or section['page']
+            resolved_end = resolved_end or section['end_page']
+        target = canonical_chapter_title(resolved_chapter) or resolved_chapter
+        def scoped(path, start, end, block_id):
+            return ((scope_ids is None or block_id in scope_ids) and (not target or target in path or any(_compact(target) == _compact(part) for part in path))
+                    and (not resolved_start or (end or start or 0) >= resolved_start)
+                    and (not resolved_end or (start or 0) <= resolved_end))
+        units = []
+        if source_mode != 'all_pages':
+            for unit in learning_units(canonical):
+                if source_mode == 'examples' and unit.kind != 'example':
+                    continue
+                start = unit.blocks[0].page_start
+                end = max((block.page_end or block.page_start or 0 for block in unit.blocks), default=start)
+                if not scoped(unit.section_path, start, end, unit.unit_id):
+                    continue
+                units.append(dict(unit_id=unit.unit_id, kind=unit.kind, text=unit.text, chapter=unit.section_path[0],
+                                  page_start=start, page_end=end, source_block_ids=[block.block_id for block in unit.blocks],
+                                  truncated=unit.truncated))
+            text = '\n\n'.join(unit['text'] for unit in units)
+        else:
+            selected = [block for block in canonical.blocks if block.block_type not in {'heading', 'figure'}
+                        and scoped(paths.get(block.block_id, []), block.page_start, block.page_end, block.block_id)]
+            text = '\n\n'.join(block.text for block in selected)
+        if not resolved_chapter:
+            titles = set(unit['chapter'] for unit in units)
+            if len(titles) == 1:
+                resolved_chapter = titles.pop()
+        return ExtractedTextbookExerciseText(
+            text=text, provider='canonical-learning-units', book_name=clean_book, chapter=resolved_chapter,
+            page_start=resolved_start, page_end=resolved_end, chunk_count=len(selected) if source_mode == 'all_pages' else len(units), units=units,
+            warnings=['部分学习单元超出安全读取范围，请补充原文核对'] if any(unit['truncated'] for unit in units) else [],
+        )
     explicit_page_range = _positive_int(page_start) is not None
     if explicit_page_range:
         chunk_start, chunk_end = _pdf_range_to_printed_pages(clean_book, resolved_start, resolved_end)
@@ -339,8 +388,12 @@ def _text_from_source_packages(book_name: str, chapter: str, page_start: int | N
 
 def _text_from_middle_chunks(book_name: str, chapter: str, page_start: int | None, page_end: int | None, *, source_mode: str) -> tuple[str, int]:
     chunks: list[dict] = []
+    seen_paths: set[Path] = set()
     for output_dir in _candidate_output_dirs(book_name):
         for path in output_dir.rglob("*middle_chunks*.json"):
+            if path.resolve() in seen_paths:
+                continue
+            seen_paths.add(path.resolve())
             try:
                 data = json.loads(path.read_text(encoding="utf-8"))
             except Exception:
@@ -510,7 +563,8 @@ def _looks_like_exercise_section(title: str) -> bool:
 
 
 def _looks_like_example(text: str) -> bool:
-    return bool(re.search(r"(^|\n)\s*例\s*\d|(^|\n)\s*例题", text))
+    from ingestion.document_workflows import example_label
+    return any(example_label(line) for line in text.splitlines())
 
 
 def _looks_like_problem(text: str) -> bool:
@@ -629,3 +683,18 @@ def _normalize_text(text: str) -> str:
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n{4,}", "\n\n\n", text)
     return text.strip()
+
+
+def analyze_learning_unit_candidates(units: list[dict], *, book_name: str, subject: str, limit: int):
+    """Analyze whole source units without resplitting formulas or subquestions."""
+    from memory.exercise_importer import analyze_candidates
+    candidates = []
+    for unit in units[:limit]:
+        source = f"{book_name} / {unit['chapter']} p{unit['page_start']}-{unit['page_end']} / {unit['unit_id']}"
+        parsed = analyze_candidates([unit['text']], subject=subject, chapter=unit['chapter'], source=source, limit=1)
+        if unit['truncated']:
+            for candidate in parsed:
+                candidate.validation_issues.append('incomplete_learning_unit')
+                candidate.needs_review = True
+        candidates.extend(parsed)
+    return candidates

@@ -1,0 +1,144 @@
+{
+  "status": "complete",
+  "purpose": "three_task_smoke",
+  "config": {
+    "model_id": "mlx-community/gemma-3-1b-it-8bit",
+    "model_path": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--gemma-3-1b-it-8bit/snapshots/7b963136f21d05ca8b367c93a9c47a7944ad281a",
+    "inference_python": "/Users/jichengqian/.lmstudio/extensions/backends/vendor/_amphibian/app-mlx-generate-mac14-arm64@34/bin/python",
+    "required_versions": {
+      "mlx": "0.32.0",
+      "mlx-lm": "0.31.3",
+      "transformers": "5.14.1"
+    },
+    "seed": 0,
+    "template": {},
+    "max_new_tokens": {
+      "policy_select": 128,
+      "goal_summary": 384,
+      "question_understanding": 384,
+      "reference_resolve": 256
+    },
+    "tuned_on_v0": false,
+    "v0_failure_exposed": true,
+    "texa_trained": false,
+    "running_alone": false
+  },
+  "model": {
+    "local_path": "/Users/jichengqian/.cache/huggingface/hub/models--mlx-community--gemma-3-1b-it-8bit/snapshots/7b963136f21d05ca8b367c93a9c47a7944ad281a",
+    "model_type": "gemma3_text",
+    "architectures": [
+      "Gemma3ForCausalLM"
+    ],
+    "text_config_identity": {
+      "hidden_size": 1152,
+      "num_hidden_layers": 26,
+      "vocab_size": 262144,
+      "intermediate_size": 6912
+    },
+    "quantization": {
+      "group_size": 64,
+      "bits": 8
+    },
+    "declared_weight_dtype": "bfloat16",
+    "revision": null,
+    "revision_reason": "local LM Studio snapshot has no verified revision",
+    "identity_basis": "config architecture/size plus loaded quantized modules; no upstream revision attestation",
+    "model_id": "mlx-community/gemma-3-1b-it-8bit",
+    "verified_quantized_modules": 184,
+    "weight_dtypes": [
+      "mlx.core.float16",
+      "mlx.core.uint32"
+    ],
+    "load_ms": 2165.7411659998616,
+    "seed": 0,
+    "seed_supported": true,
+    "template_settings": {
+      "add_generation_prompt": true,
+      "tokenize": false
+    },
+    "libraries": {
+      "mlx": "0.32.0",
+      "mlx-lm": "0.31.3",
+      "transformers": "5.14.1"
+    },
+    "device": {
+      "platform": "macOS-26.5.1-arm64-arm-64bit",
+      "machine": "arm64",
+      "hardware_model": "Mac17,5",
+      "physical_memory_bytes": 8589934592,
+      "mlx": {
+        "device_name": "Apple A18 Pro",
+        "max_recommended_working_set_size": 5726633984,
+        "memory_size": 8589934592,
+        "architecture": "applegpu_g17p",
+        "max_buffer_length": 4294967296,
+        "resource_limit": 499000
+      }
+    },
+    "python": "3.11.9 (main, Aug 14 2024, 04:17:21) [Clang 18.1.8 ]",
+    "generated_token_counting": "mlx-lm stream generation_tokens, includes EOS on stop",
+    "synchronization_api": "mlx.core.synchronize after stream completion",
+    "load_surface": "mlx-lm native Gemma3 text",
+    "thinking_setting_supported": false,
+    "thinking_setting": "not_applicable",
+    "chat_template": "{{ bos_token }}\n{%- if messages[0]['role'] == 'system' -%}\n    {%- if messages[0]['content'] is string -%}\n        {%- set first_user_prefix = messages[0]['content'] + '\n\n' -%}\n    {%- else -%}\n        {%- set first_user_prefix = messages[0]['content'][0]['text'] + '\n\n' -%}\n    {%- endif -%}\n    {%- set loop_messages = messages[1:] -%}\n{%- else -%}\n    {%- set first_user_prefix = \"\" -%}\n    {%- set loop_messages = messages -%}\n{%- endif -%}\n{%- for message in loop_messages -%}\n    {%- if (message['role'] == 'user') != (loop.index0 % 2 == 0) -%}\n        {{ raise_exception(\"Conversation roles must alternate user/assistant/user/assistant/...\") }}\n    {%- endif -%}\n    {%- if (message['role'] == 'assistant') -%}\n        {%- set role = \"model\" -%}\n    {%- else -%}\n        {%- set role = message['role'] -%}\n    {%- endif -%}\n    {{ '<start_of_turn>' + role + '\n' + (first_user_prefix if loop.first else \"\") }}\n    {%- if message['content'] is string -%}\n        {{ message['content'] | trim }}\n    {%- elif message['content'] is iterable -%}\n        {%- for item in message['content'] -%}\n            {%- if item['type'] == 'image' -%}\n                {{ '<start_of_image>' }}\n            {%- elif item['type'] == 'text' -%}\n                {{ item['text'] | trim }}\n            {%- endif -%}\n        {%- endfor -%}\n    {%- else -%}\n        {{ raise_exception(\"Invalid content type\") }}\n    {%- endif -%}\n    {{ '<end_of_turn>\n' }}\n{%- endfor -%}\n{%- if add_generation_prompt -%}\n    {{'<start_of_turn>model\n'}}\n{%- endif -%}\n",
+    "chat_template_sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+    "tokenizer_class": "TokenizerWrapper",
+    "model_class": "mlx_lm.models.gemma3_text.Model"
+  },
+  "scores": [
+    {
+      "id": "TRB0-0001",
+      "task": "policy_select",
+      "track": "semantic",
+      "pair_id": "P-progress-check",
+      "exact": false,
+      "structured_match": false,
+      "schema_valid": false,
+      "executable": false,
+      "severity": "S2",
+      "critical_failure": false,
+      "reason": "invalid_json:Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "id": "TRB0-0081",
+      "task": "goal_summary",
+      "track": "semantic",
+      "pair_id": "G-00",
+      "exact": false,
+      "structured_match": false,
+      "schema_valid": false,
+      "executable": false,
+      "severity": "S2",
+      "critical_failure": false,
+      "reason": "invalid_json:Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "id": "TRB0-0121",
+      "task": "question_understanding",
+      "track": "semantic",
+      "pair_id": "U-00",
+      "exact": false,
+      "structured_match": false,
+      "schema_valid": false,
+      "executable": false,
+      "severity": "S2",
+      "critical_failure": false,
+      "reason": "invalid_json:Expecting value: line 1 column 1 (char 0)"
+    }
+  ],
+  "memory": {
+    "peak_process_rss": {
+      "bytes": 1097498624,
+      "api": "resource.getrusage(RUSAGE_SELF).ru_maxrss",
+      "scope": "inference process lifetime, includes load and warmup"
+    },
+    "peak_mlx_allocator": {
+      "bytes": 1593201104,
+      "reason": null,
+      "api": "mlx.core.get_peak_memory",
+      "scope": "run includes load and warmup"
+    },
+    "peaks_are_not_additive": true
+  }
+}

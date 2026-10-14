@@ -1,0 +1,16 @@
+{
+  "local_health": "ok",
+  "version": "1.0.0",
+  "warmup": "ready",
+  "unauthenticated_ready_status": 401,
+  "serve_shell_matches_dist": true,
+  "shell_sha256": "640cab660ba49b0fc6bf4ec9b36b6591b1699a09f44b021dae622b1e0c019011",
+  "build": "2026-10-09T08:43:11.799Z",
+  "entry_assets": [
+    {
+      "kind": ".js",
+      "matches_dist": true
+    }
+  ],
+  "backend_source_sha256": "ecb8d2cd9a63572117bd54debb03d453d9114389a2a20069eae8b0a308ae6946"
+}

@@ -13,6 +13,21 @@ function event(overrides: Partial<ExecutionEvent> = {}): ExecutionEvent {
 }
 
 describe('chat activity projection', () => {
+  it('uses run wall time instead of summing overlapping phases', () => {
+    expect(activityDuration([
+      { id: 'a', kind: 'tool', label: '检索', status: 'completed', duration_ms: 4000, elapsed_ms: 5000 },
+      { id: 'b', kind: 'reasoning', label: '组织', status: 'completed', duration_ms: 3000, elapsed_ms: 6000 },
+      { id: 'c', kind: 'system', label: '完成', status: 'completed', elapsed_ms: 7000, meta: { total_elapsed_ms: 7100 } },
+    ])).toBe(7100);
+  });
+
+  it('retains public details when a later progress update omits them', () => {
+    const initial = mergeChatActivity([], { id: 'tool', kind: 'tool', label: '工具', status: 'active', seq: 1,
+      meta: { input_preview: { query: '极限' }, result_preview: '找到题目' } });
+    const next = mergeChatActivity(initial, { id: 'tool', kind: 'tool', label: '工具', status: 'completed', seq: 2,
+      meta: { success: true } });
+    expect(next[0].meta).toEqual({ input_preview: { query: '极限' }, result_preview: '找到题目', success: true });
+  });
   it('shows a truthful transport state before the first backend event', () => {
     const initial = createTransportActivity();
     const connected = mergeExecutionLifecycle(createExecutionLifecycle('', [initial]), event({ operation_id: 'context',
@@ -23,6 +38,12 @@ describe('chat activity projection', () => {
     expect(initial).toMatchObject({ id: 'transport', status: 'active' });
     expect(connected.activities[0]).toMatchObject({ id: 'transport', status: 'completed', detail: '执行流已连接' });
     expect(connected.activities[1]).toMatchObject({ id: 'context', elapsed_ms: 12 });
+  });
+
+  it('does not claim unfinished work completed when the answer ends', () => {
+    const started = mergeExecutionLifecycle(createExecutionLifecycle(), event({ operation_id: 'retrieve', kind: 'tool' }));
+    const ended = mergeExecutionLifecycle(started, event({ seq: 2, operation_id: 'finalize', type: 'final', status: 'completed' }));
+    expect(ended.activities[0]).toMatchObject({ status: 'skipped', detail: '未收到独立完成记录' });
   });
 
   it('updates an existing activity without reordering it', () => {
@@ -71,5 +92,23 @@ describe('chat activity projection', () => {
     expect(stale.activities[0].detail).toBe('开始计算');
     expect(completed.activities[0]).toMatchObject({ status: 'completed', detail: '计算完成', seq: 4 });
     expect(unsequencedLocalUpdate[0]).toMatchObject({ status: 'completed', detail: '计算完成', seq: 4 });
+  });
+});
+
+describe('event-driven compact progress', () => {
+  it('uses milestones for analysis, calculation, continuation and public output', async () => {
+    const { executionProgressTitle } = await import('./chatActivities');
+    let state = mergeExecutionLifecycle(createExecutionLifecycle(), event({operation_id: 'model:1', seq: 1, payload: {lifecycle: 'model.started'}}));
+    expect(executionProgressTitle(state.activities)).toBe('正在分析题目');
+    state = mergeExecutionLifecycle(state, event({operation_id: 'tool:1', seq: 2, kind: 'tool', label: '正在计算', payload: {lifecycle: 'tool.started'}}));
+    expect(executionProgressTitle(state.activities)).toBe('正在计算');
+    state = mergeExecutionLifecycle(state, event({operation_id: 'tool:1', seq: 3, kind: 'tool', status: 'failed', payload: {lifecycle: 'tool.failed'}}));
+    state = mergeExecutionLifecycle(state, event({operation_id: 'model:2', seq: 4, payload: {lifecycle: 'model.started'}}));
+    expect(executionProgressTitle(state.activities)).toBe('正在继续解答');
+    state = mergeExecutionLifecycle(state, event({operation_id: 'output', seq: 5, type: 'output_delta', payload: {text: '公开内容', replace: false}}));
+    expect(executionProgressTitle(state.activities)).toBe('正在生成回答');
+    expect(state.output).toBe('公开内容');
+    state = mergeExecutionLifecycle(state, event({operation_id: 'model:3', seq: 6, payload: {lifecycle: 'model.started'}}));
+    expect(executionProgressTitle(state.activities)).toBe('正在继续解答');
   });
 });

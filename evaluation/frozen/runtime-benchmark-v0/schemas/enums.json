@@ -1,0 +1,49 @@
+{
+  "policy_action_kinds": [
+    "generate_answer",
+    "call_tool",
+    "request_input"
+  ],
+  "question_intents": [
+    "application",
+    "calculation",
+    "comparison",
+    "cross_chapter",
+    "definition",
+    "derivation",
+    "factual_recall",
+    "formula",
+    "plan",
+    "property",
+    "qa",
+    "quiz",
+    "summarize",
+    "teach"
+  ],
+  "question_dimensions": [
+    "calculation",
+    "classification",
+    "comparison",
+    "definition",
+    "derivation",
+    "examples",
+    "exercises",
+    "features",
+    "formula",
+    "principle",
+    "scenarios"
+  ],
+  "goal_status": [
+    "draft",
+    "active",
+    "paused",
+    "completed",
+    "cancelled"
+  ],
+  "retrieval_action": [
+    "none",
+    "reuse",
+    "delta",
+    "full"
+  ]
+}

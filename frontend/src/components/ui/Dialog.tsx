@@ -18,6 +18,7 @@ const focusableSelector = [
   'input:not([disabled])',
   'select:not([disabled])',
   'textarea:not([disabled])',
+  'summary',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
@@ -35,12 +36,18 @@ export default function Dialog({
   const descriptionId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
   useEffect(() => {
     if (!open) return undefined;
     returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    const background = Array.from(document.body.children)
+      .filter((element): element is HTMLElement => element instanceof HTMLElement && !element.contains(dialogRef.current))
+      .map(element => ({ element, inert: element.inert }));
+    background.forEach(({ element }) => { element.inert = true; });
 
     const focusDialog = window.requestAnimationFrame(() => {
       const firstFocusable = dialogRef.current?.querySelector<HTMLElement>(focusableSelector);
@@ -50,7 +57,7 @@ export default function Dialog({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== 'Tab' || !dialogRef.current) return;
@@ -77,9 +84,10 @@ export default function Dialog({
       window.cancelAnimationFrame(focusDialog);
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = previousOverflow;
-      window.requestAnimationFrame(() => returnFocusRef.current?.focus());
+      background.forEach(({ element, inert }) => { element.inert = inert; });
+      window.requestAnimationFrame(() => { const target = returnFocusRef.current; if (target?.isConnected && !target.closest('[hidden]')) target.focus(); });
     };
-  }, [onClose, open]);
+  }, [open]);
 
   if (!open && !keepMounted) return null;
 

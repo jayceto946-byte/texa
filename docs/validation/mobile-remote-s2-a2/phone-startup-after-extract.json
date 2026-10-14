@@ -1,0 +1,65 @@
+{
+  "provenance": "Extracted from tool-read texa-performance (2).json on 2026-10-09; original WeChat temporary file disappeared by 2026-10-11. This is a selected-field transcription, not the original export.",
+  "schema": "texa.mobile-performance/v2.1",
+  "build": "2026-10-09T09:06:15.424Z",
+  "source_revision": "585b03c9f5c97199b572d7c8e26d97c692b3a333",
+  "backend_python_sha256": "ecb8d2cd9a63572117bd54debb03d453d9114389a2a20069eae8b0a308ae6946",
+  "served_shell_sha256": "8b033a80a52d7acad15dd981639f20cfa4d0a424e36df5ee3df0c77f8a630602",
+  "browser_and_server_build_match": true,
+  "viewport": {
+    "width": 394,
+    "height": 703
+  },
+  "elapsedMs": 3302.6,
+  "navigation": {
+    "type": "navigate",
+    "totalMs": 660.8,
+    "requestToHeadersMs": 425.1,
+    "headersToBodyMs": 200.6,
+    "wireBytes": 6949,
+    "encodedBytes": 6649
+  },
+  "paintMs": 692,
+  "lcpMs": 716,
+  "resources": [
+    {
+      "operation": "book-list",
+      "totalMs": 1067.2,
+      "requestToHeadersMs": 870.5,
+      "headersToBodyMs": 195.2,
+      "appHeaderMs": 49.7,
+      "encodedBytes": 540,
+      "decodedBytes": 1125,
+      "wireBytes": 840
+    },
+    {
+      "operation": "session-list",
+      "totalMs": 870,
+      "requestToHeadersMs": 862.4,
+      "headersToBodyMs": 3.1,
+      "appHeaderMs": 34.9,
+      "encodedBytes": 961,
+      "decodedBytes": 4418,
+      "wireBytes": 1261
+    },
+    {
+      "operation": "session-management",
+      "totalMs": 507.3,
+      "requestToHeadersMs": 499.7,
+      "headersToBodyMs": 1.4,
+      "appHeaderMs": 7.9,
+      "encodedBytes": 108,
+      "wireBytes": 408
+    },
+    {
+      "operation": "connection-ready",
+      "totalMs": 1007.1,
+      "requestToHeadersMs": 1003.3,
+      "headersToBodyMs": 2.9,
+      "appHeaderMs": 8.6,
+      "encodedBytes": 60,
+      "wireBytes": 360
+    }
+  ],
+  "coverage": "Startup only: no session-detail/render, notes, text/photo stream, image preview or textbook citation/PDF samples."
+}

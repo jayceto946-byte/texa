@@ -9,7 +9,7 @@ def test_automatic_feedback_never_calls_llm_concept_extractor(monkeypatch):
         def __init__(self, book_name: str):
             self.book_name = book_name
 
-        def extract_concepts(self, question: str, answer: str):
+        def extract_concepts(self, question: str, answer: str, **kwargs):
             extractor_calls.append((question, answer))
             return []
 
@@ -114,7 +114,7 @@ def test_generic_qa_extracts_only_direct_high_confidence_concepts(monkeypatch):
         def __init__(self, book_name: str):
             captured["books"].append(book_name)
 
-        def extract_concepts(self, question: str, answer: str):
+        def extract_concepts(self, question: str, answer: str, **kwargs):
             return [
                 {"name": "导数", "confidence": 0.95, "aliases": []},
                 {"name": "极限", "confidence": 0.99, "aliases": []},

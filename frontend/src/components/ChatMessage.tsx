@@ -1,12 +1,14 @@
-import React, { useMemo, useState } from 'react';
-import { BookOpen, Globe2, GraduationCap, Paperclip, ShieldAlert, ThumbsDown, ThumbsUp } from 'lucide-react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { BookOpen, Globe2, GraduationCap, Paperclip, ShieldAlert } from 'lucide-react';
 import type { AnswerMode, AssistantSource, ChatActivity, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, CitationProvenance, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
 import { useChatContext } from '../contexts/ChatContext';
-import { displayNumber, groupSourcesByLocation, parseCitations, partitionSources, type SourceChapterGroup } from '../utils/citations';
+import { groupSourcesByLocation, parseCitations, partitionSources, type SourceChapterGroup } from '../utils/citations';
 import ConceptPopover from './ConceptPopover';
 import ChapterHighlightCard from './chat/ChapterHighlightCard';
 import ExerciseCard from './chat/ExerciseCard';
 import { MarkdownMessage } from './chat/MarkdownMessage';
+import { SourceGroupList } from './chat/SourceGroupList';
 import MistakeQuickCaptureCard from './chat/MistakeQuickCaptureCard';
 import ReportCard from './chat/ReportCard';
 import SubjectRouteSuggestionCard from './chat/SubjectRouteSuggestionCard';
@@ -18,6 +20,11 @@ import LearningTaskActions from './chat/LearningTaskActions';
 import LearningTaskResume from './chat/LearningTaskResume';
 import LearningTaskEffects from './chat/LearningTaskEffects';
 import { useInspector } from '../contexts/InspectorContext';
+import { separateVerificationNotice } from '../utils/verificationNotice';
+import AnswerSelection from './chat/AnswerSelection';
+import OverflowMenu from './ui/OverflowMenu';
+import { ChatMistakeSourcesContext } from '../features/mistakes/hooks/useChatMistakeSources';
+import { readableVisualQuestion } from '../utils/visualQuestion';
 import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 
 interface ChatMessageProps {
@@ -27,6 +34,7 @@ interface ChatMessageProps {
   answerFeedback?: { rating: 'helpful' | 'unhelpful'; reasons?: string[]; updated_at?: string };
   variant?: 'message' | 'document';
   stage?: string;
+  streamError?: string;
   activities?: ChatActivity[];
   linkedConcepts?: ConceptCandidate[];
   sources?: AssistantSource[];
@@ -54,36 +62,6 @@ function splitQuestionAttachment(content: string) {
   return match ? { attachmentName: match[1].trim(), body: match[2] } : { attachmentName: '', body: content };
 }
 
-const SourceGroupList: React.FC<{ groups: SourceChapterGroup[]; cited: boolean }> = ({ groups, cited }) => (
-  <div className="space-y-2.5">
-    {groups.map((group) => (
-      <section key={group.key}>
-        <div className="mb-1 text-[11px] font-semibold leading-5 text-text-primary">
-          {group.bookName} · {group.chapter}
-        </div>
-        <ul className="space-y-1 border-l border-border pl-2.5">
-          {group.locations.map((location) => {
-            const path = location.path[0] === group.chapter ? location.path.slice(1) : location.path;
-            const locationText = path.length > 0
-              ? path.join(' › ')
-              : location.fallbackLabel || '章级概述';
-            const numberText = location.citationNumbers.map(displayNumber).join('');
-            const pageText = location.pageIdx >= 0 ? ` · p.${location.pageIdx + 1}` : '';
-            const mergedText = location.sources.length > 1 ? ` · 合并 ${location.sources.length} 段` : '';
-            return (
-              <li key={location.key} className="flex gap-1.5 text-xs leading-relaxed text-text-secondary">
-                <span className={`shrink-0 select-none ${cited ? 'text-accent' : 'text-text-tertiary'}`}>
-                  {cited ? numberText : '·'}
-                </span>
-                <span className="min-w-0">{locationText}{pageText}{mergedText}</span>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-    ))}
-  </div>
-);
 
 const FigureSourceDetail = ({ source }: { source: AssistantSource }) => {
   const [showPdf, setShowPdf] = useState(false);
@@ -96,12 +74,12 @@ const FigureSourceDetail = ({ source }: { source: AssistantSource }) => {
           <h3>{source.caption || source.label || '教材 Figure'}</h3>
           <p>{typeof source.page_idx === 'number' && source.page_idx >= 0 ? `p.${source.page_idx + 1}` : '未标页'} · {(source.section_path || []).join(' › ') || source.book_name}</p>
         </div>
-        {source.pdf_url && <button type="button" onClick={() => setShowPdf((value) => !value)}>{showPdf ? '收起教材页' : '打开教材页'}</button>}
+        {source.pdf_url && <button type="button" onClick={() => setShowPdf((value) => !value)}>{showPdf ? '收起教材 PDF' : '加载完整 PDF · 定位来源页'}</button>}
       </div>
       {image.loading && <div className="figure-source-status">正在读取 Figure…</div>}
       {image.error && <div className="figure-source-status is-error">{image.error}</div>}
       {image.url && <img src={image.url} alt={source.caption || source.label || '教材 Figure'} />}
-      {showPdf && pdf.loading && <div className="figure-source-status">正在读取教材 PDF…</div>}
+      {showPdf && pdf.loading && <div className="figure-source-status">正在下载完整教材 PDF，大文件在中继网络下可能较慢…</div>}
       {showPdf && pdf.error && <div className="figure-source-status is-error">{pdf.error}</div>}
       {showPdf && pdf.url && <iframe title="教材 PDF 来源页" src={`${pdf.url}#page=${Math.max(1, Number(source.page_idx ?? 0) + 1)}`} />}
     </section>
@@ -143,43 +121,25 @@ const SourceInspectorContent = ({ citedGroups, referenceGroups, chapters, legacy
   </div>
 );
 
-const feedbackReasons = [
-  ['wrong_object', '答错对象'],
-  ['forgot_context', '忘记前文条件'],
-  ['stale_evidence', '错用旧证据'],
-  ['insufficient_evidence', '教材依据不足'],
-  ['irrelevant_or_repetitive', '答非所问或重复'],
-] as const;
+const EMPTY_CONCEPTS: ConceptCandidate[] = [];
+const EMPTY_SOURCES: AssistantSource[] = [];
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, answerFeedback, variant = 'message', stage, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = [], sources = [], sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, learningTask, citationProvenance, onResumeLearningTask, onResumeInterruptedTask }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, variant = 'message', stage, streamError, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = EMPTY_CONCEPTS, sources = EMPTY_SOURCES, sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, learningTask, citationProvenance, onResumeLearningTask, onResumeInterruptedTask }) => {
+  const isVisualQuestion = role === 'user' && learningTask?.task_type === 'visual_qa';
+  const imagePath = isVisualQuestion ? String(learningTask.artifacts?.image_url || `/api/mistakes/tasks/${learningTask.id}/image`) : '';
+  const [showVisualImage, setShowVisualImage] = useState(false);
+  const [originalImage, setOriginalImage] = useState(false);
+  const [imageRetry, setImageRetry] = useState(0);
+  const visualImage = useAuthenticatedBlobUrl(showVisualImage ? originalImage ? imagePath : `${imagePath}${imagePath.includes('?') ? '&' : '?'}preview=true` : '', 'binary', imageRetry);
   const [scopeResolved, setScopeResolved] = useState(false);
-  const [feedback, setFeedback] = useState(answerFeedback);
-  const [feedbackBusy, setFeedbackBusy] = useState(false);
-  const [showFeedbackReasons, setShowFeedbackReasons] = useState(false);
-  const [feedbackError, setFeedbackError] = useState('');
+  const captureSources = useContext(ChatMistakeSourcesContext);
+  const captureState = captureSources.states[messageId || `turn:${turnId}`];
+  const captureMessageId = messageId || captureState?.message_id;
+  const [captureError, setCaptureError] = useState('');
+  const [captureBusy, setCaptureBusy] = useState(false);
+  const navigate = useNavigate();
   const { bookName, subject, conversationId } = useChatContext();
   const { openInspector } = useInspector();
-
-  const submitFeedback = async (rating: 'helpful' | 'unhelpful', reasons: string[] = []) => {
-    if (!messageId || feedbackBusy) return;
-    setFeedbackBusy(true);
-    setFeedbackError('');
-    try {
-      const result = await post('/chat/feedback', {
-        conversation_id: conversationId,
-        message_id: messageId,
-        rating,
-        reasons,
-      });
-      if (!result?.success) throw new Error(result?.message || '反馈保存失败');
-      setFeedback({ rating, reasons });
-      setShowFeedbackReasons(false);
-    } catch (error) {
-      setFeedbackError(error instanceof Error ? error.message : '反馈保存失败');
-    } finally {
-      setFeedbackBusy(false);
-    }
-  };
 
   const references = useMemo(() => {
     if (role !== 'assistant') return [];
@@ -226,33 +186,52 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
     });
   };
 
-  const openConcept = (concept: ConceptCandidate) => {
+  const openConcept = useCallback((concept: ConceptCandidate) => {
     openInspector({
       kind: 'concept',
       title: concept.name,
       subtitle: '概念',
       content: <ConceptPopover concept={concept} bookName={bookName} />,
     });
-  };
+  }, [openInspector, bookName]);
 
   const isUser = role === 'user';
+  const answerPresentation = useMemo(() => separateVerificationNotice(content), [content]);
+  const hasExecutionTrace = activities.some(item => item.id !== 'transport' && item.id !== 'execute' && item.event_type !== 'output_delta' && item.status !== 'pending');
   const questionContent = useMemo(
-    () => (isUser && variant === 'message' ? splitQuestionAttachment(content) : { attachmentName: '', body: content }),
-    [content, isUser, variant],
+    () => (isUser && variant === 'message' ? splitQuestionAttachment(isVisualQuestion ? readableVisualQuestion(content) : content) : { attachmentName: '', body: content }),
+    [content, isUser, isVisualQuestion, variant],
   );
+  const captureQuestion = async () => {
+    if (captureBusy || !questionContent.body.trim() || !captureMessageId || captureSources.loading || captureSources.error) return;
+    const scope = bookName || 'default';
+    const query = `?book_name=${encodeURIComponent(scope)}`;
+    if (captureState?.status === 'recorded') { navigate(`/mistakes/${encodeURIComponent(captureState.mistake_id!)}${query}`); return; }
+    if (captureState?.status === 'draft') { navigate(`/mistakes/intake/${encodeURIComponent(captureState.draft_id!)}${query}`); return; }
+    setCaptureBusy(true); setCaptureError('');
+    try {
+      const result = await post(`/mistakes/chat-sources/capture${query}`, {
+        conversation_id: conversationId, message_id: captureMessageId, turn_id: turnId || '',
+        data: { question_text: questionContent.body, subject: subject || '数学', source: '学习会话', content_complete: false },
+      });
+      if (!result?.success) throw new Error(result?.message || '无法建立错题草稿');
+      const record = result.data;
+      navigate(record.status === 'recorded' ? `/mistakes/${encodeURIComponent(record.mistake_id)}${query}` : `/mistakes/intake/${encodeURIComponent(record.draft_id)}${query}`);
+    } catch (error) { setCaptureError(error instanceof Error ? error.message : '无法建立错题草稿'); }
+    finally { setCaptureBusy(false); }
+  };
   const isThinking = !isUser && (
     stage === 'agent'
     || ((stage === 'thinking' || stage === 'plan') && !content.trim())
   );
-  const isTerminal = stage === 'done' || stage === 'error' || stage === 'stopped';
   const hasCard = Boolean(reportCard || exerciseCard || chapterHighlightCard || utilityCard);
   const showMessageTools = !hasCard && !isThinking;
   const modeLabel = answerMode === 'textbook_grounded'
     ? '基于教材'
     : answerMode === 'visual_grounded'
-      ? '基于教材图'
+      ? '基于图片'
     : answerMode === 'subject_general'
-      ? '学科通用'
+      ? ''
     : answerMode === 'global_general'
         ? '通用回答'
         : answerMode === 'subject_mismatch'
@@ -261,7 +240,19 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
 
   return (
     <div className={variant === 'document' ? 'min-w-0' : `learning-message ${isUser ? 'is-question' : 'is-answer'}`}>
-      <article className={variant === 'document' ? 'min-w-0 text-text-primary' : isUser ? 'learning-question' : 'learning-answer-document'}>
+      {isVisualQuestion && <div className="mb-3 text-sm">
+        <button type="button" aria-expanded={showVisualImage} onClick={() => setShowVisualImage(value => !value)}>{showVisualImage ? '收起完整题目图片' : '查看完整题目图片'}</button>
+        {showVisualImage && <div className="mt-2"><button type="button" onClick={() => setOriginalImage(value => !value)}>{originalImage ? '返回轻量预览' : '读取原尺寸图片'}</button><span className="ml-2 text-text-secondary">{originalImage ? '原尺寸图片' : '完整画面预览'}</span></div>}
+        {showVisualImage && visualImage.loading && <p role="status">{originalImage ? '正在读取原尺寸图片…' : '正在读取完整画面预览…'}</p>}
+        {showVisualImage && visualImage.error && <p role="alert">图片读取失败：{visualImage.error} <button type="button" onClick={() => setImageRetry(value => value + 1)}>重试读取图片</button></p>}
+        {showVisualImage && visualImage.url && <img src={visualImage.url} alt="完整题目图片" className="max-h-96 max-w-full object-contain" />}
+      </div>}
+      <article className={variant === 'document' ? 'min-w-0 text-text-primary' : isUser ? `learning-question${isVisualQuestion ? ' is-visual-question' : ''}` : 'learning-answer-document'}>
+        {variant === 'message' && <div className="study-turn-heading">
+          <span>{isUser ? '学习问题' : 'TEXA / 解答'}</span>
+          {isUser && questionContent.body.trim() && <div className="question-more-menu"><OverflowMenu label="问题的更多操作">{close => <><button role="menuitem" disabled={!captureMessageId || captureBusy || captureSources.loading || Boolean(captureSources.error)} onClick={() => { close(); void captureQuestion(); }}>{!captureMessageId ? '等待问题保存后录入' : captureSources.loading ? '正在读取错题状态…' : captureSources.error ? '错题状态暂不可用' : captureState?.status === 'recorded' ? '已记录 · 查看错题' : captureState?.status === 'draft' ? '继续整理错题' : '记录为错题'}</button>{captureSources.error && <button role="menuitem" onClick={() => { close(); captureSources.refresh(); }}>重试读取错题状态</button>}</>}</OverflowMenu></div>}
+          {!isUser && hasStructuredSources && <button type="button" onClick={openSources}><BookOpen className="h-3.5 w-3.5" />查看来源 · {sources.length}</button>}
+        </div>}
         {isUser && questionContent.attachmentName && (
           <div className="learning-query-attachment">
             <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
@@ -269,7 +260,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
           </div>
         )}
 
-        {!isUser && activities.length > 0 && !isTerminal && <ExecutionTrace activities={activities} stage={stage} />}
+        {!isUser && hasExecutionTrace && <ExecutionTrace activities={activities} stage={stage} sources={sources} taskStatus={learningTask?.status} verification={learningTask?.verification || (answerPresentation.notice ? {status: 'unverified'} : undefined)} collapseOnComplete={learningTask?.artifacts?.native_loop === true} onInspectSources={openSources} />}
+        {!isUser && answerPresentation.notice && !hasExecutionTrace && <details className="answer-verification-detail"><summary>公式或数值需要核对</summary><p>{answerPresentation.notice}</p></details>}
 
         {reportCard ? (
           <ReportCard card={reportCard} />
@@ -285,15 +277,20 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
             <span className="text-sm">{stage === 'agent' ? content || '正在调用学习工具…' : '思考中...'}</span>
           </div>
         ) : !isUser && stage === 'error' ? (
-          <ActionableIssue
-            title="这次回答没有完成"
-            impact="当前问题还没有可用答案；会话、教材范围和已经保存的学习记录不会受影响。"
-            actions={<button type="button" onClick={() => window.dispatchEvent(new Event('texa:focus-composer'))} className="app-secondary-button">回到输入框重试</button>}
-            details={content.replace(/^(出错了|图片处理失败)[：:]\s*/, '') || '未收到可用的错误说明'}
-          />
+          <>
+            {streamError && content.trim() && <MarkdownMessage content={answerPresentation.body} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} preserveLineBreaks={learningTask?.required_outputs.some(output => output.kind === 'format' && ['lines', 'prefixes'].includes(String(output.format)))} />}
+            <ActionableIssue
+              title="这次回答没有完成"
+              impact={streamError && content.trim() ? '已保留收到的部分回答，尚未完成。重新打开本会话可核对桌面保存的结果。' : '尚未收到可用答案。重新打开本会话可核对桌面状态。'}
+              actions={<button type="button" onClick={() => window.dispatchEvent(new Event('texa:focus-composer'))} className="app-secondary-button">回到输入框</button>}
+              details={streamError || content.replace(/^(出错了|图片处理失败)[：:]\s*/, '') || '未收到可用的错误说明'}
+            />
+          </>
         ) : content.trim() ? (
-          <MarkdownMessage content={isUser ? questionContent.body : content} linkedConcepts={isUser ? [] : linkedConcepts} onConceptClick={openConcept} citationIds={validIds} />
+          isUser ? <MarkdownMessage content={questionContent.body} /> : <AnswerSelection><MarkdownMessage content={answerPresentation.body} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} preserveLineBreaks={learningTask?.required_outputs.some(output => output.kind === 'format' && ['lines', 'prefixes'].includes(String(output.format)))} /></AnswerSelection>
         ) : null}
+
+        {captureError && <p role="alert" className="text-xs text-[var(--danger)]">{captureError}</p>}
 
         {variant === 'message' && !isUser && stage === 'done' && (modeLabel || hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
           <div className="learning-answer-meta">
@@ -314,8 +311,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
           </div>
         )}
 
-        {!isUser && activities.length > 0 && isTerminal && <ExecutionTrace activities={activities} stage={stage} />}
-
         {!isUser && stage === 'done' && citationProvenance && citationProvenance.status !== 'model_aligned' && (
           <div className="mt-3">
             <ActionableIssue
@@ -332,7 +327,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
           <LearningTaskGate task={learningTask} onResume={onResumeLearningTask} />
         )}
         {!isUser && learningTask?.confirmation_required && (
-          <LearningTaskActions initialTask={learningTask} />
+          <LearningTaskActions initialTask={learningTask} onResume={onResumeInterruptedTask} />
         )}
         {!isUser && learningTask?.terminal && (
           <LearningTaskEffects key={`${learningTask.id}:${learningTask.active_run_id}`} task={learningTask} />
@@ -404,48 +399,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, ans
           </div>
         )}
 
-        {showMessageTools && !isUser && stage === 'done' && messageId && (
-          <div className="mt-3 border-t border-border pt-2">
-            <div className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
-              <span className="mr-1">这次回答有帮助吗？</span>
-              <button
-                type="button"
-                disabled={feedbackBusy}
-                aria-label="回答有帮助"
-                onClick={() => void submitFeedback('helpful')}
-                className={`rounded p-1 transition-colors hover:text-accent ${feedback?.rating === 'helpful' ? 'bg-[var(--accent-softer)] text-accent' : ''}`}
-              >
-                <ThumbsUp className="h-3.5 w-3.5" />
-              </button>
-              <button
-                type="button"
-                disabled={feedbackBusy}
-                aria-label="回答没有帮助"
-                onClick={() => setShowFeedbackReasons((value) => !value)}
-                className={`rounded p-1 transition-colors hover:text-[var(--danger)] ${feedback?.rating === 'unhelpful' ? 'bg-red-50 text-[var(--danger)]' : ''}`}
-              >
-                <ThumbsDown className="h-3.5 w-3.5" />
-              </button>
-              {feedback && <span>{feedback.rating === 'helpful' ? '已记录' : '已记录问题'}</span>}
-            </div>
-            {showFeedbackReasons && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {feedbackReasons.map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    disabled={feedbackBusy}
-                    onClick={() => void submitFeedback('unhelpful', [value])}
-                    className="rounded border border-border px-2 py-1 text-[11px] text-text-secondary transition-colors hover:border-red-300 hover:text-[var(--danger)]"
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
-            {feedbackError && <div className="mt-1 text-[11px] text-[var(--danger)]">{feedbackError}</div>}
-          </div>
-        )}
+
       </article>
     </div>
   );

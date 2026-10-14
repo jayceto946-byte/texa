@@ -1,0 +1,1628 @@
+........................................................................ [  4%]
+........................................................................ [  8%]
+........................................................................ [ 12%]
+...........FF........................................................... [ 17%]
+........................................................................ [ 21%]
+........................................................................ [ 25%]
+........................................................................ [ 30%]
+........................................................................ [ 34%]
+........................................................................ [ 38%]
+........................................................................ [ 43%]
+........................................................................ [ 47%]
+........................................................................ [ 51%]
+........................................................................ [ 56%]
+................................................F....................... [ 60%]
+........FFFFFFF......F............FFFF.FF..FFFFFF....................... [ 64%]
+...................................................................F.... [ 69%]
+.F.....F.......FFFFFFFFFFFFFFFFFFFFFFF.F................................ [ 73%]
+........................................................................ [ 77%]
+........................................................................ [ 82%]
+........................................................................ [ 86%]
+........................................................................ [ 90%]
+........................................................................ [ 95%]
+........................................................................ [ 99%]
+........                                                                 [100%]
+=================================== FAILURES ===================================
+________ test_context_eval_v3_uses_production_state_without_live_model _________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_context_eval_v3_uses_prod0')
+
+    def test_context_eval_v3_uses_production_state_without_live_model(tmp_path):
+        report = evaluate(_dataset(tmp_path), retrieval_runner=_retrieval)
+        assert report["modes"]["answer"] == "disabled_no_model_call"
+        assert report["layers"]["retrieval"]["passed"] == 1
+>       assert report["layers"]["lifecycle"]["failed"] == 0
+E       assert 1 == 0
+
+tests/test_context_eval_v3.py:56: AssertionError
+________________ test_context_eval_v3_scores_opt_in_live_answer ________________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_context_eval_v3_scores_op0')
+
+    def test_context_eval_v3_scores_opt_in_live_answer(tmp_path):
+        report = evaluate(
+            _dataset(tmp_path), online=True, retrieval_runner=_retrieval,
+            answer_runner=lambda _state: "材料受力后电阻率变化。[[cite:E1]]",
+        )
+        assert report["layers"]["answer"]["passed"] == 1
+>       assert report["release_gates"]["passed"] is True
+E       assert False is True
+
+tests/test_context_eval_v3.py:68: AssertionError
+___ test_active_baseline_preserves_original_gold_and_rejects_legacy_manifest ___
+
+    def test_active_baseline_preserves_original_gold_and_rejects_legacy_manifest():
+        transition = json.loads((REVIEW / "baseline-transition.json").read_text())
+        old = REPO_ROOT / "evaluation/fixtures/policy_dataset_v0"
+        for name, expected in transition["retained_corpus_sha256"].items():
+            assert hashlib.sha256((old / name).read_bytes()).hexdigest() == expected
+            assert (DEFAULT_DATASET / name).read_bytes() == (old / name).read_bytes()
+        assert hashlib.sha256((old / "manifest.json").read_bytes()).hexdigest() == transition["old_manifest_sha256"]
+        old_pins = REPO_ROOT / "docs/validation/runtime-policy-evaluation-dataset-v0/source-manifest.json"
+        assert hashlib.sha256(old_pins.read_bytes()).hexdigest() == transition["old_source_manifest_sha256"]
+        current = json.loads((DEFAULT_DATASET / "manifest.json").read_text())
+        assert current["runtime_version"] == APPROVED_RUNTIME_VERSION
+>       assert validate_manifest(current)[1] == []
+E       AssertionError: assert ['source_cont...est_mismatch'] == []
+E         
+E         Left contains one more item: 'source_content_digest_mismatch'
+E         Use -v to get more diff
+
+tests/test_policy_baseline_v01.py:28: AssertionError
+_________________ test_boolean_validity_is_not_a_quality_gate __________________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+
+    def test_boolean_validity_is_not_a_quality_gate(dataset):
+        sample = dataset[0]["multi"]
+        assert_reason(validate_sample(sample), "frozen_candidate_basis")
+        assert_reason(validate_sample(sample), "semantic_adjudication")
+        _, manifest, records, evidence = dataset
+        empty_reviews = manifest.model_copy(deep=True)
+        empty_reviews.reviews.clear()
+        q = validate_sample(sample, manifest=empty_reviews, records=records, evidence=evidence)
+>       assert_reason(q, "frozen_candidate_basis")
+
+tests/test_policy_dataset_v0.py:144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+q = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False)
+reason = 'frozen_candidate_basis'
+
+    def assert_reason(q, reason):
+>       assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E       AssertionError: assert 'frozen_candidate_basis' in (([] + ['source_content_digest_mismatch']) + [])
+E        +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E        +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E        +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+
+tests/test_policy_dataset_v0.py:51: AssertionError
+_____________________ test_frozen_basis_is_checked[scope] ______________________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+mutation = 'scope'
+
+    @pytest.mark.parametrize("mutation", ["scope", "schema", "evidence", "query", "label"])
+    def test_frozen_basis_is_checked(dataset, mutation):
+        sample = dataset[0]["progress-needed"]
+        _, manifest, records, evidence = dataset
+        manifest = manifest.model_copy(deep=True)
+        evidence = dict(evidence)
+        if mutation == "scope":
+            manifest.reviews[sample.sample_id].scope["book_name"] = "wrong"
+            expected = "scope_binding"
+        elif mutation == "schema":
+            manifest.reviews[sample.sample_id].tool_metadata["get_recent_progress"]["schema_hash"] = "wrong"
+            expected = "registry_version_or_schema"
+        elif mutation == "evidence":
+            evidence["fixture-basis/v0"] = b"changed"
+            expected = "unavailable_or_changed_evidence"
+        elif mutation == "query":
+            sample = dataset[0]["resolved"]
+            obs = sample.observation.model_dump()
+            obs["admissible_actions"][0]["args"]["input"]["query"] = "wrong binding"
+            sample = changed(sample, observation=obs)
+            review = manifest.reviews[sample.sample_id]
+            review.observation_hash = sample.observation_hash
+            review.expected_action_hashes = [action_hash(a) for a in sample.observation.admissible_actions]
+            expected = "invalid_bound_args"
+        else:
+            sample = changed(sample, adjudication_reason="Changed label basis")
+            expected = "semantic_adjudication"
+>       assert_reason(validate_sample(sample, manifest=manifest, records=records, evidence=evidence), expected)
+
+tests/test_policy_dataset_v0.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+q = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False)
+reason = 'scope_binding'
+
+    def assert_reason(q, reason):
+>       assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E       AssertionError: assert 'scope_binding' in (([] + ['source_content_digest_mismatch']) + [])
+E        +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E        +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E        +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+
+tests/test_policy_dataset_v0.py:51: AssertionError
+_____________________ test_frozen_basis_is_checked[schema] _____________________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+mutation = 'schema'
+
+    @pytest.mark.parametrize("mutation", ["scope", "schema", "evidence", "query", "label"])
+    def test_frozen_basis_is_checked(dataset, mutation):
+        sample = dataset[0]["progress-needed"]
+        _, manifest, records, evidence = dataset
+        manifest = manifest.model_copy(deep=True)
+        evidence = dict(evidence)
+        if mutation == "scope":
+            manifest.reviews[sample.sample_id].scope["book_name"] = "wrong"
+            expected = "scope_binding"
+        elif mutation == "schema":
+            manifest.reviews[sample.sample_id].tool_metadata["get_recent_progress"]["schema_hash"] = "wrong"
+            expected = "registry_version_or_schema"
+        elif mutation == "evidence":
+            evidence["fixture-basis/v0"] = b"changed"
+            expected = "unavailable_or_changed_evidence"
+        elif mutation == "query":
+            sample = dataset[0]["resolved"]
+            obs = sample.observation.model_dump()
+            obs["admissible_actions"][0]["args"]["input"]["query"] = "wrong binding"
+            sample = changed(sample, observation=obs)
+            review = manifest.reviews[sample.sample_id]
+            review.observation_hash = sample.observation_hash
+            review.expected_action_hashes = [action_hash(a) for a in sample.observation.admissible_actions]
+            expected = "invalid_bound_args"
+        else:
+            sample = changed(sample, adjudication_reason="Changed label basis")
+            expected = "semantic_adjudication"
+>       assert_reason(validate_sample(sample, manifest=manifest, records=records, evidence=evidence), expected)
+
+tests/test_policy_dataset_v0.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+q = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False)
+reason = 'registry_version_or_schema'
+
+    def assert_reason(q, reason):
+>       assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E       AssertionError: assert 'registry_version_or_schema' in (([] + ['source_content_digest_mismatch']) + [])
+E        +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E        +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E        +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+
+tests/test_policy_dataset_v0.py:51: AssertionError
+____________________ test_frozen_basis_is_checked[evidence] ____________________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+mutation = 'evidence'
+
+    @pytest.mark.parametrize("mutation", ["scope", "schema", "evidence", "query", "label"])
+    def test_frozen_basis_is_checked(dataset, mutation):
+        sample = dataset[0]["progress-needed"]
+        _, manifest, records, evidence = dataset
+        manifest = manifest.model_copy(deep=True)
+        evidence = dict(evidence)
+        if mutation == "scope":
+            manifest.reviews[sample.sample_id].scope["book_name"] = "wrong"
+            expected = "scope_binding"
+        elif mutation == "schema":
+            manifest.reviews[sample.sample_id].tool_metadata["get_recent_progress"]["schema_hash"] = "wrong"
+            expected = "registry_version_or_schema"
+        elif mutation == "evidence":
+            evidence["fixture-basis/v0"] = b"changed"
+            expected = "unavailable_or_changed_evidence"
+        elif mutation == "query":
+            sample = dataset[0]["resolved"]
+            obs = sample.observation.model_dump()
+            obs["admissible_actions"][0]["args"]["input"]["query"] = "wrong binding"
+            sample = changed(sample, observation=obs)
+            review = manifest.reviews[sample.sample_id]
+            review.observation_hash = sample.observation_hash
+            review.expected_action_hashes = [action_hash(a) for a in sample.observation.admissible_actions]
+            expected = "invalid_bound_args"
+        else:
+            sample = changed(sample, adjudication_reason="Changed label basis")
+            expected = "semantic_adjudication"
+>       assert_reason(validate_sample(sample, manifest=manifest, records=records, evidence=evidence), expected)
+
+tests/test_policy_dataset_v0.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+q = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False)
+reason = 'unavailable_or_changed_evidence'
+
+    def assert_reason(q, reason):
+>       assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E       AssertionError: assert 'unavailable_or_changed_evidence' in (([] + ['source_content_digest_mismatch']) + [])
+E        +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E        +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E        +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+
+tests/test_policy_dataset_v0.py:51: AssertionError
+_____________________ test_frozen_basis_is_checked[query] ______________________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+mutation = 'query'
+
+    @pytest.mark.parametrize("mutation", ["scope", "schema", "evidence", "query", "label"])
+    def test_frozen_basis_is_checked(dataset, mutation):
+        sample = dataset[0]["progress-needed"]
+        _, manifest, records, evidence = dataset
+        manifest = manifest.model_copy(deep=True)
+        evidence = dict(evidence)
+        if mutation == "scope":
+            manifest.reviews[sample.sample_id].scope["book_name"] = "wrong"
+            expected = "scope_binding"
+        elif mutation == "schema":
+            manifest.reviews[sample.sample_id].tool_metadata["get_recent_progress"]["schema_hash"] = "wrong"
+            expected = "registry_version_or_schema"
+        elif mutation == "evidence":
+            evidence["fixture-basis/v0"] = b"changed"
+            expected = "unavailable_or_changed_evidence"
+        elif mutation == "query":
+            sample = dataset[0]["resolved"]
+            obs = sample.observation.model_dump()
+            obs["admissible_actions"][0]["args"]["input"]["query"] = "wrong binding"
+            sample = changed(sample, observation=obs)
+            review = manifest.reviews[sample.sample_id]
+            review.observation_hash = sample.observation_hash
+            review.expected_action_hashes = [action_hash(a) for a in sample.observation.admissible_actions]
+            expected = "invalid_bound_args"
+        else:
+            sample = changed(sample, adjudication_reason="Changed label basis")
+            expected = "semantic_adjudication"
+>       assert_reason(validate_sample(sample, manifest=manifest, records=records, evidence=evidence), expected)
+
+tests/test_policy_dataset_v0.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+q = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False)
+reason = 'invalid_bound_args'
+
+    def assert_reason(q, reason):
+>       assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E       AssertionError: assert 'invalid_bound_args' in (([] + ['source_content_digest_mismatch']) + [])
+E        +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E        +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E        +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+
+tests/test_policy_dataset_v0.py:51: AssertionError
+_____________________ test_frozen_basis_is_checked[label] ______________________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+mutation = 'label'
+
+    @pytest.mark.parametrize("mutation", ["scope", "schema", "evidence", "query", "label"])
+    def test_frozen_basis_is_checked(dataset, mutation):
+        sample = dataset[0]["progress-needed"]
+        _, manifest, records, evidence = dataset
+        manifest = manifest.model_copy(deep=True)
+        evidence = dict(evidence)
+        if mutation == "scope":
+            manifest.reviews[sample.sample_id].scope["book_name"] = "wrong"
+            expected = "scope_binding"
+        elif mutation == "schema":
+            manifest.reviews[sample.sample_id].tool_metadata["get_recent_progress"]["schema_hash"] = "wrong"
+            expected = "registry_version_or_schema"
+        elif mutation == "evidence":
+            evidence["fixture-basis/v0"] = b"changed"
+            expected = "unavailable_or_changed_evidence"
+        elif mutation == "query":
+            sample = dataset[0]["resolved"]
+            obs = sample.observation.model_dump()
+            obs["admissible_actions"][0]["args"]["input"]["query"] = "wrong binding"
+            sample = changed(sample, observation=obs)
+            review = manifest.reviews[sample.sample_id]
+            review.observation_hash = sample.observation_hash
+            review.expected_action_hashes = [action_hash(a) for a in sample.observation.admissible_actions]
+            expected = "invalid_bound_args"
+        else:
+            sample = changed(sample, adjudication_reason="Changed label basis")
+            expected = "semantic_adjudication"
+>       assert_reason(validate_sample(sample, manifest=manifest, records=records, evidence=evidence), expected)
+
+tests/test_policy_dataset_v0.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+q = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False)
+reason = 'semantic_adjudication'
+
+    def assert_reason(q, reason):
+>       assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E       AssertionError: assert 'semantic_adjudication' in (([] + ['source_content_digest_mismatch']) + [])
+E        +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E        +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E        +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+
+tests/test_policy_dataset_v0.py:51: AssertionError
+__________________ test_diagnostic_tracks_and_lock_semantics ___________________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+
+    def test_diagnostic_tracks_and_lock_semantics(dataset):
+        samples = dataset[0]
+        for name in ("scope-defect", "missing-defect", "textbook-empty", "unknown-forbidden"):
+            q = quality(samples[name], dataset)
+>           assert q.diagnostic_eligible and not q.selection_eligible
+E           AssertionError: assert (False)
+E            +  where False = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).diagnostic_eligible
+
+tests/test_policy_dataset_v0.py:181: AssertionError
+_________ test_lock_requires_approved_review_and_separate_adjudication _________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+
+    def test_lock_requires_approved_review_and_separate_adjudication(dataset):
+        sample = dataset[0]["progress-needed"]
+        splits = assign_splits([sample])
+        with pytest.raises(ValueError, match="quality gate"):
+            lock_manifest([sample], splits, {sample.sample_id: quality(sample, dataset)})
+        _, manifest, _, evidence = dataset
+        manifest = manifest.model_copy(deep=True)
+        sample = sample.model_copy(deep=True)
+        # Test-only approved deterministic rule; not installed in fixture manifests.
+        source = sample.label_source[0].model_copy(update={"kind": "approved_rule", "ref": "test-rule"})
+        manifest.approved_rules[source.ref] = source.version
+        manifest.reviews[sample.sample_id].reviewer = source
+        sample.label_source = [source]
+        records = [record_adjudication(sample, source, confirmed=True)]
+        q = validate_sample(sample, manifest=manifest, records=records, evidence=evidence, locked=True)
+>       assert q.selection_eligible
+E       AssertionError: assert False
+E        +  where False = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=True).selection_eligible
+
+tests/test_policy_dataset_v0.py:282: AssertionError
+___________________ test_hand_calculated_report_denominators ___________________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+
+    def test_hand_calculated_report_denominators(dataset):
+        report, _, _, _ = build_report(dataset)
+        selection = report["policy_selection"]
+>       assert selection["acceptable_accuracy"] == rate(4, 6)
+E       AssertionError: assert {'denominator...'value': None} == {'denominator...6666666666666}
+E         
+E         Differing items:
+E         {'numerator': 0} != {'numerator': 4}
+E         {'value': None} != {'value': 0.6666666666666666}
+E         {'display': 'N/A'} != {'display': '4/6'}
+E         {'denominator': 0} != {'denominator': 6}
+E         Use -v to get more diff
+
+tests/test_policy_dataset_v0.py:373: AssertionError
+_____ test_multi_acceptable_permutation_does_not_make_harmful_disagreement _____
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+
+    def test_multi_acceptable_permutation_does_not_make_harmful_disagreement(dataset):
+        sample = dataset[0]["multi"]
+        fake = FakeTeacher()
+        # Always choose another acceptable original identity. Gold stays outside fake.
+        fake.result = '{"action_id":"a1"}'
+        transformed, transform = permute_sample(sample)
+        fake.result = canonical_json({"action_id": transform.action_mapping["a1"]})
+        results = evaluate_views([sample], control_families=("multi",), teacher=fake)
+        report = generate_report([sample], results, {sample.sample_id: quality(sample, dataset)}, assign_splits([sample]))
+>       assert report["policy_selection"]["acceptable_accuracy"] == rate(1, 1)
+E       AssertionError: assert {'denominator...'value': None} == {'denominator... 'value': 1.0}
+E         
+E         Differing items:
+E         {'numerator': 0} != {'numerator': 1}
+E         {'value': None} != {'value': 1.0}
+E         {'display': 'N/A'} != {'display': '1/1'}
+E         {'denominator': 0} != {'denominator': 1}
+E         Use -v to get more diff
+
+tests/test_policy_dataset_v0.py:402: AssertionError
+____________ test_fake_invalid_counts_and_not_repaired[bad output] _____________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+raw = 'bad output'
+
+    @pytest.mark.parametrize("raw", ['bad output', '{"action_id":"unknown"}'])
+    def test_fake_invalid_counts_and_not_repaired(dataset, raw):
+        report, _, results, _ = build_report(dataset, teacher=FakeTeacher(raw))
+        assert report["teacher_comparison"]["status"] == "test_only"
+>       assert report["teacher_comparison"]["accuracy"]["acceptable_accuracy"] == rate(0, 6)
+E       AssertionError: assert {'denominator...'value': None} == {'denominator... 'value': 0.0}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Differing items:
+E         {'denominator': 0} != {'denominator': 6}
+E         {'value': None} != {'value': 0.0}
+E         {'display': 'N/A'} != {'display': '0/6'}
+E         Use -v to get more diff
+
+tests/test_policy_dataset_v0.py:411: AssertionError
+______ test_fake_invalid_counts_and_not_repaired[{"action_id":"unknown"}] ______
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+raw = '{"action_id":"unknown"}'
+
+    @pytest.mark.parametrize("raw", ['bad output', '{"action_id":"unknown"}'])
+    def test_fake_invalid_counts_and_not_repaired(dataset, raw):
+        report, _, results, _ = build_report(dataset, teacher=FakeTeacher(raw))
+        assert report["teacher_comparison"]["status"] == "test_only"
+>       assert report["teacher_comparison"]["accuracy"]["acceptable_accuracy"] == rate(0, 6)
+E       AssertionError: assert {'denominator...'value': None} == {'denominator... 'value': 0.0}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Differing items:
+E         {'denominator': 0} != {'denominator': 6}
+E         {'value': None} != {'value': 0.0}
+E         {'display': 'N/A'} != {'display': '0/6'}
+E         Use -v to get more diff
+
+tests/test_policy_dataset_v0.py:411: AssertionError
+_______ test_e2e_original_failure_fallback_and_task_success_are_separate _______
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+
+    def test_e2e_original_failure_fallback_and_task_success_are_separate(dataset):
+        _, samples, results, qualities = build_report(dataset)
+        record = ExecutionRecordV0(task_ref="stub-task@v0", scope="offline_stub", executed=True,
+            acceptance_basis_ref="test-standard@v0", acceptance_passed=True, original_rejected=1,
+            fallback_attempted=1, fallback_accepted=1, fallback_executed=1, tool_succeeded=1,
+            tool_attempted=1, answer_verification="unverified")
+        report = generate_report(samples, results, qualities, assign_splits(samples), executions=[record])
+        e2e = report["end_to_end"]
+        assert e2e["original_rejected"] == e2e["fallback_executed"] == 1
+        assert e2e["task_acceptance"] == rate(1, 1)
+        assert e2e["scope_counts"] == {"offline_stub": 1}
+        assert e2e["answer_verification"] == {"unverified": 1}
+        bad = evaluate(dataset[0]["progress-needed"], selector=lambda _: "bad output")
+        replaced = [bad if p.selector == "rule" and p.view == "main" and p.sample_id == bad.sample_id else p for p in results]
+        failed_report = generate_report(samples, replaced, qualities, assign_splits(samples), executions=[record])
+>       assert failed_report["policy_selection"]["invalid_rate"] == rate(1, 6)
+E       AssertionError: assert {'denominator...'value': None} == {'denominator...6666666666666}
+E         
+E         Differing items:
+E         {'numerator': 0} != {'numerator': 1}
+E         {'value': None} != {'value': 0.16666666666666666}
+E         {'display': 'N/A'} != {'display': '1/6'}
+E         {'denominator': 0} != {'denominator': 6}
+E         Use -v to get more diff
+
+tests/test_policy_dataset_v0.py:447: AssertionError
+__________ test_nullable_candidate_review_and_declared_invalid_source __________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+
+    def test_nullable_candidate_review_and_declared_invalid_source(dataset):
+        unknown = changed(dataset[0]["pending"], candidate_generation_valid=None)
+        assert unknown.candidate_generation_valid is None
+        assert not quality(unknown, dataset).candidate_reviewed
+        sample = dataset[0]["multi"].model_copy(deep=True)
+        sample.source.projection_version = "unknown-version"
+>       assert_reason(quality(sample, dataset), "projection_version_mismatch")
+
+tests/test_policy_dataset_v0.py:460: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+q = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False)
+reason = 'projection_version_mismatch'
+
+    def assert_reason(q, reason):
+>       assert reason in q.machine_errors + q.frozen_errors + q.unverified
+E       AssertionError: assert 'projection_version_mismatch' in (([] + ['source_content_digest_mismatch']) + [])
+E        +  where [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).machine_errors
+E        +  and   ['source_content_digest_mismatch'] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).frozen_errors
+E        +  and   [] = QualityV0(machine_errors=[], frozen_errors=['source_content_digest_mismatch'], unverified=[], selection_eligible=False, diagnostic_eligible=False, candidate_reviewed=False, semantic_adjudicated=False, locked_checked=False).unverified
+
+tests/test_policy_dataset_v0.py:51: AssertionError
+________ test_cli_confined_output_no_network_and_reproducible[validate] ________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cli_confined_output_no_ne0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11bcefa00>
+operation = 'validate'
+
+    @pytest.mark.parametrize("operation", ["validate", "split", "evaluate", "report"])
+    def test_cli_confined_output_no_network_and_reproducible(dataset, tmp_path, monkeypatch, operation):
+        before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in ROOT.iterdir() if p.is_file()}
+        def forbidden(*args, **kwargs):
+            raise AssertionError("network")
+        monkeypatch.setattr(socket, "socket", forbidden)
+        first, second = tmp_path / "first", tmp_path / "second"
+>       assert main([operation, "--dataset", str(ROOT), "--output", str(first), "--control-family", "multi"]) == 0
+
+tests/test_policy_dataset_v0.py:486: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['validate', '--dataset', '/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1', '--outp...l4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cli_confined_output_no_ne0/first', '--control-family', ...]
+
+    def main(argv=None):
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("operation", choices=("validate", "split", "evaluate", "report"))
+        parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
+        parser.add_argument("--output", type=Path, required=True)
+        parser.add_argument("--seed", default="dataset-v0")
+        parser.add_argument("--previous-split", type=Path)
+        parser.add_argument("--control-family", action="append", default=[])
+        parser.add_argument("--lock", action="store_true")
+        args = parser.parse_args(argv)
+        manifest, errors = validate_manifest(strict_loads((args.dataset / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/__main__.py:28: ValueError
+_________ test_cli_confined_output_no_network_and_reproducible[split] __________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cli_confined_output_no_ne1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11c28b850>
+operation = 'split'
+
+    @pytest.mark.parametrize("operation", ["validate", "split", "evaluate", "report"])
+    def test_cli_confined_output_no_network_and_reproducible(dataset, tmp_path, monkeypatch, operation):
+        before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in ROOT.iterdir() if p.is_file()}
+        def forbidden(*args, **kwargs):
+            raise AssertionError("network")
+        monkeypatch.setattr(socket, "socket", forbidden)
+        first, second = tmp_path / "first", tmp_path / "second"
+>       assert main([operation, "--dataset", str(ROOT), "--output", str(first), "--control-family", "multi"]) == 0
+
+tests/test_policy_dataset_v0.py:486: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['split', '--dataset', '/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1', '--output'...l4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cli_confined_output_no_ne1/first', '--control-family', ...]
+
+    def main(argv=None):
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("operation", choices=("validate", "split", "evaluate", "report"))
+        parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
+        parser.add_argument("--output", type=Path, required=True)
+        parser.add_argument("--seed", default="dataset-v0")
+        parser.add_argument("--previous-split", type=Path)
+        parser.add_argument("--control-family", action="append", default=[])
+        parser.add_argument("--lock", action="store_true")
+        args = parser.parse_args(argv)
+        manifest, errors = validate_manifest(strict_loads((args.dataset / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/__main__.py:28: ValueError
+________ test_cli_confined_output_no_network_and_reproducible[evaluate] ________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cli_confined_output_no_ne2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x117aea260>
+operation = 'evaluate'
+
+    @pytest.mark.parametrize("operation", ["validate", "split", "evaluate", "report"])
+    def test_cli_confined_output_no_network_and_reproducible(dataset, tmp_path, monkeypatch, operation):
+        before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in ROOT.iterdir() if p.is_file()}
+        def forbidden(*args, **kwargs):
+            raise AssertionError("network")
+        monkeypatch.setattr(socket, "socket", forbidden)
+        first, second = tmp_path / "first", tmp_path / "second"
+>       assert main([operation, "--dataset", str(ROOT), "--output", str(first), "--control-family", "multi"]) == 0
+
+tests/test_policy_dataset_v0.py:486: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['evaluate', '--dataset', '/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1', '--outp...l4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cli_confined_output_no_ne2/first', '--control-family', ...]
+
+    def main(argv=None):
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("operation", choices=("validate", "split", "evaluate", "report"))
+        parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
+        parser.add_argument("--output", type=Path, required=True)
+        parser.add_argument("--seed", default="dataset-v0")
+        parser.add_argument("--previous-split", type=Path)
+        parser.add_argument("--control-family", action="append", default=[])
+        parser.add_argument("--lock", action="store_true")
+        args = parser.parse_args(argv)
+        manifest, errors = validate_manifest(strict_loads((args.dataset / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/__main__.py:28: ValueError
+_________ test_cli_confined_output_no_network_and_reproducible[report] _________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cli_confined_output_no_ne3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11c119270>
+operation = 'report'
+
+    @pytest.mark.parametrize("operation", ["validate", "split", "evaluate", "report"])
+    def test_cli_confined_output_no_network_and_reproducible(dataset, tmp_path, monkeypatch, operation):
+        before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in ROOT.iterdir() if p.is_file()}
+        def forbidden(*args, **kwargs):
+            raise AssertionError("network")
+        monkeypatch.setattr(socket, "socket", forbidden)
+        first, second = tmp_path / "first", tmp_path / "second"
+>       assert main([operation, "--dataset", str(ROOT), "--output", str(first), "--control-family", "multi"]) == 0
+
+tests/test_policy_dataset_v0.py:486: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['report', '--dataset', '/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1', '--output...l4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cli_confined_output_no_ne3/first', '--control-family', ...]
+
+    def main(argv=None):
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("operation", choices=("validate", "split", "evaluate", "report"))
+        parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
+        parser.add_argument("--output", type=Path, required=True)
+        parser.add_argument("--seed", default="dataset-v0")
+        parser.add_argument("--previous-split", type=Path)
+        parser.add_argument("--control-family", action="append", default=[])
+        parser.add_argument("--lock", action="store_true")
+        args = parser.parse_args(argv)
+        manifest, errors = validate_manifest(strict_loads((args.dataset / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/__main__.py:28: ValueError
+___________ test_cli_lock_rejects_fixture_authority_and_path_escape ____________
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cli_lock_rejects_fixture_0')
+
+    def test_cli_lock_rejects_fixture_authority_and_path_escape(dataset, tmp_path):
+        with pytest.raises(ValueError, match="quality gate"):
+>           main(["report", "--dataset", str(ROOT), "--output", str(tmp_path / "locked"), "--lock"])
+
+tests/test_policy_dataset_v0.py:496: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['report', '--dataset', '/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1', '--output.../hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cli_lock_rejects_fixture_0/locked', '--lock']
+
+    def main(argv=None):
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("operation", choices=("validate", "split", "evaluate", "report"))
+        parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
+        parser.add_argument("--output", type=Path, required=True)
+        parser.add_argument("--seed", default="dataset-v0")
+        parser.add_argument("--previous-split", type=Path)
+        parser.add_argument("--control-family", action="append", default=[])
+        parser.add_argument("--lock", action="store_true")
+        args = parser.parse_args(argv)
+        manifest, errors = validate_manifest(strict_loads((args.dataset / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/__main__.py:28: ValueError
+
+During handling of the above exception, another exception occurred:
+
+dataset = ({'direct': EvaluationSampleV0(sample_id='direct@v0', observation=PolicyObservationV0(request='解释连续的含义', context=Polic... \xe4\xb8\x8d\xe8\xb6\xb3\xe4\xbb\xa5\xe5\x8c\xba\xe5\x88\x86\xe4\xb8\x8b\xe4\xb8\x80\xe6\xad\xa5\xe3\x80\x82\n', ...})
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cli_lock_rejects_fixture_0')
+
+    def test_cli_lock_rejects_fixture_authority_and_path_escape(dataset, tmp_path):
+>       with pytest.raises(ValueError, match="quality gate"):
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'quality gate'
+E         Actual message: 'source_content_digest_mismatch'
+
+tests/test_policy_dataset_v0.py:495: AssertionError
+__________ test_cold_cli_does_not_import_config_read_keys_or_connect ___________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cold_cli_does_not_import_0')
+
+    def test_cold_cli_does_not_import_config_read_keys_or_connect(tmp_path):
+        import os
+        import subprocess
+        import sys
+        script = '''
+    import os, socket, sqlite3, sys
+    original = os._Environ.__getitem__
+    def guarded(self, key):
+        if "API_KEY" in str(key) or "API_SECRET" in str(key):
+            raise AssertionError("credential read")
+        return original(self, key)
+    os._Environ.__getitem__ = guarded
+    def forbidden(*a, **kw):
+        raise AssertionError("external IO")
+    socket.socket.connect = forbidden
+    socket.socket.connect_ex = forbidden
+    socket.create_connection = forbidden
+    sqlite3.connect = forbidden
+    from evaluation.policy_dataset_v0.__main__ import main
+    main(["report", "--output", sys.argv[1]])
+    assert "config" not in sys.modules
+    assert not any(name == "llm" or name.startswith("llm.") for name in sys.modules)
+    assert "backend.tools.learning_tools" not in sys.modules
+    '''
+        env = dict(os.environ, OPENAI_API_KEY="fixture-present", QWEN_API_KEY="fixture-present")
+        result = subprocess.run([sys.executable, "-c", script, str(tmp_path / "cold")],
+            cwd=ROOT.parents[2], env=env, text=True, capture_output=True, timeout=15)
+>       assert result.returncode == 0, result.stderr
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 16, in <module>
+E           File "/Users/jichengqian/Documents/ChatGPT/texa/evaluation/policy_dataset_v0/__main__.py", line 28, in main
+E             raise ValueError(",".join(errors))
+E         ValueError: source_content_digest_mismatch
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/Users/jichengqian/Documents/ChatGPT/texa/venv310/bin/python', '-c', '\nimport os, socket, sql.../__main__.py", line 28, in main\n    raise ValueError(",".join(errors))\nValueError: source_content_digest_mismatch\n').returncode
+
+tests/test_policy_dataset_v0.py:533: AssertionError
+_____________ test_calibration_preserves_originals_and_development _____________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_calibration_preserves_ori0')
+
+    def test_calibration_preserves_originals_and_development(tmp_path):
+        original = (FIXTURES / "samples.jsonl").read_bytes()
+        output = tmp_path / "calibration"
+>       main(["calibrate", "--output", str(output)])
+
+tests/test_policy_seed_v0.py:111: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+evaluation/policy_dataset_v0/seed.py:60: in main
+    summary = calibrate(args.dataset, args.output)
+evaluation/policy_dataset_v0/seed_calibration.py:62: in calibrate
+    samples, manifest, records, evidence = load_dataset(dataset)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+____________________ test_textbook_zero_and_real_gate_scope ____________________
+
+    def test_textbook_zero_and_real_gate_scope():
+        text = "按教材检索连续定义"
+>       needed, _ = project_recipe(recipe(request=text, resolved_query=text, answer_mode="textbook_grounded"))
+
+tests/test_policy_seed_v0.py:169: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+evaluation/policy_dataset_v0/seed_production.py:174: in project_recipe
+    projection = _import_free_projection() if grounded else project_observation
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def _import_free_projection():
+        """Run the pinned production function without importing the model stack.
+    
+        The only removed node is its local import of has_textbook_evidence; that
+        exact pure function is loaded from reviewed source instead. No binder/gate
+        logic is replaced. Fail closed on either source pin changing.
+        """
+        from .validation import validate_manifest
+        root = Path(__file__).resolve().parents[2]
+        baseline = strict_loads((DEFAULT_DATASET / "manifest.json").read_text())
+        _, errors = validate_manifest(baseline)
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:41: ValueError
+_______ test_production_batches_separate_faults_and_merge_related_groups _______
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_production_batches_separa0')
+
+    def test_production_batches_separate_faults_and_merge_related_groups(tmp_path):
+        recipes = [recipe(related_refs=["template/task-A"]).model_dump(),
+            recipe(sample_id="paired@v0", source_family_id="paired", source_ref="synthetic/paired@v0",
+                   budget_calls=0, related_refs=["template/task-A"]).model_dump(),
+            recipe(sample_id="fault@v0", source_ref="synthetic/fault@v0", fault="wrong_book").model_dump()]
+        output = tmp_path / "batch"
+>       produce(recipes, blank_manifest(), output)
+
+tests/test_policy_seed_v0.py:196: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+___ test_finalization_requires_dual_blind_review_and_third_for_disagreement ____
+
+    def test_finalization_requires_dual_blind_review_and_third_for_disagreement():
+>       sample, trace, reviews, result = finalized()
+
+tests/test_policy_seed_v0.py:228: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+____________________ test_release_chain_and_formal_quality _____________________
+
+    def test_release_chain_and_formal_quality():
+>       _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+
+tests/test_policy_seed_v0.py:244: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+________________ test_duplicate_human_and_repeat_review_counts _________________
+
+    def test_duplicate_human_and_repeat_review_counts():
+>       sample, _, reviews, _ = finalized()
+
+tests/test_policy_seed_v0.py:256: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+__________ test_no_teacher_calls_before_independent_candidate_review ___________
+
+    def test_no_teacher_calls_before_independent_candidate_review():
+        sample, trace = generate_sample(recipe())
+>       manifest = blank_manifest()
+
+tests/test_policy_seed_v0.py:267: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+____________ test_teachers_and_rule_receive_identical_frozen_bytes _____________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_teachers_and_rule_receive0')
+
+    def test_teachers_and_rule_receive_identical_frozen_bytes(tmp_path):
+>       sample, manifest, splits, traces, bindings, qualities, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:274: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+_ test_first_failures_retained_without_retry[kwargs0-invalid_format-malformed] _
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_first_failures_retained_w0')
+kwargs = {'raw': 'oops'}, status = 'invalid_format', failure = 'malformed'
+
+    @pytest.mark.parametrize("kwargs,status,failure", [
+        ({"raw": "oops"}, "invalid_format", "malformed"),
+        ({"raw": '{"action_id":"x"}'}, "unknown_action_id", "unknown_action_id"),
+        ({"failure": TimeoutError}, "timeout", "timeout"),
+        ({"failure": ConnectionError}, "selector_exception", "transport_failure"),
+        ({"raw": "refused", "refusal": True}, "selector_exception", "refusal"),
+    ])
+    def test_first_failures_retained_without_retry(tmp_path, kwargs, status, failure):
+>       sample, manifest, splits, traces, bindings, qualities, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:296: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+_ test_first_failures_retained_without_retry[kwargs1-unknown_action_id-unknown_action_id] _
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_first_failures_retained_w1')
+kwargs = {'raw': '{"action_id":"x"}'}, status = 'unknown_action_id'
+failure = 'unknown_action_id'
+
+    @pytest.mark.parametrize("kwargs,status,failure", [
+        ({"raw": "oops"}, "invalid_format", "malformed"),
+        ({"raw": '{"action_id":"x"}'}, "unknown_action_id", "unknown_action_id"),
+        ({"failure": TimeoutError}, "timeout", "timeout"),
+        ({"failure": ConnectionError}, "selector_exception", "transport_failure"),
+        ({"raw": "refused", "refusal": True}, "selector_exception", "refusal"),
+    ])
+    def test_first_failures_retained_without_retry(tmp_path, kwargs, status, failure):
+>       sample, manifest, splits, traces, bindings, qualities, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:296: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+_____ test_first_failures_retained_without_retry[kwargs2-timeout-timeout] ______
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_first_failures_retained_w2')
+kwargs = {'failure': <class 'TimeoutError'>}, status = 'timeout'
+failure = 'timeout'
+
+    @pytest.mark.parametrize("kwargs,status,failure", [
+        ({"raw": "oops"}, "invalid_format", "malformed"),
+        ({"raw": '{"action_id":"x"}'}, "unknown_action_id", "unknown_action_id"),
+        ({"failure": TimeoutError}, "timeout", "timeout"),
+        ({"failure": ConnectionError}, "selector_exception", "transport_failure"),
+        ({"raw": "refused", "refusal": True}, "selector_exception", "refusal"),
+    ])
+    def test_first_failures_retained_without_retry(tmp_path, kwargs, status, failure):
+>       sample, manifest, splits, traces, bindings, qualities, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:296: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+_ test_first_failures_retained_without_retry[kwargs3-selector_exception-transport_failure] _
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_first_failures_retained_w3')
+kwargs = {'failure': <class 'ConnectionError'>}, status = 'selector_exception'
+failure = 'transport_failure'
+
+    @pytest.mark.parametrize("kwargs,status,failure", [
+        ({"raw": "oops"}, "invalid_format", "malformed"),
+        ({"raw": '{"action_id":"x"}'}, "unknown_action_id", "unknown_action_id"),
+        ({"failure": TimeoutError}, "timeout", "timeout"),
+        ({"failure": ConnectionError}, "selector_exception", "transport_failure"),
+        ({"raw": "refused", "refusal": True}, "selector_exception", "refusal"),
+    ])
+    def test_first_failures_retained_without_retry(tmp_path, kwargs, status, failure):
+>       sample, manifest, splits, traces, bindings, qualities, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:296: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+_ test_first_failures_retained_without_retry[kwargs4-selector_exception-refusal] _
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_first_failures_retained_w4')
+kwargs = {'raw': 'refused', 'refusal': True}, status = 'selector_exception'
+failure = 'refusal'
+
+    @pytest.mark.parametrize("kwargs,status,failure", [
+        ({"raw": "oops"}, "invalid_format", "malformed"),
+        ({"raw": '{"action_id":"x"}'}, "unknown_action_id", "unknown_action_id"),
+        ({"failure": TimeoutError}, "timeout", "timeout"),
+        ({"failure": ConnectionError}, "selector_exception", "transport_failure"),
+        ({"raw": "refused", "refusal": True}, "selector_exception", "refusal"),
+    ])
+    def test_first_failures_retained_without_retry(tmp_path, kwargs, status, failure):
+>       sample, manifest, splits, traces, bindings, qualities, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:296: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+_______ test_incomplete_batch_keeps_common_denominator_and_missing_list ________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_incomplete_batch_keeps_co0')
+
+    def test_incomplete_batch_keeps_common_denominator_and_missing_list(tmp_path):
+>       sample, manifest, splits, traces, bindings, qualities, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:311: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+______ test_teacher_preflight_fails_before_creating_output[authorization] ______
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_teacher_preflight_fails_b0')
+damage = 'authorization'
+
+    @pytest.mark.parametrize("damage", ["authorization", "prompt", "input", "retry", "model", "schedule"])
+    def test_teacher_preflight_fails_before_creating_output(tmp_path, damage):
+>       _, _, _, _, _, _, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:325: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+_________ test_teacher_preflight_fails_before_creating_output[prompt] __________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_teacher_preflight_fails_b1')
+damage = 'prompt'
+
+    @pytest.mark.parametrize("damage", ["authorization", "prompt", "input", "retry", "model", "schedule"])
+    def test_teacher_preflight_fails_before_creating_output(tmp_path, damage):
+>       _, _, _, _, _, _, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:325: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+__________ test_teacher_preflight_fails_before_creating_output[input] __________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_teacher_preflight_fails_b2')
+damage = 'input'
+
+    @pytest.mark.parametrize("damage", ["authorization", "prompt", "input", "retry", "model", "schedule"])
+    def test_teacher_preflight_fails_before_creating_output(tmp_path, damage):
+>       _, _, _, _, _, _, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:325: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+__________ test_teacher_preflight_fails_before_creating_output[retry] __________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_teacher_preflight_fails_b3')
+damage = 'retry'
+
+    @pytest.mark.parametrize("damage", ["authorization", "prompt", "input", "retry", "model", "schedule"])
+    def test_teacher_preflight_fails_before_creating_output(tmp_path, damage):
+>       _, _, _, _, _, _, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:325: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+__________ test_teacher_preflight_fails_before_creating_output[model] __________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_teacher_preflight_fails_b4')
+damage = 'model'
+
+    @pytest.mark.parametrize("damage", ["authorization", "prompt", "input", "retry", "model", "schedule"])
+    def test_teacher_preflight_fails_before_creating_output(tmp_path, damage):
+>       _, _, _, _, _, _, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:325: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+________ test_teacher_preflight_fails_before_creating_output[schedule] _________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_teacher_preflight_fails_b5')
+damage = 'schedule'
+
+    @pytest.mark.parametrize("damage", ["authorization", "prompt", "input", "retry", "model", "schedule"])
+    def test_teacher_preflight_fails_before_creating_output(tmp_path, damage):
+>       _, _, _, _, _, _, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:325: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+_____________ test_fixture_families_cannot_become_independent_test _____________
+
+    def test_fixture_families_cannot_become_independent_test():
+>       samples, _, _, _ = load_dataset(FIXTURES)
+
+tests/test_policy_seed_v0.py:340: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+_______ test_cold_calibration_never_imports_config_or_reads_credentials ________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cold_calibration_never_im0')
+
+    def test_cold_calibration_never_imports_config_or_reads_credentials(tmp_path):
+        code = '''
+    import sys, socket, sqlite3, pathlib, os
+    oldread = pathlib.Path.read_bytes
+    def read(self):
+        assert self.name != ".env" and "credential" not in self.name
+        return oldread(self)
+    pathlib.Path.read_bytes = read
+    socket.socket.connect = lambda *_: (_ for _ in ()).throw(AssertionError("network"))
+    sqlite3.connect = lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("database"))
+    from evaluation.policy_dataset_v0.seed import main
+    main(["calibrate", "--output", sys.argv[1]])
+    assert "config" not in sys.modules
+    assert "graph.generator" not in sys.modules
+    '''
+        result = subprocess.run([sys.executable, "-c", code, str(tmp_path / "cold")], cwd=ROOT, text=True, capture_output=True)
+>       assert result.returncode == 0, result.stderr
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 11, in <module>
+E           File "/Users/jichengqian/Documents/ChatGPT/texa/evaluation/policy_dataset_v0/seed.py", line 60, in main
+E             summary = calibrate(args.dataset, args.output)
+E           File "/Users/jichengqian/Documents/ChatGPT/texa/evaluation/policy_dataset_v0/seed_calibration.py", line 62, in calibrate
+E             samples, manifest, records, evidence = load_dataset(dataset)
+E           File "/Users/jichengqian/Documents/ChatGPT/texa/evaluation/policy_dataset_v0/seed_production.py", line 245, in load_dataset
+E             raise ValueError(",".join(errors))
+E         ValueError: source_content_digest_mismatch
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/Users/jichengqian/Documents/ChatGPT/texa/venv310/bin/python', '-c', '\nimport sys, socket, sq....py", line 245, in load_dataset\n    raise ValueError(",".join(errors))\nValueError: source_content_digest_mismatch\n').returncode
+
+tests/test_policy_seed_v0.py:364: AssertionError
+___ test_teacher_predictions_survive_blind_gold_version_without_view_changes ___
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_teacher_predictions_survi0')
+
+    def test_teacher_predictions_survive_blind_gold_version_without_view_changes(tmp_path):
+        sample, trace = generate_sample(recipe())
+>       manifest = blank_manifest()
+
+tests/test_policy_seed_v0.py:369: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+________ test_release_cli_rejects_provisional_before_creating_directory ________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_release_cli_rejects_provi0')
+
+    def test_release_cli_rejects_provisional_before_creating_directory(tmp_path):
+        calibration = tmp_path / "calibration"
+>       main(["calibrate", "--output", str(calibration)])
+
+tests/test_policy_seed_v0.py:406: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+evaluation/policy_dataset_v0/seed.py:60: in main
+    summary = calibrate(args.dataset, args.output)
+evaluation/policy_dataset_v0/seed_calibration.py:62: in calibrate
+    samples, manifest, records, evidence = load_dataset(dataset)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+__________ test_report_cli_formal_denominator_is_zero_for_calibration __________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_report_cli_formal_denomin0')
+
+    def test_report_cli_formal_denominator_is_zero_for_calibration(tmp_path):
+        calibration, report = tmp_path / "calibration", tmp_path / "report"
+>       main(["calibrate", "--output", str(calibration)])
+
+tests/test_policy_seed_v0.py:414: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+evaluation/policy_dataset_v0/seed.py:60: in main
+    summary = calibrate(args.dataset, args.output)
+evaluation/policy_dataset_v0/seed_calibration.py:62: in calibrate
+    samples, manifest, records, evidence = load_dataset(dataset)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+__________________ test_cli_review_finalize_release_roundtrip __________________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_cli_review_finalize_relea0')
+
+    def test_cli_review_finalize_release_roundtrip(tmp_path):
+        from evaluation.policy_dataset_v0.seed_production import write_bundle
+        draft = tmp_path / "draft"
+>       produce([recipe().model_dump()], blank_manifest(), draft)
+
+tests/test_policy_seed_v0.py:426: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+__________ test_sensitive_provider_response_metadata_is_not_persisted __________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-84/test_sensitive_provider_respon0')
+
+    def test_sensitive_provider_response_metadata_is_not_persisted(tmp_path):
+>       _, _, _, _, _, _, plan, inputs = prepared()
+
+tests/test_policy_seed_v0.py:474: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_policy_seed_v0.py:78: in prepared
+    _, _, _, (sample, manifest, evidence, record, trace, binding) = finalized()
+tests/test_policy_seed_v0.py:63: in finalized
+    manifest = blank_manifest()
+tests/test_policy_seed_v0.py:39: in blank_manifest
+    _, manifest, _, _ = load_dataset(FIXTURES)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+directory = PosixPath('/Users/jichengqian/Documents/ChatGPT/texa/evaluation/fixtures/policy_dataset_v0_1')
+
+    def load_dataset(directory):
+        from .serialization import read_samples
+        from .labels import AdjudicationRecordV0
+        root = Path(directory).resolve()
+        manifest, errors = validate_manifest(strict_loads((root / "manifest.json").read_text()))
+        if errors:
+>           raise ValueError(",".join(errors))
+E           ValueError: source_content_digest_mismatch
+
+evaluation/policy_dataset_v0/seed_production.py:245: ValueError
+=============================== warnings summary ===============================
+venv310/lib/python3.10/site-packages/starlette/testclient.py:53
+  /Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_context_eval_v3.py::test_context_eval_v3_uses_production_state_without_live_model
+FAILED tests/test_context_eval_v3.py::test_context_eval_v3_scores_opt_in_live_answer
+FAILED tests/test_policy_baseline_v01.py::test_active_baseline_preserves_original_gold_and_rejects_legacy_manifest
+FAILED tests/test_policy_dataset_v0.py::test_boolean_validity_is_not_a_quality_gate
+FAILED tests/test_policy_dataset_v0.py::test_frozen_basis_is_checked[scope]
+FAILED tests/test_policy_dataset_v0.py::test_frozen_basis_is_checked[schema]
+FAILED tests/test_policy_dataset_v0.py::test_frozen_basis_is_checked[evidence]
+FAILED tests/test_policy_dataset_v0.py::test_frozen_basis_is_checked[query]
+FAILED tests/test_policy_dataset_v0.py::test_frozen_basis_is_checked[label]
+FAILED tests/test_policy_dataset_v0.py::test_diagnostic_tracks_and_lock_semantics
+FAILED tests/test_policy_dataset_v0.py::test_lock_requires_approved_review_and_separate_adjudication
+FAILED tests/test_policy_dataset_v0.py::test_hand_calculated_report_denominators
+FAILED tests/test_policy_dataset_v0.py::test_multi_acceptable_permutation_does_not_make_harmful_disagreement
+FAILED tests/test_policy_dataset_v0.py::test_fake_invalid_counts_and_not_repaired[bad output]
+FAILED tests/test_policy_dataset_v0.py::test_fake_invalid_counts_and_not_repaired[{"action_id":"unknown"}]
+FAILED tests/test_policy_dataset_v0.py::test_e2e_original_failure_fallback_and_task_success_are_separate
+FAILED tests/test_policy_dataset_v0.py::test_nullable_candidate_review_and_declared_invalid_source
+FAILED tests/test_policy_dataset_v0.py::test_cli_confined_output_no_network_and_reproducible[validate]
+FAILED tests/test_policy_dataset_v0.py::test_cli_confined_output_no_network_and_reproducible[split]
+FAILED tests/test_policy_dataset_v0.py::test_cli_confined_output_no_network_and_reproducible[evaluate]
+FAILED tests/test_policy_dataset_v0.py::test_cli_confined_output_no_network_and_reproducible[report]
+FAILED tests/test_policy_dataset_v0.py::test_cli_lock_rejects_fixture_authority_and_path_escape
+FAILED tests/test_policy_dataset_v0.py::test_cold_cli_does_not_import_config_read_keys_or_connect
+FAILED tests/test_policy_seed_v0.py::test_calibration_preserves_originals_and_development
+FAILED tests/test_policy_seed_v0.py::test_textbook_zero_and_real_gate_scope
+FAILED tests/test_policy_seed_v0.py::test_production_batches_separate_faults_and_merge_related_groups
+FAILED tests/test_policy_seed_v0.py::test_finalization_requires_dual_blind_review_and_third_for_disagreement
+FAILED tests/test_policy_seed_v0.py::test_release_chain_and_formal_quality - ...
+FAILED tests/test_policy_seed_v0.py::test_duplicate_human_and_repeat_review_counts
+FAILED tests/test_policy_seed_v0.py::test_no_teacher_calls_before_independent_candidate_review
+FAILED tests/test_policy_seed_v0.py::test_teachers_and_rule_receive_identical_frozen_bytes
+FAILED tests/test_policy_seed_v0.py::test_first_failures_retained_without_retry[kwargs0-invalid_format-malformed]
+FAILED tests/test_policy_seed_v0.py::test_first_failures_retained_without_retry[kwargs1-unknown_action_id-unknown_action_id]
+FAILED tests/test_policy_seed_v0.py::test_first_failures_retained_without_retry[kwargs2-timeout-timeout]
+FAILED tests/test_policy_seed_v0.py::test_first_failures_retained_without_retry[kwargs3-selector_exception-transport_failure]
+FAILED tests/test_policy_seed_v0.py::test_first_failures_retained_without_retry[kwargs4-selector_exception-refusal]
+FAILED tests/test_policy_seed_v0.py::test_incomplete_batch_keeps_common_denominator_and_missing_list
+FAILED tests/test_policy_seed_v0.py::test_teacher_preflight_fails_before_creating_output[authorization]
+FAILED tests/test_policy_seed_v0.py::test_teacher_preflight_fails_before_creating_output[prompt]
+FAILED tests/test_policy_seed_v0.py::test_teacher_preflight_fails_before_creating_output[input]
+FAILED tests/test_policy_seed_v0.py::test_teacher_preflight_fails_before_creating_output[retry]
+FAILED tests/test_policy_seed_v0.py::test_teacher_preflight_fails_before_creating_output[model]
+FAILED tests/test_policy_seed_v0.py::test_teacher_preflight_fails_before_creating_output[schedule]
+FAILED tests/test_policy_seed_v0.py::test_fixture_families_cannot_become_independent_test
+FAILED tests/test_policy_seed_v0.py::test_cold_calibration_never_imports_config_or_reads_credentials
+FAILED tests/test_policy_seed_v0.py::test_teacher_predictions_survive_blind_gold_version_without_view_changes
+FAILED tests/test_policy_seed_v0.py::test_release_cli_rejects_provisional_before_creating_directory
+FAILED tests/test_policy_seed_v0.py::test_report_cli_formal_denominator_is_zero_for_calibration
+FAILED tests/test_policy_seed_v0.py::test_cli_review_finalize_release_roundtrip
+FAILED tests/test_policy_seed_v0.py::test_sensitive_provider_response_metadata_is_not_persisted
+50 failed, 1614 passed, 6 warnings in 40.83s

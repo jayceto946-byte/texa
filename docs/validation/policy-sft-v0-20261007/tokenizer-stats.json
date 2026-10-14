@@ -1,0 +1,42 @@
+{
+  "status": "complete",
+  "splits": {
+    "train": {
+      "p50": 340.0,
+      "p90": 357.0,
+      "p95": 358.0,
+      "p99": 365.0,
+      "max": 371,
+      "min": 294,
+      "N": 2688
+    },
+    "dev": {
+      "p50": 340.0,
+      "p90": 354.0,
+      "p95": 358.0,
+      "p99": 363.0,
+      "max": 363,
+      "min": 298,
+      "N": 576
+    },
+    "hidden": {
+      "p50": 338.5,
+      "p90": 355.0,
+      "p95": 357.0,
+      "p99": 363.0,
+      "max": 363,
+      "min": 298,
+      "N": 576
+    }
+  },
+  "max_seq_length": 384,
+  "truncated_instances": 0,
+  "all_gold_and_candidates_complete": true,
+  "length_policy": "ceil(all-split maximum/32)*32; hidden inspected for lengths only",
+  "tokenizer_files_sha256": {
+    "tokenizer_config.json": "9f50d718d59f138165a491d1cd795d3e3074126a64d035f1229c98ac50c455a3",
+    "tokenizer.json": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+    "chat_template.jinja": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80"
+  },
+  "prefix_alignment_checked": true
+}

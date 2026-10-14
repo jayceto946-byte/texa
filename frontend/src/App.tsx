@@ -1,43 +1,14 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ChatProvider } from './contexts/ChatContext';
-import MainLayout from './layouts/MainLayout';
-import DesktopTitleBar from './components/DesktopTitleBar';
-import FirstRunGuide from './components/FirstRunGuide';
-import { InspectorProvider } from './contexts/InspectorContext';
-import ChatPage from './pages/ChatPage';
-import MistakesPage from './pages/MistakesPage';
-import ExercisesPage from './pages/ExercisesPage';
-import BooksPage from './pages/BooksPage';
-import HighlightPage from './pages/HighlightPage';
-import LearningPage from './pages/LearningPage';
-import WeeklyReportPage from './pages/WeeklyReportPage';
-import SettingsPage from './components/SystemHealth';
+import { lazy, Suspense } from 'react';
+import RemoteConnectionGate from './components/RemoteConnectionGate';
+import WorkspaceSkeleton from './components/ui/WorkspaceSkeleton';
 
-function App() {
-  return (
-    <ChatProvider>
-      <InspectorProvider>
-        <DesktopTitleBar />
-        <BrowserRouter>
-          <FirstRunGuide />
-          <Routes>
-            <Route path="/" element={<MainLayout />}>
-              <Route index element={<ChatPage />} />
-              <Route path="mistakes" element={<MistakesPage />} />
-              <Route path="exercises" element={<ExercisesPage />} />
-              <Route path="kg" element={<Navigate to="/learning" replace />} />
-              <Route path="learning" element={<LearningPage />} />
-              <Route path="weekly" element={<WeeklyReportPage />} />
-              <Route path="books" element={<SettingsPage standaloneTab="subjects" />} />
-              <Route path="books/import" element={<BooksPage />} />
-              <Route path="highlights" element={<HighlightPage />} />
-              <Route path="settings" element={<Navigate to="/" replace state={{ openSettings: true }} />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </InspectorProvider>
-    </ChatProvider>
-  );
+// Authenticated workspace modules are not fetched until the gate opens.
+const Workspace = lazy(() => import('./Workspace'));
+
+export default function App() {
+  return <RemoteConnectionGate>
+    <Suspense fallback={<WorkspaceSkeleton label="正在准备学习工作区" />}>
+      <Workspace />
+    </Suspense>
+  </RemoteConnectionGate>;
 }
-
-export default App;

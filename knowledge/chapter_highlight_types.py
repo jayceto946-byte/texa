@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable
 
 
@@ -30,6 +30,9 @@ class SectionRef:
     page: int
     end_page: int | None = None
     is_auxiliary: bool = False
+    heading_block_id: str = ''
+    level: int = 2
+    source_block_ids: list[str] = field(default_factory=list)
 
 
 class ChapterHighlightError(RuntimeError):

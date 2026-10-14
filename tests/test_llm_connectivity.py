@@ -69,8 +69,9 @@ def test_vision_connectivity_uses_shared_image_completion_without_mutating_profi
 
     def complete(resolved, **kwargs):
         calls.append((resolved, kwargs))
-        return _response("white")
+        return _response("RED GREEN BLUE YELLOW BLUE RED YELLOW GREEN")
 
+    monkeypatch.setattr(connectivity, "_probe_colors", lambda: ["RED", "GREEN", "BLUE", "YELLOW", "BLUE", "RED", "YELLOW", "GREEN"])
     monkeypatch.setattr(connectivity, "create_vision_completion", complete)
     payload = model_settings_payload({})
     payload["credentials"]["vision"]["api_key"] = "test-key"
@@ -84,6 +85,16 @@ def test_vision_connectivity_uses_shared_image_completion_without_mutating_profi
     image = next(item for item in content if item["type"] == "image_url")
     assert image["image_url"]["url"].startswith("data:image/png;base64,")
     assert calls[0][1]["stream"] is False
+
+
+def test_vision_probe_rejects_a_completion_that_did_not_read_the_image(monkeypatch):
+    monkeypatch.setattr(connectivity, "_probe_colors", lambda: ["BLUE", "YELLOW", "RED", "GREEN", "RED", "BLUE", "GREEN", "YELLOW"])
+    monkeypatch.setattr(connectivity, "create_vision_completion", lambda *args, **kwargs: _response("RED GREEN BLUE YELLOW BLUE RED YELLOW GREEN"))
+    payload = model_settings_payload({})
+    payload["credentials"]["vision"]["api_key"] = "test-key"
+
+    with pytest.raises(RuntimeError, match="无法确认多模态能力"):
+        connectivity.test_model_settings_connection(payload, "vision")
 
 
 def test_vision_connectivity_failure_names_actual_image_request(monkeypatch):

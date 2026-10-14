@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Callable
+from pydantic import BaseModel
 
 
 @dataclass
@@ -15,6 +16,8 @@ class ToolContext:
     book_name: str = ""
     subject: str = ""
     conversation_id: str = ""
+    cancelled: Callable[[], bool] | None = field(default=None, repr=False)
+    timeout_seconds: float = 5.0
 
 
 @dataclass
@@ -52,6 +55,34 @@ class ToolSpec:
     timeout_seconds: float = 8.0
     version: str = "1"
     provenance: str = "local"
+    runtime_input: type[BaseModel] | None = None
+    runtime_output: type[BaseModel] | None = None
+    permission: str = "READ"
+    side_effect: str = "none"
+    source: str = "builtin"
+    idempotency: str = "none"
+    runtime_scope_check: Callable[[ToolContext, dict[str, Any]], None] | None = field(default=None, repr=False)
+    execution_mode: str = "thread"
+
+    def runtime_metadata(self) -> dict[str, Any]:
+        if self.runtime_input is None or self.runtime_output is None:
+            raise ValueError(f"tool {self.name} has no canonical runtime schema")
+        import hashlib
+        import json
+
+        input_schema = self.runtime_input.model_json_schema()
+        output_schema = self.runtime_output.model_json_schema()
+        schema_hash = hashlib.sha256(json.dumps(
+            [input_schema, output_schema], sort_keys=True,
+        ).encode()).hexdigest()
+        return {
+            "id": self.name, "version": self.version,
+            "input_schema": input_schema, "output_schema": output_schema,
+            "schema_hash": schema_hash, "permission": self.permission,
+            "side_effect": self.side_effect, "source": self.source,
+            "timeout_ms": int(self.timeout_seconds * 1000),
+            "provenance": self.provenance, "idempotency": self.idempotency,
+        }
 
     def public_dict(self) -> dict:
         return {
@@ -89,6 +120,11 @@ class ToolRegistry:
         if name not in self._tools:
             raise KeyError(f"unknown tool: {name}")
         return self._tools[name]
+
+    def runtime_tool(self, name: str) -> ToolSpec:
+        spec = self.get(name)
+        spec.runtime_metadata()
+        return spec
 
     def call(
         self,

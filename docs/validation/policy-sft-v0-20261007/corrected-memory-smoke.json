@@ -1,0 +1,252 @@
+{
+  "status": "passed",
+  "requested_microsteps": 5,
+  "steps": [
+    {
+      "microstep": 1,
+      "optimizer_update": false,
+      "loss": 0.15909090638160706,
+      "gradient_finite": true,
+      "adapter_finite": true,
+      "optimizer_state_finite": true,
+      "wall_seconds": 15.158134416999928,
+      "supervised_tokens": 11,
+      "rss_bytes": 42631168,
+      "max_rss_bytes": 1259962368,
+      "mlx_active_bytes": 828779260,
+      "mlx_cache_bytes": 4476017076,
+      "mlx_peak_bytes": 3684809050,
+      "unified_memory_note": "MLX GPU allocations share physical memory with RSS; do not sum them"
+    },
+    {
+      "microstep": 2,
+      "optimizer_update": false,
+      "loss": 0.05681818351149559,
+      "gradient_finite": true,
+      "adapter_finite": true,
+      "optimizer_state_finite": true,
+      "wall_seconds": 12.302775291999751,
+      "supervised_tokens": 11,
+      "rss_bytes": 68780032,
+      "max_rss_bytes": 1259962368,
+      "mlx_active_bytes": 828779832,
+      "mlx_cache_bytes": 4492386236,
+      "mlx_peak_bytes": 3696305554,
+      "unified_memory_note": "MLX GPU allocations share physical memory with RSS; do not sum them"
+    },
+    {
+      "microstep": 3,
+      "optimizer_update": false,
+      "loss": 0.20454545319080353,
+      "gradient_finite": true,
+      "adapter_finite": true,
+      "optimizer_state_finite": true,
+      "wall_seconds": 8.116706917000556,
+      "supervised_tokens": 11,
+      "rss_bytes": 38699008,
+      "max_rss_bytes": 1259962368,
+      "mlx_active_bytes": 828779324,
+      "mlx_cache_bytes": 4501547068,
+      "mlx_peak_bytes": 3696305554,
+      "unified_memory_note": "MLX GPU allocations share physical memory with RSS; do not sum them"
+    },
+    {
+      "microstep": 4,
+      "optimizer_update": false,
+      "loss": 0.06818182021379471,
+      "gradient_finite": true,
+      "adapter_finite": true,
+      "optimizer_state_finite": true,
+      "wall_seconds": 8.15873937499964,
+      "supervised_tokens": 11,
+      "rss_bytes": 31277056,
+      "max_rss_bytes": 1259962368,
+      "mlx_active_bytes": 828779324,
+      "mlx_cache_bytes": 4498499956,
+      "mlx_peak_bytes": 3696305554,
+      "unified_memory_note": "MLX GPU allocations share physical memory with RSS; do not sum them"
+    },
+    {
+      "microstep": 5,
+      "optimizer_update": false,
+      "loss": 0.04545454680919647,
+      "gradient_finite": true,
+      "adapter_finite": true,
+      "optimizer_state_finite": true,
+      "wall_seconds": 10.174631416000011,
+      "supervised_tokens": 11,
+      "rss_bytes": 34242560,
+      "max_rss_bytes": 1259962368,
+      "mlx_active_bytes": 828779578,
+      "mlx_cache_bytes": 4501596602,
+      "mlx_peak_bytes": 3696305554,
+      "unified_memory_note": "MLX GPU allocations share physical memory with RSS; do not sum them"
+    }
+  ],
+  "config": {
+    "model": "/Users/jichengqian/.lmstudio/models/lmstudio-community/Qwen3.5-0.8B-MLX-8bit",
+    "fine_tune_type": "lora",
+    "batch_size": 1,
+    "max_seq_length": 384,
+    "grad_checkpoint": true,
+    "mask_prompt": true,
+    "seed": 1807,
+    "optimizer": "adam",
+    "data": "/Users/jichengqian/Documents/ChatGPT/texa/docs/validation/policy-sft-v0-20261007",
+    "train": true,
+    "report_to": null,
+    "drop_last": false,
+    "num_layers": 8,
+    "lora_parameters": {
+      "rank": 8,
+      "scale": 16.0,
+      "dropout": 0.0,
+      "keys": [
+        "mlp.gate_proj",
+        "mlp.up_proj",
+        "mlp.down_proj",
+        "self_attn.q_proj",
+        "self_attn.k_proj",
+        "self_attn.v_proj",
+        "self_attn.o_proj",
+        "linear_attn.in_proj_qkv",
+        "linear_attn.in_proj_z",
+        "linear_attn.in_proj_a",
+        "linear_attn.in_proj_b",
+        "linear_attn.out_proj"
+      ]
+    },
+    "learning_rate": 5e-05,
+    "iters": 2688,
+    "grad_accumulation_steps": 8,
+    "steps_per_eval": 448,
+    "save_every": 448,
+    "adapter_path": "/Users/jichengqian/Documents/ChatGPT/texa/docs/validation/policy-sft-v0-20261007/checkpoints",
+    "epochs": 1,
+    "scale_semantics": "MLX directly multiplies BA by scale, not alpha/r",
+    "execution": "custom instrumented loop using mlx-lm default_loss and grad_checkpoint; iters=microsteps"
+  },
+  "optimizer_updates": 0,
+  "started_at": 1791347497.937825,
+  "purpose": "formal configuration backward/finite/resource checks, not task acquisition",
+  "dataset_freeze_sha256": "33f40846ebeecb0c52204ea646262153d615e96ab747799676a4003376891394",
+  "model": {
+    "trainable_parameters": 1803776,
+    "trainable_tensors": 124,
+    "targets": [
+      {
+        "layer_index": 16,
+        "modules": [
+          "mlp.up_proj",
+          "mlp.down_proj",
+          "mlp.gate_proj",
+          "linear_attn.out_proj",
+          "linear_attn.in_proj_a",
+          "linear_attn.in_proj_b",
+          "linear_attn.in_proj_z",
+          "linear_attn.in_proj_qkv"
+        ]
+      },
+      {
+        "layer_index": 17,
+        "modules": [
+          "mlp.up_proj",
+          "mlp.down_proj",
+          "mlp.gate_proj",
+          "linear_attn.out_proj",
+          "linear_attn.in_proj_a",
+          "linear_attn.in_proj_b",
+          "linear_attn.in_proj_z",
+          "linear_attn.in_proj_qkv"
+        ]
+      },
+      {
+        "layer_index": 18,
+        "modules": [
+          "mlp.up_proj",
+          "mlp.down_proj",
+          "mlp.gate_proj",
+          "linear_attn.out_proj",
+          "linear_attn.in_proj_a",
+          "linear_attn.in_proj_b",
+          "linear_attn.in_proj_z",
+          "linear_attn.in_proj_qkv"
+        ]
+      },
+      {
+        "layer_index": 19,
+        "modules": [
+          "mlp.up_proj",
+          "mlp.down_proj",
+          "mlp.gate_proj",
+          "self_attn.o_proj",
+          "self_attn.v_proj",
+          "self_attn.k_proj",
+          "self_attn.q_proj"
+        ]
+      },
+      {
+        "layer_index": 20,
+        "modules": [
+          "mlp.up_proj",
+          "mlp.down_proj",
+          "mlp.gate_proj",
+          "linear_attn.out_proj",
+          "linear_attn.in_proj_a",
+          "linear_attn.in_proj_b",
+          "linear_attn.in_proj_z",
+          "linear_attn.in_proj_qkv"
+        ]
+      },
+      {
+        "layer_index": 21,
+        "modules": [
+          "mlp.up_proj",
+          "mlp.down_proj",
+          "mlp.gate_proj",
+          "linear_attn.out_proj",
+          "linear_attn.in_proj_a",
+          "linear_attn.in_proj_b",
+          "linear_attn.in_proj_z",
+          "linear_attn.in_proj_qkv"
+        ]
+      },
+      {
+        "layer_index": 22,
+        "modules": [
+          "mlp.up_proj",
+          "mlp.down_proj",
+          "mlp.gate_proj",
+          "linear_attn.out_proj",
+          "linear_attn.in_proj_a",
+          "linear_attn.in_proj_b",
+          "linear_attn.in_proj_z",
+          "linear_attn.in_proj_qkv"
+        ]
+      },
+      {
+        "layer_index": 23,
+        "modules": [
+          "mlp.up_proj",
+          "mlp.down_proj",
+          "mlp.gate_proj",
+          "self_attn.o_proj",
+          "self_attn.v_proj",
+          "self_attn.k_proj",
+          "self_attn.q_proj"
+        ]
+      }
+    ],
+    "quantized_modules": 187
+  },
+  "physical_unified_memory_bytes": 8589934592,
+  "selected_instances": [
+    "PSFT0-04-06-06-A",
+    "PSFT0-04-06-07-A",
+    "PSFT0-04-00-06-A",
+    "PSFT0-04-00-07-A",
+    "PSFT0-04-07-10-A"
+  ],
+  "ended_at": 1791347557.09139,
+  "weights_discarded": true
+}

@@ -1,0 +1,2 @@
+REPRODUCED R2: synthetic credential marker appears verbatim in preflight error SSE summary
+No actual credentials were used; no model, provider, network, or production database access.

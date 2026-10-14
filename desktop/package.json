@@ -12,9 +12,10 @@
     "dist": "electron-builder --win nsis",
     "dist:standard": "electron-builder --win nsis zip",
     "dist:portable": "electron-builder --win portable",
+    "dist:mac": "electron-builder --mac dmg zip --arm64 -p never",
     "publish": "electron-builder --win nsis -p always",
-    "test": "node --test runtime.test.cjs",
-    "check": "node --check main.cjs && node --check preload.cjs && node --check runtime.cjs"
+    "test": "node --test *.test.cjs",
+    "check": "node --check main.cjs && node --check preload.cjs && node --check runtime.cjs && node --check appearance.cjs"
   },
   "dependencies": {
     "electron-updater": "^6.8.9"
@@ -34,6 +35,9 @@
       "main.cjs",
       "preload.cjs",
       "runtime.cjs",
+      "appearance.cjs",
+      "window-close.cjs",
+      "setup-state.cjs",
       "loading.html",
       "assets/**/*",
       "update-config.json",
@@ -68,6 +72,15 @@
       "target": [
         "nsis"
       ]
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["arm64"] },
+        { "target": "zip", "arch": ["arm64"] }
+      ],
+      "icon": "assets/texa-taskbar.png",
+      "artifactName": "Texa-${version}-mac-arm64.${ext}",
+      "identity": null
     },
     "nsis": {
       "oneClick": false,

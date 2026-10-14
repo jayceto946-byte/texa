@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "type": "object",
+      "properties": {
+        "fresh": {
+          "type": "boolean"
+        },
+        "observation": {
+          "type": "object",
+          "properties": {
+            "admissible_actions": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "args": {
+                        "type": "object",
+                        "properties": {
+                          "input": {
+                            "type": "object",
+                            "properties": {
+                              "book_name": {
+                                "type": "string"
+                              },
+                              "chapter": {
+                                "type": "string"
+                              },
+                              "limit": {
+                                "type": "integer"
+                              },
+                              "query": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "subject": {
+                                "type": "string"
+                              },
+                              "tag": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "book_name",
+                              "chapter",
+                              "limit",
+                              "query",
+                              "status",
+                              "subject",
+                              "tag"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "tool_id": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "input",
+                          "tool_id"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "args",
+                      "id",
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "args": {
+                        "type": "object",
+                        "properties": {
+                          "input": {
+                            "type": "object",
+                            "properties": {
+                              "book_name": {
+                                "type": "string"
+                              },
+                              "days": {
+                                "type": "integer"
+                              },
+                              "limit": {
+                                "type": "integer"
+                              },
+                              "subject": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "book_name",
+                              "days",
+                              "limit",
+                              "subject"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "tool_id": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "input",
+                          "tool_id"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "args",
+                      "id",
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "args": {
+                        "type": "object",
+                        "properties": {},
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "args",
+                      "id",
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "context": {
+              "type": "object",
+              "properties": {
+                "constraints": {
+                  "type": "object",
+                  "properties": {
+                    "answer_mode": {
+                      "type": "string"
+                    },
+                    "book_name": {
+                      "type": "string"
+                    },
+                    "subject": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "answer_mode",
+                    "book_name",
+                    "subject"
+                  ],
+                  "additionalProperties": false
+                },
+                "goal": {
+                  "type": "null"
+                },
+                "resolved_query": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "constraints",
+                "goal",
+                "resolved_query"
+              ],
+              "additionalProperties": false
+            },
+            "missing_inputs": {
+              "type": "array",
+              "items": {}
+            },
+            "previous_result": {
+              "type": "null"
+            },
+            "request": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "admissible_actions",
+            "context",
+            "missing_inputs",
+            "previous_result",
+            "request"
+          ],
+          "additionalProperties": false
+        },
+        "raw_output": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "fresh",
+        "observation",
+        "raw_output"
+      ],
+      "additionalProperties": false
+    }
+  ],
+  "description": "Benchmark V0 input envelope; dictionary shapes from frozen fixtures. Production open-ended domain fields remain governed by source validators."
+}

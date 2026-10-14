@@ -1,0 +1,901 @@
+{
+  "fixture": true,
+  "started": "2026-10-11T13:38:02.425Z",
+  "routes": 2,
+  "checks": [
+    {
+      "name": "book-import",
+      "path": "/books/import",
+      "width": 1280,
+      "state": "populated",
+      "status": "PASS",
+      "bodyWidth": 1280,
+      "viewport": 1280,
+      "alerts": []
+    },
+    {
+      "name": "settings",
+      "path": "/settings",
+      "width": 1280,
+      "state": "populated",
+      "status": "PASS",
+      "title": "从一个问题开始",
+      "bodyWidth": 1280,
+      "viewport": 1280,
+      "alerts": []
+    },
+    {
+      "name": "book-import",
+      "path": "/books/import",
+      "width": 1024,
+      "state": "populated",
+      "status": "PASS",
+      "bodyWidth": 1024,
+      "viewport": 1024,
+      "alerts": []
+    },
+    {
+      "name": "settings",
+      "path": "/settings",
+      "width": 1024,
+      "state": "populated",
+      "status": "PASS",
+      "title": "从一个问题开始",
+      "bodyWidth": 1024,
+      "viewport": 1024,
+      "alerts": []
+    },
+    {
+      "name": "book-import",
+      "path": "/books/import",
+      "width": 760,
+      "state": "populated",
+      "status": "PASS",
+      "bodyWidth": 760,
+      "viewport": 760,
+      "alerts": []
+    },
+    {
+      "name": "settings",
+      "path": "/settings",
+      "width": 760,
+      "state": "populated",
+      "status": "PASS",
+      "title": "从一个问题开始",
+      "bodyWidth": 760,
+      "viewport": 760,
+      "alerts": []
+    },
+    {
+      "name": "book-import",
+      "path": "/books/import",
+      "width": 390,
+      "state": "populated",
+      "status": "PASS",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "settings",
+      "path": "/settings",
+      "width": 390,
+      "state": "populated",
+      "status": "PASS",
+      "title": "从一个问题开始",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "book-import",
+      "path": "/books/import",
+      "width": 390,
+      "state": "empty",
+      "status": "PASS",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "book-import",
+      "path": "/books/import",
+      "width": 390,
+      "state": "loading",
+      "status": "PASS",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "book-import",
+      "path": "/books/import",
+      "width": 390,
+      "state": "error",
+      "status": "PASS",
+      "bodyWidth": 390,
+      "viewport": 390,
+      "alerts": []
+    },
+    {
+      "name": "settings",
+      "path": "/settings",
+      "width": 1280,
+      "state": "graphite",
+      "status": "PASS",
+      "title": "从一个问题开始",
+      "bodyWidth": 1280,
+      "viewport": 1280,
+      "alerts": []
+    },
+    {
+      "name": "settings",
+      "path": "/settings",
+      "width": 1280,
+      "state": "clay",
+      "status": "PASS",
+      "title": "从一个问题开始",
+      "bodyWidth": 1280,
+      "viewport": 1280,
+      "alerts": []
+    },
+    {
+      "name": "settings",
+      "path": "/settings",
+      "width": 1280,
+      "state": "notebook",
+      "status": "PASS",
+      "title": "从一个问题开始",
+      "bodyWidth": 1280,
+      "viewport": 1280,
+      "alerts": []
+    },
+    {
+      "name": "settings",
+      "path": "/settings",
+      "width": 1280,
+      "state": "codex",
+      "status": "PASS",
+      "title": "从一个问题开始",
+      "bodyWidth": 1280,
+      "viewport": 1280,
+      "alerts": []
+    }
+  ],
+  "interactions": [
+    "notes filter expand",
+    "notes tab→draft→edit",
+    "settings 偏好",
+    "settings 模型连接",
+    "settings 数据与教材",
+    "settings 关于与更新",
+    "settings 高级与诊断",
+    "390 settings navigation→detail focus→unsaved fields preserved→keyboard"
+  ],
+  "unhandled": [],
+  "errors": [
+    {
+      "console": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "console": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    }
+  ],
+  "requests": [
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/import-capabilities"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725885542_dd7b0033/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725886175_b95d6d3a/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/import-capabilities"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725888907_d6f15838/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725889551_255d6485/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/import-capabilities"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725892013_41768020/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725892631_65110f8a/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/import-capabilities"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725895068_d225ad1a/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725895693_89056cf4/management"
+    },
+    {
+      "scenario": "empty",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "empty",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "empty",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "empty",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "empty",
+      "method": "GET",
+      "path": "/api/books/import-capabilities"
+    },
+    {
+      "scenario": "loading",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "loading",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "loading",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "loading",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "loading",
+      "method": "GET",
+      "path": "/api/books/import-capabilities"
+    },
+    {
+      "scenario": "error",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "error",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "error",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "error",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "error",
+      "method": "GET",
+      "path": "/api/books/import-capabilities"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725901024_97bbe82b/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725901679_de8b3de2/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725902673_fdf210c8/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725903297_b1954506/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725904258_eb139e46/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725904908_6cc6b6b8/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725905856_9a088d67/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725906502_c3abde14/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/filters"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/drafts"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/drafts/qa-draft"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725909121_24aee58d/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725909761_72ce61d6/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/backups"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/version"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/network-diagnostics"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/health"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/version"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725909761_72ce61d6/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725912877_0e616970/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/backups"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/import-capabilities"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725912877_0e616970/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791725915726_dcf321e1/management"
+    }
+  ]
+}

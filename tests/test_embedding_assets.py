@@ -103,6 +103,17 @@ def test_ort_import_and_unsupported_architecture_are_typed(monkeypatch):
     assert error.value.failure.recoverable is False
 
 
+@pytest.mark.parametrize(
+    ("system", "machine"),
+    [("Windows", "AMD64"), ("Darwin", "arm64")],
+)
+def test_supported_desktop_architectures(monkeypatch, system, machine):
+    monkeypatch.setenv("TEXA_REQUIRE_SUPPORTED_ARCH", "1")
+    monkeypatch.setattr("platform.system", lambda: system)
+    monkeypatch.setattr("platform.machine", lambda: machine)
+    ensure_supported_architecture()
+
+
 def test_repair_installs_verified_version_without_overwriting_source(tmp_path, monkeypatch):
     source = make_assets(tmp_path / "source")
     data_dir = tmp_path / "user-data"

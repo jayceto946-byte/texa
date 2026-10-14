@@ -1,0 +1,51 @@
+{
+  "status": "passed",
+  "files": 542,
+  "total_bytes": 45021887,
+  "largest_file_bytes": 8414476,
+  "frozen_hashes": "all three SFT freezes and 271 benchmark pins verified",
+  "splits": {
+    "train": {
+      "seeds": 672,
+      "instances": 2688
+    },
+    "dev": {
+      "seeds": 144,
+      "instances": 576
+    },
+    "hidden": {
+      "seeds": 144,
+      "instances": 576
+    }
+  },
+  "seeds": 960,
+  "instances": 3840,
+  "benchmark_cases": 300,
+  "hidden_inference_count": 0,
+  "validation_date": "2026-10-07",
+  "empty_directory_git_tree_export": "passed; only Git-tree migration files; no repo-external runtime data required",
+  "offline_harness_tests": {
+    "passed": 30,
+    "deselected": 5,
+    "reason": "no downstream benchmark run; subset exercises parser, contract, configuration and Windows import boundary"
+  },
+  "windows_hardware_execution": "not performed; CUDA implementation intentionally out of scope",
+  "new_model_or_adapter_files": 0,
+  "secret_scan": "no real credential found; matches in pinned test files are synthetic secret/redaction fixtures",
+  "inherited_repo_large_asset": {
+    "path": "assets/embedding-runtime/bge-small-zh-v1.5/onnx-fp32-v1/model.onnx",
+    "bytes": 94847144,
+    "in_migration_manifest": false,
+    "action": "preserved pre-existing desktop asset; use sparse clone to avoid checkout"
+  },
+  "hidden_model_inference_count": 0,
+  "actual_sparse_clone": {
+    "status": "passed",
+    "core_autocrlf": true,
+    "integrity": "all 542 handoff hashes + all freezes matched",
+    "offline_harness_tests_passed": 30,
+    "embedding_model_checked_out": false,
+    "source": "committed Git repository; no external benchmark release or Mac run files required",
+    "limitation": "executed with existing Python3.10 on Mac; Windows line endings simulated, Windows/CUDA hardware not tested"
+  }
+}

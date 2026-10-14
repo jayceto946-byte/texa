@@ -245,3 +245,13 @@ http://127.0.0.1:9001
 - [AutoDL SCP](https://www.autodl.com/docs/scp/)
 - [AutoDL 实例目录](https://www.autodl.com/docs/env/)
 - [AutoDL 计费](https://www.autodl.com/docs/price/)
+
+## 2026-10-03：MinerU 4 原生输出包
+
+本地 Texa 已新增 `structured_content.json` 原生入口，已用提供的 MinerU 4.0.8 输出离线验收；不需要预先转换为 `texa_content_list_v1.json`。远端 MinerU 的 Python/CUDA 环境继续与本地 Python 3.10 分离，本文上面的 3.x 部署示例不代表 4.x 服务端安装步骤。
+
+将同一本书的 `structured_content.json` 和原始 `images/` 一起放入 ZIP，保留相对目录，使用桌面端“导入 MinerU 输出包”。不要把不同书的结果合成一个目录；损坏原生文件、未知版本或歧义来源会给出诊断，不会静默导入另一份书。原始 PDF 可选，缺 PDF 时显示为没有 PDF。
+
+兼容顺序为 native structured → content-list v1/v2 → 旧 middle → Markdown。新 `pages` middle 不由旧 `pdf_info` parser 读取，`_middle_chunks.json` 也不是输入或可恢复索引快照。公式和表格原图与结构化正文一并保存，缺图不会删除可用正文；原图不是数学正确性验证。
+
+首次 native 验收使用隔离数据目录或新教材身份。发布及兼容性细节、完整语料数量差异、GUI 和硬终止恢复未覆盖项见 [实施验收报告](mineru-native-implementation-2026-10-03.md)。保留已有 bridge、源归档和旧 content-list 支持。

@@ -7,7 +7,6 @@ for books, mistakes, exercises, or learner mastery.
 """
 from __future__ import annotations
 
-import threading
 import copy
 import logging
 import time
@@ -57,7 +56,7 @@ LEARNING_TASK_STATE_CONTRACT = {
     },
     "waiting_for_confirmation": {
         "phase": "paused",
-        "transitions": frozenset({"completed", "degraded", "failed", "cancelled"}),
+        "transitions": frozenset({"completed", "degraded", "failed", "cancelled", "interrupted"}),
         "terminal": False,
         "interruptible": False,
         "resumable": False,
@@ -135,7 +134,10 @@ DELIVERED_TASK_STATUSES = frozenset(
     status for status, contract in LEARNING_TASK_STATE_CONTRACT.items()
     if contract["delivered"]
 )
-_TASK_LOCK = threading.RLock()
+from backend.services.goals.service import GOAL_CONTROL_LOCK
+
+# Legacy admission and Runtime management share one process-wide fence.
+_TASK_LOCK = GOAL_CONTROL_LOCK
 
 
 def _now() -> str:
@@ -264,6 +266,7 @@ class LearningTask:
             artifacts = value.get("artifacts") or {}
             value["artifacts"] = {
                 "visual_ir": artifacts.get("visual_ir") or {},
+                "image_url": f"/api/mistakes/tasks/{self.id}/image" if self.task_type == "visual_qa" and artifacts.get("image_path") else "",
                 "supplement_count": len(artifacts.get("supplemental_visual_irs") or []),
                 "completed_derivation": _bounded_text(artifacts.get("completed_derivation"), 4000),
                 "pending_actions": list(artifacts.get("pending_actions") or [])[:10],
@@ -339,6 +342,9 @@ class LearningTaskStore:
     def _persist(self, task: LearningTask) -> LearningTask:
         validate_learning_task_status(task.status)
         with _TASK_LOCK:
+            if task.status == "running" and task.conversation_id:
+                from backend.services.conversation_management import assert_conversation_writable
+                assert_conversation_writable(task.conversation_id, progress_root=self.root.parent)
             task.updated_at = _now()
             path = self._path(task.id)
             path.parent.mkdir(parents=True, exist_ok=True)

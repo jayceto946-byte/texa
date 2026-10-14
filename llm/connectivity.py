@@ -5,6 +5,8 @@ from __future__ import annotations
 import base64
 import binascii
 import os
+import re
+import secrets
 import struct
 import zlib
 from collections.abc import Callable, Mapping
@@ -40,6 +42,13 @@ def _test_openai_compatible(resolved: ResolvedModelRole) -> None:
         extra_body=extra_body or None,
     )
     _validate_completion_response(response, label="文本模型")
+    # Explicit connection testing also probes native tools without domain data.
+    from llm.tool_capability import verify_tool_capability
+    try:
+        verify_tool_capability(resolved, client=client)
+    except Exception as probe_error:
+        import logging
+        logging.getLogger(__name__).info("Tool capability probe unavailable (%s)", type(probe_error).__name__)
 
 
 def _test_ollama(resolved: ResolvedModelRole) -> None:
@@ -53,15 +62,29 @@ def _test_ollama(resolved: ResolvedModelRole) -> None:
         raise RuntimeError("文本模型未返回 completion message")
 
 
-def _png_data_url(size: int = 32) -> str:
+_PROBE_PALETTE = {
+    "RED": b"\xff\x20\x20", "GREEN": b"\x20\xb0\x30",
+    "BLUE": b"\x20\x50\xff", "YELLOW": b"\xff\xd0\x20",
+}
+
+
+def _probe_colors() -> list[str]:
+    return secrets.SystemRandom().sample(list(_PROBE_PALETTE) * 2, 8)
+
+
+def _png_data_url(colors: list[str]) -> str:
     def chunk(kind: bytes, data: bytes) -> bytes:
         checksum = binascii.crc32(kind + data) & 0xFFFFFFFF
         return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", checksum)
 
-    rows = b"".join(b"\x00" + (b"\xff\xff\xff" * size) for _ in range(size))
+    height = 32
+    stripe = 32
+    width = stripe * len(colors)
+    row = b"\x00" + b"".join(_PROBE_PALETTE[color] * stripe for color in colors)
+    rows = row * height
     png = (
         b"\x89PNG\r\n\x1a\n"
-        + chunk(b"IHDR", struct.pack(">IIBBBBB", size, size, 8, 2, 0, 0, 0))
+        + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0))
         + chunk(b"IDAT", zlib.compress(rows))
         + chunk(b"IEND", b"")
     )
@@ -69,13 +92,14 @@ def _png_data_url(size: int = 32) -> str:
 
 
 def _test_vision(resolved: ResolvedModelRole) -> None:
+    colors = _probe_colors()
     response = create_vision_completion(
         resolved,
         messages=[{
             "role": "user",
             "content": [
-                {"type": "text", "text": "Describe the image in one word."},
-                {"type": "image_url", "image_url": {"url": _png_data_url()}},
+                {"type": "text", "text": "Name the eight vertical color bands from left to right. Answer with eight English color names separated by spaces; each name must be RED, GREEN, BLUE, or YELLOW."},
+                {"type": "image_url", "image_url": {"url": _png_data_url(colors)}},
             ],
         }],
         max_tokens=128,
@@ -83,6 +107,11 @@ def _test_vision(resolved: ResolvedModelRole) -> None:
         stream=False,
     )
     _validate_completion_response(response, label="识图模型")
+    message = response.choices[0].message
+    answer = str(getattr(message, "content", "") or "")
+    observed = re.findall(r"\b(?:RED|GREEN|BLUE|YELLOW)\b", answer.upper())
+    if observed != colors:
+        raise RuntimeError("识图请求已返回，但未能正确识别测试图片；无法确认多模态能力")
 
 
 register_connection_tester("openai_compatible", _test_openai_compatible)

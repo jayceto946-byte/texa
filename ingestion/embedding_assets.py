@@ -54,18 +54,25 @@ def _load_json(path: Path) -> dict:
 
 
 def ensure_supported_architecture() -> None:
-    strict = getattr(sys, "frozen", False) or os.getenv("TEXA_REQUIRE_WINDOWS_X64", "0") == "1"
+    strict = (
+        getattr(sys, "frozen", False)
+        or os.getenv("TEXA_REQUIRE_SUPPORTED_ARCH", "0") == "1"
+        or os.getenv("TEXA_REQUIRE_WINDOWS_X64", "0") == "1"
+    )
     if not strict:
         return
     system = platform.system().lower()
     machine = platform.machine().lower()
-    if system != "windows" or machine not in {"amd64", "x86_64"}:
+    supported = (system == "windows" and machine in {"amd64", "x86_64"}) or (
+        system == "darwin" and machine == "arm64"
+    )
+    if not supported:
         raise EmbeddingRuntimeError(
             "UNSUPPORTED_ARCHITECTURE",
-            f"Texa Standard ONNX runtime supports Windows x64; detected {system}/{machine}",
+            f"Texa Standard ONNX runtime supports Windows x64 and macOS arm64; detected {system}/{machine}",
             stage="runtime_check",
             recoverable=False,
-            repair_action="install_supported_windows_x64_release",
+            repair_action="install_supported_release",
         )
 
 

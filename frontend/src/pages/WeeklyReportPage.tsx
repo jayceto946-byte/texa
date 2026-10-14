@@ -1,6 +1,8 @@
+import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
+import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, BookOpen, ClipboardCheck, HelpCircle, Loader2, RefreshCw } from 'lucide-react';
+import { BarChart3, BookOpen, ClipboardCheck, HelpCircle, RefreshCw } from 'lucide-react';
 import { get } from '../api/client';
 import { ActionableIssue } from '../components/ui/AsyncState';
 import { useChatContext } from '../contexts/ChatContext';
@@ -57,27 +59,25 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
   const nextStep = report?.suggestions?.[0] || '先完成一次问答或错题复习，再回来查看建议。';
 
   return (
-    <div className={compact ? 'space-y-4' : 'h-full overflow-y-auto bg-bg-primary p-6'}>
-      <div className="flex items-center justify-between gap-3">
+    <div className={compact ? 'space-y-4' : 'management-workspace flex h-full min-w-0 flex-col'}>
+      <header className={compact ? 'flex items-center justify-between gap-3' : 'app-page-header window-drag-region'}>
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-bg-card">
+          {compact && <div className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-bg-card">
             <BarChart3 className="h-5 w-5 text-accent" />
-          </div>
+          </div>}
           <div>
-            <h2 className="text-sm font-semibold text-text-primary">{title}</h2>
+            <h2 className={compact ? 'text-sm font-semibold text-text-primary' : 'app-page-title'}>{title}</h2>
           </div>
         </div>
-        <button onClick={loadReport} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-bg-card px-3 py-2 text-sm hover:bg-bg-primary disabled:opacity-50">
+        <button onClick={loadReport} disabled={loading} className="app-secondary-button">
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           刷新
         </button>
-      </div>
+      </header>
+      <div className={compact ? 'space-y-4' : 'management-page-content min-h-0 flex-1 space-y-4 overflow-y-auto'}>
 
       {loading && !report && (
-        <div className="flex items-center justify-center gap-2 rounded-md border border-border bg-bg-card py-8 text-sm text-text-secondary">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          正在整理{title}
-        </div>
+        <WorkspaceSkeleton label={`正在整理${title}`} header={false} reading />
       )}
 
       {error && <ActionableIssue
@@ -110,7 +110,7 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
             <button type="button" onClick={() => setShowStats((value) => !value)} className="app-secondary-button">
               {showStats ? '收起学习统计' : '查看学习统计'}
             </button>
-            <Link to="/mistakes?tab=review&session=1" className="app-primary-button">开始复习</Link>
+            <Link to="/learning/review" className="app-primary-button">开始复习</Link>
           </div>
 
           {showStats && <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
@@ -128,13 +128,14 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
               {(report?.recent_questions || []).length ? report!.recent_questions.map((item, idx) => (
                 <div key={`${item.time}-${idx}`} className="rounded-md bg-bg-primary px-3 py-2 text-sm">
                   <div className="mb-1 text-xs text-text-secondary">{item.time}</div>
-                  <div>{item.question}</div>
+                  <div className="[&_.markdown-body]:text-sm [&_.markdown-body_p]:m-0 [&_.katex-display]:overflow-x-auto"><SimpleMarkdown content={item.question}/></div>
                 </div>
               )) : <div className="text-sm text-text-secondary">暂无问答记录</div>}
             </div>
           </section>
         </>
       )}
+      </div>
     </div>
   );
 };
