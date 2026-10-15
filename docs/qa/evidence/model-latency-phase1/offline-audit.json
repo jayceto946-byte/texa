@@ -1,0 +1,46 @@
+{
+  "python": "3.10.21",
+  "packages": {
+    "langchain": "1.3.2",
+    "langchain-openai": "1.2.2",
+    "langchain-core": "1.4.0",
+    "openai": "2.46.0"
+  },
+  "network_calls": 0,
+  "baseline": "f91633673c40cf9c353e49804e2584b64f3131cc",
+  "payload": {
+    "model": "qwen3.7-plus",
+    "temperature": 0.0,
+    "stream": true,
+    "max_completion_tokens": 4096,
+    "parallel_tool_calls": false,
+    "extra_body": {
+      "enable_thinking": true
+    }
+  },
+  "assistant_wire_fields": [
+    "content",
+    "role",
+    "tool_calls"
+  ],
+  "historical_runs": 14,
+  "historical_requests": 23,
+  "B_returned_reasoning_tokens": [
+    191,
+    311,
+    76,
+    17,
+    2577,
+    395
+  ],
+  "evidence_root": "/Users/jichengqian/Documents/ChatGPT/texa",
+  "source_sha256": {
+    "TEXA-AGENT-LOOP-PERFORMANCE-REPORT.md": "6136f4301895329b94b04d3950d5914c88f22da2e6bd334a078b5b955da08c6b",
+    "docs/qa/REAL-NATIVE-MATH-ACCEPTANCE-2026-10-13.md": "3b9e85ca5b99ef4de182081f6e1aa3adbcc7a717b99336ac48872044216120c7",
+    "docs/qa/evidence/agent-loop-performance/paired-2026-10-13/manifest.json": "28e8071f5eb7fe53887c3e812bac7abc11c068ab0667f4ad3e50eff264aa4ede",
+    "docs/qa/evidence/agent-loop-performance/paired-2026-10-13/provider-receipts.json": "53f0062aa2bc4b046c897299ec295d715c3d87d9875e4147e476ec144466707a",
+    "llm/agent_adapter.py": "d2711210ea9355bf991177741118b33081768d58cc5794466c9711b9ccacd74f",
+    "backend/services/agent_runtime/native_loop.py": "f9507d6239b880dbf324d556fee8264e76fc652f46dedec84009337f98c5d444",
+    "backend/tools/math_tools.py": "214583e62ec34f7295fe4967e2210ff93084f2cf4513daf34a144c2c4a260dc0"
+  }
+}
