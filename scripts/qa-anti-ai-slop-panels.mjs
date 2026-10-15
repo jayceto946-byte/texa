@@ -11,12 +11,17 @@ export async function auditPanels({ browser, capture, results, dist }) {
   await page.route('**/api/mistakes/chat-sources/query?*',route=>route.fulfill({json:{success:true,data:[]}}));
   const shot=async name=>{await page.waitForTimeout(250);await page.evaluate(()=>document.fonts.ready);results.checks.push({name,width,state:'panel',...await capture(page,`${width}-panel-${name}`)});};
   const go=async path=>{await page.goto(`http://127.0.0.1:18040${path}`);await page.waitForLoadState('networkidle');};
+  const attachment=async(direct,mobile)=>{
+   const button=page.getByRole('button',{name:direct,exact:true});
+   if(await button.isVisible())await button.click();
+   else {await page.getByRole('button',{name:'附件',exact:true}).click();await page.getByRole('menuitem',{name:mobile,exact:true}).click();}
+  };
   await go('/exercises');await page.getByRole('radio',{name:'导入',exact:true}).click();await shot('exercise-import');
   await page.getByRole('button',{name:'手动录入',exact:true}).click();await shot('manual-exercise');await page.getByRole('button',{name:'取消',exact:true}).click();
   await go('/');await shot('empty-chat');
   await page.getByRole('button',{name:'打开数学符号面板',exact:true}).click();await shot('math-templates');
   await page.getByRole('button',{name:'矩阵输入',exact:true}).click();await page.locator('.math-input-panel .katex').first().waitFor();await shot('math-matrix');await page.getByRole('button',{name:'关闭数学符号面板',exact:true}).click();
-  await page.getByRole('button',{name:'更多',exact:true}).click();await shot('composer-menu');await page.keyboard.press('Escape');
+  await page.getByRole('button',{name:/^(更多|学习操作)$/}).click();await shot('composer-menu');await page.keyboard.press('Escape');
   await go('/goals');await page.getByRole('button',{name:'新目标',exact:true}).click();await shot('new-goal');
   await go('/books');await page.getByText('详细信息',{exact:true}).first().click();await shot('book-details');
   await go('/settings');
@@ -30,8 +35,8 @@ export async function auditPanels({ browser, capture, results, dist }) {
    await page.getByRole('button',{name:'选择学习范围',exact:true}).first().click();await shot('scope-selector');await page.keyboard.press('Escape');
    await page.getByRole('button',{name:'查看来源 · 3',exact:true}).click();await shot('source-inspector');await page.getByRole('button',{name:'关闭详情面板',exact:true}).click();
    await page.route('**/api/books/*/figures?*',route=>route.fulfill({json:{success:true,data:{items:[],total:0}}}));
-   await page.getByRole('button',{name:'选择教材图片',exact:true}).click();await shot('figure-catalog-empty');await page.getByRole('button',{name:'关闭详情面板',exact:true}).click();
-   await page.getByRole('button',{name:'选择历史错题',exact:true}).click();await shot('mistake-picker');await page.keyboard.press('Escape');
+   await attachment('选择教材图片','教材图片');await shot('figure-catalog-empty');await page.getByRole('button',{name:'关闭详情面板',exact:true}).click();
+   await attachment('选择历史错题','历史错题');await shot('mistake-picker');await page.keyboard.press('Escape');
    await page.locator('input[type=file][accept*="image/png"]:not([capture])').first().setInputFiles({name:'synthetic-question.png',mimeType:'image/png',buffer:readFileSync(resolve('docs/qa/anti-ai-slop/before/1280-chat.png'))});
    await page.getByRole('heading',{name:'裁剪并增强题目图片',exact:true}).waitFor();await shot('image-editor');await page.getByRole('button',{name:'取消',exact:true}).click();
    await go('/books');await page.getByRole('button',{name:'更多教材操作',exact:true}).first().click();await shot('book-menu');
@@ -39,11 +44,14 @@ export async function auditPanels({ browser, capture, results, dist }) {
    await page.getByRole('menuitem',{name:'审核图片',exact:true}).click();await page.getByRole('heading',{name:'教材图片审核',exact:true}).scrollIntoViewIfNeeded();await shot('figure-audit');await page.getByRole('button',{name:'关闭图片审核',exact:true}).click();
    await go('/?conversation_id=visual-session-0');
   }
-  await page.locator('.current-session-menu button:visible, .context-session-entry:has(.context-session-row.is-active) > button[aria-haspopup=menu]:visible').first().click();await shot('session-menu');
+  const sessionMenu=page.locator('.current-session-menu button:visible, .context-session-entry:has(.context-session-row.is-active) > button[aria-haspopup=menu]:visible');
+  if(!await sessionMenu.count())await page.getByRole('button',{name:'展开侧栏',exact:true}).click();
+  await sessionMenu.first().click();await shot('session-menu');
   await page.route('**/api/notes/preflight',route=>route.fulfill({json:{success:true,data:{turn_count:1,message_count:2,batches:1,captured_at:'2026-10-15T02:00:00Z',selection:{conversation_id:'visual-session-0'},fingerprint:'synthetic',existing_drafts:{items:[]},existing_notes:{items:[]}}}}));
   await page.route('**/api/notes/turns?*',route=>route.fulfill({json:{success:true,data:{items:[{turn_id:'t1',label:'等价替换与泰勒展开'}],next_cursor:null}}}));
   await page.getByRole('menuitem',{name:'整理为笔记',exact:true}).click();await page.getByText('共 1 轮',{exact:false}).waitFor();await shot('note-preflight');await page.getByRole('button',{name:'取消',exact:true}).click();
-  await page.getByRole('button',{name:'更多',exact:true}).click();await page.getByRole('menuitem',{name:'查看/生成重点',exact:true}).click();await shot('highlight-dialog');await page.getByRole('button',{name:'关闭',exact:true}).last().click();
+  if(width===390)await go('/?conversation_id=visual-session-0');
+  await page.getByRole('button',{name:/^(更多|学习操作)$/}).click();await page.getByRole('menuitem',{name:'查看/生成重点',exact:true}).click();await shot('highlight-dialog');await page.getByRole('button',{name:'关闭',exact:true}).last().click();
   for(const kind of ['routing','input','confirmation','confirmation-add','confirmation-practice','confirmation-result','confirmation-update','confirmation-unknown','interrupted']) {
    await go('/');
    await page.route('**/api/chat/stream',async route=>{

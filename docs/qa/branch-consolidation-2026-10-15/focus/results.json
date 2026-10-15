@@ -1,0 +1,34 @@
+[
+  {
+    "width": 1280,
+    "height": 820,
+    "sessionPreservedAcrossRoutes": true,
+    "endedWithoutCompletingTask": true,
+    "themeDescriptionsRemoved": true,
+    "errors": []
+  },
+  {
+    "width": 1024,
+    "height": 768,
+    "sessionPreservedAcrossRoutes": true,
+    "endedWithoutCompletingTask": true,
+    "themeDescriptionsRemoved": true,
+    "errors": []
+  },
+  {
+    "width": 760,
+    "height": 820,
+    "sessionPreservedAcrossRoutes": true,
+    "endedWithoutCompletingTask": true,
+    "themeDescriptionsRemoved": true,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "sessionPreservedAcrossRoutes": true,
+    "endedWithoutCompletingTask": true,
+    "themeDescriptionsRemoved": true,
+    "errors": []
+  }
+]

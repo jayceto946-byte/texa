@@ -1,3 +1,10 @@
+## 2026-10-15 — 汇总各分支至 Texa_MacOS
+
+- 核对8个工作区、23个本地/远端分支引用；HTTPS fetch 后确认远端，保留分支历史与所有未提交内容备份。主目录切至 Texa_MacOS，汇总主线 Runtime、Mobile S3、Goals/Tasks/Focus、Anti-AI-Slop、两组离线延迟诊断，以及未提交专注调整和43个旧验收文件。
+- 设置页保留手机连接与主题说明删除；目标页保留新任务/时段状态和简化完成条件；patch_notes保留双边历史。发现移动端菜单范围入口删除后顶部仍被旧CSS隐藏，已恢复顶部现有控件并验证与计时入口不重叠。
+- 启动脚本改为直接编译/运行本目录，移除功能工作区快照跳转；AGENTS.md记录macOS统一集成分支。用户此前批准的goals.db v3沿用，本次无数据库迁移、依赖安装或模型调用。
+- 验证：后端1695、前端219、桌面24项通过；TypeScript/ESLint/Vite通过；最终214项Electron/浏览器渲染检查和四尺寸真实临时Focus/Goal流程通过。保留原失败脚本批次与真实移动端组合回归记录。详见TEXA-MACOS-INTEGRATION-AUDIT.md及docs/qa/branch-consolidation-2026-10-15。
+
 ## 2026-10-15 — macOS 最新功能开发版启动入口
 
 - 直接运行主目录 Electron 会读取主分支及其 frontend/dist；最新目标/任务/专注代码实际位于 codex/goals-tasks-focus 工作区（f39a592，包含该工作区未提交的已跟踪文件修改）。旧主分支后端只接受 goals schema v1，现有用户数据库为 v2，导致目标接口失败。

@@ -1,0 +1,32 @@
+✔ startup appearance caches the existing theme tokens without storing unrelated data (4.095292ms)
+✔ startup appearance rejects invalid theme IDs and unsafe or incomplete colors (0.416458ms)
+✔ startup window controls are exposed for Windows and hidden by default on macOS (4.710375ms)
+✔ power bridge exposes only suspend/resume and unsubscribes without duplication (13.81275ms)
+✔ failed note preparation still runs focus preparation and vetoes window closure (9.264833ms)
+✔ aborted close notifies handlers without silently restarting a focus run (1.1875ms)
+✔ one click uses actual port; restart follows changed port; disable removes owned mapping (11.801959ms)
+✔ unrelated root handler remains untouched (4.973917ms)
+✔ never enables or edits Funnel (2.661833ms)
+✔ existing exact target can be adopted after device rename (3.61075ms)
+✔ not ready and nonlocal backend never mutate Tailscale (1.839875ms)
+✔ missing Tailscale returns actionable state without commands (6.425292ms)
+✔ Texa branding preserves the existing desktop identity and userData paths (4.992833ms)
+✔ userData keeps the legacy default and accepts an explicit isolated override (0.141125ms)
+✔ portFromUrl resolves explicit and default HTTP ports (0.34425ms)
+✔ findAvailablePort releases a bindable loopback port (29.081708ms)
+✔ desktop never treats an older healthy process as its own backend (0.185375ms)
+✔ desktop completion survives restart independently of the backend origin (11.647958ms)
+✔ corrupt, old and non-boolean flags do not complete setup (3.596083ms)
+✔ an unwritable completion target reports failure (2.184416ms)
+✔ close waits for its renderer and coalesces concurrent close/quit (0.785125ms)
+✔ failed draft flush vetoes closure without stopping backend (0.147291ms)
+✔ unresponsive renderer times out safely and stale acknowledgements do not revive it (5.311417ms)
+✔ startup without a window can quit and send failure vetoes safely (0.275667ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 215.054834

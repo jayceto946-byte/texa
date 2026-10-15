@@ -1,0 +1,94 @@
+[
+  {
+    "branch": "Texa_MacOS",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "checkpoint/macbook-20261009",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "codex/agent-early-output",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "codex/agent-model-latency",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "codex/checkpoint-remediation",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "codex/cross-module-remediation",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "codex/goals-tasks-focus",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "codex/mobile-s2-a2",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "codex/mobile-s2-first-batch",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "feature/mobile-remote",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "feature/mobile-s3",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "master",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "origin",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "origin/Refactor-ONNX",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "origin/Texa_MacOS",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "origin/codex/checkpoint-remediation",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "origin/codex/cross-module-remediation",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "origin/codex/goals-tasks-focus",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "origin/codex/mobile-s2-a2",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "origin/feature/mobile-remote",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "origin/master",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "origin/refactor-rename-to-texa",
+    "commits_not_integrated": 0
+  },
+  {
+    "branch": "origin/refactor/decouple-services",
+    "commits_not_integrated": 0
+  }
+]

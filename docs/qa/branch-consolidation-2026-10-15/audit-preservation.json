@@ -1,0 +1,33 @@
+{
+  "files": [
+    "desktop/loading.html",
+    "frontend/src/components/FirstRunGuide.tsx",
+    "frontend/src/components/SystemHealth.tsx",
+    "frontend/src/components/Welcome.css",
+    "frontend/src/components/chat/LearningEmptyWorkspace.tsx",
+    "frontend/src/components/chat/LearningTaskActions.tsx",
+    "frontend/src/components/chat/SubjectRouteSuggestionCard.tsx",
+    "frontend/src/components/settings/AppearanceSettings.tsx",
+    "frontend/src/components/settings/ModelSettingsManager.tsx",
+    "frontend/src/features/chat/pendingActionPresentation.test.ts",
+    "frontend/src/features/chat/pendingActionPresentation.ts",
+    "frontend/src/features/math-input/VisualMathInputPopover.tsx",
+    "frontend/src/features/notes/NotePreflight.tsx",
+    "frontend/src/index.css",
+    "frontend/src/layouts/ApprovedWorkspace.css",
+    "frontend/src/pages/ExercisesPage.tsx",
+    "frontend/src/pages/GoalsPage.tsx",
+    "frontend/src/pages/HighlightPage.tsx",
+    "frontend/src/pages/MistakeIntakePage.css",
+    "frontend/src/pages/MistakeIntakePage.tsx",
+    "frontend/src/pages/MistakesPage.css",
+    "frontend/src/pages/MistakesPage.tsx",
+    "frontend/src/pages/NotesPage.tsx",
+    "frontend/src/pages/WeeklyReportPage.tsx"
+  ],
+  "combined": [
+    "frontend/src/components/SystemHealth.tsx",
+    "frontend/src/pages/GoalsPage.tsx",
+    "frontend/src/pages/MistakesPage.tsx"
+  ]
+}

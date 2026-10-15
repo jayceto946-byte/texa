@@ -18,7 +18,9 @@
   .context-new-session > span { display: inline; }
   .app-shell .app-rail-link { min-height: 44px !important; }
   .app-shell .learning-context-sessions { flex: 1 1 auto; min-height: 0; }
-  .app-shell .learning-workspace-header .current-session-menu, .app-shell .learning-header-scope-selector { display: none; }
+  .app-shell .learning-workspace-header .current-session-menu { display: none; }
+  .app-shell .learning-header-scope-selector { display: block; min-width: 0; max-width: clamp(120px, 32vw, 260px); }
+  .app-shell .learning-header-scope-selector > div, .app-shell .learning-header-scope-selector > div > button { max-width: 100%; }
   .app-shell :is(.learning-workspace-scroll, .learning-document-column, .learning-message, .learning-answer-document, .markdown-body) { min-width: 0; max-width: 100%; }
   .app-shell .learning-workspace-scroll { overflow-x: hidden; }
   .app-shell .markdown-body .katex-html { white-space: normal; }

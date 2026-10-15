@@ -34,7 +34,8 @@ const server = createServer(async (req,res) => {
    if (!bootstrap && scenario === 'error') {res.writeHead(503);res.end(JSON.stringify({success:false,message:'QA fixture：服务暂不可用，请重试'}));return;}
    let data;
    if (p === '/api/chat/conversations') {const value=await (await fetch(`http://127.0.0.1:${fixturePort}${req.url}`)).json();data={items:value.data.map(x=>({...x,management:{state:'active',pinned:false,revision:0}})),next_cursor:null,has_more:false};}
-   else if (p === '/api/focus') data={revision:0,tasks:[],current_task:null,status:'idle',remaining_seconds:0,server_time:Date.now()/1000};
+   else if (p === '/api/focus') data={revision:0,tasks:[],total:0,next_offset:null,current_task:null,current_session:null,next_task:null,goal_stats:[],status:'idle',reason:'',remaining_seconds:0,active_ms:0,server_time:Date.now()/1000};
+   else if (p === '/api/focus/history') data={items:[],total:0,next_offset:null,daily_totals:[]};
    else if (p.endsWith('/management')) data={state:'active',pinned:false,revision:0};
    else if (p === '/api/system/settings/subjects') data={subjects:[{name:'数学',children:['高数','线代','概率论']}]};
    else if (p === '/api/system/backups') data=[];
