@@ -1,0 +1,162 @@
+{
+  "schema": "texa.early-output-phase1-audit/v1",
+  "date": "2026-10-13",
+  "base_commit": "f91633673c40cf9c353e49804e2584b64f3131cc",
+  "source": "read-only supplemental working-tree evidence; not B runtime dependencies",
+  "python_version": "Python 3.10.21",
+  "paid_calls_this_phase": 0,
+  "source_hashes": {
+    "TEXA-AGENT-LOOP-PERFORMANCE-REPORT.md": "6136f4301895329b94b04d3950d5914c88f22da2e6bd334a078b5b955da08c6b",
+    "docs/qa/REAL-NATIVE-MATH-ACCEPTANCE-2026-10-13.md": "3b9e85ca5b99ef4de182081f6e1aa3adbcc7a717b99336ac48872044216120c7",
+    "backend/services/agent_runtime/native_loop.py": "f9507d6239b880dbf324d556fee8264e76fc652f46dedec84009337f98c5d444",
+    "backend/services/agent_runtime/chat_binding.py": "48067b01e8c2e09585ffda7edd7dd8c5cea81239ea3845e93d471eef61a429cf",
+    "llm/agent_adapter.py": "d2711210ea9355bf991177741118b33081768d58cc5794466c9711b9ccacd74f",
+    "frontend/src/components/chat/ExecutionTrace.tsx": "fabc316fb30d2843ebf6887c7613b39ae03e88ee3fe60717689419cfc1aaa729",
+    "frontend/src/utils/chatActivities.ts": "0e2798666e7c1caa4e493cfecae8d3bb409bb6f8006fae65ab98a4adbf055257",
+    "docs/qa/evidence/agent-loop-performance/paired-2026-10-13/summary.json": "8dd5f25b085c788892ee2c94e4f6ad49bbdc38fd2f91c062dc9db7243e409dc1",
+    "docs/qa/evidence/agent-loop-performance/electron/results.json": "8a397289a03963320715b59831244cb3b71d50726dbc366a5d1d0a0974a2644d"
+  },
+  "all_recorded_tool_decision_messages": 9,
+  "with_public_content": 7,
+  "cases": [
+    {
+      "case": "integral-C",
+      "source_sha256": "2a7d41bef2af290549422efa655b8d50a76e027b5be09deba2870d38e02f9524",
+      "model_calls": 3,
+      "tool_calls": 2,
+      "task_status": "degraded",
+      "first_public_server_ms": 3010.54,
+      "first_public_consumer_ms": 3037.63,
+      "summary_metrics": {
+        "first_public_seconds": 3.03763,
+        "first_final_seconds": 25.808490000000003,
+        "total_seconds": 26.860259999999997,
+        "usage": {
+          "input_tokens": 7006,
+          "output_tokens": 989,
+          "total_tokens": 7995
+        },
+        "reasoning_tokens": 0,
+        "review": {
+          "points": 1,
+          "max_points": 5,
+          "complete_correct": false,
+          "main_result_correct": true,
+          "critical_error": true,
+          "notes": "最终独立答案仅给e-2，完整分部积分和导数核验只在阶段正文；不满足最终独立完整要求。停止后续C条件，不重试"
+        }
+      },
+      "public_tool_preambles": [
+        {
+          "text": "计算定积分 $\\int_0^1 x^2 e^x\\,dx$ 需要使用**分部积分法**。\n\n### 1. 分部积分推导\n\n分部积分公式为：\n$$ \\int u \\, dv = uv - \\int v \\, du $$\n\n对于被积函数 $x^2 e^x$，我们选择：\n- $u = x^2 \\implies du = 2x \\, dx$\n- $dv = e^x \\, dx \\implies v = e^x$\n\n代入公式：\n$$ \\int x^2 e^x \\, dx = x^2 e^x - \\int e^x (2x) \\, dx = x^2 e^x - 2 \\int x e^x \\, dx $$\n\n现在需要计算剩余的积分 $\\int x e^x \\, dx$。再次使用分部积分法：\n- $u = x \\implies du = dx$\n- $dv = e^x \\, dx \\implies v = e^x$\n\n代入公式：\n$$ \\int x e^x \\, dx = x e^x - \\int e^x \\, dx = x e^x - e^x + C_1 $$\n\n将此结果代回原式：\n$$ \\begin{aligned} \\int x^2 e^x \\, dx &= x^2 e^x - 2(x e^x - e^x) + C \\\\ &= x^2 e^x - 2x e^x + 2e^x + C \\\\ &= e^x(x^2 - 2x + 2) + C \\end{aligned} $$\n\n### 2. 计算定积分\n\n根据牛顿-莱布尼茨公式，代入上下限 $0$ 和 $1$：\n$$ \\begin{aligned} \\int_0^1 x^2 e^x \\, dx &= \\left[ e^x(x^2 - 2x + 2) \\right]_0^1 \\\\ &= \\left( e^1(1^2 - 2(1) + 2) \\right) - \\left( e^0(0^2 - 2(0) + 2) \\right) \\\\ &= e(1 - 2 + 2) - 1(0 - 0 + 2) \\\\ &= e(1) - 2 \\\\ &= e - 2 \\end{aligned} $$\n\n### 3. 结果核验\n\n我们可以使用工具验证该不定积分的导数是否还原为被积函数，并计算定积分数值。",
+          "tool_calls": 1
+        },
+        {
+          "text": "工具返回的残差显示导数计算似乎有误，让我重新检查候选函数的导数。\n候选函数：$F(x) = e^x(x^2 - 2x + 2)$\n求导：\n$F'(x) = (e^x)'(x^2 - 2x + 2) + e^x(x^2 - 2x + 2)'$\n$F'(x) = e^x(x^2 - 2x + 2) + e^x(2x - 2)$\n$F'(x) = e^x(x^2 - 2x + 2 + 2x - 2) = e^x(x^2) = x^2 e^x$\n\n推导是正确的。工具报错可能是因为表达式格式问题。让我用符号计算工具直接计算定积分来核验数值结果。",
+          "tool_calls": 1
+        }
+      ]
+    },
+    {
+      "case": "integral-A",
+      "source_sha256": "857738b028caebece7a944ce3a73a37e9fa7e1304199f7e3bf1fce3cbe05450b",
+      "model_calls": 3,
+      "tool_calls": 2,
+      "task_status": "degraded",
+      "first_public_server_ms": 8614.92,
+      "first_public_consumer_ms": 8624.54,
+      "summary_metrics": {
+        "first_public_seconds": 8.624540000000001,
+        "first_final_seconds": 24.77057,
+        "total_seconds": 31.912650000000003,
+        "usage": {
+          "input_tokens": 5784,
+          "output_tokens": 1450,
+          "total_tokens": 7234
+        },
+        "reasoning_tokens": 846,
+        "review": {
+          "points": 5,
+          "max_points": 5,
+          "complete_correct": true,
+          "critical_error": false,
+          "notes": "数学推导与定积分核验正确；声称工具已验证不定积分求导不符合回执，第一工具只给verification_request，实际独立verify只有definite_integral。记录教学来源准确性风险，不把pending request当已验证。",
+          "provenance_correct": false
+        }
+      },
+      "public_tool_preambles": [
+        {
+          "text": "先计算不定积分，再代入上下限，最后用工具核验。",
+          "tool_calls": 1
+        },
+        {
+          "text": "",
+          "tool_calls": 1
+        }
+      ]
+    },
+    {
+      "case": "stokes-A",
+      "source_sha256": "f1d8773d30c147b5f2264003d5749520976e450b8e46fb342b6f959132ee744e",
+      "model_calls": 2,
+      "tool_calls": 1,
+      "task_status": "degraded",
+      "first_public_server_ms": 56144.49,
+      "first_public_consumer_ms": 56145.07,
+      "summary_metrics": {
+        "first_public_seconds": 56.14507,
+        "first_final_seconds": 102.05998,
+        "total_seconds": 115.47466,
+        "usage": {
+          "input_tokens": 3741,
+          "output_tokens": 6447,
+          "total_tokens": 10188
+        },
+        "reasoning_tokens": 5524,
+        "review": {
+          "points": 6,
+          "max_points": 6,
+          "complete_correct": true,
+          "critical_error": false,
+          "notes": "球面正确配方半径1，方向/旋度/投影半轴/被积函数恒1与积分值均正确。仅一次工具factor本轮未重复面积化简。投影使用边界等式描述，但圆盘片及面积积分明确其内部。"
+        }
+      },
+      "public_tool_preambles": [
+        {
+          "text": "我将使用斯托克斯公式计算此曲线积分。先计算旋度，再确定曲面和投影区域。",
+          "tool_calls": 1
+        }
+      ]
+    },
+    {
+      "case": "proof-A",
+      "source_sha256": "cbb1743c026da0ec1bf4a4206233baa91c9e7268c10810a56fb781b6cf1a8448",
+      "model_calls": 1,
+      "tool_calls": 0,
+      "task_status": "degraded",
+      "first_public_server_ms": 8922.19,
+      "first_public_consumer_ms": 8933.22,
+      "summary_metrics": {
+        "first_public_seconds": 8.933219999999999,
+        "first_final_seconds": 8.933219999999999,
+        "total_seconds": 17.065330000000003,
+        "usage": {
+          "input_tokens": 1634,
+          "output_tokens": 864,
+          "total_tokens": 2498
+        },
+        "reasoning_tokens": 395,
+        "review": {
+          "points": 4,
+          "max_points": 4,
+          "complete_correct": true,
+          "critical_error": false,
+          "notes": "MVT条件、存在点、代入和严格性完整正确；模型自主直接回答，1模型/0工具。"
+        }
+      },
+      "public_tool_preambles": []
+    }
+  ],
+  "completed_run_tool_decision_messages": 8,
+  "completed_run_with_public_content": 6
+}
