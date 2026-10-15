@@ -1,0 +1,29 @@
+✔ startup appearance caches the existing theme tokens without storing unrelated data (5.328166ms)
+✔ startup appearance rejects invalid theme IDs and unsafe or incomplete colors (0.226917ms)
+✔ startup window controls are exposed for Windows and hidden by default on macOS (0.893083ms)
+✔ one click uses actual port; restart follows changed port; disable removes owned mapping (4.499ms)
+✔ unrelated root handler remains untouched (2.770625ms)
+✔ never enables or edits Funnel (0.772167ms)
+✔ existing exact target can be adopted after device rename (1.176583ms)
+✔ not ready and nonlocal backend never mutate Tailscale (1.018542ms)
+✔ missing Tailscale returns actionable state without commands (0.348958ms)
+✔ Texa branding preserves the existing desktop identity and userData paths (2.634916ms)
+✔ userData keeps the legacy default and accepts an explicit isolated override (0.624584ms)
+✔ portFromUrl resolves explicit and default HTTP ports (0.668291ms)
+✔ findAvailablePort releases a bindable loopback port (13.365666ms)
+✔ desktop never treats an older healthy process as its own backend (0.199542ms)
+✔ desktop completion survives restart independently of the backend origin (2.359125ms)
+✔ corrupt, old and non-boolean flags do not complete setup (0.550292ms)
+✔ an unwritable completion target reports failure (0.578375ms)
+✔ close waits for its renderer and coalesces concurrent close/quit (1.686292ms)
+✔ failed draft flush vetoes closure without stopping backend (0.112541ms)
+✔ unresponsive renderer times out safely and stale acknowledgements do not revive it (5.137875ms)
+✔ startup without a window can quit and send failure vetoes safely (0.347958ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 90.378458

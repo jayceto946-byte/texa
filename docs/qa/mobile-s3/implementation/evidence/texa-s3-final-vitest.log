@@ -1,0 +1,8 @@
+
+ RUN  v4.1.9 /Users/jichengqian/.codex/worktrees/mobile-s3/texa/frontend
+
+
+ Test Files  45 passed (45)
+      Tests  203 passed (203)
+   Start at  12:24:53
+   Duration  1.70s (transform 876ms, setup 0ms, import 1.69s, tests 1.07s, environment 4ms)

@@ -1,0 +1,98 @@
+{
+  "environment": "Chrome real API",
+  "model": "offline fixture only",
+  "checks": [
+    {
+      "width": 390,
+      "case": "manual draft save→refresh→restore",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/mistakes/intake/md_fbdab7168cc547d792a39625?book_name=default"
+    },
+    {
+      "width": 390,
+      "case": "draft→saved mistake",
+      "status": "PASS",
+      "id": "m_4c635fe4452647ce977a"
+    },
+    {
+      "width": 390,
+      "case": "review answer save→refresh→restore",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/learning/review/mrs_aae5929e90bd40508218e5f9?book_name=default"
+    },
+    {
+      "width": 390,
+      "case": "review reveal→self grade→complete→refresh",
+      "status": "PASS",
+      "url": "http://127.0.0.1:18041/learning/review/mrs_aae5929e90bd40508218e5f9?book_name=default"
+    },
+    {
+      "width": 390,
+      "case": "manual exercise validation→save→refresh",
+      "status": "PASS",
+      "id": "ff09a0fe"
+    }
+  ],
+  "errors": [
+    "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: '提交并查看解析', exact: true })\u001b[22m\n"
+  ],
+  "requests": [
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/drafts"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/mistakes/drafts/md_fbdab7168cc547d792a39625"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/mistakes/drafts/md_fbdab7168cc547d792a39625/save"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/review/sessions"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_aae5929e90bd40508218e5f9"
+    },
+    {
+      "width": 390,
+      "method": "PATCH",
+      "path": "/api/review/sessions/mrs_aae5929e90bd40508218e5f9"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/review/sessions/mrs_aae5929e90bd40508218e5f9/results"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/add"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    },
+    {
+      "width": 390,
+      "method": "POST",
+      "path": "/api/exercises/overview"
+    }
+  ],
+  "lastUrl": "http://127.0.0.1:18041/exercises",
+  "body": "练习\n练习\n题库\n导入\n本题练习\n单题练习\n返回练习设置\n单题练习 · 练习 0 次\n\nQA-1791943770704-390 求 \n𝑥\n3\nx\n3\n 的导数。\n\n你的作答\n查看参考答案"
+}

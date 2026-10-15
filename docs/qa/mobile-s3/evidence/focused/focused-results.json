@@ -1,0 +1,5057 @@
+{
+  "fixture": true,
+  "build": "f999e72",
+  "checks": [
+    {
+      "name": "chat",
+      "width": 360,
+      "body": 360,
+      "viewport": 360,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "当前会话的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 304,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "name": "选择学习范围",
+          "w": 176.6875,
+          "h": 44,
+          "x": 64,
+          "y": 52,
+          "visible": true
+        },
+        {
+          "name": "问题的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 307,
+          "y": 125,
+          "visible": true
+        },
+        {
+          "name": "查看来源 · 3",
+          "w": 87.15625,
+          "h": 26,
+          "x": 255.84375,
+          "y": 219.90625,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 333,
+          "h": 68,
+          "x": 9,
+          "y": 662,
+          "visible": true
+        },
+        {
+          "name": "拍照提问",
+          "w": 44,
+          "h": 44,
+          "x": 15,
+          "y": 730,
+          "visible": true
+        },
+        {
+          "name": "上传题目图片",
+          "w": 44,
+          "h": 44,
+          "x": 63,
+          "y": 730,
+          "visible": true
+        },
+        {
+          "name": "选择教材图片",
+          "w": 44,
+          "h": 44,
+          "x": 111,
+          "y": 730,
+          "visible": true
+        },
+        {
+          "name": "选择历史错题",
+          "w": 44,
+          "h": 44,
+          "x": 159,
+          "y": 730,
+          "visible": true
+        },
+        {
+          "name": "打开数学符号面板",
+          "w": 44,
+          "h": 44,
+          "x": 207,
+          "y": 730,
+          "visible": true
+        },
+        {
+          "name": "更多",
+          "w": 44,
+          "h": 44,
+          "x": 255,
+          "y": 730,
+          "visible": true
+        },
+        {
+          "name": "发送问题",
+          "w": 44,
+          "h": 44,
+          "x": 15,
+          "y": 786,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "learning-question",
+          "w": 335,
+          "scroll": 335
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 335,
+          "scroll": 335
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 335,
+          "scroll": 335
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 335,
+          "scroll": 335
+        },
+        {
+          "tag": "katex-display",
+          "w": 335,
+          "scroll": 335
+        },
+        {
+          "tag": "katex-display",
+          "w": 335,
+          "scroll": 335
+        },
+        {
+          "tag": "border-collapse border border-border text-xs",
+          "w": 335,
+          "scroll": 335
+        },
+        {
+          "tag": "katex-display",
+          "w": 335,
+          "scroll": 450
+        }
+      ]
+    },
+    {
+      "name": "notes",
+      "width": 360,
+      "body": 360,
+      "viewport": 360,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "已保存",
+          "w": 56,
+          "h": 28,
+          "x": 20,
+          "y": 64,
+          "visible": true
+        },
+        {
+          "name": "草稿",
+          "w": 44,
+          "h": 28,
+          "x": 80,
+          "y": 64,
+          "visible": true
+        },
+        {
+          "name": "已归档",
+          "w": 56,
+          "h": 28,
+          "x": 128,
+          "y": 64,
+          "visible": true
+        },
+        {
+          "name": "搜索笔记",
+          "w": 260,
+          "h": 35.5,
+          "x": 20,
+          "y": 108,
+          "visible": true
+        },
+        {
+          "name": "筛选",
+          "w": 44,
+          "h": 28,
+          "x": 296,
+          "y": 111.75,
+          "visible": true
+        },
+        {
+          "name": "等价无穷小与泰勒展开：相减时保留有效阶",
+          "w": 276,
+          "h": 51.1875,
+          "x": 20,
+          "y": 184.5,
+          "visible": true
+        },
+        {
+          "name": "等价无穷小与泰勒展开：相减时保留有效阶的更多操作",
+          "w": 28,
+          "h": 28,
+          "x": 312,
+          "y": 242.375,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "note-list-item",
+          "w": 320,
+          "scroll": 320
+        }
+      ]
+    },
+    {
+      "name": "note",
+      "width": 360,
+      "body": 360,
+      "viewport": 360,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "笔记列表",
+          "w": 60,
+          "h": 28,
+          "x": 198,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "编辑",
+          "w": 38,
+          "h": 28,
+          "x": 261,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "归档",
+          "w": 38,
+          "h": 28,
+          "x": 302,
+          "y": 9.5,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "note-document",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 318,
+          "scroll": 318
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 318,
+          "scroll": 318
+        }
+      ]
+    },
+    {
+      "name": "draft",
+      "width": 360,
+      "body": 360,
+      "viewport": 360,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "保存笔记",
+          "w": 62,
+          "h": 28,
+          "x": 145.03125,
+          "y": 25,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 318,
+          "h": 46.390625,
+          "x": 22,
+          "y": 209.6875,
+          "visible": true
+        },
+        {
+          "name": "比较替换误差与目标表达式的阶数，避免一次项相消后丢失有效信息。",
+          "w": 318,
+          "h": 85,
+          "x": 22,
+          "y": 301.765625,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 318,
+          "h": 46.390625,
+          "x": 22,
+          "y": 476.84375,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 318,
+          "h": 46.390625,
+          "x": 22,
+          "y": 582.921875,
+          "visible": true
+        },
+        {
+          "name": "选择其他教材章节",
+          "w": 116,
+          "h": 28,
+          "x": 22,
+          "y": 645.3125,
+          "visible": true
+        },
+        {
+          "name": "上移第 1 块",
+          "w": 28,
+          "h": 28,
+          "x": 227,
+          "y": 479.34375,
+          "visible": true
+        },
+        {
+          "name": "下移第 1 块",
+          "w": 28,
+          "h": 28,
+          "x": 263,
+          "y": 479.34375,
+          "visible": true
+        },
+        {
+          "name": "删除第 1 块",
+          "w": 28,
+          "h": 28,
+          "x": 299,
+          "y": 479.34375,
+          "visible": true
+        },
+        {
+          "name": "第 1 块正文",
+          "w": 292,
+          "h": 85,
+          "x": 35,
+          "y": 554.234375,
+          "visible": true
+        },
+        {
+          "name": "上移第 2 块",
+          "w": 28,
+          "h": 28,
+          "x": 227,
+          "y": 698.421875,
+          "visible": true
+        },
+        {
+          "name": "下移第 2 块",
+          "w": 28,
+          "h": 28,
+          "x": 263,
+          "y": 698.421875,
+          "visible": true
+        },
+        {
+          "name": "删除第 2 块",
+          "w": 28,
+          "h": 28,
+          "x": 299,
+          "y": 698.421875,
+          "visible": true
+        },
+        {
+          "name": "第 2 块正文",
+          "w": 292,
+          "h": 85,
+          "x": 35,
+          "y": 773.3125,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "note-document",
+          "w": 360,
+          "scroll": 360
+        }
+      ]
+    },
+    {
+      "name": "mistakes",
+      "width": 360,
+      "body": 360,
+      "viewport": 360,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "选择科目",
+          "w": 195.84375,
+          "h": 36,
+          "x": 144.15625,
+          "y": 5.5,
+          "visible": true
+        },
+        {
+          "name": "错误诊断",
+          "w": 78,
+          "h": 28,
+          "x": 20,
+          "y": 115.5,
+          "visible": true
+        },
+        {
+          "name": "补录错题",
+          "w": 102,
+          "h": 28,
+          "x": 106,
+          "y": 115.5,
+          "visible": true
+        },
+        {
+          "name": "全部1",
+          "w": 38.53125,
+          "h": 38,
+          "x": 20,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "待处理",
+          "w": 39,
+          "h": 38,
+          "x": 78.53125,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "待复习",
+          "w": 39,
+          "h": 38,
+          "x": 137.53125,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "反复出错",
+          "w": 52,
+          "h": 38,
+          "x": 196.53125,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "已掌握",
+          "w": 39,
+          "h": 38,
+          "x": 268.53125,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "搜索题干、知识点、错因",
+          "w": 275.21875,
+          "h": 34,
+          "x": 53.78125,
+          "y": 225.5,
+          "visible": true
+        },
+        {
+          "name": "求 lim⁡x→0(x−sin⁡x)/x3\\lim_{x\\to0}(x-\\sin x)/x^3limx→0​(x−sin",
+          "w": 320,
+          "h": 115.09375,
+          "x": 20,
+          "y": 279.5,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "management-page-content flex-1 overflow-y-auto",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "markdown-body text-sm leading-relaxed break-words",
+          "w": 304,
+          "scroll": 304
+        }
+      ]
+    },
+    {
+      "name": "mistake",
+      "width": 360,
+      "body": 360,
+      "viewport": 360,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "返回档案",
+          "w": 76,
+          "h": 19.5,
+          "x": 264,
+          "y": 13.75,
+          "visible": true
+        },
+        {
+          "name": "现在重做",
+          "w": 78,
+          "h": 28,
+          "x": 20,
+          "y": 184.09375,
+          "visible": true
+        },
+        {
+          "name": "编辑档案",
+          "w": 78,
+          "h": 28,
+          "x": 106,
+          "y": 184.09375,
+          "visible": true
+        },
+        {
+          "name": "归档",
+          "w": 54,
+          "h": 28,
+          "x": 192,
+          "y": 184.09375,
+          "visible": true
+        },
+        {
+          "name": "手动标记掌握",
+          "w": 102,
+          "h": 28,
+          "x": 20,
+          "y": 276.59375,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "management-page-content flex-1 overflow-y-auto",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "mistakes-detail",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "markdown-body text-sm leading-relaxed break-words",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 320,
+          "scroll": 320
+        }
+      ]
+    },
+    {
+      "name": "books",
+      "width": 360,
+      "body": 360,
+      "viewport": 360,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "保存目录",
+          "w": 94,
+          "h": 28,
+          "x": 144,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "导入教材",
+          "w": 94,
+          "h": 28,
+          "x": 246,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "重命名",
+          "w": 142,
+          "h": 32,
+          "x": 195,
+          "y": 82,
+          "visible": true
+        },
+        {
+          "name": "删除分类",
+          "w": 142,
+          "h": 32,
+          "x": 195,
+          "y": 114,
+          "visible": true
+        },
+        {
+          "name": "添加学科",
+          "w": 80,
+          "h": 28,
+          "x": 10,
+          "y": 96,
+          "visible": true
+        },
+        {
+          "name": "添加科目",
+          "w": 80,
+          "h": 28,
+          "x": 94,
+          "y": 96,
+          "visible": true
+        },
+        {
+          "name": "折叠",
+          "w": 30,
+          "h": 34,
+          "x": 10,
+          "y": 137,
+          "visible": true
+        },
+        {
+          "name": "数学7",
+          "w": 310,
+          "h": 36,
+          "x": 40,
+          "y": 136,
+          "visible": true
+        },
+        {
+          "name": "高数5",
+          "w": 313,
+          "h": 36,
+          "x": 37,
+          "y": 174,
+          "visible": true
+        },
+        {
+          "name": "线代1",
+          "w": 313,
+          "h": 36,
+          "x": 37,
+          "y": 212,
+          "visible": true
+        },
+        {
+          "name": "概率论1",
+          "w": 313,
+          "h": 36,
+          "x": 37,
+          "y": 250,
+          "visible": true
+        },
+        {
+          "name": "展开",
+          "w": 30,
+          "h": 34,
+          "x": 10,
+          "y": 293,
+          "visible": true
+        },
+        {
+          "name": "专业课0",
+          "w": 310,
+          "h": 36,
+          "x": 40,
+          "y": 292,
+          "visible": true
+        },
+        {
+          "name": "未分类0",
+          "w": 340,
+          "h": 36,
+          "x": 10,
+          "y": 334,
+          "visible": true
+        },
+        {
+          "name": "活跃 7",
+          "w": 36.1875,
+          "h": 30.5,
+          "x": 20,
+          "y": 328.25,
+          "visible": true
+        },
+        {
+          "name": "已归档 1",
+          "w": 46.9375,
+          "h": 30.5,
+          "x": 74.1875,
+          "y": 328.25,
+          "visible": true
+        },
+        {
+          "name": "刷新教材",
+          "w": 34,
+          "h": 34,
+          "x": 306,
+          "y": 326.5,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 上册（第七版）教材归属",
+          "w": 104,
+          "h": 24,
+          "x": 96,
+          "y": 486.6875,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 上册（第七版）配套教材组",
+          "w": 104,
+          "h": 24,
+          "x": 236,
+          "y": 486.6875,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 上册（第七版）的教材角色",
+          "w": 62,
+          "h": 28,
+          "x": 278,
+          "y": 388,
+          "visible": true
+        },
+        {
+          "name": "重新准备",
+          "w": 84,
+          "h": 26,
+          "x": 146,
+          "y": 522.6875,
+          "visible": true
+        },
+        {
+          "name": "设为学习范围",
+          "w": 82,
+          "h": 24,
+          "x": 232,
+          "y": 523.6875,
+          "visible": true
+        },
+        {
+          "name": "更多教材操作",
+          "w": 24,
+          "h": 24,
+          "x": 316,
+          "y": 522.9375,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 下册（第七版）教材归属",
+          "w": 104,
+          "h": 24,
+          "x": 96,
+          "y": 686.375,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 下册（第七版）配套教材组",
+          "w": 104,
+          "h": 24,
+          "x": 236,
+          "y": 686.375,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 下册（第七版）的教材角色",
+          "w": 62,
+          "h": 28,
+          "x": 278,
+          "y": 587.6875,
+          "visible": true
+        },
+        {
+          "name": "重新准备",
+          "w": 84,
+          "h": 26,
+          "x": 146,
+          "y": 722.375,
+          "visible": true
+        },
+        {
+          "name": "设为学习范围",
+          "w": 82,
+          "h": 24,
+          "x": 232,
+          "y": 723.375,
+          "visible": true
+        },
+        {
+          "name": "更多教材操作",
+          "w": 24,
+          "h": 24,
+          "x": 316,
+          "y": 722.625,
+          "visible": true
+        },
+        {
+          "name": "线性代数（第六版）的教材角色",
+          "w": 62,
+          "h": 28,
+          "x": 278,
+          "y": 787.375,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "library-page-main min-h-0 min-w-0 flex-1",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "library-content",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 320,
+          "scroll": 320
+        }
+      ]
+    },
+    {
+      "name": "highlights",
+      "width": 360,
+      "body": 360,
+      "viewport": 360,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "打印",
+          "w": 76,
+          "h": 28,
+          "x": 264,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "极限与相减结构",
+          "w": 282,
+          "h": 31.5,
+          "x": 37,
+          "y": 117,
+          "visible": true
+        },
+        {
+          "name": "例题",
+          "w": 282,
+          "h": 31.5,
+          "x": 37,
+          "y": 152.5,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 360,
+          "scroll": 360
+        },
+        {
+          "tag": "min-w-0",
+          "w": 320,
+          "scroll": 320
+        },
+        {
+          "tag": "mt-5 border border-border bg-bg-card px-5 py-4 shadow-sm",
+          "w": 318,
+          "scroll": 318
+        },
+        {
+          "tag": "markdown-body text-[15px] leading-relaxed break-words",
+          "w": 278,
+          "scroll": 278
+        },
+        {
+          "tag": "markdown-body text-[15px] leading-relaxed break-words",
+          "w": 278,
+          "scroll": 278
+        }
+      ]
+    },
+    {
+      "name": "chat",
+      "width": 390,
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "当前会话的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 334,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "name": "选择学习范围",
+          "w": 176.6875,
+          "h": 44,
+          "x": 64,
+          "y": 52,
+          "visible": true
+        },
+        {
+          "name": "问题的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 337,
+          "y": 125,
+          "visible": true
+        },
+        {
+          "name": "查看来源 · 3",
+          "w": 87.15625,
+          "h": 26,
+          "x": 285.84375,
+          "y": 219.90625,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 363,
+          "h": 68,
+          "x": 9,
+          "y": 718,
+          "visible": true
+        },
+        {
+          "name": "拍照提问",
+          "w": 44,
+          "h": 44,
+          "x": 15,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "上传题目图片",
+          "w": 44,
+          "h": 44,
+          "x": 63,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "选择教材图片",
+          "w": 44,
+          "h": 44,
+          "x": 111,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "选择历史错题",
+          "w": 44,
+          "h": 44,
+          "x": 159,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "打开数学符号面板",
+          "w": 44,
+          "h": 44,
+          "x": 207,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "更多",
+          "w": 44,
+          "h": 44,
+          "x": 255,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "发送问题",
+          "w": 44,
+          "h": 44,
+          "x": 322,
+          "y": 786,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "learning-question",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "katex-display",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "katex-display",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "border-collapse border border-border text-xs",
+          "w": 341,
+          "scroll": 340
+        },
+        {
+          "tag": "katex-display",
+          "w": 365,
+          "scroll": 450
+        }
+      ]
+    },
+    {
+      "name": "notes",
+      "width": 390,
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "已保存",
+          "w": 56,
+          "h": 28,
+          "x": 20,
+          "y": 64,
+          "visible": true
+        },
+        {
+          "name": "草稿",
+          "w": 44,
+          "h": 28,
+          "x": 80,
+          "y": 64,
+          "visible": true
+        },
+        {
+          "name": "已归档",
+          "w": 56,
+          "h": 28,
+          "x": 128,
+          "y": 64,
+          "visible": true
+        },
+        {
+          "name": "搜索笔记",
+          "w": 290,
+          "h": 35.5,
+          "x": 20,
+          "y": 108,
+          "visible": true
+        },
+        {
+          "name": "筛选",
+          "w": 44,
+          "h": 28,
+          "x": 326,
+          "y": 111.75,
+          "visible": true
+        },
+        {
+          "name": "等价无穷小与泰勒展开：相减时保留有效阶",
+          "w": 306,
+          "h": 25.59375,
+          "x": 20,
+          "y": 184.5,
+          "visible": true
+        },
+        {
+          "name": "等价无穷小与泰勒展开：相减时保留有效阶的更多操作",
+          "w": 28,
+          "h": 28,
+          "x": 342,
+          "y": 229.578125,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "note-list-item",
+          "w": 350,
+          "scroll": 350
+        }
+      ]
+    },
+    {
+      "name": "note",
+      "width": 390,
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "笔记列表",
+          "w": 60,
+          "h": 28,
+          "x": 228,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "编辑",
+          "w": 38,
+          "h": 28,
+          "x": 291,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "归档",
+          "w": 38,
+          "h": 28,
+          "x": 332,
+          "y": 9.5,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "note-document",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 348,
+          "scroll": 348
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 348,
+          "scroll": 348
+        }
+      ]
+    },
+    {
+      "name": "draft",
+      "width": 390,
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "保存笔记",
+          "w": 62,
+          "h": 28,
+          "x": 153.515625,
+          "y": 25,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 348,
+          "h": 46.390625,
+          "x": 22,
+          "y": 209.6875,
+          "visible": true
+        },
+        {
+          "name": "比较替换误差与目标表达式的阶数，避免一次项相消后丢失有效信息。",
+          "w": 348,
+          "h": 85,
+          "x": 22,
+          "y": 301.765625,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 348,
+          "h": 46.390625,
+          "x": 22,
+          "y": 476.84375,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 348,
+          "h": 46.390625,
+          "x": 22,
+          "y": 582.921875,
+          "visible": true
+        },
+        {
+          "name": "选择其他教材章节",
+          "w": 116,
+          "h": 28,
+          "x": 22,
+          "y": 645.3125,
+          "visible": true
+        },
+        {
+          "name": "上移第 1 块",
+          "w": 28,
+          "h": 28,
+          "x": 257,
+          "y": 479.34375,
+          "visible": true
+        },
+        {
+          "name": "下移第 1 块",
+          "w": 28,
+          "h": 28,
+          "x": 293,
+          "y": 479.34375,
+          "visible": true
+        },
+        {
+          "name": "删除第 1 块",
+          "w": 28,
+          "h": 28,
+          "x": 329,
+          "y": 479.34375,
+          "visible": true
+        },
+        {
+          "name": "第 1 块正文",
+          "w": 322,
+          "h": 85,
+          "x": 35,
+          "y": 554.234375,
+          "visible": true
+        },
+        {
+          "name": "上移第 2 块",
+          "w": 28,
+          "h": 28,
+          "x": 257,
+          "y": 698.421875,
+          "visible": true
+        },
+        {
+          "name": "下移第 2 块",
+          "w": 28,
+          "h": 28,
+          "x": 293,
+          "y": 698.421875,
+          "visible": true
+        },
+        {
+          "name": "删除第 2 块",
+          "w": 28,
+          "h": 28,
+          "x": 329,
+          "y": 698.421875,
+          "visible": true
+        },
+        {
+          "name": "第 2 块正文",
+          "w": 322,
+          "h": 85,
+          "x": 35,
+          "y": 773.3125,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "note-document",
+          "w": 390,
+          "scroll": 390
+        }
+      ]
+    },
+    {
+      "name": "mistakes",
+      "width": 390,
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "选择科目",
+          "w": 221.171875,
+          "h": 36,
+          "x": 148.828125,
+          "y": 5.5,
+          "visible": true
+        },
+        {
+          "name": "错误诊断",
+          "w": 78,
+          "h": 28,
+          "x": 20,
+          "y": 115.5,
+          "visible": true
+        },
+        {
+          "name": "补录错题",
+          "w": 102,
+          "h": 28,
+          "x": 106,
+          "y": 115.5,
+          "visible": true
+        },
+        {
+          "name": "全部1",
+          "w": 38.53125,
+          "h": 38,
+          "x": 20,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "待处理",
+          "w": 39,
+          "h": 38,
+          "x": 78.53125,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "待复习",
+          "w": 39,
+          "h": 38,
+          "x": 137.53125,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "反复出错",
+          "w": 52,
+          "h": 38,
+          "x": 196.53125,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "已掌握",
+          "w": 39,
+          "h": 38,
+          "x": 268.53125,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "搜索题干、知识点、错因",
+          "w": 305.109375,
+          "h": 34,
+          "x": 53.890625,
+          "y": 225.5,
+          "visible": true
+        },
+        {
+          "name": "求 lim⁡x→0(x−sin⁡x)/x3\\lim_{x\\to0}(x-\\sin x)/x^3limx→0​(x−sin",
+          "w": 350,
+          "h": 115.09375,
+          "x": 20,
+          "y": 279.5,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "management-page-content flex-1 overflow-y-auto",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "markdown-body text-sm leading-relaxed break-words",
+          "w": 334,
+          "scroll": 334
+        }
+      ]
+    },
+    {
+      "name": "mistake",
+      "width": 390,
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "返回档案",
+          "w": 76,
+          "h": 19.5,
+          "x": 294,
+          "y": 13.75,
+          "visible": true
+        },
+        {
+          "name": "现在重做",
+          "w": 78,
+          "h": 28,
+          "x": 20,
+          "y": 184.09375,
+          "visible": true
+        },
+        {
+          "name": "编辑档案",
+          "w": 78,
+          "h": 28,
+          "x": 106,
+          "y": 184.09375,
+          "visible": true
+        },
+        {
+          "name": "归档",
+          "w": 54,
+          "h": 28,
+          "x": 192,
+          "y": 184.09375,
+          "visible": true
+        },
+        {
+          "name": "手动标记掌握",
+          "w": 102,
+          "h": 28,
+          "x": 20,
+          "y": 276.59375,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "management-page-content flex-1 overflow-y-auto",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "mistakes-detail",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "markdown-body text-sm leading-relaxed break-words",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 350,
+          "scroll": 350
+        }
+      ]
+    },
+    {
+      "name": "books",
+      "width": 390,
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "保存目录",
+          "w": 94,
+          "h": 28,
+          "x": 174,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "导入教材",
+          "w": 94,
+          "h": 28,
+          "x": 276,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "重命名",
+          "w": 142,
+          "h": 32,
+          "x": 225,
+          "y": 82,
+          "visible": true
+        },
+        {
+          "name": "删除分类",
+          "w": 142,
+          "h": 32,
+          "x": 225,
+          "y": 114,
+          "visible": true
+        },
+        {
+          "name": "添加学科",
+          "w": 80,
+          "h": 28,
+          "x": 10,
+          "y": 96,
+          "visible": true
+        },
+        {
+          "name": "添加科目",
+          "w": 80,
+          "h": 28,
+          "x": 94,
+          "y": 96,
+          "visible": true
+        },
+        {
+          "name": "折叠",
+          "w": 30,
+          "h": 34,
+          "x": 10,
+          "y": 137,
+          "visible": true
+        },
+        {
+          "name": "数学7",
+          "w": 340,
+          "h": 36,
+          "x": 40,
+          "y": 136,
+          "visible": true
+        },
+        {
+          "name": "高数5",
+          "w": 343,
+          "h": 36,
+          "x": 37,
+          "y": 174,
+          "visible": true
+        },
+        {
+          "name": "线代1",
+          "w": 343,
+          "h": 36,
+          "x": 37,
+          "y": 212,
+          "visible": true
+        },
+        {
+          "name": "概率论1",
+          "w": 343,
+          "h": 36,
+          "x": 37,
+          "y": 250,
+          "visible": true
+        },
+        {
+          "name": "展开",
+          "w": 30,
+          "h": 34,
+          "x": 10,
+          "y": 293,
+          "visible": true
+        },
+        {
+          "name": "专业课0",
+          "w": 340,
+          "h": 36,
+          "x": 40,
+          "y": 292,
+          "visible": true
+        },
+        {
+          "name": "未分类0",
+          "w": 370,
+          "h": 36,
+          "x": 10,
+          "y": 334,
+          "visible": true
+        },
+        {
+          "name": "活跃 7",
+          "w": 36.1875,
+          "h": 30.5,
+          "x": 20,
+          "y": 328.25,
+          "visible": true
+        },
+        {
+          "name": "已归档 1",
+          "w": 46.9375,
+          "h": 30.5,
+          "x": 74.1875,
+          "y": 328.25,
+          "visible": true
+        },
+        {
+          "name": "刷新教材",
+          "w": 34,
+          "h": 34,
+          "x": 336,
+          "y": 326.5,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 上册（第七版）教材归属",
+          "w": 119,
+          "h": 24,
+          "x": 96,
+          "y": 486.6875,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 上册（第七版）配套教材组",
+          "w": 119,
+          "h": 24,
+          "x": 251,
+          "y": 486.6875,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 上册（第七版）的教材角色",
+          "w": 62,
+          "h": 28,
+          "x": 308,
+          "y": 388,
+          "visible": true
+        },
+        {
+          "name": "重新准备",
+          "w": 84,
+          "h": 26,
+          "x": 176,
+          "y": 522.6875,
+          "visible": true
+        },
+        {
+          "name": "设为学习范围",
+          "w": 82,
+          "h": 24,
+          "x": 262,
+          "y": 523.6875,
+          "visible": true
+        },
+        {
+          "name": "更多教材操作",
+          "w": 24,
+          "h": 24,
+          "x": 346,
+          "y": 522.9375,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 下册（第七版）教材归属",
+          "w": 119,
+          "h": 24,
+          "x": 96,
+          "y": 686.375,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 下册（第七版）配套教材组",
+          "w": 119,
+          "h": 24,
+          "x": 251,
+          "y": 686.375,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 下册（第七版）的教材角色",
+          "w": 62,
+          "h": 28,
+          "x": 308,
+          "y": 587.6875,
+          "visible": true
+        },
+        {
+          "name": "重新准备",
+          "w": 84,
+          "h": 26,
+          "x": 176,
+          "y": 722.375,
+          "visible": true
+        },
+        {
+          "name": "设为学习范围",
+          "w": 82,
+          "h": 24,
+          "x": 262,
+          "y": 723.375,
+          "visible": true
+        },
+        {
+          "name": "更多教材操作",
+          "w": 24,
+          "h": 24,
+          "x": 346,
+          "y": 722.625,
+          "visible": true
+        },
+        {
+          "name": "线性代数（第六版）的教材角色",
+          "w": 62,
+          "h": 28,
+          "x": 308,
+          "y": 787.375,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "library-page-main min-h-0 min-w-0 flex-1",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "library-content",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 350,
+          "scroll": 350
+        }
+      ]
+    },
+    {
+      "name": "highlights",
+      "width": 390,
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "打印",
+          "w": 76,
+          "h": 28,
+          "x": 294,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "极限与相减结构",
+          "w": 312,
+          "h": 31.5,
+          "x": 37,
+          "y": 117,
+          "visible": true
+        },
+        {
+          "name": "例题",
+          "w": 312,
+          "h": 31.5,
+          "x": 37,
+          "y": 152.5,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "min-w-0",
+          "w": 350,
+          "scroll": 350
+        },
+        {
+          "tag": "mt-5 border border-border bg-bg-card px-5 py-4 shadow-sm",
+          "w": 348,
+          "scroll": 348
+        },
+        {
+          "tag": "markdown-body text-[15px] leading-relaxed break-words",
+          "w": 308,
+          "scroll": 308
+        },
+        {
+          "tag": "markdown-body text-[15px] leading-relaxed break-words",
+          "w": 308,
+          "scroll": 308
+        }
+      ]
+    },
+    {
+      "name": "chat",
+      "width": 430,
+      "body": 430,
+      "viewport": 430,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "选择学习范围",
+          "w": 232,
+          "h": 36,
+          "x": 99,
+          "y": 312.71875,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 372,
+          "h": 68,
+          "x": 29,
+          "y": 369.71875,
+          "visible": true
+        },
+        {
+          "name": "拍照提问",
+          "w": 44,
+          "h": 44,
+          "x": 37,
+          "y": 441.71875,
+          "visible": true
+        },
+        {
+          "name": "上传题目图片",
+          "w": 44,
+          "h": 44,
+          "x": 85,
+          "y": 441.71875,
+          "visible": true
+        },
+        {
+          "name": "选择教材图片",
+          "w": 44,
+          "h": 44,
+          "x": 133,
+          "y": 441.71875,
+          "visible": true
+        },
+        {
+          "name": "选择历史错题",
+          "w": 44,
+          "h": 44,
+          "x": 181,
+          "y": 441.71875,
+          "visible": true
+        },
+        {
+          "name": "打开数学符号面板",
+          "w": 44,
+          "h": 44,
+          "x": 229,
+          "y": 441.71875,
+          "visible": true
+        },
+        {
+          "name": "更多",
+          "w": 44,
+          "h": 44,
+          "x": 277,
+          "y": 441.71875,
+          "visible": true
+        },
+        {
+          "name": "发送问题",
+          "w": 44,
+          "h": 44,
+          "x": 349,
+          "y": 441.71875,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 430,
+          "scroll": 430
+        }
+      ]
+    },
+    {
+      "name": "notes",
+      "width": 430,
+      "body": 430,
+      "viewport": 430,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "已保存",
+          "w": 56,
+          "h": 28,
+          "x": 20,
+          "y": 67.75,
+          "visible": true
+        },
+        {
+          "name": "草稿",
+          "w": 44,
+          "h": 28,
+          "x": 80,
+          "y": 67.75,
+          "visible": true
+        },
+        {
+          "name": "已归档",
+          "w": 56,
+          "h": 28,
+          "x": 128,
+          "y": 67.75,
+          "visible": true
+        },
+        {
+          "name": "搜索笔记",
+          "w": 210,
+          "h": 35.5,
+          "x": 200,
+          "y": 64,
+          "visible": true
+        },
+        {
+          "name": "筛选",
+          "w": 44,
+          "h": 28,
+          "x": 20,
+          "y": 115.5,
+          "visible": true
+        },
+        {
+          "name": "等价无穷小与泰勒展开：相减时保留有效阶",
+          "w": 346,
+          "h": 25.59375,
+          "x": 20,
+          "y": 184.5,
+          "visible": true
+        },
+        {
+          "name": "等价无穷小与泰勒展开：相减时保留有效阶的更多操作",
+          "w": 28,
+          "h": 28,
+          "x": 382,
+          "y": 229.578125,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 430,
+          "scroll": 430
+        },
+        {
+          "tag": "note-list-item",
+          "w": 390,
+          "scroll": 390
+        }
+      ]
+    },
+    {
+      "name": "note",
+      "width": 430,
+      "body": 430,
+      "viewport": 430,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "笔记列表",
+          "w": 60,
+          "h": 28,
+          "x": 268,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "编辑",
+          "w": 38,
+          "h": 28,
+          "x": 331,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "归档",
+          "w": 38,
+          "h": 28,
+          "x": 372,
+          "y": 9.5,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 430,
+          "scroll": 430
+        },
+        {
+          "tag": "note-document",
+          "w": 430,
+          "scroll": 430
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 388,
+          "scroll": 388
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 388,
+          "scroll": 388
+        }
+      ]
+    },
+    {
+      "name": "draft",
+      "width": 430,
+      "body": 430,
+      "viewport": 430,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "返回笔记",
+          "w": 60,
+          "h": 28,
+          "x": 220,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "阅读预览",
+          "w": 62,
+          "h": 28,
+          "x": 283,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "保存笔记",
+          "w": 62,
+          "h": 28,
+          "x": 348,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 388,
+          "h": 46.390625,
+          "x": 22,
+          "y": 209.6875,
+          "visible": true
+        },
+        {
+          "name": "比较替换误差与目标表达式的阶数，避免一次项相消后丢失有效信息。",
+          "w": 388,
+          "h": 85,
+          "x": 22,
+          "y": 301.765625,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 388,
+          "h": 46.390625,
+          "x": 22,
+          "y": 476.84375,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 388,
+          "h": 46.390625,
+          "x": 22,
+          "y": 582.921875,
+          "visible": true
+        },
+        {
+          "name": "选择其他教材章节",
+          "w": 116,
+          "h": 28,
+          "x": 22,
+          "y": 645.3125,
+          "visible": true
+        },
+        {
+          "name": "上移第 1 块",
+          "w": 28,
+          "h": 28,
+          "x": 297,
+          "y": 479.34375,
+          "visible": true
+        },
+        {
+          "name": "下移第 1 块",
+          "w": 28,
+          "h": 28,
+          "x": 333,
+          "y": 479.34375,
+          "visible": true
+        },
+        {
+          "name": "删除第 1 块",
+          "w": 28,
+          "h": 28,
+          "x": 369,
+          "y": 479.34375,
+          "visible": true
+        },
+        {
+          "name": "第 1 块正文",
+          "w": 362,
+          "h": 85,
+          "x": 35,
+          "y": 554.234375,
+          "visible": true
+        },
+        {
+          "name": "上移第 2 块",
+          "w": 28,
+          "h": 28,
+          "x": 297,
+          "y": 698.421875,
+          "visible": true
+        },
+        {
+          "name": "下移第 2 块",
+          "w": 28,
+          "h": 28,
+          "x": 333,
+          "y": 698.421875,
+          "visible": true
+        },
+        {
+          "name": "删除第 2 块",
+          "w": 28,
+          "h": 28,
+          "x": 369,
+          "y": 698.421875,
+          "visible": true
+        },
+        {
+          "name": "第 2 块正文",
+          "w": 362,
+          "h": 85,
+          "x": 35,
+          "y": 773.3125,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 430,
+          "scroll": 430
+        },
+        {
+          "tag": "note-document",
+          "w": 430,
+          "scroll": 430
+        }
+      ]
+    },
+    {
+      "name": "mistakes",
+      "width": 430,
+      "body": 430,
+      "viewport": 430,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "选择科目",
+          "w": 232,
+          "h": 36,
+          "x": 155.0625,
+          "y": 5.5,
+          "visible": true
+        },
+        {
+          "name": "错误诊断",
+          "w": 78,
+          "h": 28,
+          "x": 20,
+          "y": 115.5,
+          "visible": true
+        },
+        {
+          "name": "补录错题",
+          "w": 102,
+          "h": 28,
+          "x": 106,
+          "y": 115.5,
+          "visible": true
+        },
+        {
+          "name": "全部1",
+          "w": 38.53125,
+          "h": 38,
+          "x": 20,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "待处理",
+          "w": 39,
+          "h": 38,
+          "x": 78.53125,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "待复习",
+          "w": 39,
+          "h": 38,
+          "x": 137.53125,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "反复出错",
+          "w": 52,
+          "h": 38,
+          "x": 196.53125,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "已掌握",
+          "w": 39,
+          "h": 38,
+          "x": 268.53125,
+          "y": 167.5,
+          "visible": true
+        },
+        {
+          "name": "搜索题干、知识点、错因",
+          "w": 345,
+          "h": 34,
+          "x": 54,
+          "y": 225.5,
+          "visible": true
+        },
+        {
+          "name": "求 lim⁡x→0(x−sin⁡x)/x3\\lim_{x\\to0}(x-\\sin x)/x^3limx→0​(x−sin",
+          "w": 390,
+          "h": 94.046875,
+          "x": 20,
+          "y": 279.5,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 430,
+          "scroll": 430
+        },
+        {
+          "tag": "management-page-content flex-1 overflow-y-auto",
+          "w": 430,
+          "scroll": 430
+        },
+        {
+          "tag": "markdown-body text-sm leading-relaxed break-words",
+          "w": 352,
+          "scroll": 352
+        }
+      ]
+    },
+    {
+      "name": "mistake",
+      "width": 430,
+      "body": 430,
+      "viewport": 430,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "返回档案",
+          "w": 76,
+          "h": 19.5,
+          "x": 334,
+          "y": 13.75,
+          "visible": true
+        },
+        {
+          "name": "现在重做",
+          "w": 78,
+          "h": 28,
+          "x": 20,
+          "y": 163.046875,
+          "visible": true
+        },
+        {
+          "name": "编辑档案",
+          "w": 78,
+          "h": 28,
+          "x": 106,
+          "y": 163.046875,
+          "visible": true
+        },
+        {
+          "name": "归档",
+          "w": 54,
+          "h": 28,
+          "x": 192,
+          "y": 163.046875,
+          "visible": true
+        },
+        {
+          "name": "手动标记掌握",
+          "w": 102,
+          "h": 28,
+          "x": 20,
+          "y": 255.546875,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 430,
+          "scroll": 430
+        },
+        {
+          "tag": "management-page-content flex-1 overflow-y-auto",
+          "w": 430,
+          "scroll": 430
+        },
+        {
+          "tag": "mistakes-detail",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "markdown-body text-sm leading-relaxed break-words",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 390,
+          "scroll": 390
+        }
+      ]
+    },
+    {
+      "name": "books",
+      "width": 430,
+      "body": 430,
+      "viewport": 430,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "保存目录",
+          "w": 94,
+          "h": 28,
+          "x": 214,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "导入教材",
+          "w": 94,
+          "h": 28,
+          "x": 316,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "重命名",
+          "w": 142,
+          "h": 32,
+          "x": 265,
+          "y": 82,
+          "visible": true
+        },
+        {
+          "name": "删除分类",
+          "w": 142,
+          "h": 32,
+          "x": 265,
+          "y": 114,
+          "visible": true
+        },
+        {
+          "name": "添加学科",
+          "w": 80,
+          "h": 28,
+          "x": 10,
+          "y": 96,
+          "visible": true
+        },
+        {
+          "name": "添加科目",
+          "w": 80,
+          "h": 28,
+          "x": 94,
+          "y": 96,
+          "visible": true
+        },
+        {
+          "name": "折叠",
+          "w": 30,
+          "h": 34,
+          "x": 10,
+          "y": 137,
+          "visible": true
+        },
+        {
+          "name": "数学7",
+          "w": 380,
+          "h": 36,
+          "x": 40,
+          "y": 136,
+          "visible": true
+        },
+        {
+          "name": "高数5",
+          "w": 383,
+          "h": 36,
+          "x": 37,
+          "y": 174,
+          "visible": true
+        },
+        {
+          "name": "线代1",
+          "w": 383,
+          "h": 36,
+          "x": 37,
+          "y": 212,
+          "visible": true
+        },
+        {
+          "name": "概率论1",
+          "w": 383,
+          "h": 36,
+          "x": 37,
+          "y": 250,
+          "visible": true
+        },
+        {
+          "name": "展开",
+          "w": 30,
+          "h": 34,
+          "x": 10,
+          "y": 293,
+          "visible": true
+        },
+        {
+          "name": "专业课0",
+          "w": 380,
+          "h": 36,
+          "x": 40,
+          "y": 292,
+          "visible": true
+        },
+        {
+          "name": "未分类0",
+          "w": 410,
+          "h": 36,
+          "x": 10,
+          "y": 334,
+          "visible": true
+        },
+        {
+          "name": "活跃 7",
+          "w": 36.1875,
+          "h": 30.5,
+          "x": 20,
+          "y": 328.25,
+          "visible": true
+        },
+        {
+          "name": "已归档 1",
+          "w": 46.9375,
+          "h": 30.5,
+          "x": 74.1875,
+          "y": 328.25,
+          "visible": true
+        },
+        {
+          "name": "刷新教材",
+          "w": 34,
+          "h": 34,
+          "x": 376,
+          "y": 326.5,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 上册（第七版）教材归属",
+          "w": 139,
+          "h": 24,
+          "x": 96,
+          "y": 486.6875,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 上册（第七版）配套教材组",
+          "w": 139,
+          "h": 24,
+          "x": 271,
+          "y": 486.6875,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 上册（第七版）的教材角色",
+          "w": 62,
+          "h": 28,
+          "x": 348,
+          "y": 388,
+          "visible": true
+        },
+        {
+          "name": "重新准备",
+          "w": 84,
+          "h": 26,
+          "x": 216,
+          "y": 522.6875,
+          "visible": true
+        },
+        {
+          "name": "设为学习范围",
+          "w": 82,
+          "h": 24,
+          "x": 302,
+          "y": 523.6875,
+          "visible": true
+        },
+        {
+          "name": "更多教材操作",
+          "w": 24,
+          "h": 24,
+          "x": 386,
+          "y": 522.9375,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 下册（第七版）教材归属",
+          "w": 139,
+          "h": 24,
+          "x": 96,
+          "y": 686.375,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 下册（第七版）配套教材组",
+          "w": 139,
+          "h": 24,
+          "x": 271,
+          "y": 686.375,
+          "visible": true
+        },
+        {
+          "name": "高等数学 · 下册（第七版）的教材角色",
+          "w": 62,
+          "h": 28,
+          "x": 348,
+          "y": 587.6875,
+          "visible": true
+        },
+        {
+          "name": "重新准备",
+          "w": 84,
+          "h": 26,
+          "x": 216,
+          "y": 722.375,
+          "visible": true
+        },
+        {
+          "name": "设为学习范围",
+          "w": 82,
+          "h": 24,
+          "x": 302,
+          "y": 723.375,
+          "visible": true
+        },
+        {
+          "name": "更多教材操作",
+          "w": 24,
+          "h": 24,
+          "x": 386,
+          "y": 722.625,
+          "visible": true
+        },
+        {
+          "name": "线性代数（第六版）的教材角色",
+          "w": 62,
+          "h": 28,
+          "x": 348,
+          "y": 787.375,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 430,
+          "scroll": 430
+        },
+        {
+          "tag": "library-page-main min-h-0 min-w-0 flex-1",
+          "w": 430,
+          "scroll": 430
+        },
+        {
+          "tag": "library-content",
+          "w": 430,
+          "scroll": 430
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "library-book-row workspace-register-row",
+          "w": 390,
+          "scroll": 390
+        }
+      ]
+    },
+    {
+      "name": "highlights",
+      "width": 430,
+      "body": 430,
+      "viewport": 430,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "打印",
+          "w": 76,
+          "h": 28,
+          "x": 334,
+          "y": 9.5,
+          "visible": true
+        },
+        {
+          "name": "极限与相减结构",
+          "w": 352,
+          "h": 31.5,
+          "x": 37,
+          "y": 117,
+          "visible": true
+        },
+        {
+          "name": "例题",
+          "w": 352,
+          "h": 31.5,
+          "x": 37,
+          "y": 152.5,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 430,
+          "scroll": 430
+        },
+        {
+          "tag": "min-w-0",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "mt-5 border border-border bg-bg-card px-5 py-4 shadow-sm",
+          "w": 388,
+          "scroll": 388
+        },
+        {
+          "tag": "markdown-body text-[15px] leading-relaxed break-words",
+          "w": 348,
+          "scroll": 348
+        },
+        {
+          "tag": "markdown-body text-[15px] leading-relaxed break-words",
+          "w": 348,
+          "scroll": 348
+        }
+      ]
+    },
+    {
+      "name": "navigation",
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "收起侧栏",
+          "w": 36,
+          "h": 36,
+          "x": 271,
+          "y": 13,
+          "visible": true
+        },
+        {
+          "name": "Texa 学习工作区",
+          "w": 295,
+          "h": 44,
+          "x": 12,
+          "y": 0,
+          "visible": true
+        },
+        {
+          "name": "学习",
+          "w": 145.5,
+          "h": 36,
+          "x": 12,
+          "y": 56,
+          "visible": true
+        },
+        {
+          "name": "目标与任务",
+          "w": 145.5,
+          "h": 36,
+          "x": 161.5,
+          "y": 56,
+          "visible": true
+        },
+        {
+          "name": "复习",
+          "w": 145.5,
+          "h": 36,
+          "x": 12,
+          "y": 96,
+          "visible": true
+        },
+        {
+          "name": "笔记",
+          "w": 145.5,
+          "h": 36,
+          "x": 161.5,
+          "y": 96,
+          "visible": true
+        },
+        {
+          "name": "错题",
+          "w": 145.5,
+          "h": 36,
+          "x": 12,
+          "y": 136,
+          "visible": true
+        },
+        {
+          "name": "练习",
+          "w": 145.5,
+          "h": 36,
+          "x": 161.5,
+          "y": 136,
+          "visible": true
+        },
+        {
+          "name": "教材",
+          "w": 145.5,
+          "h": 36,
+          "x": 12,
+          "y": 176,
+          "visible": true
+        },
+        {
+          "name": "设置",
+          "w": 295,
+          "h": 36,
+          "x": 12,
+          "y": 216,
+          "visible": true
+        },
+        {
+          "name": "新会话",
+          "w": 71,
+          "h": 26,
+          "x": 188,
+          "y": 270.5,
+          "visible": true
+        },
+        {
+          "name": "收起学习上下文",
+          "w": 36,
+          "h": 36,
+          "x": 271,
+          "y": 265.5,
+          "visible": true
+        },
+        {
+          "name": "最近",
+          "w": 95,
+          "h": 28,
+          "x": 14,
+          "y": 349.5,
+          "visible": true
+        },
+        {
+          "name": "归档",
+          "w": 95,
+          "h": 28,
+          "x": 112,
+          "y": 349.5,
+          "visible": true
+        },
+        {
+          "name": "回收站",
+          "w": 95,
+          "h": 28,
+          "x": 210,
+          "y": 349.5,
+          "visible": true
+        },
+        {
+          "name": "等价无穷小：为什么相减时不能直接替换？1 分钟",
+          "w": 265,
+          "h": 54.375,
+          "x": 8,
+          "y": 385.5,
+          "visible": true
+        },
+        {
+          "name": "等价无穷小：为什么相减时不能直接替换？的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 275,
+          "y": 394.6875,
+          "visible": true
+        },
+        {
+          "name": "泰勒公式中的余项如何理解1 天",
+          "w": 265,
+          "h": 35.1875,
+          "x": 8,
+          "y": 440.28125,
+          "visible": true
+        },
+        {
+          "name": "泰勒公式中的余项如何理解的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 275,
+          "y": 439.875,
+          "visible": true
+        },
+        {
+          "name": "用几何意义理解定积分2 天",
+          "w": 265,
+          "h": 35.1875,
+          "x": 8,
+          "y": 476.28125,
+          "visible": true
+        },
+        {
+          "name": "用几何意义理解定积分的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 275,
+          "y": 475.875,
+          "visible": true
+        },
+        {
+          "name": "矩阵的秩与线性相关3 天",
+          "w": 265,
+          "h": 35.1875,
+          "x": 8,
+          "y": 512.28125,
+          "visible": true
+        },
+        {
+          "name": "矩阵的秩与线性相关的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 275,
+          "y": 511.875,
+          "visible": true
+        },
+        {
+          "name": "连续与可导的区别4 天",
+          "w": 265,
+          "h": 35.1875,
+          "x": 8,
+          "y": 548.28125,
+          "visible": true
+        },
+        {
+          "name": "连续与可导的区别的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 275,
+          "y": 547.875,
+          "visible": true
+        },
+        {
+          "name": "分部积分：怎样选择 u 和 dv5 天",
+          "w": 265,
+          "h": 35.1875,
+          "x": 8,
+          "y": 584.28125,
+          "visible": true
+        },
+        {
+          "name": "分部积分：怎样选择 u 和 dv的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 275,
+          "y": 583.875,
+          "visible": true
+        },
+        {
+          "name": "条件概率与独立性6 天",
+          "w": 265,
+          "h": 35.1875,
+          "x": 8,
+          "y": 620.28125,
+          "visible": true
+        },
+        {
+          "name": "条件概率与独立性的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 275,
+          "y": 619.875,
+          "visible": true
+        },
+        {
+          "name": "一元函数极值的判断7 天",
+          "w": 265,
+          "h": 35.1875,
+          "x": 8,
+          "y": 656.28125,
+          "visible": true
+        },
+        {
+          "name": "一元函数极值的判断的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 275,
+          "y": 655.875,
+          "visible": true
+        },
+        {
+          "name": "关闭学习上下文",
+          "w": 334,
+          "h": 844,
+          "x": 56,
+          "y": 0,
+          "visible": true
+        },
+        {
+          "name": "选择学习范围",
+          "w": 176.6875,
+          "h": 44,
+          "x": 193.3125,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "name": "问题的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 337,
+          "y": 81,
+          "visible": true
+        },
+        {
+          "name": "查看来源 · 3",
+          "w": 87.15625,
+          "h": 26,
+          "x": 285.84375,
+          "y": 175.90625,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 363,
+          "h": 68,
+          "x": 9,
+          "y": 718,
+          "visible": true
+        },
+        {
+          "name": "拍照提问",
+          "w": 44,
+          "h": 44,
+          "x": 15,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "上传题目图片",
+          "w": 44,
+          "h": 44,
+          "x": 63,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "选择教材图片",
+          "w": 44,
+          "h": 44,
+          "x": 111,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "选择历史错题",
+          "w": 44,
+          "h": 44,
+          "x": 159,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "打开数学符号面板",
+          "w": 44,
+          "h": 44,
+          "x": 207,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "更多",
+          "w": 44,
+          "h": 44,
+          "x": 255,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "发送问题",
+          "w": 44,
+          "h": 44,
+          "x": 322,
+          "y": 786,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "learning-question",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "katex-display",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "katex-display",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "border-collapse border border-border text-xs",
+          "w": 341,
+          "scroll": 340
+        },
+        {
+          "tag": "katex-display",
+          "w": 365,
+          "scroll": 450
+        }
+      ]
+    },
+    {
+      "name": "keyboard-height-simulation",
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "当前会话的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 334,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "name": "选择学习范围",
+          "w": 176.6875,
+          "h": 44,
+          "x": 64,
+          "y": 52,
+          "visible": true
+        },
+        {
+          "name": "问题的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 337,
+          "y": 125,
+          "visible": true
+        },
+        {
+          "name": "查看来源 · 3",
+          "w": 87.15625,
+          "h": 26,
+          "x": 285.84375,
+          "y": 219.90625,
+          "visible": true
+        },
+        {
+          "name": "保留输入：章节中的这个条件是什么意思？",
+          "w": 363,
+          "h": 44,
+          "x": 9,
+          "y": 378,
+          "visible": true
+        },
+        {
+          "name": "拍照提问",
+          "w": 44,
+          "h": 44,
+          "x": 15,
+          "y": 422,
+          "visible": true
+        },
+        {
+          "name": "上传题目图片",
+          "w": 44,
+          "h": 44,
+          "x": 63,
+          "y": 422,
+          "visible": true
+        },
+        {
+          "name": "选择教材图片",
+          "w": 44,
+          "h": 44,
+          "x": 111,
+          "y": 422,
+          "visible": true
+        },
+        {
+          "name": "选择历史错题",
+          "w": 44,
+          "h": 44,
+          "x": 159,
+          "y": 422,
+          "visible": true
+        },
+        {
+          "name": "打开数学符号面板",
+          "w": 44,
+          "h": 44,
+          "x": 207,
+          "y": 422,
+          "visible": true
+        },
+        {
+          "name": "更多",
+          "w": 44,
+          "h": 44,
+          "x": 255,
+          "y": 422,
+          "visible": true
+        },
+        {
+          "name": "发送问题",
+          "w": 44,
+          "h": 44,
+          "x": 322,
+          "y": 422,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "learning-question",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "katex-display",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "katex-display",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "border-collapse border border-border text-xs",
+          "w": 341,
+          "scroll": 340
+        },
+        {
+          "tag": "katex-display",
+          "w": 365,
+          "scroll": 450
+        }
+      ]
+    },
+    {
+      "name": "stream-final",
+      "text": "处理完成\n1 ms\n收起过程\n解析学习上下文\n跳过\n查看详情\n校验积分\n完成\n查看详情\n回答完成\n完成\n查看详情",
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "当前会话的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 334,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "name": "选择学习范围",
+          "w": 176.6875,
+          "h": 44,
+          "x": 64,
+          "y": 52,
+          "visible": true
+        },
+        {
+          "name": "问题的更多操作",
+          "w": 36,
+          "h": 36,
+          "x": 337,
+          "y": 125,
+          "visible": true
+        },
+        {
+          "name": "查看来源 · 3",
+          "w": 87.15625,
+          "h": 26,
+          "x": 285.84375,
+          "y": 219.90625,
+          "visible": true
+        },
+        {
+          "name": "回到最新回答",
+          "w": 114,
+          "h": 44,
+          "x": 138,
+          "y": 685,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 363,
+          "h": 44,
+          "x": 9,
+          "y": 742,
+          "visible": true
+        },
+        {
+          "name": "拍照提问",
+          "w": 44,
+          "h": 44,
+          "x": 15,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "上传题目图片",
+          "w": 44,
+          "h": 44,
+          "x": 63,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "选择教材图片",
+          "w": 44,
+          "h": 44,
+          "x": 111,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "选择历史错题",
+          "w": 44,
+          "h": 44,
+          "x": 159,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "打开数学符号面板",
+          "w": 44,
+          "h": 44,
+          "x": 207,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "更多",
+          "w": 44,
+          "h": 44,
+          "x": 255,
+          "y": 786,
+          "visible": true
+        },
+        {
+          "name": "发送问题",
+          "w": 44,
+          "h": 44,
+          "x": 322,
+          "y": 786,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "learning-question",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "katex-display",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "katex-display",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "border-collapse border border-border text-xs",
+          "w": 341,
+          "scroll": 340
+        },
+        {
+          "tag": "katex-display",
+          "w": 365,
+          "scroll": 450
+        },
+        {
+          "tag": "learning-question",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "learning-answer-document",
+          "w": 365,
+          "scroll": 365
+        },
+        {
+          "tag": "markdown-body learning-reading-content break-words",
+          "w": 365,
+          "scroll": 365
+        }
+      ]
+    },
+    {
+      "name": "note-editor",
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "保存笔记",
+          "w": 62,
+          "h": 28,
+          "x": 153.515625,
+          "y": 25,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 348,
+          "h": 46.390625,
+          "x": 22,
+          "y": 209.6875,
+          "visible": true
+        },
+        {
+          "name": "比较替换误差与目标表达式的阶数，避免一次项相消后丢失有效信息。",
+          "w": 348,
+          "h": 85,
+          "x": 22,
+          "y": 301.765625,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 348,
+          "h": 46.390625,
+          "x": 22,
+          "y": 476.84375,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 348,
+          "h": 46.390625,
+          "x": 22,
+          "y": 582.921875,
+          "visible": true
+        },
+        {
+          "name": "选择其他教材章节",
+          "w": 116,
+          "h": 28,
+          "x": 22,
+          "y": 645.3125,
+          "visible": true
+        },
+        {
+          "name": "上移第 1 块",
+          "w": 28,
+          "h": 28,
+          "x": 257,
+          "y": 479.34375,
+          "visible": true
+        },
+        {
+          "name": "下移第 1 块",
+          "w": 28,
+          "h": 28,
+          "x": 293,
+          "y": 479.34375,
+          "visible": true
+        },
+        {
+          "name": "删除第 1 块",
+          "w": 28,
+          "h": 28,
+          "x": 329,
+          "y": 479.34375,
+          "visible": true
+        },
+        {
+          "name": "第 1 块正文",
+          "w": 322,
+          "h": 85,
+          "x": 35,
+          "y": 554.234375,
+          "visible": true
+        },
+        {
+          "name": "上移第 2 块",
+          "w": 28,
+          "h": 28,
+          "x": 257,
+          "y": 698.421875,
+          "visible": true
+        },
+        {
+          "name": "下移第 2 块",
+          "w": 28,
+          "h": 28,
+          "x": 293,
+          "y": 698.421875,
+          "visible": true
+        },
+        {
+          "name": "删除第 2 块",
+          "w": 28,
+          "h": 28,
+          "x": 329,
+          "y": 698.421875,
+          "visible": true
+        },
+        {
+          "name": "第 2 块正文",
+          "w": 322,
+          "h": 85,
+          "x": 35,
+          "y": 773.3125,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "note-document",
+          "w": 390,
+          "scroll": 390
+        }
+      ]
+    },
+    {
+      "name": "models",
+      "body": 390,
+      "viewport": 390,
+      "controls": [
+        {
+          "name": "展开侧栏",
+          "w": 30,
+          "h": 30,
+          "x": 16,
+          "y": 9,
+          "visible": true
+        },
+        {
+          "name": "选择学习范围",
+          "w": 232,
+          "h": 36,
+          "x": 79,
+          "y": 312.71875,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 332,
+          "h": 68,
+          "x": 29,
+          "y": 369.71875,
+          "visible": true
+        },
+        {
+          "name": "拍照提问",
+          "w": 44,
+          "h": 44,
+          "x": 37,
+          "y": 441.71875,
+          "visible": true
+        },
+        {
+          "name": "上传题目图片",
+          "w": 44,
+          "h": 44,
+          "x": 85,
+          "y": 441.71875,
+          "visible": true
+        },
+        {
+          "name": "选择教材图片",
+          "w": 44,
+          "h": 44,
+          "x": 133,
+          "y": 441.71875,
+          "visible": true
+        },
+        {
+          "name": "选择历史错题",
+          "w": 44,
+          "h": 44,
+          "x": 181,
+          "y": 441.71875,
+          "visible": true
+        },
+        {
+          "name": "打开数学符号面板",
+          "w": 44,
+          "h": 44,
+          "x": 229,
+          "y": 441.71875,
+          "visible": true
+        },
+        {
+          "name": "更多",
+          "w": 44,
+          "h": 44,
+          "x": 277,
+          "y": 441.71875,
+          "visible": true
+        },
+        {
+          "name": "发送问题",
+          "w": 44,
+          "h": 44,
+          "x": 37,
+          "y": 497.71875,
+          "visible": true
+        },
+        {
+          "name": "关闭设置",
+          "w": 36,
+          "h": 36,
+          "x": 321,
+          "y": 18.5,
+          "visible": true
+        },
+        {
+          "name": "返回设置",
+          "w": 78,
+          "h": 28,
+          "x": 29,
+          "y": 81,
+          "visible": true
+        },
+        {
+          "name": "切换并应用模型方案",
+          "w": 323,
+          "h": 36,
+          "x": 29,
+          "y": 331.4375,
+          "visible": true
+        },
+        {
+          "name": "新建方案",
+          "w": 323,
+          "h": 28,
+          "x": 29,
+          "y": 375.4375,
+          "visible": true
+        },
+        {
+          "name": "",
+          "w": 323,
+          "h": 36,
+          "x": 29,
+          "y": 449.625,
+          "visible": true
+        },
+        {
+          "name": "单模型一个模型处理文字与图片",
+          "w": 157.5,
+          "h": 80.5,
+          "x": 29,
+          "y": 526.625,
+          "visible": true
+        },
+        {
+          "name": "双模型回答和识图分别配置",
+          "w": 157.5,
+          "h": 80.5,
+          "x": 194.5,
+          "y": 526.625,
+          "visible": true
+        },
+        {
+          "name": "回答模型服务商",
+          "w": 323,
+          "h": 36,
+          "x": 29,
+          "y": 688.125,
+          "visible": true
+        },
+        {
+          "name": "回答模型 Model",
+          "w": 323,
+          "h": 36,
+          "x": 29,
+          "y": 782.625,
+          "visible": true
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "workspace-main",
+          "w": 390,
+          "scroll": 390
+        },
+        {
+          "tag": "settings-content-pane",
+          "w": 355,
+          "scroll": 355
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    "360-chat-touch.png",
+    "360-chat-bottom.png",
+    "360-notes-touch.png",
+    "360-notes-bottom.png",
+    "360-note-touch.png",
+    "360-note-bottom.png",
+    "360-draft-touch.png",
+    "360-draft-bottom.png",
+    "360-mistakes-touch.png",
+    "360-mistakes-bottom.png",
+    "360-mistake-touch.png",
+    "360-mistake-bottom.png",
+    "360-books-touch.png",
+    "360-books-bottom.png",
+    "360-highlights-touch.png",
+    "360-highlights-bottom.png",
+    "390-chat-touch.png",
+    "390-chat-bottom.png",
+    "390-notes-touch.png",
+    "390-notes-bottom.png",
+    "390-note-touch.png",
+    "390-note-bottom.png",
+    "390-draft-touch.png",
+    "390-draft-bottom.png",
+    "390-mistakes-touch.png",
+    "390-mistakes-bottom.png",
+    "390-mistake-touch.png",
+    "390-mistake-bottom.png",
+    "390-books-touch.png",
+    "390-books-bottom.png",
+    "390-highlights-touch.png",
+    "390-highlights-bottom.png",
+    "430-chat-touch.png",
+    "430-chat-bottom.png",
+    "430-notes-touch.png",
+    "430-notes-bottom.png",
+    "430-note-touch.png",
+    "430-note-bottom.png",
+    "430-draft-touch.png",
+    "430-draft-bottom.png",
+    "430-mistakes-touch.png",
+    "430-mistakes-bottom.png",
+    "430-mistake-touch.png",
+    "430-mistake-bottom.png",
+    "430-books-touch.png",
+    "430-books-bottom.png",
+    "430-highlights-touch.png",
+    "430-highlights-bottom.png",
+    "390-navigation-history.png",
+    "390-composer-height-simulation.png",
+    "390-stream-tool.png",
+    "390-stream-tool-expanded.png",
+    "390-stream-body.png",
+    "390-stream-read-top.png",
+    "390-stream-final.png",
+    "390-notes-filters.png",
+    "390-note-editor.png",
+    "390-model-settings.png"
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791943295165_b642fbb1/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/visual-session-0"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/visual-session-0/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/filters"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/qa-note"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/drafts/qa-draft"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "POST",
+      "path": "/api/mistakes/query"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/mistakes/candidates"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/mistakes/visual-mistake-1"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/qa-book/chapter-highlights/qa-chapter"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/visual-session-0/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/visual-session-0"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/filters"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/qa-note"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/drafts/qa-draft"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "POST",
+      "path": "/api/mistakes/query"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/mistakes/candidates"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/mistakes/visual-mistake-1"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/qa-book/chapter-highlights/qa-chapter"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/visual-session-0/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/visual-session-0"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791943318258_e086cda6/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/filters"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/qa-note"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/drafts/qa-draft"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/mistakes/candidates"
+    },
+    {
+      "scenario": "populated",
+      "method": "POST",
+      "path": "/api/mistakes/query"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/mistakes/visual-mistake-1"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/qa-book/chapter-highlights/qa-chapter"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791943318258_e086cda6/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/visual-session-0"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/visual-session-0/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/visual-session-0/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/visual-session-0"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "POST",
+      "path": "/api/chat/stream"
+    },
+    {
+      "scenario": "populated",
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "scenario": "populated",
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "scenario": "populated",
+      "method": "POST",
+      "path": "/api/mistakes/chat-sources/query"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/filters"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/notes/drafts/qa-draft"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/list"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings/subjects"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/visual-session-0/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations/conv_1791943346641_3f37abb1/management"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/chat/conversations"
+    },
+    {
+      "scenario": "populated",
+      "method": "GET",
+      "path": "/api/system/settings"
+    }
+  ]
+}

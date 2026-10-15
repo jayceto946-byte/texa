@@ -139,6 +139,7 @@ export default function ScopeSelector({
   disabled = false,
   fullWidth = false,
   className = '',
+  size = 'normal',
 }: {
   subject: string;
   bookName?: string;
@@ -158,6 +159,7 @@ export default function ScopeSelector({
   disabled?: boolean;
   fullWidth?: boolean;
   className?: string;
+  size?: 'compact' | 'normal' | 'form';
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -280,7 +282,7 @@ export default function ScopeSelector({
   };
 
   return (
-    <div ref={rootRef} className={`relative min-w-0 ${fullWidth ? 'w-full' : 'max-w-full shrink'} ${className}`}>
+    <div ref={rootRef} data-scope-size={size} className={`relative min-w-0 ${fullWidth ? 'w-full' : 'max-w-full shrink'} ${className}`}>
       <button
         type="button"
         onClick={() => !disabled && setOpen((next) => !next)}

@@ -64,7 +64,7 @@ def get_goal(goal_id: str, service: GoalService = Depends(get_goal_service)):
         goal = service.store.get(goal_id)
         if goal is None:
             raise KeyError(goal_id)
-        return {**goal, "next_action": service.get_next_action(goal_id),
+        return {**goal, "schedule": goal.get("next_action"), "next_action": service.get_next_action(goal_id),
                 "run_links": service.store.links(goal_id)}
     return _invoke(read)
 
@@ -139,7 +139,9 @@ def goal_runtime(goal_id: str, service: GoalService = Depends(get_goal_service))
     links = service.store.links(goal_id)
     store = runtime_store()
     snapshot = store.task_snapshot(links[-1]["task_id"]) if store and links else None
-    return {"success": True, "data": public_task(store, snapshot) if snapshot else None, "goal": service.store.get(goal_id)}
+    from backend.services.goals.execution import project_goal_runtime
+    goal = service.store.get(goal_id)
+    return {"success": True, "data": project_goal_runtime(store, snapshot, goal) if snapshot else None, "goal": goal}
 
 
 class GoalScheduleCommand(BaseModel):

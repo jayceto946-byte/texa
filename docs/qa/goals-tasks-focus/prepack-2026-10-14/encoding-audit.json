@@ -1,0 +1,190 @@
+{
+  "scanned_files": 1810,
+  "invalid_utf8": [],
+  "bom_files": [
+    "benchmark_results/embedding_onnx_phase3/uninstall_smoke.json",
+    "benchmark_results/embedding_onnx_phase3/upgrade_test.json",
+    "benchmark_results/embedding_onnx_phase3/clean_process.json",
+    "benchmark_results/embedding_onnx_phase3/package_size.json",
+    "benchmark_results/embedding_onnx_phase3/repair_ui_pre_click.json",
+    "benchmark_results/embedding_onnx_phase3/upgrade_preservation.json",
+    "benchmark_results/embedding_onnx_phase3/clean_install_smoke.json",
+    "benchmark_results/embedding_onnx_phase3/upgrade_before.json",
+    "tests/test_thinking_filter.py",
+    "desktop/sample_data/README.md",
+    "knowledge/knowledge_graph.py",
+    "scripts/retry_deepseek_v4_sensor_pro.py",
+    "scripts/extract_kg_candidates.py",
+    "scripts/import_ocr_chunks.py",
+    "scripts/benchmark_deepseek_v4_cost.py",
+    "scripts/benchmark_deepseek_v4_sensor.py",
+    "scripts/build_external_ocr_knowledge_graph.py",
+    "scripts/build_book_aggregate_index.py"
+  ],
+  "suspicious_files": [
+    {
+      "file": "assets/embedding-runtime/bge-small-zh-v1.5/onnx-fp32-v1/tokenizer.json",
+      "score": 20,
+      "hits": [
+        [
+          "绔",
+          2
+        ],
+        [
+          "涓",
+          2
+        ],
+        [
+          "榛",
+          2
+        ],
+        [
+          "宸",
+          2
+        ],
+        [
+          "瑁",
+          2
+        ],
+        [
+          "鍥",
+          2
+        ],
+        [
+          "璇",
+          2
+        ],
+        [
+          "骞",
+          2
+        ],
+        [
+          "淇",
+          2
+        ],
+        [
+          "鈴",
+          2
+        ]
+      ],
+      "question_runs": 0,
+      "replacement_chars": 0,
+      "cp1252_like": 0,
+      "samples": [
+        {
+          "line": 2307,
+          "text": "      \"宸\": 2158,"
+        },
+        {
+          "line": 3676,
+          "text": "      \"榛\": 3527,"
+        },
+        {
+          "line": 4020,
+          "text": "      \"涓\": 3871,"
+        },
+        {
+          "line": 4048,
+          "text": "      \"淇\": 3899,"
+        },
+        {
+          "line": 4588,
+          "text": "      \"瑁\": 4439,"
+        },
+        {
+          "line": 4611,
+          "text": "      \"璇\": 4462,"
+        }
+      ]
+    },
+    {
+      "file": "assets/embedding-runtime/bge-small-zh-v1.5/onnx-fp32-v1/vocab.txt",
+      "score": 20,
+      "hits": [
+        [
+          "绔",
+          2
+        ],
+        [
+          "涓",
+          2
+        ],
+        [
+          "榛",
+          2
+        ],
+        [
+          "宸",
+          2
+        ],
+        [
+          "瑁",
+          2
+        ],
+        [
+          "鍥",
+          2
+        ],
+        [
+          "璇",
+          2
+        ],
+        [
+          "骞",
+          2
+        ],
+        [
+          "淇",
+          2
+        ],
+        [
+          "鈴",
+          2
+        ]
+      ],
+      "question_runs": 0,
+      "replacement_chars": 0,
+      "cp1252_like": 0,
+      "samples": [
+        {
+          "line": 2160,
+          "text": "宸"
+        },
+        {
+          "line": 3529,
+          "text": "榛"
+        },
+        {
+          "line": 3873,
+          "text": "涓"
+        },
+        {
+          "line": 3901,
+          "text": "淇"
+        },
+        {
+          "line": 4441,
+          "text": "瑁"
+        },
+        {
+          "line": 4464,
+          "text": "璇"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_learning_state_concurrency.py",
+      "score": 8,
+      "hits": [],
+      "question_runs": 1,
+      "replacement_chars": 0,
+      "cp1252_like": 0,
+      "samples": [
+        {
+          "line": 23,
+          "text": "            f\"???{name}\","
+        }
+      ]
+    }
+  ]
+}

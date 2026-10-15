@@ -15,6 +15,8 @@ ipcRenderer.on('window:close-aborted', () => {
 contextBridge.exposeInMainWorld('kaoyanDesktop', {
   isElectron: true,
   getRemoteS0Status: () => ipcRenderer.invoke('remote-s0:status'),
+  setRemoteConnectionEnabled: (enabled) => ipcRenderer.invoke('remote-s0:set-enabled', enabled),
+  copyRemoteConnectionUrl: () => ipcRenderer.invoke('remote-s0:copy-url'),
   copyRemoteS0Token: () => ipcRenderer.invoke('remote-s0:copy-token'),
   platform: process.platform,
   getSetupComplete: () => ipcRenderer.invoke('setup:get-complete'),
@@ -31,6 +33,11 @@ contextBridge.exposeInMainWorld('kaoyanDesktop', {
   isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
   toggleMaximize: () => ipcRenderer.invoke('window:toggle-maximize'),
   close: () => ipcRenderer.invoke('window:close'),
+  onFocusPower: (handler) => {
+    const listener = (_event, state) => { if (state === 'suspend' || state === 'resume') handler(state); };
+    ipcRenderer.on('focus:power', listener);
+    return () => ipcRenderer.removeListener('focus:power', listener);
+  },
   onPrepareClose: (handler) => {
     closeHandlers.add(handler);
     return () => closeHandlers.delete(handler);

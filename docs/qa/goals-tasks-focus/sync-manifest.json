@@ -1,0 +1,393 @@
+[
+  {
+    "path": "Texa-Goals-Tasks-Focus-Redesign.md",
+    "before_sha256": null,
+    "after_sha256": "9deaeddc34f6f5ed4bcde2d89745bc232cb86b649e381ecccb4c6d3f971226f7"
+  },
+  {
+    "path": "backend/api/focus.py",
+    "before_sha256": "d8dcd9e1ed6f75a8a2efd00819e04a583f3ab2b59a6731673cf54bd9e08046b5",
+    "after_sha256": "53a7d9cfdac3cafea1e9f87b265639ca24e66aeb6229fb690927a6aaf2cd5607"
+  },
+  {
+    "path": "backend/api/goals.py",
+    "before_sha256": "c6fb0724fc1a95429243676e08f4f58d8f64c27791344c9cc23e7f7fd8b6c4d0",
+    "after_sha256": "39e4e9cab470663aced35cbc1cf1e6654c636ecfcc6bcd90e115d70c16e671fa"
+  },
+  {
+    "path": "backend/main.py",
+    "before_sha256": "01b8b74fa7ef1fa21981384dc852ee5009ed0eae966e00deab116b89656b7cc0",
+    "after_sha256": "4b0e26b55e9fe2924fefb3c46bcfd06e337cf895f53b9209d79bcf637afe75ca"
+  },
+  {
+    "path": "backend/services/goals/focus.py",
+    "before_sha256": "6e0f21b56d22a8a8e1026555c0bfa6667c907da2665301eedf6013fa7a4a419b",
+    "after_sha256": "7d713c1886740cbd2a1edefbade8120b838851e15e8aae42dcfcf93d86fc524a"
+  },
+  {
+    "path": "backend/services/goals/focus_migration.py",
+    "before_sha256": null,
+    "after_sha256": "8aeaf6efda9c05331be164207ae5b6772750a5fccfc5d243955229683b657d5d"
+  },
+  {
+    "path": "backend/services/goals/focus_time.py",
+    "before_sha256": null,
+    "after_sha256": "5ad973ee4851ca7014cc155b4a93854d4c1eb79b836767f1f493b650ab9ba7c9"
+  },
+  {
+    "path": "backend/services/goals/service.py",
+    "before_sha256": "ddfa44fc39f5c6863f64daf4cefe6c7868a6072aaba2ab9d2bb02adc864d91a0",
+    "after_sha256": "d5a706c6e4a7bbdda05aa193855cdbaa6f70f6ceeb153da7d6b4beddb84a794b"
+  },
+  {
+    "path": "backend/services/goals/store.py",
+    "before_sha256": "185e9e35bfe836c96ce95da31402d5814ec892d6c72e38ecd69c6497b32c4b28",
+    "after_sha256": "af84db7fb59363413c4717d6954e2a15bc3b1637a505afc84226d46035769852"
+  },
+  {
+    "path": "desktop/focus-power.test.cjs",
+    "before_sha256": null,
+    "after_sha256": "4198a2bd8f4bea65fa50945fdc27aebc9ddfd12cb3ad10cb8296d86a1c9e2033"
+  },
+  {
+    "path": "desktop/main.cjs",
+    "before_sha256": "1b130d91ecaefdfb76886a2108aed72e4d97c47eb7cc2ab3ba4cbb5eeb8eca99",
+    "after_sha256": "2d76d71f93f567b43305c40f746fc8ecaeb3a2e1e124526db0b7a0ef54178d4f"
+  },
+  {
+    "path": "desktop/preload.cjs",
+    "before_sha256": "56c610419ba389a1c35ffb31c6350d10fe1a10e49038b27537631f56ce280a52",
+    "after_sha256": "47823b7c5dc98f35aa28de236f139893c9a9052f69242630264e69949800d899"
+  },
+  {
+    "path": "docs/design/goals-tasks-focus/audit-evidence.md",
+    "before_sha256": null,
+    "after_sha256": "b375d55e016fa93aa69f8184e343dfeefa62fa094e87fbdc57bbce0b1d554971"
+  },
+  {
+    "path": "docs/design/goals-tasks-focus/audit-probes.json",
+    "before_sha256": null,
+    "after_sha256": "357463ee0d1e65861251867bb0827c887b754b065e221b78a0db2e5c316f5b6c"
+  },
+  {
+    "path": "docs/design/goals-tasks-focus/design-board.html",
+    "before_sha256": null,
+    "after_sha256": "6681b3d8096c14ee37cc8ca1910a1cd1063c8f2cfd1fa61df0c373b93f8b1e51"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/README.md",
+    "before_sha256": null,
+    "after_sha256": "5561d4970ae8dbacb22ad55dd7ab2c1f258a379ed2a26f042c63ef14b6020cc6"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/backend-tests.log",
+    "before_sha256": null,
+    "after_sha256": "38df6bbd8a79928a9675666dbee77a13752b6577f56177390b53cab0469b6391"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/baseline.md",
+    "before_sha256": null,
+    "after_sha256": "e6e5c3aff4e1cfcbd56140889d275aa2cb11bbb705613e05ef46f8543d2742b2"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/build.log",
+    "before_sha256": null,
+    "after_sha256": "8b62f85f4537013ae1e402b940f1b58f143bfebbc08ecfeb75920681e54c14cd"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/desktop-tests.log",
+    "before_sha256": null,
+    "after_sha256": "ed0cda160dbd8a488b7f968c6471fc91a09d8060f2aaa2a98e860ea1cacf457b"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/electron-fixture.cjs",
+    "before_sha256": null,
+    "after_sha256": "f14bc4bd6eee9856270f36d58767e2befb444cce517ee01991649b714aca1764"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/1024-chat.jpg",
+    "before_sha256": null,
+    "after_sha256": "babc5459a2d154e7fea828d0c2ada33f73f249cfc3c0ae0fb56a911757633b46"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/1280-chat-safe-sheet.jpg",
+    "before_sha256": null,
+    "after_sha256": "e2b8bc9d2e66388671384e3d698c213c1df7dc74b435232fbdbe0ebe4077f65e"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/1280-goals-final.jpg",
+    "before_sha256": null,
+    "after_sha256": "e8a061fc5b2c81f253457f0da87a360b54d876ff059e371125d569f9187ef564"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/760-goals-final.jpg",
+    "before_sha256": null,
+    "after_sha256": "454575efc200269ddc7406e364e80d0a04f2b10cc3a364a56b64df8d01199f8b"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/760-pending-final.jpg",
+    "before_sha256": null,
+    "after_sha256": "f66432ad52e72d898974e150dd5670557f2c77a55586e4427670dbaa7a3964d7"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/760-stopwatch.jpg",
+    "before_sha256": null,
+    "after_sha256": "4d72616124e39bcfa40294c2cf8f89ff36a3e8feb6be7380fa60c2a2a747b769"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/after-lost-reply-final.json",
+    "before_sha256": null,
+    "after_sha256": "858654b1d4de594650e849b02848d9944355097e12bda03ec3522bfa7b95776b"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/after-lost-reply.json",
+    "before_sha256": null,
+    "after_sha256": "49cb98fb33fe047a353d37562a8a363aad8ecc379df3f49fd4317df9df6d95f6"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/after-native-close.json",
+    "before_sha256": null,
+    "after_sha256": "38644baa9482b1873d753dfedfcb73ed6db8685db56c1ec10da4949688f6378e"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/before-lost-reply-final.json",
+    "before_sha256": null,
+    "after_sha256": "f96a140be4df278b67dbb8bedb851ed6a1bf3c3e0f1b2c7796856fbc07345c8e"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/before-lost-reply.json",
+    "before_sha256": null,
+    "after_sha256": "9116b531d0b16449a06321076e88729281af0e46e600e67585cc09d0834073d8"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/clock-examples.json",
+    "before_sha256": null,
+    "after_sha256": "a2ab04254c4806551b2cf3c5a50a13795adf7f98ab5dbd78211ccb774582fb9d"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/lost-reply-comparison.json",
+    "before_sha256": null,
+    "after_sha256": "be5ab33e8214fa393f4420566af4ca99fcb511f73328f53798cc62a5fa7ba5bd"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/migration-rehearsal.json",
+    "before_sha256": null,
+    "after_sha256": "8ee282e1675d7eb322dee6619b87deb4618f8270bc0b63d0da1f33b0c920f9a6"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/pre-recovery-snapshot.json",
+    "before_sha256": null,
+    "after_sha256": "f05851f277e7872980ebafaeab2ab79244e991f352e8b8e06b676999c14c5f57"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/route-books.jpg",
+    "before_sha256": null,
+    "after_sha256": "a9e943f145887d5fbb53c71bdcddf002d283598deec93f8e08ddcfe039cfbc7c"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/route-chat.jpg",
+    "before_sha256": null,
+    "after_sha256": "b50271ba223f33e00d4d7186350738373685039f101a7f726f62366a8ed52fc8"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/route-exercises.jpg",
+    "before_sha256": null,
+    "after_sha256": "14627250dd6bde175d88864babd261462c8b2444cb91b60a3de530da616e94ee"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/route-learning.jpg",
+    "before_sha256": null,
+    "after_sha256": "464384bd316aa361494087b0d0c2873117f5d58638a8266f75e4ed6719ec04a7"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/route-notes.jpg",
+    "before_sha256": null,
+    "after_sha256": "fba49a30ab78cd6b229b555dd2746a71c7be89924369f95f436afa1109a76053"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/routes-after.json",
+    "before_sha256": null,
+    "after_sha256": "78d6cfc08a3f54efb3ddd9c3c8d0a16fdd824a06fb66549dfd018c440d58ec2f"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/routes-before.json",
+    "before_sha256": null,
+    "after_sha256": "4ece71f711c492d96d9c117f87dc09c1df33852be95e4cde150fccc30c71277b"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/fixture_server.py",
+    "before_sha256": null,
+    "after_sha256": "7273aa889718158ac7d5b766b0ad4f24ac2391ba40abf8758a374b599261cd60"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/frontend-tests.log",
+    "before_sha256": null,
+    "after_sha256": "409bcfc08ad8a8a6330cf16d432e21aa22485ad359c3a6b87b699bdc90b67f58"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/lint-final.log",
+    "before_sha256": null,
+    "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/lint.log",
+    "before_sha256": null,
+    "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/migration.md",
+    "before_sha256": null,
+    "after_sha256": "384f9281fcd1cfca4e263e48a707eb90b1d9270936fe1716bb4ebb1234dbde23"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/native-journeys.md",
+    "before_sha256": null,
+    "after_sha256": "f97d68ea4c56c4c7d54f83fa2623056301201e8208f8cf10ec77006b38b20d8e"
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/review-board.html",
+    "before_sha256": null,
+    "after_sha256": "c68ff6c842ce65e906a416933c0b9453666797a408ad128dab46d77fdc9c1e29"
+  },
+  {
+    "path": "frontend/src/api/client.ts",
+    "before_sha256": "68e9816ff4840e2014a83ba9acda3e33761ae49f84c237730d85f77863cc2b31",
+    "after_sha256": "6c056d2d228276e96b09cd9f0cdd930c1c60db1deac8732eab062e2504c3bdbe"
+  },
+  {
+    "path": "frontend/src/features/focus/FocusContext.ts",
+    "before_sha256": "7883d86a885eeb51dd3c49abea3ebe3401c7bededc5a6c7ab064908d020ed966",
+    "after_sha256": "77dc3620ea7b3c2d1bc6fa241fa7b8985d1f3517dd21db9ab14b53ed8da933ab"
+  },
+  {
+    "path": "frontend/src/features/focus/FocusController.tsx",
+    "before_sha256": null,
+    "after_sha256": "d9925d305d2bed5b055e4104eedbb089739f9f0336b05f34f93308c6cf53497f"
+  },
+  {
+    "path": "frontend/src/features/focus/FocusHistory.tsx",
+    "before_sha256": null,
+    "after_sha256": "4746f7f4681817c5512f58c139b514f7980a7b15b47dd2a31d5f6e423e9557c6"
+  },
+  {
+    "path": "frontend/src/features/focus/FocusPanel.tsx",
+    "before_sha256": "80fdadbae6b56b393931a78cf3467ad3c96acdaf7697d2ef5034bb5f5ff5659c",
+    "after_sha256": "188a1a61d40aeb0ba97a748557d182efedbaa0ea47833e1a9333d6c8095920d3"
+  },
+  {
+    "path": "frontend/src/features/focus/FocusProvider.tsx",
+    "before_sha256": "36dc6c7a6d4b018b7515a33476dd1d5966506098bea48429bc80a38ba150393e",
+    "after_sha256": "c4391778d09c38aac608e6706958bec1bb915be6fef5063be8971a0b7801ca60"
+  },
+  {
+    "path": "frontend/src/features/focus/controllerState.test.ts",
+    "before_sha256": null,
+    "after_sha256": "3a44fa0e0ee6db72c676e081191475d4c29642df502a175c1a191a25261ff388"
+  },
+  {
+    "path": "frontend/src/features/focus/controllerState.ts",
+    "before_sha256": null,
+    "after_sha256": "34c31f246a11217f2dd1d8db69a3d671ac0631058d6b94530346aae63ee57d27"
+  },
+  {
+    "path": "frontend/src/features/focus/focus.css",
+    "before_sha256": null,
+    "after_sha256": "a25e5eb475706e639ed74d2b3508b4aeb7d6e28f0cf74eff0dde2034204d7381"
+  },
+  {
+    "path": "frontend/src/features/focus/hooks/useTaskQueue.ts",
+    "before_sha256": null,
+    "after_sha256": "cc38d8d5d2b666029ce427679423ed16fad93080908eeb3a12d16de877a396c7"
+  },
+  {
+    "path": "frontend/src/features/focus/panelPlacement.test.ts",
+    "before_sha256": null,
+    "after_sha256": "646f992d11ed427a149c991f3dcbe89b1ab02b05b7f63c36b3847b35a899bde7"
+  },
+  {
+    "path": "frontend/src/features/focus/panelPlacement.ts",
+    "before_sha256": null,
+    "after_sha256": "0175d4efd19e7d0c7eb42fa2c68a3f87f882a72cf3675a6e90fe423a14c98aad"
+  },
+  {
+    "path": "frontend/src/features/focus/preferences.ts",
+    "before_sha256": null,
+    "after_sha256": "7971c2cec63963f35b3770792ac4322a727750778a1595020e22c67fde3e6057"
+  },
+  {
+    "path": "frontend/src/features/focus/timeProjection.test.ts",
+    "before_sha256": null,
+    "after_sha256": "1bc28ad04c731cf1766ccba68a99f22a7c842bc5712d5f606f33ae029986882e"
+  },
+  {
+    "path": "frontend/src/features/focus/timeProjection.ts",
+    "before_sha256": null,
+    "after_sha256": "ec5eaa87e300fa96816f157f8cef33c269bbb74a4b4dea9436336c9dd771c173"
+  },
+  {
+    "path": "frontend/src/features/goals/GoalEditor.tsx",
+    "before_sha256": null,
+    "after_sha256": "ad44c17e03d0dbe297731a47b15bc3961ef71f2310217f24e4f7580540c4db32"
+  },
+  {
+    "path": "frontend/src/features/goals/goalViewState.test.ts",
+    "before_sha256": "c45af2f6787df2999509034453ca1f20f1cca3758dd4653c192b938edb89e3d1",
+    "after_sha256": "52c458416beaa60f11628dcb6ebbb8b5c9b231a8c63882a6cf6107f407578cc7"
+  },
+  {
+    "path": "frontend/src/features/goals/goalViewState.ts",
+    "before_sha256": "83618891943446d4a0f6b0a006e007b21e80e9cebe5815d1d02084dee3ae1881",
+    "after_sha256": "e7d99fc7eca5e7ea04148a95beb0c53bbd7b24ca62e7961757690925f5e9af24"
+  },
+  {
+    "path": "frontend/src/layouts/MainLayout.tsx",
+    "before_sha256": "e4a4a70f0c8d5d51081c21c7a08167d2d1323cd243e3d0fe76af0cc9097f1bb6",
+    "after_sha256": "8c30da2de0d82bfdc40113d01a8ce12ee1ab41158a7c323faa22b98f4f5bdf88"
+  },
+  {
+    "path": "frontend/src/pages/ChatPage.tsx",
+    "before_sha256": "fc85734524972c824138abcc49d769935d6d729234f237e5b7abb3bfda1e56f1",
+    "after_sha256": "6f47a34585ccc8bf3bb299d0f93d1e27a74613195b24417e70b17214e1032ab1"
+  },
+  {
+    "path": "frontend/src/pages/GoalsPage.tsx",
+    "before_sha256": "f37758c19fab4e52d856d7c5e50bf609b01642025db5bab465c7b6945118140e",
+    "after_sha256": "52bb5c33374db3e56ba05f04ca4f64311c78d3462bb8c6657bc7677cc37710a5"
+  },
+  {
+    "path": "frontend/src/types/electron.d.ts",
+    "before_sha256": "b568ba605c65b26a87a6e90a4a2556c039f76634748b3c84a4b065c2c95e6484",
+    "after_sha256": "825eb2f9fd9974cf3dab8c0d426cff9e74dcae1b7c52fe253e1f9944dea27bff"
+  },
+  {
+    "path": "patch_notes.md",
+    "before_sha256": "4ff19558b02ac557dc4e7bd558c21d9a96d7bb6cd0885a8515943b90803bcae4",
+    "after_sha256": "bc1cc4059561d5ffa1f991ded02f75749733ffe181b8110dcb56c08342bbbfc0"
+  },
+  {
+    "path": "scripts/migrate_focus_v3.py",
+    "before_sha256": null,
+    "after_sha256": "d5676bc68c1473eab4dd76ba881515ca839d2c5363d0ffc59ce2d424db189f4b"
+  },
+  {
+    "path": "tests/test_focus_tasks.py",
+    "before_sha256": "548a93d9a6bd1e30249758282bc61b9905d0d0a0f841d7e159b7a6511e12355a",
+    "after_sha256": "54e09fb4ef16b080243e7f239d25be48c40d0d9495f478b50baeea4cc20cf933"
+  },
+  {
+    "path": "frontend/src/features/focus/FocusBar.tsx",
+    "delete": true
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/1024-chat.png",
+    "delete": true
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/1280-chat-raised-panel.png",
+    "delete": true
+  },
+  {
+    "path": "docs/qa/goals-tasks-focus/evidence/1280-chat-panel-final.png",
+    "delete": true
+  }
+]

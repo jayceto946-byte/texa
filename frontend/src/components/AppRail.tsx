@@ -28,12 +28,13 @@ function RailLink({ to, icon: Icon, label }: (typeof primaryItems)[number]) {
 }
 
 type AppRailProps = {
+  mobile: boolean;
   onOpenSettings: () => void;
   onCollapse: () => void;
   settingsButtonRef: RefObject<HTMLButtonElement | null>;
 };
 
-export default function AppRail({ onOpenSettings, settingsButtonRef, onCollapse }: AppRailProps) {
+export default function AppRail({ mobile, onOpenSettings, settingsButtonRef, onCollapse }: AppRailProps) {
   return (
     <aside className="app-rail" aria-label="产品导航">
       <button className="navigation-collapse app-icon-button" onClick={onCollapse} aria-label="收起侧栏" title="收起侧栏"><PanelLeftClose size={18} /></button>
@@ -44,7 +45,7 @@ export default function AppRail({ onOpenSettings, settingsButtonRef, onCollapse 
         <span className="study-brand-name">Texa<span>学习工作区</span></span>
       </NavLink>
 
-      <nav className="app-rail-primary" aria-label="主要功能">
+      {mobile ? <details className="navigation-domains"><summary>功能与设置</summary>      <nav className="app-rail-primary" aria-label="主要功能">
         {primaryItems.map((item) => <RailLink key={item.to} {...item} />)}
       </nav>
 
@@ -54,6 +55,17 @@ export default function AppRail({ onOpenSettings, settingsButtonRef, onCollapse 
           <span>设置</span>
         </button>
       </nav>
+</details> : <>      <nav className="app-rail-primary" aria-label="主要功能">
+        {primaryItems.map((item) => <RailLink key={item.to} {...item} />)}
+      </nav>
+
+      <nav className="app-rail-footer" aria-label="应用设置">
+        <button ref={settingsButtonRef} type="button" onClick={onOpenSettings} className="app-rail-link" aria-label="设置" title="设置" aria-haspopup="dialog">
+          <Settings className="h-[18px] w-[18px]" />
+          <span>设置</span>
+        </button>
+      </nav>
+</>}
     </aside>
   );
 }

@@ -15,7 +15,7 @@ import logging
 import os
 import threading
 
-from backend.api import agent, chat, mistakes, mistake_lifecycle, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state, goals, notes
+from backend.api import agent, chat, mistakes, mistake_lifecycle, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state, goals, notes, focus
 from backend.security import LocalApiBoundaryMiddleware
 from backend.static_assets import StaticAssetCompression
 from backend.remote_reads import RemoteReadOptimization
@@ -83,11 +83,16 @@ async def lifespan(_app: FastAPI):
     start_writer()
     from backend.services.goals.execution import GoalScheduleWorker
     goal_schedule_worker = GoalScheduleWorker().start()
+    from backend.services.goals.focus import FocusCheckpointWorker, existing_focus_store
+    from backend.services.goals.store import DEFAULT_GOAL_DB_PATH
+    existing_focus_store(DEFAULT_GOAL_DB_PATH)
+    focus_worker = FocusCheckpointWorker().start()
     try:
         _start_warmup()
         yield
     finally:
         goal_schedule_worker.stop()
+        focus_worker.stop()
         from backend.services.goals.execution import stop_goal_runs
         stop_goal_runs()
         if runtime_worker is not None and not runtime_worker.stop():
@@ -166,6 +171,7 @@ app.include_router(jobs.router, prefix="/api")
 app.include_router(backups.router, prefix="/api")
 app.include_router(learning_state.router, prefix="/api")
 app.include_router(goals.router, prefix="/api")
+app.include_router(focus.router, prefix="/api")
 app.include_router(figures.router, prefix="/api")
 app.include_router(notes.router, prefix="/api")
 

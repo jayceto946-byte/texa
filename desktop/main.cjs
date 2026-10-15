@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, clipboard } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, clipboard, powerMonitor } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
@@ -6,6 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { backendIdentityMatches, findAvailablePort, portFromUrl, resolveUserDataPath } = require('./runtime.cjs');
 const { readStartupAppearance, writeStartupAppearance } = require('./appearance.cjs');
+const { createRemoteConnection } = require('./remote-connection.cjs');
 const { createClosePreparation } = require('./window-close.cjs');
 const { readSetupComplete, writeSetupComplete } = require('./setup-state.cjs');
 const closePreparation = createClosePreparation();
@@ -212,6 +213,7 @@ function sendStartupError(message, failure = null) {
 }
 
 function emitBackendState(nextState) {
+  const becameReady = backendState.status !== 'ready' && nextState.status === 'ready';
   backendState = {
     ...backendState,
     ...nextState,
@@ -219,6 +221,7 @@ function emitBackendState(nextState) {
     logPath: runtimePaths().backendLogPath,
   };
   mainWindow?.webContents.send('backend:status', backendState);
+  if (becameReady) void remoteConnection.restore().then(() => mainWindow?.webContents.send('backend:status', backendState)).catch(() => appendBackendLog('[remote] 手机连接未自动恢复，请在设置中重试。'));
   return backendState;
 }
 
@@ -783,11 +786,25 @@ ipcMain.handle('backend:status', () => emitBackendState({}));
 ipcMain.handle('remote-capture:status', () => remoteCaptureStatus());
 ipcMain.handle('remote-capture:set-enabled', () => remoteCaptureStatus());
 // This IPC is available only to the local desktop renderer, never through HTTP.
-ipcMain.handle('remote-s0:status', (event) => {
+const remoteConnection = createRemoteConnection({
+  statePath: path.join(app.getPath('userData'), 'remote-connection.json'),
+  getTarget: () => backendUrl,
+  isReady: () => !SKIP_BACKEND && backendState.status === 'ready' && Boolean(backendProcess),
+});
+function requireLocalRenderer(event) {
   if (event.sender !== mainWindow?.webContents) throw new Error('Access denied');
-  const ready = !SKIP_BACKEND && backendState.status === 'ready' && Boolean(backendProcess);
-  return { ready, target: backendUrl, instanceId: INSTANCE_ID,
-    command: `tailscale serve --bg --https=443 http://127.0.0.1:${backendPort}` };
+}
+ipcMain.handle('remote-s0:status', (event) => { requireLocalRenderer(event); return remoteConnection.status(); });
+ipcMain.handle('remote-s0:set-enabled', (event, enabled) => {
+  requireLocalRenderer(event);
+  if (typeof enabled !== 'boolean') throw new Error('Invalid connection state');
+  return remoteConnection.setEnabled(enabled);
+});
+ipcMain.handle('remote-s0:copy-url', async event => {
+  requireLocalRenderer(event);
+  const status = await remoteConnection.status();
+  if (!status.enabled) return false;
+  clipboard.writeText(status.url); return true;
 });
 ipcMain.handle('remote-s0:copy-token', (event) => {
   if (event.sender !== mainWindow?.webContents || SKIP_BACKEND || backendState.status !== 'ready') return false;
@@ -828,6 +845,9 @@ if (hasSingleInstanceLock) {
   });
 
   app.whenReady().then(async () => {
+    for (const state of ['suspend','resume']) powerMonitor.on(state, () => {
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('focus:power', state);
+    });
     appendBackendLog(`[main] runtime: isPackaged=${app.isPackaged}; appPath=${app.getAppPath()}; frontend=${FRONTEND_DEV_URL || (app.isPackaged ? 'bundled backend assets' : path.join(projectRoot(), 'frontend', 'dist'))}`);
     await startBackend();
     configureUpdater();

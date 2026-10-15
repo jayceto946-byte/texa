@@ -39,6 +39,7 @@ export interface LearningTaskState {
   terminal: boolean;
   interruptible: boolean;
   resumable: boolean;
+  resume_block_reason?: string;
   input_action_required: boolean;
   confirmation_required: boolean;
 }

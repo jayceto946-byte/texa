@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## 2026-10-15 — macOS 最新功能开发版启动入口
 
 - 直接运行主目录 Electron 会读取主分支及其 frontend/dist；最新目标/任务/专注代码实际位于 codex/goals-tasks-focus 工作区（f39a592，包含该工作区未提交的已跟踪文件修改）。旧主分支后端只接受 goals schema v1，现有用户数据库为 v2，导致目标接口失败。
@@ -19,6 +20,54 @@
 - 交付 `Texa-Goals-Tasks-Focus-Redesign.md`、A–E独立设计样稿、源码证据索引及临时SQLite计时探针。推荐目标规划工作区、应用内停靠专注条和按需Mini Panel；任务完成与计时结束独立，倒计时到点可继续记录，多时段投入单独保存。
 - 识别本聊天master f999e72与实际运行mobile-s3 04e8d12的版本差异；复用实际已有FocusProvider、CAS、幂等回执，指出duration截断、缺时段历史、局部控制入口及休眠/重启计时缺口。提出增量数据方案与CP0–CP5验收合同，未执行架构修改、schema迁移或生产代码实现。
 - 查看真实macOS Electron目标页与批准的学习/教材基准图；venv310 Python3.10.21下既有Focus相关8项测试通过，隔离探针确认到期后不能再次开始。样稿脚本语法、静态ID、资源和文档链接检查通过；本地预览监听被sandbox拒绝，浏览器file协议受限，样稿未完成渲染/交互/视觉签核。Windows、手机与真实休眠未测试；没有付费模型调用或真实学习记录写入。
+=======
+# 2026-10-14 - Goals / Focus 打包前全量检查
+
+- 本地实现提交 8003dae，codex/goals-tasks-focus；在干净同提交临时检出执行全量检查，Python 3.10 后端1688、前端214、桌面24项通过（共1926），完整types/lint/build与30文件语法通过。首次SPA测试因缺frontend/dist失败，补同提交产物后完整后端复跑通过；首次结果保留。
+- 26个release依赖pin匹配、已安装依赖无冲突、ONNX资源完整hash通过；无凭证、真实模型调用、正式库迁移或打包。Windows缺可分发时区数据、公开release缺LICENSE、包后验证及既有未测实机项明确保留。详见docs/qa/goals-tasks-focus/prepack-2026-10-14/REPORT.md。
+- 推送当前GitHub remote被自动审批阻止，等待用户确认具体目的地；打包按用户要求等待另一次授权。
+
+# 2026-10-14 - Goals / Tasks / Focus 重设计候选实现
+
+- 基于 feature/mobile-s3 af861ba 的已有 Focus 实现，在独立 goals-tasks-focus 工作区增量修改，保留手机连接、桌面导航、Goal/Runtime、CAS 与回执。主 master 的既有未提交文档未覆盖。本次仍为隔离候选，未发布、未升级真实学习库。
+- Focus schema v3 将学习任务、时段和活动片段分开：正计时/倒计时、多时段累计、超时继续、批量添加/条件来源、编辑/排序/无计时完成/撤销完成、软移除与历史分页。累计由已提交片段和标明的旧版基线构成；当前任务独立返回，管理链接可定位分页中的任务。
+- 用 monotonic 记录进程内活动时间，30秒后台检查点；重启仅恢复已提交部分并暂停。新增系统电源事件桥与桌面关闭暂停；目标搁置/关键编辑/完成确认复用现有运行栅栏，Focus 与 Goal 的部分成功有明确错误，不声称跨库事务。休眠事件尽力处理，未知间隔不补计。
+- 目标页支持手动创建、条件编辑、任务/专注记录/AI辅助视图；从完成条件先编辑具体行动再批量提交。全局控制器只挂 MainLayout，删除 ChatPage/FocusPanel 的旧挂载；正文托盘、窄窗面板、输入区避让、跨页控制和完成后手动选择下一项。未确认命令保留原ID跨刷新核对，回执后重新读取当前快照，禁止提前显示完成。
+- 迁移只通过显式脚本执行，SQLite backup 含 WAL；既有 v1/v2 数据库不会因 GET 自动升级，只有全新不存在的库可初始化。旧ID、Goal revision/links、receipt和原elapsed保留，不把未知历史合成为时段。临时 v2→v3 迁移与备份恢复通过；新增 schema/部署/回滚边界见 docs/qa/goals-tasks-focus/migration.md。
+- 验证记录与截图见 docs/qa/goals-tasks-focus/README.md。执行相关 Python 3.10 / 前端 / 桌面测试和生产前端构建；计时写入仅在临时库，不调用模型。真实休眠、Windows 与最终视觉签核不以注入测试替代；正式迁移与发布仍须单独批准。
+
+# 2026-10-14 — Desktop Candidate 收敛与一键手机连接
+
+- 修复手机details容器污染桌面导航；目标/番茄任务重做视觉层级，完成条件与模型辅助收敛；缓存页切换/弹窗轻量动效遵循reduced-motion，不增加其他学习功能。
+- 手机连接成为与模型连接并列的独立设置项，移除裸命令/S0/固定端口，Electron本地IPC一键配置Tailscale Serve、复制地址/临时配对码，后端ready后恢复动态映射；保护其他服务和Funnel边界。远程模块已加入打包清单，无依赖/数据库变更。
+- 用户确认设备名改texa，新地址https://texa.tailb31d35.ts.net/；实际Electron按钮及动态端口58364→58676自动恢复通过，网页200。类型/lint/build、前端203、桌面21、四视口18检查通过；Windows与Redmi仍待实机签收。详见docs/qa/mobile-s3/desktop-refinement/REPORT.md。
+
+# 2026-10-14 — Mobile S3 Candidate implementation
+
+- 按最终授权仅新增番茄任务，其余精简适配：手机共线顶栏/历史优先侧栏/输入附件归并、手机和平板KaTeX安全排版、教材主滚动、笔记header/触控、旧Goal合同409能力投影与既有回前台读取。无新增阅读器/导航体系/学习工作流。
+- 专注状态复用goals.db，schema1→2增量focus_tasks/state/receipts，迁移前一致备份；CAS与同operation回执防双端重复，计时不自动执行/完成/写掌握。新增长期边界写入AGENTS.md，未改模型/Runtime架构。
+- 79相关Python、203前端、15桌面合同、11真实API流程通过；TypeScript/lint/build通过；Electron3项；手机长display公式/画布在7视口验收，KaTeX原子节点换行不改数学源码。真机键盘/后台弱网、真平板和全部native SQL chat故障组合未签收。
+- 无活跃运行时正常切换同一59999端口候选，Serve网页HTTP200/后端ready；生产Goal库升级前后1条原记录hash不变，备份1份。手机需按新临时token重新配对。完整边界与证据：docs/qa/mobile-s3/implementation/IMPLEMENTATION-REPORT.md。
+
+# 2026-10-14 — Mobile S3 综合实施方案（未实施）
+
+- 合并初审、Astra判断、Redmi五项实机反馈及番茄任务新需求，建立唯一实施入口 TEXA-MOBILE-S3-IMPLEMENTATION-PLAN.md；统一B1真机阻断、B2学习闭环、B3番茄任务、B4可靠性、B5真机RC，替换旧四批+B-T。
+- 明确scope控件按页面呈现、会话menu职责、真实长公式展示保护、教材主滚动、旧Goal合同拒恢复与新任务显式准入；计时与Runtime/掌握状态区分。
+- 当前goals.db为schema1，无timer领域持久化；增量数据方案/CAS/幂等/备份回滚先评审并另获迁移同意。条件性总参考17–27工程日，非交付日期；没有实施产品代码、数据迁移、模型调用或网络变更。
+
+# 2026-10-14 — Mobile S3 Redmi真机审计修订（未实施）
+
+- 接收5张Redmi实机反馈，新增M3-17–22：导航控件共线、会话操作去重与scope呈现、手机/平板公式canvas、教材主滚动、旧Goal409、历史优先抽屉；提升原长公式/侧栏问题优先级。保留浏览器与真机证据边界。
+- 只读定位Goal继续失败：旧run paused/goal_changed且冻结goal_contract缺失；恢复POST409、状态GET200。没有重试付费模型、修改运行或绕过栅栏。
+- 用户新增番茄任务和聊天可展开计时控件需求，纳入设计修订；旧timer排除不再适用。计时、用户任务完成与Runtime分别呈现；持久化/迁移合同评审后另获实施确认。本轮未修改产品或数据结构。
+
+# 2026-10-14 — Mobile S3 audit and plan（未实施）
+
+- Fetch 后核对 master/origin/master=f999e72；S0/S1/S2 分支均为祖先。独立 feature/mobile-s3 worktree 保留审计材料；其他分支与旧 worktree 未覆盖或清理。
+- 当前生产构建隔离截图119检查，360/390/430触控补测58图；Astra一次直接读取8组对照图。明确区分合成浏览器、真实API/SQLite、Electron与尚未验证Android/Tailscale。
+- Python3.10相关92、前端203、桌面15合同通过；真实API扩展11场景及Electron3项通过。旧E2E按钮文案失配保留，临时副本修选择器后通过；ESLint仍有ChatPage242 render ref错误，不宣称发布检查全绿。
+- 交付 TEXA-MOBILE-S3-AUDIT-AND-PLAN.md 及截图清单、Issue List、Astra Review、工作分解、Acceptance Matrix。建议收敛教材往返、窄屏输入/笔记操作与可信恢复；没有修改生产Runtime、模型、数据库、依赖、Serve或学习数据，未自动进入实施。
+>>>>>>> codex/goals-tasks-focus
 
 # 2026-10-13 - 原生数学工具阶段公开文字防丢失
 

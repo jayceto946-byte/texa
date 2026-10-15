@@ -1,0 +1,91 @@
+{
+  "checks": [
+    {
+      "width": 1280,
+      "route": "/",
+      "body": 1280
+    },
+    {
+      "width": 1280,
+      "route": "/goals",
+      "body": 1280
+    },
+    {
+      "width": 1280,
+      "route": "/books",
+      "body": 1280
+    },
+    {
+      "width": 1280,
+      "case": "remote toggle and copy"
+    },
+    {
+      "width": 1024,
+      "route": "/",
+      "body": 1024
+    },
+    {
+      "width": 1024,
+      "route": "/goals",
+      "body": 1024
+    },
+    {
+      "width": 1024,
+      "route": "/books",
+      "body": 1024
+    },
+    {
+      "width": 1024,
+      "case": "remote toggle and copy"
+    },
+    {
+      "width": 760,
+      "route": "/",
+      "body": 760
+    },
+    {
+      "width": 760,
+      "route": "/goals",
+      "body": 760
+    },
+    {
+      "width": 760,
+      "route": "/books",
+      "body": 760
+    },
+    {
+      "width": 760,
+      "case": "remote toggle and copy"
+    },
+    {
+      "width": 390,
+      "route": "/",
+      "body": 390
+    },
+    {
+      "width": 390,
+      "route": "/goals",
+      "body": 390
+    },
+    {
+      "width": 390,
+      "route": "/books",
+      "body": 390
+    },
+    {
+      "width": 390,
+      "case": "remote toggle and copy"
+    },
+    {
+      "case": "route motion",
+      "motion": [
+        170
+      ]
+    },
+    {
+      "case": "reduced motion",
+      "activeAnimations": 0
+    }
+  ],
+  "errors": []
+}

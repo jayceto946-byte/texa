@@ -61,6 +61,11 @@ function authHeaders(initial?: HeadersInit): Headers {
   return headers;
 }
 
+export class ApiError extends Error {
+  readonly status: number;
+  constructor(message: string, status: number) {super(message);this.name="ApiError";this.status=status;}
+}
+
 async function responseError(response: Response, fallback: string): Promise<Error> {
   if (response.status === 401 && typeof window !== 'undefined' && isRemoteBrowser()) {
     setConnectionToken('');
@@ -68,7 +73,7 @@ async function responseError(response: Response, fallback: string): Promise<Erro
   }
   const payload = await response.clone().json().catch(() => null);
   const message = payload?.message || payload?.detail || `${fallback}: ${response.status}`;
-  return new Error(message);
+  return new ApiError(message, response.status);
 }
 
 function normalizeApiBase(value: string): string {

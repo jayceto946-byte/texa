@@ -1,0 +1,158 @@
+[
+  {
+    "dependency": "pydantic",
+    "expected": "==2.13.4",
+    "installed": "2.13.4",
+    "match": true
+  },
+  {
+    "dependency": "python-dotenv",
+    "expected": "==1.2.2",
+    "installed": "1.2.2",
+    "match": true
+  },
+  {
+    "dependency": "fastapi",
+    "expected": "==0.136.3",
+    "installed": "0.136.3",
+    "match": true
+  },
+  {
+    "dependency": "uvicorn",
+    "expected": "==0.48.0",
+    "installed": "0.48.0",
+    "match": true
+  },
+  {
+    "dependency": "python-multipart",
+    "expected": "==0.0.30",
+    "installed": "0.0.30",
+    "match": true
+  },
+  {
+    "dependency": "PyMuPDF",
+    "expected": "==1.27.2.3",
+    "installed": "1.27.2.3",
+    "match": true
+  },
+  {
+    "dependency": "langchain",
+    "expected": "==1.3.2",
+    "installed": "1.3.2",
+    "match": true
+  },
+  {
+    "dependency": "langchain-community",
+    "expected": "==0.4.2",
+    "installed": "0.4.2",
+    "match": true
+  },
+  {
+    "dependency": "langchain-openai",
+    "expected": "==1.2.2",
+    "installed": "1.2.2",
+    "match": true
+  },
+  {
+    "dependency": "langchain-core",
+    "expected": "==1.4.0",
+    "installed": "1.4.0",
+    "match": true
+  },
+  {
+    "dependency": "langchain-huggingface",
+    "expected": "==1.2.2",
+    "installed": "1.2.2",
+    "match": true
+  },
+  {
+    "dependency": "langgraph",
+    "expected": "==1.2.2",
+    "installed": "1.2.2",
+    "match": true
+  },
+  {
+    "dependency": "chromadb",
+    "expected": "==1.5.9",
+    "installed": "1.5.9",
+    "match": true
+  },
+  {
+    "dependency": "langchain-chroma",
+    "expected": "==1.1.0",
+    "installed": "1.1.0",
+    "match": true
+  },
+  {
+    "dependency": "huggingface_hub",
+    "expected": "==0.36.2",
+    "installed": "0.36.2",
+    "match": true
+  },
+  {
+    "dependency": "tokenizers",
+    "expected": "==0.22.2",
+    "installed": "0.22.2",
+    "match": true
+  },
+  {
+    "dependency": "onnxruntime",
+    "expected": "==1.23.2",
+    "installed": "1.23.2",
+    "match": true
+  },
+  {
+    "dependency": "openai",
+    "expected": "==2.46.0",
+    "installed": "2.46.0",
+    "match": true
+  },
+  {
+    "dependency": "httpx",
+    "expected": "==0.27.2",
+    "installed": "0.27.2",
+    "match": true
+  },
+  {
+    "dependency": "requests",
+    "expected": "==2.34.2",
+    "installed": "2.34.2",
+    "match": true
+  },
+  {
+    "dependency": "click",
+    "expected": "==8.4.1",
+    "installed": "8.4.1",
+    "match": true
+  },
+  {
+    "dependency": "rich",
+    "expected": "==15.0.0",
+    "installed": "15.0.0",
+    "match": true
+  },
+  {
+    "dependency": "tiktoken",
+    "expected": "==0.13.0",
+    "installed": "0.13.0",
+    "match": true
+  },
+  {
+    "dependency": "networkx",
+    "expected": "==3.4.2",
+    "installed": "3.4.2",
+    "match": true
+  },
+  {
+    "dependency": "pyvis",
+    "expected": "==0.3.2",
+    "installed": "0.3.2",
+    "match": true
+  },
+  {
+    "dependency": "pillow",
+    "expected": "==12.2.0",
+    "installed": "12.2.0",
+    "match": true
+  }
+]

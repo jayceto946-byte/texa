@@ -1,0 +1,118 @@
+/* Mobile S3: preserve desktop roles; refine existing controls and scroll ownership. */
+.navigation-domains { display: contents; }
+.navigation-domains > summary { display: none; }
+.context-new-session > span { display: none; }
+@media (max-width: 919px) {
+  .app-shell[data-navigation="open"] .study-navigation { width: min(300px, 80vw); }
+  .navigation-domains { display: block; }
+  .navigation-domains > summary { display: flex; align-items: center; min-height: 44px; padding: 8px; cursor: pointer; }
+  .app-shell[data-navigation="open"] .app-rail { flex: 0 0 auto; }
+  .app-shell[data-navigation="open"] .app-rail-mark { height: 56px; padding-right: 44px; }
+  .app-shell .navigation-collapse { top: 6px; right: 8px; width: 44px; height: 44px; }
+  .app-shell .context-sidebar-trigger { top: 6px; left: 8px; width: 44px; height: 44px; }
+  .app-shell :is(.learning-workspace-header, .app-page-header, .goals-header, .library-workspace-header) { min-height: 56px; padding-block: 6px; align-items: center; }
+  .app-shell[data-navigation="closed"] :is(.learning-workspace-header, .app-page-header, .goals-header, .library-workspace-header) { padding-left: 60px; }
+  .app-shell .learning-context-header { min-height: 60px; padding: 8px 12px; }
+  .app-shell .learning-context-header > h1, .app-shell .learning-context-header > .window-drag-region, .app-shell .learning-context-header > button:not(.context-new-session) { display: none; }
+  .app-shell .context-new-session { width: 100%; min-height: 44px; justify-content: center; gap: 8px; }
+  .context-new-session > span { display: inline; }
+  .app-shell .app-rail-link { min-height: 44px !important; }
+  .app-shell .learning-context-sessions { flex: 1 1 auto; min-height: 0; }
+  .app-shell .learning-workspace-header .current-session-menu, .app-shell .learning-header-scope-selector { display: none; }
+  .app-shell :is(.learning-workspace-scroll, .learning-document-column, .learning-message, .learning-answer-document, .markdown-body) { min-width: 0; max-width: 100%; }
+  .app-shell .learning-workspace-scroll { overflow-x: hidden; }
+  .app-shell .markdown-body .katex-html { white-space: normal; }
+  .app-shell .markdown-body .katex-html > .base { white-space: nowrap; }
+  .app-shell .markdown-body .katex-display > .katex { white-space: normal; text-align: left; }
+  .app-shell .markdown-body .katex:not(.katex-display .katex) { display: inline-block; max-width: 100%; overflow-x: auto; vertical-align: middle; }
+  .app-shell .markdown-body .katex-display { max-width: 100%; overflow-x: auto; padding-bottom: 6px; }
+  .app-shell .markdown-body table { display: block; max-width: 100%; overflow-x: auto; }
+  .app-shell .markdown-body img { max-width: 100%; height: auto; }
+}
+@media (max-width: 820px) {
+  .app-shell .library-workbench { min-height: 0; overflow: hidden; }
+  .app-shell .library-tree { max-height: 112px; }
+  .app-shell .library-content { flex: 1 1 0; min-height: 0; overflow-y: auto; }
+}
+@media (max-width: 760px) {
+  .app-shell :is(.app-primary-button, .app-secondary-button, .app-ghost-button) { min-height: 44px; }
+  .app-shell .composer-toolbar { flex-wrap: nowrap; align-items: flex-end; }
+  .app-shell .composer-tools { min-width: 0; flex: 1 1 0; gap: 0; }
+  .app-shell .composer-send { flex: 0 0 44px; }
+  .app-shell .composer-tools > .composer-tool-button { width: 40px; min-width: 40px; }
+}
+
+.focus-bar { flex: 0 0 auto; border-bottom: 1px solid var(--workspace-separator); padding: 8px 16px; font-size: 13px; }
+.focus-bar-summary { display: flex; align-items: center; gap: 8px; }
+.focus-bar-summary strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.focus-bar :is(button, select), .focus-task-panel :is(button,input) { min-height: 44px; padding: 6px 10px; border: 1px solid var(--workspace-separator); border-radius: 5px; }
+.focus-bar-detail { max-height: min(240px,30dvh); overflow-y: auto; padding-top: 8px; }
+.focus-bar-detail p { margin: 8px 0; }
+.focus-task-panel { padding-block: 20px; border-top: 1px solid var(--workspace-separator); }
+.focus-task-panel form { display: flex; flex-wrap: wrap; gap: 12px; margin-block: 12px; }
+.focus-task-panel label { display: flex; flex-direction: column; gap: 6px; }
+.focus-task-panel label:first-child { flex: 1 1 240px; }
+.focus-task-panel input[type="number"] { width: 90px; }
+.focus-task-panel details { margin-block: 12px; }
+.focus-task-panel details button { display: block; text-align: left; margin: 8px 0; }
+.focus-task-row { display:flex; align-items:center; gap:12px; padding-block:12px; border-bottom:1px solid var(--workspace-separator); }
+.focus-task-row > div { flex:1; min-width:0; overflow-wrap:anywhere; }
+.focus-task-row span { display:block; color:var(--color-text-secondary); font-size:12px; }
+@media(max-width:760px) { .focus-bar { padding: 6px 8px; } .focus-bar-summary { gap:4px; } .focus-bar-summary button { padding:4px 6px; } }
+
+.mobile-attachment-menu { display: none; }
+@media(max-width:760px) {
+  .mobile-attachment-menu { display: block; }
+  .app-shell .composer-tools > .composer-tool-button { display:none; }
+  .app-shell .composer-more-trigger { display:flex; gap:4px; width:auto; padding-inline:6px; }
+  .app-shell .composer-more-trigger > svg { display:none; }
+  .app-shell .composer-overflow-menu button { min-height:44px; width:100%; text-align:left; padding:8px 12px; }
+  .composer-scope-choice { padding:8px; }
+  .app-shell .context-new-session > span { display:inline; }
+}
+@media (min-width:920px) and (max-width:1199px) {
+ .app-shell .learning-workspace-scroll { overflow-x:hidden; }
+ .app-shell .markdown-body .katex-html { white-space:normal; }
+ .app-shell .markdown-body .katex-html > .base { white-space:nowrap; }
+ .app-shell .markdown-body .katex-display > .katex { white-space:normal; text-align:left; }
+ .app-shell .markdown-body .katex:not(.katex-display .katex) { display:inline-block;max-width:100%;overflow-x:auto;vertical-align:middle; }
+}
+@media(max-width:760px) {
+ .app-shell .note-page-header:has(.note-save-status) { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 8px; }
+ .app-shell .note-page-header .note-actions { display:contents; }
+ .app-shell .note-page-header h1 { grid-column:1; grid-row:1; font-size:14px; white-space:normal; }
+ .app-shell .note-page-header .note-actions > .app-primary-button { grid-column:2; grid-row:1; }
+ .app-shell .note-page-header .note-actions > a { grid-column:1; grid-row:2; justify-self:start; }
+ .app-shell .note-page-header .note-actions > .app-secondary-button { grid-column:2; grid-row:2; }
+ .app-shell .note-page-header .note-save-status { grid-column:1 / -1; grid-row:3; font-size:12px; }
+ .app-shell .notes-workspace .app-icon-button { min-width:44px; min-height:44px; }
+ .app-shell .notes-workspace .note-block-actions { gap:8px; }
+}
+@media(max-width:919px) {
+ .app-shell .learning-context-header > .context-new-session { width:100%; min-height:44px; grid-column:1 / -1; justify-content:center; }
+}
+@media(max-width:760px) {
+ .app-shell[data-layout="compact"] .composer-more-trigger > span { display:inline; font-size:13px; }
+}
+
+@media(max-width:760px) {
+ .app-shell .composer-tools .composer-more-trigger { min-width:44px; width:auto; white-space:nowrap; flex-shrink:0; }
+ .app-shell .composer-tools .composer-more-trigger > span { white-space:nowrap; }
+}
+/* Give display math a real line width so KaTeX's atomic bases can wrap safely. */
+@media(max-width:1199px) {
+ .app-shell .markdown-body .katex-display > .katex > .katex-html { display:block; width:100%; white-space:normal; }
+}
+
+@media(max-width:919px) {
+ .app-shell [data-scope-size] > button { min-height:44px; }
+ .app-shell [data-scope-size="compact"] > button, .app-shell [data-scope-size="compact"] > button > span { font-size:13px; }
+ .app-shell [data-scope-size="form"] > button { width:100%; max-width:100%; }
+}
+@media(max-width:1199px) {
+ .app-shell .markdown-body .katex-display > .katex { width:100%; min-width:0; }
+}
+@media(max-width:760px) {
+ .app-shell .notes-workspace .note-page-header:has(.note-save-status) { height:auto; flex-basis:auto; grid-template-rows:44px 44px auto; min-height:112px; }
+ .app-shell .notes-workspace .note-page-header .note-actions > :is(button,a) { min-height:44px; }
+}

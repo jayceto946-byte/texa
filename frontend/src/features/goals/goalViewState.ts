@@ -1,9 +1,11 @@
-export type GoalFilter = 'all' | 'scheduled';
+export type GoalFilter = 'all' | 'scheduled' | 'active' | 'completed' | 'paused';
 export type GoalListStatus = 'loading' | 'ready' | 'error';
 export type GoalListState = 'loading' | 'error' | 'zero' | 'filtered-empty' | 'populated';
 
-export function visibleGoals<T extends { next_action?: {kind: string} | null }>(goals: T[], filter: GoalFilter): T[] {
-  return filter === 'all' ? goals : goals.filter((goal) => goal.next_action?.kind === 'schedule');
+export function visibleGoals<T extends { next_action?: {kind: string} | null; status?: string }>(goals: T[], filter: GoalFilter): T[] {
+  if (filter === 'all') return goals;
+  if (filter === 'scheduled') return goals.filter(goal=>goal.next_action?.kind==='schedule');
+  return goals.filter(goal=>filter==='active'?['draft','active'].includes(goal.status||''):filter==='paused'?['paused','cancelled'].includes(goal.status||''):goal.status==='completed');
 }
 
 export function goalListState(status: GoalListStatus, total: number, visible: number): GoalListState {

@@ -1,0 +1,83 @@
+/* Desktop stays on its original direct navigation structure. */
+.persistent-route-panel:not([hidden]) { animation: none; }
+.remote-connection { margin-top: 28px; }
+.remote-connection-heading { display:flex;align-items:center;gap:14px;margin-bottom:16px; }
+.remote-connection-heading > div { flex:1; }
+.remote-device-icon { width:44px;height:44px;border-radius:12px;background:var(--accent-muted);color:var(--accent);display:grid;place-items:center; }
+.remote-connection-heading p { margin:4px 0 0; }
+.remote-connection-state { font-size:12px;color:var(--color-text-secondary); }
+.remote-connection-state[data-enabled="true"] { color:var(--accent); }
+.remote-connection-actions { display:flex;align-items:center;gap:8px;margin:18px 0; }
+.remote-pairing { display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:16px;background:var(--color-bg-secondary);border:1px solid var(--workspace-separator);border-radius:8px;margin-bottom:14px; }
+.remote-pairing > div { flex:1 1 220px;min-width:0; }
+.remote-pairing a { display:block;font-size:14px;margin-top:5px;overflow-wrap:anywhere;color:var(--color-text-primary); }
+.focus-task-panel { padding:24px 0;border:0; }
+.focus-panel-heading { display:flex;align-items:center;gap:16px;margin-bottom:20px; }
+.focus-panel-heading > div { flex:1; }
+.focus-panel-heading h3 { display:flex;align-items:center;gap:8px;margin:0;font-size:16px;font-weight:600; }
+.focus-panel-heading p { margin:6px 0 0;font-size:13px; }
+.focus-task-count { font-size:12px;color:var(--color-text-tertiary);white-space:nowrap; }
+.focus-task-empty { padding:30px 16px;text-align:center;color:var(--color-text-tertiary);border:1px dashed var(--workspace-separator);border-radius:8px; }
+.focus-task-empty svg { margin:auto; }
+.focus-task-empty p { color:var(--color-text-secondary);margin:12px 0 6px;font-size:14px; }
+.focus-task-empty span { font-size:12px; }
+.focus-task-row { padding:14px 8px;gap:14px; }
+.focus-task-number { width:24px;align-self:center;color:var(--color-text-tertiary);font-size:12px; }
+.focus-task-row strong { font-size:14px;font-weight:500; }
+.focus-task-row > div > span { margin-top:5px; }
+.focus-task-row[data-completed="true"] strong { color:var(--color-text-tertiary); }
+.focus-task-row[data-current="true"] { background:var(--accent-muted);border-radius:6px;padding-inline:12px; }
+.focus-add-task { margin-top:14px; }
+.focus-task-panel .focus-task-form { display:block;padding:18px;border:1px solid var(--workspace-separator);border-radius:8px;margin-top:16px; }
+.focus-task-form label { font-size:12px;color:var(--color-text-secondary); }
+.focus-task-form input:not([type="number"]) { width:100%;margin-top:4px; }
+.focus-criteria-pick { margin-top:14px; }
+.focus-form-footer { display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:18px; }
+.focus-form-footer label span { display:flex;align-items:center;gap:8px; }
+.focus-form-footer > div { display:flex;gap:8px; }
+.focus-bar { padding:8px 20px; }
+.focus-bar :is(button,select), .focus-task-panel :is(button,input) { min-height:32px;border-radius:6px; }
+.focus-bar .app-icon-button { padding:4px;min-width:32px; }
+.focus-clock { font-variant-numeric:tabular-nums;font-size:16px;font-weight:600;white-space:nowrap; }
+.focus-bar-summary { min-width:0; }
+.focus-timer-card { border:1px solid var(--workspace-separator);border-radius:10px;padding:22px;background:var(--color-bg-secondary);margin-bottom:12px; }
+.focus-timer-card .focus-bar-summary { display:grid;grid-template-columns:1fr auto;gap:10px; }
+.focus-timer-card .focus-bar-summary > svg { display:none; }
+.focus-timer-card .focus-bar-summary strong { grid-column:1 / -1;font-size:14px;font-weight:500; }
+.focus-timer-card .focus-clock { grid-row:2;font-size:40px;font-weight:500;letter-spacing:-1px;line-height:1.2; }
+.focus-timer-card .focus-bar-summary button { grid-row:2; }
+.focus-detail-actions { display:flex;align-items:center;flex-wrap:wrap;gap:8px; }
+.focus-detail-actions select { flex:1 1 180px;min-width:0;max-width:100%; }
+.focus-status { color:var(--color-text-secondary);font-size:12px; }
+.focus-bar-detail { max-height:none; }
+.goal-assistance { border-top:1px solid var(--workspace-separator);margin-top:8px; }
+.goal-assistance > summary { display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:18px 0;font-size:13px;color:var(--color-text-secondary); }
+.goal-assistance > summary::before { content:'›';margin-right:8px; }
+.goal-assistance[open] > summary::before { transform:rotate(90deg); }
+.goal-assistance > summary span { margin-left:auto;font-size:12px;color:var(--color-text-tertiary); }
+.goals-workspace .goal-overview { margin-bottom:0; }
+.goals-workspace .goal-overview .goal-criteria { margin-top:14px; }
+.goal-overview .goal-criteria summary { cursor:pointer;font-size:12px;color:var(--color-text-secondary); }
+.goals-workspace .goal-detail { padding:28px 40px; }
+.goals-workspace .goal-session { max-width:760px;margin:0 auto; }
+.goals-workspace .goal-session > h2 { font-size:25px;line-height:1.35;margin:10px 0 16px; }
+.goals-workspace .goal-objective { font-size:14px;line-height:1.75; }
+@media(prefers-reduced-motion:no-preference) {
+ .app-dialog-overlay:not([hidden]) { animation:app-overlay-enter 140ms ease-out both; }
+ .app-dialog-overlay:not([hidden]) .app-dialog-shell { animation:app-dialog-enter 180ms cubic-bezier(.2,.7,.2,1) both; }
+ .app-shell .study-navigation { transition:width 170ms cubic-bezier(.2,.7,.2,1); }
+ .goal-assistance[open] > .goal-run, .focus-task-form, .focus-bar-detail { animation:app-page-enter 150ms ease-out; }
+}
+@media(prefers-reduced-motion:reduce) { .app-dialog-shell,.app-dialog-overlay,.study-navigation { animation:none!important;transition:none!important; } }
+@media(max-width:760px) {
+ .goals-workspace .goal-detail { padding:20px 16px; }
+ .focus-bar { padding:8px; }
+ .focus-bar :is(button,select), .focus-task-panel :is(button,input) { min-height:44px; }
+ .focus-clock { font-size:14px; }
+ .focus-timer-card { padding:18px; }
+ .focus-form-footer { flex-wrap:wrap; }
+ .focus-form-footer > div { margin-left:auto; }
+ .focus-bar-summary strong { font-size:12px; }
+}
+
+.remote-connection-page .remote-connection { margin-top:0; }

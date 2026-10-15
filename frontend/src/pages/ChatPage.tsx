@@ -1,3 +1,4 @@
+import {useConversationReconcile} from '../features/chat/useConversationReconcile';
 import { finishSessionRender } from '../utils/performanceMetrics';
 import { streamFailure, streamPresentation } from '../features/chat/streamPresentation';
 import { useReadingScroll } from '../features/chat/useReadingScroll';
@@ -54,6 +55,7 @@ const ChatPage: React.FC = () => {
   const openNote = useNoteCommand();
   const navigate = useNavigate();
   const location = useLocation();
+  const reconcileError = useConversationReconcile(location.pathname === '/');
   const [input, setInput] = useState('');
   const [mathExpressions, setMathExpressions] = useState<MathExpression[]>([]);
   const [mathEditRequest, setMathEditRequest] = useState<MathEditRequest | null>(null);
@@ -239,7 +241,7 @@ const ChatPage: React.FC = () => {
 
   const bookSwitchSequenceRef = useRef(0);
   const currentScopeRef = useRef({ bookName, subject });
-  currentScopeRef.current = { bookName, subject };
+  useEffect(() => { currentScopeRef.current = { bookName, subject }; }, [bookName, subject]);
   const switchBook = useCallback(async (name: string, canApply: () => boolean = () => true) => {
     const sequence = ++bookSwitchSequenceRef.current;
     const canCommit = () => sequence === bookSwitchSequenceRef.current && canApply();
@@ -946,7 +948,7 @@ const ChatPage: React.FC = () => {
           {(messages.length > 0 || activeFigure) && <div className="learning-header-scope-selector">{scopeSelector}</div>}
         </div>
 
-        <div ref={scrollRef} className="learning-workspace-scroll" onScroll={onScroll}>
+        {reconcileError && <div role="alert" className="conversation-state"><span>{reconcileError}</span><button type="button" onClick={()=>window.dispatchEvent(new Event('texa:reload-session'))}>重新读取会话</button></div>}<div ref={scrollRef} className="learning-workspace-scroll" onScroll={onScroll}>
           <div className="learning-document-column">
             {conversation.management?.state !== 'active' && conversation.management && <div className="conversation-state" role="status"><span>{inTrash ? '此会话在回收站，恢复后可继续学习。' : '此会话已归档。'}</span><button className="app-secondary-button" disabled={conversation.busy} onClick={() => void conversation.change('restore')}>恢复会话</button></div>}
             {conversation.error && <div className="conversation-state" role="alert"><span>{conversation.error}</span><button className="app-ghost-button" onClick={conversation.reload}>重新读取</button>{conversation.tasks.length > 0 && <BlockingTasks tasks={conversation.tasks} onChanged={conversation.reload}/>}</div>}
@@ -1066,6 +1068,12 @@ const ChatPage: React.FC = () => {
             </div>
             <div className="composer-toolbar">
               <div className="composer-tools" role="toolbar" aria-label="问题输入工具">
+                <ComposerOverflowMenu label="附件" className="mobile-attachment-menu">{close => <>
+                  {!window.kaoyanDesktop?.isElectron && <button role="menuitem" type="button" disabled={isLoading || attachmentLoading} onClick={()=>{close();cameraInputRef.current?.click();}}>拍照提问</button>}
+                  <button role="menuitem" type="button" disabled={isLoading || attachmentLoading} onClick={()=>{close();attachmentInputRef.current?.click();}}>相册或文件</button>
+                  <button role="menuitem" type="button" disabled={isLoading || attachmentLoading || !bookName} onClick={()=>{close();openFigureCatalog();}}>教材图片</button>
+                  <button role="menuitem" type="button" disabled={isLoading || attachmentLoading} onClick={()=>{close();void loadCachedMistakes();}}>历史错题</button>
+                </>}</ComposerOverflowMenu>
                 {!window.kaoyanDesktop?.isElectron && window.matchMedia('(pointer: coarse)').matches && <button type="button" disabled={isLoading || attachmentLoading} aria-label="拍照提问" onClick={() => cameraInputRef.current?.click()} className="composer-tool-button"><ImagePlus className="h-4 w-4" /><span>拍照</span></button>}
                 <button type="button" disabled={isLoading || attachmentLoading} aria-label="上传题目图片" title="上传题目图片" onClick={() => attachmentInputRef.current?.click()} className="composer-tool-button chat-image-upload-button"><ImagePlus className="h-4 w-4" /><span>图片</span></button>
                 <button type="button" disabled={isLoading || attachmentLoading || !bookName} aria-label="选择教材图片" title={bookName ? '选择教材图片' : '请先选择教材'} onClick={openFigureCatalog} className={`composer-tool-button ${activeFigure ? 'is-active' : ''}`}><Images className="h-4 w-4" /><span>教材图</span></button>
@@ -1076,9 +1084,11 @@ const ChatPage: React.FC = () => {
                   onAddExpression={handleAddMathExpression}
                   onUpdateExpression={handleUpdateMathExpression}
                 />
-                <ComposerOverflowMenu>
+                <ComposerOverflowMenu label="学习操作">
                   {(close) => (
                     <>
+                      <button role="menuitem" type="button" disabled={isLoading} onClick={()=>{close();window.dispatchEvent(new Event('texa:reload-session'));}}>重新读取当前会话</button>
+                      <div className="composer-scope-choice"><span>学习范围</span>{scopeSelector}</div>
                       <button role="menuitem" type="button" onClick={() => { close(); navigate('/goals', { state: { goalDraft: composeMathQuestion(input, mathExpressions) } }); }} className="composer-overflow-item"><Target className="h-3.5 w-3.5" />设为学习目标</button>
                       <button role="menuitem" type="button" onClick={() => { close(); void showReport('daily'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'daily' ? '整理日报' : '学习日报'}</button>
                       <button role="menuitem" type="button" onClick={() => { close(); void showReport('weekly'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'weekly' ? '整理周报' : '学习周报'}</button>

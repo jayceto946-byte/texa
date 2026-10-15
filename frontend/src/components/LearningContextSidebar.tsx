@@ -221,8 +221,8 @@ export default function LearningContextSidebar({
         <h1 className="min-w-0 text-[16px] font-semibold text-text-primary">学习</h1>
         <div className="window-drag-region" aria-hidden="true" />
         <button type="button" onClick={() => { cancelSelection(); onNewConversation(); }} className="context-new-session" aria-label="新会话">
-          <MessageSquarePlus className="h-4 w-4" />
-          <span>新会话</span>
+          <MessageSquarePlus className="h-4 w-4" /><span>新对话</span>
+
         </button>
         <button type="button" onClick={onClose} className="app-icon-button" aria-label="收起学习上下文">
           <PanelLeftClose className="h-4 w-4" />

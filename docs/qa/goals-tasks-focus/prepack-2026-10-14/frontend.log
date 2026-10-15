@@ -1,0 +1,8 @@
+
+ RUN  v4.1.9 /private/tmp/texa-prepack-8003dae/frontend
+
+
+ Test Files  48 passed (48)
+      Tests  214 passed (214)
+   Start at  21:14:55
+   Duration  1.72s (transform 909ms, setup 0ms, import 1.78s, tests 983ms, environment 4ms)

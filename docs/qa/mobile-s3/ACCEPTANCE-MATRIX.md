@@ -1,0 +1,31 @@
+# Acceptance Matrix
+
+当前实施范围与顺序：[综合实施方案](../../../TEXA-MOBILE-S3-IMPLEMENTATION-PLAN.md)。A01–A22及真机门槛纳入统一验收，仍无整体PASS。
+
+当前无S3整体PASS。每项记录build/runtime、设备/浏览器、时刻、脱敏identity、截图/回执；不能凭总体通过率跳过必需项。
+
+|ID|门槛|场景|步骤|预期|当前证据|环境|
+|---|---|---|---|---|---|---|
+|A01|必需/B1|教材→章节→问答→原位置|从可用书列表进章，记book/chapter/section/page或anchor；提问，看正文/工具，再返回|同范围与同位置；不靠重新搜索；缺材料明确|C/R缺入口，待实现|Android+360/390/430|
+|A02|必需/B1|Session→笔记→来源Session|从完整turn主动整理；阅读编辑明确保存；开来源再返笔记|正式版本只显式提交，原turn定位，返回资产位置|发布窄闭环R；来源来回U|隔离API+Android|
+|A03|必需/B2|触控/输入|实际touch360，长输入+附件+生成+停止；逐控件DOM测量|44×44不重叠、主要独立动作间距8px；发送固定右侧|R发现不足|DOM+Android手指|
+|A04|必需/B4|软键盘/安全区|Android打开键盘输多行，滚最后段，关闭键盘，切浏览器栏/横竖屏|输入/发送/停止/返回不遮，末段可读；SafeArea完整|仅高度模拟R，真机U|Android实际浏览器|
+|A05|必需/B4|长公式/图/表|打开大矩阵、长等式、宽表、题图，横滑末端，缩放图，滚底|只局部横滚，末端可达，正文不撑宽、不强缩小|短样例R，末端/原图U|360/390/430+Android|
+|A06|必需/B3|七态与中断|正常生成；主机离线；断流；中断POST成功/失败；不可恢复task|7态可辨；未确认取消独立显示；SQL准入控制resume|正常interrupt/resumeR（legacy task），失败组合U|API故障注入+Android|
+|A07|必需/B3|首确认丢失|POST已接受，丢首context/task ack；恢复网络，仅查询原身份|不自动重复POST；能确认未知/已接收；工具执行次数可审计|C风险，U实测|隔离真实SQL native任务|
+|A08|必需/B3|流中/末端断网|工具中/生成中/terminal后丢流；恢复网络读conversation/task|一个user turn，旧run不能覆盖新run，已提交正文可读；无重复工具|消费者合同R，网络组合U|隔离API+真实Android路径|
+|A09|必需/B3|后台/在线合并|锁屏5/30分钟；切WiFi/移动网；pageshow/online/visible同时到达|单次有界只读对账；不自动付费/工具重跑；呈现权威task|网络诊断合同R，Session恢复U|Android+Tailscale|
+|A10|必需/B3|跨页与迟到响应|A→B→A快速切Session/route，延迟A响应到B；旧run终态迟到|显示与identity一致；代际拒旧；不丢草稿/生成|C/单元R，E2E U|Playwright+API|
+|A11|必需/B3|桌面/手机共享|同一Session手机生成，桌面读取；尝试受控stop/resume/管理|SQL唯一权威、run fence；管理不自动取消/恢复已删除会话|U双设备|Electron+Android同时|
+|A12|必需/B3|写回执丢失|提交作答后服务端已写但丢响应，刷新再同operation恢复|practice_count=1；候选仅一；人工校对后才accept|本轮R通过11场景中的相关项|隔离API；Android补验|
+|A13|必需/B2|笔记状态/冲突|草稿已改/保存中/失败、revision冲突、正式保存未知、返回|草稿不冒充正式；CAS/operation回执；状态可辨且可恢复|正常autosave/发布R；冲突本轮U|现有复杂QA+Android|
+|A14|必需/B4|主机离线/恢复|真实Desktop退出或睡眠→手机请求失败→Desktop恢复→按现有配对核端口|明确主机/连接不可用、保留输入，凭据不泄露；不宣称后台服务常驻|C/H，U当前|Android+现有Serve，人工|
+|A15|必需/B2/B4|工程/桌面回归|前端全测lint/type/build；相关Python；Electron三宽度主要流程|全测通过；无共享CSS桌面回归；生成/停止/notes/mistake主要功能正常|203+92+15通过；lint失败；Electron3项通过|macOS；Windows若不可用显式U|
+|A16|记录指标/B4|实际网络体验|每轮记录路径观察时间、RTT采样、HTTP完整/首事件/首正文/恢复耗时、请求/字节|按路径分组；无需Direct阈值；失败可恢复、状态可信；build身份一致|U本轮网络指标|Android实际Tailscale，Direct/DERP自然出现|
+
+没有Android自动化时：人工按A01→A02→A03/04/05完成学习闭环，再A06/08/09/11/14做网络与双端；开发者对照只读SQL task/run与回执。实际手机上发模型问答前取得显式调用/数据出境授权，其他只读和已授权本地动作照常执行；本轮没有调用。不要为获得DERP而封UDP、改ACL或Serve。
+
+
+## 新增真机门槛
+
+按 [实机修订](REAL-DEVICE-REVIEW-AND-S3-REVISION.md) 的必需验收补A17顶栏/menu/scope、A18抽屉历史与新对话、A19手机/平板真实长公式、A20教材主滚动、A21旧Goal合同409、A22番茄交互/后台/双端。均待实施或复测，不计PASS。timer是用户新增方向，不沿用旧排除条款。

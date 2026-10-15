@@ -35,6 +35,7 @@
       "main.cjs",
       "preload.cjs",
       "runtime.cjs",
+      "remote-connection.cjs",
       "appearance.cjs",
       "window-close.cjs",
       "setup-state.cjs",
