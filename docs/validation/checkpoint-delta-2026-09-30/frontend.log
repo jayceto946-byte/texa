@@ -1,0 +1,9 @@
+
+ RUN  v4.1.9 /private/tmp/texa-delta-verification/frontend
+
+
+ Test Files  26 passed (26)
+      Tests  126 passed (126)
+   Start at  20:18:44
+   Duration  1.48s (transform 1.19s, setup 0ms, import 1.98s, tests 423ms, environment 4ms)
+

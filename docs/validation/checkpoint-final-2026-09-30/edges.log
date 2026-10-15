@@ -1,0 +1,217 @@
+FFF.F                                                                    [100%]
+=================================== FAILURES ===================================
+______ test_pause_retry_after_projection_failure_does_not_pause_new_goal _______
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-15/test_pause_retry_after_project0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a59f6d0>
+
+    def test_pause_retry_after_projection_failure_does_not_pause_new_goal(tmp_path, monkeypatch):
+        events = LearningEventStore(tmp_path / 'events.db')
+        learning = LearningStateService(progress_root=tmp_path, event_store=events)
+        goals = GoalService(GoalStore(tmp_path / 'goals.db'), events)
+        first = goals.create(learner_id='local_default', title='A', objective='', scope={'book_name': 'book'})
+        goals.activate(first['id'], expected_revision=1)
+        append = events.append
+        def fail_pause(event):
+            if event.event_type == 'goal_paused':
+                raise OSError('projection unavailable after Goal commit')
+            return append(event)
+        monkeypatch.setattr(events, 'append', fail_pause)
+        with pytest.raises(OSError):
+            learning.apply_operation({'operation': 'pause_learning'}, book_name='book', source_id='same-preparation')
+        assert goals.store.get(first['id'])['status'] == 'paused'
+        monkeypatch.setattr(events, 'append', append)
+        second = goals.create(learner_id='local_default', title='B', objective='', scope={'book_name': 'book'})
+        goals.activate(second['id'], expected_revision=1)
+        learning.apply_operation({'operation': 'pause_learning'}, book_name='book', source_id='same-preparation')
+>       assert goals.store.get(second['id'])['status'] == 'active', 'Retry of the pause of A must not pause B'
+E       AssertionError: Retry of the pause of A must not pause B
+E       assert 'paused' == 'active'
+E         
+E         - active
+E         + paused
+
+/Users/jichengqian/.codex/worktrees/7617/texa/docs/validation/checkpoint-final-2026-09-30/test_acceptance_edges.py:32: AssertionError
+_____ test_admitted_receipt_remains_reconcilable_after_goal_change[update] _____
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-15/test_admitted_receipt_remains_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a64fd60>
+operation = 'update'
+
+    @pytest.mark.parametrize('operation', ['update', 'complete'])
+    def test_admitted_receipt_remains_reconcilable_after_goal_change(tmp_path, monkeypatch, operation):
+        from backend.services.agent_runtime.write_service import RuntimeWriteService
+        from backend.services.agent_runtime.write_tools import register_receipt_backed_write_tools
+        from backend.services.pending_actions import PendingActionStore
+        from backend.tools.registry import ToolContext, ToolRegistry
+        service, runtime, goal, task, _ = goal_run(tmp_path, monkeypatch)
+        snapshot = runtime.task_snapshot(task['id'])
+        registry = ToolRegistry()
+        register_receipt_backed_write_tools(registry)
+        pending = PendingActionStore(tmp_path / 'pending')
+        writer = RuntimeWriteService(runtime, registry, pending)
+        proposed = writer.propose(snapshot['run']['id'], snapshot['run']['owner_token'], tool_id='save_mistake',
+            args={'book_name': 'math', 'question_text': '2+2?'}, operation_key='save', context=ToolContext(book_name='math'))
+        call = proposed['tool_calls'][0]
+        admit = runtime.start_approved_tool
+        def interleave(*args, **kwargs):
+            result = admit(*args, **kwargs)
+            if operation == 'update':
+                service.update(goal['id'], expected_revision=2, changes={'objective': 'new objective'})
+            else:
+                service.measure(goal['id'], expected_revision=2, evidence_by_criterion={}, user_confirms_completion=True)
+            return result
+        monkeypatch.setattr(runtime, 'start_approved_tool', interleave)
+        with pytest.raises(RuntimeConflict):
+            writer.confirm(task['id'], call['id'], actor_id='user', args_hash=call['args_hash'],
+                scope={'book_name': 'math', 'subject': ''}, expected_revision=proposed['task_revision'],
+                resume_request_key='approve', request_id='request', owner_token='owner2', turn_id='')
+        # Real domain receipt: this was an admitted write and has actually committed.
+        receipt = pending.domain_receipt(call['id'])
+        assert receipt is not None
+        assert runtime.task_snapshot(task['id'])['tool_calls'][0]['status'] == 'unknown'
+        monkeypatch.setattr(runtime, 'start_approved_tool', admit)
+        monkeypatch.setattr(chat_binding, 'runtime_store', lambda: runtime)
+        monkeypatch.setattr(chat_binding, 'build_registry', lambda: registry)
+>       chat_binding.resolve_runtime_action(call['id'], 'confirm', pending)
+
+/Users/jichengqian/.codex/worktrees/7617/texa/docs/validation/checkpoint-final-2026-09-30/test_acceptance_edges.py:70: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/services/agent_runtime/chat_binding.py:100: in resolve_runtime_action
+    result = RuntimeWriteService(store, build_registry(), pending).confirm(task_id, action_id,
+backend/services/agent_runtime/write_service.py:66: in confirm
+    self.runtime.confirm_approval(call_id, actor_id=actor_id,
+backend/services/agent_runtime/store.py:491: in confirm_approval
+    self._validate_goal_run(run)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <backend.services.agent_runtime.store.RuntimeStore object at 0x10a64eda0>
+run = <sqlite3.Row object at 0x10b2b5030>
+
+    def _validate_goal_run(self, run):
+        checkpoint = json.loads(run["checkpoint_json"])
+        if run["trigger_kind"] not in {"goal", "schedule"} or not run["task_id"].startswith("rtask_"):
+            return
+        from backend.services.goals.store import GoalStore
+        from backend.services.goals.service import goal_contract
+        goal = GoalStore(self.db_path.parent / "goals.db").get(run["trigger_id"])
+        if not goal or goal["status"] != "active" or checkpoint.get("goal_contract", checkpoint.get("answer_state", {}).get("_goal_contract")) != goal_contract(goal):
+>           raise RuntimeConflict("goal is inactive or its execution contract changed")
+E           backend.services.agent_runtime.contracts.RuntimeConflict: goal is inactive or its execution contract changed
+
+backend/services/agent_runtime/store.py:265: RuntimeConflict
+____ test_admitted_receipt_remains_reconcilable_after_goal_change[complete] ____
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-15/test_admitted_receipt_remains_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10b292b60>
+operation = 'complete'
+
+    @pytest.mark.parametrize('operation', ['update', 'complete'])
+    def test_admitted_receipt_remains_reconcilable_after_goal_change(tmp_path, monkeypatch, operation):
+        from backend.services.agent_runtime.write_service import RuntimeWriteService
+        from backend.services.agent_runtime.write_tools import register_receipt_backed_write_tools
+        from backend.services.pending_actions import PendingActionStore
+        from backend.tools.registry import ToolContext, ToolRegistry
+        service, runtime, goal, task, _ = goal_run(tmp_path, monkeypatch)
+        snapshot = runtime.task_snapshot(task['id'])
+        registry = ToolRegistry()
+        register_receipt_backed_write_tools(registry)
+        pending = PendingActionStore(tmp_path / 'pending')
+        writer = RuntimeWriteService(runtime, registry, pending)
+        proposed = writer.propose(snapshot['run']['id'], snapshot['run']['owner_token'], tool_id='save_mistake',
+            args={'book_name': 'math', 'question_text': '2+2?'}, operation_key='save', context=ToolContext(book_name='math'))
+        call = proposed['tool_calls'][0]
+        admit = runtime.start_approved_tool
+        def interleave(*args, **kwargs):
+            result = admit(*args, **kwargs)
+            if operation == 'update':
+                service.update(goal['id'], expected_revision=2, changes={'objective': 'new objective'})
+            else:
+                service.measure(goal['id'], expected_revision=2, evidence_by_criterion={}, user_confirms_completion=True)
+            return result
+        monkeypatch.setattr(runtime, 'start_approved_tool', interleave)
+        with pytest.raises(RuntimeConflict):
+            writer.confirm(task['id'], call['id'], actor_id='user', args_hash=call['args_hash'],
+                scope={'book_name': 'math', 'subject': ''}, expected_revision=proposed['task_revision'],
+                resume_request_key='approve', request_id='request', owner_token='owner2', turn_id='')
+        # Real domain receipt: this was an admitted write and has actually committed.
+        receipt = pending.domain_receipt(call['id'])
+        assert receipt is not None
+        assert runtime.task_snapshot(task['id'])['tool_calls'][0]['status'] == 'unknown'
+        monkeypatch.setattr(runtime, 'start_approved_tool', admit)
+        monkeypatch.setattr(chat_binding, 'runtime_store', lambda: runtime)
+        monkeypatch.setattr(chat_binding, 'build_registry', lambda: registry)
+>       chat_binding.resolve_runtime_action(call['id'], 'confirm', pending)
+
+/Users/jichengqian/.codex/worktrees/7617/texa/docs/validation/checkpoint-final-2026-09-30/test_acceptance_edges.py:70: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/services/agent_runtime/chat_binding.py:100: in resolve_runtime_action
+    result = RuntimeWriteService(store, build_registry(), pending).confirm(task_id, action_id,
+backend/services/agent_runtime/write_service.py:66: in confirm
+    self.runtime.confirm_approval(call_id, actor_id=actor_id,
+backend/services/agent_runtime/store.py:491: in confirm_approval
+    self._validate_goal_run(run)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <backend.services.agent_runtime.store.RuntimeStore object at 0x10b2939d0>
+run = <sqlite3.Row object at 0x10b3972b0>
+
+    def _validate_goal_run(self, run):
+        checkpoint = json.loads(run["checkpoint_json"])
+        if run["trigger_kind"] not in {"goal", "schedule"} or not run["task_id"].startswith("rtask_"):
+            return
+        from backend.services.goals.store import GoalStore
+        from backend.services.goals.service import goal_contract
+        goal = GoalStore(self.db_path.parent / "goals.db").get(run["trigger_id"])
+        if not goal or goal["status"] != "active" or checkpoint.get("goal_contract", checkpoint.get("answer_state", {}).get("_goal_contract")) != goal_contract(goal):
+>           raise RuntimeConflict("goal is inactive or its execution contract changed")
+E           backend.services.agent_runtime.contracts.RuntimeConflict: goal is inactive or its execution contract changed
+
+backend/services/agent_runtime/store.py:265: RuntimeConflict
+_____ test_pause_after_approval_before_resume_does_not_leave_fake_unknown ______
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-15/test_pause_after_approval_befo0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10b335cc0>
+
+    def test_pause_after_approval_before_resume_does_not_leave_fake_unknown(tmp_path, monkeypatch):
+        from backend.services.agent_runtime.write_service import RuntimeWriteService
+        from backend.services.agent_runtime.write_tools import register_receipt_backed_write_tools
+        from backend.services.pending_actions import PendingActionStore
+        from backend.tools.registry import ToolContext, ToolRegistry
+        service, runtime, goal, task, _ = goal_run(tmp_path, monkeypatch)
+        snapshot = runtime.task_snapshot(task['id'])
+        registry = ToolRegistry()
+        register_receipt_backed_write_tools(registry)
+        pending = PendingActionStore(tmp_path / 'pending')
+        writer = RuntimeWriteService(runtime, registry, pending)
+        proposed = writer.propose(snapshot['run']['id'], snapshot['run']['owner_token'], tool_id='save_mistake',
+            args={'book_name': 'math', 'question_text': '2+2?'}, operation_key='save', context=ToolContext(book_name='math'))
+        call = proposed['tool_calls'][0]
+        confirm = runtime.confirm_approval
+        def interleave(*args, **kwargs):
+            result = confirm(*args, **kwargs)
+            service.pause(goal['id'], expected_revision=2)
+            return result
+        monkeypatch.setattr(runtime, 'confirm_approval', interleave)
+        with pytest.raises(RuntimeConflict):
+            writer.confirm(task['id'], call['id'], actor_id='user', args_hash=call['args_hash'],
+                scope={'book_name': 'math', 'subject': ''}, expected_revision=proposed['task_revision'],
+                resume_request_key='approve', request_id='request', owner_token='owner2', turn_id='')
+        assert pending.domain_receipt(call['id']) is None
+        public = locator.public_task(runtime, runtime.task_snapshot(task['id']))
+        from backend.services.goals import execution
+        service.activate(goal['id'], expected_revision=3)
+        restarted = execution.start_goal(service, goal['id'], expected_revision=4, request_key='start-after-reactivate')
+        assert restarted['id'] == task['id']
+        assert restarted['status'] == public['status']
+>       assert public['artifacts']['pending_actions'][0]['status'] != 'unknown', 'No write was admitted; this is not an uncertain write'
+E       AssertionError: No write was admitted; this is not an uncertain write
+E       assert 'unknown' != 'unknown'
+
+/Users/jichengqian/.codex/worktrees/7617/texa/docs/validation/checkpoint-final-2026-09-30/test_acceptance_edges.py:123: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../Users/jichengqian/.codex/worktrees/7617/texa/docs/validation/checkpoint-final-2026-09-30/test_acceptance_edges.py::test_pause_retry_after_projection_failure_does_not_pause_new_goal
+FAILED ../../../Users/jichengqian/.codex/worktrees/7617/texa/docs/validation/checkpoint-final-2026-09-30/test_acceptance_edges.py::test_admitted_receipt_remains_reconcilable_after_goal_change[update]
+FAILED ../../../Users/jichengqian/.codex/worktrees/7617/texa/docs/validation/checkpoint-final-2026-09-30/test_acceptance_edges.py::test_admitted_receipt_remains_reconcilable_after_goal_change[complete]
+FAILED ../../../Users/jichengqian/.codex/worktrees/7617/texa/docs/validation/checkpoint-final-2026-09-30/test_acceptance_edges.py::test_pause_after_approval_before_resume_does_not_leave_fake_unknown
+4 failed, 1 passed in 0.43s

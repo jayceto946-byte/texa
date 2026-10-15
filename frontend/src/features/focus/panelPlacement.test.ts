@@ -1,4 +1,17 @@
-import { expect,it } from 'vitest';
+import { expect, it } from 'vitest';
 import { panelPlacement } from './panelPlacement';
-it('keeps the empty-chat send button below a raised panel',()=>{const value=panelPlacement({width:1280,mainWidth:1048,contentTop:48,trayBottom:820,trayHeight:52,blockerTop:340});expect(value.sheet).toBe(true);expect(820-value.bottom).toBeLessThan(340);expect(820-value.bottom-value.maxHeight).toBeGreaterThan(48);});
-it('uses a sheet when a long composer or inspector leaves too little space',()=>{expect(panelPlacement({width:1024,mainWidth:330,contentTop:48,trayBottom:768,trayHeight:52,blockerTop:120}).sheet).toBe(true);expect(panelPlacement({width:760,mainWidth:760,contentTop:48,trayBottom:820,trayHeight:56,blockerTop:null}).sheet).toBe(true);});
+it('opens below the header without covering the chat composer', () => {
+  const value = panelPlacement({ width: 1280, mainWidth: 1048, headerBottom: 48, headerRight: 1280, contentBottom: 650 });
+  expect(value.sheet).toBe(false);
+  expect(value.top).toBeGreaterThan(48);
+  expect(value.top + value.maxHeight).toBeLessThan(650);
+  expect(value.right).toBe(16);
+});
+it('uses a dialog when an empty workspace, expanded composer or inspector limits space', () => {
+  expect(panelPlacement({ width: 1280, mainWidth: 1048, headerBottom: 48, headerRight: 1280, contentBottom: 340 }).sheet).toBe(true);
+  expect(panelPlacement({ width: 1024, mainWidth: 330, headerBottom: 48, headerRight: 700, contentBottom: 700 }).sheet).toBe(true);
+  expect(panelPlacement({ width: 760, mainWidth: 760, headerBottom: 56, headerRight: 760, contentBottom: 820 }).sheet).toBe(true);
+});
+it('anchors to the active workspace when an inspector occupies its right side', () => {
+  expect(panelPlacement({ width: 1280, mainWidth: 700, headerBottom: 48, headerRight: 920, contentBottom: 820 }).right).toBe(376);
+});

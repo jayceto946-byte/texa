@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ## 2026-10-15 — macOS 最新功能开发版启动入口
 
 - 直接运行主目录 Electron 会读取主分支及其 frontend/dist；最新目标/任务/专注代码实际位于 codex/goals-tasks-focus 工作区（f39a592，包含该工作区未提交的已跟踪文件修改）。旧主分支后端只接受 goals schema v1，现有用户数据库为 v2，导致目标接口失败。
@@ -20,7 +19,7 @@
 - 交付 `Texa-Goals-Tasks-Focus-Redesign.md`、A–E独立设计样稿、源码证据索引及临时SQLite计时探针。推荐目标规划工作区、应用内停靠专注条和按需Mini Panel；任务完成与计时结束独立，倒计时到点可继续记录，多时段投入单独保存。
 - 识别本聊天master f999e72与实际运行mobile-s3 04e8d12的版本差异；复用实际已有FocusProvider、CAS、幂等回执，指出duration截断、缺时段历史、局部控制入口及休眠/重启计时缺口。提出增量数据方案与CP0–CP5验收合同，未执行架构修改、schema迁移或生产代码实现。
 - 查看真实macOS Electron目标页与批准的学习/教材基准图；venv310 Python3.10.21下既有Focus相关8项测试通过，隔离探针确认到期后不能再次开始。样稿脚本语法、静态ID、资源和文档链接检查通过；本地预览监听被sandbox拒绝，浏览器file协议受限，样稿未完成渲染/交互/视觉签核。Windows、手机与真实休眠未测试；没有付费模型调用或真实学习记录写入。
-=======
+
 # 2026-10-14 - Goals / Focus 打包前全量检查
 
 - 本地实现提交 8003dae，codex/goals-tasks-focus；在干净同提交临时检出执行全量检查，Python 3.10 后端1688、前端214、桌面24项通过（共1926），完整types/lint/build与30文件语法通过。首次SPA测试因缺frontend/dist失败，补同提交产物后完整后端复跑通过；首次结果保留。
@@ -67,7 +66,6 @@
 - 当前生产构建隔离截图119检查，360/390/430触控补测58图；Astra一次直接读取8组对照图。明确区分合成浏览器、真实API/SQLite、Electron与尚未验证Android/Tailscale。
 - Python3.10相关92、前端203、桌面15合同通过；真实API扩展11场景及Electron3项通过。旧E2E按钮文案失配保留，临时副本修选择器后通过；ESLint仍有ChatPage242 render ref错误，不宣称发布检查全绿。
 - 交付 TEXA-MOBILE-S3-AUDIT-AND-PLAN.md 及截图清单、Issue List、Astra Review、工作分解、Acceptance Matrix。建议收敛教材往返、窄屏输入/笔记操作与可信恢复；没有修改生产Runtime、模型、数据库、依赖、Serve或学习数据，未自动进入实施。
->>>>>>> codex/goals-tasks-focus
 
 # 2026-10-13 - 原生数学工具阶段公开文字防丢失
 
@@ -3808,3 +3806,28 @@ Android 普通 Wi-Fi 对照出现解答闪现后回到空问答。隔离浏览�
 - 正常merge6a5f50c将已审计开发Checkpoint整合至实际主分支master并正常推送；无冲突，merge树与b12671b完全一致。其他分支/worktree保留，无强推或历史改写。
 - 合并后438后端、203前端、15桌面测试与TypeScript/Vite通过；Qwen默认/DeepSeek可选，QA凭证过滤修复进入Main，历史凭证仍建议用户轮换。未发起付费模型调用。
 - TEXA-RUNTIME-MAIN-INTEGRATION.md更新为MERGED，附版本边界审计与合并后证据。稳定Runtime基线已就绪，Mobile S3及RC完整发布验收不在本轮开发范围。
+
+
+## 2026-10-15 — 学习页与专注计时 UI 调整
+
+- 实施于截图对应的 `codex/goals-tasks-focus` 工作区；主检出目录尚无 Focus，不重复新建或合并整套功能。移除学习操作菜单中的学习范围及重新读取当前会话；原范围选择与错误恢复入口保留。
+- 回到最新改为 30px 圆形向下箭头，浮于输入框上方，不另占布局行。计时控制器保持 MainLayout 单一挂载，通过 portal 放进当前页面顶部；正常未计时隐藏，暂停保留图标／时间／暂停标记，待核对或同步失败仍提供恢复入口。底部专注条空间完全取消。
+- 专注面板使用大号等宽时间、任务内容、主按钮开始／暂停／继续与结束本次；完成任务、切换任务为次级操作，任务管理位于右上角。完成后突出本次时间及下一任务。窄窗、空白聊天或输入区空间不足时使用现有 Dialog；不改 Provider、计时数据库、CAS 或操作回执。
+- 验证：Python3.10 用于隔离 staging；TypeScript、修改文件 ESLint、Vite 生产构建通过（保留既有 mathlive chunk 提示）；Focus／聊天／产品 UI 合同共24项通过。macOS Electron 1280×820 已实际检查顶部入口、计时与暂停；隔离真实 Focus/Goal API + 浏览器在1280×820、1024×768、760×820验证开始、暂停、继续、结束隐藏、完成与下一项、菜单、任务管理及输入框避让。圆形箭头实测 bottomGap=0；760视口 scope 与 timer不交叠，文档无横向溢出。
+- 验收使用临时SQLite及相邻页面只读样例，模型调用0；没有用户数据、配置或依赖迁移。未测 Windows、真实休眠或正式教材／模型整链路。证据见 artifacts/ui-refinement-2026-10-15。
+- 最终 Electron 焦点复验：Popover 通过 body portal 挂载、aria-owns保留辅助功能归属，避免直接嵌套浮层时焦点带动画布偏移；实际展开/关闭位置与原生操作树复验通过。
+
+
+## 补录：旧验收工作区保留的历史结论（2026-09-30）
+
+# 2026-09-30 - Checkpoint delta verification: GO
+
+- Verified only the three prior NO-GO items and their direct neighbors against Sol's updated ad0b source snapshot. The unchanged prior acceptance file now passes all 5 cases; 8 independent adjacent guards also pass.
+- Full validation: Python 3.10.21 / venv310 963 passed, frontend 126 passed, lint/build passed, Electron 7 passed. Native Electron verifies revoked approval continuation and receipt reconciliation after Goal changes.
+- No remaining blocker, new correctness regression, or scope violation found in the delta. CHECKPOINT GO; this Runtime remediation stops. Report: `docs/validation/checkpoint-delta-2026-09-30/README.md`. Production code and user data were not modified during verification.
+
+# 2026-09-30 - Checkpoint final acceptance
+
+- Independently validated Sol's `codex/checkpoint-remediation` source snapshot (ad0b worktree, `d06403e` plus remediation), using the current Checkpoint Remediation Handoff only. This chat's older source baseline was not substituted for the implementation under review.
+- Full regressions: Python 3.10.21 / venv310 950 passed; frontend 126 passed, lint/build passed; Electron 7 passed plus isolated native approval/pause/restart checks. Added acceptance assertions expose 4 failures across 3 in-scope lifecycle/idempotency/receipt issues; checkpoint remains NO-GO.
+- No production code, data, dependencies, or schema changed during acceptance. Evidence and per-criterion verdicts: `docs/validation/checkpoint-final-2026-09-30/README.md`.

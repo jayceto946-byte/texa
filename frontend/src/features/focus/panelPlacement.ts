@@ -1,5 +1,13 @@
-export function panelPlacement({width,mainWidth,contentTop,trayBottom,trayHeight,blockerTop}:{width:number;mainWidth:number;contentTop:number;trayBottom:number;trayHeight:number;blockerTop:number|null}) {
-  const safeBottom=blockerTop===null?trayBottom-trayHeight-8:Math.min(blockerTop-8,trayBottom-trayHeight-8);
-  const available=Math.max(0,safeBottom-contentTop-8);
-  return {sheet:width<=760||mainWidth<392||available<320,bottom:trayBottom-safeBottom,maxHeight:Math.min(420,available)};
+/** Anchor below the header and keep the reading composer outside the popover. */
+export function panelPlacement({ width, mainWidth, headerBottom, headerRight, contentBottom }: {
+  width: number; mainWidth: number; headerBottom: number; headerRight: number; contentBottom: number;
+}) {
+  const top = headerBottom + 8;
+  const available = Math.max(0, contentBottom - top - 8);
+  return {
+    sheet: width <= 760 || mainWidth < 392 || available < 400,
+    top,
+    right: Math.max(16, width - headerRight + 16),
+    maxHeight: Math.min(560, available),
+  };
 }

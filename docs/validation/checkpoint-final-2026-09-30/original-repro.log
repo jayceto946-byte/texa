@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/private/tmp/texa-checkpoint-acceptance/docs/validation/pre-policy-2026-09-30/repro.py", line 76, in <module>
+    resumed = execution.resume_goal(service, goal["id"], task_id=task["id"], expected_revision=3, request_key="resume-new")
+  File "/private/tmp/texa-checkpoint-acceptance/backend/services/goals/service.py", line 26, in invoke
+    return action(*args, **kwargs)
+  File "/private/tmp/texa-checkpoint-acceptance/backend/services/goals/execution.py", line 176, in resume_goal
+    store._validate_goal_run(snapshot["run"])
+  File "/private/tmp/texa-checkpoint-acceptance/backend/services/agent_runtime/store.py", line 265, in _validate_goal_run
+    raise RuntimeConflict("goal is inactive or its execution contract changed")
+backend.services.agent_runtime.contracts.RuntimeConflict: goal is inactive or its execution contract changed

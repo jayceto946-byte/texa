@@ -8,7 +8,7 @@ import { imageUploadError } from '../features/mistakes/imageProcessing';
 import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BookMarked, CalendarDays, ImagePlus, Images, Send, Shuffle, Square, Target, X } from 'lucide-react';
+import { ArrowDown, BookMarked, CalendarDays, ImagePlus, Images, Send, Shuffle, Square, Target, X } from 'lucide-react';
 import { figureQuestionStream, get, interruptFigureTask, mistakeSolutionStream, post, resumeFigureTaskStream } from '../api/client';
 
 import HighlightRepositoryDialog from '../components/HighlightRepositoryDialog';
@@ -1001,9 +1001,10 @@ const ChatPage: React.FC = () => {
           </div>
         </div>
 
-        {!following && messages.length > 0 && <button type="button" className="reading-return-latest app-secondary-button" onClick={scrollToLatest}>回到最新回答</button>}
 
         <div className="chat-composer">
+        {!following && messages.length > 0 && <button type="button" className="reading-return-latest" aria-label="回到最新对话" title="回到最新对话" onClick={scrollToLatest}><ArrowDown size={17} aria-hidden="true" /></button>}
+
           {mistakePickerOpen && (
             <div ref={mistakePickerRef} className="composer-popover max-h-80 overflow-y-auto p-2" aria-label="历史错题">
               {cachedMistakes.length ? cachedMistakes.map((mistake) => (
@@ -1087,8 +1088,6 @@ const ChatPage: React.FC = () => {
                 <ComposerOverflowMenu label="学习操作">
                   {(close) => (
                     <>
-                      <button role="menuitem" type="button" disabled={isLoading} onClick={()=>{close();window.dispatchEvent(new Event('texa:reload-session'));}}>重新读取当前会话</button>
-                      <div className="composer-scope-choice"><span>学习范围</span>{scopeSelector}</div>
                       <button role="menuitem" type="button" onClick={() => { close(); navigate('/goals', { state: { goalDraft: composeMathQuestion(input, mathExpressions) } }); }} className="composer-overflow-item"><Target className="h-3.5 w-3.5" />设为学习目标</button>
                       <button role="menuitem" type="button" onClick={() => { close(); void showReport('daily'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'daily' ? '整理日报' : '学习日报'}</button>
                       <button role="menuitem" type="button" onClick={() => { close(); void showReport('weekly'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'weekly' ? '整理周报' : '学习周报'}</button>

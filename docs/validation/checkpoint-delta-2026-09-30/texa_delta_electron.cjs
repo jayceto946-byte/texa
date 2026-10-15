@@ -1,0 +1,40 @@
+const {_electron: electron}=require('/Users/jichengqian/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {spawn}=require('node:child_process');
+const {once}=require('node:events');
+const fs=require('node:fs');
+const assert=require('node:assert/strict');
+const base='http://127.0.0.1:18776';
+let backend,app;
+async function main(){
+ const fd=fs.openSync('/private/tmp/texa-delta-results/electron-backend.log','a');
+ backend=spawn('/Users/jichengqian/Documents/ChatGPT/texa/venv310/bin/python',['/private/tmp/texa_delta_desktop.py'],{cwd:'/private/tmp/texa-delta-verification',stdio:['ignore',fd,fd]});
+ for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok)break;}catch{}await new Promise(r=>setTimeout(r,100));}
+ app=await electron.launch({executablePath:'/Users/jichengqian/Documents/ChatGPT/texa/desktop/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron',args:['/private/tmp/texa-delta-verification/desktop'],env:{...process.env,KAOYAN_USER_DATA_DIR:'/private/tmp/texa-delta-electron-v2/userData',KAOYAN_SKIP_BACKEND:'1',KAOYAN_BACKEND_URL:base},timeout:30000});
+ const page=await app.firstWindow();await page.waitForURL(base+'/**');
+ await page.route('**/api/system/settings',async route=>{const response=await route.fetch();const data=await response.json();data.data.models.credentials.reasoning.required=false;await route.fulfill({response,json:data});});
+ await page.evaluate(()=>localStorage.setItem('texa:setup-complete:v3','1'));
+ await page.goto(base+'/goals');
+ await page.getByRole('button',{name:/Delta revoked/}).click();
+ await page.getByText('已取消',{exact:true}).waitFor();
+ assert.equal(await page.getByText('写入结果未知，需核对记录；不可再次执行',{exact:true}).count(),0);
+ await page.getByRole('button',{name:'启用目标',exact:true}).click();
+ await page.getByRole('button',{name:'继续执行',exact:true}).waitFor();
+ await page.screenshot({path:'/private/tmp/texa-delta-results/revoked-resumable.png'});
+ console.log('PASS C3: revoked unadmitted approval is cancelled, stopped task has Continue');
+ await page.getByRole('button',{name:'继续执行',exact:true}).click();
+ await page.getByText('已整理本次学习记录，结果可回看。',{exact:false}).waitFor({timeout:15000});
+ console.log('PASS C3: explicit resume completes via real Goal API');
+ await page.getByRole('button',{name:/Delta receipt/}).click();
+ await page.getByText('写入结果未知，需核对记录；不可再次执行',{exact:true}).waitFor();
+ const before=await (await fetch(base+'/api/goals/delta_receipt/runtime')).json();
+ const action=before.data.artifacts.pending_actions[0];
+ const response=await fetch(base+'/api/agent/actions/'+action.action_id+'/confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+ assert.equal(response.status,200);const result=await response.json();
+ assert.equal(result.learning_task.artifacts.pending_actions[0].status,'executed');
+ assert.equal(result.learning_task.active_run_id,before.data.active_run_id);
+ assert.equal(result.learning_task.status,'interrupted');
+ await page.getByText('已执行',{exact:true}).waitFor();
+ await page.screenshot({path:'/private/tmp/texa-delta-results/receipt-accounted.png'});
+ console.log('PASS C2: changed Goal receipt reconciles via real action API; no new run, UI shows executed');
+}
+main().catch(e=>{console.error(e);process.exitCode=1}).finally(async()=>{if(app)await app.close();if(backend){const exited=once(backend,'exit');backend.kill('SIGTERM');await exited;}});

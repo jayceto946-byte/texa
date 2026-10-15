@@ -1,0 +1,3 @@
+PASS expired has no confirmation entry
+PASS unknown has no confirmation entry
+PASS backend and Electron restarted; same run interrupted, explicit resume available

@@ -18,6 +18,7 @@
 
 - Python 使用 `venv310`，解释器必须是 Python 3.10。若出现二进制扩展导入异常，先检查 `venv310\pyvenv.cfg` 是否误指向其他 Python 版本。
 - 默认以 Electron 桌面端作为优先交付入口。涉及前端、后端 API、路径、数据目录、构建或运行方式的改动，应优先确认桌面端开发/打包路径是否受影响；功能验证也应优先覆盖 Electron 端，除非用户明确只要求 Web/CLI。
+- macOS 日常集成与交付分支为 `Texa_MacOS`，主目录的桌面启动脚本直接编译并运行当前检出。临时功能分支或 worktree 的成果须审查后合入此分支；不要用切换到另一个工作区的运行快照代替整合，也不要把某个功能分支直接称为包含全部改动的“最新版”。
 - 未配置模型角色时默认使用 Qwen 3.7 Plus 与 Refined Teaching Prompt；DeepSeek V4 Pro 保留为可回退推理模型。显式保存的用户 profile、旧环境变量与自定义 OpenAI-compatible 配置优先于默认值，业务流程不得绑定单一供应商。
 - 推理与视觉是独立的模型角色；`split` 模式分别配置识图与推理，`native` 模式由同一多模态模型完成图片理解和回复。任何模型输出在正式展示前都必须过滤 thinking 内容，profile 与错误信息不得持久化或回显密钥。
 - 扫描件 PDF 正文录入优先使用 MinerU，目录/TOC 检测可使用 Kimi Vision。

@@ -1,0 +1,184 @@
+Outbox message_task0 projection failed: OSError
+Outbox message_task0 projection failed: OSError
+RuntimeEvent batch persistence failed after retries
+Traceback (most recent call last):
+  File "/private/tmp/texa-checkpoint-acceptance/backend/services/runtime_events.py", line 230, in _run
+    self.store.append_many(batch)
+  File "/Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/unittest/mock.py", line 1114, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "/Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/unittest/mock.py", line 1118, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "/Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/unittest/mock.py", line 1173, in _execute_mock_call
+    raise effect
+  File "/private/tmp/texa-checkpoint-acceptance/backend/services/runtime_events.py", line 230, in _run
+    self.store.append_many(batch)
+  File "/Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/unittest/mock.py", line 1114, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "/Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/unittest/mock.py", line 1118, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "/Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/unittest/mock.py", line 1173, in _execute_mock_call
+    raise effect
+  File "/private/tmp/texa-checkpoint-acceptance/backend/services/runtime_events.py", line 230, in _run
+    self.store.append_many(batch)
+  File "/Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/unittest/mock.py", line 1114, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "/Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/unittest/mock.py", line 1118, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "/Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/unittest/mock.py", line 1173, in _execute_mock_call
+    raise effect
+OSError: injected disk failure
+{
+  "shadow_rule_is_labeled_nonshadow": {
+    "reproduced": false,
+    "selected": "learning.inspect",
+    "shadow_only": true
+  },
+  "unrelated_math_verifies_wrong_answer": {
+    "reproduced": false,
+    "verification": {
+      "status": "unverified",
+      "passed": false,
+      "checks": [
+        {
+          "id": "answer",
+          "label": "针对当前问题的回答",
+          "status": "passed",
+          "reason": ""
+        },
+        {
+          "id": "final_numeric_answer",
+          "label": "最终数值及单位",
+          "status": "unverified",
+          "reason": "数值缺少与最终结论绑定的核验依据"
+        }
+      ],
+      "failures": [],
+      "unverified": [
+        {
+          "id": "final_numeric_answer",
+          "reason": "数值缺少与最终结论绑定的核验依据"
+        }
+      ]
+    }
+  },
+  "input_number_verifies_wrong_conclusion": {
+    "reproduced": false,
+    "verification": {
+      "status": "unverified",
+      "passed": false,
+      "checks": [
+        {
+          "id": "answer",
+          "label": "针对当前问题的回答",
+          "status": "passed",
+          "reason": ""
+        },
+        {
+          "id": "final_numeric_answer",
+          "label": "最终数值及单位",
+          "status": "unverified",
+          "reason": "数值缺少与最终结论绑定的核验依据"
+        }
+      ],
+      "failures": [],
+      "unverified": [
+        {
+          "id": "final_numeric_answer",
+          "reason": "数值缺少与最终结论绑定的核验依据"
+        }
+      ]
+    }
+  },
+  "empty_contract_empty_answer_passes": {
+    "reproduced": true,
+    "verification": {
+      "status": "passed",
+      "passed": true,
+      "checks": [],
+      "failures": [],
+      "unverified": []
+    }
+  },
+  "goal_criteria_not_in_required_outputs": {
+    "reproduced": false,
+    "goal_criteria": [
+      {
+        "id": "c1",
+        "description": "提供进度证据"
+      }
+    ],
+    "required_outputs": [
+      {
+        "id": "answer",
+        "kind": "content",
+        "label": "针对当前问题的回答",
+        "required": true
+      }
+    ]
+  },
+  "changed_goal_resumes_old_contract": {
+    "reproduced": false,
+    "current_objective": "新目标：学习完全不同内容",
+    "executed_goal": "旧目标：查看学习进度\n完成标准：提供进度证据"
+  },
+  "chat_resume_bypasses_paused_goal": {
+    "reproduced": false,
+    "goal_status": "paused"
+  },
+  "completed_goal_leaves_run_running": {
+    "reproduced": false,
+    "goal_status": "completed"
+  },
+  "goal_link_failure_orphans_retry": {
+    "reproduced": false,
+    "task_status": "running",
+    "links": [
+      {
+        "task_id": "rtask_a4aee9db59d7585ea6bdb06ff31dacef",
+        "run_id": "arun_07b42c05ba904124935aaa55f6088b71",
+        "created_at": "2026-09-30T11:39:05.084278+00:00"
+      }
+    ]
+  },
+  "sse_snapshot_final_commit_race": {
+    "reproduced": false,
+    "error": "",
+    "durable_status": "completed",
+    "emitted_count": 3
+  },
+  "outbox_failure_starves_other_sessions": {
+    "reproduced": false,
+    "seen": [
+      "session0",
+      "session1",
+      "session0"
+    ],
+    "pending": 1
+  },
+  "pausing_goal_A_marks_goal_B_paused": {
+    "reproduced": false,
+    "projection": {
+      "goal_id": "goal_B",
+      "target_type": "chapter",
+      "target_id": "",
+      "target_name": "goal_B",
+      "status": "active",
+      "created_at": "2026-09-30T11:39:05.141803+00:00",
+      "updated_at": "2026-09-30T11:39:05.141803+00:00",
+      "book_name": "audit-book"
+    },
+    "sql_goal_B_status": "active"
+  },
+  "preflight_goal_write_has_no_operation_identity": {
+    "reproduced": false,
+    "goal_count": 0,
+    "statuses": []
+  },
+  "rotation_deletes_active_goal_run": {
+    "reproduced": false,
+    "retained_goal_events": 1
+  },
+  "failed_audit_flush_reports_no_failure": {
+    "reproduced": true
+  }
+}

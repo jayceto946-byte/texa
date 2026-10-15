@@ -546,12 +546,8 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
         </section>}
 
 
-<<<<<<< HEAD
-        {tab === 'preferences' && <section className="settings-page"><SettingsPageHeader title="偏好" /><AppearanceSettings /></section>}
-=======
         {tab === 'remote' && <section className="settings-page remote-connection-page"><SettingsPageHeader title="手机连接" description="从手机继续使用这台电脑的学习工作区。" /><MobileRemoteS0 /></section>}
-        {tab === 'preferences' && <section className="settings-page"><SettingsPageHeader title="偏好" description="调整当前设备的阅读外观。" /><AppearanceSettings /></section>}
->>>>>>> codex/goals-tasks-focus
+        {tab === 'preferences' && <section className="settings-page"><SettingsPageHeader title="偏好" /><AppearanceSettings /></section>}
 
         {tab === 'models' && (
           <section className="settings-page">

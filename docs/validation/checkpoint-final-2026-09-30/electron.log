@@ -1,0 +1,15 @@
+✔ startup appearance caches the existing theme tokens without storing unrelated data (1.268541ms)
+✔ startup appearance rejects invalid theme IDs and unsafe or incomplete colors (0.078542ms)
+✔ startup window controls are exposed for Windows and hidden by default on macOS (0.25825ms)
+✔ Texa branding preserves the existing desktop identity and userData paths (0.776542ms)
+✔ userData keeps the legacy default and accepts an explicit isolated override (0.083833ms)
+✔ portFromUrl resolves explicit and default HTTP ports (0.130666ms)
+✔ findAvailablePort releases a bindable loopback port (6.386834ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42.547834

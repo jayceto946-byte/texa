@@ -1,26 +1,65 @@
-/* Local task / focus roles. The application palette and typography remain authoritative. */
-.focus-tray { position:relative;flex:0 0 52px;min-width:0;display:flex;justify-content:flex-end;align-items:center;padding:6px 20px;border-top:1px solid var(--workspace-separator);background:var(--workspace-canvas,var(--color-bg-primary));z-index:35; }
-.focus-docked { display:flex;align-items:center;gap:10px;max-width:min(520px,100%);min-width:0; }
-.focus-docked > strong { min-width:0;flex:1;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:500; }
-.focus-docked-time { font-size:12px;font-family:var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap; }
-.focus-mini-panel { position:absolute;right:20px;bottom:calc(100% + 8px);width:min(352px,calc(100% - 32px));max-height:min(420px,calc(100dvh - 140px));overflow:auto;padding:20px;border:1px solid var(--workspace-separator);border-radius:6px;background:var(--surface-raised,var(--color-bg-primary));box-shadow:0 8px 24px rgb(0 0 0 / 10%);color:var(--color-text-primary);font-size:13px; }
-.focus-mini-panel header { display:flex;align-items:center;gap:8px; }
-.focus-mini-panel header > span { min-width:0;flex:1;color:var(--color-text-secondary);font-size:12px;overflow-wrap:anywhere; }
-.focus-mini-panel h3 { display:flex;align-items:baseline;gap:4px;font-size:16px;font-weight:600;line-height:1.5;margin:12px 0;overflow-wrap:anywhere; }
-.focus-mode-label,.focus-session-total { font-size:12px;color:var(--color-text-secondary);line-height:1.5;margin:12px 0; }
-.focus-number { text-align:center;font-family:var(--font-mono);font-size:32px;line-height:1.4;letter-spacing:-.5px;font-variant-numeric:tabular-nums;margin:16px 0; }
-.focus-actions,.focus-mode-options,.focus-duration-options { display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px; }
-.focus-duration-options label { display:flex;align-items:center;gap:4px;font-size:12px; }
-.focus-duration-options input { width:65px; }
-.app-shell .focus-tray :is(.app-primary-button,.app-secondary-button,.app-ghost-button),.app-shell .study-task-panel :is(.app-primary-button,.app-secondary-button,.app-ghost-button),.app-shell .goal-detail-tabs button { min-height:32px;height:auto;padding:5px 10px;font-size:13px;line-height:20px;border-radius:5px; }
-.app-shell :is(.focus-tray,.study-task-panel) .app-icon-button { min-width:32px;min-height:32px;width:32px;height:32px;padding:5px; }
-.app-shell :is(.focus-tray,.study-task-panel) .app-field { min-height:36px;height:36px;font-size:13px;border-radius:5px; }
-.focus-mode-options button[aria-pressed="true"],.focus-duration-options button[aria-pressed="true"] { color:var(--color-accent);border-color:var(--color-accent);background:var(--accent-soft,var(--accent-muted)); }
-.focus-sync-error { color:var(--warning,var(--color-text-secondary));font-size:12px;line-height:1.5;overflow-wrap:anywhere; }
-.focus-task-choices { max-height:220px;overflow:auto; }
-.focus-task-choices button { display:flex;width:100%;flex-direction:column;align-items:flex-start;text-align:left;border-bottom:1px solid var(--workspace-separator); }
+/* Header timer and its compact focus panel share the workspace palette. */
+.focus-controller { display:contents; }
+.focus-tray { flex:0 0 auto; min-width:0; margin-left:4px; -webkit-app-region:no-drag; }
+.app-shell .focus-docked { display:flex; align-items:center; justify-content:center; gap:7px; height:30px; min-height:30px; padding:0 10px; border:1px solid var(--workspace-separator); border-radius:999px; background:transparent; color:var(--color-text-secondary); cursor:pointer; white-space:nowrap; }
+.app-shell .focus-docked:hover,.app-shell .focus-docked[aria-expanded="true"] { background:var(--workspace-secondary,var(--color-bg-secondary)); border-color:var(--color-accent); color:var(--color-accent); }
+.goals-header:has(.focus-tray) > button { margin-left:auto; }
+.goals-header .focus-tray { order:2; }
+.learning-workspace-header .focus-tray { order:1; }
+.learning-workspace-header:has(.focus-tray) .learning-header-scope-selector { order:2; }
+:is(.app-page-header,.library-workspace-header,.note-page-header) .focus-tray { order:10; }
+.focus-docked-time { font-size:12px; line-height:1; font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+.focus-docked[data-paused="true"] { border-style:dashed; }
+.app-shell .learning-workspace-header:has(.focus-tray) .learning-header-scope-selector { min-width:0; max-width:clamp(160px,30vw,340px); }
+.focus-mini-panel { position:fixed; z-index:80; box-sizing:border-box; width:360px; overflow:auto; padding:18px 22px 14px; border:1px solid var(--workspace-separator); border-radius:12px; background:var(--surface-raised,var(--color-bg-primary)); box-shadow:0 12px 40px rgb(0 0 0 / 12%); color:var(--color-text-primary); font-size:13px; outline:none; }
+.focus-mini-panel header { display:flex; align-items:center; gap:6px; }
+.focus-mini-panel header > span { min-width:0; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--color-text-secondary); font-size:11px; }
+.focus-mini-panel h3 { margin:18px 0 0; font-size:17px; font-weight:600; line-height:1.5; text-align:center; overflow-wrap:anywhere; }
+.focus-task-content { margin:6px 0 0; font-size:12px; line-height:1.6; color:var(--color-text-secondary); text-align:center; white-space:pre-wrap; overflow-wrap:anywhere; max-height:90px; overflow:auto; }
+.focus-clock { padding:20px 0 22px; text-align:center; }
+.focus-mode-label { display:flex; align-items:center; justify-content:center; gap:5px; margin:0 0 10px; font-size:11px; line-height:1.5; color:var(--color-text-secondary); }
+.focus-number { font-family:var(--font-mono); font-size:60px; font-weight:400; line-height:1.2; letter-spacing:-2px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.focus-number[data-long="true"] { font-size:46px; }
+.focus-session-total { display:flex; align-items:center; justify-content:center; gap:16px; margin-top:14px; color:var(--color-text-secondary); font-size:11px; line-height:1.5; }
+.focus-session-total strong { font-weight:500; color:var(--color-text-primary); }
+.focus-primary-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.focus-primary-actions.is-start { grid-template-columns:1fr; margin-top:20px; }
+.focus-mini-panel :is(.app-primary-button,.app-secondary-button,.app-ghost-button) { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:32px; height:auto; padding:5px 10px; font-size:12px; line-height:20px; border-radius:7px; }
+.focus-mini-panel .focus-primary-actions > button,.focus-mini-panel .focus-next-task > button { min-height:40px; font-size:13px; }
+.focus-mini-panel .app-icon-button { flex-shrink:0; min-width:28px; min-height:28px; width:28px; height:28px; padding:5px; }
+.focus-mini-panel .focus-manage-link { min-height:28px; padding:4px 5px; font-size:11px; color:var(--color-text-secondary); white-space:nowrap; }
+.focus-mini-panel .app-field { min-height:32px; height:32px; padding:4px 6px; font-size:12px; border-radius:5px; }
+.focus-actions { display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:12px; }
+.focus-footer { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:18px; padding-top:8px; border-top:1px solid var(--workspace-separator); }
+.focus-footer .app-ghost-button { color:var(--color-text-secondary); }
+.focus-mode-options { display:flex; justify-content:center; gap:4px; padding:3px; margin:0 auto; width:fit-content; border:1px solid var(--workspace-separator); border-radius:8px; background:var(--workspace-secondary,var(--color-bg-secondary)); }
+.focus-mode-options button { padding:6px 22px; border-radius:5px; font-size:12px; color:var(--color-text-secondary); cursor:pointer; }
+.focus-mode-options button[aria-pressed="true"] { background:var(--color-bg-card); color:var(--color-text-primary); box-shadow:0 1px 3px rgb(0 0 0 / 8%); }
+.focus-duration-options { display:flex; justify-content:center; align-items:center; gap:6px; flex-wrap:wrap; margin-top:12px; }
+.focus-duration-options label { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--color-text-secondary); }
+.focus-duration-options input { width:52px; }
+.focus-duration-options button[aria-pressed="true"] { color:var(--color-accent); background:var(--accent-soft,var(--accent-muted)); }
+.focus-next-task { display:grid; gap:8px; padding:14px; border-radius:8px; background:var(--workspace-secondary,var(--color-bg-secondary)); }
+.focus-next-task > span { color:var(--color-text-secondary); font-size:11px; }
+.focus-next-task > strong { font-weight:500; font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+.focus-next-task > button { width:100%; margin-top:4px; }
+.focus-completion-note { color:var(--color-text-secondary); font-size:12px; line-height:1.6; text-align:center; margin:12px 0; }
+.focus-overtime { display:flex; align-items:center; justify-content:space-between; gap:6px; padding:6px 8px; margin-bottom:12px; border-radius:6px; background:var(--workspace-secondary,var(--color-bg-secondary)); font-size:11px; }
+.focus-sync-error { color:var(--warning,var(--color-text-secondary)); font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+.focus-task-chooser .goals-muted { font-size:12px; margin:12px 0; }
+.focus-task-choices { max-height:240px; overflow:auto; }
+.focus-task-choices button { display:flex!important; width:100%; flex-direction:column; align-items:flex-start!important; gap:4px!important; text-align:left; padding:10px!important; border-bottom:1px solid var(--workspace-separator); }
 .focus-task-choices button span { overflow-wrap:anywhere; }
-.focus-task-choices small { color:var(--color-text-secondary);font-size:12px; }
+.focus-task-choices small { color:var(--color-text-secondary); font-size:11px; }
+.focus-mini-panel :is(button,input):focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
+.focus-sheet.app-dialog-shell { box-sizing:border-box; width:min(380px,calc(100vw - 32px)); max-width:380px; padding:0; border-radius:12px; max-height:calc(100dvh - 32px); }
+.focus-sheet .focus-mini-panel { position:static; width:100%; max-height:calc(100dvh - 34px); box-shadow:none; border:0; background:transparent; }
+@media(max-height:600px) { .focus-clock { padding:12px 0 16px; }.focus-number { font-size:48px; }.focus-mini-panel h3 { margin-top:12px; } }
+@media(max-width:919px) { .app-shell .learning-workspace-header:has(.focus-tray) .learning-header-scope-selector { display:block; max-width:clamp(120px,32vw,260px); }.app-shell .learning-workspace-header:has(.focus-tray) .learning-header-scope-selector > div > button { max-width:100%; } }
+@media(max-width:760px) { .app-shell .learning-workspace-header:has(.focus-tray) { flex-wrap:nowrap; gap:8px; }.app-shell .focus-docked { padding-inline:8px; }.focus-number { font-size:56px; } }
+@media(pointer:coarse) { .app-shell .focus-docked { min-height:44px; }.focus-mini-panel :is(button,input) { min-height:44px!important; } }
+@media(prefers-reduced-motion:no-preference) { .focus-mini-panel { animation:focus-open 150ms ease-out; }@keyframes focus-open { from { opacity:0;transform:translateY(-4px); }to { opacity:1;transform:translateY(0); } } }
+
 .study-task-panel { padding:16px 0 24px; }
 .study-task-heading { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px; }
 .study-task-heading h3,.focus-history h3 { margin:0;font-size:16px;font-weight:600; }
@@ -60,25 +99,16 @@
 .goal-contract-editor :is(input,textarea) { width:100%;margin-top:4px; }
 .goal-manual-fields label { display:block;font-size:13px;margin:16px 0 8px; }
 .goal-manual-fields input { width:100%; }
+
+.app-shell .study-task-panel :is(.app-primary-button,.app-secondary-button,.app-ghost-button),.app-shell .goal-detail-tabs button { min-height:32px;height:auto;padding:5px 10px;font-size:13px;line-height:20px;border-radius:5px; }
+.app-shell .study-task-panel .app-icon-button { min-width:32px;min-height:32px;width:32px;height:32px;padding:5px; }
+.app-shell .study-task-panel .app-field { min-height:36px;height:36px;font-size:13px;border-radius:5px; }
 @media(max-width:1100px) { .study-task-tools { flex-direction:column; }.study-task-row { gap:8px; }.goals-workspace .goal-detail { padding:24px; } }
-@media(max-width:760px) { .focus-tray { flex-basis:56px;padding:4px 16px; }.focus-docked { width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:2px 8px; }.focus-docked>svg { display:none; }.focus-docked>strong { grid-column:1;max-width:none; }.focus-docked-time { grid-column:1;grid-row:2; }.focus-docked button { grid-row:1 / span 2; }.focus-mini-panel { right:8px;bottom:calc(100% + 4px);width:calc(100% - 16px);max-height:min(420px,calc(100dvh - 120px)); }.goals-workspace .goal-detail { padding:20px 16px; }.study-task-tools { flex-direction:row; }.study-task-row { flex-wrap:wrap; }.study-task-copy { flex-basis:calc(100% - 44px); }.study-task-tools { margin-left:28px; }.study-task-heading { flex-wrap:wrap; } }
-@media(pointer:coarse) { .app-shell :is(.focus-tray,.study-task-panel) :is(button,input,select) { min-height:44px!important; }.focus-tray { flex-basis:64px; } }
-@media(max-height:600px) { .focus-mini-panel { max-height:calc(100dvh - 120px); }.focus-number { font-size:28px;margin:10px 0; } }
-@media(prefers-reduced-motion:no-preference) { .focus-mini-panel { animation:focus-open 150ms ease-out; }@keyframes focus-open { from { opacity:0;transform:translateY(4px); }to { opacity:1;transform:translateY(0); } } }
-.focus-sheet .focus-mini-panel { position:static;width:100%;max-height:calc(100dvh - 180px);padding:8px 0 0;box-shadow:none;border:0;background:transparent; }
-.focus-sheet.app-dialog-shell { max-width:400px; }
-.focus-mini-panel .focus-actions:has(> .app-primary-button),.focus-mini-panel .focus-actions:has(> button:nth-child(2):last-child) { position:relative; }
+@media(max-width:760px) { .goals-workspace .goal-detail { padding:20px 16px; }.study-task-tools { flex-direction:row; }.study-task-row { flex-wrap:wrap; }.study-task-copy { flex-basis:calc(100% - 44px); }.study-task-tools { margin-left:28px; }.study-task-heading { flex-wrap:wrap; } }
+@media(pointer:coarse) { .app-shell .study-task-panel :is(button,input,select) { min-height:44px!important; } }
 .goals-workspace .goal-list-item { min-height:64px;border:0;border-radius:0;box-shadow:none;padding:12px 16px; }
 .goals-workspace .goal-list-item.selected { background:var(--workspace-secondary,var(--color-bg-secondary));box-shadow:inset 2px 0 var(--color-accent); }
 .goals-workspace .goal-session > h2 { font-size:24px;line-height:1.4;font-weight:600; }
-
-.focus-mini-panel h3 { display:flex;align-items:baseline;gap:6px; }
-.focus-mini-panel h3 > span { display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-width:0; }
-.focus-mini-panel h3 > svg { display:inline-block;flex-shrink:0; }
-.focus-sheet.app-dialog-shell { width:min(400px,calc(100vw - 32px));padding:20px;border-radius:6px;max-height:calc(100dvh - 48px); }
-.focus-sheet :is(.app-primary-button,.app-secondary-button,.app-ghost-button) { min-height:32px;height:auto;padding:5px 10px;font-size:13px;line-height:20px;border-radius:5px; }
-.focus-sheet .app-icon-button { min-width:32px;min-height:32px;width:32px;height:32px;padding:5px; }
-.focus-sheet .app-field { min-height:36px;height:36px;font-size:13px;border-radius:5px; }
 @media(max-width:1100px) and (min-width:761px) { .goals-workspace .goals-body { grid-template-columns:200px minmax(0,1fr); } }
 @media(max-width:760px) {
   .goals-workspace .goals-body { display:block;position:relative; }

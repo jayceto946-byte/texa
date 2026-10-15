@@ -1,0 +1,9 @@
+{
+  "source": "/Users/jichengqian/.codex/worktrees/ad0b/texa",
+  "baseline": "/private/tmp/texa-remediation-baseline",
+  "manifest_files": 40,
+  "actual_changed": 40,
+  "unlisted_diff": [],
+  "listed_unchanged": [],
+  "result_hash_matches": true
+}

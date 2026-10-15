@@ -1,0 +1,3 @@
+PASS C3: revoked unadmitted approval is cancelled, stopped task has Continue
+PASS C3: explicit resume completes via real Goal API
+PASS C2: changed Goal receipt reconciles via real action API; no new run, UI shows executed

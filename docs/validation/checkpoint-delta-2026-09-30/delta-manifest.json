@@ -1,0 +1,56 @@
+[
+  {
+    "path": "backend/services/agent_runtime/chat_binding.py",
+    "before": "480981054656914c3b58ff6373288490fcaaf9cacfa68e40230382a15751ecfb",
+    "after": "056f270d81d121bf04c79b448e75ce9abdb675ef1658c2def2dc185b2448d8a6",
+    "tested_matches_current": true
+  },
+  {
+    "path": "backend/services/agent_runtime/locator.py",
+    "before": "96af048b343d7490d045064091e0c98065441433d877e33661d3d359b3707928",
+    "after": "6096d968fd72eff87931131f4c8e39734a2ed376734873a220e856e589b40185",
+    "tested_matches_current": true
+  },
+  {
+    "path": "backend/services/agent_runtime/store.py",
+    "before": "2e3dce51879696af28818028125c1104014003b2076c7aeb426567eca9b0d936",
+    "after": "144d0f12e49c165f2bf7e1038c4b822064b1bac6a393a2a81559802bcbe1cb53",
+    "tested_matches_current": true
+  },
+  {
+    "path": "backend/services/agent_runtime/write_service.py",
+    "before": "4acbc630fb952e8e45391af170bfc50c5ac28173e20afe976d4050449cd24c1f",
+    "after": "ebe031d2fc4b9baaaf5cd072e3431a132e55e05521237a6e448607df91a1d330",
+    "tested_matches_current": true
+  },
+  {
+    "path": "backend/services/goals/service.py",
+    "before": "4d8677ff0a79b279c44295c2d9d04d69f1aa00e6e0029f9028281b41b9e04688",
+    "after": "ddfa44fc39f5c6863f64daf4cefe6c7868a6072aaba2ab9d2bb02adc864d91a0",
+    "tested_matches_current": true
+  },
+  {
+    "path": "backend/services/goals/store.py",
+    "before": "22ef3b17ee0f7aa9d05279ed589d88fb60fcb000402338dee3efff6eaaa84054",
+    "after": "06f7e6300a898fed63aec7407afe0884359148da81482c89a7f1580337d49628",
+    "tested_matches_current": true
+  },
+  {
+    "path": "backend/services/learning_state.py",
+    "before": "d0d059eca67cdb0ba6ec50ce60f5a4542181703c98b7e82f4636546dba988ff6",
+    "after": "b515d4c8a6aa7bd04a46a4d2be83eadb2aad5a7fabb55f000b6321ed26778938",
+    "tested_matches_current": true
+  },
+  {
+    "path": "backend/services/learning_task.py",
+    "before": "bfb882c583db3283e828d3258b492ff836b7f9da5c9d6030cd542fecc80b3e9a",
+    "after": "9ddfc3e385b2c86a6dba69fcc668e48514920c6cd4c180dfb2b278ecf33072e3",
+    "tested_matches_current": true
+  },
+  {
+    "path": "tests/test_checkpoint_acceptance_edges.py",
+    "before": null,
+    "after": "48c7de32ed81a8f337cad79c79fa5e902bc5de59a69f4185af6509984ffd0fa1",
+    "tested_matches_current": true
+  }
+]

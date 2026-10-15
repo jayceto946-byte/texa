@@ -503,9 +503,11 @@
   .app-shell .composer-toolbar, .app-shell .composer-tools { flex-wrap: wrap; }
 }
 
-.reading-return-latest { align-self: center; margin: 4px 0; min-height: 36px; }
-@media (max-width: 760px) {
-  .reading-return-latest { min-height: 44px; }
+.app-shell .reading-return-latest { position:absolute; left:50%; top:-40px; z-index:10; display:flex; align-items:center; justify-content:center; width:30px; height:30px; min-height:30px; padding:0; border:1px solid var(--workspace-separator); border-radius:50%; background:var(--color-bg-card); color:var(--color-text-secondary); box-shadow:0 2px 8px rgb(0 0 0 / 8%); cursor:pointer; transform:translateX(-50%); }
+.app-shell .reading-return-latest:hover { color:var(--color-accent); border-color:var(--color-accent); }
+.app-shell .reading-return-latest:focus-visible { outline:2px solid var(--color-accent); outline-offset:3px; }
+@media (pointer:coarse) {
+  .app-shell .reading-return-latest { width:40px; height:40px; min-height:40px; top:-50px; }
 }
 
 /* Photo questions are reading content, rather than document titles. */

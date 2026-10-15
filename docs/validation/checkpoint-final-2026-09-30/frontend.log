@@ -1,0 +1,9 @@
+
+ RUN  v4.1.9 /private/tmp/texa-checkpoint-acceptance/frontend
+
+
+ Test Files  26 passed (26)
+      Tests  126 passed (126)
+   Start at  19:35:36
+   Duration  919ms (transform 683ms, setup 0ms, import 1.19s, tests 214ms, environment 2ms)
+
