@@ -9,6 +9,6 @@ export default function LearningEmptyWorkspace({
   scopeSelector: ReactNode;
 }) {
   return (
-    <EmptyState variant="prompt" title="从一个问题开始" description={isLoading ? '正在准备当前学习范围' : '写下疑问、输入公式，或带来一道题。'} action={scopeSelector} className="learning-empty-workspace" />
+    <EmptyState variant="prompt" title="从一个问题开始" description={isLoading ? '正在准备当前学习范围' : undefined} action={scopeSelector} className="learning-empty-workspace" />
   );
 }

@@ -1,0 +1,116 @@
+[
+  {
+    "name": "chat",
+    "path": "/",
+    "source": "frontend/src/pages/ChatPage.tsx",
+    "states": "学习画布、空态、来源、范围、输入工具、会话菜单、任务门槛"
+  },
+  {
+    "name": "goals",
+    "path": "/goals",
+    "source": "frontend/src/pages/GoalsPage.tsx",
+    "states": "列表/详情、新建、空/加载/错误"
+  },
+  {
+    "name": "notes",
+    "path": "/notes",
+    "source": "frontend/src/pages/NotesPage.tsx",
+    "states": "列表/筛选/草稿/归档、空/加载/错误与重试"
+  },
+  {
+    "name": "note",
+    "path": "/notes/:noteId",
+    "source": "frontend/src/pages/NoteDetailPage.tsx",
+    "states": "文章、元信息、历史折叠"
+  },
+  {
+    "name": "draft",
+    "path": "/notes/drafts/:draftId",
+    "source": "frontend/src/pages/NoteDraftPage.tsx + features/notes/DraftWorkspace.tsx",
+    "states": "编辑与阅读预览"
+  },
+  {
+    "name": "mistakes",
+    "path": "/mistakes",
+    "source": "frontend/src/pages/MistakesPage.tsx",
+    "states": "列表/筛选/空/加载/错误"
+  },
+  {
+    "name": "diagnosis",
+    "path": "/mistakes/diagnosis",
+    "source": "frontend/src/pages/MistakesPage.tsx",
+    "states": "统计口径与分组"
+  },
+  {
+    "name": "intake",
+    "path": "/mistakes/intake",
+    "source": "frontend/src/pages/MistakeIntakePage.tsx",
+    "states": "方式选择、草稿、空/加载/错误"
+  },
+  {
+    "name": "intake-draft",
+    "path": "/mistakes/intake/:draftId",
+    "source": "frontend/src/pages/MistakeIntakePage.tsx",
+    "states": "校对、编辑、草稿状态"
+  },
+  {
+    "name": "mistake",
+    "path": "/mistakes/:id",
+    "source": "frontend/src/pages/MistakesPage.tsx",
+    "states": "档案、答案/归因折叠"
+  },
+  {
+    "name": "exercises",
+    "path": "/exercises",
+    "source": "frontend/src/pages/ExercisesPage.tsx",
+    "states": "练习设置、导入、手动录入弹窗"
+  },
+  {
+    "name": "learning",
+    "path": "/learning",
+    "source": "frontend/src/pages/LearningPage.tsx",
+    "states": "复习队列、详情、学习记录"
+  },
+  {
+    "name": "review-start",
+    "path": "/learning/review",
+    "source": "frontend/src/pages/ReviewSessionPage.tsx",
+    "states": "开始/无到期项/加载/错误/重试"
+  },
+  {
+    "name": "review",
+    "path": "/learning/review/:sessionId",
+    "source": "frontend/src/pages/ReviewSessionPage.tsx",
+    "states": "题目与作答区"
+  },
+  {
+    "name": "weekly",
+    "path": "/weekly",
+    "source": "frontend/src/pages/WeeklyReportPage.tsx",
+    "states": "报告/无记录/加载/错误"
+  },
+  {
+    "name": "books",
+    "path": "/books",
+    "source": "frontend/src/components/SystemHealth.tsx + components/settings/LibraryWorkbench.tsx",
+    "states": "列表/详情/分类/更多菜单/图片审核"
+  },
+  {
+    "name": "book-import",
+    "path": "/books/import",
+    "source": "frontend/src/pages/BooksPage.tsx",
+    "states": "解析参数、能力不可用、长文件名/滚动"
+  },
+  {
+    "name": "highlights",
+    "path": "/highlights",
+    "source": "frontend/src/pages/HighlightPage.tsx",
+    "states": "目录、文章与打印入口"
+  },
+  {
+    "name": "settings",
+    "path": "/settings → 设置弹窗",
+    "source": "frontend/src/components/SystemHealth.tsx",
+    "states": "五个分区、窄屏返回与未保存字段保留"
+  }
+]

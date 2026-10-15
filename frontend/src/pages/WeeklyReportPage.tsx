@@ -2,7 +2,7 @@ import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, BookOpen, ClipboardCheck, HelpCircle, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { get } from '../api/client';
 import { ActionableIssue } from '../components/ui/AsyncState';
 import { useChatContext } from '../contexts/ChatContext';
@@ -21,7 +21,7 @@ type WeeklyReport = {
 };
 
 const Metric: React.FC<{ label: string; value: number; compact?: boolean }> = ({ label, value, compact = false }) => (
-  <div className={`rounded-md border border-border bg-bg-card ${compact ? 'p-3' : 'p-4'}`}>
+  <div className={compact ? 'py-2' : 'py-3'}>
     <div className={`${compact ? 'text-xl' : 'text-2xl'} font-semibold text-text-primary`}>{value}</div>
     <div className="mt-1 text-xs text-text-secondary">{label}</div>
   </div>
@@ -62,9 +62,6 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
     <div className={compact ? 'space-y-4' : 'management-workspace flex h-full min-w-0 flex-col'}>
       <header className={compact ? 'flex items-center justify-between gap-3' : 'app-page-header window-drag-region'}>
         <div className="flex items-center gap-3">
-          {compact && <div className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-bg-card">
-            <BarChart3 className="h-5 w-5 text-accent" />
-          </div>}
           <div>
             <h2 className={compact ? 'text-sm font-semibold text-text-primary' : 'app-page-title'}>{title}</h2>
           </div>
@@ -89,24 +86,24 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
 
       {report && (
         <>
-          <div className="grid gap-4 xl:grid-cols-3">
-            <section className="rounded-md border border-border bg-bg-card p-4">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold"><BookOpen className="h-4 w-4 text-accent" /> {days <= 1 ? '今天学了什么' : '本周学了什么'}</h3>
+          <div className="grid gap-5 xl:grid-cols-3">
+            <section>
+              <h3 className="mb-2 text-sm font-semibold">{days <= 1 ? '今日所学' : '本周所学'}</h3>
               <p className="text-sm leading-6 text-text-primary">{learnedText}</p>
             </section>
 
-            <section className="rounded-md border border-border bg-bg-card p-4">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold"><ClipboardCheck className="h-4 w-4 text-accent" /> 哪些内容仍然薄弱</h3>
+            <section>
+              <h3 className="mb-2 text-sm font-semibold">薄弱内容</h3>
               <p className="text-sm leading-6 text-text-primary">{weakText}</p>
             </section>
 
-            <section className="rounded-md border border-border bg-bg-card p-4">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold"><HelpCircle className="h-4 w-4 text-accent" /> 下一步建议复习什么</h3>
+            <section>
+              <h3 className="mb-2 text-sm font-semibold">复习建议</h3>
               <p className="learning-note text-sm leading-6 text-text-primary">{nextStep}</p>
             </section>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-y border-border py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
             <button type="button" onClick={() => setShowStats((value) => !value)} className="app-secondary-button">
               {showStats ? '收起学习统计' : '查看学习统计'}
             </button>
@@ -122,11 +119,11 @@ export const LearningReportPanel: React.FC<{ days?: number; compact?: boolean }>
             <Metric label="概念接触" value={summary.concept_exposures || 0} compact={compact} />
           </div>}
 
-          <section className="rounded-md border border-border bg-bg-card p-4">
+          <section>
             <h3 className="mb-3 text-sm font-semibold">最近提问</h3>
             <div className="space-y-2">
               {(report?.recent_questions || []).length ? report!.recent_questions.map((item, idx) => (
-                <div key={`${item.time}-${idx}`} className="rounded-md bg-bg-primary px-3 py-2 text-sm">
+                <div key={`${item.time}-${idx}`} className="border-b border-border py-3 text-sm last:border-b-0">
                   <div className="mb-1 text-xs text-text-secondary">{item.time}</div>
                   <div className="[&_.markdown-body]:text-sm [&_.markdown-body_p]:m-0 [&_.katex-display]:overflow-x-auto"><SimpleMarkdown content={item.question}/></div>
                 </div>

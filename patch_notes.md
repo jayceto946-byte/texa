@@ -1,3 +1,25 @@
+## 2026-10-15 — macOS 最新功能开发版启动入口
+
+- 直接运行主目录 Electron 会读取主分支及其 frontend/dist；最新目标/任务/专注代码实际位于 codex/goals-tasks-focus 工作区（f39a592，包含该工作区未提交的已跟踪文件修改）。旧主分支后端只接受 goals schema v1，现有用户数据库为 v2，导致目标接口失败。
+- 新增 scripts/start-latest-desktop-macos.sh：使用现有 Node/Python/Electron 依赖，把功能工作区复制到忽略的 artifacts/dev-runtime 后编译并启动，沿用原用户数据与配置，不改写任一源工作区。不自动迁移数据库；已运行时要求先正常退出，防止单实例锁继续展示旧构建。
+- 已实际启动新版 Electron 并打开目标与任务；现有目标可读取。用户明确批准后，正常退出 Electron 并确认后端停写，正式 goals.db 已从 v2 升级至 v3；重新构建并启动完整功能版。
+- 副本演练及正式 v2→v3 升级均验证：1 个目标、6 条修订、1 条运行关联逐表内容保持一致；0 个旧专注任务；integrity_check=ok、无外键错误。正式升级前一致性备份：`/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/data/progress/goals-before-focus-v3-1792046098739384000.db`。
+- 验证：TypeScript、Vite 生产构建通过；专注后端 18 项测试、前端 11 项测试通过。升级后实际运行 /api/goals、/api/focus、/api/focus/history 均返回 200 / success=true。开发版目前运行功能工作区快照；主分支 Anti-AI-Slop 改动未与该功能分支合并。
+
+# 2026-10-15 - Anti-AI-Slop 全局界面审计与整改
+
+- 覆盖 19 个页面/设置入口，按源码及实际截图处理 23 组问题（删除 9、简化 10、局部重设计 4）。清理重复说明/标题、宣传口号和装饰卡片；保留风险、模型/隐私、来源、OCR 校对、恢复与验证状态。
+- 周报/章节重点移除嵌套装饰，归类建议改为明确学科与教材范围；待确认写入按真实五类合同显示中文字段，完整载荷及未知合同回退保留，0/false/空答案/清空备注不丢失。未改业务执行、数据、依赖或全局 Token。
+- 第二轮收紧主题行、分开录入入口与继续草稿，修正公式面板在空会话中越出视口的位置。Astra 已判断目标状态、完成条件、首次配置、归类与确认载荷的取舍；未实施另案 Goals/Tasks/Focus 设计。
+- TypeScript/Vite、前端 207 项、桌面 15 项及修改文件 ESLint 通过。最终隔离夹具 214 项自动检查通过，覆盖四尺寸、五主题、真实 macOS Electron；已实际阅图，Electron 复习开始页及错题选择摘要仅截到加载态，不计完成态视觉通过。全量 lint 仍有未改动 ChatPage.tsx:242 的既有 react-hooks/refs 错误。
+- 交付 ANTI-AI-SLOP-AUDIT.md、逐页/问题清单及截图；手机实机、Windows、真实模型/OCR/更新恢复未验。另记录概念复习 0 分被执行器默认值替换的既有业务缺陷，本次没有修改该逻辑。
+
+# 2026-10-14 - Goals / Tasks / Focus 产品设计审计与实施合同
+
+- 交付 `Texa-Goals-Tasks-Focus-Redesign.md`、A–E独立设计样稿、源码证据索引及临时SQLite计时探针。推荐目标规划工作区、应用内停靠专注条和按需Mini Panel；任务完成与计时结束独立，倒计时到点可继续记录，多时段投入单独保存。
+- 识别本聊天master f999e72与实际运行mobile-s3 04e8d12的版本差异；复用实际已有FocusProvider、CAS、幂等回执，指出duration截断、缺时段历史、局部控制入口及休眠/重启计时缺口。提出增量数据方案与CP0–CP5验收合同，未执行架构修改、schema迁移或生产代码实现。
+- 查看真实macOS Electron目标页与批准的学习/教材基准图；venv310 Python3.10.21下既有Focus相关8项测试通过，隔离探针确认到期后不能再次开始。样稿脚本语法、静态ID、资源和文档链接检查通过；本地预览监听被sandbox拒绝，浏览器file协议受限，样稿未完成渲染/交互/视觉签核。Windows、手机与真实休眠未测试；没有付费模型调用或真实学习记录写入。
+
 # 2026-10-13 - 原生数学工具阶段公开文字防丢失
 
 - 工具边界移除空正文 replace；保留普通公开 content，阶段推导从当前 human 之后的原生检查点恢复，过滤 thinking 且排除旧题、ToolMessage 与供应商私有字段。最终权威正文区分阶段记录与最后解答，流式/非流式/恢复共享此逻辑。

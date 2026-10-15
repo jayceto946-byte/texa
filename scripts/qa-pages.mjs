@@ -77,14 +77,25 @@ let browser;
 async function capture(page,name){await page.screenshot({path:resolve(out,`${name}.png`)});return await page.evaluate(()=>({status:document.body.innerText.includes('页面文件未能加载')?'FAIL':'PASS',title:document.querySelector('.persistent-route-panel:not([hidden]) h1')?.textContent,bodyWidth:document.body.scrollWidth,viewport:innerWidth,alerts:[...document.querySelectorAll('[role=alert]')].filter(e=>e.getBoundingClientRect().height).map(e=>e.textContent)}));}
 try {
  await new Promise(r=>server.listen(18040,'127.0.0.1',r));
+ if (process.env.TEXA_QA_ELECTRON) {
+  const { auditNativeShell } = await import('./qa-anti-ai-slop-electron.mjs');
+  await auditNativeShell({ out, routes, results });
+ }
  browser=await chromium.launch({executablePath:process.env.TEXA_QA_BROWSER || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
- for(const [width,height] of [[1280,820],[1024,768],[760,820],[390,844]]) {
+ for(const [width,height] of (process.env.TEXA_QA_PANELS_ONLY ? [] : [[1280,820],[1024,768],[760,820],[390,844]])) {
   const context=await browser.newContext({viewport:{width,height}});await context.addInitScript(()=>localStorage.setItem('texa:setup-complete:v3','1'));const page=await context.newPage();page.on('console',message=>{if(message.type()==='error')results.errors.push({console:message.text()});});
   page.on('pageerror',e=>results.errors.push({width,error:e.message}));
   await page.addInitScript(()=>{localStorage.setItem('kaoyan_subject','数学/高数');localStorage.setItem('texa_appearance_theme','mineral');});
   for(const [name,path] of routes){scenario='populated';await page.goto(`http://127.0.0.1:18040${path}`);await page.waitForLoadState('networkidle');await page.waitForTimeout(200);await page.evaluate(()=>document.fonts.ready);results.checks.push({name,path,width,state:scenario,...await capture(page,`${width}-${name}`)});}
   await context.close();
  }
+ if (process.env.TEXA_QA_PANELS) {
+  const { auditPanels } = await import('./qa-anti-ai-slop-panels.mjs');
+  await auditPanels({ browser, capture, results, dist });
+ }
+ if (process.env.TEXA_QA_PANELS_ONLY) {
+  // Panel runner has its own viewport and interaction assertions.
+ } else {
  // Representative route states; app bootstrap remains available to reach each feature.
  for(const state of ['empty','loading','error']){
   const context=await browser.newContext({viewport:{width:390,height:844}});await context.addInitScript(()=>localStorage.setItem('texa:setup-complete:v3','1'));const page=await context.newPage();page.on('console',message=>{if(message.type()==='error')results.errors.push({console:message.text()});});
@@ -140,6 +151,7 @@ try {
  results.interactions.push('390 settings navigation→detail focus→unsaved fields preserved→keyboard');
  await page.getByRole('button',{name:'关闭设置',exact:true}).click();await page.getByRole('dialog').waitFor({state:'hidden'});
  await context.close();
+ }
  if(results.checks.some(x=>x.status==='FAIL'||x.bodyWidth>x.viewport) || results.errors.some(x=>x.error))throw Error('page render/overflow checks failed');
 } catch(e){results.errors.push({harness:String(e)});process.exitCode=1;}
 finally{results.unhandled=[...unhandled];results.requests=requests;writeFileSync(resolve(out,'results.json'),JSON.stringify(results,null,2));await browser?.close();await new Promise(r=>server.close(r));upstream.kill();}

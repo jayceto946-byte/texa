@@ -474,7 +474,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
         {tab === 'about' && <MobileRemoteS0 />}
         {tab === 'diagnostics' && (
           <section className="settings-page">
-            <SettingsPageHeader title="高级与诊断" description="检查本地服务与数据组件的运行状态。" />
+            <SettingsPageHeader title="高级与诊断" />
             <NetworkDiagnostics active={open && tab === 'diagnostics'} />
             {loading && !health && <PageState kind="loading" title="正在检查系统状态" />}
             <section className="settings-section" aria-labelledby="health-status-heading">
@@ -508,7 +508,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
 
         {tab === 'about' && (
           <section className="settings-page">
-            <SettingsPageHeader title="关于与更新" description="查看应用版本与更新状态。" />
+            <SettingsPageHeader title="关于与更新" />
             <section className="settings-section" aria-labelledby="version-current-heading">
               <h4 id="version-current-heading" className="settings-section-title">当前版本</h4>
               <dl className="settings-definition-list">
@@ -531,7 +531,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
         )}
 
         {tab === 'data' && <section className="settings-page">
-          <SettingsPageHeader title="数据与教材" description="备份学习数据，配置教材解析。" />
+          <SettingsPageHeader title="数据与教材" />
           <DataSafety />
           {!settingsLoaded && <PageState kind={pageMessage ? 'error' : 'loading'} title={pageMessage || '正在读取解析配置'} />}
           {!settingsLoaded && pageMessage && <button type="button" className="app-secondary-button" onClick={() => void loadSettings().then(() => showFeedback('')).catch(() => showFeedback('设置加载失败'))}>重试</button>}
@@ -546,11 +546,11 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
         </section>}
 
 
-        {tab === 'preferences' && <section className="settings-page"><SettingsPageHeader title="偏好" description="调整当前设备的阅读外观。" /><AppearanceSettings /></section>}
+        {tab === 'preferences' && <section className="settings-page"><SettingsPageHeader title="偏好" /><AppearanceSettings /></section>}
 
         {tab === 'models' && (
           <section className="settings-page">
-            <SettingsPageHeader title="模型连接" description="管理回答与识图模型。凭证保存在本机，连接测试会访问所选服务。" />
+            <SettingsPageHeader title="模型连接" description="凭证保存在本机，连接测试会访问所选服务。" />
             {modelDraft ? <ModelSettingsManager value={modelDraft} onChange={setModelDraft} onActivateProfile={activateModelProfile} onDeleteProfile={deleteModelProfile} onTestConnection={testModelConnection} /> : <PageState kind={pageMessage ? 'error' : 'loading'} title={pageMessage || '正在读取模型配置'} />}
             {!modelDraft && pageMessage && <button type="button" className="app-secondary-button" onClick={() => void loadSettings().then(() => showFeedback('')).catch(() => showFeedback('设置加载失败'))}>重试</button>}
             <div className="settings-page-actions">{modelDirty && <><span className="settings-secondary" role="status">{nativeUnsupported ? '当前单模型不支持识图，请更换模型' : '未保存更改'}</span><button type="button" onClick={() => savedModel && setModelDraft(savedModel)} className="app-secondary-button">放弃更改</button><button onClick={saveModels} disabled={savingModel || nativeUnsupported} className="app-primary-button"><Save className="h-4 w-4" />{savingModel ? "保存中…" : "保存并应用"}</button></>}</div>
@@ -578,8 +578,8 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
   <label className="settings-form-row"><span className="settings-label">{label}</span><span className="block min-w-0">{children}</span></label>
 );
 
-const SettingsPageHeader = ({ title, description }: { title: string; description: string }) => (
-  <header className="settings-page-header"><h3>{title}</h3><p>{description}</p></header>
+const SettingsPageHeader = ({ title, description }: { title: string; description?: string }) => (
+  <header className="settings-page-header"><h3>{title}</h3>{description && <p>{description}</p>}</header>
 );
 
 export default SettingsPage;

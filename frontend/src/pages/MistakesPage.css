@@ -1,6 +1,5 @@
 .mistakes-collection { max-width: 1120px; margin: 0 auto; }
-.mistakes-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
-.mistakes-heading p { margin-top: 8px; }
+.mistakes-heading { display: flex; align-items: end; justify-content: flex-end; gap: 20px; margin-bottom: 16px; }
 .mistakes-heading-actions, .mistakes-diagnosis-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .mistakes-filters { display: flex; flex-wrap: wrap; gap: 20px; border-bottom: 1px solid var(--workspace-separator); }
 .mistakes-filters button { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; border-bottom: 2px solid transparent; color: var(--color-text-secondary); font-size: var(--workspace-interface-size); }

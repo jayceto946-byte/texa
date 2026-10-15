@@ -3,6 +3,7 @@
 .mistakes-intake-body h2 { margin-bottom: 12px; font-size: var(--workspace-section-title-size); font-weight: 600; }
 .mistakes-intake-body p { color: var(--color-text-secondary); font-size: var(--workspace-interface-size); line-height: 1.6; }
 .mistakes-intake-choices, .mistakes-intake-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.mistakes-intake-choices ~ section { margin-top: 28px; }
 .mistakes-intake-draft-list { margin-top: 12px; border-top: 1px solid var(--workspace-separator); }
 .mistakes-intake-draft-list li { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--workspace-separator); font-size: var(--workspace-interface-size); }
 .mistakes-intake-draft-list a { min-width: 0; overflow-wrap: anywhere; color: var(--color-text-primary); }

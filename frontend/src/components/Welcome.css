@@ -27,14 +27,12 @@ body:has(.welcome-screen) .desktop-titlebar-marker:not(.is-macos) { z-index: 100
 .welcome-content h1 { margin: 12px 0 0; font-size: 30px; line-height: 1.3; letter-spacing: -.025em; font-weight: 600; }
 .welcome-content h1:focus { outline: none; }
 .welcome-lead { margin: 12px 0 24px; color: var(--color-text-secondary); font-size: 14px; line-height: 1.7; font-weight: 400; }
-.welcome-features { display: grid; gap: 10px; margin: 0 0 28px; padding-left: 16px; border-left: 2px solid var(--color-border); color: var(--color-text-secondary); font-size: 13px; line-height: 1.5; }
 .welcome-content .welcome-primary { min-height: 40px; padding: 8px 20px; border-radius: var(--workspace-control-radius, var(--radius-medium)); }
 .welcome-note { margin-top: 16px; color: var(--color-text-tertiary); font-size: 12px; line-height: 1.6; }
 .welcome-actions { display: flex; align-items: center; gap: 12px; margin-top: 28px; }
 .welcome-actions .app-ghost-button { min-height: 40px; }
 .welcome-final-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 28px; }
 .welcome-ready { width: 20px; height: 20px; display: grid; place-items: center; color: var(--success); border: 1px solid currentColor; border-radius: 50%; }
-.welcome-footer { padding: 12px 24px 16px; text-align: center; color: var(--color-text-tertiary); font-size: 11px; }
 .welcome-error { margin-top: 20px; padding: 12px 16px; border: 1px solid var(--color-border); border-left: 3px solid var(--danger); font-size: 13px; }
 .welcome-error button { margin-top: 12px; }
 .welcome-content.is-exit.is-forward { animation: welcome-exit-forward var(--onboarding-exit-duration) var(--onboarding-ease) both; pointer-events: none; }

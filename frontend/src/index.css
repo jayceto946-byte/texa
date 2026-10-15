@@ -1370,7 +1370,7 @@ textarea.app-field { resize: vertical; line-height: var(--leading-reading); }
 .appearance-theme-option {
   display: grid;
   width: 100%;
-  min-height: 64px;
+  min-height: 48px;
   grid-template-columns: minmax(0, 1fr) auto 24px;
   align-items: center;
   gap: 12px;
@@ -1552,15 +1552,6 @@ textarea.app-field { resize: vertical; line-height: var(--leading-reading); }
   line-height: var(--leading-normal);
 }
 
-.appearance-theme-description {
-  overflow: hidden;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  line-height: 1.5;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .appearance-theme-swatches {
   display: flex;
   gap: 4px;
@@ -1589,24 +1580,6 @@ textarea.app-field { resize: vertical; line-height: var(--leading-reading); }
   width: 16px;
   height: 16px;
   stroke-width: 2;
-}
-
-@media (max-width: 520px) {
-  .appearance-theme-option {
-    grid-template-columns: minmax(0, 1fr) 24px;
-    gap: 10px;
-  }
-
-  .appearance-theme-swatches {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: start;
-  }
-
-  .appearance-theme-state {
-    grid-column: 2;
-    grid-row: 1;
-  }
 }
 
 .learning-metric {

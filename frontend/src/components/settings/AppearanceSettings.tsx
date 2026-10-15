@@ -14,7 +14,7 @@ export default function AppearanceSettings() {
     <section aria-labelledby="appearance-theme-heading" className="settings-section">
       <div>
         <h4 id="appearance-theme-heading" className="settings-section-title">主题色</h4>
-        <p className="mt-1 settings-secondary">选择后立即应用，并保存在当前设备。</p>
+        <p className="mt-1 settings-secondary">仅应用于当前设备。</p>
       </div>
       <div className="appearance-theme-list" role="radiogroup" aria-label="主题色">
         {TEXA_THEMES.map((theme) => {
@@ -36,7 +36,6 @@ export default function AppearanceSettings() {
             >
               <span className="appearance-theme-copy">
                 <span className="appearance-theme-name">{theme.label}</span>
-                <span className="appearance-theme-description">{theme.description}</span>
               </span>
               <span className="appearance-theme-swatches" aria-hidden="true">
                 {swatches.map((color, index) => <span key={`${theme.id}-${index}`} style={{ backgroundColor: color }} />)}

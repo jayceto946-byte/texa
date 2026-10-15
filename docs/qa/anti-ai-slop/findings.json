@@ -1,0 +1,232 @@
+[
+  {
+    "id": "D01",
+    "type": "DELETE",
+    "file": "frontend/src/components/SystemHealth.tsx",
+    "problem": "4 个设置页副标题重复页名",
+    "user_cost": "增加每次进入设置的阅读负担",
+    "action": "删除同义副标题；模型页保留凭证及测试外连说明",
+    "confidence": "高",
+    "evidence": "before-panels/1280-panel-settings-偏好.png"
+  },
+  {
+    "id": "D02",
+    "type": "DELETE",
+    "file": "frontend/src/components/settings/AppearanceSettings.tsx",
+    "problem": "逐个主题解释可见颜色",
+    "user_cost": "小字淹没名称与色样",
+    "action": "删除主题描述，保留名称、色样、选中勾；行高随内容收紧",
+    "confidence": "高",
+    "evidence": "before-panels/1280-panel-settings-偏好.png"
+  },
+  {
+    "id": "D03",
+    "type": "DELETE",
+    "file": "frontend/src/components/chat/LearningEmptyWorkspace.tsx",
+    "problem": "空会话重复输入框能力",
+    "user_cost": "先读说明才能开始的错觉",
+    "action": "删除日常输入说明，保留范围加载状态",
+    "confidence": "高",
+    "evidence": "before-panels/390-panel-empty-chat.png"
+  },
+  {
+    "id": "D04",
+    "type": "DELETE",
+    "file": "frontend/src/pages/MistakesPage.tsx",
+    "problem": "错题诊断与错误诊断双标题",
+    "user_cost": "重复页面定位",
+    "action": "删除内层同义标题，统计口径不动",
+    "confidence": "高",
+    "evidence": "before/1280-diagnosis.png"
+  },
+  {
+    "id": "D05",
+    "type": "DELETE",
+    "file": "frontend/src/pages/NotesPage.tsx",
+    "problem": "归档空态解释归档项在这里",
+    "user_cost": "没有新信息",
+    "action": "删除该说明，保留空态标题",
+    "confidence": "高",
+    "evidence": "source"
+  },
+  {
+    "id": "D06",
+    "type": "DELETE",
+    "file": "frontend/src/pages/NotesPage.tsx; frontend/src/pages/MistakesPage.tsx",
+    "problem": "筛选空态重复建议调整筛选",
+    "user_cost": "与清除筛选按钮重复",
+    "action": "删除说明，保留清除筛选操作",
+    "confidence": "高",
+    "evidence": "source"
+  },
+  {
+    "id": "D07",
+    "type": "DELETE",
+    "file": "frontend/src/pages/ExercisesPage.tsx",
+    "problem": "参考答案用于核对本次作答",
+    "user_cost": "标题已表达用途",
+    "action": "删除参考答案副说明",
+    "confidence": "高",
+    "evidence": "source"
+  },
+  {
+    "id": "D08",
+    "type": "DELETE",
+    "file": "frontend/src/pages/MistakesPage.tsx",
+    "problem": "日常列表顶部重复讲解错题本用途",
+    "user_cost": "挤占筛选与档案空间",
+    "action": "删除说明，原诊断/补录入口靠右成组，缩小底部间距",
+    "confidence": "高",
+    "evidence": "before/390-mistakes.png"
+  },
+  {
+    "id": "D09",
+    "type": "DELETE",
+    "file": "desktop/loading.html",
+    "problem": "启动时按时段轮换饮食/鼓励/学习建议",
+    "user_cost": "与当前启动状态无关，易被误读为学习建议",
+    "action": "删除随机问候表，使用正在准备 Texa；保留错误和恢复动作",
+    "confidence": "高",
+    "evidence": "before-panels/1280-panel-desktop-startup.png"
+  },
+  {
+    "id": "S01",
+    "type": "SIMPLIFY",
+    "file": "frontend/src/components/settings/AppearanceSettings.tsx",
+    "problem": "即时生效说明过长",
+    "user_cost": "视觉反馈已说明应用结果",
+    "action": "只保留配置作用域：仅应用于当前设备",
+    "confidence": "高",
+    "evidence": "before-panels/390-panel-settings-偏好.png"
+  },
+  {
+    "id": "S02",
+    "type": "SIMPLIFY",
+    "file": "frontend/src/components/settings/ModelSettingsManager.tsx",
+    "problem": "当前方案与方案管理冗长标题",
+    "user_cost": "分类标题与字段重复",
+    "action": "改为模型方案；立即切换说明保留",
+    "confidence": "高",
+    "evidence": "before-panels/1280-panel-settings-模型连接.png"
+  },
+  {
+    "id": "S03",
+    "type": "SIMPLIFY",
+    "file": "frontend/src/pages/MistakeIntakePage.tsx",
+    "problem": "录入页双标题与重复操作说明",
+    "user_cost": "标题和按钮之间多一层介绍",
+    "action": "单一页标题；说明草稿/校对关系；草稿分区保留间距；子编辑标题降为 h2",
+    "confidence": "高",
+    "evidence": "before/1280-intake.png"
+  },
+  {
+    "id": "S04",
+    "type": "SIMPLIFY",
+    "file": "frontend/src/features/notes/NotePreflight.tsx",
+    "problem": "笔记整理说明罗列阅读编辑保存",
+    "user_cost": "阅读顺序不体现正式保存边界",
+    "action": "生成草稿后可编辑，保存后进入笔记库",
+    "confidence": "高",
+    "evidence": "before-panels/390-panel-note-preflight.png"
+  },
+  {
+    "id": "S05",
+    "type": "SIMPLIFY",
+    "file": "frontend/src/pages/ExercisesPage.tsx",
+    "problem": "导入页重复复述左侧范围/来源表单",
+    "user_cost": "桌面双栏复读，手机在来源表单后堆说明",
+    "action": "压为待校对候选题和确认后入库边界",
+    "confidence": "高",
+    "evidence": "before-panels/1280-panel-exercise-import.png"
+  },
+  {
+    "id": "S06",
+    "type": "SIMPLIFY",
+    "file": "frontend/src/pages/ExercisesPage.tsx",
+    "problem": "按钮描述弹窗实现方式",
+    "user_cost": "控件标签过长",
+    "action": "改为查看教材 PDF，入口与事件不动",
+    "confidence": "高",
+    "evidence": "source"
+  },
+  {
+    "id": "S07",
+    "type": "SIMPLIFY",
+    "file": "frontend/src/pages/GoalsPage.tsx",
+    "problem": "未执行说明结果会在这里出现",
+    "user_cost": "无额外操作信息",
+    "action": "只显示还未执行",
+    "confidence": "高",
+    "evidence": "before/1280-goals.png"
+  },
+  {
+    "id": "S08",
+    "type": "SIMPLIFY",
+    "file": "frontend/src/pages/GoalsPage.tsx; frontend/src/layouts/ApprovedWorkspace.css",
+    "problem": "完成条件前空圆圈像未勾选控件",
+    "user_cost": "误示不存在的逐条件完成状态",
+    "action": "使用语义 ul/li 小实心项目符号",
+    "confidence": "高",
+    "evidence": "before/390-goals.png"
+  },
+  {
+    "id": "S09",
+    "type": "SIMPLIFY",
+    "file": "frontend/src/components/FirstRunGuide.tsx; frontend/src/components/Welcome.css",
+    "problem": "欢迎页用途段/三条特性/页脚口号/模型准备说明重复",
+    "user_cost": "首次配置前读多段相近宣传",
+    "action": "保留具体用途与配置要求的一段文案，保留三步、配置凭证、完成反馈",
+    "confidence": "高",
+    "evidence": "before-panels/1280-panel-onboarding-welcome.png"
+  },
+  {
+    "id": "S10",
+    "type": "SIMPLIFY",
+    "file": "frontend/src/components/chat/SubjectRouteSuggestionCard.tsx",
+    "problem": "归类卡强调色/图标/未校准百分比，未展示目标教材",
+    "user_cost": "把分数误作准确率，无法看清实际目标范围",
+    "action": "普通边界与建议标题，删除百分比/装饰，显示目标教材并保留理由和三种选择",
+    "confidence": "高",
+    "evidence": "before-panels/1280-panel-task-routing.png"
+  },
+  {
+    "id": "R01",
+    "type": "REDESIGN",
+    "file": "frontend/src/pages/WeeklyReportPage.tsx",
+    "problem": "结论/统计/最近提问多层卡片及图标",
+    "user_cost": "边界比实际结论更显眼",
+    "action": "保持原分组和响应式栅格，移除装饰卡片/图标，用标题间距和必要列表分隔",
+    "confidence": "高",
+    "evidence": "before/1280-weekly.png"
+  },
+  {
+    "id": "R02",
+    "type": "REDESIGN",
+    "file": "frontend/src/pages/HighlightPage.tsx",
+    "problem": "目录与文章各套边框，逐段再加分隔线",
+    "user_cost": "阅读文章像操作面板",
+    "action": "保留目录和文章分栏，撤销装饰边框/阴影及逐段横线",
+    "confidence": "高",
+    "evidence": "before/760-highlights.png"
+  },
+  {
+    "id": "R03",
+    "type": "REDESIGN",
+    "file": "frontend/src/components/chat/LearningTaskActions.tsx; frontend/src/features/chat/pendingActionPresentation.ts",
+    "problem": "写入确认只显示英文 JSON",
+    "user_cost": "用户需理解实现字段才能确认",
+    "action": "按五类合同显示中文字段，完整载荷可展开；空值/0/false明确呈现，未知合同回退完整 JSON",
+    "confidence": "高",
+    "evidence": "before-panels/390-panel-task-confirmation.png"
+  },
+  {
+    "id": "R04",
+    "type": "REDESIGN",
+    "file": "frontend/src/features/math-input/VisualMathInputPopover.tsx",
+    "problem": "公式面板按输入框锚定，空会话时越出视口",
+    "user_cost": "模板右侧或矩阵顶部控件被裁切",
+    "action": "桌面面板固定于视口右下并允许内部滚动，沿用原视觉和移动布局",
+    "confidence": "高",
+    "evidence": "before-panels/1280-panel-math-matrix.png"
+  }
+]

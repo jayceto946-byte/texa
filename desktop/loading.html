@@ -239,7 +239,7 @@
           <div class="brand-logo" aria-hidden="true">
             <img src="./assets/texa-lockup.svg" alt="" />
           </div>
-          <h1 id="greeting">早上好，有吃早饭吗</h1>
+          <h1 id="greeting">正在准备 Texa</h1>
           <div class="status-row"><span class="pulse"></span><span id="statusText">初始化中</span></div>
           <div class="bar"></div>
           <div class="details" id="details"></div>
@@ -275,84 +275,6 @@
         maximizeButton.setAttribute('aria-label', maximized ? '还原窗口' : '最大化窗口');
       });
 
-      const greetings = {
-        earlyMorning: [
-          '早上好，有吃早饭吗',
-          '早上好，先把状态打开',
-          '早上好，今天慢慢来',
-          '早上好，先喝口水',
-          '早上好，给大脑开机',
-          '早上好，先做一道热身题',
-          '早上好，从简单题开始',
-          '早上好，今天也稳住',
-          '早上好，别空腹硬学',
-          '早上好，把计划接上',
-        ],
-        morning: [
-          '上午好，进入学习状态',
-          '上午好，先抓一个重点',
-          '上午好，趁清醒多推进',
-          '上午好，今天从哪章开始',
-          '上午好，把思路理顺',
-          '上午好，先复盘昨天',
-          '上午好，做题前先看概念',
-          '上午好，保持一点节奏',
-          '上午好，别急，先定位',
-          '上午好，开始今天的主线',
-        ],
-        noon: [
-          '中午好，先别太用力',
-          '中午好，吃饭了吗',
-          '中午好，轻一点复盘',
-          '中午好，适合整理错题',
-          '中午好，给上午收个尾',
-          '中午好，短复习也算数',
-          '中午好，先看一个概念',
-          '中午好，别让节奏断掉',
-          '中午好，慢慢接上学习',
-          '中午好，休息后再冲',
-        ],
-        afternoon: [
-          '下午好，清醒一下开始吧',
-          '下午好，把注意力拉回来',
-          '下午好，先做一道题',
-          '下午好，继续推进主线',
-          '下午好，错题本可以打开',
-          '下午好，先从薄弱点开始',
-          '下午好，给自己十分钟',
-          '下午好，稳住下午节奏',
-          '下午好，别被困意带走',
-          '下午好，继续往前走',
-        ],
-        evening: [
-          '晚上好，收一收今天',
-          '晚上好，适合复盘错题',
-          '晚上好，今天辛苦了',
-          '晚上好，做个轻量总结',
-          '晚上好，把遗漏补上',
-          '晚上好，别熬太狠',
-          '晚上好，整理一下思路',
-          '晚上好，留一点余量',
-          '晚上好，最后看一个点',
-          '晚上好，复盘比硬冲重要',
-        ],
-      };
-
-      function getGreetingBucket(hour) {
-        if (hour >= 5 && hour < 9) return 'earlyMorning';
-        if (hour >= 9 && hour < 12) return 'morning';
-        if (hour >= 12 && hour < 14) return 'noon';
-        if (hour >= 14 && hour < 18) return 'afternoon';
-        return 'evening';
-      }
-
-      function setTimeGreeting() {
-        const now = new Date();
-        const list = greetings[getGreetingBucket(now.getHours())];
-        const index = (now.getDate() + now.getHours()) % list.length;
-        greeting.textContent = list[index];
-      }
-
       function showStartupError(payload) {
         const info = typeof payload === 'string' ? { message: payload } : payload || {};
         const failure = info.failure || {};
@@ -372,8 +294,6 @@
         repairButton.style.display = failure.recoverable && failure.repair_action === 'repair_embedding_runtime' ? '' : 'none';
         details.textContent = `错误代码：${failure.code || 'STARTUP_FAILURE'}\n诊断编号：${failure.diagnostic_id || '未生成'}\n日志：${info.logPath || '应用数据目录\\logs\\backend.log'}`;
       }
-
-      setTimeGreeting();
 
       retryButton.addEventListener('click', async () => {
         shell.classList.remove('error');

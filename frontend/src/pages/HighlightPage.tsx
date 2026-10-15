@@ -156,7 +156,7 @@ const HighlightPage: React.FC = () => {
       </header>
       <div ref={scrollRef} className="management-page-content min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="h-fit border border-border bg-bg-card p-4 lg:sticky lg:top-5">
+        <aside className="h-fit lg:sticky lg:top-5">
           <div className="mb-3 text-sm font-semibold text-text-primary">目录</div>
           <div className="max-h-[68vh] space-y-1 overflow-y-auto pr-1">
             {toc.length ? toc.map((item) => (
@@ -184,9 +184,9 @@ const HighlightPage: React.FC = () => {
           {loading && <WorkspaceSkeleton label="正在读取本地重点" header={false} reading />}
           {!loading && error && <div className="mt-8 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
           {!loading && !error && (
-            <article className="mt-5 border border-border bg-bg-card px-5 py-4 shadow-sm">
+            <article className="mt-5">
               {chunks.map((chunk) => (
-                <section key={chunk.id} id={chunk.id} className="scroll-mt-5 border-t border-border pt-4 first:border-t-0 first:pt-0" style={{ contentVisibility: 'auto', containIntrinsicSize: '720px' } as React.CSSProperties}>
+                <section key={chunk.id} id={chunk.id} className="scroll-mt-5 pt-5 first:pt-0" style={{ contentVisibility: 'auto', containIntrinsicSize: '720px' } as React.CSSProperties}>
                   <MarkdownBlock markdown={chunk.markdown} />
                 </section>
               ))}

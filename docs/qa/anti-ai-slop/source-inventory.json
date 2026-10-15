@@ -1,0 +1,2830 @@
+[
+  {
+    "file": "frontend/src/App.tsx",
+    "lines": 15,
+    "imports": [
+      "react",
+      "./components/RemoteConnectionGate",
+      "./components/ui/WorkspaceSkeleton",
+      "./Workspace"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/Workspace.tsx",
+    "lines": 105,
+    "imports": [
+      "react",
+      "react-router-dom",
+      "./components/ErrorBoundary",
+      "./contexts/ChatContext",
+      "./layouts/MainLayout",
+      "./components/DesktopTitleBar",
+      "./api/client",
+      "./api/networkDiagnostics",
+      "./components/FirstRunGuide",
+      "./contexts/InspectorContext",
+      "./components/ui/WorkspaceSkeleton",
+      "./pages/GoalsPage",
+      "./pages/NotesPage",
+      "./pages/NoteDetailPage",
+      "./pages/NoteDraftPage",
+      "./pages/ChatPage",
+      "./pages/MistakesPage",
+      "./pages/MistakesPage",
+      "./pages/MistakesPage",
+      "./pages/MistakeIntakePage",
+      "./pages/ExercisesPage",
+      "./pages/BooksPage",
+      "./pages/HighlightPage",
+      "./pages/LearningPage",
+      "./pages/ReviewSessionPage",
+      "./pages/WeeklyReportPage",
+      "./components/SystemHealth"
+    ],
+    "surfaces": [
+      {
+        "line": 44,
+        "tag": "p"
+      },
+      {
+        "line": 51,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/bootstrap.tsx",
+    "lines": 16,
+    "imports": [
+      "react",
+      "react-dom/client",
+      "./App",
+      "./theme",
+      "./components/StartupBoundary"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/AppRail.tsx",
+    "lines": 60,
+    "imports": [
+      "lucide-react",
+      "react",
+      "react-router-dom"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/ChatMessage.tsx",
+    "lines": 409,
+    "imports": [
+      "react",
+      "react-router-dom",
+      "lucide-react",
+      "../types",
+      "../contexts/ChatContext",
+      "../utils/citations",
+      "./ConceptPopover",
+      "./chat/ChapterHighlightCard",
+      "./chat/ExerciseCard",
+      "./chat/MarkdownMessage",
+      "./chat/SourceGroupList",
+      "./chat/MistakeQuickCaptureCard",
+      "./chat/ReportCard",
+      "./chat/SubjectRouteSuggestionCard",
+      "./ui/AsyncState",
+      "../api/client",
+      "./chat/ExecutionTrace",
+      "./chat/LearningTaskGate",
+      "./chat/LearningTaskActions",
+      "./chat/LearningTaskResume",
+      "./chat/LearningTaskEffects",
+      "../contexts/InspectorContext",
+      "../utils/verificationNotice",
+      "./chat/AnswerSelection",
+      "./ui/OverflowMenu",
+      "../features/mistakes/hooks/useChatMistakeSources",
+      "../utils/visualQuestion",
+      "../hooks/useAuthenticatedBlobUrl"
+    ],
+    "surfaces": [
+      {
+        "line": 74,
+        "tag": "h3"
+      },
+      {
+        "line": 75,
+        "tag": "p"
+      },
+      {
+        "line": 99,
+        "tag": "h3"
+      },
+      {
+        "line": 105,
+        "tag": "h3"
+      },
+      {
+        "line": 111,
+        "tag": "h3"
+      },
+      {
+        "line": 117,
+        "tag": "h3"
+      },
+      {
+        "line": 246,
+        "tag": "p"
+      },
+      {
+        "line": 247,
+        "tag": "p"
+      },
+      {
+        "line": 264,
+        "tag": "details"
+      },
+      {
+        "line": 264,
+        "tag": "p"
+      },
+      {
+        "line": 293,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/ConceptPopover.tsx",
+    "lines": 96,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../api/client",
+      "../types",
+      "../utils/mathText",
+      "react-markdown",
+      "remark-math",
+      "rehype-katex"
+    ],
+    "surfaces": [
+      {
+        "line": 66,
+        "tag": "h3"
+      },
+      {
+        "line": 76,
+        "tag": "h3"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/DesktopTitleBar.tsx",
+    "lines": 35,
+    "imports": [
+      "lucide-react",
+      "react"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/ErrorBoundary.tsx",
+    "lines": 47,
+    "imports": [
+      "react",
+      "react"
+    ],
+    "surfaces": [
+      {
+        "line": 39,
+        "tag": "p"
+      },
+      {
+        "line": 40,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/FirstRunGuide.tsx",
+    "lines": 120,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../api/client",
+      "./settings/ModelSettingsManager",
+      "./settings/ModelSettingsForm"
+    ],
+    "surfaces": [
+      {
+        "line": 110,
+        "tag": "h1"
+      },
+      {
+        "line": 110,
+        "tag": "p"
+      },
+      {
+        "line": 111,
+        "tag": "p"
+      },
+      {
+        "line": 111,
+        "tag": "h1"
+      },
+      {
+        "line": 111,
+        "tag": "p"
+      },
+      {
+        "line": 115,
+        "tag": "h1"
+      },
+      {
+        "line": 115,
+        "tag": "p"
+      },
+      {
+        "line": 116,
+        "tag": "p"
+      },
+      {
+        "line": 116,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/HighlightRepositoryDialog.tsx",
+    "lines": 585,
+    "imports": [
+      "react",
+      "react-dom",
+      "lucide-react",
+      "../api/client",
+      "../hooks/useAuthenticatedBlobUrl"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/LearningContextSidebar.tsx",
+    "lines": 284,
+    "imports": [
+      "../features/books/bookList",
+      "react",
+      "lucide-react",
+      "../api/client",
+      "../features/conversations/api",
+      "../features/conversations/BlockingTasks",
+      "../features/notes/NoteCommandContext",
+      "../contexts/ChatContext",
+      "./ui/OverflowMenu",
+      "../contexts/ChatContext",
+      "../utils/conversationMessages",
+      "../utils/textbookScopes"
+    ],
+    "surfaces": [
+      {
+        "line": 221,
+        "tag": "h1"
+      },
+      {
+        "line": 250,
+        "tag": "p"
+      },
+      {
+        "line": 252,
+        "tag": "p"
+      },
+      {
+        "line": 253,
+        "tag": "p"
+      },
+      {
+        "line": 254,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/RemoteConnectionGate.tsx",
+    "lines": 56,
+    "imports": [
+      "react",
+      "../api/client"
+    ],
+    "surfaces": [
+      {
+        "line": 45,
+        "tag": "h1"
+      },
+      {
+        "line": 46,
+        "tag": "p"
+      },
+      {
+        "line": 50,
+        "tag": "p"
+      },
+      {
+        "line": 52,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/ScopeSelector.tsx",
+    "lines": 393,
+    "imports": [
+      "react",
+      "react-dom",
+      "lucide-react",
+      "../api/client",
+      "../utils/textbookScopes"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/StartupBoundary.tsx",
+    "lines": 10,
+    "imports": [
+      "react"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/SystemHealth.tsx",
+    "lines": 586,
+    "imports": [
+      "react",
+      "lucide-react",
+      "react-router-dom",
+      "../api/client",
+      "../hooks/useSystemHealth",
+      "../contexts/ChatContext",
+      "../types",
+      "./settings/LibraryWorkbench",
+      "./settings/DataSafety",
+      "./settings/MobileRemoteS0",
+      "./settings/NetworkDiagnostics",
+      "./settings/AppearanceSettings",
+      "./settings/ModelSettingsForm",
+      "./settings/ModelSettingsManager",
+      "./ui/AsyncState"
+    ],
+    "surfaces": [
+      {
+        "line": 429,
+        "tag": "h2"
+      },
+      {
+        "line": 437,
+        "tag": "StatusBanner"
+      },
+      {
+        "line": 472,
+        "tag": "StatusBanner"
+      },
+      {
+        "line": 483,
+        "tag": "h4"
+      },
+      {
+        "line": 505,
+        "tag": "details"
+      },
+      {
+        "line": 513,
+        "tag": "h4"
+      },
+      {
+        "line": 517,
+        "tag": "p"
+      },
+      {
+        "line": 518,
+        "tag": "p"
+      },
+      {
+        "line": 527,
+        "tag": "p"
+      },
+      {
+        "line": 540,
+        "tag": "h4"
+      },
+      {
+        "line": 541,
+        "tag": "p"
+      },
+      {
+        "line": 543,
+        "tag": "details"
+      },
+      {
+        "line": 582,
+        "tag": "h3"
+      },
+      {
+        "line": 582,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/Welcome.css",
+    "lines": 81,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/chat/AnswerSelection.tsx",
+    "lines": 27,
+    "imports": [
+      "react-router-dom",
+      "react"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/chat/ChapterHighlightCard.tsx",
+    "lines": 30,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../types",
+      "./MarkdownMessage"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/chat/ComposerOverflowMenu.tsx",
+    "lines": 58,
+    "imports": [
+      "react",
+      "lucide-react"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/chat/ExecutionTrace.css",
+    "lines": 66,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/chat/ExecutionTrace.tsx",
+    "lines": 129,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../types",
+      "../../utils/chatActivities",
+      "../../utils/answerVerification",
+      "./MarkdownMessage"
+    ],
+    "surfaces": [
+      {
+        "line": 41,
+        "tag": "details"
+      },
+      {
+        "line": 44,
+        "tag": "p"
+      },
+      {
+        "line": 50,
+        "tag": "p"
+      },
+      {
+        "line": 66,
+        "tag": "p"
+      },
+      {
+        "line": 67,
+        "tag": "p"
+      },
+      {
+        "line": 68,
+        "tag": "p"
+      },
+      {
+        "line": 69,
+        "tag": "p"
+      },
+      {
+        "line": 71,
+        "tag": "p"
+      },
+      {
+        "line": 72,
+        "tag": "p"
+      },
+      {
+        "line": 73,
+        "tag": "p"
+      },
+      {
+        "line": 74,
+        "tag": "p"
+      },
+      {
+        "line": 75,
+        "tag": "p"
+      },
+      {
+        "line": 77,
+        "tag": "p"
+      },
+      {
+        "line": 120,
+        "tag": "details"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/chat/ExerciseCard.tsx",
+    "lines": 97,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../types",
+      "../../api/client",
+      "./MarkdownMessage",
+      "../../features/exercises/directPractice"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/chat/LearningEmptyWorkspace.tsx",
+    "lines": 15,
+    "imports": [
+      "../ui/AsyncState",
+      "react"
+    ],
+    "surfaces": [
+      {
+        "line": 12,
+        "tag": "EmptyState"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/chat/LearningTaskActions.tsx",
+    "lines": 88,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../api/client",
+      "../../types",
+      "../../features/chat/pendingActionPresentation"
+    ],
+    "surfaces": [
+      {
+        "line": 53,
+        "tag": "h3"
+      },
+      {
+        "line": 65,
+        "tag": "p"
+      },
+      {
+        "line": 66,
+        "tag": "details"
+      },
+      {
+        "line": 84,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/chat/LearningTaskEffects.tsx",
+    "lines": 60,
+    "imports": [
+      "react",
+      "../../api/client",
+      "../../types"
+    ],
+    "surfaces": [
+      {
+        "line": 53,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/chat/LearningTaskGate.tsx",
+    "lines": 75,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../types"
+    ],
+    "surfaces": [
+      {
+        "line": 30,
+        "tag": "h3"
+      },
+      {
+        "line": 31,
+        "tag": "p"
+      },
+      {
+        "line": 71,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/chat/LearningTaskResume.tsx",
+    "lines": 28,
+    "imports": [
+      "lucide-react",
+      "../../types"
+    ],
+    "surfaces": [
+      {
+        "line": 14,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/chat/MarkdownMessage.tsx",
+    "lines": 47,
+    "imports": [
+      "react",
+      "../../types",
+      "./MarkdownRenderer",
+      "./MarkdownRenderer"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/chat/MarkdownRenderer.tsx",
+    "lines": 278,
+    "imports": [
+      "react",
+      "react-markdown",
+      "remark-gfm",
+      "remark-math",
+      "rehype-katex",
+      "unified",
+      "../../types",
+      "../../hooks/useLearningNoteFont",
+      "../../utils/mathText",
+      "../../utils/citations",
+      "../ErrorBoundary"
+    ],
+    "surfaces": [
+      {
+        "line": 218,
+        "tag": "p"
+      },
+      {
+        "line": 241,
+        "tag": "h1"
+      },
+      {
+        "line": 244,
+        "tag": "h2"
+      },
+      {
+        "line": 247,
+        "tag": "h3"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/chat/MistakeQuickCaptureCard.tsx",
+    "lines": 13,
+    "imports": [
+      "react-router-dom",
+      "lucide-react"
+    ],
+    "surfaces": [
+      {
+        "line": 9,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/chat/ReportCard.tsx",
+    "lines": 103,
+    "imports": [
+      "react",
+      "react-router-dom",
+      "../../types",
+      "../../hooks/useLearningNoteFont"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/chat/SourceGroupList.tsx",
+    "lines": 34,
+    "imports": [
+      "react",
+      "../../utils/citations"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/chat/SubjectRouteSuggestionCard.tsx",
+    "lines": 142,
+    "imports": [
+      "lucide-react",
+      "react",
+      "../../api/client",
+      "../../contexts/ChatContext",
+      "../../types"
+    ],
+    "surfaces": [
+      {
+        "line": 123,
+        "tag": "p"
+      },
+      {
+        "line": 124,
+        "tag": "p"
+      },
+      {
+        "line": 125,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/settings/AppearanceSettings.tsx",
+    "lines": 51,
+    "imports": [
+      "lucide-react",
+      "react",
+      "../../theme"
+    ],
+    "surfaces": [
+      {
+        "line": 16,
+        "tag": "h4"
+      },
+      {
+        "line": 17,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/settings/DataSafety.tsx",
+    "lines": 133,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../api/client"
+    ],
+    "surfaces": [
+      {
+        "line": 82,
+        "tag": "h4"
+      },
+      {
+        "line": 83,
+        "tag": "p"
+      },
+      {
+        "line": 84,
+        "tag": "p"
+      },
+      {
+        "line": 110,
+        "tag": "h4"
+      },
+      {
+        "line": 111,
+        "tag": "p"
+      },
+      {
+        "line": 120,
+        "tag": "details"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/settings/LibraryManager.tsx",
+    "lines": 270,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../ui/ScrollableSelect"
+    ],
+    "surfaces": [
+      {
+        "line": 53,
+        "tag": "h2"
+      },
+      {
+        "line": 85,
+        "tag": "h3"
+      },
+      {
+        "line": 94,
+        "tag": "p"
+      },
+      {
+        "line": 103,
+        "tag": "h4"
+      },
+      {
+        "line": 178,
+        "tag": "h4"
+      },
+      {
+        "line": 181,
+        "tag": "p"
+      },
+      {
+        "line": 201,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+    "lines": 205,
+    "imports": [
+      "react",
+      "lucide-react",
+      "react-dom",
+      "react-router-dom",
+      "../ScopeSelector",
+      "../ui/AsyncState",
+      "../../features/textbooks/FigureAuditPanel"
+    ],
+    "surfaces": [
+      {
+        "line": 81,
+        "tag": "details"
+      },
+      {
+        "line": 121,
+        "tag": "h3"
+      },
+      {
+        "line": 121,
+        "tag": "p"
+      },
+      {
+        "line": 133,
+        "tag": "EmptyState"
+      },
+      {
+        "line": 160,
+        "tag": "details"
+      },
+      {
+        "line": 175,
+        "tag": "h4"
+      },
+      {
+        "line": 175,
+        "tag": "p"
+      },
+      {
+        "line": 188,
+        "tag": "EmptyState"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/settings/MobileRemoteS0.tsx",
+    "lines": 27,
+    "imports": [
+      "react"
+    ],
+    "surfaces": [
+      {
+        "line": 13,
+        "tag": "h4"
+      },
+      {
+        "line": 14,
+        "tag": "p"
+      },
+      {
+        "line": 15,
+        "tag": "p"
+      },
+      {
+        "line": 24,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/settings/ModelSettingsForm.tsx",
+    "lines": 147,
+    "imports": [
+      "lucide-react",
+      "react"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/settings/ModelSettingsManager.tsx",
+    "lines": 305,
+    "imports": [
+      "lucide-react",
+      "react",
+      "../ui/ScrollableSelect",
+      "./ModelSettingsForm"
+    ],
+    "surfaces": [
+      {
+        "line": 203,
+        "tag": "p"
+      },
+      {
+        "line": 204,
+        "tag": "p"
+      },
+      {
+        "line": 206,
+        "tag": "p"
+      },
+      {
+        "line": 206,
+        "tag": "p"
+      },
+      {
+        "line": 233,
+        "tag": "h4"
+      },
+      {
+        "line": 233,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/settings/NetworkDiagnostics.tsx",
+    "lines": 73,
+    "imports": [
+      "react",
+      "../../api/networkDiagnostics"
+    ],
+    "surfaces": [
+      {
+        "line": 48,
+        "tag": "h4"
+      },
+      {
+        "line": 49,
+        "tag": "p"
+      },
+      {
+        "line": 50,
+        "tag": "p"
+      },
+      {
+        "line": 58,
+        "tag": "p"
+      },
+      {
+        "line": 59,
+        "tag": "p"
+      },
+      {
+        "line": 60,
+        "tag": "details"
+      },
+      {
+        "line": 62,
+        "tag": "p"
+      },
+      {
+        "line": 63,
+        "tag": "p"
+      },
+      {
+        "line": 64,
+        "tag": "p"
+      },
+      {
+        "line": 65,
+        "tag": "p"
+      },
+      {
+        "line": 66,
+        "tag": "p"
+      },
+      {
+        "line": 67,
+        "tag": "p"
+      },
+      {
+        "line": 69,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/settings/SettingsDialog.tsx",
+    "lines": 40,
+    "imports": [
+      "../ui/WorkspaceSkeleton",
+      "lucide-react",
+      "react",
+      "../ui/Dialog",
+      "../SystemHealth"
+    ],
+    "surfaces": [
+      {
+        "line": 20,
+        "tag": "Dialog"
+      },
+      {
+        "line": 29,
+        "tag": "h2"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/ui/AsyncState.tsx",
+    "lines": 113,
+    "imports": [
+      "react",
+      "lucide-react",
+      "./WorkspaceSkeleton"
+    ],
+    "surfaces": [
+      {
+        "line": 19,
+        "tag": "h1"
+      },
+      {
+        "line": 19,
+        "tag": "h3"
+      },
+      {
+        "line": 20,
+        "tag": "p"
+      },
+      {
+        "line": 43,
+        "tag": "p"
+      },
+      {
+        "line": 56,
+        "tag": "StatusBanner"
+      },
+      {
+        "line": 71,
+        "tag": "p"
+      },
+      {
+        "line": 104,
+        "tag": "h3"
+      },
+      {
+        "line": 105,
+        "tag": "p"
+      },
+      {
+        "line": 107,
+        "tag": "details"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/ui/ContextInspector.tsx",
+    "lines": 37,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../contexts/InspectorContext",
+      "./Dialog"
+    ],
+    "surfaces": [
+      {
+        "line": 30,
+        "tag": "h2"
+      },
+      {
+        "line": 34,
+        "tag": "Dialog"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/components/ui/Dialog.tsx",
+    "lines": 120,
+    "imports": [
+      "react",
+      "react-dom"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/ui/OverflowMenu.tsx",
+    "lines": 44,
+    "imports": [
+      "react",
+      "react-dom",
+      "lucide-react"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/ui/ScrollableSelect.tsx",
+    "lines": 195,
+    "imports": [
+      "lucide-react",
+      "react",
+      "react-dom"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/ui/SelectionControls.tsx",
+    "lines": 75,
+    "imports": [
+      "react"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/ui/WorkspaceActionBar.tsx",
+    "lines": 10,
+    "imports": [
+      "react"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/ui/WorkspaceSkeleton.css",
+    "lines": 19,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/components/ui/WorkspaceSkeleton.tsx",
+    "lines": 22,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/contexts/ChatContext.tsx",
+    "lines": 220,
+    "imports": [
+      "../utils/performanceMetrics",
+      "../utils/browserStorage",
+      "react",
+      "../types"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/contexts/InspectorContext.tsx",
+    "lines": 41,
+    "imports": [
+      "react"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/features/conversations/BlockingTasks.tsx",
+    "lines": 32,
+    "imports": [
+      "react",
+      "../../api/client",
+      "../../contexts/ChatContext",
+      "./api"
+    ],
+    "surfaces": [
+      {
+        "line": 30,
+        "tag": "p"
+      },
+      {
+        "line": 30,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/features/conversations/conversations.css",
+    "lines": 13,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/features/exercises/ManualExerciseDialog.tsx",
+    "lines": 28,
+    "imports": [
+      "react",
+      "../../components/ui/Dialog",
+      "../../api/client"
+    ],
+    "surfaces": [
+      {
+        "line": 22,
+        "tag": "Dialog"
+      },
+      {
+        "line": 23,
+        "tag": "h2"
+      },
+      {
+        "line": 25,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/features/exercises/components/ExercisePresentation.tsx",
+    "lines": 93,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../../components/ChatMessage",
+      "../../../types"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/features/math-input/MathExpressionList.tsx",
+    "lines": 49,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../components/chat/MarkdownMessage",
+      "./types"
+    ],
+    "surfaces": [
+      {
+        "line": 43,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/features/math-input/MathFieldEditor.tsx",
+    "lines": 129,
+    "imports": [
+      "react",
+      "mathlive",
+      "mathlive"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/features/math-input/MatrixBuilder.tsx",
+    "lines": 114,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../components/chat/MarkdownMessage",
+      "./matrixUtils"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/features/math-input/VisualMathInputPopover.tsx",
+    "lines": 228,
+    "imports": [
+      "react",
+      "lucide-react",
+      "./formulaEditorUtils",
+      "./MathFieldEditor",
+      "./MatrixBuilder",
+      "./mathQuickKeys",
+      "./mathTemplates",
+      "./types"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/features/mistakes/components/MistakePresentation.tsx",
+    "lines": 46,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/features/mistakes/components/ProblemImageEditor.tsx",
+    "lines": 198,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../imageProcessing",
+      "./MistakePresentation",
+      "../../../components/ui/Dialog",
+      "../../../components/ui/WorkspaceActionBar"
+    ],
+    "surfaces": [
+      {
+        "line": 170,
+        "tag": "Dialog"
+      },
+      {
+        "line": 171,
+        "tag": "h2"
+      },
+      {
+        "line": 185,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/features/notes/DraftWorkspace.tsx",
+    "lines": 153,
+    "imports": [
+      "react",
+      "react-router-dom",
+      "../../api/client",
+      "./api",
+      "./hooks/useNoteEditor",
+      "./NoteBlocks",
+      "./types"
+    ],
+    "surfaces": [
+      {
+        "line": 87,
+        "tag": "h1"
+      },
+      {
+        "line": 89,
+        "tag": "h1"
+      },
+      {
+        "line": 89,
+        "tag": "p"
+      },
+      {
+        "line": 90,
+        "tag": "p"
+      },
+      {
+        "line": 91,
+        "tag": "p"
+      },
+      {
+        "line": 93,
+        "tag": "h2"
+      },
+      {
+        "line": 94,
+        "tag": "p"
+      },
+      {
+        "line": 95,
+        "tag": "p"
+      },
+      {
+        "line": 100,
+        "tag": "details"
+      },
+      {
+        "line": 100,
+        "tag": "p"
+      },
+      {
+        "line": 102,
+        "tag": "details"
+      },
+      {
+        "line": 104,
+        "tag": "details"
+      },
+      {
+        "line": 151,
+        "tag": "h1"
+      },
+      {
+        "line": 151,
+        "tag": "h2"
+      },
+      {
+        "line": 151,
+        "tag": "p"
+      },
+      {
+        "line": 151,
+        "tag": "p"
+      },
+      {
+        "line": 151,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/features/notes/NoteBlocks.tsx",
+    "lines": 43,
+    "imports": [
+      "lucide-react",
+      "../../components/chat/MarkdownMessage",
+      "../math-input/MathFieldEditor",
+      "./types"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/features/notes/NotePreflight.tsx",
+    "lines": 84,
+    "imports": [
+      "react",
+      "react-router-dom",
+      "../../components/ui/Dialog",
+      "./api",
+      "./types",
+      "./NoteCommandContext"
+    ],
+    "surfaces": [
+      {
+        "line": 60,
+        "tag": "Dialog"
+      },
+      {
+        "line": 61,
+        "tag": "h2"
+      },
+      {
+        "line": 62,
+        "tag": "p"
+      },
+      {
+        "line": 63,
+        "tag": "p"
+      },
+      {
+        "line": 64,
+        "tag": "p"
+      },
+      {
+        "line": 65,
+        "tag": "p"
+      },
+      {
+        "line": 66,
+        "tag": "p"
+      },
+      {
+        "line": 68,
+        "tag": "p"
+      },
+      {
+        "line": 71,
+        "tag": "details"
+      },
+      {
+        "line": 74,
+        "tag": "p"
+      },
+      {
+        "line": 77,
+        "tag": "p"
+      },
+      {
+        "line": 80,
+        "tag": "details"
+      },
+      {
+        "line": 80,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/features/notes/NoteSourceInspector.tsx",
+    "lines": 40,
+    "imports": [
+      "react",
+      "react-router-dom",
+      "../../components/chat/MarkdownMessage",
+      "./api",
+      "./types",
+      "../../components/chat/SourceGroupList",
+      "./labels",
+      "../../utils/citations"
+    ],
+    "surfaces": [
+      {
+        "line": 30,
+        "tag": "h3"
+      },
+      {
+        "line": 30,
+        "tag": "p"
+      },
+      {
+        "line": 30,
+        "tag": "p"
+      },
+      {
+        "line": 30,
+        "tag": "p"
+      },
+      {
+        "line": 30,
+        "tag": "p"
+      },
+      {
+        "line": 31,
+        "tag": "p"
+      },
+      {
+        "line": 32,
+        "tag": "p"
+      },
+      {
+        "line": 33,
+        "tag": "p"
+      },
+      {
+        "line": 36,
+        "tag": "details"
+      },
+      {
+        "line": 36,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/features/notes/notes.css",
+    "lines": 71,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/features/textbooks/FigureAuditPanel.tsx",
+    "lines": 92,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../api/client",
+      "../../hooks/useAuthenticatedBlobUrl"
+    ],
+    "surfaces": [
+      {
+        "line": 29,
+        "tag": "p"
+      },
+      {
+        "line": 30,
+        "tag": "p"
+      },
+      {
+        "line": 64,
+        "tag": "h5"
+      },
+      {
+        "line": 67,
+        "tag": "p"
+      },
+      {
+        "line": 71,
+        "tag": "p"
+      },
+      {
+        "line": 72,
+        "tag": "p"
+      },
+      {
+        "line": 74,
+        "tag": "p"
+      },
+      {
+        "line": 75,
+        "tag": "p"
+      },
+      {
+        "line": 78,
+        "tag": "p"
+      },
+      {
+        "line": 79,
+        "tag": "p"
+      },
+      {
+        "line": 80,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/features/visual-learning/FigureCatalog.tsx",
+    "lines": 86,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../api/client",
+      "../../types"
+    ],
+    "surfaces": [
+      {
+        "line": 64,
+        "tag": "p"
+      },
+      {
+        "line": 66,
+        "tag": "p"
+      },
+      {
+        "line": 82,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/features/visual-learning/FigureContextAttachment.tsx",
+    "lines": 40,
+    "imports": [
+      "lucide-react",
+      "../../types"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/features/visual-learning/FigurePageInspector.tsx",
+    "lines": 29,
+    "imports": [
+      "react",
+      "../../hooks/useAuthenticatedBlobUrl",
+      "../../types"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/features/visual-learning/FigureRegionViewer.tsx",
+    "lines": 110,
+    "imports": [
+      "react",
+      "lucide-react",
+      "../../hooks/useAuthenticatedBlobUrl",
+      "../../types",
+      "../../components/ui/AsyncState",
+      "./regionGeometry"
+    ],
+    "surfaces": [
+      {
+        "line": 104,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/index.css",
+    "lines": 3556,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/layouts/ApprovedWorkspace.css",
+    "lines": 553,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/layouts/MainLayout.tsx",
+    "lines": 259,
+    "imports": [
+      "react",
+      "react-router-dom",
+      "lucide-react",
+      "../contexts/ChatContext",
+      "../contexts/ChatContext",
+      "../types/electron",
+      "../components/AppRail",
+      "../components/LearningContextSidebar",
+      "../components/ui/ContextInspector",
+      "../contexts/InspectorContext",
+      "../components/settings/SettingsDialog",
+      "../features/notes/NotePreflight",
+      "../features/notes/NoteCommandContext",
+      "../features/notes/autosave"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/layouts/StudyDesk.css",
+    "lines": 528,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/main.tsx",
+    "lines": 16,
+    "imports": [
+      "./api/client",
+      "./utils/mobilePerformance",
+      "./bootstrap"
+    ],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/pages/BooksPage.tsx",
+    "lines": 382,
+    "imports": [
+      "react",
+      "lucide-react",
+      "react-router-dom",
+      "../api/client",
+      "../features/textbooks/hooks/useOptionalConceptJob",
+      "../components/ScopeSelector",
+      "../components/ui/SelectionControls",
+      "../components/ui/WorkspaceActionBar",
+      "../components/ui/AsyncState"
+    ],
+    "surfaces": [
+      {
+        "line": 251,
+        "tag": "h2"
+      },
+      {
+        "line": 268,
+        "tag": "h3"
+      },
+      {
+        "line": 278,
+        "tag": "h3"
+      },
+      {
+        "line": 307,
+        "tag": "p"
+      },
+      {
+        "line": 310,
+        "tag": "p"
+      },
+      {
+        "line": 311,
+        "tag": "p"
+      },
+      {
+        "line": 315,
+        "tag": "p"
+      },
+      {
+        "line": 332,
+        "tag": "h3"
+      },
+      {
+        "line": 335,
+        "tag": "h3"
+      },
+      {
+        "line": 336,
+        "tag": "p"
+      },
+      {
+        "line": 337,
+        "tag": "StatusBanner"
+      },
+      {
+        "line": 363,
+        "tag": "details"
+      },
+      {
+        "line": 363,
+        "tag": "p"
+      },
+      {
+        "line": 364,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/pages/ChatPage.tsx",
+    "lines": 1124,
+    "imports": [
+      "../utils/performanceMetrics",
+      "../features/chat/streamPresentation",
+      "../features/chat/useReadingScroll",
+      "../features/books/bookList",
+      "../components/chat/MarkdownMessage",
+      "../features/mistakes/imageProcessing",
+      "../utils/browserStorage",
+      "react-router-dom",
+      "react",
+      "lucide-react",
+      "../api/client",
+      "../components/HighlightRepositoryDialog",
+      "../components/chat/LearningEmptyWorkspace",
+      "../components/ScopeSelector",
+      "../components/chat/ComposerOverflowMenu",
+      "../components/ChatMessage",
+      "../components/ErrorBoundary",
+      "../contexts/ChatContext",
+      "../features/math-input/composeMathQuestion",
+      "../features/mistakes/components/ProblemImageEditor",
+      "../features/math-input/formulaReferences",
+      "../features/math-input/MathExpressionList",
+      "../features/math-input/types",
+      "../features/math-input/VisualMathInputPopover",
+      "../features/visual-learning/FigureCatalog",
+      "../features/visual-learning/FigureContextAttachment",
+      "../features/visual-learning/FigurePageInspector",
+      "../features/visual-learning/FigureRegionViewer",
+      "../hooks/useChat",
+      "../types",
+      "../utils/conversationMessages",
+      "../utils/chatActivities",
+      "../utils/textbookScopes",
+      "../contexts/InspectorContext",
+      "../features/mistakes/hooks/useChatMistakeSources",
+      "../features/notes/NoteCommandContext",
+      "../components/ui/OverflowMenu",
+      "../features/notes/navigation",
+      "../features/conversations/useConversationManagement",
+      "../features/conversations/BlockingTasks"
+    ],
+    "surfaces": [
+      {
+        "line": 936,
+        "tag": "h2"
+      },
+      {
+        "line": 953,
+        "tag": "p"
+      },
+      {
+        "line": 1017,
+        "tag": "p"
+      },
+      {
+        "line": 1044,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/pages/ExercisesPage.tsx",
+    "lines": 807,
+    "imports": [
+      "../features/books/bookList",
+      "../features/exercises/ManualExerciseDialog",
+      "react",
+      "react-router-dom",
+      "lucide-react",
+      "../api/client",
+      "../components/ui/WorkspaceActionBar",
+      "../components/chat/MarkdownRenderer",
+      "../components/ChatMessage",
+      "../components/ScopeSelector",
+      "../components/ui/SelectionControls",
+      "../contexts/ChatContext",
+      "../features/exercises/components/ExercisePresentation",
+      "../hooks/useVisibleList",
+      "../hooks/useAuthenticatedBlobUrl",
+      "../features/exercises/hooks/useTextbookImportOutline",
+      "../features/exercises/hooks/useExerciseAnswerJob",
+      "../features/exercises/hooks/useExerciseImportCandidates",
+      "../features/exercises/hooks/usePracticeSession",
+      "../types"
+    ],
+    "surfaces": [
+      {
+        "line": 434,
+        "tag": "h2"
+      },
+      {
+        "line": 475,
+        "tag": "p"
+      },
+      {
+        "line": 476,
+        "tag": "p"
+      },
+      {
+        "line": 538,
+        "tag": "h3"
+      },
+      {
+        "line": 538,
+        "tag": "p"
+      },
+      {
+        "line": 542,
+        "tag": "h3"
+      },
+      {
+        "line": 569,
+        "tag": "h4"
+      },
+      {
+        "line": 570,
+        "tag": "p"
+      },
+      {
+        "line": 577,
+        "tag": "p"
+      },
+      {
+        "line": 578,
+        "tag": "p"
+      },
+      {
+        "line": 597,
+        "tag": "h4"
+      },
+      {
+        "line": 610,
+        "tag": "h4"
+      },
+      {
+        "line": 615,
+        "tag": "p"
+      },
+      {
+        "line": 617,
+        "tag": "p"
+      },
+      {
+        "line": 619,
+        "tag": "details"
+      },
+      {
+        "line": 631,
+        "tag": "h4"
+      },
+      {
+        "line": 643,
+        "tag": "p"
+      },
+      {
+        "line": 666,
+        "tag": "h3"
+      },
+      {
+        "line": 675,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/pages/GoalsPage.tsx",
+    "lines": 229,
+    "imports": [
+      "../components/ui/WorkspaceSkeleton",
+      "../features/books/bookList",
+      "react-router-dom",
+      "react",
+      "lucide-react",
+      "../api/client",
+      "../contexts/ChatContext",
+      "../types",
+      "../utils/textbookScopes",
+      "../utils/textbookScopes",
+      "../features/goals/goalViewState",
+      "../features/goals/runtimePresentation",
+      "../types",
+      "../components/ScopeSelector",
+      "../components/chat/LearningTaskActions",
+      "../components/ChatMessage"
+    ],
+    "surfaces": [
+      {
+        "line": 187,
+        "tag": "h1"
+      },
+      {
+        "line": 191,
+        "tag": "h2"
+      },
+      {
+        "line": 191,
+        "tag": "p"
+      },
+      {
+        "line": 196,
+        "tag": "p"
+      },
+      {
+        "line": 202,
+        "tag": "h2"
+      },
+      {
+        "line": 202,
+        "tag": "p"
+      },
+      {
+        "line": 207,
+        "tag": "p"
+      },
+      {
+        "line": 208,
+        "tag": "p"
+      },
+      {
+        "line": 208,
+        "tag": "h2"
+      },
+      {
+        "line": 208,
+        "tag": "p"
+      },
+      {
+        "line": 209,
+        "tag": "h3"
+      },
+      {
+        "line": 210,
+        "tag": "p"
+      },
+      {
+        "line": 215,
+        "tag": "h2"
+      },
+      {
+        "line": 216,
+        "tag": "p"
+      },
+      {
+        "line": 216,
+        "tag": "h3"
+      },
+      {
+        "line": 216,
+        "tag": "p"
+      },
+      {
+        "line": 217,
+        "tag": "h3"
+      },
+      {
+        "line": 219,
+        "tag": "p"
+      },
+      {
+        "line": 220,
+        "tag": "p"
+      },
+      {
+        "line": 221,
+        "tag": "h4"
+      },
+      {
+        "line": 221,
+        "tag": "p"
+      },
+      {
+        "line": 222,
+        "tag": "p"
+      },
+      {
+        "line": 222,
+        "tag": "p"
+      },
+      {
+        "line": 222,
+        "tag": "details"
+      },
+      {
+        "line": 224,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/pages/HighlightPage.tsx",
+    "lines": 203,
+    "imports": [
+      "../components/ui/WorkspaceSkeleton",
+      "react",
+      "lucide-react",
+      "react-router-dom",
+      "react-markdown",
+      "remark-gfm",
+      "remark-math",
+      "rehype-katex",
+      "../api/client",
+      "../hooks/useAuthenticatedBlobUrl",
+      "../utils/mathText"
+    ],
+    "surfaces": [
+      {
+        "line": 151,
+        "tag": "h1"
+      },
+      {
+        "line": 174,
+        "tag": "h1"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/pages/KnowledgeGraphPage.tsx",
+    "lines": 1,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/pages/LearningPage.css",
+    "lines": 81,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/pages/LearningPage.tsx",
+    "lines": 531,
+    "imports": [
+      "../features/books/bookList",
+      "react",
+      "react-router-dom",
+      "lucide-react",
+      "../api/client",
+      "../components/ChatMessage",
+      "../components/chat/MarkdownMessage",
+      "../components/ScopeSelector",
+      "../components/ui/AsyncState",
+      "../contexts/ChatContext",
+      "../types"
+    ],
+    "surfaces": [
+      {
+        "line": 302,
+        "tag": "h2"
+      },
+      {
+        "line": 326,
+        "tag": "p"
+      },
+      {
+        "line": 330,
+        "tag": "h3"
+      },
+      {
+        "line": 331,
+        "tag": "p"
+      },
+      {
+        "line": 332,
+        "tag": "p"
+      },
+      {
+        "line": 346,
+        "tag": "h3"
+      },
+      {
+        "line": 350,
+        "tag": "p"
+      },
+      {
+        "line": 363,
+        "tag": "p"
+      },
+      {
+        "line": 363,
+        "tag": "p"
+      },
+      {
+        "line": 368,
+        "tag": "details"
+      },
+      {
+        "line": 368,
+        "tag": "p"
+      },
+      {
+        "line": 368,
+        "tag": "p"
+      },
+      {
+        "line": 371,
+        "tag": "details"
+      },
+      {
+        "line": 379,
+        "tag": "h4"
+      },
+      {
+        "line": 464,
+        "tag": "p"
+      },
+      {
+        "line": 471,
+        "tag": "p"
+      },
+      {
+        "line": 492,
+        "tag": "p"
+      },
+      {
+        "line": 493,
+        "tag": "p"
+      },
+      {
+        "line": 494,
+        "tag": "p"
+      },
+      {
+        "line": 496,
+        "tag": "p"
+      },
+      {
+        "line": 498,
+        "tag": "p"
+      },
+      {
+        "line": 508,
+        "tag": "h4"
+      },
+      {
+        "line": 518,
+        "tag": "p"
+      },
+      {
+        "line": 527,
+        "tag": "h4"
+      },
+      {
+        "line": 527,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/pages/MistakeIntakePage.css",
+    "lines": 47,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/pages/MistakeIntakePage.tsx",
+    "lines": 172,
+    "imports": [
+      "react",
+      "react-router-dom",
+      "lucide-react",
+      "../api/client",
+      "../components/ChatMessage",
+      "../components/chat/MarkdownMessage",
+      "../contexts/ChatContext",
+      "../hooks/useAuthenticatedBlobUrl",
+      "../components/ui/WorkspaceActionBar"
+    ],
+    "surfaces": [
+      {
+        "line": 46,
+        "tag": "h1"
+      },
+      {
+        "line": 46,
+        "tag": "p"
+      },
+      {
+        "line": 46,
+        "tag": "p"
+      },
+      {
+        "line": 46,
+        "tag": "h2"
+      },
+      {
+        "line": 162,
+        "tag": "h1"
+      },
+      {
+        "line": 162,
+        "tag": "h2"
+      },
+      {
+        "line": 162,
+        "tag": "p"
+      },
+      {
+        "line": 162,
+        "tag": "p"
+      },
+      {
+        "line": 163,
+        "tag": "h2"
+      },
+      {
+        "line": 163,
+        "tag": "p"
+      },
+      {
+        "line": 163,
+        "tag": "p"
+      },
+      {
+        "line": 164,
+        "tag": "h2"
+      },
+      {
+        "line": 164,
+        "tag": "p"
+      },
+      {
+        "line": 164,
+        "tag": "p"
+      },
+      {
+        "line": 164,
+        "tag": "details"
+      },
+      {
+        "line": 164,
+        "tag": "h2"
+      },
+      {
+        "line": 164,
+        "tag": "h2"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/pages/MistakesPage.css",
+    "lines": 74,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/pages/MistakesPage.tsx",
+    "lines": 332,
+    "imports": [
+      "../components/ui/WorkspaceSkeleton",
+      "../features/books/bookList",
+      "react",
+      "react-router-dom",
+      "lucide-react",
+      "../api/client",
+      "../components/ChatMessage",
+      "../components/chat/MarkdownMessage",
+      "../components/ScopeSelector",
+      "../components/ui/AsyncState",
+      "../contexts/ChatContext",
+      "../hooks/useAuthenticatedBlobUrl",
+      "../types"
+    ],
+    "surfaces": [
+      {
+        "line": 50,
+        "tag": "p"
+      },
+      {
+        "line": 164,
+        "tag": "h1"
+      },
+      {
+        "line": 177,
+        "tag": "p"
+      },
+      {
+        "line": 178,
+        "tag": "p"
+      },
+      {
+        "line": 188,
+        "tag": "h3"
+      },
+      {
+        "line": 188,
+        "tag": "p"
+      },
+      {
+        "line": 189,
+        "tag": "h3"
+      },
+      {
+        "line": 276,
+        "tag": "h1"
+      },
+      {
+        "line": 281,
+        "tag": "p"
+      },
+      {
+        "line": 281,
+        "tag": "h1"
+      },
+      {
+        "line": 281,
+        "tag": "p"
+      },
+      {
+        "line": 281,
+        "tag": "details"
+      },
+      {
+        "line": 282,
+        "tag": "h2"
+      },
+      {
+        "line": 283,
+        "tag": "h2"
+      },
+      {
+        "line": 283,
+        "tag": "details"
+      },
+      {
+        "line": 283,
+        "tag": "details"
+      },
+      {
+        "line": 283,
+        "tag": "p"
+      },
+      {
+        "line": 284,
+        "tag": "h2"
+      },
+      {
+        "line": 284,
+        "tag": "p"
+      },
+      {
+        "line": 285,
+        "tag": "h2"
+      },
+      {
+        "line": 285,
+        "tag": "p"
+      },
+      {
+        "line": 286,
+        "tag": "h2"
+      },
+      {
+        "line": 286,
+        "tag": "p"
+      },
+      {
+        "line": 286,
+        "tag": "p"
+      },
+      {
+        "line": 286,
+        "tag": "p"
+      },
+      {
+        "line": 286,
+        "tag": "details"
+      },
+      {
+        "line": 286,
+        "tag": "details"
+      },
+      {
+        "line": 287,
+        "tag": "h2"
+      },
+      {
+        "line": 287,
+        "tag": "p"
+      },
+      {
+        "line": 287,
+        "tag": "details"
+      },
+      {
+        "line": 287,
+        "tag": "p"
+      },
+      {
+        "line": 313,
+        "tag": "h1"
+      },
+      {
+        "line": 313,
+        "tag": "p"
+      },
+      {
+        "line": 316,
+        "tag": "h2"
+      },
+      {
+        "line": 316,
+        "tag": "p"
+      },
+      {
+        "line": 316,
+        "tag": "p"
+      },
+      {
+        "line": 316,
+        "tag": "h2"
+      },
+      {
+        "line": 316,
+        "tag": "p"
+      },
+      {
+        "line": 316,
+        "tag": "p"
+      },
+      {
+        "line": 316,
+        "tag": "h2"
+      },
+      {
+        "line": 316,
+        "tag": "p"
+      },
+      {
+        "line": 316,
+        "tag": "p"
+      },
+      {
+        "line": 316,
+        "tag": "p"
+      },
+      {
+        "line": 316,
+        "tag": "h2"
+      },
+      {
+        "line": 316,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/pages/NoteDetailPage.tsx",
+    "lines": 25,
+    "imports": [
+      "../components/ui/WorkspaceSkeleton",
+      "react-router-dom",
+      "../features/notes/hooks/useNoteScroll",
+      "../features/notes/hooks/useNoteDetail",
+      "../features/notes/NoteBlocks"
+    ],
+    "surfaces": [
+      {
+        "line": 14,
+        "tag": "h1"
+      },
+      {
+        "line": 14,
+        "tag": "p"
+      },
+      {
+        "line": 15,
+        "tag": "h1"
+      },
+      {
+        "line": 16,
+        "tag": "h1"
+      },
+      {
+        "line": 16,
+        "tag": "p"
+      },
+      {
+        "line": 17,
+        "tag": "p"
+      },
+      {
+        "line": 18,
+        "tag": "details"
+      },
+      {
+        "line": 18,
+        "tag": "p"
+      },
+      {
+        "line": 18,
+        "tag": "p"
+      },
+      {
+        "line": 18,
+        "tag": "p"
+      },
+      {
+        "line": 19,
+        "tag": "details"
+      },
+      {
+        "line": 21,
+        "tag": "details"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/pages/NoteDraftPage.tsx",
+    "lines": 28,
+    "imports": [
+      "../components/ui/WorkspaceSkeleton",
+      "react-router-dom",
+      "../features/notes/hooks/useDraftWorkspace",
+      "../features/notes/DraftWorkspace",
+      "../features/notes/autosave",
+      "react"
+    ],
+    "surfaces": [
+      {
+        "line": 8,
+        "tag": "h1"
+      },
+      {
+        "line": 15,
+        "tag": "p"
+      },
+      {
+        "line": 17,
+        "tag": "p"
+      },
+      {
+        "line": 21,
+        "tag": "p"
+      },
+      {
+        "line": 23,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/pages/NotesPage.tsx",
+    "lines": 19,
+    "imports": [
+      "../components/ui/WorkspaceSkeleton",
+      "react",
+      "../components/ui/OverflowMenu",
+      "react-router-dom",
+      "../features/notes/hooks/useNotesList",
+      "../features/notes/labels"
+    ],
+    "surfaces": [
+      {
+        "line": 13,
+        "tag": "h1"
+      },
+      {
+        "line": 14,
+        "tag": "p"
+      },
+      {
+        "line": 14,
+        "tag": "p"
+      },
+      {
+        "line": 14,
+        "tag": "p"
+      },
+      {
+        "line": 15,
+        "tag": "h2"
+      },
+      {
+        "line": 15,
+        "tag": "p"
+      },
+      {
+        "line": 15,
+        "tag": "p"
+      },
+      {
+        "line": 15,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/pages/ReviewSessionPage.css",
+    "lines": 18,
+    "imports": [],
+    "surfaces": []
+  },
+  {
+    "file": "frontend/src/pages/ReviewSessionPage.tsx",
+    "lines": 126,
+    "imports": [
+      "../components/ui/WorkspaceSkeleton",
+      "react",
+      "react-router-dom",
+      "lucide-react",
+      "../api/client",
+      "../components/ChatMessage",
+      "../contexts/ChatContext",
+      "../types"
+    ],
+    "surfaces": [
+      {
+        "line": 47,
+        "tag": "h1"
+      },
+      {
+        "line": 47,
+        "tag": "h1"
+      },
+      {
+        "line": 47,
+        "tag": "p"
+      },
+      {
+        "line": 47,
+        "tag": "p"
+      },
+      {
+        "line": 47,
+        "tag": "p"
+      },
+      {
+        "line": 112,
+        "tag": "h1"
+      },
+      {
+        "line": 113,
+        "tag": "p"
+      },
+      {
+        "line": 114,
+        "tag": "p"
+      },
+      {
+        "line": 115,
+        "tag": "p"
+      },
+      {
+        "line": 116,
+        "tag": "h1"
+      },
+      {
+        "line": 117,
+        "tag": "p"
+      },
+      {
+        "line": 117,
+        "tag": "h2"
+      },
+      {
+        "line": 117,
+        "tag": "details"
+      },
+      {
+        "line": 117,
+        "tag": "h2"
+      },
+      {
+        "line": 118,
+        "tag": "h1"
+      },
+      {
+        "line": 118,
+        "tag": "p"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/pages/WeeklyReportPage.tsx",
+    "lines": 143,
+    "imports": [
+      "../components/ui/WorkspaceSkeleton",
+      "../components/chat/MarkdownMessage",
+      "react",
+      "react-router-dom",
+      "lucide-react",
+      "../api/client",
+      "../components/ui/AsyncState",
+      "../contexts/ChatContext",
+      "../hooks/useLearningNoteFont"
+    ],
+    "surfaces": [
+      {
+        "line": 66,
+        "tag": "h2"
+      },
+      {
+        "line": 91,
+        "tag": "h3"
+      },
+      {
+        "line": 92,
+        "tag": "p"
+      },
+      {
+        "line": 96,
+        "tag": "h3"
+      },
+      {
+        "line": 97,
+        "tag": "p"
+      },
+      {
+        "line": 101,
+        "tag": "h3"
+      },
+      {
+        "line": 102,
+        "tag": "p"
+      },
+      {
+        "line": 123,
+        "tag": "h3"
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/shell.css",
+    "lines": 250,
+    "imports": [],
+    "surfaces": []
+  }
+]

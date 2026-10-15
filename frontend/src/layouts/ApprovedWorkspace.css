@@ -413,7 +413,8 @@ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .navigation-coll
 .goal-section h3,.goal-run h3 { font-size:var(--workspace-subheading-size); font-weight:600; margin-bottom:12px; }
 .goal-objective { font-size:13px; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; }
 .goal-criteria p { display:flex; align-items:flex-start; gap:10px; font-size:13px; line-height:1.6; margin:8px 0; }
-.goal-criteria svg { flex:none; margin-top:4px; color:var(--color-text-tertiary); }
+.goal-criteria ul { list-style: disc; padding-left: 20px; }
+.goal-criteria li { padding-left: 2px; margin: 8px 0; font-size: 13px; line-height: 1.6; }
 .goal-controls { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
 .goals-muted { font-size:12px; color:var(--color-text-tertiary); line-height:1.6; }
 .goal-error { border-left:3px solid var(--danger); padding:10px 12px; margin-bottom:20px; font-size:13px; line-height:1.6; background:var(--workspace-secondary); }

@@ -469,7 +469,7 @@ const ExercisesPage: React.FC = () => {
               <div className="flex items-center gap-2 workspace-interface-text font-medium text-text-primary"><ClipboardList className="h-4 w-4 text-accent" /> 从当前教材抽题</div>
               {sourcePdfPath && (
                 <button type="button" onClick={() => { setPdfPage(textbookPageStart || '1'); setPdfOpen(true); }} className="flex w-full items-center justify-center gap-2 workspace-radius border border-border bg-bg-primary px-3 py-2 workspace-interface-text hover:border-accent">
-                  <BookOpen className="h-4 w-4 text-accent" /> 弹窗打开教材 PDF 并选择页码
+                  <BookOpen className="h-4 w-4 text-accent" /> 查看教材 PDF
                 </button>
               )}
               {!hasSourcePdf && <p className="workspace-support-text text-text-secondary">从已导入教材内容抽取，无需源 PDF。页码按文件物理页计数。</p>}
@@ -535,15 +535,7 @@ const ExercisesPage: React.FC = () => {
         <main className={`management-page-content overflow-y-auto ${workspaceMode === 'import' && reviewPreparationOpen ? 'hidden lg:block' : ''}`}>
           <div className={`mx-auto w-full space-y-5 ${workspaceMode === 'practice' ? 'max-w-[1180px]' : ''}`}>
             {workspaceMode === 'import' && candidates.length === 0 && (
-              <section className="border-t border-border px-1 py-6">
-                <h3 className="type-section-title text-text-primary">导入流程</h3>
-                <ol className="type-body mt-3 space-y-3 text-text-secondary">
-                  <li><span className="font-medium text-text-primary">1. 选择范围</span>，确定题目归属的科目与教材。</li>
-                  <li><span className="font-medium text-text-primary">2. 选择来源</span>，从教材页抽取，或导入 Word/PDF 题目。</li>
-                  <li><span className="font-medium text-text-primary">3. 校对候选题</span>，确认题干、答案和重复项后再写入题库。</li>
-                </ol>
-                <p className="type-caption mt-5 border-t border-border pt-4 text-text-secondary">候选题会显示在这里，未经确认不会写入正式题库。</p>
-              </section>
+              <section className="px-1 py-6"><h3 className="type-section-title text-text-primary">待校对候选题</h3><p className="mt-2 workspace-support-text text-text-secondary">从教材抽取或分析文件后，校对题干、答案与来源；确认后才写入题库。</p></section>
             )}
             <section className={`${workspaceMode === 'practice' ? 'block' : 'hidden'} overflow-hidden border-y border-border bg-bg-card`}>
               <header className="border-b border-border px-5 py-3 sm:px-6">
@@ -616,7 +608,7 @@ const ExercisesPage: React.FC = () => {
                           <div className="flex items-center justify-between gap-3">
                             <div>
                               <h4 className="workspace-interface-text font-semibold text-text-primary">{answerStatus === 'completed' ? '参考答案草稿' : '参考答案'}</h4>
-                              <p className="mt-0.5 workspace-support-text text-text-secondary">参考答案用于核对本次作答。</p>
+
                             </div>
                             <BookOpen className="h-4 w-4 text-accent" />
                           </div>

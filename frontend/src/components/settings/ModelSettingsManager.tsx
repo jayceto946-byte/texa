@@ -230,7 +230,7 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
   return (
     <div className="settings-model-manager">
       {!guided && <section aria-labelledby="profile-heading" className="settings-section">
-        <h4 id="profile-heading" className="settings-section-title">当前方案与方案管理</h4><p className="settings-secondary">选择其他方案会立即切换并应用。</p>
+        <h4 id="profile-heading" className="settings-section-title">模型方案</h4><p className="settings-secondary">选择其他方案会立即切换并应用。</p>
         <div className={fieldRowClass}>
           <span className="settings-label">方案</span>
           <div className="flex min-w-0 flex-col gap-2 sm:flex-row">

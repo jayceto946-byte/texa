@@ -1,0 +1,17 @@
+
+/Users/jichengqian/Documents/ChatGPT/texa/frontend/src/pages/ChatPage.tsx
+  242:3  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/Users/jichengqian/Documents/ChatGPT/texa/frontend/src/pages/ChatPage.tsx:242:3
+  240 |   const bookSwitchSequenceRef = useRef(0);
+  241 |   const currentScopeRef = useRef({ bookName, subject });
+> 242 |   currentScopeRef.current = { bookName, subject };
+      |   ^^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  243 |   const switchBook = useCallback(async (name: string, canApply: () => boolean = () => true) => {
+  244 |     const sequence = ++bookSwitchSequenceRef.current;
+  245 |     const canCommit = () => sequence === bookSwitchSequenceRef.current && canApply();  react-hooks/refs
+
+✖ 1 problem (1 error, 0 warnings)
+

@@ -59,7 +59,7 @@ export default function NotePreflight({ conversationId, title, busy = false, onC
   };
   return <Dialog open title="整理为笔记" onClose={close} dismissOnBackdrop className="note-dialog">
     <div className="note-toolbar"><h2>整理为笔记</h2><button className="app-ghost-button" disabled={generating} onClick={close}>取消</button></div>
-    <p>根据会话内容整理，生成后可直接阅读，也可编辑并保存。</p>
+    <p>生成草稿后可编辑，保存后进入笔记库。</p>
     {title && <p className="note-preflight-origin">{title}</p>}
     {busy && <p className="note-caption">本次默认只包含已完成内容。</p>}
     {loading && <p role="status">正在读取会话内容…</p>}

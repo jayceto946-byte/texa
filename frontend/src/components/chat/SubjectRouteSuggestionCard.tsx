@@ -1,4 +1,4 @@
-import { ArrowRight, FolderInput, Tags, X } from 'lucide-react';
+import { FolderInput, X } from 'lucide-react';
 import { useState } from 'react';
 
 import { patch as patchApi, post } from '../../api/client';
@@ -6,13 +6,12 @@ import { useChatContext, type ChatMessage } from '../../contexts/ChatContext';
 import type { SubjectRouteSuggestion } from '../../types';
 
 const labels = {
-  title: '\u6216\u8bb8\u4f60\u5728\u95ee',
+  title: '建议归类到',
   moveTurn: '\u79fb\u52a8\u672c\u8f6e',
   moveConversation: '\u5f52\u7c7b\u6574\u4e2a\u4f1a\u8bdd',
   dismiss: '\u5ffd\u7565',
   moving: '\u5904\u7406\u4e2d...',
   failed: '\u64cd\u4f5c\u5931\u8d25',
-  confidence: '\u5224\u65ad\u7f6e\u4fe1\u5ea6',
 };
 
 function mapMessages(items: any[]): ChatMessage[] {
@@ -114,17 +113,15 @@ export default function SubjectRouteSuggestionCard({
   if (resolved) return null;
 
   return (
-    <div className="mt-4 rounded-xl border border-accent/25 bg-[var(--accent-softer)] p-3 text-text-primary">
+    <div className="mt-4 border-l-2 border-border pl-3 text-text-primary">
       <div className="flex items-start gap-2">
-        <Tags className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5 text-sm font-medium">
             <span>{labels.title}</span>
-            <ArrowRight className="h-3.5 w-3.5 text-text-secondary" />
-            <span className="text-accent">{suggestion.target_subject}</span>
+            <span>{suggestion.target_subject}</span>
           </div>
+          <p className="mt-1 text-xs leading-5 text-text-secondary">教材：{suggestion.target_book_name || '不限教材'}</p>
           {suggestion.reason && <p className="mt-1 text-xs leading-5 text-text-secondary">{suggestion.reason}</p>}
-          <p className="mt-1 text-[11px] text-text-secondary">{labels.confidence} {Math.round(suggestion.confidence * 100)}%</p>
           {error && <p className="mt-2 text-xs text-[var(--danger)]">{error}</p>}
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" onClick={moveTurn} disabled={!turnId || Boolean(busy)} className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs text-white disabled:opacity-50">

@@ -1,0 +1,16 @@
+{
+  "fixture": "temporary SQLite, injected clock, no production data or LLM",
+  "finish_at_20s_remaining": 40.0,
+  "start_after_finish_remaining": 40.0,
+  "reopen_after_100s_status": "expired",
+  "reopen_remaining": 0,
+  "restart_expired_error": "本次计时已到期，请结束或标记完成",
+  "tables": [
+    "goals",
+    "goal_revisions",
+    "goal_run_links",
+    "focus_tasks",
+    "focus_state",
+    "focus_receipts"
+  ]
+}

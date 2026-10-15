@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Check, X } from 'lucide-react';
 import { resolveAgentAction } from '../../api/client';
 import type { AgentPendingAction, LearningTaskState } from '../../types';
+import { pendingActionPresentation } from '../../features/chat/pendingActionPresentation';
 
 const labels: Record<string, string> = {
   add_mistake: '加入错题本',
@@ -54,11 +55,16 @@ export default function LearningTaskActions({ initialTask, onResume, onTaskChang
         {actions.map((action) => {
           const pending = !action.status || action.status === 'pending';
           const allowed = action.allowed_actions || (pending ? ['confirm', 'reject'] : []);
+          const presentation = pendingActionPresentation(action);
           return (
             <div key={action.action_id || action.type} className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="text-text-primary">{labels[action.type] || action.type}</span>
               {action.status === 'expired' && <span className="text-text-secondary">已过期，不能确认</span>}
-              {pending && <pre className="w-full whitespace-pre-wrap break-all text-text-secondary">{JSON.stringify(action.payload, null, 2)}</pre>}
+              {pending && (presentation ? <div className="w-full min-w-0">
+                <dl className="space-y-2">{presentation.fields.map(field => <div key={field.key} className="grid gap-1 sm:grid-cols-[7em_minmax(0,1fr)]"><dt className="text-text-secondary">{field.label}</dt><dd className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{field.value}</dd></div>)}</dl>
+                {presentation.unknownCount > 0 && <p className="mt-2 text-text-secondary">另有 {presentation.unknownCount} 项内容，查看完整操作详情。</p>}
+                <details className="mt-2"><summary className="cursor-pointer text-text-secondary">完整操作详情</summary><pre className="mt-2 whitespace-pre-wrap break-all text-text-secondary">{JSON.stringify(action.payload, null, 2)}</pre></details>
+              </div> : <pre className="w-full whitespace-pre-wrap break-all text-text-secondary">{JSON.stringify(action.payload, null, 2)}</pre>)}
               {allowed.length > 0 ? (
                 <span className="flex items-center gap-1.5">
                   {allowed.includes('reject') && <button type="button" disabled={Boolean(busy)} onClick={() => void resolve(action, 'reject')} className="app-secondary-button disabled:opacity-50">
