@@ -1,0 +1,1534 @@
+{
+  "environment": "real macOS Electron; production React build; synthetic API fixture",
+  "phase": "3",
+  "checks": [
+    "real preload",
+    "1280-preparation: no window overflow",
+    "1280-help: no window overflow",
+    "HelpHint Escape",
+    "1280-source-textbook: no window overflow",
+    "1280-source-file: no window overflow",
+    "file source is selected",
+    "1280-file-ready: no window overflow",
+    "file-ready analyze action has bottom clearance",
+    "1280-candidates: no window overflow",
+    "candidate source follows analyzed source rather than selected hidden file",
+    "1280-candidate-edit: no window overflow",
+    "source→review retains draft",
+    "1280-source-compare: no window overflow",
+    "1280-receipt: no window overflow",
+    "receipt binds exact batch",
+    "1280-rollback-receipt: no window overflow",
+    "1024-preparation: no window overflow",
+    "1024-help: no window overflow",
+    "HelpHint Escape",
+    "1024-source-textbook: no window overflow",
+    "1024-source-file: no window overflow",
+    "file source is selected",
+    "1024-file-ready: no window overflow",
+    "file-ready analyze action has bottom clearance",
+    "1024-candidates: no window overflow",
+    "candidate source follows analyzed source rather than selected hidden file",
+    "1024-candidate-edit: no window overflow",
+    "source→review retains draft",
+    "1024-source-compare: no window overflow",
+    "1024-receipt: no window overflow",
+    "receipt binds exact batch",
+    "1024-rollback-receipt: no window overflow",
+    "1280-bank-reading: no window overflow",
+    "bank reading creates no practice session",
+    "1280-bank-generating: no window overflow",
+    "1280-bank-ai: no window overflow",
+    "pane switches do not create jobs",
+    "save failure preserves editor",
+    "1280-save-failed: no window overflow",
+    "only explicit save updates official answer",
+    "1280-saved: no window overflow",
+    "1280-practice-reading: no window overflow",
+    "1280-practice-ai: no window overflow",
+    "1280-practice-ai-end: no window overflow",
+    "long practice solution reaches end with rating footer",
+    "pause/resume retains answer",
+    "exercise→notes→exercise retains attempt",
+    "1280-practice-return: no window overflow",
+    "self-rating submits and advances same practice",
+    "1280-mistake-reading: no window overflow",
+    "1280-mistake-reference: no window overflow",
+    "1280-mistake-ai-conflict: no window overflow",
+    "unsafe legacy mistake write removed per Astra",
+    "1280-mistake-edit: no window overflow",
+    "1024-bank-reading: no window overflow",
+    "bank reading creates no practice session",
+    "1024-bank-generating: no window overflow",
+    "1024-bank-ai: no window overflow",
+    "pane switches do not create jobs",
+    "save failure preserves editor",
+    "1024-save-failed: no window overflow",
+    "only explicit save updates official answer",
+    "1024-saved: no window overflow",
+    "1024-practice-reading: no window overflow",
+    "1024-practice-ai: no window overflow",
+    "1024-practice-ai-end: no window overflow",
+    "long practice solution reaches end with rating footer",
+    "narrow pane retains attempt",
+    "pause/resume retains answer",
+    "exercise→notes→exercise retains attempt",
+    "1024-practice-return: no window overflow",
+    "self-rating submits and advances same practice",
+    "1024-mistake-reading: no window overflow",
+    "1024-mistake-reference: no window overflow",
+    "1024-mistake-ai-conflict: no window overflow",
+    "unsafe legacy mistake write removed per Astra",
+    "1024-mistake-edit: no window overflow",
+    "1280-matrix-reading: no window overflow",
+    "1280-missing-answer: no window overflow",
+    "1280-ai-failed: no window overflow",
+    "1280-ai-disconnected: no window overflow",
+    "disconnect creates exactly one job",
+    "reconnect queries same job",
+    "1280-ai-recovered: no window overflow",
+    "1280-bank-path-only-image: no window overflow",
+    "1280-bank-management: no window overflow",
+    "1280-analyzing: no window overflow",
+    "checkbox selection does not navigate current candidate",
+    "1280-analyze-failed: no window overflow",
+    "1280-zero-candidates: no window overflow",
+    "240-candidate index",
+    "1280-240-candidates: no window overflow",
+    "1280-commit-unknown: no window overflow",
+    "unknown commit never repeats write",
+    "1280-image-question: no window overflow",
+    "1024-matrix-reading: no window overflow",
+    "1024-missing-answer: no window overflow",
+    "1024-ai-failed: no window overflow",
+    "1024-ai-disconnected: no window overflow",
+    "disconnect creates exactly one job",
+    "reconnect queries same job",
+    "1024-ai-recovered: no window overflow",
+    "narrow switch restores solution scroll",
+    "1024-bank-path-only-image: no window overflow",
+    "1024-bank-management: no window overflow",
+    "1024-analyzing: no window overflow",
+    "checkbox selection does not navigate current candidate",
+    "1024-analyze-failed: no window overflow",
+    "1024-zero-candidates: no window overflow",
+    "240-candidate index",
+    "1024-240-candidates: no window overflow",
+    "1024-commit-unknown: no window overflow",
+    "unknown commit never repeats write",
+    "1024-image-question: no window overflow",
+    "1280-manual-dialog: no window overflow",
+    "1280-chat-markdown: no window overflow",
+    "1280-chat-after-exercise: no window overflow",
+    "chat→exercise→chat preserves Markdown style: {\"chatBefore\":{\"font\":\"16px\",\"line\":\"30.4px\"},\"chatAfter\":{\"font\":\"16px\",\"line\":\"30.4px\"}}",
+    "1280-note-reading: no window overflow",
+    "note→exercise→note preserves typography",
+    "1280-mistake-archived: no window overflow",
+    "mistake edit uses existing PATCH contract",
+    "1280-review-four-results: no window overflow",
+    "ReviewSession retains four-result domain",
+    "1280-review-complete: no window overflow",
+    "1280-empty: no window overflow",
+    "1280-overview-error: no window overflow",
+    "1024-empty: no window overflow",
+    "1024-overview-error: no window overflow",
+    "760-preparation: no window overflow",
+    "760-bank-reading: no window overflow",
+    "760-bank-reference: no window overflow",
+    "N1 preview keeps rendered short formulas",
+    "N1 preview has no deleted mathematical object",
+    "1280-n1-preview: no window overflow",
+    "N4 structured not ready removes ineffective generate action",
+    "1280-n4-configure: no window overflow",
+    "N4 configuration entry opens real settings",
+    "N4 recheck enables one explicit generation",
+    "N2 repeated completion warning removed",
+    "N3 explicit rejection retains edited draft",
+    "1280-n2-n3-rejected: no window overflow",
+    "1280-n3-unknown: no window overflow",
+    "N1 preview keeps rendered short formulas",
+    "N1 preview has no deleted mathematical object",
+    "1024-n1-preview: no window overflow",
+    "N4 structured not ready removes ineffective generate action",
+    "1024-n4-configure: no window overflow",
+    "N4 configuration entry opens real settings",
+    "N4 recheck enables one explicit generation",
+    "N2 repeated completion warning removed",
+    "N3 explicit rejection retains edited draft",
+    "1024-n2-n3-rejected: no window overflow",
+    "1024-n3-unknown: no window overflow",
+    "late old-exercise response cannot populate new reader"
+  ],
+  "errors": [],
+  "screenshots": [
+    "1280-preparation.png",
+    "1280-help.png",
+    "1280-source-textbook.png",
+    "1280-source-file.png",
+    "1280-file-ready.png",
+    "1280-candidates.png",
+    "1280-candidate-edit.png",
+    "1280-source-compare.png",
+    "1280-receipt.png",
+    "1280-rollback-receipt.png",
+    "1024-preparation.png",
+    "1024-help.png",
+    "1024-source-textbook.png",
+    "1024-source-file.png",
+    "1024-file-ready.png",
+    "1024-candidates.png",
+    "1024-candidate-edit.png",
+    "1024-source-compare.png",
+    "1024-receipt.png",
+    "1024-rollback-receipt.png",
+    "1280-bank-reading.png",
+    "1280-bank-generating.png",
+    "1280-bank-ai.png",
+    "1280-save-failed.png",
+    "1280-saved.png",
+    "1280-practice-reading.png",
+    "1280-practice-ai.png",
+    "1280-practice-ai-end.png",
+    "1280-practice-return.png",
+    "1280-mistake-reading.png",
+    "1280-mistake-reference.png",
+    "1280-mistake-ai-conflict.png",
+    "1280-mistake-edit.png",
+    "1024-bank-reading.png",
+    "1024-bank-generating.png",
+    "1024-bank-ai.png",
+    "1024-save-failed.png",
+    "1024-saved.png",
+    "1024-practice-reading.png",
+    "1024-practice-ai.png",
+    "1024-practice-ai-end.png",
+    "1024-practice-return.png",
+    "1024-mistake-reading.png",
+    "1024-mistake-reference.png",
+    "1024-mistake-ai-conflict.png",
+    "1024-mistake-edit.png",
+    "1280-matrix-reading.png",
+    "1280-missing-answer.png",
+    "1280-ai-failed.png",
+    "1280-ai-disconnected.png",
+    "1280-ai-recovered.png",
+    "1280-bank-path-only-image.png",
+    "1280-bank-management.png",
+    "1280-analyzing.png",
+    "1280-analyze-failed.png",
+    "1280-zero-candidates.png",
+    "1280-240-candidates.png",
+    "1280-commit-unknown.png",
+    "1280-image-question.png",
+    "1024-matrix-reading.png",
+    "1024-missing-answer.png",
+    "1024-ai-failed.png",
+    "1024-ai-disconnected.png",
+    "1024-ai-recovered.png",
+    "1024-bank-path-only-image.png",
+    "1024-bank-management.png",
+    "1024-analyzing.png",
+    "1024-analyze-failed.png",
+    "1024-zero-candidates.png",
+    "1024-240-candidates.png",
+    "1024-commit-unknown.png",
+    "1024-image-question.png",
+    "1280-manual-dialog.png",
+    "1280-chat-markdown.png",
+    "1280-chat-after-exercise.png",
+    "1280-note-reading.png",
+    "1280-mistake-archived.png",
+    "1280-review-four-results.png",
+    "1280-review-complete.png",
+    "1280-empty.png",
+    "1280-overview-error.png",
+    "1024-empty.png",
+    "1024-overview-error.png",
+    "760-preparation.png",
+    "760-bank-reading.png",
+    "760-bank-reference.png",
+    "1280-n1-preview.png",
+    "1280-n4-configure.png",
+    "1280-n2-n3-rejected.png",
+    "1280-n3-unknown.png",
+    "1024-n1-preview.png",
+    "1024-n4-configure.png",
+    "1024-n2-n3-rejected.png",
+    "1024-n3-unknown.png"
+  ],
+  "head": "510f0d6459ed0ac02a450f21caec8e059533d03e",
+  "electron": "37.10.3",
+  "captureMetadata": [
+    {
+      "file": "1280-preparation.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-help.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-source-textbook.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-source-file.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-file-ready.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-candidates.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-candidate-edit.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-source-compare.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-receipt.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-rollback-receipt.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-preparation.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-help.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-source-textbook.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-source-file.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-file-ready.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-candidates.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-candidate-edit.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-source-compare.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-receipt.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-rollback-receipt.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-bank-reading.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-bank-generating.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-bank-ai.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-save-failed.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-saved.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-practice-reading.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-practice-ai.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-practice-ai-end.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-practice-return.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-mistake-reading.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/mistakes/qa-mistake?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "错题"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-mistake-reference.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/mistakes/qa-mistake?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "错题"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-mistake-ai-conflict.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/mistakes/qa-mistake?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "错题"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-mistake-edit.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/mistakes/qa-mistake?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "错题"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-bank-reading.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-bank-generating.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-bank-ai.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-save-failed.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-saved.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-practice-reading.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-practice-ai.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-practice-ai-end.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-practice-return.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-mistake-reading.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/mistakes/qa-mistake?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "错题"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-mistake-reference.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/mistakes/qa-mistake?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "错题"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-mistake-ai-conflict.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/mistakes/qa-mistake?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "错题"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-mistake-edit.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/mistakes/qa-mistake?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "错题"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-matrix-reading.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-missing-answer.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-ai-failed.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-ai-disconnected.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-ai-recovered.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-bank-path-only-image.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-bank-management.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-analyzing.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-analyze-failed.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-zero-candidates.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-240-candidates.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-commit-unknown.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-image-question.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/mistakes/qa-mistake?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "错题"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1024-matrix-reading.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-missing-answer.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-ai-failed.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-ai-disconnected.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-ai-recovered.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-bank-path-only-image.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-bank-management.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-analyzing.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-analyze-failed.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-zero-candidates.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-240-candidates.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-commit-unknown.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-image-question.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/mistakes/qa-mistake?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "错题"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1280-manual-dialog.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-chat-markdown.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/?conversation_id=visual-session-0",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "学习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-chat-after-exercise.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "学习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-note-reading.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/notes/qa-note",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "笔记"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-mistake-archived.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/mistakes/qa-mistake?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "错题"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-review-four-results.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/learning/review/qa-redo?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "复习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-review-complete.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/learning/review/qa-redo?book_name=qa-book",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "复习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-empty.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-overview-error.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-empty.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-overview-error.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "760-preparation.png",
+      "width": 760,
+      "height": 820,
+      "scroll": 760,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "760-bank-reading.png",
+      "width": 760,
+      "height": 820,
+      "scroll": 760,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 760
+    },
+    {
+      "file": "760-bank-reference.png",
+      "width": 760,
+      "height": 820,
+      "scroll": 760,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 760
+    },
+    {
+      "file": "1280-n1-preview.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1280-n4-configure.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-n2-n3-rejected.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1280-n3-unknown.png",
+      "width": 1280,
+      "height": 820,
+      "scroll": 1280,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 1048
+    },
+    {
+      "file": "1024-n1-preview.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1"
+    },
+    {
+      "file": "1024-n4-configure.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-n2-n3-rejected.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    },
+    {
+      "file": "1024-n3-unknown.png",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "route": "/exercises",
+      "theme": "mineral",
+      "fontReady": true,
+      "activeNavigation": [
+        "练习"
+      ],
+      "panelOpacity": "1",
+      "readingWidth": 816
+    }
+  ]
+}

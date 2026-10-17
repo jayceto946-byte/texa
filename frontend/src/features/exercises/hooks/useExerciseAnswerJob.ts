@@ -16,12 +16,22 @@ export function useExerciseAnswerJob({ exercise, bookQuery, onMessage, onRecordS
   const [answerStatusMessage, setMessage] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
   const [saving, setSaving] = useState(false);
+  const [modelReady, setModelReady] = useState<boolean | null>(null);
+  const checkModel = useCallback(async () => {
+    try {
+      const res = await get('/system/remote-ready');
+      const ready = res?.success && typeof res.data?.ready === 'boolean' ? res.data.ready as boolean : null;
+      setModelReady(ready);
+      return ready;
+    } catch { setModelReady(null); return null; }
+  }, []);
+  useEffect(() => { void checkModel(); }, [checkModel]);
   const setAnswerDraft = useCallback((text: string) => { drafts.current.set(selection.current, text); updateDraft(text); setSaveMessage(''); }, []);
   const apply = useCallback((job: Job) => {
     if (job.status === 'queued' || job.status === 'running') { setJobId(job.id); setBusy(true); setStatus(job.status); setMessage(job.message || '正在后台生成答案'); }
     else {
       setJobId(''); setBusy(false);
-      if (job.status === 'completed' && job.result?.answer?.trim()) { setAnswerDraft(job.result.answer); setStatus('completed'); setMessage('答案草稿已生成，保存后才写入题库。'); }
+      if (job.status === 'completed' && job.result?.answer?.trim()) { setAnswerDraft(job.result.answer); setStatus('completed'); setMessage(''); }
       else { setStatus('failed'); setMessage(job.message || '生成结果没有可用答案，请重试。'); }
     }
   }, [setAnswerDraft]);
@@ -63,23 +73,24 @@ export function useExerciseAnswerJob({ exercise, bookQuery, onMessage, onRecordS
     }; void poll(); const timer = window.setInterval(poll, 1600); return () => { stopped = true; window.clearInterval(timer); };
   }, [jobId, key, apply]);
   const generateStandardAnswer = useCallback(async () => {
-    if (!exercise || answerBusy || submitting.current || answerStatus === 'unavailable') return;
+    if (!exercise || answerBusy || submitting.current || answerStatus === 'unavailable' || modelReady === false) return;
     submitting.current = true; const requested = key; setBusy(true); setStatus('queued'); setMessage('正在创建后台答案任务');
     try {
       const res = await post('/exercises/answer/jobs' + bookQuery, { id: exercise.id }, 20000); if (selection.current !== requested) return;
       if (!res?.success || !res.data?.id) { setBusy(false); setStatus('failed'); setMessage(res?.message || '后台拒绝创建答案任务'); return; } apply(res.data);
     } catch { if (selection.current === requested) { setBusy(false); setStatus('unavailable'); setMessage('创建请求中断，先读取现有任务状态。'); void reconnect(true); } }
     finally { submitting.current = false; }
-  }, [exercise, answerBusy, answerStatus, key, bookQuery, apply, reconnect]);
+  }, [exercise, answerBusy, answerStatus, modelReady, key, bookQuery, apply, reconnect]);
   const saveStandardAnswer = useCallback(async () => {
     if (!exercise || !answerDraft.trim() || answerBusy || submitting.current) return;
     submitting.current = true; const requested = key; setSaving(true); setSaveMessage('正在保存…');
     try {
       const res = await post('/exercises/answer/save' + bookQuery, { id: exercise.id, answer: answerDraft, explanation: exercise.explanation || '' }); if (selection.current !== requested) return;
-      if (!res?.success || !res.data?.id) throw Error(res?.message || '保存失败');
+      if (res?.success === false) { setSaveMessage('保存失败，当前草稿保留。请检查后重试。'); return false; }
+      if (!res?.success || !res.data?.id) throw Error('保存未确认');
       drafts.current.delete(requested); updateDraft(''); onRecordSaved(res.data as ExerciseRecord); onMessage('标准答案已保存'); setStatus('idle'); setMessage(''); setSaveMessage('已保存到题库'); return true;
     } catch { if (selection.current === requested) setSaveMessage('保存未确认，当前草稿保留。请核对题库后重试。'); }
     finally { submitting.current = false; if (selection.current === requested) setSaving(false); }
   }, [exercise, answerDraft, answerBusy, key, bookQuery, onRecordSaved, onMessage]);
-  return { answerDraft, setAnswerDraft, answerBusy, answerStatus, answerStatusMessage, saveMessage, saving, reconnect, generateStandardAnswer, saveStandardAnswer };
+  return { answerDraft, setAnswerDraft, answerBusy, answerStatus, answerStatusMessage, saveMessage, saving, modelReady, checkModel, reconnect, generateStandardAnswer, saveStandardAnswer };
 }

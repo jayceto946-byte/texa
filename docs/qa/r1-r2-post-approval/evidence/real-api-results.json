@@ -1,0 +1,101 @@
+{
+  "environment": "local real-data copies; real API/storage; controlled answer producer; no model/OCR calls; no lifespan workers",
+  "checks": [
+    {
+      "name": "real bank records / overview contract",
+      "status": "PASS"
+    },
+    {
+      "name": "API preserves complete real question text",
+      "status": "PASS"
+    },
+    {
+      "name": "pause real practice",
+      "status": "PASS"
+    },
+    {
+      "name": "resume same persisted practice",
+      "status": "PASS"
+    },
+    {
+      "name": "answer replay does not duplicate practice count",
+      "status": "PASS"
+    },
+    {
+      "name": "answer replay does not duplicate practice count",
+      "status": "PASS"
+    },
+    {
+      "name": "complete practice and update summary",
+      "status": "PASS"
+    },
+    {
+      "name": "reload persisted completion",
+      "status": "PASS"
+    },
+    {
+      "name": "active job reuse on real API with controlled producer",
+      "status": "PASS"
+    },
+    {
+      "name": "controlled completed job never saves official answer",
+      "status": "PASS"
+    },
+    {
+      "name": "explicit save persists edited answer",
+      "status": "PASS"
+    },
+    {
+      "name": "real Canonical textbook extraction without OCR/model",
+      "status": "PASS"
+    },
+    {
+      "name": "real mistake detail fields",
+      "status": "PASS"
+    },
+    {
+      "name": "isolated image resource resolves within copied image root",
+      "status": "PASS"
+    },
+    {
+      "name": "archive/restore preserves real content",
+      "status": "PASS"
+    },
+    {
+      "name": "real mistake independent redo persists user-confirmed result",
+      "status": "PASS"
+    },
+    {
+      "name": "real mistake detail fields",
+      "status": "PASS"
+    },
+    {
+      "name": "isolated image resource resolves within copied image root",
+      "status": "PASS"
+    },
+    {
+      "name": "archive/restore preserves real content",
+      "status": "PASS"
+    },
+    {
+      "name": "real mistake independent redo persists user-confirmed result",
+      "status": "PASS"
+    },
+    {
+      "name": "synthetic malformed batch rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "empty batch is explicit",
+      "status": "PASS"
+    },
+    {
+      "name": "synthetic 220 record batch persists",
+      "status": "PASS"
+    },
+    {
+      "name": "source database logical fingerprints unchanged",
+      "status": "PASS"
+    }
+  ]
+}

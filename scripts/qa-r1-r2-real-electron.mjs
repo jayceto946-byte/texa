@@ -1,0 +1,106 @@
+/** Real local data copy + production APIs/storage + controlled answer producer.
+ * No real model, OCR, credentials, or production writes. Private screenshots stay ignored.
+ */
+import {createRequire} from 'node:module';
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {resolve} from 'node:path';
+const {_electron}=createRequire(import.meta.url)('playwright');
+const work=resolve(process.env.TEXA_REAL_QA_WORK);
+const context=JSON.parse(readFileSync(resolve(work,'private-context.json')));
+const origin='http://127.0.0.1:18065';
+const out=resolve(work,'electron');mkdirSync(out,{recursive:true});
+const results={environment:'macOS Electron production build + real data copy + real API/storage; controlled answer producer/readiness; no real model',checks:[],errors:[],screenshots:[]};
+const check=(ok,name)=>{results.checks.push({name,status:ok?'PASS':'FAIL'});if(!ok)throw Error(name)};
+let app,page;
+const shot=async name=>{await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:resolve(out,name+'.png'),animations:'disabled'});results.screenshots.push(name+'.png');check(await page.evaluate(()=>document.body.scrollWidth<=innerWidth),name+' no document overflow')};
+try{
+ const userData='/tmp/texa-real-qa-'+Date.now();mkdirSync(userData);writeFileSync(resolve(userData,'setup-complete.json'),JSON.stringify({version:3,complete:true}));
+ app=await _electron.launch({executablePath:resolve('desktop/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron'),args:[resolve('desktop')],env:{...process.env,KAOYAN_USER_DATA_DIR:userData,KAOYAN_SKIP_BACKEND:'1',KAOYAN_BACKEND_URL:origin,KAOYAN_FRONTEND_DEV_URL:origin}});
+ page=await app.firstWindow();page.setDefaultTimeout(15000);page.on('pageerror',error=>results.errors.push(error.name));page.on('dialog',dialog=>void dialog.accept().catch(()=>{}));
+ await page.locator('.composer-textarea').waitFor();
+ await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setContentSize(1280,820));
+ await page.getByRole('link',{name:'练习',exact:true}).click();
+ await page.getByRole('button',{name:'选择科目',exact:true}).click();
+ await page.getByRole('button',{name:'专业课',exact:true}).click();
+ await page.getByRole('button',{name:new RegExp(context.book)}).click();
+ await page.locator('.exercise-resource-summary article').first().waitFor();
+ await shot('1280-real-preparation');
+ await page.getByRole('radio',{name:'题库',exact:true}).click();
+ await page.locator('.workspace-register-row>button').first().click();
+ await page.getByRole('heading',{name:'习题详情',exact:true}).waitFor();
+ const text=await page.locator('.question-reading-question').innerText();
+ check(text.length>50,'real question displayed with source metadata');await shot('1280-real-reader');
+ await page.getByRole('button',{name:'AI 解题',exact:true}).click();
+ await page.getByRole('button',{name:'生成解答',exact:true}).click();
+ await page.getByRole('button',{name:'保存到题库',exact:true}).waitFor();
+ await page.locator('.question-reading-solution .katex:visible').first().waitFor();
+ await page.getByRole('button',{name:'编辑草稿',exact:true}).click();
+ await page.getByRole('textbox',{name:'答案草稿'}).fill('## 本地副本编辑\n\n$x^2$\n\n明确保存合同检查。');
+ await shot('1280-controlled-job-draft');
+ await page.getByRole('button',{name:'保存到题库',exact:true}).click();
+ await page.getByText('已保存到题库',{exact:true}).waitFor();
+ check((await page.locator('.question-reading-solution').innerText()).includes('明确保存合同检查'),'explicit save returns to official reference');
+ await shot('1280-real-api-saved');
+ await page.getByRole('button',{name:'返回题库',exact:true}).click();
+ await page.getByRole('radio',{name:'练习',exact:true}).click();
+ await page.getByLabel('本次题量',{exact:true}).fill('2');
+ await page.getByRole('button',{name:/开始练习 ·/}).click();
+ await page.getByRole('textbox',{name:'你的作答'}).fill('副本练习草稿 $x$');
+ await page.getByRole('button',{name:'暂停',exact:true}).click();
+ await page.getByRole('button',{name:'继续',exact:true}).click();
+ check((await page.getByRole('textbox',{name:'你的作答'}).inputValue()).includes('副本练习草稿'),'real pause/resume keeps mounted attempt');
+ await page.getByRole('link',{name:'学习',exact:true}).click();
+ await page.getByRole('link',{name:'练习',exact:true}).click();
+ check((await page.getByRole('textbox',{name:'你的作答'}).inputValue()).includes('副本练习草稿'),'learning exercise learning transition retains attempt');
+ await page.getByRole('button',{name:'查看参考答案',exact:true}).click();
+ await page.getByRole('button',{name:'基本理解',exact:true}).click();
+ await page.getByRole('heading',{name:'第 2 / 2 题',exact:true}).waitFor();
+ await page.getByRole('button',{name:'查看参考答案',exact:true}).click();
+ await page.getByRole('button',{name:'基本理解',exact:true}).click();
+ await page.getByText(/本轮完成：2 题/).waitFor();check(true,'real API practice completion and overview');
+ await page.getByRole('radio',{name:'导入',exact:true}).click();
+ await page.getByRole('button',{name:'抽取教材候选题',exact:true}).click();
+ await page.getByRole('heading',{name:'校对候选题',exact:true}).waitFor();
+ check(await page.locator('.exercise-index-item').count()===context.candidate_count,'real canonical candidates render complete index');
+ await shot('1280-real-candidates');
+ await page.getByRole('button',{name:'编辑',exact:true}).click();
+ const question=page.getByRole('textbox',{name:'候选题题干'});const original=await question.inputValue();
+ await question.fill(original+'\n\n本地副本人工作业校对 '+Date.now()+'。');
+ await page.getByRole('button',{name:'清空选择',exact:true}).click();
+ await page.locator('.exercise-index-item').first().getByRole('checkbox').check();
+ await page.getByRole('button',{name:'确认入库',exact:true}).click();
+ await page.getByRole('heading',{name:'已加入 1 道题目',exact:true}).waitFor();
+ await shot('1280-real-import-receipt');check(true,'edit real candidate and explicitly commit one record to isolated bank');
+ await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setContentSize(1024,768));
+ await shot('1024-real-import-receipt');
+ if(context.mistake_id) {
+   await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setContentSize(1280,820));
+   const detail=origin+'/mistakes/'+encodeURIComponent(context.mistake_id)+'?book_name='+encodeURIComponent(context.mistake_book);
+   // Explicitly discard the remaining uncommitted candidates in this QA copy.
+   await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].webContents.once('will-prevent-unload',event=>event.preventDefault()));
+   await page.goto(detail);await page.locator('.question-reading').waitFor();
+   await page.getByText('对照原图',{exact:true}).click();
+   await page.getByRole('img',{name:'错题原图',exact:true}).waitFor();
+   await page.waitForFunction(()=>document.querySelector('img[alt="错题原图"]')?.naturalWidth>0);
+   check(await page.getByRole('img',{name:'错题原图',exact:true}).evaluate(image=>image.complete&&image.naturalWidth>0),'real copied mistake original image loads');
+   await shot('1280-real-mistake-image');
+   await page.getByRole('button',{name:'参考答案',exact:true}).first().click();
+   await shot('1280-real-mistake-reference');
+   await page.getByRole('button',{name:'AI 讲解',exact:true}).first().click();
+   check(await page.getByRole('button',{name:'生成讲解并保存',exact:true}).count()===0,'real mistake preserves F1 unavailable boundary');
+   await page.getByRole('button',{name:'归档',exact:true}).click();
+   await page.getByRole('button',{name:'恢复档案',exact:true}).click();
+   await page.getByRole('button',{name:'归档',exact:true}).waitFor();
+   check(true,'real mistake archive restore returns to active');
+   await page.getByRole('button',{name:'现在重做',exact:true}).click();
+   await page.getByRole('heading',{name:'独立重做',exact:true}).waitFor();
+   await page.getByRole('textbox').fill('本地隔离的独立重做记录');
+   await page.getByRole('button',{name:'提交作答并查看反馈',exact:true}).click();
+   await page.getByRole('button',{name:'部分完成',exact:true}).click();
+   await page.getByRole('heading',{name:'本次复习完成',exact:true}).waitFor();
+   await page.goto(detail);await page.locator('.question-reading').waitFor();
+   check(await page.getByRole('button',{name:'现在重做',exact:true}).isVisible(),'real mistake redo returns to same detail');
+   await shot('1280-real-mistake-return');
+ }
+}catch(error){results.errors.push(String(error));if(page)await page.screenshot({path:resolve(out,'failure.png')});process.exitCode=1}
+finally{writeFileSync(resolve(out,'results.json'),JSON.stringify(results,null,2));await app?.evaluate(({app})=>app.exit(0)).catch(()=>{});await app?.close().catch(()=>{});console.log(JSON.stringify({checks:results.checks.length,errors:results.errors}))}

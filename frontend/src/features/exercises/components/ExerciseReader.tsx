@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ReadingMarkdown as SimpleMarkdown } from '../../reading/ReadingMarkdown';
 import { useUnsavedWorkGuard } from '../../reading/useUnsavedWorkGuard';
 import { QuestionReadingLayout, type ReadingPane } from '../../reading/QuestionReadingLayout';
@@ -9,6 +10,8 @@ export function ExerciseReader({ record, bookQuery, title, actions, attempt, foo
   const [pane, setPane] = useState<ReadingPane>('question');
   const [editing, setEditing] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
   const changePane = (next: ReadingPane) => { setPane(next); if (next !== 'question') setRevealed(true); };
   const job = useExerciseAnswerJob({ exercise: record, bookQuery, onRecordSaved: onSaved, onMessage });
   useUnsavedWorkGuard(Boolean(job.answerDraft), 'AI 草稿尚未保存，退出后会丢失。确定退出 Texa 吗？');
@@ -41,13 +44,13 @@ export function ExerciseReader({ record, bookQuery, title, actions, attempt, foo
     </section>}</>} ai={<>
       <p role={job.answerStatus === 'failed' ? 'alert' : 'status'} className={`question-reading-status ${['failed', 'unavailable'].includes(job.answerStatus) ? 'is-warning' : ''}`}>{job.answerStatusMessage}</p>{job.answerDraft ? <>
         <div className="question-reading-draft-toolbar">
-          <span>未保存草稿 · 仅在当前页面内存中保留</span>
+          <span>未保存草稿 · 保存后成为题库答案；关闭题目、刷新或退出会丢失编辑</span>
           <button className="app-ghost-button" disabled={job.answerBusy || job.saving} onClick={() => setEditing(!editing)}>{editing ? '阅读预览' : '编辑草稿'}</button>
           <button className="app-secondary-button" disabled={job.saving || job.answerBusy} onClick={async () => { if (await job.saveStandardAnswer()) { setEditing(false); changePane('reference'); } }}>{job.saving ? '正在保存…' : '保存到题库'}</button>
         </div>{editing ? <textarea aria-label="答案草稿" value={job.answerDraft} onChange={e => job.setAnswerDraft(e.target.value)} /> : <SimpleMarkdown content={job.answerDraft} />}</> : !job.answerBusy && <>
           <h2>AI 解题</h2>
           <p>生成后可阅读、编辑，明确保存后写入题库。</p>
         </>}{job.saveMessage && job.saveMessage !== '已保存到题库' && <p role="status" className="question-reading-status is-warning">{job.saveMessage}</p>}{job.answerStatus === 'unavailable' ? <button className="app-secondary-button" onClick={() => void job.reconnect(true)}>重新读取任务状态</button> : <div className="question-reading-end">
-          <button className="app-secondary-button" disabled={job.answerBusy || job.saving} onClick={generate}>{job.answerBusy ? '正在生成…' : job.answerDraft ? '重新生成' : '生成解答'}</button>
+          {job.modelReady === false ? <><p className="question-reading-status is-warning">回答模型尚未就绪，请先完成模型与凭证配置。</p><button className="app-secondary-button" onClick={() => navigate(location.pathname, { replace: true, state: { openSettings: true } })}>配置模型</button><button className="app-ghost-button" onClick={() => void job.checkModel()}>重新检查配置</button></> : <button className="app-secondary-button" disabled={job.answerBusy || job.saving} onClick={generate}>{job.answerBusy ? '正在生成…' : job.answerDraft ? '重新生成' : '生成解答'}</button>}
         </div>}</>} />;
 }

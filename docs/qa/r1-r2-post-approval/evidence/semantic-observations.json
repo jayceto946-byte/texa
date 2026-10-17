@@ -1,0 +1,10 @@
+{
+  "checks": [
+    {
+      "name": "real textbook candidate stem/answer separation",
+      "status": "FAIL",
+      "finding": "D-01",
+      "classification": "pre-existing extraction behavior; outside UI closure; manual review required"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import { getBookList } from '../features/books/bookList';
 import ManualExerciseDialog from '../features/exercises/ManualExerciseDialog';
+import { exercisePreview } from '../features/exercises/exercisePreview';
 import '../features/exercises/exercises.css';
 import { useUnsavedWorkGuard } from '../features/reading/useUnsavedWorkGuard';
 import { HelpHint } from '../features/exercises/components/HelpHint';
@@ -26,8 +27,7 @@ import type { BookInfo, ExerciseCandidate, ExerciseImportBatch, ExercisePractice
 
 function titleOf(record: ExerciseRecord) {
   const raw = record.question_text || record.source || '未命名习题';
-  const line = raw.replace(/\$\$[\s\S]*?\$\$/g, '〔公式〕').replace(/\$(?:\\.|[^$\\])*?\$/g, '〔公式〕').split('\n').map((item) => item.trim()).find(Boolean) || raw;
-  return line.length > 56 ? `${line.slice(0, 56)}...` : line;
+  return exercisePreview(raw);
 }
 
 function candidateToExercise(candidate: ExerciseCandidate) {

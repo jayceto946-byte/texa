@@ -1,0 +1,60 @@
+/** Targeted N1–N4 component checks in the real Electron renderer, fixture API only. */
+export async function postApprovalCases({page,app,shot,assert,reset,requests,state}) {
+  for(const [width,height] of [[1280,820],[1024,768]]) {
+    state.scenario='normal';state.job=null;
+    await app.evaluate(({BrowserWindow},[w,h])=>BrowserWindow.getAllWindows()[0].setContentSize(w,h),[width,height]);
+    await reset();
+    const example=page.locator('.exercise-resource-summary article').first();
+    assert(await example.locator('.katex').count()>0,'N1 preview keeps rendered short formulas');
+    assert(!(await example.innerText()).includes('函数 。'),'N1 preview has no deleted mathematical object');
+    await shot(`${width}-n1-preview`);
+    state.scenario='model-missing';
+    await page.getByRole('radio',{name:'题库',exact:true}).click();
+    await page.locator('.workspace-register-row>button').first().click();
+    await page.getByRole('button',{name:'AI 解题',exact:true}).click();
+    await page.getByRole('button',{name:'配置模型',exact:true}).waitFor();
+    assert(await page.getByRole('button',{name:'生成解答',exact:true}).count()===0,'N4 structured not ready removes ineffective generate action');
+    const count=requests.filter(r=>r.path==='/api/exercises/answer/jobs'&&r.method==='POST').length;
+    await shot(`${width}-n4-configure`);
+    await page.getByRole('button',{name:'配置模型',exact:true}).click();
+    await page.getByRole('dialog',{name:'设置',exact:true}).waitFor();
+    assert(await page.getByRole('button',{name:'关闭设置',exact:true}).isVisible(),'N4 configuration entry opens real settings');
+    await page.getByRole('button',{name:'关闭设置',exact:true}).click();
+    await page.getByRole('dialog',{name:'设置',exact:true}).waitFor({state:'hidden'});
+    await page.getByRole('link',{name:'练习',exact:true}).click();
+    state.scenario='normal';
+    await page.getByRole('button',{name:'重新检查配置',exact:true}).click();
+    await page.getByRole('button',{name:'生成解答',exact:true}).click();
+    await page.getByRole('button',{name:'保存到题库',exact:true}).waitFor();
+    assert(requests.filter(r=>r.path==='/api/exercises/answer/jobs'&&r.method==='POST').length===count+1,'N4 recheck enables one explicit generation');
+    assert(await page.getByText('答案草稿已生成，保存后才写入题库。',{exact:true}).count()===0,'N2 repeated completion warning removed');
+    await page.getByText('未保存草稿 · 保存后成为题库答案；关闭题目、刷新或退出会丢失编辑',{exact:true}).waitFor();
+    await page.getByRole('button',{name:'编辑草稿',exact:true}).click();
+    await page.getByRole('textbox',{name:'答案草稿'}).fill('待保存的局部编辑 $x^2$');
+    state.scenario='save-rejected';
+    await page.getByRole('button',{name:'保存到题库',exact:true}).click();
+    await page.getByText('保存失败，当前草稿保留。请检查后重试。',{exact:true}).waitFor();
+    assert((await page.getByRole('textbox',{name:'答案草稿'}).inputValue()).includes('局部编辑'),'N3 explicit rejection retains edited draft');
+    await shot(`${width}-n2-n3-rejected`);
+    state.scenario='save-failed';
+    await page.getByRole('button',{name:'保存到题库',exact:true}).click();
+    await page.getByText('保存未确认，当前草稿保留。请核对题库后重试。',{exact:true}).waitFor();
+    await shot(`${width}-n3-unknown`);
+    state.scenario='normal';
+    await page.getByRole('button',{name:'保存到题库',exact:true}).click();
+    await page.getByText('已保存到题库',{exact:true}).waitFor();
+  }
+  state.scenario='normal';state.job=null;await reset();
+  await page.getByRole('radio',{name:'题库',exact:true}).click();
+  let release,entered;
+  const gate=new Promise(resolve=>{release=resolve});
+  const arrival=new Promise(resolve=>{entered=resolve});
+  await page.route('**/api/exercises/answer/jobs/latest?*',async route=>{entered();await gate;await route.fulfill({json:{success:true,data:{id:'old-job',status:'completed',result:{answer:'迟到的旧题答案'}}}})},{times:1});
+  await page.locator('.workspace-register-row>button').first().click();await arrival;
+  await page.getByRole('button',{name:'返回题库',exact:true}).click();
+  await page.locator('.workspace-register-row>button').nth(1).click();
+  const response=page.waitForResponse(r=>r.url().includes('/answer/jobs/latest')&&r.request().url().includes('r-0'));
+  release();await response;
+  await page.getByRole('button',{name:'AI 解题',exact:true}).first().click();
+  assert(!(await page.locator('.question-reading').innerText()).includes('迟到的旧题答案'),'late old-exercise response cannot populate new reader');
+}

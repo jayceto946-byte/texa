@@ -1,0 +1,42 @@
+{
+  "privacy": "Screenshots are synthetic fixtures only. Real-data payloads and screenshots stay local and ignored.",
+  "fixture": "156 checks / 94 screenshots; selected 3 screenshots versioned",
+  "real_api": "24 PASS; controlled answer producer",
+  "real_electron": "21 PASS / 10 private screenshots; controlled producer/readiness; actual data copy",
+  "semantic_observation": "D-01 FAIL / OPEN; not masked by API tests",
+  "source_integrity": "4 source databases unchanged",
+  "files": {
+    "source-integrity.json": {
+      "sha256": "9c18eb616d1d7bedc4cc0a843c62296be0743b4c4c66c95e2bf280ad2add9fef",
+      "bytes": 148
+    },
+    "1024-n4-configure.png": {
+      "sha256": "b4a1612b48aced36d1015d6c0f065e9a36d69273863777ead2c1a91f9991bf31",
+      "bytes": 57762
+    },
+    "fixture-results.json": {
+      "sha256": "c4bad9bf94fbd5e0b4cf0e35d4f54a49a2667f2a367f16953fb3ed2baf419d60",
+      "bytes": 38090
+    },
+    "semantic-observations.json": {
+      "sha256": "4b6476c81fe82bdac21b2205eb37af75172225e2c24851774c68940e14f622f7",
+      "bytes": 250
+    },
+    "real-electron-results.json": {
+      "sha256": "8145668fd9c926356a8e29cc13b061bc42fede21680a82cc3e680a2be5ab7c80",
+      "bytes": 2618
+    },
+    "1024-n1-preview.png": {
+      "sha256": "64fc8ebe3a3e4358caab74c3dd84be509ab916538df2c34f24ce2a12cffdb198",
+      "bytes": 103892
+    },
+    "1024-n2-n3-rejected.png": {
+      "sha256": "5545427330fcc66ee10ee939b02ad638e77d5815e510b06147db630011c49ef8",
+      "bytes": 62927
+    },
+    "real-api-results.json": {
+      "sha256": "a0415137bd5d507a76811fb4cf8c814615f194c54bedbd55afc86a4e316122dd",
+      "bytes": 2423
+    }
+  }
+}

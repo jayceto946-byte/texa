@@ -1,0 +1,5 @@
+{
+  "status": "PASS",
+  "source_databases_checked": 4,
+  "method": "read-only logical dump SHA256 before snapshot and after API + Electron tests"
+}

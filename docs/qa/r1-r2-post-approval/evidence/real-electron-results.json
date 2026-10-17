@@ -1,0 +1,102 @@
+{
+  "environment": "macOS Electron production build + real data copy + real API/storage; controlled answer producer/readiness; no real model",
+  "checks": [
+    {
+      "name": "1280-real-preparation no document overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "real question displayed with source metadata",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-real-reader no document overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-controlled-job-draft no document overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "explicit save returns to official reference",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-real-api-saved no document overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "real pause/resume keeps mounted attempt",
+      "status": "PASS"
+    },
+    {
+      "name": "learning exercise learning transition retains attempt",
+      "status": "PASS"
+    },
+    {
+      "name": "real API practice completion and overview",
+      "status": "PASS"
+    },
+    {
+      "name": "real canonical candidates render complete index",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-real-candidates no document overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-real-import-receipt no document overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "edit real candidate and explicitly commit one record to isolated bank",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-real-import-receipt no document overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "real copied mistake original image loads",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-real-mistake-image no document overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-real-mistake-reference no document overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "real mistake preserves F1 unavailable boundary",
+      "status": "PASS"
+    },
+    {
+      "name": "real mistake archive restore returns to active",
+      "status": "PASS"
+    },
+    {
+      "name": "real mistake redo returns to same detail",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-real-mistake-return no document overflow",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "1280-real-preparation.png",
+    "1280-real-reader.png",
+    "1280-controlled-job-draft.png",
+    "1280-real-api-saved.png",
+    "1280-real-candidates.png",
+    "1280-real-import-receipt.png",
+    "1024-real-import-receipt.png",
+    "1280-real-mistake-image.png",
+    "1280-real-mistake-reference.png",
+    "1280-real-mistake-return.png"
+  ]
+}
