@@ -152,8 +152,8 @@ const LearningBlockquote = ({ children }: { children?: React.ReactNode }) => {
   return <blockquote className="learning-note my-2 border-l-2 border-border pl-3 text-text-secondary">{children}</blockquote>;
 };
 
-export const SimpleMarkdown: React.FC<{ content: string }> = ({ content }) => (
-  <div className="markdown-body text-sm leading-relaxed break-words">
+export const SimpleMarkdown: React.FC<{ content: string; className?: string }> = ({ content, className = 'markdown-body text-sm leading-relaxed break-words' }) => (
+  <div className={className}>
     <ReactMarkdown remarkPlugins={markdownPlugins} rehypePlugins={katexPlugins}>
       {prepareMathMarkdown(content || '')}
     </ReactMarkdown>

@@ -1,7 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import type { ConceptCandidate } from '../../types';
 
-type SimpleMarkdownProps = { content: string };
+type SimpleMarkdownProps = { content: string; className?: string };
 type MarkdownMessageProps = {
   content: string;
   linkedConcepts?: ConceptCandidate[];
@@ -26,9 +26,9 @@ const MarkdownLoadingFallback: React.FC = () => (
   </div>
 );
 
-export const SimpleMarkdown: React.FC<SimpleMarkdownProps> = ({ content }) => (
+export const SimpleMarkdown: React.FC<SimpleMarkdownProps> = ({ content, className }) => (
   <Suspense fallback={<MarkdownLoadingFallback />}>
-    <SimpleMarkdownRenderer content={content} />
+    <SimpleMarkdownRenderer content={content} className={className} />
   </Suspense>
 );
 

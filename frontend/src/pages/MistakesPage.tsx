@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BookOpen, ClipboardList, ImagePlus, Loader2, Search } from 'lucide-react';
 import { get, getAuthenticatedBlob, patch, post } from '../api/client';
-import ChatMessage from '../components/ChatMessage';
 import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
 import ScopeSelector, { type ScopeBookOption } from '../components/ScopeSelector';
 import { ActionableIssue } from '../components/ui/AsyncState';
@@ -12,9 +11,12 @@ import { useChatContext } from '../contexts/ChatContext';
 import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 import type { MistakeRecord } from '../types';
 import './MistakesPage.css';
+import { useUnsavedWorkGuard } from '../features/reading/useUnsavedWorkGuard';
+import { ReadingMarkdown } from '../features/reading/ReadingMarkdown';
+import { QuestionReadingLayout, type ReadingPane } from '../features/reading/QuestionReadingLayout';
 
 type Filter = 'all' | 'pending' | 'due' | 'repeated' | 'mastered';
-type ProjectedMistake = MistakeRecord & { pending_reason?: string; review_status?: string; mastery_status?: string; mastery_source?: string; repeat_wrong?: boolean };
+type ProjectedMistake = MistakeRecord & { corrected_note?: string; pending_reason?: string; review_status?: string; mastery_status?: string; mastery_source?: string; repeat_wrong?: boolean };
 type Candidate = { id: string; revision: number; question_text?: string; user_answer?: string; correct_answer?: string; source?: string; subject?: string; content_complete?: boolean };
 const filters: { id: Filter; label: string }[] = [
   { id: 'all', label: '全部' },
@@ -203,6 +205,7 @@ export function MistakeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
+  const [pane, setPane] = useState<ReadingPane>('question');
   const [edit, setEdit] = useState({ question_text: '', user_answer: '', correct_answer: '', notes: '', mistake_type: '', tags: '' });
   const [meaningChanged, setMeaningChanged] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -252,9 +255,11 @@ export function MistakeDetailPage() {
       const result = await patch(`/mistakes/${encodeURIComponent(record.id)}?book_name=${encodeURIComponent(scope)}`, {
         expected_revision: record.revision, operation_id: `edit:${record.id}:${crypto.randomUUID()}`,
         meaning_changed: meaningChanged,
-        changes: { question_text: edit.question_text, user_answer: edit.user_answer, correct_answer: edit.correct_answer, notes: edit.notes,
+        changes: {
+          question_text: edit.question_text, user_answer: edit.user_answer, correct_answer: edit.correct_answer, notes: edit.notes,
           mistake_type: edit.mistake_type.split(/[、,，]/).map((item) => item.trim()).filter(Boolean), tags: edit.tags.split(/[、,，]/).map((item) => item.trim()).filter(Boolean),
-          diagnosis_status: edit.mistake_type.trim() ? 'confirmed' : 'deferred' },
+          diagnosis_status: edit.mistake_type.trim() ? 'confirmed' : 'deferred'
+        },
       });
       if (!result?.success) throw new Error(result?.message || '保存失败');
       setEditing(false);
@@ -272,23 +277,92 @@ export function MistakeDetailPage() {
       navigate(`/learning/review/${encodeURIComponent(result.data.id)}?book_name=${encodeURIComponent(scope)}`);
     } catch (cause) { setError(cause instanceof Error ? cause.message : '无法开始重做'); setBusy(false); }
   };
+  useUnsavedWorkGuard(editing, '档案修改尚未保存，确定放弃修改并退出 Texa 吗？');
   return <div className="management-workspace mistakes-workspace flex h-full flex-col">
-    <header className="app-page-header border-b border-border bg-bg-primary"><h1 className="app-page-title">错题详情</h1><Link to={returnPath} className="mistakes-back"><ArrowLeft className="h-4 w-4" />返回档案</Link></header>
-    <main className="management-page-content flex-1 overflow-y-auto"><article className="mistakes-detail">
-      {loading && <WorkspaceSkeleton label="正在读取档案" header={false} reading />}
-      {error && <ActionableIssue title="档案暂时无法打开" impact={error} actions={<button className="app-secondary-button" onClick={() => load()}>重试</button>} />}
-      {!loading && record && !error && <>
-        <div className="mistakes-detail-intro"><p className="workspace-meta-text text-text-secondary">{[record.subject || '未分类', record.chapter, record.source, displayDate(record.created_at)].filter(Boolean).join(' · ')}</p><h1><SimpleMarkdown content={recordTitle(record)} /></h1><p className="workspace-interface-text text-text-secondary">{nextAction(record)}{record.mastery_status === 'mastered' ? ` · ${record.mastery_source === 'manual' ? '手动标记，未有重做证据' : '有独立重做证据'}` : ''}</p><div className="mistakes-heading-actions"><button type="button" disabled={busy || record.content_status === 'needs_correction'} onClick={startRedo} className="app-primary-button">现在重做</button><button type="button" onClick={() => setEditing((value) => !value)} className="app-secondary-button">{editing ? '取消编辑' : '编辑档案'}</button><button type="button" disabled={busy} onClick={() => runAction(record.visibility === 'archived' ? 'restore' : 'archive')} className="app-secondary-button">{record.visibility === 'archived' ? '恢复档案' : '归档'}</button></div><details className="mistakes-detail-more"><summary>更多管理操作</summary><div className="mistakes-heading-actions">{record.content_status === 'needs_correction' && <button type="button" disabled={busy} onClick={() => runAction('confirm_content')} className="app-secondary-button">确认题目已校对</button>}{record.diagnosis_status === 'missing' && <button type="button" disabled={busy} onClick={() => runAction('defer_diagnosis')} className="app-secondary-button">暂不确定错因</button>}{record.mastery_status !== 'mastered' && <button type="button" disabled={busy} onClick={() => runAction('mark_mastered')} className="app-secondary-button">手动标记掌握</button>}</div></details></div>
-        {editing && <section className="mistakes-detail-edit"><h2>校正档案</h2><label>题目<textarea className="app-field" rows={6} value={edit.question_text} onChange={(event) => setEdit((current) => ({ ...current, question_text: event.target.value }))} /></label><label>当时作答或事后补充<textarea className="app-field" rows={4} value={edit.user_answer} onChange={(event) => setEdit((current) => ({ ...current, user_answer: event.target.value }))} /></label><label>参考答案<textarea className="app-field" rows={4} value={edit.correct_answer} onChange={(event) => setEdit((current) => ({ ...current, correct_answer: event.target.value }))} /></label><label>修正做法<textarea className="app-field" rows={3} value={edit.notes} onChange={(event) => setEdit((current) => ({ ...current, notes: event.target.value }))} /></label><label>错因分类（用顿号分隔）<input className="app-field" value={edit.mistake_type} onChange={(event) => setEdit((current) => ({ ...current, mistake_type: event.target.value }))} /></label><label>知识点（用顿号分隔）<input className="app-field" value={edit.tags} onChange={(event) => setEdit((current) => ({ ...current, tags: event.target.value }))} /></label>{(edit.question_text !== record.question_text || edit.correct_answer !== record.correct_answer) && <label className="mistakes-edit-impact"><input type="checkbox" checked={meaningChanged} onChange={(event) => setMeaningChanged(event.target.checked)} />这次修改改变题意或参考答案，重新计算掌握依据</label>}<button type="button" disabled={busy || !edit.question_text.trim()} onClick={saveEdit} className="app-primary-button">保存修改</button></section>}
-        <section><h2>题目</h2><div className="workspace-reading-content"><ChatMessage role="assistant" content={record.question_text || record.ocr_text || '题干尚未记录'} linkedConcepts={record.linked_concepts || []} /></div>{record.attachments?.length ? <details><summary>对照原图与附图（{record.attachments.length} 张）</summary>{record.attachments.map((attachment) => <MistakeAttachment key={attachment.id} mistakeId={record.id} attachmentId={attachment.id} bookName={scope} />)}</details> : imageUrl && <details><summary>对照原图</summary><img className="mistakes-original-image" src={imageUrl} alt="错题原图" /></details>}{record.image_path && !imageUrl && !record.attachments?.length && <p className="mistakes-detail-note">原图暂时无法读取，已保存的题干仍可查看。</p>}</section>
-        {record.source_ref && Object.keys(record.source_ref).length > 0 && <section><h2>来源</h2><p className="mistakes-detail-note">{String(record.source_ref.type || '记录来源')} · {String(record.source_ref.exercise_id || record.source_ref.message_id || record.source_ref.page || '已保存来源快照')}</p><Link className="app-secondary-button" to={record.source_ref.type === 'chat' ? '/' : String(record.source_ref.type || '').startsWith('exercise') ? '/exercises' : '/books'}>打开来源工作区</Link></section>}
-        <section><h2>我当时怎么做</h2>{record.user_answer ? <div className="workspace-reading-content"><ChatMessage role="assistant" content={record.user_answer} /></div> : <p className="mistakes-detail-note">未保留当时的作答。现有记录无法还原具体错误步骤。</p>}</section>
-        <section><h2>应怎样修正</h2>{record.mistake_type?.length ? <p className="mistakes-detail-note">错因分类：{record.mistake_type.join('、')}</p> : <p className="mistakes-detail-note">尚未整理错因，可暂不确定。</p>}{record.tags?.length > 0 && <p className="mistakes-detail-note">相关知识点：{record.tags.join('、')}</p>}{(record as ProjectedMistake & { notes?: string }).notes && <div className="workspace-reading-content"><ChatMessage role="assistant" content={(record as ProjectedMistake & { notes?: string }).notes || ''} /></div>}{record.correct_answer && <details><summary>查看参考答案</summary><div className="workspace-reading-content"><ChatMessage role="assistant" content={record.correct_answer} /></div></details>}{record.explanation && <details><summary>查看已保存解析</summary><div className="workspace-reading-content"><ChatMessage role="assistant" content={record.explanation} /></div></details>}</section>
-        <section><h2>后续重做</h2>{record.recent_attempts?.length ? <ol className="mistakes-history">{record.recent_attempts.map((attempt) => <li key={attempt.id}><span>{displayDate(attempt.created_at)}</span><strong>{attempt.kind === 'occurrence' ? '再次出错' : attempt.result === 'independent_correct' ? '独立做对' : attempt.result === 'prompted_correct' ? '有提示后做对' : attempt.result === 'partial' ? '部分完成' : '做错'}</strong><span>{attempt.judgement_source === 'deterministic' ? '确定性校验' : '用户确认'}{attempt.answer ? ` · 作答：${attempt.answer.slice(0, 80)}` : ''}</span></li>)}</ol> : <p className="mistakes-detail-note">还没有保存独立重做记录。</p>}{record.review_history?.length ? <details><summary>旧版复习自评（不计入掌握证据）</summary><ol className="mistakes-history">{[...record.review_history].reverse().map((item, index) => <li key={`${item.date}-${index}`}><span>{displayDate(item.date)}</span><strong>自评 {item.quality}/5</strong><span>下次复习 {displayDate(item.next_review)}</span></li>)}</ol></details> : null}{record.next_review && <p className="mistakes-detail-note">当前安排：{displayDate(record.next_review)}</p>}<Link to="/learning" className="app-secondary-button"><BookOpen className="h-4 w-4" />前往全局复习</Link></section>
-      </>}
-    </article></main>
+    <header className="app-page-header border-b border-border bg-bg-primary">
+      <h1 className="app-page-title">错题</h1>
+      <div className="window-drag-region" aria-hidden="true" />
+      <Link to={returnPath} className="mistakes-back">
+        <ArrowLeft className="h-4 w-4" />返回档案</Link>
+    </header>
+    {loading && !record && <WorkspaceSkeleton label="正在读取档案" header={false} reading />}
+    {error && <div role="alert" className="question-reading-status is-warning">{error}<button className="app-secondary-button" onClick={() => load()}>重新读取</button>
+    </div>}
+    {record && (editing ? <div className="question-reading-editor">        <section className="mistakes-detail-edit">
+      <h2>校正档案</h2>
+      <label>题目<textarea className="app-field" rows={6} value={edit.question_text} onChange={(event) => setEdit((current) => ({ ...current, question_text: event.target.value }))} />
+      </label>
+      <label>当时作答或事后补充<textarea className="app-field" rows={4} value={edit.user_answer} onChange={(event) => setEdit((current) => ({ ...current, user_answer: event.target.value }))} />
+      </label>
+      <label>参考答案<textarea className="app-field" rows={4} value={edit.correct_answer} onChange={(event) => setEdit((current) => ({ ...current, correct_answer: event.target.value }))} />
+      </label>
+      <label>修正做法<textarea className="app-field" rows={3} value={edit.notes} onChange={(event) => setEdit((current) => ({ ...current, notes: event.target.value }))} />
+      </label>
+      <label>错因分类（用顿号分隔）<input className="app-field" value={edit.mistake_type} onChange={(event) => setEdit((current) => ({ ...current, mistake_type: event.target.value }))} />
+      </label>
+      <label>知识点（用顿号分隔）<input className="app-field" value={edit.tags} onChange={(event) => setEdit((current) => ({ ...current, tags: event.target.value }))} />
+      </label>{(edit.question_text !== record.question_text || edit.correct_answer !== record.correct_answer) && <label className="mistakes-edit-impact">
+        <input type="checkbox" checked={meaningChanged} onChange={(event) => setMeaningChanged(event.target.checked)} />这次修改改变题意或参考答案，重新计算掌握依据</label>}<button type="button" disabled={busy || !edit.question_text.trim()} onClick={saveEdit} className="app-primary-button">保存修改</button>
+    </section>
+      <button className="app-secondary-button" onClick={() => { if (window.confirm('放弃当前档案编辑？')) setEditing(false); }}>取消编辑</button>
+    </div> : <QuestionReadingLayout title="错题详情" meta={[record.subject, record.chapter, displayDate(record.created_at)].filter(Boolean).join(' · ')} pane={pane} onPaneChange={setPane} aiLabel="AI 讲解" actions={<button disabled={busy || record.content_status === 'needs_correction'} onClick={startRedo} className="app-primary-button">现在重做</button>} question={<>{<section>
+      <h2>题目</h2>
+      <ReadingMarkdown content={record.question_text || record.ocr_text || '题干尚未记录'} />{record.attachments?.length ? <details>
+        <summary>对照原图与附图（{record.attachments.length} 张）</summary>{record.attachments.map((attachment) => <MistakeAttachment key={attachment.id} mistakeId={record.id} attachmentId={attachment.id} bookName={scope} />)}</details> : imageUrl && <details>
+          <summary>对照原图</summary>
+          <img className="mistakes-original-image" src={imageUrl} alt="错题原图" />
+        </details>}{record.image_path && !imageUrl && !record.attachments?.length && <p className="mistakes-detail-note">原图暂时无法读取，已保存的题干仍可查看。</p>}</section>}<div className="question-reading-section">{<section>
+          <h2>我当时怎么做</h2>{record.user_answer ? <ReadingMarkdown content={record.user_answer} /> : <p className="mistakes-detail-note">未保留当时的作答。现有记录无法还原具体错误步骤。</p>}</section>}</div>
+      <section className="question-reading-section">
+        <h3>错误原因与修正</h3>
+        <p>{record.mistake_type?.join('、') || '尚未整理错因'}</p>
+        <p>{record.tags?.join('、')}</p>{record.corrected_note && <ReadingMarkdown content={record.corrected_note} />}<ReadingMarkdown content={(record as ProjectedMistake & { notes?: string }).notes || ''} />
+      </section>
+      <details className="question-reading-section question-reading-facts">
+        <summary>来源与历史记录</summary>{record.source_ref && Object.keys(record.source_ref).length > 0 && <section>
+          <h2>来源</h2>
+          <p className="mistakes-detail-note">{String(record.source_ref.type || '记录来源')} · {String(record.source_ref.exercise_id || record.source_ref.message_id || record.source_ref.page || '已保存来源快照')}</p>
+          <Link className="app-secondary-button" to={record.source_ref.type === 'chat' ? '/' : String(record.source_ref.type || '').startsWith('exercise') ? '/exercises' : '/books'}>打开来源工作区</Link>
+        </section>}{<section>
+          <h2>后续重做</h2>{record.recent_attempts?.length ? <ol className="mistakes-history">{record.recent_attempts.map((attempt) => <li key={attempt.id}>
+            <span>{displayDate(attempt.created_at)}</span>
+            <strong>{attempt.kind === 'occurrence' ? '再次出错' : attempt.result === 'independent_correct' ? '独立做对' : attempt.result === 'prompted_correct' ? '有提示后做对' : attempt.result === 'partial' ? '部分完成' : '做错'}</strong>
+            <span>{attempt.judgement_source === 'deterministic' ? '确定性校验' : '用户确认'}{attempt.answer ? ` · 作答：${attempt.answer.slice(0, 80)}` : ''}</span>
+          </li>)}</ol> : <p className="mistakes-detail-note">还没有保存独立重做记录。</p>}{record.review_history?.length ? <details>
+            <summary>旧版复习自评（不计入掌握证据）</summary>
+            <ol className="mistakes-history">{[...record.review_history].reverse().map((item, index) => <li key={`${item.date}-${index}`}>
+              <span>{displayDate(item.date)}</span>
+              <strong>自评 {item.quality}/5</strong>
+              <span>下次复习 {displayDate(item.next_review)}</span>
+            </li>)}</ol>
+          </details> : null}{record.next_review && <p className="mistakes-detail-note">当前安排：{displayDate(record.next_review)}</p>}<Link to="/learning" className="app-secondary-button">
+            <BookOpen className="h-4 w-4" />前往全局复习</Link>
+        </section>}</details>
+    </>} reference={<>
+      <div className="question-reading-status">{record.correct_answer?.trim() ? '已保存参考答案' : '参考答案'}</div>
+      <ReadingMarkdown content={record.correct_answer || '暂无参考答案'} />{record.explanation && <section className="question-reading-section">
+        <h2>已保存解析</h2>
+        <ReadingMarkdown content={record.explanation} />
+      </section>}</>} ai={<>
+        <h2>AI 讲解</h2>
+        <p className="question-reading-status is-warning">AI 讲解暂不可用，已保存解析仍可阅读。</p>
+        {record.explanation ? <section className="question-reading-section">
+          <h2>已保存解析</h2>
+          <ReadingMarkdown content={record.explanation} />
+        </section> : <p>暂无已保存解析。</p>}</>} footer={<>
+          <span>{nextAction(record)}{record.mastery_status === 'mastered' ? ` · ${record.mastery_source === 'manual' ? '手动标记，未有重做证据' : '有独立重做证据'}` : ''}</span>
+          <div>
+            <button className="app-secondary-button" onClick={() => setEditing(true)}>编辑档案</button>
+            <button disabled={busy} className="app-secondary-button" onClick={() => runAction(record.visibility === 'archived' ? 'restore' : 'archive')}>{record.visibility === 'archived' ? '恢复档案' : '归档'}</button>
+            <details className="mistakes-detail-more">
+              <summary>更多管理操作</summary>
+              <div className="mistakes-heading-actions">{record.content_status === 'needs_correction' && <button type="button" disabled={busy} onClick={() => runAction('confirm_content')} className="app-secondary-button">确认题目已校对</button>}{record.diagnosis_status === 'missing' && <button type="button" disabled={busy} onClick={() => runAction('defer_diagnosis')} className="app-secondary-button">暂不确定错因</button>}{record.mastery_status !== 'mastered' && <button type="button" disabled={busy} onClick={() => runAction('mark_mastered')} className="app-secondary-button">手动标记掌握</button>}</div>
+            </details>
+          </div>
+        </>} />)}
   </div>;
 }
+
 
 export function MistakeDiagnosisPage() {
   const { bookName, subject } = useMistakeScope();

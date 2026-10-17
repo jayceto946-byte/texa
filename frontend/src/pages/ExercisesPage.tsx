@@ -1,32 +1,32 @@
 import { getBookList } from '../features/books/bookList';
 import ManualExerciseDialog from '../features/exercises/ManualExerciseDialog';
-import '../features/notes/notes.css';
+import '../features/exercises/exercises.css';
+import { useUnsavedWorkGuard } from '../features/reading/useUnsavedWorkGuard';
+import { HelpHint } from '../features/exercises/components/HelpHint';
+import { CandidateReviewWorkspace } from '../features/exercises/components/CandidateReviewWorkspace';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, BookOpen, ChevronDown, ChevronRight, ClipboardList, Loader2, Pause, Pencil, Play, Save, Scissors, Search, Shuffle, Upload, X } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronRight, ClipboardList, Loader2, Search, Upload, X } from 'lucide-react';
 import { apiFetch, del, get, post } from '../api/client';
-import { WorkspaceActionBar } from '../components/ui/WorkspaceActionBar';
 import { SimpleMarkdown } from '../components/chat/MarkdownRenderer';
-import ChatMessage from '../components/ChatMessage';
+import { ExerciseReader } from '../features/exercises/components/ExerciseReader';
 import ScopeSelector from '../components/ScopeSelector';
 import { SegmentedControl } from '../components/ui/SelectionControls';
 import { useChatContext } from '../contexts/ChatContext';
 import {
-  ExerciseDetail,
 
   exerciseStatusText as statusText,
 } from '../features/exercises/components/ExercisePresentation';
 import { useVisibleList } from '../hooks/useVisibleList';
 import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 import { useTextbookImportOutline } from '../features/exercises/hooks/useTextbookImportOutline';
-import { useExerciseAnswerJob } from '../features/exercises/hooks/useExerciseAnswerJob';
 import { useExerciseImportCandidates } from '../features/exercises/hooks/useExerciseImportCandidates';
 import { usePracticeSession } from '../features/exercises/hooks/usePracticeSession';
 import type { BookInfo, ExerciseCandidate, ExerciseImportBatch, ExercisePracticeSession, ExerciseRecord, ExerciseStats } from '../types';
 
 function titleOf(record: ExerciseRecord) {
   const raw = record.question_text || record.source || '未命名习题';
-  const line = raw.replace(/\$\$[\s\S]*?\$\$/g, ' ').replace(/\$(?:\\.|[^$\\])*?\$/g, ' ').split('\n').map((item) => item.trim()).find(Boolean) || raw;
+  const line = raw.replace(/\$\$[\s\S]*?\$\$/g, '〔公式〕').replace(/\$(?:\\.|[^$\\])*?\$/g, '〔公式〕').split('\n').map((item) => item.trim()).find(Boolean) || raw;
   return line.length > 56 ? `${line.slice(0, 56)}...` : line;
 }
 
@@ -56,7 +56,9 @@ const ExercisesPage: React.FC = () => {
   const [workspaceMode, setWorkspaceMode] = useState<'practice' | 'bank' | 'import'>('practice');
   const [targetName, setTargetName] = useState(bookName || '');
   const [targetSubject, setTargetSubject] = useState(subject || '\u6570\u5b66');
-  const activeName = targetName.trim() || bookName || 'default';
+  const [importScopeSnapshot, setImportScopeSnapshot] = useState<{ book: string; subject: string } | null>(null);
+  const [candidateSourceLabel, setCandidateSourceLabel] = useState('');
+  const activeName = importScopeSnapshot?.book || targetName.trim() || bookName || 'default';
   const bookQuery = activeName && activeName !== 'default' ? `?book_name=${encodeURIComponent(activeName)}` : '';
 
 
@@ -87,28 +89,24 @@ const ExercisesPage: React.FC = () => {
   const [textbookSourceMode, setTextbookSourceMode] = useState('exercise_sections');
   const [useLlmRepair, setUseLlmRepair] = useState(false);
   const [reviewPreparationOpen, setReviewPreparationOpen] = useState(false);
+  const [sourceKind, setSourceKind] = useState<'textbook' | 'file'>('textbook');
+  const [receipt, setReceipt] = useState<{ count: number; skipped: number; batchId: string } | null>(null);
+  const [commitUnknown, setCommitUnknown] = useState(false);
+  const importLock = useRef(false);
+  const importScope = useRef('');
+  useEffect(() => { importScope.current = `${activeName}|${targetSubject}`; }, [activeName, targetSubject]);
+  const [loadError, setLoadError] = useState('');
   const [extractedPreview, setExtractedPreview] = useState('');
   const [lastImportBatch, setLastImportBatch] = useState<ExerciseImportBatch | null>(null);
   const searchKwRef = useRef(searchKw);
+  const candidateState = useExerciseImportCandidates({ onMessage: setMessage });
   const {
     candidates,
     selectedIds,
-    candidateFilter,
-    setCandidateFilter,
-    editingCandidateId,
-    setEditingCandidateId,
-    importSummary,
-    filteredCandidates,
     resetImportCandidates,
-    updateCandidate,
     replaceCandidates,
     removeSelectedCandidates,
-    selectAllCandidates,
-    clearCandidateSelection,
-    mergeSelectedCandidates,
-    splitCandidate,
-    toggleCandidate,
-  } = useExerciseImportCandidates({ onMessage: setMessage });
+  } = candidateState;
 
   useEffect(() => {
     searchKwRef.current = searchKw;
@@ -123,7 +121,7 @@ const ExercisesPage: React.FC = () => {
     setPdfOpen(false);
   }, [activeName]);
 
-  const candidateList = useVisibleList(filteredCandidates, 20, `${activeName}|${importFile?.name || ''}|${textbookChapter}|${textbookPageStart}|${textbookPageEnd}|${importSummary.total}|${candidateFilter}`);
+
 
   const loadBooks = useCallback(async () => {
     try {
@@ -136,7 +134,7 @@ const ExercisesPage: React.FC = () => {
 
   const load = useCallback(async () => {
     setLoading(true);
-    setMessage('');
+    setLoadError('');
     try {
       const overview = await post(`/exercises/overview${bookQuery}`, {
         search_kw: searchKwRef.current,
@@ -148,9 +146,9 @@ const ExercisesPage: React.FC = () => {
         setRecords(overview.data?.records || []);
         setStats(overview.data?.stats || null);
         setPracticeSession(overview.data?.practice_session || null);
-      }
+      } else setLoadError(overview?.message || '暂时无法读取题库');
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : String(e));
+      setLoadError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
@@ -161,7 +159,6 @@ const ExercisesPage: React.FC = () => {
     currentPractice,
     practiceAnswer,
     setPracticeAnswer,
-    practiceSolutionOpen,
     setPracticeSolutionOpen,
     practiceMessage,
     candidateId,
@@ -214,34 +211,20 @@ const ExercisesPage: React.FC = () => {
 
   const handleAnswerSaved = useCallback((saved: ExerciseRecord) => {
     setRecords((items) => items.map((item) => item.id === saved.id ? saved : item));
+    setPracticeSession(current => current?.current_exercise?.id === saved.id ? { ...current, current_exercise: saved } : current);
   }, []);
-  const {
-    answerDraft,
-    setAnswerDraft,
-    answerBusy,
-    answerStatus,
-    answerStatusMessage,
-    generateStandardAnswer,
-    saveStandardAnswer,
-  } = useExerciseAnswerJob({
-    exercise: currentPractice,
-
-    bookQuery,
-    onMessage: showPracticeMessage,
-    onRecordSaved: handleAnswerSaved,
-  });
 
   useEffect(() => {
     loadBooks();
   }, [loadBooks]);
 
   useEffect(() => {
-    if (bookName) setTargetName(bookName);
-  }, [bookName]);
+    if (bookName && !importScopeSnapshot) setTargetName(bookName);
+  }, [bookName, importScopeSnapshot]);
 
   useEffect(() => {
-    if (subject) setTargetSubject(subject);
-  }, [subject]);
+    if (subject && !importScopeSnapshot) setTargetSubject(subject);
+  }, [subject, importScopeSnapshot]);
 
   useEffect(() => {
     load();
@@ -249,12 +232,17 @@ const ExercisesPage: React.FC = () => {
 
 
 
+  useUnsavedWorkGuard(Boolean(candidates.length || importing || commitUnknown), '候选、编辑或未确认的入库结果仅在本页面内存中保留。确定退出 Texa 吗？');
+
   const resetImportPreview = () => {
     resetImportCandidates();
     setExtractedPreview('');
+    setReceipt(null); setLastImportBatch(null); setImportScopeSnapshot(null); setCandidateSourceLabel('');
   };
 
   const updateTargetName = async (value: string) => {
+    if (value === targetName) return;
+    if (importing || commitUnknown || (candidates.length && !window.confirm('更换范围将丢弃尚未入库的候选，继续吗？'))) return;
     setTargetName(value);
     if (!value) {
       setBookName('');
@@ -279,17 +267,26 @@ const ExercisesPage: React.FC = () => {
   };
 
   const updateTargetSubject = (value: string) => {
+    if (value === targetSubject) return;
+    if (importing || commitUnknown || (candidates.length && !window.confirm('更换学科将丢弃尚未入库的候选，继续吗？'))) return;
     setTargetSubject(value);
     setSubject(value);
     resetImportPreview();
   };
 
   const analyzeImportFile = async () => {
+    if (importLock.current || commitUnknown) return;
+    if (candidates.length && !window.confirm('重新解析将替换当前候选及其编辑，继续吗？')) return;
+    if (useLlmRepair && !window.confirm('将识别后的文本发送到已配置回答模型进行辅助修复，可能产生费用。继续吗？')) return;
+    const requestedScope = importScope.current;
     if (!importFile) {
       setMessage('请选择 Word 或 PDF 文件');
       return;
     }
+    importLock.current = true;
+    setImportScopeSnapshot({ book: activeName, subject: targetSubject });
     setImporting(true);
+    setReceipt(null);
     setMessage('');
     try {
       const fd = new FormData();
@@ -303,30 +300,41 @@ const ExercisesPage: React.FC = () => {
       fd.append('llm_max_items', '20');
       const res = await apiFetch(`/exercises/upload-analyze${bookQuery}`, { method: 'POST', body: fd });
       const data = await res.json();
+      if (requestedScope !== importScope.current) return;
       if (!res.ok || !data?.success) {
         setMessage(data?.message || `文件导入失败：${res.status}`);
         return;
       }
+      if (requestedScope !== importScope.current) return;
       const next = data.data || [];
+      setCandidateSourceLabel(importSource || importFile?.name || '导入文件');
       replaceCandidates(next);
       setReviewPreparationOpen(false);
       setExtractedPreview(data.extract?.text || '');
-      const warnings = data.extract?.warnings?.length ? `；${data.extract.warnings.join('；')}` : '';
+      const warnings = [...(data.extract?.warnings || []), ...(data.answer_extract?.warnings || [])].join('；');
       const paired = answerFile ? `；答案匹配 ${data.summary?.paired_answers || 0}/${next.length}` : '';
-      setMessage(`${data.message || `已分析 ${next.length} 道候选题`}${paired}${warnings}`);
+      setMessage(`${next.length ? data.message || `已分析 ${next.length} 道候选题` : '未找到候选题，请调整范围后重试。'}${paired}${data.summary?.llm_refined ? `；已辅助修复 ${data.summary.llm_refined} 道` : ''}${warnings ? `；${warnings}` : ''}`);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
     } finally {
+      importLock.current = false;
       setImporting(false);
     }
   };
 
   const analyzeTextbookExercises = async () => {
+    if (importLock.current || commitUnknown) return;
+    if (candidates.length && !window.confirm('重新解析将替换当前候选及其编辑，继续吗？')) return;
+    if (useLlmRepair && !window.confirm('将识别后的文本发送到已配置回答模型进行辅助修复，可能产生费用。继续吗？')) return;
+    const requestedScope = importScope.current;
     if (!activeName || activeName === 'default') {
       setMessage('请先选择已导入教材');
       return;
     }
+    importLock.current = true;
+    setImportScopeSnapshot({ book: activeName, subject: targetSubject });
     setImporting(true);
+    setReceipt(null);
     setMessage('');
     try {
       const res = await post(`/exercises/textbook-analyze${bookQuery}`, {
@@ -340,64 +348,65 @@ const ExercisesPage: React.FC = () => {
         use_llm: useLlmRepair,
         llm_max_items: 20,
       }, 60000);
+      if (requestedScope !== importScope.current) return;
       if (!res?.success) {
         const warnings = res?.extract?.warnings?.length ? `（${res.extract.warnings.join('；')}）` : '';
         setMessage(`${res?.message || '教材抽题失败'}${warnings}`);
         setExtractedPreview(res?.extract?.text || '');
         return;
       }
+      if (requestedScope !== importScope.current) return;
       const next = res.data || [];
+      setCandidateSourceLabel(`${activeName}${textbookChapter ? ` · ${textbookChapter}` : ''}`);
       replaceCandidates(next);
       setReviewPreparationOpen(false);
       setExtractedPreview(res.extract?.text || '');
       const warnings = res.extract?.warnings?.length ? `（${res.extract.warnings.join('；')}）` : '';
-      setMessage(`${res.message || `已从教材抽取 ${next.length} 道候选题`}${warnings}`);
+      setMessage(`${next.length ? res.message || `已从教材抽取 ${next.length} 道候选题` : '未找到候选题，请调整范围后重试。'}${warnings}`);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
     } finally {
+      importLock.current = false;
       setImporting(false);
     }
   };
   const importSelected = async () => {
-    const selected = candidates.filter((item) => selectedIds.has(item.id));
-    if (selected.length === 0) {
-      setMessage('请至少选择一道候选题');
-      return;
-    }
-    setImporting(true);
+    if (importLock.current || commitUnknown) return;
+    const selected = candidates.filter(item => selectedIds.has(item.id));
+    if (!selected.length || selected.some(item => !item.question_text.trim())) return;
+    if (!window.confirm(`确认将选中的 ${selected.length} 道候选入库？重复题会跳过，请先校对题干、答案与来源。`)) return;
+    importLock.current = true; setImporting(true);
     try {
-      const res = await post(`/exercises/batch-add${bookQuery}`, {
-        exercises: selected.map(candidateToExercise),
-        source_label: importSource || importFile?.name || `${activeName} 教材抽题`,
-        allow_duplicates: false,
-      });
-      if (!res?.success) {
-        setMessage(res?.message || '批量导入失败');
-        return;
+      const res = await post(`/exercises/batch-add${bookQuery}`, { exercises: selected.map(candidateToExercise), source_label: candidateSourceLabel || `${activeName} 教材抽题`, allow_duplicates: false });
+      if (!res?.success) { setMessage(res?.message || '入库被拒绝，候选仍保留'); return; }
+      if (!res.batch_id || !Array.isArray(res.data) || typeof res.count !== 'number' || res.count + (res.skipped?.length || 0) !== selected.length) {
+        setCommitUnknown(true); setMessage('入库回执不完整，候选仍保留。请先核对题库与导入批次，勿重复提交。'); return;
       }
-      setMessage(res.message || `已导入 ${selected.length} 道候选题`);
-      const batchRes = await get(`/exercises/import-batches${bookQuery ? `${bookQuery}&limit=1` : '?limit=1'}`);
-      if (batchRes?.success) setLastImportBatch(batchRes.data?.[0] || null);
-      removeSelectedCandidates();
-      await load();
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : String(e));
-    } finally {
-      setImporting(false);
-    }
+      setReceipt({ count: res.count, skipped: res.skipped?.length || 0, batchId: res.batch_id });
+      setLastImportBatch({ id: res.batch_id, source_label: candidateSourceLabel || activeName, exercise_ids: res.data.map((r: ExerciseRecord) => r.id), skipped: res.skipped || [], created_at: '', status: 'active' });
+      removeSelectedCandidates(); setMessage(''); await load();
+    } catch {
+      setCommitUnknown(true); setMessage('连接中断，入库结果未知。候选仍保留；先核对题库与批次，不能自动重发。');
+    } finally { importLock.current = false; setImporting(false); }
+  };
+
+  const inspectImportBatches = async () => {
+    try {
+      const r = await get(`/exercises/import-batches${bookQuery}`);
+      setMessage(r?.success ? `请核对以下批次与题库；无法自动识别本次提交：${(r.data || []).map((b: ExerciseImportBatch) => `${b.id}（${b.exercise_ids.length}题）`).join('；')}` : '批次读取失败');
+    } catch { setMessage('批次读取失败，请检查连接'); }
   };
 
   const rollbackLastImport = async () => {
-    if (!lastImportBatch || lastImportBatch.status !== 'active') return;
-    if (!window.confirm(`确定回滚本批次导入的 ${lastImportBatch.exercise_ids.length} 道习题吗？`)) return;
-    const res = await post(`/exercises/import-batches/rollback${bookQuery}`, { batch_id: lastImportBatch.id });
-    if (!res?.success) {
-      setMessage(res?.message || '回滚失败');
-      return;
-    }
-    setLastImportBatch(res.data);
-    setMessage(res.message || '导入批次已回滚');
-    await load();
+    if (!lastImportBatch || lastImportBatch.status !== 'active' || importLock.current) return;
+    if (!window.confirm(`确定回滚批次 ${lastImportBatch.id} 的 ${lastImportBatch.exercise_ids.length} 道习题吗？`)) return;
+    importLock.current = true; setImporting(true);
+    try {
+      const res = await post(`/exercises/import-batches/rollback${bookQuery}`, { batch_id: lastImportBatch.id });
+      if (!res?.success || res.data?.id !== lastImportBatch.id || res.data?.status !== 'rolled_back') { setMessage(res?.message || '回滚未确认，请核对本批次'); return; }
+      setLastImportBatch(res.data); setMessage(res.message || '导入批次已回滚'); await load();
+    } catch { setMessage('回滚结果尚未确认，请核对本批次，勿重复操作。'); }
+    finally { importLock.current = false; setImporting(false); }
   };
 
   const updateStatus = async (id: string, status: string) => {
@@ -429,7 +438,7 @@ const ExercisesPage: React.FC = () => {
   };
   return (
     <div className="management-workspace flex h-full flex-col">
-      {manualOpen && <ManualExerciseDialog scope={activeName} subject={targetSubject} onClose={() => setManualOpen(false)} onSaved={() => { void load(); }}/>}
+      {manualOpen && <ManualExerciseDialog scope={activeName} subject={targetSubject} onClose={() => setManualOpen(false)} onSaved={() => { void load(); }} />}
       <div className="app-page-header border-b border-border bg-bg-primary">
         <h2 className="app-page-title shrink-0 whitespace-nowrap">练习</h2>
         <div className="window-drag-region" aria-hidden="true" />
@@ -442,290 +451,189 @@ const ExercisesPage: React.FC = () => {
             options={[{ value: 'practice', label: '练习' }, { value: 'bank', label: '题库' }, { value: 'import', label: '导入' }]}
             onChange={setWorkspaceMode}
           />
+        </div>
       </div>
-      </div>
-      <div className={`grid min-h-0 flex-1 grid-cols-1 overflow-hidden ${workspaceMode === 'import' && (!candidates.length || reviewPreparationOpen) ? 'lg:grid-cols-[380px_minmax(0,1fr)] 2xl:grid-cols-[400px_minmax(0,1fr)]' : ''}`}>
-        <aside className={`${workspaceMode === 'import' && (!candidates.length || reviewPreparationOpen) ? 'block' : 'hidden'} overflow-y-auto border-b border-border bg-bg-secondary/95 p-4 lg:border-b-0 lg:border-r`}>
-          <div className="space-y-4">
-            {candidates.length > 0 && <button className="app-secondary-button" onClick={() => setReviewPreparationOpen(false)}>返回校对</button>}
-            <section className="workspace-form-section">
-              <div>
-                <div className="workspace-interface-text font-medium text-text-primary">选择范围</div>
-
-              </div>
-              <ScopeSelector
-                subject={targetSubject}
-                bookName={books.some((book) => book.name === targetName) ? targetName : ''}
-                books={books}
-                suggestions={books.map((book) => book.subject || '').filter(Boolean)}
-                onSubjectChange={updateTargetSubject}
-                onBookChange={updateTargetName}
-                fullWidth
-                width="wide"
-              />
-            </section>
-
-            <section className="workspace-form-section">
-              <div className="flex items-center gap-2 workspace-interface-text font-medium text-text-primary"><ClipboardList className="h-4 w-4 text-accent" /> 从当前教材抽题</div>
-              {sourcePdfPath && (
-                <button type="button" onClick={() => { setPdfPage(textbookPageStart || '1'); setPdfOpen(true); }} className="flex w-full items-center justify-center gap-2 workspace-radius border border-border bg-bg-primary px-3 py-2 workspace-interface-text hover:border-accent">
-                  <BookOpen className="h-4 w-4 text-accent" /> 查看教材 PDF
-                </button>
-              )}
-              {!hasSourcePdf && <p className="workspace-support-text text-text-secondary">从已导入教材内容抽取，无需源 PDF。页码按文件物理页计数。</p>}
-              {textbookOutline.error && <p role="status" className="workspace-support-text text-text-secondary">{textbookOutline.error}</p>}
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
-                {textbookOutline.chapters.length > 0 ? (
-                  <select aria-label="教材章节" value={textbookChapter} onChange={(e) => setTextbookChapter(e.target.value)} className="app-field">
-                    <option value="">全部章节（保留每题来源）</option>
-                    {textbookOutline.chapters.map((chapter) => (
-                      <optgroup key={chapter.title} label={chapter.title}>
-                        <option value={chapter.title}>{chapter.title}</option>
-                        {(chapter.subsections || []).map((section) => <option key={section.heading_block_id || `${section.title}:${section.page}`} value={section.heading_block_id ? `heading:${section.heading_block_id}` : section.title}>{'　'.repeat(Math.max(1, (section.level || 2) - 1))}{section.title}</option>)}
-                      </optgroup>
-                    ))}
-                  </select>
-                ) : <input aria-label="教材章节" placeholder="章节名/章节序号，可留空" value={textbookChapter} onChange={(e) => setTextbookChapter(e.target.value)} className="app-field" />}
-                <select value={textbookSourceMode} onChange={(e) => setTextbookSourceMode(e.target.value)} className="workspace-radius border border-border bg-bg-primary px-3 py-2 workspace-interface-text outline-none focus:border-accent">
-                  <option value="exercise_sections">习题页优先</option>
-                  <option value="examples">章节例题</option>
-                  <option value="all_pages">整页文本</option>
-                </select>
-                <label className="workspace-support-text text-text-secondary">起始物理页<input type="number" min="1" aria-label="起始物理页" placeholder="起始物理页" value={textbookPageStart} onChange={(e) => setTextbookPageStart(e.target.value)} className="app-field" /></label>
-                <label className="workspace-support-text text-text-secondary">结束物理页<input type="number" min="1" aria-label="结束物理页" placeholder="结束物理页" value={textbookPageEnd} onChange={(e) => setTextbookPageEnd(e.target.value)} className="app-field" /></label>
-              </div>
-              <button onClick={analyzeTextbookExercises} disabled={importing || !activeName || activeName === 'default'} className="flex w-full items-center justify-center gap-2 workspace-radius bg-accent px-3 py-2 workspace-interface-text font-medium text-white hover:bg-accent-hover disabled:opacity-50">
-                {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} 抽取教材候选题
-              </button>
-            </section>
-            <section className="workspace-form-section">
-              <div className="flex items-center gap-2 workspace-interface-text font-medium text-text-primary"><Upload className="h-4 w-4 text-accent" /> Word/PDF 导入</div>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
-                <label className="workspace-support-text text-text-secondary">来源<input placeholder="来源，如 2025 模拟卷" value={importSource} onChange={(e) => setImportSource(e.target.value)} className="app-field" /></label>
-                <label className="workspace-support-text text-text-secondary">章节<input placeholder="章节，可留空" value={importChapter} onChange={(e) => setImportChapter(e.target.value)} className="app-field" /></label>
-              </div>
-              <button onClick={() => fileInputRef.current?.click()} className="flex w-full items-center justify-center gap-2 workspace-radius border border-dashed border-border bg-bg-primary px-3 py-4 workspace-interface-text text-text-primary hover:border-accent">
-                <Upload className="h-4 w-4" /> {importFile ? importFile.name : '选择 Word/PDF 文件'}
-              </button>
-              <input ref={fileInputRef} type="file" accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(e) => setImportFile(e.target.files?.[0] || null)} className="hidden" />
-              <label className="flex w-full cursor-pointer items-center justify-center gap-2 workspace-radius border border-dashed border-border bg-bg-primary px-3 py-3 workspace-interface-text text-text-primary hover:border-accent">
-                <Upload className="h-4 w-4" /> {answerFile ? `答案：${answerFile.name}` : '可选：选择独立答案 Word/PDF'}
-                <input type="file" accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(e) => setAnswerFile(e.target.files?.[0] || null)} className="hidden" />
-              </label>
-              <label className="flex items-start gap-2 workspace-radius border border-border bg-bg-primary px-3 py-2 workspace-support-text text-text-secondary">
-                <input type="checkbox" checked={useLlmRepair} onChange={(e) => setUseLlmRepair(e.target.checked)} className="mt-0.5 h-4 w-4 flex-shrink-0 accent-accent" />
-                <span className="min-w-0 leading-5">
-                  <span className="block text-text-primary">辅助修复文本候选</span>
-                  <span className="block">使用已配置回答模型处理识别后的文字，不负责识图；发送前需确认外部调用。</span>
-                </span>
-              </label>
-              <button onClick={analyzeImportFile} disabled={importing || !importFile} className="flex w-full items-center justify-center gap-2 workspace-radius bg-accent px-3 py-2 workspace-interface-text font-medium text-white hover:bg-accent-hover disabled:opacity-50">
-                {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} 分析文件
-              </button>
-              {extractedPreview && <div className="space-y-2">
-                <div className="workspace-support-text font-medium text-text-primary">导入原文对照</div>
-                <pre className="max-h-60 whitespace-pre-wrap overflow-y-auto rounded border border-border bg-bg-secondary p-3 workspace-support-text leading-5 text-text-secondary">{extractedPreview}</pre>
-              </div>}
-              {message && <div className="rounded border border-border bg-bg-primary px-3 py-2 workspace-support-text text-text-secondary">{message}</div>}
-            </section>
-
+      <div className="exercise-workspace-body">
+        {workspaceMode === 'import' && (receipt || commitUnknown) && <section className="exercise-receipt" role="status">
+          <h1>{lastImportBatch?.status === 'rolled_back' ? '本批次已回滚' : commitUnknown ? '入库结果待核对' : receipt?.count ? `已加入 ${receipt.count} 道题目` : '没有新增题目'}</h1>
+          <p>{commitUnknown ? message : `跳过 ${receipt?.skipped || 0} 道重复题 · 批次 ${receipt?.batchId}`}</p>
+          {message && !commitUnknown && <p role="status">{message}</p>}
+          <div className="exercise-receipt-actions">
+            {commitUnknown ? <button className="app-primary-button" onClick={() => void inspectImportBatches()}>核对导入批次</button> : <button className="app-primary-button" onClick={() => setWorkspaceMode('practice')}>准备练习</button>}
+            <button className="app-secondary-button" onClick={() => setWorkspaceMode('bank')}>查看题库</button>
+            {!commitUnknown && lastImportBatch?.status === 'active' && <button className="app-secondary-button" disabled={importing} onClick={rollbackLastImport}>回滚本批次（{lastImportBatch.exercise_ids.length} 题）</button>}
+            {!commitUnknown && <button className="app-ghost-button" onClick={() => setReceipt(null)}>{candidates.length ? '继续校对剩余候选' : '继续导入'}</button>}
           </div>
-        </aside>
+        </section>}
 
-        <main className={`management-page-content overflow-y-auto ${workspaceMode === 'import' && reviewPreparationOpen ? 'hidden lg:block' : ''}`}>
-          <div className={`mx-auto w-full space-y-5 ${workspaceMode === 'practice' ? 'max-w-[1180px]' : ''}`}>
-            {workspaceMode === 'import' && candidates.length === 0 && (
-              <section className="px-1 py-6"><h3 className="type-section-title text-text-primary">待校对候选题</h3><p className="mt-2 workspace-support-text text-text-secondary">从教材抽取或分析文件后，校对题干、答案与来源；确认后才写入题库。</p></section>
-            )}
-            <section className={`${workspaceMode === 'practice' ? 'block' : 'hidden'} overflow-hidden border-y border-border bg-bg-card`}>
-              <header className="border-b border-border px-5 py-3 sm:px-6">
-                <h3 className="type-section-title text-text-primary">{singlePracticeActive ? '本题练习' : practiceSession && ['active', 'paused'].includes(practiceSession.status) ? '本次练习' : practicePool.length ? '本次练习' : '准备题库'}</h3>
-              </header>
-
-              {!singlePracticeActive && practiceSession && ['active', 'paused'].includes(practiceSession.status) ? (
-                <div className="border-b border-border bg-[var(--accent-softer)] px-5 py-3 sm:px-6">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center workspace-radius bg-accent workspace-interface-text font-semibold text-white">{Math.min(practiceSession.current_index + 1, practiceSession.summary.total)}</div>
-                      <div>
-                        <div className="workspace-interface-text font-medium text-text-primary">连续练习进行中</div>
-                        <div className="mt-0.5 workspace-support-text text-text-secondary">共 {practiceSession.summary.total} 题，已完成 {practiceSession.summary.answered} 题</div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      {practiceSession.status === 'active' ? <button onClick={() => changePracticeSessionStatus('pause')} disabled={sessionBusy} className="flex items-center gap-1 workspace-radius border border-border bg-bg-card px-3 py-1.5 workspace-support-text"><Pause className="h-3.5 w-3.5" />暂停</button> : <button onClick={() => changePracticeSessionStatus('resume')} disabled={sessionBusy} className="flex items-center gap-1 workspace-radius bg-accent px-3 py-1.5 workspace-support-text text-white"><Play className="h-3.5 w-3.5" />继续</button>}
-                      <button onClick={() => changePracticeSessionStatus('abandon')} disabled={sessionBusy} className="workspace-radius border border-border bg-bg-card px-3 py-1.5 workspace-support-text">结束本轮</button>
-                    </div>
-                  </div>
-                  <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/75"><div className="h-full bg-accent transition-all" style={{ width: `${practiceSession.summary.total ? (practiceSession.summary.answered / practiceSession.summary.total) * 100 : 0}%` }} /></div>
+        <section hidden={workspaceMode !== 'import' || Boolean(receipt) || commitUnknown} className="exercise-import-panel">
+          <div hidden={candidates.length > 0 && !reviewPreparationOpen} className="exercise-import-setup">
+            <div className="exercise-stages">
+              <strong>1 选择来源</strong> — 2 校对候选 — 3 确认入库</div>
+            <h1>导入题目<HelpHint label="导入题目">候选需人工校对，明确确认后才写入题库。</HelpHint>
+            </h1>
+            {candidates.length > 0 && <button className="app-secondary-button" onClick={() => setReviewPreparationOpen(false)}>继续校对 {candidates.length} 道候选</button>}
+            <div className="exercise-source-tabs">
+              <button aria-pressed={sourceKind === 'textbook'} onClick={() => setSourceKind('textbook')}>从教材抽取</button>
+              <button aria-pressed={sourceKind === 'file'} onClick={() => setSourceKind('file')}>上传 Word / PDF</button>
+            </div>
+            <fieldset className="exercise-import-fields" disabled={importing || commitUnknown}>
+              {sourceKind === 'file' && <>
+                <button className={`exercise-upload ${importFile ? 'has-file' : ''}`} onClick={() => fileInputRef.current?.click()}>
+                  <Upload size={24} />
+                  <strong>{importFile?.name || '选择 Word / PDF 文件'}</strong>
+                  <small>{importFile ? '文件已选择 · 尚未分析' : '.docx 或包含文字的 PDF'}</small>
+                </button>
+                <input ref={fileInputRef} type="file" accept=".docx,.pdf" aria-label="题目文件" onChange={e => setImportFile(e.target.files?.[0] || null)} hidden />
+                <label className="exercise-answer-file">独立答案文件（可选）<input type="file" accept=".docx,.pdf" aria-label="独立答案文件" onChange={e => setAnswerFile(e.target.files?.[0] || null)} />{answerFile?.name}</label>
+              </>}
+              <div className="exercise-field">
+                <span>{sourceKind === 'textbook' ? '选择教材' : '归属范围'}<HelpHint label="教材抽取">从已导入教材内容抽取，无需源 PDF；未选择教材时不能抽取。</HelpHint>
+                </span>
+                <ScopeSelector subject={targetSubject} bookName={books.some(b => b.name === targetName) ? targetName : ''} books={books} suggestions={books.map(b => b.subject || '').filter(Boolean)} onSubjectChange={updateTargetSubject} onBookChange={updateTargetName} disabled={importing} fullWidth width="wide" />
+              </div>
+              {sourceKind === 'textbook' ? <>
+                {(!activeName || activeName === 'default') && <p className="exercise-feedback">请先选择已导入教材。<Link to="/books">前往教材库</Link>
+                </p>}
+                {textbookOutline.error && <p role="status" className="exercise-feedback">{textbookOutline.error}，可手动输入章节。</p>}
+                <div className="exercise-two">
+                  <label className="exercise-field">教材章节{textbookOutline.chapters.length ? <select aria-label="教材章节" value={textbookChapter} onChange={e => setTextbookChapter(e.target.value)}>
+                    <option value="">全部章节（保留每题来源）</option>{textbookOutline.chapters.map(chapter => <optgroup key={chapter.title} label={chapter.title}>
+                      <option value={chapter.title}>{chapter.title}</option>{chapter.subsections?.map(section => <option key={section.heading_block_id || `${section.title}:${section.page}`} value={section.heading_block_id ? `heading:${section.heading_block_id}` : section.title}>{section.title}</option>)}</optgroup>)}</select> : <input aria-label="教材章节" placeholder="章节名或序号，可留空" value={textbookChapter} onChange={e => setTextbookChapter(e.target.value)} />}</label>
+                  <label className="exercise-field">抽取内容<select aria-label="抽取内容" value={textbookSourceMode} onChange={e => setTextbookSourceMode(e.target.value)}>
+                    <option value="exercise_sections">习题页优先</option>
+                    <option value="examples">章节例题</option>
+                    <option value="all_pages">整页文本</option>
+                  </select>
+                  </label>
                 </div>
-              ) : singlePracticeActive ? (
-                <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3 sm:px-6">
-                  <span className="workspace-interface-text font-medium text-text-primary">单题练习</span>
-                  <button onClick={leaveSinglePractice} className="app-secondary-button">返回练习设置</button>
-                </div>
-              ) : (
-                <div className="border-b border-border px-5 py-5 sm:px-6">
-                  {practicePool.length > 0 ? <><h4 className="type-control text-text-primary">{activeName === 'default' ? targetSubject || '全部学科' : activeName} · {statusFilter ? statusText[statusFilter] : '全部状态'}{searchKw.trim() && ` · 搜索「${searchKw.trim()}」`}</h4>
-                  <p className="mt-2 workspace-support-text text-text-secondary">当前已加载 {practicePool.length} 道可用题目；本次最多 {sessionLimit} 题，实际以可用题目为准。</p>
-                  {(searchKw || statusFilter) && <button className="app-ghost-button mt-2" onClick={() => { setSearchKw('');searchKwRef.current = '';if (statusFilter) setStatusFilter('');else void load(); }}>清除练习筛选</button>}
-                  <div className="mt-3 flex flex-wrap items-center gap-3">
-                    <label className="flex items-center gap-2 workspace-interface-text text-text-secondary">题数<input type="number" min="1" max="200" value={sessionLimit} onChange={(e) => setSessionLimit(Math.max(1, Math.min(200, Number(e.target.value) || 1)))} className="h-9 w-16 app-field" /></label>
-                    <SegmentedControl label="练习顺序" value={sessionShuffle ? 'random' : 'review'} options={[{value:'review',label:'优先复习'},{value:'random',label:'随机顺序',icon:<Shuffle className="h-3.5 w-3.5" />}]} onChange={value => setSessionShuffle(value === 'random')} />
-                    <button onClick={startConfiguredPractice} disabled={sessionBusy || practicePool.length === 0} className="app-primary-button disabled:cursor-not-allowed disabled:opacity-45">{sessionBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}开始练习</button>
-                  </div>
-                  </> : <div><p className="workspace-interface-text text-text-secondary">当前没有可练习的题目。先导入教材题、Word/PDF，或手动录入并校对。</p><div className="mt-3 flex gap-2"><button className="app-primary-button" onClick={() => setWorkspaceMode('import')}>导入习题</button></div></div>}
-                  {practiceSession?.status === 'completed' && <p className="mt-3 workspace-support-text text-text-secondary">上轮完成 {practiceSession.summary.answered} 题，平均自评 {practiceSession.summary.average_quality}</p>}
-                </div>
-              )}
-
-              {((practiceSession && ['active', 'paused'].includes(practiceSession.status)) || singlePracticeActive) && currentPractice ? (
-                <div className="mx-auto w-full max-w-[800px]">
-                  <article className="border-b border-border px-5 py-5 sm:px-6 sm:py-6">
-                    <div className="workspace-support-text text-text-secondary">
-                      {!singlePracticeActive && practiceSession ? <>第 {Math.min(practiceSession.current_index + 1, practiceSession.summary.total)} / {practiceSession.summary.total} 题</> : <>单题练习</>}
-                      {currentPractice.chapter && <> · {currentPractice.chapter}</>}
-                      {currentPractice.tags?.[0] && <> / {currentPractice.tags[0]}</>}
-                      {' · '}练习 {currentPractice.practice_count || 0} 次
-                    </div>
-                    <div className="workspace-reading-content mt-4 min-w-0">
-                      <ChatMessage variant="document" role="assistant" content={currentPractice.question_text} linkedConcepts={currentPractice.linked_concepts || []} />
-                    </div>
-                  </article>
-
-                  <section className="px-5 py-5 sm:px-6">
-                    <h4 className="workspace-interface-text font-semibold text-text-primary">你的作答</h4>
-                    <textarea aria-label="你的作答" value={practiceAnswer} onChange={(e) => setPracticeAnswer(e.target.value)} placeholder="输入思路、公式或关键步骤" className="mt-3 min-h-[112px] w-full resize-y workspace-radius border border-border bg-bg-primary px-4 py-3 workspace-interface-text leading-6 text-text-primary outline-none transition-colors focus:border-accent focus:bg-bg-card" />
-                    <div className="mt-3 flex justify-end">
-                      <button onClick={() => setPracticeSolutionOpen((open) => !open)} className={practiceSolutionOpen ? 'app-secondary-button' : 'app-primary-button'}>
-                        {practiceSolutionOpen ? '收起解析' : '查看参考答案'}
+              </> : null}
+              <details className="exercise-import-options">
+                <summary>{sourceKind === 'textbook' ? '指定物理页范围与辅助修复' : '来源名称、章节与辅助修复'}</summary>
+                {sourceKind === 'textbook' && <>
+                  <p className="exercise-feedback">页码按 PDF 文件物理页计数，可能与印刷页码不同。</p>
+                  <div className="exercise-two">
+                    <label className="exercise-field">起始物理页<input type="number" min="1" aria-label="起始物理页" value={textbookPageStart} onChange={e => setTextbookPageStart(e.target.value)} />
+                    </label>
+                    <label className="exercise-field">结束物理页<input type="number" min="1" aria-label="结束物理页" value={textbookPageEnd} onChange={e => setTextbookPageEnd(e.target.value)} />
+                    </label>
+                  </div>{sourcePdfPath && <button className="app-secondary-button" onClick={() => { setPdfPage(textbookPageStart || '1'); setPdfOpen(true); }}>查看教材 PDF</button>}</>}
+                {sourceKind === 'file' && <div className="exercise-two">
+                  <label className="exercise-field">来源<input value={importSource} onChange={e => setImportSource(e.target.value)} placeholder="如 2025 模拟卷" />
+                  </label>
+                  <label className="exercise-field">章节（可选）<input value={importChapter} onChange={e => setImportChapter(e.target.value)} />
+                  </label>
+                </div>}
+                <label className="exercise-repair">
+                  <input type="checkbox" checked={useLlmRepair} onChange={e => setUseLlmRepair(e.target.checked)} />辅助修复文本候选<HelpHint label="辅助修复">使用已配置回答模型处理文字，不负责识图；单次最多处理20道候选。</HelpHint>
+                </label>
+                {useLlmRepair && <p className="exercise-warning">分析前需确认将文本发送给已配置模型，可能产生费用；扫描图片与公式仍需人工核对。</p>}
+              </details>
+              <div className="exercise-import-submit">{sourceKind === 'file' && <p>扫描 PDF 请先完成 OCR；辅助修复不能代替识图。</p>}
+                <button className="app-primary-button" disabled={importing || (sourceKind === 'file' ? !importFile : !activeName || activeName === 'default')} onClick={sourceKind === 'file' ? analyzeImportFile : analyzeTextbookExercises}>{importing ? <>
+                  <Loader2 size={16} className="animate-spin" />正在分析…</> : sourceKind === 'file' ? '分析文件' : '抽取教材候选题'}<ChevronRight size={16} />
+                </button>
+              </div>
+            </fieldset>
+            {message && <p role="status" className="exercise-feedback">{message}</p>}
+            {extractedPreview && <details>
+              <summary>整段提取原文</summary>
+              <pre className="exercise-raw-text">{extractedPreview}</pre>
+            </details>}
+            <button className="app-ghost-button" onClick={() => setManualOpen(true)}>手动录入一道题</button>
+          </div>
+          <div hidden={candidates.length === 0 || reviewPreparationOpen} className="exercise-review-panel">
+            <CandidateReviewWorkspace state={candidateState} original={extractedPreview} source={candidateSourceLabel || activeName} busy={importing} message={message} onBack={() => setReviewPreparationOpen(true)} onSubmit={importSelected} />
+          </div>
+        </section>
+        <div hidden={workspaceMode !== 'bank' || !expandedId} className="exercise-bank-reader">{records.find(r => r.id === expandedId) && <ExerciseReader key={expandedId} record={records.find(r => r.id === expandedId)!} bookQuery={bookQuery} title="习题详情" actions={<>
+          <button className="app-primary-button" onClick={() => startSinglePractice(records.find(r => r.id === expandedId)!)}>练习这道题</button>
+          <button className="app-ghost-button" onClick={() => setExpandedId('')}>返回题库</button>
+        </>} onSaved={handleAnswerSaved} onMessage={setMessage} onStatus={status => void updateStatus(expandedId, status)} onDelete={() => void deleteExercise(expandedId)} />}</div>
+        <main hidden={workspaceMode === 'import' || (workspaceMode === 'bank' && Boolean(expandedId))} className="exercise-main">
+          <div className="exercise-main-inner">
+            <section className={`exercise-practice-panel ${workspaceMode !== 'practice' ? 'is-hidden' : ''} ${singlePracticeActive || ['active', 'paused'].includes(practiceSession?.status || '') ? 'is-reading' : ''}`}>
+              {!singlePracticeActive && !['active', 'paused'].includes(practiceSession?.status || '') && <div className="exercise-preparation">
+                <p className="exercise-eyebrow">{targetSubject} / {activeName === 'default' ? '未选择教材' : activeName}</p>
+                <h1>{loadError ? '题库暂时无法读取' : loading && !records.length ? '正在读取题库…' : practicePool.length ? '开始一轮练习' : (searchKw || statusFilter) ? '当前筛选下没有题目' : '当前范围暂无题目'}</h1>{loadError ? <div role="alert">
+                  <p>{loadError}</p>
+                  <button className="app-secondary-button" onClick={load}>重试读取</button>
+                </div> : <div className="exercise-prep-columns">
+                  <div>
+                    <section className="exercise-setup-group">
+                      <h2>练习范围</h2>
+                      <ScopeSelector
+                        subject={targetSubject}
+                        bookName={books.some((book) => book.name === targetName) ? targetName : ''}
+                        books={books}
+                        suggestions={books.map((book) => book.subject || '').filter(Boolean)}
+                        onSubjectChange={updateTargetSubject}
+                        onBookChange={updateTargetName}
+                        fullWidth
+                        width="wide"
+                      />
+                      <details>
+                        <summary>按状态或关键词筛选</summary>
+                        <input className="app-field" aria-label="练习关键词" value={searchKw} onChange={e => setSearchKw(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') void load(); }} />
+                        <select className="app-field" aria-label="练习状态" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                          <option value="">全部状态</option>{Object.entries(statusText).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+                        <button className="app-secondary-button" onClick={load}>应用筛选</button>
+                      </details>
+                    </section>{practicePool.length > 0 ? <>
+                      <section className="exercise-setup-group">
+                        <h2>本次题量<HelpHint label="本次题量">1–200 题；实际题量以当前范围和筛选内可用题目为准。</HelpHint>
+                        </h2>
+                        <div className="exercise-quantity">{[5, 10, 20].map(n => <button key={n} aria-pressed={sessionLimit === n} onClick={() => setSessionLimit(n)}>{n} 题</button>)}<input aria-label="本次题量" type="number" min="1" max="200" value={sessionLimit} onChange={e => setSessionLimit(Math.max(1, Math.min(200, +e.target.value || 1)))} />题</div>
+                      </section>
+                      <section className="exercise-setup-group">
+                        <h2>出题顺序<HelpHint label="出题顺序">优先复习按题目状态和练习次数排列；随机顺序由现有练习会话选题。</HelpHint>
+                        </h2>
+                        <SegmentedControl label="练习顺序" value={sessionShuffle ? 'random' : 'review'} options={[{ value: 'review', label: '优先复习' }, { value: 'random', label: '随机顺序' }]} onChange={v => setSessionShuffle(v === 'random')} />
+                      </section>
+                      <button className="app-primary-button" onClick={startConfiguredPractice} disabled={sessionBusy || loading}>开始练习 · {sessionLimit} 题</button>
+                    </> : <div className="exercise-empty-paths">
+                      <button onClick={() => { setSourceKind('textbook'); setWorkspaceMode('import'); }}>
+                        <BookOpen size={22} />从教材抽取 <ChevronRight size={16} />
                       </button>
-                    </div>
-
-                    {practiceSolutionOpen && (
-                      <div className="mt-5 grid gap-5 border-t border-border pt-5">
-                        <section className="min-w-0 workspace-radius border border-border bg-bg-secondary/55 p-4">
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <h4 className="workspace-interface-text font-semibold text-text-primary">{answerStatus === 'completed' ? '参考答案草稿' : '参考答案'}</h4>
-
-                            </div>
-                            <BookOpen className="h-4 w-4 text-accent" />
-                          </div>
-                          {answerStatusMessage && <p role={answerStatus === 'failed' ? 'alert' : 'status'} aria-live="polite" className="mt-3 workspace-interface-text text-text-secondary">{answerBusy && <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />}{answerStatusMessage}</p>}
-                          <div className="workspace-reading-content mt-3 min-w-0">
-                            {answerDraft ? <ChatMessage variant="document" role="assistant" content={answerDraft} /> : <p className="workspace-interface-text text-text-secondary">暂无参考答案。</p>}
-                          </div>
-                          <details className="mt-4 border-t border-border pt-3">
-                            <summary className="cursor-pointer workspace-interface-text text-text-secondary">维护题库答案</summary>
-                            <label className="mt-3 block workspace-interface-text text-text-secondary">答案草稿<textarea aria-label="答案草稿" value={answerDraft} onChange={(e) => setAnswerDraft(e.target.value)} disabled={answerBusy} placeholder="输入或生成参考答案，保存后写入题库" className="mt-2 min-h-[240px] w-full resize-y workspace-radius border border-border bg-bg-card px-3 py-3 workspace-interface-text leading-6 text-text-primary outline-none focus:border-accent" /></label>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              <button onClick={generateStandardAnswer} disabled={answerBusy} className="app-secondary-button disabled:opacity-50">{answerBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <BookOpen className="h-4 w-4" />}{answerBusy ? '正在生成…' : answerStatus === 'failed' ? '重试生成答案' : answerStatus === 'unavailable' ? '重新连接生成任务' : '基于教材生成草稿'}</button>
-                              <button onClick={saveStandardAnswer} disabled={answerBusy || !answerDraft.trim()} className="app-secondary-button disabled:opacity-50"><Save className="h-4 w-4" />保存到题库</button>
-                            </div>
-                          </details>
-                        </section>
-                        <section className="min-w-0 workspace-radius border border-border bg-bg-secondary/55 p-4">
-                          <div className="flex items-center gap-2">
-                            <BookOpen className="h-4 w-4 text-accent" />
-                            <h4 className="workspace-interface-text font-semibold text-text-primary">解析</h4>
-                          </div>
-                          <div className="workspace-reading-content mt-3 min-w-0">
-                            {currentPractice.explanation ? <ChatMessage variant="document" role="assistant" content={currentPractice.explanation} linkedConcepts={currentPractice.linked_concepts || []} /> : <span className="workspace-interface-text text-text-secondary">暂无解析。可结合参考答案核对作答。</span>}
-                          </div>
-                        </section>
-                      </div>
-                    )}
-                  </section>
-
-                  {practiceSolutionOpen && <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-4 sm:px-6">
-                    <div>
-                      <div className="workspace-interface-text font-medium text-text-primary">核对后，你掌握得怎么样？</div><p className="workspace-support-text text-text-secondary">{!singlePracticeActive && practiceSession ? '选择后记录本次作答并继续。' : '选择后记录本次作答。'}</p>
-                    </div>
-                    <div className="grid min-w-[360px] grid-cols-3 gap-2 max-sm:min-w-0 max-sm:w-full">
-                      <button onClick={() => submitPractice(1)} disabled={sessionBusy || (!singlePracticeActive && practiceSession?.status === 'paused')} className="workspace-radius border border-[var(--danger-border)] bg-[var(--danger-bg)] px-3 py-2 workspace-support-text font-medium text-[var(--danger)] hover:border-[var(--danger)] disabled:opacity-50">没掌握</button>
-                      <button onClick={() => submitPractice(3)} disabled={sessionBusy || (!singlePracticeActive && practiceSession?.status === 'paused')} className="workspace-radius border border-[var(--warning-border)] bg-[var(--warning-bg)] px-3 py-2 workspace-support-text font-medium text-[var(--warning)] hover:border-[var(--warning)] disabled:opacity-50">基本理解</button>
-                      <button onClick={() => submitPractice(5)} disabled={sessionBusy || (!singlePracticeActive && practiceSession?.status === 'paused')} className="workspace-radius border border-[var(--success-border)] bg-[var(--success-bg)] px-3 py-2 workspace-support-text font-medium text-[var(--success)] hover:border-[var(--success)] disabled:opacity-50">已掌握</button>
-                    </div>
-                  </footer>}
-                  {pendingDirectAnswer && <div className="border-t border-border px-5 py-3 sm:px-6"><button disabled={sessionBusy} className="app-secondary-button" onClick={() => submitPractice(pendingDirectAnswer.quality, pendingDirectAnswer.add_to_mistake, true)}>恢复未确认作答</button></div>}
-                  {practiceMessage && <div className="border-t border-border bg-bg-card px-5 py-3 workspace-support-text text-text-secondary sm:px-6">{practiceMessage}{candidateId && <Link to="/mistakes?filter=pending" className="ml-3 text-accent underline">确认收录</Link>}</div>}
-                </div>
-              ) : null}
+                      <button onClick={() => { setSourceKind('file'); setWorkspaceMode('import'); }}>
+                        <Upload size={22} />上传 Word / PDF <ChevronRight size={16} />
+                      </button>
+                      <button onClick={() => setManualOpen(true)}>手动录入</button>{(searchKw || statusFilter) && <button onClick={() => { setSearchKw(''); searchKwRef.current = ''; setStatusFilter(''); void load(); }}>清除筛选</button>}</div>}{practiceSession?.status === 'completed' && <p>上轮完成 {practiceSession.summary.answered} 题，平均自评 {practiceSession.summary.average_quality}</p>}</div>{practicePool.length > 0 && <aside className="exercise-resource-summary">
+                        <h2>当前题目</h2>
+                        <p className="exercise-count">{records.length}<small> 道已加载</small>
+                        </p>
+                        <p>其中 {stats?.by_status?.needs_review || 0} 道需复习</p>
+                        <h2>题目示例<HelpHint label="题目示例">最多展示三道当前范围题目，不代表下一轮题单或顺序。</HelpHint>
+                        </h2>{records.slice(0, 3).map(r => <article key={r.id}>
+                          <SimpleMarkdown content={titleOf(r)} />
+                          <small>{r.chapter} · {r.question_type}</small>
+                        </article>)}<button className="app-ghost-button" onClick={() => setWorkspaceMode('bank')}>查看题库 →</button>
+                        <button className="app-ghost-button" onClick={() => setWorkspaceMode('import')}>导入题目</button>
+                      </aside>}</div>}</div>}
+              {((practiceSession && ['active', 'paused'].includes(practiceSession.status)) || singlePracticeActive) && currentPractice && <div className="exercise-practice-reader">
+                <ExerciseReader key={currentPractice.id} record={currentPractice} bookQuery={bookQuery} title={!singlePracticeActive && practiceSession ? `第 ${practiceSession.current_index + 1} / ${practiceSession.summary.total} 题` : '单题练习'} actions={singlePracticeActive ? <button className="app-ghost-button" onClick={leaveSinglePractice}>返回练习设置</button> : <>
+                  <button className="app-secondary-button" disabled={sessionBusy} onClick={() => changePracticeSessionStatus(practiceSession?.status === 'active' ? 'pause' : 'resume')}>{practiceSession?.status === 'active' ? '暂停' : '继续'}</button>
+                  <button className="app-ghost-button" disabled={sessionBusy} onClick={() => { if (window.confirm('结束本轮练习？当前未提交作答将丢弃。')) void changePracticeSessionStatus('abandon'); }}>结束本轮</button>
+                </>} onSaved={handleAnswerSaved} onMessage={showPracticeMessage} attempt={<textarea aria-label="你的作答" value={practiceAnswer} onChange={e => setPracticeAnswer(e.target.value)} placeholder="输入思路、公式或关键步骤" />} footer={<>
+                  <span>本次自评</span>
+                  <div>{[1, 3, 5].map((q, i) => <button key={q} className="app-secondary-button" disabled={sessionBusy || (!singlePracticeActive && practiceSession?.status === 'paused')} onClick={() => { if (window.confirm('记录本次作答与自评？连续练习将进入下一题。')) void submitPractice(q); }}>{['没掌握', '基本理解', '已掌握'][i]}</button>)}</div>{pendingDirectAnswer && <button disabled={sessionBusy} className="app-secondary-button" onClick={() => submitPractice(pendingDirectAnswer.quality, pendingDirectAnswer.add_to_mistake, true)}>恢复未确认作答</button>}{practiceMessage && <p role="status">{practiceMessage}{candidateId && <Link to="/mistakes?filter=pending">确认收录</Link>}</p>}</>} />
+              </div>}
+              {!singlePracticeActive && !['active', 'paused'].includes(practiceSession?.status || '') && practiceMessage && <p className="exercise-feedback" role="status">{practiceMessage}</p>}
             </section>
             <div className={`${workspaceMode !== 'bank' || !stats?.total ? 'hidden' : 'flex'} flex-wrap items-center gap-x-5 gap-y-1 border-t border-border px-1 py-3 type-caption text-text-secondary`}>
-              <span>总习题 <strong className="font-semibold text-text-primary">{stats?.total || 0}</strong></span>
-              <span>需复习 <strong className="font-semibold text-[var(--warning-text)]">{stats?.by_status?.needs_review || 0}</strong></span>
-              <span>已掌握 <strong className="font-semibold text-[var(--success-text)]">{stats?.by_status?.mastered || 0}</strong></span>
-              <button onClick={load} disabled={loading} className="ml-auto inline-flex items-center gap-1 text-text-secondary hover:text-text-primary"><Search className="h-4 w-4" />刷新</button>
+              <span>总习题 <strong className="font-semibold text-text-primary">{stats?.total || 0}</strong>
+              </span>
+              <span>需复习 <strong className="font-semibold text-[var(--warning-text)]">{stats?.by_status?.needs_review || 0}</strong>
+              </span>
+              <span>已掌握 <strong className="font-semibold text-[var(--success-text)]">{stats?.by_status?.mastered || 0}</strong>
+              </span>
+              <button onClick={load} disabled={loading} className="ml-auto inline-flex items-center gap-1 text-text-secondary hover:text-text-primary">
+                <Search className="h-4 w-4" />刷新</button>
             </div>
 
-            {workspaceMode === 'import' && candidates.length > 0 && (
-              <section className="workspace-form-section">
-                <div className="flex items-center justify-between">
-                  <h3 className="workspace-interface-text font-semibold text-text-primary">校对候选题</h3>
-                  <span className="workspace-support-text text-text-secondary">{selectedIds.size} / {candidates.length} 已选</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <button onClick={selectAllCandidates} className="app-secondary-button">全选</button>
-                  <button onClick={mergeSelectedCandidates} disabled={selectedIds.size < 2} className="app-secondary-button">合并选中</button>
-                  <button onClick={clearCandidateSelection} disabled={selectedIds.size === 0} className="app-secondary-button">取消选择</button>
-                  <button onClick={() => setReviewPreparationOpen(v => !v)} className="app-secondary-button">{reviewPreparationOpen ? '收起来源与原文' : '查看来源与原文'}</button>
-                </div>
-                <p className="workspace-support-text text-text-secondary">解析置信度仅供参考。请校对题干、答案和来源；选中后明确导入才写入题库。</p>
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => setCandidateFilter('all')} className={`workspace-radius border px-3 py-1 workspace-support-text ${candidateFilter === 'all' ? 'border-accent bg-accent/10 text-accent' : 'border-border'}`}>全部 {candidates.length}</button>
-                  <button onClick={() => setCandidateFilter('issues')} className={`workspace-radius border px-3 py-1 workspace-support-text ${candidateFilter === 'issues' ? 'border-accent bg-accent/10 text-accent' : 'border-border'}`}>异常 {importSummary.issues}</button>
-                  <button onClick={() => setCandidateFilter('duplicates')} className={`workspace-radius border px-3 py-1 workspace-support-text ${candidateFilter === 'duplicates' ? 'border-accent bg-accent/10 text-accent' : 'border-border'}`}>重复 {importSummary.duplicates}</button>
-                </div>
-                <div className="space-y-2">
-                  {candidateList.visibleItems.map((candidate) => (
-                    <article key={candidate.id} className={`workspace-candidate-row ${(candidate.validation_issues || []).length ? 'text-[var(--warning-text)]' : ''}`}>
-                      <div className="flex items-start gap-3">
-                        <input aria-label={`选择候选题 ${candidate.id}`} type="checkbox" checked={selectedIds.has(candidate.id)} onChange={() => toggleCandidate(candidate.id)} className="mt-1 h-4 w-4 accent-accent" />
-                        <div className="min-w-0 flex-1 space-y-3">
-                          <div className="flex flex-wrap items-center gap-2 workspace-support-text">
-                            <span className="rounded border border-border px-2 py-0.5 text-text-secondary">{candidate.suggested_type || '未定题型'}</span>
-                            <span className="rounded border border-border px-2 py-0.5 text-text-secondary">难度 {candidate.difficulty}</span>
-                            <span className={`rounded border px-2 py-0.5 ${candidate.needs_llm ? 'border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning)]' : 'border-[var(--success-border)] bg-[var(--success-bg)] text-[var(--success)]'}`}>解析置信度 {Math.round(candidate.confidence * 100)}%</span>
-                            <button onClick={() => setEditingCandidateId(editingCandidateId === candidate.id ? '' : candidate.id)} className="ml-auto flex items-center gap-1 rounded border border-border px-2 py-0.5 hover:border-accent"><Pencil className="h-3 w-3" />{editingCandidateId === candidate.id ? '收起' : '编辑'}</button>
-                            <button onClick={() => splitCandidate(candidate)} className="flex items-center gap-1 rounded border border-border px-2 py-0.5 hover:border-accent"><Scissors className="h-3 w-3" />拆分</button>
-                          </div>
-                          {(candidate.validation_issues || []).length > 0 && <div className="flex flex-wrap gap-1.5">{candidate.validation_issues!.map((issue) => <span key={issue} className="flex items-center gap-1 rounded bg-[var(--warning-bg)] px-2 py-1 workspace-support-text text-[var(--warning)]"><AlertTriangle className="h-3 w-3" />{issue}</span>)}</div>}
-                          {candidate.duplicate_of && <div className="workspace-support-text text-[var(--warning)]">重复于题库记录 {candidate.duplicate_of}，默认导入时会跳过。</div>}
-                          {editingCandidateId === candidate.id ? (
-                            <div className="space-y-2 workspace-radius border border-border bg-bg-secondary p-3">
-                              <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">题干</span><textarea aria-label="候选题题干" value={candidate.question_text} onChange={(e) => updateCandidate(candidate.id, { question_text: e.target.value, duplicate_of: '' })} className="min-h-32 w-full workspace-radius border border-border bg-bg-primary p-2 workspace-interface-text" /></label>
-                              <div className="grid gap-2 sm:grid-cols-3">
-                                <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">题型</span><input value={candidate.suggested_type} onChange={(e) => updateCandidate(candidate.id, { suggested_type: e.target.value })} placeholder="题型" className="app-field is-compact" /></label>
-                                <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">难度（1–5）</span><input type="number" min="1" max="5" value={candidate.difficulty} onChange={(e) => updateCandidate(candidate.id, { difficulty: Math.max(1, Math.min(5, Number(e.target.value) || 3)) })} className="app-field is-compact" /></label>
-                                <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">知识点标签</span><input value={candidate.tags.join(', ')} onChange={(e) => updateCandidate(candidate.id, { tags: e.target.value.split(',').map((item) => item.trim()).filter(Boolean) })} placeholder="知识点标签" className="app-field is-compact" /></label>
-                              </div>
-                              <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">标准答案</span><textarea value={candidate.answer} onChange={(e) => updateCandidate(candidate.id, { answer: e.target.value })} placeholder="标准答案（可留空）" className="min-h-20 w-full workspace-radius border border-border bg-bg-primary p-2 workspace-support-text" /></label>
-                              <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">解析</span><textarea value={candidate.explanation} onChange={(e) => updateCandidate(candidate.id, { explanation: e.target.value })} placeholder="解析（可留空）" className="min-h-20 w-full workspace-radius border border-border bg-bg-primary p-2 workspace-support-text" /></label>
-                              <div className="grid gap-2 sm:grid-cols-2">
-                                <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">来源</span><input value={candidate.source} onChange={(e) => updateCandidate(candidate.id, { source: e.target.value })} placeholder="来源" className="app-field is-compact" /></label>
-                                <label className="workspace-support-text text-text-secondary block space-y-1"><span className="block">章节</span><input value={candidate.chapter} onChange={(e) => updateCandidate(candidate.id, { chapter: e.target.value })} placeholder="章节" className="app-field is-compact" /></label>
-                              </div>
-                            </div>
-                          ) : <div className="workspace-interface-text text-text-primary"><SimpleMarkdown content={candidate.question_text} /></div>}
-                          <div className="flex flex-wrap gap-2 workspace-support-text text-text-secondary">
-                            {(candidate.tags.length ? candidate.tags : ['未识别知识点']).map((tag) => <span key={tag} className="rounded bg-bg-secondary px-2 py-0.5">{tag}</span>)}
-                          </div>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-                {candidateList.hasMore && (
-                  <button onClick={candidateList.showMore} className="w-full workspace-radius border border-border bg-bg-primary px-3 py-2 workspace-interface-text text-text-secondary hover:border-accent hover:text-text-primary">
-                    加载更多候选题（已显示 {candidateList.visibleCount} / {candidateList.totalCount}）
-                  </button>
-                )}
-              </section>
-            )}
-
             <section className={`${workspaceMode === 'bank' ? 'block' : 'hidden'} workspace-collection-section`}>
+              {loadError && <p role="alert" className="exercise-warning">{loadError}</p>}
+              {message && <p role="status">{message}</p>}
               <div className="mb-4 flex flex-wrap items-center gap-3">
                 <input value={searchKw} onChange={(e) => setSearchKw(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') load(); }} placeholder="搜索题干/答案/解析/标签" className="min-w-[260px] flex-1 app-field" />
                 <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="workspace-radius border border-border bg-bg-primary px-3 py-2 workspace-interface-text outline-none focus:border-accent">
@@ -756,7 +664,7 @@ const ExercisesPage: React.FC = () => {
                         </div>
                         <span className="rounded border border-accent/30 bg-accent/10 px-2 py-0.5 workspace-support-text font-medium text-accent-hover">{statusText[record.status] || record.status}</span>
                       </button>
-                      {expanded && <ExerciseDetail record={record} onStatus={(status) => updateStatus(record.id, status)} onPractice={() => startSinglePractice(record)} onDelete={() => deleteExercise(record.id)} />}
+
                     </article>
                   );
                 })}
@@ -767,38 +675,40 @@ const ExercisesPage: React.FC = () => {
                     </button>
                   </div>
                 )}
-                {records.length === 0 && <div className="py-12 text-center workspace-interface-text text-text-secondary"><ClipboardList className="mx-auto mb-2 h-6 w-6" />暂无习题，请先导入 Word/PDF</div>}
+                {records.length === 0 && <div className="py-12 text-center workspace-interface-text text-text-secondary">
+                  <ClipboardList className="mx-auto mb-2 h-6 w-6" />暂无习题，请先导入 Word/PDF</div>}
               </div>
             </section>
           </div>
         </main>
-      {pdfOpen && sourcePdfPath && (
-        <div className="app-overlay-enter fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="教材 PDF 选页">
-          <div className="app-dialog-enter workspace-radius flex h-[64vh] w-[min(900px,92vw)] flex-col overflow-hidden border border-border bg-bg-card shadow-2xl">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-              <div><div className="workspace-interface-text font-semibold text-text-primary">{activeName} · PDF 选页</div>
+        {pdfOpen && sourcePdfPath && (
+          <div className="app-overlay-enter fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="教材 PDF 选页">
+            <div className="app-dialog-enter workspace-radius flex h-[64vh] w-[min(900px,92vw)] flex-col overflow-hidden border border-border bg-bg-card shadow-2xl">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+                <div>
+                  <div className="workspace-interface-text font-semibold text-text-primary">{activeName} · PDF 选页</div>
 
-<div className="workspace-support-text text-text-secondary">输入 PDF 页码后预览；“用作起始页”会回填抽题范围。</div></div>
-              <div className="flex items-center gap-2">
-                <input type="number" min="1" value={pdfPage} onChange={(e) => setPdfPage(e.target.value)} className="w-24 app-field" />
-                <button onClick={() => setPdfPage((value) => String(Math.max(1, Number(value || 1) - 1)))} className="workspace-radius border border-border px-2.5 py-1.5 workspace-support-text hover:border-accent">上一页</button>
-                <button onClick={() => setPdfPage((value) => String(Number(value || 1) + 1))} className="workspace-radius border border-border px-2.5 py-1.5 workspace-support-text hover:border-accent">下一页</button>
-                <button onClick={() => { const selectedPage = pdfPage || '1'; setTextbookPageStart(selectedPage); setTextbookPageEnd(selectedPage); setPdfOpen(false); }} className="workspace-radius bg-accent px-3 py-1.5 workspace-support-text text-white">{"\u62bd\u53d6\u5f53\u524d\u9875"}</button>
-                <button onClick={() => setPdfOpen(false)} aria-label="关闭 PDF" className="workspace-radius border border-border p-1.5 hover:border-accent"><X className="h-4 w-4" /></button>
+                  <div className="workspace-support-text text-text-secondary">输入 PDF 页码后预览；“用作起始页”会回填抽题范围。</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="number" min="1" value={pdfPage} onChange={(e) => setPdfPage(e.target.value)} className="w-24 app-field" />
+                  <button onClick={() => setPdfPage((value) => String(Math.max(1, Number(value || 1) - 1)))} className="workspace-radius border border-border px-2.5 py-1.5 workspace-support-text hover:border-accent">上一页</button>
+                  <button onClick={() => setPdfPage((value) => String(Number(value || 1) + 1))} className="workspace-radius border border-border px-2.5 py-1.5 workspace-support-text hover:border-accent">下一页</button>
+                  <button onClick={() => { const selectedPage = pdfPage || '1'; setTextbookPageStart(selectedPage); setTextbookPageEnd(selectedPage); setPdfOpen(false); }} className="workspace-radius bg-accent px-3 py-1.5 workspace-support-text text-white">{"\u62bd\u53d6\u5f53\u524d\u9875"}</button>
+                  <button onClick={() => setPdfOpen(false)} aria-label="关闭 PDF" className="workspace-radius border border-border p-1.5 hover:border-accent">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
+              {sourcePdfAsset.loading && <div className="flex min-h-0 flex-1 items-center justify-center gap-2 workspace-interface-text text-text-secondary">
+                <Loader2 className="h-4 w-4 animate-spin" />正在安全加载教材 PDF...</div>}
+              {!sourcePdfAsset.loading && sourcePdfAsset.error && <div className="m-4 workspace-radius border border-red-200 bg-red-50 px-4 py-3 workspace-interface-text text-red-700">PDF 加载失败：{sourcePdfAsset.error}</div>}
+              {sourcePdfAsset.url && <iframe key={sourcePdfAsset.url + '#page=' + (pdfPage || '1')} title={"\u6559\u6750 PDF \u9884\u89c8"} src={sourcePdfAsset.url + '#page=' + Math.max(1, Number(pdfPage || 1))} className="min-h-0 flex-1 bg-white" />}
             </div>
-            {sourcePdfAsset.loading && <div className="flex min-h-0 flex-1 items-center justify-center gap-2 workspace-interface-text text-text-secondary"><Loader2 className="h-4 w-4 animate-spin" />正在安全加载教材 PDF...</div>}
-            {!sourcePdfAsset.loading && sourcePdfAsset.error && <div className="m-4 workspace-radius border border-red-200 bg-red-50 px-4 py-3 workspace-interface-text text-red-700">PDF 加载失败：{sourcePdfAsset.error}</div>}
-            {sourcePdfAsset.url && <iframe key={sourcePdfAsset.url + '#page=' + (pdfPage || '1')} title={"\u6559\u6750 PDF \u9884\u89c8"} src={sourcePdfAsset.url + '#page=' + Math.max(1, Number(pdfPage || 1))} className="min-h-0 flex-1 bg-white" />}
           </div>
-        </div>
-      )}
+        )}
       </div>
-      {workspaceMode === 'import' && (candidates.length > 0 || lastImportBatch?.status === 'active') && <WorkspaceActionBar status={`${candidates.length} 道候选 · ${selectedIds.size} 道选中${message ? ` · ${message}` : ''}`}>
-        {lastImportBatch?.status === 'active' && <button className="app-secondary-button" onClick={rollbackLastImport}>回滚最近导入（{lastImportBatch.exercise_ids.length} 题）</button>}
-        {reviewPreparationOpen && <button className="app-secondary-button" onClick={() => setReviewPreparationOpen(false)}>返回校对</button>}
-        {candidates.length > 0 && <button className="app-primary-button" disabled={importing || !selectedIds.size || reviewPreparationOpen} onClick={importSelected}>导入选中 {selectedIds.size} 题</button>}
-      </WorkspaceActionBar>}
+
     </div>
   );
 };

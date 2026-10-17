@@ -1,0 +1,339 @@
+{
+  "reference_versions": [
+    "R1-final",
+    "R2-final"
+  ],
+  "scope": [
+    "exercise preparation",
+    "textbook/file import",
+    "candidate review",
+    "bank reading",
+    "practice reading",
+    "mistake detail reading"
+  ],
+  "authority": "Task-specific implementation reference; R2 explicit amendments override R1. Not permanent global product authority.",
+  "archive": "reference-r1-r2.zip",
+  "archive_sha256": "d7d97efc5ff594800ad3d6c087f60dabcc8e42b652f558073e400960f1db137f",
+  "decisions": [
+    "Bounded preparation and source canvas; one source form at a time",
+    "Candidate index plus one document; comparison hides index",
+    "Focused reading max 810px; 40/60 when actual workspace >=992px; otherwise one active pane",
+    "Exercise AI creates draft and requires explicit save; mistake AI has distinct direct-write contract"
+  ],
+  "known_reference_limits": [
+    "Static prototype data and model output",
+    "Prototype browser captures are not production Electron QA",
+    "No real OCR, model, backend, restart or usability validation in the references"
+  ],
+  "implementation_differences": [
+    "Existing native application chrome retained",
+    "Candidate titles use deterministic excerpts with formula placeholders",
+    "Exercise API lacks question-text update endpoint: Astra accepted read-only question plus real management/answer editing for this round",
+    "Mistake explain lacks CAS/idempotency: Astra accepted unavailable AI status and saved explanation, with no disabled write action",
+    "Path-only bank images unavailable: Astra accepted explicit source-file notice; existing Markdown/mistake image reads remain"
+  ],
+  "files": [
+    {
+      "path": "artifacts/design/exercises-validation/README.md",
+      "sha256": "84b06a69913b11ebd1d80a3886d78ad8d7b84710cf1ad8a46e370ee7ec808e4b"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/archive-v1/gallery.html",
+      "sha256": "048c559fa90598712768d8f65cba49bde2f95f0759c51871b4d70d5a5885170a"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/archive-v1/index.html",
+      "sha256": "5fc3268faf9fc9229556c3d635ec8f9dd6a79f899687034c815449c6e7b49bb7"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/archive-v1/prototype.css",
+      "sha256": "0aa5039bde56e812229618348d365fa3a0f5c06b0d7c715f45745453696af387"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/archive-v1/prototype.js",
+      "sha256": "3fb51f9dbfc8426ccc08c39b8b335465dae24f299f90bf629187befd58a82576"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/evidence-manifest.json",
+      "sha256": "0cb4515446465419f5b85271613bd8c37e48dc91dfda5f1c89a5178c2283eb0a"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/gallery-r1.html",
+      "sha256": "048c559fa90598712768d8f65cba49bde2f95f0759c51871b4d70d5a5885170a"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/gallery.html",
+      "sha256": "6b384dcb4bb65487428fc05cd63bdbac691e3ebdf36e89a1647523d9d786a762"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/index.html",
+      "sha256": "b2c565e49b63f844d8a6e98ef0987175ada086e6e1bc0c900332b9629e18ebe3"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/prototype.css",
+      "sha256": "a6141d4f723320a2eae8487d246f59176126d7d624c4387efbe387310f0eca97"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/prototype.js",
+      "sha256": "bcbef298dec15c8b3c349479f9fbbdf10e21b3a068f7a126ee03b7337c19cecf"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/reading.js",
+      "sha256": "8c6a6c50b94b448281a117481de7248604e2fc83813b8fed855e8aca47a49ef6"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-direction-b-import.jpg",
+      "sha256": "952b222aa01438b32c37b0c5e004b8735e134954f97fae7f47686d0bbcefb5e1"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-direction-b.jpg",
+      "sha256": "c2da0adc8dfeb1221723794bf235dfb68054a0b03dd44b9e16acb7062a54410f"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-edit.jpg",
+      "sha256": "c245a3dbafabaa72656c2a17f6e240709e797ec21b36d3ac90e0716b0cb17b1b"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-empty.jpg",
+      "sha256": "07b89af418a6c3fb947686538c0cfdfc77f1548b57b6d4b280663a1dbb4afb48"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-failure.jpg",
+      "sha256": "c26262de2e7eecac2a7d2be6c1ce5a41932c26527901b5d87b5ba9c59425b0e8"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-file-ready.jpg",
+      "sha256": "c8deec1a961c4fc1101a66596ddaf5fa86c5fa64a49dc6e4f97a4958d06751c1"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-import.jpg",
+      "sha256": "9b56cedfe1d08607e092c8fa132db98b4857d72ef8ac35a119fdd76a846e7370"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-matrix.jpg",
+      "sha256": "72f10d0092ef7c2acb0b8f480cd5aebbb70716b43e53099b0b05cf39b932c2bf"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-original-text.jpg",
+      "sha256": "4890d5d4f3baef214486e240c67c02963aef19754bfbfeeedac425b259e6c1fa"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-practice.jpg",
+      "sha256": "df95a53ce2e497b8ab93e6e6d418ab63ef381aa5e947e74bf5c6684652a35dc4"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-review-source.jpg",
+      "sha256": "c728c55ab792e41b05d5cc954b863fc4308427a82a1e881b1658744eaf613cd7"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-review.jpg",
+      "sha256": "e3748cc8679266a3904ed8f924c33927c8c1d5be93cf6b5836fe07398ebf96b3"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1024-success.jpg",
+      "sha256": "42cb95be8deaba2fa9752669eba34d7e44d8a2d7982ab9d166bccd71c6e2f22d"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1280-direction-b-import.jpg",
+      "sha256": "f100012fd97e98c6f5f7c59e919528d9c7923c3967f2fa191490ca43adb6f2a4"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1280-direction-b.jpg",
+      "sha256": "5e195677967d58901f3433d2551a20a2f26b69ef077c3aec2de048f0b71f68b4"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1280-edit.jpg",
+      "sha256": "578bfa384b957150411efabcd76abb5ffad4ad1fabf6948480162dd4282220b4"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1280-empty.jpg",
+      "sha256": "b3ba1b735641cd4555996c879e9e291b6ae85d95c31ca064faccdefb4a7e2bf9"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1280-failure.jpg",
+      "sha256": "24684c93f4890e091b396dbd4c7ca1e9733af77b381b356667111a90d43c88fb"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1280-file-ready.jpg",
+      "sha256": "eb087913b6b291afdffc099e44a3068e9aedde6439a939766af32ef03a4d7eaf"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1280-import.jpg",
+      "sha256": "f8c1508b1c8978e457b4131492f1bbc4c401e50bd22df6544ba5116d4d217c88"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1280-practice.jpg",
+      "sha256": "752bd5907f9005306020e419f6f2077e43c455004cfe4b6ec800269f407a1683"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1280-review-source.jpg",
+      "sha256": "e2285235f11d2f138db2826510da460c97addac580de84f586699c9d001dbecb"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1280-review.jpg",
+      "sha256": "abc373aab60b516902e11092457a1f56e83c37aee7ec3bd03474c3e611cd1ed2"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/1280-success.jpg",
+      "sha256": "377ecf068d9aa4659076689b6a624ed00be8494493a35fe4eeb5acca9249347e"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/before-exercise-answer.png",
+      "sha256": "67c57dff8a98631dedaa0f90d91dba7e732de3eb255b483b281c7ab4c41680f3"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/before-import.png",
+      "sha256": "2482a5020601d43db3c1f94bf041a3c454a1e75c7c72f386487da709fc78e904"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/before-practice.png",
+      "sha256": "038b6c1680930cbf20ee32794f2ad5f3b1bb51291c22e110eae234417f5cccc6"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/layout-observation.json",
+      "sha256": "bdfbffca2cc3f3380057178339c621d27d10c528064ea3b15bbc89be302a96b6"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-bank-ai.jpg",
+      "sha256": "80da0e4e5cbd73fb828e668dbb23049a0fa0c7e6a5a11d3feb8b03bd4d112b35"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-bank-reading.jpg",
+      "sha256": "98935d10dc5fc085afebf624f408034b1cde2abd182451a28841237121f3d8d4"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-empty.jpg",
+      "sha256": "d940efe2c8677c14a9b76ef8bae3c0fb5af5b327ddf5c6a5899cc94579bf030d"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-exercise-ai.jpg",
+      "sha256": "9c11ba9706126b4006416cf1417edbc333d1c6dc88666e8f97abe5ac39678bd6"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-exercise-failed.jpg",
+      "sha256": "1022b344d2abc18fc7921689393dd0b2fd8ed29b7a3da9bf60ad14734962e4f2"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-exercise-generating.jpg",
+      "sha256": "8c34849f10c7b6580730a71264bcb12c180c77863b87e1bb016bf6739c37c4f0"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-exercise-reading.jpg",
+      "sha256": "7145f12f853ec0d8328abc7a2328b4b22f2e62146f94e60a1ea268b36e57a5a7"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-help.jpg",
+      "sha256": "dcf61f4b2546f8b30a63b8b8daae0bb3c197c665d1f2602a7e1107884dfc6877"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-import.jpg",
+      "sha256": "88be81752064821812e3623f5d673c50220329e75a9fbdd2fa9e74c0012c55f8"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-mistake-ai.jpg",
+      "sha256": "6ae09930bd66f80e67d67f988c02bc2fc73629b8c48e21a7eef0c1d036be5560"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-mistake-failed.jpg",
+      "sha256": "2bb41863511fd5f4a3da32c6f494f8eb0dc5a9e49d3d4bf9d6a23c495deece6c"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-mistake-reading.jpg",
+      "sha256": "35a1eaf21b7937aaf7000cfc97c0aaf10d537bb3f8570163ee61ce83f64780b2"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-mistake-write-confirm.jpg",
+      "sha256": "283c73ad7915ffdd94217241aa2f1c867ed6c826b30a35ad6c02b46cf1e9e04f"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-practice.jpg",
+      "sha256": "a0c26c511cda3aae5c3461ea9b4d3c203e4c11e1a02d8f9401167ac56117a947"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1024-review.jpg",
+      "sha256": "e190709e145c1f742ed4eba1e97196a846e9c6098d5b48dfc193ab8d3b06550a"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1280-bank-ai.jpg",
+      "sha256": "82508b786915f1231ab67e17e0249dace8ac74de20f3e75a78a482baa6ffc785"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1280-bank-reading.jpg",
+      "sha256": "2a0ddff8e8f98de62f62f1a319bb2f900a7f354dd1a53a4367f5debb1e001d68"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1280-empty.jpg",
+      "sha256": "4185381539c3d24f12eb7c60057b972644350386b28eac751073f072349b00ad"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1280-exercise-ai.jpg",
+      "sha256": "48928814035ed6bfaa177c0a8eb23b9d48c3987f6c745e3145289db049162e2a"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1280-exercise-reading.jpg",
+      "sha256": "37409b5c671afabf60fb75ce2f3667a1e2b05f008909f2ed1ce38c05fc58ec75"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1280-import.jpg",
+      "sha256": "8ca6ef041cf4ababc9c738cf9f33c2441784cb7074e625d948c6de8742a1bffe"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1280-mistake-ai.jpg",
+      "sha256": "1dd26690c553e4c541db4ab932ea4fd843d4ee262e4b0080a5080cc0a1922fe0"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1280-mistake-reading.jpg",
+      "sha256": "c9060ec520a017ef2641bdfb86ae49d2ef6ec26450f564a48dd1a1021e8df2ef"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1280-practice.jpg",
+      "sha256": "f04c3198e55ebde21cf728e6eab329fca9564a0b15c1e3e5e6096b88141c7a61"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/1280-review.jpg",
+      "sha256": "632d123dbb67d609a01ccf9441731ac9eb1a1b577c1b2fc507a2eb2160774221"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/r2/v1-1280-exercise-ai.jpg",
+      "sha256": "0d201bc39ab0d354d65c05eda38a813feaf7d35c08c3199868b7de294a655adb"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/v1-1024-file.jpg",
+      "sha256": "ff0409d16b7247443d93c3f5b2c76ff5561b9a83cdf80313ff873fdcf7952ac4"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/v1-1024-practice.jpg",
+      "sha256": "3df5f65aeec36496242947944fe35b1c0e15a765fe3dcb40f2e148e2c46d1f67"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/v1-1024-review.jpg",
+      "sha256": "c82dafec441b01c1b5feb701681a1c081cdc7460f28f9bf5c85e5accde332697"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/v1-1280-import.jpg",
+      "sha256": "068ed71556885cc29238a4e43825667ac26d54f7046b811f7d25f88aa4e02549"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/screenshots/v1-1280-practice.jpg",
+      "sha256": "35843bbd935bf9c89d81c8e76ff2d26cecd2c445b52f53beacf168b44034371c"
+    },
+    {
+      "path": "artifacts/design/exercises-validation/server.mjs",
+      "sha256": "23b410c878c5bbff9d28dbc1fa655d6988ae65f422fadc8c640bcb39f8db57cd"
+    },
+    {
+      "path": "docs/design/exercises-visual-validation/design-review-2026-10-16.md",
+      "sha256": "28d721316a87341c6dd73a81d325c6ca617c9cbdbf12e48d790a4f9649c063e0"
+    },
+    {
+      "path": "docs/design/exercises-visual-validation/reading-and-copy-r2-2026-10-16.md",
+      "sha256": "7717f6b8ff68357c4413278cf9f008f8c887bdab513bc1a187ac2ef4dbaf8ab0"
+    },
+    {
+      "path": "docs/design/exercises-visual-validation/sol-handoff-2026-10-16.md",
+      "sha256": "db4893143d35cffd29751080d2c88d357e36b07b1b8f2d88873c7347b89f3828"
+    }
+  ],
+  "design_review": "astra-review-2026-10-17.md",
+  "final_design_status": "DESIGN APPROVED by Astra: final settled chat screenshots independently inspected; E1 closed. Limited to this R1/R2 visual integration and three accepted capability exceptions."
+}

@@ -1,0 +1,912 @@
+{
+  "recorded_on": "2026-10-17",
+  "branch": "Texa_MacOS",
+  "head": "1824fcc7d7f33c7a08faef9cd285d566f5b3ac79",
+  "frontend_build_utc": "2026-10-16T23:56:08.953Z",
+  "platform": "macOS Electron 37.10.3; production React; synthetic API fixture",
+  "tracked_frontend_diff_sha256": "cfd731989010656ee2ff7ba9b2b7a96e1f2ba95555410ce9d4d94b6d6edbf440",
+  "sources": [
+    {
+      "path": "frontend/src/components/chat/MarkdownMessage.tsx",
+      "sha256": "8db78aa42403999071300da5cf32543d8af9ffb8bcaa7cd7783ed87911539501"
+    },
+    {
+      "path": "frontend/src/components/chat/MarkdownRenderer.tsx",
+      "sha256": "69b21a8aec5b9322f71da44171a73744b1e87adfec2925f69859c7ce694e0172"
+    },
+    {
+      "path": "frontend/src/features/exercises/ManualExerciseDialog.tsx",
+      "sha256": "86296eefb4bbc74ede9233f6ba8f12c57f6c712a0aaf5df81ceb319d513ae628"
+    },
+    {
+      "path": "frontend/src/features/exercises/components/CandidateReviewWorkspace.tsx",
+      "sha256": "e62f1d21a4ee1f38772478155c67430cbfca5f65bdc676b374186b5a8d7d1077"
+    },
+    {
+      "path": "frontend/src/features/exercises/components/ExerciseReader.tsx",
+      "sha256": "ed23e84b062c76442565e7e0a38467dde4731ca6892634c3e9467e6146c4fa09"
+    },
+    {
+      "path": "frontend/src/features/exercises/components/HelpHint.tsx",
+      "sha256": "59ef23e3cfb47335cf610871ff5bc86b5f30c345a0190e03d186ff412e8744ec"
+    },
+    {
+      "path": "frontend/src/features/exercises/components/help-hint.css",
+      "sha256": "ae19c80acf2091ee9fbd515331e81a413825d40ffbdd9576ddadeb71d10b8856"
+    },
+    {
+      "path": "frontend/src/features/exercises/exercises.css",
+      "sha256": "c4d5e954a612ed3f51998034e3a8a9e918ab34268fd4a1e9ff5334cc4cfe6523"
+    },
+    {
+      "path": "frontend/src/features/exercises/hooks/useExerciseAnswerJob.ts",
+      "sha256": "d961763c3b0701bbe0cf03bf0cae74d7ff824ea1f8ede8ac2398fb8ca3af8e41"
+    },
+    {
+      "path": "frontend/src/features/reading/QuestionReadingLayout.tsx",
+      "sha256": "36164ece4a459158b7f7986d1cb74640d3cc632c820168d06deefc19bc0c3417"
+    },
+    {
+      "path": "frontend/src/features/reading/ReadingMarkdown.tsx",
+      "sha256": "b9f6af0b2cd6861e457cb54dce51f8d0ee5400577116926b8f6e09d116b95ae7"
+    },
+    {
+      "path": "frontend/src/features/reading/reading-markdown.css",
+      "sha256": "1b319239ec90c55c773aa98471ec0f461f0f01e07a33b20a909c373f291b6842"
+    },
+    {
+      "path": "frontend/src/features/reading/reading.css",
+      "sha256": "ee27abdaf9d81897de1565fa7390185007f4ffdacee82e72cb13211e3aeee6dc"
+    },
+    {
+      "path": "frontend/src/features/reading/readingMath.test.ts",
+      "sha256": "c081490e0b9f28ae7a1561372b0055e6b91b2ed074efa5b135644ae5c09b4505"
+    },
+    {
+      "path": "frontend/src/features/reading/readingMath.ts",
+      "sha256": "ce7974c5e6598d134465fff4087de9b25f956f95aac21cff944b9a3480d9962c"
+    },
+    {
+      "path": "frontend/src/features/reading/useUnsavedWorkGuard.ts",
+      "sha256": "8f38e58f3c5d33a7319a164ed5754265f142e6b456b851dbd0b2998a03ccad3e"
+    },
+    {
+      "path": "frontend/src/pages/ExercisesPage.tsx",
+      "sha256": "3c5cd7118c26cc300a2ffedf08f1face1bfc3b3811ba01967035f841aa5cc571"
+    },
+    {
+      "path": "frontend/src/pages/MistakesPage.tsx",
+      "sha256": "09e0d24c01f5502df19273786ba5e2c0ad4669b58c9ca3c2b68f5eb6abd121a6"
+    },
+    {
+      "path": "scripts/qa-r1-r2-edge-cases.mjs",
+      "sha256": "5f4b8c18cc4a7cdb8c3284c2edf09884b834a23f5441e52d4089968c84047a19"
+    },
+    {
+      "path": "scripts/qa-r1-r2-electron.mjs",
+      "sha256": "0e7648eb8dd0e55f0f35bee257156203db811e9761dd86c6a62d38cc6441ffd7"
+    },
+    {
+      "path": "scripts/qa-r1-r2-reading-cases.mjs",
+      "sha256": "3c6cf26ff3ffb7391e2bab65dd776731583f23bd4c0a5ac36df88a650d0bf0ed"
+    },
+    {
+      "path": "scripts/qa-r1-r2-regression-cases.mjs",
+      "sha256": "6c6d4191b9ba8cb1e6f2d485a9ea28a3e0069425680d182dbad3f5666728ad4d"
+    },
+    {
+      "path": "scripts/qa-r1-r2-scope-case.mjs",
+      "sha256": "b028f57173e203dff93cad0ca9dd2c18e94a577f594fc9ad05a4bee836344bfc"
+    }
+  ],
+  "groups": [
+    {
+      "group": "final",
+      "checks": 115,
+      "screenshots": 76,
+      "engineering_errors": [],
+      "files": [
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-preparation.png",
+          "sha256": "facc28260ca7aabc5e53d376d0205bd472d94bfcf402edb565480b0341f983f5"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-help.png",
+          "sha256": "95fea24860c6509bf2f2d5b6e5aaca21aca19c0bc191786635aa8cabb7f90abe"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-source-textbook.png",
+          "sha256": "152ad62cc3ec6cfd65803ef1113c6989cca8dbde57e19eb818931cf6ebc3e81d"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-source-file.png",
+          "sha256": "7c469280903d8da346bdd8dcc9fb3af09ff6503b077169c6fc3738449998be27"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-candidates.png",
+          "sha256": "335ed2ac9354ae31566f423b851181e4d0b00a995ae675c19306464c1efb4a16"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-candidate-edit.png",
+          "sha256": "98a7088767b359daced45d29fb2ed6572d15f2f583093efb7b51ed60d53e7b02"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-source-compare.png",
+          "sha256": "aaed4287837e325cdd85067b899c8db86c7246e4d619bbbd6a4472d2bf2a94e2"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-receipt.png",
+          "sha256": "41a9068f3a3180fd4c0c68d67bc2b9414092ff746047ec49afc9b5e47a8d1665"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-preparation.png",
+          "sha256": "9b60da2e0215a85b7d6b73fbf2952f920f6b777d1a5e6c5e3b37f5d09be94d53"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-help.png",
+          "sha256": "a5022d75dd369bd3f21a8ab56665fa340762cfd61134f9caca3aeabcbcfb7751"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-source-textbook.png",
+          "sha256": "180134a75bc042ed8a4d8ed2c1a31784231ef27dc415fc094154ab95065e7210"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-source-file.png",
+          "sha256": "b5ed951d55ec1e5449d35ad74753be1a42f092295db71eb46cbd31860e1a309c"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-candidates.png",
+          "sha256": "64d6f15def5f259cb276de010227e938d91c9431983d986fef4da827672c9af6"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-candidate-edit.png",
+          "sha256": "aeaa6d8a804295bf591a3eb0aab8ac2f7b1c4f5f8900280f996c325a293b94a2"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-source-compare.png",
+          "sha256": "b5c0af8dae3f7d63b86d1b2ab642db2c13ec0a06d00e27cc9a389806ec580294"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-receipt.png",
+          "sha256": "929898d3fec838df7577ef139e2ed31aaeb480489c0642eaf2c5b49bb91b9e52"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-bank-reading.png",
+          "sha256": "7ba669e837a8886f1d898f5837820ee21a7559e27987d815b3233a040a660548"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-bank-generating.png",
+          "sha256": "561bcb4561dc7b064eae921526a7bc387151bde54303b2538c0d86044d97c25e"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-bank-ai.png",
+          "sha256": "c398e88c28efbeefeb6024c4892cf44fd4715c285258a17a11e1fd0f2bc904be"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-save-failed.png",
+          "sha256": "b5ab6a261b1ff9c04b7237fc00aaa159ab5e3c21f8ee0fe4e25e48d2e25786d2"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-saved.png",
+          "sha256": "8169d8cbd43d6a52e4f92cc30a4e6487844cd87d5421624f64d102d38fd4c661"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-practice-reading.png",
+          "sha256": "52a755676012edb020fc061cffcc4e40bf0ea89e5ea315309182bb39189829ce"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-practice-ai.png",
+          "sha256": "23f00e52f180c0c4ad2a971a77312a554a182e5ba43161090ffa39741f8abfbd"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-practice-return.png",
+          "sha256": "0ec5cc51b131a029dc52589dfe62c3f19a1b299a41f3d6342dcf2594575522f5"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-mistake-reading.png",
+          "sha256": "49219f77569054f4a753fe67ab71328815ac0c351baf5b80d86da039d43b51cf"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-mistake-reference.png",
+          "sha256": "b5368f28661b46eeaf7d27b6b015b71cb7f89215d4b6db977cba2302d2ba1a56"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-mistake-ai-conflict.png",
+          "sha256": "864f1d0427f71ffb51a6e8f7f14a0057444b2c8ee2d385e4be1eae5aa8749754"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-mistake-edit.png",
+          "sha256": "0edc7d61227c27f2bc32fc5073aff20aab287dac62cd429ff8eaa08d4bf608c4"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-bank-reading.png",
+          "sha256": "b608a3d9b2e4bb1c7e2a8dbe1c1ff9839e2b75eb93eebae292cb1da0b476c2c9"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-bank-generating.png",
+          "sha256": "694f81422c7f3e1bcb066a76da50f0301d753b4bb48bacf888f84b4eaa38c6bd"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-bank-ai.png",
+          "sha256": "01cedc14644a935eeccdbe12411a4c23ec384bcbb9398715d6e91e3b0a8d5b83"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-save-failed.png",
+          "sha256": "cb81a0273c0b5014ea792382eb5792686ecc783c49b217f3f3eb7312e8e974b8"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-saved.png",
+          "sha256": "791bcd61e5b1cf90ceaa7caf35952ab2764bc7ae8288b5204d90875a3d5cb2f4"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-practice-reading.png",
+          "sha256": "c80103263db54161e7a0de050786618fc66f93c0efd7c9113ae921f773c14e6b"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-practice-ai.png",
+          "sha256": "c040d7fe4d4b02af89e6c4559617a95f2784d88b86f902ca08f0cae19a659763"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-practice-return.png",
+          "sha256": "d45bf7dd2e088a698686f5dbb10803fb8eb45df2428b308bea48c9c411df98dd"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-mistake-reading.png",
+          "sha256": "597e0762d992ed452b0f0cd54c46bab6d3e2331d09a864bc30b4b88519ce401c"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-mistake-reference.png",
+          "sha256": "422e16ece72286e350df2e55eb2cf71e92b873eabdfde287f9849d430aca37d3"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-mistake-ai-conflict.png",
+          "sha256": "ded45381eb2ae349977af65bab1c74a2bac87ab755cf83898625365c6b491d7b"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-mistake-edit.png",
+          "sha256": "7143b0d48668ebc8657436db903c2b2860645f004ef25717b1f372f985fb8062"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-matrix-reading.png",
+          "sha256": "515a8f9ab054a459db9611c0dcf0ec537fb0041cf3cb569e784c65d4164d3a08"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-missing-answer.png",
+          "sha256": "5857e452484eca2b2e9263cd79bc47cdf53e7805f5becd26ebd6e3f221c3dd3a"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-ai-failed.png",
+          "sha256": "6866c3e8349d7e33292637e163726856c4f1edc7ea0a579b0f7f8ec325d58139"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-ai-disconnected.png",
+          "sha256": "9947184f3f246055f47c6e0dfa0c81eb19fe2d7191fe0e6030e1d5fcb0c88759"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-ai-recovered.png",
+          "sha256": "eacefcb24690597069ffcab984e426d8781953919299e9b5e6b84a73fe093692"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-analyzing.png",
+          "sha256": "575012db924414c566f8c43682753fd0de189e6716d04fc4c27702541cf10be7"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-analyze-failed.png",
+          "sha256": "a5935f3823c9d3d575ffba87d749a78fc5b2ab06f9bcd8be6a71b0538dd9515a"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-zero-candidates.png",
+          "sha256": "9a7822924459d5743e618549764d3d93e76a5a46005c17b6175cc7503af9d345"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-200-candidates.png",
+          "sha256": "29b5934cd129da84fb64e8475e271b6a471ad128ddef89eb76a2eeefb5db980a"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-commit-unknown.png",
+          "sha256": "ff1bbc8374a9ece4342433832246bdd205ba10dedcd2a801479bc12e12b36fba"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-image-question.png",
+          "sha256": "a4a667d0793f4c2ec3a2c3e3974d12c6f65cf172e9ed272c08d4b2d6ed19ce00"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-matrix-reading.png",
+          "sha256": "97c2e024ac7cf6e690c2cf6265dccc9665f1133c83e0ffa30f9c2b2784698fce"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-missing-answer.png",
+          "sha256": "3e90b7f1729d820c42f862912fd3755552856a0083ff86d89a9d4678fc580a6f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-ai-failed.png",
+          "sha256": "75a58868a2d73025932702d937981a02fcbe1713a0f4f620ef3c6cbbf83dd421"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-ai-disconnected.png",
+          "sha256": "1c8670c397ad5f2b22dcdb77a661337df8af69e104c3541988b959e421570a84"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-ai-recovered.png",
+          "sha256": "01cedc14644a935eeccdbe12411a4c23ec384bcbb9398715d6e91e3b0a8d5b83"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-analyzing.png",
+          "sha256": "8cdc35bfcfc38b49e62175d8d5897f5238efbc10bb1f5adac95537b7b52847fb"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-analyze-failed.png",
+          "sha256": "48016809597bfa9526f40ac524164d045697e857f994a8164973db79d264d7d8"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-zero-candidates.png",
+          "sha256": "f8fa953844614b9161e8cfcd38f44c1f2b82dcf3da3300c2c05dc7b0c2bfb37f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-200-candidates.png",
+          "sha256": "508a885189c93dbeaf969fbf8b6796b99b353c6029078a3a8b91cc6b90c8d989"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-commit-unknown.png",
+          "sha256": "02c1662fb5d1df15c5cad0929764117b85ca5f395a6dc8bd3367a53bf4c8b753"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-image-question.png",
+          "sha256": "55be30164af4ec43851253d3014452b9404e10263139d262231f1c8ccbdccb68"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-manual-dialog.png",
+          "sha256": "fb754699dcca81ba878e493e2323715f7103eddcd14b4f96bb7a929bad6a49c6"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-chat-markdown.png",
+          "sha256": "a202c5da98d50666192c1f6519ae0cb63df8553d86e6851e7b1ccde74e1928f9"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-chat-after-exercise.png",
+          "sha256": "1599b267604e32994e76b1ceb0e6e4f0d626f4e30860b99e0e27212d640dea95"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-note-reading.png",
+          "sha256": "ca2678388ea6a4ecea0b9bf8eda5080ae19b886f619cbaea5654cd20ae4036ed"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-mistake-archived.png",
+          "sha256": "4e98102b3929c3dec49d762da435154e8b245f332dc5bf2662910c6fc344735b"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-review-four-results.png",
+          "sha256": "6e09c7881d3623a2b699c01f627c73d1b7522ef705b2b5e3328770551cc0ea8f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-review-complete.png",
+          "sha256": "754ebc21914ecc821390db8fcdfd218eb57b5db0320d55ddc52546399280c4fd"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-empty.png",
+          "sha256": "8e76be4bdb5441035d309de6ae1f5c73cd5d5c065f761a963d46686e5263c97f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1280-overview-error.png",
+          "sha256": "51d3d7decb8fc3533fff811edee3398a7efbe8ef667cb4da0d1692dfc5244f2d"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-empty.png",
+          "sha256": "36a5f318b1c5c8e979759149c55f9439f56803c3afa3ceb8d3ef675fff61838d"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/1024-overview-error.png",
+          "sha256": "904732c6780ac8cde80a9c7eb48f37f47b07d060e834bd2ae1776b21470ab8c8"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/760-preparation.png",
+          "sha256": "f0d8f938fd0c285a3e1c3e49efbcb4ee74959657d3e1abd76daf889f2fe65d64"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/760-bank-reading.png",
+          "sha256": "1c2598c785b3e3e680e44b4fc1d5ec03833fe023e077d4cb125b26c54457f841"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/760-bank-reference.png",
+          "sha256": "43a2844e6de71f3c0558adf8b4c53d3c6d3bcbd51cdff5b0e0f0b9b1f85f4d70"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/results.json",
+          "sha256": "661c347fe7ae4f06ebbcb2c3ca6fea90817c9ba84fc748f7b103a356610ba1a3"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/requests.json",
+          "sha256": "3b5bf2e9d0f4c30f35f85369cf64c1ee0a12badd54198fe31b3d288cda56297e"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/final/counts.json",
+          "sha256": "514a37db38ce062d9884dd165fa49a14e128971cdd32d8f101452f6aebee005c"
+        }
+      ]
+    },
+    {
+      "group": "review-fixes",
+      "checks": 133,
+      "screenshots": 86,
+      "engineering_errors": [],
+      "files": [
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-preparation.png",
+          "sha256": "dd9833ef971892c69335e6ce1227214d9bf2f36b3fbcc67b72119f22af3520c5"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-help.png",
+          "sha256": "38f1164236b6f061efd81552220630a63a4da3e40db0bd9081f11d3a82cf72db"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-source-textbook.png",
+          "sha256": "35d41fb7e674a2a3ab7b07d9defd044cc29799afe17b0fa7c549f8fab519bf51"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-source-file.png",
+          "sha256": "231dbd88a87ebc9bc28ca52831569fb1712489975439364e6712e0c271f2ec6f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-file-ready.png",
+          "sha256": "b41ff37b43f52ac8cf1b30efc12f79a0bac10fe3b1640d45031cb2b941fee6a9"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-candidates.png",
+          "sha256": "335ed2ac9354ae31566f423b851181e4d0b00a995ae675c19306464c1efb4a16"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-candidate-edit.png",
+          "sha256": "c93e96215935e9a4aeec09d6c71310bb495fe62d5b0f0cd6b510a7efe0c23e43"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-source-compare.png",
+          "sha256": "08948aba67d57535f3dc89a23ee765a93a066686a89ab2f3f2f7028413ee0a4e"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-receipt.png",
+          "sha256": "125f9d03065ef1543acaf5881111dc173760ec95fa3459e5ec3d084366210f35"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-rollback-receipt.png",
+          "sha256": "2e3a2e3c88fdfb9fec6c49978975437fdf32aebb8de9740d7c01c04c5853c4b3"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-preparation.png",
+          "sha256": "ad75647785ad7652cac53bbc1b91a5bc934297ef43ac67f53c1fbaad7697d3a8"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-help.png",
+          "sha256": "6fe949d781aaa72e4bcdbaef3b327ed055430b0b1f6d200d105b018d7f8c8007"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-source-textbook.png",
+          "sha256": "a1e98bbca6efd86d4552f5c1824e5e381c0f73bbc0cbbbc93ed3e7d2f4ea02ec"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-source-file.png",
+          "sha256": "eaba554fa0103b525f6edbcc145dada57191ee5208a05f86489030caa263255d"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-file-ready.png",
+          "sha256": "eb98128b1e08a93038686e7f46897bf24ffe81bf66354a9cabe02ab34d58f3f7"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-candidates.png",
+          "sha256": "64d6f15def5f259cb276de010227e938d91c9431983d986fef4da827672c9af6"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-candidate-edit.png",
+          "sha256": "61a65c30c5f7adbdb9262839bc6a39f948a6486d492968f0581bb0a95d387d40"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-source-compare.png",
+          "sha256": "834cecc5526f28e23fd2c2ed1b5ca0ba222c851ad2c6604bdde7d6e279527f21"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-receipt.png",
+          "sha256": "d16fda40645609ac8e71e7e0f0547259a63b53e65505de209376fbe7bdc9524e"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-rollback-receipt.png",
+          "sha256": "9c498ebda4cb38ead194fb55ec685efcb15485e06ae8d5b12a3652e9a101be83"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-bank-reading.png",
+          "sha256": "9ed786e1a14deac09d66cdfb264cfa01d88ac8b4df25105a379a385b72ef6529"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-bank-generating.png",
+          "sha256": "42ce1992c023c1c9a9ac803089f1beef85872c32b5cb5822bb52bde4c18df029"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-bank-ai.png",
+          "sha256": "c398e88c28efbeefeb6024c4892cf44fd4715c285258a17a11e1fd0f2bc904be"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-save-failed.png",
+          "sha256": "32a741943b45b6816ccaad81cf61e9197fedabe34fee3eba9da69f2cdddb1e94"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-saved.png",
+          "sha256": "6e7b4d23c0b2d280a318dec323d3c01ddd1e47e2cac700570a9d270f547b9076"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-practice-reading.png",
+          "sha256": "be69fcdf5c05afa489a62b62bb1f01d06f12aecba0d8213694c860d276bb4b46"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-practice-ai.png",
+          "sha256": "9d49a3ad888c5849dca97309975f15e89052c609e824699a3ceb4c7bad30b9dd"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-practice-ai-end.png",
+          "sha256": "92b9f9853b953761783d119c22c29c60d04f33ef9f9610f7b9913c9880beb8e2"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-practice-return.png",
+          "sha256": "54b66c3221bc5c05f838acc4c1ae8c82743ad9635ec68622f3c7031a8599d891"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-mistake-reading.png",
+          "sha256": "731ffdbe5d53ff64cb1382354e7363c635885e787cad45cae9777d8ce5070e21"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-mistake-reference.png",
+          "sha256": "2cf0709e9da364dc462e56e6d55d90bf551389f86af5c0dcd0ca6cce262eb814"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-mistake-ai-conflict.png",
+          "sha256": "a99370b48a1d815958360fa868cd9df7738c73209fca14cab9b1fb281ef76d02"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-mistake-edit.png",
+          "sha256": "80ad345a6919de3d26fddba331bbc4232fec06123d4a26bfae3c8d9a3b23fd9f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-bank-reading.png",
+          "sha256": "bf138a8c886bf2964873686883ae1fa7cf0c706da3cf4cbd94d2eeb0e85c8482"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-bank-generating.png",
+          "sha256": "bbf35bd5ff920b5e1052486a8833e8bd66391b1d322a342bd0ae92ef5618de4b"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-bank-ai.png",
+          "sha256": "01cedc14644a935eeccdbe12411a4c23ec384bcbb9398715d6e91e3b0a8d5b83"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-save-failed.png",
+          "sha256": "73c09edcd0d7e2846ea1e8888d7db2a6861001bfcd01ddb1be3d011be1a38de1"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-saved.png",
+          "sha256": "33358b9e83f6a4c442737cb8c60d4f09a5d648fcbacf48b8890c2a923a20911f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-practice-reading.png",
+          "sha256": "751ebdc1bd16dbfcf1ecc39855803e34388c04bb4a855218a79796acbd36890e"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-practice-ai.png",
+          "sha256": "26a2a6e139985b33afb3917d9f8d542c5b1d201b60923f0ca0d4e7e3c8af4f2e"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-practice-ai-end.png",
+          "sha256": "e4df245ec6e33c4c3cda88ac9901026941b387db952c98bec6abd7e98bc22cd2"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-practice-return.png",
+          "sha256": "f6a8f5a0383e0cfa92ccb58a6ae2c68684ca34efe1c44cd7d4477d52b8b6d168"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-mistake-reading.png",
+          "sha256": "597e0762d992ed452b0f0cd54c46bab6d3e2331d09a864bc30b4b88519ce401c"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-mistake-reference.png",
+          "sha256": "05f6c55fbe810b3f2899489ace94807b437631ed83876fa475c047e025647b1d"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-mistake-ai-conflict.png",
+          "sha256": "18c1d2e8c5399a856ebf11f20fbc5809fc3167e081dddc5f8fd0fec7574fd531"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-mistake-edit.png",
+          "sha256": "41971c54d624bf97022e2c5216005c37d8aeb000a69f405e154baf9ee8d927f4"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-matrix-reading.png",
+          "sha256": "e17103d5a5ad00af2f56fb95e55fea85a00df378a309a12ef9d10b5cf5f6f40b"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-missing-answer.png",
+          "sha256": "0fb06fb50deebdb3c38ecb8a92437416cbd0e123c6cc2ce1f9c4547408bbd59e"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-ai-failed.png",
+          "sha256": "d6246a146a89d051472920366c5d4dba59ba794999e915d321458a58b3c8ac70"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-ai-disconnected.png",
+          "sha256": "9947184f3f246055f47c6e0dfa0c81eb19fe2d7191fe0e6030e1d5fcb0c88759"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-ai-recovered.png",
+          "sha256": "eacefcb24690597069ffcab984e426d8781953919299e9b5e6b84a73fe093692"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-bank-path-only-image.png",
+          "sha256": "b04420b65e89d8bdac7c0d2ba6000a926147697dd464211bcc325be8e0db082f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-bank-management.png",
+          "sha256": "2fa3c232e00f9dfbf358b1d72c03f754945e88caa1f4fcd7932cb630ce19a901"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-analyzing.png",
+          "sha256": "f67c08934a2f51599dfdae69d73fef7439822c1c8d754bb1e1f9d3792027e0cb"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-analyze-failed.png",
+          "sha256": "4c458eca1f334b7985d5344c7e433056e63ff36b12ea563c5f5a63d40509acbf"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-zero-candidates.png",
+          "sha256": "451677e19ff4df695f651333caf6d8425aecf4591d0f03941e6f00fc74d2cb1b"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-200-candidates.png",
+          "sha256": "29b5934cd129da84fb64e8475e271b6a471ad128ddef89eb76a2eeefb5db980a"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-commit-unknown.png",
+          "sha256": "b06df41213f3e41a378b9c7cced0a783518ff8657fc385b833bd0a39b89ff8f3"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-image-question.png",
+          "sha256": "a4a667d0793f4c2ec3a2c3e3974d12c6f65cf172e9ed272c08d4b2d6ed19ce00"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-matrix-reading.png",
+          "sha256": "14dd094e7913603c92efbc7bcbcb805d434fb7f681a9f0cadf4b5cf9d5a82860"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-missing-answer.png",
+          "sha256": "e11e30c1b084465b079b360e0885986116d53a04c3976636cb3497528446971c"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-ai-failed.png",
+          "sha256": "cb54a4615cb8fcd947615dfee3921de9519be0ebd2af63025e615cbbb27316aa"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-ai-disconnected.png",
+          "sha256": "1c8670c397ad5f2b22dcdb77a661337df8af69e104c3541988b959e421570a84"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-ai-recovered.png",
+          "sha256": "01cedc14644a935eeccdbe12411a4c23ec384bcbb9398715d6e91e3b0a8d5b83"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-bank-path-only-image.png",
+          "sha256": "4d2eaf215de7a780a122e883895a1a08e57afb247fc0a7b3a8bf532f04ea5375"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-bank-management.png",
+          "sha256": "edff8ad2593611309c414f2e2781e51b861f9f0edea7004ac4e291e73ccb1323"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-analyzing.png",
+          "sha256": "cf39bd8ce96fe1b936acc20cc22229f18ef8093141436e7aefeb2300ba3f12ea"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-analyze-failed.png",
+          "sha256": "123e449904310608d8a7d701b4e431c9ccd78745f2549d294ec9fbac04c03013"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-zero-candidates.png",
+          "sha256": "4943964aca3514da7a7a990481900d7862c69165966de4f53fae63b4516b51cb"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-200-candidates.png",
+          "sha256": "508a885189c93dbeaf969fbf8b6796b99b353c6029078a3a8b91cc6b90c8d989"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-commit-unknown.png",
+          "sha256": "5810f93c10a40ecbaf5d38b1b337f05a4063fbab7e59c6e88be438a6ad3573e6"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-image-question.png",
+          "sha256": "55be30164af4ec43851253d3014452b9404e10263139d262231f1c8ccbdccb68"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-manual-dialog.png",
+          "sha256": "6b1024b4002b0be7024c39d960d2213a3774bd782dc7c679d843f9f017117ca6"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-chat-markdown.png",
+          "sha256": "a202c5da98d50666192c1f6519ae0cb63df8553d86e6851e7b1ccde74e1928f9"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-chat-after-exercise.png",
+          "sha256": "f44d0c6f42e1826e8a5f241069e527fee13b66c068736aa469363d3369dcfa08"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-note-reading.png",
+          "sha256": "f65c72e1773919b9b676da36265979c7977e8e53170733bef2598c84d826c729"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-mistake-archived.png",
+          "sha256": "a9cb6df2a9a72ab87226348a6410c8fb2d9f737d305da6e912214735334eccf5"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-review-four-results.png",
+          "sha256": "6e09c7881d3623a2b699c01f627c73d1b7522ef705b2b5e3328770551cc0ea8f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-review-complete.png",
+          "sha256": "754ebc21914ecc821390db8fcdfd218eb57b5db0320d55ddc52546399280c4fd"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-empty.png",
+          "sha256": "8e76be4bdb5441035d309de6ae1f5c73cd5d5c065f761a963d46686e5263c97f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1280-overview-error.png",
+          "sha256": "51d3d7decb8fc3533fff811edee3398a7efbe8ef667cb4da0d1692dfc5244f2d"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-empty.png",
+          "sha256": "cf30382717c549592dd9cf0b5feac073b1c9c6fc82b83cf93eafda84f9d5ef50"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/1024-overview-error.png",
+          "sha256": "904732c6780ac8cde80a9c7eb48f37f47b07d060e834bd2ae1776b21470ab8c8"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/760-preparation.png",
+          "sha256": "f22297ae62d0cfc86e6d270a46ac26c82cd96f7840fe2cb50f4f28b62730cb4a"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/760-bank-reading.png",
+          "sha256": "0cad46a913988263cb70312ee7ce3f522f0f838bafd49f4850bc889b23c7c9f5"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/760-bank-reference.png",
+          "sha256": "ae477db03c2b568b68a0eb0cab86c2eae5cf43e64629ec88697a99e3856d6a0a"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/results.json",
+          "sha256": "122a91e17afb39f3cd9fa2a082fb48c8458c3a98db9a1dc003dfa1dd86a9549b"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/requests.json",
+          "sha256": "23936f83837ffb8e80537b835aa4480f6ad651a542d39ab1b1a569d8bd455c4d"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/review-fixes/counts.json",
+          "sha256": "a96d958c6ac2dcfdec43f9b438b5b87da2d8ef3cbe4d1a87c64fe24aa1d3b97e"
+        }
+      ]
+    },
+    {
+      "group": "settled-regression",
+      "checks": 19,
+      "screenshots": 14,
+      "engineering_errors": [],
+      "files": [
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/1280-manual-dialog.png",
+          "sha256": "7ec83b689a7dfb68bfa14699f6c844d1cf0661ba7dc509f3b8e0ac518a3b657a"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/1280-chat-markdown.png",
+          "sha256": "a202c5da98d50666192c1f6519ae0cb63df8553d86e6851e7b1ccde74e1928f9"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/1280-chat-after-exercise.png",
+          "sha256": "7484a97066cfcb3b32d28188b1b59bfdf460eef32b861f5c08e4aa7e2183f59d"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/1280-note-reading.png",
+          "sha256": "ca2678388ea6a4ecea0b9bf8eda5080ae19b886f619cbaea5654cd20ae4036ed"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/1280-mistake-archived.png",
+          "sha256": "a9cb6df2a9a72ab87226348a6410c8fb2d9f737d305da6e912214735334eccf5"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/1280-review-four-results.png",
+          "sha256": "6e09c7881d3623a2b699c01f627c73d1b7522ef705b2b5e3328770551cc0ea8f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/1280-review-complete.png",
+          "sha256": "754ebc21914ecc821390db8fcdfd218eb57b5db0320d55ddc52546399280c4fd"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/1280-empty.png",
+          "sha256": "8e76be4bdb5441035d309de6ae1f5c73cd5d5c065f761a963d46686e5263c97f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/1280-overview-error.png",
+          "sha256": "51d3d7decb8fc3533fff811edee3398a7efbe8ef667cb4da0d1692dfc5244f2d"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/1024-empty.png",
+          "sha256": "cf30382717c549592dd9cf0b5feac073b1c9c6fc82b83cf93eafda84f9d5ef50"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/1024-overview-error.png",
+          "sha256": "904732c6780ac8cde80a9c7eb48f37f47b07d060e834bd2ae1776b21470ab8c8"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/760-preparation.png",
+          "sha256": "f22297ae62d0cfc86e6d270a46ac26c82cd96f7840fe2cb50f4f28b62730cb4a"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/760-bank-reading.png",
+          "sha256": "0cad46a913988263cb70312ee7ce3f522f0f838bafd49f4850bc889b23c7c9f5"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/760-bank-reference.png",
+          "sha256": "6efcebb3f47d0dfd7533fe2a063efafe53046d12d051e7ed69792128e720f8e7"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/results.json",
+          "sha256": "218309302222637b4b51c05ff816cc981471d5abde82e703343ec906ebf898da"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/requests.json",
+          "sha256": "95ec559022ae474f9ed476c281c44f7f93506cf41331e31751850276c77be97f"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/settled-regression/counts.json",
+          "sha256": "c87f1c79d0e05e83970e001a480abc6e2663cf14435ab93fbe7249adc84fc200"
+        }
+      ]
+    },
+    {
+      "group": "scope",
+      "checks": 4,
+      "screenshots": 1,
+      "engineering_errors": [],
+      "files": [
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/scope/1280-scope-retained.png",
+          "sha256": "335ed2ac9354ae31566f423b851181e4d0b00a995ae675c19306464c1efb4a16"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/scope/results.json",
+          "sha256": "6ea63b9d26f123667cc80ffdeb4e593a7cd2f9c5d9fa1b3d9995912db9b083f6"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/scope/requests.json",
+          "sha256": "3abdf43831b2eb641420078191d25aad5e609ace34672a67fc99baf82ddc9c65"
+        },
+        {
+          "path": "artifacts/design/exercises-production-r1-r2/scope/counts.json",
+          "sha256": "ca2ff3342879e80a931301836ab62a96fca0e6a79d31fcc7cf8e9c9a71654174"
+        }
+      ]
+    }
+  ],
+  "archive": "electron-evidence-r1-r2.zip",
+  "archive_sha256": "494a9819391a2dfe50701a2a626e472977e66f9733ce479f0736858edaa24051",
+  "status": {
+    "IMPLEMENTED": true,
+    "ENGINEERING VERIFIED": true,
+    "DESIGN REVIEW PENDING": false,
+    "DESIGN APPROVED": true
+  },
+  "design_review": {
+    "path": "docs/design/exercises-production-r1-r2/astra-review-2026-10-17.md",
+    "sha256": "08bbd6884f1ce9cbc43fbb629f849b245ced0851fc1a92700811a70f87c96fa5",
+    "authority": "Astra"
+  },
+  "design_approval_note": "Astra independently inspected the final settled chat images, closed E1, and approved this R1/R2 visual integration within the documented scope and three accepted capability exceptions.",
+  "limitations": [
+    "Fixtures are not real model/OCR or user data verification",
+    "Windows and packaged update/recovery unverified",
+    "Three Astra-accepted bounded capability exceptions are listed in the handoff",
+    "Local artifact directories are Git-ignored; this archive preserves the reviewable evidence as a normal repository candidate file"
+  ]
+}
