@@ -1,0 +1,77 @@
+{
+  "model": "qwen3.7-plus",
+  "provider": "qwen",
+  "profile_id": "default",
+  "authorization": "2026-10-18 user: 授权真实教学测试。",
+  "scope": "self-authored synthetic Canonical IR/KG/questions and disposable SQL; real provider, Runtime, math and metadata; retrieval anchors are fixture-selected; production retrieval/real vision not claimed",
+  "cases": {
+    "A1": {
+      "kind": "runtime",
+      "source_section": "rolle",
+      "input": "请依据教材完整解释罗尔定理，说明全部适用条件、结论，以及省略端点条件为什么不成立。"
+    },
+    "A2": {
+      "kind": "runtime",
+      "source_section": "mean",
+      "input": "请依据教材连续的原文块讲解拉格朗日中值定理的证明，写出辅助函数、两端点值、导数和最后结论。"
+    },
+    "A3": {
+      "kind": "runtime",
+      "source_section": "figure",
+      "input": "请根据教材例题的图1.1计算阴影面积。"
+    },
+    "B1": {
+      "kind": "runtime",
+      "source_section": null,
+      "input": "<math-context>{\"variable\": \"x\", \"domain\": \"real\", \"conditions\": [\"x!=1\"], \"premise\": {\"left\": \"(x^2-1)/(x-1)\"}}</math-context>\n核验关键步骤并解释。"
+    },
+    "B2": {
+      "kind": "runtime",
+      "source_section": null,
+      "input": "<math-context>{\"variable\": \"x\", \"domain\": \"real\", \"premise\": {\"left\": \"sqrt(x)\", \"right\": \"-1\"}}</math-context>\n核验关键步骤并解释。"
+    },
+    "B3": {
+      "kind": "runtime",
+      "source_section": null,
+      "input": "实数范围内，把 sqrt(x^2) 直接化为 x 这一步是否成立？请核验，并区分所列步骤的验证与整题证明。"
+    },
+    "C1": {
+      "kind": "exercise",
+      "source_section": "extrema",
+      "input": "已知函数 $f(x)=x^3-3x$，求它在闭区间 $[-3,3]$ 上的最大值与最小值，并给出完整过程。"
+    },
+    "C2": {
+      "kind": "mistake",
+      "source_section": "extrema",
+      "input": "第一步：求导得 f'(x)=3x^2-3。\n第二步：令导数为零，得 x=-1 或 x=1。\n第三步：只比较 f(-1)=2 和 f(1)=-2，故最大值2，最小值-2。"
+    },
+    "C3": {
+      "kind": "mistake",
+      "source_section": "extrema",
+      "input": "最大值2，最小值-2。"
+    },
+    "AB": {
+      "kind": "runtime",
+      "source_section": "extrema",
+      "input": "请先依据教材讲解闭区间最值的完整流程，再计算 f(x)=x^3-3x 在[-3,3]的最值并核验关键数学结果。"
+    },
+    "AC": {
+      "kind": "candidate",
+      "source_section": "extrema",
+      "input": "已知函数 $f(x)=x^3-3x$，求它在闭区间 $[-3,3]$ 上的最大值与最小值，并给出完整过程。"
+    },
+    "ABC": {
+      "kind": "edit",
+      "source_section": "extrema",
+      "input": "修改已生成知识结构的题目及已确认诊断的错题，检查旧状态失效。"
+    }
+  },
+  "limits": {
+    "cases": 12,
+    "requests": 40,
+    "per_request_output_tokens": 16384,
+    "total_output_tokens": 262144,
+    "input_bytes": 1000000,
+    "paid_retries": 0
+  }
+}

@@ -1,0 +1,370 @@
+{
+  "authorization": "user: 授权真实教学测试。",
+  "profile": "saved default",
+  "provider": "qwen",
+  "model": "qwen3.7-plus",
+  "limits": {
+    "cases": 12,
+    "requests": 40,
+    "per_request_output_tokens": 16384,
+    "total_output_tokens": 262144,
+    "input_bytes": 1000000
+  },
+  "cases_started": [
+    "A1",
+    "A2",
+    "A3",
+    "B1",
+    "B2",
+    "B3",
+    "C1",
+    "C2",
+    "C3",
+    "AB",
+    "AC",
+    "ABC"
+  ],
+  "requests": [
+    {
+      "index": 1,
+      "case": "A1",
+      "input_bytes": 11087,
+      "status": "returned",
+      "started_at": 1792328178.600085,
+      "usage": {
+        "input_tokens": 2961,
+        "output_tokens": 1021,
+        "total_tokens": 3982,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 732
+        }
+      },
+      "request_ms": 21899.62,
+      "finish_reason": "stop"
+    },
+    {
+      "index": 2,
+      "case": "A2",
+      "input_bytes": 11234,
+      "status": "returned",
+      "started_at": 1792328263.325228,
+      "usage": {
+        "input_tokens": 3032,
+        "output_tokens": 634,
+        "total_tokens": 3666,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 337
+        }
+      },
+      "request_ms": 13244.08,
+      "finish_reason": "stop"
+    },
+    {
+      "index": 3,
+      "case": "A3",
+      "input_bytes": 10966,
+      "status": "returned",
+      "started_at": 1792328278.487328,
+      "usage": {
+        "input_tokens": 2898,
+        "output_tokens": 416,
+        "total_tokens": 3314,
+        "input_token_details": {
+          "cache_read": 1664
+        },
+        "output_token_details": {
+          "reasoning": 298
+        }
+      },
+      "request_ms": 10885.74,
+      "finish_reason": "stop"
+    },
+    {
+      "index": 4,
+      "case": "B1",
+      "input_bytes": 10209,
+      "status": "returned",
+      "started_at": 1792328290.754157,
+      "usage": {
+        "input_tokens": 2738,
+        "output_tokens": 536,
+        "total_tokens": 3274,
+        "input_token_details": {
+          "cache_read": 1664
+        },
+        "output_token_details": {
+          "reasoning": 161
+        }
+      },
+      "request_ms": 12638.39,
+      "finish_reason": "tool_calls"
+    },
+    {
+      "index": 5,
+      "case": "B1",
+      "input_bytes": 15211,
+      "status": "returned",
+      "started_at": 1792328303.699031,
+      "usage": {
+        "input_tokens": 4228,
+        "output_tokens": 680,
+        "total_tokens": 4908,
+        "input_token_details": {
+          "cache_read": 1664
+        },
+        "output_token_details": {
+          "reasoning": 253
+        }
+      },
+      "request_ms": 13551.01,
+      "finish_reason": "stop"
+    },
+    {
+      "index": 6,
+      "case": "B2",
+      "input_bytes": 10179,
+      "status": "returned",
+      "started_at": 1792328318.957443,
+      "usage": {
+        "input_tokens": 2721,
+        "output_tokens": 528,
+        "total_tokens": 3249,
+        "input_token_details": {
+          "cache_read": 1664
+        },
+        "output_token_details": {
+          "reasoning": 388
+        }
+      },
+      "request_ms": 10568.56,
+      "finish_reason": "tool_calls"
+    },
+    {
+      "index": 7,
+      "case": "B2",
+      "input_bytes": 11394,
+      "status": "returned",
+      "started_at": 1792328329.875432,
+      "usage": {
+        "input_tokens": 3067,
+        "output_tokens": 1655,
+        "total_tokens": 4722,
+        "input_token_details": {
+          "cache_read": 1664
+        },
+        "output_token_details": {
+          "reasoning": 1294
+        }
+      },
+      "request_ms": 28747.86,
+      "finish_reason": "stop"
+    },
+    {
+      "index": 8,
+      "case": "B3",
+      "input_bytes": 10082,
+      "status": "returned",
+      "started_at": 1792328360.5655072,
+      "usage": {
+        "input_tokens": 2693,
+        "output_tokens": 338,
+        "total_tokens": 3031,
+        "input_token_details": {
+          "cache_read": 1664
+        },
+        "output_token_details": {
+          "reasoning": 242
+        }
+      },
+      "request_ms": 7390.33,
+      "finish_reason": "tool_calls"
+    },
+    {
+      "index": 9,
+      "case": "B3",
+      "input_bytes": 11265,
+      "status": "returned",
+      "started_at": 1792328368.375336,
+      "usage": {
+        "input_tokens": 3021,
+        "output_tokens": 487,
+        "total_tokens": 3508,
+        "input_token_details": {
+          "cache_read": 1664
+        },
+        "output_token_details": {
+          "reasoning": 265
+        }
+      },
+      "request_ms": 10010.13,
+      "finish_reason": "stop"
+    },
+    {
+      "index": 10,
+      "case": "C1",
+      "input_bytes": 10019,
+      "status": "returned",
+      "started_at": 1792328411.594361,
+      "usage": {
+        "input_tokens": 2569,
+        "output_tokens": 2156,
+        "total_tokens": 4725,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 1379
+        }
+      },
+      "request_ms": 36737.3,
+      "finish_reason": "stop"
+    },
+    {
+      "index": 11,
+      "case": "C2",
+      "input_bytes": 7714,
+      "status": "returned",
+      "started_at": 1792328449.708711,
+      "usage": {
+        "input_tokens": 2084,
+        "output_tokens": 3148,
+        "total_tokens": 5232,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 1553
+        }
+      },
+      "request_ms": 53510.32,
+      "finish_reason": "stop"
+    },
+    {
+      "index": 12,
+      "case": "C3",
+      "input_bytes": 7575,
+      "status": "returned",
+      "started_at": 1792328504.71264,
+      "usage": {
+        "input_tokens": 2027,
+        "output_tokens": 4612,
+        "total_tokens": 6639,
+        "input_token_details": {
+          "cache_read": 1664
+        },
+        "output_token_details": {
+          "reasoning": 3331
+        }
+      },
+      "request_ms": 76888.82,
+      "finish_reason": "stop"
+    },
+    {
+      "index": 13,
+      "case": "AB",
+      "input_bytes": 11308,
+      "status": "returned",
+      "started_at": 1792328583.346742,
+      "usage": {
+        "input_tokens": 3063,
+        "output_tokens": 1203,
+        "total_tokens": 4266,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 340
+        }
+      },
+      "request_ms": 21787.98,
+      "finish_reason": "tool_calls"
+    },
+    {
+      "index": 14,
+      "case": "AB",
+      "input_bytes": 13315,
+      "status": "returned",
+      "started_at": 1792328605.538749,
+      "usage": {
+        "input_tokens": 3754,
+        "output_tokens": 118,
+        "total_tokens": 3872,
+        "input_token_details": {
+          "cache_read": 1664
+        },
+        "output_token_details": {
+          "reasoning": 21
+        }
+      },
+      "request_ms": 5980.19,
+      "finish_reason": "tool_calls"
+    },
+    {
+      "index": 15,
+      "case": "AB",
+      "input_bytes": 13983,
+      "status": "returned",
+      "started_at": 1792328611.783903,
+      "usage": {
+        "input_tokens": 3954,
+        "output_tokens": 897,
+        "total_tokens": 4851,
+        "input_token_details": {
+          "cache_read": 3456
+        },
+        "output_token_details": {
+          "reasoning": 339
+        }
+      },
+      "request_ms": 16658.82,
+      "finish_reason": "tool_calls"
+    },
+    {
+      "index": 16,
+      "case": "AB",
+      "input_bytes": 16408,
+      "status": "returned",
+      "started_at": 1792328628.86447,
+      "usage": {
+        "input_tokens": 4754,
+        "output_tokens": 587,
+        "total_tokens": 5341,
+        "input_token_details": {
+          "cache_read": 3456
+        },
+        "output_token_details": {
+          "reasoning": 303
+        }
+      },
+      "request_ms": 11630.15,
+      "finish_reason": "tool_calls"
+    },
+    {
+      "index": 17,
+      "case": "AC",
+      "input_bytes": 10022,
+      "status": "returned",
+      "started_at": 1792328642.330436,
+      "usage": {
+        "input_tokens": 2572,
+        "output_tokens": 2015,
+        "total_tokens": 4587,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 1295
+        }
+      },
+      "request_ms": 36243.41,
+      "finish_reason": "stop"
+    }
+  ],
+  "input_bytes": 191971
+}

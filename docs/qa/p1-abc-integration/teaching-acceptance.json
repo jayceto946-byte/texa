@@ -1,97 +1,81 @@
 {
-  "status": "NOT VERIFIED",
-  "reason": "No repository .env; active desktop reasoning profile is deepseek/deepseek-flash. User prohibits Flash substitution and unapproved primary-model changes. No eligible active non-Flash profile was used.",
-  "configured_provider": "deepseek",
-  "configured_model": "deepseek-flash",
-  "provider_requests": 0,
-  "actual_tool_calls_from_remote_model": [],
-  "tokens": 0,
-  "end_to_end_latency_ms": null,
-  "no_mock_substitution": true,
-  "scenarios": [
-    {
-      "id": "A1",
-      "scenario": "完整前提的定理解释",
-      "real_model": "NOT VERIFIED",
-      "local_contract_evidence": "test_textbook_context_expansion",
-      "local_is_not_teaching_quality": true
-    },
-    {
-      "id": "A2",
-      "scenario": "多块连续推导",
-      "real_model": "NOT VERIFIED",
-      "local_contract_evidence": "test_textbook_context_expansion",
-      "local_is_not_teaching_quality": true
-    },
-    {
-      "id": "A3",
-      "scenario": "必要图片未实际进入模型",
-      "real_model": "NOT VERIFIED",
-      "local_contract_evidence": "test_textbook_context_expansion",
-      "local_is_not_teaching_quality": true
-    },
-    {
-      "id": "B1",
-      "scenario": "明确结构化条件下的正确步骤",
-      "real_model": "NOT VERIFIED",
-      "local_contract_evidence": "test_context_math_steps",
-      "local_is_not_teaching_quality": true
-    },
-    {
-      "id": "B2",
-      "scenario": "定义域、增根与漏解",
-      "real_model": "NOT VERIFIED",
-      "local_contract_evidence": "test_context_math_steps",
-      "local_is_not_teaching_quality": true
-    },
-    {
-      "id": "B3",
-      "scenario": "普通自然语言题干不得伪造可信条件",
-      "real_model": "NOT VERIFIED",
-      "local_contract_evidence": "test_context_math_steps",
-      "local_is_not_teaching_quality": true
-    },
-    {
-      "id": "C1",
-      "scenario": "真实习题的主次考点及Schema",
-      "real_model": "NOT VERIFIED",
-      "local_contract_evidence": "test_exercise_knowledge_structure",
-      "local_is_not_teaching_quality": true
-    },
-    {
-      "id": "C2",
-      "scenario": "完整过程中的具体错因与证据",
-      "real_model": "NOT VERIFIED",
-      "local_contract_evidence": "test_exercise_knowledge_structure",
-      "local_is_not_teaching_quality": true
-    },
-    {
-      "id": "C3",
-      "scenario": "仅错误最终答案不编具体错因",
-      "real_model": "NOT VERIFIED",
-      "local_contract_evidence": "test_exercise_knowledge_structure",
-      "local_is_not_teaching_quality": true
-    },
-    {
-      "id": "AB",
-      "scenario": "教材讲解后核验数学结果",
-      "real_model": "NOT VERIFIED",
-      "local_contract_evidence": "test_p1_abc_integration",
-      "local_is_not_teaching_quality": true
-    },
-    {
-      "id": "AC",
-      "scenario": "习题讲解后保存结构化知识",
-      "real_model": "NOT VERIFIED",
-      "local_contract_evidence": "test_p1_abc_integration",
-      "local_is_not_teaching_quality": true
-    },
-    {
-      "id": "ABC",
-      "scenario": "内容修订后分类与诊断失效",
-      "real_model": "NOT VERIFIED",
-      "local_contract_evidence": "test_p1_abc_integration + test_exercise_knowledge_structure",
-      "local_is_not_teaching_quality": true
-    }
-  ]
+  "status": "HOLD",
+  "initial_integration_stage": {
+    "status": "NOT VERIFIED",
+    "provider_requests": 0,
+    "reason": "No repository .env; active desktop reasoning profile is deepseek/deepseek-flash. User prohibits Flash substitution and unapproved primary-model changes. No eligible active non-Flash profile was used."
+  },
+  "authorized_followup": {
+    "provider": "qwen",
+    "model": "qwen3.7-plus",
+    "profile": "existing saved default; active desktop profile unchanged",
+    "provider_requests": 17,
+    "tokens": 73167,
+    "tasks": 12,
+    "remote_model_tasks": 11,
+    "report": "real-teaching-2026-10-18/REPORT.md",
+    "summary": "real-teaching-2026-10-18/summary.json",
+    "scenarios": [
+      {
+        "id": "A1",
+        "status": "PASS",
+        "reason": "三个条件、a<b、内部点结论与端点反例完整；实际展开四块进入模型。"
+      },
+      {
+        "id": "A2",
+        "status": "PASS",
+        "reason": "辅助函数、两个端点值、导数与Rolle步骤完整，连续六块原文保持。"
+      },
+      {
+        "id": "A3",
+        "status": "PASS",
+        "reason": "明确缺少图片/形状/尺寸，不给虚构面积。图片像素未发送；不覆盖产品入口missing-input状态准入。"
+      },
+      {
+        "id": "B1",
+        "status": "FAIL",
+        "reason": "最终代数结论正确，但模型将x!=1误接为额外assumptions x nonzero及方程right；v3返回unknown，未完成预期有效步骤校验。没有false-valid。"
+      },
+      {
+        "id": "B2",
+        "status": "PASS",
+        "reason": "使用旧solutions候选代入合同，残差2拒绝x=1增根；最终正确解释无实数解。没有把候选核验扩成完整解集证明；不证明真实v3 invalid覆盖。"
+      },
+      {
+        "id": "B3",
+        "status": "FAIL",
+        "reason": "sqrt(x²)=|x|及反例正确，但只有symbolic_math computed/待核验请求，正文称工具核验；没有独立verify回执。普通题干可信条件解析及真实v3 unknown路径仍未直接覆盖。"
+      },
+      {
+        "id": "C1",
+        "status": "PASS",
+        "reason": "主考点闭区间最值，关联导数/驻点/端点及最值定理均在候选ID内，metadata parsed，真实答案与结构经Job/API保存。"
+      },
+      {
+        "id": "C2",
+        "status": "FAIL",
+        "reason": "正文能定位第三步漏端点，但裸JSON代码块没有texa_structure标签，metadata missing，JSON留在正文。审阅其候选span[39,71)不匹配quote实际[46,84)，未保存诊断、弱项空。"
+      },
+      {
+        "id": "C3",
+        "status": "FAIL",
+        "reason": "安全子项PASS：仅记录final_answer_incorrect，无concept_ids，未捏造具体用户错因、弱项空。分类缺status而携带选项，被拒绝为invalid/unclassified；正文泛称连续函数最值只在驻点/端点，漏不可导点条件。"
+      },
+      {
+        "id": "AB",
+        "status": "FAIL",
+        "reason": "教材及两次失败verify回执在后续消息均保留；两次derivative参数错误后改用求导成功。第4模型轮又拟发工具调用，已达4工具预算（含教材检索），run以native_loop_failed结束，正式answer空；不认阶段正确推导为完成。"
+      },
+      {
+        "id": "AC",
+        "status": "PASS",
+        "reason": "v1候选来源/准入/真实生成/metadata解析/Job/API保存完成；system_proposed导入回执不冒充人工确认。"
+      },
+      {
+        "id": "ABC",
+        "status": "NOT VERIFIED",
+        "reason": "分类修改后stale子项PASS；C2没有可接受的真实诊断，故确认诊断后的失效/SM-2部分不以夹具补造，仍NOT VERIFIED。无额外模型请求。"
+      }
+    ]
+  }
 }

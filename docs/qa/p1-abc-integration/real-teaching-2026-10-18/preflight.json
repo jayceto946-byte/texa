@@ -1,0 +1,14 @@
+{
+  "provider": "qwen",
+  "model": "qwen3.7-plus",
+  "credential_source_verified": true,
+  "candidate_ids": [
+    "closed_extrema",
+    "derivative",
+    "endpoint",
+    "extreme_value_theorem",
+    "stationary"
+  ],
+  "canonical_blocks": 18,
+  "no_remote_requests": true
+}

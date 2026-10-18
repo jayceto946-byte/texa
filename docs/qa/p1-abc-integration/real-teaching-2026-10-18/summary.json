@@ -1,0 +1,356 @@
+{
+  "decision": "HOLD",
+  "engineering_regression": "PASS; no production source changes in this test turn",
+  "model": "qwen3.7-plus",
+  "provider": "qwen",
+  "profile": "existing saved default, used only in QA process memory; desktop active profile untouched",
+  "tasks": 12,
+  "tasks_with_remote_model": 11,
+  "provider_requests": 17,
+  "usage": {
+    "input_tokens": 52136,
+    "output_tokens": 21031,
+    "total_tokens": 73167,
+    "reasoning_tokens": 12531
+  },
+  "recorded_tool_calls": 10,
+  "tool_count_scope": "4 fixed textbook preparations + 6 actual math executions; denied proposed call in AB is not counted as executed",
+  "paid_case_retries": 0,
+  "reviewer_model_requests": 0,
+  "configuration_and_credential_files_unchanged": true,
+  "latency_scope": "per case service end-to-end, excluding process startup and fixture preparation",
+  "production_routing_hybrid_retrieval_vision_and_electron_live_model": "NOT VERIFIED; source anchors are synthetic fixtures; real models run through existing Runtime/SSE and domain services",
+  "cases": [
+    {
+      "id": "A1",
+      "task": "完整前提的教材定理",
+      "status": "PASS",
+      "reason": "三个条件、a<b、内部点结论与端点反例完整；实际展开四块进入模型。",
+      "requests": 1,
+      "usage": {
+        "input_tokens": 2961,
+        "output_tokens": 1021,
+        "total_tokens": 3982
+      },
+      "total_ms": 22715.54,
+      "tool_calls": [
+        {
+          "tool": "search_textbook",
+          "status": "succeeded",
+          "version": "2",
+          "kind": null,
+          "operation": null,
+          "verdict": null
+        }
+      ],
+      "runtime_status": "completed",
+      "runtime_error_code": null,
+      "protocol_or_quality_review": "primary agent local review; no judge model; not human gold",
+      "artifact": "A1.json.gz",
+      "uncompressed_sha256": "dce2d194c306dec9afb70f741d5a10489e4e24bd12e22a085632017defc67592",
+      "artifact_sha256": "fd4823df310174acf55383d1e1f5660a0f52cce2c9d05b6d13d3022aa5a1e75f"
+    },
+    {
+      "id": "A2",
+      "task": "多块连续证明",
+      "status": "PASS",
+      "reason": "辅助函数、两个端点值、导数与Rolle步骤完整，连续六块原文保持。",
+      "requests": 1,
+      "usage": {
+        "input_tokens": 3032,
+        "output_tokens": 634,
+        "total_tokens": 3666
+      },
+      "total_ms": 14138.7,
+      "tool_calls": [
+        {
+          "tool": "search_textbook",
+          "status": "succeeded",
+          "version": "2",
+          "kind": null,
+          "operation": null,
+          "verdict": null
+        }
+      ],
+      "runtime_status": "completed",
+      "runtime_error_code": null,
+      "protocol_or_quality_review": "primary agent local review; no judge model; not human gold",
+      "artifact": "A2.json.gz",
+      "uncompressed_sha256": "9c7183f6cbfc5ed1bb7323a67e662077b92572b87e47d9ed3f3d31f21c133fd5",
+      "artifact_sha256": "3d6313f2de1267135224aedef66969594addffe0c308d41a96e7b9aec920c736"
+    },
+    {
+      "id": "A3",
+      "task": "缺图与视觉编造边界",
+      "status": "PASS",
+      "reason": "明确缺少图片/形状/尺寸，不给虚构面积。图片像素未发送；不覆盖产品入口missing-input状态准入。",
+      "requests": 1,
+      "usage": {
+        "input_tokens": 2898,
+        "output_tokens": 416,
+        "total_tokens": 3314
+      },
+      "total_ms": 11693.08,
+      "tool_calls": [
+        {
+          "tool": "search_textbook",
+          "status": "succeeded",
+          "version": "2",
+          "kind": null,
+          "operation": null,
+          "verdict": null
+        }
+      ],
+      "runtime_status": "completed",
+      "runtime_error_code": null,
+      "protocol_or_quality_review": "primary agent local review; no judge model; not human gold",
+      "artifact": "A3.json.gz",
+      "uncompressed_sha256": "65fae9dccbe2e89f0efb50c5966e5e662200e20f39a746097037df152d4dd3c8",
+      "artifact_sha256": "ef4c3d310550cadf352f620dd218d084d8412021e25654fac2964b379f5a277f"
+    },
+    {
+      "id": "B1",
+      "task": "可信结构化原题的v3步骤",
+      "status": "FAIL",
+      "reason": "最终代数结论正确，但模型将x!=1误接为额外assumptions x nonzero及方程right；v3返回unknown，未完成预期有效步骤校验。没有false-valid。",
+      "requests": 2,
+      "usage": {
+        "input_tokens": 6966,
+        "output_tokens": 1216,
+        "total_tokens": 8182
+      },
+      "total_ms": 27080.1,
+      "tool_calls": [
+        {
+          "tool": "verify_math_result",
+          "status": "succeeded",
+          "version": "3",
+          "kind": "steps",
+          "operation": null,
+          "verdict": "unknown"
+        }
+      ],
+      "runtime_status": "completed",
+      "runtime_error_code": null,
+      "protocol_or_quality_review": "primary agent local review; no judge model; not human gold",
+      "artifact": "B1.json.gz",
+      "uncompressed_sha256": "82ebc3c48f426f4b4d58ada0fea34915362310a4f0d6c95b7b6624ae502e52d0",
+      "artifact_sha256": "ab1283e60c42f0bd2dd4664bebd5ab3c5602466d13104b61f930aad1d5e280d7"
+    },
+    {
+      "id": "B2",
+      "task": "平方增根核验",
+      "status": "PASS",
+      "reason": "使用旧solutions候选代入合同，残差2拒绝x=1增根；最终正确解释无实数解。没有把候选核验扩成完整解集证明；不证明真实v3 invalid覆盖。",
+      "requests": 2,
+      "usage": {
+        "input_tokens": 5788,
+        "output_tokens": 2183,
+        "total_tokens": 7971
+      },
+      "total_ms": 40446.16,
+      "tool_calls": [
+        {
+          "tool": "verify_math_result",
+          "status": "failed",
+          "version": "3",
+          "kind": "solutions",
+          "operation": null,
+          "verdict": null
+        }
+      ],
+      "runtime_status": "completed",
+      "runtime_error_code": null,
+      "protocol_or_quality_review": "primary agent local review; no judge model; not human gold",
+      "artifact": "B2.json.gz",
+      "uncompressed_sha256": "462c4e741070b4789e611f1d7edc0157802b23798fe1b8b69a1f9e86aab703e3",
+      "artifact_sha256": "64e999f2a10217ba6ba6c87cae75da6827fba84ebd9f21ec9c1400bbeed5fcb9"
+    },
+    {
+      "id": "B3",
+      "task": "普通题干与计算/核验范围",
+      "status": "FAIL",
+      "reason": "sqrt(x²)=|x|及反例正确，但只有symbolic_math computed/待核验请求，正文称工具核验；没有独立verify回执。普通题干可信条件解析及真实v3 unknown路径仍未直接覆盖。",
+      "requests": 2,
+      "usage": {
+        "input_tokens": 5714,
+        "output_tokens": 825,
+        "total_tokens": 6539
+      },
+      "total_ms": 18727.48,
+      "tool_calls": [
+        {
+          "tool": "symbolic_math",
+          "status": "succeeded",
+          "version": "2",
+          "kind": null,
+          "operation": "simplify",
+          "verdict": null
+        }
+      ],
+      "runtime_status": "completed",
+      "runtime_error_code": null,
+      "protocol_or_quality_review": "primary agent local review; no judge model; not human gold",
+      "artifact": "B3.json.gz",
+      "uncompressed_sha256": "071a90cb8d83ed9b1fb2827ff9c690a827b0435b8030f240204e7fd53e190214",
+      "artifact_sha256": "c4a2ea768ff0593d91d6dd9ea25fc08c4b191466650d6c4119bdedbf601f1251"
+    },
+    {
+      "id": "C1",
+      "task": "主次考点与分类保存",
+      "status": "PASS",
+      "reason": "主考点闭区间最值，关联导数/驻点/端点及最值定理均在候选ID内，metadata parsed，真实答案与结构经Job/API保存。",
+      "requests": 1,
+      "usage": {
+        "input_tokens": 2569,
+        "output_tokens": 2156,
+        "total_tokens": 4725
+      },
+      "total_ms": 37230.35,
+      "tool_calls": [],
+      "runtime_status": null,
+      "runtime_error_code": null,
+      "protocol_or_quality_review": "primary agent local review; no judge model; not human gold",
+      "artifact": "C1.json.gz",
+      "uncompressed_sha256": "0fff8672ab81e32bf18f617d2af7ee1a51084d9b6fda7b39bcd563811ba1e16a",
+      "artifact_sha256": "28b7e460858a18947d1591fbcc131bd471ef484acac9ba0d81daf3e2f0b11493"
+    },
+    {
+      "id": "C2",
+      "task": "完整过程的错因证据",
+      "status": "FAIL",
+      "reason": "正文能定位第三步漏端点，但裸JSON代码块没有texa_structure标签，metadata missing，JSON留在正文。审阅其候选span[39,71)不匹配quote实际[46,84)，未保存诊断、弱项空。",
+      "requests": 1,
+      "usage": {
+        "input_tokens": 2084,
+        "output_tokens": 3148,
+        "total_tokens": 5232
+      },
+      "total_ms": 53929.67,
+      "tool_calls": [],
+      "runtime_status": null,
+      "runtime_error_code": null,
+      "protocol_or_quality_review": "primary agent local review; no judge model; not human gold",
+      "artifact": "C2.json.gz",
+      "uncompressed_sha256": "9650ffc0b38e1ae5ae1c6e101fb3deec2ed4bfe5f72f6a2f91fcf69557874f6b",
+      "artifact_sha256": "4f0ac979bc6237056aca590a91551226dfe27e5deac91a64664c53aca37d711f"
+    },
+    {
+      "id": "C3",
+      "task": "仅最终答案的诊断边界",
+      "status": "FAIL",
+      "reason": "安全子项PASS：仅记录final_answer_incorrect，无concept_ids，未捏造具体用户错因、弱项空。分类缺status而携带选项，被拒绝为invalid/unclassified；正文泛称连续函数最值只在驻点/端点，漏不可导点条件。",
+      "requests": 1,
+      "usage": {
+        "input_tokens": 2027,
+        "output_tokens": 4612,
+        "total_tokens": 6639
+      },
+      "total_ms": 77406.22,
+      "tool_calls": [],
+      "runtime_status": null,
+      "runtime_error_code": null,
+      "protocol_or_quality_review": "primary agent local review; no judge model; not human gold",
+      "artifact": "C3.json.gz",
+      "uncompressed_sha256": "189222c5220d635f0f9e03f2ebb82209a5dcb946329565f2c674a4f93f3311a8",
+      "artifact_sha256": "94ac9421fc385b09b2fb47e2b897f1e9359313a1737d9a47817b48530c08b7be"
+    },
+    {
+      "id": "AB",
+      "task": "教材讲解+数学核验",
+      "status": "FAIL",
+      "reason": "教材及两次失败verify回执在后续消息均保留；两次derivative参数错误后改用求导成功。第4模型轮又拟发工具调用，已达4工具预算（含教材检索），run以native_loop_failed结束，正式answer空；不认阶段正确推导为完成。",
+      "requests": 4,
+      "usage": {
+        "input_tokens": 15525,
+        "output_tokens": 2805,
+        "total_tokens": 18330
+      },
+      "total_ms": 58038.86,
+      "tool_calls": [
+        {
+          "tool": "search_textbook",
+          "status": "succeeded",
+          "version": "2",
+          "kind": null,
+          "operation": null,
+          "verdict": null
+        },
+        {
+          "tool": "verify_math_result",
+          "status": "failed",
+          "version": "3",
+          "kind": "derivative",
+          "operation": null,
+          "verdict": null
+        },
+        {
+          "tool": "verify_math_result",
+          "status": "failed",
+          "version": "3",
+          "kind": "derivative",
+          "operation": null,
+          "verdict": null
+        },
+        {
+          "tool": "symbolic_math",
+          "status": "succeeded",
+          "version": "2",
+          "kind": null,
+          "operation": "differentiate",
+          "verdict": null
+        }
+      ],
+      "runtime_status": "failed",
+      "runtime_error_code": "native_loop_failed",
+      "protocol_or_quality_review": "primary agent local review; no judge model; not human gold",
+      "artifact": "AB.json.gz",
+      "uncompressed_sha256": "becb2f9f297b661acdc0dc9b14a26fd0a28ea97dceada93247acf5bb01f42c68",
+      "artifact_sha256": "7e0e7e5c8d06e002dcf402167e103751426df2ec4f20fec289df4a1d1820940b"
+    },
+    {
+      "id": "AC",
+      "task": "候选发布+讲解+结构保存",
+      "status": "PASS",
+      "reason": "v1候选来源/准入/真实生成/metadata解析/Job/API保存完成；system_proposed导入回执不冒充人工确认。",
+      "requests": 1,
+      "usage": {
+        "input_tokens": 2572,
+        "output_tokens": 2015,
+        "total_tokens": 4587
+      },
+      "total_ms": 36837.42,
+      "tool_calls": [],
+      "runtime_status": null,
+      "runtime_error_code": null,
+      "protocol_or_quality_review": "primary agent local review; no judge model; not human gold",
+      "artifact": "AC.json.gz",
+      "uncompressed_sha256": "a9b38d28a3ab3d87d5451d0c9425fa33759a6c7b9987a7d255b42f60896dde3b",
+      "artifact_sha256": "86c17718841ee8a42d12d289273a0a81864940d8ca38b94a48744013869e9436"
+    },
+    {
+      "id": "ABC",
+      "task": "真实生成资产修改后失效",
+      "status": "NOT VERIFIED",
+      "reason": "分类修改后stale子项PASS；C2没有可接受的真实诊断，故确认诊断后的失效/SM-2部分不以夹具补造，仍NOT VERIFIED。无额外模型请求。",
+      "requests": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0
+      },
+      "total_ms": 184.69,
+      "tool_calls": [],
+      "runtime_status": null,
+      "runtime_error_code": null,
+      "protocol_or_quality_review": "primary agent local review; no judge model; not human gold",
+      "artifact": "ABC.json.gz",
+      "uncompressed_sha256": "691d72bd96b721bec21b503b984a8b19be9cbcccfe719745ba2dc8be2d9b7ba3",
+      "artifact_sha256": "40a9043872d979e41d539725f9c8776cee9296a1e238ea9177a8e8ad741d34e1"
+    }
+  ],
+  "known_credentials_absent_from_artifacts": true,
+  "qa_script_sha256": "c6bb5da9da11ba940eaddf7e4c5e5078fdbf456e85f2bfef286b768e44f27f3e",
+  "tested_production_code_head": "83add1087ed557e8fe93802fbc15bf70f8663f30",
+  "artifact_packaging": "full case JSON losslessly gzipped after execution; original SHA256 and compressed SHA256 recorded; raw local copies remain only in temporary QA directory"
+}

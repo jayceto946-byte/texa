@@ -1,6 +1,6 @@
 # P1-ABC Integration & Acceptance
 
-2026-10-18 · 结论：**CONDITIONAL PASS**。工程组合已验收；真实模型教学尚未验收。
+2026-10-18 · 最新结论：**HOLD（教学发布验收）**。工程组合回归仍为 PASS；用户随后授权的真实教学测试发现工具协议、结构化输出与联合交付失败。详见 [真实教学报告](docs/qa/p1-abc-integration/real-teaching-2026-10-18/REPORT.md)。
 
 ## A. Git
 
@@ -56,29 +56,33 @@
 | 实际 Electron：P1-C | PASS | 16项：保存/同考点、证据建议与确认重放、弱项、编辑失效；三尺寸 |
 | 实际 Electron：候选 | PASS | 14项：真实renderer/API/临时SQLite、合成来源分离、缺图保留、子集提交与回执；三尺寸 |
 | 确定性联合链路 | PASS | 10项组合探针；教材上下文+数学回执在下一模型轮均保留；候选→正式题→Job分类保存→改答案失效；JSON扩展与旧合同拒绝 |
-| 真实模型及联合教学 | **NOT VERIFIED** | 计划12个场景，实际0个远程模型任务 |
+| 真实模型及联合教学 | **FAIL / HOLD** | 授权后12任务（11真实模型+1本地编辑），17请求、73167 tokens；逐项6 PASS/5 FAIL/1 NOT VERIFIED，不能换算一般准确率 |
 | 实机聊天断线/暂停恢复、Windows、安装包升级/回滚 | **NOT VERIFIED** | Python恢复合同通过不等同于桌面完整教学恢复验收 |
 
 各阶段计数有重叠，不相加。最终日志：[full-final.txt](docs/qa/p1-abc-integration/full-final.txt)。初次组合探针及全量失败也保留；修复缺陷后未删除负例。首轮全量1870 PASS/2 FAIL分别是上述旧错误码/标签弱项预期；收尾又以两项负例补上bounded finish-only版本门槛。
 
 Electron 辅助配置/readiness为显式fixture，抽取边界使用合成Canonical IR，未验证启动预热或真实模型。实际查看1280×820、1024×768、760×820的候选及诊断六张截图，无对应状态裁切；不冒充Astra设计签核。首次候选QA夹具缺 providers/models 引起启动TypeError，补齐夹具后通过，未为此改产品UI。证据：[Electron候选](docs/qa/p1-abc-integration/electron-candidate.json)、[Electron P1-C](docs/qa/p1-abc-integration/electron-p1c.json)、[截图hash](docs/qa/p1-abc-integration/visual-checks.json)。
 
-真实模型预检：仓库无 `.env`；现有桌面启用 Provider=`deepseek`、Model=`deepseek-flash`，凭证状态可用。按本次不得擅自换主模型/不得用Flash替代主教学模型的约束，未切profile、未请求服务、未复制或输出密钥。**请求0、实际远程工具调用0、Token0、端到端延迟未测**，没有第二评委或Mock冒充。12项逐项 NOT VERIFIED 及本地合同对应见 [teaching-acceptance.json](docs/qa/p1-abc-integration/teaching-acceptance.json)。
+集成阶段只检查了活动Flash方案，真实模型部分原为NOT VERIFIED。用户随后明确授权，进一步核对已保存profiles，找到有专用凭证的 `default` Qwen3.7 Plus；仅在隔离进程内使用该既有方案，未切生产活动profile。真实验收实际 **17请求、输入52136/输出21031/总73167 tokens**，10次已执行工具（4教材准备+6数学），无SDK重试、无付费样本重跑、无第二评委。12任务逐项PASS/FAIL/NOT VERIFIED、每项用量/延迟和全部失败回执见 [summary.json](docs/qa/p1-abc-integration/real-teaching-2026-10-18/summary.json)。
+
+主要FAIL：B1 v3参数错误导致unknown；B3将computed称为工具核验；C2 metadata标签及证据span错误；C3分类遗漏status且教学泛化漏条件；AB两次参数错误后恢复求导，但在既定工具预算下以native_loop_failed结束、正式答案为空。C1/AC真实分类保存成功；ABC分类修改stale通过，因C2无合法诊断，其确认后的失效链路仍NOT VERIFIED。没有以更多工具调用数、正确阶段推导或Mock补写掩盖失败。
+
+本轮样本完全自编、临时SQL，检索锚点由夹具选择；真实Provider/Runtime/SSE/数学及存储边界被执行。未验证生产混合检索、聊天入口分流/关键输入准入、实际视觉或Electron真实模型完整交互。配置/凭据文件hash不变，未输出/复制密钥，测试产物无已知凭证值；没有更改生产代码或放宽任何门槛。
 
 ## D. 保留风险
 
 - 教材缺图：资源/图注可取不等于模型已读，必要图仍阻止 complete；真实视觉教学未测。
 - 普通自然语言数学条件仍可能 unknown；显式 math-context 不是通用题干可信解析，不把局部 valid 升为整题通过。
-- 结构化 JSON/Schema/Canonical ID/span 合法不证明语义正确；真实分类主次、正文与metadata协议遵从、具体错因质量未测。
+- 结构化 JSON/Schema/Canonical ID/span 合法不证明语义正确；本轮已观察到metadata协议、span、status及一般数学条件遗漏，真实分类/诊断不能宣称稳定。
 - 旧工具合同已通过拒绝/重新发起探针；未改旧任务数据，也不保证任意版本都可恢复。
-- 题目/图片/visual_ir/参考答案版本失效保持；导入确认、分类及错因确认互不替代。没有作答步骤不编具体原因，未确认原因不计入弱项。
+- 题目/图片/visual_ir/参考答案版本失效保持；导入确认、分类及错因确认互不替代。最终答案样本没有捏造用户具体错误原因，未确认原因不计入弱项；真实有效诊断的完整确认/失效仍未验。
 - Native Loop模型自主工具候选仍限数学；教材是既有准备步骤，P1-C结构只接既有习题/错题响应。没有任意跨领域自主组合或主聊天自动写知识metadata的能力；未解除allowlist。
 - 候选旧legacy准入、去重D03/D04、复杂边界/公式/原图人工核对等历史限制仍在；本次未重新证明108题内容质量。
 
 ## E. 三项独立判断
 
-**CONDITIONAL PASS**
+**HOLD（教学发布）**
 
-1. **代码能否集成稳定分支：可以作为工程集成候选供审查后合入 `Texa_MacOS`。** 保留现有启用策略；本任务未自动合并，主目录启动脚本仍运行原检出。
-2. **能否进入真实用户测试：可以进入受控测试。** 正式教学测试先明确现有非Flash主教学profile与凭证、样本外发范围及付费授权，再完成12个真实模型场景；当前只支持已验证的本地合同/存储流程试用，不能称真实教学已通过。
-3. **是否具备完整生产教学上线条件：否。** 真实模型/视觉、结构化教学质量及实机聊天恢复仍 NOT VERIFIED；工程通过不替代这些门槛。
+1. **代码能否集成稳定分支：工程集成仍可作为审查候选，不能据此扩大P1能力启用。** 真实教学缺陷应单独修复/复验；本任务未自动合入 `Texa_MacOS`，主目录仍运行原检出。
+2. **能否进入真实用户测试：仅限有人工复核、失败可见及明确限制的诊断性试用。** 真实教学普通发布门槛未通过；不能把本轮少量正确答案当稳定教学能力。
+3. **是否具备完整生产教学上线条件：否，HOLD。** 已观察的工具参数、核验归因、结构化输出和联合失败交付需先修复并独立复验；真实视觉和实机聊天恢复仍 NOT VERIFIED。

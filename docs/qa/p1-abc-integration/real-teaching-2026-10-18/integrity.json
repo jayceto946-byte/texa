@@ -1,0 +1,11 @@
+{
+  "production_sources_changed_in_acceptance": false,
+  "main_checkout_status_and_recorded_hashes_unchanged": true,
+  "desktop_profile_and_credential_files_unchanged": true,
+  "known_credentials_absent_in_plain_and_compressed_artifacts": true,
+  "all_12_case_gzip_roundtrips_and_sha256_valid": true,
+  "remote_calls_final": 17,
+  "paid_retries": 0,
+  "reviewer_model_calls": 0,
+  "no_production_database_copied": true
+}

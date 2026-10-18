@@ -1,3 +1,10 @@
+## 2026-10-18 — P1-ABC 授权真实教学验收
+
+- 用户明确“授权真实教学测试”后，仅在integration/p1-abc隔离进程使用已保存default Qwen3.7 Plus及专用凭证；生产活动DeepSeek Flash profile不变。18自编Canonical块/5合成KG ID/合成作答、临时SQL；固定检索锚点夹具，实际展开/EvidencePack/Runtime/SSE/数学/metadata/Job/API保存；不冒充生产检索或Electron真实模型端到端。
+- 实际12任务：11真实模型任务+1生成资产本地编辑；17请求，输入52136/输出21031/总73167 tokens（含12531 reasoning）；10次执行工具（4固定教材准备+6数学）。0 SDK重试/付费样本重跑/评委模型，不改变profile options、tool_choice、工具allowlist或验证门槛。配置及凭据文件hash不变，公开证据无已知凭证值或隐藏reasoning正文，无生产代码修改。
+- 逐项6 PASS/5 FAIL/1 NOT VERIFIED，仅为单次小样本不能当准确率。A三例保全前提/多块推导/缺图不编造、B2增根、C1分类保存、AC候选发布及结构保存通过。B1误放assumptions/条件导致v3 unknown；B3将computed称工具核验；C2裸JSON/tag及span失配，未保存诊断；C3缺status导致分类invalid且一般结论漏不可导点，合法最终答案错误建议仍保存、无具体弱项；AB两次错误核验后求导恢复，后续拟调工具时已达预算，native_loop_failed且正式答案空。ABC分类编辑stale通过，因C2没有合法诊断，其确认后失效/SM-2链路不使用Mock补齐，仍NOT VERIFIED。
+- 工程1874/前端234/壳24/Electron30的既有实测不变；本轮验收脚本编译/无网络预检通过。生产混合检索、聊天入口/关键输入状态、实际视觉、Electron真实模型完整交互/重启恢复未验。最新教学发布结论HOLD；不为使样本通过而修生产提示词、放宽可信条件、自动接受JSON或扩大Loop。完整用量、每例延迟与失败证据见 docs/qa/p1-abc-integration/real-teaching-2026-10-18/REPORT.md 与summary.json；未merge/push。
+
 ## 2026-10-18 — P1-A/B/C 独立集成与验收
 
 - 从核实包含 P0 的 ac071ba 创建 integration/p1-abc / ../texa-p1-integration；保留 A/B/C 原提交历史。主目录仍在 Texa_MacOS，未切换、stash、清理、合并或提交其修改，三个功能分支未变；无 push 或稳定分支合并。
