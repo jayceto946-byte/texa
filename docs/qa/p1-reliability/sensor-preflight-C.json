@@ -1,0 +1,315 @@
+{
+  "anchors": [
+    {
+      "chunk_id": "e62ed1070495dd21e981",
+      "source_block_ids": [
+        "4661b18134e04f2429db",
+        "550c7c46c08f63da38ab",
+        "e76774f4de10b647ff83",
+        "28e9f06f7eafc8223c8d",
+        "fd505002ec71bbaebf1a",
+        "57f67e095fabff2385ec",
+        "d884d70f43939568b577",
+        "ee5c37069c1ad8a93043",
+        "442ffdcbfdd3e93992d6",
+        "6fae39e7caa7e3a5ec74",
+        "1ea70269979bae67edcc",
+        "93eca88c540504e0dab0",
+        "b26c420be4639b1eefae",
+        "5c6ccd605a595e1a936c",
+        "d0999588c86904c4934b",
+        "b9408cad11ff6edec3c9",
+        "3dc5455e9af19eda6748",
+        "46a15152fc2029622cbd",
+        "53aa3ed26978125519d3",
+        "0126171c0ac857a778a7",
+        "2090ce57e21d5b6b6516",
+        "3ce7e3e775f4112ef4a1",
+        "946d9a6733aa3e30039e",
+        "cc337a3aa243d65968a9",
+        "7fb0c457f9f59a5d1b5a",
+        "44180d3b07e533c4401b",
+        "661bcda27c37143600e9",
+        "f2af73e2a4706357c0d6",
+        "210949c14d6c2fe2a9b8",
+        "3cc6acae66a6fb14f19e",
+        "bc30e19d44ea04674956",
+        "2916d0761749098bff54",
+        "8e1f31e78642a7b22900",
+        "931ed6a5f78f896c06bb",
+        "90657327f8fa15cea1f5",
+        "2bd8e81c429e2ff44229",
+        "75ce85f7af428c9aae94",
+        "60a037374e817c8cf831",
+        "05534086c0657711f08d"
+      ],
+      "pages": [
+        17,
+        17
+      ],
+      "learning_unit": {
+        "version": "textbook-context/v1",
+        "status": "unknown",
+        "text_status": "unknown",
+        "source_status": "unknown",
+        "boundary": "source_title",
+        "reason": "canonical_section",
+        "unit_id": "4661b18134e04f2429db",
+        "anchor_chunk_ids": [
+          "e62ed1070495dd21e981"
+        ],
+        "anchor_source_block_ids": [
+          "3ce7e3e775f4112ef4a1",
+          "946d9a6733aa3e30039e",
+          "cc337a3aa243d65968a9"
+        ],
+        "total_blocks": 39,
+        "figures": [
+          {
+            "figure_id": "e76774f4de10b647ff83",
+            "source_block_ids": [
+              "e76774f4de10b647ff83"
+            ],
+            "asset_relpath": "figures/e76774f4de10b647ff83_883289ee73745ec6e1b230059b24f8d71d114a77ba02847cda2be03a2270fae1.jpg",
+            "content_hash": "883289ee73745ec6e1b230059b24f8d71d114a77ba02847cda2be03a2270fae1",
+            "page_start": 16,
+            "page_end": 16,
+            "required": true,
+            "availability": "available",
+            "model_input": "not_read",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "46a15152fc2029622cbd",
+            "source_block_ids": [
+              "46a15152fc2029622cbd"
+            ],
+            "asset_relpath": "figures/46a15152fc2029622cbd_610ec156b75a36632a9790deabfe66e1d44c9dbc05204d4116b0f81b2a188f39.jpg",
+            "content_hash": "610ec156b75a36632a9790deabfe66e1d44c9dbc05204d4116b0f81b2a188f39",
+            "page_start": 17,
+            "page_end": 17,
+            "required": false,
+            "availability": "available",
+            "model_input": "not_required",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "53aa3ed26978125519d3",
+            "source_block_ids": [
+              "53aa3ed26978125519d3"
+            ],
+            "asset_relpath": "figures/53aa3ed26978125519d3_2a040e515092d36a8c037c2057f0162483b5503c5d0989c3013115aff4ab7f1f.jpg",
+            "content_hash": "2a040e515092d36a8c037c2057f0162483b5503c5d0989c3013115aff4ab7f1f",
+            "page_start": 17,
+            "page_end": 17,
+            "required": false,
+            "availability": "available",
+            "model_input": "not_required",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "0126171c0ac857a778a7",
+            "source_block_ids": [
+              "0126171c0ac857a778a7"
+            ],
+            "asset_relpath": "figures/0126171c0ac857a778a7_6bb25af3859a57b36c8dfbaf204aa681007b3ab59808342951eb6f96058b2e92.jpg",
+            "content_hash": "6bb25af3859a57b36c8dfbaf204aa681007b3ab59808342951eb6f96058b2e92",
+            "page_start": 17,
+            "page_end": 17,
+            "required": false,
+            "availability": "available",
+            "model_input": "not_required",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "2090ce57e21d5b6b6516",
+            "source_block_ids": [
+              "2090ce57e21d5b6b6516"
+            ],
+            "asset_relpath": "figures/2090ce57e21d5b6b6516_d688848d73ce9fc2701bb59f3d158065f09f8384c60fdb9bc22a7b253e1cedda.jpg",
+            "content_hash": "d688848d73ce9fc2701bb59f3d158065f09f8384c60fdb9bc22a7b253e1cedda",
+            "page_start": 17,
+            "page_end": 17,
+            "required": true,
+            "availability": "available",
+            "model_input": "not_read",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "44180d3b07e533c4401b",
+            "source_block_ids": [
+              "44180d3b07e533c4401b"
+            ],
+            "asset_relpath": "figures/44180d3b07e533c4401b_e7ee4eef1d6489006959f47988b18c6fd05fd6df5f204a972f47a96a39ca03dc.jpg",
+            "content_hash": "e7ee4eef1d6489006959f47988b18c6fd05fd6df5f204a972f47a96a39ca03dc",
+            "page_start": 17,
+            "page_end": 17,
+            "required": false,
+            "availability": "available",
+            "model_input": "not_required",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "",
+            "reference": "图1.7",
+            "required": true,
+            "availability": "missing",
+            "reason": "resource_missing_in_canonical",
+            "model_input": "not_read",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          }
+        ],
+        "continuation": null
+      }
+    }
+  ],
+  "visible": [
+    {
+      "id": "E1",
+      "chunk_id": "e62ed1070495dd21e981",
+      "source_block_ids": [
+        "3ce7e3e775f4112ef4a1",
+        "946d9a6733aa3e30039e",
+        "cc337a3aa243d65968a9"
+      ],
+      "visible_chars": 381,
+      "visible_sha256": "2ea515e68dc666507279445e035cc2d8f4fd316651a3f5197fe2a017f8faeaff",
+      "learning_unit": {
+        "version": "textbook-context/v1",
+        "status": "partial",
+        "text_status": "partial",
+        "source_status": "unknown",
+        "boundary": "source_title",
+        "reason": "anchor_excerpt_fallback",
+        "unit_id": "4661b18134e04f2429db",
+        "anchor_chunk_ids": [
+          "e62ed1070495dd21e981"
+        ],
+        "anchor_source_block_ids": [
+          "3ce7e3e775f4112ef4a1",
+          "946d9a6733aa3e30039e",
+          "cc337a3aa243d65968a9"
+        ],
+        "total_blocks": 39,
+        "figures": [
+          {
+            "figure_id": "e76774f4de10b647ff83",
+            "source_block_ids": [
+              "e76774f4de10b647ff83"
+            ],
+            "asset_relpath": "figures/e76774f4de10b647ff83_883289ee73745ec6e1b230059b24f8d71d114a77ba02847cda2be03a2270fae1.jpg",
+            "content_hash": "883289ee73745ec6e1b230059b24f8d71d114a77ba02847cda2be03a2270fae1",
+            "page_start": 16,
+            "page_end": 16,
+            "required": true,
+            "availability": "available",
+            "model_input": "not_read",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "46a15152fc2029622cbd",
+            "source_block_ids": [
+              "46a15152fc2029622cbd"
+            ],
+            "asset_relpath": "figures/46a15152fc2029622cbd_610ec156b75a36632a9790deabfe66e1d44c9dbc05204d4116b0f81b2a188f39.jpg",
+            "content_hash": "610ec156b75a36632a9790deabfe66e1d44c9dbc05204d4116b0f81b2a188f39",
+            "page_start": 17,
+            "page_end": 17,
+            "required": false,
+            "availability": "available",
+            "model_input": "not_required",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "53aa3ed26978125519d3",
+            "source_block_ids": [
+              "53aa3ed26978125519d3"
+            ],
+            "asset_relpath": "figures/53aa3ed26978125519d3_2a040e515092d36a8c037c2057f0162483b5503c5d0989c3013115aff4ab7f1f.jpg",
+            "content_hash": "2a040e515092d36a8c037c2057f0162483b5503c5d0989c3013115aff4ab7f1f",
+            "page_start": 17,
+            "page_end": 17,
+            "required": false,
+            "availability": "available",
+            "model_input": "not_required",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "0126171c0ac857a778a7",
+            "source_block_ids": [
+              "0126171c0ac857a778a7"
+            ],
+            "asset_relpath": "figures/0126171c0ac857a778a7_6bb25af3859a57b36c8dfbaf204aa681007b3ab59808342951eb6f96058b2e92.jpg",
+            "content_hash": "6bb25af3859a57b36c8dfbaf204aa681007b3ab59808342951eb6f96058b2e92",
+            "page_start": 17,
+            "page_end": 17,
+            "required": false,
+            "availability": "available",
+            "model_input": "not_required",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "2090ce57e21d5b6b6516",
+            "source_block_ids": [
+              "2090ce57e21d5b6b6516"
+            ],
+            "asset_relpath": "figures/2090ce57e21d5b6b6516_d688848d73ce9fc2701bb59f3d158065f09f8384c60fdb9bc22a7b253e1cedda.jpg",
+            "content_hash": "d688848d73ce9fc2701bb59f3d158065f09f8384c60fdb9bc22a7b253e1cedda",
+            "page_start": 17,
+            "page_end": 17,
+            "required": true,
+            "availability": "available",
+            "model_input": "not_read",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "44180d3b07e533c4401b",
+            "source_block_ids": [
+              "44180d3b07e533c4401b"
+            ],
+            "asset_relpath": "figures/44180d3b07e533c4401b_e7ee4eef1d6489006959f47988b18c6fd05fd6df5f204a972f47a96a39ca03dc.jpg",
+            "content_hash": "e7ee4eef1d6489006959f47988b18c6fd05fd6df5f204a972f47a96a39ca03dc",
+            "page_start": 17,
+            "page_end": 17,
+            "required": false,
+            "availability": "available",
+            "model_input": "not_required",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "",
+            "reference": "图1.7",
+            "required": true,
+            "availability": "missing",
+            "reason": "resource_missing_in_canonical",
+            "model_input": "not_read",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          }
+        ],
+        "continuation": {
+          "block_id": "3ce7e3e775f4112ef4a1",
+          "index_version": "c8b6947edb7858f2",
+          "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3"
+        }
+      }
+    }
+  ],
+  "formula_tags": [
+    "1.7"
+  ],
+  "table_1_1_visible": false
+}

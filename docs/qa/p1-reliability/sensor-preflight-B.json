@@ -1,0 +1,139 @@
+{
+  "anchors": [
+    {
+      "chunk_id": "b3696cd4e1f3706e7fd5",
+      "source_block_ids": [
+        "5669583b60c9dd2eefbb",
+        "ff70854fe8a25ce090d0",
+        "6bb9d91e374ffe00a9b0",
+        "436485ea6c3dcee1f0e8",
+        "e72df2318141d5849f4c",
+        "8c05d79717526d7abf52",
+        "89646083ebf3d2eac9b9"
+      ],
+      "pages": [
+        18,
+        18
+      ],
+      "learning_unit": {
+        "version": "textbook-context/v1",
+        "status": "unknown",
+        "text_status": "unknown",
+        "source_status": "unknown",
+        "boundary": "source_title",
+        "reason": "canonical_section",
+        "unit_id": "5669583b60c9dd2eefbb",
+        "anchor_chunk_ids": [
+          "b3696cd4e1f3706e7fd5"
+        ],
+        "anchor_source_block_ids": [
+          "e72df2318141d5849f4c"
+        ],
+        "total_blocks": 7,
+        "figures": [
+          {
+            "figure_id": "6bb9d91e374ffe00a9b0",
+            "source_block_ids": [
+              "6bb9d91e374ffe00a9b0"
+            ],
+            "asset_relpath": "figures/6bb9d91e374ffe00a9b0_5dddaefdf54cb4692dd2e671a0076ccc1beaf5a63991721c0e8b385a1d931362.jpg",
+            "content_hash": "5dddaefdf54cb4692dd2e671a0076ccc1beaf5a63991721c0e8b385a1d931362",
+            "page_start": 18,
+            "page_end": 18,
+            "required": false,
+            "availability": "available",
+            "model_input": "not_required",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "436485ea6c3dcee1f0e8",
+            "source_block_ids": [
+              "436485ea6c3dcee1f0e8"
+            ],
+            "asset_relpath": "figures/436485ea6c3dcee1f0e8_06370bd1cebccf399cf3a1a9d14a894f974eb1b42c8fa92b9713c73e5cbe30e8.jpg",
+            "content_hash": "06370bd1cebccf399cf3a1a9d14a894f974eb1b42c8fa92b9713c73e5cbe30e8",
+            "page_start": 18,
+            "page_end": 18,
+            "required": true,
+            "availability": "available",
+            "model_input": "not_read",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          }
+        ],
+        "continuation": null
+      }
+    }
+  ],
+  "visible": [
+    {
+      "id": "E1",
+      "chunk_id": "b3696cd4e1f3706e7fd5",
+      "source_block_ids": [
+        "5669583b60c9dd2eefbb",
+        "ff70854fe8a25ce090d0",
+        "6bb9d91e374ffe00a9b0",
+        "436485ea6c3dcee1f0e8",
+        "e72df2318141d5849f4c",
+        "8c05d79717526d7abf52",
+        "89646083ebf3d2eac9b9"
+      ],
+      "visible_chars": 841,
+      "visible_sha256": "6cbf30582b569865c55b978bfe37a214dfbd61dace60ae7bd21219465991f1b7",
+      "learning_unit": {
+        "version": "textbook-context/v1",
+        "status": "unknown",
+        "text_status": "unknown",
+        "source_status": "unknown",
+        "boundary": "source_title",
+        "reason": "canonical_section",
+        "unit_id": "5669583b60c9dd2eefbb",
+        "anchor_chunk_ids": [
+          "b3696cd4e1f3706e7fd5"
+        ],
+        "anchor_source_block_ids": [
+          "e72df2318141d5849f4c"
+        ],
+        "total_blocks": 7,
+        "figures": [
+          {
+            "figure_id": "6bb9d91e374ffe00a9b0",
+            "source_block_ids": [
+              "6bb9d91e374ffe00a9b0"
+            ],
+            "asset_relpath": "figures/6bb9d91e374ffe00a9b0_5dddaefdf54cb4692dd2e671a0076ccc1beaf5a63991721c0e8b385a1d931362.jpg",
+            "content_hash": "5dddaefdf54cb4692dd2e671a0076ccc1beaf5a63991721c0e8b385a1d931362",
+            "page_start": 18,
+            "page_end": 18,
+            "required": false,
+            "availability": "available",
+            "model_input": "not_required",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          },
+          {
+            "figure_id": "436485ea6c3dcee1f0e8",
+            "source_block_ids": [
+              "436485ea6c3dcee1f0e8"
+            ],
+            "asset_relpath": "figures/436485ea6c3dcee1f0e8_06370bd1cebccf399cf3a1a9d14a894f974eb1b42c8fa92b9713c73e5cbe30e8.jpg",
+            "content_hash": "06370bd1cebccf399cf3a1a9d14a894f974eb1b42c8fa92b9713c73e5cbe30e8",
+            "page_start": 18,
+            "page_end": 18,
+            "required": true,
+            "availability": "available",
+            "model_input": "not_read",
+            "multimodal_mode": "native",
+            "reading_role": "reasoning"
+          }
+        ],
+        "continuation": null
+      }
+    }
+  ],
+  "formula_tags": [
+    "1.8"
+  ],
+  "table_1_1_visible": true
+}

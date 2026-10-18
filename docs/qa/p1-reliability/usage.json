@@ -1,0 +1,665 @@
+{
+  "model": "deepseek-flash",
+  "provider": "deepseek",
+  "request_limit": 30,
+  "requests": [
+    {
+      "index": 1,
+      "case": "before-B1",
+      "status": "returned",
+      "input_bytes": 10232,
+      "public_input_sha256": "4028b7a4d1da689d27e56b1151aa9c6d14cef6a7aa252b876388adddeb654bba",
+      "usage": {
+        "input_tokens": 2811,
+        "output_tokens": 1211,
+        "total_tokens": 4022,
+        "input_token_details": {
+          "cache_read": 384
+        },
+        "output_token_details": {
+          "reasoning": 861
+        }
+      },
+      "request_ms": 5946.27,
+      "finish_reason": "tool_calls",
+      "temperature": 0.1,
+      "acceptance_eligible": false
+    },
+    {
+      "index": 2,
+      "case": "before-B1",
+      "status": "returned",
+      "input_bytes": 15908,
+      "public_input_sha256": "807a82fce8d41b9a677b1e9af8b1ae6e9ef96bb52005e83f9d0f777db15596f6",
+      "usage": {
+        "input_tokens": 4354,
+        "output_tokens": 1098,
+        "total_tokens": 5452,
+        "input_token_details": {
+          "cache_read": 2432
+        },
+        "output_token_details": {
+          "reasoning": 833
+        }
+      },
+      "request_ms": 6401.62,
+      "finish_reason": "tool_calls",
+      "temperature": 0.1,
+      "acceptance_eligible": false
+    },
+    {
+      "index": 3,
+      "case": "before-B1",
+      "status": "returned",
+      "input_bytes": 21863,
+      "public_input_sha256": "a5170bb98f54c37bf864cf83009a47a75d400f613910d99a828f02a80df54991",
+      "usage": {
+        "input_tokens": 5886,
+        "output_tokens": 1520,
+        "total_tokens": 7406,
+        "input_token_details": {
+          "cache_read": 3968
+        },
+        "output_token_details": {
+          "reasoning": 982
+        }
+      },
+      "request_ms": 7864.72,
+      "finish_reason": "stop",
+      "temperature": 0.1,
+      "acceptance_eligible": false
+    },
+    {
+      "index": 4,
+      "case": "before-B3",
+      "status": "returned",
+      "input_bytes": 10105,
+      "public_input_sha256": "f98d7c7e69aa86fb23d5832ac33b39a226ead56c4feab183a13a4d7bd06b29b0",
+      "usage": {
+        "input_tokens": 2758,
+        "output_tokens": 735,
+        "total_tokens": 3493,
+        "input_token_details": {
+          "cache_read": 1920
+        },
+        "output_token_details": {
+          "reasoning": 469
+        }
+      },
+      "request_ms": 4073.27,
+      "finish_reason": "tool_calls",
+      "temperature": 0.1,
+      "acceptance_eligible": false
+    },
+    {
+      "index": 5,
+      "case": "before-B3",
+      "status": "returned",
+      "input_bytes": 14276,
+      "public_input_sha256": "d296989a2c8a9a89e6bb3075a7f7068b4143c32ef9c17e4d6d41e4aec005ae82",
+      "usage": {
+        "input_tokens": 3812,
+        "output_tokens": 969,
+        "total_tokens": 4781,
+        "input_token_details": {
+          "cache_read": 2432
+        },
+        "output_token_details": {
+          "reasoning": 612
+        }
+      },
+      "request_ms": 6468.36,
+      "finish_reason": "stop",
+      "temperature": 0.1,
+      "acceptance_eligible": false
+    },
+    {
+      "index": 6,
+      "case": "before-C2",
+      "status": "returned",
+      "input_bytes": 7737,
+      "public_input_sha256": "52d185d83660f6d6c44c8efab4b7654acfe4b37301c264346ebdd7b17271ac56",
+      "usage": {
+        "input_tokens": 2065,
+        "output_tokens": 6677,
+        "total_tokens": 8742,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 4713
+        }
+      },
+      "request_ms": 28826.24,
+      "finish_reason": "stop",
+      "temperature": 0.1,
+      "acceptance_eligible": false
+    },
+    {
+      "index": 7,
+      "case": "before-C3",
+      "status": "returned",
+      "input_bytes": 7598,
+      "public_input_sha256": "82bc947bec7ad305272ab163bbdb7db3fa938312a7b8205493f05b4a0e90092f",
+      "usage": {
+        "input_tokens": 2010,
+        "output_tokens": 3387,
+        "total_tokens": 5397,
+        "input_token_details": {
+          "cache_read": 1792
+        },
+        "output_token_details": {
+          "reasoning": 1801
+        }
+      },
+      "request_ms": 15704.78,
+      "finish_reason": "stop",
+      "temperature": 0.1,
+      "acceptance_eligible": false
+    },
+    {
+      "index": 8,
+      "case": "before-AB",
+      "status": "returned",
+      "input_bytes": 11331,
+      "public_input_sha256": "68e6c8e1bbad33cc7672abd9ca1391bbdfeea4c0e8b0daa6947ea7ca6f566de1",
+      "usage": {
+        "input_tokens": 3108,
+        "output_tokens": 974,
+        "total_tokens": 4082,
+        "input_token_details": {
+          "cache_read": 1920
+        },
+        "output_token_details": {
+          "reasoning": 520
+        }
+      },
+      "request_ms": 5398.51,
+      "finish_reason": "tool_calls",
+      "temperature": 0.1,
+      "acceptance_eligible": false
+    },
+    {
+      "index": 9,
+      "case": "after-B1",
+      "status": "returned",
+      "input_bytes": 12079,
+      "public_input_sha256": "58967850997c34272ec067aa4f8d3ba7c0eca6d732dbd0064b2fff6846ed920a",
+      "usage": {
+        "input_tokens": 3273,
+        "output_tokens": 527,
+        "total_tokens": 3800,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 341
+        }
+      },
+      "request_ms": 3429.84,
+      "finish_reason": "tool_calls",
+      "temperature": 0.1,
+      "acceptance_eligible": false
+    },
+    {
+      "index": 10,
+      "case": "after-B1",
+      "status": "returned",
+      "input_bytes": 16350,
+      "public_input_sha256": "4502810b9962f2f676de7b5426c93f36c861e34bcd802c87afe0b26ae9fdc0d5",
+      "usage": {
+        "input_tokens": 4436,
+        "output_tokens": 686,
+        "total_tokens": 5122,
+        "input_token_details": {
+          "cache_read": 2816
+        },
+        "output_token_details": {
+          "reasoning": 441
+        }
+      },
+      "request_ms": 4338.59,
+      "finish_reason": "stop",
+      "temperature": 0.1,
+      "acceptance_eligible": false
+    },
+    {
+      "index": 11,
+      "case": "t1-before-B1",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 10232,
+      "public_input_sha256": "4028b7a4d1da689d27e56b1151aa9c6d14cef6a7aa252b876388adddeb654bba",
+      "usage": {
+        "input_tokens": 2811,
+        "output_tokens": 1001,
+        "total_tokens": 3812,
+        "input_token_details": {
+          "cache_read": 2560
+        },
+        "output_token_details": {
+          "reasoning": 730
+        }
+      },
+      "request_ms": 5654.77,
+      "finish_reason": "tool_calls",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 12,
+      "case": "t1-before-B1",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 16072,
+      "public_input_sha256": "bec9bf5dd534651fe13dfe54b8bdbee016c12edb3603f2dcf6194efc3b242ec2",
+      "usage": {
+        "input_tokens": 4341,
+        "output_tokens": 1297,
+        "total_tokens": 5638,
+        "input_token_details": {
+          "cache_read": 2432
+        },
+        "output_token_details": {
+          "reasoning": 901
+        }
+      },
+      "request_ms": 6822.03,
+      "finish_reason": "stop",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 13,
+      "case": "t1-before-AB",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 11331,
+      "public_input_sha256": "68e6c8e1bbad33cc7672abd9ca1391bbdfeea4c0e8b0daa6947ea7ca6f566de1",
+      "usage": {
+        "input_tokens": 3108,
+        "output_tokens": 954,
+        "total_tokens": 4062,
+        "input_token_details": {
+          "cache_read": 2944
+        },
+        "output_token_details": {
+          "reasoning": 472
+        }
+      },
+      "request_ms": 5048.74,
+      "finish_reason": "tool_calls",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 14,
+      "case": "t1-after-B1",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 12079,
+      "public_input_sha256": "58967850997c34272ec067aa4f8d3ba7c0eca6d732dbd0064b2fff6846ed920a",
+      "usage": {
+        "input_tokens": 3273,
+        "output_tokens": 1074,
+        "total_tokens": 4347,
+        "input_token_details": {
+          "cache_read": 3072
+        },
+        "output_token_details": {
+          "reasoning": 899
+        }
+      },
+      "request_ms": 6503.77,
+      "finish_reason": "tool_calls",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 15,
+      "case": "t1-after-B1",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 18509,
+      "public_input_sha256": "8fe692587444df17162460e996676a379c0550bee0864ab412d8f21138e8fa10",
+      "usage": {
+        "input_tokens": 4985,
+        "output_tokens": 1001,
+        "total_tokens": 5986,
+        "input_token_details": {
+          "cache_read": 2816
+        },
+        "output_token_details": {
+          "reasoning": 604
+        }
+      },
+      "request_ms": 5787.55,
+      "finish_reason": "stop",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 16,
+      "case": "t1-after-B3",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 11952,
+      "public_input_sha256": "d2b7a77b0237a77232caf4b8698e9b55e7878aa1cec79ee784c27de7cbe28b34",
+      "usage": {
+        "input_tokens": 3220,
+        "output_tokens": 511,
+        "total_tokens": 3731,
+        "input_token_details": {
+          "cache_read": 2304
+        },
+        "output_token_details": {
+          "reasoning": 288
+        }
+      },
+      "request_ms": 3237.53,
+      "finish_reason": "tool_calls",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 17,
+      "case": "t1-after-B3",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 16986,
+      "public_input_sha256": "6e3967f3ac17c54c934e80688fd8d71c576d8887c72db76d506b73c84d9255cc",
+      "usage": {
+        "input_tokens": 4533,
+        "output_tokens": 1348,
+        "total_tokens": 5881,
+        "input_token_details": {
+          "cache_read": 2816
+        },
+        "output_token_details": {
+          "reasoning": 941
+        }
+      },
+      "request_ms": 8275.5,
+      "finish_reason": "stop",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 18,
+      "case": "t1-after-C2",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 8673,
+      "public_input_sha256": "89d3b49bc5e963d538b9a44a4944d13079176ffb33c089d1b80db93494ab0514",
+      "usage": {
+        "input_tokens": 2272,
+        "output_tokens": 4596,
+        "total_tokens": 6868,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 2912
+        }
+      },
+      "request_ms": 21398.12,
+      "finish_reason": "stop",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 19,
+      "case": "t1-after-C3",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 8534,
+      "public_input_sha256": "776884212bbbcfb5d1ae4b449157b3aa00b19481d372662c3c0948bbf89485b6",
+      "usage": {
+        "input_tokens": 2217,
+        "output_tokens": 2615,
+        "total_tokens": 4832,
+        "input_token_details": {
+          "cache_read": 2048
+        },
+        "output_token_details": {
+          "reasoning": 1447
+        }
+      },
+      "request_ms": 12758.18,
+      "finish_reason": "stop",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 20,
+      "case": "t1-after-AB",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 13178,
+      "public_input_sha256": "a5c636acf7e72c19f930e9eb9f1713ee7e35dd77b30f8faec5fda582986f5f39",
+      "usage": {
+        "input_tokens": 3570,
+        "output_tokens": 858,
+        "total_tokens": 4428,
+        "input_token_details": {
+          "cache_read": 2304
+        },
+        "output_token_details": {
+          "reasoning": 347
+        }
+      },
+      "request_ms": 4290.89,
+      "finish_reason": "tool_calls",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 21,
+      "case": "t1-after-AC",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 10981,
+      "public_input_sha256": "d8c12616641ad39c9a3638d6c97faa5d2c66ac09196a08daab327f2712dc6a0e",
+      "usage": {
+        "input_tokens": 2759,
+        "output_tokens": 933,
+        "total_tokens": 3692,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 320
+        }
+      },
+      "request_ms": 5312.35,
+      "finish_reason": "stop",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 22,
+      "case": "t1-sensor-A",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 14648,
+      "public_input_sha256": "74ffff09ee614c0118bb7b511bfdf66f630708cecf27a987ce93418db0811969",
+      "usage": {
+        "input_tokens": 3779,
+        "output_tokens": 653,
+        "total_tokens": 4432,
+        "input_token_details": {
+          "cache_read": 2304
+        },
+        "output_token_details": {
+          "reasoning": 308
+        }
+      },
+      "request_ms": 4675.64,
+      "finish_reason": "stop",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 23,
+      "case": "t1-sensor-B",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 14032,
+      "public_input_sha256": "779321bba8edbfb381abf1ab3714c61ee03a8f4fc34e9f5d4de42c16bb118caa",
+      "usage": {
+        "input_tokens": 3738,
+        "output_tokens": 1332,
+        "total_tokens": 5070,
+        "input_token_details": {
+          "cache_read": 2304
+        },
+        "output_token_details": {
+          "reasoning": 984
+        }
+      },
+      "request_ms": 6922.69,
+      "finish_reason": "tool_calls",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 24,
+      "case": "t1-sensor-C",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 13244,
+      "public_input_sha256": "85c226e2dd4fe78242574e261e9bdf6ee787ca3ba287ae3af7e46ab69f1ebbb2",
+      "usage": {
+        "input_tokens": 3508,
+        "output_tokens": 2063,
+        "total_tokens": 5571,
+        "input_token_details": {
+          "cache_read": 2304
+        },
+        "output_token_details": {
+          "reasoning": 1812
+        }
+      },
+      "request_ms": 12367.55,
+      "finish_reason": "stop",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 25,
+      "case": "t1-sensor-D",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 12015,
+      "public_input_sha256": "cb928e58b7631f06ba7cf58b899d917cf2b63366dd3d4fd36311ff388f577dd0",
+      "usage": {
+        "input_tokens": 2903,
+        "output_tokens": 667,
+        "total_tokens": 3570,
+        "input_token_details": {
+          "cache_read": 256
+        },
+        "output_token_details": {
+          "reasoning": 251
+        }
+      },
+      "request_ms": 4137.7,
+      "finish_reason": "stop",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 26,
+      "case": "t1-sensor-E1",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 7821,
+      "public_input_sha256": "e3f03dfa491544231207e51215ff2d9370ee3b376f4d34fd00d3cb17dad589a3",
+      "usage": {
+        "input_tokens": 2028,
+        "output_tokens": 2982,
+        "total_tokens": 5010,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 2089
+        }
+      },
+      "request_ms": 15270.56,
+      "finish_reason": "stop",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 27,
+      "case": "t1-sensor-E2",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 7769,
+      "public_input_sha256": "03a4f6d74e915176cac900fae3cb3dd065a8791ec05cb58f2bdbb23c30eee05c",
+      "usage": {
+        "input_tokens": 2006,
+        "output_tokens": 1985,
+        "total_tokens": 3991,
+        "input_token_details": {
+          "cache_read": 1792
+        },
+        "output_token_details": {
+          "reasoning": 1139
+        }
+      },
+      "request_ms": 10799.13,
+      "finish_reason": "stop",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 28,
+      "case": "t1-sensor-E1-inspect",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 7821,
+      "public_input_sha256": "da6745bee1da0284f798054bd74fb10e6c0cce925a5b22042b8766d091b73af4",
+      "usage": {
+        "input_tokens": 2028,
+        "output_tokens": 2632,
+        "total_tokens": 4660,
+        "input_token_details": {
+          "cache_read": 1792
+        },
+        "output_token_details": {
+          "reasoning": 1719
+        }
+      },
+      "request_ms": 14443.22,
+      "finish_reason": "stop",
+      "response_model": "deepseek-flash",
+      "acceptance_eligible": true
+    },
+    {
+      "index": 29,
+      "case": "t1-sensor-D-final",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 12273,
+      "public_input_sha256": "8cffa68a9fbda2e1ff826943c6adae8fe508c0752e48a5b23022c5f2342a17a4",
+      "usage": {
+        "input_tokens": 2960,
+        "output_tokens": 521,
+        "total_tokens": 3481,
+        "input_token_details": {
+          "cache_read": 1152
+        },
+        "output_token_details": {
+          "reasoning": 311
+        }
+      },
+      "request_ms": 3282.36,
+      "finish_reason": "stop",
+      "response_model": "deepseek-flash",
+      "acceptance_eligible": true
+    }
+  ],
+  "fixed_acceptance_configuration": {
+    "provider": "deepseek",
+    "model": "deepseek-flash",
+    "endpoint": "https://api.deepseek.com",
+    "temperature": 1,
+    "max_tokens": 8192,
+    "thinking": {
+      "type": "enabled"
+    },
+    "reasoning_effort": "high",
+    "max_retries": 0,
+    "streaming": true,
+    "request_timeout_seconds": 180,
+    "multimodal_mode": "native",
+    "tools_budget": 4,
+    "model_calls_budget_per_runtime": 5
+  },
+  "superseded_requests": 10
+}

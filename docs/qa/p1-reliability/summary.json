@@ -1,0 +1,35 @@
+{
+  "request_count": 29,
+  "request_limit": 30,
+  "formal_temperature_1_requests": 19,
+  "superseded_temperature_0_1_requests": 10,
+  "tokens": {
+    "input_tokens": 94552,
+    "output_tokens": 46807,
+    "total_tokens": 141359
+  },
+  "formal_tokens": {
+    "input_tokens": 60039,
+    "output_tokens": 29023,
+    "total_tokens": 89062
+  },
+  "case_results": {
+    "B1": "PASS: real v3 steps valid with trusted domain and condition",
+    "B3": "PASS: unknown correctly described; computed branch additionally deterministic",
+    "C2": "PASS: exact quotes located and suggested only",
+    "C3": "PASS: final-only uncertainty, status and nondifferentiable-point regression",
+    "AB": "PASS failure delivery; HOLD full teaching completion",
+    "AC": "PASS: candidate reviewed/imported then proposed classification saved",
+    "sensor_A": "PASS within read-only lexical scope",
+    "sensor_B": "FAIL: budget exhausted, finite partial output retained",
+    "sensor_C": "FAIL: EvidencePack provenance budget evicts derivation; honest incomplete answer",
+    "sensor_D": "PASS bounded unknown after targeted repeat; first attempt invalid",
+    "sensor_E1": "PASS on unchanged-protocol repeat; first attempt invalid, variability remains",
+    "sensor_E2": "PASS: final_answer_incorrect only, no inferred cause"
+  },
+  "production_databases_opened": false,
+  "production_sources_modified": false,
+  "images_sent": false,
+  "full_hybrid_retrieval_verified": false,
+  "full_electron_real_model_verified": false
+}

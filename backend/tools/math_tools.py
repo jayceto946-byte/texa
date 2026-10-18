@@ -113,11 +113,11 @@ class MathOutput(BaseModel):
 class MathVerifyInput(MathConditions):
     model_config = ConfigDict(extra="forbid", strict=True)
     kind: Literal["equivalence", "derivative", "antiderivative", "definite_integral", "solutions", "limit", "steps"]
-    context: StepBatch | None = None
-    left: str = Field(default="", max_length=300)
-    right: str = Field(default="", max_length=300)
-    original: str = Field(default="", max_length=300)
-    candidate: str = Field(default="", max_length=300)
+    context: StepBatch | None = Field(default=None, description="Only kind=steps: Runtime source_ref and before/after steps. Conditions come from the frozen source, never from assumptions or Statement.right.")
+    left: str = Field(default="", max_length=300, description="kind=equivalence: first expression; kind=solutions: equation left side. Not used for derivative checks.")
+    right: str = Field(default="", max_length=300, description="kind=equivalence: second expression; kind=solutions: equation right side. Never a condition such as x!=1.")
+    original: str = Field(default="", max_length=300, description="Required for derivative, antiderivative, definite_integral and limit: original function/integrand.")
+    candidate: str = Field(default="", max_length=300, description="Required for derivative, antiderivative, definite_integral and limit: proposed result. Do not put it in left/right.")
     candidates: list[str] = Field(default_factory=list, max_length=12)
     lower: str | int | float | None = None
     upper: str | int | float | None = None
@@ -134,6 +134,11 @@ class MathVerifyInput(MathConditions):
             raise ValueError("bounds are supported only for definite integrals; solution intervals are not supported")
         if self.kind != "limit" and self.point is not None:
             raise ValueError("point is supported only for limits")
+        required = {"equivalence": ("left", "right"), "derivative": ("original", "candidate"),
+                    "antiderivative": ("original", "candidate"), "definite_integral": ("original", "candidate", "lower", "upper"),
+                    "limit": ("original", "candidate", "point"), "solutions": ("left", "right")}.get(self.kind, ())
+        if any(getattr(self, key) is None or getattr(self, key) == "" for key in required):
+            raise ValueError(f"kind={self.kind} requires {', '.join(required)}; derivative results belong in candidate, not left/right")
         return self
 
 
@@ -555,6 +560,8 @@ def register_math_tools(registry: ToolRegistry) -> None:
     registry.register(ToolSpec(
         name="verify_math_result",
         description=("Verify only supplied expressions under explicit assumptions; unresolved domain/branch conditions return unverified. "
+            'Minimal derivative call: {"kind":"derivative","original":"x^3-3*x","candidate":"3*x^2-3","variable":"x"}. '
+            'Minimal equivalence call: {"kind":"equivalence","left":"2+2","right":"4"}. '
             "Derivative/antiderivative checks are local identities; definite integrals require real bounds independent of the variable. "
             "Parametric integral convergence can remain unverified even with assumptions. "
             "Solutions are substitution checks only, never a proof of complete solution sets. "
@@ -562,6 +569,10 @@ def register_math_tools(registry: ToolRegistry) -> None:
             "Specify identity, implication, equation_equivalence, candidate_solution or solution_set. "
             "Only a leading user-authored <math-context> JSON block supplies trusted conditions; "
             "without it return unknown. Do not add assumptions or claim prior verification. "
+            'For steps omit assumptions entirely: Runtime supplies domain AND conditions such as x!=1. '
+            'An expression identity uses before.left and after.left, with right omitted on BOTH. '
+            'Example: {"kind":"steps","context":{"source_ref":"<exact Runtime source_ref>","steps":[{"id":"s1","relation":"identity","before":{"left":"(x^2-1)/(x-1)"},"after":{"left":"x+1"}}]}}. '
+            'Statement.right is only an equation RHS, never a condition. invalid/unknown must be reported as such; valid covers only listed steps. '
             "No check certifies modelling, omitted conditions or natural-language derivations."),
         parameters={
             "type": "object",

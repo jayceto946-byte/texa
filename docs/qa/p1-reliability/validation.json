@@ -1,0 +1,28 @@
+{
+  "python": {
+    "version": "3.10.21",
+    "interpreter": "/Users/jichengqian/Documents/ChatGPT/texa/venv310/bin/python",
+    "passed": 232,
+    "failed": 0,
+    "scope": ["test_p1_reliability", "test_context_math_steps", "test_exercise_knowledge_structure", "test_native_math_loop", "test_p1_abc_integration", "test_textbook_context_expansion", "test_math_isolation", "test_exercise_candidate_contract"],
+    "disposable_data_root": "/private/tmp/texa-reliability-tests",
+    "elapsed_seconds": 36.12
+  },
+  "frontend": {
+    "passed": 31,
+    "failed": 0,
+    "scope": ["streamPresentation.test.ts", "chatActivities.test.ts", "client.test.ts"],
+    "typescript": "PASS: tsconfig.app.json noEmit, temporary tsBuildInfoFile"
+  },
+  "desktop_shell": {
+    "passed": 24,
+    "failed": 0,
+    "command": "node --test desktop/*.test.cjs",
+    "first_sandbox_attempt": "23 passed; loopback listen EPERM",
+    "authorized_loopback_rerun": "24 passed"
+  },
+  "full_electron_real_model_ui": "NOT VERIFIED",
+  "full_repository_tests": "NOT RUN",
+  "real_provider_requests": 29,
+  "request_limit": 30
+}

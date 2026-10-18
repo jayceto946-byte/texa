@@ -349,13 +349,14 @@ def stream_run(store, run_id: str, owner: str, registry=None, adapter=None):
                         event.get("payload", {}).get("lifecycle") == "tool.completed"):
                     # Existing chapter delivery precedes all public model text.
                     yield f"data: {json.dumps({'stage': 'chapter', 'has_teaching': True, 'request_id': initial['run']['request_id'], **sidecar}, ensure_ascii=False)}\n\n"
-                if event["type"] == "final":
+                if event["type"] == "final" or (event['type'] == 'error' and (snapshot['run'].get('output') or {}).get('answer')):
                     delta = {**event, "seq": event["seq"] - 1, "type": "output_delta",
                         "phase": "generate", "kind": "generation", "status": "running",
                         "payload": {"text": snapshot["run"]["output"]["answer"], "replace": True}}
                     yield f"data: {json.dumps(execution_sse_payload(delta), ensure_ascii=False)}\n\n"
-                    sidecar["message_id"] = f"msg_{task['id']}"
-                    sidecar["state"] = {"evidence_sources": snapshot["task"]["artifacts"].get("evidence_sources", [])}
+                    if event['type'] == 'final':
+                        sidecar["message_id"] = f"msg_{task['id']}"
+                        sidecar["state"] = {"evidence_sources": snapshot["task"]["artifacts"].get("evidence_sources", [])}
                 yield f"data: {json.dumps(execution_sse_payload(event, sidecar=sidecar), ensure_ascii=False)}\n\n"
                 cursor = event["seq"]
             if snapshot["run"]["status"] != "running" and len(batch) < 100:

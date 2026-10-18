@@ -758,16 +758,18 @@ class RuntimeStore:
                     if len(sources) > 20 or len(_dump(sources)) > 64000:
                         raise ValueError("source projection exceeds budget")
                     snapshot["artifacts"]["evidence_sources"] = sources
+            elif outcome == 'failed' and answer:
+                snapshot['artifacts']['failure_answer'] = answer
             conn.execute("UPDATE runtime_tasks SET snapshot_json=?,status=?,active_run_id=NULL,revision=revision+1,updated_at=? WHERE id=? AND revision=?",
                          (_dump(snapshot), task_status, now, run["task_id"], task["revision"]))
             conn.execute("UPDATE agent_runs SET status=?,output_json=?,error_code=?,revision=revision+1,updated_at=?,ended_at=? WHERE id=?",
                          ("completed" if outcome == "degraded" else "paused" if outcome == "approval" else outcome,
-                          _dump({"answer": answer, "verification": verification}) if outcome in {"completed", "degraded"} else None,
+                          _dump({"answer": answer, "verification": verification}) if outcome in {"completed", "degraded"} or (outcome == 'failed' and answer) else None,
                           error_code or None, now, now, run_id))
             payload = {"task_status_before": "running", "task_status_after": task_status} if outcome in {"paused", "approval"} else {"task_status": task_status}
             if outcome in {"paused", "approval"}:
                 payload["pause_reason"] = error_code or ("approval" if outcome == "approval" else "interrupted")
-            if outcome in {"completed", "degraded"} and json.loads(run["checkpoint_json"]).get("delivery") == "chat":
+            if (outcome in {"completed", "degraded"} or (outcome == 'failed' and answer)) and json.loads(run["checkpoint_json"]).get("delivery") == "chat":
                 # Reserve a transport-only output sequence before the durable final.
                 # Answer text lives in the outcome, not a persisted delta payload.
                 conn.execute("UPDATE agent_runs SET seq_high_water=seq_high_water+1 WHERE id=?", (run_id,))

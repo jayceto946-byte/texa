@@ -1,3 +1,13 @@
+## 2026-10-18 — P1 Integration Reliability（隔离修复分支）
+
+- 从 `integration/p1-abc@9c1c013` 建立 `fix/p1-integration-reliability`，未修改原始工作区或合并主线。
+- 明确 verify_math_result v3 各 kind 参数、合法步骤示例与错误反馈；保留可信条件来源和定义域验证。将 computed/局部 verified 与整题验证分开。
+- metadata 明确 status/envelope/空候选合同；非法结构不进入正式分类，答案仍可保存并返回 metadata_invalid。诊断支持唯一精确 quote 的 Runtime 定位，仍执行 Attempt、版本、span 与确认校验。
+- 工具预算耗尽时保存明确的 failed 交付与有限确定性回执，关闭未执行 ToolMessage，经 SSE replace 后发 error，不追加模型请求或提高预算。
+- 有限 DeepSeek V4.1 Flash（实际 ID deepseek-flash）验收累计29/30请求。用户更正后固定 temperature=1，前10次0.1调用作废但计入总量；正式19次。v3 valid真实链路通过，AB完整教学、真实传感器灵敏度任务及连续推导仍HOLD。
+- 真实《传感器原理及应用》第2版只读验收，临时数据库，无生产学习数据复制/写入。发现连续推导的EvidencePack裁剪及metadata波动，未重建摄取/KG或降低标准。
+- 相关 Python 回归232通过，React/SSE 31通过，TypeScript通过，Electron壳24通过；完整Electron真实模型与视觉未验。详见 `P1-INTEGRATION-RELIABILITY-REPORT.md` 和 `docs/qa/p1-reliability/`。无新增依赖或数据库结构迁移。
+
 ## 2026-10-18 — P1-ABC 授权真实教学验收
 
 - 用户明确“授权真实教学测试”后，仅在integration/p1-abc隔离进程使用已保存default Qwen3.7 Plus及专用凭证；生产活动DeepSeek Flash profile不变。18自编Canonical块/5合成KG ID/合成作答、临时SQL；固定检索锚点夹具，实际展开/EvidencePack/Runtime/SSE/数学/metadata/Job/API保存；不冒充生产检索或Electron真实模型端到端。

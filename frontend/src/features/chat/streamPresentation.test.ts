@@ -24,3 +24,22 @@ it('does not resurrect text explicitly retracted by an empty replacement', () =>
   const lifecycle = { ...createExecutionLifecycle(''), hasOutput: true, terminalType: 'error' as const, errorMessage: '撤回' };
   expect(streamPresentation(lifecycle, '旧内容')).toEqual({ content: '', streamError: '撤回' });
 });
+
+it('retains a budget failure delivery while marking the task failed', () => {
+  const base = { schema: 'texa.execution/v1' as const, request_id: 'r', task_id: 't', run_id: 'run',
+    conversation_id: 'c', turn_id: 'turn', operation_id: 'output', phase: 'generate',
+    label: '回答', kind: 'system', elapsed_ms: 1 };
+  let lifecycle = mergeExecutionLifecycle(createExecutionLifecycle('未完成的模型草稿'), {
+    ...base, seq: 3, type: 'output_delta', status: 'running', summary: '交付未完成状态',
+    payload: { text: '任务未完成：预算已用尽。已计算（未独立核验）：1024。', replace: true },
+  });
+  lifecycle = mergeExecutionLifecycle(lifecycle, {
+    ...base, seq: 4, type: 'error', status: 'failed', summary: '任务未完成',
+    payload: { error_code: 'tool_budget_exhausted', task_status: 'failed' },
+  });
+  expect(lifecycle.taskStatus).toBe('failed');
+  expect(lifecycle.errorCode).toBe('tool_budget_exhausted');
+  expect(streamPresentation(lifecycle, '旧草稿')).toEqual({
+    content: '任务未完成：预算已用尽。已计算（未独立核验）：1024。', streamError: '任务未完成',
+  });
+});

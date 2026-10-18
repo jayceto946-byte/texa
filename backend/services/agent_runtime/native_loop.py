@@ -28,6 +28,8 @@ PUBLIC_DELIVERY_INSTRUCTION = (
     "包括工具调用前已经说明的定义、分布、条件与关键公式，不依赖阶段文字。"
     "若早先公开推导有误，最终回答应明确更正。"
     "工具 computed 只表示已计算；verified 也只覆盖回执 scope 中的输入表达式和 assumptions。"
+    "success=true 是执行成功，不是数学验证通过；computed 不得称为‘局部核验’或‘工具核验’。"
+    "unverified/unknown 表示没有确定结论，invalid/failed 表示所列关系未通过，不得改称 valid。"
     "保留 limitations，不将数值核验扩大为建模、定义域、分布推导或整题证明。"
 )
 
@@ -62,6 +64,39 @@ def _protocol(messages):
                 tool_calls=message.tool_calls, id=message.id)
         clean.append(message)
     return messages_to_dict(clean)
+
+
+def _math_status_notice(calls):
+    math = [c for c in calls if c['tool_id'] in {'symbolic_math', 'verify_math_result'}]
+    if not math:
+        return ''
+    verified = [c for c in math if c['tool_id'] == 'verify_math_result'
+                and c.get('status') == 'succeeded' and (c.get('result') or {}).get('verification', {}).get('passed') is True]
+    if verified:
+        return '本轮有独立数学核验回执；仅其 scope 内的输入关系通过，不代表整题已验证。其余失败或 unknown 仍须保留。'
+    return '本轮尚无通过的独立数学核验回执。symbolic_math 的 computed 仅表示计算完成，不能称为局部或整题工具核验通过。'
+
+
+def _budget_failure_answer(calls):
+    # Publish only closed, successful deterministic math receipts. Never promote
+    # unfinished assistant prose, retrieval dumps or tool error bodies.
+    lines = ['任务未完成：本轮工具或模型调用预算已用尽。已停止继续执行，尚未完成的步骤与整题结论未核验。']
+    for c in calls:
+        if c['status'] != 'succeeded':
+            continue
+        data = (c.get('result') or {}).get('data') or {}
+        if c['tool_id'] == 'symbolic_math' and data.get('status') == 'computed':
+            exact = str(data.get('result', {}).get('exact', ''))
+            expression = str(data.get('expression', ''))
+            if exact and len(exact) <= 600 and len(expression) <= 300:
+                lines.append(f"已计算（未独立核验）：`{data.get('operation')}`，输入 `{expression}`，结果 `{exact}`。")
+        elif c['tool_id'] == 'verify_math_result':
+            args = {k: v for k, v in c.get('args', {}).items()
+                    if k in {'kind', 'original', 'candidate', 'left', 'right', 'candidates'} and v}
+            lines.append('独立核验记录：' + str(data.get('verdict') or data.get('status') or 'unknown')
+                         + '；输入：`' + json.dumps(args, ensure_ascii=False)[:1200]
+                         + '`；范围：' + str(data.get('scope') or '仅输入表达式')[:300] + '。')
+    return '\n\n'.join(lines)
 
 
 def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None, write_service=None,
@@ -259,6 +294,7 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
             fenced_model = request.model.model_copy(update={"callbacks": [*callbacks, RunFenceCallback(performance)]})
             request = request.override(model=fenced_model, model_settings=settings)
             delivery = _delivery_contract(original_question)
+            delivery = SystemMessage(content=delivery.content + '\n' + _math_status_notice(store.snapshot(run_id)['tool_calls']))
             request = request.override(messages=[*request.messages, delivery])
             if protocol is not None:
                 protocol.begin()
@@ -367,13 +403,21 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
             except (ValueError, TypeError):
                 # Invalid arguments are a failed, budgeted tool receipt, not a model crash.
                 args = call["args"]
-                outcome = store.request_tool(run_id, owner, tool_id=spec.name, version=metadata["version"],
-                    schema_hash=metadata["schema_hash"], args=args,
-                    args_hash=hashlib.sha256(json.dumps(args, sort_keys=True).encode()).hexdigest(), operation_key=key, model_tool_call_id=call["id"])
+                try:
+                    outcome = store.request_tool(run_id, owner, tool_id=spec.name, version=metadata["version"],
+                        schema_hash=metadata["schema_hash"], args=args,
+                        args_hash=hashlib.sha256(json.dumps(args, sort_keys=True).encode()).hexdigest(), operation_key=key, model_tool_call_id=call["id"])
+                except RuntimeConflict as exc:
+                    active()
+                    raise RuntimeDenied('tool_budget_exhausted') from exc
                 reserved = next(c for c in outcome["tool_calls"] if c["operation_key"] == key)
                 store.start_tool(run_id, owner, reserved["id"])
                 outcome = store.finish_tool(run_id, owner, reserved["id"],
-                    {"success": False, "message": "工具参数不符合输入合同", "error_code": "invalid_arguments"},
+                    {"success": False, "message": ("工具参数不符合输入合同。" +
+                        ('derivative/antiderivative/definite_integral/limit 必须使用 original 与 candidate；equivalence 使用 left/right。'
+                         'steps 使用 context.source_ref 与 before.left/after.left，identity 两侧不填 right；省略 assumptions，条件由 Runtime 绑定。'
+                         if spec.name == 'verify_math_result' else '请按工具 Schema 提供 operation 和 expression。')),
+                     "error_code": "invalid_arguments"},
                     error_code="input_schema")
             return_started = time.monotonic()
             receipt = next(c for c in outcome["tool_calls"] if c["operation_key"] == key)
@@ -434,6 +478,13 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
         state["tool_context_pack"] = build_tool_context_pack(outputs)
         answer = finalize_generated_answer(state, strip_thinking(last.content))
         verification = state["answer_verification"]
+        notice = _math_status_notice(snapshot['tool_calls'])
+        if notice.startswith('本轮尚无'):
+            answer = '> ' + notice + '\n\n' + answer
+            if verification['status'] == 'passed':
+                verification['status'] = 'unverified'
+            verification['passed'] = False
+            verification['unverified'].append({'id': 'math_receipts', 'reason': notice})
         interim = _public_interim_text(latest_messages)
         if interim:
             # Verify the last answer independently, then retain earlier public
@@ -474,7 +525,7 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
             code = str(exc)
         if cause_code in provider_codes:
             code = cause_code
-        if code == "native_batch_aborted" and abort_code:
+        if abort_code and (code == "native_batch_aborted" or abort_code[0] in {"tool_budget_exhausted", "model_budget_exhausted"}):
             code = abort_code[0]
         code = {"model response deadline exceeded": "model_deadline_exceeded",
                 "model worker capacity exhausted": "model_worker_capacity_exhausted",
@@ -486,4 +537,20 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
             if code in provider_codes | {"provider_output_truncated"}:
                 return store.close(run_id, owner, outcome="failed", error_code=code)
             code = "native_loop_failed"
+        if code in {'tool_budget_exhausted', 'model_budget_exhausted'}:
+            # Close the outstanding model tool messages without executing them
+            # or issuing a forced final model request. Private protocol is RAM-only.
+            for message in list(latest_messages):
+                if isinstance(message, AIMessage):
+                    for call in message.tool_calls:
+                        if call['id'] not in completed_ids:
+                            latest_messages.append(ToolMessage(content=json.dumps({'success': False,
+                                'error_code': code, 'message': '预算已用尽，本次调用未执行'}, ensure_ascii=False),
+                                tool_call_id=call['id'], name=call['name'], status='error'))
+                            completed_ids.add(call['id'])
+            store.save_native_messages(run_id, owner, _protocol(latest_messages))
+            return store.close(run_id, owner, outcome='failed', error_code=code,
+                answer=_budget_failure_answer(snapshot['tool_calls']),
+                verification={'status': 'unverified', 'passed': False, 'failures': [],
+                              'unverified': [{'id': 'execution_budget', 'reason': '任务未完成，预算已用尽'}]})
         return store.close(run_id, owner, outcome="failed", error_code=code)

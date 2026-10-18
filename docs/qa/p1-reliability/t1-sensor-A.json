@@ -1,0 +1,154 @@
+{
+  "task_status": "completed",
+  "run_status": "completed",
+  "error_code": null,
+  "verification": {
+    "checks": [
+      {
+        "id": "answer",
+        "label": "content",
+        "reason": "",
+        "status": "passed"
+      }
+    ],
+    "failures": [],
+    "passed": true,
+    "status": "passed",
+    "unverified": []
+  },
+  "case": "t1-sensor-A",
+  "total_ms": 6522.41,
+  "source_question_block": null,
+  "trace": {
+    "anchors": [
+      {
+        "chunk_id": "ac5796dc81698aff50f5",
+        "source_block_ids": [
+          "da98274cf2ad4b87a265",
+          "a4b34d22cbe497a7756d",
+          "722cb86ed3e111f94367",
+          "172156e7150b5281562e",
+          "0c1dee2c77695dc01205",
+          "75c2578f85d374c30de5",
+          "037fd8cc70ceda59cd6d",
+          "f3732fc8a621e011d60e",
+          "6b35386ad5a46adefe65",
+          "fbd903b5c9185f7834ae"
+        ],
+        "pages": [
+          12,
+          12
+        ],
+        "learning_unit": {
+          "version": "textbook-context/v1",
+          "status": "unknown",
+          "text_status": "complete",
+          "source_status": "unknown",
+          "boundary": "heading",
+          "reason": "canonical_section",
+          "unit_id": "da98274cf2ad4b87a265",
+          "anchor_chunk_ids": [
+            "ac5796dc81698aff50f5"
+          ],
+          "anchor_source_block_ids": [
+            "a4b34d22cbe497a7756d",
+            "722cb86ed3e111f94367",
+            "172156e7150b5281562e",
+            "0c1dee2c77695dc01205",
+            "75c2578f85d374c30de5",
+            "037fd8cc70ceda59cd6d"
+          ],
+          "total_blocks": 10,
+          "figures": [
+            {
+              "figure_id": "f3732fc8a621e011d60e",
+              "source_block_ids": [
+                "f3732fc8a621e011d60e"
+              ],
+              "asset_relpath": "figures/f3732fc8a621e011d60e_55059be4a091e8b639adb5680c5b8186a058cd89cc717133f678bca6373d531d.jpg",
+              "content_hash": "55059be4a091e8b639adb5680c5b8186a058cd89cc717133f678bca6373d531d",
+              "page_start": 12,
+              "page_end": 12,
+              "required": true,
+              "availability": "available",
+              "model_input": "not_read",
+              "multimodal_mode": "native",
+              "reading_role": "reasoning"
+            }
+          ],
+          "continuation": null
+        }
+      }
+    ],
+    "visible": [
+      {
+        "id": "E1",
+        "chunk_id": "ac5796dc81698aff50f5",
+        "source_block_ids": [
+          "da98274cf2ad4b87a265",
+          "a4b34d22cbe497a7756d",
+          "722cb86ed3e111f94367",
+          "172156e7150b5281562e",
+          "0c1dee2c77695dc01205",
+          "75c2578f85d374c30de5",
+          "037fd8cc70ceda59cd6d",
+          "f3732fc8a621e011d60e",
+          "6b35386ad5a46adefe65",
+          "fbd903b5c9185f7834ae"
+        ],
+        "visible_chars": 891,
+        "visible_sha256": "f7742387a74325696b157217c12b848f8f637c61689e4631be3343615bbe1d64",
+        "learning_unit": {
+          "version": "textbook-context/v1",
+          "status": "unknown",
+          "text_status": "complete",
+          "source_status": "unknown",
+          "boundary": "heading",
+          "reason": "canonical_section",
+          "unit_id": "da98274cf2ad4b87a265",
+          "anchor_chunk_ids": [
+            "ac5796dc81698aff50f5"
+          ],
+          "anchor_source_block_ids": [
+            "a4b34d22cbe497a7756d",
+            "722cb86ed3e111f94367",
+            "172156e7150b5281562e",
+            "0c1dee2c77695dc01205",
+            "75c2578f85d374c30de5",
+            "037fd8cc70ceda59cd6d"
+          ],
+          "total_blocks": 10,
+          "figures": [
+            {
+              "figure_id": "f3732fc8a621e011d60e",
+              "source_block_ids": [
+                "f3732fc8a621e011d60e"
+              ],
+              "asset_relpath": "figures/f3732fc8a621e011d60e_55059be4a091e8b639adb5680c5b8186a058cd89cc717133f678bca6373d531d.jpg",
+              "content_hash": "55059be4a091e8b639adb5680c5b8186a058cd89cc717133f678bca6373d531d",
+              "page_start": 12,
+              "page_end": 12,
+              "required": true,
+              "availability": "available",
+              "model_input": "not_read",
+              "multimodal_mode": "native",
+              "reading_role": "reasoning"
+            }
+          ],
+          "continuation": null
+        }
+      }
+    ],
+    "formula_tags": [],
+    "table_1_1_visible": false
+  },
+  "answer_sha256": "828b8d3f3b9d2475c8d556db0d8f79775cf77784c9a79869183f7d2bd68a7791",
+  "tools": [
+    {
+      "tool_id": "search_textbook",
+      "status": "succeeded",
+      "args": {},
+      "math_result": null
+    }
+  ]
+}

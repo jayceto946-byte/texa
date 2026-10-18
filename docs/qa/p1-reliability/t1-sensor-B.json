@@ -1,0 +1,310 @@
+{
+  "task_status": "failed",
+  "run_status": "failed",
+  "error_code": "tool_budget_exhausted",
+  "verification": {
+    "failures": [],
+    "passed": false,
+    "status": "unverified",
+    "unverified": [
+      {
+        "id": "execution_budget",
+        "reason": "任务未完成，预算已用尽"
+      }
+    ]
+  },
+  "case": "t1-sensor-B",
+  "total_ms": 9740.4,
+  "source_question_block": null,
+  "trace": {
+    "anchors": [
+      {
+        "chunk_id": "b3696cd4e1f3706e7fd5",
+        "source_block_ids": [
+          "5669583b60c9dd2eefbb",
+          "ff70854fe8a25ce090d0",
+          "6bb9d91e374ffe00a9b0",
+          "436485ea6c3dcee1f0e8",
+          "e72df2318141d5849f4c",
+          "8c05d79717526d7abf52",
+          "89646083ebf3d2eac9b9"
+        ],
+        "pages": [
+          18,
+          18
+        ],
+        "learning_unit": {
+          "version": "textbook-context/v1",
+          "status": "unknown",
+          "text_status": "unknown",
+          "source_status": "unknown",
+          "boundary": "source_title",
+          "reason": "canonical_section",
+          "unit_id": "5669583b60c9dd2eefbb",
+          "anchor_chunk_ids": [
+            "b3696cd4e1f3706e7fd5"
+          ],
+          "anchor_source_block_ids": [
+            "e72df2318141d5849f4c"
+          ],
+          "total_blocks": 7,
+          "figures": [
+            {
+              "figure_id": "6bb9d91e374ffe00a9b0",
+              "source_block_ids": [
+                "6bb9d91e374ffe00a9b0"
+              ],
+              "asset_relpath": "figures/6bb9d91e374ffe00a9b0_5dddaefdf54cb4692dd2e671a0076ccc1beaf5a63991721c0e8b385a1d931362.jpg",
+              "content_hash": "5dddaefdf54cb4692dd2e671a0076ccc1beaf5a63991721c0e8b385a1d931362",
+              "page_start": 18,
+              "page_end": 18,
+              "required": false,
+              "availability": "available",
+              "model_input": "not_required",
+              "multimodal_mode": "native",
+              "reading_role": "reasoning"
+            },
+            {
+              "figure_id": "436485ea6c3dcee1f0e8",
+              "source_block_ids": [
+                "436485ea6c3dcee1f0e8"
+              ],
+              "asset_relpath": "figures/436485ea6c3dcee1f0e8_06370bd1cebccf399cf3a1a9d14a894f974eb1b42c8fa92b9713c73e5cbe30e8.jpg",
+              "content_hash": "06370bd1cebccf399cf3a1a9d14a894f974eb1b42c8fa92b9713c73e5cbe30e8",
+              "page_start": 18,
+              "page_end": 18,
+              "required": true,
+              "availability": "available",
+              "model_input": "not_read",
+              "multimodal_mode": "native",
+              "reading_role": "reasoning"
+            }
+          ],
+          "continuation": null
+        }
+      }
+    ],
+    "visible": [
+      {
+        "id": "E1",
+        "chunk_id": "b3696cd4e1f3706e7fd5",
+        "source_block_ids": [
+          "5669583b60c9dd2eefbb",
+          "ff70854fe8a25ce090d0",
+          "6bb9d91e374ffe00a9b0",
+          "436485ea6c3dcee1f0e8",
+          "e72df2318141d5849f4c",
+          "8c05d79717526d7abf52",
+          "89646083ebf3d2eac9b9"
+        ],
+        "visible_chars": 841,
+        "visible_sha256": "6cbf30582b569865c55b978bfe37a214dfbd61dace60ae7bd21219465991f1b7",
+        "learning_unit": {
+          "version": "textbook-context/v1",
+          "status": "unknown",
+          "text_status": "unknown",
+          "source_status": "unknown",
+          "boundary": "source_title",
+          "reason": "canonical_section",
+          "unit_id": "5669583b60c9dd2eefbb",
+          "anchor_chunk_ids": [
+            "b3696cd4e1f3706e7fd5"
+          ],
+          "anchor_source_block_ids": [
+            "e72df2318141d5849f4c"
+          ],
+          "total_blocks": 7,
+          "figures": [
+            {
+              "figure_id": "6bb9d91e374ffe00a9b0",
+              "source_block_ids": [
+                "6bb9d91e374ffe00a9b0"
+              ],
+              "asset_relpath": "figures/6bb9d91e374ffe00a9b0_5dddaefdf54cb4692dd2e671a0076ccc1beaf5a63991721c0e8b385a1d931362.jpg",
+              "content_hash": "5dddaefdf54cb4692dd2e671a0076ccc1beaf5a63991721c0e8b385a1d931362",
+              "page_start": 18,
+              "page_end": 18,
+              "required": false,
+              "availability": "available",
+              "model_input": "not_required",
+              "multimodal_mode": "native",
+              "reading_role": "reasoning"
+            },
+            {
+              "figure_id": "436485ea6c3dcee1f0e8",
+              "source_block_ids": [
+                "436485ea6c3dcee1f0e8"
+              ],
+              "asset_relpath": "figures/436485ea6c3dcee1f0e8_06370bd1cebccf399cf3a1a9d14a894f974eb1b42c8fa92b9713c73e5cbe30e8.jpg",
+              "content_hash": "06370bd1cebccf399cf3a1a9d14a894f974eb1b42c8fa92b9713c73e5cbe30e8",
+              "page_start": 18,
+              "page_end": 18,
+              "required": true,
+              "availability": "available",
+              "model_input": "not_read",
+              "multimodal_mode": "native",
+              "reading_role": "reasoning"
+            }
+          ],
+          "continuation": null
+        }
+      }
+    ],
+    "formula_tags": [
+      "1.8"
+    ],
+    "table_1_1_visible": true
+  },
+  "answer_sha256": "0d129a5409bb3a3e505cf9e9aab28638c52598a3e2f0c700ad8815395be159b1",
+  "tools": [
+    {
+      "tool_id": "search_textbook",
+      "status": "succeeded",
+      "args": {},
+      "math_result": null
+    },
+    {
+      "tool_id": "symbolic_math",
+      "status": "succeeded",
+      "args": {
+        "assumptions": {},
+        "direction": "+-",
+        "expression": "7/30",
+        "lower": null,
+        "operation": "calculate",
+        "point": null,
+        "right": "0",
+        "upper": null,
+        "variable": "x"
+      },
+      "math_result": {
+        "data": {
+          "assumptions": {},
+          "expression": "7/30",
+          "limitations": [],
+          "operation": "calculate",
+          "result": {
+            "exact": "7/30",
+            "latex": "\\frac{7}{30}",
+            "numeric": 0.23333333333333334,
+            "raw": "7/30"
+          },
+          "status": "computed",
+          "variable": "x",
+          "verification_request": {
+            "assumptions": {},
+            "kind": "equivalence",
+            "left": "7/30",
+            "right": "7/30"
+          }
+        },
+        "evidence": [],
+        "message": "确定性计算完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {},
+        "warnings": [
+          "计算结果只覆盖本次输入的运算；不验证建模、未输入的条件或自然语言推导"
+        ]
+      }
+    },
+    {
+      "tool_id": "symbolic_math",
+      "status": "succeeded",
+      "args": {
+        "assumptions": {},
+        "direction": "+-",
+        "expression": "(314-307)/(230-200)",
+        "lower": null,
+        "operation": "calculate",
+        "point": null,
+        "right": "0",
+        "upper": null,
+        "variable": "x"
+      },
+      "math_result": {
+        "data": {
+          "assumptions": {},
+          "expression": "(314-307)/(230-200)",
+          "limitations": [],
+          "operation": "calculate",
+          "result": {
+            "exact": "7/30",
+            "latex": "\\frac{7}{30}",
+            "numeric": 0.23333333333333334,
+            "raw": "7/30"
+          },
+          "status": "computed",
+          "variable": "x",
+          "verification_request": {
+            "assumptions": {},
+            "kind": "equivalence",
+            "left": "(314-307)/(230-200)",
+            "right": "7/30"
+          }
+        },
+        "evidence": [],
+        "message": "确定性计算完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {},
+        "warnings": [
+          "计算结果只覆盖本次输入的运算；不验证建模、未输入的条件或自然语言推导"
+        ]
+      }
+    },
+    {
+      "tool_id": "verify_math_result",
+      "status": "succeeded",
+      "args": {
+        "assumptions": {},
+        "candidate": "",
+        "candidates": [],
+        "context": null,
+        "direction": "+-",
+        "kind": "equivalence",
+        "left": "(321-314)/(260-230)",
+        "lower": null,
+        "original": "",
+        "point": null,
+        "right": "7/30",
+        "upper": null,
+        "variable": "x"
+      },
+      "math_result": {
+        "data": {
+          "assumptions": {},
+          "execution_status": null,
+          "limitations": [],
+          "method": "equivalence",
+          "passed": true,
+          "residuals": [
+            "0"
+          ],
+          "scope": "input_expressions_under_explicit_assumptions",
+          "source_kind": "",
+          "source_ref": "",
+          "status": "verified",
+          "steps": [],
+          "verdict": null
+        },
+        "evidence": [],
+        "message": "结果校验完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {
+          "assumptions": {},
+          "limitations": [],
+          "method": "equivalence",
+          "passed": true,
+          "residuals": [
+            "0"
+          ],
+          "scope": "input_expressions_under_explicit_assumptions",
+          "status": "verified"
+        },
+        "warnings": []
+      }
+    }
+  ]
+}

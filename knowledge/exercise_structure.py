@@ -58,8 +58,8 @@ class ClassificationProposal(Contract):
 class ErrorEvidence(Contract):
     error_type: Literal["arithmetic", "orientation", "concept", "theorem_application", "procedure", "final_answer_incorrect", "unknown"]
     concept_ids: list[str] = Field(default_factory=list, max_length=8)
-    start: int = Field(ge=0)
-    end: int = Field(ge=1)
+    start: int | None = Field(default=None, ge=0, description="Optional exact span; omit both offsets to locate a unique verbatim quote in the frozen Attempt.")
+    end: int | None = Field(default=None, ge=1)
     quote: str = Field(min_length=1, max_length=2000)
     # One-based line in the stored answer. Null means only a final answer.
     step: int | None = Field(default=None, ge=1)
@@ -165,6 +165,15 @@ def validate_diagnosis(payload: dict, *, record, attempt: dict, catalog: dict) -
     allowed = {item["concept_id"]: item for item in catalog["candidates"]}
     lines = answer.splitlines(keepends=True)
     for error in proposal.errors:
+        quote_start = answer.find(error.quote)
+        if quote_start < 0 or answer.find(error.quote, quote_start + 1) >= 0:
+            raise ValueError("diagnosis quote must match exactly once in stored answer")
+        if error.start is None and error.end is None:
+            # No fuzzy matching, normalization or model-computed offsets. Even
+            # overlapping duplicates are ambiguous and remain rejected.
+            error.start, error.end = quote_start, quote_start + len(error.quote)
+        if error.start is None or error.end is None:
+            raise ValueError("diagnosis requires both span offsets or neither")
         if answer[error.start:error.end] != error.quote or error.end > len(answer):
             raise ValueError("diagnosis evidence must match stored answer span")
         if set(error.concept_ids) - allowed.keys():
