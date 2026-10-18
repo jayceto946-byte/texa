@@ -81,6 +81,13 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
         if (metadata["version"], metadata["schema_hash"]) != (ref.get("version"), ref.get("schema_hash")):
             return store.close(run_id, owner, outcome="failed", error_code="tool_step_denied")
     original_question = (initial["task"].get("artifacts") or {}).get("request_question") or state.get("user_input") or initial["task"]["goal"]
+    from dataclasses import replace
+    from backend.tools.math_step_contract import freeze_problem
+    # A resolver projection in answer_state is not a user-confirmed source.
+    frozen_question = (initial["task"].get("artifacts") or {}).get("request_question")
+    authority = freeze_problem(frozen_question) if isinstance(frozen_question, str) else {
+        "source_ref": "", "source_kind": "unavailable", "problem": None}
+    context = replace(context, math_authority=authority)
     state["required_outputs"] = initial["task"].get("required_outputs") or []
     pure_math = state.get("support_type") == "explicit_math_only"
     if pure_math and not any(item.get("kind") == "math_support" for item in state["required_outputs"]):
@@ -154,6 +161,11 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
             return store.close(run_id, owner, outcome="failed", error_code=code)
     if not messages:
         messages = prepare_answer_generation(state)
+    # The digest is identity only. The worker independently receives the frozen
+    # source via ToolContext, never from model-produced tool arguments.
+    source_notice = "数学步骤来源引用：" + authority["source_ref"] + "。只有原题开头的 <math-context> JSON 块可作为条件来源；其他条件无法可靠绑定时返回 unknown。局部 valid 不证明整题。"
+    if not any(isinstance(m, SystemMessage) and m.content == source_notice for m in messages):
+        messages.insert(0, SystemMessage(content=source_notice))
     if not any(isinstance(m, SystemMessage) and m.content == PUBLIC_DELIVERY_INSTRUCTION for m in messages):
         messages.insert(0, SystemMessage(content=PUBLIC_DELIVERY_INSTRUCTION))
     # Restore authoritative receipts first; unresolved calls receive interruption data.

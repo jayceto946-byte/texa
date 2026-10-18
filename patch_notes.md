@@ -1,3 +1,10 @@
+## 2026-10-18 — P1-B 上下文关联数学步骤校验（独立分支）
+
+- 基于已提交 P0 `ac071baca0382bdfefece0c1a2b693105dced8a7`，在 `feature/p1-math-verification` / `../texa-p1-b-math` 扩展现有 verify_math_result 为 v3 的 steps 模式；symbolic_math v2 保留，复用受限 AST、隔离 worker、5秒/字节/取消预算与原生回执，不新增工具或模型编排。
+- 以冻结原始请求 SHA 和明确结构化数学上下文绑定条件；不信任 Resolver/模型补充假设或“已验证”声明。最多4步同批依赖，区分恒等/单向蕴含/方程等价/候选有效/完整解集，原始分母和根式域在化简前保留；输出 valid/invalid/unknown、typed步骤回执、适用条件、已查/未查与局部范围。执行错误不作数学 invalid，局部回执不自动提升整题。
+- 反例涵盖 x/x 定义域、遗漏-1、平方增根、除以零分支、sqrt(x²)符号、展开配方、伪造前序/条件/来源和参数零分支；参数测试发现的 a/a false-valid 已阻断。最终 Python3.10 14文件257项通过，Electron桌面合同24项通过；本地3次短测旧单核验中位321.23ms、四步批次332.62ms，无强制额外模型调用。
+- 普通文字/图片条件无法可信绑定时 unknown；当前来源限原始请求的显式 math-context 块，混合冲突文字不静默忽略。自然语言/几何证明、一般参数解集、复杂域和跨调用前序不保证。真实模型及Electron GUI端到端 NOT VERIFIED，不称为完整生产验收。v3版本/schema阻断旧暂停合同复用；无依赖/数据库/索引/配置迁移，不改主工作区、不合并或推送。详见 docs/qa/P1-B-CONTEXT-MATH-VERIFICATION-2026-10-18.md。
+
 ## 2026-10-18 — Agent Runtime P0 数学可靠性修复
 
 - 数学工具 v2 以有界标识符替代八变量枚举，统一 schema/AST/worker 的变量与假设合同；支持 theta/lambda/希腊别名及编号参数，保留白名单函数、受限 AST、隔离进程和原预算。参数积分限须与积分变量无关；不支持的求解区间明确拒绝。

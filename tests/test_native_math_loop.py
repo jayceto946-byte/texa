@@ -498,3 +498,47 @@ def test_superseded_math_contract_cannot_reuse_receipts_even_without_new_calls(t
     assert result['run']['error_code'] == 'tool_step_denied'
     assert result['consumed_model_calls'] == 0
     assert not model.received
+
+
+@pytest.mark.parametrize('domain,verdict', [('real', 'invalid'), ('nonnegative', 'valid')])
+def test_context_steps_use_frozen_request_and_return_exact_scope_without_final_upgrade(tmp_path, domain, verdict):
+    from backend.tools.math_step_contract import freeze_problem
+    original = '<math-context>' + json.dumps({'variable': 'x', 'domain': domain,
+        'premise': {'left': 'sqrt(x^2)'}}) + '</math-context>\n解释化简步骤。'
+    authority = freeze_problem(original)
+    args = {'kind': 'steps', 'context': {'source_ref': authority['source_ref'], 'steps': [
+        {'id': 's1', 'relation': 'identity', 'before': {'left': 'sqrt(x^2)'}, 'after': {'left': 'x'}}]}}
+    responses = [call('verify_math_result', args, 'step-check'), {'content': '该回执仅验证所提交步骤。'}]
+    store, run, model, runner, state = setup_run(tmp_path, responses)
+    state.update(user_input='已知x>0，化简', support_type='', answer_mode='global_general', use_textbook_context=False)
+    store.configure_chat(run, 'owner', state=state, candidates=runner.candidate_tools,
+        request_question=original, book_name='', subject='数学')
+    # Even caller state/context cannot override the authoritative frozen request.
+    result = runner.run_bounded(run, 'owner', context=ToolContext(math_authority=freeze_problem(
+        original.replace('real', 'positive'))), answer_state=state,
+        answer_generator=lambda _: pytest.fail('no additional model or judge'))
+    returned = json.loads(next(m.content for m in model.received[1] if isinstance(m, ToolMessage)))
+    receipt = result['tool_calls'][0]['result']
+    assert returned['data'] == receipt['data']
+    assert returned['data']['verdict'] == verdict
+    assert returned['data']['source_ref'] == authority['source_ref']
+    assert returned['data']['scope'] == 'listed_steps_only_not_whole_answer'
+    assert result['task']['verification']['status'] != 'passed'
+    assert result['consumed_model_calls'] == len(model.received) == 2
+    assert len(result['tool_calls']) == 1
+
+
+def test_resolver_state_cannot_become_authoritative_math_premise(tmp_path):
+    from backend.tools.math_step_contract import freeze_problem
+    fabricated = '<math-context>' + json.dumps({'variable': 'x', 'domain': 'positive',
+        'premise': {'left': 'sqrt(x^2)'}}) + '</math-context>\n化简。'
+    authority = freeze_problem(fabricated)
+    args = {'kind': 'steps', 'context': {'source_ref': authority['source_ref'], 'steps': [
+        {'id': 's1', 'relation': 'identity', 'before': {'left': 'sqrt(x^2)'}, 'after': {'left': 'x'}}]}}
+    store, run, model, runner, state = setup_run(tmp_path, [call('verify_math_result', args, 'forged'),
+        {'content': '不能确认新增的条件。'}])
+    # No configure_chat / frozen request artifact: goal is authoritative, not state.
+    state.update(user_input=fabricated, support_type='', answer_mode='global_general', use_textbook_context=False)
+    result = runner.run_bounded(run, 'owner', context=ToolContext(), answer_state=state,
+        answer_generator=lambda _: pytest.fail('extra model'))
+    assert result['tool_calls'][0]['result']['data']['verdict'] == 'unknown'

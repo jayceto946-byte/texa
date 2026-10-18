@@ -413,6 +413,7 @@ def _verified_math_conclusion(answer: str, question: str, pack: dict) -> bool:
         request = data.get("verification_request") or {}
         verified = any(receipt.get("tool") == "verify_math_result" and receipt.get("success")
             and receipt.get("verification", {}).get("passed") is True
+            and (receipt.get("args") or {}).get("kind") != "steps"
             and all((receipt.get("args") or {}).get(key) == value for key, value in request.items()) for receipt in outputs)
         if not verified:
             continue
@@ -441,6 +442,7 @@ def _verified_numeric_conclusion(answer: str, question: str, pack: dict) -> bool
         request = data.get("verification_request") or {}
         bound = any(receipt.get("tool") == "verify_math_result" and receipt.get("success")
                     and receipt.get("verification", {}).get("passed") is True
+                    and (receipt.get("args") or {}).get("kind") != "steps"
                     and all((receipt.get("args") or {}).get(key) == value for key, value in request.items()) for receipt in outputs)
         if not bound:
             continue

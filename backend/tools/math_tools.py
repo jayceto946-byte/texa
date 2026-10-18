@@ -18,6 +18,7 @@ import contextvars
 import sympy as sp
 
 from backend.tools.registry import ToolContext, ToolRegistry, ToolResult, ToolSpec
+from backend.tools.math_step_contract import StepBatch, StepReceipt
 
 
 _CONSTANTS = {"pi": sp.pi, "e": sp.E, "E": sp.E, "I": sp.I, "oo": sp.oo}
@@ -111,7 +112,8 @@ class MathOutput(BaseModel):
 
 class MathVerifyInput(MathConditions):
     model_config = ConfigDict(extra="forbid", strict=True)
-    kind: Literal["equivalence", "derivative", "antiderivative", "definite_integral", "solutions", "limit"]
+    kind: Literal["equivalence", "derivative", "antiderivative", "definite_integral", "solutions", "limit", "steps"]
+    context: StepBatch | None = None
     left: str = Field(default="", max_length=300)
     right: str = Field(default="", max_length=300)
     original: str = Field(default="", max_length=300)
@@ -124,6 +126,10 @@ class MathVerifyInput(MathConditions):
 
     @model_validator(mode="after")
     def verification_conditions(self):
+        if (self.kind == "steps") != (self.context is not None):
+            raise ValueError("steps require a context batch; context is exclusive to steps")
+        if self.kind == "steps" and any((self.left, self.right, self.original, self.candidate, self.candidates)):
+            raise ValueError("steps use only context statements")
         if self.kind != "definite_integral" and (self.lower is not None or self.upper is not None):
             raise ValueError("bounds are supported only for definite integrals; solution intervals are not supported")
         if self.kind != "limit" and self.point is not None:
@@ -140,6 +146,11 @@ class MathVerifyOutput(BaseModel):
     assumptions: dict[str, str] = Field(default_factory=dict)
     scope: str = ""
     limitations: list[str] = Field(default_factory=list)
+    verdict: Literal["valid", "invalid", "unknown"] | None = None
+    execution_status: Literal["completed"] | None = None
+    source_ref: str = ""
+    source_kind: str = ""
+    steps: list[StepReceipt] = Field(default_factory=list)
 
 
 class RestrictedMathError(ValueError):
@@ -547,6 +558,10 @@ def register_math_tools(registry: ToolRegistry) -> None:
             "Derivative/antiderivative checks are local identities; definite integrals require real bounds independent of the variable. "
             "Parametric integral convergence can remain unverified even with assumptions. "
             "Solutions are substitution checks only, never a proof of complete solution sets. "
+            "Use kind=steps for up to four dependent real algebra checks bound to the Runtime source_ref. "
+            "Specify identity, implication, equation_equivalence, candidate_solution or solution_set. "
+            "Only a leading user-authored <math-context> JSON block supplies trusted conditions; "
+            "without it return unknown. Do not add assumptions or claim prior verification. "
             "No check certifies modelling, omitted conditions or natural-language derivations."),
         parameters={
             "type": "object",
@@ -565,7 +580,7 @@ def register_math_tools(registry: ToolRegistry) -> None:
         read_only=True,
         risk_level="low",
         timeout_seconds=5.0,
-        version="2",
+        version="3",
         provenance="sympy-1.14/restricted-ast",
         handler=verify_math_result,
         runtime_input=MathVerifyInput, runtime_output=MathVerifyOutput, execution_mode="isolated",

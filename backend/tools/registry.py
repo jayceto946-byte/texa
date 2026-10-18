@@ -18,6 +18,7 @@ class ToolContext:
     conversation_id: str = ""
     cancelled: Callable[[], bool] | None = field(default=None, repr=False)
     timeout_seconds: float = 5.0
+    math_authority: dict[str, Any] | None = field(default=None, repr=False)
 
 
 @dataclass
