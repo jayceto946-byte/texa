@@ -1,0 +1,1153 @@
+{
+  "t1-before-AB": {
+    "source": "/Users/jichengqian/Documents/ChatGPT/texa-p1-agent-completion/docs/qa/p1-reliability/t1-before-AB.json.gz",
+    "source_sha256": "d5aafabb74afd46cd08b8bc4a55ece0d055a748035325ad24c4bae7f7d7811b6",
+    "question": "请先依据教材讲解闭区间最值的完整流程，再计算 f(x)=x^3-3x 在[-3,3]的最值并核验关键数学结果。",
+    "candidate_tools": [
+      "symbolic_math",
+      "verify_math_result"
+    ],
+    "fixed_preparation": "search_textbook",
+    "public_before_tools": [
+      "我先用计算工具核对导数、驻点及各候选点的函数值；由于本轮原题未提供可绑定的 `<math-context>` 条件块，后续只能把这些结果视为“已计算”，不能冒充完整形式验证。"
+    ],
+    "model_responses": 1,
+    "proposed_math_calls": 6,
+    "executed_math_calls": 3,
+    "consumed_execution_budget": 4,
+    "run_status": "failed",
+    "task_status": "failed",
+    "error_code": "tool_budget_exhausted",
+    "chain": [
+      {
+        "origin": "fixed_preparation",
+        "tool": "search_textbook",
+        "intent": "取得本题同范围教材证据",
+        "input": {
+          "chapter": "",
+          "query": "请先依据教材讲解闭区间最值的完整流程，再计算 f(x)=x^3-3x 在[-3,3]的最值并核验关键数学结果。"
+        },
+        "input_schema_valid": true,
+        "execution_status": "succeeded",
+        "new_information": true,
+        "duplicate": false,
+        "required": true,
+        "budget_consumed": 1,
+        "category": "F/A",
+        "result": {
+          "success": true,
+          "retrieval_status": "synthetic-anchor-fixture"
+        },
+        "model_use": "第一个模型请求已有证据；失败批次尚未交付教材解释，修复后正文引用 E1。"
+      },
+      {
+        "origin": "model",
+        "tool": "symbolic_math",
+        "model_tool_call_id": "call_00_5s9IWqLA0xPaWHY4bJA61606",
+        "input": {
+          "expression": "x^3-3*x",
+          "operation": "differentiate",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": true,
+        "duplicate": false,
+        "required": "key_check_or_optional_strengthening",
+        "category": "A",
+        "assessment": "导数、候选根、四点函数值之一，彼此不是完全相同输入；全部六项独立工具检查需六次数学预算。",
+        "result": {
+          "data": {
+            "assumptions": {},
+            "expression": "x^3-3*x",
+            "limitations": [],
+            "operation": "differentiate",
+            "result": {
+              "exact": "3*x**2 - 3",
+              "latex": "3 x^{2} - 3",
+              "numeric": null,
+              "raw": "3*x**2 - 3"
+            },
+            "status": "computed",
+            "variable": "x",
+            "verification_request": {
+              "assumptions": {},
+              "candidate": "3*x**2 - 3",
+              "kind": "derivative",
+              "original": "x^3-3*x",
+              "variable": "x"
+            }
+          },
+          "evidence": [],
+          "message": "确定性计算完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {},
+          "warnings": [
+            "计算结果只覆盖本次输入的运算；不验证建模、未输入的条件或自然语言推导"
+          ]
+        },
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "计算导数"
+      },
+      {
+        "origin": "model",
+        "tool": "symbolic_math",
+        "model_tool_call_id": "call_01_LGPuqWnJBEYySkp1jztD8276",
+        "input": {
+          "expression": "3*x^2-3",
+          "operation": "solve",
+          "right": "0",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": true,
+        "duplicate": false,
+        "required": "key_check_or_optional_strengthening",
+        "category": "A",
+        "assessment": "导数、候选根、四点函数值之一，彼此不是完全相同输入；全部六项独立工具检查需六次数学预算。",
+        "result": {
+          "data": {
+            "assumptions": {},
+            "expression": "3*x^2-3",
+            "limitations": [],
+            "operation": "solve",
+            "result": {
+              "exact": [
+                "-1",
+                "1"
+              ],
+              "latex": [
+                "-1",
+                "1"
+              ],
+              "numeric": [
+                -1.0,
+                1.0
+              ],
+              "raw": [
+                "-1",
+                "1"
+              ]
+            },
+            "status": "computed",
+            "variable": "x",
+            "verification_request": {
+              "assumptions": {},
+              "candidates": [
+                "-1",
+                "1"
+              ],
+              "kind": "solutions",
+              "left": "3*x^2-3",
+              "right": "0",
+              "variable": "x"
+            }
+          },
+          "evidence": [],
+          "message": "确定性计算完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {},
+          "warnings": [
+            "返回候选解；代入校验不证明解集完整性或全部定义域条件",
+            "计算结果只覆盖本次输入的运算；不验证建模、未输入的条件或自然语言推导"
+          ]
+        },
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "求方程候选解"
+      },
+      {
+        "origin": "model",
+        "tool": "symbolic_math",
+        "model_tool_call_id": "call_02_jQbo0XJZEyrBqTVdpcit0680",
+        "input": {
+          "expression": "(-3)^3-3*(-3)",
+          "operation": "calculate",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": true,
+        "duplicate": false,
+        "required": "optional_individual_check_for_this_teaching_request",
+        "category": "A",
+        "assessment": "导数、候选根、四点函数值之一，彼此不是完全相同输入；全部六项独立工具检查需六次数学预算。",
+        "result": {
+          "data": {
+            "assumptions": {},
+            "expression": "(-3)^3-3*(-3)",
+            "limitations": [],
+            "operation": "calculate",
+            "result": {
+              "exact": "-18",
+              "latex": "-18",
+              "numeric": -18.0,
+              "raw": "-18"
+            },
+            "status": "computed",
+            "variable": "x",
+            "verification_request": {
+              "assumptions": {},
+              "kind": "equivalence",
+              "left": "(-3)^3-3*(-3)",
+              "right": "-18"
+            }
+          },
+          "evidence": [],
+          "message": "确定性计算完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {},
+          "warnings": [
+            "计算结果只覆盖本次输入的运算；不验证建模、未输入的条件或自然语言推导"
+          ]
+        },
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "计算输入数值表达式"
+      },
+      {
+        "origin": "model",
+        "tool": "symbolic_math",
+        "model_tool_call_id": "call_03_xizzBeaYgE4Tli2LtjCE1522",
+        "input": {
+          "expression": "(-1)^3-3*(-1)",
+          "operation": "calculate",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "not_executed",
+        "budget_consumed": 0,
+        "new_information": false,
+        "duplicate": false,
+        "required": "optional_individual_check_for_this_teaching_request",
+        "category": "G (A)",
+        "assessment": "导数、候选根、四点函数值之一，彼此不是完全相同输入；全部六项独立工具检查需六次数学预算。 只在模型响应中提出，未预留 SQL 工具回执、未执行、未消耗预算。",
+        "result": null,
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "计算输入数值表达式"
+      },
+      {
+        "origin": "model",
+        "tool": "symbolic_math",
+        "model_tool_call_id": "call_04_SAuvpoO208yOiX26oy8z0818",
+        "input": {
+          "expression": "1^3-3*1",
+          "operation": "calculate",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "not_executed",
+        "budget_consumed": 0,
+        "new_information": false,
+        "duplicate": false,
+        "required": "optional_individual_check_for_this_teaching_request",
+        "category": "G (A)",
+        "assessment": "导数、候选根、四点函数值之一，彼此不是完全相同输入；全部六项独立工具检查需六次数学预算。 只在模型响应中提出，未预留 SQL 工具回执、未执行、未消耗预算。",
+        "result": null,
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "计算输入数值表达式"
+      },
+      {
+        "origin": "model",
+        "tool": "symbolic_math",
+        "model_tool_call_id": "call_05_eE3GMVbT2cMuH2fFBtDW9157",
+        "input": {
+          "expression": "3^3-3*3",
+          "operation": "calculate",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "not_executed",
+        "budget_consumed": 0,
+        "new_information": false,
+        "duplicate": false,
+        "required": "optional_individual_check_for_this_teaching_request",
+        "category": "G (A)",
+        "assessment": "导数、候选根、四点函数值之一，彼此不是完全相同输入；全部六项独立工具检查需六次数学预算。 只在模型响应中提出，未预留 SQL 工具回执、未执行、未消耗预算。",
+        "result": null,
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "计算输入数值表达式"
+      }
+    ],
+    "earliest_finish": "历史整批超过剩余3次；Runtime 在处理到超额项前无法让模型再次决策。可在首轮少选工具，随后依据已有结果及自身推理完成，未验证项必须披露。"
+  },
+  "t1-after-AB": {
+    "source": "/Users/jichengqian/Documents/ChatGPT/texa-p1-agent-completion/docs/qa/p1-reliability/t1-after-AB.json.gz",
+    "source_sha256": "aaf6a240caf4c187ad1676345dc43c9f0162841ddc56ae58d7cce6445f12e3e9",
+    "question": "请先依据教材讲解闭区间最值的完整流程，再计算 f(x)=x^3-3x 在[-3,3]的最值并核验关键数学结果。",
+    "candidate_tools": [
+      "symbolic_math",
+      "verify_math_result"
+    ],
+    "fixed_preparation": "search_textbook",
+    "public_before_tools": [
+      "我先核验导数、驻点以及四个端点或驻点的函数值；教材流程与最终结论随后统一给出。"
+    ],
+    "model_responses": 1,
+    "proposed_math_calls": 6,
+    "executed_math_calls": 3,
+    "consumed_execution_budget": 4,
+    "run_status": "failed",
+    "task_status": "failed",
+    "error_code": "tool_budget_exhausted",
+    "chain": [
+      {
+        "origin": "fixed_preparation",
+        "tool": "search_textbook",
+        "intent": "取得本题同范围教材证据",
+        "input": {
+          "chapter": "",
+          "query": "请先依据教材讲解闭区间最值的完整流程，再计算 f(x)=x^3-3x 在[-3,3]的最值并核验关键数学结果。"
+        },
+        "input_schema_valid": true,
+        "execution_status": "succeeded",
+        "new_information": true,
+        "duplicate": false,
+        "required": true,
+        "budget_consumed": 1,
+        "category": "F/A",
+        "result": {
+          "success": true,
+          "retrieval_status": "synthetic-anchor-fixture"
+        },
+        "model_use": "第一个模型请求已有证据；失败批次尚未交付教材解释，修复后正文引用 E1。"
+      },
+      {
+        "origin": "model",
+        "tool": "verify_math_result",
+        "model_tool_call_id": "call_00_Aaunw3SksxblaQp5vtMw3719",
+        "input": {
+          "candidate": "3*x^2-3",
+          "kind": "derivative",
+          "original": "x^3-3*x",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": true,
+        "duplicate": false,
+        "required": "key_check_or_optional_strengthening",
+        "category": "A",
+        "assessment": "导数、候选根、四点函数值之一，彼此不是完全相同输入；全部六项独立工具检查需六次数学预算。",
+        "result": {
+          "data": {
+            "assumptions": {},
+            "execution_status": null,
+            "limitations": [],
+            "method": "derivative",
+            "passed": true,
+            "residuals": [
+              "0"
+            ],
+            "scope": "local_derivative_identity_not_global_differentiability",
+            "source_kind": "",
+            "source_ref": "",
+            "status": "verified",
+            "steps": [],
+            "verdict": null
+          },
+          "evidence": [],
+          "message": "结果校验完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {
+            "assumptions": {},
+            "limitations": [],
+            "method": "derivative",
+            "passed": true,
+            "residuals": [
+              "0"
+            ],
+            "scope": "local_derivative_identity_not_global_differentiability",
+            "status": "verified"
+          },
+          "warnings": []
+        },
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "核验给定导数恒等式"
+      },
+      {
+        "origin": "model",
+        "tool": "verify_math_result",
+        "model_tool_call_id": "call_01_NEltBhPgHI2RojFlITis8660",
+        "input": {
+          "candidates": [
+            "-1",
+            "1"
+          ],
+          "kind": "solutions",
+          "left": "3*x^2-3",
+          "right": "0",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": true,
+        "duplicate": false,
+        "required": "key_check_or_optional_strengthening",
+        "category": "A",
+        "assessment": "导数、候选根、四点函数值之一，彼此不是完全相同输入；全部六项独立工具检查需六次数学预算。",
+        "result": {
+          "data": {
+            "assumptions": {},
+            "execution_status": null,
+            "limitations": [],
+            "method": "solutions",
+            "passed": true,
+            "residuals": [
+              "0",
+              "0"
+            ],
+            "scope": "candidate_substitution_only_not_solution_set_completeness",
+            "source_kind": "",
+            "source_ref": "",
+            "status": "verified",
+            "steps": [],
+            "verdict": null
+          },
+          "evidence": [],
+          "message": "结果校验完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {
+            "assumptions": {},
+            "limitations": [],
+            "method": "solutions",
+            "passed": true,
+            "residuals": [
+              "0",
+              "0"
+            ],
+            "scope": "candidate_substitution_only_not_solution_set_completeness",
+            "status": "verified"
+          },
+          "warnings": []
+        },
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "候选解代入检查，不证明完整解集"
+      },
+      {
+        "origin": "model",
+        "tool": "verify_math_result",
+        "model_tool_call_id": "call_02_KiPOrAFmIRxkyTNP1l3y3351",
+        "input": {
+          "kind": "equivalence",
+          "left": "(-3)^3-3*(-3)",
+          "right": "-18"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": true,
+        "duplicate": false,
+        "required": "optional_individual_check_for_this_teaching_request",
+        "category": "A",
+        "assessment": "导数、候选根、四点函数值之一，彼此不是完全相同输入；全部六项独立工具检查需六次数学预算。",
+        "result": {
+          "data": {
+            "assumptions": {},
+            "execution_status": null,
+            "limitations": [],
+            "method": "equivalence",
+            "passed": true,
+            "residuals": [
+              "0"
+            ],
+            "scope": "input_expressions_under_explicit_assumptions",
+            "source_kind": "",
+            "source_ref": "",
+            "status": "verified",
+            "steps": [],
+            "verdict": null
+          },
+          "evidence": [],
+          "message": "结果校验完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {
+            "assumptions": {},
+            "limitations": [],
+            "method": "equivalence",
+            "passed": true,
+            "residuals": [
+              "0"
+            ],
+            "scope": "input_expressions_under_explicit_assumptions",
+            "status": "verified"
+          },
+          "warnings": []
+        },
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "核验所列输入表达式的等价性"
+      },
+      {
+        "origin": "model",
+        "tool": "verify_math_result",
+        "model_tool_call_id": "call_03_g11lIBooPtuZ83aOpW866925",
+        "input": {
+          "kind": "equivalence",
+          "left": "(-1)^3-3*(-1)",
+          "right": "2"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "not_executed",
+        "budget_consumed": 0,
+        "new_information": false,
+        "duplicate": false,
+        "required": "optional_individual_check_for_this_teaching_request",
+        "category": "G (A)",
+        "assessment": "导数、候选根、四点函数值之一，彼此不是完全相同输入；全部六项独立工具检查需六次数学预算。 只在模型响应中提出，未预留 SQL 工具回执、未执行、未消耗预算。",
+        "result": null,
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "核验所列输入表达式的等价性"
+      },
+      {
+        "origin": "model",
+        "tool": "verify_math_result",
+        "model_tool_call_id": "call_04_5go3rFhsXwLR0YZjevu06651",
+        "input": {
+          "kind": "equivalence",
+          "left": "1^3-3*1",
+          "right": "-2"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "not_executed",
+        "budget_consumed": 0,
+        "new_information": false,
+        "duplicate": false,
+        "required": "optional_individual_check_for_this_teaching_request",
+        "category": "G (A)",
+        "assessment": "导数、候选根、四点函数值之一，彼此不是完全相同输入；全部六项独立工具检查需六次数学预算。 只在模型响应中提出，未预留 SQL 工具回执、未执行、未消耗预算。",
+        "result": null,
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "核验所列输入表达式的等价性"
+      },
+      {
+        "origin": "model",
+        "tool": "verify_math_result",
+        "model_tool_call_id": "call_05_ZMeKioIlrdUyIkrtNoIu0661",
+        "input": {
+          "kind": "equivalence",
+          "left": "3^3-3*3",
+          "right": "18"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "not_executed",
+        "budget_consumed": 0,
+        "new_information": false,
+        "duplicate": false,
+        "required": "optional_individual_check_for_this_teaching_request",
+        "category": "G (A)",
+        "assessment": "导数、候选根、四点函数值之一，彼此不是完全相同输入；全部六项独立工具检查需六次数学预算。 只在模型响应中提出，未预留 SQL 工具回执、未执行、未消耗预算。",
+        "result": null,
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "核验所列输入表达式的等价性"
+      }
+    ],
+    "earliest_finish": "历史整批超过剩余3次；Runtime 在处理到超额项前无法让模型再次决策。可在首轮少选工具，随后依据已有结果及自身推理完成，未验证项必须披露。"
+  },
+  "t1-sensor-B": {
+    "source": "/private/tmp/texa-p1-reliability/t1-sensor-B.json",
+    "source_sha256": "0e38d147dc38f71e1b3c3ebc3542ef13dc9098261a228741cf4904229a429ce4",
+    "question": "依据教材例1.3及表1.1计算铂电阻温度计的灵敏度，保留单位和线性条件。可用工具核对关键数值；明确区分计算与独立验证。不描述未读取的图。",
+    "candidate_tools": [
+      "symbolic_math",
+      "verify_math_result"
+    ],
+    "fixed_preparation": "search_textbook",
+    "public_before_tools": [
+      "先计算表中间隔的电阻差与温度差之比，再用工具对相应差商作局部等式核对。线性条件也会同时检查。"
+    ],
+    "model_responses": 1,
+    "proposed_math_calls": 4,
+    "executed_math_calls": 3,
+    "consumed_execution_budget": 4,
+    "run_status": "failed",
+    "task_status": "failed",
+    "error_code": "tool_budget_exhausted",
+    "chain": [
+      {
+        "origin": "fixed_preparation",
+        "tool": "search_textbook",
+        "intent": "取得本题同范围教材证据",
+        "input": {
+          "chapter": "",
+          "query": "依据教材例1.3及表1.1计算铂电阻温度计的灵敏度，保留单位和线性条件。可用工具核对关键数值；明确区分计算与独立验证。不描述未读取的图。"
+        },
+        "input_schema_valid": true,
+        "execution_status": "succeeded",
+        "new_information": true,
+        "duplicate": false,
+        "required": true,
+        "budget_consumed": 1,
+        "category": "F/A",
+        "result": {
+          "success": true,
+          "retrieval_status": "real_active_lexical_bm25_readonly"
+        },
+        "model_use": "第一个模型请求已有证据；失败批次尚未交付教材解释，修复后正文引用 E1。"
+      },
+      {
+        "origin": "model",
+        "tool": "symbolic_math",
+        "model_tool_call_id": "call_00_xwe5qc48WNcCo38IuMOF4422",
+        "input": {
+          "expression": "7/30",
+          "operation": "calculate",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": true,
+        "duplicate": false,
+        "required": false,
+        "category": "C",
+        "assessment": "预先化为 7/30 的计算；可直接对表格差商计算，避免本项。",
+        "result": {
+          "data": {
+            "assumptions": {},
+            "expression": "7/30",
+            "limitations": [],
+            "operation": "calculate",
+            "result": {
+              "exact": "7/30",
+              "latex": "\\frac{7}{30}",
+              "numeric": 0.23333333333333334,
+              "raw": "7/30"
+            },
+            "status": "computed",
+            "variable": "x",
+            "verification_request": {
+              "assumptions": {},
+              "kind": "equivalence",
+              "left": "7/30",
+              "right": "7/30"
+            }
+          },
+          "evidence": [],
+          "message": "确定性计算完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {},
+          "warnings": [
+            "计算结果只覆盖本次输入的运算；不验证建模、未输入的条件或自然语言推导"
+          ]
+        },
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "计算输入数值表达式"
+      },
+      {
+        "origin": "model",
+        "tool": "symbolic_math",
+        "model_tool_call_id": "call_01_RH8fSOMzYCYUDBXBvA9x5184",
+        "input": {
+          "expression": "(314-307)/(230-200)",
+          "operation": "calculate",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": false,
+        "duplicate": "same_numeric_result_different_input",
+        "required": "key_check_or_optional_strengthening",
+        "category": "A/C",
+        "assessment": "新输入绑定表格第一差商，但数值 7/30 已有；不是可安全精确缓存的相同输入。",
+        "result": {
+          "data": {
+            "assumptions": {},
+            "expression": "(314-307)/(230-200)",
+            "limitations": [],
+            "operation": "calculate",
+            "result": {
+              "exact": "7/30",
+              "latex": "\\frac{7}{30}",
+              "numeric": 0.23333333333333334,
+              "raw": "7/30"
+            },
+            "status": "computed",
+            "variable": "x",
+            "verification_request": {
+              "assumptions": {},
+              "kind": "equivalence",
+              "left": "(314-307)/(230-200)",
+              "right": "7/30"
+            }
+          },
+          "evidence": [],
+          "message": "确定性计算完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {},
+          "warnings": [
+            "计算结果只覆盖本次输入的运算；不验证建模、未输入的条件或自然语言推导"
+          ]
+        },
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "计算输入数值表达式"
+      },
+      {
+        "origin": "model",
+        "tool": "verify_math_result",
+        "model_tool_call_id": "call_02_kpkiRr4RvaUxDRbC1U340878",
+        "input": {
+          "kind": "equivalence",
+          "left": "(321-314)/(260-230)",
+          "right": "7/30",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": true,
+        "duplicate": false,
+        "required": "optional_independent_interval_check",
+        "category": "A",
+        "assessment": "另一个区间的差商关系，是独立输入，不能误判为重复核验；非逐段工具核验所必需。",
+        "result": {
+          "data": {
+            "assumptions": {},
+            "execution_status": null,
+            "limitations": [],
+            "method": "equivalence",
+            "passed": true,
+            "residuals": [
+              "0"
+            ],
+            "scope": "input_expressions_under_explicit_assumptions",
+            "source_kind": "",
+            "source_ref": "",
+            "status": "verified",
+            "steps": [],
+            "verdict": null
+          },
+          "evidence": [],
+          "message": "结果校验完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {
+            "assumptions": {},
+            "limitations": [],
+            "method": "equivalence",
+            "passed": true,
+            "residuals": [
+              "0"
+            ],
+            "scope": "input_expressions_under_explicit_assumptions",
+            "status": "verified"
+          },
+          "warnings": []
+        },
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "核验所列输入表达式的等价性"
+      },
+      {
+        "origin": "model",
+        "tool": "verify_math_result",
+        "model_tool_call_id": "call_03_1q7hXDld5LIW3c8N0GQP5454",
+        "input": {
+          "kind": "equivalence",
+          "left": "(328-321)/(290-260)",
+          "right": "7/30",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "not_executed",
+        "budget_consumed": 0,
+        "new_information": false,
+        "duplicate": false,
+        "required": "optional_independent_interval_check",
+        "category": "G (A)",
+        "assessment": "另一个区间的差商关系，是独立输入，不能误判为重复核验；非逐段工具核验所必需。 只在模型响应中提出，未预留 SQL 工具回执、未执行、未消耗预算。",
+        "result": null,
+        "model_use": "无后续模型请求，模型没有读到执行结果",
+        "intent": "核验所列输入表达式的等价性"
+      }
+    ],
+    "earliest_finish": "历史整批超过剩余3次；Runtime 在处理到超额项前无法让模型再次决策。可在首轮少选工具，随后依据已有结果及自身推理完成，未验证项必须披露。"
+  },
+  "completion-AB": {
+    "source": "/private/tmp/texa-agent-completion-20261018/completion-AB.json",
+    "source_sha256": "feb966115b9e9cb04680c599af9896a0cbb3bd54caa50c44244f146b07499514",
+    "question": "请先依据教材讲解闭区间最值的完整流程，再计算 f(x)=x^3-3x 在[-3,3]的最值并核验关键数学结果。",
+    "candidate_tools": [
+      "symbolic_math",
+      "verify_math_result"
+    ],
+    "fixed_preparation": "search_textbook",
+    "public_before_tools": [
+      "我将核验三类关键结果：导数、驻点方程的解，以及四个关键点的函数值。"
+    ],
+    "model_responses": 2,
+    "proposed_math_calls": 3,
+    "executed_math_calls": 3,
+    "consumed_execution_budget": 4,
+    "run_status": "completed",
+    "task_status": "degraded",
+    "error_code": null,
+    "chain": [
+      {
+        "origin": "fixed_preparation",
+        "tool": "search_textbook",
+        "intent": "取得本题同范围教材证据",
+        "input": {
+          "chapter": "",
+          "query": "请先依据教材讲解闭区间最值的完整流程，再计算 f(x)=x^3-3x 在[-3,3]的最值并核验关键数学结果。"
+        },
+        "input_schema_valid": true,
+        "execution_status": "succeeded",
+        "new_information": true,
+        "duplicate": false,
+        "required": true,
+        "budget_consumed": 1,
+        "category": "F/A",
+        "result": {
+          "success": true,
+          "retrieval_status": "synthetic-anchor-fixture"
+        },
+        "model_use": "第一个模型请求已有证据；失败批次尚未交付教材解释，修复后正文引用 E1。"
+      },
+      {
+        "origin": "model",
+        "tool": "verify_math_result",
+        "model_tool_call_id": "call_00_GtwguVgvNXfMkqnB0kaa6160",
+        "input": {
+          "assumptions": {
+            "x": "real"
+          },
+          "candidate": "3*x^2-3",
+          "kind": "derivative",
+          "original": "x^3-3*x",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": true,
+        "duplicate": false,
+        "required": "key_check_or_optional_strengthening",
+        "category": "A",
+        "assessment": "不同输入的局部核验；不能据此证明整题。",
+        "result": {
+          "data": {
+            "assumptions": {
+              "x": "real"
+            },
+            "execution_status": null,
+            "limitations": [],
+            "method": "derivative",
+            "passed": true,
+            "residuals": [
+              "0"
+            ],
+            "scope": "local_derivative_identity_not_global_differentiability",
+            "source_kind": "",
+            "source_ref": "",
+            "status": "verified",
+            "steps": [],
+            "verdict": null
+          },
+          "evidence": [],
+          "message": "结果校验完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {
+            "assumptions": {
+              "x": "real"
+            },
+            "limitations": [],
+            "method": "derivative",
+            "passed": true,
+            "residuals": [
+              "0"
+            ],
+            "scope": "local_derivative_identity_not_global_differentiability",
+            "status": "verified"
+          },
+          "warnings": []
+        },
+        "model_use": "下一轮正常完成正文，保留局部核验范围",
+        "intent": "核验给定导数恒等式"
+      },
+      {
+        "origin": "model",
+        "tool": "verify_math_result",
+        "model_tool_call_id": "call_01_khczBFrfb7UgNiCJZlcd9266",
+        "input": {
+          "assumptions": {
+            "x": "real"
+          },
+          "candidates": [
+            "-1",
+            "1"
+          ],
+          "kind": "solutions",
+          "left": "3*x^2-3",
+          "right": "0",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": true,
+        "duplicate": false,
+        "required": "key_check_or_optional_strengthening",
+        "category": "A",
+        "assessment": "不同输入的局部核验；不能据此证明整题。",
+        "result": {
+          "data": {
+            "assumptions": {
+              "x": "real"
+            },
+            "execution_status": null,
+            "limitations": [],
+            "method": "solutions",
+            "passed": true,
+            "residuals": [
+              "0",
+              "0"
+            ],
+            "scope": "candidate_substitution_only_not_solution_set_completeness",
+            "source_kind": "",
+            "source_ref": "",
+            "status": "verified",
+            "steps": [],
+            "verdict": null
+          },
+          "evidence": [],
+          "message": "结果校验完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {
+            "assumptions": {
+              "x": "real"
+            },
+            "limitations": [],
+            "method": "solutions",
+            "passed": true,
+            "residuals": [
+              "0",
+              "0"
+            ],
+            "scope": "candidate_substitution_only_not_solution_set_completeness",
+            "status": "verified"
+          },
+          "warnings": []
+        },
+        "model_use": "下一轮正常完成正文，保留局部核验范围",
+        "intent": "候选解代入检查，不证明完整解集"
+      },
+      {
+        "origin": "model",
+        "tool": "verify_math_result",
+        "model_tool_call_id": "call_02_GkjmfJ2rqsdllGUsjhEl4159",
+        "input": {
+          "kind": "equivalence",
+          "left": "((-3)^3-3*(-3), (-1)^3-3*(-1), (1)^3-3*(1), (3)^3-3*(3))",
+          "right": "(-18, 2, -2, 18)",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": false,
+        "execution_status": "failed",
+        "budget_consumed": 1,
+        "new_information": false,
+        "duplicate": false,
+        "required": false,
+        "category": "B",
+        "assessment": "Schema 接受字符串，但受限语法不接受元组；执行失败、没有有效核验信息。",
+        "result": {
+          "data": null,
+          "evidence": [],
+          "message": "unsupported expression syntax",
+          "pending_action": null,
+          "success": false,
+          "verification": {
+            "passed": false,
+            "status": "error"
+          },
+          "warnings": []
+        },
+        "model_use": "最终明确披露元组失败，没有宣称已通过",
+        "intent": "核验所列输入表达式的等价性"
+      }
+    ],
+    "earliest_finish": "第二个模型响应直接完成；没有新增工具调用。"
+  },
+  "completion-sensor-B": {
+    "source": "/private/tmp/texa-agent-completion-20261018/completion-sensor-B.json",
+    "source_sha256": "3040a6088e4e1b81bb777acf7798ae9a4cd22d8ae750532f5ca41ee8c845aeb1",
+    "question": "依据教材例1.3及表1.1计算铂电阻温度计的灵敏度，保留单位和线性条件。可用工具核对关键数值；明确区分计算与独立验证。不描述未读取的图。",
+    "candidate_tools": [
+      "symbolic_math",
+      "verify_math_result"
+    ],
+    "fixed_preparation": "search_textbook",
+    "public_before_tools": [
+      "我先核对灵敏度分数的精确等价值和十进制近似；工具只检查所列表达式，不验证“数据构成线性关系”这一建模条件。"
+    ],
+    "model_responses": 2,
+    "proposed_math_calls": 2,
+    "executed_math_calls": 2,
+    "consumed_execution_budget": 3,
+    "run_status": "completed",
+    "task_status": "degraded",
+    "error_code": null,
+    "chain": [
+      {
+        "origin": "fixed_preparation",
+        "tool": "search_textbook",
+        "intent": "取得本题同范围教材证据",
+        "input": {
+          "chapter": "",
+          "query": "依据教材例1.3及表1.1计算铂电阻温度计的灵敏度，保留单位和线性条件。可用工具核对关键数值；明确区分计算与独立验证。不描述未读取的图。"
+        },
+        "input_schema_valid": true,
+        "execution_status": "succeeded",
+        "new_information": true,
+        "duplicate": false,
+        "required": true,
+        "budget_consumed": 1,
+        "category": "F/A",
+        "result": {
+          "success": true,
+          "retrieval_status": "real_active_lexical_bm25_readonly"
+        },
+        "model_use": "第一个模型请求已有证据；失败批次尚未交付教材解释，修复后正文引用 E1。"
+      },
+      {
+        "origin": "model",
+        "tool": "symbolic_math",
+        "model_tool_call_id": "call_00_0sImT54OeSJzC29Lf6im5667",
+        "input": {
+          "expression": "7/30",
+          "operation": "calculate",
+          "variable": "x"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": true,
+        "duplicate": false,
+        "required": "key_check_or_optional_strengthening",
+        "category": "A",
+        "assessment": "不同输入的局部核验；不能据此证明整题。",
+        "result": {
+          "data": {
+            "assumptions": {},
+            "expression": "7/30",
+            "limitations": [],
+            "operation": "calculate",
+            "result": {
+              "exact": "7/30",
+              "latex": "\\frac{7}{30}",
+              "numeric": 0.23333333333333334,
+              "raw": "7/30"
+            },
+            "status": "computed",
+            "variable": "x",
+            "verification_request": {
+              "assumptions": {},
+              "kind": "equivalence",
+              "left": "7/30",
+              "right": "7/30"
+            }
+          },
+          "evidence": [],
+          "message": "确定性计算完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {},
+          "warnings": [
+            "计算结果只覆盖本次输入的运算；不验证建模、未输入的条件或自然语言推导"
+          ]
+        },
+        "model_use": "下一轮正常完成正文，保留局部核验范围",
+        "intent": "计算输入数值表达式"
+      },
+      {
+        "origin": "model",
+        "tool": "verify_math_result",
+        "model_tool_call_id": "call_01_a3c1jG9ainTkq8rBGe8w0619",
+        "input": {
+          "kind": "equivalence",
+          "left": "7/30",
+          "right": "21/90"
+        },
+        "input_schema_valid": true,
+        "restricted_expression_valid": true,
+        "execution_status": "succeeded",
+        "budget_consumed": 1,
+        "new_information": true,
+        "duplicate": false,
+        "required": "key_check_or_optional_strengthening",
+        "category": "A",
+        "assessment": "不同输入的局部核验；不能据此证明整题。",
+        "result": {
+          "data": {
+            "assumptions": {},
+            "execution_status": null,
+            "limitations": [],
+            "method": "equivalence",
+            "passed": true,
+            "residuals": [
+              "0"
+            ],
+            "scope": "input_expressions_under_explicit_assumptions",
+            "source_kind": "",
+            "source_ref": "",
+            "status": "verified",
+            "steps": [],
+            "verdict": null
+          },
+          "evidence": [],
+          "message": "结果校验完成",
+          "pending_action": null,
+          "success": true,
+          "verification": {
+            "assumptions": {},
+            "limitations": [],
+            "method": "equivalence",
+            "passed": true,
+            "residuals": [
+              "0"
+            ],
+            "scope": "input_expressions_under_explicit_assumptions",
+            "status": "verified"
+          },
+          "warnings": []
+        },
+        "model_use": "下一轮正常完成正文，保留局部核验范围",
+        "intent": "核验所列输入表达式的等价性"
+      }
+    ],
+    "earliest_finish": "第二个模型响应直接完成；没有新增工具调用。"
+  }
+}

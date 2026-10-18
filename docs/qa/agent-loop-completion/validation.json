@@ -1,0 +1,74 @@
+{
+  "python": {
+    "version": "3.10.21",
+    "interpreter": "/Users/jichengqian/Documents/ChatGPT/texa/venv310/bin/python",
+    "passed": 252,
+    "deselected_known_base_failure": 1,
+    "elapsed_seconds": 66.7,
+    "scope": [
+      "test_agent_loop_completion",
+      "test_p1_reliability",
+      "test_context_math_steps",
+      "test_native_math_loop",
+      "test_deepseek_production",
+      "test_agent_runtime_p0",
+      "test_agent_runtime_p2a",
+      "test_agent_runtime_textbook",
+      "test_agent_runtime_chat_binding",
+      "test_p1_abc_integration",
+      "test_math_isolation",
+      "test_runtime_validation_remediation"
+    ]
+  },
+  "known_base_failure": {
+    "test": "tests/test_runtime_validation_remediation.py::test_strict_final_does_not_merge_unverified_preamble",
+    "base": "655aa481743b20e24eaab52f5f75d141b4db83dc",
+    "base_result": "FAIL",
+    "candidate_result": "FAIL",
+    "reason": "computed disclosure prepends an extra block to required strict three-line content",
+    "clean_baseline_replay": "pytest plugin executes git-show baseline native_loop in memory; normal python -m pytest allows math worker spawn",
+    "test_or_gate_relaxed": false
+  },
+  "frontend": {
+    "passed": 31,
+    "scope": [
+      "frontend/src/features/chat/streamPresentation.test.ts",
+      "frontend/src/utils/chatActivities.test.ts",
+      "frontend/src/api/client.test.ts"
+    ],
+    "cache": "/private/tmp/texa-completion-ui/cache",
+    "dependency_install": false,
+    "temporary_symlink_removed": true
+  },
+  "desktop_shell": {
+    "passed": 24,
+    "command": "node --test desktop/*.test.cjs",
+    "full_electron_real_model_ui": "NOT VERIFIED"
+  },
+  "paid_model": {
+    "http_requests": 4,
+    "blocked_requests": 0,
+    "retries": 0,
+    "cases": 2,
+    "model": "deepseek-flash",
+    "temperature": 1,
+    "thinking": "enabled",
+    "reasoning_effort": "high",
+    "final_scalar_description_change": "after real acceptance; deterministic only"
+  },
+  "not_run": [
+    "full_repository_tests",
+    "full_Electron_UI",
+    "production_chat_budget_3_real_provider",
+    "final_scalar_description_real_provider_retest",
+    "paid_cancel_restart",
+    "full_vector_hybrid_retrieval",
+    "visual_input"
+  ],
+  "initial_test_setup_corrections": [
+    "one assertion initially confused retained local verification with whole-task numeric support; corrected to require whole-task unverified",
+    "one new prep test omitted paired generator harness argument; corrected",
+    "first broad test command named absent files; no tests executed",
+    "stdin baseline replay had multiprocessing spawn interference; discarded in favor of normal pytest plugin replay"
+  ]
+}
