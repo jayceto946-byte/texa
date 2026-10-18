@@ -1,0 +1,226 @@
+{
+  "base": "655aa481743b20e24eaab52f5f75d141b4db83dc",
+  "identity": {
+    "book_name": "传感器原理及应用",
+    "edition": "第2版",
+    "author": "彭杰纲",
+    "publisher": "电子工业出版社",
+    "year": 2017,
+    "isbn": "978-7-121-30967-0",
+    "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+    "index_version": "c8b6947edb7858f2",
+    "block_count": 4925,
+    "lexical_rows": 2489,
+    "chapter_count": 13,
+    "raw_resource_present": true,
+    "files": {
+      "/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/data/progress/传感器原理及应用/canonical_document.jsonl": "5bcef61474112840c4513441ba13f81e05d535c1599819a86f7fa30ebd305b2e",
+      "/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/data/vector_db/_index_manifests/传感器原理及应用.json": "8ccb50fac1bd165a741f1f30c6d5f74e9a80006ce66c3431834dcdaab28ae268",
+      "/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/data/vector_db/_lexical_versions/传感器原理及应用/c8b6947edb7858f2.json": "500212ec79ea9dfeefa5baaa5e35ced262cf7e9c9a2a93b360a610ef0655ef77",
+      "/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/mineru_output/传感器原理及应用/hybrid_auto_external/CGQ/structured_content.json": "81a9076931876ffcf6c16f0404a264475b516a8972ae25d792fc62d068f72eb1"
+    },
+    "kg": "absent; unknown/unclassified required",
+    "retrieval": "production BM25 on active lexical snapshot; no vector client",
+    "image_input": "none; visual acceptance not claimed"
+  },
+  "before": {
+    "expanded_blocks": 39,
+    "expanded_body_chars": 3207,
+    "full_old_metadata_utf8_bytes": 15212,
+    "full_old_metadata_default_json_utf8_bytes": 16440,
+    "old_accounted_metadata_characters": 7993,
+    "selected_prefix_blocks": 14,
+    "selected_prefix_body_chars": 1197,
+    "budget_reason": "provenance_budget",
+    "visible_chars": 381,
+    "visible_body_chars": 72,
+    "final_source_metadata_utf8_bytes": 5023,
+    "visible_formula_tags": [],
+    "status": "partial"
+  },
+  "after": {
+    "visible_blocks": 18,
+    "visible_body_chars": 1537,
+    "visible_chars": 1846,
+    "visible_sha256": "78a3addad2e4fe7aa4a256eeacb042bd638586799ae0188171f68378d37b2865",
+    "visible_formula_tags": [
+      "1.5",
+      "1.6",
+      "1.7",
+      "1.8",
+      "1.9",
+      "1.10",
+      "1.11"
+    ],
+    "metadata_utf8_bytes": 6601,
+    "conservative_metadata_reservation": 6605,
+    "text_status": "partial",
+    "status": "partial",
+    "source_status": "unknown",
+    "source_block_ids": [
+      "3ce7e3e775f4112ef4a1",
+      "946d9a6733aa3e30039e",
+      "cc337a3aa243d65968a9",
+      "7fb0c457f9f59a5d1b5a",
+      "44180d3b07e533c4401b",
+      "661bcda27c37143600e9",
+      "f2af73e2a4706357c0d6",
+      "210949c14d6c2fe2a9b8",
+      "3cc6acae66a6fb14f19e",
+      "bc30e19d44ea04674956",
+      "2916d0761749098bff54",
+      "8e1f31e78642a7b22900",
+      "931ed6a5f78f896c06bb",
+      "90657327f8fa15cea1f5",
+      "2bd8e81c429e2ff44229",
+      "75ce85f7af428c9aae94",
+      "60a037374e817c8cf831",
+      "05534086c0657711f08d"
+    ],
+    "learning_unit": {
+      "anchor_chunk_ids": [
+        "e62ed1070495dd21e981"
+      ],
+      "anchor_source_block_ids": [
+        "3ce7e3e775f4112ef4a1",
+        "946d9a6733aa3e30039e",
+        "cc337a3aa243d65968a9"
+      ],
+      "boundary": "source_title",
+      "continuation": null,
+      "figures": [
+        {
+          "asset_relpath": "figures/2090ce57e21d5b6b6516_d688848d73ce9fc2701bb59f3d158065f09f8384c60fdb9bc22a7b253e1cedda.jpg",
+          "availability": "available",
+          "content_hash": "d688848d73ce9fc2701bb59f3d158065f09f8384c60fdb9bc22a7b253e1cedda",
+          "figure_id": "2090ce57e21d5b6b6516",
+          "model_input": "not_read",
+          "multimodal_mode": "native",
+          "page_end": 17,
+          "page_start": 17,
+          "reading_role": "reasoning",
+          "references": [
+            "1.6"
+          ],
+          "required": true,
+          "source_block_ids": [
+            "2090ce57e21d5b6b6516"
+          ]
+        },
+        {
+          "asset_relpath": "figures/44180d3b07e533c4401b_e7ee4eef1d6489006959f47988b18c6fd05fd6df5f204a972f47a96a39ca03dc.jpg",
+          "availability": "available",
+          "content_hash": "e7ee4eef1d6489006959f47988b18c6fd05fd6df5f204a972f47a96a39ca03dc",
+          "figure_id": "44180d3b07e533c4401b",
+          "model_input": "not_required",
+          "multimodal_mode": "native",
+          "page_end": 17,
+          "page_start": 17,
+          "reading_role": "reasoning",
+          "references": [],
+          "required": false,
+          "source_block_ids": [
+            "44180d3b07e533c4401b"
+          ]
+        },
+        {
+          "availability": "missing",
+          "figure_id": "",
+          "model_input": "not_read",
+          "multimodal_mode": "native",
+          "reading_role": "reasoning",
+          "reason": "resource_missing_in_canonical",
+          "reference": "图1.7",
+          "required": true
+        }
+      ],
+      "figures_scope": "visible_blocks_and_references",
+      "omitted_figures": 4,
+      "preceding": {
+        "anchor_chunk_id": "e62ed1070495dd21e981",
+        "anchor_content_fingerprint": "56e3467aebb73c9bc8d9b355",
+        "block_id": "4661b18134e04f2429db",
+        "book_name": "传感器原理及应用",
+        "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+        "index_version": "c8b6947edb7858f2",
+        "unit_id": "4661b18134e04f2429db"
+      },
+      "reason": "anchor_window",
+      "source_status": "unknown",
+      "status": "partial",
+      "text_status": "partial",
+      "total_blocks": 39,
+      "unit_id": "4661b18134e04f2429db",
+      "version": "textbook-context/v1"
+    },
+    "receipt_chars": 15976,
+    "receipt_utf8_bytes": 17587,
+    "checkpoint_chars": 27533,
+    "native_messages_chars": 3207,
+    "final_human_chars": 2230,
+    "final_human_sha256": "8820d0ff5f3525281bb630329a615a3a264812eaeb317865aec01ba5a0fcd47c"
+  },
+  "continuation": {
+    "all_39_blocks_readable": true,
+    "pages": [
+      {
+        "block_ids": [
+          "4661b18134e04f2429db",
+          "550c7c46c08f63da38ab",
+          "e76774f4de10b647ff83",
+          "28e9f06f7eafc8223c8d",
+          "fd505002ec71bbaebf1a",
+          "57f67e095fabff2385ec",
+          "d884d70f43939568b577",
+          "ee5c37069c1ad8a93043",
+          "442ffdcbfdd3e93992d6",
+          "6fae39e7caa7e3a5ec74",
+          "1ea70269979bae67edcc",
+          "93eca88c540504e0dab0",
+          "b26c420be4639b1eefae",
+          "5c6ccd605a595e1a936c",
+          "d0999588c86904c4934b",
+          "b9408cad11ff6edec3c9",
+          "3dc5455e9af19eda6748",
+          "46a15152fc2029622cbd",
+          "53aa3ed26978125519d3",
+          "0126171c0ac857a778a7"
+        ],
+        "chars": 1908,
+        "status": "partial"
+      },
+      {
+        "block_ids": [
+          "2090ce57e21d5b6b6516",
+          "3ce7e3e775f4112ef4a1",
+          "946d9a6733aa3e30039e",
+          "cc337a3aa243d65968a9",
+          "7fb0c457f9f59a5d1b5a",
+          "44180d3b07e533c4401b",
+          "661bcda27c37143600e9",
+          "f2af73e2a4706357c0d6",
+          "210949c14d6c2fe2a9b8",
+          "3cc6acae66a6fb14f19e",
+          "bc30e19d44ea04674956",
+          "2916d0761749098bff54",
+          "8e1f31e78642a7b22900",
+          "931ed6a5f78f896c06bb",
+          "90657327f8fa15cea1f5",
+          "2bd8e81c429e2ff44229",
+          "75ce85f7af428c9aae94",
+          "60a037374e817c8cf831",
+          "05534086c0657711f08d"
+        ],
+        "chars": 1873,
+        "status": "partial"
+      }
+    ]
+  },
+  "short_A_text_unchanged": true,
+  "formula_1_9": {
+    "image_sha256": "0027175f29a044cfca9911155cd7ff0d09976f2f43e843891df94dfa26158019",
+    "source_image_available": true,
+    "observation": "Source crop also shows partial/partial k with (-1); source notation defect, not a proven OCR-only defect. IR unchanged."
+  },
+  "result": "PASS"
+}

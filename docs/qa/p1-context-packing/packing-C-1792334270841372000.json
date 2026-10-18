@@ -1,0 +1,20 @@
+{
+  "case": "packing-C-1792334270841372000",
+  "run_status": "failed",
+  "task_status": "failed",
+  "error_code": "runtime_failed",
+  "answer_chars": 0,
+  "answer_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "verification": {},
+  "tool_statuses": [],
+  "elapsed_ms": 536.72,
+  "model": "deepseek-flash",
+  "temperature": 1,
+  "thinking": "enabled",
+  "reasoning_effort": "high",
+  "assessment": {
+    "status": "FAIL_HARNESS_BEFORE_NETWORK",
+    "provider_requests": 0,
+    "cause": "Acceptance script passed unsupported http_client argument to existing model factory; corrected without changing production factory."
+  }
+}

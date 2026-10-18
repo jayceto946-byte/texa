@@ -100,6 +100,42 @@ def _selected_candidates(
     return list(evidence_items or []), per_chapter_limit
 
 
+def evidence_source_metadata(item: dict, visible: dict, evidence_id: str, clipped: str) -> dict:
+    text = str(item.get("text") or "")
+    label = _source_label(item)
+    return {
+        "id": evidence_id,
+        "chunk_id": str(item.get("chunk_id") or ""),
+        "book_name": str(item.get("book_name") or ""),
+        "book_id": str(item.get("book_id") or ""),
+        "corpus_version": str(item.get("corpus_version") or ""),
+        "provenance_schema": str(item.get("provenance_schema") or ""),
+        "index_version": str(item.get("index_version") or ""),
+        "canonical_hash": str(item.get("canonical_hash") or ""),
+        "content_fingerprint": str(item.get("anchor_content_fingerprint") or _content_fingerprint(text)),
+        "chapter": str(item.get("chapter") or ""),
+        "section_title": str(item.get("section_title") or ""),
+        "section_path": _section_path(item),
+        "chunk_index": item.get("chunk_index", -1),
+        "heading_level": _heading_level(_section_path(item)),
+        "page_idx": visible.get("page_idx", -1),
+        "page_start": visible.get("page_start"),
+        "page_end": visible.get("page_end"),
+        "source_block_ids": list(visible.get("source_block_ids") or []),
+        "source_locations": list(visible.get("source_locations") or []),
+        **({"source_location_defaults": visible["source_location_defaults"]}
+           if "source_location_defaults" in visible else {}),
+        "source_kind": str(item.get("source_kind") or ""),
+        "source_file": str(item.get("source_file") or ""),
+        "bbox": list(item.get("bbox") or []),
+        "figure_id": str(item.get("figure_id") or ""),
+        "label": label,
+        "chars": len(clipped),
+        "visible_fingerprint": _content_fingerprint(clipped),
+        **({"learning_unit": visible["learning_unit"]} if "learning_unit" in visible else {}),
+    }
+
+
 def build_evidence_pack(
     evidence_items: list[dict],
     *,
@@ -133,7 +169,6 @@ def build_evidence_pack(
         if chapter_counts.get(chapter_key, 0) >= per_chapter_limit:
             continue
 
-        label = _source_label(item)
         evidence_id = f"E{len(included) + 1}"
         # LLM 只看到稳定的证据编号；human-readable 元数据只保留在 included 中供 UI/程序使用。
         separator_cost = 9 if lines else 0
@@ -142,7 +177,7 @@ def build_evidence_pack(
             break
         visible = dict(item)
         if item.get("learning_unit"):
-            from graph.textbook_context import pack_learning_unit
+            from graph.textbook_context import pack_learning_unit, compact_locations, continuation_anchor
             if remaining < 500:
                 break
             clipped, unit, blocks, body, metadata_used = pack_learning_unit(item, remaining, metadata_limit=metadata_remaining)
@@ -151,24 +186,29 @@ def build_evidence_pack(
             # this is explicitly partial, never a recovered complete unit.
             anchors = item.get("expansion_anchors") or []
             selected_ids = {block["block_id"] for block in blocks}
-            if anchors and not set(anchors[0].get("source_block_ids") or []).issubset(selected_ids):
+            if anchors and not (set(anchors[0].get("source_block_ids") or []) & selected_ids):
                 raw = anchors[0]
                 fallback = {**raw, "learning_unit": {**unit, "status": "partial", "text_status": "partial",
-                    "reason": "anchor_excerpt_fallback", "continuation": {
-                        "block_id": (raw.get("source_block_ids") or [""])[0],
-                        "index_version": raw["index_version"], "canonical_hash": raw["canonical_hash"]}}}
-                clipped, unit, blocks, body, metadata_used = pack_learning_unit(fallback, remaining)
+                    "reason": "anchor_excerpt_fallback", "continuation": continuation_anchor(
+                        item, (raw.get("source_block_ids") or [""])[0])}}
+                clipped, unit, blocks, body, metadata_used = pack_learning_unit(fallback, remaining, metadata_limit=metadata_remaining)
                 visible = fallback
+            if not clipped:
+                continue
             metadata_remaining -= metadata_used
             visible.pop("expansion_anchors", None)
             visible["learning_unit"] = unit
             if "context_blocks" in visible:
-                visible.update(context_blocks=[{key: value for key, value in block.items()
+                common, locations = compact_locations([block["source_location"] for block in blocks])
+                visible.update(source_location_defaults=common, context_blocks=[{key: value for key, value in block.items()
                         if key not in {"source_location", "equations", "section_path"}} for block in blocks],
                     source_block_ids=[block["block_id"] for block in blocks],
-                    source_locations=[block["source_location"] for block in blocks])
+                    source_locations=locations)
             else:
                 visible["context_source_text"] = body
+            # Retrieval copies are not additional model-visible evidence.
+            for key in ("content", "retrieval_text", "parent_content", "source_markdown", "equations"):
+                visible.pop(key, None)
         else:
             clipped = text[: min(MAX_ITEM_CHARS, remaining)]
         if len(clipped) > remaining:
@@ -184,35 +224,7 @@ def build_evidence_pack(
         line = f"[{evidence_id}]\n{clipped}"
         lines.append(line)
         used += len(line) + separator_cost
-        included.append({
-            "id": evidence_id,
-            "chunk_id": chunk_id,
-            "book_name": str(item.get("book_name") or ""),
-            "book_id": str(item.get("book_id") or ""),
-            "corpus_version": str(item.get("corpus_version") or ""),
-            "provenance_schema": str(item.get("provenance_schema") or ""),
-            "index_version": str(item.get("index_version") or ""),
-            "canonical_hash": str(item.get("canonical_hash") or ""),
-            "content_fingerprint": _content_fingerprint(text),
-            "chapter": chapter,
-            "section_title": str(item.get("section_title") or ""),
-            "section_path": _section_path(item),
-            "chunk_index": item.get("chunk_index", -1),
-            "heading_level": _heading_level(_section_path(item)),
-            "page_idx": visible.get("page_idx", -1),
-            "page_start": visible.get("page_start"),
-            "page_end": visible.get("page_end"),
-            "source_block_ids": list(visible.get("source_block_ids") or []),
-            "source_locations": list(visible.get("source_locations") or []),
-            "source_kind": str(item.get("source_kind") or ""),
-            "source_file": str(item.get("source_file") or ""),
-            "bbox": list(item.get("bbox") or []),
-            "figure_id": str(item.get("figure_id") or ""),
-            "label": label,
-            "chars": len(clipped),
-            "visible_fingerprint": _content_fingerprint(clipped),
-            **({"learning_unit": visible["learning_unit"]} if "learning_unit" in visible else {}),
-        })
+        included.append(evidence_source_metadata(item, visible, evidence_id, clipped))
         if chunk_id:
             seen_ids.add(chunk_id)
         seen_texts.add(normalized)

@@ -1,0 +1,54 @@
+{
+  "case": "packing-C-1792334326229837000",
+  "run_status": "completed",
+  "task_status": "degraded",
+  "error_code": null,
+  "answer_chars": 1921,
+  "answer_sha256": "507f46c42a5e1c3644ff513433d849950c2f1411148ab09b9f4a5b0b11ba00a2",
+  "verification": {
+    "checks": [
+      {
+        "id": "answer",
+        "label": "content",
+        "reason": "",
+        "status": "passed"
+      },
+      {
+        "id": "formula",
+        "label": "回答公式的核验依据",
+        "reason": "公式尚无等价性核验依据",
+        "status": "unverified"
+      }
+    ],
+    "failures": [],
+    "passed": false,
+    "status": "unverified",
+    "unverified": [
+      {
+        "id": "formula",
+        "reason": "公式尚无等价性核验依据"
+      }
+    ]
+  },
+  "tool_statuses": [
+    {
+      "id": "search_textbook",
+      "status": "succeeded"
+    }
+  ],
+  "elapsed_ms": 43496.62,
+  "model": "deepseek-flash",
+  "temperature": 1,
+  "thinking": "enabled",
+  "reasoning_effort": "high",
+  "assessment": {
+    "model_saw_all_seven_formulas": "PASS: actual outgoing request and final code human-message content match",
+    "derivation_explained": "PASS: residual, sum of squares, both derivatives, normal equations, k and b",
+    "source_1_9_inconsistency_disclosed": "PASS: explains expected derivative with respect to b; does not silently edit source",
+    "conditions_and_limits": "PASS: straight-line least squares; nonzero denominator identified as mathematical consequence; no unsupported statistical assumptions",
+    "missing_1_4_and_unread_images": "PASS: states limits instead of inventing source content",
+    "whole_answer_math_verification": "NOT VERIFIED: no independent math verification receipt; task remains degraded/unverified",
+    "sample_size": "1 authorized request; no model judge; no further paid calls",
+    "final_code_human_message_matches_request": true
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "python": {
+    "version": "3.10.21",
+    "passed": 205,
+    "failed": 0,
+    "scope": [
+      "test_textbook_context_expansion",
+      "test_evidence_pack",
+      "test_provenance_contract",
+      "test_agent_runtime_textbook",
+      "test_agent_runtime_p0",
+      "test_agent_runtime_p2a",
+      "test_agent_runtime_p4_contract",
+      "test_agent_runtime_chat_binding",
+      "test_agent_runtime_p2_recovery",
+      "test_agent_runtime_p2c_receipts",
+      "test_p1_abc_integration",
+      "test_p1_reliability",
+      "test_conversation_context_pack",
+      "test_context_eval",
+      "test_context_eval_v3",
+      "test_textbook_generalization",
+      "test_textbook_rag_precision",
+      "test_textbook_retrieval_policy",
+      "test_textbook_scope",
+      "test_native_math_loop"
+    ],
+    "elapsed_seconds": 13.7
+  },
+  "desktop_shell": {
+    "passed": 24,
+    "failed": 0,
+    "command": "node --test desktop/*.test.cjs"
+  },
+  "real_model_requests": 1,
+  "request_limit": 3,
+  "deterministic": "PASS",
+  "source_hashes_unchanged": true,
+  "production_learning_database_access": "NONE",
+  "full_repository_tests": "NOT RUN",
+  "full_electron_real_model_ui": "NOT VERIFIED",
+  "production_vector_hybrid_retrieval": "NOT VERIFIED",
+  "model_pause_resume": "NOT VERIFIED; deterministic checkpoint/resume regression PASS",
+  "frontend": "UNCHANGED; not rebuilt",
+  "final_code_human_message_matches_real_request": true
+}

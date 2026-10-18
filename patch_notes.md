@@ -1,3 +1,12 @@
+## 2026-10-18 — P1-A Textbook Context Packing Reliability（独立修复）
+
+- 基于 `fix/p1-integration-reliability@655aa481743b20e24eaab52f5f75d141b4db83dc` 在 `fix/p1-textbook-context-packing` / `../texa-p1-context-packing` 实施；原始工作区和其他 worktree 不修改，未合并主线。
+- 确定性复现真实《传感器》1.3.1 的39块/3207字正文：来源元数据先耗尽，主锚点未被选入后整包回退381字。复用实际来源回执投影计量UTF-8；公共位置字段无损提取，图片状态按交付片段及显式引用投影，保留版本、hash、原块、review和必要图片限制。
+- 预算不足优先交付锚点起始的整块连续原文，保留前文/后文版本化指针，既有 search_textbook 内支持同单元继续读取；版本升为3，旧暂停合同继续由既有栅栏拒绝并需重新发起。区分索引锚点和实际可见正文指纹，避免正常 Evidence continuity 误判；未新增工具或自主循环。
+- 最终真实教材保留18块/1537字正文、1846字模型可见片段，(1.5)–(1.11)全部进入模型消息；来源元数据6601字节≤8000，回执15976字符≤128000，checkpoint27533字符≤64000。保持partial/source unknown；继续读取可覆盖全部39块，普通短问答正文相同。预算、数据库和索引格式、依赖、数学验证器及UI不变。
+- 仅1次真实DeepSeek V4.1 Flash（deepseek-flash，temperature=1，thinking enabled，reasoning_effort=high）：解释连续推导并指出(1.9)不一致；4264输入/8120输出/12384总tokens。此前1次验收脚本启动失败发生在网络前，0请求。任务仍degraded/unverified，不冒充整题数学核验。
+- 原始公式裁图同样是对k求偏导但乘(-1)，作为独立源文数学标记缺陷记录，未改OCR/IR。相关Python205项、Electron壳24项通过；完整Electron真实模型/视觉/生产混合检索未验。报告：P1-TEXTBOOK-CONTEXT-PACKING-REPORT.md；证据：docs/qa/p1-context-packing/。
+
 ## 2026-10-18 — P1 Integration Reliability（隔离修复分支）
 
 - 从 `integration/p1-abc@9c1c013` 建立 `fix/p1-integration-reliability`，未修改原始工作区或合并主线。

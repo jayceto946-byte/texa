@@ -1,0 +1,38 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "request_limit": 3,
+  "requests": [
+    {
+      "case": "packing-C-1792334326229837000",
+      "index": 1,
+      "temperature": 1,
+      "status": "returned",
+      "public_input_sha256": "e171723db624456fdd7848aa0b15c8beac4540c346beb1bcff44ba8795d9e90e",
+      "input_bytes": 15239,
+      "formula_tags_in_actual_request": [
+        "1.5",
+        "1.6",
+        "1.7",
+        "1.8",
+        "1.9",
+        "1.10",
+        "1.11"
+      ],
+      "usage": {
+        "input_tokens": 4264,
+        "output_tokens": 8120,
+        "total_tokens": 12384,
+        "input_token_details": {
+          "cache_read": 3072
+        },
+        "output_token_details": {
+          "reasoning": 7039
+        }
+      },
+      "request_ms": 41525.34,
+      "response_model": "deepseek-flash",
+      "finish_reason": "stop"
+    }
+  ]
+}

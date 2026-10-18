@@ -7,10 +7,22 @@ from backend.services.agent_runtime.contracts import RuntimeDenied
 from backend.tools.registry import ToolRegistry, ToolSpec, ToolResult
 
 
+class TextbookContinuation(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    book_name: str = Field(min_length=1, max_length=200)
+    index_version: str = Field(min_length=1, max_length=200)
+    canonical_hash: str = Field(min_length=64, max_length=64)
+    unit_id: str = Field(min_length=1, max_length=200)
+    block_id: str = Field(min_length=1, max_length=200)
+    anchor_chunk_id: str = Field(min_length=1, max_length=200)
+    anchor_content_fingerprint: str = Field(default="", max_length=24, pattern=r"^(?:[0-9a-f]{24})?$")
+
+
 class TextbookSearchInput(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     query: str = Field(min_length=1, max_length=2000)
     chapter: str = Field(default="", max_length=200)
+    continuation: TextbookContinuation | None = None
 
 
 class TextbookSearchOutput(BaseModel):
@@ -48,10 +60,23 @@ def register_textbook_search_runtime(registry: ToolRegistry, scope: dict, *, ret
         from graph.evidence_pack import build_evidence_pack
         from graph.intent_classifier import classify_intent_local
         intent = classify_intent_local(args["query"]).get("intent", "qa")
-        result = (retrieve or retrieve_node)({"user_input": args["query"], "book_name": scope["book_name"],
-            "subject": scope["subject"], "intent": intent, "use_textbook_context": True,
-            "answer_mode": "textbook_grounded", "target_chapters": [args["chapter"]] if args["chapter"] else []},
-            retrieval_resources_override=scope["resources"])
+        pointer = args.get("continuation")
+        if pointer:
+            if (pointer["book_name"] not in scope["index_versions"]
+                    or pointer["index_version"] != scope["index_versions"][pointer["book_name"]]):
+                raise RuntimeDenied("textbook continuation escaped frozen scope")
+            from graph.textbook_context import read_textbook_continuation
+            try:
+                continued = read_textbook_continuation(pointer)
+            except (OSError, ValueError, KeyError) as exc:
+                raise RuntimeDenied("textbook continuation unavailable or version changed") from exc
+            result = {"evidence_items": continued, "evidence_support": {"status": "supported"},
+                      "retrieval_status": "versioned_canonical_continuation"}
+        else:
+            result = (retrieve or retrieve_node)({"user_input": args["query"], "book_name": scope["book_name"],
+                "subject": scope["subject"], "intent": intent, "use_textbook_context": True,
+                "answer_mode": "textbook_grounded", "target_chapters": [args["chapter"]] if args["chapter"] else []},
+                retrieval_resources_override=scope["resources"])
         if any(version_reader(name) != version for name, version in scope["index_versions"].items()):
             raise RuntimeDenied("textbook index version changed during retrieval")
         items = result.get("evidence_items") or []
@@ -69,8 +94,8 @@ def register_textbook_search_runtime(registry: ToolRegistry, scope: dict, *, ret
         return ToolResult(success, data={"query_scope": scope, "evidence_items": selected,
             "evidence_support": support, "retrieval_status": str(result.get("retrieval_status") or "")},
             evidence=pack["items"], message="Scoped production EvidencePack" if success else "Scoped evidence unavailable")
-    registry.register(ToolSpec(name="search_textbook", description="Search only the frozen UI textbook scope; preserve EvidencePack provenance",
+    registry.register(ToolSpec(name="search_textbook", description="Search only the frozen UI textbook scope, or read a returned versioned continuation; preserve EvidencePack provenance",
         parameters=TextbookSearchInput.model_json_schema(), read_only=True, handler=handler,
-        runtime_input=TextbookSearchInput, runtime_output=TextbookSearchOutput, permission="READ", version="2",
+        runtime_input=TextbookSearchInput, runtime_output=TextbookSearchOutput, permission="READ", version="3",
         side_effect="derived_cache", source="builtin", provenance="scoped_production_evidence_pack",
         idempotency="read_retryable", timeout_seconds=8, runtime_scope_check=scope_check))
