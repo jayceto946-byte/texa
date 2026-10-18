@@ -372,7 +372,7 @@ const LearningPage: React.FC = () => {
               
               <div className="review-insight-columns">
                 <InsightList title="近期常见概念" items={summary.top_concepts.map((item) => ({ name: item.name, detail: `${item.count} 次` }))} empty="暂无高频概念" />
-                <InsightList title="错题相关薄弱点" items={summary.mistake_weak_points.map((item) => ({ name: item.name, detail: `${item.count} 道` }))} empty="暂无错题薄弱点" />
+                <InsightList title="错题相关薄弱点" items={summary.mistake_weak_points.map((item) => ({ name: item.name, detail: `${item.count} 次已确认作答` }))} empty="暂无错题薄弱点" />
               </div>
               <div className="review-activity">
                 <ActivityHeatmap daily={summary.daily_details || summary.daily.map((item) => ({ ...item, subjects: [] }))} selectedDate={selectedActivityDate} onSelectDate={setSelectedActivityDate} />

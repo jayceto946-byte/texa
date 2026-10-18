@@ -47,14 +47,20 @@ def _generate_draft(record, state: dict) -> dict:
         return {"success": False, "delivery_status": "degraded", "message": grounded_failure_message(state),
                 "retrieval_status": state.get("retrieval_status", "unavailable")}
     messages = prepare_answer_generation(state)
-    draft = get_llm(temperature=0.1).invoke(messages).content
+    from backend.services.exercise_knowledge import prepare_analysis, analysis_instruction, parse_analysis
+    from langchain_core.messages import SystemMessage
+    context = prepare_analysis(record, book_name=state["book_name"])
+    draft = get_llm(temperature=0.1).invoke([*messages, SystemMessage(content=analysis_instruction(context))]).content
     if not isinstance(draft, str) or not draft.strip():
+        return {"success": False, "message": "模型未生成有效答案"}
+    draft, structure, _, metadata_status = parse_analysis(draft, context)
+    if not draft.strip():
         return {"success": False, "message": "模型未生成有效答案"}
     answer = finalize_generated_answer(state, draft)
     verification = state["answer_verification"]
     status = "completed" if verification["status"] == "passed" else "unverified" if verification["status"] == "unverified" else "degraded"
     return {"success": True, "delivery_status": status,
-            "data": {"answer": answer, "verification": verification, "delivery_status": status,
+            "data": {"answer": answer, "knowledge_structure": structure, "metadata_status": metadata_status, "verification": verification, "delivery_status": status,
                      "required_outputs": state["required_outputs"], "required_inputs": [],
                      "sources": state.get("evidence_sources") or [],
                      "evidence_count": len(state.get("evidence_sources") or [])},

@@ -153,6 +153,7 @@ def _mistake_from_exercise(
 ) -> MistakeRecord:
     mistake = MistakeRecord(
         question_text=record.question_text,
+        book_id=record.book_id,
         user_answer=user_answer.strip(),
         correct_answer=record.answer,
         source=record.source,
@@ -165,9 +166,10 @@ def _mistake_from_exercise(
         ocr_text=record.ocr_text,
         explanation=record.explanation,
         linked_concepts=record.linked_concepts,
+        knowledge_structure=record.knowledge_structure,
         notes=f"\u7531\u4e60\u9898\u5e93\u8f6c\u5165\uff1a{record.id}",
         content_status="ready",
-        diagnosis_status="confirmed" if mistake_type else "missing",
+        diagnosis_status="suggested" if mistake_type else "missing",
         source_ref={"type": "exercise", "exercise_id": record.id},
     )
     if mistake_id:
@@ -710,12 +712,17 @@ def save_exercise_answer(req: ExerciseAnswerSaveRequest, book_name: str = "defau
     answer = sanitize_latex(strip_thinking(req.answer.strip()))
     if not answer:
         return {"success": False, "message": "标准答案不能为空"}
-    record.answer = answer
-    if req.explanation.strip():
-        record.explanation = sanitize_latex(strip_thinking(req.explanation.strip()))
-    _bank(book_name).update(record)
+    from backend.services.exercise_knowledge import save_answer_with_knowledge
+    job = (get_job_manager().get_job(req.knowledge_job_id, job_type=EXERCISE_ANSWER_JOB_TYPE)
+           if req.knowledge_job_id else _find_exercise_answer_job(req.id, book_name))
+    try:
+        record, metadata_status = save_answer_with_knowledge(_bank(book_name), record,
+            answer=answer, explanation=sanitize_latex(strip_thinking(req.explanation.strip())),
+            book_name=book_name, job=job)
+    except ValueError as exc:
+        return {"success": False, "message": str(exc)}
     _log_learning_event("exercise_answer_saved", book_name=book_name, record=record, payload={"answer_source": "rag_edited"})
-    return {"success": True, "message": "标准答案已保存", "data": _record_to_out(record)}
+    return {"success": True, "message": "标准答案已保存", "metadata_status": metadata_status, "data": _record_to_out(record)}
 
 
 def _direct_practice_service(book_name: str) -> DirectPracticeService:
@@ -802,6 +809,7 @@ def add_from_mistake(req: ExerciseFromMistakeRequest, book_name: str = "default"
         image_path=mistake.image_path,
         ocr_text=mistake.ocr_text,
         linked_concepts=mistake.linked_concepts,
+        knowledge_structure=mistake.knowledge_structure,
         origin_type="mistake",
         origin_id=mistake.id,
         status="needs_review",
@@ -810,6 +818,13 @@ def add_from_mistake(req: ExerciseFromMistakeRequest, book_name: str = "default"
     rid = bank.add(record)
     _log_learning_event("exercise_added", book_name=book_name, record=record, payload={"origin_type": record.origin_type, "origin_id": record.origin_id})
     return {"success": True, "message": "已从错题转入习题库", "id": rid, "data": _record_to_out(record)}
+
+@router.get("/by-concept/{concept_id}")
+def exercises_by_concept(concept_id: str, book_name: str = "default", limit: int = 100):
+    from backend.services.exercise_knowledge import find_exercises_by_concept
+    records = find_exercises_by_concept(_bank(book_name), book_name=book_name, concept_id=concept_id, limit=limit)
+    return {"success": True, "data": [_record_to_out(record) for record in records]}
+
 
 @router.get("/{exercise_id}")
 def get_exercise_detail(exercise_id: str, book_name: str = "default"):

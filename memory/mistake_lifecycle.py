@@ -121,7 +121,7 @@ class MistakeLifecycleStore:
                     attachments=list(data.get("attachments") or []),
                     visual_ir=dict(data.get("visual_ir") or {}),
                     content_status="ready" if data.get("content_complete", True) else "needs_correction",
-                    diagnosis_status="confirmed" if data.get("mistake_type") else "missing",
+                    diagnosis_status="suggested" if data.get("mistake_type") else "missing",
                 )
                 if record.content_status == "ready":
                     SM2Scheduler(record)
@@ -246,7 +246,71 @@ class MistakeLifecycleStore:
         params.append(limit)
         with self.store._connect() as conn:
             rows = conn.execute(query, params).fetchall()
-        return [{"id": row[0], "kind": row[1], **json.loads(row[2]), "created_at": row[3]} for row in rows]
+        from knowledge.exercise_structure import digest
+        items = [{"id": row[0], "kind": row[1], **json.loads(row[2]), "created_at": row[3]} for row in rows]
+        return [{**item, "diagnosis_digest": digest(item["diagnosis"]) if item.get("diagnosis") else ""} for item in items]
+
+    def save_knowledge_analysis(self, mistake_id: str, *, expected_revision: int,
+                                question_hash: str, explanation: str, structure: dict) -> dict:
+        from knowledge.exercise_structure import question_digest
+        with self.store._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT data FROM mistakes WHERE id=?", (mistake_id,)).fetchone()
+            if not row:
+                raise ValueError("mistake not found")
+            record = MistakeRecord.from_dict(json.loads(row[0]))
+            if record.revision != expected_revision or question_digest(record) != question_hash:
+                raise ValueError("mistake revision changed")
+            record.explanation = explanation
+            record.knowledge_structure = structure
+            record.revision += 1
+            conn.execute("UPDATE mistakes SET data=? WHERE id=?", (json.dumps(record.to_dict(), ensure_ascii=False), mistake_id))
+            return {"mistake_id": mistake_id, "revision": record.revision}
+
+    def set_attempt_diagnosis(self, mistake_id: str, attempt_id: str, *, expected_revision: int,
+                              operation_id: str, catalog: dict, proposal: dict | None = None,
+                              confirm: bool = False, expected_diagnosis_digest: str = "") -> dict:
+        from knowledge.exercise_structure import digest, question_digest, validate_diagnosis
+        if not operation_id or (confirm and proposal is not None):
+            raise ValueError("invalid diagnosis operation")
+        args = [mistake_id, attempt_id, expected_revision, proposal, confirm, expected_diagnosis_digest]
+        with self.store._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            prior = self._receipt(conn, operation_id, args)
+            if prior is not None:
+                return prior
+            row = conn.execute("SELECT data FROM mistakes WHERE id=?", (mistake_id,)).fetchone()
+            attempt_row = conn.execute("SELECT data FROM mistake_attempts WHERE id=? AND mistake_id=?", (attempt_id, mistake_id)).fetchone()
+            if not row or not attempt_row:
+                raise ValueError("mistake or attempt not found")
+            record = MistakeRecord.from_dict(json.loads(row[0]))
+            if record.revision != expected_revision or catalog["question_digest"] != question_digest(record):
+                raise ValueError("mistake revision changed")
+            attempt = {**json.loads(attempt_row[0]), "id": attempt_id}
+            if confirm:
+                diagnosis = attempt.get("diagnosis") or {}
+                if not expected_diagnosis_digest or digest(diagnosis) != expected_diagnosis_digest:
+                    raise ValueError("diagnosis revision changed")
+                # Revalidate stored spans/IDs and version; confirmation never invents evidence.
+                validated = validate_diagnosis({"errors": diagnosis.get("errors", []), "uncertainty": diagnosis.get("uncertainty", "")}, record=record, attempt=attempt, catalog=catalog)
+                if (not validated["errors"] or diagnosis.get("scope") != catalog["scope"]
+                        or diagnosis.get("question_digest") != validated["question_digest"]
+                        or diagnosis.get("answer_digest") != validated["answer_digest"]):
+                    raise ValueError("diagnosis evidence or scope changed")
+                diagnosis = {**diagnosis, "status": "confirmed", "confirmed_by": "user", "confirmed_at": _now()}
+            else:
+                if attempt.get("diagnosis", {}).get("status") == "confirmed":
+                    raise ValueError("confirmed diagnosis cannot be replaced by a model suggestion")
+                diagnosis = validate_diagnosis(proposal or {}, record=record, attempt=attempt, catalog=catalog)
+            attempt["diagnosis"] = diagnosis
+            attempt.pop("id", None)
+            conn.execute("UPDATE mistake_attempts SET data=? WHERE id=?", (json.dumps(attempt, ensure_ascii=False), attempt_id))
+            record.diagnosis_status = "confirmed" if confirm else "suggested" if diagnosis["errors"] else "missing"
+            record.revision += 1
+            conn.execute("UPDATE mistakes SET data=? WHERE id=?", (json.dumps(record.to_dict(), ensure_ascii=False), mistake_id))
+            result = {"mistake_id": mistake_id, "attempt_id": attempt_id, "revision": record.revision,
+                      "diagnosis": diagnosis, "diagnosis_digest": digest(diagnosis)}
+            return self._save_receipt(conn, operation_id, args, result)
 
     def append_occurrence_once(self, mistake_id: str, source_key: str, *, answer: str, source_ref: dict) -> str:
         if not source_key:
@@ -303,12 +367,24 @@ class MistakeLifecycleStore:
             record = MistakeRecord.from_dict(json.loads(row[0]))
             if record.revision != expected_revision:
                 raise ValueError("mistake revision changed")
+            meaning_changed = meaning_changed or any(
+                field in changes and changes[field] != getattr(record, field)
+                for field in ("question_text", "correct_answer", "subject", "chapter")
+            )
+            if changes.get("diagnosis_status") == "confirmed":
+                from knowledge.exercise_structure import confirmed_diagnoses
+                rows = conn.execute("SELECT id,data FROM mistake_attempts WHERE mistake_id=?", (mistake_id,)).fetchall()
+                attempts = [{**json.loads(raw), "id": aid} for aid, raw in rows]
+                if not confirmed_diagnoses(record, attempts):
+                    raise ValueError("confirm an evidenced attempt diagnosis first")
             if meaning_changed:
                 conn.execute("INSERT OR IGNORE INTO mistake_revisions VALUES (?,?,?,?)", (mistake_id, record.content_revision, json.dumps(record.to_dict(), ensure_ascii=False), _now()))
                 record.content_revision += 1
                 record.manual_mastered = False
             for field, value in changes.items():
                 setattr(record, field, value)
+            if meaning_changed:
+                record.diagnosis_status = "missing"
             if record.content_status == "ready" and not record.question_text.strip():
                 raise ValueError("ready mistake requires question text")
             if record.content_status == "ready" and not record.sm2:

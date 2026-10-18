@@ -249,7 +249,7 @@ def _compute_learning_summary(book_name: str = "", subject: str = "", limit: int
         raw_exposures = list(data.get("exposures", []))
         concepts = data.get("concepts", {})
         strict_exposures = [
-            e for e in raw_exposures
+            {**e, "weak": False} if e.get("source") == "mistake" or e.get("intent") == "mistake" else e for e in raw_exposures
             if is_strict(e, concepts) and subject_matches(str(e.get("subject", "")), subject)
         ]
         recent_exposures = strict_exposures[-limit:]
@@ -277,20 +277,20 @@ def _compute_learning_summary(book_name: str = "", subject: str = "", limit: int
                     "question": question,
                     "intent": e.get("intent", "qa"),
                     "source": source,
-                    "weak": bool(e.get("weak")),
+                    "weak": bool(e.get("weak")) and source != "mistake",
                     "timestamp": e.get("timestamp", ""),
                     "concepts": [],
                 }
                 question_order.append(key)
             item = question_map[key]
             item["timestamp"] = max(item.get("timestamp", ""), e.get("timestamp", ""))
-            item["weak"] = item["weak"] or bool(e.get("weak"))
+            item["weak"] = item["weak"] or (bool(e.get("weak")) and source != "mistake")
             concept = e.get("concept")
             if concept and all(c.get("name") != concept for c in item["concepts"]):
                 item["concepts"].append({
                     "name": concept,
                     "confidence": e.get("confidence", 0),
-                    "weak": bool(e.get("weak")),
+                    "weak": bool(e.get("weak")) and source != "mistake",
                     "source": source,
                     "evidence": e.get("evidence", ""),
                 })
@@ -482,7 +482,7 @@ def _compute_learning_summary(book_name: str = "", subject: str = "", limit: int
                 "review_rules": {
                     "strict_concepts": "去重后的概念数。仅统计置信度不低于 0.85，且概念名或有效别名直接出现在问题中的接触；错题中明确关联的概念也计入。",
                     "high_confidence_exposures": "符合严格条件的接触事件总数。同一概念每次符合条件的问答或错题各计 1 次，因此可能大于严格概念数。",
-                    "weak_concepts": "严格概念中，来自错题、用户明确表示不会/不懂/不熟、复习质量评为 0–2，或被手动标记的概念。仅询问定义、公式或区别不会自动标为薄弱。",
+                    "weak_concepts": "概念弱项来自用户明确表示不会/不懂/不熟、复习质量评为 0–2 或手动标记。错题弱项另按已确认的作答证据汇总；题目标签和分类关联不代表薄弱。",
                     "mistake_due": "错题复习采用 SM-2：next_review 小于等于今天即进入待复习。评分 0-2 会重置间隔，3-5 会按掌握度拉长间隔。",
                     "concept_due": "概念复习按优先级推荐：薄弱标记、关联错题、7 天以上未接触或未复习、累计接触次数较高的概念会优先出现。",
                     "concept_reviewed": "点击已复习会记录本次复习并从今天的队列移除。默认质量为 4，会提高掌握度但保留薄弱标记；质量 5 才表示已掌握并解除薄弱。"
