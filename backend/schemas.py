@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Optional, Literal
 
 from pydantic import BaseModel, Field
+from backend.exercise_candidate_schemas import CandidateProjection, CandidateIssue, CandidateReview, CandidateContext, CandidateContractVersion
 
 
 class ApiResponse(BaseModel):
@@ -230,6 +231,7 @@ class ExerciseRecordOut(BaseModel):
 
 
 class ExerciseAddRequest(BaseModel):
+    candidate_context: CandidateContext | None = None
     question_text: str
     answer: str = ""
     explanation: str = ""
@@ -289,6 +291,9 @@ class ExerciseToMistakeRequest(BaseModel):
     user_answer: str = ""
     mistake_type: list[str] = Field(default_factory=list)
 class ExerciseCandidateOut(BaseModel):
+    projection: CandidateProjection | None = None
+    issues: list[CandidateIssue] | None = None
+    review: CandidateReview | None = None
     id: str
     question_text: str
     answer: str = ""
@@ -323,6 +328,7 @@ class ExerciseAnalyzeRequest(BaseModel):
     llm_max_items: int = Field(default=20, ge=1, le=100)
 
 class TextbookExerciseAnalyzeRequest(BaseModel):
+    candidate_contract_version: CandidateContractVersion | None = None
     book_name: str = ""
     subject: str = ""
     chapter: str = ""
@@ -335,6 +341,7 @@ class TextbookExerciseAnalyzeRequest(BaseModel):
 
 
 class ExerciseBatchAddRequest(BaseModel):
+    candidate_contract_version: CandidateContractVersion | None = None
     exercises: list[ExerciseAddRequest] = Field(default_factory=list)
     source_label: str = ""
     allow_duplicates: bool = False

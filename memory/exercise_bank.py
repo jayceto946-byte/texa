@@ -283,6 +283,7 @@ class ExerciseBankStore:
         *,
         source_label: str = "",
         allow_duplicates: bool = False,
+        candidate_receipts: list[dict] | None = None,
     ) -> dict:
         existing = {
             question_fingerprint(record.question_text): record.id
@@ -312,6 +313,11 @@ class ExerciseBankStore:
             "created_at": created_at,
             "status": "active",
         }
+        if candidate_receipts is not None:
+            receipt_map = {r['origin_id']: r for r in candidate_receipts}
+            if len(receipt_map) != len(records) or set(receipt_map) != {r.origin_id for r in records}:
+                raise ValueError('候选回执身份不完整')
+            batch['candidate_receipts'] = [dict(receipt_map[r.origin_id], exercise_id=r.id) for r in accepted]
         with self._connect() as conn:
             for record in accepted:
                 record.updated_at = created_at
@@ -667,12 +673,14 @@ class ExerciseBank:
         *,
         source_label: str = "",
         allow_duplicates: bool = False,
+        candidate_receipts: list[dict] | None = None,
     ) -> dict:
         if self.book_id:
             for record in records:
                 if not record.book_id:
                     record.book_id = self.book_id
-        return self.store.add_batch(records, source_label=source_label, allow_duplicates=allow_duplicates)
+        return self.store.add_batch(records, source_label=source_label, allow_duplicates=allow_duplicates,
+                                    candidate_receipts=candidate_receipts)
 
     def rollback_import_batch(self, batch_id: str) -> Optional[dict]:
         return self.store.rollback_import_batch(batch_id)

@@ -136,3 +136,23 @@
 
 
 .exercise-receipt-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+/* Candidate v1 stays within the existing index / reading / source workspace. */
+.exercise-candidate-filters{flex-wrap:wrap}
+.exercise-candidate-filters button{min-width:65px}
+.exercise-content-issue p{margin:0 0 8px}
+.exercise-content-issue button{font-size:12px;text-decoration:underline;margin:0 12px 8px 0}
+.exercise-content-issue label{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px}
+.exercise-content-issue select{max-width:100%;min-width:0;background:var(--color-bg);border:1px solid var(--color-border);border-radius:4px;padding:6px}
+.exercise-structure-confirm{margin-top:24px;display:flex;align-items:center;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--color-text-secondary)}
+.exercise-projection-note{font-size:13px;color:var(--color-text-secondary);margin-block:12px}
+.exercise-candidate-explanation{margin-top:24px}
+.exercise-candidate-explanation h2{font-size:14px;color:var(--color-text-secondary);margin-bottom:12px}
+.exercise-source-block{padding:12px 0 20px;border-bottom:1px solid var(--color-border);overflow-wrap:anywhere}
+.exercise-source-block.is-focused{outline:2px solid var(--color-accent);outline-offset:4px}
+.exercise-source-position{font-size:12px;color:var(--color-text-secondary)}
+.exercise-source-block details{font-size:12px;color:var(--color-text-secondary);margin-top:12px}
+.exercise-original .reading-markdown{overflow-x:auto;min-width:0}
+.exercise-original select{max-width:180px;min-width:0}
+.exercise-commit>span{min-width:0;line-height:1.8}
+.exercise-import-receipts{margin:20px 0;max-width:100%;overflow-wrap:anywhere;font-size:13px}

@@ -20,6 +20,22 @@
 - 验证：Python3.10 相关213项通过，最后原生33项（含新增旧合同拒绝）复验通过；桌面24项通过。真实macOS Electron + 已配置DeepSeek Flash复验原两题，3远程请求/3真实SymPy调用/19520 tokens：统计题参数积分成功、最终正文有CDF概率推导；曲线积分半径与积分值正确但0工具。两题仍unverified/degraded；统计题未列区间外CDF的0/1分支，不能宣称语义完整性已保证。该题浏览器SSE抓取有夹具异步缺口，SQL/最终DOM/原生回执完整。详见 docs/qa/P0-MATH-RUNTIME-REPAIR-2026-10-18.md。
 - 无依赖、数据库、索引、凭据或全局配置迁移；数学工具版本/schema变化使旧暂停合同 fail closed，历史记录不改写。保留习题候选与UI并行改动，独立提交仅包含本修复及本条记录。
 
+## 2026-10-18 — D-01 S1/S2 候选投影、校对与准入
+
+- 按用户确认后的三份交接文档，在 Texa_MacOS 主目录实现可选 v1 教材候选：保留 Canonical hash/块身份/角色span，独立题干与源解真实分离，混解、边界、图/前例依赖及公式/表冲突定向留待校对。原 LearningUnit、IR、索引、fingerprint、Runtime/Provider 与 ExerciseRecord 不变，保留其他任务的未提交UI改动。
+- 现有校对工作区接入来源注册表、内容/属性分类、逐题当前hash确认、编辑失效、来源保全拆并及可提交子集；修复窄窗从原文对照返回后正文隐藏。新前端明确请求v1、核对回显并使用独立提交路由；旧后端/降版不回落到旧批量入口。旧手工/文件/未版本化入口继续legacy。
+- 服务端重验来源/覆盖/正文/依赖与确认，整次选定集合不满足即零写入，必要图片不能泛化确认绕过。既有 exercise_import_batches.data JSON仅对新批次增加可选candidate_receipts，与题目同事务提交；无SQL迁移。批次核对消费最小来源/导入时确认与正文hash，后续正式正文变化只保留历史事实；回滚保留未知JSON键。
+- 冻结108来源均有映射；94无源解保持空答案/解析；92原可用不退化；16重复映射及真实隔离skip全部保全。14附解中9有分离提案、5 unresolved；综合全部门槛后96可提交、12待核对，隔离批次新增80/跳过16。42处公式token保全，9次tag错误及6个未识别节点均降为0；不宣称源数学正确。
+- 验证：Python3.10相关91项、前端234项、ESLint/TypeScript/Vite、桌面check/24项通过；实际macOS Electron三尺寸65检查/21图通过，覆盖来源、内容、确认、提交子集、回显/降版拒绝、未知回执/断线无重发与正文变更后的历史回执。原24探针仍12 PASS/12 FAIL，独立v1严格目标20 PASS/5 FAIL（R05/R12安全待校对，D03/D04/旧A01范围外）。冻结IR/来源库及旧审计hash不变，0模型/OCR调用；Windows、真实模型/OCR、原Word/PDF重解析、安装包更新恢复未测，无新Astra设计批准。详见 docs/validation/question-candidate-contract-2026-10-18/implementation-report.md。
+
+## 2026-10-17 — D-01 候选合同、投影与校对设计（待确认实施）
+
+- 基于既有108候选D-01审计与当前源码，交付 `docs/design/question-candidate-contract-2026-10-17/` 三份设计：Candidate Contract Specification、Projection & Review Design、Sol Implementation Handoff。没有重复开展质量审计、修改业务代码或生成正式数据结构。
+- 提出最小可选候选来源/问题/确认字段，复用现有题干、答案、解析与R1/R2校对构图；明确完整LearningUnit、独立练习提案、资源身份与图片交付的区别。S1投影、S2准入/校对均待用户确认，未委派或启动实施。
+- 设计不要求SQL迁移或ExerciseRecord变化；拟仅在已有导入批次JSON保存最小来源/确认回执，新协议路由复用原入库事务。legacy入口保留但不享有v1结构门槛保证；F3图片读取、去重策略、历史题库、IR/索引/Runtime/Provider保持范围外。
+- 冻结92条结构可用、94条无源解、14附解、5边界及16重复的分项验收；原24探针12 PASS/12 FAIL原样保留。明确D03/D04及旧A01遗留限制，结构修复与安全留待校对分别报告；108条为代理源核对、真人金标0条，原PDF/OCR语义未知。登记源数值、公式碎片、图归属/组合裁图等人工裁决队列。
+- 文档验证：17个相对链接有效、2个JSON示例可解析、代码围栏完整；108集合/5个边界ID/24探针状态及基准SHA256一致。新增本条记录前4589个既有受检文件（含已修改源码与D-01资产）hash不变；未运行生产测试、新Electron状态、OCR或付费模型。已有工作区改动保留，无stage/commit/push。
+
 ## 2026-10-17 — R1/R2 设计批准后工程收尾
 
 - 在 Texa_MacOS 建立独立 checkpoint 510f0d6；按既有交接逐项区分归属，保留其他任务的侧栏/共享布局修改。未 push、合并或改写历史，大截图包和真实数据副本不入 Git。

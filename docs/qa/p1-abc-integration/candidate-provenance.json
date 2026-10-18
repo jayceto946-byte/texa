@@ -1,0 +1,33 @@
+{
+  "source_base": "ac071baca0382bdfefece0c1a2b693105dced8a7",
+  "source": "Texa_MacOS uncommitted snapshot; only allowlisted candidate hunks/new files",
+  "patch_sha256": "af8f74eee6e56774a3c2a21afb3edfc8567d0b1328b980a0a0ae43c038a73dc3",
+  "files": {
+    "backend/api/exercises.py": "45123a741d77cb888f1144601e9591feaa0ddf400809ee9fe3f6a24530bc7fff",
+    "backend/schemas.py": "cbbc0af46377a788e425de39813fed76fd759275ee6c392f508a57b222c15332",
+    "memory/exercise_bank.py": "556f007364412cb706b005e3f4889cd84bd9a754a4acc8a6518f1bc17175009d",
+    "memory/exercise_importer.py": "1a834f0e5ab51548e6f057271dc6b6189620209dada17ac3c29568161c21a1d0",
+    "memory/textbook_exercise_importer.py": "6e97c09a9214e0ac71245c1f4b13bb21c665137fd2c73c7c90d075d65b1614ef",
+    "frontend/src/api/client.ts": "c08d3a8a5148e80263041887a3cc7af83eb8480bf7cf6acc3dfc366f0af535a6",
+    "frontend/src/features/exercises/components/CandidateReviewWorkspace.tsx": "40dc2186b11beb6a508825fb795086006f4f1337a0803a6c6025eb958d248a43",
+    "frontend/src/features/exercises/exercises.css": "94cfe9f414cbbe4bc5670db8191bf268f5e1a432f3de9cb406d6ee442f9c4bb5",
+    "frontend/src/features/exercises/hooks/candidateOperations.test.ts": "0ff550d01b334987b45c8d4530df133f60779bee580ddb7d699b9a7e651ce5a6",
+    "frontend/src/features/exercises/hooks/candidateOperations.ts": "e536446849de3e31dc127c056cd6236672c5078a6ecdafa6bd815bc508cd3fd9",
+    "frontend/src/features/exercises/hooks/useExerciseImportCandidates.ts": "4615c1ac8aeff08df3d7d701c40a627ad1b05d8abfdbf1cc281a6408a3d8f9af",
+    "frontend/src/pages/ExercisesPage.tsx": "abc4ea4d3992459ab503755be779351ab326803d4180a8a2955c750233711f7e",
+    "frontend/src/types/index.ts": "d4573975bf49fda4651f01ec2b7dd64ffd298a414906e6976bc5c0e92b8b5577",
+    "backend/exercise_candidate_schemas.py": "aba5232743340780a58d42521b6779bcd4d1e6d420e9c64a12f1d5e1e873ebda",
+    "backend/services/exercise_candidate_review.py": "25ac7d82343257bef255dbc8d1d9f68fa7c84ac6a2fdd8c9fb96780b0806a2f5",
+    "memory/exercise_candidate_projection.py": "03205f9785e835b84b2e2b0e3ed9ccd9a5d06da09bbb00b07ef4d1c78cfcab05",
+    "frontend/src/features/exercises/components/BatchCandidateReceipts.tsx": "3946c271580def87652fef2f74e5972e924741ab8c091f4c43733094a990adaf",
+    "frontend/src/features/exercises/hooks/candidateContract.ts": "01b519053188ce862a1a4fdc01f891194aeedeaadf330e0a7142b6dc6c68e4b4",
+    "tests/test_exercise_candidate_contract.py": "30b5fcab120eccf5ac93d85443029324891f2d4d4d5f0681c619637ea371081e",
+    "scripts/qa-question-candidate-electron.mjs": "7375b7656294d74c33918942406bb849e085cb0b33abe8b3e1c56b3d0f45550f",
+    "scripts/qa-question-candidate-server.py": "29f93081e47e4862c7a0bae15b730faec42c7dab8f8554f4f97feb3d06751c6e",
+    "docs/qa/question-extraction-quality-2026-10-17/regression-cases.json": "9908a6405f8af397a976c1f62c4128229ae9152c1768779326ca29d94d9b4570",
+    "docs/design/question-candidate-contract-2026-10-17/candidate-contract-specification.md": "460caeffa1ff74f062ad9b496107c8d98764b11dfce6066e226d01379faeea1d",
+    "docs/design/question-candidate-contract-2026-10-17/projection-review-design.md": "204ad874a7f9dd96e0a1d0abd188b59b9012578e3e5980f0f57ad5079d4b2e4a",
+    "docs/design/question-candidate-contract-2026-10-17/sol-implementation-handoff.md": "7e53959ab0e8ae7711a3fa2cb1cbe9357be5050256bd2cf662d202d6c0e6d100"
+  },
+  "excluded": "AppRail/LearningContextSidebar/OverflowMenu/conversations CSS/ApprovedWorkspace/MainLayout/StudyDesk; all production data, raw audit and screenshot archives; shared patch_notes handled separately"
+}

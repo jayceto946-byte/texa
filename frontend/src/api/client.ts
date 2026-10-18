@@ -72,7 +72,8 @@ async function responseError(response: Response, fallback: string): Promise<Erro
     window.dispatchEvent(new Event('texa:connection-unauthorized'));
   }
   const payload = await response.clone().json().catch(() => null);
-  const message = payload?.message || payload?.detail || `${fallback}: ${response.status}`;
+  const detail = payload?.detail;
+  const message = payload?.message || (typeof detail === 'string' ? detail : detail?.message ? `${detail.origin_id ? `${detail.origin_id}：` : ''}${detail.message}` : `${fallback}: ${response.status}`);
   return new ApiError(message, response.status);
 }
 

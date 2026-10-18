@@ -22,6 +22,8 @@ class ExtractedTextbookExerciseText:
     chunk_count: int = 0
     warnings: list[str] = field(default_factory=list)
     units: list[dict] = field(default_factory=list)
+    canonical_hash: str | None = None
+    source_blocks: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -34,6 +36,8 @@ class ExtractedTextbookExerciseText:
             "chunk_count": self.chunk_count,
             "warnings": self.warnings,
             "units": self.units,
+            "canonical_hash": self.canonical_hash,
+            "source_blocks": self.source_blocks,
         }
 
 
@@ -48,6 +52,7 @@ def extract_textbook_exercise_text(
     page_start: int | None = None,
     page_end: int | None = None,
     source_mode: str = "exercise_sections",
+    candidate_contract_version: int | None = None,
 ) -> ExtractedTextbookExerciseText:
     """Load text for textbook exercise import without mutating existing indexes."""
     clean_book = safe_book_name(book_name)
@@ -100,11 +105,27 @@ def extract_textbook_exercise_text(
             titles = set(unit['chapter'] for unit in units)
             if len(titles) == 1:
                 resolved_chapter = titles.pop()
+        source_blocks = []
+        canonical_hash = None
+        if candidate_contract_version == 1:
+            if source_mode == 'all_pages':
+                raise ValueError('v1候选请使用习题或例题范围，不支持整页自由切题')
+            from ingestion.document_ir import canonical_book_fingerprint
+            from memory.exercise_candidate_projection import source_registry
+            canonical_hash = canonical_book_fingerprint(canonical)
+            allowed_ids = {b.block_id for b in canonical.blocks
+                           if scoped(paths.get(b.block_id, []), b.page_start, b.page_end, b.block_id)}
+            if any(bid not in allowed_ids for u in units for bid in u['source_block_ids']):
+                raise ValueError('学习单元跨出所选范围，请扩大页码范围后重新分析')
+            source_blocks = source_registry(canonical, units, allowed_ids)
         return ExtractedTextbookExerciseText(
+            canonical_hash=canonical_hash, source_blocks=source_blocks,
             text=text, provider='canonical-learning-units', book_name=clean_book, chapter=resolved_chapter,
             page_start=resolved_start, page_end=resolved_end, chunk_count=len(selected) if source_mode == 'all_pages' else len(units), units=units,
             warnings=['部分学习单元超出安全读取范围，请补充原文核对'] if any(unit['truncated'] for unit in units) else [],
         )
+    if candidate_contract_version == 1:
+        raise ValueError("v1候选需要可核对的Canonical来源，请先准备教材结构来源")
     explicit_page_range = _positive_int(page_start) is not None
     if explicit_page_range:
         chunk_start, chunk_end = _pdf_range_to_printed_pages(clean_book, resolved_start, resolved_end)
@@ -685,10 +706,31 @@ def _normalize_text(text: str) -> str:
     return text.strip()
 
 
-def analyze_learning_unit_candidates(units: list[dict], *, book_name: str, subject: str, limit: int):
+def analyze_learning_unit_candidates(units: list[dict], *, book_name: str, subject: str, limit: int,
+                                     source_blocks=None, canonical_hash=None, scope=None):
     """Analyze whole source units without resplitting formulas or subquestions."""
     from memory.exercise_importer import analyze_candidates
     candidates = []
+    if canonical_hash is not None:
+        from memory.exercise_candidate_projection import project_units, issue
+        proposals = project_units(units, source_blocks, canonical_hash, scope)
+        for proposal in proposals[:limit]:
+            unit = proposal.pop('unit')
+            source = f"{book_name} / {unit['chapter']} p{unit['page_start']}-{unit['page_end']} / {unit['unit_id']}"
+            parsed = analyze_candidates([proposal['question_text']], subject=subject, chapter=unit['chapter'], source=source, limit=1)
+            if not parsed:
+                continue
+            candidate = parsed[0]
+            for key, value in proposal.items():
+                setattr(candidate, key, value)
+            candidate.issues.extend(issue('missing_concepts', category='metadata') for _ in [0] if not candidate.tags)
+            if candidate.suggested_type == '未确定':
+                candidate.issues.append(issue('unknown_type', category='metadata'))
+            # Old structural hints remain visible, but are not treated as metadata.
+            if any('选项不足' in hint or '含多道题' in hint for hint in candidate.validation_issues):
+                candidate.issues.append(issue('boundary_uncertain', unit['source_block_ids']))
+            candidates.append(candidate)
+        return candidates
     for unit in units[:limit]:
         source = f"{book_name} / {unit['chapter']} p{unit['page_start']}-{unit['page_end']} / {unit['unit_id']}"
         parsed = analyze_candidates([unit['text']], subject=subject, chapter=unit['chapter'], source=source, limit=1)

@@ -6,7 +6,7 @@ import hashlib
 import threading
 from pathlib import Path
 
-from fastapi import APIRouter, File, Form, UploadFile
+from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 
 from backend.job_manager import get_job_manager
 from backend.services.exercise_practice import PracticeAnswerService
@@ -139,6 +139,9 @@ def _candidate_outputs(candidates, book_name: str) -> list[ExerciseCandidateOut]
     for candidate in candidates:
         duplicate_of = existing.get(question_fingerprint(candidate.question_text), "")
         candidate.duplicate_of = duplicate_of
+        if duplicate_of and candidate.issues is not None:
+            from memory.exercise_candidate_projection import issue
+            candidate.issues.append(issue('duplicate', category='metadata'))
         if duplicate_of and "与题库现有题目重复" not in candidate.validation_issues:
             candidate.validation_issues.append("与题库现有题目重复")
         output.append(ExerciseCandidateOut(**candidate.to_dict()))
@@ -228,6 +231,8 @@ def _record_from_request(req: ExerciseAddRequest, book_name: str = "default") ->
 
 @router.post("/add")
 def add_exercise(req: ExerciseAddRequest, book_name: str = "default"):
+    if req.candidate_context is not None:
+        raise HTTPException(422, "教材v1候选请使用/candidates/batch-add")
     if not req.question_text.strip():
         return {"success": False, "message": "题干不能为空"}
     try:
@@ -358,6 +363,8 @@ def upload_and_analyze_exercises(
 @router.post("/textbook-analyze")
 def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: str = "default"):
     effective_book = req.book_name.strip() or book_name or "default"
+    if req.candidate_contract_version == 1 and req.use_llm:
+        raise HTTPException(422, '此合同暂不支持模型辅助修复，请关闭后重试')
     try:
         extracted = extract_textbook_exercise_text(
             effective_book,
@@ -365,6 +372,7 @@ def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: s
             page_start=req.page_start,
             page_end=req.page_end,
             source_mode=req.source_mode.strip() or "exercise_sections",
+            **({"candidate_contract_version": 1} if req.candidate_contract_version == 1 else {}),
         )
         if not extracted.text.strip():
             return {
@@ -388,6 +396,10 @@ def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: s
         if extracted.units:
             candidates = analyze_learning_unit_candidates(
                 extracted.units, book_name=effective_book, subject=effective_subject, limit=req.limit,
+                **({"source_blocks": extracted.source_blocks, "canonical_hash": extracted.canonical_hash,
+                    "scope": {"chapter": req.chapter.strip(), "page_start": req.page_start, "page_end": req.page_end,
+                              "source_mode": req.source_mode.strip() or "exercise_sections"}}
+                   if req.candidate_contract_version == 1 else {}),
             )
         else:
             candidates = analyze_candidates(
@@ -402,6 +414,7 @@ def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: s
         warnings = extracted.warnings or []
         return {
             "success": True,
+            "candidate_contract_version": req.candidate_contract_version,
             "message": f"已从教材抽取 {len(data)} 道候选题",
             "data": data,
             "summary": {
@@ -450,8 +463,32 @@ def analyze_exercise_candidates(req: ExerciseAnalyzeRequest, book_name: str = "d
     }
 
 
+@router.post("/candidates/batch-add")
+def batch_add_reviewed_candidates(req: ExerciseBatchAddRequest, book_name: str = "default"):
+    from backend.services.exercise_candidate_review import ExerciseCandidateReviewService, CandidateAdmissionError
+    from ingestion.index_snapshot import index_read_snapshot
+    if req.candidate_contract_version != 1:
+        raise HTTPException(422, "新候选提交协议必须声明candidate_contract_version=1")
+    try:
+        with index_read_snapshot():
+            items = [item.model_dump() for item in req.exercises]
+            receipts = ExerciseCandidateReviewService().prepare(book_name, items)
+            records = [_record_from_request(item, book_name=book_name) for item in req.exercises]
+            # Preserve the exact reviewed source text; legacy sanitization is not a source projection.
+            for record, item in zip(records, items):
+                record.question_text, record.answer, record.explanation = (item[k] for k in ('question_text','answer','explanation'))
+            bank = _bank(book_name)
+            batch = bank.add_batch(records, source_label=req.source_label, allow_duplicates=req.allow_duplicates,
+                                   candidate_receipts=receipts)
+        return {**_batch_response(bank, batch, book_name), "candidate_contract_version": 1}
+    except CandidateAdmissionError as exc:
+        raise HTTPException(exc.status, exc.detail) from exc
+
+
 @router.post("/batch-add")
 def batch_add_exercises(req: ExerciseBatchAddRequest, book_name: str = "default"):
+    if req.candidate_contract_version is not None or any(item.candidate_context is not None for item in req.exercises):
+        raise HTTPException(422, "教材v1候选请使用/candidates/batch-add")
     bank = _bank(book_name)
     records = [
         _record_from_request(item, book_name=book_name)
@@ -459,6 +496,10 @@ def batch_add_exercises(req: ExerciseBatchAddRequest, book_name: str = "default"
         if item.question_text.strip()
     ]
     batch = bank.add_batch(records, source_label=req.source_label, allow_duplicates=req.allow_duplicates)
+    return _batch_response(bank, batch, book_name)
+
+
+def _batch_response(bank, batch, book_name):
     saved_records = [bank.get(rid) for rid in batch["exercise_ids"]]
     saved = [_record_to_out(record) for record in saved_records if record]
     for record in saved_records:
@@ -479,6 +520,7 @@ def batch_add_exercises(req: ExerciseBatchAddRequest, book_name: str = "default"
         "count": len(saved),
         "skipped": batch.get("skipped", []),
         "batch_id": batch["id"],
+        "candidate_receipts": batch.get("candidate_receipts", []),
         "message": message,
     }
 

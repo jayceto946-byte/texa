@@ -47,6 +47,9 @@ class ExerciseCandidate:
     split_reasons: list[str] = field(default_factory=list)
     validation_issues: list[str] = field(default_factory=list)
     duplicate_of: str = ""
+    projection: dict | None = None
+    issues: list[dict] | None = None
+    review: dict | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)

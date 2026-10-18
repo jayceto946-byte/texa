@@ -4,11 +4,12 @@ import { exercisePreview } from '../features/exercises/exercisePreview';
 import '../features/exercises/exercises.css';
 import { useUnsavedWorkGuard } from '../features/reading/useUnsavedWorkGuard';
 import { HelpHint } from '../features/exercises/components/HelpHint';
+import { BatchCandidateReceipts } from '../features/exercises/components/BatchCandidateReceipts';
 import { CandidateReviewWorkspace } from '../features/exercises/components/CandidateReviewWorkspace';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, ChevronDown, ChevronRight, ClipboardList, Loader2, Search, Upload, X } from 'lucide-react';
-import { apiFetch, del, get, post } from '../api/client';
+import { apiFetch, del, get, post, ApiError } from '../api/client';
 import { SimpleMarkdown } from '../components/chat/MarkdownRenderer';
 import { ExerciseReader } from '../features/exercises/components/ExerciseReader';
 import ScopeSelector from '../components/ScopeSelector';
@@ -32,6 +33,7 @@ function titleOf(record: ExerciseRecord) {
 
 function candidateToExercise(candidate: ExerciseCandidate) {
   return {
+    ...(candidate.projection ? { candidate_context: { projection: candidate.projection, review: candidate.review || null } } : {}),
     question_text: candidate.question_text,
     answer: candidate.answer || '',
     explanation: candidate.explanation || '',
@@ -97,6 +99,7 @@ const ExercisesPage: React.FC = () => {
   useEffect(() => { importScope.current = `${activeName}|${targetSubject}`; }, [activeName, targetSubject]);
   const [loadError, setLoadError] = useState('');
   const [extractedPreview, setExtractedPreview] = useState('');
+  const [inspectedBatches, setInspectedBatches] = useState<ExerciseImportBatch[]>([]);
   const [lastImportBatch, setLastImportBatch] = useState<ExerciseImportBatch | null>(null);
   const searchKwRef = useRef(searchKw);
   const candidateState = useExerciseImportCandidates({ onMessage: setMessage });
@@ -105,7 +108,8 @@ const ExercisesPage: React.FC = () => {
     selectedIds,
     resetImportCandidates,
     replaceCandidates,
-    removeSelectedCandidates,
+    removeCommittedCandidates,
+    submittableCandidates,
   } = candidateState;
 
   useEffect(() => {
@@ -237,7 +241,7 @@ const ExercisesPage: React.FC = () => {
   const resetImportPreview = () => {
     resetImportCandidates();
     setExtractedPreview('');
-    setReceipt(null); setLastImportBatch(null); setImportScopeSnapshot(null); setCandidateSourceLabel('');
+    setReceipt(null); setLastImportBatch(null); setInspectedBatches([]); setImportScopeSnapshot(null); setCandidateSourceLabel('');
   };
 
   const updateTargetName = async (value: string) => {
@@ -325,7 +329,6 @@ const ExercisesPage: React.FC = () => {
   const analyzeTextbookExercises = async () => {
     if (importLock.current || commitUnknown) return;
     if (candidates.length && !window.confirm('重新解析将替换当前候选及其编辑，继续吗？')) return;
-    if (useLlmRepair && !window.confirm('将识别后的文本发送到已配置回答模型进行辅助修复，可能产生费用。继续吗？')) return;
     const requestedScope = importScope.current;
     if (!activeName || activeName === 'default') {
       setMessage('请先选择已导入教材');
@@ -345,7 +348,8 @@ const ExercisesPage: React.FC = () => {
         page_end: textbookPageEnd ? Number(textbookPageEnd) : null,
         source_mode: textbookSourceMode,
         limit: 200,
-        use_llm: useLlmRepair,
+        candidate_contract_version: 1,
+        use_llm: false,
         llm_max_items: 20,
       }, 60000);
       if (requestedScope !== importScope.current) return;
@@ -356,9 +360,13 @@ const ExercisesPage: React.FC = () => {
         return;
       }
       if (requestedScope !== importScope.current) return;
+      if (res.candidate_contract_version !== 1 || !res.extract?.canonical_hash || !Array.isArray(res.extract?.source_blocks) || res.data?.some((c: ExerciseCandidate) => !c.projection || !c.issues || c.projection.canonical_hash !== res.extract.canonical_hash)) {
+        setMessage('后端未提供v1候选合同，请更新后端后重新分析；当前候选保留。');
+        return;
+      }
       const next = res.data || [];
       setCandidateSourceLabel(`${activeName}${textbookChapter ? ` · ${textbookChapter}` : ''}`);
-      replaceCandidates(next);
+      replaceCandidates(next, res.extract);
       setReviewPreparationOpen(false);
       setExtractedPreview(res.extract?.text || '');
       const warnings = res.extract?.warnings?.length ? `（${res.extract.warnings.join('；')}）` : '';
@@ -372,20 +380,26 @@ const ExercisesPage: React.FC = () => {
   };
   const importSelected = async () => {
     if (importLock.current || commitUnknown) return;
-    const selected = candidates.filter(item => selectedIds.has(item.id));
+    if (candidateState.editingCandidateId || candidateState.confirmingId) return;
+    const selected = submittableCandidates;
     if (!selected.length || selected.some(item => !item.question_text.trim())) return;
-    if (!window.confirm(`确认将选中的 ${selected.length} 道候选入库？重复题会跳过，请先校对题干、答案与来源。`)) return;
+    if (!window.confirm(`确认将可入库的 ${selected.length} 道候选入库？另有 ${selectedIds.size - selected.length} 道选中题保留待核对。重复题会跳过；批量采用不等于人工核实。`)) return;
     importLock.current = true; setImporting(true);
     try {
-      const res = await post(`/exercises/batch-add${bookQuery}`, { exercises: selected.map(candidateToExercise), source_label: candidateSourceLabel || `${activeName} 教材抽题`, allow_duplicates: false });
+      const v1 = Boolean(candidateState.sourceRegistry);
+      const submittedIds = new Set(selected.map(c => c.id));
+      const res = await post(`/exercises/${v1 ? 'candidates/batch-add' : 'batch-add'}${bookQuery}`, { ...(v1 ? { candidate_contract_version: 1 } : {}), exercises: selected.map(candidateToExercise), source_label: candidateSourceLabel || `${activeName} 教材抽题`, allow_duplicates: false });
       if (!res?.success) { setMessage(res?.message || '入库被拒绝，候选仍保留'); return; }
-      if (!res.batch_id || !Array.isArray(res.data) || typeof res.count !== 'number' || res.count + (res.skipped?.length || 0) !== selected.length) {
+      const acknowledged = [...(res.data || []).map((r: ExerciseRecord) => r.origin_id), ...(res.skipped || []).map((r: { origin_id: string }) => r.origin_id)];
+      const receiptsValid = !v1 || (res.candidate_contract_version === 1 && Array.isArray(res.candidate_receipts) && res.candidate_receipts.length === res.count && res.data?.every((r: ExerciseRecord) => res.candidate_receipts.some((receipt: { exercise_id: string; origin_id: string }) => receipt.exercise_id === r.id && receipt.origin_id === r.origin_id)));
+      if (!res.batch_id || !Array.isArray(res.data) || typeof res.count !== 'number' || res.count !== res.data.length || res.count + (res.skipped?.length || 0) !== selected.length || new Set(acknowledged).size !== selected.length || acknowledged.some(id => !submittedIds.has(id)) || !receiptsValid) {
         setCommitUnknown(true); setMessage('入库回执不完整，候选仍保留。请先核对题库与导入批次，勿重复提交。'); return;
       }
       setReceipt({ count: res.count, skipped: res.skipped?.length || 0, batchId: res.batch_id });
-      setLastImportBatch({ id: res.batch_id, source_label: candidateSourceLabel || activeName, exercise_ids: res.data.map((r: ExerciseRecord) => r.id), skipped: res.skipped || [], created_at: '', status: 'active' });
-      removeSelectedCandidates(); setMessage(''); await load();
-    } catch {
+      setLastImportBatch({ id: res.batch_id, source_label: candidateSourceLabel || activeName, exercise_ids: res.data.map((r: ExerciseRecord) => r.id), skipped: res.skipped || [], candidate_receipts: res.candidate_receipts || [], created_at: '', status: 'active' });
+      removeCommittedCandidates(submittedIds); setMessage(''); await load();
+    } catch (error) {
+      if (error instanceof ApiError && [404, 409, 422].includes(error.status)) { setMessage(`入库被拒绝，候选仍保留：${error.message}`); return; }
       setCommitUnknown(true); setMessage('连接中断，入库结果未知。候选仍保留；先核对题库与批次，不能自动重发。');
     } finally { importLock.current = false; setImporting(false); }
   };
@@ -393,6 +407,7 @@ const ExercisesPage: React.FC = () => {
   const inspectImportBatches = async () => {
     try {
       const r = await get(`/exercises/import-batches${bookQuery}`);
+      if (r?.success) setInspectedBatches(r.data || []);
       setMessage(r?.success ? `请核对以下批次与题库；无法自动识别本次提交：${(r.data || []).map((b: ExerciseImportBatch) => `${b.id}（${b.exercise_ids.length}题）`).join('；')}` : '批次读取失败');
     } catch { setMessage('批次读取失败，请检查连接'); }
   };
@@ -458,6 +473,8 @@ const ExercisesPage: React.FC = () => {
           <h1>{lastImportBatch?.status === 'rolled_back' ? '本批次已回滚' : commitUnknown ? '入库结果待核对' : receipt?.count ? `已加入 ${receipt.count} 道题目` : '没有新增题目'}</h1>
           <p>{commitUnknown ? message : `跳过 ${receipt?.skipped || 0} 道重复题 · 批次 ${receipt?.batchId}`}</p>
           {message && !commitUnknown && <p role="status">{message}</p>}
+          {lastImportBatch && <BatchCandidateReceipts batch={lastImportBatch} bookQuery={bookQuery} />}
+          {inspectedBatches.map(batch => <BatchCandidateReceipts key={batch.id} batch={batch} bookQuery={bookQuery} />)}
           <div className="exercise-receipt-actions">
             {commitUnknown ? <button className="app-primary-button" onClick={() => void inspectImportBatches()}>核对导入批次</button> : <button className="app-primary-button" onClick={() => setWorkspaceMode('practice')}>准备练习</button>}
             <button className="app-secondary-button" onClick={() => setWorkspaceMode('bank')}>查看题库</button>
@@ -503,7 +520,7 @@ const ExercisesPage: React.FC = () => {
                   <label className="exercise-field">抽取内容<select aria-label="抽取内容" value={textbookSourceMode} onChange={e => setTextbookSourceMode(e.target.value)}>
                     <option value="exercise_sections">习题页优先</option>
                     <option value="examples">章节例题</option>
-                    <option value="all_pages">整页文本</option>
+
                   </select>
                   </label>
                 </div>
@@ -524,10 +541,10 @@ const ExercisesPage: React.FC = () => {
                   <label className="exercise-field">章节（可选）<input value={importChapter} onChange={e => setImportChapter(e.target.value)} />
                   </label>
                 </div>}
-                <label className="exercise-repair">
+                {sourceKind === 'file' && <label className="exercise-repair">
                   <input type="checkbox" checked={useLlmRepair} onChange={e => setUseLlmRepair(e.target.checked)} />辅助修复文本候选<HelpHint label="辅助修复">使用已配置回答模型处理文字，不负责识图；单次最多处理20道候选。</HelpHint>
-                </label>
-                {useLlmRepair && <p className="exercise-warning">分析前需确认将文本发送给已配置模型，可能产生费用；扫描图片与公式仍需人工核对。</p>}
+                </label>}
+                {sourceKind === 'file' && useLlmRepair && <p className="exercise-warning">分析前需确认将文本发送给已配置模型，可能产生费用；扫描图片与公式仍需人工核对。</p>}
               </details>
               <div className="exercise-import-submit">{sourceKind === 'file' && <p>扫描 PDF 请先完成 OCR；辅助修复不能代替识图。</p>}
                 <button className="app-primary-button" disabled={importing || (sourceKind === 'file' ? !importFile : !activeName || activeName === 'default')} onClick={sourceKind === 'file' ? analyzeImportFile : analyzeTextbookExercises}>{importing ? <>
@@ -543,7 +560,7 @@ const ExercisesPage: React.FC = () => {
             <button className="app-ghost-button" onClick={() => setManualOpen(true)}>手动录入一道题</button>
           </div>
           <div hidden={candidates.length === 0 || reviewPreparationOpen} className="exercise-review-panel">
-            <CandidateReviewWorkspace state={candidateState} original={extractedPreview} source={candidateSourceLabel || activeName} busy={importing} message={message} onBack={() => setReviewPreparationOpen(true)} onSubmit={importSelected} />
+            <CandidateReviewWorkspace state={candidateState} original={extractedPreview} source={candidateSourceLabel || activeName} busy={importing || commitUnknown} message={message} onBack={() => setReviewPreparationOpen(true)} onSubmit={importSelected} />
           </div>
         </section>
         <div hidden={workspaceMode !== 'bank' || !expandedId} className="exercise-bank-reader">{records.find(r => r.id === expandedId) && <ExerciseReader key={expandedId} record={records.find(r => r.id === expandedId)!} bookQuery={bookQuery} title="习题详情" actions={<>

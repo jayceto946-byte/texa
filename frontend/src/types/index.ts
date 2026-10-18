@@ -338,7 +338,41 @@ export interface ExerciseStats {
   by_tag: Record<string, number>;
   by_status: Record<string, number>;
 }
+export interface CandidateSpan { block_id: string; start: number; end: number | null }
+export interface CandidateDependency {
+  id: string; kind: 'figure' | 'table' | 'formula' | 'prior_context'; label: string;
+  requirement: 'required' | 'reference' | 'uncertain'; block_ids: string[]; asset_ids: string[];
+  resolution: 'embedded' | 'identified' | 'unresolved';
+}
+export interface CandidateProjection {
+  version: 1; canonical_hash: string; unit_ids: string[];
+  scope: { chapter: string; page_start: number | null; page_end: number | null; source_mode: 'exercise_sections' | 'examples' | 'all_pages' };
+  method: 'whole_unit' | 'block_boundary' | 'unresolved' | 'user_edited';
+  parts: Record<'question' | 'answer' | 'explanation' | 'context' | 'unassigned', CandidateSpan[]>;
+  dependencies: CandidateDependency[];
+}
+export interface CandidateIssue { key: string; category: 'content' | 'metadata'; code: string; block_ids: string[]; dependency_id: string | null }
+export interface CandidateReview { content_hash: string; resolutions: Array<{ issue_key: string; decision: 'corrected' | 'not_applicable' | 'source_checked' }> }
+export interface CandidateSourceBlock {
+  block_id: string; block_type: string; text: string; order: number; section_path: string[];
+  page_start: number | null; page_end: number | null; bbox: number[] | null; equations: string[];
+  table_title: string; table_header: string[]; table_rows: string[][]; source_kind: string; review_status: string;
+  attributes: Record<string, string | number | null>;
+}
+export interface CandidateSourceRegistry {
+  canonical_hash: string; source_blocks: CandidateSourceBlock[];
+  units: Array<{ unit_id: string; text: string; source_block_ids: string[] }>;
+}
+export interface CandidateReceipt {
+  exercise_id: string; origin_id: string;
+  projection: Pick<CandidateProjection, 'version' | 'canonical_hash' | 'unit_ids' | 'method' | 'parts'>;
+  body_hash: string; review_kind: 'system_proposed' | 'user_confirmed';
+}
+
 export interface ExerciseCandidate {
+  projection?: CandidateProjection | null;
+  issues?: CandidateIssue[] | null;
+  review?: CandidateReview | null;
   id: string;
   question_text: string;
   answer: string;
@@ -362,6 +396,7 @@ export interface ExerciseCandidate {
 }
 
 export interface ExerciseImportBatch {
+  candidate_receipts?: CandidateReceipt[];
   id: string;
   source_label: string;
   exercise_ids: string[];
