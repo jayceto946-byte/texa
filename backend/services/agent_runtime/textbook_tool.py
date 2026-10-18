@@ -58,11 +58,12 @@ def register_textbook_search_runtime(registry: ToolRegistry, scope: dict, *, ret
         allowed = set(scope["index_versions"])
         if any(item.get("book_name") not in allowed for item in items):
             raise RuntimeDenied("retrieval escaped the frozen textbook scope")
+        from graph.textbook_context import expand_textbook_context
+        items = expand_textbook_context(items, intent=intent, query=args["query"])
+        if any(version_reader(name) != version for name, version in scope["index_versions"].items()):
+            raise RuntimeDenied("textbook index version changed during expansion")
         pack = build_evidence_pack(items, intent=intent)
-        selected = []
-        for source in pack["items"]:
-            raw = next(item for item in items if item.get("chunk_id") == source["chunk_id"] and item.get("book_name") == source["book_name"])
-            selected.append({**raw, "text": str(raw.get("text") or "")[:source["chars"]]})
+        selected = pack["verification_items"]
         support = result.get("evidence_support") or {}
         success = bool(selected) and support.get("status") not in {"insufficient", "unavailable"}
         return ToolResult(success, data={"query_scope": scope, "evidence_items": selected,
@@ -70,6 +71,6 @@ def register_textbook_search_runtime(registry: ToolRegistry, scope: dict, *, ret
             evidence=pack["items"], message="Scoped production EvidencePack" if success else "Scoped evidence unavailable")
     registry.register(ToolSpec(name="search_textbook", description="Search only the frozen UI textbook scope; preserve EvidencePack provenance",
         parameters=TextbookSearchInput.model_json_schema(), read_only=True, handler=handler,
-        runtime_input=TextbookSearchInput, runtime_output=TextbookSearchOutput, permission="READ",
+        runtime_input=TextbookSearchInput, runtime_output=TextbookSearchOutput, permission="READ", version="2",
         side_effect="derived_cache", source="builtin", provenance="scoped_production_evidence_pack",
         idempotency="read_retryable", timeout_seconds=8, runtime_scope_check=scope_check))

@@ -122,7 +122,7 @@ def prepare_chapter_subgraph(state: dict):
     chapter = str(target[0]) if target else ""
     intent = state.get("intent", "teach")
     book_name = state.get("book_name", "default")
-    evidence_pack = _prepare_evidence_pack(state)
+    evidence_pack = _prepare_evidence_pack(state, char_budget=6000)
     content = str(evidence_pack.get("text") or "")
     if not chapter and evidence_pack["items"]:
         chapter = str(evidence_pack["items"][0].get("chapter") or "")
@@ -151,7 +151,7 @@ def chapter_subgraph_run(state: dict) -> dict:
         conversation_text, _conversation_pack = prepare_conversation_context(state)
         teach_prompt = TEACH_PROMPT.format(
             chapter=chapter,
-            content=content[:6000],
+            content=content,
             conversation_context=conversation_text,
         )
         from graph.generator import _record_context_budget
@@ -159,7 +159,7 @@ def chapter_subgraph_run(state: dict) -> dict:
         if minimal_teaching_prompt_enabled() or refined_teaching_prompt_enabled():
             minimal_payload = (
                 f"## 学习任务\n讲解“{chapter}”\n\n"
-                f"## 教材证据\n{content[:6000]}\n\n"
+                f"## 教材证据\n{content}\n\n"
                 f"## 当前学习上下文\n{conversation_text or '(none)'}\n\n"
                 "## 引用协议\n若使用某条教材证据支持具体结论，请在该句末输出其真实编号，"
                 "格式为 [[cite:E1]]；不要生成不存在的编号。"
@@ -174,7 +174,7 @@ def chapter_subgraph_run(state: dict) -> dict:
                 f"{compact_system}\n\n{minimal_payload}",
                 assembly_mode=f"teach_{teaching_prompt_mode()}",
                 query_text=str(state.get("user_input") or ""),
-                teaching_text=content[:6000],
+                teaching_text=content,
             )
             budget = state.get("context_budget")
             if isinstance(budget, dict):
@@ -194,7 +194,7 @@ def chapter_subgraph_run(state: dict) -> dict:
                 teach_prompt,
                 assembly_mode="teach_legacy",
                 query_text=str(state.get("user_input") or ""),
-                teaching_text=content[:6000],
+                teaching_text=content,
             )
             resp = llm.invoke(teach_prompt)
         full_output = resp.content
