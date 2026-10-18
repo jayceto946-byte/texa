@@ -1,0 +1,102 @@
+.FFFF.                                                                   [100%]
+=================================== FAILURES ===================================
+___________ test_exercise_visual_extension_changes_question_version ____________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-184/test_exercise_visual_extension0')
+
+    def test_exercise_visual_extension_changes_question_version(tmp_path):
+        bank = ExerciseBank(tmp_path / 'bank.db')
+        record = ExerciseRecord.from_dict({'question_text': 'Stokes', 'visual_ir': {'figure': 'one'}})
+        record.knowledge_structure = validate_classification(proposal(), catalog(record))
+        bank.add(record)
+        loaded = bank.get(record.id)
+        before = question_digest(loaded)
+        loaded.extra_fields['visual_ir'] = {'figure': 'two'}
+        bank.update(loaded)
+        loaded = bank.get(record.id)
+>       assert question_digest(loaded) != before
+E       AssertionError: assert 'e21159bd9dea000d3925788014cff936e24e64392e3a7018848e9abab9dba879' != 'e21159bd9dea000d3925788014cff936e24e64392e3a7018848e9abab9dba879'
+E        +  where 'e21159bd9dea000d3925788014cff936e24e64392e3a7018848e9abab9dba879' = question_digest(ExerciseRecord(question_text='Stokes', book_id='', answer='', explanation='', source='', subject='', chapter=None, tag..., practice_history=[], created_at='2026-10-18T16:17:41.753234', updated_at='2026-10-18T16:17:41.754351', id='ef109674'))
+
+tests/test_p1_abc_integration.py:57: AssertionError
+___ test_direct_record_update_invalidates_old_answer_classification[answer] ____
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-184/test_direct_record_update_inva0')
+field = 'answer'
+
+    @pytest.mark.parametrize('field', ['answer', 'explanation'])
+    def test_direct_record_update_invalidates_old_answer_classification(tmp_path, field):
+        bank = ExerciseBank(tmp_path / 'bank.db')
+        record = ExerciseRecord(question_text='Stokes', answer='old answer', explanation='old explanation')
+        record.knowledge_structure = validate_classification(proposal(), catalog(record))
+        bank.add(record)
+        loaded = bank.get(record.id)
+        setattr(loaded, field, 'changed reference')
+        bank.update(loaded)
+>       assert bank.get(record.id).knowledge_structure['status'] == 'stale'
+E       AssertionError: assert 'proposed' == 'stale'
+E         
+E         - stale
+E         + proposed
+
+tests/test_p1_abc_integration.py:71: AssertionError
+_ test_direct_record_update_invalidates_old_answer_classification[explanation] _
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-184/test_direct_record_update_inva1')
+field = 'explanation'
+
+    @pytest.mark.parametrize('field', ['answer', 'explanation'])
+    def test_direct_record_update_invalidates_old_answer_classification(tmp_path, field):
+        bank = ExerciseBank(tmp_path / 'bank.db')
+        record = ExerciseRecord(question_text='Stokes', answer='old answer', explanation='old explanation')
+        record.knowledge_structure = validate_classification(proposal(), catalog(record))
+        bank.add(record)
+        loaded = bank.get(record.id)
+        setattr(loaded, field, 'changed reference')
+        bank.update(loaded)
+>       assert bank.get(record.id).knowledge_structure['status'] == 'stale'
+E       AssertionError: assert 'proposed' == 'stale'
+E         
+E         - stale
+E         + proposed
+
+tests/test_p1_abc_integration.py:71: AssertionError
+____________ test_resumed_old_textbook_tool_is_fenced_before_model _____________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-184/test_resumed_old_textbook_tool0')
+
+    def test_resumed_old_textbook_tool_is_fenced_before_model(tmp_path):
+        store, run, model, runner, state = setup_run(tmp_path, [{'content': 'finish'}])
+        frozen = {'id': 'scope', 'book_name': '', 'subject': '', 'resources': [], 'index_versions': {}}
+        register_textbook_search_runtime(runner.registry, frozen, versions=lambda _: 'v1')
+        ref = runner.registry.runtime_tool('search_textbook').runtime_metadata()
+        state.update(support_type='', use_textbook_context=True,
+                     _native_preparation_ref={k: ref[k] for k in ('id', 'version', 'schema_hash')}, _runtime_textbook_scope=frozen)
+        state['_native_preparation_ref']['version'] = '1'
+        store.configure_chat(run, 'owner', state=state, candidates=runner.candidate_tools,
+                             request_question='教材解释', book_name='', subject='')
+        store.save_native_messages(run, 'owner', messages_to_dict([HumanMessage(content='旧教材上下文')]),
+                                   protocol_identity=runner.adapter.protocol_identity())
+        store.close(run, 'owner', outcome='paused', error_code='interrupted')
+        paused = store.snapshot(run)
+        resumed = store.resume('rtask_math', expected_revision=paused['task_revision'], request_key='resume', request_id='resume', owner_token='new', turn_id='turn')
+        result = runner.run_bounded(resumed['run']['id'], 'new', context=ToolContext(), answer_state=state, answer_generator=lambda _: pytest.fail('no extra model'))
+>       assert result['run']['error_code'] == 'answer_scope_changed'
+E       AssertionError: assert 'answer_evidence_missing' == 'answer_scope_changed'
+E         
+E         - answer_scope_changed
+E         + answer_evidence_missing
+
+tests/test_p1_abc_integration.py:90: AssertionError
+=============================== warnings summary ===============================
+../texa/venv310/lib/python3.10/site-packages/starlette/testclient.py:53
+  /Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_p1_abc_integration.py::test_exercise_visual_extension_changes_question_version
+FAILED tests/test_p1_abc_integration.py::test_direct_record_update_invalidates_old_answer_classification[answer]
+FAILED tests/test_p1_abc_integration.py::test_direct_record_update_invalidates_old_answer_classification[explanation]
+FAILED tests/test_p1_abc_integration.py::test_resumed_old_textbook_tool_is_fenced_before_model
+4 failed, 2 passed, 1 warning in 0.92s

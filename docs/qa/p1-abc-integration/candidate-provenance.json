@@ -29,5 +29,10 @@
     "docs/design/question-candidate-contract-2026-10-17/projection-review-design.md": "204ad874a7f9dd96e0a1d0abd188b59b9012578e3e5980f0f57ad5079d4b2e4a",
     "docs/design/question-candidate-contract-2026-10-17/sol-implementation-handoff.md": "7e53959ab0e8ae7711a3fa2cb1cbe9357be5050256bd2cf662d202d6c0e6d100"
   },
-  "excluded": "AppRail/LearningContextSidebar/OverflowMenu/conversations CSS/ApprovedWorkspace/MainLayout/StudyDesk; all production data, raw audit and screenshot archives; shared patch_notes handled separately"
+  "excluded": "AppRail/LearningContextSidebar/OverflowMenu/conversations CSS/ApprovedWorkspace/MainLayout/StudyDesk; all production data, raw audit and screenshot archives; shared patch_notes handled separately",
+  "historical_report": {
+    "path": "docs/validation/question-candidate-contract-2026-10-18/implementation-report.md",
+    "sha256": "e3a86b5f3d56dbe1a37efc212123515897c030bb6b31041e7384dd4beac3ef5f",
+    "meaning": "original standalone report; its counts are not integrated acceptance"
+  }
 }

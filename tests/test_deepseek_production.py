@@ -521,7 +521,7 @@ def test_native_evidence_preparation_rejects_before_model(tmp_path, failure):
     assert result["run"]["status"] == "failed"
     assert result["consumed_model_calls"] == 0 and requests == []
     assert result["consumed_calls"] == int(failure == "missing")
-    assert result["run"]["error_code"] == {"schema": "answer_scope_changed", "index": "answer_preparation_failed",
+    assert result["run"]["error_code"] == {"schema": "answer_scope_changed", "index": "answer_scope_changed",
         "missing": "answer_evidence_missing"}[failure]
 
 

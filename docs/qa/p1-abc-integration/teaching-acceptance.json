@@ -1,0 +1,97 @@
+{
+  "status": "NOT VERIFIED",
+  "reason": "No repository .env; active desktop reasoning profile is deepseek/deepseek-flash. User prohibits Flash substitution and unapproved primary-model changes. No eligible active non-Flash profile was used.",
+  "configured_provider": "deepseek",
+  "configured_model": "deepseek-flash",
+  "provider_requests": 0,
+  "actual_tool_calls_from_remote_model": [],
+  "tokens": 0,
+  "end_to_end_latency_ms": null,
+  "no_mock_substitution": true,
+  "scenarios": [
+    {
+      "id": "A1",
+      "scenario": "完整前提的定理解释",
+      "real_model": "NOT VERIFIED",
+      "local_contract_evidence": "test_textbook_context_expansion",
+      "local_is_not_teaching_quality": true
+    },
+    {
+      "id": "A2",
+      "scenario": "多块连续推导",
+      "real_model": "NOT VERIFIED",
+      "local_contract_evidence": "test_textbook_context_expansion",
+      "local_is_not_teaching_quality": true
+    },
+    {
+      "id": "A3",
+      "scenario": "必要图片未实际进入模型",
+      "real_model": "NOT VERIFIED",
+      "local_contract_evidence": "test_textbook_context_expansion",
+      "local_is_not_teaching_quality": true
+    },
+    {
+      "id": "B1",
+      "scenario": "明确结构化条件下的正确步骤",
+      "real_model": "NOT VERIFIED",
+      "local_contract_evidence": "test_context_math_steps",
+      "local_is_not_teaching_quality": true
+    },
+    {
+      "id": "B2",
+      "scenario": "定义域、增根与漏解",
+      "real_model": "NOT VERIFIED",
+      "local_contract_evidence": "test_context_math_steps",
+      "local_is_not_teaching_quality": true
+    },
+    {
+      "id": "B3",
+      "scenario": "普通自然语言题干不得伪造可信条件",
+      "real_model": "NOT VERIFIED",
+      "local_contract_evidence": "test_context_math_steps",
+      "local_is_not_teaching_quality": true
+    },
+    {
+      "id": "C1",
+      "scenario": "真实习题的主次考点及Schema",
+      "real_model": "NOT VERIFIED",
+      "local_contract_evidence": "test_exercise_knowledge_structure",
+      "local_is_not_teaching_quality": true
+    },
+    {
+      "id": "C2",
+      "scenario": "完整过程中的具体错因与证据",
+      "real_model": "NOT VERIFIED",
+      "local_contract_evidence": "test_exercise_knowledge_structure",
+      "local_is_not_teaching_quality": true
+    },
+    {
+      "id": "C3",
+      "scenario": "仅错误最终答案不编具体错因",
+      "real_model": "NOT VERIFIED",
+      "local_contract_evidence": "test_exercise_knowledge_structure",
+      "local_is_not_teaching_quality": true
+    },
+    {
+      "id": "AB",
+      "scenario": "教材讲解后核验数学结果",
+      "real_model": "NOT VERIFIED",
+      "local_contract_evidence": "test_p1_abc_integration",
+      "local_is_not_teaching_quality": true
+    },
+    {
+      "id": "AC",
+      "scenario": "习题讲解后保存结构化知识",
+      "real_model": "NOT VERIFIED",
+      "local_contract_evidence": "test_p1_abc_integration",
+      "local_is_not_teaching_quality": true
+    },
+    {
+      "id": "ABC",
+      "scenario": "内容修订后分类与诊断失效",
+      "real_model": "NOT VERIFIED",
+      "local_contract_evidence": "test_p1_abc_integration + test_exercise_knowledge_structure",
+      "local_is_not_teaching_quality": true
+    }
+  ]
+}

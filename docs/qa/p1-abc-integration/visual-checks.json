@@ -1,0 +1,29 @@
+{
+  "review": "Six actual screenshots read with view_image; no clipping observed for these synthetic states; not Astra design approval",
+  "images": {
+    "artifacts/p1c/final/diagnosis-1024.png": {
+      "sha256": "9702e16166e5891c249ab0b3475b2380bd07953cf8582fe88d6e12d4b2c2d58d",
+      "reviewed": true
+    },
+    "artifacts/p1c/final/diagnosis-1280.png": {
+      "sha256": "5c173db7aa3f00287c250653f930e5da90d87c225d6dab9a3c5bbc2429141940",
+      "reviewed": true
+    },
+    "artifacts/p1c/final/diagnosis-760.png": {
+      "sha256": "b3d773628622a570fd50413507240ded2deeb2e484fcc59650d16a62d5e9e159",
+      "reviewed": true
+    },
+    "artifacts/p1-abc-electron/candidate-760.png": {
+      "sha256": "f0a0b89c4ab00a7bcc57f04949b1efe898fca75d5d1da938155c158036674196",
+      "reviewed": true
+    },
+    "artifacts/p1-abc-electron/candidate-1280.png": {
+      "sha256": "c4b8d4db79a2074b4e3f275b09ba2e7f362ccb038375de5d6c24a194b1bc2a6a",
+      "reviewed": true
+    },
+    "artifacts/p1-abc-electron/candidate-1024.png": {
+      "sha256": "a3d9f87441ad8207312f569e78bfa2f539afbe35ef3744d9580e9912b567fe40",
+      "reviewed": true
+    }
+  }
+}

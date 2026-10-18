@@ -48,4 +48,5 @@ def test_local_smoke_mistake_review_loop(monkeypatch, tmp_path):
 
     weak = client.get("/api/mistakes/weak-points").json()
     assert weak["success"] is True
-    assert any(item["name"] == "导数" for item in weak["data"])
+    # A topic tag plus a legacy SM-2 self-rating is not confirmed attempt evidence.
+    assert weak["data"] == []

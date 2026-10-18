@@ -95,6 +95,18 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
     if initial["task"].get("required_inputs") or state.get("missing_inputs") or state.get("required_inputs"):
         return store.close(run_id, owner, outcome="failed", error_code="required_input_missing")
     preparation = state.get("_native_preparation_ref")
+    # A resumed checkpoint may already contain model messages and textbook
+    # receipts. Fence its preparation contract before reusing either.
+    if preparation:
+        try:
+            spec = registry.runtime_tool("search_textbook")
+            metadata = spec.runtime_metadata()
+            if preparation != {key: metadata[key] for key in ("id", "version", "schema_hash")}:
+                raise RuntimeDenied("answer_scope_changed")
+            if spec.runtime_scope_check:
+                spec.runtime_scope_check(context, {})
+        except (KeyError, RuntimeDenied, ValueError):
+            return store.close(run_id, owner, outcome="failed", error_code="answer_scope_changed")
     if state.get("use_textbook_context", True) and not pure_math and not has_textbook_evidence(state) and not preparation and "search_textbook" not in refs:
         return store.close(run_id, owner, outcome="failed", error_code="answer_evidence_missing")
     context_started = time.monotonic()

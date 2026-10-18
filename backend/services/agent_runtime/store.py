@@ -198,6 +198,8 @@ class RuntimeStore:
                 "provider_protocol_state_lost": "本次模型续答状态已丢失，请重新发起问题；已执行工具记录保留。",
                 "native_protocol_identity_missing": "旧任务缺少模型身份，无法安全继续；请重新发起问题。",
                 "native_model_changed": "模型配置已改变，无法继续旧任务；请重新发起问题。",
+                "tool_step_denied": "工具合同已改变或本次调用无法安全执行，请重新发起问题；已执行记录保留。",
+                "answer_scope_changed": "教材来源或工具合同已改变，无法继续旧任务；请重新发起问题。",
                 "provider_output_truncated": "模型输出达到额度，回答未完成；请重新发起问题。",
             }.get((payload or {}).get("error_code"), summary)
         event = emitter.emit(event_type, phase=lifecycle.split(".")[0], status=status,

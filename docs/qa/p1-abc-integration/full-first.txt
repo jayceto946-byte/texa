@@ -1,0 +1,135 @@
+........................................................................ [  3%]
+........................................................................ [  7%]
+........................................................................ [ 11%]
+........................................................................ [ 15%]
+........................................................................ [ 19%]
+........................................................F............... [ 23%]
+........................................................................ [ 26%]
+........................................................................ [ 30%]
+........................................................................ [ 34%]
+........................................................................ [ 38%]
+........................................................................ [ 42%]
+........................................................................ [ 46%]
+........................................................................ [ 50%]
+........................................................................ [ 53%]
+........................................................................ [ 57%]
+........................................................................ [ 61%]
+........................................................................ [ 65%]
+........................................................................ [ 69%]
+........................................................................ [ 73%]
+........................................................................ [ 76%]
+........................................................................ [ 80%]
+........................................................................ [ 84%]
+........................................................................ [ 88%]
+..........F............................................................. [ 92%]
+........................................................................ [ 96%]
+........................................................................ [100%]
+=================================== FAILURES ===================================
+_________ test_native_evidence_preparation_rejects_before_model[index] _________
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-186/test_native_evidence_preparati1')
+failure = 'index'
+
+    @pytest.mark.parametrize("failure", ["schema", "index", "missing"])
+    def test_native_evidence_preparation_rejects_before_model(tmp_path, failure):
+        from backend.services.agent_runtime.textbook_tool import register_textbook_search_runtime
+        from tests.test_agent_runtime_textbook import scope
+        store, run, runner, _, requests = wire_run(tmp_path, [completion()])
+        runner.candidate_tools = ()
+        frozen = scope()
+        register_textbook_search_runtime(runner.registry, frozen,
+            versions=lambda name: "changed" if failure == "index" else frozen["index_versions"][name],
+            retrieve=lambda *a, **k: {"evidence_items": [], "evidence_support": {"status": "insufficient"}})
+        metadata = runner.registry.runtime_tool("search_textbook").runtime_metadata()
+        ref = {k: metadata[k] for k in ("id", "version", "schema_hash")}
+        if failure == "schema":
+            ref["schema_hash"] = "changed"
+        state = {"user_input": "讲解概念", "answer_mode": "textbook_grounded", "use_textbook_context": True,
+            "intent": "teach", "_runtime_textbook_scope": frozen, "_native_preparation_ref": ref}
+        result = runner.run_bounded(run, "owner", context=ToolContext(book_name="main", subject="数学"),
+            answer_state=state, answer_generator=lambda _: pytest.fail("no fallback"))
+        assert result["run"]["status"] == "failed"
+        assert result["consumed_model_calls"] == 0 and requests == []
+        assert result["consumed_calls"] == int(failure == "missing")
+>       assert result["run"]["error_code"] == {"schema": "answer_scope_changed", "index": "answer_preparation_failed",
+            "missing": "answer_evidence_missing"}[failure]
+E       AssertionError: assert 'answer_scope_changed' == 'answer_preparation_failed'
+E         
+E         - answer_preparation_failed
+E         + answer_scope_changed
+
+tests/test_deepseek_production.py:524: AssertionError
+_____________________ test_local_smoke_mistake_review_loop _____________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11ce823b0>
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-186/test_local_smoke_mistake_revie0')
+
+    def test_local_smoke_mistake_review_loop(monkeypatch, tmp_path):
+        book = MistakeBook(tmp_path / "smoke_mistakes.db")
+        monkeypatch.setattr(mistakes, "_mb", lambda book_name="default": book)
+        monkeypatch.setattr(mistakes, "_persist_mistake_concepts", lambda record, explanation="", book_name="default": [])
+    
+        client = TestClient(app)
+    
+        health = client.get("/health").json()
+        assert health["status"] == "ok"
+    
+        add_res = client.post(
+            "/api/mistakes/add",
+            json={
+                "question_text": "求导：$x^2$",
+                "user_answer": "$x$",
+                "correct_answer": "$2x$",
+                "subject": "数学",
+                "tags": "导数",
+                "mistake_type": ["计算错误"],
+                "explanation": "幂函数求导公式：$(x^2)'=2x$。",
+            },
+        ).json()
+        assert add_res["success"] is True
+        mistake_id = add_res["id"]
+    
+        list_res = client.post("/api/mistakes/list", json={"limit": 10}).json()
+        assert list_res["success"] is True
+        assert list_res["data"][0]["id"] == mistake_id
+    
+        due_res = client.get("/api/mistakes/due").json()
+        assert due_res["success"] is True
+        assert any(item["id"] == mistake_id for item in due_res["data"])
+    
+        review_res = client.post("/api/mistakes/review", json={"id": mistake_id, "quality": 4}).json()
+        assert review_res["success"] is True
+        assert review_res["data"]["review_history"][0]["quality"] == 4
+        assert review_res["data"]["next_review"] == review_res["next_review"]
+    
+        stats = client.get("/api/mistakes/stats").json()
+        assert stats["total"] == 1
+    
+        weak = client.get("/api/mistakes/weak-points").json()
+        assert weak["success"] is True
+>       assert any(item["name"] == "导数" for item in weak["data"])
+E       assert False
+E        +  where False = any(<generator object test_local_smoke_mistake_review_loop.<locals>.<genexpr> at 0x11ce71e70>)
+
+tests/test_smoke_workflows.py:51: AssertionError
+=============================== warnings summary ===============================
+../texa/venv310/lib/python3.10/site-packages/starlette/testclient.py:53
+  /Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_deepseek_production.py::test_native_evidence_preparation_rejects_before_model[index]
+FAILED tests/test_smoke_workflows.py::test_local_smoke_mistake_review_loop - ...
+2 failed, 1870 passed, 6 warnings in 69.78s (0:01:09)

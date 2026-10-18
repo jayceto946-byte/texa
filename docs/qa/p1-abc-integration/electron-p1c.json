@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "checks": [
+    "real Electron preload",
+    "job classification saved",
+    "canonical same-concept query",
+    "association does not imply weakness",
+    "evidence suggestion persisted",
+    "unconfirmed cause excluded",
+    "explicit attempt confirmation",
+    "confirmation replay idempotent",
+    "one confirmed concept error",
+    "one attempt globally counted",
+    "evidence span readback",
+    "diagnosis no horizontal overflow 1280",
+    "diagnosis no horizontal overflow 1024",
+    "diagnosis no horizontal overflow 760",
+    "existing edit API accepts correction",
+    "edited question invalidates old diagnosis"
+  ],
+  "electron": "37.10.3",
+  "fixture": true,
+  "real_model": "NOT VERIFIED"
+}

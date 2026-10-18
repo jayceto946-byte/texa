@@ -17,7 +17,8 @@ def digest(value) -> str:
 
 def question_digest(record) -> str:
     # Exact text, including corrected OCR/figures, defines this asset version.
-    return digest({key: getattr(record, key, {} if key == "visual_ir" else None) for key in
+    extra = getattr(record, "extra_fields", {}) or {}
+    return digest({key: getattr(record, key, extra.get(key, {} if key == "visual_ir" else None)) for key in
                    ("question_text", "book_id", "subject", "chapter", "image_path", "visual_ir")})
 
 

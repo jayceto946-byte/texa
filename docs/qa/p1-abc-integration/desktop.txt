@@ -1,0 +1,36 @@
+
+> texa-desktop@1.0.0 test
+> node --test *.test.cjs
+
+✔ startup appearance caches the existing theme tokens without storing unrelated data (2.968125ms)
+✔ startup appearance rejects invalid theme IDs and unsafe or incomplete colors (0.1805ms)
+✔ startup window controls are exposed for Windows and hidden by default on macOS (0.675625ms)
+✔ power bridge exposes only suspend/resume and unsubscribes without duplication (2.832625ms)
+✔ failed note preparation still runs focus preparation and vetoes window closure (5.569958ms)
+✔ aborted close notifies handlers without silently restarting a focus run (0.576542ms)
+✔ one click uses actual port; restart follows changed port; disable removes owned mapping (3.122ms)
+✔ unrelated root handler remains untouched (0.649625ms)
+✔ never enables or edits Funnel (0.433541ms)
+✔ existing exact target can be adopted after device rename (0.618375ms)
+✔ not ready and nonlocal backend never mutate Tailscale (0.457542ms)
+✔ missing Tailscale returns actionable state without commands (0.475042ms)
+✔ Texa branding preserves the existing desktop identity and userData paths (1.584542ms)
+✔ userData keeps the legacy default and accepts an explicit isolated override (0.129291ms)
+✔ portFromUrl resolves explicit and default HTTP ports (0.988375ms)
+✔ findAvailablePort releases a bindable loopback port (9.941791ms)
+✔ desktop never treats an older healthy process as its own backend (0.124792ms)
+✔ desktop completion survives restart independently of the backend origin (3.367ms)
+✔ corrupt, old and non-boolean flags do not complete setup (1.569458ms)
+✔ an unwritable completion target reports failure (0.98625ms)
+✔ close waits for its renderer and coalesces concurrent close/quit (0.885209ms)
+✔ failed draft flush vetoes closure without stopping backend (0.123375ms)
+✔ unresponsive renderer times out safely and stale acknowledgements do not revive it (5.611458ms)
+✔ startup without a window can quit and send failure vetoes safely (0.371458ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 131.090167

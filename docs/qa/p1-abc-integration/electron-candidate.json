@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "checks": [
+    "real Electron preload",
+    "three synthetic source candidates",
+    "source solution separated 1280",
+    "no overflow 1280",
+    "source solution separated 1024",
+    "no overflow 1024",
+    "source solution separated 760",
+    "no overflow 760",
+    "required image stays unresolved",
+    "ordinary candidate has no mandatory review",
+    "candidate committed through actual API",
+    "unresolved candidates retained",
+    "receipt persistence without artificial human confirmation",
+    "no renderer errors"
+  ],
+  "errors": [],
+  "synthetic": true,
+  "real_model": "NOT VERIFIED"
+}

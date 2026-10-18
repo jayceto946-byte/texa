@@ -431,6 +431,8 @@ class ExerciseBankStore:
             row = conn.execute("SELECT data FROM exercises WHERE id=?", (record.id,)).fetchone()
             if row:
                 stored = ExerciseRecord.from_dict(json.loads(row[0]))
+                if record.knowledge_structure and (record.answer != stored.answer or record.explanation != stored.explanation):
+                    record.knowledge_structure = {**record.knowledge_structure, "status": "stale", "stale_reason": "reference_answer_changed"}
                 if any(a.get("operation_id") for a in stored.practice_history):
                     # Content edits must not erase a concurrent committed receipt.
                     if (record.last_practiced or "") < (stored.last_practiced or ""):
