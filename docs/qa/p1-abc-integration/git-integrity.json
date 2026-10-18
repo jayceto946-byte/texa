@@ -1,0 +1,18 @@
+{
+  "tested_code_head": "83add1087ed557e8fe93802fbc15bf70f8663f30",
+  "base": "ac071baca0382bdfefece0c1a2b693105dced8a7",
+  "main_branch": "Texa_MacOS",
+  "main_head": "ac071baca0382bdfefece0c1a2b693105dced8a7",
+  "original_status_unchanged": true,
+  "original_snapshot_hashes_unchanged": true,
+  "feature_refs_unchanged": {
+    "feature/p1-textbook-context": "c75695c77d7f6b2f6d7deb53f0ab6b360993212b",
+    "feature/p1-math-verification": "0c2f07389198c53e4879d305590b3a9be3611a3d",
+    "feature/p1-knowledge-structure": "bfe4933ef8b24a49a347d88392062dd4d49b3ba8"
+  },
+  "all_feature_commits_ancestors": true,
+  "candidate_snapshot_matches_all_25_file_hashes": true,
+  "added_database_env_or_archives": [],
+  "ignored_dependencies": "existing frontend modules; desktop/node_modules and venv310 directories contain links to existing dependencies, no reinstall or credential copies",
+  "python": "3.10.21"
+}
