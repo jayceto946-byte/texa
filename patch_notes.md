@@ -3925,3 +3925,13 @@ Android 普通 Wi-Fi 对照出现解答闪现后回到空问答。隔离浏览�
 - Independently validated Sol's `codex/checkpoint-remediation` source snapshot (ad0b worktree, `d06403e` plus remediation), using the current Checkpoint Remediation Handoff only. This chat's older source baseline was not substituted for the implementation under review.
 - Full regressions: Python 3.10.21 / venv310 950 passed; frontend 126 passed, lint/build passed; Electron 7 passed plus isolated native approval/pause/restart checks. Added acceptance assertions expose 4 failures across 3 in-scope lifecycle/idempotency/receipt issues; checkpoint remains NO-GO.
 - No production code, data, dependencies, or schema changed during acceptance. Evidence and per-criterion verdicts: `docs/validation/checkpoint-final-2026-09-30/README.md`.
+
+## 2026-10-18 — Agent Loop 工具预算与完成交付定向修复
+
+- 独立分支 `fix/p1-agent-loop-completion`，Base `655aa481743b20e24eaab52f5f75d141b4db83dc`；实现提交 `3574537`。未修改主工作区、合并或 push。
+- 真实 Trace 证实 AB/sensor-B 的过额 calls 均在首个模型响应内提出，固定教材检索共享预算；历史验收4次，生产聊天入口3次，均未扩大。
+- 原生模型请求临时提示剩余工具余额/固定检索占用/失败计数/直接结束与核验边界。同 run 内完全相同合同和校验后参数的成功数学回执复用，保留每个原生 ToolMessage 和原SQL回执引用；不同条件/变量/版本/source/run及unknown/failed均不合并。
+- 数学工具只补标量表达式不支持tuple/list/vector批量的说明；不改数学验证器、Schema、数据库、教材打包或P1-C。
+- 最终Python相关回归252通过；1项严格三行格式失败在精确Base也可复现，保持单独记录和原断言。前端SSE/API/活动31通过，Electron壳24通过；未做全Electron UI和全库测试。
+- DeepSeek V4.1 Flash（deepseek-flash），temperature=1，thinking enabled/high，专用Profile进程内使用：共4次请求、23,555 tokens。两项均未预算中断并交付正文，task均degraded/unverified；AB仍有1次tuple语法错误，后补说明未再付费复测。不能宣称整体完成率提升或整题verified。
+- 交付结论CONDITIONAL PASS；详见 `AGENT-LOOP-BUDGET-COMPLETION-REPORT.md`、`docs/qa/agent-loop-completion/`。生产数据未改；付费取消/恢复、生产3次入口与完整混合检索未验。
