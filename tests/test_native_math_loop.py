@@ -440,3 +440,61 @@ def test_performance_payload_cannot_persist_provider_text(tmp_path):
         performance={'first_chunk_ms': 10, 'reasoning_content': 'private', 'input_tokens': -1, 'handler_ms': float('nan')})
     event = store.events(run)[-1]
     assert event['payload']['performance'] == {'first_chunk_ms': 10}
+
+
+def test_exact_original_delivery_requirements_survive_all_native_rounds(tmp_path):
+    from pathlib import Path
+    from langchain_core.messages import SystemMessage
+    fixture = Path(__file__).resolve().parents[1] / 'docs/qa/evidence/native-tool-loop/paid-2026-10-13/extended-deadline/questions.json'
+    original = next(q['question'] for q in json.loads(fixture.read_text()) if q['id'] == 'q3-estimation')
+    responses = [call('symbolic_math', {'operation': 'integrate', 'expression': 'n*x^n/theta^n',
+        'variable': 'x', 'lower': '0', 'upper': 'theta',
+        'assumptions': {'theta': 'positive', 'n': 'positive'}}, 'moment'),
+        {'content': r'最终结果为 $n\theta/(n+1)$。'}]
+    store, run, model, runner, state = setup_run(tmp_path, responses)
+    state.update(user_input='求最大次序统计量的均值', support_type='',
+                 answer_mode='global_general', use_textbook_context=False)
+    store.configure_chat(run, 'owner', state=state, candidates=runner.candidate_tools,
+                         request_question=original, book_name='', subject='数学')
+    result = runner.run_bounded(run, 'owner', context=ToolContext(), answer_state=state,
+                               answer_generator=lambda _: pytest.fail('no additional review LLM'))
+    assert len(model.received) == result['consumed_model_calls'] == 2
+    for messages in model.received:
+        reminders = [m for m in messages if isinstance(m, SystemMessage) and '本轮原题' in m.content]
+        assert len(reminders) == 1  # no growing reminder history
+        assert json.dumps(original, ensure_ascii=False) in reminders[0].content
+        assert '请推导分布和所需矩' in reminders[0].content
+        assert '不将数值核验扩大' in reminders[0].content
+    returned = json.loads(next(m.content for m in model.received[1] if isinstance(m, ToolMessage)))
+    receipt = result['tool_calls'][0]['result']
+    assert returned['data'] == receipt['data']
+    assert returned['warnings'] == receipt['warnings']
+    assert returned['data']['result']['exact'] == 'n*theta/(n + 1)'
+    assert returned['data']['assumptions'] == {'theta': 'positive', 'n': 'positive'}
+    assert result['task']['verification']['status'] != 'passed'
+    # This tests contract retention, not whether a real model follows it.
+
+
+def test_unverified_conditions_are_delivered_to_model_without_upgrade(tmp_path):
+    responses = [call('verify_math_result', {'kind': 'equivalence', 'left': 'x/x', 'right': '1'}, 'domain'),
+                 {'content': '缺少非零条件，不能断言普遍成立。'}]
+    store, run, model, runner, state = setup_run(tmp_path, responses)
+    result = runner.run_bounded(run, 'owner', context=ToolContext(), answer_state=state,
+                               answer_generator=lambda _: pytest.fail('no additional review LLM'))
+    message = next(m for m in model.received[1] if isinstance(m, ToolMessage))
+    returned = json.loads(message.content)
+    assert not returned['success']
+    assert returned['data']['status'] == 'unverified'
+    assert returned['data']['limitations'] and returned['data']['scope']
+    assert returned['verification']['passed'] is False
+    assert result['task']['verification']['status'] != 'passed'
+
+
+def test_superseded_math_contract_cannot_reuse_receipts_even_without_new_calls(tmp_path):
+    store, run, model, runner, state = setup_run(tmp_path, [SUCCESS[-1]])
+    runner.candidate_tools = tuple({**ref, 'version': 'superseded'} for ref in runner.candidate_tools)
+    result = runner.run_bounded(run, 'owner', context=ToolContext(), answer_state=state,
+                               answer_generator=lambda _: pytest.fail('no model on stale contract'))
+    assert result['run']['error_code'] == 'tool_step_denied'
+    assert result['consumed_model_calls'] == 0
+    assert not model.received

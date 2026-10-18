@@ -6,10 +6,13 @@ passing model-produced text to Python, ``eval`` or SymPy's general parser.
 from __future__ import annotations
 
 import ast
+import keyword
+import io
+import tokenize
 import math
 import re
 from typing import Any, Literal
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 import contextvars
 
 import sympy as sp
@@ -17,7 +20,6 @@ import sympy as sp
 from backend.tools.registry import ToolContext, ToolRegistry, ToolResult, ToolSpec
 
 
-_SYMBOLS = {name: sp.Symbol(name) for name in ("x", "y", "z", "t", "n", "a", "b", "c")}
 _CONSTANTS = {"pi": sp.pi, "e": sp.E, "E": sp.E, "I": sp.I, "oo": sp.oo}
 _FUNCTIONS = {
     "sin": sp.sin,
@@ -31,30 +33,67 @@ _FUNCTIONS = {
     "ln": sp.log,
     "sqrt": sp.sqrt,
     "abs": sp.Abs,
+    "Abs": sp.Abs,  # SymPy's own serialized spelling must round-trip.
 }
 _MAX_EXPRESSION_CHARS = 300
 _MAX_AST_NODES = 120
 _ASSUMPTIONS = contextvars.ContextVar("math_assumptions", default={})
+_GREEK = dict(zip("αβγδεζηθικλμνξορστυφχψω", (
+    "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron rho sigma tau upsilon phi chi psi omega".split())))
+Assumption = Literal["real", "positive", "integer", "nonnegative", "negative", "nonpositive", "nonzero"]
 
 
-class MathInput(BaseModel):
+def _symbol_name(value: str) -> str:
+    name = _GREEK.get(value, value)
+    if (not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,31}", name) or "__" in name
+            or (keyword.iskeyword(name) and name != "lambda") or name in _FUNCTIONS or name in _CONSTANTS):
+        raise ValueError("expected a mathematical symbol name (not a function, constant or code)")
+    return name
+
+
+class MathConditions(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    variable: str = Field(default="x", max_length=32, description="Mathematical identifier, e.g. x, theta, lambda, x_1; Greek letter aliases accepted.")
+    assumptions: dict[str, Assumption] = Field(default_factory=dict, max_length=16,
+        description="Explicit SymPy predicates only (nonzero means real and nonzero; integer implies real). Omitted symbols are complex; arbitrary inequalities/intervals are not supported. Do not invent conditions.")
+
+    @field_validator("variable")
+    @classmethod
+    def valid_variable(cls, value):
+        return _symbol_name(value)
+
+    @field_validator("assumptions")
+    @classmethod
+    def valid_assumptions(cls, value):
+        normalized = {_symbol_name(name): assumption for name, assumption in value.items()}
+        if len(normalized) != len(value):
+            raise ValueError("duplicate symbol aliases in assumptions")
+        return normalized
+
+    @model_validator(mode="after")
+    def bounded_conditions(self):
+        if any(isinstance(v, str) and len(v) > 300 for v in
+               (getattr(self, key, None) for key in ("lower", "upper", "point"))):
+            raise ValueError("bound exceeds expression budget")
+        return self
+
+
+class MathInput(MathConditions):
     model_config = ConfigDict(extra="forbid", strict=True)
     operation: Literal["calculate", "simplify", "differentiate", "integrate", "solve", "limit"]
     expression: str = Field(min_length=1, max_length=300)
-    variable: Literal["x", "y", "z", "t", "n", "a", "b", "c"] = "x"
     right: str = Field(default="0", max_length=300)
     lower: str | int | float | None = None
     upper: str | int | float | None = None
     point: str | int | float | None = None
     direction: Literal["+", "-", "+-"] = "+-"
-    assumptions: dict[str, Literal["real", "positive", "integer", "nonnegative"]] = Field(default_factory=dict, max_length=8)
 
     @model_validator(mode="after")
-    def bounded_assumptions(self):
-        if any(name not in _SYMBOLS for name in self.assumptions):
-            raise ValueError("unsupported assumption symbol")
-        if any(isinstance(v, str) and len(v) > 300 for v in (self.lower, self.upper, self.point)):
-            raise ValueError("bound exceeds expression budget")
+    def operation_conditions(self):
+        if self.operation != "integrate" and (self.lower is not None or self.upper is not None):
+            raise ValueError("bounds are supported only for integration; solve intervals are not supported")
+        if self.operation != "limit" and self.point is not None:
+            raise ValueError("point is supported only for limits")
         return self
 
 
@@ -67,12 +106,12 @@ class MathOutput(BaseModel):
     result: dict[str, Any]
     verification_request: dict[str, Any]
     status: Literal["computed", "unevaluated"]
+    limitations: list[str] = Field(default_factory=list)
 
 
-class MathVerifyInput(BaseModel):
+class MathVerifyInput(MathConditions):
     model_config = ConfigDict(extra="forbid", strict=True)
     kind: Literal["equivalence", "derivative", "antiderivative", "definite_integral", "solutions", "limit"]
-    variable: Literal["x", "y", "z", "t", "n", "a", "b", "c"] = "x"
     left: str = Field(default="", max_length=300)
     right: str = Field(default="", max_length=300)
     original: str = Field(default="", max_length=300)
@@ -82,15 +121,25 @@ class MathVerifyInput(BaseModel):
     upper: str | int | float | None = None
     point: str | int | float | None = None
     direction: Literal["+", "-", "+-"] = "+-"
-    assumptions: dict[str, Literal["real", "positive", "integer", "nonnegative"]] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def verification_conditions(self):
+        if self.kind != "definite_integral" and (self.lower is not None or self.upper is not None):
+            raise ValueError("bounds are supported only for definite integrals; solution intervals are not supported")
+        if self.kind != "limit" and self.point is not None:
+            raise ValueError("point is supported only for limits")
+        return self
 
 
 class MathVerifyOutput(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
-    status: str
+    status: Literal["verified", "failed", "unverified"]
     method: str
     passed: bool
     residuals: list[str]
+    assumptions: dict[str, str] = Field(default_factory=dict)
+    scope: str = ""
+    limitations: list[str] = Field(default_factory=list)
 
 
 class RestrictedMathError(ValueError):
@@ -114,15 +163,27 @@ def _normalize_expression(value: Any) -> str:
     )
     # Accept ordinary textbook forms such as 2x and 3(x+1), while keeping the
     # grammar explicit and bounded.
-    text = re.sub(r"(?<=\d)(?=[a-zA-Z(])(?![eE][+-]?\d)", "*", text)
-    text = re.sub(r"(?<=[a-df-zA-DF-Z)])(?=\d)", "*", text)
-    text = re.sub(r"(?<=\))(?=[a-zA-Z(])", "*", text)
-    return text
+    # Python reserves lambda; the Greek alias is a Name node, never a lambda
+    # expression. Only bare symbol names are canonicalized by _symbol_name.
+    text = re.sub(r"\blambda\b", "λ", text)
+    try:
+        tokens = list(tokenize.generate_tokens(io.StringIO(text).readline))
+        normalized = []
+        previous = None
+        for token in tokens:
+            if previous and ((previous.type == tokenize.NUMBER and (token.type == tokenize.NAME or token.string == "("))
+                    or (previous.string == ")" and (token.type in {tokenize.NAME, tokenize.NUMBER} or token.string == "("))):
+                normalized.append((tokenize.OP, "*"))
+            normalized.append((token.type, token.string))
+            previous = token
+        return tokenize.untokenize(normalized)
+    except (tokenize.TokenError, IndentationError) as exc:
+        raise RestrictedMathError("expression syntax is invalid") from exc
 
 
-def _expression_from_ast(node: ast.AST) -> sp.Expr:
+def _expression_from_ast(node: ast.AST, *, evaluate=True) -> sp.Expr:
     if isinstance(node, ast.Expression):
-        return _expression_from_ast(node.body)
+        return _expression_from_ast(node.body, evaluate=evaluate)
     if isinstance(node, ast.Constant):
         if isinstance(node.value, bool) or not isinstance(node.value, (int, float)):
             raise RestrictedMathError("only numeric constants are allowed")
@@ -136,40 +197,37 @@ def _expression_from_ast(node: ast.AST) -> sp.Expr:
             raise RestrictedMathError("numeric scale is out of range")
         return sp.Rational(literal)
     if isinstance(node, ast.Name):
-        if node.id in _SYMBOLS:
-            assumption = _ASSUMPTIONS.get().get(node.id)
-            return sp.Symbol(node.id, **{assumption: True}) if assumption else _SYMBOLS[node.id]
         if node.id in _CONSTANTS:
             return _CONSTANTS[node.id]
-        raise RestrictedMathError(f"unsupported symbol: {node.id}")
+        return _variable(node.id)
     if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
-        value = _expression_from_ast(node.operand)
-        return value if isinstance(node.op, ast.UAdd) else -value
+        value = _expression_from_ast(node.operand, evaluate=evaluate)
+        return value if isinstance(node.op, ast.UAdd) else sp.Mul(-1, value, evaluate=evaluate)
     if isinstance(node, ast.BinOp):
-        left = _expression_from_ast(node.left)
-        right = _expression_from_ast(node.right)
+        left = _expression_from_ast(node.left, evaluate=evaluate)
+        right = _expression_from_ast(node.right, evaluate=evaluate)
         if isinstance(node.op, ast.Add):
-            return left + right
+            return sp.Add(left, right, evaluate=evaluate)
         if isinstance(node.op, ast.Sub):
-            return left - right
+            return sp.Add(left, sp.Mul(-1, right, evaluate=evaluate), evaluate=evaluate)
         if isinstance(node.op, ast.Mult):
-            return left * right
+            return sp.Mul(left, right, evaluate=evaluate)
         if isinstance(node.op, ast.Div):
-            return left / right
+            return sp.Mul(left, sp.Pow(right, -1, evaluate=evaluate), evaluate=evaluate)
         if isinstance(node.op, ast.Pow):
             if right.is_number and (not right.is_real or abs(float(right)) > 20):
                 raise RestrictedMathError("exponent is out of range")
-            return left ** right
+            return sp.Pow(left, right, evaluate=evaluate)
         raise RestrictedMathError("unsupported operator")
     if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
         function = _FUNCTIONS.get(node.func.id)
-        if function is None or node.keywords or not 1 <= len(node.args) <= 2:
+        if function is None or node.keywords or len(node.args) not in ((1, 2) if node.func.id in {"log", "ln"} else (1,)):
             raise RestrictedMathError("unsupported function call")
-        return function(*[_expression_from_ast(item) for item in node.args])
+        return function(*[_expression_from_ast(item, evaluate=evaluate) for item in node.args], evaluate=evaluate)
     raise RestrictedMathError("unsupported expression syntax")
 
 
-def parse_restricted_expression(value: Any) -> sp.Expr:
+def parse_restricted_expression(value: Any, *, evaluate=True) -> sp.Expr:
     text = _normalize_expression(value)
     try:
         tree = ast.parse(text, mode="eval")
@@ -180,15 +238,16 @@ def parse_restricted_expression(value: Any) -> sp.Expr:
     for node in ast.walk(tree):
         if isinstance(node, ast.Constant):
             node._math_literal = ast.get_source_segment(text, node)
-    return _expression_from_ast(tree)
+    expression = _expression_from_ast(tree, evaluate=evaluate)
+    if len(expression.free_symbols) > 16:
+        raise RestrictedMathError("too many symbols")
+    return expression
 
 
 def _variable(value: Any) -> sp.Symbol:
-    name = str(value or "x").strip()
-    if name not in _SYMBOLS:
-        raise RestrictedMathError(f"unsupported variable: {name}")
+    name = _symbol_name(str(value or "x").strip())
     assumption = _ASSUMPTIONS.get().get(name)
-    return sp.Symbol(name, **{assumption: True}) if assumption else _SYMBOLS[name]
+    return sp.Symbol(name, **{assumption: True}) if assumption else sp.Symbol(name)
 
 
 def _serialized_result(value: Any, *, simplified: bool = False, raw: Any = None) -> dict[str, Any]:
@@ -210,6 +269,36 @@ def _serialized_result(value: Any, *, simplified: bool = False, raw: Any = None)
         except (TypeError, ValueError, OverflowError):
             numeric = None
     return {"raw": str(value if raw is None else raw), "exact": str(expression), "latex": sp.latex(expression), "numeric": numeric}
+
+
+def _domain_limitations(expression: sp.Expr) -> list[str]:
+    """Conservative sufficient conditions, not a general domain/proof solver.
+
+    Called on an unevaluated AST so x/x and 0*log(x) keep their restrictions.
+    A failed condition probe means unknown, not that the expression is invalid.
+    """
+    limitations = []
+    for node in sp.preorder_traversal(expression):
+        if node.has(sp.nan, sp.zoo, sp.Integral, sp.Limit, sp.Derivative, sp.Piecewise):
+            limitations.append("存在未求值、条件分支或未定义表达式，不能确认结论")
+        if not node.free_symbols:
+            if node.is_finite is False:
+                limitations.append("表达式不具有限值")
+            continue
+        if isinstance(node, sp.Pow):
+            base, exponent = map(sp.simplify, node.args)
+            if exponent.is_nonnegative is not True and base.is_nonzero is not True:
+                limitations.append(f"需要确认 {base} 非零及幂的定义域")
+            if exponent.is_integer is not True and base.is_positive is not True:
+                if not (exponent.is_rational and exponent.is_positive and base.is_nonnegative is True):
+                    limitations.append(f"需要确认 {node} 的幂/根式分支和定义域")
+        elif node.func == sp.log and sp.simplify(node.args[0]).is_positive is not True:
+            limitations.append(f"需要确认 {node} 的对数定义域/分支")
+        elif node.func == sp.tan and sp.cos(node.args[0]).is_nonzero is not True:
+            limitations.append(f"需要确认 {node} 无极点")
+        elif node.func in {sp.asin, sp.acos, sp.atan}:
+            limitations.append(f"尚未核验 {node} 的反三角函数定义域/分支")
+    return list(dict.fromkeys(limitations))
 
 
 def _symbolic_math(_context: ToolContext, args: dict[str, Any]) -> ToolResult:
@@ -248,8 +337,8 @@ def _symbolic_math(_context: ToolContext, args: dict[str, Any]) -> ToolResult:
             else:
                 lower_expr = parse_restricted_expression(lower)
                 upper_expr = parse_restricted_expression(upper)
-                if lower_expr.free_symbols or upper_expr.free_symbols:
-                    return ToolResult(False, message="integration bounds must be closed expressions")
+                if any(variable in bound.free_symbols or bound.is_extended_real is False for bound in (lower_expr, upper_expr)):
+                    return ToolResult(False, message="integration bounds must be real and independent of the integration variable")
                 result = sp.integrate(expression, (variable, lower_expr, upper_expr))
                 verification_request = {
                     "kind": "definite_integral", "original": expression_text,
@@ -286,13 +375,22 @@ def _symbolic_math(_context: ToolContext, args: dict[str, Any]) -> ToolResult:
             "verification_request": verification_request,
             "assumptions": dict(_ASSUMPTIONS.get()),
             "status": "unevaluated" if isinstance(result, sp.Expr) and result.has(sp.Integral, sp.Limit) else "computed",
+            "limitations": _domain_limitations(parse_restricted_expression(expression_text, evaluate=False)),
         }
         verification_request["assumptions"] = dict(_ASSUMPTIONS.get())
+        if operation == "integrate" and args.get("lower") is not None:
+            if any(parse_restricted_expression(args[key]).is_extended_real is not True for key in ("lower", "upper")):
+                payload["limitations"].append("积分限的实数条件尚未确认")
+        for value in result if isinstance(result, (list, tuple)) else [result]:
+            payload["limitations"].extend(_domain_limitations(value))
+        payload["limitations"] = list(dict.fromkeys(payload["limitations"]))
         if isinstance(result, sp.Expr) and result.has(sp.nan, sp.zoo):
             raise RestrictedMathError("result is undefined")
         warnings = ["symbolic result remained unevaluated"] if payload["status"] == "unevaluated" else []
         if operation == "solve":
             warnings.append("返回候选解；代入校验不证明解集完整性或全部定义域条件")
+        warnings.extend(payload["limitations"])
+        warnings.append("计算结果只覆盖本次输入的运算；不验证建模、未输入的条件或自然语言推导")
         return ToolResult(True, data=payload, message="确定性计算完成", warnings=warnings)
     except (RestrictedMathError, TypeError, ValueError, ZeroDivisionError) as exc:
         return ToolResult(False, message=str(exc))
@@ -303,50 +401,91 @@ def _verify_math_result(_context: ToolContext, args: dict[str, Any]) -> ToolResu
         kind = str(args.get("kind") or "equivalence")
         variable = _variable(args.get("variable"))
         residuals: list[sp.Expr] = []
+        checked = []
+        limitations = []
+        scope = "input_expressions_under_explicit_assumptions"
+
+        def read(key):
+            value = parse_restricted_expression(args.get(key), evaluate=False)
+            checked.append(value)
+            return value
+
         if kind == "equivalence":
-            residuals = [sp.simplify(
-                parse_restricted_expression(args.get("left"))
-                - parse_restricted_expression(args.get("right"))
-            )]
+            residuals = [sp.simplify(read("left") - read("right"))]
         elif kind == "derivative":
-            residuals = [sp.simplify(
-                sp.diff(parse_restricted_expression(args.get("original")), variable)
-                - parse_restricted_expression(args.get("candidate"))
-            )]
+            residuals = [sp.simplify(sp.diff(read("original"), variable) - read("candidate"))]
+            scope = "local_derivative_identity_not_global_differentiability"
         elif kind == "antiderivative":
-            residuals = [sp.simplify(
-                sp.diff(parse_restricted_expression(args.get("candidate")), variable)
-                - parse_restricted_expression(args.get("original"))
-            )]
+            residuals = [sp.simplify(sp.diff(read("candidate"), variable) - read("original"))]
+            scope = "local_antiderivative_identity_not_boundary_or_convergence_proof"
         elif kind == "definite_integral":
             lower = parse_restricted_expression(args.get("lower"))
             upper = parse_restricted_expression(args.get("upper"))
-            expected = sp.integrate(
-                parse_restricted_expression(args.get("original")),
-                (variable, lower, upper),
-            )
-            residuals = [sp.simplify(expected - parse_restricted_expression(args.get("candidate")))]
-        elif kind == "solutions":
-            left = parse_restricted_expression(args.get("left"))
-            right = parse_restricted_expression(args.get("right"))
-            candidates = list(args.get("candidates") or [])[:12]
-            if not candidates:
-                residuals = [sp.Integer(1)]
+            if any(variable in bound.free_symbols or bound.is_extended_real is False for bound in (lower, upper)):
+                raise RestrictedMathError("integration bounds must be real and independent of the integration variable")
+            if any(bound.is_extended_real is not True for bound in (lower, upper)):
+                limitations.append("积分限的实数条件尚未确认")
+            original = parse_restricted_expression(args.get("original"), evaluate=False)
+            expected = sp.integrate(original, (variable, lower, upper))
+            residuals = [sp.simplify(expected - read("candidate"))]
+            checked.append(expected)
+            scope = "specified_definite_integral_only"
+            # A finite SymPy value alone is not a convergence certificate. Use
+            # its domain utility for the bounded, parameter-free regular case.
+            if (original.free_symbols | lower.free_symbols | upper.free_symbols) - {variable}:
+                limitations.append("含参数积分的收敛条件尚未确认")
             else:
-                residuals = [sp.simplify((left - right).subs(variable, parse_restricted_expression(item))) for item in candidates]
+                try:
+                    domain = sp.calculus.util.continuous_domain(original, variable, sp.S.Reals)
+                    interval = sp.Interval(sp.Min(lower, upper), sp.Max(lower, upper))
+                    if interval.is_subset(domain) is not True:
+                        limitations.append("积分区间含奇点或端点条件；未确认收敛性")
+                except (NotImplementedError, ValueError, TypeError):
+                    limitations.append("未确认积分区间上的定义域和收敛性")
+        elif kind == "solutions":
+            left = parse_restricted_expression(args.get("left"), evaluate=False)
+            right = parse_restricted_expression(args.get("right"), evaluate=False)
+            candidates = list(args.get("candidates") or [])
+            scope = "candidate_substitution_only_not_solution_set_completeness"
+            if not candidates:
+                limitations.append("空候选集不能用代入法证明无解")
+            else:
+                for item in candidates:
+                    candidate = parse_restricted_expression(item, evaluate=False)
+                    checked.extend([candidate, left.subs(variable, candidate), right.subs(variable, candidate)])
+                    assumption = _ASSUMPTIONS.get().get(str(variable))
+                    if assumption and getattr(sp.simplify(candidate), "is_" + assumption) is not True:
+                        limitations.append("候选解尚未确认满足变量假设")
+                    residuals.append(sp.simplify(checked[-2] - checked[-1]))
         elif kind == "limit":
             point = sp.oo if args["point"] in ("oo", "inf") else -sp.oo if args["point"] == "-oo" else parse_restricted_expression(args["point"])
-            residuals = [sp.simplify(sp.limit(parse_restricted_expression(args["original"]), variable,
-                point, dir=args.get("direction", "+-")) - parse_restricted_expression(args["candidate"]))]
+            if point.free_symbols:
+                raise RestrictedMathError("limit point must be closed")
+            expected = sp.limit(parse_restricted_expression(args["original"], evaluate=False), variable,
+                point, dir=args.get("direction", "+-"))
+            checked.append(expected)
+            residuals = [sp.simplify(expected - read("candidate"))]
+            scope = "specified_limit_only_not_value_at_limit_point"
         else:
             return ToolResult(False, message=f"unsupported verification kind: {kind}")
 
-        passed = bool(residuals) and all(item == 0 for item in residuals)
+        for value in checked:
+            limitations.extend(_domain_limitations(value))
+        if any(item.has(sp.nan, sp.zoo, sp.oo, -sp.oo, sp.Integral, sp.Limit, sp.Derivative, sp.Piecewise) for item in residuals):
+            limitations.append("残差未求值或未定义")
+        limitations = list(dict.fromkeys(limitations))
+        passed = bool(residuals) and all(item == 0 for item in residuals) and not limitations
+        disproved = any(item.is_zero is False for item in residuals) and not limitations
+        if not passed and not disproved and not limitations:
+            limitations.append("在所给假设下无法确认残差为零；需补充条件或另行核验")
         verification = {
-            "status": "verified" if passed else "failed",
+            "status": "verified" if passed else "failed" if disproved else "unverified",
             "method": kind,
             "passed": passed,
             "residuals": [str(item) for item in residuals],
+            "assumptions": dict(_ASSUMPTIONS.get()),
+            "scope": scope,
+            "limitations": limitations,
         }
         return ToolResult(passed, data=verification, message="结果校验完成", verification=verification)
     except (RestrictedMathError, TypeError, ValueError, ZeroDivisionError) as exc:
@@ -374,8 +513,11 @@ def register_math_tools(registry: ToolRegistry) -> None:
         description=("Compute a restricted numeric or symbolic expression without executing arbitrary code. "
             "Returns raw operation result, already simplified exact form, LaTeX and numeric approximation. "
             "Do not call simplify again just to rewrite the returned exact value; use it directly. "
-            "Allowed symbols: x,y,z,t,n,a,b,c; rename other parameters explicitly and state the mapping. "
+            "Symbols are bounded mathematical identifiers (theta, lambda, alpha, beta, x_1, etc.); Greek aliases accepted. "
+            "Omitted assumptions mean complex symbols. Supply given sign/real/integer conditions explicitly; "
+            "arbitrary parameter inequalities and solve intervals are not supported. "
             "Allowed functions: sin,cos,tan,asin,acos,atan,exp,log,ln,sqrt,abs. "
+            "Computed is not verified. Results cover only the input operation, not modelling or teaching derivations. "
             "Use further calls when needed for a new calculation or verification."),
         parameters={
             "type": "object",
@@ -383,7 +525,7 @@ def register_math_tools(registry: ToolRegistry) -> None:
             "properties": {
                 "operation": {"enum": ["calculate", "simplify", "differentiate", "integrate", "solve"]},
                 "expression": {"type": "string", "maxLength": _MAX_EXPRESSION_CHARS},
-                "variable": {"enum": list(_SYMBOLS)},
+                "variable": {"type": "string"},
                 "right": {"type": "string"},
                 "lower": {"type": ["string", "number"]},
                 "upper": {"type": ["string", "number"]},
@@ -394,14 +536,18 @@ def register_math_tools(registry: ToolRegistry) -> None:
         read_only=True,
         risk_level="low",
         timeout_seconds=5.0,
-        version="1",
+        version="2",
         provenance="sympy-1.14/restricted-ast",
         handler=symbolic_math,
         runtime_input=MathInput, runtime_output=MathOutput, execution_mode="isolated",
     ))
     registry.register(ToolSpec(
         name="verify_math_result",
-        description="Verify equivalence, derivatives, antiderivatives or equation solutions by deterministic substitution.",
+        description=("Verify only supplied expressions under explicit assumptions; unresolved domain/branch conditions return unverified. "
+            "Derivative/antiderivative checks are local identities; definite integrals require real bounds independent of the variable. "
+            "Parametric integral convergence can remain unverified even with assumptions. "
+            "Solutions are substitution checks only, never a proof of complete solution sets. "
+            "No check certifies modelling, omitted conditions or natural-language derivations."),
         parameters={
             "type": "object",
             "required": ["kind"],
@@ -411,7 +557,7 @@ def register_math_tools(registry: ToolRegistry) -> None:
                 "original": {"type": "string"}, "candidate": {"type": "string"},
                 "candidates": {"type": "array", "maxItems": 12},
                 "lower": {"type": ["string", "number"]}, "upper": {"type": ["string", "number"]},
-                "variable": {"enum": list(_SYMBOLS)},
+                "variable": {"type": "string"},
             },
         },
         result_schema={"type": "object", "required": ["status", "passed", "residuals"]},
@@ -419,7 +565,7 @@ def register_math_tools(registry: ToolRegistry) -> None:
         read_only=True,
         risk_level="low",
         timeout_seconds=5.0,
-        version="1",
+        version="2",
         provenance="sympy-1.14/restricted-ast",
         handler=verify_math_result,
         runtime_input=MathVerifyInput, runtime_output=MathVerifyOutput, execution_mode="isolated",

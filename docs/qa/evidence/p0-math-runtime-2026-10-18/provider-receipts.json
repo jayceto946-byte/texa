@@ -1,0 +1,66 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "authorization": "user P0 task 2026-10-18",
+  "model_replaced": false,
+  "max_remote_calls": 8,
+  "max_output_tokens_per_call": 8192,
+  "calls": [
+    {
+      "index": 1,
+      "request_bytes": 8294,
+      "status": "returned",
+      "tool_messages": 0,
+      "usage": {
+        "input_tokens": 2243,
+        "output_tokens": 7318,
+        "total_tokens": 9561,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 6513
+        }
+      },
+      "finish_reason": "stop"
+    },
+    {
+      "index": 2,
+      "request_bytes": 8594,
+      "status": "returned",
+      "tool_messages": 0,
+      "usage": {
+        "input_tokens": 2348,
+        "output_tokens": 1233,
+        "total_tokens": 3581,
+        "input_token_details": {
+          "cache_read": 1536
+        },
+        "output_token_details": {
+          "reasoning": 810
+        }
+      },
+      "finish_reason": "tool_calls"
+    },
+    {
+      "index": 3,
+      "request_bytes": 15250,
+      "status": "returned",
+      "tool_messages": 3,
+      "usage": {
+        "input_tokens": 4589,
+        "output_tokens": 1789,
+        "total_tokens": 6378,
+        "input_token_details": {
+          "cache_read": 1792
+        },
+        "output_token_details": {
+          "reasoning": 940
+        }
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "errors": [],
+  "limits": "two questions, no retries, production per-run budgets, isolated learning data"
+}

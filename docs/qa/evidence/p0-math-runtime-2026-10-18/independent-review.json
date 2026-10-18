@@ -1,0 +1,39 @@
+{
+  "review_type": "engineering review of two real model samples, not an accuracy benchmark or instructor signoff",
+  "model": "configured DeepSeek Flash; differs from 2026-10-13 Qwen, no paired causal comparison",
+  "environment": "real macOS Electron development shell; current prebuilt renderer, changed Python backend; temporary data",
+  "remote_requests": 3,
+  "tokens": {
+    "input_tokens": 9180,
+    "output_tokens": 10340,
+    "total_tokens": 19520
+  },
+  "cases": [
+    {
+      "id": "q2-stokes",
+      "run_id": "arun_2a29e6ba6dc94726bfb5937e06a619d2",
+      "wall_seconds": 34.407,
+      "model_calls": 1,
+      "tool_calls": 0,
+      "task_status": "degraded",
+      "runtime_verification": "unverified",
+      "browser_sse_events": 811,
+      "browser_sse_capture": "PASS",
+      "targeted_result": "PASS: radius squared=1, direction/projection and final integral correct; zero tool calls, cannot validate tool-use improvement",
+      "remaining": "General derivation not runtime-verified"
+    },
+    {
+      "id": "q3-estimation",
+      "run_id": "arun_3092986563a64843926c15e59cce4737",
+      "wall_seconds": 21.67,
+      "model_calls": 2,
+      "tool_calls": 3,
+      "task_status": "degraded",
+      "runtime_verification": "unverified",
+      "browser_sse_events": 0,
+      "browser_sse_capture": "NOT VERIFIED: async acceptance response handler did not capture the second body before close; SQL events and final DOM/answer retained",
+      "targeted_result": "PASS: three mathematical tool results, theta limits and positive conditions returned; final answer repeats CDF probability derivation and both moments",
+      "remaining": "PARTIAL completeness: outside-support CDF branches 0 and 1 not explicitly written; Runtime remains unverified; no verify_math_result call"
+    }
+  ]
+}

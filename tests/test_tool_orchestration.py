@@ -151,3 +151,15 @@ def test_tool_calling_offline_release_gate():
     assert report["release_pass"] is True
     assert report["metrics"]["route_accuracy"] >= 0.90
     assert report["metrics"]["math_verification"] == 1.0
+
+
+def test_math_receipt_structure_is_not_replaced_by_display_truncation():
+    from backend.services.tool_orchestration import build_tool_context_pack
+    data = {'operation': 'simplify', 'result': {'exact': 'x', 'latex': 'x', 'raw': 'x'},
+            'assumptions': {'x': 'positive'}, 'limitations': ['domain conditions'] * 300,
+            'verification_request': {'kind': 'equivalence', 'left': 'sqrt(x^2)', 'right': 'x',
+                                     'assumptions': {'x': 'positive'}}}
+    pack = build_tool_context_pack([{'tool': 'symbolic_math', 'result': {
+        'success': True, 'data': data, 'warnings': ['only this operation']}}])
+    assert pack['outputs'][0]['data'] == data
+    assert pack['outputs'][0]['warnings'] == ['only this operation']

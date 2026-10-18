@@ -25,12 +25,10 @@ def _worker(connection, tool: str, args: dict):
             MathInput, MathVerifyInput, _ASSUMPTIONS)
         schema = MathInput if tool == "symbolic_math" else MathVerifyInput
         validated = schema.model_validate(args).model_dump()
-        if any(key not in {"x", "y", "z", "t", "n", "a", "b", "c"} for key in validated["assumptions"]):
-            raise ValueError("unsupported assumption symbol")
         _ASSUMPTIONS.set(validated["assumptions"])
         handler = _symbolic_math if tool == "symbolic_math" else _verify_math_result
         result = handler(ToolContext(), validated).to_dict()
-        if not result["success"]:
+        if not result["success"] and not result.get("verification"):
             result["data"] = {"status": "error", "error_code": "invalid_expression", "error": result["message"]}
         encoded = json.dumps(result, ensure_ascii=False, allow_nan=False).encode()
         if len(encoded) > 32000:

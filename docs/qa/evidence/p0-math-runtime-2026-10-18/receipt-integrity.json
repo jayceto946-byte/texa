@@ -1,0 +1,29 @@
+[
+  {
+    "call_id": "call_9ebb01ef4e3d42e58d05d41e90a2512f",
+    "tool": "symbolic_math",
+    "status": "succeeded",
+    "full_data_equal": true,
+    "full_warnings_equal": true,
+    "full_verification_equal": true,
+    "tool_call_id_present": true
+  },
+  {
+    "call_id": "call_c9ce00e8923e41e5b7ee4446ad2911fe",
+    "tool": "symbolic_math",
+    "status": "succeeded",
+    "full_data_equal": true,
+    "full_warnings_equal": true,
+    "full_verification_equal": true,
+    "tool_call_id_present": true
+  },
+  {
+    "call_id": "call_c6b635da25cb44798e167eca0889b7d2",
+    "tool": "symbolic_math",
+    "status": "succeeded",
+    "full_data_equal": true,
+    "full_warnings_equal": true,
+    "full_verification_equal": true,
+    "tool_call_id_present": true
+  }
+]

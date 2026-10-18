@@ -234,7 +234,10 @@ def _compact_result(item: dict[str, Any]) -> dict[str, Any]:
     result = item.get("result") or {}
     data = result.get("data")
     encoded = json.dumps(data, ensure_ascii=False, default=str)
-    if len(encoded) > 3500:
+    # Math receipts already have a 32KB isolated-worker limit. Keep their
+    # machine-readable conclusions/conditions intact for final verification;
+    # the separate prompt-text projection remains budgeted below.
+    if len(encoded) > 3500 and item.get("tool") not in {"symbolic_math", "verify_math_result"}:
         data = {"summary": encoded[:3500], "truncated": True}
     return {
         "tool": item.get("tool"), "success": bool(result.get("success")),

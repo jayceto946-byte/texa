@@ -198,3 +198,21 @@ def test_fallback_verification_is_shared_by_task_and_final_execution_event(tmp_p
     activity = _activity_for_chat_event({"stage": "done", "state": state})
     assert activity["meta"]["verification_status"] == "passed"
     assert activity["detail"] == "答案通过发布门槛"
+
+
+def test_correct_stokes_numeric_receipts_do_not_certify_unsubmitted_radius_derivation():
+    from backend.tools.math_tools import symbolic_math, verify_math_result
+    from backend.services.tool_orchestration import build_tool_context_pack
+    result = symbolic_math(None, {'operation': 'calculate', 'expression': 'pi*(2/5)*(2/sqrt(5))'})
+    request = result.data['verification_request']
+    verified = verify_math_result(None, request)
+    pack = build_tool_context_pack([
+        {'tool': 'symbolic_math', 'args': {'operation': 'calculate', 'expression': result.data['expression']},
+         'result': result.to_dict()},
+        {'tool': 'verify_math_result', 'args': request, 'result': verified.to_dict()}])
+    answer = r'球面为 $(x-1)^2+y^2+z^2=2$，半径为 $\sqrt{2}$。积分值为 $4\sqrt{5}\pi/25$。'
+    question = r'球面 $x^2+y^2+z^2=2x$ 与平面 $2x-z-1=0$ 的交线，计算曲线积分并说明过程。'
+    check = verify_answer(answer, question=question, tool_context_pack=pack,
+        required_outputs=[{'id': 'whole_math', 'kind': 'math_support'}, {'id': 'steps', 'kind': 'derivation'}])
+    assert check['status'] != 'passed'
+    assert any(item['id'] == 'whole_math' for item in check['unverified'])
