@@ -3,7 +3,7 @@
 - 从核实包含 P0 的 ac071ba 创建 integration/p1-abc / ../texa-p1-integration；保留 A/B/C 原提交历史。主目录仍在 Texa_MacOS，未切换、stash、清理、合并或提交其修改，三个功能分支未变；无 push 或稳定分支合并。
 - 候选题未有独立提交：仅隔离13个tracked文件补丁及12个新文件，按明确设计/测试范围提交eadc350；来源SHA清单见 docs/qa/p1-abc-integration/candidate-provenance.json。排除侧栏/共享布局等其他任务，未复制生产学习库、教材正文/截图包或凭证。三次合入仅patch_notes内容冲突，所有真实记录保留。
 - 组合探针复现并最小修复：ExerciseRecord未知扩展visual_ir参与题目版本摘要；通用记录更新参考答案/解析时使旧分类stale；Native恢复已有消息前复核教材工具版本/schema/索引，旧合同拒绝且提示重新发起，原任务记录保留。不改数学可信来源、工具allowlist、验证范围或Agent Loop结构。无数据库/索引/依赖迁移；旧含visual_ir扩展的分类可能因正确版本摘要而过期。
-- 实际阶段回归：A 353、A+B 257、候选后端90/前端234、C+候选247通过，均为本Worktree执行，不能相加作独立总数。最终全量Python3.10.21为1872 passed；前端234、ESLint/TypeScript/Vite、Electron壳24/check通过；Vite已有大chunk提示保留。全量首轮1870通过2失败：旧索引错误码预期及旧标签→弱项烟测已按批准合同更新；原SM-2断言保留，未放宽错因证据。
+- 实际阶段回归：A 353、A+B 257、候选后端90/前端234、C+候选247通过，均为本Worktree执行，不能相加作独立总数。中间全量Python3.10.21为1872 passed，收尾补齐bounded所有入口（含finish-only）的模型调用前版本/schema栅栏及2项反例后，最终1874 passed；前端234、ESLint/TypeScript/Vite、Electron壳24/check通过；Vite已有大chunk提示保留。全量首轮1870通过2失败：旧索引错误码预期及旧标签→弱项烟测已按批准合同更新；原SM-2断言保留，未放宽错因证据。
 - 真实macOS Electron37.10.3：P1-C现有脚本16项、合成候选新脚本14项通过，临时SQLite/userData，三尺寸截图均实际查看。新脚本首次夹具缺providers/models导致React启动失败，补齐夹具后通过；没有为此改产品UI。冻结108生产来源再抽取、完整安装包/Windows、真实模型教学与实机聊天停止/恢复未验收。当前桌面为DeepSeek Flash，按本次不换主模型/不用Flash替代要求未发远程请求（0请求/0tokens），12教学场景均NOT VERIFIED。详见 P1-ABC-INTEGRATION-REPORT.md。
 
 ## 2026-10-18 — P1-A 教材学习单元上下文展开（独立候选）

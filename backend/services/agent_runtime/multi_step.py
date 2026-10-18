@@ -73,6 +73,15 @@ class BoundedAgentRunner:
             raise ValueError("invalid model deadline")
         if not 0 < self.run_timeout_seconds <= 600:
             raise ValueError("invalid run deadline")
+        # Finish-only adapters must not bypass an upgraded frozen tool contract.
+        # Check before every entry path, including a resumed policy/native run.
+        try:
+            for ref in self.candidate_tools:
+                metadata = self.registry.runtime_tool(ref["id"]).runtime_metadata()
+                if (metadata["version"], metadata["schema_hash"]) != (ref.get("version"), ref.get("schema_hash")):
+                    raise RuntimeDenied("candidate schema or version changed")
+        except (KeyError, RuntimeDenied):
+            return self.store.close(run_id, owner, outcome="failed", error_code="tool_step_denied")
         if self.policy_selector is not None:
             if answer_state is None:
                 raise ValueError("Policy baseline requires the shared answer chain")

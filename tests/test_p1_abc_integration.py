@@ -112,3 +112,24 @@ def test_textbook_context_and_math_receipt_survive_next_model_step(corpus, tmp_p
     assert receipt['data']['status'] == 'verified'
     assert receipt['data'] == result['tool_calls'][0]['result']['data']
     assert result['task']['verification']['status'] != 'passed'
+
+
+@pytest.mark.parametrize('tool_id', ['verify_math_result', 'search_textbook'])
+def test_finish_only_bounded_adapter_rejects_old_tool_contract(tmp_path, tool_id):
+    from types import SimpleNamespace
+    from backend.services.agent_runtime.contracts import FixedAction, ModelCapabilities
+    store, run, model, runner, _ = setup_run(tmp_path, [])
+    if tool_id == 'search_textbook':
+        scope = {'id': 'scope', 'book_name': '', 'subject': '', 'resources': [], 'index_versions': {}}
+        register_textbook_search_runtime(runner.registry, scope)
+    meta = runner.registry.runtime_tool(tool_id).runtime_metadata()
+    runner.candidate_tools = ({**{key: meta[key] for key in ('id', 'version', 'schema_hash')},
+                               'version': '2' if tool_id == 'verify_math_result' else '1'},)
+    called = []
+    def finish(*args):
+        called.append(True)
+        return FixedAction('finish', answer='No new tool call')
+    runner.adapter = SimpleNamespace(capabilities=lambda: ModelCapabilities(tool_calling='supported'), next_action=finish)
+    result = runner.run_bounded(run, 'owner', context=ToolContext())
+    assert result['run']['error_code'] == 'tool_step_denied'
+    assert called == [] and result['consumed_model_calls'] == 0
