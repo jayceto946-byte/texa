@@ -13,7 +13,7 @@ from backend.tools.registry import ToolContext, ToolResult
 _SLOTS = threading.BoundedSemaphore(4)
 
 
-def _worker(connection, tool: str, args: dict):
+def _worker(connection, tool: str, args: dict, authority=None):
     try:
         try:
             import resource
@@ -27,7 +27,11 @@ def _worker(connection, tool: str, args: dict):
         validated = schema.model_validate(args).model_dump()
         _ASSUMPTIONS.set(validated["assumptions"])
         handler = _symbolic_math if tool == "symbolic_math" else _verify_math_result
-        result = handler(ToolContext(), validated).to_dict()
+        if tool == "verify_math_result" and validated["kind"] == "steps":
+            from backend.tools.math_steps import verify_steps
+            result = verify_steps(authority, validated).to_dict()
+        else:
+            result = handler(ToolContext(), validated).to_dict()
         if not result["success"] and not result.get("verification"):
             result["data"] = {"status": "error", "error_code": "invalid_expression", "error": result["message"]}
         encoded = json.dumps(result, ensure_ascii=False, allow_nan=False).encode()
@@ -47,13 +51,15 @@ def execute_math(tool: str, args: dict, context: ToolContext, *, worker_target=N
         return ToolResult(False, data={"status": "error", "error_code": code}, message={
             "timeout": "计算超时", "cancelled": "计算已停止", "capacity": "计算资源繁忙",
             "worker_failed": "计算进程失败"}.get(code, "数学输入无效"))
-    if len(json.dumps(args, default=str)) > 16000:
+    authority = context.math_authority if tool == "verify_math_result" else None
+    if len(json.dumps([args, authority], default=str)) > 16000:
         return failure("invalid_input")
     if not _SLOTS.acquire(blocking=False):
         return failure("capacity")
     mp = multiprocessing.get_context("spawn")
     parent, child = mp.Pipe(duplex=False)
-    process = mp.Process(target=worker_target or _worker, args=(child, tool, args), daemon=True)
+    worker_args = (child, tool, args) if worker_target else (child, tool, args, authority)
+    process = mp.Process(target=worker_target or _worker, args=worker_args, daemon=True)
     started = False
     try:
         if context.cancelled and context.cancelled():

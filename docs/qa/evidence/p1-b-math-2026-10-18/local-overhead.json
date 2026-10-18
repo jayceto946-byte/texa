@@ -1,0 +1,24 @@
+{
+  "legacy_one_identity": {
+    "wall_ms": [
+      321.23,
+      316.14,
+      321.37
+    ],
+    "median_ms": 321.23
+  },
+  "one_batch_four_steps": {
+    "wall_ms": [
+      332.87,
+      332.62,
+      323.15
+    ],
+    "median_ms": 332.62
+  },
+  "input_schema": {
+    "current_json_chars": 3295,
+    "p0_json_chars_reconstructed": 1817
+  },
+  "remote_model_calls_added_by_runtime": 0,
+  "notes": "3 local samples each, macOS Python 3.10.21, includes spawn. Not a latency benchmark or remote token measurement."
+}
