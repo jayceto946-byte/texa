@@ -1,3 +1,10 @@
+## 2026-10-18 — P1-A 教材学习单元上下文展开（独立候选）
+
+- 从 Texa_MacOS 已验证提交 ac071ba 创建 feature/p1-textbook-context / texa-p1-a-textbook，保留主工作区其他任务修改；未合并、push 或发布。
+- 在既有 Runtime search 和统一生成边界复用 Canonical IR、活跃版本快照及 FigureLearningService，按原文结构补齐前提、连续推导、例题、公式/表格及资源身份；完整度明确 complete/partial/unknown，OCR 与图片未读不冒充完成。内部 provenance 保留，不新增工具或强制引用 UI。
+- 总正文预算维持 QA 9000 / 章节教学 6000，整块分配并保留续读锚点；去除 Runtime 二次切片和教学打包后二次裁剪，来源元数据有界、命中原文可降级保留。search_textbook Runtime 版本升为2，旧暂停工具合同按既有栅栏需重新发起；无依赖、数据库、索引格式或学习数据迁移。
+- 验证：Python3.10相关353项、桌面24项及桌面语法检查通过；真实既有2489条词法目录三例只读最终消息探针通过，Canonical/词法/manifest hash不变。0模型请求。真实模型/视觉理解、完整生产混合检索黄金集、Electron实机教学/恢复和完整打包均NOT VERIFIED；仅达到最小离线工程验收，不宣称恢复OCR或保证答案正确。详见 docs/qa/p1-a-textbook-context/REPORT.md。
+
 ## 2026-10-18 — Agent Runtime P0 数学可靠性修复
 
 - 数学工具 v2 以有界标识符替代八变量枚举，统一 schema/AST/worker 的变量与假设合同；支持 theta/lambda/希腊别名及编号参数，保留白名单函数、受限 AST、隔离进程和原预算。参数积分限须与积分变量无关；不支持的求解区间明确拒绝。

@@ -1,0 +1,94 @@
+{
+  "kind": "read_only_existing_lexical_anchors_to_final_messages",
+  "catalog_rows": 2489,
+  "model_calls": 0,
+  "dense_retrieval": "NOT VERIFIED",
+  "model_answer_quality": "NOT VERIFIED",
+  "source_files_unchanged": true,
+  "results": [
+    {
+      "query": "压电效应的定义和公式",
+      "anchors": 3,
+      "baseline_chars": 1012,
+      "expanded_chars": 1501,
+      "elapsed_ms": 488.92,
+      "visible_text_bound": true,
+      "statuses": [
+        "not_expanded",
+        "partial"
+      ],
+      "reasons": [
+        "",
+        "provenance_budget"
+      ],
+      "block_counts": [
+        4,
+        11
+      ],
+      "index_versions": [
+        "c8b6947edb7858f2"
+      ],
+      "canonical_hashes": [
+        "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3"
+      ]
+    },
+    {
+      "query": "应变片的工作原理和推导",
+      "anchors": 3,
+      "baseline_chars": 690,
+      "expanded_chars": 2025,
+      "elapsed_ms": 16.11,
+      "visible_text_bound": true,
+      "statuses": [
+        "unknown",
+        "partial",
+        "partial"
+      ],
+      "reasons": [
+        "canonical_section",
+        "provenance_budget",
+        "anchor_excerpt_fallback"
+      ],
+      "block_counts": [
+        16,
+        5,
+        5
+      ],
+      "index_versions": [
+        "c8b6947edb7858f2"
+      ],
+      "canonical_hashes": [
+        "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3"
+      ]
+    },
+    {
+      "query": "热敏电阻的工作原理",
+      "anchors": 3,
+      "baseline_chars": 1539,
+      "expanded_chars": 2435,
+      "elapsed_ms": 17.34,
+      "visible_text_bound": true,
+      "statuses": [
+        "unknown",
+        "partial",
+        "not_expanded"
+      ],
+      "reasons": [
+        "canonical_section",
+        "provenance_budget",
+        ""
+      ],
+      "block_counts": [
+        14,
+        3,
+        7
+      ],
+      "index_versions": [
+        "c8b6947edb7858f2"
+      ],
+      "canonical_hashes": [
+        "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3"
+      ]
+    }
+  ]
+}

@@ -178,9 +178,12 @@ def scope_boundary_message(state: dict) -> str:
     return f"当前本地资料无法确认这个问题属于“{current_subject}”。为避免把可能的跨学科内容混入当前学习记录，本轮暂不直接作答；如需继续，可以选择“跨学科通用回答”。"
 
 
-def _prepare_evidence_pack(state: dict) -> dict:
+def _prepare_evidence_pack(state: dict, *, char_budget: int = 9000) -> dict:
     from graph.retrieval_node import _assess_evidence_support
-    pack = build_evidence_pack(state.get("evidence_items") or [], intent=str(state.get("intent") or "qa"))
+    from graph.textbook_context import expand_textbook_context
+    state["evidence_items"] = expand_textbook_context(state.get("evidence_items") or [],
+        intent=str(state.get("intent") or "qa"), query=str(state.get("user_input") or ""))
+    pack = build_evidence_pack(state["evidence_items"], intent=str(state.get("intent") or "qa"), char_budget=char_budget)
     state["evidence_sources"] = pack["items"]
     # Runtime only: never attach clipped source text to UI source metadata.
     state["verification_evidence"] = pack["verification_items"]

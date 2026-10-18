@@ -116,6 +116,7 @@ def build_evidence_pack(
     included: list[dict] = []
     used = 0
     verification_items: list[dict] = []
+    metadata_remaining = 8000
 
     for item in candidates:
         text = str(item.get("text") or "")
@@ -139,8 +140,47 @@ def build_evidence_pack(
         remaining = budget - used - len(evidence_id) - 3 - separator_cost
         if remaining <= 120:
             break
-        clipped = text[: min(MAX_ITEM_CHARS, remaining)]
-        verification_items.append({**item, "id": evidence_id, "text": clipped, "table_anchor_text": ""})
+        visible = dict(item)
+        if item.get("learning_unit"):
+            from graph.textbook_context import pack_learning_unit
+            if remaining < 500:
+                break
+            clipped, unit, blocks, body, metadata_used = pack_learning_unit(item, remaining, metadata_limit=metadata_remaining)
+            # A large surrounding section must not evict the retrieved anchor.
+            # Keep the original indexed excerpt if its blocks did not survive;
+            # this is explicitly partial, never a recovered complete unit.
+            anchors = item.get("expansion_anchors") or []
+            selected_ids = {block["block_id"] for block in blocks}
+            if anchors and not set(anchors[0].get("source_block_ids") or []).issubset(selected_ids):
+                raw = anchors[0]
+                fallback = {**raw, "learning_unit": {**unit, "status": "partial", "text_status": "partial",
+                    "reason": "anchor_excerpt_fallback", "continuation": {
+                        "block_id": (raw.get("source_block_ids") or [""])[0],
+                        "index_version": raw["index_version"], "canonical_hash": raw["canonical_hash"]}}}
+                clipped, unit, blocks, body, metadata_used = pack_learning_unit(fallback, remaining)
+                visible = fallback
+            metadata_remaining -= metadata_used
+            visible.pop("expansion_anchors", None)
+            visible["learning_unit"] = unit
+            if "context_blocks" in visible:
+                visible.update(context_blocks=[{key: value for key, value in block.items()
+                        if key not in {"source_location", "equations", "section_path"}} for block in blocks],
+                    source_block_ids=[block["block_id"] for block in blocks],
+                    source_locations=[block["source_location"] for block in blocks])
+            else:
+                visible["context_source_text"] = body
+        else:
+            clipped = text[: min(MAX_ITEM_CHARS, remaining)]
+        if len(clipped) > remaining:
+            break
+        if "context_blocks" in visible:
+            pages = [location.get("page_start") for location in visible["source_locations"]
+                     if isinstance(location.get("page_start"), int)]
+            ends = [location.get("page_end") for location in visible["source_locations"]
+                    if isinstance(location.get("page_end"), int)]
+            visible.update(page_start=min(pages) if pages else None, page_end=max(ends) if ends else None,
+                           page_idx=min(pages) - 1 if pages else -1)
+        verification_items.append({**visible, "id": evidence_id, "text": clipped, "table_anchor_text": ""})
         line = f"[{evidence_id}]\n{clipped}"
         lines.append(line)
         used += len(line) + separator_cost
@@ -159,17 +199,19 @@ def build_evidence_pack(
             "section_path": _section_path(item),
             "chunk_index": item.get("chunk_index", -1),
             "heading_level": _heading_level(_section_path(item)),
-            "page_idx": item.get("page_idx", -1),
-            "page_start": item.get("page_start"),
-            "page_end": item.get("page_end"),
-            "source_block_ids": list(item.get("source_block_ids") or []),
-            "source_locations": list(item.get("source_locations") or []),
+            "page_idx": visible.get("page_idx", -1),
+            "page_start": visible.get("page_start"),
+            "page_end": visible.get("page_end"),
+            "source_block_ids": list(visible.get("source_block_ids") or []),
+            "source_locations": list(visible.get("source_locations") or []),
             "source_kind": str(item.get("source_kind") or ""),
             "source_file": str(item.get("source_file") or ""),
             "bbox": list(item.get("bbox") or []),
             "figure_id": str(item.get("figure_id") or ""),
             "label": label,
             "chars": len(clipped),
+            "visible_fingerprint": _content_fingerprint(clipped),
+            **({"learning_unit": visible["learning_unit"]} if "learning_unit" in visible else {}),
         })
         if chunk_id:
             seen_ids.add(chunk_id)
