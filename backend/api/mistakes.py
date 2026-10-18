@@ -118,6 +118,8 @@ def _record_to_out(record: MistakeRecord) -> MistakeRecordOut:
         visual_ir=record.visual_ir,
         explanation=record.explanation,
         linked_concepts=record.linked_concepts,
+        knowledge_structure=record.knowledge_structure,
+        diagnosis_status=record.diagnosis_status,
         review_history=record.review_history,
         next_review=record.sm2.get("next_review") if record.sm2 else None,
         interval=record.sm2.get("interval") if record.sm2 else None,
@@ -146,59 +148,6 @@ def _record_from_request(req: MistakeAddRequest, book_name: str = "default") -> 
     )
 
 
-def _parse_keyword_json(text: str) -> list[str]:
-    cleaned = strip_thinking(text or "").strip()
-    match = re.search(r"\[[\s\S]*\]", cleaned)
-    if match:
-        cleaned = match.group(0)
-    try:
-        data = json.loads(cleaned)
-    except Exception:
-        data = [line.strip(" -??,\t") for line in cleaned.splitlines() if line.strip()]
-
-    keywords: list[str] = []
-    if isinstance(data, list):
-        for item in data:
-            if isinstance(item, str):
-                name = item.strip()
-            elif isinstance(item, dict):
-                name = str(item.get("name") or item.get("concept") or "").strip()
-            else:
-                name = ""
-            if name and name not in keywords:
-                keywords.append(name)
-            if len(keywords) >= 3:
-                break
-    return keywords
-
-
-def _extract_mistake_keywords_with_llm(record: MistakeRecord, explanation: str = "") -> list[str]:
-    try:
-        from config import get_llm
-
-        prompt = f"""Extract 1 to 3 key academic concepts or method names from this mistaken problem.
-
-Rules:
-1. Return only concepts that are central to the problem, not generic words such as method, step, condition, or problem.
-2. Prefer standard textbook / knowledge-graph terminology.
-3. Output only a JSON array of strings, for example ["limit", "L'Hopital rule"]. Do not explain.
-
-Question:
-{record.question_text[:1600]}
-
-Correct answer:
-{record.correct_answer[:600] or "not provided"}
-
-Explanation:
-{explanation[:1600] or record.explanation[:1600] or "not generated"}
-"""
-        result = get_llm().invoke(prompt).content
-        return _parse_keyword_json(result)
-    except Exception as e:
-        print(f"[MistakeConcepts] LLM keyword extraction failed: {e}", flush=True)
-        return []
-
-
 def _dedupe_concepts(concepts: list[dict], limit: int = 3) -> list[dict]:
     result: list[dict] = []
     seen: set[str] = set()
@@ -220,7 +169,7 @@ def _link_mistake_concepts(
     explanation: str = "",
     book_name: str = "default",
     *,
-    allow_llm_fallback: bool = True,
+    allow_llm_fallback: bool = False,
 ) -> list[dict]:
     try:
         from knowledge.concept_linker import ConceptLinker
@@ -237,21 +186,10 @@ def _link_mistake_concepts(
             intent="mistake",
             limit=3,
         )
+        # Association scores are retrieval heuristics, never evidence of weakness.
         for item in concepts:
-            item["confidence"] = max(float(item.get("confidence", 0) or 0), 0.999)
-            item["source"] = "mistake_linker"
-
-        if not concepts and allow_llm_fallback:
-            for keyword in _extract_mistake_keywords_with_llm(record, explanation):
-                linked = linker.link(matched_concepts=[keyword], question=keyword, intent="mistake", limit=1)
-                if not linked:
-                    linked = linker.link(question=keyword, intent="mistake", limit=1)
-                for item in linked:
-                    item = dict(item)
-                    item["confidence"] = 1.0
-                    item["source"] = "mistake_llm"
-                    item["evidence"] = keyword
-                    concepts.append(item)
+            item["confidence_kind"] = "heuristic_association"
+            item["evidence_kind"] = "question_association"
 
         return _dedupe_concepts(concepts, limit=3)
     except Exception as e:
@@ -264,12 +202,6 @@ def _persist_mistake_concepts(record: MistakeRecord, explanation: str = "", book
     if not concepts:
         return []
     record.linked_concepts = concepts
-    try:
-        from knowledge.concept_memory import ConceptMemory
-
-        ConceptMemory(book_name).log_weakness(concepts, record.question_text, "mistake", source="mistake", subject=record.subject)
-    except Exception as e:
-        print(f"[ConceptMemory] mistake record failed: {e}", flush=True)
     return concepts
 
 
@@ -1586,7 +1518,7 @@ def get_stats(subject: str = "", book_name: str = "default") -> MistakeStatsOut:
 @router.get("/weak-points")
 def get_weak_points(subject: str = "", book_name: str = "default", top_n: int = 8):
     weak = _mb(book_name).get_weak_points(subject=subject or None, top_n=top_n)
-    return {"success": True, "data": [WeakPointOut(name=w["name"], type=w["type"], count=w["count"]) for w in weak]}
+    return {"success": True, "data": [WeakPointOut(**w) for w in weak]}
 
 
 
@@ -1670,15 +1602,13 @@ def explain_mistake(req: MistakeExplainRequest, book_name: str = "default"):
         return rag_context["text"]
 
     try:
-        result = mb.explain(req.id, lambda prompt: strip_thinking(llm.invoke(prompt).content), context_provider=rag_provider)
-        sanitized = sanitize_latex(result)
-        record = mb.get(req.id)
-        if record:
-            record.explanation = sanitized
-            _record_mistake_concepts(record, sanitized, rag_context["text"], req.book_name or book_name)
-            mb.update(record)
-            _log_learning_event("mistake_explained", book_name=req.book_name or book_name, record=record, payload={"has_rag_context": bool(rag_context["text"])})
-        return {"success": True, "explanation": sanitized, "data": _record_to_out(record) if record else None}
+        from backend.services.exercise_knowledge import explain_mistake as explain_structured
+        response = explain_structured(mb, req.id, book_name=book_name,
+            invoke=lambda prompt: llm.invoke(prompt).content, context_provider=rag_provider)
+        record = response.pop("record")
+        _log_learning_event("mistake_explained", book_name=book_name, record=record,
+                            payload={"has_rag_context": bool(rag_context["text"])})
+        return {"success": True, **response, "data": _record_to_out(record)}
     except Exception as e:
         return {"success": False, "message": f"讲解失败: {e}"}
 

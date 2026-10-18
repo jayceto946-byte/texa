@@ -107,6 +107,8 @@ class MistakeRecordOut(BaseModel):
     visual_ir: dict = Field(default_factory=dict)
     explanation: str = ""
     linked_concepts: list[dict] = Field(default_factory=list)
+    knowledge_structure: dict = Field(default_factory=dict)
+    diagnosis_status: str = "missing"
     review_history: list[dict] = Field(default_factory=list)
     next_review: Optional[str] = None
     interval: Optional[int] = None
@@ -162,9 +164,14 @@ class MistakeStatsOut(BaseModel):
 
 
 class WeakPointOut(BaseModel):
+    error_type: str = ""
     name: str
     type: str
     count: int
+    concept_id: str = ""
+    scope: dict = Field(default_factory=dict)
+    attempt_ids: list[str] = Field(default_factory=list)
+    mistake_ids: list[str] = Field(default_factory=list)
 
 
 class BookInfoOut(BaseModel):
@@ -219,6 +226,7 @@ class ExerciseRecordOut(BaseModel):
     image_path: Optional[str] = None
     ocr_text: str = ""
     linked_concepts: list[dict] = Field(default_factory=list)
+    knowledge_structure: dict = Field(default_factory=dict)
     origin_type: str = "manual"
     origin_id: str = ""
     status: str = "new"
@@ -272,6 +280,7 @@ class ExerciseAnswerSaveRequest(BaseModel):
     id: str
     answer: str
     explanation: str = ""
+    knowledge_job_id: str = ""
 
 class ExerciseFromMistakeRequest(BaseModel):
     mistake_id: str

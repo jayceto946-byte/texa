@@ -175,10 +175,14 @@ def query_mistakes(req: MistakeQuery, book_name: str = "default"):
                 record = MistakeRecord.from_dict(json.loads(raw))
                 if record.visibility != "active" or req.subject and not subject_matches(record.subject, req.subject):
                     continue
+                from knowledge.exercise_structure import diagnosis_search_terms
+                record_attempts = store.list_attempts(record.id, limit=100000)
                 needle = req.search.strip().lower()
-                if needle and not any(needle in text.lower() for text in [record.question_text, record.ocr_text, record.explanation, *record.tags, *record.mistake_type]):
+                terms = [record.question_text, record.ocr_text, record.explanation, *record.tags, *record.mistake_type,
+                         *diagnosis_search_terms(record, record_attempts)]
+                if needle and not any(needle in text.lower() for text in terms):
                     continue
-                projection = project_mistake(record, store.list_attempts(record.id, limit=100000))
+                projection = project_mistake(record, record_attempts)
                 if req.filter == "pending" and not projection["pending_reason"]:
                     continue
                 if req.filter == "due" and (projection["review_status"] != "due" or projection["mastery_status"] == "mastered"):
@@ -215,9 +219,9 @@ def diagnose_mistakes(book_name: str = "default", subject: str = ""):
             if record.visibility == "active" and (not subject or subject_matches(record.subject, subject)):
                 records[rid] = record
         if records:
-            for rid, kind, raw, created_at in conn.execute("SELECT mistake_id,kind,data,created_at FROM mistake_attempts ORDER BY created_at,id"):
+            for aid, rid, kind, raw, created_at in conn.execute("SELECT id,mistake_id,kind,data,created_at FROM mistake_attempts ORDER BY created_at,id"):
                 if rid in records:
-                    attempts.setdefault(rid, []).append({"kind": kind, "created_at": created_at, **json.loads(raw)})
+                    attempts.setdefault(rid, []).append({"id": aid, "kind": kind, "created_at": created_at, **json.loads(raw)})
 
     def window_rows(rows: list[dict], start: datetime, end: datetime) -> list[dict]:
         selected = []
@@ -236,23 +240,28 @@ def diagnose_mistakes(book_name: str = "default", subject: str = ""):
     actions: list[dict] = []
     for rid, record in records.items():
         item_attempts = attempts.get(rid, [])
-        recent = window_rows(item_attempts, recent_start, now)
-        prior = window_rows(item_attempts, prior_start, recent_start)
-        for tag in record.tags or ["未标注知识点"]:
-            group = groups.setdefault(tag, {"name": tag, "mistake_ids": [], "recent_wrong": 0, "recent_attempts": 0, "recent_correct": 0})
-            group["mistake_ids"].append(rid)
-            group["recent_wrong"] += sum(row["result"] in {"wrong", "partial"} for row in recent)
-            group["recent_attempts"] += len(recent)
-            group["recent_correct"] += sum(row["result"] == "independent_correct" for row in recent)
-        if record.diagnosis_status == "confirmed":
-            for reason in record.mistake_type:
-                group = reason_groups.setdefault(reason, {"name": reason, "mistake_ids": [], "example": ""})
-                group["mistake_ids"].append(rid)
-                group["example"] = group["example"] or record.notes[:180] or record.user_answer[:180]
         projection = project_mistake(record, item_attempts)
         priority = 0 if record.content_status == "needs_correction" else 1 if projection["review_status"] == "due" and projection["repeat_wrong"] else 2 if projection["review_status"] == "due" else 9
         if priority < 9:
             actions.append({"mistake_id": rid, "priority": priority, "reason": "校对关键材料" if priority == 0 else "复习反复出错的题" if priority == 1 else "完成到期重做"})
+
+    from knowledge.exercise_structure import weak_summary, confirmed_diagnoses
+    def recent_diagnosis_rows(rows):
+        selected = []
+        for row in rows:
+            try:
+                created = datetime.fromisoformat(row["created_at"].replace("Z", "+00:00"))
+                # Existing attempt writers use local naive timestamps.
+                created = created.astimezone(timezone.utc)
+            except (KeyError, ValueError):
+                continue
+            if recent_start <= created < now:
+                selected.append(row)
+        return selected
+    evidence = weak_summary((record, recent_diagnosis_rows(attempts.get(rid, []))) for rid, record in records.items())
+    groups = {str(index): {**group, "recent_wrong": group["count"], "recent_attempts": group["count"], "recent_correct": 0}
+              for index, group in enumerate(evidence["concepts"])}
+    reason_groups = {group["name"]: group for group in evidence["reasons"]}
 
     cohort = [rid for rid, rows in attempts.items() if window_rows(rows, recent_start, now) and window_rows(rows, prior_start, recent_start)]
     recent_cohort = [row for rid in cohort for row in window_rows(attempts[rid], recent_start, now)]
@@ -262,7 +271,8 @@ def diagnose_mistakes(book_name: str = "default", subject: str = ""):
         "scope": {"book_name": book_name, "subject": subject, "recent_start": recent_start.date().isoformat(), "prior_start": prior_start.date().isoformat(), "end": now.date().isoformat()},
         "record_count": len(records), "groups": sorted(groups.values(), key=lambda item: (-item["recent_wrong"], -len(item["mistake_ids"]), item["name"])),
         "reasons": sorted(reason_groups.values(), key=lambda item: (-len(item["mistake_ids"]), item["name"])),
-        "unconfirmed_diagnosis_count": sum(record.diagnosis_status != "confirmed" for record in records.values()),
+        "unconfirmed_diagnosis_count": sum(not confirmed_diagnoses(record, attempts.get(rid, [])) for rid, record in records.items()),
+        "diagnosis_basis": evidence["basis"], "confirmed_error_attempts": evidence["confirmed_error_attempts"],
         "comparison": {"cohort_mistake_ids": cohort, "prior_correct": sum(row["result"] == "independent_correct" for row in prior_cohort), "prior_total": len(prior_cohort), "recent_correct": sum(row["result"] == "independent_correct" for row in recent_cohort), "recent_total": len(recent_cohort), "comparable": comparable},
         "actions": sorted(actions, key=lambda item: (item["priority"], item["mistake_id"]))[:3],
         "legacy_quality_excluded": True,
@@ -280,9 +290,13 @@ def count_mistakes(book_name: str = "default", subject: str = "", search: str = 
         record = MistakeRecord.from_dict(json.loads(raw))
         if record.visibility != "active" or subject and not subject_matches(record.subject, subject):
             continue
-        if needle and not any(needle in value.lower() for value in [record.question_text, record.ocr_text, record.explanation, *record.tags, *record.mistake_type]):
+        from knowledge.exercise_structure import diagnosis_search_terms
+        record_attempts = store.list_attempts(rid, limit=100000)
+        terms = [record.question_text, record.ocr_text, record.explanation, *record.tags, *record.mistake_type,
+                 *diagnosis_search_terms(record, record_attempts)]
+        if needle and not any(needle in value.lower() for value in terms):
             continue
-        projection = project_mistake(record, store.list_attempts(rid, limit=100000))
+        projection = project_mistake(record, record_attempts)
         counts["all"] += 1
         counts["pending"] += bool(projection["pending_reason"])
         counts["due"] += projection["review_status"] == "due" and projection["mastery_status"] != "mastered"
@@ -489,6 +503,26 @@ def save_draft(draft_id: str, req: DraftSave, book_name: str = "default"):
     except ValueError as exc:
         raise _error(exc) from exc
     return {"success": True, "data": receipt}
+
+
+class AttemptDiagnosisRequest(BaseModel):
+    expected_revision: int = Field(ge=1)
+    operation_id: str = Field(min_length=1, max_length=160)
+    proposal: dict | None = None
+    confirm: bool = False
+    expected_diagnosis_digest: str = ""
+
+
+@router.post("/{mistake_id}/attempts/{attempt_id}/diagnosis")
+def set_attempt_diagnosis(mistake_id: str, attempt_id: str, req: AttemptDiagnosisRequest, book_name: str = "default"):
+    from backend.services.exercise_knowledge import update_attempt_diagnosis
+    try:
+        result = update_attempt_diagnosis(_store(book_name), mistake_id, attempt_id, book_name=book_name,
+            expected_revision=req.expected_revision, operation_id=req.operation_id, proposal=req.proposal,
+            confirm=req.confirm, expected_diagnosis_digest=req.expected_diagnosis_digest)
+        return {"success": True, "data": result}
+    except ValueError as exc:
+        raise _error(exc) from exc
 
 
 @router.get("/{mistake_id}/attempts")

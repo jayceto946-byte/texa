@@ -32,6 +32,8 @@ class ConceptCandidate:
             "concept_id": self.concept_id,
             "type": self.type,
             "confidence": round(float(self.confidence), 3),
+            "confidence_kind": "heuristic_association",
+            "evidence_kind": "question_association",
             "source": self.source,
             "evidence": self.evidence,
             "aliases": self.aliases or [],

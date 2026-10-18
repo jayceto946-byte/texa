@@ -246,7 +246,10 @@ class ConceptMemory:
         weak_reason: str = "",
         operation_id: str = "",
     ):
-        """记录一次概念接触。"""
+        """记录一次概念接触。题目关联不是掌握度证据。"""
+        if weak and source == "mistake":
+            # Attempt diagnoses live in the mistake authority, never confidence-gated tags.
+            return
         operations = self._data.setdefault("exposure_operations", {})
         if operation_id and operation_id in operations:
             return
@@ -503,6 +506,9 @@ class ConceptMemory:
         if not info.get("weak_flag"):
             return False
         reason = str(info.get("weak_reason", ""))
+        if reason == "mistake":
+            # Legacy linker-generated flags have no attempt evidence. Keep raw history.
+            return False
         if reason != "qa":
             return True
         return any(

@@ -48,13 +48,14 @@ def test_review_history_is_persisted(tmp_path):
     assert reloaded.sm2["next_review"] != updated.review_history[0]["date"]
 
 
-def test_weak_points_label_tags_as_concepts(tmp_path):
+def test_question_tags_do_not_imply_weakness(tmp_path):
     book = MistakeBook(tmp_path / "mistakes.db")
     book.add(MistakeRecord(question_text="q", subject="math", tags=["导数"], mistake_type=["计算错误"]))
 
     weak = book.get_weak_points()
 
-    assert {"type": "知识点", "name": "导数", "count": 1} in weak
+    assert weak == []
+    assert book.get_stats()["by_tag"]["导数"] == 1
 
 
 def test_explain_persists_explanation(tmp_path):

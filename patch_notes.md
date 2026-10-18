@@ -12,6 +12,15 @@
 - 反例涵盖 x/x 定义域、遗漏-1、平方增根、除以零分支、sqrt(x²)符号、展开配方、伪造前序/条件/来源和参数零分支；参数测试发现的 a/a false-valid 已阻断。最终 Python3.10 14文件257项通过，Electron桌面合同24项通过；本地3次短测旧单核验中位321.23ms、四步批次332.62ms，无强制额外模型调用。
 - 普通文字/图片条件无法可信绑定时 unknown；当前来源限原始请求的显式 math-context 块，混合冲突文字不静默忽略。自然语言/几何证明、一般参数解集、复杂域和跨调用前序不保证。真实模型及Electron GUI端到端 NOT VERIFIED，不称为完整生产验收。v3版本/schema阻断旧暂停合同复用；无依赖/数据库/索引/配置迁移，不改主工作区、不合并或推送。详见 docs/qa/P1-B-CONTEXT-MATH-VERIFICATION-2026-10-18.md。
 
+## 2026-10-18 — P1-C 题目知识结构与 attempt 错因证据（独立候选）
+
+- 在 feature/p1-knowledge-structure / ../texa-p1-c-knowledge，基于 ac071baca0382bdfefece0c1a2b693105dced8a7 增量开发；主目录候选题合同与其他任务修改不复制、不覆盖，不修改P1-A/P1-B或自动合并。
+- ExerciseRecord/MistakeRecord既有JSON新增可选knowledge_structure，区分主/关联考点、定理、性质、知识领域和题型；有界KG候选按教材/章节、canonical ID与图谱摘要校验，unknown/unclassified允许，新概念仅待审核。未知JSON字段在dataclass往返中保留；题干修订/参考答案编辑使对应关系过期，无数据库、依赖或索引迁移。
+- 既有mistake_attempts.data扩展原作答span/quote/步骤与版本化诊断；模型只能建议，用户确认沿用CAS/幂等回执并重新校验。最终答案不能据题型推断具体错因；已确认错误按attempt去重，题目分类不写弱项或掌握度。移除0.999/1.0抬分、额外错题关键词LLM调用及标签作为薄弱依据；保留原SM-2。
+- 同次答案/错题讲解响应附严格结构合同，不增加分类请求；既有答案Job明确保存时复验元数据，新增按canonical ID查询同考点习题及attempt诊断确认API。学习摘要/诊断查询与计数消费证据；页面仅修正已确认作答的计量说明。
+- 验证：Python3.10.21相关205项、前端227项、Electron壳24项通过；TypeScript/Vite/修改页ESLint/desktop check通过。真实macOS Electron37.10.3+隔离SQLite/合成KG完成16项，已查1280/1024/760三尺寸诊断截图。ready与首次配置为夹具，不是后端预热或模型配置验收。真实LLM分类/归因质量NOT VERIFIED，Windows/安装包/生产数据回放未测；未开发完整分类/诊断编辑UI。
+- 完整链路审查、合同、复现、候选题项目兼容边界与限制见 docs/validation/p1-c-knowledge-2026-10-18/report.md。工程合同验收通过，不等同真实教学质量或全部生产验收完成。
+
 ## 2026-10-18 — Agent Runtime P0 数学可靠性修复
 
 - 数学工具 v2 以有界标识符替代八变量枚举，统一 schema/AST/worker 的变量与假设合同；支持 theta/lambda/希腊别名及编号参数，保留白名单函数、受限 AST、隔离进程和原预算。参数积分限须与积分变量无关；不支持的求解区间明确拒绝。

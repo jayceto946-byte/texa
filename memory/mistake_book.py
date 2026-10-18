@@ -89,6 +89,8 @@ class MistakeRecord:
     visual_ir: dict = field(default_factory=dict)
     explanation: str = ""
     linked_concepts: list[dict] = field(default_factory=list)
+    knowledge_structure: dict = field(default_factory=dict)
+    extra_fields: dict = field(default_factory=dict, repr=False)
     id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
     sm2: dict = field(default_factory=dict)
     review_history: list[dict] = field(default_factory=list)
@@ -101,7 +103,13 @@ class MistakeRecord:
     source_ref: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        from knowledge.exercise_structure import question_digest
+        data = asdict(self)
+        extra = data.pop("extra_fields", {})
+        structure = data.get("knowledge_structure")
+        if structure and structure.get("question_digest") != question_digest(self):
+            data["knowledge_structure"] = {**structure, "status": "stale"}
+        return {**extra, **data}
 
     @classmethod
     def from_dict(cls, data: dict) -> "MistakeRecord":
@@ -110,7 +118,12 @@ class MistakeRecord:
             data["question_text"] = data.pop("question")
         if data.get("chapter") == "":
             data["chapter"] = None
-        return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
+        extra = {k: v for k, v in data.items() if k not in cls.__dataclass_fields__ or k == "extra_fields"}
+        record = cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__ and k != "extra_fields"})
+        record.extra_fields = extra
+        from knowledge.exercise_structure import invalidate_structure
+        invalidate_structure(record)
+        return record
 
 
 class MistakeBookStore:
@@ -251,7 +264,12 @@ class MistakeBookStore:
             conn.execute("BEGIN IMMEDIATE")
             old = conn.execute("SELECT data FROM mistakes WHERE id=?", (record.id,)).fetchone()
             if old:
-                record.revision = int(json.loads(old[0]).get("revision", 1)) + 1
+                prior = json.loads(old[0])
+                record.revision = int(prior.get("revision", 1)) + 1
+                prior_record = MistakeRecord.from_dict(prior)
+                if any(getattr(prior_record, key) != getattr(record, key) for key in ("question_text", "correct_answer", "subject", "chapter")):
+                    record.content_revision = int(prior.get("content_revision", 1)) + 1
+                    record.diagnosis_status = "missing"
             conn.execute(
                 "UPDATE mistakes SET data = ?, next_review = ?, subject = ?, chapter = ? WHERE id = ?",
                 (
@@ -355,12 +373,9 @@ class MistakeBookStore:
         for record in records:
             for item in record.mistake_type:
                 by_type[item] = by_type.get(item, 0) + 1
-            for tag in record.tags:
-                by_tag[tag] = by_tag.get(tag, 0) + 1
-            for concept in record.linked_concepts:
-                name = str(concept.get("name", "")).strip()
-                if name:
-                    by_tag[name] = by_tag.get(name, 0) + 1
+            names = set(record.tags) | {str(c.get("name", "")).strip() for c in record.linked_concepts}
+            for name in names - {""}:
+                by_tag[name] = by_tag.get(name, 0) + 1
             by_difficulty[record.difficulty] = by_difficulty.get(record.difficulty, 0) + 1
 
         return {
@@ -466,14 +481,17 @@ class MistakeBook:
         return self.store.get_stats(subject=subject)
 
     def get_weak_points(self, subject: Optional[str] = None, top_n: int = 5) -> list[dict]:
-        stats = self.store.get_stats(subject=subject)
-        weak = []
-        for tag, count in stats.get("by_tag", {}).items():
-            weak.append({"type": "知识点", "name": tag, "count": count})
-        for mistake_type, count in stats.get("by_type", {}).items():
-            weak.append({"type": "错因", "name": mistake_type, "count": count})
-        weak.sort(key=lambda x: x["count"], reverse=True)
+        summary = self.evidence_summary(subject=subject)
+        weak = summary["concepts"] + summary["reasons"]
+        weak.sort(key=lambda x: (-x["count"], x["name"]))
         return weak[:top_n]
+
+    def evidence_summary(self, subject: Optional[str] = None) -> dict:
+        from memory.mistake_lifecycle import MistakeLifecycleStore
+        from knowledge.exercise_structure import weak_summary
+        lifecycle = MistakeLifecycleStore(self.store)
+        return weak_summary((record, lifecycle.list_attempts(record.id, limit=100000))
+                            for record in self.store.list_all(subject=subject, limit=100000))
 
     def explain_prompt(self, record: MistakeRecord, context_provider: Optional[ContextProvider] = None) -> str:
         ctx = context_provider(record) if context_provider else ""
@@ -501,7 +519,7 @@ class MistakeBook:
 {ctx_block}
 ## 讲题要求
 1. 先分析这道题考查的核心知识点。
-2. 指出用户答案中的具体问题，尽量对照错因标签。
+2. 只依据真实作答指出问题。只有最终答案时只能说明结果是否错误，具体错因保持未知；易错点不等于用户实际错误。
 3. 给出完整正确的解题步骤，公式使用 LaTeX。
 4. 总结类似题的通用解题套路和易错点。
 5. 直接输出讲题内容，不要寒暄，不要输出 thinking。

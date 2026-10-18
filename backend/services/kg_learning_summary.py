@@ -138,7 +138,7 @@ def build_concept_review_plan(
     }
     mistake_counts = {
         item.get("name", ""): int(item.get("count", 0) or 0)
-        for item in mistake_weak_points
+        for item in mistake_weak_points if item.get("type") == "知识点"
     }
     candidate_names = (
         set(weak_names)
@@ -198,7 +198,7 @@ def build_concept_review_plan(
                     else "qa"
                 ),
                 "timestamp": exposure.get("timestamp", ""),
-                "weak": bool(exposure.get("weak")),
+                "weak": bool(exposure.get("weak")) and exposure.get("source") != "mistake" and exposure.get("intent") != "mistake",
                 "mistake_id": mistake_id,
             })
             if len(recent_questions) >= 3:

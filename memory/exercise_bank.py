@@ -36,6 +36,8 @@ class ExerciseRecord:
     image_path: Optional[str] = None
     ocr_text: str = ""
     linked_concepts: list[dict] = field(default_factory=list)
+    knowledge_structure: dict = field(default_factory=dict)
+    extra_fields: dict = field(default_factory=dict, repr=False)
     origin_type: str = "manual"
     origin_id: str = ""
     status: str = "new"
@@ -48,14 +50,25 @@ class ExerciseRecord:
     id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        from knowledge.exercise_structure import question_digest
+        data = asdict(self)
+        extra = data.pop("extra_fields", {})
+        structure = data.get("knowledge_structure")
+        if structure and structure.get("question_digest") != question_digest(self):
+            data["knowledge_structure"] = {**structure, "status": "stale"}
+        return {**extra, **data}
 
     @classmethod
     def from_dict(cls, data: dict) -> "ExerciseRecord":
         data = dict(data)
         if data.get("chapter") == "":
             data["chapter"] = None
-        return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
+        extra = {k: v for k, v in data.items() if k not in cls.__dataclass_fields__ or k == "extra_fields"}
+        record = cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__ and k != "extra_fields"})
+        record.extra_fields = extra
+        from knowledge.exercise_structure import invalidate_structure
+        invalidate_structure(record)
+        return record
 
 
 def question_fingerprint(question_text: str) -> str:
@@ -379,6 +392,29 @@ class ExerciseBankStore:
         with self._connect() as conn:
             row = conn.execute("SELECT data FROM exercises WHERE id = ?", (rid,)).fetchone()
         return ExerciseRecord.from_dict(json.loads(row[0])) if row else None
+
+    def save_answer(self, rid: str, *, answer: str, explanation: str,
+                    expected_question_digest: str, structure: dict | None = None) -> ExerciseRecord:
+        from knowledge.exercise_structure import question_digest
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT data FROM exercises WHERE id=?", (rid,)).fetchone()
+            if not row:
+                raise ValueError("exercise not found")
+            record = ExerciseRecord.from_dict(json.loads(row[0]))
+            if question_digest(record) != expected_question_digest:
+                raise ValueError("exercise question version changed")
+            if structure is None and record.knowledge_structure and (record.answer != answer or explanation and record.explanation != explanation):
+                record.knowledge_structure = {**record.knowledge_structure, "status": "stale", "stale_reason": "reference_answer_changed"}
+            record.answer = answer
+            if explanation:
+                record.explanation = explanation
+            if structure is not None:
+                record.knowledge_structure = structure
+            record.updated_at = datetime.now().isoformat()
+            conn.execute("UPDATE exercises SET data=?,updated_at=? WHERE id=?",
+                         (json.dumps(record.to_dict(), ensure_ascii=False), record.updated_at, rid))
+            return record
 
     def find_by_origin(self, origin_type: str, origin_id: str) -> Optional[ExerciseRecord]:
         with self._connect() as conn:

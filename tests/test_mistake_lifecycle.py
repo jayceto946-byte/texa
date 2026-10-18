@@ -132,11 +132,11 @@ def test_diagnosis_uses_shared_cohort_and_excludes_legacy_quality(tmp_path, monk
             created = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
             conn.execute("INSERT INTO mistake_attempts VALUES (?,?,?,?,?,?)", (f"a{days}", record.id, f"test:{days}", "redo", json.dumps({"answer": "步骤", "result": result, "hint_used": False, "judgement_source": "user_confirmed"}), created))
     data = api.diagnose_mistakes()["data"]
-    assert data["groups"][0]["recent_correct"] == 1
+    assert data["groups"] == []  # no attempt-level diagnosis evidence
     assert data["comparison"]["prior_total"] == 1
     assert data["comparison"]["recent_total"] == 1
     assert data["comparison"]["comparable"] is False
-    assert data["reasons"][0]["mistake_ids"] == ["d1"]
+    assert data["reasons"] == []  # legacy confirmed label is not evidence
 
 
 def test_mastery_requires_two_spaced_due_independent_redos_after_last_failure():
