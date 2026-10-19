@@ -1,0 +1,346 @@
+{
+  "task_status": "degraded",
+  "run_status": "completed",
+  "error_code": null,
+  "verification": {
+    "checks": [
+      {
+        "id": "answer",
+        "label": "content",
+        "reason": "",
+        "status": "passed"
+      },
+      {
+        "evidence": [],
+        "id": "tool_verification",
+        "label": "tool_verification",
+        "reason": "没有可绑定本题结论的独立核验收据",
+        "status": "unverified"
+      },
+      {
+        "id": "formula",
+        "label": "回答公式的核验依据",
+        "reason": "公式尚无等价性核验依据",
+        "status": "unverified"
+      }
+    ],
+    "failures": [],
+    "passed": false,
+    "status": "unverified",
+    "unverified": [
+      {
+        "id": "tool_verification",
+        "reason": "没有可绑定本题结论的独立核验收据"
+      },
+      {
+        "id": "formula",
+        "reason": "公式尚无等价性核验依据"
+      },
+      {
+        "id": "interim_delivery",
+        "reason": "保留了工具调用前的公开推导，阶段内容未独立核验"
+      }
+    ]
+  },
+  "trace": {
+    "anchors": [
+      {
+        "chunk_id": "b3696cd4e1f3706e7fd5",
+        "source_block_ids": [
+          "5669583b60c9dd2eefbb",
+          "ff70854fe8a25ce090d0",
+          "6bb9d91e374ffe00a9b0",
+          "436485ea6c3dcee1f0e8",
+          "e72df2318141d5849f4c",
+          "8c05d79717526d7abf52",
+          "89646083ebf3d2eac9b9"
+        ],
+        "pages": [
+          18,
+          18
+        ],
+        "learning_unit": {
+          "version": "textbook-context/v1",
+          "status": "unknown",
+          "text_status": "unknown",
+          "source_status": "unknown",
+          "boundary": "source_title",
+          "reason": "canonical_section",
+          "unit_id": "5669583b60c9dd2eefbb",
+          "anchor_chunk_ids": [
+            "b3696cd4e1f3706e7fd5"
+          ],
+          "anchor_source_block_ids": [
+            "e72df2318141d5849f4c"
+          ],
+          "total_blocks": 7,
+          "figures": [
+            {
+              "figure_id": "6bb9d91e374ffe00a9b0",
+              "source_block_ids": [
+                "6bb9d91e374ffe00a9b0"
+              ],
+              "asset_relpath": "figures/6bb9d91e374ffe00a9b0_5dddaefdf54cb4692dd2e671a0076ccc1beaf5a63991721c0e8b385a1d931362.jpg",
+              "content_hash": "5dddaefdf54cb4692dd2e671a0076ccc1beaf5a63991721c0e8b385a1d931362",
+              "page_start": 18,
+              "page_end": 18,
+              "required": false,
+              "availability": "available",
+              "model_input": "not_required",
+              "multimodal_mode": "native",
+              "reading_role": "reasoning"
+            },
+            {
+              "figure_id": "436485ea6c3dcee1f0e8",
+              "source_block_ids": [
+                "436485ea6c3dcee1f0e8"
+              ],
+              "asset_relpath": "figures/436485ea6c3dcee1f0e8_06370bd1cebccf399cf3a1a9d14a894f974eb1b42c8fa92b9713c73e5cbe30e8.jpg",
+              "content_hash": "06370bd1cebccf399cf3a1a9d14a894f974eb1b42c8fa92b9713c73e5cbe30e8",
+              "page_start": 18,
+              "page_end": 18,
+              "required": true,
+              "availability": "available",
+              "model_input": "not_read",
+              "multimodal_mode": "native",
+              "reading_role": "reasoning"
+            }
+          ],
+          "continuation": null
+        }
+      }
+    ],
+    "visible": [
+      {
+        "id": "E1",
+        "chunk_id": "b3696cd4e1f3706e7fd5",
+        "source_block_ids": [
+          "5669583b60c9dd2eefbb",
+          "ff70854fe8a25ce090d0",
+          "6bb9d91e374ffe00a9b0",
+          "436485ea6c3dcee1f0e8",
+          "e72df2318141d5849f4c",
+          "8c05d79717526d7abf52",
+          "89646083ebf3d2eac9b9"
+        ],
+        "visible_chars": 841,
+        "visible_sha256": "6cbf30582b569865c55b978bfe37a214dfbd61dace60ae7bd21219465991f1b7",
+        "learning_unit": {
+          "version": "textbook-context/v1",
+          "status": "unknown",
+          "text_status": "unknown",
+          "source_status": "unknown",
+          "boundary": "source_title",
+          "reason": "canonical_section",
+          "unit_id": "5669583b60c9dd2eefbb",
+          "anchor_chunk_ids": [
+            "b3696cd4e1f3706e7fd5"
+          ],
+          "anchor_source_block_ids": [
+            "e72df2318141d5849f4c"
+          ],
+          "total_blocks": 7,
+          "figures": [
+            {
+              "figure_id": "6bb9d91e374ffe00a9b0",
+              "source_block_ids": [
+                "6bb9d91e374ffe00a9b0"
+              ],
+              "asset_relpath": "figures/6bb9d91e374ffe00a9b0_5dddaefdf54cb4692dd2e671a0076ccc1beaf5a63991721c0e8b385a1d931362.jpg",
+              "content_hash": "5dddaefdf54cb4692dd2e671a0076ccc1beaf5a63991721c0e8b385a1d931362",
+              "page_start": 18,
+              "page_end": 18,
+              "required": false,
+              "availability": "available",
+              "model_input": "not_required",
+              "multimodal_mode": "native",
+              "reading_role": "reasoning"
+            },
+            {
+              "figure_id": "436485ea6c3dcee1f0e8",
+              "source_block_ids": [
+                "436485ea6c3dcee1f0e8"
+              ],
+              "asset_relpath": "figures/436485ea6c3dcee1f0e8_06370bd1cebccf399cf3a1a9d14a894f974eb1b42c8fa92b9713c73e5cbe30e8.jpg",
+              "content_hash": "06370bd1cebccf399cf3a1a9d14a894f974eb1b42c8fa92b9713c73e5cbe30e8",
+              "page_start": 18,
+              "page_end": 18,
+              "required": true,
+              "availability": "available",
+              "model_input": "not_read",
+              "multimodal_mode": "native",
+              "reading_role": "reasoning"
+            }
+          ],
+          "continuation": null
+        }
+      }
+    ],
+    "formula_tags": [
+      "1.8"
+    ],
+    "table_1_1_visible": true
+  },
+  "source_identity": {
+    "book_name": "传感器原理及应用",
+    "edition": "第2版",
+    "author": "彭杰纲",
+    "publisher": "电子工业出版社",
+    "year": 2017,
+    "isbn": "978-7-121-30967-0",
+    "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+    "index_version": "c8b6947edb7858f2",
+    "block_count": 4925,
+    "lexical_rows": 2489,
+    "chapter_count": 13,
+    "raw_resource_present": true,
+    "files": {
+      "/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/data/progress/传感器原理及应用/canonical_document.jsonl": "5bcef61474112840c4513441ba13f81e05d535c1599819a86f7fa30ebd305b2e",
+      "/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/data/vector_db/_index_manifests/传感器原理及应用.json": "8ccb50fac1bd165a741f1f30c6d5f74e9a80006ce66c3431834dcdaab28ae268",
+      "/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/data/vector_db/_lexical_versions/传感器原理及应用/c8b6947edb7858f2.json": "500212ec79ea9dfeefa5baaa5e35ced262cf7e9c9a2a93b360a610ef0655ef77",
+      "/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/mineru_output/传感器原理及应用/hybrid_auto_external/CGQ/structured_content.json": "81a9076931876ffcf6c16f0404a264475b516a8972ae25d792fc62d068f72eb1"
+    },
+    "kg": "absent; unknown/unclassified required",
+    "retrieval": "production BM25 on active lexical snapshot; no vector client",
+    "image_input": "none; visual acceptance not claimed"
+  },
+  "total_ms": 17653.26,
+  "denied_requests": [],
+  "answer_sha256": "9c297c449d839b94d4df97e559bed3655d04f39ce0fef1ff01acbcfab1b2b965",
+  "tools": [
+    {
+      "tool_id": "search_textbook",
+      "status": "succeeded",
+      "error_code": null,
+      "attempt_count": 1,
+      "args": {},
+      "result": null
+    },
+    {
+      "tool_id": "symbolic_math",
+      "status": "succeeded",
+      "error_code": null,
+      "attempt_count": 1,
+      "args": {
+        "assumptions": {},
+        "direction": "+-",
+        "expression": "7/30",
+        "lower": null,
+        "operation": "calculate",
+        "point": null,
+        "right": "0",
+        "upper": null,
+        "variable": "x"
+      },
+      "result": {
+        "data": {
+          "assumptions": {},
+          "expression": "7/30",
+          "limitations": [],
+          "operation": "calculate",
+          "result": {
+            "exact": "7/30",
+            "latex": "\\frac{7}{30}",
+            "numeric": 0.23333333333333334,
+            "raw": "7/30"
+          },
+          "status": "computed",
+          "variable": "x",
+          "verification_request": {
+            "assumptions": {},
+            "kind": "equivalence",
+            "left": "7/30",
+            "right": "7/30"
+          }
+        },
+        "evidence": [],
+        "message": "确定性计算完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {},
+        "warnings": [
+          "计算结果只覆盖本次输入的运算；不验证建模、未输入的条件或自然语言推导"
+        ]
+      }
+    },
+    {
+      "tool_id": "verify_math_result",
+      "status": "succeeded",
+      "error_code": null,
+      "attempt_count": 1,
+      "args": {
+        "assumptions": {},
+        "candidate": "",
+        "candidates": [],
+        "context": null,
+        "direction": "+-",
+        "kind": "equivalence",
+        "left": "7/30",
+        "lower": null,
+        "original": "",
+        "point": null,
+        "right": "21/90",
+        "upper": null,
+        "variable": "x"
+      },
+      "result": {
+        "data": {
+          "assumptions": {},
+          "execution_status": null,
+          "limitations": [],
+          "method": "equivalence",
+          "passed": true,
+          "residuals": [
+            "0"
+          ],
+          "scope": "input_expressions_under_explicit_assumptions",
+          "source_kind": "",
+          "source_ref": "",
+          "status": "verified",
+          "steps": [],
+          "verdict": null
+        },
+        "evidence": [],
+        "message": "结果校验完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {
+          "assumptions": {},
+          "limitations": [],
+          "method": "equivalence",
+          "passed": true,
+          "residuals": [
+            "0"
+          ],
+          "scope": "input_expressions_under_explicit_assumptions",
+          "status": "verified"
+        },
+        "warnings": []
+      }
+    }
+  ],
+  "model_calls": 2,
+  "proposed_tools": [
+    {
+      "args": {
+        "expression": "7/30",
+        "operation": "calculate",
+        "variable": "x"
+      },
+      "id": "call_00_0sImT54OeSJzC29Lf6im5667",
+      "name": "symbolic_math",
+      "type": "tool_call"
+    },
+    {
+      "args": {
+        "kind": "equivalence",
+        "left": "7/30",
+        "right": "21/90"
+      },
+      "id": "call_01_a3c1jG9ainTkq8rBGe8w0619",
+      "name": "verify_math_result",
+      "type": "tool_call"
+    }
+  ],
+  "terminal_event": "final"
+}

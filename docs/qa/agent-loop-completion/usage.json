@@ -1,0 +1,95 @@
+{
+  "model": "deepseek-flash",
+  "provider": "deepseek",
+  "request_limit": 4,
+  "requests": [
+    {
+      "index": 1,
+      "case": "completion-AB",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 13880,
+      "public_input_sha256": "84933a4dc3fee039fde48b00fdcdea8499522006c055893fa4d63b1046881aa5",
+      "usage": {
+        "input_tokens": 3722,
+        "output_tokens": 1139,
+        "total_tokens": 4861,
+        "input_token_details": {
+          "cache_read": 3456
+        },
+        "output_token_details": {
+          "reasoning": 744
+        }
+      },
+      "request_ms": 5862.04,
+      "finish_reason": "tool_calls",
+      "response_model": "deepseek-flash"
+    },
+    {
+      "index": 2,
+      "case": "completion-AB",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 20140,
+      "public_input_sha256": "5f15c86c597895fde9b0119206f375113ae3473cdeb7d6cd993406a702efce81",
+      "usage": {
+        "input_tokens": 5455,
+        "output_tokens": 2372,
+        "total_tokens": 7827,
+        "input_token_details": {
+          "cache_read": 3072
+        },
+        "output_token_details": {
+          "reasoning": 1579
+        }
+      },
+      "request_ms": 12567.77,
+      "finish_reason": "stop",
+      "response_model": "deepseek-flash"
+    },
+    {
+      "index": 3,
+      "case": "completion-sensor-B",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 14734,
+      "public_input_sha256": "65ea586cba3d5d5f056884ff00437b7d1dc28e96fc165946ab6e9837dca3715d",
+      "usage": {
+        "input_tokens": 3890,
+        "output_tokens": 526,
+        "total_tokens": 4416,
+        "input_token_details": {
+          "cache_read": 3584
+        },
+        "output_token_details": {
+          "reasoning": 358
+        }
+      },
+      "request_ms": 3945.9,
+      "finish_reason": "tool_calls",
+      "response_model": "deepseek-flash"
+    },
+    {
+      "index": 4,
+      "case": "completion-sensor-B",
+      "temperature": 1,
+      "status": "returned",
+      "input_bytes": 18487,
+      "public_input_sha256": "cb4b541e8a791e3597eeede07cf2e3af7961f4e778770e38ed8cff5c43d0a561",
+      "usage": {
+        "input_tokens": 4869,
+        "output_tokens": 1582,
+        "total_tokens": 6451,
+        "input_token_details": {
+          "cache_read": 3328
+        },
+        "output_token_details": {
+          "reasoning": 1152
+        }
+      },
+      "request_ms": 9232.3,
+      "finish_reason": "stop",
+      "response_model": "deepseek-flash"
+    }
+  ]
+}

@@ -528,6 +528,7 @@ def register_math_tools(registry: ToolRegistry) -> None:
         name="symbolic_math",
         description=("Compute a restricted numeric or symbolic expression without executing arbitrary code. "
             "Returns raw operation result, already simplified exact form, LaTeX and numeric approximation. "
+            "Each expression is scalar; tuple/list/vector syntax is unsupported, not a batch interface. "
             "Do not call simplify again just to rewrite the returned exact value; use it directly. "
             "Symbols are bounded mathematical identifiers (theta, lambda, alpha, beta, x_1, etc.); Greek aliases accepted. "
             "Omitted assumptions mean complex symbols. Supply given sign/real/integer conditions explicitly; "
@@ -560,6 +561,7 @@ def register_math_tools(registry: ToolRegistry) -> None:
     registry.register(ToolSpec(
         name="verify_math_result",
         description=("Verify only supplied expressions under explicit assumptions; unresolved domain/branch conditions return unverified. "
+            "left/right and original/candidate are scalar expressions: do not pack checks into tuples, lists or vectors. "
             'Minimal derivative call: {"kind":"derivative","original":"x^3-3*x","candidate":"3*x^2-3","variable":"x"}. '
             'Minimal equivalence call: {"kind":"equivalence","left":"2+2","right":"4"}. '
             "Derivative/antiderivative checks are local identities; definite integrals require real bounds independent of the variable. "

@@ -1,0 +1,260 @@
+{
+  "kind": "actual Runtime/SSE + real provider",
+  "question": "请先依据教材讲解闭区间最值的完整流程，再计算 f(x)=x^3-3x 在[-3,3]的最值并核验关键数学结果。",
+  "task_status": "degraded",
+  "run_status": "completed",
+  "error_code": null,
+  "model_calls": 2,
+  "verification": {
+    "checks": [
+      {
+        "id": "answer",
+        "label": "content",
+        "reason": "",
+        "status": "passed"
+      },
+      {
+        "id": "formula",
+        "label": "回答公式的核验依据",
+        "reason": "公式尚无等价性核验依据",
+        "status": "unverified"
+      }
+    ],
+    "failures": [],
+    "passed": false,
+    "status": "unverified",
+    "unverified": [
+      {
+        "id": "formula",
+        "reason": "公式尚无等价性核验依据"
+      },
+      {
+        "id": "interim_delivery",
+        "reason": "保留了工具调用前的公开推导，阶段内容未独立核验"
+      },
+      {
+        "id": "tool_execution",
+        "reason": "本轮有工具失败或核验未通过，最终结论需核实"
+      }
+    ]
+  },
+  "total_ms": 20563.15,
+  "denied_requests": [],
+  "answer_sha256": "4d969e3e9b5fee94eec0a59a85b8c1e8081468a520d7052cc0c1515a94666271",
+  "tools": [
+    {
+      "tool_id": "search_textbook",
+      "status": "succeeded",
+      "error_code": null,
+      "attempt_count": 1,
+      "args": {},
+      "result": null
+    },
+    {
+      "tool_id": "verify_math_result",
+      "status": "succeeded",
+      "error_code": null,
+      "attempt_count": 1,
+      "args": {
+        "assumptions": {
+          "x": "real"
+        },
+        "candidate": "3*x^2-3",
+        "candidates": [],
+        "context": null,
+        "direction": "+-",
+        "kind": "derivative",
+        "left": "",
+        "lower": null,
+        "original": "x^3-3*x",
+        "point": null,
+        "right": "",
+        "upper": null,
+        "variable": "x"
+      },
+      "result": {
+        "data": {
+          "assumptions": {
+            "x": "real"
+          },
+          "execution_status": null,
+          "limitations": [],
+          "method": "derivative",
+          "passed": true,
+          "residuals": [
+            "0"
+          ],
+          "scope": "local_derivative_identity_not_global_differentiability",
+          "source_kind": "",
+          "source_ref": "",
+          "status": "verified",
+          "steps": [],
+          "verdict": null
+        },
+        "evidence": [],
+        "message": "结果校验完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {
+          "assumptions": {
+            "x": "real"
+          },
+          "limitations": [],
+          "method": "derivative",
+          "passed": true,
+          "residuals": [
+            "0"
+          ],
+          "scope": "local_derivative_identity_not_global_differentiability",
+          "status": "verified"
+        },
+        "warnings": []
+      }
+    },
+    {
+      "tool_id": "verify_math_result",
+      "status": "succeeded",
+      "error_code": null,
+      "attempt_count": 1,
+      "args": {
+        "assumptions": {
+          "x": "real"
+        },
+        "candidate": "",
+        "candidates": [
+          "-1",
+          "1"
+        ],
+        "context": null,
+        "direction": "+-",
+        "kind": "solutions",
+        "left": "3*x^2-3",
+        "lower": null,
+        "original": "",
+        "point": null,
+        "right": "0",
+        "upper": null,
+        "variable": "x"
+      },
+      "result": {
+        "data": {
+          "assumptions": {
+            "x": "real"
+          },
+          "execution_status": null,
+          "limitations": [],
+          "method": "solutions",
+          "passed": true,
+          "residuals": [
+            "0",
+            "0"
+          ],
+          "scope": "candidate_substitution_only_not_solution_set_completeness",
+          "source_kind": "",
+          "source_ref": "",
+          "status": "verified",
+          "steps": [],
+          "verdict": null
+        },
+        "evidence": [],
+        "message": "结果校验完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {
+          "assumptions": {
+            "x": "real"
+          },
+          "limitations": [],
+          "method": "solutions",
+          "passed": true,
+          "residuals": [
+            "0",
+            "0"
+          ],
+          "scope": "candidate_substitution_only_not_solution_set_completeness",
+          "status": "verified"
+        },
+        "warnings": []
+      }
+    },
+    {
+      "tool_id": "verify_math_result",
+      "status": "failed",
+      "error_code": "tool_failed",
+      "attempt_count": 1,
+      "args": {
+        "assumptions": {},
+        "candidate": "",
+        "candidates": [],
+        "context": null,
+        "direction": "+-",
+        "kind": "equivalence",
+        "left": "((-3)^3-3*(-3), (-1)^3-3*(-1), (1)^3-3*(1), (3)^3-3*(3))",
+        "lower": null,
+        "original": "",
+        "point": null,
+        "right": "(-18, 2, -2, 18)",
+        "upper": null,
+        "variable": "x"
+      },
+      "result": {
+        "data": null,
+        "evidence": [],
+        "message": "unsupported expression syntax",
+        "pending_action": null,
+        "success": false,
+        "verification": {
+          "passed": false,
+          "status": "error"
+        },
+        "warnings": []
+      }
+    }
+  ],
+  "proposed_tools": [
+    {
+      "args": {
+        "assumptions": {
+          "x": "real"
+        },
+        "candidate": "3*x^2-3",
+        "kind": "derivative",
+        "original": "x^3-3*x",
+        "variable": "x"
+      },
+      "id": "call_00_GtwguVgvNXfMkqnB0kaa6160",
+      "name": "verify_math_result",
+      "type": "tool_call"
+    },
+    {
+      "args": {
+        "assumptions": {
+          "x": "real"
+        },
+        "candidates": [
+          "-1",
+          "1"
+        ],
+        "kind": "solutions",
+        "left": "3*x^2-3",
+        "right": "0",
+        "variable": "x"
+      },
+      "id": "call_01_khczBFrfb7UgNiCJZlcd9266",
+      "name": "verify_math_result",
+      "type": "tool_call"
+    },
+    {
+      "args": {
+        "kind": "equivalence",
+        "left": "((-3)^3-3*(-3), (-1)^3-3*(-1), (1)^3-3*(1), (3)^3-3*(3))",
+        "right": "(-18, 2, -2, 18)",
+        "variable": "x"
+      },
+      "id": "call_02_GkjmfJ2rqsdllGUsjhEl4159",
+      "name": "verify_math_result",
+      "type": "tool_call"
+    }
+  ],
+  "terminal_event": "final"
+}

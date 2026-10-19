@@ -77,6 +77,37 @@ def _math_status_notice(calls):
     return '本轮尚无通过的独立数学核验回执。symbolic_math 的 computed 仅表示计算完成，不能称为局部或整题工具核验通过。'
 
 
+def _execution_budget_notice(snapshot):
+    remaining = max(0, snapshot['budget_calls'] - snapshot['consumed_calls'])
+    preparation = sum(c['tool_id'] == 'search_textbook' for c in snapshot['tool_calls'])
+    return (f"工具执行预算：剩余 {remaining} 次 / 总计 {snapshot['budget_calls']} 次"
+        f"（已计入固定教材检索 {preparation} 次；参数错误和执行失败也占用次数）。"
+        "同一响应内的全部工具调用共享此余额，不要提出超额调用。"
+        "已有 ToolMessage 保留了计算值、核验输入、scope 和 limitations，请直接复用；"
+        "相同输入无需重算或重复核验，数值相同但条件不同不等于同一检查。"
+        "可直接提出待核验结果，无需先调用计算再核验同一个值。"
+        "必要信息齐备时直接给出完整教学回答；一般解释与简单推导可自行完成，明确区分自行推理和工具核验。"
+        "仍缺必要核验时保留缺口，不能为节省次数声称已验证。"
+        + ("余额为零：停止新计算，依据已有回执回答并披露未完成项。" if remaining == 0 else ''))
+
+
+def _reusable_math_receipt(snapshot, run_id, spec, metadata, args):
+    # Exact validated inputs only. No symbolic equivalence, alias folding or
+    # cross-run caching: variable, conditions, source_ref and every parameter
+    # remain part of identity. Failed/unknown/unverified work must remain visible.
+    for receipt in reversed(snapshot['tool_calls']):
+        result = receipt.get('result') or {}
+        data = result.get('data') or {}
+        if (receipt['tool_id'] == spec.name and receipt['tool_version'] == metadata['version']
+                and receipt['schema_hash'] == metadata['schema_hash']
+                and receipt['executed_run_id'] == run_id and receipt['args'] == args
+                and receipt['status'] == 'succeeded' and result.get('success') is True
+                and ((spec.name == 'symbolic_math' and data.get('status') == 'computed')
+                     or (spec.name == 'verify_math_result' and result.get('verification', {}).get('passed') is True))):
+            return receipt
+    return None
+
+
 def _budget_failure_answer(calls):
     # Publish only closed, successful deterministic math receipts. Never promote
     # unfinished assistant prose, retrieval dumps or tool error bodies.
@@ -294,7 +325,9 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
             fenced_model = request.model.model_copy(update={"callbacks": [*callbacks, RunFenceCallback(performance)]})
             request = request.override(model=fenced_model, model_settings=settings)
             delivery = _delivery_contract(original_question)
-            delivery = SystemMessage(content=delivery.content + '\n' + _math_status_notice(store.snapshot(run_id)['tool_calls']))
+            budget_snapshot = store.snapshot(run_id)
+            delivery = SystemMessage(content=delivery.content + '\n' + _execution_budget_notice(budget_snapshot)
+                + '\n' + _math_status_notice(budget_snapshot['tool_calls']))
             request = request.override(messages=[*request.messages, delivery])
             if protocol is not None:
                 protocol.begin()
@@ -394,9 +427,16 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
             if metadata["permission"] != "READ" or (metadata["version"], metadata["schema_hash"]) != (ref.get("version"), ref.get("schema_hash")):
                 raise RuntimeDenied("tool_step_denied")
             key = f"native-{snapshot['consumed_model_calls']}-{call['id']}"
+            reused = None
             try:
-                outcome = executor.execute(run_id, owner, FixedAction("call", tool_id=call["name"],
-                    args=call["args"], operation_key=key, model_tool_call_id=call["id"]), context=context)
+                action = FixedAction("call", tool_id=call["name"], args=call["args"],
+                    operation_key=key, model_tool_call_id=call["id"])
+                _, _, args = executor._validated_tool(action)
+                if spec.runtime_scope_check:
+                    spec.runtime_scope_check(context, args)
+                reused = _reusable_math_receipt(snapshot, run_id, spec, metadata, args)
+                if reused is None:
+                    outcome = executor.execute(run_id, owner, action, context=context)
             except RuntimeConflict as exc:
                 active()
                 raise RuntimeDenied("tool_budget_exhausted") from exc
@@ -420,10 +460,12 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
                      "error_code": "invalid_arguments"},
                     error_code="input_schema")
             return_started = time.monotonic()
-            receipt = next(c for c in outcome["tool_calls"] if c["operation_key"] == key)
+            receipt = reused or next(c for c in outcome["tool_calls"] if c["operation_key"] == key)
             result = receipt["result"]
             tool_failed |= receipt["status"] != "succeeded"
             result = {**result, "runtime_call_id": receipt["id"], "error_code": receipt["error_code"]}
+            if reused is not None:
+                result = {**result, "runtime_reused": True}
             message = ToolMessage(content=json.dumps(result, ensure_ascii=False, allow_nan=False),
                 tool_call_id=call["id"], name=spec.name, status="success" if result.get("success") else "error")
             latest_messages.append(message)
