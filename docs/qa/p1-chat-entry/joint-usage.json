@@ -1,0 +1,119 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "request_limit": 6,
+  "per_case_limit": 2,
+  "automatic_retries": 0,
+  "requests": [
+    {
+      "index": 1,
+      "case": "C",
+      "status": "returned",
+      "public_input_sha256": "aad1add9a68e032e1b59d5eef885dd267c67dd4696aa1bd600c6359e305c607b",
+      "input_bytes": 16146,
+      "temperature": 1,
+      "usage": {
+        "input_tokens": 4455,
+        "output_tokens": 7922,
+        "total_tokens": 12377,
+        "input_token_details": {
+          "cache_read": 2688
+        },
+        "output_token_details": {
+          "reasoning": 6669
+        }
+      },
+      "request_ms": 40469.17,
+      "finish_reason": "stop",
+      "response_model": "deepseek-flash"
+    },
+    {
+      "index": 2,
+      "case": "B",
+      "status": "returned",
+      "public_input_sha256": "e5a605d6527771d58121a3c7f39156d10953f6a3f3c4f5a46889be35b811dbaa",
+      "input_bytes": 14945,
+      "temperature": 1,
+      "usage": {
+        "input_tokens": 3929,
+        "output_tokens": 1122,
+        "total_tokens": 5051,
+        "input_token_details": {
+          "cache_read": 2688
+        },
+        "output_token_details": {
+          "reasoning": 939
+        }
+      },
+      "request_ms": 6409.6,
+      "finish_reason": "tool_calls",
+      "response_model": "deepseek-flash"
+    },
+    {
+      "index": 3,
+      "case": "B",
+      "status": "returned",
+      "public_input_sha256": "82d3776a60e991d7c0d1f003f34a12025bb3a927d8e6091ee8643a12e6bb4610",
+      "input_bytes": 21211,
+      "temperature": 1,
+      "usage": {
+        "input_tokens": 5512,
+        "output_tokens": 1796,
+        "total_tokens": 7308,
+        "input_token_details": {
+          "cache_read": 3328
+        },
+        "output_token_details": {
+          "reasoning": 1369
+        }
+      },
+      "request_ms": 10419.77,
+      "finish_reason": "stop",
+      "response_model": "deepseek-flash"
+    },
+    {
+      "index": 4,
+      "case": "AB",
+      "status": "returned",
+      "public_input_sha256": "ee4e256102f4634edf2df3318ed93b197fc0ab097f2b45060864232f155d38d6",
+      "input_bytes": 14097,
+      "temperature": 1,
+      "usage": {
+        "input_tokens": 3763,
+        "output_tokens": 1478,
+        "total_tokens": 5241,
+        "input_token_details": {
+          "cache_read": 2688
+        },
+        "output_token_details": {
+          "reasoning": 1248
+        }
+      },
+      "request_ms": 8672.83,
+      "finish_reason": "tool_calls",
+      "response_model": "deepseek-flash"
+    },
+    {
+      "index": 5,
+      "case": "AB",
+      "status": "returned",
+      "public_input_sha256": "83ebff4d067854ca5eae75c73fa8bb8f941c1cd34ad1c53a9a130bd1e647d8d1",
+      "input_bytes": 22352,
+      "temperature": 1,
+      "usage": {
+        "input_tokens": 5719,
+        "output_tokens": 1623,
+        "total_tokens": 7342,
+        "input_token_details": {
+          "cache_read": 3200
+        },
+        "output_token_details": {
+          "reasoning": 845
+        }
+      },
+      "request_ms": 8957.14,
+      "finish_reason": "stop",
+      "response_model": "deepseek-flash"
+    }
+  ]
+}

@@ -1,0 +1,143 @@
+{
+  "case": "B",
+  "paid": false,
+  "entry": "POST /api/chat/stream",
+  "production_preparation": true,
+  "route_budget_overrides": false,
+  "retrieval_limit": "scoped active BM25/Canonical anchor fixture; full hybrid not tested",
+  "run_status": "completed",
+  "task_status": "degraded",
+  "error_code": null,
+  "verification": {
+    "checks": [
+      {
+        "id": "answer",
+        "label": "针对当前问题的回答",
+        "reason": "",
+        "status": "passed"
+      },
+      {
+        "evidence": [
+          "answer coverage probe"
+        ],
+        "id": "item_1",
+        "label": "依据教材例1.3及表1.1计算铂电阻温度计的灵敏度，保留单位",
+        "matched": [],
+        "reason": "未找到该分项的核心对象",
+        "status": "failed"
+      },
+      {
+        "evidence": [
+          "answer coverage probe"
+        ],
+        "id": "item_2",
+        "label": "线性条件。可用工具核对关键数值",
+        "matched": [],
+        "reason": "未找到该分项的核心对象",
+        "status": "failed"
+      },
+      {
+        "evidence": [],
+        "id": "item_3",
+        "label": "明确区分计算",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+        "status": "unverified"
+      },
+      {
+        "evidence": [],
+        "id": "item_4",
+        "label": "独立验证。不描述未读取的图。",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+        "status": "unverified"
+      },
+      {
+        "evidence": [],
+        "id": "tool_verification",
+        "label": "tool_verification",
+        "reason": "没有可绑定本题结论的独立核验收据",
+        "status": "unverified"
+      },
+      {
+        "id": "final_numeric_answer",
+        "label": "最终数值及单位",
+        "reason": "问题要求数值结果，但回答中未找到数值",
+        "status": "failed"
+      },
+      {
+        "cited_ids": [
+          "E1"
+        ],
+        "id": "citations",
+        "label": "教材结论的本轮来源",
+        "reason": "回答缺少有效的本轮教材引用、引用与相邻结论不相符，或生成了无效编号",
+        "status": "failed",
+        "unsupported_ids": [
+          "E1"
+        ]
+      }
+    ],
+    "claim_bindings": [],
+    "failures": [
+      {
+        "id": "item_1",
+        "reason": "未找到该分项的核心对象"
+      },
+      {
+        "id": "item_2",
+        "reason": "未找到该分项的核心对象"
+      },
+      {
+        "id": "final_numeric_answer",
+        "reason": "问题要求数值结果，但回答中未找到数值"
+      },
+      {
+        "id": "citations",
+        "reason": "回答缺少有效的本轮教材引用、引用与相邻结论不相符，或生成了无效编号"
+      }
+    ],
+    "passed": false,
+    "status": "failed",
+    "unverified": [
+      {
+        "id": "item_3",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+      },
+      {
+        "id": "item_4",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+      },
+      {
+        "id": "tool_verification",
+        "reason": "没有可绑定本题结论的独立核验收据"
+      }
+    ]
+  },
+  "budget_calls": 3,
+  "budget_model_calls": 5,
+  "consumed_calls": 1,
+  "model_calls": 1,
+  "answer_chars": 22,
+  "answer_sha256": "1c74afbca51faf2b574d727126362584973ddc584be17ec9709ac32646b01ae3",
+  "total_ms": 457.3,
+  "source_calls": [
+    {
+      "query_sha256": "87d49bc2a65540aa67fc2123ae6f842566ae6be8cd56682df98dcbe34da3b10c",
+      "book_name": "传感器原理及应用",
+      "chapters": []
+    }
+  ],
+  "tools": [
+    {
+      "id": "call_64c761e8e395479a856772b6719e69ab",
+      "tool": "search_textbook",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {},
+      "result": null
+    }
+  ],
+  "proposed_tools": [],
+  "terminal_event": "final",
+  "sql_sse_conversation_agree": true,
+  "mock_requests": 1
+}

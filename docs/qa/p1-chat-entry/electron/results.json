@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "checks": [
+    "isolated saved chat receipts ready",
+    "real Electron preload",
+    "C terminal verification label",
+    "C never presented as whole-task verified",
+    "C saved answer displayed",
+    "C no horizontal overflow",
+    "B terminal verification label",
+    "B never presented as whole-task verified",
+    "B saved answer displayed",
+    "B no horizontal overflow",
+    "AB terminal verification label",
+    "AB never presented as whole-task verified",
+    "AB saved answer displayed",
+    "AB no horizontal overflow",
+    "no renderer exceptions"
+  ],
+  "errors": [],
+  "rendererErrors": [],
+  "fixture": "actual chat-entry paid responses replayed locally through final code; existing Electron history view",
+  "additional_model_requests": 0,
+  "live_paid_desktop_submission": false,
+  "data_isolation": "/private/tmp/texa-p1-chat-entry-20261019"
+}

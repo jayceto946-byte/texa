@@ -1,0 +1,81 @@
+{
+  "case": "AB",
+  "paid": false,
+  "entry": "POST /api/chat/stream",
+  "production_preparation": true,
+  "route_budget_overrides": false,
+  "retrieval_limit": "scoped active BM25/Canonical anchor fixture; full hybrid not tested",
+  "run_status": "completed",
+  "task_status": "degraded",
+  "error_code": null,
+  "verification": {
+    "checks": [
+      {
+        "id": "answer",
+        "label": "针对当前问题的回答",
+        "reason": "",
+        "status": "passed"
+      },
+      {
+        "id": "final_numeric_answer",
+        "label": "最终数值及单位",
+        "reason": "问题要求数值结果，但回答中未找到数值",
+        "status": "failed"
+      },
+      {
+        "cited_ids": [
+          "E1"
+        ],
+        "id": "citations",
+        "label": "教材结论的本轮来源",
+        "reason": "回答缺少有效的本轮教材引用、引用与相邻结论不相符，或生成了无效编号",
+        "status": "failed",
+        "unsupported_ids": [
+          "E1"
+        ]
+      }
+    ],
+    "claim_bindings": [],
+    "failures": [
+      {
+        "id": "final_numeric_answer",
+        "reason": "问题要求数值结果，但回答中未找到数值"
+      },
+      {
+        "id": "citations",
+        "reason": "回答缺少有效的本轮教材引用、引用与相邻结论不相符，或生成了无效编号"
+      }
+    ],
+    "passed": false,
+    "status": "failed",
+    "unverified": []
+  },
+  "budget_calls": 3,
+  "budget_model_calls": 5,
+  "consumed_calls": 1,
+  "model_calls": 1,
+  "answer_chars": 22,
+  "answer_sha256": "1c74afbca51faf2b574d727126362584973ddc584be17ec9709ac32646b01ae3",
+  "total_ms": 452.04,
+  "source_calls": [
+    {
+      "query_sha256": "cd9c9580f92b7148f6d497ae361dd9baff6b77f8a54c595764606332a88756a2",
+      "book_name": "p1-acceptance-synthetic",
+      "chapters": []
+    }
+  ],
+  "tools": [
+    {
+      "id": "call_3c07d14f707e48b7b53fb4fb1e692f2c",
+      "tool": "search_textbook",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {},
+      "result": null
+    }
+  ],
+  "proposed_tools": [],
+  "terminal_event": "final",
+  "sql_sse_conversation_agree": true,
+  "mock_requests": 1
+}

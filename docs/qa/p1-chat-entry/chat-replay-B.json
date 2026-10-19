@@ -1,0 +1,292 @@
+{
+  "case": "B",
+  "paid": false,
+  "replay_of_saved_public_response": true,
+  "entry": "POST /api/chat/stream",
+  "production_preparation": true,
+  "route_budget_overrides": false,
+  "retrieval_limit": "scoped active BM25/Canonical anchor fixture; full hybrid not tested",
+  "run_status": "completed",
+  "task_status": "degraded",
+  "error_code": null,
+  "verification": {
+    "checks": [
+      {
+        "id": "answer",
+        "label": "针对当前问题的回答",
+        "reason": "",
+        "status": "passed"
+      },
+      {
+        "evidence": [
+          "answer coverage probe"
+        ],
+        "id": "item_1",
+        "label": "依据教材例1.3及表1.1计算铂电阻温度计的灵敏度，保留单位",
+        "matched": [
+          "灵敏度"
+        ],
+        "reason": "仅确认对象出现，内容完整性与正确性未核验",
+        "status": "unverified"
+      },
+      {
+        "evidence": [
+          "answer coverage probe"
+        ],
+        "id": "item_2",
+        "label": "线性条件。可用工具核对关键数值",
+        "matched": [
+          "条件"
+        ],
+        "reason": "仅确认对象出现，内容完整性与正确性未核验",
+        "status": "unverified"
+      },
+      {
+        "evidence": [],
+        "id": "item_3",
+        "label": "明确区分计算",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+        "status": "unverified"
+      },
+      {
+        "evidence": [],
+        "id": "item_4",
+        "label": "独立验证。不描述未读取的图。",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+        "status": "unverified"
+      },
+      {
+        "evidence": [],
+        "id": "tool_verification",
+        "label": "tool_verification",
+        "reason": "已有答案公式绑定局部收据；本题建模及完整结论尚未验证",
+        "status": "unverified"
+      },
+      {
+        "id": "final_numeric_answer",
+        "label": "最终数值及单位",
+        "reason": "数值缺少与最终结论绑定的核验依据",
+        "status": "unverified"
+      },
+      {
+        "cited_ids": [
+          "E1"
+        ],
+        "id": "citations",
+        "label": "教材结论的本轮来源",
+        "reason": "",
+        "status": "passed",
+        "unsupported_ids": []
+      },
+      {
+        "id": "formula",
+        "label": "回答公式的核验依据",
+        "reason": "公式尚无等价性核验依据",
+        "status": "unverified"
+      }
+    ],
+    "claim_bindings": [
+      {
+        "answer_span": [
+          763,
+          810
+        ],
+        "binding_scope": "listed_relation_only_not_modeling_or_whole_answer",
+        "covers_formula": true,
+        "formula_sha256": "65d69aaf53636e37e5242985362591ce094f5e9d3e1978fddc64a064d65208a1",
+        "kind": "equivalence",
+        "receipt_index": 2,
+        "receipt_scope": "input_expressions_under_explicit_assumptions",
+        "runtime_call_id": "call_c0cc4062531d48af99cf0bcbee039483"
+      }
+    ],
+    "failures": [],
+    "passed": false,
+    "status": "unverified",
+    "unverified": [
+      {
+        "id": "item_1",
+        "reason": "仅确认对象出现，内容完整性与正确性未核验"
+      },
+      {
+        "id": "item_2",
+        "reason": "仅确认对象出现，内容完整性与正确性未核验"
+      },
+      {
+        "id": "item_3",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+      },
+      {
+        "id": "item_4",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+      },
+      {
+        "id": "tool_verification",
+        "reason": "已有答案公式绑定局部收据；本题建模及完整结论尚未验证"
+      },
+      {
+        "id": "final_numeric_answer",
+        "reason": "数值缺少与最终结论绑定的核验依据"
+      },
+      {
+        "id": "formula",
+        "reason": "公式尚无等价性核验依据"
+      },
+      {
+        "id": "interim_delivery",
+        "reason": "保留了工具调用前的公开推导，阶段内容未独立核验"
+      }
+    ]
+  },
+  "budget_calls": 3,
+  "budget_model_calls": 5,
+  "consumed_calls": 3,
+  "model_calls": 2,
+  "answer_chars": 991,
+  "answer_sha256": "c98a40c0df3298bcd20a862e34f6cf47b7da4e3b90e9aa448eeb9ac8f15929f9",
+  "total_ms": 1133.46,
+  "source_calls": [
+    {
+      "query_sha256": "87d49bc2a65540aa67fc2123ae6f842566ae6be8cd56682df98dcbe34da3b10c",
+      "book_name": "传感器原理及应用",
+      "chapters": []
+    }
+  ],
+  "tools": [
+    {
+      "id": "call_249c4355b3474e55a2b42bd5095406df",
+      "tool": "search_textbook",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {},
+      "result": null
+    },
+    {
+      "id": "call_292d22f5b6f14ae28baeee049c989473",
+      "tool": "symbolic_math",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {
+        "assumptions": {},
+        "direction": "+-",
+        "expression": "7/30",
+        "lower": null,
+        "operation": "calculate",
+        "point": null,
+        "right": "0",
+        "upper": null,
+        "variable": "S"
+      },
+      "result": {
+        "data": {
+          "assumptions": {},
+          "expression": "7/30",
+          "limitations": [],
+          "operation": "calculate",
+          "result": {
+            "exact": "7/30",
+            "latex": "\\frac{7}{30}",
+            "numeric": 0.23333333333333334,
+            "raw": "7/30"
+          },
+          "status": "computed",
+          "variable": "S",
+          "verification_request": {
+            "assumptions": {},
+            "kind": "equivalence",
+            "left": "7/30",
+            "right": "7/30"
+          }
+        },
+        "evidence": [],
+        "message": "确定性计算完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {},
+        "warnings": [
+          "计算结果只覆盖本次输入的运算；不验证建模、未输入的条件或自然语言推导"
+        ]
+      }
+    },
+    {
+      "id": "call_c0cc4062531d48af99cf0bcbee039483",
+      "tool": "verify_math_result",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {
+        "assumptions": {},
+        "candidate": "",
+        "candidates": [],
+        "context": null,
+        "direction": "+-",
+        "kind": "equivalence",
+        "left": "(328-307)/(290-200)",
+        "lower": null,
+        "original": "",
+        "point": null,
+        "right": "7/30",
+        "upper": null,
+        "variable": "x"
+      },
+      "result": {
+        "data": {
+          "assumptions": {},
+          "execution_status": null,
+          "limitations": [],
+          "method": "equivalence",
+          "passed": true,
+          "residuals": [
+            "0"
+          ],
+          "scope": "input_expressions_under_explicit_assumptions",
+          "source_kind": "",
+          "source_ref": "",
+          "status": "verified",
+          "steps": [],
+          "verdict": null
+        },
+        "evidence": [],
+        "message": "结果校验完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {
+          "assumptions": {},
+          "limitations": [],
+          "method": "equivalence",
+          "passed": true,
+          "residuals": [
+            "0"
+          ],
+          "scope": "input_expressions_under_explicit_assumptions",
+          "status": "verified"
+        },
+        "warnings": []
+      }
+    }
+  ],
+  "proposed_tools": [
+    {
+      "args": {
+        "expression": "7/30",
+        "operation": "calculate",
+        "variable": "S"
+      },
+      "id": "call_00_lIxs68VQ8h3N261UBlLo1816",
+      "name": "symbolic_math",
+      "type": "tool_call"
+    },
+    {
+      "args": {
+        "kind": "equivalence",
+        "left": "(328-307)/(290-200)",
+        "right": "7/30"
+      },
+      "id": "call_01_s0BueMZ7Wz4qEEjRu6Td3969",
+      "name": "verify_math_result",
+      "type": "tool_call"
+    }
+  ],
+  "terminal_event": "final",
+  "sql_sse_conversation_agree": true,
+  "mock_requests": 2
+}

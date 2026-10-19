@@ -1,0 +1,157 @@
+{
+  "case": "C",
+  "paid": true,
+  "entry": "POST /api/chat/stream",
+  "production_preparation": true,
+  "route_budget_overrides": false,
+  "retrieval_limit": "scoped active BM25/Canonical anchor fixture; full hybrid not tested",
+  "run_status": "completed",
+  "task_status": "degraded",
+  "error_code": null,
+  "verification": {
+    "checks": [
+      {
+        "id": "answer",
+        "label": "针对当前问题的回答",
+        "reason": "",
+        "status": "passed"
+      },
+      {
+        "evidence": [],
+        "id": "item_1",
+        "label": "依据教材1.3.1连续讲解最小二乘直线拟合：残差",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+        "status": "unverified"
+      },
+      {
+        "evidence": [],
+        "id": "item_2",
+        "label": "平方",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+        "status": "unverified"
+      },
+      {
+        "evidence": [],
+        "id": "item_3",
+        "label": "semantic",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+        "status": "unverified"
+      },
+      {
+        "evidence": [],
+        "id": "item_4",
+        "label": "两个偏导",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+        "status": "unverified"
+      },
+      {
+        "evidence": [],
+        "id": "item_5",
+        "label": "k",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+        "status": "unverified"
+      },
+      {
+        "evidence": [
+          "answer coverage probe"
+        ],
+        "id": "item_6",
+        "label": "b及适用条件。只使用实际可见教材",
+        "matched": [
+          "条件"
+        ],
+        "reason": "仅确认对象出现，内容完整性与正确性未核验",
+        "status": "unverified"
+      },
+      {
+        "evidence": [],
+        "id": "item_7",
+        "label": "原式疑似错误或上下文缺失时指出，不猜图形。",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性",
+        "status": "unverified"
+      },
+      {
+        "cited_ids": [
+          "E1"
+        ],
+        "id": "citations",
+        "label": "教材结论的本轮来源",
+        "reason": "",
+        "status": "passed",
+        "unsupported_ids": []
+      },
+      {
+        "id": "formula",
+        "label": "回答公式的核验依据",
+        "reason": "公式尚无等价性核验依据",
+        "status": "unverified"
+      }
+    ],
+    "claim_bindings": [],
+    "failures": [],
+    "passed": false,
+    "status": "unverified",
+    "unverified": [
+      {
+        "id": "item_1",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+      },
+      {
+        "id": "item_2",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+      },
+      {
+        "id": "item_3",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+      },
+      {
+        "id": "item_4",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+      },
+      {
+        "id": "item_5",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+      },
+      {
+        "id": "item_6",
+        "reason": "仅确认对象出现，内容完整性与正确性未核验"
+      },
+      {
+        "id": "item_7",
+        "reason": "自然语言内容义务保留，无法确定性核验语义完整性"
+      },
+      {
+        "id": "formula",
+        "reason": "公式尚无等价性核验依据"
+      }
+    ]
+  },
+  "budget_calls": 3,
+  "budget_model_calls": 5,
+  "consumed_calls": 1,
+  "model_calls": 1,
+  "answer_chars": 2281,
+  "answer_sha256": "11c405aafce27c9d36ad2a28f6dbd3c0fbeb29d018a75eacdbbcb08512aa7ce4",
+  "total_ms": 42126.88,
+  "source_calls": [
+    {
+      "query_sha256": "428171667d7fa7e90d71227114409666edab39126f138aded4fa5304d2008fe5",
+      "book_name": "传感器原理及应用",
+      "chapters": []
+    }
+  ],
+  "tools": [
+    {
+      "id": "call_d42c400510ec40df9aa5e4786a843038",
+      "tool": "search_textbook",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {},
+      "result": null
+    }
+  ],
+  "proposed_tools": [],
+  "terminal_event": "final",
+  "sql_sse_conversation_agree": true,
+  "mock_requests": null
+}

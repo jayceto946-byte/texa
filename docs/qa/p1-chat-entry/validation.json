@@ -1,0 +1,107 @@
+{
+  "python": {
+    "related_28_files": {
+      "tests": "411",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "72.389"
+    },
+    "final_direct_6_files": {
+      "tests": "149",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "35.681"
+    },
+    "target_after_merge_2_files": {
+      "tests": "35",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "8.517"
+    }
+  },
+  "deselected": 0,
+  "overlapping_sets_do_not_sum": true,
+  "additional_targeted_run": {
+    "passed": 58,
+    "seconds": 17.42
+  },
+  "frontend": {
+    "passed": 45,
+    "files": 5,
+    "scope": [
+      "streamPresentation",
+      "chatActivities",
+      "answerVerification",
+      "executionLifecycle",
+      "client"
+    ]
+  },
+  "electron": {
+    "status": "PASS",
+    "checks": [
+      "isolated saved chat receipts ready",
+      "real Electron preload",
+      "C terminal verification label",
+      "C never presented as whole-task verified",
+      "C saved answer displayed",
+      "C no horizontal overflow",
+      "B terminal verification label",
+      "B never presented as whole-task verified",
+      "B saved answer displayed",
+      "B no horizontal overflow",
+      "AB terminal verification label",
+      "AB never presented as whole-task verified",
+      "AB saved answer displayed",
+      "AB no horizontal overflow",
+      "no renderer exceptions"
+    ],
+    "errors": [],
+    "rendererErrors": [],
+    "fixture": "actual chat-entry paid responses replayed locally through final code; existing Electron history view",
+    "additional_model_requests": 0,
+    "live_paid_desktop_submission": false,
+    "data_isolation": "/private/tmp/texa-p1-chat-entry-20261019"
+  },
+  "real_model": {
+    "http_requests": 5,
+    "total_tokens": 37319,
+    "automatic_retries": 0,
+    "paid_resampling": false,
+    "production_entry": true,
+    "retrieval": "active BM25/Canonical anchor adapter; full hybrid not tested"
+  },
+  "intermediate_failures": [
+    {
+      "python_failed": 4,
+      "reason": "old ingress tests asserted empty candidate list and missing tool schema; expected contract updated without relaxing no-extra-call/evidence/strict-format assertions"
+    },
+    {
+      "python_failed": 2,
+      "reason": "second tool-schema assertion updated"
+    },
+    {
+      "frontend_startup": "missing dependency link; reused existing frontend dependencies"
+    },
+    {
+      "electron_startup": "missing electron-updater dependency link; first run terminated, second launch timed out; reused existing desktop dependencies, added timeout and progress logging"
+    },
+    {
+      "B_binding": "trailing comma initially unsupported; fixed, original response replayed locally; paid original retained"
+    },
+    {
+      "formula_span": "retained interim prefixes shifted answer span; fixed and tested, final public response replay repeated locally"
+    }
+  ],
+  "not_verified": [
+    "whole-task independent proof",
+    "full production hybrid retrieval",
+    "live paid Electron submission",
+    "production startup/restart",
+    "vision",
+    "formal KG semantics",
+    "model stability"
+  ]
+}

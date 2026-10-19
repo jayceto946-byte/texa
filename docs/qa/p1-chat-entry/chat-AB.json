@@ -1,0 +1,252 @@
+{
+  "case": "AB",
+  "paid": true,
+  "entry": "POST /api/chat/stream",
+  "production_preparation": true,
+  "route_budget_overrides": false,
+  "retrieval_limit": "scoped active BM25/Canonical anchor fixture; full hybrid not tested",
+  "run_status": "completed",
+  "task_status": "degraded",
+  "error_code": null,
+  "verification": {
+    "checks": [
+      {
+        "id": "answer",
+        "label": "针对当前问题的回答",
+        "reason": "",
+        "status": "passed"
+      },
+      {
+        "id": "final_numeric_answer",
+        "label": "最终数值及单位",
+        "reason": "数值缺少与最终结论绑定的核验依据",
+        "status": "unverified"
+      },
+      {
+        "cited_ids": [
+          "E1"
+        ],
+        "id": "citations",
+        "label": "教材结论的本轮来源",
+        "reason": "回答缺少有效的本轮教材引用、引用与相邻结论不相符，或生成了无效编号",
+        "status": "failed",
+        "unsupported_ids": [
+          "E1"
+        ]
+      },
+      {
+        "id": "formula",
+        "label": "回答公式的核验依据",
+        "reason": "公式尚无等价性核验依据",
+        "status": "unverified"
+      }
+    ],
+    "claim_bindings": [
+      {
+        "answer_span": [
+          890,
+          912
+        ],
+        "binding_scope": "listed_relation_only_not_modeling_or_whole_answer",
+        "covers_formula": true,
+        "formula_sha256": "3b55617314a0b499d5271565f97203badd3a40412a062bd3d5203f47d6e444f6",
+        "kind": "derivative",
+        "receipt_index": 1,
+        "receipt_scope": "local_derivative_identity_not_global_differentiability",
+        "runtime_call_id": "call_dc501839c41841a8a2abe017e6252f9c"
+      }
+    ],
+    "failures": [
+      {
+        "id": "citations",
+        "reason": "回答缺少有效的本轮教材引用、引用与相邻结论不相符，或生成了无效编号"
+      }
+    ],
+    "passed": false,
+    "status": "failed",
+    "unverified": [
+      {
+        "id": "final_numeric_answer",
+        "reason": "数值缺少与最终结论绑定的核验依据"
+      },
+      {
+        "id": "formula",
+        "reason": "公式尚无等价性核验依据"
+      },
+      {
+        "id": "interim_delivery",
+        "reason": "保留了工具调用前的公开推导，阶段内容未独立核验"
+      }
+    ]
+  },
+  "budget_calls": 3,
+  "budget_model_calls": 5,
+  "consumed_calls": 3,
+  "model_calls": 2,
+  "answer_chars": 1304,
+  "answer_sha256": "e07e8b6e3ee381ab9ccdc0d760c5ff64d96a82822f494bb51df9847f224f2415",
+  "total_ms": 20419.34,
+  "source_calls": [
+    {
+      "query_sha256": "cd9c9580f92b7148f6d497ae361dd9baff6b77f8a54c595764606332a88756a2",
+      "book_name": "p1-acceptance-synthetic",
+      "chapters": []
+    }
+  ],
+  "tools": [
+    {
+      "id": "call_e3b055c8d1a54fb0a11ad8161298b5a0",
+      "tool": "search_textbook",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {},
+      "result": null
+    },
+    {
+      "id": "call_dc501839c41841a8a2abe017e6252f9c",
+      "tool": "verify_math_result",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {
+        "assumptions": {},
+        "candidate": "3*x^2-3",
+        "candidates": [],
+        "context": null,
+        "direction": "+-",
+        "kind": "derivative",
+        "left": "",
+        "lower": null,
+        "original": "x^3-3*x",
+        "point": null,
+        "right": "",
+        "upper": null,
+        "variable": "x"
+      },
+      "result": {
+        "data": {
+          "assumptions": {},
+          "execution_status": null,
+          "limitations": [],
+          "method": "derivative",
+          "passed": true,
+          "residuals": [
+            "0"
+          ],
+          "scope": "local_derivative_identity_not_global_differentiability",
+          "source_kind": "",
+          "source_ref": "",
+          "status": "verified",
+          "steps": [],
+          "verdict": null
+        },
+        "evidence": [],
+        "message": "结果校验完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {
+          "assumptions": {},
+          "limitations": [],
+          "method": "derivative",
+          "passed": true,
+          "residuals": [
+            "0"
+          ],
+          "scope": "local_derivative_identity_not_global_differentiability",
+          "status": "verified"
+        },
+        "warnings": []
+      }
+    },
+    {
+      "id": "call_5b71d425d9154bbea0e7749362186cc5",
+      "tool": "verify_math_result",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {
+        "assumptions": {},
+        "candidate": "",
+        "candidates": [
+          "-1",
+          "1"
+        ],
+        "context": null,
+        "direction": "+-",
+        "kind": "solutions",
+        "left": "3*x^2-3",
+        "lower": null,
+        "original": "",
+        "point": null,
+        "right": "0",
+        "upper": null,
+        "variable": "x"
+      },
+      "result": {
+        "data": {
+          "assumptions": {},
+          "execution_status": null,
+          "limitations": [],
+          "method": "solutions",
+          "passed": true,
+          "residuals": [
+            "0",
+            "0"
+          ],
+          "scope": "candidate_substitution_only_not_solution_set_completeness",
+          "source_kind": "",
+          "source_ref": "",
+          "status": "verified",
+          "steps": [],
+          "verdict": null
+        },
+        "evidence": [],
+        "message": "结果校验完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {
+          "assumptions": {},
+          "limitations": [],
+          "method": "solutions",
+          "passed": true,
+          "residuals": [
+            "0",
+            "0"
+          ],
+          "scope": "candidate_substitution_only_not_solution_set_completeness",
+          "status": "verified"
+        },
+        "warnings": []
+      }
+    }
+  ],
+  "proposed_tools": [
+    {
+      "args": {
+        "candidate": "3*x^2-3",
+        "kind": "derivative",
+        "original": "x^3-3*x",
+        "variable": "x"
+      },
+      "id": "call_00_LsWupOxbLXK7HI1Awbnf5237",
+      "name": "verify_math_result",
+      "type": "tool_call"
+    },
+    {
+      "args": {
+        "candidates": [
+          "-1",
+          "1"
+        ],
+        "kind": "solutions",
+        "left": "3*x^2-3",
+        "right": "0",
+        "variable": "x"
+      },
+      "id": "call_01_5b5ViXhh5IezwVSwsup88014",
+      "name": "verify_math_result",
+      "type": "tool_call"
+    }
+  ],
+  "terminal_event": "final",
+  "sql_sse_conversation_agree": true,
+  "mock_requests": null
+}
