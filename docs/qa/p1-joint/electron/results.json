@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "checks": [
+    "isolated production SQL/SSE fixtures ready",
+    "real Electron preload",
+    "strict terminal label",
+    "degraded never shown as verified completion",
+    "strict body retained",
+    "strict no horizontal overflow",
+    "failed terminal label",
+    "failed no horizontal overflow",
+    "verified terminal label",
+    "verified no horizontal overflow",
+    "no renderer exceptions"
+  ],
+  "errors": [],
+  "rendererErrors": [],
+  "fixture": "actual local Runtime/SQL/SSE with scripted provider",
+  "real_paid_model_ui": "NOT VERIFIED",
+  "data_isolation": "/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-joint-ui-6hHdDu"
+}

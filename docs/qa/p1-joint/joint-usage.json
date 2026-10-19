@@ -1,0 +1,119 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "request_limit": 6,
+  "per_case_limit": 2,
+  "automatic_retries": 0,
+  "requests": [
+    {
+      "index": 1,
+      "case": "C",
+      "status": "returned",
+      "public_input_sha256": "db610e83ba828f1a73b916afd8099d6307e982235e33f0b2ae0adadb18b41a12",
+      "input_bytes": 16140,
+      "temperature": 1,
+      "usage": {
+        "input_tokens": 4457,
+        "output_tokens": 5295,
+        "total_tokens": 9752,
+        "input_token_details": {
+          "cache_read": 256
+        },
+        "output_token_details": {
+          "reasoning": 4335
+        }
+      },
+      "request_ms": 27342.54,
+      "finish_reason": "stop",
+      "response_model": "deepseek-flash"
+    },
+    {
+      "index": 2,
+      "case": "B",
+      "status": "returned",
+      "public_input_sha256": "d321b99007b3dd4a5de4062bb5b505ee6c33f263aa71f04e68a1d1477a7dd793",
+      "input_bytes": 14933,
+      "temperature": 1,
+      "usage": {
+        "input_tokens": 3931,
+        "output_tokens": 1206,
+        "total_tokens": 5137,
+        "input_token_details": {
+          "cache_read": 2304
+        },
+        "output_token_details": {
+          "reasoning": 1051
+        }
+      },
+      "request_ms": 7897.36,
+      "finish_reason": "tool_calls",
+      "response_model": "deepseek-flash"
+    },
+    {
+      "index": 3,
+      "case": "B",
+      "status": "returned",
+      "public_input_sha256": "efc8aa402cbdcec3ea9fd36860e66c09d5ffd6b2c9a0ec451d9123cbcf8d2009",
+      "input_bytes": 21540,
+      "temperature": 1,
+      "usage": {
+        "input_tokens": 5600,
+        "output_tokens": 1677,
+        "total_tokens": 7277,
+        "input_token_details": {
+          "cache_read": 3328
+        },
+        "output_token_details": {
+          "reasoning": 1248
+        }
+      },
+      "request_ms": 9517.61,
+      "finish_reason": "stop",
+      "response_model": "deepseek-flash"
+    },
+    {
+      "index": 4,
+      "case": "AB",
+      "status": "returned",
+      "public_input_sha256": "b9ca517321aa63411f906502388f8350afd58cea3a402515d405a6b9d09098f4",
+      "input_bytes": 14079,
+      "temperature": 1,
+      "usage": {
+        "input_tokens": 3763,
+        "output_tokens": 1712,
+        "total_tokens": 5475,
+        "input_token_details": {
+          "cache_read": 2304
+        },
+        "output_token_details": {
+          "reasoning": 1467
+        }
+      },
+      "request_ms": 9660.21,
+      "finish_reason": "tool_calls",
+      "response_model": "deepseek-flash"
+    },
+    {
+      "index": 5,
+      "case": "AB",
+      "status": "returned",
+      "public_input_sha256": "f3b916fcb4a8a5a825ddb7e1f9230134a0809fc5c9d89ceb37a7f9f1d0286ca9",
+      "input_bytes": 23027,
+      "temperature": 1,
+      "usage": {
+        "input_tokens": 5945,
+        "output_tokens": 2687,
+        "total_tokens": 8632,
+        "input_token_details": {
+          "cache_read": 3200
+        },
+        "output_token_details": {
+          "reasoning": 1826
+        }
+      },
+      "request_ms": 13810.22,
+      "finish_reason": "stop",
+      "response_model": "deepseek-flash"
+    }
+  ]
+}

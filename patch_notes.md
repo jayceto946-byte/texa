@@ -1,3 +1,10 @@
+## 2026-10-19 — P1 教材打包与 Agent 预算联合验收
+
+- 从655aa48顺序纳入教材A 077e168与Agent B 91d7745，保留两分支历史；修复computed-only核验披露在验证后破坏严格最终格式的问题，严格格式通过现有verification/执行记录披露，不提高核验状态。
+- 去重26个相关Python文件384 passed，无deselection；前端32、TypeScript/Vite、Electron壳24及实际Electron隔离SQL/SSE回放11项通过。七式最终可见、预算/来源/continuation/旧合同栅栏继续通过。
+- 明确授权后DeepSeek temperature=1/thinking/high，共5次HTTP、36273 tokens：C/B/AB均在总工具预算值3下完成正文，但task degraded/verification unverified。仅单样本，未改变默认预算或验证器。
+- 生产主聊天教材answer route未开放模型数学候选，与旧验收harness不同；本轮仅记录不扩展路由。AB验收完成后synthetic manifest影响脚本末尾helper，已直接核对真实来源hash未变且不重跑付费样本。教学发布保持HOLD。证据：docs/qa/p1-joint/。
+
 ## 2026-10-18 — P1-A Textbook Context Packing Reliability（独立修复）
 
 - 基于 `fix/p1-integration-reliability@655aa481743b20e24eaab52f5f75d141b4db83dc` 在 `fix/p1-textbook-context-packing` / `../texa-p1-context-packing` 实施；原始工作区和其他 worktree 不修改，未合并主线。

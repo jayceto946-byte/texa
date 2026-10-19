@@ -1,0 +1,10 @@
+{
+  "unchanged": true,
+  "files": {
+    "/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/data/progress/传感器原理及应用/canonical_document.jsonl": "5bcef61474112840c4513441ba13f81e05d535c1599819a86f7fa30ebd305b2e",
+    "/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/data/vector_db/_index_manifests/传感器原理及应用.json": "8ccb50fac1bd165a741f1f30c6d5f74e9a80006ce66c3431834dcdaab28ae268",
+    "/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/data/vector_db/_lexical_versions/传感器原理及应用/c8b6947edb7858f2.json": "500212ec79ea9dfeefa5baaa5e35ced262cf7e9c9a2a93b360a610ef0655ef77",
+    "/Users/jichengqian/Library/Application Support/kaoyan-assistant-desktop/mineru_output/传感器原理及应用/hybrid_auto_external/CGQ/structured_content.json": "81a9076931876ffcf6c16f0404a264475b516a8972ae25d792fc62d068f72eb1"
+  },
+  "AB_harness_issue": "after successful model and summary, reused synthetic manifest monkeypatch broke sensor.sources postcheck; direct source hashes match; no paid repeat"
+}

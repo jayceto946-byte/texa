@@ -518,11 +518,18 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
         outputs = [{"tool": c["tool_id"], "args": c["args"], "result": c["result"] or {}}
                    for c in snapshot["tool_calls"]]
         state["tool_context_pack"] = build_tool_context_pack(outputs)
-        answer = finalize_generated_answer(state, strip_thinking(last.content))
-        verification = state["answer_verification"]
+        strict = any(item.get("kind") == "format" for item in
+            [*state.get("required_outputs", []), *derive_required_outputs(state.get("user_input", ""))])
         notice = _math_status_notice(snapshot['tool_calls'])
+        final_text = strip_thinking(last.content)
+        # Strict formats own the entire body. Their disclosure remains in the
+        # verification projected to SQL/SSE/Inspector, not an extra prose block.
+        # Any non-strict disclosure is included before validating delivery.
+        if notice.startswith('本轮尚无') and not strict:
+            final_text = '> ' + notice + '\n\n' + final_text
+        answer = finalize_generated_answer(state, final_text)
+        verification = state["answer_verification"]
         if notice.startswith('本轮尚无'):
-            answer = '> ' + notice + '\n\n' + answer
             if verification['status'] == 'passed':
                 verification['status'] = 'unverified'
             verification['passed'] = False
@@ -534,7 +541,6 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
             # to satisfy required outputs or merge possible draft errors.
             # Strict final formats own the whole final body. Earlier public
             # delivery remains in native_messages and its unverified metadata.
-            strict = any(item.get("kind") == "format" for item in [*state["required_outputs"], *derive_required_outputs(state.get("user_input", ""))])
             if not strict:
                 answer = ("## 阶段推导（未独立核验）\n\n" + interim
                           + "\n\n## 最终解答\n\n" + answer)

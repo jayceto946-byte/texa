@@ -1,0 +1,31 @@
+{
+  "files": [
+    "tests/test_agent_loop_completion.py",
+    "tests/test_agent_runtime_chat_binding.py",
+    "tests/test_agent_runtime_p0.py",
+    "tests/test_agent_runtime_p2_recovery.py",
+    "tests/test_agent_runtime_p2a.py",
+    "tests/test_agent_runtime_p2c_receipts.py",
+    "tests/test_agent_runtime_p4_contract.py",
+    "tests/test_agent_runtime_textbook.py",
+    "tests/test_context_eval.py",
+    "tests/test_context_eval_v3.py",
+    "tests/test_context_math_steps.py",
+    "tests/test_conversation_context_pack.py",
+    "tests/test_deepseek_production.py",
+    "tests/test_evidence_pack.py",
+    "tests/test_math_isolation.py",
+    "tests/test_native_math_loop.py",
+    "tests/test_p1_abc_integration.py",
+    "tests/test_p1_joint_acceptance.py",
+    "tests/test_p1_reliability.py",
+    "tests/test_provenance_contract.py",
+    "tests/test_runtime_validation_remediation.py",
+    "tests/test_textbook_context_expansion.py",
+    "tests/test_textbook_generalization.py",
+    "tests/test_textbook_rag_precision.py",
+    "tests/test_textbook_retrieval_policy.py",
+    "tests/test_textbook_scope.py"
+  ],
+  "deselected": []
+}

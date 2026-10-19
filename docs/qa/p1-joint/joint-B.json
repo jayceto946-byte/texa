@@ -1,0 +1,185 @@
+{
+  "run_status": "completed",
+  "task_status": "degraded",
+  "error_code": null,
+  "verification": {
+    "checks": [
+      {
+        "id": "answer",
+        "label": "content",
+        "reason": "",
+        "status": "passed"
+      },
+      {
+        "evidence": [],
+        "id": "tool_verification",
+        "label": "tool_verification",
+        "reason": "没有可绑定本题结论的独立核验收据",
+        "status": "unverified"
+      },
+      {
+        "id": "formula",
+        "label": "回答公式的核验依据",
+        "reason": "公式尚无等价性核验依据",
+        "status": "unverified"
+      }
+    ],
+    "failures": [],
+    "passed": false,
+    "status": "unverified",
+    "unverified": [
+      {
+        "id": "tool_verification",
+        "reason": "没有可绑定本题结论的独立核验收据"
+      },
+      {
+        "id": "formula",
+        "reason": "公式尚无等价性核验依据"
+      },
+      {
+        "id": "interim_delivery",
+        "reason": "保留了工具调用前的公开推导，阶段内容未独立核验"
+      }
+    ]
+  },
+  "case": "B",
+  "harness": "existing bounded native/SSE; not production router",
+  "budget_calls": 3,
+  "consumed_calls": 3,
+  "model_calls": 2,
+  "answer_chars": 949,
+  "answer_sha256": "df00cc3fb9d324cd71ac5eeb03564d92caa3ff0c9a3d65c57e024d848a0eced4",
+  "total_ms": 20404.15,
+  "tools": [
+    {
+      "tool": "search_textbook",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {},
+      "result": null
+    },
+    {
+      "tool": "symbolic_math",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {
+        "assumptions": {},
+        "direction": "+-",
+        "expression": "7/30",
+        "lower": null,
+        "operation": "calculate",
+        "point": null,
+        "right": "0",
+        "upper": null,
+        "variable": "x"
+      },
+      "result": {
+        "data": {
+          "assumptions": {},
+          "expression": "7/30",
+          "limitations": [],
+          "operation": "calculate",
+          "result": {
+            "exact": "7/30",
+            "latex": "\\frac{7}{30}",
+            "numeric": 0.23333333333333334,
+            "raw": "7/30"
+          },
+          "status": "computed",
+          "variable": "x",
+          "verification_request": {
+            "assumptions": {},
+            "kind": "equivalence",
+            "left": "7/30",
+            "right": "7/30"
+          }
+        },
+        "evidence": [],
+        "message": "确定性计算完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {},
+        "warnings": [
+          "计算结果只覆盖本次输入的运算；不验证建模、未输入的条件或自然语言推导"
+        ]
+      }
+    },
+    {
+      "tool": "verify_math_result",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {
+        "assumptions": {},
+        "candidate": "",
+        "candidates": [],
+        "context": null,
+        "direction": "+-",
+        "kind": "equivalence",
+        "left": "(328-307)/(290-200)",
+        "lower": null,
+        "original": "",
+        "point": null,
+        "right": "7/30",
+        "upper": null,
+        "variable": "x"
+      },
+      "result": {
+        "data": {
+          "assumptions": {},
+          "execution_status": null,
+          "limitations": [],
+          "method": "equivalence",
+          "passed": true,
+          "residuals": [
+            "0"
+          ],
+          "scope": "input_expressions_under_explicit_assumptions",
+          "source_kind": "",
+          "source_ref": "",
+          "status": "verified",
+          "steps": [],
+          "verdict": null
+        },
+        "evidence": [],
+        "message": "结果校验完成",
+        "pending_action": null,
+        "success": true,
+        "verification": {
+          "assumptions": {},
+          "limitations": [],
+          "method": "equivalence",
+          "passed": true,
+          "residuals": [
+            "0"
+          ],
+          "scope": "input_expressions_under_explicit_assumptions",
+          "status": "verified"
+        },
+        "warnings": []
+      }
+    }
+  ],
+  "terminal_event": "final",
+  "whole_task_verified": false,
+  "proposed_tools": [
+    {
+      "args": {
+        "expression": "7/30",
+        "operation": "calculate"
+      },
+      "id": "call_00_oXZE8rke1csRNmRSbBRS5109",
+      "name": "symbolic_math",
+      "type": "tool_call"
+    },
+    {
+      "args": {
+        "kind": "equivalence",
+        "left": "(328-307)/(290-200)",
+        "right": "7/30"
+      },
+      "id": "call_01_wdoCvlbhdPqenN9AHKzq8864",
+      "name": "verify_math_result",
+      "type": "tool_call"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "path": "backend/api/exercises.py",
+    "three_way_exit": 0,
+    "original_already_in_incoming": true,
+    "original_bytes": 37250,
+    "merged_bytes": 38238
+  },
+  {
+    "path": "backend/schemas.py",
+    "three_way_exit": 0,
+    "original_already_in_incoming": true,
+    "original_bytes": 10357,
+    "merged_bytes": 10756
+  },
+  {
+    "path": "memory/exercise_bank.py",
+    "three_way_exit": 0,
+    "original_already_in_incoming": true,
+    "original_bytes": 36899,
+    "merged_bytes": 39399
+  },
+  {
+    "path": "patch_notes.md",
+    "three_way_exit": 1,
+    "original_already_in_incoming": false,
+    "original_bytes": 528324,
+    "merged_bytes": 543218
+  }
+]

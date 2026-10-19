@@ -168,6 +168,28 @@ def test_strict_final_does_not_merge_unverified_preamble(tmp_path, monkeypatch):
     assert assert_delivery(snapshot, events) == answer
     assert '先进行公开计算。' in json.dumps(snapshot['run']['checkpoint']['native_messages'], ensure_ascii=False)
     assert any(c['id'] == 'interim_delivery' for c in snapshot['task']['verification']['unverified'])
+    verification = snapshot['task']['verification']
+    assert snapshot['task']['status'] == 'degraded' and verification['passed'] is False
+    assert any(c['id'] == 'math_receipts' for c in verification['unverified'])
+    assert all(c['status'] == 'passed' for c in verification['checks']
+               if c['id'] in {'line_count', 'prefixes'})
+
+
+@pytest.mark.parametrize('format_request,answer', [
+    ('只输出JSON', '{"answer":1024}'),
+    ('纯文本输出', '结果为1024。'),
+])
+def test_strict_computed_only_discloses_in_verification_without_changing_body(
+        tmp_path, monkeypatch, format_request, answer):
+    from tests.test_native_math_loop import SUCCESS
+    _, snapshot, events, _ = production_stream(tmp_path, monkeypatch,
+        '计算 2^10。' + format_request,
+        [completion('', [SUCCESS[0]['tool_calls'][0]]), completion(answer, reasoning='')])
+    assert assert_delivery(snapshot, events) == answer
+    verification = snapshot['task']['verification']
+    assert not verification['failures'] and verification['passed'] is False
+    assert snapshot['task']['status'] == 'degraded'
+    assert any(c['id'] == 'math_receipts' for c in verification['unverified'])
 
 
 def test_numeric_only_does_not_satisfy_required_closed_form():

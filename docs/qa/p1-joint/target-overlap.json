@@ -1,0 +1,112 @@
+[
+  {
+    "path": "backend/api/exercises.py",
+    "original_status": " M",
+    "same_as_incoming": false
+  },
+  {
+    "path": "backend/schemas.py",
+    "original_status": " M",
+    "same_as_incoming": false
+  },
+  {
+    "path": "frontend/src/api/client.ts",
+    "original_status": " M",
+    "same_as_incoming": true
+  },
+  {
+    "path": "frontend/src/features/exercises/components/CandidateReviewWorkspace.tsx",
+    "original_status": " M",
+    "same_as_incoming": true
+  },
+  {
+    "path": "frontend/src/features/exercises/exercises.css",
+    "original_status": " M",
+    "same_as_incoming": true
+  },
+  {
+    "path": "frontend/src/features/exercises/hooks/candidateOperations.test.ts",
+    "original_status": " M",
+    "same_as_incoming": true
+  },
+  {
+    "path": "frontend/src/features/exercises/hooks/candidateOperations.ts",
+    "original_status": " M",
+    "same_as_incoming": true
+  },
+  {
+    "path": "frontend/src/features/exercises/hooks/useExerciseImportCandidates.ts",
+    "original_status": " M",
+    "same_as_incoming": true
+  },
+  {
+    "path": "frontend/src/pages/ExercisesPage.tsx",
+    "original_status": " M",
+    "same_as_incoming": true
+  },
+  {
+    "path": "frontend/src/types/index.ts",
+    "original_status": " M",
+    "same_as_incoming": true
+  },
+  {
+    "path": "memory/exercise_bank.py",
+    "original_status": " M",
+    "same_as_incoming": false
+  },
+  {
+    "path": "memory/exercise_importer.py",
+    "original_status": " M",
+    "same_as_incoming": true
+  },
+  {
+    "path": "memory/textbook_exercise_importer.py",
+    "original_status": " M",
+    "same_as_incoming": true
+  },
+  {
+    "path": "patch_notes.md",
+    "original_status": " M",
+    "same_as_incoming": false
+  },
+  {
+    "path": "backend/exercise_candidate_schemas.py",
+    "original_status": "??",
+    "same_as_incoming": true
+  },
+  {
+    "path": "backend/services/exercise_candidate_review.py",
+    "original_status": "??",
+    "same_as_incoming": true
+  },
+  {
+    "path": "frontend/src/features/exercises/components/BatchCandidateReceipts.tsx",
+    "original_status": "??",
+    "same_as_incoming": true
+  },
+  {
+    "path": "frontend/src/features/exercises/hooks/candidateContract.ts",
+    "original_status": "??",
+    "same_as_incoming": true
+  },
+  {
+    "path": "memory/exercise_candidate_projection.py",
+    "original_status": "??",
+    "same_as_incoming": true
+  },
+  {
+    "path": "scripts/qa-question-candidate-electron.mjs",
+    "original_status": "??",
+    "same_as_incoming": true
+  },
+  {
+    "path": "scripts/qa-question-candidate-server.py",
+    "original_status": "??",
+    "same_as_incoming": true
+  },
+  {
+    "path": "tests/test_exercise_candidate_contract.py",
+    "original_status": "??",
+    "same_as_incoming": true
+  }
+]

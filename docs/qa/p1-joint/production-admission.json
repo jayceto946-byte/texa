@@ -1,0 +1,28 @@
+{
+  "probe": "configuration only, no model or retrieval execution",
+  "rows": [
+    {
+      "case": "AB",
+      "budget_calls": 3,
+      "candidates": [],
+      "fixed_preparation": {
+        "id": "search_textbook",
+        "schema_hash": "fd3d77dd5f4fded50db6ea66ba14cadc0335692f3554c3adda0b9f57579dd5b2",
+        "version": "3"
+      },
+      "model_calls": 0
+    },
+    {
+      "case": "B",
+      "budget_calls": 3,
+      "candidates": [],
+      "fixed_preparation": {
+        "id": "search_textbook",
+        "schema_hash": "fd3d77dd5f4fded50db6ea66ba14cadc0335692f3554c3adda0b9f57579dd5b2",
+        "version": "3"
+      },
+      "model_calls": 0
+    }
+  ],
+  "limitation": "grounded chat answer route has no model-selected math candidates; not changed here"
+}

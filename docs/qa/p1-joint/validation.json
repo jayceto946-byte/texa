@@ -1,0 +1,73 @@
+{
+  "python": {
+    "passed": 384,
+    "failed": 0,
+    "deselected": 0,
+    "scope_file": "test-scope.json",
+    "elapsed_seconds": 51.51
+  },
+  "frontend": {
+    "passed": 32,
+    "scope": [
+      "streamPresentation",
+      "chatActivities",
+      "client",
+      "answerVerification"
+    ],
+    "note": "31 existing targeted tests plus one existing status-label regression"
+  },
+  "typescript": "PASS",
+  "vite_build": "PASS; existing large chunk warning",
+  "electron_shell": {
+    "passed": 24
+  },
+  "electron_ui": {
+    "status": "PASS",
+    "checks": [
+      "isolated production SQL/SSE fixtures ready",
+      "real Electron preload",
+      "strict terminal label",
+      "degraded never shown as verified completion",
+      "strict body retained",
+      "strict no horizontal overflow",
+      "failed terminal label",
+      "failed no horizontal overflow",
+      "verified terminal label",
+      "verified no horizontal overflow",
+      "no renderer exceptions"
+    ],
+    "errors": [],
+    "rendererErrors": [],
+    "fixture": "actual local Runtime/SQL/SSE with scripted provider",
+    "real_paid_model_ui": "NOT VERIFIED",
+    "data_isolation": "/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-joint-ui-6hHdDu"
+  },
+  "real_model": {
+    "http_requests": 5,
+    "total_tokens": 36273,
+    "retries": 0,
+    "cases": 3,
+    "all_run_status": "completed",
+    "all_task_status": "degraded",
+    "all_verification_status": "unverified"
+  },
+  "production_routing": "math candidates empty on grounded chat answer route; unchanged, configuration probe only",
+  "paid_acceptance_harness": "existing native math candidates with fixed retrieval; production budget value 3, acceptance model cap 2",
+  "harness_corrections": [
+    "Electron failed-output fixture incorrectly expected a success outbox; switched to native SQL/SSE replay",
+    "Electron history loaded through existing conversation_id URL, waited for lazy Markdown rendering",
+    "Passed control uses exact existing supported question; punctuation variant stayed unverified, validator unchanged",
+    "AB model completed and summary saved, then synthetic manifest monkeypatch broke helper postcheck; direct source file hashes subsequently verified unchanged, no paid repeat"
+  ],
+  "approval_review": {
+    "initial_attempt": "rejected before execution, 0 HTTP",
+    "resolution": "user explicitly approved named C/B/AB fragments to api.deepseek.com, max 2 per task and 6 total"
+  },
+  "not_verified": [
+    "full production hybrid retrieval",
+    "paid Electron end-to-end or restart",
+    "visual reading",
+    "whole-task independent mathematical verification",
+    "stable model success rate"
+  ]
+}

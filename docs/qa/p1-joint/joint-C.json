@@ -1,0 +1,50 @@
+{
+  "run_status": "completed",
+  "task_status": "degraded",
+  "error_code": null,
+  "verification": {
+    "checks": [
+      {
+        "id": "answer",
+        "label": "content",
+        "reason": "",
+        "status": "passed"
+      },
+      {
+        "id": "formula",
+        "label": "回答公式的核验依据",
+        "reason": "公式尚无等价性核验依据",
+        "status": "unverified"
+      }
+    ],
+    "failures": [],
+    "passed": false,
+    "status": "unverified",
+    "unverified": [
+      {
+        "id": "formula",
+        "reason": "公式尚无等价性核验依据"
+      }
+    ]
+  },
+  "case": "C",
+  "harness": "existing bounded native/SSE; not production router",
+  "budget_calls": 3,
+  "consumed_calls": 1,
+  "model_calls": 1,
+  "answer_chars": 1657,
+  "answer_sha256": "713fa21343fbab2cfa851b6ba385717f0fcaa493eb58545341ec5222b920ce12",
+  "total_ms": 29737.7,
+  "tools": [
+    {
+      "tool": "search_textbook",
+      "status": "succeeded",
+      "error_code": null,
+      "args": {},
+      "result": null
+    }
+  ],
+  "terminal_event": "final",
+  "whole_task_verified": false,
+  "proposed_tools": []
+}
