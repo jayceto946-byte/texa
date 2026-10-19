@@ -167,7 +167,7 @@ def test_strict_final_does_not_merge_unverified_preamble(tmp_path, monkeypatch):
         [completion('先进行公开计算。', [SUCCESS[0]['tool_calls'][0]]), completion(answer, reasoning='')])
     assert assert_delivery(snapshot, events) == answer
     assert '先进行公开计算。' in json.dumps(snapshot['run']['checkpoint']['native_messages'], ensure_ascii=False)
-    assert any(c['id'] == 'interim_delivery' for c in snapshot['task']['verification']['unverified'])
+    assert any(c['id'] == 'interim_delivery' for c in snapshot['task']['verification']['delivery_notes'])
     verification = snapshot['task']['verification']
     assert snapshot['task']['status'] == 'degraded' and verification['passed'] is False
     assert any(c['id'] == 'math_receipts' for c in verification['unverified'])

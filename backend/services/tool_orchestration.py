@@ -241,6 +241,7 @@ def _compact_result(item: dict[str, Any]) -> dict[str, Any]:
         data = {"summary": encoded[:3500], "truncated": True}
     return {
         "tool": item.get("tool"), "success": bool(result.get("success")),
+        **({"runtime_call_id": item["runtime_call_id"]} if item.get("runtime_call_id") else {}),
         "message": str(result.get("message") or "")[:300], "data": data,
         "verification": result.get("verification") or {},
         "args": (item.get("args") or {}) if item.get("tool") in {"symbolic_math", "verify_math_result"} else {},

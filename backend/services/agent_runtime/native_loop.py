@@ -6,6 +6,7 @@ Only validated wrappers delegate to the existing FixedRunner.
 from __future__ import annotations
 import hashlib
 import json
+import re
 import time
 import threading
 from langchain.agents import create_agent
@@ -53,6 +54,17 @@ def _public_interim_text(messages):
     parts = [strip_thinking(m.content) for m in messages[start + 1:]
              if isinstance(m, AIMessage) and m.tool_calls and isinstance(m.content, str)]
     return "\n\n".join(part for part in parts if part)
+
+
+def _interim_covered(interim, final):
+    # Only exact duplicates or these content-free execution notices are safe
+    # to omit. New mathematical or explanatory claims remain unverified.
+    notices = {'正在计算。', '正在核验。', '先进行公开计算。', '先核对关键数值。',
+               '正在计算', '正在核验', '我先用工具核验关键结果。'}
+    compact = lambda value: re.sub(r'\s+', ' ', value).strip()
+    final = compact(final)
+    return all(part.strip() in notices or compact(part) in final
+               for part in interim.split('\n\n') if part.strip())
 
 
 def _protocol(messages):
@@ -515,7 +527,7 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
         if state.get("use_textbook_context", True) and not pure_math and not has_textbook_evidence(state):
             raise RuntimeDenied("answer_evidence_missing")
         verification_started = time.monotonic()
-        outputs = [{"tool": c["tool_id"], "args": c["args"], "result": c["result"] or {}}
+        outputs = [{"tool": c["tool_id"], "runtime_call_id": c["id"], "args": c["args"], "result": c["result"] or {}}
                    for c in snapshot["tool_calls"]]
         state["tool_context_pack"] = build_tool_context_pack(outputs)
         strict = any(item.get("kind") == "format" for item in
@@ -529,21 +541,27 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
             final_text = '> ' + notice + '\n\n' + final_text
         answer = finalize_generated_answer(state, final_text)
         verification = state["answer_verification"]
+        verified_segment_offset = len(answer) - len(answer.lstrip())
         if notice.startswith('本轮尚无'):
             if verification['status'] == 'passed':
                 verification['status'] = 'unverified'
             verification['passed'] = False
             verification['unverified'].append({'id': 'math_receipts', 'reason': notice})
         interim = _public_interim_text(latest_messages)
-        if interim:
+        if interim and _interim_covered(interim, final_text):
+            verification.setdefault('delivery_notes', []).append({
+                'id': 'interim_delivery', 'scope': 'status_or_exact_final_duplicate',
+                'reason': '工具前状态或重复正文保留在执行记录；核验只使用最终答案'})
+        elif interim:
             # Verify the last answer independently, then retain earlier public
             # text as an explicitly unverified record. Do not silently use it
             # to satisfy required outputs or merge possible draft errors.
             # Strict final formats own the whole final body. Earlier public
             # delivery remains in native_messages and its unverified metadata.
             if not strict:
-                answer = ("## 阶段推导（未独立核验）\n\n" + interim
-                          + "\n\n## 最终解答\n\n" + answer)
+                prefix = "## 阶段推导（未独立核验）\n\n" + interim + "\n\n## 最终解答\n\n"
+                answer = prefix + answer
+                verified_segment_offset += len(prefix)
             if verification["status"] == "passed":
                 verification["status"] = "unverified"
             verification["passed"] = False
@@ -556,6 +574,8 @@ def run_native_loop(runner, model, run_id, owner, *, context, answer_state=None,
             verification["unverified"].append({"id": "tool_execution", "reason": "本轮有工具失败或核验未通过，最终结论需核实"})
         if len(answer) > 64000:
             raise RuntimeDenied("output_budget_exhausted")
+        for binding in verification.get('claim_bindings', []):
+            binding['answer_span'] = [n + verified_segment_offset for n in binding['answer_span']]
         timings["verification_ms"] = (time.monotonic() - verification_started) * 1000
         store.record_performance(run_id, owner, timings)
         return store.close(run_id, owner, outcome="completed" if verification["status"] == "passed" else "degraded",

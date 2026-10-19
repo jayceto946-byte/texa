@@ -186,7 +186,7 @@ def _check_format(text: str, output: dict) -> bool:
 
 def _requested_math(question: str) -> dict | None:
     from backend.services.tool_orchestration import _math_tool_call
-    expected = _math_tool_call(question)
+    expected = _math_tool_call(str(question).strip().rstrip('。；;？！?!'))
     if expected:
         return expected["args"]
     # A bounded conventional Unicode integral notation; unsupported notation
@@ -344,14 +344,19 @@ def _compact_formula(value: str) -> str:
     return value
 
 
-def _formula_support(answer: str, evidence: str) -> str:
+def _formula_support(answer: str, evidence: str, bindings: list[dict] | None = None) -> str:
     """Exact formulas or bounded elementary equalities; other math stays unverified."""
     formulas = _FORMULA_RE.findall(answer)
     source_formulas = _FORMULA_RE.findall(evidence)
-    if not formulas or not source_formulas:
+    if not formulas:
         return "unverified"
     statuses = []
     for formula in formulas:
+        from backend.services.math_claim_binding import formula_hash
+        if any(b.get('formula_sha256') == formula_hash(formula) and b.get('covers_formula')
+               for b in bindings or []):
+            statuses.append('passed')
+            continue
         compact = _compact_formula(formula)
         if any(compact == _compact_formula(source) for source in source_formulas):
             statuses.append("passed")
@@ -394,7 +399,7 @@ def _math_text(value: str) -> str:
 
 def _verified_math_conclusion(answer: str, question: str, pack: dict) -> bool:
     from backend.services.tool_orchestration import _math_tool_call
-    expected = _math_tool_call(question)
+    expected = _math_tool_call(str(question).strip().rstrip('。；;？！?!'))
     if not expected:
         return False  # Unsupported answer bindings stay unverified, never guess.
     requested = expected["args"]
@@ -431,12 +436,17 @@ def _verified_math_conclusion(answer: str, question: str, pack: dict) -> bool:
 def _verified_numeric_conclusion(answer: str, question: str, pack: dict) -> bool:
     # A successful receipt alone says nothing about this question. Consume only
     # closed expressions explicitly requested here and their matching verifier.
+    requested = _requested_math(question)
+    if not requested or requested.get('operation') != 'calculate':
+        return False
     outputs = pack.get("outputs") or []
     for item in outputs:
         data = item.get("data") or {}
         if item.get("tool") != "symbolic_math" or not item.get("success") or data.get("operation") != "calculate":
             continue
         expression = str(data.get("expression") or "")
+        if _math_text(expression) != _math_text(requested.get('expression', '')):
+            continue
         if not expression or not re.search(r"(?<![A-Za-z0-9.+*/^\-])" + re.escape(_math_text(expression)) + r"(?![A-Za-z0-9.+*/^\-])", _math_text(question)):
             continue
         request = data.get("verification_request") or {}
@@ -445,6 +455,18 @@ def _verified_numeric_conclusion(answer: str, question: str, pack: dict) -> bool
                     and (receipt.get("args") or {}).get("kind") != "steps"
                     and all((receipt.get("args") or {}).get(key) == value for key, value in request.items()) for receipt in outputs)
         if not bound:
+            continue
+        # Bind explicit result labels, not the last explanatory/caveat sentence.
+        # Multiple conflicting labels must not be hidden by a later correct one.
+        conclusions = re.findall(r'(?:最终结果|结果|数值)(?:为|是|：|:)\s*([-+]?\d+(?:\.\d+)?)(?![A-Za-z0-9_./])', answer)
+        if conclusions:
+            from fractions import Fraction
+            exact = str((data.get('result') or {}).get('exact') or '')
+            try:
+                if len(exact) <= 700 and all(len(v) <= 320 and Fraction(v) == Fraction(exact) for v in conclusions):
+                    return True
+            except (ValueError, ZeroDivisionError, OverflowError):
+                pass
             continue
         conclusion = re.split(r"[。\n]", answer.strip(" 。\n"))[-1]
         numbers = _NUMBER_RE.findall(conclusion)
@@ -474,6 +496,8 @@ def verify_answer(
     question: str = "",
 ) -> dict[str, Any]:
     text = str(answer or "").strip()
+    from backend.services.math_claim_binding import bind_math_claims
+    bindings = bind_math_claims(text, question, tool_context_pack or {})
     checks: list[dict[str, Any]] = []
     outputs = list(required_outputs or [])
     # Old checkpoints may carry the former natural-language anchor contract.
@@ -524,7 +548,8 @@ def verify_answer(
         elif kind == "tool_verification":
             reference = _bound_numeric_reference(question, tool_context_pack or {})
             check.update(status="passed" if reference else "unverified", evidence=reference[1] if reference else [],
-                         reason="本题计算与独立核验收据已绑定" if reference else "没有可绑定本题结论的独立核验收据")
+                         reason="本题计算与独立核验收据已绑定" if reference else
+                         "已有答案公式绑定局部收据；本题建模及完整结论尚未验证" if bindings else "没有可绑定本题结论的独立核验收据")
         elif kind == "closed_form":
             candidates = [_compact_formula(formula).split("=")[-1] for formula in _FORMULA_RE.findall(text)]
             present = any(not re.search(r"\\int|\bdx\b", value) and re.search(r"\\(?:frac|ln|log|sqrt)|[A-Za-z].*[+*/^]|[+*/^].*[A-Za-z]", value)
@@ -567,7 +592,7 @@ def verify_answer(
             formulas = _FORMULA_RE.findall(text)
             passed = bool(formulas) and _balanced_formula_delimiters(text)
             check.update(
-                status=_formula_support(text, "\n".join(_source_texts(sources, evidence_items).values())) if passed else "failed",
+                status=_formula_support(text, "\n".join(_source_texts(sources, evidence_items).values()), bindings) if passed else "failed",
                 structure_status="passed" if passed else "failed",
                 formula_count=len(formulas),
                 reason="公式结构完整；等价性仅在可核验范围内检查" if passed else "问题要求公式或推导关系，但回答缺少完整的 LaTeX 公式",
@@ -603,7 +628,7 @@ def verify_answer(
         checks.append(check)
 
     if _FORMULA_RE.search(text) and not any(item["id"] == "formula" for item in checks):
-        math_status = _formula_support(text, "\n".join(_source_texts(sources, evidence_items).values()))
+        math_status = _formula_support(text, "\n".join(_source_texts(sources, evidence_items).values()), bindings)
         checks.append({"id": "formula", "label": "回答公式的核验依据", "status": math_status,
                        "reason": "公式尚无等价性核验依据" if math_status == "unverified" else ""})
     failed = [item for item in checks if item.get("status") == "failed"]
@@ -614,6 +639,7 @@ def verify_answer(
         "status": status,
         "passed": status in {"passed", "degraded"},
         "checks": checks,
+        "claim_bindings": bindings,
         "failures": [{"id": item["id"], "reason": item.get("reason", "")} for item in failed],
         "unverified": [{"id": item["id"], "reason": item.get("reason", "")} for item in unverified],
     }

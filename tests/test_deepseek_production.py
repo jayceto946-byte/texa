@@ -447,7 +447,8 @@ def test_teaching_ingress_shared_native_sql_evidence_before_stream(tmp_path, mon
     question = "给我讲解概念及适用条件" if grounded else "简要说明如何复习"
     answer = "概念定义及适用条件。[[cite:E1]]" if grounded else "按计划复习并检查理解。"
     store, _, runner, _, requests = wire_run(tmp_path, [completion(answer)])
-    # No user-selected math tools for a teaching question.
+    # Textbook answers may select the existing read-only math tools. A plain
+    # teaching answer still uses no math calls and only fixed book preparation.
     registry, adapter = runner.registry, runner.adapter
     observed = []
     frozen = scope()
@@ -489,9 +490,11 @@ def test_teaching_ingress_shared_native_sql_evidence_before_stream(tmp_path, mon
     assert snapshot["run"]["status"] in {"completed", "degraded"}
     assert snapshot["consumed_model_calls"] == 1
     assert snapshot["consumed_calls"] == int(grounded)
-    assert snapshot["run"]["checkpoint"]["candidates"] == []
+    assert {r['id'] for r in snapshot["run"]["checkpoint"]["candidates"]} == (
+        {'symbolic_math', 'verify_math_result'} if grounded else set())
     assert len(requests) == 1
-    assert not requests[0].get("tools")
+    assert {t['function']['name'] for t in requests[0].get('tools', [])} == (
+        {'symbolic_math', 'verify_math_result'} if grounded else set())
     if grounded:
         assert observed[0][1]["retrieval_resources_override"] == frozen["resources"]
         assert "概念定义及适用条件" in json.dumps(requests[0]["messages"], ensure_ascii=False)

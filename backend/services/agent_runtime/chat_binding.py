@@ -220,8 +220,16 @@ def try_chat_response(req, prepared: dict, request_id: str, *, streaming=True):
         adapter.allow_native_attempt = True
     if not baseline and adapter.capabilities().tool_calling != "supported":
         return None  # No task has been claimed by SQL yet.
-    candidates = () if answer_route else resolve_candidate_tools(decision, registry,
-        allowed_permissions=frozenset({"READ", "LOCAL_WRITE"}) if allow_write else frozenset({"READ"})).tool_refs
+    if answer_route:
+        # Reuse the existing read-only math capability; textbook retrieval is
+        # still fixed preparation and shares the same three-call SQL budget.
+        from backend.services.decision.contracts import DecisionResult
+        candidates = resolve_candidate_tools(
+            DecisionResult("capability", selected_capability="math.verify"), registry,
+            allowed_permissions=frozenset({"READ"})).tool_refs if prepared["use_textbook_context"] and os.getenv("TEXA_AGENT_RUNTIME_MATH", "1") == "1" else ()
+    else:
+        candidates = resolve_candidate_tools(decision, registry,
+            allowed_permissions=frozenset({"READ", "LOCAL_WRITE"}) if allow_write else frozenset({"READ"})).tool_refs
     if baseline:
         from backend.services.decision.policy_projection import matched_tool_refs
         candidates, _ = matched_tool_refs(prepared["rewritten_question"], registry,
