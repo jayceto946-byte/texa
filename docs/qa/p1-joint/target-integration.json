@@ -1,0 +1,17 @@
+{
+  "target_branch": "Texa_MacOS",
+  "head": "2e6c35602b48c73e158f9de5e80d716bc13a5b7e",
+  "safety_stash": "38f5551c623ccf54875d838c732de4a2f67d0358",
+  "original_files": 57,
+  "byte_identical": 53,
+  "original_delta_in_integrated_files": [
+    "backend/api/exercises.py",
+    "backend/schemas.py",
+    "memory/exercise_bank.py",
+    "patch_notes.md"
+  ],
+  "no_missing_files": true,
+  "index_unstaged_as_before": true,
+  "untracked_already_in_base": "content verified identical; no duplicate overwrite",
+  "pushed": false
+}

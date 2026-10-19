@@ -69,5 +69,12 @@
     "visual reading",
     "whole-task independent mathematical verification",
     "stable model success rate"
-  ]
+  ],
+  "target_after_merge_checks": {
+    "python_passed": 67,
+    "frontend_passed": 43,
+    "typescript": "PASS",
+    "vite_build": "PASS; existing chunk warning",
+    "pushed": false
+  }
 }
