@@ -1,0 +1,17 @@
+{
+  "release_id": 418385826,
+  "name": "V0.9_pre_release",
+  "tag": "V0.9_pre_release",
+  "draft": false,
+  "prerelease": true,
+  "published_at": "2026-10-20T12:45:19Z",
+  "release_url": "https://github.com/jayceto946-byte/texa/releases/tag/V0.9_pre_release",
+  "asset_id": 659302513,
+  "asset": "texa_test.exe",
+  "download_url": "https://github.com/jayceto946-byte/texa/releases/download/V0.9_pre_release/texa_test.exe",
+  "bytes": 241547307,
+  "sha256": "ec0a83f69429a5bef7e2e054e572488eea5b4084d6405601997dabce1c2eb15b",
+  "source_commit": "24973dbc4a12695019ba8a8ed0142c3aa765cd0a",
+  "publication_run_url": "https://github.com/jayceto946-byte/texa/actions/runs/39424726564",
+  "authorization": "User explicitly approved publication in the task"
+}

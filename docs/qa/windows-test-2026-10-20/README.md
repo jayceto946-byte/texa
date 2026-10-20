@@ -12,4 +12,6 @@
 
 ## Release 附件
 
-按用户要求新建 [V0.9_pre_release 预发布草稿](https://github.com/jayceto946-byte/texa/releases/tag/untagged-949c4fcb2f2c2a0ce899)，附件 `texa_test.exe` 已上传，远端大小与 SHA-256 一致，并重新下载核验。草稿尚未公开发布；原有 Release 附件及更新清单保持原状。回执见 [release-upload.json](release-upload.json)。一次性上传流程完成后移除，执行源码与日志保留在对应提交及 Actions 记录。
+按用户要求创建、并经明确批准公开发布 [V0.9_pre_release 预发布版本](https://github.com/jayceto946-byte/texa/releases/tag/V0.9_pre_release)，附件 `texa_test.exe` 已上传，远端大小与 SHA-256 一致，并重新下载核验。原创建状态为草稿；2026-10-20 20:45（Asia/Shanghai）经用户批准公开发布，保留 prerelease=true。原有 Release 附件及更新清单保持原状。回执见 [release-upload.json](release-upload.json)。一次性上传流程完成后移除，执行源码与日志保留在对应提交及 Actions 记录。
+
+公开发布状态及附件直链见 [release-publication.json](release-publication.json)；[texa_test.exe 下载](https://github.com/jayceto946-byte/texa/releases/download/V0.9_pre_release/texa_test.exe)。一次性发布流程完成后移除，完整执行记录保留在 Git 历史及 Actions。
