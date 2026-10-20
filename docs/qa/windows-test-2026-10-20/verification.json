@@ -1,0 +1,21 @@
+{
+  "backend_smoke": "TEXA_FROZEN_SMOKE_PASS",
+  "bytes": 241547307,
+  "branch": "Texa_MacOS",
+  "commit": "24973dbc4a12695019ba8a8ed0142c3aa765cd0a",
+  "signed": false,
+  "artifact": "texa_test.exe",
+  "sha256": "ec0a83f69429a5bef7e2e054e572488eea5b4084d6405601997dabce1c2eb15b",
+  "target": "Windows x64 portable",
+  "ui_manual_acceptance": "pending on Windows",
+  "archive_sha256": "20bbe18be7597df78409f1b48aac32e819c42915e3d25e86d96c8500be57d72c",
+  "archive_digest_verified_against": "official GitHub artifact 12234880301",
+  "pe_header_verified": true,
+  "run_url": "https://github.com/jayceto946-byte/texa/actions/runs/39353263515",
+  "local_verification": "passed",
+  "tests": {
+    "frontend": 239,
+    "desktop": 24,
+    "notes_backend": 48
+  }
+}

@@ -1,3 +1,9 @@
+## 2026-10-20 — Windows texa_test.exe 检查包交付
+
+- 源码 `24973db` 在 Windows x64 runner 成功生成未签名便携检查包 `release/texa_test.exe`，约 230 MiB；未混入其他未提交工作、正式学习数据或凭证。
+- Windows 笔记后端 48、前端 239、桌面 24 项、lint、构建、Standard 内容与模型资产校验、冻结 SQLite/Chroma/ONNX 自检通过。下载官方产物后验证 ZIP/EXE SHA-256、文件长度、PE 头和源码身份；Windows UI 人工视察仍待完成。
+- 交付记录与哈希：[Windows 检查包](docs/qa/windows-test-2026-10-20/README.md)。本条为打包后的验收记录，不改变包内源码。
+
 ## 2026-10-20 — Windows 检查包命名参数更正
 
 - Windows 测试、后端构建、Standard 内容校验及冻结 SQLite/Chroma/ONNX 自检均已通过；封装阶段短选项 `-c.artifactName` 被 CLI 当作配置文件路径而失败。
