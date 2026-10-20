@@ -9,6 +9,10 @@ const { readStartupAppearance, writeStartupAppearance } = require('./appearance.
 const { createRemoteConnection } = require('./remote-connection.cjs');
 const { createClosePreparation } = require('./window-close.cjs');
 const { readSetupComplete, writeSetupComplete } = require('./setup-state.cjs');
+const { createSourceUpdater } = require('./source-updater.cjs');
+const { validCommitUpdate } = require('./commit-channel.cjs');
+const buildIdentity = require('./package.json').texaBuild;
+const sourceUpdater = !app.isPackaged ? createSourceUpdater({ root: path.resolve(__dirname, '..'), owner: 'jayceto946-byte', repo: 'texa', emit: next => emitUpdateState(next) }) : null;
 const closePreparation = createClosePreparation();
 let allowWindowClose = false;
 
@@ -68,12 +72,16 @@ let backendState = {
 const hasSingleInstanceLock = app.requestSingleInstanceLock();
 if (!hasSingleInstanceLock) app.quit();
 let updaterConfigured = false;
+let updateInstallPromise = null;
 let updateState = {
   status: 'idle',
   message: '尚未检查更新',
   currentVersion: app.getVersion(),
   updateInfo: null,
   progress: null,
+  mode: app.isPackaged ? 'release' : 'source',
+  currentCommit: sourceUpdater?.status().currentCommit || buildIdentity?.sourceCommit || '',
+  branch: sourceUpdater ? 'Texa_MacOS' : buildIdentity?.sourceBranch || '',
 };
 
 function projectRoot() {
@@ -173,6 +181,8 @@ function emitUpdateState(nextState) {
 function configureUpdater() {
   if (updaterConfigured) return true;
 
+  if (sourceUpdater) return true;
+
   if (!app.isPackaged && process.env.KAOYAN_ALLOW_DEV_UPDATES !== '1') {
     emitUpdateState({
       status: 'disabled',
@@ -193,9 +203,19 @@ function configureUpdater() {
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.setFeedURL(updateConfig);
+  if (buildIdentity?.channel === 'commit') {
+    autoUpdater.channel = 'commit';
+    autoUpdater.allowPrerelease = true;
+  }
 
   autoUpdater.on('checking-for-update', () => emitUpdateState({ status: 'checking', message: '正在检查更新...', progress: null }));
-  autoUpdater.on('update-available', (info) => emitUpdateState({ status: 'available', message: `发现新版本 ${info.version || ''}`.trim(), updateInfo: info, progress: null }));
+  autoUpdater.on('update-available', (info) => {
+    if (buildIdentity?.channel === 'commit' && !validCommitUpdate(info, buildIdentity.sourceBranch)) {
+      emitUpdateState({ status: 'error', message: '更新缺少有效提交身份或分支不匹配，已停止下载。', updateInfo: null });
+      return;
+    }
+    emitUpdateState({ status: 'available', message: info.sourceCommit ? `发现修复 ${info.sourceCommit.slice(0, 8)}` : `发现新版本 ${info.version || ''}`.trim(), updateInfo: info, progress: null });
+  });
   autoUpdater.on('update-not-available', (info) => emitUpdateState({ status: 'none', message: '当前已经是最新版本', updateInfo: info, progress: null }));
   autoUpdater.on('download-progress', (progress) => emitUpdateState({ status: 'downloading', message: `正在下载更新 ${Math.round(progress.percent || 0)}%`, progress }));
   autoUpdater.on('update-downloaded', (info) => emitUpdateState({ status: 'downloaded', message: '更新已下载，重启后安装', updateInfo: info, progress: null }));
@@ -781,7 +801,7 @@ ipcMain.handle('startup:open-log', async () => {
   return shell.openPath(logPath);
 });
 
-ipcMain.handle('updates:status', () => updateState);
+ipcMain.handle('updates:status', (event) => { requireLocalRenderer(event); return updateState; });
 ipcMain.handle('backend:status', () => emitBackendState({}));
 ipcMain.handle('remote-capture:status', () => remoteCaptureStatus());
 ipcMain.handle('remote-capture:set-enabled', () => remoteCaptureStatus());
@@ -813,27 +833,52 @@ ipcMain.handle('remote-s0:copy-token', (event) => {
 });
 
 
-ipcMain.handle('updates:check', async () => {
+ipcMain.handle('updates:check', async (event) => {
+  requireLocalRenderer(event);
+  if (sourceUpdater) return sourceUpdater.check();
   if (!configureUpdater()) return updateState;
   await autoUpdater.checkForUpdates();
   return updateState;
 });
-ipcMain.handle('updates:download', async () => {
+ipcMain.handle('updates:download', async (event) => {
+  requireLocalRenderer(event);
+  if (sourceUpdater) return sourceUpdater.prepare();
+  if (updateState.status !== 'available') return emitUpdateState({ status: 'error', message: '请先检查可用更新。' });
   if (!configureUpdater()) return updateState;
   emitUpdateState({ status: 'downloading', message: '正在下载更新...', progress: null });
   await autoUpdater.downloadUpdate();
   return updateState;
 });
-ipcMain.handle('updates:install', async () => {
+async function installAppUpdate(event) {
+  requireLocalRenderer(event);
   if (updateState.status !== 'downloaded') {
     return emitUpdateState({ status: 'error', message: '更新尚未下载完成，无法安装。' });
   }
   if (!await prepareWindowClose()) return emitUpdateState({ status: 'downloaded', message: '草稿尚未保存，请先处理未保存修改。' });
   shuttingDown = true;
   await stopBackend();
+  if (sourceUpdater) {
+    const result = await sourceUpdater.install();
+    if (result.status !== 'installing') {
+      shuttingDown = false;
+      await startBackend();
+      if (await waitForBackend(30000)) await loadAppUrl(desktopAppUrl(FRONTEND_DEV_URL || backendUrl));
+      mainWindow?.webContents.send('window:close-aborted');
+      return result;
+    }
+    allowQuit = true;
+    app.relaunch();
+    app.quit();
+    return result;
+  }
   allowQuit = true;
   autoUpdater.quitAndInstall(false, true);
   return emitUpdateState({ status: 'installing', message: '正在重启并安装更新...' });
+}
+ipcMain.handle('updates:install', event => {
+  requireLocalRenderer(event);
+  if (!updateInstallPromise) updateInstallPromise = installAppUpdate(event).finally(() => { updateInstallPromise = null; });
+  return updateInstallPromise;
 });
 
 if (hasSingleInstanceLock) {

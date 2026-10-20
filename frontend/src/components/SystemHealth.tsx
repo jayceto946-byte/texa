@@ -179,7 +179,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
   const selectedChild = selectedSubject && selectedChildIndex !== null ? selectedSubject.children[selectedChildIndex] || '' : '';
   const targetSubject = subjectPath(selectedSubject?.name, selectedChild);
   const persistentUpdateMessage = desktopUpdate
-    ? (['available', 'downloading', 'downloaded', 'installing', 'error'].includes(desktopUpdate.status) ? desktopUpdate.message : '')
+    ? (['available', 'none', 'disabled', 'downloading', 'downloaded', 'installing', 'error'].includes(desktopUpdate.status) ? desktopUpdate.message : '')
     : version?.message && feedbackKind(version.message) === 'error' ? version.message : '';
 
 
@@ -397,9 +397,9 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
   const updateApp = async () => {
     showFeedback('');
     if (window.kaoyanDesktop?.checkForUpdates) {
-      const res = await window.kaoyanDesktop.checkForUpdates();
+      const res = await window.kaoyanDesktop.checkForUpdates().catch(() => ({ status: 'error', message: '更新检查失败，请稍后重试。' }));
       setDesktopUpdate(res);
-      showFeedback(res?.message || '更新检查完成');
+      showFeedback(res?.status === 'error' ? `更新失败：${res.message}` : res?.message || '更新检查完成');
       return;
     }
     showFeedback('当前运行方式不支持桌面自动更新，请在 Electron 桌面端检查。');
@@ -407,19 +407,19 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
 
   const downloadUpdate = async () => {
     showFeedback('');
-    const res = await window.kaoyanDesktop?.downloadUpdate?.();
+    const res = await window.kaoyanDesktop?.downloadUpdate?.().catch(() => ({ status: 'error', message: '准备更新失败，请重新检查。' }));
     if (res) {
       setDesktopUpdate(res);
-      showFeedback(res.message || '开始下载更新');
+      showFeedback(res.status === 'error' ? `更新失败：${res.message}` : res.message || '开始下载更新');
     }
   };
 
   const installUpdate = async () => {
     showFeedback('');
-    const res = await window.kaoyanDesktop?.installUpdate?.();
+    const res = await window.kaoyanDesktop?.installUpdate?.().catch(() => ({ status: 'error', message: '应用更新失败，请重新检查当前状态。' }));
     if (res) {
       setDesktopUpdate(res);
-      showFeedback(res.message || '正在安装更新');
+      showFeedback(res.status === 'error' ? `更新失败：${res.message}` : res.message || '正在安装更新');
     }
   };
   if (standaloneTab === 'subjects') {
@@ -513,10 +513,13 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
               <h4 id="version-current-heading" className="settings-section-title">当前版本</h4>
               <dl className="settings-definition-list">
                 <div><dt>版本</dt><dd>{desktopUpdate?.currentVersion || version?.version || '未知'}</dd></div>
+                <div><dt>提交</dt><dd className="font-mono">{(desktopUpdate?.currentCommit || version?.commit || '').slice(0, 8) || '未记录'}</dd></div>
+                <div><dt>更新来源</dt><dd>{desktopUpdate?.mode === 'source' ? `${desktopUpdate.branch || 'Texa_MacOS'} · 源码提交` : desktopUpdate?.branch ? `${desktopUpdate.branch} · 已构建修复` : '已发布安装包'}</dd></div>
               </dl>
               {persistentUpdateMessage && <p className="settings-secondary">{persistentUpdateMessage}</p>}
               <p className="settings-secondary">本软件使用 HarmonyOS Sans 字体。Copyright 2021 Huawei Device Co., Ltd.</p>
-              {desktopUpdate?.updateInfo?.version && <div className="status-success workspace-radius workspace-interface-text border p-3">可更新到 {desktopUpdate.updateInfo.version}</div>}
+              {['available', 'downloading', 'downloaded'].includes(desktopUpdate?.status) && desktopUpdate?.updateInfo?.version && <div className="status-success workspace-radius workspace-interface-text border p-3">可更新到 {desktopUpdate.updateInfo.sourceCommit?.slice(0, 8) || desktopUpdate.updateInfo.version}</div>}
+              {desktopUpdate?.mode === 'source' && <p className="settings-secondary">拉取当前分支修复、构建后重启生效。本地未提交改动和依赖变更需先处理。</p>}
               {desktopUpdate?.status === 'downloading' && (
                 <div>
                   <div className="mb-2 flex justify-between settings-secondary"><span>下载进度</span><span>{Math.round(desktopUpdate?.progress?.percent || 0)}%</span></div>
@@ -524,7 +527,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onMod
                 </div>
               )}
               <div className="flex flex-wrap gap-2 pt-1">
-                {window.kaoyanDesktop?.checkForUpdates ? desktopUpdate?.status === 'downloaded' ? <button onClick={installUpdate} className="app-primary-button">重启安装</button> : desktopUpdate?.status === 'available' ? <button onClick={downloadUpdate} className="app-primary-button">下载更新</button> : <button onClick={updateApp} disabled={['checking', 'downloading', 'installing'].includes(desktopUpdate?.status)} className="app-primary-button">{desktopUpdate?.status === 'checking' ? '检查中' : '检查更新'}</button> : <p className="settings-secondary">当前运行方式不支持桌面自动更新。</p>}
+                {window.kaoyanDesktop?.checkForUpdates ? desktopUpdate?.status === 'downloaded' ? <button onClick={installUpdate} className="app-primary-button">{desktopUpdate?.mode === 'source' ? '应用并重启' : '重启更新'}</button> : desktopUpdate?.status === 'available' ? <button onClick={downloadUpdate} className="app-primary-button">{desktopUpdate?.mode === 'source' ? '准备修复' : '下载修复'}</button> : <button onClick={updateApp} disabled={['checking', 'downloading', 'installing'].includes(desktopUpdate?.status)} className="app-primary-button">{desktopUpdate?.status === 'checking' ? '检查中' : '检查更新'}</button> : <p className="settings-secondary">当前运行方式不支持桌面自动更新。</p>}
               </div>
             </section>
           </section>

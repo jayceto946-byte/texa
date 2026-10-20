@@ -1,0 +1,154 @@
+name: Texa commit updates
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the verified commit update (requires enabled repository setting)
+        type: boolean
+        default: false
+  push:
+    branches: [Texa_MacOS]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: texa-commit-updates
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/Texa_MacOS' && (github.event_name == 'workflow_dispatch' || vars.TEXA_COMMIT_UPDATES_ENABLED == 'true')
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+          - os: macos-14
+            platform: mac-arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    env:
+      PYTHONUTF8: '1'
+    outputs:
+      version: ${{ steps.identity.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install locked CI dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv venv310
+          if [ "$RUNNER_OS" = Windows ]; then py=venv310/Scripts/python.exe; else py=venv310/bin/python; fi
+          "$py" -m pip install -r requirements-build.txt -r requirements-dev.txt
+          "$py" -m pip check
+          npm ci --prefix frontend
+          npm ci --prefix desktop
+      - name: Bind build to the exact commit
+        id: identity
+        run: node scripts/prepare-commit-update.cjs prepare
+      - name: Validate application contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$RUNNER_OS" = Windows ]; then py=venv310/Scripts/python.exe; else py=venv310/bin/python; fi
+          "$py" scripts/check_version_consistency.py
+          "$py" -m pytest -q
+          npm test --prefix frontend
+          npm run lint --prefix frontend
+          npm test --prefix desktop
+          npm run check --prefix desktop
+      - name: Build Windows backend
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\scripts\build-desktop-backend.ps1 -Python .\venv310\Scripts\python.exe
+      - name: Build Mac backend
+        if: runner.os == 'macOS'
+        run: bash scripts/build-desktop-backend-macos.sh
+      - name: Smoke test frozen backend
+        shell: bash
+        env:
+          TEXA_FROZEN_SMOKE: '1'
+          TEXA_EMBEDDING_BACKEND: onnx
+          TEXA_EMBEDDING_ASSET_DIR: ${{ github.workspace }}/assets/embedding-runtime/bge-small-zh-v1.5/onnx-fp32-v1
+          DATA_DIR: ${{ runner.temp }}/texa-commit-smoke/data
+          PROGRESS_PATH: ${{ runner.temp }}/texa-commit-smoke/progress
+        run: |
+          set -euo pipefail
+          if [ "$RUNNER_OS" = Windows ]; then exe=build/backend/backend_server/backend_server.exe; else exe=build/backend/backend_server/backend_server; fi
+          "$exe" | tee frozen-smoke.log
+          grep -q TEXA_FROZEN_SMOKE_PASS frozen-smoke.log
+      - name: Package signed update
+        working-directory: desktop
+        shell: bash
+        env:
+          CSC_LINK: ${{ runner.os == 'Windows' && secrets.WINDOWS_CSC_LINK || secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ runner.os == 'Windows' && secrets.WINDOWS_CSC_KEY_PASSWORD || secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CSC_LINK" && test -n "$CSC_KEY_PASSWORD"
+          if [ "$RUNNER_OS" = Windows ]; then
+            npx --no-install electron-builder --win nsis --x64 --publish never
+          else
+            test -n "$APPLE_ID" && test -n "$APPLE_APP_SPECIFIC_PASSWORD" && test -n "$APPLE_TEAM_ID"
+            npx --no-install electron-builder --mac dmg zip --arm64 --publish never
+            codesign --verify --deep --strict ../release/mac-arm64/Texa.app
+            spctl --assess --type execute ../release/mac-arm64/Texa.app
+          fi
+      - name: Verify Windows installer signature
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Get-ChildItem release -Filter *.exe | ForEach-Object {
+            if ((Get-AuthenticodeSignature $_.FullName).Status -ne 'Valid') { throw 'Invalid installer signature' }
+          }
+      - run: node scripts/prepare-commit-update.cjs annotate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: commit-update-${{ matrix.platform }}
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.zip
+            release/*.blockmap
+            release/commit*.yml
+            release/commit-build.json
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    if: vars.TEXA_COMMIT_UPDATES_ENABLED == 'true' && (github.event_name == 'push' || inputs.publish)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: commit-update-*
+          merge-multiple: true
+          path: update
+      - name: Publish both platforms together
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          UPDATE_VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          set -euo pipefail
+          test -f update/commit.yml && test -f update/commit-mac.yml
+          tag="v${UPDATE_VERSION}"
+          gh release create "$tag" --target "$GITHUB_SHA" --draft --prerelease --latest=false --title "Texa 修复 ${GITHUB_SHA:0:8}" --notes "Branch: Texa_MacOS. Source commit: $GITHUB_SHA. Both platform builds and frozen backend checks passed."
+          gh release upload "$tag" update/*
+          gh release edit "$tag" --draft=false --prerelease --latest=false

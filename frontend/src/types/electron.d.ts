@@ -4,7 +4,10 @@ type DesktopUpdateStatus = {
   status: 'idle' | 'disabled' | 'checking' | 'available' | 'none' | 'downloading' | 'downloaded' | 'installing' | 'error';
   message: string;
   currentVersion?: string;
-  updateInfo?: { version?: string; releaseName?: string; releaseNotes?: string } | null;
+  mode?: 'source' | 'release';
+  currentCommit?: string;
+  branch?: string;
+  updateInfo?: { sourceCommit?: string; sourceBranch?: string; version?: string; releaseName?: string; releaseNotes?: string } | null;
   progress?: { percent?: number; transferred?: number; total?: number } | null;
 };
 

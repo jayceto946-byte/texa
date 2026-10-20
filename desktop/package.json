@@ -35,6 +35,8 @@
       "main.cjs",
       "preload.cjs",
       "runtime.cjs",
+      "source-updater.cjs",
+      "commit-channel.cjs",
       "remote-connection.cjs",
       "appearance.cjs",
       "window-close.cjs",

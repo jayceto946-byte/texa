@@ -103,7 +103,7 @@ $config = [ordered]@{
     productName = "Texa Phase2 $Variant"
     artifactName = ('texa-phase2-' + $Variant + '-${version}-${arch}.${ext}')
     directories = @{ output = $releaseOutput }
-    files = @("main.cjs", "preload.cjs", "runtime.cjs", "loading.html", "update-config.json", "package.json")
+    files = (Get-Content (Join-Path $root "desktop\package.json") -Raw | ConvertFrom-Json).build.files
     extraResources = @(@{ from = $dist; to = "backend"; filter = @("**/*") })
     win = @{ target = @("nsis", "zip") }
     nsis = @{
