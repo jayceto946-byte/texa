@@ -563,7 +563,7 @@ def test_runtime_audit_failure_cannot_fail_committed_save(service, monkeypatch):
 
 def _representative_cases():
     from pathlib import Path
-    return json.loads((Path(__file__).parent / 'fixtures/session_notes/representative-v1.json').read_text())['cases']
+    return json.loads((Path(__file__).parent / 'fixtures/session_notes/representative-v1.json').read_text(encoding='utf-8'))['cases']
 
 
 @pytest.mark.parametrize('case', _representative_cases(), ids=lambda c: c['id'])

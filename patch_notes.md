@@ -1,3 +1,8 @@
+## 2026-10-20 — Windows 检查构建的中文编码
+
+- 首轮 Windows runner 在收集笔记测试时，中文 JSON 样本被按 cp1252 读取而失败；样本读取显式指定 UTF-8，测试构建统一 PYTHONUTF8=1。未跳过或放宽原有测试、打包或 smoke 门槛。
+- 原失败构建保留：https://github.com/jayceto946-byte/texa/actions/runs/39351437598 。
+
 ## 2026-10-19 — Windows 检查包构建入口
 
 - 新增独立 Windows runner 测试包流程，复用 Python 3.10、锁定构建依赖、现有 ONNX 后端构建和 Standard 内容校验，产出 x64 portable `texa_test.exe` 及 commit/SHA-256 身份文件。
