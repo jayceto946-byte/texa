@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [Texa_MacOS]
-    paths: [.github/workflows/windows-test.yml]
+    paths: [.github/workflows/windows-test.yml, desktop/backend_server.py]
 
 permissions:
   contents: read

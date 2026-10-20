@@ -1,3 +1,9 @@
+## 2026-10-20 — Windows 冻结自检释放数据库句柄
+
+- Windows 后端构建与 Standard 内容校验已通过；冻结自检清理临时目录时复现 WinError 32，SQLite connection 的事务上下文未关闭文件句柄。
+- 自检改用 closing 显式关闭 SQLite 连接，并使用 Chroma 客户端已有上下文管理器释放资源，再清理临时目录；保留写入、查询、ONNX 和前端资产断言，不修改正式启动分支。
+- 本地隔离目录执行同一自检通过；Windows 冻结包继续重新构建验证。失败记录：https://github.com/jayceto946-byte/texa/actions/runs/39351845315 。
+
 ## 2026-10-20 — Windows 检查构建的中文编码
 
 - 首轮 Windows runner 在收集笔记测试时，中文 JSON 样本被按 cp1252 读取而失败；样本读取显式指定 UTF-8，测试构建统一 PYTHONUTF8=1。未跳过或放宽原有测试、打包或 smoke 门槛。

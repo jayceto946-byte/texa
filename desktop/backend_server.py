@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import closing
 import os
 import shutil
 import sqlite3
@@ -123,19 +124,20 @@ def main() -> None:
         embeddings = get_embeddings()
         with tempfile.TemporaryDirectory(prefix="texa-frozen-smoke-") as temporary:
             root = Path(temporary)
-            with sqlite3.connect(root / "smoke.sqlite3") as connection:
+            with closing(sqlite3.connect(root / "smoke.sqlite3")) as connection:
                 connection.execute("CREATE TABLE smoke (value TEXT)")
                 connection.execute("INSERT INTO smoke VALUES (?)", ("ready",))
+                connection.commit()
                 assert connection.execute("SELECT value FROM smoke").fetchone() == ("ready",)
-            client = chromadb.PersistentClient(path=str(root / "vector_db"))
-            collection = client.get_or_create_collection("frozen_smoke")
-            collection.add(
-                ids=["one"],
-                documents=["线性代数中的特征值"],
-                embeddings=[embeddings.embed_query("线性代数中的特征值")],
-            )
-            matches = collection.query(query_embeddings=[embeddings.embed_query("特征值")], n_results=1)
-            assert matches["ids"] == [["one"]]
+            with chromadb.PersistentClient(path=str(root / "vector_db")) as client:
+                collection = client.get_or_create_collection("frozen_smoke")
+                collection.add(
+                    ids=["one"],
+                    documents=["线性代数中的特征值"],
+                    embeddings=[embeddings.embed_query("线性代数中的特征值")],
+                )
+                matches = collection.query(query_embeddings=[embeddings.embed_query("特征值")], n_results=1)
+                assert matches["ids"] == [["one"]]
         assert (_bundle_root() / "frontend" / "dist" / "index.html").is_file()
         print("TEXA_FROZEN_SMOKE_PASS", flush=True)
         return
