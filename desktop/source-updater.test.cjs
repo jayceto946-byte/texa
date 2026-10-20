@@ -53,6 +53,7 @@ test('stages and builds before a fast-forward, then swaps only compiled assets',
 test('dirty files are preserved and block updates', async t => {
   const f = await fixture(t); await fs.writeFile(path.join(f.root, 'fix.txt'), 'private work');
   assert.equal((await f.updater.check()).status, 'error');
+  assert.match(f.updater.status().message, /本地有/);
   assert.equal(await fs.readFile(path.join(f.root, 'fix.txt'), 'utf8'), 'private work');
   assert.equal(f.git(f.root, 'rev-parse', 'HEAD'), f.previous);
 });
@@ -62,12 +63,12 @@ test('dependency changes require explicit full upgrade', async t => {
   assert.match(f.updater.status().message, /依赖/);
 });
 test('failed candidate build leaves the running checkout intact', async t => {
-  const f = await fixture(t, { brokenBuild: true }); await f.updater.check();
+  const f = await fixture(t, { brokenBuild: true }); assert.equal((await f.updater.check()).status, 'available');
   assert.equal((await f.updater.prepare()).status, 'error');
   assert.equal(f.git(f.root, 'rev-parse', 'HEAD'), f.previous);
 });
 test('new local work after preparation blocks install', async t => {
-  const f = await fixture(t); await f.updater.check(); await f.updater.prepare();
+  const f = await fixture(t); assert.equal((await f.updater.check()).status, 'available'); assert.equal((await f.updater.prepare()).status, 'downloaded');
   await fs.writeFile(path.join(f.root, 'new-note.txt'), 'keep');
   assert.equal((await f.updater.install()).status, 'error');
   assert.equal(f.git(f.root, 'rev-parse', 'HEAD'), f.previous);
@@ -77,14 +78,16 @@ test('divergent local commits are not reset or merged automatically', async t =>
   f.git(f.root, 'config', 'user.email', 'test@example.invalid'); f.git(f.root, 'config', 'user.name', 'Fixture');
   await fs.writeFile(path.join(f.root, 'local.txt'), 'keep'); f.git(f.root, 'add', '.'); f.git(f.root, 'commit', '-m', 'local');
   const head = f.git(f.root, 'rev-parse', 'HEAD');
-  assert.equal((await f.updater.check()).status, 'error');
+  const restarted = createSourceUpdater({ root: f.root, owner: 'owner', repo: 'repo', allowLocalRemote: true });
+  assert.equal((await restarted.check()).status, 'error');
+  assert.match(restarted.status().message, /分叉/);
   assert.equal(f.git(f.root, 'rev-parse', 'HEAD'), head);
 });
 test('asset swap failure preserves the previous source commit and UI', async t => {
   const f = await fixture(t);
   await fs.mkdir(path.join(f.root, 'frontend', 'dist'));
   await fs.writeFile(path.join(f.root, 'frontend', 'dist', 'index.html'), 'old UI');
-  await f.updater.check(); await f.updater.prepare();
+  assert.equal((await f.updater.check()).status, 'available'); assert.equal((await f.updater.prepare()).status, 'downloaded');
   const directory = (await fs.readdir(path.join(f.root, '.git'))).find(name => name.startsWith('texa-update-'));
   await fs.mkdir(path.join(f.root, '.git', directory, 'previous-dist'));
   await fs.writeFile(path.join(f.root, '.git', directory, 'previous-dist', 'blocker'), 'block');
@@ -106,7 +109,7 @@ test('a remote tracked file cannot overwrite an ignored local file', async t => 
   await fs.writeFile(path.join(f.root, 'settings.local'), 'private settings');
   await fs.writeFile(path.join(f.upstream, 'settings.local'), 'remote settings');
   f.git(f.upstream, 'add', '.'); f.git(f.upstream, 'commit', '-m', 'new file');
-  await f.updater.check(); await f.updater.prepare();
+  assert.equal((await f.updater.check()).status, 'available'); assert.equal((await f.updater.prepare()).status, 'downloaded');
   assert.equal((await f.updater.install()).status, 'error');
   assert.equal(f.git(f.root, 'rev-parse', 'HEAD'), f.previous);
   assert.equal(await fs.readFile(path.join(f.root, 'settings.local'), 'utf8'), 'private settings');

@@ -1,0 +1,20 @@
+{
+  "source_commit": "0411aa5e594464069a8d652c9d7b9f1f538fbd07",
+  "internal_version": "1.0.1-commit.232.0411aa5e",
+  "artifact": "texa_test_v0.9.1.exe",
+  "bytes": 258842561,
+  "sha256": "3255575d6d1dad2803e2890eeedbbfb96eb30cf69de3bf7f1d6d176033da1bb3",
+  "artifact_zip_sha256": "13a36c60868b875773e42a58d75db10655f81db8d1175e12d82fc2348cf1e80c",
+  "checks": {
+    "MZ": true,
+    "PE": true,
+    "NSIS_header": true,
+    "GitHub_release_asset_digest_matches": true,
+    "GitHub_release_asset_size_matches": true
+  },
+  "authenticode_certificate_bytes": 0,
+  "draft": true,
+  "release_url": "https://github.com/jayceto946-byte/texa/releases/tag/untagged-b43538064e1529272a99",
+  "workflow_run": "https://github.com/jayceto946-byte/texa/actions/runs/39430872799",
+  "windows_install_ui_tested": false
+}

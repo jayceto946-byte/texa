@@ -1,0 +1,13 @@
+{
+  "update_channel": "commit",
+  "bytes": 258842561,
+  "commit": "0411aa5e594464069a8d652c9d7b9f1f538fbd07",
+  "branch": "Texa_MacOS",
+  "version": "1.0.1-commit.232.0411aa5e",
+  "ui_manual_acceptance": "pending on Windows",
+  "signed": false,
+  "backend_smoke": "TEXA_FROZEN_SMOKE_PASS",
+  "sha256": "3255575d6d1dad2803e2890eeedbbfb96eb30cf69de3bf7f1d6d176033da1bb3",
+  "artifact": "texa_test_v0.9.1.exe",
+  "target": "Windows x64 NSIS installer"
+}

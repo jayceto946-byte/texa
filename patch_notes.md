@@ -1,3 +1,10 @@
+## 2026-10-20 — v0.9.1 Windows NSIS 草稿安装包交付
+
+- 按用户授权提交并推送更新功能，源码0411aa5在 Windows x64 runner 成功生成真正的 NSIS 安装包 `texa_test_v0.9.1.exe`，258842561字节；内部版本1.0.1-commit.232.0411aa5e，Release检查批次为v0.9.1。
+- Windows后端笔记48、前端243、桌面36、lint、构建、版本/Standard内容校验、冻结SQLite/Chroma/ONNX自检通过。首轮路径回归失败已修正，保留原断言；回执提交再加强负向测试前置状态及失败原因断言，本地10项通过，不改包内生产代码。
+- 已上传至新建v0.9.1草稿（未公开发布），从Actions下载后验证ZIP与EXE SHA-256、字节数、MZ/PE/NSIS及Release附件digest一致。未签名，Windows原生安装/UI/覆盖升级待人工验证；commit自动发布通道未启用。
+- 回执与校验：[v0.9.1安装包](docs/qa/windows-v0.9.1-2026-10-20/README.md)。
+
 ## 2026-10-20 — Windows 源码更新路径兼容
 
 - 更新校验将 Git 返回的工作区路径与本地路径都经 realpath 规范化，避免 Windows 正斜杠/反斜杠差异导致错误拒绝；Git/Node/Python 子进程隐藏控制台窗口。

@@ -1,0 +1,14 @@
+version: 1.0.1-commit.232.0411aa5e
+files:
+  - url: texa_test_v0.9.1.exe
+    sha512: >-
+      EwyYS8OPqLcqb7cRVjmqzhgLdqjM46oJeXSZGCWp4Y1jW2udytKx3pffZiK3W4duUtWTvkucfjRagIIa9Sgjcg==
+    size: 258842561
+path: texa_test_v0.9.1.exe
+sha512: >-
+  EwyYS8OPqLcqb7cRVjmqzhgLdqjM46oJeXSZGCWp4Y1jW2udytKx3pffZiK3W4duUtWTvkucfjRagIIa9Sgjcg==
+releaseDate: '2026-10-20T13:38:03.632Z'
+sourceCommit: 0411aa5e594464069a8d652c9d7b9f1f538fbd07
+sourceBranch: Texa_MacOS
+channel: commit
+releaseName: Texa 修复 0411aa5e

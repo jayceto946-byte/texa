@@ -1,0 +1,63 @@
+{
+  "assets": [
+    {
+      "apiUrl": "https://api.github.com/repos/jayceto946-byte/texa/releases/assets/659430550",
+      "contentType": "application/octet-stream",
+      "createdAt": "2026-10-20T13:38:21Z",
+      "digest": "sha256:ef53bed373ed77809c612ec93eb515ce4c48c23be63d173349263ff692af88e9",
+      "downloadCount": 0,
+      "id": "RA_kwDOTIiUCM4nThyW",
+      "label": "",
+      "name": "commit.yml",
+      "size": 501,
+      "state": "uploaded",
+      "updatedAt": "2026-10-20T13:38:21Z",
+      "url": "https://github.com/jayceto946-byte/texa/releases/download/untagged-b43538064e1529272a99/commit.yml"
+    },
+    {
+      "apiUrl": "https://api.github.com/repos/jayceto946-byte/texa/releases/assets/659430551",
+      "contentType": "application/json",
+      "createdAt": "2026-10-20T13:38:21Z",
+      "digest": "sha256:8842ca930ff8de1e2475221ea2876c92702008fedf1b04f523c1e85da5b77b8d",
+      "downloadCount": 0,
+      "id": "RA_kwDOTIiUCM4nThyX",
+      "label": "",
+      "name": "texa_test_v0.9.1-build.json",
+      "size": 464,
+      "state": "uploaded",
+      "updatedAt": "2026-10-20T13:38:21Z",
+      "url": "https://github.com/jayceto946-byte/texa/releases/download/untagged-b43538064e1529272a99/texa_test_v0.9.1-build.json"
+    },
+    {
+      "apiUrl": "https://api.github.com/repos/jayceto946-byte/texa/releases/assets/659430549",
+      "contentType": "application/x-msdownload",
+      "createdAt": "2026-10-20T13:38:21Z",
+      "digest": "sha256:3255575d6d1dad2803e2890eeedbbfb96eb30cf69de3bf7f1d6d176033da1bb3",
+      "downloadCount": 0,
+      "id": "RA_kwDOTIiUCM4nThyV",
+      "label": "",
+      "name": "texa_test_v0.9.1.exe",
+      "size": 258842561,
+      "state": "uploaded",
+      "updatedAt": "2026-10-20T13:38:34Z",
+      "url": "https://github.com/jayceto946-byte/texa/releases/download/untagged-b43538064e1529272a99/texa_test_v0.9.1.exe"
+    },
+    {
+      "apiUrl": "https://api.github.com/repos/jayceto946-byte/texa/releases/assets/659430545",
+      "contentType": "application/octet-stream",
+      "createdAt": "2026-10-20T13:38:21Z",
+      "digest": "sha256:5f3574d6bee6980c4658db278acb46be28451a0b821c34f0fd6f1da3381dee01",
+      "downloadCount": 0,
+      "id": "RA_kwDOTIiUCM4nThyR",
+      "label": "",
+      "name": "texa_test_v0.9.1.exe.blockmap",
+      "size": 268595,
+      "state": "uploaded",
+      "updatedAt": "2026-10-20T13:38:21Z",
+      "url": "https://github.com/jayceto946-byte/texa/releases/download/untagged-b43538064e1529272a99/texa_test_v0.9.1.exe.blockmap"
+    }
+  ],
+  "isDraft": true,
+  "tagName": "v0.9.1",
+  "url": "https://github.com/jayceto946-byte/texa/releases/tag/untagged-b43538064e1529272a99"
+}
