@@ -9,3 +9,7 @@
 - Windows UI 人工视察仍待完成；macOS 原生截图与鼠标验证见既有笔记证据。不能用后端 smoke 代替 Windows UI 体验验收。
 
 构建中依次修复了中文测试样本默认编码、自检数据库句柄释放、electron-builder 命名参数。原失败记录保留：[编码](https://github.com/jayceto946-byte/texa/actions/runs/39351437598)、[句柄](https://github.com/jayceto946-byte/texa/actions/runs/39351845315)、[命名参数](https://github.com/jayceto946-byte/texa/actions/runs/39352629608)。没有跳过或放宽检查，没有发布正式 Release 或改变签名/更新策略。
+
+## Release 附件
+
+按用户要求新建 [V0.9_pre_release 预发布草稿](https://github.com/jayceto946-byte/texa/releases/tag/untagged-949c4fcb2f2c2a0ce899)，附件 `texa_test.exe` 已上传，远端大小与 SHA-256 一致，并重新下载核验。草稿尚未公开发布；原有 Release 附件及更新清单保持原状。回执见 [release-upload.json](release-upload.json)。一次性上传流程完成后移除，执行源码与日志保留在对应提交及 Actions 记录。

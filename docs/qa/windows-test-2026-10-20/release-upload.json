@@ -1,0 +1,16 @@
+{
+  "release_id": 418385826,
+  "name": "V0.9_pre_release",
+  "tag": "V0.9_pre_release",
+  "draft": true,
+  "prerelease": true,
+  "release_url": "https://github.com/jayceto946-byte/texa/releases/tag/untagged-949c4fcb2f2c2a0ce899",
+  "source_commit": "24973dbc4a12695019ba8a8ed0142c3aa765cd0a",
+  "asset_id": 659302513,
+  "asset": "texa_test.exe",
+  "bytes": 241547307,
+  "sha256": "ec0a83f69429a5bef7e2e054e572488eea5b4084d6405601997dabce1c2eb15b",
+  "remote_digest_matches_local": true,
+  "remote_download_verified": true,
+  "upload_run_url": "https://github.com/jayceto946-byte/texa/actions/runs/39424161737"
+}
