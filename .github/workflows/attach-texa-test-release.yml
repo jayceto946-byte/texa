@@ -1,0 +1,85 @@
+name: Attach verified Texa test release
+
+on:
+  push:
+    branches: [Texa_MacOS]
+    paths: [.github/workflows/attach-texa-test-release.yml]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_TAG: V0.9_pre_release
+    steps:
+      - name: Retrieve the existing verified Windows artifact
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/12234880301/zip" > package.zip
+          python3 - <<'PY'
+          import hashlib, json, zipfile
+          from pathlib import Path
+          archive = Path('package.zip')
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == '20bbe18be7597df78409f1b48aac32e819c42915e3d25e86d96c8500be57d72c'
+          with zipfile.ZipFile(archive) as z:
+              exe = z.read('texa_test.exe')
+              identity = json.loads(z.read('texa_test-build.json').decode('utf-8-sig'))
+          assert identity['commit'] == '24973dbc4a12695019ba8a8ed0142c3aa765cd0a'
+          assert len(exe) == 241547307
+          assert hashlib.sha256(exe).hexdigest() == 'ec0a83f69429a5bef7e2e054e572488eea5b4084d6405601997dabce1c2eb15b'
+          Path('texa_test.exe').write_bytes(exe)
+          print('Verified original Windows executable and source identity')
+          PY
+      - name: Prepare the requested draft prerelease
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" > releases.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          tag = os.environ['TARGET_TAG']
+          assert not any(r['tag_name'] == tag for r in json.loads(Path('releases.json').read_text())), 'Release already exists; refusing to overwrite'
+          body = '\n'.join([
+              'Windows x64 便携测试包：`texa_test.exe`（约 230 MiB，未签名）。',
+              '',
+              '打包源码：`24973dbc4a12695019ba8a8ed0142c3aa765cd0a`。包内应用版本仍为 1.0.0，本 Release 名称用于标记检查批次。',
+              '',
+              '包含 Electron、Python 后端、Chroma/ONNX Runtime 与 BGE 向量模型；不包含私人教材、笔记、会话或 API Key。',
+              '',
+              'Windows 笔记后端 48、前端 239、桌面 24 项测试及冻结后端自检通过。Windows UI 人工视察待完成。',
+              '',
+              'SHA-256：`ec0a83f69429a5bef7e2e054e572488eea5b4084d6405601997dabce1c2eb15b`',
+              '',
+              '构建记录：https://github.com/jayceto946-byte/texa/actions/runs/39353263515',
+          ])
+          request = dict(tag_name=tag, target_commitish='24973dbc4a12695019ba8a8ed0142c3aa765cd0a', name=tag, body=body, draft=True, prerelease=True, make_latest='false')
+          Path('release-request.json').write_text(json.dumps(request, ensure_ascii=False))
+          PY
+      - name: Create draft and upload texa_test.exe
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/releases" --input release-request.json > release-response.json
+          release_id=$(python3 -c "import json; print(json.load(open('release-response.json'))['id'])")
+          gh api --method POST -H 'Content-Type: application/octet-stream' "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$release_id/assets?name=texa_test.exe" --input texa_test.exe > asset-response.json
+          asset_id=$(python3 -c "import json; print(json.load(open('asset-response.json'))['id'])")
+          gh api -H 'Accept: application/octet-stream' "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" > uploaded.exe
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          release = json.loads(Path('release-response.json').read_text())
+          asset = json.loads(Path('asset-response.json').read_text())
+          assert release['draft'] and release['prerelease']
+          assert release['name'] == release['tag_name'] == 'V0.9_pre_release'
+          assert asset['name'] == 'texa_test.exe' and asset['state'] == 'uploaded' and asset['size'] == 241547307
+          assert hashlib.sha256(Path('uploaded.exe').read_bytes()).hexdigest() == 'ec0a83f69429a5bef7e2e054e572488eea5b4084d6405601997dabce1c2eb15b'
+          receipt = dict(release_id=release['id'], url=release['html_url'], draft=release['draft'], prerelease=release['prerelease'], asset_id=asset['id'], asset=asset['name'], bytes=asset['size'], sha256='ec0a83f69429a5bef7e2e054e572488eea5b4084d6405601997dabce1c2eb15b', remote_download_verified=True)
+          Path('release-upload-receipt.json').write_text(json.dumps(receipt, indent=2))
+          print(json.dumps(receipt, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: texa-test-release-upload-receipt
+          path: release-upload-receipt.json
+          retention-days: 14
