@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { BookOpen, Check, ChevronDown, ChevronRight, GraduationCap } from 'lucide-react';
 import { get } from '../api/client';
 import { formatLearningScopeLabel, scopeContainsBook, type TextbookScopeOption } from '../utils/textbookScopes';
+import { scopePopoverLayout } from '../utils/scopePopover';
+import './ScopeSelector.css';
 
 export type ScopeBookOption = TextbookScopeOption;
 
@@ -114,12 +116,6 @@ function subjectLabel(value = '') {
   return child ? `${parent} / ${child}` : parent;
 }
 
-function widthClass(width: Width) {
-  if (width === 'compact') return 'w-[176px] sm:w-[190px]';
-  if (width === 'wide') return 'w-[232px] sm:w-[260px]';
-  return 'w-[204px] sm:w-[224px]';
-}
-
 export default function ScopeSelector({
   subject,
   bookName = '',
@@ -140,6 +136,8 @@ export default function ScopeSelector({
   fullWidth = false,
   className = '',
   size = 'normal',
+  popupSize = 'normal',
+  onOpenChange,
 }: {
   subject: string;
   bookName?: string;
@@ -160,12 +158,25 @@ export default function ScopeSelector({
   fullWidth?: boolean;
   className?: string;
   size?: 'compact' | 'normal' | 'form';
+  popupSize?: 'compact' | 'normal';
+  onOpenChange?: (open: boolean, id: string) => void;
 }) {
+  const id = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
+  const keyboardOpen = useRef(false);
   const [open, setOpen] = useState(false);
   const [popupStyle, setPopupStyle] = useState<CSSProperties | null>(null);
+  const [popupLayout, setPopupLayout] = useState('books');
   const [loadedSubjects, setLoadedSubjects] = useState<ScopeSubjectNode[]>([]);
+  useEffect(() => { onOpenChange?.(open, id); return () => onOpenChange?.(false, id); }, [id, onOpenChange, open]);
+  const close = useCallback(() => { setOpen(false); rootRef.current?.querySelector('button')?.focus({ preventScroll: true }); }, []);
+  useEffect(() => {
+    if (open && popupStyle && keyboardOpen.current) {
+      keyboardOpen.current = false;
+      popupRef.current?.querySelector<HTMLButtonElement>('.scope-option[data-selected="true"],.scope-option')?.focus({ preventScroll: true });
+    }
+  }, [open, popupStyle]);
 
   useEffect(() => {
     if (subjectTree) return;
@@ -184,25 +195,16 @@ export default function ScopeSelector({
   const updatePopupPosition = useCallback(() => {
     const rect = rootRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const margin = 12;
-    const gap = 8;
-    const popupWidth = fullWidth ? rect.width : Math.min(720, window.innerWidth - margin * 2);
-    const preferredLeft = align === 'right' ? rect.right - popupWidth : rect.left;
-    const left = Math.max(margin, Math.min(preferredLeft, window.innerWidth - popupWidth - margin));
-    const above = Math.max(0, rect.top - margin);
-    const below = Math.max(0, window.innerHeight - rect.bottom - margin);
-    const openAbove = placement === 'top' ? above >= 180 || above >= below : below < 180 && above > below;
-    const availableHeight = Math.max(120, (openAbove ? above : below) - gap);
+    const layout = scopePopoverLayout({ anchor: rect, viewport: { width: window.innerWidth, height: window.innerHeight }, subjectOnly: bookMode === 'hidden', compact: popupSize === 'compact', placement, align });
+    setPopupLayout(layout.layout);
     setPopupStyle({
       position: 'fixed',
-      width: popupWidth,
-      left,
-      maxHeight: Math.min(560, availableHeight),
-      ...(openAbove
-        ? { bottom: window.innerHeight - rect.top + gap, top: 'auto' }
-        : { top: rect.bottom + gap, bottom: 'auto' }),
+      width: layout.width,
+      left: layout.left,
+      maxHeight: layout.maxHeight,
+      ...(layout.openAbove ? { bottom: layout.edge, top: 'auto' } : { top: layout.edge, bottom: 'auto' }),
     });
-  }, [align, fullWidth, placement]);
+  }, [align, bookMode, placement, popupSize]);
 
   useLayoutEffect(() => {
     if (!open) {
@@ -226,15 +228,21 @@ export default function ScopeSelector({
       if (!rootRef.current?.contains(target) && !popupRef.current?.contains(target)) setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key === 'Escape') { event.preventDefault(); close(); }
+    };
+    const onFocus = (event: FocusEvent) => {
+      const target = event.target as Node;
+      if (!rootRef.current?.contains(target) && !popupRef.current?.contains(target)) setOpen(false);
     };
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('focusin', onFocus);
     return () => {
       document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('focusin', onFocus);
     };
-  }, [open]);
+  }, [close, open]);
 
   const scopeBooks = books;
   const managedSubjects = subjectTree || loadedSubjects;
@@ -252,11 +260,6 @@ export default function ScopeSelector({
   );
 
   const currentBook = scopeBooks.find((book) => scopeContainsBook(book, bookName));
-  const popupGridClass = fullWidth
-    ? 'grid-cols-1 divide-y divide-border'
-    : bookMode === 'hidden'
-      ? 'grid-cols-1 divide-y divide-border sm:grid-cols-[170px_minmax(0,1fr)] sm:divide-x sm:divide-y-0'
-      : 'grid-cols-1 divide-y divide-border sm:grid-cols-[160px_190px_minmax(0,1fr)] sm:divide-x sm:divide-y-0';
   const valueText = bookMode === 'hidden'
     ? (activeSubject ? subjectLabel(activeSubject) : placeholder)
     : formatLearningScopeLabel(
@@ -278,62 +281,85 @@ export default function ScopeSelector({
     const book = scopeBooks.find((item) => item.name === name);
     if (book?.subject) onSubjectChange(inferSubject(book.subject, tree).value || book.subject);
     onBookChange(name);
-    setOpen(false);
+    close();
   };
 
   return (
-    <div ref={rootRef} data-scope-size={size} className={`relative min-w-0 ${fullWidth ? 'w-full' : 'max-w-full shrink'} ${className}`}>
+    <div ref={rootRef} data-scope-size={size} data-scope-width={width} data-full-width={fullWidth} className={`scope-selector ${className}`}>
       <button
         type="button"
-        onClick={() => !disabled && setOpen((next) => !next)}
+        onClick={event => { if (!disabled) { keyboardOpen.current = event.detail === 0; setOpen(next => !next); } }}
+        onKeyDown={event => { if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); keyboardOpen.current = true; setOpen(true); } }}
         disabled={disabled}
         aria-label={label}
-        className={`app-interactive flex h-9 ${fullWidth ? 'w-full min-w-0' : widthClass(width)} max-w-full items-center gap-2 rounded-[var(--radius-medium)] border border-border bg-bg-card px-3 text-left text-sm text-text-primary outline-none hover:border-accent/50 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-55`}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        aria-controls={open ? id : undefined}
+        className="app-interactive scope-trigger"
       >
         <GraduationCap className="h-4 w-4 flex-shrink-0 text-accent" />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium leading-5">{valueText}</span>
+        <span className="scope-trigger-value" title={valueText}>{valueText}</span>
         <ChevronDown className={`h-4 w-4 flex-shrink-0 text-text-secondary transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && createPortal(
         <div
           ref={popupRef}
+          id={id}
+          role="dialog"
+          aria-label={label}
+          data-layout={popupLayout}
+          data-density={popupSize}
           style={popupStyle || { visibility: 'hidden' }}
-          className="app-popover-enter z-[1100] overflow-y-auto rounded-[var(--radius-large)] border border-border bg-bg-card shadow-lg"
+          className="scope-popover app-popover-enter"
+          onKeyDown={event => {
+            const target = event.target as HTMLElement;
+            const column = target.closest('.scope-column');
+            const columns = Array.from(popupRef.current?.querySelectorAll('.scope-column') || []);
+            const items = Array.from(column?.querySelectorAll<HTMLButtonElement>('.scope-option') || []);
+            const index = items.indexOf(target as HTMLButtonElement);
+            let next: HTMLButtonElement | undefined;
+            if (event.key === 'ArrowDown') next = items[(index + 1) % items.length];
+            if (event.key === 'ArrowUp') next = items[(index - 1 + items.length) % items.length];
+            if (event.key === 'Home') next = items[0];
+            if (event.key === 'End') next = items.at(-1);
+            if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = columns[columns.indexOf(column!) + (event.key === 'ArrowRight' ? 1 : -1)]?.querySelector<HTMLButtonElement>('.scope-option[data-selected="true"],.scope-option') || undefined;
+            if (next) { event.preventDefault(); next.focus(); }
+          }}
         >
-          <div className={`grid ${popupGridClass}`}>
-            <Column title="一级科目">
+          <div className="scope-grid">
+            <Column title="学科">
               {allowAllSubjects && (
-                <OptionButton active={!activeSubject} onClick={() => selectSubject('')}>
+                <OptionButton active={!activeSubject} onClick={() => { selectSubject(''); if (bookMode === 'hidden') close(); }}>
                   全部学科
                 </OptionButton>
               )}
               {tree.map((node) => (
-                <OptionButton key={node.name} active={node.name === activeParent} onClick={() => selectSubject(node.name)}>
+                <OptionButton key={node.name} active={Boolean(activeSubject) && node.name === activeParent} onClick={() => selectSubject(node.name)}>
                   <span className="truncate">{node.name}</span>
                   <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-text-secondary" />
                 </OptionButton>
               ))}
             </Column>
 
-            <Column title="二级科目">
+            <Column title="细分方向">
               {activeNode ? (
                 <>
-                  <OptionButton active={activeSubject === activeNode.name} onClick={() => selectSubject(activeNode.name)}>
+                  <OptionButton active={activeSubject === activeNode.name} onClick={() => { selectSubject(activeNode.name); if (bookMode === 'hidden') close(); }}>
                     全部{activeNode.name}
                   </OptionButton>
                   {(activeNode.children || []).map((child) => {
                     const value = subjectValue(activeNode.name, child);
                     return (
-                      <OptionButton key={child} active={activeSubject === value} onClick={() => selectSubject(value)}>
+                      <OptionButton key={child} active={activeSubject === value} onClick={() => { selectSubject(value); if (bookMode === 'hidden') close(); }}>
                         {child}
                       </OptionButton>
                     );
                   })}
-                  {!(activeNode.children || []).length && <EmptyLine text="该一级科目暂无二级科目" />}
+                  {!(activeNode.children || []).length && <EmptyLine text="暂无细分方向" />}
                 </>
               ) : (
-                <EmptyLine text="先选择一级科目" />
+                <EmptyLine text="先选择学科" />
               )}
             </Column>
 
@@ -367,10 +393,10 @@ export default function ScopeSelector({
 
 function Column({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="min-h-0 min-w-0 bg-bg-card sm:min-h-[220px]">
-      <div className="border-b border-border px-3 py-2 text-[11px] font-medium text-text-secondary">{title}</div>
-      <div className="max-h-[160px] space-y-1 overflow-y-auto p-2 sm:max-h-[330px]">{children}</div>
-    </div>
+    <section className="scope-column" aria-label={title}>
+      <h3 className="scope-column-title">{title}</h3>
+      <div className="scope-options">{children}</div>
+    </section>
   );
 }
 
@@ -379,16 +405,15 @@ function OptionButton({ active, onClick, children }: { active?: boolean; onClick
     <button
       type="button"
       onClick={onClick}
-      className={`app-interactive flex min-h-9 w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-accent/15 ${
-        active ? 'bg-[var(--accent-soft)] font-semibold text-accent-hover' : 'text-text-primary hover:bg-bg-secondary'
-      }`}
+      data-selected={Boolean(active)}
+      className="app-interactive scope-option"
     >
-      <span className="flex min-w-0 flex-1 items-center justify-between gap-2 truncate">{children}</span>
+      <span className="scope-option-label">{children}</span>
       {active && <Check className="h-3.5 w-3.5 flex-shrink-0 text-accent" />}
     </button>
   );
 }
 
 function EmptyLine({ text }: { text: string }) {
-  return <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs leading-5 text-text-secondary">{text}</div>;
+  return <p className="scope-empty">{text}</p>;
 }

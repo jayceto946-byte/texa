@@ -282,7 +282,7 @@ const BooksPage: React.FC = () => {
               </label>
               <label className="block">
                 <span className="mb-1.5 block type-caption text-text-secondary">所属科目</span>
-                <ScopeSelector subject={subject} onSubjectChange={setSubject} bookMode="hidden" label="所属科目" fullWidth width="wide" />
+                <ScopeSelector subject={subject} onSubjectChange={setSubject} bookMode="hidden" size="form" label="所属科目" fullWidth width="wide" />
               </label>
               <div className="border-t border-border pt-3">
                 <div className="mb-2 type-caption text-text-secondary">{'\u89e3\u6790\u65b9\u5f0f'}</div>

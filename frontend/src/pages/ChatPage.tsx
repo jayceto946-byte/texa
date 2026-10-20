@@ -973,7 +973,7 @@ const ChatPage: React.FC = () => {
             )}
             <ChatMistakeSourcesContext.Provider value={mistakeSources}>{messages.map((msg, i) => (
               <ErrorBoundary key={msg.turnId ? `${msg.turnId}:${msg.role}` : msg.id || `message-${i}`}>
-                <div data-message-id={msg.id} tabIndex={-1}>
+                <div data-message-id={msg.id} tabIndex={-1} className={msg.role === 'user' && i > 0 && messages[i - 1].role === 'assistant' ? 'learning-followup-turn' : undefined}>
                 <ChatMessage messageId={msg.id} answerFeedback={msg.answerFeedback} role={msg.role} content={msg.content} stage={msg.stage} streamError={msg.streamError} activities={msg.activities} turnId={msg.turnId} subjectSuggestion={msg.subjectSuggestion} answerMode={msg.answerMode} suggestedAnswerMode={msg.suggestedAnswerMode} scopeReason={msg.scopeReason} originalQuestion={msg.originalQuestion} onRequestGlobalAnswer={(question) => { if (!inTrash) sendMessage(question, { answerMode: 'global_general' }); }} onRequestSuggestedAnswer={(question, answerMode) => { if (!inTrash) sendMessage(question, { answerMode }); }} linkedConcepts={msg.linkedConcepts} sources={msg.sources} sourceChapters={msg.sourceChapters} reportCard={msg.reportCard} exerciseCard={msg.exerciseCard} chapterHighlightCard={msg.chapterHighlightCard} utilityCard={msg.utilityCard} learningTask={msg.learningTask} citationProvenance={msg.citationProvenance} onResumeLearningTask={resumeLearningTask} onResumeInterruptedTask={resumeInterruptedTask} />
                 </div>
               </ErrorBoundary>

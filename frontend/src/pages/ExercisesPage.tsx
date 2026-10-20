@@ -507,7 +507,7 @@ const ExercisesPage: React.FC = () => {
               <div className="exercise-field">
                 <span>{sourceKind === 'textbook' ? '选择教材' : '归属范围'}<HelpHint label="教材抽取">从已导入教材内容抽取，无需源 PDF；未选择教材时不能抽取。</HelpHint>
                 </span>
-                <ScopeSelector subject={targetSubject} bookName={books.some(b => b.name === targetName) ? targetName : ''} books={books} suggestions={books.map(b => b.subject || '').filter(Boolean)} onSubjectChange={updateTargetSubject} onBookChange={updateTargetName} disabled={importing} fullWidth width="wide" />
+                <ScopeSelector size="form" subject={targetSubject} bookName={books.some(b => b.name === targetName) ? targetName : ''} books={books} suggestions={books.map(b => b.subject || '').filter(Boolean)} onSubjectChange={updateTargetSubject} onBookChange={updateTargetName} disabled={importing} fullWidth width="wide" />
               </div>
               {sourceKind === 'textbook' ? <>
                 {(!activeName || activeName === 'default') && <p className="exercise-feedback">请先选择已导入教材。<Link to="/books">前往教材库</Link>
@@ -580,6 +580,7 @@ const ExercisesPage: React.FC = () => {
                     <section className="exercise-setup-group">
                       <h2>练习范围</h2>
                       <ScopeSelector
+                        size="form"
                         subject={targetSubject}
                         bookName={books.some((book) => book.name === targetName) ? targetName : ''}
                         books={books}

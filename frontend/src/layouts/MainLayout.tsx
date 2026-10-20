@@ -8,6 +8,7 @@ import type { ChatMessage as ContextChatMessage, ConversationPage } from '../con
 import type { DesktopBackendStatus } from '../types/electron';
 import AppRail from '../components/AppRail';
 import LearningContextSidebar from '../components/LearningContextSidebar';
+import LearningHistoryDock from '../components/LearningHistoryDock';
 import ContextInspector from '../components/ui/ContextInspector';
 import { useInspector } from '../contexts/InspectorContext';
 import SettingsDialog from '../components/settings/SettingsDialog';
@@ -220,8 +221,9 @@ const MainLayout: React.FC = () => {
       <div className="study-navigation">
         <AppRail mobile={contextOverlay} onCollapse={() => setContextOpen(false)} onOpenSettings={openSettings} settingsButtonRef={settingsButtonRef} />
 
-        <LearningContextSidebar
-          hidden={!isLearningWorkspace || !contextOpen}
+        <LearningHistoryDock docked={isLearningWorkspace && !contextOpen}><LearningContextSidebar
+          hidden={!isLearningWorkspace}
+          floating={!contextOpen}
           subject={subject}
           bookName={bookName}
           conversationId={conversationId}
@@ -231,7 +233,7 @@ const MainLayout: React.FC = () => {
           onSelectCurrentConversation={() => { if (contextOverlay) setContextOpen(false); navigate('/'); }}
           onLoadConversation={loadExistingConversation}
           capabilityActions={[]}
-        />
+        /></LearningHistoryDock>
 
         <div id="workspace-context-navigation" />
       </div>

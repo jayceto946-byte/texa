@@ -2,7 +2,12 @@
 .conversation-views button { flex:1; min-width:0; border-radius:var(--workspace-control-radius); padding:5px 2px; font-size:12px; color:var(--color-text-secondary); }
 .conversation-views button[aria-pressed=true] { background:var(--workspace-secondary); color:var(--color-accent); }
 .conversation-views button:focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
-.conversation-pin { display:inline; margin-right:5px; vertical-align:-1px; color:var(--color-text-secondary); }
+.conversation-group-label { display:flex; align-items:center; gap:6px; padding:14px 8px 6px; color:var(--color-text-tertiary); font-size:11px; font-weight:500; }
+.conversation-group-label:first-child { padding-top:6px; }
+.learning-context-sidebar .context-session-entry { margin-bottom:3px; border:0; border-radius:var(--workspace-control-radius); }
+.learning-context-sidebar .context-session-entry:is(:hover,:focus-within) { background:var(--color-bg-card); }
+.learning-context-sidebar .context-session-entry.is-active { background:var(--accent-soft); }
+.learning-context-sidebar .context-session-entry .context-session-row { margin-bottom:0; background:transparent; }
 .conversation-notice { padding:8px; font-size:12px; line-height:1.7; color:var(--color-text-secondary); }
 .conversation-load-more { width:100%; margin-top:8px; }
 .conversation-state { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:0 0 20px; padding:10px 0; border-bottom:1px solid var(--workspace-separator); font-size:var(--workspace-interface-size); color:var(--color-text-secondary); }

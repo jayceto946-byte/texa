@@ -227,7 +227,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
   const hasCard = Boolean(reportCard || exerciseCard || chapterHighlightCard || utilityCard);
   const showMessageTools = !hasCard && !isThinking;
   const modeLabel = answerMode === 'textbook_grounded'
-    ? '基于教材'
+    ? ''
     : answerMode === 'visual_grounded'
       ? '基于图片'
     : answerMode === 'subject_general'
@@ -248,10 +248,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
         {showVisualImage && visualImage.url && <img src={visualImage.url} alt="完整题目图片" className="max-h-96 max-w-full object-contain" />}
       </div>}
       <article className={variant === 'document' ? 'min-w-0 text-text-primary' : isUser ? `learning-question${isVisualQuestion ? ' is-visual-question' : ''}` : 'learning-answer-document'}>
-        {variant === 'message' && <div className="study-turn-heading">
-          <span>{isUser ? '学习问题' : 'TEXA / 解答'}</span>
+        {variant === 'message' && isUser && <div className="study-turn-heading">
+          <span>学习问题</span>
           {isUser && questionContent.body.trim() && <div className="question-more-menu"><OverflowMenu label="问题的更多操作">{close => <><button role="menuitem" disabled={!captureMessageId || captureBusy || captureSources.loading || Boolean(captureSources.error)} onClick={() => { close(); void captureQuestion(); }}>{!captureMessageId ? '等待问题保存后录入' : captureSources.loading ? '正在读取错题状态…' : captureSources.error ? '错题状态暂不可用' : captureState?.status === 'recorded' ? '已记录 · 查看错题' : captureState?.status === 'draft' ? '继续整理错题' : '记录为错题'}</button>{captureSources.error && <button role="menuitem" onClick={() => { close(); captureSources.refresh(); }}>重试读取错题状态</button>}</>}</OverflowMenu></div>}
-          {!isUser && hasStructuredSources && <button type="button" onClick={openSources}><BookOpen className="h-3.5 w-3.5" />查看来源 · {sources.length}</button>}
         </div>}
         {isUser && questionContent.attachmentName && (
           <div className="learning-query-attachment">
@@ -291,25 +290,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
         ) : null}
 
         {captureError && <p role="alert" className="text-xs text-[var(--danger)]">{captureError}</p>}
-
-        {variant === 'message' && !isUser && stage === 'done' && (modeLabel || hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
-          <div className="learning-answer-meta">
-            {modeLabel && (
-              <span
-                title={scopeReason || modeLabel}
-                className={answerMode === 'subject_mismatch' ? 'text-[var(--danger)]' : undefined}
-              >
-                {modeLabel}
-              </span>
-            )}
-            {(hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
-              <button type="button" onClick={openSources} title="检查回答来源">
-                <BookOpen className="h-3 w-3" />
-                来源 {hasStructuredSources ? sources.length : references.length || sourceChapters.length}
-              </button>
-            )}
-          </div>
-        )}
 
         {!isUser && stage === 'done' && citationProvenance && citationProvenance.status !== 'model_aligned' && (
           <div className="mt-3">
@@ -387,6 +367,25 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
                 {concept.name}
               </button>
             ))}
+          </div>
+        )}
+
+        {variant === 'message' && !isUser && stage === 'done' && (modeLabel || hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
+          <div className="learning-answer-meta">
+            {modeLabel && (
+              <span
+                title={scopeReason || modeLabel}
+                className={answerMode === 'subject_mismatch' ? 'text-[var(--danger)]' : undefined}
+              >
+                {modeLabel}
+              </span>
+            )}
+            {(hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
+              <button type="button" onClick={openSources} title="检查回答来源">
+                <BookOpen className="h-3.5 w-3.5" />
+                查看来源 · {hasStructuredSources ? sources.length : references.length || sourceChapters.length}
+              </button>
+            )}
           </div>
         )}
 

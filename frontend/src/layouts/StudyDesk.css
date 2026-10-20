@@ -47,8 +47,18 @@
   line-height: 1.5;
   letter-spacing: -.025em;
 }
-.study-desk .learning-message.is-question { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--color-border); }
-.study-desk .learning-answer-document .markdown-body p { margin: 0 0 18px; }
+.study-desk .learning-message.is-question { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--color-border); }
+.study-desk .learning-question .markdown-body > :last-child { margin-bottom: 0; }
+.study-desk .learning-message.is-answer { margin-bottom: 0; }
+.study-desk .learning-followup-turn { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--color-border); }
+.study-desk .learning-answer-document .markdown-body p { margin: 0 0 10px; }
+.study-desk .learning-answer-document .learning-reading-content > :is(h1, h4) { margin: 18px 0 6px; }
+.study-desk .learning-answer-document .learning-reading-content > :first-child { margin-top: 0; }
+.study-desk .learning-answer-document .learning-reading-content > :last-child { margin-bottom: 0; }
+.study-desk .learning-answer-document .execution-trace { margin-bottom: 10px; }
+.study-desk .learning-answer-meta { margin-top: 12px; }
+.study-desk .learning-answer-meta button { gap: 6px; color: var(--color-accent); font-size: 12px; padding: 4px 0; }
+.study-desk .learning-answer-meta button:hover { text-decoration: underline; text-underline-offset: 3px; }
 .study-desk .learning-answer-document .markdown-body h2 { letter-spacing: -.015em; }
 .study-desk .learning-answer-document .katex-display { margin: 24px 0; text-align: center; }
 .study-desk .learning-answer-document .katex-display > .katex { text-align: center; }
@@ -274,10 +284,10 @@
   font-size: var(--workspace-management-title-size); font-weight: 600; line-height: 1.25; letter-spacing: 0; color: var(--workspace-management-title-text);
 }
 .study-desk .learning-answer-document .markdown-body h2 {
-  font-size: var(--workspace-section-title-size); font-weight: 600; line-height: 1.5; margin: 30px 0 12px; color: var(--color-text-primary);
+  font-size: var(--workspace-section-title-size); font-weight: 600; line-height: 1.5; margin: 20px 0 6px; color: var(--color-text-primary);
 }
 .study-desk .learning-answer-document .markdown-body h3 {
-  font-size: var(--workspace-reading-size); font-weight: 600; line-height: 1.5; margin: 26px 0 10px; color: var(--color-text-primary);
+  font-size: var(--workspace-reading-size); font-weight: 600; line-height: 1.5; margin: 18px 0 6px; color: var(--color-text-primary);
 }
 .study-desk .learning-answer-document .learning-reading-content {
   font-size: var(--workspace-reading-size); font-weight: 400; line-height: var(--workspace-reading-leading); color: var(--workspace-reading-text);
@@ -384,7 +394,7 @@
 /* The quiet learning header follows the same scale as management headers. */
 .study-desk .learning-workspace-header h2 { font-size: var(--workspace-interface-size); font-weight: 600; line-height: 1.5; }
 .study-desk .learning-workspace-title p { font-size: var(--workspace-support-size); line-height: 1.5; }
-.study-desk .learning-header-scope-selector > div > button {
+.study-desk .learning-header-scope-selector .scope-selector > .scope-trigger {
   width: auto;
   max-width: min(320px, 45vw);
   height: 28px;
