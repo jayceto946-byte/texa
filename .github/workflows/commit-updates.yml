@@ -18,7 +18,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  preflight:
+    if: github.ref == 'refs/heads/Texa_MacOS'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check signing configuration without exposing credentials
+        env:
+          WINDOWS_CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
+          WINDOWS_CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
+          MAC_CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          MAC_CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CHANNEL_ENABLED: ${{ vars.TEXA_COMMIT_UPDATES_ENABLED }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const names = ['WINDOWS_CSC_LINK', 'WINDOWS_CSC_KEY_PASSWORD', 'MAC_CSC_LINK', 'MAC_CSC_KEY_PASSWORD', 'APPLE_ID', 'APPLE_APP_SPECIFIC_PASSWORD', 'APPLE_TEAM_ID'];
+          const missing = names.filter(name => !process.env[name]?.trim());
+          const summary = [
+            '## Commit update preflight',
+            `Automatic publishing: ${process.env.CHANNEL_ENABLED === 'true' ? 'enabled' : 'disabled'}`,
+            ...names.map(name => `- ${name}: ${missing.includes(name) ? 'missing' : 'configured'}`),
+            'Only credential presence is checked here; signing and notarization must still pass.',
+          ].join('\n') + '\n';
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+          console.log(summary);
+          if (missing.length) {
+            console.error('Signing configuration is incomplete; no update will be built or published.');
+            process.exitCode = 1;
+          }
+          NODE
+
   build:
+    needs: preflight
     if: github.ref == 'refs/heads/Texa_MacOS' && (github.event_name == 'workflow_dispatch' || vars.TEXA_COMMIT_UPDATES_ENABLED == 'true')
     strategy:
       fail-fast: true
@@ -101,7 +135,7 @@ jobs:
           set -euo pipefail
           test -n "$CSC_LINK" && test -n "$CSC_KEY_PASSWORD"
           if [ "$RUNNER_OS" = Windows ]; then
-            npx --no-install electron-builder --win nsis --x64 --publish never
+            npx --no-install electron-builder --win nsis --x64 --publish never --config.forceCodeSigning=true
           else
             test -n "$APPLE_ID" && test -n "$APPLE_APP_SPECIFIC_PASSWORD" && test -n "$APPLE_TEAM_ID"
             npx --no-install electron-builder --mac dmg zip --arm64 --publish never
@@ -112,7 +146,9 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Get-ChildItem release -Filter *.exe | ForEach-Object {
+          $installers = @(Get-ChildItem release -Filter *.exe)
+          if ($installers.Count -ne 1) { throw 'Expected exactly one signed Windows installer' }
+          $installers | ForEach-Object {
             if ((Get-AuthenticodeSignature $_.FullName).Status -ne 'Valid') { throw 'Invalid installer signature' }
           }
       - run: node scripts/prepare-commit-update.cjs annotate
@@ -135,11 +171,22 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --prefix desktop
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
       - uses: actions/download-artifact@v4
         with:
           pattern: commit-update-*
           merge-multiple: true
           path: update
+      - name: Verify both platform manifests and downloaded package hashes
+        env:
+          UPDATE_VERSION: ${{ needs.build.outputs.version }}
+        run: node scripts/verify-commit-release.cjs update "$GITHUB_SHA" "$UPDATE_VERSION"
       - name: Publish both platforms together
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

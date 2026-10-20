@@ -10,7 +10,7 @@ const { createRemoteConnection } = require('./remote-connection.cjs');
 const { createClosePreparation } = require('./window-close.cjs');
 const { readSetupComplete, writeSetupComplete } = require('./setup-state.cjs');
 const { createSourceUpdater } = require('./source-updater.cjs');
-const { validCommitUpdate } = require('./commit-channel.cjs');
+const { validCommitUpdate, configureCommitChannel } = require('./commit-channel.cjs');
 const buildIdentity = require('./package.json').texaBuild;
 const sourceUpdater = !app.isPackaged ? createSourceUpdater({ root: path.resolve(__dirname, '..'), owner: 'jayceto946-byte', repo: 'texa', emit: next => emitUpdateState(next) }) : null;
 const closePreparation = createClosePreparation();
@@ -204,8 +204,7 @@ function configureUpdater() {
   autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.setFeedURL(updateConfig);
   if (buildIdentity?.channel === 'commit') {
-    autoUpdater.channel = 'commit';
-    autoUpdater.allowPrerelease = true;
+    configureCommitChannel(autoUpdater);
   }
 
   autoUpdater.on('checking-for-update', () => emitUpdateState({ status: 'checking', message: '正在检查更新...', progress: null }));
