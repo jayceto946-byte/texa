@@ -2,12 +2,13 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const { execFile, execFileSync } = require('node:child_process');
 const { promisify } = require('node:util');
-const run = promisify(execFile);
+const execute = promisify(execFile);
+const run = (file, args, options = {}) => execute(file, args, { windowsHide: true, ...options });
 
 /** Source checkouts only. Never stashes, resets, switches branch or installs dependencies. */
 function createSourceUpdater({ root, branch = 'Texa_MacOS', owner, repo, node = process.execPath, emit = () => {}, build, allowLocalRemote = false }) {
   let bootCommit = '';
-  try { bootCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { /* check() reports unavailable git */ }
+  try { bootCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8', timeout: 5000, windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { /* check() reports unavailable git */ }
   let state = { mode: 'source', branch, status: 'idle', message: '按分支提交检查修复', currentCommit: bootCommit, updateInfo: null };
   let busy = false;
   let prepared = null;
@@ -22,7 +23,7 @@ function createSourceUpdater({ root, branch = 'Texa_MacOS', owner, repo, node = 
   };
   const fail = message => { const error = new Error(message); error.publicMessage = message; throw error; };
   async function validate() {
-    if (await git('rev-parse', '--show-toplevel') !== await fs.realpath(root)) fail('当前路径不是 Texa 主工作区，不能自动更新。');
+    if (await fs.realpath(await git('rev-parse', '--show-toplevel')) !== await fs.realpath(root)) fail('当前路径不是 Texa 主工作区，不能自动更新。');
     if (await git('branch', '--show-current') !== branch) fail(`请先在主工作区切回 ${branch}，不会自动切换分支。`);
     const remote = await git('remote', 'get-url', 'origin');
     const expected = [`git@github.com:${owner}/${repo}.git`, `https://github.com/${owner}/${repo}.git`, `https://github.com/${owner}/${repo}`];

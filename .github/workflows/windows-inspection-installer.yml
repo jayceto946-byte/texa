@@ -1,4 +1,5 @@
 name: Windows v0.9.1 inspection installer
+# Source checkout paths are canonicalized on Windows before update validation.
 
 on:
   workflow_dispatch:
