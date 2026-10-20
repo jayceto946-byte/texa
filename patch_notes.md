@@ -1,3 +1,9 @@
+## 2026-10-20 — 上传 V0.9_pre_release 草稿附件
+
+- 按用户指定名称新建预发布草稿 `V0.9_pre_release`，将既有构建的 `texa_test.exe`（源码24973db、241547307字节）上传为附件。草稿保留未公开发布状态。
+- 远端附件 SHA-256 与本地及原构建一致，上传后重新下载校验通过；一次性上传 workflow 执行完成后移除，保留历史执行记录与 [上传回执](docs/qa/windows-test-2026-10-20/release-upload.json)。未更改现有正式 Release 或更新清单。
+
+
 ## 2026-10-20 — Windows texa_test.exe 检查包交付
 
 - 源码 `24973db` 在 Windows x64 runner 成功生成未签名便携检查包 `release/texa_test.exe`，约 230 MiB；未混入其他未提交工作、正式学习数据或凭证。
