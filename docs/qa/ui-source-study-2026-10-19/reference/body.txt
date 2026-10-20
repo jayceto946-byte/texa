@@ -1,0 +1,124 @@
+CDS STORYBOOK
+Claude Desktop v1.0
+FOUNDATIONS
+🎨
+Colors & Surfaces
+🔲
+Border Radius
+📐
+Heights & Sizing
+🌫️
+Shadows & Elevation
+🔤
+Typography & Align
+✨
+Icons & Glyphs
+⏱️
+Motion Tokens
+COMPONENTS
+💬
+Chat Composer
+🗨️
+Message Bubbles
+🧠
+Thinking Accordion
+🔘
+Buttons & Controls
+💊
+Segmented Control
+📎
+Attachment Tiles
+💻
+Code Block & Copy
+MOTION LAB
+🌊
+Grapheme Reveal
+🔴
+Thinking Quiet Dots
+🧲
+Spring Physics Presets
+REA Extracted Tokens
+100% Fidelity
+CDS
+/
+Spring Physics Presets
+Canvas
+Docs
+Responsive (100%)
+Desktop (1024px)
+Tablet (768px)
+Mobile (390px)
+☀️
+浅色
+🌙
+深色
+Spring Physics Presets
+
+Framer Motion 6 套弹簧参数可视化比对
+
+Verified from Claude.app
+Claude Framer Motion 物理引擎实验室
+AST-Extracted
+从桌面端逆向提取的二阶微分弹簧动力学实时仿真与手势交互
+🏃 跑道同屏竞速
+🧲 交互试验场
+🎛️ 示波器与调参
+点击按钮一键发射，观察 4 种物理预设的初速度、过冲冲力（Overshoot）与收敛咬合：
+▶ 一键同屏发射
+⟲ 复位
+Button & Small Controls
+高频紧致微弹
+
+用于按钮点击、开关切换、图标按压，回弹干脆利落，迅速归位
+
+超调: +4.2%
+收敛: 0.22s
+单独发射
+0%
+100% 平衡点
+Overshoot 区域
+40%
+Framer Motion: {"type":"spring","stiffness":600,"damping":30}
+Stiffness: 600 | Damping: 30
+Card / Popover Reveal
+沉稳顺滑弹出
+
+用于气泡弹窗、卡片展开、消息上浮，阻尼适中，微冲后平稳着陆
+
+超调: +1.8%
+收敛: 0.35s
+单独发射
+0%
+100% 平衡点
+Overshoot 区域
+23%
+Framer Motion: {"type":"spring","stiffness":320,"damping":28}
+Stiffness: 320 | Damping: 28
+Bouncy Light Feedback
+明显反弹震荡
+
+用于点赞、复制成功勾选、新消息微提示，伴随两至三周期弹性震荡
+
+超调: +19.4%
+收敛: 0.58s
+单独发射
+0%
+100% 平衡点
+Overshoot 区域
+31%
+Framer Motion: {"type":"spring","duration":0.32,"bounce":0.15}
+Stiffness: 380 | Damping: 18
+High Damping Panel Drag
+极速手势跟随
+
+用于侧边栏与浮层手势拖拽吸附，超高刚度与高阻尼，松手瞬间绝对咬合
+
+超调: 0% (零过冲)
+收敛: 0.14s
+单独发射
+0%
+100% 平衡点
+Overshoot 区域
+51%
+Framer Motion: {"type":"spring","stiffness":1200,"damping":80,"mass":0.1}
+Stiffness: 1200 | Damping: 80

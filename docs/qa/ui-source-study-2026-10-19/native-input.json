@@ -1,0 +1,193 @@
+{
+  "environment": "macOS ARM64, Electron 37, production frontend, isolated fixture APIs",
+  "method": "CUA native app key presses and Chinese paste; attempted Ctrl+Space did not induce an OS candidate window",
+  "events": [
+    {
+      "type": "keydown",
+      "key": "z",
+      "keyCode": 90,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": "z"
+    },
+    {
+      "type": "keydown",
+      "key": "h",
+      "keyCode": 72,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": "h"
+    },
+    {
+      "type": "keydown",
+      "key": "o",
+      "keyCode": 79,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": "o"
+    },
+    {
+      "type": "keydown",
+      "key": "n",
+      "keyCode": 78,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": "n"
+    },
+    {
+      "type": "keydown",
+      "key": "g",
+      "keyCode": 71,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": "g"
+    },
+    {
+      "type": "keydown",
+      "key": "a",
+      "keyCode": 65,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "keydown",
+      "key": "Backspace",
+      "keyCode": 8,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": null
+    },
+    {
+      "type": "keydown",
+      "key": "z",
+      "keyCode": 90,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": "z"
+    },
+    {
+      "type": "keydown",
+      "key": "h",
+      "keyCode": 72,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": "h"
+    },
+    {
+      "type": "keydown",
+      "key": "o",
+      "keyCode": 79,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": "o"
+    },
+    {
+      "type": "keydown",
+      "key": "n",
+      "keyCode": 78,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": "n"
+    },
+    {
+      "type": "keydown",
+      "key": "g",
+      "keyCode": 71,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": "g"
+    },
+    {
+      "type": "keydown",
+      "key": "a",
+      "keyCode": 65,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "keydown",
+      "key": "v",
+      "keyCode": 86,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": "中文输入检查：保留数学条件"
+    },
+    {
+      "type": "keydown",
+      "key": "Enter",
+      "keyCode": 13,
+      "composing": false,
+      "trusted": true
+    },
+    {
+      "type": "input",
+      "composing": false,
+      "trusted": true,
+      "data": null
+    }
+  ],
+  "value": "中文输入检查：保留数学条件\n",
+  "sentRequests": 0,
+  "compositionObserved": false,
+  "verdict": "Chinese paste/newline observed; real OS IME candidate confirmation remains unverified"
+}

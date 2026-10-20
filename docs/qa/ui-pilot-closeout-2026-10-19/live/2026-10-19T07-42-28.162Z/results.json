@@ -1,0 +1,2237 @@
+{
+  "phase": "live",
+  "environment": "macOS ARM64, real Electron 37, production frontend, isolated production backend/storage",
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/live/2026-10-19T07-42-28.162Z/live-following-bottom.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/live/2026-10-19T07-42-28.162Z/live-user-reading-up.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/live/2026-10-19T07-42-28.162Z/live-preserved-reading.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/live/2026-10-19T07-42-28.162Z/live-return-latest.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/live/2026-10-19T07-42-28.162Z/live-complete.png"
+  ],
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "pass": true
+    },
+    {
+      "name": "actual rendered scroll samples collected",
+      "pass": true
+    },
+    {
+      "name": "user reading position retained during stream",
+      "pass": true
+    },
+    {
+      "name": "return latest reaches bottom",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "observations": {
+    "timeline": [
+      {
+        "t": 954.8999999985099,
+        "top": 0,
+        "height": 312,
+        "viewport": 312,
+        "textLength": 0,
+        "returnVisible": false,
+        "loading": false
+      },
+      {
+        "t": 1028.5,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 0,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 1104.5,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 0,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 1179.300000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 0,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 1254.300000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 0,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 1328.699999999255,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 1403.699999999255,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 1478.8999999985099,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 1554.5999999977648,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 1628.8999999985099,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 1705.0999999977648,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 1778.3999999985099,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 1854.300000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 1928.5999999977648,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2004.3999999985099,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2078.5,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2155,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2228.5,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2304.599999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2378.39999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2454.39999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2528.800000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2604.099999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2678.599999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2754.699999999255,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2829.099999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2905.199999999255,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 2978.89999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3055,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3130,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3204.89999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3278.599999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3353.599999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3428.800000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3504.5,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3579.89999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3654.800000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3728.89999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3805.300000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3878.699999999255,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 3955,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4028.800000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4104.5,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4179,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4254.5,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4328.39999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4404.099999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4479.199999999255,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4554.199999999255,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4629.39999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4704.800000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4779.199999999255,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4853.5,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 4929.099999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5004.300000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5079.300000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5154.39999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5228.800000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5304.300000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5378.5,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5453.699999999255,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5529.599999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5604.300000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5679.300000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5754.099999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5828.699999999255,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5904.800000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 151,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 5979.5,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 180,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6054.800000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 193,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6129.5,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 193,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6204,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 219,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6279.39999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 219,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6354.599999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 253,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6430.39999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 278,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6505.099999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 295,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6578.39999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 305,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6654.599999997765,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 305,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6728.89999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 305,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6804.39999999851,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 335,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6879.300000000745,
+        "top": 0,
+        "height": 665,
+        "viewport": 665,
+        "textLength": 365,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 6953.599999997765,
+        "top": 29.5,
+        "height": 694,
+        "viewport": 665,
+        "textLength": 403,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7029.199999999255,
+        "top": 111,
+        "height": 776,
+        "viewport": 665,
+        "textLength": 455,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7104.699999999255,
+        "top": 111,
+        "height": 776,
+        "viewport": 665,
+        "textLength": 455,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7179.300000000745,
+        "top": 111,
+        "height": 776,
+        "viewport": 665,
+        "textLength": 478,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7255.099999997765,
+        "top": 141.5,
+        "height": 807,
+        "viewport": 665,
+        "textLength": 518,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7328.89999999851,
+        "top": 141.5,
+        "height": 807,
+        "viewport": 665,
+        "textLength": 518,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7404.199999999255,
+        "top": 190,
+        "height": 855,
+        "viewport": 665,
+        "textLength": 539,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7478.699999999255,
+        "top": 190,
+        "height": 855,
+        "viewport": 665,
+        "textLength": 539,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7554.300000000745,
+        "top": 220.5,
+        "height": 885,
+        "viewport": 665,
+        "textLength": 555,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7629.300000000745,
+        "top": 251,
+        "height": 916,
+        "viewport": 665,
+        "textLength": 604,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7704.300000000745,
+        "top": 281,
+        "height": 946,
+        "viewport": 665,
+        "textLength": 636,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7794.099999997765,
+        "top": 393.5,
+        "height": 1058,
+        "viewport": 665,
+        "textLength": 699,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7853.699999999255,
+        "top": 393.5,
+        "height": 1058,
+        "viewport": 665,
+        "textLength": 699,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 7929.39999999851,
+        "top": 393.5,
+        "height": 1058,
+        "viewport": 665,
+        "textLength": 714,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 8004.199999999255,
+        "top": 472,
+        "height": 1137,
+        "viewport": 665,
+        "textLength": 751,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 8079.199999999255,
+        "top": 472,
+        "height": 1137,
+        "viewport": 665,
+        "textLength": 762,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 8160.300000000745,
+        "top": 502.5,
+        "height": 1168,
+        "viewport": 665,
+        "textLength": 800,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 8229.5,
+        "top": 502.5,
+        "height": 1168,
+        "viewport": 665,
+        "textLength": 809,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 8308.599999997765,
+        "top": 602.5,
+        "height": 1267,
+        "viewport": 665,
+        "textLength": 921,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 8379.89999999851,
+        "top": 22.5,
+        "height": 1267,
+        "viewport": 665,
+        "textLength": 921,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 8454.099999997765,
+        "top": 22.5,
+        "height": 1267,
+        "viewport": 665,
+        "textLength": 929,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 8538.39999999851,
+        "top": 22.5,
+        "height": 1298,
+        "viewport": 665,
+        "textLength": 968,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 8604,
+        "top": 22.5,
+        "height": 1298,
+        "viewport": 665,
+        "textLength": 984,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 8679.300000000745,
+        "top": 22.5,
+        "height": 1298,
+        "viewport": 665,
+        "textLength": 996,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 8753.5,
+        "top": 22.5,
+        "height": 1346,
+        "viewport": 665,
+        "textLength": 1011,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 8829.800000000745,
+        "top": 22.5,
+        "height": 1376,
+        "viewport": 665,
+        "textLength": 1012,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 8914.300000000745,
+        "top": 22.5,
+        "height": 1376,
+        "viewport": 665,
+        "textLength": 1063,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 8979.5,
+        "top": 22.5,
+        "height": 1407,
+        "viewport": 665,
+        "textLength": 1093,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9054.599999997765,
+        "top": 22.5,
+        "height": 1407,
+        "viewport": 665,
+        "textLength": 1130,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9129.300000000745,
+        "top": 22.5,
+        "height": 1437,
+        "viewport": 665,
+        "textLength": 1142,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9204.099999997765,
+        "top": 22.5,
+        "height": 1437,
+        "viewport": 665,
+        "textLength": 1161,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9279.099999997765,
+        "top": 22.5,
+        "height": 1519,
+        "viewport": 665,
+        "textLength": 1232,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9353.89999999851,
+        "top": 22.5,
+        "height": 1519,
+        "viewport": 665,
+        "textLength": 1242,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9429.800000000745,
+        "top": 22.5,
+        "height": 1567,
+        "viewport": 665,
+        "textLength": 1259,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9509.099999997765,
+        "top": 22.5,
+        "height": 1598,
+        "viewport": 665,
+        "textLength": 1278,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9579.699999999255,
+        "top": 22.5,
+        "height": 1598,
+        "viewport": 665,
+        "textLength": 1278,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9653.699999999255,
+        "top": 22.5,
+        "height": 1598,
+        "viewport": 665,
+        "textLength": 1278,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9729.599999997765,
+        "top": 22.5,
+        "height": 1598,
+        "viewport": 665,
+        "textLength": 1285,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9804.699999999255,
+        "top": 22.5,
+        "height": 1598,
+        "viewport": 665,
+        "textLength": 1285,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9879.5,
+        "top": 22.5,
+        "height": 1598,
+        "viewport": 665,
+        "textLength": 1285,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 9954.39999999851,
+        "top": 22.5,
+        "height": 1598,
+        "viewport": 665,
+        "textLength": 1285,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 10029.800000000745,
+        "top": 22.5,
+        "height": 1598,
+        "viewport": 665,
+        "textLength": 1285,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 10104.099999997765,
+        "top": 22.5,
+        "height": 1628,
+        "viewport": 665,
+        "textLength": 1401,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 10197.800000000745,
+        "top": 22.5,
+        "height": 1773,
+        "viewport": 665,
+        "textLength": 1528,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 10260,
+        "top": 22.5,
+        "height": 1822,
+        "viewport": 665,
+        "textLength": 1562,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 10328.89999999851,
+        "top": 22.5,
+        "height": 1852,
+        "viewport": 665,
+        "textLength": 1602,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 10405.599999997765,
+        "top": 22.5,
+        "height": 1883,
+        "viewport": 665,
+        "textLength": 1639,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 10479.89999999851,
+        "top": 22.5,
+        "height": 1883,
+        "viewport": 665,
+        "textLength": 1644,
+        "returnVisible": true,
+        "loading": true
+      },
+      {
+        "t": 10580.300000000745,
+        "top": 1248,
+        "height": 1913,
+        "viewport": 665,
+        "textLength": 1683,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 10628.800000000745,
+        "top": 1248,
+        "height": 1913,
+        "viewport": 665,
+        "textLength": 1683,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 10715.800000000745,
+        "top": 1248,
+        "height": 1913,
+        "viewport": 665,
+        "textLength": 1701,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 10784.599999997765,
+        "top": 1248,
+        "height": 1913,
+        "viewport": 665,
+        "textLength": 1711,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 10860.89999999851,
+        "top": 1327,
+        "height": 1992,
+        "viewport": 665,
+        "textLength": 1738,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 10929.5,
+        "top": 1327,
+        "height": 1992,
+        "viewport": 665,
+        "textLength": 1738,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11005,
+        "top": 1327,
+        "height": 1992,
+        "viewport": 665,
+        "textLength": 1738,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11092.5,
+        "top": 1357,
+        "height": 2022,
+        "viewport": 665,
+        "textLength": 1795,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11177.89999999851,
+        "top": 1467.5,
+        "height": 2133,
+        "viewport": 665,
+        "textLength": 1920,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11229.39999999851,
+        "top": 1467.5,
+        "height": 2133,
+        "viewport": 665,
+        "textLength": 1925,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11304.39999999851,
+        "top": 1467.5,
+        "height": 2133,
+        "viewport": 665,
+        "textLength": 1925,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11379,
+        "top": 1467.5,
+        "height": 2133,
+        "viewport": 665,
+        "textLength": 1925,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11477.099999997765,
+        "top": 1498,
+        "height": 2163,
+        "viewport": 665,
+        "textLength": 1973,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11529.800000000745,
+        "top": 1498,
+        "height": 2163,
+        "viewport": 665,
+        "textLength": 1974,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11603.89999999851,
+        "top": 1498,
+        "height": 2163,
+        "viewport": 665,
+        "textLength": 1976,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11689.099999997765,
+        "top": 1577,
+        "height": 2242,
+        "viewport": 665,
+        "textLength": 2015,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11758.800000000745,
+        "top": 1577,
+        "height": 2242,
+        "viewport": 665,
+        "textLength": 2017,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11847.199999999255,
+        "top": 1607,
+        "height": 2272,
+        "viewport": 665,
+        "textLength": 2065,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11911.800000000745,
+        "top": 1607,
+        "height": 2272,
+        "viewport": 665,
+        "textLength": 2074,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 11979.699999999255,
+        "top": 1607,
+        "height": 2272,
+        "viewport": 665,
+        "textLength": 2074,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12075.199999999255,
+        "top": 1737.5,
+        "height": 2403,
+        "viewport": 665,
+        "textLength": 2190,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12144.39999999851,
+        "top": 1737.5,
+        "height": 2403,
+        "viewport": 665,
+        "textLength": 2210,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12220.300000000745,
+        "top": 1786,
+        "height": 2451,
+        "viewport": 665,
+        "textLength": 2229,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12307.89999999851,
+        "top": 1816.5,
+        "height": 2481,
+        "viewport": 665,
+        "textLength": 2251,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12354.199999999255,
+        "top": 1816.5,
+        "height": 2481,
+        "viewport": 665,
+        "textLength": 2255,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12430,
+        "top": 1816.5,
+        "height": 2481,
+        "viewport": 665,
+        "textLength": 2255,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12518.800000000745,
+        "top": 1816.5,
+        "height": 2481,
+        "viewport": 665,
+        "textLength": 2278,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12579.800000000745,
+        "top": 1847,
+        "height": 2512,
+        "viewport": 665,
+        "textLength": 2288,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12654,
+        "top": 1847,
+        "height": 2512,
+        "viewport": 665,
+        "textLength": 2304,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12744.199999999255,
+        "top": 1877.5,
+        "height": 2542,
+        "viewport": 665,
+        "textLength": 2327,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12805,
+        "top": 1877.5,
+        "height": 2542,
+        "viewport": 665,
+        "textLength": 2327,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12880,
+        "top": 1877.5,
+        "height": 2542,
+        "viewport": 665,
+        "textLength": 2332,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 12954.199999999255,
+        "top": 1877.5,
+        "height": 2542,
+        "viewport": 665,
+        "textLength": 2332,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13037.699999999255,
+        "top": 1877.5,
+        "height": 2542,
+        "viewport": 665,
+        "textLength": 2361,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13125.39999999851,
+        "top": 1956,
+        "height": 2621,
+        "viewport": 665,
+        "textLength": 2403,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13185.5,
+        "top": 1956,
+        "height": 2621,
+        "viewport": 665,
+        "textLength": 2416,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13254.099999997765,
+        "top": 1956,
+        "height": 2621,
+        "viewport": 665,
+        "textLength": 2417,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13356.39999999851,
+        "top": 1986.5,
+        "height": 2651,
+        "viewport": 665,
+        "textLength": 2433,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13404.199999999255,
+        "top": 1986.5,
+        "height": 2651,
+        "viewport": 665,
+        "textLength": 2437,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13516.5,
+        "top": 2066,
+        "height": 2731,
+        "viewport": 665,
+        "textLength": 2534,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13581.599999997765,
+        "top": 2120,
+        "height": 2785,
+        "viewport": 665,
+        "textLength": 2569,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13659.099999997765,
+        "top": 2120,
+        "height": 2785,
+        "viewport": 665,
+        "textLength": 2579,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13711.300000000745,
+        "top": 2120,
+        "height": 2785,
+        "viewport": 665,
+        "textLength": 2582,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13810.699999999255,
+        "top": 2199,
+        "height": 2864,
+        "viewport": 665,
+        "textLength": 2604,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13876.599999997765,
+        "top": 2229.5,
+        "height": 2894,
+        "viewport": 665,
+        "textLength": 2610,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 13945.89999999851,
+        "top": 2229.5,
+        "height": 2894,
+        "viewport": 665,
+        "textLength": 2622,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14003.89999999851,
+        "top": 2229.5,
+        "height": 2894,
+        "viewport": 665,
+        "textLength": 2626,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14078.300000000745,
+        "top": 2229.5,
+        "height": 2894,
+        "viewport": 665,
+        "textLength": 2626,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14154.5,
+        "top": 2229.5,
+        "height": 2894,
+        "viewport": 665,
+        "textLength": 2647,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14239.099999997765,
+        "top": 2260,
+        "height": 2925,
+        "viewport": 665,
+        "textLength": 2649,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14333.599999997765,
+        "top": 2260,
+        "height": 2925,
+        "viewport": 665,
+        "textLength": 2697,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14403.800000000745,
+        "top": 2372,
+        "height": 3037,
+        "viewport": 665,
+        "textLength": 2795,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14482.89999999851,
+        "top": 2372,
+        "height": 3037,
+        "viewport": 665,
+        "textLength": 2809,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14535,
+        "top": 2420.5,
+        "height": 3085,
+        "viewport": 665,
+        "textLength": 2835,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14637.89999999851,
+        "top": 2451,
+        "height": 3116,
+        "viewport": 665,
+        "textLength": 2848,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14701,
+        "top": 2451,
+        "height": 3116,
+        "viewport": 665,
+        "textLength": 2858,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14791,
+        "top": 2481,
+        "height": 3146,
+        "viewport": 665,
+        "textLength": 2888,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14847.199999999255,
+        "top": 2481,
+        "height": 3146,
+        "viewport": 665,
+        "textLength": 2898,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14935.39999999851,
+        "top": 2481,
+        "height": 3146,
+        "viewport": 665,
+        "textLength": 2908,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 14979.300000000745,
+        "top": 2481,
+        "height": 3146,
+        "viewport": 665,
+        "textLength": 2908,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15100.5,
+        "top": 2481,
+        "height": 3146,
+        "viewport": 665,
+        "textLength": 2925,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15129.699999999255,
+        "top": 2481,
+        "height": 3146,
+        "viewport": 665,
+        "textLength": 2925,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15204.300000000745,
+        "top": 2481,
+        "height": 3146,
+        "viewport": 665,
+        "textLength": 2925,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15304,
+        "top": 2511.5,
+        "height": 3177,
+        "viewport": 665,
+        "textLength": 2951,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15400.800000000745,
+        "top": 2560,
+        "height": 3225,
+        "viewport": 665,
+        "textLength": 2986,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15469.5,
+        "top": 2590.5,
+        "height": 3255,
+        "viewport": 665,
+        "textLength": 3017,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15503.300000000745,
+        "top": 2590.5,
+        "height": 3255,
+        "viewport": 665,
+        "textLength": 3030,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15621.199999999255,
+        "top": 2621,
+        "height": 3286,
+        "viewport": 665,
+        "textLength": 3041,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15654.300000000745,
+        "top": 2621,
+        "height": 3286,
+        "viewport": 665,
+        "textLength": 3041,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15775.099999997765,
+        "top": 2621,
+        "height": 3286,
+        "viewport": 665,
+        "textLength": 3072,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15827.89999999851,
+        "top": 2651,
+        "height": 3316,
+        "viewport": 665,
+        "textLength": 3103,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15898.800000000745,
+        "top": 2651,
+        "height": 3316,
+        "viewport": 665,
+        "textLength": 3120,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 15984.199999999255,
+        "top": 2730,
+        "height": 3395,
+        "viewport": 665,
+        "textLength": 3134,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16028.800000000745,
+        "top": 2730,
+        "height": 3395,
+        "viewport": 665,
+        "textLength": 3134,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16103.800000000745,
+        "top": 2730,
+        "height": 3395,
+        "viewport": 665,
+        "textLength": 3134,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16212.199999999255,
+        "top": 2760.5,
+        "height": 3425,
+        "viewport": 665,
+        "textLength": 3185,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16266.5,
+        "top": 2760.5,
+        "height": 3425,
+        "viewport": 665,
+        "textLength": 3192,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16328.599999997765,
+        "top": 2760.5,
+        "height": 3425,
+        "viewport": 665,
+        "textLength": 3192,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16426.39999999851,
+        "top": 2760.5,
+        "height": 3425,
+        "viewport": 665,
+        "textLength": 3206,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16478.699999999255,
+        "top": 2791,
+        "height": 3456,
+        "viewport": 665,
+        "textLength": 3229,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16553.800000000745,
+        "top": 2791,
+        "height": 3456,
+        "viewport": 665,
+        "textLength": 3229,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16629,
+        "top": 2791,
+        "height": 3456,
+        "viewport": 665,
+        "textLength": 3229,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16723.300000000745,
+        "top": 2869.5,
+        "height": 3535,
+        "viewport": 665,
+        "textLength": 3274,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16781.599999997765,
+        "top": 2900,
+        "height": 3565,
+        "viewport": 665,
+        "textLength": 3293,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16854.099999997765,
+        "top": 2900,
+        "height": 3565,
+        "viewport": 665,
+        "textLength": 3293,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 16930.199999999255,
+        "top": 2900,
+        "height": 3565,
+        "viewport": 665,
+        "textLength": 3293,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17035.800000000745,
+        "top": 2900,
+        "height": 3565,
+        "viewport": 665,
+        "textLength": 3295,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17103.39999999851,
+        "top": 2930.5,
+        "height": 3595,
+        "viewport": 665,
+        "textLength": 3357,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17154.199999999255,
+        "top": 2930.5,
+        "height": 3595,
+        "viewport": 665,
+        "textLength": 3357,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17234.300000000745,
+        "top": 2930.5,
+        "height": 3595,
+        "viewport": 665,
+        "textLength": 3388,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17336,
+        "top": 2961,
+        "height": 3626,
+        "viewport": 665,
+        "textLength": 3416,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17378.599999997765,
+        "top": 2961,
+        "height": 3626,
+        "viewport": 665,
+        "textLength": 3416,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17454.199999999255,
+        "top": 2961,
+        "height": 3626,
+        "viewport": 665,
+        "textLength": 3416,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17529.800000000745,
+        "top": 2961,
+        "height": 3626,
+        "viewport": 665,
+        "textLength": 3416,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17642.300000000745,
+        "top": 3039.5,
+        "height": 3705,
+        "viewport": 665,
+        "textLength": 3458,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17689.800000000745,
+        "top": 3039.5,
+        "height": 3705,
+        "viewport": 665,
+        "textLength": 3497,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17754.199999999255,
+        "top": 3039.5,
+        "height": 3705,
+        "viewport": 665,
+        "textLength": 3497,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17835,
+        "top": 3070,
+        "height": 3735,
+        "viewport": 665,
+        "textLength": 3500,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 17932.699999999255,
+        "top": 3100.5,
+        "height": 3765,
+        "viewport": 665,
+        "textLength": 3573,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 18005.89999999851,
+        "top": 3149,
+        "height": 3814,
+        "viewport": 665,
+        "textLength": 3591,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 18058.5,
+        "top": 3179,
+        "height": 3844,
+        "viewport": 665,
+        "textLength": 3600,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 18171.599999997765,
+        "top": 3179,
+        "height": 3844,
+        "viewport": 665,
+        "textLength": 3628,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 18223.199999999255,
+        "top": 3179,
+        "height": 3844,
+        "viewport": 665,
+        "textLength": 3639,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 18324.199999999255,
+        "top": 3209.5,
+        "height": 3875,
+        "viewport": 665,
+        "textLength": 3655,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 18353.800000000745,
+        "top": 3209.5,
+        "height": 3875,
+        "viewport": 665,
+        "textLength": 3655,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 18450.199999999255,
+        "top": 3209.5,
+        "height": 3875,
+        "viewport": 665,
+        "textLength": 3684,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 18540.800000000745,
+        "top": 3240,
+        "height": 3905,
+        "viewport": 665,
+        "textLength": 3703,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 18594.599999997765,
+        "top": 3240,
+        "height": 3905,
+        "viewport": 665,
+        "textLength": 3709,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 18654.599999997765,
+        "top": 3240,
+        "height": 3905,
+        "viewport": 665,
+        "textLength": 3709,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 18731.39999999851,
+        "top": 3270.5,
+        "height": 3935,
+        "viewport": 665,
+        "textLength": 3733,
+        "returnVisible": false,
+        "loading": true
+      },
+      {
+        "t": 18890.199999999255,
+        "top": 3270.5,
+        "height": 3935,
+        "viewport": 665,
+        "textLength": 3715,
+        "returnVisible": false,
+        "loading": false
+      },
+      {
+        "t": 18954.099999997765,
+        "top": 3270.5,
+        "height": 3935,
+        "viewport": 665,
+        "textLength": 3715,
+        "returnVisible": false,
+        "loading": false
+      },
+      {
+        "t": 19029.89999999851,
+        "top": 3270.5,
+        "height": 3935,
+        "viewport": 665,
+        "textLength": 3715,
+        "returnVisible": false,
+        "loading": false
+      },
+      {
+        "t": 19103.300000000745,
+        "top": 3270.5,
+        "height": 3935,
+        "viewport": 665,
+        "textLength": 3715,
+        "returnVisible": false,
+        "loading": false
+      }
+    ],
+    "followingSample": {
+      "top": 502.5,
+      "height": 1168,
+      "viewport": 665
+    },
+    "manualStart": {
+      "t": 8344.5,
+      "top": 22.5,
+      "height": 1267
+    },
+    "manualEnd": {
+      "t": 10441.89999999851,
+      "top": 22.5,
+      "height": 1883
+    },
+    "returnSample": {
+      "top": 1217.5,
+      "height": 1883,
+      "viewport": 665
+    },
+    "sseBytes": 10621260
+  },
+  "errors": []
+}

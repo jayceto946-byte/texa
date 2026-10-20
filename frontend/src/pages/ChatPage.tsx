@@ -1017,7 +1017,7 @@ const ChatPage: React.FC = () => {
           )}
           <form onSubmit={handleSubmit} className="composer-surface"><fieldset disabled={inTrash} className="conversation-composer-fields">
             <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png" capture="environment" className="hidden" onChange={(event) => { selectAttachment(event.target.files?.[0]); event.target.value = ''; }} />
-            {attachmentError && <p role="alert" className="text-sm text-red-500">{attachmentError}</p>}
+            {attachmentError && <p role="alert" className="composer-error text-sm">{attachmentError}</p>}
             <input ref={attachmentInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" className="hidden" onChange={(event) => { selectAttachment(event.target.files?.[0]); event.target.value = ''; }} />
             {activeFigure && !figureWorkspaceExpanded && (
               <FigureContextAttachment

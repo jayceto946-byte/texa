@@ -1,0 +1,10 @@
+{
+  "AppleCurrentKeyboardLayoutInputSourceID": "com.apple.keylayout.PinyinKeyboard",
+  "AppleSelectedInputSources": [
+    {
+      "InputSourceKind": "Input Mode",
+      "Bundle ID": "com.apple.inputmethod.SCIM",
+      "Input Mode": "com.apple.inputmethod.SCIM.ITABC"
+    }
+  ]
+}

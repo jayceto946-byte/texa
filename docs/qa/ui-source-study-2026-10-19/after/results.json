@@ -1,0 +1,126 @@
+{
+  "phase": "after",
+  "environment": "macOS ARM64, Electron 37, production frontend, isolated fixture APIs",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "status": "PASS"
+    },
+    {
+      "name": "menu opens with item focus",
+      "status": "PASS"
+    },
+    {
+      "name": "End focuses last menu item",
+      "status": "PASS"
+    },
+    {
+      "name": "ArrowDown wraps to first menu item",
+      "status": "PASS"
+    },
+    {
+      "name": "Escape restores trigger focus",
+      "status": "PASS"
+    },
+    {
+      "name": "ArrowUp opens at last item",
+      "status": "PASS"
+    },
+    {
+      "name": "Tab exits and dismisses menu",
+      "status": "PASS"
+    },
+    {
+      "name": "Tab moves to enabled send button",
+      "status": "PASS"
+    },
+    {
+      "name": "Home focuses first item",
+      "status": "PASS"
+    },
+    {
+      "name": "Shift+Tab exits menu to preceding control",
+      "status": "PASS"
+    },
+    {
+      "name": "outside click dismisses menu",
+      "status": "PASS"
+    },
+    {
+      "name": "Shift+Enter inserts newline",
+      "status": "PASS"
+    },
+    {
+      "name": "CJK composing Enter does not send",
+      "status": "PASS"
+    },
+    {
+      "name": "IME keyCode 229 does not send after compositionend",
+      "status": "PASS"
+    },
+    {
+      "name": "long input is bounded and scrollable",
+      "status": "PASS"
+    },
+    {
+      "name": "generating disables question input",
+      "status": "PASS"
+    },
+    {
+      "name": "disabled tool is dimmed and has no hover border",
+      "status": "PASS"
+    },
+    {
+      "name": "stop returns to composer",
+      "status": "PASS"
+    },
+    {
+      "name": "1280: composer fits viewport",
+      "status": "PASS"
+    },
+    {
+      "name": "1024: composer fits viewport",
+      "status": "PASS"
+    },
+    {
+      "name": "760: composer fits viewport",
+      "status": "PASS"
+    },
+    {
+      "name": "menu reduced-motion has no animation",
+      "status": "PASS"
+    },
+    {
+      "name": "stored graphite theme preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "no renderer exceptions",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/learning-normal.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/composer-focus.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/composer-hover.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/menu-keyboard.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/composer-multiline.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/composer-loading.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/composer-error.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/1280-learning.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/1280-menu.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/1280-books.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/1024-learning.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/1024-menu.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/1024-books.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/760-learning.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/760-menu.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/760-books.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/menu-reduced-motion.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/after/menu-graphite.png"
+  ],
+  "observations": {
+    "menuInitialFocus": "menuitem"
+  }
+}

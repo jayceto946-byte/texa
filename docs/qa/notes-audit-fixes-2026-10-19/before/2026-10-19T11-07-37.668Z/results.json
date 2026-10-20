@@ -1,0 +1,127 @@
+{
+  "phase": "before",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "pass": true
+    },
+    {
+      "name": "deleted block absent after real autosave",
+      "pass": true
+    },
+    {
+      "name": "delete autosave does not publish",
+      "pass": true
+    },
+    {
+      "name": "baseline confirms no delete recovery action",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "measurements": {
+    "draftId": "draft_1a641b2b9ecc46a78eec908057d89e7d",
+    "1280-reading": {
+      "paragraph": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 740
+      },
+      "list": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 652
+      },
+      "formula": {
+        "fontSize": "19.36px",
+        "lineHeight": "23.232px",
+        "width": 74.9765625
+      },
+      "root": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 740
+      },
+      "headerHeight": 48,
+      "statusVisible": true
+    },
+    "1280-historyState": {
+      "text": "历史版本 1 · 只读 ",
+      "visible": true,
+      "display": "block"
+    },
+    "1024-reading": {
+      "paragraph": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 727
+      },
+      "list": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 639
+      },
+      "formula": {
+        "fontSize": "19.36px",
+        "lineHeight": "23.232px",
+        "width": 74.9765625
+      },
+      "root": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 727
+      },
+      "headerHeight": 48,
+      "statusVisible": false
+    },
+    "1024-historyState": {
+      "text": "历史版本 1 · 只读 ",
+      "visible": false,
+      "display": "none"
+    },
+    "760-reading": {
+      "paragraph": {
+        "fontSize": "13px",
+        "lineHeight": "21.06px",
+        "width": 709
+      },
+      "list": {
+        "fontSize": "13px",
+        "lineHeight": "24.7px",
+        "width": 649.5
+      },
+      "formula": {
+        "fontSize": "15.73px",
+        "lineHeight": "18.876px",
+        "width": 60.9140625
+      },
+      "root": {
+        "fontSize": "13px",
+        "lineHeight": "24.7px",
+        "width": 709
+      },
+      "headerHeight": 48,
+      "statusVisible": false
+    },
+    "760-historyState": {
+      "text": "历史版本 1 · 只读 ",
+      "visible": false,
+      "display": "none"
+    }
+  },
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/before/2026-10-19T11-07-37.668Z/1280-edit-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/before/2026-10-19T11-07-37.668Z/new-content-saved-draft.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/before/2026-10-19T11-07-37.668Z/deleted-after-autosave.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/before/2026-10-19T11-07-37.668Z/1280-reading.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/before/2026-10-19T11-07-37.668Z/1280-history.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/before/2026-10-19T11-07-37.668Z/1024-reading.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/before/2026-10-19T11-07-37.668Z/1024-history.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/before/2026-10-19T11-07-37.668Z/760-reading.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/before/2026-10-19T11-07-37.668Z/760-history.png"
+  ],
+  "errors": []
+}

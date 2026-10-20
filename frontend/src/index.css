@@ -3090,6 +3090,11 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .learning-workspace-header {
   padding: 4px 4px 8px;
 }
 
+.composer-error {
+  margin: 8px 12px 0;
+  color: var(--danger-text);
+}
+
 .composer-surface .composer-textarea,
 .composer-surface .composer-textarea:focus {
   display: block;
@@ -3148,11 +3153,16 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .learning-workspace-header {
   list-style: none;
 }
 
-.composer-tool-button:hover,
+.composer-tool-button:enabled:hover,
+.composer-tool-button:enabled:focus-visible,
 .composer-tool-button.is-active {
-  border-color: var(--color-border);
   background: var(--surface-subtle);
   color: var(--color-text-primary);
+}
+
+.composer-tool-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .composer-tool-button.is-active {
@@ -3180,7 +3190,7 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .learning-workspace-header {
   transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease;
 }
 
-.composer-send:hover {
+.composer-send:enabled:hover {
   border-color: var(--color-accent-hover);
   background: var(--color-accent-hover);
 }
@@ -3227,7 +3237,8 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .learning-workspace-header {
   text-align: left;
 }
 
-.composer-overflow-item:hover {
+.composer-overflow-item:enabled:hover,
+.composer-overflow-item:enabled:focus-visible {
   background: var(--surface-subtle);
   color: var(--color-text-primary);
 }

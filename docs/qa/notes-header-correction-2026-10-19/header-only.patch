@@ -1,0 +1,113 @@
+--- a/frontend/src/pages/NoteDetailPage.tsx
++++ b/frontend/src/pages/NoteDetailPage.tsx
+@@ -1,3 +1,4 @@
++import { ChevronRight } from 'lucide-react';
+ import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
+ import { Link, useParams, useSearchParams } from 'react-router-dom';
+ import { useNoteScroll } from '../features/notes/hooks/useNoteScroll';
+@@ -12,11 +13,44 @@
+     const { ref: scrollRef, onScroll: rememberScroll } = useNoteScroll(`${noteId}:${revision || 'current'}`, Boolean(note));
+     if (!note)
+         return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><h1>笔记</h1><Link className="app-ghost-button" to="/notes">笔记列表</Link></header><div className="management-page-content"><>{error ? <p role="alert">{error}</p> : <WorkspaceSkeleton label="正在读取笔记" header={false} reading />}</></div></div>;
+-    return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><h1>笔记</h1><span className="note-header-state">{revision ? `历史版本 ${revision} · 只读` : `已保存 · 版本 ${note.revision}`} {note.status === 'archived' ? '· 已归档' : ''}</span><div className="note-actions"><Link className="app-ghost-button" to="/notes">笔记列表</Link>{!revision && <><button className="app-primary-button" disabled={busy || note.status !== 'active'} onClick={() => void edit()}>编辑</button><button className="app-secondary-button" disabled={busy} onClick={() => void status()}>{note.status === 'active' ? '归档' : '恢复'}</button></>}{revision && <Link className="app-secondary-button" to={`/notes/${note.id}`}>当前版本</Link>}</div></header><div className="note-scroll" ref={scrollRef} onScroll={rememberScroll}><article className="note-document">
+-    <h1 className="note-document-title">{note.title}</h1>{error && <p role="alert" className="note-warning">{error}</p>}
+-    {note.abstract && <p className="note-abstract">{note.abstract}</p>}
+-    <details><summary>笔记信息</summary><p className="note-caption">整理至 {new Date(note.origins[0].captured_at).toLocaleString()} · 保存于 {new Date(note.updated_at).toLocaleString()} · 版本 {note.revision}</p><p className="note-caption">{note.subject} · {note.tags.join('、')}</p>{note.chapter_refs.map(c => <p key={c.chapter_ref_id} className="note-caption">{c.book_name_snapshot} · {c.title_snapshot}</p>)}</details>
+-    {note.blocks.filter(b => b.type === 'heading').length > 2 && <details><summary>目录</summary>{note.blocks.filter(b => b.type === 'heading').map(b => <a className="note-toc-link" key={b.block_id} href={`#${b.block_id}`}>{b.data.text}</a>)}</details>}
++    const headings = note.blocks.filter(block => block.type === 'heading');
++    const hasContents = headings.length > 2;
++    return <div className="management-workspace notes-workspace">
++      <header className="app-page-header note-page-header window-drag-region">
++        <div className="note-header-identity">
++          <h1>笔记</h1>
++          <span className="note-header-state" role="status">{revision ? `历史版本 ${revision} · 只读` : `已保存 · 版本 ${note.revision}`}{note.status === 'archived' ? ' · 已归档' : ''}</span>
++        </div>
++        <div className="note-actions">
++          <Link className="app-ghost-button" to="/notes">返回笔记</Link>
++          {!revision && <>
++            <button className="app-primary-button" disabled={busy || note.status !== 'active'} onClick={() => void edit()}>编辑</button>
++            <button className="app-secondary-button" disabled={busy} onClick={() => void status()}>{note.status === 'active' ? '归档' : '恢复'}</button>
++          </>}
++          {revision && <Link className="app-secondary-button" to={`/notes/${note.id}`}>当前版本</Link>}
++        </div>
++      </header>
++      <div className="note-scroll" ref={scrollRef} onScroll={rememberScroll}><article className="note-document">
++        <h1 className="note-document-title">{note.title}</h1>
++        {error && <p role="alert" className="note-warning">{error}</p>}
++        {note.abstract && <p className="note-abstract">{note.abstract}</p>}
++        <details className="note-meta-details">
++          <summary><ChevronRight size={14} aria-hidden="true"/>{hasContents ? '目录与笔记信息' : '笔记信息'}</summary>
++          <div className="note-meta-content">
++            {hasContents && <nav aria-label="笔记目录"><h2>目录</h2>{headings.map(block => <a className="note-toc-link" key={block.block_id} href={`#${block.block_id}`}>{block.data.text}</a>)}</nav>}
++            <div>
++              {hasContents && <h2>笔记信息</h2>}
++              <dl className="note-meta-facts">
++                <dt>整理至</dt><dd><time dateTime={note.origins[0].captured_at}>{new Date(note.origins[0].captured_at).toLocaleString()}</time></dd>
++                <dt>保存于</dt><dd><time dateTime={note.updated_at}>{new Date(note.updated_at).toLocaleString()}</time></dd>
++                <dt>版本</dt><dd>{note.revision}</dd>
++                {note.subject && <><dt>学科</dt><dd>{note.subject}</dd></>}
++                {note.tags.length > 0 && <><dt>标签</dt><dd>{note.tags.join('、')}</dd></>}
++              </dl>
++              {note.chapter_refs.map(c => <p key={c.chapter_ref_id} className="note-caption">{c.book_name_snapshot} · {c.title_snapshot}</p>)}
++            </div>
++          </div>
++        </details>
+     <NoteBlocks blocks={note.blocks}/>
+     <details onToggle={e => { if (e.currentTarget.open && !history.length)
+         void revisions(); }}><summary>保存的历史版本</summary><div className="note-actions">{history.map(r => <Link className="app-ghost-button" key={r.revision} to={`/notes/${noteId}?revision=${r.revision}`}>版本 {r.revision} · {new Date(r.saved_at).toLocaleString()}</Link>)}</div>{historyCursor && <button className="app-ghost-button" onClick={() => void revisions(historyCursor)}>更早版本</button>}</details>
+--- a/frontend/src/features/notes/DraftWorkspace.tsx
++++ b/frontend/src/features/notes/DraftWorkspace.tsx
+@@ -106,7 +106,7 @@
+             setRecoveryError(`恢复未完成，当前文字仍保留。${e instanceof Error ? e.message : ''}`);
+         } finally { setRecovering(false); }
+     };
+-    return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><h1>{draft.base_note_id ? '编辑笔记' : draft.kind === 'generation' ? '对话整理笔记' : '自主整理笔记'}</h1><span role="status" className="note-save-status">{formalConflict ? '正式笔记尚未更新 · ' : ''}{({ saved: '草稿已保存', dirty: '有未保存修改', saving: '正在保存草稿…', error: '草稿保存失败' })[editor.state]}</span><div className="note-actions"><Link className="app-ghost-button" to="/notes?view=drafts">返回笔记</Link><button className="app-secondary-button" aria-controls="note-draft-body" onClick={() => { capturePosition(); setEditing(v => !v); }}>{editing ? '阅读预览' : '编辑笔记'}</button><button className="app-primary-button" disabled={saving || recovering || formalConflict || editor.closing || editor.state === 'saving'} onClick={() => void save()}>{saving ? '正在保存…' : draft.base_note_id ? '保存修改' : '保存笔记'}</button></div></header>
++    return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><div className="note-header-identity"><h1>{draft.base_note_id ? '编辑笔记' : draft.kind === 'generation' ? '对话整理笔记' : '自主整理笔记'}</h1><span role="status" className="note-save-status">{formalConflict ? '正式笔记尚未更新 · ' : ''}{({ saved: '草稿已保存', dirty: '有未保存修改', saving: '正在保存草稿…', error: '草稿保存失败' })[editor.state]}</span></div><div className="note-actions"><Link className="app-ghost-button" to="/notes?view=drafts">返回笔记</Link><button className="app-secondary-button" aria-controls="note-draft-body" onClick={() => { capturePosition(); setEditing(v => !v); }}>{editing ? '阅读预览' : '编辑笔记'}</button><button className="app-primary-button" disabled={saving || recovering || formalConflict || editor.closing || editor.state === 'saving'} onClick={() => void save()}>{saving ? '正在保存…' : draft.base_note_id ? '保存修改' : '保存笔记'}</button></div></header>
+     <div className="note-scroll" ref={scrollRef} onFocusCapture={e => rememberFocus(e.target)}>
+       {editor.deletedCount > 0 && <div className="note-delete-recovery"><span role="status">已删除 {editor.deletedCount} 块 · 本次编辑可撤销</span><button ref={undoRef} className="app-secondary-button" disabled={saving || recovering || editor.closing || local.blocks.length >= 300} onClick={undoDelete}>撤销删除</button>{local.blocks.length >= 300 && <span>块数已达上限，请先腾出位置。</span>}</div>}
+       <article className="note-document" id="note-draft-body">
+--- a/frontend/src/features/notes/notes.css
++++ b/frontend/src/features/notes/notes.css
+@@ -83,14 +83,34 @@
+   .note-document { padding-bottom:calc(70px + env(safe-area-inset-bottom)); }
+ }
+ 
+-/* Keep native-window insets supplied by the workspace; only arrange note commands here. */
+-.app-shell[data-layout] .management-workspace.notes-workspace .note-page-header { display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"title state actions"; }
+-.note-page-header>h1 { grid-area:title; }
+-.note-page-header>:is(.note-header-state,.note-save-status) { grid-area:state; justify-self:end; white-space:normal; }
+-.note-page-header>.note-actions { grid-area:actions; }
++/* One note command row; navigation, identity, state and actions share its centerline. */
++.app-shell[data-layout] .management-workspace.notes-workspace .note-page-header { display:flex; height:var(--workspace-chrome-height); min-height:var(--workspace-chrome-height); flex:0 0 var(--workspace-chrome-height); flex-wrap:nowrap; padding-block:0; }
++.note-header-identity { display:flex; align-items:center; gap:10px; min-width:0; flex:1; }
++.note-header-identity h1 { flex-shrink:0; }
++.note-header-identity>:is(.note-header-state,.note-save-status) { font-size:var(--workspace-support-size); line-height:1.4; min-width:0; }
++.note-page-header>.note-actions { flex-shrink:0; flex-wrap:nowrap; }
++@media(max-width:919px) {
++  .app-shell[data-layout] .management-workspace.notes-workspace .note-page-header { height:56px; min-height:56px; flex-basis:56px; padding-block:6px; }
++}
+ @media(max-width:760px) {
+-  .app-shell[data-layout] .management-workspace.notes-workspace .note-page-header { grid-template-columns:auto minmax(0,1fr); grid-template-areas:"title state" "actions actions"; height:auto; min-height:var(--workspace-chrome-height); flex:0 0 auto; padding-block:8px; row-gap:6px; }
+-  .note-page-header>.note-actions { justify-self:end; flex-wrap:wrap; }
+-  .note-page-header>h1 { white-space:normal; }
+   .app-shell .notes-workspace .note-page-header .note-actions>:is(button,a) { min-height:44px; }
++  body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell[data-navigation="closed"] .notes-workspace .note-page-header { padding-left:160px; }
+ }
++@media(max-width:600px) {
++  .app-shell[data-layout] .management-workspace.notes-workspace .note-page-header { height:auto; flex-basis:auto; flex-wrap:wrap; }
++  .note-header-identity { min-height:44px; flex-basis:100%; }
++}
++.note-document>.note-meta-details { margin:0 0 12px; }
++.note-meta-details>summary { display:inline-flex; align-items:center; gap:4px; min-height:28px; padding:4px 0; list-style:none; cursor:pointer; color:var(--color-text-secondary); font-size:var(--workspace-support-size); }
++.note-meta-details>summary::-webkit-details-marker { display:none; }
++.note-meta-details>summary svg { flex-shrink:0; }
++.note-meta-details[open]>summary svg { transform:rotate(90deg); }
++.note-meta-content { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; border-block:1px solid var(--workspace-separator); padding:12px 0; margin-top:8px; }
++.note-meta-content>div:only-child { grid-column:1 / -1; }
++.note-document .note-meta-content h2 { margin:0 0 8px; font-size:var(--workspace-interface-size); }
++.note-meta-content .note-caption { margin:0 0 8px; }
++.note-meta-facts { display:grid; grid-template-columns:auto minmax(0,1fr); gap:6px 12px; margin:0 0 8px; color:var(--color-text-secondary); font-size:var(--workspace-support-size); line-height:1.7; }
++.note-meta-facts dd { margin:0; }
++.note-meta-details+.note-reading .note-block:first-child .markdown-body h2 { margin-top:12px; }
++@media(max-width:760px) { .note-meta-details>summary,.note-meta-content .note-toc-link { min-height:44px; }.note-meta-content .note-toc-link { display:flex; align-items:center; } }
++@media(max-width:600px) { .note-meta-content { grid-template-columns:minmax(0,1fr); } }

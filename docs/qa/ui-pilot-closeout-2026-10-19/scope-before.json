@@ -1,0 +1,306 @@
+{
+  "head": "1dc9adce36378d1651eeee79d8056887730d6979",
+  "branch": "Texa_MacOS",
+  "status": " M .agents/skills/texa-ui-system/references/03-learning-canvas.md\u0000 M .agents/skills/texa-ui-system/references/10-states.md\u0000 M .agents/skills/texa-ui-system/references/11-review.md\u0000 M frontend/src/Workspace.tsx\u0000 M frontend/src/components/AppRail.tsx\u0000 M frontend/src/components/LearningContextSidebar.tsx\u0000 M frontend/src/components/SystemHealth.tsx\u0000 M frontend/src/components/chat/ComposerOverflowMenu.tsx\u0000 M frontend/src/components/settings/DataSafety.tsx\u0000 M frontend/src/components/settings/SettingsDialog.tsx\u0000 M frontend/src/components/ui/OverflowMenu.tsx\u0000 M frontend/src/features/conversations/conversations.css\u0000 M frontend/src/features/exercises/exercises.css\u0000 M frontend/src/index.css\u0000 M frontend/src/layouts/ApprovedWorkspace.css\u0000 M frontend/src/layouts/MainLayout.tsx\u0000 M frontend/src/layouts/StudyDesk.css\u0000 M frontend/src/pages/ChatPage.tsx\u0000 M frontend/src/pages/ExercisesPage.tsx\u0000 M patch_notes.md\u0000?? TEXA-USER-GUIDE-SPEC.md\u0000?? TEXA-USER-GUIDE.md\u0000?? TEXA-UX-ISSUES.md\u0000?? docs/design/claude-ui-source-study-2026-10-19.md\u0000?? docs/design/exercises-production-r1-r2/electron-evidence-r1-r2.zip\u0000?? docs/design/texa-design-architecture-audit-2026-10-15.md\u0000?? docs/design/texa-independent-design-findings-2026-10-15.md\u0000?? docs/qa/question-extraction-quality-2026-10-17/QUESTION-EXTRACTION-QUALITY-AUDIT.md\u0000?? docs/qa/question-extraction-quality-2026-10-17/candidate-audit.jsonl\u0000?? docs/qa/question-extraction-quality-2026-10-17/contract-probe-results.json\u0000?? docs/qa/question-extraction-quality-2026-10-17/dataset-manifest.json\u0000?? docs/qa/question-extraction-quality-2026-10-17/math-probe-summary.json\u0000?? docs/qa/question-extraction-quality-2026-10-17/review-evidence-index.json\u0000?? docs/qa/question-extraction-quality-2026-10-17/summary.json\u0000?? docs/qa/question-extraction-quality-2026-10-17/tools/\u0000?? docs/qa/question-extraction-quality-2026-10-17/verification.json\u0000?? docs/qa/ui-source-study-2026-10-19/\u0000?? docs/qa/user-guide-2026-10-19/\u0000?? docs/validation/question-candidate-contract-2026-10-18/candidate-diff.json\u0000?? docs/validation/question-candidate-contract-2026-10-18/electron-results.json\u0000?? docs/validation/question-candidate-contract-2026-10-18/integrity.json\u0000?? docs/validation/question-candidate-contract-2026-10-18/math-representation.json\u0000?? docs/validation/question-candidate-contract-2026-10-18/probe-disposition.json\u0000?? frontend/public/guide/\u0000?? frontend/src/components/settings/settingsNavigation.ts\u0000?? frontend/src/features/guide/\u0000?? frontend/src/pages/UserGuidePage.tsx\u0000?? scripts/evaluate_question_candidate_contract.py\u0000?? scripts/evaluate_question_candidate_math.mjs\u0000?? scripts/evaluate_question_candidate_probes.py\u0000?? scripts/qa-ui-source-study.mjs\u0000?? scripts/qa-user-guide-electron.mjs\u0000",
+  "productAllowlist": [
+    {
+      "path": "frontend/src/components/chat/ComposerOverflowMenu.tsx",
+      "sha256": "999bff380d96dcab5296714b05a5ec4ef35c9cd44ca76eaaf1e2d6fd441b55b4",
+      "matchesPriorStudy": true
+    },
+    {
+      "path": "frontend/src/pages/ChatPage.tsx",
+      "sha256": "19f62324a3778f6f98f9db0d353b7484636f09e12e1ec7cc2bb0b9cd3351315f",
+      "matchesPriorStudy": true
+    },
+    {
+      "path": "frontend/src/index.css",
+      "sha256": "0c8015094bb2df5b2913d6d84319516fe4bae11827616c44e3d577fa741f4316",
+      "matchesPriorStudy": true
+    }
+  ],
+  "otherModifiedTracked": [
+    {
+      "path": ".agents/skills/texa-ui-system/references/03-learning-canvas.md",
+      "sha256": "2186fe2a79c70c254781be19943a3a7f675cc62b51500d88fab1d85c3ba80590"
+    },
+    {
+      "path": ".agents/skills/texa-ui-system/references/10-states.md",
+      "sha256": "61bf816a71662cedc3065f3295fe6fc47209d8985d88c5f3702c25b619d9aea9"
+    },
+    {
+      "path": ".agents/skills/texa-ui-system/references/11-review.md",
+      "sha256": "e632429b0fae65205fa54e2b1419bdd92ff3c0b02539628b773d59c73713e25b"
+    },
+    {
+      "path": "frontend/src/Workspace.tsx",
+      "sha256": "1947107cf7b171b48dab3fea1bd1590c7b97afe9d4d174a3198a4c8ac89abbb7"
+    },
+    {
+      "path": "frontend/src/components/AppRail.tsx",
+      "sha256": "39fa35b36871aef93ff6ffea6753d17e873be4a6c8831abdc467b38254d6844b"
+    },
+    {
+      "path": "frontend/src/components/LearningContextSidebar.tsx",
+      "sha256": "058d75964d0e00d878264bf1892ba221c22950497f4013c94bfab7201bf09b89"
+    },
+    {
+      "path": "frontend/src/components/SystemHealth.tsx",
+      "sha256": "35258df930d122cdd4736051f9674b7ef40c1ea2804cae04b8e3f3795c6ae91b"
+    },
+    {
+      "path": "frontend/src/components/settings/DataSafety.tsx",
+      "sha256": "2ddde25455e21256412669f7467f8dbe9f83c17257faa1bcd9b16d06639be61d"
+    },
+    {
+      "path": "frontend/src/components/settings/SettingsDialog.tsx",
+      "sha256": "689988b648937ce5b4438aca8345e8274def9f509ac0a98dfa1131f48cf9288b"
+    },
+    {
+      "path": "frontend/src/components/ui/OverflowMenu.tsx",
+      "sha256": "97ee1dd47c70a641b3e16041ed090e96ba5a32dfcc2b416568435bbce0c1ce53"
+    },
+    {
+      "path": "frontend/src/features/conversations/conversations.css",
+      "sha256": "6172c6999a3720c1869bdfeec8b7f36858f430462141d28293ca3abc264eb935"
+    },
+    {
+      "path": "frontend/src/features/exercises/exercises.css",
+      "sha256": "77b34e7deffbae0bc77c22d5a53abd10d7f24f98a9ddf24c96fa1df146a2df45"
+    },
+    {
+      "path": "frontend/src/layouts/ApprovedWorkspace.css",
+      "sha256": "0df7147beded9c8542fd5f53beea19882d43f657376021a64a1b5f5d2c4bdcee"
+    },
+    {
+      "path": "frontend/src/layouts/MainLayout.tsx",
+      "sha256": "daa4ef6662bbb9e459610bbaa0e61e92b03e60e3c65d76f0fdb003f0f75daa9a"
+    },
+    {
+      "path": "frontend/src/layouts/StudyDesk.css",
+      "sha256": "0a7f6efd155ca11378c11401156022a8f2bbacc0ef5f342df2f8eb75fe95e5ab"
+    },
+    {
+      "path": "frontend/src/pages/ExercisesPage.tsx",
+      "sha256": "df9c16a21f44dc89623f9e30edbdb505929182c4aec5b6bd762c8ccc46c427c8"
+    },
+    {
+      "path": "patch_notes.md",
+      "sha256": "7cdc5c3417541a0ae67775b09e7fd2e907768b3872307611fc0d328406630ed0"
+    }
+  ],
+  "priorEvidence": [
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/reference/storybook-segmented-selected.png",
+      "sha256": "db8fbaf299db349eb1a6a497e6afdc8888ace2a295fd0cb6cec55245a8cec196"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/reference/storybook-thinking-active.png",
+      "sha256": "a1f34a3bde66a10c36316c456cbebccb8d3863443be6e4965b33b115b79f687b"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/reference/storybook-springs-triggered.png",
+      "sha256": "018da65a0b373d3b2f72ed0023ff55221ea88a695592dabf5d0f42512fb6f372"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/reference/storybook-spring-physics-presets.png",
+      "sha256": "cd18e0b1388deee3e59a6ab8cc9e563b7b7e96934f31a998a78a1e356b05db32"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/reference/storybook-thinking-accordion.png",
+      "sha256": "d22b4aee7376298f5ebe276685eba7c0db37c1b28c2d5c6fdca005dee58f5e98"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/reference/storybook.png",
+      "sha256": "ad71efc592d168969998853b5f91ca0836b43f7cf62a6a993ecb9bf6e6eb1ee9"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/reference/storybook-focus.png",
+      "sha256": "c75db81cb2fe94f3409d02843e81d75f25be0d49327efb1422f620a061929a5e"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/reference/results.json",
+      "sha256": "5b689c927efaf45b0ad54b555f28099b5c3435f162ce021e5e41da91027a8585"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/reference/storybook-add-content.png",
+      "sha256": "f681690498529ea3c6d2aa519eed9292b315d52efed9963920ea7f4e8bf52feb"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/reference/body.txt",
+      "sha256": "b3720d400af5ef4468c12ea2a2fbd0391158dd910008d0ebdf4926a8985a1461"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/reference/storybook-segmented-control.png",
+      "sha256": "b6d3f8f008b4a0688195cb89e6e2f6b9fdbefadb8b93be7af493a73b31164291"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/frontend-build.log",
+      "sha256": "c745d27544b469b12b821da914608176baa63b064f726003371e421866a6adcf"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/frontend-lint.log",
+      "sha256": "2e9d93372676a06d19738207e1d38b66603d67150bdf25142fa7de3207835e26"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/desktop-tests.log",
+      "sha256": "d4226ca1d074aa57e3d8d8bf27951d48ef8e002181a22decd74be36b7eaa175d"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/native-input.json",
+      "sha256": "39f2401c1b048abeb4184e714ed6b29fd3a6cfce8ec037505a9f8630cfa59b46"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/source-manifest.json",
+      "sha256": "8951ec72d06ad964d895840c87e2a782a73bd6ea50920f9ef30a47fdb0beabb8"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/frontend-tests.log",
+      "sha256": "d462ea6e084091b953d51134fb5f2f18d919ee6c881d38000050d70694699521"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/1280-learning.png",
+      "sha256": "8decee284ebfc1cd05b34dc4c20bb15a101a26a5aa883920e7847808122bf961"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/composer-error.png",
+      "sha256": "95984747bd6ffa5442cb3ec4e27d9c9b186233f73cb2b5b4266237da8dc86d6e"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/composer-multiline.png",
+      "sha256": "2f7725cb30d4aaf53512fe4113b88168748865797747409c60ed2cf6709b525a"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/menu-graphite.png",
+      "sha256": "c8fdc0bf5f54ddb15e5baa17bb15e430ff327625287e211552b1726c4f51a3c1"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/learning-normal.png",
+      "sha256": "f73b371108b622a87dd855a7e9885a898de96f1c99ae3a808a1d08544f00b172"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/composer-hover.png",
+      "sha256": "a8f7c290b7d402177af9775b016bf4220f8ea0dd56414f4836110820432213df"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/1280-books.png",
+      "sha256": "3edde08dfc21eb8d4991fa3506470ce437b472f59648dab3b0aaba58134c1d31"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/1024-books.png",
+      "sha256": "0b97e478728b3398d232a518e0827cd8d627aeaa6e14bd1648ec36526ea0cba6"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/composer-focus.png",
+      "sha256": "77bc35cd46792e3275ab30ce31986e1e63c5ba8b92ba28dce3cafdbf4d8f6e8e"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/menu-keyboard.png",
+      "sha256": "093097f84f640852e72b2bf9fa4c5694a0758908becf6612794120c9ae0d0033"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/results.json",
+      "sha256": "06ff26227b8bb29afe1e780e852ec2f05b4e97f233c57358c39448fc831a76c8"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/composer-loading.png",
+      "sha256": "fe6e7cc46a1ad0c63d77d28d708477386273acd7585df51b933c56fd7c7b337f"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/1024-learning.png",
+      "sha256": "7e63249072234a61a2ec19fa496deb778e916752be7941bbbf32c28f6e334f09"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/760-books.png",
+      "sha256": "5df6a567df33f26d47d05436c67eb4e2c624a5357f00311648196d1d945b3fee"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/menu-reduced-motion.png",
+      "sha256": "6494aa832fb191ae0af39153e40a15cb660c4288c049517e260406f9533f74d6"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/before/760-learning.png",
+      "sha256": "a40892f4dfe4e5b3c0021c53673c5c82ec048e22cd7b646e5570dd781d701ae8"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/1280-learning.png",
+      "sha256": "59783657de55ad857b496f1e07344e4eefb6a2f12dec7c9fdeef92ce585daa1f"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/composer-error.png",
+      "sha256": "9e80eca42f4a76d5e98dc5e5feb28acd62b9a738ccfa73606fa948b0abc8440b"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/composer-multiline.png",
+      "sha256": "4fd0a7ba796757842e84eab2581b15fb4cc662f4db813b170be951c11fa4c031"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/menu-graphite.png",
+      "sha256": "d9f91e7a8b1de9744801d0a8c4f3823b8aa3482647863574554d99ae80c5eeb2"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/760-menu.png",
+      "sha256": "3bad02c03873a43e956a8332fbfd2728415872969a15b511ddb500b7bdf1ac70"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/1280-menu.png",
+      "sha256": "f7fbd24b4f06a55687b9afa337485e3b71b78d00352bef1a01f9225846c92670"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/learning-normal.png",
+      "sha256": "f73b371108b622a87dd855a7e9885a898de96f1c99ae3a808a1d08544f00b172"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/composer-hover.png",
+      "sha256": "77bc35cd46792e3275ab30ce31986e1e63c5ba8b92ba28dce3cafdbf4d8f6e8e"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/1280-books.png",
+      "sha256": "3edde08dfc21eb8d4991fa3506470ce437b472f59648dab3b0aaba58134c1d31"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/1024-books.png",
+      "sha256": "19264fd579ada4682d202f12804608e7d9f3d21321cda5fb1cb9acab280fa675"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/composer-focus.png",
+      "sha256": "77bc35cd46792e3275ab30ce31986e1e63c5ba8b92ba28dce3cafdbf4d8f6e8e"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/menu-keyboard.png",
+      "sha256": "564c460526f335df87706566a6e7f9d1ae6633cb6c26e774fd1439873f512dbd"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/results.json",
+      "sha256": "5e03a6473d058a792ada02d60a9dc04f73b6aa3f597443b7c7e2531efef71a98"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/1024-menu.png",
+      "sha256": "3cbd74b98814540707457a23b04d45f57ea11d3d2972223fb0cd842d0ad673cb"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/composer-loading.png",
+      "sha256": "5b1c761c341ec424e7dadc97793ece30e9caba1fa8217a167115333c8df3cc34"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/native-ime.png",
+      "sha256": "a63af328142ac7671127de5d7b5a5ee7122a99935092746527f97905d0500899"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/1024-learning.png",
+      "sha256": "84fb25f034308761cd571564f4c9f52832eaa9754b1eb65b15d356b5f507b3a2"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/760-books.png",
+      "sha256": "f7296504d755616a844415050fc45189a767c86adda674f3b433bbc7586b143f"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/menu-reduced-motion.png",
+      "sha256": "691313edcb1c07ee56effd36fdbf3deb86231ad2b3fd99aa9da3fea720f8feec"
+    },
+    {
+      "path": "docs/qa/ui-source-study-2026-10-19/after/760-learning.png",
+      "sha256": "87456ab0eae3aac0841e6d1e8b31ca7c70e02330dfb3d7e55a3a8dc7c8348f12"
+    }
+  ]
+}

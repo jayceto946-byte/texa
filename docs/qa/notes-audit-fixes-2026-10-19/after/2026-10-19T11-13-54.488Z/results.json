@@ -1,0 +1,189 @@
+{
+  "phase": "after",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "pass": true
+    },
+    {
+      "name": "deleted block absent after real autosave",
+      "pass": true
+    },
+    {
+      "name": "delete autosave does not publish",
+      "pass": true
+    },
+    {
+      "name": "undo after autosave restores content, ID, associations and position across preview",
+      "pass": true
+    },
+    {
+      "name": "restored block retains server-owned unverified semantics",
+      "pass": true
+    },
+    {
+      "name": "undo autosave does not publish",
+      "pass": true
+    },
+    {
+      "name": "1280: effective paragraph/list reading styles",
+      "pass": true
+    },
+    {
+      "name": "1280: no document horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1280: visible history readonly state",
+      "pass": true
+    },
+    {
+      "name": "1024: effective paragraph/list reading styles",
+      "pass": true
+    },
+    {
+      "name": "1024: no document horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024: visible history readonly state",
+      "pass": true
+    },
+    {
+      "name": "760: effective paragraph/list reading styles",
+      "pass": false
+    }
+  ],
+  "measurements": {
+    "draftId": "draft_c3c4679558fa463ebb2fca3816c109e8",
+    "undoOriginal": {
+      "authorship": "user",
+      "block_id": "review-p2",
+      "data": {
+        "markdown": "将上式代回待求表达式，先在同一行消去一次项，然后再对剩余项与分母作比较。这里的关键不是展开式写得越长越好，而是最低保留阶必须足以区分目标结果。如果分母改为更高次幂，就需要重新评估余项。\n\n复习时可以给每一步写一条很短的理由：使用了什么局部信息、消去了什么项、最后剩余量为何不会改变极限。理由应服务于当前推导，不必反复解释同一个定义。含有行内公式的句子也应能自然阅读，例如 $r(x)=o(x^3)$ 表示 $r(x)/x^3\\to0$；它比“误差很小”给出了更明确的比较尺度。\n\n尚未正式发布的新内容：误删恢复验证。"
+      },
+      "evidence_ref_ids": [],
+      "source_alignment": "needs_review",
+      "source_ref_ids": [],
+      "type": "paragraph",
+      "verification": {
+        "reasons": [
+          "user_edit_requires_review"
+        ],
+        "status": "needs_review"
+      }
+    },
+    "undoRestored": {
+      "authorship": "user",
+      "block_id": "review-p2",
+      "data": {
+        "markdown": "将上式代回待求表达式，先在同一行消去一次项，然后再对剩余项与分母作比较。这里的关键不是展开式写得越长越好，而是最低保留阶必须足以区分目标结果。如果分母改为更高次幂，就需要重新评估余项。\n\n复习时可以给每一步写一条很短的理由：使用了什么局部信息、消去了什么项、最后剩余量为何不会改变极限。理由应服务于当前推导，不必反复解释同一个定义。含有行内公式的句子也应能自然阅读，例如 $r(x)=o(x^3)$ 表示 $r(x)/x^3\\to0$；它比“误差很小”给出了更明确的比较尺度。\n\n尚未正式发布的新内容：误删恢复验证。"
+      },
+      "evidence_ref_ids": [],
+      "source_alignment": "user_added",
+      "source_ref_ids": [],
+      "type": "paragraph",
+      "verification": {
+        "reasons": [],
+        "status": "not_checked"
+      }
+    },
+    "1280-reading": {
+      "paragraph": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 740
+      },
+      "list": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 652
+      },
+      "formula": {
+        "fontSize": "19.36px",
+        "lineHeight": "23.232px",
+        "width": 74.9765625
+      },
+      "root": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 740
+      },
+      "headerHeight": 48,
+      "statusVisible": true
+    },
+    "1280-historyState": {
+      "text": "历史版本 1 · 只读 ",
+      "visible": true,
+      "display": "block"
+    },
+    "1024-reading": {
+      "paragraph": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 727
+      },
+      "list": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 639
+      },
+      "formula": {
+        "fontSize": "19.36px",
+        "lineHeight": "23.232px",
+        "width": 74.9765625
+      },
+      "root": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 727
+      },
+      "headerHeight": 48,
+      "statusVisible": true
+    },
+    "1024-historyState": {
+      "text": "历史版本 1 · 只读 ",
+      "visible": true,
+      "display": "block"
+    },
+    "760-reading": {
+      "paragraph": {
+        "fontSize": "16px",
+        "lineHeight": "25.92px",
+        "width": 709
+      },
+      "list": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 645
+      },
+      "formula": {
+        "fontSize": "19.36px",
+        "lineHeight": "23.232px",
+        "width": 74.9765625
+      },
+      "root": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 709
+      },
+      "headerHeight": 111,
+      "statusVisible": true
+    }
+  },
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-13-54.488Z/1280-edit-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-13-54.488Z/new-content-saved-draft.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-13-54.488Z/deleted-after-autosave.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-13-54.488Z/undo-restored.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-13-54.488Z/1280-reading.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-13-54.488Z/1280-history.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-13-54.488Z/1024-reading.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-13-54.488Z/1024-history.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-13-54.488Z/760-reading.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-13-54.488Z/failure.png"
+  ],
+  "errors": [
+    "Error: 760: effective paragraph/list reading styles"
+  ]
+}

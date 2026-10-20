@@ -1,0 +1,116 @@
+name: Windows inspection package
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [Texa_MacOS]
+    paths: [.github/workflows/windows-test.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+          cache-dependency-path: requirements-build.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            desktop/package-lock.json
+      - name: Install locked build dependencies
+        run: |
+          python -m venv venv310
+          .\venv310\Scripts\python.exe -m pip install -r requirements-build.txt pytest==9.0.3
+          if ($LASTEXITCODE -ne 0) { throw 'Python dependency installation failed' }
+          .\venv310\Scripts\python.exe -m pip check
+          if ($LASTEXITCODE -ne 0) { throw 'Python dependency check failed' }
+          npm ci --prefix frontend
+          if ($LASTEXITCODE -ne 0) { throw 'Frontend dependency installation failed' }
+          npm ci --prefix desktop
+          if ($LASTEXITCODE -ne 0) { throw 'Desktop dependency installation failed' }
+      - name: Verify source and UI contracts
+        run: |
+          .\venv310\Scripts\python.exe scripts\check_version_consistency.py
+          if ($LASTEXITCODE -ne 0) { throw 'Version check failed' }
+          .\venv310\Scripts\python.exe -m pytest -q tests\test_session_notes.py
+          if ($LASTEXITCODE -ne 0) { throw 'Notes contracts failed' }
+          npm test --prefix frontend
+          if ($LASTEXITCODE -ne 0) { throw 'Frontend tests failed' }
+          npm run lint --prefix frontend
+          if ($LASTEXITCODE -ne 0) { throw 'Frontend lint failed' }
+          npm test --prefix desktop
+          if ($LASTEXITCODE -ne 0) { throw 'Desktop tests failed' }
+          npm run check --prefix desktop
+          if ($LASTEXITCODE -ne 0) { throw 'Desktop syntax checks failed' }
+      - name: Build Windows backend and frontend
+        run: .\scripts\build-desktop-backend.ps1 -Python .\venv310\Scripts\python.exe
+      - name: Smoke test the native Windows backend
+        run: |
+          $env:TEXA_FROZEN_SMOKE = '1'
+          $env:TEXA_EMBEDDING_BACKEND = 'onnx'
+          $env:TEXA_EMBEDDING_ASSET_DIR = (Resolve-Path assets\embedding-runtime\bge-small-zh-v1.5\onnx-fp32-v1).Path
+          $env:DATA_DIR = Join-Path $env:RUNNER_TEMP 'texa-test-smoke\data'
+          $env:PROGRESS_PATH = Join-Path $env:RUNNER_TEMP 'texa-test-smoke\progress'
+          $process = Start-Process build\backend\backend_server\backend_server.exe -NoNewWindow -PassThru -RedirectStandardOutput smoke-out.log -RedirectStandardError smoke-error.log
+          if (-not $process.WaitForExit(120000)) {
+            $process.Kill()
+            throw 'Frozen backend smoke timed out'
+          }
+          Get-Content smoke-out.log
+          Get-Content smoke-error.log
+          if ($process.ExitCode -ne 0 -or -not (Select-String -Path smoke-out.log -SimpleMatch TEXA_FROZEN_SMOKE_PASS)) { throw 'Frozen backend smoke failed' }
+      - name: Package texa_test.exe
+        working-directory: desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npx --no-install electron-builder --win portable --x64 --publish never -c.artifactName=texa_test.exe
+      - name: Record package identity
+        run: |
+          $exe = Get-Item release\texa_test.exe
+          if ($exe.Length -lt 100MB) { throw 'Unexpectedly small desktop package' }
+          $bytes = [System.IO.File]::ReadAllBytes($exe.FullName)
+          if ($bytes[0] -ne 0x4d -or $bytes[1] -ne 0x5a) { throw 'Output is not a Windows executable' }
+          $identity = @{
+            commit = $env:GITHUB_SHA
+            branch = $env:GITHUB_REF_NAME
+            artifact = 'texa_test.exe'
+            sha256 = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
+            bytes = $exe.Length
+            target = 'Windows x64 portable'
+            signed = $false
+            backend_smoke = 'TEXA_FROZEN_SMOKE_PASS'
+            ui_manual_acceptance = 'pending on Windows'
+          }
+          $identity | ConvertTo-Json | Set-Content release\texa_test-build.json -Encoding utf8
+          $identity | ConvertTo-Json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: texa_test-windows-x64
+          path: |
+            release/texa_test.exe
+            release/texa_test-build.json
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: texa_test-build-diagnostics
+          path: |
+            smoke-out.log
+            smoke-error.log
+            release/builder-debug.yml
+          if-no-files-found: ignore
+          retention-days: 14

@@ -1,0 +1,786 @@
+{
+  "phase": "notes",
+  "environment": "macOS ARM64, real Electron 37, production frontend, isolated production backend/storage",
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/1280-preview-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/1280-preview-matrix.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/1280-edit-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/1280-edit-focused-block.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/1280-edit-toolbar-hover.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/1280-edit-matrix-focus.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/1024-preview-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/1024-preview-matrix.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/1024-edit-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/1024-edit-focused-block.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/1024-edit-toolbar-hover.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/1024-edit-matrix-focus.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/760-preview-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/760-preview-matrix.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/760-edit-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/760-edit-focused-block.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/760-edit-toolbar-hover.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/760-edit-matrix-focus.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/toggle-preview-same-scroll.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/toggle-back-edit.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/save-dirty.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/save-pending.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/save-saved.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/formal-saved-v2.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/history-v1-readonly.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes/2026-10-19T07-39-34.130Z/formal-version-conflict.png"
+  ],
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "pass": true
+    },
+    {
+      "name": "1280: no document horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024: no document horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760: no document horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "autosave does not publish a formal revision",
+      "pass": true
+    },
+    {
+      "name": "explicit save publishes formal revision 2",
+      "pass": true
+    },
+    {
+      "name": "historical version has no edit action",
+      "pass": true
+    },
+    {
+      "name": "formal version conflict disables publish",
+      "pass": true
+    },
+    {
+      "name": "conflict retains editable draft",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "observations": {
+    "1280-focused": {
+      "active": {
+        "tag": "TEXTAREA",
+        "label": "第 4 块正文",
+        "text": "将上式代回待求表达式，先在同一行消去一次项，然后再对剩余项与分母作比较。这里的关键不是展开式写得越长"
+      },
+      "scrollTop": 829.5,
+      "scrollHeight": 4329,
+      "viewport": [
+        1280,
+        820
+      ]
+    },
+    "1280-blocks": [
+      {
+        "id": "review-h1",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": -406.015625,
+        "height": 209.09375
+      },
+      {
+        "id": "review-p1",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": -178.921875,
+        "height": 209.09375
+      },
+      {
+        "id": "review-e1",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 48.171875,
+        "height": 255.1875
+      },
+      {
+        "id": "review-p2",
+        "className": "note-edit-block",
+        "focused": true,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 321.359375,
+        "height": 209.09375
+      },
+      {
+        "id": "review-e2",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 548.453125,
+        "height": 262.984375
+      },
+      {
+        "id": "review-h2",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 829.4375,
+        "height": 209.09375
+      },
+      {
+        "id": "review-p3",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1056.53125,
+        "height": 209.09375
+      },
+      {
+        "id": "review-e3",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1283.625,
+        "height": 260.7890625
+      },
+      {
+        "id": "review-list",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1562.4140625,
+        "height": 209.09375
+      },
+      {
+        "id": "review-callout",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1789.5078125,
+        "height": 209.09375
+      },
+      {
+        "id": "review-h3",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2016.6015625,
+        "height": 209.09375
+      },
+      {
+        "id": "review-p4",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2243.6953125,
+        "height": 209.09375
+      },
+      {
+        "id": "review-e4",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2470.7890625,
+        "height": 263.1796875
+      },
+      {
+        "id": "review-p5",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2751.96875,
+        "height": 209.09375
+      },
+      {
+        "id": "review-h4",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2979.0625,
+        "height": 209.09375
+      },
+      {
+        "id": "review-p6",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 3206.15625,
+        "height": 209.09375
+      }
+    ],
+    "1024-focused": {
+      "active": {
+        "tag": "TEXTAREA",
+        "label": "第 4 块正文",
+        "text": "将上式代回待求表达式，先在同一行消去一次项，然后再对剩余项与分母作比较。这里的关键不是展开式写得越长"
+      },
+      "scrollTop": 855.5,
+      "scrollHeight": 4329,
+      "viewport": [
+        1024,
+        768
+      ]
+    },
+    "1024-blocks": [
+      {
+        "id": "review-h1",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": -432.015625,
+        "height": 209.09375
+      },
+      {
+        "id": "review-p1",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": -204.921875,
+        "height": 209.09375
+      },
+      {
+        "id": "review-e1",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 22.171875,
+        "height": 255.1875
+      },
+      {
+        "id": "review-p2",
+        "className": "note-edit-block",
+        "focused": true,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 295.359375,
+        "height": 209.09375
+      },
+      {
+        "id": "review-e2",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 522.453125,
+        "height": 262.984375
+      },
+      {
+        "id": "review-h2",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 803.4375,
+        "height": 209.09375
+      },
+      {
+        "id": "review-p3",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1030.53125,
+        "height": 209.09375
+      },
+      {
+        "id": "review-e3",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1257.625,
+        "height": 260.7890625
+      },
+      {
+        "id": "review-list",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1536.4140625,
+        "height": 209.09375
+      },
+      {
+        "id": "review-callout",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1763.5078125,
+        "height": 209.09375
+      },
+      {
+        "id": "review-h3",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1990.6015625,
+        "height": 209.09375
+      },
+      {
+        "id": "review-p4",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2217.6953125,
+        "height": 209.09375
+      },
+      {
+        "id": "review-e4",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2444.7890625,
+        "height": 263.1796875
+      },
+      {
+        "id": "review-p5",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2725.96875,
+        "height": 209.09375
+      },
+      {
+        "id": "review-h4",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2953.0625,
+        "height": 209.09375
+      },
+      {
+        "id": "review-p6",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 3180.15625,
+        "height": 209.09375
+      }
+    ],
+    "760-focused": {
+      "active": {
+        "tag": "TEXTAREA",
+        "label": "第 4 块正文",
+        "text": "将上式代回待求表达式，先在同一行消去一次项，然后再对剩余项与分母作比较。这里的关键不是展开式写得越长"
+      },
+      "scrollTop": 865,
+      "scrollHeight": 4329,
+      "viewport": [
+        760,
+        820
+      ]
+    },
+    "760-blocks": [
+      {
+        "id": "review-h1",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": -370.515625,
+        "height": 209.09375
+      },
+      {
+        "id": "review-p1",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": -143.421875,
+        "height": 209.09375
+      },
+      {
+        "id": "review-e1",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 83.671875,
+        "height": 255.1875
+      },
+      {
+        "id": "review-p2",
+        "className": "note-edit-block",
+        "focused": true,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 356.859375,
+        "height": 209.09375
+      },
+      {
+        "id": "review-e2",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 583.953125,
+        "height": 262.984375
+      },
+      {
+        "id": "review-h2",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 864.9375,
+        "height": 209.09375
+      },
+      {
+        "id": "review-p3",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1092.03125,
+        "height": 209.09375
+      },
+      {
+        "id": "review-e3",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1319.125,
+        "height": 260.7890625
+      },
+      {
+        "id": "review-list",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1597.9140625,
+        "height": 209.09375
+      },
+      {
+        "id": "review-callout",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 1825.0078125,
+        "height": 209.09375
+      },
+      {
+        "id": "review-h3",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2052.1015625,
+        "height": 209.09375
+      },
+      {
+        "id": "review-p4",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2279.1953125,
+        "height": 209.09375
+      },
+      {
+        "id": "review-e4",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2506.2890625,
+        "height": 263.1796875
+      },
+      {
+        "id": "review-p5",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 2787.46875,
+        "height": 209.09375
+      },
+      {
+        "id": "review-h4",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 3014.5625,
+        "height": 209.09375
+      },
+      {
+        "id": "review-p6",
+        "className": "note-edit-block",
+        "focused": false,
+        "border": "1px solid rgb(224, 223, 219)",
+        "padding": "16px",
+        "background": "rgba(0, 0, 0, 0)",
+        "toolbarOpacity": "1",
+        "toolbarVisibility": "visible",
+        "toolbarDisplay": "flex",
+        "y": 3241.65625,
+        "height": 209.09375
+      }
+    ],
+    "toggleBefore": {
+      "active": {
+        "tag": "TEXTAREA",
+        "label": "第 4 块正文",
+        "text": "将上式代回待求表达式，先在同一行消去一次项，然后再对剩余项与分母作比较。这里的关键不是展开式写得越长"
+      },
+      "scrollTop": 829.5,
+      "scrollHeight": 4329,
+      "viewport": [
+        1280,
+        820
+      ]
+    },
+    "togglePreview": {
+      "active": {
+        "tag": "BUTTON",
+        "label": null,
+        "text": "编辑笔记"
+      },
+      "scrollTop": 309,
+      "scrollHeight": 1081,
+      "viewport": [
+        1280,
+        820
+      ]
+    },
+    "toggleEdit": {
+      "active": {
+        "tag": "BUTTON",
+        "label": null,
+        "text": "阅读预览"
+      },
+      "scrollTop": 829.5,
+      "scrollHeight": 4250,
+      "viewport": [
+        1280,
+        820
+      ]
+    },
+    "conflictDraftPreserved": true
+  },
+  "errors": []
+}

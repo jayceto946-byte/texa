@@ -1,0 +1,63 @@
+{
+  "native": {
+    "bounds": {
+      "x": 80,
+      "y": 100,
+      "width": 760,
+      "height": 820
+    },
+    "contentBounds": {
+      "x": 80,
+      "y": 100,
+      "width": 760,
+      "height": 820
+    },
+    "windowButtonPosition": {
+      "x": 18,
+      "y": 11
+    },
+    "fullScreen": false
+  },
+  "layout": {
+    ".context-sidebar-trigger": {
+      "x": 108,
+      "y": 6,
+      "width": 44,
+      "height": 44,
+      "top": 6,
+      "right": 152,
+      "bottom": 50,
+      "left": 108
+    },
+    ".note-page-header": {
+      "x": 0,
+      "y": 0,
+      "width": 760,
+      "height": 56,
+      "top": 0,
+      "right": 760,
+      "bottom": 56,
+      "left": 0
+    },
+    ".note-header-identity": {
+      "x": 152,
+      "y": 17.1015625,
+      "width": 444,
+      "height": 20.796875,
+      "top": 17.1015625,
+      "right": 596,
+      "bottom": 37.8984375,
+      "left": 152
+    },
+    ".note-document": {
+      "x": 0,
+      "y": 56,
+      "width": 751,
+      "height": 1193.4921875,
+      "top": 56,
+      "right": 751,
+      "bottom": 1249.4921875,
+      "left": 0
+    }
+  }
+}

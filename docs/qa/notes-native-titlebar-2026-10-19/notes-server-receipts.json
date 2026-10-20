@@ -1,0 +1,18 @@
+{
+  "mode": "notes",
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "endpoint_host": "api.deepseek.com",
+  "endpoint_path": "",
+  "max_remote_requests": 0,
+  "requests": [],
+  "provider_errors": [],
+  "usage": [],
+  "notes_api": [
+    {
+      "method": "GET",
+      "path": "/api/notes/note_9acda0924b634fbca27ebd04d0fbb0d0/revisions/1",
+      "status": 200
+    }
+  ]
+}

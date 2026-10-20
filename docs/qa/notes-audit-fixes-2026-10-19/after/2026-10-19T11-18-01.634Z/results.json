@@ -1,0 +1,14 @@
+{
+  "phase": "after",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "pass": true
+    }
+  ],
+  "measurements": {},
+  "screenshots": [],
+  "errors": [
+    "Error: page.evaluate: Error: invalid_selection\n    at eval (eval at evaluate (:311:30), <anonymous>:3:82)\n    at async <anonymous>:337:30"
+  ]
+}

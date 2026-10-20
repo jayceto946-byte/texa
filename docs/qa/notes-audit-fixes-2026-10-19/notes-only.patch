@@ -1,0 +1,375 @@
+diff --git a/frontend/src/features/notes/DraftWorkspace.tsx b/frontend/src/features/notes/DraftWorkspace.tsx
+index 44242be..249408a 100644
+--- a/frontend/src/features/notes/DraftWorkspace.tsx
++++ b/frontend/src/features/notes/DraftWorkspace.tsx
+@@ -1,8 +1,10 @@
+-import { useRef, useState } from 'react';
++import { useLayoutEffect, useRef, useState } from 'react';
+ import { Link, useLocation, useNavigate } from 'react-router-dom';
+ import { post } from '../../api/client';
+ import { NoteApiError, notesApi, noteRequest } from './api';
+ import { useNoteEditor } from './hooks/useNoteEditor';
++import { useDraftPosition } from './hooks/useDraftPosition';
++import { NoteTextarea } from './NoteTextarea';
+ import { BlockEditor, NoteBlocks } from './NoteBlocks';
+ import type { ChapterRef, NoteDraft } from './types';
+ import './notes.css';
+@@ -31,6 +33,26 @@ export function DraftEditor({ draft }: {
+         id: string;
+     } | null>(null);
+     const local = editor.content;
++    const { scrollRef, capture: capturePosition, rememberFocus } = useDraftPosition(editing);
++    const undoRef = useRef<HTMLButtonElement>(null);
++    const recoveryFocus = useRef<string | null>(null);
++    useLayoutEffect(() => {
++        const target = recoveryFocus.current;
++        recoveryFocus.current = null;
++        if (target === 'undo') undoRef.current?.focus();
++        else if (target) document.getElementById(target)?.focus();
++    });
++    const removeBlock = (index: number) => {
++        recoveryFocus.current = 'undo';
++        if (!editor.deleteBlock(index)) recoveryFocus.current = null;
++    };
++    const undoDelete = () => {
++        const id = editor.undoDelete();
++        if (id) {
++            recoveryFocus.current = id;
++            setEditing(true);
++        }
++    };
+     const save = async () => {
+         setSaving(true);
+         setError('');
+@@ -84,9 +106,11 @@ export function DraftEditor({ draft }: {
+             setRecoveryError(`恢复未完成，当前文字仍保留。${e instanceof Error ? e.message : ''}`);
+         } finally { setRecovering(false); }
+     };
+-    return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><h1>{draft.base_note_id ? '编辑笔记' : draft.kind === 'generation' ? '对话整理笔记' : '自主整理笔记'}</h1><div className="note-actions"><span role="status" className="note-save-status">{formalConflict ? '正式笔记尚未更新 · ' : ''}{({ saved: '草稿已保存', dirty: '有未保存修改', saving: '正在保存草稿…', error: '草稿保存失败' })[editor.state]}</span><Link className="app-ghost-button" to="/notes?view=drafts">返回笔记</Link><button className="app-secondary-button" onClick={() => setEditing(v => !v)}>{editing ? '阅读预览' : '编辑笔记'}</button><button className="app-primary-button" disabled={saving || recovering || formalConflict || editor.closing || editor.state === 'saving'} onClick={() => void save()}>{saving ? '正在保存…' : draft.base_note_id ? '保存修改' : '保存笔记'}</button></div></header>
+-    <div className="note-scroll"><article className="note-document">
+-      <h1 className="note-document-title">{local.title}</h1>{!editing && local.abstract && <p className="note-abstract">{local.abstract}</p>}
++    return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><h1>{draft.base_note_id ? '编辑笔记' : draft.kind === 'generation' ? '对话整理笔记' : '自主整理笔记'}</h1><span role="status" className="note-save-status">{formalConflict ? '正式笔记尚未更新 · ' : ''}{({ saved: '草稿已保存', dirty: '有未保存修改', saving: '正在保存草稿…', error: '草稿保存失败' })[editor.state]}</span><div className="note-actions"><Link className="app-ghost-button" to="/notes?view=drafts">返回笔记</Link><button className="app-secondary-button" aria-controls="note-draft-body" onClick={() => { capturePosition(); setEditing(v => !v); }}>{editing ? '阅读预览' : '编辑笔记'}</button><button className="app-primary-button" disabled={saving || recovering || formalConflict || editor.closing || editor.state === 'saving'} onClick={() => void save()}>{saving ? '正在保存…' : draft.base_note_id ? '保存修改' : '保存笔记'}</button></div></header>
++    <div className="note-scroll" ref={scrollRef} onFocusCapture={e => rememberFocus(e.target)}>
++      {editor.deletedCount > 0 && <div className="note-delete-recovery"><span role="status">已删除 {editor.deletedCount} 块 · 本次编辑可撤销</span><button ref={undoRef} className="app-secondary-button" disabled={saving || recovering || editor.closing || local.blocks.length >= 300} onClick={undoDelete}>撤销删除</button>{local.blocks.length >= 300 && <span>块数已达上限，请先腾出位置。</span>}</div>}
++      <article className="note-document" id="note-draft-body">
++      {!editing && <h1 className="note-document-title">{local.title}</h1>}{!editing && local.abstract && <p className="note-abstract">{local.abstract}</p>}
+       {location.state?.noteRecovery && <p role="status" className="note-save-status">{location.state.noteRecovery}</p>}
+       {error && !saveConflict && !editor.error && <p role="status" className="note-warning">{error}</p>}
+       {(editor.error || saveConflict) && <div role="alert" className="note-warning">
+@@ -99,10 +123,10 @@ export function DraftEditor({ draft }: {
+         </div>
+         <details><summary>错误详情</summary><p>{editor.error || error}</p></details>
+       </div>}
+-      {editing && <fieldset disabled={saving || recovering || editor.closing} className="note-fields"><label>标题<input maxLength={200} value={local.title} onChange={e => change({ ...local, title: e.target.value })}/></label><label>摘要<textarea maxLength={500} value={local.abstract} onChange={e => change({ ...local, abstract: e.target.value })}/></label><details><summary>笔记信息</summary><div className="note-fields-row"><label>学科<input value={local.subject} onChange={e => change({ ...local, subject: e.target.value })}/></label><label>标签（逗号分隔）<input value={local.tags.join(',')} onChange={e => change({ ...local, tags: e.target.value.split(/[,，]/).map(t => t.trim()).filter(Boolean) })}/></label></div><button type="button" className="app-ghost-button" onClick={() => void noteRequest<{
++      {editing && <fieldset disabled={saving || recovering || editor.closing} className="note-fields"><label className="note-title-field"><span className="note-visually-hidden">标题</span><NoteTextarea className="note-title-input" maxLength={200} value={local.title} onChange={e => change({ ...local, title: e.target.value })}/></label><label>摘要<NoteTextarea maxLength={500} value={local.abstract} onChange={e => change({ ...local, abstract: e.target.value })}/></label><details><summary>笔记信息</summary><div className="note-fields-row"><label>学科<input value={local.subject} onChange={e => change({ ...local, subject: e.target.value })}/></label><label>标签（逗号分隔）<input value={local.tags.join(',')} onChange={e => change({ ...local, tags: e.target.value.split(/[,，]/).map(t => t.trim()).filter(Boolean) })}/></label></div><button type="button" className="app-ghost-button" onClick={() => void noteRequest<{
+         items: ChapterRef[];
+     }>("/chapters").then(page => setExtraChapters(page.items)).catch(e => setError(e.message))}>选择其他教材章节</button>{(draft.chapter_options.length > 0 || extraChapters.length > 0 || local.chapter_refs.length > 0) && <details><summary>归入章节</summary>{Array.from(new Map([...draft.chapter_options, ...extraChapters, ...local.chapter_refs].map(c => [c.chapter_ref_id, c])).values()).map(c => <label className="note-checkbox" key={c.chapter_ref_id}><input type="checkbox" checked={local.chapter_refs.some(r => r.chapter_ref_id === c.chapter_ref_id)} onChange={e => change({ ...local, chapter_refs: e.target.checked ? [...local.chapter_refs, c] : local.chapter_refs.filter(r => r.chapter_ref_id !== c.chapter_ref_id) })}/>{c.book_name_snapshot} · {c.title_snapshot}</label>)}</details>}</details></fieldset>}
+-      {editing ? <fieldset disabled={saving || recovering || editor.closing} className="note-fields"><BlockEditor content={local} onChange={change}/></fieldset> : <NoteBlocks blocks={local.blocks}/>}
++      {editing ? <fieldset disabled={saving || recovering || editor.closing} className="note-fields"><BlockEditor content={local} onChange={change} onDelete={removeBlock}/></fieldset> : <NoteBlocks blocks={local.blocks}/>}
+     </article></div></div>;
+ }
+ export function GenerationWorkspace({ draft, reload }: {
+diff --git a/frontend/src/features/notes/NoteBlocks.tsx b/frontend/src/features/notes/NoteBlocks.tsx
+index 7850aac..b7f9bce 100644
+--- a/frontend/src/features/notes/NoteBlocks.tsx
++++ b/frontend/src/features/notes/NoteBlocks.tsx
+@@ -1,6 +1,7 @@
+ import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react';
+ import { MarkdownMessage } from '../../components/chat/MarkdownMessage';
+ import MathFieldEditor from '../math-input/MathFieldEditor';
++import { NoteTextarea } from './NoteTextarea';
+ import type { NoteBlock, NoteContent } from './types';
+ export function blockMarkdown(block: NoteBlock): string {
+     const d = block.data;
+@@ -15,14 +16,15 @@ export function blockMarkdown(block: NoteBlock): string {
+ export function NoteBlocks({ blocks }: {
+     blocks: NoteBlock[];
+ }) {
+-    return <div className="note-reading">{blocks.map(block => <section key={block.block_id} id={block.block_id} className={`note-block note-${block.type}`}>
++    return <div className="note-reading">{blocks.map(block => <section key={block.block_id} id={block.block_id} data-note-block={block.block_id} className={`note-block note-${block.type}`}>
+     <MarkdownMessage disableRemoteMedia content={blockMarkdown(block)}/>
+ 
+   </section>)}</div>;
+ }
+-export function BlockEditor({ content, onChange }: {
++export function BlockEditor({ content, onChange, onDelete }: {
+     content: NoteContent;
+     onChange: (content: NoteContent) => void;
++    onDelete: (index: number) => void;
+ }) {
+     const update = (index: number, patch: Partial<NoteBlock>) => onChange({ ...content, blocks: content.blocks.map((b, i) => i === index ? { ...b, ...patch } : b) });
+     const move = (index: number, delta: number) => {
+@@ -31,12 +33,12 @@ export function BlockEditor({ content, onChange }: {
+         [blocks[index], blocks[target]] = [blocks[target], blocks[index]];
+         onChange({ ...content, blocks });
+     };
+-    return <div className="note-editor">{content.blocks.map((block, i) => <section key={block.block_id} className="note-edit-block" id={block.block_id}>
++    return <div className="note-editor">{content.blocks.map((block, i) => <section key={block.block_id} className={`note-edit-block note-edit-${block.type}`} id={block.block_id} data-note-block={block.block_id} tabIndex={-1}>
+     <div className="note-toolbar"><span>{({ heading: '标题', paragraph: '段落', equation: '公式', list: '列表', callout: '提示' })[block.type]} · {i + 1}</span><div className="note-actions">
+       <button className="app-icon-button" aria-label={`上移第 ${i + 1} 块`} disabled={i === 0} onClick={() => move(i, -1)}><ArrowUp size={16}/></button>
+       <button className="app-icon-button" aria-label={`下移第 ${i + 1} 块`} disabled={i === content.blocks.length - 1} onClick={() => move(i, 1)}><ArrowDown size={16}/></button>
+-      <button className="app-icon-button" aria-label={`删除第 ${i + 1} 块`} disabled={content.blocks.length === 1} onClick={() => onChange({ ...content, blocks: content.blocks.filter((_, n) => n !== i) })}><Trash2 size={16}/></button>
++      <button className="app-icon-button" aria-label={`删除第 ${i + 1} 块`} disabled={content.blocks.length === 1} onClick={() => onDelete(i)}><Trash2 size={16}/></button>
+     </div></div>
+-    {block.type === 'equation' ? <><MathFieldEditor value={block.data.latex || ''} onChange={latex => update(i, { data: { ...block.data, latex } })} ariaLabel={`第 ${i + 1} 块公式`}/><label>公式说明<input value={block.data.annotation || ''} onChange={e => update(i, { data: { ...block.data, annotation: e.target.value } })}/></label></> : <label className="note-block-input">{block.type === 'heading' ? '标题文字' : 'Markdown 正文'}<textarea aria-label={`第 ${i + 1} 块正文`} value={block.type === 'heading' ? block.data.text || '' : block.type === 'list' ? (block.data.items || []).join('\n') : block.data.markdown || ''} onChange={e => update(i, { data: { ...block.data, ...(block.type === 'heading' ? { text: e.target.value } : block.type === 'list' ? { items: e.target.value.split('\n') } : { markdown: e.target.value }) } })}/></label>}
++    {block.type === 'equation' ? <><div className="note-equation-editor"><MathFieldEditor value={block.data.latex || ''} onChange={latex => update(i, { data: { ...block.data, latex } })} ariaLabel={`第 ${i + 1} 块公式`}/></div><label>公式说明<input value={block.data.annotation || ''} onChange={e => update(i, { data: { ...block.data, annotation: e.target.value } })}/></label></> : <label className="note-block-input"><span className="note-visually-hidden">{block.type === 'heading' ? '标题文字' : 'Markdown 正文'}</span><NoteTextarea aria-label={`第 ${i + 1} 块正文`} value={block.type === 'heading' ? block.data.text || '' : block.type === 'list' ? (block.data.items || []).join('\n') : block.data.markdown || ''} onChange={e => update(i, { data: { ...block.data, ...(block.type === 'heading' ? { text: e.target.value } : block.type === 'list' ? { items: e.target.value.split('\n') } : { markdown: e.target.value }) } })}/></label>}
+   </section>)}<div className="note-actions">{(['paragraph', 'heading', 'equation', 'list', 'callout'] as const).map(type => <button className="app-secondary-button" key={type} disabled={content.blocks.length >= 300} onClick={() => onChange({ ...content, blocks: [...content.blocks, { block_id: `noteblock_${crypto.randomUUID().replace(/-/g, '')}`, type, data: type === 'heading' ? { text: '新标题', level: 2 } : type === 'equation' ? { latex: 'x', annotation: '' } : type === 'list' ? { ordered: false, items: ['新列表项'] } : { markdown: '新段落', ...(type === 'callout' ? { tone: 'info' } : {}) }, source_ref_ids: [], evidence_ref_ids: [] }] })}>添加{({ paragraph: '段落', heading: '标题', equation: '公式', list: '列表', callout: '提示' })[type]}</button>)}</div></div>;
+ }
+diff --git a/frontend/src/features/notes/autosave.ts b/frontend/src/features/notes/autosave.ts
+index fc5b2f9..0955ef5 100644
+--- a/frontend/src/features/notes/autosave.ts
++++ b/frontend/src/features/notes/autosave.ts
+@@ -1,4 +1,4 @@
+-import type { NoteContent, NoteDraft } from './types';
++import type { NoteBlock, NoteContent, NoteDraft } from './types';
+ export function editableContent(draft: NoteDraft): NoteContent {
+     if (!draft.content)
+         throw new Error('草稿尚未完成');
+@@ -14,6 +14,28 @@ export class DraftAutosaver {
+     error = '';
+     errorCode = '';
+     closing = false;
++    // Session-local recovery, kept outside the serialized document and CAS contract.
++    private deletedBlocks: { block: NoteBlock; index: number; before?: string; after?: string }[] = [];
++    get deletedCount() { return this.deletedBlocks.length; }
++    deleteBlock(index: number) {
++        const blocks = this.content.blocks;
++        if (blocks.length <= 1 || !blocks[index]) return false;
++        this.deletedBlocks.push({ block: structuredClone(blocks[index]), index,
++            before: blocks[index - 1]?.block_id, after: blocks[index + 1]?.block_id });
++        this.change({ ...this.content, blocks: blocks.filter((_, i) => i !== index) });
++        return true;
++    }
++    undoDelete(): string | undefined {
++        if (!this.deletedCount || this.content.blocks.length >= 300) return;
++        const entry = this.deletedBlocks.pop()!;
++        const blocks = [...this.content.blocks];
++        const after = blocks.findIndex(b => b.block_id === entry.after);
++        const before = blocks.findIndex(b => b.block_id === entry.before);
++        const index = after >= 0 ? after : before >= 0 ? before + 1 : Math.min(entry.index, blocks.length);
++        blocks.splice(index, 0, entry.block);
++        this.change({ ...this.content, blocks });
++        return entry.block.block_id;
++    }
+     setClosing(value: boolean) { this.closing = value; this.onChange(); }
+     private epoch = 0;
+     private savedEpoch = 0;
+@@ -32,6 +54,7 @@ export class DraftAutosaver {
+         if (this.pending)
+             throw new Error('请等待当前草稿保存结束');
+         this.stopTimer();
++        this.deletedBlocks = [];
+         this.draft = draft;
+         this.content = editableContent(draft);
+         this.epoch = 0;
+diff --git a/frontend/src/features/notes/notes.css b/frontend/src/features/notes/notes.css
+index 2b45bff..912c017 100644
+--- a/frontend/src/features/notes/notes.css
++++ b/frontend/src/features/notes/notes.css
+@@ -4,15 +4,18 @@
+ .note-page-header .note-actions { flex-wrap:nowrap; margin-left:auto; white-space:nowrap; gap:6px; }
+ .note-header-state,.note-save-status { font-size:var(--workspace-meta-size); color:var(--color-text-secondary); }
+ .note-scroll { flex:1; overflow:auto; min-height:0; }
++.note-delete-recovery { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px; padding:8px 16px; background:var(--workspace-secondary); border-bottom:1px solid var(--workspace-separator); font-size:var(--workspace-interface-size); }
+ .note-document { max-width:calc(var(--workspace-reading-width) + 2 * var(--workspace-reading-gutter)); margin:0 auto; padding:28px var(--workspace-reading-gutter) 70px; overflow-wrap:anywhere; font-size:var(--workspace-reading-size); line-height:var(--workspace-reading-leading); }
+ .note-document-title { font-size:var(--workspace-document-title-size); line-height:1.5; font-weight:600; margin:0 0 16px; }
+ .note-document h2 { font-size:var(--workspace-section-title-size); font-weight:600; }
+ .note-caption { color:var(--color-text-secondary); font-size:var(--workspace-support-size); line-height:1.7; margin:5px 0 12px; }
+ .note-abstract { margin:0 0 20px; color:var(--color-text-secondary); }
+ .note-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+-.note-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
++.note-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px; color:var(--color-text-secondary); font-size:var(--workspace-meta-size); }
+ .note-block { position:relative; padding:0; min-width:0; scroll-margin-top:16px; }
+-.note-reading .learning-reading-content { font-size:var(--workspace-reading-size); line-height:var(--workspace-reading-leading); color:var(--workspace-reading-text); }
++/* Keep the note reading role at compact widths despite shared Markdown density. */
++.notes-workspace .note-reading .markdown-body.learning-reading-content { font-size:var(--workspace-reading-size); line-height:var(--workspace-reading-leading); color:var(--workspace-reading-text); }
++.notes-workspace .note-reading .markdown-body.learning-reading-content :is(p,ul,ol,li) { line-height:var(--workspace-reading-leading); }
+ .note-reading .markdown-body h1 { font-size:var(--workspace-document-title-size); }
+ .note-reading .markdown-body h2 { font-size:var(--workspace-section-title-size); margin-top:24px; }
+ .note-reading .markdown-body h3 { font-size:var(--workspace-subheading-size); }
+@@ -27,7 +30,18 @@
+ .notes-workspace :is(input,textarea,button,a,summary):focus-visible,.note-dialog :is(input,select,button,a,summary):focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
+ .note-fields textarea { min-height:85px; resize:vertical; line-height:1.8; }
+ .note-fields-row { display:flex; gap:16px; }.note-fields-row>label { flex:1; }
+-.note-edit-block { margin:18px 0; border:1px solid var(--workspace-separator); border-radius:var(--workspace-menu-radius); padding:16px; scroll-margin-top:16px; }
++.note-edit-block { margin:16px 0; border:1px solid transparent; border-bottom-color:var(--workspace-separator); border-radius:var(--workspace-control-radius); padding:10px; scroll-margin-top:16px; }
++.note-edit-block:focus-within { border-color:var(--workspace-separator); background:var(--workspace-secondary); }
++.note-edit-block:focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
++.note-edit-block:is(:hover,:focus-within) .app-icon-button:not(:disabled) { color:var(--color-text-primary); }
++.note-edit-block .note-block-input { margin:0; }
++.note-edit-block .note-block-input textarea { border-color:transparent; background:transparent; font-size:var(--workspace-reading-size); line-height:var(--workspace-reading-leading); }
++.note-fields .note-autosize { min-height:40px; max-height:min(60vh,520px); resize:none; overflow-y:auto; }
++.note-edit-heading .note-block-input textarea { font-size:var(--workspace-subheading-size); font-weight:600; line-height:1.5; }
++.note-fields .note-title-field { margin-top:0; }
++.note-fields .note-title-input { font-size:var(--workspace-document-title-size); font-weight:600; line-height:1.5; border-color:transparent; padding-inline:0; }
++.note-visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
++.notes-workspace .note-equation-editor .visual-math-field:focus-within { border-color:transparent; box-shadow:none; outline:2px solid var(--color-accent); outline-offset:2px; }
+ .note-checkbox, .note-fields .note-checkbox { display:flex !important; flex-direction:row !important; align-items:center; gap:8px; }
+ .note-source-selection label, .note-turn-selection label { display:flex; align-items:center; gap:8px; margin:10px 0; font-size:var(--workspace-interface-size); }
+ .note-turn-selection { max-height:250px; overflow:auto; }
+@@ -57,8 +71,8 @@
+ .context-session-entry:is(:hover,:focus-within):not([hidden])>.workspace-overflow-trigger,.context-session-entry:has(.is-active)>.workspace-overflow-trigger,.workspace-overflow-trigger[aria-expanded=true] { opacity:1; }
+ .context-session-error { padding:8px; font-size:12px; color:var(--danger); }
+ .app-shell[data-context="open"]:has(.learning-context-sidebar:not([hidden]) .context-session-row.is-active) .current-session-menu { display:none; }
+-@media(max-width:1024px) { .note-header-state { display:none; } .note-page-header { gap:8px; } }
+-@media(max-width:760px) { .note-save-status { max-width:60px; white-space:normal; font-size:10px; } .note-page-header { padding-right:12px; }.note-page-header .note-actions { gap:3px; }.note-page-header .note-actions :is(button,a) { padding-inline:6px; }.note-fields-row { flex-direction:column; gap:0; }.note-filters { grid-template-columns:1fr; }.note-document { padding-right:20px; }.context-session-entry>.workspace-overflow-trigger { opacity:1; } }
++@media(max-width:1024px) { .note-page-header { gap:8px; } }
++@media(max-width:760px) { .note-page-header { padding-right:12px; }.note-page-header .note-actions { gap:6px; }.note-page-header .note-actions :is(button,a) { padding-inline:8px; }.note-fields-row { flex-direction:column; gap:0; }.note-filters { grid-template-columns:1fr; }.note-document { padding-right:20px; }.context-session-entry>.workspace-overflow-trigger { opacity:1; } }
+ @media(hover:none) { .context-session-entry>.workspace-overflow-trigger { opacity:1; } }
+ 
+ @media(max-width:600px) {
+@@ -68,3 +82,15 @@
+   .note-edit-block { padding:12px; }
+   .note-document { padding-bottom:calc(70px + env(safe-area-inset-bottom)); }
+ }
++
++/* Keep native-window insets supplied by the workspace; only arrange note commands here. */
++.app-shell[data-layout] .management-workspace.notes-workspace .note-page-header { display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"title state actions"; }
++.note-page-header>h1 { grid-area:title; }
++.note-page-header>:is(.note-header-state,.note-save-status) { grid-area:state; justify-self:end; white-space:normal; }
++.note-page-header>.note-actions { grid-area:actions; }
++@media(max-width:760px) {
++  .app-shell[data-layout] .management-workspace.notes-workspace .note-page-header { grid-template-columns:auto minmax(0,1fr); grid-template-areas:"title state" "actions actions"; height:auto; min-height:var(--workspace-chrome-height); flex:0 0 auto; padding-block:8px; row-gap:6px; }
++  .note-page-header>.note-actions { justify-self:end; flex-wrap:wrap; }
++  .note-page-header>h1 { white-space:normal; }
++  .app-shell .notes-workspace .note-page-header .note-actions>:is(button,a) { min-height:44px; }
++}
+diff --git a/frontend/src/layouts/MobileConvergence.css b/frontend/src/layouts/MobileConvergence.css
+index 670fdd8..e996538 100644
+--- a/frontend/src/layouts/MobileConvergence.css
++++ b/frontend/src/layouts/MobileConvergence.css
+@@ -80,13 +80,6 @@
+  .app-shell .markdown-body .katex:not(.katex-display .katex) { display:inline-block;max-width:100%;overflow-x:auto;vertical-align:middle; }
+ }
+ @media(max-width:760px) {
+- .app-shell .note-page-header:has(.note-save-status) { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 8px; }
+- .app-shell .note-page-header .note-actions { display:contents; }
+- .app-shell .note-page-header h1 { grid-column:1; grid-row:1; font-size:14px; white-space:normal; }
+- .app-shell .note-page-header .note-actions > .app-primary-button { grid-column:2; grid-row:1; }
+- .app-shell .note-page-header .note-actions > a { grid-column:1; grid-row:2; justify-self:start; }
+- .app-shell .note-page-header .note-actions > .app-secondary-button { grid-column:2; grid-row:2; }
+- .app-shell .note-page-header .note-save-status { grid-column:1 / -1; grid-row:3; font-size:12px; }
+  .app-shell .notes-workspace .app-icon-button { min-width:44px; min-height:44px; }
+  .app-shell .notes-workspace .note-block-actions { gap:8px; }
+ }
+@@ -114,7 +107,3 @@
+ @media(max-width:1199px) {
+  .app-shell .markdown-body .katex-display > .katex { width:100%; min-width:0; }
+ }
+-@media(max-width:760px) {
+- .app-shell .notes-workspace .note-page-header:has(.note-save-status) { height:auto; flex-basis:auto; grid-template-rows:44px 44px auto; min-height:112px; }
+- .app-shell .notes-workspace .note-page-header .note-actions > :is(button,a) { min-height:44px; }
+-}
+diff --git a/frontend/src/features/notes/NoteTextarea.tsx b/frontend/src/features/notes/NoteTextarea.tsx
+new file mode 100644
+index 0000000..83d1212
+--- /dev/null
++++ b/frontend/src/features/notes/NoteTextarea.tsx
+@@ -0,0 +1,27 @@
++import { useLayoutEffect, useRef } from 'react';
++import type { TextareaHTMLAttributes } from 'react';
++
++/** Grow prose with its content; CSS bounds very long blocks instead of all paragraphs. */
++export function NoteTextarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
++    const ref = useRef<HTMLTextAreaElement>(null);
++    useLayoutEffect(() => {
++        const field = ref.current;
++        if (!field) return;
++        const fit = () => {
++            const c = getComputedStyle(field);
++            field.style.height = '0px';
++            field.style.height = `${field.scrollHeight + parseFloat(c.borderTopWidth) + parseFloat(c.borderBottomWidth)}px`;
++        };
++        fit();
++        let width = field.getBoundingClientRect().width;
++        const resize = new ResizeObserver(() => {
++            const next = field.getBoundingClientRect().width;
++            if (next !== width) { width = next; fit(); }
++        });
++        resize.observe(field);
++        let mounted = true;
++        void document.fonts.ready.then(() => { if (mounted) fit(); });
++        return () => { mounted = false; resize.disconnect(); };
++    }, [props.value]);
++    return <textarea {...props} ref={ref} rows={1} className={`note-autosize ${props.className || ''}`} />;
++}
+diff --git a/frontend/src/features/notes/hooks/useDraftPosition.ts b/frontend/src/features/notes/hooks/useDraftPosition.ts
+new file mode 100644
+index 0000000..5c51e81
+--- /dev/null
++++ b/frontend/src/features/notes/hooks/useDraftPosition.ts
+@@ -0,0 +1,74 @@
++import { useLayoutEffect, useRef } from 'react';
++
++type BlockPosition = { id: string; fraction: number; inset: number };
++/** Content anchors are shared by the editor and Markdown; pixel scroll positions are not. */
++export function useDraftPosition(editing: boolean) {
++    const scrollRef = useRef<HTMLDivElement>(null);
++    const focusedBlock = useRef<string | null>(null);
++    const pending = useRef<{ block: BlockPosition | null } | null>(null);
++    const rememberFocus = (target: EventTarget | null) => {
++        if (target instanceof Element) {
++            const block = target.closest<HTMLElement>('[data-note-block]');
++            if (block) focusedBlock.current = block.dataset.noteBlock || null;
++        }
++    };
++    const capture = () => {
++        const scroll = scrollRef.current;
++        if (!scroll) return;
++        if (scroll.scrollTop <= 1) { pending.current = { block: null }; return; }
++        const viewport = scroll.getBoundingClientRect();
++        const top = viewport.top + (scroll.querySelector('.note-delete-recovery')?.getBoundingClientRect().height || 0);
++        const visible = [...scroll.querySelectorAll<HTMLElement>('[data-note-block]')].filter(el => {
++            const r = el.getBoundingClientRect();
++            return r.bottom > top && r.top < viewport.bottom;
++        });
++        const block = visible.find(el => el.dataset.noteBlock === focusedBlock.current) || visible[0];
++        if (!block) { pending.current = { block: null }; return; }
++        const rect = block.getBoundingClientRect();
++        pending.current = { block: { id: block.dataset.noteBlock!, fraction: Math.max(0, (top - rect.top) / rect.height), inset: Math.max(0, rect.top - top) } };
++    };
++    useLayoutEffect(() => {
++        const position = pending.current;
++        pending.current = null;
++        const scroll = scrollRef.current;
++        if (!position || !scroll) return;
++        let stopped = false;
++        let frame = 0;
++        const stop = () => {
++            stopped = true;
++            cancelAnimationFrame(frame);
++            mutations.disconnect();
++            resize.disconnect();
++            for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown']) scroll.removeEventListener(type, stop);
++        };
++        const restore = () => {
++            if (stopped) return;
++            const block = position.block;
++            if (!block) { scroll.scrollTop = 0; return; }
++            const target = [...scroll.querySelectorAll<HTMLElement>('[data-note-block]')].find(el => el.dataset.noteBlock === block.id);
++            if (!target) return;
++            const r = target.getBoundingClientRect();
++            const top = scroll.getBoundingClientRect().top + (scroll.querySelector('.note-delete-recovery')?.getBoundingClientRect().height || 0);
++            scroll.scrollTop += r.top - top + block.fraction * r.height - Math.min(block.inset, scroll.clientHeight / 2);
++        };
++        const schedule = () => {
++            cancelAnimationFrame(frame);
++            frame = requestAnimationFrame(() => {
++                restore();
++                // Suspense and MathLive can change preceding block heights after the mode switch.
++                const loading = scroll.querySelector('[data-texa-markdown-loading], .note-equation-editor:not(:has(math-field))');
++                if (!loading) frame = requestAnimationFrame(() => { restore(); stop(); });
++            });
++        };
++        const mutations = new MutationObserver(schedule);
++        const resize = new ResizeObserver(schedule);
++        mutations.observe(scroll, { childList: true, subtree: true });
++        const document = scroll.querySelector('.note-document');
++        if (document) resize.observe(document);
++        for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown']) scroll.addEventListener(type, stop, { passive: true });
++        void window.document.fonts.ready.then(() => { if (!stopped) schedule(); });
++        schedule();
++        return stop;
++    }, [editing]);
++    return { scrollRef, capture, rememberFocus };
++}

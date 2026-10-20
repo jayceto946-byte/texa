@@ -1,0 +1,50 @@
+{
+  "providerRequests": 1,
+  "eventCounts": {
+    "progress": 1,
+    "state_transition": 4,
+    "output_delta": 1945,
+    "final": 1
+  },
+  "finalStatus": "completed",
+  "observedMilliseconds": 18148.400000002235,
+  "renderedCharacters": 3715,
+  "autoFollowBottomGap": 0.5,
+  "manualStart": {
+    "t": 8344.5,
+    "top": 22.5,
+    "height": 1267
+  },
+  "manualEnd": {
+    "t": 10441.89999999851,
+    "top": 22.5,
+    "height": 1883
+  },
+  "manualTextStart": 921,
+  "manualTextEnd": 1639,
+  "returnBottomGap": 0.5,
+  "finalBottomGap": -0.5,
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "pass": true
+    },
+    {
+      "name": "actual rendered scroll samples collected",
+      "pass": true
+    },
+    {
+      "name": "user reading position retained during stream",
+      "pass": true
+    },
+    {
+      "name": "return latest reaches bottom",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "trace": "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/live/2026-10-19T07-42-28.162Z/results.json"
+}

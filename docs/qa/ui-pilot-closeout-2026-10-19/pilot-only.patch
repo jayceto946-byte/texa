@@ -1,0 +1,163 @@
+diff --git a/frontend/src/components/chat/ComposerOverflowMenu.tsx b/frontend/src/components/chat/ComposerOverflowMenu.tsx
+index de911a2..aca04ac 100644
+--- a/frontend/src/components/chat/ComposerOverflowMenu.tsx
++++ b/frontend/src/components/chat/ComposerOverflowMenu.tsx
+@@ -1,4 +1,4 @@
+-import { useEffect, useRef, useState, type ReactNode } from 'react';
++import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+ import { MoreHorizontal } from 'lucide-react';
+ 
+ export default function ComposerOverflowMenu({
+@@ -11,10 +11,25 @@ export default function ComposerOverflowMenu({
+   const [open, setOpen] = useState(false);
+   const rootRef = useRef<HTMLDivElement>(null);
+   const triggerRef = useRef<HTMLButtonElement>(null);
++  const menuRef = useRef<HTMLDivElement>(null);
++  const openAtEnd = useRef(false);
++  const menuId = useId();
++
++  const menuItems = () => Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>(
++    '[role="menuitem"]:not(:disabled):not([aria-disabled="true"])',
++  ) || []);
++
++  const close = () => {
++    setOpen(false);
++    document.getElementById(`${menuId}-trigger`)?.focus({ preventScroll: true });
++  };
+ 
+   useEffect(() => {
+     if (!open) return;
+ 
++    const items = menuItems();
++    (items[openAtEnd.current ? items.length - 1 : 0] || menuRef.current)?.focus({ preventScroll: true });
++
+     const dismissOutside = (event: PointerEvent) => {
+       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+     };
+@@ -22,7 +37,7 @@ export default function ComposerOverflowMenu({
+       if (event.key !== 'Escape') return;
+       event.preventDefault();
+       setOpen(false);
+-      triggerRef.current?.focus();
++      triggerRef.current?.focus({ preventScroll: true });
+     };
+ 
+     document.addEventListener('pointerdown', dismissOutside, true);
+@@ -33,24 +48,43 @@ export default function ComposerOverflowMenu({
+     };
+   }, [open]);
+ 
+-  const close = () => setOpen(false);
+-
+   return (
+-    <div ref={rootRef} className={`chat-more-actions relative ${className}`}>
++    <div ref={rootRef} className={`chat-more-actions relative ${className}`} onBlur={event => {
++      if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
++    }}>
+       <button
+         ref={triggerRef}
++        id={`${menuId}-trigger`}
+         type="button"
+         className={`composer-tool-button composer-more-trigger ${open ? 'is-active' : ''}`}
+         aria-label={label}
+         aria-haspopup="menu"
+         aria-expanded={open}
++        aria-controls={open ? menuId : undefined}
+         title={label}
+-        onClick={() => setOpen((value) => !value)}
++        onClick={() => { openAtEnd.current = false; setOpen((value) => !value); }}
++        onKeyDown={event => {
++          if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
++          event.preventDefault();
++          openAtEnd.current = event.key === 'ArrowUp';
++          setOpen(true);
++        }}
+       >
+         <MoreHorizontal className="h-4 w-4" aria-hidden="true" /><span>{label}</span>
+       </button>
+       {open && (
+-        <div className="composer-overflow-menu" role="menu" aria-label="更多学习操作">
++        <div ref={menuRef} id={menuId} className="composer-overflow-menu" role="menu" aria-label={label} tabIndex={-1} onKeyDown={event => {
++          if (event.key === 'Tab') { close(); return; }
++          const items = menuItems();
++          if (!items.length) return;
++          const index = items.indexOf(document.activeElement as HTMLButtonElement);
++          let next: number | undefined;
++          if (event.key === 'ArrowDown') next = (index + 1) % items.length;
++          if (event.key === 'ArrowUp') next = (index - 1 + items.length) % items.length;
++          if (event.key === 'Home') next = 0;
++          if (event.key === 'End') next = items.length - 1;
++          if (next !== undefined) { event.preventDefault(); items[next]?.focus({ preventScroll: true }); }
++        }}>
+           {children(close)}
+         </div>
+       )}
+diff --git a/frontend/src/index.css b/frontend/src/index.css
+index f028004..1498243 100644
+--- a/frontend/src/index.css
++++ b/frontend/src/index.css
+@@ -3090,6 +3090,11 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .learning-workspace-header {
+   padding: 4px 4px 8px;
+ }
+ 
++.composer-error {
++  margin: 8px 12px 0;
++  color: var(--danger-text);
++}
++
+ .composer-surface .composer-textarea,
+ .composer-surface .composer-textarea:focus {
+   display: block;
+@@ -3148,13 +3153,18 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .learning-workspace-header {
+   list-style: none;
+ }
+ 
+-.composer-tool-button:hover,
++.composer-tool-button:enabled:hover,
++.composer-tool-button:enabled:focus-visible,
+ .composer-tool-button.is-active {
+-  border-color: var(--color-border);
+   background: var(--surface-subtle);
+   color: var(--color-text-primary);
+ }
+ 
++.composer-tool-button:disabled {
++  opacity: 0.45;
++  cursor: not-allowed;
++}
++
+ .composer-tool-button.is-active {
+   color: var(--color-accent);
+ }
+@@ -3180,7 +3190,7 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .learning-workspace-header {
+   transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease;
+ }
+ 
+-.composer-send:hover {
++.composer-send:enabled:hover {
+   border-color: var(--color-accent-hover);
+   background: var(--color-accent-hover);
+ }
+@@ -3227,7 +3237,8 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .learning-workspace-header {
+   text-align: left;
+ }
+ 
+-.composer-overflow-item:hover {
++.composer-overflow-item:enabled:hover,
++.composer-overflow-item:enabled:focus-visible {
+   background: var(--surface-subtle);
+   color: var(--color-text-primary);
+ }
+diff --git a/frontend/src/pages/ChatPage.tsx b/frontend/src/pages/ChatPage.tsx
+index 96eeb1f..4c44856 100644
+--- a/frontend/src/pages/ChatPage.tsx
++++ b/frontend/src/pages/ChatPage.tsx
+@@ -1017,7 +1017,7 @@ const ChatPage: React.FC = () => {
+           )}
+           <form onSubmit={handleSubmit} className="composer-surface"><fieldset disabled={inTrash} className="conversation-composer-fields">
+             <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png" capture="environment" className="hidden" onChange={(event) => { selectAttachment(event.target.files?.[0]); event.target.value = ''; }} />
+-            {attachmentError && <p role="alert" className="text-sm text-red-500">{attachmentError}</p>}
++            {attachmentError && <p role="alert" className="composer-error text-sm">{attachmentError}</p>}
+             <input ref={attachmentInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" className="hidden" onChange={(event) => { selectAttachment(event.target.files?.[0]); event.target.value = ''; }} />
+             {activeFigure && !figureWorkspaceExpanded && (
+               <FigureContextAttachment

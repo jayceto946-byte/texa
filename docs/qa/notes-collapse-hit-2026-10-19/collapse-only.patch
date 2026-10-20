@@ -1,0 +1,11 @@
+--- a/frontend/src/features/notes/notes.css
++++ b/frontend/src/features/notes/notes.css
+@@ -115,6 +115,8 @@
+ @media(max-width:600px) { .note-meta-content { grid-template-columns:minmax(0,1fr); } }
+ 
+ /* Native window controls own the top 32px; note commands start at the left below them. */
++/* The sidebar trigger is a sibling: a later draggable header masks its native mouse hit area. */
++body:has(.desktop-titlebar-marker.is-macos) .app-shell .notes-workspace .note-page-header { -webkit-app-region:no-drag; }
+ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .workspace-stage:has(.persistent-route-panel:not([hidden]) .notes-workspace) { padding-top:32px; }
+ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .workspace-stage:has(.persistent-route-panel:not([hidden]) .notes-workspace)::before { content:""; position:absolute; inset:0 0 auto; height:32px; background:var(--workspace-canvas); -webkit-app-region:drag; }
+ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell:not(.study-desk)[data-navigation="closed"] .management-workspace.notes-workspace .note-page-header { padding-left:60px; }

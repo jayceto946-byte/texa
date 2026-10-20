@@ -1,0 +1,142 @@
+{
+  "phase": "after",
+  "checks": [
+    {
+      "name": "760-history: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760-history: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "760-history: one command row",
+      "pass": true
+    },
+    {
+      "name": "760-history: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "760-history: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-history: sidebar trigger shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-history: sidebar and title are anchored at the left",
+      "pass": false
+    }
+  ],
+  "measurements": {
+    "760-history": {
+      "header": {
+        "x": 0,
+        "y": 32,
+        "width": 760,
+        "height": 56,
+        "top": 32,
+        "right": 760,
+        "bottom": 88,
+        "left": 0
+      },
+      "title": {
+        "x": 60,
+        "y": 49.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 49.1015625,
+        "right": 92,
+        "bottom": 69.8984375,
+        "left": 60
+      },
+      "state": {
+        "x": 102,
+        "y": 51.1015625,
+        "width": 92.8203125,
+        "height": 16.796875,
+        "top": 51.1015625,
+        "right": 194.8203125,
+        "bottom": 67.8984375,
+        "left": 102
+      },
+      "scrollBottom": 820,
+      "viewport": 820,
+      "trigger": {
+        "x": 108,
+        "y": 38,
+        "width": 44,
+        "height": 44,
+        "top": 38,
+        "right": 152,
+        "bottom": 82,
+        "left": 108
+      },
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 604,
+            "y": 37.5,
+            "width": 64,
+            "height": 44,
+            "top": 37.5,
+            "right": 668,
+            "bottom": 81.5,
+            "left": 604
+          }
+        },
+        {
+          "label": "当前版本",
+          "rect": {
+            "x": 674,
+            "y": 37.5,
+            "width": 66,
+            "height": 44,
+            "top": 37.5,
+            "right": 740,
+            "bottom": 81.5,
+            "left": 674
+          }
+        }
+      ],
+      "utilities": [
+        {
+          "label": "目录与笔记信息",
+          "rect": {
+            "x": 22,
+            "y": 248.796875,
+            "width": 102,
+            "height": 44,
+            "top": 248.796875,
+            "right": 124,
+            "bottom": 292.796875,
+            "left": 22
+          }
+        },
+        {
+          "label": "保存的历史版本",
+          "rect": {
+            "x": 22,
+            "y": 2686.875,
+            "width": 709,
+            "height": 24.6953125,
+            "top": 2686.875,
+            "right": 731,
+            "bottom": 2711.5703125,
+            "left": 22
+          }
+        }
+      ],
+      "overflow": false
+    }
+  },
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T11-59-34.418Z/failure.png"
+  ],
+  "errors": [
+    "Error: 760-history: sidebar and title are anchored at the left"
+  ]
+}

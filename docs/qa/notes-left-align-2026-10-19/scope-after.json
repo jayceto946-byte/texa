@@ -1,0 +1,15 @@
+{
+  "changedPreexistingFiles": [
+    "frontend/src/features/notes/notes.css",
+    "patch_notes.md"
+  ],
+  "unrelatedWorkUnchanged": true,
+  "patchNotesOriginalPreserved": true,
+  "stagedFiles": [],
+  "remoteRequests": 0,
+  "nativeSidebarCheck": {
+    "openObserved": true,
+    "closedObserved": true,
+    "method": "CUA native accessibility actions in isolated Electron"
+  }
+}

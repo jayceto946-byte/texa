@@ -1,0 +1,16 @@
+{
+  "products": [
+    {
+      "path": "frontend/src/pages/NoteDetailPage.tsx",
+      "sha256": "b94c4d5af9decb6a2025a6107f2d809fcaf2541698416207413222a2207c310e"
+    },
+    {
+      "path": "frontend/src/features/notes/DraftWorkspace.tsx",
+      "sha256": "82a42d4321f11cfbf0a375dcb20997c0deefc1d597c985f252a5bf39e7969c8f"
+    },
+    {
+      "path": "frontend/src/features/notes/notes.css",
+      "sha256": "0cf334ffdcfe82cd7549960ce478b9078b361a2d691dbbbbdbd4a0269b050b88"
+    }
+  ]
+}

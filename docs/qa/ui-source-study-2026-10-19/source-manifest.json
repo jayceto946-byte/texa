@@ -1,0 +1,127 @@
+{
+  "date": "2026-10-19",
+  "repository": "https://github.com/Caho1/open-claude-ui",
+  "commit": "4045ce76afdcb7dccef1b7e6417b04c4c6046e9c",
+  "localSource": "/private/tmp/texa-open-claude-ui-study",
+  "method": "source inspection, not independent verification against proprietary upstream",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "2de171e380a5f2759d98e31c032a11006a5920434e84dafd46d9c5bb043dc6f2"
+    },
+    {
+      "path": "docs/v1/01-设计哲学与设计令牌体系.md",
+      "sha256": "05975f3967e3bf1840d868e34b607d36b0d8eb78addefc1bb783fba73e1d4923"
+    },
+    {
+      "path": "docs/v1/02-基础原子组件与交互控件.md",
+      "sha256": "ccc0d1ae1c8de00cd313daf6963304b061db3fba985bd045bcf9e93dd4d10ed1"
+    },
+    {
+      "path": "docs/v1/03-会话核心流与指令交互引擎.md",
+      "sha256": "8da7065deabc1c92c00f1f4260f6aab82b5ceea4e2f4240d5748489c13a7af44"
+    },
+    {
+      "path": "docs/v1/04-动效物理学、着色器与环境光影.md",
+      "sha256": "e1c139391e8f8558903ccad2aa33e4e30890575c048241ef3456aba087ca3ce0"
+    },
+    {
+      "path": "docs/v1/06-系统级桌面架构与协作拓扑.md",
+      "sha256": "9b3652b46dbf350671e779cd4d35c04820902b9a7af4de2b92208e0dde0ef713"
+    },
+    {
+      "path": "docs/v2/01-综述与版本边界.md",
+      "sha256": "793b2c225a5c2cb7bb22b2ccc051d3983d550c8400cb84b36c1bf8bec00d4783"
+    },
+    {
+      "path": "docs/v2/03-架构重构与对比分析.md",
+      "sha256": "b51a19ebaa37df20501d7be4490dcd50e26139c03657d3566761d39ca0dbdd48"
+    },
+    {
+      "path": "docs/claude-components-storybook.html",
+      "sha256": "b93d05ffb6ea871b7e131c095ffe8254093adb9bfc897f29093e6b199fb11c60"
+    },
+    {
+      "path": "code-examples/ChatComposer.tsx",
+      "sha256": "573d47a44cb0f314b4967cc556f6eab60802fa7ffd20cc0b55d134cfa0264b0e"
+    },
+    {
+      "path": "code-examples/CdsButton.tsx",
+      "sha256": "d387f50f343ef15522013f53191adcc71e1a218d2a858673ce096efa203fa339"
+    },
+    {
+      "path": "code-examples/ChatMessageBubbles.tsx",
+      "sha256": "2ca7e2ef08d3c1a08cec60bb58a5cb563114fc310309e7552b613bb8ce9fe066"
+    },
+    {
+      "path": "code-examples/ClaudeMotionPresets.ts",
+      "sha256": "e5841ca092a724af4d3a3df49f26721f33bd66bf04f6597ac42fe97e565e10b4"
+    },
+    {
+      "path": "code-examples/ContainerResponsiveBar.tsx",
+      "sha256": "5dee302bbc2eaabebb6f4dd18c1a76447dc510c244cd6526019ae7a63a997455"
+    },
+    {
+      "path": "code-examples/useClaudeScrollPinning.ts",
+      "sha256": "98a36dc6ef4ed790e4935d1ff424b224b718df2f23f4126a130ae113ddb7a212"
+    },
+    {
+      "path": "code-examples/useClaudeRovingFocus.ts",
+      "sha256": "a318504d7dc22983852621db66242c657db0f1f0d6dcff3dfd56ad400e552ac8"
+    },
+    {
+      "path": "code-examples/cds-theme.css",
+      "sha256": "1e4114f9e86e4e6a81bdadec9379e1b73c13fa12b4fde48377275ead37ce5911"
+    },
+    {
+      "path": "code-examples/SegmentedControl.tsx",
+      "sha256": "556ddc843ca7984a5666287aedf34e1705ccbd1b45d10c9ec1fd1222af954d0f"
+    },
+    {
+      "path": "code-examples/AttachmentCard.tsx",
+      "sha256": "53e17cdb3f6164e56bd4ca45e96647fc59b2eb43e8f7a0ed413c5c644b2d3b0b"
+    },
+    {
+      "path": "code-examples/ConfirmationDialog.tsx",
+      "sha256": "91ae8ff10fc20214f4f2df2b511427827d138ffc833acb502f5f89b1be62638b"
+    },
+    {
+      "path": "code-examples/McpToolDecisionCard.tsx",
+      "sha256": "2f9b3c2bae3318bb02573d35da7d1bbb1a667785fc960471705e0265cdee550a"
+    },
+    {
+      "path": "code-examples/ThinkingAccordion.tsx",
+      "sha256": "d260f2de6a9e3751b1606cc8d74023561716161df6f6c506ef9343f6060ee3c2"
+    },
+    {
+      "path": "code-examples/RichComposerWithMentions.tsx",
+      "sha256": "fe1bbb9e55587e2af63cc82eaa83b22876169e28b9903555121f1c750c40506f"
+    },
+    {
+      "path": "code-examples/ChatComposerChin.tsx",
+      "sha256": "c82db4397ba8743b35e18b056357863a1c1990f8cd93d698a22638e33dcdf6f9"
+    },
+    {
+      "path": "code-examples/ScrollFadeContainer.tsx",
+      "sha256": "97ac1134c0b1f95b29aa87e684e8af1e38c02ef7e1e29bd5b09b132674b596a1"
+    },
+    {
+      "path": "code-examples/StatusIndicators.tsx",
+      "sha256": "9a138c069eb3b31c64efd7af5f99e1aeafc0cb1171c2feff8b5e6b8b98fee4ed"
+    }
+  ],
+  "texaFiles": [
+    {
+      "path": "frontend/src/components/chat/ComposerOverflowMenu.tsx",
+      "sha256": "999bff380d96dcab5296714b05a5ec4ef35c9cd44ca76eaaf1e2d6fd441b55b4"
+    },
+    {
+      "path": "frontend/src/pages/ChatPage.tsx",
+      "sha256": "19f62324a3778f6f98f9db0d353b7484636f09e12e1ec7cc2bb0b9cd3351315f"
+    },
+    {
+      "path": "frontend/src/index.css",
+      "sha256": "0c8015094bb2df5b2913d6d84319516fe4bae11827616c44e3d577fa741f4316"
+    }
+  ]
+}

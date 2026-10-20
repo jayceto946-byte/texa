@@ -1,0 +1,1756 @@
+{
+  "phase": "after",
+  "checks": [
+    {
+      "name": "760-history: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760-history: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "760-history: one command row",
+      "pass": true
+    },
+    {
+      "name": "760-history: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "760-history: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-history: sidebar trigger shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-history: sidebar and title are anchored at the left",
+      "pass": true
+    },
+    {
+      "name": "760-history: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "760-history: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "760-current: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760-current: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "760-current: one command row",
+      "pass": true
+    },
+    {
+      "name": "760-current: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "760-current: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-current: sidebar trigger shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-current: sidebar and title are anchored at the left",
+      "pass": true
+    },
+    {
+      "name": "760-current: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "760-current: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "760-draft: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760-draft: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "760-draft: one command row",
+      "pass": true
+    },
+    {
+      "name": "760-draft: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "760-draft: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-draft: sidebar trigger shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-draft: sidebar and title are anchored at the left",
+      "pass": true
+    },
+    {
+      "name": "760-draft: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "760-draft: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "1024-history: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024-history: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "1024-history: one command row",
+      "pass": true
+    },
+    {
+      "name": "1024-history: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "1024-history: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "1024-history: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "1024-history: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "1024-current: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024-current: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "1024-current: one command row",
+      "pass": true
+    },
+    {
+      "name": "1024-current: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "1024-current: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "1024-current: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "1024-current: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "1024-draft: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024-draft: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "1024-draft: one command row",
+      "pass": true
+    },
+    {
+      "name": "1024-draft: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "1024-draft: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "1024-draft: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "1024-draft: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "1280-history: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1280-history: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "1280-history: one command row",
+      "pass": true
+    },
+    {
+      "name": "1280-history: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "1280-history: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "1280-history: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "1280-history: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "1280-current: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1280-current: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "1280-current: one command row",
+      "pass": true
+    },
+    {
+      "name": "1280-current: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "1280-current: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "1280-current: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "1280-current: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "1280-draft: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1280-draft: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "1280-draft: one command row",
+      "pass": true
+    },
+    {
+      "name": "1280-draft: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "1280-draft: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "1280-draft: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "1280-draft: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "one compact document utility disclosure",
+      "pass": true
+    },
+    {
+      "name": "keyboard opens grouped contents and note information",
+      "pass": true
+    },
+    {
+      "name": "contents link reaches its actual heading",
+      "pass": true
+    },
+    {
+      "name": "760-navigation-closed: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760-navigation-closed: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "760-navigation-closed: one command row",
+      "pass": true
+    },
+    {
+      "name": "760-navigation-closed: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "760-navigation-closed: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-navigation-closed: sidebar trigger shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-navigation-closed: sidebar and title are anchored at the left",
+      "pass": true
+    },
+    {
+      "name": "760-navigation-closed: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "760-navigation-closed: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "760-archived: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760-archived: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "760-archived: one command row",
+      "pass": true
+    },
+    {
+      "name": "760-archived: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "760-archived: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-archived: sidebar trigger shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-archived: sidebar and title are anchored at the left",
+      "pass": true
+    },
+    {
+      "name": "760-archived: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "760-archived: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "archive state stays visible",
+      "pass": true
+    },
+    {
+      "name": "760-conflict: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760-conflict: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "760-conflict: one command row",
+      "pass": true
+    },
+    {
+      "name": "760-conflict: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "760-conflict: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-conflict: sidebar trigger shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "760-conflict: sidebar and title are anchored at the left",
+      "pass": true
+    },
+    {
+      "name": "760-conflict: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "760-conflict: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "conflict still prevents publication",
+      "pass": true
+    },
+    {
+      "name": "actual fullscreen removes native-only strip",
+      "pass": true
+    },
+    {
+      "name": "SPA navigation removes note-only strip while cached note remains mounted",
+      "pass": true
+    },
+    {
+      "name": "760: adjacent notes library has no overflow",
+      "pass": true
+    },
+    {
+      "name": "760: adjacent learning composer available",
+      "pass": true
+    },
+    {
+      "name": "1280: adjacent notes library has no overflow",
+      "pass": true
+    },
+    {
+      "name": "1280: adjacent learning composer available",
+      "pass": true
+    },
+    {
+      "name": "final-native: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "final-native: reading scroll stays inside window",
+      "pass": true
+    },
+    {
+      "name": "final-native: one command row",
+      "pass": true
+    },
+    {
+      "name": "final-native: commands share header centerline",
+      "pass": true
+    },
+    {
+      "name": "final-native: title shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "final-native: sidebar trigger shares command centerline",
+      "pass": true
+    },
+    {
+      "name": "final-native: sidebar and title are anchored at the left",
+      "pass": true
+    },
+    {
+      "name": "final-native: native controls have their own 32px strip",
+      "pass": true
+    },
+    {
+      "name": "final-native: state stays with page identity",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "measurements": {
+    "760-history": {
+      "header": {
+        "x": 0,
+        "y": 32,
+        "width": 760,
+        "height": 56,
+        "top": 32,
+        "right": 760,
+        "bottom": 88,
+        "left": 0
+      },
+      "title": {
+        "x": 60,
+        "y": 49.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 49.1015625,
+        "right": 92,
+        "bottom": 69.8984375,
+        "left": 60
+      },
+      "state": {
+        "x": 102,
+        "y": 51.1015625,
+        "width": 92.8203125,
+        "height": 16.796875,
+        "top": 51.1015625,
+        "right": 194.8203125,
+        "bottom": 67.8984375,
+        "left": 102
+      },
+      "scrollBottom": 820,
+      "viewport": 820,
+      "trigger": {
+        "x": 8,
+        "y": 38,
+        "width": 44,
+        "height": 44,
+        "top": 38,
+        "right": 52,
+        "bottom": 82,
+        "left": 8
+      },
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 604,
+            "y": 37.5,
+            "width": 64,
+            "height": 44,
+            "top": 37.5,
+            "right": 668,
+            "bottom": 81.5,
+            "left": 604
+          }
+        },
+        {
+          "label": "当前版本",
+          "rect": {
+            "x": 674,
+            "y": 37.5,
+            "width": 66,
+            "height": 44,
+            "top": 37.5,
+            "right": 740,
+            "bottom": 81.5,
+            "left": 674
+          }
+        }
+      ],
+      "utilities": [
+        {
+          "label": "目录与笔记信息",
+          "rect": {
+            "x": 22,
+            "y": 248.796875,
+            "width": 102,
+            "height": 44,
+            "top": 248.796875,
+            "right": 124,
+            "bottom": 292.796875,
+            "left": 22
+          }
+        },
+        {
+          "label": "保存的历史版本",
+          "rect": {
+            "x": 22,
+            "y": 2686.875,
+            "width": 709,
+            "height": 24.6953125,
+            "top": 2686.875,
+            "right": 731,
+            "bottom": 2711.5703125,
+            "left": 22
+          }
+        }
+      ],
+      "overflow": false
+    },
+    "760-current": {
+      "header": {
+        "x": 0,
+        "y": 32,
+        "width": 760,
+        "height": 56,
+        "top": 32,
+        "right": 760,
+        "bottom": 88,
+        "left": 0
+      },
+      "title": {
+        "x": 60,
+        "y": 49.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 49.1015625,
+        "right": 92,
+        "bottom": 69.8984375,
+        "left": 60
+      },
+      "state": {
+        "x": 102,
+        "y": 51.1015625,
+        "width": 82.1953125,
+        "height": 16.796875,
+        "top": 51.1015625,
+        "right": 184.1953125,
+        "bottom": 67.8984375,
+        "left": 102
+      },
+      "scrollBottom": 820,
+      "viewport": 820,
+      "trigger": {
+        "x": 8,
+        "y": 38,
+        "width": 44,
+        "height": 44,
+        "top": 38,
+        "right": 52,
+        "bottom": 82,
+        "left": 8
+      },
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 580,
+            "y": 37.5,
+            "width": 64,
+            "height": 44,
+            "top": 37.5,
+            "right": 644,
+            "bottom": 81.5,
+            "left": 580
+          }
+        },
+        {
+          "label": "编辑",
+          "rect": {
+            "x": 650,
+            "y": 37.5,
+            "width": 42,
+            "height": 44,
+            "top": 37.5,
+            "right": 692,
+            "bottom": 81.5,
+            "left": 650
+          }
+        },
+        {
+          "label": "归档",
+          "rect": {
+            "x": 698,
+            "y": 37.5,
+            "width": 42,
+            "height": 44,
+            "top": 37.5,
+            "right": 740,
+            "bottom": 81.5,
+            "left": 698
+          }
+        }
+      ],
+      "utilities": [
+        {
+          "label": "目录与笔记信息",
+          "rect": {
+            "x": 22,
+            "y": 248.796875,
+            "width": 102,
+            "height": 44,
+            "top": 248.796875,
+            "right": 124,
+            "bottom": 292.796875,
+            "left": 22
+          }
+        },
+        {
+          "label": "保存的历史版本",
+          "rect": {
+            "x": 22,
+            "y": 2686.875,
+            "width": 709,
+            "height": 24.6953125,
+            "top": 2686.875,
+            "right": 731,
+            "bottom": 2711.5703125,
+            "left": 22
+          }
+        }
+      ],
+      "overflow": false
+    },
+    "760-draft": {
+      "header": {
+        "x": 0,
+        "y": 32,
+        "width": 760,
+        "height": 56,
+        "top": 32,
+        "right": 760,
+        "bottom": 88,
+        "left": 0
+      },
+      "title": {
+        "x": 60,
+        "y": 49.1015625,
+        "width": 64,
+        "height": 20.796875,
+        "top": 49.1015625,
+        "right": 124,
+        "bottom": 69.8984375,
+        "left": 60
+      },
+      "state": {
+        "x": 134,
+        "y": 51.1015625,
+        "width": 60,
+        "height": 16.796875,
+        "top": 51.1015625,
+        "right": 194,
+        "bottom": 67.8984375,
+        "left": 134
+      },
+      "scrollBottom": 820,
+      "viewport": 820,
+      "trigger": {
+        "x": 8,
+        "y": 38,
+        "width": 44,
+        "height": 44,
+        "top": 38,
+        "right": 52,
+        "bottom": 82,
+        "left": 8
+      },
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 532,
+            "y": 37.5,
+            "width": 64,
+            "height": 44,
+            "top": 37.5,
+            "right": 596,
+            "bottom": 81.5,
+            "left": 532
+          }
+        },
+        {
+          "label": "阅读预览",
+          "rect": {
+            "x": 602,
+            "y": 37.5,
+            "width": 66,
+            "height": 44,
+            "top": 37.5,
+            "right": 668,
+            "bottom": 81.5,
+            "left": 602
+          }
+        },
+        {
+          "label": "保存修改",
+          "rect": {
+            "x": 674,
+            "y": 37.5,
+            "width": 66,
+            "height": 44,
+            "top": 37.5,
+            "right": 740,
+            "bottom": 81.5,
+            "left": 674
+          }
+        }
+      ],
+      "utilities": [],
+      "overflow": false
+    },
+    "1024-history": {
+      "header": {
+        "x": 208,
+        "y": 32,
+        "width": 816,
+        "height": 48,
+        "top": 32,
+        "right": 1024,
+        "bottom": 80,
+        "left": 208
+      },
+      "title": {
+        "x": 240,
+        "y": 45.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 45.1015625,
+        "right": 272,
+        "bottom": 65.8984375,
+        "left": 240
+      },
+      "state": {
+        "x": 282,
+        "y": 47.1015625,
+        "width": 92.8203125,
+        "height": 16.796875,
+        "top": 47.1015625,
+        "right": 374.8203125,
+        "bottom": 63.8984375,
+        "left": 282
+      },
+      "scrollBottom": 768,
+      "viewport": 768,
+      "trigger": null,
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 840,
+            "y": 41.5,
+            "width": 68,
+            "height": 28,
+            "top": 41.5,
+            "right": 908,
+            "bottom": 69.5,
+            "left": 840
+          }
+        },
+        {
+          "label": "当前版本",
+          "rect": {
+            "x": 914,
+            "y": 41.5,
+            "width": 78,
+            "height": 28,
+            "top": 41.5,
+            "right": 992,
+            "bottom": 69.5,
+            "left": 914
+          }
+        }
+      ],
+      "utilities": [
+        {
+          "label": "目录与笔记信息",
+          "rect": {
+            "x": 248,
+            "y": 240.796875,
+            "width": 102,
+            "height": 30.796875,
+            "top": 240.796875,
+            "right": 350,
+            "bottom": 271.59375,
+            "left": 248
+          }
+        },
+        {
+          "label": "保存的历史版本",
+          "rect": {
+            "x": 248,
+            "y": 2661.671875,
+            "width": 727,
+            "height": 24.6953125,
+            "top": 2661.671875,
+            "right": 975,
+            "bottom": 2686.3671875,
+            "left": 248
+          }
+        }
+      ],
+      "overflow": false
+    },
+    "1024-current": {
+      "header": {
+        "x": 208,
+        "y": 32,
+        "width": 816,
+        "height": 48,
+        "top": 32,
+        "right": 1024,
+        "bottom": 80,
+        "left": 208
+      },
+      "title": {
+        "x": 240,
+        "y": 45.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 45.1015625,
+        "right": 272,
+        "bottom": 65.8984375,
+        "left": 240
+      },
+      "state": {
+        "x": 282,
+        "y": 47.1015625,
+        "width": 82.1953125,
+        "height": 16.796875,
+        "top": 47.1015625,
+        "right": 364.1953125,
+        "bottom": 63.8984375,
+        "left": 282
+      },
+      "scrollBottom": 768,
+      "viewport": 768,
+      "trigger": null,
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 804,
+            "y": 41.5,
+            "width": 68,
+            "height": 28,
+            "top": 41.5,
+            "right": 872,
+            "bottom": 69.5,
+            "left": 804
+          }
+        },
+        {
+          "label": "编辑",
+          "rect": {
+            "x": 878,
+            "y": 41.5,
+            "width": 54,
+            "height": 28,
+            "top": 41.5,
+            "right": 932,
+            "bottom": 69.5,
+            "left": 878
+          }
+        },
+        {
+          "label": "归档",
+          "rect": {
+            "x": 938,
+            "y": 41.5,
+            "width": 54,
+            "height": 28,
+            "top": 41.5,
+            "right": 992,
+            "bottom": 69.5,
+            "left": 938
+          }
+        }
+      ],
+      "utilities": [
+        {
+          "label": "目录与笔记信息",
+          "rect": {
+            "x": 248,
+            "y": 240.796875,
+            "width": 102,
+            "height": 30.796875,
+            "top": 240.796875,
+            "right": 350,
+            "bottom": 271.59375,
+            "left": 248
+          }
+        },
+        {
+          "label": "保存的历史版本",
+          "rect": {
+            "x": 248,
+            "y": 2661.671875,
+            "width": 727,
+            "height": 24.6953125,
+            "top": 2661.671875,
+            "right": 975,
+            "bottom": 2686.3671875,
+            "left": 248
+          }
+        }
+      ],
+      "overflow": false
+    },
+    "1024-draft": {
+      "header": {
+        "x": 208,
+        "y": 32,
+        "width": 816,
+        "height": 48,
+        "top": 32,
+        "right": 1024,
+        "bottom": 80,
+        "left": 208
+      },
+      "title": {
+        "x": 240,
+        "y": 45.1015625,
+        "width": 64,
+        "height": 20.796875,
+        "top": 45.1015625,
+        "right": 304,
+        "bottom": 65.8984375,
+        "left": 240
+      },
+      "state": {
+        "x": 314,
+        "y": 47.1015625,
+        "width": 60,
+        "height": 16.796875,
+        "top": 47.1015625,
+        "right": 374,
+        "bottom": 63.8984375,
+        "left": 314
+      },
+      "scrollBottom": 768,
+      "viewport": 768,
+      "trigger": null,
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 756,
+            "y": 41.5,
+            "width": 68,
+            "height": 28,
+            "top": 41.5,
+            "right": 824,
+            "bottom": 69.5,
+            "left": 756
+          }
+        },
+        {
+          "label": "阅读预览",
+          "rect": {
+            "x": 830,
+            "y": 41.5,
+            "width": 78,
+            "height": 28,
+            "top": 41.5,
+            "right": 908,
+            "bottom": 69.5,
+            "left": 830
+          }
+        },
+        {
+          "label": "保存修改",
+          "rect": {
+            "x": 914,
+            "y": 41.5,
+            "width": 78,
+            "height": 28,
+            "top": 41.5,
+            "right": 992,
+            "bottom": 69.5,
+            "left": 914
+          }
+        }
+      ],
+      "utilities": [],
+      "overflow": false
+    },
+    "1280-history": {
+      "header": {
+        "x": 232,
+        "y": 32,
+        "width": 1048,
+        "height": 48,
+        "top": 32,
+        "right": 1280,
+        "bottom": 80,
+        "left": 232
+      },
+      "title": {
+        "x": 264,
+        "y": 45.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 45.1015625,
+        "right": 296,
+        "bottom": 65.8984375,
+        "left": 264
+      },
+      "state": {
+        "x": 306,
+        "y": 47.1015625,
+        "width": 92.8203125,
+        "height": 16.796875,
+        "top": 47.1015625,
+        "right": 398.8203125,
+        "bottom": 63.8984375,
+        "left": 306
+      },
+      "scrollBottom": 820,
+      "viewport": 820,
+      "trigger": null,
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 1096,
+            "y": 41.5,
+            "width": 68,
+            "height": 28,
+            "top": 41.5,
+            "right": 1164,
+            "bottom": 69.5,
+            "left": 1096
+          }
+        },
+        {
+          "label": "当前版本",
+          "rect": {
+            "x": 1170,
+            "y": 41.5,
+            "width": 78,
+            "height": 28,
+            "top": 41.5,
+            "right": 1248,
+            "bottom": 69.5,
+            "left": 1170
+          }
+        }
+      ],
+      "utilities": [
+        {
+          "label": "目录与笔记信息",
+          "rect": {
+            "x": 381.5,
+            "y": 240.796875,
+            "width": 102,
+            "height": 30.796875,
+            "top": 240.796875,
+            "right": 483.5,
+            "bottom": 271.59375,
+            "left": 381.5
+          }
+        },
+        {
+          "label": "保存的历史版本",
+          "rect": {
+            "x": 381.5,
+            "y": 2631.2734375,
+            "width": 740,
+            "height": 24.6953125,
+            "top": 2631.2734375,
+            "right": 1121.5,
+            "bottom": 2655.96875,
+            "left": 381.5
+          }
+        }
+      ],
+      "overflow": false
+    },
+    "1280-current": {
+      "header": {
+        "x": 232,
+        "y": 32,
+        "width": 1048,
+        "height": 48,
+        "top": 32,
+        "right": 1280,
+        "bottom": 80,
+        "left": 232
+      },
+      "title": {
+        "x": 264,
+        "y": 45.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 45.1015625,
+        "right": 296,
+        "bottom": 65.8984375,
+        "left": 264
+      },
+      "state": {
+        "x": 306,
+        "y": 47.1015625,
+        "width": 82.1953125,
+        "height": 16.796875,
+        "top": 47.1015625,
+        "right": 388.1953125,
+        "bottom": 63.8984375,
+        "left": 306
+      },
+      "scrollBottom": 820,
+      "viewport": 820,
+      "trigger": null,
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 1060,
+            "y": 41.5,
+            "width": 68,
+            "height": 28,
+            "top": 41.5,
+            "right": 1128,
+            "bottom": 69.5,
+            "left": 1060
+          }
+        },
+        {
+          "label": "编辑",
+          "rect": {
+            "x": 1134,
+            "y": 41.5,
+            "width": 54,
+            "height": 28,
+            "top": 41.5,
+            "right": 1188,
+            "bottom": 69.5,
+            "left": 1134
+          }
+        },
+        {
+          "label": "归档",
+          "rect": {
+            "x": 1194,
+            "y": 41.5,
+            "width": 54,
+            "height": 28,
+            "top": 41.5,
+            "right": 1248,
+            "bottom": 69.5,
+            "left": 1194
+          }
+        }
+      ],
+      "utilities": [
+        {
+          "label": "目录与笔记信息",
+          "rect": {
+            "x": 381.5,
+            "y": 240.796875,
+            "width": 102,
+            "height": 30.796875,
+            "top": 240.796875,
+            "right": 483.5,
+            "bottom": 271.59375,
+            "left": 381.5
+          }
+        },
+        {
+          "label": "保存的历史版本",
+          "rect": {
+            "x": 381.5,
+            "y": 2631.2734375,
+            "width": 740,
+            "height": 24.6953125,
+            "top": 2631.2734375,
+            "right": 1121.5,
+            "bottom": 2655.96875,
+            "left": 381.5
+          }
+        }
+      ],
+      "overflow": false
+    },
+    "1280-draft": {
+      "header": {
+        "x": 232,
+        "y": 32,
+        "width": 1048,
+        "height": 48,
+        "top": 32,
+        "right": 1280,
+        "bottom": 80,
+        "left": 232
+      },
+      "title": {
+        "x": 264,
+        "y": 45.1015625,
+        "width": 64,
+        "height": 20.796875,
+        "top": 45.1015625,
+        "right": 328,
+        "bottom": 65.8984375,
+        "left": 264
+      },
+      "state": {
+        "x": 338,
+        "y": 47.1015625,
+        "width": 60,
+        "height": 16.796875,
+        "top": 47.1015625,
+        "right": 398,
+        "bottom": 63.8984375,
+        "left": 338
+      },
+      "scrollBottom": 820,
+      "viewport": 820,
+      "trigger": null,
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 1012,
+            "y": 41.5,
+            "width": 68,
+            "height": 28,
+            "top": 41.5,
+            "right": 1080,
+            "bottom": 69.5,
+            "left": 1012
+          }
+        },
+        {
+          "label": "阅读预览",
+          "rect": {
+            "x": 1086,
+            "y": 41.5,
+            "width": 78,
+            "height": 28,
+            "top": 41.5,
+            "right": 1164,
+            "bottom": 69.5,
+            "left": 1086
+          }
+        },
+        {
+          "label": "保存修改",
+          "rect": {
+            "x": 1170,
+            "y": 41.5,
+            "width": 78,
+            "height": 28,
+            "top": 41.5,
+            "right": 1248,
+            "bottom": 69.5,
+            "left": 1170
+          }
+        }
+      ],
+      "utilities": [],
+      "overflow": false
+    },
+    "760-navigation-closed": {
+      "header": {
+        "x": 0,
+        "y": 32,
+        "width": 760,
+        "height": 56,
+        "top": 32,
+        "right": 760,
+        "bottom": 88,
+        "left": 0
+      },
+      "title": {
+        "x": 60,
+        "y": 49.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 49.1015625,
+        "right": 92,
+        "bottom": 69.8984375,
+        "left": 60
+      },
+      "state": {
+        "x": 102,
+        "y": 51.1015625,
+        "width": 92.8203125,
+        "height": 16.796875,
+        "top": 51.1015625,
+        "right": 194.8203125,
+        "bottom": 67.8984375,
+        "left": 102
+      },
+      "scrollBottom": 820,
+      "viewport": 820,
+      "trigger": {
+        "x": 8,
+        "y": 38,
+        "width": 44,
+        "height": 44,
+        "top": 38,
+        "right": 52,
+        "bottom": 82,
+        "left": 8
+      },
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 604,
+            "y": 37.5,
+            "width": 64,
+            "height": 44,
+            "top": 37.5,
+            "right": 668,
+            "bottom": 81.5,
+            "left": 604
+          }
+        },
+        {
+          "label": "当前版本",
+          "rect": {
+            "x": 674,
+            "y": 37.5,
+            "width": 66,
+            "height": 44,
+            "top": 37.5,
+            "right": 740,
+            "bottom": 81.5,
+            "left": 674
+          }
+        }
+      ],
+      "utilities": [
+        {
+          "label": "目录与笔记信息",
+          "rect": {
+            "x": 22,
+            "y": 248.796875,
+            "width": 102,
+            "height": 44,
+            "top": 248.796875,
+            "right": 124,
+            "bottom": 292.796875,
+            "left": 22
+          }
+        },
+        {
+          "label": "保存的历史版本",
+          "rect": {
+            "x": 22,
+            "y": 2686.875,
+            "width": 709,
+            "height": 24.6953125,
+            "top": 2686.875,
+            "right": 731,
+            "bottom": 2711.5703125,
+            "left": 22
+          }
+        }
+      ],
+      "overflow": false
+    },
+    "760-archived": {
+      "header": {
+        "x": 0,
+        "y": 32,
+        "width": 760,
+        "height": 56,
+        "top": 32,
+        "right": 760,
+        "bottom": 88,
+        "left": 0
+      },
+      "title": {
+        "x": 60,
+        "y": 49.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 49.1015625,
+        "right": 92,
+        "bottom": 69.8984375,
+        "left": 60
+      },
+      "state": {
+        "x": 102,
+        "y": 51.1015625,
+        "width": 131.359375,
+        "height": 16.796875,
+        "top": 51.1015625,
+        "right": 233.359375,
+        "bottom": 67.8984375,
+        "left": 102
+      },
+      "scrollBottom": 820,
+      "viewport": 820,
+      "trigger": {
+        "x": 8,
+        "y": 38,
+        "width": 44,
+        "height": 44,
+        "top": 38,
+        "right": 52,
+        "bottom": 82,
+        "left": 8
+      },
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 580,
+            "y": 37.5,
+            "width": 64,
+            "height": 44,
+            "top": 37.5,
+            "right": 644,
+            "bottom": 81.5,
+            "left": 580
+          }
+        },
+        {
+          "label": "编辑",
+          "rect": {
+            "x": 650,
+            "y": 37.5,
+            "width": 42,
+            "height": 44,
+            "top": 37.5,
+            "right": 692,
+            "bottom": 81.5,
+            "left": 650
+          }
+        },
+        {
+          "label": "恢复",
+          "rect": {
+            "x": 698,
+            "y": 37.5,
+            "width": 42,
+            "height": 44,
+            "top": 37.5,
+            "right": 740,
+            "bottom": 81.5,
+            "left": 698
+          }
+        }
+      ],
+      "utilities": [
+        {
+          "label": "目录与笔记信息",
+          "rect": {
+            "x": 22,
+            "y": 248.796875,
+            "width": 102,
+            "height": 44,
+            "top": 248.796875,
+            "right": 124,
+            "bottom": 292.796875,
+            "left": 22
+          }
+        },
+        {
+          "label": "保存的历史版本",
+          "rect": {
+            "x": 22,
+            "y": 2686.875,
+            "width": 709,
+            "height": 24.6953125,
+            "top": 2686.875,
+            "right": 731,
+            "bottom": 2711.5703125,
+            "left": 22
+          }
+        }
+      ],
+      "overflow": false
+    },
+    "760-conflict": {
+      "header": {
+        "x": 0,
+        "y": 32,
+        "width": 760,
+        "height": 56,
+        "top": 32,
+        "right": 760,
+        "bottom": 88,
+        "left": 0
+      },
+      "title": {
+        "x": 60,
+        "y": 49.1015625,
+        "width": 64,
+        "height": 20.796875,
+        "top": 49.1015625,
+        "right": 124,
+        "bottom": 69.8984375,
+        "left": 60
+      },
+      "state": {
+        "x": 134,
+        "y": 51.1015625,
+        "width": 168.484375,
+        "height": 16.796875,
+        "top": 51.1015625,
+        "right": 302.484375,
+        "bottom": 67.8984375,
+        "left": 134
+      },
+      "scrollBottom": 820,
+      "viewport": 820,
+      "trigger": {
+        "x": 8,
+        "y": 38,
+        "width": 44,
+        "height": 44,
+        "top": 38,
+        "right": 52,
+        "bottom": 82,
+        "left": 8
+      },
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 532,
+            "y": 37.5,
+            "width": 64,
+            "height": 44,
+            "top": 37.5,
+            "right": 596,
+            "bottom": 81.5,
+            "left": 532
+          }
+        },
+        {
+          "label": "阅读预览",
+          "rect": {
+            "x": 602,
+            "y": 37.5,
+            "width": 66,
+            "height": 44,
+            "top": 37.5,
+            "right": 668,
+            "bottom": 81.5,
+            "left": 602
+          }
+        },
+        {
+          "label": "保存修改",
+          "rect": {
+            "x": 674,
+            "y": 37.5,
+            "width": 66,
+            "height": 44,
+            "top": 37.5,
+            "right": 740,
+            "bottom": 81.5,
+            "left": 674
+          }
+        }
+      ],
+      "utilities": [],
+      "overflow": false
+    },
+    "final-native": {
+      "header": {
+        "x": 0,
+        "y": 32,
+        "width": 760,
+        "height": 56,
+        "top": 32,
+        "right": 760,
+        "bottom": 88,
+        "left": 0
+      },
+      "title": {
+        "x": 60,
+        "y": 49.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 49.1015625,
+        "right": 92,
+        "bottom": 69.8984375,
+        "left": 60
+      },
+      "state": {
+        "x": 102,
+        "y": 51.1015625,
+        "width": 92.8203125,
+        "height": 16.796875,
+        "top": 51.1015625,
+        "right": 194.8203125,
+        "bottom": 67.8984375,
+        "left": 102
+      },
+      "scrollBottom": 820,
+      "viewport": 820,
+      "trigger": {
+        "x": 8,
+        "y": 38,
+        "width": 44,
+        "height": 44,
+        "top": 38,
+        "right": 52,
+        "bottom": 82,
+        "left": 8
+      },
+      "controls": [
+        {
+          "label": "返回笔记",
+          "rect": {
+            "x": 604,
+            "y": 37.5,
+            "width": 64,
+            "height": 44,
+            "top": 37.5,
+            "right": 668,
+            "bottom": 81.5,
+            "left": 604
+          }
+        },
+        {
+          "label": "当前版本",
+          "rect": {
+            "x": 674,
+            "y": 37.5,
+            "width": 66,
+            "height": 44,
+            "top": 37.5,
+            "right": 740,
+            "bottom": 81.5,
+            "left": 674
+          }
+        }
+      ],
+      "utilities": [
+        {
+          "label": "目录与笔记信息",
+          "rect": {
+            "x": 22,
+            "y": 248.796875,
+            "width": 102,
+            "height": 44,
+            "top": 248.796875,
+            "right": 124,
+            "bottom": 292.796875,
+            "left": 22
+          }
+        },
+        {
+          "label": "保存的历史版本",
+          "rect": {
+            "x": 22,
+            "y": 2686.875,
+            "width": 709,
+            "height": 24.6953125,
+            "top": 2686.875,
+            "right": 731,
+            "bottom": 2711.5703125,
+            "left": 22
+          }
+        }
+      ],
+      "overflow": false
+    }
+  },
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/760-history.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/760-current.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/760-draft.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/1024-history.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/1024-current.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/1024-draft.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/1280-history.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/1280-current.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/1280-draft.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/760-information-open.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/760-contents-target.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/760-navigation-open.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/760-navigation-closed.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/760-archived.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/760-conflict.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/fullscreen.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/spa-learning-no-note-inset.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/760-reduced-motion.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/760-notes-list.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/760-learning.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/1280-notes-list.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/1280-learning.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-left-align-2026-10-19/after/2026-10-19T12-04-31.070Z/final-native-content.png"
+  ],
+  "errors": []
+}

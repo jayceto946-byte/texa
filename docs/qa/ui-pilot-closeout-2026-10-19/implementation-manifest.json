@@ -1,0 +1,47 @@
+{
+  "noteSources": [
+    {
+      "path": "frontend/src/features/notes/DraftWorkspace.tsx",
+      "sha256": "b2fe7a629ddc74aa8c692aa7690a4106e487a258eaf2ff5ead372a0dd06548bd"
+    },
+    {
+      "path": "frontend/src/features/notes/NoteBlocks.tsx",
+      "sha256": "6b25a25989eaa19231ea96f0ec44664f3d121b8cccd2c1f2c4772afd4c75a058"
+    },
+    {
+      "path": "frontend/src/features/notes/notes.css",
+      "sha256": "45639a1662006a4d42f07533404c0a7809e8400f533f55f1826acc31cf06a572"
+    },
+    {
+      "path": "frontend/src/features/notes/autosave.ts",
+      "sha256": "04682d58c91ff217f33c7a38e427fb29a5e3780858686c3660acb949d2397b3e"
+    },
+    {
+      "path": "frontend/src/features/notes/hooks/useNoteEditor.ts",
+      "sha256": "48113b167be5faaf43fd09665566a057c7cbbd52430fb15b027df19b69c31b01"
+    },
+    {
+      "path": "frontend/src/pages/NoteDetailPage.tsx",
+      "sha256": "082c5608e47496bdee14d6c8bd217e4698924746d2e95acfab9a8c3576094410"
+    }
+  ],
+  "testHarness": [
+    {
+      "path": "scripts/qa-ui-closeout-server.py",
+      "sha256": "b60d8bbe812b8cdb11e1b96820c57a7d1696cb3033fdbd4464b3f65d1a1729fc"
+    },
+    {
+      "path": "scripts/qa-ui-closeout-electron.mjs",
+      "sha256": "c9fa54441c75e9bbdc197ddd799023d5c68e2601e41d6ed7e9eeae165a529950"
+    },
+    {
+      "path": "scripts/qa-notes-review-content.mjs",
+      "sha256": "8c77bc356f9c414c8d725456473b140d3b1e343663fb4c07a307d15e68be5276"
+    }
+  ],
+  "brief": {
+    "path": "docs/design/astra-notes-design-review-brief-2026-10-19.md",
+    "sha256": "3f4b1ffcce831a99d45ee96c6715255f70c2c3f2f0b3d63d2ccf76f284817bcb"
+  },
+  "missingLinks": []
+}

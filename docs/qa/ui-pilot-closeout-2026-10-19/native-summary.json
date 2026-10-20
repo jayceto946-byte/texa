@@ -1,0 +1,15 @@
+{
+  "method": "CUA macOS native app key presses, existing system Simplified Pinyin input source; no DOM composition dispatch in this probe",
+  "cases": {
+    "trustedCompositionStart": true,
+    "trustedComposingEnter": true,
+    "chineseCandidateCommitted": true,
+    "noStreamRequest": true,
+    "finalValue": "中文\n"
+  },
+  "endEventTrustedFlags": [
+    false,
+    false
+  ],
+  "eventLog": "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/native/2026-10-19T07-35-58.687Z/results.json"
+}

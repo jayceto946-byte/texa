@@ -80,13 +80,6 @@
  .app-shell .markdown-body .katex:not(.katex-display .katex) { display:inline-block;max-width:100%;overflow-x:auto;vertical-align:middle; }
 }
 @media(max-width:760px) {
- .app-shell .note-page-header:has(.note-save-status) { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 8px; }
- .app-shell .note-page-header .note-actions { display:contents; }
- .app-shell .note-page-header h1 { grid-column:1; grid-row:1; font-size:14px; white-space:normal; }
- .app-shell .note-page-header .note-actions > .app-primary-button { grid-column:2; grid-row:1; }
- .app-shell .note-page-header .note-actions > a { grid-column:1; grid-row:2; justify-self:start; }
- .app-shell .note-page-header .note-actions > .app-secondary-button { grid-column:2; grid-row:2; }
- .app-shell .note-page-header .note-save-status { grid-column:1 / -1; grid-row:3; font-size:12px; }
  .app-shell .notes-workspace .app-icon-button { min-width:44px; min-height:44px; }
  .app-shell .notes-workspace .note-block-actions { gap:8px; }
 }
@@ -113,8 +106,4 @@
 }
 @media(max-width:1199px) {
  .app-shell .markdown-body .katex-display > .katex { width:100%; min-width:0; }
-}
-@media(max-width:760px) {
- .app-shell .notes-workspace .note-page-header:has(.note-save-status) { height:auto; flex-basis:auto; grid-template-rows:44px 44px auto; min-height:112px; }
- .app-shell .notes-workspace .note-page-header .note-actions > :is(button,a) { min-height:44px; }
 }

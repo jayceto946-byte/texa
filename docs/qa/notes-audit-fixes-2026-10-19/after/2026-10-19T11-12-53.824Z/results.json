@@ -1,0 +1,65 @@
+{
+  "phase": "after",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "pass": true
+    },
+    {
+      "name": "deleted block absent after real autosave",
+      "pass": true
+    },
+    {
+      "name": "delete autosave does not publish",
+      "pass": true
+    },
+    {
+      "name": "undo after autosave restores full block, ID, associations and position across preview",
+      "pass": false
+    }
+  ],
+  "measurements": {
+    "draftId": "draft_0365361603114d4fb4755c31bb0299e1",
+    "undoOriginal": {
+      "authorship": "user",
+      "block_id": "review-p2",
+      "data": {
+        "markdown": "将上式代回待求表达式，先在同一行消去一次项，然后再对剩余项与分母作比较。这里的关键不是展开式写得越长越好，而是最低保留阶必须足以区分目标结果。如果分母改为更高次幂，就需要重新评估余项。\n\n复习时可以给每一步写一条很短的理由：使用了什么局部信息、消去了什么项、最后剩余量为何不会改变极限。理由应服务于当前推导，不必反复解释同一个定义。含有行内公式的句子也应能自然阅读，例如 $r(x)=o(x^3)$ 表示 $r(x)/x^3\\to0$；它比“误差很小”给出了更明确的比较尺度。\n\n尚未正式发布的新内容：误删恢复验证。"
+      },
+      "evidence_ref_ids": [],
+      "source_alignment": "needs_review",
+      "source_ref_ids": [],
+      "type": "paragraph",
+      "verification": {
+        "reasons": [
+          "user_edit_requires_review"
+        ],
+        "status": "needs_review"
+      }
+    },
+    "undoRestored": {
+      "authorship": "user",
+      "block_id": "review-p2",
+      "data": {
+        "markdown": "将上式代回待求表达式，先在同一行消去一次项，然后再对剩余项与分母作比较。这里的关键不是展开式写得越长越好，而是最低保留阶必须足以区分目标结果。如果分母改为更高次幂，就需要重新评估余项。\n\n复习时可以给每一步写一条很短的理由：使用了什么局部信息、消去了什么项、最后剩余量为何不会改变极限。理由应服务于当前推导，不必反复解释同一个定义。含有行内公式的句子也应能自然阅读，例如 $r(x)=o(x^3)$ 表示 $r(x)/x^3\\to0$；它比“误差很小”给出了更明确的比较尺度。\n\n尚未正式发布的新内容：误删恢复验证。"
+      },
+      "evidence_ref_ids": [],
+      "source_alignment": "user_added",
+      "source_ref_ids": [],
+      "type": "paragraph",
+      "verification": {
+        "reasons": [],
+        "status": "not_checked"
+      }
+    }
+  },
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-12-53.824Z/1280-edit-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-12-53.824Z/new-content-saved-draft.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-12-53.824Z/deleted-after-autosave.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-12-53.824Z/failure.png"
+  ],
+  "errors": [
+    "Error: undo after autosave restores full block, ID, associations and position across preview"
+  ]
+}

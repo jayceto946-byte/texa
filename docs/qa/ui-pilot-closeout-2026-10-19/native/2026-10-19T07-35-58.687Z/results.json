@@ -1,0 +1,626 @@
+{
+  "phase": "native",
+  "environment": "macOS ARM64, real Electron 37, production frontend, isolated production backend/storage",
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/native/2026-10-19T07-35-58.687Z/native-final.png"
+  ],
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "observations": {
+    "nativeEvents": [
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "z",
+        "keyCode": 229,
+        "isComposing": false,
+        "timestamp": 50484.800000000745,
+        "value": ""
+      },
+      {
+        "type": "compositionstart",
+        "trusted": true,
+        "data": "",
+        "timestamp": 50499.800000000745,
+        "value": ""
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "z",
+        "timestamp": 50501,
+        "value": ""
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "z",
+        "inputType": "insertCompositionText",
+        "timestamp": 50501.20000000298,
+        "value": ""
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "z",
+        "inputType": "insertCompositionText",
+        "timestamp": 50510.400000002235,
+        "value": "z"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "h",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 50598.900000002235,
+        "value": "z"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "z h",
+        "timestamp": 50599.300000000745,
+        "value": "z"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "z h",
+        "inputType": "insertCompositionText",
+        "timestamp": 50599.800000000745,
+        "value": "z"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "z h",
+        "inputType": "insertCompositionText",
+        "timestamp": 50606.300000000745,
+        "value": "z h"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "o",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 50687.10000000149,
+        "value": "z h"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "zho",
+        "timestamp": 50687.400000002235,
+        "value": "z h"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zho",
+        "inputType": "insertCompositionText",
+        "timestamp": 50687.400000002235,
+        "value": "z h"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zho",
+        "inputType": "insertCompositionText",
+        "timestamp": 50687.800000000745,
+        "value": "zho"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "n",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 50730.900000002235,
+        "value": "zho"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "zhon",
+        "timestamp": 50731.20000000298,
+        "value": "zho"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhon",
+        "inputType": "insertCompositionText",
+        "timestamp": 50731.300000000745,
+        "value": "zho"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhon",
+        "inputType": "insertCompositionText",
+        "timestamp": 50731.800000000745,
+        "value": "zhon"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "g",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 50764,
+        "value": "zhon"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "zhong",
+        "timestamp": 50764.300000000745,
+        "value": "zhon"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhong",
+        "inputType": "insertCompositionText",
+        "timestamp": 50764.400000002235,
+        "value": "zhon"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhong",
+        "inputType": "insertCompositionText",
+        "timestamp": 50764.900000002235,
+        "value": "zhong"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "Enter",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 120213.60000000149,
+        "value": "zhong"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "zhong",
+        "timestamp": 120220.30000000075,
+        "value": "zhong"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhong",
+        "inputType": "insertCompositionText",
+        "timestamp": 120220.90000000224,
+        "value": "zhong"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhong",
+        "inputType": "insertCompositionText",
+        "timestamp": 120227.5,
+        "value": "zhong"
+      },
+      {
+        "type": "compositionend",
+        "trusted": false,
+        "data": "zhong",
+        "timestamp": 120227.60000000149,
+        "value": "zhong"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "a",
+        "keyCode": 65,
+        "isComposing": false,
+        "timestamp": 165397.80000000075,
+        "value": "zhong"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "Backspace",
+        "keyCode": 8,
+        "isComposing": false,
+        "timestamp": 165403,
+        "value": "zhong"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": false,
+        "data": null,
+        "inputType": "deleteContentBackward",
+        "timestamp": 165403.80000000075,
+        "value": "zhong"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": false,
+        "data": null,
+        "inputType": "deleteContentBackward",
+        "timestamp": 165414,
+        "value": "zhon"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "z",
+        "keyCode": 229,
+        "isComposing": false,
+        "timestamp": 165629.40000000224,
+        "value": "zhon"
+      },
+      {
+        "type": "compositionstart",
+        "trusted": true,
+        "data": "zhon",
+        "timestamp": 165630.30000000075,
+        "value": "zhon"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "z",
+        "timestamp": 165630.5,
+        "value": "zhon"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "z",
+        "inputType": "insertCompositionText",
+        "timestamp": 165630.5,
+        "value": "zhon"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "z",
+        "inputType": "insertCompositionText",
+        "timestamp": 165631.1000000015,
+        "value": "z"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "h",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 165685.80000000075,
+        "value": "z"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "z h",
+        "timestamp": 165686.1000000015,
+        "value": "z"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "z h",
+        "inputType": "insertCompositionText",
+        "timestamp": 165686.1000000015,
+        "value": "z"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "z h",
+        "inputType": "insertCompositionText",
+        "timestamp": 165692.30000000075,
+        "value": "z h"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "o",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 165731.1000000015,
+        "value": "z h"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "zho",
+        "timestamp": 165731.5,
+        "value": "z h"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zho",
+        "inputType": "insertCompositionText",
+        "timestamp": 165731.5,
+        "value": "z h"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zho",
+        "inputType": "insertCompositionText",
+        "timestamp": 165732.20000000298,
+        "value": "zho"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "n",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 165763.30000000075,
+        "value": "zho"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "zhon",
+        "timestamp": 165763.5,
+        "value": "zho"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhon",
+        "inputType": "insertCompositionText",
+        "timestamp": 165763.5,
+        "value": "zho"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhon",
+        "inputType": "insertCompositionText",
+        "timestamp": 165763.90000000224,
+        "value": "zhon"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "g",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 165780.90000000224,
+        "value": "zhon"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "zhong",
+        "timestamp": 165781.1000000015,
+        "value": "zhon"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhong",
+        "inputType": "insertCompositionText",
+        "timestamp": 165781.1000000015,
+        "value": "zhon"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhong",
+        "inputType": "insertCompositionText",
+        "timestamp": 165781.90000000224,
+        "value": "zhong"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "w",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 165803,
+        "value": "zhong"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "zhong w",
+        "timestamp": 165803.20000000298,
+        "value": "zhong"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhong w",
+        "inputType": "insertCompositionText",
+        "timestamp": 165803.30000000075,
+        "value": "zhong"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhong w",
+        "inputType": "insertCompositionText",
+        "timestamp": 165804.90000000224,
+        "value": "zhong w"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "e",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 165867.5,
+        "value": "zhong w"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "zhong we",
+        "timestamp": 165867.70000000298,
+        "value": "zhong w"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhong we",
+        "inputType": "insertCompositionText",
+        "timestamp": 165867.80000000075,
+        "value": "zhong w"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhong we",
+        "inputType": "insertCompositionText",
+        "timestamp": 165868.80000000075,
+        "value": "zhong we"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "n",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 165886,
+        "value": "zhong we"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "zhong wen",
+        "timestamp": 165886.1000000015,
+        "value": "zhong we"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhong wen",
+        "inputType": "insertCompositionText",
+        "timestamp": 165886.20000000298,
+        "value": "zhong we"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "zhong wen",
+        "inputType": "insertCompositionText",
+        "timestamp": 165887.20000000298,
+        "value": "zhong wen"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": " ",
+        "keyCode": 229,
+        "isComposing": true,
+        "timestamp": 165932.6000000015,
+        "value": "zhong wen"
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "中文",
+        "timestamp": 165932.80000000075,
+        "value": "zhong wen"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": true,
+        "data": "中文",
+        "inputType": "insertCompositionText",
+        "timestamp": 165933.1000000015,
+        "value": "zhong wen"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": true,
+        "data": "中文",
+        "inputType": "insertCompositionText",
+        "timestamp": 165934.1000000015,
+        "value": "中文"
+      },
+      {
+        "type": "compositionend",
+        "trusted": false,
+        "data": "中文",
+        "timestamp": 165935.6000000015,
+        "value": "中文"
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "Enter",
+        "keyCode": 13,
+        "isComposing": false,
+        "timestamp": 185555.6000000015,
+        "value": "中文"
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "isComposing": false,
+        "data": null,
+        "inputType": "insertLineBreak",
+        "timestamp": 185557,
+        "value": "中文"
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "isComposing": false,
+        "data": null,
+        "inputType": "insertLineBreak",
+        "timestamp": 185559.1000000015,
+        "value": "中文\n"
+      }
+    ],
+    "streamRequests": 0,
+    "inputValue": "中文\n",
+    "trustedComposition": true
+  },
+  "errors": []
+}

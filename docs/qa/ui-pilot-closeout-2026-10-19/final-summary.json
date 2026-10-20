@@ -1,0 +1,20 @@
+{
+  "isolatedServerStopped": true,
+  "priorEvidenceUnchanged": true,
+  "priorEvidenceFiles": 53,
+  "pilotProductFilesUnchanged": true,
+  "stagedFiles": [],
+  "notesChecks": 10,
+  "detailChecks": 3,
+  "notesScreenshots": 33,
+  "native": {
+    "trustedCompositionStart": true,
+    "trustedComposingEnter": true,
+    "chineseCandidateCommitted": true,
+    "noStreamRequest": true,
+    "finalValue": "中文\n"
+  },
+  "providerRequests": 1,
+  "realSseChecks": 5,
+  "renderErrors": []
+}

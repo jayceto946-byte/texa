@@ -1,0 +1,113 @@
+{
+  "mode": "notes",
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "endpoint_host": "api.deepseek.com",
+  "endpoint_path": "",
+  "max_remote_requests": 0,
+  "requests": [],
+  "provider_errors": [],
+  "usage": [],
+  "notes_api": [
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/review-preview",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_9bfa1a18a4a341bc951cd55d04ed156c",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/review-preview",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_9bfa1a18a4a341bc951cd55d04ed156c",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/review-preview",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_9bfa1a18a4a341bc951cd55d04ed156c",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_9bfa1a18a4a341bc951cd55d04ed156c",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/notes/drafts/draft_9bfa1a18a4a341bc951cd55d04ed156c",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_b1fe0ae8cdfc48048ce0b5c72e523f4b",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_9bfa1a18a4a341bc951cd55d04ed156c/save",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_b1fe0ae8cdfc48048ce0b5c72e523f4b",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_b1fe0ae8cdfc48048ce0b5c72e523f4b",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_b1fe0ae8cdfc48048ce0b5c72e523f4b/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_3cb760b46caa48649143409eebe2da88",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_f37149b128984203b3edcadb812991a8/save",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_3cb760b46caa48649143409eebe2da88/save",
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_b1fe0ae8cdfc48048ce0b5c72e523f4b",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_3cb760b46caa48649143409eebe2da88",
+      "status": 200
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "mode": "live",
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "endpoint_host": "api.deepseek.com",
+  "endpoint_path": "",
+  "max_remote_requests": 2,
+  "requests": [
+    {
+      "number": 1,
+      "payload_sha256": "0ff29381c41e5c51e9c15a08cafca32dbdab5c2d0a65302397ec67863c15611d",
+      "input_bytes": 6201,
+      "stream": true,
+      "max_tokens": 4096
+    }
+  ],
+  "provider_errors": [],
+  "usage": [],
+  "notes_api": [
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_17e77adb5d274dfca1e8a44505f1c1f6",
+      "status": 200
+    }
+  ]
+}

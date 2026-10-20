@@ -92,6 +92,24 @@ def test_versioned_manual_edit_and_independent_save(service):
     assert len(service.store.list(conversation_id="session")["items"])==2
 
 
+def test_deleted_block_can_be_restored_through_existing_cas_with_frozen_refs(service):
+    draft, _, _ = ready(service)
+    content = {k: copy.deepcopy(v) for k, v in draft["content"].items() if k != "quality"}
+    original = content["blocks"].pop(1)
+    assert original["source_ref_ids"]
+    deleted = service.patch_draft(draft["id"], draft["draft_revision"], content)
+    restored_content = {k: copy.deepcopy(v) for k, v in deleted["content"].items() if k != "quality"}
+    restored_content["blocks"].insert(1, original)
+    restored = service.patch_draft(draft["id"], deleted["draft_revision"], restored_content)
+    actual = restored["content"]["blocks"][1]
+    for key in ("block_id", "type", "data", "source_ref_ids", "evidence_ref_ids"):
+        assert actual[key] == original[key]
+    # Client recovery never grants verification or overrides authoritative authorship.
+    assert actual["authorship"] == "user"
+    assert actual["verification"]["status"] in {"not_checked", "needs_review"}
+    assert service.store.list()["items"] == []
+
+
 def test_concurrent_operations_and_cas(service):
     receipt,req=request(service)
     req2={**req,"operation_id":"other-op"}

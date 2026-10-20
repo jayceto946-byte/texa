@@ -1,0 +1,238 @@
+{
+  "phase": "reference",
+  "environment": "macOS ARM64, isolated Chrome browser, live read-only Storybook, deployment revision unknown",
+  "checks": [],
+  "errors": [],
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/reference/storybook.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/reference/storybook-focus.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/reference/storybook-add-content.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/reference/storybook-segmented-control.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/reference/storybook-segmented-selected.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/reference/storybook-thinking-accordion.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/reference/storybook-thinking-active.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/reference/storybook-spring-physics-presets.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-source-study-2026-10-19/reference/storybook-springs-triggered.png"
+  ],
+  "observations": {
+    "headings": [
+      "Chat Composer"
+    ],
+    "controls": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "placeholder": "Search components..."
+      },
+      {
+        "tag": "BUTTON",
+        "text": "🎨Colors & Surfaces",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "🔲Border Radius",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "📐Heights & Sizing",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "🌫️Shadows & Elevation",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "🔤Typography & Align",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "✨Icons & Glyphs",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "⏱️Motion Tokens",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "💬Chat Composer",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "🗨️Message Bubbles",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "🧠Thinking Accordion",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "🔘Buttons & Controls",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "💊Segmented Control",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "📎Attachment Tiles",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "💻Code Block & Copy",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "🌊Grapheme Reveal",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "🔴Thinking Quiet Dots",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "🧲Spring Physics Presets",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Canvas",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Docs",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "☀️浅色",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "🌙深色",
+        "placeholder": null
+      },
+      {
+        "tag": "TEXTAREA",
+        "text": "",
+        "placeholder": "How can I help you today?"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Add content",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Claude 3.7 Sonnet",
+        "placeholder": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "",
+        "placeholder": null
+      }
+    ],
+    "addContentMenuCount": 0,
+    "Segmented Control": [
+      "🎨Colors & Surfaces",
+      "🔲Border Radius",
+      "📐Heights & Sizing",
+      "🌫️Shadows & Elevation",
+      "🔤Typography & Align",
+      "✨Icons & Glyphs",
+      "⏱️Motion Tokens",
+      "💬Chat Composer",
+      "🗨️Message Bubbles",
+      "🧠Thinking Accordion",
+      "🔘Buttons & Controls",
+      "💊Segmented Control",
+      "📎Attachment Tiles",
+      "💻Code Block & Copy",
+      "🌊Grapheme Reveal",
+      "🔴Thinking Quiet Dots",
+      "🧲Spring Physics Presets",
+      "Canvas",
+      "Docs",
+      "☀️浅色",
+      "🌙深色",
+      "Chat",
+      "Projects",
+      "Artifacts",
+      "Settings"
+    ],
+    "Thinking Accordion": [
+      "🎨Colors & Surfaces",
+      "🔲Border Radius",
+      "📐Heights & Sizing",
+      "🌫️Shadows & Elevation",
+      "🔤Typography & Align",
+      "✨Icons & Glyphs",
+      "⏱️Motion Tokens",
+      "💬Chat Composer",
+      "🗨️Message Bubbles",
+      "🧠Thinking Accordion",
+      "🔘Buttons & Controls",
+      "💊Segmented Control",
+      "📎Attachment Tiles",
+      "💻Code Block & Copy",
+      "🌊Grapheme Reveal",
+      "🔴Thinking Quiet Dots",
+      "🧲Spring Physics Presets",
+      "Canvas",
+      "Docs",
+      "☀️浅色",
+      "🌙深色",
+      "切换状态：当前为【思考完毕】"
+    ],
+    "Spring Physics Presets": [
+      "🎨Colors & Surfaces",
+      "🔲Border Radius",
+      "📐Heights & Sizing",
+      "🌫️Shadows & Elevation",
+      "🔤Typography & Align",
+      "✨Icons & Glyphs",
+      "⏱️Motion Tokens",
+      "💬Chat Composer",
+      "🗨️Message Bubbles",
+      "🧠Thinking Accordion",
+      "🔘Buttons & Controls",
+      "💊Segmented Control",
+      "📎Attachment Tiles",
+      "💻Code Block & Copy",
+      "🌊Grapheme Reveal",
+      "🔴Thinking Quiet Dots",
+      "🧲Spring Physics Presets",
+      "Canvas",
+      "Docs",
+      "☀️浅色",
+      "🌙深色",
+      "🏃 跑道同屏竞速",
+      "🧲 交互试验场",
+      "🎛️ 示波器与调参",
+      "▶ 一键同屏发射",
+      "⟲ 复位",
+      "单独发射",
+      "单独发射",
+      "单独发射",
+      "单独发射"
+    ]
+  }
+}

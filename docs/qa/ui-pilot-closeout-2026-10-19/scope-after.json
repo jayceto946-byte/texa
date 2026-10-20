@@ -1,0 +1,37 @@
+{
+  "productFiles": [
+    {
+      "path": "frontend/src/components/chat/ComposerOverflowMenu.tsx",
+      "sha256": "999bff380d96dcab5296714b05a5ec4ef35c9cd44ca76eaaf1e2d6fd441b55b4",
+      "matchesPriorStudy": true,
+      "unchangedDuringCloseout": true
+    },
+    {
+      "path": "frontend/src/pages/ChatPage.tsx",
+      "sha256": "19f62324a3778f6f98f9db0d353b7484636f09e12e1ec7cc2bb0b9cd3351315f",
+      "matchesPriorStudy": true,
+      "unchangedDuringCloseout": true
+    },
+    {
+      "path": "frontend/src/index.css",
+      "sha256": "0c8015094bb2df5b2913d6d84319516fe4bae11827616c44e3d577fa741f4316",
+      "matchesPriorStudy": true,
+      "unchangedDuringCloseout": true
+    }
+  ],
+  "otherPreexistingModifiedTrackedChanged": [
+    {
+      "path": "patch_notes.md",
+      "intentionalPrefixOnly": true
+    }
+  ],
+  "priorEvidenceCount": 53,
+  "priorEvidenceUnchanged": true,
+  "stagedFiles": [],
+  "scopedPatchFiles": [
+    "41\t7\tfrontend/src/components/chat/ComposerOverflowMenu.tsx",
+    "15\t4\tfrontend/src/index.css",
+    "1\t1\tfrontend/src/pages/ChatPage.tsx"
+  ],
+  "reverseCheck": true
+}

@@ -1,8 +1,10 @@
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { post } from '../../api/client';
 import { NoteApiError, notesApi, noteRequest } from './api';
 import { useNoteEditor } from './hooks/useNoteEditor';
+import { useDraftPosition } from './hooks/useDraftPosition';
+import { NoteTextarea } from './NoteTextarea';
 import { BlockEditor, NoteBlocks } from './NoteBlocks';
 import type { ChapterRef, NoteDraft } from './types';
 import './notes.css';
@@ -31,6 +33,26 @@ export function DraftEditor({ draft }: {
         id: string;
     } | null>(null);
     const local = editor.content;
+    const { scrollRef, capture: capturePosition, rememberFocus } = useDraftPosition(editing);
+    const undoRef = useRef<HTMLButtonElement>(null);
+    const recoveryFocus = useRef<string | null>(null);
+    useLayoutEffect(() => {
+        const target = recoveryFocus.current;
+        recoveryFocus.current = null;
+        if (target === 'undo') undoRef.current?.focus();
+        else if (target) document.getElementById(target)?.focus();
+    });
+    const removeBlock = (index: number) => {
+        recoveryFocus.current = 'undo';
+        if (!editor.deleteBlock(index)) recoveryFocus.current = null;
+    };
+    const undoDelete = () => {
+        const id = editor.undoDelete();
+        if (id) {
+            recoveryFocus.current = id;
+            setEditing(true);
+        }
+    };
     const save = async () => {
         setSaving(true);
         setError('');
@@ -84,9 +106,11 @@ export function DraftEditor({ draft }: {
             setRecoveryError(`恢复未完成，当前文字仍保留。${e instanceof Error ? e.message : ''}`);
         } finally { setRecovering(false); }
     };
-    return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><h1>{draft.base_note_id ? '编辑笔记' : draft.kind === 'generation' ? '对话整理笔记' : '自主整理笔记'}</h1><div className="note-actions"><span role="status" className="note-save-status">{formalConflict ? '正式笔记尚未更新 · ' : ''}{({ saved: '草稿已保存', dirty: '有未保存修改', saving: '正在保存草稿…', error: '草稿保存失败' })[editor.state]}</span><Link className="app-ghost-button" to="/notes?view=drafts">返回笔记</Link><button className="app-secondary-button" onClick={() => setEditing(v => !v)}>{editing ? '阅读预览' : '编辑笔记'}</button><button className="app-primary-button" disabled={saving || recovering || formalConflict || editor.closing || editor.state === 'saving'} onClick={() => void save()}>{saving ? '正在保存…' : draft.base_note_id ? '保存修改' : '保存笔记'}</button></div></header>
-    <div className="note-scroll"><article className="note-document">
-      <h1 className="note-document-title">{local.title}</h1>{!editing && local.abstract && <p className="note-abstract">{local.abstract}</p>}
+    return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><div className="note-header-identity"><h1>{draft.base_note_id ? '编辑笔记' : draft.kind === 'generation' ? '对话整理笔记' : '自主整理笔记'}</h1><span role="status" className="note-save-status">{formalConflict ? '正式笔记尚未更新 · ' : ''}{({ saved: '草稿已保存', dirty: '有未保存修改', saving: '正在保存草稿…', error: '草稿保存失败' })[editor.state]}</span></div><div className="note-actions"><Link className="app-ghost-button" to="/notes?view=drafts">返回笔记</Link><button className="app-secondary-button" aria-controls="note-draft-body" onClick={() => { capturePosition(); setEditing(v => !v); }}>{editing ? '阅读预览' : '编辑笔记'}</button><button className="app-primary-button" disabled={saving || recovering || formalConflict || editor.closing || editor.state === 'saving'} onClick={() => void save()}>{saving ? '正在保存…' : draft.base_note_id ? '保存修改' : '保存笔记'}</button></div></header>
+    <div className="note-scroll" ref={scrollRef} onFocusCapture={e => rememberFocus(e.target)}>
+      {editor.deletedCount > 0 && <div className="note-delete-recovery"><span role="status">已删除 {editor.deletedCount} 块 · 本次编辑可撤销</span><button ref={undoRef} className="app-secondary-button" disabled={saving || recovering || editor.closing || local.blocks.length >= 300} onClick={undoDelete}>撤销删除</button>{local.blocks.length >= 300 && <span>块数已达上限，请先腾出位置。</span>}</div>}
+      <article className="note-document" id="note-draft-body">
+      {!editing && <h1 className="note-document-title">{local.title}</h1>}{!editing && local.abstract && <p className="note-abstract">{local.abstract}</p>}
       {location.state?.noteRecovery && <p role="status" className="note-save-status">{location.state.noteRecovery}</p>}
       {error && !saveConflict && !editor.error && <p role="status" className="note-warning">{error}</p>}
       {(editor.error || saveConflict) && <div role="alert" className="note-warning">
@@ -99,10 +123,10 @@ export function DraftEditor({ draft }: {
         </div>
         <details><summary>错误详情</summary><p>{editor.error || error}</p></details>
       </div>}
-      {editing && <fieldset disabled={saving || recovering || editor.closing} className="note-fields"><label>标题<input maxLength={200} value={local.title} onChange={e => change({ ...local, title: e.target.value })}/></label><label>摘要<textarea maxLength={500} value={local.abstract} onChange={e => change({ ...local, abstract: e.target.value })}/></label><details><summary>笔记信息</summary><div className="note-fields-row"><label>学科<input value={local.subject} onChange={e => change({ ...local, subject: e.target.value })}/></label><label>标签（逗号分隔）<input value={local.tags.join(',')} onChange={e => change({ ...local, tags: e.target.value.split(/[,，]/).map(t => t.trim()).filter(Boolean) })}/></label></div><button type="button" className="app-ghost-button" onClick={() => void noteRequest<{
+      {editing && <fieldset disabled={saving || recovering || editor.closing} className="note-fields"><label className="note-title-field"><span className="note-visually-hidden">标题</span><NoteTextarea className="note-title-input" maxLength={200} value={local.title} onChange={e => change({ ...local, title: e.target.value })}/></label><label>摘要<NoteTextarea maxLength={500} value={local.abstract} onChange={e => change({ ...local, abstract: e.target.value })}/></label><details><summary>笔记信息</summary><div className="note-fields-row"><label>学科<input value={local.subject} onChange={e => change({ ...local, subject: e.target.value })}/></label><label>标签（逗号分隔）<input value={local.tags.join(',')} onChange={e => change({ ...local, tags: e.target.value.split(/[,，]/).map(t => t.trim()).filter(Boolean) })}/></label></div><button type="button" className="app-ghost-button" onClick={() => void noteRequest<{
         items: ChapterRef[];
     }>("/chapters").then(page => setExtraChapters(page.items)).catch(e => setError(e.message))}>选择其他教材章节</button>{(draft.chapter_options.length > 0 || extraChapters.length > 0 || local.chapter_refs.length > 0) && <details><summary>归入章节</summary>{Array.from(new Map([...draft.chapter_options, ...extraChapters, ...local.chapter_refs].map(c => [c.chapter_ref_id, c])).values()).map(c => <label className="note-checkbox" key={c.chapter_ref_id}><input type="checkbox" checked={local.chapter_refs.some(r => r.chapter_ref_id === c.chapter_ref_id)} onChange={e => change({ ...local, chapter_refs: e.target.checked ? [...local.chapter_refs, c] : local.chapter_refs.filter(r => r.chapter_ref_id !== c.chapter_ref_id) })}/>{c.book_name_snapshot} · {c.title_snapshot}</label>)}</details>}</details></fieldset>}
-      {editing ? <fieldset disabled={saving || recovering || editor.closing} className="note-fields"><BlockEditor content={local} onChange={change}/></fieldset> : <NoteBlocks blocks={local.blocks}/>}
+      {editing ? <fieldset disabled={saving || recovering || editor.closing} className="note-fields"><BlockEditor content={local} onChange={change} onDelete={removeBlock}/></fieldset> : <NoteBlocks blocks={local.blocks}/>}
     </article></div></div>;
 }
 export function GenerationWorkspace({ draft, reload }: {

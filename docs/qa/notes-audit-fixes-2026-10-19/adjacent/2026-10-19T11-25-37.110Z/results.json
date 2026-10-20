@@ -1,0 +1,116 @@
+{
+  "phase": "adjacent",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "pass": true
+    },
+    {
+      "name": "1280: adjacent learning page has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1280: adjacent composer remains available",
+      "pass": true
+    },
+    {
+      "name": "1280-notes-list: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1280: notes library has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760: adjacent learning page has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760: adjacent composer remains available",
+      "pass": true
+    },
+    {
+      "name": "760-notes-list: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "760: notes library has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "measurements": {
+    "1280-notes-list-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 32,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 296,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 32,
+          "client": 32
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "760-notes-list-header": {
+      "outer": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 48,
+        "top": 0,
+        "right": 760,
+        "bottom": 48,
+        "left": 0
+      },
+      "items": [
+        {
+          "text": "笔记",
+          "rect": {
+            "x": 152,
+            "y": 9.046875,
+            "width": 32,
+            "height": 20.796875,
+            "top": 9.046875,
+            "right": 184,
+            "bottom": 29.84375,
+            "left": 152
+          },
+          "scroll": 32,
+          "client": 32
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    }
+  },
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/adjacent/2026-10-19T11-25-37.110Z/1280-learning.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/adjacent/2026-10-19T11-25-37.110Z/1280-notes-list.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/adjacent/2026-10-19T11-25-37.110Z/760-learning.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/adjacent/2026-10-19T11-25-37.110Z/760-notes-list.png"
+  ],
+  "errors": []
+}

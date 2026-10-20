@@ -1,0 +1,12 @@
+{
+  "purpose": "UI scroll validation, not Answer Eval",
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "destination": "https://api.deepseek.com/v1/chat/completions",
+  "prompt": "这是一条使用自编内容的界面滚动验证请求。请直接用中文写一篇关于“如何整理数学学习笔记”的连续说明，共十八个编号小节，每节约一百二十字，至少穿插六个简单的 LaTeX 行内或独立公式。聚焦条件、推导、例子、核对与复习。无需搜索、工具、教材、个人记录或创建学习资产。直接输出正文，保持清楚完整，不要先询问。",
+  "data": "only this authored prompt and production system instructions; no real notes, textbooks or conversation history",
+  "maxRemoteRequests": 2,
+  "maxOutputTokensPerRequest": 4096,
+  "automaticRetry": false,
+  "isolation": "temporary DATA_DIR, PROGRESS_PATH and userData"
+}

@@ -1,0 +1,42 @@
+{
+  "productFiles": [
+    {
+      "path": "frontend/src/features/notes/DraftWorkspace.tsx",
+      "sha256": "997b94c3f70c28d5e80dd3ec6569fe67dbad3183d6b849a3d46c71b9f0f4ba7b"
+    },
+    {
+      "path": "frontend/src/features/notes/NoteBlocks.tsx",
+      "sha256": "59bdbba3f4f76b054d64c74b21b334b5b40d42e5efb0496715b2b2a7f006b80c"
+    },
+    {
+      "path": "frontend/src/features/notes/autosave.ts",
+      "sha256": "e1d37d2435adeae16d93d428b8cb25190f313fe4a9506132368e44340eb322c1"
+    },
+    {
+      "path": "frontend/src/features/notes/notes.css",
+      "sha256": "07ecdbf0dbab18a6878392a567e55b3aa7ed03a623f44ad5af62d2fe87e2bfe0"
+    },
+    {
+      "path": "frontend/src/layouts/MobileConvergence.css",
+      "sha256": "88ef896de70a521523bfb5fa4f409c16caf8408be8401208a4050b70b2e60b3a"
+    },
+    {
+      "path": "frontend/src/features/notes/NoteTextarea.tsx",
+      "sha256": "93114a6bd8a7bb8d9652e06f43a0511e37f56bc2b31bc8cc19eedb9b1408973d"
+    },
+    {
+      "path": "frontend/src/features/notes/hooks/useDraftPosition.ts",
+      "sha256": "3948cad23a57be1b385ad0ab2ff7fbbf9f58960174e5e61457fd70027bde3f89"
+    }
+  ],
+  "testFiles": [
+    {
+      "path": "frontend/src/features/notes/autosave.test.ts",
+      "sha256": "c56eadfe640808488f88459969bc488e52a2da15cd78fc64e0fee487dbbe050c"
+    },
+    {
+      "path": "tests/test_session_notes.py",
+      "sha256": "091812b6ef1708543269ff0a2d0cd84ebfd1c82ebba9d2f379424d57d47a51aa"
+    }
+  ]
+}

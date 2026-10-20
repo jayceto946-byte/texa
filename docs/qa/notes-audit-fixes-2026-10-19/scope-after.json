@@ -1,0 +1,34 @@
+{
+  "branch": "Texa_MacOS",
+  "preexistingModifiedFilesChanged": [
+    "patch_notes.md"
+  ],
+  "patchNotesOriginalPreserved": true,
+  "pilotProductFilesUnchanged": true,
+  "priorEvidenceFiles": 53,
+  "priorEvidenceUnchanged": true,
+  "stagedFiles": [],
+  "notesElectron": {
+    "path": "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-24-31.735Z",
+    "checks": 101,
+    "passed": true,
+    "screenshots": 37,
+    "errors": []
+  },
+  "adjacentElectron": {
+    "path": "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/adjacent/2026-10-19T11-25-37.110Z",
+    "checks": 10,
+    "passed": true,
+    "screenshots": 4,
+    "errors": []
+  },
+  "remoteRequests": 0,
+  "tests": {
+    "frontend": 239,
+    "notesBackend": 48,
+    "desktop": 24,
+    "targetedLint": "passed",
+    "productionBuild": "passed"
+  },
+  "missingReportLinks": []
+}

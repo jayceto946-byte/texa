@@ -1,0 +1,318 @@
+{
+  "mode": "notes",
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "endpoint_host": "api.deepseek.com",
+  "endpoint_path": "",
+  "max_remote_requests": 0,
+  "requests": [],
+  "provider_errors": [],
+  "usage": [],
+  "notes_api": [
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_fd9d03614a9f4c909bcdf02655a87ffc",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_fd9d03614a9f4c909bcdf02655a87ffc",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_fd9d03614a9f4c909bcdf02655a87ffc",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_fd9d03614a9f4c909bcdf02655a87ffc",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_fd9d03614a9f4c909bcdf02655a87ffc",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_fd9d03614a9f4c909bcdf02655a87ffc",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_faac3507b73846bdac790f35dd87aeb6",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_92d0808085284ccabc59efa96939fc44/save",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_faac3507b73846bdac790f35dd87aeb6/save",
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_fd9d03614a9f4c909bcdf02655a87ffc",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_fd9d03614a9f4c909bcdf02655a87ffc",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_fd9d03614a9f4c909bcdf02655a87ffc",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/drafts/draft_5c2ac9d11e3c41f0b2862821e430f3e2",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_8147c94eeb794c24ac48ee5e9d1e75de/save",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/drafts/draft_5c2ac9d11e3c41f0b2862821e430f3e2/save",
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/note_60b539958dd9400f87d15e1ea20b779e/revisions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/filters",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes/filters",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notes",
+      "status": 200
+    }
+  ]
+}

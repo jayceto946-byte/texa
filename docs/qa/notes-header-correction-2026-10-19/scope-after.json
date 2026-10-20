@@ -1,0 +1,16 @@
+{
+  "changedPreexistingModified": [
+    "frontend/src/features/notes/DraftWorkspace.tsx",
+    "frontend/src/features/notes/notes.css",
+    "patch_notes.md"
+  ],
+  "otherPreexistingModifiedUnchanged": true,
+  "patchNotesSuffixPreserved": true,
+  "previousReportSuffixPreserved": true,
+  "stagedFiles": [],
+  "finalScreenshots": 20,
+  "rendererErrors": [],
+  "allRecordedChecksPassed": true,
+  "remoteRequests": 0,
+  "missingReportLinks": []
+}

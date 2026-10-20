@@ -1,4 +1,4 @@
-import type { NoteContent, NoteDraft } from './types';
+import type { NoteBlock, NoteContent, NoteDraft } from './types';
 export function editableContent(draft: NoteDraft): NoteContent {
     if (!draft.content)
         throw new Error('草稿尚未完成');
@@ -14,6 +14,28 @@ export class DraftAutosaver {
     error = '';
     errorCode = '';
     closing = false;
+    // Session-local recovery, kept outside the serialized document and CAS contract.
+    private deletedBlocks: { block: NoteBlock; index: number; before?: string; after?: string }[] = [];
+    get deletedCount() { return this.deletedBlocks.length; }
+    deleteBlock(index: number) {
+        const blocks = this.content.blocks;
+        if (blocks.length <= 1 || !blocks[index]) return false;
+        this.deletedBlocks.push({ block: structuredClone(blocks[index]), index,
+            before: blocks[index - 1]?.block_id, after: blocks[index + 1]?.block_id });
+        this.change({ ...this.content, blocks: blocks.filter((_, i) => i !== index) });
+        return true;
+    }
+    undoDelete(): string | undefined {
+        if (!this.deletedCount || this.content.blocks.length >= 300) return;
+        const entry = this.deletedBlocks.pop()!;
+        const blocks = [...this.content.blocks];
+        const after = blocks.findIndex(b => b.block_id === entry.after);
+        const before = blocks.findIndex(b => b.block_id === entry.before);
+        const index = after >= 0 ? after : before >= 0 ? before + 1 : Math.min(entry.index, blocks.length);
+        blocks.splice(index, 0, entry.block);
+        this.change({ ...this.content, blocks });
+        return entry.block.block_id;
+    }
     setClosing(value: boolean) { this.closing = value; this.onChange(); }
     private epoch = 0;
     private savedEpoch = 0;
@@ -32,6 +54,7 @@ export class DraftAutosaver {
         if (this.pending)
             throw new Error('请等待当前草稿保存结束');
         this.stopTimer();
+        this.deletedBlocks = [];
         this.draft = draft;
         this.content = editableContent(draft);
         this.epoch = 0;

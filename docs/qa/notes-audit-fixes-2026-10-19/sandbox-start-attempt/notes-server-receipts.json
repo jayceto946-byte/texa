@@ -1,0 +1,12 @@
+{
+  "mode": "notes",
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "endpoint_host": "api.deepseek.com",
+  "endpoint_path": "",
+  "max_remote_requests": 0,
+  "requests": [],
+  "provider_errors": [],
+  "usage": [],
+  "notes_api": []
+}

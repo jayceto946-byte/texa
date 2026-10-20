@@ -1,0 +1,739 @@
+{
+  "phase": "notes-detail",
+  "environment": "macOS ARM64, real Electron 37, production frontend, isolated production backend/storage",
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes-detail/2026-10-19T07-44-39.001Z/same-draft-edit-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes-detail/2026-10-19T07-44-39.001Z/same-draft-edit-focused.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes-detail/2026-10-19T07-44-39.001Z/same-draft-preview-after-toggle.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes-detail/2026-10-19T07-44-39.001Z/same-draft-preview-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes-detail/2026-10-19T07-44-39.001Z/same-draft-preview-same-block.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes-detail/2026-10-19T07-44-39.001Z/same-draft-edit-after-toggle.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/ui-pilot-closeout-2026-10-19/notes-detail/2026-10-19T07-44-39.001Z/same-draft-760-header.png"
+  ],
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "pass": true
+    },
+    {
+      "name": "same-draft narrow viewport has no document overflow",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "observations": {
+    "edit": {
+      "header": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48
+      },
+      "document": {
+        "x": 341.5,
+        "y": -781.5,
+        "width": 820,
+        "height": 4328.75
+      },
+      "scroll": {
+        "top": 829.5,
+        "height": 4329
+      },
+      "fields": [
+        {
+          "label": "第 1 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": -312.921875,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 2 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": -85.828125,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 178,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 4 块正文",
+          "focused": true,
+          "rect": {
+            "x": 398.5,
+            "y": 414.453125,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 154,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(67, 93, 197)",
+          "outline": "rgb(67, 93, 197) solid 2px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 6 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 922.53125,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 7 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 1149.625,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 178,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 9 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 1655.5078125,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 108,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 10 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 1882.6015625,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 11 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 2109.6953125,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 12 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 2336.7890625,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 178,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 14 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 2845.0625,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 295,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 15 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 3072.15625,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 16 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 3299.25,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 178,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        }
+      ],
+      "active": "第 4 块正文"
+    },
+    "previewAfterToggle": {
+      "header": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48
+      },
+      "document": {
+        "x": 341.5,
+        "y": -781.5,
+        "width": 820,
+        "height": 2582.4765625
+      },
+      "scroll": {
+        "top": 829.5,
+        "height": 2582
+      },
+      "fields": [],
+      "active": "编辑笔记"
+    },
+    "previewText": {
+      "fontSize": "16px",
+      "lineHeight": "30.4px",
+      "rect": {
+        "x": 381.5,
+        "y": 212.796875,
+        "width": 740,
+        "height": 2331.6796875,
+        "top": 212.796875,
+        "right": 1121.5,
+        "bottom": 2544.4765625,
+        "left": 381.5
+      }
+    },
+    "editAfterToggle": {
+      "header": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48
+      },
+      "document": {
+        "x": 341.5,
+        "y": 48,
+        "width": 820,
+        "height": 4328.75
+      },
+      "scroll": {
+        "top": 0,
+        "height": 4329
+      },
+      "fields": [
+        {
+          "label": "第 1 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 516.578125,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 2 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 743.671875,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 178,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 4 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 1243.953125,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 154,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 6 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 1752.03125,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 7 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 1979.125,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 178,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 9 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 2485.0078125,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 108,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 10 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 2712.1015625,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 11 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 2939.1953125,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 12 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 3166.2890625,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 178,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 14 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 3674.5625,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 295,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 15 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 3901.65625,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 16 块正文",
+          "focused": false,
+          "rect": {
+            "x": 398.5,
+            "y": 4128.75,
+            "width": 706,
+            "height": 85
+          },
+          "scrollHeight": 178,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        }
+      ],
+      "active": "阅读预览"
+    },
+    "narrow": {
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 119
+      },
+      "document": {
+        "x": 0,
+        "y": 119,
+        "width": 751,
+        "height": 4328.75
+      },
+      "scroll": {
+        "top": 0,
+        "height": 4329
+      },
+      "fields": [
+        {
+          "label": "第 1 块正文",
+          "focused": false,
+          "rect": {
+            "x": 39,
+            "y": 587.578125,
+            "width": 675,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 2 块正文",
+          "focused": false,
+          "rect": {
+            "x": 39,
+            "y": 814.671875,
+            "width": 675,
+            "height": 85
+          },
+          "scrollHeight": 201,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 4 块正文",
+          "focused": false,
+          "rect": {
+            "x": 39,
+            "y": 1314.953125,
+            "width": 675,
+            "height": 85
+          },
+          "scrollHeight": 154,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 6 块正文",
+          "focused": false,
+          "rect": {
+            "x": 39,
+            "y": 1823.03125,
+            "width": 675,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 7 块正文",
+          "focused": false,
+          "rect": {
+            "x": 39,
+            "y": 2050.125,
+            "width": 675,
+            "height": 85
+          },
+          "scrollHeight": 178,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 9 块正文",
+          "focused": false,
+          "rect": {
+            "x": 39,
+            "y": 2556.0078125,
+            "width": 675,
+            "height": 85
+          },
+          "scrollHeight": 108,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 10 块正文",
+          "focused": false,
+          "rect": {
+            "x": 39,
+            "y": 2783.1015625,
+            "width": 675,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 11 块正文",
+          "focused": false,
+          "rect": {
+            "x": 39,
+            "y": 3010.1953125,
+            "width": 675,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 12 块正文",
+          "focused": false,
+          "rect": {
+            "x": 39,
+            "y": 3237.2890625,
+            "width": 675,
+            "height": 85
+          },
+          "scrollHeight": 178,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 14 块正文",
+          "focused": false,
+          "rect": {
+            "x": 39,
+            "y": 3745.5625,
+            "width": 675,
+            "height": 85
+          },
+          "scrollHeight": 295,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 15 块正文",
+          "focused": false,
+          "rect": {
+            "x": 39,
+            "y": 3972.65625,
+            "width": 675,
+            "height": 85
+          },
+          "scrollHeight": 83,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        },
+        {
+          "label": "第 16 块正文",
+          "focused": false,
+          "rect": {
+            "x": 39,
+            "y": 4199.75,
+            "width": 675,
+            "height": 85
+          },
+          "scrollHeight": 178,
+          "clientHeight": 83,
+          "fontSize": "13px",
+          "lineHeight": "23.4px",
+          "border": "1px solid rgb(224, 223, 219)",
+          "outline": "rgb(37, 39, 45) none 0px",
+          "boxShadow": "none"
+        }
+      ],
+      "active": "阅读预览"
+    }
+  },
+  "errors": []
+}

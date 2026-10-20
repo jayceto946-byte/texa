@@ -1,0 +1,3206 @@
+{
+  "phase": "after",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "pass": true
+    },
+    {
+      "name": "1280-edit-top: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "new-content-saved-draft: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "deleted block absent after real autosave",
+      "pass": true
+    },
+    {
+      "name": "delete autosave does not publish",
+      "pass": true
+    },
+    {
+      "name": "deleted-after-autosave: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "undo after autosave restores content, ID, associations and position across preview",
+      "pass": true
+    },
+    {
+      "name": "restored block retains server-owned unverified semantics",
+      "pass": true
+    },
+    {
+      "name": "undo autosave does not publish",
+      "pass": true
+    },
+    {
+      "name": "undo-restored: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1280-reading: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1280: effective paragraph/list reading styles",
+      "pass": true
+    },
+    {
+      "name": "1280: no document horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1280-history: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1280: visible history readonly state",
+      "pass": true
+    },
+    {
+      "name": "1024-reading: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1024: effective paragraph/list reading styles",
+      "pass": true
+    },
+    {
+      "name": "1024: no document horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024-history: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1024: visible history readonly state",
+      "pass": true
+    },
+    {
+      "name": "760-reading: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "760: effective paragraph/list reading styles",
+      "pass": true
+    },
+    {
+      "name": "760: no document horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760-history: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "760: visible history readonly state",
+      "pass": true
+    },
+    {
+      "name": "1280-edit-top: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1280-edit-focused: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1280: representative paragraph grows without nested scrolling",
+      "pass": true
+    },
+    {
+      "name": "1280: short heading field avoids fixed 85px height",
+      "pass": true
+    },
+    {
+      "name": "1280: one editable document title",
+      "pass": true
+    },
+    {
+      "name": "1280: same edited block visible in preview",
+      "pass": true
+    },
+    {
+      "name": "1280: mode toggle retains keyboard focus",
+      "pass": true
+    },
+    {
+      "name": "1280-preview-same-block: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1280: reading equation stays visible after keyboard edit toggle",
+      "pass": true
+    },
+    {
+      "name": "1280: edit toggle does not steal focus into MathLive",
+      "pass": true
+    },
+    {
+      "name": "1280-equation-after-toggle: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1280-equation-focus: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1280: editing document has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024-edit-top: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1024-edit-focused: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1024: representative paragraph grows without nested scrolling",
+      "pass": true
+    },
+    {
+      "name": "1024: short heading field avoids fixed 85px height",
+      "pass": true
+    },
+    {
+      "name": "1024: one editable document title",
+      "pass": true
+    },
+    {
+      "name": "1024: same edited block visible in preview",
+      "pass": true
+    },
+    {
+      "name": "1024: mode toggle retains keyboard focus",
+      "pass": true
+    },
+    {
+      "name": "1024-preview-same-block: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1024: reading equation stays visible after keyboard edit toggle",
+      "pass": true
+    },
+    {
+      "name": "1024: edit toggle does not steal focus into MathLive",
+      "pass": true
+    },
+    {
+      "name": "1024-equation-after-toggle: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1024-equation-focus: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "1024: editing document has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760-edit-top: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "760-edit-focused: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "760: representative paragraph grows without nested scrolling",
+      "pass": true
+    },
+    {
+      "name": "760: short heading field avoids fixed 85px height",
+      "pass": true
+    },
+    {
+      "name": "760: one editable document title",
+      "pass": true
+    },
+    {
+      "name": "760: same edited block visible in preview",
+      "pass": true
+    },
+    {
+      "name": "760: mode toggle retains keyboard focus",
+      "pass": true
+    },
+    {
+      "name": "760-preview-same-block: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "760: reading equation stays visible after keyboard edit toggle",
+      "pass": true
+    },
+    {
+      "name": "760: edit toggle does not steal focus into MathLive",
+      "pass": true
+    },
+    {
+      "name": "760-equation-after-toggle: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "760-equation-focus: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "760: editing document has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "Shift+Tab reaches delete from prose field",
+      "pass": true
+    },
+    {
+      "name": "Shift+Tab reaches move-down",
+      "pass": true
+    },
+    {
+      "name": "Shift+Tab reaches move-up",
+      "pass": true
+    },
+    {
+      "name": "keyboard-tool-focus: header states and controls visible without overlap",
+      "pass": true
+    },
+    {
+      "name": "Tab returns through controls to prose",
+      "pass": true
+    },
+    {
+      "name": "MathLive keyboard edit persists through existing autosave",
+      "pass": false
+    },
+    {
+      "name": "failure: header states and controls visible without overlap",
+      "pass": true
+    }
+  ],
+  "measurements": {
+    "isolatedNoteId": "note_da7be103a26d45be85037220bb757cfc",
+    "draftId": "draft_23a6d485bc974992a848bfc35adf825f",
+    "1280-edit-top-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 328,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 945,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1000,
+            "bottom": 31.75,
+            "left": 945
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 1012,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1080,
+            "bottom": 37.5,
+            "left": 1012
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 1086,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1164,
+            "bottom": 37.5,
+            "left": 1086
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 1170,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1170
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "new-content-saved-draft-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 328,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 945,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1000,
+            "bottom": 31.75,
+            "left": 945
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 1012,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1080,
+            "bottom": 37.5,
+            "left": 1012
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 1086,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1164,
+            "bottom": 37.5,
+            "left": 1086
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 1170,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1170
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "deleted-after-autosave-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 328,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 945,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1000,
+            "bottom": 31.75,
+            "left": 945
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 1012,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1080,
+            "bottom": 37.5,
+            "left": 1012
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 1086,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1164,
+            "bottom": 37.5,
+            "left": 1086
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 1170,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1170
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "undoOriginal": {
+      "authorship": "user",
+      "block_id": "review-p2",
+      "data": {
+        "markdown": "将上式代回待求表达式，先在同一行消去一次项，然后再对剩余项与分母作比较。这里的关键不是展开式写得越长越好，而是最低保留阶必须足以区分目标结果。如果分母改为更高次幂，就需要重新评估余项。\n\n复习时可以给每一步写一条很短的理由：使用了什么局部信息、消去了什么项、最后剩余量为何不会改变极限。理由应服务于当前推导，不必反复解释同一个定义。含有行内公式的句子也应能自然阅读，例如 $r(x)=o(x^3)$ 表示 $r(x)/x^3\\to0$；它比“误差很小”给出了更明确的比较尺度。\n\n尚未正式发布的新内容：误删恢复验证。"
+      },
+      "evidence_ref_ids": [],
+      "source_alignment": "needs_review",
+      "source_ref_ids": [],
+      "type": "paragraph",
+      "verification": {
+        "reasons": [
+          "user_edit_requires_review"
+        ],
+        "status": "needs_review"
+      }
+    },
+    "undoRestored": {
+      "authorship": "user",
+      "block_id": "review-p2",
+      "data": {
+        "markdown": "将上式代回待求表达式，先在同一行消去一次项，然后再对剩余项与分母作比较。这里的关键不是展开式写得越长越好，而是最低保留阶必须足以区分目标结果。如果分母改为更高次幂，就需要重新评估余项。\n\n复习时可以给每一步写一条很短的理由：使用了什么局部信息、消去了什么项、最后剩余量为何不会改变极限。理由应服务于当前推导，不必反复解释同一个定义。含有行内公式的句子也应能自然阅读，例如 $r(x)=o(x^3)$ 表示 $r(x)/x^3\\to0$；它比“误差很小”给出了更明确的比较尺度。\n\n尚未正式发布的新内容：误删恢复验证。"
+      },
+      "evidence_ref_ids": [],
+      "source_alignment": "user_added",
+      "source_ref_ids": [],
+      "type": "paragraph",
+      "verification": {
+        "reasons": [],
+        "status": "not_checked"
+      }
+    },
+    "undo-restored-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 328,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 945,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1000,
+            "bottom": 31.75,
+            "left": 945
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 1012,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1080,
+            "bottom": 37.5,
+            "left": 1012
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 1086,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1164,
+            "bottom": 37.5,
+            "left": 1086
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 1170,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1170
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1280-reading": {
+      "paragraph": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 740
+      },
+      "list": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 652
+      },
+      "formula": {
+        "fontSize": "19.36px",
+        "lineHeight": "23.232px",
+        "width": 74.9765625
+      },
+      "root": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 740
+      },
+      "header": [
+        {
+          "tag": "H1",
+          "cls": "",
+          "text": "笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 32,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 296,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "display": "block",
+          "gridArea": "title",
+          "width": "32px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "SPAN",
+          "cls": "note-header-state",
+          "text": "已保存 · 版本 1 ",
+          "rect": {
+            "x": 973.9140625,
+            "y": 15.25,
+            "width": 74.0859375,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1048,
+            "bottom": 31.75,
+            "left": 973.9140625
+          },
+          "display": "block",
+          "gridArea": "state",
+          "width": "74.0859px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "DIV",
+          "cls": "note-actions",
+          "text": "笔记列表编辑归档",
+          "rect": {
+            "x": 1060,
+            "y": 9.5,
+            "width": 188,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1060
+          },
+          "display": "flex",
+          "gridArea": "actions",
+          "width": "188px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "A",
+          "cls": "app-ghost-button",
+          "text": "笔记列表",
+          "rect": {
+            "x": 1060,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1128,
+            "bottom": 37.5,
+            "left": 1060
+          },
+          "display": "flex",
+          "gridArea": "auto",
+          "width": "68px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "app-primary-button",
+          "text": "编辑",
+          "rect": {
+            "x": 1134,
+            "y": 9.5,
+            "width": 54,
+            "height": 28,
+            "top": 9.5,
+            "right": 1188,
+            "bottom": 37.5,
+            "left": 1134
+          },
+          "display": "flex",
+          "gridArea": "auto",
+          "width": "54px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "app-secondary-button",
+          "text": "归档",
+          "rect": {
+            "x": 1194,
+            "y": 9.5,
+            "width": 54,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1194
+          },
+          "display": "flex",
+          "gridArea": "auto",
+          "width": "54px",
+          "flex": "0 1 auto"
+        }
+      ],
+      "headerStyle": {
+        "display": "grid",
+        "gridTemplateAreas": "\"title state actions\"",
+        "gridTemplateColumns": "32px 740px 188px"
+      },
+      "headerHeight": 48,
+      "statusVisible": true
+    },
+    "1280-reading-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 32,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 296,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 32,
+          "client": 32
+        },
+        {
+          "text": "已保存 · 版本 1 ",
+          "rect": {
+            "x": 973.9140625,
+            "y": 15.25,
+            "width": 74.0859375,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1048,
+            "bottom": 31.75,
+            "left": 973.9140625
+          },
+          "scroll": 74,
+          "client": 74
+        },
+        {
+          "text": "笔记列表",
+          "rect": {
+            "x": 1060,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1128,
+            "bottom": 37.5,
+            "left": 1060
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "编辑",
+          "rect": {
+            "x": 1134,
+            "y": 9.5,
+            "width": 54,
+            "height": 28,
+            "top": 9.5,
+            "right": 1188,
+            "bottom": 37.5,
+            "left": 1134
+          },
+          "scroll": 52,
+          "client": 52
+        },
+        {
+          "text": "归档",
+          "rect": {
+            "x": 1194,
+            "y": 9.5,
+            "width": 54,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1194
+          },
+          "scroll": 52,
+          "client": 52
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1280-history-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 32,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 296,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 32,
+          "client": 32
+        },
+        {
+          "text": "历史版本 1 · 只读 ",
+          "rect": {
+            "x": 998.9140625,
+            "y": 15.25,
+            "width": 85.0859375,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1084,
+            "bottom": 31.75,
+            "left": 998.9140625
+          },
+          "scroll": 85,
+          "client": 85
+        },
+        {
+          "text": "笔记列表",
+          "rect": {
+            "x": 1096,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1164,
+            "bottom": 37.5,
+            "left": 1096
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "当前版本",
+          "rect": {
+            "x": 1170,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1170
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1280-historyState": {
+      "text": "历史版本 1 · 只读 ",
+      "visible": true,
+      "display": "block"
+    },
+    "1024-reading": {
+      "paragraph": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 727
+      },
+      "list": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 639
+      },
+      "formula": {
+        "fontSize": "19.36px",
+        "lineHeight": "23.232px",
+        "width": 74.9765625
+      },
+      "root": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 727
+      },
+      "header": [
+        {
+          "tag": "H1",
+          "cls": "",
+          "text": "笔记",
+          "rect": {
+            "x": 240,
+            "y": 13.1015625,
+            "width": 32,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 272,
+            "bottom": 33.8984375,
+            "left": 240
+          },
+          "display": "block",
+          "gridArea": "title",
+          "width": "32px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "SPAN",
+          "cls": "note-header-state",
+          "text": "已保存 · 版本 1 ",
+          "rect": {
+            "x": 717.9140625,
+            "y": 15.25,
+            "width": 74.0859375,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 792,
+            "bottom": 31.75,
+            "left": 717.9140625
+          },
+          "display": "block",
+          "gridArea": "state",
+          "width": "74.0859px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "DIV",
+          "cls": "note-actions",
+          "text": "笔记列表编辑归档",
+          "rect": {
+            "x": 804,
+            "y": 9.5,
+            "width": 188,
+            "height": 28,
+            "top": 9.5,
+            "right": 992,
+            "bottom": 37.5,
+            "left": 804
+          },
+          "display": "flex",
+          "gridArea": "actions",
+          "width": "188px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "A",
+          "cls": "app-ghost-button",
+          "text": "笔记列表",
+          "rect": {
+            "x": 804,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 872,
+            "bottom": 37.5,
+            "left": 804
+          },
+          "display": "flex",
+          "gridArea": "auto",
+          "width": "68px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "app-primary-button",
+          "text": "编辑",
+          "rect": {
+            "x": 878,
+            "y": 9.5,
+            "width": 54,
+            "height": 28,
+            "top": 9.5,
+            "right": 932,
+            "bottom": 37.5,
+            "left": 878
+          },
+          "display": "flex",
+          "gridArea": "auto",
+          "width": "54px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "app-secondary-button",
+          "text": "归档",
+          "rect": {
+            "x": 938,
+            "y": 9.5,
+            "width": 54,
+            "height": 28,
+            "top": 9.5,
+            "right": 992,
+            "bottom": 37.5,
+            "left": 938
+          },
+          "display": "flex",
+          "gridArea": "auto",
+          "width": "54px",
+          "flex": "0 1 auto"
+        }
+      ],
+      "headerStyle": {
+        "display": "grid",
+        "gridTemplateAreas": "\"title state actions\"",
+        "gridTemplateColumns": "32px 508px 188px"
+      },
+      "headerHeight": 48,
+      "statusVisible": true
+    },
+    "1024-reading-header": {
+      "outer": {
+        "x": 208,
+        "y": 0,
+        "width": 816,
+        "height": 48,
+        "top": 0,
+        "right": 1024,
+        "bottom": 48,
+        "left": 208
+      },
+      "items": [
+        {
+          "text": "笔记",
+          "rect": {
+            "x": 240,
+            "y": 13.1015625,
+            "width": 32,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 272,
+            "bottom": 33.8984375,
+            "left": 240
+          },
+          "scroll": 32,
+          "client": 32
+        },
+        {
+          "text": "已保存 · 版本 1 ",
+          "rect": {
+            "x": 717.9140625,
+            "y": 15.25,
+            "width": 74.0859375,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 792,
+            "bottom": 31.75,
+            "left": 717.9140625
+          },
+          "scroll": 74,
+          "client": 74
+        },
+        {
+          "text": "笔记列表",
+          "rect": {
+            "x": 804,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 872,
+            "bottom": 37.5,
+            "left": 804
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "编辑",
+          "rect": {
+            "x": 878,
+            "y": 9.5,
+            "width": 54,
+            "height": 28,
+            "top": 9.5,
+            "right": 932,
+            "bottom": 37.5,
+            "left": 878
+          },
+          "scroll": 52,
+          "client": 52
+        },
+        {
+          "text": "归档",
+          "rect": {
+            "x": 938,
+            "y": 9.5,
+            "width": 54,
+            "height": 28,
+            "top": 9.5,
+            "right": 992,
+            "bottom": 37.5,
+            "left": 938
+          },
+          "scroll": 52,
+          "client": 52
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1024-history-header": {
+      "outer": {
+        "x": 208,
+        "y": 0,
+        "width": 816,
+        "height": 48,
+        "top": 0,
+        "right": 1024,
+        "bottom": 48,
+        "left": 208
+      },
+      "items": [
+        {
+          "text": "笔记",
+          "rect": {
+            "x": 240,
+            "y": 13.1015625,
+            "width": 32,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 272,
+            "bottom": 33.8984375,
+            "left": 240
+          },
+          "scroll": 32,
+          "client": 32
+        },
+        {
+          "text": "历史版本 1 · 只读 ",
+          "rect": {
+            "x": 742.9140625,
+            "y": 15.25,
+            "width": 85.0859375,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 828,
+            "bottom": 31.75,
+            "left": 742.9140625
+          },
+          "scroll": 85,
+          "client": 85
+        },
+        {
+          "text": "笔记列表",
+          "rect": {
+            "x": 840,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 908,
+            "bottom": 37.5,
+            "left": 840
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "当前版本",
+          "rect": {
+            "x": 914,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 992,
+            "bottom": 37.5,
+            "left": 914
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1024-historyState": {
+      "text": "历史版本 1 · 只读 ",
+      "visible": true,
+      "display": "block"
+    },
+    "760-reading": {
+      "paragraph": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 709
+      },
+      "list": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 645
+      },
+      "formula": {
+        "fontSize": "19.36px",
+        "lineHeight": "23.232px",
+        "width": 74.9765625
+      },
+      "root": {
+        "fontSize": "16px",
+        "lineHeight": "30.4px",
+        "width": 709
+      },
+      "header": [
+        {
+          "tag": "H1",
+          "cls": "",
+          "text": "笔记",
+          "rect": {
+            "x": 152,
+            "y": 8,
+            "width": 32,
+            "height": 20.796875,
+            "top": 8,
+            "right": 184,
+            "bottom": 28.796875,
+            "left": 152
+          },
+          "display": "block",
+          "gridArea": "title",
+          "width": "32px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "SPAN",
+          "cls": "note-header-state",
+          "text": "已保存 · 版本 1 ",
+          "rect": {
+            "x": 665.9140625,
+            "y": 10.1484375,
+            "width": 74.0859375,
+            "height": 16.5,
+            "top": 10.1484375,
+            "right": 740,
+            "bottom": 26.6484375,
+            "left": 665.9140625
+          },
+          "display": "block",
+          "gridArea": "state",
+          "width": "74.0859px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "DIV",
+          "cls": "note-actions",
+          "text": "笔记列表编辑归档",
+          "rect": {
+            "x": 580,
+            "y": 34.796875,
+            "width": 160,
+            "height": 44,
+            "top": 34.796875,
+            "right": 740,
+            "bottom": 78.796875,
+            "left": 580
+          },
+          "display": "flex",
+          "gridArea": "actions",
+          "width": "160px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "A",
+          "cls": "app-ghost-button",
+          "text": "笔记列表",
+          "rect": {
+            "x": 580,
+            "y": 34.796875,
+            "width": 64,
+            "height": 44,
+            "top": 34.796875,
+            "right": 644,
+            "bottom": 78.796875,
+            "left": 580
+          },
+          "display": "flex",
+          "gridArea": "auto",
+          "width": "64px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "app-primary-button",
+          "text": "编辑",
+          "rect": {
+            "x": 650,
+            "y": 34.796875,
+            "width": 42,
+            "height": 44,
+            "top": 34.796875,
+            "right": 692,
+            "bottom": 78.796875,
+            "left": 650
+          },
+          "display": "flex",
+          "gridArea": "auto",
+          "width": "42px",
+          "flex": "0 1 auto"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "app-secondary-button",
+          "text": "归档",
+          "rect": {
+            "x": 698,
+            "y": 34.796875,
+            "width": 42,
+            "height": 44,
+            "top": 34.796875,
+            "right": 740,
+            "bottom": 78.796875,
+            "left": 698
+          },
+          "display": "flex",
+          "gridArea": "auto",
+          "width": "42px",
+          "flex": "0 1 auto"
+        }
+      ],
+      "headerStyle": {
+        "display": "grid",
+        "gridTemplateAreas": "\"title state\" \"actions actions\"",
+        "gridTemplateColumns": "32px 548px"
+      },
+      "headerHeight": 87.796875,
+      "statusVisible": true
+    },
+    "760-reading-header": {
+      "outer": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 87.796875,
+        "top": 0,
+        "right": 760,
+        "bottom": 87.796875,
+        "left": 0
+      },
+      "items": [
+        {
+          "text": "笔记",
+          "rect": {
+            "x": 152,
+            "y": 8,
+            "width": 32,
+            "height": 20.796875,
+            "top": 8,
+            "right": 184,
+            "bottom": 28.796875,
+            "left": 152
+          },
+          "scroll": 32,
+          "client": 32
+        },
+        {
+          "text": "已保存 · 版本 1 ",
+          "rect": {
+            "x": 665.9140625,
+            "y": 10.1484375,
+            "width": 74.0859375,
+            "height": 16.5,
+            "top": 10.1484375,
+            "right": 740,
+            "bottom": 26.6484375,
+            "left": 665.9140625
+          },
+          "scroll": 74,
+          "client": 74
+        },
+        {
+          "text": "笔记列表",
+          "rect": {
+            "x": 580,
+            "y": 34.796875,
+            "width": 64,
+            "height": 44,
+            "top": 34.796875,
+            "right": 644,
+            "bottom": 78.796875,
+            "left": 580
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "编辑",
+          "rect": {
+            "x": 650,
+            "y": 34.796875,
+            "width": 42,
+            "height": 44,
+            "top": 34.796875,
+            "right": 692,
+            "bottom": 78.796875,
+            "left": 650
+          },
+          "scroll": 40,
+          "client": 40
+        },
+        {
+          "text": "归档",
+          "rect": {
+            "x": 698,
+            "y": 34.796875,
+            "width": 42,
+            "height": 44,
+            "top": 34.796875,
+            "right": 740,
+            "bottom": 78.796875,
+            "left": 698
+          },
+          "scroll": 40,
+          "client": 40
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "760-history-header": {
+      "outer": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 87.796875,
+        "top": 0,
+        "right": 760,
+        "bottom": 87.796875,
+        "left": 0
+      },
+      "items": [
+        {
+          "text": "笔记",
+          "rect": {
+            "x": 152,
+            "y": 8,
+            "width": 32,
+            "height": 20.796875,
+            "top": 8,
+            "right": 184,
+            "bottom": 28.796875,
+            "left": 152
+          },
+          "scroll": 32,
+          "client": 32
+        },
+        {
+          "text": "历史版本 1 · 只读 ",
+          "rect": {
+            "x": 654.9140625,
+            "y": 10.1484375,
+            "width": 85.0859375,
+            "height": 16.5,
+            "top": 10.1484375,
+            "right": 740,
+            "bottom": 26.6484375,
+            "left": 654.9140625
+          },
+          "scroll": 85,
+          "client": 85
+        },
+        {
+          "text": "笔记列表",
+          "rect": {
+            "x": 604,
+            "y": 34.796875,
+            "width": 64,
+            "height": 44,
+            "top": 34.796875,
+            "right": 668,
+            "bottom": 78.796875,
+            "left": 604
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "当前版本",
+          "rect": {
+            "x": 674,
+            "y": 34.796875,
+            "width": 66,
+            "height": 44,
+            "top": 34.796875,
+            "right": 740,
+            "bottom": 78.796875,
+            "left": 674
+          },
+          "scroll": 64,
+          "client": 64
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "760-historyState": {
+      "text": "历史版本 1 · 只读 ",
+      "visible": true,
+      "display": "block"
+    },
+    "1280-edit-focused-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 328,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 945,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1000,
+            "bottom": 31.75,
+            "left": 945
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 1012,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1080,
+            "bottom": 37.5,
+            "left": 1012
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 1086,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1164,
+            "bottom": 37.5,
+            "left": 1086
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 1170,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1170
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1280-edit": {
+      "fontSize": "16px",
+      "lineHeight": "30.4px",
+      "clientHeight": 288,
+      "scrollHeight": 288,
+      "headingHeight": 40,
+      "blockHeight": 96,
+      "outline": "rgb(67, 93, 197) solid 2px",
+      "boxShadow": "none",
+      "border": "1px solid rgba(0, 0, 0, 0)",
+      "currentBorder": "rgb(224, 223, 219)",
+      "inactiveBorder": "rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgb(224, 223, 219)",
+      "headerHeight": 48
+    },
+    "1280-editToRead": {
+      "visible": true,
+      "y": 318.125,
+      "height": 214.390625,
+      "top": 271.5
+    },
+    "1280-preview-same-block-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 328,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 945,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1000,
+            "bottom": 31.75,
+            "left": 945
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 1012,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1080,
+            "bottom": 37.5,
+            "left": 1012
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 1086,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1164,
+            "bottom": 37.5,
+            "left": 1086
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 1170,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1170
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1280-readToEdit": {
+      "visible": true,
+      "y": 35.859375,
+      "height": 242.78125,
+      "top": 3092
+    },
+    "1280-equation-after-toggle-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 328,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 945,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1000,
+            "bottom": 31.75,
+            "left": 945
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 1012,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1080,
+            "bottom": 37.5,
+            "left": 1012
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 1086,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1164,
+            "bottom": 37.5,
+            "left": 1086
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 1170,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1170
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1280-equation-focus-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 328,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 945,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1000,
+            "bottom": 31.75,
+            "left": 945
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 1012,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1080,
+            "bottom": 37.5,
+            "left": 1012
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 1086,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1164,
+            "bottom": 37.5,
+            "left": 1086
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 1170,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1170
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1024-edit-top-header": {
+      "outer": {
+        "x": 208,
+        "y": 0,
+        "width": 816,
+        "height": 48,
+        "top": 0,
+        "right": 1024,
+        "bottom": 48,
+        "left": 208
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 240,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 304,
+            "bottom": 33.8984375,
+            "left": 240
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 689,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 744,
+            "bottom": 31.75,
+            "left": 689
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 756,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 824,
+            "bottom": 37.5,
+            "left": 756
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 830,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 908,
+            "bottom": 37.5,
+            "left": 830
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 914,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 992,
+            "bottom": 37.5,
+            "left": 914
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1024-edit-focused-header": {
+      "outer": {
+        "x": 208,
+        "y": 0,
+        "width": 816,
+        "height": 48,
+        "top": 0,
+        "right": 1024,
+        "bottom": 48,
+        "left": 208
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 240,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 304,
+            "bottom": 33.8984375,
+            "left": 240
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 689,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 744,
+            "bottom": 31.75,
+            "left": 689
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 756,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 824,
+            "bottom": 37.5,
+            "left": 756
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 830,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 908,
+            "bottom": 37.5,
+            "left": 830
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 914,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 992,
+            "bottom": 37.5,
+            "left": 914
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1024-edit": {
+      "fontSize": "16px",
+      "lineHeight": "30.4px",
+      "clientHeight": 318,
+      "scrollHeight": 318,
+      "headingHeight": 40,
+      "blockHeight": 96,
+      "outline": "rgb(67, 93, 197) solid 2px",
+      "boxShadow": "none",
+      "border": "1px solid rgba(0, 0, 0, 0)",
+      "currentBorder": "rgb(224, 223, 219)",
+      "inactiveBorder": "rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgb(224, 223, 219)",
+      "headerHeight": 48
+    },
+    "1024-editToRead": {
+      "visible": true,
+      "y": 292.125,
+      "height": 244.7890625,
+      "top": 297.5
+    },
+    "1024-preview-same-block-header": {
+      "outer": {
+        "x": 208,
+        "y": 0,
+        "width": 816,
+        "height": 48,
+        "top": 0,
+        "right": 1024,
+        "bottom": 48,
+        "left": 208
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 240,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 304,
+            "bottom": 33.8984375,
+            "left": 240
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 689,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 744,
+            "bottom": 31.75,
+            "left": 689
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 756,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 824,
+            "bottom": 37.5,
+            "left": 756
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 830,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 908,
+            "bottom": 37.5,
+            "left": 830
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 914,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 992,
+            "bottom": 37.5,
+            "left": 914
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1024-readToEdit": {
+      "visible": true,
+      "y": 15.859375,
+      "height": 242.78125,
+      "top": 3142
+    },
+    "1024-equation-after-toggle-header": {
+      "outer": {
+        "x": 208,
+        "y": 0,
+        "width": 816,
+        "height": 48,
+        "top": 0,
+        "right": 1024,
+        "bottom": 48,
+        "left": 208
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 240,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 304,
+            "bottom": 33.8984375,
+            "left": 240
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 689,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 744,
+            "bottom": 31.75,
+            "left": 689
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 756,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 824,
+            "bottom": 37.5,
+            "left": 756
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 830,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 908,
+            "bottom": 37.5,
+            "left": 830
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 914,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 992,
+            "bottom": 37.5,
+            "left": 914
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "1024-equation-focus-header": {
+      "outer": {
+        "x": 208,
+        "y": 0,
+        "width": 816,
+        "height": 48,
+        "top": 0,
+        "right": 1024,
+        "bottom": 48,
+        "left": 208
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 240,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 304,
+            "bottom": 33.8984375,
+            "left": 240
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 689,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 744,
+            "bottom": 31.75,
+            "left": 689
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 756,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 824,
+            "bottom": 37.5,
+            "left": 756
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 830,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 908,
+            "bottom": 37.5,
+            "left": 830
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 914,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 992,
+            "bottom": 37.5,
+            "left": 914
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "760-edit-top-header": {
+      "outer": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 87.796875,
+        "top": 0,
+        "right": 760,
+        "bottom": 87.796875,
+        "left": 0
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 152,
+            "y": 8,
+            "width": 64,
+            "height": 20.796875,
+            "top": 8,
+            "right": 216,
+            "bottom": 28.796875,
+            "left": 152
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 685,
+            "y": 10.1484375,
+            "width": 55,
+            "height": 16.5,
+            "top": 10.1484375,
+            "right": 740,
+            "bottom": 26.6484375,
+            "left": 685
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 532,
+            "y": 34.796875,
+            "width": 64,
+            "height": 44,
+            "top": 34.796875,
+            "right": 596,
+            "bottom": 78.796875,
+            "left": 532
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 602,
+            "y": 34.796875,
+            "width": 66,
+            "height": 44,
+            "top": 34.796875,
+            "right": 668,
+            "bottom": 78.796875,
+            "left": 602
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 674,
+            "y": 34.796875,
+            "width": 66,
+            "height": 44,
+            "top": 34.796875,
+            "right": 740,
+            "bottom": 78.796875,
+            "left": 674
+          },
+          "scroll": 64,
+          "client": 64
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "760-edit-focused-header": {
+      "outer": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 87.796875,
+        "top": 0,
+        "right": 760,
+        "bottom": 87.796875,
+        "left": 0
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 152,
+            "y": 8,
+            "width": 64,
+            "height": 20.796875,
+            "top": 8,
+            "right": 216,
+            "bottom": 28.796875,
+            "left": 152
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 685,
+            "y": 10.1484375,
+            "width": 55,
+            "height": 16.5,
+            "top": 10.1484375,
+            "right": 740,
+            "bottom": 26.6484375,
+            "left": 685
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 532,
+            "y": 34.796875,
+            "width": 64,
+            "height": 44,
+            "top": 34.796875,
+            "right": 596,
+            "bottom": 78.796875,
+            "left": 532
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 602,
+            "y": 34.796875,
+            "width": 66,
+            "height": 44,
+            "top": 34.796875,
+            "right": 668,
+            "bottom": 78.796875,
+            "left": 602
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 674,
+            "y": 34.796875,
+            "width": 66,
+            "height": 44,
+            "top": 34.796875,
+            "right": 740,
+            "bottom": 78.796875,
+            "left": 674
+          },
+          "scroll": 64,
+          "client": 64
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "760-edit": {
+      "fontSize": "16px",
+      "lineHeight": "30.4px",
+      "clientHeight": 318,
+      "scrollHeight": 318,
+      "headingHeight": 40,
+      "blockHeight": 96,
+      "outline": "rgb(67, 93, 197) solid 2px",
+      "boxShadow": "none",
+      "border": "1px solid rgba(0, 0, 0, 0)",
+      "currentBorder": "rgb(224, 223, 219)",
+      "inactiveBorder": "rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgb(224, 223, 219)",
+      "headerHeight": 87.796875
+    },
+    "760-editToRead": {
+      "visible": true,
+      "y": 298.125,
+      "height": 244.7890625,
+      "top": 292.5
+    },
+    "760-preview-same-block-header": {
+      "outer": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 87.796875,
+        "top": 0,
+        "right": 760,
+        "bottom": 87.796875,
+        "left": 0
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 152,
+            "y": 8,
+            "width": 64,
+            "height": 20.796875,
+            "top": 8,
+            "right": 216,
+            "bottom": 28.796875,
+            "left": 152
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 685,
+            "y": 10.1484375,
+            "width": 55,
+            "height": 16.5,
+            "top": 10.1484375,
+            "right": 740,
+            "bottom": 26.6484375,
+            "left": 685
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 532,
+            "y": 34.796875,
+            "width": 64,
+            "height": 44,
+            "top": 34.796875,
+            "right": 596,
+            "bottom": 78.796875,
+            "left": 532
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 602,
+            "y": 34.796875,
+            "width": 66,
+            "height": 44,
+            "top": 34.796875,
+            "right": 668,
+            "bottom": 78.796875,
+            "left": 602
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 674,
+            "y": 34.796875,
+            "width": 66,
+            "height": 44,
+            "top": 34.796875,
+            "right": 740,
+            "bottom": 78.796875,
+            "left": 674
+          },
+          "scroll": 64,
+          "client": 64
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "760-readToEdit": {
+      "visible": true,
+      "y": 15.859375,
+      "height": 242.78125,
+      "top": 3142
+    },
+    "760-equation-after-toggle-header": {
+      "outer": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 87.796875,
+        "top": 0,
+        "right": 760,
+        "bottom": 87.796875,
+        "left": 0
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 152,
+            "y": 8,
+            "width": 64,
+            "height": 20.796875,
+            "top": 8,
+            "right": 216,
+            "bottom": 28.796875,
+            "left": 152
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 685,
+            "y": 10.1484375,
+            "width": 55,
+            "height": 16.5,
+            "top": 10.1484375,
+            "right": 740,
+            "bottom": 26.6484375,
+            "left": 685
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 532,
+            "y": 34.796875,
+            "width": 64,
+            "height": 44,
+            "top": 34.796875,
+            "right": 596,
+            "bottom": 78.796875,
+            "left": 532
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 602,
+            "y": 34.796875,
+            "width": 66,
+            "height": 44,
+            "top": 34.796875,
+            "right": 668,
+            "bottom": 78.796875,
+            "left": 602
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 674,
+            "y": 34.796875,
+            "width": 66,
+            "height": 44,
+            "top": 34.796875,
+            "right": 740,
+            "bottom": 78.796875,
+            "left": 674
+          },
+          "scroll": 64,
+          "client": 64
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "760-equation-focus-header": {
+      "outer": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 87.796875,
+        "top": 0,
+        "right": 760,
+        "bottom": 87.796875,
+        "left": 0
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 152,
+            "y": 8,
+            "width": 64,
+            "height": 20.796875,
+            "top": 8,
+            "right": 216,
+            "bottom": 28.796875,
+            "left": 152
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 685,
+            "y": 10.1484375,
+            "width": 55,
+            "height": 16.5,
+            "top": 10.1484375,
+            "right": 740,
+            "bottom": 26.6484375,
+            "left": 685
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 532,
+            "y": 34.796875,
+            "width": 64,
+            "height": 44,
+            "top": 34.796875,
+            "right": 596,
+            "bottom": 78.796875,
+            "left": 532
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 602,
+            "y": 34.796875,
+            "width": 66,
+            "height": 44,
+            "top": 34.796875,
+            "right": 668,
+            "bottom": 78.796875,
+            "left": 602
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 674,
+            "y": 34.796875,
+            "width": 66,
+            "height": 44,
+            "top": 34.796875,
+            "right": 740,
+            "bottom": 78.796875,
+            "left": 674
+          },
+          "scroll": 64,
+          "client": 64
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "keyboard-tool-focus-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 328,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "草稿已保存",
+          "rect": {
+            "x": 945,
+            "y": 15.25,
+            "width": 55,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1000,
+            "bottom": 31.75,
+            "left": 945
+          },
+          "scroll": 55,
+          "client": 55
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 1012,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1080,
+            "bottom": 37.5,
+            "left": 1012
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 1086,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1164,
+            "bottom": 37.5,
+            "left": 1086
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 1170,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1170
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    },
+    "failure-header": {
+      "outer": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "items": [
+        {
+          "text": "编辑笔记",
+          "rect": {
+            "x": 264,
+            "y": 13.1015625,
+            "width": 64,
+            "height": 20.796875,
+            "top": 13.1015625,
+            "right": 328,
+            "bottom": 33.8984375,
+            "left": 264
+          },
+          "scroll": 64,
+          "client": 64
+        },
+        {
+          "text": "有未保存修改",
+          "rect": {
+            "x": 934,
+            "y": 15.25,
+            "width": 66,
+            "height": 16.5,
+            "top": 15.25,
+            "right": 1000,
+            "bottom": 31.75,
+            "left": 934
+          },
+          "scroll": 66,
+          "client": 66
+        },
+        {
+          "text": "返回笔记",
+          "rect": {
+            "x": 1012,
+            "y": 9.5,
+            "width": 68,
+            "height": 28,
+            "top": 9.5,
+            "right": 1080,
+            "bottom": 37.5,
+            "left": 1012
+          },
+          "scroll": 68,
+          "client": 68
+        },
+        {
+          "text": "阅读预览",
+          "rect": {
+            "x": 1086,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1164,
+            "bottom": 37.5,
+            "left": 1086
+          },
+          "scroll": 76,
+          "client": 76
+        },
+        {
+          "text": "保存修改",
+          "rect": {
+            "x": 1170,
+            "y": 9.5,
+            "width": 78,
+            "height": 28,
+            "top": 9.5,
+            "right": 1248,
+            "bottom": 37.5,
+            "left": 1170
+          },
+          "scroll": 76,
+          "client": 76
+        }
+      ],
+      "inside": true,
+      "overlap": false
+    }
+  },
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1280-edit-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/new-content-saved-draft.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/deleted-after-autosave.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/undo-restored.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1280-reading.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1280-history.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1024-reading.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1024-history.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/760-reading.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/760-history.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1280-edit-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1280-edit-focused.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1280-preview-same-block.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1280-equation-after-toggle.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1280-equation-focus.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1024-edit-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1024-edit-focused.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1024-preview-same-block.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1024-equation-after-toggle.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/1024-equation-focus.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/760-edit-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/760-edit-focused.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/760-preview-same-block.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/760-equation-after-toggle.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/760-equation-focus.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/keyboard-tool-focus.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-20-57.904Z/failure.png"
+  ],
+  "errors": [
+    "Error: MathLive keyboard edit persists through existing autosave"
+  ]
+}

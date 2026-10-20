@@ -1,0 +1,33 @@
+{
+  "phase": "after",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "pass": true
+    },
+    {
+      "name": "deleted block absent after real autosave",
+      "pass": true
+    },
+    {
+      "name": "delete autosave does not publish",
+      "pass": true
+    },
+    {
+      "name": "undo after autosave restores full block, ID, associations and position across preview",
+      "pass": false
+    }
+  ],
+  "measurements": {
+    "draftId": "draft_de206ed821b1408b812b4225ef047795"
+  },
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-12-12.329Z/1280-edit-top.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-12-12.329Z/new-content-saved-draft.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-12-12.329Z/deleted-after-autosave.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/notes-audit-fixes-2026-10-19/after/2026-10-19T11-12-12.329Z/failure.png"
+  ],
+  "errors": [
+    "Error: undo after autosave restores full block, ID, associations and position across preview"
+  ]
+}
