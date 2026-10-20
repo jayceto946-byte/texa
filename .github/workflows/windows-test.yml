@@ -78,7 +78,7 @@ jobs:
         working-directory: desktop
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-        run: npx --no-install electron-builder --win portable --x64 --publish never -c.artifactName=texa_test.exe
+        run: npx --no-install electron-builder --win portable --x64 --publish never --config.artifactName=texa_test.exe
       - name: Record package identity
         run: |
           $exe = Get-Item release\texa_test.exe

@@ -1,3 +1,8 @@
+## 2026-10-20 — Windows 检查包命名参数更正
+
+- Windows 测试、后端构建、Standard 内容校验及冻结 SQLite/Chroma/ONNX 自检均已通过；封装阶段短选项 `-c.artifactName` 被 CLI 当作配置文件路径而失败。
+- 改用 CLI 支持的 `--config.artifactName=texa_test.exe`，已用本地实际 CLI parser 核对 portable/x64/publish never 与命名配置。失败记录：https://github.com/jayceto946-byte/texa/actions/runs/39352629608 。
+
 ## 2026-10-20 — Windows 冻结自检释放数据库句柄
 
 - Windows 后端构建与 Standard 内容校验已通过；冻结自检清理临时目录时复现 WinError 32，SQLite connection 的事务上下文未关闭文件句柄。
