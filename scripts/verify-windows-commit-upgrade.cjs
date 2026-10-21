@@ -26,6 +26,7 @@ async function main() {
   const expected = JSON.parse(fs.readFileSync(path.join(release, 'commit-build.json'), 'utf8'));
   verifyRelease(release, expected.sourceCommit, expected.version, 'windows');
   fs.mkdirSync(root, { recursive: true });
+  fs.mkdirSync(path.join(root, 'electron-user-data'), { recursive: true });
   app.setPath('userData', path.join(root, 'electron-user-data'));
   await app.whenReady();
 
