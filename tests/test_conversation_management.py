@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 import json
 import sqlite3
 
@@ -207,7 +208,7 @@ def test_backup_restore_includes_metadata_receipts_and_independent_assets(servic
     note = progress / 'session_notes.db'
     from memory.session_notes import SessionNoteStore
     SessionNoteStore(note)
-    with sqlite3.connect(note) as conn:
+    with closing(sqlite3.connect(note)) as conn, conn:
         conn.execute('CREATE TABLE frozen_sources (body TEXT)')
         conn.execute("INSERT INTO frozen_sources VALUES ('unchanged frozen source')")
     change(service, 'trash', 0)
@@ -220,11 +221,12 @@ def test_backup_restore_includes_metadata_receipts_and_independent_assets(servic
     saved = backup.create_backup()
     change(service, 'restore', 1)
     backup.schedule_restore(saved['name'])
-    assert backup.apply_pending_restore()['status'] == 'completed'
+    result = backup.apply_pending_restore()
+    assert result['status'] == 'completed', result
     assert service.get('c1')['state'] == 'trashed'
     assert change(service, 'trash', 0)['revision'] == 1  # backed-up receipt
     assert memory.get_conversation('c1')['messages'][0]['content'] == 'Original question'
-    with sqlite3.connect(note) as conn:
+    with closing(sqlite3.connect(note)) as conn:
         assert conn.execute('SELECT body FROM frozen_sources').fetchone()[0] == 'unchanged frozen source'
 
 

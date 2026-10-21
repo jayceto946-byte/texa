@@ -11,6 +11,7 @@ import tempfile
 import threading
 import time
 import zipfile
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -53,10 +54,10 @@ def _copy_consistent_file(source: Path, destination: Path) -> None:
     is_sqlite = source.suffix.lower() in {".db", ".sqlite", ".sqlite3"} or lower == "chroma.sqlite3"
     if is_sqlite:
         try:
-            with sqlite3.connect(f"file:{source}?mode=ro", uri=True, timeout=10) as src:
-                with sqlite3.connect(str(destination), timeout=10) as dst:
+            with closing(sqlite3.connect(f"file:{source}?mode=ro", uri=True, timeout=10)) as src:
+                with closing(sqlite3.connect(str(destination), timeout=10)) as dst, dst:
                     src.backup(dst)
-            with sqlite3.connect(f"file:{destination}?mode=ro", uri=True, timeout=10) as verified:
+            with closing(sqlite3.connect(f"file:{destination}?mode=ro", uri=True, timeout=10)) as verified:
                 check = verified.execute("PRAGMA quick_check").fetchone()
             if not check or check[0] != "ok":
                 raise sqlite3.DatabaseError(

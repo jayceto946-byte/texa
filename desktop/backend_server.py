@@ -119,8 +119,12 @@ def main() -> None:
 
     if os.getenv("TEXA_FROZEN_SMOKE", "0") == "1":
         import chromadb
+        from datetime import datetime, timedelta
+        from zoneinfo import ZoneInfo
         from config import get_embeddings
 
+        assert datetime(2026, 1, 1, tzinfo=ZoneInfo("Asia/Shanghai")).utcoffset() == timedelta(hours=8)
+        assert datetime(2026, 1, 1, tzinfo=ZoneInfo("UTC")).utcoffset() == timedelta(0)
         embeddings = get_embeddings()
         with tempfile.TemporaryDirectory(prefix="texa-frozen-smoke-") as temporary:
             root = Path(temporary)

@@ -6,7 +6,7 @@ import hashlib
 import json
 import sqlite3
 import uuid
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -235,7 +235,7 @@ def validate_notes_database(path: str | Path) -> None:
     path = Path(path)
     if not path.exists():
         return
-    with sqlite3.connect(f"file:{path}?mode=ro", uri=True) as conn:
+    with closing(sqlite3.connect(f"file:{path}?mode=ro", uri=True)) as conn:
         if conn.execute("PRAGMA quick_check").fetchone()[0] != "ok" or conn.execute("PRAGMA user_version").fetchone()[0] != SCHEMA_VERSION:
             raise ValueError("unsupported or damaged session_notes database")
         snapshots = {row[0] for row in conn.execute("SELECT id FROM note_source_snapshots")}

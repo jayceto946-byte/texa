@@ -102,6 +102,7 @@ Invoke-CheckedCommand "[3/3] Building backend executable..." {
       --collect-submodules utils `
       --collect-submodules chromadb `
       --collect-data chromadb `
+      --collect-all tzdata `
       --exclude-module agents `
       --exclude-module paddle `
       --exclude-module paddleocr `
