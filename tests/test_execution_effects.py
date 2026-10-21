@@ -235,7 +235,8 @@ def test_concurrent_conversations_preserve_both_counts(isolated, monkeypatch):
         thread.join(30)
     assert not any(thread.is_alive() for thread in threads), 'concurrent effects did not finish'
     effects.ExecutionEffectsWorker(store).run_once()
-    assert not failures, failures
+    if failures:
+        pytest.fail('\n'.join(failures), pytrace=False)
     assert StudyMemory("default").get_chapter_progress("ch")["review_count"] == 2
     assert SpacedRepetition("default")._cards["ch::极限"]["repetitions"] == 2
     assert ConceptMemory("default")._data["concepts"]["极限"]["exposure_count"] == 2
