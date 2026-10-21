@@ -18,8 +18,9 @@ test('CI binds package, lockfiles, VERSION and update manifests to one commit', 
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'desktop/package.json')));
   assert.equal(pkg.version, '1.0.1-commit.80.bbbbbbbb');
   assert.deepEqual(pkg.texaBuild, { sourceCommit: commit, sourceBranch: 'Texa_MacOS', channel: 'commit' });
-  assert.equal(pkg.build.mac.identity, undefined);
-  assert.equal(pkg.build.mac.notarize, true);
+  assert.equal(pkg.build.mac.identity, null);
+  assert.equal(pkg.build.mac.notarize, undefined);
+  assert.equal(pkg.build.win.verifyUpdateCodeSignature, false);
   assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'frontend/package-lock.json'))).packages[''].version, identity.version);
   fs.symlinkSync(path.join(__dirname, 'node_modules'), path.join(root, 'desktop/node_modules'), process.platform === 'win32' ? 'junction' : 'dir');
   fs.mkdirSync(path.join(root, 'release'));

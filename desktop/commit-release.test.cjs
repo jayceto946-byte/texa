@@ -36,3 +36,11 @@ test('release gate rejects mixed commits and absent platform packages', t => {
   fs.writeFileSync(macPath, yaml.dump(mac));
   assert.throws(() => verifyRelease(root, sha, version), /missing platform update asset/);
 });
+test('Windows-only updates keep hash and identity checks without a Mac signing dependency', t => {
+  const { root, sha, version } = fixture(t);
+  fs.unlinkSync(path.join(root, 'commit-mac.yml'));
+  assert.deepEqual(verifyRelease(root, sha, version, 'windows'), ['Texa.exe']);
+  assert.throws(() => verifyRelease(root, sha, version), /ENOENT/);
+  fs.appendFileSync(path.join(root, 'Texa.exe'), 'corrupt');
+  assert.throws(() => verifyRelease(root, sha, version, 'windows'), /checksum\/size mismatch/);
+});

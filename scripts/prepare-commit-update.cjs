@@ -12,8 +12,7 @@ function prepare(root, { commit, branch, count }) {
     data.version = version;
     if (directory === 'desktop') {
       data.texaBuild = identity;
-      delete data.build.mac.identity;
-      data.build.mac.notarize = true;
+      data.build.win = { ...data.build.win, verifyUpdateCodeSignature: false };
       data.build.publish[0].releaseType = 'prerelease';
       data.build.publish[0].channel = 'commit';
     }
