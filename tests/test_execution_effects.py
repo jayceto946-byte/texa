@@ -211,15 +211,31 @@ def test_only_new_explicit_effects_recover_and_retry_is_bounded(isolated, monkey
     assert_chat_counts_once(events)
 
 
-def test_concurrent_conversations_preserve_both_counts(isolated):
+def test_concurrent_conversations_preserve_both_counts(isolated, monkeypatch):
     store, events = isolated
+    failures = []
+    def checked(function):
+        def call(*args, **kwargs):
+            try:
+                return function(*args, **kwargs)
+            except Exception:
+                import traceback
+                failures.append(traceback.format_exc())
+                raise
+        return call
+
+    monkeypatch.setattr(effects, '_prepare', checked(effects._prepare))
+    monkeypatch.setattr(effects, '_apply', checked(effects._apply))
+    monkeypatch.setattr(store, 'update_outcome_effect', checked(store.update_outcome_effect))
     tasks = [commit(store, cid=cid) for cid in ("one", "two")]
     threads = [threading.Thread(target=effects.recover_task_effects, args=(store, task.id)) for task in tasks]
     for thread in threads:
         thread.start()
     for thread in threads:
-        thread.join(3)
+        thread.join(30)
+    assert not any(thread.is_alive() for thread in threads), 'concurrent effects did not finish'
     effects.ExecutionEffectsWorker(store).run_once()
+    assert not failures, failures
     assert StudyMemory("default").get_chapter_progress("ch")["review_count"] == 2
     assert SpacedRepetition("default")._cards["ch::极限"]["repetitions"] == 2
     assert ConceptMemory("default")._data["concepts"]["极限"]["exposure_count"] == 2
