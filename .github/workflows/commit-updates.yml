@@ -21,7 +21,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  baseline:
+    if: github.ref == 'refs/heads/Texa_MacOS'
+    runs-on: ubuntu-latest
+    permissions:
+      # GitHub draft releases require push permission even for downloads.
+      contents: write
+    steps:
+      - name: Fetch pinned inspection installer from the existing draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release download v0.9.1 --pattern texa_test_v0.9.1.exe --dir baseline
+      - uses: actions/upload-artifact@v4
+        with:
+          name: upgrade-baseline
+          path: baseline/texa_test_v0.9.1.exe
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+
   build:
+    needs: baseline
     if: github.ref == 'refs/heads/Texa_MacOS'
     runs-on: windows-latest
     timeout-minutes: 90
@@ -112,13 +133,10 @@ jobs:
           $version = (Get-Content desktop\package.json -Raw | ConvertFrom-Json).version
           node scripts/verify-commit-release.cjs release $env:GITHUB_SHA $version windows
           if ($LASTEXITCODE -ne 0) { throw 'Update manifest validation failed' }
-      - name: Fetch previous inspection installer for actual upgrade validation
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          gh release download v0.9.1 --pattern texa_test_v0.9.1.exe --dir "$env:RUNNER_TEMP/texa-baseline"
-          if ($LASTEXITCODE -ne 0) { throw 'Previous installer download failed' }
+      - uses: actions/download-artifact@v4
+        with:
+          name: upgrade-baseline
+          path: ${{ runner.temp }}/texa-baseline
       - name: Exercise real updater download and NSIS upgrade
         run: |
           $env:TEXA_UPGRADE_BASELINE = "$env:RUNNER_TEMP/texa-baseline/texa_test_v0.9.1.exe"
