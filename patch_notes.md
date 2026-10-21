@@ -1,3 +1,11 @@
+## 2026-10-21 — 未签名 Windows commit 通道上线验收
+
+- 源码da550b4通过Windows相关后端155、前端243、桌面40、lint/构建及12个冻结摘要检查；实际生成未签名NSIS安装包，259081611字节，SHA-256 a5b48e9e96ec58ab4a945a6c9f1855c08cfef9af5d4f7da68cef99ffc5035c53。
+- 真实Electron更新器下载候选后，从固定旧v0.9.1执行NSIS覆盖升级，包内版本/完整commit、用户文件夹代表性夹具与安装后后端/ONNX/时区自检均通过。新预发布v1.0.1-commit.245.da550b48已公开，原v0.9.1草稿仅作基线读取，未公开或覆盖；无需签名Secrets或额外开关。
+- 发布后真实GitHubProvider从旧检查版成功发现新修复，公开URL、版本、branch/commit、文件长度及SHA-512一致；GitHub附件SHA-256与CI实际升级文件一致，公开安装包前缀PE证书表长度0。
+- 完整Mac本地归档因网络中断未完成，不当作本地完整哈希验收。Windows人工UI验收未做；全库旧policy/SPA前提失败未逐项处理，未宣称全库通过。macOS源码更新保持可用，未签名安装版手动替换。
+- [完整验收、公开Release和回执](docs/qa/unsigned-commit-updates-2026-10-21/README.md)。本条及QA材料不改变已发布包内生产代码。
+
 ## 2026-10-21 — 修复 Windows 扩展路径误判与锁身份
 
 - Windows回归39531632524完整异常确认根因：并发创建时Path.resolve有时保留\\?\C:前缀，概念记忆同一目录被safe_child_path误判越界。仅为已经解析的DOS/UNC等价路径统一包含性比较，仍返回原IO路径；真实跨目录、跨盘、跨共享、父级及符号链接越界继续拒绝。

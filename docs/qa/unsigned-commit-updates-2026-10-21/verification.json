@@ -1,0 +1,26 @@
+{
+  "sourceCommit": "da550b4827013bd71b6ab99a121e3aef024065f8",
+  "version": "1.0.1-commit.245.da550b48",
+  "artifact": "Texa-Setup-1.0.1-commit.245.da550b48.exe",
+  "bytes": 259081611,
+  "sha256": "a5b48e9e96ec58ab4a945a6c9f1855c08cfef9af5d4f7da68cef99ffc5035c53",
+  "publishedDigestMatchesActualUpgradeBytes": true,
+  "publicFeedVerified": true,
+  "windowsBackendTestsPassed": 155,
+  "frontendTestsPassed": 243,
+  "desktopTestsPassed": 40,
+  "actualUpdaterDownload": true,
+  "actualNsisUpgrade": true,
+  "installedBackendSmoke": true,
+  "userDataFixturePreserved": true,
+  "localCompleteDownload": false,
+  "localDownloadNote": "Optional Mac archive download was interrupted; full published file identity is verified through the GitHub asset digest and CI upgrade receipt, not a completed local hash.",
+  "publicInstallerPrefix": {
+    "inspectedBytes": 4096,
+    "peMagic": "0x10b",
+    "certificateTableOffset": 0,
+    "certificateTableBytes": 0
+  },
+  "nativeWindowsUiAcceptance": "not performed",
+  "fullBackendSuite": "not all passing; see full-suite-attempt.json"
+}

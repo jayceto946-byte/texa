@@ -1,0 +1,16 @@
+{
+  "baselineCommit": "0411aa5e594464069a8d652c9d7b9f1f538fbd07",
+  "baselineVersion": "1.0.1-commit.232.0411aa5e",
+  "sourceCommit": "da550b4827013bd71b6ab99a121e3aef024065f8",
+  "version": "1.0.1-commit.245.da550b48",
+  "artifact": "Texa-Setup-1.0.1-commit.245.da550b48.exe",
+  "sha256": "a5b48e9e96ec58ab4a945a6c9f1855c08cfef9af5d4f7da68cef99ffc5035c53",
+  "unsigned": true,
+  "actualUpdaterDownload": true,
+  "actualNsisUpgrade": true,
+  "installedBackendSmoke": true,
+  "userDataFixturePreserved": true,
+  "feed": "loopback served from actual release files",
+  "nativeUiAcceptance": "not performed",
+  "githubPublicFeedCheck": "required after publication"
+}

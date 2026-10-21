@@ -1,0 +1,19 @@
+{
+  "run": "https://github.com/jayceto946-byte/texa/actions/runs/39532998962",
+  "artifacts": [
+    {
+      "id": 12317020726,
+      "name": "commit-update-windows",
+      "bytes": 259325929,
+      "digest": "sha256:4896a1865c5d0cc63cd0cfe2396b499129a703a568dd344cab7424c7a265730e",
+      "sourceCommit": "da550b4827013bd71b6ab99a121e3aef024065f8"
+    },
+    {
+      "id": 12316517485,
+      "name": "commit-update-upload-receipt",
+      "bytes": 876,
+      "digest": "sha256:12bf267ff02ea359c344a9e3b2d528208ab23691b90fd70deaf99d3fb867bad4",
+      "sourceCommit": "da550b4827013bd71b6ab99a121e3aef024065f8"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "run": "https://github.com/jayceto946-byte/texa/actions/runs/39526215635",
+  "sourceCommit": "33d353877ed632707318bbfbf4023208d2b83a50",
+  "status": "cancelled",
+  "completedSuite": false,
+  "observedPassed": 1723,
+  "observedFailed": 14,
+  "elapsedSeconds": 680.74,
+  "failures": [
+    "FAILED tests/test_conversation_management.py::test_backup_restore_includes_metadata_receipts_and_independent_assets - AssertionError: assert 'failed' == 'completed'",
+    "FAILED tests/test_data_backup.py::test_backup_is_verified_and_does_not_include_secrets - AssertionError: assert '1.0.1-commit.237.33d35387' == '1.0.0'",
+    "FAILED tests/test_execution_effects.py::test_concurrent_conversations_preserve_both_counts - assert 1 == 2",
+    "FAILED tests/test_focus_tasks.py::test_two_sessions_25_plus_18_equals_43_and_overtime_27 - ValueError: 无效展示时区",
+    "FAILED tests/test_focus_tasks.py::test_stopwatch_without_timer_complete_noncurrent_and_switch_explicit - ValueError: 无效展示时区",
+    "FAILED tests/test_focus_tasks.py::test_receipt_replay_stale_time_and_payload_collision - ValueError: 无效展示时区",
+    "FAILED tests/test_focus_tasks.py::test_task_sources_and_deleted_history_are_retained - ValueError: 无效展示时区",
+    "FAILED tests/test_focus_tasks.py::test_focus_http_validation_receipts_and_cas - AssertionError: assert 400 == 200",
+    "FAILED tests/test_focus_tasks.py::test_midnight_allocation_splits_activity_and_excludes_pauses - zoneinfo._common.ZoneInfoNotFoundError: 'No time zone found with key Asia/Shanghai'",
+    "FAILED tests/test_policy_dataset_v0.py::test_frozen_schema_matches_existing_canonical_models[search_textbook] - AssertionError: assert {'additionalP...chInput', ...} == {'$defs': {'T...'query'], ...}",
+    "FAILED tests/test_policy_dataset_v0.py::test_actual_source_bytes_are_checked_without_editing_production - AssertionError: assert 'source_content_digest_mismatch' in (([] + []) + [])",
+    "FAILED tests/test_policy_seed_v0.py::test_snapshot_binding_matches_canonical_runtime_models - AssertionError: assert {'chapter': '...uery': '检索定义'} == {'chapter': '...uery': '检索定义'}",
+    "FAILED tests/test_runtime_policy_v0.py::test_finite_offline_baseline - assert 2 == 0",
+    "FAILED tests/test_spa_fallback.py::test_client_side_routes_fall_back_to_react_entrypoint - assert 404 == 200"
+  ],
+  "note": "Interrupted full backend run is not counted as passing. Upgrade-related regressions are validated separately; remaining offline snapshot and SPA-environment failures have not been triaged completely."
+}

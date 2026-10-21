@@ -1,0 +1,40 @@
+{
+  "url": "https://github.com/jayceto946-byte/texa/releases/tag/v1.0.1-commit.245.da550b48",
+  "tag": "v1.0.1-commit.245.da550b48",
+  "sourceCommit": "da550b4827013bd71b6ab99a121e3aef024065f8",
+  "draft": false,
+  "prerelease": true,
+  "publishedAt": "2026-10-21T02:38:10Z",
+  "assets": [
+    {
+      "name": "commit-build.json",
+      "bytes": 162,
+      "digest": "sha256:d6c02ae1469b3cbb8e6910771fb71c3115d3c8682cf4a935a9d3d705815d2584",
+      "url": "https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.245.da550b48/commit-build.json"
+    },
+    {
+      "name": "commit.yml",
+      "bytes": 541,
+      "digest": "sha256:1d37481d71128546f034698199a2f53c857a2194ac0aa4a708ac7fa85ab0babf",
+      "url": "https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.245.da550b48/commit.yml"
+    },
+    {
+      "name": "Texa-Setup-1.0.1-commit.245.da550b48.exe",
+      "bytes": 259081611,
+      "digest": "sha256:a5b48e9e96ec58ab4a945a6c9f1855c08cfef9af5d4f7da68cef99ffc5035c53",
+      "url": "https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.245.da550b48/Texa-Setup-1.0.1-commit.245.da550b48.exe"
+    },
+    {
+      "name": "Texa-Setup-1.0.1-commit.245.da550b48.exe.blockmap",
+      "bytes": 268872,
+      "digest": "sha256:2dec52c3cfbbd8fd7664d6b8c6810a9b141c5e3cac0adc5d21413e958933b087",
+      "url": "https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.245.da550b48/Texa-Setup-1.0.1-commit.245.da550b48.exe.blockmap"
+    },
+    {
+      "name": "upgrade-verification.json",
+      "bytes": 663,
+      "digest": "sha256:696c1684b729ed3fca71bad8c54e4249c4fb162e13484c8a95e84c6e83b165ca",
+      "url": "https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.245.da550b48/upgrade-verification.json"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "baselineVersion": "1.0.1-commit.232.0411aa5e",
+  "sourceCommit": "da550b4827013bd71b6ab99a121e3aef024065f8",
+  "sourceBranch": "Texa_MacOS",
+  "version": "1.0.1-commit.245.da550b48",
+  "tag": "v1.0.1-commit.245.da550b48",
+  "updateAvailable": true,
+  "automaticDownload": false,
+  "files": [
+    {
+      "url": "https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.245.da550b48/Texa-Setup-1.0.1-commit.245.da550b48.exe",
+      "bytes": 259081611,
+      "sha512": "tjgYMyD3qSQKrpr7oGBVBJb71YlFH7Pt8KvUs9cztLuq4+JbHjrI2bXFSkKSuptdFZAPGxxCAPQfIKeXf3YERA=="
+    }
+  ]
+}

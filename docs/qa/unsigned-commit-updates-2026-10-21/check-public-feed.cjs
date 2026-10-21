@@ -1,0 +1,27 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const os = require('node:os');
+const root = process.cwd();
+const { NsisUpdater } = require(path.join(root, 'desktop/node_modules/electron-updater'));
+const { NodeHttpExecutor } = require(path.join(root, 'desktop/node_modules/builder-util/out/nodeHttpExecutor'));
+const { configureCommitChannel, validCommitUpdate } = require(path.join(root, 'desktop/commit-channel.cjs'));
+const expected = process.argv[2];
+if (!/^[0-9a-f]{40}$/.test(expected || '')) throw new Error('Expected commit required');
+const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'texa-public-feed-'));
+(async () => {
+  const updater = new NsisUpdater(null, { version: '1.0.1-commit.232.0411aa5e', name: 'Texa-feed-check', isPackaged: true, userDataPath: temp, whenReady: () => Promise.resolve() });
+  updater.httpExecutor = new NodeHttpExecutor();
+  updater._testOnlyOptions = { platform: 'win32' };
+  updater.autoDownload = false;
+  updater.autoInstallOnAppQuit = false;
+  updater.logger = { info() {}, warn: console.error, error: console.error };
+  configureCommitChannel(updater);
+  updater.setFeedURL({ provider: 'github', owner: 'jayceto946-byte', repo: 'texa' });
+  const result = await updater.checkForUpdates();
+  const info = result?.updateInfo;
+  if (!validCommitUpdate(info, 'Texa_MacOS') || info.sourceCommit !== expected) throw new Error('Public updater feed did not select the expected commit');
+  if (!await updater.isUpdateAvailable(info)) throw new Error('Expected update was not available to the inspection build');
+  const provider = (await updater.getUpdateInfoAndProvider()).provider;
+  const files = provider.resolveFiles(info).map(file => ({ url: file.url.href, bytes: file.info.size, sha512: file.info.sha512 }));
+  console.log(JSON.stringify({ baselineVersion: updater.currentVersion.version, sourceCommit: info.sourceCommit, sourceBranch: info.sourceBranch, version: info.version, tag: info.tag, updateAvailable: true, automaticDownload: updater.autoDownload, files }, null, 2));
+})().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => fs.rmSync(temp, { recursive: true, force: true }));
