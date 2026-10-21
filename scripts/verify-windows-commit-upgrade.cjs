@@ -85,9 +85,17 @@ async function main() {
     if (sha256(marker) !== markerHash) throw new Error('NSIS changed the existing user-data fixture');
     const config = yaml.load(fs.readFileSync(path.join(installRoot, 'resources/app-update.yml'), 'utf8'));
     if (config.publisherName != null || config.channel !== 'commit') throw new Error('Installed update configuration mismatch');
+    const installedBackend = await run(path.join(installRoot, 'resources/backend/backend_server/backend_server.exe'), [], {
+      timeout: 120000, windowsHide: true, maxBuffer: 4 * 1024 * 1024,
+      env: { ...process.env, TEXA_FROZEN_SMOKE: '1', TEXA_EMBEDDING_BACKEND: 'onnx',
+        DATA_DIR: path.join(root, 'installed-smoke/data'), PROGRESS_PATH: path.join(root, 'installed-smoke/progress'),
+        TEXA_EMBEDDING_ASSET_DIR: path.join(installRoot, 'resources/embedding-runtime/bge-small-zh-v1.5/onnx-fp32-v1') },
+    });
+    if (!installedBackend.stdout.includes('TEXA_FROZEN_SMOKE_PASS')) throw new Error('Upgraded installed backend smoke failed');
     const report = { baselineCommit: previous.texaBuild.sourceCommit, baselineVersion: previous.version,
       sourceCommit: expected.sourceCommit, version: current.version, artifact: manifest.path,
       sha256: sha256(downloaded), unsigned: true, actualUpdaterDownload: true, actualNsisUpgrade: true,
+      installedBackendSmoke: true,
       userDataFixturePreserved: true, feed: 'loopback served from actual release files',
       nativeUiAcceptance: 'not performed', githubPublicFeedCheck: 'required after publication' };
     fs.writeFileSync(path.join(release, 'upgrade-verification.json'), JSON.stringify(report, null, 2) + '\n');
