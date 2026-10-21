@@ -13,6 +13,7 @@ import threading
 import time
 
 from config import PROGRESS_PATH
+from utils.path_safety import canonical_path_key
 
 logger = logging.getLogger(__name__)
 EFFECT_SCHEMA = "execution-effect/v1"
@@ -156,7 +157,7 @@ def _apply(effect: dict, *, stop: threading.Event | None = None) -> dict:
 
 def recover_task_effects(store, task_id: str, *, run_id: str = "", stop: threading.Event | None = None) -> None:
     """One bounded attempt. Model work never holds the LearningTask lock."""
-    key = str(store._path(task_id).resolve()).casefold()
+    key = canonical_path_key(store._path(task_id))
     lock = _EFFECT_LOCKS[int(hashlib.sha256(key.encode()).hexdigest(), 16) % len(_EFFECT_LOCKS)]
     if not lock.acquire(blocking=False):
         return

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import threading
 from pathlib import Path
+from utils.path_safety import canonical_path_key
 
 
 _locks_guard = threading.Lock()
@@ -16,7 +17,7 @@ _path_locks: dict[str, threading.RLock] = {}
 
 def get_state_lock(path: str | Path) -> threading.RLock:
     """Return the shared re-entrant lock for a state file."""
-    key = str(Path(path).resolve()).casefold()
+    key = canonical_path_key(path)
     with _locks_guard:
         lock = _path_locks.get(key)
         if lock is None:

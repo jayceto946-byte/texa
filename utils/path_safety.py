@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 _INVALID_PATH_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 
@@ -16,6 +16,30 @@ def safe_book_name(book_name: str, default: str = "default") -> str:
 def safe_child_path(root: str | Path, *parts: str | Path) -> Path:
     root_path = Path(root).resolve()
     path = root_path.joinpath(*parts).resolve()
-    if path != root_path and root_path not in path.parents:
+    if not _resolved_within_root(root_path, path):
         raise ValueError(f"resolved path escapes root: {path}")
     return path
+
+
+def _comparison_path(path):
+    if not isinstance(path, PureWindowsPath):
+        return path
+    text = str(path)
+    # Windows realpath can retain the extended prefix during concurrent creation.
+    # Normalize only equivalent DOS/UNC spellings for the containment comparison;
+    # the caller has already resolved symlinks and keeps the original IO path.
+    if text[:8].casefold() == '\\\\?\\UNC\\'.casefold():
+        text = '\\\\' + text[8:]
+    elif path.drive.startswith('\\\\?\\') and re.fullmatch(r'[A-Za-z]:', path.drive[4:]):
+        text = text[4:]
+    return PureWindowsPath(text)
+
+
+def _resolved_within_root(root, path):
+    root_key, path_key = _comparison_path(root), _comparison_path(path)
+    return path_key == root_key or root_key in path_key.parents
+
+
+def canonical_path_key(path: str | Path) -> str:
+    """Use one process-local identity for resolved Windows path aliases."""
+    return str(_comparison_path(Path(path).resolve())).casefold()

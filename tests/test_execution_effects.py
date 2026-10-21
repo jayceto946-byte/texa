@@ -211,7 +211,8 @@ def test_only_new_explicit_effects_recover_and_retry_is_bounded(isolated, monkey
     assert_chat_counts_once(events)
 
 
-def test_concurrent_conversations_preserve_both_counts(isolated, monkeypatch):
+@pytest.mark.parametrize('_attempt', range(5))
+def test_concurrent_conversations_preserve_both_counts(isolated, monkeypatch, _attempt):
     store, events = isolated
     failures = []
     def checked(function):
