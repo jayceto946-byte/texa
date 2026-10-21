@@ -34,6 +34,8 @@ jobs:
       run:
         shell: pwsh
     steps:
+      - name: Preserve exact commit bytes on Windows
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
