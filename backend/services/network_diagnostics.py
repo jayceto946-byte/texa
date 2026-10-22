@@ -9,9 +9,11 @@ import asyncio
 import copy
 import ipaddress
 import json
+import ntpath
 import os
 import re
 import shutil
+import sys
 import time
 from collections import deque
 from datetime import datetime, timezone
@@ -64,10 +66,22 @@ def parse_pings(output):
     return samples
 
 
-async def run_cli(args, timeout):
+def find_cli():
     executable = shutil.which('tailscale')
-    if not executable and os.path.isfile('/Applications/Tailscale.app/Contents/MacOS/Tailscale'):
-        executable = '/Applications/Tailscale.app/Contents/MacOS/Tailscale'
+    if executable:
+        return executable
+    if sys.platform == 'win32':
+        roots = [os.getenv(name) for name in ('ProgramW6432', 'ProgramFiles', 'ProgramFiles(x86)')]
+        candidates = [ntpath.join(root, 'Tailscale', 'tailscale.exe') for root in [*roots, r'C:\Program Files'] if root]
+    elif sys.platform == 'darwin':
+        candidates = ['/Applications/Tailscale.app/Contents/MacOS/Tailscale', '/usr/local/bin/tailscale', '/opt/homebrew/bin/tailscale']
+    else:
+        candidates = ['/usr/bin/tailscale', '/usr/local/bin/tailscale']
+    return next((candidate for candidate in dict.fromkeys(candidates) if os.path.isfile(candidate)), None)
+
+
+async def run_cli(args, timeout):
+    executable = find_cli()
     if not executable:
         raise RuntimeError('cli_unavailable')
     proc = await asyncio.create_subprocess_exec(executable, *args, stdout=asyncio.subprocess.PIPE,
@@ -123,7 +137,9 @@ class ConnectionMonitor:
             data = json.loads(await self.runner(['status', '--json'], 4))
             peers = list(data.get('Peer', {}).values())
             configured = os.getenv('TEXA_NETWORK_PEER_IP', '').strip()
-            candidates = [p for p in peers if configured in p.get('TailscaleIPs', [])] if configured else [p for p in peers if p.get('OS', '').lower() == 'android']
+            candidates = [p for p in peers if configured in p.get('TailscaleIPs', [])] if configured else [
+                p for p in peers if p.get('OS', '').lower() in {'android', 'ios', 'ipados'}
+            ]
             if data.get('BackendState') != 'Running':
                 raise RuntimeError('daemon_not_running')
             if len(candidates) != 1:

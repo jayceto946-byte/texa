@@ -19,7 +19,7 @@ type RemoteCaptureStatus = {
   message: string;
 };
 
-export type DesktopRemoteConnection = { ready: boolean; enabled: boolean; url: string; message: string; target: string };
+export type DesktopRemoteConnection = { ready: boolean; enabled: boolean; url: string; message: string; target: string; error_code?: string };
 
 export type DesktopBackendStatus = {
   status: 'starting' | 'ready' | 'recovering' | 'failed' | 'stopped';

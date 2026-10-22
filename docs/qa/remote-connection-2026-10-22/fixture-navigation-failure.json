@@ -1,0 +1,124 @@
+{
+  "platform": "macOS Electron; Windows CLI/Serve fixtures; no native Windows or real Tailscale changes",
+  "checks": [
+    {
+      "name": "1280 first-run null config allows enable",
+      "pass": true
+    },
+    {
+      "name": "1280 own user address generated",
+      "pass": true
+    },
+    {
+      "name": "1280 copy uses generated address",
+      "pass": true
+    },
+    {
+      "name": "1280 HTTPS setup recovery offered",
+      "pass": true
+    },
+    {
+      "name": "1280 sanitized actionable failure",
+      "pass": true
+    },
+    {
+      "name": "1280 long failure text fits",
+      "pass": true
+    },
+    {
+      "name": "1280 no page overflow",
+      "pass": true
+    },
+    {
+      "name": "1280 refresh clears stale failure",
+      "pass": true
+    },
+    {
+      "name": "1280 actual target reaches CLI",
+      "pass": true
+    },
+    {
+      "name": "1024 first-run null config allows enable",
+      "pass": true
+    },
+    {
+      "name": "1024 own user address generated",
+      "pass": true
+    },
+    {
+      "name": "1024 copy uses generated address",
+      "pass": true
+    },
+    {
+      "name": "1024 HTTPS setup recovery offered",
+      "pass": true
+    },
+    {
+      "name": "1024 sanitized actionable failure",
+      "pass": true
+    },
+    {
+      "name": "1024 long failure text fits",
+      "pass": true
+    },
+    {
+      "name": "1024 no page overflow",
+      "pass": true
+    },
+    {
+      "name": "1024 refresh clears stale failure",
+      "pass": true
+    },
+    {
+      "name": "1024 actual target reaches CLI",
+      "pass": true
+    },
+    {
+      "name": "760 first-run null config allows enable",
+      "pass": true
+    },
+    {
+      "name": "760 own user address generated",
+      "pass": true
+    },
+    {
+      "name": "760 copy uses generated address",
+      "pass": true
+    },
+    {
+      "name": "760 HTTPS setup recovery offered",
+      "pass": true
+    },
+    {
+      "name": "760 sanitized actionable failure",
+      "pass": true
+    },
+    {
+      "name": "760 long failure text fits",
+      "pass": true
+    },
+    {
+      "name": "760 no page overflow",
+      "pass": true
+    },
+    {
+      "name": "760 refresh clears stale failure",
+      "pass": true
+    },
+    {
+      "name": "760 actual target reaches CLI",
+      "pass": true
+    },
+    {
+      "name": "permission failure survives IPC with recovery text",
+      "pass": true
+    },
+    {
+      "name": "missing CLI distinguished from logged out",
+      "pass": true
+    }
+  ],
+  "errors": [
+    "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: '返回设置', exact: true })\u001b[22m\n"
+  ]
+}

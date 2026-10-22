@@ -3,7 +3,12 @@ import json
 
 import pytest
 
-from backend.services.network_diagnostics import ConnectionMonitor, parse_pings, status_path
+from backend.services.network_diagnostics import ConnectionMonitor, find_cli, parse_pings, status_path
+
+
+@pytest.fixture(autouse=True)
+def isolate_network_diagnostic_events(monkeypatch):
+    monkeypatch.setattr('backend.services.runtime_events.emit_best_effort', lambda *a, **kw: '')
 
 
 @pytest.mark.parametrize('peer,expected', [
@@ -33,6 +38,63 @@ def test_cli_samples_separate_initial_and_direct_rtt():
 def peer(**changes):
     return {'OS': 'android', 'TailscaleIPs': ['100.119.253.35'], 'Online': True,
             'Active': True, 'Relay': 'sfo', **changes}
+
+
+@pytest.mark.parametrize('platform', ['android', 'iOS', 'ios', 'iPadOS'])
+def test_mobile_platforms_are_detected_and_can_be_probed(monkeypatch, platform):
+    monkeypatch.delenv('TEXA_NETWORK_PEER_IP', raising=False)
+    calls = []
+    async def runner(args, timeout):
+        calls.append(args)
+        if args[0] == 'status':
+            return json.dumps({'BackendState': 'Running', 'Peer': {'mobile': peer(OS=platform, CurAddr='192.0.2.1:41641')}})
+        return 'pong via 192.0.2.1:41641 in 20ms'
+    async def scenario():
+        monitor = ConnectionMonitor(runner)
+        observed = await monitor.observe()
+        assert observed['target_selected'] and observed['observation']['path'] == 'direct'
+        assert (await monitor.probe())['probe_result'] == 'direct_observed'
+        assert calls[-1][-1] == '100.119.253.35'
+    asyncio.run(scenario())
+
+
+def test_android_and_ipad_are_ambiguous_until_target_is_configured(monkeypatch):
+    monkeypatch.delenv('TEXA_NETWORK_PEER_IP', raising=False)
+    async def runner(args, timeout):
+        assert args == ['status', '--json']
+        return json.dumps({'BackendState': 'Running', 'Peer': {
+            'android': peer(), 'ipad': peer(OS='iOS', TailscaleIPs=['100.64.0.20'], CurAddr='192.0.2.1:41641'),
+        }})
+    async def scenario():
+        monitor = ConnectionMonitor(runner)
+        result = await monitor.probe()
+        assert not result['target_selected'] and result['observation']['error_code'] == 'peer_ambiguous'
+        monkeypatch.setenv('TEXA_NETWORK_PEER_IP', '100.64.0.20')
+        result = await ConnectionMonitor(runner).observe()
+        assert result['target_selected'] and result['observation']['path'] == 'direct'
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize('root_variable', ['ProgramW6432', 'ProgramFiles', 'ProgramFiles(x86)', None])
+def test_windows_cli_discovery_without_path(monkeypatch, root_variable):
+    monkeypatch.setattr('backend.services.network_diagnostics.sys.platform', 'win32')
+    monkeypatch.setattr('backend.services.network_diagnostics.shutil.which', lambda _: None)
+    for name in ('ProgramW6432', 'ProgramFiles', 'ProgramFiles(x86)'):
+        monkeypatch.delenv(name, raising=False)
+    expected = r'C:\Program Files\Tailscale\tailscale.exe'
+    if root_variable:
+        monkeypatch.setenv(root_variable, r'D:\Apps With Spaces')
+        expected = r'D:\Apps With Spaces\Tailscale\tailscale.exe'
+    monkeypatch.setattr('backend.services.network_diagnostics.os.path.isfile', lambda path: path == expected)
+    assert find_cli() == expected
+
+
+def test_cli_discovery_preserves_path_and_reports_missing(monkeypatch):
+    monkeypatch.setattr('backend.services.network_diagnostics.shutil.which', lambda _: '/custom/tailscale')
+    assert find_cli() == '/custom/tailscale'
+    monkeypatch.setattr('backend.services.network_diagnostics.shutil.which', lambda _: None)
+    monkeypatch.setattr('backend.services.network_diagnostics.os.path.isfile', lambda _: False)
+    assert find_cli() is None
 
 
 def test_upgrade_degrade_idle_resume_cooldown_and_no_passive_ping(monkeypatch):

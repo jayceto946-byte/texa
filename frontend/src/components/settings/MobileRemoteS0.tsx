@@ -7,7 +7,7 @@ export default function MobileRemoteS0() {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const load = useCallback(async () => {
-    try { setStatus(await window.kaoyanDesktop?.getRemoteS0Status?.()); }
+    try { setStatus(await window.kaoyanDesktop?.getRemoteS0Status?.()); setMessage(''); }
     catch { setMessage('无法读取连接状态，请重试。'); }
   }, []);
   useEffect(() => { void load(); return window.kaoyanDesktop?.onBackendStatus?.(() => void load()); }, [load]);
@@ -24,11 +24,13 @@ export default function MobileRemoteS0() {
       setMessage(copied ? token ? '配对码已复制，请粘贴到本人手机连接页。桌面重启后需重新配对。' : '连接地址已复制，可发送到自己的手机打开。' : '未能复制，请重试。');
     } catch { setMessage('未能复制，请重试。'); }
   }
+  const feedback = message || status?.message || '正在读取连接状态…';
   return <section className="remote-connection settings-section" aria-label="手机连接">
     <div className="remote-connection-heading"><span className="remote-device-icon"><Smartphone size={24}/></span><div><h4 className="settings-section-title">连接这台电脑</h4><p className="settings-secondary">在手机上继续使用当前学习工作区</p></div><span className="remote-connection-state" data-enabled={status?.enabled}>{status?.enabled ? '已开启' : '未开启'}</span></div>
-    <p className="settings-secondary">电脑和手机均开启 Tailscale，登录同一账户。连接开启后，在手机浏览器打开地址并配对。</p>
+    <p className="settings-secondary">电脑和手机或 iPad 均开启 Tailscale，并加入同一网络。开启后会生成这台电脑的 HTTPS 访问地址，在另一台设备的浏览器打开并配对。</p>
     <div className="remote-connection-actions"><button className="app-primary-button" disabled={busy || !status?.ready} onClick={() => void toggle()}>{busy ? <Loader2 size={16} className="animate-spin"/> : <Smartphone size={16}/>} {busy ? '正在连接…' : status?.enabled ? '关闭手机连接' : '开启手机连接'}</button><button className="app-ghost-button" disabled={busy} onClick={() => void load()} aria-label="刷新手机连接状态"><RefreshCw size={16}/></button></div>
     {status?.enabled && <div className="remote-pairing"><div><span className="settings-secondary">手机浏览器地址</span><a href={status.url} target="_blank" rel="noreferrer">{status.url.replace('https://','').replace(/\/$/,'')}</a></div><button className="app-secondary-button" onClick={() => void copy()}><Copy size={15}/>复制地址</button><button className="app-secondary-button" onClick={() => void copy(true)}>复制配对码</button></div>}
-    <p role="status" className="settings-secondary">{message || status?.message || '正在读取连接状态…'}</p>
+    <p role="status" className="settings-secondary">{feedback}</p>
+    {feedback.includes('HTTPS Certificates') && <p className="settings-secondary"><a href="https://login.tailscale.com/admin/dns" target="_blank" rel="noreferrer">打开 Tailscale HTTPS 设置</a>，启用后返回此处重试。</p>}
   </section>;
 }

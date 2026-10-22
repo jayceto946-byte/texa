@@ -1,3 +1,10 @@
+## 2026-10-22 — Windows 手机连接创建与 iPad 网络诊断修复
+
+- Electron 修正 Windows Tailscale 路径拼接并覆盖原生/常规/32位安装目录和 PATH；后端补齐 Windows 安装目录查找，避免桌面启动环境 PATH 未更新时误判缺失。缓存 CLI 消失时可重新查找，不绑定开发账号或地址。
+- 首次开启允许空 Serve 配置；区分未找到程序、未登录、服务未连接、权限、版本、超时、HTTPS 未启用与共享配置失败，不再把后续 Serve 错误都归为未登录。HTTPS 错误提供固定官方设置入口，命令原始输出与授权 URL 不回显。操作后查询失败不能宣布关闭成功，刷新清除旧错误。
+- 网络诊断识别 Android、iPhone/iPad；多候选仍需明确指定已知 peer。保留动态本地端口、其他服务/Funnel 保护、配对和受控探测；无依赖、数据库或索引格式变更。
+- Python 3.10 相关 26 项、桌面全量 48 项、前端连接 13 项通过；修改组件 lint、TypeScript/Vite 通过。macOS 真实 Electron + Windows CLI 夹具经实际 preload/IPC 的三档尺寸 31 项通过。保留沙箱端口限制与 QA 夹具修正记录；未做原生 Windows/iPad 真机及安装包发布。证据见 `docs/qa/remote-connection-2026-10-22/README.md`。
+
 ## 2026-10-22 — 恢复图片问答的 Reading Canvas
 
 - 修正上一轮对图片参考布局的误读：图片问答继承普通问题的字号、字重与正文轴，移除问题气泡底色、圆角和独立内边距，不再另设一套视觉排版。

@@ -62,8 +62,8 @@ export default function NetworkDiagnostics({ active }: { active: boolean }) {
       <p className="settings-secondary">当前路径估计：{observation ? paths[observation.path] : 'Unknown'} · {observation?.path === 'direct' ? '已观察到 Direct' : '未确认 Direct'}。空闲时返回 Unknown，状态读取不验证包交付。</p>
       <p className="settings-secondary">来源：{observation?.source || '—'} · Home DERP：{observation?.home_derp || '—'}（不等于当前路径） · 当前中继区域：{observation?.derp_region || '—'}</p>
       <p className="settings-secondary">策略：{strategy === 'auto' ? 'Auto' : 'Prefer Direct（应用层有界探测）'} · 最近切换：{time(data?.changed_at)} · 冷却：{data?.probe_cooldown_seconds ?? 0} 秒</p>
-      <p className="settings-secondary">最近探测路径：{last ? paths[last.path] : '—'} · RTT 来源：Tailscale disco ping。诊断 HTTP 完整耗时：{httpMs ?? '—'} ms（含 Mac 执行时间，非网络 RTT）。</p>
-      {observation?.error_code && <p className="settings-secondary">诊断代码：{observation.error_code}。Mac 可通过 TEXA_NETWORK_PEER_IP 指定目标；未配置时只接受唯一 Android 设备。</p>}
+      <p className="settings-secondary">最近探测路径：{last ? paths[last.path] : '—'} · RTT 来源：Tailscale disco ping。诊断 HTTP 完整耗时：{httpMs ?? '—'} ms（含电脑执行时间，非网络 RTT）。</p>
+      {observation?.error_code && <p className="settings-secondary">诊断代码：{observation.error_code}。电脑端可通过 TEXA_NETWORK_PEER_IP 指定目标；未配置时自动识别唯一 Android、iPhone 或 iPad。存在多个候选设备时需指定目标；诊断不可用不代表设备无法访问 Texa。</p>}
       <p className="settings-secondary">不提供强制 Direct、DERP 区域选择或 Peer Relay 切换。DERP Map 与 Peer Relay 授权属于 Tailnet 配置，本功能不修改这些配置。</p>
       <ul className="settings-secondary">{data?.history.slice(-8).reverse().map((entry, index) => <li key={`${entry.sampled_at}-${index}`}>{time(entry.sampled_at)} · {entry.previous_path ? paths[entry.previous_path] : '初始'} → {paths[entry.path]} · {entry.source}{entry.derp_region ? ` (${entry.derp_region})` : ''}</li>)}</ul>
       <p className="settings-secondary">记录仅在后端当前进程中保留最近 64 项；切换事件写入现有 RuntimeEvent（不含设备地址）。默认不持续 Ping，锁屏保持情况需实机验收。</p>
