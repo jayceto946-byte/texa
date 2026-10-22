@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-22",
+  "source_base": "5c6e0271d4ff105c2e7a08c4e1960b89f9724fea",
+  "scope": "Reading Canvas photo presentation correction",
+  "frontend_lint": "passed",
+  "typescript_vite_build": "passed",
+  "electron_checks": 89,
+  "sizes": [
+    [
+      1280,
+      820
+    ],
+    [
+      1024,
+      768
+    ],
+    [
+      760,
+      820
+    ]
+  ],
+  "fixtures": {
+    "landscape": [
+      1600,
+      180
+    ],
+    "portrait": [
+      480,
+      960
+    ]
+  },
+  "real_model_calls": 0,
+  "production_learning_data_access": false,
+  "native_windows_tested": false,
+  "notes": "Existing MathLive large chunk warning retained. Snapshot was exported from the reviewed index; the script also waits for lazy markdown before measuring portrait alignment."
+}

@@ -519,14 +519,7 @@
   .app-shell .reading-return-latest { width:40px; height:40px; min-height:40px; top:-50px; }
 }
 
-/* Photo questions are reading content, rather than document titles. */
-.study-desk .learning-question.is-visual-question .markdown-body {
-  font-size: var(--workspace-reading-size); font-weight: 400; line-height: 1.7; letter-spacing: 0;
-}
-.study-desk .learning-question.is-visual-question .markdown-body > :first-child {
-  font-size: 16px; font-weight: 500; line-height: 1.7; margin-bottom: 0;
-}
-.study-desk .learning-question.is-visual-question > .markdown-body { padding:14px 18px; border-radius:16px; background:var(--accent-soft); }
+/* Photo requests inherit the same Reading Canvas typography as text questions. */
 .study-desk .learning-message, .study-desk .learning-answer-document { min-width: 0; max-width: 100%; }
 .study-desk .markdown-body .katex-display {
   max-width: 100%; overflow-x: auto; overflow-y: hidden; padding-block: .3em;
