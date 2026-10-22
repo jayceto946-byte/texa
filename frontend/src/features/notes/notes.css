@@ -1,6 +1,5 @@
 .notes-workspace { display:flex; flex-direction:column; height:100%; min-width:0; color:var(--color-text-primary); background:var(--workspace-canvas); }
 .notes-workspace .note-page-header { display:flex; align-items:center; justify-content:space-between; gap:12px; flex:0 0 var(--workspace-chrome-height); height:var(--workspace-chrome-height); min-height:var(--workspace-chrome-height); padding:0 var(--workspace-management-gutter); border-bottom:1px solid var(--workspace-separator); }
-.note-page-header h1 { font-size:var(--workspace-page-title-size); line-height:1.3; font-weight:600; white-space:nowrap; margin:0; }
 .note-page-header .note-actions { flex-wrap:nowrap; margin-left:auto; white-space:nowrap; gap:6px; }
 .note-header-state,.note-save-status { font-size:var(--workspace-meta-size); color:var(--color-text-secondary); }
 .note-scroll { flex:1; overflow:auto; min-height:0; }
@@ -113,16 +112,3 @@
 .note-meta-details+.note-reading .note-block:first-child .markdown-body h2 { margin-top:12px; }
 @media(max-width:760px) { .note-meta-details>summary,.note-meta-content .note-toc-link { min-height:44px; }.note-meta-content .note-toc-link { display:flex; align-items:center; } }
 @media(max-width:600px) { .note-meta-content { grid-template-columns:minmax(0,1fr); } }
-
-/* Native window controls own the top 32px; note commands start at the left below them. */
-/* The sidebar trigger is a sibling: a later draggable header masks its native mouse hit area. */
-body:has(.desktop-titlebar-marker.is-macos) .app-shell .notes-workspace .note-page-header { -webkit-app-region:no-drag; }
-body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .workspace-stage:has(.persistent-route-panel:not([hidden]) .notes-workspace) { padding-top:32px; }
-body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .workspace-stage:has(.persistent-route-panel:not([hidden]) .notes-workspace)::before { content:""; position:absolute; inset:0 0 auto; height:32px; background:var(--workspace-canvas); -webkit-app-region:drag; }
-body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell:not(.study-desk)[data-navigation="closed"] .management-workspace.notes-workspace .note-page-header { padding-left:60px; }
-body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell[data-navigation="closed"] .workspace-stage:has(.persistent-route-panel:not([hidden]) .notes-workspace)>.context-sidebar-trigger { left:16px; top:41px; }
-body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell:has(.persistent-route-panel:not([hidden]) .notes-workspace) .navigation-collapse { top:40px; }
-@media(max-width:919px) {
-  body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell[data-navigation="closed"] .workspace-stage:has(.persistent-route-panel:not([hidden]) .notes-workspace)>.context-sidebar-trigger { left:8px; top:38px; }
-  body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell:has(.persistent-route-panel:not([hidden]) .notes-workspace) .navigation-collapse { top:38px; }
-}

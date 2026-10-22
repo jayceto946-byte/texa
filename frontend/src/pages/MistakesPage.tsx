@@ -1,3 +1,4 @@
+import { readableVisualQuestion } from '../utils/visualQuestion';
 import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import { getBookList } from '../features/books/bookList';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -27,7 +28,7 @@ const filters: { id: Filter; label: string }[] = [
 ];
 
 function recordTitle(record: MistakeRecord) {
-  const source = record.question_text || record.ocr_text || record.source || '未命名错题';
+  const source = readableVisualQuestion(record.question_text || record.ocr_text || record.source || '未命名错题');
   const firstLine = source.split('\n').map((line) => line.trim()).find(Boolean) || source;
   return firstLine.length > 90 ? `${firstLine.slice(0, 90)}…` : firstLine;
 }
@@ -169,18 +170,18 @@ export function MistakeCollectionPage() {
     </header>
     <main className="management-page-content flex-1 overflow-y-auto">
       <div className="mistakes-collection">
-        <div className="mistakes-heading">
-          <div className="mistakes-heading-actions"><Link className="app-secondary-button" to="/mistakes/diagnosis">错误诊断</Link>{(records.length > 0 || candidates.length > 0 || loading || error) && <Link className="app-primary-button" to="/mistakes/intake"><ImagePlus className="h-4 w-4" />补录错题</Link>}</div>
-        </div>
+        <div className="mistakes-toolbar">
         <div className="mistakes-filters" aria-label="错题筛选">
           {filters.map((item) => <button key={item.id} type="button" aria-pressed={filter === item.id} className={filter === item.id ? 'is-active' : ''} onClick={() => updateParam('filter', item.id === 'all' ? '' : item.id)}>{item.label}{filter === item.id && <span>{records.length}{cursor ? '+' : ''}{item.id === 'pending' && candidates.length ? ` · ${candidates.length} 候选` : ''}</span>}</button>)}
+        </div>
+          <div className="mistakes-heading-actions"><Link className="app-secondary-button" to="/mistakes/diagnosis">错误诊断</Link>{(records.length > 0 || candidates.length > 0 || loading || error) && <Link className="app-primary-button" to="/mistakes/intake"><ImagePlus className="h-4 w-4" />补录错题</Link>}</div>
         </div>
         <div className="mistakes-search"><Search className="h-4 w-4" /><input aria-label="搜索题干、知识点、错因" placeholder="搜索题干、知识点、错因" value={search} onChange={(event) => updateParam('q', event.target.value)} /></div>
         {cursor && <p className="mistakes-result-note">已加载 {records.length} 条档案；继续加载可查看更多。</p>}
         {loading && <p className="mistakes-result-note" role="status"><Loader2 className="inline h-4 w-4 animate-spin" /> 正在更新档案…</p>}
         {error && <ActionableIssue title={error} impact="请重试读取本地记录。" actions={<button type="button" className="app-secondary-button" onClick={() => setReloadKey((value) => value + 1)}>重新加载</button>} />}
         {!error && <div className="workspace-register">
-          {(filter === 'all' || filter === 'pending') && candidates.map((candidate) => <div key={candidate.id} className="workspace-register-row mistakes-row mistakes-candidate-row"><div className="mistakes-row-main"><strong className="mistakes-row-title">{candidate.question_text || '题干待校对'}</strong><span className="mistakes-row-meta">待确认收录{candidate.source ? ` · ${candidate.source}` : ''}{candidate.content_complete === false ? ' · 关键内容待补全' : ''}</span>{editingCandidate === candidate.id && <div className="mistakes-candidate-editor"><label>题干与条件<textarea className="app-field" value={candidateEdit.question_text} onChange={(event) => setCandidateEdit((current) => ({ ...current, question_text: event.target.value }))} rows={5} /></label><label>当时作答<textarea className="app-field" value={candidateEdit.user_answer} onChange={(event) => setCandidateEdit((current) => ({ ...current, user_answer: event.target.value }))} rows={3} /></label><label>参考答案<textarea className="app-field" value={candidateEdit.correct_answer} onChange={(event) => setCandidateEdit((current) => ({ ...current, correct_answer: event.target.value }))} rows={3} /></label><label><input type="checkbox" checked={candidateEdit.content_complete} onChange={(event) => setCandidateEdit((current) => ({ ...current, content_complete: event.target.checked }))} />题干、关键条件与附图已核对完整</label><button type="button" onClick={() => void saveCandidate(candidate)} className="app-primary-button">保存校对</button></div>}</div><div className="mistakes-heading-actions"><button type="button" onClick={() => resolveCandidate(candidate, false)} className="app-secondary-button">忽略</button><button type="button" onClick={() => { setEditingCandidate(candidate.id); setCandidateEdit({ question_text: candidate.question_text || '', user_answer: candidate.user_answer || '', correct_answer: candidate.correct_answer || '', content_complete: candidate.content_complete !== false }); }} className="app-secondary-button">校对</button><button type="button" disabled={!candidate.question_text || candidate.content_complete === false} onClick={() => resolveCandidate(candidate, true)} className="app-primary-button">确认收录</button></div></div>)}
+          {(filter === 'all' || filter === 'pending') && candidates.map((candidate) => <div key={candidate.id} className="workspace-register-row mistakes-row mistakes-candidate-row"><div className="mistakes-row-main"><strong className="mistakes-row-title">{readableVisualQuestion(candidate.question_text || '题干待校对')}</strong><span className="mistakes-row-meta">待确认收录{candidate.source ? ` · ${candidate.source}` : ''}{candidate.content_complete === false ? ' · 关键内容待补全' : ''}</span>{editingCandidate === candidate.id && <div className="mistakes-candidate-editor"><label>题干与条件<textarea className="app-field" value={candidateEdit.question_text} onChange={(event) => setCandidateEdit((current) => ({ ...current, question_text: event.target.value }))} rows={5} /></label><label>当时作答<textarea className="app-field" value={candidateEdit.user_answer} onChange={(event) => setCandidateEdit((current) => ({ ...current, user_answer: event.target.value }))} rows={3} /></label><label>参考答案<textarea className="app-field" value={candidateEdit.correct_answer} onChange={(event) => setCandidateEdit((current) => ({ ...current, correct_answer: event.target.value }))} rows={3} /></label><label><input type="checkbox" checked={candidateEdit.content_complete} onChange={(event) => setCandidateEdit((current) => ({ ...current, content_complete: event.target.checked }))} />题干、关键条件与附图已核对完整</label><button type="button" onClick={() => void saveCandidate(candidate)} className="app-primary-button">保存校对</button></div>}</div><div className="mistakes-heading-actions"><button type="button" onClick={() => resolveCandidate(candidate, false)} className="app-secondary-button">忽略</button><button type="button" onClick={() => { setEditingCandidate(candidate.id); setCandidateEdit({ question_text: readableVisualQuestion(candidate.question_text || '', ''), user_answer: candidate.user_answer || '', correct_answer: candidate.correct_answer || '', content_complete: candidate.content_complete !== false }); }} className="app-secondary-button">校对</button><button type="button" disabled={!candidate.question_text || candidate.content_complete === false} onClick={() => resolveCandidate(candidate, true)} className="app-primary-button">确认收录</button></div></div>)}
           {records.map((record) => <div key={record.id} className="workspace-register-row mistakes-row">
             <button ref={(element) => { if (element) rowRefs.current.set(record.id, element); else rowRefs.current.delete(record.id); }} type="button" onClick={() => openRecord(record)} className="mistakes-row-button">
               <div className="mistakes-row-main"><div className="mistakes-row-title"><SimpleMarkdown content={recordTitle(record)} /></div><span className="mistakes-row-meta">{[record.subject || '未分类', record.chapter, record.mistake_type?.join('、'), record.source].filter(Boolean).join(' · ') || '来源未记录'}</span></div>
@@ -221,7 +222,7 @@ export function MistakeDetailPage() {
       if (result?.success) {
         const next = result.data as ProjectedMistake;
         setRecord(next);
-        setEdit({ question_text: next.question_text, user_answer: next.user_answer, correct_answer: next.correct_answer, notes: (next as ProjectedMistake & { notes?: string }).notes || '', mistake_type: (next.mistake_type || []).join('、'), tags: (next.tags || []).join('、') });
+        setEdit({ question_text: readableVisualQuestion(next.question_text, ''), user_answer: next.user_answer, correct_answer: next.correct_answer, notes: (next as ProjectedMistake & { notes?: string }).notes || '', mistake_type: (next.mistake_type || []).join('、'), tags: (next.tags || []).join('、') });
         setError('');
       }
       else setError(result?.message || '找不到这道错题');
@@ -301,13 +302,13 @@ export function MistakeDetailPage() {
       <label>错因分类（用顿号分隔）<input className="app-field" value={edit.mistake_type} onChange={(event) => setEdit((current) => ({ ...current, mistake_type: event.target.value }))} />
       </label>
       <label>知识点（用顿号分隔）<input className="app-field" value={edit.tags} onChange={(event) => setEdit((current) => ({ ...current, tags: event.target.value }))} />
-      </label>{(edit.question_text !== record.question_text || edit.correct_answer !== record.correct_answer) && <label className="mistakes-edit-impact">
+      </label>{(edit.question_text !== readableVisualQuestion(record.question_text, '') || edit.correct_answer !== record.correct_answer) && <label className="mistakes-edit-impact">
         <input type="checkbox" checked={meaningChanged} onChange={(event) => setMeaningChanged(event.target.checked)} />这次修改改变题意或参考答案，重新计算掌握依据</label>}<button type="button" disabled={busy || !edit.question_text.trim()} onClick={saveEdit} className="app-primary-button">保存修改</button>
     </section>
       <button className="app-secondary-button" onClick={() => { if (window.confirm('放弃当前档案编辑？')) setEditing(false); }}>取消编辑</button>
     </div> : <QuestionReadingLayout title="错题详情" meta={[record.subject, record.chapter, displayDate(record.created_at)].filter(Boolean).join(' · ')} pane={pane} onPaneChange={setPane} aiLabel="AI 讲解" actions={<button disabled={busy || record.content_status === 'needs_correction'} onClick={startRedo} className="app-primary-button">现在重做</button>} question={<>{<section>
       <h2>题目</h2>
-      <ReadingMarkdown content={record.question_text || record.ocr_text || '题干尚未记录'} />{record.attachments?.length ? <details>
+      <ReadingMarkdown content={readableVisualQuestion(record.question_text || record.ocr_text || '题干尚未记录')} />{record.attachments?.length ? <details>
         <summary>对照原图与附图（{record.attachments.length} 张）</summary>{record.attachments.map((attachment) => <MistakeAttachment key={attachment.id} mistakeId={record.id} attachmentId={attachment.id} bookName={scope} />)}</details> : imageUrl && <details>
           <summary>对照原图</summary>
           <img className="mistakes-original-image" src={imageUrl} alt="错题原图" />

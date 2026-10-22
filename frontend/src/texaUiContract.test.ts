@@ -7,6 +7,7 @@ import message from './components/ChatMessage.tsx?raw';
 import chatPage from './pages/ChatPage.tsx?raw';
 import mistakesPage from './pages/MistakesPage.tsx?raw';
 import reviewSessionPage from './pages/ReviewSessionPage.tsx?raw';
+import reviewSessionWorkflow from './features/mistakes/hooks/useReviewSession.ts?raw';
 import figureViewer from './features/visual-learning/FigureRegionViewer.tsx?raw';
 import modelSettings from './components/settings/ModelSettingsManager.tsx?raw';
 import asyncState from './components/ui/AsyncState.tsx?raw';
@@ -59,8 +60,9 @@ describe('Texa product UI contract', () => {
 
   it('keeps review and interrupted learning tasks resumable', () => {
     expect(app).toContain('path="learning/review/:sessionId"');
-    expect(reviewSessionPage).toContain('get(`/review/sessions/${encodeURIComponent(sessionId)}');
-    expect(reviewSessionPage).toContain('/results${query}');
+    expect(reviewSessionPage).toContain('useReviewSession(sessionId, scope)');
+    expect(reviewSessionWorkflow).toContain('`/review/sessions/${encodeURIComponent(sessionId)}`');
+    expect(reviewSessionWorkflow).toContain('/results${query}');
     expect(mistakesPage).toContain('现在重做');
     expect(chatPage).toContain('resumeFigureTaskStream');
     expect(chatPage).toContain('interruptFigureTask');

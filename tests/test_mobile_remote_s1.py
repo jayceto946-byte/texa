@@ -16,7 +16,7 @@ from backend.services.learning_task import LearningTaskStore
 from backend.services.mistake_images import MistakeImageStore
 from backend.services.multimodal_bridge import VisualProblemIR
 from backend.services.session_notes.sources import materialize
-from backend.services.visual_session_assets import visual_session_text
+from backend.services.visual_session_assets import visual_question_text, visual_session_text
 from memory.mistake_book import MistakeBook
 from memory.mistake_lifecycle import MistakeLifecycleStore
 
@@ -82,7 +82,8 @@ def test_photo_session_mistake_and_note_freeze_preserve_complete_assets(chain):
     assert client.post('/api/mistakes/chat-sources/capture', json=request).json()['data'] == capture
     draft_id = capture['draft_id']
     draft = client.get(f'/api/mistakes/drafts/{draft_id}').json()['data']
-    assert draft['question_text'] == user['content'] and draft['correct_answer'] == draft['explanation'] == answer
+    assert draft['question_text'] == visual_question_text(task.artifacts)
+    assert draft['correct_answer'] == draft['explanation'] == answer
     assert draft['visual_ir'] == ir.to_dict() and draft['user_answer'] == '不会做'
     assert draft['source_ref']['task_id'] == task_id
     attachment = draft['attachments'][0]
@@ -150,3 +151,30 @@ def test_visual_session_prose_keeps_problem_conditions_without_raw_arrays():
     assert '图中两直线互相垂直' in prose and '需要附表中的数值' in prose
     assert '圈选 B' in prose and 'variable' not in prose and '["' not in prose
     assert assets['visual_ir']['entities'][0]['id'] == 'x'
+
+
+def test_raw_ocr_json_becomes_reviewed_question_without_losing_private_visual_evidence(chain):
+    client, images, tasks, book, ir, answer = chain
+    raw = r'''{"schema_version":"visual-problem-ir/v2","problem_text":"[37] 求极限：\n\(\lim_{x\to0}\frac{x-\sin x}{x^3}\)","visual_type":"text_only","visual_summary":"题干在左侧","entities":[{"id":"E1","properties":{"position":"题干上方左侧"}}],"options":[]}'''
+    ir.__dict__.update(VisualProblemIR.from_model_output(raw).__dict__)
+    response = client.post('/api/mistakes/solve-image-stream',
+        files={'file': ('problem.jpg', photo(), 'image/jpeg')},
+        data={'conversation_id': 'raw-ocr', 'turn_id': 'raw-turn', 'question': '请解题'})
+    events = [json.loads(line[6:]) for line in response.text.splitlines() if line.startswith('data: ')]
+    assert events[-1]['execution_event']['type'] == 'final'
+    task = tasks.get(events[-1]['execution_event']['task_id'])
+    user = next(m for m in cm.load_full_history('raw-ocr') if m['role'] == 'user')
+    capture = client.post('/api/mistakes/chat-sources/capture', json={
+        'conversation_id': 'raw-ocr', 'message_id': user['id'], 'turn_id': 'raw-turn', 'data': {}}).json()['data']
+    draft = client.get('/api/mistakes/drafts/' + capture['draft_id']).json()['data']
+    assert draft['question_text'] == ir.to_question_text()
+    assert all(key not in draft['question_text'] for key in ['schema_version', 'position', 'entities', '题干上方左侧'])
+    updated = client.patch('/api/mistakes/drafts/' + draft['id'], json={
+        'expected_revision': draft['revision'], 'data': {'content_complete': True}}).json()['data']
+    receipt = client.post('/api/mistakes/drafts/' + draft['id'] + '/save', json={
+        'expected_revision': updated['revision'], 'operation_id': 'raw-ocr-reviewed'}).json()['data']
+    record = book.get(receipt['mistake_id'])
+    assert record.question_text == ir.to_question_text()
+    assert record.visual_ir['entities'][0]['properties']['position'] == '题干上方左侧'
+    assert task.artifacts['visual_ir'] == ir.to_dict()
+    assert Path(record.attachments[0]['original_path']).read_bytes() == Path(task.artifacts['original_image_path']).read_bytes()

@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, ClipboardList, GraduationCap, MessageSquare, Settings, PanelLeftClose, Target, NotebookPen } from 'lucide-react';
+import { BarChart3, BookOpen, ClipboardList, GraduationCap, MessageSquare, Settings, PanelLeftClose, Target, NotebookPen, CircleHelp } from 'lucide-react';
 import type { RefObject } from 'react';
 import { NavLink } from 'react-router-dom';
 
@@ -20,6 +20,7 @@ function RailLink({ to, icon: Icon, label }: (typeof primaryItems)[number]) {
       className={({ isActive }) => `app-rail-link ${isActive ? 'is-active' : ''}`}
       aria-label={label}
       title={label}
+      draggable={false}
     >
       <Icon className="h-[18px] w-[18px]" />
       <span>{label}</span>
@@ -38,9 +39,9 @@ export default function AppRail({ mobile, onOpenSettings, settingsButtonRef, onC
   return (
     <aside className="app-rail" aria-label="产品导航">
       <button className="navigation-collapse app-icon-button" onClick={onCollapse} aria-label="收起侧栏" title="收起侧栏"><PanelLeftClose size={18} /></button>
-      <NavLink to="/" className="app-rail-mark" aria-label="Texa 学习工作区" title="Texa">
+      <NavLink to="/" className="app-rail-mark window-no-drag" aria-label="Texa 学习工作区" title="返回学习主页" draggable={false}>
         <span className="app-rail-logo-icon" aria-hidden="true">
-          <img src="/brand/texa-mark.svg" alt="" />
+          <img src="/brand/texa-mark.svg" alt="" draggable={false} />
         </span>
         <span className="study-brand-name">Texa<span>学习工作区</span></span>
       </NavLink>
@@ -50,6 +51,7 @@ export default function AppRail({ mobile, onOpenSettings, settingsButtonRef, onC
       </nav>
 
       <nav className="app-rail-footer" aria-label="应用设置">
+        <RailLink to="/guide" icon={CircleHelp} label="用户指南" />
         <button ref={settingsButtonRef} type="button" onClick={onOpenSettings} className="app-rail-link" aria-label="设置" title="设置" aria-haspopup="dialog">
           <Settings className="h-[18px] w-[18px]" />
           <span>设置</span>
@@ -60,6 +62,7 @@ export default function AppRail({ mobile, onOpenSettings, settingsButtonRef, onC
       </nav>
 
       <nav className="app-rail-footer" aria-label="应用设置">
+        <RailLink to="/guide" icon={CircleHelp} label="用户指南" />
         <button ref={settingsButtonRef} type="button" onClick={onOpenSettings} className="app-rail-link" aria-label="设置" title="设置" aria-haspopup="dialog">
           <Settings className="h-[18px] w-[18px]" />
           <span>设置</span>

@@ -1,0 +1,85 @@
+{
+  "checks": [
+    {
+      "name": "Bash syntax: 实例终端：先检查环境",
+      "status": "PASS",
+      "executed": false
+    },
+    {
+      "name": "Bash syntax: 实例终端：系统依赖与工作目录",
+      "status": "PASS",
+      "executed": false
+    },
+    {
+      "name": "Bash syntax: 实例终端：安装固定版本",
+      "status": "PASS",
+      "executed": false
+    },
+    {
+      "name": "Bash syntax: 实例终端：下载并检查模型",
+      "status": "PASS",
+      "executed": false
+    },
+    {
+      "name": "Bash syntax: 实例终端：先试 3 页，再跑整本",
+      "status": "PASS",
+      "executed": false
+    },
+    {
+      "name": "Bash syntax: 实例终端：先解压到新的目录",
+      "status": "PASS",
+      "executed": false
+    },
+    {
+      "name": "Bash syntax: 实例终端：核对结构并放入原 PDF",
+      "status": "PASS",
+      "executed": false
+    },
+    {
+      "name": "Bash syntax: 实例终端：人工检查完成后打包",
+      "status": "PASS",
+      "executed": false
+    },
+    {
+      "name": "Bash syntax: 本机终端：SCP 下载示例（请替换主机与端口）",
+      "status": "PASS",
+      "executed": false
+    },
+    {
+      "name": "Bash syntax: 本机校验：macOS 终端",
+      "status": "PASS",
+      "executed": false
+    },
+    {
+      "name": "Exact guide Python block: nested",
+      "status": "PASS",
+      "executed": true,
+      "environment": "synthetic isolated files, standard library only; no PDF parsing or OCR"
+    },
+    {
+      "name": "Exact guide Python block: partial",
+      "status": "PASS",
+      "executed": true,
+      "environment": "synthetic isolated files, standard library only; no PDF parsing or OCR"
+    },
+    {
+      "name": "Exact guide Python block: multiple",
+      "status": "PASS",
+      "executed": true,
+      "environment": "synthetic isolated files, standard library only; no PDF parsing or OCR"
+    },
+    {
+      "name": "Exact guide Python block: existing",
+      "status": "PASS",
+      "executed": true,
+      "environment": "synthetic isolated files, standard library only; no PDF parsing or OCR"
+    }
+  ],
+  "unperformed": [
+    "remote installation",
+    "GPU/driver validation",
+    "model downloads",
+    "OCR",
+    "AutoDL upload/download/shutdown/billing"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "ledger_integrity": "PASS",
+  "source_code_unchanged": "PASS",
+  "private_full_text_scan": "PASS",
+  "credential_pattern_scan": "PASS",
+  "protected_other_task_files": "UNCHANGED",
+  "source_IR_and_bank_after_all_audit_tests": "UNCHANGED",
+  "existing_tests": "25 PASS",
+  "contract_probes": "12 PASS / 12 FAIL (known proposed-contract gaps)",
+  "model_OCR_network_calls": 0,
+  "git_changes": "new audit directory only; original tracked changes preserved; index empty; no commit/push",
+  "artifacts_sha256": {
+    "QUESTION-EXTRACTION-QUALITY-AUDIT.md": "6c9f859170543e604358c98b50c1f332429f6107d280c7d4186859eecbc7b6f0",
+    "candidate-audit.jsonl": "89a3bf4822c98902793acf62382c32d4bb8e735c09baed27657d41ff097f7d60",
+    "contract-probe-results.json": "a353e17fd02fb814319ddbcf3018fb26e2c9f5b00da80dc63742842196db7cd8",
+    "dataset-manifest.json": "f696dd88eb0a6b32f4ea0e291219093899f3817c71aae5e1b8d16020210afd1a",
+    "math-probe-summary.json": "8e081f0900b084ba252413ae3913110fbdc0b7d4524b9a3082f005f548654ea9",
+    "regression-cases.json": "9908a6405f8af397a976c1f62c4128229ae9152c1768779326ca29d94d9b4570",
+    "review-evidence-index.json": "29b1f5bc8a3978cad9d8ef01fd099d40ec8a5852217a98a7562c511031705754",
+    "summary.json": "f56357d85cbcdb31a8b912603ce5ae3e6da344eb37103e6bdfef75bbea3fba81",
+    "tools/build_audit_ledger.py": "2efb8d8d5bd71f1981901850f662e123a16b7649033d7134ad440695bf087184",
+    "tools/collect_baseline.py": "df4066cd967fc15757633f47117b03809a20ec34f97ad073f2c6150c70cdc75f",
+    "tools/probe_math.mjs": "313d0857915dd7d372a038e02d5b69815c956882e20b1ef204d8d309733911db",
+    "tools/run_contract_probes.py": "20923f94a743d37bed78e924fa3e288f3178e23a9315993295b779d99a08d667"
+  }
+}

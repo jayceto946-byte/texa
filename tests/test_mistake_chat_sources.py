@@ -96,3 +96,48 @@ def test_incomplete_review_lookup_excludes_finished_and_other_subjects(tmp_path)
     source.lifecycle.submit_review_result(review['id'], expected_revision=shown['revision'], operation_id='finish-review', result='wrong', hint_used=False, judgement_source='user_confirmed')
     assert source.lifecycle.find_incomplete_review_session(subject='数学') is None
     assert service(tmp_path).lifecycle.find_incomplete_review_session() is None
+
+
+def test_capture_uses_question_projection_keeps_internal_visual_assets_separate(tmp_path, monkeypatch):
+    import copy
+    import json
+    from types import SimpleNamespace
+    from backend import conversation_memory
+    from backend.services.multimodal_bridge import VisualProblemIR
+    inner = {'schema_version': 'visual-problem-ir/v2', 'problem_text': r'[37] 求 $\lim_{x\to0}x$。',
+             'visual_type': 'text_only', 'visual_summary': '题干和横线组成',
+             'entities': [{'properties': {'position': '题干上方左侧'}}], 'options': ['A. 0', 'B. 1'],
+             'annotations': ['内部位置描述'], 'formulas': [r'\lim_{x\to0}x'],
+             'handwritten_work': ['手写猜测'], 'user_marks': ['圈画']}
+    assets = {'question': '请讲解图片题', 'visual_ir': {'problem_text': json.dumps(inner, ensure_ascii=False)}, 'user_answer': '不会做'}
+    frozen = copy.deepcopy(assets)
+    source = service(tmp_path)
+    source.message_reader = lambda *_: {'id': 'message', 'role': 'user', 'turn_id': 'turn',
+        'content': '旧的结构化会话文本', 'learning_task': {'id': 'visual-task'}}
+    task = SimpleNamespace(id='visual-task', conversation_id='conversation', turn_id='turn', task_type='visual_qa', artifacts=assets)
+    source.task_store = SimpleNamespace(get=lambda _: task)
+    monkeypatch.setattr(conversation_memory, 'load_turn_messages', lambda *_a, **_k: [{'role': 'assistant', 'content': '完整解答'}])
+    receipt = source.capture('conversation', 'message', 'turn', {'question_text': '客户端正文不得覆盖权威来源'})
+    draft = source.lifecycle.get_draft(receipt['draft_id'])
+    assert draft['question_text'] == r'[37] 求 $\lim_{x\to0}x$。' + '\n\nA. 0\nB. 1'
+    assert draft['ocr_text'] == inner['problem_text']
+    assert draft['visual_ir'] == VisualProblemIR.from_dict(inner).to_dict()
+    assert draft['correct_answer'] == draft['explanation'] == '完整解答'
+    assert not draft['content_complete']
+    assert assets == frozen
+    assert source.capture('conversation', 'message', 'turn', {}) == receipt
+
+
+def test_legacy_visual_message_without_retained_task_still_captures_plain_question(tmp_path, monkeypatch):
+    import json
+    from backend import conversation_memory
+    source = service(tmp_path)
+    source.message_reader = lambda *_: {'id': 'message', 'role': 'user', 'turn_id': 'turn', 'content': json.dumps({
+        'schema_version': 'visual-problem-ir/v2', 'problem_text': r'求 $\frac{1}{2}$。',
+        'visual_type': 'text_only', 'entities': [{'id': 'E1'}]})}
+    monkeypatch.setattr(conversation_memory, 'load_turn_messages', lambda *_a, **_k: [])
+    receipt = source.capture('conversation', 'message', 'turn', {})
+    draft = source.lifecycle.get_draft(receipt['draft_id'])
+    assert draft['question_text'] == r'求 $\frac{1}{2}$。'
+    assert draft['visual_ir']['entities'] == [{'id': 'E1'}]
+    assert not draft['content_complete']

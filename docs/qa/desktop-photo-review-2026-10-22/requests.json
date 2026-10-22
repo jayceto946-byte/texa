@@ -1,0 +1,118 @@
+[
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  },
+  {
+    "path": "/api/review/sessions/review-photo?book_name=default",
+    "method": "GET"
+  },
+  {
+    "path": "/api/review/sessions/review-photo?book_name=default",
+    "method": "PATCH"
+  },
+  {
+    "path": "/api/review/sessions/review-photo/image?book_name=default",
+    "method": "POST"
+  },
+  {
+    "path": "/api/review/sessions/review-photo/image?preview=true",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  },
+  {
+    "path": "/api/review/sessions/review-photo?book_name=default",
+    "method": "GET"
+  },
+  {
+    "path": "/api/review/sessions/review-photo/image?preview=true",
+    "method": "GET"
+  },
+  {
+    "path": "/api/review/sessions/review-photo/feedback?book_name=default",
+    "method": "POST"
+  },
+  {
+    "path": "/api/review/sessions/review-photo?book_name=default",
+    "method": "GET"
+  },
+  {
+    "path": "/api/review/sessions/review-photo/image?preview=true",
+    "method": "GET"
+  },
+  {
+    "path": "/api/review/sessions/review-photo/results?book_name=default",
+    "method": "POST"
+  },
+  {
+    "path": "/api/review/sessions/review-photo?book_name=default",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/mistakes/candidates?book_name=default&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  }
+]

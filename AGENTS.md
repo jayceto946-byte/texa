@@ -14,6 +14,14 @@
 4. AGENTS.md 只记录长期有效的约束、当前架构和未来目标；版本更迭、bug 修复、迁移历史、实测记录统一写入 patch_notes.md。
 5. 优先保持系统可用和数据安全。不要为了重构破坏现有教材索引、错题数据、向量库或用户学习记录。
 
+## 搁置事项与提交边界
+
+- 用户已搁置 Web Retrieval / DeepSeek Search-Fetch 及相关 Evidence Contract 设计、接入、实验和报告。用户明确恢复并批准纳入提交前，不得在后续无关更新中暂存、commit、合并或 push 这些内容；恢复讨论不等于批准提交。
+- 搁置范围包括独立 Web 工具/服务/前端工具模块、相关测试与脚本、`WEB-RETRIEVAL-*.md`、`docs/validation/web-*` 相关实验目录，以及混在 Runtime、工具注册、来源面板、类型、`.env.example`、README 和 patch_notes 中的相关差异。不得仅排除未跟踪文件，就把共享文件整份提交。
+- 有搁置差异时，仅暂存经审阅的无关文件或无关 hunk；不得使用 `git add .`、`git add -A`、`git commit -a` 打包当前工作区。提交前复核 staged diff，而不是仅看文件名。
+- 当前检出的本地提交保护与清单位于 `.git/texa-parked-web/`，独立文件另由 `.git/info/exclude` 本地排除。不得为通过提交而绕过、关闭、删除保护或覆盖 hooksPath；需要纳入搁置内容时先取得用户明确授权。新检出或未安装本地保护的环境仍须遵守本节，不可假定 hook 已随仓库传播。
+- 保留搁置内容与其他未提交工作，不擅自清理、回退、迁移或修改其运行开关。与搁置提交边界有关的管理约束可单独保留，不视为批准功能接入。
+
 ## 技术约束
 
 - Python 使用 `venv310`，解释器必须是 Python 3.10。若出现二进制扩展导入异常，先检查 `venv310\pyvenv.cfg` 是否误指向其他 Python 版本。

@@ -33,3 +33,11 @@ def visual_session_text(artifacts: dict, fallback: str = "") -> str:
             if descriptions:
                 parts.append(label + "：\n" + "\n".join(descriptions))
     return "\n\n".join(parts) or fallback
+
+
+def visual_question_text(artifacts: dict) -> str:
+    """Project only recognized question content for a mistake's editable stem."""
+    from backend.services.multimodal_bridge import VisualProblemIR
+    irs = [artifacts.get("visual_ir") or {}, *(artifacts.get("supplemental_visual_irs") or [])]
+    parts = [VisualProblemIR.from_dict(ir).to_question_text() for ir in irs if isinstance(ir, dict)]
+    return "\n\n".join(part for part in parts if part)

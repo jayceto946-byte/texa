@@ -1,0 +1,29 @@
+{
+  "environment": "macOS, Electron 37, production frontend; read-only sample APIs; no live models or release package validation",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "status": "PASS"
+    },
+    {
+      "name": "no renderer exceptions",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/learning.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/sources.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/models.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/books.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/import.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/import-bundle.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/exercise-import.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/practice.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/mistakes.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/review.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/goals.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/notes.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/frontend/public/guide/backup.png"
+  ]
+}

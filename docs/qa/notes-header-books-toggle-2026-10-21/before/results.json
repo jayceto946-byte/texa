@@ -1,0 +1,646 @@
+{
+  "phase": "before",
+  "measurements": [
+    {
+      "name": "1280-books",
+      "header": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "title": {
+        "x": 264,
+        "y": 13.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 13.1015625,
+        "right": 296,
+        "bottom": 33.8984375,
+        "left": 264
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "drag",
+      "paddingTop": "0px",
+      "overflow": false
+    },
+    {
+      "name": "1280-list",
+      "header": {
+        "x": 232,
+        "y": 32,
+        "width": 1048,
+        "height": 48,
+        "top": 32,
+        "right": 1280,
+        "bottom": 80,
+        "left": 232
+      },
+      "title": {
+        "x": 264,
+        "y": 45.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 45.1015625,
+        "right": 296,
+        "bottom": 65.8984375,
+        "left": 264
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "no-drag",
+      "paddingTop": "32px",
+      "overflow": false
+    },
+    {
+      "name": "1280-detail",
+      "header": {
+        "x": 232,
+        "y": 32,
+        "width": 1048,
+        "height": 48,
+        "top": 32,
+        "right": 1280,
+        "bottom": 80,
+        "left": 232
+      },
+      "title": {
+        "x": 264,
+        "y": 45.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 45.1015625,
+        "right": 296,
+        "bottom": 65.8984375,
+        "left": 264
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "no-drag",
+      "paddingTop": "32px",
+      "overflow": false
+    },
+    {
+      "name": "1280-draft",
+      "header": {
+        "x": 232,
+        "y": 32,
+        "width": 1048,
+        "height": 48,
+        "top": 32,
+        "right": 1280,
+        "bottom": 80,
+        "left": 232
+      },
+      "title": {
+        "x": 264,
+        "y": 45.1015625,
+        "width": 96,
+        "height": 20.796875,
+        "top": 45.1015625,
+        "right": 360,
+        "bottom": 65.8984375,
+        "left": 264
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "no-drag",
+      "paddingTop": "32px",
+      "overflow": false
+    },
+    {
+      "name": "1280-goals",
+      "header": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "title": {
+        "x": 264,
+        "y": 13.1015625,
+        "width": 80,
+        "height": 20.796875,
+        "top": 13.1015625,
+        "right": 344,
+        "bottom": 33.8984375,
+        "left": 264
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "drag",
+      "paddingTop": "0px",
+      "overflow": false
+    },
+    {
+      "name": "1024-books",
+      "header": {
+        "x": 208,
+        "y": 0,
+        "width": 816,
+        "height": 48,
+        "top": 0,
+        "right": 1024,
+        "bottom": 48,
+        "left": 208
+      },
+      "title": {
+        "x": 240,
+        "y": 13.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 13.1015625,
+        "right": 272,
+        "bottom": 33.8984375,
+        "left": 240
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "drag",
+      "paddingTop": "0px",
+      "overflow": false
+    },
+    {
+      "name": "1024-list",
+      "header": {
+        "x": 208,
+        "y": 32,
+        "width": 816,
+        "height": 48,
+        "top": 32,
+        "right": 1024,
+        "bottom": 80,
+        "left": 208
+      },
+      "title": {
+        "x": 240,
+        "y": 45.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 45.1015625,
+        "right": 272,
+        "bottom": 65.8984375,
+        "left": 240
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "no-drag",
+      "paddingTop": "32px",
+      "overflow": false
+    },
+    {
+      "name": "1024-detail",
+      "header": {
+        "x": 208,
+        "y": 32,
+        "width": 816,
+        "height": 48,
+        "top": 32,
+        "right": 1024,
+        "bottom": 80,
+        "left": 208
+      },
+      "title": {
+        "x": 240,
+        "y": 45.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 45.1015625,
+        "right": 272,
+        "bottom": 65.8984375,
+        "left": 240
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "no-drag",
+      "paddingTop": "32px",
+      "overflow": false
+    },
+    {
+      "name": "1024-draft",
+      "header": {
+        "x": 208,
+        "y": 32,
+        "width": 816,
+        "height": 48,
+        "top": 32,
+        "right": 1024,
+        "bottom": 80,
+        "left": 208
+      },
+      "title": {
+        "x": 240,
+        "y": 45.1015625,
+        "width": 96,
+        "height": 20.796875,
+        "top": 45.1015625,
+        "right": 336,
+        "bottom": 65.8984375,
+        "left": 240
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "no-drag",
+      "paddingTop": "32px",
+      "overflow": false
+    },
+    {
+      "name": "1024-goals",
+      "header": {
+        "x": 208,
+        "y": 0,
+        "width": 816,
+        "height": 48,
+        "top": 0,
+        "right": 1024,
+        "bottom": 48,
+        "left": 208
+      },
+      "title": {
+        "x": 240,
+        "y": 13.1015625,
+        "width": 80,
+        "height": 20.796875,
+        "top": 13.1015625,
+        "right": 320,
+        "bottom": 33.8984375,
+        "left": 240
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "drag",
+      "paddingTop": "0px",
+      "overflow": false
+    },
+    {
+      "name": "760-books",
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 56,
+        "top": 0,
+        "right": 760,
+        "bottom": 56,
+        "left": 0
+      },
+      "title": {
+        "x": 152,
+        "y": 17.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 17.1015625,
+        "right": 184,
+        "bottom": 37.8984375,
+        "left": 152
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "drag",
+      "paddingTop": "0px",
+      "overflow": false
+    },
+    {
+      "name": "760-list",
+      "header": {
+        "x": 0,
+        "y": 32,
+        "width": 760,
+        "height": 56,
+        "top": 32,
+        "right": 760,
+        "bottom": 88,
+        "left": 0
+      },
+      "title": {
+        "x": 60,
+        "y": 49.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 49.1015625,
+        "right": 92,
+        "bottom": 69.8984375,
+        "left": 60
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "no-drag",
+      "paddingTop": "32px",
+      "overflow": false
+    },
+    {
+      "name": "760-detail",
+      "header": {
+        "x": 0,
+        "y": 32,
+        "width": 760,
+        "height": 56,
+        "top": 32,
+        "right": 760,
+        "bottom": 88,
+        "left": 0
+      },
+      "title": {
+        "x": 60,
+        "y": 49.1015625,
+        "width": 32,
+        "height": 20.796875,
+        "top": 49.1015625,
+        "right": 92,
+        "bottom": 69.8984375,
+        "left": 60
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "no-drag",
+      "paddingTop": "32px",
+      "overflow": false
+    },
+    {
+      "name": "760-draft",
+      "header": {
+        "x": 0,
+        "y": 32,
+        "width": 760,
+        "height": 56,
+        "top": 32,
+        "right": 760,
+        "bottom": 88,
+        "left": 0
+      },
+      "title": {
+        "x": 60,
+        "y": 49.1015625,
+        "width": 96,
+        "height": 20.796875,
+        "top": 49.1015625,
+        "right": 156,
+        "bottom": 69.8984375,
+        "left": 60
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "no-drag",
+      "paddingTop": "32px",
+      "overflow": false
+    },
+    {
+      "name": "760-goals",
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 57,
+        "top": 0,
+        "right": 760,
+        "bottom": 57,
+        "left": 0
+      },
+      "title": {
+        "x": 152,
+        "y": 17.6015625,
+        "width": 80,
+        "height": 20.796875,
+        "top": 17.6015625,
+        "right": 232,
+        "bottom": 38.3984375,
+        "left": 152
+      },
+      "font": "\"HarmonyOS Sans SC\", -apple-system, \"system-ui\", \"Segoe UI Variable\", \"Segoe UI\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "600",
+      "lineHeight": "20.8px",
+      "drag": "drag",
+      "paddingTop": "0px",
+      "overflow": false
+    }
+  ],
+  "checks": [
+    {
+      "name": "1280 list header parity",
+      "pass": false
+    },
+    {
+      "name": "1280 list title font parity",
+      "pass": true
+    },
+    {
+      "name": "1280 list no overflow",
+      "pass": true
+    },
+    {
+      "name": "1280 detail header parity",
+      "pass": false
+    },
+    {
+      "name": "1280 detail title font parity",
+      "pass": true
+    },
+    {
+      "name": "1280 detail no overflow",
+      "pass": true
+    },
+    {
+      "name": "1280 draft header parity",
+      "pass": false
+    },
+    {
+      "name": "1280 draft title font parity",
+      "pass": true
+    },
+    {
+      "name": "1280 draft no overflow",
+      "pass": true
+    },
+    {
+      "name": "1280 goals header parity",
+      "pass": true
+    },
+    {
+      "name": "1280 goals title font parity",
+      "pass": true
+    },
+    {
+      "name": "1280 goals no overflow",
+      "pass": true
+    },
+    {
+      "name": "1280 books DOM toggle 0",
+      "pass": true
+    },
+    {
+      "name": "1280 books DOM toggle 1",
+      "pass": true
+    },
+    {
+      "name": "1280 books DOM toggle 2",
+      "pass": true
+    },
+    {
+      "name": "1280 category reopens",
+      "pass": true
+    },
+    {
+      "name": "1024 list header parity",
+      "pass": false
+    },
+    {
+      "name": "1024 list title font parity",
+      "pass": true
+    },
+    {
+      "name": "1024 list no overflow",
+      "pass": true
+    },
+    {
+      "name": "1024 detail header parity",
+      "pass": false
+    },
+    {
+      "name": "1024 detail title font parity",
+      "pass": true
+    },
+    {
+      "name": "1024 detail no overflow",
+      "pass": true
+    },
+    {
+      "name": "1024 draft header parity",
+      "pass": false
+    },
+    {
+      "name": "1024 draft title font parity",
+      "pass": true
+    },
+    {
+      "name": "1024 draft no overflow",
+      "pass": true
+    },
+    {
+      "name": "1024 goals header parity",
+      "pass": true
+    },
+    {
+      "name": "1024 goals title font parity",
+      "pass": true
+    },
+    {
+      "name": "1024 goals no overflow",
+      "pass": true
+    },
+    {
+      "name": "1024 books DOM toggle 0",
+      "pass": true
+    },
+    {
+      "name": "1024 books DOM toggle 1",
+      "pass": true
+    },
+    {
+      "name": "1024 books DOM toggle 2",
+      "pass": true
+    },
+    {
+      "name": "1024 category reopens",
+      "pass": true
+    },
+    {
+      "name": "760 list header parity",
+      "pass": false
+    },
+    {
+      "name": "760 list title font parity",
+      "pass": true
+    },
+    {
+      "name": "760 list no overflow",
+      "pass": true
+    },
+    {
+      "name": "760 detail header parity",
+      "pass": false
+    },
+    {
+      "name": "760 detail title font parity",
+      "pass": true
+    },
+    {
+      "name": "760 detail no overflow",
+      "pass": true
+    },
+    {
+      "name": "760 draft header parity",
+      "pass": false
+    },
+    {
+      "name": "760 draft title font parity",
+      "pass": true
+    },
+    {
+      "name": "760 draft no overflow",
+      "pass": true
+    },
+    {
+      "name": "760 goals title font parity",
+      "pass": true
+    },
+    {
+      "name": "760 goals no overflow",
+      "pass": true
+    },
+    {
+      "name": "760 books DOM toggle 0",
+      "pass": true
+    },
+    {
+      "name": "760 books DOM toggle 1",
+      "pass": true
+    },
+    {
+      "name": "760 books DOM toggle 2",
+      "pass": true
+    },
+    {
+      "name": "760 category reopens",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,388 @@
+{
+  "environment": "macOS Electron 37, production React, real v1 exercise API/storage, frozen OCR/IR copy; auxiliary APIs fixture; no models/OCR",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "status": "PASS"
+    },
+    {
+      "name": "108 candidates 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-separated candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-separated no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "source solution visibly separated 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-source no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "C001 three source blocks 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-missing-figure candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-missing-figure no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "C031 precise missing figure 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-mixed-solution candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-mixed-solution no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "C096 multiple risks 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-cross-page-table candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-cross-page-table no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-long-math candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-long-math no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "108 candidates 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-separated candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-separated no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "source solution visibly separated 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-source no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "C001 three source blocks 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-missing-figure candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-missing-figure no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "C031 precise missing figure 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-mixed-solution candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-mixed-solution no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "C096 multiple risks 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-cross-page-table candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-cross-page-table no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-long-math candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-long-math no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "108 candidates 760",
+      "status": "PASS"
+    },
+    {
+      "name": "760-separated candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "760-separated no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "source solution visibly separated 760",
+      "status": "PASS"
+    },
+    {
+      "name": "760-source no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "C001 three source blocks 760",
+      "status": "PASS"
+    },
+    {
+      "name": "760-missing-figure candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "760-missing-figure no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "C031 precise missing figure 760",
+      "status": "PASS"
+    },
+    {
+      "name": "760-mixed-solution candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "760-mixed-solution no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "C096 multiple risks 760",
+      "status": "PASS"
+    },
+    {
+      "name": "760-cross-page-table candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "760-cross-page-table no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "760-long-math candidate canvas visible",
+      "status": "PASS"
+    },
+    {
+      "name": "760-long-math no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "ordinary empty answer/tags selectable without review",
+      "status": "PASS"
+    },
+    {
+      "name": "body edit clears confirmation",
+      "status": "PASS"
+    },
+    {
+      "name": "submitted subset identity frozen",
+      "status": "PASS"
+    },
+    {
+      "name": "explicit confirmation sent",
+      "status": "PASS"
+    },
+    {
+      "name": "760-subset-receipt no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "later official body change keeps receipt historical",
+      "status": "PASS"
+    },
+    {
+      "name": "only saved/duplicate-skipped removed; unresolved candidates retained",
+      "status": "PASS"
+    },
+    {
+      "name": "legacy backend version echo refusal",
+      "status": "PASS"
+    },
+    {
+      "name": "404 never falls back to legacy batch-add",
+      "status": "PASS"
+    },
+    {
+      "name": "incomplete no automatic resend",
+      "status": "PASS"
+    },
+    {
+      "name": "incomplete candidates retained",
+      "status": "PASS"
+    },
+    {
+      "name": "760-incomplete no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "unknown no automatic resend",
+      "status": "PASS"
+    },
+    {
+      "name": "unknown candidates retained",
+      "status": "PASS"
+    },
+    {
+      "name": "760-unknown no window overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "no renderer exceptions",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    {
+      "name": "1280-separated.png",
+      "sha256": "4985700288a20f8350b6c7d413a4027107b2e46fbf01f9e7799c06e87682b678"
+    },
+    {
+      "name": "1280-source.png",
+      "sha256": "6933212bee6a3f98ad0c1d4698c158b4733086c697adfa28aab7ce1070e59fbd"
+    },
+    {
+      "name": "1280-missing-figure.png",
+      "sha256": "f7dd01b6d35b22354e27f2efa4c106df077d67db9abc92c4cbcab3ab91d8ac77"
+    },
+    {
+      "name": "1280-mixed-solution.png",
+      "sha256": "c456be17f708f8e4ff42fe7753fafd46271aab6f24347cf8105845e89cee043b"
+    },
+    {
+      "name": "1280-cross-page-table.png",
+      "sha256": "cb73f000355d85ffb38045003c59751a80de96334c95956ed4a5502aea6bf3d3"
+    },
+    {
+      "name": "1280-long-math.png",
+      "sha256": "3a0b11f00ca5003f19207167190d2475500cf5d5ca9e46764df47691b641535c"
+    },
+    {
+      "name": "1024-separated.png",
+      "sha256": "3fce3a4f2cbd5edb00d3f1bd99b4d688d945905980a341c5909e63f6960a5628"
+    },
+    {
+      "name": "1024-source.png",
+      "sha256": "e296fd6f8ed78eaf994fb458e30aca76a4d5ac43253c9b54d5aa67b925b2a5e1"
+    },
+    {
+      "name": "1024-missing-figure.png",
+      "sha256": "51d3fe3a2e0ad8453a55ac212d53751ea02446569ca27f6c6101ba1582eef5f4"
+    },
+    {
+      "name": "1024-mixed-solution.png",
+      "sha256": "9da98f6837ba2e0cdb63c241d1fc4dfa1f591634dac86694252761604878d889"
+    },
+    {
+      "name": "1024-cross-page-table.png",
+      "sha256": "c88a76f6def096488cb56d41cb8901845f75b7a12c3e46446cd38491ada0b3ff"
+    },
+    {
+      "name": "1024-long-math.png",
+      "sha256": "367272fd17110bcba9cdf1eb0deb40d82d91b8baa8cf5f6e7fdfd5abe38dd55e"
+    },
+    {
+      "name": "760-separated.png",
+      "sha256": "cec94b7dfea3c75c57e09bc1f75eb0519100d2de4989854bb603a5e1c906987d"
+    },
+    {
+      "name": "760-source.png",
+      "sha256": "b38df98a1c7945d032dde812a9eb40733c9ee0496a2b82d890c4b139f4240487"
+    },
+    {
+      "name": "760-missing-figure.png",
+      "sha256": "7c9b16a6e39e10ff3a52ddab5e402da3df0059b96c6259b5d0f1ed2e91f96791"
+    },
+    {
+      "name": "760-mixed-solution.png",
+      "sha256": "8d68e025f75a60cead79a3c0b4c519d04bbdabed2b2d8354e84b0d9904a3276c"
+    },
+    {
+      "name": "760-cross-page-table.png",
+      "sha256": "5d175b937fd490bf4ade92bc1995c93e4b76aaa1c8e3471dad2bc8c7f5ad2727"
+    },
+    {
+      "name": "760-long-math.png",
+      "sha256": "e5c8a1279deac6db259e1617a20da045d6efac4add8e5f76351e6f4729fd4753"
+    },
+    {
+      "name": "760-subset-receipt.png",
+      "sha256": "2b64de16157b2f399a1770dd2b5c05a351b5bd208021d216939f8131aa4562f1"
+    },
+    {
+      "name": "760-incomplete.png",
+      "sha256": "7ea0eac96308874d47420678569039b492edf60192771c895c4f451d78e2d3e1"
+    },
+    {
+      "name": "760-unknown.png",
+      "sha256": "06e75c6db63259ce37e095e079ff7dfa79ebf803f4dc31937b5f580a668cbab3"
+    }
+  ],
+  "fixture_commit_requests": 4,
+  "private_evidence": "artifacts/question-candidate-contract/electron-1792286715389",
+  "windows": [
+    [
+      1280,
+      820
+    ],
+    [
+      1024,
+      768
+    ],
+    [
+      760,
+      820
+    ]
+  ],
+  "source_hashes": {
+    "memory/exercise_candidate_projection.py": "03205f9785e835b84b2e2b0e3ed9ccd9a5d06da09bbb00b07ef4d1c78cfcab05",
+    "memory/textbook_exercise_importer.py": "6e97c09a9214e0ac71245c1f4b13bb21c665137fd2c73c7c90d075d65b1614ef",
+    "memory/exercise_importer.py": "1a834f0e5ab51548e6f057271dc6b6189620209dada17ac3c29568161c21a1d0",
+    "memory/exercise_bank.py": "556f007364412cb706b005e3f4889cd84bd9a754a4acc8a6518f1bc17175009d",
+    "backend/services/exercise_candidate_review.py": "25ac7d82343257bef255dbc8d1d9f68fa7c84ac6a2fdd8c9fb96780b0806a2f5",
+    "backend/exercise_candidate_schemas.py": "aba5232743340780a58d42521b6779bcd4d1e6d420e9c64a12f1d5e1e873ebda",
+    "backend/schemas.py": "cbbc0af46377a788e425de39813fed76fd759275ee6c392f508a57b222c15332",
+    "backend/api/exercises.py": "45123a741d77cb888f1144601e9591feaa0ddf400809ee9fe3f6a24530bc7fff",
+    "frontend/src/features/exercises/components/CandidateReviewWorkspace.tsx": "40dc2186b11beb6a508825fb795086006f4f1337a0803a6c6025eb958d248a43",
+    "frontend/src/features/exercises/components/BatchCandidateReceipts.tsx": "3946c271580def87652fef2f74e5972e924741ab8c091f4c43733094a990adaf",
+    "frontend/src/features/exercises/hooks/candidateContract.ts": "01b519053188ce862a1a4fdc01f891194aeedeaadf330e0a7142b6dc6c68e4b4",
+    "frontend/src/features/exercises/hooks/candidateOperations.ts": "e536446849de3e31dc127c056cd6236672c5078a6ecdafa6bd815bc508cd3fd9",
+    "frontend/src/features/exercises/hooks/useExerciseImportCandidates.ts": "4615c1ac8aeff08df3d7d701c40a627ad1b05d8abfdbf1cc281a6408a3d8f9af",
+    "frontend/src/pages/ExercisesPage.tsx": "abc4ea4d3992459ab503755be779351ab326803d4180a8a2955c750233711f7e",
+    "frontend/src/types/index.ts": "d4573975bf49fda4651f01ec2b7dd64ffd298a414906e6976bc5c0e92b8b5577",
+    "frontend/src/api/client.ts": "c08d3a8a5148e80263041887a3cc7af83eb8480bf7cf6acc3dfc366f0af535a6",
+    "frontend/src/features/exercises/exercises.css": "94cfe9f414cbbe4bc5670db8191bf268f5e1a432f3de9cb406d6ee442f9c4bb5"
+  },
+  "visual_scope": "local engineering inspection; no new Astra design approval; private OCR remains ignored"
+}

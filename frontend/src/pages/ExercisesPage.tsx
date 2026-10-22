@@ -484,6 +484,7 @@ const ExercisesPage: React.FC = () => {
         </section>}
 
         <section hidden={workspaceMode !== 'import' || Boolean(receipt) || commitUnknown} className="exercise-import-panel">
+          <p className="exercise-import-retention" role="note">候选需校对并确认入库；刷新或退出可能丢失尚未入库的内容。</p>
           <div hidden={candidates.length > 0 && !reviewPreparationOpen} className="exercise-import-setup">
             <div className="exercise-stages">
               <strong>1 选择来源</strong> — 2 校对候选 — 3 确认入库</div>

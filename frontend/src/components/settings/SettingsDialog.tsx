@@ -2,14 +2,16 @@ import WorkspaceSkeleton from '../ui/WorkspaceSkeleton';
 import { X } from 'lucide-react';
 import { lazy, Suspense, useCallback, useRef } from 'react';
 import Dialog from '../ui/Dialog';
+import type { SettingsTab } from './settingsNavigation';
 const SettingsPage = lazy(() => import('../SystemHealth'));
 
 type SettingsDialogProps = {
   open: boolean;
   onClose: () => void;
+  initialTab?: SettingsTab;
 };
 
-export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
+export default function SettingsDialog({ open, onClose, initialTab }: SettingsDialogProps) {
   const modelDirty = useRef(false);
   const setModelDirty = useCallback((dirty: boolean) => { modelDirty.current = dirty; }, []);
   const close = useCallback(() => {
@@ -32,7 +34,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
         </button>
       </header>
       <Suspense fallback={<WorkspaceSkeleton label="正在读取设置" header={false} />}>
-        <SettingsPage open={open} onModelDirtyChange={setModelDirty} />
+        <SettingsPage open={open} initialTab={initialTab} onModelDirtyChange={setModelDirty} />
       </Suspense>
     </Dialog>
   );

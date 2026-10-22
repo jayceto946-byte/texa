@@ -92,6 +92,14 @@
 .goal-detail-tabs button { border-bottom:2px solid transparent!important;border-radius:0!important;background:transparent;white-space:nowrap; }
 .goal-detail-tabs button[aria-pressed="true"] { border-bottom-color:var(--color-accent)!important;color:var(--color-accent); }
 .goal-detail-tabs small { margin-left:5px;font-size:12px; }
+.goal-management-actions { display:flex; align-items:center; justify-content:flex-start; gap:8px; flex-wrap:wrap; margin:18px 0 4px; }
+.goal-detail-tabs { flex-wrap:wrap; gap:8px; }
+.goal-run-heading { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.goal-run-heading > span { color:var(--color-text-tertiary); font-size:12px; }
+.goal-assistance-description { max-width:560px; color:var(--color-text-secondary); font-size:13px; line-height:1.75; margin-bottom:18px; }
+.goals-workspace .goal-assistance { border-top:0; margin-top:0; }
+.goals-workspace .goal-run { padding-top:20px; }
+.goal-run > .goals-muted { margin:10px 0; }
 .goal-summary-progress { font-size:12px;color:var(--color-text-secondary);margin:12px 0; }
 .goal-ai-notice { font-size:13px;padding:10px 0;color:var(--color-text-secondary); }
 .goal-contract-editor { margin:20px 0;padding:16px;background:var(--workspace-secondary,var(--color-bg-secondary)); }

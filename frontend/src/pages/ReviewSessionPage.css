@@ -15,3 +15,11 @@
 .review-session-saved-answer { white-space: pre-wrap; color: var(--color-text-secondary); font-size: var(--workspace-interface-size); }
 .review-session-body details { padding: 16px 0; border-bottom: 1px solid var(--workspace-separator); }
 .review-session-body summary { cursor: pointer; font-size: var(--workspace-interface-size); }
+.review-answer-hint { margin-top:12px; color:var(--color-text-tertiary); font-size:12px; line-height:1.65; }
+.review-photo-submission { display:flex; align-items:flex-end; gap:8px; margin-top:12px; }
+.review-photo-submission .question-image-attachment { margin-top:0; }
+.review-feedback { margin:24px 0; padding:0 0 20px; border-bottom:1px solid var(--workspace-separator); }
+.review-feedback h2 { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.review-feedback h2 span { color:var(--color-text-secondary); font-size:13px; font-weight:400; }
+.review-feedback h3 { margin:20px 0 8px; font-size:14px; font-weight:600; }
+.review-feedback .learning-message { margin:0; padding:0; border:0; }

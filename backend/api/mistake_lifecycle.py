@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, timezone
 
 from backend.services.mistake_lifecycle import project_mistake
 from backend.services.mistake_chat_sources import MistakeChatSourceService
+from backend.services.review_feedback import public_review_session, grade_review
 from backend.api.mistakes import _image_store, _ocr_image_with_kimi
 from backend.api import mistakes as legacy_mistakes
 from memory.mistake_book import MistakeRecord
@@ -596,7 +597,8 @@ def create_review_session(req: SessionCreate):
 
 @review_router.get("")
 def active_review_session(book_name: str = "default", subject: str = ""):
-    return {"success": True, "data": _store(book_name).find_incomplete_review_session(subject=subject)}
+    session = _store(book_name).find_incomplete_review_session(subject=subject)
+    return {"success": True, "data": public_review_session(session, book_name) if session else None}
 
 
 @review_router.get("/{session_id}")
@@ -606,7 +608,7 @@ def get_review_session(session_id: str, book_name: str = "default"):
         raise HTTPException(status_code=404, detail="review session not found")
     current_id = session["items"][session["index"]] if session["index"] < len(session["items"]) else ""
     record = _mb(book_name).get(current_id) if current_id else None
-    return {"success": True, "data": {**session, "current_item": {
+    return {"success": True, "data": {**public_review_session(session, book_name), "current_item": {
         "id": record.id, "question_text": record.question_text,
         "correct_answer": record.correct_answer if session["revealed"] else "",
         "explanation": record.explanation if session["revealed"] else "",
@@ -618,9 +620,77 @@ def get_review_session(session_id: str, book_name: str = "default"):
 @review_router.patch("/{session_id}")
 def update_review_session(session_id: str, req: SessionDraft, book_name: str = "default"):
     try:
-        return {"success": True, "data": _store(book_name).update_review_draft(session_id, expected_revision=req.expected_revision, answer=req.answer, revealed=req.revealed)}
+        updated = _store(book_name).update_review_draft(session_id, expected_revision=req.expected_revision, answer=req.answer, revealed=req.revealed)
+        return {"success": True, "data": public_review_session(updated, book_name)}
     except ValueError as exc:
         raise _error(exc) from exc
+
+
+@review_router.post("/{session_id}/image")
+def upload_review_image(session_id: str, expected_revision: int = Form(...), file: UploadFile = File(...), book_name: str = "default"):
+    store = _store(book_name)
+    session = store.get_review_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="review session not found")
+    if session["revision"] != expected_revision:
+        raise HTTPException(status_code=409, detail="review session revision changed")
+    original = work = None
+    try:
+        original, work = _image_store.save_draft_attachment(file, session_id, strict=True)
+        updated = store.update_review_image(session_id, expected_revision=expected_revision, submission={
+            "original_path": str(original), "work_path": str(work), "filename": Path(file.filename or "作答图片").name[:200]})
+    except ValueError as exc:
+        _image_store.delete(original)
+        if work != original:
+            _image_store.delete(work)
+        raise _error(exc) from exc
+    previous = session.get("current_submission") or {}
+    _image_store.delete(previous.get("original_path"))
+    _image_store.delete(previous.get("work_path"))
+    return {"success": True, "data": public_review_session(updated, book_name)}
+
+
+@review_router.get("/{session_id}/image")
+def get_review_image(session_id: str, book_name: str = "default", preview: bool = False):
+    session = _store(book_name).get_review_session(session_id)
+    submission = session.get("current_submission") if session else None
+    if not submission:
+        raise HTTPException(status_code=404, detail="review image not found")
+    path = Path(submission["original_path"]).resolve()
+    if not path.is_relative_to((_image_store.image_root / "drafts" / session_id).resolve()) or not path.is_file():
+        raise HTTPException(status_code=404, detail="review image not found")
+    if preview:
+        try:
+            path = _image_store.preview_image(path)
+        except (OSError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail="作答图片预览无法生成，请重试") from exc
+    return FileResponse(path)
+
+
+@review_router.post("/{session_id}/image/remove")
+def remove_review_image(session_id: str, req: SessionDraft, book_name: str = "default"):
+    store = _store(book_name)
+    session = store.get_review_session(session_id)
+    try:
+        updated = store.update_review_image(session_id, expected_revision=req.expected_revision, submission=None)
+    except ValueError as exc:
+        raise _error(exc) from exc
+    previous = (session or {}).get("current_submission") or {}
+    _image_store.delete(previous.get("original_path"))
+    _image_store.delete(previous.get("work_path"))
+    return {"success": True, "data": public_review_session(updated, book_name)}
+
+
+@review_router.post("/{session_id}/feedback")
+def grade_review_image(session_id: str, req: SessionDraft, book_name: str = "default"):
+    try:
+        updated = grade_review(_store(book_name), session_id, req.expected_revision)
+        return {"success": True, "data": public_review_session(updated, book_name)}
+    except ValueError as exc:
+        raise _error(exc) from exc
+    except Exception as exc:
+        # Provider exception strings may contain connection credentials.
+        raise HTTPException(status_code=503, detail="图片批改暂不可用，请检查模型连接后重试。原图和文字草稿已保留。") from exc
 
 
 @review_router.post("/{session_id}/results")

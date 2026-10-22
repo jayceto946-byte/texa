@@ -324,8 +324,7 @@
 .study-desk .library-resource-group-static strong { font-size: var(--workspace-support-size); font-weight: 400; line-height: 1.5; color: var(--color-text-secondary); }
 .study-desk .library-category-identity p { font-size: var(--workspace-support-size); font-weight: 400; line-height: 1.5; margin-top: 6px; }
 .study-desk :is(.library-book-identity p,.library-readiness details,.library-active-label,.library-current-status,.library-list-filter button span,.library-tree-count,.context-session-time,.context-session-scope),
-.study-desk .library-page-heading > span,
-.study-desk .study-navigation .study-brand-name > span {
+.study-desk .library-page-heading > span {
   font-size: var(--workspace-meta-size); font-weight: 400; line-height: 1.5;
 }
 .study-desk :is(.library-list-columns,.library-tree-heading,.context-section-label,.study-turn-heading),
@@ -525,8 +524,9 @@
   font-size: var(--workspace-reading-size); font-weight: 400; line-height: 1.7; letter-spacing: 0;
 }
 .study-desk .learning-question.is-visual-question .markdown-body > :first-child {
-  font-size: 18px; font-weight: 600; line-height: 1.6; margin-bottom: 12px;
+  font-size: 16px; font-weight: 500; line-height: 1.7; margin-bottom: 0;
 }
+.study-desk .learning-question.is-visual-question > .markdown-body { padding:14px 18px; border-radius:16px; background:var(--accent-soft); }
 .study-desk .learning-message, .study-desk .learning-answer-document { min-width: 0; max-width: 100%; }
 .study-desk .markdown-body .katex-display {
   max-width: 100%; overflow-x: auto; overflow-y: hidden; padding-block: .3em;

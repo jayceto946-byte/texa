@@ -1,0 +1,43 @@
+{
+  "scope": "AUTO-CLASSIFIED AST/KaTeX representation diagnostic; not math truth or Electron render acceptance",
+  "candidate_count": 108,
+  "error_candidates": [
+    {
+      "audit_id": "C091",
+      "katex_errors": 7,
+      "error_categories": [
+        "\\tag works only in display equations"
+      ],
+      "formula_blocks_not_math": [
+        "0cdcca9428f4e62cdf51"
+      ]
+    },
+    {
+      "audit_id": "C093",
+      "katex_errors": 0,
+      "error_categories": [],
+      "formula_blocks_not_math": [
+        "c5c5c9877077f51729f3"
+      ]
+    },
+    {
+      "audit_id": "C094",
+      "katex_errors": 0,
+      "error_categories": [],
+      "formula_blocks_not_math": [
+        "5c3700795daafbf62162",
+        "cff5e54b8b881c17b59e",
+        "2ab34ebe2d2892d86836",
+        "b08c1df44dfea794c410"
+      ]
+    },
+    {
+      "audit_id": "C096",
+      "katex_errors": 2,
+      "error_categories": [
+        "\\tag works only in display equations"
+      ],
+      "formula_blocks_not_math": []
+    }
+  ]
+}

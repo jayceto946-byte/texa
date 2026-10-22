@@ -12,13 +12,13 @@ export default function NoteDetailPage() {
     const { note, error, busy, history, historyCursor, edit, status, revisions } = useNoteDetail(noteId, revision);
     const { ref: scrollRef, onScroll: rememberScroll } = useNoteScroll(`${noteId}:${revision || 'current'}`, Boolean(note));
     if (!note)
-        return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><h1>笔记</h1><Link className="app-ghost-button" to="/notes">笔记列表</Link></header><div className="management-page-content"><>{error ? <p role="alert">{error}</p> : <WorkspaceSkeleton label="正在读取笔记" header={false} reading />}</></div></div>;
+        return <div className="management-workspace notes-workspace"><header className="app-page-header note-page-header window-drag-region"><h1 className="app-page-title">笔记</h1><Link className="app-ghost-button" to="/notes">笔记列表</Link></header><div className="management-page-content"><>{error ? <p role="alert">{error}</p> : <WorkspaceSkeleton label="正在读取笔记" header={false} reading />}</></div></div>;
     const headings = note.blocks.filter(block => block.type === 'heading');
     const hasContents = headings.length > 2;
     return <div className="management-workspace notes-workspace">
       <header className="app-page-header note-page-header window-drag-region">
         <div className="note-header-identity">
-          <h1>笔记</h1>
+          <h1 className="app-page-title">笔记</h1>
           <span className="note-header-state" role="status">{revision ? `历史版本 ${revision} · 只读` : `已保存 · 版本 ${note.revision}`}{note.status === 'archived' ? ' · 已归档' : ''}</span>
         </div>
         <div className="note-actions">

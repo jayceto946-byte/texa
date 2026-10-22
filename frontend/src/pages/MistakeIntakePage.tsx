@@ -1,3 +1,4 @@
+import { readableVisualQuestion } from '../utils/visualQuestion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ImagePlus, Loader2 } from 'lucide-react';
@@ -15,7 +16,7 @@ type Form = { question_text: string; user_answer: string; correct_answer: string
 const emptyForm: Form = { question_text: '', user_answer: '', correct_answer: '', subject: '数学', chapter: '', source: '', notes: '', tags: '', mistake_type: '', content_complete: false };
 
 function formFromDraft(draft: Draft): Form {
-  return { question_text: draft.question_text || '', user_answer: draft.user_answer || '', correct_answer: draft.correct_answer || '', subject: draft.subject || '数学', chapter: draft.chapter || '', source: draft.source || '', notes: draft.notes || '', tags: (draft.tags || []).join('、'), mistake_type: (draft.mistake_type || []).join('、'), content_complete: Boolean(draft.content_complete) };
+  return { question_text: readableVisualQuestion(draft.question_text || '', ''), user_answer: draft.user_answer || '', correct_answer: draft.correct_answer || '', subject: draft.subject || '数学', chapter: draft.chapter || '', source: draft.source || '', notes: draft.notes || '', tags: (draft.tags || []).join('、'), mistake_type: (draft.mistake_type || []).join('、'), content_complete: Boolean(draft.content_complete) };
 }
 function fieldsFromForm(form: Form) {
   return { ...form, tags: form.tags.split(/[、,，]/).map((item) => item.trim()).filter(Boolean), mistake_type: form.mistake_type.split(/[、,，]/).map((item) => item.trim()).filter(Boolean) };
@@ -43,7 +44,7 @@ function IntakeChoice() {
       navigate(`/mistakes/intake/${encodeURIComponent(result.data.id)}?book_name=${encodeURIComponent(scope)}${kind === 'image' ? '&mode=image' : ''}`);
     } catch (cause) { setError(cause instanceof Error ? cause.message : '无法创建草稿'); setBusy(false); }
   };
-  return <div className="management-workspace mistakes-intake-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题录入</h1><Link className="app-ghost-button workspace-back-control" to="/mistakes"><ArrowLeft className="h-4 w-4" />返回错题档案</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="mistakes-intake-body"><p>草稿保存在本地，校对后再收录。</p><div className="mistakes-intake-choices"><button type="button" disabled={busy} onClick={() => begin('image')} className="app-secondary-button"><ImagePlus className="h-4 w-4" />从图片开始</button><button type="button" disabled={busy} onClick={() => begin('manual')} className="app-primary-button">手动输入</button></div>{error && <p role="alert" className="mistakes-intake-error">{error}</p>}{drafts.length > 0 && <section><h2>继续草稿</h2><ol className="mistakes-intake-draft-list">{drafts.map((draft) => <li key={draft.id}><Link to={`/mistakes/intake/${encodeURIComponent(draft.id)}?book_name=${encodeURIComponent(scope)}`}><div className="mistakes-intake-draft-title"><SimpleMarkdown content={draft.question_text?.trim() || (draft.attachments?.length ? `图片错题 · ${draft.attachments.length} 张` : '未命名草稿')} /></div></Link><span>{new Date(draft.updated_at).toLocaleDateString('zh-CN')}</span></li>)}</ol></section>}</div></main></div>;
+  return <div className="management-workspace mistakes-intake-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题录入</h1><Link className="app-ghost-button workspace-back-control" to="/mistakes"><ArrowLeft className="h-4 w-4" />返回错题档案</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="mistakes-intake-body"><p>草稿保存在本地，校对后再收录。</p><div className="mistakes-intake-choices"><button type="button" disabled={busy} onClick={() => begin('image')} className="app-secondary-button"><ImagePlus className="h-4 w-4" />从图片开始</button><button type="button" disabled={busy} onClick={() => begin('manual')} className="app-primary-button">手动输入</button></div>{error && <p role="alert" className="mistakes-intake-error">{error}</p>}{drafts.length > 0 && <section><h2>继续草稿</h2><ol className="mistakes-intake-draft-list">{drafts.map((draft) => <li key={draft.id}><Link to={`/mistakes/intake/${encodeURIComponent(draft.id)}?book_name=${encodeURIComponent(scope)}`}><div className="mistakes-intake-draft-title"><SimpleMarkdown content={readableVisualQuestion(draft.question_text?.trim() || (draft.attachments?.length ? `图片错题 · ${draft.attachments.length} 张` : '未命名草稿'))} /></div></Link><span>{new Date(draft.updated_at).toLocaleDateString('zh-CN')}</span></li>)}</ol></section>}</div></main></div>;
 }
 
 function IntakeDraft({ draftId }: { draftId: string }) {
@@ -116,7 +117,7 @@ function IntakeDraft({ draftId }: { draftId: string }) {
     try {
       const result = await post(`/mistakes/drafts/${encodeURIComponent(draftId)}/recognize${query}`, { expected_revision: revision, attachment_id: attachmentId }, IMAGE_RECOGNITION_TIMEOUT_MS);
       if (!result?.success) throw new Error(result?.message || '识别失败');
-      const text = result.data.ocr_text || '';
+      const text = readableVisualQuestion(result.data.ocr_text || '');
       setOcrCandidate(text);
       setUncertainties(result.data.uncertainties || []);
       setStatus('识别完成，请对照原图校对');

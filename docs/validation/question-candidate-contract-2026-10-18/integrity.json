@@ -1,0 +1,34 @@
+{
+  "input_hashes": {
+    "artifacts/question-extraction-quality-2026-10-17/data/progress/book_registry.json": "70bc2345c6706b42df4add5b1502fd41234bcd7ac1e4273092005a848310b3a3",
+    "artifacts/question-extraction-quality-2026-10-17/data/progress/exercise_bank_传感器原理及应用.db-shm": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+    "artifacts/question-extraction-quality-2026-10-17/data/progress/exercise_bank_传感器原理及应用.db-wal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/question-extraction-quality-2026-10-17/data/progress/exercise_bank_传感器原理及应用.db": "802dce06c420f32099c4fbb9b630de414352211a97489838e60f9bc3ae44c579",
+    "artifacts/question-extraction-quality-2026-10-17/data/progress/传感器原理及应用/ingestion_report.json": "c411e20ce6f6e1f7b5d77206172a643d61cfe7a8bab478ca3fda6e15ec3796a9",
+    "artifacts/question-extraction-quality-2026-10-17/data/progress/传感器原理及应用/metadata.json": "8fcc60dfc3897a091980b169e4fd81631896c0be7d1916090def5e245732dadc",
+    "artifacts/question-extraction-quality-2026-10-17/data/progress/传感器原理及应用/canonical_document.jsonl": "5bcef61474112840c4513441ba13f81e05d535c1599819a86f7fa30ebd305b2e",
+    "artifacts/question-extraction-quality-2026-10-17/data/progress/传感器原理及应用/_chapters.json": "8fce5c14249fd9cbcbc7971ff6599eba37d238688d25fae5d896ba0bbe868aef",
+    "docs/qa/question-extraction-quality-2026-10-17/summary.json": "f56357d85cbcdb31a8b912603ce5ae3e6da344eb37103e6bdfef75bbea3fba81",
+    "docs/qa/question-extraction-quality-2026-10-17/verification.json": "5b29256ea67e403260c11bf633d33e45a57e09d1c36baf63414b8332ad3ed4a3",
+    "docs/qa/question-extraction-quality-2026-10-17/dataset-manifest.json": "f696dd88eb0a6b32f4ea0e291219093899f3817c71aae5e1b8d16020210afd1a",
+    "docs/qa/question-extraction-quality-2026-10-17/regression-cases.json": "9908a6405f8af397a976c1f62c4128229ae9152c1768779326ca29d94d9b4570",
+    "docs/qa/question-extraction-quality-2026-10-17/review-evidence-index.json": "29b1f5bc8a3978cad9d8ef01fd099d40ec8a5852217a98a7562c511031705754",
+    "docs/qa/question-extraction-quality-2026-10-17/math-probe-summary.json": "8e081f0900b084ba252413ae3913110fbdc0b7d4524b9a3082f005f548654ea9",
+    "docs/qa/question-extraction-quality-2026-10-17/contract-probe-results.json": "a353e17fd02fb814319ddbcf3018fb26e2c9f5b00da80dc63742842196db7cd8",
+    "docs/qa/question-extraction-quality-2026-10-17/candidate-audit.jsonl": "89a3bf4822c98902793acf62382c32d4bb8e735c09baed27657d41ff097f7d60"
+  },
+  "unchanged": true,
+  "canonical_logical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+  "source_bank_logical_hash": "80ab5d5f62de49b36b331a39001e15ebfbc71c157932f30747daf6692f0411a3",
+  "coverage": 108,
+  "empty_source_answers": 94,
+  "ready_preserved": 92,
+  "duplicate_maps": 16,
+  "isolated_batch": {
+    "submitted": 96,
+    "saved": 80,
+    "skipped": 16,
+    "receipt_count": 80
+  },
+  "model_ocr_calls": 0
+}

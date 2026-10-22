@@ -46,7 +46,8 @@ class MistakeChatSourceService:
     def capture(self, conversation_id: str, message_id: str, turn_id: str, data: dict) -> dict:
         from backend.conversation_memory import get_message, load_turn_messages
         from backend.services.learning_task import get_learning_task_store
-        from backend.services.visual_session_assets import visual_session_text
+        from backend.services.visual_session_assets import visual_question_text
+        from backend.services.multimodal_bridge import VisualProblemIR, is_visual_ir_text
         reader = self.message_reader or get_message
         message = reader(conversation_id, message_id)
         if not message or message.get("role") != "user":
@@ -68,10 +69,16 @@ class MistakeChatSourceService:
                      "subject": str(message.get("subject") or data.get("subject") or ""),
                      "source": "学习会话", "content_complete": False}
         if assets:
-            inherited.update(question_text=visual_session_text(assets),
-                             ocr_text=str((assets.get("visual_ir") or {}).get("problem_text") or ""),
-                             visual_ir=assets.get("visual_ir") or {}, user_answer=assets.get("user_answer") or "")
+            visual = VisualProblemIR.from_dict(assets.get("visual_ir") or {})
+            inherited.update(question_text=visual_question_text(assets),
+                             ocr_text=visual.problem_text,
+                             visual_ir=visual.to_dict(), user_answer=assets.get("user_answer") or "")
             ref["task_id"] = task.id
+        elif is_visual_ir_text(inherited["question_text"]):
+            # Legacy persisted messages can predate a retained visual task.
+            visual = VisualProblemIR.from_model_output(inherited["question_text"])
+            inherited.update(question_text=visual.to_question_text(), ocr_text=visual.problem_text,
+                             visual_ir=visual.to_dict())
         if not inherited["question_text"].strip():
             raise ValueError("persisted question is empty")
         prepare = None

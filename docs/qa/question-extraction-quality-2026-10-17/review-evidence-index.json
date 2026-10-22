@@ -1,0 +1,38 @@
+{
+  "privacy": "Local private crops; no images published",
+  "directly_inspected_by": "audit agent (not human reviewer)",
+  "items": [
+    {
+      "file": "artifacts/question-extraction-quality-2026-10-17/review-crops/C004-286cab4fc5f9b53e1a53.jpg",
+      "sha256": "961eedc6197fe512beeeda7088c4f8bb0cdf6f5dd0f7d4ab1490056d08f2c453"
+    },
+    {
+      "file": "artifacts/question-extraction-quality-2026-10-17/review-crops/C094-cff5e54b8b881c17b59e.jpg",
+      "sha256": "1d3c63272753c1e38a6aa9ee24c6e98f704b8b17833877555c819166d356cb9a"
+    },
+    {
+      "file": "artifacts/question-extraction-quality-2026-10-17/review-crops/C094-2ab34ebe2d2892d86836.jpg",
+      "sha256": "aab53d3b030b7ce0140f29cf527f5b2444de6b29c8898d71906358d11a10f2f5"
+    },
+    {
+      "file": "artifacts/question-extraction-quality-2026-10-17/review-crops/C094-db29d3d9d16c1929d183.jpg",
+      "sha256": "d0ee194eefa05c9d25bab4d970d22ccfa6da1840dc620c44c66a6709da4d14a0"
+    },
+    {
+      "file": "artifacts/question-extraction-quality-2026-10-17/review-crops/C033-5454f1a6bca780f74997.jpg",
+      "sha256": "31bf438554e123d5162fbe7aaa3c4ba3402a238536519362573926352dcc2337"
+    },
+    {
+      "file": "artifacts/question-extraction-quality-2026-10-17/review-crops/C033-050a7192fedc5f670482.jpg",
+      "sha256": "c37f767eb35292fcd905af00651832524311f95fbdc269dc8f762bb894cb5cdd"
+    },
+    {
+      "file": "artifacts/question-extraction-quality-2026-10-17/review-crops/C091-885cf4e85ddabf77f998.jpg",
+      "sha256": "e2a950e03877ce81eac41ff7d8b8d1a5ec1dc2f69f0c251542c3aa272d2b5f2f"
+    },
+    {
+      "file": "artifacts/question-extraction-quality-2026-10-17/review-crops/C091-56c9f7952a3d00289bc8.jpg",
+      "sha256": "28d1b56f91ea38c7e0fa8920281a878a4b0c657afa9c3bd9bb50cd84ec71cf4f"
+    }
+  ]
+}

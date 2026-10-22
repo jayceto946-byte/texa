@@ -24,7 +24,8 @@ import { separateVerificationNotice } from '../utils/verificationNotice';
 import AnswerSelection from './chat/AnswerSelection';
 import OverflowMenu from './ui/OverflowMenu';
 import { ChatMistakeSourcesContext } from '../features/mistakes/hooks/useChatMistakeSources';
-import { readableVisualQuestion } from '../utils/visualQuestion';
+import { readableVisualQuestion, visualUserQuestion } from '../utils/visualQuestion';
+import QuestionImage from './chat/QuestionImage';
 import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 
 interface ChatMessageProps {
@@ -127,10 +128,6 @@ const EMPTY_SOURCES: AssistantSource[] = [];
 const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, variant = 'message', stage, streamError, activities = [], turnId, subjectSuggestion, answerMode, suggestedAnswerMode, scopeReason, originalQuestion, onRequestGlobalAnswer, onRequestSuggestedAnswer, linkedConcepts = EMPTY_CONCEPTS, sources = EMPTY_SOURCES, sourceChapters = [], reportCard, exerciseCard, chapterHighlightCard, utilityCard, learningTask, citationProvenance, onResumeLearningTask, onResumeInterruptedTask }) => {
   const isVisualQuestion = role === 'user' && learningTask?.task_type === 'visual_qa';
   const imagePath = isVisualQuestion ? String(learningTask.artifacts?.image_url || `/api/mistakes/tasks/${learningTask.id}/image`) : '';
-  const [showVisualImage, setShowVisualImage] = useState(false);
-  const [originalImage, setOriginalImage] = useState(false);
-  const [imageRetry, setImageRetry] = useState(0);
-  const visualImage = useAuthenticatedBlobUrl(showVisualImage ? originalImage ? imagePath : `${imagePath}${imagePath.includes('?') ? '&' : '?'}preview=true` : '', 'binary', imageRetry);
   const [scopeResolved, setScopeResolved] = useState(false);
   const captureSources = useContext(ChatMistakeSourcesContext);
   const captureState = captureSources.states[messageId || `turn:${turnId}`];
@@ -199,8 +196,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
   const answerPresentation = useMemo(() => separateVerificationNotice(content), [content]);
   const hasExecutionTrace = activities.some(item => item.id !== 'transport' && item.id !== 'execute' && item.event_type !== 'output_delta' && item.status !== 'pending');
   const questionContent = useMemo(
-    () => (isUser && variant === 'message' ? splitQuestionAttachment(isVisualQuestion ? readableVisualQuestion(content) : content) : { attachmentName: '', body: content }),
-    [content, isUser, isVisualQuestion, variant],
+    () => (isUser && variant === 'message' ? splitQuestionAttachment(isVisualQuestion || /图片题干（识别文本，请校对）|补充图片题干/.test(content)
+      ? visualUserQuestion(content, String(learningTask?.artifacts?.question || ''))
+      : readableVisualQuestion(content)) : { attachmentName: '', body: content }),
+    [content, isUser, variant, isVisualQuestion, learningTask?.artifacts?.question],
   );
   const captureQuestion = async () => {
     if (captureBusy || !questionContent.body.trim() || !captureMessageId || captureSources.loading || captureSources.error) return;
@@ -240,13 +239,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
 
   return (
     <div className={variant === 'document' ? 'min-w-0' : `learning-message ${isUser ? 'is-question' : 'is-answer'}`}>
-      {isVisualQuestion && <div className="mb-3 text-sm">
-        <button type="button" aria-expanded={showVisualImage} onClick={() => setShowVisualImage(value => !value)}>{showVisualImage ? '收起完整题目图片' : '查看完整题目图片'}</button>
-        {showVisualImage && <div className="mt-2"><button type="button" onClick={() => setOriginalImage(value => !value)}>{originalImage ? '返回轻量预览' : '读取原尺寸图片'}</button><span className="ml-2 text-text-secondary">{originalImage ? '原尺寸图片' : '完整画面预览'}</span></div>}
-        {showVisualImage && visualImage.loading && <p role="status">{originalImage ? '正在读取原尺寸图片…' : '正在读取完整画面预览…'}</p>}
-        {showVisualImage && visualImage.error && <p role="alert">图片读取失败：{visualImage.error} <button type="button" onClick={() => setImageRetry(value => value + 1)}>重试读取图片</button></p>}
-        {showVisualImage && visualImage.url && <img src={visualImage.url} alt="完整题目图片" className="max-h-96 max-w-full object-contain" />}
-      </div>}
       <article className={variant === 'document' ? 'min-w-0 text-text-primary' : isUser ? `learning-question${isVisualQuestion ? ' is-visual-question' : ''}` : 'learning-answer-document'}>
         {variant === 'message' && isUser && <div className="study-turn-heading">
           <span>学习问题</span>
@@ -286,7 +278,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
             />
           </>
         ) : content.trim() ? (
-          isUser ? <MarkdownMessage content={questionContent.body} /> : <AnswerSelection><MarkdownMessage content={answerPresentation.body} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} preserveLineBreaks={learningTask?.required_outputs.some(output => output.kind === 'format' && ['lines', 'prefixes'].includes(String(output.format)))} /></AnswerSelection>
+          isUser ? <><MarkdownMessage content={questionContent.body} />{isVisualQuestion && <QuestionImage path={imagePath} previewPath={`${imagePath}${imagePath.includes('?') ? '&' : '?'}preview=true`} />}</> : <AnswerSelection><MarkdownMessage content={answerPresentation.body} linkedConcepts={linkedConcepts} onConceptClick={openConcept} citationIds={validIds} preserveLineBreaks={learningTask?.required_outputs.some(output => output.kind === 'format' && ['lines', 'prefixes'].includes(String(output.format)))} /></AnswerSelection>
         ) : null}
 
         {captureError && <p role="alert" className="text-xs text-[var(--danger)]">{captureError}</p>}

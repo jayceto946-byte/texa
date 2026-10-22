@@ -29,6 +29,7 @@ const LearningPage = lazy(() => import('./pages/LearningPage'));
 const ReviewSessionPage = lazy(() => import('./pages/ReviewSessionPage'));
 const WeeklyReportPage = lazy(() => import('./pages/WeeklyReportPage'));
 const SettingsPage = lazy(() => import('./components/SystemHealth'));
+const UserGuidePage = lazy(() => import('./pages/UserGuidePage'));
 
 function loadingPage(page: ReactNode) {
   return <PageSlot>{page}</PageSlot>;
@@ -92,6 +93,7 @@ function Workspace() {
               <Route path="books" element={loadingPage(<SettingsPage standaloneTab="subjects" />)} />
               <Route path="books/import" element={loadingPage(<BooksPage />)} />
               <Route path="highlights" element={loadingPage(<HighlightPage />)} />
+              <Route path="guide" element={loadingPage(<UserGuidePage />)} />
               <Route path="settings" element={<Navigate to="/" replace state={{ openSettings: true }} />} />
             </Route>
           </Routes>

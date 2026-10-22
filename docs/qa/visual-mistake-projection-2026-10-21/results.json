@@ -1,0 +1,122 @@
+{
+  "platform": "macOS, real Electron production renderer, isolated API fixtures",
+  "checks": [
+    {
+      "name": "1280-legacy: internal metadata hidden",
+      "pass": true
+    },
+    {
+      "name": "1280-legacy: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1280-legacy: valid math rendering",
+      "pass": true
+    },
+    {
+      "name": "1280-legacy: original question retained",
+      "pass": true
+    },
+    {
+      "name": "1280-clean: internal metadata hidden",
+      "pass": true
+    },
+    {
+      "name": "1280-clean: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1280-clean: valid math rendering",
+      "pass": true
+    },
+    {
+      "name": "1280-clean: original question retained",
+      "pass": true
+    },
+    {
+      "name": "1024-legacy: internal metadata hidden",
+      "pass": true
+    },
+    {
+      "name": "1024-legacy: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024-legacy: valid math rendering",
+      "pass": true
+    },
+    {
+      "name": "1024-legacy: original question retained",
+      "pass": true
+    },
+    {
+      "name": "1024-clean: internal metadata hidden",
+      "pass": true
+    },
+    {
+      "name": "1024-clean: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024-clean: valid math rendering",
+      "pass": true
+    },
+    {
+      "name": "1024-clean: original question retained",
+      "pass": true
+    },
+    {
+      "name": "760-legacy: internal metadata hidden",
+      "pass": true
+    },
+    {
+      "name": "760-legacy: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760-legacy: valid math rendering",
+      "pass": true
+    },
+    {
+      "name": "760-legacy: original question retained",
+      "pass": true
+    },
+    {
+      "name": "760-clean: internal metadata hidden",
+      "pass": true
+    },
+    {
+      "name": "760-clean: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760-clean: valid math rendering",
+      "pass": true
+    },
+    {
+      "name": "760-clean: original question retained",
+      "pass": true
+    },
+    {
+      "name": "legacy record editor receives full corrected projection",
+      "pass": true
+    },
+    {
+      "name": "legacy draft editor hides IR but preserves full question",
+      "pass": true
+    },
+    {
+      "name": "collection: internal metadata hidden",
+      "pass": true
+    },
+    {
+      "name": "collection: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

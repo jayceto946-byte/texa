@@ -13,10 +13,11 @@ import AppearanceSettings from './settings/AppearanceSettings';
 import type { ModelSettingsValue } from './settings/ModelSettingsForm';
 import ModelSettingsManager from './settings/ModelSettingsManager';
 import { PageState, StatusBanner, type AsyncStateKind } from './ui/AsyncState';
+import type { SettingsTab } from './settings/settingsNavigation';
 
 type SubjectNode = { name: string; children: string[] };
 type ManagedBook = LibraryBook & { size?: number };
-type Tab = 'diagnostics' | 'about' | 'data' | 'subjects' | 'models' | 'preferences' | 'remote';
+type Tab = SettingsTab;
 
 const statusMeta: Record<SystemHealthStatus, { label: string; icon: typeof CheckCircle2; iconClass: string; className: string }> = {
   healthy: { label: '系统正常', icon: CheckCircle2, iconClass: 'text-[var(--success)]', className: 'status-success' },
@@ -60,12 +61,15 @@ function bookBelongsTo(book: ManagedBook, parent: string, child = '') {
   return value === parent || value.startsWith(`${parent}/`);
 }
 
-const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; open?: boolean; onModelDirtyChange?: (dirty: boolean) => void }> = ({ standaloneTab, open = true, onModelDirtyChange }) => {
+const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: SettingsTab; open?: boolean; onModelDirtyChange?: (dirty: boolean) => void }> = ({ standaloneTab, initialTab, open = true, onModelDirtyChange }) => {
   const { bookName, setBookName, setSubject } = useChatContext();
-  const [tab, setTab] = useState<Tab>(standaloneTab || 'preferences');
+  const [tab, setTab] = useState<Tab>(standaloneTab || initialTab || 'preferences');
   const [mobilePane, setMobilePane] = useState<'navigation' | 'content'>('content');
   const mobileBack = useRef<HTMLButtonElement>(null);
   const settingsBody = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (open && initialTab && !standaloneTab) { setTab(initialTab); setMobilePane('content'); }
+  }, [open, initialTab, standaloneTab]);
   const selectSettingsTab = (nextTab: Tab) => {
     setTab(nextTab); setMobilePane('content');
     if (window.matchMedia('(max-width:480px)').matches) requestAnimationFrame(() => mobileBack.current?.focus());

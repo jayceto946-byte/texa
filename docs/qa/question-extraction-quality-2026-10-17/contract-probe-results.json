@@ -1,0 +1,290 @@
+{
+  "runner_status": "COMPLETE",
+  "scope": "current behavior versus proposed future acceptance; known gaps intentionally remain FAIL",
+  "counts": {
+    "PASS": 12,
+    "FAIL": 12
+  },
+  "results": [
+    {
+      "id": "R01",
+      "name": "ordinary exercise with no answer",
+      "status": "PASS",
+      "actual_stems": [
+        "1. 简述温度测量的两种方法。"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R02",
+      "name": "worked example with explicit solution",
+      "status": "FAIL",
+      "actual_stems": [
+        "【例 1.1】求三个数的平均值。\n\n解：先相加再除以三。"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R03",
+      "name": "解 word inside a genuine stem",
+      "status": "PASS",
+      "actual_stems": [
+        "1. 求解方程 $x+3=8$，并写出解集。"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R04",
+      "name": "proof is requested, not supplied",
+      "status": "PASS",
+      "actual_stems": [
+        "1. 证明给定集合的解存在，并说明通解和特解的区别。"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R05",
+      "name": "adjacent numeric section is not a subquestion",
+      "status": "FAIL",
+      "actual_stems": [
+        "【例 1.2】求 $2+3$。\n\n解：结果为5。\n\n(3) 下一节理论\n\n此段不属于例题。"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R06",
+      "name": "two consecutive questions and a subquestion",
+      "status": "PASS",
+      "actual_stems": [
+        "1. 求 $x^2$ 的导数。\n\n（1）说明所用规则。",
+        "2. 求 $x^3$ 的导数。"
+      ],
+      "actual_answers": [
+        "",
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R07",
+      "name": "single question across two physical pages",
+      "status": "PASS",
+      "actual_stems": [
+        "1. 已知测量值如下。\n\n第二页补充：三次读数为2、4、6，求均值。"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R08",
+      "name": "long formula preserves complete expression",
+      "status": "PASS",
+      "actual_stems": [
+        "1. 解释下式的含义。\n\n\\frac{\\sum_{i=1}^{n}(x_i-\\bar{x})^2}{n-1}"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R09",
+      "name": "matrix stays inside one question",
+      "status": "PASS",
+      "actual_stems": [
+        "1. 求下列矩阵行列式。\n\n\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R10",
+      "name": "piecewise expression stays whole",
+      "status": "PASS",
+      "actual_stems": [
+        "1. 讨论下列函数。\n\nf(x)=\\begin{cases}x&x\\ge0\\\\-x&x<0\\end{cases}"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R11",
+      "name": "required figure association survives projection",
+      "status": "FAIL",
+      "actual_stems": [
+        "1. 根据图A计算电路的输出。\n\n图A 电路"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R12",
+      "name": "solution inline in the first block",
+      "status": "FAIL",
+      "actual_stems": [
+        "【例 1.3】求 $5+6$。\n解：结果为11。"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R13",
+      "name": "solution layout 解答：",
+      "status": "FAIL",
+      "actual_stems": [
+        "【例 1.4】讨论 $a=a$。\n\n解答：由自反性得到。"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R14",
+      "name": "solution layout 证明：",
+      "status": "FAIL",
+      "actual_stems": [
+        "【例 1.4】讨论 $a=a$。\n\n证明：由自反性得到。"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R15",
+      "name": "solution layout 答案：",
+      "status": "FAIL",
+      "actual_stems": [
+        "【例 1.4】讨论 $a=a$。\n\n答案：由自反性得到。"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R16",
+      "name": "solution layout 证：",
+      "status": "FAIL",
+      "actual_stems": [
+        "【例 1.4】讨论 $a=a$。"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R17",
+      "name": "valid numeric subquestion title survives",
+      "status": "PASS",
+      "actual_stems": [
+        "1. 比较两种测量结果。\n\n(2) 再分析误差。"
+      ],
+      "actual_answers": [
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "R18",
+      "name": "OCR missing structure cannot become an invented question",
+      "status": "PASS",
+      "actual_stems": [],
+      "actual_answers": [],
+      "actual_assets": []
+    },
+    {
+      "id": "R19",
+      "name": "a decimal in a formula is not a new question",
+      "status": "FAIL",
+      "actual_stems": [
+        "1. 解释此关系。",
+        "1.0 + x = y"
+      ],
+      "actual_answers": [
+        "",
+        ""
+      ],
+      "actual_assets": []
+    },
+    {
+      "id": "D01",
+      "name": "identical prompt from different source",
+      "status": "PASS",
+      "input": [
+        "1. 求 $x+2$。",
+        "1. 求 $x+2$。"
+      ],
+      "expected_equal": true,
+      "actual_equal": true
+    },
+    {
+      "id": "D02",
+      "name": "similar but different numbers",
+      "status": "PASS",
+      "input": [
+        "1. 求 $x+2$。",
+        "1. 求 $x+3$。"
+      ],
+      "expected_equal": false,
+      "actual_equal": false
+    },
+    {
+      "id": "D03",
+      "name": "case-sensitive Greek macros",
+      "status": "FAIL",
+      "input": [
+        "1. 解释 $\\Gamma(x)$。",
+        "1. 解释 $\\gamma(x)$。"
+      ],
+      "expected_equal": false,
+      "actual_equal": true
+    },
+    {
+      "id": "D04",
+      "name": "same prompt different numbering",
+      "status": "FAIL",
+      "input": [
+        "1. 求 $x+2$。",
+        "2. 求 $x+2$。"
+      ],
+      "expected_equal": true,
+      "actual_equal": false
+    },
+    {
+      "id": "A01",
+      "name": "unseparated example must not be treated as a structurally verified practice item",
+      "status": "FAIL",
+      "actual_admitted": 1,
+      "actual_practice_items": 1,
+      "note": "Current API cannot inspect candidate warnings; synthetic demonstration of missing structural contract, not an unauthorized production action."
+    }
+  ]
+}

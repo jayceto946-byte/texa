@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import time
 import uuid
 from datetime import date, datetime
 from typing import Any
@@ -438,6 +439,8 @@ class MistakeLifecycleStore:
             if not row or row[1] != expected_revision:
                 raise ValueError("review session revision changed")
             data = json.loads(row[0])
+            if data.get("grading", {}).get("expires_at", 0) > time.time():
+                raise ValueError("图片正在批改，请稍后再试")
             if revealed:
                 data["revealed"] = True
             else:
@@ -447,6 +450,63 @@ class MistakeLifecycleStore:
             now = _now()
             conn.execute("UPDATE mistake_review_sessions SET data=?,revision=?,updated_at=? WHERE id=?", (json.dumps(data, ensure_ascii=False), expected_revision+1, now, session_id))
             return {"id": session_id, **data, "revision": expected_revision+1, "updated_at": now}
+
+    def update_review_image(self, session_id: str, *, expected_revision: int, submission: dict | None) -> dict:
+        with self.store._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT data,revision FROM mistake_review_sessions WHERE id=?", (session_id,)).fetchone()
+            if not row or row[1] != expected_revision:
+                raise ValueError("review session revision changed")
+            data = json.loads(row[0])
+            if data.get("revealed") or data["index"] >= len(data["items"]):
+                raise ValueError("answer is locked after reveal")
+            if data.get("grading", {}).get("expires_at", 0) > time.time():
+                raise ValueError("图片正在批改，请稍后再试")
+            data["current_submission"] = submission
+            data.pop("feedback", None)
+            now = _now()
+            conn.execute("UPDATE mistake_review_sessions SET data=?,revision=?,updated_at=? WHERE id=?", (json.dumps(data, ensure_ascii=False), expected_revision+1, now, session_id))
+            return {"id": session_id, **data, "revision": expected_revision+1}
+
+    def claim_review_feedback(self, session_id: str, *, expected_revision: int) -> dict:
+        with self.store._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT data,revision FROM mistake_review_sessions WHERE id=?", (session_id,)).fetchone()
+            if not row or row[1] != expected_revision:
+                raise ValueError("review session revision changed")
+            data = json.loads(row[0])
+            if data.get("revealed") or not data.get("current_submission") or data["index"] >= len(data["items"]):
+                raise ValueError("请先上传本题作答图片")
+            if data.get("grading", {}).get("expires_at", 0) > time.time():
+                raise ValueError("图片正在批改，请稍后再试")
+            data["grading"] = {"run_id": uuid.uuid4().hex, "expires_at": time.time() + 360}
+            now = _now()
+            conn.execute("UPDATE mistake_review_sessions SET data=?,revision=?,updated_at=? WHERE id=?", (json.dumps(data, ensure_ascii=False), expected_revision+1, now, session_id))
+            return {"id": session_id, **data, "revision": expected_revision+1}
+
+    def finish_review_feedback(self, session_id: str, *, expected_revision: int, run_id: str,
+                               feedback: dict | None = None, visual_ir: dict | None = None,
+                               question_revision: int | None = None) -> dict:
+        with self.store._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT data,revision FROM mistake_review_sessions WHERE id=?", (session_id,)).fetchone()
+            if not row or row[1] != expected_revision:
+                raise ValueError("review session revision changed")
+            data = json.loads(row[0])
+            if data.get("grading", {}).get("run_id") != run_id:
+                raise ValueError("review session revision changed")
+            if feedback is not None:
+                record_row = conn.execute("SELECT data FROM mistakes WHERE id=?", (data["items"][data["index"]],)).fetchone()
+                record = MistakeRecord.from_dict(json.loads(record_row[0])) if record_row else None
+                if not record or record.content_revision != question_revision:
+                    raise ValueError("题目已修改，请重新提交作答")
+                data["feedback"] = feedback
+                data["current_submission"]["visual_ir"] = visual_ir or {}
+                data["revealed"] = feedback.get("verdict") != "unreadable"
+            data.pop("grading", None)
+            now = _now()
+            conn.execute("UPDATE mistake_review_sessions SET data=?,revision=?,updated_at=? WHERE id=?", (json.dumps(data, ensure_ascii=False), expected_revision+1, now, session_id))
+            return {"id": session_id, **data, "revision": expected_revision+1}
 
     def submit_review_result(self, session_id: str, *, expected_revision: int, operation_id: str, result: str, hint_used: bool, judgement_source: str) -> dict:
         if result not in {"wrong", "partial", "prompted_correct", "independent_correct"}:
@@ -478,12 +538,16 @@ class MistakeLifecycleStore:
             if hint_used and result == "independent_correct":
                 result = "prompted_correct"
                 quality = 3
-            if result == "independent_correct" and not data.get("current_answer", "").strip():
+            if result == "independent_correct" and not (data.get("current_answer", "").strip() or data.get("current_submission")):
                 raise ValueError("independent correct result requires a submitted answer")
             # Revealing after a saved answer is allowed; the reveal timestamp is kept.
-            fact = {"answer": data.get("current_answer", ""), "result": result, "hint_used": hint_used,
+            fact = {"answer": data.get("current_answer", "") or ("图片作答" if data.get("current_submission") else ""), "result": result, "hint_used": hint_used,
                     "answer_revealed": bool(data.get("revealed")), "judgement_source": judgement_source,
                     "was_due": was_due, "question_revision": record.content_revision, "quality": quality}
+            if data.get("current_submission"):
+                fact["submission_ref"] = {"session_id": session_id, "index": index}
+                fact["feedback"] = data.get("feedback")
+                data.setdefault("submissions", {})[str(index)] = data["current_submission"]
             attempt_id = "ma_" + uuid.uuid4().hex[:24]
             source_key = f"review:{session_id}:{index}"
             conn.execute("INSERT INTO mistake_attempts VALUES (?,?,?,?,?,?)", (attempt_id, mistake_id, source_key, "redo", json.dumps(fact, ensure_ascii=False), _now()))
@@ -495,6 +559,9 @@ class MistakeLifecycleStore:
             data["results"][mistake_id] = attempt_id
             data["index"] = index + 1
             data["current_answer"] = ""
+            data.pop("current_submission", None)
+            data.pop("feedback", None)
+            data.pop("grading", None)
             data["revealed"] = False
             now = _now()
             conn.execute("UPDATE mistake_review_sessions SET data=?,revision=?,updated_at=? WHERE id=?", (json.dumps(data, ensure_ascii=False), expected_revision+1, now, session_id))

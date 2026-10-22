@@ -26,7 +26,7 @@
   .app-shell .markdown-body .katex-html { white-space: normal; }
   .app-shell .markdown-body .katex-html > .base { white-space: nowrap; }
   .app-shell .markdown-body .katex-display > .katex { white-space: normal; text-align: left; }
-  .app-shell .markdown-body .katex:not(.katex-display .katex) { display: inline-block; max-width: 100%; overflow-x: auto; vertical-align: middle; }
+  .app-shell .markdown-body .katex:not(.katex-display .katex) { display: inline-block; max-width: 100%; overflow-x: auto; vertical-align: middle; padding-block:.65em; scrollbar-width:none; }
   .app-shell .markdown-body .katex-display { max-width: 100%; overflow-x: auto; padding-bottom: 6px; }
   .app-shell .markdown-body table { display: block; max-width: 100%; overflow-x: auto; }
   .app-shell .markdown-body img { max-width: 100%; height: auto; }
@@ -77,7 +77,13 @@
  .app-shell .markdown-body .katex-html { white-space:normal; }
  .app-shell .markdown-body .katex-html > .base { white-space:nowrap; }
  .app-shell .markdown-body .katex-display > .katex { white-space:normal; text-align:left; }
- .app-shell .markdown-body .katex:not(.katex-display .katex) { display:inline-block;max-width:100%;overflow-x:auto;vertical-align:middle; }
+ .app-shell .markdown-body .katex:not(.katex-display .katex) { display:inline-block;max-width:100%;overflow-x:auto;vertical-align:middle;padding-block:.65em;scrollbar-width:none; }
+}
+@media(max-width:1199px) {
+ .app-shell .markdown-body .katex:not(.katex-display .katex)::-webkit-scrollbar { height:0; }
+}
+@media(max-width:919px) {
+ .app-shell.learning-route[data-navigation="closed"] :is(.learning-workspace-scroll,.chat-composer) { padding-left:32px; padding-right:16px; }
 }
 @media(max-width:760px) {
  .app-shell .notes-workspace .app-icon-button { min-width:44px; min-height:44px; }

@@ -1,0 +1,52 @@
+ M .agents/skills/texa-ui-system/references/03-learning-canvas.md
+ M .agents/skills/texa-ui-system/references/10-states.md
+ M .agents/skills/texa-ui-system/references/11-review.md
+ M frontend/src/Workspace.tsx
+ M frontend/src/components/AppRail.tsx
+ M frontend/src/components/LearningContextSidebar.tsx
+ M frontend/src/components/SystemHealth.tsx
+ M frontend/src/components/chat/ComposerOverflowMenu.tsx
+ M frontend/src/components/settings/DataSafety.tsx
+ M frontend/src/components/settings/SettingsDialog.tsx
+ M frontend/src/components/ui/OverflowMenu.tsx
+ M frontend/src/features/conversations/conversations.css
+ M frontend/src/features/exercises/exercises.css
+ M frontend/src/index.css
+ M frontend/src/layouts/ApprovedWorkspace.css
+ M frontend/src/layouts/MainLayout.tsx
+ M frontend/src/layouts/StudyDesk.css
+ M frontend/src/pages/ChatPage.tsx
+ M frontend/src/pages/ExercisesPage.tsx
+ M patch_notes.md
+?? TEXA-USER-GUIDE-SPEC.md
+?? TEXA-USER-GUIDE.md
+?? TEXA-UX-ISSUES.md
+?? docs/design/claude-ui-source-study-2026-10-19.md
+?? docs/design/exercises-production-r1-r2/electron-evidence-r1-r2.zip
+?? docs/design/texa-design-architecture-audit-2026-10-15.md
+?? docs/design/texa-independent-design-findings-2026-10-15.md
+?? docs/qa/question-extraction-quality-2026-10-17/QUESTION-EXTRACTION-QUALITY-AUDIT.md
+?? docs/qa/question-extraction-quality-2026-10-17/candidate-audit.jsonl
+?? docs/qa/question-extraction-quality-2026-10-17/contract-probe-results.json
+?? docs/qa/question-extraction-quality-2026-10-17/dataset-manifest.json
+?? docs/qa/question-extraction-quality-2026-10-17/math-probe-summary.json
+?? docs/qa/question-extraction-quality-2026-10-17/review-evidence-index.json
+?? docs/qa/question-extraction-quality-2026-10-17/summary.json
+?? docs/qa/question-extraction-quality-2026-10-17/tools/
+?? docs/qa/question-extraction-quality-2026-10-17/verification.json
+?? docs/qa/ui-source-study-2026-10-19/
+?? docs/qa/user-guide-2026-10-19/
+?? docs/validation/question-candidate-contract-2026-10-18/candidate-diff.json
+?? docs/validation/question-candidate-contract-2026-10-18/electron-results.json
+?? docs/validation/question-candidate-contract-2026-10-18/integrity.json
+?? docs/validation/question-candidate-contract-2026-10-18/math-representation.json
+?? docs/validation/question-candidate-contract-2026-10-18/probe-disposition.json
+?? frontend/public/guide/
+?? frontend/src/components/settings/settingsNavigation.ts
+?? frontend/src/features/guide/
+?? frontend/src/pages/UserGuidePage.tsx
+?? scripts/evaluate_question_candidate_contract.py
+?? scripts/evaluate_question_candidate_math.mjs
+?? scripts/evaluate_question_candidate_probes.py
+?? scripts/qa-ui-source-study.mjs
+?? scripts/qa-user-guide-electron.mjs

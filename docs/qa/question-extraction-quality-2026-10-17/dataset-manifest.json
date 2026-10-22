@@ -1,0 +1,78 @@
+{
+  "dataset_alias": "TEXA-D01-01",
+  "title": "传感器原理及应用（第2版）",
+  "review_date": "2026-10-17 Asia/Shanghai",
+  "code_head": "c0673fc75d938bce25304a08aac8c70a70c11f18",
+  "python": "3.10.21",
+  "producer": {
+    "name": "mineru",
+    "version": "4.0.8"
+  },
+  "ir_parser_version": "mineru-structured-content-v1",
+  "current_structured_adapter_version": "mineru-structured-content-v3 (not reapplied)",
+  "source_pages": 351,
+  "source_file_sha256": {
+    "canonical_document.jsonl": "5bcef61474112840c4513441ba13f81e05d535c1599819a86f7fa30ebd305b2e",
+    "_chapters.json": "8fce5c14249fd9cbcbc7971ff6599eba37d238688d25fae5d896ba0bbe868aef",
+    "ingestion_report.json": "c411e20ce6f6e1f7b5d77206172a643d61cfe7a8bab478ca3fda6e15ec3796a9",
+    "metadata.json": "8fcc60dfc3897a091980b169e4fd81631896c0be7d1916090def5e245732dadc"
+  },
+  "canonical_logical_sha256": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+  "source_bank_logical_sha256": "80ab5d5f62de49b36b331a39001e15ebfbc71c157932f30747daf6692f0411a3",
+  "archive": {
+    "file_sha256": "e636b401bf772179cc9723a6dcf3bb7356f0c2ba42d82f1bc86feade249520e4",
+    "members": {
+      "CGQ/structured_content.json": "81a9076931876ffcf6c16f0404a264475b516a8972ae25d792fc62d068f72eb1",
+      "CGQ/markdown.md": "99d15d66c89d8508534ef9d21270b9cf3e17e1c60a9be0b6820d426e1d566675"
+    }
+  },
+  "request_parameters": {
+    "book_name": "TEXA-D01-01",
+    "chapter": "",
+    "page_start": null,
+    "page_end": null,
+    "source_mode": "exercise_sections",
+    "limit": 200,
+    "subject": "",
+    "use_llm": false
+  },
+  "provider": "canonical-learning-units",
+  "candidate_set_sha256_excluding_random_ids": "bd8e06d3aef90488cf4ab10a12d987a950fd72dbc49e4f0b03057eeabaf41377",
+  "random_ids": "8-character UUID prefixes; audit_id + source unit + text hash are stable keys",
+  "reproduction": {
+    "counts_108_93_16": true,
+    "warning_duplicate_intersection": 16,
+    "previous_IR_bytes_identical": true,
+    "two_new_snapshots_candidate_set_identical_excluding_uuid": true,
+    "previous_108_payload_not_frozen": "Previous run has count/screenshots/input snapshots, not a full candidate-set hash; no byte-for-byte old output ID claim."
+  },
+  "source_integrity": {
+    "ir_and_metadata_unchanged": true,
+    "source_bank_unchanged": true
+  },
+  "source_file_hashes": {
+    "ingestion/document_workflows.py": "9c40e17253f1da378964d32114827a730bd9ffe495f6f86b3ea5d679bd719b10",
+    "ingestion/document_ir.py": "b1371f9a83aad8aa6fc52e0b1284633b0258be7a36c52033048a13fc3ba48495",
+    "ingestion/document_adapters.py": "71741cc7dc12f554d5934a9f45e4df636f847c1adc41cd0787c84da9fc71a5a6",
+    "ingestion/mineru_structured.py": "b7051b21c12b3a111646973b812c5667290acdac223b4d58f43b34b2667af196",
+    "memory/textbook_exercise_importer.py": "299830c9fa7f14d0e7f3d32579efb7c20cc600189bbb2a2ed58e70c745a47d4b",
+    "memory/exercise_importer.py": "aefc78f42047fa59f985cd84e17cf47204236b6484124b55f0bc3ec7432f762b",
+    "memory/exercise_bank.py": "ca81dea453ce440e596641e99df61b84ea253242a1cd9098df901e81475d77e8",
+    "backend/api/exercises.py": "a6a0be361fef01cf87956fc9cfe7848cc4e1456ab573fc856d7d406f1354d4db",
+    "backend/schemas.py": "7c96aa1058c212c9b1c64abe06fe53b966bb2bd8fcd64f59322f9b99546b519a",
+    "frontend/src/utils/mathText.ts": "967170e3759b07ad8ec0d94e59e3e493d12fc403448e2723dd2c3e580f899242",
+    "frontend/src/features/reading/readingMath.ts": "ce7974c5e6598d134465fff4087de9b25f956f95aac21cff944b9a3480d9962c",
+    "frontend/src/features/exercises/hooks/candidateOperations.ts": "0647df437d1d6efde8ae770d83d842b2ae13eebd39cca43fb52d17d06a6f8826",
+    "frontend/src/pages/ExercisesPage.tsx": "524336c4007fd2ee6eafc72c7dacf0554f3bda64e093301e8c076a55472d4320"
+  },
+  "review_scope": {
+    "agent_source_reviewed": 108,
+    "human_reviewed": 0,
+    "raw_IR_source_positions_checked": 277,
+    "original_PDF_available": false,
+    "private_data_location": "ignored artifacts/question-extraction-quality-2026-10-17/",
+    "external_model_OCR_calls": 0
+  },
+  "node": "v24.19.0",
+  "frontend_package_lock_sha256": "4624fdc12505aa0222d622d1463bb4598170ed541be6b17355df0f1176adb8a8"
+}

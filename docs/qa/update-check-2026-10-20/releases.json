@@ -1,0 +1,71 @@
+{
+  "observed_date": "2026-10-20",
+  "latest_stable_tag": "v0.2.0",
+  "releases": [
+    {
+      "tag": "V0.9_pre_release",
+      "draft": false,
+      "prerelease": true,
+      "target": "24973dbc4a12695019ba8a8ed0142c3aa765cd0a",
+      "published": "2026-10-20T12:45:19Z",
+      "assets": [
+        "texa_test.exe"
+      ],
+      "url": "https://github.com/jayceto946-byte/texa/releases/tag/V0.9_pre_release"
+    },
+    {
+      "tag": "embedding-runtime-onnx-fp32-v1",
+      "draft": false,
+      "prerelease": false,
+      "target": "5ea4fb0a3c71fe0b9cbd6ca3034b45e7b6cb3605",
+      "published": "2026-08-14T07:13:20Z",
+      "assets": [
+        "model.onnx",
+        "sentence_bert_config.json",
+        "special_tokens_map.json",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "vocab.txt"
+      ],
+      "url": "https://github.com/jayceto946-byte/texa/releases/tag/embedding-runtime-onnx-fp32-v1"
+    },
+    {
+      "tag": "v0.3.0",
+      "draft": false,
+      "prerelease": false,
+      "target": "master",
+      "published": "2026-07-10T12:38:13Z",
+      "assets": [
+        "kaoyan-assistant-desktop-setup-0.1.0.exe"
+      ],
+      "url": "https://github.com/jayceto946-byte/texa/releases/tag/v0.3.0"
+    },
+    {
+      "tag": "v0.2.0",
+      "draft": false,
+      "prerelease": false,
+      "target": "master",
+      "published": "2026-07-02T11:48:55Z",
+      "assets": [
+        "builder-debug.yml",
+        "kaoyan-assistant-desktop-setup-0.2.0.exe",
+        "kaoyan-assistant-desktop-setup-0.2.0.exe.blockmap",
+        "latest.yml"
+      ],
+      "url": "https://github.com/jayceto946-byte/texa/releases/tag/v0.2.0"
+    },
+    {
+      "tag": "v0.1.0",
+      "draft": false,
+      "prerelease": false,
+      "target": "master",
+      "published": "2026-06-29T12:59:47Z",
+      "assets": [
+        "kaoyan-assistant-desktop-setup-0.1.0.exe",
+        "kaoyan-assistant-desktop-setup-0.1.0.exe.blockmap",
+        "latest.yml"
+      ],
+      "url": "https://github.com/jayceto946-byte/texa/releases/tag/v0.1.0"
+    }
+  ]
+}

@@ -57,7 +57,7 @@ export default function DataSafety() {
 
   const restore = async (item: BackupItem) => {
     if (!item.valid) return;
-    if (!window.confirm(`确定从备份 ${item.name} 合并恢复吗？\n\n备份中包含的数据会被替换；备份中未包含的其他教材和记录会保留。系统会先创建当前数据的安全备份，实际恢复在重启时执行。`)) return;
+    if (!window.confirm(`确定从备份 ${item.name} 恢复吗？\n\n这不是逐条合并：备份所含的数据目录会整体替换，同目录中备份日期之后新增的记录可能被覆盖。未包含的数据目录才会保留。\n\n请先核对备份日期、范围及当前数据的安全副本。系统会先创建安全备份，实际恢复在重启时执行。`)) return;
     setBusy(item.name);
     setMessage('正在校验备份并创建恢复前快照...');
     try {
@@ -100,7 +100,7 @@ export default function DataSafety() {
       {message && <div role="status" className="border-l-2 border-border px-3 py-1 settings-secondary">{message}</div>}
       {lastRestore?.status && (
         <div className={`rounded-md border p-3 settings-secondary ${lastRestore.status === 'completed' ? 'status-success' : 'status-danger'}`}>
-          最近合并恢复：{lastRestore.status === 'completed' ? '已完成' : '失败并已回滚'} · {lastRestore.archive}
+          最近恢复：{lastRestore.status === 'completed' ? '已完成' : '失败并已回滚'} · {lastRestore.archive}
           {lastRestore.status === 'completed' && lastRestore.reindex_required && ' · 已移除不匹配的向量索引，请在教材管理中重新索引'}
           {lastRestore.status === 'completed' && lastRestore.preserved_unlisted?.length > 0 && ` · 已保留 ${lastRestore.preserved_unlisted.length} 个备份未包含的数据目录`}
         </div>
@@ -108,6 +108,7 @@ export default function DataSafety() {
 
       <section className="settings-section" aria-labelledby="backup-existing-heading">
         <h4 id="backup-existing-heading" className="settings-section-title">已有备份</h4>
+        <p className="settings-secondary" role="note">恢复会整体替换备份所含的数据目录，同目录中新记录可能被覆盖，并非逐条合并。恢复前请核对日期、范围和当前数据的安全副本；重启后逐项检查学习记录。</p>
         {items.length === 0 && <p className="py-4 settings-secondary">还没有备份。</p>}
         {items.length > 0 && <div className="settings-row-list">
           {items.map((item) => (
@@ -120,7 +121,7 @@ export default function DataSafety() {
                 <details className="mt-2 settings-secondary"><summary className="cursor-pointer">备份详情</summary><div className="mt-1 break-all">文件：{item.name}</div>{item.sha256 && <div className="break-all font-mono">SHA-256：{item.sha256}</div>}</details>
               </div>
               <button type="button" onClick={() => restore(item)} disabled={!item.valid || Boolean(busy)} className="app-secondary-button disabled:opacity-50">
-                {busy === item.name ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}合并恢复
+                {busy === item.name ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}从此备份恢复
               </button>
             </div>
           </article>

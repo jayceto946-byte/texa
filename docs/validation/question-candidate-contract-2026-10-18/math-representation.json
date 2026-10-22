@@ -1,0 +1,436 @@
+{
+  "scope": "representation only; no OCR/math truth claim",
+  "formula_occurrences": 42,
+  "source_tokens_preserved": true,
+  "before_errors": 9,
+  "after_errors": 0,
+  "before_unrecognized": 6,
+  "after_unrecognized": 0,
+  "rows": [
+    {
+      "audit_id": "C006",
+      "before_errors": 0,
+      "after_errors": 0,
+      "before_unrecognized": [],
+      "formulas": [
+        {
+          "block_id": "850d924fe584189bcdd8",
+          "role": "explanation",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "44ef1effb300c2287775",
+          "role": "explanation",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "de0e90b578d08e9d67d2",
+          "role": "explanation",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": false,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "fdfc5553904fe3eaab2b",
+          "role": "explanation",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "audit_id": "C021",
+      "before_errors": 0,
+      "after_errors": 0,
+      "before_unrecognized": [],
+      "formulas": [
+        {
+          "block_id": "f7bbec128d1e07ee08a4",
+          "role": "question",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": false,
+          "source_truth": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "audit_id": "C091",
+      "before_errors": 7,
+      "after_errors": 0,
+      "before_unrecognized": [
+        "0cdcca9428f4e62cdf51"
+      ],
+      "formulas": [
+        {
+          "block_id": "0cdcca9428f4e62cdf51",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "66fb1ad52d632ab2e607",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": false,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "6468f0a179e47a4f95c4",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "740247a80c5c014f8395",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "96e80087ceb94b1b4234",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "1603ee3fd0c81e63676a",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "885cf4e85ddabf77f998",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "5e94ece49e582c500812",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "66ebe182a7b24b18cb92",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "53a47eba8eda1a5cf4cb",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "8677994978d698ba1c36",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "56c9f7952a3d00289bc8",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "audit_id": "C092",
+      "before_errors": 0,
+      "after_errors": 0,
+      "before_unrecognized": [],
+      "formulas": [
+        {
+          "block_id": "91a3752b523277572f17",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "651a147aee67e8da941e",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "d4bb0a1436932c516e6e",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "audit_id": "C093",
+      "before_errors": 0,
+      "after_errors": 0,
+      "before_unrecognized": [
+        "c5c5c9877077f51729f3"
+      ],
+      "formulas": [
+        {
+          "block_id": "a34fb8bf53345949a203",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "8fddf2d8c65b91c00147",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "c5c5c9877077f51729f3",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "audit_id": "C094",
+      "before_errors": 0,
+      "after_errors": 0,
+      "before_unrecognized": [
+        "5c3700795daafbf62162",
+        "cff5e54b8b881c17b59e",
+        "2ab34ebe2d2892d86836",
+        "b08c1df44dfea794c410"
+      ],
+      "formulas": [
+        {
+          "block_id": "5c3700795daafbf62162",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "cff5e54b8b881c17b59e",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "2ab34ebe2d2892d86836",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "db29d3d9d16c1929d183",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": false,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "023fcd0b398556d5bdec",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": false,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "b08c1df44dfea794c410",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "audit_id": "C095",
+      "before_errors": 0,
+      "after_errors": 0,
+      "before_unrecognized": [],
+      "formulas": [
+        {
+          "block_id": "3b1db8066caa198e7672",
+          "role": "explanation",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "audit_id": "C096",
+      "before_errors": 2,
+      "after_errors": 0,
+      "before_unrecognized": [],
+      "formulas": [
+        {
+          "block_id": "e7186eae6044c4a47cb6",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "2e7ae2960c6bc93d8c9a",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": false,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "81659c599da6c767e36c",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": false,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "15ebd4de49895dfefccf",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "04715fa1ad88e5add1e2",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "108b3031a69b2ac9671a",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "659825a4491bec14ab52",
+          "role": "unassigned",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "audit_id": "C097",
+      "before_errors": 0,
+      "after_errors": 0,
+      "before_unrecognized": [],
+      "formulas": [
+        {
+          "block_id": "bbc6a01651d8ee0784c4",
+          "role": "question",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": false,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "4f626ecc91fb756f3c2f",
+          "role": "explanation",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "audit_id": "C098",
+      "before_errors": 0,
+      "after_errors": 0,
+      "before_unrecognized": [],
+      "formulas": [
+        {
+          "block_id": "09e34f7bcddd6ca11af7",
+          "role": "question",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": false,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "c9b3a2ef5a593976d52e",
+          "role": "explanation",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        },
+        {
+          "block_id": "a288fafa4251be74f1fc",
+          "role": "explanation",
+          "source_tokens_preserved": true,
+          "exact_math_node": true,
+          "display": true,
+          "source_truth": "UNKNOWN"
+        }
+      ]
+    }
+  ]
+}

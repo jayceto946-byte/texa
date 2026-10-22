@@ -12,6 +12,7 @@ import LearningHistoryDock from '../components/LearningHistoryDock';
 import ContextInspector from '../components/ui/ContextInspector';
 import { useInspector } from '../contexts/InspectorContext';
 import SettingsDialog from '../components/settings/SettingsDialog';
+import type { SettingsTab } from '../components/settings/settingsNavigation';
 import NotePreflight from '../features/notes/NotePreflight';
 import { NoteCommandContext, type NoteCommandTarget } from '../features/notes/NoteCommandContext';
 import './ApprovedWorkspace.css';
@@ -20,6 +21,7 @@ import './MobileConvergence.css';
 import './DesktopRefinement.css';
 import '../features/focus/focus.css';
 import { flushRetainedEditor, unsavedNotePath } from '../features/notes/autosave';
+import { selectWorkspaceContent } from '../utils/workspaceSelection';
 
 function layoutSnapshot() {
   const width = typeof window === 'undefined' ? 1280 : window.innerWidth || 1280;
@@ -73,6 +75,10 @@ function PersistentRouteOutlet() {
 }
 
 const MainLayout: React.FC = () => {
+  useEffect(() => {
+    document.addEventListener('keydown', selectWorkspaceContent, true);
+    return () => document.removeEventListener('keydown', selectWorkspaceContent, true);
+  }, []);
   const [noteTarget, setNoteTarget] = useState<NoteCommandTarget | null>(null);
   const closeNote = useCallback(() => setNoteTarget(null), []);
   const navigate = useNavigate();
@@ -109,6 +115,7 @@ const MainLayout: React.FC = () => {
   const [contextOpen, setContextOpen] = useState(!initialLayout.compact && !initialLayout.contextOverlay);
   const [backendStatus, setBackendStatus] = useState<DesktopBackendStatus | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<SettingsTab | undefined>();
   const [settingsMounted, setSettingsMounted] = useState(false);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const { bookName, subject, conversationId, isLoading, newConversation, loadConversation } = useChatContext();
@@ -126,12 +133,14 @@ const MainLayout: React.FC = () => {
 
   useEffect(() => {
     if (!(location.state as { openSettings?: boolean } | null)?.openSettings) return;
+    setSettingsTab((location.state as { settingsTab?: SettingsTab }).settingsTab);
     setSettingsMounted(true);
     setSettingsOpen(true);
-    navigate(location.pathname, { replace: true, state: null });
-  }, [location.pathname, location.state, navigate]);
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+  }, [location.pathname, location.search, location.state, navigate]);
 
   const openSettings = useCallback(() => {
+    setSettingsTab(undefined);
     setSettingsMounted(true);
     setSettingsOpen(true);
   }, []);
@@ -218,7 +227,7 @@ const MainLayout: React.FC = () => {
       data-inspector={inspector ? 'open' : 'closed'}
       className={`app-shell${isStudyDesk ? ' study-desk' : ''}${isLearningWorkspace ? ' learning-route' : ''}`}
     >
-      <div className="study-navigation">
+      <div className="study-navigation" onDragStart={event => event.preventDefault()}>
         <AppRail mobile={contextOverlay} onCollapse={() => setContextOpen(false)} onOpenSettings={openSettings} settingsButtonRef={settingsButtonRef} />
 
         <LearningHistoryDock docked={isLearningWorkspace && !contextOpen}><LearningContextSidebar
@@ -243,12 +252,6 @@ const MainLayout: React.FC = () => {
       )}
 
       <div className="workspace-stage">
-        {!contextOpen && (
-          <button type="button" className="context-sidebar-trigger" onClick={() => setContextOpen(true)} aria-label="展开侧栏" title="展开侧栏">
-            <PanelLeftOpen className="h-[18px] w-[18px]" />
-          </button>
-        )}
-
         <main className="workspace-main">
           {backendStatus && backendStatus.status !== 'ready' && (
             <div className={`relative z-40 flex flex-wrap items-center gap-2 border-b px-3 py-2 text-xs ${backendStatus.status === 'failed' ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`} role="status">
@@ -272,8 +275,15 @@ const MainLayout: React.FC = () => {
           <FocusController />
         </main>
         <ContextInspector />
+        {/* Electron resolves native drag regions in paint order. Keep this
+            no-drag control after the draggable route headers it overlaps. */}
+        {!contextOpen && (
+          <button type="button" className="context-sidebar-trigger" onClick={() => setContextOpen(true)} aria-label="展开侧栏" title="展开侧栏">
+            <PanelLeftOpen className="h-[18px] w-[18px]" />
+          </button>
+        )}
       </div>
-      {settingsMounted && <SettingsDialog open={settingsOpen} onClose={closeSettings} />}
+      {settingsMounted && <SettingsDialog open={settingsOpen} onClose={closeSettings} initialTab={settingsTab} />}
       {noteTarget && <NotePreflight key={noteTarget.conversationId} {...noteTarget} onClose={closeNote} />}
     </div></NoteCommandContext.Provider>
   );

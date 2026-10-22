@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-19",
+  "branch": "Texa_MacOS",
+  "base_head": "1dc9adc",
+  "uncommitted_worktree": true,
+  "images": [
+    {
+      "file": "frontend/public/guide/backup.png",
+      "bytes": 86818,
+      "sha256": "8f7daa97bbc8776fe27f6c7e8e58f9fabfe91f4d60d02cd770a37f14a7f2d2cf",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    },
+    {
+      "file": "frontend/public/guide/books.png",
+      "bytes": 156933,
+      "sha256": "3edde08dfc21eb8d4991fa3506470ce437b472f59648dab3b0aaba58134c1d31",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    },
+    {
+      "file": "frontend/public/guide/exercise-import.png",
+      "bytes": 73973,
+      "sha256": "694ba64018b104bfc1f49a38e5c4822bcba6b6fdd1638db0aec7e8547122f359",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    },
+    {
+      "file": "frontend/public/guide/goals.png",
+      "bytes": 79687,
+      "sha256": "29ffb4e2236a46193cb3eac2471b20d4019fe2f4bfcee18ec600b9ec0f659a8d",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    },
+    {
+      "file": "frontend/public/guide/import-bundle.png",
+      "bytes": 78516,
+      "sha256": "83e68baba58bff83ed85b0e2ed20878cf8f4da1241f030eea6f33ae53861728d",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    },
+    {
+      "file": "frontend/public/guide/import.png",
+      "bytes": 85728,
+      "sha256": "017e56137a82e8a4286ab53886f1ecfdc48bcccaf737e5cd5f0323e070cdeea3",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    },
+    {
+      "file": "frontend/public/guide/learning.png",
+      "bytes": 149577,
+      "sha256": "e3a4035e0553b8a69f2a7870e1ac7c77ee074d7628e712650e7041ed5e0bdfa9",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    },
+    {
+      "file": "frontend/public/guide/mistakes.png",
+      "bytes": 68319,
+      "sha256": "b9f6159bde2de1a289f82d71223b84f2bda2a29f987ec3fbc7550dae316b6f49",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    },
+    {
+      "file": "frontend/public/guide/models.png",
+      "bytes": 62920,
+      "sha256": "fcaa4906ea8768c6e5aba7c726ab4271f287b16493ff0d2978b14153dc131d26",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    },
+    {
+      "file": "frontend/public/guide/notes.png",
+      "bytes": 61753,
+      "sha256": "a5caa18ef7baba60163ec134d177f78525d52b9c6a26c4766e5d5a34c181f60d",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    },
+    {
+      "file": "frontend/public/guide/practice.png",
+      "bytes": 83971,
+      "sha256": "6dd602e4efc5ba64aa83a91636d6962f19833e0cbfeacec183d34cd19b6d5875",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    },
+    {
+      "file": "frontend/public/guide/review.png",
+      "bytes": 73411,
+      "sha256": "6e62e01a5555496e0f74df10e1f01ff16384d7f951718ec935d4c8624f32194b",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    },
+    {
+      "file": "frontend/public/guide/sources.png",
+      "bytes": 178812,
+      "sha256": "f343eb49c489043ab46f554617a35af94573b3a3f8cf1c6daa57d63b2df3cc6b",
+      "source": "Current production React in macOS Electron 37; read-only sample APIs; isolated userData; no cloud GPU or live OCR."
+    }
+  ]
+}

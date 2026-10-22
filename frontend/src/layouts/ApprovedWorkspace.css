@@ -88,11 +88,12 @@
     font-weight: 600;
     letter-spacing: -.04em;
   }
-  .app-shell:not(.study-desk) .study-brand-name > span {
+  .app-shell .study-navigation .study-brand-name > span {
     color: var(--color-text-tertiary);
     font-size: 10px;
     font-weight: 400;
     letter-spacing: normal;
+    line-height: 1.5;
   }
   .app-shell:not(.study-desk) .app-rail-primary { margin-top: 0; gap: 3px; }
   .app-shell:not(.study-desk) .app-rail-link {
@@ -484,9 +485,13 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .app-shell :is(.app-page-heade
 }
 
 /* Selection belongs to learning material; chrome keeps native control behavior. */
+body { user-select:none; -webkit-user-select:none; }
+/* A logo's children must remain native hit targets, including on Windows. */
+.app-rail-mark,.app-rail-mark * { app-region:no-drag; -webkit-app-region:no-drag; }
 :is(.study-navigation,.app-rail,.learning-context-sidebar,.app-page-header,.learning-workspace-header,.library-workspace-header,.goals-header,.note-page-header,.note-list-controls,.note-tabs,.note-toolbar,.goal-controls,.review-today-actions,.review-section-head,.study-turn-heading,.learning-answer-meta,.execution-trace-toggle,.settings-sidebar,.settings-dialog-header,.composer-tool-button,.workspace-overflow-menu,button,label,summary) { user-select:none; -webkit-user-select:none; }
 :is(.markdown-body,.workspace-reading-content,.note-reading,.note-document-title,.note-abstract,.note-source-inspector,.execution-source-text,.execution-tool-result,.goal-objective,.note-warning,.app-issue-details,pre,input,textarea,[contenteditable=true],math-field) { user-select:text; -webkit-user-select:text; }
 .workspace-overflow-menu { position:fixed; z-index:120; width:200px; max-height:calc(100dvh - 24px); overflow-y:auto; padding:4px; border:1px solid var(--workspace-separator); border-radius:var(--workspace-menu-radius); background:var(--workspace-canvas); box-shadow:0 8px 24px #0002; font:var(--workspace-interface-size)/1.5 var(--font-app); }
+.study-navigation :is(a,img) { -webkit-user-drag:none; }
 .workspace-overflow-menu [role=menuitem] { display:block; text-align:left; width:100%; padding:8px 10px; border-radius:var(--workspace-control-radius); color:var(--color-text-primary); }
 .workspace-overflow-menu [role=menuitem]:is(:hover,:focus-visible) { background:var(--workspace-secondary); outline:2px solid var(--color-accent); outline-offset:-2px; }
 .workspace-overflow-menu [role=menuitem]:disabled { color:var(--color-text-tertiary); }
@@ -550,3 +555,6 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .app-shell :is(.app-page-heade
 .goal-overview h3 { font-size: 16px; font-weight: 600; }
 .goal-execution-controls { margin: 12px 0 18px; }
 .goal-run .goal-events { margin-top: 16px; }
+
+/* Reserve space for the persistent guide and settings entries. */
+@media (min-width:920px) { .app-shell[data-layout="desktop"] .study-navigation { padding-bottom:84px; } }

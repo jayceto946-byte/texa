@@ -1,0 +1,83 @@
+{
+  "scope": "Agent source-relative review; no human gold or original-PDF accuracy claim",
+  "counts": {
+    "total": 108,
+    "agent_source_reviewed": 108,
+    "human_reviewed": 0,
+    "auto_only": 0,
+    "source_real_questions": 108,
+    "source_relative_stem_ready": 92,
+    "requires_structural_correction": 16,
+    "confirmed_hard_structural_defects": 16,
+    "unknown_primary_source_structure": 0,
+    "unknown_original_pdf_fidelity": 108,
+    "metadata_type_mismatches_confirmed": 6,
+    "system_needs_review": 108,
+    "literal_warning_false_positives": 0,
+    "warned_with_hard_defect": 4,
+    "warned_without_hard_defect": 89,
+    "unwarned_with_hard_defect": 12,
+    "exact_duplicate_confirmed": 16,
+    "duplicate_false_positives": 0,
+    "within_candidate_exact_duplicate_groups": 0,
+    "ready_new_nonduplicate": 76
+  },
+  "exclusive_primary": {
+    "Q2": 10,
+    "Q1": 92,
+    "Q8": 1,
+    "Q5": 5
+  },
+  "overlapping_labels": {
+    "Q2": 14,
+    "Q4": 14,
+    "Q9": 16,
+    "Q10": 89,
+    "Q3": 8,
+    "Q8": 9,
+    "Q5": 5,
+    "Q7": 4
+  },
+  "warning_sets": {
+    "candidates": 108,
+    "warning_candidates": 93,
+    "warning_instances": 108,
+    "duplicate_candidates": 16,
+    "warning_duplicate_intersection": 16,
+    "union": 93,
+    "neither": 15,
+    "warning_reasons": {
+      "未识别知识点": 92,
+      "与题库现有题目重复": 16
+    },
+    "unit_kinds": {
+      "example": 14,
+      "exercise": 94
+    },
+    "needs_llm": 95,
+    "needs_review": 108,
+    "bank_records": 16,
+    "candidate_text_chars": 19775
+  },
+  "quality_numbers_are_not_model_accuracy": true,
+  "taxonomy_counts": {
+    "Q1": 92,
+    "Q2": 14,
+    "Q3": 8,
+    "Q4": 14,
+    "Q5": 5,
+    "Q6": 0,
+    "Q7": 4,
+    "Q8": 9,
+    "Q9": 16,
+    "Q10": 89,
+    "Q11": 0
+  },
+  "scope_notes": {
+    "Q1": "core source-relative stem-ready; not all metadata or OCR verified",
+    "Q7": "4 representation problems; 2 also have directly inspected source-crop token/fragment issues",
+    "Q10": "89 usable stems appear in issues (user operational definition); literal warning statements are factually correct, strict literal false positives 0",
+    "Q11": "0 unknown primary source-structure decisions; original-PDF fidelity remains UNKNOWN for all 108",
+    "confirmed_any_structural_or_type_error_union": 18
+  }
+}

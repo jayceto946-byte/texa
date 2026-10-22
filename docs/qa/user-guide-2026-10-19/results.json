@@ -1,0 +1,481 @@
+{
+  "environment": "macOS, Electron 37, production frontend; read-only sample APIs; no live models or release package validation",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "status": "PASS"
+    },
+    {
+      "name": "guide reachable from learning navigation",
+      "status": "PASS"
+    },
+    {
+      "name": "first/connect: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "connect: settings closes at same guide step",
+      "status": "PASS"
+    },
+    {
+      "name": "connect: 打开模型连接",
+      "status": "PASS"
+    },
+    {
+      "name": "/: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "connect: 去提问",
+      "status": "PASS"
+    },
+    {
+      "name": "first/ask: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "/: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "ask: 打开学习",
+      "status": "PASS"
+    },
+    {
+      "name": "first/notes: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "/: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "notes: 回到会话",
+      "status": "PASS"
+    },
+    {
+      "name": "/notes?view=saved: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "notes: 查看已保存笔记",
+      "status": "PASS"
+    },
+    {
+      "name": "textbooks/import: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "/books/import: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "import: 导入教材",
+      "status": "PASS"
+    },
+    {
+      "name": "/guide?scene=textbooks&step=rented-gpu: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "import: 租卡运行 MinerU 全流程",
+      "status": "PASS"
+    },
+    {
+      "name": "textbooks/rented-gpu: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "/books/import: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "rented-gpu: 导入 MinerU 输出包",
+      "status": "PASS"
+    },
+    {
+      "name": "textbooks/scope: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "/books: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "scope: 打开教材",
+      "status": "PASS"
+    },
+    {
+      "name": "/: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "scope: 带着范围提问",
+      "status": "PASS"
+    },
+    {
+      "name": "textbooks/evidence: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "/: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "evidence: 打开学习",
+      "status": "PASS"
+    },
+    {
+      "name": "/notes: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "evidence: 查看笔记",
+      "status": "PASS"
+    },
+    {
+      "name": "practice/prepare: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "/exercises: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "prepare: 打开练习，选择导入",
+      "status": "PASS"
+    },
+    {
+      "name": "practice/answer: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "/exercises: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "answer: 打开练习",
+      "status": "PASS"
+    },
+    {
+      "name": "practice/mistakes: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "/mistakes: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "mistakes: 查看错题",
+      "status": "PASS"
+    },
+    {
+      "name": "/mistakes/intake: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "mistakes: 录入错题",
+      "status": "PASS"
+    },
+    {
+      "name": "practice/review: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "/learning: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "review: 打开复习",
+      "status": "PASS"
+    },
+    {
+      "name": "manage/goals: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "/goals: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "goals: 打开目标与任务",
+      "status": "PASS"
+    },
+    {
+      "name": "/: destination renders",
+      "status": "PASS"
+    },
+    {
+      "name": "goals: 查看学习操作",
+      "status": "PASS"
+    },
+    {
+      "name": "manage/backup: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "backup: settings closes at same guide step",
+      "status": "PASS"
+    },
+    {
+      "name": "backup: 打开数据与教材",
+      "status": "PASS"
+    },
+    {
+      "name": "manage/help: three operation groups and screenshot loaded",
+      "status": "PASS"
+    },
+    {
+      "name": "help: settings closes at same guide step",
+      "status": "PASS"
+    },
+    {
+      "name": "help: 检查模型连接",
+      "status": "PASS"
+    },
+    {
+      "name": "help: settings closes at same guide step",
+      "status": "PASS"
+    },
+    {
+      "name": "help: 关于与更新",
+      "status": "PASS"
+    },
+    {
+      "name": "help: settings closes at same guide step",
+      "status": "PASS"
+    },
+    {
+      "name": "help: 高级与诊断",
+      "status": "PASS"
+    },
+    {
+      "name": "1280/first: no content overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1280/first: next step focuses heading",
+      "status": "PASS"
+    },
+    {
+      "name": "1280/textbooks: no content overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1280/textbooks: next step focuses heading",
+      "status": "PASS"
+    },
+    {
+      "name": "1280/practice: no content overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1280/practice: next step focuses heading",
+      "status": "PASS"
+    },
+    {
+      "name": "1280/manage: no content overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1280/manage: next step focuses heading",
+      "status": "PASS"
+    },
+    {
+      "name": "1280: rental workflow contains all six stages",
+      "status": "PASS"
+    },
+    {
+      "name": "1280: rental command blocks contain horizontal scrolling",
+      "status": "PASS"
+    },
+    {
+      "name": "1280: copy preserves pinned installation command",
+      "status": "PASS"
+    },
+    {
+      "name": "1280: local download and shutdown warning visible",
+      "status": "PASS"
+    },
+    {
+      "name": "1280: screenshot Escape closes",
+      "status": "PASS"
+    },
+    {
+      "name": "1280: screenshot returns keyboard focus",
+      "status": "PASS"
+    },
+    {
+      "name": "1280: guide reachable with sidebar collapsed",
+      "status": "PASS"
+    },
+    {
+      "name": "1024/first: no content overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1024/first: next step focuses heading",
+      "status": "PASS"
+    },
+    {
+      "name": "1024/textbooks: no content overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1024/textbooks: next step focuses heading",
+      "status": "PASS"
+    },
+    {
+      "name": "1024/practice: no content overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1024/practice: next step focuses heading",
+      "status": "PASS"
+    },
+    {
+      "name": "1024/manage: no content overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1024/manage: next step focuses heading",
+      "status": "PASS"
+    },
+    {
+      "name": "1024: rental workflow contains all six stages",
+      "status": "PASS"
+    },
+    {
+      "name": "1024: rental command blocks contain horizontal scrolling",
+      "status": "PASS"
+    },
+    {
+      "name": "1024: copy preserves pinned installation command",
+      "status": "PASS"
+    },
+    {
+      "name": "1024: local download and shutdown warning visible",
+      "status": "PASS"
+    },
+    {
+      "name": "1024: screenshot Escape closes",
+      "status": "PASS"
+    },
+    {
+      "name": "1024: screenshot returns keyboard focus",
+      "status": "PASS"
+    },
+    {
+      "name": "1024: guide reachable with sidebar collapsed",
+      "status": "PASS"
+    },
+    {
+      "name": "760/first: no content overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "760/first: next step focuses heading",
+      "status": "PASS"
+    },
+    {
+      "name": "760/textbooks: no content overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "760/textbooks: next step focuses heading",
+      "status": "PASS"
+    },
+    {
+      "name": "760/practice: no content overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "760/practice: next step focuses heading",
+      "status": "PASS"
+    },
+    {
+      "name": "760/manage: no content overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "760/manage: next step focuses heading",
+      "status": "PASS"
+    },
+    {
+      "name": "760: rental workflow contains all six stages",
+      "status": "PASS"
+    },
+    {
+      "name": "760: rental command blocks contain horizontal scrolling",
+      "status": "PASS"
+    },
+    {
+      "name": "760: copy preserves pinned installation command",
+      "status": "PASS"
+    },
+    {
+      "name": "760: local download and shutdown warning visible",
+      "status": "PASS"
+    },
+    {
+      "name": "760: screenshot Escape closes",
+      "status": "PASS"
+    },
+    {
+      "name": "760: screenshot returns keyboard focus",
+      "status": "PASS"
+    },
+    {
+      "name": "760: guide reachable with sidebar collapsed",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid scene and step fall back safely",
+      "status": "PASS"
+    },
+    {
+      "name": "scene keyboard arrows",
+      "status": "PASS"
+    },
+    {
+      "name": "scene arrow navigation retains radio focus",
+      "status": "PASS"
+    },
+    {
+      "name": "guide location survives reload",
+      "status": "PASS"
+    },
+    {
+      "name": "stored theme preserved in guide",
+      "status": "PASS"
+    },
+    {
+      "name": "no renderer exceptions",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1280-notes-actions.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1280-backup-actions.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1280-first.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1280-textbooks.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1280-practice.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1280-manage.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1280-mineru-install.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1280-mineru-export.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1024-first.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1024-textbooks.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1024-practice.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1024-manage.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1024-mineru-install.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1024-mineru-export.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/760-first.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/760-textbooks.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/760-practice.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/760-manage.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/760-mineru-install.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/760-mineru-export.png",
+    "/Users/jichengqian/Documents/ChatGPT/texa/docs/qa/user-guide-2026-10-19/1024-graphite.png"
+  ]
+}
