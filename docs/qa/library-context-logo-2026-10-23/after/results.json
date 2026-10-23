@@ -1,0 +1,312 @@
+{
+  "phase": "after",
+  "platform": "macOS real Electron, production renderer, isolated fixtures; Windows untested",
+  "checks": [
+    {
+      "name": "1280 classification heading and overflow removed",
+      "pass": true
+    },
+    {
+      "name": "1280 add controls match subject row height and type size",
+      "pass": true
+    },
+    {
+      "name": "1280 right click targets unselected subject",
+      "pass": true
+    },
+    {
+      "name": "1280 context menu within viewport",
+      "pass": true
+    },
+    {
+      "name": "1280 Escape restores row focus",
+      "pass": true
+    },
+    {
+      "name": "1280 keyboard opens child context menu",
+      "pass": true
+    },
+    {
+      "name": "1280 rename applies to intended child",
+      "pass": true
+    },
+    {
+      "name": "1280 deleting child targets its own parent while another subject is selected",
+      "pass": true
+    },
+    {
+      "name": "1280 populated subject deletion remains blocked",
+      "pass": true
+    },
+    {
+      "name": "1280 deletion targets the right-clicked subject",
+      "pass": true
+    },
+    {
+      "name": "1280 styled add subject works",
+      "pass": true
+    },
+    {
+      "name": "1280 styled add child works",
+      "pass": true
+    },
+    {
+      "name": "1280 page has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1280 logo clears draft and returns to start page",
+      "pass": true
+    },
+    {
+      "name": "1280 logo removes old conversation locator",
+      "pass": true
+    },
+    {
+      "name": "1024 classification heading and overflow removed",
+      "pass": true
+    },
+    {
+      "name": "1024 add controls match subject row height and type size",
+      "pass": true
+    },
+    {
+      "name": "1024 right click targets unselected subject",
+      "pass": true
+    },
+    {
+      "name": "1024 context menu within viewport",
+      "pass": true
+    },
+    {
+      "name": "1024 Escape restores row focus",
+      "pass": true
+    },
+    {
+      "name": "1024 keyboard opens child context menu",
+      "pass": true
+    },
+    {
+      "name": "1024 rename applies to intended child",
+      "pass": true
+    },
+    {
+      "name": "1024 deleting child targets its own parent while another subject is selected",
+      "pass": true
+    },
+    {
+      "name": "1024 populated subject deletion remains blocked",
+      "pass": true
+    },
+    {
+      "name": "1024 deletion targets the right-clicked subject",
+      "pass": true
+    },
+    {
+      "name": "1024 styled add subject works",
+      "pass": true
+    },
+    {
+      "name": "1024 styled add child works",
+      "pass": true
+    },
+    {
+      "name": "1024 page has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024 logo clears draft and returns to start page",
+      "pass": true
+    },
+    {
+      "name": "1024 logo removes old conversation locator",
+      "pass": true
+    },
+    {
+      "name": "760 classification heading and overflow removed",
+      "pass": true
+    },
+    {
+      "name": "760 add controls match subject row height and type size",
+      "pass": true
+    },
+    {
+      "name": "760 right click targets unselected subject",
+      "pass": true
+    },
+    {
+      "name": "760 context menu within viewport",
+      "pass": true
+    },
+    {
+      "name": "760 Escape restores row focus",
+      "pass": true
+    },
+    {
+      "name": "760 keyboard opens child context menu",
+      "pass": true
+    },
+    {
+      "name": "760 rename applies to intended child",
+      "pass": true
+    },
+    {
+      "name": "760 deleting child targets its own parent while another subject is selected",
+      "pass": true
+    },
+    {
+      "name": "760 populated subject deletion remains blocked",
+      "pass": true
+    },
+    {
+      "name": "760 deletion targets the right-clicked subject",
+      "pass": true
+    },
+    {
+      "name": "760 styled add subject works",
+      "pass": true
+    },
+    {
+      "name": "760 styled add child works",
+      "pass": true
+    },
+    {
+      "name": "760 page has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760 logo clears draft and returns to start page",
+      "pass": true
+    },
+    {
+      "name": "760 logo removes old conversation locator",
+      "pass": true
+    },
+    {
+      "name": "mineral add control has a transparent surface",
+      "pass": true
+    },
+    {
+      "name": "mineral add controls centered with 12px spacing",
+      "pass": true
+    },
+    {
+      "name": "mineral add controls match subject size with thin border",
+      "pass": true
+    },
+    {
+      "name": "graphite add control has a transparent surface",
+      "pass": true
+    },
+    {
+      "name": "graphite add controls centered with 12px spacing",
+      "pass": true
+    },
+    {
+      "name": "graphite add controls match subject size with thin border",
+      "pass": true
+    },
+    {
+      "name": "clay add control has a transparent surface",
+      "pass": true
+    },
+    {
+      "name": "clay add controls centered with 12px spacing",
+      "pass": true
+    },
+    {
+      "name": "clay add controls match subject size with thin border",
+      "pass": true
+    },
+    {
+      "name": "notebook add control has a transparent surface",
+      "pass": true
+    },
+    {
+      "name": "notebook add controls centered with 12px spacing",
+      "pass": true
+    },
+    {
+      "name": "notebook add controls match subject size with thin border",
+      "pass": true
+    },
+    {
+      "name": "codex add control has a transparent surface",
+      "pass": true
+    },
+    {
+      "name": "codex add controls centered with 12px spacing",
+      "pass": true
+    },
+    {
+      "name": "codex add controls match subject size with thin border",
+      "pass": true
+    },
+    {
+      "name": "long Chinese subject rename targets correct row",
+      "pass": true
+    },
+    {
+      "name": "explicit save survives reload in isolated fixture",
+      "pass": true
+    },
+    {
+      "name": "long subject causes no page overflow",
+      "pass": true
+    },
+    {
+      "name": "menu ArrowDown moves focus",
+      "pass": true
+    },
+    {
+      "name": "outside click dismisses context menu",
+      "pass": true
+    },
+    {
+      "name": "only in-memory directory fixture written; no user data or model calls",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "colors": [
+    {
+      "theme": "mineral",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "color(srgb 0.376471 0.411765 0.478431 / 0.18)",
+      "dock": "rgba(0, 0, 0, 0)",
+      "color": "rgb(96, 105, 122)"
+    },
+    {
+      "theme": "graphite",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "color(srgb 0.392157 0.419608 0.411765 / 0.18)",
+      "dock": "rgb(236, 238, 238)",
+      "color": "rgb(100, 107, 105)"
+    },
+    {
+      "theme": "clay",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "color(srgb 0.423529 0.396078 0.376471 / 0.18)",
+      "dock": "rgb(238, 234, 230)",
+      "color": "rgb(108, 101, 96)"
+    },
+    {
+      "theme": "notebook",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "color(srgb 0.411765 0.392157 0.341176 / 0.18)",
+      "dock": "rgb(235, 230, 216)",
+      "color": "rgb(105, 100, 87)"
+    },
+    {
+      "theme": "codex",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "color(srgb 0.396078 0.396078 0.380392 / 0.18)",
+      "dock": "rgb(238, 238, 235)",
+      "color": "rgb(101, 101, 97)"
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,7 @@
+{
+  "phase": "before",
+  "platform": "macOS real Electron; fixture APIs, no real model or learning writes",
+  "checks": [],
+  "geometry": [],
+  "errors": []
+}

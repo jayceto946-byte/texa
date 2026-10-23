@@ -35,8 +35,9 @@
 .app-shell .learning-context-sidebar[data-floating="true"] .learning-context-header {
   height:52px; min-height:52px; padding:0 14px; border:0; gap:8px;
 }
-.app-shell .learning-context-sidebar[data-floating="true"] .learning-context-header h1 { font-size:13px; font-weight:600; white-space:nowrap; }
-.app-shell .learning-context-sidebar[data-floating="true"] .learning-context-header .window-drag-region { display:none; }
+.app-shell .learning-context-sidebar[data-floating="true"] .learning-context-header h1 { display:block; font-size:13px; font-weight:600; white-space:nowrap; }
+.app-shell .learning-context-sidebar[data-floating="true"] .learning-context-header .app-icon-button { display:inline-flex; }
+.app-shell .learning-context-sidebar[data-floating="true"] .learning-context-header .window-drag-region { display:block; flex:1; }
 .app-shell .learning-context-sidebar[data-floating="true"] .context-new-session { margin:0 0 0 auto; width:28px; height:28px; min-height:28px; padding:4px; }
 .app-shell .learning-context-sidebar[data-floating="true"] .context-new-session span { display:none; }
 .app-shell .learning-context-sidebar[data-floating="true"] .learning-context-sessions { padding:0 10px 12px; border:0; }

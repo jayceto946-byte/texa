@@ -271,7 +271,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
   };
 
   const updateSubjectName = (index: number, name: string) => setSubjects((prev) => prev.map((item, i) => i === index ? { ...item, name } : item));
-  const updateChildName = (childIndex: number, name: string) => setSubjects((prev) => prev.map((item, i) => i === selectedSubjectIndex ? { ...item, children: item.children.map((child, ci) => ci === childIndex ? name : child) } : item));
+  const updateChildName = (childIndex: number, name: string, subjectIndex = selectedSubjectIndex) => setSubjects((prev) => prev.map((item, i) => i === subjectIndex ? { ...item, children: item.children.map((child, ci) => ci === childIndex ? name : child) } : item));
 
   const deleteSubject = (index: number) => {
     const subject = subjects[index];
@@ -282,11 +282,12 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
     setSelectedChildIndex(null);
   };
 
-  const deleteChild = (childIndex: number) => {
-    const child = selectedSubject?.children[childIndex] || '';
-    if (selectedSubject && books.some((book) => bookBelongsTo(book, selectedSubject.name, child))) { setMessage('该科目仍有教材，请先移动教材。'); return; }
+  const deleteChild = (childIndex: number, subjectIndex = selectedSubjectIndex) => {
+    const targetSubject = subjects[subjectIndex];
+    const child = targetSubject?.children[childIndex] || '';
+    if (targetSubject && books.some((book) => bookBelongsTo(book, targetSubject.name, child))) { setMessage('该科目仍有教材，请先移动教材。'); return; }
     if (!window.confirm('删除空科目目录吗？教材文件、索引和学习记录不会被改动。')) return;
-    setSubjects((prev) => prev.map((item, index) => index === selectedSubjectIndex ? { ...item, children: item.children.filter((_, i) => i !== childIndex) } : item));
+    setSubjects((prev) => prev.map((item, index) => index === subjectIndex ? { ...item, children: item.children.filter((_, i) => i !== childIndex) } : item));
     setSelectedChildIndex(null);
   };
 
@@ -449,9 +450,9 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
             onAddSubject={addSubject}
             onAddChild={addChild}
             onRenameSubject={updateSubjectName}
-            onRenameChild={updateChildName}
+            onRenameChild={(subjectIndex, childIndex, name) => updateChildName(childIndex, name, subjectIndex)}
             onDeleteSubject={deleteSubject}
-            onDeleteChild={deleteChild}
+            onDeleteChild={(subjectIndex, childIndex) => deleteChild(childIndex, subjectIndex)}
             onRefresh={loadBooks}
             onMoveBook={moveBookToTarget}
             onSwitchBook={switchManagedBook}

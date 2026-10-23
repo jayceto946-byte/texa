@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { AlertTriangle, Archive, BookOpen, CheckCircle2, ChevronDown, ChevronRight, FolderOpen, MoreHorizontal, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import ScopeSelector from '../ScopeSelector';
+import ContextMenu from '../ui/ContextMenu';
+import './LibraryWorkbench.css';
 import { EmptyState } from '../ui/AsyncState';
 import FigureAuditPanel from '../../features/textbooks/FigureAuditPanel';
 
@@ -17,13 +19,16 @@ export type LibraryBook = { name: string; book_id?: string; storage_name?: strin
 type Props = {
   subjects: LibrarySubject[]; books: LibraryBook[]; selectedSubjectIndex: number; selectedChildIndex: number | null;
   onSelect: (subjectIndex: number, childIndex: number | null) => void; onAddSubject: () => void; onAddChild: (subjectIndex: number) => void;
-  onRenameSubject: (index: number, name: string) => void; onRenameChild: (index: number, name: string) => void;
-  onDeleteSubject: (index: number) => void; onDeleteChild: (index: number) => void;
+  onRenameSubject: (index: number, name: string) => void; onRenameChild: (subjectIndex: number, childIndex: number, name: string) => void;
+  onDeleteSubject: (index: number) => void; onDeleteChild: (subjectIndex: number, childIndex: number) => void;
   onRefresh: () => void; onMoveBook: (name: string, target: string) => void;
   onSetRole: (name: string, role: 'standalone' | 'core' | 'reference') => void; onSetResourceGroup: (name: string, resourceGroup: string) => void;
   onSwitchBook: (name: string) => void; onArchiveBook: (name: string) => void; onRestoreBook: (name: string) => void;
   onRenameBook: (name: string, displayName: string) => void; onReindexBook: (name: string) => void; reindexingBook?: string; currentBookName?: string;
 };
+
+type CategoryTarget = { subjectIndex: number; childIndex: number | null; name: string };
+type CategoryMenu = CategoryTarget & { x: number; y: number; trigger: HTMLElement };
 
 const subjectPath = (parent = '', child = '') => child ? `${parent}/${child}` : parent;
 const belongsTo = (book: LibraryBook, parent: string, child = '') => {
@@ -46,21 +51,23 @@ export default function LibraryWorkbench(props: Props) {
   }, [pathname]);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [listMode, setListMode] = useState<'active' | 'archived'>('active');
-  const [renamingCategory, setRenamingCategory] = useState(false);
+  const [renameTarget, setRenameTarget] = useState<CategoryTarget | null>(null);
+  const [categoryMenu, setCategoryMenu] = useState<CategoryMenu | null>(null);
+  const closeCategoryMenu = useCallback(() => setCategoryMenu(null), []);
   const [renameDraft, setRenameDraft] = useState('');
   const subject = selectedSubjectIndex >= 0 ? subjects[selectedSubjectIndex] || null : null;
   const child = subject && selectedChildIndex !== null ? subject.children[selectedChildIndex] || '' : '';
   const activeBooks = useMemo(() => books.filter((book) => book.lifecycle_status !== 'archived'), [books]);
   const archivedBooks = useMemo(() => books.filter((book) => book.lifecycle_status === 'archived'), [books]);
   const currentBooks = useMemo(() => subject ? activeBooks.filter((book) => belongsTo(book, subject.name, child)) : activeBooks.filter((book) => !(book.subject || '').trim()), [activeBooks, subject, child]);
-  const parentHasBooks = subject ? activeBooks.some((book) => belongsTo(book, subject.name)) : false;
-  const selectedHasBooks = Boolean(subject && (child ? activeBooks.some((book) => belongsTo(book, subject.name, child)) : parentHasBooks));
   const categoryName = child || subject?.name || '未分类教材';
 
-  useEffect(() => {
-    setRenamingCategory(false);
-    setRenameDraft(categoryName);
-  }, [categoryName, selectedSubjectIndex, selectedChildIndex]);
+  useEffect(() => { setRenameTarget(null); }, [selectedSubjectIndex, selectedChildIndex]);
+
+  const hasBooks = (target: CategoryTarget) => {
+    const parent = subjects[target.subjectIndex];
+    return Boolean(parent && books.some(book => belongsTo(book, parent.name, target.childIndex === null ? '' : parent.children[target.childIndex])));
+  };
 
   const select = (subjectIndex: number, childIndex: number | null) => {
     onSelect(subjectIndex, childIndex);
@@ -68,40 +75,53 @@ export default function LibraryWorkbench(props: Props) {
     if (subjectIndex >= 0) setExpanded((value) => ({ ...value, [subjectIndex]: true }));
   };
 
+  const openCategoryMenu = (event: MouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>, target: CategoryTarget) => {
+    if ('key' in event && event.key !== 'ContextMenu' && !(event.shiftKey && event.key === 'F10')) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const trigger = event.currentTarget.matches('button') ? event.currentTarget : event.currentTarget.querySelector<HTMLElement>('.library-tree-item');
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    setCategoryMenu({ ...target, trigger, x: 'clientX' in event ? event.clientX : rect.left + 12, y: 'clientY' in event ? event.clientY : rect.bottom });
+  };
+
   const commitCategoryRename = () => {
     const next = renameDraft.trim();
-    if (!subject || !next) return;
-    if (selectedChildIndex === null) props.onRenameSubject(selectedSubjectIndex, next);
-    else props.onRenameChild(selectedChildIndex, next);
-    setRenamingCategory(false);
+    if (!renameTarget || !next || hasBooks(renameTarget)) return;
+    if (renameTarget.childIndex === null) props.onRenameSubject(renameTarget.subjectIndex, next);
+    else props.onRenameChild(renameTarget.subjectIndex, renameTarget.childIndex, next);
+    setRenameTarget(null);
   };
 
   const categoryTree = (
         <aside className="library-tree" aria-label="教材分类">
-          <div className="library-tree-heading"><span>分类</span>              {subject && !renamingCategory && <details className="library-category-actions"><summary aria-label="分类操作"><MoreHorizontal className="h-4 w-4" /></summary><div className="study-category-menu">
-                <button disabled={selectedHasBooks} onClick={() => { setRenameDraft(categoryName); setRenamingCategory(true); }} className="app-ghost-button" title={selectedHasBooks ? '请先移出该分类中的教材' : '重命名分类'}><Pencil className="h-3.5 w-3.5" />重命名</button>
-                <button disabled={selectedHasBooks} onClick={() => selectedChildIndex === null ? props.onDeleteSubject(selectedSubjectIndex) : props.onDeleteChild(selectedChildIndex)} className="library-delete-category" title={selectedHasBooks ? '请先移出该分类中的教材' : '删除分类'}><Trash2 className="h-3.5 w-3.5" />删除分类</button>
-              </div></details>}</div>              {renamingCategory ? <div className="library-inline-rename">
-                <input autoFocus value={renameDraft} onChange={(event) => setRenameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') commitCategoryRename(); if (event.key === 'Escape') setRenamingCategory(false); }} aria-label={`${child ? '科目' : '学科'}名称`} />
-                <button onClick={commitCategoryRename} className="app-secondary-button">确定</button>
-                <button onClick={() => setRenamingCategory(false)} className="app-icon-button" aria-label="取消重命名"><X className="h-4 w-4" /></button>
-              </div> : null}
-              <div className="study-classification-tools">
-                <button onClick={props.onAddSubject} className="app-ghost-button"><Plus className="h-4 w-4" />添加学科</button>
-                {subject && <button onClick={() => props.onAddChild(selectedSubjectIndex)} className="app-ghost-button"><Plus className="h-4 w-4" />添加科目</button>}
-              </div>
+          {renameTarget && <div className="library-inline-rename">
+            <input autoFocus value={renameDraft} onChange={event => setRenameDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.nativeEvent.isComposing) commitCategoryRename(); if (event.key === 'Escape') setRenameTarget(null); }} aria-label={`${renameTarget.childIndex === null ? '学科' : '科目'}名称`} />
+            <button onClick={commitCategoryRename} className="app-secondary-button">确定</button>
+            <button onClick={() => setRenameTarget(null)} className="app-icon-button" aria-label="取消重命名"><X className="h-4 w-4" /></button>
+          </div>}
+          <div className="study-classification-tools">
+            <button onClick={props.onAddSubject} className="library-category-add"><Plus className="h-4 w-4" />添加学科</button>
+            {subject && <button onClick={() => props.onAddChild(selectedSubjectIndex)} className="library-category-add"><Plus className="h-4 w-4" />添加科目</button>}
+          </div>
           <div className="library-tree-list">
             {subjects.map((item, index) => {
               const open = expanded[index] ?? selectedSubjectIndex === index;
               const active = selectedSubjectIndex === index && selectedChildIndex === null;
               const count = activeBooks.filter((book) => belongsTo(book, item.name)).length;
               return <div key={`${item.name}-${index}`}>
-                <div className={`library-tree-parent ${active ? 'is-active' : ''}`}>
+                <div className={`library-tree-parent ${active ? 'is-active' : ''}`}
+                  onContextMenu={event => openCategoryMenu(event, { subjectIndex: index, childIndex: null, name: item.name })}
+                  onKeyDown={event => openCategoryMenu(event, { subjectIndex: index, childIndex: null, name: item.name })}>
                   <button onClick={() => setExpanded((value) => ({ ...value, [index]: !open }))} className="library-tree-disclosure" aria-label={open ? '折叠' : '展开'}>{open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</button>
-                  <button onClick={() => select(index, null)} className="library-tree-item"><FolderOpen className="h-4 w-4" /><span>{item.name}</span><span className="library-tree-count">{count}</span></button>
+                  <button onClick={() => select(index, null)} className="library-tree-item" aria-haspopup="menu" aria-expanded={categoryMenu?.subjectIndex === index && categoryMenu.childIndex === null} title="右键管理学科"><FolderOpen className="h-4 w-4" /><span>{item.name}</span><span className="library-tree-count">{count}</span></button>
                 </div>
                 {open && <div className="library-tree-children">
-                  {item.children.map((childName, childIndex) => <button key={`${childName}-${childIndex}`} onClick={() => select(index, childIndex)} className={`library-tree-child ${selectedSubjectIndex === index && selectedChildIndex === childIndex ? 'is-active' : ''}`}><span>{childName}</span><span className="library-tree-count">{activeBooks.filter((book) => belongsTo(book, item.name, childName)).length}</span></button>)}
+                  {item.children.map((childName, childIndex) => <button key={`${childName}-${childIndex}`} onClick={() => select(index, childIndex)}
+                    onContextMenu={event => openCategoryMenu(event, { subjectIndex: index, childIndex, name: childName })}
+                    onKeyDown={event => openCategoryMenu(event, { subjectIndex: index, childIndex, name: childName })}
+                    aria-haspopup="menu" aria-expanded={categoryMenu?.subjectIndex === index && categoryMenu.childIndex === childIndex} title="右键管理科目"
+                    className={`library-tree-child ${selectedSubjectIndex === index && selectedChildIndex === childIndex ? 'is-active' : ''}`}><span>{childName}</span><span className="library-tree-count">{activeBooks.filter((book) => belongsTo(book, item.name, childName)).length}</span></button>)}
                 </div>}
               </div>;
             })}
@@ -112,6 +132,13 @@ export default function LibraryWorkbench(props: Props) {
 
   return (
     <section className="library-manager">
+      {categoryMenu && <ContextMenu x={categoryMenu.x} y={categoryMenu.y} label={`${categoryMenu.name}管理`} trigger={categoryMenu.trigger} onClose={closeCategoryMenu} items={[
+        { label: '重命名', icon: <Pencil className="h-3.5 w-3.5" />, disabled: hasBooks(categoryMenu), title: hasBooks(categoryMenu) ? '请先移出该目录中的教材' : undefined,
+          onSelect: () => { setRenameDraft(categoryMenu.name); setRenameTarget(categoryMenu); } },
+        { label: categoryMenu.childIndex === null ? '删除学科' : '删除科目', icon: <Trash2 className="h-3.5 w-3.5" />, danger: true, disabled: hasBooks(categoryMenu), title: hasBooks(categoryMenu) ? '请先移出该目录中的教材' : undefined,
+          onSelect: () => categoryMenu.childIndex === null ? props.onDeleteSubject(categoryMenu.subjectIndex) : props.onDeleteChild(categoryMenu.subjectIndex, categoryMenu.childIndex) },
+      ]} />}
+
       <div className="library-workbench">
         {navigationHost ? createPortal(categoryTree, navigationHost) : categoryTree}
 

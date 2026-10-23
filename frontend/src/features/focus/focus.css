@@ -5,8 +5,8 @@
 .app-shell .focus-docked:hover,.app-shell .focus-docked[aria-expanded="true"] { background:var(--workspace-secondary,var(--color-bg-secondary)); border-color:var(--color-accent); color:var(--color-accent); }
 .goals-header:has(.focus-tray) > button { margin-left:auto; }
 .goals-header .focus-tray { order:2; }
-.learning-workspace-header .focus-tray { order:1; }
-.learning-workspace-header:has(.focus-tray) .learning-header-scope-selector { order:2; }
+.learning-header-focus-slot:empty { display:none; }
+.learning-header-focus-slot .focus-tray { margin-left:0; }
 :is(.app-page-header,.library-workspace-header,.note-page-header) .focus-tray { order:10; }
 .focus-docked-time { font-size:12px; line-height:1; font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
 .focus-docked[data-paused="true"] { border-style:dashed; }
@@ -59,6 +59,7 @@
 @media(max-width:760px) { .app-shell .learning-workspace-header:has(.focus-tray) { flex-wrap:nowrap; gap:8px; }.app-shell .focus-docked { padding-inline:8px; }.focus-number { font-size:56px; } }
 @media(pointer:coarse) { .app-shell .focus-docked { min-height:44px; }.focus-mini-panel :is(button,input) { min-height:44px!important; } }
 @media(prefers-reduced-motion:no-preference) { .focus-mini-panel { animation:focus-open 150ms ease-out; }@keyframes focus-open { from { opacity:0;transform:translateY(-4px); }to { opacity:1;transform:translateY(0); } } }
+@media(prefers-reduced-motion:no-preference) { .focus-tray { animation:focus-tray-enter 180ms ease-out; }@keyframes focus-tray-enter { from { opacity:0;transform:translateY(-3px); }to { opacity:1;transform:translateY(0); } } }
 
 .study-task-panel { padding:16px 0 24px; }
 .study-task-heading { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px; }

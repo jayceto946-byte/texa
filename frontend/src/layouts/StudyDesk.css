@@ -390,6 +390,27 @@
 .study-desk .learning-workspace-shell[data-empty="true"] .composer-toolbar { padding: 4px 8px 8px; }
 .study-desk .learning-workspace-shell[data-empty="true"] .chat-composer { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
 
+/* New conversation, focus and scope share one compact header row. */
+.learning-header-actions { display:flex; align-items:center; flex:0 1 auto; min-width:0; gap:8px; -webkit-app-region:no-drag; }
+.learning-header-focus-slot { display:flex; align-items:center; flex:0 0 auto; }
+.study-desk .learning-header-actions .learning-new-conversation,
+.study-desk .learning-header-actions .scope-selector > .scope-trigger,
+.study-desk .learning-header-actions .focus-docked {
+  height:32px; min-height:32px; font-size:var(--workspace-support-size); line-height:1.4;
+}
+.study-desk .learning-header-actions .learning-new-conversation {
+  display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; gap:6px; padding:0 8px;
+  border:1px solid transparent; border-radius:var(--workspace-control-radius); background:transparent;
+  color:var(--color-text-secondary); cursor:pointer; white-space:nowrap;
+}
+.study-desk .learning-new-conversation:hover { background:var(--workspace-secondary); color:var(--color-accent); }
+.study-desk .learning-new-conversation:focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
+.study-desk .learning-new-conversation:disabled { opacity:.5; cursor:not-allowed; }
+.study-desk .learning-header-actions .learning-header-scope-selector { min-width:0; flex:0 1 auto; }
+@media(pointer:coarse) {
+  .study-desk .learning-header-actions :is(.learning-new-conversation,.scope-trigger,.focus-docked) { min-height:44px; height:44px; }
+}
+
 /* The quiet learning header follows the same scale as management headers. */
 .study-desk .learning-workspace-header h2 { font-size: var(--workspace-interface-size); font-weight: 600; line-height: 1.5; }
 .study-desk .learning-workspace-title p { font-size: var(--workspace-support-size); line-height: 1.5; }

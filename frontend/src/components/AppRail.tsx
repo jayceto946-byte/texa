@@ -32,14 +32,19 @@ type AppRailProps = {
   mobile: boolean;
   onOpenSettings: () => void;
   onCollapse: () => void;
+  onHome: () => void;
   settingsButtonRef: RefObject<HTMLButtonElement | null>;
 };
 
-export default function AppRail({ mobile, onOpenSettings, settingsButtonRef, onCollapse }: AppRailProps) {
+export default function AppRail({ mobile, onOpenSettings, settingsButtonRef, onCollapse, onHome }: AppRailProps) {
   return (
     <aside className="app-rail" aria-label="产品导航">
       <button className="navigation-collapse app-icon-button" onClick={onCollapse} aria-label="收起侧栏" title="收起侧栏"><PanelLeftClose size={18} /></button>
-      <NavLink to="/" className="app-rail-mark window-no-drag" aria-label="Texa 学习工作区" title="返回学习主页" draggable={false}>
+      <NavLink to="/" onClick={(event) => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        onHome();
+      }} className="app-rail-mark window-no-drag" aria-label="Texa 学习工作区" title="返回学习主页" draggable={false}>
         <span className="app-rail-logo-icon" aria-hidden="true">
           <img src="/brand/texa-mark.svg" alt="" draggable={false} />
         </span>

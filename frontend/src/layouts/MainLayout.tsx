@@ -118,7 +118,7 @@ const MainLayout: React.FC = () => {
   const [settingsTab, setSettingsTab] = useState<SettingsTab | undefined>();
   const [settingsMounted, setSettingsMounted] = useState(false);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
-  const { bookName, subject, conversationId, isLoading, newConversation, loadConversation } = useChatContext();
+  const { bookName, subject, conversationId, isLoading, loadConversation, newConversation } = useChatContext();
   const { inspector, closeInspector } = useInspector();
   const [historyRevision, setHistoryRevision] = useState(0);
   const wasGenerating = useRef(isLoading);
@@ -206,12 +206,6 @@ const MainLayout: React.FC = () => {
     }
   };
 
-  const startNewConversation = () => {
-    newConversation();
-    if (contextOverlay) setContextOpen(false);
-    navigate('/');
-  };
-
   const loadExistingConversation = ({ id, messages: nextMessages, subject: nextSubject, bookName: nextBookName, page }: { id: string; messages: ContextChatMessage[]; subject: string; bookName: string; page: ConversationPage | null }) => {
     loadConversation(id, nextMessages, { subject: nextSubject, bookName: nextBookName, page });
     if (contextOverlay) setContextOpen(false);
@@ -228,7 +222,13 @@ const MainLayout: React.FC = () => {
       className={`app-shell${isStudyDesk ? ' study-desk' : ''}${isLearningWorkspace ? ' learning-route' : ''}`}
     >
       <div className="study-navigation" onDragStart={event => event.preventDefault()}>
-        <AppRail mobile={contextOverlay} onCollapse={() => setContextOpen(false)} onOpenSettings={openSettings} settingsButtonRef={settingsButtonRef} />
+        <AppRail mobile={contextOverlay} onHome={() => {
+          newConversation();
+          window.dispatchEvent(new Event('texa:reset-chat-workspace'));
+          closeInspector();
+          if (contextOverlay) setContextOpen(false);
+          navigate('/');
+        }} onCollapse={() => setContextOpen(false)} onOpenSettings={openSettings} settingsButtonRef={settingsButtonRef} />
 
         <LearningHistoryDock docked={isLearningWorkspace && !contextOpen}><LearningContextSidebar
           hidden={!isLearningWorkspace}
@@ -237,8 +237,6 @@ const MainLayout: React.FC = () => {
           bookName={bookName}
           conversationId={conversationId}
           refreshKey={historyRevision}
-          onClose={() => setContextOpen(false)}
-          onNewConversation={startNewConversation}
           onSelectCurrentConversation={() => { if (contextOverlay) setContextOpen(false); navigate('/'); }}
           onLoadConversation={loadExistingConversation}
           capabilityActions={[]}

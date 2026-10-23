@@ -1,6 +1,6 @@
 import { getBookList } from '../features/books/bookList';
-import { Fragment, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { MessageSquarePlus, PanelLeftClose, Pin, type LucideIcon } from 'lucide-react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { PanelLeftClose, Pin, type LucideIcon } from 'lucide-react';
 import { get } from '../api/client';
 import { ConversationError, conversationApi, notifyConversationChange, type BlockingConversationTask, type ConversationAction, type ConversationManagement, type ConversationSummary, type ConversationView } from '../features/conversations/api';
 import '../features/conversations/conversations.css';
@@ -38,8 +38,6 @@ export default function LearningContextSidebar({
   bookName,
   conversationId,
   refreshKey,
-  onClose,
-  onNewConversation,
   onSelectCurrentConversation,
   onLoadConversation,
   capabilityActions = [],
@@ -50,8 +48,6 @@ export default function LearningContextSidebar({
   bookName: string;
   conversationId: string;
   refreshKey: number | string;
-  onClose: () => void;
-  onNewConversation: () => void;
   onSelectCurrentConversation: () => void;
   onLoadConversation: (payload: { id: string; messages: ChatMessage[]; subject: string; bookName: string; page: ConversationPage | null }) => void;
   capabilityActions?: readonly LearningCapabilityAction[];
@@ -110,6 +106,13 @@ export default function LearningContextSidebar({
   const selectionRequest = useRef<AbortController | null>(null);
   const [openingId, setOpeningId] = useState('');
   useEffect(() => () => { selectionRequest.current?.abort(); }, []);
+  // Header actions can replace the conversation while a history read is pending.
+  useEffect(() => {
+    ++selectionGeneration.current;
+    selectionRequest.current?.abort();
+    selectionRequest.current = null;
+    setOpeningId('');
+  }, [conversationId]);
   const pendingOperation = useRef<{ key: string; id: string } | null>(null);
 
   const sessionScopeLabel = (item: ConversationSummary) => {
@@ -240,17 +243,13 @@ export default function LearningContextSidebar({
 
   return (
     <aside className="learning-context-sidebar" aria-label={floating ? '对话历史' : '学习上下文'} data-floating={floating} hidden={hidden}>
-      <header className="learning-context-header">
-        <h1 className="min-w-0 text-[16px] font-semibold text-text-primary">{floating ? '历史记录' : '学习'}</h1>
+      {floating && <header className="learning-context-header">
+        <h1 className="min-w-0 text-[16px] font-semibold text-text-primary">历史记录</h1>
         <div className="window-drag-region" aria-hidden="true" />
-        <button type="button" onClick={() => { cancelSelection(); onNewConversation(); }} className="context-new-session" aria-label="新会话">
-          <MessageSquarePlus className="h-4 w-4" /><span>新对话</span>
-
-        </button>
-        <button type="button" onClick={floating ? closeDock : onClose} className="app-icon-button" aria-label={floating ? '收起对话历史' : '收起学习上下文'}>
+        <button type="button" onClick={closeDock} className="app-icon-button" aria-label="收起对话历史">
           <PanelLeftClose className="h-4 w-4" />
         </button>
-      </header>
+      </header>}
 
       {capabilityActions.length > 0 && (
         <nav className="learning-capability-navigation" aria-label="学习能力">
@@ -280,13 +279,11 @@ export default function LearningContextSidebar({
           {notice && <p role="status" className="conversation-notice">{notice}{undo && <button className="app-ghost-button" disabled={busy} onClick={() => void manage(undo.id, { state: view, pinned: false, revision: undo.revision }, undo.action, true)}>撤销</button>}</p>}
           {loading && conversations.length === 0 && <p className="context-session-empty" role="status">正在读取会话…</p>}
           {!error && !loading && conversations.length === 0 && <p className="context-session-empty">当前范围暂无会话</p>}
-          {conversations.map((item, index) => {
+          {conversations.map((item) => {
             const active = item.id === conversationId;
             const scopeLabel = sessionScopeLabel(item);
             return (
-              <Fragment key={item.id}>
-              {conversations.some(row => row.management.pinned) && (index === 0 || conversations[index - 1].management.pinned !== item.management.pinned) && <div className="conversation-group-label">{item.management.pinned ? <><Pin size={12} aria-hidden="true" />置顶</> : '最近对话'}</div>}
-              <div className={`context-session-entry${active ? ' is-active' : ''}${item.management.pinned ? ' is-pinned' : ''}`}><button
+              <div key={item.id} className={`context-session-entry${active ? ' is-active' : ''}${item.management.pinned ? ' is-pinned' : ''}`}><button
                 type="button"
                 onClick={() => void loadConversation(item.id)}
                 className={`context-session-row ${active ? 'is-active' : ''}`}
@@ -295,7 +292,7 @@ export default function LearningContextSidebar({
                 aria-current={active ? 'page' : undefined}
                 aria-label={item.management.pinned ? `已置顶 ${item.title}` : undefined}
               >
-                <span className="context-session-title" title={item.title}>{item.title}</span>
+                <span className="context-session-title" title={item.title}>{item.management.pinned && <Pin className="conversation-pin" size={12} aria-hidden="true" />}<span>{item.title}</span></span>
                 <span className="context-session-time">{openingId === item.id ? '读取中…' : relativeTime(item.updated_at)}</span>
                 {scopeLabel && <span className="context-session-scope">{scopeLabel}</span>}
               </button><OverflowMenu key={visible ? 'shown' : 'hidden'} label={`${item.title}的更多操作`} placement="right-start" onOpenChange={onMenuOpenChange}>{close => <>
@@ -303,7 +300,7 @@ export default function LearningContextSidebar({
                 {view !== 'trashed' && <button role="menuitem" onClick={() => { close(); openNote({ conversationId: item.id, title: item.title, busy: active && isLoading }); }}>整理为笔记</button>}
                 <button role="menuitem" disabled={busy} onClick={() => { close(); void manage(item.id, item.management, view === 'active' ? 'archive' : 'restore'); }}>{view === 'active' ? '归档' : '恢复'}</button>
                 {view !== 'trashed' && <button role="menuitem" disabled={busy} onClick={() => { close(); void manage(item.id, item.management, 'trash'); }}>移入回收站</button>}
-              </>}</OverflowMenu></div></Fragment>
+              </>}</OverflowMenu></div>
             );
           })}
           {nextCursor && <button className="app-ghost-button conversation-load-more" disabled={moreLoading || loading} onClick={() => void loadMore()}>{moreLoading ? '正在读取…' : '加载更多会话'}</button>}

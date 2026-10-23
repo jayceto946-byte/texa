@@ -1,0 +1,446 @@
+[
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792720393995_df7261ca/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792720394662_9279d967/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6%2F%E9%AB%98%E6%95%B0",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792720394662_9279d967/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1?limit=40",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query?book_name=default",
+    "method": "POST"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1?limit=40",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792720396716_7f136349/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792720396739_f7925357/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-0?limit=40",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query?book_name=default",
+    "method": "POST"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-0/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-0/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1?limit=40",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query?book_name=default",
+    "method": "POST"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1?limit=40",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792720398570_c43b2070/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792720398578_8addce60/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-0?limit=40",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query?book_name=default",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-0/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-0/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1?limit=40",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query?book_name=default",
+    "method": "POST"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1?limit=40",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792720401192_c9393435/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792720401209_4570a564/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-0?limit=40",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-0/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query?book_name=default",
+    "method": "POST"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-0/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1?limit=40",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query?book_name=default",
+    "method": "POST"
+  },
+  {
+    "path": "/api/goals?limit=100",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus?goal_id=qa-goal&offset=0",
+    "method": "GET"
+  },
+  {
+    "path": "/api/goals/qa-goal/runtime",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1?limit=40",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query?book_name=default",
+    "method": "POST"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/qa-chat-1?limit=40",
+    "method": "GET"
+  }
+]

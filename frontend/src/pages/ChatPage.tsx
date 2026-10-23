@@ -8,7 +8,7 @@ import { imageUploadError } from '../features/mistakes/imageProcessing';
 import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, BookMarked, CalendarDays, ImagePlus, Images, Send, Shuffle, Square, Target, X } from 'lucide-react';
+import { ArrowDown, BookMarked, CalendarDays, ImagePlus, Images, MessageSquarePlus, Send, Shuffle, Square, Target, X } from 'lucide-react';
 import { figureQuestionStream, get, interruptFigureTask, mistakeSolutionStream, post, resumeFigureTaskStream } from '../api/client';
 
 import HighlightRepositoryDialog from '../components/HighlightRepositoryDialog';
@@ -91,6 +91,7 @@ const ChatPage: React.FC = () => {
     historyPage,
     prependConversationMessages,
     loadConversation,
+    newConversation,
   } = useChatContext();
   const conversation = useConversationManagement(conversationId, location.pathname === '/');
   const inTrash = conversation.management?.state === 'trashed';
@@ -287,7 +288,7 @@ const ChatPage: React.FC = () => {
     return () => { cancelled = true; };
   }, [bookName, booksLoaded, scopeBooks, setBookName, subject, switchBook, isLoading, messages.length, historyPage]);
 
-  const clearAttachment = () => {
+  const clearAttachment = useCallback(() => {
     if (attachmentPreview) URL.revokeObjectURL(attachmentPreview);
     setAttachmentFile(null);
     setRawAttachmentFile(null);
@@ -296,7 +297,22 @@ const ChatPage: React.FC = () => {
     setAttachmentPreview('');
     setAttachmentEditorOpen(false);
     if (attachmentInputRef.current) attachmentInputRef.current.value = '';
-  };
+  }, [attachmentPreview]);
+
+  const resetWorkspace = useCallback(() => {
+    clearAttachment();
+    setInput('');
+    setSelectedMistakeId('');
+    setActiveFigure(null);
+    setVisualRegion(null);
+    setFigureWorkspaceExpanded(false);
+    closeInspector();
+  }, [clearAttachment, closeInspector]);
+
+  useEffect(() => {
+    window.addEventListener('texa:reset-chat-workspace', resetWorkspace);
+    return () => window.removeEventListener('texa:reset-chat-workspace', resetWorkspace);
+  }, [resetWorkspace]);
 
   const selectAttachment = (file?: File) => {
     if (!file) return;
@@ -927,6 +943,12 @@ const ChatPage: React.FC = () => {
   };
 
   const mistakeSources = useChatMistakeSources(conversationId, bookName || 'default', messages, location.pathname === '/');
+  const startNewConversation = () => {
+    newConversation();
+    resetWorkspace();
+    navigate('/');
+    requestAnimationFrame(() => textareaRef.current?.focus());
+  };
   return (
     <div className="relative flex h-full min-w-0 bg-bg-primary">
       <div
@@ -938,6 +960,7 @@ const ChatPage: React.FC = () => {
             <h2>学习</h2>
           </div>
           <div className="window-drag-region" aria-hidden="true" />
+          <div className="learning-header-actions">
           {messages.length > 0 && <div className="current-session-menu"><OverflowMenu label="当前会话的更多操作">{close => <>
             {!inTrash && <button role="menuitem" disabled={!conversation.management || conversation.busy} onClick={() => { close(); void conversation.change(conversation.management?.pinned ? 'unpin' : 'pin'); }}>{conversation.management?.pinned ? '取消置顶' : '置顶'}</button>}
             {!inTrash && <button role="menuitem" onClick={() => { close(); openNote({ conversationId, title: messages.find(m => m.role === 'user')?.content.slice(0, 80), busy: isLoading || attachmentLoading }); }}>整理为笔记</button>}
@@ -945,7 +968,10 @@ const ChatPage: React.FC = () => {
             {!inTrash && <button role="menuitem" disabled={!conversation.management || conversation.busy} onClick={() => { close(); void conversation.change('trash'); }}>移入回收站</button>}
           </>}</OverflowMenu></div>}
           {noteReturnPath(location.search) && <Link className="app-ghost-button" to={noteReturnPath(location.search)!}>返回笔记</Link>}
+          {(messages.length > 0 || activeFigure) && <button type="button" className="learning-new-conversation" onClick={startNewConversation} disabled={isLoading || attachmentLoading || Boolean(actionLoading)}><MessageSquarePlus size={15} aria-hidden="true" /><span>新对话</span></button>}
+          <div className="learning-header-focus-slot" />
           {(messages.length > 0 || activeFigure) && <div className="learning-header-scope-selector">{scopeSelector}</div>}
+          </div>
         </div>
 
         {reconcileError && <div role="alert" className="conversation-state"><span>{reconcileError}</span><button type="button" onClick={()=>window.dispatchEvent(new Event('texa:reload-session'))}>重新读取会话</button></div>}<div ref={scrollRef} className="learning-workspace-scroll" onScroll={onScroll}>

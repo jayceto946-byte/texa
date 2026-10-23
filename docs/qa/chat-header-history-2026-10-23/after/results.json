@@ -1,0 +1,488 @@
+{
+  "phase": "after",
+  "platform": "macOS real Electron; fixture APIs, no real model or learning writes",
+  "checks": [
+    {
+      "name": "1280 duplicate sidebar toolbar removed",
+      "pass": true
+    },
+    {
+      "name": "1280 group headings removed",
+      "pass": true
+    },
+    {
+      "name": "1280 pinned row has inline pin",
+      "pass": true
+    },
+    {
+      "name": "1280 unpinned rows have no pin",
+      "pass": true
+    },
+    {
+      "name": "1280 pinned and recent rows share compact spacing",
+      "pass": true
+    },
+    {
+      "name": "1280 new chat matches subject control height and font",
+      "pass": true
+    },
+    {
+      "name": "1280 new chat sits left of subject without overflow",
+      "pass": true
+    },
+    {
+      "name": "1280 new chat timer and subject are parallel without overlap",
+      "pass": true
+    },
+    {
+      "name": "1280 header controls share vertical alignment",
+      "pass": true
+    },
+    {
+      "name": "1280 timer has entry animation",
+      "pass": true
+    },
+    {
+      "name": "1280 active timer fits header",
+      "pass": true
+    },
+    {
+      "name": "1280 focus panel stays inside window",
+      "pass": true
+    },
+    {
+      "name": "1280 new chat opens start page without redundant header action",
+      "pass": true
+    },
+    {
+      "name": "1280 new conversation retains focus session",
+      "pass": true
+    },
+    {
+      "name": "1280 pinned conversation still opens",
+      "pass": true
+    },
+    {
+      "name": "1280 pinned conversation actions retained",
+      "pass": true
+    },
+    {
+      "name": "1024 duplicate sidebar toolbar removed",
+      "pass": true
+    },
+    {
+      "name": "1024 group headings removed",
+      "pass": true
+    },
+    {
+      "name": "1024 pinned row has inline pin",
+      "pass": true
+    },
+    {
+      "name": "1024 unpinned rows have no pin",
+      "pass": true
+    },
+    {
+      "name": "1024 pinned and recent rows share compact spacing",
+      "pass": true
+    },
+    {
+      "name": "1024 new chat matches subject control height and font",
+      "pass": true
+    },
+    {
+      "name": "1024 new chat sits left of subject without overflow",
+      "pass": true
+    },
+    {
+      "name": "1024 new chat timer and subject are parallel without overlap",
+      "pass": true
+    },
+    {
+      "name": "1024 header controls share vertical alignment",
+      "pass": true
+    },
+    {
+      "name": "1024 timer has entry animation",
+      "pass": true
+    },
+    {
+      "name": "1024 active timer fits header",
+      "pass": true
+    },
+    {
+      "name": "1024 focus panel stays inside window",
+      "pass": true
+    },
+    {
+      "name": "1024 new chat opens start page without redundant header action",
+      "pass": true
+    },
+    {
+      "name": "1024 new conversation retains focus session",
+      "pass": true
+    },
+    {
+      "name": "1024 pinned conversation still opens",
+      "pass": true
+    },
+    {
+      "name": "1024 pinned conversation actions retained",
+      "pass": true
+    },
+    {
+      "name": "760 duplicate sidebar toolbar removed",
+      "pass": true
+    },
+    {
+      "name": "760 group headings removed",
+      "pass": true
+    },
+    {
+      "name": "760 pinned row has inline pin",
+      "pass": true
+    },
+    {
+      "name": "760 unpinned rows have no pin",
+      "pass": true
+    },
+    {
+      "name": "760 pinned and recent rows share compact spacing",
+      "pass": true
+    },
+    {
+      "name": "760 new chat matches subject control height and font",
+      "pass": true
+    },
+    {
+      "name": "760 new chat sits left of subject without overflow",
+      "pass": true
+    },
+    {
+      "name": "760 new chat timer and subject are parallel without overlap",
+      "pass": true
+    },
+    {
+      "name": "760 header controls share vertical alignment",
+      "pass": true
+    },
+    {
+      "name": "760 timer has entry animation",
+      "pass": true
+    },
+    {
+      "name": "760 active timer fits header",
+      "pass": true
+    },
+    {
+      "name": "760 focus panel stays inside window",
+      "pass": true
+    },
+    {
+      "name": "760 new chat opens start page without redundant header action",
+      "pass": true
+    },
+    {
+      "name": "760 new conversation retains focus session",
+      "pass": true
+    },
+    {
+      "name": "760 pinned conversation still opens",
+      "pass": true
+    },
+    {
+      "name": "760 pinned conversation actions retained",
+      "pass": true
+    },
+    {
+      "name": "reduced motion disables timer animation",
+      "pass": true
+    },
+    {
+      "name": "goal header timer remains beside goal actions",
+      "pass": true
+    },
+    {
+      "name": "collapsed history retains inline pin",
+      "pass": true
+    },
+    {
+      "name": "floating history close remains available",
+      "pass": true
+    },
+    {
+      "name": "focus refresh retains timer element without replaying entry",
+      "pass": true
+    },
+    {
+      "name": "header controls remain clickable in native titlebar",
+      "pass": true
+    },
+    {
+      "name": "no model requests or learning writes",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "geometry": [
+    {
+      "w": 1280,
+      "state": "idle",
+      "header": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "newChat": {
+        "x": 1022.515625,
+        "y": 7.5,
+        "width": 75,
+        "height": 32,
+        "top": 7.5,
+        "right": 1097.515625,
+        "bottom": 39.5,
+        "left": 1022.515625
+      },
+      "timer": null,
+      "scope": {
+        "x": 1105.515625,
+        "y": 7.5,
+        "width": 142.484375,
+        "height": 32,
+        "top": 7.5,
+        "right": 1248,
+        "bottom": 39.5,
+        "left": 1105.515625
+      },
+      "newFont": "12px",
+      "scopeFont": "12px",
+      "pageOverflow": false
+    },
+    {
+      "w": 1280,
+      "state": "running",
+      "header": {
+        "x": 232,
+        "y": 0,
+        "width": 1048,
+        "height": 48,
+        "top": 0,
+        "right": 1280,
+        "bottom": 48,
+        "left": 232
+      },
+      "newChat": {
+        "x": 934.515625,
+        "y": 7.5,
+        "width": 75,
+        "height": 32,
+        "top": 7.5,
+        "right": 1009.515625,
+        "bottom": 39.5,
+        "left": 934.515625
+      },
+      "timer": {
+        "x": 1017.515625,
+        "y": 7.5,
+        "width": 80,
+        "height": 32,
+        "top": 7.5,
+        "right": 1097.515625,
+        "bottom": 39.5,
+        "left": 1017.515625
+      },
+      "scope": {
+        "x": 1105.515625,
+        "y": 7.5,
+        "width": 142.484375,
+        "height": 32,
+        "top": 7.5,
+        "right": 1248,
+        "bottom": 39.5,
+        "left": 1105.515625
+      },
+      "newFont": "12px",
+      "scopeFont": "12px",
+      "pageOverflow": false
+    },
+    {
+      "w": 1024,
+      "state": "idle",
+      "header": {
+        "x": 208,
+        "y": 0,
+        "width": 816,
+        "height": 48,
+        "top": 0,
+        "right": 1024,
+        "bottom": 48,
+        "left": 208
+      },
+      "newChat": {
+        "x": 766.515625,
+        "y": 7.5,
+        "width": 75,
+        "height": 32,
+        "top": 7.5,
+        "right": 841.515625,
+        "bottom": 39.5,
+        "left": 766.515625
+      },
+      "timer": null,
+      "scope": {
+        "x": 849.515625,
+        "y": 7.5,
+        "width": 142.484375,
+        "height": 32,
+        "top": 7.5,
+        "right": 992,
+        "bottom": 39.5,
+        "left": 849.515625
+      },
+      "newFont": "12px",
+      "scopeFont": "12px",
+      "pageOverflow": false
+    },
+    {
+      "w": 1024,
+      "state": "running",
+      "header": {
+        "x": 208,
+        "y": 0,
+        "width": 816,
+        "height": 48,
+        "top": 0,
+        "right": 1024,
+        "bottom": 48,
+        "left": 208
+      },
+      "newChat": {
+        "x": 678.515625,
+        "y": 7.5,
+        "width": 75,
+        "height": 32,
+        "top": 7.5,
+        "right": 753.515625,
+        "bottom": 39.5,
+        "left": 678.515625
+      },
+      "timer": {
+        "x": 761.515625,
+        "y": 7.5,
+        "width": 80,
+        "height": 32,
+        "top": 7.5,
+        "right": 841.515625,
+        "bottom": 39.5,
+        "left": 761.515625
+      },
+      "scope": {
+        "x": 849.515625,
+        "y": 7.5,
+        "width": 142.484375,
+        "height": 32,
+        "top": 7.5,
+        "right": 992,
+        "bottom": 39.5,
+        "left": 849.515625
+      },
+      "newFont": "12px",
+      "scopeFont": "12px",
+      "pageOverflow": false
+    },
+    {
+      "w": 760,
+      "state": "idle",
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 56,
+        "top": 0,
+        "right": 760,
+        "bottom": 56,
+        "left": 0
+      },
+      "newChat": {
+        "x": 514.515625,
+        "y": 11.5,
+        "width": 75,
+        "height": 32,
+        "top": 11.5,
+        "right": 589.515625,
+        "bottom": 43.5,
+        "left": 514.515625
+      },
+      "timer": null,
+      "scope": {
+        "x": 597.515625,
+        "y": 11.5,
+        "width": 142.484375,
+        "height": 32,
+        "top": 11.5,
+        "right": 740,
+        "bottom": 43.5,
+        "left": 597.515625
+      },
+      "newFont": "12px",
+      "scopeFont": "12px",
+      "pageOverflow": false
+    },
+    {
+      "w": 760,
+      "state": "running",
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 56,
+        "top": 0,
+        "right": 760,
+        "bottom": 56,
+        "left": 0
+      },
+      "newChat": {
+        "x": 430.515625,
+        "y": 11.5,
+        "width": 75,
+        "height": 32,
+        "top": 11.5,
+        "right": 505.515625,
+        "bottom": 43.5,
+        "left": 430.515625
+      },
+      "timer": {
+        "x": 513.515625,
+        "y": 11.5,
+        "width": 76,
+        "height": 32,
+        "top": 11.5,
+        "right": 589.515625,
+        "bottom": 43.5,
+        "left": 513.515625
+      },
+      "scope": {
+        "x": 597.515625,
+        "y": 11.5,
+        "width": 142.484375,
+        "height": 32,
+        "top": 11.5,
+        "right": 740,
+        "bottom": 43.5,
+        "left": 597.515625
+      },
+      "newFont": "12px",
+      "scopeFont": "12px",
+      "pageOverflow": false
+    }
+  ],
+  "errors": []
+}
