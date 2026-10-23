@@ -871,7 +871,8 @@ async function installAppUpdate(event) {
     return result;
   }
   allowQuit = true;
-  autoUpdater.quitAndInstall(false, true);
+  // Updates reuse the existing installation without showing the setup wizard.
+  autoUpdater.quitAndInstall(true, true);
   return emitUpdateState({ status: 'installing', message: '正在重启并安装更新...' });
 }
 ipcMain.handle('updates:install', event => {
