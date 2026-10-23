@@ -9,6 +9,7 @@ import re
 import time
 import uuid
 from pathlib import Path
+from typing import Callable
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
@@ -206,9 +207,14 @@ def _persist_mistake_concepts(record: MistakeRecord, explanation: str = "", book
 
 
 
-def _ocr_image_with_kimi(image_path: Path, *, user_question: str = "", subject: str = "") -> VisualProblemIR:
+def _ocr_image_with_kimi(
+    image_path: Path, *, user_question: str = "", subject: str = "",
+    can_retry: Callable[[], bool] | None = None,
+) -> VisualProblemIR:
     """Compatibility entrypoint for OCR plus visual-semantic extraction."""
-    return KimiVisionBridge().analyze(image_path, user_question=user_question, subject=subject)
+    return KimiVisionBridge().analyze(
+        image_path, user_question=user_question, subject=subject, can_retry=can_retry,
+    )
 
 def _build_image_solution_prompt(ocr_text: str, user_answer: str = "", subject: str = "", tags: str = "") -> str:
     return build_solution_prompt(
@@ -856,7 +862,10 @@ def solve_mistake_image_stream(
                 label="识图模型解析图片", kind="tool",
             )
             step_started = time.perf_counter()
-            visual_ir = _ocr_image_with_kimi(image_path, user_question=question, subject=subject)
+            visual_ir = _ocr_image_with_kimi(
+                image_path, user_question=question, subject=subject,
+                can_retry=lambda: store.run_is_active(task.id, run_id),
+            )
             if not visual_ir.problem_text and not visual_ir.visual_summary:
                 raise RuntimeError("识图模型未返回有效题目内容")
             if not store.run_is_active(task.id, run_id):
@@ -1137,6 +1146,7 @@ def resume_visual_learning_task(
                     Path(artifacts["image_path"]),
                     user_question=str(artifacts.get("question") or ""),
                     subject=str(artifacts.get("subject") or ""),
+                    can_retry=lambda: store.run_is_active(task.id, run_id),
                 )
                 if not original_ir.problem_text and not original_ir.visual_summary:
                     raise RuntimeError("识图模型未返回有效题目内容")
@@ -1182,6 +1192,7 @@ def resume_visual_learning_task(
                     supplemental_path,
                     user_question=f"这是题目所需的补充材料：{', '.join(str(item.get('name') or '') for item in task.required_inputs)}",
                     subject=str(artifacts.get("subject") or ""),
+                    can_retry=lambda: store.run_is_active(task.id, run_id),
                 )
                 if not store.run_is_active(task.id, run_id):
                     _image_store.delete(supplemental_path)

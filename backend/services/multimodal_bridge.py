@@ -3,17 +3,20 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import os
 import re
+import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from llm.factory import create_vision_completion
-from utils.thinking_filter import ThinkingFilter
+from utils.thinking_filter import ThinkingFilter, strip_thinking
 
 
 VISUAL_IR_VERSION = "visual-problem-ir/v2"
+logger = logging.getLogger(__name__)
 
 
 # Only repair JSON string escaping, never missing fields/braces or problem facts.
@@ -62,6 +65,35 @@ def _repair_visual_json_escapes(text: str) -> str:
     return "".join(result)
 
 
+def _remove_visual_trailing_commas(text: str) -> str:
+    """Remove only separators after an existing value, outside JSON strings."""
+    result = []
+    quoted = False
+    escaped = False
+    previous = ""
+    for index, char in enumerate(text):
+        if quoted:
+            result.append(char)
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                quoted = False
+                previous = '"'
+            continue
+        if char == '"':
+            quoted = True
+        if char == "," and previous and previous in '\"}]0123456789el':
+            following = text[index + 1:].lstrip()
+            if following.startswith(("}", "]")):
+                continue
+        result.append(char)
+        if not char.isspace():
+            previous = char
+    return "".join(result)
+
+
 def _decode_visual_json(text: str) -> dict | None:
     fenced = re.search(r"```(?:json)?\s*([\s\S]*?)```", text, re.IGNORECASE)
     candidate = fenced.group(1).strip() if fenced else text.strip()
@@ -71,7 +103,7 @@ def _decode_visual_json(text: str) -> dict | None:
         candidates.append(candidate[start:end + 1])
     for value in candidates:
         try:
-            data = json.loads(_repair_visual_json_escapes(value), strict=False)
+            data = json.loads(_remove_visual_trailing_commas(_repair_visual_json_escapes(value)), strict=False)
         except (ValueError, RecursionError):
             continue
         if isinstance(data, dict):
@@ -148,7 +180,7 @@ class VisualProblemIR:
 
     @classmethod
     def from_model_output(cls, text: str) -> "VisualProblemIR":
-        cleaned = (text or "").strip()
+        cleaned = strip_thinking(text or "")
         data = _decode_visual_json(cleaned)
         if data is not None:
             return cls.from_dict(data)
@@ -250,7 +282,10 @@ class VisionModelBridge:
         self.base_url = self.config.endpoint
         self.model = self.config.model
 
-    def analyze(self, image_path: Path, *, user_question: str = "", subject: str = "") -> VisualProblemIR:
+    def analyze(
+        self, image_path: Path, *, user_question: str = "", subject: str = "",
+        can_retry: Callable[[], bool] | None = None,
+    ) -> VisualProblemIR:
         if not self.config.credential_configured:
             raise RuntimeError(f"未配置{self.config.provider.label} API Key，无法调用识图模型")
         if self.client is None:
@@ -293,26 +328,73 @@ JSON 字段固定为：
     "blocking": true
   }}]
 }}"""
-        response = create_vision_completion(
-            self.config,
-            messages=[{
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": _image_data_url(image_path)}},
-                ],
-            }],
-            max_tokens=int(os.getenv("LLM_VISUAL_IR_MAX_TOKENS", os.getenv("KIMI_VISUAL_IR_MAX_TOKENS", "3000"))),
-            timeout=120,
-            client=self.client,
-        )
-        content = response.choices[0].message.content or ""
-        if not isinstance(content, str):
-            content = json.dumps(content, ensure_ascii=False)
-        result = VisualProblemIR.from_model_output(content)
-        if not result.problem_text and not result.visual_summary:
-            raise RuntimeError("识图模型未返回有效的题目内容")
-        return result
+        image_url = _image_data_url(image_path)
+        max_tokens = int(os.getenv("LLM_VISUAL_IR_MAX_TOKENS", os.getenv("KIMI_VISUAL_IR_MAX_TOKENS", "3000")))
+        deadline = time.monotonic() + 120
+        reason = "invalid_json"
+        attempts = 0
+        for attempt in range(2):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or (attempt and can_retry is not None and not can_retry()):
+                break
+            retry_prompt = (
+                "\n上一次识别未获得完整有效的结果。请重新核对原图，完整保留题干、全部选项、"
+                "关键图形关系及缺失材料；压缩辅助描述，避免重复公式。只输出完整合法 JSON，"
+                "不要 thinking、解释文字或尾逗号，不要续写上次结果。"
+            ) if attempt else ""
+            response = create_vision_completion(
+                self.config,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt + retry_prompt},
+                        {"type": "image_url", "image_url": {"url": image_url}},
+                    ],
+                }],
+                max_tokens=max_tokens,
+                timeout=remaining,
+                client=self.client,
+            )
+            attempts += 1
+            choices = getattr(response, "choices", None) or []
+            choice = choices[0] if choices else None
+            finish_reason = getattr(choice, "finish_reason", None)
+            # Never log provider text, hidden reasoning, credentials or image bytes.
+            safe_finish = finish_reason if finish_reason in {"stop", "length", "max_tokens", "content_filter"} else "unknown"
+            content = getattr(getattr(choice, "message", None), "content", "") or ""
+            if not isinstance(content, str):
+                content = json.dumps(content, ensure_ascii=False)
+            if safe_finish in {"length", "max_tokens"}:
+                reason = "truncated"
+                max_tokens = min(max_tokens * 2, max(max_tokens, 6000))
+            elif safe_finish == "content_filter":
+                reason = "filtered"
+            elif not strip_thinking(content):
+                reason = "empty"
+            else:
+                try:
+                    result = VisualProblemIR.from_model_output(content)
+                    if result.problem_text or result.visual_summary:
+                        if attempt:
+                            logger.info("visual_ir_recovered attempts=%d", attempts)
+                        return result
+                    reason = "empty"
+                except (ValueError, TypeError):
+                    reason = "invalid_json"
+            logger.warning(
+                "visual_ir_invalid attempt=%d reason=%s finish_reason=%s content_chars=%d",
+                attempts, reason, safe_finish, len(content),
+            )
+            if reason == "filtered":
+                break
+        detail = {
+            "truncated": "识图模型输出被截断，未取得完整题干",
+            "invalid_json": "识图模型返回格式异常，未能解析完整题干",
+            "empty": "识图模型未返回有效的题目内容",
+            "filtered": "识图模型未能处理这张图片",
+        }[reason]
+        recovery = "，自动重新识别后仍未成功" if attempts > 1 else ""
+        raise ValueError(f"{detail}{recovery}。请重新发送图片重试，或手动输入题干。")
 
     def iter_figure_answer(
         self,

@@ -407,6 +407,78 @@ def test_image_solution_failure_emits_matching_error_terminal(monkeypatch, tmp_p
     assert task_store.get(task["id"]).status == "failed"
 
 
+@pytest.mark.parametrize("outcome", ["recovered", "blocked", "failed", "stopped"])
+def test_image_stream_replays_real_bridge_recovery_without_partial_question(monkeypatch, tmp_path, outcome):
+    from types import SimpleNamespace
+    from backend import conversation_memory as cm
+    from backend.services import multimodal_bridge
+    from backend.services.learning_task import interrupt_learning_task
+
+    monkeypatch.setattr(cm, "CONV_DIR", tmp_path / "conversations")
+    ocr = mistakes._ocr_image_with_kimi
+    _, task_store = _configure_visual_stream(monkeypatch, tmp_path, visual_ir=VisualProblemIR())
+    # Exercise the actual OCR entrypoint and bridge; replace only the transport.
+    monkeypatch.setattr(mistakes, "_ocr_image_with_kimi", ocr)
+    bridge = multimodal_bridge.VisionModelBridge.__new__(multimodal_bridge.VisionModelBridge)
+    bridge.config = SimpleNamespace(credential_configured=True)
+    bridge.client = object()
+    monkeypatch.setattr(mistakes, "KimiVisionBridge", lambda: bridge)
+    calls = []
+    full_ir = {
+        "problem_text": "设数列收敛，选择正确结论。", "visual_type": "text_only",
+        "options": ["A. 条件一", "B. 条件二", "C. 条件三", "D. 条件四"],
+        "required_inputs": [{"name": "下一页附表", "blocking": True}] if outcome == "blocked" else [],
+    }
+
+    def complete(*_args, **kwargs):
+        calls.append(kwargs)
+        if outcome == "stopped":
+            paths = list(task_store.root.glob("task_*.json"))
+            assert len(paths) == 1
+            task = task_store.get(paths[0].stem)
+            interrupt_learning_task(task_store, task, stage="stopped",
+                                    expected_run_id=task.artifacts["active_run_id"])
+        bad = len(calls) == 1 or outcome == "failed"
+        return SimpleNamespace(choices=[SimpleNamespace(
+            message=SimpleNamespace(content='{"problem_text":"partial-private-question"}' if bad else json.dumps(full_ir)),
+            finish_reason="length" if bad else "stop",
+        )])
+
+    monkeypatch.setattr(multimodal_bridge, "create_vision_completion", complete)
+    result = TestClient(app).post(
+        "/api/mistakes/solve-image-stream",
+        files={"file": ("problem.png", _image_bytes(), "image/png")},
+        data={"conversation_id": "replay-vision", "turn_id": "turn", "question": "请完整讲解"},
+    )
+    assert result.status_code == 200
+    envelopes = _stream_events(result)
+    events = _assert_canonical_stream(envelopes)
+    task = task_store.get(events[0]["task_id"])
+    assert task.status == {
+        "recovered": "completed", "blocked": "waiting_for_input", "failed": "failed", "stopped": "interrupted",
+    }[outcome]
+    assert len(calls) == (1 if outcome == "stopped" else 2)
+    assert Path(task.artifacts["original_image_path"]).read_bytes() == _image_bytes()
+    assert "partial-private-question" not in result.text
+    assert "partial-private-question" not in json.dumps(task.to_dict(), ensure_ascii=False)
+    if outcome in {"recovered", "blocked"}:
+        assert task.artifacts["visual_ir"]["options"] == full_ir["options"]
+        assert task.artifacts["vision_pending"] is False
+    if outcome == "recovered":
+        assert events[-1]["type"] == "final"
+        history = cm.load_full_history("replay-vision")
+        assert [message["role"] for message in history] == ["user", "assistant"]
+        assert "schema_version" not in history[0]["content"]
+    else:
+        assert not any(event["type"] in {"output_delta", "final"} for event in events)
+        if outcome == "failed":
+            assert events[-1]["type"] == "error"
+            assert "输出被截断" in events[-1]["summary"]
+            assert task.artifacts["vision_pending"] is True
+        elif outcome == "blocked":
+            assert task.required_inputs == full_ir["required_inputs"]
+
+
 def test_stale_input_resume_cannot_write_or_emit_terminal(monkeypatch, tmp_path):
     store = mistakes.MistakeImageStore(
         images_path=tmp_path / "images",
