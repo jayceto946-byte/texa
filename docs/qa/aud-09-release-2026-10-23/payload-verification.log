@@ -1,0 +1,27 @@
+{
+  "scope": "Two real Vite builds and minimal real PyInstaller payload probes; not the full application/installer",
+  "live_dist_before": {
+    "files": 3921,
+    "bytes": 112717031
+  },
+  "live_dist_unchanged": true,
+  "staging_cleaned": true,
+  "releases": [
+    {
+      "version": 1,
+      "staging": "/Users/jichengqian/Documents/ChatGPT/texa/build/frontend-release.nuhx1_xc",
+      "files": 395,
+      "bytes": 42845254,
+      "payload_exact_match": true,
+      "frozen_smoke": "AUD09_PAYLOAD_OK 395"
+    },
+    {
+      "version": 2,
+      "staging": "/Users/jichengqian/Documents/ChatGPT/texa/build/frontend-release.futx9j82",
+      "files": 395,
+      "bytes": 42845254,
+      "payload_exact_match": true,
+      "frozen_smoke": "AUD09_PAYLOAD_OK 395"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+........................................................................ [  3%]
+........................................................................ [  6%]
+........................................................................ [  9%]
+........................................................................ [ 13%]
+........................................................................ [ 16%]
+........................................................................ [ 19%]
+........................................................................ [ 23%]
+........................................................................ [ 26%]
+........................................................................ [ 29%]
+........................................................................ [ 33%]
+........................................................................ [ 36%]
+........................................................................ [ 39%]
+........................................................................ [ 43%]
+........................................................................ [ 46%]
+........................................................................ [ 49%]
+........................................................................ [ 53%]
+........................................................................ [ 56%]
+........................................................................ [ 59%]
+............................F........................................... [ 63%]
+........................................................................ [ 66%]
+.....................F.................................................. [ 69%]
+........................................................................ [ 73%]
+........................................................................ [ 76%]
+.F...................................................................... [ 79%]
+........................................................................ [ 82%]
+........................................................................ [ 86%]
+........................................................................ [ 89%]
+........................................................................ [ 92%]
+........................................................................ [ 96%]
+........................................................................ [ 99%]
+.........                                                                [100%]
+=================================== FAILURES ===================================
+____ test_frozen_schema_matches_existing_canonical_models[search_textbook] _____
+
+tool = 'search_textbook'
+
+    @pytest.mark.parametrize("tool", ["get_recent_progress", "search_exercises", "search_textbook"])
+    def test_frozen_schema_matches_existing_canonical_models(tool):
+        from evaluation.policy_dataset_v0.validation import canonical_tool_metadata, _canonical_tool
+        if tool == "get_recent_progress":
+            from backend.services.agent_runtime.progress_tool import RecentProgressInput as In, RecentProgressOutput as Out
+        elif tool == "search_exercises":
+            from backend.services.agent_runtime.exercise_tool import SearchExercisesInput as In, SearchExercisesOutput as Out
+        else:
+            from backend.services.agent_runtime.textbook_tool import TextbookSearchInput as In, TextbookSearchOutput as Out
+        snapshot = _canonical_tool(tool)
+>       assert snapshot["input_schema"] == In.model_json_schema()
+E       AssertionError: assert {'additionalP...chInput', ...} == {'$defs': {'T...'query'], ...}
+E         
+E         Omitting 4 identical items, use -vv to show
+E         Differing items:
+E         {'properties': {'chapter': {'default': '', 'maxLength': 200, 'title': 'Chapter', 'type': 'string'}, 'query': {'maxLength': 2000, 'minLength': 1, 'title': 'Query', 'type': 'string'}}} != {'properties': {'chapter': {'default': '', 'maxLength': 200, 'title': 'Chapter', 'type': 'string'}, 'continuation': {'...{'type': 'null'}], 'default': None}, 'query': {'maxLength': 2000, 'minLength': 1, 'title': 'Query', 'type': 'string'}}}
+E         Right contains 1 more item:
+E         {'$defs': {'TextbookContinuation': {'additionalProperties': Fals...
+E         
+E         ...Full output truncated (48 lines hidden), use '-vv' to show
+
+tests/test_policy_dataset_v0.py:546: AssertionError
+____________ test_snapshot_binding_matches_canonical_runtime_models ____________
+
+    def test_snapshot_binding_matches_canonical_runtime_models():
+        from backend.services.agent_runtime.exercise_tool import SearchExercisesInput
+        from backend.services.agent_runtime.progress_tool import RecentProgressInput
+        from backend.services.agent_runtime.textbook_tool import TextbookSearchInput
+        registry = offline_registry(recipe())
+        for tool, model, args in (
+            ("get_recent_progress", RecentProgressInput, {"book_name": "synthetic-book", "subject": "数学", "days": 7, "limit": 12}),
+            ("search_exercises", SearchExercisesInput, {"book_name": "synthetic-book", "subject": "数学", "query": "查询习题", "limit": 8}),
+            ("search_textbook", TextbookSearchInput, {"query": "检索定义", "chapter": ""}),
+        ):
+>           assert registry.runtime_tool(tool).runtime_input.model_validate(args).model_dump() == model.model_validate(args).model_dump()
+E           AssertionError: assert {'chapter': '...uery': '检索定义'} == {'chapter': '...uery': '检索定义'}
+E             
+E             Omitting 2 identical items, use -vv to show
+E             Right contains 1 more item:
+E             {'continuation': None}
+E             Use -v to get more diff
+
+tests/test_policy_seed_v0.py:470: AssertionError
+_________________________ test_finite_offline_baseline _________________________
+
+    def test_finite_offline_baseline():
+        report = run_baseline()
+        assert all(item["passed"] for item in report["fixtures"])
+        assert report["metrics"]["overhead"]["real_model_calls"] == 0
+        assert report["metrics"]["candidate_generation"]["forbidden_leaks"] == 0
+>       assert report["metrics"]["candidate_generation"]["binding_errors"] == 0
+E       assert 2 == 0
+
+tests/test_runtime_policy_v0.py:256: AssertionError
+=============================== warnings summary ===============================
+venv310/lib/python3.10/site-packages/starlette/testclient.py:53
+  /Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_policy_dataset_v0.py::test_frozen_schema_matches_existing_canonical_models[search_textbook]
+FAILED tests/test_policy_seed_v0.py::test_snapshot_binding_matches_canonical_runtime_models
+FAILED tests/test_runtime_policy_v0.py::test_finite_offline_baseline - assert...
+3 failed, 2166 passed, 6 warnings in 101.69s (0:01:41)

@@ -91,7 +91,10 @@ if os.name == "nt":
 def rss_bytes() -> int:
     if os.name != "nt":
         import resource
-        return int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024)
+        # Darwin reports bytes; Linux reports KiB. This is process lifetime
+        # peak RSS, not an instantaneous working-set sample.
+        unit = 1 if sys.platform == "darwin" else 1024
+        return int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * unit)
     kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
     psapi = ctypes.WinDLL("psapi", use_last_error=True)
     counters = _ProcessMemoryCounters()

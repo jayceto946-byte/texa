@@ -1,0 +1,8 @@
+..........................................                               [100%]
+=============================== warnings summary ===============================
+tests/test_native_math_loop.py::test_math_chat_ingress_uses_same_runtime_and_does_not_call_legacy_generator[False]
+  /Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+42 passed, 1 warning in 9.83s

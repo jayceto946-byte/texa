@@ -1,0 +1,197 @@
+{
+  "phase": "aud09-staged",
+  "environment": "macOS actual Electron; production renderer, in-memory HTTP fixtures; no model/backend timing",
+  "checks": [
+    {
+      "name": "earlier: late response ignored",
+      "pass": true
+    },
+    {
+      "name": "later: late response ignored",
+      "pass": true
+    },
+    {
+      "name": "1280: formulas rendered",
+      "pass": true
+    },
+    {
+      "name": "1280: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024: formulas rendered",
+      "pass": true
+    },
+    {
+      "name": "1024: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760: formulas rendered",
+      "pass": true
+    },
+    {
+      "name": "760: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "earlier: current page appends without duplicates",
+      "pass": true
+    },
+    {
+      "name": "later: current page appends without duplicates",
+      "pass": true
+    },
+    {
+      "name": "replacing same conversation invalidates previous page read",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "races": [
+    {
+      "direction": "earlier",
+      "contaminated": false,
+      "switchedBack": false
+    },
+    {
+      "direction": "later",
+      "contaminated": false,
+      "switchedBack": false
+    }
+  ],
+  "errors": [],
+  "reload_ms": [
+    960.843625,
+    951.2522089999998,
+    949.7489170000008,
+    958.9955,
+    952.0816670000004
+  ],
+  "navigation_ms": [
+    33.05816700000105,
+    26.82733300000109,
+    26.9862090000006,
+    28.284292000000278,
+    27.274874999999156,
+    25.073209000000134,
+    27.745458999999755,
+    27.44041599999946,
+    25.85870900000009,
+    26.232042000001456,
+    25.379125000001295,
+    25.340582999999242,
+    27.053249999999025,
+    27.013958000001367,
+    27.34858400000121,
+    27.416167000001224,
+    26.086582999998427,
+    26.905791999999565,
+    27.555833000000348,
+    26.792457999999897
+  ],
+  "launch_to_composer_ms": 2812.225458,
+  "memory_before": [
+    {
+      "type": "Browser",
+      "memory": {
+        "workingSetSize": 109008,
+        "peakWorkingSetSize": 151424
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 1.560645,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      }
+    },
+    {
+      "type": "GPU",
+      "memory": {
+        "workingSetSize": 75536,
+        "peakWorkingSetSize": 92704
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 0.887318,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      }
+    },
+    {
+      "type": "Utility",
+      "memory": {
+        "workingSetSize": 43456,
+        "peakWorkingSetSize": 53008
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 1.671951,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      }
+    },
+    {
+      "type": "Tab",
+      "memory": {
+        "workingSetSize": 294656,
+        "peakWorkingSetSize": 357440
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 3.233345,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      }
+    }
+  ],
+  "memory_after": [
+    {
+      "type": "Browser",
+      "memory": {
+        "workingSetSize": 109584,
+        "peakWorkingSetSize": 151424
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 1.655352,
+        "percentCPUUsage": 2.891527199718624,
+        "idleWakeupsPerSecond": 4
+      }
+    },
+    {
+      "type": "GPU",
+      "memory": {
+        "workingSetSize": 75584,
+        "peakWorkingSetSize": 92704
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 0.923314,
+        "percentCPUUsage": 1.0996268795780872,
+        "idleWakeupsPerSecond": 117
+      }
+    },
+    {
+      "type": "Utility",
+      "memory": {
+        "workingSetSize": 43456,
+        "peakWorkingSetSize": 53008
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 1.738895,
+        "percentCPUUsage": 2.0451157220715106,
+        "idleWakeupsPerSecond": 0
+      }
+    },
+    {
+      "type": "Tab",
+      "memory": {
+        "workingSetSize": 312528,
+        "peakWorkingSetSize": 357440
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 3.597318,
+        "percentCPUUsage": 11.119573612149829,
+        "idleWakeupsPerSecond": 42
+      }
+    }
+  ]
+}

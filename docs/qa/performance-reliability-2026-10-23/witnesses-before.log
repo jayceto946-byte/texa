@@ -1,0 +1,63 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+__ test_store_connection_closes_after_commit_and_rollback[ExerciseBankStore] ___
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-2/test_store_connection_closes_a0')
+store_type = <class 'memory.exercise_bank.ExerciseBankStore'>
+
+    @pytest.mark.parametrize("store_type", [ExerciseBankStore, MistakeBookStore])
+    def test_store_connection_closes_after_commit_and_rollback(tmp_path, store_type):
+        store = store_type(tmp_path / "store.db")
+        with store._connect() as connection:
+            connection.execute("CREATE TABLE audit_witness (value INTEGER)")
+            connection.execute("INSERT INTO audit_witness VALUES (1)")
+>       with pytest.raises(sqlite3.ProgrammingError, match="closed"):
+E       Failed: DID NOT RAISE <class 'sqlite3.ProgrammingError'>
+
+tests/test_audit_regressions.py:21: Failed
+___ test_store_connection_closes_after_commit_and_rollback[MistakeBookStore] ___
+
+tmp_path = PosixPath('/private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-2/test_store_connection_closes_a1')
+store_type = <class 'memory.mistake_book.MistakeBookStore'>
+
+    @pytest.mark.parametrize("store_type", [ExerciseBankStore, MistakeBookStore])
+    def test_store_connection_closes_after_commit_and_rollback(tmp_path, store_type):
+        store = store_type(tmp_path / "store.db")
+        with store._connect() as connection:
+            connection.execute("CREATE TABLE audit_witness (value INTEGER)")
+            connection.execute("INSERT INTO audit_witness VALUES (1)")
+>       with pytest.raises(sqlite3.ProgrammingError, match="closed"):
+E       Failed: DID NOT RAISE <class 'sqlite3.ProgrammingError'>
+
+tests/test_audit_regressions.py:21: Failed
+_______ test_failed_math_verification_is_an_unsatisfied_required_output ________
+
+    def test_failed_math_verification_is_an_unsatisfied_required_output():
+        class Registry:
+            def call(self, name, args, context, **kwargs):
+                if name == "symbolic_math":
+                    return ToolResult(True, data={"result": {"exact": "5"}, "verification_request": {"operation": "calculate"}})
+                return ToolResult(False, verification={"passed": False}, message="incorrect result")
+    
+        result = execute_read_only_tools(ToolOrchestrationRequest(question="计算 2+2"), registry=Registry())
+>       assert result["tool_context_pack"]["sufficient"] is False
+E       assert True is False
+
+tests/test_audit_regressions.py:41: AssertionError
+___________________ test_numeric_zero_remains_a_valid_output ___________________
+
+    def test_numeric_zero_remains_a_valid_output():
+        assert _validate_required_outputs({"data": {"result": 0}}, _required_outputs("symbolic_math")) == (["computed_result"], [])
+>       assert _validate_required_outputs({"success": False}, _required_outputs("unknown")) == ([], ["successful_result"])
+E       AssertionError: assert (['successful_result'], []) == ([], ['successful_result'])
+E         
+E         At index 0 diff: ['successful_result'] != []
+E         Use -v to get more diff
+
+tests/test_audit_regressions.py:47: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_audit_regressions.py::test_store_connection_closes_after_commit_and_rollback[ExerciseBankStore]
+FAILED tests/test_audit_regressions.py::test_store_connection_closes_after_commit_and_rollback[MistakeBookStore]
+FAILED tests/test_audit_regressions.py::test_failed_math_verification_is_an_unsatisfied_required_output
+FAILED tests/test_audit_regressions.py::test_numeric_zero_remains_a_valid_output
+4 failed in 0.07s

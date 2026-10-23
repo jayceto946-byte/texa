@@ -233,6 +233,13 @@ def search_rows(rows: list[dict], query: str, *, k: int = 20, chapters: list[str
     n = len(docs)
     avgdl = sum(len(doc) for doc in docs) / max(n, 1)
     df = Counter(token for doc in docs for token in set(doc))
+    # Query/title features are identical for chunks sharing a section. Keep
+    # this reuse local to one search, so index publication needs no new cache.
+    title_features: dict[str, tuple[float, float]] = {}
+    normalized_query = _normalized_enumeration_counts(query)
+    requested_counts = [marker for marker in (
+        "两种", "三种", "四种", "四个", "五种", "六种", "七种", "八种",
+    ) if marker in normalized_query]
     scored = []
     for idx, tokens in enumerate(docs):
         tf, dl, score = Counter(tokens), len(tokens), 0.0
@@ -245,13 +252,16 @@ def search_rows(rows: list[dict], query: str, *, k: int = 20, chapters: list[str
         if len(query_core_compact) >= 2 and query_core_compact in re.sub(r"\s+", "", str(rows[idx].get("content") or "")):
             score *= 1.8
         title = str(rows[idx].get("section_title") or "")
-        title_quality = _title_match_quality(query, title)
-        if title_quality:
+        if title not in title_features:
+            title_quality = _title_match_quality(query, title)
             title_tokens = set(tokenize(title))
             title_idf = sum(
                 math.log(1 + (n - df[token] + 0.5) / (df[token] + 0.5))
                 for token in query_tokens if token in title_tokens
-            )
+            ) if title_quality else 0.0
+            title_features[title] = (title_quality, title_idf)
+        title_quality, title_idf = title_features[title]
+        if title_quality:
             score += title_quality * max(title_idf, 0.25) * 1.5
             if int(rows[idx].get("section_chunk_index", 999999) or 0) <= 1:
                 score += title_quality * max(title_idf, 0.25)
@@ -267,10 +277,6 @@ def search_rows(rows: list[dict], query: str, *, k: int = 20, chapters: list[str
             )
             score += max(table_idf, 1.0) * 3.0
         enumeration_quality = _enumeration_match_quality(query, str(rows[idx].get("content") or ""))
-        explicit_counts = (
-            "两种", "三种", "四种", "四个", "五种", "六种", "七种", "八种",
-        )
-        requested_counts = [marker for marker in explicit_counts if marker in _normalized_enumeration_counts(query)]
         if requested_counts and not any(
             marker in _normalized_enumeration_counts(re.sub(r"\s+", "", str(rows[idx].get("content") or "")))
             for marker in requested_counts

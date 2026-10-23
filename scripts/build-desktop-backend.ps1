@@ -18,7 +18,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$frontendDist = Join-Path $projectRoot "frontend\dist"
+$frontendDist = Join-Path $projectRoot ("build\frontend-release." + [guid]::NewGuid().ToString("N"))
 $sampleData = if ($SampleDataDir) { [System.IO.Path]::GetFullPath((Join-Path $projectRoot $SampleDataDir)) } else { Join-Path $projectRoot "desktop\standard_seed" }
 Set-Location $projectRoot
 
@@ -61,110 +61,118 @@ Invoke-CheckedCommand "[Content gate] Verifying bundled sample licenses and hash
     & $Python scripts\check_release_content.py --sample-dir $sampleData
 }
 
-Invoke-CheckedCommand "[1/3] Building frontend assets..." {
-    Push-Location (Join-Path $projectRoot "frontend")
-    try {
-        npm.cmd run build
-    } finally {
-        Pop-Location
+try {
+    New-Item -ItemType Directory -Path $frontendDist -ErrorAction Stop | Out-Null
+    # Keep the served dist and its old hashes intact for connected phones.
+    Invoke-CheckedCommand "[1/3] Building isolated frontend assets..." {
+        Push-Location (Join-Path $projectRoot "frontend")
+        try {
+            npm.cmd run build -- --outDir $frontendDist --emptyOutDir
+        } finally {
+            Pop-Location
+        }
+    }
+
+    Invoke-CheckedCommand "[2/3] Checking PyInstaller..." {
+        & $Python -m PyInstaller --version
+    }
+
+    Write-Host "[2.5/3] Verifying ONNX Standard build environment..."
+    $runtimeCheck = & $Python -B -c "import json, onnxruntime, tokenizers; print(json.dumps({'onnxruntime': onnxruntime.__version__, 'tokenizers': tokenizers.__version__}))" 2>&1
+    if ($LASTEXITCODE -ne 0) { throw "Failed to import the ONNX Standard runtime: $runtimeCheck" }
+    Write-Host ($runtimeCheck | Select-Object -Last 1)
+
+    Invoke-CheckedCommand "[3/3] Building backend executable..." {
+        & $Python -m PyInstaller `
+          --noconfirm `
+          --clean `
+          --name backend_server `
+          --distpath build\backend `
+          --workpath build\pyinstaller `
+          --specpath build\pyinstaller `
+          --paths $projectRoot `
+          --hidden-import backend.main `
+          --hidden-import langchain_chroma `
+          --hidden-import chromadb `
+          --hidden-import huggingface_hub `
+          --hidden-import onnxruntime `
+          --hidden-import tokenizers `
+          --collect-submodules backend `
+          --collect-submodules graph `
+          --collect-submodules ingestion `
+          --collect-submodules knowledge `
+          --collect-submodules memory `
+          --collect-submodules utils `
+          --collect-submodules chromadb `
+          --collect-data chromadb `
+          --collect-all tzdata `
+          --exclude-module agents `
+          --exclude-module paddle `
+          --exclude-module paddleocr `
+          --exclude-module paddlex `
+          --exclude-module cv2 `
+          --exclude-module mineru `
+          --exclude-module mineru_vl_utils `
+          --exclude-module marker_pdf `
+          --exclude-module marker `
+          --exclude-module surya `
+          --exclude-module nougat `
+          --exclude-module doclayout_yolo `
+          --exclude-module modelscope `
+          --exclude-module albumentations `
+          --exclude-module skimage `
+          --exclude-module plotly `
+          --exclude-module coverage `
+          --exclude-module hypothesis `
+          --exclude-module pytest_cov `
+          --exclude-module notebook `
+          --exclude-module jupyter `
+          --exclude-module jupyterlab `
+          --exclude-module sphinx `
+          --exclude-module mkdocs `
+          --exclude-module ultralytics `
+          --exclude-module torchvision `
+          --exclude-module datasets `
+          --exclude-module timm `
+          --exclude-module av `
+          --exclude-module boto3 `
+          --exclude-module botocore `
+          --exclude-module s3transfer `
+          --exclude-module pandas `
+          --exclude-module polars `
+          --exclude-module pyarrow `
+          --exclude-module matplotlib `
+          --exclude-module IPython `
+          --exclude-module jedi `
+          --exclude-module pytest `
+          --exclude-module nltk `
+          --exclude-module sklearn `
+          --exclude-module lightning `
+          --exclude-module torch `
+          --exclude-module sentence_transformers `
+          --exclude-module transformers `
+          --exclude-module safetensors `
+          --exclude-module tkinter `
+          --exclude-module _tkinter `
+          --add-data "${frontendDist};frontend\dist" `
+          --add-data "${projectRoot}\VERSION;." `
+          --add-data "${projectRoot}\THIRD_PARTY_NOTICES;THIRD_PARTY_NOTICES" `
+          --add-data "${sampleData};sample_data" `
+          desktop\backend_server.py
+    }
+
+    Write-Host "[Post-build] Verifying Torch-free ONNX Standard runtime..."
+    & $Python -B scripts\validate_standard_release.py `
+      --root build\backend\backend_server `
+      --asset-dir assets\embedding-runtime\bge-small-zh-v1.5\onnx-fp32-v1 `
+      --pyinstaller-xref build\pyinstaller\backend_server\xref-backend_server.html
+    if ($LASTEXITCODE -ne 0) {
+        throw "Texa Standard validation failed. The backend build was not accepted."
+    }
+    Write-Host "Backend executable ready: build\backend\backend_server\backend_server.exe"
+    Write-Host "Next: cd desktop; npm install; npm run dist"
+} finally {
+    if (Test-Path -LiteralPath $frontendDist) {
+        Remove-Item -LiteralPath $frontendDist -Recurse -Force
     }
 }
-
-Invoke-CheckedCommand "[2/3] Checking PyInstaller..." {
-    & $Python -m PyInstaller --version
-}
-
-Write-Host "[2.5/3] Verifying ONNX Standard build environment..."
-$runtimeCheck = & $Python -B -c "import json, onnxruntime, tokenizers; print(json.dumps({'onnxruntime': onnxruntime.__version__, 'tokenizers': tokenizers.__version__}))" 2>&1
-if ($LASTEXITCODE -ne 0) { throw "Failed to import the ONNX Standard runtime: $runtimeCheck" }
-Write-Host ($runtimeCheck | Select-Object -Last 1)
-
-Invoke-CheckedCommand "[3/3] Building backend executable..." {
-    & $Python -m PyInstaller `
-      --noconfirm `
-      --clean `
-      --name backend_server `
-      --distpath build\backend `
-      --workpath build\pyinstaller `
-      --specpath build\pyinstaller `
-      --paths $projectRoot `
-      --hidden-import backend.main `
-      --hidden-import langchain_chroma `
-      --hidden-import chromadb `
-      --hidden-import huggingface_hub `
-      --hidden-import onnxruntime `
-      --hidden-import tokenizers `
-      --collect-submodules backend `
-      --collect-submodules graph `
-      --collect-submodules ingestion `
-      --collect-submodules knowledge `
-      --collect-submodules memory `
-      --collect-submodules utils `
-      --collect-submodules chromadb `
-      --collect-data chromadb `
-      --collect-all tzdata `
-      --exclude-module agents `
-      --exclude-module paddle `
-      --exclude-module paddleocr `
-      --exclude-module paddlex `
-      --exclude-module cv2 `
-      --exclude-module mineru `
-      --exclude-module mineru_vl_utils `
-      --exclude-module marker_pdf `
-      --exclude-module marker `
-      --exclude-module surya `
-      --exclude-module nougat `
-      --exclude-module doclayout_yolo `
-      --exclude-module modelscope `
-      --exclude-module albumentations `
-      --exclude-module skimage `
-      --exclude-module plotly `
-      --exclude-module coverage `
-      --exclude-module hypothesis `
-      --exclude-module pytest_cov `
-      --exclude-module notebook `
-      --exclude-module jupyter `
-      --exclude-module jupyterlab `
-      --exclude-module sphinx `
-      --exclude-module mkdocs `
-      --exclude-module ultralytics `
-      --exclude-module torchvision `
-      --exclude-module datasets `
-      --exclude-module timm `
-      --exclude-module av `
-      --exclude-module boto3 `
-      --exclude-module botocore `
-      --exclude-module s3transfer `
-      --exclude-module pandas `
-      --exclude-module polars `
-      --exclude-module pyarrow `
-      --exclude-module matplotlib `
-      --exclude-module IPython `
-      --exclude-module jedi `
-      --exclude-module pytest `
-      --exclude-module nltk `
-      --exclude-module sklearn `
-      --exclude-module lightning `
-      --exclude-module torch `
-      --exclude-module sentence_transformers `
-      --exclude-module transformers `
-      --exclude-module safetensors `
-      --exclude-module tkinter `
-      --exclude-module _tkinter `
-      --add-data "${frontendDist};frontend\dist" `
-      --add-data "${projectRoot}\VERSION;." `
-      --add-data "${projectRoot}\THIRD_PARTY_NOTICES;THIRD_PARTY_NOTICES" `
-      --add-data "${sampleData};sample_data" `
-      desktop\backend_server.py
-}
-
-Write-Host "[Post-build] Verifying Torch-free ONNX Standard runtime..."
-& $Python -B scripts\validate_standard_release.py `
-  --root build\backend\backend_server `
-  --asset-dir assets\embedding-runtime\bge-small-zh-v1.5\onnx-fp32-v1 `
-  --pyinstaller-xref build\pyinstaller\backend_server\xref-backend_server.html
-if ($LASTEXITCODE -ne 0) {
-    throw "Texa Standard validation failed. The backend build was not accepted."
-}
-Write-Host "Backend executable ready: build\backend\backend_server\backend_server.exe"
-Write-Host "Next: cd desktop; npm install; npm run dist"

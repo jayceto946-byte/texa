@@ -13,7 +13,12 @@ fi
 python="${TEXA_BUILD_PYTHON:-$root/venv310/bin/python}"
 "$python" -c 'import platform, sys; assert sys.version_info[:2] == (3, 10) and platform.machine() == "arm64"'
 "$python" scripts/check_release_content.py --sample-dir desktop/standard_seed
-npm run build --prefix frontend
+# The served dist retains old hashes for connected phones. Package only this
+# invocation's assets, without clearing or copying that live directory.
+mkdir -p "$root/build"
+frontend_dist="$(mktemp -d "$root/build/frontend-release.XXXXXX")"
+trap 'rm -rf -- "$frontend_dist"' EXIT
+npm run build --prefix frontend -- --outDir "$frontend_dist" --emptyOutDir
 
 excludes=(
   agents paddle paddleocr paddlex cv2 mineru mineru_vl_utils marker_pdf marker
@@ -49,7 +54,7 @@ done
   --collect-submodules chromadb \
   --collect-data chromadb \
   "${exclude_args[@]}" \
-  --add-data "$root/frontend/dist:frontend/dist" \
+  --add-data "$frontend_dist:frontend/dist" \
   --add-data "$root/VERSION:." \
   --add-data "$root/THIRD_PARTY_NOTICES:THIRD_PARTY_NOTICES" \
   --add-data "$root/desktop/standard_seed:sample_data" \

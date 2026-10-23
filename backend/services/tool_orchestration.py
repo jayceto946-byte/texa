@@ -50,7 +50,8 @@ def _validate_required_outputs(result: dict[str, Any], requirements: list[dict[s
     for requirement in requirements:
         key = str(requirement.get("key") or requirement.get("path") or "output")
         value = _path_value(result, str(requirement.get("path") or ""))
-        valid = value is True or (value not in (None, "", [], {}))
+        # Boolean postconditions must pass; numeric zero is still a real result.
+        valid = value if isinstance(value, bool) else value not in (None, "", [], {})
         (satisfied if valid else missing).append(key)
     return satisfied, missing
 

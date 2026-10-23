@@ -90,13 +90,17 @@ const ChatPage: React.FC = () => {
     updateMessageByTurnId,
     historyPage,
     prependConversationMessages,
+    appendConversationMessages,
+    captureConversationRead,
     loadConversation,
     newConversation,
   } = useChatContext();
   const conversation = useConversationManagement(conversationId, location.pathname === '/');
   const inTrash = conversation.management?.state === 'trashed';
   const [sourceNavigationError, setSourceNavigationError] = useState('');
-  const [nextAfterSeq, setNextAfterSeq] = useState<number | null>(null);
+  const [afterCursor, setAfterCursor] = useState<{ conversationId: string; seq: number } | null>(null);
+  const nextAfterSeq = afterCursor?.conversationId === conversationId ? afterCursor.seq : null;
+  const historyRequestRef = useRef<AbortController | null>(null);
   const { scrollRef, targetMessageRef, preserveHistoryScrollRef, following, onScroll, scrollToLatest } = useReadingScroll(messages, conversationId, location.pathname === '/');
   const loadedLocatorRef = useRef('');
   useEffect(() => { finishSessionRender(); }, [messages]);
@@ -118,7 +122,8 @@ const ChatPage: React.FC = () => {
       const data = response.data;
       loadedLocatorRef.current = location.search;
       targetMessageRef.current = sourceMessage;
-      setNextAfterSeq(sourceMessage ? data.page.next_after_seq : null);
+      setAfterCursor(sourceMessage && data.page.next_after_seq != null
+        ? { conversationId: data.conversation_id || data.id, seq: data.page.next_after_seq } : null);
       loadConversation(data.conversation_id || data.id, mapStoredConversationMessages(data.messages), {
         subject: data.subject, bookName: data.book_name, page: data.page,
       });
@@ -127,6 +132,9 @@ const ChatPage: React.FC = () => {
     return () => { active = false; };
   }, [location.pathname, location.search, isLoading, loadConversation, targetMessageRef]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  useEffect(() => () => {
+    historyRequestRef.current?.abort();
+  }, [conversationId]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [attachmentError, setAttachmentError] = useState('');
   const mistakePickerRef = useRef<HTMLDivElement>(null);
@@ -193,6 +201,9 @@ const ChatPage: React.FC = () => {
   const loadEarlierMessages = async () => {
     const beforeSeq = historyPage?.next_before_seq;
     if (!historyPage?.has_more || beforeSeq == null || historyLoading) return;
+    const isCurrent = captureConversationRead();
+    const controller = new AbortController();
+    historyRequestRef.current = controller;
     const container = scrollRef.current;
     if (container) {
       preserveHistoryScrollRef.current = {
@@ -203,16 +214,20 @@ const ChatPage: React.FC = () => {
     setHistoryLoading(true);
     try {
       const params = new URLSearchParams({ limit: '40', before_seq: String(beforeSeq) });
-      const res = await get(`/chat/conversations/${encodeURIComponent(conversationId)}/messages?${params.toString()}`, 20000);
+      const res = await get(`/chat/conversations/${encodeURIComponent(conversationId)}/messages?${params.toString()}`, 20000, controller.signal);
+      if (!isCurrent() || controller.signal.aborted) return;
       if (!res?.success || !res.data) throw new Error(res?.message || '加载历史消息失败');
       prependConversationMessages(
         mapStoredConversationMessages(res.data.messages || []),
         res.data.page,
       );
     } catch {
-      preserveHistoryScrollRef.current = null;
+      if (isCurrent()) preserveHistoryScrollRef.current = null;
     } finally {
-      setHistoryLoading(false);
+      if (historyRequestRef.current === controller) {
+        historyRequestRef.current = null;
+        setHistoryLoading(false);
+      }
     }
   };
 
@@ -1005,15 +1020,25 @@ const ChatPage: React.FC = () => {
               </ErrorBoundary>
             ))}</ChatMistakeSourcesContext.Provider>
             {nextAfterSeq !== null && <button className="app-ghost-button" disabled={historyLoading} onClick={async () => {
+              if (historyLoading) return;
+              const isCurrent = captureConversationRead();
+              const controller = new AbortController();
+              historyRequestRef.current = controller;
               setHistoryLoading(true);
               try {
-                const response = await get(`/chat/conversations/${encodeURIComponent(conversationId)}/messages-after?after_seq=${nextAfterSeq}`);
+                const response = await get(`/chat/conversations/${encodeURIComponent(conversationId)}/messages-after?after_seq=${nextAfterSeq}`, 20000, controller.signal);
+                if (!isCurrent() || controller.signal.aborted) return;
+                if (!response.success || !response.data) throw new Error(response.message || '读取失败');
                 const page = response.data;
-                const existing = new Set(messages.map(m => m.id));
-                loadConversation(conversationId, [...messages, ...mapStoredConversationMessages(page.messages).filter(m => !existing.has(m.id))], { subject, bookName, page: historyPage });
-                setNextAfterSeq(page.has_more ? page.next_after_seq : null);
-              } catch (e) { setSourceNavigationError(e instanceof Error ? e.message : '读取失败'); }
-              finally { setHistoryLoading(false); }
+                appendConversationMessages(mapStoredConversationMessages(page.messages));
+                setAfterCursor(page.has_more ? { conversationId, seq: page.next_after_seq } : null);
+              } catch (e) { if (isCurrent() && !controller.signal.aborted) setSourceNavigationError(e instanceof Error ? e.message : '读取失败'); }
+              finally {
+                if (historyRequestRef.current === controller) {
+                  historyRequestRef.current = null;
+                  setHistoryLoading(false);
+                }
+              }
             }}>加载后续消息</button>}
             {activeFigure && figureWorkspaceExpanded && (
               <FigureRegionViewer

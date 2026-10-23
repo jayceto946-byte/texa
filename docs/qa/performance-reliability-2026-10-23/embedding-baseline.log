@@ -1,0 +1,61 @@
+  [embedding] ONNX FP32 model ready
+{
+  "status": "FAIL",
+  "backend": "onnxruntime_fp32",
+  "runtime_config": {
+    "interactive": {
+      "intra_op_num_threads": 2,
+      "inter_op_num_threads": 1,
+      "execution_mode": "sequential",
+      "graph_optimization_level": "all"
+    },
+    "ingestion": {
+      "intra_op_num_threads": 3,
+      "inter_op_num_threads": 1,
+      "execution_mode": "sequential",
+      "graph_optimization_level": "all",
+      "load": "lazy_singleton"
+    },
+    "batch_size": 16,
+    "bucket_edges": [
+      64,
+      128,
+      256,
+      512
+    ]
+  },
+  "fixture_count": 500,
+  "process_rss_mib_after": 1005552.0,
+  "gates": {
+    "interactive_median_lt_5ms": true,
+    "interactive_faster_than_torch_6_762ms": true,
+    "ingestion_gte_20_texts_per_second": false,
+    "ingestion_gte_90pct_torch_baseline": true,
+    "concurrent_query_not_unusable": true
+  }
+}
+{
+  "interactive": {
+    "runs": 20,
+    "median_ms": 2.028750000135915,
+    "p95_ms": 2.196707999246428,
+    "texts_per_second": 492.9143560975998,
+    "peak_rss_mib_p95": 234448.0
+  },
+  "ingestion": {
+    "runs": 5,
+    "median_ms": 49449.85229200029,
+    "p95_ms": 49872.047291000854,
+    "texts_per_second": 10.11125366052685,
+    "peak_rss_mib_p95": 960544.0
+  },
+  "concurrent": {
+    "runs": 20,
+    "median_ms": 4.451416499250627,
+    "p95_ms": 10.019790999649558,
+    "texts_per_second": 224.6475925513474,
+    "peak_rss_mib_p95": 960544.0,
+    "ingestion_latency_ms": 47793.46437499953,
+    "ingestion_texts_per_second": 10.461681456629181
+  }
+}

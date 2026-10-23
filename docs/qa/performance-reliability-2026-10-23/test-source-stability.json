@@ -1,0 +1,11 @@
+{
+  "source_files": 1079,
+  "changed_during_latest_full_test": [],
+  "result": "2163 passed, 3 failed, 91.80s",
+  "known_failures": [
+    "test_policy_dataset_v0.py::test_frozen_schema_matches_existing_canonical_models[search_textbook]",
+    "test_policy_seed_v0.py::test_snapshot_binding_matches_canonical_runtime_models",
+    "test_runtime_policy_v0.py::test_finite_offline_baseline"
+  ],
+  "scope": "Source hash check covers tracked/nonignored Python/JS/TS source outside docs/assets; not a full runtime environment fingerprint."
+}

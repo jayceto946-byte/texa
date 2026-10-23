@@ -1,0 +1,13 @@
+{
+  "max_heartbeat_gap_ms": 388.9202079990355,
+  "heartbeat_gaps_ms": [
+    5.722707999666454,
+    388.9202079990355,
+    5.572750000283122
+  ],
+  "requested_heartbeat_ms": 5,
+  "writer_hold_ms": 300,
+  "sse_chunks": 3,
+  "worker_errors": [],
+  "scope": "real isolated SQLite lock + production SSE; execution stub only emits fixture; not a live user latency benchmark"
+}

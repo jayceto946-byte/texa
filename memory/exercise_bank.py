@@ -9,6 +9,7 @@ import hashlib
 import json
 import random
 import sqlite3
+from contextlib import contextmanager
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
@@ -116,21 +117,26 @@ class ExerciseBankStore:
         self._force_delete_journal = False
         self._init_db()
 
+    @contextmanager
     def _connect(self):
         conn = sqlite3.connect(self.db_path, timeout=15)
-        conn.execute("PRAGMA busy_timeout = 15000")
-        if self._force_delete_journal:
-            conn.execute("PRAGMA journal_mode = DELETE")
-        else:
-            try:
-                conn.execute("PRAGMA journal_mode = WAL")
-            except sqlite3.OperationalError as exc:
-                if not _is_sqlite_storage_error(exc):
-                    raise
-                self._force_delete_journal = True
+        try:
+            conn.execute("PRAGMA busy_timeout = 15000")
+            if self._force_delete_journal:
                 conn.execute("PRAGMA journal_mode = DELETE")
-        conn.execute("PRAGMA synchronous = NORMAL")
-        return conn
+            else:
+                try:
+                    conn.execute("PRAGMA journal_mode = WAL")
+                except sqlite3.OperationalError as exc:
+                    if not _is_sqlite_storage_error(exc):
+                        raise
+                    self._force_delete_journal = True
+                    conn.execute("PRAGMA journal_mode = DELETE")
+            conn.execute("PRAGMA synchronous = NORMAL")
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def record_direct_answer(self, rid: str, operation_id: str, payload: dict) -> tuple[ExerciseRecord, dict]:
         """Commit an attempt and its receipt together in the existing history JSON.

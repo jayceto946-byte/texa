@@ -1,0 +1,13 @@
+
+> texa-frontend@1.0.0 test
+> vitest run
+
+
+ RUN  v4.1.9 /Users/jichengqian/Documents/ChatGPT/texa/frontend
+
+
+ Test Files  53 passed (53)
+      Tests  251 passed (251)
+   Start at  19:48:32
+   Duration  5.21s (transform 2.48s, setup 0ms, import 6.19s, tests 2.44s, environment 34ms)
+

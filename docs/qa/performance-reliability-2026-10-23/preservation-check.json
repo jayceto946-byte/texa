@@ -1,0 +1,74 @@
+{
+  "baseline_commit": "140255ad180b8076c830e5600ca4297942eee105",
+  "method": "Reconstruct initial files from HEAD plus saved initial diff; compare unchanged files, or remove only documented audit SSE/patch_notes hunks before comparing. No staging, restore or Git writes.",
+  "files": [
+    {
+      "path": ".env.example",
+      "initial_sha256": "2fd2c4635a2e35e10515a6f4a6d037c604839f7aae8e33ec352dd628741ac4f0",
+      "unchanged_after_removing_only_audit_hunks": true
+    },
+    {
+      "path": "README.md",
+      "initial_sha256": "946915e4c41d426afd330a127469284369d620eae561ffdc8932a35dc354d0ac",
+      "unchanged_after_removing_only_audit_hunks": true
+    },
+    {
+      "path": "backend/services/agent_runtime/chat_binding.py",
+      "initial_sha256": "8f813c9b1283ad8d0376cfa842cee0a6c3ab1c127fa52494823860aa9d8a0a40",
+      "unchanged_after_removing_only_audit_hunks": true
+    },
+    {
+      "path": "backend/services/agent_runtime/multi_step.py",
+      "initial_sha256": "ab1cb94479bd74ee03267ec452f81be713b38aa06ec4c111f2cd43d954211ef9",
+      "unchanged_after_removing_only_audit_hunks": true
+    },
+    {
+      "path": "backend/services/agent_runtime/native_loop.py",
+      "initial_sha256": "8800c0d31bed7bf815477a73b795421f9ac3214766ed60160f3484e844c80228",
+      "unchanged_after_removing_only_audit_hunks": true
+    },
+    {
+      "path": "backend/services/agent_runtime/runner.py",
+      "initial_sha256": "43ea89ccec8e2869e6b3edabe7161a1a5f722170d35caa2ac16edcb5d161a2c8",
+      "unchanged_after_removing_only_audit_hunks": true
+    },
+    {
+      "path": "backend/tools/registry.py",
+      "initial_sha256": "ae76341773576fcda842c0873f8fb8c520baf4ac50817a7d6fc187cda6344f10",
+      "unchanged_after_removing_only_audit_hunks": true
+    },
+    {
+      "path": "frontend/src/components/ChatMessage.tsx",
+      "initial_sha256": "3bb8ed6f391974e32b1ff016ead2233b0b4030f48346fd24ed218f240c846aad",
+      "unchanged_after_removing_only_audit_hunks": true
+    },
+    {
+      "path": "frontend/src/components/chat/ExecutionTrace.tsx",
+      "initial_sha256": "f983788e65dc4d214d03790e70c062573acc5e5f7c236d25ec59c5b8bad73b36",
+      "unchanged_after_removing_only_audit_hunks": true
+    },
+    {
+      "path": "frontend/src/components/chat/SourceGroupList.tsx",
+      "initial_sha256": "2cc8b3db22265df92150c28818fcbe631cd5bdd5f50ab5ec7a4679d725a83df8",
+      "unchanged_after_removing_only_audit_hunks": true
+    },
+    {
+      "path": "frontend/src/types/index.ts",
+      "initial_sha256": "284480316a80179c5422874aa4e108e26be1c08bd31861bfa9ff62ddc30f52c7",
+      "unchanged_after_removing_only_audit_hunks": true
+    },
+    {
+      "path": "patch_notes.md",
+      "initial_sha256": "f9c49af0d9fa98b69b63f5dd8859b1f31219326cf96ee438b6e7cb1193632316",
+      "unchanged_after_removing_only_audit_hunks": true
+    }
+  ],
+  "patch_notes_append_check": "A concurrent task prepended its own image-recovery entry. The suffix following the audit entry still exactly matches the entire initial patch_notes file; hash verified. Both additions retained.",
+  "concurrent_changes_outside_audit": [
+    "backend/api/mistakes.py",
+    "backend/services/multimodal_bridge.py",
+    "tests/test_mistakes_api.py",
+    "tests/test_visual_recognition_recovery.py",
+    "patch_notes.md (separate image-recovery entry)"
+  ]
+}

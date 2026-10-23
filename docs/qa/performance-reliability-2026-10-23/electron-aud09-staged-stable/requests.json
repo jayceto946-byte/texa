@@ -1,0 +1,718 @@
+[
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792756504708_1eda2958/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792756505883_aa9f6763/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792756506867_5acfab3b/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792756507824_cdbe947f/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792756508781_fe64892a/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792756509749_51c1168f/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/conv_1792756510703_56f6996a/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A/messages",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/messages/a/context",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A/messages-after",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/B",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/B/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/messages/a/context",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A/messages",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/messages/a/context",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A/messages-after",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/system/settings",
+    "method": "GET"
+  },
+  {
+    "path": "/api/focus",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/books/list",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/management",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/messages/a/context",
+    "method": "GET"
+  },
+  {
+    "path": "/api/system/settings/subjects",
+    "method": "GET"
+  },
+  {
+    "path": "/api/mistakes/chat-sources/query",
+    "method": "POST"
+  },
+  {
+    "path": "/api/chat/conversations/A/messages",
+    "method": "GET"
+  },
+  {
+    "path": "/api/chat/conversations/A/messages/b/context",
+    "method": "GET"
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-23",
+  "branch": "Texa_MacOS",
+  "baseline_commit": "140255ad180b8076c830e5600ca4297942eee105",
+  "python": "3.10.21",
+  "system": "macOS-26.5.1-arm64-arm-64bit",
+  "scope": "Working tree, including preserved pre-existing modifications; hashes identify final audited file contents, not a commit or release",
+  "sha256": {
+    "frontend/src/contexts/ChatContext.tsx": "5b7d299a3de780f037a9803700aa5ee694cd0886235ef34bed05b8156160c430",
+    "frontend/src/pages/ChatPage.tsx": "13eec67fe60715e1c58859f13ddc2774b9c959c61ebcb1296bf9f992007426a5",
+    "backend/services/tool_orchestration.py": "035d12ae715241ff96bc748193cee502201e6c0433fab7f199e668c3f649ad6e",
+    "backend/services/agent_runtime/chat_binding.py": "9fc43b5fc87785e9027e8311d46616f395669a34c3bbccf775d075d3f71d7a37",
+    "memory/mistake_book.py": "3e85930e839d92407e8bf295f112e11db1aebebf8f819b7991c046ab725e1cdd",
+    "memory/exercise_bank.py": "76cebc3cc12040f1e9351e3b28729b0070df61af9b6bbbf6603156196824e8e5",
+    "ingestion/lexical_index.py": "c2947719c9f6f953190047e4886feec9afea2462ba773806030598143820c2cd",
+    "evaluation/embedding_backend/phase1_worker.py": "ae809f63cf0d03d55246b71eb08d699243f0831765b7d34c77a523ce87fec27e",
+    "tests/test_audit_regressions.py": "3c1cf8a9cf0b112e1d8d428651278ced120f9392def86f601c9a1eee7a6a698e",
+    "tests/test_tool_calling_audit.py": "1c4e5d0e96c80890b68459cc2b2c7b25d0d9cfd856aad467c89a5d1d54dbdb94",
+    "scripts/audit-runtime-contention.py": "51d5b9eb7263e9ed771855072889677803bbfd8581b09ad680fe4383e0f809a8",
+    "scripts/benchmark-audit-local.py": "883a9be5a7bdc4b04b0e8b65d628a29b45fa11e1349079d22d9edfd970e5cf8d",
+    "scripts/benchmark-audit-chroma.py": "e402db5aee6af55b0e183d56f4f64b369d870f425db82ac7f13e85870483560a",
+    "scripts/qa-audit-history-electron.mjs": "f244da723e6844dc176fa01ebbf037067faeff993769adef110b1cc264296c70",
+    "PERFORMANCE-RELIABILITY-AUDIT.md": "1b7378fa6055384dec0e1e2620c229595d49f347023189c5e724993b12dbab09",
+    "OPTIMIZATION-IMPLEMENTATION-REPORT.md": "65e661fe3e0c3887697ba95a0168dfa894f9971a5f81f428859a20a713474c20",
+    "PERFORMANCE-BEFORE-AFTER.md": "5a646a91d78a72ff13ed46fb8335a3bc374a71b3d53904c7cda3d0bfbc84150a",
+    "patch_notes.md": "85d52be74b18f3eed2945016f7a35e9f0c8cf764881bc0f86e70279d97febe08"
+  },
+  "observed_head_at_delivery": "140255ad180b8076c830e5600ca4297942eee105"
+}

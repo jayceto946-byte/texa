@@ -1,0 +1,80 @@
+
+> texa-desktop@1.0.0 test
+> node --test *.test.cjs
+
+✔ startup appearance caches the existing theme tokens without storing unrelated data (8.067666ms)
+✔ startup appearance rejects invalid theme IDs and unsafe or incomplete colors (0.09275ms)
+✔ startup window controls are exposed for Windows and hidden by default on macOS (0.361291ms)
+✔ CI binds package, lockfiles, VERSION and update manifests to one commit (34.495ms)
+✔ commit channel rejects older releases using the real updater version comparison (94.695375ms)
+✔ commit builds order by history count and bind the source identity (1.668167ms)
+✔ release gate verifies both platform manifests and actual package bytes (13.811125ms)
+✔ release gate rejects mixed commits and absent platform packages (1.886542ms)
+✔ Windows-only updates keep hash and identity checks without a Mac signing dependency (2.553583ms)
+✔ power bridge exposes only suspend/resume and unsubscribes without duplication (4.471792ms)
+✔ failed note preparation still runs focus preparation and vetoes window closure (3.863458ms)
+✔ aborted close notifies handlers without silently restarting a focus run (1.458542ms)
+✔ one click uses actual port; restart follows changed port; disable removes owned mapping (26.905458ms)
+✔ unrelated root handler remains untouched (5.10025ms)
+✔ never enables or edits Funnel (0.297375ms)
+✔ existing exact target can be adopted after device rename (0.462459ms)
+✔ not ready and nonlocal backend never mutate Tailscale (0.323ms)
+✔ missing Tailscale returns actionable state without commands (2.530833ms)
+✔ first enable accepts null Serve config and creates the current user address (1.728625ms)
+✔ Windows discovers native Program Files outside PATH and enables HTTPS for its own tailnet (2.1605ms)
+✔ Windows tries other installation roots and PATH when a candidate is absent (3.098875ms)
+✔ a cached executable can be rediscovered after installation moves (0.797541ms)
+✔ Serve errors after confirmed login identify phase and do not expose command output (3.999ms)
+✔ login, disconnected, malformed and missing DNS states remain distinct (1.296375ms)
+✔ malformed Serve config blocks changes without leaking the response (0.290666ms)
+✔ write failures and failed verification are never reported as success (1.215041ms)
+✔ Texa branding preserves the existing desktop identity and userData paths (1.250125ms)
+✔ userData keeps the legacy default and accepts an explicit isolated override (0.236417ms)
+✔ portFromUrl resolves explicit and default HTTP ports (0.29425ms)
+✖ findAvailablePort releases a bindable loopback port (10.647ms)
+✔ desktop never treats an older healthy process as its own backend (0.092042ms)
+✔ desktop completion survives restart independently of the backend origin (10.437042ms)
+✔ corrupt, old and non-boolean flags do not complete setup (1.820875ms)
+✔ an unwritable completion target reports failure (1.808583ms)
+✔ stages and builds before a fast-forward, then swaps only compiled assets (1159.477709ms)
+✔ dirty files are preserved and block updates (817.568333ms)
+✔ dependency changes require explicit full upgrade (715.838125ms)
+✔ failed candidate build leaves the running checkout intact (784.434625ms)
+✔ new local work after preparation blocks install (514.353541ms)
+✔ divergent local commits are not reset or merged automatically (483.904958ms)
+✔ asset swap failure preserves the previous source commit and UI (753.826458ms)
+✔ the real TypeScript/Vite pipeline builds an archived target before updating the checkout (988.384708ms)
+✔ a remote tracked file cannot overwrite an ignored local file (612.142125ms)
+✔ Python syntax failure rejects a candidate without changing the running source (1019.399166ms)
+✔ restart update waits for saved drafts and backend exit, then silently updates and reopens (5.671125ms)
+✔ incomplete downloads and unsaved drafts cannot start installation or stop the backend (1.683917ms)
+✔ nonlocal IPC callers cannot install an update (7.231666ms)
+✔ source checkouts still use their staged source update and relaunch (0.690041ms)
+✔ the installed updater translates the production flags to NSIS silent update and restart (2.20175ms)
+✔ close waits for its renderer and coalesces concurrent close/quit (1.00525ms)
+✔ failed draft flush vetoes closure without stopping backend (0.086666ms)
+✔ unresponsive renderer times out safely and stale acknowledgements do not revive it (5.757417ms)
+✔ startup without a window can quit and send failure vetoes safely (0.386666ms)
+ℹ tests 53
+ℹ suites 0
+ℹ pass 52
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8069.744625
+
+✖ failing tests:
+
+test at runtime.test.cjs:38:1
+✖ findAvailablePort releases a bindable loopback port (10.647ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }

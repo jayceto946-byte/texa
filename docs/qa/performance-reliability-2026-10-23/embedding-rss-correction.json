@@ -1,0 +1,11 @@
+{
+  "method": "derived unit correction only; original benchmark preserved, no inference rerun; Darwin ru_maxrss bytes were multiplied by 1024",
+  "lifetime_peak_rss_mib_p95": {
+    "interactive": 228.953125,
+    "ingestion": 938.03125,
+    "concurrent": 938.03125
+  },
+  "fresh_process_corrected_helper_rss_bytes": 29016064,
+  "python": "3.10.21",
+  "thread_count_limitation": "max_native_threads on POSIX is Python threading.active_count, not ONNX native threads; excluded from conclusions"
+}

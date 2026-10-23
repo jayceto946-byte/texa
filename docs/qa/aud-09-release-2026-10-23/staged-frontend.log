@@ -1,0 +1,13 @@
+
+> texa-frontend@1.0.0 test
+> vitest run
+
+
+ RUN  v4.1.9 /private/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-aud09-staged-krk3ptnq/frontend
+
+
+ Test Files  52 passed (52)
+      Tests  249 passed (249)
+   Start at  19:53:39
+   Duration  2.99s (transform 1.86s, setup 0ms, import 3.70s, tests 1.91s, environment 15ms)
+

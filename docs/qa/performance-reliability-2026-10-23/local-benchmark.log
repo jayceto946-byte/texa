@@ -1,0 +1,184 @@
+{
+  "baseline_commit": "140255ad180b8076c830e5600ca4297942eee105",
+  "kind": "synthetic offline paired microbenchmark; not model or end-to-end latency",
+  "lexical": [
+    {
+      "rows": 600,
+      "query": "导数定义是什么",
+      "before": {
+        "median_ms": 100.98658300012175,
+        "p95_ms": 234.4264999992447,
+        "samples_ms": [
+          57.358083000508486,
+          234.4264999992447,
+          136.95849999930942,
+          132.06383299984736,
+          81.56895799947961,
+          83.90712499931396,
+          100.35116600010952,
+          100.98658300012175,
+          124.85283400019398
+        ]
+      },
+      "after": {
+        "median_ms": 92.05400000064401,
+        "p95_ms": 227.30741700070212,
+        "samples_ms": [
+          51.514957998733735,
+          113.909457999398,
+          114.2582089996722,
+          101.63612500036834,
+          227.30741700070212,
+          89.96216599916806,
+          54.98358300064865,
+          92.05400000064401,
+          89.46908399957465
+        ]
+      },
+      "output_sha256": "97d422b74510b86f78422412fae39c8def5c88edce824820338c159f922a8cb7",
+      "exact_parity_cases": 16
+    },
+    {
+      "rows": 600,
+      "query": "误差有哪三种方法",
+      "before": {
+        "median_ms": 58.868250000159605,
+        "p95_ms": 89.17004200156953,
+        "samples_ms": [
+          89.17004200156953,
+          57.92341600135842,
+          58.48737499945855,
+          56.807541999660316,
+          56.19420800030639,
+          60.66766700132575,
+          58.868250000159605,
+          65.47791699995287,
+          69.98025000029884
+        ]
+      },
+      "after": {
+        "median_ms": 49.15150000124413,
+        "p95_ms": 57.678416998896864,
+        "samples_ms": [
+          54.06458300058148,
+          48.64350000025297,
+          49.841541000205325,
+          46.73729199930676,
+          47.66633399958664,
+          46.14133300128742,
+          50.26016599913419,
+          49.15150000124413,
+          57.678416998896864
+        ]
+      },
+      "output_sha256": "b4b902711e338e7f024a0a800379f4ee3d737706a8e8ec641c37ef22f0882edd",
+      "exact_parity_cases": 16
+    },
+    {
+      "rows": 3000,
+      "query": "导数定义是什么",
+      "before": {
+        "median_ms": 278.6387090000062,
+        "p95_ms": 300.7259999994858,
+        "samples_ms": [
+          277.5183339999785,
+          255.26754199927382,
+          300.7259999994858,
+          290.704208000534,
+          271.05704200039327,
+          265.7579579990852,
+          279.7394159988471,
+          288.5784579993924,
+          278.6387090000062
+        ]
+      },
+      "after": {
+        "median_ms": 200.3971249996539,
+        "p95_ms": 222.3372919997928,
+        "samples_ms": [
+          212.0807920000516,
+          200.13708300029975,
+          213.7367080013064,
+          222.3372919997928,
+          193.8291250007751,
+          195.5185420010821,
+          215.62729099969147,
+          200.3971249996539,
+          172.28637500011246
+        ]
+      },
+      "output_sha256": "89f403af443330c88dedbd9e3c74d7e457b07a8fc8ae7c3475a48265d804b61c",
+      "exact_parity_cases": 16
+    },
+    {
+      "rows": 3000,
+      "query": "误差有哪三种方法",
+      "before": {
+        "median_ms": 280.3915419990517,
+        "p95_ms": 307.09270799889055,
+        "samples_ms": [
+          284.0072919989325,
+          280.3915419990517,
+          307.09270799889055,
+          281.9758749992616,
+          272.2216669990303,
+          281.22424999855866,
+          279.4122920004156,
+          277.4392920000537,
+          272.81133299948124
+        ]
+      },
+      "after": {
+        "median_ms": 223.35333400042146,
+        "p95_ms": 252.9431660004775,
+        "samples_ms": [
+          223.35333400042146,
+          219.145541999751,
+          252.9431660004775,
+          240.82737499884388,
+          222.267125000144,
+          224.59224999875005,
+          226.96670799996355,
+          221.08841599947482,
+          216.74375000111468
+        ]
+      },
+      "output_sha256": "4d9a9143094b54ecb5c2b08be7c36dbf02fba34bb0c40cdd12b9ae12a61135ee",
+      "exact_parity_cases": 16
+    }
+  ],
+  "connections": [
+    {
+      "store": "ExerciseBankStore",
+      "phase": "before",
+      "exited_contexts": 100,
+      "connections_still_open": 100,
+      "total_ms": 9.36224999895785,
+      "method": "retain connection references, GC disabled to expose deterministic close; not an unbounded production leak claim"
+    },
+    {
+      "store": "ExerciseBankStore",
+      "phase": "after",
+      "exited_contexts": 100,
+      "connections_still_open": 0,
+      "total_ms": 35.35025000019232,
+      "method": "retain connection references, GC disabled to expose deterministic close; not an unbounded production leak claim"
+    },
+    {
+      "store": "MistakeBookStore",
+      "phase": "before",
+      "exited_contexts": 100,
+      "connections_still_open": 100,
+      "total_ms": 10.852084000362083,
+      "method": "retain connection references, GC disabled to expose deterministic close; not an unbounded production leak claim"
+    },
+    {
+      "store": "MistakeBookStore",
+      "phase": "after",
+      "exited_contexts": 100,
+      "connections_still_open": 0,
+      "total_ms": 36.33712500050024,
+      "method": "retain connection references, GC disabled to expose deterministic close; not an unbounded production leak claim"
+    }
+  ]
+}

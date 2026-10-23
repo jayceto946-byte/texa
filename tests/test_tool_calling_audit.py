@@ -30,6 +30,7 @@ from backend.services.agent_runtime.chat_binding import build_math_registry
 class ControlledNativeModel(BaseChatModel):
     received: list[Any] = Field(default_factory=list)
     schemas: list[Any] = Field(default_factory=list)
+    repeat_expression: bool = True
 
     @property
     def _llm_type(self):
@@ -44,15 +45,16 @@ class ControlledNativeModel(BaseChatModel):
         round_number = len(self.received)
         response = AIMessage(content="查询完成。") if round_number == 3 else AIMessage(
             content="", tool_calls=[{"name": "symbolic_math",
-                "args": {"operation": "calculate", "expression": "2^10"}, "id": f"native-{round_number}",
+                "args": {"operation": "calculate", "expression": "2^10" if self.repeat_expression or round_number == 1 else "3^3"}, "id": f"native-{round_number}",
                 "type": "tool_call"}])
         return ChatResult(generations=[ChatGeneration(message=response)])
 
 
-def test_real_langchain_interface_two_tools_same_run_preserves_protocol(tmp_path):
+@pytest.mark.parametrize("repeat_expression", [True, False])
+def test_real_langchain_interface_two_tools_same_run_preserves_protocol(tmp_path, repeat_expression):
     registry = build_math_registry()
     meta = registry.runtime_tool("symbolic_math").runtime_metadata()
-    model = ControlledNativeModel()
+    model = ControlledNativeModel(repeat_expression=repeat_expression)
     resolved = resolve_model_role("reasoning", {
         "LLM_REASONING_PROVIDER": "openai_compatible",
         "LLM_REASONING_MODEL": "offline-audit",
@@ -71,12 +73,19 @@ def test_real_langchain_interface_two_tools_same_run_preserves_protocol(tmp_path
     result = adapter.run_native(runner, run_id, "owner", context=ToolContext())
     assert result["run"]["id"] == run_id
     assert result["consumed_model_calls"] == 3
-    assert len(result["tool_calls"]) == 2
+    # Exact repeated math reuses its receipt while both provider tool-call IDs
+    # still require matching ToolMessages. Distinct expressions execute twice.
+    assert len(result["tool_calls"]) == (1 if repeat_expression else 2)
     assert all(call["status"] == "succeeded" for call in result["tool_calls"])
     assert all(event["run_id"] == run_id for event in store.events(run_id))
     # Native messages and corresponding provider IDs survive each continuation.
     assert "1024" in str(model.received[1])
     assert "1024" in str(model.received[2])
+    tool_messages = [message for message in model.received[2] if isinstance(message, ToolMessage)]
+    assert [message.tool_call_id for message in tool_messages] == ["native-1", "native-2"]
+    assert ("runtime_reused" in tool_messages[1].content) is repeat_expression
+    if not repeat_expression:
+        assert "27" in tool_messages[1].content
     assert any(isinstance(msg, ToolMessage) for batch in model.received for msg in batch)
     assert any(isinstance(msg, AIMessage) and msg.tool_calls
                    for batch in model.received for msg in batch)

@@ -51,6 +51,8 @@ interface ChatContextType {
   cancelActiveChat: () => void;
   loadConversation: (id: string, messages: ChatMessage[], meta?: { subject?: string; bookName?: string; page?: ConversationPage | null }) => void;
   prependConversationMessages: (messages: ChatMessage[], page: ConversationPage) => void;
+  appendConversationMessages: (messages: ChatMessage[]) => void;
+  captureConversationRead: () => () => boolean;
   newConversation: () => void;
   addMessage: (msg: ChatMessage) => void;
   updateLastMessage: (updater: (msg: ChatMessage) => ChatMessage) => void;
@@ -74,6 +76,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [conversationId, setConversationId] = useState(() => readBrowserStorage('localStorage', 'kaoyan_conversation_id') || createConversationId());
   const [historyPage, setHistoryPage] = useState<ConversationPage | null>(null);
   const activeChatAbortRef = useRef<(() => void) | null>(null);
+  const conversationReadRef = useRef({ id: conversationId });
+  const captureConversationRead = useCallback(() => {
+    const identity = conversationReadRef.current;
+    return () => conversationReadRef.current === identity;
+  }, []);
 
   const setActiveChatAbort = useCallback((abort: (() => void) | null) => {
     activeChatAbortRef.current = abort;
@@ -86,6 +93,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const persistConversationId = useCallback((next: string) => {
+    if (conversationReadRef.current.id !== next) conversationReadRef.current = { id: next };
     setConversationId(next);
     writeBrowserStorage('localStorage', 'kaoyan_conversation_id', next);
   }, []);
@@ -129,6 +137,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const loadConversation = useCallback((id: string, nextMessages: ChatMessage[], meta: { subject?: string; bookName?: string; page?: ConversationPage | null } = {}) => {
+    // Replacing even the same conversation invalidates older pagination reads.
+    conversationReadRef.current = { id };
     cancelActiveChat();
     persistConversationId(id);
     setIsLoading(false);
@@ -156,6 +166,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMessages((prev) => [...prev, msg]);
   }, []);
 
+  const appendConversationMessages = useCallback((newerMessages: ChatMessage[]) => {
+    setMessages(current => {
+      const ids = new Set(current.map(message => message.id).filter(Boolean));
+      return [...current, ...newerMessages.filter(message => !message.id || !ids.has(message.id))];
+    });
+  }, []);
+
   const updateLastMessage = useCallback((updater: (msg: ChatMessage) => ChatMessage) => {
     setMessages((prev) => {
       if (prev.length === 0) return prev;
@@ -176,6 +193,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const clearMessages = useCallback(() => {
+    conversationReadRef.current = { id: conversationReadRef.current.id };
     cancelActiveChat();
     setIsLoading(false);
     setMessages([]);
@@ -198,6 +216,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       cancelActiveChat,
       loadConversation,
       prependConversationMessages,
+      appendConversationMessages,
+      captureConversationRead,
       newConversation,
       addMessage,
       updateLastMessage,
@@ -206,7 +226,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading: setIsLoading,
       clearMessages,
     }),
-    [messages, isLoading, bookName, subject, conversationId, historyPage, persistBookName, persistSubject, persistConversationId, syncRecoveredScope, setActiveChatAbort, cancelActiveChat, loadConversation, prependConversationMessages, newConversation, addMessage, updateLastMessage, updateMessageByTaskId, updateMessageByTurnId, clearMessages]
+    [messages, isLoading, bookName, subject, conversationId, historyPage, persistBookName, persistSubject, persistConversationId, syncRecoveredScope, setActiveChatAbort, cancelActiveChat, loadConversation, prependConversationMessages, appendConversationMessages, captureConversationRead, newConversation, addMessage, updateLastMessage, updateMessageByTaskId, updateMessageByTurnId, clearMessages]
   );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

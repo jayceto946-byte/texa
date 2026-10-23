@@ -1,0 +1,20 @@
+{
+  "frontend/dist": {
+    "files": 3921,
+    "bytes": 112717031,
+    "js_files": 3506,
+    "js_bytes": 65883132
+  },
+  "/private/tmp/texa-audit-build-before": {
+    "files": 395,
+    "bytes": 42844349,
+    "js_files": 55,
+    "js_bytes": 2143160
+  },
+  "/private/tmp/texa-audit-build-after": {
+    "files": 395,
+    "bytes": 42845254,
+    "js_files": 55,
+    "js_bytes": 2144065
+  }
+}

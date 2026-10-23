@@ -1,0 +1,185 @@
+{
+  "phase": "before",
+  "environment": "macOS actual Electron; production renderer, in-memory HTTP fixtures; no model/backend timing",
+  "checks": [
+    {
+      "name": "earlier: race reproduced",
+      "pass": true
+    },
+    {
+      "name": "later: race reproduced",
+      "pass": true
+    },
+    {
+      "name": "1280: formulas rendered",
+      "pass": true
+    },
+    {
+      "name": "1280: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024: formulas rendered",
+      "pass": true
+    },
+    {
+      "name": "1024: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760: formulas rendered",
+      "pass": true
+    },
+    {
+      "name": "760: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "no renderer exceptions",
+      "pass": true
+    }
+  ],
+  "races": [
+    {
+      "direction": "earlier",
+      "contaminated": true,
+      "switchedBack": false
+    },
+    {
+      "direction": "later",
+      "contaminated": true,
+      "switchedBack": true
+    }
+  ],
+  "errors": [],
+  "reload_ms": [
+    982.7909999999997,
+    965.3468329999996,
+    939.0121660000004,
+    949.8874590000005,
+    830.3773340000007
+  ],
+  "navigation_ms": [
+    32.794832999999926,
+    27.086457999999766,
+    25.878833000000668,
+    26.498915999998644,
+    26.29766700000073,
+    26.215625000000728,
+    27.60491600000023,
+    11.450833000000785,
+    25.60166599999866,
+    24.848500000000058,
+    27.116249999999127,
+    24.604541999999128,
+    13.64825000000019,
+    24.927207999999155,
+    25.476082999999562,
+    25.3247080000001,
+    24.68279100000109,
+    26.654500000000553,
+    24.376374999999825,
+    26.629124999999476
+  ],
+  "launch_to_composer_ms": 2829.0555,
+  "memory_before": [
+    {
+      "type": "Browser",
+      "memory": {
+        "workingSetSize": 111072,
+        "peakWorkingSetSize": 157152
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 1.560608,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      }
+    },
+    {
+      "type": "GPU",
+      "memory": {
+        "workingSetSize": 78176,
+        "peakWorkingSetSize": 95200
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 0.867915,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      }
+    },
+    {
+      "type": "Utility",
+      "memory": {
+        "workingSetSize": 43088,
+        "peakWorkingSetSize": 52560
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 1.607958,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      }
+    },
+    {
+      "type": "Tab",
+      "memory": {
+        "workingSetSize": 303872,
+        "peakWorkingSetSize": 334768
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 3.252939,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      }
+    }
+  ],
+  "memory_after": [
+    {
+      "type": "Browser",
+      "memory": {
+        "workingSetSize": 110832,
+        "peakWorkingSetSize": 157152
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 1.652226,
+        "percentCPUUsage": 3.0474422812742197,
+        "idleWakeupsPerSecond": 2
+      }
+    },
+    {
+      "type": "GPU",
+      "memory": {
+        "workingSetSize": 78032,
+        "peakWorkingSetSize": 95200
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 0.903797,
+        "percentCPUUsage": 1.1943754310562908,
+        "idleWakeupsPerSecond": 116
+      }
+    },
+    {
+      "type": "Utility",
+      "memory": {
+        "workingSetSize": 43072,
+        "peakWorkingSetSize": 52560
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 1.674946,
+        "percentCPUUsage": 2.229900668424276,
+        "idleWakeupsPerSecond": 0
+      }
+    },
+    {
+      "type": "Tab",
+      "memory": {
+        "workingSetSize": 314048,
+        "peakWorkingSetSize": 334768
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 3.618677,
+        "percentCPUUsage": 12.17531700139484,
+        "idleWakeupsPerSecond": 58
+      }
+    }
+  ]
+}

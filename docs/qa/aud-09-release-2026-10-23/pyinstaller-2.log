@@ -1,0 +1,66 @@
+58 INFO: PyInstaller: 6.21.0, contrib hooks: 2026.6
+58 INFO: Python: 3.10.21
+74 INFO: Platform: macOS-26.5.1-arm64-arm-64bit
+74 INFO: Python environment: /Users/jichengqian/Documents/ChatGPT/texa/venv310
+74 INFO: wrote /var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-aud09-freeze-xo_fsmif/payload_probe_2.spec
+78 INFO: Removing temporary files and cleaning cache in /var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-aud09-freeze-xo_fsmif/cache/pyinstaller
+79 INFO: Module search paths (PYTHONPATH):
+['/Users/jichengqian/Documents/ChatGPT/texa',
+ '/Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python310.zip',
+ '/Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10',
+ '/Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/python3.10/lib-dynload',
+ '/Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages',
+ '/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-aud09-freeze-xo_fsmif']
+273 INFO: Appending 'datas' from .spec
+281 INFO: checking Analysis
+281 INFO: Building Analysis because Analysis-00.toc is non existent
+281 INFO: Looking for Python shared library...
+293 INFO: Using Python shared library: /Users/jichengqian/Documents/ChatGPT/texa/.python-runtimes/cpython-3.10.21-macos-aarch64-none/lib/libpython3.10.dylib
+293 INFO: Running Analysis Analysis-00.toc
+293 INFO: Target bytecode optimization level: 0
+294 INFO: Initializing module dependency graph...
+295 INFO: Initializing module graph hook caches...
+306 INFO: Analyzing modules for base_library.zip ...
+705 INFO: Processing standard module hook 'hook-heapq.py' from '/Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/PyInstaller/hooks'
+760 INFO: Processing standard module hook 'hook-encodings.py' from '/Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/PyInstaller/hooks'
+1494 INFO: Processing standard module hook 'hook-math.py' from '/Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/PyInstaller/hooks'
+2122 INFO: Processing standard module hook 'hook-pickle.py' from '/Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/PyInstaller/hooks'
+2988 INFO: Caching module dependency graph...
+3023 INFO: Analyzing /var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-aud09-freeze-xo_fsmif/payload_probe.py
+3024 INFO: Processing module hooks (post-graph stage)...
+3048 INFO: Performing binary vs. data reclassification (396 entries)
+3091 INFO: Looking for ctypes DLLs
+3092 INFO: Analyzing run-time hooks ...
+3092 INFO: Including run-time hook 'pyi_rth_inspect.py' from '/Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/PyInstaller/hooks/rthooks'
+3109 INFO: Creating base_library.zip...
+3121 INFO: Looking for dynamic libraries
+3140 INFO: Warnings written to /var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-aud09-freeze-xo_fsmif/work/payload_probe_2/warn-payload_probe_2.txt
+3151 INFO: Graph cross-reference written to /var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-aud09-freeze-xo_fsmif/work/payload_probe_2/xref-payload_probe_2.html
+3200 INFO: checking PYZ
+3200 INFO: Building PYZ because PYZ-00.toc is non existent
+3200 INFO: Building PYZ (ZlibArchive) /var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-aud09-freeze-xo_fsmif/work/payload_probe_2/PYZ-00.pyz
+3316 INFO: Building PYZ (ZlibArchive) /var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-aud09-freeze-xo_fsmif/work/payload_probe_2/PYZ-00.pyz completed successfully.
+3318 INFO: EXE target arch: arm64
+3318 INFO: Code signing identity: None
+3331 INFO: checking PKG
+3331 INFO: Building PKG because PKG-00.toc is non existent
+3331 INFO: Building PKG (CArchive) payload_probe_2.pkg
+3335 INFO: Building PKG (CArchive) payload_probe_2.pkg completed successfully.
+3335 INFO: Bootloader /Users/jichengqian/Documents/ChatGPT/texa/venv310/lib/python3.10/site-packages/PyInstaller/bootloader/Darwin-64bit/run
+3335 INFO: checking EXE
+3335 INFO: Building EXE because EXE-00.toc is non existent
+3335 INFO: Building EXE from EXE-00.toc
+3335 INFO: Copying bootloader EXE to /var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-aud09-freeze-xo_fsmif/work/payload_probe_2/payload_probe_2
+3336 INFO: Converting EXE to target arch (arm64)
+3356 INFO: Removing signature(s) from EXE
+3377 INFO: Modifying Mach-O image UUID(s) in EXE
+3380 INFO: Appending PKG archive to EXE
+3380 INFO: Fixing EXE headers for code signing
+3384 INFO: Rewriting the executable's macOS SDK version (26.2.0) to match the SDK version of the Python library (15.0.0) in order to avoid inconsistent behavior and potential UI issues in the frozen application.
+3386 INFO: Re-signing the EXE
+3405 INFO: Building EXE from EXE-00.toc completed successfully.
+3407 INFO: checking COLLECT
+3407 INFO: Building COLLECT because COLLECT-00.toc is non existent
+3407 INFO: Building COLLECT COLLECT-00.toc
+3711 INFO: Building COLLECT COLLECT-00.toc completed successfully.
+3716 INFO: Build complete! The results are available in: /var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/texa-aud09-freeze-xo_fsmif/dist

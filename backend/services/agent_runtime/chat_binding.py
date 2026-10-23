@@ -8,6 +8,7 @@ import os
 import threading
 import uuid
 import queue
+import anyio
 
 from backend.services.agent_runtime.contracts import RunCommand, RuntimeConflict
 from backend.services.agent_runtime.locator import public_task, runtime_store
@@ -336,17 +337,22 @@ def stream_run(store, run_id: str, owner: str, registry=None, adapter=None):
                 output_queue.put(store.output_delta(run_id, owner, text[offset:offset+400], replace=replace and offset == 0))
     def work():
         execute_run(store, run_id, owner, registry, adapter, on_output=on_output)
+    def read_batch(after_seq):
+        # SQLite and the producer's reservation lock may wait on disk/writers.
+        # Keep the atomic snapshot+delta drain off the ASGI event loop.
+        with stream_lock:
+            snapshot, batch = store.stream_snapshot(run_id, after_seq=after_seq)
+            while not output_queue.empty():
+                delta = output_queue.get_nowait()
+                if delta["seq"] > after_seq:
+                    batch.append(delta)
+        return snapshot, batch
     async def events():
         worker = threading.Thread(target=work, name="texa-runtime-chat", daemon=True)
         worker.start()
         cursor = 0
         while True:
-            with stream_lock:
-                snapshot, batch = store.stream_snapshot(run_id, after_seq=cursor)
-                while not output_queue.empty():
-                    delta = output_queue.get_nowait()
-                    if delta["seq"] > cursor:
-                        batch.append(delta)
+            snapshot, batch = await anyio.to_thread.run_sync(read_batch, cursor)
             batch.sort(key=lambda event: event["seq"])
             for event in batch:
                 sidecar = {"learning_task": public_task(store, snapshot),
