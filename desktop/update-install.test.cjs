@@ -13,6 +13,7 @@ function fixture(overrides = {}) {
     requireLocalRenderer: event => { assert.equal(event.local, true); },
     prepareWindowClose: async () => { calls.push('saved'); return true; },
     stopBackend: async () => { calls.push('stopped'); },
+    appendBackendLog: () => {},
     autoUpdater: { quitAndInstall: (...args) => calls.push(['install', ...args]) },
     emitUpdateState: state => (context.updateState = { ...context.updateState, ...state }),
     app: { relaunch: () => calls.push('relaunch'), quit: () => calls.push('quit') },
@@ -43,6 +44,23 @@ test('restart update waits for saved drafts and backend exit, then silently upda
   assert.equal((await first).status, 'installing');
   assert.deepEqual(f.calls, ['saved', 'stopping', ['install', true, true]]);
   assert.equal(f.context.allowQuit, true);
+});
+
+test('only an approved close handshake can override a late renderer unload veto', () => {
+  const source = readFileSync(require.resolve('./main.cjs'), 'utf8');
+  const start = source.indexOf('function allowPreparedWindowUnload(event) {');
+  const end = source.indexOf('\n// Keep the pre-Texa', start);
+  assert.ok(start > 0 && end > start);
+  assert.match(source, /webContents\.on\('will-prevent-unload', allowPreparedWindowUnload\)/);
+  for (const [allowQuit, allowWindowClose, expected] of [
+    [false, false, 0], [true, false, 1], [false, true, 1],
+  ]) {
+    let permitted = 0;
+    const context = { allowQuit, allowWindowClose, appendBackendLog: () => {} };
+    vm.runInNewContext(source.slice(start, end), context);
+    context.allowPreparedWindowUnload({ preventDefault: () => permitted++ });
+    assert.equal(permitted, expected);
+  }
 });
 
 test('incomplete downloads and unsaved drafts cannot start installation or stop the backend', async () => {

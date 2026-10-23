@@ -1,0 +1,66 @@
+
+> texa-desktop@1.0.0 test
+> node --test *.test.cjs
+
+✔ startup appearance caches the existing theme tokens without storing unrelated data (3.855708ms)
+✔ startup appearance rejects invalid theme IDs and unsafe or incomplete colors (0.094708ms)
+✔ startup window controls are exposed for Windows and hidden by default on macOS (0.284208ms)
+✔ CI binds package, lockfiles, VERSION and update manifests to one commit (31.082875ms)
+✔ commit channel rejects older releases using the real updater version comparison (103.113667ms)
+✔ commit builds order by history count and bind the source identity (1.410041ms)
+✔ release gate verifies both platform manifests and actual package bytes (8.38725ms)
+✔ release gate rejects mixed commits and absent platform packages (4.79625ms)
+✔ Windows-only updates keep hash and identity checks without a Mac signing dependency (5.052542ms)
+✔ power bridge exposes only suspend/resume and unsubscribes without duplication (5.046208ms)
+✔ failed note preparation still runs focus preparation and vetoes window closure (4.8245ms)
+✔ aborted close notifies handlers without silently restarting a focus run (1.273333ms)
+✔ one click uses actual port; restart follows changed port; disable removes owned mapping (4.999083ms)
+✔ unrelated root handler remains untouched (1.220375ms)
+✔ never enables or edits Funnel (0.7015ms)
+✔ existing exact target can be adopted after device rename (0.900208ms)
+✔ not ready and nonlocal backend never mutate Tailscale (0.953584ms)
+✔ missing Tailscale returns actionable state without commands (1.633042ms)
+✔ first enable accepts null Serve config and creates the current user address (1.218917ms)
+✔ Windows discovers native Program Files outside PATH and enables HTTPS for its own tailnet (2.022959ms)
+✔ Windows tries other installation roots and PATH when a candidate is absent (1.232875ms)
+✔ a cached executable can be rediscovered after installation moves (0.873541ms)
+✔ Serve errors after confirmed login identify phase and do not expose command output (5.184583ms)
+✔ login, disconnected, malformed and missing DNS states remain distinct (2.511041ms)
+✔ malformed Serve config blocks changes without leaking the response (0.276ms)
+✔ write failures and failed verification are never reported as success (0.749375ms)
+✔ Texa branding preserves the existing desktop identity and userData paths (1.479625ms)
+✔ userData keeps the legacy default and accepts an explicit isolated override (0.45525ms)
+✔ portFromUrl resolves explicit and default HTTP ports (0.445292ms)
+✔ findAvailablePort releases a bindable loopback port (13.184209ms)
+✔ desktop never treats an older healthy process as its own backend (0.129041ms)
+✔ desktop completion survives restart independently of the backend origin (2.187291ms)
+✔ corrupt, old and non-boolean flags do not complete setup (1.6625ms)
+✔ an unwritable completion target reports failure (1.180875ms)
+✔ stages and builds before a fast-forward, then swaps only compiled assets (401.766708ms)
+✔ dirty files are preserved and block updates (600.874583ms)
+✔ dependency changes require explicit full upgrade (264.9635ms)
+✔ failed candidate build leaves the running checkout intact (310.099125ms)
+✔ new local work after preparation blocks install (369.376167ms)
+✔ divergent local commits are not reset or merged automatically (379.927625ms)
+✔ asset swap failure preserves the previous source commit and UI (332.821458ms)
+✔ the real TypeScript/Vite pipeline builds an archived target before updating the checkout (791.072584ms)
+✔ a remote tracked file cannot overwrite an ignored local file (380.034166ms)
+✔ Python syntax failure rejects a candidate without changing the running source (907.247916ms)
+✔ restart update waits for saved drafts and backend exit, then silently updates and reopens (2.807ms)
+✔ only an approved close handshake can override a late renderer unload veto (0.811333ms)
+✔ incomplete downloads and unsaved drafts cannot start installation or stop the backend (0.553ms)
+✔ nonlocal IPC callers cannot install an update (0.640125ms)
+✔ source checkouts still use their staged source update and relaunch (0.322208ms)
+✔ the installed updater translates the production flags to NSIS silent update and restart (0.542459ms)
+✔ close waits for its renderer and coalesces concurrent close/quit (0.526833ms)
+✔ failed draft flush vetoes closure without stopping backend (0.080959ms)
+✔ unresponsive renderer times out safely and stale acknowledgements do not revive it (5.617875ms)
+✔ startup without a window can quit and send failure vetoes safely (0.371916ms)
+ℹ tests 54
+ℹ suites 0
+ℹ pass 54
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4920.343834

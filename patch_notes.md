@@ -1,3 +1,10 @@
+## 2026-10-23 — 修复重启更新被页面卸载阻止
+
+- 已确认用户使用Windows安装版。定位到现有关闭握手成功后，renderer的beforeunload仍可取消app.quit，留下已经停止后端的旧窗口；NSIS随后可能结束该进程。仅在关闭准备已批准的allowQuit/allowWindowClose状态下，主窗口允许will-prevent-unload继续卸载，保留保存失败/超时/用户拒绝的阻断，不强杀产品进程。
+- 保留现有静默安装/自动启动参数、提交与下载校验、后端停止和源码更新分支；在现有日志加入固定的更新退出阶段，不记录用户正文或凭证。
+- 桌面54项、语法检查通过。真实macOS Electron执行生产preload/IPC、关闭/安装/退出处理，旧路径prepared/stopped后仍被卸载阻止；修复后实际退出并重启到新PID；保存拒绝不停止或安装。真实NsisUpdater参数链保留，安装器spawn与后端为替身，未执行本机Windows安装升级。
+- Windows更新流水线新增同一原生退出/重启门槛并保留原NSIS升级检查；Windows结果以本次推送后CI为准。首次升级本修复仍由旧客户端执行退出，可能需要手动重开一次。证据与限制见 `docs/qa/update-restart-2026-10-23/README.md`。无依赖、数据库或索引变更，搁置差异未纳入提交。
+
 ## 2026-10-23 — AUD-07 历史冻结与当前工具合同分离
 
 - 保留历史v1教材工具schema、source pins、manifest、fixtures与金标；新增固定当前三种只读工具schema/metadata的独立runtime-tools-v1合同。教材查询只允许旧query/chapter显式映射到v3空continuation，非空续读不可降为旧合同，不泛化忽略新增字段。

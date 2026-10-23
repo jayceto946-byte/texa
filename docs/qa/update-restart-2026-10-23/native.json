@@ -1,0 +1,61 @@
+{
+  "platform": "darwin",
+  "scope": "real Electron renderer/IPC/quit/relaunch; real NSIS flag translation; installer spawn and backend substituted",
+  "results": [
+    {
+      "scenario": "baseline",
+      "oldPid": 62808,
+      "prepared": true,
+      "stopped": true,
+      "installArgs": [
+        "--updated",
+        "/S",
+        "--force-run"
+      ],
+      "unloadAttempts": 1,
+      "reopened": false,
+      "messages": [
+        "[updater] preparing restart update",
+        "[updater] close preparation and backend stop completed",
+        "[updater] handing off silent install with automatic restart"
+      ],
+      "stillOpen": true,
+      "passed": true
+    },
+    {
+      "scenario": "fixed",
+      "oldPid": 62831,
+      "prepared": true,
+      "stopped": true,
+      "installArgs": [
+        "--updated",
+        "/S",
+        "--force-run"
+      ],
+      "unloadAttempts": 1,
+      "reopened": true,
+      "messages": [
+        "[updater] preparing restart update",
+        "[updater] close preparation and backend stop completed",
+        "[updater] handing off silent install with automatic restart",
+        "[shutdown] allowing renderer unload after close preparation"
+      ],
+      "newPid": 62836,
+      "passed": true
+    },
+    {
+      "scenario": "veto",
+      "oldPid": 62839,
+      "prepared": false,
+      "stopped": false,
+      "installArgs": null,
+      "unloadAttempts": 0,
+      "reopened": false,
+      "messages": [
+        "[updater] preparing restart update"
+      ],
+      "stillOpen": true,
+      "passed": true
+    }
+  ]
+}

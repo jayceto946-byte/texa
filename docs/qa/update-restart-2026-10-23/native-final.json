@@ -1,0 +1,63 @@
+{
+  "platform": "darwin",
+  "scope": "real Electron renderer/IPC/quit/relaunch; real NSIS flag translation; installer spawn and backend substituted",
+  "results": [
+    {
+      "scenario": "baseline",
+      "oldPid": 66746,
+      "prepared": true,
+      "stopped": true,
+      "installArgs": [
+        "--updated",
+        "/S",
+        "--force-run"
+      ],
+      "unloadAttempts": 1,
+      "reopened": false,
+      "messages": [
+        "[updater] preparing restart update",
+        "[updater] close preparation and backend stop completed",
+        "[updater] handing off silent install with automatic restart",
+        "[shutdown] prepared application quit"
+      ],
+      "stillOpen": true,
+      "passed": true
+    },
+    {
+      "scenario": "fixed",
+      "oldPid": 67117,
+      "prepared": true,
+      "stopped": true,
+      "installArgs": [
+        "--updated",
+        "/S",
+        "--force-run"
+      ],
+      "unloadAttempts": 1,
+      "reopened": true,
+      "messages": [
+        "[updater] preparing restart update",
+        "[updater] close preparation and backend stop completed",
+        "[updater] handing off silent install with automatic restart",
+        "[shutdown] prepared application quit",
+        "[shutdown] allowing renderer unload after close preparation"
+      ],
+      "newPid": 67122,
+      "passed": true
+    },
+    {
+      "scenario": "veto",
+      "oldPid": 67125,
+      "prepared": false,
+      "stopped": false,
+      "installArgs": null,
+      "unloadAttempts": 0,
+      "reopened": false,
+      "messages": [
+        "[updater] preparing restart update"
+      ],
+      "stillOpen": true,
+      "passed": true
+    }
+  ]
+}

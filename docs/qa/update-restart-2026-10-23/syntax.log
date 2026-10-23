@@ -1,0 +1,4 @@
+
+> texa-desktop@1.0.0 check
+> node --check main.cjs && node --check preload.cjs && node --check runtime.cjs && node --check appearance.cjs
+

@@ -26,6 +26,16 @@ async function prepareWindowClose() {
   return ready;
 }
 
+function allowPreparedWindowUnload(event) {
+  // The nonce-bound handshake has already saved drafts/paused work. A second
+  // renderer veto here can strand quitAndInstall after the backend has stopped,
+  // leaving NSIS to force-kill the old client instead of a clean update exit.
+  if (allowQuit || allowWindowClose) {
+    appendBackendLog('[shutdown] allowing renderer unload after close preparation');
+    event.preventDefault();
+  }
+}
+
 // Keep the pre-Texa userData locations stable. Changing productName/package name
 // without this override would make existing installations appear to lose data.
 app.setName('Texa');
@@ -698,6 +708,7 @@ function createWindow() {
   });
 
   mainWindow.once('ready-to-show', () => mainWindow?.show());
+  mainWindow.webContents.on('will-prevent-unload', allowPreparedWindowUnload);
   mainWindow.on('close', (event) => {
     if (allowQuit || allowWindowClose) return;
     event.preventDefault();
@@ -853,9 +864,11 @@ async function installAppUpdate(event) {
   if (updateState.status !== 'downloaded') {
     return emitUpdateState({ status: 'error', message: '更新尚未下载完成，无法安装。' });
   }
+  appendBackendLog('[updater] preparing restart update');
   if (!await prepareWindowClose()) return emitUpdateState({ status: 'downloaded', message: '草稿尚未保存，请先处理未保存修改。' });
   shuttingDown = true;
   await stopBackend();
+  appendBackendLog('[updater] close preparation and backend stop completed');
   if (sourceUpdater) {
     const result = await sourceUpdater.install();
     if (result.status !== 'installing') {
@@ -872,6 +885,7 @@ async function installAppUpdate(event) {
   }
   allowQuit = true;
   // Updates reuse the existing installation without showing the setup wizard.
+  appendBackendLog('[updater] handing off silent install with automatic restart');
   autoUpdater.quitAndInstall(true, true);
   return emitUpdateState({ status: 'installing', message: '正在重启并安装更新...' });
 }
@@ -901,7 +915,10 @@ if (hasSingleInstanceLock) {
 }
 
 app.on('before-quit', (event) => {
-  if (allowQuit) return;
+  if (allowQuit) {
+    appendBackendLog('[shutdown] prepared application quit');
+    return;
+  }
   event.preventDefault();
   void prepareWindowClose().then(async (ready) => {
     if (!ready) return;

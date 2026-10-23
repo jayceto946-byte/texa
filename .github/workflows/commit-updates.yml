@@ -101,6 +101,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Desktop tests failed' }
           npm run check --prefix desktop
           if ($LASTEXITCODE -ne 0) { throw 'Desktop syntax checks failed' }
+          node scripts/verify-electron-update-restart.cjs update-restart-verification.json
+          if ($LASTEXITCODE -ne 0) { throw 'Native Electron update exit/relaunch checks failed' }
       - name: Bind build to the exact commit
         id: identity
         run: |
@@ -160,6 +162,7 @@ jobs:
           path: |
             smoke-out.log
             smoke-error.log
+            update-restart-verification.json
             release/upgrade-verification.json
             release/upload-receipt.json
           if-no-files-found: ignore
