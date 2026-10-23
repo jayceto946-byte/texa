@@ -1,0 +1,33 @@
+.....................................................F......             [100%]
+=================================== FAILURES ===================================
+________ test_continuation_calls_spend_the_existing_runtime_tool_budget ________
+
+corpus = (<function corpus.<locals>.make at 0x10dc109d0>, <backend.services.figure_learning.FigureLearningService object at 0x1...vate/var/folders/hg/_l1xskmn5zl4ydgxcrd1ch3c0000gn/T/pytest-of-jichengqian/pytest-20/test_continuation_calls_spend_0'))
+
+    def test_continuation_calls_spend_the_existing_runtime_tool_budget(corpus):
+        from backend.services.agent_runtime.contracts import RunCommand, FixedAction, RuntimeDenied
+        from backend.services.agent_runtime.runner import FixedRunner
+        from backend.services.agent_runtime.store import RuntimeStore
+        make, service, _, root = corpus
+        _, anchor = make([block(f"tail-{n}", "后续推导。" * 120) for n in range(8)])
+        first = build_evidence_pack(expand_textbook_context([anchor], service=service), intent="teach", char_budget=3000)["verification_items"][0]
+        registry = ToolRegistry()
+        register_textbook_search_runtime(registry,
+            {"id": "scope", "book_name": "数学", "subject": "数学", "index_versions": {"数学": "v1"}, "resources": []},
+            versions=lambda _: "v1", retrieve=lambda *a, **kw: pytest.fail("continuation must not search"))
+        store = RuntimeStore(root / "runtime.db")
+        snapshot = store.create(RunCommand("key", "req", "task", "conv", "turn", "继续", "owner", budget_calls=1))
+        runner = FixedRunner(store, registry, allowlist=frozenset({"search_textbook"}))
+        args = {"query": "继续", "continuation": first["learning_unit"]["continuation"]}
+        run_id = snapshot["run"]["id"]
+        context = ToolContext(book_name="数学", subject="数学")
+        result = runner.execute(run_id, "owner", FixedAction("call", tool_id="search_textbook", args=args, operation_key="first"), context=context)
+        assert result["consumed_calls"] == 1
+        assert result["tool_calls"][0]["status"] == "succeeded"
+>       assert result["tool_calls"][0]["version"] == "3"
+E       KeyError: 'version'
+
+tests/test_textbook_context_expansion.py:398: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_textbook_context_expansion.py::test_continuation_calls_spend_the_existing_runtime_tool_budget
+1 failed, 59 passed in 1.62s

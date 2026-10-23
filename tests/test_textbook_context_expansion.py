@@ -355,6 +355,52 @@ def test_continuation_reads_next_whole_blocks_and_rejects_stale_or_outside(corpu
         read_textbook_continuation(pointer, service=service)
 
 
+@pytest.mark.parametrize("mutation", [
+    {"book_name": "其他教材"}, {"index_version": "old-version"},
+    {"canonical_hash": "0" * 64}, {"unit_id": "proof"}, {"block_id": "absent"},
+])
+def test_current_continuation_rejects_forged_or_stale_pointers_through_tool(corpus, mutation):
+    from backend.services.agent_runtime.contracts import RuntimeDenied
+    make, service, _, _ = corpus
+    _, anchor = make([block(f"tail-{n}", "后续推导。" * 120) for n in range(8)])
+    first = build_evidence_pack(expand_textbook_context([anchor], service=service), intent="teach", char_budget=3000)["verification_items"][0]
+    pointer = first["learning_unit"]["continuation"]
+    registry = ToolRegistry()
+    register_textbook_search_runtime(registry,
+        {"book_name": "数学", "subject": "数学", "index_versions": {"数学": "v1"}, "resources": []},
+        versions=lambda _: "v1", retrieve=lambda *a, **kw: pytest.fail("invalid continuation must not search"))
+    tool = registry.runtime_tool("search_textbook")
+    args = tool.runtime_input.model_validate({"query": "继续", "continuation": {**pointer, **mutation}}).model_dump()
+    with pytest.raises(RuntimeDenied, match="continuation"):
+        tool.handler(ToolContext(book_name="数学", subject="数学"), args)
+
+
+def test_continuation_calls_spend_the_existing_runtime_tool_budget(corpus):
+    from backend.services.agent_runtime.contracts import RunCommand, FixedAction, RuntimeConflict
+    from backend.services.agent_runtime.runner import FixedRunner
+    from backend.services.agent_runtime.store import RuntimeStore
+    make, service, _, root = corpus
+    _, anchor = make([block(f"tail-{n}", "后续推导。" * 120) for n in range(8)])
+    first = build_evidence_pack(expand_textbook_context([anchor], service=service), intent="teach", char_budget=3000)["verification_items"][0]
+    registry = ToolRegistry()
+    register_textbook_search_runtime(registry,
+        {"id": "scope", "book_name": "数学", "subject": "数学", "index_versions": {"数学": "v1"}, "resources": []},
+        versions=lambda _: "v1", retrieve=lambda *a, **kw: pytest.fail("continuation must not search"))
+    store = RuntimeStore(root / "runtime.db")
+    snapshot = store.create(RunCommand("key", "req", "task", "conv", "turn", "继续", "owner", budget_calls=1))
+    runner = FixedRunner(store, registry, allowlist=frozenset({"search_textbook"}))
+    args = {"query": "继续", "continuation": first["learning_unit"]["continuation"]}
+    run_id = snapshot["run"]["id"]
+    context = ToolContext(book_name="数学", subject="数学")
+    result = runner.execute(run_id, "owner", FixedAction("call", tool_id="search_textbook", args=args, operation_key="first"), context=context)
+    assert result["consumed_calls"] == 1
+    assert result["tool_calls"][0]["status"] == "succeeded"
+    assert result["tool_calls"][0]["tool_version"] == "3"
+    with pytest.raises(RuntimeConflict, match="budget"):
+        runner.execute(run_id, "owner", FixedAction("call", tool_id="search_textbook", args=args, operation_key="second"), context=context)
+    assert store.snapshot(run_id)["consumed_calls"] == 1
+
+
 def test_continuation_advances_beyond_initial_block_scan_cap(corpus):
     from graph.textbook_context import read_textbook_continuation
     make, service, _, _ = corpus

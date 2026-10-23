@@ -165,3 +165,7 @@ ENV_PATH=/dev/null DATA_DIR=/private/tmp/texa-audit-embedding-data TEXA_EMBEDDIN
 这是打包资源输入验证，不是完整 Texa 安装包 before/after；不能据此推断压缩包减少的字节、构建耗时或升级成功率。原审计最终失败日志保留本地，因包含范围外 traceback，提交中以 `docs/qa/performance-reliability-2026-10-23/backend-final-summary.md` 记录 hash、计数与失败摘要；不隐去原失败结论。
 
 后续工作树全量2166通过/3失败。实际暂存源码另行导出验证：定点后端31、前端249、真实Electron12项通过，lint及TypeScript/Vite生产构建通过；工作树251项含其他未提交用例。新Electron数据只作功能回归，不与原审计样本拼接为性能提升。
+
+## AUD-07 后续：历史与当前评测合同分离
+
+原三文件227通过/3失败，修复后230通过；新增负例后六文件295通过，工作树全量2199通过。当前有限基准独立标记版本，11任务轨迹通过、21观察覆盖、11绑定检查/0错误；历史390文件与2ec2c04字节不变。此前Policy失败结论只描述当时状态，最新结果见 `docs/qa/aud-07-contracts-2026-10-23/README.md`。此次恢复合同测量，不宣称延迟、Token或模型答案质量提升，也没有重跑Embedding吞吐门槛。

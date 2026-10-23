@@ -1,0 +1,371 @@
+{
+  "compatibility": {
+    "get_recent_progress": "identity",
+    "search_exercises": "identity",
+    "search_textbook": "v1-query-chapter-to-v3-null-continuation"
+  },
+  "contract": "texa.runtime-tool-contracts/v1",
+  "frozen_baseline": "runtime-source/v0.1",
+  "frozen_registry_version": "sha256:468a8259856e03d4f63f8e478eebf058467dd05395fae044de2d20aa95ec7013",
+  "tools": {
+    "get_recent_progress": {
+      "id": "get_recent_progress",
+      "idempotency": "read_retryable",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "book_name": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Book Name",
+            "type": "string"
+          },
+          "days": {
+            "default": 7,
+            "maximum": 31,
+            "minimum": 1,
+            "title": "Days",
+            "type": "integer"
+          },
+          "limit": {
+            "default": 12,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "subject": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Subject",
+            "type": "string"
+          }
+        },
+        "title": "RecentProgressInput",
+        "type": "object"
+      },
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "book_name": {
+            "title": "Book Name",
+            "type": "string"
+          },
+          "coverage_note": {
+            "title": "Coverage Note",
+            "type": "string"
+          },
+          "queried_event_limit": {
+            "title": "Queried Event Limit",
+            "type": "integer"
+          },
+          "range_days": {
+            "title": "Range Days",
+            "type": "integer"
+          },
+          "recent_events": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Recent Events",
+            "type": "array"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "title": "Summary",
+            "type": "object"
+          },
+          "top_concepts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Top Concepts",
+            "type": "array"
+          },
+          "window_complete": {
+            "title": "Window Complete",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "book_name",
+          "subject",
+          "range_days",
+          "summary",
+          "top_concepts",
+          "recent_events",
+          "queried_event_limit",
+          "window_complete",
+          "coverage_note"
+        ],
+        "title": "RecentProgressOutput",
+        "type": "object"
+      },
+      "permission": "READ",
+      "provenance": "learning_events",
+      "schema_hash": "c9da17b8a518e93cd99a29118b1a07fa328d1cbfe1ba9cb4ca1b6f355bba3dab",
+      "side_effect": "none",
+      "source": "builtin",
+      "timeout_ms": 8000,
+      "version": "1"
+    },
+    "search_exercises": {
+      "id": "search_exercises",
+      "idempotency": "read_retryable",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "book_name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Book Name",
+            "type": "string"
+          },
+          "chapter": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Chapter",
+            "type": "string"
+          },
+          "limit": {
+            "default": 8,
+            "maximum": 30,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "query": {
+            "default": "",
+            "maxLength": 300,
+            "title": "Query",
+            "type": "string"
+          },
+          "status": {
+            "default": "",
+            "maxLength": 40,
+            "title": "Status",
+            "type": "string"
+          },
+          "subject": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Subject",
+            "type": "string"
+          },
+          "tag": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Tag",
+            "type": "string"
+          }
+        },
+        "required": [
+          "book_name"
+        ],
+        "title": "SearchExercisesInput",
+        "type": "object"
+      },
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "book_name": {
+            "title": "Book Name",
+            "type": "string"
+          },
+          "exercises": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Exercises",
+            "type": "array"
+          },
+          "filters": {
+            "additionalProperties": true,
+            "title": "Filters",
+            "type": "object"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "results_may_be_incomplete": {
+            "title": "Results May Be Incomplete",
+            "type": "boolean"
+          },
+          "searched_record_limit": {
+            "title": "Searched Record Limit",
+            "type": "integer"
+          },
+          "solution_fields_omitted": {
+            "title": "Solution Fields Omitted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "book_name",
+          "query",
+          "filters",
+          "exercises",
+          "solution_fields_omitted",
+          "searched_record_limit",
+          "results_may_be_incomplete"
+        ],
+        "title": "SearchExercisesOutput",
+        "type": "object"
+      },
+      "permission": "READ",
+      "provenance": "exercise_bank",
+      "schema_hash": "01cc07b8dd72d349c2a8a6958fd97eb584a11fbd571d577aaab0668529b59d48",
+      "side_effect": "none",
+      "source": "builtin",
+      "timeout_ms": 8000,
+      "version": "1"
+    },
+    "search_textbook": {
+      "id": "search_textbook",
+      "idempotency": "read_retryable",
+      "input_schema": {
+        "$defs": {
+          "TextbookContinuation": {
+            "additionalProperties": false,
+            "properties": {
+              "anchor_chunk_id": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Anchor Chunk Id",
+                "type": "string"
+              },
+              "anchor_content_fingerprint": {
+                "default": "",
+                "maxLength": 24,
+                "pattern": "^(?:[0-9a-f]{24})?$",
+                "title": "Anchor Content Fingerprint",
+                "type": "string"
+              },
+              "block_id": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Block Id",
+                "type": "string"
+              },
+              "book_name": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Book Name",
+                "type": "string"
+              },
+              "canonical_hash": {
+                "maxLength": 64,
+                "minLength": 64,
+                "title": "Canonical Hash",
+                "type": "string"
+              },
+              "index_version": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Index Version",
+                "type": "string"
+              },
+              "unit_id": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Unit Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "book_name",
+              "index_version",
+              "canonical_hash",
+              "unit_id",
+              "block_id",
+              "anchor_chunk_id"
+            ],
+            "title": "TextbookContinuation",
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "properties": {
+          "chapter": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Chapter",
+            "type": "string"
+          },
+          "continuation": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TextbookContinuation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "query": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "TextbookSearchInput",
+        "type": "object"
+      },
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_items": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Evidence Items",
+            "type": "array"
+          },
+          "evidence_support": {
+            "additionalProperties": true,
+            "title": "Evidence Support",
+            "type": "object"
+          },
+          "query_scope": {
+            "additionalProperties": true,
+            "title": "Query Scope",
+            "type": "object"
+          },
+          "retrieval_status": {
+            "title": "Retrieval Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query_scope",
+          "evidence_items",
+          "evidence_support",
+          "retrieval_status"
+        ],
+        "title": "TextbookSearchOutput",
+        "type": "object"
+      },
+      "permission": "READ",
+      "provenance": "scoped_production_evidence_pack",
+      "schema_hash": "fd3d77dd5f4fded50db6ea66ba14cadc0335692f3554c3adda0b9f57579dd5b2",
+      "side_effect": "derived_cache",
+      "source": "builtin",
+      "timeout_ms": 8000,
+      "version": "3"
+    }
+  }
+}

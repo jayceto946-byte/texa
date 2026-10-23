@@ -457,7 +457,8 @@ def test_cli_review_finalize_release_roundtrip(tmp_path):
     assert report["adjudication"]["review_statistics"]["double_blind_samples"] == 1
 
 
-def test_snapshot_binding_matches_canonical_runtime_models():
+def test_snapshot_binding_has_explicit_reviewed_runtime_adapter():
+    from evaluation.runtime_tool_contracts import upgrade_frozen_input
     from backend.services.agent_runtime.exercise_tool import SearchExercisesInput
     from backend.services.agent_runtime.progress_tool import RecentProgressInput
     from backend.services.agent_runtime.textbook_tool import TextbookSearchInput
@@ -467,7 +468,8 @@ def test_snapshot_binding_matches_canonical_runtime_models():
         ("search_exercises", SearchExercisesInput, {"book_name": "synthetic-book", "subject": "数学", "query": "查询习题", "limit": 8}),
         ("search_textbook", TextbookSearchInput, {"query": "检索定义", "chapter": ""}),
     ):
-        assert registry.runtime_tool(tool).runtime_input.model_validate(args).model_dump() == model.model_validate(args).model_dump()
+        legacy = registry.runtime_tool(tool).runtime_input.model_validate(args).model_dump()
+        assert upgrade_frozen_input(tool, legacy, model) == model.model_validate(args).model_dump()
 
 
 def test_sensitive_provider_response_metadata_is_not_persisted(tmp_path):

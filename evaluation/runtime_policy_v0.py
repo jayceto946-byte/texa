@@ -22,6 +22,7 @@ from backend.services.decision.policy import RulePolicyV0
 from backend.services.decision.policy_projection import matched_tool_refs, project_observation, runtime_identity
 from backend.tools.registry import ToolRegistry, ToolContext, ToolResult
 from memory.learning_events import LearningEventStore
+from evaluation.runtime_tool_contracts import verify_runtime_registry, upgrade_frozen_input
 
 FIXTURES = Path(__file__).parent / "fixtures" / "runtime_policy_v0.json"
 
@@ -52,6 +53,7 @@ def fixture_runtime(root, fixture):
             {"book_name": "fixture", "chunk_id": "definition_fixture", "text": "函数在一点连续，意味着函数值等于该点的极限。", "source": "fixture", "chapter": "连续"}],
             "evidence_support": {"status": "insufficient" if fixture.get("empty") else "sufficient"},
             "retrieval_status": "ok"})
+    verify_runtime_registry(registry)
     from graph.main_graph import build_initial_state
     state = build_initial_state(fixture["request"], book_name=fixture["book_name"], subject="数学",
         use_textbook_context=fixture["grounded"], answer_mode="textbook_grounded" if fixture["grounded"] else "global_general")
@@ -129,6 +131,7 @@ def run_baseline():
                             expected_args = {"get_recent_progress": {"book_name": context.book_name, "subject": context.subject, "days": 7, "limit": 12},
                                 "search_exercises": {"book_name": context.book_name, "subject": context.subject, "query": fixture["request"], "chapter": "", "tag": "", "status": "", "limit": 8},
                                 "search_textbook": {"query": fixture["request"], "chapter": ""}}[tool]
+                            expected_args = upgrade_frozen_input(tool, expected_args, registry.runtime_tool(tool).runtime_input)
                             candidate["binding_errors"] += int(bound != expected_args)
                     for excluded in item["exclusions"]:
                         reason = excluded["reason"]
@@ -266,7 +269,9 @@ def run_baseline():
     for group, numerator, denominator in (("selection", "correct", "eligible"),
                                          ("task_execution", "passed", "fixtures")):
         metrics[group]["accuracy" if group == "selection" else "success_rate"] = metrics[group][numerator] / metrics[group][denominator] if metrics[group][denominator] else None
-    return {"contract": "texa.runtime-policy/v0", "scope": "finite deterministic fixtures; no online answer quality claim",
+    return {"contract": "texa.runtime-policy/v0", "baseline_version": "current-runtime-policy-tools/v1",
+            "runtime_tool_contract": verify_runtime_registry(registry),
+            "scope": "current Runtime with versioned tools; finite deterministic fixtures; not the frozen dataset or online answer quality",
             "metrics": metrics, "fixtures": trajectories}
 
 
@@ -278,7 +283,12 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(report["metrics"], ensure_ascii=False))
-    return 0 if all(item["passed"] for item in report["fixtures"]) else 1
+    # Successful task trajectories alone cannot approve invalid tool bindings.
+    candidate = report["metrics"]["candidate_generation"]
+    passed = (all(item["passed"] for item in report["fixtures"])
+              and candidate["binding_errors"] == 0 and candidate["forbidden_leaks"] == 0
+              and report["metrics"]["overhead"]["real_model_calls"] == 0)
+    return 0 if passed else 1
 
 
 if __name__ == "__main__":

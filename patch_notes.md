@@ -1,3 +1,10 @@
+## 2026-10-23 — AUD-07 历史冻结与当前工具合同分离
+
+- 保留历史v1教材工具schema、source pins、manifest、fixtures与金标；新增固定当前三种只读工具schema/metadata的独立runtime-tools-v1合同。教材查询只允许旧query/chapter显式映射到v3空continuation，非空续读不可降为旧合同，不泛化忽略新增字段。
+- 当前Runtime有限基准标明current-runtime-policy-tools/v1及工具manifest身份，预期参数按显式兼容映射比对；CLI同时要求任务轨迹、绑定、候选及零真实模型调用门槛通过，避免只看任务完成而掩盖绑定错误。适配仅在评测与测试层使用，生产工具、开关、模型配置和预算不变。
+- 原三文件227通过/3失败→230通过；新增30项回归后六文件295通过，全量后端2199通过。当前基准11/11轨迹、21观察、11次绑定检查/0错误。390个历史冻结文件与2ec2c04字节一致，保留原失败记录，不据离线1.0宣称线上准确率或批准Policy启用。
+- 新增schema/metadata/manifest/source漂移、旧ref、兼容映射、非空续读拒绝降级、CLI失败门槛、异教材/旧索引/错误hash/unit/block及真实Runtime续读预算回归。无依赖、数据库或索引改动；仅评测层变更，未重复UI与安装升级验收。合同与证据见 `docs/contracts/runtime-tools-v1.md`、`docs/qa/aud-07-contracts-2026-10-23/README.md`。
+
 ## 2026-10-23 — AUD-09 发布前端资源隔离
 
 - macOS/Windows 后端打包各自创建一次性空 staging，显式传给 Vite，并仅将此目录收录为包内原有 frontend/dist；成功或正常失败后清理自身目录。服务 dist 的旧 hash 保留策略、包内读取路径和用户数据不变。

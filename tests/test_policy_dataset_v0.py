@@ -534,8 +534,9 @@ assert "backend.tools.learning_tools" not in sys.modules
 
 
 @pytest.mark.parametrize("tool", ["get_recent_progress", "search_exercises", "search_textbook"])
-def test_frozen_schema_matches_existing_canonical_models(tool):
+def test_frozen_schema_matches_reviewed_runtime_compatibility(tool):
     from evaluation.policy_dataset_v0.validation import canonical_tool_metadata, _canonical_tool
+    from evaluation.runtime_tool_contracts import assert_frozen_schema_compatibility
     if tool == "get_recent_progress":
         from backend.services.agent_runtime.progress_tool import RecentProgressInput as In, RecentProgressOutput as Out
     elif tool == "search_exercises":
@@ -543,10 +544,11 @@ def test_frozen_schema_matches_existing_canonical_models(tool):
     else:
         from backend.services.agent_runtime.textbook_tool import TextbookSearchInput as In, TextbookSearchOutput as Out
     snapshot = _canonical_tool(tool)
-    assert snapshot["input_schema"] == In.model_json_schema()
+    compatible_input = assert_frozen_schema_compatibility(tool, In, Out)
+    assert snapshot["input_schema"] == compatible_input
     assert snapshot["output_schema"] == Out.model_json_schema()
     assert canonical_tool_metadata(tool)["schema_hash"] == hashlib.sha256(json.dumps(
-        [In.model_json_schema(), Out.model_json_schema()], sort_keys=True).encode()).hexdigest()
+        [compatible_input, Out.model_json_schema()], sort_keys=True).encode()).hexdigest()
 
 
 @pytest.mark.parametrize("mutation", [{"days": True}, {"days": 0}, {"limit": 51}, {"extra": "x"}, {"book_name": None}])
