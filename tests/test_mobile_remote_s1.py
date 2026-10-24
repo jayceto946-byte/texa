@@ -63,11 +63,12 @@ def test_photo_session_mistake_and_note_freeze_preserve_complete_assets(chain):
     assert events[-1]['execution_event']['type'] == 'final'
     task = tasks.get(task_id)
     assert Path(task.artifacts['original_image_path']).read_bytes() == original
-    assert client.get(f'/api/mistakes/tasks/{task_id}/image').content == original
+    assert client.get(f'/api/mistakes/tasks/{task_id}/image').content == Path(task.artifacts['image_path']).read_bytes()
+    assert client.get(f'/api/mistakes/tasks/{task_id}/image?original=true').content == original
     preview = client.get(f'/api/mistakes/tasks/{task_id}/image?preview=true')
     assert preview.status_code == 200 and preview.headers['content-type'] == 'image/jpeg'
     with Image.open(io.BytesIO(preview.content)) as decoded:
-        assert decoded.size == (40, 80)  # full frame, EXIF orientation applied
+        assert decoded.size == (80, 40)  # selected input, not the full frame's EXIF rotation
     assert client.get(f'/api/mistakes/tasks/{task_id}/image?preview=true').content == preview.content
     assert Path(task.artifacts['original_image_path']).read_bytes() == original
     history = cm.load_full_history('s1-photo')

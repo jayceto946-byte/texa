@@ -1,0 +1,10 @@
+INFO:     Started server process [68957]
+INFO:     Uvicorn running on http://127.0.0.1:18277 (Press CTRL+C to quit)
+INFO:     S0 read session-list status=200 app_header_ms=26.7 response_body_bytes=72
+INFO:     S0 read session-list status=200 app_header_ms=9.2 response_body_bytes=72
+INFO:     S2 read session-page status=200 app_header_ms=7.1 response_body_bytes=108
+INFO:     S2 read session-page status=200 app_header_ms=1.7 response_body_bytes=108
+INFO:     S0 read session-list status=200 app_header_ms=3.8 response_body_bytes=72
+INFO:     S2 read image-read status=200 app_header_ms=4.4 response_body_bytes=5891
+provider_request_failed category=service_unavailable http_status=503
+visual_answer_request_failed attempt=1 category=service_unavailable http_status=503 visible=False

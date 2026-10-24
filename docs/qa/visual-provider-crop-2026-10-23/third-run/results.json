@@ -1,0 +1,16 @@
+{
+  "platform": "real macOS Electron; real crop UI and isolated FastAPI; fake DeepSeek HTTP responses; no paid calls",
+  "checks": [
+    {
+      "name": "isolated API ready",
+      "pass": true
+    },
+    {
+      "name": "1280 crop actually changes dimensions",
+      "pass": false
+    }
+  ],
+  "errors": [
+    "Error: 1280 crop actually changes dimensions"
+  ]
+}

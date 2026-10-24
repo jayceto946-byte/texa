@@ -1,0 +1,7 @@
+INFO:     Started server process [68330]
+INFO:     Uvicorn running on http://127.0.0.1:18277 (Press CTRL+C to quit)
+INFO:     S0 read session-list status=200 app_header_ms=42.5 response_body_bytes=72
+INFO:     S0 read session-list status=200 app_header_ms=16.0 response_body_bytes=72
+INFO:     S2 read session-page status=200 app_header_ms=3.6 response_body_bytes=108
+INFO:     S2 read session-page status=200 app_header_ms=1.1 response_body_bytes=108
+INFO:     S0 read session-list status=200 app_header_ms=4.6 response_body_bytes=72

@@ -10,10 +10,20 @@ import logging
 from typing import ClassVar
 
 from langchain_openai import ChatOpenAI
+from llm.request_failure import ProviderProtocolError, classify_provider_failure
 
 
-class DeepSeekProtocolError(ValueError):
+class DeepSeekProtocolError(ProviderProtocolError):
     """Fixed codes only; never include provider bodies or private text."""
+
+
+def _request_failed(exc):
+    failure = classify_provider_failure(exc)
+    logging.getLogger(__name__).warning("provider_request_failed category=%s http_status=%s",
+                                        failure.category, failure.status)
+    error = DeepSeekProtocolError("provider_request_failed")
+    error.failure = failure
+    return error
 
 
 class PrivateProtocol:
@@ -153,18 +163,18 @@ class DeepSeekChatOpenAI(ChatOpenAI):
             yield from super()._stream(*args, **kwargs)
         except DeepSeekProtocolError:
             raise
-        except Exception:
+        except Exception as exc:
             # BaseChatModel dispatches on_llm_error after this boundary. Never
             # expose SDK exceptions which can include private wire bodies.
-            raise DeepSeekProtocolError("provider_request_failed") from None
+            raise _request_failed(exc) from None
 
     def _generate(self, *args, **kwargs):
         try:
             return super()._generate(*args, **kwargs)
         except DeepSeekProtocolError:
             raise
-        except Exception:
-            raise DeepSeekProtocolError("provider_request_failed") from None
+        except Exception as exc:
+            raise _request_failed(exc) from None
 
     async def _astream(self, *args, **kwargs):
         try:
@@ -172,13 +182,13 @@ class DeepSeekChatOpenAI(ChatOpenAI):
                 yield chunk
         except DeepSeekProtocolError:
             raise
-        except Exception:
-            raise DeepSeekProtocolError("provider_request_failed") from None
+        except Exception as exc:
+            raise _request_failed(exc) from None
 
     async def _agenerate(self, *args, **kwargs):
         try:
             return await super()._agenerate(*args, **kwargs)
         except DeepSeekProtocolError:
             raise
-        except Exception:
-            raise DeepSeekProtocolError("provider_request_failed") from None
+        except Exception as exc:
+            raise _request_failed(exc) from None

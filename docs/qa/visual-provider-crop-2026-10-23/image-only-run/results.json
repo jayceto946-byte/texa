@@ -1,0 +1,86 @@
+{
+  "platform": "real macOS Electron; real crop UI and isolated FastAPI; fake DeepSeek HTTP responses; no paid calls",
+  "checks": [
+    {
+      "name": "isolated API ready",
+      "pass": true
+    },
+    {
+      "name": "1280 crop actually changes dimensions",
+      "pass": true
+    },
+    {
+      "name": "1280 displayed crop equals vision input",
+      "pass": true
+    },
+    {
+      "name": "1280 transient 503 recovers once through SDK and SSE",
+      "pass": true
+    },
+    {
+      "name": "1280 enlarged picture uses crop",
+      "pass": true
+    },
+    {
+      "name": "1280 persisted conversation keeps crop after reload",
+      "pass": true
+    },
+    {
+      "name": "1280 no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "1024 crop actually changes dimensions",
+      "pass": true
+    },
+    {
+      "name": "1024 displayed crop equals vision input",
+      "pass": true
+    },
+    {
+      "name": "1024 transient 503 recovers once through SDK and SSE",
+      "pass": true
+    },
+    {
+      "name": "1024 enlarged picture uses crop",
+      "pass": true
+    },
+    {
+      "name": "1024 persisted conversation keeps crop after reload",
+      "pass": true
+    },
+    {
+      "name": "1024 no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "760 crop actually changes dimensions",
+      "pass": true
+    },
+    {
+      "name": "760 displayed crop equals vision input",
+      "pass": true
+    },
+    {
+      "name": "760 transient 503 recovers once through SDK and SSE",
+      "pass": true
+    },
+    {
+      "name": "760 enlarged picture uses crop",
+      "pass": true
+    },
+    {
+      "name": "760 persisted conversation keeps crop after reload",
+      "pass": true
+    },
+    {
+      "name": "760 no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "no renderer errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

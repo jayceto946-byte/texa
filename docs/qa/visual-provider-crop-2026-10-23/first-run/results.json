@@ -1,0 +1,12 @@
+{
+  "platform": "real macOS Electron; real crop UI and isolated FastAPI; fake DeepSeek HTTP responses; no paid calls",
+  "checks": [
+    {
+      "name": "isolated API ready",
+      "pass": true
+    }
+  ],
+  "errors": [
+    "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('恢复后的完整讲解。').last() to be visible\u001b[22m\n"
+  ]
+}

@@ -54,7 +54,7 @@ from memory.mistake_book import MistakeRecord, get_mistake_book
 from memory.learning_events import LearningEvent, concept_names, get_learning_event_store
 from utils.latex_sanitizer import sanitize_latex
 from utils.subject_catalog import normalize_subject_value
-from utils.thinking_filter import ThinkingFilter, strip_thinking
+from utils.thinking_filter import strip_thinking
 from backend.services.learning_state import resolve_book_identity
 
 from backend.api.conversation_protocol import ConversationManagementRoute, require_writable_conversation
@@ -262,6 +262,7 @@ def _iter_visual_solution_chunks(
     tags: str = "",
     supplemental_visual_irs: list[VisualProblemIR] | None = None,
     answer_policy: str = "exact",
+    can_retry: Callable[[], bool] | None = None,
 ):
     """Stream only user-visible answer text; provider thinking is never emitted."""
 
@@ -270,23 +271,8 @@ def _iter_visual_solution_chunks(
         subject=subject, tags=tags, supplemental_visual_irs=supplemental_visual_irs,
         answer_policy=answer_policy,
     )
-    thinking_filter = ThinkingFilter()
-    provider = _get_image_reasoning_llm(
-        request_timeout=420,
-        max_retries=0,
-    ).stream(prompt)
-    try:
-        for chunk in provider:
-            clean = thinking_filter.filter(str(getattr(chunk, "content", "") or ""))
-            if clean:
-                yield clean
-    finally:
-        close = getattr(provider, "close", None)
-        if close:
-            close()
-    tail = thinking_filter.flush()
-    if tail:
-        yield tail
+    from llm.request_failure import stream_visible_answer
+    yield from stream_visible_answer(_get_image_reasoning_llm, prompt, can_retry=can_retry)
 
 
 def _get_image_reasoning_llm(**kwargs):
@@ -675,6 +661,7 @@ def _stream_solution_events(
     supplemental_visual_irs: list[VisualProblemIR] | None = None,
     answer_policy: str = "exact",
     emit_sse,
+    can_retry: Callable[[], bool] | None = None,
 ):
     """Yield canonical reasoning/generation events and return the final answer."""
     step_started = time.perf_counter()
@@ -703,6 +690,7 @@ def _stream_solution_events(
         tags=tags,
         supplemental_visual_irs=supplemental_visual_irs,
         answer_policy=answer_policy,
+        can_retry=can_retry,
     )) as provider_events:
         for event_type, chunk in provider_events:
             if event_type == "progress":
@@ -935,6 +923,7 @@ def solve_mistake_image_stream(
                 reason_label="综合题干与视觉关系",
                 reason_detail="正在依据结构化视觉证据组织可验证的解题步骤",
                 emit_sse=emit_sse,
+                can_retry=lambda: store.run_is_active(task.id, run_id),
             )
             verified_explanation, answer_verification = _verify_visual_answer(
                 explanation, question=question, visual_ir=visual_ir,
@@ -1266,6 +1255,7 @@ def resume_visual_learning_task(
                 reason_label="继续原题推导",
                 reason_detail="正在结合原题、已完成解析与新增材料继续解答",
                 emit_sse=emit_sse,
+                can_retry=lambda: store.run_is_active(task.id, run_id),
             )
 
             raw_explanation = explanation
@@ -1625,11 +1615,14 @@ def explain_mistake(req: MistakeExplainRequest, book_name: str = "default"):
 
 
 @router.get("/tasks/{task_id}/image")
-def get_visual_task_image(task_id: str, preview: bool = False):
+def get_visual_task_image(task_id: str, preview: bool = False, original: bool = False):
     task = get_learning_task_store().get(task_id)
     if task is None or task.task_type != "visual_qa":
         raise HTTPException(status_code=404, detail="图片任务不存在")
-    path = Path(task.artifacts.get("original_image_path") or task.artifacts.get("image_path") or "").resolve()
+    # The conversation shows the same selected region that was sent to vision.
+    # Keep the full camera frame available only through an explicit request.
+    selected = task.artifacts.get("original_image_path") if original else task.artifacts.get("image_path")
+    path = Path(selected or task.artifacts.get("image_path") or task.artifacts.get("original_image_path") or "").resolve()
     if not path.is_relative_to(_image_store.image_root.resolve()) or not path.is_file():
         raise HTTPException(status_code=404, detail="原图不存在")
     if preview:
@@ -1637,4 +1630,4 @@ def get_visual_task_image(task_id: str, preview: bool = False):
             path = _image_store.preview_image(path)
         except (OSError, ValueError) as exc:
             raise HTTPException(status_code=422, detail="题目图片预览无法生成，请读取原尺寸图片") from exc
-    return FileResponse(path)
+    return FileResponse(path, headers={"Cache-Control": "no-store"})
