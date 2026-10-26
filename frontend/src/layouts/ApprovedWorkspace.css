@@ -342,7 +342,7 @@
 }
 
 /* One native-safe navigation control on every route. */
-.app-shell[data-navigation="closed"] .study-navigation { display:none !important; }
+
 .navigation-collapse { position:absolute; top:13px; right:12px; z-index:55; -webkit-app-region:no-drag; }
 .study-navigation { position:relative; }
 .context-sidebar-trigger { top:9px; left:16px; width:30px; height:30px; }

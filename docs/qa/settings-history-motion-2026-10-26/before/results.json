@@ -1,0 +1,7 @@
+{
+  "phase": "before",
+  "platform": "macOS real Electron, production renderer, isolated fixtures; Windows untested",
+  "checks": [],
+  "colors": [],
+  "errors": []
+}

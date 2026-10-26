@@ -67,6 +67,15 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
   const [mobilePane, setMobilePane] = useState<'navigation' | 'content'>('content');
   const mobileBack = useRef<HTMLButtonElement>(null);
   const settingsBody = useRef<HTMLDivElement>(null);
+  const contentPane = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!open || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const animation = contentPane.current?.animate(
+      [{ opacity: 0.45, transform: 'translateY(5px)' }, { opacity: 1, transform: 'translateY(0)' }],
+      { duration: 180, easing: 'cubic-bezier(.2,.7,.2,1)' },
+    );
+    return () => animation?.cancel();
+  }, [open, tab]);
   useEffect(() => {
     if (open && initialTab && !standaloneTab) { setTab(initialTab); setMobilePane('content'); }
   }, [open, initialTab, standaloneTab]);
@@ -84,7 +93,6 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
   const [subjects, setSubjects] = useState<SubjectNode[]>([]);
   const [books, setBooks] = useState<ManagedBook[]>([]);
   const [bookDrafts, setBookDrafts] = useState<Record<string, string>>({});
-  const [envDraft, setEnvDraft] = useState<Record<string, string>>({});
   const [modelDraft, setModelDraft] = useState<ModelSettingsValue | null>(null);
   const [savedModel, setSavedModel] = useState<ModelSettingsValue | null>(null);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
@@ -108,12 +116,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
       setSavedModel(res.data.models || null);
     }
     if (standaloneTab) setSubjects(res.data.subjects || []);
-    const env = res.data.env || {};
-    if (!settingsLoaded) setEnvDraft({
-      MINERU_API_URL: env.MINERU_API_URL?.value || '',
-      MINERU_CLI_COMMAND: env.MINERU_CLI_COMMAND?.value || '',
-    });
-  }, [standaloneTab, settingsLoaded]);
+  }, [standaloneTab]);
 
   const loadVersion = useCallback(async () => {
     const res = await get('/system/version', 15000);
@@ -129,7 +132,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
   }, []);
 
   useEffect(() => {
-    if (!open || settingsLoaded || (!standaloneTab && tab !== 'models' && tab !== 'data')) return;
+    if (!open || settingsLoaded || (!standaloneTab && tab !== 'models')) return;
     loadSettings().catch(() => standaloneTab ? setMessage('设置加载失败') : setFeedback((current) => ({ ...current, [tab]: '设置加载失败' })));
   }, [open, standaloneTab, settingsLoaded, tab, loadSettings]);
 
@@ -208,15 +211,6 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
     if (res?.success) await loadSettings();
     } catch { showFeedback('保存失败，请检查本地服务后重试'); }
     finally { setSavingModel(false); }
-  };
-
-  const saveIngestion = async () => {
-    if (!settingsLoaded) return;
-    showFeedback('');
-    try {
-      const res = await post('/system/settings/env', envDraft, 20000);
-      showFeedback(res?.message || (res?.success ? '教材解析配置已保存' : '保存失败'));
-    } catch { showFeedback('保存失败，请检查本地服务后重试'); }
   };
 
   const activateModelProfile = async (profileId: string) => {
@@ -473,7 +467,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
   return (
     <div ref={settingsBody} className={`settings-dialog-body is-mobile-${mobilePane}`}>
       <SettingsSidebar tab={tab} onTabChange={selectSettingsTab} />
-      <main className="settings-content-pane">
+      <main ref={contentPane} className="settings-content-pane">
         <button ref={mobileBack} type="button" className="app-secondary-button settings-mobile-back" onClick={showSettingsNavigation}>返回设置</button>
         {pageMessage && <div className="mb-5"><StatusBanner kind={feedbackKind(pageMessage)} title={pageMessage} /></div>}
 
@@ -541,16 +535,10 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
         {tab === 'data' && <section className="settings-page">
           <SettingsPageHeader title="数据与教材" />
           <DataSafety />
-          {!settingsLoaded && <PageState kind={pageMessage ? 'error' : 'loading'} title={pageMessage || '正在读取解析配置'} />}
-          {!settingsLoaded && pageMessage && <button type="button" className="app-secondary-button" onClick={() => void loadSettings().then(() => showFeedback('')).catch(() => showFeedback('设置加载失败'))}>重试</button>}
-          {settingsLoaded &&
-          <section className="settings-section" aria-labelledby="ingestion-service-heading">
-            <h4 id="ingestion-service-heading" className="settings-section-title">教材解析服务</h4>
-            <p className="settings-secondary">导入扫描教材时使用 MinerU。服务地址仅在解析时使用。</p>
-            <Field label="MinerU API URL"><input value={envDraft.MINERU_API_URL || ''} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_API_URL: e.target.value })} placeholder="http://127.0.0.1:9001" className="settings-input" /></Field>
-            <details><summary className="settings-secondary cursor-pointer">本地命令（可选）</summary><div className="mt-3"><Field label="MinerU CLI"><input value={envDraft.MINERU_CLI_COMMAND || ''} onChange={(e) => setEnvDraft({ ...envDraft, MINERU_CLI_COMMAND: e.target.value })} placeholder="mineru -p {input} -o {output}" className="settings-input" /></Field></div></details>
-            <div><button onClick={saveIngestion} className="app-secondary-button"><Save className="h-4 w-4" />保存解析配置</button></div>
-          </section>}
+          <section className="settings-section">
+            <h4 className="settings-section-title">导入教材</h4>
+            <p className="settings-secondary">建议先用 MinerU 解析教材，再导入包含 Markdown 和图片的 ZIP 压缩包。</p>
+          </section>
         </section>}
 
 
@@ -581,10 +569,6 @@ const SettingsSidebar = ({ tab, onTabChange }: { tab: Tab; onTabChange: (tab: Ta
       <button type="button" onClick={() => onTabChange('diagnostics')} className={`settings-nav-item settings-nav-diagnostics ${tab === 'diagnostics' ? 'is-active' : ''}`} aria-current={tab === 'diagnostics' ? 'page' : undefined}>高级与诊断</button>
     </div>
   </aside>
-);
-
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <label className="settings-form-row"><span className="settings-label">{label}</span><span className="block min-w-0">{children}</span></label>
 );
 
 const SettingsPageHeader = ({ title, description }: { title: string; description?: string }) => (

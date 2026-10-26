@@ -1,8 +1,10 @@
 import { getBookList } from '../features/books/bookList';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { PanelLeftClose, Pin, type LucideIcon } from 'lucide-react';
-import { get } from '../api/client';
-import { ConversationError, conversationApi, notifyConversationChange, type BlockingConversationTask, type ConversationAction, type ConversationManagement, type ConversationSummary, type ConversationView } from '../features/conversations/api';
+import { get, onConnectionChange } from '../api/client';
+import { createConversationPageCache } from '../features/conversations/pageCache';
+import './ui/WorkspaceSkeleton.css';
+import { ConversationError, conversationApi, notifyConversationChange, type BlockingConversationTask, type ConversationAction, type ConversationManagement, type ConversationListPage, type ConversationSummary, type ConversationView } from '../features/conversations/api';
 import '../features/conversations/conversations.css';
 import BlockingTasks from '../features/conversations/BlockingTasks';
 import { useNoteCommand } from '../features/notes/NoteCommandContext';
@@ -91,17 +93,20 @@ export default function LearningContextSidebar({
     }
     return params.toString();
   }, [bookName, floating, historySubject, selectedScope, subject, view]);
-  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [pageCache] = useState(createConversationPageCache);
+  const [pageState, setPageState] = useState<{ query: string; page: ConversationListPage } | null>(null);
+  const currentPage = pageState?.query === query ? pageState.page : pageCache.peek(query);
+  const conversations = currentPage?.items || [];
+  const nextCursor = currentPage?.next_cursor || null;
   const [loading, setLoading] = useState(true);
   const [moreLoading, setMoreLoading] = useState(false);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [blockedConversation, setBlockedConversation] = useState('');
   const [blockingTasks, setBlockingTasks] = useState<BlockingConversationTask[]>([]);
   const [undo, setUndo] = useState<{ id: string; action: ConversationAction; revision: number } | null>(null);
   const requestGeneration = useRef(0);
-  const previousQuery = useRef<string | null>(null);
+  const previousRevision = useRef({ refreshKey, retry });
   const selectionGeneration = useRef(0);
   const selectionRequest = useRef<AbortController | null>(null);
   const [openingId, setOpeningId] = useState('');
@@ -144,26 +149,31 @@ export default function LearningContextSidebar({
   }, [loadBooks]);
 
   useEffect(() => {
-    const changed = () => { setUndo(null); setNotice(''); setRetry(v => v + 1); };
+    const changed = () => { pageCache.clear(); setUndo(null); setNotice(''); setRetry(v => v + 1); };
+    const disconnect = onConnectionChange(() => { setPageState(null); changed(); });
     window.addEventListener('conversations:changed', changed);
-    return () => window.removeEventListener('conversations:changed', changed);
-  }, []);
+    return () => { disconnect(); window.removeEventListener('conversations:changed', changed); };
+  }, [pageCache]);
 
   useEffect(() => {
     const controller = new AbortController();
     ++requestGeneration.current;
-    if (previousQuery.current !== query) {
-      setConversations([]); setNextCursor(null);
+    if (previousRevision.current.refreshKey !== refreshKey || previousRevision.current.retry !== retry) pageCache.clear();
+    previousRevision.current = { refreshKey, retry };
+    const cached = pageCache.fresh(query);
+    if (cached) {
+      setPageState({ query, page: cached }); setLoading(false); setMoreLoading(false); setError('');
+      return () => controller.abort();
     }
-    previousQuery.current = query;
     setLoading(true); setMoreLoading(false); setError('');
     void conversationApi.list(query, controller.signal).then(page => {
       if (controller.signal.aborted) return;
-      setConversations(page.items); setNextCursor(page.next_cursor);
+      pageCache.set(query, page);
+      setPageState({ query, page });
     }).catch(e => { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : '读取会话失败'); })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [query, refreshKey, retry]);
+  }, [pageCache, query, refreshKey, retry]);
 
   const loadMore = async () => {
     if (!nextCursor || moreLoading || loading) return;
@@ -173,8 +183,10 @@ export default function LearningContextSidebar({
     try {
       const page = await conversationApi.list(params.toString());
       if (generation !== requestGeneration.current) return;
-      setConversations(rows => [...rows, ...page.items.filter(item => !rows.some(row => row.id === item.id))]);
-      setNextCursor(page.next_cursor);
+      const rows = pageCache.peek(query)?.items || conversations;
+      const merged = { ...page, items: [...rows, ...page.items.filter(item => !rows.some(row => row.id === item.id))] };
+      pageCache.set(query, merged);
+      setPageState({ query, page: merged });
     } catch (e) {
       if (generation !== requestGeneration.current) return;
       if (e instanceof ConversationError && e.code === 'invalid_cursor') { setNotice('会话记录已更新，已重新读取最新记录'); setRetry(v => v + 1); }
@@ -270,15 +282,17 @@ export default function LearningContextSidebar({
         </div>}
         <div className="context-session-heading">
           <span id="session-list-title" className="context-section-label">历史记录</span>
-          <span className="type-caption text-text-tertiary" title="已加载的会话数">{loading && conversations.length === 0 ? '加载中' : conversations.length}</span>
+          <span className="type-caption text-text-tertiary" title="已加载的会话数">{!currentPage && !error ? <span className="skeleton-shape history-count-skeleton" aria-label="正在读取会话数量" /> : currentPage ? conversations.length : '—'}</span>
         </div>
         <nav className="conversation-views" aria-label="会话分类">{(['active', 'archived', 'trashed'] as const).map(value => <button type="button" key={value} aria-pressed={view === value} onClick={() => { setView(value); setError(''); setBlockedConversation(''); }}>{({ active: '最近', archived: '归档', trashed: '回收站' })[value]}</button>)}</nav>
-        <div className="context-session-list">
+        <div className="context-session-list" aria-busy={loading || (!currentPage && !error)}>
           {error && <div className="context-session-error" role="alert"><p>{error}</p><button className="app-ghost-button" onClick={() => setRetry(v => v + 1)}>重新读取</button>{blockedConversation && <button className="app-ghost-button" onClick={() => void loadConversation(blockedConversation)}>查看未完成任务</button>}</div>}
           {blockingTasks.length > 0 && <BlockingTasks tasks={blockingTasks} onChanged={() => { setBlockingTasks([]); setBlockedConversation(''); setError(''); setNotice('任务已结束，可以重新选择会话操作'); setRetry(v => v + 1); }}/>}
           {notice && <p role="status" className="conversation-notice">{notice}{undo && <button className="app-ghost-button" disabled={busy} onClick={() => void manage(undo.id, { state: view, pinned: false, revision: undo.revision }, undo.action, true)}>撤销</button>}</p>}
-          {loading && conversations.length === 0 && <p className="context-session-empty" role="status">正在读取会话…</p>}
-          {!error && !loading && conversations.length === 0 && <p className="context-session-empty">当前范围暂无会话</p>}
+          {!currentPage && !error && <div className="history-list-skeleton" role="status" aria-label="正在读取会话">
+            <div aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <div className="history-skeleton-row" key={index}><span className="skeleton-shape" /><span className="skeleton-shape" /></div>)}</div>
+          </div>}
+          {!error && currentPage && conversations.length === 0 && <p className="context-session-empty">当前范围暂无会话</p>}
           {conversations.map((item) => {
             const active = item.id === conversationId;
             const scopeLabel = sessionScopeLabel(item);

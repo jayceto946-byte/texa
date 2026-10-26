@@ -2,8 +2,6 @@
 .learning-history-panel { display:contents; }
 
 /* Collapsed Learning keeps history accessible without bringing back product navigation. */
-.app-shell.learning-route[data-navigation="closed"] .study-navigation { display:contents !important; }
-.app-shell.learning-route[data-navigation="closed"] .study-navigation > :is(.app-rail,#workspace-context-navigation) { display:none !important; }
 .learning-history-host[data-docked="true"] {
   display:block; position:fixed; inset:88px auto 24px 0; width:24px; z-index:65;
   -webkit-app-region:no-drag;

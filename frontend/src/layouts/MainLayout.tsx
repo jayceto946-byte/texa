@@ -19,6 +19,7 @@ import './ApprovedWorkspace.css';
 import './StudyDesk.css';
 import './MobileConvergence.css';
 import './DesktopRefinement.css';
+import './WorkspaceMotion.css';
 import '../features/focus/focus.css';
 import { flushRetainedEditor, unsavedNotePath } from '../features/notes/autosave';
 import { selectWorkspaceContent } from '../utils/workspaceSelection';
@@ -222,7 +223,7 @@ const MainLayout: React.FC = () => {
       className={`app-shell${isStudyDesk ? ' study-desk' : ''}${isLearningWorkspace ? ' learning-route' : ''}`}
     >
       <div className="study-navigation" onDragStart={event => event.preventDefault()}>
-        <AppRail mobile={contextOverlay} onHome={() => {
+        <AppRail collapsed={!contextOpen} mobile={contextOverlay} onHome={() => {
           newConversation();
           window.dispatchEvent(new Event('texa:reset-chat-workspace'));
           closeInspector();
@@ -242,7 +243,7 @@ const MainLayout: React.FC = () => {
           capabilityActions={[]}
         /></LearningHistoryDock>
 
-        <div id="workspace-context-navigation" />
+        <div id="workspace-context-navigation" inert={!contextOpen} />
       </div>
 
       {isLearningWorkspace && contextOpen && contextOverlay && (

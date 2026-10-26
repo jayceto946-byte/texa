@@ -489,3 +489,50 @@ def test_runtime_cancel_receipt_crash_replays_only_same_operation(service):
     recovered = service.cancel_task('rtask_1', expected_revision=snapshot['task_revision'],
         expected_run_id=snapshot['run']['id'], operation_id='crashed-op')
     assert recovered == first
+
+
+def test_catalog_keeps_latest_scope_title_and_counts_without_reading_history(service, monkeypatch):
+    memory.append_message('mixed', 'user', '旧教材的问题', subject='数学/高数', book_name='Old')
+    memory.append_message('mixed', 'assistant', '旧教材的答案', subject='数学/高数', book_name='Old')
+    memory.append_message('mixed', 'user', '当前教材的首问', subject='数学/线代', book_name='New')
+    memory.append_message('mixed', 'assistant', '当前教材的答案', subject='数学/线代', book_name='New')
+    memory.append_message('plain', 'user', '没有指定教材的问题')
+    expected = {cid: memory.get_conversation(cid) for cid in ['mixed', 'plain']}
+    monkeypatch.setattr(memory, '_read_legacy_payload', lambda *_: pytest.fail('already imported JSON must not be read'))
+    monkeypatch.setattr(memory, 'load_full_history', lambda *_a, **_k: pytest.fail('catalog must not load full history'))
+    for row in memory.conversation_catalog():
+        detail = expected[row['id']]
+        for key in ['title', 'subject', 'book_name', 'message_count', 'created_at', 'updated_at']:
+            assert row[key] == detail[key]
+    assert memory.conversation_catalog(book_name='Old') == []
+    assert memory.conversation_catalog(subject='数学', book_names=['New'])[0]['title'] == '当前教材的首问'
+
+
+def test_catalog_imports_new_legacy_files_once_and_bulk_reads_metadata(service, monkeypatch):
+    seed()
+    path = memory.CONV_DIR / 'new-legacy.json'
+    path.write_text(json.dumps({'id': 'new-legacy', 'messages': [
+        {'id': 'legacy-u', 'role': 'user', 'content': '后来出现的旧会话', 'subject': '数学'},
+        {'id': 'legacy-a', 'role': 'assistant', 'content': '旧答案', 'subject': '数学'},
+    ]}), encoding='utf-8')
+    assert len(service.page()['items']) == 2
+    path.write_text('broken compatibility projection', encoding='utf-8')
+    assert len(service.page()['items']) == 2
+    with closing(memory._connect_events()) as conn, conn:
+        for i in range(100):
+            cid = f'bulk-{i}'
+            conn.execute('INSERT INTO conversation_imports VALUES (?,?)', (cid, '2026-10-26'))
+            memory._insert_projection_message(conn, cid, {'id': 'q', 'role': 'user', 'content': '批量问题'}, seq=1)
+    statements = []
+    connect = memory._connect_events
+    def traced_connect():
+        conn = connect()
+        conn.set_trace_callback(statements.append)
+        return conn
+    monkeypatch.setattr(memory, '_connect_events', traced_connect)
+    page = service.page(limit=200)
+    assert len(page['items']) == 102
+    # Number of reads is independent of the number of conversations/files;
+    # schema/version checks are allowed, per-conversation lookups are not.
+    reads = [sql for sql in statements if sql.lstrip().upper().startswith(('SELECT', 'WITH'))]
+    assert len(reads) < 10

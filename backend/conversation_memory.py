@@ -9,6 +9,7 @@ import time
 import threading
 import uuid
 from pathlib import Path
+from contextlib import closing
 from backend.services.goals.service import GOAL_CONTROL_LOCK
 
 from config import PROGRESS_PATH
@@ -909,7 +910,7 @@ def get_conversation(
     before_seq: int | None = None,
 ) -> dict:
     conversation_id = ensure_conversation_id(conversation_id)
-    with _connect_events() as conn:
+    with closing(_connect_events()) as conn, conn:
         _ensure_event_projection(conn, conversation_id)
         return _conversation_snapshot(
             conn, conversation_id, limit=limit, before_seq=before_seq,
@@ -919,26 +920,66 @@ def get_conversation(
 def conversation_catalog(subject: str = "", book_name: str = "", book_names: list[str] | None = None) -> list[dict]:
     """Complete summary catalog, without loading every conversation's message window."""
     CONV_DIR.mkdir(parents=True, exist_ok=True)
-    with _connect_events() as conn:
+    with closing(_connect_events()) as conn, conn:
+        # Compatibility JSON is imported once. Avoid an indexed SELECT for every
+        # already imported file on every navigation request.
+        imported = {row[0] for row in conn.execute("SELECT conversation_id FROM conversation_imports")}
         for path in CONV_DIR.glob("*.json"):
-            _ensure_event_projection(conn, path.stem)
+            if path.stem not in imported:
+                _ensure_event_projection(conn, path.stem)
+        conn.create_function("normalize_subject", 1, normalize_subject_value, deterministic=True)
+        conn.create_function("matches_subject", 2, subject_matches, deterministic=True)
+        filters, params = [], []
+        if subject:
+            filters.append("matches_subject(normalize_subject(m.subject), ?)")
+            params.append(subject)
+        if book_name:
+            filters.append("TRIM(m.book_name) = ?")
+            params.append(book_name)
+        if book_names:
+            filters.append("TRIM(m.book_name) IN (" + ",".join("?" for _ in book_names) + ")")
+            params.extend(book_names)
+        scope_filter = "WHERE " + " AND ".join(filters) if filters else ""
+        # Select the same latest non-empty scope as _authoritative_scope, then
+        # aggregate only that scope. No message windows or ledger reads here.
+        rows = conn.execute(f"""
+            WITH ids AS (
+                SELECT DISTINCT conversation_id FROM conversation_messages
+            ), latest AS (
+                SELECT ids.conversation_id, COALESCE(
+                    (SELECT seq FROM conversation_messages m WHERE m.conversation_id = ids.conversation_id
+                        AND (subject != '' OR book_name != '') ORDER BY seq DESC LIMIT 1),
+                    (SELECT seq FROM conversation_messages m WHERE m.conversation_id = ids.conversation_id
+                        ORDER BY seq DESC LIMIT 1)
+                ) AS seq FROM ids
+            ), scopes AS (
+                SELECT m.conversation_id, normalize_subject(m.subject) AS subject,
+                    TRIM(m.book_name) AS book_name,
+                    (m.subject != '' OR m.book_name != '') AS scoped
+                FROM latest l JOIN conversation_messages m
+                    ON m.conversation_id = l.conversation_id AND m.seq = l.seq
+                {scope_filter}
+                GROUP BY m.conversation_id
+            ), summaries AS (
+                SELECT s.conversation_id, s.subject, s.book_name,
+                    MIN(m.created_at) AS created_at, MAX(m.created_at) AS updated_at,
+                    COUNT(*) AS message_count,
+                    MIN(CASE WHEN m.role = 'user' THEN m.seq END) AS first_user_seq
+                FROM scopes s JOIN conversation_messages m ON m.conversation_id = s.conversation_id
+                    AND (NOT s.scoped OR (m.subject = s.subject AND m.book_name = s.book_name))
+                GROUP BY s.conversation_id
+            )
+            SELECT s.*, f.payload_json AS first_user
+            FROM summaries s LEFT JOIN conversation_messages f
+                ON f.conversation_id = s.conversation_id AND f.seq = s.first_user_seq
+        """, params)
         items = []
-        for row in conn.execute("SELECT conversation_id,MIN(created_at),MAX(created_at),COUNT(*) FROM conversation_messages GROUP BY conversation_id"):
-            cid = row[0]
-            stored_subject, stored_book = _authoritative_scope(conn, cid)
-            if subject and not subject_matches(stored_subject, subject):
-                continue
-            if book_name and stored_book != book_name:
-                continue
-            if book_names and stored_book not in book_names:
-                continue
-            scope_sql, scope_params = _projection_scope_clause(conn, cid, stored_subject, stored_book)
-            values = (cid, *scope_params)
-            metadata = conn.execute("SELECT MIN(created_at),MAX(created_at),COUNT(*) FROM conversation_messages WHERE conversation_id=?" + scope_sql, values).fetchone()
-            first = conn.execute("SELECT payload_json FROM conversation_messages WHERE conversation_id=? AND role='user'" + scope_sql + " ORDER BY seq LIMIT 1", values).fetchone()
-            items.append({"id": cid, "title": _conversation_title([json.loads(first[0])] if first else []),
-                          "subject": stored_subject, "book_name": stored_book,
-                          "created_at": metadata[0] or "", "updated_at": metadata[1] or "", "message_count": metadata[2]})
+        for row in rows:
+            first = [json.loads(row["first_user"])] if row["first_user"] else []
+            items.append({"id": row["conversation_id"], "title": _conversation_title(first),
+                          "subject": row["subject"], "book_name": row["book_name"],
+                          "created_at": row["created_at"] or "", "updated_at": row["updated_at"] or "",
+                          "message_count": row["message_count"]})
     return items
 
 

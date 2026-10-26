@@ -449,9 +449,7 @@
 }
 .study-desk .learning-context-sessions { border-top: 1px solid var(--workspace-separator); }
 
-@media (min-width: 920px) {
-  .study-desk.learning-route[data-context="closed"] .study-navigation { display: none; }
-}
+
 @media (min-width: 920px) {
   :root:not([data-theme="mineral"]) .study-desk .study-navigation,
   :root:not([data-theme="mineral"]) .study-desk .study-navigation :is(.learning-context-sidebar,.library-tree,.app-rail-footer) {

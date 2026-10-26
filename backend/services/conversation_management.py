@@ -224,7 +224,13 @@ class ConversationManagementService:
         with GOAL_CONTROL_LOCK:
             catalog = self.memory.conversation_catalog(subject=subject, book_name=book_name, book_names=book_names)
             with closing(self._connect()) as conn:
-                rows = [{**row, 'management': _metadata(conn, row['id'])} for row in catalog]
+                metadata = {}
+                for entry in conn.execute('SELECT * FROM conversation_management'):
+                    value = dict(entry)
+                    cid = value.pop('conversation_id')
+                    value['pinned'] = bool(value['pinned'])
+                    metadata[cid] = value
+                rows = [{**row, 'management': metadata.get(row['id'], _default())} for row in catalog]
         rows = [row for row in rows if row['management']['state'] == view]
         def order(row):
             return (int(row['management']['pinned']), row.get('updated_at') or '', row['id'])

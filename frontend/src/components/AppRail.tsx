@@ -30,15 +30,16 @@ function RailLink({ to, icon: Icon, label }: (typeof primaryItems)[number]) {
 
 type AppRailProps = {
   mobile: boolean;
+  collapsed: boolean;
   onOpenSettings: () => void;
   onCollapse: () => void;
   onHome: () => void;
   settingsButtonRef: RefObject<HTMLButtonElement | null>;
 };
 
-export default function AppRail({ mobile, onOpenSettings, settingsButtonRef, onCollapse, onHome }: AppRailProps) {
+export default function AppRail({ collapsed, mobile, onOpenSettings, settingsButtonRef, onCollapse, onHome }: AppRailProps) {
   return (
-    <aside className="app-rail" aria-label="产品导航">
+    <aside className="app-rail" aria-label="产品导航" inert={collapsed}>
       <button className="navigation-collapse app-icon-button" onClick={onCollapse} aria-label="收起侧栏" title="收起侧栏"><PanelLeftClose size={18} /></button>
       <NavLink to="/" onClick={(event) => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;

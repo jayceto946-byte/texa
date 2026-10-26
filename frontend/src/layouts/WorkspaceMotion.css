@@ -1,0 +1,56 @@
+/* Keep the navigation box alive while it changes width. Floating history remains
+   independently accessible when the product navigation is closed. */
+.app-shell .study-navigation {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: var(--workspace-dock-width);
+  min-width: 0;
+}
+.app-shell .study-navigation > :is(.app-rail, #workspace-context-navigation) {
+  width: var(--workspace-dock-width);
+  flex-shrink: 0;
+}
+.app-shell[data-navigation="closed"] .study-navigation {
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  box-shadow: none;
+}
+.app-shell[data-navigation="closed"] .study-navigation > :is(.app-rail, #workspace-context-navigation) {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateX(-100%);
+  pointer-events: none;
+}
+/* Both controls share the header's actual center line on all desktop routes. */
+.app-shell .navigation-collapse,
+.app-shell .context-sidebar-trigger,
+body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell .navigation-collapse {
+  top: calc((var(--navigation-chrome-height, var(--workspace-chrome-height)) - var(--navigation-control-size, 32px)) / 2);
+  width: var(--navigation-control-size, 32px);
+  height: var(--navigation-control-size, 32px);
+  min-height: var(--navigation-control-size, 32px);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.app-dialog-overlay[hidden] .app-dialog-shell { animation: none; }
+@media (max-width: 919px) {
+  .app-shell { --navigation-chrome-height: 56px; --navigation-control-size: 44px; }
+  .app-shell .study-navigation {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 80;
+    --workspace-dock-width: min(320px, calc(100vw - 32px));
+  }
+  .app-shell[data-navigation="open"] .study-navigation { width: var(--workspace-dock-width); }
+  .app-shell[data-navigation="closed"] .study-navigation { overflow: visible; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .app-shell .study-navigation { transition: width 200ms cubic-bezier(.2,.7,.2,1); }
+  .study-navigation > :is(.app-rail, #workspace-context-navigation) {
+    transition: transform 200ms cubic-bezier(.2,.7,.2,1), opacity 160ms ease, visibility 200ms;
+  }
+}

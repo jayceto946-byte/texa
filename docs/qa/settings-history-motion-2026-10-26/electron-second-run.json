@@ -1,0 +1,404 @@
+{
+  "platform": "real macOS Electron; isolated HTTP fixtures; 400ms simulated list latency; no Windows/native phone or live backend latency claim",
+  "checks": [
+    {
+      "name": "1280 uncached archive uses skeleton",
+      "pass": true
+    },
+    {
+      "name": "1280 switching view never shows previous rows",
+      "pass": true
+    },
+    {
+      "name": "1280 cached recent rows show immediately",
+      "pass": true
+    },
+    {
+      "name": "1280 cached tab avoids repeated HTTP",
+      "pass": true
+    },
+    {
+      "name": "1280 paginated rows survive switching tabs",
+      "pass": true
+    },
+    {
+      "name": "1280 collapse button shares header center",
+      "pass": true
+    },
+    {
+      "name": "1280 collapse has an actual intermediate animated width",
+      "pass": true
+    },
+    {
+      "name": "1280 collapsed navigation occupies no width",
+      "pass": true
+    },
+    {
+      "name": "1280 collapsed navigation excluded from keyboard focus",
+      "pass": true
+    },
+    {
+      "name": "1280 expand button shares header center",
+      "pass": true
+    },
+    {
+      "name": "1280 settings opening animates",
+      "pass": true
+    },
+    {
+      "name": "1280 settings tab animates",
+      "pass": true
+    },
+    {
+      "name": "1280 parser API and CLI configuration removed",
+      "pass": true
+    },
+    {
+      "name": "1280 settings fits viewport",
+      "pass": true
+    },
+    {
+      "name": "1280 retained settings replays opening animation",
+      "pass": true
+    },
+    {
+      "name": "1024 uncached archive uses skeleton",
+      "pass": true
+    },
+    {
+      "name": "1024 switching view never shows previous rows",
+      "pass": true
+    },
+    {
+      "name": "1024 cached recent rows show immediately",
+      "pass": true
+    },
+    {
+      "name": "1024 cached tab avoids repeated HTTP",
+      "pass": true
+    },
+    {
+      "name": "1024 paginated rows survive switching tabs",
+      "pass": true
+    },
+    {
+      "name": "1024 collapse button shares header center",
+      "pass": true
+    },
+    {
+      "name": "1024 collapse has an actual intermediate animated width",
+      "pass": true
+    },
+    {
+      "name": "1024 collapsed navigation occupies no width",
+      "pass": true
+    },
+    {
+      "name": "1024 collapsed navigation excluded from keyboard focus",
+      "pass": true
+    },
+    {
+      "name": "1024 expand button shares header center",
+      "pass": true
+    },
+    {
+      "name": "1024 settings opening animates",
+      "pass": true
+    },
+    {
+      "name": "1024 settings tab animates",
+      "pass": true
+    },
+    {
+      "name": "1024 parser API and CLI configuration removed",
+      "pass": true
+    },
+    {
+      "name": "1024 settings fits viewport",
+      "pass": true
+    },
+    {
+      "name": "1024 retained settings replays opening animation",
+      "pass": true
+    },
+    {
+      "name": "760 uncached archive uses skeleton",
+      "pass": true
+    },
+    {
+      "name": "760 switching view never shows previous rows",
+      "pass": true
+    },
+    {
+      "name": "760 cached recent rows show immediately",
+      "pass": true
+    },
+    {
+      "name": "760 cached tab avoids repeated HTTP",
+      "pass": true
+    },
+    {
+      "name": "760 paginated rows survive switching tabs",
+      "pass": true
+    },
+    {
+      "name": "760 collapse button shares header center",
+      "pass": false
+    }
+  ],
+  "timing": [
+    {
+      "width": 1280,
+      "cached_return_ms": 34
+    },
+    {
+      "width": 1024,
+      "cached_return_ms": 25
+    },
+    {
+      "width": 760,
+      "cached_return_ms": 67
+    }
+  ],
+  "errors": [
+    "Error: 760 collapse button shares header center"
+  ],
+  "requests": [
+    {
+      "path": "/api/system/settings",
+      "method": "GET"
+    },
+    {
+      "path": "/api/focus",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/settings/subjects",
+      "method": "GET"
+    },
+    {
+      "path": "/api/books/list",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/settings/subjects",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations/conv_1792995957821_44bd1197/management",
+      "method": "GET"
+    },
+    {
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=active&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations/conv_1792995958440_9f983834/management",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=archived&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=active&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95&cursor=fixture-next",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations/active-0?limit=40",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6%2F%E9%AB%98%E6%95%B0",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/settings/subjects",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations/active-0/management",
+      "method": "GET"
+    },
+    {
+      "path": "/api/mistakes/chat-sources/query?book_name=default",
+      "method": "POST"
+    },
+    {
+      "path": "/api/system/settings",
+      "method": "GET"
+    },
+    {
+      "path": "/api/books/list?include_archived=true",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/backups",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/settings",
+      "method": "GET"
+    },
+    {
+      "path": "/api/focus",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/settings/subjects",
+      "method": "GET"
+    },
+    {
+      "path": "/api/books/list",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6%2F%E9%AB%98%E6%95%B0",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/settings/subjects",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations/active-0/management",
+      "method": "GET"
+    },
+    {
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=active&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations/conv_1792995964402_3bf71fcb/management",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=archived&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=active&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95&cursor=fixture-next",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations/active-0?limit=40",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6%2F%E9%AB%98%E6%95%B0",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/settings/subjects",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations/active-0/management",
+      "method": "GET"
+    },
+    {
+      "path": "/api/mistakes/chat-sources/query?book_name=default",
+      "method": "POST"
+    },
+    {
+      "path": "/api/system/settings",
+      "method": "GET"
+    },
+    {
+      "path": "/api/books/list?include_archived=true",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/backups",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/settings",
+      "method": "GET"
+    },
+    {
+      "path": "/api/focus",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/settings/subjects",
+      "method": "GET"
+    },
+    {
+      "path": "/api/books/list",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6%2F%E9%AB%98%E6%95%B0",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/settings/subjects",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations/active-0/management",
+      "method": "GET"
+    },
+    {
+      "path": "/api/books/switch/%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6%20%C2%B7%20%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=active&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations/conv_1792995969932_1d84c5b9/management",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=archived&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=active&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8A%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6+%C2%B7+%E4%B8%8B%E5%86%8C%EF%BC%88%E7%AC%AC%E4%B8%83%E7%89%88%EF%BC%89&book_names=%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90+%C2%B7+%E7%AC%AC%E4%B8%80%E5%86%8C&book_names=%E8%80%83%E7%A0%94%E6%95%B0%E5%AD%A6%E5%85%B8%E5%9E%8B%E4%BE%8B%E9%A2%98%E4%B8%8E%E6%96%B9%E6%B3%95&cursor=fixture-next",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations/active-0?limit=40",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations?limit=40&view=active&subject=%E6%95%B0%E5%AD%A6%2F%E9%AB%98%E6%95%B0",
+      "method": "GET"
+    },
+    {
+      "path": "/api/system/settings/subjects",
+      "method": "GET"
+    },
+    {
+      "path": "/api/chat/conversations/active-0/management",
+      "method": "GET"
+    },
+    {
+      "path": "/api/mistakes/chat-sources/query?book_name=default",
+      "method": "POST"
+    },
+    {
+      "path": "/api/system/settings",
+      "method": "GET"
+    },
+    {
+      "path": "/api/books/list?include_archived=true",
+      "method": "GET"
+    }
+  ]
+}

@@ -93,7 +93,7 @@ export default function Dialog({
 
   return createPortal(
     <div
-      className="app-dialog-overlay app-overlay-enter"
+      className={`app-dialog-overlay${open ? ' app-overlay-enter' : ''}`}
       hidden={!open}
       aria-hidden={!open || undefined}
       onMouseDown={(event) => {
@@ -107,7 +107,7 @@ export default function Dialog({
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
-        className={`app-dialog-shell app-dialog-enter ${className}`.trim()}
+        className={`app-dialog-shell${open ? ' app-dialog-enter' : ''} ${className}`.trim()}
       >
         <span id={titleId} className="sr-only">{title}</span>
         {description && <span id={descriptionId} className="sr-only">{description}</span>}

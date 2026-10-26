@@ -1,0 +1,18 @@
+{
+  "backend/conversation_memory.py": "613c139ac66e8050b01fa6f9a7f59853d6f2d6ed25075c29ad667506cba91947",
+  "backend/services/conversation_management.py": "4ab4e5b4d33667455379f14b226efba5de448b45196ef4a2ff4bb5c296c8192a",
+  "frontend/src/components/AppRail.tsx": "4a93544b3b83efcf9ff51d6b025adde50e2720f719797381251b9c97d0e11e6d",
+  "frontend/src/components/LearningContextSidebar.tsx": "3e5e602b594916b706e7daa122dbdf3f61a6558cdf3d6728346434b8da4d4c18",
+  "frontend/src/components/LearningHistoryDock.css": "ec982df25e9198c66b41be8a11b725a384827e82cc66c62bc24008e26a8ce26d",
+  "frontend/src/components/SystemHealth.tsx": "62177b38e59ee8e600ed0fcbecef390e57d511327553ab491e7e9698ca1855b6",
+  "frontend/src/components/ui/Dialog.tsx": "87a934e7c9c4d2ae7193a3b05ce52d8a7893780171732f0c3bf9ad6c292693cd",
+  "frontend/src/features/conversations/conversations.css": "513dc3883158e12559df5facad0249c9b034b9e04a8543cb0c35f4857a7208c4",
+  "frontend/src/features/conversations/pageCache.ts": "81f26900f9889ae48c906836ff3627000df0407c05e50a9cb24e199bb23bfbc1",
+  "frontend/src/layouts/ApprovedWorkspace.css": "64d62e956a3ecb0216429bb3bdb2a2fd9d8eface248ef3aaf624c8a4c53fc249",
+  "frontend/src/layouts/MainLayout.tsx": "d7d3e08af4fe73474ef22ecb142214ef1ef46844eda8d4baefbff3fdd87b92ac",
+  "frontend/src/layouts/StudyDesk.css": "3cf9da7daf7f1bd5fba297c2f862bc91965fb0c3e424ff3c0527dca1735e240a",
+  "frontend/src/layouts/WorkspaceMotion.css": "fc2cc42f5cad01ef979f98dc9a5b0fcec8607fbb3c68ce50fecd80411a055927",
+  "frontend/src/pages/BooksPage.tsx": "4fda735f0fa4db1bd2d8722aef9607b4804f57befdbe3524325bfd278e905639",
+  "tests/test_conversation_management.py": "c404b8051c9a58be39f6e6eab62cb0c30f8f83abd7ee84f2f60bfb399c5cb866",
+  "frontend/src/features/conversations/pageCache.test.ts": "5260ef2952ea96157aeb86ae28e8db7461969b68deea58ebcbb468a698600230"
+}

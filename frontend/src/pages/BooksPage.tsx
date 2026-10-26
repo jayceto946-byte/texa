@@ -80,7 +80,7 @@ const OptionHelp = ({ title, description }: { title: string; description: string
 
 const BooksPage: React.FC = () => {
   const navigate = useNavigate();
-  const [importMode, setImportMode] = useState<'pdf' | 'bundle'>('pdf');
+  const [importMode, setImportMode] = useState<'pdf' | 'bundle'>('bundle');
   const [file, setFile] = useState<File | null>(null);
   const [outputFile, setOutputFile] = useState<File | null>(null);
   const [tocPages, setTocPages] = useState('');
@@ -258,7 +258,7 @@ const BooksPage: React.FC = () => {
           <SegmentedControl
             label="教材导入来源"
             value={importMode}
-            options={[{ value: 'pdf', label: 'PDF 教材', icon: <FileText className="h-4 w-4" /> }, { value: 'bundle', label: 'MinerU 输出包', icon: <Archive className="h-4 w-4" /> }]}
+            options={[{ value: 'bundle', label: 'MinerU 输出包（推荐）', icon: <Archive className="h-4 w-4" /> }, { value: 'pdf', label: 'PDF 教材', icon: <FileText className="h-4 w-4" /> }]}
             onChange={(mode) => { if (!uploading) setImportMode(mode); }}
           />
         </section>

@@ -16,3 +16,10 @@
 .conversation-composer-fields { display:contents; border:0; padding:0; margin:0; min-width:0; }
 .conversation-blocking-tasks { padding:8px; font-size:12px; line-height:1.7; color:var(--color-text-secondary); }
 .conversation-blocking-tasks>div { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+
+.history-count-skeleton { width: 18px; height: 12px; }
+.history-skeleton-row { padding: 12px 8px; display: grid; gap: 9px; }
+.history-skeleton-row .skeleton-shape { height: 12px; width: 84%; background: var(--color-border); }
+.history-skeleton-row:nth-child(even) .skeleton-shape { width: 68%; }
+.history-skeleton-row .skeleton-shape + .skeleton-shape { height: 9px; width: 32%; }
+.history-count-skeleton { background: var(--color-border); }
