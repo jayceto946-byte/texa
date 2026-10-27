@@ -1,0 +1,1029 @@
+{
+  "canonical_hash": "89dd1ed5d647ad563a49fe6c132ed7ebff8f34e6ff8c3b91d185c9625603dda3",
+  "candidates": 108,
+  "previously_ready_preserved": 92,
+  "duplicate_stems_preserved": 16,
+  "source_files_unchanged": true,
+  "admission_replayed": 96,
+  "methods": {
+    "block_boundary": 9,
+    "whole_unit": 94,
+    "unresolved": 5
+  },
+  "rows": [
+    {
+      "id": "C001",
+      "method": "block_boundary",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": false
+    },
+    {
+      "id": "C002",
+      "method": "block_boundary",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": false
+    },
+    {
+      "id": "C003",
+      "method": "block_boundary",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [
+        "formula_review"
+      ],
+      "structurally_admissible": false,
+      "previously_ready": false
+    },
+    {
+      "id": "C004",
+      "method": "block_boundary",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [
+        "formula_review"
+      ],
+      "structurally_admissible": false,
+      "previously_ready": false
+    },
+    {
+      "id": "C005",
+      "method": "block_boundary",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": false
+    },
+    {
+      "id": "C006",
+      "method": "block_boundary",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": false
+    },
+    {
+      "id": "C007",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C008",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C009",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C010",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C011",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C012",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C013",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C014",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C015",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C016",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C017",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C018",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C019",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C020",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C021",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C022",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C023",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C024",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C025",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C026",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C027",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C028",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C029",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C030",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C031",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [
+        "missing_required_input"
+      ],
+      "structurally_admissible": false,
+      "previously_ready": false
+    },
+    {
+      "id": "C032",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C033",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [
+        "missing_required_input",
+        "boundary_uncertain"
+      ],
+      "structurally_admissible": false,
+      "previously_ready": false
+    },
+    {
+      "id": "C034",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C035",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C036",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C037",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C038",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C039",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C040",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C041",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C042",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C043",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C044",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C045",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C046",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C047",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C048",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C049",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C050",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C051",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C052",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C053",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C054",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C055",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C056",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C057",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C058",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C059",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C060",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C061",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C062",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C063",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C064",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C065",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C066",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C067",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C068",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C069",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C070",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C071",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C072",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C073",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C074",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C075",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C076",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C077",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C078",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C079",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C080",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C081",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C082",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C083",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C084",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C085",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C086",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C087",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C088",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C089",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C090",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C091",
+      "method": "unresolved",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [
+        "boundary_uncertain",
+        "boundary_uncertain",
+        "boundary_uncertain",
+        "boundary_uncertain",
+        "boundary_uncertain",
+        "boundary_uncertain",
+        "boundary_uncertain"
+      ],
+      "structurally_admissible": false,
+      "previously_ready": false
+    },
+    {
+      "id": "C092",
+      "method": "unresolved",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [
+        "boundary_uncertain",
+        "boundary_uncertain",
+        "missing_required_input",
+        "boundary_uncertain"
+      ],
+      "structurally_admissible": false,
+      "previously_ready": false
+    },
+    {
+      "id": "C093",
+      "method": "unresolved",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [
+        "boundary_uncertain",
+        "missing_required_input",
+        "boundary_uncertain"
+      ],
+      "structurally_admissible": false,
+      "previously_ready": false
+    },
+    {
+      "id": "C094",
+      "method": "unresolved",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [
+        "solution_in_stem",
+        "missing_required_input"
+      ],
+      "structurally_admissible": false,
+      "previously_ready": false
+    },
+    {
+      "id": "C095",
+      "method": "block_boundary",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [
+        "missing_required_input"
+      ],
+      "structurally_admissible": false,
+      "previously_ready": false
+    },
+    {
+      "id": "C096",
+      "method": "unresolved",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [
+        "boundary_uncertain",
+        "boundary_uncertain",
+        "boundary_uncertain",
+        "missing_required_input"
+      ],
+      "structurally_admissible": false,
+      "previously_ready": false
+    },
+    {
+      "id": "C097",
+      "method": "block_boundary",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [
+        "missing_required_input"
+      ],
+      "structurally_admissible": false,
+      "previously_ready": false
+    },
+    {
+      "id": "C098",
+      "method": "block_boundary",
+      "answer_present": false,
+      "explanation_present": true,
+      "content_issues": [
+        "missing_required_input"
+      ],
+      "structurally_admissible": false,
+      "previously_ready": false
+    },
+    {
+      "id": "C099",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C100",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C101",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C102",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C103",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C104",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C105",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C106",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C107",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    },
+    {
+      "id": "C108",
+      "method": "whole_unit",
+      "answer_present": false,
+      "explanation_present": false,
+      "content_issues": [],
+      "structurally_admissible": true,
+      "previously_ready": true
+    }
+  ],
+  "model_ocr_calls": 0,
+  "interpretation": "Structure regression only; original PDF/OCR semantics and answer correctness remain unverified."
+}

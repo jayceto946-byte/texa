@@ -6,6 +6,7 @@ import { QuestionReadingLayout, type ReadingPane } from '../../reading/QuestionR
 import { useExerciseAnswerJob } from '../hooks/useExerciseAnswerJob';
 import { exerciseStatusText } from './ExercisePresentation';
 import type { ExerciseRecord } from '../../../types';
+import { SourceStructure } from './SourceStructure';
 export function ExerciseReader({ record, bookQuery, title, actions, attempt, footer, onSaved, onMessage, onStatus, onDelete }: { record: ExerciseRecord; bookQuery: string; title: string; actions: ReactNode; attempt?: ReactNode; footer?: ReactNode; onSaved: (record: ExerciseRecord) => void; onMessage: (message: string) => void; onStatus?: (status: string) => void; onDelete?: () => void }) {
   const [pane, setPane] = useState<ReadingPane>('question');
   const [editing, setEditing] = useState(false);
@@ -25,6 +26,7 @@ export function ExerciseReader({ record, bookQuery, title, actions, attempt, foo
     {record.image_path && <p className="question-reading-status is-warning">原图暂不可读取，请对照来源文件。</p>}<SimpleMarkdown content={record.question_text} />{attempt && <section className="question-reading-section">
       <h3>我的作答</h3>{attempt}</section>}<section className="question-reading-section question-reading-facts">
       <h3>题目信息</h3>
+      <SourceStructure value={record.source_structure} />
       <p>{record.question_type || '未定题型'} · 难度 {record.difficulty}</p>
       <p>{record.tags.join(' · ')}</p>
       <details>

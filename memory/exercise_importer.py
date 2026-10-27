@@ -214,6 +214,16 @@ def analyze_candidate(
     split_reasons: Iterable[str] | None = None,
 ) -> ExerciseCandidate:
     text = question_text.strip()
+    from memory.exercise_structure import split_roles
+    source_spans, _ = split_roles(dict(block_id='text', text=text), first=True)
+    source_answer, source_explanation = '', ''
+    if source_spans:
+        fields = {'prefix': [], 'question': [], 'answer': [], 'explanation': []}
+        for role, span in source_spans:
+            fields[role].append(text[span['start']:span['end']].strip())
+        source_answer = '\n\n'.join(fields['answer'])
+        source_explanation = '\n\n'.join(fields['explanation'])
+        text = '\n\n'.join(fields['prefix'] + fields['question'])
     lowered = text.lower()
     reasons: list[str] = []
     tags: list[str] = []
@@ -304,6 +314,8 @@ def analyze_candidate(
     return ExerciseCandidate(
         id=str(uuid.uuid4())[:8],
         question_text=text,
+        answer=source_answer,
+        explanation=source_explanation,
         source=source,
         subject=subject,
         chapter=chapter,
@@ -353,20 +365,27 @@ def attach_answers_by_number(candidates: list[ExerciseCandidate], raw_answer_tex
     """Attach a separate answer sheet by explicit question numbers only."""
     text = _normalize_import_text(raw_answer_text)
     matches = list(NUMBERED_ENTRY_RE.finditer(text))
-    answers: dict[str, str] = {}
+    answers: dict[str, list[str]] = {}
+    from collections import Counter
+    counts = Counter((m[1] or m[2]) for c in candidates if (m := NUMBERED_ENTRY_RE.match(c.question_text)))
     for index, match in enumerate(matches):
         number = match.group(1) or match.group(2) or ""
         end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
         value = text[match.end():end].strip()
         value = re.sub(r"^\s*(?:答案|答)\s*[:：]?\s*", "", value).strip()
         if number and value:
-            answers[number] = value
+            answers.setdefault(number, []).append(value)
 
     paired = 0
     for candidate in candidates:
         match = NUMBERED_ENTRY_RE.match(candidate.question_text)
         number = (match.group(1) or match.group(2) or "") if match else ""
-        answer = answers.get(number, "")
+        options = answers.get(number, [])
+        answer = options[0] if len(options) == 1 and counts[number] == 1 else ''
+        if candidate.answer or candidate.explanation:
+            if answer and answer != candidate.answer:
+                candidate.validation_issues.append('题后已有源解，独立答案未覆盖，请核对')
+            continue
         if answer:
             candidate.answer = answer
             candidate.validation_issues = [issue for issue in candidate.validation_issues if issue != "答案文件中未找到匹配答案"]

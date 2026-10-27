@@ -308,6 +308,7 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface ExerciseRecord {
+  source_structure?: CandidateStructure | null;
   id: string;
   question_text: string;
   answer: string;
@@ -346,10 +347,17 @@ export interface CandidateDependency {
 }
 export interface CandidateProjection {
   version: 1; canonical_hash: string; unit_ids: string[];
-  scope: { chapter: string; page_start: number | null; page_end: number | null; source_mode: 'exercise_sections' | 'examples' | 'all_pages' };
+  scope: { chapter: string; page_start: number | null; page_end: number | null; source_mode: 'exercise_sections' | 'examples' | 'all_pages' | 'file' };
   method: 'whole_unit' | 'block_boundary' | 'unresolved' | 'user_edited';
   parts: Record<'question' | 'answer' | 'explanation' | 'context' | 'unassigned', CandidateSpan[]>;
   dependencies: CandidateDependency[];
+  structure?: CandidateStructure | null;
+  profile_version?: string;
+  source_id?: string | null;
+}
+export interface CandidateStructure {
+  catalog_number: string; original_number: string; authored_focus: string; exam_source: string;
+  classification_path: string[]; source_block_ids: string[];
 }
 export interface CandidateIssue { key: string; category: 'content' | 'metadata'; code: string; block_ids: string[]; dependency_id: string | null }
 export interface CandidateReview { content_hash: string; resolutions: Array<{ issue_key: string; decision: 'corrected' | 'not_applicable' | 'source_checked' }> }
@@ -365,7 +373,7 @@ export interface CandidateSourceRegistry {
 }
 export interface CandidateReceipt {
   exercise_id: string; origin_id: string;
-  projection: Pick<CandidateProjection, 'version' | 'canonical_hash' | 'unit_ids' | 'method' | 'parts'>;
+  projection: Pick<CandidateProjection, 'version' | 'canonical_hash' | 'unit_ids' | 'method' | 'parts' | 'structure' | 'profile_version' | 'source_id'>;
   body_hash: string; review_kind: 'system_proposed' | 'user_confirmed';
 }
 
@@ -397,6 +405,7 @@ export interface ExerciseCandidate {
 
 export interface ExerciseImportBatch {
   candidate_receipts?: CandidateReceipt[];
+  skipped_candidate_receipts?: CandidateReceipt[];
   id: string;
   source_label: string;
   exercise_ids: string[];

@@ -24,6 +24,9 @@ class ExtractedTextbookExerciseText:
     units: list[dict] = field(default_factory=list)
     canonical_hash: str | None = None
     source_blocks: list[dict] = field(default_factory=list)
+    profile_version: str = ''
+    solution_markers: list[dict] = field(default_factory=list)
+    unmatched_answer_text: str = ''
 
     def to_dict(self) -> dict:
         return {
@@ -38,6 +41,8 @@ class ExtractedTextbookExerciseText:
             "units": self.units,
             "canonical_hash": self.canonical_hash,
             "source_blocks": self.source_blocks,
+            "profile_version": self.profile_version,
+            "unmatched_answer_text": self.unmatched_answer_text,
         }
 
 
@@ -53,6 +58,7 @@ def extract_textbook_exercise_text(
     page_end: int | None = None,
     source_mode: str = "exercise_sections",
     candidate_contract_version: int | None = None,
+    structure_profile_version: str | None = None,
 ) -> ExtractedTextbookExerciseText:
     """Load text for textbook exercise import without mutating existing indexes."""
     clean_book = safe_book_name(book_name)
@@ -86,16 +92,19 @@ def extract_textbook_exercise_text(
                     and (not resolved_end or (start or 0) <= resolved_end))
         units = []
         if source_mode != 'all_pages':
-            for unit in learning_units(canonical):
-                if source_mode == 'examples' and unit.kind != 'example':
+            from memory.exercise_structure import exercise_units
+            context_ids = {b.block_id for b in canonical.blocks if scoped(paths.get(b.block_id, []), b.page_start, b.page_end, b.block_id)}
+            source_units = exercise_units(canonical, allowed_context_ids=context_ids) if candidate_contract_version == 1 else [
+                dict(unit_id=u.unit_id, kind=u.kind, text=u.text, section_path=u.section_path,
+                     page_start=u.blocks[0].page_start, page_end=max((b.page_end or b.page_start or 0 for b in u.blocks), default=0),
+                     source_block_ids=[b.block_id for b in u.blocks], truncated=u.truncated) for u in learning_units(canonical)]
+            for unit in source_units:
+                if source_mode == 'examples' and unit['kind'] != 'example':
                     continue
-                start = unit.blocks[0].page_start
-                end = max((block.page_end or block.page_start or 0 for block in unit.blocks), default=start)
-                if not scoped(unit.section_path, start, end, unit.unit_id):
+                start, end = unit['page_start'], unit['page_end']
+                if not scoped(unit['section_path'], start, end, unit['unit_id']):
                     continue
-                units.append(dict(unit_id=unit.unit_id, kind=unit.kind, text=unit.text, chapter=unit.section_path[0],
-                                  page_start=start, page_end=end, source_block_ids=[block.block_id for block in unit.blocks],
-                                  truncated=unit.truncated))
+                units.append({**unit, 'chapter': unit['section_path'][0]})
             text = '\n\n'.join(unit['text'] for unit in units)
         else:
             selected = [block for block in canonical.blocks if block.block_type not in {'heading', 'figure'}
@@ -118,7 +127,12 @@ def extract_textbook_exercise_text(
             if any(bid not in allowed_ids for u in units for bid in u['source_block_ids']):
                 raise ValueError('学习单元跨出所选范围，请扩大页码范围后重新分析')
             source_blocks = source_registry(canonical, units, allowed_ids)
+        profile_version, solution_markers = '', []
+        if candidate_contract_version == 1:
+            from memory.exercise_structure_examples import StructureExampleStore
+            profile_version, solution_markers = StructureExampleStore(Path(PROGRESS_PATH)).load(structure_profile_version)
         return ExtractedTextbookExerciseText(
+            profile_version=profile_version, solution_markers=solution_markers,
             canonical_hash=canonical_hash, source_blocks=source_blocks,
             text=text, provider='canonical-learning-units', book_name=clean_book, chapter=resolved_chapter,
             page_start=resolved_start, page_end=resolved_end, chunk_count=len(selected) if source_mode == 'all_pages' else len(units), units=units,
@@ -707,13 +721,14 @@ def _normalize_text(text: str) -> str:
 
 
 def analyze_learning_unit_candidates(units: list[dict], *, book_name: str, subject: str, limit: int,
-                                     source_blocks=None, canonical_hash=None, scope=None):
+                                     source_blocks=None, canonical_hash=None, scope=None, solution_markers=(), profile_version='', source_id=None):
     """Analyze whole source units without resplitting formulas or subquestions."""
     from memory.exercise_importer import analyze_candidates
     candidates = []
     if canonical_hash is not None:
         from memory.exercise_candidate_projection import project_units, issue
-        proposals = project_units(units, source_blocks, canonical_hash, scope)
+        proposals = project_units(units, source_blocks, canonical_hash, scope, learned=solution_markers,
+                                 profile_version=profile_version, source_id=source_id)
         for proposal in proposals[:limit]:
             unit = proposal.pop('unit')
             source = f"{book_name} / {unit['chapter']} p{unit['page_start']}-{unit['page_end']} / {unit['unit_id']}"

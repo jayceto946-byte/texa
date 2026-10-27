@@ -77,6 +77,15 @@ def question_fingerprint(question_text: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest() if normalized else ""
 
 
+def _source_structure_text(record: ExerciseRecord) -> str:
+    structure = record.extra_fields.get('source_structure')
+    if not isinstance(structure, dict):
+        return ''
+    fields = [structure.get(k) for k in ('catalog_number', 'original_number', 'authored_focus', 'exam_source')]
+    path = structure.get('classification_path')
+    return ' '.join(v for v in fields + (path if isinstance(path, list) else []) if isinstance(v, str))
+
+
 @dataclass
 class PracticeSession:
     exercise_ids: list[str]
@@ -337,6 +346,9 @@ class ExerciseBankStore:
             if len(receipt_map) != len(records) or set(receipt_map) != {r.origin_id for r in records}:
                 raise ValueError('候选回执身份不完整')
             batch['candidate_receipts'] = [dict(receipt_map[r.origin_id], exercise_id=r.id) for r in accepted]
+            # A repeated question can occur under another authored focus. Keep
+            # that occurrence without changing the older question or its review.
+            batch['skipped_candidate_receipts'] = [dict(receipt_map[r['origin_id']], exercise_id=r['duplicate_of']) for r in skipped]
         with self._connect() as conn:
             for record in accepted:
                 record.updated_at = created_at
@@ -512,6 +524,7 @@ class ExerciseBankStore:
                 or kw in r.explanation.lower()
                 or kw in r.source.lower()
                 or any(kw in tag.lower() for tag in r.tags)
+                or kw in _source_structure_text(r).lower()
             ]
         return records[:limit]
 

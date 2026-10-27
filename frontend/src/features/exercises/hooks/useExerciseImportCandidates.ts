@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { ExerciseCandidate, CandidateSourceRegistry } from '../../../types';
 import { candidateHash, contentJson, editCandidate, canSubmitCandidate, type Decisions } from './candidateContract';
+import { assignSourceSuffix } from './sourceAssignment';
 import {
   filterCandidates,
   mergeSelectedCandidates as mergeSelected,
@@ -65,6 +66,13 @@ export function useExerciseImportCandidates({ onMessage }: UseExerciseImportCand
     if (['question_text', 'answer', 'explanation', 'projection'].some(key => key in updates)) setReviewDecisions(current => ({ ...current, [id]: {} }));
     setCandidates((items) => items.map((item) => item.id === id ? editCandidate(item, updates) : item));
   }, []);
+
+  const assignSource = useCallback((candidate: ExerciseCandidate, blockId: string, offset: number, role: 'question' | 'answer' | 'explanation' | 'context') => {
+    if (!sourceRegistry) return;
+    const updated = assignSourceSuffix(candidate, sourceRegistry, blockId, offset, role);
+    setReviewDecisions(current => ({ ...current, [candidate.id]: {} }));
+    setCandidates(items => items.map(c => c.id === candidate.id ? updated : c));
+  }, [sourceRegistry]);
 
   const chooseResolution = useCallback((candidate: ExerciseCandidate, issueKey: string, decision: Decisions[string]) => {
     const issue = candidate.issues?.find(i => i.key === issueKey);
@@ -146,6 +154,7 @@ export function useExerciseImportCandidates({ onMessage }: UseExerciseImportCand
     filteredCandidates,
     resetImportCandidates,
     updateCandidate,
+    assignSource,
     replaceCandidates,
     removeSelectedCandidates,
     selectAllCandidates,

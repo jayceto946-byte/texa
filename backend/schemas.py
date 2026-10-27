@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Optional, Literal
 
 from pydantic import BaseModel, Field
-from backend.exercise_candidate_schemas import CandidateProjection, CandidateIssue, CandidateReview, CandidateContext, CandidateContractVersion
+from backend.exercise_candidate_schemas import CandidateProjection, CandidateIssue, CandidateReview, CandidateContext, CandidateContractVersion, CandidateStructure
 
 
 class ApiResponse(BaseModel):
@@ -212,6 +212,7 @@ class KGRefreshOut(BaseModel):
 
 
 class ExerciseRecordOut(BaseModel):
+    source_structure: CandidateStructure | None = None
     id: str
     book_id: str = ""
     question_text: str
@@ -343,7 +344,7 @@ class TextbookExerciseAnalyzeRequest(BaseModel):
     chapter: str = ""
     page_start: Optional[int] = Field(default=None, ge=1)
     page_end: Optional[int] = Field(default=None, ge=1)
-    source_mode: str = "exercise_sections"
+    source_mode: Literal['exercise_sections', 'examples', 'all_pages'] = "exercise_sections"
     limit: int = Field(default=200, ge=1, le=500)
     use_llm: bool = False
     llm_max_items: int = Field(default=20, ge=1, le=100)

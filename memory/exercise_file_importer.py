@@ -26,6 +26,7 @@ class ExtractedExerciseText:
     text_pages: int = 0
     provider: str = "local"
     warnings: list[str] | None = None
+    canonical_book: object | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -112,7 +113,7 @@ def extract_pdf_text(path: Path) -> ExtractedExerciseText:
 
 def _extract_pdf_text_with_mineru(path: Path) -> ExtractedExerciseText:
     from ingestion.mineru_client import MinerUClient
-    from ingestion.mineru_importer import extract_text_from_mineru_output
+    from ingestion.document_adapters import MinerUAdapter
 
     output_dir = MINERU_OUTPUT_PATH / "exercise_imports" / f"{path.stem}_{int(time.time())}"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -120,17 +121,20 @@ def _extract_pdf_text_with_mineru(path: Path) -> ExtractedExerciseText:
     task_id = client.submit_pdf(path, parse_method="auto")
     client.wait_for_task(task_id, MINERU_TASK_TIMEOUT_SECONDS, MINERU_TASK_POLL_SECONDS)
     client.fetch_result(task_id, output_dir)
-    text = extract_text_from_mineru_output(output_dir)
+    canonical = MinerUAdapter.from_output_dir(output_dir, book_name=path.stem)
+    text = '\n\n'.join(b.text for b in canonical.blocks if b.text)
     if not text.strip():
         raise ValueError("MinerU 未返回可切分文本")
-    return ExtractedExerciseText(text=text, file_type="pdf", provider="mineru", warnings=[])
+    return ExtractedExerciseText(text=text, file_type="pdf", provider="mineru", warnings=[], canonical_book=canonical)
 
 
 def _extract_pdf_text_layer(path: Path) -> ExtractedExerciseText:
     import fitz
+    from ingestion.document_ir import CanonicalBook, DocumentBlock
 
     warnings: list[str] = []
     pages: list[str] = []
+    blocks = []
     with fitz.open(path) as doc:
         page_count = doc.page_count
         text_pages = 0
@@ -141,13 +145,22 @@ def _extract_pdf_text_layer(path: Path) -> ExtractedExerciseText:
                 pages.append(f"\n\n[Page {index}]\n{text}")
             else:
                 pages.append(f"\n\n[Page {index}]\n")
+            for block_index, raw in enumerate(page.get_text('blocks')):
+                if len(raw) > 6 and raw[6] == 0 and raw[4].strip():
+                    blocks.append(DocumentBlock(f'p{index}-b{block_index}', 'paragraph', raw[4], [path.stem],
+                        page_start=index, page_end=index, bbox=[raw[0] / page.rect.width, raw[1] / page.rect.height,
+                                                              raw[2] / page.rect.width, raw[3] / page.rect.height],
+                        source_kind='pdf_text', source_file=path.name,
+                        attributes=dict(bbox_space='page', bbox_format='xyxy', bbox_units='normalized')))
 
     text = _normalize_text("".join(pages))
     if page_count and text_pages == 0:
         warnings.append("该 PDF 未检测到文本层，疑似扫描件。")
     elif page_count and text_pages < page_count:
         warnings.append(f"部分页面没有文本层：共 {page_count} 页，提取到文本的页面 {text_pages} 页。")
-    return ExtractedExerciseText(text=text, file_type="pdf", page_count=page_count, text_pages=text_pages, provider="pdf-text-layer", warnings=warnings)
+    canonical = CanonicalBook(path.stem, path.stem, blocks, 'exercise-pdf-text-v1', source_page_count=page_count)
+    return ExtractedExerciseText(text=text, file_type="pdf", page_count=page_count, text_pages=text_pages,
+                                 provider="pdf-text-layer", warnings=warnings, canonical_book=canonical)
 
 
 def _normalize_text(text: str) -> str:

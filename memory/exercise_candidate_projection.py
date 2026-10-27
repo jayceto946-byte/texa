@@ -10,16 +10,17 @@ import hashlib
 import html
 import json
 import re
+from memory.exercise_structure import header_metadata, split_roles, solution_markers, ORIGINAL, FOCUS
 
 ROLES = ('question', 'answer', 'explanation', 'context', 'unassigned')
-SOLUTION = re.compile(r'^\s*(解答|答案|证明|解|证)\s*[：:]')
 INLINE_SOLUTION = re.compile(r'(?:[。；;\n]|\s)(?:解答|答案|证明|解|证)\s*[：:]')
 PRIOR_CONTEXT = re.compile(r'前例|上例|例\s*\d+(?:[.．]\d+)+\s*中|上述(?:参数|条件)')
 FIGURE = re.compile(r'图\s*([A-Za-z]|\d+(?:\s*[.．\-]\s*\d+)+)')
 SNAPSHOT_KEYS = ('block_id', 'block_type', 'text', 'section_path', 'page_start', 'page_end', 'bbox',
                  'equations', 'table_title', 'table_header', 'table_rows', 'source_kind', 'review_status')
 ATTRIBUTE_KEYS = ('source_page_idx', 'source_block_index', 'bbox_space', 'bbox_format', 'bbox_units',
-                  'mineru_type', 'semantic_role', 'asset_id', 'asset_hash', 'asset_status')
+                  'mineru_type', 'raw_level', 'semantic_role', 'asset_id', 'asset_hash', 'asset_status',
+                  'source_parent_id', 'source_start', 'source_end')
 
 
 def canonical_json(value):
@@ -38,10 +39,10 @@ def snapshot(block, order):
 
 
 def marker(block):
-    match = SOLUTION.match(block['text'])
+    matches = solution_markers(block['text'])
     role = block.get('attributes', {}).get('semantic_role')
-    if match:
-        return 'answer' if match[1] == '答案' else 'explanation'
+    if matches and not block['text'][:matches[0]['start']].strip():
+        return matches[0]['role']
     return {'answer': 'answer', 'solution': 'explanation', 'proof': 'explanation'}.get(role, '')
 
 
@@ -108,7 +109,7 @@ def serialize_parts(spans, registry):
     return '\n\n'.join(parts)
 
 
-def project_units(units, source_blocks, canonical_hash, scope):
+def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), profile_version='', source_id=None):
     """Return proposals keyed by original units; never rewrite the supplied units."""
     registry = {b['block_id']: b for b in source_blocks}
     groups = []
@@ -144,38 +145,73 @@ def project_units(units, source_blocks, canonical_hash, scope):
             warn('boundary_uncertain', ids)
         if blocks[0]['block_type'] == 'formula':
             warn('boundary_uncertain', [blocks[0]['block_id']])
-        same_block = any(INLINE_SOLUTION.search(b['text']) and not marker(b) for b in blocks)
-        boundary = next((i for i, b in enumerate(blocks) if i > 0 and marker(b)), None)
-        if same_block or (unit['kind'] == 'example' and boundary is None):
+        header_ids = set(unit.get('header_ids', []))
+        answer_ids = set(unit.get('answer_block_ids', []))
+        answer_headers = set(unit.get('answer_header_ids', []))
+        first_body = next((b['block_id'] for b in blocks if b['block_id'] not in header_ids | answer_headers | answer_ids), None)
+        splits = {b['block_id']: split_roles(b, first=b['block_id'] == first_body, learned=learned) for b in blocks if b['block_id'] not in header_ids}
+        has_solution = bool(answer_ids) or any(spans for spans, _ in splits.values())
+        same_block = any(INLINE_SOLUTION.search(b['text']) and not marker(b) and b['block_id'] not in answer_ids and not splits.get(b['block_id'], ([], False))[0] for b in blocks)
+        boundary = next((i for i, b in enumerate(blocks) if b['block_id'] in splits and splits[b['block_id']][0]), None)
+        if same_block or (unit['kind'] == 'example' and not has_solution):
             warn('solution_in_stem', [b['block_id'] for b in blocks if INLINE_SOLUTION.search(b['text'])] or ids[:1])
+        if unit.get('answer_pairing_uncertain'):
+            problems.append(issue('answer_pairing_uncertain', ids[:1], category='metadata'))
         # A numbered short title is ambiguous with a legitimate numbered subquestion.
         # Keep it as evidence and request a specific boundary decision.
         for b in blocks[1:]:
             text = b['text'].strip()
-            if (b['block_type'] == 'heading' or (re.match(r'^[（(]\d+[）)]\s*[^\d\W]', text)
+            if (b['block_type'] == 'heading' and b['block_id'] not in header_ids | answer_headers or (re.match(r'^[（(]\d+[）)]\s*[^\d\W]', text)
                 and len(text) < 35 and not re.search(r'[。？?=，,；;]|求|证明|计算|说明|分析|比较|再|试|设|是否|确定|多少', text))):
                 warn('boundary_uncertain', [b['block_id']])
             if b.get('review_status') and any(s in b['review_status'] for s in ('truncated', 'formula', 'fragment')):
                 warn('formula_review' if b['block_type'] == 'formula' else 'boundary_uncertain', [b['block_id']])
         parts = {role: [] for role in ROLES}
         unresolved = any(p['code'] in ('solution_in_stem', 'boundary_uncertain') for p in problems)
-        method = 'unresolved' if unresolved else ('block_boundary' if boundary else 'whole_unit')
+        method = 'unresolved' if unresolved else ('block_boundary' if has_solution else 'whole_unit')
         role = 'question'
         for i, b in enumerate(blocks):
-            if marker(b) and i > 0:
-                role = marker(b)
-            assigned = 'unassigned' if unresolved else role
-            parts[assigned].append(dict(block_id=b['block_id'], start=0, end=None))
+            if b['block_id'] in header_ids | answer_headers:
+                parts['context'].append(dict(block_id=b['block_id'], start=0, end=None))
+                continue
+            if b['block_id'] in answer_ids:
+                # The independently paired answer number is metadata, not answer text.
+                number = ORIGINAL.match(b['text'])
+                offset = number.end() if number else 0
+                if offset:
+                    parts['context'].append(dict(block_id=b['block_id'], start=0, end=offset))
+                spans, _ = split_roles({**b, 'text': b['text'][offset:]})
+                if spans:
+                    for next_role, span in spans:
+                        span['start'] += offset
+                        if span['end'] is not None:
+                            span['end'] += offset
+                        parts['answer' if next_role == 'prefix' else next_role].append(span)
+                else:
+                    parts['answer'].append(dict(block_id=b['block_id'], start=offset, end=None))
+                continue
+            spans, learned_used = splits.get(b['block_id'], ([], False))
+            if learned_used:
+                warn('learned_boundary', [b['block_id']])
+            if spans:
+                for next_role, span in spans:
+                    if next_role != 'prefix':
+                        role = next_role
+                    parts[role].append(span)
+            else:
+                if marker(b) and i > 0:
+                    role = marker(b)
+                parts['unassigned' if unresolved and not has_solution else role].append(dict(block_id=b['block_id'], start=0, end=None))
         body = {r: serialize_parts(parts[r], registry) for r in ('question', 'answer', 'explanation')}
-        if unresolved:
+        if unresolved and not has_solution:
             body['question'] = serialize_parts(parts['unassigned'], registry)
         # Preserve already working whole-unit text byte for byte (including dedup fingerprints).
-        if method == 'whole_unit' and len(group) == 1 and all(serialize_block(b) == b['text'] for b in blocks):
+        if method == 'whole_unit' and len(group) == 1 and not header_ids and not answer_ids and all(serialize_block(b) == b['text'] for b in blocks):
             body['question'] = unit['text']
         if boundary and any(b['block_type'] == 'table' for b in blocks[:boundary]):
             warn('formula_review', [b['block_id'] for b in blocks if b['block_type'] == 'table'])
         dependencies = []
-        question_source = '\n'.join(b['text'] for b in (blocks[:boundary] if boundary else blocks) if b['block_type'] != 'figure')
+        question_source = body['question']
         required_labels = set(figure_labels(question_source))
         all_labels = set(figure_labels('\n'.join(b['text'] for b in blocks)))
         for label in sorted(all_labels):
@@ -220,7 +256,20 @@ def project_units(units, source_blocks, canonical_hash, scope):
             warn('boundary_uncertain', ids)
         if '选择题' in body['question'] and len(re.findall(r'(?:^|\s|[（(])[A-D]\s*[.、．)]', body['question'], re.I)) < 3:
             warn('boundary_uncertain', ids)
+        headers = [b for b in blocks if b['block_id'] in header_ids]
+        catalog_headers = [b for b in headers if header_metadata(b['text'])]
+        catalog = catalog_headers[0] if catalog_headers else None
+        metadata = header_metadata(' '.join(b['text'] for b in headers if b['block_id'] == (catalog or {}).get('block_id') or (catalog and b['order'] > catalog['order']))) if catalog else None
+        if metadata is None:
+            focus = next((m[1] for b in headers if (m := FOCUS.match(b['text']))), '')
+            metadata = dict(catalog_number='', authored_focus=focus, exam_source='')
+        original = ORIGINAL.match(body['question'])
+        structure = dict(**(metadata or dict(catalog_number='', authored_focus='', exam_source='')),
+                         original_number=original.group().strip() if original else '',
+                         classification_path=unit.get('classification_path', unit.get('section_path', [])),
+                         source_block_ids=[b['block_id'] for b in headers])
         projection = dict(version=1, canonical_hash=canonical_hash, unit_ids=[u['unit_id'] for u in group],
-                          scope=deepcopy(scope), method=method, parts=parts, dependencies=dependencies)
+                          scope=deepcopy(scope), method=method, parts=parts, dependencies=dependencies,
+                          structure=structure, profile_version=profile_version, source_id=source_id)
         proposals.append(dict(unit=unit, question_text=body['question'], answer=body['answer'], explanation=body['explanation'], projection=projection, issues=problems))
     return proposals

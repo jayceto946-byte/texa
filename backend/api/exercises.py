@@ -308,12 +308,17 @@ def upload_and_analyze_exercises(
     source: str = Form(""),
     subject: str = Form(""),
     chapter: str = Form(""),
-    limit: int = Form(200),
+    limit: int = Form(200, ge=1, le=500),
     use_llm: bool = Form(False),
     llm_max_items: int = Form(20),
+    candidate_contract_version: int | None = Form(None),
     book_name: str = "default",
 ):
     try:
+        if candidate_contract_version not in (None, 1):
+            raise ValueError('未知候选合同版本')
+        if candidate_contract_version == 1 and use_llm:
+            raise ValueError('来源校对模式不使用文字重写，请关闭辅助修复后重试')
         saved_path = _save_upload(file)
         extracted = extract_exercise_text(saved_path)
         answer_path = None
@@ -330,21 +335,36 @@ def upload_and_analyze_exercises(
             }
         effective_source = source.strip() or saved_path.name
         effective_subject = normalize_subject_value(subject, fallback=book_name)
-        candidates = analyze_candidates(
-            split_candidate_blocks(extracted.text, limit=limit),
-            source=effective_source,
-            subject=effective_subject,
-            chapter=chapter.strip(),
-            limit=limit,
-        )
+        structured, source_id = None, None
+        if candidate_contract_version == 1:
+            from backend.services.exercise_file_analysis import ExerciseFileAnalysisStore
+            structured, source_id, paired_answers = ExerciseFileAnalysisStore(PROGRESS_PATH).create(
+                extracted, book_name=book_name, answer=answer_extracted)
+            scope = dict(chapter='', page_start=None, page_end=None, source_mode='file')
+            candidates = analyze_learning_unit_candidates(structured.units, book_name=book_name,
+                subject=effective_subject, limit=limit, source_blocks=structured.source_blocks,
+                canonical_hash=structured.canonical_hash, scope=scope, solution_markers=structured.solution_markers,
+                profile_version=structured.profile_version, source_id=source_id)
+            for candidate in candidates:
+                candidate.source = effective_source
+                if chapter.strip():
+                    candidate.chapter = chapter.strip()
+            if len(structured.units) > limit:
+                structured.warnings.append(f'当前范围有 {len(structured.units)} 个题目单元，本次上限 {limit} 道；请缩小范围或分批导入。')
+        else:
+            candidates = analyze_candidates(
+                split_candidate_blocks(extracted.text, limit=limit), source=effective_source,
+                subject=effective_subject, chapter=chapter.strip(), limit=limit)
         if use_llm:
             candidates = refine_low_confidence_candidates(candidates, max_items=llm_max_items)
-        paired_answers = attach_answers_by_number(candidates, answer_extracted.text) if answer_extracted and answer_extracted.text.strip() else 0
+        if candidate_contract_version is None:
+            paired_answers = attach_answers_by_number(candidates, answer_extracted.text) if answer_extracted and answer_extracted.text.strip() else 0
         data = _candidate_outputs(candidates, book_name)
         needs_llm_count = sum(1 for candidate in candidates if candidate.needs_llm)
         llm_refined_count = sum(1 for candidate in candidates if candidate.refined_by_llm)
         return {
             "success": True,
+            "candidate_contract_version": candidate_contract_version,
             "message": f"已从文件解析出 {len(data)} 道候选题",
             "data": data,
             "summary": {
@@ -353,11 +373,13 @@ def upload_and_analyze_exercises(
                 "auto_confident": len(data) - needs_llm_count,
                 "llm_refined": llm_refined_count,
                 "paired_answers": paired_answers,
+                "source_units": len(structured.units) if structured else len(data),
             },
             "file": str(saved_path),
             "answer_file": str(answer_path) if answer_path else "",
             "answer_extract": answer_extracted.to_dict() if answer_extracted else None,
-            "extract": extracted.to_dict(),
+            "extract": {**extracted.to_dict(), **(structured.to_dict() if structured else {}), "source_id": source_id,
+                        "warnings": [*(extracted.warnings or []), *(structured.warnings if structured else [])]},
         }
     except Exception as exc:
         return {"success": False, "message": f"文件导入失败：{exc}"}
@@ -400,7 +422,8 @@ def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: s
                 extracted.units, book_name=effective_book, subject=effective_subject, limit=req.limit,
                 **({"source_blocks": extracted.source_blocks, "canonical_hash": extracted.canonical_hash,
                     "scope": {"chapter": req.chapter.strip(), "page_start": req.page_start, "page_end": req.page_end,
-                              "source_mode": req.source_mode.strip() or "exercise_sections"}}
+                              "source_mode": req.source_mode.strip() or "exercise_sections"},
+                    "solution_markers": extracted.solution_markers, "profile_version": extracted.profile_version}
                    if req.candidate_contract_version == 1 else {}),
             )
         else:
@@ -414,6 +437,9 @@ def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: s
         needs_llm_count = sum(1 for candidate in candidates if candidate.needs_llm)
         llm_refined_count = sum(1 for candidate in candidates if candidate.refined_by_llm)
         warnings = extracted.warnings or []
+        if len(extracted.units) > req.limit:
+            warnings.append(f'所选范围有 {len(extracted.units)} 个学习单元，本次上限 {req.limit} 道候选；请缩小章节或页码范围。')
+            extracted.warnings = warnings
         return {
             "success": True,
             "candidate_contract_version": req.candidate_contract_version,
@@ -479,12 +505,38 @@ def batch_add_reviewed_candidates(req: ExerciseBatchAddRequest, book_name: str =
             # Preserve the exact reviewed source text; legacy sanitization is not a source projection.
             for record, item in zip(records, items):
                 record.question_text, record.answer, record.explanation = (item[k] for k in ('question_text','answer','explanation'))
+                record.extra_fields['source_structure'] = item['candidate_context']['projection'].get('structure')
             bank = _bank(book_name)
             batch = bank.add_batch(records, source_label=req.source_label, allow_duplicates=req.allow_duplicates,
                                    candidate_receipts=receipts)
         return {**_batch_response(bank, batch, book_name), "candidate_contract_version": 1}
     except CandidateAdmissionError as exc:
         raise HTTPException(exc.status, exc.detail) from exc
+
+
+@router.post('/structure-examples')
+def save_structure_example(req: ExerciseAddRequest, book_name: str = 'default'):
+    from backend.services.exercise_candidate_review import ExerciseCandidateReviewService, CandidateAdmissionError
+    from memory.exercise_candidate_projection import serialize_parts
+    from memory.exercise_structure_examples import StructureExampleStore
+    item = req.model_dump()
+    context = item.get('candidate_context')
+    if not context or not context.get('review'):
+        raise HTTPException(422, '请先明确确认本题当前结构，再保存分离样例')
+    try:
+        service = ExerciseCandidateReviewService()
+        service.prepare(book_name, [item])
+        extracted, _ = service.replay(book_name, context['projection'])
+        registry = {b['block_id']: b for b in extracted.source_blocks}
+        for role, key in (('question', 'question_text'), ('answer', 'answer'), ('explanation', 'explanation')):
+            if serialize_parts(context['projection']['parts'][role], registry) != item[key]:
+                raise ValueError('手改正文尚未对齐原文，请先在原文对照中标出分离位置')
+        result = StructureExampleStore(PROGRESS_PATH).save(projection=context['projection'], registry=registry)
+        return dict(success=True, data=result, message='已保存本地分离样例；后续相似标题会提出分离建议，仍需校对')
+    except CandidateAdmissionError as exc:
+        raise HTTPException(exc.status, exc.detail) from exc
+    except (ValueError, FileNotFoundError) as exc:
+        raise HTTPException(422, str(exc)) from exc
 
 
 @router.post("/batch-add")
@@ -523,6 +575,7 @@ def _batch_response(bank, batch, book_name):
         "skipped": batch.get("skipped", []),
         "batch_id": batch["id"],
         "candidate_receipts": batch.get("candidate_receipts", []),
+        "skipped_candidate_receipts": batch.get("skipped_candidate_receipts", []),
         "message": message,
     }
 

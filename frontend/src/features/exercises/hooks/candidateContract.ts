@@ -5,6 +5,7 @@ export const issueLabels: Record<string, string> = {
   missing_required_input: '缺少独立练习所需输入', dependency_uncertain: '资源关系待核对', formula_review: '公式或源表与解答需对照核对',
   source_unavailable: '来源不可回查，请重新分析', edited_content: '正文已修改，请确认本题结构',
   missing_concepts: '尚未识别知识点', unknown_type: '题型待补充', difficulty_hint: '难度建议', duplicate: '重复题', legacy_notice: '题目属性提示',
+  learned_boundary: '已参考本地校对样例分离，请核对本题是否适用', answer_pairing_uncertain: '答案编号或分类无法唯一匹配，已保留待核对',
 };
 export function issueLabel(item: ExerciseCandidate, issue: CandidateIssue) {
   const dep = item.projection?.dependencies.find(d => d.id === issue.dependency_id);
@@ -52,12 +53,14 @@ export function canSubmitCandidate(item: ExerciseCandidate): boolean {
         ? dep.requirement === 'reference' && decision === 'not_applicable'
         : dep?.kind === 'prior_context' && dep.resolution === 'embedded' && decision === 'corrected' && !/前例|上例|例\s*\d+(?:[.．]\d+)+\s*中|上述(?:条件|参数)/.test(item.question_text));
     }
-    return ['edited_content', 'solution_in_stem', 'boundary_uncertain', 'dependency_uncertain', 'formula_review'].includes(i.code);
+    return ['edited_content', 'solution_in_stem', 'boundary_uncertain', 'dependency_uncertain', 'formula_review', 'learned_boundary'].includes(i.code);
   });
 }
 export function mergeProjections(projections: CandidateProjection[]): CandidateProjection | null {
   const first = projections[0];
-  if (projections.some(p => p.canonical_hash !== first.canonical_hash || canonicalJson(p.scope) !== canonicalJson(first.scope))) return null;
+  if (new Set(projections.map(p => p.structure?.catalog_number).filter(Boolean)).size > 1) return null;
+  if (new Set(projections.map(p => p.structure?.authored_focus).filter(Boolean)).size > 1) return null;
+  if (projections.some(p => p.canonical_hash !== first.canonical_hash || p.source_id !== first.source_id || p.profile_version !== first.profile_version || canonicalJson(p.scope) !== canonicalJson(first.scope))) return null;
   const spans = <T,>(values: T[]) => [...new Map(values.map(v => [canonicalJson(v), v])).values()];
   return { ...first, method: 'user_edited', unit_ids: [...new Set(projections.flatMap(p => p.unit_ids))],
     parts: { question: spans(projections.flatMap(p => p.parts.question)), answer: spans(projections.flatMap(p => p.parts.answer)), explanation: spans(projections.flatMap(p => p.parts.explanation)), context: spans(projections.flatMap(p => p.parts.context)), unassigned: spans(projections.flatMap(p => p.parts.unassigned)) },

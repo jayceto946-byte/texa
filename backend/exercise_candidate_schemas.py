@@ -35,7 +35,16 @@ class CandidateScope(ContractModel):
     chapter: str = Field(max_length=1000)
     page_start: int | None = Field(default=None, ge=1)
     page_end: int | None = Field(default=None, ge=1)
-    source_mode: Literal['exercise_sections', 'examples', 'all_pages']
+    source_mode: Literal['exercise_sections', 'examples', 'all_pages', 'file']
+
+
+class CandidateStructure(ContractModel):
+    catalog_number: str = Field(default='', max_length=128)
+    original_number: str = Field(default='', max_length=128)
+    authored_focus: str = Field(default='', max_length=2000)
+    exam_source: str = Field(default='', max_length=1000)
+    classification_path: list[str] = Field(default_factory=list, max_length=20)
+    source_block_ids: list[str] = Field(default_factory=list, max_length=160)
 
 
 class CandidateDependency(ContractModel):
@@ -56,6 +65,9 @@ class CandidateProjection(ContractModel):
     method: Literal['whole_unit', 'block_boundary', 'unresolved', 'user_edited']
     parts: CandidateParts
     dependencies: list[CandidateDependency] = Field(max_length=160)
+    structure: CandidateStructure | None = None
+    profile_version: str = Field(default='', max_length=64, pattern=r'^(?:[a-f0-9]{64})?$')
+    source_id: str | None = Field(default=None, pattern=r'^[a-f0-9]{32}$')
 
 
 class CandidateIssue(ContractModel):
