@@ -215,7 +215,7 @@ class ChapterSplitter:
                 rows, [block], content, book_name=book_name, block_type="table",
                 parent_id=parent_id, parent_content=rendered, child_index=child_index,
                 extra={
-                    "table_title": block.table_title,
+                    "table_title": block.retrieval_table_title,
                     "table_header": list(block.table_header),
                     "table_rows": table_rows,
                 },
@@ -313,25 +313,26 @@ class ChapterSplitter:
     def _split_table_rows(self, block: DocumentBlock, rendered: str) -> list[tuple[str, list[list[str]]]]:
         if len(rendered) <= self.chunk_size or not block.table_rows:
             return [(rendered, [list(row) for row in block.table_rows])]
-        prefix = self._render_table_parts(block.table_title, block.table_header, [])
+        title = block.retrieval_table_title
+        prefix = self._render_table_parts(title, block.table_header, [])
         result: list[tuple[str, list[list[str]]]] = []
         current: list[list[str]] = []
         for row in block.table_rows:
             candidate = current + [list(row)]
-            candidate_text = self._render_table_parts(block.table_title, block.table_header, candidate)
+            candidate_text = self._render_table_parts(title, block.table_header, candidate)
             if current and len(candidate_text) > self.chunk_size:
-                result.append((self._render_table_parts(block.table_title, block.table_header, current), current))
+                result.append((self._render_table_parts(title, block.table_header, current), current))
                 current = [list(row)]
             else:
                 current = candidate
         if current:
-            result.append((self._render_table_parts(block.table_title, block.table_header, current), current))
+            result.append((self._render_table_parts(title, block.table_header, current), current))
         return result or [(prefix or rendered, [])]
 
     @classmethod
     def _render_table(cls, block: DocumentBlock) -> str:
         if block.table_header or block.table_rows:
-            return cls._render_table_parts(block.table_title, block.table_header, block.table_rows)
+            return cls._render_table_parts(block.retrieval_table_title, block.table_header, block.table_rows)
         return str(block.text or "").strip()
 
     @staticmethod

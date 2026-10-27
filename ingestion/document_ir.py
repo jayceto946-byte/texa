@@ -147,6 +147,11 @@ class DocumentBlock:
     table_rows: list[list[str]] = field(default_factory=list)
     attributes: dict[str, Any] = field(default_factory=dict)
 
+    @property
+    def retrieval_table_title(self) -> str:
+        """A source-linked continuation label without rewriting its raw caption."""
+        return str(self.attributes.get("table_resolved_title") or self.table_title or "").strip()
+
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 

@@ -6,13 +6,14 @@ from pathlib import Path, PurePosixPath
 import re
 from typing import Any
 
-from ingestion.document_ir import CanonicalBook, canonical_chapter_title
+from ingestion.document_ir import CanonicalBook, DocumentBlock, canonical_chapter_title
 
-ADAPTER_VERSION = 'mineru-structured-content-v3'
+ADAPTER_VERSION = 'mineru-structured-content-v4'
 _EXCLUDED = {'header', 'footer', 'page_number', 'index', 'doc_title'}
 _KNOWN = {'text', 'paragraph_title', 'equation', 'table', 'image', 'chart', 'ref_text', *_EXCLUDED}
 _SECTION = re.compile(r'^(\d+(?:\s*\.\s*\d+){1,5})(?:\s+|(?=[^\d.]))(.+)$')
 _ENUMERATION = re.compile(r'^(?:\d+\s*[.．、](?!\d)|[（(]\s*\d+\s*[）)])')
+_CONTINUATION_CAPTION = re.compile(r'^(?:[（(]\s*续(?:表)?\s*[）)]|续表?)$')
 
 
 def validate_structured(payload: Any) -> None:
@@ -58,6 +59,7 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
     numbered_path: list[str] = []
     chapter_seen = False
     document_titles = []
+    previous_table = table_root = None
     for source_page_index, page in enumerate(payload['pages']):
         page_idx = page['page_idx']
         printed_labels = [str(item.get('content', '')).strip() for item in page['blocks']
@@ -140,6 +142,8 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
                 equations = [text] if text else []
             if typ == 'table':
                 attrs['source_markdown'] = text
+                if type(raw.get('continues_prev')) is bool:
+                    attrs['source_continues_prev'] = raw['continues_prev']
                 _, table_header, table_rows = _table_parts(dict(table_body=text))
                 text = '\n'.join(v for v in [table_title, text, *footnotes] if v)
             if typ == 'ref_text':
@@ -150,6 +154,9 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
                                 bbox=bbox, confidence=confidence, equations=equations,
                                 table_title=table_title if typ == 'table' else '',
                                 table_header=table_header, table_rows=table_rows, attributes=attrs)
+            if typ == 'table':
+                table_root = _link_table_continuation(block, previous_table, table_root, warnings)
+                previous_table = block
             if typ in {'equation', 'table'}:
                 block.attributes['original_visual_asset'] = dict(
                     schema='texa.original-visual-asset', version=1, role='original_crop',
@@ -170,6 +177,35 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
     from ingestion.document_workflows import annotate_learning_units
     annotate_learning_units(book)
     return book
+
+
+def _link_table_continuation(block: DocumentBlock, previous: DocumentBlock | None,
+                             root: DocumentBlock | None, warnings: list[str]) -> DocumentBlock:
+    """Use the producer's explicit relation, never merge table bodies or guess.
+
+    Source captions, block IDs, coordinates and rows stay on their own pages.
+    Only a bare continuation caption with matching adjacent-page structure can
+    borrow the first fragment's title for retrieval/probe generation.
+    """
+    if block.attributes.get('source_continues_prev') is not True:
+        return block
+    title = block.table_title.strip()
+    if (previous is not None and root is not None
+            and previous.page_end is not None and block.page_start == previous.page_end + 1
+            and previous.section_path == block.section_path
+            and len(block.table_header) >= 2 and any(block.table_header)
+            and previous.table_header == block.table_header
+            and root.table_title.strip() and not _CONTINUATION_CAPTION.fullmatch(root.table_title.strip())
+            and (not title or _CONTINUATION_CAPTION.fullmatch(title))):
+        block.attributes.update(
+            table_continuation_of=previous.block_id,
+            table_title_source_block_id=root.block_id,
+            table_resolved_title=f"{root.table_title.strip()} {title or '(续)'}",
+        )
+        return root
+    warnings.append(f'Unresolved table continuation at page_idx={block.page_start - 1}, '
+                    f"block={block.attributes['source_block_index']}; original fragment retained")
+    return block
 
 
 def build_caption_projection(book: CanonicalBook, payload: dict) -> dict:

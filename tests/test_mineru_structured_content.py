@@ -89,7 +89,7 @@ def test_native_mapping_hierarchy_formula_and_provenance(tmp_path):
 def test_native_preferred_and_invalid_native_is_not_silently_bridged(tmp_path):
     output = source(tmp_path)
     (output / 'texa_content_list_v1.json').write_text(json.dumps([dict(type='text', text='bridge should not win')]))
-    assert MinerUAdapter.from_output_dir(output, book_name='demo').parser_version == 'mineru-structured-content-v3'
+    assert MinerUAdapter.from_output_dir(output, book_name='demo').parser_version == 'mineru-structured-content-v4'
     (output / 'structured_content.json').write_text('{')
     with pytest.raises(ValueError, match='Invalid native'):
         MinerUAdapter.from_output_dir(output, book_name='demo')
@@ -159,7 +159,7 @@ def test_formal_structured_only_importer(monkeypatch, tmp_path):
     assert result.used_mineru and result.indexed_chunks > 0
     assert result.chapters == mineru_importer.chapters_from_mineru_output(output, 'demo')
     assert 'bridge' not in mineru_importer.extract_text_from_mineru_output(output)
-    assert result.canonical_book.parser_version == 'mineru-structured-content-v3'
+    assert result.canonical_book.parser_version == 'mineru-structured-content-v4'
 
 
 def test_html_table_rows_and_sentence_title_are_preserved_as_body():

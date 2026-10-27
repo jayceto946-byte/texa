@@ -1,0 +1,78 @@
+{
+  "origin": "Synthetic regression data; no customer content or identifiers",
+  "book_name": "表格结构测试",
+  "payload": {
+    "metadata": {
+      "producer": {
+        "name": "mineru",
+        "version": "4.0.0"
+      },
+      "document": {
+        "page_count": 4
+      }
+    },
+    "pages": [
+      {
+        "page_idx": 0,
+        "blocks": []
+      },
+      {
+        "page_idx": 1,
+        "blocks": [
+          {
+            "type": "header",
+            "content": ""
+          },
+          {
+            "type": "header",
+            "content": ""
+          },
+          {
+            "type": "table",
+            "bbox": [
+              0.2,
+              0.3,
+              0.8,
+              0.5
+            ],
+            "content": "<table><tr><td>类型</td><td>曲线图</td><td>长度/μm</td><td>宽度/μm</td><td>标定值</td></tr><tr><td>示例甲</td><td><img src=\"images/sample_a.png\"/></td><td>11~17</td><td>31~43</td><td>1.7</td></tr></table>",
+            "captions": [
+              {
+                "content": "表 2-3 合成元件类型及参数"
+              }
+            ],
+            "footnotes": [],
+            "image_source": "images/fragment_a.png"
+          }
+        ]
+      },
+      {
+        "page_idx": 2,
+        "blocks": [
+          {
+            "type": "header",
+            "content": ""
+          },
+          {
+            "type": "table",
+            "bbox": [
+              0.2,
+              0.3,
+              0.8,
+              0.5
+            ],
+            "content": "<table><tr><td>类型</td><td>曲线图</td><td>长度/μm</td><td>宽度/μm</td><td>标定值</td></tr><tr><td>示例乙</td><td><img src=\"images/sample_b.png\"/></td><td>21~27</td><td>51~63</td><td>2.7</td></tr><tr><td>示例丙</td><td><img src=\"images/sample_c.png\"/></td><td>31~37</td><td>71~83</td><td>3.7</td></tr><tr><td>示例丁</td><td><img src=\"images/sample_d.png\"/></td><td>41~47</td><td>91~103</td><td>4.7</td></tr></table>",
+            "captions": [
+              {
+                "content": "(续)"
+              }
+            ],
+            "footnotes": [],
+            "image_source": "images/fragment_b.png",
+            "continues_prev": true
+          }
+        ]
+      }
+    ]
+  }
+}

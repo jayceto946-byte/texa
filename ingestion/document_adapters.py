@@ -812,6 +812,10 @@ class _HtmlTableParser(HTMLParser):
             self._row = []
         elif tag in {"th", "td"} and self._row is not None:
             self._cell = []
+        elif tag == "img" and self._cell is not None:
+            # An image-only cell is not empty. Keep its reference in the same
+            # row/column; the untouched source HTML remains available too.
+            self._cell.append(self.get_starttag_text())
 
     def handle_data(self, data: str):
         if self._cell is not None:

@@ -121,6 +121,9 @@ def generate_acceptance_probes(
         seen.add(key)
         inventory["table"] += 1
         source_block_ids = [block.block_id]
+        title_source_id = str(block.attributes.get("table_title_source_block_id") or "")
+        if title_source_id and title_source_id != block.block_id:
+            source_block_ids.insert(0, title_source_id)
         if context_block is not None:
             source_block_ids.insert(0, context_block.block_id)
         candidates["table"].append({
@@ -147,6 +150,7 @@ def generate_acceptance_probes(
                 "review_status": block.review_status,
                 "human_approved": False,
                 "target_grounding": grounding,
+                "table_title_source_block_id": title_source_id,
                 "context_block_id": context_block.block_id if context_block is not None else "",
             },
         })
@@ -481,9 +485,10 @@ def _table_probe(
     table_contexts: dict[int, list[tuple[str, DocumentBlock]]],
 ) -> tuple[str, str, DocumentBlock | None] | None:
     block = blocks[table_index]
-    title = str(block.table_title or "").strip()
+    title = block.retrieval_table_title
     if title:
-        return f"{title}中列出了哪些字段或数据？", "caption", None
+        grounding = "continuation_caption" if block.attributes.get("table_continuation_of") else "caption"
+        return f"{title}中列出了哪些字段或数据？", grounding, None
     section_tables = table_groups.get(tuple(block.section_path), [])
     if len(section_tables) == 1:
         return f"{_section_label(block)}中的表格列出了哪些字段或数据？", "single_table_section", None
