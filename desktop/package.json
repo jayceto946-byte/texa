@@ -28,6 +28,8 @@
     "appId": "local.kaoyan.assistant",
     "productName": "Texa",
     "artifactName": "Texa-Setup-${version}.${ext}",
+    "afterPack": "./update-manifest.cjs",
+    "artifactBuildStarted": "./update-manifest.cjs",
     "directories": {
       "output": "../release"
     },
@@ -86,6 +88,7 @@
       "identity": null
     },
     "nsis": {
+      "include": "installer-update.nsh",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,

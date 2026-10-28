@@ -1,0 +1,14 @@
+{
+  "platform": "darwin",
+  "nativeWindows": false,
+  "results": [
+    {
+      "scenario": "valid",
+      "compiled": true
+    },
+    {
+      "scenario": "incomplete",
+      "compiled": true
+    }
+  ]
+}

@@ -85,6 +85,13 @@ async function main() {
     if (sha256(marker) !== markerHash) throw new Error('NSIS changed the existing user-data fixture');
     const config = yaml.load(fs.readFileSync(path.join(installRoot, 'resources/app-update.yml'), 'utf8'));
     if (config.publisherName != null || config.channel !== 'commit') throw new Error('Installed update configuration mismatch');
+    const transactionBytes = fs.readFileSync(path.join(process.env.LOCALAPPDATA, config.updaterCacheDirName, 'installer.exe.transaction.ini'));
+    const transaction = transactionBytes.toString(transactionBytes[0] === 0xff && transactionBytes[1] === 0xfe ? 'utf16le' : 'utf8');
+    if (!transaction.includes('phase=committed') || !transaction.includes(`version=${expected.version}`)) throw new Error('Upgrade did not commit through staged replacement');
+    const shortcut = await run('powershell.exe', ['-NoProfile', '-Command',
+      '$s = (New-Object -ComObject WScript.Shell).CreateShortcut((Join-Path ([Environment]::GetFolderPath("Desktop")) "Texa.lnk")); $s.TargetPath'],
+    { windowsHide: true });
+    if (path.resolve(shortcut.stdout.trim()).toLowerCase() !== path.join(installRoot, 'Texa.exe').toLowerCase()) throw new Error('Upgrade changed or removed the desktop shortcut target');
     const installedBackend = await run(path.join(installRoot, 'resources/backend/backend_server/backend_server.exe'), [], {
       timeout: 120000, windowsHide: true, maxBuffer: 4 * 1024 * 1024,
       env: { ...process.env, TEXA_FROZEN_SMOKE: '1', TEXA_EMBEDDING_BACKEND: 'onnx',
@@ -96,6 +103,7 @@ async function main() {
       sourceCommit: expected.sourceCommit, version: current.version, artifact: manifest.path,
       sha256: sha256(downloaded), unsigned: true, actualUpdaterDownload: true, actualNsisUpgrade: true,
       installedBackendSmoke: true,
+      stagedReplacementCommitted: true, desktopShortcutPreserved: true,
       userDataFixturePreserved: true, feed: 'loopback served from actual release files',
       nativeUiAcceptance: 'not performed', githubPublicFeedCheck: 'required after publication' };
     fs.writeFileSync(path.join(release, 'upgrade-verification.json'), JSON.stringify(report, null, 2) + '\n');

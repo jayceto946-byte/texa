@@ -103,6 +103,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Desktop syntax checks failed' }
           node scripts/verify-electron-update-restart.cjs update-restart-verification.json
           if ($LASTEXITCODE -ne 0) { throw 'Native Electron update exit/relaunch checks failed' }
+          node scripts/verify-nsis-staged-update.cjs nsis-staged-update-verification.json
+          if ($LASTEXITCODE -ne 0) { throw 'Native NSIS staged replacement/failure recovery checks failed' }
       - name: Bind build to the exact commit
         id: identity
         run: |
@@ -163,6 +165,7 @@ jobs:
             smoke-out.log
             smoke-error.log
             update-restart-verification.json
+            nsis-staged-update-verification.json
             release/upgrade-verification.json
             release/upload-receipt.json
           if-no-files-found: ignore

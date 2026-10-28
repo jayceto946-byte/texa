@@ -77,6 +77,8 @@ jobs:
           npm.cmd run check
           Pop-Location
           .\venv310\Scripts\python.exe scripts\check_release_content.py --sample-dir desktop\sample_data
+          node scripts/verify-nsis-staged-update.cjs nsis-staged-update-verification.json
+          if ($LASTEXITCODE -ne 0) { throw 'Native NSIS staged update checks failed' }
 
       - name: Configure GitHub update feed
         shell: pwsh

@@ -32,7 +32,7 @@ async function runChild() {
   const context = {
     mainWindow: window, closePreparation, allowQuit: false, allowWindowClose: false,
     shuttingDown: false, updateState: { status: 'downloaded' }, updateInstallPromise: null,
-    sourceUpdater: null, ipcMain, app,
+    sourceUpdater: null, ipcMain, app, fs, process: { platform: 'win32' }, backendProcess: null,
     appendBackendLog: message => record.messages.push(message),
     requireLocalRenderer: event => { if (event.sender !== window.webContents) throw Error('Access denied'); },
     stopBackend: async () => { record.stopped = true; write(); },
@@ -61,15 +61,19 @@ async function runChild() {
   // Retain the real BaseUpdater -> NsisUpdater flag translation and quit event.
   // Substitute only the installer spawn, then relaunch this isolated witness.
   const updater = new NsisUpdater(null, { version: '1.0.0', name: 'Texa-witness', isPackaged: true,
-    quit: () => {
-      app.once('will-quit', () => app.relaunch({ args: [__filename, '--child', '--reopened'] }));
-      app.quit();
-    },
+    quit: () => app.quit(),
   });
   updater.logger = { info() {}, warn() {}, error() {}, debug() {} };
   updater.on('error', error => { record.error = String(error); write(); });
   updater.downloadedUpdateHelper = { file: path.join(directory, 'fixture-installer.exe'), downloadedFileInfo: {}, packageFile: null };
-  updater.spawnLog = async (_file, args) => { record.installArgs = args; write(); return true; };
+  fs.writeFileSync(updater.installerPath, 'Fixture only; never executed');
+  updater.spawnLog = async (_file, args) => {
+    record.installArgs = args;
+    record.windowClosedBeforeInstall = window.isDestroyed();
+    write();
+    app.relaunch({ args: [__filename, '--child', '--reopened'] });
+    return true;
+  };
   context.autoUpdater = updater;
   await window.loadURL('data:text/html,<title>Update witness</title><p>Fixture only</p>');
   await window.webContents.executeJavaScript(`
@@ -107,8 +111,8 @@ async function main() {
       const result = JSON.parse(fs.readFileSync(target, 'utf8'));
       const forceRun = result.installArgs?.join(' ') === '--updated /S --force-run';
       const passed = scenario === 'fixed'
-        ? result.prepared && result.stopped && result.unloadAttempts > 0 && result.reopened && result.oldPid !== result.newPid && forceRun
-        : scenario === 'baseline' ? result.prepared && result.stopped && result.unloadAttempts > 0 && result.stillOpen && !result.reopened && forceRun
+        ? result.prepared && result.stopped && result.unloadAttempts > 0 && result.reopened && result.oldPid !== result.newPid && forceRun && result.windowClosedBeforeInstall
+        : scenario === 'baseline' ? result.prepared && result.stopped && result.unloadAttempts > 0 && result.stillOpen && !result.reopened && result.installArgs === null
           : !result.prepared && !result.stopped && result.installArgs === null && result.stillOpen && !result.reopened;
       results.push({ ...result, passed: Boolean(passed) });
     } finally {

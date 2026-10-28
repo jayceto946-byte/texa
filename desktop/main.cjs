@@ -84,8 +84,8 @@ if (!hasSingleInstanceLock) app.quit();
 let updaterConfigured = false;
 let updateInstallPromise = null;
 let updateState = {
-  status: 'idle',
-  message: '尚未检查更新',
+  status: process.argv.includes('--texa-update-failed') ? 'error' : 'idle',
+  message: process.argv.includes('--texa-update-failed') ? '上次更新未完成，已保留或恢复旧版本，请重新检查更新。' : '尚未检查更新',
   currentVersion: app.getVersion(),
   updateInfo: null,
   progress: null,
@@ -286,7 +286,7 @@ function attachBackendLogging() {
 }
 
 function waitForProcessExit(child, timeoutMs) {
-  if (!child || child.exitCode !== null) return Promise.resolve(true);
+  if (!child || child.exitCode !== null || child.signalCode) return Promise.resolve(true);
   return new Promise((resolve) => {
     let settled = false;
     const finish = (exited) => {
@@ -379,6 +379,9 @@ function stopBackend() {
         await forceKillProcessTree(pid);
         await waitForProcessExit(child, 2500);
       }
+    }
+    if (child.exitCode === null && child.signalCode === null) {
+      throw new Error('本地服务尚未退出，已取消关闭，请稍后重试。');
     }
     if (backendProcess === child) backendProcess = null;
   })().finally(() => {
@@ -845,6 +848,7 @@ ipcMain.handle('remote-s0:copy-token', (event) => {
 
 ipcMain.handle('updates:check', async (event) => {
   requireLocalRenderer(event);
+  if (updateInstallPromise) return updateState;
   if (sourceUpdater) return sourceUpdater.check();
   if (!configureUpdater()) return updateState;
   await autoUpdater.checkForUpdates();
@@ -852,6 +856,7 @@ ipcMain.handle('updates:check', async (event) => {
 });
 ipcMain.handle('updates:download', async (event) => {
   requireLocalRenderer(event);
+  if (updateInstallPromise) return updateState;
   if (sourceUpdater) return sourceUpdater.prepare();
   if (updateState.status !== 'available') return emitUpdateState({ status: 'error', message: '请先检查可用更新。' });
   if (!configureUpdater()) return updateState;
@@ -864,29 +869,54 @@ async function installAppUpdate(event) {
   if (updateState.status !== 'downloaded') {
     return emitUpdateState({ status: 'error', message: '更新尚未下载完成，无法安装。' });
   }
+  if (!sourceUpdater && process.platform === 'win32') {
+    try {
+      fs.accessSync(autoUpdater.installerPath, fs.constants.R_OK);
+    } catch {
+      return emitUpdateState({ status: 'available', message: '已下载的安装包无法读取，请重新下载更新。' });
+    }
+  }
   appendBackendLog('[updater] preparing restart update');
   if (!await prepareWindowClose()) return emitUpdateState({ status: 'downloaded', message: '草稿尚未保存，请先处理未保存修改。' });
+  emitUpdateState({ status: 'installing', message: '正在关闭本地服务，准备重启更新...', progress: null });
   shuttingDown = true;
-  await stopBackend();
-  appendBackendLog('[updater] close preparation and backend stop completed');
-  if (sourceUpdater) {
-    const result = await sourceUpdater.install();
-    if (result.status !== 'installing') {
-      shuttingDown = false;
+  try {
+    await stopBackend();
+    if (sourceUpdater) {
+      const result = await sourceUpdater.install();
+      if (result.status !== 'installing') throw new Error(result.message || '修复未能应用。');
+    }
+  } catch (error) {
+    shuttingDown = false;
+    allowQuit = false;
+    if (!backendProcess) {
       await startBackend();
       if (await waitForBackend(30000)) await loadAppUrl(desktopAppUrl(FRONTEND_DEV_URL || backendUrl));
-      mainWindow?.webContents.send('window:close-aborted');
-      return result;
     }
+    mainWindow?.webContents.send('window:close-aborted');
+    appendBackendLog('[updater] restart cancelled: ' + (error.message || error));
+    return emitUpdateState({ status: sourceUpdater ? 'error' : 'downloaded', message: `未能重启更新：${error.message || error}` });
+  }
+  appendBackendLog('[updater] close preparation and backend stop completed');
+  if (sourceUpdater) {
     allowQuit = true;
     app.relaunch();
     app.quit();
-    return result;
+    return updateState;
   }
   allowQuit = true;
-  // Updates reuse the existing installation without showing the setup wizard.
-  appendBackendLog('[updater] handing off silent install with automatic restart');
-  autoUpdater.quitAndInstall(true, true);
+  if (process.platform === 'win32') {
+    // BaseUpdater starts NSIS BEFORE it calls app.quit(). Wait until Electron
+    // has closed its windows instead, so NSIS cannot race/kill the old renderer.
+    // quit listeners run synchronously; quitAndInstall spawns NSIS synchronously.
+    app.once('quit', () => {
+      appendBackendLog('[updater] windows closed; handing off silent install with automatic restart');
+      autoUpdater.quitAndInstall(true, true);
+    });
+    app.quit();
+  } else {
+    autoUpdater.quitAndInstall(true, true);
+  }
   return emitUpdateState({ status: 'installing', message: '正在重启并安装更新...' });
 }
 ipcMain.handle('updates:install', event => {
@@ -926,6 +956,11 @@ app.on('before-quit', (event) => {
     await stopBackend();
     allowQuit = true;
     app.quit();
+  }).catch((error) => {
+    shuttingDown = false;
+    mainWindow?.webContents.send('window:close-aborted');
+    emitBackendState({ status: 'failed', message: error.message || '本地服务未能关闭，请重试。', canRetry: true });
+    appendBackendLog('[shutdown] quit cancelled: ' + (error.message || error));
   });
 });
 
