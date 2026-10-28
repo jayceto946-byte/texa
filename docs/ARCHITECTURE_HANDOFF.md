@@ -95,7 +95,7 @@
   - `main.py` 现在支持 `cli` 与 `web` 两种 mode；
   - `python main.py web --host 127.0.0.1 --port N` 会执行 `uvicorn.run("backend.main:app", ...)`；
   - `cli` mode 仍保留为 legacy developer CLI。
-- **launch/install 脚本变化**：
+- **launch/install 历史脚本（已退役并本地归档）**：
   - `launch.ps1`：依赖检查从 `gradio/langchain/sentence_transformers/chromadb` 改为 `fastapi/uvicorn/langchain/chromadb`；进程清理匹配 `uvicorn` / `backend.main`；启动命令改为 `python main.py web --host 127.0.0.1 --port $Port`。
   - `install.ps1`：生成的 `启动Web.bat` 改为 `python "...\main.py" web --host 127.0.0.1 --port 8000`；使用说明改为 FastAPI 后端。
 
@@ -224,7 +224,7 @@ question generation
 
 - `agents/` 只保留 legacy CLI 使用的 quiz helper；
 - 处理 `backend/api/chat.py`、`graph/retrieval_node.py` 等长文件拆分；
-- 统一 `launch.ps1` / `install.ps1` / Vite 代理的默认端口；
+- 旧根目录 `launch.ps1` / `install.ps1` 已本地归档，当前启动与部署入口见 `docs/README.md`；
 - 清理仓库根目录中的运行时数据、备份与发布产物。
 
 ---

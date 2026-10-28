@@ -1,3 +1,32 @@
+## 2026-10-28 — 仓库整理授权交付与远程分支收敛
+
+- 经用户明确授权，将已审阅的文档归档、根目录整理与 Logo 归位作为独立治理提交交付至 Texa_MacOS；不包含搁置功能及原有未暂存业务修改。本地历史归档继续排除在 Git/Docker 之外。
+- 删除完全合入 Texa_MacOS、未占用 Worktree 的 6 个远程临时分支：Refactor-ONNX、codex/cross-module-remediation、codex/mobile-s2-a2、feature/mobile-remote、refactor-rename-to-texa、refactor/decouple-services。实时复核远程分支由 10 个减至 4 个；本地分支由 21 个减至 15 个。
+- 用户随后明确选择保留 GitHub 默认分支 master；不调整其指针。其他 Worktree、未提交工作及其关联分支继续保留。未使用强制推送、历史重写或清理其他工作区。
+- 沿用本轮已完成的生产构建、桌面测试与发布相关回归结果；最终交付只复核提交范围、现有保护和 Git/远程状态，不重复整套测试。
+
+## 2026-10-28 — 根目录入口、依赖与文档归位
+
+- 逐项核对根目录文件与 Electron、Docker、CI、维护脚本及文档引用。保留实际 Python/CLI 入口、Docker/版本/测试/仓库配置和正式开发/构建依赖；Dockerfile 明确复制的空 __init__.py 保留。
+- 用户指南移至 docs/user-guide.md，统一维护记录移至 docs/patch_notes.md，更新现行导航与开发约定。移除指南正文末尾的内部撰稿引用，旧原文仍在 Git 历史中；不再让规格与审计文档互相引用成为保留理由。
+- 三份根目录历史报告、两份旧 ONNX 实验依赖、install.ps1/launch.ps1 及专属的 audit-model-latency-offline.py 从 Git 跟踪移除，内容按原路径保存在本地 docs/archive。旧安装器创建 venv、旧启动器依赖进程清理，均不是当前 Electron/CI 的运行入口；未增加兼容空壳或替代业务逻辑。
+- 按本轮根目录整理授权，将七份已忽略的搁置报告只在本地移至 docs/archive，保留内容及保护规则，不纳入提交，不恢复功能。历史产物生成器不属于当前应用运行链，未改写实验快照。
+- 删除根目录 .DS_Store；文件夹内的学习数据、虚拟环境、发布包和其他工作区不清理。原有未提交修改保留，维护记录的未提交差异跟随文件迁移。
+- 验证：Python 3.10 / venv310 的 Docker 发布、内容门槛及前端构建隔离相关测试共 9 项通过；现有 Starlette 弃用 warning 保留。Git 差异空白检查与既有搁置提交保护通过，文档链接/根目录清单/归档排除及原有未提交内容保全检查通过。未重复前端生产构建、运行付费模型或打包安装程序；未 commit/push。
+
+## 2026-10-28 — 根目录 Logo 资源归位
+
+- 将根目录 5 个 Texa_Logo PNG/SVG 文件原样移动到 icon/，更新 README 顶部品牌图路径。前端、Electron、构建脚本和 CI 未引用这些根目录文件，现行应用图标资源保持原位。
+- 核对 README 图片目标、SVG 内嵌资源和 Git 移动差异；未改图像内容或业务代码，未重跑业务测试、构建或发布安装包。文档迁移计划留待下一轮授权，原有未提交修改保留。
+
+## 2026-10-28 — Git 仓库与文档整理
+
+- 以 Texa_MacOS 为集成基准，核对 21 个本地分支、10 个远程分支和 16 个 Worktree；全部分支提交均已合入基准。删除 6 个未占用 Worktree 的已合并本地临时分支，保留 master 与全部 Worktree 关联分支；未删除远程分支、未重写历史或清理其他工作区。
+- 原有 324 份已跟踪 Markdown 中，171 份阶段报告、计划和实验材料移入本地 docs/archive，153 份长期文档、引用材料及冻结评测资料保留原位。归档不永久销毁内容，有效相对链接随位置调整；现存代码、脚本、CI、现行文档依赖及非 Markdown 夹具不移动。新增 docs/README.md 导航，并在 Git/Docker 排除本地归档。
+- 未跟踪/已忽略的 306 份项目 Markdown 仅登记，包括搁置的 Web 材料，原样保留。主工作区原有未提交修改及其他 Worktree 未提交工作保留。本地审计、逐文件分类、分支提交恢复位置与待确认项位于 docs/archive/repository-cleanup-2026-10-28/REPORT.md，不上传 GitHub。
+- 验证：TypeScript/Vite 生产构建通过，输出临时目录；Python 3.10 / venv310 发布与打包相关测试 9 项通过。桌面现有测试 61 项沙箱通过，另 1 项回环端口测试因 EPERM 受阻，在正常本机权限下单独复核通过。保留原有大 chunk 与 Starlette 弃用提示；未重打安装包、运行付费模型或修改业务逻辑、依赖、数据库和索引。
+- 远程已合并临时分支删除、GitHub 默认分支从 master 调整为 Texa_MacOS 及 Worktree 生命周期留待确认。本轮只整理本地并准备可审阅差异，未 commit/push。
+
 ## 2026-10-28 — 疑似冗余项复核与第二批清理
 
 - 按用户授权复核上一轮疑似未使用清单，搜索包含本地忽略文件的源码、工具/反射入口、测试、维护脚本、CI 和非搁置文档。删除无 import/懒加载/注册入口的旧 LibraryManager 和空 KnowledgeGraphPage；现有 LibraryWorkbench、学习页面及 /kg 等兼容重定向保留。

@@ -32,10 +32,12 @@ scripts/export-new-user-package.ps1 clean source export for a new user
 ## Documentation and tests
 
 ```text
-docs/       deployment, data safety, migration notes
+docs/       user guide, change history, architecture, deployment and data safety
+icon/       repository brand/logo assets
+docs/archive/ local-only retired reports, scripts and experiment manifests
 tests/      pytest coverage for API, workflows, exercises, mistakes, health
 AGENTS.md   long-term development constraints and architecture notes
-patch_notes.md version/change/test notes
+docs/patch_notes.md version/change/test notes
 ```
 
 ## Local-only runtime data

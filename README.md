@@ -1,12 +1,12 @@
 <div align="center">
 
-<img src="Texa_Logo.png" alt="Texa" width="320">
+<img src="icon/Texa_Logo.png" alt="Texa" width="320">
 
 # Texa
 
 面向教材学习、练习与长期复习的本地桌面工作台
 
-[界面预览](#界面预览) · [核心功能](#核心功能) · [系统架构](#系统架构) · [安装与运行](#安装与运行)
+[界面预览](#界面预览) · [核心功能](#核心功能) · [系统架构](#系统架构) · [安装与运行](#安装与运行) · [项目文档](docs/README.md)
 
 </div>
 

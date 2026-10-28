@@ -378,5 +378,3 @@ Get-FileHash .\book-mineru.zip -Algorithm SHA256
 在桌面“设置 → 手机连接”按提示准备 Tailscale，用本人手机打开地址并配对。电脑和本地服务需保持运行；手机访问同一份资料，不是独立同步副本。不要分享配对码。候选发行包、真实手机与重启配对行为仍待实测。
 
 </details>
-
-内部验收：原指南的发行包、真实模型/OCR、云 GPU 租用解析、重启恢复、跨平台、备份覆盖与手机连接验证没有被 UI 检查替代。V01–V18 继续保留于 [内部验收清单](docs/qa/user-guide-2026-10-19/release-checklist.md)，原规格见 [TEXA-USER-GUIDE-SPEC.md](TEXA-USER-GUIDE-SPEC.md)。
