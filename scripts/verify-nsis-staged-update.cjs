@@ -62,7 +62,7 @@ async function main() {
     const locked = path.join(root, 'locked');
     const releaseLock = path.join(root, 'release-lock');
     await fs.writeFile(lockScript, 'param($Target,$Ready,$Release)\n$h=[IO.File]::Open($Target,"Open","Read","None")\ntry { Set-Content $Ready locked; while (-not (Test-Path $Release)) { Start-Sleep -Milliseconds 100 } } finally { $h.Dispose() }\n');
-    const holding = run('powershell.exe', ['-NoProfile', '-File', lockScript, executable, locked, releaseLock], { timeout: 90000 });
+    const holding = run('pwsh.exe', ['-NoProfile', '-File', lockScript, executable, locked, releaseLock], { timeout: 90000 });
     holding.catch(() => {}); // Awaited in finally, including launch errors.
     // Observe a real file lock before asking the installer to replace it.
     try {
@@ -98,7 +98,8 @@ if ($Restore -eq 'restore') {
 }
 Set-Acl $key $acl
 `);
-    await run('powershell.exe', ['-NoProfile', '-File', aclScript, aclBackup, 'deny']);
+    // Keep the CI host's PowerShell edition and inherited module path aligned.
+    await run('pwsh.exe', ['-NoProfile', '-File', aclScript, aclBackup, 'deny']);
     try {
       let rolledBack = false;
       try { await run(installers.valid, ['/S', '--updated', '/currentuser', `/D=${installed}`], { timeout: 60000 }); }
@@ -107,7 +108,7 @@ Set-Acl $key $acl
       const ini = await fs.readFile(path.join(process.env.LOCALAPPDATA, 'texa-desktop-updater', 'installer.exe.transaction.ini'));
       if (!ini.toString(ini[0] === 0xff ? 'utf16le' : 'utf8').includes('phase=rolled_back')) throw Error('Rollback did not record its actual transaction path');
     } finally {
-      await run('powershell.exe', ['-NoProfile', '-File', aclScript, aclBackup, 'restore']);
+      await run('pwsh.exe', ['-NoProfile', '-File', aclScript, aclBackup, 'restore']);
     }
     await run(installers.valid, ['/S', '--updated', '/currentuser', `/D=${installed}`], { timeout: 60000 });
     if (await fs.readFile(executable, 'utf8') !== 'new fixture executable; never launch') throw Error('Prepared candidate was not published');

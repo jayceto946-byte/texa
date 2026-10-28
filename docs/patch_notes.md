@@ -1,3 +1,9 @@
+## 2026-10-28 — 修复 Windows 构建验收的 PowerShell 版本混用
+
+- 补查近期 commit update 构建：f0b99d0、67e1cf2、8e499ed 均在 NSIS 事务回滚验收中因 Get-Acl 的 Microsoft.PowerShell.Security 模块无法加载而失败，正式打包尚未执行。
+- CI 使用 PowerShell 7 运行 Node；验收脚本却启动 powershell.exe（Windows PowerShell 5.1），继承了不同版本的模块搜索路径。文件锁、ACL 故障注入与 ACL 恢复三个子进程统一改用 CI 已提供的 pwsh.exe；不改生产安装器、注册表范围、原权限恢复逻辑或验收门槛。
+- 本地 node --check 通过；Windows 原生替换/缺文件/文件占用/元数据写入失败回滚仍由完整 commit update 工作流执行，尚不据语法检查宣称原生验收通过。历史提交保持不变，失败任务按原提交串行补跑，避免同一并发组互相取消。
+
 ## 2026-10-28 — 仓库整理授权交付与远程分支收敛
 
 - 经用户明确授权，将已审阅的文档归档、根目录整理与 Logo 归位作为独立治理提交交付至 Texa_MacOS；不包含搁置功能及原有未暂存业务修改。本地历史归档继续排除在 Git/Docker 之外。
