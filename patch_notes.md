@@ -1,3 +1,21 @@
+## 2026-10-28 — 疑似冗余项复核与第二批清理
+
+- 按用户授权复核上一轮疑似未使用清单，搜索包含本地忽略文件的源码、工具/反射入口、测试、维护脚本、CI 和非搁置文档。删除无 import/懒加载/注册入口的旧 LibraryManager 和空 KnowledgeGraphPage；现有 LibraryWorkbench、学习页面及 /kg 等兼容重定向保留。
+- 旧 ModelSettingsForm 只剩类型消费者，将原有类型原样迁到 frontend/src/components/settings/modelSettingsTypes.ts，并更新 FirstRunGuide、SystemHealth、ModelSettingsManager 三处 type import；删除旧表单 UI，不改变当前模型设置或首次配置流程。
+- 删除九个仅剩定义、没有当前调用/反射/注册或文档调用入口的辅助函数：is_delivered_task_status、resolver_method_quality_report、active_teaching_prompt、build_plan_hint、link_neighbors、is_unclear_intent、log_learning_event、read_storage_manifest、subject_options。保留状态合同、Resolver 分项统计与门槛、提示词选择、Canonical 邻接关系、概念关联、学习事件存储、manifest 升级及学科匹配的实际实现。
+- 三个已禁用的直接索引写入脚本（rebuild_index_with_roles.py、rebuild_vector_store_from_mineru.py、build_book_aggregate_index.py）删除重建函数、旧数据路径与依赖导入，只保留既有退出信息，继续引导到 scripts/reindex_book.py；未执行重建或修改教材索引。
+- 保留退役远程采集 IPC 的兼容停用回执及后端采集令牌鉴权；保留有独立 __main__ 入口的 phase2_worker.py。两处 _run_bounded 仍分别服务模型总结和工具执行，保留不同容量策略，不作合并。未改动 Electron、工具注册、打包配置及搁置的功能内容。
+- 验证：venv310 / Python 3.10 的七个定向测试文件共 50 项通过；前端启动与 UI 合同两个测试文件共 12 项通过；修改的前端文件 ESLint、TypeScript/Vite 生产构建及修改 Python 的语法检查通过。三个停用 CLI 均返回原退出码和提示；构建仍有大 chunk 提示，输出位于临时目录，不覆盖 frontend/dist。本轮无 Electron 实机或 Windows 安装包验收，无依赖/数据库/索引格式变更，未发布安装包。
+
+## 2026-10-28 — 审计确认的死代码清理
+
+- 按本轮只读审计的“确认未使用”清单复核调用链后，删除旧 useMistakeReview、字符串数学模板插入器、旧复习汇总模块和未接入的 NoteSourceInspector；删除未使用的 MistakeMetric、ExerciseMetric/ExerciseDetail、Tabs 和 completedActivityCount。保留现行复习会话、数学编辑器、ExerciseReader、SegmentedControl、笔记来源 API 与存储。
+- 删除章节教学中未提交执行的重点提取/出题函数及专属提示和 JSON 辅助逻辑；保留教学生成、缓存重点回退及现有返回合同。删除 MinerU 导入器中已由 Canonical Adapter 替代且没有调用者的旧分支及其专属辅助函数，保留仍被兼容测试使用的 content-list 转换。
+- 删除无调用者的错题概念薄封装、旧 embedding snapshot 探测及专属辅助项、KG 日期薄封装、两个验收探针辅助函数，以及 ApiResponse/BookInfoOut/BookSwitchRequest/BookImportRequest 四个未接入 schema；保留实际持久化、资产检测、领域服务及其调用路径。
+- 同步移除只验证已删除实现的测试；数学模板目录检查改用现行 templateToEditorLatex，保留有效的模板、选择控件、执行记录及工作流测试。未新增替代实现或依赖。
+- 验证：venv310 / Python 3.10 的六个定向测试文件共 90 项通过，前端四个定向测试文件共 24 项通过；修改的前端文件 ESLint 和 TypeScript/Vite 生产构建通过。构建写入临时目录，不覆盖当前 frontend/dist；仍有构建大 chunk 提示和 Python SWIG 弃用 warning。本轮未做 Electron 实机或 Windows 安装包验收。
+- 未改动 Electron、动态工具注册、脚本及打包入口；保留疑似未使用项、类型消费者、兼容 API/CLI、冻结评测与搁置的功能内容。无数据库、索引、数据目录或运行开关变更，未发布安装包。
+
 ## 2026-10-28 — Windows 更新退出、分阶段替换与回滚
 
 - Windows 安装版保留关闭握手、后端停止、静默安装和自动启动；将 NSIS 启动推迟到 Electron 窗口关闭后的 quit 事件，避免安装器和仍运行的窗口竞争退出。关闭本地服务时立即显示更新中，并阻止检查/下载扰动交接。

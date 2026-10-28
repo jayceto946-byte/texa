@@ -10,7 +10,7 @@ import DataSafety from './settings/DataSafety';
 import MobileRemoteS0 from './settings/MobileRemoteS0';
 import NetworkDiagnostics from './settings/NetworkDiagnostics';
 import AppearanceSettings from './settings/AppearanceSettings';
-import type { ModelSettingsValue } from './settings/ModelSettingsForm';
+import type { ModelSettingsValue } from './settings/modelSettingsTypes';
 import ModelSettingsManager from './settings/ModelSettingsManager';
 import { PageState, StatusBanner, type AsyncStateKind } from './ui/AsyncState';
 import type { SettingsTab } from './settings/settingsNavigation';

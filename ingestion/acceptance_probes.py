@@ -326,12 +326,6 @@ def _list_probe_question(section: str, points: list[str]) -> str:
     return f"{section}主要包括哪些内容？{' '.join(points[:2])}"[:160]
 
 
-def _formula_symbol(formula: str) -> str:
-    left = formula.split("=", 1)[0]
-    tokens = re.findall(r"\\[A-Za-z]+|[A-Za-z][A-Za-z0-9_]*|[\u4e00-\u9fff]{2,8}", left)
-    return " ".join(tokens[:2])[:24]
-
-
 def _list_items(text: str) -> list[str]:
     items = []
     for line in text.splitlines():
@@ -568,11 +562,6 @@ def _usable_anchor(anchor: str, source: str) -> bool:
 def _section_label(block: DocumentBlock) -> str:
     parts = [str(item).strip() for item in block.section_path if str(item).strip()]
     return parts[-1] if parts else "本节"
-
-
-def _first_match(pattern: str, text: str) -> str:
-    match = re.search(pattern, text)
-    return match.group(0).strip() if match else ""
 
 
 def _intent(specialty: str) -> str:

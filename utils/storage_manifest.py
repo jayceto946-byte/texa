@@ -93,7 +93,3 @@ def ensure_storage_manifest(data_root: str | Path | None = None) -> dict:
     if raw != manifest:
         atomic_write_json(path, manifest)
     return manifest
-
-
-def read_storage_manifest(data_root: str | Path | None = None) -> dict:
-    return ensure_storage_manifest(data_root)

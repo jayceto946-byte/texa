@@ -212,7 +212,3 @@ class ConceptLinker:
         start = max(0, idx - radius)
         end = min(len(text), idx + len(term) + radius)
         return text[start:end].strip()
-
-
-def is_unclear_intent(intent: str) -> bool:
-    return intent in ConceptLinker._WEAK_INTENTS

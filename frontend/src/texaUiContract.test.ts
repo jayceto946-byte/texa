@@ -12,7 +12,7 @@ import figureViewer from './features/visual-learning/FigureRegionViewer.tsx?raw'
 import modelSettings from './components/settings/ModelSettingsManager.tsx?raw';
 import asyncState from './components/ui/AsyncState.tsx?raw';
 import { EmptyState, PageState } from './components/ui/AsyncState';
-import { SegmentedControl, Tabs } from './components/ui/SelectionControls';
+import { SegmentedControl } from './components/ui/SelectionControls';
 import loading from '../../desktop/loading.html?raw';
 const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8');
 
@@ -47,14 +47,10 @@ describe('Texa product UI contract', () => {
     const options = [{ value: 'one', label: '第一个' }, { value: 'two', label: '第二个' }] as const;
     const onChange = () => undefined;
     const segmented = renderToStaticMarkup(createElement(SegmentedControl, { label: '视图', value: 'one', options, onChange }));
-    const tabs = renderToStaticMarkup(createElement(Tabs, { label: '页面', value: 'two', options, onChange, panelId: 'content' }));
     const empty = renderToStaticMarkup(createElement(EmptyState, { title: '暂无内容', description: '请稍后重试' }));
 
     expect(segmented).toContain('role="radiogroup"');
     expect(segmented).toContain('aria-checked="true"');
-    expect(tabs).toContain('role="tablist"');
-    expect(tabs).toContain('aria-selected="true"');
-    expect(tabs).toContain('aria-controls="content"');
     expect(empty).toContain('role="status"');
   });
 

@@ -195,11 +195,6 @@ def is_resumable_task_status(status: str) -> bool:
     return bool(contract and contract["resumable"])
 
 
-def is_delivered_task_status(status: str) -> bool:
-    contract = LEARNING_TASK_STATE_CONTRACT.get(status)
-    return bool(contract and contract["delivered"])
-
-
 def task_requires_input_action(status: str) -> bool:
     contract = LEARNING_TASK_STATE_CONTRACT.get(status)
     return bool(contract and contract["input_action_required"])

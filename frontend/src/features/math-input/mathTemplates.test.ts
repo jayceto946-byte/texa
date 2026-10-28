@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { insertMathTemplate } from './insertMathTemplate';
+import { templateToEditorLatex } from './formulaEditorUtils';
 import { mathTemplateCategories, mathTemplates } from './mathTemplates';
 
 describe('mathTemplates', () => {
@@ -20,11 +20,11 @@ describe('mathTemplates', () => {
     }
   });
 
-  it('does not leave internal markers in inserted content', () => {
+  it('does not leave internal markers in editor content', () => {
     for (const template of mathTemplates) {
-      const result = insertMathTemplate('', 0, 0, template);
-      expect(result.value).not.toContain('[[selection|');
-      expect(result.value).not.toContain('[[cursor|');
+      const latex = templateToEditorLatex(template);
+      expect(latex).not.toContain('[[selection|');
+      expect(latex).not.toContain('[[cursor|');
     }
   });
 });

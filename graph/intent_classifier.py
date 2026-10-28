@@ -243,8 +243,3 @@ def is_fast_path_eligible(user_input: str, local_result: dict) -> bool:
         return False
 
     return True
-
-
-def build_plan_hint(local_result: dict) -> str:
-    """为 plan_node 构建 hint，减少 LLM 的猜测空间。"""
-    return local_result.get("hint", "")

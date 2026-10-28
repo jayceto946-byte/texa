@@ -6,7 +6,6 @@ back to local TOC parsing, but the result is marked as non-OCR.
 """
 from __future__ import annotations
 
-import json
 import logging
 import re
 import shlex
@@ -242,14 +241,6 @@ def _parse_chapters_locally(pdf_path: Path, book_name: str, toc_pages: str) -> l
     return chapters
 
 
-def _canonical_mineru_book(output_dir: Path, chapters: list[dict], book_name: str) -> CanonicalBook:
-    """Prefer MinerU's source blocks; retain a chapter adapter fallback."""
-    canonical = MinerUAdapter.from_output_dir(output_dir, book_name=book_name)
-    if canonical.blocks:
-        return canonical
-    return MinerUAdapter.from_chapters(chapters, book_name=book_name, source_file=Path(output_dir).name)
-
-
 def chapters_from_canonical(book: CanonicalBook) -> list[dict]:
     """Project chapter metadata and body from the exact IR that will be indexed."""
     paths = canonical_retrieval_paths(book.blocks)
@@ -275,55 +266,6 @@ def extract_text_from_mineru_output(output_dir: Path) -> str:
     return _normalize_text('\n\n'.join(block.text for block in book.blocks
                                        if block.text and block.block_type != 'figure'))
 
-
-
-def _chapters_from_markdown_output(output_dir: Path, book_name: str) -> list[dict]:
-    markdowns = sorted(output_dir.rglob("*.md"), key=lambda item: str(item).lower())
-    parts: list[str] = []
-    for md_path in markdowns:
-        try:
-            text = md_path.read_text(encoding="utf-8", errors="ignore").strip()
-        except Exception:
-            continue
-        if text:
-            parts.append(text)
-    if not parts:
-        return []
-    return _chapters_from_markdown_text("\n\n".join(parts), book_name)
-
-
-def _chapters_from_markdown_text(markdown: str, book_name: str) -> list[dict]:
-    lines = markdown.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-    chapters: list[dict] = []
-    current = _new_chapter(f"{book_name} (full text)", 1)
-    saw_heading = False
-
-    for line in lines:
-        heading = re.match(r"^\s{0,3}(#{1,3})\s+(.+?)\s*$", line)
-        if heading:
-            title = re.sub(r"\s+", " ", heading.group(2)).strip(" #")
-            if title and len(title) <= 120:
-                if current["text"].strip():
-                    chapters.append(current)
-                current = _new_chapter(title, len(chapters) + 1)
-                saw_heading = True
-                continue
-        current["text"] += line + "\n"
-
-    if current["text"].strip() or not chapters:
-        if not saw_heading:
-            current["title"] = f"{book_name} (full text)"
-        chapters.append(current)
-    return _clean_chapters(chapters)
-
-def _load_first_json(output_dir: Path, patterns: list[str]) -> Any:
-    for pattern in patterns:
-        for path in output_dir.rglob(pattern):
-            try:
-                return json.loads(path.read_text(encoding="utf-8"))
-            except Exception:
-                continue
-    return None
 
 
 def _chapters_from_content_list(items: list[dict], book_name: str) -> list[dict]:
@@ -362,23 +304,6 @@ def _chapters_from_content_list(items: list[dict], book_name: str) -> list[dict]
             current["title"] = f"{book_name} (全文)"
         chapters.append(current)
     return _clean_chapters(chapters)
-
-
-def _chapters_from_middle_json(middle: dict, book_name: str) -> list[dict]:
-    items: list[dict] = []
-    for page in middle.get("pdf_info", []) or []:
-        page_idx = page.get("page_idx", 0)
-        for block in page.get("para_blocks", []) or []:
-            text = _collect_block_text(block)
-            if text:
-                items.append({
-                    "type": block.get("type") or "text",
-                    "text": text,
-                    "page_idx": page_idx,
-                    "bbox": block.get("bbox") or [],
-                    "equations": block.get("equations") or [],
-                })
-    return _chapters_from_content_list(items, book_name) if items else []
 
 
 def _new_chapter(title: str, page: int) -> dict:
@@ -420,20 +345,6 @@ def _item_text(item: dict) -> str:
         elif isinstance(value, str) and value.strip():
             parts.append(value.strip())
     return "\n".join(parts)
-
-
-def _collect_block_text(block: dict) -> str:
-    parts: list[str] = []
-    for line in block.get("lines", []) or []:
-        for span in line.get("spans", []) or []:
-            content = span.get("content")
-            if isinstance(content, str) and content.strip():
-                parts.append(content.strip())
-    for child in block.get("blocks", []) or []:
-        child_text = _collect_block_text(child)
-        if child_text:
-            parts.append(child_text)
-    return " ".join(parts).strip()
 
 
 def _coalesce_external_ocr_chapters(chapters: list[dict], book_name: str) -> list[dict]:

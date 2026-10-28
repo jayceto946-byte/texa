@@ -295,7 +295,3 @@ def _is_sqlite_storage_error(exc: sqlite3.OperationalError) -> bool:
 
 def get_learning_event_store(data_dir: str | Path = PROGRESS_PATH) -> LearningEventStore:
     return LearningEventStore(safe_child_path(data_dir, "learning_events.db"))
-
-
-def log_learning_event(event_type: str, **kwargs) -> str:
-    return get_learning_event_store().append(LearningEvent(event_type=event_type, **kwargs))

@@ -1,17 +1,12 @@
 """参数化章节教学 Subgraph — 一个通用图，按 chapter_name 注入不同内容
 
-Pipeline: 获取内容 → 【并行】提炼重点 / 出题 / 生成讲解+总结
-优化后关键路径仅 1 次 LLM 调用（讲解+总结合并），非关键任务后台并行。
+Pipeline: 准备教材证据 → 生成讲解，复用已有章节重点缓存。
 """
-import json
-from concurrent.futures import ThreadPoolExecutor
 from langchain_core.messages import HumanMessage, SystemMessage
 from config import get_llm
 from graph.conversation_context import prepare_conversation_context
-from graph.safe_retrieval import get_safe_vector_store
 from knowledge.summary_store import SummaryStore
 from utils.latex_sanitizer import sanitize_latex
-from utils.thinking_filter import strip_thinking
 from graph.teaching_prompts import (
     MINIMAL_TEACHING_PROMPT,
     REFINED_TEACHING_PROMPT,
@@ -20,21 +15,6 @@ from graph.teaching_prompts import (
     refined_teaching_prompt_enabled,
     teaching_prompt_mode,
 )
-
-EXTRACT_KEYPOINTS_PROMPT = """基于以下章节内容，提取考研重点：
-
-## 章节内容
-{content}
-
-输出 JSON（不要其他）：
-{{
-  "key_concepts": ["概念1", "概念2"],
-  "key_formulas": ["公式1", "公式2"],
-  "key_theorems": ["定理1"],
-  "common_mistakes": ["易错点1"],
-  "exam_frequency": "高/中/低"
-}}
-"""
 
 TEACH_PROMPT = """请基于以下教材内容，讲解"{chapter}"。直接开始，不要寒暄。
 
@@ -52,46 +32,6 @@ TEACH_PROMPT = """请基于以下教材内容，讲解"{chapter}"。直接开始
 5. 公式使用LaTeX：行内$...$，块级$$...$$；所有 $ / $$ 必须成对闭合，不能把中文文字或标点包在数学模式内
 6. 强调要克制：粗体（**…**）只用于核心结论、必须记忆的概念名、以及重要因果/对比中的关键字；不要给大量普通名词、列表项加粗；不要加粗完整句子；标题内不要堆叠粗体。
 """
-
-
-def _extract_keypoints(content: str, llm) -> str:
-    """同步提取重点，用于后台线程。"""
-    resp = llm.invoke(EXTRACT_KEYPOINTS_PROMPT.format(content=content[:4000]))
-    raw = strip_thinking(resp.content)
-    try:
-        kp = json.loads(_clean_json(raw))
-        return "\n".join(kp.get("key_concepts", []))
-    except json.JSONDecodeError:
-        return ""
-
-
-def _generate_quiz(chapter: str, content: str, llm) -> list[dict]:
-    """同步出题，用于后台线程。"""
-    prompt = f"""基于以下章节内容，生成 3 道选择题和 2 道填空题。
-
-## 章节：{chapter}
-## 内容
-{content[:4000]}
-
-输出 JSON 数组（不要其他）：
-[
-  {{"question": "...", "type": "选择题", "options": ["A.","B.","C.","D."], "answer": "A", "explanation": "...", "knowledge_point": "..."}},
-  ...
-]
-"""
-    resp = llm.invoke(prompt)
-    raw = strip_thinking(resp.content)
-    try:
-        return json.loads(_clean_json(raw))
-    except json.JSONDecodeError:
-        return [{"question": "出题失败", "type": "text", "error": True}]
-
-
-def _clean_json(text: str) -> str:
-    text = text.strip()
-    if text.startswith("```"):
-        text = text.split("\n", 1)[-1].rsplit("\n", 1)[0]
-    return text
 
 
 def _future_result_if_done(futures: dict, name: str, default=None):
@@ -132,8 +72,7 @@ def prepare_chapter_subgraph(state: dict):
 def chapter_subgraph_run(state: dict) -> dict:
     """参数化章节教学流水线（同步版，供非流式场景使用）。
 
-    关键路径：1 次 LLM 调用（讲解+总结合并）
-    后台并行：提取重点、出题（不阻塞关键路径）
+    使用准备好的教材证据生成讲解，并复用已有章节重点缓存。
     """
     content, chapter, book_name, executor, futures = prepare_chapter_subgraph(state)
     intent = state.get("intent", "teach")

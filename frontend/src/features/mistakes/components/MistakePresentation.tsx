@@ -28,18 +28,3 @@ export const MistakeRange = ({
     />
   </label>
 );
-
-export const MistakeMetric = ({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone: string;
-}) => (
-  <div className="px-4 py-3 text-left">
-    <div className={`text-xl font-semibold ${tone}`}>{value}</div>
-    <div className="mt-1 text-xs text-text-secondary">{label}</div>
-  </div>
-);

@@ -7,12 +7,6 @@ from pydantic import BaseModel, Field
 from backend.exercise_candidate_schemas import CandidateProjection, CandidateIssue, CandidateReview, CandidateContext, CandidateContractVersion, CandidateStructure
 
 
-class ApiResponse(BaseModel):
-    success: bool = True
-    message: str = ""
-    data: Optional[dict] = None
-
-
 class ChatRequest(BaseModel):
     question: str = Field(..., description="User question")
     book_name: str = Field(default="", description="Current book name")
@@ -172,22 +166,6 @@ class WeakPointOut(BaseModel):
     scope: dict = Field(default_factory=dict)
     attempt_ids: list[str] = Field(default_factory=list)
     mistake_ids: list[str] = Field(default_factory=list)
-
-
-class BookInfoOut(BaseModel):
-    name: str
-    chapter_count: int
-    keyword_count: int = 0
-    has_kg: bool = False
-
-
-class BookSwitchRequest(BaseModel):
-    name: str
-
-
-class BookImportRequest(BaseModel):
-    toc_pages: str = ""
-    pre_read: bool = False
 
 
 class PreReadStatusOut(BaseModel):

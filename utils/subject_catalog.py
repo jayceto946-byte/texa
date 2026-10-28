@@ -88,27 +88,6 @@ def normalize_subject_value(value: str, fallback: str = "") -> str:
     return matches[0] if len(matches) == 1 else raw
 
 
-def subject_options(include_legacy_children: bool = False) -> list[str]:
-    values: list[str] = []
-    for node in read_subject_tree():
-        parent = str(node.get("name", "")).strip()
-        if not parent:
-            continue
-        values.append(parent)
-        for child in node.get("children", []) or []:
-            child_name = str(child).strip()
-            if not child_name:
-                continue
-            values.append(f"{parent}/{child_name}")
-            if include_legacy_children:
-                values.append(child_name)
-    result: list[str] = []
-    for value in values:
-        if value not in result:
-            result.append(value)
-    return result
-
-
 def _children_for_parent(parent: str) -> list[str]:
     for node in read_subject_tree():
         if str(node.get("name", "")).strip() == parent:

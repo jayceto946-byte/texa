@@ -195,17 +195,3 @@ def resolver_method_feedback_stats(*, limit: int = 500) -> dict[str, Any]:
         ), 0),
         "methods": rows,
     }
-
-
-def resolver_method_quality_report(*, limit: int = 500) -> dict[str, Any]:
-    from backend.rag_trace import resolver_method_runtime_stats
-
-    return {
-        "runtime": resolver_method_runtime_stats(limit=limit),
-        "feedback": resolver_method_feedback_stats(limit=limit),
-        "decision_rule": (
-            "Do not enable semantic routing from rule_strength. Require at least 30 "
-            "feedback samples for the resolver method, then review resolver-negative "
-            "examples before changing clarify/semantic routing."
-        ),
-    }

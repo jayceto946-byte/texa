@@ -17,7 +17,6 @@ from backend.job_manager import get_job_manager
 from backend.services.dependency_cache import DependencyTTLCache
 from backend.services.kg_learning_summary import (
     build_concept_review_plan,
-    days_since,
     mistake_summary,
     parse_datetime,
 )
@@ -181,10 +180,6 @@ def get_concept_wiki(name: str, book_name: str = ""):
 
 def _parse_dt(value: str):
     return parse_datetime(value)
-
-
-def _days_since(value: str) -> int | None:
-    return days_since(value)
 
 
 def _build_concept_review_plan(book_name: str, concepts: dict, strict_exposures: list[dict], concept_counts, mistake_weak_points: list[dict], subject: str = "", limit: int = 8, weak_names: set[str] | None = None) -> list[dict]:

@@ -1571,10 +1571,6 @@ def review_mistake(req: MistakeReviewRequest, book_name: str = "default"):
     except Exception as e:
         return {"success": False, "message": str(e)}
 
-def _record_mistake_concepts(record: MistakeRecord, explanation: str, rag_context: str, book_name: str) -> list[dict]:
-    return _persist_mistake_concepts(record, explanation=explanation or rag_context, book_name=book_name)
-
-
 @router.post("/explain")
 def explain_mistake(req: MistakeExplainRequest, book_name: str = "default"):
     from config import get_llm

@@ -41,15 +41,6 @@ def refined_teaching_prompt_enabled() -> bool:
     return teaching_prompt_mode() == "refined"
 
 
-def active_teaching_prompt() -> str:
-    mode = teaching_prompt_mode()
-    if mode == "minimal":
-        return MINIMAL_TEACHING_PROMPT
-    if mode == "refined":
-        return REFINED_TEACHING_PROMPT
-    return ""
-
-
 def active_teaching_prompt_version() -> str:
     mode = teaching_prompt_mode()
     if mode == "minimal":

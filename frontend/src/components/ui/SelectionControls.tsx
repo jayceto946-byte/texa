@@ -47,28 +47,3 @@ export function SegmentedControl<T extends string>({ label, value, options, onCh
     </div>
   );
 }
-
-export function Tabs<T extends string>({ label, value, options, onChange, className = '', panelId }: ChoiceProps<T> & { panelId: string }) {
-  const { buttons, onKeyDown } = useChoiceKeys(options, onChange);
-  return (
-    <div role="tablist" aria-label={label} className={`app-tabs ${className}`.trim()}>
-      {options.map((option, index) => (
-        <button
-          key={option.value}
-          ref={(node) => { buttons.current[index] = node; }}
-          id={`${panelId}-tab-${index}`}
-          type="button"
-          role="tab"
-          aria-selected={value === option.value}
-          aria-controls={panelId}
-          tabIndex={value === option.value ? 0 : -1}
-          onClick={() => onChange(option.value)}
-          onKeyDown={(event) => onKeyDown(event, index)}
-          className="app-tab"
-        >
-          {option.icon}{option.label}
-        </button>
-      ))}
-    </div>
-  );
-}

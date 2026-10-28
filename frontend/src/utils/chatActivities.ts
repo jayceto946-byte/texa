@@ -289,10 +289,6 @@ export function settleChatActivity(
     : item);
 }
 
-export function completedActivityCount(activities: ChatActivity[] = []): number {
-  return activities.filter((item) => item.status === 'completed' || item.status === 'skipped').length;
-}
-
 export function activityDuration(activities: ChatActivity[] = []): number {
   // elapsed_ms is run wall time. Phase durations overlap and must not be added.
   const elapsed = Math.max(0, ...activities.flatMap((item) => [Number(item.elapsed_ms) || 0, Number(item.meta?.total_elapsed_ms) || 0]));

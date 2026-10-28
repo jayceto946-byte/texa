@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
 import { get, post, del, isRemoteBrowser } from '../api/client';
 import ModelSettingsManager from './settings/ModelSettingsManager';
-import type { ModelRoleId, ModelSettingsValue } from './settings/ModelSettingsForm';
+import type { ModelRoleId, ModelSettingsValue } from './settings/modelSettingsTypes';
 import './Welcome.css';
 
 const KEY = 'texa:setup-complete:v3';

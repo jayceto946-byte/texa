@@ -1,7 +1,7 @@
 import { ChevronDown, Link2, LoaderCircle, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ScrollableSelect from '../ui/ScrollableSelect';
-import type { ModelRoleId, ModelSettingsValue } from './ModelSettingsForm';
+import type { ModelRoleId, ModelSettingsValue } from './modelSettingsTypes';
 
 type Props = {
   value: ModelSettingsValue & {

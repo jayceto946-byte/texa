@@ -25,7 +25,6 @@ from ingestion.index_pipeline import (
 router = APIRouter(prefix="/assets", tags=["assets"])
 
 ASSET_MANIFEST_VERSION = 1
-EMBEDDING_REPO_ID = os.getenv("EMBEDDING_MODEL_NAME", "BAAI/bge-small-zh-v1.5")
 EMBEDDING_REVISION = os.getenv("EMBEDDING_MODEL_REVISION", "main")
 HF_ENDPOINT = os.getenv("HF_ENDPOINT", "https://hf-mirror.com")
 VECTOR_BUNDLE_URL = os.getenv("KAOYAN_VECTOR_BUNDLE_URL", "")
@@ -34,7 +33,6 @@ VECTOR_BUNDLE_VERSION = os.getenv("KAOYAN_VECTOR_BUNDLE_VERSION", "demo-v1")
 
 MANIFEST_PATH = Path(DATA_DIR) / "desktop_assets.json"
 DOWNLOAD_DIR = Path(DATA_DIR) / "downloads"
-MODEL_CACHE_DIR = Path(DATA_DIR) / "models"
 
 
 def _safe_public_text(value: str, fallback: str = "") -> str:
@@ -43,13 +41,6 @@ def _safe_public_text(value: str, fallback: str = "") -> str:
         return fallback
     if re.search(r"(?i)api[_-]?key\s*[=:]", value):
         return fallback
-    return value
-
-
-def _safe_repo_id(value: str) -> str:
-    value = _safe_public_text(value, "")
-    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", value):
-        return "BAAI/bge-small-zh-v1.5"
     return value
 
 
@@ -74,17 +65,6 @@ def _read_manifest() -> dict:
 def _write_manifest(manifest: dict) -> None:
     MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST_PATH.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-
-
-def _embedding_snapshot_path() -> Path | None:
-    safe_repo_id = _safe_repo_id(EMBEDDING_REPO_ID)
-    snapshots = MODEL_CACHE_DIR / f"models--{safe_repo_id.replace('/', '--')}" / "snapshots"
-    if not snapshots.exists():
-        return None
-    candidates = [item for item in snapshots.iterdir() if item.is_dir()]
-    if not candidates:
-        return None
-    return max(candidates, key=lambda item: item.stat().st_mtime)
 
 
 def _embedding_status(manifest: dict) -> dict:

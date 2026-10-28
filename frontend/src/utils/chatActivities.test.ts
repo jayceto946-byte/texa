@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { activityDuration, completedActivityCount, createExecutionLifecycle, createTransportActivity, mergeChatActivity, mergeExecutionLifecycle, settleChatActivity } from './chatActivities';
+import { activityDuration, createExecutionLifecycle, createTransportActivity, mergeChatActivity, mergeExecutionLifecycle, settleChatActivity } from './chatActivities';
 import type { ExecutionEvent } from '../types';
 
 function event(overrides: Partial<ExecutionEvent> = {}): ExecutionEvent {
@@ -52,14 +52,6 @@ describe('chat activity projection', () => {
     expect(completed).toHaveLength(1);
     expect(completed[0].status).toBe('completed');
     expect(activityDuration(completed)).toBe(1200);
-  });
-
-  it('counts completed and skipped work as settled', () => {
-    expect(completedActivityCount([
-      { id: 'a', kind: 'analysis', label: 'A', status: 'completed' },
-      { id: 'b', kind: 'tool', label: 'B', status: 'skipped' },
-      { id: 'c', kind: 'generation', label: 'C', status: 'active' },
-    ])).toBe(2);
   });
 
   it.each(['completed', 'failed'] as const)('settles an active resume activity as %s', (status) => {

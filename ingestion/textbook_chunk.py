@@ -95,14 +95,6 @@ class TextbookChunk:
         return row
 
 
-def link_neighbors(chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    for index, chunk in enumerate(chunks):
-        chunk["chunk_index"] = index
-        chunk["prev_chunk_id"] = chunks[index - 1]["chunk_id"] if index else ""
-        chunk["next_chunk_id"] = chunks[index + 1]["chunk_id"] if index + 1 < len(chunks) else ""
-    return chunks
-
-
 def _strings(value: Any) -> list[str]:
     if isinstance(value, str):
         return [value.strip()] if value.strip() else []
