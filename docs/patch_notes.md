@@ -1,3 +1,9 @@
+## 2026-10-29 — 修复 Windows 回滚验收夹具的权限恢复
+
+- PowerShell 版本统一后，Windows 原生验收推进至 ACL 故障注入后的清理；Set-Acl 在恢复阶段请求的注册表写权限受到夹具自身 SetValue 拒绝规则影响，导致恢复失败并遮蔽前面的验收结果。
+- 恢复时只为该一次性夹具的 HKCU 卸载键申请 ChangePermissions，通过 RegistryKey 写回备份中的 DACL；不申请已被故障注入拒绝的 SetValue，也不修改 owner/group。故障注入仍拒绝真实写值，恢复仍在 finally 执行；生产安装器和回滚断言不变，不关闭发布门槛。
+- 本地 node --check 通过，实际权限恢复和替换/回滚结果继续由 Windows CI 验证。此修复只作用于要求 GITHUB_ACTIONS=true 的一次性测试环境；未更改本机或用户端权限设置。
+
 ## 2026-10-28 — 修复 Windows 构建验收的 PowerShell 版本混用
 
 - 补查近期 commit update 构建：f0b99d0、67e1cf2、8e499ed 均在 NSIS 事务回滚验收中因 Get-Acl 的 Microsoft.PowerShell.Security 模块无法加载而失败，正式打包尚未执行。

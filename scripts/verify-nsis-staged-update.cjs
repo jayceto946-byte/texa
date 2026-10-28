@@ -86,17 +86,20 @@ async function main() {
     const aclBackup = path.join(root, 'metadata-acl.txt');
     await fs.writeFile(aclScript, `param($Backup,$Restore)
 $ErrorActionPreference='Stop'
-$key='Registry::HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\9d623f84-9cb2-5fad-9974-6dcfbd9c6b6d'
+$keyName='Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\9d623f84-9cb2-5fad-9974-6dcfbd9c6b6d'
+$key='Registry::HKEY_CURRENT_USER\\'+$keyName
 $acl=Get-Acl $key
 if ($Restore -eq 'restore') {
-  $acl.SetSecurityDescriptorSddlForm((Get-Content $Backup -Raw).Trim())
+  $acl.SetSecurityDescriptorSddlForm((Get-Content $Backup -Raw).Trim(),[Security.AccessControl.AccessControlSections]::Access)
+  $handle=[Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($keyName,[Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree,[Security.AccessControl.RegistryRights]::ChangePermissions)
+  try { $handle.SetAccessControl($acl) } finally { $handle.Dispose() }
 } else {
   Set-Content $Backup $acl.Sddl
   $identity=[Security.Principal.WindowsIdentity]::GetCurrent().Name
   $rule=New-Object Security.AccessControl.RegistryAccessRule($identity,'SetValue','Deny')
   $acl.AddAccessRule($rule)
+  Set-Acl $key $acl
 }
-Set-Acl $key $acl
 `);
     // Keep the CI host's PowerShell edition and inherited module path aligned.
     await run('pwsh.exe', ['-NoProfile', '-File', aclScript, aclBackup, 'deny']);
