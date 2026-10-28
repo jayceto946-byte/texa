@@ -153,6 +153,7 @@ class ChapterVectorStore:
                 for collection_name, value in raw.items():
                     if isinstance(value, dict):
                         result[collection_name] = {
+                            **{key: value[key] for key in ('chunk_count', 'vector_count', 'embedding_contract_id') if key in value},
                             "chapter": str(value.get("chapter") or value.get("title") or collection_name),
                             "book_name": str(value.get("book_name") or ""),
                             "schema_version": str(value.get("schema_version") or "2"),
@@ -300,6 +301,10 @@ class ChapterVectorStore:
         normalized_book = safe_book_name(book_name) if book_name else ""
         collection_name = self._chapter_collection_name(chapter_title, normalized_book)
         chunk_roles = chunk_roles or {}
+        # Legacy direct writers must reject incompatible input before touching
+        # an existing collection. Formal imports use the staged view pipeline.
+        from ingestion.embedding_contract import require_contract, embedding_text
+        require_contract(self.embeddings).require_fitting([embedding_text(chunk) for chunk in chunks])
         store_key = self._store_key(chapter_title, normalized_book)
         self._stores.pop(store_key, None)
         self._delete_collection_if_exists(collection_name)
@@ -365,6 +370,8 @@ class ChapterVectorStore:
         normalized_book = safe_book_name(book_name) if book_name else ""
         if not normalized_book or not chunks:
             return None
+        from ingestion.embedding_contract import require_contract, embedding_text
+        require_contract(self.embeddings).require_fitting([embedding_text(chunk) for chunk in chunks])
         fingerprint = hashlib.sha1()
         fingerprint.update(normalized_book.encode("utf-8"))
         for chunk in chunks:
@@ -457,6 +464,7 @@ class ChapterVectorStore:
         if not self.available:
             return None
         normalized_book = safe_book_name(book_name) if book_name else ""
+        self._require_embedding_runtime(self._title_to_collection(chapter_title, normalized_book))
         store_key = self._store_key(chapter_title, normalized_book)
         if store_key in self._stores:
             return self._stores[store_key]
@@ -574,6 +582,31 @@ class ChapterVectorStore:
                 })
         return stats
 
+    @staticmethod
+    def _unique_source_chunks(docs):
+        result, seen = [], set()
+        for doc in docs:
+            meta = getattr(doc, 'metadata', {}) or {}
+            chunk = meta.get('chunk_id')
+            key = (meta.get('book_name'), meta.get('index_version'), chunk) if chunk else ('document', id(doc))
+            if key not in seen:
+                seen.add(key)
+                result.append(doc)
+        return result
+
+    def _require_embedding_runtime(self, collection):
+        expected = (self._map.get(collection) or {}).get('embedding_contract_id')
+        if expected:
+            from ingestion.embedding_contract import require_contract
+            if require_contract(self.embeddings).contract_id != expected:
+                raise RuntimeError('教材向量索引与当前嵌入模型身份不一致，已保留同范围词法降级路径')
+
+    def _embedding_fetch_k(self, collection, k):
+        entry = self._map.get(collection) or {}
+        if int(entry.get('vector_count', 0) or 0) > int(entry.get('chunk_count', 0) or 0):
+            return max(k, min(k * 4, 128))
+        return k
+
     def search_chapter(
         self,
         chapter_title: str,
@@ -595,11 +628,12 @@ class ChapterVectorStore:
             ))
         if store is None:
             return RetrievalOutcome(items=[])
-        kwargs = {"k": k}
+        collection = self._title_to_collection(chapter_title, book_name)
+        kwargs = {"k": self._embedding_fetch_k(collection, k)}
         if filter:
             kwargs["filter"] = filter
         try:
-            return RetrievalOutcome(items=store.similarity_search(query, **kwargs))
+            return RetrievalOutcome(items=self._unique_source_chunks(store.similarity_search(query, **kwargs))[:k])
         except Exception as e:
             self._stores.pop(self._store_key(chapter_title, book_name), None)
             return RetrievalOutcome.failed([], RetrievalFailure(
@@ -645,6 +679,7 @@ class ChapterVectorStore:
                 continue
             try:
                 title = self._collection_to_title(col.name)
+                self._require_embedding_runtime(col.name)
                 store_key = self._store_key(title, self._collection_to_book(col.name))
                 store = self._stores.get(store_key)
                 if store is None:
@@ -684,8 +719,14 @@ class ChapterVectorStore:
 
         scored_docs.sort(key=lambda item: item[0])
         chapter_docs: dict[str, list[Document]] = {}
+        seen_sources = set()
         for _, doc in scored_docs:
             meta = getattr(doc, "metadata", {}) or {}
+            chunk = meta.get('chunk_id')
+            source_key = (meta.get('book_name'), meta.get('index_version'), chunk) if chunk else ('document', id(doc))
+            if source_key in seen_sources:
+                continue
+            seen_sources.add(source_key)
             chapter = str(meta.get("chapter") or meta.get("section_title") or "相关章节")
             chapter_docs.setdefault(chapter, [])
             if len(chapter_docs[chapter]) >= k:
@@ -778,6 +819,7 @@ class ChapterVectorStore:
         for col in chapter_collections:
             title = self._collection_to_title(col.name)
             try:
+                self._require_embedding_runtime(col.name)
                 store_key = self._store_key(title, self._collection_to_book(col.name))
                 store = self._stores.get(store_key)
                 if store is None:
@@ -789,18 +831,18 @@ class ChapterVectorStore:
                     )
                     self._stores[store_key] = store
                 try:
-                    kwargs = {"k": k}
+                    kwargs = {"k": self._embedding_fetch_k(col.name, k)}
                     if filter:
                         kwargs["filter"] = filter
                     docs_with_scores = store.similarity_search_by_vector_with_relevance_scores(query_vec, **kwargs)
                 except (AttributeError, NotImplementedError):
-                    kwargs = {"k": k}
+                    kwargs = {"k": self._embedding_fetch_k(col.name, k)}
                     if filter:
                         kwargs["filter"] = filter
                     docs = store.similarity_search_by_vector(query_vec, **kwargs)
                     docs_with_scores = [(d, 1.0) for d in docs]
                 if docs_with_scores:
-                    docs = [d for d, _ in docs_with_scores]
+                    docs = self._unique_source_chunks([d for d, _ in docs_with_scores])[:k]
                     best_score = min(score for _, score in docs_with_scores)
                     scored_results.append((title, docs, best_score))
                 searched += 1

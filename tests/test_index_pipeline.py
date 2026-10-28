@@ -3,6 +3,11 @@ from pathlib import Path
 
 
 class FakeEmbeddings:
+    @property
+    def input_contract(self):
+        from ingestion.embedding_contract import EmbeddingInputContract
+        return EmbeddingInputContract(dict(backend='test', model='fixture-v1', max_length=512), lambda text: len(text)+2)
+
     def embed_documents(self, texts):
         return [[float(len(text)), 1.0] for text in texts]
 

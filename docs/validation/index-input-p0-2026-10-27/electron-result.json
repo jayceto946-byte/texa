@@ -1,0 +1,103 @@
+{
+  "environment": "macOS real Electron, real textbook upload/job, ONNX FP32/Chroma and release gate; auxiliary APIs fixture; no LLM/OCR",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "status": "PASS"
+    },
+    {
+      "name": "real import job completed 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "no embedding truncation 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "source spans checked 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "multiple bounded vectors 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "production evidence gate 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "runtime identity bound 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-real-import-completed no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "real import job completed 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "no embedding truncation 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "source spans checked 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "multiple bounded vectors 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "production evidence gate 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "runtime identity bound 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-real-import-completed no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "real import job completed 760",
+      "status": "PASS"
+    },
+    {
+      "name": "no embedding truncation 760",
+      "status": "PASS"
+    },
+    {
+      "name": "source spans checked 760",
+      "status": "PASS"
+    },
+    {
+      "name": "multiple bounded vectors 760",
+      "status": "PASS"
+    },
+    {
+      "name": "production evidence gate 760",
+      "status": "PASS"
+    },
+    {
+      "name": "runtime identity bound 760",
+      "status": "PASS"
+    },
+    {
+      "name": "760-real-import-completed no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "no renderer exceptions",
+      "status": "PASS"
+    }
+  ],
+  "screenshots": [
+    "1280-real-import-completed.png",
+    "1024-real-import-completed.png",
+    "760-real-import-completed.png"
+  ],
+  "errors": []
+}

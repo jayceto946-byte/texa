@@ -56,6 +56,70 @@ class BookUpdateRequest(BaseModel):
     rag_priority: float | None = None
     resource_group: str | None = None
 
+
+class OutlineExample(BaseModel):
+    block_id: str
+    level: int
+    role: str = 'section'
+
+
+class OutlineCalibration(BaseModel):
+    base_version: str
+    examples: list[OutlineExample] = []
+    max_depth: int = 6
+
+
+def _outline_preview(name: str, request: OutlineCalibration | None = None):
+    from backend.services.book_outline import preview_outline, OutlineConflict
+    resolved = _resolve_book_reference(name)
+    if not resolved:
+        raise HTTPException(404, '未找到教材')
+    try:
+        _, result = preview_outline(resolved, progress_root=PROGRESS_PATH,
+            base_version=request.base_version if request else None,
+            examples=[item.model_dump() for item in request.examples] if request else None,
+            max_depth=request.max_depth if request else None)
+    except FileNotFoundError:
+        raise HTTPException(404, '此教材缺少结构化来源，请先导入解析结果') from None
+    except OutlineConflict as exc:
+        raise HTTPException(409, str(exc)) from None
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from None
+    return resolved, result
+
+
+@router.get('/{name}/outline')
+def get_outline(name: str):
+    _, result = _outline_preview(name)
+    return {'success': True, 'data': result}
+
+
+@router.post('/{name}/outline/preview')
+def preview_outline_calibration(name: str, request: OutlineCalibration):
+    _, result = _outline_preview(name, request)
+    return {'success': True, 'data': result}
+
+
+@router.post('/{name}/outline/apply')
+def apply_outline_calibration(name: str, request: OutlineCalibration):
+    from backend.services.book_outline import apply_outline
+    resolved, _ = _outline_preview(name, request)
+    job = _job_manager.create_job('textbook_outline', {'book_name': resolved},
+        status='running', message='正在应用目录校准')
+    threading.Thread(target=apply_outline, kwargs=dict(name=resolved, progress_root=PROGRESS_PATH,
+        base_version=request.base_version, examples=[item.model_dump() for item in request.examples],
+        max_depth=request.max_depth, jobs=_job_manager, job_id=job['id'],
+        on_published=_invalidate_book_read_cache), daemon=True).start()
+    return {'success': True, 'data': job}
+
+
+@router.get('/outline-jobs/{job_id}')
+def get_outline_job(job_id: str):
+    job = _job_manager.get_job(job_id, job_type='textbook_outline')
+    if not job:
+        raise HTTPException(404, '未找到目录校准任务')
+    return {'success': True, 'data': job}
+
 _book_state: dict = {
     "current_book": None,
     "chapters": [],
@@ -500,7 +564,7 @@ def get_current_book():
     name = _book_state.get("current_book")
     if not name:
         return {"success": False, "message": "\u672a\u9009\u62e9\u6559\u6750"}
-    chapters = _book_state.get("chapters", [])
+    chapters = _load_chapters(name)
     return {"success": True, "data": {"name": name, "subject": _book_subject(name), "chapter_count": len(chapters), "chapters": [format_chapter(c) for c in chapters]}}
 
 @router.get("/{book_name}/chapters")
@@ -827,6 +891,7 @@ def _run_output_import_job(job_id: str, archive_path: Path, book_name: str, subj
                 "used_mineru": True,
                 "indexed_chunks": result.indexed_chunks,
                 "output_dir": result.output_dir,
+                "ingestion_report": validate_canonical_book(result.canonical_book).to_dict() if result.canonical_book else {},
                 "subject": _book_subject(book_name),
                 "has_pdf": bool(pdf_path or _source_pdf_path(book_name)),
                 "concept_job_id": concept_job.get("id", "") if concept_job else "",
@@ -992,7 +1057,7 @@ def _start_pre_read(book_name: str, chapters: list[dict], pdf_path: Path) -> Non
 @router.post("/preread/start")
 def start_pre_read():
     name = _book_state.get("current_book")
-    chapters = _book_state.get("chapters", [])
+    chapters = _load_chapters(name) if name else []
     pdf_path = _book_state.get("book_pdf_path")
     if not name or not chapters or not pdf_path:
         return {"success": False, "message": "\u8bf7\u5148\u9009\u62e9\u6559\u6750"}

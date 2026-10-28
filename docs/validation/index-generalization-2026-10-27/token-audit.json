@@ -1,0 +1,35 @@
+{
+  "scope": "local existing 351-page regression corpus, not screenshot user book; tokenizer only, no model API",
+  "runtime_normalizer": "Sequence([Lowercase(), original_normalizer])",
+  "indexable_chunks": 1922,
+  "over_512": 242,
+  "max_tokens": 854,
+  "median_tokens": 159.0,
+  "by_type": {
+    "paragraph": {
+      "total": 1207,
+      "over_512": 238,
+      "max_tokens": 737
+    },
+    "example": {
+      "total": 55,
+      "over_512": 2,
+      "max_tokens": 535
+    },
+    "formula": {
+      "total": 522,
+      "over_512": 1,
+      "max_tokens": 854
+    },
+    "table": {
+      "total": 36,
+      "over_512": 1,
+      "max_tokens": 541
+    },
+    "exercise": {
+      "total": 102,
+      "over_512": 0,
+      "max_tokens": 186
+    }
+  }
+}

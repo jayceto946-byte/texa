@@ -1,0 +1,4 @@
+  [向量库] 初始化中...
+  [embedding] ONNX FP32 model ready
+  [vector_store] preloaded 1 aggregate stores
+  [向量库] 就绪（已缓存，后续请求复用）

@@ -2,6 +2,7 @@ import json
 import zipfile
 
 import pytest
+from ingestion.source_spans import SPAN_SCHEMA, source_span
 
 
 def test_import_textbook_from_markdown_output(monkeypatch, tmp_path):
@@ -25,6 +26,9 @@ def test_import_textbook_from_markdown_output(monkeypatch, tmp_path):
                     "chunk_index": index,
                     "content": block.text,
                     "chunk_id": block.block_id,
+                    "source_block_ids": [block.block_id],
+                    "source_span_schema": SPAN_SCHEMA,
+                    "source_spans": [source_span(block, 0, len(block.text), 0, len(block.text))],
                 }
                 for index, block in enumerate(book.blocks)
                 if block.block_type != "heading" and block.text.strip()

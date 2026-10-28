@@ -9,7 +9,7 @@ import re
 
 CATALOG = re.compile(r'^\s*[#＃]\s*(\d{1,8})(?!\d)\s*')
 EXAM = re.compile(r'(?:19|20)\d{2}\s*年?\s*(?:数[一二三123]|数学[一二三123])\s*$')
-ORIGINAL = re.compile(r'^\s*(?:[（(](\d+)[）)]|(\d+)[.、．)])\s*')
+ORIGINAL = re.compile(r'^\s*(?:[（(](\d+)[）)]|(\d+(?:[-－—]\d+)+|\d+(?=[.、．)]))(?:[.、．)]|\s+|(?=[\u4e00-\u9fff])))\s*')
 SECTION = re.compile(r'^\s*(?:第[\d一二三四五六七八九十]+[章节]|[一二三四五六七八九十]+[、．.]|\d+(?:\.\d+)+\s+)')
 TOPIC = re.compile(r'^\s*(?P<kind>考点|题型|专题)\s*[\d一二三四五六七八九十]+(?:[、.：:\s]|$)')
 LABEL_ROLES = {'答案': 'answer', '参考答案': 'answer', '答': 'answer',
@@ -94,6 +94,13 @@ def topic_level(text, ancestors):
 
 def classification_paths(book, excluded_ids=()):
     """Candidate-only heading interpretation, with the source nodes retained."""
+    if book.source_metadata.get('outline_recovery'):
+        current, result = [], {}
+        for block in book.blocks:
+            if block.block_type == 'heading' and block.block_id not in excluded_ids:
+                current = current[:len(block.section_path) - 1] + [(block.text, block.block_id)]
+            result[block.block_id] = list(current)
+        return result
     current, result = [], {}
     for block in book.blocks:
         text = block.text.strip()
@@ -125,6 +132,9 @@ def exercise_units(book, *, unrestricted=False, allowed_context_ids=None):
     occupied = set()
     active = None
     for block in ([] if unrestricted else book.blocks):
+        if block.attributes.get('outline_toc'):
+            active = None
+            continue
         catalog = header_metadata(block.text)
         if catalog:
             active = dict(unit_id=block.block_id, kind='exercise', blocks=[block],
@@ -187,6 +197,9 @@ def exercise_units(book, *, unrestricted=False, allowed_context_ids=None):
 def _file_units(book, paths):
     rows, active = [], None
     for block in book.blocks:
+        if block.attributes.get('outline_toc'):
+            active = None
+            continue
         catalog = header_metadata(block.text)
         is_heading = block.block_type == 'heading' and not catalog
         numbered = bool(ORIGINAL.match(block.text))

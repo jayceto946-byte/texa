@@ -62,19 +62,32 @@ class PdfTextAdapter:
     @classmethod
     def from_pdf(cls, pdf_path: str | Path, *, book_name: str, toc_page_range: str = "") -> CanonicalBook:
         """Convenience adapter for text-layer PDFs; scanned pages stay empty by design."""
-        from ingestion.pdf_parser import PDFParser
-
-        parser = PDFParser(pdf_path)
-        try:
-            chapters = parser.extract_chapters(toc_page_range)
-            return cls.from_chapters(
-                chapters,
-                book_name=book_name,
-                source_file=Path(pdf_path).name,
-                source_page_count=parser.total_pages,
-            )
-        finally:
-            parser.close()
+        import fitz
+        from ingestion.outline_recovery import recover_outline
+        pdf_path = Path(pdf_path)
+        builder = _BlockBuilder(book_name, source_kind='pdf_text', source_file=pdf_path.name)
+        with fitz.open(pdf_path) as doc:
+            bookmarks = [dict(level=level, title=title, page=page) for level, title, page in doc.get_toc()
+                         if 1 <= page <= len(doc)]
+            for page_idx, page in enumerate(doc):
+                for block in page.get_text('dict')['blocks']:
+                    for line in block.get('lines', []):
+                        spans = line.get('spans', [])
+                        if not spans:
+                            continue
+                        builder.add('paragraph', ''.join(span['text'] for span in spans),
+                            page_start=page_idx + 1, page_end=page_idx + 1, bbox=list(line['bbox']),
+                            attributes=dict(font_size=round(max(s['size'] for s in spans), 1),
+                                            font_name=spans[0].get('font'), source_block_index=len(builder.blocks)))
+            result = builder.book(parser_version='pdf-text-layout-v2', source_page_count=len(doc))
+        result.source_metadata['pdf_bookmarks'] = bookmarks
+        if toc_page_range.strip():
+            parts = re.split(r'[-,，]', toc_page_range.strip())
+            start, end = int(parts[0]), int(parts[-1])
+            if not 1 <= start <= end <= result.source_page_count:
+                raise ValueError('目录页范围超出 PDF 物理页范围')
+            result.source_metadata['toc_pages'] = list(range(start, end + 1))
+        return recover_outline(result, force=True)
 
 
 class MinerUAdapter:
@@ -436,7 +449,7 @@ class _BlockBuilder:
         extra_warnings = list(warnings or [])
         if source_files:
             extra_warnings.append(f"Source Markdown files: {', '.join(source_files)}")
-        return CanonicalBook(
+        book = CanonicalBook(
             book_name=self.book_name,
             source_kind=self.source_kind,
             blocks=self.blocks,
@@ -444,6 +457,8 @@ class _BlockBuilder:
             source_page_count=source_page_count,
             warnings=extra_warnings,
         )
+        from ingestion.outline_recovery import recover_outline
+        return recover_outline(book)
 
 
 def _append_mineru_item(
@@ -469,7 +484,8 @@ def _append_mineru_item(
     if raw_type in {"title", "heading"} or (raw_type == "text" and level is not None):
         builder.heading(
             text, level=level or 1, page_start=page, page_end=page, bbox=bbox,
-            confidence=confidence, attributes={"source_block_index": source_index, "mineru_type": raw_type},
+            confidence=confidence, attributes={"source_block_index": source_index, "mineru_type": raw_type,
+                **{k: item[k] for k in ('font_size', 'font_name', 'bold', 'style_name') if k in item}},
         )
         return
     block_type = _block_type(raw_type)
@@ -481,6 +497,7 @@ def _append_mineru_item(
         "mineru_type": raw_type,
         "source_markdown": _clean_text(item.get("source_markdown")),
         "semantic_role": _clean_text(item.get("semantic_role") or item.get("role")),
+        **{k: item[k] for k in ('font_size', 'font_name', 'bold', 'style_name') if k in item},
     }
     if block_type == "figure":
         asset_path = _figure_asset_path(item)

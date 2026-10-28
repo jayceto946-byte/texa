@@ -1,0 +1,395 @@
+
+> texa-frontend@1.0.0 build
+> tsc -b && vite build
+
+vite v8.0.16 building client environment for production...
+[2K
+transforming...✓ 2232 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/KaTeX_Size3-Regular-CTq5MqoE.woff                   4.42 kB
+dist/assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2                  4.92 kB
+dist/assets/KaTeX_Size2-Regular-Dy4dx90m.woff2                  5.20 kB
+dist/assets/KaTeX_Size1-Regular-mCD8mA8B.woff2                  5.46 kB
+dist/assets/KaTeX_Size4-Regular-BF-4gkZK.woff                   5.98 kB
+dist/assets/KaTeX_Size2-Regular-oD1tc_U0.woff                   6.18 kB
+dist/assets/KaTeX_Size1-Regular-C195tn64.woff                   6.49 kB
+dist/assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2            6.90 kB
+dist/assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2               6.91 kB
+dist/assets/KaTeX_Size3-Regular-DgpXs0kz.ttf                    7.58 kB
+dist/assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff             7.65 kB
+dist/assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff                7.71 kB
+dist/index.html                                                 7.83 kB │ gzip:   3.10 kB
+dist/assets/KaTeX_Script-Regular-D3wIWfF6.woff2                 9.64 kB
+dist/assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2             10.34 kB
+dist/assets/KaTeX_Size4-Regular-DWFBv043.ttf                   10.36 kB
+dist/assets/KaTeX_Script-Regular-D5yQViql.woff                 10.58 kB
+dist/assets/230-w9CML3M4.woff2                                 11.24 kB
+dist/assets/232-OBzeHe5d.woff2                                 11.28 kB
+dist/assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2               11.31 kB
+dist/assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2                  11.34 kB
+dist/assets/KaTeX_Size2-Regular-B7gKUWhC.ttf                   11.50 kB
+dist/assets/228-ahVBnW79.woff2                                 11.80 kB
+dist/assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2              12.02 kB
+dist/assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2                12.21 kB
+dist/assets/227-EDHGPMJ9.woff2                                 12.22 kB
+dist/assets/KaTeX_Size1-Regular-Dbsnue_I.ttf                   12.22 kB
+dist/assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff              12.31 kB
+dist/assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf             12.34 kB
+dist/assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf                12.36 kB
+dist/assets/214-BHIV925P.woff2                                 12.45 kB
+dist/assets/208-D0nO5P27.woff2                                 12.70 kB
+dist/assets/200-CqAGgYrI.woff2                                 12.73 kB
+dist/assets/210-DvAp8_NW.woff2                                 12.86 kB
+dist/assets/202-C3NTKOgJ.woff2                                 12.93 kB
+dist/assets/234-ChCg9gpI.woff2                                 13.09 kB
+dist/assets/212-aOyd0Uwa.woff2                                 13.17 kB
+dist/assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff                13.20 kB
+dist/assets/218-CyL2gV5X.woff2                                 13.29 kB
+dist/assets/KaTeX_Fraktur-Bold-BsDP51OF.woff                   13.29 kB
+dist/assets/225-BeKF3WQh.woff2                                 13.31 kB
+dist/assets/235-BRpsx2L1.woff2                                 13.43 kB
+dist/assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2            13.56 kB
+dist/assets/219-DBEt9qwa.woff2                                 14.08 kB
+dist/assets/KaTeX_SansSerif-Italic-DN2j7dab.woff               14.11 kB
+dist/assets/216-AyKOwAo2.woff2                                 14.17 kB
+dist/assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff                 14.40 kB
+dist/assets/215-Cmj8jpQT.woff2                                 14.52 kB
+dist/assets/206-CZHpFq3R.woff2                                 14.70 kB
+dist/assets/201-DhabYDsH.woff2                                 14.80 kB
+dist/assets/221-4m156V_T.woff2                                 14.86 kB
+dist/assets/198-CziPYmKK.woff2                                 14.90 kB
+dist/assets/237-0AEyeMyO.woff2                                 14.98 kB
+dist/assets/224-DRI5OIG0.woff2                                 15.15 kB
+dist/assets/217-B3l5wKVt.woff2                                 15.29 kB
+dist/assets/231-Bl9ste_l.woff2                                 15.54 kB
+dist/assets/222-BQMCb9_l.woff2                                 15.74 kB
+dist/assets/220-DDO4heXu.woff2                                 15.78 kB
+dist/assets/226-BoRnc4B9.woff2                                 15.83 kB
+dist/assets/236-nFJ8kiox.woff2                                 15.91 kB
+dist/assets/211-Btg6YbXl.woff2                                 16.02 kB
+dist/assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff             16.02 kB
+dist/assets/204-6-8G8fYv.woff2                                 16.31 kB
+dist/assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2               16.40 kB
+dist/assets/KaTeX_Math-Italic-t53AETM-.woff2                   16.44 kB
+dist/assets/199-DRXSe6y5.woff2                                 16.45 kB
+dist/assets/1-CXh_ANkA.woff2                                   16.47 kB
+dist/assets/213-Dx-12sro.woff2                                 16.64 kB
+dist/assets/KaTeX_Script-Regular-C5JkGWo-.ttf                  16.64 kB
+dist/assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2               16.78 kB
+dist/assets/KaTeX_Main-Italic-NWA7e6Wa.woff2                   16.98 kB
+dist/assets/233-GsO0pKS4.woff2                                 17.10 kB
+dist/assets/203-LtGJ1uL9.woff2                                 17.25 kB
+dist/assets/223-BLX9-it4.woff2                                 17.26 kB
+dist/assets/207-BxOD7GWW.woff2                                 17.48 kB
+dist/assets/205-D4F3Kntf.woff2                                 18.18 kB
+dist/assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff                18.66 kB
+dist/assets/KaTeX_Math-Italic-DA0__PXp.woff                    18.74 kB
+dist/assets/KaTeX_Main-BoldItalic-SpSLRI95.woff                19.41 kB
+dist/assets/209-B3Tf_VMY.woff2                                 19.42 kB
+dist/assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf               19.43 kB
+dist/assets/KaTeX_Fraktur-Regular-CB_wures.ttf                 19.57 kB
+dist/assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf                    19.58 kB
+dist/assets/KaTeX_Main-Italic-BMLOBm91.woff                    19.67 kB
+dist/assets/243-C6tJHiEs.woff2                                 19.92 kB
+dist/assets/229-DAXCp2iO.woff2                                 20.20 kB
+dist/assets/jetbrains-mono-latin-400-normal-V6pRDFza.woff2     21.16 kB
+dist/assets/238-Bv9eg1qF.woff2                                 21.41 kB
+dist/assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf                22.36 kB
+dist/assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf                  24.50 kB
+dist/assets/KaTeX_Main-Bold-Cx986IdX.woff2                     25.32 kB
+dist/assets/63-CevCMFAB.woff2                                  26.16 kB
+dist/assets/KaTeX_Main-Regular-B22Nviop.woff2                  26.27 kB
+dist/assets/2-CicGmxMR.woff2                                   27.39 kB
+dist/assets/jetbrains-mono-latin-400-normal-6-qcROiO.woff      27.49 kB
+dist/assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf              27.55 kB
+dist/assets/37-BKfyicje.woff2                                  27.64 kB
+dist/assets/KaTeX_AMS-Regular-BQhdFMY1.woff2                   28.07 kB
+dist/assets/55-DLA_c6xW.woff2                                  28.35 kB
+dist/assets/KaTeX_Main-Bold-Jm3AIy58.woff                      29.91 kB
+dist/assets/KaTeX_Main-Regular-Dr94JaBh.woff                   30.77 kB
+dist/assets/60-Bh7Vxtv0.woff2                                  31.16 kB
+dist/assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf                 31.19 kB
+dist/assets/KaTeX_Math-Italic-flOr_0UB.ttf                     31.30 kB
+dist/assets/59-Cw_viX5t.woff2                                  32.60 kB
+dist/assets/58-DXv66bSf.woff2                                  32.62 kB
+dist/assets/57-DXdm0b9y.woff2                                  32.82 kB
+dist/assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf                 32.96 kB
+dist/assets/61-K6aXY2B3.woff2                                  33.10 kB
+dist/assets/KaTeX_AMS-Regular-DMm9YOAa.woff                    33.51 kB
+dist/assets/KaTeX_Main-Italic-3WenGoN9.ttf                     33.58 kB
+dist/assets/62-Dzh3byH-.woff2                                  33.88 kB
+dist/assets/24-Dp6pZ6j8.woff2                                  39.35 kB
+dist/assets/70-f9xZrBKr.woff2                                  44.23 kB
+dist/assets/67-Az9rgk_i.woff2                                  50.48 kB
+dist/assets/193-yurN0do-.woff2                                 51.27 kB
+dist/assets/KaTeX_Main-Bold-waoOVXN0.ttf                       51.33 kB
+dist/assets/191-DPf1mYan.woff2                                 51.73 kB
+dist/assets/196-xD5F7-EB.woff2                                 52.58 kB
+dist/assets/194-fCowGTaw.woff2                                 52.63 kB
+dist/assets/KaTeX_Main-Regular-ypZvNtVU.ttf                    53.58 kB
+dist/assets/192-BMroOwGp.woff2                                 53.73 kB
+dist/assets/56-DLPzncy1.woff2                                  53.88 kB
+dist/assets/190-C0YFEq9h.woff2                                 54.35 kB
+dist/assets/197-BIYu70dc.woff2                                 55.53 kB
+dist/assets/173-DdqG4K7e.woff2                                 55.86 kB
+dist/assets/188-CmorV7Fi.woff2                                 55.96 kB
+dist/assets/0-BWR-rTUq.woff2                                   55.99 kB
+dist/assets/187-CWGl4GsG.woff2                                 56.26 kB
+dist/assets/119-CsZVn6mo.woff2                                 56.56 kB
+dist/assets/177-B5x46a2G.woff2                                 56.59 kB
+dist/assets/68-BorldhOQ.woff2                                  56.59 kB
+dist/assets/179-Bpf4guf_.woff2                                 56.70 kB
+dist/assets/189-DBxJ4OEk.woff2                                 56.82 kB
+dist/assets/178-BRuP-DQ_.woff2                                 56.84 kB
+dist/assets/122-CjrkfwaT.woff2                                 58.05 kB
+dist/assets/156-PF6xGu_G.woff2                                 58.07 kB
+dist/assets/181-ZvZodJjs.woff2                                 58.36 kB
+dist/assets/195-BjtabkvR.woff2                                 58.60 kB
+dist/assets/120-BnAIKaxk.woff2                                 58.63 kB
+dist/assets/182-CcmTdyXM.woff2                                 58.73 kB
+dist/assets/162-C048TQbS.woff2                                 59.05 kB
+dist/assets/165-BPFkb_pJ.woff2                                 59.15 kB
+dist/assets/171-sEHuDnPc.woff2                                 59.18 kB
+dist/assets/186-CtS3vG7Y.woff2                                 59.26 kB
+dist/assets/166-B0Ecle9O.woff2                                 59.42 kB
+dist/assets/163-CuAWDs-8.woff2                                 59.51 kB
+dist/assets/158-Y79OGZzX.woff2                                 59.56 kB
+dist/assets/53-Ct5dKeMi.woff2                                  59.62 kB
+dist/assets/155-CsExSB5d.woff2                                 59.77 kB
+dist/assets/157-Duuam-7w.woff2                                 59.81 kB
+dist/assets/51-Bz5CK1Oy.woff2                                  60.10 kB
+dist/assets/184-akuAsxEi.woff2                                 60.12 kB
+dist/assets/54-HgfwP3C1.woff2                                  60.40 kB
+dist/assets/134-CAY4zdBE.woff2                                 60.46 kB
+dist/assets/48-zalP9mDs.woff2                                  60.55 kB
+dist/assets/174--Y6bL8FC.woff2                                 60.59 kB
+dist/assets/52-BMmbb-2_.woff2                                  60.59 kB
+dist/assets/183-D15jruvI.woff2                                 60.69 kB
+dist/assets/141-DLQsslcc.woff2                                 60.79 kB
+dist/assets/176-DTWfp6E6.woff2                                 60.79 kB
+dist/assets/47-De7gO1wc.woff2                                  60.82 kB
+dist/assets/46-D3PZRYOa.woff2                                  60.85 kB
+dist/assets/50-DOdk8aTw.woff2                                  61.04 kB
+dist/assets/172-Ds9gaj-7.woff2                                 61.33 kB
+dist/assets/49-s8sIt8-Z.woff2                                  61.36 kB
+dist/assets/160-CqLdV59N.woff2                                 61.36 kB
+dist/assets/164-BHQvoNuS.woff2                                 61.48 kB
+dist/assets/153-DMn1oe6K.woff2                                 61.63 kB
+dist/assets/69-CpAEOGXi.woff2                                  61.63 kB
+dist/assets/117-Czg6fkBC.woff2                                 61.84 kB
+dist/assets/154-UT4mqKQB.woff2                                 61.94 kB
+dist/assets/38-DCgBvxjq.woff2                                  62.00 kB
+dist/assets/175-DaeaYgyR.woff2                                 62.00 kB
+dist/assets/180-B7IlV5_q.woff2                                 62.08 kB
+dist/assets/116-VLTYlucl.woff2                                 62.08 kB
+dist/assets/44-a9jQyjcJ.woff2                                  62.10 kB
+dist/assets/161-DqpzvPmd.woff2                                 62.12 kB
+dist/assets/41-BBIshlle.woff2                                  62.18 kB
+dist/assets/45-Cq0PhpLm.woff2                                  62.23 kB
+dist/assets/110-Cr_D8pSn.woff2                                 62.27 kB
+dist/assets/168-Cg451S0Z.woff2                                 62.32 kB
+dist/assets/40-BqFSj4r9.woff2                                  62.46 kB
+dist/assets/42-Cnibfi0l.woff2                                  62.52 kB
+dist/assets/43-BKZlUydT.woff2                                  62.60 kB
+dist/assets/242-XAp4GAaF.woff2                                 62.63 kB
+dist/assets/151-ChkZ2fR0.woff2                                 62.70 kB
+dist/assets/21-BpHxpYqU.woff2                                  62.71 kB
+dist/assets/22-DOQV5_AP.woff2                                  62.88 kB
+dist/assets/130-lnJmJhYq.woff2                                 62.91 kB
+dist/assets/149-CnZ6gToP.woff2                                 63.06 kB
+dist/assets/39-CvxogQR9.woff2                                  63.18 kB
+dist/assets/20-CBixM4rJ.woff2                                  63.28 kB
+dist/assets/167-DI-JsnzZ.woff2                                 63.32 kB
+dist/assets/146-B9Kkmliw.woff2                                 63.36 kB
+dist/assets/170-BW-faGDL.woff2                                 63.39 kB
+dist/assets/17-BPz2ZZaw.woff2                                  63.43 kB
+dist/assets/169-Cads5g01.woff2                                 63.44 kB
+dist/assets/112-BTa80OO7.woff2                                 63.45 kB
+dist/assets/KaTeX_AMS-Regular-DRggAlZN.ttf                     63.63 kB
+dist/assets/12-Df5z4C4Y.woff2                                  63.64 kB
+dist/assets/16-lNEEHdRu.woff2                                  63.77 kB
+dist/assets/10-D_POVnkx.woff2                                  63.85 kB
+dist/assets/36-1yRk3wky.woff2                                  63.90 kB
+dist/assets/18-ytoraawg.woff2                                  63.99 kB
+dist/assets/15-Cs0RRXJw.woff2                                  64.00 kB
+dist/assets/148-BO5TZoCu.woff2                                 64.02 kB
+dist/assets/23-DD9QQsT1.woff2                                  64.04 kB
+dist/assets/121-CxYM53Mu.woff2                                 64.04 kB
+dist/assets/33-C1ebhhuv.woff2                                  64.07 kB
+dist/assets/106-LOKN3_XO.woff2                                 64.07 kB
+dist/assets/150-DAHNkxCD.woff2                                 64.12 kB
+dist/assets/145-DInIBoNW.woff2                                 64.14 kB
+dist/assets/35-CZEjxR9_.woff2                                  64.21 kB
+dist/assets/34-Bz0-8p2r.woff2                                  64.27 kB
+dist/assets/147-CFyGMvC2.woff2                                 64.37 kB
+dist/assets/129-Dy-1utIC.woff2                                 64.47 kB
+dist/assets/31-WA9T-mSC.woff2                                  64.50 kB
+dist/assets/32-CIef6L9E.woff2                                  64.52 kB
+dist/assets/7-CiHXEPuC.woff2                                   64.52 kB
+dist/assets/9-BK0fQ3P1.woff2                                   64.56 kB
+dist/assets/159-CA8yBwz9.woff2                                 64.57 kB
+dist/assets/19-BsWIPnVM.woff2                                  64.59 kB
+dist/assets/14-qE-Obhyr.woff2                                  64.63 kB
+dist/assets/132-D9tMemf-.woff2                                 64.76 kB
+dist/assets/142-B5OFcYDe.woff2                                 64.84 kB
+dist/assets/128-DTbq99qe.woff2                                 64.86 kB
+dist/assets/137-DVKU58c0.woff2                                 65.02 kB
+dist/assets/8-BFLPTsSy.woff2                                   65.13 kB
+dist/assets/30-C5_nNpvA.woff2                                  65.16 kB
+dist/assets/109-BgqUN-7S.woff2                                 65.17 kB
+dist/assets/140-CcM4cvUD.woff2                                 65.18 kB
+dist/assets/13-BAVBFXU8.woff2                                  65.35 kB
+dist/assets/143-DKuMckyM.woff2                                 65.46 kB
+dist/assets/144-BUXPDq9V.woff2                                 65.64 kB
+dist/assets/118-BNz98HLH.woff2                                 65.68 kB
+dist/assets/5-BI-qxrF_.woff2                                   65.69 kB
+dist/assets/4-BQOZrpFz.woff2                                   65.70 kB
+dist/assets/11-BYXgLmGz.woff2                                  65.75 kB
+dist/assets/185-DtPl5z64.woff2                                 65.82 kB
+dist/assets/28-VGk2T1w8.woff2                                  66.21 kB
+dist/assets/6-_lH7FoYA.woff2                                   66.21 kB
+dist/assets/131-B25ZssGs.woff2                                 66.28 kB
+dist/assets/114-Dm3X4jGI.woff2                                 66.42 kB
+dist/assets/135-DqOhdELB.woff2                                 66.60 kB
+dist/assets/136-DzQomy-C.woff2                                 66.77 kB
+dist/assets/27-CJcF3fkV.woff2                                  66.78 kB
+dist/assets/139-CeAW4pxz.woff2                                 66.94 kB
+dist/assets/102-DxUUsUhk.woff2                                 66.99 kB
+dist/assets/29-CIAHM3Fn.woff2                                  67.03 kB
+dist/assets/108-BaO1PC4c.woff2                                 67.23 kB
+dist/assets/25-XyClQ_zR.woff2                                  67.24 kB
+dist/assets/107-CdwwnR39.woff2                                 67.30 kB
+dist/assets/152-CC5_Owhs.woff2                                 67.64 kB
+dist/assets/3-BKOpnGlR.woff2                                   67.93 kB
+dist/assets/127-DPbwlaRM.woff2                                 68.19 kB
+dist/assets/26-C3qWDv_w.woff2                                  68.26 kB
+dist/assets/133-BugrTAt2.woff2                                 68.43 kB
+dist/assets/113-C94NSclj.woff2                                 68.45 kB
+dist/assets/126-DkT5pStS.woff2                                 68.81 kB
+dist/assets/125-DRYJvdiY.woff2                                 68.91 kB
+dist/assets/95-BSwIBwYI.woff2                                  69.27 kB
+dist/assets/115-Coz_rQyG.woff2                                 69.46 kB
+dist/assets/111-BHe5aSyq.woff2                                 69.76 kB
+dist/assets/138-Dj1HmflL.woff2                                 70.01 kB
+dist/assets/105-yMIQfyDU.woff2                                 70.59 kB
+dist/assets/88-DWvsLAmE.woff2                                  71.14 kB
+dist/assets/104-BrXm5IeA.woff2                                 71.21 kB
+dist/assets/97-C4c3RIFz.woff2                                  71.36 kB
+dist/assets/72-DRFX5H7r.woff2                                  71.46 kB
+dist/assets/78-DQJHD3KI.woff2                                  71.66 kB
+dist/assets/76-FA6LlW8s.woff2                                  72.16 kB
+dist/assets/98-Cwd2zGgj.woff2                                  72.21 kB
+dist/assets/94-DJKCWKkj.woff2                                  72.25 kB
+dist/assets/124-Ds6FnAUp.woff2                                 72.50 kB
+dist/assets/103-CmIGUW-u.woff2                                 72.56 kB
+dist/assets/85-kb08U_6N.woff2                                  72.60 kB
+dist/assets/241-x5nwrP4h.woff2                                 72.67 kB
+dist/assets/99-DuvQj98O.woff2                                  72.84 kB
+dist/assets/84-BAIfa3dI.woff2                                  73.19 kB
+dist/assets/93-Bbejtdld.woff2                                  73.22 kB
+dist/assets/240-sTNbzcHD.woff2                                 73.60 kB
+dist/assets/101-DNer3BNG.woff2                                 73.93 kB
+dist/assets/91-s6QB71nt.woff2                                  74.26 kB
+dist/assets/239-CO5wEIoB.woff2                                 74.42 kB
+dist/assets/74-DEpS0TIz.woff2                                  74.54 kB
+dist/assets/83-Ddjfre4p.woff2                                  74.56 kB
+dist/assets/82-bUrYQEVs.woff2                                  74.85 kB
+dist/assets/123-DTOIEj0z.woff2                                 74.98 kB
+dist/assets/89-C7Vp5jsq.woff2                                  75.37 kB
+dist/assets/73-3n82xPZN.woff2                                  76.42 kB
+dist/assets/92-vucpQR06.woff2                                  76.57 kB
+dist/assets/96-Bi_W4A8n.woff2                                  77.28 kB
+dist/assets/79-CxpFgbTv.woff2                                  77.36 kB
+dist/assets/71-CF2sB0up.woff2                                  77.37 kB
+dist/assets/80-DW5jXgob.woff2                                  77.91 kB
+dist/assets/86-CqPoSPaR.woff2                                  78.34 kB
+dist/assets/75-DEhHC3_K.woff2                                  78.67 kB
+dist/assets/81-tQHUqUiM.woff2                                  79.94 kB
+dist/assets/90-CtUI4lKr.woff2                                  82.80 kB
+dist/assets/100-BtjSZOOg.woff2                                 82.89 kB
+dist/assets/87-zKKaJRsR.woff2                                  83.44 kB
+dist/assets/77-Br5KA7Su.woff2                                  85.47 kB
+dist/assets/HarmonyOS_Sans_SC_Bold-DTtO5jJ5.ttf             8,158.99 kB
+dist/assets/HarmonyOS_Sans_SC_Medium-C0JYcCxp.ttf           8,227.31 kB
+dist/assets/HarmonyOS_Sans_SC_Regular-DdsgBYS9.ttf          8,261.12 kB
+dist/assets/WorkspaceSkeleton-Btn2PSzl.css                      1.42 kB │ gzip:   0.54 kB
+dist/assets/conversationMessages-CrbCYmkx.css                   2.10 kB │ gzip:   0.67 kB
+dist/assets/ReviewSessionPage-CfVg-2iy.css                      2.18 kB │ gzip:   0.64 kB
+dist/assets/ScopeSelector-zC84Zz1f.css                          3.50 kB │ gzip:   1.07 kB
+dist/assets/SystemHealth-B-06w5Eh.css                           3.67 kB │ gzip:   1.11 kB
+dist/assets/MistakeIntakePage-CRCqQSP0.css                      4.22 kB │ gzip:   1.12 kB
+dist/assets/UserGuidePage-C0pRtQ8R.css                          5.30 kB │ gzip:   1.45 kB
+dist/assets/QuestionReadingLayout-BqMyf_rm.css                  6.07 kB │ gzip:   1.52 kB
+dist/assets/ChatMessage-CvCO2Y_5.css                            6.22 kB │ gzip:   1.60 kB
+dist/assets/MistakesPage-DTYTGVAk.css                           6.83 kB │ gzip:   1.47 kB
+dist/assets/LearningPage-DPwLrk-A.css                           7.06 kB │ gzip:   1.64 kB
+dist/assets/MathFieldEditor-BnjoTxG4.css                        8.00 kB │ gzip:   4.20 kB
+dist/assets/bootstrap-Cph-jNaf.css                             12.07 kB │ gzip:   3.35 kB
+dist/assets/notes-DOfvgbzN.css                                 12.10 kB │ gzip:   2.75 kB
+dist/assets/ExercisesPage-Cho8srmQ.css                         14.64 kB │ gzip:   2.98 kB
+dist/assets/katex-CYlHEDRF.css                                 28.83 kB │ gzip:   7.92 kB
+dist/assets/Workspace-CjMuo_YG.css                            196.63 kB │ gzip:  33.17 kB
+dist/assets/result-BA3Sfntl.css                               212.65 kB │ gzip:  75.31 kB
+dist/assets/WorkspaceActionBar-N1Swl2dj.js                      0.32 kB │ gzip:   0.20 kB
+dist/assets/useLearningNoteFont-BiFm5O5h.js                     0.42 kB │ gzip:   0.30 kB
+dist/assets/bookList-DCqSQ3If.js                                0.66 kB │ gzip:   0.48 kB
+dist/assets/rolldown-runtime-QTnfLwEv.js                        0.69 kB │ gzip:   0.42 kB
+dist/assets/InspectorContext-CzyVpgh4.js                        0.72 kB │ gzip:   0.43 kB
+dist/assets/preferences-B58OeNlY.js                             0.82 kB │ gzip:   0.52 kB
+dist/assets/ErrorBoundary-BfvGZlBb.js                           0.84 kB │ gzip:   0.55 kB
+dist/assets/SelectionControls-D4mrkFe4.js                       0.89 kB │ gzip:   0.54 kB
+dist/assets/WorkspaceSkeleton-h5Q5blWM.js                       0.95 kB │ gzip:   0.40 kB
+dist/assets/notes-BgLjLeHT.js                                   0.95 kB │ gzip:   0.58 kB
+dist/assets/networkDiagnostics-D40awxKB.js                      1.23 kB │ gzip:   0.59 kB
+dist/assets/useAuthenticatedBlobUrl-Cwqfa0gE.js                 1.90 kB │ gzip:   1.09 kB
+dist/assets/mobilePerformance-HJaelU-A.js                       1.91 kB │ gzip:   1.12 kB
+dist/assets/MarkdownMessage-ArgIHznT.js                         2.06 kB │ gzip:   0.85 kB
+dist/assets/visualQuestion-DtZTVFN7.js                          2.14 kB │ gzip:   1.29 kB
+dist/assets/MathFieldEditor-4Oj-yr-n.js                         2.28 kB │ gzip:   1.14 kB
+dist/assets/Dialog-CsJf3STe.js                                  2.32 kB │ gzip:   1.07 kB
+dist/assets/citations-CirjbeGp.js                               2.44 kB │ gzip:   1.09 kB
+dist/assets/OverflowMenu-azh-k1fV.js                            2.71 kB │ gzip:   1.16 kB
+dist/assets/autosave-B9od62TB.js                                2.73 kB │ gzip:   1.13 kB
+dist/assets/ChatContext-Bwr4cWwo.js                             2.83 kB │ gzip:   1.16 kB
+dist/assets/QuestionReadingLayout-BCQT2ToA.js                   3.54 kB │ gzip:   1.39 kB
+dist/assets/conversationMessages-Cwz6oV2s.js                    3.57 kB │ gzip:   1.78 kB
+dist/assets/AsyncState-BuGTdpcV.js                              4.08 kB │ gzip:   1.28 kB
+dist/assets/NoteBlocks-DRmmsTHM.js                              4.10 kB │ gzip:   1.69 kB
+dist/assets/bootstrap-FCygV25y.js                               4.39 kB │ gzip:   2.28 kB
+dist/assets/WeeklyReportPage-BhpWHFmf.js                        5.04 kB │ gzip:   2.07 kB
+dist/assets/MarkdownRenderer-Br83BqOk.js                        5.36 kB │ gzip:   2.33 kB
+dist/assets/theme-CT8zBBhJ.js                                   5.69 kB │ gzip:   1.88 kB
+dist/assets/NoteDetailPage-SmlRLF8i.js                          5.75 kB │ gzip:   2.12 kB
+dist/assets/HighlightPage-CI_B3PLt.js                           5.85 kB │ gzip:   2.73 kB
+dist/assets/FirstRunGuide-CgULiWvG.js                           6.44 kB │ gzip:   2.60 kB
+dist/assets/NotesPage-C82dDRWj.js                               7.08 kB │ gzip:   2.76 kB
+dist/assets/ScopeSelector-FIecwfwb.js                           9.98 kB │ gzip:   3.94 kB
+dist/assets/ReviewSessionPage-D7h2tXxF.js                      11.60 kB │ gzip:   4.07 kB
+dist/assets/MistakeIntakePage-DlcuwxOH.js                      13.11 kB │ gzip:   4.32 kB
+dist/assets/ModelSettingsManager-B0ip9JD9.js                   15.94 kB │ gzip:   5.39 kB
+dist/assets/BooksPage-Dv-fwTWX.js                              16.23 kB │ gzip:   5.62 kB
+dist/assets/NoteDraftPage-CotqKNbY.js                          16.31 kB │ gzip:   5.72 kB
+dist/assets/vendor-icons-m9-BI7Ka.js                           17.35 kB │ gzip:   5.87 kB
+dist/assets/LearningPage-BJj0vjti.js                           20.33 kB │ gzip:   6.83 kB
+dist/assets/index-BIledCij.js                                  26.34 kB │ gzip:   9.49 kB
+dist/assets/MistakesPage-Crn4L3Ux.js                           27.30 kB │ gzip:   8.05 kB
+dist/assets/UserGuidePage-D_R4wXbN.js                          32.43 kB │ gzip:  14.19 kB
+dist/assets/GoalsPage-xCxAqBV2.js                              35.15 kB │ gzip:  10.80 kB
+dist/assets/katex.min-CjOPEIgs.js                              38.09 kB │ gzip:  11.44 kB
+dist/assets/chunk-6CSD65Y2-Dxpig3Sg.js                         41.01 kB │ gzip:  14.57 kB
+dist/assets/ChatMessage-DRYK_LBX.js                            54.98 kB │ gzip:  16.78 kB
+dist/assets/Workspace-DHLCqMJ2.js                              59.84 kB │ gzip:  18.90 kB
+dist/assets/SystemHealth-CZNO5Z2P.js                           65.65 kB │ gzip:  20.54 kB
+dist/assets/ExercisesPage-CCItvl9E.js                          77.66 kB │ gzip:  24.20 kB
+dist/assets/ChatPage-C2GzxTez.js                              101.60 kB │ gzip:  30.59 kB
+dist/assets/vendor-react-OHCfv3pu.js                          189.64 kB │ gzip:  59.61 kB
+dist/assets/mathText-DgMsessI.js                              392.72 kB │ gzip: 118.58 kB
+dist/assets/mathlive.min-06Mezn5F.js                          801.13 kB │ gzip: 219.32 kB
+
+✓ built in 694ms
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.

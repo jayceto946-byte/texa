@@ -92,7 +92,8 @@ def materialize_document_assets(book: CanonicalBook, *, source_root: str | Path,
         # Only a validated, explicitly persisted asset may survive a moved/removed source.
         existing_rel = str((attrs if figure else asset).get('asset_relpath') or '')
         if source is None and safe_relative(existing_rel):
-            source = _controlled_source_path(book_root, existing_rel)
+            source = (_controlled_source_path(Path(source_root).resolve(), existing_rel)
+                      or _controlled_source_path(book_root, existing_rel))
         status = 'missing'
         try:
             if source is not None:

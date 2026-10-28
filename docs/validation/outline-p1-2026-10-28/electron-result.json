@@ -1,0 +1,50 @@
+{
+  "environment": "macOS real Electron, real textbook upload/job, ONNX FP32/Chroma and release gate; auxiliary APIs fixture; no LLM/OCR",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "status": "PASS"
+    },
+    {
+      "name": "real multi-chapter source imported",
+      "status": "PASS"
+    },
+    {
+      "name": "one chapter example propagates exercise section",
+      "status": "PASS"
+    },
+    {
+      "name": "small headings removed from navigation",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-calibration-preview no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-calibration-preview no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "760-calibration-preview no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "real calibration publication completed",
+      "status": "PASS"
+    },
+    {
+      "name": "760-calibration-applied no horizontal overflow",
+      "status": "PASS"
+    }
+  ],
+  "screenshots": [
+    "1280-calibration-preview.png",
+    "1024-calibration-preview.png",
+    "760-calibration-preview.png",
+    "760-calibration-applied.png"
+  ],
+  "errors": [
+    "SyntaxError: Unexpected token '向', \"  [向量库] 初始化中.\"... is not valid JSON"
+  ]
+}

@@ -51,6 +51,8 @@ def generate_acceptance_probes(
     units = {unit.unit_id: unit for unit in learning_units(book) if unit.kind == 'example'}
 
     for block_index, block in enumerate(book.blocks):
+        if block.attributes.get('outline_toc'):
+            continue
         unit = units.get(block.block_id)
         probe_block = block
         if unit:

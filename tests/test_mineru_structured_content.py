@@ -81,7 +81,8 @@ def test_native_mapping_hierarchy_formula_and_provenance(tmp_path):
     assert equation.ocr_confidence is None
     assert next(b for b in book.blocks if b.block_type == 'table').table_rows == [['x','1'],['y','2']]
     assert len([b for b in book.blocks if b.block_type == 'figure']) == 2
-    assert book.source_metadata['excluded_counts'] == dict(doc_title=1, header=1, index=1, footer=1, page_number=1)
+    assert book.source_metadata['excluded_counts'] == dict(doc_title=1, header=1, footer=1, page_number=1)
+    assert any(b.attributes['mineru_type'] == 'index' for b in book.blocks)
     assert any('Unknown readable' in warning for warning in book.warnings)
     assert next(b for b in book.blocks if b.attributes['mineru_type'] == 'ref_text').attributes['semantic_role'] == 'reference'
 
@@ -89,7 +90,7 @@ def test_native_mapping_hierarchy_formula_and_provenance(tmp_path):
 def test_native_preferred_and_invalid_native_is_not_silently_bridged(tmp_path):
     output = source(tmp_path)
     (output / 'texa_content_list_v1.json').write_text(json.dumps([dict(type='text', text='bridge should not win')]))
-    assert MinerUAdapter.from_output_dir(output, book_name='demo').parser_version == 'mineru-structured-content-v4'
+    assert MinerUAdapter.from_output_dir(output, book_name='demo').parser_version == 'mineru-structured-content-v5'
     (output / 'structured_content.json').write_text('{')
     with pytest.raises(ValueError, match='Invalid native'):
         MinerUAdapter.from_output_dir(output, book_name='demo')
@@ -159,7 +160,7 @@ def test_formal_structured_only_importer(monkeypatch, tmp_path):
     assert result.used_mineru and result.indexed_chunks > 0
     assert result.chapters == mineru_importer.chapters_from_mineru_output(output, 'demo')
     assert 'bridge' not in mineru_importer.extract_text_from_mineru_output(output)
-    assert result.canonical_book.parser_version == 'mineru-structured-content-v4'
+    assert result.canonical_book.parser_version == 'mineru-structured-content-v5'
 
 
 def test_html_table_rows_and_sentence_title_are_preserved_as_body():

@@ -4,6 +4,8 @@ from __future__ import annotations
 import re
 import time
 import zipfile
+import tempfile
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -14,6 +16,8 @@ from utils.resource_limits import (
     MAX_DOCX_FILES,
     MAX_DOCX_MEMBER_BYTES,
     inspect_zip_limits,
+    validate_zip_paths,
+    ensure_disk_space,
 )
 
 
@@ -27,6 +31,7 @@ class ExtractedExerciseText:
     provider: str = "local"
     warnings: list[str] | None = None
     canonical_book: object | None = None
+    asset_root: Path | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -46,7 +51,32 @@ def extract_exercise_text(path: str | Path) -> ExtractedExerciseText:
         return extract_docx_text(file_path)
     if suffix == ".pdf":
         return extract_pdf_text(file_path)
-    raise ValueError("仅支持 .docx 和 .pdf 文件")
+    if suffix == ".zip":
+        return extract_mineru_archive(file_path)
+    raise ValueError("仅支持 Word、PDF 和 MinerU 解析包（.zip）")
+
+
+def extract_mineru_archive(path: Path) -> ExtractedExerciseText:
+    """Use the textbook adapter directly; never submit an existing OCR ZIP."""
+    from ingestion.document_adapters import MinerUAdapter
+    root = Path(tempfile.mkdtemp(prefix='mineru-exercises-', dir=path.parent))
+    try:
+        with zipfile.ZipFile(path) as archive:
+            infos, expanded = inspect_zip_limits(archive)
+            validate_zip_paths(infos, root)
+            ensure_disk_space(root, expanded)
+            archive.extractall(root)
+        canonical = MinerUAdapter.from_output_dir(root, book_name=path.stem)
+        text = '\n\n'.join(b.text for b in canonical.blocks if b.text)
+        if not text.strip():
+            raise ValueError('包中没有可用的 MinerU 解析正文，请选择完整解析结果 ZIP')
+        return ExtractedExerciseText(text=text, file_type='zip', provider='mineru-archive',
+            page_count=canonical.source_page_count or 0,
+            text_pages=len({b.page_start for b in canonical.blocks if b.text and b.page_start}),
+            warnings=list(canonical.warnings), canonical_book=canonical, asset_root=root)
+    except Exception:
+        shutil.rmtree(root, ignore_errors=True)
+        raise
 
 
 def extract_docx_text(path: Path) -> ExtractedExerciseText:
@@ -125,7 +155,8 @@ def _extract_pdf_text_with_mineru(path: Path) -> ExtractedExerciseText:
     text = '\n\n'.join(b.text for b in canonical.blocks if b.text)
     if not text.strip():
         raise ValueError("MinerU 未返回可切分文本")
-    return ExtractedExerciseText(text=text, file_type="pdf", provider="mineru", warnings=[], canonical_book=canonical)
+    return ExtractedExerciseText(text=text, file_type="pdf", provider="mineru", warnings=[], canonical_book=canonical,
+                                 asset_root=output_dir)
 
 
 def _extract_pdf_text_layer(path: Path) -> ExtractedExerciseText:

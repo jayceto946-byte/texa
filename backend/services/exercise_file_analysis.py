@@ -10,6 +10,7 @@ import re
 import uuid
 
 from ingestion.document_ir import CanonicalBook, DocumentBlock, canonical_book_fingerprint
+from ingestion.heading_policy import body_title
 from memory.exercise_candidate_projection import source_registry, canonical_json
 from memory.exercise_structure import CATALOG, ORIGINAL, SECTION, TOPIC, exercise_units, header_metadata, solution_markers, topic_level
 from memory.exercise_structure_examples import StructureExampleStore
@@ -25,6 +26,9 @@ def file_book(extracted, *, name, prefix='q'):
     parents = original.blocks if original else [DocumentBlock(prefix + '-raw', 'paragraph', extracted.text, [name], source_kind=extracted.provider)]
     blocks, path = [], [name]
     for parent in parents:
+        native = original is not None and parent.source_kind == 'mineru'
+        if native:
+            path = [name, *[p for p in parent.section_path if p != original.book_name]]
         if parent.block_type in ('formula', 'table', 'figure'):
             block = deepcopy(parent)
             block.block_id = prefix + '-' + parent.block_id
@@ -46,12 +50,15 @@ def file_book(extracted, *, name, prefix='q'):
                             or parent.block_type == 'heading' or parent.attributes.get('mineru_type') == 'paragraph_title')
                        and not (ORIGINAL.match(text) and not SECTION.match(text))
                        and not re.search(r'[=。？?]', text))
+            if native:
+                heading = parent.block_type == 'heading' and not ORIGINAL.match(text) and not body_title(text)
             if heading:
                 # Decimal numbering is one signal; native levels are advisory.
                 numbered = re.match(r'^\s*(\d+(?:\.\d+)+)', text)
                 raw_level = parent.attributes.get('raw_level')
                 level = len(numbered[1].split('.')) if numbered else (topic_level(text, path[1:]) if TOPIC.match(text) else (raw_level if type(raw_level) is int and 1 <= raw_level <= 8 else 1))
-                path = path[:max(1, min(level, 8))] + [text.strip()]
+                if not native:
+                    path = path[:max(1, min(level, 8))] + [text.strip()]
             block.block_type = 'heading' if heading else 'paragraph'
             block.section_path = list(path)
             block.attributes.update(source_parent_id=parent.block_id, source_start=start, source_end=start + len(text))
@@ -98,6 +105,9 @@ class ExerciseFileAnalysisStore:
         self.examples = StructureExampleStore(progress_root)
 
     def create(self, extracted, *, book_name, answer=None):
+        self._preserve_assets(extracted)
+        if answer:
+            self._preserve_assets(answer)
         book = file_book(extracted, name=book_name)
         answer_at = next((i for i, b in enumerate(book.blocks) if ANSWER_HEADING.match(b.text)), None)
         question_book = deepcopy(book)
@@ -136,6 +146,48 @@ class ExerciseFileAnalysisStore:
         # Validation of the registry budgets occurs before persistence.
         atomic_write_json(self.root / f'{source_id}.json', payload)
         return self._extracted(payload), source_id, paired
+
+    def _preserve_assets(self, extracted):
+        root = getattr(extracted, 'asset_root', None)
+        canonical = getattr(extracted, 'canonical_book', None)
+        if root is None or canonical is None:
+            return
+        from ingestion.document_adapters import _controlled_source_path, _inspect_figure_image, _atomic_copy
+        for block in canonical.blocks:
+            visual = block.attributes.get('original_visual_asset')
+            if block.block_type != 'figure' and not isinstance(visual, dict):
+                continue
+            relative = (visual.get('source_relpath', '') if isinstance(visual, dict)
+                        else block.attributes.get('source_asset_relpath', ''))
+            path = _controlled_source_path(Path(root), relative)
+            if path is None:
+                block.attributes['asset_status'] = 'missing'
+                continue
+            try:
+                _, _, suffix = _inspect_figure_image(path)
+                digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                target = self.root / 'assets' / (digest + suffix)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if not target.exists():
+                    _atomic_copy(path, target)
+                block.attributes.update(asset_id=digest, asset_hash=digest, asset_format=suffix, asset_status='ready')
+            except (OSError, ValueError):
+                block.attributes['asset_status'] = 'invalid'
+
+    def asset(self, source_id, asset_id, book_name):
+        extracted = self.load(source_id, book_name)
+        if not re.fullmatch(r'[a-f0-9]{64}', asset_id):
+            raise ValueError('来源图片身份无效')
+        block = next((b for b in extracted.source_blocks if b['attributes'].get('asset_id') == asset_id), None)
+        formats = {'.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp',
+                   '.gif': 'image/gif', '.bmp': 'image/bmp', '.tiff': 'image/tiff'}
+        suffix = block['attributes'].get('asset_format') if block else None
+        if suffix not in formats:
+            raise ValueError('来源图片格式无效')
+        path = self.root / 'assets' / (asset_id + suffix)
+        if path.is_symlink() or hashlib.sha256(path.read_bytes()).hexdigest() != asset_id:
+            raise ValueError('来源图片校验失败')
+        return path, formats[suffix]
 
     def load(self, source_id, book_name):
         if not re.fullmatch(r'[a-f0-9]{32}', source_id or ''):

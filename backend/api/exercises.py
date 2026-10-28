@@ -4,9 +4,11 @@ from __future__ import annotations
 import re
 import hashlib
 import threading
+import shutil
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
+from fastapi.responses import FileResponse
 
 from backend.job_manager import get_job_manager
 from backend.services.exercise_practice import PracticeAnswerService
@@ -38,7 +40,7 @@ from memory.textbook_exercise_importer import extract_textbook_exercise_text, an
 from memory.mistake_book import MistakeRecord, get_mistake_book
 from memory.learning_events import LearningEvent, concept_names, get_learning_event_store
 from utils.latex_sanitizer import sanitize_latex
-from utils.resource_limits import MAX_EXERCISE_UPLOAD_BYTES, copy_stream_limited
+from utils.resource_limits import MAX_EXERCISE_UPLOAD_BYTES, MAX_OUTPUT_ZIP_BYTES, copy_stream_limited
 from utils.subject_catalog import normalize_subject_value
 from utils.thinking_filter import strip_thinking
 from backend.services.learning_state import resolve_book_identity
@@ -82,8 +84,8 @@ def _save_upload(file: UploadFile) -> Path:
     if not file.filename:
         raise ValueError("请选择要上传的文件")
     suffix = Path(file.filename).suffix.lower()
-    if suffix not in {".docx", ".pdf"}:
-        raise ValueError("仅支持 .docx 和 .pdf 文件")
+    if suffix not in {".docx", ".pdf", ".zip"}:
+        raise ValueError("仅支持 Word、PDF 和 MinerU 解析包（.zip）")
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     dest = UPLOAD_DIR / _safe_upload_name(file.filename)
     base = dest.with_suffix("")
@@ -92,7 +94,7 @@ def _save_upload(file: UploadFile) -> Path:
     while dest.exists():
         dest = Path(f"{base}_{counter}{suffix}")
         counter += 1
-    copy_stream_limited(file.file, dest, max_bytes=MAX_EXERCISE_UPLOAD_BYTES)
+    copy_stream_limited(file.file, dest, max_bytes=MAX_OUTPUT_ZIP_BYTES if suffix == '.zip' else MAX_EXERCISE_UPLOAD_BYTES)
     return dest
 
 
@@ -314,6 +316,7 @@ def upload_and_analyze_exercises(
     candidate_contract_version: int | None = Form(None),
     book_name: str = "default",
 ):
+    extracted = answer_extracted = None
     try:
         if candidate_contract_version not in (None, 1):
             raise ValueError('未知候选合同版本')
@@ -383,6 +386,22 @@ def upload_and_analyze_exercises(
         }
     except Exception as exc:
         return {"success": False, "message": f"文件导入失败：{exc}"}
+    finally:
+        # Only fresh extraction scratch directories are removed. Original ZIPs
+        # and persisted source snapshots/assets remain available after restart.
+        for temporary in (extracted, answer_extracted):
+            if temporary is not None and temporary.provider == 'mineru-archive' and temporary.asset_root:
+                shutil.rmtree(temporary.asset_root, ignore_errors=True)
+
+
+@router.get('/file-sources/{source_id}/assets/{asset_id}')
+def file_source_asset(source_id: str, asset_id: str, book_name: str = 'default'):
+    from backend.services.exercise_file_analysis import ExerciseFileAnalysisStore
+    try:
+        path, media_type = ExerciseFileAnalysisStore(PROGRESS_PATH).asset(source_id, asset_id, book_name)
+    except (ValueError, FileNotFoundError):
+        raise HTTPException(404, '来源图片不存在或不属于当前范围') from None
+    return FileResponse(path, media_type=media_type)
 
 @router.post("/textbook-analyze")
 def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: str = "default"):

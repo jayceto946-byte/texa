@@ -74,10 +74,8 @@ def import_textbook_local(
 ) -> BookImportResult:
     if on_progress:
         on_progress("local_parse", "使用本地目录解析，扫描件正文不会 OCR", 35)
-    chapters = _parse_chapters_locally(pdf_path, book_name, toc_pages)
-    canonical_book = PdfTextAdapter.from_chapters(
-        chapters, book_name=book_name, source_file=pdf_path.name,
-    )
+    canonical_book = PdfTextAdapter.from_pdf(pdf_path, book_name=book_name, toc_page_range=toc_pages)
+    chapters = chapters_from_canonical(canonical_book)
     if on_progress:
         on_progress("indexing", "Building local textbook index", 75)
     output_dir = config.MINERU_OUTPUT_PATH / book_name / "local"
@@ -116,6 +114,10 @@ def import_textbook_from_mineru_output(
     if on_progress:
         on_progress("structure", "Reading external OCR output", 35)
     canonical_book = MinerUAdapter.from_output_dir(output_dir, book_name=book_name)
+    pdfs = list(output_dir.rglob('*.pdf'))
+    if len(pdfs) == 1:
+        from ingestion.outline_recovery import attach_pdf_bookmarks
+        canonical_book = attach_pdf_bookmarks(canonical_book, pdfs[0])
     chapters = chapters_from_canonical(canonical_book)
     if not chapters:
         raise RuntimeError("No usable structured_content, content_list, middle JSON, or Markdown in OCR output")
@@ -166,6 +168,8 @@ def _import_with_mineru(pdf_path: Path, book_name: str, on_progress: ProgressCal
     if on_progress:
         on_progress("structure", "整理章节和正文块", 70)
     canonical_book = MinerUAdapter.from_output_dir(output_dir, book_name=book_name)
+    from ingestion.outline_recovery import attach_pdf_bookmarks
+    canonical_book = attach_pdf_bookmarks(canonical_book, pdf_path)
     chapters = chapters_from_canonical(canonical_book)
     used_mineru_output = bool(chapters)
     if not chapters:
@@ -205,6 +209,8 @@ def _import_with_mineru_cli(pdf_path: Path, book_name: str, on_progress: Progres
     if on_progress:
         on_progress("structure", "整理章节和正文块", 70)
     canonical_book = MinerUAdapter.from_output_dir(output_dir, book_name=book_name)
+    from ingestion.outline_recovery import attach_pdf_bookmarks
+    canonical_book = attach_pdf_bookmarks(canonical_book, pdf_path)
     chapters = chapters_from_canonical(canonical_book)
     if not chapters:
         raise RuntimeError("MinerU CLI 未生成可识别的 structured_content/content_list/middle 输出")
@@ -249,6 +255,8 @@ def chapters_from_canonical(book: CanonicalBook) -> list[dict]:
     paths = canonical_retrieval_paths(book.blocks)
     grouped: dict[str, dict] = {}
     for block in book.blocks:
+        if block.attributes.get('outline_toc'):
+            continue
         title = (paths.get(block.block_id) or [book.book_name])[0]
         chapter = grouped.setdefault(title, _new_chapter(title, block.page_start or 1))
         chapter['end_page'] = max(chapter.get('end_page', 0), block.page_end or block.page_start or 0)
@@ -510,6 +518,8 @@ def _build_index_candidate(
             source_file=str(Path(output_dir).name),
         )
     if canonical_progress_root is not None:
+        from ingestion.outline_recovery import recover_outline
+        canonical_book = recover_outline(canonical_book)
         materialize_document_assets(
             canonical_book, source_root=output_dir, progress_root=canonical_progress_root,
         )
@@ -527,9 +537,11 @@ def _build_index_candidate(
     else:
         probe_report = generate_acceptance_probes(canonical_book)
 
-    vs = get_vector_store()
     kg_roles = load_kg_chunk_roles(book_name)
     all_chunks = splitter.split_canonical_book(canonical_book)
+    from ingestion.structure_quality import validate_index_structure
+    source_integrity = validate_index_structure(canonical_book, all_chunks)
+    vs = get_vector_store()
     indexable_chunks = [
         dict(chunk) for chunk in all_chunks if not bool(chunk.get("retrieval_excluded"))
     ]
@@ -588,6 +600,7 @@ def _build_index_candidate(
                 specialty_inventory={name: max(count, probe_report['source_inventory'].get(name, 0))
                                      for name, count in probe_report['inventory'].items()},
                 canonical_publication=publication,
+                source_integrity=source_integrity,
                 before_publish=before_publish,
             )
             if int(manifest.get("chunk_count", 0)) != len(indexable_chunks):

@@ -5,6 +5,8 @@ import re
 from dataclasses import replace
 from pathlib import Path
 
+from ingestion.source_spans import SPAN_SCHEMA, source_span, table_parts, table_render, table_annotations
+
 from ingestion.document_ir import (
     CanonicalBook,
     DocumentBlock,
@@ -14,26 +16,11 @@ from ingestion.document_ir import (
 )
 
 
-def _get_splitter(chunk_size: int, chunk_overlap: int):
-    try:
-        from langchain_text_splitters import RecursiveCharacterTextSplitter
-        return RecursiveCharacterTextSplitter(
-            chunk_size=chunk_size, chunk_overlap=chunk_overlap,
-            separators=["\n\n", "\n", "。", "；", "，", " ", ""],
-        )
-    except ImportError:
-        from langchain.text_splitter import RecursiveCharacterTextSplitter
-        return RecursiveCharacterTextSplitter(
-            chunk_size=chunk_size, chunk_overlap=chunk_overlap,
-            separators=["\n\n", "\n", "。", "；", "，", " ", ""],
-        )
-
 
 class ChapterSplitter:
     """章节文本分割器"""
 
     def __init__(self, chunk_size: int = 700, chunk_overlap: int = 80):
-        self.splitter = _get_splitter(chunk_size, chunk_overlap)
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
 
@@ -109,6 +96,10 @@ class ChapterSplitter:
         for block in blocks:
             if not isinstance(block, DocumentBlock):
                 raise TypeError("split_blocks expects DocumentBlock instances")
+            if block.attributes.get('outline_toc'):
+                flush_prose()
+                flush_structured()
+                continue
             if block.block_type == "heading" or (
                 block.block_type != "figure" and not str(block.text or "").strip()
             ):
@@ -155,7 +146,11 @@ class ChapterSplitter:
         """Convenience entry point for the canonical ingestion contract."""
         retrieval_paths = canonical_retrieval_paths(book.blocks)
         retrieval_blocks = [
-            replace(block, section_path=retrieval_paths.get(block.block_id, list(block.section_path)))
+            # A bounded unnumbered OCR title is only a producer hint. Keep its
+            # text searchable even if the hint later proves to be body prose.
+            replace(block, section_path=retrieval_paths.get(block.block_id, list(block.section_path)),
+                    block_type='paragraph' if block.block_type == 'heading'
+                    and block.attributes.get('heading_rule') == 'bounded_unnumbered' else block.block_type)
             for block in book.blocks
         ]
         rows = self.split_blocks(retrieval_blocks, book_name=book.book_name)
@@ -172,23 +167,34 @@ class ChapterSplitter:
         book_name: str,
         block_type: str,
     ) -> None:
-        text = "\n\n".join(str(block.text or "").strip() for block in blocks if str(block.text or "").strip())
-        if not text:
+        text, locations = '', []
+        for block in blocks:
+            if not block.text:
+                continue
+            if text:
+                text += '\n\n'
+            locations.append((block, len(text), len(text) + len(block.text)))
+            text += block.text
+        if not text.strip():
             return
-        parent_key = self._logical_parent_key(blocks[0])
-        parent_id = self._stable_id(book_name, block_type, parent_key)
-        for child_index, content in enumerate(self._split_preserving_equations(text)):
-            self._append_chunk(
-                rows, blocks, content, book_name=book_name, block_type=block_type,
+        parent_id = self._stable_id(book_name, block_type, self._logical_parent_key(blocks[0]))
+        for child_index, (start, end) in enumerate(self._split_text_ranges(text)):
+            spans, members = [], []
+            for block, left, right in locations:
+                lo, hi = max(start, left), min(end, right)
+                if lo < hi:
+                    members.append(block)
+                    spans.append(source_span(block, lo-left, hi-left, lo-start, hi-start))
+            self._append_chunk(rows, members, text[start:end], book_name=book_name, block_type=block_type,
                 parent_id=parent_id, parent_content=text, child_index=child_index,
-            )
+                extra={'source_span_schema': SPAN_SCHEMA, 'source_spans': spans})
 
     def _emit_atomic(self, rows: list[dict], block: DocumentBlock, *, book_name: str) -> None:
-        content = str(block.text or "").strip()
+        content = str(block.text or "")
         if not content and block.block_type != "figure":
             return
         figure_attributes = block.attributes or {}
-        extra = None
+        extra = {'source_span_schema': SPAN_SCHEMA, 'source_spans': [source_span(block, 0, len(content), 0, len(content))]}
         if block.block_type == "figure":
             content = content or "[教材图片：无图注]"
             extra = {
@@ -210,16 +216,31 @@ class ChapterSplitter:
         unit_kind = 'example' if block.attributes.get('example_id') else ('exercise' if block.attributes.get('exercise_id') else 'table')
         parent_id = self._stable_id(book_name, unit_kind, self._logical_parent_key(block))
         segments = self._split_table_rows(block, rendered)
+        prefix = table_parts(block.retrieval_table_title, block.table_header, [])
+        notes = table_annotations(block, table_parts(block.retrieval_table_title, block.table_header, block.table_rows)) if block.table_rows else ''
+        source_cursor = len(prefix)
         for child_index, (content, table_rows) in enumerate(segments):
-            self._append_chunk(
-                rows, [block], content, book_name=book_name, block_type="table",
+            spans = []
+            if len(segments) == 1:
+                content = rendered
+                spans = [source_span(block, 0, len(rendered), 0, len(rendered))]
+            else:
+                if child_index == len(segments)-1 and notes:
+                    content += '\n' + notes
+                if prefix:
+                    spans.append(source_span(block, 0, len(prefix), 0, len(prefix)))
+                content_cursor = len(prefix)
+                for part in [table_parts('', [], [row]) for row in table_rows] + ([notes] if child_index == len(segments)-1 and notes else []):
+                    left = rendered.find(part, source_cursor)
+                    at = content.find(part, content_cursor)
+                    if left < 0 or at < 0:
+                        raise ValueError('table source projection does not match its canonical rendering')
+                    spans.append(source_span(block, left, left+len(part), at, at+len(part)))
+                    source_cursor, content_cursor = left+len(part), at+len(part)
+            self._append_chunk(rows, [block], content, book_name=book_name, block_type='table',
                 parent_id=parent_id, parent_content=rendered, child_index=child_index,
-                extra={
-                    "table_title": block.retrieval_table_title,
-                    "table_header": list(block.table_header),
-                    "table_rows": table_rows,
-                },
-            )
+                extra={'table_title': block.retrieval_table_title, 'table_header': list(block.table_header),
+                       'table_rows': table_rows, 'source_span_schema': SPAN_SCHEMA, 'source_spans': spans})
 
     def _append_chunk(
         self,
@@ -234,8 +255,8 @@ class ChapterSplitter:
         child_index: int,
         extra: dict | None = None,
     ) -> None:
-        content = str(content or "").strip()
-        if not content:
+        content = str(content or "")
+        if not content.strip():
             return
         first = blocks[0]
         section_path = list(first.section_path or ([book_name] if book_name else []))
@@ -331,18 +352,11 @@ class ChapterSplitter:
 
     @classmethod
     def _render_table(cls, block: DocumentBlock) -> str:
-        if block.table_header or block.table_rows:
-            return cls._render_table_parts(block.retrieval_table_title, block.table_header, block.table_rows)
-        return str(block.text or "").strip()
+        return table_render(block)
 
     @staticmethod
     def _render_table_parts(title: str, header: list[str], rows: list[list[str]]) -> str:
-        lines = [str(title).strip()] if str(title or "").strip() else []
-        if header:
-            lines.append("| " + " | ".join(str(cell) for cell in header) + " |")
-            lines.append("| " + " | ".join("---" for _ in header) + " |")
-        lines.extend("| " + " | ".join(str(cell) for cell in row) + " |" for row in rows)
-        return "\n".join(lines).strip()
+        return table_parts(title, header, rows)
 
     @staticmethod
     def _explicit_parent_key(block: DocumentBlock) -> str:
@@ -402,57 +416,48 @@ class ChapterSplitter:
             row["prev_chunk_id"] = rows[index - 1]["chunk_id"] if index else ""
             row["next_chunk_id"] = rows[index + 1]["chunk_id"] if index + 1 < len(rows) else ""
 
+    def _split_text_ranges(self, text: str) -> list[tuple[int, int]]:
+        """Exact Unicode slices; math stays whole in source/evidence chunks.
+
+        Dense inputs may later have several bounded views of one source chunk.
+        Those views never replace the complete formula or the canonical body.
+        """
+        protected = [(m.start(), m.end()) for m in re.finditer(
+            r'\$\$.*?\$\$|\\\[.*?\\\]|\\\(.*?\\\)|(?<!\\)\$(?!\$)[^$\n]+?(?<!\\)\$(?!\$)', text, re.S)]
+        ranges, start = [], 0
+        size = max(1, self.chunk_size)
+        overlap = max(0, min(self.chunk_overlap, size // 2))
+        while start < len(text):
+            end = min(len(text), start + size)
+            for left, right in protected:
+                if left < end < right:
+                    end = left if left > start else right
+                    break
+            if end < len(text) and not any(right == end for _, right in protected):
+                lower = start + max(1, (end-start)//2)
+                for separator in ('\n\n', '\n', '。', '；', '，', ' '):
+                    cut = text.rfind(separator, lower, end)
+                    candidate = cut + len(separator)
+                    if cut >= lower and not any(left < candidate < right for left, right in protected):
+                        end = candidate
+                        break
+            while end < len(text) and text[end].isspace():
+                end += 1
+            if not text[start:end].strip() and end < len(text):
+                end += 1
+            ranges.append((start, end))
+            if end == len(text):
+                break
+            following = max(start + 1, end - overlap)
+            for left, right in protected:
+                if left < following < right:
+                    following = left if left > start else right
+                    break
+            start = min(end, following)
+        return ranges
+
     def _split_preserving_equations(self, text: str) -> list[str]:
-        """Keep display-math blocks atomic while retaining normal prose splitting."""
-        formulas: list[str] = []
-
-        def protect(match: re.Match) -> str:
-            formulas.append(match.group(0))
-            return f"\n@@TEXA_FORMULA_{len(formulas) - 1}@@\n"
-
-        protected = re.sub(r"\$\$.*?\$\$", protect, text or "", flags=re.DOTALL)
-        chunks = self.splitter.split_text(protected)
-        restored = []
-        for chunk in chunks:
-            for index, formula in enumerate(formulas):
-                chunk = chunk.replace(f"@@TEXA_FORMULA_{index}@@", formula)
-            if chunk.strip():
-                restored.extend(self._bound_restored_chunk(chunk.strip()))
-        return restored
-
-    def _bound_restored_chunk(self, text: str) -> list[str]:
-        """Rebound placeholder-expanded text without cutting through a formula."""
-        if len(text) <= max(self.chunk_size * 2, 1200):
-            return [text]
-        pieces = [piece for piece in re.split(r"(\$\$.*?\$\$)", text, flags=re.DOTALL) if piece and piece.strip()]
-        target = max(self.chunk_size, 700)
-        result: list[str] = []
-        current = ""
-
-        def flush() -> None:
-            nonlocal current
-            if current.strip():
-                result.append(current.strip())
-            current = ""
-
-        for piece in pieces:
-            if piece.lstrip().startswith("$$"):
-                if current and len(current) + len(piece) + 2 > target:
-                    flush()
-                current = f"{current}\n\n{piece}" if current else piece
-                if len(current) >= target:
-                    flush()
-                continue
-            prose_parts = self.splitter.split_text(piece) if len(piece) > target else [piece]
-            for prose in prose_parts:
-                prose = prose.strip()
-                if not prose:
-                    continue
-                if current and len(current) + len(prose) + 2 > target:
-                    flush()
-                current = f"{current}\n\n{prose}" if current else prose
-        flush()
-        return result
+        return [text[start:end] for start, end in self._split_text_ranges(text or '') if text[start:end].strip()]
 
     @staticmethod
     def _extract_equations(text: str) -> list[str]:

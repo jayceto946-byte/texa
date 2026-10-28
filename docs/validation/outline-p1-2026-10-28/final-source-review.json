@@ -1,0 +1,25 @@
+{
+  "structure": {
+    "policy_version": 1,
+    "chapters": 2,
+    "headings": 6,
+    "title_blocks_retained_as_body": 4,
+    "suspicious_heading_ids": [],
+    "exercise_sections": 2,
+    "exercise_starts": 2,
+    "exercise_units": 2,
+    "example_units": 0,
+    "exercise_sections_without_units": [],
+    "unrecognized_exercise_start_ids": []
+  },
+  "source": {
+    "covered_body_blocks": 12,
+    "missing_body_blocks": 0,
+    "wrong_chapter_blocks": 0,
+    "source_span_contract": "texa.index-source-spans/v1",
+    "span_errors": 0,
+    "verbatim_blocks": 10,
+    "rendered_table_blocks": 2,
+    "table_originals": "retained_in_canonical"
+  }
+}

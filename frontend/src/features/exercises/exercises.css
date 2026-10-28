@@ -162,3 +162,6 @@
 .exercise-import-receipts{margin:20px 0;max-width:100%;overflow-wrap:anywhere;font-size:13px}
 
 .exercise-import-retention { margin:8px 0 16px; font-size:var(--workspace-interface-size); line-height:1.6; color:var(--color-text-secondary); }
+
+.exercise-source-image{margin:16px 0;max-width:100%}
+.exercise-source-image img{display:block;max-width:100%;height:auto}

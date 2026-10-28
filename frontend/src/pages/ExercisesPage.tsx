@@ -282,7 +282,7 @@ const ExercisesPage: React.FC = () => {
     if (candidates.length && !window.confirm('重新解析将替换当前候选及其编辑，继续吗？')) return;
     const requestedScope = importScope.current;
     if (!importFile) {
-      setMessage('请选择 Word 或 PDF 文件');
+      setMessage('请选择 Word、PDF 或 MinerU 解析包');
       return;
     }
     importLock.current = true;
@@ -301,7 +301,7 @@ const ExercisesPage: React.FC = () => {
       fd.append('use_llm', 'false');
       fd.append('candidate_contract_version', '1');
       fd.append('llm_max_items', '20');
-      const res = await apiFetch(`/exercises/upload-analyze${bookQuery}`, { method: 'POST', body: fd });
+      const res = await apiFetch(`/exercises/upload-analyze${bookQuery}`, { method: 'POST', body: fd }, 5 * 60 * 1000);
       const data = await res.json();
       if (requestedScope !== importScope.current) return;
       if (!res.ok || !data?.success) {
@@ -505,17 +505,17 @@ const ExercisesPage: React.FC = () => {
             {candidates.length > 0 && <button className="app-secondary-button" onClick={() => setReviewPreparationOpen(false)}>继续校对 {candidates.length} 道候选</button>}
             <div className="exercise-source-tabs">
               <button aria-pressed={sourceKind === 'textbook'} onClick={() => setSourceKind('textbook')}>从教材抽取</button>
-              <button aria-pressed={sourceKind === 'file'} onClick={() => setSourceKind('file')}>上传 Word / PDF</button>
+              <button aria-pressed={sourceKind === 'file'} onClick={() => setSourceKind('file')}>上传文件 / MinerU 包</button>
             </div>
             <fieldset className="exercise-import-fields" disabled={importing || commitUnknown}>
               {sourceKind === 'file' && <>
                 <button className={`exercise-upload ${importFile ? 'has-file' : ''}`} onClick={() => fileInputRef.current?.click()}>
                   <Upload size={24} />
-                  <strong>{importFile?.name || '选择 Word / PDF 文件'}</strong>
-                  <small>{importFile ? '文件已选择 · 尚未分析' : '.docx 或包含文字的 PDF'}</small>
+                  <strong>{importFile?.name || '选择 Word、PDF 或 MinerU 解析包'}</strong>
+                  <small>{importFile ? '文件已选择 · 尚未分析' : '.docx、文字 PDF 或 MinerU 解析结果 .zip'}</small>
                 </button>
-                <input ref={fileInputRef} type="file" accept=".docx,.pdf" aria-label="题目文件" onChange={e => setImportFile(e.target.files?.[0] || null)} hidden />
-                <label className="exercise-answer-file">独立答案文件（可选）<input type="file" accept=".docx,.pdf" aria-label="独立答案文件" onChange={e => setAnswerFile(e.target.files?.[0] || null)} />{answerFile?.name}</label>
+                <input ref={fileInputRef} type="file" accept=".docx,.pdf,.zip" aria-label="题目文件" onChange={e => setImportFile(e.target.files?.[0] || null)} hidden />
+                <label className="exercise-answer-file">独立答案文件（可选）<input type="file" accept=".docx,.pdf,.zip" aria-label="独立答案文件" onChange={e => setAnswerFile(e.target.files?.[0] || null)} />{answerFile?.name}</label>
               </>}
               <div className="exercise-field">
                 <span>{sourceKind === 'textbook' ? '选择教材' : '归属范围'}<HelpHint label="教材抽取">从已导入教材内容抽取，无需源 PDF；未选择教材时不能抽取。</HelpHint>
@@ -556,7 +556,7 @@ const ExercisesPage: React.FC = () => {
                 </div>}
                 {sourceKind === 'file' && <p className="exercise-feedback">保留题干与源解的对应关系。可在校对后明确保存分离样例，供后续资料参考。</p>}
               </details>
-              <div className="exercise-import-submit">{sourceKind === 'file' && <p>扫描 PDF 需可用的 MinerU API；也可先在教材入口导入完整 OCR 输出包。</p>}
+              <div className="exercise-import-submit">{sourceKind === 'file' && <p>已有 MinerU 解析结果可直接上传 ZIP，无需再次 OCR；直接上传扫描 PDF 需可用的 MinerU API。</p>}
                 <button className="app-primary-button" disabled={importing || (sourceKind === 'file' ? !importFile : !activeName || activeName === 'default')} onClick={sourceKind === 'file' ? analyzeImportFile : analyzeTextbookExercises}>{importing ? <>
                   <Loader2 size={16} className="animate-spin" />正在分析…</> : sourceKind === 'file' ? '分析文件' : '抽取教材候选题'}<ChevronRight size={16} />
                 </button>
@@ -570,7 +570,7 @@ const ExercisesPage: React.FC = () => {
             <button className="app-ghost-button" onClick={() => setManualOpen(true)}>手动录入一道题</button>
           </div>
           <div hidden={candidates.length === 0 || reviewPreparationOpen} className="exercise-review-panel">
-            <CandidateReviewWorkspace state={candidateState} original={extractedPreview} source={candidateSourceLabel || activeName} busy={importing || commitUnknown} message={message} onBack={() => setReviewPreparationOpen(true)} onSubmit={importSelected} onSaveExample={saveStructureExample} />
+            <CandidateReviewWorkspace bookName={activeName} state={candidateState} original={extractedPreview} source={candidateSourceLabel || activeName} busy={importing || commitUnknown} message={message} onBack={() => setReviewPreparationOpen(true)} onSubmit={importSelected} onSaveExample={saveStructureExample} />
           </div>
         </section>
         <div hidden={workspaceMode !== 'bank' || !expandedId} className="exercise-bank-reader">{records.find(r => r.id === expandedId) && <ExerciseReader key={expandedId} record={records.find(r => r.id === expandedId)!} bookQuery={bookQuery} title="习题详情" actions={<>
@@ -624,7 +624,7 @@ const ExercisesPage: React.FC = () => {
                         <BookOpen size={22} />从教材抽取 <ChevronRight size={16} />
                       </button>
                       <button onClick={() => { setSourceKind('file'); setWorkspaceMode('import'); }}>
-                        <Upload size={22} />上传 Word / PDF <ChevronRight size={16} />
+                        <Upload size={22} />上传文件 / MinerU 包 <ChevronRight size={16} />
                       </button>
                       <button onClick={() => setManualOpen(true)}>手动录入</button>{(searchKw || statusFilter) && <button onClick={() => { setSearchKw(''); searchKwRef.current = ''; setStatusFilter(''); void load(); }}>清除筛选</button>}</div>}{practiceSession?.status === 'completed' && <p>上轮完成 {practiceSession.summary.answered} 题，平均自评 {practiceSession.summary.average_quality}</p>}</div>{practicePool.length > 0 && <aside className="exercise-resource-summary">
                         <h2>当前题目</h2>

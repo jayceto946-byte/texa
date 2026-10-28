@@ -25,6 +25,7 @@ type ImportJob = {
     subject?: string;
     concept_job_id?: string;
     concept_extraction_warning?: string;
+    ingestion_report?: { source_metadata?: { structure_quality?: { exercise_sections_without_units?: string[] } } };
   } | null;
 };
 
@@ -221,6 +222,7 @@ const BooksPage: React.FC = () => {
 
   const progress = Math.max(0, Math.min(100, job?.progress ?? 0));
   const isDone = job?.status === 'completed';
+  const unparsedExerciseSections = job?.result?.ingestion_report?.source_metadata?.structure_quality?.exercise_sections_without_units?.length || 0;
   const isFailed = ['failed', 'cancelled', 'interrupted'].includes(job?.status || '');
   const mineru = capabilities?.mineru;
   const mineruUnavailableText = !mineru?.configured
@@ -360,6 +362,7 @@ const BooksPage: React.FC = () => {
             progress={progress}
             state={isFailed ? 'error' : isDone ? 'success' : 'loading'}
           />
+          {isDone && unparsedExerciseSections > 0 && <p role="status" className="type-caption text-text-secondary">结构检查发现 {unparsedExerciseSections} 个习题范围尚未识别出题目。教材正文已保留用于检索，这些范围暂不能保证可抽题。</p>}
           <details className="border-b border-border px-4 py-3 type-caption text-text-secondary"><summary className="cursor-pointer">详细信息</summary><p className="mt-2">{stageLabels[job.stage] || job.stage} · {job.message}</p></details>
           {isDone && <p role="status" className="type-caption text-text-secondary">
             {job.result?.concept_extraction_warning ? '教材已导入完成；概念抽取未能启动，可稍后手动重试。' : !job.result?.concept_job_id ? '概念抽取未启用。' : conceptJob.error || (conceptJob.status === 'completed' ? '概念抽取已完成。' : ['failed', 'cancelled', 'interrupted'].includes(conceptJob.status) ? '概念抽取未完成；教材内容和检索索引仍可使用，可稍后手动重试。' : '教材已导入完成；概念抽取仍在处理中。')}

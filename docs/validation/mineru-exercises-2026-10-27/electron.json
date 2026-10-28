@@ -1,0 +1,175 @@
+{
+  "environment": "macOS real Electron, synthetic MinerU ZIP/real parser/source snapshots/API/SQLite; auxiliary APIs fixture; no new OCR/models",
+  "checks": [
+    {
+      "name": "real Electron preload",
+      "status": "PASS"
+    },
+    {
+      "name": "ZIP picker 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-source-setup no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-zip-ready no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "real ZIP API two candidates 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "chapter-prefixed number 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "source solution separated 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-zip-candidates no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "persisted ZIP figure loaded 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "physical page retained 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-zip-source-image no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "ZIP picker 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-source-setup no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-zip-ready no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "real ZIP API two candidates 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "chapter-prefixed number 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "source solution separated 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-zip-candidates no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "persisted ZIP figure loaded 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "physical page retained 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-zip-source-image no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "ZIP picker 760",
+      "status": "PASS"
+    },
+    {
+      "name": "760-source-setup no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "760-zip-ready no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "real ZIP API two candidates 760",
+      "status": "PASS"
+    },
+    {
+      "name": "chapter-prefixed number 760",
+      "status": "PASS"
+    },
+    {
+      "name": "source solution separated 760",
+      "status": "PASS"
+    },
+    {
+      "name": "760-zip-candidates no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "persisted ZIP figure loaded 760",
+      "status": "PASS"
+    },
+    {
+      "name": "physical page retained 760",
+      "status": "PASS"
+    },
+    {
+      "name": "760-zip-source-image no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "automatic structure notice 1280",
+      "status": "PASS"
+    },
+    {
+      "name": "1280-automatic-structure-notice no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "automatic structure notice 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "1024-automatic-structure-notice no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "automatic structure notice 760",
+      "status": "PASS"
+    },
+    {
+      "name": "760-automatic-structure-notice no horizontal overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "no renderer exceptions",
+      "status": "PASS"
+    }
+  ],
+  "screenshots": [
+    "1280-source-setup.png",
+    "1280-zip-ready.png",
+    "1280-zip-candidates.png",
+    "1280-zip-source-image.png",
+    "1024-source-setup.png",
+    "1024-zip-ready.png",
+    "1024-zip-candidates.png",
+    "1024-zip-source-image.png",
+    "760-source-setup.png",
+    "760-zip-ready.png",
+    "760-zip-candidates.png",
+    "760-zip-source-image.png",
+    "1280-automatic-structure-notice.png",
+    "1024-automatic-structure-notice.png",
+    "760-automatic-structure-notice.png"
+  ],
+  "errors": []
+}

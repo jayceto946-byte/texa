@@ -18,6 +18,9 @@ from ingestion.document_ir import (
     chunk_provenance_errors,
 )
 from ingestion.lexical_index import index_path
+from ingestion.embedding_contract import (
+    require_contract, prepare_embedding_views, validate_embedding_views, embedding_text,
+)
 from utils.json_io import atomic_write_json
 from utils.path_safety import safe_book_name
 
@@ -25,6 +28,7 @@ INDEX_SCHEMA_VERSION = 6
 RELEASE_MIN_RECALL = 1.0
 RELEASE_MIN_POINT_RECALL = 1.0
 MAX_RETAINED_INDEX_VERSIONS = 2
+MAX_BUILD_VECTOR_CACHE = 4096
 SPECIALTY_RELEASE_THRESHOLDS = {
     "formula": {"min_recall": 1.0, "min_point_recall": 1.0, "max_required_cases": 3},
     "list": {"min_recall": 1.0, "min_point_recall": 1.0, "max_required_cases": 3},
@@ -43,6 +47,8 @@ _LEXICAL_KEYS = (
     "review_status", "page_start", "page_end", "source_kind", "source_file",
     "ocr_confidence", "source_block_ids", "source_locations", "table_title",
     "table_header", "table_rows", "figure_id", "retrieval_excluded",
+    "source_span_schema", "source_spans", "embedding_view_schema", "embedding_contract_id",
+    "embedding_input_sha256", "embedding_views",
 )
 
 LEGACY_UNSCOPED_INDEX_ERROR_CODE = "legacy_unscoped_index_requires_rebuild"
@@ -192,10 +198,11 @@ def load_index_manifest(book_name: str) -> dict:
         return {}
 
 
-def _fingerprint(chunks: list[dict]) -> str:
+def _fingerprint(chunks: list[dict], embedding_contract: dict | None = None) -> str:
     digest = hashlib.sha256()
     digest.update(f"index:{INDEX_SCHEMA_VERSION}|{PROVENANCE_SCHEMA_VERSION}".encode("utf-8"))
-    digest.update(b"\0")
+    digest.update(b"\0input-source-contract-v1\0")
+    digest.update(json.dumps(embedding_contract or {}, sort_keys=True, ensure_ascii=False).encode('utf-8'))
     for chunk in chunks:
         digest.update(str(chunk.get("chunk_id") or "").encode("utf-8"))
         digest.update(b"\0")
@@ -207,6 +214,11 @@ def _fingerprint(chunks: list[dict]) -> str:
             "canonical_hash": chunk.get("canonical_hash") or "",
             "figure_id": chunk.get("figure_id") or "",
             "retrieval_excluded": bool(chunk.get("retrieval_excluded")),
+            "retrieval_text": embedding_text(chunk),
+            "source_spans": chunk.get('source_spans'),
+            "source_span_schema": chunk.get('source_span_schema'),
+            "embedding_views": chunk.get('embedding_views'),
+            "embedding_contract_id": chunk.get('embedding_contract_id'),
         }, ensure_ascii=False, sort_keys=True).encode("utf-8"))
         digest.update(b"\0")
     return digest.hexdigest()
@@ -251,6 +263,10 @@ def _metadata(chunk: dict, book_name: str, chapter: str) -> dict:
         "figure_id": str(chunk.get("figure_id") or ""),
         "retrieval_excluded": bool(chunk.get("retrieval_excluded")),
         "collection_schema": INDEX_SCHEMA_VERSION,
+        "source_span_schema": str(chunk.get('source_span_schema') or ''),
+        "source_spans": json.dumps(chunk.get('source_spans') or [], ensure_ascii=False),
+        "embedding_contract_id": str(chunk.get('embedding_contract_id') or ''),
+        "embedding_input_sha256": str(chunk.get('embedding_input_sha256') or ''),
     }
 
 
@@ -268,29 +284,41 @@ def _float_or(value, default: float) -> float:
         return default
 
 
-def _add_collection(vs, name: str, book_name: str, chapter: str, chunks: list[dict]) -> int:
+def _add_collection(vs, name: str, book_name: str, chapter: str, chunks: list[dict], *, vector_cache=None) -> int:
+    contract = require_contract(vs.embeddings)
+    validate_embedding_views(chunks, contract)
+    rows = [(chunk, view) for chunk in chunks if not chunk.get('retrieval_excluded')
+            for view in chunk['embedding_views']]
     try:
         vs._client.delete_collection(name)
     except Exception:
         pass
     collection = vs._client.get_or_create_collection(name)
-    rows = [
-        chunk for chunk in chunks
-        if str(chunk.get("content") or "").strip()
-        and not bool(chunk.get("retrieval_excluded"))
-    ]
+    cache = vector_cache if vector_cache is not None else {}
     for start in range(0, len(rows), 64):
-        batch = rows[start:start + 64]
-        texts = [str(item.get("retrieval_text") or item.get("content") or "") for item in batch]
-        ids = [
-            hashlib.sha1(f"{item.get('chunk_id')}|{start + offset}|{text}".encode("utf-8")).hexdigest()
-            for offset, (item, text) in enumerate(zip(batch, texts))
-        ]
+        batch = rows[start:start+64]
+        texts = [embedding_text(chunk)[view['start']:view['end']] for chunk, view in batch]
+        contract.require_fitting(texts)
+        keys = [(contract.contract_id, text) for text in texts]
+        batch_vectors = {key: cache[key] for key in keys if key in cache}
+        missing = list(dict.fromkeys(key for key in keys if key not in cache))
+        if missing:
+            vectors = vs.embeddings.embed_documents([key[1] for key in missing])
+            if len(vectors) != len(missing):
+                raise RuntimeError('embedding result count mismatch')
+            cache.update(zip(missing, vectors))
+            batch_vectors.update(zip(missing, vectors))
+            while len(cache) > MAX_BUILD_VECTOR_CACHE:
+                cache.pop(next(iter(cache)))
+        metadatas = []
+        for chunk, view in batch:
+            metadatas.append({**_metadata(chunk, book_name, chapter),
+                              'embedding_view_start': view['start'], 'embedding_view_end': view['end'],
+                              'embedding_view_sha256': view['sha256'], 'embedding_token_count': view['token_count']})
         collection.add(
-            ids=ids,
-            documents=texts,
-            embeddings=vs.embeddings.embed_documents(texts),
-            metadatas=[_metadata(item, book_name, chapter) for item in batch],
+            ids=[hashlib.sha256(f"{chunk['chunk_id']}|{view['start']}|{view['end']}|{view['sha256']}".encode()).hexdigest()
+                 for chunk, view in batch],
+            documents=texts, embeddings=[batch_vectors[key] for key in keys], metadatas=metadatas,
         )
     actual = int(collection.count())
     if actual != len(rows):
@@ -527,6 +555,9 @@ def activate_retained_index_version(vs, book_name: str, version: str) -> dict:
         if target is None:
             raise KeyError(f"retained index version not found: {requested}")
 
+        target_contract = target.get('embedding_contract')
+        if target_contract and target_contract.get('id') != require_contract(vs.embeddings).contract_id:
+            raise RuntimeError('retained index embedding contract differs from the active runtime')
         target_names = [str(name) for name in target.get("collections", []) if str(name)]
         if not target_names:
             raise RuntimeError(f"retained index version has no collections: {requested}")
@@ -591,6 +622,12 @@ def activate_retained_index_version(vs, book_name: str, version: str) -> dict:
             "activated_at": activated_at,
             "versions": ordered_versions,
         }
+        for key in ('embedding_contract', 'embedding_integrity', 'source_integrity', 'vector_count'):
+            if key in target:
+                new_manifest[key] = target[key]
+            else:
+                new_manifest.pop(key, None)
+        new_manifest['content_fingerprint'] = target.get('content_fingerprint') or requested
         from ingestion.document_publication import retained_publication
         canonical_publication = retained_publication(normalized, target)
         if current_manifest.get("canonical_snapshot") and canonical_publication is None:
@@ -651,12 +688,17 @@ def build_and_activate_book_index(
     specialty_inventory: dict[str, int] | None = None,
     canonical_publication=None,
     before_publish=None,
+    source_integrity: dict | None = None,
 ) -> dict:
     """Build new assets off to the side, validate them, then switch active mappings."""
     normalized = safe_book_name(book_name)
     if not normalized or not chunks:
         raise ValueError("book index requires a book name and non-empty chunks")
-    fingerprint = _fingerprint(chunks)
+    contract = require_contract(vs.embeddings)
+    chunks = prepare_embedding_views(chunks, contract)
+    embedding_integrity = validate_embedding_views(chunks, contract)
+    contract_record = {**contract.identity, 'id': contract.contract_id}
+    fingerprint = _fingerprint(chunks, contract_record)
     version = fingerprint[:16]
     catalog_chunks: list[dict] = []
     seen_chunk_ids: set[str] = set()
@@ -714,6 +756,7 @@ def build_and_activate_book_index(
     build_id = f"{version[:10]}{uuid.uuid4().hex[:6]}"
     staged_entries: dict[str, dict] = {}
     staged_names: list[str] = []
+    vector_cache = {}
     lexical_target = index_path(normalized)
     lexical_stage = lexical_target.with_name(f".{lexical_target.name}.{build_id}.staging")
     new_version_lexical = versioned_lexical_path(normalized, version)
@@ -732,21 +775,25 @@ def build_and_activate_book_index(
                 chapter_hash = hashlib.md5(f"{normalized}\0{title}".encode("utf-8")).hexdigest()[:14]
                 name = f"bk{chapter_hash}{build_id[:14]}"
                 staged_names.append(name)
-                count = _add_collection(vs, name, normalized, title, group)
+                count = _add_collection(vs, name, normalized, title, group, vector_cache=vector_cache)
                 staged_entries[name] = {
                     "chapter": title, "book_name": normalized, "schema_version": str(INDEX_SCHEMA_VERSION),
-                    "kind": "chapter", "chunk_count": count, "index_version": version,
+                    "kind": "chapter", "chunk_count": len(group), "vector_count": count, "index_version": version,
+                    "embedding_contract_id": contract.contract_id,
                 }
 
             aggregate_name = f"book{hashlib.md5(normalized.encode('utf-8')).hexdigest()[:12]}{build_id[:14]}"
             staged_names.append(aggregate_name)
-            aggregate_count = _add_collection(vs, aggregate_name, normalized, f"{normalized} (aggregate)", chunks)
+            aggregate_count = _add_collection(vs, aggregate_name, normalized, f"{normalized} (aggregate)", chunks, vector_cache=vector_cache)
             staged_entries[aggregate_name] = {
                 "chapter": f"{normalized} (aggregate)", "book_name": normalized,
                 "schema_version": str(INDEX_SCHEMA_VERSION), "kind": "book_aggregate",
-                "chunk_count": aggregate_count, "index_version": version,
+                "chunk_count": len(retrieval_chunks), "vector_count": aggregate_count, "index_version": version,
+                "embedding_contract_id": contract.contract_id,
             }
-            probe_text = str(retrieval_chunks[0].get("content") or "")[:500]
+            first = retrieval_chunks[0]
+            first_view = first['embedding_views'][0]
+            probe_text = embedding_text(first)[first_view['start']:first_view['end']]
             probe = vs._client.get_collection(aggregate_name).query(
                 query_embeddings=[vs.embeddings.embed_query(probe_text)], n_results=1,
             )
@@ -806,7 +853,14 @@ def build_and_activate_book_index(
                     ),
                 }
 
+            if previous_record is not None:
+                for key in ('embedding_contract', 'embedding_integrity', 'source_integrity', 'vector_count', 'content_fingerprint'):
+                    if key in old_manifest:
+                        previous_record[key] = old_manifest[key]
             candidate_records = [{
+                "embedding_contract": contract_record, "embedding_integrity": embedding_integrity,
+                "source_integrity": source_integrity or {'status': 'not_supplied'},
+                "vector_count": aggregate_count, "content_fingerprint": fingerprint,
                 "index_version": version,
                 "provenance_schema": PROVENANCE_SCHEMA_VERSION,
                 "canonical_hash": canonical_hash,
@@ -864,6 +918,8 @@ def build_and_activate_book_index(
                 "lexical_chunk_count": len(retrieval_chunks),
                 "chapter_collection_count": len(chapter_groups),
                 "aggregate_collection": aggregate_name,
+                "embedding_contract": contract_record, "embedding_integrity": embedding_integrity,
+                "source_integrity": source_integrity or {'status': 'not_supplied'}, "vector_count": aggregate_count,
                 "release_quality": release_quality,
                 "release_gate_mode": "production_hybrid_retrieval_and_evidence_pack",
                 "activated_at": activated_at,

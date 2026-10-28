@@ -119,7 +119,8 @@ def write_book_index(book_name: str, chunks: list[dict]) -> Path:
         "bbox", "equations", "block_type", "source_markdown", "review_status",
         "page_start", "page_end", "source_kind", "source_file", "ocr_confidence",
         "source_block_ids", "source_locations", "table_title", "table_header", "table_rows",
-        "figure_id", "retrieval_excluded",
+        "figure_id", "retrieval_excluded", "source_span_schema", "source_spans",
+        "embedding_view_schema", "embedding_contract_id", "embedding_input_sha256", "embedding_views",
     )
     atomic_write_json(path, [{key: chunk.get(key) for key in keys} for chunk in chunks])
     with _lock:

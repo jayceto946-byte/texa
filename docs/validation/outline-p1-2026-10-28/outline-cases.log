@@ -1,0 +1,16 @@
+...........                                                              [100%]
+=============================== warnings summary ===============================
+tests/test_outline_recovery.py::test_pdf_bookmarks_keep_all_levels_and_physical_pages_without_vision
+tests/test_outline_recovery.py::test_pdf_bookmarks_keep_all_levels_and_physical_pages_without_vision
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+tests/test_outline_recovery.py::test_pdf_bookmarks_keep_all_levels_and_physical_pages_without_vision
+tests/test_outline_recovery.py::test_pdf_bookmarks_keep_all_levels_and_physical_pages_without_vision
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+tests/test_outline_recovery.py::test_pdf_bookmarks_keep_all_levels_and_physical_pages_without_vision
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+11 passed, 5 warnings in 0.19s
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute

@@ -1,0 +1,17 @@
+{
+  "scope": "synthetic, read-only current-code investigation; not customer-book accuracy",
+  "synthetic_body_chars": 640,
+  "chunks": 1,
+  "full_embedding_input_tokens": [
+    664
+  ],
+  "provider_limit_visible_tokens": [
+    512
+  ],
+  "retrieval_text_only_change_has_same_index_fingerprint": true,
+  "source_membership_check_detects_text_loss": false,
+  "same_source_locator_type_change_changes_block_id": true,
+  "partial_source_flag_retained": false,
+  "numbered_chapters_detected": 0,
+  "ir_valid_despite_unresolved_source_scope": true
+}

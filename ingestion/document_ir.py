@@ -52,6 +52,9 @@ def canonical_retrieval_paths(blocks: list["DocumentBlock"]) -> dict[str, list[s
     active_chapter = ""
     paths: dict[str, list[str]] = {}
     for block in blocks:
+        if 'outline_source' in block.attributes:
+            paths[block.block_id] = list(block.section_path)
+            continue
         candidates = []
         if block.block_type == "heading":
             candidates.append(block.text)
@@ -430,12 +433,20 @@ def validate_canonical_book(book: CanonicalBook) -> IngestionReport:
                 issues.append(_issue(
                     "warning", "ocr_page_without_body", "OCR source page has no body text", f"page:{page}",
                 ))
+    from ingestion.structure_quality import structure_summary
+    structure = structure_summary(book)
+    for block_id in structure['suspicious_heading_ids']:
+        issues.append(_issue('warning', 'sentence_as_heading', '标题疑似正文，可能影响章节和索引保真', block_id))
+    for block_id in structure['unrecognized_exercise_start_ids']:
+        issues.append(_issue('warning', 'unrecognized_exercise_start', '习题范围内的题号未形成学习单元', block_id))
+    for block_id in structure['exercise_sections_without_units']:
+        issues.append(_issue('warning', 'exercise_section_without_units', '习题范围未识别出题目，正文保留供检索', block_id))
     return IngestionReport(
         book_name=str(book.book_name or ""),
         schema_version=book.schema_version,
         block_count=len(book.blocks),
         issues=issues,
-        source_metadata=book.source_metadata,
+        source_metadata={**book.source_metadata, 'structure_quality': structure},
     )
 
 

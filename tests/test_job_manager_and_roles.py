@@ -76,15 +76,16 @@ def test_chunk_role_classifier_and_kg_precedence():
 
 def test_build_index_from_chapters_writes_role_metadata(monkeypatch, tmp_path):
     from ingestion import mineru_importer
+    from ingestion.chapter_splitter import ChapterSplitter as RealSplitter
 
     captured = []
 
     class FakeSplitter:
         def split_canonical_book(self, book):
-            return [
-                {"chapter": book.blocks[0].section_path[0], "chunk_index": 0, "page_idx": 1, "content": "定义 群是满足运算封闭性的集合。", "chunk_id": "c_def"},
-                {"chapter": book.blocks[0].section_path[0], "chunk_index": 1, "page_idx": 1, "content": "例题 判断整数加法是否构成群。", "chunk_id": "c_ex"},
-            ]
+            chunks = RealSplitter().split_canonical_book(book)
+            for chunk in chunks:
+                chunk['chunk_id'] = 'c_ex' if chunk['content'].startswith('例题') else 'c_def'
+            return chunks
 
     class FakeVectorStore:
         def build_chapter_store(self, title, chunks, chunk_roles=None, book_name=""):
@@ -96,7 +97,7 @@ def test_build_index_from_chapters_writes_role_metadata(monkeypatch, tmp_path):
 
     count = mineru_importer.build_index_from_chapters(
         "book",
-        [{"title": "chapter 1", "text": "content", "page_number": 2}],
+        [{"title": "chapter 1", "text": "定义 群是满足运算封闭性的集合。\n\n例题 判断整数加法是否构成群。", "page_number": 2}],
         tmp_path,
     )
 

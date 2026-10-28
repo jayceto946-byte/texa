@@ -54,7 +54,7 @@ async function setup(text) {
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].webContents.once('will-prevent-unload', e => e.preventDefault()));
   await page.goto('http://127.0.0.1:18060/exercises');
   await page.getByRole('radio', { name: '导入', exact: true }).click();
-  await page.getByRole('button', { name: '上传 Word / PDF', exact: true }).click();
+  await page.getByRole('button', { name: '上传文件 / MinerU 包', exact: true }).click();
   await page.getByLabel('题目文件', { exact: true }).setInputFiles({ name: '结构验证.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: docx(text) });
   await page.getByRole('button', { name: '分析文件', exact: true }).click();
   await page.getByRole('heading', { name: '校对候选题', exact: true }).waitFor();

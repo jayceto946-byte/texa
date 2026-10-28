@@ -258,7 +258,17 @@ def _load_torch_embeddings():
 
     class _Embeddings:
         """Small Chroma-compatible wrapper exposing embed_documents / embed_query."""
+        _input_contract = None
+
+        @property
+        def input_contract(self):
+            if self._input_contract is None:
+                from ingestion.embedding_contract import torch_contract
+                self._input_contract = torch_contract(_model)
+            return self._input_contract
+
         def embed_documents(self, texts):
+            self.input_contract.require_fitting(texts)
             embs = _model.encode(texts, normalize_embeddings=True, show_progress_bar=False)
             return embs.tolist()
 

@@ -6,13 +6,11 @@ from pathlib import Path, PurePosixPath
 import re
 from typing import Any
 
-from ingestion.document_ir import CanonicalBook, DocumentBlock, canonical_chapter_title
+from ingestion.document_ir import CanonicalBook, DocumentBlock
 
-ADAPTER_VERSION = 'mineru-structured-content-v4'
-_EXCLUDED = {'header', 'footer', 'page_number', 'index', 'doc_title'}
-_KNOWN = {'text', 'paragraph_title', 'equation', 'table', 'image', 'chart', 'ref_text', *_EXCLUDED}
-_SECTION = re.compile(r'^(\d+(?:\s*\.\s*\d+){1,5})(?:\s+|(?=[^\d.]))(.+)$')
-_ENUMERATION = re.compile(r'^(?:\d+\s*[.．、](?!\d)|[（(]\s*\d+\s*[）)])')
+ADAPTER_VERSION = 'mineru-structured-content-v5'
+_EXCLUDED = {'header', 'footer', 'page_number', 'doc_title'}
+_KNOWN = {'text', 'paragraph_title', 'equation', 'table', 'image', 'chart', 'ref_text', 'index', *_EXCLUDED}
 _CONTINUATION_CAPTION = re.compile(r'^(?:[（(]\s*续(?:表)?\s*[）)]|续表?)$')
 
 
@@ -57,7 +55,6 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
     counts = Counter()
     warnings = []
     numbered_path: list[str] = []
-    chapter_seen = False
     document_titles = []
     previous_table = table_root = None
     for source_page_index, page in enumerate(payload['pages']):
@@ -79,40 +76,24 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
                 source_page_idx=page_idx, source_block_index=source_block_index,
                 producer=payload['metadata']['producer'], adapter_version=ADAPTER_VERSION,
                 bbox_space='page', bbox_format='xyxy', bbox_units='normalized',
+                **{k: raw[k] for k in ('font_size', 'font_name', 'bold', 'style_name') if k in raw},
             )
             if printed_page is not None:
                 attrs['printed_page_number'] = printed_page
                 attrs['printed_page_source'] = 'page.page_number' if page.get('page_number') else 'page_number_block'
             bbox = _bbox(raw.get('bbox'))
             confidence = _float_or_none(raw.get('confidence'))
-            chapter = canonical_chapter_title(text) if typ == 'paragraph_title' else ''
-            section = _SECTION.match(text) if typ == 'paragraph_title' else None
-            if chapter:
-                chapter_seen = True
-                builder.path = []
-                builder.heading(text, level=1, page_start=page_idx+1, page_end=page_idx+1,
-                                bbox=bbox, confidence=confidence, attributes={**attrs, 'heading_rule': 'numbered_chapter'})
-                numbered_path = list(builder.path)
-                continue
-            if section:
-                level = min(section.group(1).count('.') + 1, 6)
+            from ingestion.heading_policy import native_heading
+            level, rule = native_heading(text, numbered_path) if typ == 'paragraph_title' else (0, '')
+            if rule:
                 builder.path = list(numbered_path)
                 builder.heading(text, level=level, page_start=page_idx+1, page_end=page_idx+1,
-                                bbox=bbox, confidence=confidence, attributes={**attrs, 'heading_rule': 'numbered_section'})
-                numbered_path = list(builder.path)
+                                bbox=bbox, confidence=confidence, attributes={**attrs, 'heading_rule': rule})
+                if rule != 'bounded_unnumbered':
+                    numbered_path = list(builder.path)
                 continue
-            bounded_title = (2 <= len(text.strip()) <= 24 and not re.search(r'[。！？:：$\\]|\d\s*\.\s*\d', text))
-            if typ == 'paragraph_title' and chapter_seen and bounded_title and not _ENUMERATION.match(text):
-                # Unnumbered titles are peers under the last numbered scope, never
-                # a succession of deeper headings inferred from raw level=2.
-                builder.path = list(numbered_path)
-                level = min(len(numbered_path)+1, 4) if chapter_seen else 1
-                if text.strip() in {'习题', '练习', '参考文献'} and chapter_seen:
-                    builder.path = numbered_path[:1]
-                    level = 2
-                builder.heading(text, level=level, page_start=page_idx+1, page_end=page_idx+1,
-                                bbox=bbox, confidence=confidence, attributes={**attrs, 'heading_rule': 'bounded_unnumbered'})
-                continue
+            if typ == 'paragraph_title':
+                attrs['heading_decision'] = 'retained_as_body'
             captions = [_nested_text(v) for v in raw.get('captions', [])]
             footnotes = [_nested_text(v) for v in raw.get('footnotes', [])]
             image_source = raw.get('image_source', '')
@@ -170,10 +151,10 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
     max_page = max((pg['page_idx']+1 for pg in payload['pages']), default=0)
     book = builder.book(parser_version=ADAPTER_VERSION, source_page_count=max(max_page, source_count or 0) or None,
                         warnings=warnings)
-    book.source_metadata = dict(producer=metadata['producer'], adapter_version=ADAPTER_VERSION,
+    book.source_metadata.update(producer=metadata['producer'], adapter_version=ADAPTER_VERSION,
                                 input_format='structured_content', input_counts=dict(counts),
                                 excluded_counts=dict(excluded), document_titles=document_titles,
-                                heading_policy='numbered-first; local enumeration remains paragraph; unnumbered bounded to numbered parent')
+                                heading_policy='shared TOC/body matching and numbering hierarchy')
     from ingestion.document_workflows import annotate_learning_units
     annotate_learning_units(book)
     return book

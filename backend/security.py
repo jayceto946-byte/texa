@@ -82,7 +82,7 @@ def upload_body_limit(path: str) -> int | None:
         "/api/books/import-local": MAX_BOOK_PDF_BYTES + 4 * MIB,
         "/api/books/import-mineru-output": MAX_OUTPUT_ZIP_BYTES + 4 * MIB,
         # The exercise endpoint may contain a question file and an answer file.
-        "/api/exercises/upload-analyze": 2 * MAX_EXERCISE_UPLOAD_BYTES + 4 * MIB,
+        "/api/exercises/upload-analyze": 2 * max(MAX_EXERCISE_UPLOAD_BYTES, MAX_OUTPUT_ZIP_BYTES) + 4 * MIB,
     }
     return limits.get(path.rstrip("/"))
 

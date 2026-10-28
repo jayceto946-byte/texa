@@ -151,7 +151,11 @@ class TexaONNXEmbeddings:
     backend_name = "onnxruntime_fp32"
 
     def __init__(self, asset_dir: Path | str) -> None:
+        from ingestion.embedding_assets import validate_asset_dir
         self.asset_dir = Path(asset_dir).resolve()
+        # Bind weights before loading the session, not to a possibly replaced
+        # asset directory encountered later during the first index build.
+        self._asset_manifest = validate_asset_dir(self.asset_dir, full_hash=True)
         onnx_path = self.asset_dir / "model.onnx"
         tokenizer_path = self.asset_dir / "tokenizer.json"
         interactive_threads = max(1, int(os.getenv("TEXA_ONNX_INTERACTIVE_THREADS", "2")))
@@ -163,6 +167,8 @@ class TexaONNXEmbeddings:
         self._ingestion_threads = ingestion_threads
         self._ingestion_lock = threading.Lock()
         self._ingestion_provider: ONNXEmbeddingProvider | None = None
+        self._input_contract = None
+        self._input_contract_lock = threading.Lock()
         self.interactive_provider = ONNXEmbeddingProvider(
             onnx_path,
             tokenizer_path,
@@ -188,6 +194,10 @@ class TexaONNXEmbeddings:
             return self._ingestion_provider
         with self._ingestion_lock:
             if self._ingestion_provider is None:
+                from ingestion.embedding_assets import validate_asset_dir
+                from ingestion.embedding_contract import EmbeddingInputError
+                if validate_asset_dir(self.asset_dir, full_hash=True) != self._asset_manifest:
+                    raise EmbeddingInputError('嵌入资源在运行期间已改变，请重新加载模型后建立候选索引')
                 self._ingestion_provider = ONNXEmbeddingProvider(
                     self._onnx_path,
                     self._tokenizer_path,
@@ -207,10 +217,21 @@ class TexaONNXEmbeddings:
     def embed_query(self, text: str) -> list[float]:
         return self.interactive_provider.encode(str(text)).tolist()
 
+    @property
+    def input_contract(self):
+        if self._input_contract is None:
+            with self._input_contract_lock:
+                if self._input_contract is None:
+                    from ingestion.embedding_contract import onnx_contract
+                    self._input_contract = onnx_contract(self.asset_dir, self.interactive_provider.tokenizer,
+                                                         verified_manifest=self._asset_manifest)
+        return self._input_contract
+
     def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
         values = [str(text) for text in texts]
         if not values:
             return []
+        self.input_contract.require_fitting(values)
         ingestion_provider = self._get_ingestion_provider()
         encoded = ingestion_provider.tokenizer.encode_batch(values)
         buckets: dict[int, list[int]] = defaultdict(list)

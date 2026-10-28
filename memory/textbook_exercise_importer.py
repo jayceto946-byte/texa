@@ -74,6 +74,11 @@ def extract_textbook_exercise_text(
     canonical = load_workflow_book(clean_book, progress_root=Path(PROGRESS_PATH))
     if canonical is not None:
         paths = canonical_retrieval_paths(canonical.blocks)
+        # Legacy chapter metadata can use printed pages. Canonical scopes use
+        # physical pages and exact block identities throughout this branch.
+        outline = canonical_outline(canonical)
+        canonical_chapter = _find_chapter(outline, chapter)
+        resolved_start, resolved_end = _resolve_page_range(canonical_chapter, page_start, page_end)
         scope_ids = None
         if chapter.startswith('heading:'):
             heading_id = chapter.split(':', 1)[1]

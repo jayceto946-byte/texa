@@ -20,7 +20,7 @@ SNAPSHOT_KEYS = ('block_id', 'block_type', 'text', 'section_path', 'page_start',
                  'equations', 'table_title', 'table_header', 'table_rows', 'source_kind', 'review_status')
 ATTRIBUTE_KEYS = ('source_page_idx', 'source_block_index', 'bbox_space', 'bbox_format', 'bbox_units',
                   'mineru_type', 'raw_level', 'semantic_role', 'asset_id', 'asset_hash', 'asset_status',
-                  'source_parent_id', 'source_start', 'source_end')
+                  'source_parent_id', 'source_start', 'source_end', 'asset_format')
 
 
 def canonical_json(value):

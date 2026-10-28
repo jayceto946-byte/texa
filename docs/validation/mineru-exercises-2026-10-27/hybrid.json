@@ -1,0 +1,76 @@
+{
+  "scope": "synthetic screenshot-shaped source; real isolated ONNX FP32/Chroma and production retrieval/Final EvidencePack; no models/OCR; not the customer full book",
+  "parser": "mineru-structured-content-v5",
+  "chunks": 6,
+  "chapters": 2,
+  "exercise_units": 3,
+  "body_fragments_preserved": true,
+  "release_quality": {
+    "cases": 1,
+    "recall_at_k": 1.0,
+    "mrr": 1.0,
+    "point_recall": 1.0,
+    "specialty_gates": {
+      "formula": {
+        "status": "passed",
+        "passed": true,
+        "source_units": 1,
+        "required_cases": 1,
+        "cases": 1,
+        "coverage_passed": true,
+        "recall_at_k": 1.0,
+        "point_recall": 1.0,
+        "mrr": 1.0,
+        "thresholds": {
+          "min_recall": 1.0,
+          "min_point_recall": 1.0,
+          "max_required_cases": 3
+        }
+      },
+      "list": {
+        "status": "not_applicable",
+        "passed": true,
+        "source_units": 0,
+        "required_cases": 0,
+        "cases": 0,
+        "recall_at_k": 1.0,
+        "point_recall": 1.0,
+        "thresholds": {
+          "min_recall": 1.0,
+          "min_point_recall": 1.0,
+          "max_required_cases": 3
+        }
+      },
+      "example": {
+        "status": "not_applicable",
+        "passed": true,
+        "source_units": 0,
+        "required_cases": 0,
+        "cases": 0,
+        "recall_at_k": 1.0,
+        "point_recall": 1.0,
+        "thresholds": {
+          "min_recall": 1.0,
+          "min_point_recall": 1.0,
+          "max_required_cases": 3
+        }
+      },
+      "table": {
+        "status": "not_applicable",
+        "passed": true,
+        "source_units": 0,
+        "required_cases": 0,
+        "cases": 0,
+        "recall_at_k": 1.0,
+        "point_recall": 1.0,
+        "thresholds": {
+          "min_recall": 1.0,
+          "min_point_recall": 1.0,
+          "max_required_cases": 3
+        }
+      }
+    },
+    "generated_probe_cases": 1,
+    "status": "passed"
+  }
+}

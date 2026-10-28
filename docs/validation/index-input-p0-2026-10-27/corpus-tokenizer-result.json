@@ -1,0 +1,24 @@
+{
+  "schema": "texa.embedding-views/v1",
+  "contract_id": "96e99340fb7a204c53aaa0552b2a2dd6e2cb69ff69627f64a016fd604fb1ddf1",
+  "vector_count": 2176,
+  "silent_truncations": 0,
+  "input_coverage": "complete",
+  "scope": "local regression source, not customer screenshot; mechanical preservation only",
+  "pages": 351,
+  "source_blocks": 4925,
+  "catalog_chunks": 2585,
+  "indexable_chunks": 1922,
+  "source": {
+    "covered_body_blocks": 3994,
+    "missing_body_blocks": 0,
+    "wrong_chapter_blocks": 0,
+    "source_span_contract": "texa.index-source-spans/v1",
+    "span_errors": 0,
+    "verbatim_blocks": 3966,
+    "rendered_table_blocks": 28,
+    "table_originals": "retained_in_canonical"
+  },
+  "overlong_original_inputs": 254,
+  "max_window_tokens": 512
+}

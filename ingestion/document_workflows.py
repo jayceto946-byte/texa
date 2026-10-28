@@ -11,11 +11,12 @@ from ingestion.document_ir import (
     CanonicalBook, DocumentBlock, canonical_book_fingerprint,
     canonical_chapter_title, canonical_retrieval_paths, load_canonical_book,
 )
+from ingestion.heading_policy import exercise_heading, body_title, PROBLEM_START
 from ingestion.index_snapshot import index_read_snapshot
 from utils.path_safety import safe_book_name
 
 EXAMPLE_START = re.compile(r'^\s*(?:【|\[|［)?\s*(?:例题\s*[\d.．-]*|例\s*\d+(?:[.．-]\d+)*|示例\s*\d*)\s*(?:】|\]|］)?')
-_PROBLEM_START = re.compile(r'^\s*\d+\s*[.．、)]')
+_PROBLEM_START = PROBLEM_START
 _SUBQUESTION_START = re.compile(r'^\s*[（(]\s*\d+\s*[）)]')
 _SOLUTION_START = re.compile(r'^\s*(?:解|解答|答案|分析|证明)\s*[：:]')
 
@@ -46,11 +47,17 @@ def canonical_outline(book: CanonicalBook) -> list[dict]:
     paths = canonical_retrieval_paths(book.blocks)
     chapters: dict[str, dict] = {}
     for index, block in enumerate(book.blocks):
+        if (block.attributes.get('outline_toc') or
+                book.source_metadata.get('outline_recovery', {}).get('roots', 0)
+                and not block.attributes.get('outline_root_id')):
+            continue
         path = paths.get(block.block_id) or [book.book_name]
         chapter = chapters.setdefault(path[0], dict(title=path[0], page_number=block.page_start or 1,
                                                    end_page=block.page_end, subsections=[], page_kind='physical'))
         chapter['end_page'] = max(chapter.get('end_page') or 0, block.page_end or block.page_start or 0)
-        if block.block_type != 'heading' or canonical_chapter_title(block.text):
+        if (block.block_type != 'heading' or len(path) == 1
+                or block.attributes.get('outline_visible') is False
+                or body_title(block.text) and not block.attributes.get('outline_level')):
             continue
         end = next((n for n in range(index + 1, len(book.blocks))
                     if book.blocks[n].block_type == 'heading'
@@ -73,14 +80,15 @@ def enrich_chapters(chapters: list[dict], book: CanonicalBook | None) -> list[di
         return chapters
     outline = canonical_outline(book)
     by_title = {canonical_chapter_title(item['title']) or item['title']: item for item in outline}
-    if not chapters:
+    if not chapters or book.source_metadata.get('outline_recovery'):
         return outline
     result = []
     for chapter in chapters:
         projection = by_title.get(canonical_chapter_title(chapter.get('title', '')) or chapter.get('title'))
-        # Existing persisted scope identities are authoritative for old assets.
+        # Retain chapter identities; derive selectable subsection IDs from the
+        # current Canonical instead of serving stale OCR/printed-page metadata.
         result.append({**chapter, 'subsections': projection['subsections'], 'page_kind': 'physical'}
-                      if projection and not chapter.get('subsections') else dict(chapter))
+                      if projection else dict(chapter))
     return result
 
 
@@ -106,10 +114,16 @@ def learning_units(book: CanonicalBook) -> list[LearningUnit]:
     paths = canonical_retrieval_paths(book.blocks)
     result: list[LearningUnit] = []
     active: LearningUnit | None = None
+    exercise_paths = {tuple(b.section_path) for b in book.blocks
+                      if b.block_type == 'heading' and b.attributes.get('outline_role') == 'exercise'}
     for block in book.blocks:
+        if block.attributes.get('outline_toc'):
+            active = None
+            continue
         path = paths.get(block.block_id) or [book.book_name]
         label = example_label(block.text)
-        exercise_scope = any(part.strip() in {'习题', '练习', '复习题', '思考题'} for part in path)
+        exercise_scope = any(exercise_heading(part) for part in path) or any(
+            tuple(path[:n]) in exercise_paths for n in range(1, len(path) + 1))
         problem = _PROBLEM_START.match(block.text) if exercise_scope else None
         start_kind = 'example' if label else ('exercise' if problem else '')
         if start_kind:
@@ -119,6 +133,7 @@ def learning_units(book: CanonicalBook) -> list[LearningUnit]:
         if active is None:
             continue
         title_boundary = (block.attributes.get('mineru_type') == 'paragraph_title'
+                          and 'outline_level' not in block.attributes
                           and not _SOLUTION_START.match(block.text)
                           and not _SUBQUESTION_START.match(block.text))
         if block.block_type == 'heading' or path != active.section_path or title_boundary:
