@@ -5,13 +5,14 @@ import pytest
 
 from ingestion.acceptance_probes import generate_acceptance_probes
 from ingestion.document_adapters import MinerUAdapter
+from ingestion.outline_recovery import recover_outline
 from ingestion.document_ir import persist_canonical_book
 from ingestion.document_workflows import canonical_outline, learning_units, load_workflow_book
 from memory.textbook_exercise_importer import extract_textbook_exercise_text, analyze_learning_unit_candidates
 
 
 def native_book():
-    return MinerUAdapter.from_structured_content(dict(
+    parsed = MinerUAdapter.from_structured_content(dict(
         metadata=dict(producer=dict(name='mineru', version='4.0.8'), document=dict(page_count=2)),
         pages=[dict(page_idx=0, blocks=[
             dict(type='paragraph_title', content='第1章 绪论', level=1),
@@ -32,6 +33,7 @@ def native_book():
             dict(type='paragraph_title', content='(2) 计算误差。', level=2),
             dict(type='text', content='2. 解释测量不确定性。'),
         ])]), book_name='修复教材')
+    return recover_outline(parsed, max_depth=6, force=True)
 
 
 def test_outline_retains_nested_same_page_block_ranges_and_printed_label():

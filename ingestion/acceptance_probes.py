@@ -400,7 +400,10 @@ def _example_anchors(text: str, label: str) -> list[str]:
     stem = EXAMPLE_START.sub('', stem, count=1).strip(" ：:")
     if stem:
         anchors.append(_source_anchor(text, stem))
-    solution = re.search(r"(?:解|答案|证明)\s*[：:]\s*(.{4,100})", text, flags=re.DOTALL)
+    # The IR joins separate solution/formula blocks with blank lines. A
+    # required literal must stay inside one source paragraph: EvidencePack
+    # preserves block boundaries, not that synthetic cross-block join.
+    solution = re.search(r"(?:解|答案|证明)[ \t]*[：:][ \t]*([^\n]{4,100})", text)
     if solution:
         anchors.append(_source_anchor(text, solution.group(1)))
     return _unique([anchor for anchor in anchors if anchor])

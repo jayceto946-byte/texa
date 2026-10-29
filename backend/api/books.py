@@ -66,7 +66,7 @@ class OutlineExample(BaseModel):
 class OutlineCalibration(BaseModel):
     base_version: str
     examples: list[OutlineExample] = []
-    max_depth: int = 6
+    max_depth: int = 2
 
 
 def _outline_preview(name: str, request: OutlineCalibration | None = None):
@@ -697,20 +697,8 @@ def update_book(book_name: str, req: BookUpdateRequest):
 
 
 @router.delete("/{book_name}")
-def archive_book(book_name: str):
-    name = _resolve_book_reference(book_name, include_archived=True)
-    if not name:
-        return {"success": False, "message": f"Textbook not found: {book_name}"}
-    identity, _ = _lifecycle.archive(name)
-    if _book_state.get("current_book") == name:
-        _book_state["current_book"] = None
-        _book_state["chapters"] = []
-        _book_state["book_pdf_path"] = None
-    return {
-        "success": True,
-        "message": "教材已归档；本地文件、索引和学习记录均未删除。",
-        "data": {**identity, "name": name, "archived": True},
-    }
+def delete_book(book_name: str, confirm_book_id: str = '', confirm_book_name: str = ''):
+    return purge_book(book_name, confirm_book_id, confirm_book_name)
 
 
 @router.post("/{book_name}/restore")
@@ -735,13 +723,14 @@ def lifecycle_preview(book_name: str):
 
 
 @router.delete("/{book_name}/purge")
-def purge_book(book_name: str, confirm_book_id: str = ""):
+def purge_book(book_name: str, confirm_book_id: str = "", confirm_book_name: str = ''):
     try:
-        result = _lifecycle.purge(book_name, confirmation=confirm_book_id)
+        result = _lifecycle.purge(book_name, confirmation=confirm_book_id, confirmed_name=confirm_book_name)
     except (KeyError, ValueError, RuntimeError) as exc:
         return {"success": False, "message": str(exc)}
     if _book_state.get("current_book") == result.get("storage_name"):
         _book_state.update(current_book=None, chapters=[], book_pdf_path=None)
+    _invalidate_book_read_cache()
     return {"success": True, "message": "教材及其关联数据已彻底删除。", "data": result}
 
 @router.get("/switch/{book_name}")

@@ -21,13 +21,14 @@ def preview_outline(name, *, progress_root, base_version=None, examples=None, ma
     candidate = recover_outline(book, examples=examples, max_depth=max_depth, force=True)
     nodes = []
     for block in candidate.blocks:
-        if block.attributes.get('outline_toc') or block.block_type not in {'heading', 'paragraph', 'exercise', 'example'}:
+        if block.attributes.get('outline_toc') or block.block_type != 'heading':
             continue
         if len(block.text) > 140 or '\n' in block.text:
             continue
         nodes.append(dict(block_id=block.block_id, text=block.text, page=block.page_start,
                           chapter=block.section_path[0], level=block.attributes.get('outline_level', 0),
                           role=block.attributes.get('outline_role', 'section'), family=family(block.text)[0],
+                          visible=block.attributes.get('outline_visible', True),
                           method=block.attributes.get('outline_method', 'body')))
     return candidate, dict(base_version=version, candidates=nodes, chapters=canonical_outline(candidate),
         recovery=candidate.source_metadata['outline_recovery'])
@@ -42,7 +43,7 @@ def apply_outline(name, *, progress_root, base_version, examples, max_depth, job
             if load_index_manifest(name).get('index_version', '') != base_version:
                 raise OutlineConflict('教材已更新，请重新打开目录校准后预览')
         check_current()
-        jobs.update_job(job_id, stage='structure', progress=10, message='根据示例整理全书目录')
+        jobs.update_job(job_id, stage='structure', progress=10, message='依据目录整理全书章、节')
         candidate, preview = preview_outline(name, progress_root=progress_root, base_version=base_version,
                                              examples=examples, max_depth=max_depth)
         jobs.update_job(job_id, stage='indexing', progress=30, message='同步章节范围与检索索引')

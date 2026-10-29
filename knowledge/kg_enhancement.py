@@ -95,6 +95,8 @@ def enhance_book(
             f"\nSemantic role: {chunk.get('role') or 'reference'}\nExcerpt:\n{_text(chunk)[:5000]}"
         )
         raw = strip_thinking(str(llm.invoke(prompt).content or ""))
+        if check_cancelled:
+            check_cancelled()
         payload = _parse_object(raw)
         row = {
             "chunk_id": chunk_id,
@@ -121,6 +123,8 @@ def enhance_book(
     graph_dir = safe_child_path(PROGRESS_PATH, safe, "kg_enhancement", "active")
     graph_path = graph_dir / f"{safe}_knowledge_graph.json"
     chunks_path = graph_dir / f"{safe}_middle_chunks.json"
+    if check_cancelled:
+        check_cancelled()
     atomic_write_json(graph_path, graph)
     atomic_write_json(chunks_path, chunks)
     try:

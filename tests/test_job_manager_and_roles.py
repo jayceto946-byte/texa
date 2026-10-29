@@ -292,3 +292,18 @@ def test_highlight_worker_failure_and_preflight_cancel_are_terminal(tmp_path):
 
     # Metadata repair is best-effort and cannot break chapter-list requests.
     store.reconcile_book("sensor")
+
+
+def test_latest_concept_job_is_filtered_before_limit_and_survives_reopen(tmp_path):
+    path = tmp_path / 'jobs.sqlite3'
+    manager = JobManager(path)
+    wanted = manager.create_job('textbook_kg_enhancement', {'book_name': '旧教材'}, status='running')
+    for i in range(4):
+        manager.create_job('textbook_kg_enhancement', {'book_name': f'其他教材{i}'})
+    reopened = JobManager(path)
+    jobs = reopened.list_jobs(job_type='textbook_kg_enhancement', book_name='旧教材', limit=1)
+    assert [job['id'] for job in jobs] == [wanted['id']]
+    reopened.request_cancel(wanted['id'])
+    with pytest.raises(JobCancelled):
+        reopened.complete_job(wanted['id'], result={'concept_count': 5})
+    assert reopened.get_job(wanted['id'])['status'] == 'cancelling'

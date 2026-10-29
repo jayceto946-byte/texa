@@ -67,13 +67,15 @@ class BookRegistry:
             registry = self._load()
             books: dict[str, dict] = registry["books"]
             record = books.get(preferred_id) if preferred_id else None
+            if record and record.get('status') == 'purged':
+                record = None
             if not record:
                 record = next(
                     (
                         value
                         for value in books.values()
-                        if value.get("storage_name") == storage
-                        or storage in (value.get("aliases") or [])
+                        if value.get('status') != 'purged' and (value.get("storage_name") == storage
+                        or storage in (value.get("aliases") or []))
                     ),
                     None,
                 )
@@ -119,9 +121,9 @@ class BookRegistry:
                 matches = [
                     value
                     for value in books.values()
-                    if ref == value.get("storage_name")
+                    if value.get('status') != 'purged' and (ref == value.get("storage_name")
                     or ref == value.get("display_name")
-                    or ref in (value.get("aliases") or [])
+                    or ref in (value.get("aliases") or []))
                 ]
                 record = matches[0] if len(matches) == 1 else None
             status = str(record.get("status") or "active") if record else ""

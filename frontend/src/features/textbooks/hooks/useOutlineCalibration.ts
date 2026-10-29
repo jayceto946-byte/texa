@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '../../../api/client';
 
 export type OutlineExample = { block_id: string; level: number; role: string };
-export type OutlineCandidate = { block_id: string; text: string; page: number | null; chapter: string; level: number; role: string; family: string };
+export type OutlineCandidate = { block_id: string; text: string; page: number | null; chapter: string; level: number; role: string; family: string; visible: boolean };
 type Chapter = { title: string; page_number: number; subsections: { title: string; level: number; page: number; heading_block_id: string }[] };
 type Outline = { base_version: string; candidates: OutlineCandidate[]; chapters: Chapter[]; recovery: { examples: OutlineExample[]; max_depth: number; toc: { accepted: boolean; explicit?: boolean; matched: number; entries: number }[] } };
 type Job = { id: string; status: string; message: string; progress: number };
@@ -20,7 +20,7 @@ export function useOutlineCalibration(bookName: string) {
   const [source, setSource] = useState<Outline | null>(null);
   const [proposal, setProposal] = useState<Outline | null>(null);
   const [examples, setExamples] = useState<OutlineExample[]>([]);
-  const [maxDepth, setMaxDepth] = useState(6);
+  const [maxDepth, setMaxDepth] = useState(2);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');

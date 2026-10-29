@@ -147,3 +147,53 @@ def test_preview_rejects_changed_index_before_loading_or_editing_source(monkeypa
     monkeypatch.setattr(book_outline, 'load_canonical_book', lambda *a, **k: pytest.fail('stale preview must stop before reading source'))
     with pytest.raises(book_outline.OutlineConflict, match='教材已更新'):
         book_outline.preview_outline('any textbook', progress_root='unused', base_version='old')
+
+
+def test_flat_ocr_headings_do_not_promote_body_items_or_reset_chapters():
+    source = book([('出版信息', 1), ('第1章 基础', 2), ('1.1 原理', 2),
+        ('一、结构', 2), ('1.1.1 细节', 3), ('补充说明', 3),
+        ('第2章 应用', 4), ('2.1 方法', 4), ('一、步骤', 4), ('习题', 5), ('1. 计算结果。', 5)])
+    for block in source.blocks[:-1]:
+        block.block_type = 'heading'
+        block.attributes['heading_level'] = 1
+    result = recover_outline(source)
+    outline = canonical_outline(result)
+    assert [c['title'] for c in outline] == ['第1章 基础', '第2章 应用']
+    assert [[s['title'] for s in c['subsections']] for c in outline] == [['1.1 原理'], ['2.1 方法', '习题']]
+    assert [b.text for b in result.blocks] == [b.text for b in source.blocks]
+    assert len(learning_units(result)) == 1
+    assert '补充说明' in result.blocks[5].section_path
+    expanded = recover_outline(result, max_depth=6, force=True)
+    assert any(s['title'] == '1.1.1 细节' for s in canonical_outline(expanded)[0]['subsections'])
+
+
+def test_body_item_without_intermediate_section_stays_out_of_default_navigation():
+    source = book([('第一章 基础', 1), ('一、说明', 1), ('第二章 应用', 2), ('一、说明', 2)])
+    for block in source.blocks:
+        block.block_type = 'heading'
+    result = recover_outline(source)
+    assert all(not c['subsections'] for c in canonical_outline(result))
+    assert all(b.attributes['outline_visible'] is False for b in (result.blocks[1], result.blocks[3]))
+
+
+def test_example_probe_solution_anchor_does_not_bridge_source_blocks():
+    from ingestion.acceptance_probes import generate_acceptance_probes
+    source = book([('第1章 基础', 1), ('第一节 原理', 1),
+        ('【例 1.1】求电桥输出电压。', 1), ('解：由式（1.1）有', 1),
+        ('V = R * I', 1), ('因此可求电压。', 1)])
+    cases = generate_acceptance_probes(recover_outline(source))['cases']
+    example = next(case for case in cases if case['specialty'] == 'example')
+    assert '由式（1.1）有' in example['required_points']
+    assert all(any(point in block.text for block in source.blocks) for point in example['required_points'])
+
+
+def test_calibration_returns_directory_titles_and_no_body_candidates(monkeypatch, tmp_path):
+    from backend.services import book_outline
+    from ingestion.document_ir import persist_canonical_book
+    source = recover_outline(book([('第一章 基础', 1), ('第一节 概念', 1),
+                                    ('这是一段短正文。', 1), ('第二章 应用', 2)]))
+    persist_canonical_book(source, progress_root=tmp_path)
+    monkeypatch.setattr('ingestion.index_pipeline.load_index_manifest', lambda _: {})
+    _, data = book_outline.preview_outline(source.book_name, progress_root=tmp_path)
+    assert [row['text'] for row in data['candidates']] == ['第一章 基础', '第一节 概念', '第二章 应用']
+    assert all(row['level'] > 0 for row in data['candidates'])

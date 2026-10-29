@@ -84,17 +84,28 @@ class JobManager:
             return None
         return job
 
-    def list_jobs(self, job_type: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+    def list_jobs(self, job_type: str | None = None, limit: int = 100, book_name: str | None = None) -> list[dict[str, Any]]:
         limit = max(1, min(int(limit or 100), 500))
         query = "SELECT * FROM jobs"
         params: tuple[Any, ...] = ()
+        filters = []
         if job_type:
-            query += " WHERE type = ?"
-            params = (job_type,)
+            filters.append("type = ?")
+            params += (job_type,)
+        if book_name is not None:
+            filters.append("json_extract(input_json, '$.book_name') = ?")
+            params += (book_name,)
+        if filters:
+            query += " WHERE " + " AND ".join(filters)
         query += " ORDER BY created_at DESC LIMIT ?"
         with self._connect() as conn:
             rows = conn.execute(query, (*params, limit)).fetchall()
         return [self._row_to_job(row) for row in rows]
+
+    def delete_book_jobs(self, book_name: str) -> None:
+        with self._connect() as conn, self._lock:
+            conn.execute("DELETE FROM jobs WHERE json_extract(input_json, '$.book_name') = ?", (book_name,))
+            conn.commit()
 
     def update_job(self, job_id: str, **updates: Any) -> dict[str, Any]:
         if not updates:

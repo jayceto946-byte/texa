@@ -1,0 +1,26 @@
+.textbook-concept-status { margin-top:6px; color:var(--color-text-secondary); font-family:var(--font-app); font-size:var(--workspace-support-size); line-height:1.5; }
+.textbook-concept-line { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:24px; }
+.textbook-text-action { min-height:24px; padding:0; border:0; background:transparent; color:var(--color-accent); font:inherit; cursor:pointer; }
+.textbook-text-action:hover { text-decoration:underline; }
+.textbook-text-action:disabled { color:var(--color-text-tertiary); cursor:default; text-decoration:none; }
+.textbook-concept-detail { margin:4px 0 0; font:inherit; overflow-wrap:anywhere; }
+.textbook-concept-detail p { margin-top:4px; }
+.textbook-delete-dialog { width:min(480px,calc(100vw - 32px)); max-height:calc(100dvh - 48px); overflow:auto; padding:0; font-family:var(--font-app); font-size:var(--workspace-interface-size); line-height:1.6; }
+.textbook-dialog-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:20px 24px 16px; border-bottom:1px solid var(--workspace-separator); }
+.textbook-dialog-header h2 { margin:0; color:var(--color-text-primary); font-size:var(--workspace-subheading-size); font-weight:600; line-height:1.5; }
+.textbook-dialog-header p { margin:4px 0 0; color:var(--color-text-secondary); font-size:var(--workspace-support-size); }
+.textbook-dialog-body { padding:20px 24px; }
+.textbook-dialog-body p { margin:0 0 12px; }
+.textbook-dialog-body p:last-child { margin-bottom:0; }
+.textbook-dialog-body ul { padding-left:18px; margin:8px 0 16px; }
+.textbook-dialog-body li { margin:6px 0; }
+.textbook-delete-name { font-weight:600; overflow-wrap:anywhere; }
+.textbook-muted { color:var(--color-text-secondary); font-size:var(--workspace-support-size); }
+.textbook-dialog-footer { display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:16px 24px; border-top:1px solid var(--workspace-separator); }
+.textbook-dialog-footer :is(button,input) { font-family:var(--font-app); font-size:var(--workspace-interface-size); }
+.textbook-delete-confirm:not(:disabled) { color:var(--danger); border-color:var(--danger); }
+.textbook-delete-confirm:not(:disabled):hover { background:color-mix(in srgb,var(--danger) 8%,transparent); }
+.textbook-delete-field { display:flex; flex-direction:column; gap:8px; }
+.textbook-delete-field .app-field { width:100%; font:inherit; }
+.textbook-error { color:var(--danger); overflow-wrap:anywhere; }
+.library-total-count { color:var(--color-text-secondary); font-family:var(--font-app); font-size:var(--workspace-support-size); white-space:nowrap; }

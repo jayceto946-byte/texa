@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Archive, ArrowLeft, FileText, HelpCircle, Loader2, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api/client';
-import { useOptionalConceptJob } from '../features/textbooks/hooks/useOptionalConceptJob';
+import ConceptExtractionStatus from '../features/textbooks/ConceptExtractionStatus';
 import ScopeSelector from '../components/ScopeSelector';
 import { SegmentedControl } from '../components/ui/SelectionControls';
 import { WorkspaceActionBar } from '../components/ui/WorkspaceActionBar';
@@ -94,7 +94,6 @@ const BooksPage: React.FC = () => {
   const [job, setJob] = useState<ImportJob | null>(null);
   const [error, setError] = useState('');
   const [cancelBusy, setCancelBusy] = useState(false);
-  const conceptJob = useOptionalConceptJob(job?.result?.concept_job_id || '');
   const inputRef = useRef<HTMLInputElement>(null);
   const outputInputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<number | null>(null);
@@ -140,7 +139,9 @@ const BooksPage: React.FC = () => {
         if (['completed', 'failed', 'cancelled', 'interrupted'].includes(data.data.status)) {
           stopPolling();
           setUploading(false);
-          if (data.data.status === 'completed') window.dispatchEvent(new Event('books:changed'));
+          if (data.data.status === 'completed') window.dispatchEvent(new CustomEvent('books:changed', {
+            detail: { importedBook: data.data.result?.name, importedSubject: data.data.result?.subject || '' },
+          }));
         }
       } catch (err) {
         stopPolling();
@@ -341,6 +342,7 @@ const BooksPage: React.FC = () => {
             <div className="space-y-3">
               <button type="button" disabled={uploading} onClick={() => outputInputRef.current?.click()} className="app-secondary-button min-h-[72px] w-full"><Upload className="h-4 w-4" />{outputFile ? outputFile.name : '选择输出 zip'}</button>
               <input ref={outputInputRef} type="file" accept=".zip,application/zip" onChange={handleOutputFileChange} className="hidden" />
+              <label className="block"><span className="mb-1.5 block type-caption text-text-secondary">所属科目</span><ScopeSelector subject={subject} onSubjectChange={setSubject} bookMode="hidden" size="form" label="所属科目" placeholder="未分类（可选择科目）" fullWidth width="wide" /></label>
               <div className="flex items-start gap-2 rounded-lg border border-border bg-bg-primary p-3 text-sm text-text-primary">
                 <input id="bundle-extract-concepts" type="checkbox" checked={extractConcepts} onChange={(e) => setExtractConcepts(e.target.checked)} className="mt-0.5 accent-accent" />
                 <label htmlFor="bundle-extract-concepts">{'\u5bfc\u5165\u540e\u63d0\u53d6\u6559\u6750\u6982\u5ff5\u7d22\u5f15'}</label>
@@ -364,9 +366,8 @@ const BooksPage: React.FC = () => {
           />
           {isDone && unparsedExerciseSections > 0 && <p role="status" className="type-caption text-text-secondary">结构检查发现 {unparsedExerciseSections} 个习题范围尚未识别出题目。教材正文已保留用于检索，这些范围暂不能保证可抽题。</p>}
           <details className="border-b border-border px-4 py-3 type-caption text-text-secondary"><summary className="cursor-pointer">详细信息</summary><p className="mt-2">{stageLabels[job.stage] || job.stage} · {job.message}</p></details>
-          {isDone && <p role="status" className="type-caption text-text-secondary">
-            {job.result?.concept_extraction_warning ? '教材已导入完成；概念抽取未能启动，可稍后手动重试。' : !job.result?.concept_job_id ? '概念抽取未启用。' : conceptJob.error || (conceptJob.status === 'completed' ? '概念抽取已完成。' : ['failed', 'cancelled', 'interrupted'].includes(conceptJob.status) ? '概念抽取未完成；教材内容和检索索引仍可使用，可稍后手动重试。' : '教材已导入完成；概念抽取仍在处理中。')}
-          </p>}
+          {isDone && <ConceptExtractionStatus bookName={job.result?.name || job.book_name} jobId={job.result?.concept_job_id} />}
+          {isDone && job.result?.concept_extraction_warning && <p role="status">概念抽取未能启动：{job.result.concept_extraction_warning}</p>}
           {isDone && <div className="flex justify-end"><button type="button" onClick={() => navigate('/books')} className="app-primary-button">查看教材状态</button></div>}
         </>}
       </div>

@@ -1,23 +1,36 @@
-.outline-calibration { grid-column:1/-1; min-width:0; border-top:1px solid var(--color-border); padding-top:20px; }
+.outline-calibration { grid-column:1/-1; min-width:0; border-top:1px solid var(--workspace-separator); padding-top:20px; font-family:var(--font-app); font-size:var(--workspace-interface-size); line-height:var(--workspace-interface-leading); color:var(--color-text-primary); }
 .study-desk .library-book-row > .outline-calibration { grid-column:1/-1; width:100%; }
-.outline-calibration-trigger { grid-column:2; justify-self:start; padding-left:0; margin-top:4px; }
+.library-book-identity .outline-calibration-trigger { grid-column:2; justify-self:start; min-height:24px; padding:0; margin-top:2px; font-family:var(--font-app); font-size:var(--workspace-support-size); color:var(--color-text-secondary); }
 .outline-calibration-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
-.outline-calibration-header p { margin-top:6px; }
-.outline-calibration-tools { display:flex; flex-wrap:wrap; gap:12px; margin:18px 0; }
-.outline-calibration-tools label { display:flex; flex:1 1 170px; flex-direction:column; gap:6px; min-width:0; font-size:13px; }
-.outline-calibration-tools label:last-child { flex:0 0 100px; }
+.outline-calibration-header h3 { margin:0; font-size:var(--workspace-subheading-size); font-weight:600; line-height:1.5; }
+.outline-calibration-header p { margin:4px 0 0; color:var(--color-text-secondary); font-size:var(--workspace-support-size); }
+.outline-calibration-tools { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin:16px 0; }
+.outline-calibration-tools label { display:flex; flex:0 1 240px; flex-direction:column; gap:6px; min-width:0; font-size:var(--workspace-support-size); color:var(--color-text-secondary); }
+.outline-calibration-tools label:nth-child(2) { flex-basis:140px; }
 .outline-calibration-tools .app-field { width:100%; min-width:0; }
-.outline-calibration-columns { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
-.outline-calibration-columns>div { min-width:0; }
-.outline-calibration-columns h4+p { margin:6px 0 12px; }
-.outline-calibration-list { max-height:330px; overflow:auto; padding-right:6px; }
-.outline-calibration-source { display:flex; gap:12px; justify-content:space-between; border-bottom:1px solid var(--color-border); padding:12px 0; }
-.outline-calibration-source>div:first-child { flex:1; min-width:0; overflow-wrap:anywhere; }
-.outline-calibration-choices { display:flex; flex:0 0 105px; flex-direction:column; gap:6px; }
-.outline-calibration-choices select { width:105px; padding:5px 6px; font-size:12px; }
-.outline-calibration-chapter { padding:10px 0; border-bottom:1px solid var(--color-border); overflow-wrap:anywhere; }
-.outline-calibration-chapter p+p { margin-top:8px; }
-.outline-calibration-footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-top:18px; }
-.outline-calibration-footer>p { flex:1 1 220px; }
+.outline-calibration-note { margin:8px 0 0; color:var(--color-text-secondary); font-size:var(--workspace-support-size); }
+.outline-calibration-tools .outline-calibration-note { flex:1 1 180px; padding-bottom:5px; }
+.outline-directory { min-width:0; border-block:1px solid var(--workspace-separator); }
+.outline-directory-head,.outline-directory-row { display:grid; grid-template-columns:minmax(160px,1fr) 56px 120px 84px; align-items:center; gap:12px; }
+.outline-directory-head { min-height:32px; padding:0 8px; color:var(--color-text-tertiary); font-size:var(--workspace-support-size); border-bottom:1px solid var(--workspace-separator); }
+.outline-directory-scroll { max-height:390px; overflow-y:auto; scrollbar-gutter:stable; }
+.outline-directory-row { min-height:42px; padding:6px 8px; border-bottom:1px solid var(--workspace-separator); }
+.outline-directory-row:last-child { border-bottom:0; }
+.outline-directory-row.is-chapter .outline-directory-title { font-weight:600; }
+.outline-directory-title { min-width:0; overflow-wrap:anywhere; }
+.outline-directory-page { font-size:var(--workspace-support-size); color:var(--color-text-secondary); }
+.outline-directory-row .app-field,.outline-calibration-tools .app-field { min-height:28px; height:28px; padding:3px 6px; font-family:var(--font-app); font-size:var(--workspace-support-size); }
+.outline-directory-empty { padding:20px 8px; color:var(--color-text-secondary); }
+.outline-calibration-footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-top:16px; }
+.outline-calibration-footer>p { flex:1 1 220px; margin:0; color:var(--color-text-secondary); font-size:var(--workspace-support-size); }
 .outline-calibration-footer>div { display:flex; gap:8px; }
-@media(max-width:1000px) { .outline-calibration-columns { grid-template-columns:1fr; gap:20px; } }
+@media(max-width:800px) { .outline-directory-head,.outline-directory-row { grid-template-columns:minmax(100px,1fr) 40px 98px 72px; gap:8px; } .outline-calibration-tools label { flex:1 1 160px; } .outline-calibration-tools .outline-calibration-note { flex-basis:100%; } }
+/* A bounded management dialog keeps preview and apply controls in view. */
+.outline-calibration-dialog { display:flex; width:min(960px,calc(100vw - 32px)); height:min(720px,calc(100dvh - 48px)); }
+.outline-calibration-dialog .outline-calibration { display:flex; flex:1; flex-direction:column; min-height:0; padding:20px 24px; border:0; }
+.outline-calibration-header,.outline-calibration-tools,.outline-calibration-footer { flex:none; }
+.outline-calibration-header h3 span { color:var(--color-text-secondary); font-size:var(--workspace-support-size); font-weight:400; overflow-wrap:anywhere; }
+.outline-calibration-dialog .outline-directory { display:flex; flex:1 1 0; flex-direction:column; min-height:100px; }
+.outline-calibration-dialog .outline-directory-head { flex:none; }
+.outline-calibration-dialog .outline-directory-scroll { flex:1; min-height:0; max-height:none; }
+@media(max-width:800px) { .outline-calibration-dialog .outline-calibration { padding:16px; } }

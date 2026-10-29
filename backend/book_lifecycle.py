@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import sys
 from pathlib import Path
 
 from config import BOOKS_PATH, DATA_DIR, MINERU_OUTPUT_PATH, PROGRESS_PATH, VECTOR_DB_PATH
@@ -103,17 +104,29 @@ class BookLifecycleService:
             "paths": [str(path) for path in paths if path.exists()],
             "vector_collections": self._vector_collection_names(storage),
             "requires_confirmation": record["book_id"],
+            "active_jobs": self._active_jobs(storage),
         }
 
-    def purge(self, reference: str, *, confirmation: str) -> dict:
+    def _active_jobs(self, storage_name: str) -> list[dict]:
+        from backend.job_manager import JobManager, RUNNING_STATUSES
+        path = self.progress_root / 'jobs.sqlite3'
+        if not path.exists():
+            return []
+        return [job for job in JobManager(path).list_jobs(book_name=storage_name, limit=500)
+                if job['status'] in RUNNING_STATUSES]
+
+    def purge(self, reference: str, *, confirmation: str, confirmed_name: str = '') -> dict:
         record = self._require(reference)
         if confirmation != record["book_id"]:
             raise ValueError("purge confirmation must exactly match book_id")
-        from backend.data_backup import create_backup
-
-        safety_backup = create_backup(include_derived=True, reason=f"pre_purge_{record['book_id'][:8]}")
+        if confirmed_name != record['display_name']:
+            raise ValueError('请输入完整教材名称，再确认删除')
+        if self._active_jobs(record['storage_name']):
+            raise ValueError('教材任务尚未停止，请等待停止确认后再删除')
         deleted: list[str] = []
         errors: list[str] = []
+        # Remove live and retained collections before their ownership manifests.
+        deleted.extend(self._delete_vector_assets(record['storage_name']))
         for path in self._candidate_paths(record["storage_name"]):
             if not path.exists():
                 continue
@@ -125,21 +138,22 @@ class BookLifecycleService:
                 deleted.append(str(path))
             except OSError as exc:
                 errors.append(f"{path}: {exc}")
-        try:
-            deleted.extend(self._delete_vector_assets(record["storage_name"]))
-        except Exception as exc:  # derived data cleanup may degrade independently
-            errors.append(f"vector assets: {exc}")
         if errors:
-            raise RuntimeError(
-                f"purge incomplete; safety backup={safety_backup['name']}; " + "; ".join(errors)
-            )
+            raise RuntimeError('部分教材资料未能删除，请重试：' + '; '.join(errors))
+        from backend.job_manager import JobManager
+        if (self.progress_root / 'jobs.sqlite3').exists():
+            JobManager(self.progress_root / 'jobs.sqlite3').delete_book_jobs(record['storage_name'])
+        for module_name, cache_name in [('knowledge.knowledge_graph', '_kg_cache'),
+                                        ('ingestion.lexical_index', '_cache')]:
+            module = sys.modules.get(module_name)
+            if module is not None:
+                getattr(module, cache_name).pop(record['storage_name'], None)
         self.registry.set_status(record["book_id"], "purged")
         return {
             "book_id": record["book_id"],
             "storage_name": record["storage_name"],
             "display_name": record["display_name"],
             "deleted": deleted,
-            "safety_backup": safety_backup["name"],
             "status": "purged",
         }
 
@@ -156,6 +170,8 @@ class BookLifecycleService:
             Path(BOOKS_PATH) / f"{safe}.pdf",
             safe_child_path(MINERU_OUTPUT_PATH, safe),
             Path(VECTOR_DB_PATH) / "_lexical" / f"{safe}.json",
+            Path(VECTOR_DB_PATH) / '_lexical_versions' / safe,
+            Path(VECTOR_DB_PATH) / '_index_manifests' / f'{safe}.json',
         ]
         for prefix in ("mistake_book_", "exercise_bank_"):
             base = safe_child_path(self.progress_root, f"{prefix}{safe}.db")
@@ -179,13 +195,19 @@ class BookLifecycleService:
         map_path = Path(VECTOR_DB_PATH) / "_chapter_map.json"
         try:
             mapping = json.loads(map_path.read_text(encoding="utf-8")) if map_path.exists() else {}
-        except (OSError, json.JSONDecodeError):
-            return []
-        return sorted(
+        except (OSError, json.JSONDecodeError) as exc:
+            raise RuntimeError('无法读取教材索引目录，请修复后再删除') from exc
+        names = {
             name
             for name, value in mapping.items()
             if isinstance(value, dict) and value.get("book_name") == safe_book_name(storage_name)
-        )
+        }
+        manifest = Path(VECTOR_DB_PATH) / '_index_manifests' / f'{safe_book_name(storage_name)}.json'
+        if manifest.exists():
+            data = json.loads(manifest.read_text(encoding='utf-8'))
+            for version in data.get('versions', []):
+                names.update(version.get('collections', []))
+        return sorted(names)
 
     def _delete_vector_assets(self, storage_name: str) -> list[str]:
         names = self._vector_collection_names(storage_name)
@@ -198,7 +220,7 @@ class BookLifecycleService:
         for name in names:
             try:
                 client.delete_collection(name)
-            except Exception:
+            except chromadb.errors.NotFoundError:
                 # A stale mapping is still safe to remove.
                 pass
             deleted.append(f"chroma:{name}")

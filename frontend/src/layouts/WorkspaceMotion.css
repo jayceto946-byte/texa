@@ -54,3 +54,12 @@ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell .navi
     transition: transform 200ms cubic-bezier(.2,.7,.2,1), opacity 160ms ease, visibility 200ms;
   }
 }
+
+/* The category tree shares the space left above the fixed settings controls. */
+.app-shell .study-navigation { min-height: 0; overflow: hidden; }
+.app-shell .study-navigation > #workspace-context-navigation {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}

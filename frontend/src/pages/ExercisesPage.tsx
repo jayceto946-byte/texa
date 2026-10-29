@@ -84,7 +84,9 @@ const ExercisesPage: React.FC = () => {
   const [textbookPageEnd, setTextbookPageEnd] = useState('');
   const [pdfOpen, setPdfOpen] = useState(false);
   const [pdfPage, setPdfPage] = useState('1');
-  const textbookOutline = useTextbookImportOutline(activeName);
+  const textbookBook = books.find(book => book.name === activeName || book.book_id === activeName);
+  const textbookSourceName = textbookBook?.name || '';
+  const textbookOutline = useTextbookImportOutline(textbookSourceName);
   const hasSourcePdf = books.find((book) => book.name === activeName || book.book_id === activeName)?.has_pdf === true;
   const sourcePdfPath = hasSourcePdf ? `/api/books/${encodeURIComponent(activeName)}/source-pdf` : '';
   const sourcePdfAsset = useAuthenticatedBlobUrl(pdfOpen ? sourcePdfPath : '', 'pdf');
@@ -218,7 +220,10 @@ const ExercisesPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    loadBooks();
+    void loadBooks();
+    const refresh = () => { void loadBooks(); };
+    window.addEventListener('books:changed', refresh);
+    return () => window.removeEventListener('books:changed', refresh);
   }, [loadBooks]);
 
   useEffect(() => {
@@ -243,10 +248,11 @@ const ExercisesPage: React.FC = () => {
     setReceipt(null); setLastImportBatch(null); setInspectedBatches([]); setImportScopeSnapshot(null); setCandidateSourceLabel('');
   };
 
-  const updateTargetName = async (value: string) => {
+  const updateTargetName = async (value: string, selectedSubject?: string) => {
     if (value === targetName) return;
     if (importing || commitUnknown || (candidates.length && !window.confirm('更换范围将丢弃尚未入库的候选，继续吗？'))) return;
     setTargetName(value);
+    if (selectedSubject !== undefined) { setTargetSubject(selectedSubject); setSubject(selectedSubject); }
     if (!value) {
       setBookName('');
       resetImportPreview();
@@ -332,7 +338,7 @@ const ExercisesPage: React.FC = () => {
     if (importLock.current || commitUnknown) return;
     if (candidates.length && !window.confirm('重新解析将替换当前候选及其编辑，继续吗？')) return;
     const requestedScope = importScope.current;
-    if (!activeName || activeName === 'default') {
+    if (!textbookSourceName) {
       setMessage('请先选择已导入教材');
       return;
     }
@@ -520,12 +526,15 @@ const ExercisesPage: React.FC = () => {
               <div className="exercise-field">
                 <span>{sourceKind === 'textbook' ? '选择教材' : '归属范围'}<HelpHint label="教材抽取">从已导入教材内容抽取，无需源 PDF；未选择教材时不能抽取。</HelpHint>
                 </span>
-                <ScopeSelector size="form" subject={targetSubject} bookName={books.some(b => b.name === targetName) ? targetName : ''} books={books} suggestions={books.map(b => b.subject || '').filter(Boolean)} onSubjectChange={updateTargetSubject} onBookChange={updateTargetName} disabled={importing} fullWidth width="wide" />
+                {sourceKind === 'textbook' ? <select aria-label="选择教材" value={textbookSourceName} onChange={e => {
+                  const selected = books.find(book => book.name === e.target.value);
+                  void updateTargetName(e.target.value, selected?.subject || '');
+                }}><option value="">请选择已导入教材</option>{books.map(book => <option key={book.book_id || book.name} value={book.name}>{book.displayName || book.name}{book.subject ? ` · ${book.subject}` : ' · 未分类'}</option>)}</select> : <ScopeSelector size="form" subject={targetSubject} bookName={textbookSourceName} books={books} suggestions={books.map(b => b.subject || '').filter(Boolean)} onSubjectChange={updateTargetSubject} onBookChange={updateTargetName} disabled={importing} fullWidth width="wide" />}
               </div>
               {sourceKind === 'textbook' ? <>
-                {(!activeName || activeName === 'default') && <p className="exercise-feedback">请先选择已导入教材。<Link to="/books">前往教材库</Link>
+                {!textbookSourceName && <p className="exercise-feedback">请先选择已导入教材。<Link to="/books">前往教材库</Link>
                 </p>}
-                {textbookOutline.error && <p role="status" className="exercise-feedback">{textbookOutline.error}，可手动输入章节。</p>}
+                {textbookOutline.error && <p role="status" className="exercise-feedback">{textbookOutline.error}。请重新选择教材或刷新教材库。</p>}
                 <div className="exercise-two">
                   <label className="exercise-field">教材章节{textbookOutline.chapters.length ? <select aria-label="教材章节" value={textbookChapter} onChange={e => setTextbookChapter(e.target.value)}>
                     <option value="">全部章节（保留每题来源）</option>{textbookOutline.chapters.map(chapter => <optgroup key={chapter.title} label={chapter.title}>
@@ -557,7 +566,7 @@ const ExercisesPage: React.FC = () => {
                 {sourceKind === 'file' && <p className="exercise-feedback">保留题干与源解的对应关系。可在校对后明确保存分离样例，供后续资料参考。</p>}
               </details>
               <div className="exercise-import-submit">{sourceKind === 'file' && <p>已有 MinerU 解析结果可直接上传 ZIP，无需再次 OCR；直接上传扫描 PDF 需可用的 MinerU API。</p>}
-                <button className="app-primary-button" disabled={importing || (sourceKind === 'file' ? !importFile : !activeName || activeName === 'default')} onClick={sourceKind === 'file' ? analyzeImportFile : analyzeTextbookExercises}>{importing ? <>
+                <button className="app-primary-button" disabled={importing || (sourceKind === 'file' ? !importFile : !textbookSourceName)} onClick={sourceKind === 'file' ? analyzeImportFile : analyzeTextbookExercises}>{importing ? <>
                   <Loader2 size={16} className="animate-spin" />正在分析…</> : sourceKind === 'file' ? '分析文件' : '抽取教材候选题'}<ChevronRight size={16} />
                 </button>
               </div>

@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, BookOpen, CheckCircle2, CircleX, RefreshCw, Save } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { del, get, patch, post } from '../api/client';
 import { useSystemHealth } from '../hooks/useSystemHealth';
 import { useChatContext } from '../contexts/ChatContext';
 import type { SystemHealthStatus } from '../types';
 import LibraryWorkbench, { type LibraryBook } from './settings/LibraryWorkbench';
+import BookDeleteDialog from '../features/textbooks/BookDeleteDialog';
+import { useBookCatalogRefresh } from '../features/books/useBookCatalogRefresh';
 import DataSafety from './settings/DataSafety';
 import MobileRemoteS0 from './settings/MobileRemoteS0';
 import NetworkDiagnostics from './settings/NetworkDiagnostics';
@@ -89,6 +91,8 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
   };
   const { health, loading, loadHealth } = useSystemHealth(bookName, open && !standaloneTab && tab === 'diagnostics');
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [deleteTarget, setDeleteTarget] = useState('');
   const [version, setVersion] = useState<any>(null);
   const [subjects, setSubjects] = useState<SubjectNode[]>([]);
   const [books, setBooks] = useState<ManagedBook[]>([]);
@@ -136,9 +140,22 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
     loadSettings().catch(() => standaloneTab ? setMessage('设置加载失败') : setFeedback((current) => ({ ...current, [tab]: '设置加载失败' })));
   }, [open, standaloneTab, settingsLoaded, tab, loadSettings]);
 
+  useBookCatalogRefresh(Boolean(standaloneTab), pathname === '/books', loadBooks);
+
   useEffect(() => {
-    if (standaloneTab) loadBooks().catch(() => undefined);
-  }, [standaloneTab, loadBooks]);
+    if (!standaloneTab) return;
+    const revealImport = (event: Event) => {
+      const detail = (event as CustomEvent<{ importedBook?: string; importedSubject?: string }>).detail;
+      if (!detail?.importedBook) return;
+      const scope = detail.importedSubject || '';
+      const index = subjects.findIndex(item => scope === item.name || scope.startsWith(`${item.name}/`) || item.children.includes(scope));
+      setSelectedSubjectIndex(index);
+      const child = index >= 0 ? subjects[index].children.findIndex(name => scope === name || scope === `${subjects[index].name}/${name}`) : -1;
+      setSelectedChildIndex(child >= 0 ? child : null);
+    };
+    window.addEventListener('books:changed', revealImport);
+    return () => window.removeEventListener('books:changed', revealImport);
+  }, [standaloneTab, subjects]);
 
   useEffect(() => {
     if (open && !standaloneTab && (tab === 'about' || tab === 'diagnostics')) loadVersion().catch(() => undefined);
@@ -300,17 +317,6 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
     await saveBookSubject(name, nextTarget);
   };
 
-  const deleteManagedBook = async (name: string) => {
-    if (!window.confirm('这会把教材从管理列表隐藏，但不会删除本地文件、章节索引、向量库或学习记录。继续吗？')) return;
-    setMessage('');
-    const res = await del(`/books/${encodeURIComponent(name)}`, 20000);
-    setMessage(res?.message || (res?.success ? '教材已隐藏' : '教材删除失败'));
-    if (res?.success) {
-      await loadBooks();
-      window.dispatchEvent(new Event('books:changed'));
-    }
-  };
-
   const renameManagedBook = async (name: string, currentDisplayName: string) => {
     const next = window.prompt('教材展示名称（不会移动文件、数据库或索引）', currentDisplayName)?.trim();
     if (!next || next === currentDisplayName) return;
@@ -323,15 +329,6 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
     }
   };
 
-  const restoreManagedBook = async (reference: string) => {
-    setMessage('');
-    const res = await post(`/books/${encodeURIComponent(reference)}/restore`, {}, 20000);
-    setMessage(res?.message || (res?.success ? '教材已恢复' : '教材恢复失败'));
-    if (res?.success) {
-      await loadBooks();
-      window.dispatchEvent(new Event('books:changed'));
-    }
-  };
   const setBookRole = async (name: string, role: 'standalone' | 'core' | 'reference') => {
     setMessage('');
     const res = await patch(`/books/${encodeURIComponent(name)}`, { book_role: role }, 20000);
@@ -426,7 +423,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
       <div className="management-workspace flex h-full min-w-0 flex-col bg-bg-primary">
         <header className="app-page-header border-b border-border bg-bg-primary">
           <div className="library-page-heading">
-             <h2 className="app-page-title">教材</h2>
+             <h2 className="app-page-title">教材</h2><span className="library-total-count">{books.filter(book => book.lifecycle_status !== 'archived').length} 本教材</span>
           </div>
           <div className="library-page-actions">
             <button onClick={() => saveSubjects()} className="app-secondary-button"><Save className="h-4 w-4" />保存目录</button>
@@ -450,8 +447,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
             onRefresh={loadBooks}
             onMoveBook={moveBookToTarget}
             onSwitchBook={switchManagedBook}
-            onArchiveBook={deleteManagedBook}
-            onRestoreBook={restoreManagedBook}
+            onDeleteBook={setDeleteTarget}
             onRenameBook={renameManagedBook}
             onSetRole={setBookRole}
             onSetResourceGroup={setBookResourceGroup}
@@ -460,6 +456,12 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
             currentBookName={bookName}
           />
         </main>
+        {deleteTarget && <BookDeleteDialog reference={deleteTarget} onClose={() => setDeleteTarget('')} onDeleted={name => {
+          setDeleteTarget('');
+          if (bookName === name) setBookName('');
+          setMessage('教材及本地关联资料已删除');
+          window.dispatchEvent(new Event('books:changed'));
+        }} />}
       </div>
     );
   }

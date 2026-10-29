@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type MouseEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { AlertTriangle, Archive, BookOpen, CheckCircle2, ChevronDown, ChevronRight, FolderOpen, MoreHorizontal, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
@@ -8,6 +8,7 @@ import './LibraryWorkbench.css';
 import { EmptyState } from '../ui/AsyncState';
 import FigureAuditPanel from '../../features/textbooks/FigureAuditPanel';
 import OutlineCalibrationPanel from '../../features/textbooks/OutlineCalibrationPanel';
+import ConceptExtractionStatus from '../../features/textbooks/ConceptExtractionStatus';
 
 export type LibrarySubject = { name: string; children: string[] };
 export type BookReadiness = {
@@ -24,7 +25,7 @@ type Props = {
   onDeleteSubject: (index: number) => void; onDeleteChild: (subjectIndex: number, childIndex: number) => void;
   onRefresh: () => void; onMoveBook: (name: string, target: string) => void;
   onSetRole: (name: string, role: 'standalone' | 'core' | 'reference') => void; onSetResourceGroup: (name: string, resourceGroup: string) => void;
-  onSwitchBook: (name: string) => void; onArchiveBook: (name: string) => void; onRestoreBook: (name: string) => void;
+  onSwitchBook: (name: string) => void; onDeleteBook: (name: string) => void;
   onRenameBook: (name: string, displayName: string) => void; onReindexBook: (name: string) => void; reindexingBook?: string; currentBookName?: string;
 };
 
@@ -151,15 +152,15 @@ export default function LibraryWorkbench(props: Props) {
           </header>
           <div className="library-header-tools library-context-toolbar workspace-collection-toolbar">
 
-              <div className="library-list-filter" role="group" aria-label="教材状态"><button aria-pressed={listMode === 'active'} onClick={() => setListMode('active')}>活跃 <span>{activeBooks.length}</span></button><button aria-pressed={listMode === 'archived'} onClick={() => setListMode('archived')}>已归档 <span>{archivedBooks.length}</span></button></div>
+              <div className="library-list-filter" role="group" aria-label="教材状态"><button aria-pressed={listMode === 'active'} onClick={() => setListMode('active')}>全部教材 <span>{activeBooks.length}</span></button><button aria-pressed={listMode === 'archived'} onClick={() => setListMode('archived')}>此前归档 <span>{archivedBooks.length}</span></button></div>
               <button onClick={props.onRefresh} className="app-icon-button" title="刷新教材" aria-label="刷新教材"><RefreshCw className="h-4 w-4" /></button>
           </div>
 
           {listMode === 'active' ? <div className="library-book-list">
             {currentBooks.length > 0 && <div className="library-list-columns" aria-hidden="true"><span>教材</span><span>教材状态</span><span>分类 / 配套教材</span><span>使用方式</span><span>操作</span></div>}
-            {currentBooks.map((book) => <BookRow key={book.book_id || book.name} book={book} active={props.currentBookName === book.name} subjects={subjects} reindexing={props.reindexingBook === book.name} onMove={(value) => props.onMoveBook(book.name, value)} onSetRole={(role) => props.onSetRole(book.name, role)} onSetResourceGroup={(group) => props.onSetResourceGroup(book.name, group)} onSwitch={() => props.onSwitchBook(book.name)} onReindex={() => props.onReindexBook(book.name)} onRename={() => props.onRenameBook(book.name, book.display_name || book.name)} onArchive={() => props.onArchiveBook(book.name)} />)}
+            {currentBooks.map((book) => <BookRow key={book.book_id || book.name} book={book} active={props.currentBookName === book.name} subjects={subjects} reindexing={props.reindexingBook === book.name} onMove={(value) => props.onMoveBook(book.name, value)} onSetRole={(role) => props.onSetRole(book.name, role)} onSetResourceGroup={(group) => props.onSetResourceGroup(book.name, group)} onSwitch={() => props.onSwitchBook(book.name)} onReindex={() => props.onReindexBook(book.name)} onRename={() => props.onRenameBook(book.name, book.display_name || book.name)} onDelete={() => props.onDeleteBook(book.book_id || book.name)} />)}
             {!currentBooks.length && <EmptyState className="library-empty" icon={<BookOpen />} title="这里还没有教材" description="移动已有教材到此处，或导入新教材。" />}
-          </div> : <ArchivedBookList books={archivedBooks} onRestore={props.onRestoreBook} />}
+          </div> : <ArchivedBookList books={archivedBooks} onDelete={props.onDeleteBook} />}
         </main>
       </div>
     </section>
@@ -196,39 +197,37 @@ function ReadinessSummary({ book }: { book: LibraryBook }) {
   </div>;
 }
 
-function BookRow({ book, active, subjects, reindexing, onMove, onSetRole, onSetResourceGroup, onSwitch, onReindex, onRename, onArchive }: { book: LibraryBook; active: boolean; subjects: LibrarySubject[]; reindexing: boolean; onMove: (target: string) => void; onSetRole: (role: 'standalone' | 'core' | 'reference') => void; onSetResourceGroup: (group: string) => void; onSwitch: () => void; onReindex: () => void; onRename: () => void; onArchive: () => void }) {
+function BookRow({ book, active, subjects, reindexing, onMove, onSetRole, onSetResourceGroup, onSwitch, onReindex, onRename, onDelete }: { book: LibraryBook; active: boolean; subjects: LibrarySubject[]; reindexing: boolean; onMove: (target: string) => void; onSetRole: (role: 'standalone' | 'core' | 'reference') => void; onSetResourceGroup: (group: string) => void; onSwitch: () => void; onReindex: () => void; onRename: () => void; onDelete: () => void }) {
   const role = book.book_role || 'standalone';
   const [auditOpen, setAuditOpen] = useState(false);
   const [outlineOpen, setOutlineOpen] = useState(false);
   return <article className={`library-book-row workspace-register-row${active ? ' is-current' : ''}`}>
     <div className="library-book-identity"><BookOpen className="study-book-icon" aria-hidden="true" /><div><h4>{book.display_name || book.name}</h4>{active && <span className="library-current-status">学习中</span>}</div><p>{book.has_pdf ? 'PDF' : '已解析教材'} · {book.chapter_count || 0} 章</p><button type="button" className="app-ghost-button outline-calibration-trigger" aria-expanded={outlineOpen} onClick={() => setOutlineOpen(value => !value)}>目录不符？校准</button></div>
-    <ReadinessSummary book={book} />
+    <div><ReadinessSummary book={book} /><ConceptExtractionStatus bookName={book.storage_name || book.name} /></div>
     <div className="library-book-scope">
       <div className="library-subject-field"><span>归属</span><ScopeSelector size="compact" popupSize="compact" subject={book.subject || ''} subjectTree={subjects} onSubjectChange={onMove} bookMode="hidden" width="normal" label={`${book.display_name || book.name}教材归属`} placeholder="未分类" className="library-subject-selector" /></div>
       {role === 'standalone' ? <div className="library-resource-group-static"><span>配套</span><strong>单独使用</strong></div> : <label><span>配套</span><input aria-label={`${book.display_name || book.name}配套教材组`} defaultValue={book.resource_group || ''} placeholder={book.subject ? `默认：${book.subject}` : '输入组名'} onBlur={(event) => onSetResourceGroup(event.target.value.trim())} /></label>}
     </div>
     <select className="study-role-select" value={role} aria-label={`${book.display_name || book.name}的教材角色`} title={roleGuidance(role)} onChange={(event) => onSetRole(event.target.value as typeof role)}>{ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
-    <div className="library-book-actions"><button onClick={onReindex} disabled={reindexing} className="app-secondary-button"><RefreshCw className={`h-4 w-4 ${reindexing ? 'animate-spin' : ''}`} />{reindexing ? '准备中' : '重新准备'}</button>{!active ? <button onClick={onSwitch} className="app-ghost-button">设为学习范围</button> : <span className="library-active-label">当前学习范围</span>}<BookOverflowMenu onRename={onRename} onArchive={onArchive} onAudit={() => setAuditOpen(true)} /></div>
+    <div className="library-book-actions"><button onClick={onReindex} disabled={reindexing} className="app-secondary-button"><RefreshCw className={`h-4 w-4 ${reindexing ? 'animate-spin' : ''}`} />{reindexing ? '准备中' : '重新准备'}</button>{!active ? <button onClick={onSwitch} className="app-ghost-button">设为学习范围</button> : <span className="library-active-label">当前学习范围</span>}<BookOverflowMenu onRename={onRename} onDelete={onDelete} onAudit={() => setAuditOpen(true)} /></div>
     {auditOpen && <FigureAuditPanel bookName={book.storage_name || book.name} onClose={() => setAuditOpen(false)} />}
     {outlineOpen && <OutlineCalibrationPanel bookName={book.storage_name || book.name} onClose={() => setOutlineOpen(false)} />}
   </article>;
 }
 
-function ArchivedBookList({ books, onRestore }: { books: LibraryBook[]; onRestore: (reference: string) => void }) {
+function ArchivedBookList({ books, onDelete }: { books: LibraryBook[]; onDelete: (reference: string) => void }) {
   if (!books.length) return <EmptyState className="library-empty" icon={<Archive />} title="没有已归档教材" />;
-  return <div className="library-archive-list">{books.map((book) => <div key={book.book_id || book.name} className="library-archive-row"><div><strong>{book.display_name || book.name}</strong><span>{book.has_pdf ? 'PDF' : 'OCR / Markdown'} · {book.chapter_count || 0} 章</span></div><button onClick={() => onRestore(book.book_id || book.name)} className="app-secondary-button">恢复</button></div>)}</div>;
+  return <div className="library-archive-list">{books.map((book) => <div key={book.book_id || book.name} className="library-archive-row"><div><strong>{book.display_name || book.name}</strong><span>{book.has_pdf ? 'PDF' : 'OCR / Markdown'} · {book.chapter_count || 0} 章</span></div><button onClick={() => onDelete(book.book_id || book.name)} className="app-secondary-button">删除教材</button></div>)}</div>;
 }
 
-function BookOverflowMenu({ onRename, onArchive, onAudit }: { onRename: () => void; onArchive: () => void; onAudit: () => void }) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const pointer = (event: PointerEvent) => { if (!rootRef.current?.contains(event.target as Node)) setOpen(false); };
-    const keyboard = (event: KeyboardEvent) => { if (event.key === 'Escape') { setOpen(false); triggerRef.current?.focus(); } };
-    document.addEventListener('pointerdown', pointer, true); document.addEventListener('keydown', keyboard);
-    return () => { document.removeEventListener('pointerdown', pointer, true); document.removeEventListener('keydown', keyboard); };
-  }, [open]);
-  return <div ref={rootRef} className="library-overflow"><button ref={triggerRef} type="button" onClick={() => setOpen((value) => !value)} className="app-icon-button" aria-label="更多教材操作" aria-expanded={open} aria-haspopup="menu"><MoreHorizontal className="h-4 w-4" /></button>{open && <div className="library-overflow-menu" role="menu"><button type="button" role="menuitem" onClick={() => { setOpen(false); onAudit(); }}><CheckCircle2 className="h-3.5 w-3.5" />审核图片</button><button type="button" role="menuitem" onClick={() => { setOpen(false); onRename(); }}><Pencil className="h-3.5 w-3.5" />重命名</button><button type="button" role="menuitem" onClick={() => { setOpen(false); onArchive(); }} className="is-danger"><Archive className="h-3.5 w-3.5" />归档教材</button></div>}</div>;
+function BookOverflowMenu({ onRename, onDelete, onAudit }: { onRename: () => void; onDelete: () => void; onAudit: () => void }) {
+  const [menu, setMenu] = useState<{ x: number; y: number; trigger: HTMLElement } | null>(null);
+  return <><button type="button" className="app-icon-button" aria-label="更多教材操作" aria-expanded={!!menu} aria-haspopup="menu" onClick={event => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setMenu({ x: rect.right - 184, y: rect.bottom + 4, trigger: event.currentTarget });
+  }}><MoreHorizontal className="h-4 w-4" /></button>{menu && <ContextMenu {...menu} label="教材操作" onClose={() => setMenu(null)} items={[
+    { label: '审核图片', icon: <CheckCircle2 className="h-3.5 w-3.5" />, onSelect: onAudit },
+    { label: '重命名', icon: <Pencil className="h-3.5 w-3.5" />, onSelect: onRename },
+    { label: '删除教材', icon: <Trash2 className="h-3.5 w-3.5" />, danger: true, onSelect: onDelete },
+  ]} />}</>;
 }

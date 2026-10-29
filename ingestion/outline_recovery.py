@@ -12,7 +12,7 @@ import unicodedata
 
 from ingestion.heading_policy import body_title, exercise_heading
 
-POLICY_VERSION = 1
+POLICY_VERSION = 2
 _CN = r'[零〇一二三四五六七八九十百千\d]+'
 _NUMBERING = [
     ('part', rf'^第\s*{_CN}\s*[篇部]\s*\S', 1),
@@ -149,7 +149,8 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
     result = deepcopy(book)
     previous = book.source_metadata.get('outline_recovery', {})
     examples = examples if examples is not None else previous.get('examples', [])
-    max_depth = max_depth if max_depth is not None else previous.get('max_depth', 6)
+    max_depth = max_depth if max_depth is not None else (
+        previous.get('max_depth', 2) if previous.get('version') == POLICY_VERSION or examples else 2)
     if type(max_depth) is not int or not 1 <= max_depth <= 6:
         raise ValueError('目录深度应为 1–6 级')
     blocks = result.blocks
@@ -255,8 +256,11 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
                   and not re.match(r'^(?:【?\s*例|解答|答案|证明|[#＃]\s*\d|【\s*\d)', b.text)):
                 # Producer headings remain hints. Do not turn consecutive weak
                 # labels into a staircase of ever-deeper descendants.
-                level = (min(numeric_level + 1, 6) if b.attributes.get('heading_rule') == 'bounded_unnumbered'
-                         else source.get('heading_level') or min(numeric_level + 1, 6))
+                if has_chapter:
+                    level = max(3, min(numeric_level + 1, 6)) if stack else 0
+                else:
+                    level = (min(numeric_level + 1, 6) if b.attributes.get('heading_rule') == 'bounded_unnumbered'
+                             else source.get('heading_level') or min(numeric_level + 1, 6))
                 method = 'source_heading'
             else:
                 level = 0
@@ -268,9 +272,9 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
             elif name == 'section' and has_part and has_chapter:
                 level = 3
             elif name == 'cn-list':
-                level = 3 if families['section'] else 2
+                level = 3 if families['section'] or families['decimal-2'] or has_chapter and i not in toc else 2
             elif name == 'paren-cn':
-                level = (3 if families['section'] else 2) + 1
+                level = (3 if families['section'] or families['decimal-2'] or has_chapter and i not in toc else 2) + 1
         if eligible:
             if level:
                 while stack and stack[-1][0] >= level:
@@ -280,7 +284,7 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
                 b.block_type = 'heading'
                 b.attributes.update(heading_level=actual_level, outline_level=actual_level, outline_role=role,
                     outline_parent_id=stack[-1][2] if stack else '', outline_method=method,
-                    outline_visible=actual_level <= max_depth)
+                    outline_visible=level <= max_depth)
                 if not stack:
                     roots += 1
                 from ingestion.document_ir import canonical_chapter_title

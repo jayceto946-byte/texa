@@ -9,8 +9,8 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 
 @router.get("")
-def list_jobs(type: str | None = None, limit: int = 100):
-    jobs = get_job_manager().list_jobs(job_type=type, limit=limit)
+def list_jobs(type: str | None = None, limit: int = 100, book_name: str | None = None):
+    jobs = get_job_manager().list_jobs(job_type=type, limit=limit, book_name=book_name)
     return {"success": True, "data": jobs}
 
 

@@ -77,3 +77,42 @@ def test_purge_requires_exact_book_id(tmp_path):
         assert "book_id" in str(exc)
     else:
         raise AssertionError("purge must require exact stable id")
+
+
+def test_permanent_delete_cleans_retained_indexes_and_scoped_data(monkeypatch, tmp_path):
+    from backend.job_manager import JobManager
+    import chromadb
+    progress = tmp_path / 'progress'
+    vector = tmp_path / 'vector'
+    monkeypatch.setattr(lifecycle_module, 'BOOKS_PATH', tmp_path / 'books')
+    monkeypatch.setattr(lifecycle_module, 'MINERU_OUTPUT_PATH', tmp_path / 'mineru')
+    monkeypatch.setattr(lifecycle_module, 'VECTOR_DB_PATH', vector)
+    monkeypatch.setattr(lifecycle_module, 'DATA_DIR', tmp_path)
+    service = BookLifecycleService(progress)
+    identity, _ = service.ensure_identity('book')
+    other, _ = service.ensure_identity('other')
+    client = chromadb.PersistentClient(path=str(vector))
+    for col in ['bkcurrent', 'bkretained', 'bkother']:
+        client.create_collection(col)
+    from utils.json_io import atomic_write_json
+    atomic_write_json(vector / '_chapter_map.json', {'bkcurrent': {'book_name': 'book'}, 'bkother': {'book_name': 'other'}})
+    atomic_write_json(vector / '_index_manifests/book.json', {'versions': [{'collections': ['bkretained']}]})
+    atomic_write_json(vector / '_lexical_versions/book/old.json', [])
+    (progress / 'exercise_bank_book.db').write_bytes(b'bank')
+    manager = JobManager(progress / 'jobs.sqlite3')
+    job = manager.create_job('textbook_kg_enhancement', {'book_name': 'book'}, status='running')
+    import pytest
+    with pytest.raises(ValueError, match='教材名称'):
+        service.purge('book', confirmation=identity['book_id'])
+    with pytest.raises(ValueError, match='尚未停止'):
+        service.purge('book', confirmation=identity['book_id'], confirmed_name='book')
+    manager.update_job(job['id'], status='cancelled')
+    service.purge('book', confirmation=identity['book_id'], confirmed_name='book')
+    assert not (progress / 'book').exists()
+    assert not (progress / 'exercise_bank_book.db').exists()
+    assert not (vector / '_index_manifests/book.json').exists()
+    assert not (vector / '_lexical_versions/book').exists()
+    assert {c.name for c in client.list_collections()} == {'bkother'}
+    assert manager.list_jobs(book_name='book') == []
+    assert service.registry.resolve(other['book_id']) is not None
+    assert service.ensure_identity('book')[0]['book_id'] != identity['book_id']

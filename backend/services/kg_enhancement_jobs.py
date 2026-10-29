@@ -24,7 +24,7 @@ def _run_job(job_id: str, book_name: str) -> None:
             progress=progress,
             check_cancelled=lambda: manager.raise_if_cancelled(job_id),
         )
-        manager.update_job(job_id, status="completed", stage="completed", progress=100, message="\u6559\u6750\u6982\u5ff5\u7d22\u5f15\u63d0\u53d6\u5b8c\u6210", result=result)
+        manager.complete_job(job_id, stage="completed", progress=100, message="\u6559\u6750\u6982\u5ff5\u7d22\u5f15\u63d0\u53d6\u5b8c\u6210", result=result)
     except JobCancelled as exc:
         manager.update_job(job_id, status="cancelled", stage="cancelled", progress=100, message=str(exc) or "\u6982\u5ff5\u63d0\u53d6\u5df2\u53d6\u6d88", error=str(exc))
     except Exception as exc:
