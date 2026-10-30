@@ -1,7 +1,8 @@
 ; Runs only for --updated on an existing installation. First installs and manual
 ; reinstalls retain electron-builder's installer, uninstaller and signing flow.
 !include FileFunc.nsh
-!include "${__FILEDIR__}/installer-user-migration.nsh"
+!addincludedir "${__FILEDIR__}"
+!include "installer-user-migration.nsh"
 
 !macro customHeader
   !ifndef BUILD_UNINSTALLER
