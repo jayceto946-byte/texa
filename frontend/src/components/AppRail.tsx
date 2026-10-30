@@ -1,15 +1,16 @@
-import { BarChart3, BookOpen, ClipboardList, GraduationCap, MessageSquare, Settings, PanelLeftClose, Target, NotebookPen, CircleHelp } from 'lucide-react';
+import { TexaTextbook, TexaExercises, TexaMistakes, TexaLearning, TexaSettings, TexaGoals, TexaNotes } from './icons';
+import { BarChart3, PanelLeftClose, CircleHelp } from 'lucide-react';
 import type { RefObject } from 'react';
 import { NavLink } from 'react-router-dom';
 
 const primaryItems = [
-  { to: '/', icon: MessageSquare, label: '学习' },
-  { to: '/goals', icon: Target, label: '目标与任务' },
+  { to: '/', icon: TexaLearning, label: '学习' },
+  { to: '/goals', icon: TexaGoals, label: '目标与任务' },
   { to: '/learning', icon: BarChart3, label: '复习' },
-  { to: '/notes', icon: NotebookPen, label: '笔记' },
-  { to: '/mistakes', icon: GraduationCap, label: '错题' },
-  { to: '/exercises', icon: ClipboardList, label: '练习' },
-  { to: '/books', icon: BookOpen, label: '教材' },
+  { to: '/notes', icon: TexaNotes, label: '笔记' },
+  { to: '/mistakes', icon: TexaMistakes, label: '错题' },
+  { to: '/exercises', icon: TexaExercises, label: '练习' },
+  { to: '/books', icon: TexaTextbook, label: '教材' },
 ];
 
 function RailLink({ to, icon: Icon, label }: (typeof primaryItems)[number]) {
@@ -59,7 +60,7 @@ export default function AppRail({ collapsed, mobile, onOpenSettings, settingsBut
       <nav className="app-rail-footer" aria-label="应用设置">
         <RailLink to="/guide" icon={CircleHelp} label="用户指南" />
         <button ref={settingsButtonRef} type="button" onClick={onOpenSettings} className="app-rail-link" aria-label="设置" title="设置" aria-haspopup="dialog">
-          <Settings className="h-[18px] w-[18px]" />
+          <TexaSettings className="h-[18px] w-[18px]" />
           <span>设置</span>
         </button>
       </nav>
@@ -70,7 +71,7 @@ export default function AppRail({ collapsed, mobile, onOpenSettings, settingsBut
       <nav className="app-rail-footer" aria-label="应用设置">
         <RailLink to="/guide" icon={CircleHelp} label="用户指南" />
         <button ref={settingsButtonRef} type="button" onClick={onOpenSettings} className="app-rail-link" aria-label="设置" title="设置" aria-haspopup="dialog">
-          <Settings className="h-[18px] w-[18px]" />
+          <TexaSettings className="h-[18px] w-[18px]" />
           <span>设置</span>
         </button>
       </nav>

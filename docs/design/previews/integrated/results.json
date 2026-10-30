@@ -1,0 +1,82 @@
+{
+  "environment": "macOS Electron 37; actual business components on isolated Vite fixture; no live backend/model/storage",
+  "checks": [
+    {
+      "name": "chat uses production icons",
+      "passed": true
+    },
+    {
+      "name": "chat has approved mistake navigation",
+      "passed": true
+    },
+    {
+      "name": "chat navigation stroke is 1.8",
+      "passed": true
+    },
+    {
+      "name": "no document overflow 1024",
+      "passed": true
+    },
+    {
+      "name": "send retains accessible name 1024",
+      "passed": true
+    },
+    {
+      "name": "no document overflow 760",
+      "passed": true
+    },
+    {
+      "name": "send retains accessible name 760",
+      "passed": true
+    },
+    {
+      "name": "notes uses production icons",
+      "passed": true
+    },
+    {
+      "name": "notes has approved mistake navigation",
+      "passed": true
+    },
+    {
+      "name": "notes navigation stroke is 1.8",
+      "passed": true
+    },
+    {
+      "name": "books uses production icons",
+      "passed": true
+    },
+    {
+      "name": "books has approved mistake navigation",
+      "passed": true
+    },
+    {
+      "name": "books navigation stroke is 1.8",
+      "passed": true
+    },
+    {
+      "name": "goals uses production icons",
+      "passed": true
+    },
+    {
+      "name": "goals has approved mistake navigation",
+      "passed": true
+    },
+    {
+      "name": "goals navigation stroke is 1.8",
+      "passed": true
+    },
+    {
+      "name": "fixture does not connect to backend",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "chat-1280.png",
+    "chat-1024.png",
+    "chat-760.png",
+    "notes-1280.png",
+    "books-1280.png",
+    "goals-1280.png"
+  ]
+}

@@ -1,5 +1,6 @@
+import { TexaEdit, TexaDelete } from '../../components/icons';
 import React from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+
 
 import { SimpleMarkdown } from '../../components/chat/MarkdownMessage';
 import type { MathExpression } from './types';
@@ -33,8 +34,8 @@ const MathExpressionList: React.FC<MathExpressionListProps> = ({ expressions, on
                 <SimpleMarkdown content={expression.displayMode ? `$$\n${expression.latex}\n$$` : `$${expression.latex}$`} />
               </div>
               <div className="flex flex-shrink-0 items-center gap-0.5 border-l border-border/70 pl-1">
-                <button type="button" aria-label={`编辑公式${referenceNumber}`} title="编辑公式" onClick={() => onEdit(expression)} className="flex h-7 w-7 items-center justify-center rounded-md text-text-secondary hover:bg-[var(--surface-muted)] hover:text-accent"><Pencil className="h-3.5 w-3.5" /></button>
-                <button type="button" aria-label={`删除公式${referenceNumber}`} title="从问答框移除" onClick={() => onRemove(expression.id)} className="flex h-7 w-7 items-center justify-center rounded-md text-text-secondary hover:bg-red-50 hover:text-red-700"><Trash2 className="h-3.5 w-3.5" /></button>
+                <button type="button" aria-label={`编辑公式${referenceNumber}`} title="编辑公式" onClick={() => onEdit(expression)} className="flex h-7 w-7 items-center justify-center rounded-md text-text-secondary hover:bg-[var(--surface-muted)] hover:text-accent"><TexaEdit className="h-3.5 w-3.5" /></button>
+                <button type="button" aria-label={`删除公式${referenceNumber}`} title="从问答框移除" onClick={() => onRemove(expression.id)} className="flex h-7 w-7 items-center justify-center rounded-md text-text-secondary hover:bg-red-50 hover:text-red-700"><TexaDelete className="h-3.5 w-3.5" /></button>
               </div>
             </div>
           );

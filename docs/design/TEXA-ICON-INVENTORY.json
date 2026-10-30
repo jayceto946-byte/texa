@@ -1,0 +1,3407 @@
+{
+  "date": "2026-10-30",
+  "files": 216,
+  "names": [
+    "AlertCircle",
+    "AlertTriangle",
+    "Archive",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowUp",
+    "ArrowUpRight",
+    "BarChart3",
+    "BookMarked",
+    "BookOpen",
+    "BrainCircuit",
+    "CalendarClock",
+    "CalendarDays",
+    "Check",
+    "CheckCircle2",
+    "ChevronDown",
+    "ChevronLeft",
+    "ChevronRight",
+    "Circle",
+    "CircleAlert",
+    "CircleHelp",
+    "CircleX",
+    "ClipboardList",
+    "Copy",
+    "Database",
+    "ExternalLink",
+    "FilePlus2",
+    "FileText",
+    "Focus",
+    "FolderInput",
+    "FolderOpen",
+    "Globe2",
+    "GraduationCap",
+    "Grid3X3",
+    "HelpCircle",
+    "History",
+    "Image",
+    "ImagePlus",
+    "Images",
+    "Info",
+    "Link2",
+    "ListChecks",
+    "Loader2",
+    "LoaderCircle",
+    "Maximize2",
+    "MessageSquare",
+    "MessageSquarePlus",
+    "Minus",
+    "MoreHorizontal",
+    "NotebookPen",
+    "PanelLeftClose",
+    "PanelLeftOpen",
+    "Paperclip",
+    "Pause",
+    "Pencil",
+    "Pin",
+    "Play",
+    "Plus",
+    "Printer",
+    "RefreshCw",
+    "RotateCcw",
+    "RotateCw",
+    "Save",
+    "Scan",
+    "Search",
+    "Send",
+    "Settings",
+    "ShieldAlert",
+    "Shuffle",
+    "Sigma",
+    "SlidersHorizontal",
+    "Smartphone",
+    "Square",
+    "Target",
+    "Timer",
+    "Trash2",
+    "Upload",
+    "X"
+  ],
+  "rows": [
+    {
+      "name": "AlertCircle",
+      "local": "AlertCircle",
+      "file": "frontend/src/components/chat/ExecutionTrace.tsx",
+      "semantic": "错误或降级提示",
+      "sites": [
+        {
+          "line": 109,
+          "snippet": "degraded || failed || stage === 'waiting_for_input' ? AlertCircle : Check",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "AlertCircle",
+      "local": "AlertCircle",
+      "file": "frontend/src/components/ui/AsyncState.tsx",
+      "semantic": "错误或降级提示",
+      "sites": [
+        {
+          "line": 30,
+          "snippet": "icon: AlertCircle",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "AlertTriangle",
+      "local": "AlertTriangle",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "警告",
+      "sites": [
+        {
+          "line": 188,
+          "snippet": "<AlertTriangle />",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "AlertTriangle",
+      "local": "AlertTriangle",
+      "file": "frontend/src/components/SystemHealth.tsx",
+      "semantic": "警告",
+      "sites": [
+        {
+          "line": 26,
+          "snippet": "icon: AlertTriangle",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "AlertTriangle",
+      "local": "AlertTriangle",
+      "file": "frontend/src/layouts/MainLayout.tsx",
+      "semantic": "警告",
+      "sites": [
+        {
+          "line": 257,
+          "snippet": "<AlertTriangle className=\"h-4 w-4 flex-shrink-0\" />",
+          "size": "className=\"h-4 w-4 flex-shrink-0\" "
+        }
+      ]
+    },
+    {
+      "name": "Archive",
+      "local": "Archive",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "压缩包导入或归档",
+      "sites": [
+        {
+          "line": 130,
+          "snippet": "<Archive className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 219,
+          "snippet": "<Archive />",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "Archive",
+      "local": "Archive",
+      "file": "frontend/src/pages/BooksPage.tsx",
+      "semantic": "压缩包导入或归档",
+      "sites": [
+        {
+          "line": 264,
+          "snippet": "<Archive className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "ArrowDown",
+      "local": "ArrowDown",
+      "file": "frontend/src/features/focus/FocusPanel.tsx",
+      "semantic": "下移或回到最新",
+      "sites": [
+        {
+          "line": 35,
+          "snippet": "<ArrowDown size={14}/>",
+          "size": "size={14}"
+        }
+      ]
+    },
+    {
+      "name": "ArrowDown",
+      "local": "ArrowDown",
+      "file": "frontend/src/features/notes/NoteBlocks.tsx",
+      "semantic": "下移或回到最新",
+      "sites": [
+        {
+          "line": 39,
+          "snippet": "<ArrowDown size={16}/>",
+          "size": "size={16}"
+        }
+      ]
+    },
+    {
+      "name": "ArrowDown",
+      "local": "ArrowDown",
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "semantic": "下移或回到最新",
+      "sites": [
+        {
+          "line": 1057,
+          "snippet": "<ArrowDown size={17} aria-hidden=\"true\" />",
+          "size": "size={17} aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "ArrowLeft",
+      "local": "ArrowLeft",
+      "file": "frontend/src/components/FirstRunGuide.tsx",
+      "semantic": "返回上一步",
+      "sites": [
+        {
+          "line": 114,
+          "snippet": "<ArrowLeft size={16} />",
+          "size": "size={16} "
+        }
+      ]
+    },
+    {
+      "name": "ArrowLeft",
+      "local": "ArrowLeft",
+      "file": "frontend/src/pages/BooksPage.tsx",
+      "semantic": "返回上一步",
+      "sites": [
+        {
+          "line": 255,
+          "snippet": "<ArrowLeft className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "ArrowLeft",
+      "local": "ArrowLeft",
+      "file": "frontend/src/pages/GoalsPage.tsx",
+      "semantic": "返回上一步",
+      "sites": [
+        {
+          "line": 224,
+          "snippet": "<ArrowLeft size={15} />",
+          "size": "size={15} "
+        },
+        {
+          "line": 238,
+          "snippet": "<ArrowLeft size={15} />",
+          "size": "size={15} "
+        }
+      ]
+    },
+    {
+      "name": "ArrowLeft",
+      "local": "ArrowLeft",
+      "file": "frontend/src/pages/MistakeIntakePage.tsx",
+      "semantic": "返回上一步",
+      "sites": [
+        {
+          "line": 47,
+          "snippet": "<ArrowLeft className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 163,
+          "snippet": "<ArrowLeft className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "ArrowLeft",
+      "local": "ArrowLeft",
+      "file": "frontend/src/pages/MistakesPage.tsx",
+      "semantic": "返回上一步",
+      "sites": [
+        {
+          "line": 287,
+          "snippet": "<ArrowLeft className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 388,
+          "snippet": "<ArrowLeft className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "ArrowLeft",
+      "local": "ArrowLeft",
+      "file": "frontend/src/pages/ReviewSessionPage.tsx",
+      "semantic": "返回上一步",
+      "sites": [
+        {
+          "line": 47,
+          "snippet": "<ArrowLeft className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 56,
+          "snippet": "<ArrowLeft className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "ArrowLeft",
+      "local": "ArrowLeft",
+      "file": "frontend/src/pages/UserGuidePage.tsx",
+      "semantic": "返回上一步",
+      "sites": [
+        {
+          "line": 55,
+          "snippet": "<ArrowLeft size={15} />",
+          "size": "size={15} "
+        }
+      ]
+    },
+    {
+      "name": "ArrowRight",
+      "local": "ArrowRight",
+      "file": "frontend/src/components/FirstRunGuide.tsx",
+      "semantic": "前进或下一题",
+      "sites": [
+        {
+          "line": 110,
+          "snippet": "<ArrowRight size={16} />",
+          "size": "size={16} "
+        },
+        {
+          "line": 114,
+          "snippet": "<ArrowRight size={16} />",
+          "size": "size={16} "
+        },
+        {
+          "line": 115,
+          "snippet": "<ArrowRight size={16} />",
+          "size": "size={16} "
+        }
+      ]
+    },
+    {
+      "name": "ArrowRight",
+      "local": "ArrowRight",
+      "file": "frontend/src/pages/MistakesPage.tsx",
+      "semantic": "前进或下一题",
+      "sites": [
+        {
+          "line": 188,
+          "snippet": "<ArrowRight className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "ArrowRight",
+      "local": "ArrowRight",
+      "file": "frontend/src/pages/UserGuidePage.tsx",
+      "semantic": "前进或下一题",
+      "sites": [
+        {
+          "line": 54,
+          "snippet": "<ArrowRight size={14} />",
+          "size": "size={14} "
+        },
+        {
+          "line": 54,
+          "snippet": "<ArrowRight size={14} />",
+          "size": "size={14} "
+        },
+        {
+          "line": 55,
+          "snippet": "<ArrowRight size={15} />",
+          "size": "size={15} "
+        },
+        {
+          "line": 55,
+          "snippet": "<ArrowRight size={15} />",
+          "size": "size={15} "
+        },
+        {
+          "line": 55,
+          "snippet": "<ArrowRight size={15} />",
+          "size": "size={15} "
+        }
+      ]
+    },
+    {
+      "name": "ArrowUp",
+      "local": "ArrowUp",
+      "file": "frontend/src/features/focus/FocusPanel.tsx",
+      "semantic": "上移",
+      "sites": [
+        {
+          "line": 35,
+          "snippet": "<ArrowUp size={14}/>",
+          "size": "size={14}"
+        }
+      ]
+    },
+    {
+      "name": "ArrowUp",
+      "local": "ArrowUp",
+      "file": "frontend/src/features/notes/NoteBlocks.tsx",
+      "semantic": "上移",
+      "sites": [
+        {
+          "line": 38,
+          "snippet": "<ArrowUp size={16}/>",
+          "size": "size={16}"
+        }
+      ]
+    },
+    {
+      "name": "ArrowUpRight",
+      "local": "ArrowUpRight",
+      "file": "frontend/src/features/focus/FocusController.tsx",
+      "semantic": "展开专注面板",
+      "sites": [
+        {
+          "line": 129,
+          "snippet": "<ArrowUpRight size={12} aria-hidden=\"true\" />",
+          "size": "size={12} aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "BarChart3",
+      "local": "BarChart3",
+      "file": "frontend/src/components/AppRail.tsx",
+      "semantic": "复习工作区",
+      "sites": [
+        {
+          "line": 8,
+          "snippet": "icon: BarChart3",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "BookMarked",
+      "local": "BookMarked",
+      "file": "frontend/src/components/HighlightRepositoryDialog.tsx",
+      "semantic": "错题来源/教材标记",
+      "sites": [
+        {
+          "line": 391,
+          "snippet": "<BookMarked className=\"h-4 w-4 flex-shrink-0 text-accent\" />",
+          "size": "className=\"h-4 w-4 flex-shrink-0 text-accent\" "
+        },
+        {
+          "line": 521,
+          "snippet": "<BookMarked className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        },
+        {
+          "line": 577,
+          "snippet": "<BookMarked className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "BookMarked",
+      "local": "BookMarked",
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "semantic": "错题来源/教材标记",
+      "sites": [
+        {
+          "line": 1086,
+          "snippet": "<BookMarked className=\"h-5 w-5\" />",
+          "size": "className=\"h-5 w-5\" "
+        },
+        {
+          "line": 1132,
+          "snippet": "<BookMarked className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 1146,
+          "snippet": "<BookMarked className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "BookOpen",
+      "local": "BookOpen",
+      "file": "frontend/src/components/AppRail.tsx",
+      "semantic": "教材/范围/来源",
+      "sites": [
+        {
+          "line": 12,
+          "snippet": "icon: BookOpen",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "BookOpen",
+      "local": "BookOpen",
+      "file": "frontend/src/components/chat/ChapterHighlightCard.tsx",
+      "semantic": "教材/范围/来源",
+      "sites": [
+        {
+          "line": 15,
+          "snippet": "<BookOpen className=\"h-4 w-4 text-accent\" />",
+          "size": "className=\"h-4 w-4 text-accent\" "
+        }
+      ]
+    },
+    {
+      "name": "BookOpen",
+      "local": "BookOpen",
+      "file": "frontend/src/components/chat/ExecutionTrace.tsx",
+      "semantic": "教材/范围/来源",
+      "sites": [
+        {
+          "line": 40,
+          "snippet": "<BookOpen />",
+          "size": "动态映射 / 容器 CSS"
+        },
+        {
+          "line": 47,
+          "snippet": "<BookOpen />",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "BookOpen",
+      "local": "BookOpen",
+      "file": "frontend/src/components/ChatMessage.tsx",
+      "semantic": "教材/范围/来源",
+      "sites": [
+        {
+          "line": 378,
+          "snippet": "<BookOpen className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        },
+        {
+          "line": 388,
+          "snippet": "<BookOpen className=\"h-3 w-3\" />",
+          "size": "className=\"h-3 w-3\" "
+        }
+      ]
+    },
+    {
+      "name": "BookOpen",
+      "local": "BookOpen",
+      "file": "frontend/src/components/ScopeSelector.tsx",
+      "semantic": "教材/范围/来源",
+      "sites": [
+        {
+          "line": 371,
+          "snippet": "<BookOpen className=\"h-3.5 w-3.5 flex-shrink-0 text-accent\" />",
+          "size": "className=\"h-3.5 w-3.5 flex-shrink-0 text-accent\" "
+        }
+      ]
+    },
+    {
+      "name": "BookOpen",
+      "local": "BookOpen",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "教材/范围/来源",
+      "sites": [
+        {
+          "line": 162,
+          "snippet": "<BookOpen />",
+          "size": "动态映射 / 容器 CSS"
+        },
+        {
+          "line": 205,
+          "snippet": "<BookOpen className=\"study-book-icon\" aria-hidden=\"true\" />",
+          "size": "className=\"study-book-icon\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "BookOpen",
+      "local": "BookOpen",
+      "file": "frontend/src/components/SystemHealth.tsx",
+      "semantic": "教材/范围/来源",
+      "sites": [
+        {
+          "line": 430,
+          "snippet": "<BookOpen className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "BookOpen",
+      "local": "BookOpen",
+      "file": "frontend/src/features/visual-learning/FigureContextAttachment.tsx",
+      "semantic": "教材/范围/来源",
+      "sites": [
+        {
+          "line": 31,
+          "snippet": "<BookOpen className=\"h-3.5 w-3.5\" aria-hidden=\"true\" />",
+          "size": "className=\"h-3.5 w-3.5\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "BookOpen",
+      "local": "BookOpen",
+      "file": "frontend/src/features/visual-learning/FigureRegionViewer.tsx",
+      "semantic": "教材/范围/来源",
+      "sites": [
+        {
+          "line": 82,
+          "snippet": "<BookOpen className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "BookOpen",
+      "local": "BookOpen",
+      "file": "frontend/src/pages/ExercisesPage.tsx",
+      "semantic": "教材/范围/来源",
+      "sites": [
+        {
+          "line": 633,
+          "snippet": "<BookOpen size={22} />",
+          "size": "size={22} "
+        }
+      ]
+    },
+    {
+      "name": "BookOpen",
+      "local": "BookOpen",
+      "file": "frontend/src/pages/LearningPage.tsx",
+      "semantic": "教材/范围/来源",
+      "sites": [
+        {
+          "line": 498,
+          "snippet": "<MiniBlock icon={BookOpen} title=\"教材线索\">",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "BookOpen",
+      "local": "BookOpen",
+      "file": "frontend/src/pages/MistakesPage.tsx",
+      "semantic": "教材/范围/来源",
+      "sites": [
+        {
+          "line": 340,
+          "snippet": "<BookOpen className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 391,
+          "snippet": "<BookOpen className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "BrainCircuit",
+      "local": "BrainCircuit",
+      "file": "frontend/src/pages/LearningPage.tsx",
+      "semantic": "完善知识关联",
+      "sites": [
+        {
+          "line": 382,
+          "snippet": "<BrainCircuit className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "CalendarClock",
+      "local": "CalendarClock",
+      "file": "frontend/src/pages/GoalsPage.tsx",
+      "semantic": "定时任务",
+      "sites": [
+        {
+          "line": 246,
+          "snippet": "<CalendarClock size={15} />",
+          "size": "size={15} "
+        }
+      ]
+    },
+    {
+      "name": "CalendarDays",
+      "local": "CalendarDays",
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "semantic": "日历/学习摘要",
+      "sites": [
+        {
+          "line": 1143,
+          "snippet": "<CalendarDays className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        },
+        {
+          "line": 1144,
+          "snippet": "<CalendarDays className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "CalendarDays",
+      "local": "CalendarDays",
+      "file": "frontend/src/pages/LearningPage.tsx",
+      "semantic": "日历/学习摘要",
+      "sites": [
+        {
+          "line": 434,
+          "snippet": "<CalendarDays className=\"h-4 w-4 text-accent\" />",
+          "size": "className=\"h-4 w-4 text-accent\" "
+        }
+      ]
+    },
+    {
+      "name": "Check",
+      "local": "Check",
+      "file": "frontend/src/components/chat/ExecutionTrace.tsx",
+      "semantic": "确认/选中/完成",
+      "sites": [
+        {
+          "line": 26,
+          "snippet": "<Check className=\"text-[var(--success)]\" />",
+          "size": "className=\"text-[var(--success)]\" "
+        },
+        {
+          "line": 109,
+          "snippet": "degraded || failed || stage === 'waiting_for_input' ? AlertCircle : Check",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "Check",
+      "local": "Check",
+      "file": "frontend/src/components/chat/LearningTaskActions.tsx",
+      "semantic": "确认/选中/完成",
+      "sites": [
+        {
+          "line": 74,
+          "snippet": "<Check className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Check",
+      "local": "Check",
+      "file": "frontend/src/components/FirstRunGuide.tsx",
+      "semantic": "确认/选中/完成",
+      "sites": [
+        {
+          "line": 115,
+          "snippet": "<Check size={15} />",
+          "size": "size={15} "
+        }
+      ]
+    },
+    {
+      "name": "Check",
+      "local": "Check",
+      "file": "frontend/src/components/ScopeSelector.tsx",
+      "semantic": "确认/选中/完成",
+      "sites": [
+        {
+          "line": 412,
+          "snippet": "<Check className=\"h-3.5 w-3.5 flex-shrink-0 text-accent\" />",
+          "size": "className=\"h-3.5 w-3.5 flex-shrink-0 text-accent\" "
+        }
+      ]
+    },
+    {
+      "name": "Check",
+      "local": "Check",
+      "file": "frontend/src/components/settings/AppearanceSettings.tsx",
+      "semantic": "确认/选中/完成",
+      "sites": [
+        {
+          "line": 43,
+          "snippet": "<Check />",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "Check",
+      "local": "Check",
+      "file": "frontend/src/components/ui/ScrollableSelect.tsx",
+      "semantic": "确认/选中/完成",
+      "sites": [
+        {
+          "line": 183,
+          "snippet": "<Check className=\"h-4 w-4 flex-none text-accent\" aria-hidden=\"true\" />",
+          "size": "className=\"h-4 w-4 flex-none text-accent\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "Check",
+      "local": "Check",
+      "file": "frontend/src/features/focus/FocusController.tsx",
+      "semantic": "确认/选中/完成",
+      "sites": [
+        {
+          "line": 141,
+          "snippet": "<Check size={14} aria-hidden=\"true\" />",
+          "size": "size={14} aria-hidden=\"true\" "
+        },
+        {
+          "line": 151,
+          "snippet": "<Check size={14} />",
+          "size": "size={14} "
+        },
+        {
+          "line": 161,
+          "snippet": "<Check size={14} />",
+          "size": "size={14} "
+        }
+      ]
+    },
+    {
+      "name": "Check",
+      "local": "Check",
+      "file": "frontend/src/features/focus/FocusPanel.tsx",
+      "semantic": "确认/选中/完成",
+      "sites": [
+        {
+          "line": 42,
+          "snippet": "<Check size={15}/>",
+          "size": "size={15}"
+        }
+      ]
+    },
+    {
+      "name": "CheckCircle2",
+      "local": "CheckCircle2",
+      "file": "frontend/src/components/HighlightRepositoryDialog.tsx",
+      "semantic": "成功状态",
+      "sites": [
+        {
+          "line": 68,
+          "snippet": "<CheckCircle2 className=\"h-4 w-4 text-[var(--success)]\" />",
+          "size": "className=\"h-4 w-4 text-[var(--success)]\" "
+        }
+      ]
+    },
+    {
+      "name": "CheckCircle2",
+      "local": "CheckCircle2",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "成功状态",
+      "sites": [
+        {
+          "line": 188,
+          "snippet": "<CheckCircle2 />",
+          "size": "动态映射 / 容器 CSS"
+        },
+        {
+          "line": 229,
+          "snippet": "<CheckCircle2 className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "CheckCircle2",
+      "local": "CheckCircle2",
+      "file": "frontend/src/components/SystemHealth.tsx",
+      "semantic": "成功状态",
+      "sites": [
+        {
+          "line": 24,
+          "snippet": "statusMeta: Record<SystemHealthStatus, { label: string; icon: typeof CheckCircle2; iconClass: string; className: string }> = {\n  healthy: { label: '系统正常', icon: CheckCircle2, iconClass: 'text-[var(--success)]', className: 'status-success' },\n  degraded: { label: '部分降级', icon: AlertTriangle, iconClass: 'text-[var(--warning)]', className: 'status-war",
+          "size": "动态映射 / 容器 CSS"
+        },
+        {
+          "line": 25,
+          "snippet": "icon: CheckCircle2",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "CheckCircle2",
+      "local": "CheckCircle2",
+      "file": "frontend/src/components/ui/AsyncState.tsx",
+      "semantic": "成功状态",
+      "sites": [
+        {
+          "line": 31,
+          "snippet": "icon: CheckCircle2",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "ChevronDown",
+      "local": "ChevronDown",
+      "file": "frontend/src/components/ScopeSelector.tsx",
+      "semantic": "下拉或折叠",
+      "sites": [
+        {
+          "line": 302,
+          "snippet": "<ChevronDown className={`h-4 w-4 flex-shrink-0 text-text-secondary transition-transform ${open ? 'rotate-180' : ''}`} />",
+          "size": "className={`h-4 w-4 flex-shrink-0 text-text-secondary transition-transform ${open ? 'rotate-180' : ''}`} "
+        }
+      ]
+    },
+    {
+      "name": "ChevronDown",
+      "local": "ChevronDown",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "下拉或折叠",
+      "sites": [
+        {
+          "line": 118,
+          "snippet": "<ChevronDown className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "ChevronDown",
+      "local": "ChevronDown",
+      "file": "frontend/src/components/settings/ModelSettingsManager.tsx",
+      "semantic": "下拉或折叠",
+      "sites": [
+        {
+          "line": 221,
+          "snippet": "<ChevronDown size={15} className={connectionExpanded ? 'rotate-180' : ''} />",
+          "size": "size={15} className={connectionExpanded ? 'rotate-180' : ''} "
+        }
+      ]
+    },
+    {
+      "name": "ChevronDown",
+      "local": "ChevronDown",
+      "file": "frontend/src/components/ui/ScrollableSelect.tsx",
+      "semantic": "下拉或折叠",
+      "sites": [
+        {
+          "line": 147,
+          "snippet": "<ChevronDown className={`h-4 w-4 flex-none text-text-secondary transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden=\"true\" />",
+          "size": "className={`h-4 w-4 flex-none text-text-secondary transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "ChevronDown",
+      "local": "ChevronDown",
+      "file": "frontend/src/pages/ExercisesPage.tsx",
+      "semantic": "下拉或折叠",
+      "sites": [
+        {
+          "line": 691,
+          "snippet": "<ChevronDown className=\"h-4 w-4 text-accent\" />",
+          "size": "className=\"h-4 w-4 text-accent\" "
+        }
+      ]
+    },
+    {
+      "name": "ChevronDown",
+      "local": "ChevronDown",
+      "file": "frontend/src/pages/LearningPage.tsx",
+      "semantic": "下拉或折叠",
+      "sites": [
+        {
+          "line": 360,
+          "snippet": "<ChevronDown className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 491,
+          "snippet": "<ChevronDown className={open ? 'h-4 w-4 rotate-180' : 'h-4 w-4'} />",
+          "size": "className={open ? 'h-4 w-4 rotate-180' : 'h-4 w-4'} "
+        },
+        {
+          "line": 517,
+          "snippet": "<ChevronDown className={expanded ? 'h-4 w-4 rotate-180' : 'h-4 w-4'} />",
+          "size": "className={expanded ? 'h-4 w-4 rotate-180' : 'h-4 w-4'} "
+        }
+      ]
+    },
+    {
+      "name": "ChevronLeft",
+      "local": "ChevronLeft",
+      "file": "frontend/src/features/math-input/VisualMathInputPopover.tsx",
+      "semantic": "返回分类",
+      "sites": [
+        {
+          "line": 151,
+          "snippet": "<ChevronLeft className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "ChevronRight",
+      "local": "ChevronRight",
+      "file": "frontend/src/components/chat/ExecutionTrace.tsx",
+      "semantic": "展开详情",
+      "sites": [
+        {
+          "line": 40,
+          "snippet": "<ChevronRight className=\"execution-disclosure\" />",
+          "size": "className=\"execution-disclosure\" "
+        },
+        {
+          "line": 47,
+          "snippet": "<ChevronRight className=\"execution-disclosure\" />",
+          "size": "className=\"execution-disclosure\" "
+        },
+        {
+          "line": 118,
+          "snippet": "<ChevronRight className={`execution-disclosure ${expanded ? 'is-open' : ''}`} />",
+          "size": "className={`execution-disclosure ${expanded ? 'is-open' : ''}`} "
+        }
+      ]
+    },
+    {
+      "name": "ChevronRight",
+      "local": "ChevronRight",
+      "file": "frontend/src/components/ScopeSelector.tsx",
+      "semantic": "展开详情",
+      "sites": [
+        {
+          "line": 340,
+          "snippet": "<ChevronRight className=\"h-3.5 w-3.5 flex-shrink-0 text-text-secondary\" />",
+          "size": "className=\"h-3.5 w-3.5 flex-shrink-0 text-text-secondary\" "
+        }
+      ]
+    },
+    {
+      "name": "ChevronRight",
+      "local": "ChevronRight",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "展开详情",
+      "sites": [
+        {
+          "line": 118,
+          "snippet": "<ChevronRight className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "ChevronRight",
+      "local": "ChevronRight",
+      "file": "frontend/src/pages/ExercisesPage.tsx",
+      "semantic": "展开详情",
+      "sites": [
+        {
+          "line": 570,
+          "snippet": "<ChevronRight size={16} />",
+          "size": "size={16} "
+        },
+        {
+          "line": 633,
+          "snippet": "<ChevronRight size={16} />",
+          "size": "size={16} "
+        },
+        {
+          "line": 636,
+          "snippet": "<ChevronRight size={16} />",
+          "size": "size={16} "
+        },
+        {
+          "line": 691,
+          "snippet": "<ChevronRight className=\"h-4 w-4 text-text-secondary\" />",
+          "size": "className=\"h-4 w-4 text-text-secondary\" "
+        }
+      ]
+    },
+    {
+      "name": "ChevronRight",
+      "local": "ChevronRight",
+      "file": "frontend/src/pages/NoteDetailPage.tsx",
+      "semantic": "展开详情",
+      "sites": [
+        {
+          "line": 38,
+          "snippet": "<ChevronRight size={14} aria-hidden=\"true\"/>",
+          "size": "size={14} aria-hidden=\"true\""
+        }
+      ]
+    },
+    {
+      "name": "Circle",
+      "local": "Circle",
+      "file": "frontend/src/components/chat/ExecutionTrace.tsx",
+      "semantic": "等待/未完成",
+      "sites": [
+        {
+          "line": 28,
+          "snippet": "<Circle className=\"text-text-tertiary\" />",
+          "size": "className=\"text-text-tertiary\" "
+        }
+      ]
+    },
+    {
+      "name": "Circle",
+      "local": "Circle",
+      "file": "frontend/src/components/HighlightRepositoryDialog.tsx",
+      "semantic": "等待/未完成",
+      "sites": [
+        {
+          "line": 71,
+          "snippet": "<Circle className=\"h-4 w-4 text-text-secondary/55\" />",
+          "size": "className=\"h-4 w-4 text-text-secondary/55\" "
+        }
+      ]
+    },
+    {
+      "name": "CircleAlert",
+      "local": "CircleAlert",
+      "file": "frontend/src/components/ui/AsyncState.tsx",
+      "semantic": "信息提示",
+      "sites": [
+        {
+          "line": 32,
+          "snippet": "icon: CircleAlert",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "CircleHelp",
+      "local": "CircleHelp",
+      "file": "frontend/src/components/AppRail.tsx",
+      "semantic": "用户指南",
+      "sites": [
+        {
+          "line": 60,
+          "snippet": "<RailLink to=\"/guide\" icon={CircleHelp} label=\"用户指南\" />",
+          "size": "动态映射 / 容器 CSS"
+        },
+        {
+          "line": 71,
+          "snippet": "<RailLink to=\"/guide\" icon={CircleHelp} label=\"用户指南\" />",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "CircleX",
+      "local": "CircleX",
+      "file": "frontend/src/components/SystemHealth.tsx",
+      "semantic": "失败状态",
+      "sites": [
+        {
+          "line": 27,
+          "snippet": "icon: CircleX",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "ClipboardList",
+      "local": "ClipboardList",
+      "file": "frontend/src/components/AppRail.tsx",
+      "semantic": "练习与题库",
+      "sites": [
+        {
+          "line": 11,
+          "snippet": "icon: ClipboardList",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "ClipboardList",
+      "local": "ClipboardList",
+      "file": "frontend/src/pages/ExercisesPage.tsx",
+      "semantic": "练习与题库",
+      "sites": [
+        {
+          "line": 716,
+          "snippet": "<ClipboardList className=\"mx-auto mb-2 h-6 w-6\" />",
+          "size": "className=\"mx-auto mb-2 h-6 w-6\" "
+        }
+      ]
+    },
+    {
+      "name": "ClipboardList",
+      "local": "ClipboardList",
+      "file": "frontend/src/pages/LearningPage.tsx",
+      "semantic": "练习与题库",
+      "sites": [
+        {
+          "line": 497,
+          "snippet": "<MiniBlock icon={ClipboardList} title=\"相关近期问题\">",
+          "size": "动态映射 / 容器 CSS"
+        },
+        {
+          "line": 499,
+          "snippet": "<MiniBlock icon={ClipboardList} title=\"相关错题\">",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "ClipboardList",
+      "local": "ClipboardList",
+      "file": "frontend/src/pages/MistakesPage.tsx",
+      "semantic": "练习与题库",
+      "sites": [
+        {
+          "line": 391,
+          "snippet": "<ClipboardList className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Copy",
+      "local": "Copy",
+      "file": "frontend/src/components/DesktopTitleBar.tsx",
+      "semantic": "还原窗口",
+      "sites": [
+        {
+          "line": 30,
+          "snippet": "<Copy className=\"desktop-restore-icon\" />",
+          "size": "className=\"desktop-restore-icon\" "
+        }
+      ]
+    },
+    {
+      "name": "Copy",
+      "local": "Copy",
+      "file": "frontend/src/components/settings/MobileRemoteS0.tsx",
+      "semantic": "复制内容",
+      "sites": [
+        {
+          "line": 32,
+          "snippet": "<Copy size={15}/>",
+          "size": "size={15}"
+        }
+      ]
+    },
+    {
+      "name": "Copy",
+      "local": "Copy",
+      "file": "frontend/src/pages/UserGuidePage.tsx",
+      "semantic": "复制内容",
+      "sites": [
+        {
+          "line": 14,
+          "snippet": "<Copy size={14} />",
+          "size": "size={14} "
+        }
+      ]
+    },
+    {
+      "name": "Database",
+      "local": "Database",
+      "file": "frontend/src/components/settings/DataSafety.tsx",
+      "semantic": "数据备份",
+      "sites": [
+        {
+          "line": 92,
+          "snippet": "<Database className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "ExternalLink",
+      "local": "ExternalLink",
+      "file": "frontend/src/components/HighlightRepositoryDialog.tsx",
+      "semantic": "打开独立来源",
+      "sites": [
+        {
+          "line": 505,
+          "snippet": "<ExternalLink className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "ExternalLink",
+      "local": "ExternalLink",
+      "file": "frontend/src/pages/HighlightPage.tsx",
+      "semantic": "打开独立来源",
+      "sites": [
+        {
+          "line": 154,
+          "snippet": "<ExternalLink className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "ExternalLink",
+      "local": "ExternalLink",
+      "file": "frontend/src/pages/LearningPage.tsx",
+      "semantic": "打开独立来源",
+      "sites": [
+        {
+          "line": 499,
+          "snippet": "<ExternalLink className=\"inline h-3 w-3\" />",
+          "size": "className=\"inline h-3 w-3\" "
+        },
+        {
+          "line": 521,
+          "snippet": "<ExternalLink className=\"h-3 w-3\" />",
+          "size": "className=\"h-3 w-3\" "
+        }
+      ]
+    },
+    {
+      "name": "FilePlus2",
+      "local": "FilePlus2",
+      "file": "frontend/src/components/chat/LearningTaskGate.tsx",
+      "semantic": "新建文件条目",
+      "sites": [
+        {
+          "line": 47,
+          "snippet": "<FilePlus2 className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "FileText",
+      "local": "FileText",
+      "file": "frontend/src/layouts/MainLayout.tsx",
+      "semantic": "文档/章节",
+      "sites": [
+        {
+          "line": 265,
+          "snippet": "<FileText className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "FileText",
+      "local": "FileText",
+      "file": "frontend/src/pages/BooksPage.tsx",
+      "semantic": "文档/章节",
+      "sites": [
+        {
+          "line": 264,
+          "snippet": "<FileText className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Focus",
+      "local": "Focus",
+      "file": "frontend/src/features/visual-learning/FigureRegionViewer.tsx",
+      "semantic": "图片对焦/裁剪",
+      "sites": [
+        {
+          "line": 79,
+          "snippet": "<Focus className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "FolderInput",
+      "local": "FolderInput",
+      "file": "frontend/src/components/chat/SubjectRouteSuggestionCard.tsx",
+      "semantic": "导入目录",
+      "sites": [
+        {
+          "line": 128,
+          "snippet": "<FolderInput className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "FolderOpen",
+      "local": "FolderOpen",
+      "file": "frontend/src/components/HighlightRepositoryDialog.tsx",
+      "semantic": "打开教材目录",
+      "sites": [
+        {
+          "line": 504,
+          "snippet": "<FolderOpen className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        },
+        {
+          "line": 526,
+          "snippet": "<FolderOpen className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        },
+        {
+          "line": 573,
+          "snippet": "<FolderOpen className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "FolderOpen",
+      "local": "FolderOpen",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "打开教材目录",
+      "sites": [
+        {
+          "line": 119,
+          "snippet": "<FolderOpen className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Globe2",
+      "local": "Globe2",
+      "file": "frontend/src/components/ChatMessage.tsx",
+      "semantic": "联网工具来源（现有搁置差异）",
+      "sites": [
+        {
+          "line": 323,
+          "snippet": "<Globe2 className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        },
+        {
+          "line": 340,
+          "snippet": "<Globe2 className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "GraduationCap",
+      "local": "GraduationCap",
+      "file": "frontend/src/components/AppRail.tsx",
+      "semantic": "错题/学科范围",
+      "sites": [
+        {
+          "line": 10,
+          "snippet": "icon: GraduationCap",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "GraduationCap",
+      "local": "GraduationCap",
+      "file": "frontend/src/components/ChatMessage.tsx",
+      "semantic": "错题/学科范围",
+      "sites": [
+        {
+          "line": 340,
+          "snippet": "<GraduationCap className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "GraduationCap",
+      "local": "GraduationCap",
+      "file": "frontend/src/components/ScopeSelector.tsx",
+      "semantic": "错题/学科范围",
+      "sites": [
+        {
+          "line": 300,
+          "snippet": "<GraduationCap className=\"h-4 w-4 flex-shrink-0 text-accent\" />",
+          "size": "className=\"h-4 w-4 flex-shrink-0 text-accent\" "
+        }
+      ]
+    },
+    {
+      "name": "Grid3X3",
+      "local": "Grid3X3",
+      "file": "frontend/src/features/math-input/VisualMathInputPopover.tsx",
+      "semantic": "数学模板分类",
+      "sites": [
+        {
+          "line": 173,
+          "snippet": "<Grid3X3 className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "HelpCircle",
+      "local": "HelpCircle",
+      "file": "frontend/src/pages/BooksPage.tsx",
+      "semantic": "帮助",
+      "sites": [
+        {
+          "line": 70,
+          "snippet": "<HelpCircle className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "local": "History",
+      "file": "frontend/src/components/LearningHistoryDock.tsx",
+      "semantic": "历史记录",
+      "sites": [
+        {
+          "line": 66,
+          "snippet": "<History size={16} aria-hidden=\"true\" />",
+          "size": "size={16} aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "Image",
+      "local": "ImageIcon",
+      "file": "frontend/src/features/visual-learning/FigureCatalog.tsx",
+      "semantic": "图片/教材图",
+      "sites": [
+        {
+          "line": 71,
+          "snippet": "<ImageIcon className=\"h-4 w-4 shrink-0\" aria-hidden=\"true\" />",
+          "size": "className=\"h-4 w-4 shrink-0\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "ImagePlus",
+      "local": "ImagePlus",
+      "file": "frontend/src/components/chat/MistakeQuickCaptureCard.tsx",
+      "semantic": "上传题图",
+      "sites": [
+        {
+          "line": 8,
+          "snippet": "<ImagePlus className=\"h-4 w-4 text-accent\" />",
+          "size": "className=\"h-4 w-4 text-accent\" "
+        }
+      ]
+    },
+    {
+      "name": "ImagePlus",
+      "local": "ImagePlus",
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "semantic": "上传题图",
+      "sites": [
+        {
+          "line": 1129,
+          "snippet": "<ImagePlus className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 1130,
+          "snippet": "<ImagePlus className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 1147,
+          "snippet": "<ImagePlus className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "ImagePlus",
+      "local": "ImagePlus",
+      "file": "frontend/src/pages/MistakeIntakePage.tsx",
+      "semantic": "上传题图",
+      "sites": [
+        {
+          "line": 47,
+          "snippet": "<ImagePlus className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 164,
+          "snippet": "<ImagePlus className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "ImagePlus",
+      "local": "ImagePlus",
+      "file": "frontend/src/pages/MistakesPage.tsx",
+      "semantic": "上传题图",
+      "sites": [
+        {
+          "line": 177,
+          "snippet": "<ImagePlus className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "ImagePlus",
+      "local": "ImagePlus",
+      "file": "frontend/src/pages/ReviewSessionPage.tsx",
+      "semantic": "上传题图",
+      "sites": [
+        {
+          "line": 74,
+          "snippet": "<ImagePlus size={16} />",
+          "size": "size={16} "
+        }
+      ]
+    },
+    {
+      "name": "Images",
+      "local": "Images",
+      "file": "frontend/src/features/visual-learning/FigureContextAttachment.tsx",
+      "semantic": "教材图浏览",
+      "sites": [
+        {
+          "line": 18,
+          "snippet": "<Images className=\"h-4 w-4 shrink-0 text-text-secondary\" aria-hidden=\"true\" />",
+          "size": "className=\"h-4 w-4 shrink-0 text-text-secondary\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "Images",
+      "local": "Images",
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "semantic": "教材图浏览",
+      "sites": [
+        {
+          "line": 1131,
+          "snippet": "<Images className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Info",
+      "local": "Info",
+      "file": "frontend/src/components/ui/AsyncState.tsx",
+      "semantic": "说明",
+      "sites": [
+        {
+          "line": 29,
+          "snippet": "icon: Info",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "Link2",
+      "local": "Link2",
+      "file": "frontend/src/components/settings/ModelSettingsManager.tsx",
+      "semantic": "模型连接",
+      "sites": [
+        {
+          "line": 207,
+          "snippet": "<Link2 size={15} />",
+          "size": "size={15} "
+        }
+      ]
+    },
+    {
+      "name": "ListChecks",
+      "local": "ListChecks",
+      "file": "frontend/src/components/chat/LearningTaskGate.tsx",
+      "semantic": "任务清单",
+      "sites": [
+        {
+          "line": 56,
+          "snippet": "<ListChecks className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/components/chat/ExecutionTrace.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 25,
+          "snippet": "<Loader2 className=\"animate-spin text-accent\" />",
+          "size": "className=\"animate-spin text-accent\" "
+        },
+        {
+          "line": 109,
+          "snippet": "!terminal ? Loader2 : stage === 'stopped' ? Pause : stage === 'error' ? X : degraded || failed || stage === 'waiting_for_input' ? AlertCircle : Check",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/components/chat/ExerciseCard.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 77,
+          "snippet": "<Loader2 className=\"h-3.5 w-3.5 animate-spin\" />",
+          "size": "className=\"h-3.5 w-3.5 animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/components/ConceptPopover.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 57,
+          "snippet": "<Loader2 className=\"h-4 w-4 animate-spin\" />",
+          "size": "className=\"h-4 w-4 animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/components/FirstRunGuide.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 114,
+          "snippet": "<Loader2 size={16} className=\"animate-spin\" />",
+          "size": "size={16} className=\"animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/components/HighlightRepositoryDialog.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 70,
+          "snippet": "<Loader2 className=\"h-4 w-4 animate-spin text-accent\" />",
+          "size": "className=\"h-4 w-4 animate-spin text-accent\" "
+        },
+        {
+          "line": 505,
+          "snippet": "<Loader2 className=\"h-3.5 w-3.5 animate-spin\" />",
+          "size": "className=\"h-3.5 w-3.5 animate-spin\" "
+        },
+        {
+          "line": 511,
+          "snippet": "<Loader2 className=\"h-3.5 w-3.5 animate-spin\" />",
+          "size": "className=\"h-3.5 w-3.5 animate-spin\" "
+        },
+        {
+          "line": 521,
+          "snippet": "<Loader2 className=\"h-3.5 w-3.5 animate-spin\" />",
+          "size": "className=\"h-3.5 w-3.5 animate-spin\" "
+        },
+        {
+          "line": 526,
+          "snippet": "<Loader2 className=\"h-3.5 w-3.5 animate-spin\" />",
+          "size": "className=\"h-3.5 w-3.5 animate-spin\" "
+        },
+        {
+          "line": 577,
+          "snippet": "<Loader2 className=\"h-3.5 w-3.5 animate-spin\" />",
+          "size": "className=\"h-3.5 w-3.5 animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/components/settings/DataSafety.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 92,
+          "snippet": "<Loader2 className=\"h-4 w-4 animate-spin\" />",
+          "size": "className=\"h-4 w-4 animate-spin\" "
+        },
+        {
+          "line": 124,
+          "snippet": "<Loader2 className=\"h-4 w-4 animate-spin\" />",
+          "size": "className=\"h-4 w-4 animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/components/settings/MobileRemoteS0.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 31,
+          "snippet": "<Loader2 size={16} className=\"animate-spin\"/>",
+          "size": "size={16} className=\"animate-spin\""
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/components/ui/AsyncState.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 28,
+          "snippet": "icon: Loader2",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/features/mistakes/components/ProblemImageEditor.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 192,
+          "snippet": "<Loader2 className=\"h-4 w-4 animate-spin\" />",
+          "size": "className=\"h-4 w-4 animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/layouts/MainLayout.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 257,
+          "snippet": "<Loader2 className=\"h-4 w-4 flex-shrink-0 animate-spin\" />",
+          "size": "className=\"h-4 w-4 flex-shrink-0 animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/pages/BooksPage.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 378,
+          "snippet": "<Loader2 className=\"h-4 w-4 animate-spin\" />",
+          "size": "className=\"h-4 w-4 animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/pages/ExercisesPage.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 570,
+          "snippet": "<Loader2 size={16} className=\"animate-spin\" />",
+          "size": "size={16} className=\"animate-spin\" "
+        },
+        {
+          "line": 741,
+          "snippet": "<Loader2 className=\"h-4 w-4 animate-spin\" />",
+          "size": "className=\"h-4 w-4 animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/pages/GoalsPage.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 230,
+          "snippet": "<Loader2 className=\"animate-spin\" size={16} />",
+          "size": "className=\"animate-spin\" size={16} "
+        },
+        {
+          "line": 235,
+          "snippet": "<Loader2 className=\"animate-spin\" size={16} />",
+          "size": "className=\"animate-spin\" size={16} "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/pages/HighlightPage.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 85,
+          "snippet": "<Loader2 className=\"h-3.5 w-3.5 animate-spin\" />",
+          "size": "className=\"h-3.5 w-3.5 animate-spin\" "
+        },
+        {
+          "line": 154,
+          "snippet": "<Loader2 className=\"h-3.5 w-3.5 animate-spin\" />",
+          "size": "className=\"h-3.5 w-3.5 animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/pages/MistakeIntakePage.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 166,
+          "snippet": "<Loader2 className=\"h-4 w-4 animate-spin\" />",
+          "size": "className=\"h-4 w-4 animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/pages/MistakesPage.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 181,
+          "snippet": "<Loader2 className=\"inline h-4 w-4 animate-spin\" />",
+          "size": "className=\"inline h-4 w-4 animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Loader2",
+      "local": "Loader2",
+      "file": "frontend/src/pages/ReviewSessionPage.tsx",
+      "semantic": "加载/执行中",
+      "sites": [
+        {
+          "line": 47,
+          "snippet": "<Loader2 className=\"h-4 w-4 animate-spin\" />",
+          "size": "className=\"h-4 w-4 animate-spin\" "
+        },
+        {
+          "line": 76,
+          "snippet": "<Loader2 size={15} className=\"animate-spin\" />",
+          "size": "size={15} className=\"animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "LoaderCircle",
+      "local": "LoaderCircle",
+      "file": "frontend/src/components/settings/ModelSettingsManager.tsx",
+      "semantic": "连接加载中",
+      "sites": [
+        {
+          "line": 207,
+          "snippet": "<LoaderCircle size={15} className=\"animate-spin\" />",
+          "size": "size={15} className=\"animate-spin\" "
+        }
+      ]
+    },
+    {
+      "name": "Maximize2",
+      "local": "Maximize2",
+      "file": "frontend/src/pages/UserGuidePage.tsx",
+      "semantic": "放大阅读",
+      "sites": [
+        {
+          "line": 48,
+          "snippet": "<Maximize2 size={14} />",
+          "size": "size={14} "
+        }
+      ]
+    },
+    {
+      "name": "MessageSquare",
+      "local": "MessageSquare",
+      "file": "frontend/src/components/AppRail.tsx",
+      "semantic": "学习会话",
+      "sites": [
+        {
+          "line": 6,
+          "snippet": "icon: MessageSquare",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "MessageSquarePlus",
+      "local": "MessageSquarePlus",
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "semantic": "新会话",
+      "sites": [
+        {
+          "line": 986,
+          "snippet": "<MessageSquarePlus size={15} aria-hidden=\"true\" />",
+          "size": "size={15} aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "Minus",
+      "local": "Minus",
+      "file": "frontend/src/components/DesktopTitleBar.tsx",
+      "semantic": "最小化窗口",
+      "sites": [
+        {
+          "line": 29,
+          "snippet": "<Minus />",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "Minus",
+      "local": "Minus",
+      "file": "frontend/src/features/math-input/MatrixBuilder.tsx",
+      "semantic": "最小化窗口",
+      "sites": [
+        {
+          "line": 62,
+          "snippet": "<Minus className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        },
+        {
+          "line": 70,
+          "snippet": "<Minus className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "MoreHorizontal",
+      "local": "MoreHorizontal",
+      "file": "frontend/src/components/chat/ComposerOverflowMenu.tsx",
+      "semantic": "更多操作",
+      "sites": [
+        {
+          "line": 73,
+          "snippet": "<MoreHorizontal className=\"h-4 w-4\" aria-hidden=\"true\" />",
+          "size": "className=\"h-4 w-4\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "MoreHorizontal",
+      "local": "MoreHorizontal",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "更多操作",
+      "sites": [
+        {
+          "line": 228,
+          "snippet": "<MoreHorizontal className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "MoreHorizontal",
+      "local": "MoreHorizontal",
+      "file": "frontend/src/components/ui/OverflowMenu.tsx",
+      "semantic": "更多操作",
+      "sites": [
+        {
+          "line": 43,
+          "snippet": "<MoreHorizontal size={16} aria-hidden=\"true\" />",
+          "size": "size={16} aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "NotebookPen",
+      "local": "NotebookPen",
+      "file": "frontend/src/components/AppRail.tsx",
+      "semantic": "学习笔记",
+      "sites": [
+        {
+          "line": 9,
+          "snippet": "icon: NotebookPen",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "PanelLeftClose",
+      "local": "PanelLeftClose",
+      "file": "frontend/src/components/AppRail.tsx",
+      "semantic": "收起侧栏",
+      "sites": [
+        {
+          "line": 43,
+          "snippet": "<PanelLeftClose size={18} />",
+          "size": "size={18} "
+        }
+      ]
+    },
+    {
+      "name": "PanelLeftClose",
+      "local": "PanelLeftClose",
+      "file": "frontend/src/components/LearningContextSidebar.tsx",
+      "semantic": "收起侧栏",
+      "sites": [
+        {
+          "line": 262,
+          "snippet": "<PanelLeftClose className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "PanelLeftOpen",
+      "local": "PanelLeftOpen",
+      "file": "frontend/src/layouts/MainLayout.tsx",
+      "semantic": "打开侧栏",
+      "sites": [
+        {
+          "line": 281,
+          "snippet": "<PanelLeftOpen className=\"h-[18px] w-[18px]\" />",
+          "size": "className=\"h-[18px] w-[18px]\" "
+        }
+      ]
+    },
+    {
+      "name": "Paperclip",
+      "local": "Paperclip",
+      "file": "frontend/src/components/ChatMessage.tsx",
+      "semantic": "附件",
+      "sites": [
+        {
+          "line": 250,
+          "snippet": "<Paperclip className=\"h-3.5 w-3.5\" aria-hidden=\"true\" />",
+          "size": "className=\"h-3.5 w-3.5\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "Pause",
+      "local": "Pause",
+      "file": "frontend/src/components/chat/ExecutionTrace.tsx",
+      "semantic": "暂停",
+      "sites": [
+        {
+          "line": 109,
+          "snippet": "stage === 'stopped' ? Pause : stage === 'error' ? X : degraded || failed || stage === 'waiting_for_input' ? AlertCircle : Check",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "Pause",
+      "local": "Pause",
+      "file": "frontend/src/features/focus/FocusController.tsx",
+      "semantic": "暂停",
+      "sites": [
+        {
+          "line": 148,
+          "snippet": "<Pause size={16} />",
+          "size": "size={16} "
+        },
+        {
+          "line": 168,
+          "snippet": "<Pause size={11} aria-label=\"已暂停\" />",
+          "size": "size={11} aria-label=\"已暂停\" "
+        }
+      ]
+    },
+    {
+      "name": "Pencil",
+      "local": "Pencil",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "编辑",
+      "sites": [
+        {
+          "line": 138,
+          "snippet": "<Pencil className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        },
+        {
+          "line": 230,
+          "snippet": "<Pencil className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Pencil",
+      "local": "Pencil",
+      "file": "frontend/src/features/focus/FocusPanel.tsx",
+      "semantic": "编辑",
+      "sites": [
+        {
+          "line": 35,
+          "snippet": "<Pencil size={14}/>",
+          "size": "size={14}"
+        }
+      ]
+    },
+    {
+      "name": "Pencil",
+      "local": "Pencil",
+      "file": "frontend/src/features/math-input/MathExpressionList.tsx",
+      "semantic": "编辑",
+      "sites": [
+        {
+          "line": 36,
+          "snippet": "<Pencil className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Pin",
+      "local": "Pin",
+      "file": "frontend/src/components/LearningContextSidebar.tsx",
+      "semantic": "置顶",
+      "sites": [
+        {
+          "line": 309,
+          "snippet": "<Pin className=\"conversation-pin\" size={12} aria-hidden=\"true\" />",
+          "size": "className=\"conversation-pin\" size={12} aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "Play",
+      "local": "Play",
+      "file": "frontend/src/features/focus/FocusController.tsx",
+      "semantic": "启动/继续",
+      "sites": [
+        {
+          "line": 148,
+          "snippet": "<Play size={16} />",
+          "size": "size={16} "
+        },
+        {
+          "line": 153,
+          "snippet": "<Play size={16} />",
+          "size": "size={16} "
+        },
+        {
+          "line": 160,
+          "snippet": "<Play size={16} />",
+          "size": "size={16} "
+        }
+      ]
+    },
+    {
+      "name": "Play",
+      "local": "Play",
+      "file": "frontend/src/features/focus/FocusPanel.tsx",
+      "semantic": "启动/继续",
+      "sites": [
+        {
+          "line": 36,
+          "snippet": "<Play size={13}/>",
+          "size": "size={13}"
+        }
+      ]
+    },
+    {
+      "name": "Play",
+      "local": "Play",
+      "file": "frontend/src/pages/GoalsPage.tsx",
+      "semantic": "启动/继续",
+      "sites": [
+        {
+          "line": 246,
+          "snippet": "<Play size={15} />",
+          "size": "size={15} "
+        },
+        {
+          "line": 246,
+          "snippet": "<Play size={15} />",
+          "size": "size={15} "
+        }
+      ]
+    },
+    {
+      "name": "Plus",
+      "local": "Plus",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "新增",
+      "sites": [
+        {
+          "line": 106,
+          "snippet": "<Plus className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 107,
+          "snippet": "<Plus className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Plus",
+      "local": "Plus",
+      "file": "frontend/src/components/settings/ModelSettingsManager.tsx",
+      "semantic": "新增",
+      "sites": [
+        {
+          "line": 248,
+          "snippet": "<Plus className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Plus",
+      "local": "Plus",
+      "file": "frontend/src/features/focus/FocusPanel.tsx",
+      "semantic": "新增",
+      "sites": [
+        {
+          "line": 39,
+          "snippet": "<Plus size={15}/>",
+          "size": "size={15}"
+        }
+      ]
+    },
+    {
+      "name": "Plus",
+      "local": "Plus",
+      "file": "frontend/src/features/math-input/MatrixBuilder.tsx",
+      "semantic": "新增",
+      "sites": [
+        {
+          "line": 64,
+          "snippet": "<Plus className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        },
+        {
+          "line": 72,
+          "snippet": "<Plus className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Plus",
+      "local": "Plus",
+      "file": "frontend/src/pages/GoalsPage.tsx",
+      "semantic": "新增",
+      "sites": [
+        {
+          "line": 211,
+          "snippet": "<Plus size={16} />",
+          "size": "size={16} "
+        }
+      ]
+    },
+    {
+      "name": "Printer",
+      "local": "Printer",
+      "file": "frontend/src/components/chat/ChapterHighlightCard.tsx",
+      "semantic": "打印",
+      "sites": [
+        {
+          "line": 19,
+          "snippet": "<Printer className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Printer",
+      "local": "Printer",
+      "file": "frontend/src/pages/HighlightPage.tsx",
+      "semantic": "打印",
+      "sites": [
+        {
+          "line": 153,
+          "snippet": "<Printer className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "RefreshCw",
+      "local": "RefreshCw",
+      "file": "frontend/src/components/HighlightRepositoryDialog.tsx",
+      "semantic": "刷新/重试",
+      "sites": [
+        {
+          "line": 69,
+          "snippet": "<RefreshCw className=\"h-4 w-4 text-[var(--warning)]\" />",
+          "size": "className=\"h-4 w-4 text-[var(--warning)]\" "
+        }
+      ]
+    },
+    {
+      "name": "RefreshCw",
+      "local": "RefreshCw",
+      "file": "frontend/src/components/settings/DataSafety.tsx",
+      "semantic": "刷新/重试",
+      "sites": [
+        {
+          "line": 95,
+          "snippet": "<RefreshCw className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "RefreshCw",
+      "local": "RefreshCw",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "刷新/重试",
+      "sites": [
+        {
+          "line": 156,
+          "snippet": "<RefreshCw className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 212,
+          "snippet": "<RefreshCw className={`h-4 w-4 ${reindexing ? 'animate-spin' : ''}`} />",
+          "size": "className={`h-4 w-4 ${reindexing ? 'animate-spin' : ''}`} "
+        }
+      ]
+    },
+    {
+      "name": "RefreshCw",
+      "local": "RefreshCw",
+      "file": "frontend/src/components/settings/MobileRemoteS0.tsx",
+      "semantic": "刷新/重试",
+      "sites": [
+        {
+          "line": 31,
+          "snippet": "<RefreshCw size={16}/>",
+          "size": "size={16}"
+        }
+      ]
+    },
+    {
+      "name": "RefreshCw",
+      "local": "RefreshCw",
+      "file": "frontend/src/components/SystemHealth.tsx",
+      "semantic": "刷新/重试",
+      "sites": [
+        {
+          "line": 487,
+          "snippet": "<RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />",
+          "size": "className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} "
+        },
+        {
+          "line": 500,
+          "snippet": "<RefreshCw className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "RefreshCw",
+      "local": "RefreshCw",
+      "file": "frontend/src/features/textbooks/FigureAuditPanel.tsx",
+      "semantic": "刷新/重试",
+      "sites": [
+        {
+          "line": 65,
+          "snippet": "<RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />",
+          "size": "className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} "
+        }
+      ]
+    },
+    {
+      "name": "RefreshCw",
+      "local": "RefreshCw",
+      "file": "frontend/src/pages/LearningPage.tsx",
+      "semantic": "刷新/重试",
+      "sites": [
+        {
+          "line": 348,
+          "snippet": "<RefreshCw className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "RefreshCw",
+      "local": "RefreshCw",
+      "file": "frontend/src/pages/WeeklyReportPage.tsx",
+      "semantic": "刷新/重试",
+      "sites": [
+        {
+          "line": 70,
+          "snippet": "<RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />",
+          "size": "className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} "
+        }
+      ]
+    },
+    {
+      "name": "RotateCcw",
+      "local": "RotateCcw",
+      "file": "frontend/src/components/chat/LearningTaskResume.tsx",
+      "semantic": "恢复/撤销",
+      "sites": [
+        {
+          "line": 22,
+          "snippet": "<RotateCcw className=\"h-3.5 w-3.5\" aria-hidden=\"true\" />",
+          "size": "className=\"h-3.5 w-3.5\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "RotateCcw",
+      "local": "RotateCcw",
+      "file": "frontend/src/components/settings/DataSafety.tsx",
+      "semantic": "恢复/撤销",
+      "sites": [
+        {
+          "line": 124,
+          "snippet": "<RotateCcw className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "RotateCw",
+      "local": "RotateCw",
+      "file": "frontend/src/features/mistakes/components/ProblemImageEditor.tsx",
+      "semantic": "重试/旋转",
+      "sites": [
+        {
+          "line": 184,
+          "snippet": "<RotateCw className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "RotateCw",
+      "local": "RotateCw",
+      "file": "frontend/src/layouts/MainLayout.tsx",
+      "semantic": "重试/旋转",
+      "sites": [
+        {
+          "line": 262,
+          "snippet": "<RotateCw className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Save",
+      "local": "Save",
+      "file": "frontend/src/components/SystemHealth.tsx",
+      "semantic": "保存",
+      "sites": [
+        {
+          "line": 429,
+          "snippet": "<Save className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 555,
+          "snippet": "<Save className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Scan",
+      "local": "Scan",
+      "file": "frontend/src/features/visual-learning/FigureContextAttachment.tsx",
+      "semantic": "裁剪识别",
+      "sites": [
+        {
+          "line": 27,
+          "snippet": "<Scan className=\"h-3.5 w-3.5\" aria-hidden=\"true\" />",
+          "size": "className=\"h-3.5 w-3.5\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "Scan",
+      "local": "Scan",
+      "file": "frontend/src/features/visual-learning/FigureRegionViewer.tsx",
+      "semantic": "裁剪识别",
+      "sites": [
+        {
+          "line": 100,
+          "snippet": "<Scan className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "local": "Search",
+      "file": "frontend/src/features/visual-learning/FigureCatalog.tsx",
+      "semantic": "搜索",
+      "sites": [
+        {
+          "line": 59,
+          "snippet": "<Search className=\"h-3.5 w-3.5\" aria-hidden=\"true\" />",
+          "size": "className=\"h-3.5 w-3.5\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "local": "Search",
+      "file": "frontend/src/pages/ExercisesPage.tsx",
+      "semantic": "搜索",
+      "sites": [
+        {
+          "line": 668,
+          "snippet": "<Search className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "local": "Search",
+      "file": "frontend/src/pages/MistakesPage.tsx",
+      "semantic": "搜索",
+      "sites": [
+        {
+          "line": 179,
+          "snippet": "<Search className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Send",
+      "local": "Send",
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "semantic": "发送",
+      "sites": [
+        {
+          "line": 1158,
+          "snippet": "<Send className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "local": "Settings",
+      "file": "frontend/src/components/AppRail.tsx",
+      "semantic": "设置",
+      "sites": [
+        {
+          "line": 62,
+          "snippet": "<Settings className=\"h-[18px] w-[18px]\" />",
+          "size": "className=\"h-[18px] w-[18px]\" "
+        },
+        {
+          "line": 73,
+          "snippet": "<Settings className=\"h-[18px] w-[18px]\" />",
+          "size": "className=\"h-[18px] w-[18px]\" "
+        }
+      ]
+    },
+    {
+      "name": "ShieldAlert",
+      "local": "ShieldAlert",
+      "file": "frontend/src/components/ChatMessage.tsx",
+      "semantic": "风险提示",
+      "sites": [
+        {
+          "line": 293,
+          "snippet": "<ShieldAlert className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Shuffle",
+      "local": "Shuffle",
+      "file": "frontend/src/components/chat/ExerciseCard.tsx",
+      "semantic": "随机练习/命题入口",
+      "sites": [
+        {
+          "line": 55,
+          "snippet": "<Shuffle className=\"h-4 w-4 text-accent\" />",
+          "size": "className=\"h-4 w-4 text-accent\" "
+        }
+      ]
+    },
+    {
+      "name": "Shuffle",
+      "local": "Shuffle",
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "semantic": "随机练习/命题入口",
+      "sites": [
+        {
+          "line": 1145,
+          "snippet": "<Shuffle className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Sigma",
+      "local": "Sigma",
+      "file": "frontend/src/features/math-input/VisualMathInputPopover.tsx",
+      "semantic": "公式输入",
+      "sites": [
+        {
+          "line": 137,
+          "snippet": "<Sigma className=\"h-4 w-4\" aria-hidden=\"true\" />",
+          "size": "className=\"h-4 w-4\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "SlidersHorizontal",
+      "local": "SlidersHorizontal",
+      "file": "frontend/src/features/mistakes/components/ProblemImageEditor.tsx",
+      "semantic": "筛选/参数",
+      "sites": [
+        {
+          "line": 183,
+          "snippet": "<SlidersHorizontal className=\"h-4 w-4 text-accent\" />",
+          "size": "className=\"h-4 w-4 text-accent\" "
+        }
+      ]
+    },
+    {
+      "name": "Smartphone",
+      "local": "Smartphone",
+      "file": "frontend/src/components/settings/MobileRemoteS0.tsx",
+      "semantic": "手机连接",
+      "sites": [
+        {
+          "line": 29,
+          "snippet": "<Smartphone size={24}/>",
+          "size": "size={24}"
+        },
+        {
+          "line": 31,
+          "snippet": "<Smartphone size={16}/>",
+          "size": "size={16}"
+        }
+      ]
+    },
+    {
+      "name": "Square",
+      "local": "Square",
+      "file": "frontend/src/components/DesktopTitleBar.tsx",
+      "semantic": "停止或最大化",
+      "sites": [
+        {
+          "line": 30,
+          "snippet": "<Square />",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "Square",
+      "local": "Square",
+      "file": "frontend/src/components/HighlightRepositoryDialog.tsx",
+      "semantic": "停止或最大化",
+      "sites": [
+        {
+          "line": 511,
+          "snippet": "<Square className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Square",
+      "local": "Square",
+      "file": "frontend/src/features/focus/FocusController.tsx",
+      "semantic": "停止或最大化",
+      "sites": [
+        {
+          "line": 149,
+          "snippet": "<Square size={14} />",
+          "size": "size={14} "
+        }
+      ]
+    },
+    {
+      "name": "Square",
+      "local": "Square",
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "semantic": "停止或最大化",
+      "sites": [
+        {
+          "line": 1154,
+          "snippet": "<Square className=\"h-4 w-4 fill-current\" />",
+          "size": "className=\"h-4 w-4 fill-current\" "
+        }
+      ]
+    },
+    {
+      "name": "Target",
+      "local": "Target",
+      "file": "frontend/src/components/AppRail.tsx",
+      "semantic": "目标与任务",
+      "sites": [
+        {
+          "line": 7,
+          "snippet": "icon: Target",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "Target",
+      "local": "Target",
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "semantic": "目标与任务",
+      "sites": [
+        {
+          "line": 1142,
+          "snippet": "<Target className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Timer",
+      "local": "Timer",
+      "file": "frontend/src/features/focus/FocusController.tsx",
+      "semantic": "专注计时",
+      "sites": [
+        {
+          "line": 141,
+          "snippet": "<Timer size={14} aria-hidden=\"true\" />",
+          "size": "size={14} aria-hidden=\"true\" "
+        },
+        {
+          "line": 168,
+          "snippet": "<Timer size={15} aria-hidden=\"true\" />",
+          "size": "size={15} aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "Trash2",
+      "local": "Trash2",
+      "file": "frontend/src/components/HighlightRepositoryDialog.tsx",
+      "semantic": "删除",
+      "sites": [
+        {
+          "line": 517,
+          "snippet": "<Trash2 className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Trash2",
+      "local": "Trash2",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "删除",
+      "sites": [
+        {
+          "line": 140,
+          "snippet": "<Trash2 className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        },
+        {
+          "line": 231,
+          "snippet": "<Trash2 className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Trash2",
+      "local": "Trash2",
+      "file": "frontend/src/components/settings/ModelSettingsManager.tsx",
+      "semantic": "删除",
+      "sites": [
+        {
+          "line": 256,
+          "snippet": "<Trash2 className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Trash2",
+      "local": "Trash2",
+      "file": "frontend/src/features/focus/FocusPanel.tsx",
+      "semantic": "删除",
+      "sites": [
+        {
+          "line": 41,
+          "snippet": "<Trash2 size={14}/>",
+          "size": "size={14}"
+        }
+      ]
+    },
+    {
+      "name": "Trash2",
+      "local": "Trash2",
+      "file": "frontend/src/features/math-input/MathExpressionList.tsx",
+      "semantic": "删除",
+      "sites": [
+        {
+          "line": 37,
+          "snippet": "<Trash2 className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "Trash2",
+      "local": "Trash2",
+      "file": "frontend/src/features/notes/NoteBlocks.tsx",
+      "semantic": "删除",
+      "sites": [
+        {
+          "line": 40,
+          "snippet": "<Trash2 size={16}/>",
+          "size": "size={16}"
+        }
+      ]
+    },
+    {
+      "name": "Upload",
+      "local": "Upload",
+      "file": "frontend/src/pages/BooksPage.tsx",
+      "semantic": "导入/上传",
+      "sites": [
+        {
+          "line": 274,
+          "snippet": "<Upload className=\"mb-4 h-9 w-9 text-accent\" />",
+          "size": "className=\"mb-4 h-9 w-9 text-accent\" "
+        },
+        {
+          "line": 343,
+          "snippet": "<Upload className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        },
+        {
+          "line": 378,
+          "snippet": "<Upload className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "Upload",
+      "local": "Upload",
+      "file": "frontend/src/pages/ExercisesPage.tsx",
+      "semantic": "导入/上传",
+      "sites": [
+        {
+          "line": 519,
+          "snippet": "<Upload size={24} />",
+          "size": "size={24} "
+        },
+        {
+          "line": 636,
+          "snippet": "<Upload size={22} />",
+          "size": "size={22} "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/components/chat/ExecutionTrace.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 27,
+          "snippet": "<X className=\"text-[var(--danger)]\" />",
+          "size": "className=\"text-[var(--danger)]\" "
+        },
+        {
+          "line": 109,
+          "snippet": "stage === 'error' ? X : degraded || failed || stage === 'waiting_for_input' ? AlertCircle : Check",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/components/chat/LearningTaskActions.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 71,
+          "snippet": "<X className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/components/chat/QuestionImage.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 18,
+          "snippet": "<X size={20} />",
+          "size": "size={20} "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/components/chat/SubjectRouteSuggestionCard.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 134,
+          "snippet": "<X className=\"h-3.5 w-3.5\" />",
+          "size": "className=\"h-3.5 w-3.5\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/components/DesktopTitleBar.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 31,
+          "snippet": "<X />",
+          "size": "动态映射 / 容器 CSS"
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/components/HighlightRepositoryDialog.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 393,
+          "snippet": "<X className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/components/settings/LibraryWorkbench.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 103,
+          "snippet": "<X className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/components/settings/SettingsDialog.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 33,
+          "snippet": "<X className=\"h-[18px] w-[18px]\" />",
+          "size": "className=\"h-[18px] w-[18px]\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/components/ui/ContextInspector.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 32,
+          "snippet": "<X className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/features/focus/FocusController.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 130,
+          "snippet": "<X size={16} />",
+          "size": "size={16} "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/features/math-input/VisualMathInputPopover.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 160,
+          "snippet": "<X className=\"h-4 w-4\" aria-hidden=\"true\" />",
+          "size": "className=\"h-4 w-4\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/features/mistakes/components/ProblemImageEditor.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 171,
+          "snippet": "<X className=\"h-5 w-5\" />",
+          "size": "className=\"h-5 w-5\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/features/textbooks/BookDeleteDialog.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 10,
+          "snippet": "<X size={16} />",
+          "size": "size={16} "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/features/textbooks/ConceptExtractionStatus.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 22,
+          "snippet": "<X size={16} />",
+          "size": "size={16} "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/features/textbooks/FigureAuditPanel.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 65,
+          "snippet": "<X className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/features/textbooks/OutlineCalibrationPanel.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 21,
+          "snippet": "<X size={16} />",
+          "size": "size={16} "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/features/visual-learning/FigureContextAttachment.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 34,
+          "snippet": "<X className=\"h-3.5 w-3.5\" aria-hidden=\"true\" />",
+          "size": "className=\"h-3.5 w-3.5\" aria-hidden=\"true\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/features/visual-learning/FigureRegionViewer.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 83,
+          "snippet": "<X className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 1100,
+          "snippet": "<X className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/pages/ExercisesPage.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 736,
+          "snippet": "<X className=\"h-4 w-4\" />",
+          "size": "className=\"h-4 w-4\" "
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "local": "X",
+      "file": "frontend/src/pages/UserGuidePage.tsx",
+      "semantic": "关闭/移除/失败",
+      "sites": [
+        {
+          "line": 59,
+          "snippet": "<X size={18} />",
+          "size": "size={18} "
+        }
+      ]
+    }
+  ],
+  "other": [
+    {
+      "file": "frontend/src/components/ChatMessage.tsx",
+      "line": 62,
+      "text": "const match = content.match(/^📎\\s*([^\\r\\n]+)\\r?\\n(?:\\r?\\n)+([\\s\\S]*)$/);"
+    },
+    {
+      "file": "frontend/src/components/settings/NetworkDiagnostics.tsx",
+      "line": 68,
+      "text": "<ul className=\"settings-secondary\">{data?.history.slice(-8).reverse().map((entry, index) => <li key={`${entry.sampled_at}-${index}`}>{time(entry.sampled_at)} · {entry.previous_path ? paths[entry.previous_path] : '初始'} → {paths[entry.path]} · {entry.source}{entry.derp_region ? ` (${entry.derp_region})` : ''}</li>)}</ul>"
+    },
+    {
+      "file": "frontend/src/features/exercises/components/BatchCandidateReceipts.tsx",
+      "line": 25,
+      "text": "return <details className=\"exercise-import-receipts\"><summary>批次 {batch.id} · 来源与导入时校对信息</summary>{batch.candidate_receipts?.length ? <><button className=\"app-secondary-button\" onClick={() => void check()}>核对正文版本</button>{batch.candidate_receipts.map(receipt => <details key={receipt.exercise_id}><summary>{receipt.origin_id} → {receipt.exercise_id} · 导入时：{receipt.review_kind === 'user_confirmed' ? '用户确认' : '系统提案'}</summary><SourceStructure value={receipt.projection.structure} /><p>{versions[receipt.exercise_id] || '尚未核对当前正文；此处记录导入时状态。'}</p><p>来源版本 {receipt.projection.canonical_hash} · {receipt.projection.method}</p><p>来源单元 {receipt.projection.unit_ids.join('、')}</p>{Object.entries(receipt.projection.parts).map(([role, spans]) => spans.length ? <p key={role}>{({ question: '题干', answer: '答案', explanation: '解析', context: '旁文', unassigned: '未精确对齐的来源依据' } as Record<string,string>)[role]}：{spans.map(span => `${span.block_id} [${span.start}, ${span.end ?? '全文末尾'})`).join('；')}</p> : null)}<p>来源正文按上述版本回查；文件来源快照独立保留，版本缺失时请重新分析。</p></details>)}</> : <p>未新增题目校对回执。</p>}{batch.skipped_candidate_receipts?.map(receipt => <details key={`skip-${receipt.origin_id}`}><summary>重复题来源关联 · {receipt.origin_id} → {receipt.exercise_id}</summary><SourceStructure value={receipt.projection.structure} /><p>保留本次来源与考点；旧题正文及确认状态保持原样。</p><p>来源版本 {receipt.projection.canonical_hash} · 单元 {receipt.projection.unit_ids.join('、')}</p></details>)}</details>;"
+    },
+    {
+      "file": "frontend/src/features/guide/content.ts",
+      "line": 25,
+      "text": "instructions: ['首次打开时按引导连接；以后在“设置 → 模型连接”修改。选择服务商和模型，填写 API Key（模型服务的访问密钥）。自定义服务还需填写服务地址和 Model ID。', '按当前方案使用“测试文字连接”或“测试识图能力”，检查反馈；再点“保存并继续”或“保存并应用”。', '回到“学习”发一条问题，确认能收到回答。'],"
+    },
+    {
+      "file": "frontend/src/features/guide/content.ts",
+      "line": 40,
+      "text": "instructions: ['在学习会话的三点菜单选择“整理为笔记”。选择全部会话或部分轮次，再生成草稿。', '检查并编辑标题与正文，点“保存笔记”。', '到“笔记 → 已保存”重新打开；以后编辑正式笔记，要点“保存修改”。'],"
+    },
+    {
+      "file": "frontend/src/features/guide/content.ts",
+      "line": 81,
+      "text": "instructions: ['打开“练习 → 导入”，从已导入教材抽取，或上传 .docx / 含文字的 .pdf；也可手动录入。先用少量完整题目试一次。', '进入“校对候选题”，用“原文对照”检查题干、条件、答案与解析。需要时编辑、拆分或合并；页面要求时点“确认本题结构”。', '选择完整的题目，点“确认入库”。检查新增、重复和待处理回执，再到“题库”重开一道题。'],"
+    },
+    {
+      "file": "frontend/src/features/guide/content.ts",
+      "line": 122,
+      "text": "instructions: ['到“设置 → 数据与教材”创建备份。需要时选择同时备份向量检索和 MinerU 产物，完成后查看校验结果、详情及保存位置。', '恢复前核对日期、包含范围和当前数据的安全副本。恢复按备份所含数据目录替换，同目录中新记录可能被覆盖。', '恢复在重启时执行；重开后分别核对教材、会话、笔记、作答、错题和目标，不只看登记提示。'],"
+    },
+    {
+      "file": "frontend/src/features/guide/content.ts",
+      "line": 132,
+      "text": "more: { title: '手机连接（可选）', text: '在桌面“设置 → 手机连接”按提示准备 Tailscale，用本人手机打开地址并配对。电脑和本地服务需保持运行；手机访问同一份资料，不是独立同步副本。不要分享配对码。候选发行包、真实手机与重启配对行为仍待实测。' },"
+    },
+    {
+      "file": "frontend/src/features/guide/rentedMineru.ts",
+      "line": 6,
+      "text": "instructions: ['需要租卡时再看本节，已有输出包可直接导入。在 AutoDL 等平台租一张 4090 或 5090，选适配的 Ubuntu 镜像，在实例终端安装 MinerU。下面以 AutoDL 容器实例为例。', '上传一本 PDF，先试解析 3 页，核对公式、表格和附图，再处理整本书；按下方清单检查输出并打包。', '下载 ZIP 到自己的电脑并校验，确认实例关机，再用 Texa“教材 → 导入教材 → MinerU 输出包”导入。'],"
+    },
+    {
+      "file": "frontend/src/features/guide/rentedMineru.ts",
+      "line": 51,
+      "text": "paragraphs: ['回到运行 Texa 的电脑，打开“教材 → 导入教材”，选择“MinerU 输出包”。先将本机 ZIP 改为易辨认的教材名（教材名称取自文件名），选择该 ZIP 和所属科目，再点“导入输出包”。此路径复用已解析产物，不需要本机安装 MinerU，也不需要把云实例长期保持开机。', '等待最终可用状态后回教材列表，“设为学习范围”。用原书一个明确概念提问，点“查看来源”检查教材、页码、公式与附图。导入完成只表示系统接受并建立了资料，不证明 OCR 或回答完全正确。', '若提示多文档歧义、文件损坏、超限或没有正文，先检查第 4 步的结构和材料，不反复上传同一包。确认原 PDF 随包保留且来源可核对；教材导入不会自动建立练习题库。'],"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathQuickKeys.ts",
+      "line": 21,
+      "text": "{ id: 'minus', label: '−', latex: '-', description: '输入减号' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 22,
+      "text": "{ id: 'square-root', label: '√x', description: '平方根', category: 'common', value: '$\\\\sqrt{[[selection|表达式]]}$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 23,
+      "text": "{ id: 'nth-root', label: 'ⁿ√x', description: 'n 次根', category: 'common', value: '$\\\\sqrt[[cursor|n]]{[[selection|表达式]]}$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 25,
+      "text": "{ id: 'less-equal', label: '≤', description: '小于等于', category: 'common', value: '$\\\\le$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 26,
+      "text": "{ id: 'greater-equal', label: '≥', description: '大于等于', category: 'common', value: '$\\\\ge$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 27,
+      "text": "{ id: 'not-equal', label: '≠', description: '不等于', category: 'common', value: '$\\\\ne$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 28,
+      "text": "{ id: 'approximately', label: '≈', description: '约等于', category: 'common', value: '$\\\\approx$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 29,
+      "text": "{ id: 'infinity', label: '∞', description: '无穷', category: 'common', value: '$\\\\infty$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 30,
+      "text": "{ id: 'arrow', label: '→', description: '趋于或映射到', category: 'common', value: '$\\\\to$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 39,
+      "text": "{ id: 'partial-derivative', label: '∂f/∂x', description: '偏导数', category: 'calculus', value: '$\\\\frac{\\\\partial [[selection|f]]}{\\\\partial [[cursor|x]]}$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 40,
+      "text": "{ id: 'indefinite-integral', label: '∫', description: '不定积分', category: 'calculus', value: '$\\\\int [[selection|f(x)]]\\\\,d[[cursor|x]]$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 41,
+      "text": "{ id: 'definite-integral', label: '∫ₐᵇ', description: '定积分', category: 'calculus', value: '$\\\\int_{[[cursor|a]]}^{b} [[selection|f(x)]]\\\\,dx$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 42,
+      "text": "{ id: 'double-integral', label: '∬', description: '二重积分', category: 'calculus', value: '$\\\\iint_{[[cursor|D]]} [[selection|f(x,y)]]\\\\,dx\\\\,dy$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 50,
+      "text": "{ id: 'cross-product', label: 'a×b', description: '叉积', category: 'linear-algebra', value: '$[[selection|\\\\mathbf{a}]]\\\\times [[cursor|\\\\mathbf{b}]]$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 55,
+      "text": "{ id: 'matrix-2', label: '2×2', description: '二阶矩阵', category: 'linear-algebra', value: '$$\\n\\\\begin{bmatrix}\\n[[selection|a]] & b \\\\\\\\\\n c & d\\n\\\\end{bmatrix}\\n$$' },"
+    },
+    {
+      "file": "frontend/src/features/math-input/mathTemplates.ts",
+      "line": 56,
+      "text": "{ id: 'matrix-3', label: '3×3', description: '三阶矩阵', category: 'linear-algebra', value: '$$\\n\\\\begin{bmatrix}\\n[[selection|a]] & b & c \\\\\\\\\\n d & e & f \\\\\\\\\\n g & h & i\\n\\\\end{bmatrix}\\n$$' },"
+    },
+    {
+      "file": "frontend/src/layouts/DesktopRefinement.css",
+      "line": 55,
+      "text": ".goal-assistance > summary::before { content:'›';margin-right:8px; }"
+    },
+    {
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "line": 410,
+      "text": "const label = `📎 教材图 · ${activeFigure.page ? `p.${activeFigure.page}` : '未标页'}\\n\\n${question}`;"
+    },
+    {
+      "file": "frontend/src/pages/ChatPage.tsx",
+      "line": 484,
+      "text": "? `📎 ${attachmentFile.name}\\n\\n${question || '请完整讲解这道题'}`"
+    },
+    {
+      "file": "frontend/src/pages/ExercisesPage.tsx",
+      "line": 647,
+      "text": "</article>)}<button className=\"app-ghost-button\" onClick={() => setWorkspaceMode('bank')}>查看题库 →</button>"
+    },
+    {
+      "file": "frontend/src/pages/LearningPage.tsx",
+      "line": 473,
+      "text": "? `涉及 ${item.concepts.map((concept) => `${concept.name}${concept.count > 1 ? ` ×${concept.count}` : ''}`).join('、')}`"
+    }
+  ]
+}

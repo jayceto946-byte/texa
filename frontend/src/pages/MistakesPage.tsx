@@ -1,9 +1,10 @@
+import { TexaBack, TexaTextbook, TexaExercises, TexaImage, TexaSearch } from '../components/icons';
 import { readableVisualQuestion } from '../utils/visualQuestion';
 import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import { getBookList } from '../features/books/bookList';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, BookOpen, ClipboardList, ImagePlus, Loader2, Search } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { get, getAuthenticatedBlob, patch, post } from '../api/client';
 import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
 import ScopeSelector, { type ScopeBookOption } from '../components/ScopeSelector';
@@ -174,9 +175,9 @@ export function MistakeCollectionPage() {
         <div className="mistakes-filters" aria-label="错题筛选">
           {filters.map((item) => <button key={item.id} type="button" aria-pressed={filter === item.id} className={filter === item.id ? 'is-active' : ''} onClick={() => updateParam('filter', item.id === 'all' ? '' : item.id)}>{item.label}{filter === item.id && <span>{records.length}{cursor ? '+' : ''}{item.id === 'pending' && candidates.length ? ` · ${candidates.length} 候选` : ''}</span>}</button>)}
         </div>
-          <div className="mistakes-heading-actions"><Link className="app-secondary-button" to="/mistakes/diagnosis">错误诊断</Link>{(records.length > 0 || candidates.length > 0 || loading || error) && <Link className="app-primary-button" to="/mistakes/intake"><ImagePlus className="h-4 w-4" />补录错题</Link>}</div>
+          <div className="mistakes-heading-actions"><Link className="app-secondary-button" to="/mistakes/diagnosis">错误诊断</Link>{(records.length > 0 || candidates.length > 0 || loading || error) && <Link className="app-primary-button" to="/mistakes/intake"><TexaImage className="h-4 w-4" />补录错题</Link>}</div>
         </div>
-        <div className="mistakes-search"><Search className="h-4 w-4" /><input aria-label="搜索题干、知识点、错因" placeholder="搜索题干、知识点、错因" value={search} onChange={(event) => updateParam('q', event.target.value)} /></div>
+        <div className="mistakes-search"><TexaSearch className="h-4 w-4" /><input aria-label="搜索题干、知识点、错因" placeholder="搜索题干、知识点、错因" value={search} onChange={(event) => updateParam('q', event.target.value)} /></div>
         {cursor && <p className="mistakes-result-note">已加载 {records.length} 条档案；继续加载可查看更多。</p>}
         {loading && <p className="mistakes-result-note" role="status"><Loader2 className="inline h-4 w-4 animate-spin" /> 正在更新档案…</p>}
         {error && <ActionableIssue title={error} impact="请重试读取本地记录。" actions={<button type="button" className="app-secondary-button" onClick={() => setReloadKey((value) => value + 1)}>重新加载</button>} />}
@@ -284,7 +285,7 @@ export function MistakeDetailPage() {
       <h1 className="app-page-title">错题</h1>
       <div className="window-drag-region" aria-hidden="true" />
       <Link to={returnPath} className="mistakes-back">
-        <ArrowLeft className="h-4 w-4" />返回档案</Link>
+        <TexaBack className="h-4 w-4" />返回档案</Link>
     </header>
     {loading && !record && <WorkspaceSkeleton label="正在读取档案" header={false} reading />}
     {error && <div role="alert" className="question-reading-status is-warning">{error}<button className="app-secondary-button" onClick={() => load()}>重新读取</button>
@@ -337,7 +338,7 @@ export function MistakeDetailPage() {
               <span>下次复习 {displayDate(item.next_review)}</span>
             </li>)}</ol>
           </details> : null}{record.next_review && <p className="mistakes-detail-note">当前安排：{displayDate(record.next_review)}</p>}<Link to="/learning" className="app-secondary-button">
-            <BookOpen className="h-4 w-4" />前往全局复习</Link>
+            <TexaTextbook className="h-4 w-4" />前往全局复习</Link>
         </section>}</details>
     </>} reference={<>
       <div className="question-reading-status">{record.correct_answer?.trim() ? '已保存参考答案' : '参考答案'}</div>
@@ -385,10 +386,10 @@ export function MistakeDiagnosisPage() {
     return () => { active = false; };
   }, [bookName, subject, reloadKey]);
   const queryBook = `book_name=${encodeURIComponent(bookName || 'default')}`;
-  return <div className="management-workspace mistakes-workspace flex h-full flex-col"><header className="app-page-header border-b border-border bg-bg-primary"><h1 className="app-page-title">错题诊断</h1><Link className="mistakes-back" to="/mistakes"><ArrowLeft className="h-4 w-4" />返回错题档案</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="mistakes-detail"><p className="mistakes-detail-note">当前范围内已收录 {loading || error ? '—' : diagnosis?.record_count ?? '—'} 道错题。仅统计已收录档案；缺少全部练习作答分母，不能据此判断知识点错误率。</p>
+  return <div className="management-workspace mistakes-workspace flex h-full flex-col"><header className="app-page-header border-b border-border bg-bg-primary"><h1 className="app-page-title">错题诊断</h1><Link className="mistakes-back" to="/mistakes"><TexaBack className="h-4 w-4" />返回错题档案</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="mistakes-detail"><p className="mistakes-detail-note">当前范围内已收录 {loading || error ? '—' : diagnosis?.record_count ?? '—'} 道错题。仅统计已收录档案；缺少全部练习作答分母，不能据此判断知识点错误率。</p>
     {loading && <WorkspaceSkeleton label="正在读取诊断数据" header={false} />}
     {error && <ActionableIssue title={error} impact="错题档案仍可使用。" actions={<button className="app-secondary-button" onClick={() => setReloadKey((value) => value + 1)}>重试</button>} />}
-    {!error && !loading && diagnosis && <><section><h2>哪里容易错</h2><p className="mistakes-detail-note">近 30 天已确认的作答错因；只统计证据指向的知识点，同一次作答在每个知识点下计一次。</p>{diagnosis.groups.length ? <ol className="mistakes-diagnosis-list">{diagnosis.groups.slice(0, 8).map((group) => <li key={group.name}><Link to={`/mistakes?q=${encodeURIComponent(group.name)}`}>{group.name}</Link><span>{group.mistake_ids.length} 道题 · {group.recent_wrong} 次作答错因已确认</span></li>)}</ol> : <p className="mistakes-detail-note">当前范围没有已确认的知识点错因。</p>}</section><section><h2>为什么错</h2>{diagnosis.reasons.length ? <ol className="mistakes-diagnosis-list">{diagnosis.reasons.slice(0, 8).map((reason) => <li key={reason.name}><Link to={`/mistakes?q=${encodeURIComponent(reason.name)}`}>{reason.name}</Link><span>{reason.mistake_ids.length} 道已确认{reason.example ? ` · ${reason.example.slice(0, 48)}` : ''}</span></li>)}</ol> : <p className="mistakes-detail-note">还没有经确认的具体错因。</p>}<p className="mistakes-detail-note">另有 {diagnosis.unconfirmed_diagnosis_count} 道题的归因尚未确认或已暂缓。</p></section><section><h2>是否改善</h2><p className="mistakes-detail-note">仅比较前后两个 30 天窗口都出现的同一组 {diagnosis.comparison.cohort_mistake_ids.length} 道题；排除提示作答与旧版 quality 自评。</p><p>前一窗口独立正确 {diagnosis.comparison.prior_correct}/{diagnosis.comparison.prior_total} 次；近 30 天 {diagnosis.comparison.recent_correct}/{diagnosis.comparison.recent_total} 次。</p><p className="mistakes-detail-note">{diagnosis.comparison.comparable ? (diagnosis.comparison.recent_correct / diagnosis.comparison.recent_total > diagnosis.comparison.prior_correct / diagnosis.comparison.prior_total ? '同题组近期独立正确比例上升；这只是已收录重做的观察。' : '同题组近期独立正确比例没有上升。') : '两窗口需各有至少 5 次有效独立作答且覆盖至少 3 道题，才能比较趋势；目前仅列出事实。'}</p></section><section><h2>下一步做什么</h2>{diagnosis.actions.length ? <ol className="mistakes-diagnosis-list">{diagnosis.actions.map((action) => <li key={action.mistake_id}><Link to={`/mistakes/${encodeURIComponent(action.mistake_id)}?${queryBook}`}>{action.reason}</Link><span>打开对应档案</span></li>)}</ol> : <p className="mistakes-detail-note">当前没有待校对或到期的档案。</p>}<div className="mistakes-diagnosis-actions"><Link className="app-secondary-button" to="/mistakes?filter=pending"><ClipboardList className="h-4 w-4" />查看待处理</Link><Link className="app-secondary-button" to="/learning"><BookOpen className="h-4 w-4" />查看复习队列</Link></div></section></>}
+    {!error && !loading && diagnosis && <><section><h2>哪里容易错</h2><p className="mistakes-detail-note">近 30 天已确认的作答错因；只统计证据指向的知识点，同一次作答在每个知识点下计一次。</p>{diagnosis.groups.length ? <ol className="mistakes-diagnosis-list">{diagnosis.groups.slice(0, 8).map((group) => <li key={group.name}><Link to={`/mistakes?q=${encodeURIComponent(group.name)}`}>{group.name}</Link><span>{group.mistake_ids.length} 道题 · {group.recent_wrong} 次作答错因已确认</span></li>)}</ol> : <p className="mistakes-detail-note">当前范围没有已确认的知识点错因。</p>}</section><section><h2>为什么错</h2>{diagnosis.reasons.length ? <ol className="mistakes-diagnosis-list">{diagnosis.reasons.slice(0, 8).map((reason) => <li key={reason.name}><Link to={`/mistakes?q=${encodeURIComponent(reason.name)}`}>{reason.name}</Link><span>{reason.mistake_ids.length} 道已确认{reason.example ? ` · ${reason.example.slice(0, 48)}` : ''}</span></li>)}</ol> : <p className="mistakes-detail-note">还没有经确认的具体错因。</p>}<p className="mistakes-detail-note">另有 {diagnosis.unconfirmed_diagnosis_count} 道题的归因尚未确认或已暂缓。</p></section><section><h2>是否改善</h2><p className="mistakes-detail-note">仅比较前后两个 30 天窗口都出现的同一组 {diagnosis.comparison.cohort_mistake_ids.length} 道题；排除提示作答与旧版 quality 自评。</p><p>前一窗口独立正确 {diagnosis.comparison.prior_correct}/{diagnosis.comparison.prior_total} 次；近 30 天 {diagnosis.comparison.recent_correct}/{diagnosis.comparison.recent_total} 次。</p><p className="mistakes-detail-note">{diagnosis.comparison.comparable ? (diagnosis.comparison.recent_correct / diagnosis.comparison.recent_total > diagnosis.comparison.prior_correct / diagnosis.comparison.prior_total ? '同题组近期独立正确比例上升；这只是已收录重做的观察。' : '同题组近期独立正确比例没有上升。') : '两窗口需各有至少 5 次有效独立作答且覆盖至少 3 道题，才能比较趋势；目前仅列出事实。'}</p></section><section><h2>下一步做什么</h2>{diagnosis.actions.length ? <ol className="mistakes-diagnosis-list">{diagnosis.actions.map((action) => <li key={action.mistake_id}><Link to={`/mistakes/${encodeURIComponent(action.mistake_id)}?${queryBook}`}>{action.reason}</Link><span>打开对应档案</span></li>)}</ol> : <p className="mistakes-detail-note">当前没有待校对或到期的档案。</p>}<div className="mistakes-diagnosis-actions"><Link className="app-secondary-button" to="/mistakes?filter=pending"><TexaExercises className="h-4 w-4" />查看待处理</Link><Link className="app-secondary-button" to="/learning"><TexaTextbook className="h-4 w-4" />查看复习队列</Link></div></section></>}
   </div></main></div>;
 }
 

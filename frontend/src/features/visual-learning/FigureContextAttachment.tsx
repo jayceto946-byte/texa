@@ -1,4 +1,5 @@
-import { BookOpen, Images, Scan, X } from 'lucide-react';
+import { TexaTextbook, TexaClose } from '../../components/icons';
+import { Images, Scan } from 'lucide-react';
 
 import type { FigureArtifact } from '../../types';
 
@@ -28,10 +29,10 @@ export default function FigureContextAttachment({
           <span>查看与框选</span>
         </button>
         <button type="button" onClick={onOpenSource} aria-label="查看教材图来源" title="查看教材图来源">
-          <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+          <TexaTextbook className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
         <button type="button" onClick={onRemove} aria-label="移除教材图" title="移除教材图">
-          <X className="h-3.5 w-3.5" aria-hidden="true" />
+          <TexaClose className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
       </div>
     </div>

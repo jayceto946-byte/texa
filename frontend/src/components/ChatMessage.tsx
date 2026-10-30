@@ -1,6 +1,7 @@
+import { TexaTextbookRetrieve } from './icons';
 import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Globe2, GraduationCap, Paperclip, ShieldAlert } from 'lucide-react';
+import { Globe2, GraduationCap, Paperclip, ShieldAlert } from 'lucide-react';
 import type { AnswerMode, AssistantSource, ChatActivity, ChatChapterHighlightCard, ChatExerciseCard, ChatReportCard, ChatUtilityCard, CitationProvenance, ConceptCandidate, LearningTaskState, SubjectRouteSuggestion } from '../types';
 import { useChatContext } from '../contexts/ChatContext';
 import { groupSourcesByLocation, parseCitations, partitionSources, type SourceChapterGroup } from '../utils/citations';
@@ -374,7 +375,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
             )}
             {(hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
               <button type="button" onClick={openSources} title="检查回答来源">
-                <BookOpen className="h-3.5 w-3.5" />
+                <TexaTextbookRetrieve className="h-3.5 w-3.5" />
                 查看来源 · {hasStructuredSources ? sources.length : references.length || sourceChapters.length}
               </button>
             )}
@@ -384,7 +385,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ role, content, messageId, var
         {showMessageTools && variant === 'document' && (hasStructuredSources || references.length > 0 || sourceChapters.length > 0) && (
           <div className="mt-3 border-t border-border pt-2">
             <button type="button" onClick={openSources} className="flex items-center gap-1 text-xs text-text-secondary transition-colors hover:text-accent">
-              <BookOpen className="h-3 w-3" />
+              <TexaTextbookRetrieve className="h-3 w-3" />
               检查来源 {hasStructuredSources ? sources.length : references.length || sourceChapters.length}
             </button>
           </div>

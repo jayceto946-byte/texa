@@ -1,4 +1,5 @@
-import { ChevronDown, Link2, LoaderCircle, Plus, Trash2 } from 'lucide-react';
+import { TexaDelete } from '../icons';
+import { ChevronDown, Link2, LoaderCircle, Plus } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ScrollableSelect from '../ui/ScrollableSelect';
 import type { ModelRoleId, ModelSettingsValue } from './modelSettingsTypes';
@@ -253,7 +254,7 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
           <div className="flex min-w-0 gap-2">
             <input id="profile-name" value={value.profile_name || ''} onChange={(event) => onChange({ ...value, profile_name: event.target.value })} className={`${controlClass} min-w-0 flex-1`} />
             {value.editing_profile_id && value.editing_profile_id !== value.active_profile_id && editingSavedProfile && (
-              <button type="button" onClick={() => onDeleteProfile(value.editing_profile_id!)} className="settings-danger-action"><Trash2 className="h-4 w-4" />删除</button>
+              <button type="button" onClick={() => onDeleteProfile(value.editing_profile_id!)} className="settings-danger-action"><TexaDelete className="h-4 w-4" />删除</button>
             )}
           </div>
         </div>

@@ -1,5 +1,6 @@
+import { TexaClose } from '../../components/icons';
 import { useEffect, useState } from 'react';
-import { RefreshCw, X } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { apiFetch } from '../../api/client';
 import { useAuthenticatedBlobUrl } from '../../hooks/useAuthenticatedBlobUrl';
 
@@ -62,7 +63,7 @@ export default function FigureAuditPanel({ bookName, onClose }: { bookName: stri
   return <section style={{ gridColumn: '1 / -1' }} className="min-w-0 border-t border-border pt-4" aria-label={`${bookName}图片审核`}>
     <header className="flex flex-wrap items-center justify-between gap-2">
       <h5 className="type-section-title">教材图片审核</h5>
-      <div className="flex gap-2"><button type="button" disabled={loading} onClick={() => setRevision((value) => value + 1)} className="app-secondary-button"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />重新审核</button><button type="button" onClick={onClose} className="app-icon-button" aria-label="关闭图片审核"><X className="h-4 w-4" /></button></div>
+      <div className="flex gap-2"><button type="button" disabled={loading} onClick={() => setRevision((value) => value + 1)} className="app-secondary-button"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />重新审核</button><button type="button" onClick={onClose} className="app-icon-button" aria-label="关闭图片审核"><TexaClose className="h-4 w-4" /></button></div>
     </header>
     <p className="type-caption mt-2 text-text-secondary">自动检查裁片文件、坐标、图题归属和正文引用。标签可能已在图片内；疑似问题不等于缺图，原页完整性和文字正确性仍需核对。</p>
     <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="图片审核类别">

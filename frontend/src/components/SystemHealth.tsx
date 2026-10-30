@@ -1,5 +1,6 @@
+import { TexaTextbook } from './icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, CheckCircle2, CircleX, RefreshCw, Save } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, CircleX, RefreshCw, Save } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { del, get, patch, post } from '../api/client';
 import { useSystemHealth } from '../hooks/useSystemHealth';
@@ -427,7 +428,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
           </div>
           <div className="library-page-actions">
             <button onClick={() => saveSubjects()} className="app-secondary-button"><Save className="h-4 w-4" />保存目录</button>
-            <button onClick={openBookImport} className="app-primary-button"><BookOpen className="h-4 w-4" />导入教材</button>
+            <button onClick={openBookImport} className="app-primary-button"><TexaTextbook className="h-4 w-4" />导入教材</button>
           </div>
         </header>
         <main className="library-page-main min-h-0 min-w-0 flex-1">

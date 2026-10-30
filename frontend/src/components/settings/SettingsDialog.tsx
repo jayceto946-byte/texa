@@ -1,5 +1,6 @@
+import { TexaClose } from '../icons';
 import WorkspaceSkeleton from '../ui/WorkspaceSkeleton';
-import { X } from 'lucide-react';
+
 import { lazy, Suspense, useCallback, useRef } from 'react';
 import Dialog from '../ui/Dialog';
 import type { SettingsTab } from './settingsNavigation';
@@ -30,7 +31,7 @@ export default function SettingsDialog({ open, onClose, initialTab }: SettingsDi
       <header className="settings-dialog-header">
         <h2 className="app-page-title">设置</h2>
         <button type="button" onClick={close} className="app-icon-button" aria-label="关闭设置">
-          <X className="h-[18px] w-[18px]" />
+          <TexaClose className="h-[18px] w-[18px]" />
         </button>
       </header>
       <Suspense fallback={<WorkspaceSkeleton label="正在读取设置" header={false} />}>

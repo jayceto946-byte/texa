@@ -1,5 +1,6 @@
+import { TexaClose } from '../../components/icons';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronLeft, Grid3X3, Sigma, X } from 'lucide-react';
+import { ChevronLeft, Grid3X3, Sigma } from 'lucide-react';
 
 import { hasUnfilledPlaceholder, templateToEditorLatex } from './formulaEditorUtils';
 import MathFieldEditor, { type MathFieldEditorHandle } from './MathFieldEditor';
@@ -157,7 +158,7 @@ const VisualMathInputPopover: React.FC<VisualMathInputPopoverProps> = ({
               </div>
             </div>
             <button type="button" aria-label="关闭数学符号面板" onClick={closePanel} className="math-input-close flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-[var(--surface-muted)] hover:text-text-primary">
-              <X className="h-4 w-4" aria-hidden="true" />
+              <TexaClose className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
 

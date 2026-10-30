@@ -1,15 +1,8 @@
+import { TexaTextbook, TexaKnowledgeExtract, TexaExercises } from '../components/icons';
 import { getBookList } from '../features/books/bookList';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  BookOpen,
-  BrainCircuit,
-  CalendarDays,
-  ChevronDown,
-  ClipboardList,
-  ExternalLink,
-  RefreshCw,
-} from 'lucide-react';
+import { CalendarDays, ChevronDown, ExternalLink, RefreshCw } from 'lucide-react';
 import { get, post } from '../api/client';
 import ChatMessage from '../components/ChatMessage';
 import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
@@ -379,7 +372,7 @@ const LearningPage: React.FC = () => {
                 {(summary.recent_questions?.length || 0) > 0 && <div className="review-recent-questions"><h4>最近学习问题</h4>{summary.recent_questions?.slice(0, 5).map((item, index) => <div key={`${item.timestamp}-${index}`}><div className="review-question-preview"><SimpleMarkdown content={item.question} /></div><span>{item.source === 'mistake' ? '来自错题' : '来自问答'}{item.timestamp ? ` · ${item.timestamp.slice(0, 10)}` : ''}</span></div>)}</div>}
               </div>
               {kgJob && <TaskStatus title="完善知识关联" detail={kgJob.message || kgJob.status} progress={kgJob.progress} state={kgJobFailed ? 'error' : kgJob.status === 'completed' ? 'success' : 'loading'} />}
-              {bookName && <button onClick={startKGEnhancement} disabled={kgJobIsRunning} className="app-secondary-button"><BrainCircuit className="h-4 w-4" />{kgJobIsRunning ? '正在完善知识关联' : '完善知识关联'}</button>}
+              {bookName && <button onClick={startKGEnhancement} disabled={kgJobIsRunning} className="app-secondary-button"><TexaKnowledgeExtract size={16} className="h-4 w-4" />{kgJobIsRunning ? '正在完善知识关联' : '完善知识关联'}</button>}
             </details>
           </div>
         )}
@@ -494,9 +487,9 @@ const ConceptReviewCard = ({ item, bookName, index, first, open, onToggle, onRev
       {error && <p role="alert" className="review-row-error">{error}</p>}
       {open && <div className="review-detail">
         {item.reasons.length > 2 && <p>推荐依据：{item.reasons.join('；')}</p>}
-        {item.recent_questions.length > 0 && <MiniBlock icon={ClipboardList} title="相关近期问题">{item.recent_questions.length ? item.recent_questions.map((question, i) => <div key={i} className="review-question-preview"><SimpleMarkdown content={question.question} />{question.mistake_id && <Link to={mistakeHref(question.mistake_id, bookName)}>查看错题</Link>}</div>) : null}</MiniBlock>}
-        {item.textbook_snippets.length > 0 && <MiniBlock icon={BookOpen} title="教材线索">{item.textbook_snippets.length ? item.textbook_snippets.map((snippet, i) => <div key={i}>{snippet.chapter && <p className="review-muted">{snippet.chapter}</p>}<SimpleMarkdown content={snippet.text} /></div>) : null}</MiniBlock>}
-        {item.related_mistakes.length > 0 && <MiniBlock icon={ClipboardList} title="相关错题">{item.related_mistakes.length ? item.related_mistakes.slice(0, 4).map((mistake) => <Link className="review-question-preview" key={mistake.id} to={mistakeHref(mistake.id, bookName)}><SimpleMarkdown content={mistake.question_text || '查看错题'} /><ExternalLink className="inline h-3 w-3" /></Link>) : null}</MiniBlock>}
+        {item.recent_questions.length > 0 && <MiniBlock icon={TexaExercises} title="相关近期问题">{item.recent_questions.length ? item.recent_questions.map((question, i) => <div key={i} className="review-question-preview"><SimpleMarkdown content={question.question} />{question.mistake_id && <Link to={mistakeHref(question.mistake_id, bookName)}>查看错题</Link>}</div>) : null}</MiniBlock>}
+        {item.textbook_snippets.length > 0 && <MiniBlock icon={TexaTextbook} title="教材线索">{item.textbook_snippets.length ? item.textbook_snippets.map((snippet, i) => <div key={i}>{snippet.chapter && <p className="review-muted">{snippet.chapter}</p>}<SimpleMarkdown content={snippet.text} /></div>) : null}</MiniBlock>}
+        {item.related_mistakes.length > 0 && <MiniBlock icon={TexaExercises} title="相关错题">{item.related_mistakes.length ? item.related_mistakes.slice(0, 4).map((mistake) => <Link className="review-question-preview" key={mistake.id} to={mistakeHref(mistake.id, bookName)}><SimpleMarkdown content={mistake.question_text || '查看错题'} /><ExternalLink className="inline h-3 w-3" /></Link>) : null}</MiniBlock>}
         <div className="review-detail-actions"><Link className="app-secondary-button" to="/">回到学习继续理解</Link><button disabled={reviewing} type="button" onClick={() => onReview(item.name, 4)} className="app-secondary-button">{reviewing ? '记录中…' : '记录本次复习'}</button></div>
       </div>}
     </div>

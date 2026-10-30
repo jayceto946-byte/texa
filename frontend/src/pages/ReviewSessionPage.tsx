@@ -1,8 +1,9 @@
+import { TexaBack, TexaImage } from '../components/icons';
 import { readableVisualQuestion } from '../utils/visualQuestion';
 import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ImagePlus, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { get, post } from '../api/client';
 import ChatMessage from '../components/ChatMessage';
 import { useChatContext } from '../contexts/ChatContext';
@@ -44,7 +45,7 @@ function ReviewSessionStart() {
       navigate(`/learning/review/${encodeURIComponent(result.data.id)}?book_name=${encodeURIComponent(bookName || 'default')}`, { replace: true });
     } catch (cause) { setError(cause instanceof Error ? cause.message : '无法创建复习会话'); setStarting(false); }
   };
-  return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题复习</h1><Link to="/learning" className="review-session-back"><ArrowLeft className="h-4 w-4" />返回复习</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body"><h1>本次错题复习</h1>{loading ? <WorkspaceSkeleton label="正在读取到期错题" header={false} /> : !readError && <p>当前范围有 {items.length} 道到期错题。开始后题目顺序固定，退出后可继续同一会话。</p>}{readError && <div role="alert" className="review-session-error"><p>{readError}</p><button type="button" className="app-secondary-button" onClick={() => setReloadKey(key => key + 1)}>重试读取</button></div>}{error && <p role="alert" className="review-session-error">{error}</p>}{!loading && !readError && items.length > 0 && <button type="button" onClick={start} disabled={starting} className="app-primary-button">{starting && <Loader2 className="h-4 w-4 animate-spin" />}开始复习</button>}{!loading && !readError && items.length === 0 && <Link to="/mistakes" className="app-secondary-button">查看错题档案</Link>}</div></main></div>;
+  return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题复习</h1><Link to="/learning" className="review-session-back"><TexaBack className="h-4 w-4" />返回复习</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body"><h1>本次错题复习</h1>{loading ? <WorkspaceSkeleton label="正在读取到期错题" header={false} /> : !readError && <p>当前范围有 {items.length} 道到期错题。开始后题目顺序固定，退出后可继续同一会话。</p>}{readError && <div role="alert" className="review-session-error"><p>{readError}</p><button type="button" className="app-secondary-button" onClick={() => setReloadKey(key => key + 1)}>重试读取</button></div>}{error && <p role="alert" className="review-session-error">{error}</p>}{!loading && !readError && items.length > 0 && <button type="button" onClick={start} disabled={starting} className="app-primary-button">{starting && <Loader2 className="h-4 w-4 animate-spin" />}开始复习</button>}{!loading && !readError && items.length === 0 && <Link to="/mistakes" className="app-secondary-button">查看错题档案</Link>}</div></main></div>;
 }
 
 function ReviewSessionRun({ sessionId }: { sessionId: string }) {
@@ -53,7 +54,7 @@ function ReviewSessionRun({ sessionId }: { sessionId: string }) {
   const scope = new URLSearchParams(location.search).get('book_name') || bookName || 'default';
   const { session, answer, setAnswer, error, loading, busy, refresh, saveAnswer, reveal, upload, removeImage, submit } = useReviewSession(sessionId, scope);
   const imageInput = useRef<HTMLInputElement>(null);
-  return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题复习</h1><button type="button" className="review-session-back" onClick={() => navigate('/learning')}><ArrowLeft className="h-4 w-4" />返回复习</button></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body">
+  return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题复习</h1><button type="button" className="review-session-back" onClick={() => navigate('/learning')}><TexaBack className="h-4 w-4" />返回复习</button></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body">
     {loading && <p role="status">正在恢复复习会话…</p>}
     {error && <p role="alert" className="review-session-error">{error} <button type="button" onClick={() => void refresh()}>重试读取</button></p>}
     {session && <><p className="review-session-progress">第 {Math.min(session.index + 1, session.items.length)} / {session.items.length} 题</p>{session.current_item ? <>
@@ -71,7 +72,7 @@ function ReviewSessionRun({ sessionId }: { sessionId: string }) {
         </div>}
         <input ref={imageInput} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" hidden aria-label="选择手写解答图片" onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void upload(file); }} />
         <div className="review-session-actions">
-          <button type="button" className="app-secondary-button" disabled={busy} onClick={() => imageInput.current?.click()}><ImagePlus size={16} />{session.current_submission ? '更换图片' : '上传解答'}</button>
+          <button type="button" className="app-secondary-button" disabled={busy} onClick={() => imageInput.current?.click()}><TexaImage size={16} />{session.current_submission ? '更换图片' : '上传解答'}</button>
           <button type="button" onClick={() => void saveAnswer()} disabled={busy || answer === session.current_answer} className="app-secondary-button">保存草稿</button>
           <button type="button" onClick={() => void reveal()} disabled={busy} className="app-primary-button">{busy ? <><Loader2 size={15} className="animate-spin" />正在处理…</> : session.current_submission ? '提交作答并批改' : '提交作答并查看反馈'}</button>
         </div>

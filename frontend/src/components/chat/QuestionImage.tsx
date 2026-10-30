@@ -1,5 +1,6 @@
+import { TexaClose } from '../icons';
 import { useState } from 'react';
-import { X } from 'lucide-react';
+
 import { useAuthenticatedBlobUrl } from '../../hooks/useAuthenticatedBlobUrl';
 import Dialog from '../ui/Dialog';
 import './QuestionImage.css';
@@ -15,7 +16,7 @@ export default function QuestionImage({ path, previewPath, label = '题目图片
     </button>
     {preview.error && <button type="button" className="app-ghost-button" onClick={() => setRetry(value => value + 1)}>重试图片</button>}
     <Dialog open={open} title={label} onClose={() => setOpen(false)} dismissOnBackdrop className="question-image-viewer">
-      <header><span>{label}</span><button type="button" className="app-icon-button" aria-label="关闭原图" onClick={() => setOpen(false)}><X size={20} /></button></header>
+      <header><span>{label}</span><button type="button" className="app-icon-button" aria-label="关闭原图" onClick={() => setOpen(false)}><TexaClose size={20} /></button></header>
       <div className="question-image-original">
         {original.loading && <p role="status">正在读取原图…</p>}
         {original.error && <p role="alert">原图读取失败 <button className="app-secondary-button" onClick={() => setRetry(value => value + 1)}>重试</button></p>}

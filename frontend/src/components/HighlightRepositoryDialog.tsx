@@ -1,6 +1,7 @@
+import { TexaDelete, TexaClose } from './icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { BookMarked, CheckCircle2, Circle, ExternalLink, FolderOpen, Loader2, RefreshCw, Square, Trash2, X } from 'lucide-react';
+import { BookMarked, CheckCircle2, Circle, ExternalLink, FolderOpen, Loader2, RefreshCw, Square } from 'lucide-react';
 import { del, get, post } from '../api/client';
 import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 
@@ -390,7 +391,7 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
         <div className="flex min-h-12 items-center justify-between border-b border-border px-3 py-2 sm:px-4 sm:py-3">
           <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-text-primary"><BookMarked className="h-4 w-4 flex-shrink-0 text-accent" /><span className="truncate">章节重点仓库</span></div>
           <button type="button" onClick={onClose} className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary" title="关闭">
-            <X className="h-4 w-4" />
+            <TexaClose className="h-4 w-4" />
           </button>
         </div>
 
@@ -514,7 +515,7 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
             )}
             {isOpenable(selectedScope) && (
               <button type="button" onClick={deleteSelectedHighlight} disabled={actionBusy || !highlightBookName || !selectedChapterId} className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-bg-card px-3 py-2 text-xs font-medium text-[var(--danger)] hover:bg-red-50 disabled:opacity-50">
-                <Trash2 className="h-3.5 w-3.5" /> 删除旧重点
+                <TexaDelete className="h-3.5 w-3.5" /> 删除旧重点
               </button>
             )}
             <button type="button" onClick={() => startHighlightJob(selectedChapterId, selectedSectionId, isOpenable(selectedScope))} disabled={actionBusy || !highlightBookName || !selectedChapterId || selectedScopeIsRunning} className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-xs font-medium text-white hover:bg-accent-hover disabled:opacity-50">

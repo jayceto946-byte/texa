@@ -1,3 +1,4 @@
+import { TexaTextbook, TexaExercises, TexaSearch, TexaClose } from '../components/icons';
 import { getBookList } from '../features/books/bookList';
 import ManualExerciseDialog from '../features/exercises/ManualExerciseDialog';
 import { exercisePreview } from '../features/exercises/exercisePreview';
@@ -8,7 +9,7 @@ import { BatchCandidateReceipts } from '../features/exercises/components/BatchCa
 import { CandidateReviewWorkspace } from '../features/exercises/components/CandidateReviewWorkspace';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, ChevronDown, ChevronRight, ClipboardList, Loader2, Search, Upload, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Loader2, Upload } from 'lucide-react';
 import { apiFetch, del, get, post, ApiError } from '../api/client';
 import { SimpleMarkdown } from '../components/chat/MarkdownRenderer';
 import { ExerciseReader } from '../features/exercises/components/ExerciseReader';
@@ -630,7 +631,7 @@ const ExercisesPage: React.FC = () => {
                       <button className="app-primary-button" onClick={startConfiguredPractice} disabled={sessionBusy || loading}>开始练习 · {sessionLimit} 题</button>
                     </> : <div className="exercise-empty-paths">
                       <button onClick={() => { setSourceKind('textbook'); setWorkspaceMode('import'); }}>
-                        <BookOpen size={22} />从教材抽取 <ChevronRight size={16} />
+                        <TexaTextbook size={22} />从教材抽取 <ChevronRight size={16} />
                       </button>
                       <button onClick={() => { setSourceKind('file'); setWorkspaceMode('import'); }}>
                         <Upload size={22} />上传文件 / MinerU 包 <ChevronRight size={16} />
@@ -665,7 +666,7 @@ const ExercisesPage: React.FC = () => {
               <span>已掌握 <strong className="font-semibold text-[var(--success-text)]">{stats?.by_status?.mastered || 0}</strong>
               </span>
               <button onClick={load} disabled={loading} className="ml-auto inline-flex items-center gap-1 text-text-secondary hover:text-text-primary">
-                <Search className="h-4 w-4" />刷新</button>
+                <TexaSearch className="h-4 w-4" />刷新</button>
             </div>
 
             <section className={`${workspaceMode === 'bank' ? 'block' : 'hidden'} workspace-collection-section`}>
@@ -713,7 +714,7 @@ const ExercisesPage: React.FC = () => {
                   </div>
                 )}
                 {records.length === 0 && <div className="py-12 text-center workspace-interface-text text-text-secondary">
-                  <ClipboardList className="mx-auto mb-2 h-6 w-6" />暂无习题，请先导入 Word/PDF</div>}
+                  <TexaExercises className="mx-auto mb-2 h-6 w-6" />暂无习题，请先导入 Word/PDF</div>}
               </div>
             </section>
           </div>
@@ -733,7 +734,7 @@ const ExercisesPage: React.FC = () => {
                   <button onClick={() => setPdfPage((value) => String(Number(value || 1) + 1))} className="workspace-radius border border-border px-2.5 py-1.5 workspace-support-text hover:border-accent">下一页</button>
                   <button onClick={() => { const selectedPage = pdfPage || '1'; setTextbookPageStart(selectedPage); setTextbookPageEnd(selectedPage); setPdfOpen(false); }} className="workspace-radius bg-accent px-3 py-1.5 workspace-support-text text-white">{"\u62bd\u53d6\u5f53\u524d\u9875"}</button>
                   <button onClick={() => setPdfOpen(false)} aria-label="关闭 PDF" className="workspace-radius border border-border p-1.5 hover:border-accent">
-                    <X className="h-4 w-4" />
+                    <TexaClose className="h-4 w-4" />
                   </button>
                 </div>
               </div>

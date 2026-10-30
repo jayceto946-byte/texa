@@ -1,5 +1,6 @@
+import { TexaTextbook, TexaClose } from '../../components/icons';
 import React, { useRef, useState } from 'react';
-import { BookOpen, Focus, Scan, X } from 'lucide-react';
+import { Focus, Scan } from 'lucide-react';
 import { useAuthenticatedBlobUrl } from '../../hooks/useAuthenticatedBlobUrl';
 import type { FigureArtifact, VisualRegion } from '../../types';
 import { ActionableIssue } from '../../components/ui/AsyncState';
@@ -79,8 +80,8 @@ export default function FigureRegionViewer({
             <Focus className="h-3.5 w-3.5" />中心选区
           </button>
           <button type="button" onClick={() => onRegionChange(null)} disabled={!region}>整图</button>
-          <button type="button" onClick={onOpenSource}><BookOpen className="h-3.5 w-3.5" />教材页</button>
-          <button type="button" onClick={onClose} aria-label="结束查看教材图片"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={onOpenSource}><TexaTextbook className="h-3.5 w-3.5" />教材页</button>
+          <button type="button" onClick={onClose} aria-label="结束查看教材图片"><TexaClose className="h-4 w-4" /></button>
         </div>
       </header>
       <div className="figure-region-stage">

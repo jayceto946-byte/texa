@@ -1,7 +1,8 @@
+import { TexaClose } from '../../components/icons';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowUpRight, Check, Pause, Play, Square, Timer, X } from 'lucide-react';
+import { ArrowUpRight, Check, Pause, Play, Square, Timer } from 'lucide-react';
 import Dialog from '../../components/ui/Dialog';
 import { panelPlacement } from './panelPlacement';
 import { completionTransition } from './controllerState';
@@ -127,7 +128,7 @@ export default function FocusController() {
     <header>
       <span title={task?.goal_title}>{task?.goal_title || '专注'}</span>
       <button className="app-ghost-button focus-manage-link" onClick={manage}>任务管理<ArrowUpRight size={12} aria-hidden="true" /></button>
-      <button className="app-icon-button" aria-label="关闭专注面板" onClick={close}><X size={16} /></button>
+      <button className="app-icon-button" aria-label="关闭专注面板" onClick={close}><TexaClose size={16} /></button>
     </header>
     {task && <h3 title={task.title}>{task.title}</h3>}
     {task?.content && <p className="focus-task-content">{task.content}</p>}

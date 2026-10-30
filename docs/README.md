@@ -21,6 +21,11 @@
 - [习题候选合同](design/question-candidate-contract-2026-10-17/candidate-contract-specification.md)
 - [QA 运行说明](qa/RUN-QA.md)、[API 清单](qa/API-ENDPOINTS.md)
 
+## 图标设计探索
+
+- [图标审计与库存](design/TEXA-ICON-AUDIT.md)、[初步规范与运行入口](design/TEXA-ICON-SPEC.md)、[三方向评审](design/TEXA-ICON-EVALUATION.md)
+- 原型：前端开发服务的 `/icon-design.html`，与正式业务入口隔离；已确认的 A 图标通过统一组件接入正式工作区，B/C 保留为探索。
+
 ## 历史材料
 
 阶段计划、实验报告和审计记录保存在本地 `docs/archive/`，不进入 GitHub、干净源码导出或 Docker 构建。归档按原仓库路径保存；本地整理报告与逐文件清单位于 `docs/archive/repository-cleanup-2026-10-28/`。

@@ -1,5 +1,6 @@
+import { TexaCopy } from '../icons';
 import { useCallback, useEffect, useState } from 'react';
-import { Copy, Loader2, Smartphone, RefreshCw } from 'lucide-react';
+import { Loader2, Smartphone, RefreshCw } from 'lucide-react';
 import type { DesktopRemoteConnection } from '../../types/electron';
 
 export default function MobileRemoteS0() {
@@ -29,7 +30,7 @@ export default function MobileRemoteS0() {
     <div className="remote-connection-heading"><span className="remote-device-icon"><Smartphone size={24}/></span><div><h4 className="settings-section-title">连接这台电脑</h4><p className="settings-secondary">在手机上继续使用当前学习工作区</p></div><span className="remote-connection-state" data-enabled={status?.enabled}>{status?.enabled ? '已开启' : '未开启'}</span></div>
     <p className="settings-secondary">电脑和手机或 iPad 均开启 Tailscale，并加入同一网络。开启后会生成这台电脑的 HTTPS 访问地址，在另一台设备的浏览器打开并配对。</p>
     <div className="remote-connection-actions"><button className="app-primary-button" disabled={busy || !status?.ready} onClick={() => void toggle()}>{busy ? <Loader2 size={16} className="animate-spin"/> : <Smartphone size={16}/>} {busy ? '正在连接…' : status?.enabled ? '关闭手机连接' : '开启手机连接'}</button><button className="app-ghost-button" disabled={busy} onClick={() => void load()} aria-label="刷新手机连接状态"><RefreshCw size={16}/></button></div>
-    {status?.enabled && <div className="remote-pairing"><div><span className="settings-secondary">手机浏览器地址</span><a href={status.url} target="_blank" rel="noreferrer">{status.url.replace('https://','').replace(/\/$/,'')}</a></div><button className="app-secondary-button" onClick={() => void copy()}><Copy size={15}/>复制地址</button><button className="app-secondary-button" onClick={() => void copy(true)}>复制配对码</button></div>}
+    {status?.enabled && <div className="remote-pairing"><div><span className="settings-secondary">手机浏览器地址</span><a href={status.url} target="_blank" rel="noreferrer">{status.url.replace('https://','').replace(/\/$/,'')}</a></div><button className="app-secondary-button" onClick={() => void copy()}><TexaCopy size={15}/>复制地址</button><button className="app-secondary-button" onClick={() => void copy(true)}>复制配对码</button></div>}
     <p role="status" className="settings-secondary">{feedback}</p>
     {feedback.includes('HTTPS Certificates') && <p className="settings-secondary"><a href="https://login.tailscale.com/admin/dns" target="_blank" rel="noreferrer">打开 Tailscale HTTPS 设置</a>，启用后返回此处重试。</p>}
   </section>;

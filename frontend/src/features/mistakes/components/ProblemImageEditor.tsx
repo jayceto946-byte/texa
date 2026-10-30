@@ -1,5 +1,6 @@
+import { TexaClose } from '../../../components/icons';
 import React, { useEffect, useRef, useState } from 'react';
-import { Loader2, SlidersHorizontal, RotateCw, X } from 'lucide-react';
+import { Loader2, SlidersHorizontal, RotateCw } from 'lucide-react';
 
 import { clamp, compressPhotoForUpload, renderProcessedImage, type CropState, type ImageAdjust } from '../imageProcessing';
 import { MistakeRange } from './MistakePresentation';
@@ -168,7 +169,7 @@ const ProblemImageEditor: React.FC<{
   const cancel = () => { processingEpoch.current += 1; onCancel(); };
   return (
     <Dialog open={open} onClose={cancel} title={title} className="problem-image-dialog">
-      <header className="problem-image-header"><h2 className="app-page-title">{title}</h2><button type="button" onClick={cancel} className="app-icon-button" aria-label="关闭图片裁剪"><X className="h-5 w-5" /></button></header>
+      <header className="problem-image-header"><h2 className="app-page-title">{title}</h2><button type="button" onClick={cancel} className="app-icon-button" aria-label="关闭图片裁剪"><TexaClose className="h-5 w-5" /></button></header>
       <div className="problem-image-body grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-3">
           <div ref={stageRef} className="relative mx-auto w-fit max-h-[65dvh] max-w-full overflow-hidden touch-none select-none rounded outline outline-1 outline-border bg-bg-secondary" onPointerDown={(event) => startDrag('draw', event)} onPointerMove={updateDrag} onPointerUp={finishDrag} onPointerCancel={finishDrag}>

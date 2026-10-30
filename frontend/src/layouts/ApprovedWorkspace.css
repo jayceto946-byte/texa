@@ -558,3 +558,7 @@ body { user-select:none; -webkit-user-select:none; }
 
 /* Reserve space for the persistent guide and settings entries. */
 @media (min-width:920px) { .app-shell[data-layout="desktop"] .study-navigation { padding-bottom:84px; } }
+
+/* Approved Texa glyphs keep their optical weight; legacy Lucide remains unchanged. */
+.app-shell .app-rail-link svg[data-texa-icon], .app-shell .study-book-icon[data-texa-icon] { stroke-width: 1.8; }
+.app-shell .study-book-icon[data-texa-icon] { width: 20px; height: 20px; }

@@ -1,5 +1,6 @@
+import { TexaBack } from './icons';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
+import { ArrowRight, Check, Loader2 } from 'lucide-react';
 import { get, post, del, isRemoteBrowser } from '../api/client';
 import ModelSettingsManager from './settings/ModelSettingsManager';
 import type { ModelRoleId, ModelSettingsValue } from './settings/modelSettingsTypes';
@@ -111,7 +112,7 @@ export default function FirstRunGuide({ children }: { children: ReactNode }) {
       {step === 1 && <><div className="welcome-leading"><p className="welcome-eyebrow">首次设置</p></div><h1 ref={headingRef} tabIndex={-1}>连接回答模型</h1><p className="welcome-lead">选择模型服务并填写所需凭证。凭证保存在本机。</p>{draft && <ModelSettingsManager guided value={draft} onChange={change} onTestConnection={test}
         onActivateProfile={async (id) => { try { const response = await post(`/system/settings/model-profiles/${encodeURIComponent(id)}/activate`, {}); if (!response.success) throw new Error(); await load(); } catch { setError('切换方案失败，请重试'); } }}
         onDeleteProfile={async (id) => { try { const response = await del(`/system/settings/model-profiles/${encodeURIComponent(id)}`); if (!response.success) throw new Error(); await load(); } catch { setError('删除方案失败，请重试'); } }} />}
-        <div className="welcome-actions"><button className="app-primary-button welcome-primary" onClick={() => void save()} disabled={busy || loading || !draft || phase !== 'idle' || nativeUnsupported}>{busy ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}保存并继续</button><button className="app-ghost-button" onClick={() => navigate(0)} disabled={busy || phase !== 'idle'}><ArrowLeft size={16} />返回</button></div></>}
+        <div className="welcome-actions"><button className="app-primary-button welcome-primary" onClick={() => void save()} disabled={busy || loading || !draft || phase !== 'idle' || nativeUnsupported}>{busy ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}保存并继续</button><button className="app-ghost-button" onClick={() => navigate(0)} disabled={busy || phase !== 'idle'}><TexaBack size={16} />返回</button></div></>}
       {step === 2 && <><div className="welcome-leading"><span className="welcome-ready" role="img" aria-label="配置已保存"><Check size={15} /></span></div><h1 ref={headingRef} tabIndex={-1}>学习工作区已就绪</h1><p className="welcome-lead">从一个问题开始，教材和复习记录可以随时加入。</p><div className="welcome-final-actions"><button className="app-primary-button welcome-primary" disabled={!saved || busy || phase !== 'idle'} onClick={() => void finish()}>进入学习工作区 <ArrowRight size={16} /></button><button className="app-ghost-button" onClick={() => navigate(1)} disabled={busy || phase !== 'idle'}>返回模型配置</button></div></>}
       {loading && <p role="status" className="welcome-note">正在读取本地配置…</p>}{error && <div role="alert" className="welcome-error"><p>{error}</p><button className="app-secondary-button" onClick={() => void load()}>重新读取配置</button></div>}
     </div></main>

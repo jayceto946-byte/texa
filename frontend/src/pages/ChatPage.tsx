@@ -1,3 +1,4 @@
+import { TexaMistakes, TexaImage, TexaSend, TexaCompose, TexaGoals, TexaClose } from '../components/icons';
 import {useConversationReconcile} from '../features/chat/useConversationReconcile';
 import { finishSessionRender } from '../utils/performanceMetrics';
 import { streamFailure, streamPresentation } from '../features/chat/streamPresentation';
@@ -8,7 +9,7 @@ import { imageUploadError } from '../features/mistakes/imageProcessing';
 import { readBrowserStorage, writeBrowserStorage } from '../utils/browserStorage';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, BookMarked, CalendarDays, ImagePlus, Images, MessageSquarePlus, Send, Shuffle, Square, Target, X } from 'lucide-react';
+import { ArrowDown, BookMarked, CalendarDays, Images, MessageSquarePlus, Square } from 'lucide-react';
 import { figureQuestionStream, get, interruptFigureTask, mistakeSolutionStream, post, resumeFigureTaskStream } from '../api/client';
 
 import HighlightRepositoryDialog from '../components/HighlightRepositoryDialog';
@@ -1083,7 +1084,7 @@ const ChatPage: React.FC = () => {
                 {attachmentPreview ? (
                   <img src={attachmentPreview} alt="待解析的题目附件" className="h-12 w-12 rounded-[var(--radius-small)] object-cover" />
                 ) : (
-                  <div className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-small)] bg-[var(--accent-soft)] text-accent"><BookMarked className="h-5 w-5" /></div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-small)] bg-[var(--accent-soft)] text-accent"><TexaMistakes className="h-5 w-5" /></div>
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium text-text-primary">
@@ -1097,7 +1098,7 @@ const ChatPage: React.FC = () => {
                   )}
                   {attachmentUploadSummary && <p className="mt-1 text-xs text-text-secondary">{attachmentUploadSummary}</p>}
                 </div>
-                <button type="button" aria-label="移除附件" onClick={() => { clearAttachment(); setSelectedMistakeId(''); }} className="app-icon-button"><X className="h-4 w-4" /></button>
+                <button type="button" aria-label="移除附件" onClick={() => { clearAttachment(); setSelectedMistakeId(''); }} className="app-icon-button"><TexaClose className="h-4 w-4" /></button>
               </div>
             )}
             <div className="min-w-0 overflow-hidden">
@@ -1126,10 +1127,10 @@ const ChatPage: React.FC = () => {
                   <button role="menuitem" type="button" disabled={isLoading || attachmentLoading || !bookName} onClick={()=>{close();openFigureCatalog();}}>教材图片</button>
                   <button role="menuitem" type="button" disabled={isLoading || attachmentLoading} onClick={()=>{close();void loadCachedMistakes();}}>历史错题</button>
                 </>}</ComposerOverflowMenu>
-                {!window.kaoyanDesktop?.isElectron && window.matchMedia('(pointer: coarse)').matches && <button type="button" disabled={isLoading || attachmentLoading} aria-label="拍照提问" onClick={() => cameraInputRef.current?.click()} className="composer-tool-button"><ImagePlus className="h-4 w-4" /><span>拍照</span></button>}
-                <button type="button" disabled={isLoading || attachmentLoading} aria-label="上传题目图片" title="上传题目图片" onClick={() => attachmentInputRef.current?.click()} className="composer-tool-button chat-image-upload-button"><ImagePlus className="h-4 w-4" /><span>图片</span></button>
+                {!window.kaoyanDesktop?.isElectron && window.matchMedia('(pointer: coarse)').matches && <button type="button" disabled={isLoading || attachmentLoading} aria-label="拍照提问" onClick={() => cameraInputRef.current?.click()} className="composer-tool-button"><TexaImage className="h-4 w-4" /><span>拍照</span></button>}
+                <button type="button" disabled={isLoading || attachmentLoading} aria-label="上传题目图片" title="上传题目图片" onClick={() => attachmentInputRef.current?.click()} className="composer-tool-button chat-image-upload-button"><TexaImage className="h-4 w-4" /><span>图片</span></button>
                 <button type="button" disabled={isLoading || attachmentLoading || !bookName} aria-label="选择教材图片" title={bookName ? '选择教材图片' : '请先选择教材'} onClick={openFigureCatalog} className={`composer-tool-button ${activeFigure ? 'is-active' : ''}`}><Images className="h-4 w-4" /><span>教材图</span></button>
-                <button ref={mistakePickerButtonRef} type="button" aria-expanded={mistakePickerOpen} disabled={isLoading || attachmentLoading} aria-label="选择历史错题" title="选择历史错题" onClick={() => void loadCachedMistakes()} className="composer-tool-button"><BookMarked className="h-4 w-4" /><span>错题</span></button>
+                <button ref={mistakePickerButtonRef} type="button" aria-expanded={mistakePickerOpen} disabled={isLoading || attachmentLoading} aria-label="选择历史错题" title="选择历史错题" onClick={() => void loadCachedMistakes()} className="composer-tool-button"><TexaMistakes className="h-4 w-4" /><span>错题</span></button>
                 <VisualMathInputPopover
                   disabled={isLoading || attachmentLoading}
                   editRequest={mathEditRequest}
@@ -1139,12 +1140,12 @@ const ChatPage: React.FC = () => {
                 <ComposerOverflowMenu label="学习操作">
                   {(close) => (
                     <>
-                      <button role="menuitem" type="button" onClick={() => { close(); navigate('/goals', { state: { goalDraft: composeMathQuestion(input, mathExpressions) } }); }} className="composer-overflow-item"><Target className="h-3.5 w-3.5" />设为学习目标</button>
+                      <button role="menuitem" type="button" onClick={() => { close(); navigate('/goals', { state: { goalDraft: composeMathQuestion(input, mathExpressions) } }); }} className="composer-overflow-item"><TexaGoals className="h-3.5 w-3.5" />设为学习目标</button>
                       <button role="menuitem" type="button" onClick={() => { close(); void showReport('daily'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'daily' ? '整理日报' : '学习日报'}</button>
                       <button role="menuitem" type="button" onClick={() => { close(); void showReport('weekly'); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><CalendarDays className="h-3.5 w-3.5" />{actionLoading === 'weekly' ? '整理周报' : '学习周报'}</button>
-                      <button role="menuitem" type="button" onClick={() => { close(); void pickRandomExercise(); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><Shuffle className="h-3.5 w-3.5" />{actionLoading === 'exercise' ? '抽题中' : '随机抽题'}</button>
+                      <button role="menuitem" type="button" onClick={() => { close(); void pickRandomExercise(); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><TexaCompose className="h-3.5 w-3.5" />{actionLoading === 'exercise' ? '抽题中' : '随机抽题'}</button>
                       <button role="menuitem" type="button" onClick={() => { close(); openHighlightDialog(); }} disabled={Boolean(actionLoading)} className="composer-overflow-item"><BookMarked className="h-3.5 w-3.5" />查看/生成重点</button>
-                      <button role="menuitem" type="button" onClick={() => { close(); openMistakeQuickCapture(); }} className="composer-overflow-item"><ImagePlus className="h-3.5 w-3.5" />错题速录</button>
+                      <button role="menuitem" type="button" onClick={() => { close(); openMistakeQuickCapture(); }} className="composer-overflow-item"><TexaImage className="h-3.5 w-3.5" />错题速录</button>
                     </>
                   )}
                 </ComposerOverflowMenu>
@@ -1155,7 +1156,7 @@ const ChatPage: React.FC = () => {
                 </button>
               ) : (
                 <button type="submit" aria-label="发送问题" title="发送" disabled={attachmentLoading || (!input.trim() && mathExpressions.length === 0 && !attachmentFile && !selectedMistakeId && !activeFigure)} className="composer-send">
-                  <Send className="h-4 w-4" />
+                  <TexaSend className="h-4 w-4" />
                 </button>
               )}
             </div>

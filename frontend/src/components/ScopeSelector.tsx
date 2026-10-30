@@ -1,6 +1,7 @@
+import { TexaTextbook } from './icons';
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import { BookOpen, Check, ChevronDown, ChevronRight, GraduationCap } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, GraduationCap } from 'lucide-react';
 import { get } from '../api/client';
 import { formatLearningScopeLabel, scopeContainsBook, type TextbookScopeOption } from '../utils/textbookScopes';
 import { scopePopoverLayout } from '../utils/scopePopover';
@@ -368,7 +369,7 @@ export default function ScopeSelector({
                 {!visibleBooks.length && (
                   <OptionButton active={!bookName} onClick={() => selectBook('')}>
                     <span className="flex min-w-0 items-center gap-2">
-                      <BookOpen className="h-3.5 w-3.5 flex-shrink-0 text-accent" />
+                      <TexaTextbook className="h-3.5 w-3.5 flex-shrink-0 text-accent" />
                       <span className="truncate">{emptyBookLabel || '通用 QA'}</span>
                     </span>
                   </OptionButton>

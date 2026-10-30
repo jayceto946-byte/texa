@@ -1,4 +1,5 @@
-import { X } from 'lucide-react';
+import { TexaClose } from '../../components/icons';
+
 import Dialog from '../../components/ui/Dialog';
 import { useBookDeletion } from './hooks/useBookDeletion';
 import './textbookControls.css';
@@ -7,7 +8,7 @@ export default function BookDeleteDialog({ reference, onClose, onDeleted }: { re
   const state = useBookDeletion(reference, onDeleted);
   const locked = state.busy || state.stopping;
   return <Dialog open title="删除教材" onClose={() => { if (!locked) onClose(); }} className="textbook-delete-dialog">
-    <header className="textbook-dialog-header"><div><h2>删除教材</h2></div><button type="button" className="app-icon-button" aria-label="关闭删除教材" disabled={locked} onClick={onClose}><X size={16} /></button></header>
+    <header className="textbook-dialog-header"><div><h2>删除教材</h2></div><button type="button" className="app-icon-button" aria-label="关闭删除教材" disabled={locked} onClick={onClose}><TexaClose size={16} /></button></header>
     <div className="textbook-dialog-body">
       {!state.preview ? <p role="status">正在读取教材资料…</p> : <>
         <p className="textbook-delete-name">《{state.preview.display_name}》</p>

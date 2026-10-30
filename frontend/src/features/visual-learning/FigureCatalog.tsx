@@ -1,5 +1,6 @@
+import { TexaSearch } from '../../components/icons';
 import { useEffect, useState } from 'react';
-import { Image as ImageIcon, Search } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 import { get } from '../../api/client';
 import type { FigureArtifact } from '../../types';
 
@@ -56,7 +57,7 @@ export default function FigureCatalog({ bookNames = [], onSelect }: { bookNames?
   return (
     <div className="figure-catalog">
       <label className="figure-catalog-search">
-        <Search className="h-3.5 w-3.5" aria-hidden="true" />
+        <TexaSearch className="h-3.5 w-3.5" aria-hidden="true" />
         <span className="sr-only">搜索图注、章节或邻近正文</span>
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索图注、章节或邻近正文" />
       </label>

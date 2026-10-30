@@ -1,3 +1,4 @@
+import { TexaBack } from '../components/icons';
 import FocusHistory from '../features/focus/FocusHistory';
 import { useFocus, focusDuration } from '../features/focus/FocusContext';
 import GoalEditor from '../features/goals/GoalEditor';
@@ -6,7 +7,7 @@ import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import { getBookList } from '../features/books/bookList';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarClock, Loader2, Play, Plus, ArrowLeft } from 'lucide-react';
+import { CalendarClock, Loader2, Play, Plus } from 'lucide-react';
 import { get, post } from '../api/client';
 import { useChatContext } from '../contexts/ChatContext';
 import type { LearningTaskState, AssistantSource } from '../types';
@@ -221,7 +222,7 @@ export default function GoalsPage() {
         <main className="goal-detail" aria-label="目标工作区">
           {view === 'detail' && actionError && <div role="alert" className="goal-error">{actionError}<button className="app-ghost-button" onClick={() => void load(true)}>刷新状态</button></div>}
           {view === 'create' ? <section className="goal-intake">
-            {goals.length > 0 && <button className="goal-back app-ghost-button" onClick={showDetail}><ArrowLeft size={15} />返回目标</button>}
+            {goals.length > 0 && <button className="goal-back app-ghost-button" onClick={showDetail}><TexaBack size={15} />返回目标</button>}
             {step === 'edit' ? <><h2>新建目标</h2><p>先写下想学会什么，再添加具体任务。</p><div className="goal-manual-fields"><label>目标标题<input className="app-field" required maxLength={200} value={manualTitle} placeholder="例如：学习偏导数" onChange={event=>setManualTitle(event.target.value)} /></label><label>说明（可选）</label></div>
               <textarea aria-label="描述学习目标" placeholder="简短说明想达到的结果……" value={text} maxLength={2000} onChange={(event) => {setText(event.target.value); setProposal(null); setIntakeFailed(false); setActionError('');}} disabled={busy} />
               <div className="goal-manual-fields"><label>完成条件（可选，每行一项，最多12项）<textarea aria-label="目标完成条件" value={manualCriteria} maxLength={10000} onChange={event=>setManualCriteria(event.target.value)} /></label></div>
@@ -235,7 +236,7 @@ export default function GoalsPage() {
               <div className="goal-review-actions"><button className="app-primary-button" disabled={busy} onClick={() => void create()}>{busy ? <Loader2 className="animate-spin" size={16} /> : null}保存目标</button><button className="app-ghost-button" disabled={busy} onClick={() => {setStep('edit'); setActionError('');}}>返回修改</button></div>
             </>}
           </section> : active ? <section className="goal-session">
-            <button ref={listReturnButton} className="goal-list-return app-ghost-button" onClick={showList}><ArrowLeft size={15} />目标列表</button>
+            <button ref={listReturnButton} className="goal-list-return app-ghost-button" onClick={showList}><TexaBack size={15} />目标列表</button>
             <div className="goal-eyebrow">{goalLabels[active.status] || active.status} · {active.scope.subject || '全部学科'} · {active.scope.book_name || '不限教材'}</div><h2>{active.title}</h2>
             <section className="goal-overview"><p className="goal-objective">{active.objective}</p><details className="goal-criteria"><summary>完成条件 · {active.success_criteria.length}</summary>{active.success_criteria.length ? <ul>{active.success_criteria.map((item) => <li key={item.id}>{item.description}</li>)}</ul> : <p className="goals-muted">尚未设置完成条件，请依据实际学习结果确认目标是否完成。</p>}</details></section>
             <p className="goal-summary-progress">{focus.data?.goal_stats.find(item=>item.goal_id===active.id) ? `${focus.data.goal_stats.find(item=>item.goal_id===active.id)!.completed_count} / ${focus.data.goal_stats.find(item=>item.goal_id===active.id)!.task_count} 项完成 · 已投入 ${focusDuration(focus.data.goal_stats.find(item=>item.goal_id===active.id)!.active_ms)}` : focus.error?'任务统计暂不可读取':focus.data?'尚无任务记录':'正在读取任务统计…'}</p>

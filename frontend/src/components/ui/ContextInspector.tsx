@@ -1,5 +1,6 @@
+import { TexaClose } from '../icons';
 import { useEffect, useRef, useState } from 'react';
-import { X } from 'lucide-react';
+
 import { useInspector } from '../../contexts/InspectorContext';
 import Dialog from './Dialog';
 
@@ -29,7 +30,7 @@ export default function ContextInspector() {
       {inspector.subtitle && <div className="type-micro text-text-secondary">{inspector.subtitle}</div>}
       <h2 className="mt-0.5 truncate text-[15px] font-semibold text-text-primary">{inspector.title}</h2>
     </div>
-    <button type="button" onClick={closeInspector} className="app-icon-button context-inspector-close" aria-label="关闭详情面板"><X className="h-4 w-4" /></button>
+    <button type="button" onClick={closeInspector} className="app-icon-button context-inspector-close" aria-label="关闭详情面板"><TexaClose className="h-4 w-4" /></button>
   </header><div className="context-inspector-body">{inspector.content}</div></>;
   return narrow ? <Dialog open title={`${inspector.title}详情`} onClose={closeInspector} dismissOnBackdrop className="context-inspector-modal">{content}</Dialog>
     : <aside ref={panelRef} className="context-inspector" aria-label={`${inspector.title}详情`}>{content}</aside>;

@@ -1,5 +1,6 @@
+import { TexaClose } from '../../components/icons';
 import { useState } from 'react';
-import { X } from 'lucide-react';
+
 import Dialog from '../../components/ui/Dialog';
 import { useOptionalConceptJob } from './hooks/useOptionalConceptJob';
 import './textbookControls.css';
@@ -19,7 +20,7 @@ export default function ConceptExtractionStatus({ bookName, jobId = '' }: { book
     {job?.status === 'cancelling' && <p className="textbook-concept-detail">等待当前请求结束…</p>}
     {(failed || state.error) && <details className="textbook-concept-detail"><summary>查看原因</summary><p role="alert">{state.error || job?.error || job?.message}</p></details>}
     <Dialog open={confirmOpen} title="提取教材概念" onClose={() => setConfirmOpen(false)} className="textbook-delete-dialog">
-      <header className="textbook-dialog-header"><h2>提取教材概念</h2><button type="button" className="app-icon-button" aria-label="关闭概念提取确认" onClick={() => setConfirmOpen(false)}><X size={16} /></button></header>
+      <header className="textbook-dialog-header"><h2>提取教材概念</h2><button type="button" className="app-icon-button" aria-label="关闭概念提取确认" onClick={() => setConfirmOpen(false)}><TexaClose size={16} /></button></header>
       <div className="textbook-dialog-body"><p>将教材片段发送到已配置的模型，可能产生费用。</p></div>
       <footer className="textbook-dialog-footer"><button type="button" className="app-secondary-button" onClick={() => setConfirmOpen(false)}>取消</button><button type="button" className="app-primary-button" onClick={() => { setConfirmOpen(false); void state.start(); }}>开始提取</button></footer>
     </Dialog>

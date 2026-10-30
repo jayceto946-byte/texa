@@ -1,5 +1,6 @@
+import { TexaBack } from '../components/icons';
 import React, { useEffect, useRef, useState } from 'react';
-import { Archive, ArrowLeft, FileText, HelpCircle, Loader2, Upload } from 'lucide-react';
+import { Archive, FileText, HelpCircle, Loader2, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api/client';
 import ConceptExtractionStatus from '../features/textbooks/ConceptExtractionStatus';
@@ -252,7 +253,7 @@ const BooksPage: React.FC = () => {
     <div className="management-workspace flex h-full min-w-0 flex-col bg-bg-primary">
       <header className="app-page-header window-drag-region border-b border-border bg-bg-card">
         <h2 className="app-page-title">导入教材</h2>
-        <button type="button" onClick={() => navigate('/books')} className="app-ghost-button"><ArrowLeft className="h-4 w-4" />返回教材</button>
+        <button type="button" onClick={() => navigate('/books')} className="app-ghost-button"><TexaBack className="h-4 w-4" />返回教材</button>
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto"><div className="management-page-content mx-auto w-full max-w-6xl space-y-5">

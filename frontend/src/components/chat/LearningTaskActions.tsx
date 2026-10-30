@@ -1,5 +1,6 @@
+import { TexaClose } from '../icons';
 import { useEffect, useState } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { resolveAgentAction } from '../../api/client';
 import type { AgentPendingAction, LearningTaskState } from '../../types';
 import { pendingActionPresentation } from '../../features/chat/pendingActionPresentation';
@@ -68,7 +69,7 @@ export default function LearningTaskActions({ initialTask, onResume, onTaskChang
               {allowed.length > 0 ? (
                 <span className="flex items-center gap-1.5">
                   {allowed.includes('reject') && <button type="button" disabled={Boolean(busy)} onClick={() => void resolve(action, 'reject')} className="app-secondary-button disabled:opacity-50">
-                    <X className="h-3.5 w-3.5" /> 暂不执行
+                    <TexaClose className="h-3.5 w-3.5" /> 暂不执行
                   </button>}
                   {allowed.includes('confirm') && <button type="button" disabled={Boolean(busy)} onClick={() => void resolve(action, 'confirm')} className="app-primary-button disabled:opacity-50">
                     <Check className="h-3.5 w-3.5" /> {busy === action.action_id ? '执行中…' : '确认执行'}

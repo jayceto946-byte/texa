@@ -1,5 +1,6 @@
+import { TexaCompose } from '../icons';
 import React, { useRef, useState } from 'react';
-import { Loader2, Shuffle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { ChatExerciseCard } from '../../types';
 import { post } from '../../api/client';
 import { SimpleMarkdown } from './MarkdownMessage';
@@ -52,7 +53,7 @@ const ExerciseCard: React.FC<{ card: ChatExerciseCard; bookName: string }> = ({ 
       <div className="rounded-xl border border-border bg-[var(--surface-subtle)] p-4">
         <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2 text-base font-semibold text-text-primary"><Shuffle className="h-4 w-4 text-accent" />随机抽题</div>
+            <div className="flex items-center gap-2 text-base font-semibold text-text-primary"><TexaCompose className="h-4 w-4 text-accent" />随机抽题</div>
             <div className="mt-1 flex flex-wrap gap-2 text-xs text-text-secondary">
               <span>{record.subject || bookName || '未分类'}</span>
               {record.chapter && <span>{record.chapter}</span>}

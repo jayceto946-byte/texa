@@ -1,5 +1,6 @@
+import { TexaClose } from '../../components/icons';
 import { useState } from 'react';
-import { X } from 'lucide-react';
+
 import Dialog from '../../components/ui/Dialog';
 import { useOutlineCalibration, type OutlineCandidate } from './hooks/useOutlineCalibration';
 import './outlineCalibration.css';
@@ -18,7 +19,7 @@ export default function OutlineCalibrationPanel({ bookName, onClose }: { bookNam
     state.changeExamples(value === '' ? others : [...others, { block_id: row.block_id, level: Number(value), role }]);
   };
   return <Dialog open title="校准目录" onClose={onClose} className="outline-calibration-dialog"><section className="outline-calibration" aria-label={`${bookName}目录校准`}>
-    <header className="outline-calibration-header"><div><h3>校准目录<span> · {bookName}</span></h3></div><button type="button" className="app-icon-button" aria-label="关闭目录校准" onClick={onClose}><X size={16} /></button></header>
+    <header className="outline-calibration-header"><div><h3>校准目录<span> · {bookName}</span></h3></div><button type="button" className="app-icon-button" aria-label="关闭目录校准" onClick={onClose}><TexaClose size={16} /></button></header>
     {state.loading && <p role="status">正在匹配教材目录…</p>}
     {state.error && <p role="alert" className="textbook-error">{state.error}</p>}
     {data && <>

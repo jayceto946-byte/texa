@@ -1,5 +1,6 @@
+import { TexaTextbook, TexaEdit, TexaDelete, TexaClose } from '../icons';
 import { useCallback, useEffect, useMemo, useState, type MouseEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { AlertTriangle, Archive, BookOpen, CheckCircle2, ChevronDown, ChevronRight, FolderOpen, MoreHorizontal, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Archive, CheckCircle2, ChevronDown, ChevronRight, FolderOpen, MoreHorizontal, Plus, RefreshCw } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import ScopeSelector from '../ScopeSelector';
@@ -100,7 +101,7 @@ export default function LibraryWorkbench(props: Props) {
           {renameTarget && <div className="library-inline-rename">
             <input autoFocus value={renameDraft} onChange={event => setRenameDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.nativeEvent.isComposing) commitCategoryRename(); if (event.key === 'Escape') setRenameTarget(null); }} aria-label={`${renameTarget.childIndex === null ? '学科' : '科目'}名称`} />
             <button onClick={commitCategoryRename} className="app-secondary-button">确定</button>
-            <button onClick={() => setRenameTarget(null)} className="app-icon-button" aria-label="取消重命名"><X className="h-4 w-4" /></button>
+            <button onClick={() => setRenameTarget(null)} className="app-icon-button" aria-label="取消重命名"><TexaClose className="h-4 w-4" /></button>
           </div>}
           <div className="study-classification-tools">
             <button onClick={props.onAddSubject} className="library-category-add"><Plus className="h-4 w-4" />添加学科</button>
@@ -135,9 +136,9 @@ export default function LibraryWorkbench(props: Props) {
   return (
     <section className="library-manager">
       {categoryMenu && <ContextMenu x={categoryMenu.x} y={categoryMenu.y} label={`${categoryMenu.name}管理`} trigger={categoryMenu.trigger} onClose={closeCategoryMenu} items={[
-        { label: '重命名', icon: <Pencil className="h-3.5 w-3.5" />, disabled: hasBooks(categoryMenu), title: hasBooks(categoryMenu) ? '请先移出该目录中的教材' : undefined,
+        { label: '重命名', icon: <TexaEdit className="h-3.5 w-3.5" />, disabled: hasBooks(categoryMenu), title: hasBooks(categoryMenu) ? '请先移出该目录中的教材' : undefined,
           onSelect: () => { setRenameDraft(categoryMenu.name); setRenameTarget(categoryMenu); } },
-        { label: categoryMenu.childIndex === null ? '删除学科' : '删除科目', icon: <Trash2 className="h-3.5 w-3.5" />, danger: true, disabled: hasBooks(categoryMenu), title: hasBooks(categoryMenu) ? '请先移出该目录中的教材' : undefined,
+        { label: categoryMenu.childIndex === null ? '删除学科' : '删除科目', icon: <TexaDelete className="h-3.5 w-3.5" />, danger: true, disabled: hasBooks(categoryMenu), title: hasBooks(categoryMenu) ? '请先移出该目录中的教材' : undefined,
           onSelect: () => categoryMenu.childIndex === null ? props.onDeleteSubject(categoryMenu.subjectIndex) : props.onDeleteChild(categoryMenu.subjectIndex, categoryMenu.childIndex) },
       ]} />}
 
@@ -159,7 +160,7 @@ export default function LibraryWorkbench(props: Props) {
           {listMode === 'active' ? <div className="library-book-list">
             {currentBooks.length > 0 && <div className="library-list-columns" aria-hidden="true"><span>教材</span><span>教材状态</span><span>分类 / 配套教材</span><span>使用方式</span><span>操作</span></div>}
             {currentBooks.map((book) => <BookRow key={book.book_id || book.name} book={book} active={props.currentBookName === book.name} subjects={subjects} reindexing={props.reindexingBook === book.name} onMove={(value) => props.onMoveBook(book.name, value)} onSetRole={(role) => props.onSetRole(book.name, role)} onSetResourceGroup={(group) => props.onSetResourceGroup(book.name, group)} onSwitch={() => props.onSwitchBook(book.name)} onReindex={() => props.onReindexBook(book.name)} onRename={() => props.onRenameBook(book.name, book.display_name || book.name)} onDelete={() => props.onDeleteBook(book.book_id || book.name)} />)}
-            {!currentBooks.length && <EmptyState className="library-empty" icon={<BookOpen />} title="这里还没有教材" description="移动已有教材到此处，或导入新教材。" />}
+            {!currentBooks.length && <EmptyState className="library-empty" icon={<TexaTextbook />} title="这里还没有教材" description="移动已有教材到此处，或导入新教材。" />}
           </div> : <ArchivedBookList books={archivedBooks} onDelete={props.onDeleteBook} />}
         </main>
       </div>
@@ -202,7 +203,7 @@ function BookRow({ book, active, subjects, reindexing, onMove, onSetRole, onSetR
   const [auditOpen, setAuditOpen] = useState(false);
   const [outlineOpen, setOutlineOpen] = useState(false);
   return <article className={`library-book-row workspace-register-row${active ? ' is-current' : ''}`}>
-    <div className="library-book-identity"><BookOpen className="study-book-icon" aria-hidden="true" /><div><h4>{book.display_name || book.name}</h4>{active && <span className="library-current-status">学习中</span>}</div><p>{book.has_pdf ? 'PDF' : '已解析教材'} · {book.chapter_count || 0} 章</p><button type="button" className="app-ghost-button outline-calibration-trigger" aria-expanded={outlineOpen} onClick={() => setOutlineOpen(value => !value)}>目录不符？校准</button></div>
+    <div className="library-book-identity"><TexaTextbook className="study-book-icon" aria-hidden="true" /><div><h4>{book.display_name || book.name}</h4>{active && <span className="library-current-status">学习中</span>}</div><p>{book.has_pdf ? 'PDF' : '已解析教材'} · {book.chapter_count || 0} 章</p><button type="button" className="app-ghost-button outline-calibration-trigger" aria-expanded={outlineOpen} onClick={() => setOutlineOpen(value => !value)}>目录不符？校准</button></div>
     <div><ReadinessSummary book={book} /><ConceptExtractionStatus bookName={book.storage_name || book.name} /></div>
     <div className="library-book-scope">
       <div className="library-subject-field"><span>归属</span><ScopeSelector size="compact" popupSize="compact" subject={book.subject || ''} subjectTree={subjects} onSubjectChange={onMove} bookMode="hidden" width="normal" label={`${book.display_name || book.name}教材归属`} placeholder="未分类" className="library-subject-selector" /></div>
@@ -227,7 +228,7 @@ function BookOverflowMenu({ onRename, onDelete, onAudit }: { onRename: () => voi
     setMenu({ x: rect.right - 184, y: rect.bottom + 4, trigger: event.currentTarget });
   }}><MoreHorizontal className="h-4 w-4" /></button>{menu && <ContextMenu {...menu} label="教材操作" onClose={() => setMenu(null)} items={[
     { label: '审核图片', icon: <CheckCircle2 className="h-3.5 w-3.5" />, onSelect: onAudit },
-    { label: '重命名', icon: <Pencil className="h-3.5 w-3.5" />, onSelect: onRename },
-    { label: '删除教材', icon: <Trash2 className="h-3.5 w-3.5" />, danger: true, onSelect: onDelete },
+    { label: '重命名', icon: <TexaEdit className="h-3.5 w-3.5" />, onSelect: onRename },
+    { label: '删除教材', icon: <TexaDelete className="h-3.5 w-3.5" />, danger: true, onSelect: onDelete },
   ]} />}</>;
 }

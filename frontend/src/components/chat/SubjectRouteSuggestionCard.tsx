@@ -1,4 +1,5 @@
-import { FolderInput, X } from 'lucide-react';
+import { TexaClose } from '../icons';
+import { FolderInput } from 'lucide-react';
 import { useState } from 'react';
 
 import { patch as patchApi, post } from '../../api/client';
@@ -131,7 +132,7 @@ export default function SubjectRouteSuggestionCard({
               {busy === 'conversation' ? labels.moving : labels.moveConversation}
             </button>
             <button type="button" onClick={dismiss} disabled={Boolean(busy)} className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-text-secondary hover:text-text-primary disabled:opacity-50">
-              <X className="h-3.5 w-3.5" />{labels.dismiss}
+              <TexaClose className="h-3.5 w-3.5" />{labels.dismiss}
             </button>
           </div>
         </div>

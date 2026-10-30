@@ -1,6 +1,7 @@
+import { TexaBack, TexaCopy, TexaClose } from '../components/icons';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Copy, Maximize2, X } from 'lucide-react';
+import { ArrowRight, Maximize2 } from 'lucide-react';
 import Dialog from '../components/ui/Dialog';
 import { SegmentedControl } from '../components/ui/SelectionControls';
 import { guideScenes } from '../features/guide/content';
@@ -11,7 +12,7 @@ function GuideCommand({ label, text }: { label: string; text: string }) {
   return <div className="guide-command"><div className="guide-command-header"><span>{label}</span><button type="button" className="app-ghost-button" aria-label={`复制：${label}`} onClick={async () => {
     try { await navigator.clipboard.writeText(text); setFeedback('已复制'); }
     catch { setFeedback('复制失败，请选中命令复制'); }
-  }}><Copy size={14} />复制</button></div><pre tabIndex={0} aria-label={label}><code>{text}</code></pre><span className="guide-copy-feedback" role="status">{feedback}</span></div>;
+  }}><TexaCopy size={14} />复制</button></div><pre tabIndex={0} aria-label={label}><code>{text}</code></pre><span className="guide-copy-feedback" role="status">{feedback}</span></div>;
 }
 
 export default function UserGuidePage() {
@@ -52,10 +53,10 @@ export default function UserGuidePage() {
           {step.more && <details className="guide-more" key={step.id}><summary>{step.more.title}</summary><p>{step.more.text}</p></details>}
           {step.resources && <div className="guide-resources"><p>官方参考 · 核对于 2026-10-19</p>{step.resources.map(resource => <a key={resource.url} href={resource.url} target="_blank" rel="noreferrer">{resource.label}</a>)}</div>}
           <div className="guide-actions">{step.actions.map(action => 'to' in action ? <Link key={action.label} className="app-secondary-button" to={action.to}>{action.label}<ArrowRight size={14} /></Link> : <button key={action.label} type="button" className="app-secondary-button" onClick={() => navigate({ pathname: '/guide', search: params.toString() }, { state: { openSettings: true, settingsTab: action.settings } })}>{action.label}<ArrowRight size={14} /></button>)}</div>
-          <footer className="guide-pagination"><button type="button" className="app-ghost-button" disabled={index === 0} onClick={() => select(scene.id, scene.steps[index - 1].id)}><ArrowLeft size={15} />上一步</button>{index < scene.steps.length - 1 ? <button type="button" className="app-primary-button" onClick={() => select(scene.id, scene.steps[index + 1].id)}>下一步<ArrowRight size={15} /></button> : nextScene ? <button type="button" className="app-primary-button" onClick={() => select(nextScene.id, nextScene.steps[0].id)}>{nextScene.title}<ArrowRight size={15} /></button> : <Link className="app-primary-button" to="/">回到学习<ArrowRight size={15} /></Link>}</footer>
+          <footer className="guide-pagination"><button type="button" className="app-ghost-button" disabled={index === 0} onClick={() => select(scene.id, scene.steps[index - 1].id)}><TexaBack size={15} />上一步</button>{index < scene.steps.length - 1 ? <button type="button" className="app-primary-button" onClick={() => select(scene.id, scene.steps[index + 1].id)}>下一步<ArrowRight size={15} /></button> : nextScene ? <button type="button" className="app-primary-button" onClick={() => select(nextScene.id, nextScene.steps[0].id)}>{nextScene.title}<ArrowRight size={15} /></button> : <Link className="app-primary-button" to="/">回到学习<ArrowRight size={15} /></Link>}</footer>
         </article>
       </div>
     </div>
-    <Dialog open={enlarged} onClose={() => setEnlarged(false)} title={step.title} className="guide-image-dialog"><header><h2>{step.title}</h2><button type="button" className="app-icon-button" aria-label="关闭截图" onClick={() => setEnlarged(false)}><X size={18} /></button></header><div className="guide-image-scroll"><img src={`/guide/${step.image}.png`} alt={step.alt} /></div></Dialog>
+    <Dialog open={enlarged} onClose={() => setEnlarged(false)} title={step.title} className="guide-image-dialog"><header><h2>{step.title}</h2><button type="button" className="app-icon-button" aria-label="关闭截图" onClick={() => setEnlarged(false)}><TexaClose size={18} /></button></header><div className="guide-image-scroll"><img src={`/guide/${step.image}.png`} alt={step.alt} /></div></Dialog>
   </div>;
 }

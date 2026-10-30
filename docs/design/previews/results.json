@@ -1,0 +1,94 @@
+{
+  "environment": "macOS ARM64 / Electron 37 / Vite isolated design entry",
+  "checks": [
+    {
+      "name": "20 semantics / 60 selectable candidates",
+      "passed": true
+    },
+    {
+      "name": "tier filter returns six navigation semantics",
+      "passed": true
+    },
+    {
+      "name": "candidate selection updates size heading",
+      "passed": true
+    },
+    {
+      "name": "C 16px has reduced path detail",
+      "passed": true
+    },
+    {
+      "name": "no document overflow at 1280",
+      "passed": true
+    },
+    {
+      "name": "no document overflow at 1024",
+      "passed": true
+    },
+    {
+      "name": "no document overflow at 760",
+      "passed": true
+    },
+    {
+      "name": "mineral tokens applied",
+      "passed": true
+    },
+    {
+      "name": "graphite tokens applied",
+      "passed": true
+    },
+    {
+      "name": "clay tokens applied",
+      "passed": true
+    },
+    {
+      "name": "notebook tokens applied",
+      "passed": true
+    },
+    {
+      "name": "codex tokens applied",
+      "passed": true
+    },
+    {
+      "name": "theme preference unchanged",
+      "passed": true
+    },
+    {
+      "name": "typing enables send",
+      "passed": true
+    },
+    {
+      "name": "send updates local status and clears draft",
+      "passed": true
+    },
+    {
+      "name": "keyboard focus visible",
+      "passed": true
+    },
+    {
+      "name": "SVG download completes",
+      "passed": true
+    },
+    {
+      "name": "design board makes no API calls",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "board-1280.png",
+    "navigation-comparison.png",
+    "identity-comparison.png",
+    "optical-sizes.png",
+    "context-1280.png",
+    "context-1024.png",
+    "context-760.png",
+    "theme-mineral.png",
+    "theme-graphite.png",
+    "theme-clay.png",
+    "theme-notebook.png",
+    "theme-codex.png"
+  ],
+  "originalPreview": "",
+  "requests": []
+}

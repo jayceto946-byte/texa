@@ -1,5 +1,7 @@
+import { TexaMathVerify, TexaExecution } from '../icons';
+import { TexaTextbook, TexaClose } from '../icons';
 import React, { useEffect, useId, useState } from 'react';
-import { BookOpen, Check, ChevronRight, Circle, Loader2, X, Pause, AlertCircle } from 'lucide-react';
+import { Check, ChevronRight, Circle, Loader2, Pause, AlertCircle } from 'lucide-react';
 
 import type { AssistantSource, ChatActivity } from '../../types';
 import { activityDuration, executionProgressTitle } from '../../utils/chatActivities';
@@ -23,7 +25,7 @@ function record(value: unknown): Record<string, unknown> { return value && typeo
 const StatusIcon: React.FC<{ status: ChatActivity['status'] }> = ({ status }) => {
   if (status === 'active') return <Loader2 className="animate-spin text-accent" />;
   if (status === 'completed') return <Check className="text-[var(--success)]" />;
-  if (status === 'failed') return <X className="text-[var(--danger)]" />;
+  if (status === 'failed') return <TexaClose className="text-[var(--danger)]" />;
   return <Circle className="text-text-tertiary" />;
 };
 
@@ -39,7 +41,7 @@ function EvidenceList({ items, count, scope, onInspectSources }: { items: unknow
       const page = typeof item.page_idx === 'number' && item.page_idx >= 0 ? `第 ${item.page_idx + 1} 页` : '页码未记录';
       const preview = stringValue(item.preview) || stringValue(item.text);
       return <details className="execution-source" key={`${item.chunk_id || item.id || index}`}>
-        <summary><BookOpen /><span><strong>{stringValue(item.book_name) || '教材来源'}</strong><small>{[stringValue(item.id), path, page].filter(Boolean).join(' · ')}</small></span><ChevronRight className="execution-disclosure" /></summary>
+        <summary><TexaTextbook /><span><strong>{stringValue(item.book_name) || '教材来源'}</strong><small>{[stringValue(item.id), path, page].filter(Boolean).join(' · ')}</small></span><ChevronRight className="execution-disclosure" /></summary>
         <div className="execution-source-text">
           {preview ? <MarkdownMessage content={`${preview}${item.truncated ? '…' : ''}`} disableRemoteMedia /> : <p className="execution-muted">这条历史记录没有保存段落预览，可查看已有来源定位。</p>}
           {item.truncated === true && <small>片段预览已截短</small>}
@@ -66,7 +68,7 @@ function ActivityDetails({ item, onInspectSources }: { item: ChatActivity; onIns
     {item.detail && item.detail !== item.label && <p>{item.detail}</p>}
     {chapters.length > 0 && <p>回答范围：{chapters.join('、')}</p>}
     {required.length > 0 && <p>本轮回答要求：{required.join('；')}</p>}
-    {tool && <p className="execution-muted">工具：{tool}{meta.provenance ? ` · 来源：${stringValue(meta.provenance)}` : ''}</p>}
+    {tool && <p className="execution-muted execution-tool-label">{tool === 'verify_math_result' ? <TexaMathVerify size={14} /> : <TexaExecution size={14} />}工具：{tool}{meta.provenance ? ` · 来源：${stringValue(meta.provenance)}` : ''}</p>}
     {Object.keys(inputs).length > 0 && <dl>{Object.entries(inputs).filter(([key]) => inputLabels[key]).map(([key, value]) => <React.Fragment key={key}><dt>{inputLabels[key]}</dt><dd>{String(value)}</dd></React.Fragment>)}</dl>}
     {result && <div className="execution-tool-result"><span>返回结果</span><p>{result}</p></div>}
     {typeof meta.verification_passed === 'boolean' && <p>工具校验：{meta.verification_passed ? '通过' : '未通过'}</p>}
@@ -101,7 +103,7 @@ const ExecutionTrace: React.FC<{ activities: ChatActivity[]; stage?: string; sou
   const title = terminal
     ? stage === 'stopped' ? '已停止' : stage === 'error' ? '回答中断' : stage === 'waiting_for_input' ? '等待补充输入' : taskStatus === 'waiting_for_confirmation' ? '等待确认' : failed ? '处理结束 · 有步骤失败' : completion
     : executionProgressTitle(activities, stage) || '正在处理';
-  const HeaderIcon = !terminal ? Loader2 : stage === 'stopped' ? Pause : stage === 'error' ? X : degraded || failed || stage === 'waiting_for_input' ? AlertCircle : Check;
+  const HeaderIcon = !terminal ? Loader2 : stage === 'stopped' ? Pause : stage === 'error' ? TexaClose : degraded || failed || stage === 'waiting_for_input' ? AlertCircle : Check;
 
   if (!visible.length) return null;
   return <section className={`execution-trace ${terminal ? 'is-terminal' : 'is-running'}`} aria-label="任务执行过程">
