@@ -191,6 +191,7 @@ class KGRefreshOut(BaseModel):
 
 class ExerciseRecordOut(BaseModel):
     source_structure: CandidateStructure | None = None
+    source_category: str = ""
     id: str
     book_id: str = ""
     question_text: str
@@ -219,6 +220,7 @@ class ExerciseRecordOut(BaseModel):
 
 class ExerciseAddRequest(BaseModel):
     candidate_context: CandidateContext | None = None
+    source_category: Literal["", "textbook_example", "exam", "exercise", "manual"] = ""
     question_text: str
     answer: str = ""
     explanation: str = ""
@@ -243,6 +245,7 @@ class ExerciseListRequest(BaseModel):
     tag: str = ""
     search_kw: str = ""
     status: str = ""
+    practice_state: Literal["", "practiced", "unpracticed"] = ""
     limit: int = 100
 
 
@@ -345,6 +348,7 @@ class ExercisePracticeSessionCreateRequest(BaseModel):
     chapter: str = ""
     tag: str = ""
     status: str = ""
+    practice_state: Literal["", "practiced", "unpracticed"] = ""
     limit: int = Field(default=20, ge=1, le=200)
     shuffle: bool = False
 

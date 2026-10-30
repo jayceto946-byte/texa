@@ -11,6 +11,8 @@ const { createClosePreparation } = require('./window-close.cjs');
 const { readSetupComplete, writeSetupComplete } = require('./setup-state.cjs');
 const { createSourceUpdater } = require('./source-updater.cjs');
 const { validCommitUpdate, configureCommitChannel } = require('./commit-channel.cjs');
+const { CommitProvider } = require('./commit-provider.cjs');
+const { refreshDownloadedUpdate } = require('./update-preflight.cjs');
 const buildIdentity = require('./package.json').texaBuild;
 const sourceUpdater = !app.isPackaged ? createSourceUpdater({ root: path.resolve(__dirname, '..'), owner: 'jayceto946-byte', repo: 'texa', emit: next => emitUpdateState(next) }) : null;
 const closePreparation = createClosePreparation();
@@ -84,8 +86,10 @@ if (!hasSingleInstanceLock) app.quit();
 let updaterConfigured = false;
 let updateInstallPromise = null;
 let updateState = {
-  status: process.argv.includes('--texa-update-failed') ? 'error' : 'idle',
-  message: process.argv.includes('--texa-update-failed') ? '上次更新未完成，已保留或恢复旧版本，请重新检查更新。' : '尚未检查更新',
+  status: process.argv.includes('--texa-update-failed') || process.argv.includes('--texa-migration-cleanup-pending') ? 'error' : 'idle',
+  message: process.argv.includes('--texa-migration-cleanup-pending')
+    ? '新版已迁移到当前用户目录，日常更新将使用用户目录。旧的全机安装尚未清理，需稍后处理。'
+    : process.argv.includes('--texa-update-failed') ? '上次更新未完成，已保留或恢复旧版本，请重新检查更新。' : '尚未检查更新',
   currentVersion: app.getVersion(),
   updateInfo: null,
   progress: null,
@@ -212,9 +216,11 @@ function configureUpdater() {
 
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = false;
-  autoUpdater.setFeedURL(updateConfig);
   if (buildIdentity?.channel === 'commit') {
     configureCommitChannel(autoUpdater);
+    autoUpdater.setFeedURL({ ...updateConfig, provider: 'custom', updateProvider: CommitProvider, sourceBranch: buildIdentity.sourceBranch });
+  } else {
+    autoUpdater.setFeedURL(updateConfig);
   }
 
   autoUpdater.on('checking-for-update', () => emitUpdateState({ status: 'checking', message: '正在检查更新...', progress: null }));
@@ -860,6 +866,10 @@ ipcMain.handle('updates:download', async (event) => {
   if (sourceUpdater) return sourceUpdater.prepare();
   if (updateState.status !== 'available') return emitUpdateState({ status: 'error', message: '请先检查可用更新。' });
   if (!configureUpdater()) return updateState;
+  // The settings page may have been open since yesterday. Refresh the target
+  // before downloading, as well as before installing an already cached package.
+  const result = await autoUpdater.checkForUpdates();
+  if (updateState.status !== 'available' || !result?.updateInfo) return updateState;
   emitUpdateState({ status: 'downloading', message: '正在下载更新...', progress: null });
   await autoUpdater.downloadUpdate();
   return updateState;
@@ -869,6 +879,10 @@ async function installAppUpdate(event) {
   if (updateState.status !== 'downloaded') {
     return emitUpdateState({ status: 'error', message: '更新尚未下载完成，无法安装。' });
   }
+  if (!sourceUpdater && !await refreshDownloadedUpdate({
+    updater: autoUpdater, downloaded: updateState.updateInfo,
+    branch: buildIdentity?.channel === 'commit' ? buildIdentity.sourceBranch : null, emit: emitUpdateState,
+  })) return updateState;
   if (!sourceUpdater && process.platform === 'win32') {
     try {
       fs.accessSync(autoUpdater.installerPath, fs.constants.R_OK);

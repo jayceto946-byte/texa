@@ -395,3 +395,32 @@ def test_practice_search_scope_matches_visible_filter_and_empty_scope_keeps_acti
     assert failed["success"] is False
     assert bank.get_active_practice_session().id == session.id
     assert bank.get_practice_session(session.id).status == "active"
+
+
+def test_scope_and_practice_filters_apply_before_limit_and_to_session(tmp_path, monkeypatch):
+    from backend.schemas import ExerciseListRequest, ExercisePracticeSessionCreateRequest
+    bank = ExerciseBank(tmp_path / 'scoped.db')
+    fresh = ExerciseRecord(question_text='第一章未练习', subject='专业课', chapter='第一章')
+    practiced = ExerciseRecord(question_text='第一章练习过', subject='专业课', chapter='第一章', practice_count=3)
+    elsewhere = ExerciseRecord(question_text='第二章未练习', subject='专业课', chapter='第二章')
+    for record in (fresh, practiced, elsewhere):
+        bank.add(record)
+    monkeypatch.setattr(exercises, '_bank', lambda _: bank)
+    scoped = exercises.get_exercise_overview(ExerciseListRequest(subject='专业课', chapter='第一章', practice_state='unpracticed', limit=1))
+    assert [item.id for item in scoped['data']['records']] == [fresh.id]
+    assert scoped['data']['stats']['total'] == 2
+    assert [r.id for r in bank.list_all(chapter='第一章', practice_state='practiced', limit=1)] == [practiced.id]
+    result = exercises.create_practice_session(ExercisePracticeSessionCreateRequest(subject='专业课', chapter='第一章', practice_state='unpracticed'))
+    assert result['success']
+    session = bank.get_active_practice_session()
+    assert session.exercise_ids == [fresh.id]
+    assert session.filters['chapter'] == '第一章'
+    assert session.filters['practice_state'] == 'unpracticed'
+
+
+def test_exercise_source_category_survives_storage_and_response(tmp_path):
+    from backend.schemas import ExerciseAddRequest
+    bank = ExerciseBank(tmp_path / 'sources.db')
+    record = exercises._record_from_request(ExerciseAddRequest(question_text='真题', source_category='exam'))
+    bank.add(record)
+    assert exercises._record_to_out(bank.get(record.id)).source_category == 'exam'

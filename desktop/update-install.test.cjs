@@ -13,7 +13,8 @@ function fixture(overrides = {}) {
   application.relaunch = () => calls.push('relaunch');
   application.quit = () => { calls.push('quit'); application.emit('quit'); };
   const context = {
-    updateState: { status: 'downloaded' }, updateInstallPromise: null,
+    updateState: { status: 'downloaded', updateInfo: { version: '1.0.1' } }, updateInstallPromise: null,
+    buildIdentity: null, refreshDownloadedUpdate: require('./update-preflight.cjs').refreshDownloadedUpdate,
     sourceUpdater: null, shuttingDown: false, allowQuit: false,
     process: { platform: 'win32' }, backendProcess: null, mainWindow: null,
     fs,
@@ -25,7 +26,8 @@ function fixture(overrides = {}) {
     prepareWindowClose: async () => { calls.push('saved'); return true; },
     stopBackend: async () => { calls.push('stopped'); },
     appendBackendLog: () => {},
-    autoUpdater: { installerPath: __filename, quitAndInstall: (...args) => calls.push(['install', ...args]) },
+    autoUpdater: { installerPath: __filename, checkForUpdates: async () => ({ updateInfo: { version: '1.0.1' } }),
+      quitAndInstall: (...args) => calls.push(['install', ...args]) },
     emitUpdateState: state => (context.updateState = { ...context.updateState, ...state }),
     app: application,
     ipcMain: { handle: (name, handler) => handlers.set(name, handler) },
@@ -82,7 +84,7 @@ test('a backend that cannot stop leaves the client and update available for retr
 });
 
 test('an unavailable downloaded installer requests a new download before closing the client', async () => {
-  const f = fixture({ autoUpdater: { installerPath: null } });
+  const f = fixture({ autoUpdater: { installerPath: null, checkForUpdates: async () => ({ updateInfo: { version: '1.0.1' } }) } });
   assert.equal((await f.install()).status, 'available');
   assert.deepEqual(f.calls, []);
 });
@@ -171,7 +173,7 @@ test('the installed updater translates the production flags to NSIS silent updat
   const spawns = [];
   updater.spawnLog = async (file, args) => { spawns.push({ file, args }); return true; };
   // Keep the real install -> doInstall implementation; suppress quitting the test host.
-  const f = fixture({ autoUpdater: { installerPath: __filename, quitAndInstall: (silent, reopen) => {
+  const f = fixture({ autoUpdater: { installerPath: __filename, checkForUpdates: async () => ({ updateInfo: { version: '1.0.1' } }), quitAndInstall: (silent, reopen) => {
     assert.equal(updater.install(silent, reopen), true);
   } } });
   await f.install();
@@ -179,4 +181,31 @@ test('the installed updater translates the production flags to NSIS silent updat
   assert.equal(spawns[0].file, executable);
   assert.deepEqual(spawns[0].args, ['--updated', '/S', '--force-run']);
   assert.equal(updater.disableDifferentialDownload, false, 'differential downloads retain the library default');
+});
+
+test('a cached older update is replaced before drafts, backend or windows close', async () => {
+  const f = fixture({ autoUpdater: { installerPath: __filename,
+    checkForUpdates: async () => ({ updateInfo: { version: '1.0.3' } }),
+    downloadUpdate: async () => { f.calls.push('downloaded-latest'); },
+    quitAndInstall: () => f.calls.push('installed-latest'),
+  } });
+  await f.install();
+  assert.deepEqual(f.calls, ['downloaded-latest', 'saved', 'stopped', 'quit', 'installed-latest']);
+  assert.equal(f.context.updateState.updateInfo.version, '1.0.3');
+});
+
+test('failed latest-version check or download leaves the application running', async () => {
+  for (const downloadFails of [false, true]) {
+    const f = fixture({ autoUpdater: {
+      checkForUpdates: async () => {
+        if (!downloadFails) throw Error('offline');
+        return { updateInfo: { version: '1.0.3' } };
+      },
+      downloadUpdate: async () => { throw Error('download interrupted'); },
+    } });
+    await f.install();
+    assert.deepEqual(f.calls, []);
+    assert.equal(f.context.allowQuit, false);
+    assert.equal(f.context.updateState.status, downloadFails ? 'available' : 'downloaded');
+  }
 });

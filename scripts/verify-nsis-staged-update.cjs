@@ -8,6 +8,7 @@ const { promisify } = require('node:util');
 const run = promisify(execFile);
 const { build, Platform, Arch } = require('../desktop/node_modules/electron-builder');
 const { writeManifest } = require('../desktop/update-manifest.cjs');
+const { verifyUserMigration } = require('./verify-nsis-user-migration.cjs');
 
 async function main() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'texa-nsis-stage-'));
@@ -37,7 +38,7 @@ async function main() {
         ...(process.platform === 'darwin' ? { toolsets: { nsis: '1.2.1' } } : {}),
         win: { target: ['nsis'], icon: path.resolve(__dirname, '../desktop/assets/texa-taskbar.ico'), signAndEditExecutable: false },
         nsis: { include: path.resolve(__dirname, '../desktop/installer-update.nsh'), oneClick: false,
-          createDesktopShortcut: false, createStartMenuShortcut: false },
+          shortcutName: 'Texa Update Fixture', createDesktopShortcut: true, createStartMenuShortcut: true },
       },
       publish: 'never',
     });
@@ -119,6 +120,7 @@ if ($Restore -eq 'restore') {
     if (await fs.stat(path.join(installed, 'obsolete.txt')).then(() => true, () => false)) throw Error('Obsolete old dependencies survived replacement');
     results.push({ nativeReplacement: true, incompleteCandidatePreservesOld: true, busyInstallationPreserved: true,
       postSwapFailureRestoresOld: true, obsoleteFilesRemoved: true });
+    results.push(await verifyUserMigration({ root, installers, installed }));
   }
   const report = { platform: process.platform, nativeWindows: process.platform === 'win32', results };
   const output = process.argv[2] || path.resolve('nsis-staged-update-verification.json');

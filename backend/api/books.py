@@ -465,6 +465,8 @@ def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool,
                 "concept_extraction_warning": concept_warning,
                 "ingestion_report": ingestion_report,
                 "ingestion_report_warning": ingestion_warning,
+                "readiness": derive_book_readiness(book_name, index_status=index_status,
+                    progress_root=PROGRESS_PATH, vector_db_root=VECTOR_DB_PATH),
             },
         )
     except JobCancelled as exc:
@@ -883,6 +885,9 @@ def _run_output_import_job(job_id: str, archive_path: Path, book_name: str, subj
                 "ingestion_report": validate_canonical_book(result.canonical_book).to_dict() if result.canonical_book else {},
                 "subject": _book_subject(book_name),
                 "has_pdf": bool(pdf_path or _source_pdf_path(book_name)),
+                "readiness": derive_book_readiness(book_name,
+                    index_status=get_vector_store().get_book_index_stats(book_name),
+                    progress_root=PROGRESS_PATH, vector_db_root=VECTOR_DB_PATH),
                 "concept_job_id": concept_job.get("id", "") if concept_job else "",
                 "concept_extraction_warning": concept_warning,
             },

@@ -5,11 +5,12 @@ import { exercisePreview } from '../features/exercises/exercisePreview';
 import '../features/exercises/exercises.css';
 import { useUnsavedWorkGuard } from '../features/reading/useUnsavedWorkGuard';
 import { HelpHint } from '../features/exercises/components/HelpHint';
-import { BatchCandidateReceipts } from '../features/exercises/components/BatchCandidateReceipts';
+import { ExerciseScopeFilters } from '../features/exercises/components/ExerciseScopeFilters';
+import { exerciseSourceCategory, exerciseSourceLabels, exerciseSubjectMatches } from '../features/exercises/exerciseSource';
 import { CandidateReviewWorkspace } from '../features/exercises/components/CandidateReviewWorkspace';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, ChevronRight, Loader2, Upload } from 'lucide-react';
+import { ChevronRight, Loader2, Upload } from 'lucide-react';
 import { apiFetch, del, get, post, ApiError } from '../api/client';
 import { SimpleMarkdown } from '../components/chat/MarkdownRenderer';
 import { ExerciseReader } from '../features/exercises/components/ExerciseReader';
@@ -29,11 +30,12 @@ import type { BookInfo, ExerciseCandidate, ExerciseImportBatch, ExercisePractice
 
 function titleOf(record: ExerciseRecord) {
   const raw = record.question_text || record.source || '未命名习题';
-  return exercisePreview(raw);
+  return exercisePreview(raw, 160, 160);
 }
 
-function candidateToExercise(candidate: ExerciseCandidate) {
+function candidateToExercise(candidate: ExerciseCandidate, sourceCategory = '') {
   return {
+    source_category: sourceCategory,
     ...(candidate.projection ? { candidate_context: { projection: candidate.projection, review: candidate.review || null } } : {}),
     question_text: candidate.question_text,
     answer: candidate.answer || '',
@@ -68,7 +70,11 @@ const ExercisesPage: React.FC = () => {
   const [records, setRecords] = useState<ExerciseRecord[]>([]);
   const [stats, setStats] = useState<ExerciseStats | null>(null);
   const [searchKw, setSearchKw] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const statusFilter = '';
+  const [filterChapter, setFilterChapter] = useState('');
+  const [practiceState, setPracticeState] = useState('');
+  const [fileSourceCategory, setFileSourceCategory] = useState('exercise');
+  const [candidateSourceCategory, setCandidateSourceCategory] = useState('');
   const [expandedId, setExpandedId] = useState('');
   const [practiceSession, setPracticeSession] = useState<ExercisePracticeSession | null>(null);
   const [singlePracticeActive, setSinglePracticeActive] = useState(false);
@@ -100,6 +106,8 @@ const ExercisesPage: React.FC = () => {
   const importScope = useRef('');
   useEffect(() => { importScope.current = `${activeName}|${targetSubject}`; }, [activeName, targetSubject]);
   const [loadError, setLoadError] = useState('');
+  const loadRevision = useRef(0);
+  const scopeRevision = useRef(0);
   const [extractedPreview, setExtractedPreview] = useState('');
   const [inspectedBatches, setInspectedBatches] = useState<ExerciseImportBatch[]>([]);
   const [lastImportBatch, setLastImportBatch] = useState<ExerciseImportBatch | null>(null);
@@ -119,7 +127,8 @@ const ExercisesPage: React.FC = () => {
   }, [searchKw]);
 
 
-  const recordList = useVisibleList(records, 30, `${activeName}|${targetSubject}|${statusFilter}|${searchKw}`);
+  const recordList = useVisibleList(records, 30, `${activeName}|${targetSubject}|${filterChapter}|${practiceState}|${searchKw}`);
+  const scopeChapters = Array.from(new Set([...textbookOutline.chapters.map(chapter => chapter.title), ...records.map(record => record.chapter || ''), filterChapter].filter(Boolean)));
   useEffect(() => {
     setTextbookChapter('');
     setTextbookPageStart('');
@@ -139,6 +148,7 @@ const ExercisesPage: React.FC = () => {
   }, []);
 
   const load = useCallback(async () => {
+    const revision = ++loadRevision.current;
     setLoading(true);
     setLoadError('');
     try {
@@ -146,19 +156,22 @@ const ExercisesPage: React.FC = () => {
         search_kw: searchKwRef.current,
         subject: targetSubject,
         status: statusFilter,
+        chapter: filterChapter,
+        practice_state: practiceState,
         limit: 100,
       });
+      if (revision !== loadRevision.current) return;
       if (overview?.success) {
         setRecords(overview.data?.records || []);
         setStats(overview.data?.stats || null);
         setPracticeSession(overview.data?.practice_session || null);
       } else setLoadError(overview?.message || '暂时无法读取题库');
     } catch (e) {
-      setLoadError(e instanceof Error ? e.message : String(e));
+      if (revision === loadRevision.current) setLoadError(e instanceof Error ? e.message : String(e));
     } finally {
-      setLoading(false);
+      if (revision === loadRevision.current) setLoading(false);
     }
-  }, [bookQuery, statusFilter, targetSubject]);
+  }, [bookQuery, statusFilter, targetSubject, filterChapter, practiceState]);
 
   const {
     practicePool,
@@ -190,6 +203,8 @@ const ExercisesPage: React.FC = () => {
     targetSubject,
     statusFilter,
     searchKw,
+    chapter: filterChapter,
+    practiceState,
     singlePracticeActive,
     refreshOverview: load,
   });
@@ -252,35 +267,41 @@ const ExercisesPage: React.FC = () => {
   const updateTargetName = async (value: string, selectedSubject?: string) => {
     if (value === targetName) return;
     if (importing || commitUnknown || (candidates.length && !window.confirm('更换范围将丢弃尚未入库的候选，继续吗？'))) return;
+    const revision = ++scopeRevision.current;
+    resetImportPreview();
     setTargetName(value);
-    if (selectedSubject !== undefined) { setTargetSubject(selectedSubject); setSubject(selectedSubject); }
+    setFilterChapter('');
+    const nextSubject = selectedSubject ?? books.find(book => book.name === value)?.subject;
+    if (nextSubject !== undefined) { setTargetSubject(nextSubject); setSubject(nextSubject); }
     if (!value) {
       setBookName('');
-      resetImportPreview();
       return;
     }
     if (books.some((book) => book.name === value)) {
       try {
         const res = await get(`/books/switch/${encodeURIComponent(value)}`);
+        if (revision !== scopeRevision.current) return;
         if (res?.success) {
           setBookName(res.data.name);
-          if (res.data.subject) updateTargetSubject(res.data.subject);
         } else {
           setBookName(value);
         }
       } catch {
-        setBookName(value);
+        if (revision === scopeRevision.current) setBookName(value);
       }
     }
-    resetImportPreview();
     setPdfOpen(false);
   };
 
   const updateTargetSubject = (value: string) => {
     if (value === targetSubject) return;
     if (importing || commitUnknown || (candidates.length && !window.confirm('更换学科将丢弃尚未入库的候选，继续吗？'))) return;
+    scopeRevision.current += 1;
     setTargetSubject(value);
     setSubject(value);
+    setFilterChapter('');
+    const selectedBook = books.find(book => book.name === targetName);
+    if (selectedBook && !exerciseSubjectMatches(selectedBook.subject || '', value)) { setTargetName(''); setBookName(''); }
     resetImportPreview();
   };
 
@@ -317,6 +338,7 @@ const ExercisesPage: React.FC = () => {
       }
       if (requestedScope !== importScope.current) return;
       const next = data.data || [];
+      setCandidateSourceCategory(fileSourceCategory);
       if (data.candidate_contract_version !== 1 || !data.extract?.canonical_hash || !data.extract?.source_id || !Array.isArray(data.extract?.source_blocks) || next.some((c: ExerciseCandidate) => !c.projection || !c.issues || c.projection.canonical_hash !== data.extract.canonical_hash || c.projection.source_id !== data.extract.source_id)) {
         setMessage('后端未返回可核对的文件来源合同，请更新后端后重新分析。'); return;
       }
@@ -374,6 +396,7 @@ const ExercisesPage: React.FC = () => {
         return;
       }
       const next = res.data || [];
+      setCandidateSourceCategory('textbook_example');
       setCandidateSourceLabel(`${activeName}${textbookChapter ? ` · ${textbookChapter}` : ''}`);
       replaceCandidates(next, res.extract);
       setReviewPreparationOpen(false);
@@ -397,7 +420,7 @@ const ExercisesPage: React.FC = () => {
     try {
       const v1 = Boolean(candidateState.sourceRegistry);
       const submittedIds = new Set(selected.map(c => c.id));
-      const res = await post(`/exercises/${v1 ? 'candidates/batch-add' : 'batch-add'}${bookQuery}`, { ...(v1 ? { candidate_contract_version: 1 } : {}), exercises: selected.map(candidateToExercise), source_label: candidateSourceLabel || `${activeName} 教材抽题`, allow_duplicates: false });
+      const res = await post(`/exercises/${v1 ? 'candidates/batch-add' : 'batch-add'}${bookQuery}`, { ...(v1 ? { candidate_contract_version: 1 } : {}), exercises: selected.map(candidate => candidateToExercise(candidate, candidateSourceCategory)), source_label: candidateSourceLabel || `${activeName} 教材抽题`, allow_duplicates: false });
       if (!res?.success) { setMessage(res?.message || '入库被拒绝，候选仍保留'); return; }
       const acknowledged = [...(res.data || []).map((r: ExerciseRecord) => r.origin_id), ...(res.skipped || []).map((r: { origin_id: string }) => r.origin_id)];
       const receiptsValid = !v1 || (res.candidate_contract_version === 1 && Array.isArray(res.candidate_receipts) && res.candidate_receipts.length === res.count && res.data?.every((r: ExerciseRecord) => res.candidate_receipts.some((receipt: { exercise_id: string; origin_id: string }) => receipt.exercise_id === r.id && receipt.origin_id === r.origin_id)));
@@ -417,7 +440,7 @@ const ExercisesPage: React.FC = () => {
     if (importLock.current || commitUnknown) return;
     importLock.current = true; setImporting(true);
     try {
-      const res = await post(`/exercises/structure-examples${bookQuery}`, candidateToExercise(candidate));
+      const res = await post(`/exercises/structure-examples${bookQuery}`, candidateToExercise(candidate, candidateSourceCategory));
       setMessage(res.message || '分离样例保存失败，请保留当前候选后重试。');
     } catch (error) { setMessage(error instanceof Error ? error.message : String(error)); }
     finally { importLock.current = false; setImporting(false); }
@@ -427,19 +450,19 @@ const ExercisesPage: React.FC = () => {
     try {
       const r = await get(`/exercises/import-batches${bookQuery}`);
       if (r?.success) setInspectedBatches(r.data || []);
-      setMessage(r?.success ? `请核对以下批次与题库；无法自动识别本次提交：${(r.data || []).map((b: ExerciseImportBatch) => `${b.id}（${b.exercise_ids.length}题）`).join('；')}` : '批次读取失败');
+      setMessage(r?.success ? '已读取最近导入记录。请对照题库确认本次题目是否已加入，避免重复导入。' : '导入记录读取失败');
     } catch { setMessage('批次读取失败，请检查连接'); }
   };
 
   const rollbackLastImport = async () => {
     if (!lastImportBatch || lastImportBatch.status !== 'active' || importLock.current) return;
-    if (!window.confirm(`确定回滚批次 ${lastImportBatch.id} 的 ${lastImportBatch.exercise_ids.length} 道习题吗？`)) return;
+    if (!window.confirm(`撤回本批次导入的 ${lastImportBatch.exercise_ids.length} 道题目？这些题目将从题库移除。`)) return;
     importLock.current = true; setImporting(true);
     try {
       const res = await post(`/exercises/import-batches/rollback${bookQuery}`, { batch_id: lastImportBatch.id });
-      if (!res?.success || res.data?.id !== lastImportBatch.id || res.data?.status !== 'rolled_back') { setMessage(res?.message || '回滚未确认，请核对本批次'); return; }
-      setLastImportBatch(res.data); setMessage(res.message || '导入批次已回滚'); await load();
-    } catch { setMessage('回滚结果尚未确认，请核对本批次，勿重复操作。'); }
+      if (!res?.success || res.data?.id !== lastImportBatch.id || res.data?.status !== 'rolled_back') { setMessage(res?.message || '撤回尚未确认，请核对本次导入'); return; }
+      setLastImportBatch(res.data); setMessage('本批次导入已撤回'); await load();
+    } catch { setMessage('撤回结果尚未确认，请核对本次导入，勿重复操作。'); }
     finally { importLock.current = false; setImporting(false); }
   };
 
@@ -489,16 +512,16 @@ const ExercisesPage: React.FC = () => {
       </div>
       <div className="exercise-workspace-body">
         {workspaceMode === 'import' && (receipt || commitUnknown) && <section className="exercise-receipt" role="status">
-          <h1>{lastImportBatch?.status === 'rolled_back' ? '本批次已回滚' : commitUnknown ? '入库结果待核对' : receipt?.count ? `已加入 ${receipt.count} 道题目` : '没有新增题目'}</h1>
-          <p>{commitUnknown ? message : `跳过 ${receipt?.skipped || 0} 道重复题 · 批次 ${receipt?.batchId}`}</p>
+          <p className="exercise-eyebrow">{commitUnknown ? '等待核对' : lastImportBatch?.status === 'rolled_back' ? '已撤回' : '导入完成'}</p>
+          <h1>{lastImportBatch?.status === 'rolled_back' ? '本批次导入已撤回' : commitUnknown ? '入库结果待核对' : receipt?.count ? `已加入 ${receipt.count} 道题目` : '没有新增题目'}</h1>
+          <p>{commitUnknown ? message : lastImportBatch?.status === 'rolled_back' ? '可以继续导入其他题目。' : `题目已保存到${textbookBook?.displayName || textbookBook?.name || '独立题库'}。${receipt?.skipped ? `已跳过 ${receipt.skipped} 道重复题。` : ''}`}</p>
           {message && !commitUnknown && <p role="status">{message}</p>}
-          {lastImportBatch && <BatchCandidateReceipts batch={lastImportBatch} bookQuery={bookQuery} />}
-          {inspectedBatches.map(batch => <BatchCandidateReceipts key={batch.id} batch={batch} bookQuery={bookQuery} />)}
+          {commitUnknown && inspectedBatches.map(batch => <p key={batch.id}>{batch.source_label || '最近导入'} · {batch.exercise_ids.length} 题</p>)}
           <div className="exercise-receipt-actions">
             {commitUnknown ? <button className="app-primary-button" onClick={() => void inspectImportBatches()}>核对导入批次</button> : <button className="app-primary-button" onClick={() => setWorkspaceMode('practice')}>准备练习</button>}
             <button className="app-secondary-button" onClick={() => setWorkspaceMode('bank')}>查看题库</button>
-            {!commitUnknown && lastImportBatch?.status === 'active' && <button className="app-secondary-button" disabled={importing} onClick={rollbackLastImport}>回滚本批次（{lastImportBatch.exercise_ids.length} 题）</button>}
-            {!commitUnknown && <button className="app-ghost-button" onClick={() => setReceipt(null)}>{candidates.length ? '继续校对剩余候选' : '继续导入'}</button>}
+            {!commitUnknown && lastImportBatch?.status === 'active' && <button className="app-secondary-button" disabled={importing} onClick={rollbackLastImport}>撤回本批次导入（{lastImportBatch.exercise_ids.length} 题）</button>}
+            {!commitUnknown && <button className="app-ghost-button" onClick={() => setReceipt(null)}>继续导入</button>}
           </div>
         </section>}
 
@@ -516,6 +539,7 @@ const ExercisesPage: React.FC = () => {
             </div>
             <fieldset className="exercise-import-fields" disabled={importing || commitUnknown}>
               {sourceKind === 'file' && <>
+                <label className="exercise-field">题目来源<select aria-label="题目来源" value={fileSourceCategory} onChange={event => setFileSourceCategory(event.target.value)}><option value="exercise">习题</option><option value="exam">真题</option><option value="textbook_example">教材例题</option></select></label>
                 <button className={`exercise-upload ${importFile ? 'has-file' : ''}`} onClick={() => fileInputRef.current?.click()}>
                   <Upload size={24} />
                   <strong>{importFile?.name || '选择 Word、PDF 或 MinerU 解析包'}</strong>
@@ -589,35 +613,16 @@ const ExercisesPage: React.FC = () => {
         </>} onSaved={handleAnswerSaved} onMessage={setMessage} onStatus={status => void updateStatus(expandedId, status)} onDelete={() => void deleteExercise(expandedId)} />}</div>
         <main hidden={workspaceMode === 'import' || (workspaceMode === 'bank' && Boolean(expandedId))} className="exercise-main">
           <div className="exercise-main-inner">
+            {(workspaceMode === 'bank' || (!singlePracticeActive && !['active', 'paused'].includes(practiceSession?.status || ''))) && <ExerciseScopeFilters subject={targetSubject} bookName={activeName} books={books} chapter={filterChapter} chapters={scopeChapters} practiceState={practiceState} onSubject={updateTargetSubject} onBook={value => void updateTargetName(value)} onChapter={setFilterChapter} onPracticeState={setPracticeState} />}
             <section className={`exercise-practice-panel ${workspaceMode !== 'practice' ? 'is-hidden' : ''} ${singlePracticeActive || ['active', 'paused'].includes(practiceSession?.status || '') ? 'is-reading' : ''}`}>
               {!singlePracticeActive && !['active', 'paused'].includes(practiceSession?.status || '') && <div className="exercise-preparation">
-                <p className="exercise-eyebrow">{targetSubject} / {activeName === 'default' ? '未选择教材' : activeName}</p>
-                <h1>{loadError ? '题库暂时无法读取' : loading && !records.length ? '正在读取题库…' : practicePool.length ? '开始一轮练习' : (searchKw || statusFilter) ? '当前筛选下没有题目' : '当前范围暂无题目'}</h1>{loadError ? <div role="alert">
+                <p className="exercise-eyebrow">{targetSubject} / {activeName === 'default' ? '独立题库' : textbookBook?.displayName || activeName}</p>
+                <h1>{loadError ? '题库暂时无法读取' : loading && !records.length ? '正在读取题库…' : practicePool.length ? '开始一轮练习' : (searchKw || filterChapter || practiceState) ? '当前范围暂无符合条件的题目' : '当前范围暂无题目'}</h1>{loadError ? <div role="alert">
                   <p>{loadError}</p>
                   <button className="app-secondary-button" onClick={load}>重试读取</button>
                 </div> : <div className="exercise-prep-columns">
                   <div>
-                    <section className="exercise-setup-group">
-                      <h2>练习范围</h2>
-                      <ScopeSelector
-                        size="form"
-                        subject={targetSubject}
-                        bookName={books.some((book) => book.name === targetName) ? targetName : ''}
-                        books={books}
-                        suggestions={books.map((book) => book.subject || '').filter(Boolean)}
-                        onSubjectChange={updateTargetSubject}
-                        onBookChange={updateTargetName}
-                        fullWidth
-                        width="wide"
-                      />
-                      <details>
-                        <summary>按状态或关键词筛选</summary>
-                        <input className="app-field" aria-label="练习关键词" value={searchKw} onChange={e => setSearchKw(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') void load(); }} />
-                        <select className="app-field" aria-label="练习状态" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                          <option value="">全部状态</option>{Object.entries(statusText).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
-                        <button className="app-secondary-button" onClick={load}>应用筛选</button>
-                      </details>
-                    </section>{practicePool.length > 0 ? <>
+                    {practicePool.length > 0 ? <>
                       <section className="exercise-setup-group">
                         <h2>本次题量<HelpHint label="本次题量">1–200 题；实际题量以当前范围和筛选内可用题目为准。</HelpHint>
                         </h2>
@@ -631,12 +636,12 @@ const ExercisesPage: React.FC = () => {
                       <button className="app-primary-button" onClick={startConfiguredPractice} disabled={sessionBusy || loading}>开始练习 · {sessionLimit} 题</button>
                     </> : <div className="exercise-empty-paths">
                       <button onClick={() => { setSourceKind('textbook'); setWorkspaceMode('import'); }}>
-                        <TexaTextbook size={22} />从教材抽取 <ChevronRight size={16} />
+                        <TexaTextbook size={22} /><span><strong>从教材抽取</strong><small>选择已导入教材，校对后加入题库</small></span><ChevronRight size={16} />
                       </button>
                       <button onClick={() => { setSourceKind('file'); setWorkspaceMode('import'); }}>
-                        <Upload size={22} />上传文件 / MinerU 包 <ChevronRight size={16} />
+                        <Upload size={22} /><span><strong>上传文件 / MinerU 包</strong><small>导入真题、习题册或已有解析结果</small></span><ChevronRight size={16} />
                       </button>
-                      <button onClick={() => setManualOpen(true)}>手动录入</button>{(searchKw || statusFilter) && <button onClick={() => { setSearchKw(''); searchKwRef.current = ''; setStatusFilter(''); void load(); }}>清除筛选</button>}</div>}{practiceSession?.status === 'completed' && <p>上轮完成 {practiceSession.summary.answered} 题，平均自评 {practiceSession.summary.average_quality}</p>}</div>{practicePool.length > 0 && <aside className="exercise-resource-summary">
+                      <button onClick={() => setManualOpen(true)}>手动录入</button></div>}{practiceSession?.status === 'completed' && <p>上轮完成 {practiceSession.summary.answered} 题，平均自评 {practiceSession.summary.average_quality}</p>}</div>{practicePool.length > 0 && <aside className="exercise-resource-summary">
                         <h2>当前题目</h2>
                         <p className="exercise-count">{records.length}<small> 道已加载</small>
                         </p>
@@ -672,35 +677,32 @@ const ExercisesPage: React.FC = () => {
             <section className={`${workspaceMode === 'bank' ? 'block' : 'hidden'} workspace-collection-section`}>
               {loadError && <p role="alert" className="exercise-warning">{loadError}</p>}
               {message && <p role="status">{message}</p>}
-              <div className="mb-4 flex flex-wrap items-center gap-3">
-                <input value={searchKw} onChange={(e) => setSearchKw(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') load(); }} placeholder="搜索题干/答案/解析/标签" className="min-w-[260px] flex-1 app-field" />
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="workspace-radius border border-border bg-bg-primary px-3 py-2 workspace-interface-text outline-none focus:border-accent">
-                  <option value="">全部状态</option>
-                  {Object.entries(statusText).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                </select>
+              <div className="exercise-bank-search">
+                <input value={searchKw} onChange={(e) => setSearchKw(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') load(); }} aria-label="搜索题目" placeholder="搜索题干、答案或解析" className="min-w-[260px] flex-1 app-field" />
                 <button onClick={load} className="app-secondary-button">搜索</button>
               </div>
 
-              <div className="workspace-register">
-                {recordList.visibleItems.map((record) => {
+              <div className="exercise-bank-list">
+                {(!loading ? recordList.visibleItems : []).map((record) => {
                   const expanded = expandedId === record.id;
                   return (
-                    <article key={record.id} className="workspace-register-row px-2 py-4">
-                      <button onClick={() => setExpandedId(expanded ? '' : record.id)} className="flex w-full items-start justify-between gap-3 text-left">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 workspace-interface-text font-medium text-text-primary">
-                            {expanded ? <ChevronDown className="h-4 w-4 text-accent" /> : <ChevronRight className="h-4 w-4 text-text-secondary" />}
-                            <span className="truncate">{titleOf(record)}</span>
-                          </div>
-                          <div className="mt-2 flex flex-wrap gap-3 workspace-support-text text-text-secondary">
-                            <span>{record.subject || targetSubject || activeName}</span>
+                    <article key={record.id} className="exercise-bank-row">
+                      <button onClick={() => setExpandedId(expanded ? '' : record.id)} className="exercise-bank-open">
+                        <ChevronRight className="exercise-bank-chevron" size={16} />
+                        <div className="exercise-bank-content">
+                          <SimpleMarkdown content={titleOf(record)} className="exercise-bank-question" />
+                          <div className="exercise-bank-source">
+                            <span>{exerciseSourceCategory(record, textbookSourceName) === 'textbook_example' ? '来自教材' : '题目来源'}</span>
+                            <strong>{exerciseSourceCategory(record, textbookSourceName) === 'textbook_example' ? textbookBook?.displayName || textbookSourceName : record.source || exerciseSourceLabels[exerciseSourceCategory(record, textbookSourceName)]}</strong>
                             {record.chapter && <span>{record.chapter}</span>}
-                            <span>{record.tags.join(', ') || '无标签'}</span>
-                            <span>{record.question_type || '未标题型'}</span>
+                          </div>
+                          <div className="exercise-bank-facts">
+                            <span className="exercise-source-kind">{exerciseSourceLabels[exerciseSourceCategory(record, textbookSourceName)] || '习题'}</span>
+                            {record.question_type && record.question_type !== '未确定' && <span>{record.question_type}</span>}
                             <span>练习 {record.practice_count || 0} 次</span>
                           </div>
                         </div>
-                        <span className="rounded border border-accent/30 bg-accent/10 px-2 py-0.5 workspace-support-text font-medium text-accent-hover">{statusText[record.status] || record.status}</span>
+                        <span className="exercise-bank-status">{statusText[record.status] || record.status}</span>
                       </button>
 
                     </article>
@@ -713,7 +715,8 @@ const ExercisesPage: React.FC = () => {
                     </button>
                   </div>
                 )}
-                {records.length === 0 && <div className="py-12 text-center workspace-interface-text text-text-secondary">
+                {loading && <p role="status" className="exercise-feedback">正在读取题目…</p>}
+                {!loading && records.length === 0 && <div className="py-12 text-center workspace-interface-text text-text-secondary">
                   <TexaExercises className="mx-auto mb-2 h-6 w-6" />暂无习题，请先导入 Word/PDF</div>}
               </div>
             </section>

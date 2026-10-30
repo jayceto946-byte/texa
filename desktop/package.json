@@ -39,6 +39,8 @@
       "runtime.cjs",
       "source-updater.cjs",
       "commit-channel.cjs",
+      "commit-provider.cjs",
+      "update-preflight.cjs",
       "remote-connection.cjs",
       "appearance.cjs",
       "window-close.cjs",
@@ -88,6 +90,7 @@
       "identity": null
     },
     "nsis": {
+      "perMachine": false,
       "include": "installer-update.nsh",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,

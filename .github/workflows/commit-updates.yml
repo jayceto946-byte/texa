@@ -137,6 +137,8 @@ jobs:
           $version = (Get-Content desktop\package.json -Raw | ConvertFrom-Json).version
           node scripts/verify-commit-release.cjs release $env:GITHUB_SHA $version windows
           if ($LASTEXITCODE -ne 0) { throw 'Update manifest validation failed' }
+          node scripts/verify-nsis-payload-size.cjs "release/Texa-Setup-$version.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'NSIS payload duplication check failed' }
       - uses: actions/download-artifact@v4
         with:
           name: upgrade-baseline

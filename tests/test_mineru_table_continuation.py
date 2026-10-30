@@ -122,7 +122,7 @@ def test_image_only_row_survives_html_projection():
 def test_synthetic_fragments_pass_original_production_lexical_gate(monkeypatch):
     from graph import retrieval_node
     from graph.safe_retrieval import SafeKG
-    from ingestion.index_pipeline import _validate_staged_production_retrieval, RELEASE_MIN_RECALL, RELEASE_MIN_POINT_RECALL
+    from ingestion.index_pipeline import _validate_staged_production_retrieval
     from ingestion.vector_store import RetrievalOutcome
 
     book = synthetic_book()
@@ -134,7 +134,7 @@ def test_synthetic_fragments_pass_original_production_lexical_gate(monkeypatch):
     # Keep all six continuation anchors; no point or case is skipped.
     assert continuation["required_points"] == ["(续)", "类型", "曲线图", "长度/μm", "宽度/μm", "标定值"]
     assert continuation['provenance']['source_block_ids'] == [book.blocks[0].block_id, book.blocks[1].block_id]
-    assert RELEASE_MIN_RECALL == RELEASE_MIN_POINT_RECALL == 1.0
+    assert all(case["hard_gate"] is False for case in cases)
     class LexicalStore:
         _map = {}
         _stores = {}

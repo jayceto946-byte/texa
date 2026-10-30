@@ -20,3 +20,12 @@ describe('exercise list previews', () => {
     expect(exercisePreview('')).toBe('题干待补全');
   });
 });
+
+it('normalizes TeX delimiters before making a safe mathematical preview', () => {
+  expect(exercisePreview(String.raw`求 \(x^2+1\) 的导数。`)).toBe('求 $x^2+1$ 的导数。');
+});
+
+it('keeps a complete longer formula when the rendered bank allows room for it', () => {
+  const formula = String.raw`\sigma=\sqrt{\frac{\sum v_i^2}{n-1}}`;
+  expect(exercisePreview(`设 $${formula}$，说明各参数。`, 160, 160)).toContain(`$${formula}$`);
+});

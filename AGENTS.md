@@ -118,8 +118,8 @@ texa/
 ### 教材摄取与索引发布
 
 - 所有正式教材来源必须先生成并持久化 Canonical Document IR 与 `ingestion_report.json`。可修复的 OCR、公式、表格、页码或层级问题记录 warning/review status；IR 合同损坏或没有可索引正文才阻断后续切分与索引。
-- 索引构建使用 staged candidate，不得在验收前覆盖 active map、线上 lexical 文件或现有 Chroma collections。只有生产混合检索与最终 EvidencePack 门槛通过后才能原子激活；失败时清理候选并保留旧版本。
-- 每个索引版本保留 manifest、独立 lexical 快照、release quality 与可回滚历史。公式、列表、例题、表格等自动探针只验证结构在解析—切块—检索链路中的保真度，不能冒充 OCR 正确性或人工语义金标。
+- 索引构建使用 staged candidate，不得在验收前覆盖 active map、线上 lexical 文件或现有 Chroma collections。来源内容保存与索引可读性检查通过后才能原子激活；实际构建失败时清理候选并保留旧版本。生产混合检索与最终 EvidencePack 的抽查只作诊断，局部未命中或自动抽查覆盖不足不得阻断整本教材导入。
+- 每个索引版本保留 manifest、独立 lexical 快照、release quality 与可回滚历史。公式、列表、例题、表格等检索探针记录分项指标、失败问题与来源位置，并以警告展示；不要求召回率达到 100% 才能导入，也不能冒充 OCR 正确性或人工语义金标。回答时仍遵守本轮证据不足、缺失输入与答案验证边界。
 
 ### 检索策略
 

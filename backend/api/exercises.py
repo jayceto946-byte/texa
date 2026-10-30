@@ -213,7 +213,11 @@ def _practice_session_data(
     return data
 
 def _record_from_request(req: ExerciseAddRequest, book_name: str = "default") -> ExerciseRecord:
+    category = req.source_category
+    if req.candidate_context and req.candidate_context.projection.scope.source_mode != 'file':
+        category = 'textbook_example'
     return ExerciseRecord(
+        extra_fields={"source_category": category} if category else {},
         question_text=req.question_text.strip(),
         answer=req.answer.strip(),
         explanation=sanitize_latex(strip_thinking(req.explanation.strip())) if req.explanation.strip() else "",
@@ -255,6 +259,7 @@ def _list_exercise_records(req: ExerciseListRequest, bank) -> list[ExerciseRecor
         tag=req.tag or None,
         search_kw=req.search_kw,
         status=req.status,
+        practice_state=req.practice_state,
         limit=req.limit,
     )
 
@@ -271,7 +276,7 @@ def get_exercise_overview(req: ExerciseListRequest, book_name: str = "default"):
     records = _list_exercise_records(req, bank)
     errors = {}
     try:
-        stats = bank.stats(subject=req.subject or None)
+        stats = bank.stats(subject=req.subject or None, chapter=req.chapter or None)
     except Exception as exc:
         print(f"[ExerciseOverview] stats unavailable: {exc}", flush=True)
         stats = None
@@ -635,6 +640,7 @@ def create_practice_session(req: ExercisePracticeSessionCreateRequest, book_name
             chapter=req.chapter,
             tag=req.tag,
             status=req.status,
+            practice_state=req.practice_state,
             limit=req.limit,
             shuffle=req.shuffle,
         )

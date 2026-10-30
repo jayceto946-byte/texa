@@ -288,3 +288,86 @@ def test_source_grounded_table_reference_promotes_its_adjacent_table(monkeypatch
     assert table_debug["is_table_neighbor"] is True
     assert table_debug["table_anchor_chunk_id"] == "table-context"
     assert any(item["chunk_id"] == "table-9-1" for item in result["evidence_items"])
+
+
+def _numeric_table_book():
+    from ingestion.document_ir import CanonicalBook, DocumentBlock
+
+    blocks = []
+    for block_id, section, header in (
+        ('temperature', '温度测量', ['t/℃', '0.713', '5.824', '10.267', '14.639', '18.042']),
+        ('quantiles', '分位数', ['1.682', '2.743', '4.126', '6.542', '10.321', '16.473']),
+    ):
+        blocks.append(DocumentBlock(
+            block_id=block_id, block_type='table',
+            text='| ' + ' | '.join(header) + ' |\n| ' + ' | '.join(['---'] * 6) + ' |\n| 0 | 1 | 2 | 3 | 4 | 5 |',
+            section_path=['第一章', section], source_kind='mineru',
+            table_header=header, table_rows=[['0', '1', '2', '3', '4', '5']],
+        ))
+    return CanonicalBook(book_name='数值表教材', source_kind='mineru', parser_version='test', blocks=blocks)
+
+
+def test_untitled_numeric_tables_survive_production_release_and_final_support(monkeypatch):
+    from graph.evidence_pack import build_evidence_pack
+    from ingestion.acceptance_probes import generate_acceptance_probes
+    from ingestion.chapter_splitter import ChapterSplitter
+    from ingestion.index_pipeline import _validate_staged_production_retrieval
+    from ingestion.lexical_index import expand_neighbors_rows
+
+    monkeypatch.setattr(retrieval_node, 'get_safe_kg', lambda _: (SafeKG(), ''))
+    monkeypatch.setattr(retrieval_node, '_load_history', lambda *_: [])
+    monkeypatch.setattr(retrieval_node, 'cross_encoder_scores', lambda *_: None)
+    book = _numeric_table_book()
+    chunks = ChapterSplitter().split_canonical_book(book)
+    probes = generate_acceptance_probes(book)
+
+    class StagedStore(_TableStore):
+        _map = {}
+        _stores = {}
+        _broken_aggregates = set()
+
+    store = StagedStore()
+    summary = _validate_staged_production_retrieval(
+        store, book.book_name, {'candidate': {'book_name': book.book_name, 'kind': 'book_aggregate'}},
+        chunks, acceptance_probes=probes['cases'], specialty_inventory=probes['source_inventory'],
+    )
+    assert summary['cases'] == 2
+    assert summary['recall_at_k'] == summary['point_recall'] == 1.0
+    assert summary['specialty_gates']['table']['passed']
+
+    for case in probes['cases']:
+        result = retrieval_node.retrieve_node(
+            {'user_input': case['question'], 'book_name': book.book_name, 'intent': 'factual_recall',
+             'target_chapters': case['target_chapters'], 'use_textbook_context': True},
+            vector_store=store,
+            lexical_search=lambda _, query, **kw: search_rows(chunks, query, **kw),
+            neighbor_expander=lambda _, ids, **kw: expand_neighbors_rows(chunks, ids, **kw),
+            retrieval_resources_override=[{'book_name': book.book_name, 'is_primary': True, 'is_selected': True}],
+        )
+        pack = build_evidence_pack(result['evidence_items'], intent='factual_recall')
+        assert all(point in pack['text'] for point in case['required_points'])
+        support = retrieval_node._assess_evidence_support(case['question'], pack['verification_items'])
+        assert support['status'] == 'partial'
+        assert support['reason'] == 'requested_table_contents_available'
+
+
+def test_table_contents_support_requires_visible_rows_and_the_requested_section():
+    from graph.evidence_pack import build_evidence_pack
+
+    block = _numeric_table_book().blocks[0]
+    item = {'chunk_id': block.block_id, 'text': block.text, 'block_type': 'table',
+            'section_title': '温度测量', 'section_path': block.section_path,
+            'table_header': block.table_header, 'table_rows': block.table_rows,
+            'is_direct_hit': True, 'query_coverage': 0.1}
+    query = '温度测量中的表格列出了哪些字段或数据？'
+    visible = build_evidence_pack([item], intent='factual_recall')['verification_items'][0]
+    assert retrieval_node._assess_evidence_support(query, [visible])['status'] == 'partial'
+    for changed in (
+        dict(visible, text='| t/℃ | 0.713 |'),  # Metadata retains rows, visible body does not.
+        dict(visible, section_title='其他节', section_path=['其他章', '其他节']),
+        dict(visible, block_type='paragraph'),
+    ):
+        assert retrieval_node._assess_evidence_support(query, [changed])['status'] == 'insufficient'
+    extra_question = query + '并给出全球市场规模。'
+    support = retrieval_node._assess_evidence_support(extra_question, [visible])
+    assert support['status'] == 'insufficient'

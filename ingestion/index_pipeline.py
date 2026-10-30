@@ -25,8 +25,6 @@ from utils.json_io import atomic_write_json
 from utils.path_safety import safe_book_name
 
 INDEX_SCHEMA_VERSION = 6
-RELEASE_MIN_RECALL = 1.0
-RELEASE_MIN_POINT_RECALL = 1.0
 MAX_RETAINED_INDEX_VERSIONS = 2
 MAX_BUILD_VECTOR_CACHE = 4096
 SPECIALTY_RELEASE_THRESHOLDS = {
@@ -335,14 +333,14 @@ def _validate_staged_production_retrieval(
     acceptance_probes: list[dict] | None = None,
     specialty_inventory: dict[str, int] | None = None,
 ) -> dict:
-    """Run golden cases through the production hybrid retrieval implementation.
+    """Diagnose recall through production retrieval without gating book intake.
 
     The staged vector and lexical assets are exposed through isolated read-only
     bindings. The process-wide active map, lexical file and caches are never
     swapped during validation, so concurrent chat requests cannot observe the
     candidate index.
     """
-    from evaluation.rag_eval import aggregate, load_cases, score_case
+    from evaluation.rag_eval import load_cases, score_case
     from graph.retrieval_node import retrieve_node
     from graph.evidence_pack import build_evidence_pack
     from ingestion.lexical_index import (
@@ -366,11 +364,7 @@ def _validate_staged_production_retrieval(
             cases.append(dict(case))
             existing_ids.add(case_id)
     if not cases:
-        return {
-            "cases": 0,
-            "status": "not_configured",
-            "specialty_gates": _specialty_gates([], [], specialty_inventory or {}),
-        }
+        return _summarize_retrieval_diagnostics([], [], specialty_inventory or {})
 
     staged_vs = copy.copy(vs)
     staged_vs._map = {
@@ -439,35 +433,40 @@ def _validate_staged_production_retrieval(
             )
             items = [{"chunk_id": "final-evidence-pack", "text": str(pack.get("text") or "")}]
         details.append(score_case(case, items, k=20))
+    return _summarize_retrieval_diagnostics(cases, details, specialty_inventory or {})
+
+
+def _summarize_retrieval_diagnostics(cases: list[dict], details: list[dict], inventory: dict) -> dict:
+    from evaluation.rag_eval import aggregate
+
     summary = aggregate(details)
-    summary["specialty_gates"] = _specialty_gates(cases, details, specialty_inventory or {})
+    summary["specialty_gates"] = _specialty_gates(cases, details, inventory)
     summary["generated_probe_cases"] = sum(
         "generated_probe" in (case.get("tags") or []) for case in cases
     )
-    summary["status"] = "passed"
     failed_specialties = [
         name for name, gate in summary["specialty_gates"].items()
         if not gate.get("passed", False)
     ]
-    if (
-        summary["recall_at_k"] < RELEASE_MIN_RECALL
-        or summary["point_recall"] < RELEASE_MIN_POINT_RECALL
-        or failed_specialties
-    ):
-        failed = [
-            item["id"] for item in details
-            if item["recall_at_k"] < 1 or item["point_recall"] < RELEASE_MIN_POINT_RECALL
-        ]
-        missing = {
-            item["id"]: item.get("missing_points", [])
-            for item in details
-            if item["recall_at_k"] < 1 or item["point_recall"] < RELEASE_MIN_POINT_RECALL
-        }
-        raise RuntimeError(
-            "staged production retrieval release gate failed: "
-            f"recall={summary['recall_at_k']:.3f}, point_recall={summary['point_recall']:.3f}, "
-            f"failed={failed}, missing={missing}, specialty_gates={failed_specialties}"
+    case_by_id = {case["id"]: case for case in cases}
+    summary["failed_cases"] = [
+        {**item, "question": case_by_id[item["id"]].get("question", ""),
+         "specialty": _case_specialty(case_by_id[item["id"]]),
+         "provenance": case_by_id[item["id"]].get("provenance", {})}
+        for item in details if item["recall_at_k"] < 1.0 or item["point_recall"] < 1.0
+    ]
+    summary["failed_specialties"] = failed_specialties
+    summary["blocking"] = False
+    summary["warnings"] = []
+    if summary["failed_cases"]:
+        summary["warnings"].append(
+            f"检索抽查有 {len(summary['failed_cases'])}/{len(cases)} 项未完整召回；教材已导入，相关内容使用时请对照原文。"
         )
+    uncovered = [name for name in failed_specialties if not summary["specialty_gates"][name].get("coverage_passed")]
+    if uncovered:
+        labels = {"formula": "公式", "list": "列表", "example": "例题", "table": "表格"}
+        summary["warnings"].append(f"{'、'.join(labels[name] for name in uncovered)}的自动抽查覆盖不足，尚未确认其检索效果。")
+    summary["status"] = "warning" if summary["warnings"] else ("passed" if cases else "not_configured")
     return summary
 
 
@@ -486,7 +485,7 @@ def _specialty_gates(
     details: list[dict],
     inventory: dict[str, int],
 ) -> dict[str, dict]:
-    """Score four independent structural gates without hiding sparse coverage."""
+    """Keep per-structure diagnostic targets; these do not block intake."""
     from evaluation.rag_eval import aggregate
 
     detail_by_id = {str(item.get("id") or ""): item for item in details}
@@ -504,7 +503,7 @@ def _specialty_gates(
             result[specialty] = {
                 "status": "not_applicable", "passed": True, "source_units": 0,
                 "required_cases": 0, "cases": 0, "recall_at_k": 1.0, "point_recall": 1.0,
-                "thresholds": dict(thresholds),
+                "thresholds": dict(thresholds), "blocking": False,
             }
             continue
         required_cases = min(int(thresholds["max_required_cases"]), applicable_units)
@@ -525,6 +524,7 @@ def _specialty_gates(
             "point_recall": quality["point_recall"],
             "mrr": quality["mrr"],
             "thresholds": dict(thresholds),
+            "blocking": False,
         }
     return result
 
@@ -613,11 +613,7 @@ def activate_retained_index_version(vs, book_name: str, version: str) -> dict:
                 1 for entry in target_entries if str(entry.get("kind") or "chapter") == "chapter"
             ),
             "aggregate_collection": aggregate_name,
-            "release_quality": {
-                "status": "retained_version_reactivated",
-                "passed": True,
-                "previous_active_version": str(current_manifest.get("index_version") or ""),
-            },
+            "release_quality": target.get("release_quality") or {"status": "not_configured", "cases": 0},
             "release_gate_mode": "retained_version_rollback",
             "activated_at": activated_at,
             "versions": ordered_versions,
@@ -854,10 +850,11 @@ def build_and_activate_book_index(
                 }
 
             if previous_record is not None:
-                for key in ('embedding_contract', 'embedding_integrity', 'source_integrity', 'vector_count', 'content_fingerprint'):
+                for key in ('embedding_contract', 'embedding_integrity', 'source_integrity', 'vector_count', 'content_fingerprint', 'release_quality'):
                     if key in old_manifest:
                         previous_record[key] = old_manifest[key]
             candidate_records = [{
+                "release_quality": release_quality,
                 "embedding_contract": contract_record, "embedding_integrity": embedding_integrity,
                 "source_integrity": source_integrity or {'status': 'not_supplied'},
                 "vector_count": aggregate_count, "content_fingerprint": fingerprint,
@@ -921,7 +918,7 @@ def build_and_activate_book_index(
                 "embedding_contract": contract_record, "embedding_integrity": embedding_integrity,
                 "source_integrity": source_integrity or {'status': 'not_supplied'}, "vector_count": aggregate_count,
                 "release_quality": release_quality,
-                "release_gate_mode": "production_hybrid_retrieval_and_evidence_pack",
+                "release_gate_mode": "source_integrity_and_index_health",
                 "activated_at": activated_at,
                 "versions": versions,
                 **(canonical_publication.record() if canonical_publication is not None else {}),

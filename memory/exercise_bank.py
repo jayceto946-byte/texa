@@ -496,6 +496,7 @@ class ExerciseBankStore:
         tag: Optional[str] = None,
         search_kw: str = "",
         status: str = "",
+        practice_state: str = "",
         limit: int = 100,
     ) -> list[ExerciseRecord]:
         sql = "SELECT data FROM exercises WHERE 1=1"
@@ -506,6 +507,10 @@ class ExerciseBankStore:
         if status:
             sql += " AND status = ?"
             params.append(status)
+        if practice_state == "practiced":
+            sql += " AND COALESCE(json_extract(data, '$.practice_count'), 0) > 0"
+        elif practice_state == "unpracticed":
+            sql += " AND COALESCE(json_extract(data, '$.practice_count'), 0) = 0"
         sql += " ORDER BY created_at DESC LIMIT ?"
         params.append(limit if not subject and not tag and not search_kw.strip() else max(limit * 10, 1000))
         with self._connect() as conn:
@@ -528,8 +533,8 @@ class ExerciseBankStore:
             ]
         return records[:limit]
 
-    def stats(self, subject: Optional[str] = None) -> dict:
-        records = self.list_all(subject=subject, limit=10000)
+    def stats(self, subject: Optional[str] = None, chapter: Optional[str] = None) -> dict:
+        records = self.list_all(subject=subject, chapter=chapter, limit=10000)
         by_type: dict[str, int] = {}
         by_tag: dict[str, int] = {}
         by_status: dict[str, int] = {}
@@ -787,6 +792,7 @@ class ExerciseBank:
         chapter: str = "",
         tag: str = "",
         status: str = "",
+        practice_state: str = "",
         limit: int = 20,
         shuffle: bool = False,
     ) -> PracticeSession:
@@ -796,6 +802,7 @@ class ExerciseBank:
             chapter=chapter or None,
             tag=tag or None,
             status=status,
+            practice_state=practice_state,
             limit=10000,
         )
         rank = {"needs_review": 0, "practicing": 1, "new": 2, "mastered": 3}
@@ -813,7 +820,7 @@ class ExerciseBank:
             self.store.save_session(previous)
         session = PracticeSession(
             exercise_ids=[record.id for record in selected],
-            filters={"search_kw": search_kw, "subject": subject, "chapter": chapter, "tag": tag, "status": status},
+            filters={"search_kw": search_kw, "subject": subject, "chapter": chapter, "tag": tag, "status": status, "practice_state": practice_state},
             shuffle=shuffle,
             seed=seed,
         )
@@ -898,8 +905,8 @@ class ExerciseBank:
     def list_all(self, **filters) -> list[ExerciseRecord]:
         return self.store.list_all(**filters)
 
-    def stats(self, subject: Optional[str] = None) -> dict:
-        return self.store.stats(subject=subject)
+    def stats(self, subject: Optional[str] = None, chapter: Optional[str] = None) -> dict:
+        return self.store.stats(subject=subject, chapter=chapter)
 
 
 def _is_sqlite_storage_error(exc: sqlite3.OperationalError) -> bool:

@@ -15,6 +15,8 @@ interface UsePracticeSessionOptions {
   targetSubject: string;
   statusFilter: string;
   searchKw: string;
+  chapter: string;
+  practiceState: string;
   singlePracticeActive: boolean;
   refreshOverview: () => Promise<void>;
 }
@@ -28,6 +30,8 @@ export function usePracticeSession({
   targetSubject,
   statusFilter,
   searchKw,
+  chapter,
+  practiceState,
   singlePracticeActive,
   refreshOverview,
 }: UsePracticeSessionOptions) {
@@ -73,6 +77,8 @@ export function usePracticeSession({
         subject: targetSubject,
         status: statusFilter,
         search_kw: searchKw,
+        chapter,
+        practice_state: practiceState,
         limit: sessionLimit,
         shuffle: sessionShuffle,
       });
@@ -88,7 +94,7 @@ export function usePracticeSession({
     } finally {
       setSessionBusy(false);
     }
-  }, [bookQuery, resetAnswer, sessionLimit, sessionShuffle, setPracticeSession, statusFilter, targetSubject, searchKw]);
+  }, [bookQuery, resetAnswer, sessionLimit, sessionShuffle, setPracticeSession, statusFilter, targetSubject, searchKw, chapter, practiceState]);
 
   const changePracticeSessionStatus = useCallback(async (action: SessionAction) => {
     if (!practiceSession) return;

@@ -104,3 +104,21 @@ def test_scope_rebuild_requirement_is_preserved_in_readiness_contract(tmp_path):
     assert result["technical"]["vector_ready"] is False
     assert result["technical"]["error_code"] == "legacy_unscoped_index_requires_rebuild"
     assert result["technical"]["reindex_required"] is True
+
+
+def test_retrieval_warnings_preserve_technical_readiness_and_failed_source_locations(tmp_path):
+    manifests = tmp_path / 'vector/_index_manifests'
+    manifests.mkdir(parents=True)
+    failed = {'id': 'table-probe', 'question': '数据表列出了什么？',
+              'missing_points': ['12.34'], 'provenance': {'page_start': 17}}
+    (manifests / 'demo.json').write_text(json.dumps({'release_quality': {
+        'status': 'warning', 'cases': 32, 'generated_probe_cases': 32,
+        'failed_cases': [failed], 'warnings': ['部分表格未完整召回'],
+    }}), encoding='utf-8')
+    result = derive_book_readiness('demo', index_status={'status': 'ready', 'healthy': True},
+                                  progress_root=tmp_path / 'progress', vector_db_root=tmp_path / 'vector')
+    assert result['technical']['status'] == 'ready'
+    assert result['semantic']['status'] == 'unverified'
+    assert result['retrieval']['status'] == 'warning'
+    assert result['retrieval']['failed_cases'] == [failed]
+    assert result['retrieval']['warnings'] == ['部分表格未完整召回']

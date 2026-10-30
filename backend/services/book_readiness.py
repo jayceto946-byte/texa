@@ -83,4 +83,11 @@ def derive_book_readiness(
             "human_case_count": human_case_count,
             "generated_probe_cases": generated_count,
         },
+        "retrieval": {
+            "status": release_status,
+            "case_count": case_count,
+            "failed_case_count": len(quality.get("failed_cases") or []),
+            "warnings": list(quality.get("warnings") or []),
+            "failed_cases": list(quality.get("failed_cases") or []),
+        },
     }

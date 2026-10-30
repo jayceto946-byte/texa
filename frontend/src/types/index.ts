@@ -308,6 +308,8 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface ExerciseRecord {
+  source_category?: string;
+  book_id?: string;
   source_structure?: CandidateStructure | null;
   id: string;
   question_text: string;

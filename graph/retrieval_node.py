@@ -204,6 +204,26 @@ def _is_exact_table_title_hit(query: str, item: dict) -> bool:
     return any(title and title in query_title for title in candidate_titles)
 
 
+def _is_table_section_contents_hit(query: str, item: dict) -> bool:
+    """Bind an untitled table to the section explicitly requested by name."""
+    if str(item.get("block_type") or "") != "table":
+        return False
+    match = re.fullmatch(r"(.+?)中的表格列出了哪些字段或数据[？?。]*", str(query or "").strip())
+    if not match:
+        return False
+    target = _normalized_table_title(match.group(1))
+    sections = [*(item.get("section_path") or []), item.get("section_title") or ""]
+    return any(target == _normalized_table_title(section) for section in sections if section)
+
+
+def _is_table_contents_hit(query: str, item: dict) -> bool:
+    # This is a request to read the table, not a demand that its cells repeat
+    # the conversational words “字段或数据”. Extra questions keep normal checks.
+    if not re.fullmatch(r".+?中(?:的表格)?列出了哪些字段或数据[？?。]*", str(query or "").strip()):
+        return False
+    return _is_exact_table_title_hit(query, item) or _is_table_section_contents_hit(query, item)
+
+
 def _explicit_example_label(query: str) -> str:
     compact = _normalized_table_title(query)
     match = re.search(r"例(\d+(?:[-－—.]\d+)+)", compact)
@@ -970,7 +990,9 @@ def _retrieve_node(
                 seen_anchor_ids.add(anchor_id)
                 if len(teaching_anchors) >= 10:
                     break
-        table_anchors = [item for item in candidate_lexical if _is_exact_table_title_hit(user_input, item)]
+        table_anchors = [item for item in candidate_lexical if (
+            _is_exact_table_title_hit(user_input, item) or _is_table_section_contents_hit(user_input, item)
+        )]
         if table_request:
             table_anchors.extend(item for item in candidate_lexical if _is_table_reference_item(item))
         table_anchors = list({
@@ -1526,7 +1548,16 @@ def _assess_evidence_support(
         for item, _text, topic_match in item_support
     )
 
-    if not focus and strong_evidence:
+    visible_tables = [
+        item for item in evidence_items
+        if _is_table_contents_hit(query, item)
+        # Inspect the actual visible body, including after EvidencePack clips
+        # it. Stored table_rows alone cannot prove the generator saw the data.
+        and re.search(r"\|[^\n]+\|\s*\n\|[ :|\-]+\|\s*\n\|[^\n]+\|", str(item.get("text") or ""))
+    ]
+    if visible_tables:
+        status, reason = "partial", "requested_table_contents_available"
+    elif not focus and strong_evidence:
         status, reason = "supported", "topic_supported"
     elif focus and len(matched_focus) == len(focus) and strong_evidence:
         status, reason = "supported", "question_focus_supported"
@@ -1860,7 +1891,7 @@ def _merge_and_rerank(
         bm25_rank = source_ranks.get((key, "bm25"))
         if bm25_rank is not None:
             score += 0.04 * max(0.0, 1.0 - (bm25_rank - 1) / 20.0)
-        table_direct_hit = _is_exact_table_title_hit(query, item)
+        table_direct_hit = _is_exact_table_title_hit(query, item) or _is_table_section_contents_hit(query, item)
         if table_direct_hit:
             item["is_table_direct_hit"] = True
             item["is_direct_hit"] = True

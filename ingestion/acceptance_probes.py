@@ -1,6 +1,6 @@
 """Deterministic structural acceptance probes derived from Canonical Document IR.
 
-Generated probes are release checks for ingestion/retrieval preservation. They
+Generated probes are diagnostics for ingestion/retrieval preservation. They
 are not human goldens and must not be used to claim OCR or textbook truth.
 """
 from __future__ import annotations
@@ -75,7 +75,7 @@ def generate_acceptance_probes(
                 "schema_version": PROBE_SCHEMA_VERSION,
                 "id": case_id,
                 "status": "generated_structural",
-                "hard_gate": True,
+                "hard_gate": False,
                 "book_name": book.book_name,
                 "question": question,
                 "intent": _intent(specialty),
@@ -83,7 +83,7 @@ def generate_acceptance_probes(
                 "answerable": True,
                 "target_chapters": list(retrieval_paths.get(block.block_id, block.section_path)[:1]),
                 "specialty": specialty,
-                "tags": ["generated_probe", "structural_gate", specialty],
+                "tags": ["generated_probe", "structural_diagnostic", specialty],
                 "provenance": {
                     "source": "canonical_document_ir",
                     "block_id": block.block_id,
@@ -132,7 +132,7 @@ def generate_acceptance_probes(
             "schema_version": PROBE_SCHEMA_VERSION,
             "id": _probe_id(book.book_name, block.block_id, "table", question, usable_points),
             "status": "generated_structural",
-            "hard_gate": True,
+            "hard_gate": False,
             "book_name": book.book_name,
             "question": question,
             "intent": "factual_recall",
@@ -140,7 +140,7 @@ def generate_acceptance_probes(
             "answerable": True,
             "target_chapters": list(retrieval_paths.get(block.block_id, block.section_path)[:1]),
             "specialty": "table",
-            "tags": ["generated_probe", "structural_gate", "table", grounding],
+            "tags": ["generated_probe", "structural_diagnostic", "table", grounding],
             "provenance": {
                 "source": "canonical_document_ir",
                 "block_id": block.block_id,
@@ -204,7 +204,7 @@ def generate_acceptance_probes(
             "schema_version": PROBE_SCHEMA_VERSION,
             "id": _probe_id(book.book_name, "|".join(block_ids), "list", question, points[:6]),
             "status": "generated_structural",
-            "hard_gate": True,
+            "hard_gate": False,
             "book_name": book.book_name,
             "question": question,
             "intent": "factual_recall",
@@ -212,7 +212,7 @@ def generate_acceptance_probes(
             "answerable": True,
             "target_chapters": list(section_path[:1]),
             "specialty": "list",
-            "tags": ["generated_probe", "structural_gate", "list"],
+            "tags": ["generated_probe", "structural_diagnostic", "list"],
             "provenance": {
                 "source": "canonical_document_ir",
                 "block_id": first.block_id,

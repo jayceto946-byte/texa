@@ -16,6 +16,7 @@ export type BookReadiness = {
   technical?: { status?: 'ready' | 'degraded' | 'missing'; vector_ready?: boolean; lexical_ready?: boolean; chunk_count?: number; index_version?: string };
   canonical?: { status?: 'ready' | 'needs_review' | 'invalid' | 'unavailable'; warning_count?: number; error_count?: number; block_count?: number };
   semantic?: { status?: 'verified' | 'unverified'; release_status?: string; case_count?: number; human_case_count?: number; generated_probe_cases?: number };
+  retrieval?: { status?: string; case_count?: number; failed_case_count?: number; warnings?: string[]; failed_cases?: { id: string; question: string; missing_points?: string[]; provenance?: { page_start?: number | null; page_end?: number | null } }[] };
 };
 export type LibraryBook = { name: string; book_id?: string; storage_name?: string; display_name?: string; lifecycle_status?: 'active' | 'archived'; subject?: string; path?: string; has_pdf?: boolean; chapter_count?: number; book_role?: 'standalone' | 'core' | 'reference'; rag_priority?: number; resource_group?: string; readiness?: BookReadiness };
 
@@ -176,10 +177,14 @@ function ReadinessSummary({ book }: { book: LibraryBook }) {
   const canonical = book.readiness?.canonical;
   const technicalReady = technical?.status === 'ready';
   const canonicalReady = canonical?.status === 'ready';
+  const retrieval = book.readiness?.retrieval;
+  const retrievalNeedsAttention = retrieval?.status === 'warning';
   const contentNeedsAttention = canonical?.status === 'needs_review' || canonical?.status === 'invalid';
-  const ready = technicalReady && !contentNeedsAttention;
+  const ready = technicalReady && !contentNeedsAttention && !retrievalNeedsAttention;
   const statusLabel = ready
     ? '可用于学习'
+    : technicalReady && retrievalNeedsAttention && canonical?.status !== 'invalid'
+      ? '可用于学习，部分内容检索待核对'
     : technical?.status === 'degraded'
       ? '可使用，部分内容可能找不到'
       : contentNeedsAttention
@@ -189,10 +194,18 @@ function ReadinessSummary({ book }: { book: LibraryBook }) {
     <span className={ready ? 'is-ready' : 'is-warning'}>{ready ? <CheckCircle2 /> : <AlertTriangle />}<b>{statusLabel}</b></span>
     <details className="type-caption text-text-secondary">
       <summary className="cursor-pointer hover:text-text-primary">详细信息</summary>
-      <div className="mt-1 leading-5">
+      <div className="mt-1 break-words leading-5">
         <div>检索：{technicalReady ? `可用 · ${technical?.chunk_count || 0} 个内容片段` : technical?.status === 'degraded' ? '部分可用' : '未就绪'}</div>
         <div>内容结构：{canonicalReady ? '完整' : canonical?.status === 'needs_review' ? `${canonical.warning_count || 0} 项待检查` : canonical?.status === 'invalid' ? '不可用' : '尚无记录'}</div>
         <div>人工抽查：{book.readiness?.semantic?.status === 'verified' ? `已完成 ${book.readiness.semantic.human_case_count || 0} 例` : '尚未完成'}</div>
+        {retrieval?.warnings?.map((warning) => <p key={warning}>{warning}</p>)}
+        {retrieval?.failed_cases?.map((item) => <div key={item.id}>
+          <p>{item.provenance?.page_start != null ? `第 ${item.provenance.page_start} 页 · ` : ''}{item.question}</p>
+          {!!item.missing_points?.length && <details>
+            <summary className="cursor-pointer">未召回片段（{item.missing_points.length} 项）</summary>
+            <p>{item.missing_points.join('、')}</p>
+          </details>}
+        </div>)}
       </div>
     </details>
   </div>;

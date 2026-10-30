@@ -246,7 +246,7 @@ def test_captioned_table_probe_uses_real_caption_and_source_points():
 
     assert case["question"].startswith("表1-1 参数表")
     assert case["provenance"]["target_grounding"] == "caption"
-    assert case["hard_gate"] is True
+    assert case["hard_gate"] is False
     assert all(point in table.text for point in case["required_points"])
 
 

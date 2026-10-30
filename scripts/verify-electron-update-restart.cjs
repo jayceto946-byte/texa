@@ -31,7 +31,8 @@ async function runChild() {
   const closePreparation = createClosePreparation({ timeoutMs: 1500 });
   const context = {
     mainWindow: window, closePreparation, allowQuit: false, allowWindowClose: false,
-    shuttingDown: false, updateState: { status: 'downloaded' }, updateInstallPromise: null,
+    shuttingDown: false, updateState: { status: 'downloaded', updateInfo: { version: '1.0.1' } }, updateInstallPromise: null,
+    buildIdentity: null, refreshDownloadedUpdate: require('../desktop/update-preflight.cjs').refreshDownloadedUpdate,
     sourceUpdater: null, ipcMain, app, fs, process: { platform: 'win32' }, backendProcess: null,
     appendBackendLog: message => record.messages.push(message),
     requireLocalRenderer: event => { if (event.sender !== window.webContents) throw Error('Access denied'); },
@@ -75,6 +76,7 @@ async function runChild() {
     return true;
   };
   context.autoUpdater = updater;
+  updater.checkForUpdates = async () => ({ updateInfo: { version: '1.0.1' } });
   await window.loadURL('data:text/html,<title>Update witness</title><p>Fixture only</p>');
   await window.webContents.executeJavaScript(`
     window.kaoyanDesktop.onPrepareClose(async () => ${scenario !== 'veto'});

@@ -256,7 +256,7 @@ def test_retained_version_can_be_reactivated_without_deleting_current(monkeypatc
     monkeypatch.setattr(
         index_pipeline,
         "_validate_staged_production_retrieval",
-        lambda *_args, **_kwargs: {"cases": 0, "status": "not_configured"},
+        lambda *_args, **_kwargs: {"cases": 1, "status": "warning", "warnings": ["表格检索待核对"]},
     )
     store = FakeStore(vector_root)
     first = index_pipeline.build_and_activate_book_index(
@@ -276,10 +276,10 @@ def test_retained_version_can_be_reactivated_without_deleting_current(monkeypatc
     assert json.loads(lexical_index.index_path("demo").read_text(encoding="utf-8"))[0]["chunk_id"] == "c1"
     assert all(store._map[name]["active"] for name in rolled_back["versions"][0]["collections"])
     assert all(name in store._client.collections for name in second["versions"][0]["collections"])
+    assert rolled_back["release_quality"] == first["release_quality"]
 
 
-def test_specialty_gate_failure_blocks_activation_and_preserves_old_version(monkeypatch, tmp_path):
-    import pytest
+def test_incomplete_retrieval_warns_and_activates_while_retaining_old_version(monkeypatch, tmp_path):
     from graph import retrieval_node
     from ingestion import index_pipeline, lexical_index
 
@@ -293,6 +293,7 @@ def test_specialty_gate_failure_blocks_activation_and_preserves_old_version(monk
             "question": f"{specialty} probe", "intent": "formula" if specialty == "formula" else "factual_recall",
             "required_points": [f"{specialty}-anchor"], "answerable": True,
             "specialty": specialty, "tags": ["generated_probe", specialty],
+            "provenance": {"page_start": 17},
         }
         for specialty in ("formula", "list", "example", "table")
     ]
@@ -315,18 +316,40 @@ def test_specialty_gate_failure_blocks_activation_and_preserves_old_version(monk
         }
 
     monkeypatch.setattr(retrieval_node, "retrieve_node", fake_retrieve)
-    with pytest.raises(RuntimeError, match="specialty_gates=.*table"):
-        index_pipeline.build_and_activate_book_index(
-            store,
-            "demo",
-            [("chapter-one", _chunks())],
-            _chunks(),
-            acceptance_probes=probes,
-            specialty_inventory={name: 1 for name in ("formula", "list", "example", "table")},
-        )
+    manifest = index_pipeline.build_and_activate_book_index(
+        store,
+        "demo",
+        [("chapter-one", _chunks())],
+        _chunks(),
+        acceptance_probes=probes,
+        specialty_inventory={name: 1 for name in ("formula", "list", "example", "table")},
+    )
 
-    assert store._map == {"old": {"chapter": "old", "book_name": "demo", "kind": "chapter"}}
-    assert set(store._client.collections) == {"old"}
+    quality = manifest["release_quality"]
+    assert manifest["status"] == "ready"
+    assert manifest["release_gate_mode"] == "source_integrity_and_index_health"
+    assert quality["status"] == "warning"
+    assert quality["blocking"] is False
+    assert quality["recall_at_k"] == 0.75
+    assert quality["specialty_gates"]["table"]["passed"] is False
+    assert quality["failed_cases"][0]["missing_points"] == ["table-anchor"]
+    assert quality["failed_cases"][0]["provenance"]["page_start"] == 17
+    assert quality["warnings"]
+    assert store._map["old"]["active"] is False
+    assert "old" in store._client.collections
+    assert manifest["versions"][0]["release_quality"] == quality
+    assert index_pipeline.load_index_manifest("demo")["release_quality"] == quality
+
+
+def test_unprobeable_source_tables_warn_without_claiming_a_successful_check():
+    from ingestion.index_pipeline import _summarize_retrieval_diagnostics
+
+    summary = _summarize_retrieval_diagnostics([], [], {"table": 2})
+    assert summary["status"] == "warning"
+    assert summary["cases"] == 0
+    assert summary["failed_cases"] == []
+    assert summary["warnings"]
+    assert summary["specialty_gates"]["table"]["coverage_passed"] is False
 
 
 def test_candidate_activation_rejects_legacy_map_before_staging_mutation(monkeypatch, tmp_path):

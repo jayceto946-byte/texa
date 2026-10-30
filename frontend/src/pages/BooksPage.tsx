@@ -8,6 +8,7 @@ import ScopeSelector from '../components/ScopeSelector';
 import { SegmentedControl } from '../components/ui/SelectionControls';
 import { WorkspaceActionBar } from '../components/ui/WorkspaceActionBar';
 import { ActionableIssue, StatusBanner, TaskStatus } from '../components/ui/AsyncState';
+import type { BookReadiness } from '../components/settings/LibraryWorkbench';
 
 type ImportJob = {
   id: string;
@@ -27,6 +28,7 @@ type ImportJob = {
     concept_job_id?: string;
     concept_extraction_warning?: string;
     ingestion_report?: { source_metadata?: { structure_quality?: { exercise_sections_without_units?: string[] } } };
+    readiness?: BookReadiness;
   } | null;
 };
 
@@ -366,6 +368,7 @@ const BooksPage: React.FC = () => {
             state={isFailed ? 'error' : isDone ? 'success' : 'loading'}
           />
           {isDone && unparsedExerciseSections > 0 && <p role="status" className="type-caption text-text-secondary">结构检查发现 {unparsedExerciseSections} 个习题范围尚未识别出题目。教材正文已保留用于检索，这些范围暂不能保证可抽题。</p>}
+          {isDone && job.result?.readiness?.retrieval?.warnings?.map((warning) => <StatusBanner key={warning} kind="info" title="教材已导入，部分内容需核对" description={warning} />)}
           <details className="border-b border-border px-4 py-3 type-caption text-text-secondary"><summary className="cursor-pointer">详细信息</summary><p className="mt-2">{stageLabels[job.stage] || job.stage} · {job.message}</p></details>
           {isDone && <ConceptExtractionStatus bookName={job.result?.name || job.book_name} jobId={job.result?.concept_job_id} />}
           {isDone && job.result?.concept_extraction_warning && <p role="status">概念抽取未能启动：{job.result.concept_extraction_warning}</p>}

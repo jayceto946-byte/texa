@@ -32,7 +32,7 @@ export function ExerciseReader({ record, bookQuery, title, actions, attempt, foo
       <details>
         <summary>查看来源</summary>
         <p>{record.source || '来源未记录'}</p>
-        <p>{record.origin_type !== 'manual' ? `${record.origin_type} / ${record.origin_id}` : ''}</p>
+
       </details>{onStatus && <details>
         <summary>题目管理</summary>
         <p>当前题干只读，可编辑参考答案。</p>
