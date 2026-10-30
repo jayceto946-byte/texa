@@ -1,0 +1,80 @@
+7-Zip (a) 24.09 (x86) : Copyright (c) 1999-2024 Igor Pavlov : 2024-11-29
+
+Scanning the drive for archives:
+1 file, 260703061 bytes (249 MiB)
+
+Listing archive: release\Texa-Setup-1.0.1-commit.271.106a8b9e.exe
+
+--
+Path = release\Texa-Setup-1.0.1-commit.271.106a8b9e.exe
+Type = 7z
+WARNINGS:
+There are data after the end of archive
+Offset = 207548
+Physical Size = 260072255
+Tail Size = 423258
+Headers Size = 22719
+Method = LZMA2:20 LZMA:20 BCJ2
+Solid = -
+Blocks = 1416
+
+----------
+Path = locales
+Size = 0
+Packed Size = 0
+Modified = 
+Attributes = D
+CRC = 
+Encrypted = -
+Method = 
+Block = 
+
+Path = resources
+Size = 0
+Packed Size = 0
+Modified = 
+Attributes = D
+CRC = 
+Encrypted = -
+Method = 
+Block = 
+
+Path = resources\backend
+Size = 0
+Packed Size = 0
+Modified = 
+Attributes = D
+CRC = 
+Encrypted = -
+Method = 
+Block = 
+
+Path = resources\backend\backend_server
+Size = 0
+Packed Size = 0
+Modified = 
+Attributes = D
+CRC = 
+Encrypted = -
+Method = 
+Block = 
+
+Path = resources\app.asar
+Size = 2387140
+Packed Size = 465022
+Modified = 
+Attributes = A
+CRC = 23C52452
+Encrypted = -
+Method = LZMA2:20
+Block = 61
+
+Path = Texa.exe
+Size = 204526592
+Packed Size = 59580085
+Modified = 
+Attributes = A
+CRC = 547D13A3
+Encrypted = -
+Method = BCJ2 LZMA2:20 LZMA:20:lc0:lp2 LZMA:20:lc0:lp2
+Block = 1413

@@ -1,0 +1,37 @@
+
+7-Zip (z) 24.09 (arm64) : Copyright (c) 1999-2024 Igor Pavlov : 2024-11-28
+ 64-bit arm_v:8.5-A locale=C.UTF-8 Threads:6 OPEN_MAX:1048575, ASM
+
+Scanning the drive for archives:
+1 file, 648415 bytes (634 KiB)
+
+Listing archive: fixture/Texa-Setup-1.0.1.exe
+
+--
+Path = fixture/Texa-Setup-1.0.1.exe
+Type = Nsis
+Physical Size = 648415
+Method = Deflate
+Solid = -
+Headers Size = 225936
+Embedded Stub Size = 87552
+SubType = NSIS-3 Unicode BadCmd=13
+
+----------
+Path = $PLUGINSDIR/app-64.7z
+Size = 15791
+Packed Size = 15791
+Modified = 2026-10-30 20:25:26.0000000
+Attributes = 
+Method = Copy
+Solid = -
+Offset = 70436
+
+Path = $PLUGINSDIR/texa-app.7z
+Size = 15791
+Packed Size = 15791
+Modified = 2026-10-30 20:25:26.0000000
+Attributes = 
+Method = Copy
+Solid = -
+Offset = 70436

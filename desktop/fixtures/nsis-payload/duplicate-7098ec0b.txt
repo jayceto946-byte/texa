@@ -1,0 +1,37 @@
+
+7-Zip (z) 24.09 (arm64) : Copyright (c) 1999-2024 Igor Pavlov : 2024-11-28
+ 64-bit arm_v:8.5-A locale=C.UTF-8 Threads:6 OPEN_MAX:1048575, ASM
+
+Scanning the drive for archives:
+1 file, 520725286 bytes (497 MiB)
+
+Listing archive: /private/tmp/texa-update-7098ec0b.exe
+
+--
+Path = /private/tmp/texa-update-7098ec0b.exe
+Type = Nsis
+Physical Size = 520725286
+Method = Deflate
+Solid = -
+Headers Size = 221362
+Embedded Stub Size = 87040
+SubType = NSIS-3 Unicode
+
+----------
+Path = $PLUGINSDIR/texa-app.7z
+Size = 
+Packed Size = 260026968
+Modified = 2026-10-30 15:07:56.0000000
+Attributes = 
+Method = Deflate
+Solid = -
+Offset = 69191
+
+Path = $PLUGINSDIR/app-64.7z
+Size = 260068415
+Packed Size = 260068415
+Modified = 2026-10-30 15:07:56.0000000
+Attributes = 
+Method = Copy
+Solid = -
+Offset = 260519442
