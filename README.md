@@ -79,7 +79,16 @@ Texa 面向考研数学与专业课学习，将教材、对话、笔记、习题
 
 ### 桌面版
 
-前往 [Releases](https://github.com/jayceto946-byte/texa/releases)，按版本说明选择适合系统的安装包。Windows 与 macOS 的构建、签名及更新方式见 [桌面更新说明](docs/desktop-auto-update.md) 和 [macOS 构建说明](docs/macos_arm64_build.md)。
+本次安装版：[发布说明](https://github.com/jayceto946-byte/texa/releases/tag/v1.0.1-commit.274.9ae0dc35)。安装包已包含本地后端与所需运行环境，普通使用无需安装 Python 或 Node.js。
+
+| 平台 | 下载 | 安装方式 |
+| --- | --- | --- |
+| Windows 10/11 · x64 | [下载安装器（EXE）](https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.274.9ae0dc35/Texa-Setup-1.0.1-commit.274.9ae0dc35.exe) | 运行安装器，默认安装到当前用户目录 |
+| macOS · Apple Silicon（M1 及更新芯片） | [下载安装镜像（DMG）](https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.274.9ae0dc35/Texa-1.0.1-commit.274.9ae0dc35-mac-arm64.dmg) | 打开 DMG，将 Texa 拖入 Applications |
+
+macOS 也可[下载 ZIP](https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.274.9ae0dc35/Texa-1.0.1-commit.274.9ae0dc35-mac-arm64.zip)。当前不提供 Intel Mac 安装包。安装包未签名，macOS 尚未公证，首次打开可能需要按系统提示确认。历史版本见 [Releases](https://github.com/jayceto946-byte/texa/releases)。
+
+桌面更新与源码构建见 [桌面更新说明](docs/desktop-auto-update.md) 和 [macOS 构建说明](docs/macos_arm64_build.md)。
 
 首次启动后配置回答模型；需要图片理解时，再配置视觉角色或多模态模型。教材可稍后导入。扫描件解析使用 MinerU，已有解析包可直接复用。
 
