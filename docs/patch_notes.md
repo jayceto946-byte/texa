@@ -1,3 +1,10 @@
+## 2026-10-31 — Windows / macOS 安装版已发布
+
+- 程序提交 9ae0dc3556fa980a0916ea50fb209a8ab9d1832d 已推送至 Texa_MacOS。Actions 41157762239 的 baseline、Windows build、macOS build 与 publish 均一次成功，无失败步骤；发布 v1.0.1-commit.274.9ae0dc35，包含同一源码的 Windows x64 EXE、macOS Apple Silicon DMG/ZIP 和两端更新清单。
+- Windows 前端/后端构建、冻结后端冒烟、安装包体积检查、真实更新器下载与 NSIS 升级通过；Mac 原生构建、包内后端/ONNX/Chroma 冒烟、架构、清单和 DMG 挂载检查通过。EXE 为 260705485 字节，DMG 为 316519928 字节，Mac ZIP 为 317381615 字节。此为自动化构建/安装链路证据，不等于 Windows 人工 UI 或 macOS 签名/公证验收。
+- 实际待提交干净源码复验：前端 251 项、桌面 76 项通过（缺少副本 Python 环境的语法场景 1 项跳过）、章节及打包相关 Python 44 项通过；前端完整 lint/构建和桌面语法通过。桌面端口测试最初受沙箱 EPERM 阻止，允许隔离回环监听后通过。
+- README 安装入口改为本次已发布资产的直接下载链接，并同步到默认 master README；master 仅修改下载文档，不合并集成分支代码。默认分支此文档提交不重复运行旧源码 CI；安装包构建和发布门槛已在上述程序提交完成。公开下载访问回执和发布记录保留在本地 docs/archive/dual-platform-release-2026-10-31/。
+
 ## 2026-10-31 — 准备 Windows 与 macOS 同版本安装版发布
 
 - 提交构建增加原生 macOS 15 arm64 job，复用锁定 Python 3.10 依赖、现有 Mac 冻结脚本和 Electron DMG/ZIP 配置；检查应用架构、包内后端/ONNX/Chroma/前端冒烟、DMG 内容与可挂载性。Windows 原有升级/回滚及安装包体积检查保留；两端均完成后才发布同一提交的 Release。
