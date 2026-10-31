@@ -1,3 +1,8 @@
+## 2026-10-31 — 恢复 push 自动构建与发布双平台修复版
+
+- 按用户明确选择，Texa_MacOS 源码 push 自动触发 Windows 与 macOS 构建，保留既有依赖锁定、应用合同、冻结后端、Windows NSIS 升级/恢复、Mac 架构/DMG 及清单验证；两端 build 都成功后才自动公开 Release。纯 Markdown 和 docs/ 文档更新不触发打包，其他分支 push 不触发该发布链路。
+- 保留手动 workflow_dispatch：publish 默认关闭时只构建验证，勾选后发布；push 无需单独勾选。README 同步说明自动发布及应用内检查更新入口，不修改更新通道、源码分支或用户数据。
+
 ## 2026-10-31 — f171a2f Windows / macOS 安装版发布
 
 - 从 Texa_MacOS 的指定提交 f171a2fcadbcf83e47a149e2b931b0904c602059 手动触发 Actions 41202715354（第45次）；baseline、Windows build、macOS build 和 publish 均一次成功，无失败步骤。发布 v1.0.1-commit.278.f171a2fc，包含导入前目录确认、手工拆章、导入页面调整和独立 Selector。

@@ -260,7 +260,7 @@ cd desktop
 npm run dist
 ```
 
-安装包工作流现在按需手动运行：在 Actions 的 Texa commit updates 中执行；需要发布时勾选 `publish`。普通提交与推送不再自动构建两端安装包。
+向 `Texa_MacOS` 推送源码更新后，Texa commit updates 会自动构建 Windows 与 macOS 安装包；两端构建、包内后端和安装/更新验证全部通过后，自动发布到 Releases，用户可下载或在应用内检查更新。纯 Markdown / `docs/` 文档提交不触发打包。也可在 Actions 手动运行该工作流，勾选 `publish` 时发布，未勾选时仅构建验证。
 
 ## 数据与配置
 
