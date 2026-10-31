@@ -1,3 +1,10 @@
+## 2026-10-31 — f171a2f Windows / macOS 安装版发布
+
+- 从 Texa_MacOS 的指定提交 f171a2fcadbcf83e47a149e2b931b0904c602059 手动触发 Actions 41202715354（第45次）；baseline、Windows build、macOS build 和 publish 均一次成功，无失败步骤。发布 v1.0.1-commit.278.f171a2fc，包含导入前目录确认、手工拆章、导入页面调整和独立 Selector。
+- Windows 应用合同、前端与桌面检查、Electron 退出重启、NSIS 替换恢复、后端/前端构建、冻结后端冒烟、安装包体积、真实更新器下载及 NSIS 升级通过。macOS 原生后端/前端构建、包内后端/ONNX/Chroma 冒烟、更新清单、架构与 DMG 挂载验证通过。EXE 260723535 字节，DMG 316526461 字节，Mac ZIP 317398601 字节；保留现有未签名、未公证方式。
+- 构建前在该提交干净源码快照执行发布工作流对应 Python 3.10 回归，212 项通过；没有通过本地搁置差异参与打包。上述 Windows 证据来自实际 CI 安装链路，不代表 Windows 人工 UI 验收。公开资产和任务回执仅保存在本地 docs/archive/f171a2f-release-2026-10-31/。
+- README 安装链接更新为278版；正式安装器来源仍为 Texa_MacOS，本次后续文档提交不重新触发双平台构建。正式 CommitProvider 通过真实公开 GitHub 源在 Windows/macOS 两种平台配置下均发现278版；本机 REST 限流时实际走通公开 Atom 备用源及对应更新清单，未重复下载安装包。
+
 ## 2026-10-31 — 导入前目录确认、手工拆章与统一 Selector
 
 - 教材解析完成后进入持久化目录草稿并自动弹出校正窗口；用户确认后才构建候选索引、发布教材与启动可选概念提取。支持关闭后继续、失败后重试、取消与重复确认；已导入教材继续沿用既有目录校正和索引原子发布。PDF 本地提取、MinerU API/CLI 和结果包共用此流程，`/import-local` 同步入口改为返回导入任务。任务新增 waiting_for_review 状态和目录预览/原文页/确认接口，不迁移数据库结构。
