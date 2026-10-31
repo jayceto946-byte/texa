@@ -161,7 +161,19 @@
 .exercise-commit>span{min-width:0;line-height:1.8}
 .exercise-import-receipts{margin:20px 0;max-width:100%;overflow-wrap:anywhere;font-size:13px}
 
-.exercise-import-retention { margin:8px 0 16px; font-size:var(--workspace-interface-size); line-height:1.6; color:var(--color-text-secondary); }
+.exercise-import-retention { margin:0 0 20px; padding:10px 14px; border-left:2px solid var(--color-accent); background:var(--accent-soft); font-size:12px; line-height:1.7; color:var(--color-text-secondary); overflow-wrap:anywhere; }
+
+@media (max-height:680px) and (min-width:481px) {
+  .exercise-import-setup { padding-block:20px; }
+  .exercise-import-setup h1 { margin-bottom:18px; }
+  .exercise-source-tabs { margin-block:18px; }
+  .exercise-import-fields { gap:16px; }
+  .exercise-review-heading { padding:12px 24px; }
+  .exercise-review-heading h1 { margin-block:6px; font-size:20px; }
+  .exercise-review-heading p { margin:2px 0; }
+  .exercise-commit { min-height:56px; padding:10px 16px; }
+  .exercise-candidate-inner { padding-block:16px; }
+}
 
 .exercise-source-image{margin:16px 0;max-width:100%}
 .exercise-source-image img{display:block;max-width:100%;height:auto}

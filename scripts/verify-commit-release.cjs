@@ -4,11 +4,12 @@ const crypto = require('node:crypto');
 const { validCommitUpdate } = require('../desktop/commit-channel.cjs');
 
 function verifyRelease(directory, commit, version, platform = 'both') {
-  if (!['both', 'windows'].includes(platform)) throw new Error('Unsupported release platform');
+  if (!['both', 'windows', 'mac'].includes(platform)) throw new Error('Unsupported release platform');
   const yaml = require('../desktop/node_modules/js-yaml');
   const verified = [];
   for (const [manifestName, required] of [['commit.yml', ['.exe']], ['commit-mac.yml', ['.zip', '.dmg']]]) {
     if (platform === 'windows' && manifestName === 'commit-mac.yml') continue;
+    if (platform === 'mac' && manifestName === 'commit.yml') continue;
     const info = yaml.load(fs.readFileSync(path.join(directory, manifestName), 'utf8'));
     if (!validCommitUpdate(info, 'Texa_MacOS') || info.sourceCommit !== commit || info.version !== version || info.channel !== 'commit') {
       throw new Error(`${manifestName}: release identity mismatch`);

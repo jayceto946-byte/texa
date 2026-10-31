@@ -162,9 +162,20 @@ texa/
 
 ## 安装与运行
 
-### 环境要求
+### 下载安装版
 
-- Windows 10/11（桌面端优先）
+普通使用无需安装 Python 或 Node.js。从 [GitHub Releases](https://github.com/jayceto946-byte/texa/releases) 下载同一版本的桌面安装包：
+
+| 平台 | 文件 | 安装方式 |
+| --- | --- | --- |
+| Windows 10/11 · x64 | `Texa-Setup-版本.exe` | 运行安装器，默认安装到当前用户目录 |
+| macOS · Apple Silicon（M1 及更新芯片） | `Texa-版本-mac-arm64.dmg` | 打开 DMG，将 Texa 拖入 Applications |
+
+macOS 的 ZIP 用于应用更新和免 DMG 解压；当前不提供 Intel Mac 安装包。安装包尚未签名，macOS 尚未公证，首次打开可能需要按系统提示确认。模型连接在首次启动时配置，教材可以稍后导入。
+
+### 源码运行环境
+
+- Windows 10/11 或 macOS（Apple Silicon 桌面安装版）
 - Python 3.10
 - Node.js 20 或更高版本
 - 可选：OpenAI-compatible 模型服务、MinerU 或视觉模型

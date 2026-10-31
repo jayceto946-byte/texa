@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { BookMarked, CheckCircle2, Circle, ExternalLink, FolderOpen, Loader2, RefreshCw, Square } from 'lucide-react';
 import { del, get, post } from '../api/client';
 import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
+import './HighlightRepositoryDialog.css';
 
 type BookOption = { name: string };
 type HighlightScopeStatus = {
@@ -387,7 +388,7 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
 
   const dialog = open ? (
     <div className="app-overlay-enter fixed inset-0 z-[1200] flex items-center justify-center bg-black/25 p-2 sm:p-4 lg:p-6">
-      <div role="dialog" aria-modal="true" aria-label="章节重点仓库" className="app-large-dialog-enter flex h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-none flex-col overflow-hidden rounded-lg border border-border bg-bg-card shadow-xl sm:h-[min(88dvh,780px)] lg:max-w-6xl">
+      <div role="dialog" aria-modal="true" aria-label="章节重点仓库" className="highlight-repository-dialog app-large-dialog-enter flex flex-col overflow-hidden rounded-lg border border-border bg-bg-card shadow-xl">
         <div className="flex min-h-12 items-center justify-between border-b border-border px-3 py-2 sm:px-4 sm:py-3">
           <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-text-primary"><BookMarked className="h-4 w-4 flex-shrink-0 text-accent" /><span className="truncate">章节重点仓库</span></div>
           <button type="button" onClick={onClose} className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary" title="关闭">
@@ -395,8 +396,8 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
           </button>
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-rows-[minmax(170px,34dvh)_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)] lg:grid-rows-none">
-          <aside className="flex min-h-0 flex-col border-b border-border bg-[var(--surface-subtle)] p-3 sm:p-4 lg:border-b-0 lg:border-r">
+        <div className="highlight-repository-layout min-h-0 flex-1">
+          <aside className="highlight-repository-navigation flex min-h-0 flex-col border-b border-border bg-[var(--surface-subtle)] p-3 sm:p-4 lg:border-b-0 lg:border-r">
             <label className="text-xs font-medium text-text-secondary">
               教材
               <select value={highlightBookName} onChange={(e) => setHighlightBookName(e.target.value)} className="mt-1 h-10 w-full rounded-lg border border-border bg-bg-card px-3 text-sm text-text-primary outline-none focus:border-accent">
@@ -404,12 +405,18 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
                 {books.map((book) => <option key={book.name} value={book.name}>{book.name}</option>)}
               </select>
             </label>
+            <label className="highlight-compact-chapter text-xs font-medium text-text-secondary">章节
+              <select aria-label="选择重点章节" value={selectedChapterId} onChange={event => setSelectedChapterId(event.target.value)} className="mt-1 h-10 w-full rounded-lg border border-border bg-bg-card px-3 text-sm text-text-primary">
+                {!chapters.length && <option value="">暂无可用章节</option>}
+                {chapters.map(chapter => <option key={chapter.id} value={chapter.id}>{chapter.title}</option>)}
+              </select>
+            </label>
 
-            <div className="mt-3 flex items-center justify-between text-xs font-medium text-text-secondary sm:mt-4">
+            <div className="highlight-chapter-count mt-3 flex items-center justify-between text-xs font-medium text-text-secondary sm:mt-4">
               <span>一级章节</span>
               <span>{chapters.filter(isGenerated).length}/{chapters.length}</span>
             </div>
-            <div className="mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
+            <div className="highlight-chapter-list mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
               {chapters.length ? chapters.map((chapter) => {
                 const chapterRunning = sameScope(activeJobTarget, targetBookName, chapter.id, 'all') && runningJobStatuses.has(progress?.status || '');
                 const chapterItem = mergeRunningStatus(chapter, chapterRunning);
@@ -445,7 +452,7 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
                   </span>
                 </div>
 
-                <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 sm:mt-4">
+                <div className="highlight-scope-list mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 sm:mt-4">
                   <ScopeRow
                     title="整章重点"
                     subtitle="按目录小节组织生成，适合整章复习"
@@ -476,8 +483,8 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
 
                 <div className="mt-3 rounded-lg border border-border bg-[var(--surface-subtle)] px-3 py-2 text-xs leading-5 text-text-secondary">
                   <div>当前范围：{selectedScopeTitle}</div>
-                  <div>保存方式：生成后写入本机 `data/progress/教材/chapter_highlights/...`，下次可直接打开。</div>
-                  {selectedLocalPath && <div className="break-all">本地文件：{selectedLocalPath}</div>}
+                  <div>重点自动保存在本机，下次可直接打开。</div>
+                  {selectedLocalPath && <details><summary>保存位置</summary><div className="break-all">{selectedLocalPath}</div></details>}
                 </div>
               </>
             ) : (

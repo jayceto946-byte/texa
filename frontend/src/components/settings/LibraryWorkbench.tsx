@@ -47,11 +47,7 @@ export default function LibraryWorkbench(props: Props) {
   const { pathname } = useLocation();
   const [navigationHost, setNavigationHost] = useState<HTMLElement | null>(null);
   useEffect(() => {
-    const media = window.matchMedia('(min-width: 920px)');
-    const update = () => setNavigationHost(pathname === '/books' && media.matches ? document.getElementById('workspace-context-navigation') : null);
-    update();
-    media.addEventListener('change', update);
-    return () => media.removeEventListener('change', update);
+    setNavigationHost(pathname === '/books' ? document.getElementById('workspace-context-navigation') : null);
   }, [pathname]);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [listMode, setListMode] = useState<'active' | 'archived'>('active');
@@ -149,7 +145,9 @@ export default function LibraryWorkbench(props: Props) {
         <main className="library-content">
           <header className="library-category-header">
             <div className="library-category-identity">
-              <div><h3>{categoryName}</h3><p>{currentBooks.length} 本教材</p></div>
+              <div><h3>{categoryName}</h3><label className="library-compact-category"><span>教材分类</span><select aria-label="教材分类" value={`${selectedSubjectIndex}:${selectedChildIndex ?? 'all'}`} onChange={event => { const [parent, child] = event.target.value.split(':'); select(Number(parent), child === 'all' ? null : Number(child)); }}>
+                {subjects.map((item, index) => <optgroup key={item.name} label={item.name}><option value={`${index}:all`}>{item.name} · 全部</option>{item.children.map((name, childIndex) => <option key={name} value={`${index}:${childIndex}`}>{item.name} / {name}</option>)}</optgroup>)}<option value="-1:all">未分类教材</option>
+              </select></label><p>{currentBooks.length} 本教材</p></div>
             </div>
           </header>
           <div className="library-header-tools library-context-toolbar workspace-collection-toolbar">
@@ -217,7 +215,7 @@ function BookRow({ book, active, subjects, reindexing, onMove, onSetRole, onSetR
   const [outlineOpen, setOutlineOpen] = useState(false);
   return <article className={`library-book-row workspace-register-row${active ? ' is-current' : ''}`}>
     <div className="library-book-identity"><TexaTextbook className="study-book-icon" aria-hidden="true" /><div><h4>{book.display_name || book.name}</h4>{active && <span className="library-current-status">学习中</span>}</div><p>{book.has_pdf ? 'PDF' : '已解析教材'} · {book.chapter_count || 0} 章</p><button type="button" className="app-ghost-button outline-calibration-trigger" aria-expanded={outlineOpen} onClick={() => setOutlineOpen(value => !value)}>目录不符？校准</button></div>
-    <div><ReadinessSummary book={book} /><ConceptExtractionStatus bookName={book.storage_name || book.name} /></div>
+    <div className="library-book-readiness"><ReadinessSummary book={book} /><ConceptExtractionStatus bookName={book.storage_name || book.name} /></div>
     <div className="library-book-scope">
       <div className="library-subject-field"><span>归属</span><ScopeSelector size="compact" popupSize="compact" subject={book.subject || ''} subjectTree={subjects} onSubjectChange={onMove} bookMode="hidden" width="normal" label={`${book.display_name || book.name}教材归属`} placeholder="未分类" className="library-subject-selector" /></div>
       {role === 'standalone' ? <div className="library-resource-group-static"><span>配套</span><strong>单独使用</strong></div> : <label><span>配套</span><input aria-label={`${book.display_name || book.name}配套教材组`} defaultValue={book.resource_group || ''} placeholder={book.subject ? `默认：${book.subject}` : '输入组名'} onBlur={(event) => onSetResourceGroup(event.target.value.trim())} /></label>}

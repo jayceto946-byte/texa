@@ -37,7 +37,7 @@ function componentMessage(key: string, message = '') {
 }
 
 function feedbackKind(message: string): AsyncStateKind {
-  if (/失败|异常|错误|不可用/.test(message)) return 'error';
+  if (/失败|异常|错误|不可用|无法|未能/.test(message)) return 'error';
   if (/正在|检查中|下载中|安装中/.test(message)) return 'loading';
   if (/开发模式|不执行自动更新|无需更新|最新版本/.test(message)) return 'info';
   return 'success';
@@ -396,7 +396,6 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
     if (window.kaoyanDesktop?.checkForUpdates) {
       const res = await window.kaoyanDesktop.checkForUpdates().catch(() => ({ status: 'error', message: '更新检查失败，请稍后重试。' }));
       setDesktopUpdate(res);
-      showFeedback(res?.status === 'error' ? `更新失败：${res.message}` : res?.message || '更新检查完成');
       return;
     }
     showFeedback('当前运行方式不支持桌面自动更新，请在 Electron 桌面端检查。');
@@ -407,7 +406,6 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
     const res = await window.kaoyanDesktop?.downloadUpdate?.().catch(() => ({ status: 'error', message: '准备更新失败，请重新检查。' }));
     if (res) {
       setDesktopUpdate(res);
-      showFeedback(res.status === 'error' ? `更新失败：${res.message}` : res.message || '开始下载更新');
     }
   };
 
@@ -416,7 +414,6 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
     const res = await window.kaoyanDesktop?.installUpdate?.().catch(() => ({ status: 'error', message: '应用更新失败，请重新检查当前状态。' }));
     if (res) {
       setDesktopUpdate(res);
-      showFeedback(res.status === 'error' ? `更新失败：${res.message}` : res.message || '正在安装更新');
     }
   };
   if (standaloneTab === 'subjects') {
@@ -518,7 +515,7 @@ const SettingsPage: React.FC<{ standaloneTab?: 'subjects'; initialTab?: Settings
                 <div><dt>提交</dt><dd className="font-mono">{(desktopUpdate?.currentCommit || version?.commit || '').slice(0, 8) || '未记录'}</dd></div>
                 <div><dt>更新来源</dt><dd>{desktopUpdate?.mode === 'source' ? `${desktopUpdate.branch || 'Texa_MacOS'} · 源码提交` : desktopUpdate?.branch ? `${desktopUpdate.branch} · 已构建修复` : '已发布安装包'}</dd></div>
               </dl>
-              {persistentUpdateMessage && <p className="settings-secondary">{persistentUpdateMessage}</p>}
+              {persistentUpdateMessage && <StatusBanner kind={desktopUpdate?.status === 'error' ? 'error' : feedbackKind(persistentUpdateMessage)} title={persistentUpdateMessage} />}
               <p className="settings-secondary">本软件使用 HarmonyOS Sans 字体。Copyright 2021 Huawei Device Co., Ltd.</p>
               {['available', 'downloading', 'downloaded'].includes(desktopUpdate?.status) && desktopUpdate?.updateInfo?.version && <div className="status-success workspace-radius workspace-interface-text border p-3">可更新到 {desktopUpdate.updateInfo.sourceCommit?.slice(0, 8) || desktopUpdate.updateInfo.version}</div>}
               {desktopUpdate?.mode === 'source' && <p className="settings-secondary">拉取当前分支修复、构建后重启生效。本地未提交改动和依赖变更需先处理。</p>}

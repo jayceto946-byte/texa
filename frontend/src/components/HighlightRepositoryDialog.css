@@ -1,0 +1,11 @@
+.highlight-repository-dialog { width:min(1152px,calc(100vw - 32px)); height:min(780px,calc(100dvh - 32px)); }
+.highlight-repository-layout { display:grid; grid-template-columns:280px minmax(0,1fr); }
+.highlight-compact-chapter { display:none; }
+.highlight-repository-navigation > label { min-width:0; }
+.highlight-repository-dialog > :not(.highlight-repository-layout) { flex-shrink:0; }
+@media (max-width:1023px) {
+  .highlight-repository-layout { grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); }
+  .highlight-repository-navigation { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; padding:12px 16px; }
+  .highlight-compact-chapter { display:block; }
+  .highlight-chapter-count,.highlight-chapter-list { display:none; }
+}

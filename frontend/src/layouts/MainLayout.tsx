@@ -223,7 +223,7 @@ const MainLayout: React.FC = () => {
       className={`app-shell${isStudyDesk ? ' study-desk' : ''}${isLearningWorkspace ? ' learning-route' : ''}`}
     >
       <div className="study-navigation" onDragStart={event => event.preventDefault()}>
-        <AppRail collapsed={!contextOpen} mobile={contextOverlay} onHome={() => {
+        <AppRail collapsed={!contextOpen} onHome={() => {
           newConversation();
           window.dispatchEvent(new Event('texa:reset-chat-workspace'));
           closeInspector();
@@ -246,7 +246,7 @@ const MainLayout: React.FC = () => {
         <div id="workspace-context-navigation" inert={!contextOpen} />
       </div>
 
-      {isLearningWorkspace && contextOpen && contextOverlay && (
+      {contextOpen && contextOverlay && (
         <button type="button" className="context-sidebar-scrim" onClick={() => setContextOpen(false)} aria-label="关闭学习上下文" />
       )}
 

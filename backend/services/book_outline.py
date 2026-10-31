@@ -23,9 +23,10 @@ def preview_outline(name, *, progress_root, base_version=None, examples=None, ma
     for block in candidate.blocks:
         if block.attributes.get('outline_toc') or block.block_type != 'heading':
             continue
-        if len(block.text) > 140 or '\n' in block.text:
+        title = block.attributes.get('outline_title', block.text)
+        if len(title) > 140 or '\n' in title:
             continue
-        nodes.append(dict(block_id=block.block_id, text=block.text, page=block.page_start,
+        nodes.append(dict(block_id=block.block_id, text=title, page=block.page_start,
                           chapter=block.section_path[0], level=block.attributes.get('outline_level', 0),
                           role=block.attributes.get('outline_role', 'section'), family=family(block.text)[0],
                           visible=block.attributes.get('outline_visible', True),

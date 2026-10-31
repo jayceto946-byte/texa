@@ -1,11 +1,7 @@
 /* Mobile S3: preserve desktop roles; refine existing controls and scroll ownership. */
-.navigation-domains { display: contents; }
-.navigation-domains > summary { display: none; }
 .context-new-session > span { display: none; }
 @media (max-width: 919px) {
   .app-shell[data-navigation="open"] .study-navigation { width: min(300px, 80vw); }
-  .navigation-domains { display: block; }
-  .navigation-domains > summary { display: flex; align-items: center; min-height: 44px; padding: 8px; cursor: pointer; }
   .app-shell[data-navigation="open"] .app-rail { flex: 0 0 auto; }
   .app-shell[data-navigation="open"] .app-rail-mark { height: 56px; padding-right: 44px; }
   .app-shell .navigation-collapse { top: 6px; right: 8px; width: 44px; height: 44px; }
@@ -16,7 +12,7 @@
   .app-shell .learning-context-header > h1, .app-shell .learning-context-header > .window-drag-region, .app-shell .learning-context-header > button:not(.context-new-session) { display: none; }
   .app-shell .context-new-session { width: 100%; min-height: 44px; justify-content: center; gap: 8px; }
   .context-new-session > span { display: inline; }
-  .app-shell .app-rail-link { min-height: 44px !important; }
+  .app-shell[data-navigation="open"] .app-rail-link { min-height: 36px; }
   .app-shell .learning-context-sessions { flex: 1 1 auto; min-height: 0; }
   .app-shell .learning-workspace-header .current-session-menu { display: none; }
   .app-shell .learning-header-scope-selector { display: block; min-width: 0; max-width: clamp(120px, 32vw, 260px); }

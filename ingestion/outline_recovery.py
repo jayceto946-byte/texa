@@ -12,14 +12,14 @@ import unicodedata
 
 from ingestion.heading_policy import body_title, exercise_heading
 
-POLICY_VERSION = 2
-_CN = r'[零〇一二三四五六七八九十百千\d]+'
+POLICY_VERSION = 3
+_CN = r'[零〇一二三四五六七八九十百千\d](?:\s*[零〇一二三四五六七八九十百千\d])*'
 _NUMBERING = [
-    ('part', rf'^第\s*{_CN}\s*[篇部]\s*\S', 1),
-    ('chapter', rf'^第\s*{_CN}\s*章\s*\S', 1),
-    ('section', rf'^第\s*{_CN}\s*节\s*\S', 2),
-    ('part-en', r'^part\s+(?:\d+|[ivxlcdm]+)\b\s*[:.\-]?\s*\S', 1),
-    ('chapter-en', r'^chapter\s+(?:\d+|[ivxlcdm]+)\b\s*[:.\-]?\s*\S', 1),
+    ('part', rf'^第\s*{_CN}\s*[篇部](?:\s*\S|\s*$)', 1),
+    ('chapter', rf'^第\s*{_CN}\s*章(?:\s*\S|\s*$)', 1),
+    ('section', rf'^第\s*{_CN}\s*节(?:\s*\S|\s*$)', 2),
+    ('part-en', r'^part\s+(?:\d+|[ivxlcdm]+)\b(?:\s*[:.\-]?\s*\S|\s*$)', 1),
+    ('chapter-en', r'^chapter\s+(?:\d+|[ivxlcdm]+)\b(?:\s*[:.\-]?\s*\S|\s*$)', 1),
     ('cn-list', rf'^{_CN}\s*[、．]\s*\S', 3),
     ('paren-cn', rf'^[（(]\s*{_CN}\s*[）)]\s*\S', 4),
     ('number-list', r'^\d+\s*[、.)．]\s*\S', 3),
@@ -73,7 +73,28 @@ def _toc_line(line):
     return dict(title=title, printed_page=int(match[2]) if match[2].isdigit() else None)
 
 
-def _toc_matches(blocks, toc_pages=None):
+def _split_heading_titles(blocks):
+    """Join label/title hints for navigation, retaining both source blocks verbatim."""
+    labels = re.compile(rf'^(?:第\s*{_CN}\s*[章篇部节]|(?:chapter|part)\s+(?:\d+|[ivxlcdm]+))\s*$', re.I)
+    toc_titles = {_key(entry['title']) for b in blocks for line in b.text.splitlines()
+                  if (entry := _toc_line(line))}
+    titles, continuations = {}, set()
+    for i, block in enumerate(blocks[:-1]):
+        if block.block_type not in {'heading', 'paragraph'} or not labels.fullmatch(block.text.strip()):
+            continue
+        following = blocks[i + 1]
+        title = following.text.strip()
+        if (following.block_type not in {'heading', 'paragraph'} or following.page_start != block.page_start
+                or not 1 < len(title) <= 100 or '\n' in title or family(title)[0] or body_title(title)):
+            continue
+        combined = block.text.strip() + ' ' + title
+        if following.block_type == 'heading' or _key(combined) in toc_titles:
+            titles[i] = combined
+            continuations.add(i + 1)
+    return titles, continuations
+
+
+def _toc_matches(blocks, toc_pages=None, heading_titles=None):
     """Find dense entry pages, then verify against ordered body occurrences."""
     entries_by_page, markers, source_rows = defaultdict(list), set(), {}
     body = defaultdict(list)
@@ -82,8 +103,9 @@ def _toc_matches(blocks, toc_pages=None):
             continue
         page = block.page_start
         lines = [line.strip() for line in block.text.splitlines() if line.strip()]
-        if len(lines) == 1 and len(block.text) <= 140:
-            body[_key(block.text)].append(i)
+        text = (heading_titles or {}).get(i, block.text)
+        if len(text) <= 140:
+            body[_key(text)].append(i)
         if toc_pages and page not in toc_pages:
             continue
         parsed = [(line, _toc_line(line)) for line in lines]
@@ -149,8 +171,7 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
     result = deepcopy(book)
     previous = book.source_metadata.get('outline_recovery', {})
     examples = examples if examples is not None else previous.get('examples', [])
-    max_depth = max_depth if max_depth is not None else (
-        previous.get('max_depth', 2) if previous.get('version') == POLICY_VERSION or examples else 2)
+    max_depth = max_depth if max_depth is not None else previous.get('max_depth', 2)
     if type(max_depth) is not int or not 1 <= max_depth <= 6:
         raise ValueError('目录深度应为 1–6 级')
     blocks = result.blocks
@@ -160,7 +181,7 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
         b.block_type = original['block_type']
         b.section_path = list(original['section_path'])
         for k in ('outline_level', 'outline_role', 'outline_visible', 'outline_root_id', 'outline_parent_id', 'outline_method',
-                  'outline_toc', 'learning_unit_id', 'example_id', 'exercise_id'):
+                  'outline_toc', 'outline_title', 'learning_unit_id', 'example_id', 'exercise_id'):
             b.attributes.pop(k, None)
         if b.attributes.get('semantic_role') in {'exercise', 'example'} and b.block_type == 'paragraph':
             b.attributes.pop('semantic_role', None)
@@ -182,11 +203,12 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
         if not name and _style(b):
             styles[_style(b)] = value
         exact[bid] = value
-    toc, toc_blocks, toc_report = _toc_matches(blocks, result.source_metadata.get('toc_pages'))
+    heading_titles, continuations = _split_heading_titles(blocks)
+    toc, toc_blocks, toc_report = _toc_matches(blocks, result.source_metadata.get('toc_pages'), heading_titles)
     bookmarks, after = {}, -1
     for entry in result.source_metadata.get('pdf_bookmarks', []):
         candidates = [i for i, b in enumerate(blocks) if i > after and i not in toc_blocks
-                      and _key(b.text) == _key(entry['title']) and b.page_start is not None
+                      and _key(heading_titles.get(i, b.text)) == _key(entry['title']) and b.page_start is not None
                       and abs(b.page_start - entry['page']) <= 1]
         if candidates:
             after = min(candidates, key=lambda i: abs(blocks[i].page_start - entry['page']))
@@ -224,6 +246,9 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
         if taught_value is not None and eligible:
             level, role = taught_value
             method = 'user_example'
+        elif i in continuations:
+            level = 0
+            method = 'heading_continuation'
         elif i in bookmarks:
             level = bookmarks[i]
             method = 'pdf_bookmark'
@@ -288,7 +313,9 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
                 if not stack:
                     roots += 1
                 from ingestion.document_ir import canonical_chapter_title
-                title = canonical_chapter_title(b.text) or b.text
+                title = heading_titles.get(i, b.text)
+                title = canonical_chapter_title(title) or title
+                b.attributes['outline_title'] = title
                 stack.append((level, title, b.block_id, role))
                 heading_count += 1
                 if name not in {'exercise', ''}:

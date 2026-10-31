@@ -1,5 +1,6 @@
 const { gt } = require('semver');
 const { validCommitUpdate } = require('./commit-channel.cjs');
+const { updateErrorMessage } = require('./update-errors.cjs');
 
 async function refreshDownloadedUpdate({ updater, downloaded, branch, emit }) {
   let replacing = false;
@@ -19,7 +20,7 @@ async function refreshDownloadedUpdate({ updater, downloaded, branch, emit }) {
     emit({ status: 'downloaded', message: '最新版本已就绪，准备重启安装', updateInfo: latest, progress: null });
     return true;
   } catch (error) {
-    emit({ status: replacing ? 'available' : 'downloaded', message: `未能确认或准备最新版本：${error.message || error}。请重试。`, progress: null,
+    emit({ status: replacing ? 'available' : 'downloaded', message: `未能准备最新版本：${updateErrorMessage(error)}`, progress: null,
       ...(replacing ? {} : { updateInfo: downloaded }) });
     return false;
   }

@@ -33,6 +33,7 @@ export function CandidateReviewWorkspace({ state: s, original, source, busy, mes
     <header className="exercise-review-heading">
       <div className="exercise-stages">1 选择来源 — <strong>2 校对候选</strong> — 3 确认入库</div>
       <div className="exercise-row"><h1>校对候选题</h1>{original && <button className="app-secondary-button" onClick={() => setCompare(!compare)}>{compare ? '返回候选索引' : '原文对照'}</button>}</div>
+      <p>候选尚未保存，校对后请确认入库。</p>
       <p>{source}</p>{message && <p role="status">{message}</p>}
     </header>
     {compare && <div className="exercise-compare-tabs"><button aria-pressed={documentView === 'candidate'} onClick={() => setDocumentView('candidate')}>候选题</button><button aria-pressed={documentView === 'original'} onClick={() => setDocumentView('original')}>原文对照</button></div>}

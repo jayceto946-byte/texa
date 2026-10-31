@@ -47,6 +47,20 @@ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell .navi
   }
   .app-shell[data-navigation="open"] .study-navigation { width: var(--workspace-dock-width); }
   .app-shell[data-navigation="closed"] .study-navigation { overflow: visible; }
+  .app-shell[data-navigation="open"] .study-navigation { background:var(--workspace-dock); }
+  .app-shell[data-navigation="open"] .app-rail { background:transparent; padding:0 12px 12px; }
+  .app-shell[data-navigation="open"] .app-rail-mark { justify-content:flex-start; gap:10px; }
+  .app-shell[data-navigation="open"] .study-brand-name { display:flex; align-items:baseline; gap:8px; font-size:18px; font-weight:600; }
+  .app-shell[data-navigation="open"] .study-brand-name > span { font-size:11px; font-weight:400; color:var(--color-text-secondary); }
+  .app-shell[data-navigation="open"] .app-rail-footer { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; padding-top:8px; border-top:1px solid var(--workspace-separator); }
+  .app-shell[data-navigation="open"] .app-rail-link { justify-content:flex-start; min-height:36px; padding:8px; }
+  .app-shell .learning-history-host[data-docked="false"],
+  .app-shell .learning-history-host[data-docked="false"] .learning-history-panel { display:flex; flex:1 1 0; flex-direction:column; min-height:0; }
+  .app-shell .learning-history-host:has(.learning-context-sidebar[hidden]),
+  .app-shell .study-navigation > #workspace-context-navigation:empty { display:none; }
+  .app-shell[data-navigation="open"] .learning-context-sidebar { height:auto; background:transparent; overflow:hidden; }
+  .app-shell[data-navigation="open"] .learning-context-sessions { min-height:0; overflow-y:auto; }
+  .app-shell[data-navigation="open"] .study-navigation .library-tree { max-height:none; border:0; background:transparent; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .app-shell .study-navigation { transition: width 200ms cubic-bezier(.2,.7,.2,1); }

@@ -81,6 +81,52 @@ def test_conflicting_examples_are_explained_instead_of_silently_reordered():
         recover_outline(source, [dict(block_id='0', level=1), dict(block_id='1', level=2)])
 
 
+@pytest.mark.parametrize('label,title,expected', [
+    ('第二章', '测量方法', '第二章 测量方法'),
+    ('第 二 十 章', '数值计算', '第二十章 数值计算'),
+    ('Chapter II', 'Measurement methods', 'Chapter II Measurement methods'),
+])
+def test_separate_number_and_title_start_a_new_chapter_instead_of_merging(label, title, expected):
+    rows = [('第一章 基础', 1), ('第一节 定义', 1), ('前章正文。', 2),
+            (label, 5), (title, 5), ('第一节 应用', 5), ('新章正文。', 6),
+            ('第三十一章 复习', 9)]
+    source = book(rows)
+    source.blocks[4].block_type = 'heading'
+    before = deepcopy(source)
+    result = recover_outline(source)
+    assert [c['title'] for c in canonical_outline(result)] == ['第一章 基础', expected, '第三十一章 复习']
+    assert result.blocks[6].section_path == [expected, '第一节 应用']
+    assert result.blocks[4].attributes['outline_method'] == 'heading_continuation'
+    assert source == before
+    assert [(b.block_id, b.text) for b in result.blocks] == [(b.block_id, b.text) for b in source.blocks]
+    validate_index_structure(result, ChapterSplitter().split_canonical_book(result))
+    assert recover_outline(result, force=True) == result
+
+
+def test_bare_chapter_is_a_boundary_even_without_a_separate_title_hint():
+    result = recover_outline(book([('第一章 基础', 1), ('第二章', 5),
+        ('这段正文不能被当成章名。', 5), ('第一节 定义', 5), ('正文。', 6)]))
+    assert [c['title'] for c in canonical_outline(result)] == ['第一章 基础', '第二章']
+    assert result.blocks[-1].section_path == ['第二章', '第一节 定义']
+    assert 'outline_title' not in result.blocks[2].attributes
+
+
+def test_toc_matches_split_body_title_and_rebuilds_old_policy_without_losing_depth():
+    source = book([('目录\n第一章 基础……1\n第二章 方法……5\n第三章 应用……9', 1),
+        ('第一章 基础', 4), ('正文。', 4), ('第二章', 8), ('方法', 8),
+        ('第一节', 8), ('计算', 8), ('正文。', 8), ('第三章 应用', 12)])
+    source.blocks[6].block_type = 'heading'
+    source.source_metadata['outline_recovery'] = dict(version=2, max_depth=4)
+    result = recover_outline(source)
+    assert result.source_metadata['outline_recovery']['max_depth'] == 4
+    assert result.source_metadata['outline_recovery']['toc'][0]['matched'] == 3
+    chapters = canonical_outline(result)
+    assert [c['title'] for c in chapters] == ['第一章 基础', '第二章 方法', '第三章 应用']
+    assert chapters[1]['subsections'][0]['title'] == '第一节 计算'
+    assert result.blocks[7].section_path == ['第二章 方法', '第一节 计算']
+    validate_index_structure(result, ChapterSplitter().split_canonical_book(result))
+
+
 def test_native_index_text_is_retained_and_used_in_shared_recovery():
     payload = dict(metadata=dict(producer=dict(name='mineru', version='4.0.12')),
         pages=[dict(page_idx=0, blocks=[dict(type='index', content='目录\nChapter 1 Basics……1\nChapter 2 Methods……4')]),

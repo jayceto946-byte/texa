@@ -13,6 +13,7 @@ const { createSourceUpdater } = require('./source-updater.cjs');
 const { validCommitUpdate, configureCommitChannel } = require('./commit-channel.cjs');
 const { CommitProvider } = require('./commit-provider.cjs');
 const { refreshDownloadedUpdate } = require('./update-preflight.cjs');
+const { updateErrorMessage } = require('./update-errors.cjs');
 const buildIdentity = require('./package.json').texaBuild;
 const sourceUpdater = !app.isPackaged ? createSourceUpdater({ root: path.resolve(__dirname, '..'), owner: 'jayceto946-byte', repo: 'texa', emit: next => emitUpdateState(next) }) : null;
 const closePreparation = createClosePreparation();
@@ -234,7 +235,7 @@ function configureUpdater() {
   autoUpdater.on('update-not-available', (info) => emitUpdateState({ status: 'none', message: '当前已经是最新版本', updateInfo: info, progress: null }));
   autoUpdater.on('download-progress', (progress) => emitUpdateState({ status: 'downloading', message: `正在下载更新 ${Math.round(progress.percent || 0)}%`, progress }));
   autoUpdater.on('update-downloaded', (info) => emitUpdateState({ status: 'downloaded', message: '更新已下载，重启后安装', updateInfo: info, progress: null }));
-  autoUpdater.on('error', (error) => emitUpdateState({ status: 'error', message: `更新失败：${error.message || error}`, progress: null }));
+  autoUpdater.on('error', (error) => emitUpdateState({ status: 'error', message: updateErrorMessage(error), progress: null }));
 
   updaterConfigured = true;
   return true;
@@ -857,7 +858,11 @@ ipcMain.handle('updates:check', async (event) => {
   if (updateInstallPromise) return updateState;
   if (sourceUpdater) return sourceUpdater.check();
   if (!configureUpdater()) return updateState;
-  await autoUpdater.checkForUpdates();
+  try {
+    await autoUpdater.checkForUpdates();
+  } catch (error) {
+    emitUpdateState({ status: 'error', message: updateErrorMessage(error), progress: null });
+  }
   return updateState;
 });
 ipcMain.handle('updates:download', async (event) => {
@@ -868,10 +873,14 @@ ipcMain.handle('updates:download', async (event) => {
   if (!configureUpdater()) return updateState;
   // The settings page may have been open since yesterday. Refresh the target
   // before downloading, as well as before installing an already cached package.
-  const result = await autoUpdater.checkForUpdates();
-  if (updateState.status !== 'available' || !result?.updateInfo) return updateState;
-  emitUpdateState({ status: 'downloading', message: '正在下载更新...', progress: null });
-  await autoUpdater.downloadUpdate();
+  try {
+    const result = await autoUpdater.checkForUpdates();
+    if (updateState.status !== 'available' || !result?.updateInfo) return updateState;
+    emitUpdateState({ status: 'downloading', message: '正在下载更新...', progress: null });
+    await autoUpdater.downloadUpdate();
+  } catch (error) {
+    emitUpdateState({ status: 'error', message: updateErrorMessage(error), progress: null });
+  }
   return updateState;
 });
 async function installAppUpdate(event) {

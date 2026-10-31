@@ -66,7 +66,7 @@ def canonical_outline(book: CanonicalBook) -> list[dict]:
         parent = next((candidate['heading_block_id'] for candidate in reversed(chapter['subsections'])
                        if candidate['level'] == len(path) - 1 and candidate['section_path'] == path[:-1]), '')
         chapter['subsections'].append(dict(
-            title=block.text, page=block.page_start, page_number=block.page_start,
+            title=block.attributes.get('outline_title', block.text), page=block.page_start, page_number=block.page_start,
             end_page=max((member.page_end or member.page_start or 0 for member in members), default=block.page_start),
             heading_block_id=block.block_id, parent_heading_block_id=parent, level=len(path),
             section_path=path, source_block_ids=[member.block_id for member in members],

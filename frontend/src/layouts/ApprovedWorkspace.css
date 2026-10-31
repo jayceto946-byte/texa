@@ -469,14 +469,14 @@ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell:not(.
 .settings-dialog .welcome-role-grid.is-split { grid-template-columns:minmax(0,1fr); }
 @container (min-width: 680px) { .settings-dialog .welcome-role-grid.is-split { grid-template-columns:repeat(2,minmax(280px,1fr)); } }
 .settings-content-pane { container-type:inline-size; }
-@media(max-width:760px) {
-  .settings-dialog { width:calc(100vw - 24px); height:calc(100dvh - 24px); }
-  .settings-dialog-body { grid-template-columns:148px minmax(0,1fr); grid-template-rows:minmax(0,1fr); }
-  .settings-content-pane { padding:20px 16px; }
-  .settings-sidebar { overflow-y:auto; overflow-x:hidden; border-right:1px solid var(--workspace-separator); border-bottom:0; }
-  .settings-sidebar-groups { width:auto; }
-  .settings-sidebar-groups .settings-nav-items { width:auto; display:grid; }
-  .settings-nav-item { width:100%; white-space:normal; }
+@media(min-width:481px) and (max-width:919px) {
+  .settings-dialog { width:calc(100vw - 32px); height:min(680px,calc(100dvh - 32px)); }
+  .settings-dialog-body { grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); }
+  .settings-content-pane { padding:24px; }
+  .settings-sidebar { padding:8px 16px; overflow:visible; border-right:0; border-bottom:1px solid var(--workspace-separator); }
+  .settings-sidebar-groups, .settings-sidebar-groups .settings-nav-items { display:flex; flex-direction:row; flex-wrap:wrap; gap:4px; height:auto; }
+  .settings-nav-item { width:auto; min-height:36px; padding:8px 12px; white-space:nowrap; }
+  .settings-nav-diagnostics { margin:0 0 0 auto; padding-top:8px; border:0; }
 }
 
 /* Keep page commands outside the Windows native control hit area. */

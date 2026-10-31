@@ -526,12 +526,12 @@ const ExercisesPage: React.FC = () => {
         </section>}
 
         <section hidden={workspaceMode !== 'import' || Boolean(receipt) || commitUnknown} className="exercise-import-panel">
-          <p className="exercise-import-retention" role="note">候选需校对并确认入库；刷新或退出可能丢失尚未入库的内容。</p>
           <div hidden={candidates.length > 0 && !reviewPreparationOpen} className="exercise-import-setup">
             <div className="exercise-stages">
               <strong>1 选择来源</strong> — 2 校对候选 — 3 确认入库</div>
             <h1>导入题目<HelpHint label="导入题目">候选需人工校对，明确确认后才写入题库。</HelpHint>
             </h1>
+            {candidates.length > 0 && <p className="exercise-import-retention" role="note">候选尚未保存，校对后请确认入库。刷新或退出前请先完成保存。</p>}
             {candidates.length > 0 && <button className="app-secondary-button" onClick={() => setReviewPreparationOpen(false)}>继续校对 {candidates.length} 道候选</button>}
             <div className="exercise-source-tabs">
               <button aria-pressed={sourceKind === 'textbook'} onClick={() => setSourceKind('textbook')}>从教材抽取</button>

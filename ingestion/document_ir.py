@@ -28,7 +28,7 @@ BLOCK_TYPES = frozenset({
 BODY_BLOCK_TYPES = frozenset({"paragraph", "formula", "table", "example", "exercise"})
 OCR_SOURCE_KINDS = frozenset({"ocr", "mineru"})
 _NUMBERED_CHAPTER_RE = re.compile(
-    r"^\s*第\s*(?P<number>\d+|[一二三四五六七八九十百零〇]+)\s*章\s*(?P<title>.*)$"
+    r"^\s*第\s*(?P<number>[\d一二三四五六七八九十百千零〇](?:\s*[\d一二三四五六七八九十百千零〇])*)\s*章\s*(?P<title>.*)$"
 )
 
 
@@ -37,7 +37,7 @@ def canonical_chapter_title(value: str) -> str:
     match = _NUMBERED_CHAPTER_RE.match(str(value or "").strip())
     if not match:
         return ""
-    number = match.group("number")
+    number = re.sub(r"\s+", "", match.group("number"))
     title = re.sub(r"\s+", "", match.group("title") or "")
     return f"第{number}章" + (f" {title}" if title else "")
 

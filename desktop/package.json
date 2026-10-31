@@ -41,6 +41,7 @@
       "commit-channel.cjs",
       "commit-provider.cjs",
       "update-preflight.cjs",
+      "update-errors.cjs",
       "remote-connection.cjs",
       "appearance.cjs",
       "window-close.cjs",

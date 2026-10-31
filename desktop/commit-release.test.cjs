@@ -44,3 +44,9 @@ test('Windows-only updates keep hash and identity checks without a Mac signing d
   fs.appendFileSync(path.join(root, 'Texa.exe'), 'corrupt');
   assert.throws(() => verifyRelease(root, sha, version, 'windows'), /checksum\/size mismatch/);
 });
+
+test('mac-only validation requires ZIP and DMG without requiring a Windows artifact', t => {
+  const { root, sha, version } = fixture(t);
+  fs.unlinkSync(path.join(root, 'commit.yml'));
+  assert.deepEqual(verifyRelease(root, sha, version, 'mac'), ['Texa.zip', 'Texa.dmg']);
+});

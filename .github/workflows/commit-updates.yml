@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Publish the verified Windows commit update
+        description: Publish verified Windows and macOS installers
         type: boolean
         default: false
   push:
@@ -91,7 +91,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Version check failed' }
           .\venv310\Scripts\python.exe -c "from evaluation.policy_dataset_v0.frozen_runtime import _verified_sources; print(len(_verified_sources()), 'frozen source digests verified')"
           if ($LASTEXITCODE -ne 0) { throw 'Frozen source digest validation failed' }
-          .\venv310\Scripts\python.exe -m pytest -q tests/test_session_notes.py tests/test_data_backup.py tests/test_graceful_shutdown.py tests/test_storage_migrations.py tests/test_conversation_management.py tests/test_focus_tasks.py tests/test_execution_effects.py tests/test_path_safety.py
+          .\venv310\Scripts\python.exe -m pytest -q tests/test_session_notes.py tests/test_data_backup.py tests/test_graceful_shutdown.py tests/test_storage_migrations.py tests/test_conversation_management.py tests/test_focus_tasks.py tests/test_execution_effects.py tests/test_path_safety.py tests/test_outline_recovery.py tests/test_textbook_workflow_repairs.py tests/test_document_ir.py
           if ($LASTEXITCODE -ne 0) { throw 'Upgrade-related backend tests failed' }
           npm test --prefix frontend
           if ($LASTEXITCODE -ne 0) { throw 'Frontend tests failed' }
@@ -172,8 +172,94 @@ jobs:
             release/upload-receipt.json
           if-no-files-found: ignore
 
+  build-macos:
+    if: github.ref == 'refs/heads/Texa_MacOS'
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          architecture: arm64
+          cache: pip
+          cache-dependency-path: |
+            requirements-build.txt
+            requirements-release.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            desktop/package-lock.json
+      - name: Install locked macOS build dependencies
+        run: |
+          set -euo pipefail
+          python -m venv venv310
+          venv310/bin/python -m pip install -r requirements-build.txt
+          venv310/bin/python -m pip check
+          npm ci --prefix frontend
+          npm ci --prefix desktop
+      - name: Bind macOS build to the same commit
+        run: |
+          node scripts/prepare-commit-update.cjs prepare
+          venv310/bin/python scripts/check_version_consistency.py
+      - name: Build native Apple Silicon backend and frontend
+        run: bash scripts/build-desktop-backend-macos.sh
+      - name: Package unsigned macOS DMG and update ZIP
+        working-directory: desktop
+        run: npx --no-install electron-builder --mac dmg zip --arm64 --publish never
+      - name: Verify macOS artifacts and packaged backend
+        run: |
+          set -euo pipefail
+          node scripts/prepare-commit-update.cjs annotate
+          version=$(node -p "require('./desktop/package.json').version")
+          node scripts/verify-commit-release.cjs release "$GITHUB_SHA" "$version" mac
+          app="release/mac-arm64/Texa.app"
+          file "$app/Contents/MacOS/Texa" | tee macos-binary.log
+          grep -q arm64 macos-binary.log
+          export TEXA_FROZEN_SMOKE=1 TEXA_EMBEDDING_BACKEND=onnx
+          export TEXA_EMBEDDING_ASSET_DIR="$GITHUB_WORKSPACE/$app/Contents/Resources/embedding-runtime/bge-small-zh-v1.5/onnx-fp32-v1"
+          export DATA_DIR="$RUNNER_TEMP/texa-macos-smoke/data" PROGRESS_PATH="$RUNNER_TEMP/texa-macos-smoke/progress"
+          "$app/Contents/Resources/backend/backend_server/backend_server" > macos-smoke.log 2>&1
+          cat macos-smoke.log
+          grep -q TEXA_FROZEN_SMOKE_PASS macos-smoke.log
+          dmg="release/Texa-$version-mac-arm64.dmg"
+          hdiutil verify "$dmg" > macos-dmg.log
+          mount=$(mktemp -d "$RUNNER_TEMP/texa-dmg.XXXXXX")
+          trap 'hdiutil detach "$mount" || true' EXIT
+          hdiutil attach "$dmg" -mountpoint "$mount" -nobrowse -readonly >> macos-dmg.log
+          test -x "$mount/Texa.app/Contents/MacOS/Texa"
+          test -x "$mount/Texa.app/Contents/Resources/backend/backend_server/backend_server"
+          hdiutil detach "$mount"
+          trap - EXIT
+      - uses: actions/upload-artifact@v4
+        with:
+          name: commit-update-macos
+          path: |
+            release/*.dmg
+            release/*.zip
+            release/*.blockmap
+            release/commit-mac.yml
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: commit-update-macos-diagnostics
+          path: |
+            macos-smoke.log
+            macos-dmg.log
+            macos-binary.log
+          if-no-files-found: ignore
+
   publish:
-    needs: build
+    needs: [build, build-macos]
     if: github.event_name == 'push' || inputs.publish
     runs-on: ubuntu-latest
     permissions:
@@ -190,11 +276,15 @@ jobs:
         with:
           name: commit-update-windows
           path: update
-      - name: Verify manifest and downloaded package hashes
+      - uses: actions/download-artifact@v4
+        with:
+          name: commit-update-macos
+          path: update
+      - name: Verify both platform manifests and downloaded packages
         env:
           UPDATE_VERSION: ${{ needs.build.outputs.version }}
-        run: node scripts/verify-commit-release.cjs update "$GITHUB_SHA" "$UPDATE_VERSION" windows
-      - name: Publish verified unsigned Windows commit update
+        run: node scripts/verify-commit-release.cjs update "$GITHUB_SHA" "$UPDATE_VERSION" both
+      - name: Publish verified Windows and macOS installers
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
@@ -202,7 +292,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="v${UPDATE_VERSION}"
-          gh release create "$tag" --target "$GITHUB_SHA" --draft --prerelease --latest=false --title "Texa Windows 修复 ${GITHUB_SHA:0:8}" --notes "Unsigned Windows x64 NSIS update. Branch: Texa_MacOS. Source commit: $GITHUB_SHA. Application tests, frozen backend smoke and actual updater download/NSIS upgrade checks passed. macOS source updates remain available; this release contains no macOS automatic update package."
+          gh release create "$tag" --target "$GITHUB_SHA" --draft --prerelease --latest=false --title "Texa 桌面安装版 ${GITHUB_SHA:0:8}" --notes "Windows x64 NSIS installer and macOS Apple Silicon DMG/ZIP. Branch: Texa_MacOS. Source commit: $GITHUB_SHA. Windows application tests, frozen backend smoke and updater/NSIS upgrade checks passed. macOS native backend smoke, platform manifests and DMG verification passed. Unsigned installers; macOS artifacts are not notarized."
           gh release upload "$tag" update/*
           gh release edit "$tag" --draft=false --prerelease --latest=false
           gh release view "$tag" --json tagName,isDraft,isPrerelease,url,assets,targetCommitish > upload-receipt.json
