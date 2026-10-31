@@ -89,6 +89,13 @@ def test_toc_with_conflicting_page_offsets_cannot_supply_a_missing_chapter_bound
     assert '第二章 方法' not in [c['title'] for c in canonical_outline(result)]
 
 
+def test_markdown_list_markers_do_not_hide_chapter_families_in_a_toc():
+    source = omitted_chapter_source()
+    source.blocks[0].text = source.blocks[0].text.replace('\n', '\n- ')
+    result = recover_outline(source)
+    assert [c['title'] for c in canonical_outline(result)] == ['第一章 基础', '第二章 方法', '第三章 应用']
+
+
 def test_one_chapter_examples_generalize_roles_and_demote_small_items_without_losing_text():
     source = book([('第一章 基础', 1), ('第一节 概念', 1), ('（1）这是正文小项', 1),
         ('自测训练', 2), ('1. 求出结果并说明理由。', 2), ('第二章 方法', 3), ('第一节 应用', 3),

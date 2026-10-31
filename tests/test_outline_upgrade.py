@@ -23,6 +23,16 @@ def retained_legacy_book():
     return book
 
 
+def test_current_policy_stamp_does_not_hide_a_missing_retained_source_chapter(tmp_path):
+    from backend.services.book_outline import outline_refresh_status
+    from ingestion.outline_recovery import POLICY_VERSION
+    book = retained_legacy_book()
+    book.source_metadata['outline_recovery']['version'] = POLICY_VERSION
+    book.source_metadata['document_titles'] = [dict(text='第二章 方法', page_idx=16, source_block_index=0)]
+    persist_canonical_book(book, progress_root=tmp_path)
+    assert outline_refresh_status(book.book_name, progress_root=tmp_path)['status'] == 'outdated'
+
+
 @pytest.mark.parametrize('publication_succeeds', [True, False])
 def test_retained_outline_rebuild_publishes_all_scopes_or_preserves_old_version(monkeypatch, tmp_path, publication_succeeds):
     from backend.job_manager import JobManager

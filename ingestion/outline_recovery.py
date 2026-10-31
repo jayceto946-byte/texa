@@ -12,7 +12,7 @@ import unicodedata
 
 from ingestion.heading_policy import body_title, exercise_heading
 
-POLICY_VERSION = 4
+POLICY_VERSION = 5
 _CN = r'[零〇一二三四五六七八九十百千\d](?:\s*[零〇一二三四五六七八九十百千\d])*'
 _NUMBERING = [
     ('part', rf'^第\s*{_CN}\s*[篇部](?:\s*\S|\s*$)', 1),
@@ -63,6 +63,7 @@ def _style(block):
 
 
 def _toc_line(line):
+    line = re.sub(r'^\s*[-*+]\s+', '', line)
     # Leader dots/space + printed page. Also accept compact numbered entries.
     match = re.match(r'^(.*?)\s*(?:[.·…．]{2,}|\s)(\d{1,4}|[ivxlcdm]+)\s*$', line, re.I)
     if not match:
@@ -214,26 +215,34 @@ def _toc_matches(blocks, toc_pages=None, heading_titles=None):
     return accepted, excluded, reports, boundaries
 
 
-def _document_title_boundaries(blocks, metadata):
-    """Use numbered chapter labels retained as producer document-title metadata."""
-    present = {_key(b.text) for b in blocks if family(b.text)[0] in {'chapter', 'chapter-en'}}
-    result = {}
-    for title in metadata.get('document_titles', []):
+def _restore_source_titles(book):
+    """Restore numbered source titles previously retained only in metadata."""
+    from ingestion.document_ir import DocumentBlock
+    restored = 0
+    for title in book.source_metadata.get('document_titles', []):
         text = title.get('text', '').strip()
-        if family(text)[0] not in {'chapter', 'chapter-en'} or _key(text) in present:
+        kind, _ = family(text)
+        if kind not in {'chapter', 'chapter-en', 'part', 'part-en', 'section'} and not kind.startswith('decimal-'):
             continue
-        page = title['page_idx'] + 1
-        if any(b.page_start == page and family(b.text)[0] in {'chapter', 'chapter-en'} for b in blocks):
+        page, source_index = title['page_idx'] + 1, title['source_block_index']
+        if any(b.page_start == page and _key(b.text) == _key(text) for b in book.blocks):
             continue
-        index = next((i for i, b in enumerate(blocks) if b.page_start == page
-                      and b.attributes.get('source_block_index', -1) > title['source_block_index']), None)
+        index = next((i for i, b in enumerate(book.blocks) if b.page_start == page
+                      and b.attributes.get('source_block_index', -1) > source_index), None)
         if index is None:
             continue
-        result[index] = dict(title=text, physical_page=page,
-            source_block_id=f'mineru:{title["page_idx"]}:{title["source_block_index"]}',
-            method='source_document_title')
-        present.add(_key(text))
-    return result
+        anchor = book.blocks[index]
+        book.blocks.insert(index, DocumentBlock(
+            block_id=f'source-title:{title["page_idx"]}:{source_index}', block_type='heading', text=text,
+            section_path=[book.book_name], page_start=page, page_end=page,
+            source_file=anchor.source_file, source_kind=anchor.source_kind,
+            bbox=title.get('bbox'), attributes=dict(mineru_type='doc_title', source_page_idx=title['page_idx'],
+                source_block_index=source_index, restored_source_title=True,
+                bbox_space='page' if title.get('bbox') else 'unknown',
+                bbox_format='xyxy' if title.get('bbox') else 'unknown',
+                bbox_units='normalized' if title.get('bbox') else 'unknown')))
+        restored += 1
+    return restored
 
 
 def recover_outline(book, examples=None, max_depth=None, *, force=False):
@@ -241,6 +250,7 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
     if not force and examples is None and book.source_metadata.get('outline_recovery', {}).get('version') == POLICY_VERSION:
         return book
     result = deepcopy(book)
+    restored_titles = _restore_source_titles(result)
     previous = book.source_metadata.get('outline_recovery', {})
     examples = examples if examples is not None else previous.get('examples', [])
     max_depth = max_depth if max_depth is not None else previous.get('max_depth', 2)
@@ -277,7 +287,6 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
         exact[bid] = value
     heading_titles, continuations = _split_heading_titles(blocks)
     toc, toc_blocks, toc_report, boundaries = _toc_matches(blocks, result.source_metadata.get('toc_pages'), heading_titles)
-    boundaries.update(_document_title_boundaries(blocks, result.source_metadata))
     bookmarks, after = {}, -1
     for entry in result.source_metadata.get('pdf_bookmarks', []):
         candidates = [i for i, b in enumerate(blocks) if i > after and i not in toc_blocks
@@ -415,8 +424,8 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
         b.section_path = [item[1] for item in stack] or [result.book_name]
         b.attributes['outline_root_id'] = stack[0][2] if stack else ''
     result.source_metadata['outline_recovery'] = dict(version=POLICY_VERSION, headings=heading_count, roots=roots,
-        toc=toc_report, recovered_chapters=len(boundaries), matched_bookmarks=len(bookmarks), examples=examples, max_depth=max_depth,
-        stable_scope_ids=bool(boundaries) or previous.get('stable_scope_ids', False))
+        toc=toc_report, recovered_chapters=len(boundaries), restored_source_titles=sum(bool(b.attributes.get('restored_source_title')) for b in blocks), matched_bookmarks=len(bookmarks), examples=examples, max_depth=max_depth,
+        stable_scope_ids=bool(boundaries) or bool(restored_titles) or previous.get('stable_scope_ids', False))
     from ingestion.document_workflows import annotate_learning_units
     annotate_learning_units(result)
     return result

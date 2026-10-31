@@ -49,7 +49,12 @@ def outline_refresh_status(name, *, progress_root):
     if book is None:
         return {'status': 'current'}
     recovery = book.source_metadata.get('outline_recovery', {})
-    if recovery.get('version') == POLICY_VERSION:
+    titles = {chapter['title'] for chapter in canonical_outline(book)}
+    from ingestion.document_ir import canonical_chapter_title
+    missing_source_title = any(family(item.get('text', ''))[0] in {'chapter', 'chapter-en'}
+        and (canonical_chapter_title(item['text']) or item['text']) not in titles
+        for item in book.source_metadata.get('document_titles', []))
+    if recovery.get('version') == POLICY_VERSION and not missing_source_title:
         unresolved = [title for report in recovery.get('toc', []) if report.get('accepted')
                       for title in report.get('unmatched', [])
                       if family(title)[0] in {'chapter', 'chapter-en'}

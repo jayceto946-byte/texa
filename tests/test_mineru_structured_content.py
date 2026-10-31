@@ -92,7 +92,7 @@ def test_numbered_chapter_misclassified_as_document_title_still_starts_a_chapter
         dict(page_idx=0, blocks=[dict(type='paragraph_title', content='第一章 基础'),
                                dict(type='text', content='前章正文。')]),
         dict(page_idx=1, blocks=[dict(type='doc_title', content='第二章 方法'),
-                               dict(type='paragraph_title', content='第一节 计算'),
+                               dict(type='doc_title', content='第一节 计算'),
                                dict(type='text', content='中章正文。')]),
         dict(page_idx=2, blocks=[dict(type='paragraph_title', content='第三章 应用'),
                                dict(type='text', content='后章正文。')]),
@@ -102,7 +102,8 @@ def test_numbered_chapter_misclassified_as_document_title_still_starts_a_chapter
     from ingestion.outline_recovery import recover_outline
     assert [c['title'] for c in canonical_outline(book)] == ['第一章 基础', '第二章 方法', '第三章 应用']
     assert next(b for b in book.blocks if b.text == '中章正文。').section_path == ['第二章 方法', '第一节 计算']
-    assert book.source_metadata['outline_recovery']['recovered_chapters'] == 1
+    assert book.source_metadata['outline_recovery']['restored_source_titles'] == 2
+    assert canonical_outline(book)[1]['subsections'][0]['title'] == '第一节 计算'
     assert recover_outline(book, force=True) == book
 
 

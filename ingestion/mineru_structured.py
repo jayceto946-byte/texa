@@ -69,7 +69,7 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
             if typ in _EXCLUDED:
                 excluded[typ] += 1
                 if typ == 'doc_title':
-                    document_titles.append(dict(text=text, page_idx=page_idx, source_block_index=source_block_index))
+                    document_titles.append(dict(text=text, page_idx=page_idx, source_block_index=source_block_index, bbox=raw.get('bbox')))
                 continue
             attrs = dict(
                 mineru_type=typ, raw_level=raw.get('level'), source_page_index=source_page_index,
