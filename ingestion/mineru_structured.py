@@ -155,9 +155,8 @@ def from_structured_content(payload: dict, *, book_name: str, source_file: str =
                                 input_format='structured_content', input_counts=dict(counts),
                                 excluded_counts=dict(excluded), document_titles=document_titles,
                                 heading_policy='shared TOC/body matching and numbering hierarchy')
-    from ingestion.document_workflows import annotate_learning_units
-    annotate_learning_units(book)
-    return book
+    from ingestion.outline_recovery import recover_outline
+    return recover_outline(book, force=True)
 
 
 def _link_table_continuation(block: DocumentBlock, previous: DocumentBlock | None,

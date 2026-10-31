@@ -16,8 +16,8 @@ def structure_summary(book):
     empty_sections = [b.block_id for b, path in zip(exercise_sections, exercise_paths)
                       if not any(u.kind == 'exercise' and u.section_path[:len(path)] == path for u in units)]
     return dict(policy_version=1,
-                chapters=sum(b.attributes.get('outline_level') == 1 if 'outline_source' in b.attributes
-                             else bool(canonical_chapter_title(b.text)) for b in headings),
+                chapters=(book.source_metadata['outline_recovery']['roots'] if book.source_metadata.get('outline_recovery')
+                          else sum(bool(canonical_chapter_title(b.text)) for b in headings)),
                 headings=len(headings),
                 title_blocks_retained_as_body=sum(b.attributes.get('heading_decision') == 'retained_as_body' for b in book.blocks),
                 suspicious_heading_ids=[b.block_id for b in headings if body_title(b.text) and not b.attributes.get('outline_level')],

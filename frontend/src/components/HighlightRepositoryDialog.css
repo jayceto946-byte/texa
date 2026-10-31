@@ -3,6 +3,7 @@
 .highlight-compact-chapter { display:none; }
 .highlight-repository-navigation > label { min-width:0; }
 .highlight-repository-dialog > :not(.highlight-repository-layout) { flex-shrink:0; }
+.highlight-outline-refresh { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 16px; border-bottom:1px solid var(--workspace-separator); background:var(--accent-soft); font-size:13px; color:var(--color-text-secondary); }
 @media (max-width:1023px) {
   .highlight-repository-layout { grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); }
   .highlight-repository-navigation { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; padding:12px 16px; }

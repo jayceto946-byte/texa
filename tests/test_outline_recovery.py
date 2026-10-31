@@ -58,6 +58,37 @@ def test_dense_numbers_alone_never_prove_a_toc_or_delete_prose():
     validate_index_structure(result, ChapterSplitter().split_canonical_book(result))
 
 
+def omitted_chapter_source():
+    return book([('目录\n第一章 基础……1\n第一节 定义……1\n第二章 方法……10\n第一节 计算……10\n第三章 应用……20\n第一节 实践……20', 2),
+        ('第一章 基础', 8), ('第一节 定义', 8), ('前章独有内容。', 9),
+        ('第一节 计算', 17), ('中章独有内容。', 18),
+        ('第三章 应用', 27), ('第一节 实践', 27), ('后章独有内容。', 28)])
+
+
+def test_toc_recovers_missing_body_chapter_without_inventing_source_blocks():
+    source = omitted_chapter_source()
+    result = recover_outline(source)
+    chapters = canonical_outline(result)
+    assert [c['title'] for c in chapters] == ['第一章 基础', '第二章 方法', '第三章 应用']
+    assert chapters[0]['end_page'] == 9
+    assert [s['title'] for s in chapters[1]['subsections']] == ['第一节 计算']
+    assert result.blocks[5].section_path == ['第二章 方法', '第一节 计算']
+    assert result.blocks[4].attributes['outline_boundary']['source_block_id'] == '0'
+    assert [(b.block_id, b.text) for b in result.blocks] == [(b.block_id, b.text) for b in source.blocks]
+    chunks = ChapterSplitter().split_canonical_book(result)
+    assert [c['chapter'] for c in chunks if '中章独有内容' in c['content']] == ['第二章 方法']
+    validate_index_structure(result, chunks)
+    assert recover_outline(result, force=True) == result
+
+
+def test_toc_with_conflicting_page_offsets_cannot_supply_a_missing_chapter_boundary():
+    source = omitted_chapter_source()
+    source.blocks[6].page_start = source.blocks[6].page_end = 30
+    result = recover_outline(source)
+    assert result.source_metadata['outline_recovery']['recovered_chapters'] == 0
+    assert '第二章 方法' not in [c['title'] for c in canonical_outline(result)]
+
+
 def test_one_chapter_examples_generalize_roles_and_demote_small_items_without_losing_text():
     source = book([('第一章 基础', 1), ('第一节 概念', 1), ('（1）这是正文小项', 1),
         ('自测训练', 2), ('1. 求出结果并说明理由。', 2), ('第二章 方法', 3), ('第一节 应用', 3),

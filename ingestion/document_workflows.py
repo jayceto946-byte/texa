@@ -54,13 +54,17 @@ def canonical_outline(book: CanonicalBook) -> list[dict]:
         path = paths.get(block.block_id) or [book.book_name]
         chapter = chapters.setdefault(path[0], dict(title=path[0], page_number=block.page_start or 1,
                                                    end_page=block.page_end, subsections=[], page_kind='physical'))
+        if book.source_metadata.get('outline_recovery', {}).get('stable_scope_ids'):
+            chapter['heading_block_id'] = block.attributes.get('outline_root_id', '')
+            chapter['end_block_id'] = block.block_id
         chapter['end_page'] = max(chapter.get('end_page') or 0, block.page_end or block.page_start or 0)
         if (block.block_type != 'heading' or len(path) == 1
                 or block.attributes.get('outline_visible') is False
                 or body_title(block.text) and not block.attributes.get('outline_level')):
             continue
         end = next((n for n in range(index + 1, len(book.blocks))
-                    if book.blocks[n].block_type == 'heading'
+                    if paths.get(book.blocks[n].block_id, [])[:len(path)] != path
+                    or book.blocks[n].block_type == 'heading'
                     and len(paths.get(book.blocks[n].block_id, [])) <= len(path)), len(book.blocks))
         members = book.blocks[index:end]
         parent = next((candidate['heading_block_id'] for candidate in reversed(chapter['subsections'])

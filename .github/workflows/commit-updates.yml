@@ -91,7 +91,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Version check failed' }
           .\venv310\Scripts\python.exe -c "from evaluation.policy_dataset_v0.frozen_runtime import _verified_sources; print(len(_verified_sources()), 'frozen source digests verified')"
           if ($LASTEXITCODE -ne 0) { throw 'Frozen source digest validation failed' }
-          .\venv310\Scripts\python.exe -m pytest -q tests/test_session_notes.py tests/test_data_backup.py tests/test_graceful_shutdown.py tests/test_storage_migrations.py tests/test_conversation_management.py tests/test_focus_tasks.py tests/test_execution_effects.py tests/test_path_safety.py tests/test_outline_recovery.py tests/test_textbook_workflow_repairs.py tests/test_document_ir.py
+          .\venv310\Scripts\python.exe -m pytest -q tests/test_session_notes.py tests/test_data_backup.py tests/test_graceful_shutdown.py tests/test_storage_migrations.py tests/test_conversation_management.py tests/test_focus_tasks.py tests/test_execution_effects.py tests/test_path_safety.py tests/test_outline_recovery.py tests/test_outline_upgrade.py tests/test_mineru_structured_content.py tests/test_textbook_workflow_repairs.py tests/test_document_ir.py
           if ($LASTEXITCODE -ne 0) { throw 'Upgrade-related backend tests failed' }
           npm test --prefix frontend
           if ($LASTEXITCODE -ne 0) { throw 'Frontend tests failed' }

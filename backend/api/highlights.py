@@ -16,9 +16,11 @@ _jobs = HighlightJobStore(_service)
 
 @router.get("/{book_name}/chapter-highlights")
 def list_chapter_highlights(book_name: str):
+    from backend.services.book_outline import outline_refresh_status
     _jobs.reconcile_book(book_name)
+    outline = outline_refresh_status(book_name, progress_root=_service.progress_path)
     chapters = _service.list_chapters(book_name)
-    return {"success": True, "data": {"book_name": book_name, "chapters": chapters}}
+    return {"success": True, "data": {"book_name": book_name, "chapters": chapters, 'outline': outline}}
 
 
 @router.get("/{book_name}/chapter-highlights/{chapter_id}/html")
@@ -51,6 +53,9 @@ def delete_chapter_highlight(book_name: str, chapter_id: str, section_id: str = 
 
 @router.post("/{book_name}/chapter-highlights/{chapter_id}/jobs")
 def create_chapter_highlight_job(book_name: str, chapter_id: str, section_id: str = "all", force: bool = False):
+    from backend.services.book_outline import outline_refresh_status
+    if outline_refresh_status(book_name, progress_root=_service.progress_path)['status'] == 'outdated':
+        return {'success': False, 'message': '教材目录需要更新，请重新打开章节重点仓库，完成更新后再选择章节'}
     try:
         # Keep job creation quick. Full OCR/package validation can scan large
         # MinerU outputs, so it runs inside the background job.

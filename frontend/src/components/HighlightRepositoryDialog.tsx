@@ -121,11 +121,13 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
   const [activeJobId, setActiveJobId] = useState('');
   const [activeJobTarget, setActiveJobTarget] = useState<ActiveJobTarget | undefined>();
   const [completionNotice, setCompletionNotice] = useState<CompletionNotice | null>(null);
+  const [outlineRefresh, setOutlineRefresh] = useState({ status: 'ready', message: '' });
+  const [outlineRetry, setOutlineRetry] = useState(0);
   const staticHtmlAsset = useAuthenticatedBlobUrl(open ? staticHtmlUrl : '', 'html');
 
   useEffect(() => {
     if (!open) return;
-    setHighlightBookName((prev) => currentBookName || prev || books[0]?.name || '');
+    setHighlightBookName((prev) => books.some(book => book.name === prev) ? prev : currentBookName || books[0]?.name || '');
   }, [books, currentBookName, open]);
 
   useEffect(() => {
@@ -137,24 +139,63 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
     }
 
     let alive = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const pollOutline = async (jobId: string) => {
+      try {
+        const result = await get(`/books/outline-jobs/${encodeURIComponent(jobId)}`, 30000);
+        if (!alive) return;
+        const job = result?.data;
+        if (!result?.success || !job) throw new Error(result?.message || '无法读取目录更新进度');
+        if (job.status === 'completed') {
+          window.dispatchEvent(new Event('books:changed'));
+          await load();
+        } else if (terminalJobStatuses.has(job.status)) {
+          throw new Error(job.error || job.message || '目录更新未完成，原教材仍保留');
+        } else {
+          setOutlineRefresh({ status: 'updating', message: job.message || '正在同步教材目录与检索范围…' });
+          timer = setTimeout(() => { void pollOutline(jobId); }, 1000);
+        }
+      } catch (error) {
+        if (alive) setOutlineRefresh({ status: 'error', message: error instanceof Error ? error.message : '目录更新失败，请重试' });
+      }
+    };
     const load = async () => {
       try {
         const res = await get(`/books/${encodeURIComponent(highlightBookName)}/chapter-highlights`, 30000);
         if (!alive) return;
+        if (!res?.success) throw new Error(res?.message || '教材目录读取失败');
+        if (res.data?.outline?.status === 'outdated') {
+          setChapters([]);
+          setSelectedChapterId('');
+          setSelectedSectionId('all');
+          setOutlineRefresh({ status: 'updating', message: '发现旧版目录，正在更新章节并同步检索范围…' });
+          const start = await post(`/books/${encodeURIComponent(highlightBookName)}/outline/refresh`, {}, 30000);
+          if (!alive) return;
+          if (!start?.success || !start.data) throw new Error(start?.message || '目录更新未能启动');
+          if (start.data.status === 'current') { await load(); return; }
+          await pollOutline(start.data.id);
+          return;
+        }
+        const unresolved: string[] = res.data?.outline?.unresolved_chapters || [];
+        setOutlineRefresh(unresolved.length
+          ? { status: 'warning', message: `目录中的 ${unresolved.join('、')} 尚无法定位正文。请在教材中校准目录后再生成相关重点。` }
+          : { status: 'ready', message: '' });
         const nextChapters: ChapterOption[] = res?.data?.chapters || [];
         setChapters(nextChapters);
         setSelectedChapterId((prev) => (prev && nextChapters.some((chapter) => chapter.id === prev) ? prev : nextChapters[0]?.id || ''));
         setSelectedSectionId('all');
-      } catch {
+      } catch (error) {
         if (!alive) return;
+        setOutlineRefresh({ status: 'error', message: error instanceof Error ? error.message : '教材目录读取失败' });
         setChapters([]);
         setSelectedChapterId('');
         setSelectedSectionId('all');
       }
     };
-    load();
-    return () => { alive = false; };
-  }, [highlightBookName, open]);
+    setOutlineRefresh({ status: 'loading', message: '正在读取教材目录…' });
+    void load();
+    return () => { alive = false; if (timer) clearTimeout(timer); };
+  }, [highlightBookName, open, outlineRetry]);
 
   useEffect(() => {
     setSelectedSectionId('all');
@@ -396,6 +437,10 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
           </button>
         </div>
 
+        {outlineRefresh.status !== 'ready' && <div role={outlineRefresh.status === 'error' ? 'alert' : 'status'} className="highlight-outline-refresh">
+          <span>{outlineRefresh.message}</span>
+          {outlineRefresh.status === 'error' && <button type="button" className="app-secondary-button" onClick={() => setOutlineRetry(value => value + 1)}>重试更新目录</button>}
+        </div>}
         <div className="highlight-repository-layout min-h-0 flex-1">
           <aside className="highlight-repository-navigation flex min-h-0 flex-col border-b border-border bg-[var(--surface-subtle)] p-3 sm:p-4 lg:border-b-0 lg:border-r">
             <label className="text-xs font-medium text-text-secondary">

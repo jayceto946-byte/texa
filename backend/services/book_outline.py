@@ -1,9 +1,13 @@
 """Read/preview outline calibration and publish through the existing index job."""
 from pathlib import Path
+from threading import Lock, Thread
 
 from ingestion.document_ir import load_canonical_book
 from ingestion.document_workflows import canonical_outline
 from ingestion.outline_recovery import recover_outline, family
+
+_refresh_lock = Lock()
+_refresh_jobs = {}
 
 
 class OutlineConflict(ValueError):
@@ -19,6 +23,8 @@ def preview_outline(name, *, progress_root, base_version=None, examples=None, ma
             raise OutlineConflict('教材已更新，请重新打开目录校准后预览')
         book = load_canonical_book(name, progress_root=progress_root)
     candidate = recover_outline(book, examples=examples, max_depth=max_depth, force=True)
+    if canonical_outline(candidate) != canonical_outline(book):
+        candidate.source_metadata['outline_recovery']['stable_scope_ids'] = True
     nodes = []
     for block in candidate.blocks:
         if block.attributes.get('outline_toc') or block.block_type != 'heading':
@@ -33,6 +39,47 @@ def preview_outline(name, *, progress_root, base_version=None, examples=None, ma
                           method=block.attributes.get('outline_method', 'body')))
     return candidate, dict(base_version=version, candidates=nodes, chapters=canonical_outline(candidate),
         recovery=candidate.source_metadata['outline_recovery'])
+
+
+def outline_refresh_status(name, *, progress_root):
+    """Inspect retained source without changing the active outline or index."""
+    from ingestion.outline_recovery import POLICY_VERSION
+    from ingestion.document_workflows import load_workflow_book
+    book = load_workflow_book(name, progress_root=Path(progress_root))
+    if book is None:
+        return {'status': 'current'}
+    recovery = book.source_metadata.get('outline_recovery', {})
+    if recovery.get('version') == POLICY_VERSION:
+        unresolved = [title for report in recovery.get('toc', []) if report.get('accepted')
+                      for title in report.get('unmatched', [])
+                      if family(title)[0] in {'chapter', 'chapter-en'}
+                      and title not in report.get('recovered_chapters', [])
+                      and title not in {chapter['title'] for chapter in canonical_outline(book)}]
+        return dict(status='current', unresolved_chapters=unresolved)
+    _, preview = preview_outline(name, progress_root=progress_root)
+    previous = canonical_outline(book)
+    changed = preview['chapters'] != previous
+    return dict(status='outdated' if changed else 'current', base_version=preview['base_version'],
+                chapter_count=len(previous), updated_chapter_count=len(preview['chapters']))
+
+
+def start_outline_refresh(name, *, progress_root, jobs, on_published=None):
+    """Rebuild an outdated derived outline once, through staged index publication."""
+    status = outline_refresh_status(name, progress_root=progress_root)
+    if status['status'] != 'outdated':
+        return status
+    key = (str(Path(progress_root).resolve()), name, status['base_version'])
+    with _refresh_lock:
+        current = jobs.get_job(_refresh_jobs[key]) if key in _refresh_jobs else None
+        if current and current['status'] in {'queued', 'running', 'cancelling'}:
+            return current
+        job = jobs.create_job('textbook_outline', {'book_name': name, 'automatic_refresh': True},
+                              status='running', message='正在更新教材目录并同步检索范围')
+        _refresh_jobs[key] = job['id']
+        Thread(target=apply_outline, kwargs=dict(name=name, progress_root=progress_root,
+            base_version=status['base_version'], examples=None, max_depth=None, jobs=jobs,
+            job_id=job['id'], on_published=on_published), daemon=True).start()
+    return job
 
 
 def apply_outline(name, *, progress_root, base_version, examples, max_depth, jobs, job_id, on_published=None):

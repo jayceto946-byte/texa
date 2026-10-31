@@ -87,6 +87,25 @@ def test_native_mapping_hierarchy_formula_and_provenance(tmp_path):
     assert next(b for b in book.blocks if b.attributes['mineru_type'] == 'ref_text').attributes['semantic_role'] == 'reference'
 
 
+def test_numbered_chapter_misclassified_as_document_title_still_starts_a_chapter():
+    sample = dict(metadata=dict(producer=dict(name='mineru', version='4.0.8')), pages=[
+        dict(page_idx=0, blocks=[dict(type='paragraph_title', content='第一章 基础'),
+                               dict(type='text', content='前章正文。')]),
+        dict(page_idx=1, blocks=[dict(type='doc_title', content='第二章 方法'),
+                               dict(type='paragraph_title', content='第一节 计算'),
+                               dict(type='text', content='中章正文。')]),
+        dict(page_idx=2, blocks=[dict(type='paragraph_title', content='第三章 应用'),
+                               dict(type='text', content='后章正文。')]),
+    ])
+    book = MinerUAdapter.from_structured_content(sample, book_name='独立样本')
+    from ingestion.document_workflows import canonical_outline
+    from ingestion.outline_recovery import recover_outline
+    assert [c['title'] for c in canonical_outline(book)] == ['第一章 基础', '第二章 方法', '第三章 应用']
+    assert next(b for b in book.blocks if b.text == '中章正文。').section_path == ['第二章 方法', '第一节 计算']
+    assert book.source_metadata['outline_recovery']['recovered_chapters'] == 1
+    assert recover_outline(book, force=True) == book
+
+
 def test_native_preferred_and_invalid_native_is_not_silently_bridged(tmp_path):
     output = source(tmp_path)
     (output / 'texa_content_list_v1.json').write_text(json.dumps([dict(type='text', text='bridge should not win')]))

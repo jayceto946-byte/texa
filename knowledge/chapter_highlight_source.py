@@ -102,7 +102,9 @@ class ChapterHighlightSourceMixin:
                 continue
             page = int(item.get("page_number", item.get("page", 1)) or 1)
             end_page = item.get("end_page")
-            refs.append(ChapterRef(id=f"chapter_{index + 1:03d}", index=index, title=title, page=page, end_page=int(end_page) if end_page else None))
+            root_id, end_id = item.get('heading_block_id'), item.get('end_block_id')
+            chapter_id = safe_book_name(f'chapter_{root_id}_{end_id}') if root_id and end_id else f"chapter_{index + 1:03d}"
+            refs.append(ChapterRef(id=chapter_id, index=index, title=title, page=page, end_page=int(end_page) if end_page else None))
         return refs
 
     def _load_chapter_record(self, book_name: str, chapter: ChapterRef) -> dict:

@@ -113,6 +113,17 @@ def apply_outline_calibration(name: str, request: OutlineCalibration):
     return {'success': True, 'data': job}
 
 
+@router.post('/{name}/outline/refresh')
+def refresh_outdated_outline(name: str):
+    from backend.services.book_outline import start_outline_refresh
+    resolved = _resolve_book_reference(name)
+    if not resolved:
+        raise HTTPException(404, '教材不存在')
+    job = start_outline_refresh(resolved, progress_root=PROGRESS_PATH, jobs=_job_manager,
+                                on_published=_invalidate_book_read_cache)
+    return {'success': True, 'data': job}
+
+
 @router.get('/outline-jobs/{job_id}')
 def get_outline_job(job_id: str):
     job = _job_manager.get_job(job_id, job_type='textbook_outline')
