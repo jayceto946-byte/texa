@@ -7,6 +7,8 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from utils.path_safety import path_resolution_lock
+
 
 def atomic_write_json(path: str | Path, data: Any, *, indent: int = 2) -> None:
     target = Path(path)
@@ -19,7 +21,8 @@ def atomic_write_json(path: str | Path, data: Any, *, indent: int = 2) -> None:
             fh.write("\n")
             fh.flush()
             os.fsync(fh.fileno())
-        os.replace(tmp_path, target)
+        with path_resolution_lock:
+            os.replace(tmp_path, target)
     except Exception:
         try:
             tmp_path.unlink(missing_ok=True)

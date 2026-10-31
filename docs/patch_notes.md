@@ -1,3 +1,10 @@
+## 2026-10-31 — 修复 Windows 构建前并发记录偶发拒绝访问
+
+- Actions 41204232188 的 baseline 下载与上传均成功；Windows build 实际失败于 test_concurrent_conversations_preserve_both_counts，211项通过、1项失败，concept_memory.json 的 os.replace 收到 WinError 5。近期旧构建另有已经修复的 NSIS include/载荷检查失败，不应统称为 baseline 交接错误。
+- 核对 CPython 3.10.11 的 _getfinalpathname：Windows realpath 会以 share mode 0 短暂打开目标文件。safe_child_path 和状态锁键的 Path.resolve 在取得领域文件锁前执行，与另一个线程持锁写 JSON 的原子替换形成竞争。现在路径解析与最后的 os.replace 共享短时可重入锁；正文写入、fsync、领域文件锁和幂等回执保持原流程，保留真实路径/符号链接安全检查，不加失败重试或绕过测试。未改文件格式或迁移学习数据。
+- 新增两种确定性竞争回归，分别覆盖安全路径构造和状态锁查找：旧实现均失败，修复后与路径、学习状态并发及效果恢复回归合计58项通过。实际 Windows CI 结果将在完成后补记。
+- 把 Windows 的单一 Validate application contracts 拆为版本/冻结来源、后端存储与并发、前端、桌面、原生重启与 NSIS 恢复五步，保留原有门槛；加入路径竞争与状态并发回归，失败时仍上传 JUnit 测试报告。baseline 和双平台验证通过后发布的规则不变。
+
 ## 2026-10-31 — 恢复 push 自动构建与发布双平台修复版
 
 - 按用户明确选择，Texa_MacOS 源码 push 自动触发 Windows 与 macOS 构建，保留既有依赖锁定、应用合同、冻结后端、Windows NSIS 升级/恢复、Mac 架构/DMG 及清单验证；两端 build 都成功后才自动公开 Release。纯 Markdown 和 docs/ 文档更新不触发打包，其他分支 push 不触发该发布链路。

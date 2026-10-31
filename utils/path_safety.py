@@ -3,8 +3,13 @@ from __future__ import annotations
 
 import re
 from pathlib import Path, PureWindowsPath
+from threading import RLock
 
 _INVALID_PATH_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+# Python 3.10 Windows realpath opens the leaf with share mode 0, before a
+# per-file state lock can be acquired. Keep that handle away from JSON replace.
+path_resolution_lock = RLock()
 
 
 def safe_book_name(book_name: str, default: str = "default") -> str:
@@ -14,8 +19,9 @@ def safe_book_name(book_name: str, default: str = "default") -> str:
 
 
 def safe_child_path(root: str | Path, *parts: str | Path) -> Path:
-    root_path = Path(root).resolve()
-    path = root_path.joinpath(*parts).resolve()
+    with path_resolution_lock:
+        root_path = Path(root).resolve()
+        path = root_path.joinpath(*parts).resolve()
     if not _resolved_within_root(root_path, path):
         raise ValueError(f"resolved path escapes root: {path}")
     return path
@@ -42,4 +48,5 @@ def _resolved_within_root(root, path):
 
 def canonical_path_key(path: str | Path) -> str:
     """Use one process-local identity for resolved Windows path aliases."""
-    return str(_comparison_path(Path(path).resolve())).casefold()
+    with path_resolution_lock:
+        return str(_comparison_path(Path(path).resolve())).casefold()
