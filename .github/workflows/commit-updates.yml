@@ -7,11 +7,6 @@ on:
         description: Publish verified Windows and macOS installers
         type: boolean
         default: false
-  push:
-    branches: [Texa_MacOS]
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
 
 permissions:
   contents: read
@@ -260,7 +255,7 @@ jobs:
 
   publish:
     needs: [build, build-macos]
-    if: github.event_name == 'push' || inputs.publish
+    if: inputs.publish
     runs-on: ubuntu-latest
     permissions:
       contents: write

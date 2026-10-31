@@ -1,3 +1,4 @@
+import Selector from '../../components/ui/Selector';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Dialog from '../../components/ui/Dialog';
@@ -69,7 +70,7 @@ export default function NotePreflight({ conversationId, title, busy = false, onC
       {preflight.existing_drafts.items.map(d => <Link className="note-existing-draft app-primary-button" key={d.id} to={`/notes/drafts/${d.id}`} onClick={onClose}>继续已有草稿 · {d.content?.title || title || '本会话笔记'}</Link>)}
     </>}
     <details className="note-preflight-settings"><summary>整理设置</summary>
-      <label>整理侧重<select value={hint} disabled={generating} onChange={e => { invalidate(); setHint(e.target.value); }}>{[['auto', '按实际内容'], ['concept', '概念理解'], ['derivation', '推导'], ['problem', '解题'], ['comparison', '比较'], ['review', '复习']].map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+      <label>整理侧重<Selector ariaLabel="整理侧重" value={hint} onChange={value => { invalidate(); setHint(value); }} options={[['auto', '按实际内容'], ['concept', '概念理解'], ['derivation', '推导'], ['problem', '解题'], ['comparison', '比较'], ['review', '复习']].map(([value, label]) => ({ value: value, label: label }))} disabled={generating}/></label>
       <label className="note-checkbox"><input type="checkbox" disabled={generating} checked={completedOnly} onChange={e => { invalidate(); setCompletedOnly(e.target.checked); }}/>只整理已完成的轮次</label>
       <p className="note-caption">{selected ? `自选 ${selected.length} 轮；只包含勾选的轮次，更早轮次需加载后选择。` : '当前包含全部轮次（包括尚未加载的更早内容）。'}</p>
       <div className="note-actions"><button className="app-ghost-button" disabled={generating} onClick={() => { invalidate(); setSelected(undefined); }}>全部内容</button><button className="app-ghost-button" disabled={generating} onClick={() => { invalidate(); setSelected([]); }}>自选范围</button></div>

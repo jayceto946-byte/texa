@@ -1,3 +1,4 @@
+import Selector from '../../components/ui/Selector';
 import { TexaEdit, TexaDelete } from '../../components/icons';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, Check, Play, Plus } from 'lucide-react';
@@ -22,7 +23,7 @@ export default function FocusPanel({goalId,criteria,focusNewTask=false}: {goalId
   return <section ref={rowRoot} className="study-task-panel" aria-label="学习任务">
     <div className="study-task-heading"><h3>任务</h3>{criteria.length>0&&<button className="app-ghost-button" onClick={()=>setSplitting(!splitting)}>从完成条件拆任务</button>}</div>
     {splitting&&<form className="criterion-task-editor" onSubmit={event=>{event.preventDefault();void focus.command({operation:'create_batch',goal_id:goalId,tasks:actions.filter(value=>value.trim()).map(value=>({title:value.trim(),criterion_ids:[criterion]}))}).then(ok=>{if(ok){setSplitting(false);setActions(['']);setSaved('任务已加入队列。');}});}}>
-      <label>选择完成条件<select className="app-field" value={criterion} onChange={event=>setCriterion(event.target.value)}>{criteria.map(item=><option key={item.id} value={item.id}>{item.description}</option>)}</select></label>
+      <label>选择完成条件<Selector ariaLabel="选择完成条件" value={criterion} onChange={value => setCriterion(value)} options={criteria.map((item, index) => ({ value: item.id, label: item.description || `条件 ${index + 1}` }))}/></label>
       <p>{criteria.find(item=>item.id===criterion)?.description}</p><small>{related?`已有 ${related} 项相关任务 · `:''}把结果改写成具体行动，章节和题号由你填写。</small>
       {actions.map((value,index)=><label key={index}>行动 {index+1}<input className="app-field" value={value} required maxLength={200} placeholder="例如：阅读指定章节并整理定义" onChange={event=>setActions(previous=>previous.map((item,i)=>i===index?event.target.value:item))}/></label>)}
       <div className="focus-actions">{['阅读','整理','练习'].map(word=><button key={word} type="button" className="app-ghost-button" onClick={()=>setActions(previous=>previous.map((value,index)=>index===previous.length-1?`${word} ${value}`:value))}>{word}</button>)}<button type="button" className="app-ghost-button" disabled={actions.length>=20} onClick={()=>setActions([...actions,''])}>再加一项</button><button className="app-primary-button" disabled={disabled||!criterion||!actions.every(value=>value.trim())}>添加 {actions.length} 项任务</button></div>

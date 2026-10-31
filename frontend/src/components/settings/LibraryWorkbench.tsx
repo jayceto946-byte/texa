@@ -1,3 +1,4 @@
+import Selector from '../ui/Selector';
 import { TexaTextbook, TexaEdit, TexaDelete, TexaClose } from '../icons';
 import { useCallback, useEffect, useMemo, useState, type MouseEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { AlertTriangle, Archive, CheckCircle2, ChevronDown, ChevronRight, FolderOpen, MoreHorizontal, Plus, RefreshCw } from 'lucide-react';
@@ -145,9 +146,7 @@ export default function LibraryWorkbench(props: Props) {
         <main className="library-content">
           <header className="library-category-header">
             <div className="library-category-identity">
-              <div><h3>{categoryName}</h3><label className="library-compact-category"><span>教材分类</span><select aria-label="教材分类" value={`${selectedSubjectIndex}:${selectedChildIndex ?? 'all'}`} onChange={event => { const [parent, child] = event.target.value.split(':'); select(Number(parent), child === 'all' ? null : Number(child)); }}>
-                {subjects.map((item, index) => <optgroup key={item.name} label={item.name}><option value={`${index}:all`}>{item.name} · 全部</option>{item.children.map((name, childIndex) => <option key={name} value={`${index}:${childIndex}`}>{item.name} / {name}</option>)}</optgroup>)}<option value="-1:all">未分类教材</option>
-              </select></label><p>{currentBooks.length} 本教材</p></div>
+              <div><h3>{categoryName}</h3><label className="library-compact-category"><span>教材分类</span><Selector ariaLabel="教材分类" value={`${selectedSubjectIndex}:${selectedChildIndex ?? 'all'}`} onChange={value => { const [parent, child] = value.split(':'); select(Number(parent), child === 'all' ? null : Number(child)); }} options={[...subjects.flatMap((item, index) => [{ value: `${index}:all`, label: [item.name, " · 全部"].join(''), group: item.name }, ...item.children.map((name, childIndex) => ({ value: `${index}:${childIndex}`, label: [item.name, " / ", name].join(''), group: item.name }))]), { value: "-1:all", label: "未分类教材" }]} compact/></label><p>{currentBooks.length} 本教材</p></div>
             </div>
           </header>
           <div className="library-header-tools library-context-toolbar workspace-collection-toolbar">
@@ -220,7 +219,7 @@ function BookRow({ book, active, subjects, reindexing, onMove, onSetRole, onSetR
       <div className="library-subject-field"><span>归属</span><ScopeSelector size="compact" popupSize="compact" subject={book.subject || ''} subjectTree={subjects} onSubjectChange={onMove} bookMode="hidden" width="normal" label={`${book.display_name || book.name}教材归属`} placeholder="未分类" className="library-subject-selector" /></div>
       {role === 'standalone' ? <div className="library-resource-group-static"><span>配套</span><strong>单独使用</strong></div> : <label><span>配套</span><input aria-label={`${book.display_name || book.name}配套教材组`} defaultValue={book.resource_group || ''} placeholder={book.subject ? `默认：${book.subject}` : '输入组名'} onBlur={(event) => onSetResourceGroup(event.target.value.trim())} /></label>}
     </div>
-    <select className="study-role-select" value={role} aria-label={`${book.display_name || book.name}的教材角色`} title={roleGuidance(role)} onChange={(event) => onSetRole(event.target.value as typeof role)}>{ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+    <Selector ariaLabel={`${book.display_name || book.name}的教材角色`} value={role} onChange={value => onSetRole(value as typeof role)} options={ROLE_OPTIONS.map((option) => ({ value: option.value, label: option.label }))} title={roleGuidance(role)} className="study-role-selector" compact/>
     <div className="library-book-actions"><button onClick={onReindex} disabled={reindexing} className="app-secondary-button"><RefreshCw className={`h-4 w-4 ${reindexing ? 'animate-spin' : ''}`} />{reindexing ? '准备中' : '重新准备'}</button>{!active ? <button onClick={onSwitch} className="app-ghost-button">设为学习范围</button> : <span className="library-active-label">当前学习范围</span>}<BookOverflowMenu onRename={onRename} onDelete={onDelete} onAudit={() => setAuditOpen(true)} /></div>
     {auditOpen && <FigureAuditPanel bookName={book.storage_name || book.name} onClose={() => setAuditOpen(false)} />}
     {outlineOpen && <OutlineCalibrationPanel bookName={book.storage_name || book.name} onClose={() => setOutlineOpen(false)} />}

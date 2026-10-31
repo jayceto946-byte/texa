@@ -1,3 +1,4 @@
+import Selector from './ui/Selector';
 import { TexaDelete, TexaClose } from './icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -445,16 +446,10 @@ const HighlightRepositoryDialog: React.FC<HighlightRepositoryDialogProps> = ({ o
           <aside className="highlight-repository-navigation flex min-h-0 flex-col border-b border-border bg-[var(--surface-subtle)] p-3 sm:p-4 lg:border-b-0 lg:border-r">
             <label className="text-xs font-medium text-text-secondary">
               教材
-              <select value={highlightBookName} onChange={(e) => setHighlightBookName(e.target.value)} className="mt-1 h-10 w-full rounded-lg border border-border bg-bg-card px-3 text-sm text-text-primary outline-none focus:border-accent">
-                {!books.length && <option value="">暂无教材</option>}
-                {books.map((book) => <option key={book.name} value={book.name}>{book.name}</option>)}
-              </select>
+              <Selector disabled={!books.length} ariaLabel="重点教材" value={highlightBookName} onChange={value => setHighlightBookName(value)} options={[...(!books.length ? [{ value: "", label: "暂无教材" }] : []), ...books.map((book) => ({ value: book.name, label: book.name }))]} className="mt-1 w-full"/>
             </label>
             <label className="highlight-compact-chapter text-xs font-medium text-text-secondary">章节
-              <select aria-label="选择重点章节" value={selectedChapterId} onChange={event => setSelectedChapterId(event.target.value)} className="mt-1 h-10 w-full rounded-lg border border-border bg-bg-card px-3 text-sm text-text-primary">
-                {!chapters.length && <option value="">暂无可用章节</option>}
-                {chapters.map(chapter => <option key={chapter.id} value={chapter.id}>{chapter.title}</option>)}
-              </select>
+              <Selector disabled={!chapters.length} ariaLabel="选择重点章节" value={selectedChapterId} onChange={value => setSelectedChapterId(value)} options={[...(!chapters.length ? [{ value: "", label: "暂无可用章节" }] : []), ...chapters.map((chapter) => ({ value: chapter.id, label: chapter.title }))]} className="mt-1 w-full"/>
             </label>
 
             <div className="highlight-chapter-count mt-3 flex items-center justify-between text-xs font-medium text-text-secondary sm:mt-4">

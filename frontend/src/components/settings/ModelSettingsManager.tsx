@@ -1,7 +1,7 @@
 import { TexaDelete } from '../icons';
 import { ChevronDown, Link2, LoaderCircle, Plus } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import ScrollableSelect from '../ui/ScrollableSelect';
+import Selector from '../ui/Selector';
 import type { ModelRoleId, ModelSettingsValue } from './modelSettingsTypes';
 
 type Props = {
@@ -194,7 +194,7 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
     return <div className="welcome-connection-role">
       <div className="welcome-provider-row">
         <span className="welcome-field-caption">{title} · 服务商</span>
-        <ScrollableSelect compact ariaLabel={`${title}服务商`} className="welcome-provider-select" value={selected.provider} options={providers.map((provider) => ({ value: provider.id, label: guidedProviderLabels[provider.id] || provider.label }))}
+        <Selector compact ariaLabel={`${title}服务商`} className="welcome-provider-select" value={selected.provider} options={providers.map((provider) => ({ value: provider.id, label: guidedProviderLabels[provider.id] || provider.label }))}
           // The handler reads remembered provider state only when the user selects an option.
           // eslint-disable-next-line react-hooks/refs
           onChange={(providerId) => selectProvider(role, providerId)} />
@@ -235,7 +235,7 @@ export default function ModelSettingsManager({ value, onChange, onActivateProfil
         <div className={fieldRowClass}>
           <span className="settings-label">方案</span>
           <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
-            <ScrollableSelect
+            <Selector
               compact
               ariaLabel="切换并应用模型方案"
               className="min-w-0 flex-1"
@@ -276,7 +276,7 @@ function ModelPicker({ role, title, model, displayName, models, onChange, guided
     <>
       <div className={fieldRowClass}>
         <span className="settings-label">{guided ? '模型' : 'Model'}</span>
-        <ScrollableSelect
+        <Selector
           compact
           ariaLabel={`${title} Model`}
           value={isSuggested ? model : '__current_custom__'}

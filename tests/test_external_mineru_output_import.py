@@ -71,8 +71,8 @@ def test_import_textbook_routes_to_runtime_api_config(monkeypatch, tmp_path):
 
     monkeypatch.setattr(mineru_importer.config, "MINERU_API_URL", "http://mineru.test")
     monkeypatch.setattr(mineru_importer.config, "MINERU_CLI_COMMAND", "mineru {input}")
-    monkeypatch.setattr(mineru_importer, "_import_with_mineru", lambda *args: "api")
-    monkeypatch.setattr(mineru_importer, "_import_with_mineru_cli", lambda *args: "cli")
+    monkeypatch.setattr(mineru_importer, "_import_with_mineru", lambda *args, **kwargs: "api")
+    monkeypatch.setattr(mineru_importer, "_import_with_mineru_cli", lambda *args, **kwargs: "cli")
 
     assert mineru_importer.import_textbook(tmp_path / "book.pdf", "book") == "api"
 
@@ -82,7 +82,7 @@ def test_import_textbook_routes_to_runtime_cli_config(monkeypatch, tmp_path):
 
     monkeypatch.setattr(mineru_importer.config, "MINERU_API_URL", "")
     monkeypatch.setattr(mineru_importer.config, "MINERU_CLI_COMMAND", "mineru -p {input} -o {output}")
-    monkeypatch.setattr(mineru_importer, "_import_with_mineru_cli", lambda *args: "cli")
+    monkeypatch.setattr(mineru_importer, "_import_with_mineru_cli", lambda *args, **kwargs: "cli")
 
     assert mineru_importer.import_textbook(tmp_path / "book.pdf", "book") == "cli"
 
@@ -106,7 +106,7 @@ def test_explicit_local_parse_bypasses_configured_mineru(monkeypatch, tmp_path):
         "_import_with_mineru",
         lambda *args: pytest.fail("explicit local parsing must not call MinerU"),
     )
-    monkeypatch.setattr(mineru_importer, "import_textbook_local", lambda *args: "local")
+    monkeypatch.setattr(mineru_importer, "import_textbook_local", lambda *args, **kwargs: "local")
 
     assert mineru_importer.import_textbook(tmp_path / "book.pdf", "book", parse_method="local") == "local"
 
@@ -116,6 +116,6 @@ def test_auto_parse_falls_back_to_local_without_mineru(monkeypatch, tmp_path):
 
     monkeypatch.setattr(mineru_importer.config, "MINERU_API_URL", "")
     monkeypatch.setattr(mineru_importer.config, "MINERU_CLI_COMMAND", "")
-    monkeypatch.setattr(mineru_importer, "import_textbook_local", lambda *args: "local")
+    monkeypatch.setattr(mineru_importer, "import_textbook_local", lambda *args, **kwargs: "local")
 
     assert mineru_importer.import_textbook(tmp_path / "book.pdf", "book", parse_method="auto") == "local"

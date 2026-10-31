@@ -132,8 +132,7 @@
 .study-desk .library-book-scope input:hover, .study-desk .library-subject-selector > button:hover { border-color: #cdd0da; background: #fff; }
 .study-desk .library-book-scope input:focus { border-color: #435dc5; background: #fff; }
 .study-desk .library-resource-group-static strong { font-size: 11px; padding-left: 5px; }
-.study-desk .study-role-select { appearance: auto; width: 62px; min-height: 28px; padding: 0 4px; border: 1px solid #dcdee5; border-radius: 4px; font-size: 12px; color: #555d72; background: transparent; }
-.study-desk .study-role-select:hover { border-color: #cdd0da; background: #fff; }
+.study-desk .study-role-selectoror { width:106px; min-width:0; justify-self:end; }
 .study-desk .library-book-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px; }
 .study-desk .library-book-actions .app-secondary-button { min-height: 26px; height: 26px; border-color: transparent; background: transparent; padding: 0 5px; font-size: 11px; }
 .study-desk .library-book-actions .app-ghost-button { min-height: 24px; padding: 0 5px; font-size: 11px; }
@@ -198,7 +197,7 @@
   .study-desk .library-book-identity { grid-area: identity; }
   .study-desk .library-readiness { grid-area: readiness; }
   .study-desk .library-book-scope { grid-area: scope; grid-template-columns: repeat(2,minmax(0,1fr)); padding-left: 42px; }
-  .study-desk .study-role-select { grid-area: role; justify-self: end; }
+  .study-desk .study-role-selector { grid-area: role; justify-self: end; }
   .study-desk .library-book-actions { grid-area: actions; justify-content: flex-end; }
 }
 @media (max-width: 1199px) and (min-width: 920px) {
@@ -311,7 +310,7 @@
 }
 .study-desk .context-session-title { font-size: var(--workspace-support-size); font-weight: 400; line-height: 1.6; }
 .study-desk .context-session-row.is-active .context-session-title { font-weight: 500; }
-.study-desk :is(.library-list-filter button,.study-role-select,.composer-tool-button),
+.study-desk :is(.library-list-filter button,.study-role-selector,.composer-tool-button),
 .study-desk .library-page-actions :is(.app-primary-button,.app-secondary-button),
 .study-desk .library-book-actions :is(.app-secondary-button,.app-ghost-button),
 .study-desk .study-classification-tools button {

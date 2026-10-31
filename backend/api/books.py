@@ -30,7 +30,7 @@ from config import BOOKS_PATH, DATA_DIR, MINERU_OUTPUT_PATH, PROGRESS_PATH, VECT
 from ingestion.background_reader import BackgroundReader
 from ingestion.document_ir import load_canonical_book, validate_canonical_book
 from ingestion.vector_store import get_vector_store
-from ingestion.mineru_importer import build_index_from_chapters, import_textbook, import_textbook_from_mineru_output, import_textbook_local
+from ingestion.mineru_importer import build_index_from_chapters, import_textbook, import_textbook_from_mineru_output
 from ingestion.mineru_runtime import inspect_mineru_runtime
 from ingestion.pdf_parser import PDFParser
 from utils.json_io import atomic_write_json
@@ -63,10 +63,21 @@ class OutlineExample(BaseModel):
     role: str = 'section'
 
 
+class OutlineEdit(BaseModel):
+    node_id: str
+    title: str
+    level: int
+    page: int
+    anchor_block_id: str = ''
+    created: bool = False
+    role: str = 'section'
+
+
 class OutlineCalibration(BaseModel):
     base_version: str
     examples: list[OutlineExample] = []
     max_depth: int = 2
+    edits: list[OutlineEdit] | None = None
 
 
 def _outline_preview(name: str, request: OutlineCalibration | None = None):
@@ -78,7 +89,8 @@ def _outline_preview(name: str, request: OutlineCalibration | None = None):
         _, result = preview_outline(resolved, progress_root=PROGRESS_PATH,
             base_version=request.base_version if request else None,
             examples=[item.model_dump() for item in request.examples] if request else None,
-            max_depth=request.max_depth if request else None)
+            max_depth=request.max_depth if request else None,
+            edits=[item.model_dump() for item in request.edits] if request and request.edits is not None else None)
     except FileNotFoundError:
         raise HTTPException(404, '此教材缺少结构化来源，请先导入解析结果') from None
     except OutlineConflict as exc:
@@ -109,7 +121,8 @@ def apply_outline_calibration(name: str, request: OutlineCalibration):
     threading.Thread(target=apply_outline, kwargs=dict(name=resolved, progress_root=PROGRESS_PATH,
         base_version=request.base_version, examples=[item.model_dump() for item in request.examples],
         max_depth=request.max_depth, jobs=_job_manager, job_id=job['id'],
-        on_published=_invalidate_book_read_cache), daemon=True).start()
+        on_published=_invalidate_book_read_cache,
+        edits=[item.model_dump() for item in request.edits] if request.edits is not None else None), daemon=True).start()
     return {'success': True, 'data': job}
 
 
@@ -121,6 +134,78 @@ def refresh_outdated_outline(name: str):
         raise HTTPException(404, '教材不存在')
     job = start_outline_refresh(resolved, progress_root=PROGRESS_PATH, jobs=_job_manager,
                                 on_published=_invalidate_book_read_cache)
+    return {'success': True, 'data': job}
+
+
+
+@router.get('/{name}/outline/pages/{page}')
+def get_outline_source_page(name: str, page: int):
+    resolved = _resolve_book_reference(name)
+    if not resolved:
+        raise HTTPException(404, '教材不存在')
+    from backend.services.book_outline import source_page
+    return {'success': True, 'data': source_page(load_canonical_book(resolved, progress_root=PROGRESS_PATH), page)}
+
+
+def _import_review_job(job_id):
+    job = _read_job(job_id)
+    if not job:
+        raise HTTPException(404, '导入草稿不存在')
+    return job
+
+
+@router.get('/import-jobs/{job_id}/outline')
+def get_import_review(job_id: str):
+    from backend.services.book_import_review import preview_import_draft
+    _, data = preview_import_draft(_import_review_job(job_id), progress_root=PROGRESS_PATH)
+    return {'success': True, 'data': data}
+
+
+@router.post('/import-jobs/{job_id}/outline/preview')
+def preview_import_review(job_id: str, request: OutlineCalibration):
+    from backend.services.book_import_review import preview_import_draft
+    try:
+        _, data = preview_import_draft(_import_review_job(job_id), progress_root=PROGRESS_PATH,
+            examples=[e.model_dump() for e in request.examples], max_depth=request.max_depth,
+            edits=[e.model_dump() for e in request.edits] if request.edits is not None else None)
+        return {'success': True, 'data': data}
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from None
+
+
+@router.get('/import-jobs/{job_id}/outline/pages/{page}')
+def get_import_review_page(job_id: str, page: int):
+    from backend.services.book_import_review import import_source_book
+    from backend.services.book_outline import source_page
+    job = _import_review_job(job_id)
+    book = import_source_book(job, progress_root=PROGRESS_PATH)
+    return {'success': True, 'data': source_page(book, page)}
+
+
+@router.post('/import-jobs/{job_id}/outline/apply')
+def confirm_import_review(job_id: str, request: OutlineCalibration):
+    from backend.services.book_import_review import start_confirmation
+    def start(job, prepared):
+        values = job.get('input', {})
+        if values.get('import_source') == 'external_mineru_output':
+            target = _run_output_import_job
+            args = (job_id, Path(values['file_path']), job['book_name'], values.get('subject', ''), values.get('extract_concepts', False))
+        else:
+            target = _run_import_job
+            args = (job_id, Path(values['file_path']), values.get('toc_pages', ''), values.get('pre_read', False),
+                values.get('require_mineru', True), values.get('subject', ''), values.get('extract_concepts', False), values.get('parse_method', ''))
+        threading.Thread(target=target, args=args, kwargs={'prepared_result': prepared}, daemon=True).start()
+    try:
+        job = start_confirmation(job_id, request, jobs=_job_manager, progress_root=PROGRESS_PATH, start_worker=start)
+        return {'success': True, 'data': job}
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from None
+
+
+@router.post('/import-jobs/{job_id}/cancel')
+def cancel_import_review(job_id: str):
+    _import_review_job(job_id)
+    job = _job_manager.request_cancel(job_id)
     return {'success': True, 'data': job}
 
 
@@ -420,9 +505,10 @@ def _start_optional_concept_extraction(book_name: str, enabled: bool) -> tuple[d
         return None, str(exc)
 
 
-def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool, require_mineru: bool, subject: str = "", extract_concepts: bool = False, parse_method: str = "") -> None:
+def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool, require_mineru: bool, subject: str = "", extract_concepts: bool = False, parse_method: str = "", prepared_result=None) -> None:
     book_name = pdf_path.stem
     final_pdf: Path | None = None
+    published_version = ''
 
     def progress(stage: str, message: str, percent: int | None = None) -> None:
         _job_manager.raise_if_cancelled(job_id)
@@ -432,8 +518,18 @@ def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool,
         _update_job(job_id, **payload)
 
     try:
-        progress("started", "\u51c6\u5907\u5bfc\u5165\u6559\u6750", 3)
-        result = import_textbook(pdf_path, book_name, toc_pages=toc_pages, require_mineru=require_mineru, on_progress=progress, parse_method=parse_method)
+        if prepared_result is None:
+            progress("started", "正在解析教材", 3)
+            result = import_textbook(pdf_path, book_name, toc_pages=toc_pages, require_mineru=require_mineru,
+                on_progress=progress, parse_method=parse_method, prepare_only=True)
+            from backend.services.book_import_review import save_import_draft
+            save_import_draft(job_id, result, jobs=_job_manager, progress_root=PROGRESS_PATH,
+                source_root=Path(MINERU_OUTPUT_PATH) / '_imports' / job_id)
+            return
+        result = prepared_result
+        progress('indexing', '正在建立已确认目录的检索索引', 55)
+        from backend.services.book_import_review import publish_confirmed_import
+        published_version = publish_confirmed_import(job_id, result, jobs=_job_manager, progress_root=PROGRESS_PATH)
         _job_manager.raise_if_cancelled(job_id)
         ingestion_report: dict = {}
         ingestion_warning = ""
@@ -480,11 +576,21 @@ def _run_import_job(job_id: str, pdf_path: Path, toc_pages: str, pre_read: bool,
                     progress_root=PROGRESS_PATH, vector_db_root=VECTOR_DB_PATH),
             },
         )
+        from backend.services.book_import_review import finish_import_draft
+        finish_import_draft(job_id, progress_root=PROGRESS_PATH)
     except JobCancelled as exc:
-        _cleanup_new_book_import(book_name, pdf_path, final_pdf)
+        if prepared_result is None:
+            _cleanup_new_book_import(book_name, pdf_path, final_pdf)
+        else:
+            from backend.services.book_import_review import rollback_failed_confirmation
+            rollback_failed_confirmation(book_name, published_version, cleanup=_cleanup_new_book_import, staged_pdf=pdf_path, final_pdf=final_pdf)
         _update_job(job_id, status="cancelled", stage="cancelled", progress=100, message=str(exc) or "\u6559\u6750\u5bfc\u5165\u5df2\u53d6\u6d88", error=str(exc))
     except Exception as exc:
-        _cleanup_new_book_import(book_name, pdf_path, final_pdf)
+        if prepared_result is None:
+            _cleanup_new_book_import(book_name, pdf_path, final_pdf)
+        else:
+            from backend.services.book_import_review import rollback_failed_confirmation
+            rollback_failed_confirmation(book_name, published_version, cleanup=_cleanup_new_book_import, staged_pdf=pdf_path, final_pdf=final_pdf)
         _update_job(job_id, status="failed", stage="failed", progress=100, message=f"\u6559\u6750\u5bfc\u5165\u5931\u8d25\uff1a{exc}", error=str(exc))
 
 
@@ -856,8 +962,9 @@ def _copy_origin_pdf_if_present(output_dir: Path, book_name: str) -> Path | None
     return dest
 
 
-def _run_output_import_job(job_id: str, archive_path: Path, book_name: str, subject: str = "", extract_concepts: bool = False) -> None:
+def _run_output_import_job(job_id: str, archive_path: Path, book_name: str, subject: str = "", extract_concepts: bool = False, prepared_result=None) -> None:
     pdf_path: Path | None = None
+    published_version = ''
 
     def progress(stage: str, message: str, percent: int | None = None) -> None:
         _job_manager.raise_if_cancelled(job_id)
@@ -867,9 +974,19 @@ def _run_output_import_job(job_id: str, archive_path: Path, book_name: str, subj
         _update_job(job_id, **payload)
 
     try:
-        progress("extract", "Extracting OCR output package", 10)
-        output_dir = _extract_zip_safe(archive_path, _unique_output_dir(book_name))
-        result = import_textbook_from_mineru_output(output_dir, book_name, on_progress=progress)
+        if prepared_result is None:
+            progress("extract", "正在读取解析结果", 10)
+            output_dir = _extract_zip_safe(archive_path, _unique_output_dir(book_name))
+            result = import_textbook_from_mineru_output(output_dir, book_name, on_progress=progress, prepare_only=True)
+            from backend.services.book_import_review import save_import_draft
+            save_import_draft(job_id, result, jobs=_job_manager, progress_root=PROGRESS_PATH,
+                source_root=Path(MINERU_OUTPUT_PATH) / '_imports' / job_id)
+            return
+        result = prepared_result
+        output_dir = Path(result.output_dir)
+        progress('indexing', '正在建立已确认目录的检索索引', 55)
+        from backend.services.book_import_review import publish_confirmed_import
+        published_version = publish_confirmed_import(job_id, result, jobs=_job_manager, progress_root=PROGRESS_PATH)
         _job_manager.raise_if_cancelled(job_id)
         _save_chapters(book_name, result.chapters)
         pdf_path = _copy_origin_pdf_if_present(output_dir, book_name)
@@ -903,11 +1020,21 @@ def _run_output_import_job(job_id: str, archive_path: Path, book_name: str, subj
                 "concept_extraction_warning": concept_warning,
             },
         )
+        from backend.services.book_import_review import finish_import_draft
+        finish_import_draft(job_id, progress_root=PROGRESS_PATH)
     except JobCancelled as exc:
-        _cleanup_new_book_import(book_name, archive_path, pdf_path)
+        if prepared_result is None:
+            _cleanup_new_book_import(book_name, archive_path, pdf_path)
+        else:
+            from backend.services.book_import_review import rollback_failed_confirmation
+            rollback_failed_confirmation(book_name, published_version, cleanup=_cleanup_new_book_import, final_pdf=pdf_path)
         _update_job(job_id, status="cancelled", stage="cancelled", progress=100, message=str(exc) or "OCR output import cancelled", error=str(exc))
     except Exception as exc:
-        _cleanup_new_book_import(book_name, archive_path, pdf_path)
+        if prepared_result is None:
+            _cleanup_new_book_import(book_name, archive_path, pdf_path)
+        else:
+            from backend.services.book_import_review import rollback_failed_confirmation
+            rollback_failed_confirmation(book_name, published_version, cleanup=_cleanup_new_book_import, final_pdf=pdf_path)
         _update_job(job_id, status="failed", stage="failed", progress=100, message=f"OCR output import failed: {exc}", error=str(exc))
 
 @router.post("/import-job")
@@ -1017,37 +1144,8 @@ def import_book_local(
     subject: str = Form(""),
     extract_concepts: bool = Form(False),
 ):
-    pdf_path: Path | None = None
-    final_pdf: Path | None = None
-    imported_book_name = ""
-    try:
-        pdf_path = _save_upload(file)
-        imported_book_name = pdf_path.stem
-        result = import_textbook_local(pdf_path, imported_book_name, toc_pages=toc_pages)
-        final_pdf = _promote_uploaded_pdf(pdf_path)
-        _save_chapters(imported_book_name, result.chapters)
-        _write_book_meta(
-            imported_book_name,
-            subject=normalize_subject_value(subject),
-            import_source="local_pdf",
-            mineru_output_dir=result.output_dir,
-        )
-        _set_current_book(imported_book_name, result.chapters, final_pdf)
-        concept_job, concept_warning = _start_optional_concept_extraction(imported_book_name, extract_concepts)
-        return {
-            "success": True,
-            "message": result.message,
-            "data": {
-                "name": imported_book_name, "subject": _book_subject(imported_book_name),
-                "chapter_count": len(result.chapters), "used_mineru": False,
-                "concept_job_id": concept_job.get("id", "") if concept_job else "",
-                "concept_extraction_warning": concept_warning,
-            },
-        }
-    except Exception as exc:
-        if imported_book_name:
-            _cleanup_new_book_import(imported_book_name, pdf_path, final_pdf)
-        return {"success": False, "message": f"\u672c\u5730\u5bfc\u5165\u5931\u8d25\uff1a{exc}"}
+    return create_import_job(file=file, toc_pages=toc_pages, pre_read=False,
+        require_mineru=False, parse_method='local', subject=subject, extract_concepts=extract_concepts)
 
 
 def _start_pre_read(book_name: str, chapters: list[dict], pdf_path: Path) -> None:

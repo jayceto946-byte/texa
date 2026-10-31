@@ -19,6 +19,10 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
+      'no-restricted-syntax': ['error', {
+        selector: ':matches(JSXOpeningElement, JSXSelfClosingElement)[name.name="select"]',
+        message: 'Use the independent components/ui/Selector for dropdown fields.',
+      }],
       'react-hooks/set-state-in-effect': 'off',
       'react-refresh/only-export-components': 'off',
       '@typescript-eslint/no-explicit-any': 'off',

@@ -192,14 +192,31 @@ class JobManager:
             return job
         raise RuntimeError(f"job cannot complete from status: {job.get('status')}")
 
-    def claim_queued_job(self, job_id: str) -> bool:
-        """Claim a worker without reviving cancelled/interrupted attempts."""
-        stamp = _now()
+    def wait_for_review(self, job_id: str, *, result: dict, message: str, progress: int = 45) -> dict:
         with self._connect() as conn, self._lock:
             cur = conn.execute(
-                "UPDATE jobs SET status='running', started_at=?, updated_at=? "
-                "WHERE id=? AND status='queued'", (stamp, stamp, job_id),
-            )
+                "UPDATE jobs SET status='waiting_for_review', stage='review', result_json=?, "
+                "message=?, progress=?, updated_at=? WHERE id=? AND status IN ('queued','running')",
+                (_json_dumps(result), message, progress, _now(), job_id))
+            conn.commit()
+        job = self.get_job(job_id)
+        if not cur.rowcount:
+            if job and job['status'] in {'cancelled', 'cancelling'}:
+                raise JobCancelled(job.get('message') or 'job cancelled')
+            raise RuntimeError('任务已结束，不能进入目录确认')
+        return job
+
+    def claim_queued_job(self, job_id: str) -> bool:
+        return self.claim_job(job_id, from_statuses=('queued',))
+
+    def claim_job(self, job_id: str, *, from_statuses: tuple[str, ...]) -> bool:
+        """Claim a worker without reviving a cancellation or a different run."""
+        stamp = _now()
+        marks = ','.join('?' for _ in from_statuses)
+        with self._connect() as conn, self._lock:
+            cur = conn.execute(
+                "UPDATE jobs SET status='running', started_at=?, completed_at=NULL, updated_at=? "
+                f"WHERE id=? AND status IN ({marks})", (stamp, stamp, job_id, *from_statuses))
             conn.commit()
         return bool(cur.rowcount)
 
@@ -223,10 +240,13 @@ class JobManager:
             conn.execute(
                 """
                 UPDATE jobs
-                SET status = 'cancelling', stage = 'cancelling', message = ?, updated_at = ?
-                WHERE id = ? AND status IN ('queued', 'running')
+                SET status = CASE WHEN status = 'waiting_for_review' THEN 'cancelled' ELSE 'cancelling' END,
+                    stage = CASE WHEN status = 'waiting_for_review' THEN 'cancelled' ELSE 'cancelling' END,
+                    message = ?, updated_at = ?,
+                    completed_at = CASE WHEN status = 'waiting_for_review' THEN ? ELSE completed_at END
+                WHERE id = ? AND status IN ('queued', 'running', 'waiting_for_review')
                 """,
-                (message, now, job_id),
+                (message, now, now, job_id),
             )
             conn.commit()
         job = self.get_job(job_id)

@@ -14,7 +14,7 @@ class OutlineConflict(ValueError):
     pass
 
 
-def preview_outline(name, *, progress_root, base_version=None, examples=None, max_depth=None):
+def preview_outline(name, *, progress_root, base_version=None, examples=None, max_depth=None, edits=None):
     from ingestion.index_pipeline import load_index_manifest
     from ingestion.index_snapshot import index_read_snapshot
     with index_read_snapshot():
@@ -22,23 +22,35 @@ def preview_outline(name, *, progress_root, base_version=None, examples=None, ma
         if base_version is not None and base_version != version:
             raise OutlineConflict('教材已更新，请重新打开目录校准后预览')
         book = load_canonical_book(name, progress_root=progress_root)
-    candidate = recover_outline(book, examples=examples, max_depth=max_depth, force=True)
+    return outline_proposal(book, version, examples=examples, max_depth=max_depth, edits=edits)
+
+
+def outline_proposal(book, version, *, examples=None, max_depth=None, edits=None):
+    candidate = recover_outline(book, examples=examples, max_depth=max_depth, force=True, edits=edits)
     if canonical_outline(candidate) != canonical_outline(book):
         candidate.source_metadata['outline_recovery']['stable_scope_ids'] = True
     nodes = []
     for block in candidate.blocks:
+        boundary = block.attributes.get('outline_boundary')
+        if boundary:
+            from ingestion.document_ir import canonical_chapter_title
+            title = canonical_chapter_title(boundary['title']) or boundary['title']
+            nodes.append(dict(block_id=f'boundary:{block.block_id}', text=title, page=block.page_start,
+                chapter=block.section_path[0], level=1, role='section', family='chapter', visible=True,
+                anchor_block_id=block.block_id, method=boundary['method']))
         if block.attributes.get('outline_toc') or block.block_type != 'heading':
             continue
         title = block.attributes.get('outline_title', block.text)
         if len(title) > 140 or '\n' in title:
             continue
-        nodes.append(dict(block_id=block.block_id, text=title, page=block.page_start,
+        nodes.append(dict(block_id=block.attributes.get('manual_node_id', block.block_id), text=title, page=block.page_start,
                           chapter=block.section_path[0], level=block.attributes.get('outline_level', 0),
                           role=block.attributes.get('outline_role', 'section'), family=family(block.text)[0],
                           visible=block.attributes.get('outline_visible', True),
                           method=block.attributes.get('outline_method', 'body')))
     return candidate, dict(base_version=version, candidates=nodes, chapters=canonical_outline(candidate),
-        recovery=candidate.source_metadata['outline_recovery'])
+        recovery=candidate.source_metadata['outline_recovery'], edits=candidate.source_metadata.get('outline_edits', []),
+        page_count=candidate.source_page_count or max((b.page_start or 1 for b in candidate.blocks), default=1))
 
 
 def outline_refresh_status(name, *, progress_root):
@@ -87,7 +99,7 @@ def start_outline_refresh(name, *, progress_root, jobs, on_published=None):
     return job
 
 
-def apply_outline(name, *, progress_root, base_version, examples, max_depth, jobs, job_id, on_published=None):
+def apply_outline(name, *, progress_root, base_version, examples, max_depth, jobs, job_id, on_published=None, edits=None):
     from ingestion.index_pipeline import load_index_manifest
     from ingestion.mineru_importer import build_index_from_chapters
     try:
@@ -98,7 +110,7 @@ def apply_outline(name, *, progress_root, base_version, examples, max_depth, job
         check_current()
         jobs.update_job(job_id, stage='structure', progress=10, message='依据目录整理全书章、节')
         candidate, preview = preview_outline(name, progress_root=progress_root, base_version=base_version,
-                                             examples=examples, max_depth=max_depth)
+                                             examples=examples, max_depth=max_depth, edits=edits)
         jobs.update_job(job_id, stage='indexing', progress=30, message='同步章节范围与检索索引')
         count = build_index_from_chapters(name, [], Path(progress_root)/name, canonical_book=candidate,
             canonical_progress_root=progress_root, before_publish=check_current)
@@ -110,3 +122,9 @@ def apply_outline(name, *, progress_root, base_version, examples, max_depth, job
             on_published()
     except Exception as exc:
         jobs.fail_or_cancel_job(job_id, error=str(exc), message=str(exc))
+
+
+def source_page(book, page):
+    return dict(page=page, blocks=[dict(block_id=b.block_id, text=b.text, block_type=b.block_type)
+        for b in book.blocks if b.page_start == page and b.text.strip()
+        and not b.attributes.get('outline_toc') and not b.attributes.get('manual_outline_node')])

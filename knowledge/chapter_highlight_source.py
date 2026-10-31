@@ -286,6 +286,19 @@ class ChapterHighlightSourceMixin:
                 if section.is_auxiliary and self._is_study_points_section(section.title)
             ]
             reference_sections = [section for section in reference_sections if section.get("chunks")]
+            # Canonical chapter introductions precede the first subsection.
+            # Keep them in whole-chapter generation without pulling exercises
+            # or neighbouring chapters back in through overlapping page ranges.
+            member_ids = {block_id for ref in subsection_refs for block_id in ref.source_block_ids}
+            covered = {chunk.get('chunk_id') for section in scoped_sections + reference_sections
+                       for chunk in section.get('chunks', [])}
+            introduction = [dict(chunk) for section in raw_sections for chunk in section.get('chunks', [])
+                            if member_ids and chunk.get('block_id') and chunk['block_id'] not in member_ids
+                            and chunk.get('chunk_id') not in covered]
+            if introduction:
+                scoped_sections.insert(0, dict(id='chapter_introduction', index=-1, title=chapter.title,
+                    page=chapter.page, end_page=max(c.get('page') or chapter.page for c in introduction),
+                    is_auxiliary=False, chunks=introduction))
             if scoped_sections:
                 scope = {
                     "id": "all",

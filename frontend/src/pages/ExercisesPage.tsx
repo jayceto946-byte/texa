@@ -1,3 +1,4 @@
+import Selector from '../components/ui/Selector';
 import { TexaTextbook, TexaExercises, TexaSearch, TexaClose } from '../components/icons';
 import { getBookList } from '../features/books/bookList';
 import ManualExerciseDialog from '../features/exercises/ManualExerciseDialog';
@@ -539,7 +540,7 @@ const ExercisesPage: React.FC = () => {
             </div>
             <fieldset className="exercise-import-fields" disabled={importing || commitUnknown}>
               {sourceKind === 'file' && <>
-                <label className="exercise-field">题目来源<select aria-label="题目来源" value={fileSourceCategory} onChange={event => setFileSourceCategory(event.target.value)}><option value="exercise">习题</option><option value="exam">真题</option><option value="textbook_example">教材例题</option></select></label>
+                <label className="exercise-field">题目来源<Selector ariaLabel="题目来源" value={fileSourceCategory} onChange={value => setFileSourceCategory(value)} options={[{ value: "exercise", label: "习题" }, { value: "exam", label: "真题" }, { value: "textbook_example", label: "教材例题" }]}/></label>
                 <button className={`exercise-upload ${importFile ? 'has-file' : ''}`} onClick={() => fileInputRef.current?.click()}>
                   <Upload size={24} />
                   <strong>{importFile?.name || '选择 Word、PDF 或 MinerU 解析包'}</strong>
@@ -551,24 +552,18 @@ const ExercisesPage: React.FC = () => {
               <div className="exercise-field">
                 <span>{sourceKind === 'textbook' ? '选择教材' : '归属范围'}<HelpHint label="教材抽取">从已导入教材内容抽取，无需源 PDF；未选择教材时不能抽取。</HelpHint>
                 </span>
-                {sourceKind === 'textbook' ? <select aria-label="选择教材" value={textbookSourceName} onChange={e => {
-                  const selected = books.find(book => book.name === e.target.value);
-                  void updateTargetName(e.target.value, selected?.subject || '');
-                }}><option value="">请选择已导入教材</option>{books.map(book => <option key={book.book_id || book.name} value={book.name}>{book.displayName || book.name}{book.subject ? ` · ${book.subject}` : ' · 未分类'}</option>)}</select> : <ScopeSelector size="form" subject={targetSubject} bookName={textbookSourceName} books={books} suggestions={books.map(b => b.subject || '').filter(Boolean)} onSubjectChange={updateTargetSubject} onBookChange={updateTargetName} disabled={importing} fullWidth width="wide" />}
+                {sourceKind === 'textbook' ? <Selector ariaLabel="选择教材" value={textbookSourceName} onChange={value => {
+                  const selected = books.find(book => book.name === value);
+                  void updateTargetName(value, selected?.subject || '');
+                }} options={[{ value: "", label: "请选择已导入教材" }, ...books.map((book) => ({ value: book.name, label: [book.displayName || book.name, book.subject ? ` · ${book.subject}` : ' · 未分类'].join('') }))]}/> : <ScopeSelector size="form" subject={targetSubject} bookName={textbookSourceName} books={books} suggestions={books.map(b => b.subject || '').filter(Boolean)} onSubjectChange={updateTargetSubject} onBookChange={updateTargetName} disabled={importing} fullWidth width="wide" />}
               </div>
               {sourceKind === 'textbook' ? <>
                 {!textbookSourceName && <p className="exercise-feedback">请先选择已导入教材。<Link to="/books">前往教材库</Link>
                 </p>}
                 {textbookOutline.error && <p role="status" className="exercise-feedback">{textbookOutline.error}。请重新选择教材或刷新教材库。</p>}
                 <div className="exercise-two">
-                  <label className="exercise-field">教材章节{textbookOutline.chapters.length ? <select aria-label="教材章节" value={textbookChapter} onChange={e => setTextbookChapter(e.target.value)}>
-                    <option value="">全部章节（保留每题来源）</option>{textbookOutline.chapters.map(chapter => <optgroup key={chapter.title} label={chapter.title}>
-                      <option value={chapter.title}>{chapter.title}</option>{chapter.subsections?.map(section => <option key={section.heading_block_id || `${section.title}:${section.page}`} value={section.heading_block_id ? `heading:${section.heading_block_id}` : section.title}>{section.title}</option>)}</optgroup>)}</select> : <input aria-label="教材章节" placeholder="章节名或序号，可留空" value={textbookChapter} onChange={e => setTextbookChapter(e.target.value)} />}</label>
-                  <label className="exercise-field">抽取内容<select aria-label="抽取内容" value={textbookSourceMode} onChange={e => setTextbookSourceMode(e.target.value)}>
-                    <option value="exercise_sections">习题页优先</option>
-                    <option value="examples">章节例题</option>
-
-                  </select>
+                  <label className="exercise-field">教材章节{textbookOutline.chapters.length ? <Selector ariaLabel="教材章节" value={textbookChapter} onChange={value => setTextbookChapter(value)} options={[{ value: "", label: "全部章节（保留每题来源）" }, ...textbookOutline.chapters.flatMap((chapter) => [{ value: chapter.title, label: chapter.title, group: chapter.title }, ...(chapter.subsections || []).map((section) => ({ value: section.heading_block_id ? `heading:${section.heading_block_id}` : section.title, label: section.title, group: chapter.title }))])]}/> : <input aria-label="教材章节" placeholder="章节名或序号，可留空" value={textbookChapter} onChange={e => setTextbookChapter(e.target.value)} />}</label>
+                  <label className="exercise-field">抽取内容<Selector ariaLabel="抽取内容" value={textbookSourceMode} onChange={value => setTextbookSourceMode(value)} options={[{ value: "exercise_sections", label: "习题页优先" }, { value: "examples", label: "章节例题" }]}/>
                   </label>
                 </div>
               </> : null}

@@ -1,0 +1,5 @@
+.texa-selector { min-width:0; }
+.texa-selector > .app-scrollable-select-trigger { min-height:38px; height:38px; font-family:var(--font-app); font-size:13px; }
+.texa-selector > .app-scrollable-select-trigger.is-compact { min-height:32px; height:32px; padding-inline:10px; font-size:12px; }
+.texa-selector > .app-scrollable-select-trigger:disabled { opacity:.55; cursor:not-allowed; }
+.app-selector-option-label { white-space:normal; overflow-wrap:anywhere; line-height:1.5; }

@@ -164,14 +164,14 @@ texa/
 
 ### 下载安装版
 
-本次安装版：[发布说明](https://github.com/jayceto946-byte/texa/releases/tag/v1.0.1-commit.274.9ae0dc35)。安装包已包含本地后端与所需运行环境，普通使用无需安装 Python 或 Node.js。
+当前已发布安装版：[发布说明](https://github.com/jayceto946-byte/texa/releases/tag/v1.0.1-commit.277.a187b6cd)。安装包已包含本地后端与所需运行环境，普通使用无需安装 Python 或 Node.js。
 
 | 平台 | 下载 | 安装方式 |
 | --- | --- | --- |
-| Windows 10/11 · x64 | [下载安装器（EXE）](https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.274.9ae0dc35/Texa-Setup-1.0.1-commit.274.9ae0dc35.exe) | 运行安装器，默认安装到当前用户目录 |
-| macOS · Apple Silicon（M1 及更新芯片） | [下载安装镜像（DMG）](https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.274.9ae0dc35/Texa-1.0.1-commit.274.9ae0dc35-mac-arm64.dmg) | 打开 DMG，将 Texa 拖入 Applications |
+| Windows 10/11 · x64 | [下载安装器（EXE）](https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.277.a187b6cd/Texa-Setup-1.0.1-commit.277.a187b6cd.exe) | 运行安装器，默认安装到当前用户目录 |
+| macOS · Apple Silicon（M1 及更新芯片） | [下载安装镜像（DMG）](https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.277.a187b6cd/Texa-1.0.1-commit.277.a187b6cd-mac-arm64.dmg) | 打开 DMG，将 Texa 拖入 Applications |
 
-macOS 也可[下载 ZIP](https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.274.9ae0dc35/Texa-1.0.1-commit.274.9ae0dc35-mac-arm64.zip)。当前不提供 Intel Mac 安装包。安装包未签名，macOS 尚未公证，首次打开可能需要按系统提示确认。历史版本见 [Releases](https://github.com/jayceto946-byte/texa/releases)。
+macOS 也可[下载 ZIP](https://github.com/jayceto946-byte/texa/releases/download/v1.0.1-commit.277.a187b6cd/Texa-1.0.1-commit.277.a187b6cd-mac-arm64.zip)。当前不提供 Intel Mac 安装包。安装包未签名，macOS 尚未公证，首次打开可能需要按系统提示确认。历史版本见 [Releases](https://github.com/jayceto946-byte/texa/releases)。
 
 首次启动后配置模型连接，教材可以稍后导入。
 
@@ -259,6 +259,8 @@ Windows 安装包需要先准备桌面后端与嵌入运行时，再执行：
 cd desktop
 npm run dist
 ```
+
+安装包工作流现在按需手动运行：在 Actions 的 Texa commit updates 中执行；需要发布时勾选 `publish`。普通提交与推送不再自动构建两端安装包。
 
 ## 数据与配置
 

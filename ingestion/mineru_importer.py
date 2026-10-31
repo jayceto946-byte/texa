@@ -49,20 +49,21 @@ def import_textbook(
     require_mineru: bool = True,
     on_progress: ProgressCallback | None = None,
     parse_method: str = "",
+    prepare_only: bool = False,
 ) -> BookImportResult:
     method = (parse_method or "").strip().lower()
     if method not in {"", "auto", "mineru", "local"}:
         raise ValueError(f"Unsupported textbook parse method: {parse_method}")
     if method == "local":
-        return import_textbook_local(pdf_path, book_name, toc_pages, on_progress)
+        return import_textbook_local(pdf_path, book_name, toc_pages, on_progress, prepare_only=prepare_only)
 
     if config.MINERU_API_URL:
-        return _import_with_mineru(pdf_path, book_name, on_progress)
+        return _import_with_mineru(pdf_path, book_name, on_progress, prepare_only=prepare_only)
     if config.MINERU_CLI_COMMAND:
-        return _import_with_mineru_cli(pdf_path, book_name, on_progress)
+        return _import_with_mineru_cli(pdf_path, book_name, on_progress, prepare_only=prepare_only)
     if method == "mineru" or (not method and require_mineru):
         raise RuntimeError("未配置 MINERU_API_URL 或 MINERU_CLI_COMMAND，无法执行 MinerU 教材导入")
-    return import_textbook_local(pdf_path, book_name, toc_pages, on_progress)
+    return import_textbook_local(pdf_path, book_name, toc_pages, on_progress, prepare_only=prepare_only)
 
 
 def import_textbook_local(
@@ -70,16 +71,17 @@ def import_textbook_local(
     book_name: str,
     toc_pages: str = "",
     on_progress: ProgressCallback | None = None,
+    prepare_only: bool = False,
 ) -> BookImportResult:
     if on_progress:
         on_progress("local_parse", "使用本地目录解析，扫描件正文不会 OCR", 35)
     canonical_book = PdfTextAdapter.from_pdf(pdf_path, book_name=book_name, toc_page_range=toc_pages)
     chapters = chapters_from_canonical(canonical_book)
-    if on_progress:
+    if on_progress and not prepare_only:
         on_progress("indexing", "Building local textbook index", 75)
     output_dir = config.MINERU_OUTPUT_PATH / book_name / "local"
     output_dir.mkdir(parents=True, exist_ok=True)
-    indexed = build_index_from_chapters(
+    indexed = 0 if prepare_only else build_index_from_chapters(
         book_name, chapters, output_dir,
         canonical_book=canonical_book, canonical_progress_root=config.PROGRESS_PATH,
         before_publish=(lambda: on_progress("publish", "Publishing validated textbook assets", 95)) if on_progress else None,
@@ -99,6 +101,7 @@ def import_textbook_from_mineru_output(
     output_dir: Path,
     book_name: str,
     on_progress: ProgressCallback | None = None,
+    prepare_only: bool = False,
 ) -> BookImportResult:
     """Import an already-produced MinerU/Markdown output directory.
 
@@ -121,9 +124,9 @@ def import_textbook_from_mineru_output(
     if not chapters:
         raise RuntimeError("No usable structured_content, content_list, middle JSON, or Markdown in OCR output")
 
-    if on_progress:
+    if on_progress and not prepare_only:
         on_progress("indexing", "Building local chapter vector index", 70)
-    indexed = build_index_from_chapters(
+    indexed = 0 if prepare_only else build_index_from_chapters(
         book_name, chapters, output_dir,
         canonical_book=canonical_book, canonical_progress_root=config.PROGRESS_PATH,
         before_publish=(lambda: on_progress("publish", "Publishing validated textbook assets", 95)) if on_progress else None,
@@ -138,7 +141,7 @@ def import_textbook_from_mineru_output(
         canonical_book=canonical_book,
     )
 
-def _import_with_mineru(pdf_path: Path, book_name: str, on_progress: ProgressCallback | None) -> BookImportResult:
+def _import_with_mineru(pdf_path: Path, book_name: str, on_progress: ProgressCallback | None, *, prepare_only: bool = False) -> BookImportResult:
     output_dir = config.MINERU_OUTPUT_PATH / book_name / "hybrid_auto"
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -174,11 +177,11 @@ def _import_with_mineru(pdf_path: Path, book_name: str, on_progress: ProgressCal
     if not chapters:
         chapters = _parse_chapters_locally(pdf_path, book_name, "")
 
-    if on_progress:
+    if on_progress and not prepare_only:
         on_progress("indexing", "写入章节向量索引", 84)
     if not used_mineru_output:
         canonical_book = PdfTextAdapter.from_chapters(chapters, book_name=book_name, source_file=pdf_path.name)
-    indexed = build_index_from_chapters(
+    indexed = 0 if prepare_only else build_index_from_chapters(
         book_name, chapters, output_dir,
         canonical_book=canonical_book, canonical_progress_root=config.PROGRESS_PATH,
         before_publish=(lambda: on_progress("publish", "Publishing validated textbook assets", 95)) if on_progress else None,
@@ -195,7 +198,7 @@ def _import_with_mineru(pdf_path: Path, book_name: str, on_progress: ProgressCal
     )
 
 
-def _import_with_mineru_cli(pdf_path: Path, book_name: str, on_progress: ProgressCallback | None) -> BookImportResult:
+def _import_with_mineru_cli(pdf_path: Path, book_name: str, on_progress: ProgressCallback | None, *, prepare_only: bool = False) -> BookImportResult:
     output_dir = config.MINERU_OUTPUT_PATH / book_name / "hybrid_auto"
     output_dir.mkdir(parents=True, exist_ok=True)
     command = config.MINERU_CLI_COMMAND.format(input=str(pdf_path), output=str(output_dir), book=book_name)
@@ -213,9 +216,9 @@ def _import_with_mineru_cli(pdf_path: Path, book_name: str, on_progress: Progres
     chapters = chapters_from_canonical(canonical_book)
     if not chapters:
         raise RuntimeError("MinerU CLI 未生成可识别的 structured_content/content_list/middle 输出")
-    if on_progress:
+    if on_progress and not prepare_only:
         on_progress("indexing", "写入章节向量索引", 84)
-    indexed = build_index_from_chapters(
+    indexed = 0 if prepare_only else build_index_from_chapters(
         book_name, chapters, output_dir,
         canonical_book=canonical_book, canonical_progress_root=config.PROGRESS_PATH,
         before_publish=(lambda: on_progress("publish", "Publishing validated textbook assets", 95)) if on_progress else None,

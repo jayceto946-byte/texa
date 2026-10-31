@@ -89,12 +89,12 @@
   .app-shell.study-desk .library-category-identity h3 { display:none; }
   .app-shell.study-desk .library-category-identity p { margin:0; white-space:nowrap; }
   .library-compact-category { display:flex; align-items:center; gap:10px; min-width:0; }
-  .library-compact-category > span { font-size:12px; color:var(--color-text-secondary); }
-  .library-compact-category select { min-width:0; max-width:360px; height:36px; padding:0 10px; background:var(--workspace-canvas); border:1px solid var(--workspace-separator); border-radius:5px; font:inherit; }
+  .library-compact-category > span { flex:none; white-space:nowrap; font-size:12px; color:var(--color-text-secondary); }
+  .library-compact-category .texa-selector { min-width:0; width:min(360px,100%); }
   .app-shell.study-desk .library-book-list:has(.library-book-row) { min-width:0; }
   .app-shell.study-desk .library-book-row { grid-template-columns:minmax(0,1fr) auto; grid-template-areas:'identity role' 'readiness actions' 'scope scope'; align-items:start; gap:10px 16px; padding:16px 0; min-height:0; }
   .app-shell.study-desk .library-book-identity { grid-area:identity; }
-  .app-shell.study-desk .study-role-select { grid-area:role; }
+  .app-shell.study-desk .study-role-selector { grid-area:role; }
   .app-shell.study-desk .library-book-readiness { grid-area:readiness; }
   .app-shell.study-desk .library-readiness { gap:4px; }
   .app-shell.study-desk .library-book-scope { grid-area:scope; padding-left:42px; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }

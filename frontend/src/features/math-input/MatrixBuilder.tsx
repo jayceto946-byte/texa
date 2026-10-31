@@ -1,3 +1,4 @@
+import Selector from '../../components/ui/Selector';
 import React, { useMemo, useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 
@@ -74,9 +75,7 @@ const MatrixBuilder: React.FC<MatrixBuilderProps> = ({ initialRows = 2, initialC
         </div>
         <label className="min-w-36 flex-1">
           <span className="mb-1 block type-caption font-medium text-text-secondary">外框</span>
-          <select value={environment} onChange={(event) => setEnvironment(event.target.value as MatrixEnvironment)} className="h-9 w-full rounded-lg border border-border bg-bg-card px-2 type-caption outline-none focus:border-accent">
-            {environments.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </select>
+          <Selector ariaLabel="矩阵外框" value={environment} onChange={value => setEnvironment(value as MatrixEnvironment)} options={environments.map((option) => ({ value: option.value, label: option.label }))} className="w-full"/>
         </label>
       </div>
 

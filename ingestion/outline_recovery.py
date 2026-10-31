@@ -245,11 +245,12 @@ def _restore_source_titles(book):
     return restored
 
 
-def recover_outline(book, examples=None, max_depth=None, *, force=False):
+def recover_outline(book, examples=None, max_depth=None, *, force=False, edits=None):
     """Return a derived candidate. Reading an active document never mutates it."""
-    if not force and examples is None and book.source_metadata.get('outline_recovery', {}).get('version') == POLICY_VERSION:
+    if not force and examples is None and edits is None and book.source_metadata.get('outline_recovery', {}).get('version') == POLICY_VERSION:
         return book
     result = deepcopy(book)
+    result.blocks = [b for b in result.blocks if not b.attributes.get('manual_outline_node')]
     restored_titles = _restore_source_titles(result)
     previous = book.source_metadata.get('outline_recovery', {})
     examples = examples if examples is not None else previous.get('examples', [])
@@ -426,6 +427,11 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False):
     result.source_metadata['outline_recovery'] = dict(version=POLICY_VERSION, headings=heading_count, roots=roots,
         toc=toc_report, recovered_chapters=len(boundaries), restored_source_titles=sum(bool(b.attributes.get('restored_source_title')) for b in blocks), matched_bookmarks=len(bookmarks), examples=examples, max_depth=max_depth,
         stable_scope_ids=bool(boundaries) or bool(restored_titles) or previous.get('stable_scope_ids', False))
+    selected_edits = edits if edits is not None else book.source_metadata.get('outline_edits', [])
+    if selected_edits:
+        from ingestion.outline_edits import apply_outline_edits
+        return apply_outline_edits(result, selected_edits)
+    result.source_metadata['outline_edits'] = []
     from ingestion.document_workflows import annotate_learning_units
     annotate_learning_units(result)
     return result
