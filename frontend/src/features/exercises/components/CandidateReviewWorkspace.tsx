@@ -53,7 +53,7 @@ export function CandidateReviewWorkspace({ state: s, source, busy: parentBusy, n
   const applyResult = (result: { candidates: ExerciseCandidate[]; extract: CandidateSourceRegistry }) => { s.replaceCandidates(result.candidates, result.extract); setPendingResult(null); setReviewIssuesOpen(false); setAdoptOpen(false); onReviewed?.(result.candidates.length); };
   return <section className="exercise-candidate-review">
     <header className="exercise-review-toolbar">
-      <div className="exercise-review-title"><h1>校对题目</h1><span title={source}>{source}</span></div>
+      <div className="exercise-review-title"><h2>校对题目</h2><span title={source}>{source}</span></div>
       <div className="exercise-review-actions">
     {reviewSource && <StructureReviewControl compact candidateCount={s.candidates.length} onDispatch={() => { dispatchedContent.current = JSON.stringify(latestCandidates.current); setPendingResult(null); }} key={reviewSource} target={{ kind: 'file', reference: reviewSource, book_name: bookName }} disabled={parentBusy} onBusyChange={setReviewBusy} onComplete={async result => {
       if (!result?.source_id) return;

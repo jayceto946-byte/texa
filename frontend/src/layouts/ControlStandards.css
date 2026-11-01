@@ -9,8 +9,8 @@
     width:var(--workspace-control-height)!important;height:var(--workspace-control-height)!important;min-width:var(--workspace-control-height)!important;min-height:var(--workspace-control-height)!important;padding:5px!important;
   }
   :is(.app-shell.app-shell,.app-dialog-shell.app-dialog-shell) :is(.app-segmented-control,.app-tabs) {font-size:var(--workspace-support-size)}
-  :is(.app-shell.app-shell,.app-dialog-shell.app-dialog-shell) .app-segmented-control {min-height:32px;padding:2px}
-  :is(.app-shell.app-shell,.app-dialog-shell.app-dialog-shell) .app-segmented-option {min-height:26px;padding:2px 10px;font:500 12px/1.5 var(--font-app)}
+  :is(.app-shell.app-shell,.app-dialog-shell.app-dialog-shell) .app-segmented-control {box-sizing:border-box;height:var(--workspace-control-height);min-height:var(--workspace-control-height);padding:2px;border-radius:var(--workspace-control-radius)}
+  :is(.app-shell.app-shell,.app-dialog-shell.app-dialog-shell) .app-segmented-control>.app-segmented-option {box-sizing:border-box;height:calc(var(--workspace-control-height) - 6px);min-height:calc(var(--workspace-control-height) - 6px);padding:0 10px;font:500 var(--workspace-support-size)/var(--workspace-interface-leading) var(--font-app)}
   .app-shell.app-shell :is(.exercise-source-tabs,.question-reading-tabs,.goals-tabs,.goal-detail-tabs,.library-list-filter) button {font-size:12px;font-weight:400;line-height:1.5}
 }
 :is(.app-shell.app-shell,.app-dialog-shell.app-dialog-shell) summary {

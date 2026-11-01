@@ -39,10 +39,12 @@
 .exercise-session-strip{display:flex;justify-content:space-between;align-items:center;padding:14px 28px;border-bottom:1px solid var(--color-border);font-size:13px}
 .exercise-candidate-review{display:flex;flex-direction:column;min-height:0;height:100%;font-family:var(--font-app)}
 .exercise-candidate-review :is(button,input,textarea,select,summary){font-family:inherit}
-.exercise-review-toolbar{display:flex;align-items:center;gap:16px;min-height:56px;padding:10px 20px;border-bottom:1px solid var(--color-border);flex:none;position:relative;font:400 13px/1.5 var(--font-app)}
+.exercise-review-toolbar{display:flex;align-items:center;gap:16px;min-height:56px;padding:10px var(--workspace-management-gutter);border-bottom:1px solid var(--color-border);flex:none;position:relative;font:400 13px/1.5 var(--font-app)}
 .exercise-review-title{display:flex;align-items:baseline;gap:12px;flex:1;min-width:0}
-.exercise-review-title h1{font:600 16px/1.5 var(--font-app);margin:0;white-space:nowrap}
+.exercise-review-title h2{font:500 14px/1.5 var(--font-app);margin:0;white-space:nowrap}
 .exercise-review-title>span{font-size:13px;color:var(--color-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.app-shell[data-navigation="closed"] .exercise-review-toolbar{padding-left:60px}
+body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell[data-navigation="closed"] .exercise-review-toolbar{padding-left:152px}
 .exercise-review-actions{display:flex;align-items:center;gap:8px;flex:none}
 .exercise-review-issues{margin:20px 0;font-size:13px;color:var(--warning)}
 .exercise-review-issues>div{margin-top:12px}
