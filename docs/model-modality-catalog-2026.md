@@ -8,7 +8,7 @@ Texa 的模型选择器服务于学习问答与图片题：它需要**文本输�
 | --- | --- | --- | --- |
 | Qwen `qwen3.8-max`、`qwen3.8-flash`、`qwen3.7-plus`、`qwen3.7-flash`、`qwen3.6-plus/flash`、`qwen3.5-plus/flash` | 文本、图片（部分还接受视频）→ 文本 | 可作为单模型或识图模型 | [阿里云视觉理解](https://help.aliyun.com/zh/model-studio/vision-model/) |
 | Qwen `qwen3.7-max-2026-05-20` 与 `qwen3.7-max-2026-06-08` | 前者文本 → 文本；后者文本、图片 → 文本 | 不以同系列名称推断能力；暂不预置快照 | [阿里云模型更新](https://help.aliyun.com/zh/model-studio/newly-released-models) |
-| DeepSeek `deepseek-v4-pro`、`deepseek-flash` | Pro 文本 → 文本；Flash 文本、图片 → 文本 | Pro 仅回答；Flash 可识图。旧 `deepseek-v4-flash` 为兼容项，不将其能力按新别名推断 | [DeepSeek 型号与价格](https://api-docs.deepseek.com/quick_start/pricing/)、[视觉接口](https://api-docs.deepseek.com/guides/vision/) |
+| DeepSeek `deepseek-v4-pro`、`deepseek-flash` | Pro 文本 → 文本；Flash 文本、图片 → 文本 | Flash 当前为 V4.1-Flash-1017，可识图。2026-11-01 官方说明旧 `deepseek-v4-flash` 已路由到同一 Flash，兼容别名也允许图片；每张图最多计 1024 输入 token | [DeepSeek 型号与价格](https://api-docs.deepseek.com/quick_start/pricing/)、[视觉接口](https://api-docs.deepseek.com/guides/vision/) |
 | Moonshot `kimi-k2.5`、`kimi-k2.6` | 文本、图片 → 文本 | 可识图；K2.6 的公开视觉基准与 API 使用说明需结合当前端点探针复核 | [K2.5 平台说明](https://platform.moonshot.ai/docs/guide/prompt-best-practice)、[K2.6 官方公告](https://forum.moonshot.ai/t/meet-kimi-k2-6-advancing-open-source-coding/369) |
 | Google `gemini-3.8-flash`、`3.7-flash`、`3.6-flash`、`3.5-flash` | 文本、图片等 → 文本 | 可识图；当前 Texa 只调用图片输入/文本输出路径 | [Gemini 型号目录](https://ai.google.dev/gemini-api/docs/models)、[3.8 Flash 规格](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash) |
 | OpenAI `gpt-5.6-sol/terra/luna`、`gpt-5.4-mini` | 文本、图片 → 文本 | 可识图 | [OpenAI 模型目录](https://platform.openai.com/docs/models) |

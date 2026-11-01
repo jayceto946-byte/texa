@@ -68,7 +68,10 @@ def test_archive_keeps_sources_assets_pages_and_server_replay(tmp_path, monkeypa
     assert len(candidates) == 2 and candidates[0].explanation.startswith('解：')
     assert '解：' not in candidates[0].question_text
     assert candidates[0].projection['structure']['original_number'] == '2-1'
-    assert any(i['code'] == 'missing_required_input' for i in candidates[1].issues)
+    assert not any(i['code'] == 'missing_required_input' for i in candidates[1].issues)
+    dependency = next(d for d in candidates[1].projection['dependencies'] if d['kind'] == 'figure')
+    assert dependency['resolution'] == 'embedded' and dependency['asset_ids'] == [asset_id]
+    assert any(i['code'] == 'dependency_uncertain' for i in candidates[1].issues)
     from backend.services.exercise_candidate_review import ExerciseCandidateReviewService
     service = ExerciseCandidateReviewService(file_provider=lambda sid, book: store.load(sid, book))
     first = candidates[0].to_dict()

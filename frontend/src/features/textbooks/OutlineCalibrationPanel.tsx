@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Plus, ArrowUpRight, RotateCcw } from 'lucide-react';
 import { TexaClose } from '../../components/icons';
 import Dialog from '../../components/ui/Dialog';
+import { StructureReviewControl } from '../../components/StructureReviewControl';
 import Selector from '../../components/ui/Selector';
 import { SegmentedControl } from '../../components/ui/SelectionControls';
 import { outlineRequest, useOutlineCalibration, type OutlineEdit, type SourceBlock } from './hooks/useOutlineCalibration';
@@ -12,6 +13,8 @@ export default function OutlineCalibrationPanel({ bookName, onClose, importJobId
 }) {
   const state = useOutlineCalibration(bookName, importJobId, onConfirmed);
   const [selectedId, setSelectedId] = useState('');
+  const [reviewBusy, setReviewBusy] = useState(false);
+  const busy = state.busy || reviewBusy;
   const [pageBlocks, setPageBlocks] = useState<SourceBlock[]>([]);
   const [pageError, setPageError] = useState('');
   const titleRef = useRef<HTMLInputElement>(null);
@@ -61,14 +64,15 @@ export default function OutlineCalibrationPanel({ bookName, onClose, importJobId
   return <Dialog open title={importJobId ? '确认教材目录' : '校正教材目录'} onClose={onClose} className="outline-calibration-dialog">
     <section className="outline-calibration" aria-label={`${bookName}目录校正`}>
       <header className="outline-calibration-header"><div><h3>{importJobId ? '确认教材目录' : '校正教材目录'}</h3><p title={bookName}>{bookName}</p></div><button type="button" className="app-icon-button" aria-label="关闭目录校正" onClick={onClose}><TexaClose size={18} /></button></header>
+      <StructureReviewControl key={importJobId || bookName} target={{ kind: importJobId ? 'import' : 'book', reference: importJobId || bookName, book_name: bookName }} disabled={state.busy} onBusyChange={setReviewBusy} onComplete={() => state.reloadReviewed()} />
       {state.loading && <p className="outline-message" role="status">正在读取目录…</p>}
       {state.error && <div className="outline-error" role="alert">{state.error}{!data && <button type="button" onClick={state.retry}>重试</button>}</div>}
       {data && <div className="outline-editor-workspace">
         <aside className="outline-sidebar" aria-label="教材目录">
-          <div className="outline-sidebar-tools"><span>{rows.filter(row=>row.level===1).length} 章</span><button type="button" disabled={state.busy} onClick={addChapter}><Plus size={15} />新增一级标题</button></div>
+          <div className="outline-sidebar-tools"><span>{rows.filter(row=>row.level===1).length} 章</span><button type="button" disabled={busy} onClick={addChapter}><Plus size={15} />新增一级标题</button></div>
           <SegmentedControl label="目录显示层级" value={String(state.maxDepth)} options={[{value:'1',label:'章'},{value:'2',label:'章和节'},{value:'6',label:'全部'}]} onChange={value => state.changeDepth(Number(value))} />
           <nav className="outline-title-list" aria-label="选择目录标题">
-            {visibleRows.map(row => <button type="button" key={row.block_id} disabled={state.busy} aria-current={row.block_id === selected?.block_id ? 'true' : undefined} onClick={() => setSelectedId(row.block_id)} className={`${row.level === 1 ? 'is-chapter' : ''} ${row.block_id === selected?.block_id ? 'is-selected' : ''}`}>
+            {visibleRows.map(row => <button type="button" key={row.block_id} disabled={busy} aria-current={row.block_id === selected?.block_id ? 'true' : undefined} onClick={() => setSelectedId(row.block_id)} className={`${row.level === 1 ? 'is-chapter' : ''} ${row.block_id === selected?.block_id ? 'is-selected' : ''}`}>
               <span style={{paddingLeft: Math.min(row.level - 1, 3) * 12}}>{row.text || '新建章节'}</span><small>{row.page}</small>
             </button>)}
             {!visibleRows.length && <p className="outline-message">尚无目录，可先新增一级标题。</p>}
@@ -76,7 +80,7 @@ export default function OutlineCalibrationPanel({ bookName, onClose, importJobId
         </aside>
         <main className="outline-editor-detail">
           {selected ? <>
-            <fieldset className="outline-edit-fields" disabled={state.busy}>
+            <fieldset className="outline-edit-fields" disabled={busy}>
               <div className="outline-detail-heading"><h4>{selectedEdit?.created && !state.source?.candidates.some(row=>row.block_id===selected.block_id) ? '新增章节' : '编辑标题'}</h4><button type="button" onClick={remove}>移出目录</button></div>
               <label className="outline-field"><span>标题</span><input ref={titleRef} aria-label="目录标题" value={selected.text} maxLength={140} onChange={e => update({title:e.target.value})} placeholder="填写目录中缺失的章名" /></label>
               <div className="outline-field-pair"><label className="outline-field"><span>层级</span><Selector ariaLabel="标题层级" value={String(selected.level)} options={[1,2,3,4,5,6].map(n=>({value:String(n),label:n===1?'一级标题 · 章':n===2?'二级标题 · 节':`${n} 级标题`}))} onChange={value=>update({level:Number(value)})} /></label>
@@ -94,13 +98,13 @@ export default function OutlineCalibrationPanel({ bookName, onClose, importJobId
                 event.preventDefault(); buttons[next]?.focus(); buttons[next]?.click();
               }}>{pageBlocks.map((block, index) => {
                 const active = selectedEdit?.anchor_block_id ? selectedEdit.anchor_block_id === block.block_id : selectedEdit ? index === 0 : selected.block_id === block.block_id;
-                return <button type="button" role="radio" aria-checked={active} key={block.block_id} disabled={state.busy} onClick={()=>update({anchor_block_id:block.block_id})} className={active?'is-anchor':''}><span className="outline-anchor-dot" /><span>{block.text}</span>{active && <ArrowUpRight size={15} />}</button>;
+                return <button type="button" role="radio" aria-checked={active} key={block.block_id} disabled={busy} onClick={()=>update({anchor_block_id:block.block_id})} className={active?'is-anchor':''}><span className="outline-anchor-dot" /><span>{block.text}</span>{active && <ArrowUpRight size={15} />}</button>;
               })}</div>
             </section>
           </> : <div className="outline-message">从左侧选择标题，或新增缺失的一级标题。</div>}
         </main>
       </div>}
-      <footer className="outline-calibration-footer"><div className="outline-footer-status" role="status">{state.job?.message || (importJobId ? '确认后建立索引并正式导入' : '保存后同步章节与检索范围')}</div><div><button type="button" className="app-icon-button" aria-label="恢复识别目录" title="恢复识别目录" disabled={state.busy || !data} onClick={()=>void state.reset()}><RotateCcw size={16}/></button><button type="button" className="app-secondary-button" disabled={state.busy || !data} onClick={()=>void state.preview()}>预览目录</button><button type="button" className="app-primary-button" disabled={state.busy || !data} onClick={()=>void state.apply()}>{state.busy?'正在处理…':importJobId?'确认目录并导入':'保存校正'}</button></div></footer>
+      <footer className="outline-calibration-footer"><div className="outline-footer-status" role="status">{state.job?.message || (importJobId ? '确认后建立索引并正式导入' : '保存后同步章节与检索范围')}</div><div><button type="button" className="app-icon-button" aria-label="恢复识别目录" title="恢复识别目录" disabled={busy || !data} onClick={()=>void state.reset()}><RotateCcw size={16}/></button><button type="button" className="app-secondary-button" disabled={busy || !data} onClick={()=>void state.preview()}>预览目录</button><button type="button" className="app-primary-button" disabled={busy || !data} onClick={()=>void state.apply()}>{busy?'正在处理…':importJobId?'确认目录并导入':'保存校正'}</button></div></footer>
     </section>
   </Dialog>;
 }

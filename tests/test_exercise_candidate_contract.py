@@ -181,7 +181,7 @@ def test_api_version_routing_and_all_or_nothing(tmp_path,monkeypatch):
     import backend.api.exercises as api
     from backend.schemas import ExerciseBatchAddRequest
     service,item,_=admission_fixture()
-    monkeypatch.setattr('backend.services.exercise_candidate_review.ExerciseCandidateReviewService', lambda:service)
+    monkeypatch.setattr('backend.services.exercise_candidate_review.ExerciseCandidateReviewService', lambda **kwargs:service)
     bank=ExerciseBank(tmp_path/'exercises.db');monkeypatch.setattr(api,'_bank',lambda _:bank)
     monkeypatch.setattr(api,'_log_learning_event',lambda *args,**kwargs:None)
     app=FastAPI();app.include_router(api.router);client=TestClient(app)

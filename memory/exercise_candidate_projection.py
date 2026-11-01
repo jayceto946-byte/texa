@@ -20,7 +20,8 @@ SNAPSHOT_KEYS = ('block_id', 'block_type', 'text', 'section_path', 'page_start',
                  'equations', 'table_title', 'table_header', 'table_rows', 'source_kind', 'review_status')
 ATTRIBUTE_KEYS = ('source_page_idx', 'source_block_index', 'bbox_space', 'bbox_format', 'bbox_units',
                   'mineru_type', 'raw_level', 'semantic_role', 'asset_id', 'asset_hash', 'asset_status',
-                  'source_parent_id', 'source_start', 'source_end', 'asset_format')
+                  'source_parent_id', 'source_start', 'source_end', 'asset_format',
+                  'structure_role', 'structure_unit_role', 'structure_group_members', 'structure_unit_id')
 
 
 def canonical_json(value):
@@ -34,6 +35,10 @@ def content_hash(value, *, include_projection=True):
 
 def snapshot(block, order):
     raw = block.to_dict()
+    if block.block_type == 'figure' and raw['attributes'].get('asset_status') == 'ready' and raw['attributes'].get('content_hash'):
+        from pathlib import PurePosixPath
+        raw['attributes'].update(asset_id=raw['attributes']['content_hash'],
+                                  asset_format=PurePosixPath(raw['attributes'].get('asset_relpath', '')).suffix)
     return {**{key: deepcopy(raw[key]) for key in SNAPSHOT_KEYS}, 'order': order,
             'attributes': {key: deepcopy(raw['attributes'][key]) for key in ATTRIBUTE_KEYS if key in raw['attributes']}}
 
@@ -171,6 +176,11 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
         method = 'unresolved' if unresolved else ('block_boundary' if has_solution else 'whole_unit')
         role = 'question'
         for i, b in enumerate(blocks):
+            reviewed_role = b['attributes'].get('structure_unit_role')
+            if reviewed_role:
+                role = reviewed_role
+                parts[role].append(dict(block_id=b['block_id'], start=0, end=None))
+                continue
             if b['block_id'] in header_ids | answer_headers:
                 parts['context'].append(dict(block_id=b['block_id'], start=0, end=None))
                 continue
@@ -206,28 +216,34 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
         if unresolved and not has_solution:
             body['question'] = serialize_parts(parts['unassigned'], registry)
         # Preserve already working whole-unit text byte for byte (including dedup fingerprints).
-        if method == 'whole_unit' and len(group) == 1 and not header_ids and not answer_ids and all(serialize_block(b) == b['text'] for b in blocks):
+        if method == 'whole_unit' and len(group) == 1 and not header_ids and not answer_ids and not any(b['attributes'].get('structure_unit_role') for b in blocks) and all(serialize_block(b) == b['text'] for b in blocks):
             body['question'] = unit['text']
         if boundary and any(b['block_type'] == 'table' for b in blocks[:boundary]):
             warn('formula_review', [b['block_id'] for b in blocks if b['block_type'] == 'table'])
         dependencies = []
-        question_source = body['question']
+        question_source = serialize_parts([s for s in parts['question'] if registry[s['block_id']]['block_type'] != 'figure'], registry)
         required_labels = set(figure_labels(question_source))
         all_labels = set(figure_labels('\n'.join(b['text'] for b in blocks)))
         for label in sorted(all_labels):
-            targets = [b for b in source_blocks if b['block_type'] == 'figure' and label in figure_labels(b['text'])]
+            targets = [b for b in source_blocks if b['block_type'] == 'figure' and label in figure_labels(b['text'])
+                       and (b['block_id'] in ids or b['section_path'] == blocks[0]['section_path']
+                            and abs((b['page_start'] or 0) - (unit['page_start'] or 0)) <= 8)]
+            members = {bid for b in targets for bid in b['attributes'].get('structure_group_members', [])}
+            targets += [b for b in source_blocks if b['block_id'] in members and b not in targets]
             dep_id = 'figure:' + label
             requirement = 'required' if label in required_labels else 'reference'
             dependencies.append(dict(id=dep_id, kind='figure', label=label, requirement=requirement,
                                      block_ids=[b['block_id'] for b in targets],
                                      asset_ids=[b['attributes']['asset_id'] for b in targets if b['attributes'].get('asset_id')],
-                                     resolution='identified' if targets else 'unresolved'))
+                                     resolution='embedded' if targets and all(b['attributes'].get('asset_status') == 'ready' and b['attributes'].get('asset_id') for b in targets) else 'identified' if targets else 'unresolved'))
             for b in targets:
                 if b['block_id'] not in {s['block_id'] for spans in parts.values() for s in spans}:
-                    parts['context'].append(dict(block_id=b['block_id'], start=0, end=None))
-            if requirement == 'required':
+                    parts['question' if requirement == 'required' else 'context'].append(dict(block_id=b['block_id'], start=0, end=None))
+            if requirement == 'required' and dependencies[-1]['resolution'] != 'embedded':
                 warn('missing_required_input', [b['block_id'] for b in targets], dep_id)
-            if len(targets) > 1:
+            elif requirement == 'required' and not all(b['attributes'].get('structure_unit_role') for b in targets):
+                warn('dependency_uncertain', [b['block_id'] for b in targets], dep_id)
+            if len(targets) > 1 and not members:
                 warn('dependency_uncertain', [b['block_id'] for b in targets], dep_id)
         for b in blocks:
             if b['block_type'] == 'figure' and not set(figure_labels(b['text'])).intersection(set(figure_labels(question_source))):

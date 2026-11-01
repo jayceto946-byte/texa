@@ -18,6 +18,7 @@
 - [Runtime RFC](agent-runtime-rfc.md)、[RuntimeEvent](runtime-event-v1.md)
 - [工具调用合同](tool-calling-contract.md)、[工具合同 v1](contracts/runtime-tools-v1.md)
 - [ONNX 嵌入运行时](embedding-runtime.md)、[问题理解接口](question-understanding-interface-2026-10-04.md)
+- [视觉结构审阅与费用边界](document-structure-review.md)
 - [习题候选合同](design/question-candidate-contract-2026-10-17/candidate-contract-specification.md)
 - [QA 运行说明](qa/RUN-QA.md)、[API 清单](qa/API-ENDPOINTS.md)
 

@@ -12,6 +12,7 @@ from ingestion.document_ir import (
     canonical_chapter_title, canonical_retrieval_paths, load_canonical_book,
 )
 from ingestion.heading_policy import exercise_heading, body_title, PROBLEM_START
+from ingestion.document_structure import block_role, NON_PRACTICE
 from ingestion.index_snapshot import index_read_snapshot
 from utils.path_safety import safe_book_name
 
@@ -103,10 +104,11 @@ class LearningUnit:
     blocks: list[DocumentBlock]
     section_path: list[str]
     truncated: bool = False
+    anchor_id: str = ''
 
     @property
     def unit_id(self) -> str:
-        return self.blocks[0].block_id
+        return self.anchor_id or self.blocks[0].block_id
 
     @property
     def text(self) -> str:
@@ -121,7 +123,7 @@ def learning_units(book: CanonicalBook) -> list[LearningUnit]:
     exercise_paths = {tuple(b.section_path) for b in book.blocks
                       if b.block_type == 'heading' and b.attributes.get('outline_role') == 'exercise'}
     for block in book.blocks:
-        if block.attributes.get('outline_toc'):
+        if block.attributes.get('outline_toc') or block_role(block) in NON_PRACTICE:
             active = None
             continue
         path = paths.get(block.block_id) or [book.book_name]
@@ -129,9 +131,9 @@ def learning_units(book: CanonicalBook) -> list[LearningUnit]:
         exercise_scope = any(exercise_heading(part) for part in path) or any(
             tuple(path[:n]) in exercise_paths for n in range(1, len(path) + 1))
         problem = _PROBLEM_START.match(block.text) if exercise_scope else None
-        start_kind = 'example' if label else ('exercise' if problem else '')
+        start_kind = 'exercise' if block.attributes.get('structure_unit_start') else 'example' if label else ('exercise' if problem else '')
         if start_kind:
-            active = LearningUnit(start_kind, label or problem.group().strip(), [block], path)
+            active = LearningUnit(start_kind, label or (problem.group().strip() if problem else ''), [block], path, anchor_id=block.block_id)
             result.append(active)
             continue
         if active is None:
@@ -148,7 +150,17 @@ def learning_units(book: CanonicalBook) -> list[LearningUnit]:
             active = None
             continue
         active.blocks.append(block)
-    return result
+    owners = {unit.unit_id: unit for unit in result}
+    for block in book.blocks:
+        target = block.attributes.get('structure_unit_id')
+        if target in owners:
+            for unit in result:
+                unit.blocks = [b for b in unit.blocks if b.block_id != block.block_id]
+            owners[target].blocks.append(block)
+    order = {b.block_id: i for i, b in enumerate(book.blocks)}
+    for unit in result:
+        unit.blocks.sort(key=lambda b: order[b.block_id])
+    return [unit for unit in result if unit.blocks]
 
 
 def annotate_learning_units(book: CanonicalBook) -> None:

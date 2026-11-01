@@ -9,7 +9,7 @@ import re
 
 CATALOG = re.compile(r'^\s*[#＃]\s*(\d{1,8})(?!\d)\s*')
 EXAM = re.compile(r'(?:19|20)\d{2}\s*年?\s*(?:数[一二三123]|数学[一二三123])\s*$')
-ORIGINAL = re.compile(r'^\s*(?:[（(](\d+)[）)]|(\d+(?:[-－—]\d+)+|\d+(?=[.、．)]))(?:[.、．)]|\s+|(?=[\u4e00-\u9fff])))\s*')
+ORIGINAL = re.compile(r'^\s*(?:[（(](\d+)[）)]|(?:[A-Za-z]\s*)?(\d+(?:[.．\-－—]\d+)+|\d+(?=[.、．)]|\s))(?:[.、．)](?!\d)|\s+|(?=[\u4e00-\u9fff])))\s*')
 SECTION = re.compile(r'^\s*(?:第[\d一二三四五六七八九十]+[章节]|[一二三四五六七八九十]+[、．.]|\d+(?:\.\d+)+\s+)')
 TOPIC = re.compile(r'^\s*(?P<kind>考点|题型|专题)\s*[\d一二三四五六七八九十]+(?:[、.：:\s]|$)')
 LABEL_ROLES = {'答案': 'answer', '参考答案': 'answer', '答': 'answer',
@@ -95,11 +95,19 @@ def topic_level(text, ancestors):
 def classification_paths(book, excluded_ids=()):
     """Candidate-only heading interpretation, with the source nodes retained."""
     if book.source_metadata.get('outline_recovery'):
-        current, result = [], {}
+        result = {}
+        headings = {b.block_id: b for b in book.blocks if b.block_type == 'heading'}
         for block in book.blocks:
-            if block.block_type == 'heading' and block.block_id not in excluded_ids:
-                current = current[:len(block.section_path) - 1] + [(block.text, block.block_id)]
-            result[block.block_id] = list(current)
+            ancestors, node = [], block
+            seen = set()
+            if node.block_type == 'heading' and node.block_id not in excluded_ids:
+                ancestors.append((node.attributes.get('outline_title', node.text), node.block_id))
+            while (parent := node.attributes.get('outline_parent_id')) in headings and parent not in seen:
+                seen.add(parent); node = headings[parent]
+                if parent not in excluded_ids:
+                    ancestors.append((node.attributes.get('outline_title', node.text), parent))
+            # Paragraphs retain the canonical path even without a parent ID.
+            result[block.block_id] = list(reversed(ancestors)) if ancestors else [(p, '') for p in block.section_path]
         return result
     current, result = [], {}
     for block in book.blocks:
@@ -183,6 +191,8 @@ def exercise_units(book, *, unrestricted=False, allowed_context_ids=None):
             for _, bid in path:
                 if allowed_context_ids is not None and bid not in allowed_context_ids:
                     continue
+                if not bid:
+                    continue
                 if bid not in row['header_ids']:
                     row['header_ids'].append(bid)
                 if bid not in {b.block_id for b in blocks}:
@@ -196,8 +206,14 @@ def exercise_units(book, *, unrestricted=False, allowed_context_ids=None):
 
 def _file_units(book, paths):
     rows, active = [], None
+    from ingestion.document_structure import block_role, has_exercise_scopes
+    scoped = has_exercise_scopes(book)
     for block in book.blocks:
-        if block.attributes.get('outline_toc'):
+        role = block_role(block)
+        if block.attributes.get('outline_toc') or role in {'front_matter', 'toc', 'overview', 'reference', 'annotation'}:
+            active = None
+            continue
+        if scoped and role not in {'exercise', 'solution'} and not block.attributes.get('structure_unit_id'):
             active = None
             continue
         catalog = header_metadata(block.text)
@@ -212,7 +228,7 @@ def _file_units(book, paths):
         if is_heading:
             active = None
             continue
-        if catalog or example or (numbered and not catalog_active and not re.match(r'^\s*[（(]', block.text)):
+        if block.attributes.get('structure_unit_start') or catalog or example or (numbered and not catalog_active and not re.match(r'^\s*[（(]', block.text)):
             active = dict(unit_id=block.block_id, kind='example' if example else 'exercise', blocks=[],
                           section_path=paths.get(block.block_id) or [book.book_name], truncated=False,
                           header_ids=[block.block_id] if catalog else [])
@@ -223,4 +239,16 @@ def _file_units(book, paths):
                 active = None
             else:
                 active['blocks'].append(block)
-    return rows
+    # The model's explicit ownership wins over linear OCR reading order.
+    owners = {row['unit_id']: row for row in rows}
+    for block in book.blocks:
+        target = block.attributes.get('structure_unit_id')
+        if target not in owners:
+            continue
+        for row in rows:
+            row['blocks'] = [b for b in row['blocks'] if b.block_id != block.block_id]
+        owners[target]['blocks'].append(block)
+    order = {b.block_id: i for i, b in enumerate(book.blocks)}
+    for row in rows:
+        row['blocks'].sort(key=lambda b: order[b.block_id])
+    return [row for row in rows if row['blocks']]

@@ -98,6 +98,10 @@ def validate_candidate(item, proposals, registry):
         dep = deps[did]
         if any(dep[k] != base[k] for k in ('kind','label','block_ids','asset_ids')):
             raise CandidateAdmissionError(origin, '资源身份不匹配')
+        if base['kind'] == 'figure' and base['resolution'] == 'embedded':
+            if dep['resolution'] != 'embedded' or dep['requirement'] != base['requirement']:
+                raise CandidateAdmissionError(origin, '已定位附件的用途需在来源校对中修改')
+            continue
         if base['requirement'] == 'required' and base['kind'] in ('figure','prior_context'):
             key = 'missing_required_input:' + did
             decision = resolutions.get(key)
@@ -111,7 +115,8 @@ def validate_candidate(item, proposals, registry):
                   or dep['resolution'] != 'embedded' or decision != 'corrected'):
                 raise CandidateAdmissionError(origin, '请把前文必要条件补入独立题干')
     # Newly introduced references cannot be smuggled into an edited question.
-    if figure_labels(item['question_text']):
+    delivered = {d['label'] for d in base_deps.values() if d['kind'] == 'figure' and d['resolution'] == 'embedded'}
+    if set(figure_labels(item['question_text'])) - delivered:
         raise CandidateAdmissionError(origin, '题干仍引用独立练习无法交付的图片')
     original_body = {key: '\n\n'.join(v[key] for v in matched if v[key]) for key in ('question_text','answer','explanation')}
     body_changed = any(item[key] != original_body[key] for key in original_body)
@@ -138,12 +143,13 @@ def validate_candidate(item, proposals, registry):
 
 
 class ExerciseCandidateReviewService:
-    def __init__(self, *, extract_provider=None, file_provider=None):
+    def __init__(self, *, extract_provider=None, file_provider=None, progress_root=None):
         if extract_provider is None:
             from memory.textbook_exercise_importer import extract_textbook_exercise_text
             extract_provider = extract_textbook_exercise_text
         self.extract_provider = extract_provider
         self.file_provider = file_provider
+        self.progress_root = progress_root
 
     def replay(self, book_name, projection):
         if projection.get('source_id'):
@@ -191,5 +197,12 @@ class ExerciseCandidateReviewService:
             extracted, proposals = cache[key]
             if extracted.canonical_hash != projection['canonical_hash']:
                 raise CandidateAdmissionError(origin, '教材版本已变化，请重新分析', status=409)
-            receipts.append(validate_candidate(item, proposals, {b['block_id']:b for b in extracted.source_blocks}))
+            receipt = validate_candidate(item, proposals, {b['block_id']:b for b in extracted.source_blocks})
+            if self.progress_root is not None:
+                from backend.services.exercise_assets import freeze_attachments
+                try:
+                    receipt['attachments'] = freeze_attachments(projection, extracted, book_name=book_name, progress_root=self.progress_root)
+                except (ValueError, OSError) as exc:
+                    raise CandidateAdmissionError(origin, str(exc)) from exc
+            receipts.append(receipt)
         return receipts

@@ -32,6 +32,10 @@ def source():
 
 def test_native_outline_rejects_body_fragments_and_recovers_chinese_hierarchy():
     book = MinerUAdapter.from_structured_content(source(), book_name='合成传感器')
+    from ingestion.outline_recovery import recover_outline
+    # Inspect semantic hierarchy explicitly; default navigation displays only
+    # chapters and sections, including on the unchanged HEAD baseline.
+    book = recover_outline(book, max_depth=6, force=True)
     sections = canonical_outline(book)[0]['subsections']
     by_title = {s['title']: s for s in sections}
     assert '的措施为' not in by_title

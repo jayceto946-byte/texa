@@ -190,6 +190,7 @@ class KGRefreshOut(BaseModel):
 
 
 class ExerciseRecordOut(BaseModel):
+    source_attachments: list[dict] = Field(default_factory=list)
     source_structure: CandidateStructure | None = None
     source_category: str = ""
     id: str

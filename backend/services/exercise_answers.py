@@ -12,15 +12,17 @@ from graph.main_graph import build_initial_state
 from graph.retrieval_node import retrieve_node
 
 
-def _missing_inputs(question: str, evidence: list[dict]) -> list[dict]:
+def _missing_inputs(question: str, evidence: list[dict], supplied_kinds=()) -> list[dict]:
     """Require referenced tables/figures from the exercise source, not unrelated hits."""
     missing = []
-    for kind, pattern in (("table", r"附表|下表|表中|表内"), ("figure", r"附图|下图|如图|图中")):
+    for kind, pattern in (("table", r"附表|下表|表中|表内"), ("figure", r"附图|下图|如图|图中|图\s*\d+[.．-]\d+")):
         if re.search(pattern, question):
+            if kind in supplied_kinds:
+                continue
             if kind == "table" and re.search(r"\|.+\|\s*\n\|[ :|\-]+\|\s*\n\|.+\|", question):
                 continue
-            # Current records do not freeze complete source units. Only an exact
-            # exercise hit plus its retrieved neighbors can supply the attachment.
+            # Older records without managed attachments require an exact source
+            # exercise hit and its neighbors to supply the referenced input.
             source_ids = {str(item.get("chunk_id") or "") for item in evidence
                           if question.strip() in str(item.get("text") or "")}
             supplied = any(item.get("block_type") == kind and
@@ -38,7 +40,20 @@ def _generate_draft(record, state: dict) -> dict:
     from config import get_llm
 
     state.update(retrieve_node(state))
-    missing = _missing_inputs(record.question_text, state.get("evidence_items") or [])
+    from backend.services.exercise_assets import attachment_file
+    from config import PROGRESS_PATH
+    attachments = [a for a in getattr(record, 'extra_fields', {}).get('source_attachments', []) if a['role'] == 'question']
+    images, unavailable = [], False
+    for asset in attachments:
+        try:
+            path, _ = attachment_file(record, asset['asset_id'], progress_root=PROGRESS_PATH)
+            images.append((path, asset['label']))
+        except FileNotFoundError:
+            unavailable = True
+    missing = _missing_inputs(record.question_text, state.get("evidence_items") or [],
+                              supplied_kinds={'figure'} if images and not unavailable else ())
+    if unavailable or len(images) > 8:
+        missing.append(dict(id='exercise_assets', kind='figure', label='题目完整附图', status='missing', blocking=True))
     if missing:
         return {"success": False, "delivery_status": "waiting_for_input",
                 "data": {"required_inputs": missing, "required_outputs": state["required_outputs"]},
@@ -47,6 +62,25 @@ def _generate_draft(record, state: dict) -> dict:
         return {"success": False, "delivery_status": "degraded", "message": grounded_failure_message(state),
                 "retrieval_status": state.get("retrieval_status", "unavailable")}
     messages = prepare_answer_generation(state)
+    visual_uncertain = False
+    if images:
+        from config import get_model_role_config
+        from llm.factory import create_vision_completion, vision_without_thinking
+        from backend.services.document_structure_review import _image_url
+        from backend.services.multimodal_bridge import VisualProblemIR
+        from langchain_core.messages import HumanMessage
+        content = [dict(type='text', text='只识别以下题目附图的条件、图形关系、标注和不确定项，不解题。返回JSON，字段为problem_text, visual_summary, entities, relations, annotations, uncertainties, required_inputs。题目：' + record.question_text[:12000])]
+        for path, label in images:
+            content += [dict(type='text', text=label), dict(type='image_url', image_url=dict(url=_image_url(path)))]
+        response = create_vision_completion(vision_without_thinking(get_model_role_config('vision')), messages=[dict(role='user', content=content)], max_tokens=4000, timeout=90)
+        if getattr(response.choices[0], 'finish_reason', 'stop') != 'stop':
+            raise ValueError('附图识别结果未完整返回')
+        visual = VisualProblemIR.from_model_output(response.choices[0].message.content)
+        if any(item.get('blocking', True) for item in visual.required_inputs):
+            return dict(success=False, delivery_status='waiting_for_input', message='附图仍有必要条件无法确认，请对照原图补充',
+                        data=dict(required_inputs=visual.required_inputs))
+        visual_uncertain = bool(visual.uncertainties)
+        messages.append(HumanMessage(content=visual.to_reasoning_context()))
     from backend.services.exercise_knowledge import prepare_analysis, analysis_instruction, parse_analysis
     from langchain_core.messages import SystemMessage
     context = prepare_analysis(record, book_name=state["book_name"])
@@ -58,6 +92,8 @@ def _generate_draft(record, state: dict) -> dict:
         return {"success": False, "message": "模型未生成有效答案"}
     answer = finalize_generated_answer(state, draft)
     verification = state["answer_verification"]
+    if visual_uncertain:
+        verification = {**verification, 'status': 'unverified', 'visual_uncertainty': True}
     status = "completed" if verification["status"] == "passed" else "unverified" if verification["status"] == "unverified" else "degraded"
     return {"success": True, "delivery_status": status,
             "data": {"answer": answer, "knowledge_structure": structure, "metadata_status": metadata_status, "verification": verification, "delivery_status": status,

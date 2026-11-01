@@ -1,3 +1,6 @@
+import { StructureReviewControl } from '../../../components/StructureReviewControl';
+import { get } from '../../../api/client';
+import type { CandidateSourceRegistry } from '../../../types';
 import Selector from '../../../components/ui/Selector';
 import { useEffect, useRef, useState } from 'react';
 import { ReadingMarkdown as SimpleMarkdown } from '../../reading/ReadingMarkdown';
@@ -11,7 +14,9 @@ import { FileSourceImage } from './FileSourceImage';
 
 type CandidateState = ReturnType<typeof useExerciseImportCandidates>;
 const roles = { question: '题干', answer: '答案', explanation: '解析', context: '旁文 / 资源线索', unassigned: '待定来源' };
-export function CandidateReviewWorkspace({ state: s, original, source, busy, message, onBack, onSubmit, onSaveExample, bookName = 'default' }: { bookName?: string; state: CandidateState; original: string; source: string; busy: boolean; message: string; onBack: () => void; onSubmit: () => void; onSaveExample?: (candidate: ExerciseCandidate) => void }) {
+export function CandidateReviewWorkspace({ state: s, original, source, busy: parentBusy, message, onBack, onSubmit, onSaveExample, bookName = 'default' }: { bookName?: string; state: CandidateState; original: string; source: string; busy: boolean; message: string; onBack: () => void; onSubmit: () => void; onSaveExample?: (candidate: ExerciseCandidate) => void }) {
+  const [reviewBusy, setReviewBusy] = useState(false);
+  const busy = parentBusy || reviewBusy;
   const [currentId, setCurrentId] = useState('');
   const [compare, setCompare] = useState(false);
   const [sourceView, setSourceView] = useState('current');
@@ -37,6 +42,12 @@ export function CandidateReviewWorkspace({ state: s, original, source, busy, mes
       <p>候选尚未保存，校对后请确认入库。</p>
       <p>{source}</p>{message && <p role="status">{message}</p>}
     </header>
+    {current?.projection?.source_id && <StructureReviewControl key={current.projection.source_id} target={{ kind: 'file', reference: current.projection.source_id, book_name: bookName }} disabled={parentBusy} onBusyChange={setReviewBusy} onComplete={async result => {
+      if (!result?.source_id) return;
+      const response = await get(`/exercises/file-sources/${result.source_id}/candidates?book_name=${encodeURIComponent(bookName)}&subject=${encodeURIComponent(current.subject)}`);
+      if (!response.success) throw new Error(response.message || '无法读取审阅候选');
+      s.replaceCandidates(response.data.candidates as ExerciseCandidate[], response.data.extract as CandidateSourceRegistry);
+    }} />}
     {compare && <div className="exercise-compare-tabs"><button aria-pressed={documentView === 'candidate'} onClick={() => setDocumentView('candidate')}>候选题</button><button aria-pressed={documentView === 'original'} onClick={() => setDocumentView('original')}>原文对照</button></div>}
     <div className="exercise-review-body">
       <nav className="exercise-candidate-index" aria-label="候选题索引">
@@ -61,7 +72,7 @@ export function CandidateReviewWorkspace({ state: s, original, source, busy, mes
           {current.duplicate_of && <p className="exercise-projection-note">重复于 {current.duplicate_of}，确认入库时跳过。</p>}
           {!current.question_text.trim() && <p className="exercise-warning">请补全题干或取消选择。</p>}
           {edit ? <fieldset disabled={busy} className="exercise-candidate-editor">{field('题干', 'question_text', current.question_text, true)}{field('标准答案', 'answer', current.answer, true)}{field('解析', 'explanation', current.explanation, true)}<div className="exercise-two">{field('题型', 'suggested_type', current.suggested_type)}<label className="exercise-field">难度（1–5）<input type="number" min="1" max="5" value={current.difficulty} onChange={e => s.updateCandidate(current.id, { difficulty: Math.max(1, Math.min(5, +e.target.value || 3)) })} /></label></div><label className="exercise-field">知识点标签<input value={current.tags.join(', ')} onChange={e => s.updateCandidate(current.id, { tags: e.target.value.split(',').map(x => x.trim()).filter(Boolean) })} /></label><div className="exercise-two">{field('来源', 'source', current.source)}{field('章节', 'chapter', current.chapter)}</div></fieldset> : <>
-            <div className="exercise-question"><SimpleMarkdown content={current.question_text} /></div>
+            <div className="exercise-question"><SimpleMarkdown content={current.question_text} />{blocks.filter(b => b.block_type === 'figure' && current.projection?.parts.question.some(span => span.block_id === b.block_id)).map(b => current.projection?.source_id && typeof b.attributes.asset_id === 'string' ? <FileSourceImage key={b.block_id} sourceId={current.projection.source_id} assetId={b.attributes.asset_id} bookName={bookName} label={b.text} /> : null)}</div>
             <section className="exercise-candidate-answer"><h2>参考答案</h2>{current.answer ? <SimpleMarkdown content={current.answer} /> : <p>{current.explanation ? '暂无独立参考答案，解题过程见下方。' : '暂无源答案，可留空入库。'}</p>}</section>
             {current.explanation && <section className="exercise-candidate-explanation"><h2>解析</h2><SimpleMarkdown content={current.explanation} /></section>}
             <details className="exercise-properties"><summary>题目属性</summary>{current.issues?.filter(i => i.category === 'metadata').map(i => <p key={i.key}>{issueLabel(current,i)}</p>)}<p>{current.subject} · {current.chapter} · 难度 {current.difficulty}</p><p>{current.source} · {current.tags.join('、')}</p><p>解析置信度 {Math.round(current.confidence * 100)}%（不代表正确率）</p><p>{current.reasons.join('；')}</p></details>

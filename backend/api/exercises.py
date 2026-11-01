@@ -408,6 +408,21 @@ def file_source_asset(source_id: str, asset_id: str, book_name: str = 'default')
         raise HTTPException(404, '来源图片不存在或不属于当前范围') from None
     return FileResponse(path, media_type=media_type)
 
+
+@router.get('/file-sources/{source_id}/candidates')
+def reviewed_file_candidates(source_id: str, book_name: str = 'default', subject: str = ''):
+    from backend.services.exercise_file_analysis import ExerciseFileAnalysisStore
+    try:
+        extracted = ExerciseFileAnalysisStore(PROGRESS_PATH).load(source_id, book_name)
+        candidates = analyze_learning_unit_candidates(extracted.units, book_name=book_name,
+            subject=normalize_subject_value(subject, fallback=book_name), limit=500,
+            source_blocks=extracted.source_blocks, canonical_hash=extracted.canonical_hash,
+            scope=dict(chapter='', page_start=None, page_end=None, source_mode='file'),
+            solution_markers=extracted.solution_markers, profile_version=extracted.profile_version, source_id=source_id)
+        return dict(success=True, data=dict(candidates=_candidate_outputs(candidates, book_name), extract=extracted.to_dict()))
+    except (ValueError, FileNotFoundError) as exc:
+        raise HTTPException(422, str(exc)) from None
+
 @router.post("/textbook-analyze")
 def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: str = "default"):
     effective_book = req.book_name.strip() or book_name or "default"
@@ -524,12 +539,13 @@ def batch_add_reviewed_candidates(req: ExerciseBatchAddRequest, book_name: str =
     try:
         with index_read_snapshot():
             items = [item.model_dump() for item in req.exercises]
-            receipts = ExerciseCandidateReviewService().prepare(book_name, items)
+            receipts = ExerciseCandidateReviewService(progress_root=PROGRESS_PATH).prepare(book_name, items)
             records = [_record_from_request(item, book_name=book_name) for item in req.exercises]
             # Preserve the exact reviewed source text; legacy sanitization is not a source projection.
-            for record, item in zip(records, items):
+            for record, item, receipt in zip(records, items, receipts):
                 record.question_text, record.answer, record.explanation = (item[k] for k in ('question_text','answer','explanation'))
                 record.extra_fields['source_structure'] = item['candidate_context']['projection'].get('structure')
+                record.extra_fields['source_attachments'] = receipt.pop('attachments', [])
             bank = _bank(book_name)
             batch = bank.add_batch(records, source_label=req.source_label, allow_duplicates=req.allow_duplicates,
                                    candidate_receipts=receipts)
@@ -952,6 +968,19 @@ def get_exercise_detail(exercise_id: str, book_name: str = "default"):
     if not record:
         return {"success": False, "message": "未找到该习题"}
     return {"success": True, "data": _record_to_out(record)}
+
+
+@router.get('/{exercise_id}/assets/{asset_id}')
+def exercise_asset(exercise_id: str, asset_id: str, book_name: str = 'default'):
+    from backend.services.exercise_assets import attachment_file
+    record = _bank(book_name).get(exercise_id)
+    if record is None:
+        raise HTTPException(404, '题目不存在')
+    try:
+        path, media_type = attachment_file(record, asset_id, progress_root=PROGRESS_PATH)
+    except FileNotFoundError as exc:
+        raise HTTPException(404, str(exc)) from None
+    return FileResponse(path, media_type=media_type)
 
 
 @router.delete("/{exercise_id}")

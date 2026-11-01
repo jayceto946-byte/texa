@@ -43,7 +43,8 @@ export function canSubmitCandidate(item: ExerciseCandidate): boolean {
   if (!item.issues || p.method === 'unresolved') return false;
   const decisions = Object.fromEntries((item.review?.resolutions || []).map(r => [r.issue_key, r.decision]));
   if (p.method === 'user_edited' && (!item.review || decisions['edited_content:'] !== 'corrected')) return false;
-  if (figureLabels(item.question_text).length) return false; // F3 is not delivered.
+  const delivered = new Set(p.dependencies.filter(d => d.kind === 'figure' && d.resolution === 'embedded' && d.asset_ids.length).map(d => d.label));
+  if (figureLabels(item.question_text).some(label => !delivered.has(label))) return false;
   return contentIssues(item).every(i => {
     const decision = decisions[i.key];
     if (!item.review || !decision || i.code === 'source_unavailable') return false;

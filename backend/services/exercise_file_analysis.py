@@ -25,6 +25,7 @@ def file_book(extracted, *, name, prefix='q'):
     original = getattr(extracted, 'canonical_book', None)
     parents = original.blocks if original else [DocumentBlock(prefix + '-raw', 'paragraph', extracted.text, [name], source_kind=extracted.provider)]
     blocks, path = [], [name]
+    identities = {}
     for parent in parents:
         native = original is not None and parent.source_kind == 'mineru'
         if native:
@@ -32,6 +33,7 @@ def file_book(extracted, *, name, prefix='q'):
         if parent.block_type in ('formula', 'table', 'figure'):
             block = deepcopy(parent)
             block.block_id = prefix + '-' + parent.block_id
+            identities[parent.block_id] = block.block_id
             block.section_path = list(path)
             blocks.append(block)
             continue
@@ -43,6 +45,7 @@ def file_book(extracted, *, name, prefix='q'):
             text = line.rstrip('\r\n')
             block = deepcopy(parent)
             block.block_id = f'{prefix}-{parent.block_id}-{start}'
+            identities.setdefault(parent.block_id, block.block_id)
             block.text = text
             heading = (not CATALOG.match(text) and not re.match(r'^\s*(?:【?例|例题)', text)
                        and not solution_markers(text) and len(text) < 120
@@ -63,7 +66,15 @@ def file_book(extracted, *, name, prefix='q'):
             block.section_path = list(path)
             block.attributes.update(source_parent_id=parent.block_id, source_start=start, source_end=start + len(text))
             blocks.append(block)
-    return CanonicalBook(name, name, blocks, 'exercise-file-lines-v1')
+    for block in blocks:
+        for key in ('outline_parent_id', 'outline_root_id', 'structure_unit_id'):
+            if block.attributes.get(key) in identities:
+                block.attributes[key] = identities[block.attributes[key]]
+        if block.attributes.get('structure_group_members'):
+            block.attributes['structure_group_members'] = [identities[bid] for bid in block.attributes['structure_group_members']]
+    return CanonicalBook(name, name, blocks, 'exercise-file-lines-v2',
+                         source_metadata=deepcopy(original.source_metadata) if original else {},
+                         source_page_count=original.source_page_count if original else None)
 
 
 def _number(unit, blocks):
@@ -116,7 +127,8 @@ class ExerciseFileAnalysisStore:
         units = exercise_units(question_book, unrestricted=True)
         if not units and book.blocks:
             # Unnumbered source remains available as an explicitly uncertain unit.
-            body = [b for b in book.blocks if b.block_type != 'heading']
+            from ingestion.document_structure import block_role, NON_PRACTICE
+            body = [b for b in question_book.blocks if b.block_type != 'heading' and block_role(b) not in NON_PRACTICE]
             if body:
                 units = [dict(unit_id=body[0].block_id, kind='example', text='\n\n'.join(b.text for b in body),
                               chapter=book_name, section_path=[book_name], page_start=body[0].page_start,
@@ -142,6 +154,11 @@ class ExerciseFileAnalysisStore:
                        raw_hash=hashlib.sha256(extracted.text.encode()).hexdigest(),
                        unmatched_answer_text='\n\n'.join(b.text for b in book.blocks if b.block_id in all_answer_ids
                            and b.block_id not in {bid for u in units for bid in u.get('answer_block_ids', [])}))
+        from dataclasses import asdict
+        payload['canonical_source'] = asdict(extracted.canonical_book) if extracted.canonical_book else None
+        payload['answer_source'] = (dict(text=answer.text, file_type=answer.file_type, provider=answer.provider,
+            canonical_book=asdict(answer.canonical_book) if answer.canonical_book else None) if answer else None)
+        payload['structure_review'] = (extracted.canonical_book.source_metadata.get('structure_review', {}) if extracted.canonical_book else {})
         payload['snapshot_hash'] = hashlib.sha256(canonical_json(payload).encode()).hexdigest()
         # Validation of the registry budgets occurs before persistence.
         atomic_write_json(self.root / f'{source_id}.json', payload)
@@ -199,6 +216,17 @@ class ExerciseFileAnalysisStore:
         if payload['book_name'] != book_name or payload['source_id'] != source_id:
             raise ValueError('文件来源不属于当前题库范围')
         return self._extracted(payload)
+
+    def answer_source(self, source_id, book_name):
+        self.load(source_id, book_name)
+        raw = json.loads((self.root / f'{source_id}.json').read_text()).get('answer_source')
+        if not raw:
+            return None
+        from memory.exercise_file_importer import ExtractedExerciseText
+        canonical = raw.get('canonical_book')
+        if canonical:
+            canonical = CanonicalBook(**{**canonical, 'blocks': [DocumentBlock.from_dict(b) for b in canonical['blocks']]})
+        return ExtractedExerciseText(text=raw['text'], file_type=raw['file_type'], provider=raw['provider'], canonical_book=canonical)
 
     def _extracted(self, payload):
         version, markers = self.examples.load(payload['profile_version'])

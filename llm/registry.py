@@ -126,9 +126,12 @@ def _register_builtins() -> None:
         ModelSpec("deepseek", "deepseek-v4-pro", "DeepSeek V4 Pro", openai_compatible | {Capability.REASONING}, {
             "extra_body": {"reasoning_effort": "high", "thinking": {"type": "enabled"}},
         }),
-        ModelSpec("deepseek", "deepseek-v4-flash", "DeepSeek V4 Flash", openai_compatible | {Capability.REASONING}),
+        ModelSpec("deepseek", "deepseek-v4-flash", "DeepSeek Flash（兼容别名）", openai_compatible | {Capability.REASONING, Capability.VISION}, {
+            "vision_tokens_per_image": 1024,
+        }),
         ModelSpec("deepseek", "deepseek-flash", "DeepSeek V4.1 Flash（文图输入）", openai_compatible | {Capability.REASONING, Capability.VISION}, {
             "extra_body": {"thinking": {"type": "enabled"}, "reasoning_effort": "high"},
+            "vision_tokens_per_image": 1024,
         }),
         ModelSpec("moonshot", "kimi-k2.6", "Kimi K2.6", openai_compatible | {Capability.REASONING, Capability.VISION}),
         ModelSpec("moonshot", "kimi-k2.5", "Kimi K2.5", openai_compatible | {Capability.REASONING, Capability.VISION}, {

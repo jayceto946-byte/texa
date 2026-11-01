@@ -300,6 +300,31 @@ def create_vision_completion(
     )
 
 
+def vision_without_thinking(resolved: ResolvedModelRole) -> ResolvedModelRole:
+    """Task-local mode override; never changes the user's saved model profile."""
+    from dataclasses import replace
+    options = dict(resolved.options)
+    extra = dict(options.get('extra_body') or {})
+    if resolved.provider.provider_id == 'qwen':
+        extra['enable_thinking'] = False
+    elif resolved.provider.provider_id in {'moonshot', 'deepseek'}:
+        extra['thinking'] = {'type': 'disabled'}
+        extra.pop('reasoning_effort', None)
+    elif 'enable_thinking' in extra:
+        extra['enable_thinking'] = False
+    elif 'thinking' in extra:
+        extra['thinking'] = {'type': 'disabled'}
+    options['extra_body'] = extra
+    return replace(resolved, options=options)
+
+
+def vision_image_token_reservation(resolved: ResolvedModelRole) -> int:
+    """Catalog estimate for one image; actual usage always comes from the API."""
+    from llm.registry import get_model
+    spec = get_model(resolved.provider.provider_id, resolved.model)
+    return int(spec.options.get('vision_tokens_per_image', 16384)) if spec else 16384
+
+
 # Backward-compatible low-level helper retained for tests and external scripts.
 def get_chat_model(
     model: str,

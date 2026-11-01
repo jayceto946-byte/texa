@@ -12,7 +12,7 @@ import unicodedata
 
 from ingestion.heading_policy import body_title, exercise_heading
 
-POLICY_VERSION = 5
+POLICY_VERSION = 6
 _CN = r'[零〇一二三四五六七八九十百千\d](?:\s*[零〇一二三四五六七八九十百千\d])*'
 _NUMBERING = [
     ('part', rf'^第\s*{_CN}\s*[篇部](?:\s*\S|\s*$)', 1),
@@ -64,6 +64,7 @@ def _style(block):
 
 def _toc_line(line):
     line = re.sub(r'^\s*[-*+]\s+', '', line)
+    line = re.sub(r'[（(]\s*(\d{1,4}|[ivxlcdm]+)\s*[）)]\s*$', r' \1', line, flags=re.I)
     # Leader dots/space + printed page. Also accept compact numbered entries.
     match = re.match(r'^(.*?)\s*(?:[.·…．]{2,}|\s)(\d{1,4}|[ivxlcdm]+)\s*$', line, re.I)
     if not match:
@@ -176,7 +177,19 @@ def _toc_matches(blocks, toc_pages=None, heading_titles=None):
             groups[-1].append(page)
         else:
             groups.append([page])
-    accepted, excluded, reports, boundaries = {}, set(), [], {}
+    # A producer's index region is still a TOC when some titles cannot be
+    # matched (or the supplied document contains only part of the book).
+    # Keep mixed body/TOC pages intact: only extend to sibling headings on
+    # pages made entirely of index regions and title hints.
+    native_pages = {b.page_start for b in blocks if b.attributes.get('mineru_type') in {'index', 'toc', 'table_of_contents'}}
+    native = {i for i, b in enumerate(blocks) if b.attributes.get('mineru_type') in {'index', 'toc', 'table_of_contents'}}
+    for page in native_pages:
+        siblings = [(i, b) for i, b in enumerate(blocks) if b.page_start == page]
+        if all(i in native or b.block_type in {'heading', 'figure'}
+               or b.attributes.get('mineru_type') == 'paragraph_title' for i, b in siblings):
+            native.update(i for i, _ in siblings)
+    native.update(i for i, b in enumerate(blocks) if b.attributes.get('structure_role') == 'toc')
+    accepted, excluded, reports, boundaries = {}, set(native), [], {}
     for pages in groups:
         entries = [e for p in pages for e in entries_by_page[p]]
         end = max(e['source_index'] for e in entries)
@@ -288,6 +301,7 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False, edits=N
         exact[bid] = value
     heading_titles, continuations = _split_heading_titles(blocks)
     toc, toc_blocks, toc_report, boundaries = _toc_matches(blocks, result.source_metadata.get('toc_pages'), heading_titles)
+    toc_end_page = max((blocks[i].page_start or 0 for i in toc_blocks), default=0)
     bookmarks, after = {}, -1
     for entry in result.source_metadata.get('pdf_bookmarks', []):
         candidates = [i for i, b in enumerate(blocks) if i > after and i not in toc_blocks
@@ -344,6 +358,15 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False, edits=N
         if taught_value is not None and eligible:
             level, role = taught_value
             method = 'user_example'
+        elif eligible and 'structure_heading_level' in b.attributes:
+            level = b.attributes['structure_heading_level']
+            method = 'structure_review'
+        elif b.attributes.get('structure_role') in {'front_matter', 'overview', 'reference', 'annotation'}:
+            level = 0
+            method = 'structure_review'
+        elif toc_end_page and (b.page_start or 0) < toc_end_page:
+            level = 0
+            method = 'front_matter'
         elif i in continuations:
             level = 0
             method = 'heading_continuation'
@@ -389,7 +412,7 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False, edits=N
                 level = 0
         else:
             level = 0
-        if level and method not in {'user_example', 'pdf_bookmark'}:
+        if level and method not in {'user_example', 'pdf_bookmark', 'structure_review'}:
             if name in {'chapter', 'chapter-en'} and has_part:
                 level = 2
             elif name == 'section' and has_part and has_chapter:
@@ -433,6 +456,8 @@ def recover_outline(book, examples=None, max_depth=None, *, force=False, edits=N
         return apply_outline_edits(result, selected_edits)
     result.source_metadata['outline_edits'] = []
     from ingestion.document_workflows import annotate_learning_units
+    from ingestion.document_structure import annotate_regions
+    annotate_regions(result)
     annotate_learning_units(result)
     return result
 

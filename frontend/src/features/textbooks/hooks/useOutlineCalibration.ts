@@ -103,5 +103,5 @@ export function useOutlineCalibration(bookName: string, importJobId?: string, on
     finally { setBusy(false); }
   };
   return { root, source, proposal, examples, edits, maxDepth, loading, busy: busy || !!jobId, error, job,
-    changeEdits, changeDepth, preview, apply, reset, retry: () => setReload(value => value + 1) };
+    changeEdits, changeDepth, preview, apply, reset, reloadReviewed: () => { setProposal(null); setReload(value => value + 1); }, retry: () => setReload(value => value + 1) };
 }

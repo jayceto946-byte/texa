@@ -308,6 +308,7 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface ExerciseRecord {
+  source_attachments?: Array<{ asset_id: string; format: string; label: string; role: string; source_block_id: string; page: number | null }>;
   source_category?: string;
   book_id?: string;
   source_structure?: CandidateStructure | null;

@@ -22,6 +22,8 @@ def preview_outline(name, *, progress_root, base_version=None, examples=None, ma
         if base_version is not None and base_version != version:
             raise OutlineConflict('教材已更新，请重新打开目录校准后预览')
         book = load_canonical_book(name, progress_root=progress_root)
+        from backend.services.structure_review_jobs import load_reviewed_candidate, review_directory
+        book = load_reviewed_candidate(book, review_directory(progress_root, 'book', name))
     return outline_proposal(book, version, examples=examples, max_depth=max_depth, edits=edits)
 
 

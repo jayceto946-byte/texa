@@ -16,6 +16,7 @@ import os
 import threading
 
 from backend.api import agent, chat, mistakes, mistake_lifecycle, books, kg, exercises, system, reports, assets, figures, highlights, jobs, backups, learning_state, goals, notes, focus
+from backend.api import structure_reviews
 from backend.security import LocalApiBoundaryMiddleware
 from backend.static_assets import StaticAssetCompression
 from backend.remote_reads import RemoteReadOptimization
@@ -163,6 +164,7 @@ app.include_router(mistakes.router, prefix="/api")
 app.include_router(books.router, prefix="/api")
 app.include_router(kg.router, prefix="/api")
 app.include_router(exercises.router, prefix="/api")
+app.include_router(structure_reviews.router, prefix="/api")
 app.include_router(system.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(assets.router, prefix="/api/system")

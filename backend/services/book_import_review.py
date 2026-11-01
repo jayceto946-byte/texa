@@ -92,7 +92,9 @@ def publish_confirmed_import(job_id, result, *, jobs, progress_root):
 
 def import_source_book(job, *, progress_root):
     root = progress_root if job['status'] == 'completed' else draft_root(progress_root, job['id'])
-    return load_canonical_book(job['book_name'], progress_root=root)
+    book = load_canonical_book(job['book_name'], progress_root=root)
+    from backend.services.structure_review_jobs import load_reviewed_candidate, review_directory
+    return load_reviewed_candidate(book, review_directory(progress_root, 'import', job['id']))
 
 
 def finish_import_draft(job_id, *, progress_root):

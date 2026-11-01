@@ -6,8 +6,10 @@ import { QuestionReadingLayout, type ReadingPane } from '../../reading/QuestionR
 import { useExerciseAnswerJob } from '../hooks/useExerciseAnswerJob';
 import { exerciseStatusText } from './ExercisePresentation';
 import type { ExerciseRecord } from '../../../types';
+import { ExerciseAttachments } from './ExerciseAttachments';
 import { SourceStructure } from './SourceStructure';
 export function ExerciseReader({ record, bookQuery, title, actions, attempt, footer, onSaved, onMessage, onStatus, onDelete }: { record: ExerciseRecord; bookQuery: string; title: string; actions: ReactNode; attempt?: ReactNode; footer?: ReactNode; onSaved: (record: ExerciseRecord) => void; onMessage: (message: string) => void; onStatus?: (status: string) => void; onDelete?: () => void }) {
+  const bookName = new URLSearchParams(bookQuery).get('book_name') || 'default';
   const [pane, setPane] = useState<ReadingPane>('question');
   const [editing, setEditing] = useState(false);
   const [revealed, setRevealed] = useState(false);
@@ -23,7 +25,7 @@ export function ExerciseReader({ record, bookQuery, title, actions, attempt, foo
     <button className="app-primary-button" onClick={() => changePane('reference')}>查看参考答案</button>
   </>)} question={<>
     <h2>题目</h2>
-    {record.image_path && <p className="question-reading-status is-warning">原图暂不可读取，请对照来源文件。</p>}<SimpleMarkdown content={record.question_text} />{attempt && <section className="question-reading-section">
+    {record.image_path && !record.source_attachments?.length && <p className="question-reading-status is-warning">原图暂不可读取，请对照来源文件。</p>}<SimpleMarkdown content={record.question_text} /><ExerciseAttachments record={record} bookName={bookName} roles={['question']} />{attempt && <section className="question-reading-section">
       <h3>我的作答</h3>{attempt}</section>}<section className="question-reading-section question-reading-facts">
       <h3>题目信息</h3>
       <SourceStructure value={record.source_structure} />
@@ -43,7 +45,7 @@ export function ExerciseReader({ record, bookQuery, title, actions, attempt, foo
     <div className="question-reading-status">{job.saveMessage === '已保存到题库' ? job.saveMessage : record.answer?.trim() ? '已保存参考答案' : '参考答案'}</div>{record.answer ? <SimpleMarkdown content={record.answer} /> : <p>暂无参考答案，可使用 AI 解题生成草稿。</p>}{record.explanation && <section className="question-reading-section">
       <h2>已保存解析</h2>
       <SimpleMarkdown content={record.explanation} />
-    </section>}</>} ai={<>
+    </section>}<ExerciseAttachments record={record} bookName={bookName} roles={['explanation', 'answer', 'context']} /></>} ai={<>
       <p role={job.answerStatus === 'failed' ? 'alert' : 'status'} className={`question-reading-status ${['failed', 'unavailable'].includes(job.answerStatus) ? 'is-warning' : ''}`}>{job.answerStatusMessage}</p>{job.answerDraft ? <>
         <div className="question-reading-draft-toolbar">
           <span>未保存草稿 · 保存后成为题库答案；关闭题目、刷新或退出会丢失编辑</span>
