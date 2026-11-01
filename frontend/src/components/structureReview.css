@@ -1,7 +1,17 @@
-.structure-review-control { padding: 10px 16px; border-bottom: 1px solid var(--workspace-separator); font-size: 12px; min-width: 0; flex: none; max-height: min(42vh, 300px); overflow: auto; }
-.structure-review-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0; }
-.structure-review-row label { display: flex; align-items: center; gap: 6px; }
-.structure-review-row input { width: 72px; min-height: 30px; }
-.structure-review-row input[type="file"] { width: min(280px, 100%); }
-.structure-review-plan p { margin: 6px 0; overflow-wrap: anywhere; color: var(--color-text-secondary); }
-.structure-review-plan button { margin: 4px 0; }
+.structure-review-control{padding:10px 16px;border-bottom:1px solid var(--workspace-separator);font-size:12px;min-width:0;flex:none}
+.structure-review-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+.structure-review-row [role="status"]{flex:1;min-width:180px;color:var(--color-text-secondary);overflow-wrap:anywhere}
+.structure-review-hint,.structure-review-receipt{margin:6px 0 0;color:var(--color-text-secondary)}
+.structure-review-receipt p{margin:6px 0;overflow-wrap:anywhere}
+.structure-review-error{margin:6px 0;color:var(--error)}
+.structure-review-control.is-compact{display:flex;align-items:center;gap:8px;position:relative;padding:0;border:0;font:inherit}
+.is-compact .structure-review-row{flex-wrap:nowrap;gap:6px}
+.is-compact .structure-review-error{max-width:190px;margin:0;line-height:1.4}
+.structure-review-confirm{width:min(520px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:20px;font:400 13px/1.6 var(--font-app);color:var(--color-text-primary)}
+.structure-review-confirm h2{font:600 16px/1.5 var(--font-app);margin:0 0 20px}
+.structure-review-confirm dl{display:grid;gap:12px;margin:0 0 16px}
+.structure-review-confirm dl>div{display:grid;grid-template-columns:76px minmax(0,1fr);gap:12px}
+.structure-review-confirm dt{color:var(--color-text-secondary)}
+.structure-review-confirm dd{margin:0;overflow-wrap:anywhere}
+.structure-review-confirm p{margin:12px 0}
+.structure-review-confirm footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}

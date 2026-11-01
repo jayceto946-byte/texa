@@ -319,6 +319,8 @@ def upload_and_analyze_exercises(
     use_llm: bool = Form(False),
     llm_max_items: int = Form(20),
     candidate_contract_version: int | None = Form(None),
+    page_start: int | None = Form(None, ge=1),
+    page_end: int | None = Form(None, ge=1),
     book_name: str = "default",
 ):
     extracted = answer_extracted = None
@@ -329,6 +331,8 @@ def upload_and_analyze_exercises(
             raise ValueError('来源校对模式不使用文字重写，请关闭辅助修复后重试')
         saved_path = _save_upload(file)
         extracted = extract_exercise_text(saved_path)
+        from backend.services.exercise_file_analysis import select_physical_pages
+        extracted = select_physical_pages(extracted, page_start=page_start, page_end=page_end)
         answer_path = None
         answer_extracted = None
         if answer_file and answer_file.filename:
@@ -387,6 +391,7 @@ def upload_and_analyze_exercises(
             "answer_file": str(answer_path) if answer_path else "",
             "answer_extract": answer_extracted.to_dict() if answer_extracted else None,
             "extract": {**extracted.to_dict(), **(structured.to_dict() if structured else {}), "source_id": source_id,
+                        "review_reference":source_id,
                         "warnings": [*(extracted.warnings or []), *(structured.warnings if structured else [])]},
         }
     except Exception as exc:
@@ -413,13 +418,15 @@ def file_source_asset(source_id: str, asset_id: str, book_name: str = 'default')
 def reviewed_file_candidates(source_id: str, book_name: str = 'default', subject: str = ''):
     from backend.services.exercise_file_analysis import ExerciseFileAnalysisStore
     try:
-        extracted = ExerciseFileAnalysisStore(PROGRESS_PATH).load(source_id, book_name)
+        store=ExerciseFileAnalysisStore(PROGRESS_PATH)
+        extracted = store.load(source_id, book_name)
         candidates = analyze_learning_unit_candidates(extracted.units, book_name=book_name,
             subject=normalize_subject_value(subject, fallback=book_name), limit=500,
             source_blocks=extracted.source_blocks, canonical_hash=extracted.canonical_hash,
             scope=dict(chapter='', page_start=None, page_end=None, source_mode='file'),
             solution_markers=extracted.solution_markers, profile_version=extracted.profile_version, source_id=source_id)
-        return dict(success=True, data=dict(candidates=_candidate_outputs(candidates, book_name), extract=extracted.to_dict()))
+        return dict(success=True, data=dict(candidates=_candidate_outputs(candidates, book_name), extract={**extracted.to_dict(),
+            'source_id':source_id,'review_reference':store.review_reference(source_id,book_name)}))
     except (ValueError, FileNotFoundError) as exc:
         raise HTTPException(422, str(exc)) from None
 

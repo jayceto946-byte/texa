@@ -19,6 +19,7 @@ import './ApprovedWorkspace.css';
 import './StudyDesk.css';
 import './MobileConvergence.css';
 import './DesktopRefinement.css';
+import './ControlStandards.css';
 import './WorkspaceMotion.css';
 import '../features/focus/focus.css';
 import { flushRetainedEditor, unsavedNotePath } from '../features/notes/autosave';

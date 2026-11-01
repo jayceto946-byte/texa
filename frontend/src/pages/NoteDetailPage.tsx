@@ -1,4 +1,3 @@
-import { ChevronRight } from 'lucide-react';
 import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useNoteScroll } from '../features/notes/hooks/useNoteScroll';
@@ -35,7 +34,7 @@ export default function NoteDetailPage() {
         {error && <p role="alert" className="note-warning">{error}</p>}
         {note.abstract && <p className="note-abstract">{note.abstract}</p>}
         <details className="note-meta-details">
-          <summary><ChevronRight size={14} aria-hidden="true"/>{hasContents ? '目录与笔记信息' : '笔记信息'}</summary>
+          <summary>{hasContents ? '目录与笔记信息' : '笔记信息'}</summary>
           <div className="note-meta-content">
             {hasContents && <nav aria-label="笔记目录"><h2>目录</h2>{headings.map(block => <a className="note-toc-link" key={block.block_id} href={`#${block.block_id}`}>{block.data.text}</a>)}</nav>}
             <div>

@@ -1,3 +1,4 @@
+import { HelpHint } from '../ui/HelpHint';
 import Selector from '../ui/Selector';
 import { TexaTextbook, TexaEdit, TexaDelete, TexaClose } from '../icons';
 import { useCallback, useEffect, useMemo, useState, type MouseEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react';
@@ -173,7 +174,6 @@ function ReadinessSummary({ book }: { book: LibraryBook }) {
   const technical = book.readiness?.technical;
   const canonical = book.readiness?.canonical;
   const technicalReady = technical?.status === 'ready';
-  const canonicalReady = canonical?.status === 'ready';
   const retrieval = book.readiness?.retrieval;
   const retrievalNeedsAttention = retrieval?.status === 'warning';
   const contentNeedsAttention = canonical?.status === 'needs_review' || canonical?.status === 'invalid';
@@ -189,22 +189,7 @@ function ReadinessSummary({ book }: { book: LibraryBook }) {
         : '尚未准备完成';
   return <div className="library-readiness">
     <span className={ready ? 'is-ready' : 'is-warning'}>{ready ? <CheckCircle2 /> : <AlertTriangle />}<b>{statusLabel}</b></span>
-    <details className="type-caption text-text-secondary">
-      <summary className="cursor-pointer hover:text-text-primary">详细信息</summary>
-      <div className="mt-1 break-words leading-5">
-        <div>检索：{technicalReady ? `可用 · ${technical?.chunk_count || 0} 个内容片段` : technical?.status === 'degraded' ? '部分可用' : '未就绪'}</div>
-        <div>内容结构：{canonicalReady ? '完整' : canonical?.status === 'needs_review' ? `${canonical.warning_count || 0} 项待检查` : canonical?.status === 'invalid' ? '不可用' : '尚无记录'}</div>
-        <div>人工抽查：{book.readiness?.semantic?.status === 'verified' ? `已完成 ${book.readiness.semantic.human_case_count || 0} 例` : '尚未完成'}</div>
-        {retrieval?.warnings?.map((warning) => <p key={warning}>{warning}</p>)}
-        {retrieval?.failed_cases?.map((item) => <div key={item.id}>
-          <p>{item.provenance?.page_start != null ? `第 ${item.provenance.page_start} 页 · ` : ''}{item.question}</p>
-          {!!item.missing_points?.length && <details>
-            <summary className="cursor-pointer">未召回片段（{item.missing_points.length} 项）</summary>
-            <p>{item.missing_points.join('、')}</p>
-          </details>}
-        </div>)}
-      </div>
-    </details>
+    {(retrieval?.warnings?.length || canonical?.warning_count) ? <HelpHint label="教材状态">{retrieval?.warnings?.length ? retrieval.warnings.join('；') : `有 ${canonical?.warning_count} 处内容需要检查，可打开教材核对。`}</HelpHint> : null}
   </div>;
 }
 

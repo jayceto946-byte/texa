@@ -1,0 +1,30 @@
+/* Shared desktop controls. List rows, editor surfaces and navigation retain their own layout. */
+@media (pointer:fine) {
+  :is(.app-shell.app-shell, .app-dialog-shell.app-dialog-shell) :is(.app-primary-button,.app-secondary-button,.app-ghost-button),
+  .app-shell.app-shell :is(.review-row-action,.review-text-button,.review-show-more,.exercise-quantity button,.goal-detail-tabs button,.focus-primary-actions>button,.focus-next-task>button,.study-task-panel .app-primary-button,.study-task-panel .app-secondary-button,.study-task-panel .app-ghost-button) {
+    min-height:var(--workspace-control-height)!important;height:var(--workspace-control-height)!important;padding:0 10px!important;gap:6px;
+    border-radius:var(--workspace-control-radius);font:500 var(--workspace-support-size)/var(--workspace-interface-leading) var(--font-app)!important;
+  }
+  :is(.app-shell.app-shell, .app-dialog-shell.app-dialog-shell) .app-icon-button {
+    width:var(--workspace-control-height)!important;height:var(--workspace-control-height)!important;min-width:var(--workspace-control-height)!important;min-height:var(--workspace-control-height)!important;padding:5px!important;
+  }
+  :is(.app-shell.app-shell,.app-dialog-shell.app-dialog-shell) :is(.app-segmented-control,.app-tabs) {font-size:var(--workspace-support-size)}
+  :is(.app-shell.app-shell,.app-dialog-shell.app-dialog-shell) .app-segmented-control {min-height:32px;padding:2px}
+  :is(.app-shell.app-shell,.app-dialog-shell.app-dialog-shell) .app-segmented-option {min-height:26px;padding:2px 10px;font:500 12px/1.5 var(--font-app)}
+  .app-shell.app-shell :is(.exercise-source-tabs,.question-reading-tabs,.goals-tabs,.goal-detail-tabs,.library-list-filter) button {font-size:12px;font-weight:400;line-height:1.5}
+}
+:is(.app-shell.app-shell,.app-dialog-shell.app-dialog-shell) summary {
+  display:inline-flex;align-items:center;gap:6px;min-height:28px;padding-block:4px;list-style:none;cursor:pointer;
+  font:400 var(--workspace-support-size)/var(--workspace-interface-leading) var(--font-app);color:var(--color-text-secondary);
+}
+:is(.app-shell,.app-dialog-shell) summary::-webkit-details-marker{display:none}
+:is(.app-shell,.app-dialog-shell) summary::marker{content:''}
+:is(.app-shell,.app-dialog-shell) summary:not(:has(svg))::after{content:'展开';font-size:11px;color:var(--color-accent);margin-left:4px}
+:is(.app-shell,.app-dialog-shell) details[open]>summary:not(:has(svg))::after{content:'收起'}
+:is(.app-shell,.app-dialog-shell) summary:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+:is(.app-shell,.app-dialog-shell) summary:hover{color:var(--color-text-primary)}
+@media(pointer:coarse){:is(.app-shell,.app-dialog-shell) :is(.app-primary-button,.app-secondary-button,.app-ghost-button,.app-icon-button,summary){min-height:44px}}
+
+@media(pointer:fine){:is(.app-shell.app-shell,.app-dialog-shell.app-dialog-shell) .texa-selector>.app-scrollable-select-trigger.is-compact{min-height:28px;height:28px;font-size:12px}.app-shell.app-shell .library-readiness{flex-direction:row;align-items:center;flex-wrap:wrap;gap:4px}.app-shell.app-shell .library-readiness .control-help{margin-left:0}.app-shell.app-shell :is(.note-meta-details,.review-insights)>summary{padding-left:0}}
+/* Hidden retained routes must not announce generated disclosure labels. */
+:is(.app-shell,.app-dialog-shell) [hidden] summary::after{content:none}

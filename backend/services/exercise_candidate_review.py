@@ -132,7 +132,7 @@ def validate_candidate(item, proposals, registry):
         elif decision == 'corrected':
             if not edited or not body_changed or (code == 'solution_in_stem' and INLINE_SOLUTION.search(item['question_text'])):
                 unresolved.append(signal)
-        elif decision not in ('not_applicable','source_checked') or code not in ('solution_in_stem','boundary_uncertain','dependency_uncertain','formula_review','learned_boundary'):
+        elif decision not in ('not_applicable','source_checked') or code not in ('solution_in_stem','boundary_uncertain','dependency_uncertain','formula_review','learned_boundary','source_ocr_damage'):
             unresolved.append(signal)
     if p['method'] == 'unresolved':
         unresolved.append(dict(code='boundary_uncertain',key='unresolved_projection'))

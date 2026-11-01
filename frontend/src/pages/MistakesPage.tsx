@@ -314,7 +314,7 @@ export function MistakeDetailPage() {
           <summary>对照原图</summary>
           <img className="mistakes-original-image" src={imageUrl} alt="错题原图" />
         </details>}{record.image_path && !imageUrl && !record.attachments?.length && <p className="mistakes-detail-note">原图暂时无法读取，已保存的题干仍可查看。</p>}</section>}<div className="question-reading-section">{<section>
-          <h2>我当时怎么做</h2>{record.user_answer ? <ReadingMarkdown content={record.user_answer} /> : <p className="mistakes-detail-note">未保留当时的作答。现有记录无法还原具体错误步骤。</p>}</section>}</div>
+          <h2>我当时怎么做</h2>{record.user_answer ? <ReadingMarkdown content={record.user_answer} /> : <p className="mistakes-detail-note">暂无作答记录</p>}</section>}</div>
       <section className="question-reading-section">
         <h3>错误原因与修正</h3>
         <p>{record.mistake_type?.join('、') || '尚未整理错因'}</p>
@@ -331,7 +331,7 @@ export function MistakeDetailPage() {
             <strong>{attempt.kind === 'occurrence' ? '再次出错' : attempt.result === 'independent_correct' ? '独立做对' : attempt.result === 'prompted_correct' ? '有提示后做对' : attempt.result === 'partial' ? '部分完成' : '做错'}</strong>
             <span>{attempt.judgement_source === 'deterministic' ? '确定性校验' : '用户确认'}{attempt.answer ? ` · 作答：${attempt.answer.slice(0, 80)}` : ''}</span>
           </li>)}</ol> : <p className="mistakes-detail-note">还没有保存独立重做记录。</p>}{record.review_history?.length ? <details>
-            <summary>旧版复习自评（不计入掌握证据）</summary>
+            <summary>早期复习记录</summary>
             <ol className="mistakes-history">{[...record.review_history].reverse().map((item, index) => <li key={`${item.date}-${index}`}>
               <span>{displayDate(item.date)}</span>
               <strong>自评 {item.quality}/5</strong>
@@ -352,7 +352,7 @@ export function MistakeDetailPage() {
           <h2>已保存解析</h2>
           <ReadingMarkdown content={record.explanation} />
         </section> : <p>暂无已保存解析。</p>}</>} footer={<>
-          <span>{nextAction(record)}{record.mastery_status === 'mastered' ? ` · ${record.mastery_source === 'manual' ? '手动标记，未有重做证据' : '有独立重做证据'}` : ''}</span>
+          <span>{nextAction(record)}{record.mastery_status === 'mastered' ? ` · ${record.mastery_source === 'manual' ? '手动标记' : '独立重做通过'}` : ''}</span>
           <div>
             <button className="app-secondary-button" onClick={() => setEditing(true)}>编辑档案</button>
             <button disabled={busy} className="app-secondary-button" onClick={() => runAction(record.visibility === 'archived' ? 'restore' : 'archive')}>{record.visibility === 'archived' ? '恢复档案' : '归档'}</button>

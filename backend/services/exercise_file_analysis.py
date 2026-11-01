@@ -17,7 +17,22 @@ from memory.exercise_structure_examples import StructureExampleStore
 from memory.textbook_exercise_importer import ExtractedTextbookExerciseText
 from utils.json_io import atomic_write_json
 
-ANSWER_HEADING = re.compile(r'^\s*(?:参考答案|答案与解析|习题解答|答案解析|参考解答)\s*$')
+ANSWER_HEADING = re.compile(r'^\s*(?:答案|参考答案|答案与解析|习题解答|答案解析|参考解答|answers?|solutions?)\s*$',re.I)
+
+
+def select_physical_pages(extracted, *, page_start=None, page_end=None):
+    if page_start is None and page_end is None:
+        return extracted
+    if not extracted.canonical_book or not extracted.canonical_book.source_page_count:
+        raise ValueError('该文件没有物理页信息；请选择 PDF 或保留页码的 MinerU 包')
+    from dataclasses import replace
+    book = deepcopy(extracted.canonical_book)
+    start, end = page_start or 1, page_end or book.source_page_count
+    if start > end or end > book.source_page_count:
+        raise ValueError('物理页范围无效或超出文件页数')
+    book.blocks = [b for b in book.blocks if b.page_start and start <= b.page_start <= end]
+    book.source_metadata['selected_physical_pages'] = dict(start=start, end=end)
+    return replace(extracted, canonical_book=book, text='\n\n'.join(b.text for b in book.blocks))
 
 
 def file_book(extracted, *, name, prefix='q'):
@@ -65,6 +80,11 @@ def file_book(extracted, *, name, prefix='q'):
             block.block_type = 'heading' if heading else 'paragraph'
             block.section_path = list(path)
             block.attributes.update(source_parent_id=parent.block_id, source_start=start, source_end=start + len(text))
+            if start and parent.attributes.get('structure_unit_start'):
+                # A reviewed paragraph starts one question, not one per line.
+                block.attributes['structure_unit_start'] = False
+                block.attributes.setdefault('structure_unit_id', parent.block_id)
+                block.attributes.pop('structure_question_number', None)
             blocks.append(block)
     for block in blocks:
         for key in ('outline_parent_id', 'outline_root_id', 'structure_unit_id'):
@@ -89,8 +109,9 @@ def _number(unit, blocks):
 def pair_answer_units(units, answer_units, book):
     """Unique scoped identities only. Repeated numbers never choose a last match."""
     blocks = {b.block_id: b for b in book.blocks}
+    from ingestion.heading_policy import exercise_heading
     def key(unit):
-        return (tuple(p for p in unit.get('section_path', [])[1:] if not ANSWER_HEADING.match(p)), *_number(unit, blocks))
+        return (tuple(p for p in unit.get('section_path', [])[1:] if not exercise_heading(p)), *_number(unit, blocks))
     question_counts = Counter(key(u) for u in units)
     answers = {}
     for answer in answer_units:
@@ -98,7 +119,7 @@ def pair_answer_units(units, answer_units, book):
     paired = 0
     for unit in units:
         matches = answers.get(key(unit), [])
-        already_solved = any(solution_markers(blocks[bid].text) for bid in unit['source_block_ids'])
+        already_solved = any(solution_markers(blocks[bid].text) or blocks[bid].attributes.get('structure_unit_role') in {'answer','explanation'} for bid in unit['source_block_ids'])
         if len(matches) == 1 and question_counts[key(unit)] == 1 and key(unit)[-1] and not already_solved:
             answer = matches[0]
             unit['answer_block_ids'] = answer['source_block_ids']
@@ -120,31 +141,27 @@ class ExerciseFileAnalysisStore:
         if answer:
             self._preserve_assets(answer)
         book = file_book(extracted, name=book_name)
-        answer_at = next((i for i, b in enumerate(book.blocks) if ANSWER_HEADING.match(b.text)), None)
-        question_book = deepcopy(book)
-        if answer_at is not None:
-            question_book.blocks = book.blocks[:answer_at]
-        units = exercise_units(question_book, unrestricted=True)
+        all_units=exercise_units(book,unrestricted=True)
+        answer_units=[u for u in all_units if any(ANSWER_HEADING.match(p) for p in u['section_path'])]
+        units=[u for u in all_units if not any(ANSWER_HEADING.match(p) for p in u['section_path'])]
         if not units and book.blocks:
             # Unnumbered source remains available as an explicitly uncertain unit.
             from ingestion.document_structure import block_role, NON_PRACTICE
-            body = [b for b in question_book.blocks if b.block_type != 'heading' and block_role(b) not in NON_PRACTICE]
+            body = [b for b in book.blocks if b.block_type != 'heading' and block_role(b) not in NON_PRACTICE and not any(ANSWER_HEADING.match(p) for p in b.section_path)]
             if body:
                 units = [dict(unit_id=body[0].block_id, kind='example', text='\n\n'.join(b.text for b in body),
                               chapter=book_name, section_path=[book_name], page_start=body[0].page_start,
                               page_end=body[-1].page_end, source_block_ids=[b.block_id for b in body], truncated=False, header_ids=[])]
         paired, all_answer_ids = 0, set()
-        if answer_at is not None:
-            answer_book = deepcopy(book)
-            answer_book.blocks = book.blocks[answer_at + 1:]
-            all_answer_ids.update(b.block_id for b in answer_book.blocks)
-            paired = pair_answer_units(units, exercise_units(answer_book, unrestricted=True), book)
+        if answer_units:
+            all_answer_ids.update(bid for unit in answer_units for bid in unit['source_block_ids'])
+            paired = pair_answer_units(units,answer_units,book)
         if answer:
             answer_book = file_book(answer, name=book_name, prefix='a')
             answer_units = exercise_units(answer_book, unrestricted=True)
             all_answer_ids.update(b.block_id for b in answer_book.blocks)
             book.blocks.extend(answer_book.blocks)
-            paired = pair_answer_units(units, answer_units, book)
+            paired += pair_answer_units(units, answer_units, book)
         version, _ = self.examples.load()
         registry = source_registry(book, units, {b.block_id for b in book.blocks})
         source_id = uuid.uuid4().hex
@@ -155,7 +172,7 @@ class ExerciseFileAnalysisStore:
                        unmatched_answer_text='\n\n'.join(b.text for b in book.blocks if b.block_id in all_answer_ids
                            and b.block_id not in {bid for u in units for bid in u.get('answer_block_ids', [])}))
         from dataclasses import asdict
-        payload['canonical_source'] = asdict(extracted.canonical_book) if extracted.canonical_book else None
+        payload['canonical_source'] = asdict(extracted.canonical_book or file_book(extracted,name=book_name))
         payload['answer_source'] = (dict(text=answer.text, file_type=answer.file_type, provider=answer.provider,
             canonical_book=asdict(answer.canonical_book) if answer.canonical_book else None) if answer else None)
         payload['structure_review'] = (extracted.canonical_book.source_metadata.get('structure_review', {}) if extracted.canonical_book else {})
@@ -227,6 +244,13 @@ class ExerciseFileAnalysisStore:
         if canonical:
             canonical = CanonicalBook(**{**canonical, 'blocks': [DocumentBlock.from_dict(b) for b in canonical['blocks']]})
         return ExtractedExerciseText(text=raw['text'], file_type=raw['file_type'], provider=raw['provider'], canonical_book=canonical)
+
+    def review_reference(self, source_id, book_name):
+        self.load(source_id,book_name)
+        raw=json.loads((self.root/f'{source_id}.json').read_text())
+        origin=((raw.get('canonical_source') or {}).get('source_metadata') or {}).get('review_origin_source_id') or source_id
+        if origin!=source_id:self.load(origin,book_name)
+        return origin
 
     def _extracted(self, payload):
         version, markers = self.examples.load(payload['profile_version'])

@@ -67,7 +67,7 @@ def _image_url(path):
     return 'data:image/jpeg;base64,' + base64.b64encode(stream.getvalue()).decode()
 
 
-def review_input(book, pages, *, asset_root=None, pdf_path=None):
+def review_input(book, pages, *, asset_root=None, pdf_path=None, include_formula_crops=False):
     """Local selection only: bounded page text and source images, never full book text."""
     from ingestion.document_adapters import _controlled_source_path
     context = set(pages) | {p - 1 for p in pages if p > 1} | {p + 1 for p in pages}
@@ -96,7 +96,7 @@ def review_input(book, pages, *, asset_root=None, pdf_path=None):
     crop_count, omitted_images = 0, []
     if asset_root:
         for block in book.blocks:
-            if block.page_start not in pages or block.block_type not in {'figure', 'table'}:
+            if block.page_start not in pages or block.block_type not in ({'figure', 'table', 'formula'} if include_formula_crops else {'figure', 'table'}):
                 continue
             rel = block.attributes.get('source_asset_relpath') or (block.attributes.get('original_visual_asset') or {}).get('source_relpath')
             path = _controlled_source_path(Path(asset_root), rel or '')

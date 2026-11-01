@@ -1,0 +1,11 @@
+.rendered-editor{min-height:40px;font:400 var(--workspace-reading-size)/var(--workspace-reading-leading) var(--font-app);overflow-wrap:anywhere}
+.rendered-editor p{margin:0 0 14px}.rendered-editor :is(table,pre){max-width:100%;overflow:auto}.rendered-editor th,.rendered-editor td{padding:6px 12px;border:1px solid var(--color-border)}
+.rendered-edit-text{white-space:pre-wrap;outline:none;border-radius:2px}.rendered-edit-text:focus{background:var(--accent-softer);box-shadow:0 1px 0 var(--color-accent)}
+.rendered-edit-formula{cursor:text;border-radius:3px;outline:none}.rendered-edit-formula:hover,.rendered-edit-formula:focus-visible{background:var(--accent-softer);box-shadow:0 1px 0 var(--color-accent)}
+.rendered-edit-equation{margin-block:16px;overflow-x:auto;overflow-y:hidden}.rendered-edit-equation .rendered-edit-formula{display:block}.rendered-editor .katex-display{overflow-x:auto;overflow-y:hidden;padding-block:4px}
+.rendered-editor-empty{min-height:40px;outline:none}.rendered-editor-empty:empty::before{content:attr(data-placeholder);color:var(--color-text-tertiary)}
+.rendered-formula-dialog{width:min(640px,calc(100vw - 32px));padding:20px;max-height:calc(100dvh - 32px);overflow:auto;color:var(--color-text-primary)}
+.rendered-formula-dialog h2{font:600 16px/1.5 var(--font-app);margin-bottom:20px}.rendered-formula-dialog .visual-math-field{background:transparent;border:0;box-shadow:none;max-width:100%;overflow:auto}
+.rendered-formula-dialog footer{display:flex;align-items:center;justify-content:space-between;margin-top:20px;gap:12px}.rendered-formula-dialog footer>div{display:flex;gap:8px}
+.rendered-editor{position:relative}.rendered-editor>.rendered-insert-formula{position:absolute;right:0;top:-38px;color:var(--color-text-secondary)}.rendered-editor-empty{display:block}
+.rendered-formula-dialog .visual-math-field{--selection-color:var(--color-text-primary);--selection-background-color:var(--accent-soft);--caret-color:var(--color-accent)}

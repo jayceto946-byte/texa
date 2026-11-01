@@ -1,0 +1,4 @@
+.control-help{display:inline-flex;vertical-align:middle;margin-left:4px}
+.control-help>button{width:16px;height:16px;border:1px solid var(--color-border);border-radius:50%;font-size:11px;color:var(--color-text-secondary);background:transparent;line-height:1;cursor:help}
+.control-help>button:focus-visible{outline:2px solid var(--color-accent);outline-offset:3px}
+.control-help-popup{position:fixed;z-index:150;width:276px;max-width:calc(100vw - 16px);max-height:240px;overflow:auto;padding:12px 14px;border:1px solid var(--color-border);border-radius:6px;background:var(--color-bg-card);color:var(--color-text-primary);font-size:12px;line-height:1.7;box-shadow:0 5px 20px #22222212;overflow-wrap:anywhere}

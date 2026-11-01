@@ -8,6 +8,14 @@ import { SegmentedControl } from '../../components/ui/SelectionControls';
 import { outlineRequest, useOutlineCalibration, type OutlineEdit, type SourceBlock } from './hooks/useOutlineCalibration';
 import './outlineCalibration.css';
 
+function sourcePreview(block: SourceBlock) {
+  if (block.block_type === 'table' && /<table\b/i.test(block.text)) {
+    const html = new DOMParser().parseFromString(block.text, 'text/html');
+    return `表格 · ${Array.from(html.querySelectorAll('th,td')).slice(0, 12).map(cell => cell.textContent || '').join(' · ').replace(/\s+/g, ' ').slice(0, 220)}`;
+  }
+  return block.text.replace(/\s+/g, ' ').slice(0, 260);
+}
+
 export default function OutlineCalibrationPanel({ bookName, onClose, importJobId, onConfirmed }: {
   bookName: string; onClose: () => void; importJobId?: string; onConfirmed?: (jobId: string) => void;
 }) {
@@ -64,7 +72,7 @@ export default function OutlineCalibrationPanel({ bookName, onClose, importJobId
   return <Dialog open title={importJobId ? '确认教材目录' : '校正教材目录'} onClose={onClose} className="outline-calibration-dialog">
     <section className="outline-calibration" aria-label={`${bookName}目录校正`}>
       <header className="outline-calibration-header"><div><h3>{importJobId ? '确认教材目录' : '校正教材目录'}</h3><p title={bookName}>{bookName}</p></div><button type="button" className="app-icon-button" aria-label="关闭目录校正" onClick={onClose}><TexaClose size={18} /></button></header>
-      <StructureReviewControl key={importJobId || bookName} target={{ kind: importJobId ? 'import' : 'book', reference: importJobId || bookName, book_name: bookName }} disabled={state.busy} onBusyChange={setReviewBusy} onComplete={() => state.reloadReviewed()} />
+      <StructureReviewControl key={`${importJobId || bookName}:${state.resetVersion}`} target={{ kind: importJobId ? 'import' : 'book', reference: importJobId || bookName, book_name: bookName }} disabled={state.busy} onBusyChange={setReviewBusy} onComplete={() => state.reloadReviewed()} />
       {state.loading && <p className="outline-message" role="status">正在读取目录…</p>}
       {state.error && <div className="outline-error" role="alert">{state.error}{!data && <button type="button" onClick={state.retry}>重试</button>}</div>}
       {data && <div className="outline-editor-workspace">
@@ -98,7 +106,7 @@ export default function OutlineCalibrationPanel({ bookName, onClose, importJobId
                 event.preventDefault(); buttons[next]?.focus(); buttons[next]?.click();
               }}>{pageBlocks.map((block, index) => {
                 const active = selectedEdit?.anchor_block_id ? selectedEdit.anchor_block_id === block.block_id : selectedEdit ? index === 0 : selected.block_id === block.block_id;
-                return <button type="button" role="radio" aria-checked={active} key={block.block_id} disabled={busy} onClick={()=>update({anchor_block_id:block.block_id})} className={active?'is-anchor':''}><span className="outline-anchor-dot" /><span>{block.text}</span>{active && <ArrowUpRight size={15} />}</button>;
+                return <button type="button" role="radio" aria-checked={active} key={block.block_id} disabled={busy} onClick={()=>update({anchor_block_id:block.block_id})} className={active?'is-anchor':''}><span className="outline-anchor-dot" /><span>{sourcePreview(block)}</span>{active && <ArrowUpRight size={15} />}</button>;
               })}</div>
             </section>
           </> : <div className="outline-message">从左侧选择标题，或新增缺失的一级标题。</div>}

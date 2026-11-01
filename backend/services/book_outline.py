@@ -130,3 +130,12 @@ def source_page(book, page):
     return dict(page=page, blocks=[dict(block_id=b.block_id, text=b.text, block_type=b.block_type)
         for b in book.blocks if b.page_start == page and b.text.strip()
         and not b.attributes.get('outline_toc') and not b.attributes.get('manual_outline_node')])
+
+
+def reviewed_source_page(name, page, *, progress_root):
+    from ingestion.index_snapshot import index_read_snapshot
+    from backend.services.structure_review_jobs import load_reviewed_candidate,review_directory
+    with index_read_snapshot():
+        book=load_canonical_book(name,progress_root=progress_root)
+        book=load_reviewed_candidate(book,review_directory(progress_root,'book',name))
+        return source_page(book,page)

@@ -143,8 +143,8 @@ def get_outline_source_page(name: str, page: int):
     resolved = _resolve_book_reference(name)
     if not resolved:
         raise HTTPException(404, '教材不存在')
-    from backend.services.book_outline import source_page
-    return {'success': True, 'data': source_page(load_canonical_book(resolved, progress_root=PROGRESS_PATH), page)}
+    from backend.services.book_outline import reviewed_source_page
+    return {'success': True, 'data': reviewed_source_page(resolved,page,progress_root=PROGRESS_PATH)}
 
 
 def _import_review_job(job_id):

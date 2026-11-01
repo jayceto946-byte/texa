@@ -65,7 +65,7 @@ export default function FigureAuditPanel({ bookName, onClose }: { bookName: stri
       <h5 className="type-section-title">教材图片审核</h5>
       <div className="flex gap-2"><button type="button" disabled={loading} onClick={() => setRevision((value) => value + 1)} className="app-secondary-button"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />重新审核</button><button type="button" onClick={onClose} className="app-icon-button" aria-label="关闭图片审核"><TexaClose className="h-4 w-4" /></button></div>
     </header>
-    <p className="type-caption mt-2 text-text-secondary">自动检查裁片文件、坐标、图题归属和正文引用。标签可能已在图片内；疑似问题不等于缺图，原页完整性和文字正确性仍需核对。</p>
+
     <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="图片审核类别">
       {(['suspect', 'error', 'unverifiable', ''] as Category[]).map((value) => <button type="button" key={value} aria-pressed={category === value} className={category === value ? 'app-primary-button' : 'app-secondary-button'} onClick={() => { setOffset(0); setCategory(value); }}>{value ? categoryLabels[value] : '全部'}</button>)}
     </div>

@@ -371,6 +371,7 @@ export interface CandidateSourceBlock {
   attributes: Record<string, string | number | null>;
 }
 export interface CandidateSourceRegistry {
+  review_reference?: string;
   canonical_hash: string; source_blocks: CandidateSourceBlock[];
   units: Array<{ unit_id: string; text: string; source_block_ids: string[] }>;
 }

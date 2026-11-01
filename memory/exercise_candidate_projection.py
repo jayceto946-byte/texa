@@ -11,6 +11,8 @@ import html
 import json
 import re
 from memory.exercise_structure import header_metadata, split_roles, solution_markers, ORIGINAL, FOCUS
+from ingestion.source_text_quality import pending_ocr_damage
+from ingestion.source_markdown import table_markdown
 
 ROLES = ('question', 'answer', 'explanation', 'context', 'unassigned')
 INLINE_SOLUTION = re.compile(r'(?:[。；;\n]|\s)(?:解答|答案|证明|解|证)\s*[：:]')
@@ -21,7 +23,8 @@ SNAPSHOT_KEYS = ('block_id', 'block_type', 'text', 'section_path', 'page_start',
 ATTRIBUTE_KEYS = ('source_page_idx', 'source_block_index', 'bbox_space', 'bbox_format', 'bbox_units',
                   'mineru_type', 'raw_level', 'semantic_role', 'asset_id', 'asset_hash', 'asset_status',
                   'source_parent_id', 'source_start', 'source_end', 'asset_format',
-                  'structure_role', 'structure_unit_role', 'structure_group_members', 'structure_unit_id')
+                  'structure_role', 'structure_unit_role', 'structure_group_members', 'structure_unit_id',
+                  'original_ocr_text', 'text_corrections', 'structure_question_number', 'ocr_quality_confirmed', 'ocr_quality_pending')
 
 
 def canonical_json(value):
@@ -39,8 +42,10 @@ def snapshot(block, order):
         from pathlib import PurePosixPath
         raw['attributes'].update(asset_id=raw['attributes']['content_hash'],
                                   asset_format=PurePosixPath(raw['attributes'].get('asset_relpath', '')).suffix)
-    return {**{key: deepcopy(raw[key]) for key in SNAPSHOT_KEYS}, 'order': order,
-            'attributes': {key: deepcopy(raw['attributes'][key]) for key in ATTRIBUTE_KEYS if key in raw['attributes']}}
+    attributes = {key: deepcopy(raw['attributes'][key]) for key in ATTRIBUTE_KEYS if key in raw['attributes']}
+    if pending_ocr_damage(block):
+        attributes['ocr_damage_reason'] = pending_ocr_damage(block)
+    return {**{key: deepcopy(raw[key]) for key in SNAPSHOT_KEYS}, 'order': order, 'attributes': attributes}
 
 
 def marker(block):
@@ -89,17 +94,21 @@ def issue(code, blocks=(), dependency_id=None, category='content'):
 
 def serialize_block(block):
     text = block['text']
-    # The existing reader already recognizes simple roman-variable equations.
-    # Preserve those working bytes (and exact duplicate identities); complex/tagged
-    # formulas need explicit display delimiters to avoid inline KaTeX failures.
-    already_readable = (r'\mathrm' in text and not re.search(r'\\(?:tag|frac|begin|sum|int|sqrt)\b|\$', text))
-    if block['block_type'] == 'formula' and text.strip() and not already_readable and not text.strip().startswith(('$$', r'\[')):
+    if block['block_type'] == 'formula':
+        text = text.strip()
+        if text.startswith('$') and text.endswith('$'):
+            return text
+        for opening, closing in (('$$', '$$'), (r'\[', r'\]'), (r'\(', r'\)'), ('$', '$')):
+            if text.startswith(opening) and text.endswith(closing) and len(text) > len(opening) + len(closing):
+                text = text[len(opening):-len(closing)].strip()
+                break
+    if block['block_type'] == 'formula' and text.strip() and not text.strip().startswith(('$$', r'\[')):
         return '$$\n' + text + '\n$$'
     if block['block_type'] == 'table' and not text.strip() and block.get('table_rows'):
         header = block.get('table_header') or [''] * max(map(len, block['table_rows']))
         rows = [header, ['---'] * len(header), *block['table_rows']]
         return '\n'.join('| ' + ' | '.join(row) + ' |' for row in rows)
-    return text
+    return table_markdown(text) if block['block_type']=='table' else text
 
 
 def serialize_parts(spans, registry):
@@ -146,7 +155,7 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
             entry = issue(code, bids, dep)
             if entry not in problems:
                 problems.append(entry)
-        if len(blocks) > 80 or (blocks[-1]['page_end'] or blocks[-1]['page_start'] or 0) - (blocks[0]['page_start'] or 0) > 8 or any(u['truncated'] for u in group):
+        if len(blocks) > 80 or not unit.get('pairing_reviewed') and (blocks[-1]['page_end'] or blocks[-1]['page_start'] or 0) - (blocks[0]['page_start'] or 0) > 8 or any(u['truncated'] for u in group):
             warn('boundary_uncertain', ids)
         if blocks[0]['block_type'] == 'formula':
             warn('boundary_uncertain', [blocks[0]['block_id']])
@@ -176,6 +185,10 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
         method = 'unresolved' if unresolved else ('block_boundary' if has_solution else 'whole_unit')
         role = 'question'
         for i, b in enumerate(blocks):
+            if pending_ocr_damage(b):
+                parts['context'].append(dict(block_id=b['block_id'], start=0, end=None))
+                warn('source_ocr_damage', [b['block_id']])
+                continue
             reviewed_role = b['attributes'].get('structure_unit_role')
             if reviewed_role:
                 role = reviewed_role
@@ -281,7 +294,7 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
             metadata = dict(catalog_number='', authored_focus=focus, exam_source='')
         original = ORIGINAL.match(body['question'])
         structure = dict(**(metadata or dict(catalog_number='', authored_focus='', exam_source='')),
-                         original_number=original.group().strip() if original else '',
+                         original_number=blocks[0]['attributes'].get('structure_question_number') or ((original.group(1) or original.group(2)).replace('．','.') if original else ''),
                          classification_path=unit.get('classification_path', unit.get('section_path', [])),
                          source_block_ids=[b['block_id'] for b in headers])
         projection = dict(version=1, canonical_hash=canonical_hash, unit_ids=[u['unit_id'] for u in group],

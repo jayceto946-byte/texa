@@ -15,11 +15,16 @@ _EXERCISE = re.compile(r'^(?:本章|章末|课后)?(?:习题|练习题?|复习�
                        r'(?:(?:与|及|和)(?:习题|练习题?|复习题|思考题))?'
                        r'(?:[一二三四五六七八九十\d]+(?:[.．-]\d+)*)?$')
 PROBLEM_START = re.compile(r'^\s*(?:[A-Za-z]\s*)?\d+(?:\s*[.．\-－—]\s*\d+)+(?:\s*[.．、)]|\s+|(?=[\u4e00-\u9fff]))|^\s*\d+\s*[.．、)]')
-_SOLUTION_HEADING = re.compile(r'^(?:典型题解|参考答案|答案与解析|习题解答|答案解析|参考解答|solutions?|answers?)$', re.I)
+_SOLUTION_HEADING = re.compile(r'^(?:典型题解|答案|参考答案|答案与解析|习题解答|答案解析|参考解答|solutions?|answers?)$', re.I)
 
 
 def solution_heading(text):
     return bool(_SOLUTION_HEADING.fullmatch(str(text or '').strip()))
+
+
+def numeric_data_row(text):
+    value=str(text or '').strip()
+    return bool(re.fullmatch(r'[\d\s.．,，;；|&+\-−±%°\'"()（）eE×]+',value) and len(re.findall(r'\d+(?:\.\d+)?',value))>=2)
 
 
 def exercise_heading(text):

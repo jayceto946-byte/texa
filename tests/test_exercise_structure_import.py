@@ -58,7 +58,7 @@ def test_catalog_wins_over_repeated_exam_numbers_and_keeps_focus(tmp_path):
     _, extracted, proposals, _ = analyze(tmp_path, '二、矩阵\n#047 矩阵 → 伴随等于转置/本身 2005数三\n(12) 设矩阵满足给定条件，求参数。\n答案：A\n解析：由给定矩阵性质可得。\n#048 矩阵 → 不可逆的判定与证明 2006数三\n(12) 证明给定矩阵不可逆。\n解：这是原文的证明。')
     assert len(proposals) == 2
     assert [p['projection']['structure']['catalog_number'] for p in proposals] == ['#047', '#048']
-    assert [p['projection']['structure']['original_number'] for p in proposals] == ['(12)', '(12)']
+    assert [p['projection']['structure']['original_number'] for p in proposals] == ['12', '12']
     assert proposals[0]['projection']['structure']['authored_focus'] == '矩阵 → 伴随等于转置/本身'
     assert proposals[0]['projection']['structure']['exam_source'] == '2005数三'
     assert '二、矩阵' in proposals[0]['projection']['structure']['classification_path']

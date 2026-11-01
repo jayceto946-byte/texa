@@ -1,30 +1,29 @@
 import { useEffect, useRef, useState } from 'react';
-import { apiFetch, get, post } from '../api/client';
-import Selector from './ui/Selector';
+import { get, post } from '../api/client';
+import Dialog from './ui/Dialog';
 import './structureReview.css';
 
 type Target = { kind: 'book' | 'import' | 'file'; reference: string; book_name: string };
-type Plan = { pages: number[]; candidate_pages: number; total_pages: number; max_calls: number; model: string; ready: boolean; has_original_pages: boolean; image_scope: string; notice: string };
-type Job = { id: string; status: string; message: string; progress: number; result?: { source_id?: string; report?: { status: string } } };
+type Report = { model?: string; text_corrections?: number; merged_questions?: number; retained_answer_blocks?: number; changed_headings?: number; outline_changed?: boolean; estimated_cost_cny?: number | null; unresolved?: unknown[]; usage_unknown?: boolean; needs_retry?: boolean };
+type Job = { id: string; status: string; message: string; progress: number; result?: { source_id?: string; report?: Report } };
+type Plan = { model: string; model_label?: string; provider: string; ready: boolean; pages: number[]; source_characters: number; includes_answer_file: boolean; estimated_cost: { low: number; high: number } | null; max_cost_cny: number };
 
-export function StructureReviewControl({ target, disabled, onComplete, onBusyChange }: { target: Target; disabled?: boolean; onComplete: (result: Job['result']) => void | Promise<void>; onBusyChange?: (busy: boolean) => void }) {
-  const [expanded, setExpanded] = useState(false);
-  const [mode, setMode] = useState('suspect');
-  const [maxPages, setMaxPages] = useState(24);
-  const [plan, setPlan] = useState<Plan | null>(null);
-  const [job, setJob] = useState<Job | null>(null);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [pdf, setPdf] = useState<File | null>(null);
-  const [inputPrice, setInputPrice] = useState('');
-  const [outputPrice, setOutputPrice] = useState('');
-  const [maxCost, setMaxCost] = useState(1);
+export function StructureReviewControl({ target, disabled, compact = false, candidateCount, onDispatch, onComplete, onBusyChange }: { target: Target; disabled?: boolean; compact?: boolean; candidateCount?: number; onDispatch?: () => void; onComplete: (result: Job['result']) => void | Promise<void>; onBusyChange?: (busy: boolean) => void }) {
   const key = `texa:structure-review:${target.kind}:${target.reference}`;
   const [jobId, setJobId] = useState(() => localStorage.getItem(key) || '');
+  const [job, setJob] = useState<Job | null>(null);
+  const [error, setError] = useState('');
+  const [starting, setStarting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [planning, setPlanning] = useState(false);
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [stopping, setStopping] = useState(false);
+  const dispatchLock = useRef(false);
+  const [retrying, setRetrying] = useState(() => localStorage.getItem(key + ':failed') === '1');
   const done = useRef(onComplete);
   useEffect(() => { done.current = onComplete; }, [onComplete]);
-  const pending = loading || Boolean(jobId);
-  useEffect(() => { onBusyChange?.(pending); return () => onBusyChange?.(false); }, [pending, onBusyChange]);
+  const busy = starting || Boolean(jobId);
+  useEffect(() => { onBusyChange?.(busy); return () => onBusyChange?.(false); }, [busy, onBusyChange]);
   useEffect(() => {
     if (!jobId) return;
     let active = true;
@@ -33,12 +32,19 @@ export function StructureReviewControl({ target, disabled, onComplete, onBusyCha
       try {
         const payload = await get(`/jobs/${encodeURIComponent(jobId)}`);
         if (!active) return;
-        if (!payload.success) throw new Error(payload.message || '审阅任务不存在');
-        const next = payload.data as Job; setJob(next);
+        if (!payload.success) throw new Error(payload.message || '整理任务不存在');
+        const next = payload.data as Job;
+        setJob(next);
         if (['completed', 'failed', 'cancelled', 'interrupted'].includes(next.status)) {
+          if (next.status === 'completed') {
+            await done.current(next.result);
+            const retry = Boolean(next.result?.report?.needs_retry);
+            setRetrying(retry);
+            if (retry) localStorage.setItem(key + ':failed', '1'); else localStorage.removeItem(key + ':failed');
+          }
+          else { if (next.status !== 'cancelled') setError(next.message); setRetrying(true); localStorage.setItem(key + ':failed', '1'); }
+          setStopping(false);
           localStorage.removeItem(key); setJobId('');
-          if (next.status === 'completed') await done.current(next.result);
-          else setError(next.message);
         } else timer = setTimeout(poll, 1200);
       } catch (cause) {
         if (active) { setError(cause instanceof Error ? cause.message : String(cause)); timer = setTimeout(poll, 4000); }
@@ -47,40 +53,56 @@ export function StructureReviewControl({ target, disabled, onComplete, onBusyCha
     void poll();
     return () => { active = false; clearTimeout(timer); };
   }, [jobId, key]);
-  const inspect = async () => {
-    setLoading(true); setError('');
-    try { const data = await post('/structure-reviews/plan', { ...target, mode, max_pages: maxPages }); setPlan(data.data); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
-    finally { setLoading(false); }
-  };
-  const start = async () => {
-    setLoading(true); setError('');
+  const purpose = target.kind === 'file' ? 'exercises' : 'textbook';
+  const prepare = async () => {
+    setConfirmOpen(true); setPlanning(true); setError(''); setPlan(null);
     try {
-      const data = await post('/structure-reviews', { ...target, mode, max_pages: maxPages, max_cost_cny: maxCost, input_price: Number(inputPrice), output_price: Number(outputPrice) });
-      if (!data.success) throw new Error(data.message || '无法启动审阅');
-      localStorage.setItem(key, data.data.id); setJob(data.data); setJobId(data.data.id);
+      const response = await post('/structure-reviews/plan', { ...target, purpose });
+      if (!response.success) throw new Error(response.message || '无法估算整理费用');
+      setPlan(response.data as Plan);
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
-    finally { setLoading(false); }
+    finally { setPlanning(false); }
   };
-  const associatePdf = async () => {
-    if (!pdf) return;
-    setLoading(true); setError('');
+  const start = async (purpose: 'outline' | 'exercises' | 'textbook') => {
+    if (dispatchLock.current) return;
+    dispatchLock.current = true;
+    setConfirmOpen(false); setStarting(true); setError(''); setJob(null); setStopping(false); onDispatch?.();
     try {
-      const form = new FormData(); form.append('file', pdf);
-      Object.entries(target).forEach(([name, value]) => form.append(name, value));
-      const response = await apiFetch('/structure-reviews/source-pdf', { method: 'POST', body: form }, 120000);
-      const payload = await response.json();
-      if (!response.ok || !payload.success) throw new Error(payload.detail || payload.message || '关联原页失败');
-      setPlan(null); setPdf(null);
+      const payload = await post('/structure-reviews', { ...target, purpose, retry_failed: retrying });
+      if (!payload.success) throw new Error(payload.message || '无法启动智能整理');
+      localStorage.setItem(key, payload.data.id); setJob(payload.data); setJobId(payload.data.id);
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
-    finally { setLoading(false); }
+    finally { setStarting(false); dispatchLock.current = false; }
   };
-  return <section className="structure-review-control" aria-label="视觉结构审阅">
-    <div className="structure-review-row"><button type="button" className="app-secondary-button" aria-expanded={expanded} disabled={disabled && !pending} onClick={() => setExpanded(!expanded)}>视觉辅助校正</button>{job && <span role="status">{job.message}{pending ? ` · ${job.progress}%` : ''}</span>}{pending && jobId && <button type="button" className="app-ghost-button" onClick={() => void post(`/jobs/${jobId}/cancel`, {}).catch(() => setError('停止请求未送达，请重试'))}>停止</button>}</div>
-    {expanded && <>
-      <div className="structure-review-row"><Selector ariaLabel="视觉审阅范围" value={mode} onChange={value => { setMode(value); setPlan(null); }} options={[{ value: 'suspect', label: '疑难页与覆盖抽查' }, { value: 'all', label: '逐页审阅' }]} disabled={pending || disabled} /><label>本次最多页数<input aria-label="视觉审阅页数上限" type="number" min={1} max={1000} value={maxPages} disabled={pending || disabled} onChange={e => { setMaxPages(Math.max(1, Math.min(1000, Number(e.target.value) || 1))); setPlan(null); }} /></label><button type="button" className="app-secondary-button" disabled={pending || disabled} onClick={() => void inspect()}>查看审阅用量</button></div>
-      {plan && <div className="structure-review-plan"><p>{plan.model} · 本次 {plan.pages.length} / {plan.total_pages} 页 · 最多 {plan.max_calls} 次请求 · 每次最多输出 6000 token</p><p>{plan.image_scope}</p><p>{plan.notice}</p><div className="structure-review-row"><label>输入单价（元/百万 token）<input aria-label="审阅输入单价" type="number" min={0} step="0.1" value={inputPrice} disabled={pending} onChange={e => setInputPrice(e.target.value)} /></label><label>输出单价<input aria-label="审阅输出单价" type="number" min={0} step="0.1" value={outputPrice} disabled={pending} onChange={e => setOutputPrice(e.target.value)} /></label><label>估算预算（元）<input aria-label="审阅费用预算" type="number" min="0.01" step="0.1" value={maxCost} disabled={pending} onChange={e => setMaxCost(Math.max(0.01, Number(e.target.value) || 1))} /></label></div><p>按所填服务单价预留用量；预计超预算就停止派发。图片 token 为保守估算，最终以供应商账单为准。已完成页面复用，失败不自动重试。</p><button type="button" className="app-primary-button" disabled={!plan.ready || pending || disabled || !plan.pages.length || inputPrice === '' || outputPrice === ''} onClick={() => void start()}>{plan.ready ? '发送所选内容并开始审阅' : '请先配置识图模型'}</button></div>}
-      {plan && !plan.has_original_pages && <div className="structure-review-row"><label>关联原始 PDF<input type="file" accept=".pdf,application/pdf" disabled={pending || disabled} onChange={e => setPdf(e.target.files?.[0] || null)} /></label><button type="button" className="app-secondary-button" disabled={!pdf || pending || disabled} onClick={() => void associatePdf()}>关联原页</button></div>}
-    </>}{error && <p role="alert">{error}</p>}
+  const stop = async () => {
+    setStopping(true);
+    try { await post(`/jobs/${jobId}/cancel`, {}); }
+    catch { setStopping(false); setError('停止请求未送达，请重试'); }
+  };
+  const report = job?.result?.report;
+  const summary = report ? [report.outline_changed === false ? '目录无需调整' : report.changed_headings ? `调整 ${report.changed_headings} 处目录` : '',
+    report.text_corrections ? `校正 ${report.text_corrections} 处文字` : '', report.merged_questions ? `合并 ${report.merged_questions} 道重复题` : '',
+    report.retained_answer_blocks ? `保留 ${report.retained_answer_blocks} 个解答片段` : ''].filter(Boolean).join('，') : '';
+  return <section className={`structure-review-control${compact ? ' is-compact' : ''}`} aria-label="智能整理">
+    <div className="structure-review-row">
+      <button type="button" className="app-secondary-button" title={summary || undefined} disabled={busy || disabled || planning} onClick={() => void prepare()}>{compact ? (busy ? `整理中 ${job?.progress || 0}%` : retrying ? '重试整理' : '智能整理') : retrying ? '重试智能整理' : target.kind === 'file' ? '智能整理题目与答案' : '智能校正目录与文字'}</button>
+      {!compact && <span role="status">{busy ? `${job?.message || '正在准备整理'}${job ? ` · ${job.progress}%` : ''}` : summary || job?.message || (target.kind === 'file' ? '校正识别文字，配对原书答案，合并重复题。' : '结合全书标题与目录，自动更新下方结果。')}</span>}
+      {busy && jobId && <button type="button" className="app-secondary-button" disabled={stopping} onClick={() => void stop()}>{stopping ? '正在停止' : '停止'}</button>}
+    </div>
+    {!compact && retrying && !busy && <p className="structure-review-hint">复用已完成结果，只重试未完成部分。{report?.usage_unknown ? '上次部分请求结果未知，重试可能再次计费。' : ''}</p>}
+    {!compact && report && <details className="structure-review-receipt"><summary>处理记录{report.estimated_cost_cny != null ? ` · 估算 ¥${report.estimated_cost_cny.toFixed(4)}` : ''}</summary><div className="structure-review-record"><p>{report.model} · {job?.status === 'completed' ? `${report.unresolved?.length || 0} 项仍需核对` : '本次未完成，已知用量已保留'}。{report.usage_unknown ? '费用包含未知请求的预留，' : ''}实际以服务商账单为准。</p></div></details>}
+    {error && !confirmOpen && <p role="alert" className="structure-review-error">{error}</p>}
+    <Dialog open={confirmOpen} title="确认智能整理" onClose={() => setConfirmOpen(false)} dismissOnBackdrop className="structure-review-confirm">
+      <h2>{target.kind === 'file' ? '整理全部题目？' : '校正教材？'}</h2>
+      {planning ? <p role="status">正在估算范围与费用…</p> : plan && <>
+        <dl><div><dt>处理范围</dt><dd>{target.kind === 'file' ? (candidateCount != null ? `全部 ${candidateCount} 道题` : '全部题目') : '本次导入的教材'}，{plan.pages.length} 页{plan.includes_answer_file ? '，含独立答案文件' : ''}</dd></div>
+        <div><dt>使用模型</dt><dd>{plan.model_label || plan.model}</dd></div>
+        <div><dt>预估费用</dt><dd>{plan.estimated_cost ? `约 ¥${plan.estimated_cost.low.toFixed(2)}–¥${plan.estimated_cost.high.toFixed(2)}` : '当前模型暂无可用单价，无法自动估算'}</dd></div></dl>
+        <p>{target.kind === 'file' ? '将题目和相关图片发送给该模型整理。' : '将教材文字和相关图片发送给该模型校正。'}{plan.estimated_cost ? `最多花费 ¥${plan.max_cost_cny}。` : ''}可随时停止，已发送的部分仍可能收费。</p>
+        {!plan.ready && <p role="alert">请先到设置中配置识图模型。</p>}
+      </>}
+      {error && <p role="alert">{error}</p>}
+      <footer><button className="app-secondary-button" onClick={() => setConfirmOpen(false)}>取消</button><button className="app-primary-button" disabled={!plan?.ready || planning || starting} onClick={() => void start(purpose)}>开始整理</button></footer>
+    </Dialog>
   </section>;
 }

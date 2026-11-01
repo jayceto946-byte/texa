@@ -28,6 +28,7 @@ export function useOutlineCalibration(bookName: string, importJobId?: string, on
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
+  const [resetVersion, setResetVersion] = useState(0);
   const [jobId, setJobId] = useState(() => importJobId ? '' : localStorage.getItem(storageKey) || '');
   const [job, setJob] = useState<Job | null>(null);
   const draftKey = source ? `texa:outline-draft:${root}:${source.base_version}` : '';
@@ -98,10 +99,21 @@ export function useOutlineCalibration(bookName: string, importJobId?: string, on
   };
   const reset = async () => {
     setBusy(true); setError('');
-    try { setEdits([]); setProposal(await outlineRequest<Outline>(`${root}/preview`, {...body(), edits:[]})); }
+    try {
+      await outlineRequest('/structure-reviews/reset', {kind:importJobId?'import':'book',reference:importJobId||bookName,book_name:bookName});
+      const data = await outlineRequest<Outline>(`${root}/preview`, {...body(), edits:[]});
+      setSource(data); setEdits([]); setProposal(data); setResetVersion(value=>value+1);
+    }
     catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setBusy(false); }
   };
-  return { root, source, proposal, examples, edits, maxDepth, loading, busy: busy || !!jobId, error, job,
-    changeEdits, changeDepth, preview, apply, reset, reloadReviewed: () => { setProposal(null); setReload(value => value + 1); }, retry: () => setReload(value => value + 1) };
+  const reloadReviewed = async () => {
+    const data = await outlineRequest<Outline>(root);
+    if (draftKey) localStorage.removeItem(draftKey);
+    setSource(data); setProposal(data); setEdits(data.edits || []);
+    setExamples(data.recovery.examples); setMaxDepth(data.recovery.max_depth);
+    setError('');
+  };
+  return { root, source, proposal, examples, edits, maxDepth, loading, busy: busy || !!jobId, error, job, resetVersion,
+    changeEdits, changeDepth, preview, apply, reset, reloadReviewed, retry: () => setReload(value => value + 1) };
 }

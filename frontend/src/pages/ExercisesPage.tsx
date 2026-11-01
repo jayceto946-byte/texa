@@ -82,9 +82,14 @@ const ExercisesPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState('');
+  const [candidateError, setCandidateError] = useState('');
   const [importFile, setImportFile] = useState<File | null>(null);
+  const [filePageStart, setFilePageStart] = useState('');
+  const [filePageEnd, setFilePageEnd] = useState('');
   const [answerFile, setAnswerFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const answerFileRef = useRef<HTMLInputElement>(null);
+  const [importOptionsOpen, setImportOptionsOpen] = useState(false);
   const [importSource, setImportSource] = useState('');
   const [importChapter, setImportChapter] = useState('');
   const [textbookChapter, setTextbookChapter] = useState('');
@@ -109,11 +114,10 @@ const ExercisesPage: React.FC = () => {
   const [loadError, setLoadError] = useState('');
   const loadRevision = useRef(0);
   const scopeRevision = useRef(0);
-  const [extractedPreview, setExtractedPreview] = useState('');
   const [inspectedBatches, setInspectedBatches] = useState<ExerciseImportBatch[]>([]);
   const [lastImportBatch, setLastImportBatch] = useState<ExerciseImportBatch | null>(null);
   const searchKwRef = useRef(searchKw);
-  const candidateState = useExerciseImportCandidates({ onMessage: setMessage });
+  const candidateState = useExerciseImportCandidates({ onMessage: setCandidateError });
   const {
     candidates,
     selectedIds,
@@ -261,7 +265,6 @@ const ExercisesPage: React.FC = () => {
 
   const resetImportPreview = () => {
     resetImportCandidates();
-    setExtractedPreview('');
     setReceipt(null); setLastImportBatch(null); setInspectedBatches([]); setImportScopeSnapshot(null); setCandidateSourceLabel('');
   };
 
@@ -311,14 +314,14 @@ const ExercisesPage: React.FC = () => {
     if (candidates.length && !window.confirm('重新解析将替换当前候选及其编辑，继续吗？')) return;
     const requestedScope = importScope.current;
     if (!importFile) {
-      setMessage('请选择 Word、PDF 或 MinerU 解析包');
+      setCandidateError('请选择 Word、PDF 或 MinerU 解析包');
       return;
     }
     importLock.current = true;
     setImportScopeSnapshot({ book: activeName, subject: targetSubject });
     setImporting(true);
     setReceipt(null);
-    setMessage('');
+    setMessage(''); setCandidateError('');
     try {
       const fd = new FormData();
       fd.append('file', importFile);
@@ -326,32 +329,33 @@ const ExercisesPage: React.FC = () => {
       fd.append('source', importSource || importFile.name);
       fd.append('subject', targetSubject || activeName);
       fd.append('chapter', importChapter);
-      fd.append('limit', '200');
+      fd.append('limit', '500');
       fd.append('use_llm', 'false');
       fd.append('candidate_contract_version', '1');
+      if (filePageStart) fd.append('page_start', filePageStart);
+      if (filePageEnd) fd.append('page_end', filePageEnd);
       fd.append('llm_max_items', '20');
       const res = await apiFetch(`/exercises/upload-analyze${bookQuery}`, { method: 'POST', body: fd }, 5 * 60 * 1000);
       const data = await res.json();
       if (requestedScope !== importScope.current) return;
       if (!res.ok || !data?.success) {
-        setMessage(data?.message || `文件导入失败：${res.status}`);
+        setCandidateError(data?.message || `文件导入失败：${res.status}`);
         return;
       }
       if (requestedScope !== importScope.current) return;
       const next = data.data || [];
       setCandidateSourceCategory(fileSourceCategory);
       if (data.candidate_contract_version !== 1 || !data.extract?.canonical_hash || !data.extract?.source_id || !Array.isArray(data.extract?.source_blocks) || next.some((c: ExerciseCandidate) => !c.projection || !c.issues || c.projection.canonical_hash !== data.extract.canonical_hash || c.projection.source_id !== data.extract.source_id)) {
-        setMessage('后端未返回可核对的文件来源合同，请更新后端后重新分析。'); return;
+        setCandidateError('文件解析结果不完整，请重新分析。'); return;
       }
       setCandidateSourceLabel(importSource || importFile?.name || '导入文件');
       replaceCandidates(next, data.extract);
       setReviewPreparationOpen(false);
-      setExtractedPreview((data.extract?.text || '') + (data.extract?.unmatched_answer_text ? `\n\n未匹配答案（原文，需手工核对）：\n${data.extract.unmatched_answer_text}` : ''));
-      const warnings = [...(data.extract?.warnings || []), ...(data.answer_extract?.warnings || [])].join('；');
+      setCandidateError(next.length ? '' : '未找到候选题，请调整范围后重试。');
       const paired = answerFile ? `；答案匹配 ${data.summary?.paired_answers || 0}/${next.length}` : '';
-      setMessage(`${next.length ? data.message || `已分析 ${next.length} 道候选题` : '未找到候选题，请调整范围后重试。'}${paired}${data.summary?.llm_refined ? `；已辅助修复 ${data.summary.llm_refined} 道` : ''}${warnings ? `；${warnings}` : ''}`);
+      setMessage(`${next.length ? data.message || `已分析 ${next.length} 道候选题` : '未找到候选题，请调整范围后重试。'}${paired}${data.summary?.llm_refined ? `；已辅助修复 ${data.summary.llm_refined} 道` : ''}`);
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : String(e));
+      setCandidateError(e instanceof Error ? e.message : String(e));
     } finally {
       importLock.current = false;
       setImporting(false);
@@ -363,14 +367,14 @@ const ExercisesPage: React.FC = () => {
     if (candidates.length && !window.confirm('重新解析将替换当前候选及其编辑，继续吗？')) return;
     const requestedScope = importScope.current;
     if (!textbookSourceName) {
-      setMessage('请先选择已导入教材');
+      setCandidateError('请先选择已导入教材');
       return;
     }
     importLock.current = true;
     setImportScopeSnapshot({ book: activeName, subject: targetSubject });
     setImporting(true);
     setReceipt(null);
-    setMessage('');
+    setMessage(''); setCandidateError('');
     try {
       const res = await post(`/exercises/textbook-analyze${bookQuery}`, {
         book_name: activeName,
@@ -387,13 +391,12 @@ const ExercisesPage: React.FC = () => {
       if (requestedScope !== importScope.current) return;
       if (!res?.success) {
         const warnings = res?.extract?.warnings?.length ? `（${res.extract.warnings.join('；')}）` : '';
-        setMessage(`${res?.message || '教材抽题失败'}${warnings}`);
-        setExtractedPreview(res?.extract?.text || '');
+        setCandidateError(`${res?.message || '教材抽题失败'}${warnings}`);
         return;
       }
       if (requestedScope !== importScope.current) return;
       if (res.candidate_contract_version !== 1 || !res.extract?.canonical_hash || !Array.isArray(res.extract?.source_blocks) || res.data?.some((c: ExerciseCandidate) => !c.projection || !c.issues || c.projection.canonical_hash !== res.extract.canonical_hash)) {
-        setMessage('后端未提供v1候选合同，请更新后端后重新分析；当前候选保留。');
+        setCandidateError('教材解析结果不完整，请重新分析。');
         return;
       }
       const next = res.data || [];
@@ -401,11 +404,10 @@ const ExercisesPage: React.FC = () => {
       setCandidateSourceLabel(`${activeName}${textbookChapter ? ` · ${textbookChapter}` : ''}`);
       replaceCandidates(next, res.extract);
       setReviewPreparationOpen(false);
-      setExtractedPreview(res.extract?.text || '');
-      const warnings = res.extract?.warnings?.length ? `（${res.extract.warnings.join('；')}）` : '';
-      setMessage(`${next.length ? res.message || `已从教材抽取 ${next.length} 道候选题` : '未找到候选题，请调整范围后重试。'}${warnings}`);
+      setCandidateError(next.length ? '' : '未找到候选题，请调整范围后重试。');
+      setMessage(next.length ? res.message || `已从教材抽取 ${next.length} 道候选题` : '未找到候选题，请调整范围后重试。');
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : String(e));
+      setCandidateError(e instanceof Error ? e.message : String(e));
     } finally {
       importLock.current = false;
       setImporting(false);
@@ -416,24 +418,25 @@ const ExercisesPage: React.FC = () => {
     if (candidateState.editingCandidateId || candidateState.confirmingId) return;
     const selected = submittableCandidates;
     if (!selected.length || selected.some(item => !item.question_text.trim())) return;
-    if (!window.confirm(`确认将可入库的 ${selected.length} 道候选入库？另有 ${selectedIds.size - selected.length} 道选中题保留待核对。重复题会跳过；批量采用不等于人工核实。`)) return;
-    importLock.current = true; setImporting(true);
+    if (!window.confirm(`确认将可入库的 ${selected.length} 道候选入库？另有 ${selectedIds.size - selected.length} 道选中题保留待核对。重复题会跳过。`)) return;
+    importLock.current = true; setImporting(true); setCandidateError('');
+    const fail = (text: string) => { setMessage(text); setCandidateError(text); };
     try {
       const v1 = Boolean(candidateState.sourceRegistry);
       const submittedIds = new Set(selected.map(c => c.id));
       const res = await post(`/exercises/${v1 ? 'candidates/batch-add' : 'batch-add'}${bookQuery}`, { ...(v1 ? { candidate_contract_version: 1 } : {}), exercises: selected.map(candidate => candidateToExercise(candidate, candidateSourceCategory)), source_label: candidateSourceLabel || `${activeName} 教材抽题`, allow_duplicates: false });
-      if (!res?.success) { setMessage(res?.message || '入库被拒绝，候选仍保留'); return; }
+      if (!res?.success) { fail(res?.message || '入库被拒绝，候选仍保留'); return; }
       const acknowledged = [...(res.data || []).map((r: ExerciseRecord) => r.origin_id), ...(res.skipped || []).map((r: { origin_id: string }) => r.origin_id)];
       const receiptsValid = !v1 || (res.candidate_contract_version === 1 && Array.isArray(res.candidate_receipts) && res.candidate_receipts.length === res.count && res.data?.every((r: ExerciseRecord) => res.candidate_receipts.some((receipt: { exercise_id: string; origin_id: string }) => receipt.exercise_id === r.id && receipt.origin_id === r.origin_id)));
       if (!res.batch_id || !Array.isArray(res.data) || typeof res.count !== 'number' || res.count !== res.data.length || res.count + (res.skipped?.length || 0) !== selected.length || new Set(acknowledged).size !== selected.length || acknowledged.some(id => !submittedIds.has(id)) || !receiptsValid) {
-        setCommitUnknown(true); setMessage('入库回执不完整，候选仍保留。请先核对题库与导入批次，勿重复提交。'); return;
+        setCommitUnknown(true); fail('入库回执不完整，候选仍保留。请先核对题库与导入批次，勿重复提交。'); return;
       }
       setReceipt({ count: res.count, skipped: res.skipped?.length || 0, batchId: res.batch_id });
       setLastImportBatch({ id: res.batch_id, source_label: candidateSourceLabel || activeName, exercise_ids: res.data.map((r: ExerciseRecord) => r.id), skipped: res.skipped || [], candidate_receipts: res.candidate_receipts || [], skipped_candidate_receipts: res.skipped_candidate_receipts || [], created_at: '', status: 'active' });
       removeCommittedCandidates(submittedIds); setMessage(''); await load();
     } catch (error) {
-      if (error instanceof ApiError && [404, 409, 422].includes(error.status)) { setMessage(`入库被拒绝，候选仍保留：${error.message}`); return; }
-      setCommitUnknown(true); setMessage('连接中断，入库结果未知。候选仍保留；先核对题库与批次，不能自动重发。');
+      if (error instanceof ApiError && [404, 409, 422].includes(error.status)) { fail(`入库被拒绝，候选仍保留：${error.message}`); return; }
+      setCommitUnknown(true); fail('连接中断，入库结果未知。候选仍保留；先核对题库与批次，不能自动重发。');
     } finally { importLock.current = false; setImporting(false); }
   };
 
@@ -528,11 +531,9 @@ const ExercisesPage: React.FC = () => {
 
         <section hidden={workspaceMode !== 'import' || Boolean(receipt) || commitUnknown} className="exercise-import-panel">
           <div hidden={candidates.length > 0 && !reviewPreparationOpen} className="exercise-import-setup">
-            <div className="exercise-stages">
-              <strong>1 选择来源</strong> — 2 校对候选 — 3 确认入库</div>
-            <h1>导入题目<HelpHint label="导入题目">候选需人工校对，明确确认后才写入题库。</HelpHint>
+
+            <h1>导入题目<HelpHint label="导入题目">检查题目后点击“确认入库”保存。支持 Word、PDF 和 MinerU 解析包。</HelpHint>
             </h1>
-            {candidates.length > 0 && <p className="exercise-import-retention" role="note">候选尚未保存，校对后请确认入库。刷新或退出前请先完成保存。</p>}
             {candidates.length > 0 && <button className="app-secondary-button" onClick={() => setReviewPreparationOpen(false)}>继续校对 {candidates.length} 道候选</button>}
             <div className="exercise-source-tabs">
               <button aria-pressed={sourceKind === 'textbook'} onClick={() => setSourceKind('textbook')}>从教材抽取</button>
@@ -544,10 +545,14 @@ const ExercisesPage: React.FC = () => {
                 <button className={`exercise-upload ${importFile ? 'has-file' : ''}`} onClick={() => fileInputRef.current?.click()}>
                   <Upload size={24} />
                   <strong>{importFile?.name || '选择 Word、PDF 或 MinerU 解析包'}</strong>
-                  <small>{importFile ? '文件已选择 · 尚未分析' : '.docx、文字 PDF 或 MinerU 解析结果 .zip'}</small>
                 </button>
-                <input ref={fileInputRef} type="file" accept=".docx,.pdf,.zip" aria-label="题目文件" onChange={e => setImportFile(e.target.files?.[0] || null)} hidden />
-                <label className="exercise-answer-file">独立答案文件（可选）<input type="file" accept=".docx,.pdf,.zip" aria-label="独立答案文件" onChange={e => setAnswerFile(e.target.files?.[0] || null)} />{answerFile?.name}</label>
+                <input ref={fileInputRef} type="file" accept=".docx,.pdf,.zip" aria-label="题目文件" onChange={e => { setImportFile(e.target.files?.[0] || null); setFilePageStart(''); setFilePageEnd(''); }} hidden />
+                <div className="exercise-two">
+                  <label className="exercise-field"><span>起始物理页<HelpHint label="物理页范围">填写文件阅读器显示的页码，留空则导入全部页面。</HelpHint></span><input type="number" min="1" aria-label="文件起始物理页" placeholder="首页" disabled={importFile?.name.toLowerCase().endsWith('.docx')} value={filePageStart} onChange={e => setFilePageStart(e.target.value)} /></label>
+                  <label className="exercise-field">结束物理页<input type="number" min="1" aria-label="文件结束物理页" placeholder="末页" disabled={importFile?.name.toLowerCase().endsWith('.docx')} value={filePageEnd} onChange={e => setFilePageEnd(e.target.value)} /></label>
+                </div>
+
+                <div className="exercise-answer-file"><span>独立答案<HelpHint label="独立答案">题目和答案分成两个文件时，可另外上传答案文件；同一文件已包含答案时无需选择。</HelpHint></span><input ref={answerFileRef} type="file" accept=".docx,.pdf,.zip" aria-label="独立答案文件" hidden onChange={e => setAnswerFile(e.target.files?.[0] || null)} /><button className="app-secondary-button" onClick={() => answerFileRef.current?.click()}>{answerFile?.name || '添加答案文件'}</button>{answerFile && <button className="app-secondary-button" onClick={() => { setAnswerFile(null); if (answerFileRef.current) answerFileRef.current.value = ''; }}>移除</button>}</div>
               </>}
               <div className="exercise-field">
                 <span>{sourceKind === 'textbook' ? '选择教材' : '归属范围'}<HelpHint label="教材抽取">从已导入教材内容抽取，无需源 PDF；未选择教材时不能抽取。</HelpHint>
@@ -567,10 +572,11 @@ const ExercisesPage: React.FC = () => {
                   </label>
                 </div>
               </> : null}
-              <details className="exercise-import-options">
-                <summary>{sourceKind === 'textbook' ? '指定物理页范围' : '来源名称与章节'}</summary>
+              <div className="exercise-import-options">
+                <button className="app-secondary-button" aria-expanded={importOptionsOpen} onClick={() => setImportOptionsOpen(!importOptionsOpen)}>{sourceKind === 'textbook' ? '设置物理页范围' : '来源设置'}</button>
+                {importOptionsOpen && <div className="exercise-import-extra">
                 {sourceKind === 'textbook' && <>
-                  <p className="exercise-feedback">页码按 PDF 文件物理页计数，可能与印刷页码不同。</p>
+
                   <div className="exercise-two">
                     <label className="exercise-field">起始物理页<input type="number" min="1" aria-label="起始物理页" value={textbookPageStart} onChange={e => setTextbookPageStart(e.target.value)} />
                     </label>
@@ -583,23 +589,20 @@ const ExercisesPage: React.FC = () => {
                   <label className="exercise-field">章节（可选）<input value={importChapter} onChange={e => setImportChapter(e.target.value)} />
                   </label>
                 </div>}
-                {sourceKind === 'file' && <p className="exercise-feedback">保留题干与源解的对应关系。可在校对后明确保存分离样例，供后续资料参考。</p>}
-              </details>
-              <div className="exercise-import-submit">{sourceKind === 'file' && <p>已有 MinerU 解析结果可直接上传 ZIP，无需再次 OCR；直接上传扫描 PDF 需可用的 MinerU API。</p>}
+                </div>}
+              </div>
+              <div className="exercise-import-submit">
                 <button className="app-primary-button" disabled={importing || (sourceKind === 'file' ? !importFile : !textbookSourceName)} onClick={sourceKind === 'file' ? analyzeImportFile : analyzeTextbookExercises}>{importing ? <>
                   <Loader2 size={16} className="animate-spin" />正在分析…</> : sourceKind === 'file' ? '分析文件' : '抽取教材候选题'}<ChevronRight size={16} />
                 </button>
               </div>
             </fieldset>
-            {message && <p role="status" className="exercise-feedback">{message}</p>}
-            {extractedPreview && <details>
-              <summary>整段提取原文</summary>
-              <pre className="exercise-raw-text">{extractedPreview}</pre>
-            </details>}
+            {candidateError && <p role="alert" className="exercise-feedback">{candidateError}</p>}
+
             <button className="app-ghost-button" onClick={() => setManualOpen(true)}>手动录入一道题</button>
           </div>
           <div hidden={candidates.length === 0 || reviewPreparationOpen} className="exercise-review-panel">
-            <CandidateReviewWorkspace bookName={activeName} state={candidateState} original={extractedPreview} source={candidateSourceLabel || activeName} busy={importing || commitUnknown} message={message} onBack={() => setReviewPreparationOpen(true)} onSubmit={importSelected} onSaveExample={saveStructureExample} />
+            <CandidateReviewWorkspace bookName={activeName} state={candidateState} source={candidateSourceLabel || activeName} busy={importing || commitUnknown} notice={candidateError} onReviewed={() => setCandidateError('')} onBack={() => setReviewPreparationOpen(true)} onSubmit={importSelected} onSaveExample={saveStructureExample} />
           </div>
         </section>
         <div hidden={workspaceMode !== 'bank' || !expandedId} className="exercise-bank-reader">{records.find(r => r.id === expandedId) && <ExerciseReader key={expandedId} record={records.find(r => r.id === expandedId)!} bookQuery={bookQuery} title="习题详情" actions={<>
@@ -641,7 +644,7 @@ const ExercisesPage: React.FC = () => {
                         <p className="exercise-count">{records.length}<small> 道已加载</small>
                         </p>
                         <p>其中 {stats?.by_status?.needs_review || 0} 道需复习</p>
-                        <h2>题目示例<HelpHint label="题目示例">最多展示三道当前范围题目，不代表下一轮题单或顺序。</HelpHint>
+                        <h2>题目示例<HelpHint label="题目示例">查看当前范围的题目示例。</HelpHint>
                         </h2>{records.slice(0, 3).map(r => <article key={r.id}>
                           <SimpleMarkdown content={titleOf(r)} />
                           <small>{r.chapter} · {r.question_type}</small>

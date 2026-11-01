@@ -347,10 +347,10 @@ const LearningPage: React.FC = () => {
                   {shownMistakes.map((mistake, index) => <MistakePreview key={mistake.id} mistake={mistake} bookName={bookName} index={index + 1} first={index === 0} expanded={expandedDueId === mistake.id} onToggle={() => setExpandedDueId(expandedDueId === mistake.id ? '' : mistake.id)} />)}
                   {shownConcepts.length > 0 && <div className="review-group-label">本次推荐概念 <span>{recommended.length} 个</span></div>}
                   {shownConcepts.map((item, index) => <ConceptReviewCard key={item.name} item={item} bookName={bookName} index={dueMistakes.length + index + 1} first={dueMistakes.length + index === 0} open={expandedConcept === item.name} onToggle={() => setExpandedConcept(expandedConcept === item.name ? '' : item.name)} onReview={handleConceptReview} reviewing={reviewingConcept === item.name} error={reviewError?.name === item.name ? reviewError.text : ''} buttonRef={index === 0 ? firstConceptRef : undefined} />)}
-                  {visibleCount < primaryCount && <button type="button" className="review-show-more" onClick={() => setVisibleCount((count) => count + 5)}>显示更多 · 当前展示 {Math.min(visibleCount, primaryCount)} / {primaryCount} 条已返回的主要条目</button>}
+                  {visibleCount < primaryCount && <button type="button" className="review-show-more" onClick={() => setVisibleCount((count) => count + 5)}>显示更多 · 当前展示 {Math.min(visibleCount, primaryCount)} / {primaryCount} 条</button>}
                 </> : null}
                 {supplementary.length > 0 && <div className="review-supplementary">
-                  <button type="button" aria-expanded={showMoreConcepts} onClick={() => setShowMoreConcepts(!showMoreConcepts)} className="review-supplementary-toggle">补充待复习概念 <span>{supplementary.length} 个 {showMoreConcepts ? '收起' : '展开'} <ChevronDown className="h-4 w-4" /></span></button>
+                  <button type="button" aria-expanded={showMoreConcepts} onClick={() => setShowMoreConcepts(!showMoreConcepts)} className="review-supplementary-toggle">其他待复习概念 <span>{supplementary.length} 个 {showMoreConcepts ? '收起' : '展开'} <ChevronDown className="h-4 w-4" /></span></button>
                   {showMoreConcepts && supplementary.map((item, index) => <div className="review-row" key={item.name}>
                     <span className="review-index">{primaryCount + index + 1 < 10 ? `0${primaryCount + index + 1}` : primaryCount + index + 1}</span>
                     <div className="review-row-content"><strong>{item.name}</strong><p>{item.reason === 'weak' ? '已标记薄弱' : item.reason === 'forgotten' ? '进入遗忘复习队列' : '进入待复习队列'}</p>{reviewError?.name === item.name && <p role="alert" className="review-row-error">{reviewError.text}</p>}</div>
@@ -358,7 +358,7 @@ const LearningPage: React.FC = () => {
                   </div>)}
                 </div>}
               </div>
-              <details className="review-rules"><summary>排序依据</summary><p>到期错题先于本次推荐概念；同组保持现有服务端顺序。补充概念单独列出。</p>{summary.review_rules?.concept_due && <p>{summary.review_rules.concept_due}</p>}</details>
+
             </section>
 
             <details className="review-insights"><summary className="workspace-section-heading">学习记录</summary>

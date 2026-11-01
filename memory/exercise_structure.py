@@ -198,6 +198,7 @@ def exercise_units(book, *, unrestricted=False, allowed_context_ids=None):
                 if bid not in {b.block_id for b in blocks}:
                     blocks.append(by_id[bid])
         result.append({**row, 'text': '\n\n'.join(b.text for b in blocks if b.text.strip()),
+                       'pairing_reviewed': bool(by_id[row['unit_id']].attributes.get('structure_pairing_reviewed')),
                        'chapter': row['section_path'][0], 'page_start': blocks[0].page_start,
                        'page_end': max((b.page_end or b.page_start or 0 for b in blocks), default=0),
                        'source_block_ids': [b.block_id for b in blocks]})
@@ -207,18 +208,21 @@ def exercise_units(book, *, unrestricted=False, allowed_context_ids=None):
 def _file_units(book, paths):
     rows, active = [], None
     from ingestion.document_structure import block_role, has_exercise_scopes
+    from ingestion.heading_policy import numeric_data_row
     scoped = has_exercise_scopes(book)
     for block in book.blocks:
         role = block_role(block)
         if block.attributes.get('outline_toc') or role in {'front_matter', 'toc', 'overview', 'reference', 'annotation'}:
             active = None
             continue
+        if block.attributes.get('structure_unit_id') and block.attributes['structure_unit_id'] != block.block_id:
+            continue
         if scoped and role not in {'exercise', 'solution'} and not block.attributes.get('structure_unit_id'):
             active = None
             continue
         catalog = header_metadata(block.text)
         is_heading = block.block_type == 'heading' and not catalog
-        numbered = bool(ORIGINAL.match(block.text))
+        numbered = bool(ORIGINAL.match(block.text)) and not numeric_data_row(block.text) and block.attributes.get('structure_unit_start') is not False
         example = bool(re.match(r'^\s*(?:【?例\s*\d|例题)', block.text))
         catalog_active = bool(active and active['header_ids'])
         if header_continuation(active, block):
@@ -243,7 +247,7 @@ def _file_units(book, paths):
     owners = {row['unit_id']: row for row in rows}
     for block in book.blocks:
         target = block.attributes.get('structure_unit_id')
-        if target not in owners:
+        if target not in owners or block_role(block) in {'reference','annotation','front_matter','toc','overview'}:
             continue
         for row in rows:
             row['blocks'] = [b for b in row['blocks'] if b.block_id != block.block_id]

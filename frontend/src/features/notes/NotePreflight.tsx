@@ -60,9 +60,8 @@ export default function NotePreflight({ conversationId, title, busy = false, onC
   };
   return <Dialog open title="整理为笔记" onClose={close} dismissOnBackdrop className="note-dialog">
     <div className="note-toolbar"><h2>整理为笔记</h2><button className="app-ghost-button" disabled={generating} onClick={close}>取消</button></div>
-    <p>生成草稿后可编辑，保存后进入笔记库。</p>
     {title && <p className="note-preflight-origin">{title}</p>}
-    {busy && <p className="note-caption">本次默认只包含已完成内容。</p>}
+    {busy && <p className="note-caption">正在生成的回复会跳过。</p>}
     {loading && <p role="status">正在读取会话内容…</p>}
     {error && <div role="alert" className="note-warning"><p>{error}</p>{!generating && <button className="app-secondary-button" onClick={() => setRefresh(v => v + 1)}>重新检查</button>}</div>}
     {preflight && !loading && <>
@@ -72,7 +71,7 @@ export default function NotePreflight({ conversationId, title, busy = false, onC
     <details className="note-preflight-settings"><summary>整理设置</summary>
       <label>整理侧重<Selector ariaLabel="整理侧重" value={hint} onChange={value => { invalidate(); setHint(value); }} options={[['auto', '按实际内容'], ['concept', '概念理解'], ['derivation', '推导'], ['problem', '解题'], ['comparison', '比较'], ['review', '复习']].map(([value, label]) => ({ value: value, label: label }))} disabled={generating}/></label>
       <label className="note-checkbox"><input type="checkbox" disabled={generating} checked={completedOnly} onChange={e => { invalidate(); setCompletedOnly(e.target.checked); }}/>只整理已完成的轮次</label>
-      <p className="note-caption">{selected ? `自选 ${selected.length} 轮；只包含勾选的轮次，更早轮次需加载后选择。` : '当前包含全部轮次（包括尚未加载的更早内容）。'}</p>
+      <p className="note-caption">{selected ? `已选 ${selected.length} 轮` : '已选择全部对话'}</p>
       <div className="note-actions"><button className="app-ghost-button" disabled={generating} onClick={() => { invalidate(); setSelected(undefined); }}>全部内容</button><button className="app-ghost-button" disabled={generating} onClick={() => { invalidate(); setSelected([]); }}>自选范围</button></div>
       <div className="note-turn-selection">{turns.map(turn => <label key={turn.turn_id}><input type="checkbox" disabled={generating || selected === undefined} checked={selected === undefined || selected.includes(turn.turn_id)} onChange={e => { invalidate(); setSelected(e.target.checked ? [...(selected || []), turn.turn_id] : (selected || []).filter(t => t !== turn.turn_id)); }}/>{turn.label}</label>)}</div>
       {turnError && <p role="alert">{turnError} <button className="app-ghost-button" onClick={() => void loadTurns(turnCursor || undefined)}>重试</button></p>}

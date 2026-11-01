@@ -11,7 +11,7 @@ from ingestion.document_ir import (
     CanonicalBook, DocumentBlock, canonical_book_fingerprint,
     canonical_chapter_title, canonical_retrieval_paths, load_canonical_book,
 )
-from ingestion.heading_policy import exercise_heading, body_title, PROBLEM_START
+from ingestion.heading_policy import exercise_heading, body_title, PROBLEM_START, numeric_data_row
 from ingestion.document_structure import block_role, NON_PRACTICE
 from ingestion.index_snapshot import index_read_snapshot
 from utils.path_safety import safe_book_name
@@ -126,11 +126,13 @@ def learning_units(book: CanonicalBook) -> list[LearningUnit]:
         if block.attributes.get('outline_toc') or block_role(block) in NON_PRACTICE:
             active = None
             continue
+        if block.attributes.get('structure_unit_id') and block.attributes['structure_unit_id'] != block.block_id:
+            continue
         path = paths.get(block.block_id) or [book.book_name]
         label = example_label(block.text)
         exercise_scope = any(exercise_heading(part) for part in path) or any(
             tuple(path[:n]) in exercise_paths for n in range(1, len(path) + 1))
-        problem = _PROBLEM_START.match(block.text) if exercise_scope else None
+        problem = _PROBLEM_START.match(block.text) if exercise_scope and not numeric_data_row(block.text) and block.attributes.get('structure_unit_start') is not False else None
         start_kind = 'exercise' if block.attributes.get('structure_unit_start') else 'example' if label else ('exercise' if problem else '')
         if start_kind:
             active = LearningUnit(start_kind, label or (problem.group().strip() if problem else ''), [block], path, anchor_id=block.block_id)
@@ -153,7 +155,7 @@ def learning_units(book: CanonicalBook) -> list[LearningUnit]:
     owners = {unit.unit_id: unit for unit in result}
     for block in book.blocks:
         target = block.attributes.get('structure_unit_id')
-        if target in owners:
+        if target in owners and block_role(block) not in NON_PRACTICE:
             for unit in result:
                 unit.blocks = [b for b in unit.blocks if b.block_id != block.block_id]
             owners[target].blocks.append(block)
