@@ -16,7 +16,7 @@ class ReviewSession:
         self.rates = import_rates(resolved)
         self.path = Path(directory) / 'semantic_review.json'
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        previous = json.loads(self.path.read_text()) if self.path.exists() else {}
+        previous = json.loads(self.path.read_text(encoding='utf-8')) if self.path.exists() else {}
         self.ledger = previous if previous.get('identity') == identity else dict(identity=identity, calls=[])
         self.maximum = max_cost_cny
         self.complete = complete or create_vision_completion

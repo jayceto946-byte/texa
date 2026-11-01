@@ -226,7 +226,7 @@ class ExerciseFileAnalysisStore:
     def load(self, source_id, book_name):
         if not re.fullmatch(r'[a-f0-9]{32}', source_id or ''):
             raise ValueError('文件来源身份无效')
-        payload = json.loads((self.root / f'{source_id}.json').read_text())
+        payload = json.loads((self.root / f'{source_id}.json').read_text(encoding='utf-8'))
         checksum = payload.pop('snapshot_hash', '')
         if hashlib.sha256(canonical_json(payload).encode()).hexdigest() != checksum:
             raise ValueError('文件来源快照校验失败，请重新分析')
@@ -236,7 +236,7 @@ class ExerciseFileAnalysisStore:
 
     def answer_source(self, source_id, book_name):
         self.load(source_id, book_name)
-        raw = json.loads((self.root / f'{source_id}.json').read_text()).get('answer_source')
+        raw = json.loads((self.root / f'{source_id}.json').read_text(encoding='utf-8')).get('answer_source')
         if not raw:
             return None
         from memory.exercise_file_importer import ExtractedExerciseText
@@ -247,7 +247,7 @@ class ExerciseFileAnalysisStore:
 
     def review_reference(self, source_id, book_name):
         self.load(source_id,book_name)
-        raw=json.loads((self.root/f'{source_id}.json').read_text())
+        raw=json.loads((self.root/f'{source_id}.json').read_text(encoding='utf-8'))
         origin=((raw.get('canonical_source') or {}).get('source_metadata') or {}).get('review_origin_source_id') or source_id
         if origin!=source_id:self.load(origin,book_name)
         return origin

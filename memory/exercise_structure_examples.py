@@ -28,7 +28,7 @@ class StructureExampleStore:
             pointer = self.root / 'current.json'
             if not pointer.exists():
                 return '', []
-            version = json.loads(pointer.read_text())['version']
+            version = json.loads(pointer.read_text(encoding='utf-8'))['version']
         if not version:
             return '', []
         if not re.fullmatch(r'[a-f0-9]{64}', version):

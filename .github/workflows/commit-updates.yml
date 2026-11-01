@@ -93,7 +93,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Frozen source digest validation failed' }
       - name: Verify backend storage and concurrent learning writes
         run: |
-          .\venv310\Scripts\python.exe -m pytest -q --junitxml=backend-verification.xml tests/test_session_notes.py tests/test_data_backup.py tests/test_graceful_shutdown.py tests/test_storage_migrations.py tests/test_conversation_management.py tests/test_focus_tasks.py tests/test_execution_effects.py tests/test_path_safety.py tests/test_json_path_resolution.py tests/test_learning_state_concurrency.py tests/test_outline_recovery.py tests/test_outline_upgrade.py tests/test_mineru_structured_content.py tests/test_textbook_workflow_repairs.py tests/test_document_ir.py
+          .\venv310\Scripts\python.exe -m pytest -q --junitxml=backend-verification.xml tests/test_session_notes.py tests/test_data_backup.py tests/test_graceful_shutdown.py tests/test_storage_migrations.py tests/test_conversation_management.py tests/test_focus_tasks.py tests/test_execution_effects.py tests/test_path_safety.py tests/test_json_path_resolution.py tests/test_learning_state_concurrency.py tests/test_outline_recovery.py tests/test_outline_upgrade.py tests/test_mineru_structured_content.py tests/test_textbook_workflow_repairs.py tests/test_document_ir.py tests/test_exercise_import_encoding.py
           if ($LASTEXITCODE -ne 0) { throw 'Upgrade-related backend tests failed' }
       - name: Verify frontend tests and lint
         run: |

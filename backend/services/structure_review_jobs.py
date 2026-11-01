@@ -19,7 +19,7 @@ def load_reviewed_candidate(book, directory):
     meta = Path(directory) / 'candidate.json'
     if not meta.exists():
         return book
-    data = json.loads(meta.read_text())
+    data = json.loads(meta.read_text(encoding='utf-8'))
     if data['source_version'] != canonical_book_fingerprint(book):
         return book
     return load_canonical_book(book.book_name, progress_root=Path(directory) / 'candidate')
@@ -36,7 +36,7 @@ def _source_with_pdf(book, assets, pdf, target, progress_root):
     directory = review_directory(progress_root, target['kind'], target['reference'])
     metadata = directory / 'source_pdf.json'
     if metadata.exists() and (directory / 'source.pdf').is_file():
-        data = json.loads(metadata.read_text())
+        data = json.loads(metadata.read_text(encoding='utf-8'))
         if data.get('source_version') == canonical_book_fingerprint(book):
             pdf = directory / 'source.pdf'
     return book, assets, pdf
@@ -51,7 +51,7 @@ def resolve_source(target, *, progress_root, books_root, jobs):
         from backend.services.exercise_file_analysis import ExerciseFileAnalysisStore
         store = ExerciseFileAnalysisStore(root)
         store.load(reference, name)  # ownership and immutable snapshot admission
-        data = json.loads((store.root / f'{reference}.json').read_text())
+        data = json.loads((store.root / f'{reference}.json').read_text(encoding='utf-8'))
         raw = data.get('canonical_source')
         if not raw:
             raise ValueError('这批候选没有保留完整结构来源，请重新导入解析包')

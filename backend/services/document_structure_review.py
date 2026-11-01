@@ -133,7 +133,7 @@ def run_review(book, *, directory, mode='suspect', max_pages=24, asset_root=None
     if pdf_path and Path(pdf_path).is_file():
         stat = Path(pdf_path).stat()
         identity['original_pdf'] = dict(size=stat.st_size, modified_ns=stat.st_mtime_ns)
-    previous = json.loads(path.read_text()) if path.exists() else {}
+    previous = json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
     ledger = previous if previous.get('identity') == identity else dict(identity=identity, batches=[])
     batches = ledger['batches']
     pages = plan['pages']
