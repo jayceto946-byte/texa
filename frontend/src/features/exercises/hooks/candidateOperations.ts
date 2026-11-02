@@ -1,4 +1,5 @@
-import type { ExerciseCandidate } from '../../../types';
+import type { ExerciseCandidate, CandidateSourceRegistry } from '../../../types';
+import { splitSourceCandidate, type SplitAssignment } from './sourceSplit';
 import { contentIssues, editCandidate, mergeProjections, canSubmitCandidate } from './candidateContract';
 
 export type CandidateFilter = 'all' | 'issues' | 'metadata' | 'duplicates';
@@ -68,7 +69,10 @@ export function mergeSelectedCandidates(
 export function splitCandidateAtBlankLine(
   candidate: ExerciseCandidate,
   suffix: string,
+  registry?: CandidateSourceRegistry | null,
+  assignment: SplitAssignment = { solution: '', blocks: {} },
 ): ExerciseCandidate[] | null {
+  if (candidate.projection) return registry ? splitSourceCandidate(candidate,suffix,registry,assignment) : null;
   const boundary = candidate.question_text.search(/\n\s*\n/);
   if (boundary < 0) return null;
   const left = candidate.question_text.slice(0, boundary).trim();

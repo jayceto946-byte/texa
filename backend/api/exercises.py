@@ -352,6 +352,8 @@ def upload_and_analyze_exercises(
             from backend.services.exercise_file_analysis import ExerciseFileAnalysisStore
             structured, source_id, paired_answers = ExerciseFileAnalysisStore(PROGRESS_PATH).create(
                 extracted, book_name=book_name, answer=answer_extracted)
+            if saved_path.suffix.lower()=='.pdf':
+                ExerciseFileAnalysisStore(PROGRESS_PATH).attach_review_pdf(source_id,book_name,saved_path)
             scope = dict(chapter='', page_start=None, page_end=None, source_mode='file')
             candidates = analyze_learning_unit_candidates(structured.units, book_name=book_name,
                 subject=effective_subject, limit=limit, source_blocks=structured.source_blocks,
@@ -400,7 +402,7 @@ def upload_and_analyze_exercises(
         # Only fresh extraction scratch directories are removed. Original ZIPs
         # and persisted source snapshots/assets remain available after restart.
         for temporary in (extracted, answer_extracted):
-            if temporary is not None and temporary.provider == 'mineru-archive' and temporary.asset_root:
+            if temporary is not None and temporary.provider in {'mineru-archive','docx-xml'} and temporary.asset_root:
                 shutil.rmtree(temporary.asset_root, ignore_errors=True)
 
 
@@ -480,6 +482,8 @@ def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: s
         if req.use_llm:
             candidates = refine_low_confidence_candidates(candidates, max_items=req.llm_max_items)
         data = _candidate_outputs(candidates, effective_book)
+        from backend.services.exercise_file_analysis import ExerciseFileAnalysisStore
+        review_reference = ExerciseFileAnalysisStore(PROGRESS_PATH).textbook_review_source(extracted) if req.candidate_contract_version == 1 else None
         needs_llm_count = sum(1 for candidate in candidates if candidate.needs_llm)
         llm_refined_count = sum(1 for candidate in candidates if candidate.refined_by_llm)
         warnings = extracted.warnings or []
@@ -497,7 +501,7 @@ def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: s
                 "auto_confident": len(data) - needs_llm_count,
                 "llm_refined": llm_refined_count,
             },
-            "extract": extracted.to_dict(),
+            "extract": {**extracted.to_dict(), "review_reference": review_reference},
             "warnings": warnings,
         }
     except Exception as exc:

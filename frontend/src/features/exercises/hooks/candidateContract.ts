@@ -5,6 +5,7 @@ export const issueLabels: Record<string, string> = {
   missing_required_input: '题目条件不完整', dependency_uncertain: '请检查配图是否属于本题', formula_review: '请检查公式和表格',
   source_unavailable: '原文件暂时无法读取，请重新导入', edited_content: '修改后请确认本题',
   source_ocr_damage: '原文有未识别文字，请补全或删去有问题的部分',
+  ai_content_correction: 'AI修改了来源文字或公式，请对照原文核对',
   missing_concepts: '尚未识别知识点', unknown_type: '题型待补充', difficulty_hint: '难度建议', duplicate: '重复题', legacy_notice: '题目属性提示',
   learned_boundary: '请检查题干与答案是否分开', answer_pairing_uncertain: '答案尚未找到对应题目，请检查题号',
 };
@@ -55,16 +56,18 @@ export function canSubmitCandidate(item: ExerciseCandidate): boolean {
         ? dep.requirement === 'reference' && decision === 'not_applicable'
         : dep?.kind === 'prior_context' && dep.resolution === 'embedded' && decision === 'corrected' && !/前例|上例|例\s*\d+(?:[.．]\d+)+\s*中|上述(?:条件|参数)/.test(item.question_text));
     }
-    return ['edited_content', 'solution_in_stem', 'boundary_uncertain', 'dependency_uncertain', 'formula_review', 'learned_boundary', 'source_ocr_damage'].includes(i.code);
+    return ['edited_content', 'solution_in_stem', 'boundary_uncertain', 'dependency_uncertain', 'formula_review', 'learned_boundary', 'source_ocr_damage', 'ai_content_correction'].includes(i.code);
   });
 }
 export function mergeProjections(projections: CandidateProjection[]): CandidateProjection | null {
   const first = projections[0];
+  const split=first.split;
+  if (projections.some(p=>p.split) && (!split || projections.some(p=>p.split?.group_id!==split.group_id) || new Set(projections.map(p=>p.split?.index)).size!==split.siblings.length)) return null;
   if (new Set(projections.map(p => p.structure?.catalog_number).filter(Boolean)).size > 1) return null;
   if (new Set(projections.map(p => p.structure?.authored_focus).filter(Boolean)).size > 1) return null;
   if (projections.some(p => p.canonical_hash !== first.canonical_hash || p.source_id !== first.source_id || p.profile_version !== first.profile_version || canonicalJson(p.scope) !== canonicalJson(first.scope))) return null;
   const spans = <T,>(values: T[]) => [...new Map(values.map(v => [canonicalJson(v), v])).values()];
-  return { ...first, method: 'user_edited', unit_ids: [...new Set(projections.flatMap(p => p.unit_ids))],
+  return { ...first, ...(split?{split:undefined}:{}), method: 'user_edited', unit_ids: [...new Set(projections.flatMap(p => p.unit_ids))],
     parts: { question: spans(projections.flatMap(p => p.parts.question)), answer: spans(projections.flatMap(p => p.parts.answer)), explanation: spans(projections.flatMap(p => p.parts.explanation)), context: spans(projections.flatMap(p => p.parts.context)), unassigned: spans(projections.flatMap(p => p.parts.unassigned)) },
     dependencies: [...new Map(projections.flatMap(p => p.dependencies).map(d => [d.id, d])).values()] };
 }

@@ -42,7 +42,7 @@ def file_book(extracted, *, name, prefix='q'):
     blocks, path = [], [name]
     identities = {}
     for parent in parents:
-        native = original is not None and parent.source_kind == 'mineru'
+        native = original is not None and (parent.source_kind == 'mineru' or bool(original.source_metadata.get('review_book_name')))
         if native:
             path = [name, *[p for p in parent.section_path if p != original.book_name]]
         if parent.block_type in ('formula', 'table', 'figure'):
@@ -77,7 +77,7 @@ def file_book(extracted, *, name, prefix='q'):
                 level = len(numbered[1].split('.')) if numbered else (topic_level(text, path[1:]) if TOPIC.match(text) else (raw_level if type(raw_level) is int and 1 <= raw_level <= 8 else 1))
                 if not native:
                     path = path[:max(1, min(level, 8))] + [text.strip()]
-            block.block_type = 'heading' if heading else 'paragraph'
+            block.block_type = 'heading' if heading else ('example' if parent.block_type=='example' and start==0 else 'paragraph')
             block.section_path = list(path)
             block.attributes.update(source_parent_id=parent.block_id, source_start=start, source_end=start + len(text))
             if start and parent.attributes.get('structure_unit_start'):
@@ -92,6 +92,8 @@ def file_book(extracted, *, name, prefix='q'):
                 block.attributes[key] = identities[block.attributes[key]]
         if block.attributes.get('structure_group_members'):
             block.attributes['structure_group_members'] = [identities[bid] for bid in block.attributes['structure_group_members']]
+        for evidence in (block.attributes.get('exercise_metadata') or {}).get('evidence', []):
+            evidence['block_id'] = identities.get(evidence['block_id'],evidence['block_id'])
     return CanonicalBook(name, name, blocks, 'exercise-file-lines-v2',
                          source_metadata=deepcopy(original.source_metadata) if original else {},
                          source_page_count=original.source_page_count if original else None)
@@ -136,6 +138,28 @@ class ExerciseFileAnalysisStore:
         self.root = Path(progress_root) / 'exercise_import_sources'
         self.examples = StructureExampleStore(progress_root)
 
+    def textbook_review_source(self, extracted):
+        """Freeze the selected raw textbook scope for optional AI work, never its index."""
+        if extracted.review_book is None:
+            return None
+        from ingestion.document_ir import canonical_paths
+        from memory.exercise_file_importer import ExtractedExerciseText
+        assets = canonical_paths(extracted.book_name, progress_root=self.root.parent)[0].parent
+        raw = ExtractedExerciseText(text='\n\n'.join(b.text for b in extracted.review_book.blocks),
+            file_type='textbook', provider='textbook-source', canonical_book=extracted.review_book, asset_root=assets)
+        _, source_id, _ = self.create(raw, book_name=extracted.book_name)
+        return source_id
+
+    def attach_review_pdf(self, source_id, book_name, pdf):
+        from backend.services.structure_review_jobs import resolve_source, review_directory
+        from ingestion.document_adapters import _atomic_copy
+        target = dict(kind='file',reference=source_id,book_name=book_name)
+        book, _, _ = resolve_source(target, progress_root=self.root.parent, books_root=self.root, jobs=None)
+        directory = review_directory(self.root.parent, 'file', source_id)
+        directory.mkdir(parents=True,exist_ok=True)
+        _atomic_copy(pdf,directory/'source.pdf')
+        atomic_write_json(directory/'source_pdf.json',dict(source_version=canonical_book_fingerprint(book)))
+
     def create(self, extracted, *, book_name, answer=None):
         self._preserve_assets(extracted)
         if answer:
@@ -144,7 +168,9 @@ class ExerciseFileAnalysisStore:
         all_units=exercise_units(book,unrestricted=True)
         answer_units=[u for u in all_units if any(ANSWER_HEADING.match(p) for p in u['section_path'])]
         units=[u for u in all_units if not any(ANSWER_HEADING.match(p) for p in u['section_path'])]
-        if not units and book.blocks:
+        if book.source_metadata.get('review_source_mode') == 'examples':
+            units = [u for u in units if u['kind']=='example']
+        if not units and book.blocks and book.source_metadata.get('review_source_mode') != 'examples':
             # Unnumbered source remains available as an explicitly uncertain unit.
             from ingestion.document_structure import block_role, NON_PRACTICE
             body = [b for b in book.blocks if b.block_type != 'heading' and block_role(b) not in NON_PRACTICE and not any(ANSWER_HEADING.match(p) for p in b.section_path)]
@@ -179,6 +205,10 @@ class ExerciseFileAnalysisStore:
         payload['snapshot_hash'] = hashlib.sha256(canonical_json(payload).encode()).hexdigest()
         # Validation of the registry budgets occurs before persistence.
         atomic_write_json(self.root / f'{source_id}.json', payload)
+        if extracted.file_type=='zip' and extracted.asset_root:
+            pdfs=list(Path(extracted.asset_root).rglob('*.pdf'))
+            if len(pdfs)==1:
+                self.attach_review_pdf(source_id,book_name,pdfs[0])
         return self._extracted(payload), source_id, paired
 
     def _preserve_assets(self, extracted):
@@ -194,6 +224,9 @@ class ExerciseFileAnalysisStore:
             relative = (visual.get('source_relpath', '') if isinstance(visual, dict)
                         else block.attributes.get('source_asset_relpath', ''))
             path = _controlled_source_path(Path(root), relative)
+            if path is None:
+                managed = visual.get('asset_relpath','') if isinstance(visual,dict) else block.attributes.get('asset_relpath','')
+                path = _controlled_source_path(Path(root),managed)
             if path is None:
                 block.attributes['asset_status'] = 'missing'
                 continue
@@ -257,4 +290,5 @@ class ExerciseFileAnalysisStore:
         return ExtractedTextbookExerciseText(text='\n\n'.join(u['text'] for u in payload['units']),
             provider='file-source-units', book_name=payload['book_name'], units=payload['units'],
             canonical_hash=payload['canonical_hash'], source_blocks=payload['source_blocks'],
-            profile_version=version, solution_markers=markers, unmatched_answer_text=payload.get('unmatched_answer_text', ''))
+            profile_version=version, solution_markers=markers, unmatched_answer_text=payload.get('unmatched_answer_text', ''),
+            source_coverage=((payload.get('canonical_source') or {}).get('source_metadata') or {}).get('source_page_coverage',[]))

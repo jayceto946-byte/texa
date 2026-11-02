@@ -120,6 +120,9 @@ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell[data-
 .exercise-import-options summary{font-size:13px;color:var(--color-text-secondary);cursor:pointer}
 .exercise-import-options[open] summary{margin-bottom:20px}
 .exercise-repair{display:flex;gap:8px;align-items:center;font-size:13px;margin-top:18px}
+.exercise-source-comparison{margin:12px 0 20px;border-block:1px solid var(--color-border);padding:10px 0;font-size:13px}
+.exercise-source-comparison summary{cursor:pointer;color:var(--color-text-secondary)}
+.exercise-source-comparison section{padding:8px 0;overflow-wrap:anywhere}
 .exercise-import-submit{border-top:1px solid var(--color-border);padding-top:23px;display:flex;justify-content:space-between;align-items:center;gap:16px}.exercise-import-submit>p{font-size:12px;color:var(--color-text-secondary);max-width:350px;line-height:1.7}.exercise-import-submit>button:only-child{margin-left:auto}
 .exercise-import-setup>.app-ghost-button{margin-top:24px}
 .exercise-feedback{font-size:13px;line-height:1.8;color:var(--color-text-secondary);margin-top:12px}

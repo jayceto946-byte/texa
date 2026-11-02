@@ -81,7 +81,7 @@ def _source_structure_text(record: ExerciseRecord) -> str:
     structure = record.extra_fields.get('source_structure')
     if not isinstance(structure, dict):
         return ''
-    fields = [structure.get(k) for k in ('catalog_number', 'original_number', 'authored_focus', 'exam_source')]
+    fields = [structure.get(k) for k in ('catalog_number', 'original_number', 'authored_focus', 'exam_source', 'exam_year', 'question_type')]
     path = structure.get('classification_path')
     return ' '.join(v for v in fields + (path if isinstance(path, list) else []) if isinstance(v, str))
 

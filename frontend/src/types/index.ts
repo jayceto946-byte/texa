@@ -357,14 +357,17 @@ export interface CandidateProjection {
   structure?: CandidateStructure | null;
   profile_version?: string;
   source_id?: string | null;
+  split?: { group_id: string; index: number; siblings: CandidateProjection['parts'][]; shared_block_ids: string[] } | null;
 }
 export interface CandidateStructure {
   catalog_number: string; original_number: string; authored_focus: string; exam_source: string;
+  exam_year?: string; question_type?: string;
   classification_path: string[]; source_block_ids: string[];
 }
 export interface CandidateIssue { key: string; category: 'content' | 'metadata'; code: string; block_ids: string[]; dependency_id: string | null }
 export interface CandidateReview { content_hash: string; resolutions: Array<{ issue_key: string; decision: 'corrected' | 'not_applicable' | 'source_checked' }> }
 export interface CandidateSourceBlock {
+  display_text?: string;
   block_id: string; block_type: string; text: string; order: number; section_path: string[];
   page_start: number | null; page_end: number | null; bbox: number[] | null; equations: string[];
   table_title: string; table_header: string[]; table_rows: string[][]; source_kind: string; review_status: string;
@@ -372,12 +375,13 @@ export interface CandidateSourceBlock {
 }
 export interface CandidateSourceRegistry {
   review_reference?: string;
+  source_coverage?: Array<{page: number; status: 'parsed' | 'missing' | 'unreadable' | 'blank' | 'recovered'}>;
   canonical_hash: string; source_blocks: CandidateSourceBlock[];
   units: Array<{ unit_id: string; text: string; source_block_ids: string[] }>;
 }
 export interface CandidateReceipt {
   exercise_id: string; origin_id: string;
-  projection: Pick<CandidateProjection, 'version' | 'canonical_hash' | 'unit_ids' | 'method' | 'parts' | 'structure' | 'profile_version' | 'source_id'>;
+  projection: Pick<CandidateProjection, 'version' | 'canonical_hash' | 'unit_ids' | 'method' | 'parts' | 'structure' | 'profile_version' | 'source_id' | 'split'>;
   body_hash: string; review_kind: 'system_proposed' | 'user_confirmed';
 }
 

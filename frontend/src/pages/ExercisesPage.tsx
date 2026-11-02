@@ -351,7 +351,7 @@ const ExercisesPage: React.FC = () => {
       setCandidateSourceLabel(importSource || importFile?.name || '导入文件');
       replaceCandidates(next, data.extract);
       setReviewPreparationOpen(false);
-      setCandidateError(next.length ? '' : '未找到候选题，请调整范围后重试。');
+      setCandidateError(next.length || data.extract?.source_coverage?.some((p: {status:string})=>p.status==='missing') ? '' : '未找到候选题，请调整范围后重试。');
       const paired = answerFile ? `；答案匹配 ${data.summary?.paired_answers || 0}/${next.length}` : '';
       setMessage(`${next.length ? data.message || `已分析 ${next.length} 道候选题` : '未找到候选题，请调整范围后重试。'}${paired}${data.summary?.llm_refined ? `；已辅助修复 ${data.summary.llm_refined} 道` : ''}`);
     } catch (e) {
@@ -400,7 +400,7 @@ const ExercisesPage: React.FC = () => {
         return;
       }
       const next = res.data || [];
-      setCandidateSourceCategory('textbook_example');
+      setCandidateSourceCategory(textbookSourceMode === 'examples' ? 'textbook_example' : 'exercise');
       setCandidateSourceLabel(`${activeName}${textbookChapter ? ` · ${textbookChapter}` : ''}`);
       replaceCandidates(next, res.extract);
       setReviewPreparationOpen(false);
@@ -530,7 +530,7 @@ const ExercisesPage: React.FC = () => {
         </section>}
 
         <section hidden={workspaceMode !== 'import' || Boolean(receipt) || commitUnknown} className="exercise-import-panel">
-          <div hidden={candidates.length > 0 && !reviewPreparationOpen} className="exercise-import-setup">
+          <div hidden={(Boolean(candidateState.sourceRegistry)||candidates.length>0) && !reviewPreparationOpen} className="exercise-import-setup">
 
             <h1>导入题目<HelpHint label="导入题目">检查题目后点击“确认入库”保存。支持 Word、PDF 和 MinerU 解析包。</HelpHint>
             </h1>
@@ -601,7 +601,7 @@ const ExercisesPage: React.FC = () => {
 
             <button className="app-ghost-button" onClick={() => setManualOpen(true)}>手动录入一道题</button>
           </div>
-          <div hidden={candidates.length === 0 || reviewPreparationOpen} className="exercise-review-panel">
+          <div hidden={!candidateState.sourceRegistry && candidates.length===0 || reviewPreparationOpen} className="exercise-review-panel">
             <CandidateReviewWorkspace bookName={activeName} state={candidateState} source={candidateSourceLabel || activeName} busy={importing || commitUnknown} notice={candidateError} onReviewed={() => setCandidateError('')} onBack={() => setReviewPreparationOpen(true)} onSubmit={importSelected} onSaveExample={saveStructureExample} />
           </div>
         </section>

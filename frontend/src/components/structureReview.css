@@ -7,6 +7,8 @@
 .structure-review-control.is-compact{display:flex;align-items:center;gap:8px;position:relative;padding:0;border:0;font:inherit}
 .is-compact .structure-review-row{flex-wrap:nowrap;gap:6px}
 .is-compact .structure-review-error{max-width:190px;margin:0;line-height:1.4}
+.is-compact .structure-review-receipt{position:relative;margin:0}
+.is-compact .structure-review-record{position:absolute;right:0;top:24px;width:min(340px,calc(100vw - 48px));max-height:360px;overflow:auto;z-index:20;padding:12px;background:var(--color-bg-primary);border:1px solid var(--color-border);box-shadow:0 8px 24px #0002}
 .structure-review-confirm{width:min(520px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:20px;font:400 13px/1.6 var(--font-app);color:var(--color-text-primary)}
 .structure-review-confirm h2{font:600 16px/1.5 var(--font-app);margin:0 0 20px}
 .structure-review-confirm dl{display:grid;gap:12px;margin:0 0 16px}

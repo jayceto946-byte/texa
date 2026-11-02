@@ -27,6 +27,8 @@ class ExtractedTextbookExerciseText:
     profile_version: str = ''
     solution_markers: list[dict] = field(default_factory=list)
     unmatched_answer_text: str = ''
+    review_book: Any = field(default=None, repr=False)
+    source_coverage: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -43,6 +45,7 @@ class ExtractedTextbookExerciseText:
             "source_blocks": self.source_blocks,
             "profile_version": self.profile_version,
             "unmatched_answer_text": self.unmatched_answer_text,
+            "source_coverage": self.source_coverage,
         }
 
 
@@ -136,7 +139,15 @@ def extract_textbook_exercise_text(
         if candidate_contract_version == 1:
             from memory.exercise_structure_examples import StructureExampleStore
             profile_version, solution_markers = StructureExampleStore(Path(PROGRESS_PATH)).load(structure_profile_version)
+        from copy import deepcopy
+        review_book = deepcopy(canonical) if candidate_contract_version == 1 else None
+        if review_book is not None:
+            review_book.blocks = [b for b in review_book.blocks if b.block_id in allowed_ids]
+            review_book.source_metadata.update(review_book_name=clean_book, review_source_mode=source_mode,
+                                               selected_source_pages=sorted({b.page_start for b in review_book.blocks if b.page_start}),
+                                               selected_physical_pages=dict(start=resolved_start,end=resolved_end))
         return ExtractedTextbookExerciseText(
+            review_book=review_book,
             profile_version=profile_version, solution_markers=solution_markers,
             canonical_hash=canonical_hash, source_blocks=source_blocks,
             text=text, provider='canonical-learning-units', book_name=clean_book, chapter=resolved_chapter,
@@ -743,6 +754,7 @@ def analyze_learning_unit_candidates(units: list[dict], *, book_name: str, subje
             candidate = parsed[0]
             for key, value in proposal.items():
                 setattr(candidate, key, value)
+            candidate.suggested_type = proposal['projection']['structure'].get('question_type') or candidate.suggested_type
             candidate.issues.extend(issue('missing_concepts', category='metadata') for _ in [0] if not candidate.tags)
             if candidate.suggested_type == '未确定':
                 candidate.issues.append(issue('unknown_type', category='metadata'))

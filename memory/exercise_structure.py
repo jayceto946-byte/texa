@@ -66,6 +66,17 @@ def header_metadata(text):
                 exam_source=exam.group().strip() if exam else '')
 
 
+def question_metadata(text, path=()):
+    """Read explicit exam labels beyond catalog bars; never infer a year from filenames."""
+    header = '\n'.join([*path, text[:600]])
+    exam = re.search(r'(?:19|20)\d{2}\s*年?\s*(?:考研)?\s*(?:数[一二三123]|数学[一二三123])', header)
+    labelled = re.search(r'(?:题目来源|试题来源|出处|来源)[：:]\s*([^\n。]{1,100})', header)
+    source = labelled[1].strip() if labelled else (exam.group().strip() if exam else '')
+    year = re.search(r'(?:19|20)\d{2}', source)
+    kind = re.search(r'(?:单项选择题|多项选择题|选择题|填空题|判断题|证明题|计算题|解答题|简答题|综合题)', header)
+    return dict(exam_year=year.group() if year else '', exam_source=source, question_type=kind.group() if kind else '')
+
+
 def header_continuation(active, block):
     if (not active or not active['header_ids'] or len(active['blocks']) > 3
             or any(b.block_id not in active['header_ids'] for b in active['blocks'])
@@ -209,7 +220,7 @@ def _file_units(book, paths):
     rows, active = [], None
     from ingestion.document_structure import block_role, has_exercise_scopes
     from ingestion.heading_policy import numeric_data_row
-    scoped = has_exercise_scopes(book)
+    scoped = has_exercise_scopes(book) and book.source_metadata.get('review_source_mode') != 'examples'
     for block in book.blocks:
         role = block_role(block)
         if block.attributes.get('outline_toc') or role in {'front_matter', 'toc', 'overview', 'reference', 'annotation'}:
@@ -223,7 +234,7 @@ def _file_units(book, paths):
         catalog = header_metadata(block.text)
         is_heading = block.block_type == 'heading' and not catalog
         numbered = bool(ORIGINAL.match(block.text)) and not numeric_data_row(block.text) and block.attributes.get('structure_unit_start') is not False
-        example = bool(re.match(r'^\s*(?:【?例\s*\d|例题)', block.text))
+        example = block.block_type == 'example' or bool(re.match(r'^\s*(?:【?例\s*\d|例题)', block.text))
         catalog_active = bool(active and active['header_ids'])
         if header_continuation(active, block):
             active['blocks'].append(block)

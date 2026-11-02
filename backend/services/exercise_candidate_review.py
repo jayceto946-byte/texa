@@ -13,7 +13,7 @@ class CandidateAdmissionError(ValueError):
         self.status = status
 
 
-def _validate_spans(projection, registry, expected_ids, origin):
+def _validate_spans(projection, registry, expected_ids, origin, *, expected_ranges=None):
     intervals = {}
     for role in ROLES:
         for span in projection['parts'][role]:
@@ -30,13 +30,46 @@ def _validate_spans(projection, registry, expected_ids, origin):
     for bid, spans in intervals.items():
         if not registry[bid]['text'] and len(spans) != 1:
             raise CandidateAdmissionError(origin, '空资源块必须只映射一次')
-        cursor = 0
-        for start, end in sorted(spans):
-            if start != cursor:
-                raise CandidateAdmissionError(origin, '来源span重叠或遗漏')
-            cursor = end
-        if cursor != len(registry[bid]['text']):
-            raise CandidateAdmissionError(origin, '来源span未覆盖原文')
+        required=(expected_ranges or {}).get(bid,[(0,len(registry[bid]['text']))])
+        def compact(values):
+            result=[]
+            for start,end in sorted(values):
+                if result and start<result[-1][1]:raise CandidateAdmissionError(origin,'来源span重叠或遗漏')
+                if result and start==result[-1][1]:result[-1]=(result[-1][0],end)
+                else:result.append((start,end))
+            return result
+        if compact(spans)!=compact(required):
+            raise CandidateAdmissionError(origin,'来源span未覆盖分配的原文')
+
+
+def _split_ranges(projection,registry,expected_ids,origin):
+    split=projection.get('split')
+    if not split:return None
+    plans=split['siblings'];index=split['index'];shared=set(split['shared_block_ids'])
+    if index>=len(plans) or projection['method']!='user_edited' or projection['parts']!=plans[index]:
+        raise CandidateAdmissionError(origin,'拆分后的来源计划不一致')
+    if not shared.issubset(expected_ids) or any(registry[b]['block_type'] not in {'figure','table','heading'} for b in shared):
+        raise CandidateAdmissionError(origin,'只有明确共用的图表或标题可以重复分配')
+    combined={r:[] for r in ROLES};selected={}
+    shared_seen=set()
+    for child in plans:
+        if not child['question'] and not child['unassigned']:raise CandidateAdmissionError(origin,'拆分子题缺少题干来源')
+        child_ids=set()
+        for role in ROLES:
+            for span in child[role]:
+                bid=span['block_id']
+                if bid not in registry:raise CandidateAdmissionError(origin,'拆分引用未知来源')
+                if bid in shared:
+                    if bid in child_ids or span['start']!=0 or span['end'] not in (None,len(registry[bid]['text'])):
+                        raise CandidateAdmissionError(origin,'共用附件必须完整分配且每题只出现一次')
+                    if bid not in shared_seen:combined[role].append(span)
+                    shared_seen.add(bid)
+                else:combined[role].append(span)
+                child_ids.add(bid)
+    _validate_spans({'parts':combined},registry,expected_ids,origin)
+    for spans in plans[index].values():
+        for span in spans:selected.setdefault(span['block_id'],[]).append((span['start'],len(registry[span['block_id']]['text']) if span['end'] is None else span['end']))
+    return selected
 
 
 def validate_candidate(item, proposals, registry):
@@ -66,11 +99,12 @@ def validate_candidate(item, proposals, registry):
     if len(focuses) > 1:
         raise CandidateAdmissionError(origin, '不同编者考点的题目不能合并，请分别保留来源')
     expected_ids = {s['block_id'] for v in matched for spans in v['projection']['parts'].values() for s in spans}
-    _validate_spans(p, registry, expected_ids, origin)
+    ranges=_split_ranges(p,registry,expected_ids,origin)
+    _validate_spans(p, registry, set(ranges) if ranges is not None else expected_ids, origin,expected_ranges=ranges)
     value = {**item, 'projection': p}
     if review and review['content_hash'] != content_hash(value):
         raise CandidateAdmissionError(origin, '确认版本已失效，请重新核对当前正文', status=409)
-    base_issues = [i for v in matched for i in v['issues'] if i['category'] == 'content']
+    base_issues = [i for v in matched for i in v['issues'] if i['category'] == 'content' and (ranges is None or not i['block_ids'] or set(i['block_ids']).intersection(ranges))]
     issues = {i['key']: i for i in base_issues}
     edited = p['method'] == 'user_edited'
     if edited:
@@ -91,6 +125,10 @@ def validate_candidate(item, proposals, registry):
             raise CandidateAdmissionError(origin, '题干仍含明确解答标记，请先分离到答案或解析')
     # Resource identities are replayed from IR, never accepted from client paths or flags.
     base_deps = {d['id']:d for v in matched for d in v['projection']['dependencies']}
+    if ranges is not None:
+        base_deps={k:d for k,d in base_deps.items() if not d['block_ids'] or set(d['block_ids']).intersection(ranges)}
+        if any(d['kind']=='figure' and not set(d['block_ids']).issubset(ranges) for d in base_deps.values()):
+            raise CandidateAdmissionError(origin,'组合附图必须整体分配给同一子题或明确共用')
     deps = {d['id']:d for d in p['dependencies']}
     if len(deps) != len(p['dependencies']) or set(deps) != set(base_deps):
         raise CandidateAdmissionError(origin, '资源依赖缺失或未知')
@@ -132,13 +170,13 @@ def validate_candidate(item, proposals, registry):
         elif decision == 'corrected':
             if not edited or not body_changed or (code == 'solution_in_stem' and INLINE_SOLUTION.search(item['question_text'])):
                 unresolved.append(signal)
-        elif decision not in ('not_applicable','source_checked') or code not in ('solution_in_stem','boundary_uncertain','dependency_uncertain','formula_review','learned_boundary','source_ocr_damage'):
+        elif decision not in ('not_applicable','source_checked') or code not in ('solution_in_stem','boundary_uncertain','dependency_uncertain','formula_review','learned_boundary','source_ocr_damage','ai_content_correction'):
             unresolved.append(signal)
     if p['method'] == 'unresolved':
         unresolved.append(dict(code='boundary_uncertain',key='unresolved_projection'))
     if unresolved:
         raise CandidateAdmissionError(origin, '仍有内容问题待核对', issues=unresolved)
-    return dict(origin_id=origin, projection={k:deepcopy(p[k]) for k in ('version','canonical_hash','unit_ids','method','parts','structure','profile_version','source_id')},
+    return dict(origin_id=origin, projection={k:deepcopy(p[k]) for k in ('version','canonical_hash','unit_ids','method','parts','structure','profile_version','source_id','split') if k in p},
                 body_hash=content_hash(item, include_projection=False), review_kind='user_confirmed' if review else 'system_proposed')
 
 
@@ -174,7 +212,7 @@ class ExerciseCandidateReviewService:
     def prepare(self, book_name, items):
         if not items or len(items) > 500:
             raise CandidateAdmissionError('', '请选择1至500道候选')
-        cache, receipts, origins = {}, [], set()
+        cache, receipts, origins, ownership, split_plans = {}, [], set(), {}, {}
         if len({canonical_json(item.get('candidate_context', {}).get('projection', {}).get('scope')) for item in items if item.get('candidate_context')}) > 1:
             raise CandidateAdmissionError('', '一次提交必须保持同一教材分析范围')
         for item in items:
@@ -198,6 +236,23 @@ class ExerciseCandidateReviewService:
             if extracted.canonical_hash != projection['canonical_hash']:
                 raise CandidateAdmissionError(origin, '教材版本已变化，请重新分析', status=409)
             receipt = validate_candidate(item, proposals, {b['block_id']:b for b in extracted.source_blocks})
+            split=projection.get('split')
+            if split:
+                identity=(key,split['group_id'])
+                plan=canonical_json([split['siblings'],split['shared_block_ids']])
+                if identity in split_plans and split_plans[identity]!=plan:
+                    raise CandidateAdmissionError(origin,'同组子题的来源分配计划不一致')
+                split_plans[identity]=plan
+            registry={b['block_id']:b for b in extracted.source_blocks}
+            for role in ('question','answer','explanation'):
+                for span in projection['parts'][role]:
+                    bid=span['block_id']
+                    if registry[bid]['block_type'] in {'figure','table','heading'}:continue
+                    start,end=span['start'],len(registry[bid]['text']) if span['end'] is None else span['end']
+                    owned=ownership.setdefault((key,bid),[])
+                    if any(start<e and s<end for s,e in owned):
+                        raise CandidateAdmissionError(origin,'多个子题重复占用同一段题干或原解，请重新分配来源')
+                    owned.append((start,end))
             if self.progress_root is not None:
                 from backend.services.exercise_assets import freeze_attachments
                 try:

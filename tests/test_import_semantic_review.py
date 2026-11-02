@@ -38,8 +38,9 @@ def test_llm_pairing_keeps_distinct_question_and_all_source_answers(tmp_path):
     class Session:
         def call(self,key,system,content,**kwargs):
             units=json.loads(content)['units']
-            assert len(units)==3
-            return dict(groups=[dict(keep=units[0]['id'],merge=[units[2]['id']],number='1.1')])
+            assert len(units)==2
+            assert all('answer' in u and 'explanation' in u for u in units)
+            return dict(groups=[dict(keep=units[0]['id'],merge=[units[1]['id']],number='1.1')])
     book,report=_pair(source(),Session(),lambda *a:None)
     units=exercise_units(book,unrestricted=True)
     assert len(units)==2 and report['merged_questions']==1
@@ -87,7 +88,7 @@ def test_semantic_duplicate_with_different_values_is_retained():
         def call(self,*args,**kwargs):return dict(groups=[dict(keep='b',merge=['c'],number='1.2')])
     book,report=_pair(source(),Session(),lambda *a:None)
     assert len(exercise_units(book,unrestricted=True))==3
-    assert report['merged_questions']==0 and len(report['rejected_merges'])==1
+    assert report['merged_questions']==0 and report['unresolved']
 
 
 def test_visual_review_cannot_change_exercise_heading(tmp_path):

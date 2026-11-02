@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { ExerciseCandidate, CandidateSourceRegistry } from '../../../types';
 import { candidateHash, contentJson, editCandidate, canSubmitCandidate, type Decisions } from './candidateContract';
 import { assignSourceSuffix } from './sourceAssignment';
+import type { SplitAssignment } from './sourceSplit';
 import {
   filterCandidates,
   mergeSelectedCandidates as mergeSelected,
@@ -109,23 +110,32 @@ export function useExerciseImportCandidates({ onMessage }: UseExerciseImportCand
     setEditingCandidateId(result.merged.id);
   }, [candidates, onMessage, selectedIds]);
 
-  const splitCandidate = useCallback((candidate: ExerciseCandidate) => {
-    const parts = splitCandidateAtBlankLine(candidate, Date.now().toString(36));
+  const splitCandidate = useCallback((candidate: ExerciseCandidate, assignment: SplitAssignment = {solution:'',blocks:{}}) => {
+    let parts: ExerciseCandidate[] | null;
+    try { parts = splitCandidateAtBlankLine(candidate, Date.now().toString(36), sourceRegistry, assignment); }
+    catch(error) { const message=error instanceof Error ? error.message : String(error);onMessage(message);return message; }
     if (!parts) {
       onMessage('请先在题干编辑框中用空行标出拆分位置');
       setEditingCandidateId(candidate.id);
-      return;
+      return '请先在题干编辑框中用空行标出拆分位置';
     }
     setReviewDecisions({});
+    const children=parts;
     setCandidates((current) => {
       const index = current.findIndex((item) => item.id === candidate.id);
-      const next = current.filter((item) => item.id !== candidate.id);
-      next.splice(Math.max(0, index), 0, ...parts);
+      const next = current.filter((item) => item.id !== candidate.id).map(item=> {
+        const before=candidate.projection?.split, after=children[0].projection?.split;
+        if (!before || !after || item.projection?.split?.group_id!==before.group_id) return item;
+        const index=item.projection.split.index;
+        return editCandidate(item,{projection:{...item.projection,split:{...after,index:index>before.index?index+1:index}}});
+      });
+      next.splice(Math.max(0, index), 0, ...children);
       return next;
     });
     setSelectedIds(new Set(parts.map((item) => item.id)));
     setEditingCandidateId(parts[0].id);
-  }, [onMessage]);
+    return true;
+  }, [onMessage,sourceRegistry]);
 
   const toggleCandidate = useCallback((id: string) => {
     setSelectedIds((current) => {

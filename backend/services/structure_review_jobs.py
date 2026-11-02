@@ -56,7 +56,11 @@ def resolve_source(target, *, progress_root, books_root, jobs):
         if not raw:
             raise ValueError('这批候选没有保留完整结构来源，请重新导入解析包')
         book = CanonicalBook(**{**raw, 'blocks': [DocumentBlock.from_dict(b) for b in raw['blocks']]})
-        return _source_with_pdf(book, store.root / 'assets', None, target, root)
+        pdf = None
+        if book.source_metadata.get('review_book_name') == name:
+            candidate = safe_child_path(Path(books_root), name + '.pdf')
+            if candidate.is_file(): pdf = candidate
+        return _source_with_pdf(book, store.root / 'assets', pdf, target, root)
     if kind == 'import':
         job = jobs.get_job(reference)
         if (not job or job.get('book_name') != name or job['status'] != 'waiting_for_review'
@@ -108,6 +112,7 @@ def _run(*, job, book, assets, pdf, directory, progress_root, books_root, jobs, 
     from backend.job_manager import JobCancelled
     target = job['input']['target']
     session=None
+    stage='准备来源'
     try:
         options = dict(directory=directory,asset_root=assets,pdf_path=pdf,resolved=resolved,
             check_cancelled=lambda: jobs.raise_if_cancelled(job['id']),
@@ -116,6 +121,7 @@ def _run(*, job, book, assets, pdf, directory, progress_root, books_root, jobs, 
             from backend.services.import_semantic_review import run_semantic_review,create_review_session
             session=create_review_session(book,directory=directory,resolved=resolved,purpose=job['input']['purpose'],
                 pdf_path=pdf,max_cost_cny=job['input']['budget']['max_cost_cny'],check_cancelled=options['check_cancelled'],retry_failed=job['input'].get('retry_failed',False))
+            stage='模型校对与结果对齐'
             reviewed,report=run_semantic_review(book, purpose=job['input']['purpose'],
                 session=session,**options)
         else:
@@ -125,6 +131,7 @@ def _run(*, job, book, assets, pdf, directory, progress_root, books_root, jobs, 
         if canonical_book_fingerprint(current) != canonical_book_fingerprint(book):
             raise ValueError('来源版本已改变，审阅结果未覆盖当前内容')
         result = dict(report=report)
+        stage='保存校对候选'
         if target['kind'] == 'file':
             from backend.services.exercise_file_analysis import ExerciseFileAnalysisStore
             from memory.exercise_file_importer import ExtractedExerciseText
@@ -169,6 +176,13 @@ def _run(*, job, book, assets, pdf, directory, progress_root, books_root, jobs, 
     except JobCancelled:
         if session:jobs.update_job(job['id'],result=dict(report={**session.report(),'status':'partial'}))
         jobs.fail_or_cancel_job(job['id'], error='', message='已停止，已完成的页面审阅已保留')
-    except Exception:
-        if session:jobs.update_job(job['id'],result=dict(report={**session.report(),'status':'partial'}))
-        jobs.fail_or_cancel_job(job['id'], error='structure_review_failed', message='结构审阅未完成，来源和已完成页面已保留')
+    except Exception as exc:
+        # Expose the failed operation and exception category, never provider URLs,
+        # credentials or source text from arbitrary exception messages.
+        reasons={'UnicodeDecodeError':'来源文件编码无法读取','PermissionError':'本地文件没有读写权限',
+                 'FileNotFoundError':'来源或图片文件已缺失','KeyError':'校对结果缺少必需字段',
+                 'TypeError':'校对结果字段类型错误','JSONDecodeError':'本地校对回执JSON无法读取'}
+        reason=reasons.get(type(exc).__name__,type(exc).__name__)
+        failure=dict(stage=stage,error_type=type(exc).__name__,reason=f'{stage}失败：{reason}')
+        jobs.update_job(job['id'],result=dict(report={**(session.report() if session else {}),'status':'partial','needs_retry':True,'failure':failure}))
+        jobs.fail_or_cancel_job(job['id'], error='structure_review_failed', message=f'{failure["reason"]}，来源与已完成请求已保留')

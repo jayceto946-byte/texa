@@ -1,7 +1,7 @@
 """Bounded transport types for the optional textbook candidate v1 contract."""
 from typing import Literal
 from typing_extensions import Annotated
-from pydantic import BaseModel, ConfigDict, Field, BeforeValidator
+from pydantic import BaseModel, ConfigDict, Field, BeforeValidator, model_serializer
 
 
 def _version(value):
@@ -43,6 +43,8 @@ class CandidateStructure(ContractModel):
     original_number: str = Field(default='', max_length=128)
     authored_focus: str = Field(default='', max_length=2000)
     exam_source: str = Field(default='', max_length=1000)
+    exam_year: str = Field(default='', max_length=4)
+    question_type: str = Field(default='', max_length=100)
     classification_path: list[str] = Field(default_factory=list, max_length=20)
     source_block_ids: list[str] = Field(default_factory=list, max_length=160)
 
@@ -57,6 +59,13 @@ class CandidateDependency(ContractModel):
     resolution: Literal['embedded', 'identified', 'unresolved']
 
 
+class CandidateSplit(ContractModel):
+    group_id: str = Field(min_length=1,max_length=256)
+    index: int = Field(ge=0,le=19)
+    siblings: list[CandidateParts] = Field(min_length=2,max_length=20)
+    shared_block_ids: list[str] = Field(default_factory=list,max_length=160)
+
+
 class CandidateProjection(ContractModel):
     version: CandidateContractVersion
     canonical_hash: str = Field(pattern=r'^[a-f0-9]{64}$')
@@ -68,6 +77,13 @@ class CandidateProjection(ContractModel):
     structure: CandidateStructure | None = None
     profile_version: str = Field(default='', max_length=64, pattern=r'^(?:[a-f0-9]{64})?$')
     source_id: str | None = Field(default=None, pattern=r'^[a-f0-9]{32}$')
+    split: CandidateSplit | None = None
+
+    @model_serializer(mode='wrap')
+    def serialize_projection(self,handler):
+        data=handler(self)
+        if data.get('split') is None:data.pop('split',None)
+        return data
 
 
 class CandidateIssue(ContractModel):

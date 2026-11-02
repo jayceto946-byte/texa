@@ -102,11 +102,9 @@ describe('candidate v1 review and source preservation', () => {
     b.projection = { ...b.projection, canonical_hash: 'c'.repeat(64) };
     expect(mergeSelectedCandidates([a, b], new Set(['a', 'b']))).toBeNull();
   });
-  it('split preserves source/answer only once, requires both new bodies to be confirmed', () => {
+  it('requires source registry before partitioning a v1 candidate', () => {
     const item = { ...v1('a'), question_text: '第一问\n\n第二问', explanation: 'source solution' };
-    const parts = splitCandidateAtBlankLine(item, 'fixed')!;
-    expect(parts[0].answer).toBe(''); expect(parts[0].explanation).toBe(''); expect(parts[1].explanation).toBe('source solution');
-    expect(parts.every(p => p.projection?.unit_ids[0] === 'a' && p.review === null && !canSubmitCandidate(p))).toBe(true);
+    expect(splitCandidateAtBlankLine(item, 'fixed')).toBeNull();
   });
   it('a generic current hash confirmation cannot bypass a required image', () => {
     const item = v1('a'); item.projection.dependencies.push({ id: 'fig', kind: 'figure', label: '图A', requirement: 'required', block_ids: ['f'], asset_ids: ['asset-A'], resolution: 'identified' });

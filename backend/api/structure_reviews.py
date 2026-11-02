@@ -74,7 +74,7 @@ def plan_review(request: ReviewTarget):
             answer = ExerciseFileAnalysisStore(PROGRESS_PATH).answer_source(request.reference, request.book_name)
             if answer:
                 answer_book = answer.canonical_book or file_book(answer, name=request.book_name, prefix='answer')
-        plan = semantic_review_estimate(book, resolved, request.purpose or ('exercises' if request.kind=='file' else 'textbook'), answer_book=answer_book)
+        plan = semantic_review_estimate(book, resolved, request.purpose or ('exercises' if request.kind=='file' else 'textbook'), answer_book=answer_book, has_original_pages=bool(pdf))
         from llm.registry import get_model
         model_spec = get_model(resolved.provider.provider_id, resolved.model)
         return dict(success=True, data={**plan, 'model': resolved.model, 'model_label': model_spec.label.split('（')[0] if model_spec else resolved.model, 'ready': resolved.credential_configured,

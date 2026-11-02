@@ -10,7 +10,7 @@ import hashlib
 import html
 import json
 import re
-from memory.exercise_structure import header_metadata, split_roles, solution_markers, ORIGINAL, FOCUS
+from memory.exercise_structure import header_metadata, question_metadata, split_roles, solution_markers, ORIGINAL, FOCUS
 from ingestion.source_text_quality import pending_ocr_damage
 from ingestion.source_markdown import table_markdown
 
@@ -24,7 +24,7 @@ ATTRIBUTE_KEYS = ('source_page_idx', 'source_block_index', 'bbox_space', 'bbox_f
                   'mineru_type', 'raw_level', 'semantic_role', 'asset_id', 'asset_hash', 'asset_status',
                   'source_parent_id', 'source_start', 'source_end', 'asset_format',
                   'structure_role', 'structure_unit_role', 'structure_group_members', 'structure_unit_id',
-                  'original_ocr_text', 'text_corrections', 'structure_question_number', 'ocr_quality_confirmed', 'ocr_quality_pending')
+                  'original_ocr_text', 'text_corrections', 'exercise_metadata', 'structure_question_number', 'ocr_quality_confirmed', 'ocr_quality_pending')
 
 
 def canonical_json(value):
@@ -45,7 +45,10 @@ def snapshot(block, order):
     attributes = {key: deepcopy(raw['attributes'][key]) for key in ATTRIBUTE_KEYS if key in raw['attributes']}
     if pending_ocr_damage(block):
         attributes['ocr_damage_reason'] = pending_ocr_damage(block)
-    return {**{key: deepcopy(raw[key]) for key in SNAPSHOT_KEYS}, 'order': order, 'attributes': attributes}
+    result={**{key: deepcopy(raw[key]) for key in SNAPSHOT_KEYS}, 'order': order, 'attributes': attributes}
+    if block.block_type in {'formula','table'}:
+        result['display_text']=serialize_block(result)
+    return result
 
 
 def marker(block):
@@ -259,6 +262,8 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
             if len(targets) > 1 and not members:
                 warn('dependency_uncertain', [b['block_id'] for b in targets], dep_id)
         for b in blocks:
+            if b['attributes'].get('text_corrections'):
+                warn('ai_content_correction', [b['block_id']])
             if b['block_type'] == 'figure' and not set(figure_labels(b['text'])).intersection(set(figure_labels(question_source))):
                 warn('boundary_uncertain', [b['block_id']])
             if b['block_type'] in ('formula', 'table'):
@@ -293,9 +298,18 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
             focus = next((m[1] for b in headers if (m := FOCUS.match(b['text']))), '')
             metadata = dict(catalog_number='', authored_focus=focus, exam_source='')
         original = ORIGINAL.match(body['question'])
+        path = unit.get('classification_path', unit.get('section_path', []))
+        attributes = question_metadata('\n'.join(b['text'] for b in headers) + '\n' + body['question'], path)
+        for b in blocks:
+            reviewed = b['attributes'].get('exercise_metadata') or {}
+            attributes.update({k:reviewed[k] for k in ('exam_year','exam_source','question_type') if reviewed.get(k)})
+        if metadata.get('exam_source') and not attributes['exam_source']:
+            attributes['exam_source'] = metadata['exam_source']
+        metadata['exam_source'] = attributes.pop('exam_source') or metadata.get('exam_source','')
         structure = dict(**(metadata or dict(catalog_number='', authored_focus='', exam_source='')),
+                         **attributes,
                          original_number=blocks[0]['attributes'].get('structure_question_number') or ((original.group(1) or original.group(2)).replace('．','.') if original else ''),
-                         classification_path=unit.get('classification_path', unit.get('section_path', [])),
+                         classification_path=path,
                          source_block_ids=[b['block_id'] for b in headers])
         projection = dict(version=1, canonical_hash=canonical_hash, unit_ids=[u['unit_id'] for u in group],
                           scope=deepcopy(scope), method=method, parts=parts, dependencies=dependencies,

@@ -70,9 +70,9 @@ def _image_url(path):
 def review_input(book, pages, *, asset_root=None, pdf_path=None, include_formula_crops=False):
     """Local selection only: bounded page text and source images, never full book text."""
     from ingestion.document_adapters import _controlled_source_path
-    context = set(pages) | {p - 1 for p in pages if p > 1} | {p + 1 for p in pages}
+    context = set(pages) | {p - 1 for p in pages if p and p > 1} | {p + 1 for p in pages if p}
     rows, trimmed, images = [], [], []
-    for page in sorted(context):
+    for page in sorted(context,key=lambda p:p or 0):
         used = 0
         for block in [b for b in book.blocks if b.page_start == page]:
             if used + len(block.text) > TEXT_PER_PAGE:
@@ -86,14 +86,14 @@ def review_input(book, pages, *, asset_root=None, pdf_path=None, include_formula
         import fitz
         with fitz.open(pdf_path) as doc:
             for page in pages:
-                if 1 <= page <= len(doc):
+                if page and 1 <= page <= len(doc):
                     original = doc[page - 1]
                     scale = min(1600 / max(original.rect.width, original.rect.height), 120 / 72)
                     pix = original.get_pixmap(matrix=fitz.Matrix(scale, scale))
                     images += [dict(type='text', text=f'原始PDF物理页 {page}'),
                                dict(type='image_url', image_url=dict(url='data:image/png;base64,' + base64.b64encode(pix.tobytes('png')).decode()))]
                     full_pages.append(page)
-    crop_count, omitted_images = 0, []
+    crop_count, omitted_images, image_block_ids = 0, [], []
     if asset_root:
         for block in book.blocks:
             if block.page_start not in pages or block.block_type not in ({'figure', 'table', 'formula'} if include_formula_crops else {'figure', 'table'}):
@@ -101,18 +101,19 @@ def review_input(book, pages, *, asset_root=None, pdf_path=None, include_formula
             rel = block.attributes.get('source_asset_relpath') or (block.attributes.get('original_visual_asset') or {}).get('source_relpath')
             path = _controlled_source_path(Path(asset_root), rel or '')
             if path is None:
-                path = _controlled_source_path(Path(asset_root), block.attributes.get('asset_relpath', ''))
+                path = _controlled_source_path(Path(asset_root), block.attributes.get('asset_relpath') or (block.attributes.get('original_visual_asset') or {}).get('asset_relpath',''))
             if path is None and block.attributes.get('asset_id') and block.attributes.get('asset_format'):
                 path = _controlled_source_path(Path(asset_root), block.attributes['asset_id'] + block.attributes['asset_format'])
             if path and crop_count < 24:
                 images += [dict(type='text', text=f'区域裁片 {block.block_id}，物理页 {block.page_start}，不是完整原页'),
                            dict(type='image_url', image_url=dict(url=_image_url(path)))]
                 crop_count += 1
+                image_block_ids.append(block.block_id)
             else:
                 omitted_images.append(block.block_id)
     content = [dict(type='text', text=json.dumps(dict(review_pages=pages, source_blocks=rows,
                full_page_images=full_pages, omitted_text_blocks=trimmed), ensure_ascii=False)), *images]
-    return content, {row['block_id'] for row in rows}, dict(full_page_images=full_pages, crops=crop_count, omitted_text_blocks=trimmed, omitted_image_blocks=omitted_images)
+    return content, {row['block_id'] for row in rows}, dict(full_page_images=full_pages, crops=crop_count, image_block_ids=image_block_ids, omitted_text_blocks=trimmed, omitted_image_blocks=omitted_images)
 
 
 def run_review(book, *, directory, mode='suspect', max_pages=24, asset_root=None, pdf_path=None,
