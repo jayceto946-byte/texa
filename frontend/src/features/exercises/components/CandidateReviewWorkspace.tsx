@@ -1,5 +1,5 @@
 import { StructureReviewControl } from '../../../components/StructureReviewControl';
-import { get } from '../../../api/client';
+import { get, post } from '../../../api/client';
 import type { CandidateSourceRegistry } from '../../../types';
 import Selector from '../../../components/ui/Selector';
 import { useEffect, useRef, useState } from 'react';
@@ -33,7 +33,11 @@ export function CandidateReviewWorkspace({ state: s, source, busy: parentBusy, n
     window.document.addEventListener('keydown', escape);
     return () => { window.document.removeEventListener('pointerdown', outside, true); window.document.removeEventListener('keydown', escape); };
   }, [reviewIssuesOpen]);
-  const busy = parentBusy;
+  const [recoveryBusy,setRecoveryBusy]=useState(false);
+  const [recoveryNotice,setRecoveryNotice]=useState('');
+  const [recoverableSource,setRecoverableSource]=useState('');
+  const [adoptionNote,setAdoptionNote]=useState('');
+  const busy = parentBusy || recoveryBusy;
   const [currentId, setCurrentId] = useState('');
   const [pendingResult, setPendingResult] = useState<{ candidates: ExerciseCandidate[]; extract: CandidateSourceRegistry } | null>(null);
   const [adoptOpen, setAdoptOpen] = useState(false);
@@ -42,7 +46,8 @@ export function CandidateReviewWorkspace({ state: s, source, busy: parentBusy, n
   const dispatchedContent = useRef('');
   const editorOpen = useRef(s.editingCandidateId);
   useEffect(() => { editorOpen.current = s.editingCandidateId; }, [s.editingCandidateId]);
-  const reviewSource = s.sourceRegistry?.review_reference || s.candidates[0]?.projection?.source_id;
+  const currentSource = s.sourceRegistry?.source_id || s.candidates[0]?.projection?.source_id;
+  const reviewSource = s.sourceRegistry?.review_reference || currentSource;
   const latestSource = useRef(reviewSource);
   useEffect(() => { latestSource.current = reviewSource; }, [reviewSource]);
   const current = s.filteredCandidates.find(c => c.id === currentId) || s.filteredCandidates[0];
@@ -61,24 +66,49 @@ export function CandidateReviewWorkspace({ state: s, source, busy: parentBusy, n
     const members=current?.projection?.dependencies.find(d=>d.kind==='figure'&&d.block_ids.includes(bid))?.block_ids || [bid];
     setSplitAssignment(a=>({...a,blocks:{...a.blocks,...Object.fromEntries(members.map(id=>[id,owner]))}}));
   };
-  const applyResult = (result: { candidates: ExerciseCandidate[]; extract: CandidateSourceRegistry }) => { s.replaceCandidates(result.candidates, result.extract); setPendingResult(null); setReviewIssuesOpen(false); setAdoptOpen(false); onReviewed?.(result.candidates.length); };
+  const applyResult = (result: { candidates: ExerciseCandidate[]; extract: CandidateSourceRegistry }) => { s.replaceCandidates(result.candidates, result.extract); setPendingResult(null); setReviewIssuesOpen(false); setAdoptOpen(false); setRecoveryNotice(''); setRecoverableSource(''); onReviewed?.(result.candidates.length); };
+  const rebuild = async (restore: boolean) => {
+    const sourceId=restore?reviewSource:recoverableSource || currentSource;
+    if(!sourceId)return;
+    setRecoveryBusy(true);setRecoveryNotice('');
+    try {
+      const response=await post(`/exercises/file-sources/${sourceId}/rebuild?book_name=${encodeURIComponent(bookName)}&subject=${encodeURIComponent(s.candidates[0]?.subject || '')}`,{});
+      if(!response.success)throw new Error(response.message || '无法恢复候选');
+      setPendingResult({candidates:response.data.candidates,extract:response.data.extract});
+      setAdoptionNote(`${restore?'校对前来源':'已保存的校对来源'}已在本地重新生成 ${response.data.candidates.length} 道候选，未调用 AI。采用后将替换当前列表及手动修改；题目内容仍需核对。`);
+      setAdoptOpen(true);
+    } catch(cause){setRecoveryNotice(cause instanceof Error?cause.message:String(cause));}
+    finally{setRecoveryBusy(false);}
+  };
   return <section className="exercise-candidate-review">
     <header className="exercise-review-toolbar">
       <div className="exercise-review-title"><h2>校对题目</h2><span title={source}>{source}</span></div>
       <div className="exercise-review-actions">
-    {reviewSource && <StructureReviewControl compact candidateCount={s.candidates.length} onDispatch={() => { dispatchedContent.current = JSON.stringify(latestCandidates.current); setPendingResult(null); }} key={reviewSource} target={{ kind: 'file', reference: reviewSource, book_name: bookName }} disabled={parentBusy} onBusyChange={setReviewBusy} onComplete={async result => {
-      if (!result?.source_id) return;
+    {reviewSource && <StructureReviewControl compact candidateCount={s.candidates.length} onDispatch={() => { dispatchedContent.current = JSON.stringify(latestCandidates.current); setPendingResult(null); }} key={reviewSource} target={{ kind: 'file', reference: reviewSource, book_name: bookName }} disabled={busy} onBusyChange={setReviewBusy} onComplete={async result => {
+      if (!result?.source_id || latestSource.current !== reviewSource) return;
+      if(result.adoption_blocked){
+        setRecoverableSource(result.source_id);
+        setRecoveryNotice('校对结果有来源题目未交代去向，已保留当前候选。请查看校对记录，可免费重新生成候选或恢复校对前来源。');
+        return;
+      }
       const response = await get(`/exercises/file-sources/${result.source_id}/candidates?book_name=${encodeURIComponent(bookName)}&subject=${encodeURIComponent(s.candidates[0]?.subject || '')}`);
       if (latestSource.current !== reviewSource) return;
       if (!response.success) throw new Error(response.message || '无法读取审阅候选');
       const resultData = { candidates: response.data.candidates as ExerciseCandidate[], extract: response.data.extract as CandidateSourceRegistry };
-      if (editorOpen.current || JSON.stringify(latestCandidates.current) !== dispatchedContent.current) setPendingResult(resultData);
+      if (result.adoption_required || resultData.candidates.length < latestCandidates.current.length || result.report?.status === 'partial' || result.report?.needs_retry || editorOpen.current || JSON.stringify(latestCandidates.current) !== dispatchedContent.current) {
+        setPendingResult(resultData);
+        setAdoptionNote(`校对结果有 ${resultData.candidates.length} 道候选，当前 ${latestCandidates.current.length} 道。${result.report?.status==='partial'?'本次校对尚有未完成项，请先查看校对记录。':''}采用将替换当前列表及手动修改。`);
+        setRecoveryNotice('校对结果等待确认，当前候选已保留。');
+      }
       else applyResult(resultData);
     }} />}
+        {currentSource && <button className="app-secondary-button" disabled={busy || reviewBusy} title="使用已保存来源在本地重新分题，不调用 AI" onClick={()=>void rebuild(false)}>{recoveryBusy?'正在生成…':'重新生成候选'}</button>}
+        {currentSource && reviewSource!==currentSource && <button className="app-secondary-button" disabled={busy || reviewBusy} onClick={()=>void rebuild(true)}>恢复校对前候选</button>}
         {pendingResult && <button className="app-secondary-button" onClick={() => setAdoptOpen(true)}>采用整理结果</button>}
 
       </div>
     </header>
+    {recoveryNotice && <p role="status" className="exercise-candidate-notice">{recoveryNotice}</p>}
     {notice && <p role="alert" className="exercise-candidate-notice">{notice}</p>}
     {missingPages.length>0 && <p className="exercise-candidate-notice">物理页 {missingPages.slice(0,12).map(p=>p.page).join('、')}{missingPages.length>12?'等':''} 共 {missingPages.length} 页尚无可用正文。有原始 PDF 时可用 AI 校对恢复；缺少原页请补充对应 PDF。未识别不代表本页没有题目。</p>}
     <div className="exercise-review-body">
@@ -120,7 +150,7 @@ export function CandidateReviewWorkspace({ state: s, source, busy: parentBusy, n
 
     </div>
     <footer className="exercise-commit"><span>已选 {s.selectedIds.size} 题{ s.sourceRegistry && s.selectedIds.size > s.submittableCandidates.length && <> · {s.selectedIds.size - s.submittableCandidates.length} 题待核对</>}</span><div><button className="app-ghost-button" disabled={busy || s.selectedIds.size < 2} onClick={s.mergeSelectedCandidates}>合并选中</button><button className="app-secondary-button" disabled={busy} onClick={onBack}>返回来源</button><button className="app-primary-button" disabled={busy || reviewBusy || Boolean(s.editingCandidateId) || Boolean(s.confirmingId) || !s.submittableCandidates.length} onClick={onSubmit}>{reviewBusy ? '正在整理…' : parentBusy ? '正在入库…' : s.sourceRegistry ? `确认入库${s.submittableCandidates.length}题` : '确认入库'}</button></div></footer>
-    <Dialog open={adoptOpen} title="采用整理结果" onClose={() => setAdoptOpen(false)} dismissOnBackdrop className="structure-review-confirm"><h2>采用整理结果</h2><p>你已经手动修改过题目。要保留修改，还是换成整理后的内容？</p><footer><button className="app-secondary-button" onClick={() => setAdoptOpen(false)}>保留手动修改</button><button className="app-primary-button" onClick={() => pendingResult && applyResult(pendingResult)}>采用整理结果</button></footer></Dialog>
+    <Dialog open={adoptOpen} title="采用整理结果" onClose={() => setAdoptOpen(false)} dismissOnBackdrop className="structure-review-confirm"><h2>采用整理结果</h2><p>{adoptionNote}</p><footer><button className="app-secondary-button" onClick={() => setAdoptOpen(false)}>保留当前候选</button><button className="app-primary-button" onClick={() => pendingResult && applyResult(pendingResult)}>采用整理结果</button></footer></Dialog>
     <Dialog open={splitOpen} title="拆分题目" onClose={()=>setSplitOpen(false)} dismissOnBackdrop className="structure-review-confirm"><h2>拆分题目</h2><p>按题干中的第一处空行拆分。原解与附图需要明确归属；共享条件请分别保留在两题题干中。无法对齐来源时会保留当前内容，等待核对。</p>
       {current && (current.answer||current.explanation) && <label>原答案与解析<Selector ariaLabel="原答案与解析归属" value={splitAssignment.solution} onChange={value=>setSplitAssignment(a=>({...a,solution:value as SplitAssignment['solution']}))} options={[{value:'',label:'请选择归属'},{value:'left',label:'第一题'},{value:'right',label:'第二题'},{value:'separate',label:'分别分配（按原解空行）'}]}/></label>}
       {splitAssets.map(b=><label key={b.block_id}>{b.block_type==='figure'?'附图':'表格'} {b.text.slice(0,60)}<Selector ariaLabel={`来源归属 ${b.block_id}`} value={splitAssignment.blocks[b.block_id]||''} onChange={value=>assignSplitAsset(b.block_id,value as 'left'|'right'|'both')} options={[{value:'',label:'请选择归属'},{value:'left',label:'第一题'},{value:'right',label:'第二题'},{value:'both',label:'两题共用'}]}/></label>)}

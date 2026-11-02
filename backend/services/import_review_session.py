@@ -59,12 +59,15 @@ class ReviewSession:
         self.complete = complete or create_vision_completion
         self.check_cancelled = check_cancelled
         self.retry_failed = retry_failed
+        self.new_calls = 0
+        self.reused_calls = 0
 
     def call(self, key, system, content, *, max_tokens=8000):
         self.check_cancelled()
         old = next((c for c in reversed(self.ledger['calls']) if c['key'] == key), None)
         if old:
             if old['status'] == 'completed':
+                self.reused_calls += 1
                 return deepcopy(old['result'])
             if not self.retry_failed:
                 raise ValueError('上次请求未完整完成，已保留回执；请检查连接后显式重新整理')
@@ -80,6 +83,7 @@ class ReviewSession:
         entry = dict(key=key, status='in_flight', reserved_cny=reserve, reserved_tokens=reserve_tokens,
                      rates=self.rates, sent_at=time.time(),attempt=1+sum(c['key']==key for c in self.ledger['calls']))
         self.ledger['calls'].append(entry); atomic_write_json(self.path, self.ledger)
+        self.new_calls += 1
         started = time.monotonic()
         try:
             response = self.complete(self.resolved, messages=[dict(role='system', content=system), dict(role='user', content=content)],
@@ -115,6 +119,7 @@ class ReviewSession:
     def report(self):
         calls = self.ledger['calls']
         return dict(model=self.resolved.model, calls=len(calls),
+                    new_calls=self.new_calls,reused_calls=self.reused_calls,
                     prompt_tokens=sum(c.get('usage', {}).get('prompt_tokens', 0) for c in calls),
                     completion_tokens=sum(c.get('usage', {}).get('completion_tokens', 0) for c in calls),
                     estimated_cost_cny=sum(c.get('cost_cny') or c.get('reserved_cny') or 0 for c in calls) if self.rates else None,

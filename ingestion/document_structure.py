@@ -75,6 +75,9 @@ def apply_structure_review(book, decisions, *, report=None, recover=True, issues
     original text completely; no replacement body, page or asset path is accepted.
     """
     result = deepcopy(book)
+    # Sparse review decisions are edits, not a declaration that every omitted
+    # source block is outside the exercise scope. Freeze the original policy.
+    result.source_metadata.setdefault('exercise_scope_policy','regions' if has_exercise_scopes(book) else 'all')
     by_id = {b.block_id: b for b in result.blocks}
     assignments = {}
     for decision in decisions:
@@ -102,6 +105,7 @@ def apply_structure_review(book, decisions, *, report=None, recover=True, issues
                 child.text = block.text[start:end]
                 child.attributes.update(source_parent_id=block.block_id, source_start=start, source_end=end)
             child.attributes['structure_role'] = segment.get('role', child.attributes.get('structure_role', 'unknown'))
+            if segment.get('reason'):child.attributes['structure_review_reason']=str(segment['reason'])
             for key in ('unit_id', 'unit_role', 'unit_start', 'group_members', 'heading_level'):
                 if key in segment:
                     child.attributes['structure_' + key] = deepcopy(segment[key])

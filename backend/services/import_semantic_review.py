@@ -518,6 +518,7 @@ def run_semantic_review(book, *, directory, resolved, purpose, asset_root=None, 
     session = session or create_review_session(book,directory=directory,resolved=resolved,purpose=purpose,pdf_path=pdf_path,
         max_cost_cny=max_cost_cny,complete=complete,check_cancelled=check_cancelled)
     corrections, unresolved, summary = [], [], {}
+    batches=[]; completed_batches=0; processed_blocks=0
     incomplete=False
     def interrupted(stage,reason):
         nonlocal incomplete
@@ -570,6 +571,8 @@ def run_semantic_review(book, *, directory, resolved, purpose, asset_root=None, 
             corrections.extend(_edits(book,response.get('edits',[]),aliases,pending=unresolved,visual_ids=visual_ids))
             book=_structure(book,response,aliases,recover=False)
             unresolved.extend(response.get('unresolved',[]))
+            completed_batches+=1
+            processed_blocks+=len(batch)
         if purpose=='exercises' and not incomplete:
             book,quality=_quality_review(book,session,progress,asset_root=asset_root,pdf_path=pdf_path,on_incomplete=interrupted)
             unresolved.extend(quality.pop('unresolved'));summary.update(quality)
@@ -582,6 +585,10 @@ def run_semantic_review(book, *, directory, resolved, purpose, asset_root=None, 
     unique={_json(item):item for item in unresolved}
     unresolved=list(unique.values())
     summary.update(text_corrections=len(corrections),unresolved=unresolved)
+    if purpose!='outline':
+        summary['text_coverage']=dict(total_batches=len(batches) if batches else len(list(_batches(book.blocks))),
+            completed_batches=completed_batches,processed_blocks=processed_blocks,total_blocks=sum(len(b) for b in batches) if batches else len(book.blocks),
+            original_pages=bool(pdf_path))
     report={**session.report(),**summary,'purpose':purpose,'status':'partial' if unresolved or incomplete else 'reviewed','version':VERSION,'needs_retry':incomplete}
     book.source_metadata['structure_review']=report
     book.source_metadata['semantic_text_corrections']=corrections

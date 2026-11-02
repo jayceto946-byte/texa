@@ -17,6 +17,8 @@ LABEL_ROLES = {'答案': 'answer', '参考答案': 'answer', '答': 'answer',
                '详解': 'explanation', '证明': 'explanation', '证': 'explanation',
                '解法': 'explanation'}
 FOCUS = re.compile(r'^\s*(?:考点|知识点|考查内容|题型|方法归纳)[：:]\s*(\S[^\n]*)$')
+SOURCE_INFO = re.compile(r'^\s*(?:原稿第\s*\d+\s*页|(?:题目|试题)?来源[：:]|(?:19|20)\d{2}\s*年?\s*(?:数[一二三123]|数学[一二三123]))')
+SOURCE_GUIDE = re.compile(r'(?:使用说明|学习计划|刷题计划|考点速查|题号索引|这本书怎么用|每天怎么做|今日复盘|间隔回顾)')
 
 
 def solution_markers(text, learned=()):
@@ -78,6 +80,8 @@ def question_metadata(text, path=()):
 
 
 def header_continuation(active, block):
+    if active and active['header_ids'] and block.block_type not in {'formula','table','figure'} and SOURCE_INFO.match(block.text):
+        return True
     if (not active or not active['header_ids'] or len(active['blocks']) > 3
             or any(b.block_id not in active['header_ids'] for b in active['blocks'])
             or block.block_type in ('formula', 'table', 'figure')):
@@ -217,12 +221,19 @@ def exercise_units(book, *, unrestricted=False, allowed_context_ids=None):
 
 
 def _file_units(book, paths):
-    rows, active = [], None
+    rows, active, in_guide = [], None, False
+    catalogued=any(CATALOG.match(b.text) for b in book.blocks)
     from ingestion.document_structure import block_role, has_exercise_scopes
     from ingestion.heading_policy import numeric_data_row
-    scoped = has_exercise_scopes(book) and book.source_metadata.get('review_source_mode') != 'examples'
+    policy=book.source_metadata.get('exercise_scope_policy')
+    scoped = (policy=='regions' if policy else has_exercise_scopes(book)) and book.source_metadata.get('review_source_mode') != 'examples'
     for block in book.blocks:
         role = block_role(block)
+        text=block.text.strip()
+        guide_heading=(block.block_type=='heading' or block.attributes.get('mineru_type')=='paragraph_title'
+                       or re.search(r'(?:刷题|学习)计划[：:\s]*$',text) or re.match(r'^(?:今日复盘|间隔回顾)',text))
+        if catalogued and guide_heading and len(text)<120 and not re.search(r'\$|=',text) and SOURCE_GUIDE.search(text):
+            in_guide=True;active=None
         if block.attributes.get('outline_toc') or role in {'front_matter', 'toc', 'overview', 'reference', 'annotation'}:
             active = None
             continue
@@ -232,10 +243,15 @@ def _file_units(book, paths):
             active = None
             continue
         catalog = header_metadata(block.text)
+        labelled_example=bool(re.match(r'^\s*(?:【?例\s*\d|例题)', block.text))
+        if catalog or labelled_example:in_guide=False
+        if in_guide:continue
         is_heading = block.block_type == 'heading' and not catalog
         numbered = bool(ORIGINAL.match(block.text)) and not numeric_data_row(block.text) and block.attributes.get('structure_unit_start') is not False
-        example = block.block_type == 'example' or bool(re.match(r'^\s*(?:【?例\s*\d|例题)', block.text))
         catalog_active = bool(active and active['header_ids'])
+        inherited_unit=block.attributes.get('learning_unit_id') or block.attributes.get('group_id')
+        native_start=block.block_type=='example' and (not active or not inherited_unit or inherited_unit!=active.get('native_unit'))
+        example=(labelled_example or native_start) and not catalog_active
         if header_continuation(active, block):
             active['blocks'].append(block)
             active['header_ids'].append(block.block_id)
@@ -246,7 +262,7 @@ def _file_units(book, paths):
         if block.attributes.get('structure_unit_start') or catalog or example or (numbered and not catalog_active and not re.match(r'^\s*[（(]', block.text)):
             active = dict(unit_id=block.block_id, kind='example' if example else 'exercise', blocks=[],
                           section_path=paths.get(block.block_id) or [book.book_name], truncated=False,
-                          header_ids=[block.block_id] if catalog else [])
+                          header_ids=[block.block_id] if catalog else [],native_unit=inherited_unit)
             rows.append(active)
         if active:
             if len(active['blocks']) >= 80 or (active['blocks'] and (block.page_start or 0) - (active['blocks'][0].page_start or 0) > 8):
@@ -266,4 +282,5 @@ def _file_units(book, paths):
     order = {b.block_id: i for i, b in enumerate(book.blocks)}
     for row in rows:
         row['blocks'].sort(key=lambda b: order[b.block_id])
+        row.pop('native_unit',None)
     return [row for row in rows if row['blocks']]

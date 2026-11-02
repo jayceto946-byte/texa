@@ -178,6 +178,10 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
         # Keep it as evidence and request a specific boundary decision.
         for b in blocks[1:]:
             text = b['text'].strip()
+            # Preserve a possibly merged next catalogue question and require
+            # boundary review rather than declaring the combined stem complete.
+            if header_ids and b['block_id'] not in header_ids and re.search(r'[#＃]\s*\d+',text) and not re.match(r'^(?:间隔回顾|参见|见题|参考)',text):
+                warn('boundary_uncertain',[b['block_id']])
             if (b['block_type'] == 'heading' and b['block_id'] not in header_ids | answer_headers or (re.match(r'^[（(]\d+[）)]\s*[^\d\W]', text)
                 and len(text) < 35 and not re.search(r'[。？?=，,；;]|求|证明|计算|说明|分析|比较|再|试|设|是否|确定|多少', text))):
                 warn('boundary_uncertain', [b['block_id']])

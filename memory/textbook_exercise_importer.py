@@ -739,7 +739,7 @@ def _normalize_text(text: str) -> str:
 def analyze_learning_unit_candidates(units: list[dict], *, book_name: str, subject: str, limit: int,
                                      source_blocks=None, canonical_hash=None, scope=None, solution_markers=(), profile_version='', source_id=None):
     """Analyze whole source units without resplitting formulas or subquestions."""
-    from memory.exercise_importer import analyze_candidates
+    from memory.exercise_importer import analyze_candidate, analyze_candidates
     candidates = []
     if canonical_hash is not None:
         from memory.exercise_candidate_projection import project_units, issue
@@ -748,10 +748,9 @@ def analyze_learning_unit_candidates(units: list[dict], *, book_name: str, subje
         for proposal in proposals[:limit]:
             unit = proposal.pop('unit')
             source = f"{book_name} / {unit['chapter']} p{unit['page_start']}-{unit['page_end']} / {unit['unit_id']}"
-            parsed = analyze_candidates([proposal['question_text']], subject=subject, chapter=unit['chapter'], source=source, limit=1)
-            if not parsed:
-                continue
-            candidate = parsed[0]
+            # Source-backed empty stems are recoverable candidates, e.g. a
+            # catalogue bar whose OCR body is missing. Do not silently drop it.
+            candidate = analyze_candidate(proposal['question_text'], subject=subject, chapter=unit['chapter'], source=source)
             for key, value in proposal.items():
                 setattr(candidate, key, value)
             candidate.suggested_type = proposal['projection']['structure'].get('question_type') or candidate.suggested_type

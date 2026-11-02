@@ -45,7 +45,8 @@
 .exercise-review-title>span{font-size:13px;color:var(--color-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .app-shell[data-navigation="closed"] .exercise-review-toolbar{padding-left:60px}
 body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell[data-navigation="closed"] .exercise-review-toolbar{padding-left:152px}
-.exercise-review-actions{display:flex;align-items:center;gap:8px;flex:none}
+.exercise-review-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;flex:none;max-width:100%}
+.exercise-review-toolbar{flex-wrap:wrap}
 .exercise-review-issues{margin:20px 0;font-size:13px;color:var(--warning)}
 .exercise-review-issues>div{margin-top:12px}
 .exercise-candidate-notice{flex:none;margin:0;padding:10px 20px;background:var(--warning-bg);color:var(--warning);font-size:13px;line-height:1.6}

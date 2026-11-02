@@ -141,6 +141,7 @@ def test_failed_paid_request_requires_explicit_retry_and_retains_old_receipt(tmp
     assert retry.call('batch','system','{}')=={'blocks':[]}
     retry.call('batch','system','{}')
     assert calls==['failed','success'] and retry.report()['calls']==2
+    assert retry.report()['new_calls']==1 and retry.report()['reused_calls']==1
     assert retry.report()['usage_unknown']
     assert 'secret-provider-details' not in retry.path.read_text()
 
@@ -185,7 +186,7 @@ def test_restoring_original_outline_keeps_model_receipts_and_original_pages(tmp_
 
 def test_partial_model_failure_keeps_applied_text_and_marks_explicit_retry(tmp_path):
     blocks=[DocumentBlock('first','paragraph','OCR文字 '+('正文。'*3100),['教材'],page_start=1,page_end=1),
-            DocumentBlock('second','paragraph','下一页正文。',['教材'],page_start=2,page_end=2)]
+            DocumentBlock('second','paragraph','下一页正文。',['教材'],page_start=2,page_end=2,attributes=dict(structure_unit_start=True))]
     book=CanonicalBook('教材','fixture',blocks,'fixture',source_page_count=2)
     count=[]
     def complete(*args,**kwargs):
@@ -196,6 +197,7 @@ def test_partial_model_failure_keeps_applied_text_and_marks_explicit_retry(tmp_p
     assert reviewed.blocks[0].text.startswith('校正文字') and reviewed.blocks[1].text=='下一页正文。'
     assert book.blocks[0].text.startswith('OCR文字')
     assert report['status']=='partial' and report['needs_retry'] and len(count)==2
+    assert report['text_coverage']==dict(total_batches=2,completed_batches=1,processed_blocks=1,total_blocks=2,original_pages=False)
 
 
 def test_word_snapshot_has_canonical_source_and_reviewed_snapshot_reuses_original_reference(tmp_path):

@@ -152,6 +152,14 @@ def _run(*, job, book, assets, pdf, directory, progress_root, books_root, jobs, 
                 report['needs_retry']=bool(report.get('needs_retry') or answer_report.get('needs_retry'))
                 if report['unresolved']:report['status']='partial'
             reviewed.source_metadata['review_origin_source_id']=target['reference']
+            from backend.services.exercise_review_coverage import candidate_coverage
+            coverage=candidate_coverage(book,reviewed)
+            report['candidate_coverage']=coverage
+            result['adoption_blocked']=coverage['unaccounted']>0
+            if coverage['unaccounted']:
+                report['status']='partial'
+                report.setdefault('unresolved',[]).append(f"有 {coverage['unaccounted']} 道来源题目未交代去向，保留校对前候选")
+            result['adoption_required']=report['status']!='reviewed' or coverage['removed']>0
             _, source_id, _ = store.create(extracted, book_name=target['book_name'], answer=answer)
             result['source_id'] = source_id
             if pdf:
@@ -172,7 +180,7 @@ def _run(*, job, book, assets, pdf, directory, progress_root, books_root, jobs, 
                 version=target['reference']
             _,result['outline']=outline_proposal(reviewed,version)
         jobs.complete_job(job['id'], result=result,
-            message=('题目与答案已整理' if target['kind']=='file' else '下方目录已更新') if report['status']=='reviewed' else '整理结果已更新，部分内容仍需核对')
+            message=('题目与答案已校对' if target['kind']=='file' else '下方目录已更新') if report['status']=='reviewed' else '校对未完整完成，部分结果已保留')
     except JobCancelled:
         if session:jobs.update_job(job['id'],result=dict(report={**session.report(),'status':'partial'}))
         jobs.fail_or_cancel_job(job['id'], error='', message='已停止，已完成的页面审阅已保留')

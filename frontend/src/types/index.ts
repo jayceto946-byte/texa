@@ -374,6 +374,7 @@ export interface CandidateSourceBlock {
   attributes: Record<string, string | number | null>;
 }
 export interface CandidateSourceRegistry {
+  source_id?: string;
   review_reference?: string;
   source_coverage?: Array<{page: number; status: 'parsed' | 'missing' | 'unreadable' | 'blank' | 'recovered'}>;
   canonical_hash: string; source_blocks: CandidateSourceBlock[];

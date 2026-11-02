@@ -285,6 +285,22 @@ class ExerciseFileAnalysisStore:
         if origin!=source_id:self.load(origin,book_name)
         return origin
 
+    def rebuild(self,source_id,book_name):
+        """Reproject stored raw/corrected sources locally; never request a model."""
+        origin=self.review_reference(source_id,book_name)
+        def raw_book(reference):
+            data=json.loads((self.root/f'{reference}.json').read_text(encoding='utf-8'))['canonical_source']
+            return CanonicalBook(**{**data,'blocks':[DocumentBlock.from_dict(b) for b in data['blocks']]})
+        reviewed,original=raw_book(source_id),raw_book(origin)
+        from ingestion.document_structure import has_exercise_scopes
+        reviewed.source_metadata['exercise_scope_policy']='regions' if has_exercise_scopes(original) else 'all'
+        reviewed.source_metadata['review_origin_source_id']=origin
+        reviewed.source_metadata['local_reprojection_from']=source_id
+        from memory.exercise_file_importer import ExtractedExerciseText
+        extracted=ExtractedExerciseText('\n\n'.join(b.text for b in reviewed.blocks),'zip',provider='local-reprojection',canonical_book=reviewed)
+        _,next_id,_=self.create(extracted,book_name=book_name,answer=self.answer_source(source_id,book_name))
+        return next_id
+
     def _extracted(self, payload):
         version, markers = self.examples.load(payload['profile_version'])
         return ExtractedTextbookExerciseText(text='\n\n'.join(u['text'] for u in payload['units']),

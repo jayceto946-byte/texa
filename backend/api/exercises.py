@@ -423,7 +423,7 @@ def reviewed_file_candidates(source_id: str, book_name: str = 'default', subject
         store=ExerciseFileAnalysisStore(PROGRESS_PATH)
         extracted = store.load(source_id, book_name)
         candidates = analyze_learning_unit_candidates(extracted.units, book_name=book_name,
-            subject=normalize_subject_value(subject, fallback=book_name), limit=500,
+            subject=normalize_subject_value(subject, fallback=book_name), limit=len(extracted.units),
             source_blocks=extracted.source_blocks, canonical_hash=extracted.canonical_hash,
             scope=dict(chapter='', page_start=None, page_end=None, source_mode='file'),
             solution_markers=extracted.solution_markers, profile_version=extracted.profile_version, source_id=source_id)
@@ -431,6 +431,16 @@ def reviewed_file_candidates(source_id: str, book_name: str = 'default', subject
             'source_id':source_id,'review_reference':store.review_reference(source_id,book_name)}))
     except (ValueError, FileNotFoundError) as exc:
         raise HTTPException(422, str(exc)) from None
+
+
+@router.post('/file-sources/{source_id}/rebuild')
+def rebuild_file_candidates(source_id: str,book_name: str='default',subject: str=''):
+    from backend.services.exercise_file_analysis import ExerciseFileAnalysisStore
+    try:
+        next_id=ExerciseFileAnalysisStore(PROGRESS_PATH).rebuild(source_id,book_name)
+        return reviewed_file_candidates(next_id,book_name,subject)
+    except (ValueError,FileNotFoundError) as exc:
+        raise HTTPException(422,str(exc)) from None
 
 @router.post("/textbook-analyze")
 def analyze_textbook_exercises(req: TextbookExerciseAnalyzeRequest, book_name: str = "default"):
