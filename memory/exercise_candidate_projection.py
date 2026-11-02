@@ -309,11 +309,13 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
         path = unit.get('classification_path', unit.get('section_path', []))
         attributes = question_metadata('\n'.join(b['text'] for b in headers) + '\n' + body['question'], path)
         reviewed_fields=set()
+        reviewed_number=None
         for b in blocks:
             reviewed = b['attributes'].get('exercise_metadata') or {}
             reviewed_fields.update(reviewed)
             attributes.update({k:reviewed[k] for k in ('exam_year','exam_source','question_type') if k in reviewed})
             if 'authored_focus' in reviewed:metadata['authored_focus']=reviewed['authored_focus']
+            if 'original_number' in reviewed:reviewed_number=reviewed['original_number']
             for e in reviewed.get('evidence',[]):
                 evidence_block=registry.get(e['block_id'])
                 if evidence_block is None:continue
@@ -325,7 +327,7 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
         metadata['exam_source'] = attributes.pop('exam_source')
         structure = dict(**(metadata or dict(catalog_number='', authored_focus='', exam_source='')),
                          **attributes,
-                         original_number=blocks[0]['attributes'].get('structure_question_number') or ((original.group(1) or original.group(2)).replace('．','.') if original else ''),
+                         original_number=reviewed_number if reviewed_number is not None else blocks[0]['attributes'].get('structure_question_number') or ((original.group(1) or original.group(2)).replace('．','.') if original else ''),
                          classification_path=path,
                          source_block_ids=[b['block_id'] for b in headers])
         projection = dict(version=1, canonical_hash=canonical_hash, unit_ids=[u['unit_id'] for u in group],

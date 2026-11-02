@@ -148,3 +148,23 @@ def test_metadata_evidence_follows_real_lines_after_projection(tmp_path):
     assert len(evidence)==2
     assert all(e['quote'] in registry[e['block_id']]['text'] for e in evidence)
     assert {e['block_id'] for e in evidence}<={s['block_id'] for s in c.projection['parts']['context']}
+
+
+@pytest.mark.parametrize('label,metadata',[
+    ('（2008*17题）',dict(exam_year='2008',exam_source='（2008*17题）',original_number='17',authored_focus='')),
+    ('2008·数二·多重积分',dict(exam_year='2008',exam_source='2008·数二',authored_focus='多重积分')),
+])
+def test_unlabelled_source_formats_are_semantic_inputs_not_rule_filters(tmp_path,label,metadata):
+    from memory.exercise_structure import question_metadata
+    book=source([block('label',label,'heading'),block('q','1. 设连续函数满足已知条件，计算其积分。')])
+    assert question_metadata(label)['exam_year']==''
+    def reply(data):
+        ids={b['text']:b['id'] for b in data['blocks']};q=ids[book.blocks[1].text]
+        return dict(blocks=[dict(block_id=q,unit_start=True,unit_role='question'),
+            dict(block_id=ids[label],unit_id=q,unit_role='context',reason='无固定标签的题头资料')],
+            metadata=[dict(block_id=q,**metadata,evidence=[dict(block_id=ids[label],quote=label)])])
+    reviewed,report,sent=review(book,tmp_path,reply)
+    assert any(b['text']==label for b in sent[0]['blocks']) and not report['unresolved']
+    c=proposals(reviewed,tmp_path)[0][0]
+    assert all(c.projection['structure'][key]==value for key,value in metadata.items())
+    assert label not in c.question_text
