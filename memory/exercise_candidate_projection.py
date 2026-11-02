@@ -66,6 +66,9 @@ def figure_labels(text):
 def source_registry(canonical, units, allowed_ids):
     """Only unit members, bounded proof adjacency and explicitly referenced figures."""
     selected = {bid for unit in units for bid in unit['source_block_ids']}
+    for block in canonical.blocks:
+        if block.block_id in selected:
+            selected.update(e['block_id'] for e in (block.attributes.get('exercise_metadata') or {}).get('evidence',[]) if e['block_id'] in allowed_ids)
     by_id = {b.block_id: i for i, b in enumerate(canonical.blocks)}
     for unit in units:
         if not unit['source_block_ids']:
@@ -160,7 +163,7 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
                 problems.append(entry)
         if len(blocks) > 80 or not unit.get('pairing_reviewed') and (blocks[-1]['page_end'] or blocks[-1]['page_start'] or 0) - (blocks[0]['page_start'] or 0) > 8 or any(u['truncated'] for u in group):
             warn('boundary_uncertain', ids)
-        if blocks[0]['block_type'] == 'formula':
+        if blocks[0]['block_type'] == 'formula' and blocks[0]['attributes'].get('structure_unit_role')!='context':
             warn('boundary_uncertain', [blocks[0]['block_id']])
         header_ids = set(unit.get('header_ids', []))
         answer_ids = set(unit.get('answer_block_ids', []))
@@ -182,7 +185,7 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
             # boundary review rather than declaring the combined stem complete.
             if header_ids and b['block_id'] not in header_ids and re.search(r'[#＃]\s*\d+',text) and not re.match(r'^(?:间隔回顾|参见|见题|参考)',text):
                 warn('boundary_uncertain',[b['block_id']])
-            if (b['block_type'] == 'heading' and b['block_id'] not in header_ids | answer_headers or (re.match(r'^[（(]\d+[）)]\s*[^\d\W]', text)
+            if (b['block_type'] == 'heading' and not b['attributes'].get('structure_unit_role') and b['block_id'] not in header_ids | answer_headers or (re.match(r'^[（(]\d+[）)]\s*[^\d\W]', text)
                 and len(text) < 35 and not re.search(r'[。？?=，,；;]|求|证明|计算|说明|分析|比较|再|试|设|是否|确定|多少', text))):
                 warn('boundary_uncertain', [b['block_id']])
             if b.get('review_status') and any(s in b['review_status'] for s in ('truncated', 'formula', 'fragment')):
@@ -234,7 +237,8 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
                 parts['unassigned' if unresolved and not has_solution else role].append(dict(block_id=b['block_id'], start=0, end=None))
         body = {r: serialize_parts(parts[r], registry) for r in ('question', 'answer', 'explanation')}
         if unresolved and not has_solution:
-            body['question'] = serialize_parts(parts['unassigned'], registry)
+            body['question'] = serialize_parts(sorted([*parts['question'],*parts['unassigned']],
+                key=lambda s:(registry[s['block_id']]['order'],s['start'])),registry)
         # Preserve already working whole-unit text byte for byte (including dedup fingerprints).
         if method == 'whole_unit' and len(group) == 1 and not header_ids and not answer_ids and not any(b['attributes'].get('structure_unit_role') for b in blocks) and all(serialize_block(b) == b['text'] for b in blocks):
             body['question'] = unit['text']
@@ -304,12 +308,21 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
         original = ORIGINAL.match(body['question'])
         path = unit.get('classification_path', unit.get('section_path', []))
         attributes = question_metadata('\n'.join(b['text'] for b in headers) + '\n' + body['question'], path)
+        reviewed_fields=set()
         for b in blocks:
             reviewed = b['attributes'].get('exercise_metadata') or {}
-            attributes.update({k:reviewed[k] for k in ('exam_year','exam_source','question_type') if reviewed.get(k)})
-        if metadata.get('exam_source') and not attributes['exam_source']:
+            reviewed_fields.update(reviewed)
+            attributes.update({k:reviewed[k] for k in ('exam_year','exam_source','question_type') if k in reviewed})
+            if 'authored_focus' in reviewed:metadata['authored_focus']=reviewed['authored_focus']
+            for e in reviewed.get('evidence',[]):
+                evidence_block=registry.get(e['block_id'])
+                if evidence_block is None:continue
+                if e['block_id'] not in {s['block_id'] for values in parts.values() for s in values}:
+                    parts['context'].append(dict(block_id=e['block_id'],start=0,end=None))
+                if e['block_id'] not in {h['block_id'] for h in headers}:headers.append(evidence_block)
+        if 'exam_source' not in reviewed_fields and metadata.get('exam_source') and not attributes['exam_source']:
             attributes['exam_source'] = metadata['exam_source']
-        metadata['exam_source'] = attributes.pop('exam_source') or metadata.get('exam_source','')
+        metadata['exam_source'] = attributes.pop('exam_source')
         structure = dict(**(metadata or dict(catalog_number='', authored_focus='', exam_source='')),
                          **attributes,
                          original_number=blocks[0]['attributes'].get('structure_question_number') or ((original.group(1) or original.group(2)).replace('．','.') if original else ''),

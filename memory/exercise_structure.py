@@ -112,6 +112,7 @@ def classification_paths(book, excluded_ids=()):
     if book.source_metadata.get('outline_recovery'):
         result = {}
         headings = {b.block_id: b for b in book.blocks if b.block_type == 'heading'}
+        excluded_titles={b.text for b in book.blocks if b.block_id in excluded_ids}
         for block in book.blocks:
             ancestors, node = [], block
             seen = set()
@@ -122,7 +123,7 @@ def classification_paths(book, excluded_ids=()):
                 if parent not in excluded_ids:
                     ancestors.append((node.attributes.get('outline_title', node.text), parent))
             # Paragraphs retain the canonical path even without a parent ID.
-            result[block.block_id] = list(reversed(ancestors)) if ancestors else [(p, '') for p in block.section_path]
+            result[block.block_id] = list(reversed(ancestors)) if ancestors else [(p, '') for p in block.section_path if p not in excluded_titles]
         return result
     current, result = [], {}
     for block in book.blocks:
@@ -193,7 +194,8 @@ def exercise_units(book, *, unrestricted=False, allowed_context_ids=None):
                                  section_path=unit.section_path, truncated=unit.truncated, header_ids=[]))
     order = {b.block_id: i for i, b in enumerate(book.blocks)}
     result = []
-    classifications = classification_paths(book, {bid for row in rows for bid in row['header_ids']})
+    classifications = classification_paths(book, {bid for row in rows for bid in row['header_ids']} |
+        {b.block_id for b in book.blocks if b.attributes.get('structure_unit_start') or b.attributes.get('structure_unit_id')})
     by_id = {b.block_id: b for b in book.blocks}
     for row in sorted(rows, key=lambda r: order[r['unit_id']]):
         blocks = row.pop('blocks')
@@ -230,11 +232,13 @@ def _file_units(book, paths):
     for block in book.blocks:
         role = block_role(block)
         text=block.text.strip()
+        declared_start=bool(block.attributes.get('structure_unit_start'))
+        assigned=declared_start or bool(block.attributes.get('structure_unit_id'))
         guide_heading=(block.block_type=='heading' or block.attributes.get('mineru_type')=='paragraph_title'
                        or re.search(r'(?:刷题|学习)计划[：:\s]*$',text) or re.match(r'^(?:今日复盘|间隔回顾)',text))
-        if catalogued and guide_heading and len(text)<120 and not re.search(r'\$|=',text) and SOURCE_GUIDE.search(text):
+        if catalogued and not assigned and guide_heading and len(text)<120 and not re.search(r'\$|=',text) and SOURCE_GUIDE.search(text):
             in_guide=True;active=None
-        if block.attributes.get('outline_toc') or role in {'front_matter', 'toc', 'overview', 'reference', 'annotation'}:
+        if block.attributes.get('outline_toc') and not declared_start or role in {'front_matter', 'toc', 'overview', 'reference', 'annotation'}:
             active = None
             continue
         if block.attributes.get('structure_unit_id') and block.attributes['structure_unit_id'] != block.block_id:
@@ -244,15 +248,15 @@ def _file_units(book, paths):
             continue
         catalog = header_metadata(block.text)
         labelled_example=bool(re.match(r'^\s*(?:【?例\s*\d|例题)', block.text))
-        if catalog or labelled_example:in_guide=False
+        if catalog or labelled_example or declared_start:in_guide=False
         if in_guide:continue
-        is_heading = block.block_type == 'heading' and not catalog
+        is_heading = block.block_type == 'heading' and not catalog and not declared_start
         numbered = bool(ORIGINAL.match(block.text)) and not numeric_data_row(block.text) and block.attributes.get('structure_unit_start') is not False
         catalog_active = bool(active and active['header_ids'])
         inherited_unit=block.attributes.get('learning_unit_id') or block.attributes.get('group_id')
         native_start=block.block_type=='example' and (not active or not inherited_unit or inherited_unit!=active.get('native_unit'))
         example=(labelled_example or native_start) and not catalog_active
-        if header_continuation(active, block):
+        if not declared_start and header_continuation(active, block):
             active['blocks'].append(block)
             active['header_ids'].append(block.block_id)
             continue

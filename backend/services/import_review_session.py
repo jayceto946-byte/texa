@@ -23,15 +23,20 @@ def validate_review_response(result):
             raise ValueError('校对来源ID须为字符串')
     for item in result.get('blocks', []):
         if (item.get('unit_id') is not None and not isinstance(item['unit_id'],str)
+                or item.get('unit_starts_with') is not None and not isinstance(item['unit_starts_with'],str)
                 or item.get('group_members') is not None and (not isinstance(item['group_members'],list) or any(not isinstance(b,str) for b in item['group_members']))):
             raise ValueError('题目归属字段不符合约定')
     for edit in result.get('edits', []):
         if any(not isinstance(edit[k],str) for k in ('block_id','find','replace')):
             raise ValueError('文字修正须为字符串')
-    for split in result.get('splits', []):
-        if not isinstance(split['segments'],list) or any(not isinstance(s,dict) or not isinstance(s.get('starts_with'),str) for s in split['segments']):
+    for split in [*result.get('splits', []),*(b for b in result.get('blocks',[]) if b.get('segments') is not None)]:
+        if not isinstance(split['segments'],list) or any(not isinstance(s,dict) or not isinstance(s.get('starts_with'),str)
+                or s.get('unit_starts_with') is not None and not isinstance(s['unit_starts_with'],str)
+                or s.get('unit_id') is not None and not isinstance(s['unit_id'],str) for s in split['segments']):
             raise ValueError('分段结果不符合约定')
     for item in result.get('metadata', []):
+        if item.get('question_starts_with') is not None and not isinstance(item['question_starts_with'],str):
+            raise ValueError('题目属性的题干定位须为原文字符串')
         if not isinstance(item['evidence'],list) or any(not isinstance(e,dict) or not isinstance(e.get('block_id'),str) or not isinstance(e.get('quote'),str) for e in item['evidence']):
             raise ValueError('题目属性依据不符合约定')
     for item in result.get('groups', []):

@@ -54,6 +54,8 @@ def _checked_segments(by_id, bid, decision):
         if role not in ROLES or (level is not None and (type(level) is not int or not 0 <= level <= 6)):
             raise ValueError('结构审阅的角色或层级无效')
         unit = segment.get('unit_id')
+        if segment.get('unit_starts_with') is not None and not isinstance(segment['unit_starts_with'],str):
+            raise ValueError('结构审阅的题干定位须为原文字符串')
         if unit and (unit not in by_id or abs((by_id[unit].page_start or 0) - (by_id[bid].page_start or 0)) > 8):
             raise ValueError('结构审阅的题目关联超出来源范围')
         if segment.get('unit_role', 'question') not in {'question', 'answer', 'explanation', 'context'}:
@@ -106,7 +108,7 @@ def apply_structure_review(book, decisions, *, report=None, recover=True, issues
                 child.attributes.update(source_parent_id=block.block_id, source_start=start, source_end=end)
             child.attributes['structure_role'] = segment.get('role', child.attributes.get('structure_role', 'unknown'))
             if segment.get('reason'):child.attributes['structure_review_reason']=str(segment['reason'])
-            for key in ('unit_id', 'unit_role', 'unit_start', 'group_members', 'heading_level'):
+            for key in ('unit_id', 'unit_role', 'unit_start', 'group_members', 'heading_level','unit_starts_with'):
                 if key in segment:
                     child.attributes['structure_' + key] = deepcopy(segment[key])
             if len(segments)>1 and segment.get('unit_start'):
@@ -115,10 +117,23 @@ def apply_structure_review(book, decisions, *, report=None, recover=True, issues
                 child.attributes['outline_toc'] = True
             blocks.append(child)
     first_children = {}
+    question_children={}
     for block in blocks:
-        first_children.setdefault(block.attributes.get('source_parent_id', block.block_id), block.block_id)
+        parent=block.attributes.get('source_parent_id', block.block_id)
+        first_children.setdefault(parent,block.block_id)
+        if block.attributes.get('structure_unit_start'):question_children.setdefault(parent,block.block_id)
+    first_children.update(question_children)
     for block in blocks:
         target = block.attributes.get('structure_unit_id')
+        prefix=block.attributes.pop('structure_unit_starts_with',None)
+        if target and prefix:
+            matches=[b for b in blocks if (b.block_id==target or b.attributes.get('source_parent_id')==target) and ''.join(b.text.split()).startswith(''.join(prefix.split()))]
+            if len(matches)==1:
+                block.attributes['structure_unit_id']=matches[0].block_id
+                continue
+            block.attributes.pop('structure_unit_id',None)
+            if issues is not None:issues.append(dict(block_id=block.block_id,reason='指定的题干片段不能唯一对齐，保留来源待核对'))
+            continue
         if target in first_children:
             block.attributes['structure_unit_id'] = first_children[target]
     result.blocks = blocks

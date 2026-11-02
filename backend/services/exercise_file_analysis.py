@@ -1,7 +1,7 @@
 """Immutable file sources for the same source-backed candidate admission path."""
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter,defaultdict
 from copy import deepcopy
 import hashlib
 import json
@@ -41,6 +41,7 @@ def file_book(extracted, *, name, prefix='q'):
     parents = original.blocks if original else [DocumentBlock(prefix + '-raw', 'paragraph', extracted.text, [name], source_kind=extracted.provider)]
     blocks, path = [], [name]
     identities = {}
+    by_parent=defaultdict(list)
     for parent in parents:
         native = original is not None and (parent.source_kind == 'mineru' or bool(original.source_metadata.get('review_book_name')))
         if native:
@@ -51,6 +52,7 @@ def file_book(extracted, *, name, prefix='q'):
             identities[parent.block_id] = block.block_id
             block.section_path = list(path)
             blocks.append(block)
+            by_parent[parent.block_id].append(block)
             continue
         cursor = 0
         for line in parent.text.splitlines(keepends=True):
@@ -86,14 +88,32 @@ def file_book(extracted, *, name, prefix='q'):
                 block.attributes.setdefault('structure_unit_id', parent.block_id)
                 block.attributes.pop('structure_question_number', None)
             blocks.append(block)
+            by_parent[parent.block_id].append(block)
+    parents_by_id={b.block_id:b for b in parents}
     for block in blocks:
         for key in ('outline_parent_id', 'outline_root_id', 'structure_unit_id'):
             if block.attributes.get(key) in identities:
                 block.attributes[key] = identities[block.attributes[key]]
         if block.attributes.get('structure_group_members'):
             block.attributes['structure_group_members'] = [identities[bid] for bid in block.attributes['structure_group_members']]
-        for evidence in (block.attributes.get('exercise_metadata') or {}).get('evidence', []):
-            evidence['block_id'] = identities.get(evidence['block_id'],evidence['block_id'])
+        metadata=block.attributes.get('exercise_metadata')
+        if metadata:
+            evidence=[]
+            for e in metadata.get('evidence',[]):
+                lines=by_parent.get(e['block_id'],[])
+                matches=[b for b in lines if e['quote'] in b.text]
+                if len(matches)==1:
+                    evidence.append(dict(block_id=matches[0].block_id,quote=e['quote']));continue
+                parent=parents_by_id.get(e['block_id'])
+                start=parent.text.find(e['quote']) if parent else -1
+                if start>=0:
+                    end=start+len(e['quote'])
+                    for line in lines:
+                        offset=line.attributes.get('source_start',0)
+                        quote=line.text[max(0,start-offset):min(len(line.text),end-offset)] if end>offset and start<offset+len(line.text) else ''
+                        if quote.strip():evidence.append(dict(block_id=line.block_id,quote=quote))
+                else:evidence.append(dict(block_id=identities.get(e['block_id'],e['block_id']),quote=e['quote']))
+            metadata['evidence']=evidence
     return CanonicalBook(name, name, blocks, 'exercise-file-lines-v2',
                          source_metadata=deepcopy(original.source_metadata) if original else {},
                          source_page_count=original.source_page_count if original else None)
