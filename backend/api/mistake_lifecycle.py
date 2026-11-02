@@ -10,7 +10,7 @@ import uuid
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
-from backend.services.mistake_lifecycle import project_mistake
+from backend.services.mistake_lifecycle import project_mistake, remove_draft_attachment
 from backend.services.mistake_chat_sources import MistakeChatSourceService
 from backend.services.review_feedback import public_review_session, grade_review
 from backend.api.mistakes import _image_store, _ocr_image_with_kimi
@@ -87,6 +87,10 @@ class DraftUpdate(BaseModel):
 class DraftRecognize(BaseModel):
     expected_revision: int = Field(ge=1)
     attachment_id: str
+
+
+class DraftAttachmentRemove(BaseModel):
+    expected_revision: int = Field(ge=1)
 
 
 class DraftSave(BaseModel):
@@ -416,6 +420,15 @@ def get_draft(draft_id: str, book_name: str = "default"):
 def update_draft(draft_id: str, req: DraftUpdate, book_name: str = "default"):
     try:
         return {"success": True, "data": _store(book_name).update_draft(draft_id, _clean_draft_data(req.data), req.expected_revision)}
+    except ValueError as exc:
+        raise _error(exc) from exc
+
+
+@router.post("/drafts/{draft_id}/attachments/{attachment_id}/remove")
+def detach_draft_attachment(draft_id: str, attachment_id: str, req: DraftAttachmentRemove, book_name: str = "default"):
+    try:
+        return {"success": True, "data": remove_draft_attachment(
+            _store(book_name), draft_id, attachment_id, expected_revision=req.expected_revision)}
     except ValueError as exc:
         raise _error(exc) from exc
 

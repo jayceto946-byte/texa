@@ -14,12 +14,16 @@
 .mistakes-result-note button { margin-left: 8px; color: var(--color-accent); text-decoration: underline; }
 .mistakes-row { padding: 0; }
 .mistakes-candidate-row { display: flex; align-items: flex-start; gap: 18px; padding: 12px 8px; }
-.mistakes-candidate-editor { display: grid; gap: 10px; max-width: 650px; margin: 12px 0; }
+.mistakes-candidate-editor { display: grid; gap: 10px; width: 100%; max-width: 740px; margin: 12px 0; }
 .mistakes-candidate-editor label { display: grid; gap: 6px; color: var(--color-text-primary); font-size: var(--workspace-interface-size); }
 .mistakes-candidate-editor textarea { width: 100%; }
 .mistakes-candidate-editor label:has(input[type="checkbox"]) { display: flex; align-items: flex-start; }
 .mistakes-row-button { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; min-height: 72px; padding: 12px 8px; text-align: left; }
 .mistakes-row-main { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 5px; }
+.mistakes-candidate-row>.mistakes-row-main { width: 100%; }
+.mistakes-row-title .reading-markdown p { margin: 0; font: inherit; }
+.mistakes-candidate-editor .math-content-field { margin: 0; }
+.mistakes-detail-issue { padding: 12px 28px; }
 .mistakes-row-title { overflow: hidden; color: var(--color-text-primary); font-size: var(--workspace-interface-size); font-weight: 600; line-height: 1.55; overflow-wrap: anywhere; }
 .mistakes-row-title .markdown-body { font-size: inherit; font-weight: inherit; line-height: inherit; }
 .mistakes-row-title .markdown-body p { margin: 0; }

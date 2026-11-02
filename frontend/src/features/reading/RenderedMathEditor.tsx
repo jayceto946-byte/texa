@@ -61,13 +61,13 @@ type Formula = { start: number; end: number; latex: string; display: boolean };
 type EditContext = { disabled: boolean; label: string; replace: (start: number, end: number, text: string) => void; openFormula: (item: Formula) => void };
 const EditorContext = createContext<EditContext | null>(null);
 
-function EditableText({ text, onInput, label, disabled, placeholder }: { text: string; onInput: (text: string) => void; label: string; disabled: boolean; placeholder?: string }) {
+function EditableText({ text, onInput, label, disabled, placeholder, onFinish }: { text: string; onInput: (text: string) => void; label: string; disabled: boolean; placeholder?: string; onFinish?: () => void }) {
   const [initial] = useState(text);
   const element = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
     if (element.current && document.activeElement !== element.current && element.current.textContent !== text) element.current.textContent = text;
   }, [text]);
-  return <span ref={element} className={placeholder ? 'rendered-editor-empty' : 'rendered-edit-text'} data-placeholder={placeholder} contentEditable={disabled ? false : 'plaintext-only'} suppressContentEditableWarning role="textbox" aria-label={label} onInput={event => onInput(event.currentTarget.innerText)}>{initial}</span>;
+  return <span ref={element} className={placeholder ? 'rendered-editor-empty' : 'rendered-edit-text'} data-placeholder={placeholder} contentEditable={disabled ? false : 'plaintext-only'} suppressContentEditableWarning role="textbox" aria-label={label} onInput={event => onInput(event.currentTarget.innerText)} onBlur={onFinish}>{initial}</span>;
 }
 
 const EditorSpan: Components['span'] = ({ node, children, className, ...props }) => {
@@ -88,6 +88,7 @@ export function RenderedMathEditor({ value, onChange, label, disabled = false }:
   const [formula, setFormula] = useState<Formula | null>(null);
   const [latex, setLatex] = useState('');
   const [emptyInput, setEmptyInput] = useState(!value);
+  const [sourceEditing, setSourceEditing] = useState(false);
   const openFormula = (item: Formula) => { setFormula(item); setLatex(item.latex); };
   const saveFormula = (remove = false) => {
     if (!formula) return;
@@ -96,11 +97,19 @@ export function RenderedMathEditor({ value, onChange, label, disabled = false }:
     setFormula(null);
   };
   return <EditorContext.Provider value={{ disabled, label, replace: (start, end, text) => onChange(replaceSourceText(value, start, end, text)), openFormula }}><div className="rendered-editor" aria-label={label}>
-    <button type="button" className="rendered-insert-formula app-ghost-button" disabled={disabled} onClick={() => openFormula({ start: value.length, end: value.length, latex: '', display: true })}>插入公式</button>
-    {emptyInput || !value ? <EditableText text={value} label={label} disabled={disabled} placeholder={`填写${label}`} onInput={onChange} /> : <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath, markMathSources]} rehypePlugins={[editableSources, [rehypeKatex, { strict: false, throwOnError: false }]]} components={components}>{value}</ReactMarkdown>}
+    <div className="rendered-editor-tools">
+      <button type="button" className="app-ghost-button" disabled={disabled} aria-pressed={sourceEditing} onClick={() => { setSourceEditing(!sourceEditing); setEmptyInput(false); }}>{sourceEditing ? '可视化编辑' : '编辑原文'}</button>
+      <button type="button" className="rendered-insert-formula app-ghost-button" disabled={disabled} onClick={() => openFormula({ start: value.length, end: value.length, latex: '', display: true })}>插入公式</button>
+    </div>
+    {sourceEditing ? <textarea className="app-field rendered-editor-source" aria-label={`${label}原文`} value={value} onChange={event => onChange(event.target.value)} disabled={disabled} rows={5} /> : emptyInput || !value ? <EditableText text={value} label={label} disabled={disabled} placeholder={`填写${label}`} onInput={onChange} onFinish={() => setEmptyInput(false)} /> : <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath, markMathSources]} rehypePlugins={[editableSources, [rehypeKatex, { strict: false, throwOnError: false }]]} components={components}>{value}</ReactMarkdown>}
     <Dialog open={Boolean(formula)} title="编辑公式" onClose={() => setFormula(null)} dismissOnBackdrop className="rendered-formula-dialog">
       <h2>编辑公式</h2><MathFieldEditor value={latex} onChange={setLatex} ariaLabel="可视化编辑公式" autoFocus />
       <footer><button className="app-ghost-button" onClick={() => saveFormula(true)}>删除公式</button><div><button className="app-secondary-button" onClick={() => setFormula(null)}>取消</button><button className="app-primary-button" onClick={() => saveFormula()} disabled={!latex.trim()}>保存</button></div></footer>
     </Dialog>
   </div></EditorContext.Provider>;
+}
+
+/** A labelled learning-content field shared by intake, correction and answer drafts. */
+export function MathContentField(props: Parameters<typeof RenderedMathEditor>[0]) {
+  return <section className="math-content-field"><h3>{props.label}</h3><RenderedMathEditor {...props} /></section>;
 }

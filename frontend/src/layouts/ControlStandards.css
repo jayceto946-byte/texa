@@ -1,4 +1,5 @@
 /* Shared desktop controls. List rows, editor surfaces and navigation retain their own layout. */
+:is(.app-shell,.app-dialog-shell) input[type="checkbox"] { accent-color:var(--color-accent); width:14px; height:14px; flex-shrink:0; }
 @media (pointer:fine) {
   :is(.app-shell.app-shell, .app-dialog-shell.app-dialog-shell) :is(.app-primary-button,.app-secondary-button,.app-ghost-button),
   .app-shell.app-shell :is(.review-row-action,.review-text-button,.review-show-more,.exercise-quantity button,.goal-detail-tabs button,.focus-primary-actions>button,.focus-next-task>button,.study-task-panel .app-primary-button,.study-task-panel .app-secondary-button,.study-task-panel .app-ghost-button) {

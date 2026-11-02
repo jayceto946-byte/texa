@@ -1,3 +1,4 @@
+import Dialog from '../components/ui/Dialog';
 import Selector from '../components/ui/Selector';
 import { TexaTextbook, TexaExercises, TexaSearch, TexaClose } from '../components/icons';
 import { getBookList } from '../features/books/bookList';
@@ -531,7 +532,7 @@ const ExercisesPage: React.FC = () => {
         <section hidden={workspaceMode !== 'import' || Boolean(receipt) || commitUnknown} className="exercise-import-panel">
           <div hidden={(Boolean(candidateState.sourceRegistry)||candidates.length>0) && !reviewPreparationOpen} className="exercise-import-setup">
 
-            <h1>导入题目<HelpHint label="导入题目">检查题目后点击“确认入库”保存。支持 Word、PDF 和 MinerU 解析包。</HelpHint>
+            <h1>导入题目<HelpHint label="导入题目">选中题目后点击“导入选中”保存，待核对提示可随题保留。支持 Word、PDF 和 MinerU 解析包。</HelpHint>
             </h1>
             {candidates.length > 0 && <button className="app-secondary-button" onClick={() => setReviewPreparationOpen(false)}>继续校对 {candidates.length} 道候选</button>}
             <div className="exercise-source-tabs">
@@ -713,25 +714,24 @@ const ExercisesPage: React.FC = () => {
                 )}
                 {loading && <p role="status" className="exercise-feedback">正在读取题目…</p>}
                 {!loading && records.length === 0 && <div className="py-12 text-center workspace-interface-text text-text-secondary">
-                  <TexaExercises className="mx-auto mb-2 h-6 w-6" />暂无习题，请先导入 Word/PDF</div>}
+                  <TexaExercises className="mx-auto mb-2 h-6 w-6" />{searchKw.trim() ? <><p>当前搜索条件下没有题目</p><button className="app-secondary-button mt-3" onClick={() => { setSearchKw(''); searchKwRef.current = ''; void load(); }}>清空搜索</button></> : <>暂无习题，请先导入 Word/PDF</>}</div>}
               </div>
             </section>
           </div>
         </main>
         {pdfOpen && sourcePdfPath && (
-          <div className="app-overlay-enter fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="教材 PDF 选页">
-            <div className="app-dialog-enter workspace-radius flex h-[64vh] w-[min(900px,92vw)] flex-col overflow-hidden border border-border bg-bg-card shadow-2xl">
+          <Dialog open title="教材 PDF 选页" onClose={() => setPdfOpen(false)} className="exercise-pdf-dialog">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
                 <div>
                   <div className="workspace-interface-text font-semibold text-text-primary">{activeName} · PDF 选页</div>
 
-                  <div className="workspace-support-text text-text-secondary">输入 PDF 页码后预览；“用作起始页”会回填抽题范围。</div>
+                  <div className="workspace-support-text text-text-secondary">输入 PDF 页码后预览；点击“使用当前页”将起止页都设为当前页。</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <input type="number" min="1" value={pdfPage} onChange={(e) => setPdfPage(e.target.value)} className="w-24 app-field" />
                   <button onClick={() => setPdfPage((value) => String(Math.max(1, Number(value || 1) - 1)))} className="workspace-radius border border-border px-2.5 py-1.5 workspace-support-text hover:border-accent">上一页</button>
                   <button onClick={() => setPdfPage((value) => String(Number(value || 1) + 1))} className="workspace-radius border border-border px-2.5 py-1.5 workspace-support-text hover:border-accent">下一页</button>
-                  <button onClick={() => { const selectedPage = pdfPage || '1'; setTextbookPageStart(selectedPage); setTextbookPageEnd(selectedPage); setPdfOpen(false); }} className="workspace-radius bg-accent px-3 py-1.5 workspace-support-text text-white">{"\u62bd\u53d6\u5f53\u524d\u9875"}</button>
+                  <button onClick={() => { const selectedPage = pdfPage || '1'; setTextbookPageStart(selectedPage); setTextbookPageEnd(selectedPage); setPdfOpen(false); }} className="workspace-radius bg-accent px-3 py-1.5 workspace-support-text text-white">使用当前页</button>
                   <button onClick={() => setPdfOpen(false)} aria-label="关闭 PDF" className="workspace-radius border border-border p-1.5 hover:border-accent">
                     <TexaClose className="h-4 w-4" />
                   </button>
@@ -741,8 +741,7 @@ const ExercisesPage: React.FC = () => {
                 <Loader2 className="h-4 w-4 animate-spin" />正在安全加载教材 PDF...</div>}
               {!sourcePdfAsset.loading && sourcePdfAsset.error && <div className="m-4 workspace-radius border border-red-200 bg-red-50 px-4 py-3 workspace-interface-text text-red-700">PDF 加载失败：{sourcePdfAsset.error}</div>}
               {sourcePdfAsset.url && <iframe key={sourcePdfAsset.url + '#page=' + (pdfPage || '1')} title={"\u6559\u6750 PDF \u9884\u89c8"} src={sourcePdfAsset.url + '#page=' + Math.max(1, Number(pdfPage || 1))} className="min-h-0 flex-1 bg-white" />}
-            </div>
-          </div>
+          </Dialog>
         )}
       </div>
 

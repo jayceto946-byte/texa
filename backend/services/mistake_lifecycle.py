@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import date
 
 from memory.mistake_book import MistakeRecord
+from memory.mistake_lifecycle import MistakeLifecycleStore
 
 
 def project_mistake(record: MistakeRecord, attempts: list[dict], *, today: date | None = None) -> dict:
@@ -54,3 +55,19 @@ def project_mistake(record: MistakeRecord, attempts: list[dict], *, today: date 
         "pending_reason": pending_reason,
         "visibility": record.visibility,
     }
+
+
+def remove_draft_attachment(store: MistakeLifecycleStore, draft_id: str, attachment_id: str, *, expected_revision: int) -> dict:
+    """Detach an image from an editable draft, preserving text and source files."""
+    draft = store.get_draft(draft_id)
+    if not draft:
+        raise ValueError("draft not found")
+    attachments = draft.get("attachments") or []
+    removed = next((item for item in attachments if item["id"] == attachment_id), None)
+    if not removed:
+        raise ValueError("attachment not found")
+    remaining = [item for item in attachments if item["id"] != attachment_id]
+    changes = {"attachments": remaining}
+    if draft.get("image_path") in {removed.get("original_path"), removed.get("work_path")}:
+        changes["image_path"] = remaining[0]["original_path"] if remaining else ""
+    return store.update_draft(draft_id, changes, expected_revision)

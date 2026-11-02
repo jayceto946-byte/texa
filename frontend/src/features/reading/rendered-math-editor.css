@@ -7,5 +7,13 @@
 .rendered-formula-dialog{width:min(640px,calc(100vw - 32px));padding:20px;max-height:calc(100dvh - 32px);overflow:auto;color:var(--color-text-primary)}
 .rendered-formula-dialog h2{font:600 16px/1.5 var(--font-app);margin-bottom:20px}.rendered-formula-dialog .visual-math-field{background:transparent;border:0;box-shadow:none;max-width:100%;overflow:auto}
 .rendered-formula-dialog footer{display:flex;align-items:center;justify-content:space-between;margin-top:20px;gap:12px}.rendered-formula-dialog footer>div{display:flex;gap:8px}
-.rendered-editor{position:relative}.rendered-editor>.rendered-insert-formula{position:absolute;right:0;top:-38px;color:var(--color-text-secondary)}.rendered-editor-empty{display:block}
+.rendered-editor{position:relative}.rendered-editor-empty{display:block;min-height:72px}
+.rendered-editor-tools{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px;font-size:var(--workspace-support-size)}
+.rendered-editor-source{width:100%;min-height:140px;resize:vertical;font-size:var(--workspace-interface-size);line-height:1.8}
+.math-content-field{min-width:0;margin-block:16px}
+.math-content-field>h3{margin:0 0 8px;font:500 var(--workspace-interface-size)/1.6 var(--font-app);color:var(--color-text-primary)}
+.math-content-field>.rendered-editor{padding:10px 12px;border:1px solid var(--color-border);border-radius:var(--workspace-control-radius);background:var(--color-bg-card)}
+.math-content-field .rendered-editor-source{border:0;background:transparent;padding:0;box-shadow:none}
+.math-content-field .rendered-editor-source:focus-visible{border:0;outline:none;box-shadow:none}
+.math-content-field>.rendered-editor:focus-within{border-color:var(--color-accent)}
 .rendered-formula-dialog .visual-math-field{--selection-color:var(--color-text-primary);--selection-background-color:var(--accent-soft);--caret-color:var(--color-accent)}

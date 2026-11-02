@@ -12,6 +12,7 @@ import Dialog from '../../../components/ui/Dialog';
 import { RenderedMathEditor } from '../../reading/RenderedMathEditor';
 import { FileSourceImage } from './FileSourceImage';
 import { SourceStructure } from './SourceStructure';
+import { exercisePreview } from '../exercisePreview';
 import type { SplitAssignment } from '../hooks/sourceSplit';
 
 type CandidateState = ReturnType<typeof useExerciseImportCandidates>;
@@ -125,7 +126,7 @@ export function CandidateReviewWorkspace({ state: s, source, busy: parentBusy, n
         <div className="exercise-candidate-list">
         {s.filteredCandidates.map(c => <div key={c.id} className={`exercise-index-item ${current?.id === c.id ? 'is-current' : ''}`}>
           <input type="checkbox" aria-label={`选择候选题 ${c.id}`} checked={s.selectedIds.has(c.id)} onChange={() => s.toggleCandidate(c.id)} disabled={busy} />
-          <button aria-current={current?.id === c.id ? 'true' : undefined} onClick={() => select(c.id)}><strong>{c.question_text.replace(/\$[^$]*\$/g, '公式').slice(0, 64) || '题干待补全'}</strong></button>{(c.duplicate_of || contentIssues(c).length > 0) && <HelpHint label="本题提示">{c.duplicate_of ? '重复题，入库时跳过。' : contentIssues(c).map(i => issueLabel(c, i)).join('；')}</HelpHint>}
+          <button aria-current={current?.id === c.id ? 'true' : undefined} onClick={() => select(c.id)}><strong><SimpleMarkdown content={exercisePreview(c.question_text)} /></strong></button>{(c.duplicate_of || contentIssues(c).length > 0) && <HelpHint label="本题提示">{c.duplicate_of ? '重复题，入库时跳过。' : contentIssues(c).map(i => issueLabel(c, i)).join('；')}</HelpHint>}
         </div>)}
         <div className="exercise-index-tools"><button onClick={s.selectAllCandidates} disabled={busy}>全批次全选</button><button onClick={s.clearCandidateSelection} disabled={busy}>清空选择</button></div>
         </div>
@@ -134,7 +135,7 @@ export function CandidateReviewWorkspace({ state: s, source, busy: parentBusy, n
         {current ? <article className="exercise-candidate-inner">
           <div className="exercise-row exercise-candidate-toolbar"><span>{s.candidates.indexOf(current) + 1} / {s.candidates.length}</span><div><button className="app-secondary-button" disabled={busy} onClick={() => s.setEditingCandidateId(edit ? '' : current.id)}>{edit ? '完成编辑' : '编辑题目'}</button><button className="app-secondary-button" disabled={busy} onClick={() => { setSplitAssignment({solution:'',blocks:{}});setSplitError('');setSplitOpen(true); }}>拆分</button></div></div>
 
-          <SourceStructure value={current.projection?.structure} />
+          <SourceStructure value={current.projection?.structure} compact />
           {blocks.some(b => b.attributes.original_ocr_text) && <details className="exercise-source-comparison"><summary>查看 AI 修正对照</summary>{blocks.filter(b => b.attributes.original_ocr_text).map(b => <section key={b.block_id}><p className="control-help">{b.page_start ? `物理页 ${b.page_start} · 原始识别` : '原始识别'}</p><SimpleMarkdown content={String(b.attributes.original_ocr_text)} /><p className="control-help">AI 校正后</p><SimpleMarkdown content={b.text} /></section>)}</details>}
           {!current.question_text.trim() && <p className="exercise-warning">请补全题干或取消选择。</p>}
           {edit ? <fieldset disabled={busy} className="exercise-candidate-editor">{field('题干', 'question_text', current.question_text)}{field('答案', 'answer', current.answer)}{field('解析', 'explanation', current.explanation)}</fieldset> : <>

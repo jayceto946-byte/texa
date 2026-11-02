@@ -8,13 +8,15 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 import { get, getAuthenticatedBlob, patch, post } from '../api/client';
 import { SimpleMarkdown } from '../components/chat/MarkdownMessage';
 import ScopeSelector, { type ScopeBookOption } from '../components/ScopeSelector';
-import { ActionableIssue } from '../components/ui/AsyncState';
+import { ActionableIssue, StatusBanner } from '../components/ui/AsyncState';
 import { useChatContext } from '../contexts/ChatContext';
 import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 import type { MistakeRecord } from '../types';
 import './MistakesPage.css';
 import { useUnsavedWorkGuard } from '../features/reading/useUnsavedWorkGuard';
 import { ReadingMarkdown } from '../features/reading/ReadingMarkdown';
+import { MathContentField } from '../features/reading/RenderedMathEditor';
+import { exercisePreview } from '../features/exercises/exercisePreview';
 import { QuestionReadingLayout, type ReadingPane } from '../features/reading/QuestionReadingLayout';
 
 type Filter = 'all' | 'pending' | 'due' | 'repeated' | 'mastered';
@@ -30,8 +32,7 @@ const filters: { id: Filter; label: string }[] = [
 
 function recordTitle(record: MistakeRecord) {
   const source = readableVisualQuestion(record.question_text || record.ocr_text || record.source || '未命名错题');
-  const firstLine = source.split('\n').map((line) => line.trim()).find(Boolean) || source;
-  return firstLine.length > 90 ? `${firstLine.slice(0, 90)}…` : firstLine;
+  return exercisePreview(source, 110);
 }
 
 function displayDate(value?: string) {
@@ -92,6 +93,10 @@ export function MistakeCollectionPage() {
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [candidateFailure, setCandidateFailure] = useState<{ id: string; message: string } | null>(null);
+  const [candidateBusy, setCandidateBusy] = useState('');
+  const [moreError, setMoreError] = useState('');
+  const [candidateReadError, setCandidateReadError] = useState('');
   const [moreLoading, setMoreLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const rowRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -101,6 +106,8 @@ export function MistakeCollectionPage() {
     let active = true;
     setLoading(true);
     setError('');
+    setMoreError('');
+    setCandidateReadError('');
     const scope = { subject, search: search.trim(), filter, limit: 30 };
     Promise.allSettled([
       post(`/mistakes/query${bookQuery}`, scope),
@@ -111,6 +118,7 @@ export function MistakeCollectionPage() {
         setRecords(listResult.value.data.items || []);
         setCursor(listResult.value.data.next_cursor || null);
       } else setError('错题档案暂时无法加载');
+      if (candidateResult.status !== 'fulfilled' || !candidateResult.value?.success) setCandidateReadError('待收录候选暂时无法加载，已收录档案仍可使用。');
       setCandidates(candidateResult.status === 'fulfilled' && candidateResult.value?.success ? candidateResult.value.data || [] : []);
       setLoading(false);
     });
@@ -120,29 +128,44 @@ export function MistakeCollectionPage() {
   const loadMore = async () => {
     if (!cursor || moreLoading) return;
     setMoreLoading(true);
+    setMoreError('');
     try {
       const result = await post(`/mistakes/query${bookQuery}`, { subject, search: search.trim(), filter, cursor, limit: 30 });
       if (!result?.success) throw new Error(result?.message || '加载更多失败');
       setRecords((current) => [...current, ...(result.data.items || [])]);
       setCursor(result.data.next_cursor || null);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : '加载更多失败'); }
+    } catch (cause) { setMoreError(cause instanceof Error ? cause.message : '加载更多失败'); }
     finally { setMoreLoading(false); }
   };
 
+  const refreshCandidates = async (candidateId: string) => {
+    setCandidateBusy(candidateId);
+    try {
+      const result = await get(`/mistakes/candidates?book_name=${encodeURIComponent(bookName || 'default')}&subject=${encodeURIComponent(subject)}`);
+      if (!result?.success) throw new Error(result?.message || '候选暂时无法读取');
+      setCandidates(result.data || []);
+      setCandidateFailure(null);
+    } catch (cause) { setCandidateFailure({ id: candidateId, message: cause instanceof Error ? cause.message : '候选暂时无法读取' }); }
+    finally { setCandidateBusy(''); }
+  };
   const resolveCandidate = async (candidate: Candidate, accept: boolean) => {
+    setCandidateBusy(candidate.id); setCandidateFailure(null);
     try {
       const result = await post(`/mistakes/candidates/${encodeURIComponent(candidate.id)}/${accept ? 'accept' : 'dismiss'}${bookQuery}`, { expected_revision: candidate.revision, operation_id: `${accept ? 'accept' : 'dismiss'}:${candidate.id}:${candidate.revision}` });
       if (!result?.success) throw new Error(result?.message || '处理候选失败');
       setReloadKey((value) => value + 1);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : '处理候选失败'); }
+    } catch (cause) { setCandidateFailure({ id: candidate.id, message: cause instanceof Error ? cause.message : '处理候选失败' }); }
+    finally { setCandidateBusy(''); }
   };
   const saveCandidate = async (candidate: Candidate) => {
+    setCandidateBusy(candidate.id); setCandidateFailure(null);
     try {
       const result = await patch(`/mistakes/candidates/${encodeURIComponent(candidate.id)}${bookQuery}`, { expected_revision: candidate.revision, changes: candidateEdit });
       if (!result?.success) throw new Error(result?.message || '校对候选失败');
       setEditingCandidate('');
       setReloadKey((value) => value + 1);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : '校对候选失败'); }
+    } catch (cause) { setCandidateFailure({ id: candidate.id, message: cause instanceof Error ? cause.message : '校对候选失败' }); }
+    finally { setCandidateBusy(''); }
   };
 
   useEffect(() => {
@@ -181,8 +204,27 @@ export function MistakeCollectionPage() {
         {cursor && <p className="mistakes-result-note">已加载 {records.length} 条档案；继续加载可查看更多。</p>}
         {loading && <p className="mistakes-result-note" role="status"><Loader2 className="inline h-4 w-4 animate-spin" /> 正在更新档案…</p>}
         {error && <ActionableIssue title={error} impact="请重试读取本地记录。" actions={<button type="button" className="app-secondary-button" onClick={() => setReloadKey((value) => value + 1)}>重新加载</button>} />}
+        {candidateReadError && <StatusBanner kind="error" title={candidateReadError} action={<button className="app-secondary-button" onClick={() => setReloadKey(v => v + 1)}>重新加载候选</button>} />}
         {!error && <div className="workspace-register">
-          {(filter === 'all' || filter === 'pending') && candidates.map((candidate) => <div key={candidate.id} className="workspace-register-row mistakes-row mistakes-candidate-row"><div className="mistakes-row-main"><strong className="mistakes-row-title">{readableVisualQuestion(candidate.question_text || '题干待校对')}</strong><span className="mistakes-row-meta">待确认收录{candidate.source ? ` · ${candidate.source}` : ''}{candidate.content_complete === false ? ' · 关键内容待补全' : ''}</span>{editingCandidate === candidate.id && <div className="mistakes-candidate-editor"><label>题干与条件<textarea className="app-field" value={candidateEdit.question_text} onChange={(event) => setCandidateEdit((current) => ({ ...current, question_text: event.target.value }))} rows={5} /></label><label>当时作答<textarea className="app-field" value={candidateEdit.user_answer} onChange={(event) => setCandidateEdit((current) => ({ ...current, user_answer: event.target.value }))} rows={3} /></label><label>参考答案<textarea className="app-field" value={candidateEdit.correct_answer} onChange={(event) => setCandidateEdit((current) => ({ ...current, correct_answer: event.target.value }))} rows={3} /></label><label><input type="checkbox" checked={candidateEdit.content_complete} onChange={(event) => setCandidateEdit((current) => ({ ...current, content_complete: event.target.checked }))} />题干、关键条件与附图已核对完整</label><button type="button" onClick={() => void saveCandidate(candidate)} className="app-primary-button">保存校对</button></div>}</div><div className="mistakes-heading-actions"><button type="button" onClick={() => resolveCandidate(candidate, false)} className="app-secondary-button">忽略</button><button type="button" onClick={() => { setEditingCandidate(candidate.id); setCandidateEdit({ question_text: readableVisualQuestion(candidate.question_text || '', ''), user_answer: candidate.user_answer || '', correct_answer: candidate.correct_answer || '', content_complete: candidate.content_complete !== false }); }} className="app-secondary-button">校对</button><button type="button" disabled={!candidate.question_text || candidate.content_complete === false} onClick={() => resolveCandidate(candidate, true)} className="app-primary-button">确认收录</button></div></div>)}
+          {(filter === 'all' || filter === 'pending') && candidates.map(candidate => <div key={candidate.id} className="workspace-register-row mistakes-row mistakes-candidate-row">
+            <div className="mistakes-row-main">
+              <div className="mistakes-row-title"><ReadingMarkdown content={exercisePreview(readableVisualQuestion(candidate.question_text || '题干待校对'), 110)} /></div>
+              <span className="mistakes-row-meta">待确认收录{candidate.source ? ` · ${candidate.source}` : ''}{candidate.content_complete === false ? ' · 关键内容待补全' : ''}</span>
+              {candidateFailure?.id === candidate.id && <StatusBanner kind="error" title={candidateFailure.message} description="本题、编辑内容和其他档案仍保留，读取最新候选后可重试。" action={<button className="app-secondary-button" disabled={Boolean(candidateBusy)} onClick={() => void refreshCandidates(candidate.id)}>重新读取候选</button>} />}
+              {editingCandidate === candidate.id && <div className="mistakes-candidate-editor">
+                <MathContentField label="题干与条件" value={candidateEdit.question_text} disabled={candidateBusy === candidate.id} onChange={value => setCandidateEdit(current => ({ ...current, question_text: value }))} />
+                <MathContentField label="当时作答" value={candidateEdit.user_answer} disabled={candidateBusy === candidate.id} onChange={value => setCandidateEdit(current => ({ ...current, user_answer: value }))} />
+                <MathContentField label="参考答案" value={candidateEdit.correct_answer} disabled={candidateBusy === candidate.id} onChange={value => setCandidateEdit(current => ({ ...current, correct_answer: value }))} />
+                <label><input type="checkbox" disabled={Boolean(candidateBusy)} checked={candidateEdit.content_complete} onChange={event => setCandidateEdit(current => ({ ...current, content_complete: event.target.checked }))} />题干、关键条件与附图已核对完整</label>
+                <button type="button" disabled={Boolean(candidateBusy)} onClick={() => void saveCandidate(candidate)} className="app-primary-button">{candidateBusy === candidate.id ? '正在保存…' : '保存校对'}</button>
+              </div>}
+            </div>
+            <div className="mistakes-heading-actions">
+              <button type="button" disabled={Boolean(candidateBusy)} onClick={() => resolveCandidate(candidate, false)} className="app-secondary-button">忽略</button>
+              <button type="button" disabled={Boolean(candidateBusy)} onClick={() => { setEditingCandidate(candidate.id); setCandidateEdit({ question_text: readableVisualQuestion(candidate.question_text || '', ''), user_answer: candidate.user_answer || '', correct_answer: candidate.correct_answer || '', content_complete: candidate.content_complete !== false }); }} className="app-secondary-button">校对</button>
+              <button type="button" disabled={Boolean(candidateBusy) || !candidate.question_text || candidate.content_complete === false} onClick={() => resolveCandidate(candidate, true)} className="app-primary-button">确认收录</button>
+            </div>
+          </div>)}
           {records.map((record) => <div key={record.id} className="workspace-register-row mistakes-row">
             <button ref={(element) => { if (element) rowRefs.current.set(record.id, element); else rowRefs.current.delete(record.id); }} type="button" onClick={() => openRecord(record)} className="mistakes-row-button">
               <div className="mistakes-row-main"><div className="mistakes-row-title"><SimpleMarkdown content={recordTitle(record)} /></div><span className="mistakes-row-meta">{[record.subject || '未分类', record.chapter, record.mistake_type?.join('、'), record.source].filter(Boolean).join(' · ') || '来源未记录'}</span></div>
@@ -192,6 +234,7 @@ export function MistakeCollectionPage() {
           {!loading && records.length === 0 && candidates.length === 0 && !search && filter === 'all' && <div className="mistakes-empty"><h3>还没有错题</h3><p>练习中的错误可以带着作答一起收录；也可以补录已有错题。</p><div><Link className="app-primary-button" to="/exercises">去练习</Link><Link className="app-secondary-button" to="/mistakes/intake">补录错题</Link></div></div>}
           {!loading && records.length === 0 && (filter !== 'all' || Boolean(search)) && <div className="mistakes-empty"><h3>当前条件下没有档案</h3><button className="app-secondary-button" onClick={() => { setParams({}); }}>清除筛选</button></div>}
         </div>}
+        {moreError && <StatusBanner kind="error" title={moreError} description="已加载的档案仍可使用。" />}
         {cursor && !error && <div className="mistakes-load-more"><button type="button" disabled={moreLoading} className="app-secondary-button" onClick={loadMore}>{moreLoading ? '加载中…' : '加载更多'}</button></div>}
       </div>
     </main>
@@ -288,18 +331,13 @@ export function MistakeDetailPage() {
         <TexaBack className="h-4 w-4" />返回档案</Link>
     </header>
     {loading && !record && <WorkspaceSkeleton label="正在读取档案" header={false} reading />}
-    {error && <div role="alert" className="question-reading-status is-warning">{error}<button className="app-secondary-button" onClick={() => load()}>重新读取</button>
-    </div>}
+    {error && <div className="mistakes-detail-issue"><ActionableIssue title={error} impact="已显示的档案和编辑内容仍保留。" actions={<button className="app-secondary-button" onClick={() => editing ? void saveEdit() : load()}>{editing ? '重试保存' : '重新读取'}</button>} /></div>}
     {record && (editing ? <div className="question-reading-editor">        <section className="mistakes-detail-edit">
       <h2>校正档案</h2>
-      <label>题目<textarea className="app-field" rows={6} value={edit.question_text} onChange={(event) => setEdit((current) => ({ ...current, question_text: event.target.value }))} />
-      </label>
-      <label>当时作答或事后补充<textarea className="app-field" rows={4} value={edit.user_answer} onChange={(event) => setEdit((current) => ({ ...current, user_answer: event.target.value }))} />
-      </label>
-      <label>参考答案<textarea className="app-field" rows={4} value={edit.correct_answer} onChange={(event) => setEdit((current) => ({ ...current, correct_answer: event.target.value }))} />
-      </label>
-      <label>修正做法<textarea className="app-field" rows={3} value={edit.notes} onChange={(event) => setEdit((current) => ({ ...current, notes: event.target.value }))} />
-      </label>
+      <MathContentField disabled={busy} label="题目" value={edit.question_text} onChange={value => setEdit(current => ({ ...current, question_text: value }))} />
+      <MathContentField disabled={busy} label="当时作答或事后补充" value={edit.user_answer} onChange={value => setEdit(current => ({ ...current, user_answer: value }))} />
+      <MathContentField disabled={busy} label="参考答案" value={edit.correct_answer} onChange={value => setEdit(current => ({ ...current, correct_answer: value }))} />
+      <MathContentField disabled={busy} label="修正做法" value={edit.notes} onChange={value => setEdit(current => ({ ...current, notes: value }))} />
       <label>错因分类（用顿号分隔）<input className="app-field" value={edit.mistake_type} onChange={(event) => setEdit((current) => ({ ...current, mistake_type: event.target.value }))} />
       </label>
       <label>知识点（用顿号分隔）<input className="app-field" value={edit.tags} onChange={(event) => setEdit((current) => ({ ...current, tags: event.target.value }))} />
@@ -323,7 +361,7 @@ export function MistakeDetailPage() {
       <details className="question-reading-section question-reading-facts">
         <summary>来源与历史记录</summary>{record.source_ref && Object.keys(record.source_ref).length > 0 && <section>
           <h2>来源</h2>
-          <p className="mistakes-detail-note">{String(record.source_ref.type || '记录来源')} · {String(record.source_ref.exercise_id || record.source_ref.message_id || record.source_ref.page || '已保存来源快照')}</p>
+          <p className="mistakes-detail-note">{record.source_ref.type === 'chat' ? '来自学习对话' : String(record.source_ref.type || '').startsWith('exercise') ? '来自练习题' : '来自学习材料'}{record.source ? ` · ${record.source}` : record.chapter ? ` · ${record.chapter}` : ''}{record.source_ref.page ? ` · 第 ${record.source_ref.page} 页` : ''}</p>
           <Link className="app-secondary-button" to={record.source_ref.type === 'chat' ? '/' : String(record.source_ref.type || '').startsWith('exercise') ? '/exercises' : '/books'}>打开来源工作区</Link>
         </section>}{<section>
           <h2>后续重做</h2>{record.recent_attempts?.length ? <ol className="mistakes-history">{record.recent_attempts.map((attempt) => <li key={attempt.id}>

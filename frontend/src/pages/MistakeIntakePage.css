@@ -22,6 +22,9 @@
 .mistakes-intake-attachments button { padding: 4px 8px; border: 1px solid var(--workspace-separator); border-radius: var(--workspace-control-radius); font-size: var(--workspace-support-size); }
 .mistakes-intake-attachments button[aria-pressed="true"] { border-color: var(--color-accent); color: var(--color-accent); }
 .mistakes-intake-image { display: block; width: 100%; max-height: 520px; margin: 14px 0; border: 1px solid var(--workspace-separator); object-fit: contain; }
+.mistakes-intake-image-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.mistakes-intake-body>[role="alert"] { margin-bottom:20px; }
+.mistakes-intake-images label[aria-disabled="true"] { opacity:.5; cursor:default; }
 .mistakes-intake-editor label { display: block; margin: 14px 0; font-size: var(--workspace-interface-size); }
 .mistakes-intake-editor :is(textarea,input:not([type="checkbox"])) { display: block; width: 100%; margin-top: 6px; }
 .mistakes-intake-editor details { padding: 12px 0; border-bottom: 1px solid var(--workspace-separator); }

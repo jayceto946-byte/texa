@@ -10,8 +10,7 @@
 .review-session-body label { display: block; margin-bottom: 8px; font-size: var(--workspace-interface-size); }
 .review-session-answer { width: 100%; min-height: 150px; resize: vertical; }
 .review-session-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-.review-session-error { padding: 10px 0; color: var(--danger); }
-.review-session-error button { text-decoration: underline; }
+.review-session-body>[role="alert"] { margin-block:16px; }
 .review-session-saved-answer { white-space: pre-wrap; color: var(--color-text-secondary); font-size: var(--workspace-interface-size); }
 .review-session-body details { padding: 16px 0; border-bottom: 1px solid var(--workspace-separator); }
 .review-session-body summary { cursor: pointer; font-size: var(--workspace-interface-size); }

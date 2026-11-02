@@ -1,5 +1,6 @@
 import { TexaBack, TexaImage } from '../components/icons';
 import { readableVisualQuestion } from '../utils/visualQuestion';
+import { ActionableIssue, StatusBanner } from '../components/ui/AsyncState';
 import WorkspaceSkeleton from '../components/ui/WorkspaceSkeleton';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -45,7 +46,7 @@ function ReviewSessionStart() {
       navigate(`/learning/review/${encodeURIComponent(result.data.id)}?book_name=${encodeURIComponent(bookName || 'default')}`, { replace: true });
     } catch (cause) { setError(cause instanceof Error ? cause.message : '无法创建复习会话'); setStarting(false); }
   };
-  return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题复习</h1><Link to="/learning" className="review-session-back"><TexaBack className="h-4 w-4" />返回复习</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body"><h1>本次错题复习</h1>{loading ? <WorkspaceSkeleton label="正在读取到期错题" header={false} /> : !readError && <p>当前范围有 {items.length} 道到期错题。</p>}{readError && <div role="alert" className="review-session-error"><p>{readError}</p><button type="button" className="app-secondary-button" onClick={() => setReloadKey(key => key + 1)}>重试读取</button></div>}{error && <p role="alert" className="review-session-error">{error}</p>}{!loading && !readError && items.length > 0 && <button type="button" onClick={start} disabled={starting} className="app-primary-button">{starting && <Loader2 className="h-4 w-4 animate-spin" />}开始复习</button>}{!loading && !readError && items.length === 0 && <Link to="/mistakes" className="app-secondary-button">查看错题档案</Link>}</div></main></div>;
+  return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题复习</h1><Link to="/learning" className="review-session-back"><TexaBack className="h-4 w-4" />返回复习</Link></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body"><h1>本次错题复习</h1>{loading ? <WorkspaceSkeleton label="正在读取到期错题" header={false} /> : !readError && <p>当前范围有 {items.length} 道到期错题。</p>}{readError && <ActionableIssue title={readError} impact="本地错题档案仍可使用。" actions={<button type="button" className="app-secondary-button" onClick={() => setReloadKey(key => key + 1)}>重试读取</button>} />}{error && <StatusBanner kind="error" title={error} description="可重试开始复习，原有档案仍保留。" />}{!loading && !readError && items.length > 0 && <button type="button" onClick={start} disabled={starting} className="app-primary-button">{starting && <Loader2 className="h-4 w-4 animate-spin" />}开始复习</button>}{!loading && !readError && items.length === 0 && <Link to="/mistakes" className="app-secondary-button">查看错题档案</Link>}</div></main></div>;
 }
 
 function ReviewSessionRun({ sessionId }: { sessionId: string }) {
@@ -56,7 +57,7 @@ function ReviewSessionRun({ sessionId }: { sessionId: string }) {
   const imageInput = useRef<HTMLInputElement>(null);
   return <div className="management-workspace review-session-workspace flex h-full flex-col"><header className="app-page-header border-b border-border"><h1 className="app-page-title">错题复习</h1><button type="button" className="review-session-back" onClick={() => navigate('/learning')}><TexaBack className="h-4 w-4" />返回复习</button></header><main className="management-page-content flex-1 overflow-y-auto"><div className="review-session-body">
     {loading && <p role="status">正在恢复复习会话…</p>}
-    {error && <p role="alert" className="review-session-error">{error} <button type="button" onClick={() => void refresh()}>重试读取</button></p>}
+    {error && <ActionableIssue title={error} impact="本题仍保留，可重试读取或继续下方操作。" actions={<button type="button" className="app-secondary-button" disabled={busy} onClick={() => void refresh()}>重试读取</button>} />}
     {session && <><p className="review-session-progress">第 {Math.min(session.index + 1, session.items.length)} / {session.items.length} 题</p>{session.current_item ? <>
       <h1>独立重做</h1><section className="review-session-question"><ChatMessage role="assistant" content={readableVisualQuestion(session.current_item.question_text)} /></section>
       {!session.revealed ? <section className="review-answer-composer" onPaste={event => {

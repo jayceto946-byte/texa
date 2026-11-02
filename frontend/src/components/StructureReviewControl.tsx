@@ -101,7 +101,7 @@ export function StructureReviewControl({ target, disabled, compact = false, cand
         <dl><div><dt>处理范围</dt><dd>{target.kind === 'file' ? `当前来源的完整 OCR 文字与邻接上下文${candidateCount != null ? `（现有 ${candidateCount} 道候选）` : ''}` : '本次导入的教材'}，{plan.pages.length} 页{plan.includes_answer_file ? '，含独立答案文件' : ''}</dd></div>
         <div><dt>图像依据</dt><dd>{plan.image_scope}</dd></div>
         <div><dt>使用模型</dt><dd>{plan.model_label || plan.model}</dd></div></dl>
-        <details><summary>调整费用上限</summary><label>估算累计费用上限（元）<input aria-label="累计费用上限（元）" type="number" min="0.01" max="1000" step="0.5" value={budget} onChange={e => setBudget(Number(e.target.value))} /></label>{!plan.estimated_cost && <p>暂无该模型单价，金额上限无法用于本地预算控制，费用以服务商账单为准。</p>}</details>
+        <details><summary>调整费用上限</summary><label>估算累计费用上限（元）<input className="app-field" aria-label="累计费用上限（元）" type="number" min="0.01" max="1000" step="0.5" value={budget} onChange={e => setBudget(Number(e.target.value))} /></label>{!plan.estimated_cost && <p>暂无该模型单价，金额上限无法用于本地预算控制，费用以服务商账单为准。</p>}</details>
         <p>确认后将上述范围的文字和相关图片发送给该模型。按实际用量计费，费用以模型服务商账单为准。</p>
         <p>校对期间可继续编辑，也可随时停止；已发送的请求可能仍会计费。</p>
         {!plan.ready && <p role="alert">请先到设置中配置识图模型。</p>}
