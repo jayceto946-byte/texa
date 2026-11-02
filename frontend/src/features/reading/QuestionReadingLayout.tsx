@@ -6,7 +6,8 @@ export function QuestionReadingLayout({ title, meta, actions, question, referenc
   const root = useRef<HTMLDivElement>(null);
   const [wide, setWide] = useState(false);
   useLayoutEffect(() => { const el = root.current; if (!el) return; const observer = new ResizeObserver(([entry]) => setWide(entry.contentRect.width >= 992)); observer.observe(el); return () => observer.disconnect(); }, []);
-  const [opened, setOpened] = useState(pane !== 'question');
+  const [keepSolutionsOpen, setOpened] = useState(false);
+  const opened = pane !== 'question' || keepSolutionsOpen;
   const questionScroll = useRef<HTMLDivElement>(null);
   const solutionScroll = useRef<HTMLDivElement>(null);
   const scrollPositions = useRef({ question: 0, reference: 0, ai: 0 });
@@ -15,7 +16,7 @@ export function QuestionReadingLayout({ title, meta, actions, question, referenc
     if (solutionScroll.current && opened && (wide || pane !== 'question')) solutionScroll.current.scrollTop = scrollPositions.current[pane === 'ai' ? 'ai' : 'reference'];
   }, [pane, opened, wide]);
   // Opening is sticky while switching among narrow panes; closing is explicit.
-  const change = (next: ReadingPane) => { if (next !== 'question') setOpened(true); onPaneChange(next); };
+  const change = (next: ReadingPane) => { if (opened || next !== 'question') setOpened(true); onPaneChange(next); };
   const tabs = <>
     <button aria-pressed={pane === 'reference'} onClick={() => change('reference')}>参考答案</button>
     <button aria-pressed={pane === 'ai'} onClick={() => change('ai')}>{aiLabel}</button>

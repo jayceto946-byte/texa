@@ -16,7 +16,7 @@ export function summarizeCandidates(candidates: ExerciseCandidate[]) {
     refined,
     issues,
     duplicates,
-    content: candidates.filter(c => contentIssues(c).length > 0).length,
+    content: candidates.filter(c => contentIssues(c).length > 0 && !c.review).length,
     metadata: candidates.filter(c => (c.issues || []).some(i => i.category === 'metadata')).length,
     ready: candidates.filter(canSubmitCandidate).length,
   };
@@ -24,7 +24,7 @@ export function summarizeCandidates(candidates: ExerciseCandidate[]) {
 
 export function filterCandidates(candidates: ExerciseCandidate[], filter: CandidateFilter) {
   return candidates.filter((item) => {
-    if (filter === 'issues') return item.projection ? contentIssues(item).length > 0 : (item.validation_issues || []).length > 0;
+    if (filter === 'issues') return item.projection ? contentIssues(item).length > 0 && !item.review : (item.validation_issues || []).length > 0;
     if (filter === 'metadata') return (item.issues || []).some(i => i.category === 'metadata');
     if (filter === 'duplicates') return Boolean(item.duplicate_of);
     return true;

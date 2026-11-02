@@ -78,11 +78,13 @@ class CandidateProjection(ContractModel):
     profile_version: str = Field(default='', max_length=64, pattern=r'^(?:[a-f0-9]{64})?$')
     source_id: str | None = Field(default=None, pattern=r'^[a-f0-9]{32}$')
     split: CandidateSplit | None = None
+    excluded_figure_ids: list[str] = Field(default_factory=list, max_length=160)
 
     @model_serializer(mode='wrap')
     def serialize_projection(self,handler):
         data=handler(self)
         if data.get('split') is None:data.pop('split',None)
+        if 'excluded_figure_ids' not in self.model_fields_set:data.pop('excluded_figure_ids',None)
         return data
 
 
@@ -107,3 +109,4 @@ class CandidateReview(ContractModel):
 class CandidateContext(ContractModel):
     projection: CandidateProjection
     review: CandidateReview | None = None
+    import_confirmed: bool = False

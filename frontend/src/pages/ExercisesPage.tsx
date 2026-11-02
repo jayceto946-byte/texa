@@ -15,6 +15,7 @@ import { ChevronRight, Loader2, Upload } from 'lucide-react';
 import { apiFetch, del, get, post, ApiError } from '../api/client';
 import { SimpleMarkdown } from '../components/chat/MarkdownRenderer';
 import { ExerciseReader } from '../features/exercises/components/ExerciseReader';
+import { PracticeAssessment } from '../features/exercises/components/PracticeAssessment';
 import ScopeSelector from '../components/ScopeSelector';
 import { SegmentedControl } from '../components/ui/SelectionControls';
 import { useChatContext } from '../contexts/ChatContext';
@@ -34,10 +35,10 @@ function titleOf(record: ExerciseRecord) {
   return exercisePreview(raw, 160, 160);
 }
 
-function candidateToExercise(candidate: ExerciseCandidate, sourceCategory = '') {
+function candidateToExercise(candidate: ExerciseCandidate, sourceCategory = '', importConfirmed = false) {
   return {
     source_category: sourceCategory,
-    ...(candidate.projection ? { candidate_context: { projection: candidate.projection, review: candidate.review || null } } : {}),
+    ...(candidate.projection ? { candidate_context: { projection: candidate.projection, review: candidate.review || null, import_confirmed: importConfirmed } } : {}),
     question_text: candidate.question_text,
     answer: candidate.answer || '',
     explanation: candidate.explanation || '',
@@ -120,7 +121,6 @@ const ExercisesPage: React.FC = () => {
   const candidateState = useExerciseImportCandidates({ onMessage: setCandidateError });
   const {
     candidates,
-    selectedIds,
     resetImportCandidates,
     replaceCandidates,
     removeCommittedCandidates,
@@ -415,16 +415,15 @@ const ExercisesPage: React.FC = () => {
   };
   const importSelected = async () => {
     if (importLock.current || commitUnknown) return;
-    if (candidateState.editingCandidateId || candidateState.confirmingId) return;
+    if (candidateState.confirmingId) return;
     const selected = submittableCandidates;
     if (!selected.length || selected.some(item => !item.question_text.trim())) return;
-    if (!window.confirm(`确认将可入库的 ${selected.length} 道候选入库？另有 ${selectedIds.size - selected.length} 道选中题保留待核对。重复题会跳过。`)) return;
     importLock.current = true; setImporting(true); setCandidateError('');
     const fail = (text: string) => { setMessage(text); setCandidateError(text); };
     try {
       const v1 = Boolean(candidateState.sourceRegistry);
       const submittedIds = new Set(selected.map(c => c.id));
-      const res = await post(`/exercises/${v1 ? 'candidates/batch-add' : 'batch-add'}${bookQuery}`, { ...(v1 ? { candidate_contract_version: 1 } : {}), exercises: selected.map(candidate => candidateToExercise(candidate, candidateSourceCategory)), source_label: candidateSourceLabel || `${activeName} 教材抽题`, allow_duplicates: false });
+      const res = await post(`/exercises/${v1 ? 'candidates/batch-add' : 'batch-add'}${bookQuery}`, { ...(v1 ? { candidate_contract_version: 1 } : {}), exercises: selected.map(candidate => candidateToExercise(candidate, candidateSourceCategory, true)), source_label: candidateSourceLabel || `${activeName} 教材抽题`, allow_duplicates: false });
       if (!res?.success) { fail(res?.message || '入库被拒绝，候选仍保留'); return; }
       const acknowledged = [...(res.data || []).map((r: ExerciseRecord) => r.origin_id), ...(res.skipped || []).map((r: { origin_id: string }) => r.origin_id)];
       const receiptsValid = !v1 || (res.candidate_contract_version === 1 && Array.isArray(res.candidate_receipts) && res.candidate_receipts.length === res.count && res.data?.every((r: ExerciseRecord) => res.candidate_receipts.some((receipt: { exercise_id: string; origin_id: string }) => receipt.exercise_id === r.id && receipt.origin_id === r.origin_id)));
@@ -655,9 +654,8 @@ const ExercisesPage: React.FC = () => {
                 <ExerciseReader key={currentPractice.id} record={currentPractice} bookQuery={bookQuery} title={!singlePracticeActive && practiceSession ? `第 ${practiceSession.current_index + 1} / ${practiceSession.summary.total} 题` : '单题练习'} actions={singlePracticeActive ? <button className="app-ghost-button" onClick={leaveSinglePractice}>返回练习设置</button> : <>
                   <button className="app-secondary-button" disabled={sessionBusy} onClick={() => changePracticeSessionStatus(practiceSession?.status === 'active' ? 'pause' : 'resume')}>{practiceSession?.status === 'active' ? '暂停' : '继续'}</button>
                   <button className="app-ghost-button" disabled={sessionBusy} onClick={() => { if (window.confirm('结束本轮练习？当前未提交作答将丢弃。')) void changePracticeSessionStatus('abandon'); }}>结束本轮</button>
-                </>} onSaved={handleAnswerSaved} onMessage={showPracticeMessage} attempt={<textarea aria-label="你的作答" value={practiceAnswer} onChange={e => setPracticeAnswer(e.target.value)} placeholder="输入思路、公式或关键步骤" />} footer={<>
-                  <span>本次自评</span>
-                  <div>{[1, 3, 5].map((q, i) => <button key={q} className="app-secondary-button" disabled={sessionBusy || (!singlePracticeActive && practiceSession?.status === 'paused')} onClick={() => { if (window.confirm('记录本次作答与自评？连续练习将进入下一题。')) void submitPractice(q); }}>{['没掌握', '基本理解', '已掌握'][i]}</button>)}</div>{pendingDirectAnswer && <button disabled={sessionBusy} className="app-secondary-button" onClick={() => submitPractice(pendingDirectAnswer.quality, pendingDirectAnswer.add_to_mistake, true)}>恢复未确认作答</button>}{practiceMessage && <p role="status">{practiceMessage}{candidateId && <Link to="/mistakes?filter=pending">确认收录</Link>}</p>}</>} />
+                </>} onSaved={handleAnswerSaved} onMessage={showPracticeMessage} attempt={<textarea id="exercise-practice-answer" aria-label="我的作答" value={practiceAnswer} onChange={e => setPracticeAnswer(e.target.value)} placeholder="输入思路、公式或关键步骤" />} footer={<>
+                  <PracticeAssessment key={currentPractice.id} disabled={sessionBusy || (!singlePracticeActive && practiceSession?.status === 'paused')} continuous={!singlePracticeActive && Boolean(practiceSession)} onSubmit={quality => void submitPractice(quality)} />{pendingDirectAnswer && <button disabled={sessionBusy} className="app-secondary-button" onClick={() => submitPractice(pendingDirectAnswer.quality, pendingDirectAnswer.add_to_mistake, true)}>恢复未确认作答</button>}{practiceMessage && <p role="status">{practiceMessage}{candidateId && <Link to="/mistakes?filter=pending">确认收录</Link>}</p>}</>} />
               </div>}
               {!singlePracticeActive && !['active', 'paused'].includes(practiceSession?.status || '') && practiceMessage && <p className="exercise-feedback" role="status">{practiceMessage}</p>}
             </section>

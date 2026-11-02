@@ -308,6 +308,7 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface ExerciseRecord {
+  import_review?: { status: 'pending' | 'reviewed' | 'unreviewed'; issues: CandidateIssue[] };
   source_attachments?: Array<{ asset_id: string; format: string; label: string; role: string; source_block_id: string; page: number | null }>;
   source_category?: string;
   book_id?: string;
@@ -349,6 +350,7 @@ export interface CandidateDependency {
   resolution: 'embedded' | 'identified' | 'unresolved';
 }
 export interface CandidateProjection {
+  excluded_figure_ids?: string[];
   version: 1; canonical_hash: string; unit_ids: string[];
   scope: { chapter: string; page_start: number | null; page_end: number | null; source_mode: 'exercise_sections' | 'examples' | 'all_pages' | 'file' };
   method: 'whole_unit' | 'block_boundary' | 'unresolved' | 'user_edited';
@@ -383,7 +385,7 @@ export interface CandidateSourceRegistry {
 export interface CandidateReceipt {
   exercise_id: string; origin_id: string;
   projection: Pick<CandidateProjection, 'version' | 'canonical_hash' | 'unit_ids' | 'method' | 'parts' | 'structure' | 'profile_version' | 'source_id' | 'split'>;
-  body_hash: string; review_kind: 'system_proposed' | 'user_confirmed';
+  body_hash: string; review_kind: 'system_proposed' | 'user_confirmed' | 'user_imported';
 }
 
 export interface ExerciseCandidate {

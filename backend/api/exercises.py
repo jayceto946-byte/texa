@@ -29,6 +29,7 @@ from backend.schemas import (
     ExerciseToMistakeRequest,
     ExerciseRecordOut,
     ExerciseStatusRequest,
+    ExerciseEditRequest,
     TextbookExerciseAnalyzeRequest,
 )
 from config import DATA_DIR, PROGRESS_PATH
@@ -551,6 +552,18 @@ def analyze_exercise_candidates(req: ExerciseAnalyzeRequest, book_name: str = "d
     }
 
 
+@router.post('/edit')
+def edit_exercise(req: ExerciseEditRequest, book_name: str = 'default'):
+    from backend.services.exercise_editing import edit_exercise as save_edit
+    try:
+        record = save_edit(_bank(book_name), **req.model_dump(exclude={'id'}), exercise_id=req.id)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return dict(success=True, data=_record_to_out(record).model_dump(), message='题目已保存')
+
+
 @router.post("/candidates/batch-add")
 def batch_add_reviewed_candidates(req: ExerciseBatchAddRequest, book_name: str = "default"):
     from backend.services.exercise_candidate_review import ExerciseCandidateReviewService, CandidateAdmissionError
@@ -567,6 +580,7 @@ def batch_add_reviewed_candidates(req: ExerciseBatchAddRequest, book_name: str =
                 record.question_text, record.answer, record.explanation = (item[k] for k in ('question_text','answer','explanation'))
                 record.extra_fields['source_structure'] = item['candidate_context']['projection'].get('structure')
                 record.extra_fields['source_attachments'] = receipt.pop('attachments', [])
+                record.extra_fields['import_review'] = receipt['import_review']
             bank = _bank(book_name)
             batch = bank.add_batch(records, source_label=req.source_label, allow_duplicates=req.allow_duplicates,
                                    candidate_receipts=receipts)

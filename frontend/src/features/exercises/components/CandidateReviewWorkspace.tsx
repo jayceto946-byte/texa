@@ -7,7 +7,7 @@ import { ReadingMarkdown as SimpleMarkdown } from '../../reading/ReadingMarkdown
 import { HelpHint } from './HelpHint';
 import type { ExerciseCandidate } from '../../../types';
 import type { useExerciseImportCandidates } from '../hooks/useExerciseImportCandidates';
-import { contentIssues, issueLabel, type Decisions } from '../hooks/candidateContract';
+import { contentIssues, issueLabel } from '../hooks/candidateContract';
 import Dialog from '../../../components/ui/Dialog';
 import { RenderedMathEditor } from '../../reading/RenderedMathEditor';
 import { FileSourceImage } from './FileSourceImage';
@@ -57,10 +57,18 @@ export function CandidateReviewWorkspace({ state: s, source, busy: parentBusy, n
   const select = (id: string) => { if (current && readingPane.current) scrolls.current.set(current.id, readingPane.current.scrollTop); setCurrentId(id); s.setEditingCandidateId(''); setReviewIssuesOpen(false); };
   const edit = current && s.editingCandidateId === current.id;
   const field = (label: string, key: 'question_text' | 'answer' | 'explanation', value: string) => <section className="exercise-edit-section" key={key}><h2>{label}</h2><RenderedMathEditor label={label} value={value} disabled={busy} onChange={text => s.updateCandidate(current.id, { [key]: text, ...(key === 'question_text' ? { duplicate_of: '' } : {}) })} /></section>;
-  const signals = current ? contentIssues(current) : [];
+  const signals = current && !current.review ? contentIssues(current) : [];
   const sourceIds = new Set(current?.projection ? Object.values(current.projection.parts).flat().map(span => span.block_id) : []);
   const blocks = s.sourceRegistry?.source_blocks.filter(b => sourceIds.has(b.block_id)).sort((a,b) => a.order - b.order) || [];
   const splitAssets=blocks.filter(b=>b.block_type==='figure'||b.block_type==='table');
+  const figures = blocks.filter(b => b.block_type === 'figure' && typeof b.attributes.asset_id === 'string');
+  const excludedFigures = new Set(current?.projection?.excluded_figure_ids || []);
+  const toggleFigure = (blockId: string) => {
+    if (!current?.projection) return;
+    const next = new Set(excludedFigures);
+    if (next.has(blockId)) next.delete(blockId); else next.add(blockId);
+    s.updateCandidate(current.id, { projection: { ...current.projection, excluded_figure_ids: [...next] } });
+  };
   const missingPages=s.sourceRegistry?.source_coverage?.filter(p=>p.status==='missing'||p.status==='unreadable') || [];
   const assignSplitAsset=(bid: string,owner: 'left'|'right'|'both')=>{
     const members=current?.projection?.dependencies.find(d=>d.kind==='figure'&&d.block_ids.includes(bid))?.block_ids || [bid];
@@ -130,26 +138,29 @@ export function CandidateReviewWorkspace({ state: s, source, busy: parentBusy, n
           {blocks.some(b => b.attributes.original_ocr_text) && <details className="exercise-source-comparison"><summary>查看 AI 修正对照</summary>{blocks.filter(b => b.attributes.original_ocr_text).map(b => <section key={b.block_id}><p className="control-help">{b.page_start ? `物理页 ${b.page_start} · 原始识别` : '原始识别'}</p><SimpleMarkdown content={String(b.attributes.original_ocr_text)} /><p className="control-help">AI 校正后</p><SimpleMarkdown content={b.text} /></section>)}</details>}
           {!current.question_text.trim() && <p className="exercise-warning">请补全题干或取消选择。</p>}
           {edit ? <fieldset disabled={busy} className="exercise-candidate-editor">{field('题干', 'question_text', current.question_text)}{field('答案', 'answer', current.answer)}{field('解析', 'explanation', current.explanation)}</fieldset> : <>
-            <div className="exercise-question"><SimpleMarkdown content={current.question_text} />{blocks.filter(b => b.block_type === 'figure' && current.projection?.parts.question.some(span => span.block_id === b.block_id)).map(b => current.projection?.source_id && typeof b.attributes.asset_id === 'string' ? <FileSourceImage key={b.block_id} sourceId={current.projection.source_id} assetId={b.attributes.asset_id} bookName={bookName} label={b.text} /> : null)}</div>
+            <div className="exercise-question"><SimpleMarkdown content={current.question_text} />{blocks.filter(b => b.block_type === 'figure' && !excludedFigures.has(b.block_id) && current.projection?.parts.question.some(span => span.block_id === b.block_id)).map(b => current.projection?.source_id && typeof b.attributes.asset_id === 'string' ? <FileSourceImage key={b.block_id} sourceId={current.projection.source_id} assetId={b.attributes.asset_id} bookName={bookName} label={b.text} /> : null)}</div>
             {current.answer && <section className="exercise-candidate-answer"><h2>答案</h2><SimpleMarkdown content={current.answer} /></section>}
 
             {current.explanation && <section className="exercise-candidate-explanation"><h2>解析</h2><SimpleMarkdown content={current.explanation} /></section>}
 
           </>}
-          {signals.filter(i => i.code !== 'edited_content').length > 0 && <div className="exercise-review-issues" ref={issuesPanel}><button className="app-secondary-button" aria-expanded={reviewIssuesOpen} onClick={() => setReviewIssuesOpen(!reviewIssuesOpen)}>核对 {signals.filter(i => i.code !== 'edited_content').length} 项</button>{reviewIssuesOpen && <div>
-          {current.issues ? signals.filter(i => i.code !== 'edited_content').map(signal => <div className="exercise-warning exercise-content-issue" key={signal.key}>
-            <p>{issueLabel(current, signal)}</p><button className="app-secondary-button" disabled={busy} onClick={() => { s.setEditingCandidateId(current.id); setReviewIssuesOpen(false); }}>编辑题目</button>
-            {signal.code !== 'source_unavailable' && <label>本项处理<Selector ariaLabel={`处理：${issueLabel(current, signal)}`} value={s.reviewDecisions[current.id]?.[signal.key] || ''} onChange={value => {
-              if (value) s.chooseResolution(current, signal.key, value as Decisions[string]);
-            }} options={[{ value: "", label: "选择处理方式" }, ...(signal.code === 'missing_required_input' ? (current.projection?.dependencies.find(d => d.id === signal.dependency_id)?.kind === 'figure' ? [{ value: "not_applicable", label: "这道题不需要此图" }] : [{ value: "corrected", label: "已补全题目条件" }]) : [{ value: "corrected", label: "已修改" }, { value: "not_applicable", label: "检查过了，无需修改" }, { value: "source_checked", label: "已核对题目与答案" }])]} disabled={busy} compact/></label>}
-          </div>) : current.validation_issues?.map(issue => <p className="exercise-warning" key={issue}>{issue}</p>)}
-          </div>}</div>}
-          {current.projection && <div className="exercise-structure-confirm"><button className="app-secondary-button" disabled={busy || Boolean(s.confirmingId) || signals.some(i => i.code !== 'edited_content' && !s.reviewDecisions[current.id]?.[i.key])} onClick={() => void s.confirmCandidate(current)}>{s.confirmingId === current.id ? '正在确认…' : '确认本题'}</button>{onSaveExample && current.review && (current.answer || current.explanation) && <button className="app-ghost-button" disabled={busy || !current.review || !current.answer && !current.explanation} onClick={() => onSaveExample(current)}>记住本题分离方式</button>}</div>}
+          {figures.length > 0 && <section className="exercise-figure-manager">
+            <h2>题目配图 <span>可移除误带入的笔记或图片</span></h2>
+            {figures.map(b => <div className={`exercise-figure-item ${excludedFigures.has(b.block_id) ? 'is-removed' : ''}`} key={b.block_id}>
+              {!excludedFigures.has(b.block_id) && edit && current.projection?.source_id && <FileSourceImage sourceId={current.projection.source_id} assetId={String(b.attributes.asset_id)} bookName={bookName} label={b.text || '题目配图'} />}
+              <div><span>{b.text || '配图'}{b.page_start ? ` · 物理页 ${b.page_start}` : ''}{excludedFigures.has(b.block_id) ? ' · 已移除' : ''}</span><button className="app-secondary-button" disabled={busy} onClick={() => toggleFigure(b.block_id)}>{excludedFigures.has(b.block_id) ? '恢复图片' : '移除图片'}</button></div>
+            </div>)}
+          </section>}
+          {signals.filter(i => i.code !== 'edited_content').length > 0 && <div className="exercise-review-issues" ref={issuesPanel}>
+            <button className="app-ghost-button" aria-expanded={reviewIssuesOpen} onClick={() => setReviewIssuesOpen(!reviewIssuesOpen)}>待核对提示 {signals.filter(i => i.code !== 'edited_content').length} 项 · 可先导入</button>
+            {reviewIssuesOpen && <ul>{[...new Set(signals.filter(i => i.code !== 'edited_content').map(signal => issueLabel(current, signal)))].map(label => <li key={label}>{label}</li>)}</ul>}
+          </div>}
+          {current.projection && <div className="exercise-structure-confirm"><span>{current.review ? '已标记核对' : '无需逐题确认，选中后即可批量导入'}</span><button className="app-ghost-button" disabled={busy || Boolean(s.confirmingId) || Boolean(current.review)} onClick={() => void s.confirmCandidate(current)}>{s.confirmingId === current.id ? '正在记录…' : '标记已核对'}</button>{onSaveExample && current.review && (current.answer || current.explanation) && <button className="app-ghost-button" disabled={busy} onClick={() => onSaveExample(current)}>记住本题分离方式</button>}</div>}
         </article> : <p className="exercise-candidate-inner">{s.candidates.length ? '没有此类候选，整个批次及选择仍保留。' : '尚未识别题目。来源仍保留，可先用 AI 校对恢复原页正文。'}</p>}
       </div>
 
     </div>
-    <footer className="exercise-commit"><span>已选 {s.selectedIds.size} 题{ s.sourceRegistry && s.selectedIds.size > s.submittableCandidates.length && <> · {s.selectedIds.size - s.submittableCandidates.length} 题待核对</>}</span><div><button className="app-ghost-button" disabled={busy || s.selectedIds.size < 2} onClick={s.mergeSelectedCandidates}>合并选中</button><button className="app-secondary-button" disabled={busy} onClick={onBack}>返回来源</button><button className="app-primary-button" disabled={busy || reviewBusy || Boolean(s.editingCandidateId) || Boolean(s.confirmingId) || !s.submittableCandidates.length} onClick={onSubmit}>{reviewBusy ? '正在整理…' : parentBusy ? '正在入库…' : s.sourceRegistry ? `确认入库${s.submittableCandidates.length}题` : '确认入库'}</button></div></footer>
+    <footer className="exercise-commit"><span>已选 {s.selectedIds.size} 题 · 可导入 {s.submittableCandidates.length} 题<small>待核对提示随题保留，可入库后继续整理</small></span><div><button className="app-ghost-button" disabled={busy || s.selectedIds.size < 2} onClick={s.mergeSelectedCandidates}>合并选中</button><button className="app-secondary-button" disabled={busy} onClick={onBack}>返回来源</button><button className="app-primary-button" disabled={busy || reviewBusy || Boolean(s.confirmingId) || !s.submittableCandidates.length} onClick={onSubmit}>{reviewBusy ? '正在整理…' : parentBusy ? '正在入库…' : `导入选中 ${s.submittableCandidates.length} 题`}</button></div></footer>
     <Dialog open={adoptOpen} title="采用整理结果" onClose={() => setAdoptOpen(false)} dismissOnBackdrop className="structure-review-confirm"><h2>采用整理结果</h2><p>{adoptionNote}</p><footer><button className="app-secondary-button" onClick={() => setAdoptOpen(false)}>保留当前候选</button><button className="app-primary-button" onClick={() => pendingResult && applyResult(pendingResult)}>采用整理结果</button></footer></Dialog>
     <Dialog open={splitOpen} title="拆分题目" onClose={()=>setSplitOpen(false)} dismissOnBackdrop className="structure-review-confirm"><h2>拆分题目</h2><p>按题干中的第一处空行拆分。原解与附图需要明确归属；共享条件请分别保留在两题题干中。无法对齐来源时会保留当前内容，等待核对。</p>
       {current && (current.answer||current.explanation) && <label>原答案与解析<Selector ariaLabel="原答案与解析归属" value={splitAssignment.solution} onChange={value=>setSplitAssignment(a=>({...a,solution:value as SplitAssignment['solution']}))} options={[{value:'',label:'请选择归属'},{value:'left',label:'第一题'},{value:'right',label:'第二题'},{value:'separate',label:'分别分配（按原解空行）'}]}/></label>}

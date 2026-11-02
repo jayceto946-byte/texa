@@ -13,8 +13,11 @@ def freeze_attachments(projection, extracted, *, book_name, progress_root):
     root = Path(progress_root)
     registry = {b['block_id']: b for b in extracted.source_blocks}
     attachments = []
+    excluded = set(projection.get('excluded_figure_ids') or [])
     for role, spans in projection['parts'].items():
         for span in spans:
+            if span['block_id'] in excluded:
+                continue
             block = registry[span['block_id']]
             attrs = block['attributes']
             if block['block_type'] != 'figure' or not attrs.get('asset_id'):
@@ -40,7 +43,7 @@ def freeze_attachments(projection, extracted, *, book_name, progress_root):
             if not target.exists():
                 from ingestion.document_adapters import _atomic_copy
                 _atomic_copy(source, target)
-            attachments.append(dict(asset_id=aid, format=suffix, label=block['text'], role=role,
+            attachments.append(dict(asset_id=aid, format=suffix, label=block['text'], role='question' if role == 'unassigned' else role,
                                     source_block_id=block['block_id'], page=block['page_start']))
     return list({(a['asset_id'], a['role']): a for a in attachments}.values())
 

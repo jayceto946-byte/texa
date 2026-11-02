@@ -3,7 +3,7 @@ import type { ExerciseCandidate, CandidateIssue, CandidateProjection, CandidateR
 export const issueLabels: Record<string, string> = {
   solution_in_stem: '题干可能混有答案，请检查', boundary_uncertain: '请检查题目是否完整、配图是否正确',
   missing_required_input: '题目条件不完整', dependency_uncertain: '请检查配图是否属于本题', formula_review: '请检查公式和表格',
-  source_unavailable: '原文件暂时无法读取，请重新导入', edited_content: '修改后请确认本题',
+  source_unavailable: '原文件暂时无法读取，请重新导入', edited_content: '已编辑，建议核对',
   source_ocr_damage: '原文有未识别文字，请补全或删去有问题的部分',
   ai_content_correction: 'AI修改了来源文字或公式，请对照原文核对',
   missing_concepts: '尚未识别知识点', unknown_type: '题型待补充', difficulty_hint: '难度建议', duplicate: '重复题', legacy_notice: '题目属性提示',
@@ -29,6 +29,7 @@ export async function candidateHash(item: CandidateBody, includeProjection = tru
   return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
 }
 export const contentIssues = (item: ExerciseCandidate) => (item.issues || []).filter(i => i.category === 'content');
+export const canImportCandidate = (item: ExerciseCandidate) => Boolean(item.question_text.trim());
 export const editedIssue: CandidateIssue = { key: 'edited_content:', category: 'content', code: 'edited_content', block_ids: [], dependency_id: null };
 export function editCandidate(item: ExerciseCandidate, updates: Partial<ExerciseCandidate>): ExerciseCandidate {
   const changed = (['question_text', 'answer', 'explanation', 'projection'] as const).some(k => k in updates && updates[k] !== item[k]);
@@ -69,5 +70,6 @@ export function mergeProjections(projections: CandidateProjection[]): CandidateP
   const spans = <T,>(values: T[]) => [...new Map(values.map(v => [canonicalJson(v), v])).values()];
   return { ...first, ...(split?{split:undefined}:{}), method: 'user_edited', unit_ids: [...new Set(projections.flatMap(p => p.unit_ids))],
     parts: { question: spans(projections.flatMap(p => p.parts.question)), answer: spans(projections.flatMap(p => p.parts.answer)), explanation: spans(projections.flatMap(p => p.parts.explanation)), context: spans(projections.flatMap(p => p.parts.context)), unassigned: spans(projections.flatMap(p => p.parts.unassigned)) },
-    dependencies: [...new Map(projections.flatMap(p => p.dependencies).map(d => [d.id, d])).values()] };
+    dependencies: [...new Map(projections.flatMap(p => p.dependencies).map(d => [d.id, d])).values()],
+    excluded_figure_ids: [...new Set(projections.flatMap(p => p.excluded_figure_ids || []))] };
 }

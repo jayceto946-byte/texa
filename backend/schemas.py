@@ -190,6 +190,7 @@ class KGRefreshOut(BaseModel):
 
 
 class ExerciseRecordOut(BaseModel):
+    import_review: dict = Field(default_factory=dict)
     source_attachments: list[dict] = Field(default_factory=list)
     source_structure: CandidateStructure | None = None
     source_category: str = ""
@@ -253,6 +254,15 @@ class ExerciseListRequest(BaseModel):
 class ExerciseStatusRequest(BaseModel):
     id: str
     status: str
+
+
+class ExerciseEditRequest(BaseModel):
+    id: str
+    question_text: str = Field(min_length=1)
+    answer: str = ''
+    explanation: str = ''
+    removed_asset_ids: list[str] = Field(default_factory=list, max_length=160)
+    reviewed: bool = False
 
 
 class ExerciseAnswerGenerateRequest(BaseModel):

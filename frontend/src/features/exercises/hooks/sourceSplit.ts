@@ -74,6 +74,7 @@ export function splitSourceCandidate(candidate: ExerciseCandidate, suffix: strin
   return [left,right].map((parts,i)=> {
     const ids=new Set(Object.values(parts).flat().map(s=>s.block_id));
     const projection: CandidateProjection={...p,parts,dependencies:p.dependencies.filter(d=>!d.block_ids.length||d.block_ids.some(b=>ids.has(b))),
+      ...(p.excluded_figure_ids ? {excluded_figure_ids:p.excluded_figure_ids.filter(b=>ids.has(b))} : {}),
       split:{group_id:previous?.group_id || `split-${candidate.id}-${suffix}`,index:index+i,siblings:plans,shared_block_ids:[...shared]}};
     const value=editCandidate(candidate,{question_text:serialize(parts.question).trim(),answer:serialize(parts.answer),explanation:serialize(parts.explanation),projection});
     return {...value,id:`${candidate.id}-${suffix}-${i+1}`,review:null,duplicate_of:'',issues:value.issues?.filter(issue=>!issue.block_ids.length||issue.block_ids.some(b=>ids.has(b)))};

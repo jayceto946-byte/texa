@@ -80,6 +80,7 @@ def validate_candidate(item, proposals, registry):
     if not context or not origin or not item['question_text'].strip():
         raise CandidateAdmissionError(origin, 'v1候选需要非空题干、origin_id及candidate_context')
     p, review = context['projection'], context.get('review')
+    import_confirmed = context.get('import_confirmed', False)
     ids = p['unit_ids']
     if len(ids) != len(set(ids)):
         raise CandidateAdmissionError(origin, '来源单元重复')
@@ -101,8 +102,12 @@ def validate_candidate(item, proposals, registry):
     expected_ids = {s['block_id'] for v in matched for spans in v['projection']['parts'].values() for s in spans}
     ranges=_split_ranges(p,registry,expected_ids,origin)
     _validate_spans(p, registry, set(ranges) if ranges is not None else expected_ids, origin,expected_ranges=ranges)
+    excluded = set(p.get('excluded_figure_ids') or [])
+    owned_ids = set(ranges) if ranges is not None else expected_ids
+    if any(bid not in owned_ids or registry[bid]['block_type'] != 'figure' for bid in excluded):
+        raise CandidateAdmissionError(origin, '只能移除当前题目来源中的图片')
     value = {**item, 'projection': p}
-    if review and review['content_hash'] != content_hash(value):
+    if review and not import_confirmed and review['content_hash'] != content_hash(value):
         raise CandidateAdmissionError(origin, '确认版本已失效，请重新核对当前正文', status=409)
     base_issues = [i for v in matched for i in v['issues'] if i['category'] == 'content' and (ranges is None or not i['block_ids'] or set(i['block_ids']).intersection(ranges))]
     issues = {i['key']: i for i in base_issues}
@@ -117,9 +122,9 @@ def validate_candidate(item, proposals, registry):
     resolutions = {r['issue_key']:r['decision'] for r in (review or {}).get('resolutions', [])}
     if len(resolutions) != len((review or {}).get('resolutions', [])) or set(resolutions) - set(issues):
         raise CandidateAdmissionError(origin, '确认引用了未知或重复问题')
-    if edited and (not review or resolutions.get('edited_content:') != 'corrected'):
+    if edited and not import_confirmed and (not review or resolutions.get('edited_content:') != 'corrected'):
         raise CandidateAdmissionError(origin, '编辑、拆分或合并后需确认本题当前结构')
-    if edited:
+    if edited and not import_confirmed:
         from memory.exercise_structure import split_roles
         if split_roles(dict(block_id='edited', text=item['question_text']), first=True)[0]:
             raise CandidateAdmissionError(origin, '题干仍含明确解答标记，请先分离到答案或解析')
@@ -136,6 +141,12 @@ def validate_candidate(item, proposals, registry):
         dep = deps[did]
         if any(dep[k] != base[k] for k in ('kind','label','block_ids','asset_ids')):
             raise CandidateAdmissionError(origin, '资源身份不匹配')
+        if import_confirmed:
+            if dep['resolution'] != base['resolution'] or dep['requirement'] != base['requirement']:
+                # Old per-item decisions may annotate missing inputs, but never invent pixels.
+                if dep['resolution'] == 'embedded' and base['resolution'] != 'embedded' and base['kind'] == 'figure':
+                    raise CandidateAdmissionError(origin, '图片来源身份不匹配')
+            continue
         if base['kind'] == 'figure' and base['resolution'] == 'embedded':
             if dep['resolution'] != 'embedded' or dep['requirement'] != base['requirement']:
                 raise CandidateAdmissionError(origin, '已定位附件的用途需在来源校对中修改')
@@ -154,7 +165,7 @@ def validate_candidate(item, proposals, registry):
                 raise CandidateAdmissionError(origin, '请把前文必要条件补入独立题干')
     # Newly introduced references cannot be smuggled into an edited question.
     delivered = {d['label'] for d in base_deps.values() if d['kind'] == 'figure' and d['resolution'] == 'embedded'}
-    if set(figure_labels(item['question_text'])) - delivered:
+    if not import_confirmed and set(figure_labels(item['question_text'])) - delivered:
         raise CandidateAdmissionError(origin, '题干仍引用独立练习无法交付的图片')
     original_body = {key: '\n\n'.join(v[key] for v in matched if v[key]) for key in ('question_text','answer','explanation')}
     body_changed = any(item[key] != original_body[key] for key in original_body)
@@ -174,10 +185,16 @@ def validate_candidate(item, proposals, registry):
             unresolved.append(signal)
     if p['method'] == 'unresolved':
         unresolved.append(dict(code='boundary_uncertain',key='unresolved_projection'))
-    if unresolved:
+    if unresolved and not import_confirmed:
         raise CandidateAdmissionError(origin, '仍有内容问题待核对', issues=unresolved)
-    return dict(origin_id=origin, projection={k:deepcopy(p[k]) for k in ('version','canonical_hash','unit_ids','method','parts','structure','profile_version','source_id','split') if k in p},
-                body_hash=content_hash(item, include_projection=False), review_kind='user_confirmed' if review else 'system_proposed')
+    pending = [signal for signal in issues.values() if signal['code'] != 'edited_content'
+               and resolutions.get(signal['key']) not in ('not_applicable', 'source_checked')]
+    if p['method'] == 'unresolved':
+        pending.append(dict(code='boundary_uncertain', key='unresolved_projection'))
+    return dict(origin_id=origin, projection={k:deepcopy(p[k]) for k in ('version','canonical_hash','unit_ids','method','parts','structure','profile_version','source_id','split','excluded_figure_ids') if k in p},
+                body_hash=content_hash(item, include_projection=False),
+                review_kind='user_imported' if import_confirmed else 'user_confirmed' if review else 'system_proposed',
+                import_review=dict(status='pending' if pending else 'reviewed' if review else 'unreviewed', issues=pending))
 
 
 class ExerciseCandidateReviewService:
