@@ -11,7 +11,10 @@
 .question-reading h3{font-size:14px;font-weight:500;margin-bottom:12px}
 .question-reading-section{border-top:1px solid var(--color-border);margin-top:28px;padding-top:24px}
 .question-reading-section details{margin-top:20px}
-.question-reading textarea{min-height:118px;width:100%;resize:vertical;border:1px solid var(--color-border);border-radius:5px;background:var(--color-bg-card);padding:12px 14px;font-size:14px;line-height:1.8}
+.question-reading-facts>details:first-child{margin-top:0}
+.question-reading-facts>details[open]>summary{margin-bottom:16px}
+.question-reading-facts .exercise-row{margin-top:16px;gap:12px}
+.question-reading textarea{min-height:96px;width:100%;resize:vertical;border:0;border-bottom:1px solid var(--workspace-separator);border-radius:0;background:transparent;padding:8px 0;font-size:var(--workspace-reading-size);line-height:var(--workspace-reading-leading)}
 .question-reading-tabs{position:sticky;top:0;z-index:2;display:flex;align-items:stretch;gap:26px;padding:0 32px;min-height:58px;border-bottom:1px solid var(--color-border);background:var(--color-bg-primary);flex:none}
 .question-reading-tabs button{font-size:14px;border-bottom:2px solid transparent;color:var(--color-text-secondary);padding-block:12px}
 .question-reading-tabs button[aria-pressed=true]{color:var(--color-accent);border-color:var(--color-accent)}
@@ -36,10 +39,10 @@
 .question-reading-facts{font-size:13px;line-height:1.8}
 .question-reading-facts summary{cursor:pointer}
 .question-reading :focus-visible{outline:2px solid var(--color-accent);outline-offset:3px}
-.question-reading textarea:focus-visible{border-color:var(--color-accent);outline:none;box-shadow:0 0 0 1px var(--color-accent)}
+.question-reading textarea:focus-visible{border-bottom-color:var(--color-accent);outline:none;box-shadow:none}
 .question-reading-image{display:block;max-width:100%;height:auto;margin-bottom:24px}
 .question-reading-editor{padding:24px 32px;overflow:auto;flex:1;min-height:0}
 .question-reading-editor label{display:grid;gap:8px;margin-bottom:18px;font-size:13px}
-.question-reading-editor textarea{width:100%;min-height:140px}
+.question-reading-editor textarea{width:100%}
 .question-reading.is-narrow .question-reading-heading{padding-inline:26px}
 .question-reading.is-narrow .question-reading-actions{gap:6px}

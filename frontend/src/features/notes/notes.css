@@ -88,7 +88,7 @@
 .note-header-identity h1 { flex-shrink:0; }
 .note-header-identity>:is(.note-header-state,.note-save-status) { font-size:var(--workspace-support-size); line-height:1.4; min-width:0; }
 .note-page-header>.note-actions { flex-shrink:0; flex-wrap:nowrap; }
-@media(max-width:919px) {
+@media(max-width:919px) and (pointer:coarse) {
   .app-shell[data-layout] .management-workspace.notes-workspace .note-page-header { height:56px; min-height:56px; flex-basis:56px; padding-block:6px; }
 }
 @media(max-width:760px) {

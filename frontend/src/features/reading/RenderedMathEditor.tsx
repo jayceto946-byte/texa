@@ -1,8 +1,10 @@
-import { createContext, useContext, useLayoutEffect, useRef, useState } from 'react';
+import { Code2, Sigma, Eye } from 'lucide-react';
+import { createContext, useContext, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import type { Root, Element, Text, RootContent } from 'hast';
 import type { Root as MarkdownRoot, Nodes } from 'mdast';
 import Dialog from '../../components/ui/Dialog';
@@ -84,7 +86,7 @@ const EditorSpan: Components['span'] = ({ node, children, className, ...props })
 const components: Components = { span: EditorSpan };
 
 /** Editable rendered text; formulas use the learning composer's visual editor. */
-export function RenderedMathEditor({ value, onChange, label, disabled = false }: { value: string; onChange: (value: string) => void; label: string; disabled?: boolean }) {
+export function RenderedMathEditor({ value, onChange, label, disabled = false, heading, actions }: { value: string; onChange: (value: string) => void; label: string; disabled?: boolean; heading?: string; actions?: ReactNode }) {
   const [formula, setFormula] = useState<Formula | null>(null);
   const [latex, setLatex] = useState('');
   const [emptyInput, setEmptyInput] = useState(!value);
@@ -97,11 +99,17 @@ export function RenderedMathEditor({ value, onChange, label, disabled = false }:
     setFormula(null);
   };
   return <EditorContext.Provider value={{ disabled, label, replace: (start, end, text) => onChange(replaceSourceText(value, start, end, text)), openFormula }}><div className="rendered-editor" aria-label={label}>
-    <div className="rendered-editor-tools">
-      <button type="button" className="app-ghost-button" disabled={disabled} aria-pressed={sourceEditing} onClick={() => { setSourceEditing(!sourceEditing); setEmptyInput(false); }}>{sourceEditing ? '可视化编辑' : '编辑原文'}</button>
-      <button type="button" className="rendered-insert-formula app-ghost-button" disabled={disabled} onClick={() => openFormula({ start: value.length, end: value.length, latex: '', display: true })}>插入公式</button>
+    <div className="rendered-editor-header">
+      {heading && <h3>{heading}</h3>}
+      <div className="rendered-editor-tools">
+        {actions}
+        <button type="button" className="app-icon-button" disabled={disabled} aria-label={sourceEditing ? '可视化编辑' : '编辑原文'} title={sourceEditing ? '可视化编辑' : '编辑原文'} aria-pressed={sourceEditing} onClick={() => { setSourceEditing(!sourceEditing); setEmptyInput(false); }}>{sourceEditing ? <Eye size={16} /> : <Code2 size={16} />}</button>
+        <button type="button" className="rendered-insert-formula app-icon-button" aria-label="插入公式" title="插入公式" disabled={disabled} onClick={() => openFormula({ start: value.length, end: value.length, latex: '', display: true })}><Sigma size={16} /></button>
+      </div>
     </div>
-    {sourceEditing ? <textarea className="app-field rendered-editor-source" aria-label={`${label}原文`} value={value} onChange={event => onChange(event.target.value)} disabled={disabled} rows={5} /> : emptyInput || !value ? <EditableText text={value} label={label} disabled={disabled} placeholder={`填写${label}`} onInput={onChange} onFinish={() => setEmptyInput(false)} /> : <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath, markMathSources]} rehypePlugins={[editableSources, [rehypeKatex, { strict: false, throwOnError: false }]]} components={components}>{value}</ReactMarkdown>}
+    <div className="rendered-editor-body">
+      {sourceEditing ? <textarea className="rendered-editor-source" aria-label={`${label}原文`} value={value} onChange={event => onChange(event.target.value)} disabled={disabled} rows={5} /> : emptyInput || !value ? <EditableText text={value} label={label} disabled={disabled} placeholder={`填写${label}`} onInput={onChange} onFinish={() => setEmptyInput(false)} /> : <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath, markMathSources]} rehypePlugins={[editableSources, [rehypeKatex, { strict: false, throwOnError: false }]]} components={components}>{value}</ReactMarkdown>}
+    </div>
     <Dialog open={Boolean(formula)} title="编辑公式" onClose={() => setFormula(null)} dismissOnBackdrop className="rendered-formula-dialog">
       <h2>编辑公式</h2><MathFieldEditor value={latex} onChange={setLatex} ariaLabel="可视化编辑公式" autoFocus />
       <footer><button className="app-ghost-button" onClick={() => saveFormula(true)}>删除公式</button><div><button className="app-secondary-button" onClick={() => setFormula(null)}>取消</button><button className="app-primary-button" onClick={() => saveFormula()} disabled={!latex.trim()}>保存</button></div></footer>
@@ -111,5 +119,5 @@ export function RenderedMathEditor({ value, onChange, label, disabled = false }:
 
 /** A labelled learning-content field shared by intake, correction and answer drafts. */
 export function MathContentField(props: Parameters<typeof RenderedMathEditor>[0]) {
-  return <section className="math-content-field"><h3>{props.label}</h3><RenderedMathEditor {...props} /></section>;
+  return <section className="math-content-field"><RenderedMathEditor {...props} heading={props.label} /></section>;
 }

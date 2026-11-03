@@ -28,16 +28,14 @@ export function ExerciseReader({ record, bookQuery, title, actions, attempt, foo
     <button className="app-primary-button" onClick={() => changePane('reference')}>查看参考答案</button>
   </>)} question={<>
     <header className="exercise-question-heading">
-      <div className="exercise-question-meta"><strong>{record.question_type || '题目'}</strong><span>难度 {record.difficulty} / 5</span>{record.tags.length > 0 && <span>{record.tags.join(' · ')}</span>}</div>
-      <SourceStructure value={record.source_structure} compact />
-      {!record.source_structure && record.source && <p className="exercise-question-source">{record.source}</p>}
-      {record.import_review?.status === 'pending' && <p className="exercise-projection-note">导入时保留了待核对提示，可对照来源检查题目。</p>}
+      <div className="exercise-question-meta"><strong>{record.question_type || '题目'}</strong><span>难度 {record.difficulty} / 5</span>{record.source_structure?.original_number && <span>原题号 {record.source_structure.original_number}</span>}</div>
+      {record.import_review?.status === 'pending' && <p className="exercise-projection-note">题目有待核对提示</p>}
     </header>
     {record.image_path && !record.source_attachments?.length && <p className="question-reading-status is-warning">原图暂不可读取，请对照来源文件。</p>}<SimpleMarkdown content={record.question_text} /><ExerciseAttachments record={record} bookName={bookName} roles={['question']} />{attempt && <section className="question-reading-section">
-      <h3><label htmlFor="exercise-practice-answer">我的作答</label><span className="exercise-answer-hint">写下思路后，再查看答案</span></h3>{attempt}</section>}<section className="question-reading-section question-reading-facts">
+      <h3><label htmlFor="exercise-practice-answer">我的作答</label></h3>{attempt}</section>}<section className="question-reading-section question-reading-facts">
       <details>
-        <summary>查看来源</summary>
-        <p>{record.source || '来源未记录'}</p>
+        <summary>题目出处</summary>
+        <div className="exercise-source-content">{record.source_structure ? <SourceStructure value={record.source_structure} /> : <p>{record.source || '未记录出处'}</p>}{record.tags.length > 0 && <div className="exercise-source-tags"><span>知识点</span><p>{record.tags.join('、')}</p></div>}</div>
 
       </details>{onStatus && <details>
         <summary>题目管理</summary>
@@ -49,7 +47,6 @@ export function ExerciseReader({ record, bookQuery, title, actions, attempt, foo
       <h2>已保存解析</h2>
       <SimpleMarkdown content={record.explanation} />
     </section>}<ExerciseAttachments record={record} bookName={bookName} roles={['explanation', 'answer', 'context']} /></>} ai={<>
-      <p className="question-reading-status">根据题干与附图解题，教材内容作为补充；生成后可编辑并保存到题库。</p>
       <p role={job.answerStatus === 'failed' ? 'alert' : 'status'} className={`question-reading-status ${['failed', 'unavailable'].includes(job.answerStatus) ? 'is-warning' : ''}`}>{job.answerStatusMessage}</p>{job.answerDraft ? <>
         <div className="question-reading-draft-toolbar">
           <span>未保存草稿</span>

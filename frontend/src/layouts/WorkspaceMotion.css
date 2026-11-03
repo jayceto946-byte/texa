@@ -27,18 +27,28 @@
 .app-shell .navigation-collapse,
 .app-shell .context-sidebar-trigger,
 body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell .navigation-collapse {
-  top: calc((var(--navigation-chrome-height, var(--workspace-chrome-height)) - var(--navigation-control-size, 32px)) / 2);
-  width: var(--navigation-control-size, 32px);
-  height: var(--navigation-control-size, 32px);
-  min-height: var(--navigation-control-size, 32px);
+  top: calc((var(--navigation-chrome-height, var(--workspace-chrome-height)) - var(--navigation-control-size, var(--workspace-control-height))) / 2);
+  width: var(--navigation-control-size, var(--workspace-control-height));
+  height: var(--navigation-control-size, var(--workspace-control-height));
+  min-height: var(--navigation-control-size, var(--workspace-control-height));
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
+.app-shell .context-sidebar-trigger{border:0;border-radius:var(--workspace-control-radius);background:transparent}
+.app-shell .context-sidebar-trigger:hover{background:var(--accent-softer)}
+@media (pointer:fine) {
+  .app-shell :is(.learning-workspace-header,.app-page-header,.goals-header,.library-workspace-header) {
+    height:var(--workspace-chrome-height);
+    min-height:var(--workspace-chrome-height);
+    padding-block:0;
+    flex-wrap:nowrap;
+  }
+}
 .app-dialog-overlay[hidden] .app-dialog-shell { animation: none; }
 @media (max-width: 919px) {
-  .app-shell { --navigation-chrome-height: 56px; --navigation-control-size: 44px; }
+  .app-shell { --navigation-chrome-height: var(--workspace-chrome-height); --navigation-control-size: var(--workspace-control-height); }
   .app-shell .study-navigation {
     position: absolute;
     inset: 0 auto 0 0;
@@ -77,3 +87,5 @@ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell .navi
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+@media (pointer:coarse){.app-shell{--workspace-chrome-height:56px;--navigation-chrome-height:56px;--navigation-control-size:44px}}

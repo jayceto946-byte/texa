@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { get, post } from '../api/client';
-import ChatMessage from '../components/ChatMessage';
+import { ReadingMarkdown } from '../features/reading/ReadingMarkdown';
 import { useChatContext } from '../contexts/ChatContext';
 import type { MistakeRecord } from '../types';
 import './ReviewSessionPage.css';
@@ -59,12 +59,12 @@ function ReviewSessionRun({ sessionId }: { sessionId: string }) {
     {loading && <p role="status">正在恢复复习会话…</p>}
     {error && <ActionableIssue title={error} impact="本题仍保留，可重试读取或继续下方操作。" actions={<button type="button" className="app-secondary-button" disabled={busy} onClick={() => void refresh()}>重试读取</button>} />}
     {session && <><p className="review-session-progress">第 {Math.min(session.index + 1, session.items.length)} / {session.items.length} 题</p>{session.current_item ? <>
-      <h1>独立重做</h1><section className="review-session-question"><ChatMessage role="assistant" content={readableVisualQuestion(session.current_item.question_text)} /></section>
+      <h1>独立重做</h1><section className="review-session-question"><ReadingMarkdown content={readableVisualQuestion(session.current_item.question_text)} /></section>
       {!session.revealed ? <section className="review-answer-composer" onPaste={event => {
         const image = Array.from(event.clipboardData.files).find(file => file.type.startsWith('image/'));
         if (image) { event.preventDefault(); void upload(image); }
       }}>
-        <label htmlFor="review-answer">写下答案，或上传手写解答</label>
+        <label htmlFor="review-answer">我的作答</label>
         {session.feedback?.verdict === 'unreadable' && <p className="review-answer-hint" role="status">{session.feedback.summary} 请更换清晰、完整的图片后再提交。</p>}
         <textarea id="review-answer" value={answer} disabled={busy} onChange={event => setAnswer(event.target.value)} className="app-field review-session-answer" placeholder="可写步骤、结果，或记录卡住的位置" />
         {session.current_submission && <div className="review-photo-submission" key={session.current_submission.image_url + session.revision}>
@@ -73,22 +73,22 @@ function ReviewSessionRun({ sessionId }: { sessionId: string }) {
         </div>}
         <input ref={imageInput} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" hidden aria-label="选择手写解答图片" onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void upload(file); }} />
         <div className="review-session-actions">
-          <button type="button" className="app-secondary-button" disabled={busy} onClick={() => imageInput.current?.click()}><TexaImage size={16} />{session.current_submission ? '更换图片' : '上传解答'}</button>
+          <button type="button" className="app-secondary-button" disabled={busy} title="上传解答，也可粘贴图片" onClick={() => imageInput.current?.click()}><TexaImage size={16} />{session.current_submission ? '更换图片' : '上传解答'}</button>
           <button type="button" onClick={() => void saveAnswer()} disabled={busy || answer === session.current_answer} className="app-secondary-button">保存草稿</button>
           <button type="button" onClick={() => void reveal()} disabled={busy} className="app-primary-button">{busy ? <><Loader2 size={15} className="animate-spin" />正在处理…</> : session.current_submission ? '提交作答并批改' : '提交作答并查看反馈'}</button>
         </div>
-        <p className="review-answer-hint">支持粘贴解答图片。照片提交后展示批改意见，复习结果由你确认。</p>
+
       </section> : <section>
-        {session.current_answer && <div className="review-session-saved-answer"><h2>本次作答</h2><ChatMessage role="assistant" content={session.current_answer} /></div>}
+        {session.current_answer && <div className="review-session-saved-answer"><h2>本次作答</h2><ReadingMarkdown content={session.current_answer} /></div>}
         {session.current_submission && <QuestionImage path={session.current_submission.image_url} label="作答图片" />}
         {session.feedback && <div className="review-feedback">
           <h2>AI 批改 <span>{({ correct: '解答正确', partial: '部分正确', wrong: '需要修改', unreadable: '需要更清晰的图片' })[session.feedback.verdict]}</span></h2>
-          <ChatMessage role="assistant" content={session.feedback.summary} />
-          {!!session.feedback.issues.length && <><h3>问题与原因</h3>{session.feedback.issues.map((text, index) => <ChatMessage key={index} role="assistant" content={text} />)}</>}
-          {!!session.feedback.suggestions.length && <><h3>修改建议</h3>{session.feedback.suggestions.map((text, index) => <ChatMessage key={index} role="assistant" content={text} />)}</>}
+          <ReadingMarkdown content={session.feedback.summary} />
+          {!!session.feedback.issues.length && <><h3>问题与原因</h3>{session.feedback.issues.map((text, index) => <ReadingMarkdown key={index} content={text} />)}</>}
+          {!!session.feedback.suggestions.length && <><h3>修改建议</h3>{session.feedback.suggestions.map((text, index) => <ReadingMarkdown key={index} content={text} />)}</>}
         </div>}
-        <h2>参考答案</h2><div className="workspace-reading-content"><ChatMessage role="assistant" content={session.current_item.correct_answer || '未保存参考答案，请根据已保存解析自评。'} /></div>
-        {session.current_item.explanation && <details><summary>查看已保存解析</summary><div className="workspace-reading-content"><ChatMessage role="assistant" content={session.current_item.explanation} /></div></details>}
+        <h2>参考答案</h2><div className="workspace-reading-content"><ReadingMarkdown content={session.current_item.correct_answer || '未保存参考答案，请根据已保存解析自评。'} /></div>
+        {session.current_item.explanation && <details><summary>查看已保存解析</summary><div className="workspace-reading-content"><ReadingMarkdown content={session.current_item.explanation} /></div></details>}
         <h2>确认这次结果</h2><div className="review-session-actions">{[['wrong', '不会或做错'], ['partial', '部分完成'], ['prompted_correct', '有提示后做对'], ['independent_correct', '独立做对']].map(([value, label]) => <button key={value} type="button" disabled={busy || value === 'independent_correct' && !session.current_answer.trim() && !session.current_submission} onClick={() => void submit(value)} className="app-secondary-button">{label}</button>)}</div>
       </section>}
 

@@ -14,7 +14,7 @@
 .mistakes-result-note button { margin-left: 8px; color: var(--color-accent); text-decoration: underline; }
 .mistakes-row { padding: 0; }
 .mistakes-candidate-row { display: flex; align-items: flex-start; gap: 18px; padding: 12px 8px; }
-.mistakes-candidate-editor { display: grid; gap: 10px; width: 100%; max-width: 740px; margin: 12px 0; }
+.mistakes-candidate-editor { display:grid; gap:24px; width:100%; max-width:740px; margin:24px 0 8px; }
 .mistakes-candidate-editor label { display: grid; gap: 6px; color: var(--color-text-primary); font-size: var(--workspace-interface-size); }
 .mistakes-candidate-editor textarea { width: 100%; }
 .mistakes-candidate-editor label:has(input[type="checkbox"]) { display: flex; align-items: flex-start; }
@@ -22,7 +22,8 @@
 .mistakes-row-main { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 5px; }
 .mistakes-candidate-row>.mistakes-row-main { width: 100%; }
 .mistakes-row-title .reading-markdown p { margin: 0; font: inherit; }
-.mistakes-candidate-editor .math-content-field { margin: 0; }
+.mistakes-candidate-editor .math-content-field { margin:0; }
+.mistakes-candidate-editor>button { justify-self:start; }
 .mistakes-detail-issue { padding: 12px 28px; }
 .mistakes-row-title { overflow: hidden; color: var(--color-text-primary); font-size: var(--workspace-interface-size); font-weight: 600; line-height: 1.55; overflow-wrap: anywhere; }
 .mistakes-row-title .markdown-body { font-size: inherit; font-weight: inherit; line-height: inherit; }
@@ -52,12 +53,27 @@
 .mistakes-detail summary { cursor: pointer; color: var(--color-text-primary); font-size: var(--workspace-interface-size); font-weight: 600; }
 .mistakes-detail details .workspace-reading-content { margin-top: 14px; }
 .mistakes-original-image { display: block; max-width: 100%; max-height: 560px; margin-top: 14px; object-fit: contain; }
-.mistakes-history { margin: 16px 0; border-top: 1px solid var(--workspace-separator); }
-.mistakes-history li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 11px 0; border-bottom: 1px solid var(--workspace-separator); color: var(--color-text-secondary); font-size: var(--workspace-support-size); }
-.mistakes-history strong { color: var(--color-text-primary); }
+.mistake-records { display:grid; gap:24px; }
+.question-reading .mistake-records>details { margin:0; }
+.app-shell .question-reading .mistake-records summary { color:var(--color-text-primary); font-size:var(--workspace-interface-size); font-weight:500; }
+.mistake-provenance-content { display:grid; justify-items:start; gap:16px; margin-top:16px; font-size:var(--workspace-interface-size); line-height:1.8; }
+.mistake-provenance-content p { margin:0; }
+.mistake-history-content { margin-top:16px; }
+.mistakes-history { list-style:none; padding:0; margin:0; }
+.mistakes-history li { padding:16px 0; border-bottom:1px solid var(--workspace-separator); }
+.mistakes-history li:first-child { padding-top:0; }
+.mistake-attempt-heading { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; }
+.mistake-attempt-heading time { color:var(--color-text-secondary); font-size:var(--workspace-support-size); }
+.mistake-attempt-heading strong { color:var(--color-text-primary); font-size:var(--workspace-interface-size); font-weight:500; }
+.mistake-attempt-answer { margin-top:10px; font-size:14px; line-height:1.8; }
+.mistake-history-actions { margin-top:20px; }
+.question-reading .mistake-older-history { margin-top:24px; }
+.mistake-older-history .mistakes-history { margin-top:16px; }
 .mistakes-detail-intro .mistakes-heading-actions { margin-top: 18px; }
+.mistakes-detail-edit { max-width:740px; margin-inline:auto; padding-bottom:20px; }
 .mistakes-detail-edit label { display: block; margin: 14px 0; color: var(--color-text-primary); font-size: var(--workspace-interface-size); }
-.mistakes-detail-edit :is(textarea,input:not([type="checkbox"])) { display: block; width: 100%; margin-top: 6px; }
+.mistakes-detail-edit input:not([type="checkbox"]) { display:block; width:100%; margin-top:8px; padding:6px 0; border:0; border-bottom:1px solid var(--workspace-separator); border-radius:0; background:transparent; box-shadow:none; }
+.mistakes-detail-edit input:not([type="checkbox"]):focus { border-bottom-color:var(--color-accent); outline:none; }
 .mistakes-detail-edit .mistakes-edit-impact { display: flex; align-items: flex-start; gap: 8px; }
 .mistakes-edit-impact input { margin-top: 3px; }
 .mistakes-diagnosis-list { border-top: 1px solid var(--workspace-separator); }

@@ -1,19 +1,33 @@
-.rendered-editor{min-height:40px;font:400 var(--workspace-reading-size)/var(--workspace-reading-leading) var(--font-app);overflow-wrap:anywhere}
-.rendered-editor p{margin:0 0 14px}.rendered-editor :is(table,pre){max-width:100%;overflow:auto}.rendered-editor th,.rendered-editor td{padding:6px 12px;border:1px solid var(--color-border)}
-.rendered-edit-text{white-space:pre-wrap;outline:none;border-radius:2px}.rendered-edit-text:focus{background:var(--accent-softer);box-shadow:0 1px 0 var(--color-accent)}
-.rendered-edit-formula{cursor:text;border-radius:3px;outline:none}.rendered-edit-formula:hover,.rendered-edit-formula:focus-visible{background:var(--accent-softer);box-shadow:0 1px 0 var(--color-accent)}
-.rendered-edit-equation{margin-block:16px;overflow-x:auto;overflow-y:hidden}.rendered-edit-equation .rendered-edit-formula{display:block}.rendered-editor .katex-display{overflow-x:auto;overflow-y:hidden;padding-block:4px}
-.rendered-editor-empty{min-height:40px;outline:none}.rendered-editor-empty:empty::before{content:attr(data-placeholder);color:var(--color-text-tertiary)}
-.rendered-formula-dialog{width:min(640px,calc(100vw - 32px));padding:20px;max-height:calc(100dvh - 32px);overflow:auto;color:var(--color-text-primary)}
-.rendered-formula-dialog h2{font:600 16px/1.5 var(--font-app);margin-bottom:20px}.rendered-formula-dialog .visual-math-field{background:transparent;border:0;box-shadow:none;max-width:100%;overflow:auto}
-.rendered-formula-dialog footer{display:flex;align-items:center;justify-content:space-between;margin-top:20px;gap:12px}.rendered-formula-dialog footer>div{display:flex;gap:8px}
-.rendered-editor{position:relative}.rendered-editor-empty{display:block;min-height:72px}
-.rendered-editor-tools{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px;font-size:var(--workspace-support-size)}
-.rendered-editor-source{width:100%;min-height:140px;resize:vertical;font-size:var(--workspace-interface-size);line-height:1.8}
-.math-content-field{min-width:0;margin-block:16px}
-.math-content-field>h3{margin:0 0 8px;font:500 var(--workspace-interface-size)/1.6 var(--font-app);color:var(--color-text-primary)}
-.math-content-field>.rendered-editor{padding:10px 12px;border:1px solid var(--color-border);border-radius:var(--workspace-control-radius);background:var(--color-bg-card)}
-.math-content-field .rendered-editor-source{border:0;background:transparent;padding:0;box-shadow:none}
-.math-content-field .rendered-editor-source:focus-visible{border:0;outline:none;box-shadow:none}
-.math-content-field>.rendered-editor:focus-within{border-color:var(--color-accent)}
-.rendered-formula-dialog .visual-math-field{--selection-color:var(--color-text-primary);--selection-background-color:var(--accent-soft);--caret-color:var(--color-accent)}
+/* Edit learning content on the same document canvas as the reading view. */
+.rendered-editor { min-width:0; font:400 var(--workspace-reading-size)/var(--workspace-reading-leading) var(--font-app); overflow-wrap:anywhere; }
+.rendered-editor-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 20px; margin-bottom:12px; }
+.math-content-field .rendered-editor-header>h3 { margin:0; font:500 var(--workspace-interface-size)/1.6 var(--font-app); color:var(--color-text-primary); }
+.rendered-editor-tools { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-left:auto; }
+.rendered-editor-tools .app-icon-button { color:var(--color-text-secondary); }
+.rendered-editor-tools .app-icon-button[aria-pressed=true] { background:var(--accent-softer); color:var(--color-accent); }
+.rendered-editor-body { min-height:44px; padding:0 0 16px; border-bottom:1px solid var(--workspace-separator); }
+.rendered-editor-body:focus-within { border-bottom-color:var(--color-accent); }
+.rendered-editor p { margin:0 0 16px; font:inherit; color:inherit; }
+.rendered-editor p:last-child { margin-bottom:0; }
+.rendered-editor :is(table,pre) { max-width:100%; overflow:auto; }
+.rendered-editor table { margin-block:20px; }
+.rendered-editor th,.rendered-editor td { padding:6px 12px; border:1px solid var(--color-border); }
+.rendered-edit-text { white-space:pre-wrap; outline:none; border-radius:2px; }
+.rendered-edit-text:focus { background:var(--accent-softer); }
+.rendered-edit-formula { cursor:text; border-radius:3px; outline:none; }
+.rendered-edit-formula:hover,.rendered-edit-formula:focus-visible { background:var(--accent-softer); box-shadow:0 1px 0 var(--color-accent); }
+.rendered-edit-equation { margin-block:20px; overflow-x:auto; overflow-y:hidden; }
+.rendered-edit-equation .rendered-edit-formula { display:block; }
+.rendered-editor .katex-display { overflow-x:auto; overflow-y:hidden; padding-block:4px; }
+.rendered-editor-empty { display:block; min-height:44px; outline:none; }
+.rendered-editor-empty:empty::before { content:attr(data-placeholder); color:var(--color-text-tertiary); }
+.rendered-editor textarea.rendered-editor-source { display:block; width:100%; min-height:96px; max-height:420px; margin:0; padding:0; resize:vertical; border:0; border-radius:0; background:transparent; box-shadow:none; font:inherit; color:inherit; }
+.rendered-editor textarea.rendered-editor-source:focus-visible { border:0; outline:none; box-shadow:none; }
+.math-content-field { min-width:0; margin:28px 0; }
+.math-content-field:first-child { margin-top:0; }
+.math-content-field:last-child { margin-bottom:0; }
+.rendered-formula-dialog { width:min(640px,calc(100vw - 32px)); padding:24px; max-height:calc(100dvh - 32px); overflow:auto; color:var(--color-text-primary); }
+.rendered-formula-dialog h2 { font:600 16px/1.5 var(--font-app); margin-bottom:24px; }
+.rendered-formula-dialog .visual-math-field { background:transparent; border:0; box-shadow:none; max-width:100%; overflow:auto; --selection-color:var(--color-text-primary); --selection-background-color:var(--accent-soft); --caret-color:var(--color-accent); }
+.rendered-formula-dialog footer { display:flex; align-items:center; justify-content:space-between; margin-top:24px; gap:16px; }
+.rendered-formula-dialog footer>div { display:flex; gap:8px; }

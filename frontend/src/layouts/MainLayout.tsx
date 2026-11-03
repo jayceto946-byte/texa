@@ -278,7 +278,7 @@ const MainLayout: React.FC = () => {
         {/* Electron resolves native drag regions in paint order. Keep this
             no-drag control after the draggable route headers it overlaps. */}
         {!contextOpen && (
-          <button type="button" className="context-sidebar-trigger" onClick={() => setContextOpen(true)} aria-label="展开侧栏" title="展开侧栏">
+          <button type="button" className="context-sidebar-trigger app-icon-button" onClick={() => setContextOpen(true)} aria-label="展开侧栏" title="展开侧栏">
             <PanelLeftOpen className="h-[18px] w-[18px]" />
           </button>
         )}
