@@ -16,6 +16,7 @@ import HighlightRepositoryDialog from '../components/HighlightRepositoryDialog';
 import LearningEmptyWorkspace from '../components/chat/LearningEmptyWorkspace';
 import ScopeSelector from '../components/ScopeSelector';
 import ComposerOverflowMenu from '../components/chat/ComposerOverflowMenu';
+import { animateComposerTool } from '../features/chat/composerMotion';
 import ChatMessage from '../components/ChatMessage';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useChatContext } from '../contexts/ChatContext';
@@ -1057,8 +1058,8 @@ const ChatPage: React.FC = () => {
         <div className="chat-composer">
         {!following && messages.length > 0 && <button type="button" className="reading-return-latest" aria-label="回到最新对话" title="回到最新对话" onClick={scrollToLatest}><ArrowDown size={17} aria-hidden="true" /></button>}
 
-          {mistakePickerOpen && (
-            <div ref={mistakePickerRef} className="composer-popover max-h-80 overflow-y-auto p-2" aria-label="历史错题">
+          {(
+            <div ref={mistakePickerRef} hidden={!mistakePickerOpen} inert={!mistakePickerOpen} aria-hidden={!mistakePickerOpen} className="composer-motion-panel composer-popover max-h-80 overflow-y-auto p-2" aria-label="历史错题">
               {cachedMistakes.length ? cachedMistakes.map((mistake) => (
                 <button key={mistake.id} type="button" onClick={() => { clearAttachment(); setActiveFigure(null); setVisualRegion(null); setSelectedMistakeId(mistake.id); setMistakePickerOpen(false); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-bg-secondary">
                   <div className="text-sm text-text-primary"><SimpleMarkdown content={mistake.question_text || mistake.ocr_text || '未命名错题'} /></div>
@@ -1120,7 +1121,7 @@ const ChatPage: React.FC = () => {
               />
             </div>
             <div className="composer-toolbar">
-              <div className="composer-tools" role="toolbar" aria-label="问题输入工具">
+              <div className="composer-tools" onClickCapture={animateComposerTool} role="toolbar" aria-label="问题输入工具">
                 <ComposerOverflowMenu label="附件" className="mobile-attachment-menu">{close => <>
                   {!window.kaoyanDesktop?.isElectron && <button role="menuitem" type="button" disabled={isLoading || attachmentLoading} onClick={()=>{close();cameraInputRef.current?.click();}}>拍照提问</button>}
                   <button role="menuitem" type="button" disabled={isLoading || attachmentLoading} onClick={()=>{close();attachmentInputRef.current?.click();}}>相册或文件</button>

@@ -78,8 +78,6 @@ const VisualMathInputPopover: React.FC<VisualMathInputPopoverProps> = ({
 
   const closePanel = () => {
     setOpen(false);
-    setView('templates');
-    setEditingId(null);
   };
 
   const beginFormula = (template: MathTemplate) => {
@@ -139,11 +137,12 @@ const VisualMathInputPopover: React.FC<VisualMathInputPopoverProps> = ({
         <span>公式</span>
       </button>
 
-      {open && (
+      {(
         <div
+          hidden={!open} inert={!open} aria-hidden={!open}
           role="dialog"
           aria-label="数学符号与公式"
-          className="math-input-panel fixed bottom-[54px] left-16 right-2 z-30 max-h-[min(72vh,620px)] overflow-x-hidden overflow-y-auto rounded-xl border border-border bg-bg-card md:bottom-4 md:left-auto md:right-4 md:w-[min(calc(100vw-2rem),680px)]"
+          className="composer-motion-panel math-input-panel fixed bottom-[54px] left-16 right-2 z-30 max-h-[min(72vh,620px)] overflow-x-hidden overflow-y-auto rounded-xl border border-border bg-bg-card md:bottom-4 md:left-auto md:right-4 md:w-[min(calc(100vw-2rem),680px)]"
         >
           <div className="flex items-center justify-between border-b border-border px-3 py-2">
             <div className="flex min-w-0 items-center gap-2">

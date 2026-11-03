@@ -1,0 +1,23 @@
+/* Shared feedback for Learning's input tools; sizes and layout stay unchanged. */
+.app-shell .composer-motion-panel[hidden],.composer-motion-panel[hidden] { display:none; }
+.composer-tool-button { transition:color 120ms ease,background-color 120ms ease; }
+.composer-tool-button:enabled:active { background:var(--accent-soft); color:var(--color-accent); }
+@media(prefers-reduced-motion:no-preference) {
+  .composer-motion-panel { opacity:1; transform:translateY(0) scale(1); transform-origin:bottom right; transition:opacity 150ms ease,transform 150ms cubic-bezier(.2,.7,.2,1),display 150ms allow-discrete; }
+  .composer-motion-panel[hidden] { display:none; opacity:0; transform:translateY(6px) scale(.985); }
+  .context-inspector.composer-motion-panel { transform-origin:right center; }
+  .context-inspector.composer-motion-panel[hidden] { transform:translateX(16px); }
+  @starting-style {
+    .composer-motion-panel:not([hidden]) { opacity:0; transform:translateY(6px) scale(.985); }
+    .context-inspector.composer-motion-panel:not([hidden]) { transform:translateX(16px); }
+  }
+  .app-dialog-overlay:has(>.composer-inspector-modal) { animation:none!important; opacity:1; transition:opacity 150ms ease,display 150ms allow-discrete; }
+  .app-dialog-overlay:has(>.composer-inspector-modal)[hidden] { opacity:0; display:none; }
+  .app-dialog-overlay>.composer-inspector-modal { animation:none!important; transform:translateY(0) scale(1); transition:transform 150ms cubic-bezier(.2,.7,.2,1); }
+  .app-dialog-overlay[hidden]>.composer-inspector-modal { transform:translateY(8px) scale(.985); }
+  @starting-style {
+    .app-dialog-overlay:has(>.composer-inspector-modal):not([hidden]) { opacity:0; }
+    .app-dialog-overlay:not([hidden])>.composer-inspector-modal { transform:translateY(8px) scale(.985); }
+  }
+}
+@media(prefers-reduced-motion:reduce) { .composer-tool-button,.composer-motion-panel { transition:none; animation:none; } }

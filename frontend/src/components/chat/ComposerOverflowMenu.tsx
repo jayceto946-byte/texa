@@ -72,8 +72,8 @@ export default function ComposerOverflowMenu({
       >
         <MoreHorizontal className="h-4 w-4" aria-hidden="true" /><span>{label}</span>
       </button>
-      {open && (
-        <div ref={menuRef} id={menuId} className="composer-overflow-menu" role="menu" aria-label={label} tabIndex={-1} onKeyDown={event => {
+      {(
+        <div ref={menuRef} hidden={!open} inert={!open} aria-hidden={!open} id={menuId} className="composer-overflow-menu composer-motion-panel" role="menu" aria-label={label} tabIndex={-1} onKeyDown={event => {
           if (event.key === 'Tab') { close(); return; }
           const items = menuItems();
           if (!items.length) return;
