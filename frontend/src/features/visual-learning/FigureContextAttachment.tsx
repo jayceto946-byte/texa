@@ -24,7 +24,7 @@ export default function FigureContextAttachment({
         </div>
       </div>
       <div className="composer-figure-actions">
-        <button type="button" onClick={onEditRegion}>
+        <button type="button" onClick={onEditRegion} aria-label="查看与框选" title="查看与框选">
           <Scan className="h-3.5 w-3.5" aria-hidden="true" />
           <span>查看与框选</span>
         </button>

@@ -4,6 +4,7 @@ export type InspectorPayload = {
   kind: 'source' | 'concept' | 'metadata' | 'progress' | 'detail';
   title: string;
   subtitle?: string;
+  placement?: 'below-header';
   content: React.ReactNode;
 };
 

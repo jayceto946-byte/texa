@@ -6,6 +6,7 @@ import { clamp, compressPhotoForUpload, renderProcessedImage, type CropState, ty
 import { MistakeRange } from './MistakePresentation';
 import Dialog from '../../../components/ui/Dialog';
 import { WorkspaceActionBar } from '../../../components/ui/WorkspaceActionBar';
+import './problem-image-crop.css';
 
 type CropDragMode = 'draw' | 'move' | 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 type CropDragState = {
@@ -20,15 +21,15 @@ type CropDragState = {
 export const DEFAULT_PROBLEM_CROP: CropState = { x: 5, y: 8, w: 90, h: 78 };
 export const DEFAULT_PROBLEM_ADJUST: ImageAdjust = { brightness: 112, contrast: 138, sharpen: 35, grayscale: true };
 
-const cropHandles: { mode: Exclude<CropDragMode, 'draw' | 'move'>; className: string; cursor: string }[] = [
-  { mode: 'nw', className: 'left-0 top-0', cursor: 'nwse-resize' },
-  { mode: 'n', className: 'left-1/2 top-0 -translate-x-1/2', cursor: 'ns-resize' },
-  { mode: 'ne', className: 'right-0 top-0', cursor: 'nesw-resize' },
-  { mode: 'e', className: 'right-0 top-1/2 -translate-y-1/2', cursor: 'ew-resize' },
-  { mode: 'se', className: 'bottom-0 right-0', cursor: 'nwse-resize' },
-  { mode: 's', className: 'bottom-0 left-1/2 -translate-x-1/2', cursor: 'ns-resize' },
-  { mode: 'sw', className: 'bottom-0 left-0', cursor: 'nesw-resize' },
-  { mode: 'w', className: 'left-0 top-1/2 -translate-y-1/2', cursor: 'ew-resize' },
+const cropHandles: { mode: Exclude<CropDragMode, 'draw' | 'move'>; cursor: string }[] = [
+  { mode: 'nw', cursor: 'nwse-resize' },
+  { mode: 'n', cursor: 'ns-resize' },
+  { mode: 'ne', cursor: 'nesw-resize' },
+  { mode: 'e', cursor: 'ew-resize' },
+  { mode: 'se', cursor: 'nwse-resize' },
+  { mode: 's', cursor: 'ns-resize' },
+  { mode: 'sw', cursor: 'nesw-resize' },
+  { mode: 'w', cursor: 'ew-resize' },
 ];
 
 export type ProcessedProblemImage = { file: File; preview: string; originalFile?: File; originalSize?: number };
@@ -174,8 +175,8 @@ const ProblemImageEditor: React.FC<{
         <div className="space-y-3">
           <div ref={stageRef} className="relative mx-auto w-fit max-h-[65dvh] max-w-full overflow-hidden touch-none select-none rounded outline outline-1 outline-border bg-bg-secondary" onPointerDown={(event) => startDrag('draw', event)} onPointerMove={updateDrag} onPointerUp={finishDrag} onPointerCancel={finishDrag}>
             <img onError={() => setError('图片无法预览，请转换为 JPEG 后重新选择')} src={preview} alt="待处理原图" draggable={false} className="block max-h-[65dvh] max-w-full w-auto select-none object-contain" style={{ filter: `brightness(${adjust.brightness}%) contrast(${adjust.contrast}%)${adjust.grayscale ? ' grayscale(100%)' : ''}` }} />
-            <div className="absolute cursor-move border-2 border-accent bg-accent/10 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" style={{ left: `${crop.x}%`, top: `${crop.y}%`, width: `${crop.w}%`, height: `${crop.h}%` }} onPointerDown={(event) => startDrag('move', event)}>
-              {cropHandles.map((handle) => <div key={handle.mode} className={`absolute h-6 w-6 rounded-full border-2 border-white bg-accent shadow-sm ${handle.className}`} style={{ cursor: handle.cursor }} onPointerDown={(event) => startDrag(handle.mode, event)} />)}
+            <div className="problem-crop-selection absolute cursor-move" style={{ left: `${crop.x}%`, top: `${crop.y}%`, width: `${crop.w}%`, height: `${crop.h}%` }} onPointerDown={(event) => startDrag('move', event)}>
+              {cropHandles.map((handle) => <div key={handle.mode} className="problem-crop-handle" data-crop-handle={handle.mode} style={{ cursor: handle.cursor }} onPointerDown={(event) => startDrag(handle.mode, event)} />)}
             </div>
           </div>
           <div className="rounded-lg border border-border bg-bg-card px-3 py-2 text-xs leading-5 text-text-secondary">拖动选框或重新框选题目区域。可使用扫描增强调整对比度、亮度和锐度。{compressUpload && ' 上传前自动压缩，保存完整画面压缩副本及裁剪图，请检查小字与公式清晰度。'}</div>

@@ -35,6 +35,6 @@ export default function ContextInspector() {
     </div>
     <button type="button" onClick={closeInspector} className="app-icon-button context-inspector-close" aria-label="关闭详情面板"><TexaClose className="h-4 w-4" /></button>
   </header><div className="context-inspector-body">{payload.content}</div></>;
-  return narrow ? <Dialog open={open} keepMounted title={`${payload.title}详情`} onClose={closeInspector} dismissOnBackdrop className="context-inspector-modal composer-inspector-modal">{content}</Dialog>
-    : <aside ref={panelRef} hidden={!open} inert={!open} aria-hidden={!open} className="context-inspector composer-motion-panel" aria-label={`${payload.title}详情`}>{content}</aside>;
+  return narrow ? <Dialog open={open} keepMounted title={`${payload.title}详情`} onClose={closeInspector} dismissOnBackdrop className={`context-inspector-modal composer-inspector-modal ${payload.placement === 'below-header' ? 'is-dropdown' : ''}`}>{content}</Dialog>
+    : <aside ref={panelRef} hidden={!open} inert={!open} aria-hidden={!open} className={`context-inspector composer-motion-panel ${payload.placement === 'below-header' ? 'is-dropdown' : ''}`} aria-label={`${payload.title}详情`}>{content}</aside>;
 }

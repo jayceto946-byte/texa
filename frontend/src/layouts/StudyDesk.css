@@ -405,7 +405,7 @@
 .study-desk .learning-new-conversation:hover { background:var(--workspace-secondary); color:var(--color-accent); }
 .study-desk .learning-new-conversation:focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
 .study-desk .learning-new-conversation:disabled { opacity:.5; cursor:not-allowed; }
-.study-desk .learning-header-actions .learning-header-scope-selector { min-width:0; flex:0 1 auto; }
+.study-desk .learning-header-actions .learning-header-scope-selector { min-width:0; max-width:min(260px,36vw); flex:0 1 auto; }
 @media(pointer:coarse) {
   .study-desk .learning-header-actions :is(.learning-new-conversation,.scope-trigger,.focus-docked) { min-height:44px; height:44px; }
 }
@@ -414,8 +414,8 @@
 .study-desk .learning-workspace-header h2 { font-size: var(--workspace-interface-size); font-weight: 600; line-height: 1.5; }
 .study-desk .learning-workspace-title p { font-size: var(--workspace-support-size); line-height: 1.5; }
 .study-desk .learning-header-scope-selector .scope-selector > .scope-trigger {
-  width: auto;
-  max-width: min(320px, 45vw);
+  width:100%;
+  max-width:100%;
   height: 28px;
   border-color: transparent;
   background: transparent;

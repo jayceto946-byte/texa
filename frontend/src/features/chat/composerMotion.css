@@ -7,17 +7,38 @@
   .composer-motion-panel[hidden] { display:none; opacity:0; transform:translateY(6px) scale(.985); }
   .context-inspector.composer-motion-panel { transform-origin:right center; }
   .context-inspector.composer-motion-panel[hidden] { transform:translateX(16px); }
+  .context-inspector.composer-motion-panel.is-dropdown { transform-origin:top center; }
+  .context-inspector.composer-motion-panel.is-dropdown[hidden] { transform:translateY(-12px); }
   @starting-style {
     .composer-motion-panel:not([hidden]) { opacity:0; transform:translateY(6px) scale(.985); }
     .context-inspector.composer-motion-panel:not([hidden]) { transform:translateX(16px); }
+    .context-inspector.composer-motion-panel.is-dropdown:not([hidden]) { transform:translateY(-12px); }
   }
   .app-dialog-overlay:has(>.composer-inspector-modal) { animation:none!important; opacity:1; transition:opacity 150ms ease,display 150ms allow-discrete; }
   .app-dialog-overlay:has(>.composer-inspector-modal)[hidden] { opacity:0; display:none; }
   .app-dialog-overlay>.composer-inspector-modal { animation:none!important; transform:translateY(0) scale(1); transition:transform 150ms cubic-bezier(.2,.7,.2,1); }
   .app-dialog-overlay[hidden]>.composer-inspector-modal { transform:translateY(8px) scale(.985); }
+  .app-dialog-overlay>.composer-inspector-modal.is-dropdown { transform-origin:top center; }
+  .app-dialog-overlay[hidden]>.composer-inspector-modal.is-dropdown { transform:translateY(-12px) scale(.985); }
   @starting-style {
     .app-dialog-overlay:has(>.composer-inspector-modal):not([hidden]) { opacity:0; }
     .app-dialog-overlay:not([hidden])>.composer-inspector-modal { transform:translateY(8px) scale(.985); }
+    .app-dialog-overlay:not([hidden])>.composer-inspector-modal.is-dropdown { transform:translateY(-12px) scale(.985); }
   }
 }
 @media(prefers-reduced-motion:reduce) { .composer-tool-button,.composer-motion-panel { transition:none; animation:none; } }
+
+/* Keep the image mounted while its space folds closed, anchored at the top. */
+.figure-workspace-reveal { display:grid; grid-template-rows:0fr; opacity:0; }
+.figure-workspace-reveal.is-open { grid-template-rows:1fr; opacity:1; }
+.figure-workspace-reveal-inner { min-height:0; overflow:hidden; }
+@media(prefers-reduced-motion:no-preference) {
+  .figure-workspace-reveal { transition:grid-template-rows 180ms cubic-bezier(.2,.7,.2,1),opacity 180ms ease; }
+  @starting-style { .figure-workspace-reveal.is-open { grid-template-rows:0fr; opacity:0; } }
+}
+
+/* Textbook-image choices use the space below the header without resizing Q&A. */
+.app-shell .context-inspector.is-dropdown { position:absolute; top:calc(var(--workspace-chrome-height) + 12px); right:16px; margin:0; width:min(560px,calc(100% - 48px)); min-width:0; height:auto; max-height:calc(100% - var(--workspace-chrome-height) - 32px); border:1px solid var(--workspace-separator); border-radius:8px; box-shadow:0 8px 24px #0002; }
+.context-inspector.is-dropdown .context-inspector-body { max-height:60dvh; overflow:auto; }
+.app-dialog-overlay:has(>.composer-inspector-modal.is-dropdown) { place-items:start center; padding-top:calc(var(--workspace-chrome-height) + 16px); }
+.app-dialog-overlay>.composer-inspector-modal.is-dropdown { max-height:calc(100dvh - var(--workspace-chrome-height) - 32px); }

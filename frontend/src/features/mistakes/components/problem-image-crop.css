@@ -1,0 +1,20 @@
+.problem-crop-selection { border:1px solid var(--color-accent); box-shadow:0 0 0 9999px rgb(0 0 0 / .35); }
+/* The visible grips are small; their transparent drag targets remain easy to hit. */
+.problem-crop-handle { position:absolute; width:28px; height:28px; transform:translate(-50%,-50%); touch-action:none; }
+.problem-crop-handle::after { content:''; position:absolute; box-sizing:border-box; color:var(--color-accent); pointer-events:none; filter:drop-shadow(0 0 .75px white); }
+.problem-crop-handle[data-crop-handle=nw] { left:0; top:0; }
+.problem-crop-handle[data-crop-handle=n] { left:50%; top:0; }
+.problem-crop-handle[data-crop-handle=ne] { left:100%; top:0; }
+.problem-crop-handle[data-crop-handle=e] { left:100%; top:50%; }
+.problem-crop-handle[data-crop-handle=se] { left:100%; top:100%; }
+.problem-crop-handle[data-crop-handle=s] { left:50%; top:100%; }
+.problem-crop-handle[data-crop-handle=sw] { left:0; top:100%; }
+.problem-crop-handle[data-crop-handle=w] { left:0; top:50%; }
+.problem-crop-handle:is([data-crop-handle=nw],[data-crop-handle=ne],[data-crop-handle=se],[data-crop-handle=sw])::after { width:12px; height:12px; border-style:solid; border-color:currentColor; border-width:0; }
+.problem-crop-handle[data-crop-handle=nw]::after { left:50%; top:50%; border-top-width:2px; border-left-width:2px; }
+.problem-crop-handle[data-crop-handle=ne]::after { right:50%; top:50%; border-top-width:2px; border-right-width:2px; }
+.problem-crop-handle[data-crop-handle=se]::after { right:50%; bottom:50%; border-bottom-width:2px; border-right-width:2px; }
+.problem-crop-handle[data-crop-handle=sw]::after { left:50%; bottom:50%; border-bottom-width:2px; border-left-width:2px; }
+.problem-crop-handle:is([data-crop-handle=n],[data-crop-handle=s])::after { left:50%; top:50%; width:14px; height:2px; transform:translate(-50%,-50%); border-radius:1px; background:currentColor; }
+.problem-crop-handle:is([data-crop-handle=e],[data-crop-handle=w])::after { left:50%; top:50%; width:2px; height:14px; transform:translate(-50%,-50%); border-radius:1px; background:currentColor; }
+@media(pointer:coarse) { .problem-crop-handle { width:44px; height:44px; } }

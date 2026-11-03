@@ -377,6 +377,7 @@ const ChatPage: React.FC = () => {
     openInspector({
       kind: 'source',
       title: '教材图片',
+      placement: 'below-header',
       subtitle: currentScope?.displayName || currentScope?.name || bookName,
       content: (
         <FigureCatalog
@@ -1042,14 +1043,14 @@ const ChatPage: React.FC = () => {
                 }
               }
             }}>加载后续消息</button>}
-            {activeFigure && figureWorkspaceExpanded && (
-              <FigureRegionViewer
+            {activeFigure && (
+              <div className={`figure-workspace-reveal figure-viewer-reveal ${figureWorkspaceExpanded ? 'is-open' : ''}`} inert={!figureWorkspaceExpanded} aria-hidden={!figureWorkspaceExpanded}><div className="figure-workspace-reveal-inner"><FigureRegionViewer
                 figure={activeFigure}
                 region={visualRegion}
                 onRegionChange={setVisualRegion}
                 onOpenSource={openActiveFigureSource}
                 onClose={() => setFigureWorkspaceExpanded(false)}
-              />
+              /></div></div>
             )}
           </div>
         </div>
@@ -1072,13 +1073,13 @@ const ChatPage: React.FC = () => {
             <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png" capture="environment" className="hidden" onChange={(event) => { selectAttachment(event.target.files?.[0]); event.target.value = ''; }} />
             {attachmentError && <p role="alert" className="composer-error text-sm">{attachmentError}</p>}
             <input ref={attachmentInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/bmp" className="hidden" onChange={(event) => { selectAttachment(event.target.files?.[0]); event.target.value = ''; }} />
-            {activeFigure && !figureWorkspaceExpanded && (
-              <FigureContextAttachment
+            {activeFigure && (
+              <div className={`figure-workspace-reveal figure-attachment-reveal ${!figureWorkspaceExpanded ? 'is-open' : ''}`} inert={figureWorkspaceExpanded} aria-hidden={figureWorkspaceExpanded}><div className="figure-workspace-reveal-inner"><FigureContextAttachment
                 figure={activeFigure}
                 onEditRegion={() => setFigureWorkspaceExpanded(true)}
                 onOpenSource={openActiveFigureSource}
                 onRemove={() => { setActiveFigure(null); setVisualRegion(null); }}
-              />
+              /></div></div>
             )}
             {(attachmentPreview || selectedMistakeId) && (
               <div className="composer-attachment">
