@@ -1,4 +1,4 @@
-import { Code2, Sigma, Eye } from 'lucide-react';
+import { Code2, Sigma } from 'lucide-react';
 import { createContext, useContext, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -8,7 +8,8 @@ import 'katex/dist/katex.min.css';
 import type { Root, Element, Text, RootContent } from 'hast';
 import type { Root as MarkdownRoot, Nodes } from 'mdast';
 import Dialog from '../../components/ui/Dialog';
-import MathFieldEditor from '../math-input/MathFieldEditor';
+import { MathFormulaToolbox } from './MathFormulaToolbox';
+import { ReadingMarkdown } from './ReadingMarkdown';
 import './rendered-math-editor.css';
 import { replaceSourceText, replaceSourceFormula } from './sourceTextEdit';
 
@@ -60,16 +61,16 @@ function editableSources() {
 
 type Formula = { start: number; end: number; latex: string; display: boolean };
 
-type EditContext = { disabled: boolean; label: string; replace: (start: number, end: number, text: string) => void; openFormula: (item: Formula) => void };
+type EditContext = { disabled: boolean; label: string; replace: (start: number, end: number, text: string) => void; openFormula: (item: Formula, anchor: HTMLElement) => void };
 const EditorContext = createContext<EditContext | null>(null);
 
-function EditableText({ text, onInput, label, disabled, placeholder, onFinish }: { text: string; onInput: (text: string) => void; label: string; disabled: boolean; placeholder?: string; onFinish?: () => void }) {
+function EditableText({ text, onInput, label, disabled, placeholder, onFinish, sourceStart }: { sourceStart?: number; text: string; onInput: (text: string) => void; label: string; disabled: boolean; placeholder?: string; onFinish?: () => void }) {
   const [initial] = useState(text);
   const element = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
     if (element.current && document.activeElement !== element.current && element.current.textContent !== text) element.current.textContent = text;
   }, [text]);
-  return <span ref={element} className={placeholder ? 'rendered-editor-empty' : 'rendered-edit-text'} data-placeholder={placeholder} contentEditable={disabled ? false : 'plaintext-only'} suppressContentEditableWarning role="textbox" aria-label={label} onInput={event => onInput(event.currentTarget.innerText)} onBlur={onFinish}>{initial}</span>;
+  return <span ref={element} data-start={sourceStart} className={placeholder ? 'rendered-editor-empty' : 'rendered-edit-text'} data-placeholder={placeholder} contentEditable={disabled ? false : 'plaintext-only'} suppressContentEditableWarning role="textbox" aria-label={label} onInput={event => onInput(event.currentTarget.innerText)} onBlur={onFinish}>{initial}</span>;
 }
 
 const EditorSpan: Components['span'] = ({ node, children, className, ...props }) => {
@@ -78,9 +79,9 @@ const EditorSpan: Components['span'] = ({ node, children, className, ...props })
   const end = Number(node?.properties['data-end']);
   if (className?.includes('rendered-edit-formula')) {
     const item = { start, end, latex: String(node?.properties['data-latex'] || ''), display: node?.properties['data-display'] === true || node?.properties['data-display'] === 'true' };
-    return <span className={className} data-start={start} data-end={end} role="button" tabIndex={context.disabled ? -1 : 0} aria-label="编辑公式" onClick={() => !context.disabled && context.openFormula(item)} onKeyDown={event => { if (!context.disabled && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); context.openFormula(item); } }}>{children}</span>;
+    return <span className={className} data-start={start} data-end={end} role="button" tabIndex={context.disabled ? -1 : 0} aria-label="编辑公式" onClick={event => !context.disabled && context.openFormula(item, event.currentTarget)} onKeyDown={event => { if (!context.disabled && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); context.openFormula(item, event.currentTarget); } }}>{children}</span>;
   }
-  if (className?.includes('rendered-edit-text')) return <EditableText text={node?.children.map(n => n.type === 'text' ? n.value : '').join('') || ''} label={context.label} disabled={context.disabled} onInput={text => context.replace(start, end, text)} />;
+  if (className?.includes('rendered-edit-text')) return <EditableText sourceStart={start} text={node?.children.map(n => n.type === 'text' ? n.value : '').join('') || ''} label={context.label} disabled={context.disabled} onInput={text => context.replace(start, end, text)} />;
   return <span className={className} {...props}>{children}</span>;
 };
 const components: Components = { span: EditorSpan };
@@ -91,28 +92,45 @@ export function RenderedMathEditor({ value, onChange, label, disabled = false, h
   const [latex, setLatex] = useState('');
   const [emptyInput, setEmptyInput] = useState(!value);
   const [sourceEditing, setSourceEditing] = useState(false);
-  const openFormula = (item: Formula) => { setFormula(item); setLatex(item.latex); };
+  const [sourceDraft, setSourceDraft] = useState('');
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const insertion = useRef<number | null>(null);
+  const editor = useRef<HTMLDivElement>(null);
+  const openFormula = (item: Formula, target: HTMLElement) => { setAnchor(target); setFormula(item); setLatex(item.latex); };
+  const rememberInsertion = () => {
+    const selection = window.getSelection();
+    const node = selection?.anchorNode;
+    const element = node?.nodeType === Node.ELEMENT_NODE ? node as HTMLElement : node?.parentElement;
+    const text = element?.closest<HTMLElement>('.rendered-edit-text[data-start]');
+    if (text && editor.current?.contains(text) && selection?.rangeCount) {
+      const range = selection.getRangeAt(0).cloneRange();
+      range.selectNodeContents(text); range.setEnd(selection.anchorNode!, selection.anchorOffset);
+      insertion.current = Number(text.dataset.start) + range.toString().length;
+    }
+  };
   const saveFormula = (remove = false) => {
     if (!formula) return;
     onChange(replaceSourceFormula(value, formula.start, formula.end, latex, formula.display, remove));
     setEmptyInput(false);
+    insertion.current = null;
     setFormula(null);
   };
-  return <EditorContext.Provider value={{ disabled, label, replace: (start, end, text) => onChange(replaceSourceText(value, start, end, text)), openFormula }}><div className="rendered-editor" aria-label={label}>
+  return <EditorContext.Provider value={{ disabled, label, replace: (start, end, text) => onChange(replaceSourceText(value, start, end, text)), openFormula }}><div ref={editor} className="rendered-editor" aria-label={label} onMouseUp={rememberInsertion} onKeyUp={rememberInsertion}>
     <div className="rendered-editor-header">
       {heading && <h3>{heading}</h3>}
       <div className="rendered-editor-tools">
         {actions}
-        <button type="button" className="app-icon-button" disabled={disabled} aria-label={sourceEditing ? '可视化编辑' : '编辑原文'} title={sourceEditing ? '可视化编辑' : '编辑原文'} aria-pressed={sourceEditing} onClick={() => { setSourceEditing(!sourceEditing); setEmptyInput(false); }}>{sourceEditing ? <Eye size={16} /> : <Code2 size={16} />}</button>
-        <button type="button" className="rendered-insert-formula app-icon-button" aria-label="插入公式" title="插入公式" disabled={disabled} onClick={() => openFormula({ start: value.length, end: value.length, latex: '', display: true })}><Sigma size={16} /></button>
+        <button type="button" className="app-icon-button" disabled={disabled} aria-label="编辑原文" title="编辑 Markdown 原文与预览" onClick={() => { setSourceDraft(value); setSourceEditing(true); }}><Code2 size={16} /></button>
+        <button type="button" className="rendered-insert-formula app-icon-button" aria-label="数学符号工具箱" title="数学符号工具箱" aria-haspopup="dialog" aria-expanded={Boolean(formula)} disabled={disabled} onMouseDown={event => event.preventDefault()} onClick={event => { if (formula) setFormula(null); else { const position = insertion.current ?? value.length; openFormula({ start: position, end: position, latex: '', display: false }, event.currentTarget); } }}><Sigma size={16} /></button>
       </div>
     </div>
     <div className="rendered-editor-body">
-      {sourceEditing ? <textarea className="rendered-editor-source" aria-label={`${label}原文`} value={value} onChange={event => onChange(event.target.value)} disabled={disabled} rows={5} /> : emptyInput || !value ? <EditableText text={value} label={label} disabled={disabled} placeholder={`填写${label}`} onInput={onChange} onFinish={() => setEmptyInput(false)} /> : <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath, markMathSources]} rehypePlugins={[editableSources, [rehypeKatex, { strict: false, throwOnError: false }]]} components={components}>{value}</ReactMarkdown>}
+      {emptyInput || !value ? <EditableText text={value} label={label} disabled={disabled} placeholder={`填写${label}`} onInput={onChange} onFinish={() => setEmptyInput(false)} /> : <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath, markMathSources]} rehypePlugins={[editableSources, [rehypeKatex, { strict: false, throwOnError: false }]]} components={components}>{value}</ReactMarkdown>}
     </div>
-    <Dialog open={Boolean(formula)} title="编辑公式" onClose={() => setFormula(null)} dismissOnBackdrop className="rendered-formula-dialog">
-      <h2>编辑公式</h2><MathFieldEditor value={latex} onChange={setLatex} ariaLabel="可视化编辑公式" autoFocus />
-      <footer><button className="app-ghost-button" onClick={() => saveFormula(true)}>删除公式</button><div><button className="app-secondary-button" onClick={() => setFormula(null)}>取消</button><button className="app-primary-button" onClick={() => saveFormula()} disabled={!latex.trim()}>保存</button></div></footer>
+    {formula && anchor && <MathFormulaToolbox anchor={anchor} latex={latex} display={formula.display} editing={formula.start !== formula.end} onChange={setLatex} onDisplayChange={display => setFormula({ ...formula, display })} onSave={() => saveFormula()} onRemove={() => saveFormula(true)} onClose={() => setFormula(null)} />}
+    <Dialog open={sourceEditing} title="编辑原文" onClose={() => setSourceEditing(false)} dismissOnBackdrop className="rendered-source-dialog">
+      <h2>编辑原文</h2><div className="rendered-source-columns"><textarea className="rendered-editor-source" aria-label={`${label}原文`} value={sourceDraft} onChange={event => setSourceDraft(event.target.value)} rows={10} /><div className="rendered-source-preview" aria-label="公式与排版预览"><ReadingMarkdown content={sourceDraft} /></div></div>
+      <footer><button type="button" className="app-secondary-button" onClick={() => setSourceEditing(false)}>取消</button><button type="button" className="app-primary-button" onClick={() => { onChange(sourceDraft); setEmptyInput(false); setSourceEditing(false); }}>应用修改</button></footer>
     </Dialog>
   </div></EditorContext.Provider>;
 }

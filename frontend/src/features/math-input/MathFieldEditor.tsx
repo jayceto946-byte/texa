@@ -36,11 +36,8 @@ const MathFieldEditor = forwardRef<MathFieldEditorHandle, MathFieldEditorProps>(
       if (!mathfield) return;
       const scrollX = window.scrollX;
       const scrollY = window.scrollY;
-      mathfield.executeCommand(['typedText', latex, {
-        focus: false,
-        feedback: false,
-        simulateKeystroke: true,
-      }]);
+      mathfield.insert(latex, { format: 'latex', selectionMode: 'placeholder', focus: false });
+      onChangeRef.current(mathfield.value);
       focusWithoutPageShift(mathfield);
       if (window.scrollX !== scrollX || window.scrollY !== scrollY) window.scrollTo(scrollX, scrollY);
     },
@@ -116,7 +113,7 @@ const MathFieldEditor = forwardRef<MathFieldEditorHandle, MathFieldEditorProps>(
   }, [value]);
 
   return (
-    <div className="relative min-h-16">
+    <div className="math-field-editor relative min-h-16">
       {!ready && <div className="absolute inset-0 flex items-center px-3 type-caption text-text-secondary">正在加载可视化公式编辑器...</div>}
       <div ref={hostRef} className={ready ? '' : 'invisible'} />
     </div>

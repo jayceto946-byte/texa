@@ -1,0 +1,21 @@
+.math-formula-toolbox { position:fixed; inset:auto; margin:0; padding:12px; box-sizing:border-box; border:1px solid var(--workspace-separator); border-radius:8px; background:var(--workspace-canvas); color:var(--color-text-primary); box-shadow:0 8px 28px #0000001a; overflow:hidden; font:400 12px/1.5 var(--font-app); }
+.math-formula-toolbox:popover-open { display:grid; grid-template-rows:24px 24px minmax(0,1fr) 56px 28px; gap:8px; }
+.math-formula-toolbox>header,.math-formula-toolbox>footer,.math-formula-toolbox>footer>div { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.math-formula-toolbox strong { font-size:13px; font-weight:500; }
+.math-formula-toolbox .app-icon-button { width:24px; height:24px; min-height:24px; padding:4px; border:0; background:transparent; color:var(--color-text-secondary); }
+.math-toolbox-categories { display:flex; gap:4px; }
+.math-toolbox-categories button { padding:2px 7px; border-radius:4px; white-space:nowrap; }
+.math-toolbox-categories button[aria-selected=true] { background:var(--accent-soft); color:var(--color-accent); }
+.math-toolbox-symbols { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-rows:minmax(28px,1fr); gap:4px; overflow:auto; }
+.math-toolbox-symbols button { border:0; border-radius:4px; background:var(--surface-subtle); font:400 16px/1.2 var(--font-math); }
+.math-toolbox-symbols button:hover { background:var(--accent-soft); color:var(--color-accent); }
+.math-formula-toolbox>.math-field-editor { min-height:0; }
+.math-formula-toolbox .visual-math-field { width:100%; height:56px; overflow:auto; padding:6px; box-sizing:border-box; border:0; border-bottom:1px solid var(--workspace-separator); border-radius:4px; background:color-mix(in srgb,var(--workspace-canvas) 94%,var(--color-accent)); font-size:18px; --selection-color:var(--color-text-primary); --selection-background-color:var(--accent-soft); --caret-color:var(--color-accent); }
+.math-formula-toolbox footer label { display:flex; align-items:center; gap:6px; font-size:12px; white-space:nowrap; }
+.math-formula-toolbox footer .app-primary-button { height:28px; min-height:28px; padding:0 10px; font:500 12px/1.5 var(--font-app); }
+.math-formula-toolbox button:focus-visible { outline:2px solid var(--color-accent); outline-offset:1px; }
+@media(prefers-reduced-motion:no-preference) {
+  .math-formula-toolbox:popover-open { animation:math-toolbox-enter 150ms cubic-bezier(.2,.7,.2,1); transform-origin:top right; }
+  .math-formula-toolbox[data-side=above] { transform-origin:bottom right; }
+  @keyframes math-toolbox-enter { from{opacity:0;transform:translateY(4px) scale(.97)} to{opacity:1;transform:none} }
+}

@@ -37,7 +37,7 @@ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell .navi
   justify-content: center;
 }
 .app-shell .context-sidebar-trigger{border:0;border-radius:var(--workspace-control-radius);background:transparent}
-.app-shell .context-sidebar-trigger:hover{background:var(--accent-softer)}
+.app-shell .context-sidebar-trigger:is(:hover,:focus-visible,:active){background:transparent;border-color:transparent;color:var(--color-accent)}
 @media (pointer:fine) {
   .app-shell :is(.learning-workspace-header,.app-page-header,.goals-header,.library-workspace-header) {
     height:var(--workspace-chrome-height);

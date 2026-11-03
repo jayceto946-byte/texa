@@ -14,7 +14,6 @@
   .context-new-session > span { display: inline; }
   .app-shell[data-navigation="open"] .app-rail-link { min-height: 36px; }
   .app-shell .learning-context-sessions { flex: 1 1 auto; min-height: 0; }
-  .app-shell .learning-workspace-header .current-session-menu { display: none; }
   .app-shell .learning-header-scope-selector { display: block; min-width: 0; max-width: clamp(120px, 32vw, 260px); }
   .app-shell .learning-header-scope-selector > div, .app-shell .learning-header-scope-selector > div > button { max-width: 100%; }
   .app-shell :is(.learning-workspace-scroll, .learning-document-column, .learning-message, .learning-answer-document, .markdown-body) { min-width: 0; max-width: 100%; }
@@ -32,7 +31,7 @@
   .app-shell .library-tree { max-height: 112px; }
   .app-shell .library-content { flex: 1 1 0; min-height: 0; overflow-y: auto; }
 }
-@media (max-width: 760px) {
+@media (pointer:coarse) and (max-width: 760px) {
   .app-shell :is(.app-primary-button, .app-secondary-button, .app-ghost-button) { min-height: 44px; }
   .app-shell .composer-toolbar { flex-wrap: nowrap; align-items: flex-end; }
   .app-shell .composer-tools { min-width: 0; flex: 1 1 0; gap: 0; }
@@ -59,7 +58,7 @@
 @media(max-width:760px) { .focus-bar { padding: 6px 8px; } .focus-bar-summary { gap:4px; } .focus-bar-summary button { padding:4px 6px; } }
 
 .mobile-attachment-menu { display: none; }
-@media(max-width:760px) {
+@media(pointer:coarse) and (max-width:760px) {
   .mobile-attachment-menu { display: block; }
   .app-shell .composer-tools > .composer-tool-button { display:none; }
   .app-shell .composer-more-trigger { display:flex; gap:4px; width:auto; padding-inline:6px; }
@@ -88,11 +87,11 @@
 @media(max-width:919px) {
  .app-shell .learning-context-header > .context-new-session { width:100%; min-height:44px; grid-column:1 / -1; justify-content:center; }
 }
-@media(max-width:760px) {
+@media(pointer:coarse) and (max-width:760px) {
  .app-shell[data-layout="compact"] .composer-more-trigger > span { display:inline; font-size:13px; }
 }
 
-@media(max-width:760px) {
+@media(pointer:coarse) and (max-width:760px) {
  .app-shell .composer-tools .composer-more-trigger { min-width:44px; width:auto; white-space:nowrap; flex-shrink:0; }
  .app-shell .composer-tools .composer-more-trigger > span { white-space:nowrap; }
 }

@@ -2249,29 +2249,6 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .learning-workspace-header {
   padding: 20px 8px 32px;
 }
 
-.app-shell[data-layout="compact"] .composer-textarea {
-  min-height: 52px;
-  max-height: 88px;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.app-shell[data-layout="compact"] .composer-tool-button {
-  width: 32px;
-  min-width: 32px;
-  height: 32px;
-  padding: 0;
-}
-
-.app-shell[data-layout="compact"] .composer-tool-button > span {
-  display: none;
-}
-
-.app-shell[data-layout="compact"] .composer-send {
-  width: 36px;
-  height: 36px;
-}
-
 .app-shell[data-layout="compact"] .composer-overflow-item {
   width: 100%;
   height: auto;
@@ -3370,11 +3347,6 @@ body:has(.desktop-titlebar-marker:not(.is-macos)) .learning-workspace-header {
   }
 }
 
-.app-shell[data-layout="compact"] .chat-composer form .chat-image-upload-button {
-  width: 32px;
-  min-width: 32px;
-  padding-inline: 0;
-}
 
 .app-shell[data-layout="compact"] .chat-composer form .math-input-panel button {
   width: auto;
