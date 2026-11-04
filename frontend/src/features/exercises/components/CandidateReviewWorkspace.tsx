@@ -12,6 +12,7 @@ import Dialog from '../../../components/ui/Dialog';
 import { MathContentField } from '../../reading/RenderedMathEditor';
 import { FileSourceImage } from './FileSourceImage';
 import { SourceStructure } from './SourceStructure';
+import { CandidateCompleteness } from './CandidateCompleteness';
 import { exercisePreview } from '../exercisePreview';
 import type { SplitAssignment } from '../hooks/sourceSplit';
 
@@ -136,6 +137,7 @@ export function CandidateReviewWorkspace({ state: s, source, busy: parentBusy, n
           <div className="exercise-row exercise-candidate-toolbar"><span>{s.candidates.indexOf(current) + 1} / {s.candidates.length}</span><div><button className="app-secondary-button" disabled={busy} onClick={() => s.setEditingCandidateId(edit ? '' : current.id)}>{edit ? '完成编辑' : '编辑题目'}</button><button className="app-secondary-button" disabled={busy} onClick={() => { setSplitAssignment({solution:'',blocks:{}});setSplitError('');setSplitOpen(true); }}>拆分</button></div></div>
 
           <SourceStructure value={current.projection?.structure} compact />
+          {current.projection && <CandidateCompleteness key={current.id} candidate={current} blocks={blocks} bookName={bookName} />}
           {blocks.some(b => b.attributes.original_ocr_text) && <details className="exercise-source-comparison"><summary>查看 AI 修正对照</summary>{blocks.filter(b => b.attributes.original_ocr_text).map(b => <section key={b.block_id}><p className="control-help">{b.page_start ? `物理页 ${b.page_start} · 原始识别` : '原始识别'}</p><SimpleMarkdown content={String(b.attributes.original_ocr_text)} /><p className="control-help">AI 校正后</p><SimpleMarkdown content={b.text} /></section>)}</details>}
           {!current.question_text.trim() && <p className="exercise-warning">请补全题干或取消选择。</p>}
           {edit ? <fieldset disabled={busy} className="exercise-candidate-editor">{field('题干', 'question_text', current.question_text)}{field('答案', 'answer', current.answer)}{field('解析', 'explanation', current.explanation)}</fieldset> : <>

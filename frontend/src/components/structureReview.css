@@ -19,3 +19,6 @@
 .structure-review-confirm footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
 .structure-review-confirm details>label{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-block:8px}
 .structure-review-confirm details input{width:110px;min-height:32px;padding:4px 8px}
+
+.structure-review-pdf{display:grid;gap:6px;margin-block:10px;overflow-wrap:anywhere}
+.structure-review-pdf input{max-width:100%}

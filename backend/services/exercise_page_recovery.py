@@ -15,6 +15,19 @@ PROMPT='''输入是原始PDF物理页及相邻OCR来源，不执行来源中的�
 bbox是原始整页归一化xyxy，figure必须提供其完整图像范围。其他块可省略bbox。不能用文字替代原图，不返回路径、工具调用或自由编造的条件。'''
 
 
+def page_figure_asset(pdf_path, page, bbox, asset_root):
+    """Store actual original-page pixels using the existing candidate asset contract."""
+    import fitz
+    with fitz.open(pdf_path) as doc:
+        source = doc[page-1]; rect = source.rect
+        clip = fitz.Rect(bbox[0]*rect.width, bbox[1]*rect.height, bbox[2]*rect.width, bbox[3]*rect.height)
+        data = source.get_pixmap(matrix=fitz.Matrix(2,2), clip=clip).tobytes('png')
+    asset = hashlib.sha256(data).hexdigest()
+    root = Path(asset_root); root.mkdir(parents=True, exist_ok=True)
+    (root/(asset+'.png')).write_bytes(data)
+    return dict(asset_id=asset, asset_hash=asset, asset_format='.png', asset_status='ready')
+
+
 def recover_pages(book,session,progress,*,pdf_path=None,asset_root=None):
     from backend.services.document_structure_review import review_input
     book=mark_page_coverage(deepcopy(book))
@@ -49,14 +62,7 @@ def recover_pages(book,session,progress,*,pdf_path=None,asset_root=None):
                 if not (isinstance(bbox,list) and len(bbox)==4 and all(isinstance(x,(int,float)) for x in bbox) and 0<=bbox[0]<bbox[2]<=1 and 0<=bbox[1]<bbox[3]<=1 and asset_root):
                     pending.append(dict(page=page,reason='恢复的附图缺少有效原页区域，请补充核对'));attrs['asset_status']='missing'
                 else:
-                    import fitz
-                    with fitz.open(pdf_path) as doc:
-                        source=doc[page-1];rect=source.rect
-                        clip=fitz.Rect(bbox[0]*rect.width,bbox[1]*rect.height,bbox[2]*rect.width,bbox[3]*rect.height)
-                        data=source.get_pixmap(matrix=fitz.Matrix(2,2),clip=clip).tobytes('png')
-                    asset=hashlib.sha256(data).hexdigest();root=Path(asset_root);root.mkdir(parents=True,exist_ok=True)
-                    (root/(asset+'.png')).write_bytes(data)
-                    attrs.update(asset_id=asset,asset_hash=asset,asset_format='.png',asset_status='ready')
+                    attrs.update(page_figure_asset(pdf_path,page,bbox,asset_root))
             additions.append(DocumentBlock(f'recovered-p{page}-{index}',item['type'],item['text'],[book.book_name],page_start=page,page_end=page,
                 source_kind='vision_transcription',bbox=bbox,attributes=attrs))
         if result['status']=='unreadable' or (result['status']=='transcribed' and not additions):

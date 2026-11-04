@@ -1,12 +1,30 @@
 """Explicit, bounded model work; no automatic paid calls during import."""
 from typing import Literal
-from fastapi import APIRouter, HTTPException, File, Form, UploadFile
+from fastapi import APIRouter, HTTPException, File, Form, UploadFile, Query, Response
 from pydantic import BaseModel, Field
 
 from backend.job_manager import get_job_manager
 from config import PROGRESS_PATH, BOOKS_PATH
 
 router = APIRouter(prefix='/structure-reviews', tags=['structure-review'])
+
+
+@router.get('/source-page')
+def original_source_page(kind: Literal['book','import','file'],reference: str,book_name: str,page: int=Query(ge=1)):
+    from backend.services.structure_review_jobs import resolve_source
+    import fitz
+    try:
+        book,_,pdf=resolve_source(dict(kind=kind,reference=reference,book_name=book_name),
+            progress_root=PROGRESS_PATH,books_root=BOOKS_PATH,jobs=get_job_manager())
+        if not pdf or not 1<=page<=(book.source_page_count or 0):
+            raise ValueError('未关联原始PDF，或页码超出来源范围')
+        with fitz.open(pdf) as document:
+            original=document[page-1]
+            pix=original.get_pixmap(matrix=fitz.Matrix(1600/max(original.rect.width,original.rect.height),1600/max(original.rect.width,original.rect.height)))
+            return Response(pix.tobytes('png'),media_type='image/png',headers={'Cache-Control':'private, no-store'})
+    except (ValueError,OSError) as exc:
+        raise HTTPException(422,str(exc)) from None
+
 
 
 @router.post('/source-pdf')

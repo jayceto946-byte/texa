@@ -186,6 +186,12 @@ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell[data-
 }
 
 .exercise-source-image{margin:16px 0;max-width:100%}
+.exercise-original-page-dialog{display:flex;flex-direction:column;gap:12px;padding:20px;width:min(1000px,calc(100vw - 40px));max-height:calc(100dvh - 32px)}
+.exercise-original-page-dialog>h2{margin:0;font-size:18px}
+.exercise-original-page-dialog>footer{display:flex;justify-content:flex-end;padding-top:12px;border-top:1px solid var(--color-border)}
+.exercise-original-page{overflow:auto;max-height:65vh;margin-top:12px}
+.exercise-original-page img{display:block;max-width:100%;height:auto}
+.exercise-original-page img.is-zoomed{max-width:none}
 .exercise-source-image img{display:block;max-width:100%;height:auto}
 
 .exercise-question-heading{margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--color-border)}

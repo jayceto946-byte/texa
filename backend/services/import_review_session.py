@@ -42,6 +42,24 @@ def validate_review_response(result):
     for item in result.get('groups', []):
         if not isinstance(item['keep'],str) or not isinstance(item['merge'],list) or any(not isinstance(b,str) for b in item['merge']):
             raise ValueError('题解配对不符合约定')
+    additions = result.get('additions', [])
+    if not isinstance(additions, list) or any(not isinstance(v, dict) or not isinstance(v.get('local_id'), str)
+            or not isinstance(v.get('text'), str) for v in additions):
+        raise ValueError('原页局部补录格式不正确')
+    for item in additions:
+        if (type(item.get('page')) is not int or not isinstance(item.get('type'),str)
+                or any(k in item and not isinstance(item[k],str) for k in ('unit_id','after_id','before_id','image_ref','unit_role'))):
+            raise ValueError('原页局部补录来源标识不正确')
+    inventory = result.get('page_inventory', [])
+    if not isinstance(inventory, list) or any(not isinstance(v,dict) or type(v.get('page')) is not int
+            or not isinstance(v.get('questions',[]),list) for v in inventory):
+        raise ValueError('页面清单格式不正确')
+    for row in inventory:
+        for question in row.get('questions', []):
+            if (not isinstance(question,dict) or not isinstance(question.get('start_id'),str)
+                    or not isinstance(question.get('source_ids'),list) or any(not isinstance(v,str) for v in question['source_ids'])
+                    or not isinstance(question.get('parts',{}),dict)):
+                raise ValueError('页面题目清单格式不正确')
     if not isinstance(result.get('unresolved', []),list):
         raise ValueError('未完成项须为列表')
     if 'page_blocks' in result and (not isinstance(result['page_blocks'],list) or any(not isinstance(b,dict) or not isinstance(b.get('text'),str) for b in result['page_blocks'])):

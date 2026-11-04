@@ -97,7 +97,7 @@ def start_review(target, *, mode, max_pages, progress_root, books_root, jobs, bu
                 return current
         if purpose:
             from backend.services.import_semantic_review import semantic_review_plan
-            plan=semantic_review_plan(book,purpose)
+            plan=semantic_review_plan(book,purpose,has_original_pages=bool(pdf))
         else:
             plan = review_plan(book, mode=mode, max_pages=max_pages)
         job = jobs.create_job('document_structure_review', dict(book_name=target['book_name'], target=target,
