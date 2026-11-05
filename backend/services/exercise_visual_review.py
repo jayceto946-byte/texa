@@ -46,6 +46,7 @@ def page_packages(book):
     pages = sorted({r['page'] for r in prepared.source_metadata.get('source_page_coverage', [])}
                    or {b.page_start for b in prepared.blocks if b.page_start})
     from memory.exercise_structure import exercise_units
+    from ingestion.document_workflows import EXAMPLE_START
     source = deepcopy(book)
     source.blocks = [b for b in source.blocks if not b.attributes.get('missing_source_page')]
     spans = [(u.get('page_start'), u.get('page_end')) for u in exercise_units(source, unrestricted=True)]
@@ -53,7 +54,7 @@ def page_packages(book):
     for page in pages:
         crossing = any(start and end and start < page <= end for start, end in spans)
         first = next((b for b in prepared.blocks if b.page_start == page and not b.attributes.get('missing_source_page')), None)
-        continuation = first and not first.attributes.get('structure_unit_start') and first.block_type != 'heading' and not (
+        continuation = first and not first.attributes.get('structure_unit_start') and first.block_type != 'heading' and not EXAMPLE_START.match(first.text) and not (
             PROBLEM_START.match(first.text) and not numeric_data_row(first.text))
         if packages and len(packages[-1]) < 2 and page == packages[-1][-1]+1 and (crossing or continuation):
             packages[-1].append(page)
@@ -62,7 +63,25 @@ def page_packages(book):
     return packages
 
 
-def page_input(book, pages, *, asset_root=None, pdf_path=None, evidence=None):
+def carry_boundary_proposals(book, response, aliases, editable, previous, request_key):
+    """Carry read-only structural suggestions to their owning page, never apply them."""
+    by_id = {b.block_id: b for b in book.blocks}
+    confirmed = {aliases.get(v.get('block_id')) for key in ('blocks', 'splits') for v in response.get(key, [])
+                 if aliases.get(v.get('block_id')) in editable}
+    remaining = {p['block_id']: p for p in previous if p['block_id'] not in confirmed}
+    for item in response.get('blocks', []):
+        bid = aliases.get(item.get('block_id'))
+        if bid not in by_id or bid in editable:
+            continue
+        decision = {k:deepcopy(item[k]) for k in ('unit_start', 'unit_role', 'unit_starts_with', 'reason') if k in item}
+        if item.get('unit_id') in aliases:
+            decision['unit_id'] = aliases[item['unit_id']]
+        if decision:
+            remaining[bid] = dict(block_id=bid, page=by_id[bid].page_start, request_key=request_key, decision=decision)
+    return list(remaining.values())
+
+
+def page_input(book, pages, *, asset_root=None, pdf_path=None, evidence=None, boundary_proposals=()):
     from backend.services.document_structure_review import review_input
     from memory.exercise_structure import ORIGINAL, question_metadata, solution_markers
     neighbours = {p+d for p in pages for d in (-1, 1)} - set(pages)
@@ -88,7 +107,18 @@ def page_input(book, pages, *, asset_root=None, pdf_path=None, evidence=None):
     preview.blocks = editable
     visual, _, coverage = review_input(preview, pages, asset_root=asset_root, pdf_path=pdf_path, include_formula_crops=True)
     images = [dict(id=f'original-page:{p}', page=p) for p in coverage['full_page_images']]
+    boundary_hints = []
+    for proposal in boundary_proposals:
+        if proposal['page'] not in pages or proposal['block_id'] not in short:
+            continue
+        decision = deepcopy(proposal['decision'])
+        if 'unit_id' in decision:
+            if decision['unit_id'] not in short:
+                continue
+            decision['unit_id'] = short[decision['unit_id']]
+        boundary_hints.append(dict(block_id=short[proposal['block_id']], **decision))
     payload = dict(review_pages=pages, blocks=[row(b) for b in editable], context_blocks=[row(b) for b in context],
+        boundary_proposals=boundary_hints,
         excluded_observations=observations, original_images=images,
         source_completeness='unknown', omitted_image_blocks=[short.get(b,b) for b in coverage['omitted_image_blocks']])
     content = [dict(type='text', text=json.dumps(payload, ensure_ascii=False, separators=(',', ':'))), *visual[1:]]

@@ -10,7 +10,7 @@ import hashlib
 import html
 import json
 import re
-from memory.exercise_structure import header_metadata, question_metadata, split_roles, solution_markers, ORIGINAL, FOCUS
+from memory.exercise_structure import header_metadata, question_metadata, split_roles, solution_markers, metadata_only, ORIGINAL, FOCUS
 from ingestion.source_text_quality import pending_ocr_damage
 from ingestion.source_markdown import table_markdown
 
@@ -25,6 +25,7 @@ ATTRIBUTE_KEYS = ('source_page_idx', 'source_block_index', 'bbox_space', 'bbox_f
                   'source_parent_id', 'source_start', 'source_end', 'asset_format',
                   'structure_role', 'structure_unit_role', 'structure_group_members', 'structure_unit_id',
                   'structure_review_reason', 'structure_review_receipt',
+                  'source_review_warnings',
                   'original_ocr_text', 'text_corrections', 'exercise_metadata', 'structure_question_number', 'ocr_quality_confirmed', 'ocr_quality_pending',
                   'visual_source', 'exercise_visual_inventory')
 
@@ -171,8 +172,14 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
         answer_ids = set(unit.get('answer_block_ids', []))
         answer_headers = set(unit.get('answer_header_ids', []))
         first_body = next((b['block_id'] for b in blocks if b['block_id'] not in header_ids | answer_headers | answer_ids), None)
-        splits = {b['block_id']: split_roles(b, first=b['block_id'] == first_body, learned=learned) for b in blocks if b['block_id'] not in header_ids}
-        has_solution = bool(answer_ids) or any(spans for spans, _ in splits.values())
+        splits, choice_prefix = {}, ''
+        for b in blocks:
+            if b['block_id'] in header_ids:
+                continue
+            splits[b['block_id']] = split_roles(b, first=b['block_id'] == first_body, learned=learned, choice_prefix=choice_prefix)
+            choice_prefix += b['text'] + '\n'
+        has_solution = (bool(answer_ids) or any(spans for spans, _ in splits.values())
+                        or any(b['attributes'].get('structure_unit_role') in {'answer', 'explanation'} for b in blocks))
         same_block = any(INLINE_SOLUTION.search(b['text']) and not marker(b) and b['block_id'] not in answer_ids and not splits.get(b['block_id'], ([], False))[0] for b in blocks)
         boundary = next((i for i, b in enumerate(blocks) if b['block_id'] in splits and splits[b['block_id']][0]), None)
         if same_block or (unit['kind'] == 'example' and not has_solution):
@@ -195,6 +202,10 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
         parts = {role: [] for role in ROLES}
         unresolved = any(p['code'] in ('solution_in_stem', 'boundary_uncertain') for p in problems)
         method = 'unresolved' if unresolved else ('block_boundary' if has_solution else 'whole_unit')
+        metadata_quotes = {}
+        for b in blocks:
+            for e in (b['attributes'].get('exercise_metadata') or {}).get('evidence', []):
+                metadata_quotes.setdefault(e['block_id'], []).append(e['quote'])
         role = 'question'
         for i, b in enumerate(blocks):
             if pending_ocr_damage(b):
@@ -202,8 +213,19 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
                 warn('source_ocr_damage', [b['block_id']])
                 continue
             reviewed_role = b['attributes'].get('structure_unit_role')
-            if reviewed_role:
-                role = reviewed_role
+            if reviewed_role == 'question':
+                role = 'question'
+            if reviewed_role and not (reviewed_role == 'question' and splits.get(b['block_id'], ([], False))[0]):
+                if reviewed_role == 'context':
+                    if b['block_id'] in header_ids | answer_headers or metadata_only(b['text'], metadata_quotes.get(b['block_id'], ())):
+                        parts['context'].append(dict(block_id=b['block_id'], start=0, end=None))
+                        continue
+                    # Unit-owned context may contain necessary conditions/data.
+                    # Keep it visible in the current question/solution until the
+                    # user resolves the ambiguous role; do not propagate context.
+                    warn('boundary_uncertain', [b['block_id']])
+                else:
+                    role = reviewed_role
                 parts[role].append(dict(block_id=b['block_id'], start=0, end=None))
                 continue
             if b['block_id'] in header_ids | answer_headers:
@@ -272,6 +294,8 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
             if len(targets) > 1 and not members:
                 warn('dependency_uncertain', [b['block_id'] for b in targets], dep_id)
         for b in blocks:
+            if b['attributes'].get('source_review_warnings'):
+                warn('boundary_uncertain', [b['block_id']])
             if b['attributes'].get('text_corrections'):
                 warn('ai_content_correction', [b['block_id']])
             if b['block_type'] == 'figure' and not set(figure_labels(b['text'])).intersection(set(figure_labels(question_source))):
@@ -332,6 +356,8 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
                          original_number=reviewed_number if reviewed_number is not None else blocks[0]['attributes'].get('structure_question_number') or ((original.group(1) or original.group(2)).replace('．','.') if original else ''),
                          classification_path=path,
                          source_block_ids=[b['block_id'] for b in headers])
+        if any(p['code'] in {'boundary_uncertain', 'solution_in_stem'} for p in problems):
+            method = 'unresolved'
         projection = dict(version=1, canonical_hash=canonical_hash, unit_ids=[u['unit_id'] for u in group],
                           scope=deepcopy(scope), method=method, parts=parts, dependencies=dependencies,
                           structure=structure, profile_version=profile_version, source_id=source_id)

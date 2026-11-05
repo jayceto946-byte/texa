@@ -124,8 +124,11 @@ class ReviewSession:
                 raise ValueError('整理结果未完整返回')
             raw = strip_thinking(choice.message.content or '').strip()
             if raw.startswith('```'): raw = raw.split('\n', 1)[-1].rsplit('```', 1)[0]
+            # Retain failed JSON/schema output for local diagnosis.
+            entry['response_output'] = raw
             result = validate_review_response(json.loads(raw))
             entry.update(result=result, status='completed')
+            entry.pop('response_output',None)
         except Exception as exc:
             entry['status'] = 'failed'
             entry['error_type'] = type(exc).__name__

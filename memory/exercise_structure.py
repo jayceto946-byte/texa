@@ -6,6 +6,7 @@ Learned markers are literal, reviewed examples, not executable adapters.
 from __future__ import annotations
 
 import re
+from difflib import SequenceMatcher
 
 CATALOG = re.compile(r'^\s*[#＃]\s*(\d{1,8})(?!\d)\s*')
 EXAM = re.compile(r'(?:19|20)\d{2}\s*年?\s*(?:数[一二三123]|数学[一二三123])\s*$')
@@ -41,13 +42,23 @@ def solution_markers(text, learned=()):
     return matches
 
 
-def split_roles(block, *, first=False, learned=()):
+def split_roles(block, *, first=False, learned=(), choice_prefix=''):
     text = block['text']
     marks = solution_markers(text, learned)
     # An initial "证明：" on a question is a question instruction.
     if first:
         marks = [m for m in marks if text[:m['start']].strip()]
     if not marks:
+        # A final bare choice after all four options is source answer text,
+        # not a fifth option. Preserve its exact span rather than deleting it.
+        choice_text = choice_prefix + text
+        choices = list(re.finditer(r'[（(]([A-D])[）)]', choice_text))
+        if (len(choices) == 5 and choices[-1].start() >= len(choice_prefix) and not choice_text[choices[-1].end():].strip()
+                and [m[1] for m in choices[:4]] == list('ABCD')
+                and choice_text[choices[-2].end():choices[-1].start()].strip(' .。\n')):
+            start = choices[-1].start() - len(choice_prefix)
+            prefix = [('prefix', dict(block_id=block['block_id'], start=0, end=start))] if start else []
+            return [*prefix, ('answer', dict(block_id=block['block_id'], start=start, end=None))], False
         return [], False
     spans = []
     if marks[0]['start']:
@@ -77,6 +88,26 @@ def question_metadata(text, path=()):
     year = re.search(r'(?:19|20)\d{2}', source)
     kind = re.search(r'(?:单项选择题|多项选择题|选择题|填空题|判断题|证明题|计算题|解答题|简答题|综合题)', header)
     return dict(exam_year=year.group() if year else '', exam_source=source, question_type=kind.group() if kind else '')
+
+
+def metadata_only(text, quotes=()):
+    """Recognize source headers, never infer that arbitrary context is disposable."""
+    value = text.strip()
+    number = ORIGINAL.match(value)
+    if number:
+        value = value[number.end():].strip()
+    labelled = re.sub(r'^(?:题目来源|试题来源|出处|来源)[：:]\s*', '', value)
+    if header_metadata(value) or EXAM.fullmatch(labelled) or FOCUS.fullmatch(value):
+        return True
+    compact = ''.join(value.split())
+    return bool(compact and any(compact == ''.join(quote.split()) for quote in quotes))
+
+
+def removes_source_content(old, new):
+    """Structural removal needs a source role, rather than a destructive edit."""
+    old_compact, new_compact = ''.join(old.split()), ''.join(new.split())
+    return not metadata_only(new) and any(tag == 'delete' and old_compact[start:end].strip('$\\{}')
+        for tag, start, end, _, _ in SequenceMatcher(None, old_compact, new_compact, autojunk=False).get_opcodes())
 
 
 def header_continuation(active, block):
@@ -240,7 +271,11 @@ def _file_units(book, paths):
                        or re.search(r'(?:刷题|学习)计划[：:\s]*$',text) or re.match(r'^(?:今日复盘|间隔回顾)',text))
         if catalogued and not assigned and guide_heading and len(text)<120 and not re.search(r'\$|=',text) and SOURCE_GUIDE.search(text):
             in_guide=True;active=None
-        if block.attributes.get('outline_toc') and not declared_start or role in {'front_matter', 'toc', 'overview', 'reference', 'annotation'}:
+        # Marginal handwriting can interrupt a printed solution without ending
+        # the question. A real heading/non-practice section still closes it.
+        if role == 'annotation':
+            continue
+        if block.attributes.get('outline_toc') and not declared_start or role in {'front_matter', 'toc', 'overview', 'reference'}:
             active = None
             continue
         if block.attributes.get('structure_unit_id') and block.attributes['structure_unit_id'] != block.block_id:

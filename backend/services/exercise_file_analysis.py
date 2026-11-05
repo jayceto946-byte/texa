@@ -313,7 +313,33 @@ class ExerciseFileAnalysisStore:
             return CanonicalBook(**{**data,'blocks':[DocumentBlock.from_dict(b) for b in data['blocks']]})
         reviewed,original=raw_book(source_id),raw_book(origin)
         from ingestion.document_structure import has_exercise_scopes
-        reviewed.source_metadata['exercise_scope_policy']='regions' if has_exercise_scopes(original) else 'all'
+        if origin != source_id:
+            reviewed.source_metadata['exercise_scope_policy'] = original.source_metadata.get('exercise_scope_policy') or ('regions' if has_exercise_scopes(original) else 'all')
+        else:
+            reviewed.source_metadata.setdefault('exercise_scope_policy', 'regions' if has_exercise_scopes(original) else 'all')
+        from memory.exercise_structure import removes_source_content
+        restored = []
+        for block in reviewed.blocks:
+            attrs = block.attributes
+            edits = attrs.get('text_corrections', [])
+            removed = [e for e in edits if removes_source_content(e['find'], e['replace'])]
+            if not removed or 'original_ocr_text' not in attrs:
+                continue
+            replayed, retained = attrs['original_ocr_text'], attrs['original_ocr_text']
+            for edit in edits:
+                replayed = replayed.replace(edit['find'], edit['replace'], 1)
+                if edit not in removed:
+                    retained = retained.replace(edit['find'], edit['replace'], 1)
+            # Only undo a recorded edit chain; do not overwrite later manual
+            # changes or a segment whose parent text no longer aligns.
+            if replayed != block.text:
+                continue
+            block.text = retained
+            attrs['text_corrections'] = [e for e in edits if e not in removed]
+            attrs['source_review_warnings'] = ['已从原始识别恢复被移除的内容，请核对题干、答案与批注归属']
+            restored.extend(dict(block_id=block.block_id, **e) for e in removed)
+        if restored:
+            reviewed.source_metadata['local_reprojection_restored_content'] = restored
         reviewed.source_metadata['review_origin_source_id']=origin
         reviewed.source_metadata['local_reprojection_from']=source_id
         from memory.exercise_file_importer import ExtractedExerciseText
